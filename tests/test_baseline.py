@@ -203,4 +203,32 @@ if tk is not None:
                 os.remove(sp)
     check("Kernaktionen laufen durch", bool(ausnahme("Aktionen", aktionen)))
 
+
+abschnitt("6. Icons laden wirklich (nicht nur: Dateien sind da)")
+
+
+def icon_probe():
+    root = tk.Tk()
+    root.withdraw()
+    try:
+        app = main.NebelseetalApp(root)
+        fehlend = []
+        for k, rel in main.UNIT_ICONS.items():
+            if app._lade_icon(rel) is None:
+                fehlend.append(k)
+        check(f"alle {len(main.UNIT_ICONS)} Einheiten-Icons laden als Tk-Bild",
+              not fehlend, ", ".join(fehlend))
+        probe = main.icon_pfad(list(main.UNIT_ICONS.values())[0])
+        check("die freigestellte Fassung hat Vorrang",
+              "clean" in probe.replace("\\", "/"), probe)
+        check("dieselbe Datei wird nur einmal geladen (Zwischenspeicher)",
+              app._lade_icon(list(main.UNIT_ICONS.values())[0]) is
+              app._lade_icon(list(main.UNIT_ICONS.values())[0]))
+        return True
+    finally:
+        root.destroy()
+
+
+check("Icon-Probe laeuft durch", bool(ausnahme("Icons", icon_probe)))
+
 sys.exit(bericht())

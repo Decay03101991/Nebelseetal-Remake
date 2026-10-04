@@ -127,6 +127,22 @@ class Settlement:
 
 # ---------- Config ----------
 
+# Icon-Dateien: bevorzugt die freigestellte Fassung aus assets/icons/clean/ — dort ist der
+# Blatthintergrund entfernt (tools/clean_icons.py). Fehlt sie, wird die Originaldatei genommen.
+ICON_WURZEL = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def icon_pfad(relativ: str) -> str:
+    """Absoluter Pfad zu einem Icon; die freigestellte Fassung hat Vorrang."""
+    if not relativ:
+        return ""
+    rest = relativ.replace("assets/icons/", "").replace("/", os.sep)
+    sauber = os.path.join(ICON_WURZEL, "assets", "icons", "clean", rest)
+    if os.path.exists(sauber):
+        return sauber
+    return os.path.join(ICON_WURZEL, relativ.replace("/", os.sep))
+
+
 # Die neun Originalrohstoffe aus data/resources.json (Handbuch Seiten 9-10), in der Reihenfolge
 # des Handbuchs. Erfunden waren: kristall, stoff, geld, wissen — eisen hiess im Handbuch Metall.
 RESOURCES = ["holz", "stein", "metall", "mana", "nahrung", "gold", "wolle", "leder", "pferde"]
@@ -514,7 +530,24 @@ class NebelseetalApp:
         self.current_view = "Dorfzentrum"
         self.skin_name = "standard"
         self.skin = SKINS[self.skin_name]
+        self._icon_cache: Dict[str, object] = {}   # haelt Tk-Bilder am Leben (sonst raeumt Tk sie weg)
         self._build_loading_screen()
+
+    def _lade_icon(self, relativ: str, faktor: int = 2):
+        """Laedt ein Icon als Tk-Bild. faktor=2 halbiert grosse Icons (~90px -> ~45px)."""
+        pfad = icon_pfad(relativ)
+        if not pfad or not os.path.exists(pfad):
+            return None
+        if pfad in self._icon_cache:
+            return self._icon_cache[pfad]
+        try:
+            bild = tk.PhotoImage(file=pfad)
+            if faktor > 1:
+                bild = bild.subsample(faktor)
+        except Exception:
+            return None
+        self._icon_cache[pfad] = bild
+        return bild
 
     def _build_loading_screen(self):
         for widget in self.root.winfo_children():
@@ -818,19 +851,9 @@ class NebelseetalApp:
             cell.grid(row=row, column=col, padx=4, pady=4, sticky="nsew")
             units_frame.grid_columnconfigure(col, weight=1)
             units_frame.grid_rowconfigure(row, weight=1)
-            icon_path = UNIT_ICONS.get(key)
-            if icon_path:
-                full_path = os.path.join(base_dir, icon_path)
-                if os.path.exists(full_path):
-                    try:
-                        img = tk.PhotoImage(file=full_path)
-                        lbl = tk.Label(cell, image=img, bg=self.skin["panel"])
-                        lbl.image = img
-                        lbl.pack(pady=(0, 4))
-                    except Exception:
-                        tk.Label(cell, text="?", fg=self.skin["text"], bg=self.skin["panel"], font=("Arial", 16)).pack(pady=(0, 4))
-                else:
-                    tk.Label(cell, text="?", fg=self.skin["text"], bg=self.skin["panel"], font=("Arial", 16)).pack(pady=(0, 4))
+            _bild = self._lade_icon(UNIT_ICONS.get(key, ""))
+            if _bild is not None:
+                tk.Label(cell, image=_bild, bg=self.skin["panel"]).pack(pady=(0, 4))
             else:
                 tk.Label(cell, text="?", fg=self.skin["text"], bg=self.skin["panel"], font=("Arial", 16)).pack(pady=(0, 4))
             tk.Label(cell, text=u.name, fg=self.skin["text"], bg=self.skin["panel"], font=("Arial", 9)).pack()
@@ -1251,6 +1274,9 @@ class NebelseetalApp:
         for key, u in self.state.units.items():
             frame = tk.Frame(self.content, bg=self.skin["panel"])
             frame.pack(fill=tk.X, padx=10, pady=2)
+            _bild = self._lade_icon(UNIT_ICONS.get(key, ""))
+            if _bild is not None:
+                tk.Label(frame, image=_bild, bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
             tk.Label(frame, text=u.name, fg=self.skin["text"], bg=self.skin["panel"], width=15, anchor=tk.W).pack(side=tk.LEFT, padx=5)
             _w = einheiten.alle()[key]["werte"]
             if einheiten.ist_transport(key):
