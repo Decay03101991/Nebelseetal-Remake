@@ -13,3 +13,11 @@ savegame.json
 
 # Sicherungen aus der Entwicklung
 *.orig
+
+# Ausgelieferte Programme: nur EINE Fassung, und die entsteht erst beim Portieren (Paket W9).
+# Regel aus dem Vorfall vom 04.10.2026: ein alter EXE-Build (Nebelsee Memory.exe, 27.08.2026)
+# lag versioniert im Projekt und trug denselben Fenstertitel wie das Remake — Daniel sah darin
+# Golems und Pikeniere, obwohl der Code sie nicht mehr kannte. Alte Builds gehoeren in Quarantaene.
+*.exe
+_Quarantaene/
+Quarantäne/
