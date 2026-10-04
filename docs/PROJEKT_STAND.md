@@ -64,7 +64,7 @@ gleich, Zeiger `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`).
 | Neues Werkzeug | `tools/pruefe_verdrahtung.py` — Textbeweis aus `main.py`: 13 verdrahtet, `botkern` nur importiert, `auftraege`/`forschung`/`welt` nicht eingebunden; meldet doppelte Definitionen und zweite Wahrheiten |
 | **Noch nicht eingehängt** | `auftraege` (Missionen), `forschung` (Wartezeit statt Sofort-Stufe), `welt` (Weltkarte), Teile von `botkern` (Bot-Verhalten je Runde) |
 | **Neu erledigt (01:02)** | Der **Kampfsimulator** rechnet nicht mehr mit der erfundenen Kampfkraft, sondern über `kampf.fuehre_schlacht` als Trockenkurs (bucht nichts, kennzeichnet den Übungsgegner als ausgedacht); die nicht mehr benutzten `bonus_system`-Importe sind entfernt. **`tools/pruefe_verdrahtung.py`: Summe Treffer 0** — keine zweite Wahrheit mehr in `main.py` |
-| `.exe` | **05.10. 00:53 neu gebaut**: `Nebelseetal_Remake.exe`, **14.108.111 Byte (13,5 MB)**, SHA256 `73e04b5909b0dedd177a7d331e2501051f1d5f15e185d333c1ed731699dacbc4`; **Startprüfung bestanden** (Ordner mit Leerzeichen, Fenster „Nebelseetal Remake", kein Absturz, Passworttor steht; das Passwort wurde **nicht** eingegeben). Enthält Speichern, Punkte, Kampf, Portal und Werkstatt — **nicht** die noch offenen Module |
+| `.exe` | **05.10. 01:06 erneut gebaut** (nach dem Simulator-Schritt): `Nebelseetal_Remake.exe`, **14.108.969 Byte**, SHA256 `21bcb807ef756922a7d2b5c743ccc419db18798f4e90de3f76c4cadfe9d57df6`; **Startprüfung bestanden** (Pfad mit Leerzeichen, Fenster „Nebelseetal Remake", kein Absturz, Passworttor steht; das Passwort wurde **nicht** eingegeben). Enthält Speichern, Punkte, Kampf, Portal, Werkstatt und den neuen Kampfsimulator — **nicht** die noch offenen Module |
 | Kosten dieser Sitzung | **0,7082 USD = 0,6309 EUR** (`scripts/tageskosten_check.py --json`, Messung 01:02), davon **0,3444 USD** der auf Daniels Wunsch geholte `gpt-6-astra`-Rat; der Rest ist Koordinator + `flash`-Unteragenten |
 | Guthaben | Daniel ablesen lassen: OpenAI **3,04 → ~2,70 USD**, DeepSeek **1,70 USD** (Reserve 1,00 USD unberührt) — bitte bei der nächsten Sitzung erneut ablesen, ich kann es nicht messen |
 
@@ -508,6 +508,8 @@ nachzulesen im Skill `kosten-schutzregel` („laufende Ausnahme"). Außerhalb di
 
 | Commit | Inhalt |
 |---|---|
+| *(neu)* | Kampfsimulator auf das echte Schlachtmodell, EXE neu gebaut (14.108.969 Byte) und startgeprüft |
+| `697ab1b` | **W2-Nachtrag: Kampfsimulator** als Trockenkurs über `kampf.fuehre_schlacht`; unbenutzte `bonus_system`-Importe entfernt (Verdrahtungsprüfer ohne Funde) |
 | `a1f224a` | **W3 Werkstatt + 17 Originalwaren** eingehängt; Verdrahtungsprüfer und GUI-Fehler-Test aufgenommen (1798/0/15 über 27 Dateien), EXE-Neubau |
 | `ff87d75` | **W5-2 Portalraum** eingehängt; astra-Rat gesichert und mit gemessenen Kosten belegt (0,3444 USD) |
 | `b14f7f5` | **W6 Punkte + W2/W2b Kampf** eingehängt; zwei Verdrahtungs-Prüfdateien (1734/0/14 über 25 Dateien) |
