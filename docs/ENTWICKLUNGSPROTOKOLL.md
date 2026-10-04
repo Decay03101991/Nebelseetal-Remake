@@ -280,3 +280,5 @@ dem Tageswert der Ausgaben-API, der in Schüben aktualisiert und deshalb unbrauc
 **Stand nach Abschnitt J:** alle zehn Kind-Module sind gebaut **und vom Koordinator nachgerechnet**;
 kein Brett der Kinder mehr. **Nächster Schritt bleibt das Einhängen** über `src/spielschicht.py` in
 `main.py` und danach ein **Neubau der `.exe`**.
+
+**Sicherung (projektunabhaengig):** 12 Dateien gesichert nach `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-04_2324` — Vorgabe von Daniel am 04.10.2026, damit das Protokoll auch ohne diesen Projektordner weiterlebt. Zeiger auf die juengste Fassung: `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`.
