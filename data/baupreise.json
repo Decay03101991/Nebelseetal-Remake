@@ -1,24 +1,29 @@
 {
-  "_hinweis": "BAUPREISE — VORSCHLAG, NICHT BELEGT. Das Originalhandbuch nennt Erträge und Wirkungen, aber KEINE Baupreise (geprüft am 04.10.2026: in der Textfassung steht keine einzige Gebaeudepreisangabe). Diese Preise sind aus dem Ertrag ableitet, nicht gewuerfelt, und warten auf Daniels Abnahme.",
-  "_quelle": "docs/audits/astra_wirtschaft_antwort.txt (astra, Einsatz 3, 04.10.2026), Auswertung in docs/ENTWURF_WIRTSCHAFT.md",
-  "_ableitung": [
+  "_hinweis": "BAUPREISE. Vier Gebaeude sind BELEGT (GameStar-Screenshot 1838857 vom 09.09.2008: Holzfaeller 10 Holz + 5 Stein + 1 Siedler, Steinmetz 5 + 10 + 1, Jaeger 25 + 25 + 1, Haus 80 Holz + 50 Stein; deckt sich mit der jahrelang als 'erfunden' markierten Tabelle in src/main.py - der Fehler dort war nur der dritte Posten: 1 Siedler, nicht 1 Nahrung). Fuer die uebrigen 16 Gebaeude nennt keine Quelle einen Preis; dort stehen weiterhin ABGELEITETE Vorschlaege (astra, Einsatz 3).",
+  "_widerlegt": "Der frueher hier stehende Vorschlag (Holzfaeller 8 Holz + 4 Stein usw.) ist WIDERLEGT: die echten Preise sind hoeher und stehen im Screenshot. Er ist ueberall durch die belegten Werte ersetzt.",
+  "_quelle": "docs/original/karten/gamestar_nebelseetal_1838857_full.jpg (ausgewertet in docs/audits/astra_gamestar_antwort.txt), src/main.py (alte Tabelle), docs/audits/astra_wirtschaft_antwort.txt (Vorschlaege fuer die uebrigen)",
+  "_ableitung_der_vorschlaege": [
     "Eine Referenz-Produzentenstunde ist 4 Holz oder 4 Stein wert (Normertrag eines guten Standorts).",
     "Materialbudget nach Gebaeudeart: Basisproduktion 3 Arbeitsstunden, Spezialproduktion 6, Werkstaetten 10, Ausbildungsstaetten 14.",
     "Ausbau auf Stufe n kostet das n-fache des Grundpreises (linearer Materialbedarf)."
   ],
+  "_siedler_als_preis": "Ein Gebäude kostet 1 Siedler: dieser Siedler arbeitet dort und zaehlt nicht mehr zur freien Bevoelkerung (Handbuch: Siedler wohnen in dem Gebaeude, in dem sie arbeiten). Das Spiel zieht ihn von der Bevoelkerung ab.",
   "_regel_fuer_aenderungen": "Daniel kann jede Zahl hier aendern; sie gilt dann sofort fuer alle neuen Bauten. Die Preise werden beim Bauen abgezogen und sind im Spiel sichtbar.",
   "preise": {
-    "holzfaeller": {"holz": 8, "stein": 4, "budget": "Basisproduktion (3 Arbeitsstunden)"},
-    "steinmetz": {"holz": 8, "stein": 4, "budget": "Basisproduktion (3 Arbeitsstunden), damit Stein den Einstieg nicht blockiert"},
-    "erzmine": {"holz": 16, "stein": 8, "budget": "Spezialproduktion (6)"},
+    "holzfaeller": {"holz": 10, "stein": 5, "siedler": 1,
+                    "_belegt": "BEWIESEN: Screenshot 1838857 - 'Kosten: 10 Holz, 5 Stein, 1 Siedler'."},
+    "steinmetz": {"holz": 5, "stein": 10, "siedler": 1,
+                  "_belegt": "BEWIESEN: Screenshot 1838857 - 'Kosten: 5 Holz, 10 Stein, 1 Siedler'."},
+    "erzmine": {"holz": 16, "stein": 8, "budget": "Spezialproduktion (6), VORSCHLAG"},
     "tempel": {"holz": 16, "stein": 8, "budget": "Spezialproduktion (6), Mana-Kette"},
     "farm": {"holz": 8, "stein": 4, "budget": "Basisproduktion (3), Grundversorgung"},
     "goldmine": {"holz": 16, "stein": 8, "budget": "Spezialproduktion (6)"},
     "schafszucht": {"holz": 16, "stein": 8, "budget": "Spezialproduktion (6), Stall und Textilkette"},
     "rinderfarm": {"holz": 16, "stein": 8, "budget": "Spezialproduktion (6), Nahrung und Leder"},
     "pferdezucht": {"holz": 16, "stein": 8, "budget": "Spezialproduktion (6), Transport- und Reiterkette"},
-    "jaeger": {"holz": 8, "stein": 4, "budget": "Basisproduktion (3), forschungsfreier Einstieg"},
-    "schmiede": {"holz": 24, "stein": 16, "budget": "Werkstatt (10)"},
+    "jaeger": {"holz": 25, "stein": 25, "siedler": 1,
+               "_belegt": "BEWIESEN: Screenshot 1838857 - 'Kosten: 25 Holz, 25 Stein, 1 Siedler'."},
+    "schmiede": {"holz": 24, "stein": 16, "budget": "Werkstatt (10), VORSCHLAG"},
     "bogenbauer": {"holz": 24, "stein": 16, "budget": "Werkstatt (10)"},
     "naehstube": {"holz": 24, "stein": 16, "budget": "Werkstatt (10)"},
     "kriegerakademie": {"holz": 32, "stein": 24, "budget": "Ausbildungsstaette (14)"},
@@ -26,8 +31,9 @@
     "stellmacher": {"holz": 32, "stein": 24, "budget": "Ausbildungsstaette (14)"},
     "verteidigungswall": {"holz": 16, "stein": 16, "budget": "Schutzbudget (8)"},
     "bibliothek": {"holz": 12, "stein": 8, "budget": "Forschungszugang (5), bewusst unter Werkstattkosten"},
-    "haus": {"holz": 8, "stein": 4, "budget": "Basisbudget fuer Siedlerkapazitaet"},
-    "lager": {"holz": 4, "stein": 4, "budget": "Infrastruktur (2)"}
+    "haus": {"holz": 80, "stein": 50,
+             "_belegt": "BEWIESEN: Screenshot 1838857 - 'Kosten: 80 Holz, 50 Stein'. Kein Siedler: das Haus BEHERBERGT Siedler (+5)."},
+    "lager": {"holz": 4, "stein": 4, "budget": "Infrastruktur (2), VORSCHLAG"}
   },
   "regeln": {
     "ausbau_linear": "Ausbau auf Stufe n kostet das n-fache des Grundpreises — VORSCHLAG.",

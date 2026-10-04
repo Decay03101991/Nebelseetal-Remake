@@ -104,8 +104,14 @@ app.state.resources["holz"].amount = 500
 app.state.resources["stein"].amount = 500
 vorher_holz = app.state.resources["holz"].amount
 vorher_stein = app.state.resources["stein"].amount
+vorher_siedler = app.state.population
 kosten = M.baukosten("holzfaeller")
-check("Holzfäller-Preis ist hinterlegt", kosten == {"holz": 8, "stein": 4}, str(kosten))
+check("Holzfäller-Preis ist der belegte Originalpreis (10 Holz, 5 Stein, 1 Siedler)",
+      kosten == {"holz": 10, "stein": 5, "siedler": 1}, str(kosten))
+check("Haus kostet 80 Holz und 50 Stein und KEINEN Siedler (es beherbergt welche)",
+      M.baukosten("haus") == {"holz": 80, "stein": 50}, str(M.baukosten("haus")))
+check("der Siedler erscheint lesbar in der Kostenzeile",
+      "Siedler" in M.kosten_text(kosten), M.kosten_text(kosten))
 
 app._karten_feld_waehlen(wald)
 app._karten_bauen("holzfaeller")
@@ -116,6 +122,9 @@ check(f"Holz wurde abgezogen ({kosten['holz']})",
 check(f"Stein wurde abgezogen ({kosten['stein']})",
       app.state.resources["stein"].amount == vorher_stein - kosten["stein"],
       f"{vorher_stein} -> {app.state.resources['stein'].amount}")
+check("ein Siedler arbeitet jetzt im Gebäude (Bevölkerung sinkt)",
+      app.state.population == vorher_siedler - 1,
+      f"{vorher_siedler} -> {app.state.population}")
 check("das Feld ist danach abgewählt", app.karten_feld is None)
 
 abschnitt("Siedlungskarte im Fenster — zu wenig Rohstoffe wird gemeldet")

@@ -80,8 +80,14 @@ def _gebaeude_text(kennung: str, geb: dict) -> list:
         zeilen.append(f"  Achtung, zwei Fassungen: {geb['abweichung']}")
     preis = _baupreise().get(kennung)
     if preis:
-        kosten = ", ".join(f"{v} {r.capitalize()}" for r, v in preis.items() if r != "budget")
-        zeilen.append(f"  Baupreis: {kosten}  (VORSCHLAG — das Handbuch nennt keine Preise)")
+        zahlen = {r: v for r, v in preis.items() if isinstance(v, (int, float))}
+        if zahlen:
+            kosten = ", ".join(
+                f"{int(v) if float(v).is_integer() else v} {r.capitalize()}"
+                for r, v in zahlen.items())
+            herkunft = ("belegt — aus dem Original-Baumenü" if preis.get("_belegt")
+                        else "VORSCHLAG — für dieses Gebäude nennt keine Quelle einen Preis")
+            zeilen.append(f"  Baupreis: {kosten}  ({herkunft})")
     return zeilen
 
 

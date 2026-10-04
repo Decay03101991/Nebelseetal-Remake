@@ -105,4 +105,31 @@ check("Stufe 0 kostet nichts", S.forschungs_kosten(0) == {})
 check("die Kostenzahl steht auch in data/research.json",
       "50 Holz" in S.forschungsregeln().get("kosten", ""), S.forschungsregeln().get("kosten"))
 
+abschnitt("Datendateien tragen keine doppelten Schlüssel")
+# JSON nimmt bei doppelten Schluesseln still den LETZTEN - ein doppelter Eintrag faellt
+# damit nicht auf, liefert aber den falschen Wert (real passiert: baupreise.json, jaeger+haus).
+import collections as _coll
+import glob as _glob
+import json as _json
+import os as _os
+
+_wurzel = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
+_daten = _os.path.join(_wurzel, "data")
+_dateien = sorted(_glob.glob(_os.path.join(_daten, "*.json")))
+check("die Datendateien sind auffindbar", len(_dateien) >= 8, f"{len(_dateien)} Dateien in {_daten}")
+
+for _pfad in _dateien:
+    _doppelte = []
+
+    def _haken(paare):
+        for _k, _n in _coll.Counter(k for k, _ in paare).items():
+            if _n > 1:
+                _doppelte.append(_k)
+        return dict(paare)
+
+    with open(_pfad, encoding="utf-8") as _f:
+        _json.load(_f, object_pairs_hook=_haken)
+    check(f"{_os.path.basename(_pfad)} ohne doppelte Schlüssel",
+          not _doppelte, f"doppelt: {_doppelte}")
+
 sys.exit(bericht())

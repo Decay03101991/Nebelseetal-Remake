@@ -207,7 +207,12 @@ BAUPREISE_DATEI = os.path.join(ICON_WURZEL, "data", "baupreise.json")
 
 
 def baukosten(gebaeude_key: str, stufe: int = 0) -> dict:
-    """Baupreis eines Gebaeudes. Ausbau auf Stufe n kostet das n-fache (Vorschlag)."""
+    """
+    Baupreis eines Gebaeudes.
+
+    Enthaelt neben Rohstoffen ggf. den Posten "siedler" (belegt: Holzfäller, Steinmetz und Jäger
+    kosten je 1 Siedler, der dann dort arbeitet). Ausbau auf Stufe n kostet das n-fache.
+    """
     try:
         with open(BAUPREISE_DATEI, encoding="utf-8") as f:
             daten = json.load(f)["preise"]
@@ -216,7 +221,9 @@ def baukosten(gebaeude_key: str, stufe: int = 0) -> dict:
     kennung = gelaende.finde_gebaeude(gebaeude_key) or gebaeude_key
     eintrag = daten.get(kennung) or {}
     faktor = max(1, stufe)
-    return {r: v * faktor for r, v in eintrag.items() if r in RESOURCES}
+    # nur Zahlen durchlassen: die Datei traegt auch Begruendungstexte (_belegt, budget)
+    return {r: v * faktor for r, v in eintrag.items()
+            if (r in RESOURCES or r == "siedler") and isinstance(v, (int, float))}
 
 
 def kosten_text(kosten: dict) -> str:
@@ -952,16 +959,28 @@ class NebelseetalApp:
             return
         name = gelaende.gebaeude_name(gebaeude_key)
         kosten = baukosten(gebaeude_key)
-        fehlt = [r for r, v in kosten.items() if self.state.resources[r].amount < v]
+        if not kosten:
+            self._log(f"Für {name} ist kein Preis hinterlegt — Bau abgebrochen.")
+            return
+        # Rohstoff-Kosten prüfen; der Siedler kommt aus der Bevölkerung, nicht aus dem Lager.
+        fehlt = [r for r, v in kosten.items()
+                 if r != "siedler" and self.state.resources[r].amount < v]
+        braucht_siedler = kosten.get("siedler", 0)
+        if braucht_siedler > self.state.population:
+            fehlt.append("siedler")
         if fehlt:
-            self._log(f"Nicht genug Rohstoffe für {name}: es fehlt {', '.join(sorted(fehlt))}.")
+            self._log(f"Nicht genug Rohstoffe für {name}: es fehlt "
+                      f"{', '.join(sorted(fehlt))}.")
             return
         ok, meldung = bauen_auf_karte(siedlung, gebaeude_key, feld)
         if not ok:
             self._log(f"Bau nicht möglich: {meldung}")
             return
         for r, v in kosten.items():
-            self.state.resources[r].amount -= v
+            if r == "siedler":
+                self.state.population = max(0.0, self.state.population - v)
+            else:
+                self.state.resources[r].amount -= v
         self._log(f"{name} gebaut — {meldung}")
         self.karten_feld = None
         self._render_view()

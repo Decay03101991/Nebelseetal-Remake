@@ -28,8 +28,13 @@ t = B.antwort("Was macht der Holzfäller?")
 check("nennt den Namen", "Holzfäller" in t, t[:60])
 check("nennt Wald 4 pro Stunde", "Wald: 4/h" in t or "Wald: 4" in t, t)
 check("nennt Steppe 2 pro Stunde", "Steppe: 2" in t, t)
-check("nennt den Baupreis aus der Vorschlagsdatei", "8 Holz" in t and "4 Stein" in t, t)
-check("und kennzeichnet den Preis als Vorschlag", "VORSCHLAG" in t, t)
+check("nennt den BELEGTEN Originalpreis (10 Holz, 5 Stein, 1 Siedler)",
+      "10 Holz" in t and "5 Stein" in t and "1 Siedler" in t, t)
+check("und kennzeichnet ihn als belegt", "belegt" in t, t)
+
+t = B.antwort("Was kostet ein Tempel?")
+check("für Gebäude ohne Originalpreis wird der Vorschlag als solcher benannt",
+      "VORSCHLAG" in t, t)
 
 t = B.antwort("Welches Gelände braucht der Steinmetz?")
 check("Steinmetz: Berg 4", "Berg: 4" in t, t)
