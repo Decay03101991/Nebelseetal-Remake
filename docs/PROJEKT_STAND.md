@@ -201,6 +201,8 @@ verloren gegangen (die Kartenanalyse und die Siedlungsvorlage).
 | Kampf nur als Modul | nicht aus dem Spiel auslösbar | Einhängen |
 | Weltkarte nur als Rechenmodell | `src/welt.py` + `src/portalraum.py` (20 Dimensionen) sind fertig, im Fenster steckt aber noch das alte `MAPS`-Modell; keine Portalansicht | Einhängen |
 | Oberfläche weicht vom Original ab | das Original-Menü ist belegt und wird gerade gegen unsere Liste gestellt | Einhängen |
+| **Götterschutz endet laut Handbuch mit dem ersten Kriegspunkt** (neu entdeckt mit W6) | `src/punkte.py` setzt die **7 Tage** richtig um, lässt den Schutz aber nicht vorzeitig enden, wenn der Spieler Kriegspunkte sammelt. Steht in `punkte.vorschlaege()` — Frage 11 an Daniel | Einhängen |
+| **Rundung der Gesamtpunkte offen** (W6) | „Gesamt = halbe Summe" ist belegt, die Rundung bei ungerader Summe nicht: das Modul rundet **ab** (VORSCHLAG) — Frage 10 an Daniel | Einhängen |
 | kein Passworttor, keine `.exe` | ~~fehlt~~ **beides da** (04.10.2026): `.exe` mit Tor, Start belegt. Es fehlt nur noch der letzte Neubau nach dem Einhängen der Module | Einhängen + Neubau |
 
 ## 6. Nächste Schritte (in dieser Reihenfolge)

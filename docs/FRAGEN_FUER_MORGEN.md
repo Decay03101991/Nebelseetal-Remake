@@ -35,6 +35,11 @@ geprüft. Offen ist vor allem **ein** Schritt: diese Bausteine in die Oberfläch
    höchstens einmal je 24 h). `src/welt.py` enthält außerdem einen älteren **Vorschlag** mit
    Entfernungsformel. Welche der beiden soll das Spiel benutzen? (Ich würde die belegten 5.000
    nehmen und die Formel als Vorschlag stehen lassen.)
+10. **Rundung der Gesamtpunkte**: belegt ist „Gesamt = die Hälfte aus Forschungs- und Kriegspunkten",
+    aber nicht, was bei einer **ungeraden** Summe passiert. Im Modul wird **abgerundet** (3 → 1) und
+    das ist als Vorschlag gekennzeichnet. Abrunden, aufrunden oder kaufmännisch?
+11. **Götterschutz**: belegt sind **7 Tage** (umgesetzt) und dass er laut Handbuch **mit dem ersten
+    Kriegspunkt endet** (noch nicht umgesetzt). Soll ich das nachziehen?
 
 ## 3. Was in der Nacht noch entstanden ist
 
