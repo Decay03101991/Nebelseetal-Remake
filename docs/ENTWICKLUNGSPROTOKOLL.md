@@ -253,3 +253,7 @@ dem Tageswert der Ausgaben-API, der in Schüben aktualisiert und deshalb unbrauc
 - Die vollständige Historie: `git log --oneline`.
 
 **Sicherung (projektunabhaengig):** 14 Dateien gesichert nach `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-04_2302` — Vorgabe von Daniel am 04.10.2026, damit das Protokoll auch ohne diesen Projektordner weiterlebt. Zeiger auf die juengste Fassung: `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`.
+
+**Sicherung (projektunabhaengig):** 14 Dateien gesichert nach `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-04_2303` — Vorgabe von Daniel am 04.10.2026, damit das Protokoll auch ohne diesen Projektordner weiterlebt. Zeiger auf die juengste Fassung: `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`.
+
+**Sicherung (projektunabhaengig):** 14 Dateien gesichert nach `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-04_2304` — Vorgabe von Daniel am 04.10.2026, damit das Protokoll auch ohne diesen Projektordner weiterlebt. Zeiger auf die juengste Fassung: `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`.
