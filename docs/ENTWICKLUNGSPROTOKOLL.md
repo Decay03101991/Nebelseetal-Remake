@@ -112,6 +112,15 @@ jetzt; und beim Nachsehen fiel auf, dass `src/forschung.py` und `src/welt.py` zw
 im Spiel aber **nicht eingehängt** sind — die Forschung steigt noch im selben Klick, und im Portal
 steckt noch das alte `MAPS`-Modell.
 
+**Nachtrag (22:17) — ein Fund beim Aufräumen, noch NICHT behoben:** `src/main.py` schützt sich gegen
+einen doppelten Start über `src/game.lock` (dort steht die Prozessnummer). Die Prüfung benutzt
+`os.kill(pid, 0)` — unter Windows **beendet** `os.kill` den Prozess, statt nur zu fragen (Signal 0 wird
+dort als `TerminateProcess` ausgeführt). Steht eine alte Nummer in der Sperrdatei und ist sie inzwischen
+an ein fremdes Programm vergeben, würde der Spielstart dieses Programm beenden. Beim Teststart blieb
+außerdem eine Sperrdatei zurück (mein Abbruch umging die Aufräumroutine); sie ist entfernt. Der Fund
+gehört zu Paket **W9** (Auslieferung, doppelter Start) — geändert wurde hier nichts, damit der Schritt
+prüfbar bleibt.
+
 ---
 
 ## Kosten

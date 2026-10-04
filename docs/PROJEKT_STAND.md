@@ -195,6 +195,7 @@ verloren gegangen (die Kartenanalyse und die Siedlungsvorlage).
 | Kampf nur als Modul | nicht aus dem Spiel auslösbar | W2b |
 | Weltkarte nur als Rechenmodell | `src/welt.py` (20 Dimensionen) ist fertig, im Fenster steckt aber noch das alte `MAPS`-Modell; keine Portalansicht | W5-2 |
 | Oberfläche weicht vom Original ab | Original-Menü belegt, Reihenfolge fehlt | W7 |
+| **Doppelstart-Schutz kann fremde Programme beenden** (neu entdeckt am 04.10.2026) | `src/main.py` prüft die Sperrdatei `src/game.lock` mit `os.kill(pid, 0)`; unter Windows **beendet** dieser Aufruf den Prozess. Ist die Nummer inzwischen neu vergeben, trifft es ein fremdes Programm | W9 (doppelter Start) |
 | kein Passworttor, keine `.exe` | **das Ziel ist noch nicht erreicht** | W9 |
 
 ## 6. Nächste Schritte (in dieser Reihenfolge)
