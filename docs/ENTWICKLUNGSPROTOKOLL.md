@@ -261,3 +261,22 @@ dem Tageswert der Ausgaben-API, der in Schüben aktualisiert und deshalb unbrauc
 **Sicherung (projektunabhaengig):** 14 Dateien gesichert nach `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-04_2307` — Vorgabe von Daniel am 04.10.2026, damit das Protokoll auch ohne diesen Projektordner weiterlebt. Zeiger auf die juengste Fassung: `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`.
 
 **Sicherung (projektunabhaengig):** 17 Dateien gesichert nach `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-04_2311` — Vorgabe von Daniel am 04.10.2026, damit das Protokoll auch ohne diesen Projektordner weiterlebt. Zeiger auf die juengste Fassung: `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`.
+
+---
+
+## J. Selbstprüfung, Brett-Abbau und alle zehn Module (23:10–23:35)
+
+| Zeit | Schritt | Ergebnis / Beleg |
+|---|---|---|
+| 23:12 | **Dritte Kinder-Welle zuerst abgebrochen** | Der erste Anlauf für Aufträge (WA), Menü-Vergleich (W7) und robustes Speichern (W8) wurde nach rund zwei Minuten abgebrochen — **ohne eine einzige Datei**. Die Übergabe behauptete zu diesem Zeitpunkt fälschlich „Modul liegt vor". **Richtiggestellt** und die drei Kinder neu gestartet; das versehentlich mitgeschickte fünfte Kind (Bot-Kern, schon fertig) sofort gestoppt und `src/botkern.py` als **unverändert** nachgeprüft |
+| 23:16 | **Auftragssystem (WA)** | `src/auftraege.py` + Prüfdatei: **111 bestanden, 0 Fehler, 1 Befund** — von mir selbst gelaufen, nicht geglaubt |
+| 23:18 | **Robustes Speichern (W8)** | `src/speichern.py` + Prüfdatei: **95 bestanden, 0 Fehler, 5 Befunde** (ehrlich: keine Dateisperre gegen zwei Schreiber, Klartext, kein Verzeichnis-Sync) |
+| 23:19 | **Menü-Vergleich (W7) — echter Fehler gefunden** | `src/oberflaeche_original.py`: **63 grün, 1 rot**. Der Kind-Test suchte das Wort „tkinter" auch in der *Beschreibung* des Moduls und schlug deshalb an. Die Prüfung verlangt jetzt einen echten Import → **64 grün**. Belegt: verlässlich ist die Prüfzahl des Koordinators, nicht die Meldung des Kindes |
+| 23:22 | **Brett der Kinder wieder entfernt** (Vorgabe Daniel) | `tools/brett.py` und `board/` gelöscht; die Anweisungen aus `docs/AGENTEN_PLAN.md`, Übergabe und Skill entfernt. Grund: ein Kinder-Brett ist eine **zweite Wahrheit** — es kann „fertig" melden, während die eigene Prüfdatei rot ist (genau am Menü-Modul passiert). `docs/BOARD.md` bleibt als **Tagebuch des Koordinators für Daniel**. Das **Spiel-Postfach** (Reiter „Nachrichten") ist unberührt — nachgeprüft |
+| 23:25 | **Selbstprüfung — Fehler in meiner eigenen Prüfung** | Meine Prüfkette nutzte `grep -c`; bei 0 Treffern bricht `&&` ab, dadurch liefen zwei Prüfungen **gar nicht**, obwohl es nach Erfolg aussah. Nachgeholt: keine `brett`-Reste außerhalb dieser Chronik, **kein** `main`-Import in den neuen Modulen, `data/menue_original.json` gültig (15 Einträge), `botkern.handelspreis(referenzpreis, temperament)` bestätigt |
+| 23:30 | **Zehn Kind-Module, 958 Prüfungen** | 94 + 118 + 69 + 76 + 108 + 133 + 90 + 95 + 64 + 111 = **958**, jedes einzeln von mir nachgerechnet und in `run_tests.bat` aufgenommen (jetzt **23 Dateien**). Commit `f48e9d2` |
+| 23:32 | **Guthaben (von Daniel abgelesen)** | OpenAI **4,08 USD** (Reihe 8,89 → 5,56 → 4,18 → 4,08) · DeepSeek **2,08 USD** (Reihe 3,32 → 2,60 → 2,08). Über der von Daniel gewünschten 1,00-USD-Marke bleiben bei DeepSeek **1,08 USD** → ab hier sparsamer, Kinder nur noch für klar abgegrenzte Bausteine |
+
+**Stand nach Abschnitt J:** alle zehn Kind-Module sind gebaut **und vom Koordinator nachgerechnet**;
+kein Brett der Kinder mehr. **Nächster Schritt bleibt das Einhängen** über `src/spielschicht.py` in
+`main.py` und danach ein **Neubau der `.exe`**.
