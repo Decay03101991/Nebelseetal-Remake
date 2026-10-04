@@ -121,9 +121,58 @@ außerdem eine Sperrdatei zurück (mein Abbruch umging die Aufräumroutine); sie
 gehört zu Paket **W9** (Auslieferung, doppelter Start) — geändert wurde hier nichts, damit der Schritt
 prüfbar bleibt.
 
+### H. Passworttor und der Weg zur EXE (22:24–22:34)
+
+| Zeit | Schritt | Ergebnis / Beleg |
+|---|---|---|
+| 22:24 | **Schritt 8: Passworttor gebaut** | `src/tor.py`: PBKDF2-HMAC-SHA256 mit Zufallssalz, **nie** das Passwort selbst; Wartezeit nach je drei Fehlversuchen. Im Fenster: der **Erststart** lässt Daniel das Passwort selbst festlegen (zweimal eingeben), jeder weitere Start verlangt es, ein falsches öffnet das Spiel nicht |
+| 22:25 | **Notausgang im Tor** | Hinweis im Fenster und in der Tor-Datei: „Datei löschen verlangt beim nächsten Start ein NEUES Passwort — der Spielstand bleibt." Damit ist auch ein vergessenes Passwort kein Aussperren |
+| 22:29 | **Doppelstart-Fund behoben** (aus Abschnitt G offen) | das gefährliche `os.kill(pid, 0)` — unter Windows **beendet** es den Prozess — ersetzt durch reines Nachsehen (`OpenProcess`/`GetExitCodeProcess`). Sperrdatei und Spielstand liegen jetzt in `~/.nebelseetal`, nicht mehr im Programmordner (in der EXE wäre der oft schreibgeschützt) |
+| 22:31 | **Pfad für die EXE vorbereitet** | `spieldaten.projektwurzel()` findet die Datendateien nun im entpackten `sys._MEIPASS`-Ordner; ohne diesen Zweig findet eine PyInstaller-Einzeldatei ihre `data/*.json` nicht |
+| 22:32 | **grün** | **691 Prüfungen, 0 Fehler, 1 Befund** über **dreizehn** Dateien (neu: `tests/test_tor.py`, 61 Prüfungen). Commit `8a6bd87` |
+| 22:33 | **Bau-Skript für Schritt 9** | `tools/build_exe.py`: prüft sich selbst (mehrgrößiges Symbol mit 6 Größen, mitzugebende Ordner), baut die **Einzeldatei ohne Konsole**, prüft Größe und „genau **eine** EXE im Projektordner" und räumt `build/`, `dist/`, `.spec` wieder weg |
+
+**Nachtrag (22:34) — drei Kinder arbeiten parallel** (nach `docs/AGENTEN_PLAN.md`, jedes Kind eine
+neue Datei + eigene Prüfdatei): W4b-6 Produktionsfaktoren (`forschung_wirkung.py`), W3 Waren und
+Werkstätten (`werkstatt.py`), W5-2 Portalraum (`portalraum.py`). Der Hauptagent hängt die Ergebnisse
+selbst in `main.py` ein, prüft jede Kinder-Meldung mit einem **anderen** Verfahren nach und
+committet erst danach.
+
+### I. Die `.exe`, die Kinder-Welle und W4b-6 (22:35–23:10)
+
+| Zeit | Schritt | Ergebnis / Beleg |
+|---|---|---|
+| 22:35 | **Erster `.exe`-Bau** | `tools/build_exe.py` → `Nebelseetal_Remake.exe` (13,4 MB, SHA256 `951ffccc…`), Symbol mit 6 Größen, `build/`, `dist/`, `.spec` danach entfernt — genau eine EXE im Projektordner |
+| 22:36 | **Startprüfung 1: FEHLER gefunden** | die EXE startete, brach aber ab: `FileNotFoundError … Temp\data\gelaende.json`. Ursache: `gelaende`, `berater`, `welt`, `gebaeude_wirkung` und `main` leiten den Projektordner aus `__file__` ab — im PyInstaller-Paket zeigt das nicht auf den entpackten Ordner. **Fix:** EINE zentrale Wurzel-Suche in `spieldaten.projektwurzel()` (prüft `sys._MEIPASS`, den Exe-Ordner und den Quelltextordner der Reihe nach und nimmt den ersten, in dem wirklich `data/gelaende.json` liegt); alle fünf Module holen die Wurzel von dort |
+| 22:42 | **Zweiter Bau + Startprüfung GRÜN** | Fenster „Nebelseetal Remake" (Kindprozess PID 2716), Sperrdatei mit derselben PID, **sauberes Schließen** über `CloseMainWindow` → Aufräumroutine greift, Sperrdatei weg; Start aus einem Pfad **mit Leerzeichen**; `tor.json` wurde vom Spiel **nicht** angelegt (Daniel setzt selbst) |
+| 22:43 | **Daniel richtet das Tor selbst ein** | beim Ansehen des Startfensters das Passwort gesetzt (0 Fehlversuche, 04.10.2026 22:43) — der Erststartweg ist damit am ausgelieferten Programm erprobt |
+| 22:45–22:50 | **Fünf Kinder, fünf neue Module** (nach `docs/AGENTEN_PLAN.md`, jedes mit eigener Prüfdatei) | `forschung_wirkung` (W4b-6, **94**) · `werkstatt` (W3, **118**, 1 Befund) · `portalraum` (W5-2, **69**) · `punkte` (W6, **76**) · `kampfbericht` (W2b, **108**) = **465 Prüfungen grün** |
+| 22:50 | **Brett der Kinder erweitert** | `tools/brett.py`: **ein Eintrag = eine Datei** in `board/` (Postfach-Muster). Vorher schrieben alle in `docs/BOARD.md` — zwei Kinder gleichzeitig hätten sich überschrieben. Befehle: `lesen`, `belegen`, `melden`, `freigeben`, `luecken` |
+| 22:58 | **W4b-6 eingehängt** | `main.RESEARCHES` sind jetzt die **21 Originalforschungen** aus `data/research.json` (vorher 18 erfundene Gebiete), und `bonus_system.get_production_multiplier` liefert die belegten Faktoren für **alle neun** Rohstoffe. Drei Prüfdateien mussten die Forschungsnamen mitziehen; `test_wirtschaft` erwartete außerdem den **erfundenen** Satz von +12 % und steht jetzt auf dem belegten **+10 %** (2,48 → 2,4) |
+| 23:02 | **Gesamtlauf** | die 17 Dateien des Sammellaufs: **1054 Prüfungen, 0 Fehler**; die achtzehnte (`test_gebaeude_wirkung`) schlug zuerst an, weil sie noch den alten Forschungsnamen benutzte — nach der Korrektur **103 grün** (einzeln gemessen). Zusammen **1157 Prüfungen, 0 Fehler, 1 Befund** über achtzehn Dateien. Commit `c0f4a5d` |
+| 23:05 | **Zweite Kinder-Welle gestartet** | Auftragssystem (WA), Menü-Vergleich (W7), robustes Speichern (W8), Fachschicht (alle Module für die Oberfläche gebündelt), Bot-Kern (W5) — Ergebnisse kommen als Meldung |
+| 23:08 | **Kanban und Übergabe geführt** | Karte **W4b auf erledigt** gesetzt; die Karten W2b, W3, W5, W6, W7, W8, W9 haben ehrliche Zwischenmeldungen („Modul fertig, Einhängen offen"). Dazu `docs/FRAGEN_FUER_MORGEN.md` für Daniel |
+
+**Ehrlich offen nach dieser Welle:** die Module für Waren, Kampf, Aufträge, Portal, Punkte, Speichern
+und Bots sind **gebaut und geprüft**, aber `main.py` ruft sie noch nicht auf. Der nächste Schritt ist
+das **Einhängen** (über die Fachschicht) und danach **ein Neubau der `.exe`**.
+
 ---
 
 ## Kosten
+
+### Kosten der Nacht (22:15–23:10, gemessen)
+
+| Schritt | Modell | Kosten |
+|---|---|---|
+| Passworttor, `.exe`-Bau, acht Kinder-Aufträge, W4b-6-Einhängung, Doku | `deepseek-v4-flash` (Standard, Hauptagent **und** Kinder) | **Tagessumme 9,96 → 10,41 USD** = **≈ 0,45 USD (0,40 EUR)** für alles seit 22:15 |
+
+**Gemessen** über `tageskosten_check.py --json` (summiert über alle Profile): 22:15 = 9,96 USD /
+8,87 EUR, 23:10 = 10,41 USD / 9,27 EUR. Enthalten ist jede Nutzung im Zeitfenster.
+**Kein teures Modell im Einsatz:** `gpt-6-astra` wurde nicht gebraucht (keine Bilddeutung) und
+`deepseek-v4-pro` ebenfalls nicht — die Kinder liefen auf dem Standardmodell.
+**Guthaben (von Daniel abgelesen, 04.10. Nacht):** OpenAI **4,18 USD**, DeepSeek **2,60 USD**,
+davon bleiben **1,00 USD** unangetastet (Daniels Vorgabe für Grundfunktionen).
 
 **Grundsatz:** nur belegte Beträge. Die Einzelposten sind Schätzungen je Auftrag (gerundet), der
 Tageswert ist **gemessen**. Wo nichts steht, wurde nichts bezahlt — die Unteragenten laufen auf
