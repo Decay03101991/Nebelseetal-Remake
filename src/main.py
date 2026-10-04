@@ -25,6 +25,7 @@ import gebaeude_wirkung
 import berater
 import tor
 import wirtschaft
+import speichern   # W8: robustes Speichern/Laden (atomar, geprueft, mit Sicherung)
 
 
 # ---------- Data Models ----------
@@ -624,14 +625,36 @@ class GameState:
             "bots": [asdict(b) for b in self.bots],
             "map_bot_factions": self.map_bot_factions if hasattr(self, "map_bot_factions") else {},
         }
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
+        # W8 (docs/UMSETZUNG_EINHAENGEN.md, Abschnitt 4): erst sichern, dann atomar ueber eine
+        # gepruefte Zwischendatei schreiben. Schlaegt etwas fehl, bleibt der alte Spielstand
+        # unangetastet - es gibt entweder den alten ODER den neuen Stand, nie eine halbe Datei.
+        gesichert, meldung_sicherung = speichern.sichere_kopie(path)
+        if gesichert:
+            self._log(meldung_sicherung)
+        ok, meldung = speichern.speichere(data, path)
+        if ok:
+            self._log(meldung)
+        else:
+            self._log(f"Speichern fehlgeschlagen - der alte Spielstand bleibt stehen: {meldung}")
+        return ok
 
     def load(self, path: str):
         if not os.path.exists(path):
-            return
-        with open(path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+            return False
+        # W8: ueber das robuste Modul lesen; ist die Datei beschaedigt, erst die Sicherung
+        # (.bak) wiederherstellen, bevor ehrlich abgebrochen wird.
+        data, fehler = speichern.lade(path)
+        if data is None:
+            self._log(f"Spielstand nicht lesbar: {fehler}")
+            wieder_ok, meldung = speichern.wiederherstellen(path)
+            if wieder_ok:
+                self._log(meldung)
+                data, fehler = speichern.lade(path)
+            else:
+                self._log(f"Wiederherstellung nicht moeglich: {meldung}")
+            if data is None:
+                self._log(f"Laden abgebrochen - der bisherige Stand bleibt stehen: {fehler}")
+                return False
         for k, v in data.get("resources", {}).items():
             if k in self.resources:
                 self.resources[k] = Resource(**v)
@@ -666,6 +689,7 @@ class GameState:
         if saved_bots:
             self.bots = [BotPlayer(**b) for b in saved_bots]
         self._day_accum = 0.0
+        return True
 
     def _log(self, msg: str):
         self.log.append(msg)
@@ -688,6 +712,9 @@ class NebelseetalApp:
             self.save_path = os.path.join(schreibordner(), "savegame.json")
         else:
             self.save_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "savegame.json")
+        # W8 (Vorschlag aus docs/UMSETZUNG_EINHAENGEN.md, 4.2): liegengebliebene Zwischendateien
+        # eines abgebrochenen Schreibvorgangs entfernen - Zieldatei und Sicherung bleiben unberuehrt.
+        speichern.aufraeumen(self.save_path)
         self.current_view = "Dorfzentrum"
         self.skin_name = "standard"
         self.skin = SKINS[self.skin_name]
@@ -1936,15 +1963,21 @@ class NebelseetalApp:
             self._log("Nicht genug Ressourcen für Ausbildung.")
 
     def _save(self):
-        self.state.save(self.save_path)
-        self._log("Spiel gespeichert.")
+        ok = self.state.save(self.save_path)
+        if ok:
+            self._log("Spiel gespeichert.")
+        else:
+            self._log("Speichern fehlgeschlagen - siehe vorige Meldung.")
 
     def _load(self):
-        self.state.load(self.save_path)
+        geladen = self.state.load(self.save_path)
         if hasattr(self, "content"):
             self._render_view()
             self._render()
-        self._log("Spiel geladen.")
+        if geladen:
+            self._log("Spiel geladen.")
+        else:
+            self._log("Laden fehlgeschlagen - der bisherige Stand bleibt stehen (siehe Meldungen).")
 
     def _log(self, msg: str):
         self.state._log(msg)

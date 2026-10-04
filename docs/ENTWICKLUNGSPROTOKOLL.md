@@ -310,3 +310,28 @@ Abschnitte 4 und 5; die Startzeile in `docs/PROJEKT_STAND.md`, Abschnitt 0.
 Stand in Belegen, **der eine** nächste Schritt mit `Datei:Zeile` und erwarteter Prüfzahl, eine
 „nicht erneut zu prüfen"-Tabelle, Sekunden-Checks statt Sammellauf. Dazu gehört auch: **keine halbe
 Änderung hinterlassen** — lieber sauber enden als `main.py` halb umgebaut übergeben.
+
+---
+
+## 05.10.2026 — Tag 2: die zehn Module in die Oberfläche einhängen (Fortsetzung, ab 04.10. 23:49)
+
+**Auftrag von Daniel (Startzeile + Zuruf um 00:0x):** die Arbeitsreihenfolge aus Abschnitt 5 von
+`docs/UMSETZUNG_EINHAENGEN.md` abarbeiten — Schritt 1 ist `speichern` an `main.py:627-628` —, nach
+jedem Schritt `run_tests.bat` und eine Protokollzeile, am Ende die `.exe` neu bauen und startprüfen.
+Nachträglich: das Ziel selbstständig weiterverfolgen, Aufgaben sinnvoll delegieren, Ergebnisse
+wiederholt prüfen, sparsam mit den teuren Modellen. Guthaben bei Übernahme (Daniel, 00:0x):
+DeepSeek **1,70 USD**, OpenAI **3,04 USD** — deshalb **keine** teuren Aufrufe (kein astra, kein v4-pro)
+und nur `flash`-Unteragenten.
+
+**Nebenbefund beim Start (ehrlich vermerkt):** zwischen 23:47 und 23:50 sind noch zwei Commits der
+Vorgängersitzung eingetroffen (`5f7ee39`, `4bf6a45` — beide nur `docs/`), während diese Sitzung schon
+lief. Sie wurden **nicht** überschrieben, sondern gelesen; `main.py` trägt ausschließlich die eigenen
+Änderungen (Beleg: `git diff --stat src/main.py` = 42 Einfügungen, 9 Löschungen).
+
+| Zeit | Schritt | Ergebnis / Beleg |
+|---|---|---|
+| 23:49 | **Ausgangsmarke gemessen** (nicht aus der Übergabe abgeschrieben) | 23 Prüfdateien in der Bash nachgefahren — `run_tests.bat` endet mit `pause` und läuft ohne Tastatur nicht durch, deshalb ein eigenes Laufskript (`nebel_suite.py`, liest die Dateiliste aus `run_tests.bat`): **1651 bestanden, 0 Fehler, 9 Befunde über 23 Dateien**, Rückgabewert 0. Deckt sich mit der Übergabe — keine Abweichung |
+| 23:55 | **Schritt 1 — W8 robustes Speichern eingehängt** (`main.py:627-628`) | Vorher schrieb `GameState.save` direkt (`open(path,"w")` + `json.dump`) und `load` direkt (`json.load`). Jetzt: `speichern.sichere_kopie(path)` legt die Sicherung `.bak` **vor** dem Überschreiben an, `speichern.speichere(data, path)` schreibt über eine geprüfte `.tmp` und setzt sie mit `os.replace` um; die Rückgabe wird ausgewertet und bei `ok == False` ehrlich geloggt (der alte Stand bleibt stehen). `load()` liest über `speichern.lade`, versucht bei beschädigter Datei `speichern.wiederherstellen` aus `.bak` und gibt `True/False` statt `None`; `NebelseetalApp` räumt beim Start mit `speichern.aufraeumen` liegengebliebene `.tmp` weg; `_save`/`_load` melden den ehrlichen Ausgang. `import speichern` ergänzt |
+| 23:56 | **Nachprüfung mit eigenem Verfahren** (nicht der Kind-Test) | `nebel_w8_probe.py`: **7 Proben bestanden** — (1) Datei gültig, keine `.tmp`-Leiche; (2) zweites Speichern legt `.bak` mit dem **alten** Stand an, die Zieldatei trägt den neuen; (3) nach Beschädigung stellt `load()` aus `.bak` wieder her und liefert `True`; (4) fehlende Datei → ehrlich `False`; (5) Zielpfad ist ein Ordner → `False`, keine Ausnahme, Meldung „Speichern fehlgeschlagen", Ordner unangetastet; (6) `aufraeumen` entfernt **nur** die `.tmp`; (7) eine Spielstandsdatei im **alten** Format lädt weiter |
+| 00:02 | **Kind-Test, Grundprüfung, Sammellauf** | `tests/test_speichern_robust.py` **95 bestanden, 0 Fehler, 5 Befunde** · `tests/test_baseline.py` **40/0/0** · Sammellauf **1651 bestanden, 0 Fehler, 9 Befunde über 23 Dateien** — unverändert grün, kein Rückschritt |
+| 00:01 | **Unteragent beauftragt (flash)** | `tests/test_w8_einhaengung.py` — prüft die **Verdrahtung** (nicht das Modul): dass `GameState.save/load` wirklich über `speichern` gehen, inklusive Sicherung, Wiederherstellung und ehrlichem Scheitern. Ergebnis wird in der nächsten Zeile vermerkt |
