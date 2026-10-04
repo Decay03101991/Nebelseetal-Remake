@@ -247,9 +247,9 @@ Weiter offen:
 
 | Konto | Stand | Regel |
 |---|---|---|
-| OpenAI (astra) | 4,54 USD von 8,89 verbraucht → **~1,02 USD Reserve** | nur noch für Bilddeutung |
-| DeepSeek | 3,32 USD | ein kleiner Rest **muss** bleiben |
-| Kosten je Auftrag | v4-pro 0,04–0,12 USD · astra 0,47 USD (3 Bilder) | Skill `kosten-schutzregel` |
+| OpenAI (astra) | **5,56 USD verfügbar** — 3,33 USD am 04.10. verbraucht (gemessen über `/v1/organization/costs?group_by=line_item`), von Daniel von der Billing-Seite abgelesen; Auto-Recharge aus, keine Schulden möglich | nur noch für Bilddeutung |
+| DeepSeek | 3,32 USD (**nicht nachgeprüft**) | ein kleiner Rest **muss** bleiben |
+| Kosten je Auftrag | v4-pro 0,04–0,12 USD · astra 0,47 USD (3 Bilder). **Größter Posten sind die Cache-Schreibkosten** (3,56 gegen 0,94 USD Ausgabe) → Aufträge kurz halten | `docs/ENTWICKLUNGSPROTOKOLL.md` (Abschnitt Kosten), Skill `kosten-schutzregel` |
 
 ## 10. Dauerhaftes Arbeitssystem
 
@@ -259,7 +259,7 @@ Weiter offen:
 | `docs/AGENTEN_PLAN.md` | **wie die Sitzung ihre Agenten aufteilt und welches Modell wann** — inklusive Auftragsvorlage zum Kopieren |
 | `docs/BOARD.md` | **Kommunikationsbrett der Unteragenten** — Ansprüche, Ergebnisse, Meldungen |
 | `docs/LEHREN.md` | **ehrliche Nachlese** der Sitzung: 13 Fehler, was gut lief, was dauerhaft gilt |
-| `docs/ENTWICKLUNGSPROTOKOLL.md` | **laufendes Protokoll** der groben Arbeitsschritte (Daniel schreibt die Entstehung mit) — nach jedem Schritt fortschreiben |
+| `docs/ENTWICKLUNGSPROTOKOLL.md` | **laufendes Protokoll** der groben Arbeitsschritte **mit Kosten** (Daniel schreibt die Entstehung mit) — nach jedem Schritt fortschreiben |
 | `docs/ORDNUNG.md` | was wohin gehört |
 | `docs/audits/` + `eingaben/` | alle Modelldaten (Abschnitt 4) |
 | `tests/` (elf Dateien) + `run_tests.bat` | Wahrheitsquelle „läuft es noch?" |
