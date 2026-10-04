@@ -38,7 +38,9 @@ from pathlib import Path
 WURZEL = Path(__file__).resolve().parent.parent
 STANDARD_ZIEL = Path("D:/Arbeiten/Hermes/Nebelseetal_Protokoll")
 
-# Was gesichert wird: die fuehrenden Papiere und die Meldungen der Kinder (board/).
+# Was gesichert wird: die fuehrenden Papiere dieser Sitzung.
+# (Frueher kam hier auch der Ordner board/ dazu — das Brett der Kinder wurde am 04.10.2026 auf
+#  Daniels Wunsch wieder entfernt, also wird es auch nicht mehr gesichert.)
 MUSTER = [
     ("docs", "PROJEKT_STAND.md"),
     ("docs", "ENTWICKLUNGSPROTOKOLL.md"),
@@ -53,7 +55,7 @@ MUSTER = [
     ("docs", "ENTWURF_WIRTSCHAFT.md"),
     ("docs", "AUDIT_KONFORMITAET_astra.md"),
 ]
-ORDNER = ["board"]          # ganze Ordner (die Einzelmeldungen der Kinder)
+ORDNER = []                 # keine Unterordner mehr (das Brett der Kinder ist entfallen)
 
 
 def pruefsumme(pfad: Path) -> str:
