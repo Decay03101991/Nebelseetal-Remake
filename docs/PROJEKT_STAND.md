@@ -160,6 +160,10 @@ verloren gegangen (die Kartenanalyse und die Siedlungsvorlage).
 
 1. **W4b-4 — Kartenerträge anbinden.** `wirtschaft.ertrag_gesamt()` in `GameState.tick` einhängen,
    damit bebaute Felder wirklich Rohstoffe liefern. Danach zeigt die Karte Wirkung.
+   *Achtung — vom Wirtschaftsmodul gemeldet und offen:* `bonus_system.get_production_multiplier`
+   erhöht nur **Holz, Stein, Nahrung** (und das alte „eisen"). **Metall, Leder, Mana, Gold, Wolle und
+   Pferde bleiben bei Faktor 1,0** — Forschung wirkt dort nicht. Das ist eine Lücke im Bonus-System,
+   nicht im neuen Modul; beim Anbinden entscheiden, ob sie geschlossen wird.
 2. **Baupreise korrigieren** in `data/baupreise.json`: die vier belegten Werte eintragen
    (1 Siedler statt 1 Nahrung), den widerlegten Vorschlag kennzeichnen.
 3. **Weltkarte auf das belegte Modell umstellen**: 20 Dimensionen · je 20×20 Felder · (X, Y, Z) ·
