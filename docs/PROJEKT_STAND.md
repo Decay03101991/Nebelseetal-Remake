@@ -23,6 +23,9 @@ Vorgaben aus der Sitzung vom 04.10.2026:
   es können **keine Schulden** entstehen. Bei DeepSeek muss ein **kleiner Rest** bleiben. Teure
   Modelle nur mit Grund, Kosten nach jedem Aufruf messen.
 - **Agent-zu-Agent Englisch/ASCII erlaubt**, alles für Daniel bleibt **Deutsch**.
+- **Nach jedem groben Schritt eine Zeile ins Entwicklungsprotokoll** (`docs/ENTWICKLUNGSPROTOKOLL.md`):
+  Zeit, Schritt, Ergebnis, Beleg (Prüfzahl/Commit). Nur anhängen, Fehler mit hinein — Daniel
+  schreibt die Entstehung des Spiels mit.
 - **Unteragenten arbeiten an eigenen Dateien und haben ein Kommunikationsbrett** (`docs/BOARD.md`):
   vorher lesen, Dateien beanspruchen, danach Ergebnis mit echten Zahlen eintragen. Aufteilung und
   Modellwahl sind in `docs/AGENTEN_PLAN.md` vorgeschrieben (Daniels Vorgabe vom 04.10.2026).
@@ -256,9 +259,10 @@ Weiter offen:
 | `docs/AGENTEN_PLAN.md` | **wie die Sitzung ihre Agenten aufteilt und welches Modell wann** — inklusive Auftragsvorlage zum Kopieren |
 | `docs/BOARD.md` | **Kommunikationsbrett der Unteragenten** — Ansprüche, Ergebnisse, Meldungen |
 | `docs/LEHREN.md` | **ehrliche Nachlese** der Sitzung: 13 Fehler, was gut lief, was dauerhaft gilt |
+| `docs/ENTWICKLUNGSPROTOKOLL.md` | **laufendes Protokoll** der groben Arbeitsschritte (Daniel schreibt die Entstehung mit) — nach jedem Schritt fortschreiben |
 | `docs/ORDNUNG.md` | was wohin gehört |
 | `docs/audits/` + `eingaben/` | alle Modelldaten (Abschnitt 4) |
-| `tests/` (10 Dateien) + `run_tests.bat` | Wahrheitsquelle „läuft es noch?" |
+| `tests/` (elf Dateien) + `run_tests.bat` | Wahrheitsquelle „läuft es noch?" |
 | Skills `multi-agent-coding`, `kosten-schutzregel`, `nebelseetal-remake` | Betriebs- und Projektwissen |
 | Kanban-Board `nebelseetal` | Paketliste (Verteiler braucht laufendes Gateway) |
 | `D:/Arbeiten/_Quarantaene/` | alte Builds (dort: `Nebelsee Memory.exe` mit README) |

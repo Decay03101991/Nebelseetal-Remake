@@ -101,5 +101,7 @@ not verify. Never prettify a red check.
 
 ## 7. Nach jedem Paket
 
-`run_tests.bat` (alle zehn Dateien), Ergebnis in `docs/PROJEKT_STAND.md`, kleiner Commit,
-Brett-Eintrag. Erst dann das nächste Paket.
+`run_tests.bat` (alle elf Dateien), Ergebnis in `docs/PROJEKT_STAND.md`, kleiner Commit,
+Brett-Eintrag, **und eine Zeile ins Entwicklungsprotokoll** (`docs/ENTWICKLUNGSPROTOKOLL.md`) mit
+Zeit, Schritt, Ergebnis und Beleg. Nur anhängen, nie umschreiben — auch Fehler und Irrwege gehören
+hinein, denn Daniel schreibt die Entstehung des Spiels damit mit. Erst dann das nächste Paket.
