@@ -338,7 +338,7 @@ Protokoll ein". Diese Sitzung endet hier sauber; die nächste macht genau an die
 
 | Punkt | Beleg |
 |---|---|
-| Arbeitsverzeichnis | **sauber**, letzter Commit `0206e8a` (`git status` leer) |
+| Arbeitsverzeichnis | **sauber**, letzter Commit `c329893` (`git status` leer). Der Sitzungswechsel-Eintrag selbst ist Commit `3ec1fca`, davor `0206e8a` |
 | Prüfstand | **1651 bestanden, 0 Fehler, 9 Befunde** über 23 Dateien, `run_tests.bat` Rückgabewert **0**, gemessen 04.10.2026 23:40 |
 | Nichts läuft | kein Hintergrundprozess, kein Unteragent, kein offenes Fenster (nachgeprüft) |
 | Zehn Kind-Module | fertig und **vom Koordinator nachgerechnet**: 94 + 118 + 69 + 76 + 108 + 133 + 90 + 111 + 95 + 64 = **958** — aber **nicht eingehängt** |
