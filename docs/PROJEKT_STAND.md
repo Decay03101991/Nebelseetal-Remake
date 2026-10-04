@@ -56,15 +56,21 @@ run_tests.bat
 git log --oneline | head -12
 ```
 
-Erwartet: **1157 bestanden, 0 Fehler, 2 Befunde** über achtzehn Prüfdateien
-(Stand 04.10.2026, 23:10 gemessen): baseline 40 · spieldaten 53 · kampf 42 · gelaende 81 ·
+Erwartet: **1651 bestanden, 0 Fehler, 9 Befunde** über **23** Prüfdateien (gemessen im Sammellauf
+`run_tests.bat` am 04.10.2026, 23:40 — Rückgabewert 0). Die neun Befunde sind ehrliche Hinweise, keine
+Fehler; sie stehen bei den jeweiligen Modulen (u. a. fehlende Ausbildungsdauer, keine Dateisperre beim
+Speichern, Rundung der Gesamtpunkte).
+Einzelaufstellung (gemessen): baseline 40 · spieldaten 53 · kampf 42 · gelaende 81 ·
 siedlungskarte 33 · kartenansicht 40 · berater 66 · wirtschaft 42 · forschung 68 · welt 42 ·
 ertrag_anbindung 21 · gebaeude_wirkung 103 · tor 61 · forschung_wirkung 94 · werkstatt 118 ·
-portalraum 69 · punkte 76 · kampfbericht 108.
-Die zwei **Befunde** sind ehrlich und bekannt: (1) das Handbuch nennt keine Ausbildungsdauer,
-deshalb kann die Stufe einer Ausbildungsstätte die Dauer noch nicht messbar senken
+portalraum 69 · punkte 76 · kampfbericht 108 · spielschicht 133 · botkern 90 · auftraege 111 ·
+speichern 95 · oberflaeche_original 64.
+Die neun **Befunde** sind ehrlich und bekannt, keine Fehler: (1) das Handbuch nennt keine
+Ausbildungsdauer, deshalb kann die Stufe einer Ausbildungsstätte die Dauer noch nicht messbar senken
 (`bonus_system.UNIT_TRAIN_BASE = 0`); (2) `werkstatt` meldet eine Lücke in den Waren-Regeln, die
-das Handbuch offen lässt.
+das Handbuch offen lässt; (3) weitere ehrliche Hinweise in `punkte` (Rundung, Götterschutz),
+`speichern` (keine Dateisperre, Klartext), `auftraege` und `spielschicht` (Kampfverluste,
+Ausbildungsdauer, Portal-Mana je Siedlung) — alle dort als Vorschlag gekennzeichnet.
 
 Grün heißt „nichts ist kaputt und die umgestellten Teile halten sich ans Handbuch" — **nicht**
 „Spiel ist fertig". Was fehlt, steht in Abschnitt 5.

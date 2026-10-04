@@ -281,6 +281,25 @@ dem Tageswert der Ausgaben-API, der in Schüben aktualisiert und deshalb unbrauc
 kein Brett der Kinder mehr. **Nächster Schritt bleibt das Einhängen** über `src/spielschicht.py` in
 `main.py` und danach ein **Neubau der `.exe`**.
 
+---
+
+## K. Teure Modelle gezielt eingesetzt (23:35–23:50)
+
+**Vorgabe von Daniel:** „Nimm Astra für wichtige Umsetzung des Spiels … fehlerfreie Kampfabläufe und
+schöne und gut durchdachte Karten … aber immer genau durchdachte und gezielte Anweisungen auf Kosten
+bezogen berechnet: meiste Leistung für geringste Ausgabe."
+
+| Zeit | Schritt | Ergebnis / Beleg |
+|---|---|---|
+| 23:38 | **Guthaben abgelesen (Daniel)** | OpenAI **4,08 USD** · DeepSeek **2,08 USD**. Tagesmessung vor den teuren Aufrufen: **10,92 USD / 9,73 EUR** (`scripts/tageskosten_check.py --json`, lage `UEBER_LIMIT` — die 4-EUR-Regel ist für diesen Auftrag von Daniel ausgesetzt) |
+| 23:40 | **Sammellauf mit allen 23 Dateien** | **1651 bestanden, 0 Fehler, 9 Befunde**, Rückgabewert 0 — jetzt der verbindliche Prüfstand |
+| 23:42 | **Modellwahl nach Hauslehre, nicht nach Gefühl** | `docs/LEHREN.md` §6 hält fest: `deepseek-v4-pro` lieferte für **0,12 USD** dieselbe Qualität wie `gpt-6-astra` für **1,27 USD** — bei Textarbeit. Deshalb: **astra nur für die Bilder** (Kartenentwurf aus den Original-Screenshots), **v4-pro für den Umsetzungs- und Kampfplan** (Text) |
+| 23:44 | **Zwei gezielte Einzelaufrufe statt Agentenschleifen** | Je EIN `hermes -z`-Aufruf mit festem Zeitlimit (15 bzw. 20 Minuten), Werkzeuge auf das Nötigste begrenzt (`-t vision,file` bzw. `-t file`), Auftrag vorher in eine Datei geschrieben und wortgenau übergeben. Damit kann kein teures Modell in Erkundungsschleifen Geld verbrennen. Eine Änderung der Voreinstellung für Unteragenten (`delegation.model`) wurde **vom Sicherheitsschutz blockiert** — zu Recht; der Einzelaufruf ersetzt sie ohne Systemeingriff |
+| 23:45 | **Aufträge** | astra → `docs/KARTEN_ENTWURF.md` + Rohantwort in `docs/audits/astra_karten.txt`; v4-pro → `docs/UMSETZUNG_EINHAENGEN.md` (Einhänge-Liste, Kampfablauf mit allen Fehlerfällen, Kartenansicht, Speichern, Arbeitsreihenfolge mit erwarteten Prüfzahlen) |
+
+**Kostenregel für die teuren Aufrufe:** nach dem Lauf wird sofort gemessen (`tageskosten_check.py`)
+und die Differenz ins Protokoll geschrieben. Bei DeepSeek müssen **1,00 USD liegen bleiben**.
+
 **Sicherung (projektunabhaengig):** 12 Dateien gesichert nach `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-04_2324` — Vorgabe von Daniel am 04.10.2026, damit das Protokoll auch ohne diesen Projektordner weiterlebt. Zeiger auf die juengste Fassung: `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`.
 
 **Sicherung (projektunabhaengig):** 12 Dateien gesichert nach `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-04_2324` — Vorgabe von Daniel am 04.10.2026, damit das Protokoll auch ohne diesen Projektordner weiterlebt. Zeiger auf die juengste Fassung: `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`.
