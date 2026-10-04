@@ -62,19 +62,19 @@ gleich, Zeiger `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`).
 | Neu eingehängt in dieser Sitzung | **1 · `speichern`** (atomar, Sicherung, Wiederherstellung) · **2 · `punkte`** (Originalformeln in Seitenleiste + Ruhmeshalle) · **3 · `kampf` + `kampfbericht`** (ein Angriffsweg für Karte und Bot, Bericht in die Nachrichten) · **6 · `portalraum`** (20×20-Raster, 5.000 Mana, 24-h-Sperre) · **5 · `werkstatt`** (17 Originalwaren mit Original-Icons, Werkstätten, Warteschlangen, Voraussetzungen) |
 | Neue Prüfdateien | `test_w8_einhaengung` 39 · `test_punkte_einhaengung` 44 · `test_kampf_einhaengung` 42 · `test_gui_fehler` 22 (stille tkinter-Fehler werden laut) |
 | Neues Werkzeug | `tools/pruefe_verdrahtung.py` — Textbeweis aus `main.py`: **14 verdrahtet** (Stand 01:16), `botkern` nur importiert, `forschung`/`welt` nicht eingebunden; meldet doppelte Definitionen und zweite Wahrheiten (aktuell **0** Treffer) |
-| **Noch nicht fertig** | `auftraege` ist **im Kern eingehängt** (Zustand, Start, Ablauf, Bericht, Speicherung) — es fehlt nur die **Oberfläche** (Knopf „Angriff entsenden", Liste „Laufende Aufträge"). Ferner offen: `forschung` (Wartezeit statt Sofort-Stufe), `welt` (Weltkarte), Teile von `botkern` (Bot-Verhalten je Runde) |
-| **Neu erledigt (01:16)** | **Auftragssystem im Kern** (Import, `GameState.auftraege`, `auftrag_starten`, `auftraege_fortschreiben`, Speicherung, Zeitlauf) — `tools/pruefe_verdrahtung.py` zählt jetzt **14 verdrahtet** und **0** zweite Wahrheiten. Davor: der **Kampfsimulator** als Trockenkurs über `kampf.fuehre_schlacht` |
-| `.exe` | **05.10. 01:06 erneut gebaut** (nach dem Simulator-Schritt): `Nebelseetal_Remake.exe`, **14.108.969 Byte**, SHA256 `21bcb807ef756922a7d2b5c743ccc419db18798f4e90de3f76c4cadfe9d57df6`; **Startprüfung bestanden** (Pfad mit Leerzeichen, Fenster „Nebelseetal Remake", kein Absturz, Passworttor steht; das Passwort wurde **nicht** eingegeben). Enthält Speichern, Punkte, Kampf, Portal, Werkstatt und den neuen Kampfsimulator — **nicht** die noch offenen Module |
+| **Noch nicht fertig** | Beim Auftragssystem fehlt nur der **Kampf am Ziel** (heute reist der Auftrag, plündert nach der VORSCHLAG-Regel und bringt die Einheiten heim — es gibt noch keine Verluste). Ferner offen: `forschung` (Wartezeit statt Sofort-Stufe), `welt` (Weltkarte), Teile von `botkern` (Bot-Verhalten je Runde) |
+| **Neu erledigt (01:18)** | **Auftragssystem fertig eingehängt** (Zustand, Start, Ablauf, Bericht, Speicherung, Zeitlauf **und** Oberfläche: Knopf in der Diplomatie, Liste „Laufende Aufträge" im Dorfzentrum) — Verdrahtungsprüfer **14 verdrahtet / 0 zweite Wahrheiten** |
+| `.exe` | **05.10. 01:22 neu gebaut**: `Nebelseetal_Remake.exe`, **14.129.046 Byte**, SHA256 `20dfcced091301c70b1f0f8ce3500ae3d4bdd3b9e17199660a61d4cad181aa8c`; **Startprüfung bestanden** (Pfad mit Leerzeichen, Fenster „Nebelseetal Remake", kein Absturz, Passworttor steht; Passwort **nicht** eingegeben). Enthält Speichern, Punkte, Kampf, Portal, Werkstatt, Kampfsimulator und die Aufträge — **ohne** Kampf am Ziel und ohne die drei offenen Module |
 | Kosten dieser Sitzung | **0,7082 USD = 0,6309 EUR** (`scripts/tageskosten_check.py --json`, Messung 01:02), davon **0,3444 USD** der auf Daniels Wunsch geholte `gpt-6-astra`-Rat; der Rest ist Koordinator + `flash`-Unteragenten |
 | Guthaben | Daniel ablesen lassen: OpenAI **3,04 → ~2,70 USD**, DeepSeek **1,70 USD** (Reserve 1,00 USD unberührt) — bitte bei der nächsten Sitzung erneut ablesen, ich kann es nicht messen |
 
 ### Der EINE nächste Schritt
 
-**Die Auftrags-Oberfläche bauen (Rest von Schritt 7).** Der Kern ist eingehängt und grün; es fehlen genau zwei Stellen in `src/main.py`:
-1. **Knopf in der Diplomatie** (`_render_diplomacy`, dort wo heute „Angreifen" steht, Zeile ≈ 2042): „Angriff entsenden" ruft einen neuen Handler `_auftrag_angriff(bot)`, der `self.state.auftrag_starten("angreifen", truppen, siedlungsname, {"name": bot.name, "fremd": True, "wall_stufe": 0, "wall_zustand_prozent": 100.0, "vorraete": self._vorraete_des_ziels(bot)}, entfernung)` aufruft. Entfernung: `abs(x - mitte) + abs(y - mitte)` der ersten eigenen Siedlung zur Kartenmitte (Bot-Siedlungen haben bei uns keine Koordinaten — im Bericht offen benennen).
-2. **Liste „Laufende Aufträge"** in `_render_overview` (Dorfzentrum): je Auftrag Art, von → nach, Status und Restzeit aus `auftraege.fortschritt(self.state.auftraege, time.time())["je"]`.
-Erwartet: `test_gui_fehler` → 22 grün, `test_baseline` → 40 grün, Sammellauf → 1798 grün (steigt mit einer neuen Prüfdatei), `tools/pruefe_verdrahtung.py` → weiterhin 14 verdrahtet / 0 Treffer.
-**Danach:** `forschung` (Wartezeit) → `botkern` vollständig → `welt` → **EXE neu bauen** und aus einem anderen Ordner startprüfen.
+**Den Kampf am Ziel in den Auftrag hängen (Rest von Schritt 7).** `src/main.py`, `GameState.auftraege_fortschreiben`: für Einträge mit `art == "angreifen"`, die gerade angekommen sind (Liste aus `auftraege.angekommen`), vor dem Buchen:
+1. `kampf.fuehre_schlacht(eintrag["einheiten"], eintrag["ziel"].get("verteidiger") or {}, int(eintrag["ziel"].get("wall_stufe") or 0), float(eintrag["ziel"].get("wall_zustand_prozent", 100.0)), angreifer_karren=<Karren des Auftrags>, vorraete=eintrag["ziel"].get("vorraete") or {}, rng=random.Random())` — die Verteidiger-Armee beim Start in `_auftrag_angriff` mit ins Ziel-Dict legen (`"verteidiger": dict(bot.army or {})`, das Modul speichert das ganze `ziel` mit).
+2. `kampfbericht.spieldaten_anwenden` für **Verluste** (Achtung: die **Beute** bucht schon `auftraege.spieldaten_anwenden` — sie darf **nicht** zweimal gebucht werden; entweder die Beute aus dem Kampf in `eintrag["beute"]` übernehmen und das Modul buchen lassen, oder hier nichts buchen).
+3. Schlachtbericht zusätzlich in die Nachrichten.
+Erwartet: `test_kampf` 42 grün, `test_auftraege` 111 grün, `test_gui_fehler` 22 grün, Sammellauf 1798 grün, Verdrahtungsprüfer 14/0. Danach: `forschung` (Wartezeit) → `botkern` vollständig → `welt` → **EXE neu bauen** und aus einem anderen Ordner startprüfen.
 
 ### Kontext-Paket für die neue Sitzung (bewusst klein halten — spart Geld und Fehler)
 
@@ -112,8 +112,8 @@ und wieder aus einem anderen Ordner startprüfen.
 
 | Sache | Beleg | Stand |
 |---|---|---|
-| Prüfstand | Lauf 01:16, Rückgabewert 0 | 1798 / 0 Fehler / 15 Befunde, 27 Dateien |
-| Die Einhängungen | je eigene Nachprüfung des Koordinators + Sammellauf | 05.10. 23:55–01:16 |
+| Prüfstand | Lauf 01:18, Rückgabewert 0 | 1798 / 0 Fehler / 15 Befunde, 27 Dateien |
+| Die Einhängungen | je eigene Nachprüfung des Koordinators + Sammellauf | 05.10. 23:55–01:22 |
 | Stille tkinter-Fehler | `test_gui_fehler` 22/0/1 | 18 Ansichten, 13 Aktionen, 0 echte Fehler |
 | Verdrahtungsstand | `tools/pruefe_verdrahtung.py` | 14 verdrahtet, 1 nur importiert (`botkern`), 2 offen (`forschung`, `welt`), 0 zweite Wahrheiten |
 | Papiere gesichert | `MANIFEST.txt` mit SHA256 je Datei | 05.10. 01:08, 16 Dateien |

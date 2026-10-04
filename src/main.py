@@ -1214,6 +1214,23 @@ class NebelseetalApp:
             tk.Button(row, text="Transport", command=lambda ss=s: self._transport_to_settlement(ss), bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
         tk.Button(self.content, text="Neue Siedlung gründen", command=self._found_settlement, bg="#3e2723", fg=self.skin["gold"]).pack(anchor=tk.W, padx=10, pady=10)
 
+        # W7: die laufenden Auftraege (im Original steht unten "Laufende Auftraege"). Die Einheiten
+        # sind waehrend der Reise aus dem Bestand genommen; angekommen liefert den Bericht in die
+        # Nachrichten. Gezeigt wird nur, was `auftraege.fortschritt` wirklich hergibt.
+        tk.Label(self.content, text="Laufende Aufträge:", fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(6, 0))
+        if not self.state.auftraege:
+            tk.Label(self.content, text="keine — Aufträge startet man in der Diplomatie.",
+                     fg="#8a8a8a", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
+        else:
+            stand = auftraege.fortschritt(self.state.auftraege, time.time())
+            for eintrag in stand.get("je", []):
+                rest = float(eintrag.get("rest_sekunden") or 0.0)
+                tk.Label(self.content,
+                         text=f"{str(eintrag.get('art')).capitalize()}: {eintrag.get('von')} → "
+                              f"{eintrag.get('nach')} · {eintrag.get('status')} · "
+                              f"noch {rest / 60.0:.1f} min",
+                         fg=self.skin["text"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=20)
+
         # Wirkungen der 20 Originalgebaeude (W4b-5). Sie kommen AUSSCHLIESSLICH aus den bebauten
         # Feldern der Siedlungskarten — die frueheren globalen Gebaeude (main.BUILDINGS) sind
         # entfallen, sonst haette jede Wirkung zweimal existiert.
@@ -2040,6 +2057,11 @@ class NebelseetalApp:
             tk.Label(frame, text=f"Aggression: {int(bot.aggression*100)}%", fg=self.skin["red"], bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
             tk.Button(frame, text="Handeln", command=lambda b=bot: self._trade(b), bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
             tk.Button(frame, text="Angreifen", command=lambda b=bot: self._attack(b), bg="#3e2723", fg=self.skin["red"]).pack(side=tk.RIGHT, padx=5)
+            # W7 (Auftrags-Oberflaeche): EIN Angriff als Auftrag - mit Reisezeit, Rueckkehr und
+            # Bericht in den Nachrichten. Der Name ist die Vorgabe aus der Uebergabe.
+            tk.Button(frame, text="Angriff entsenden",
+                      command=lambda b=bot: self._auftrag_angriff(b),
+                      bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
 
     def _trade(self, bot: BotPlayer):
         if bot.trading <= 0.3:
@@ -2064,6 +2086,50 @@ class NebelseetalApp:
         # in unseren Daten nicht - also Stufe 0, ehrlich, ohne erfundenen Wert.
         self._angriff_durchfuehren(bot.name, dict(bot.army or {}), wall_stufe=0,
                                    wall_zustand=100.0, vorrat_ziel=bot)
+
+    # ---------- W7: Auftraege (Missionen) in der Oberflaeche ----------
+
+    def _auftrag_entfernung(self, siedlung=None) -> float:
+        """Die Entfernung eines Auftrags in Feldern.
+
+        Das Modul rechnet 1 Feld = 1 Stunde bei Geschwindigkeit 1 (VORSCHLAG; das Handbuch nennt
+        nur Beispielstunden). Bot-Siedlungen fuehren bei uns **keine** Koordinaten — es gilt
+        deshalb die Kartenmitte als Zielort. Das ist eine Annahme und steht so im Bericht.
+        """
+        cfg = next((m for m in MAPS if m["id"] == self.state.current_map), None)
+        mitte = int(cfg["size"]) // 2 if cfg else 10
+        start = siedlung or (self.state.settlements[0] if self.state.settlements else None)
+        if start is None:
+            return float(max(1, mitte))
+        return float(max(1, abs(int(start.x) - mitte) + abs(int(start.y) - mitte)))
+
+    def _auftrag_angriff(self, bot: BotPlayer):
+        """Einen Angriff als AUFTRAG entsenden: mit Reisezeit, Rueckkehr und Bericht (W7)."""
+        if not self.state.settlements:
+            self._log("Für einen Auftrag braucht es zuerst eine eigene Siedlung.")
+            return False
+        kaempfer, belagerung, karren = self._truppen_nach_rolle()
+        truppen = dict(kaempfer)
+        truppen.update(belagerung)
+        truppen.update(karren)          # Transportkarren tragen die Beute (Handbuch S. 23)
+        if not truppen:
+            self._log("Keine Kaempfer und keine Belagerungswaffen vorhanden.")
+            return False
+        ziel = {"name": bot.name, "fremd": True, "wall_stufe": 0, "wall_zustand_prozent": 100.0,
+                "vorraete": self._vorraete_des_ziels(bot)}
+        entfernung = self._auftrag_entfernung()
+        ok, meldung = self.state.auftrag_starten("angreifen", truppen,
+                                                 self.state.settlements[0].name, ziel, entfernung)
+        text = meldung if ok else f"Auftrag nicht gestartet: {meldung}"
+        self.state.messages.append({"text": text, "type": "auftrag"})
+        if ok:
+            self.state.messages.append(
+                {"text": f"Hinweis: die Entfernung {entfernung:.0f} Felder ist geschätzt "
+                         f"(Bot-Siedlung in der Kartenmitte angenommen, {bot.name} führt keine "
+                         f"Koordinaten).", "type": "auftrag"})
+        if hasattr(self, "content"):
+            self._render_view()
+        return ok
 
     def _eigene_schlagkraft(self) -> float:
         """Die Schlagkraft der eigenen Truppen aus `einheiten.kampfstaerke` (Originalwerte).
