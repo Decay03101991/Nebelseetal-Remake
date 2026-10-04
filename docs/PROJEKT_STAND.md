@@ -61,24 +61,20 @@ gleich, Zeiger `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`).
 | Prüfstand | **1798 bestanden, 0 Fehler, 15 Befunde über 27 Dateien**, Rückgabewert 0 (Lauf 05.10. 00:49:17) |
 | Neu eingehängt in dieser Sitzung | **1 · `speichern`** (atomar, Sicherung, Wiederherstellung) · **2 · `punkte`** (Originalformeln in Seitenleiste + Ruhmeshalle) · **3 · `kampf` + `kampfbericht`** (ein Angriffsweg für Karte und Bot, Bericht in die Nachrichten) · **6 · `portalraum`** (20×20-Raster, 5.000 Mana, 24-h-Sperre) · **5 · `werkstatt`** (17 Originalwaren mit Original-Icons, Werkstätten, Warteschlangen, Voraussetzungen) |
 | Neue Prüfdateien | `test_w8_einhaengung` 39 · `test_punkte_einhaengung` 44 · `test_kampf_einhaengung` 42 · `test_gui_fehler` 22 (stille tkinter-Fehler werden laut) |
-| Neues Werkzeug | `tools/pruefe_verdrahtung.py` — Textbeweis aus `main.py`: 13 verdrahtet, `botkern` nur importiert, `auftraege`/`forschung`/`welt` nicht eingebunden; meldet doppelte Definitionen und zweite Wahrheiten |
-| **Noch nicht eingehängt** | `auftraege` (Missionen), `forschung` (Wartezeit statt Sofort-Stufe), `welt` (Weltkarte), Teile von `botkern` (Bot-Verhalten je Runde) |
-| **Neu erledigt (01:02)** | Der **Kampfsimulator** rechnet nicht mehr mit der erfundenen Kampfkraft, sondern über `kampf.fuehre_schlacht` als Trockenkurs (bucht nichts, kennzeichnet den Übungsgegner als ausgedacht); die nicht mehr benutzten `bonus_system`-Importe sind entfernt. **`tools/pruefe_verdrahtung.py`: Summe Treffer 0** — keine zweite Wahrheit mehr in `main.py` |
+| Neues Werkzeug | `tools/pruefe_verdrahtung.py` — Textbeweis aus `main.py`: **14 verdrahtet** (Stand 01:16), `botkern` nur importiert, `forschung`/`welt` nicht eingebunden; meldet doppelte Definitionen und zweite Wahrheiten (aktuell **0** Treffer) |
+| **Noch nicht fertig** | `auftraege` ist **im Kern eingehängt** (Zustand, Start, Ablauf, Bericht, Speicherung) — es fehlt nur die **Oberfläche** (Knopf „Angriff entsenden", Liste „Laufende Aufträge"). Ferner offen: `forschung` (Wartezeit statt Sofort-Stufe), `welt` (Weltkarte), Teile von `botkern` (Bot-Verhalten je Runde) |
+| **Neu erledigt (01:16)** | **Auftragssystem im Kern** (Import, `GameState.auftraege`, `auftrag_starten`, `auftraege_fortschreiben`, Speicherung, Zeitlauf) — `tools/pruefe_verdrahtung.py` zählt jetzt **14 verdrahtet** und **0** zweite Wahrheiten. Davor: der **Kampfsimulator** als Trockenkurs über `kampf.fuehre_schlacht` |
 | `.exe` | **05.10. 01:06 erneut gebaut** (nach dem Simulator-Schritt): `Nebelseetal_Remake.exe`, **14.108.969 Byte**, SHA256 `21bcb807ef756922a7d2b5c743ccc419db18798f4e90de3f76c4cadfe9d57df6`; **Startprüfung bestanden** (Pfad mit Leerzeichen, Fenster „Nebelseetal Remake", kein Absturz, Passworttor steht; das Passwort wurde **nicht** eingegeben). Enthält Speichern, Punkte, Kampf, Portal, Werkstatt und den neuen Kampfsimulator — **nicht** die noch offenen Module |
 | Kosten dieser Sitzung | **0,7082 USD = 0,6309 EUR** (`scripts/tageskosten_check.py --json`, Messung 01:02), davon **0,3444 USD** der auf Daniels Wunsch geholte `gpt-6-astra`-Rat; der Rest ist Koordinator + `flash`-Unteragenten |
 | Guthaben | Daniel ablesen lassen: OpenAI **3,04 → ~2,70 USD**, DeepSeek **1,70 USD** (Reserve 1,00 USD unberührt) — bitte bei der nächsten Sitzung erneut ablesen, ich kann es nicht messen |
 
 ### Der EINE nächste Schritt
 
-**Auftragssystem einhängen — `src/auftraege.py` (Modul fertig, 111 Prüfungen grün).** Der Plan steht in
-`docs/UMSETZUNG_EINHAENGEN.md`, Abschnitt 1.7: `GameState` bekommt eine Auftragsliste
-(`auftraege.neue_liste()`), gestartet wird über `auftraege.starten(liste, art, einheiten, von, nach,
-entfernung, jetzt, fracht)` — der vorhandene Knopf „Transport" und eine neue Auftragsliste im Fenster
-sind die Oberfläche; im `_tick_loop` laufen `auftraege.fortschritt` / `angekommen` /
-`spieldaten_anwenden`, Berichte über `auftraege.bericht` in den Reiter „Nachrichten". Hinweis aus der
-Modulprüfung: „Ueberladen: X Einheiten Fracht passen nicht auf Y Ladeplaetze." ist der einzige echte
-Überlade-Fehler. Erwartet: `tests/test_auftraege.py` → **111 grün**, `tests/test_gui_fehler.py` →
-**22 grün**, Sammellauf → **1798 grün** (er steigt, wenn eine neue Prüfdatei dazukommt).
+**Die Auftrags-Oberfläche bauen (Rest von Schritt 7).** Der Kern ist eingehängt und grün; es fehlen genau zwei Stellen in `src/main.py`:
+1. **Knopf in der Diplomatie** (`_render_diplomacy`, dort wo heute „Angreifen" steht, Zeile ≈ 2042): „Angriff entsenden" ruft einen neuen Handler `_auftrag_angriff(bot)`, der `self.state.auftrag_starten("angreifen", truppen, siedlungsname, {"name": bot.name, "fremd": True, "wall_stufe": 0, "wall_zustand_prozent": 100.0, "vorraete": self._vorraete_des_ziels(bot)}, entfernung)` aufruft. Entfernung: `abs(x - mitte) + abs(y - mitte)` der ersten eigenen Siedlung zur Kartenmitte (Bot-Siedlungen haben bei uns keine Koordinaten — im Bericht offen benennen).
+2. **Liste „Laufende Aufträge"** in `_render_overview` (Dorfzentrum): je Auftrag Art, von → nach, Status und Restzeit aus `auftraege.fortschritt(self.state.auftraege, time.time())["je"]`.
+Erwartet: `test_gui_fehler` → 22 grün, `test_baseline` → 40 grün, Sammellauf → 1798 grün (steigt mit einer neuen Prüfdatei), `tools/pruefe_verdrahtung.py` → weiterhin 14 verdrahtet / 0 Treffer.
+**Danach:** `forschung` (Wartezeit) → `botkern` vollständig → `welt` → **EXE neu bauen** und aus einem anderen Ordner startprüfen.
 
 ### Kontext-Paket für die neue Sitzung (bewusst klein halten — spart Geld und Fehler)
 
@@ -116,11 +112,11 @@ und wieder aus einem anderen Ordner startprüfen.
 
 | Sache | Beleg | Stand |
 |---|---|---|
-| Prüfstand | Laufprotokoll 00:49:17, Rückgabewert 0 | 1798 / 0 Fehler / 15 Befunde, 27 Dateien |
-| Die fünf Einhängungen | je eigene Nachprüfung des Koordinators + Sammellauf | 05.10. 00:00–00:52 |
+| Prüfstand | Lauf 01:16, Rückgabewert 0 | 1798 / 0 Fehler / 15 Befunde, 27 Dateien |
+| Die Einhängungen | je eigene Nachprüfung des Koordinators + Sammellauf | 05.10. 23:55–01:16 |
 | Stille tkinter-Fehler | `test_gui_fehler` 22/0/1 | 18 Ansichten, 13 Aktionen, 0 echte Fehler |
-| Verdrahtungsstand | `tools/pruefe_verdrahtung.py` | 13 verdrahtet, 1 nur importiert, 3 offen |
-| Papiere gesichert | `MANIFEST.txt` mit SHA256 je Datei | 05.10. 00:49, 16 Dateien |
+| Verdrahtungsstand | `tools/pruefe_verdrahtung.py` | 14 verdrahtet, 1 nur importiert (`botkern`), 2 offen (`forschung`, `welt`), 0 zweite Wahrheiten |
+| Papiere gesichert | `MANIFEST.txt` mit SHA256 je Datei | 05.10. 01:08, 16 Dateien |
 
 ### So startet die neue Sitzung (Sekunden-Checks statt Sammellauf)
 

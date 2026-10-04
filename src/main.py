@@ -34,6 +34,7 @@ import kampfbericht  # W2b: Vorrunden-Pruefung, Mauerschaden, Beute, Bericht
 import botkern     # W5: Bot-Regeln (hier: die Vorschlagsspannen fuer die Vorraete der Bots)
 import portalraum  # W5-2: die 20 Dimensionen des Limbus, Raster, Wechselkosten und -sperre
 import werkstatt   # W3: die drei Werkstaetten, die 17 Waren und ihre Warteschlangen
+import auftraege   # W7: Auftraege (Missionen) mit Reisezeit, Rueckkehr und Bericht
 
 
 # ---------- Data Models ----------
@@ -489,6 +490,10 @@ class GameState:
         # gebauten Werkstaetten der Siedlungskarten.
         self.waren: Dict[str, int] = {name: 0 for name in WARE_EINTRAEGE}
         self.werkstaetten: Dict[str, dict] = {}
+        # W7 (Auftraege, src/auftraege.py): die laufenden Missionen. Jeder Eintrag kennt Art,
+        # Einheiten, Start und Ziel, Reisezeit, Fracht und Status (hinreise/am_ziel/rueckreise/
+        # abgeschlossen). Die Einheiten sind ab dem Start unterwegs (siehe auftrag_starten).
+        self.auftraege: List[dict] = auftraege.neue_liste()
 
     def _unlock_next_map(self):
         if len(self.active_maps) >= MAX_ACTIVE_MAPS:
@@ -657,6 +662,81 @@ class GameState:
             return False, f"{gebiet} Stufe {noetig} noetig, vorhanden ist Stufe {int(forschung.level)}"
         return True, f"{gebiet} Stufe {noetig} vorhanden"
 
+    # ---------------- W7: Auftraege (Missionen) ----------------
+
+    def auftrag_starten(self, art: str, mitgenommene: dict, von: str, nach, entfernung: float,
+                        fracht: dict = None, ziel_zusatz: dict = None):
+        """Einen Auftrag starten. Rueckgabe (ok, Meldung).
+
+        Die mitgegebenen Einheiten sind ab jetzt **unterwegs**: sie werden hier aus dem Bestand
+        genommen und bei `abgeschlossen` zurueckgegeben - ausser beim **Stationieren**, da bleiben
+        sie am Ziel (Handbuch S. 19). Geprueft wird alles ueber `auftraege.starten`; ohne genug
+        Einheiten (oder bei Ueberladung) wird VOR jeder Aenderung abgelehnt.
+        """
+        ziel = dict(ziel_zusatz or {})
+        if isinstance(nach, dict):
+            ziel.update(nach)
+        ziel["name"] = str((nach.get("name") if isinstance(nach, dict) else nach) or "")
+        if not ziel["name"]:
+            return False, "Kein Ziel benannt."
+        bestand = {k: int(v) for k, v in (mitgenommene or {}).items() if int(v) > 0}
+        if not bestand:
+            return False, "Ohne Einheiten kann kein Auftrag reisen."
+        zu_wenig = [k for k, v in bestand.items() if k not in self.units or int(self.units[k].count) < v]
+        if zu_wenig:
+            return False, f"Nicht genug Einheiten anwesend: {', '.join(sorted(zu_wenig))}."
+
+        ok, meldung = auftraege.starten(self.auftraege, art, bestand, von, ziel,
+                                        float(entfernung), time.time(), fracht)
+        if not ok:
+            return False, meldung
+        for k, v in bestand.items():
+            self.units[k].count = max(0, int(self.units[k].count) - v)
+        self._log(meldung)
+        return True, meldung
+
+    def auftraege_fortschreiben(self, jetzt: float) -> dict:
+        """Auftraege weiterlaufen lassen und Heimkehrendes gutschreiben.
+
+        Rueckgabe ``{'neu': [Berichtstitel], 'heimgekehrt': {einheit: anzahl}, 'gesamt': n}``.
+        Genau einmal: `angekommen` setzt `abgeliefert`, `spieldaten_anwenden` setzt `angewendet`,
+        und die Heimkehr merkt sich `heimgekehrt` - dieselbe Fracht zaehlt nie zweimal.
+        """
+        ergebnis = {"neu": [], "heimgekehrt": {}, "gesamt": 0}
+        if not self.auftraege:
+            return ergebnis
+        auftraege.fortschritt(self.auftraege, jetzt)
+        ergebnis["gesamt"] = len(self.auftraege)
+
+        for eintrag in auftraege.angekommen(self.auftraege, jetzt):
+            vorher = {"ressourcen": {k: v.amount for k, v in self.resources.items()},
+                      "einheiten": {k: u.count for k, u in self.units.items()}}
+            neu = auftraege.spieldaten_anwenden(vorher, eintrag)
+            for stoff, menge in (neu.get("ressourcen") or {}).items():
+                if stoff in self.resources:
+                    self.resources[stoff].amount = float(menge)
+            for name, anzahl in (neu.get("einheiten") or {}).items():
+                if name in self.units:
+                    self.units[name].count = max(0, int(anzahl))
+            bericht = auftraege.bericht(eintrag)
+            self.messages.append({"text": bericht["titel"] + "\n" + "\n".join(bericht["zeilen"]),
+                                  "type": "auftrag"})
+            ergebnis["neu"].append(bericht["titel"])
+
+        for eintrag in self.auftraege:
+            if eintrag.get("status") != "abgeschlossen" or eintrag.get("heimgekehrt"):
+                continue
+            eintrag["heimgekehrt"] = True
+            if eintrag.get("art") == "stationieren":
+                continue                      # bleibt am Ziel: kommt nicht heim
+            for name, anzahl in (eintrag.get("einheiten") or {}).items():
+                if name in self.units:
+                    self.units[name].count = int(self.units[name].count) + int(anzahl)
+                    ergebnis["heimgekehrt"][name] = ergebnis["heimgekehrt"].get(name, 0) + int(anzahl)
+        self.auftraege[:] = [e for e in self.auftraege
+                             if not (e.get("status") == "abgeschlossen" and e.get("heimgekehrt"))]
+        return ergebnis
+
     def tick(self, dt_seconds: float):
         dt_h = dt_seconds / 3600.0
         levels = {k: v.level for k, v in self.research.items()}
@@ -689,6 +769,8 @@ class GameState:
             self.messages.append({"text": "Noobschutz aufgehoben - die Welt ist jetzt gefaehrlich!", "type": "system"})
         # W3: fertige Waren aus den Werkstatt-Warteschlangen ins Lager buchen (genau einmal).
         self.werkstatt_fortschreiben(time.time())
+        # W7: Auftraege weiterlaufen lassen (Ankunft buchen, Heimkehrer gutschreiben).
+        self.auftraege_fortschreiben(time.time())
         self.last_tick = time.time()
 
     def save(self, path: str):
@@ -714,6 +796,7 @@ class GameState:
             "letzter_wechsel": self.letzter_wechsel,
             "waren": self.waren,
             "werkstaetten": self.werkstaetten,
+            "auftraege": self.auftraege,
         }
         # W8 (docs/UMSETZUNG_EINHAENGEN.md, Abschnitt 4): erst sichern, dann atomar ueber eine
         # gepruefte Zwischendatei schreiben. Schlaegt etwas fehl, bleibt der alte Spielstand
@@ -778,6 +861,8 @@ class GameState:
         self.waren = {name: int(geladene_waren.get(name, 0) or 0) for name in WARE_EINTRAEGE}
         self.werkstaetten = {k: v for k, v in (data.get("werkstaetten") or {}).items()
                              if isinstance(v, dict)}
+        # W7: laufende Auftraege (unterwegs befindliche Einheiten sind hier schon abgezogen)
+        self.auftraege = [e for e in (data.get("auftraege") or []) if isinstance(e, dict)]
         # FIX 4b: Karte + Bots laden (wurde vorher nicht persistiert)
         saved_tiles = data.get("map_tiles")
         saved_bots = data.get("bots")
