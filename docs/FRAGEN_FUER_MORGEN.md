@@ -27,6 +27,14 @@ geprüft. Offen ist vor allem **ein** Schritt: diese Bausteine in die Oberfläch
    `src/punkte.py` (klar als Vorschlag gekennzeichnet) — bitte abnehmen oder ändern.
 7. **Oberfläche**: das Original-Menü ist belegt (Übersicht · Portal · Diplomatie · …). Soll ich es
    in der belegten Reihenfolge nachbauen (Netz-Einträge wie Forum/Chat bleiben draußen)?
+8. **Werkstatt-Tempo**: verkürzt eine höhere Werkstattstufe die Herstellungszeit? Das Handbuch
+   belegt nur, DASS es Stufen gibt (und nennt die 20 Minuten nur für das Schwert-Beispiel). Im
+   Modul steht dafür ein gekennzeichneter Vorschlag von **10 % je Stufe** — so lassen oder anderen
+   Wert?
+9. **Portal-Kosten**: belegt sind **5.000 Mana** für einen Dimensionswechsel (aus einer Siedlung,
+   höchstens einmal je 24 h). `src/welt.py` enthält außerdem einen älteren **Vorschlag** mit
+   Entfernungsformel. Welche der beiden soll das Spiel benutzen? (Ich würde die belegten 5.000
+   nehmen und die Formel als Vorschlag stehen lassen.)
 
 ## 3. Was in der Nacht noch entstanden ist
 
