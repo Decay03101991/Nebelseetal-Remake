@@ -18,6 +18,7 @@ from bonus_system import (
     get_unit_stats, get_combat_power, get_building_cost, get_training_time, get_map_switch_cost,
     UNIT_BASE, UNIT_TRAIN_BASE, BUILDING_BASE_COST, TIER_SCALE,
 )
+import einheiten
 
 
 # ---------- Data Models ----------
@@ -46,6 +47,7 @@ class Unit:
     training_time: float = 0.0
     description: str = ""
     count: int = 0
+    rolle: str = ""          # kaempfer | kundschafter | karren | belagerung (einheiten.py)
 
 @dataclass
 class Research:
@@ -129,95 +131,28 @@ RESOURCE_ICONS = {
     "holz": "🌲", "stein": "🪨", "nahrung": "🌾", "kristall": "🔮", "gold": "💎",
     "eisen": "⛏️", "leder": "🦬", "stoff": "🧵", "geld": "💰", "wissen": "📖"
 }
-UNIT_ICONS = {
-    "siedler": "assets/icons/original_units/Soldat.png",
-    "krieger": "assets/icons/original_units/Krieger.png",
-    "bogenschütze": "assets/icons/original_units/Einfacher Bogenschütze.png",
-    "reiter": "assets/icons/original_units/Zweispänner.png",
-    "mönch": "assets/icons/original_units/Krieger.png",
-    "golem": "assets/icons/original_units/Paladin.png",
-    "spion": "assets/icons/original_units/Kämpfer.png",
-    "katapult": "assets/icons/original_units/Katapult.png",
-    "mauerbrecher": "assets/icons/original_units/Karren.png",
-    "trebuchet": "assets/icons/original_units/Einfacher Belagerungsturm.png",
-    "speerträger": "assets/icons/original_units/Soldat.png",
-    "schwertkämpfer": "assets/icons/original_units/Kämpfer.png",
-    "armbrustschütze": "assets/icons/original_units/Armbrustschütze.png",
-    "lanzenreiter": "assets/icons/original_units/Zweispänner.png",
-    "bogenschütze_beritten": "assets/icons/original_units/HandelsKarawane.png",
-    "pikeniere": "assets/icons/original_units/Soldat.png",
-    "schwere_kavallerie": "assets/icons/original_units/Paladin.png",
-    "belagerungsturm": "assets/icons/original_units/Einfacher Belagerungsturm.png",
-    "worg": "assets/icons/original_units/Kämpfer.png",
-    "hexe": "assets/icons/original_units/Krieger.png",
-    "drache": "assets/icons/original_units/Ritter.png",
-    "zauberer": "assets/icons/original_units/Krieger.png",
-    "schamane": "assets/icons/original_units/Kämpfer.png",
-    "geist": "assets/icons/original_units/elfen_portrait.png",
-    "riese": "assets/icons/original_units/Paladin.png",
-    "wächter": "assets/icons/original_units/Ritter.png",
-    "bote": "assets/icons/original_units/Siedlungskarren.png",
-    "troll": "assets/icons/original_units/Kämpfer.png",
-    "schildmaid": "assets/icons/original_units/Armbrustschütze.png",
-    "skalde": "assets/icons/original_units/Händler.png",
-    "bär": "assets/icons/original_units/Paladin.png",
-    "adler": "assets/icons/original_units/elfen_portrait.png",
-    "wolf": "assets/icons/original_units/Kämpfer.png",
-    "goblin": "assets/icons/original_units/Kämpfer.png",
-    "ork": "assets/icons/original_units/Krieger.png",
-    "skelett": "assets/icons/original_units/Kämpfer.png",
-}
-MAX_ACTIVE_MAPS = 5
-BUILDINGS: Dict[str, Building] = {
-    "holzfäller": Building("holzfäller", "Holzfäller", description="Erzeugt Holz.", base_cost={"holz": 10, "stein": 5, "nahrung": 1}),
-    "steinmetz": Building("steinmetz", "Steinmetz", description="Fördert Stein.", base_cost={"holz": 5, "stein": 10, "nahrung": 1}),
-    "jäger": Building("jäger", "Jäger", description="Erzeugt Nahrung.", base_cost={"holz": 25, "stein": 25, "nahrung": 1}),
-    "haus": Building("haus", "Haus", description="+5 Bevölkerung.", base_cost={"holz": 80, "stein": 50}),
-    "schmiede": Building("schmiede", "Schmiede", description="Eisenverarbeitung.", base_cost={"holz": 40, "stein": 60, "eisen": 20}),
-    "bibliothek": Building("bibliothek", "Bibliothek", description="+Forschung.", base_cost={"holz": 60, "stein": 40, "kristall": 20}),
-    "markt": Building("markt", "Marktplatz", description="Handel mit Bots.", base_cost={"holz": 50, "stein": 50, "geld": 20}),
-    "kaserne": Building("kaserne", "Kaserne", description="Einheitenausbildung.", base_cost={"holz": 80, "stein": 80, "eisen": 40}),
-    "turm": Building("turm", "Wachturm", description="Verteidigung +", base_cost={"stein": 120, "eisen": 60}),
-    "portal": Building("portal", "Portal", description="Kartenwechsel + Forschung.", base_cost={"kristall": 100, "geld": 100, "wissen": 50}),
-}
-UNITS: Dict[str, Unit] = {
-    "siedler": Unit("siedler", "Siedler", cost={"nahrung": 50}, training_time=1.0, description="Arbeiter für neue Siedlungen."),
-    "krieger": Unit("krieger", "Krieger", attack=8, defense=5, cost={"holz": 30, "eisen": 20}, training_time=2.0),
-    "bogenschütze": Unit("bogenschütze", "Bogenschütze", attack=11, defense=4, cost={"holz": 40, "eisen": 15}, training_time=2.5),
-    "reiter": Unit("reiter", "Reiter", attack=14, defense=7, cost={"eisen": 70, "nahrung": 50}, training_time=4.0),
-    "mönch": Unit("mönch", "Mönch", attack=4, defense=3, cost={"wissen": 30, "kristall": 15}, training_time=3.0, description="Heilung/Wissen."),
-    "golem": Unit("golem", "Golem", attack=18, defense=14, cost={"stein": 120, "kristall": 60}, training_time=6.0),
-    "spion": Unit("spion", "Spion", attack=2, defense=2, cost={"geld": 40, "leder": 20}, training_time=1.5, description="Aufklärung/Sabotage."),
-    "katapult": Unit("katapult", "Katapult", attack=25, defense=5, cost={"holz": 80, "stein": 60}, training_time=6.0, description="Belagerungswaffe."),
-    "mauerbrecher": Unit("mauerbrecher", "Mauerbrecher", attack=20, defense=15, cost={"eisen": 60, "nahrung": 40}, training_time=5.5, description="Belagerungswaffe."),
-    "trebuchet": Unit("trebuchet", "Trebuchet", attack=40, defense=8, cost={"holz": 120, "stein": 80, "eisen": 40}, training_time=8.0, description="Belagerungswaffe."),
-    "speerträger": Unit("speerträger", "Speerträger", attack=6, defense=12, cost={"holz": 20, "eisen": 10}, training_time=1.8),
-    "schwertkämpfer": Unit("schwertkämpfer", "Schwertkämpfer", attack=13, defense=6, cost={"holz": 50, "eisen": 30}, training_time=3.0),
-    "armbrustschütze": Unit("armbrustschütze", "Armbrustschütze", attack=16, defense=5, cost={"holz": 60, "eisen": 25}, training_time=3.5),
-    "lanzenreiter": Unit("lanzenreiter", "Lanzenreiter", attack=20, defense=10, cost={"eisen": 90, "nahrung": 60}, training_time=5.0),
-    "bogenschütze_beritten": Unit("berittener Bogenschütze", "Berittener Bogenschütze", attack=19, defense=7, cost={"holz": 70, "eisen": 50}, training_time=5.5),
-    "pikeniere": Unit("pikeniere", "Pikeniere", attack=9, defense=18, cost={"holz": 40, "eisen": 20}, training_time=2.5),
-    "schwere_kavallerie": Unit("schwere_kavallerie", "Schwere Kavallerie", attack=28, defense=16, cost={"eisen": 140, "nahrung": 80}, training_time=7.0),
-    "belagerungsturm": Unit("belagerungsturm", "Belagerungsturm", attack=22, defense=25, cost={"holz": 100, "stein": 120}, training_time=7.5, description="Belagerung."),
-    "worg": Unit("worg", "Worg", attack=24, defense=6, cost={"leder": 60, "nahrung": 40}, training_time=4.5, description="Schnell."),
-    "hexe": Unit("hexe", "Hexe", attack=15, defense=8, cost={"kristall": 50, "wissen": 40}, training_time=5.0, description="Magisch."),
-    "drache": Unit("drache", "Drache", attack=45, defense=20, cost={"kristall": 200, "geld": 150}, training_time=12.0, description="Legendär."),
-    "zauberer": Unit("zauberer", "Zauberer", attack=21, defense=10, cost={"wissen": 80, "kristall": 60}, training_time=6.5),
-    "schamane": Unit("schamane", "Schamane", attack=17, defense=12, cost={"leder": 50, "kristall": 40}, training_time=5.0),
-    "geist": Unit("geist", "Geist", attack=12, defense=5, cost={"kristall": 30, "stoff": 20}, training_time=3.5),
-    "riese": Unit("riese", "Riese", attack=38, defense=30, cost={"stein": 180, "nahrung": 120}, training_time=10.0),
-    "wächter": Unit("wächter", "Wächter", attack=10, defense=22, cost={"stein": 80, "eisen": 40}, training_time=3.0),
-    "bote": Unit("bote", "Bote", attack=1, defense=1, cost={"geld": 20}, training_time=0.5, description="Nur zum Senden."),
-    "troll": Unit("troll", "Troll", attack=32, defense=18, cost={"nahrung": 100, "leder": 60}, training_time=8.5),
-    "schildmaid": Unit("schildmaid", "Schildmaid", attack=7, defense=20, cost={"holz": 60, "eisen": 30}, training_time=3.5, description="Verteidigungsspezialist."),
-    "skalde": Unit("skalde", "Skalde", attack=5, defense=4, cost={"wissen": 50, "stoff": 20}, training_time=3.0, description="Unterstützung/Moral."),
-    "bär": Unit("bär", "Bär", attack=35, defense=22, cost={"nahrung": 120, "leder": 80}, training_time=9.0),
-    "adler": Unit("adler", "Adler", attack=16, defense=5, cost={"geld": 60, "stoff": 30}, training_time=3.5, description="Aufklärung."),
-    "wolf": Unit("wolf", "Wolf", attack=18, defense=7, cost={"nahrung": 40, "leder": 40}, training_time=2.8, description="Schnell."),
-    "goblin": Unit("goblin", "Goblin", attack=4, defense=2, cost={"nahrung": 15}, training_time=0.8),
-    "ork": Unit("ork", "Ork", attack=24, defense=14, cost={"holz": 70, "eisen": 50}, training_time=5.5),
-    "skelett": Unit("skelett", "Skelett", attack=10, defense=3, cost={"kristall": 20}, training_time=1.5, description="Untot."),
-}
+# Einheiten der Originaldaten (Handbuch Seiten 14-17).
+# Vorher standen hier 36 erfundene Einheiten (Worg, Drache, Troll, Golem ...): sie sind
+# ersatzlos entfernt, alles kommt aus data/units.json ueber die Bruecke einheiten.py.
+# Karren und Belagerungswaffen haben im Handbuch keine LE/AT, weil sie nicht kaempfen —
+# attack und defense bleiben dort 0, und `rolle` sagt, wie die Einheit wirkt.
+UNIT_ICONS: Dict[str, str] = {}
+UNITS: Dict[str, Unit] = {}
+for _name, _e in einheiten.alle().items():
+    if _e["icon"]:
+        UNIT_ICONS[_name] = _e["icon"]
+    UNITS[_name] = Unit(
+        id=_name,
+        name=_e["name"],
+        attack=einheiten.angriff(_name),
+        defense=einheiten.verteidigung(_name),
+        cost=dict(_e["kosten"]),
+        training_time=0.0,       # das Handbuch nennt keine Ausbildungsdauer
+        description=einheiten.beschreibung(_name),
+        rolle=_e["rolle"],
+    )
+del _name, _e
+
 RESEARCHES: Dict[str, Research] = {
     "landwirtschaft": Research("landwirtschaft", "Landwirtschaft", max_level=5, cost={"wissen": 10}, effect="+12% Nahrung/Min"),
     "bergbau": Research("bergbau", "Bergbau", max_level=5, cost={"wissen": 10}, effect="+12% Stein/Eisen/Min"),
@@ -459,7 +394,9 @@ class GameState:
                         self.resources[res].amount = round(self.resources[res].amount, 2)
         for bot in self.bots:
             if bot.settlements and random.random() < 0.05 * bot.aggression:
-                defense = sum(self.units[u].defense * max(1, self.units[u].count) for u in self.units)
+                # nur Kaempfer und Kundschafter verteidigen — Karren und Belagerungswaffen nicht
+                defense = sum(self.units[u].defense * max(1, self.units[u].count)
+                              for u in self.units if einheiten.ist_kaempfer(u))
                 loss = max(0, int(get_military_multiplier(levels) * 10 * bot.aggression - get_medic_redution(levels)))
                 self.resources["nahrung"].amount = max(0, self.resources["nahrung"].amount - loss)
         # FIX 2+3: Tag fortschreiben (86400s = 1 Spieltag) + Noobschutz nach Tag 3 deaktivieren
@@ -1142,7 +1079,8 @@ class NebelseetalApp:
             return
         levels = {k: v.level for k, v in self.state.research.items()}
         military = get_military_multiplier(levels, get_defense_bonus(self.state.buildings.get("turm", Building("", "")).level))
-        player_power = sum(get_unit_stats(u, max(1, self.state.units[u].count), levels, self.state.buildings.get("turm", Building("", "")).level)["attack"] for u in self.state.units)
+        player_power = get_combat_power(
+            {u: max(1, self.state.units[u].count) for u in self.state.units}, levels)
         bot_power = random.randint(20, 80) * bot.aggression + bot.ruf
         if player_power > bot_power:
             gain_ruf = max(5, int(15 * military))
@@ -1290,9 +1228,15 @@ class NebelseetalApp:
             frame = tk.Frame(self.content, bg=self.skin["panel"])
             frame.pack(fill=tk.X, padx=10, pady=2)
             tk.Label(frame, text=u.name, fg=self.skin["text"], bg=self.skin["panel"], width=15, anchor=tk.W).pack(side=tk.LEFT, padx=5)
-            info = f"ATK {u.attack} / DEF {u.defense}"
-            if "belagerung" in key or key == "golem":
-                info += f" / Schaden {u.attack + u.defense}"
+            _w = einheiten.alle()[key]["werte"]
+            if einheiten.ist_transport(key):
+                info = f"Ladung {einheiten.ladung(key)} / GS {einheiten.geschwindigkeit(key)}"
+            elif einheiten.ist_belagerung(key):
+                _lo, _hi = einheiten.mauer_schaden(key)
+                info = f"Schlagkraft {einheiten.schlagkraft(key)} / Mauerschaden {_lo}-{_hi}"
+            else:
+                info = (f"LE {_w.get('LE')} / AT {_w.get('AT')} / PA {_w.get('PA')} / "
+                        f"TP {_w.get('TP_min')}-{_w.get('TP_max')} / SK {_w.get('SK')}")
             tk.Label(frame, text=info, fg="#DAA520", bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
             tk.Label(frame, text=f"Anzahl: {u.count}", fg="#C0C0C0", bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
             tk.Button(frame, text="Ausbilden", command=lambda k=key: self._train_unit(k), bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)

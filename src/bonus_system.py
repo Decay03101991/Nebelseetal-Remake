@@ -6,27 +6,35 @@ from __future__ import annotations
 from typing import Dict
 
 
-# ---------- Base Stats ----------
+# ---------- Base Stats (aus den Originaldaten) ----------
+#
+# Vorher standen hier 7 erfundene Einheiten (siedler, krieger, reiter, golem ...) mit
+# attack/defense/hp. Einheiten, die nur in der Anzeigetabelle standen, rechneten deshalb mit 0.
+# Jetzt kommt alles aus `data/units.json` ueber die Bruecke `einheiten.py` — eine Quelle.
 
+import einheiten as _E
+
+# Angriff / Abwehr / Leben / Geschwindigkeit aus den Originalwerten AT / PA / LE / GS.
+# Karren und Belagerungswaffen haben im Handbuch keine AT/PA — sie kaempfen nicht; ihre
+# Rolle steht in `_E.rolle()` und ihr Beitrag kommt aus SK bzw. Ladung.
 UNIT_BASE: Dict[str, Dict[str, float]] = {
-    "siedler":  {"attack": 2,  "defense": 2,  "hp": 200,  "speed": 1.0},
-    "krieger":  {"attack": 12, "defense": 8,  "hp": 600,  "speed": 0.9},
-    "bogenschütze": {"attack": 16, "defense": 6,  "hp": 480,  "speed": 0.8},
-    "reiter":  {"attack": 20, "defense": 10, "hp": 800,  "speed": 1.2},
-    "mönch":   {"attack": 6,  "defense": 5,  "hp": 400,  "speed": 0.7},
-    "golem":   {"attack": 28, "defense": 18, "hp": 1400, "speed": 0.5},
-    "spion":   {"attack": 4,  "defense": 3,  "hp": 300,  "speed": 1.4},
+    name: {
+        "attack": _E.angriff(name),
+        "defense": _E.verteidigung(name),
+        "hp": _E.leben(name),
+        "speed": _E.geschwindigkeit(name),
+    }
+    for name in _E.namen()
 }
 
-UNIT_TRAIN_BASE: Dict[str, float] = {
-    "siedler": 1.0,
-    "krieger": 2.0,
-    "bogenschütze": 2.5,
-    "reiter": 4.0,
-    "mönch": 3.0,
-    "golem": 6.0,
-    "spion": 1.5,
-}
+# Kein Stufenfaktor im Handbuch: die Wirkung kommt dort aus Forschung, Waren und Wallstufe.
+TIER_SCALE: Dict[str, float] = {name: 1.0 for name in _E.namen()}
+
+# Das Handbuch nennt fuer die Einheiten Kosten, aber KEINE Ausbildungsdauer.
+# Deshalb 0.0 = "nicht angegeben" statt eines erfundenen Werts. (Offene Entscheidung,
+# siehe docs/PROJEKT_STAND.md.)
+UNIT_TRAIN_BASE: Dict[str, float] = {name: 0.0 for name in _E.namen()}
+
 
 BUILDING_BASE_COST: Dict[str, Dict[str, float]] = {
     "holzfäller": {"holz": 10, "stein": 5,  "nahrung": 1},
@@ -117,15 +125,23 @@ def get_unit_stats(unit_id: str, count: int, research_levels: Dict[str, int], to
 
 
 def get_combat_power(units: Dict[str, int], research_levels: Dict[str, int]) -> float:
-    """Total combat power for scoreboard."""
+    """Gesamtstaerke zum Vergleich — rollenbewusst.
+
+    Kampfeinheiten und Kundschafter zaehlen mit Angriff + Abwehr (AT + PA).
+    Belagerungswaffen zaehlen mit ihrer Schlagkraft (SK) — damit brechen sie Mauern (Seite 20).
+    Karren kaempfen nicht; sie erscheinen hier nicht, ihre Tragekapazitaet steht in
+    `einheiten.kapazitaet()`.
+    """
+    mil = get_military_multiplier(research_levels)
     total = 0.0
     for uid, count in units.items():
         if count <= 0:
             continue
-        base = UNIT_BASE.get(uid, {})
-        tier = TIER_SCALE.get(uid, 1.0)
-        mil = get_military_multiplier(research_levels)
-        total += (base.get("attack", 0) + base.get("defense", 0) + base.get("hp", 0) * 0.01) * tier * mil * count
+        rolle = _E.rolle(uid)
+        if rolle in ("kaempfer", "kundschafter"):
+            total += (_E.angriff(uid) + _E.verteidigung(uid)) * mil * count
+        elif rolle == "belagerung":
+            total += _E.schlagkraft(uid) * mil * count
     return total
 
 
