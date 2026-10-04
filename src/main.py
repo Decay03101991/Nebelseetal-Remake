@@ -13,10 +13,12 @@ from dataclasses import dataclass, field, asdict
 from typing import Dict, List, Optional
 
 from bonus_system import (
-    get_military_multiplier, get_production_multiplier, get_building_cost_multiplier,
-    get_training_time_multiplier, get_trade_bonus, get_defense_bonus, get_medic_redution,
-    get_unit_stats, get_combat_power, get_building_cost, get_training_time, get_map_switch_cost,
-    UNIT_BASE, UNIT_TRAIN_BASE, BUILDING_BASE_COST, TIER_SCALE,
+    # Nur noch, was main.py wirklich benutzt. Die erfundenen Kampf- und Preisformeln
+    # (`get_combat_power`, `get_unit_stats`, `get_building_cost`, `get_map_switch_cost`,
+    # `UNIT_BASE`, `UNIT_TRAIN_BASE`, `BUILDING_BASE_COST`, `TIER_SCALE`) sind hier nicht mehr
+    # im Spiel: Kaempfe rechnet src/kampf.py, Preise kommen aus data/*.json, Punkte aus src/punkte.py.
+    get_military_multiplier, get_trade_bonus, get_defense_bonus, get_medic_redution,
+    get_training_time,
 )
 import einheiten
 import spieldaten
@@ -1978,27 +1980,79 @@ class NebelseetalApp:
         self._angriff_durchfuehren(bot.name, dict(bot.army or {}), wall_stufe=0,
                                    wall_zustand=100.0, vorrat_ziel=bot)
 
+    def _eigene_schlagkraft(self) -> float:
+        """Die Schlagkraft der eigenen Truppen aus `einheiten.kampfstaerke` (Originalwerte).
+
+        Vorher stand hier `get_combat_power` aus `bonus_system` — die erfundene Kampfkraft, die
+        mit den Kampfwerten des Handbuchs nichts zu tun hatte.
+        """
+        kaempfer, belagerung, _karren = self._truppen_nach_rolle()
+        summe = 0.0
+        for name, anzahl in kaempfer.items():
+            summe += einheiten.kampfstaerke(name, int(anzahl))
+        for name, anzahl in belagerung.items():
+            summe += einheiten.kampfstaerke(name, int(anzahl))
+        return summe
+
+    def _zufallsgegner(self):
+        """Ein ausgedachter Gegner fuer den Simulator (Rueckgabe (einheiten, wall_stufe)).
+
+        Ausgedacht ist hier erlaubt und noetig: das Handbuch nennt keinen Uebungsgegner. Es wird
+        aber nichts in den Spielstand gebucht - der Simulator ist ein Trockenkurs.
+        """
+        wahl = random.Random()
+        kaempfer = sorted(k for k, u in self.state.units.items()
+                          if (u.rolle or einheiten.rolle(k)) in ("kaempfer", "kundschafter"))
+        gegner = {}
+        for name in wahl.sample(kaempfer, min(3, len(kaempfer))) if kaempfer else []:
+            gegner[name] = wahl.randint(1, 10)
+        return gegner, wahl.randint(0, 3)
+
     def _render_battle_simulator(self):
         tk.Label(self.content, text="Kampfsimulator", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
-        tk.Label(self.content, text="Simuliere einen Kampf mit deinen aktuellen Einheiten.", fg="#C0C0C0", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
+        tk.Label(self.content, text="Trockenkurs: der Kampf laeuft mit dem echten Schlachtmodell, "
+                                    "aendert aber NICHTS im Spielstand.", fg="#C0C0C0", bg=self.skin["bg"],
+                 wraplength=760, justify=tk.LEFT).pack(anchor=tk.W, padx=10)
         frame = tk.Frame(self.content, bg=self.skin["panel"])
         frame.pack(fill=tk.X, padx=10, pady=10)
-        tk.Label(frame, text="Eigene Stärke:", fg=self.skin["text"], bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
-        levels = {k: v.level for k, v in self.state.research.items()}
-        player_power = get_combat_power({u: max(1, self.state.units[u].count) for u in self.state.units}, levels)
-        tk.Label(frame, text=f"{int(player_power)}", fg="#DAA520", bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
+        tk.Label(frame, text="Eigene Schlagkraft (Fuß- und Belagerungstruppen):", fg=self.skin["text"], bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
+        tk.Label(frame, text=f"{int(self._eigene_schlagkraft())}", fg="#DAA520", bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
         tk.Button(frame, text="Zufallsangriff", command=self._simulate_random_battle, bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
+        kaempfer, belagerung, karren = self._truppen_nach_rolle()
+        tk.Label(self.content, text="Kämpfer/Kundschafter: " +
+                 (", ".join(f"{n} {a}" for n, a in sorted(kaempfer.items())) or "keine") +
+                 " · Belagerung: " + (", ".join(f"{n} {a}" for n, a in sorted(belagerung.items())) or "keine") +
+                 " · Karren: " + (", ".join(f"{n} {a}" for n, a in sorted(karren.items())) or "keine"),
+                 fg=self.skin["text"], bg=self.skin["bg"], wraplength=760, justify=tk.LEFT).pack(anchor=tk.W, padx=10)
 
-    def _simulate_random_battle(self):
-        levels = {k: v.level for k, v in self.state.research.items()}
-        military = get_military_multiplier(levels)
-        player_power = get_combat_power({u: max(1, self.state.units[u].count) for u in self.state.units}, levels)
-        enemy_power = random.randint(20, 120)
-        if player_power >= enemy_power:
-            self.state.ruf += 10
-            self._log(f"Sieg im Simulator! Gegner Stärke {enemy_power}, deine Stärke {int(player_power)}")
-        else:
-            self._log(f"Niederlage im Simulator. Gegner Stärke {enemy_power}, deine Stärke {int(player_power)}")
+    def _simulate_random_battle(self, gegner=None, wall_stufe=None):
+        """Ein Probekampf im Simulator — rechnet wie ein echter Angriff, bucht aber nichts."""
+        kaempfer, belagerung, karren = self._truppen_nach_rolle()
+        if not kaempfer and not belagerung:
+            meldung = "Keine Kaempfer und keine Belagerungswaffen vorhanden."
+            self.state.messages.append({"text": meldung, "type": "kampf"})
+            self._log(meldung)
+            return False
+        if gegner is None or wall_stufe is None:
+            gegner_auto, wall_auto = self._zufallsgegner()
+            gegner = gegner if gegner is not None else gegner_auto
+            wall_stufe = wall_stufe if wall_stufe is not None else wall_auto
+
+        angreifer = dict(kaempfer)
+        angreifer.update(belagerung)
+        ergebnis = kampf.fuehre_schlacht(
+            angreifer, dict(gegner or {}), int(wall_stufe), 100.0,
+            angreifer_karren=karren or None,
+            vorraete=self._vorraete_des_ziels({"name": "Simulator-Gegner"}),
+            rng=random.Random())
+        bericht = kampfbericht.bericht(ergebnis)
+        kopf = f"Simulator (Trockenkurs) gegen Wallstufe {int(wall_stufe)} "
+        self.state.messages.append({"text": kopf + "— " + bericht["titel"] + "\n" +
+                                            "\n".join(bericht["zeilen"]), "type": "kampf"})
+        self._log(f"Simulator: Ausgang {ergebnis.get('ausgang')} — Spielstand unveraendert.")
+        if hasattr(self, "content"):
+            self._render_view()
+        return True
 
     def _render_hall_of_fame(self):
         # W6: dieselben Originalformeln wie in der Seitenleiste. Vorher stand hier die falsche

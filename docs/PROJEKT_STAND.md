@@ -39,14 +39,13 @@ Vorgaben aus der Sitzung vom 04.10.2026:
 
 ```
 Lies D:/Arbeiten/Nebelseetal_Remake/docs/PROJEKT_STAND.md (Einstiegspunkt) und übernimm das laufende
-Ziel aus Abschnitt 0. Der Stand beim Sitzungswechsel steht in Abschnitt 0c — lies den zuerst, dann
-docs/UMSETZUNG_EINHAENGEN.md (Umsetzungsplan) und docs/ENTWICKLUNGSPROTOKOLL.md (was zuletzt wirklich
-passierte). Arbeite die verbleibende Reihenfolge ab; der EINE nächste kleine Schritt steht in
-Abschnitt 0c (Kampfsimulator auf src/kampf.py umstellen, main.py:1981-2001). Fahre nach jedem Schritt
-tests/… einzeln und einmal `run_tests.bat` (in der Bash: `python tools/… ` bzw. das Hilfsskript, weil
-`run_tests.bat` mit `pause` endet), schreibe eine Zeile ins Entwicklungsprotokoll (Zeit, Schritt,
-Ergebnis, Beleg, Kosten) und sichere mit `python tools/protokoll_sichern.py --protokoll`. Am Ende der
-Reihenfolge die `.exe` neu bauen (`tools/build_exe.py`) und aus einem ANDEREN Ordner startprüfen.
+Ziel aus Abschnitt 0. Lies dann NUR das Kontext-Paket aus Abschnitt 0c (eine Seite + zwei
+Dokumentabschnitte + die Zieldatei an der Aufrufstelle) — die Chat-Historie brauchst du nicht.
+Der EINE nächste Schritt steht in Abschnitt 0c: das Auftragssystem (`src/auftraege.py`) einhängen.
+Nach jedem Schritt: betroffenen Einzeltest + einmal Sammellauf, eine Protokollzeile (Zeit, Schritt,
+Ergebnis, Beleg, Kosten), `python tools/protokoll_sichern.py --protokoll`, kleiner Commit. Prüfende
+Unteragenten erst NACH dem Commit loslassen. Am Ende der Reihe die `.exe` neu bauen
+(`tools/build_exe.py`) und aus einem anderen Ordner startprüfen.
 ```
 
 ---
@@ -63,20 +62,47 @@ gleich, Zeiger `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`).
 | Neu eingehängt in dieser Sitzung | **1 · `speichern`** (atomar, Sicherung, Wiederherstellung) · **2 · `punkte`** (Originalformeln in Seitenleiste + Ruhmeshalle) · **3 · `kampf` + `kampfbericht`** (ein Angriffsweg für Karte und Bot, Bericht in die Nachrichten) · **6 · `portalraum`** (20×20-Raster, 5.000 Mana, 24-h-Sperre) · **5 · `werkstatt`** (17 Originalwaren mit Original-Icons, Werkstätten, Warteschlangen, Voraussetzungen) |
 | Neue Prüfdateien | `test_w8_einhaengung` 39 · `test_punkte_einhaengung` 44 · `test_kampf_einhaengung` 42 · `test_gui_fehler` 22 (stille tkinter-Fehler werden laut) |
 | Neues Werkzeug | `tools/pruefe_verdrahtung.py` — Textbeweis aus `main.py`: 13 verdrahtet, `botkern` nur importiert, `auftraege`/`forschung`/`welt` nicht eingebunden; meldet doppelte Definitionen und zweite Wahrheiten |
-| **Noch nicht eingehängt** | `auftraege` (Missionen), `forschung` (Wartezeit statt Sofort-Stufe), `welt` (Weltkarte), Teile von `botkern` (Bot-Verhalten je Runde) — und der **Kampfsimulator** rechnet noch mit der alten erfundenen Formel |
+| **Noch nicht eingehängt** | `auftraege` (Missionen), `forschung` (Wartezeit statt Sofort-Stufe), `welt` (Weltkarte), Teile von `botkern` (Bot-Verhalten je Runde) |
+| **Neu erledigt (01:02)** | Der **Kampfsimulator** rechnet nicht mehr mit der erfundenen Kampfkraft, sondern über `kampf.fuehre_schlacht` als Trockenkurs (bucht nichts, kennzeichnet den Übungsgegner als ausgedacht); die nicht mehr benutzten `bonus_system`-Importe sind entfernt. **`tools/pruefe_verdrahtung.py`: Summe Treffer 0** — keine zweite Wahrheit mehr in `main.py` |
 | `.exe` | **05.10. 00:53 neu gebaut**: `Nebelseetal_Remake.exe`, **14.108.111 Byte (13,5 MB)**, SHA256 `73e04b5909b0dedd177a7d331e2501051f1d5f15e185d333c1ed731699dacbc4`; **Startprüfung bestanden** (Ordner mit Leerzeichen, Fenster „Nebelseetal Remake", kein Absturz, Passworttor steht; das Passwort wurde **nicht** eingegeben). Enthält Speichern, Punkte, Kampf, Portal und Werkstatt — **nicht** die noch offenen Module |
-| Kosten dieser Sitzung | **0,6618 USD = 0,5895 EUR** (`scripts/tageskosten_check.py --json`, Messung 00:54), davon **0,3444 USD** der auf Daniels Wunsch geholte `gpt-6-astra`-Rat; der Rest ist Koordinator + `flash`-Unteragenten |
+| Kosten dieser Sitzung | **0,7082 USD = 0,6309 EUR** (`scripts/tageskosten_check.py --json`, Messung 01:02), davon **0,3444 USD** der auf Daniels Wunsch geholte `gpt-6-astra`-Rat; der Rest ist Koordinator + `flash`-Unteragenten |
 | Guthaben | Daniel ablesen lassen: OpenAI **3,04 → ~2,70 USD**, DeepSeek **1,70 USD** (Reserve 1,00 USD unberührt) — bitte bei der nächsten Sitzung erneut ablesen, ich kann es nicht messen |
 
 ### Der EINE nächste Schritt
 
-**Kampfsimulator auf `kampf.py` umstellen — `main.py:1981-2001`.** `_render_battle_simulator` und
-`_simulate_random_battle` rechnen noch mit `get_combat_power` (der erfundenen Kampfkraft) — der
-Verdrahtungsprüfer meldet genau diese sechs Stellen. Sie sollen `kampf.fuehre_schlacht(...)` mit
-Kopien der Truppen und einem ausgedachten Gegner aufrufen und den **Bericht** anzeigen, **ohne** den
-Spielstand zu verändern. Erwartet: `tools/pruefe_verdrahtung.py` meldet danach **keine**
-`player_power`-Warnung mehr; Einzelprüfung `tests/test_kampf.py` → 42 grün, `tests/test_gui_fehler.py`
-→ 22 grün, Sammellauf → 1798 grün.
+**Auftragssystem einhängen — `src/auftraege.py` (Modul fertig, 111 Prüfungen grün).** Der Plan steht in
+`docs/UMSETZUNG_EINHAENGEN.md`, Abschnitt 1.7: `GameState` bekommt eine Auftragsliste
+(`auftraege.neue_liste()`), gestartet wird über `auftraege.starten(liste, art, einheiten, von, nach,
+entfernung, jetzt, fracht)` — der vorhandene Knopf „Transport" und eine neue Auftragsliste im Fenster
+sind die Oberfläche; im `_tick_loop` laufen `auftraege.fortschritt` / `angekommen` /
+`spieldaten_anwenden`, Berichte über `auftraege.bericht` in den Reiter „Nachrichten". Hinweis aus der
+Modulprüfung: „Ueberladen: X Einheiten Fracht passen nicht auf Y Ladeplaetze." ist der einzige echte
+Überlade-Fehler. Erwartet: `tests/test_auftraege.py` → **111 grün**, `tests/test_gui_fehler.py` →
+**22 grün**, Sammellauf → **1798 grün** (er steigt, wenn eine neue Prüfdatei dazukommt).
+
+### Kontext-Paket für die neue Sitzung (bewusst klein halten — spart Geld und Fehler)
+
+| Reihenfolge | Was laden | Warum nicht mehr |
+|---|---|---|
+| 1 | **diese Datei, Abschnitt 0c** | Stand in Belegen und der eine nächste Schritt; der Rest der Datei ist Historie |
+| 2 | `docs/ENTWICKLUNGSPROTOKOLL.md`, **nur den Abschnitt „05.10.2026 — Tag 2"** | was zuletzt wirklich passierte, samt Irrwegen und Kosten |
+| 3 | `docs/UMSETZUNG_EINHAENGEN.md`, **nur § 1.7 (Aufträge) und § 2 (Kampfablauf-Fehlerfälle)** | der Plan für genau diesen Schritt |
+| 4 | `src/auftraege.py` — **nur der Modulkopf und die öffentlichen Funktionen** (`grep -n "^def "`) | die Signaturen genügen; das Innenleben ist durch 111 Prüfungen gedeckt |
+| 5 | `src/main.py` — **nur** `GameState.__init__`, die Fundstelle des „Transport"-Knopfes, `_tick_loop`, `save`/`load` | nie die ganze 2400-Zeilen-Datei laden |
+| 6 | `data/*.json` **nur**, wenn eine konkrete Zahl gebraucht wird (und dann mit Quelle) | Zahlen haben eine Quelle, nicht im Kopf |
+
+**Nicht in den Kontext:** die vollständige `main.py`, ganze Testprotokolle (nur Fehlerzeilen),
+die Chat-Historie, `docs/archiv/`, `docs/audits/` (außer man braucht ein bestimmtes Gutachten),
+abgeschlossene Schritte im Detail, wiederholte Regeltexte.
+
+**Werkzeuge statt Lesen:** `python tools/pruefe_verdrahtung.py` sagt in Sekunden, welche Module wirklich
+verdrahtet sind (und ob es eine zweite Wahrheit gibt); der Sammellauf ist die Wahrheit über den Zustand;
+`docs/SICHERUNGEN.md` zeigt, wo die Papiere liegen; `git log --oneline -3` + `git status --short` sind
+die Sekunden-Checks vor dem Anfassen von `src/`.
+
+**Zwei Hausregeln, die diese Sitzung teuer gelernt hat:** (a) **eine Spieleraktion je Commit** —
+keine fremde Aufräumarbeit mit hineinnehmen; (b) **prüfende Unteragenten erst nach dem Commit
+loslassen**, sonst messen sie einen bewegten Zwischenstand.
 
 ### Danach in dieser Reihenfolge
 
