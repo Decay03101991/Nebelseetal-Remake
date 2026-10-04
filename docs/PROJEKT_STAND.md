@@ -89,6 +89,13 @@ Einheiten, Kampf und Rohstoffe rechnen jetzt aus den Originaldaten. Der Rest nic
 
 ## 6. Offene Entscheidungen (Daniel)
 
+**Icon-Abnahme (läuft):** Alle 45 Icon-Dateien waren deckend — der Blatt-Hintergrund lag als
+farbiger Kasten mit im Bild. `tools/clean_icons.py` stellt den Hintergrund frei, die aufbereiteten
+Kopien liegen in `assets/icons/clean/` **zusätzlich** zu den Originalen (Daniels 17 Dateien bleiben
+unangetastet). Vergleichsblätter: `docs/icon_preview/Vergleich_*.png` (links vorher, rechts nachher,
+Zahlen = Legende in der Sitzung). Das Spiel benutzt bereits die freigestellten Fassungen; Daniel
+geht die Blätter einzeln durch und kann einzelne Nummern zurückweisen.
+
 Neu hinzugekommen (das Handbuch schweigt hier):
 
 - **Baupreise.** Das Handbuch nennt für Gebäude keine Preise, nur Erträge. Sollen die bisherigen
