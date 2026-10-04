@@ -186,25 +186,25 @@ check("eine zweite Bibliothek in derselben Siedlung wird abgelehnt",
 abschnitt("Bibliothek — das Spiel forscht wirklich erst mit ihr")
 
 spiel = M.GameState()
-spiel.research["landwirtschaft"].level = 0
+spiel.research["Felderwirtschaft"].level = 0
 spiel.settlements.append(ohne_haus)
 spiel.resources["holz"].amount = 500
 app_los = M.NebelseetalApp.__new__(M.NebelseetalApp)      # ohne Fenster: nur die Methode
 app_los.state = spiel
 app_los.log = spiel._log
 app_los._log = spiel._log
-app_los._start_research("landwirtschaft")
+app_los._start_research("Felderwirtschaft")
 check("ohne Bibliothek steigt die Forschungsstufe nicht",
-      spiel.research["landwirtschaft"].level == 0, str(spiel.research["landwirtschaft"].level))
+      spiel.research["Felderwirtschaft"].level == 0, str(spiel.research["Felderwirtschaft"].level))
 check("und es wird kein Holz abgezogen", spiel.resources["holz"].amount == 500,
       str(spiel.resources["holz"].amount))
 check("die Meldung nennt die Bibliothek", any("Bibliothek" in z for z in spiel.log[-2:]),
       str(spiel.log[-2:]))
 
 spiel.settlements.append(bib)
-app_los._start_research("landwirtschaft")
-check("mit Bibliothek steigt die Stufe", spiel.research["landwirtschaft"].level == 1,
-      str(spiel.research["landwirtschaft"].level))
+app_los._start_research("Felderwirtschaft")
+check("mit Bibliothek steigt die Stufe", spiel.research["Felderwirtschaft"].level == 1,
+      str(spiel.research["Felderwirtschaft"].level))
 check("und die Handbuchkosten (Stufe 1 = 50 Holz) sind abgezogen",
       spiel.resources["holz"].amount == 450, str(spiel.resources["holz"].amount))
 

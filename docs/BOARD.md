@@ -24,6 +24,13 @@ Format einer Zeile: `Zeit | Agent | Dateien | Ziel/Ergebnis | Prüfung | offen`
 
 | Zeit | Agent | Dateien | Ergebnis | Prüfung |
 |---|---|---|---|---|
+| 22:58 | Hauptagent | `src/main.py`, `src/bonus_system.py`, `tests/test_baseline.py`, `tests/test_ertrag_anbindung.py`, `run_tests.bat` | **W4b-6 eingehängt**: die 21 Originalforschungen sind im Spiel (statt 18 erfundener Gebiete), und `get_production_multiplier` liefert jetzt die BELEGTEN Faktoren für **alle neun** Rohstoffe aus `forschung_wirkung.py` | Gesamtlauf siehe Protokoll |
+| 22:50 | kind-punkte | `src/punkte.py`, `tests/test_punkte.py` | W6: Forschungspunkte Stufe³, Kriegspunkte, Gesamt = halbe Summe, Ruf, Götterschutz 7 Tage, Sieg/Niederlage als gekennzeichneter Vorschlag | **76 grün** |
+| 22:50 | kind-kampfbericht | `src/kampfbericht.py`, `tests/test_kampfbericht.py` | W2b: Vorrunde (Wallschwellen), Mauerschaden, Beute nach Karrenladung, Bericht für die Nachrichten | **108 grün** |
+| 22:47 | kind-portalraum | `src/portalraum.py`, `tests/test_portalraum.py` | W5-2: 20 Dimensionen × 20×20 Felder, (X,Y,Z), Wechsel 5.000 Mana aus einer Siedlung, einmal je 24 h, eigen grün / fremd rot | **69 grün** |
+| 22:46 | kind-werkstatt | `src/werkstatt.py`, `tests/test_werkstatt.py` | W3: 17 Waren, Warteschlangen, parallele Werkstätten — Handbuchbeispiel 10 Schwerter mit 2 Schmieden = 100 min exakt nachgerechnet | **118 grün**, 1 Befund |
+| 22:45 | kind-forschung | `src/forschung_wirkung.py`, `tests/test_forschung_wirkung.py` | W4b-6: belegte Produktionsfaktoren für alle neun Rohstoffe samt `offene_luecken()` | **94 grün** |
+| 22:42 | Hauptagent | `tools/build_exe.py`, `src/*` (Wurzel-Suche) | **.exe gebaut und geprüft**: startet aus einem Pfad mit Leerzeichen, Fenster „Nebelseetal Remake", sauberes Schließen; Fehler dabei gefunden und behoben (die EXE fand ihre `data/*.json` nicht) | Startlauf belegt |
 | 22:12 | Hauptagent | `src/gebaeude_wirkung.py` (neu), `data/gebaeude_wirkung.json` (neu), `src/main.py`, `src/gelaende.py`, `data/buildings.json`, `tests/test_gebaeude_wirkung.py` (neu), `tests/test_baseline.py`, `run_tests.bat` | **W4b-5**: die 20 Originalgebäude wirken aus den bebauten Feldern — Haus/Bibliothek/Ausbildungsstätten/Wall; die fünf erfundenen globalen Gebäude entfallen | **103 grün** (neu), Gesamtlauf **630, 0 Fehler, 1 Befund**, Commit `a158175` |
 | 21:17 | codewirtschaft | `src/wirtschaft.py`, `tests/test_wirtschaft.py` | Ertrag aus den Siedlungskarten, Kapazität, Textfassung | **42 grün** |
 | 23:05 | Hauptagent | `src/main.py`, `tests/test_ertrag_anbindung.py` | **W4b-4**: Kartenerträge liefern jetzt wirklich — Zeitlauf UND Anzeige aus einer Quelle | **21 grün**, Gesamtlauf 526 |

@@ -7,7 +7,7 @@ title Nebelseetal Remake - Pruefungen
 cd /d "%~dp0"
 set PYTHONUTF8=1
 set FEHLER=0
-for %%T in (tests\test_baseline.py tests\test_spieldaten.py tests\test_kampf.py tests\test_gelaende.py tests\test_siedlungskarte.py tests\test_kartenansicht.py tests\test_berater.py tests\test_wirtschaft.py tests\test_forschung.py tests\test_welt.py tests\test_ertrag_anbindung.py tests\test_gebaeude_wirkung.py tests\test_tor.py) do (
+for %%T in (tests\test_baseline.py tests\test_spieldaten.py tests\test_kampf.py tests\test_gelaende.py tests\test_siedlungskarte.py tests\test_kartenansicht.py tests\test_berater.py tests\test_wirtschaft.py tests\test_forschung.py tests\test_welt.py tests\test_ertrag_anbindung.py tests\test_gebaeude_wirkung.py tests\test_tor.py tests\test_forschung_wirkung.py tests\test_werkstatt.py tests\test_portalraum.py tests\test_punkte.py tests\test_kampfbericht.py) do (
     echo.
     echo ########## %%T ##########
     python "%%T"

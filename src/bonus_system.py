@@ -62,14 +62,16 @@ def get_military_multiplier(research_levels: Dict[str, int], building_bonus: flo
 
 
 def get_production_multiplier(research_levels: Dict[str, int], resource: str) -> float:
-    """Production bonus for a resource from research."""
-    if resource == "nahrung":
-        return 1.0 + 0.12 * research_levels.get("landwirtschaft", 0)
-    if resource in ("stein", "eisen"):
-        return 1.0 + 0.12 * research_levels.get("bergbau", 0)
-    if resource == "holz":
-        return 1.0 + 0.10 * research_levels.get("bergbau", 0)
-    return 1.0
+    """Ertragsfaktor eines Rohstoffs aus der Forschung.
+
+    Seit W4b-6 kommt der Faktor aus `forschung_wirkung` — dort stehen die BELEGTEN
+    Originalwerte (Felderwirtschaft +10 % Nahrung, Steinbruch +10 % Stein, Forstwirtschaft
+    +10 % Holz je Stufe, Tierhaltung +5 % Pferde/Wolle/Leder, Minenarbeit +5 % Metall/Gold,
+    Goetterkunde +5 % Mana). Vorher rechnete diese Stelle mit erfundenen Prozentsaetzen und
+    liess Metall, Leder, Mana, Gold, Wolle und Pferde bei 1,0 stehen.
+    """
+    import forschung_wirkung
+    return forschung_wirkung.faktor(research_levels or {}, resource)
 
 
 def get_building_cost_multiplier(research_levels: Dict[str, int]) -> float:

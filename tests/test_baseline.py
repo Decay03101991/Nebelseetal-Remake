@@ -40,7 +40,12 @@ if st:
     check("keine globalen Wirkungsgebaeude mehr — W4b-5: alle Wirkungen kommen aus den "
           "bebauten Feldern der Siedlungskarten",
           len(st.buildings) == 0, f"{len(st.buildings)} Stueck: {sorted(st.buildings)}")
-    check("Forschungen angelegt", len(st.research) == 18, f"{len(st.research)} Stueck")
+    check("Forschungen angelegt (die 21 ORIGINALForschungen aus data/research.json)",
+          len(st.research) == 21, f"{len(st.research)} Stueck")
+    check("die Forschungen tragen die Originalnamen des Handbuchs",
+          {"Felderwirtschaft", "Steinbruch", "Forstwirtschaft", "Tierhaltung",
+           "Minenarbeit", "Götterkunde", "Heilkunde"} <= set(st.research),
+          str(sorted(st.research)[:6]))
     check("Waren angelegt", len(st.goods) == 17, f"{len(st.goods)} Stueck")
 
     def karten():
@@ -206,7 +211,7 @@ if tk is not None:
             assert grenze_nachher == grenze_vorher + 5, f"{grenze_vorher} -> {grenze_nachher}"
 
             # Ohne Bibliothek keine Forschung, ohne Ausbildungsstaette keine Ausbildung.
-            app._start_research("landwirtschaft")
+            app._start_research("Felderwirtschaft")
             assert any("Bibliothek" in z for z in app.state.log[-3:]), app.state.log[-3:]
             app._train_unit("Krieger")
             assert any("Kriegerakademie" in z for z in app.state.log[-3:]), app.state.log[-3:]

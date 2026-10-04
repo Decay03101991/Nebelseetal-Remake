@@ -54,9 +54,10 @@ run_tests.bat
 git log --oneline | head -12
 ```
 
-Erwartet: **630 bestanden, 0 Fehler, 1 Befund** über zwölf Prüfdateien:
+Erwartet: **691 bestanden, 0 Fehler, 1 Befund** über dreizehn Prüfdateien:
 baseline 39 · spieldaten 53 · kampf 42 · gelaende 81 · siedlungskarte 33 · kartenansicht 40 ·
-berater 66 · wirtschaft 42 · forschung 68 · welt 42 · ertrag_anbindung 21 · gebaeude_wirkung 103.
+berater 66 · wirtschaft 42 · forschung 68 · welt 42 · ertrag_anbindung 21 · gebaeude_wirkung 103 ·
+tor 61.
 Der eine **Befund** ist ehrlich und bekannt: das Handbuch nennt keine Ausbildungsdauer, deshalb
 kann die Stufe einer Ausbildungsstätte die Dauer noch nicht messbar senken (`bonus_system.UNIT_TRAIN_BASE = 0`).
 
@@ -108,6 +109,8 @@ und Logos (32 Bilddateien in `docs/original/karten/`), die Common-Crawl-Seitenru
 | **WA** Aufträge/Bots (Entwurf) | Auftragsarten, Ablauf, Bot-Regeln, Beute, drei Scheiterfälle | `docs/ENTWURF_AUFTRAEGE.md`, Seite für Seite nachgeprüft |
 | **Auskunft** | Reiter „Chat" antwortet aus den Spieldaten — ohne Netz, ohne Schlüssel | `src/berater.py`, 65 Prüfungen |
 | **Karten** | 5 Kartentypen mit eigenen Vorteilen; 2 Mustervorlagen | `docs/MUSTERVORLAGEN.md` |
+| **Tor & Auslieferung** (Schritt 8+9) | **Passworttor** (PBKDF2, Erststart setzt selbst, Wartezeit nach Fehlversuchen) und die **`.exe`** — gebaut mit PyInstaller, Einzeldatei ohne Konsole, Symbol mit 6 Größen; Start aus einem Pfad mit Leerzeichen belegt | `src/tor.py` + 61 Prüfungen, `tools/build_exe.py`, Startlauf 04.10. 22:42 |
+| **Sechs neue Module** (Kinder-Arbeit, je eigene Prüfdatei) | W4b-6 `forschung_wirkung` (94) · W3 `werkstatt` (118) · W5-2 `portalraum` (69) · W6 `punkte` (76) · W2b `kampfbericht` (108) · dazu `tools/brett.py` (Brett der Kinder, nebenläufigkeitssicher) | 465 Prüfungen grün |
 
 ### Neu gefundene Originalwerte (wichtig!)
 
@@ -185,18 +188,16 @@ verloren gegangen (die Kartenanalyse und die Siedlungsvorlage).
 | ~~Kartenerträge an die Rohstoffproduktion angebunden~~ | **erledigt am 04.10.2026 (W4b-4)** — bebaute Felder liefern jetzt wirklich | — |
 | ~~Die 20 Originalgebäude wirken nur als Anzeige~~ | **erledigt am 04.10.2026 (W4b-5)** — Haus, Bibliothek, die drei Ausbildungsstätten und der Wall wirken jetzt aus den bebauten Feldern | — |
 | ~~Haus und Bibliothek gibt es doppelt (global *und* auf der Karte)~~ | **erledigt mit W4b-5** — die fünf erfundenen globalen Gebäude (Haus, Bibliothek, Kaserne, Wachturm, Portal) sind ersatzlos entfallen; `main.BUILDINGS` ist leer | — |
-| Forschung wirkt nur auf Holz, Stein, Nahrung | Metall, Leder, Mana, Gold, Wolle, Pferde bleiben bei Faktor 1,0 | W4b-6 |
-| **Forschung im Spiel steigt SOFORT** (neu entdeckt mit W4b-5) | `src/forschung.py` (Dauer = Stufe² Stunden, Stufe steigt erst nach Ablauf) ist fertig, aber **nicht eingehängt**: `_start_research` zieht die Kosten und erhöht die Stufe im selben Klick. Die Bibliothekspflicht greift jetzt — die Wartezeit fehlt | W4c-Nachtrag |
-| **Die 21 Originalforschungen fehlen im Spiel** (neu entdeckt) | im Spiel stehen noch die 18 erfundenen Gebiete; dadurch greift die belegte Bauregel „Baukunst nötig" nicht, und die Forschungsvoraussetzungen der Einheiten (z. B. Kriegskunst für den Kämpfer) bleiben ungeprüft | Forschung ins Spiel |
-| **Ausbildungsdauer fehlt** (bekannter Befund) | das Handbuch nennt keine Dauer (`UNIT_TRAIN_BASE = 0`), deshalb bleibt die Ausbildungszeit bei 0,5 Minuten stehen und die Stufe der Stätte senkt noch nichts messbar | offene Entscheidung bei Daniel |
-| **Wallstufen wirken noch nicht im Kampf** | die Schwellenwerte sind abrufbar (`gebaeude_wirkung.wall_schwelle`), aber die Vorrunde der Schlacht ist noch nicht aus dem Spiel auslösbar | W2b |
-| 17 Waren als Emoji statt Handwerk | Werkstätten (Schmiede, Bogenbauer, Nähstube) stellen noch keine Waren her | W3 |
-| Auftragssystem nur als Entwurf | keine Missionen auslösbar | WA |
-| Kampf nur als Modul | nicht aus dem Spiel auslösbar | W2b |
-| Weltkarte nur als Rechenmodell | `src/welt.py` (20 Dimensionen) ist fertig, im Fenster steckt aber noch das alte `MAPS`-Modell; keine Portalansicht | W5-2 |
-| Oberfläche weicht vom Original ab | Original-Menü belegt, Reihenfolge fehlt | W7 |
-| **Doppelstart-Schutz kann fremde Programme beenden** (neu entdeckt am 04.10.2026) | `src/main.py` prüft die Sperrdatei `src/game.lock` mit `os.kill(pid, 0)`; unter Windows **beendet** dieser Aufruf den Prozess. Ist die Nummer inzwischen neu vergeben, trifft es ein fremdes Programm | W9 (doppelter Start) |
-| kein Passworttor, keine `.exe` | **das Ziel ist noch nicht erreicht** | W9 |
+| ~~Forschung wirkt nur auf Holz, Stein, Nahrung~~ | **erledigt am 04.10.2026 (W4b-6)** — `bonus_system.get_production_multiplier` liefert die belegten Faktoren für **alle neun** Rohstoffe; im Spiel stehen jetzt die **21 Originalforschungen** statt 18 erfundener Gebiete | — |
+| **Fertig gebaut, aber noch nicht in der Oberfläche** (Stand 23:00) | die Module sind geprüft grün, aber `main.py` ruft sie noch nicht auf: W3 Waren/Werkstätten, W2b Kampfbericht, W6 Punkte/Sieg-Niederlage, W5-2 Portalraum, W8 robustes Speichern, WA Aufträge, W5 Bots. **Das Einhängen ist der nächste Schritt** (Fachschicht + Oberfläche) | Einhängen |
+| **Forschung im Spiel steigt SOFORT** (neu entdeckt mit W4b-5) | `src/forschung.py` (Dauer = Stufe² Stunden, Stufe steigt erst nach Ablauf) ist fertig, aber **nicht eingehängt**: `_start_research` zieht die Kosten und erhöht die Stufe im selben Klick. Die Bibliothekspflicht greift jetzt — die Wartezeit fehlt | Einhängen (mit der Fachschicht) |
+| **Wallstufen wirken noch nicht im Kampf** | die Schwellenwerte sind abrufbar (`gebaeude_wirkung.wall_schwelle`, `kampfbericht.vorrunde`), aber es gibt noch keinen Angriff aus der Oberfläche | Einhängen |
+| 17 Waren als Emoji statt Handwerk | das Werkstatt-Modul rechnet Warteschlangen richtig — es erscheint nur noch nicht im Fenster | Einhängen |
+| Auftragssystem nur als Entwurf/Modul | keine Missionen auslösbar | Einhängen |
+| Kampf nur als Modul | nicht aus dem Spiel auslösbar | Einhängen |
+| Weltkarte nur als Rechenmodell | `src/welt.py` + `src/portalraum.py` (20 Dimensionen) sind fertig, im Fenster steckt aber noch das alte `MAPS`-Modell; keine Portalansicht | Einhängen |
+| Oberfläche weicht vom Original ab | das Original-Menü ist belegt und wird gerade gegen unsere Liste gestellt | Einhängen |
+| kein Passworttor, keine `.exe` | ~~fehlt~~ **beides da** (04.10.2026): `.exe` mit Tor, Start belegt. Es fehlt nur noch der letzte Neubau nach dem Einhängen der Module | Einhängen + Neubau |
 
 ## 6. Nächste Schritte (in dieser Reihenfolge)
 
@@ -321,7 +322,7 @@ nachzulesen im Skill `kosten-schutzregel` („laufende Ausnahme"). Außerhalb di
 | `docs/ENTWICKLUNGSPROTOKOLL.md` | **laufendes Protokoll** der groben Arbeitsschritte **mit Kosten** (Daniel schreibt die Entstehung mit) — nach jedem Schritt fortschreiben |
 | `docs/ORDNUNG.md` | was wohin gehört |
 | `docs/audits/` + `eingaben/` | alle Modelldaten (Abschnitt 4) |
-| `tests/` (zwölf Dateien) + `run_tests.bat` | Wahrheitsquelle „läuft es noch?" — Stand 04.10.2026: **630 Prüfungen, 0 Fehler, 1 Befund** |
+| `tests/` (dreizehn Dateien) + `run_tests.bat` | Wahrheitsquelle „läuft es noch?" — Stand 04.10.2026: **691 Prüfungen, 0 Fehler, 1 Befund** |
 | Skills `multi-agent-coding`, `kosten-schutzregel`, `nebelseetal-remake` | Betriebs- und Projektwissen |
 | Kanban-Board `nebelseetal` | Paketliste (Verteiler braucht laufendes Gateway) |
 | `D:/Arbeiten/_Quarantaene/` | alte Builds (dort: `Nebelsee Memory.exe` mit README) |

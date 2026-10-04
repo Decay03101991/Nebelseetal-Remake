@@ -146,17 +146,17 @@ abschnitt("Forschungsfaktor (bonus_system)")
 s = siedlung(KW, {str(wald[0]): "holzfaeller"})
 check("ohne Forschung bleibt Holz bei 4/Stunde", W.ertrag_gesamt([s]).get("Holz") == 4,
       str(W.ertrag_gesamt([s])))
-mit_forschung = W.ertrag_gesamt([s], {"bergbau": 1})
+mit_forschung = W.ertrag_gesamt([s], {"Forstwirtschaft": 1})
 ohne_forschung = W.ertrag_gesamt([s], None)
-check("Forschung Bergbau 1 erhöht Holz von 4 auf 4.4", mit_forschung.get("Holz") == 4.4,
+check("Forschung Forstwirtschaft 1 erhöht Holz von 4 auf 4.4", mit_forschung.get("Holz") == 4.4,
       str(mit_forschung))
 check("der Forschungsfaktor erhöht die Rate wirklich", mit_forschung.get("Holz") > ohne_forschung.get("Holz"),
       f"{mit_forschung} gegen {ohne_forschung}")
 
 sj = siedlung(KW, {str(wald[0]): "jaeger"})
-kj = W.ertrag_gesamt([sj], {"landwirtschaft": 2})
-check("Landwirtschaft 2 erhöht Nahrung über den Grundwert",
-      kj.get("Nahrung") == 2.48, str(kj))
+kj = W.ertrag_gesamt([sj], {"Felderwirtschaft": 2})
+check("Felderwirtschaft 2 erhöht Nahrung auf 2.4 (Handbuch: +10 % je Stufe)",
+      kj.get("Nahrung") == 2.4, str(kj))
 check("Leder bleibt ohne Forschungsfaktor bei 2", kj.get("Leder") == 2, str(kj))
 
 

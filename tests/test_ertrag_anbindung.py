@@ -141,9 +141,9 @@ check("zwei Siedlungen werden summiert (2 + 4 = 6)",
 
 abschnitt("Forschung wirkt auf den Ertrag der Karte")
 
-st.research["bergbau"] = _Forschungsstand(2)      # +10 % Holz je Stufe
+st.research["Forstwirtschaft"] = _Forschungsstand(2)     # +10 % Holz je Stufe (Handbuch)
 erwartet = round(4.0 * 1.2, 2)
-check(f"Bergbau Stufe 2 hebt Waldholz von 4 auf {erwartet} je Stunde",
+check(f"Forstwirtschaft Stufe 2 hebt Waldholz von 4 auf {erwartet} je Stunde",
       st.stundenertrag().get("holz") == erwartet, str(st.stundenertrag()))
 
 laufend = st.resources["holz"].amount
@@ -152,7 +152,7 @@ check(f"und der Zeitlauf liefert ebenfalls {erwartet} Holz",
       round(st.resources["holz"].amount - laufend, 2) == erwartet,
       f"{laufend:.2f} -> {st.resources['holz'].amount:.2f}")
 
-st.research["bergbau"] = _Forschungsstand(0)
+st.research["Forstwirtschaft"] = _Forschungsstand(0)
 check("ohne Forschung sind es wieder 4 Holz je Stunde",
       st.stundenertrag().get("holz") == 4.0, str(st.stundenertrag()))
 
@@ -163,7 +163,7 @@ check("ohne Forschung sind es wieder 4 Holz je Stunde",
 
 abschnitt("Rechnung und Anzeige haben EINE Quelle")
 
-st.research["bergbau"] = _Forschungsstand(3)
+st.research["Forstwirtschaft"] = _Forschungsstand(3)
 stufen = {k: v.level for k, v in st.research.items()}
 aus_modul = {k.lower(): v for k, v in W.ertrag_gesamt(st.settlements, stufen).items()}
 check("der Spielstand liefert genau das, was das Wirtschaftsmodul rechnet",

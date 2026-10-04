@@ -324,26 +324,26 @@ for _name, _e in einheiten.alle().items():
     )
 del _name, _e
 
-RESEARCHES: Dict[str, Research] = {
-    "landwirtschaft": Research("landwirtschaft", "Landwirtschaft", max_level=5, effect="+12% Nahrung/Min"),
-    "bergbau": Research("bergbau", "Bergbau", max_level=5, effect="+12% Stein/Eisen/Min"),
-    "militär": Research("militär", "Militärtaktik", max_level=5, effect="+8% Angriff/Verteidigung"),
-    "vermessung": Research("vermessung", "Vermessung", max_level=3, effect="Mehr Karteninformationen"),
-    "handel": Research("handel", "Handel", max_level=5, effect="+8% Handelsbonus"),
-    "architektur": Research("architektur", "Architektur", max_level=5, effect="-6% Baukosten"),
-    "alchemie": Research("alchemie", "Alchemie", max_level=3, effect="Kristallproduktion frei"),
-    "spionage": Research("spionage", "Spionage", max_level=3, effect="Mehr Spionerfolg"),
-    "navigation": Research("navigation", "Navigation", max_level=3, effect="Portal effizienter"),
-    "medizin": Research("medizin", "Medizin", max_level=3, effect="Weniger Verluste nach Kampf"),
-    "taktik": Research("taktik", "Taktik", max_level=5, effect="+10% Angriff"),
-    "verteidigung": Research("verteidigung", "Verteidigung", max_level=5, effect="+10% Verteidigung"),
-    "logistik": Research("logistik", "Logistik", max_level=3, effect="Mehr Truppenkapazität"),
-    "alchemie_2": Research("alchemie_2", "Alchemie II", max_level=3, effect="Mehr Kristall"),
-    "wirtschaft": Research("wirtschaft", "Wirtschaft", max_level=5, effect="+10% Produktion"),
-    "diplomatie": Research("diplomatie", "Diplomatie", max_level=3, effect="Handelsbonus +"),
-    "magie": Research("magie", "Magie", max_level=3, effect="Magische Einheiten"),
-    "zauberei": Research("zauberei", "Zauberei", max_level=3, effect="Zaubermacht"),
-}
+# Die 21 ORIGINALFORSCHUNGEN aus data/research.json (Handbuch 2009, Abschnitt 5).
+# Vorher standen hier 18 erfundene Gebiete (alchemie_2, zauberei, logistik, taktik …): sie sind
+# ersatzlos entfernt. Grund: die belegten Produktionsfaktoren (`forschung_wirkung.py`) haengen an
+# den ORIGINALNAMEN (Felderwirtschaft, Steinbruch, Forstwirtschaft, Tierhaltung, Minenarbeit,
+# Goetterkunde, Heilkunde, Mauerbau) — mit erfundenen Namen wirkte keine Forschung.
+#
+# Obergrenze: das Handbuch nennt KEINE Hoechststufe. Hier steht 10 als VORSCHLAG, weil die Dauer
+# Stufe² Stunden betraegt (Stufe 10 = 100 Stunden) — in docs/PROJEKT_STAND.md als offene
+# Entscheidung vermerkt.
+FORSCHUNG_HOECHSTSTUFE = 10
+
+RESEARCHES: Dict[str, Research] = {}
+for _name, _eintrag in spieldaten.forschungen().items():
+    RESEARCHES[_name] = Research(
+        id=_name,
+        name=_name,
+        max_level=FORSCHUNG_HOECHSTSTUFE,
+        effect=(_eintrag.get("wirkung") or "Wirkung im Handbuch nicht beschrieben")[:90],
+    )
+del _name, _eintrag
 MAPS = [
     {"id": "kontinent", "name": "Der Kontinent", "size": 20, "difficulty": 1, "bonus": "nahrung", "npcs": ["dorf", "händler"], "quests": ["Erstes Zuhause", "Siedlerzug"], "sectors": True},
     {"id": "wald", "name": "Nebelwald", "size": 8, "difficulty": 2, "bonus": "holz", "npcs": ["jäger", "schamane"], "quests": ["Geister des Waldes", "Verlorenes Artefakt"]},
@@ -413,19 +413,20 @@ SKINS = {
 # ---------- Helpers ----------
 
 def research_multiplier(state: "GameState", key: str) -> float:
+    """Was eine Forschung im Spiel bewirkt — ueber EINE Stelle (`forschung_wirkung`).
+
+    Die Namen sind die des Originals (data/research.json). Der Handeisbonus und der
+    Baukostenrabatt der frueheren erfundenen Gebiete gibt es im Original NICHT — dort steht
+    ehrlich 1,0 (kein stiller Bonus mehr).
+    """
     levels = {k: v.level for k, v in state.research.items()}
-    if key == "militär":
+    if key in ("Kriegskunst", "militär"):
         # Der Verteidigungsbonus kommt seit W4b-5 vom BELEGTEN Verteidigungswall auf der
         # Siedlungskarte — vorher hing er am erfundenen Wachturm aus main.BUILDINGS.
         return get_military_multiplier(levels, get_defense_bonus(gebaeude_wirkung.wall_stufe(state.settlements)))
-    if key == "landwirtschaft":
-        return get_production_multiplier(levels, "nahrung")
-    if key == "bergbau":
-        return get_production_multiplier(levels, "stein")
-    if key == "handel":
-        return get_trade_bonus(levels)
-    if key == "architektur":
-        return get_building_cost_multiplier(levels)
+    if key in ("Felderwirtschaft", "Steinbruch", "Forstwirtschaft", "Tierhaltung",
+               "Minenarbeit", "Götterkunde", "Heilkunde"):
+        return 1.0      # diese Forschungen wirken auf den ERTRAG, siehe ertrag_gesamt/stundenertrag
     return 1.0
 
 
