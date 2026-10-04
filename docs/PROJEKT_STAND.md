@@ -1,8 +1,8 @@
 # Nebelseetal Remake — Projektstand und Übergabe
 
-Stand: **04.10.2026, 22:15**. Diese Fassung ersetzt die vorherige (archiviert unter
-`docs/archiv/PROJEKT_STAND_alt_2026-10-04_2200.md`; die Fassung davor unter
-`docs/archiv/PROJEKT_STAND_alt_2026-10-04.md`).
+Stand: **05.10.2026, 00:55**. Diese Fassung ersetzt die vorherige (archiviert unter
+`docs/archiv/PROJEKT_STAND_alt_2026-10-04_2345.md`; die Fassungen davor unter
+`docs/archiv/PROJEKT_STAND_alt_2026-10-04_2200.md` und `..._alt_2026-10-04.md`).
 **Diese Datei ist der Einstiegspunkt.** Jede neue Sitzung liest zuerst hier — nicht die Chat-Historie.
 
 ---
@@ -38,15 +38,74 @@ Vorgaben aus der Sitzung vom 04.10.2026:
 **Startzeile für die neue Sitzung (zum Kopieren):**
 
 ```
-Lies D:/Arbeiten/Nebelseetal_Remake/docs/PROJEKT_STAND.md und übernimm das laufende Ziel aus
-Abschnitt 0. Lies dann **docs/UMSETZUNG_EINHAENGEN.md** (der geprüfte Umsetzungsplan: Einhängen der
-zehn Module, Kampfablauf mit allen Fehlerfällen, Kartenansicht, Speichern, Arbeitsreihenfolge —
-samt Nachtrag des Koordinators), docs/AGENTEN_PLAN.md (Aufteilung, Modellwahl) und
-docs/FRAGEN_FUER_MORGEN.md (die offenen Fragen an Daniel). Arbeite die Arbeitsreihenfolge aus
-Abschnitt 5 des Plans ab — Schritt 1 ist **speichern** an `main.py:627-628`. Nach jedem Schritt
-`run_tests.bat` (erwartet **1651 bestanden, 0 Fehler, 9 Befunde** über 23 Dateien) und eine
-Protokollzeile; am Ende die `.exe` neu bauen (`tools/build_exe.py`) und startprüfen.
+Lies D:/Arbeiten/Nebelseetal_Remake/docs/PROJEKT_STAND.md (Einstiegspunkt) und übernimm das laufende
+Ziel aus Abschnitt 0. Der Stand beim Sitzungswechsel steht in Abschnitt 0c — lies den zuerst, dann
+docs/UMSETZUNG_EINHAENGEN.md (Umsetzungsplan) und docs/ENTWICKLUNGSPROTOKOLL.md (was zuletzt wirklich
+passierte). Arbeite die verbleibende Reihenfolge ab; der EINE nächste kleine Schritt steht in
+Abschnitt 0c (Kampfsimulator auf src/kampf.py umstellen, main.py:1981-2001). Fahre nach jedem Schritt
+tests/… einzeln und einmal `run_tests.bat` (in der Bash: `python tools/… ` bzw. das Hilfsskript, weil
+`run_tests.bat` mit `pause` endet), schreibe eine Zeile ins Entwicklungsprotokoll (Zeit, Schritt,
+Ergebnis, Beleg, Kosten) und sichere mit `python tools/protokoll_sichern.py --protokoll`. Am Ende der
+Reihenfolge die `.exe` neu bauen (`tools/build_exe.py`) und aus einem ANDEREN Ordner startprüfen.
 ```
+
+---
+
+## 0c. Stand beim Sitzungswechsel (05.10.2026, 00:49 — mit `date` geprüft)
+
+**Nichts läuft. Arbeitsverzeichnis sauber** (Commit `a1f224a`, `git status` leer), Papiere
+projektunabhängig gesichert (`python tools/protokoll_sichern.py --protokoll`: 16 Dateien, Prüfsummen
+gleich, Zeiger `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`).
+
+| Was | Stand (gemessen) |
+|---|---|
+| Prüfstand | **1798 bestanden, 0 Fehler, 15 Befunde über 27 Dateien**, Rückgabewert 0 (Lauf 05.10. 00:49:17) |
+| Neu eingehängt in dieser Sitzung | **1 · `speichern`** (atomar, Sicherung, Wiederherstellung) · **2 · `punkte`** (Originalformeln in Seitenleiste + Ruhmeshalle) · **3 · `kampf` + `kampfbericht`** (ein Angriffsweg für Karte und Bot, Bericht in die Nachrichten) · **6 · `portalraum`** (20×20-Raster, 5.000 Mana, 24-h-Sperre) · **5 · `werkstatt`** (17 Originalwaren mit Original-Icons, Werkstätten, Warteschlangen, Voraussetzungen) |
+| Neue Prüfdateien | `test_w8_einhaengung` 39 · `test_punkte_einhaengung` 44 · `test_kampf_einhaengung` 42 · `test_gui_fehler` 22 (stille tkinter-Fehler werden laut) |
+| Neues Werkzeug | `tools/pruefe_verdrahtung.py` — Textbeweis aus `main.py`: 13 verdrahtet, `botkern` nur importiert, `auftraege`/`forschung`/`welt` nicht eingebunden; meldet doppelte Definitionen und zweite Wahrheiten |
+| **Noch nicht eingehängt** | `auftraege` (Missionen), `forschung` (Wartezeit statt Sofort-Stufe), `welt` (Weltkarte), Teile von `botkern` (Bot-Verhalten je Runde) — und der **Kampfsimulator** rechnet noch mit der alten erfundenen Formel |
+| `.exe` | **05.10. 00:53 neu gebaut**: `Nebelseetal_Remake.exe`, **14.108.111 Byte (13,5 MB)**, SHA256 `73e04b5909b0dedd177a7d331e2501051f1d5f15e185d333c1ed731699dacbc4`; **Startprüfung bestanden** (Ordner mit Leerzeichen, Fenster „Nebelseetal Remake", kein Absturz, Passworttor steht; das Passwort wurde **nicht** eingegeben). Enthält Speichern, Punkte, Kampf, Portal und Werkstatt — **nicht** die noch offenen Module |
+| Kosten dieser Sitzung | **0,6618 USD = 0,5895 EUR** (`scripts/tageskosten_check.py --json`, Messung 00:54), davon **0,3444 USD** der auf Daniels Wunsch geholte `gpt-6-astra`-Rat; der Rest ist Koordinator + `flash`-Unteragenten |
+| Guthaben | Daniel ablesen lassen: OpenAI **3,04 → ~2,70 USD**, DeepSeek **1,70 USD** (Reserve 1,00 USD unberührt) — bitte bei der nächsten Sitzung erneut ablesen, ich kann es nicht messen |
+
+### Der EINE nächste Schritt
+
+**Kampfsimulator auf `kampf.py` umstellen — `main.py:1981-2001`.** `_render_battle_simulator` und
+`_simulate_random_battle` rechnen noch mit `get_combat_power` (der erfundenen Kampfkraft) — der
+Verdrahtungsprüfer meldet genau diese sechs Stellen. Sie sollen `kampf.fuehre_schlacht(...)` mit
+Kopien der Truppen und einem ausgedachten Gegner aufrufen und den **Bericht** anzeigen, **ohne** den
+Spielstand zu verändern. Erwartet: `tools/pruefe_verdrahtung.py` meldet danach **keine**
+`player_power`-Warnung mehr; Einzelprüfung `tests/test_kampf.py` → 42 grün, `tests/test_gui_fehler.py`
+→ 22 grün, Sammellauf → 1798 grün.
+
+### Danach in dieser Reihenfolge
+
+`auftraege` (Reisezeit, Rückkehr, Beute, Bericht) · `forschung` mit Wartezeit statt Sofort-Stufe ·
+`botkern` vollständig (Bot-Stärken und echtes Bot-Lager — heute sind die Bot-Armeen erfundene
+20–120 je Einheit, dadurch ist ein Bot-Angriff praktisch aussichtslos) · `welt`/Portalraum-Feinschliff ·
+**danach die `.exe` erneut bauen** (die Fassung vom 05.10. 00:53 enthält die noch offenen Module nicht)
+und wieder aus einem anderen Ordner startprüfen.
+
+### Nicht erneut zu prüfen (Beleg steht hier)
+
+| Sache | Beleg | Stand |
+|---|---|---|
+| Prüfstand | Laufprotokoll 00:49:17, Rückgabewert 0 | 1798 / 0 Fehler / 15 Befunde, 27 Dateien |
+| Die fünf Einhängungen | je eigene Nachprüfung des Koordinators + Sammellauf | 05.10. 00:00–00:52 |
+| Stille tkinter-Fehler | `test_gui_fehler` 22/0/1 | 18 Ansichten, 13 Aktionen, 0 echte Fehler |
+| Verdrahtungsstand | `tools/pruefe_verdrahtung.py` | 13 verdrahtet, 1 nur importiert, 3 offen |
+| Papiere gesichert | `MANIFEST.txt` mit SHA256 je Datei | 05.10. 00:49, 16 Dateien |
+
+### So startet die neue Sitzung (Sekunden-Checks statt Sammellauf)
+
+```bash
+cd /d/Arbeiten/Nebelseetal_Remake
+git log --oneline -3     # nur docs/* dazu? dann ist nichts nachzuprüfen
+git status --short       # leer = sauber
+```
+
+Nur wenn `src/` angefasst wird: betroffenen Einzeltest laufen lassen, **einmal** am Ende des Schritts
+den Sammellauf.
 
 ---
 
@@ -423,6 +482,10 @@ nachzulesen im Skill `kosten-schutzregel` („laufende Ausnahme"). Außerhalb di
 
 | Commit | Inhalt |
 |---|---|
+| `a1f224a` | **W3 Werkstatt + 17 Originalwaren** eingehängt; Verdrahtungsprüfer und GUI-Fehler-Test aufgenommen (1798/0/15 über 27 Dateien), EXE-Neubau |
+| `ff87d75` | **W5-2 Portalraum** eingehängt; astra-Rat gesichert und mit gemessenen Kosten belegt (0,3444 USD) |
+| `b14f7f5` | **W6 Punkte + W2/W2b Kampf** eingehängt; zwei Verdrahtungs-Prüfdateien (1734/0/14 über 25 Dateien) |
+| `9ec34fb` | **W8 robustes Speichern** eingehängt (Schritt 1 des Umsetzungsplans) |
 | `ca6970e` | W4b-5 dokumentiert: Übergabe, Brett und Entwicklungsprotokoll mit Kosten |
 | `a158175` | **W4b-5**: die 20 Originalgebäude wirken aus den Siedlungskarten (630 Prüfungen grün) |
 | `fb2ec06` | Kosten ins Entwicklungsprotokoll, falsche Kontostände richtiggestellt |
