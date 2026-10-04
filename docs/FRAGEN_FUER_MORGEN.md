@@ -40,6 +40,15 @@ geprüft. Offen ist vor allem **ein** Schritt: diese Bausteine in die Oberfläch
     das ist als Vorschlag gekennzeichnet. Abrunden, aufrunden oder kaufmännisch?
 11. **Götterschutz**: belegt sind **7 Tage** (umgesetzt) und dass er laut Handbuch **mit dem ersten
     Kriegspunkt endet** (noch nicht umgesetzt). Soll ich das nachziehen?
+12. **Kartenmaß auflösen** (Widerspruch in unseren eigenen Daten, von astra gefunden): `data/gelaende.json`
+    nennt **8 Spalten × 5 Reihen = 40 Felder** und gleichzeitig **56 Felder** („40 Bauplätze, die übrigen
+    Wege/Wasser"). Beides zusammen geht nicht. Mein Vorschlag: **8 × 7 = 56 Felder, davon 40 bebaubar** —
+    damit stimmen beide Zahlen und das Raster bleibt schmal. Oder sollen es 8 × 5 = 40 Felder sein (dann
+    streichen wir die Wege/Wasser-Felder)?
+13. **Siedlungskarte**: Auf den drei Original-Fotos ist **keine** Siedlungskarte zu sehen (zweimal
+    unabhängig von astra geprüft) — unser Entwurf ist also **unsere eigene Gestaltung**. Soll ich die
+    vorgeschlagene Draufsicht mit selbst gezeichneten Symbolen umsetzen (so steht es in
+    `docs/KARTEN_ENTWURF.md`), oder hast du noch ein Originalbild mit der echten Siedlungskarte?
 
 ## 3. Was in der Nacht noch entstanden ist
 
