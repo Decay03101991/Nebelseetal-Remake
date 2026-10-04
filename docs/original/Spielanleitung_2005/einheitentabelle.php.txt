@@ -1,0 +1,148 @@
+Einheitentabelle
+|
+Einheitentabelle
+Klickt auf die Einheitenbezeichnung um die genauen Werte der Einheit zu erhalten.
+| Bezeichnung
+| Beschreibung
+| Voraussetzung
+| Armee-Einheiten (Kriegerakademie):
+|
+Bürgerwehr
+|
+Dies ist die einfachste Milizeinheit die Ihr ausbilden könnt. Mitglieder der Bürgerwehr sind einfache Siedler, die sich mit einfachen Waffen, meist Hämmer, Knüppel oder Forken, verteidigen. Gegen gut ausgebildete Krieger können sie kaum bestehen.
+|
+keine
+|
+Kämpfer
+|
+Im Gegensatz zur Bürgerwehr, sind Kämpfer im Umgang mit leichten Waffen und Rüstungen geschult. Sie können nicht so leicht in die Flucht geschlagen werden und sind somit die erste, recht zuverlässige Kriegseinheit, die Ihr ausbilden könnt.
+|
+Kriegskunst 1
+|
+Krieger
+|
+Krieger sind sehr gut geschult im Kampf. Sie beherrschen den Umgang mit Schwertern und sind es gewohnt, Kettenhemden zu ihrem Schutz zu tragen.
+|
+Kriegskunst 4
+|
+Ritter
+|
+Ritter sind die Elitekrieger eures Reiches. Sie sind standhaft und effizient in der Schlacht. Schon so Mancher floh, allein bei dem Anblick eines herangaloppierenden Heeres dieser, mit Plattenpanzer und Schwert ausgerüsteten, Truppe vom Schlachtfeld.
+|
+Kriegskunst 7
+|
+Paladin
+|
+Paladine sind von den Göttern geweihte Ritter, die aus voller Überzeugung für ihren Herrn in die Schlacht ziehen. Es gibt nichts was sie schrecken kann und nur wenige, die sich mit ihnen messen können. Sie kämpfen immer bis zum letzten Atemzug. Noch nie hat jemand einen Paladin vom Schlachtfeld fliehen sehen.
+|
+Kriegskunst 10
+|
+Kurzbogenschütze
+|
+Kurzbogenschützen stehen im Kampf in der letzten Reihe und beschießen den Feind aus geringer Distanz. Sie sollten niemals allein in die Schlacht geschickt werden, da sie im Nahkampf schnell aufgerieben werden.
+|
+Kriegskunst 2
+|
+Bogenschütze
+|
+Bogenschützen haben eine höhere Reichweite als Kurzbogenschützen. Auch ihre Treffsicherheit und der angerichtete Schaden sind höher.
+|
+Kriegskunst 4
+|
+Langbogenschütze
+|
+Langbogenschützen haben eine sehr hohe Reichweite. Der Schaden den sie anrichten, wird nur von dem der Armbrustschützen übertroffen.
+|
+Kriegskunst 6
+|
+Armbrustschütze
+|
+Armbrustschützen sind leicht gerüstete Fernkampfeinheiten. Ihre Reichweite ist begrenzt doch richten ihre Waffen mehr Schaden an als die der anderen Fernkämpfer.
+|
+Kriegskunst 8
+| Kundschafter (Diebesgilde):
+|
+Streuner
+|
+Streuner sind einfache Tagediebe, die es gelernt haben, sich einigermaßen unauffällig zu verhalten.
+|
+keine
+|
+Gauner
+|
+Gauner sind schon etwas gerissener als einfache Streuner. Sie wissen, worauf es zu achten gilt, um Feinde zu entdecken und sind nicht ganz so unbeholfen im Verstecken.
+|
+Heimlichkeit 1
+|
+Dieb
+|
+Der Dieb hat nicht nur, wie der Streuner und der Gauner, aus Erfahrung gelernt, sondern ist geschult in den Grundlagen des Kampfes und der Täuschung.
+|
+Heimlichkeit 3
+|
+Meisterdieb
+|
+Der Meisterdieb ist ein hervorragend geschulter Agent. Er kann sich im Kampfe recht gut wehren und ist für den Feind fast völlig unsichtbar.
+|
+Heimlichkeit 5
+|
+Kundschafter
+|
+Kundschafter haben die Fähigkeit sich sehr gut anzupassen. Sie können sehr schnell durch feindliche Gebiete schleichen und sind äußerst aufmerksam. Sie beherrschen den Kampf mit dem Schwert und sind durch ihre Fellkleidung sogar geringfügig vor feindlichen Angriffen geschützt.
+|
+Heimlichkeit 8
+|
+Waldläufer
+|
+Der Waldläufer ist ein Meister der Tarnung und der Spurensuche. Zu seinem Schutz trägt er eine Fellrüstung. Zur Verteidigung ein Schwert. Seine kämpferischen Fähigkeiten übersteigen sogar die eines Kriegers.
+|
+Heimlichkeit 10
+| Karren (Stellmacher):
+|
+Handkarren
+|
+Der Handkarren dient dazu Waren und Rohstoffe zu transportieren. Er wird per Hand gezogen oder geschoben. Er fasst nur wenige Waren und ist äußerst langsam.
+|
+keine
+|
+Einspänner
+|
+Der Einspänner ist ein, von einem Pferd gezogener, Transportkarren. Er fasst mehr Waren als der Handkarren und ist schneller.
+|
+Wagenbau 3
+|
+Zweispänner
+|
+Der Zweispänner wird, von zwei Pferd gezogen, zum transport von Waren eingesetzt. Er fasst mehr Waren als der Einspänner und ist schneller.
+|
+Wagenbau 7
+|
+Handelskarren
+|
+Anders als der Ein- oder Zweispänner, werden Handelskarren nicht zum Transport, sondern zum Handeln eingesetzt. Nur mit ihnen abgeschlossene Transporte, werden mit Handelspunkten vergütet. Man kann Sie auch zum Transportieren einsetzen, allerdings sind die Transportkosten höher als beim Ein- oder Zweispänner.
+|
+Wagenbau 2
+|
+Großer Handelskarren
+|
+Wie der Handelskarren wird auch der große Handelskarren zum Handeln eingesetzt. Er fasst aber mehr Waren und ist etwas schneller, da er von 2 Pferden gezogen wird.
+|
+Wagenbau 6
+|
+Siedlerkarren
+|
+Siedlerkarren werden benötigt, um neue Siedlungen zu gründen.
+|
+Wagenbau 4
+|
+Sammlerkarren
+|
+Sammlerkarren können zu Schlachtfeldern geschickt werden, um dort nach unversehrten Waffen und Rüstungen zu suchen, die nach der Schlacht zurückgelassen wurden.
+|
+Wagenbau 4
+|
+Großer Sammlerkarren
+|
+Der große Sammlerkarren wird, wie der Sammlerkarren, zum Bergen von Ausrüstung ausgesandt. Er fasst mehr Waren und ist schneller als der Sammlerkarren.
+|
+Wagenbau 8

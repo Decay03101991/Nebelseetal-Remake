@@ -1,0 +1,125 @@
+{
+  "_hinweis": "Die 9 Rohstoffe des Originals 'Nebelseetal Online' als Datendatei. 'ertrag_pro_stunde' ist der Stand des Handbuchs 2009 (Abschnitt 4 der Auswertung ORIGINAL_Einheiten_Waren_Rohstoffe.md, Seiten 9/10). Wo die archivierte 2005er HTML-Fassung abweicht, steht der 2005er Wert unter 'ertrag_2005' und die Differenz in 'abweichung'. Nichts erfunden; wo die Quelle mehrdeutig ist, steht das in 'anmerkung'.",
+  "_quelle": [
+    "docs/original/ORIGINAL_Einheiten_Waren_Rohstoffe.md, Abschnitt 4 'Rohstoffe - 9 Stueck' (Stand Handbuch 2009)",
+    "docs/original/Spielanleitung_2005/rohstoffe.php.txt (wortgetreue Originaltabelle, Spielanleitung 2005)",
+    "docs/original/Spielanleitung_2009_Textfassung.txt, Seiten 9 und 10 (Produktion), Seite 11 (Siedlerregeln)"
+  ],
+  "versionsvermerk": "Zwei Fassungen belegt: archivierte Spielanleitung 2005 (HTML) und Handbuch 2009 (Textfassung). Sie weichen bei mehreren Ertraegen und bei der Siedlergrenze ab. Primaerwerte = 2009; Abweichungen sind je Rohstoff in 'abweichung' bzw. unter 'siedler' vermerkt.",
+  "gebaeude_ohne_forschung": ["Holzfäller", "Steinmetz", "Jäger", "Bibliothek", "Haus"],
+  "regeln": {
+    "gelände": "Jedes produzierende Gebäude erzeugt auf 2 verschiedenen Geländearten unterschiedliche Mengen. Ausnahme: der Jäger (in der 2005er Fassung nur Wald, 2009 auch Steppe).",
+    "sumpf": "Sümpfe sind unbebaubar und für Siedlungen wertlos.",
+    "zuwachs": "Der Wert in Klammern ist die Produktionsmenge pro Stunde; der Rohstoffzuwachs pro Stunde steht im Spiel in Klammern hinter dem Bestand, ein Balken zeigt, wann die nächste Einheit dazukommt.",
+    "echtzeit": "Produktion läuft in Echtzeit (Beispiel Handbuch: 4 Holz/Stunde = alle 15 Minuten 1 Einheit Holz).",
+    "abriss": "Ein Abriss bringt keine Rohstoffe zurück.",
+    "bibliothek": "Bibliothek nur auf Grasland, Steppe oder Nebelsee, eine je Siedlung."
+  },
+  "siedler": {
+    "produktion_pro_stunde": 1,
+    "grenze_neue_siedlung": {
+      "handbuch_2009": 10,
+      "fassung_2005": 5
+    },
+    "erhoehung_pro_haus": 5,
+    "abweichung": "Siedlergrenze einer neuen Siedlung: Handbuch 2009 = 10 Siedler, 2005er Fassung = 5 Siedler. Erhöhung pro Haus in beiden Fassungen +5."
+  },
+  "startwerte": {
+    "siedler": 10,
+    "holz": 100,
+    "steine": 100,
+    "_anmerkung": "Startwerte laut Handbuch 2009 Seite 7 (10 Siedler, 100 Holz, 100 Steine) und ORIGINAL_Kampf_und_Punkte.md Abschnitt 5."
+  },
+  "max_siedlungen": 6,
+  "rohstoffe": [
+    {
+      "id": "holz",
+      "name": "Holz",
+      "erzeugendes_gebaeude": ["Holzfäller"],
+      "ertrag_pro_stunde": { "Wald": 4, "Steppe": 2 },
+      "ertrag_2005": { "Wald": 4, "Steppe": 1 },
+      "abweichung": "Steppe: 2005 = 1, Handbuch 2009 = 2. Wald in beiden Fassungen 4."
+    },
+    {
+      "id": "stein",
+      "name": "Stein",
+      "erzeugendes_gebaeude": ["Steinmetz"],
+      "ertrag_pro_stunde": { "Berg": 4, "Hügel": 2 },
+      "ertrag_2005": { "Berg": 4, "Hügel": 1 },
+      "abweichung": "Hügel: 2005 = 1, Handbuch 2009 = 2. Berg in beiden Fassungen 4."
+    },
+    {
+      "id": "metall",
+      "name": "Metall",
+      "erzeugendes_gebaeude": ["Erzmine"],
+      "ertrag_pro_stunde": { "Berg": 3, "Hügel": 1.5 },
+      "ertrag_2005": { "Berg": 3, "Hügel": 1 },
+      "abweichung": "Hügel: 2005 = 1, Handbuch 2009 = 1,5. Berg in beiden Fassungen 3."
+    },
+    {
+      "id": "mana",
+      "name": "Mana",
+      "erzeugendes_gebaeude": ["Tempel"],
+      "ertrag_pro_stunde": { "Nebelsee": 5, "alle Gelände außer Sumpf": 1 },
+      "ertrag_2005": { "Nebelsee": 8, "alle Gelände außer Sumpf": 2 },
+      "abweichung": "Nebelsee: 2005 = 8, Handbuch 2009 = 5. Übriges Gelände (außer Sumpf): 2005 = 2, Handbuch 2009 = 1."
+    },
+    {
+      "id": "nahrung",
+      "name": "Nahrung",
+      "erzeugendes_gebaeude": ["Farm", "Jäger", "Rinderfarm (siehe Leder, Anmerkung)"],
+      "ertrag_pro_stunde": { "Grasland": 4, "Steppe": 2 },
+      "ertrag_2005": { "Grasland": 4, "Steppe": 2 },
+      "abweichung": null,
+      "weitere_erzeuger": {
+        "Jäger": {
+          "ertrag_pro_stunde": { "Wald": 2, "Steppe": 1 },
+          "ertrag_2005": { "Wald": 1 },
+          "abweichung": "Jäger: Handbuch 2009 nennt zusätzlich Steppe (1 Nahrung), 2005 nur Wald (1 Nahrung); Wald: 2005 = 1, 2009 = 2."
+        }
+      }
+    },
+    {
+      "id": "gold",
+      "name": "Gold",
+      "erzeugendes_gebaeude": ["Goldmine"],
+      "ertrag_pro_stunde": { "Berg": 3, "Hügel": 1.5 },
+      "ertrag_2005": { "Berg": 3, "Hügel": 1 },
+      "abweichung": "Hügel: 2005 = 1, Handbuch 2009 = 1,5. Berg in beiden Fassungen 3.",
+      "anmerkung": "Schreibweise 2005: 'Goldmiene', Handbuch 2009: 'Goldmine'."
+    },
+    {
+      "id": "wolle",
+      "name": "Wolle",
+      "erzeugendes_gebaeude": ["Schafszucht"],
+      "ertrag_pro_stunde": { "Grasland": 3, "Steppe": 1.5 },
+      "ertrag_2005": { "Grasland": 2, "Steppe": 1 },
+      "abweichung": "Grasland: 2005 = 2, Handbuch 2009 = 3. Steppe: 2005 = 1, Handbuch 2009 = 1,5.",
+      "anmerkung": "Schreibweise 2005: 'Schafzucht', Handbuch 2009: 'Schafszucht'."
+    },
+    {
+      "id": "leder",
+      "name": "Leder",
+      "erzeugendes_gebaeude": ["Rinderfarm", "Jäger"],
+      "ertrag_pro_stunde": { "Grasland": 3, "Steppe": 1.5 },
+      "ertrag_2005": { "Grasland": 2, "Steppe": 1 },
+      "abweichung": "Grasland: 2005 = 2, Handbuch 2009 = 3. Steppe: 2005 = 1, Handbuch 2009 = 1,5.",
+      "anmerkung": "Die 2009er Tabelle nennt für die Rinderfarm wörtlich 'Grasland (3 Nahrung, 3 Leder), Steppe (1,5 Nahrung, 1,5 Leder)'. Ob damit ein zweiter Ertrag (Nahrung) gemeint ist oder eine Übernahme aus der Jäger-Zeile vorliegt, ist nicht eindeutig; als Leder-Ertrag sind 3 / 1,5 übernommen. Die 2005er Tabelle führt nur einen Einzelwert (Grasland 2, Steppe 1).",
+      "weitere_erzeuger": {
+        "Jäger": {
+          "ertrag_pro_stunde": { "Wald": 2, "Steppe": 1 },
+          "ertrag_2005": { "Wald": 1 },
+          "abweichung": "Jäger: Handbuch 2009 nennt zusätzlich Steppe (1 Leder), 2005 nur Wald (1 Leder); Wald: 2005 = 1, 2009 = 2."
+        }
+      }
+    },
+    {
+      "id": "pferde",
+      "name": "Pferde",
+      "erzeugendes_gebaeude": ["Pferdezucht"],
+      "ertrag_pro_stunde": { "Grasland": 3, "Steppe": 1.5 },
+      "ertrag_2005": { "Grasland": 2, "Steppe": 1 },
+      "abweichung": "Grasland: 2005 = 2, Handbuch 2009 = 3. Steppe: 2005 = 1, Handbuch 2009 = 1,5."
+    }
+  ]
+}

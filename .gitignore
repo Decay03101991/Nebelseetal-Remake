@@ -1,0 +1,15 @@
+# Build-Artefakte (nach jedem Build entfernen)
+build/
+dist/
+*.spec
+__pycache__/
+*.pyc
+
+# Laufzeitdaten
+game.lock
+savegame.json
+*.bak
+*.tmp
+
+# Sicherungen aus der Entwicklung
+*.orig

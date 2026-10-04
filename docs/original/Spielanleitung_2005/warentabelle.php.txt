@@ -1,0 +1,78 @@
+Warentabelle
+|
+Warentabelle
+| Bezeichnung
+| Voraussetzung
+| Waren (Schmiede):
+|
+Messer
+|
+keine
+|
+Dolch
+|
+Waffentechnik 1
+|
+Kurzschwert
+|
+Waffentechnik 3
+|
+Schwert
+|
+Waffentechnik 5
+|
+Zweihänder
+|
+Waffentechnik 8
+|
+Kettenhemd
+|
+Rüstungsbau 3
+|
+Plattenrüstung
+|
+Rüstungsbau 5
+|
+Magischer Paladinharnisch
+|
+Rüstungsbau 7
+Magiekunde 2
+| Waren (Bogner):
+|
+Kurzbogen
+|
+Waffentechnik 2
+|
+Bogen
+|
+Waffentechnik 4
+|
+Langbogen
+|
+Waffentechnik 6
+|
+Armbrust
+|
+Waffentechnik 8
+| Waren (Nähstube):
+|
+Wollumhang
+|
+keine
+|
+Lederrüstung
+|
+Nähkunst 1
+Rüstungsbau 2
+|
+Diebesumhang
+|
+Nähkunst 2
+|
+Fellumhang
+|
+Nähkunst 4
+|
+Fellrüstung
+|
+Nähkunst 6

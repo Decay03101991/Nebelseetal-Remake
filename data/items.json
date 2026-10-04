@@ -1,0 +1,142 @@
+{
+  "_hinweis": "Die 17 Waren des Originals. werkstatt/voraussetzung 1:1 aus ORIGINAL_Einheiten_Waren_Rohstoffe.md Abschnitt 3 (bestätigt durch Spielanleitung_2005/warentabelle.php.txt und Spielanleitung_2009_Textfassung.txt Seite 14). benoetigt_von abgeleitet aus den Kostentabellen der 28 Einheiten (ORIGINAL_Einheiten_Waren_Rohstoffe.md Abschnitt 1). voraussetzung_struktur nur bei eindeutiger Einzelvoraussetzung gesetzt, sonst null (kombinierte Voraussetzungen sind nicht eindeutig zerlegbar). icon exakt aus data/icons_index.json uebernommen.",
+  "_quelle": "docs/original/ORIGINAL_Einheiten_Waren_Rohstoffe.md (§1 Einheiten, §3 Waren); docs/original/Spielanleitung_2005/warentabelle.php.txt; docs/original/Spielanleitung_2009_Textfassung.txt; data/icons_index.json",
+  "waren": {
+    "Messer": {
+      "werkstatt": "Schmiede",
+      "voraussetzung": "keine",
+      "voraussetzung_struktur": null,
+      "icon": "assets/icons/items/Messer.png",
+      "benoetigt_von": ["Gauner"],
+      "anmerkung": null
+    },
+    "Dolch": {
+      "werkstatt": "Schmiede",
+      "voraussetzung": "Waffentechnik 1",
+      "voraussetzung_struktur": {"forschung": "Waffentechnik", "stufe": 1},
+      "icon": "assets/icons/items/Dolch.png",
+      "benoetigt_von": ["Dieb"],
+      "anmerkung": null
+    },
+    "Kurzschwert": {
+      "werkstatt": "Schmiede",
+      "voraussetzung": "Waffentechnik 3",
+      "voraussetzung_struktur": {"forschung": "Waffentechnik", "stufe": 3},
+      "icon": "assets/icons/items/Kurzschwert.png",
+      "benoetigt_von": ["Kämpfer", "Meisterdieb"],
+      "anmerkung": null
+    },
+    "Schwert": {
+      "werkstatt": "Schmiede",
+      "voraussetzung": "Waffentechnik 5",
+      "voraussetzung_struktur": {"forschung": "Waffentechnik", "stufe": 5},
+      "icon": "assets/icons/items/Schwert.png",
+      "benoetigt_von": ["Krieger", "Ritter", "Paladin", "Kundschafter", "Waldläufer"],
+      "anmerkung": null
+    },
+    "Zweihänder": {
+      "werkstatt": "Schmiede",
+      "voraussetzung": "Waffentechnik 8",
+      "voraussetzung_struktur": {"forschung": "Waffentechnik", "stufe": 8},
+      "icon": "assets/icons/items/Zweihänder.png",
+      "benoetigt_von": ["Paladin"],
+      "anmerkung": null
+    },
+    "Kettenhemd": {
+      "werkstatt": "Schmiede",
+      "voraussetzung": "Rüstungsbau 3",
+      "voraussetzung_struktur": {"forschung": "Rüstungsbau", "stufe": 3},
+      "icon": "assets/icons/items/Kettenhemd.png",
+      "benoetigt_von": ["Krieger"],
+      "anmerkung": null
+    },
+    "Plattenrüstung": {
+      "werkstatt": "Schmiede",
+      "voraussetzung": "Rüstungsbau 5",
+      "voraussetzung_struktur": {"forschung": "Rüstungsbau", "stufe": 5},
+      "icon": "assets/icons/items/Plattenrüstung.png",
+      "benoetigt_von": ["Ritter"],
+      "anmerkung": null
+    },
+    "Magischer Paladinharnisch": {
+      "werkstatt": "Schmiede",
+      "voraussetzung": "Rüstungsbau 7 + Magiekunde 2",
+      "voraussetzung_struktur": null,
+      "icon": "assets/icons/items/Magischer Paladinharnisch.png",
+      "benoetigt_von": ["Paladin"],
+      "anmerkung": "Kombinierte Voraussetzung (zwei Forschungen), daher voraussetzung_struktur null. In der Einheiten-Kostentabelle nur als 'Paladinharnisch' gefuehrt (Spielanleitung_2009_Textfassung.txt Zeile 612), gemeint ist diese Ware."
+    },
+    "Kurzbogen": {
+      "werkstatt": "Bogner",
+      "voraussetzung": "Waffentechnik 2",
+      "voraussetzung_struktur": {"forschung": "Waffentechnik", "stufe": 2},
+      "icon": "assets/icons/items/Kurzbogen.png",
+      "benoetigt_von": ["Kurzbogenschütze"],
+      "anmerkung": null
+    },
+    "Bogen": {
+      "werkstatt": "Bogner",
+      "voraussetzung": "Waffentechnik 4",
+      "voraussetzung_struktur": {"forschung": "Waffentechnik", "stufe": 4},
+      "icon": "assets/icons/items/Bogen.png",
+      "benoetigt_von": ["Bogenschütze"],
+      "anmerkung": null
+    },
+    "Langbogen": {
+      "werkstatt": "Bogner",
+      "voraussetzung": "Waffentechnik 6",
+      "voraussetzung_struktur": {"forschung": "Waffentechnik", "stufe": 6},
+      "icon": "assets/icons/items/Langbogen.png",
+      "benoetigt_von": ["Langbogenschütze"],
+      "anmerkung": null
+    },
+    "Armbrust": {
+      "werkstatt": "Bogner",
+      "voraussetzung": "Waffentechnik 8",
+      "voraussetzung_struktur": {"forschung": "Waffentechnik", "stufe": 8},
+      "icon": "assets/icons/items/Armbrust.png",
+      "benoetigt_von": ["Armbrustschütze"],
+      "anmerkung": null
+    },
+    "Wollumhang": {
+      "werkstatt": "Nähstube",
+      "voraussetzung": "keine",
+      "voraussetzung_struktur": null,
+      "icon": "assets/icons/items/Wollumhang.png",
+      "benoetigt_von": ["Streuner"],
+      "anmerkung": null
+    },
+    "Lederrüstung": {
+      "werkstatt": "Nähstube",
+      "voraussetzung": "Nähkunst 1 + Rüstungsbau 2",
+      "voraussetzung_struktur": null,
+      "icon": "assets/icons/items/Lederrüstung.png",
+      "benoetigt_von": ["Kämpfer", "Armbrustschütze"],
+      "anmerkung": "Kombinierte Voraussetzung (zwei Forschungen), daher voraussetzung_struktur null."
+    },
+    "Diebesumhang": {
+      "werkstatt": "Nähstube",
+      "voraussetzung": "Nähkunst 2",
+      "voraussetzung_struktur": {"forschung": "Nähkunst", "stufe": 2},
+      "icon": "assets/icons/items/Diebesumhang.png",
+      "benoetigt_von": ["Gauner", "Dieb", "Meisterdieb"],
+      "anmerkung": null
+    },
+    "Fellumhang": {
+      "werkstatt": "Nähstube",
+      "voraussetzung": "Nähkunst 4",
+      "voraussetzung_struktur": {"forschung": "Nähkunst", "stufe": 4},
+      "icon": "assets/icons/items/Fellumhang.png",
+      "benoetigt_von": ["Kundschafter"],
+      "anmerkung": null
+    },
+    "Fellrüstung": {
+      "werkstatt": "Nähstube",
+      "voraussetzung": "Nähkunst 6",
+      "voraussetzung_struktur": {"forschung": "Nähkunst", "stufe": 6},
+      "icon": "assets/icons/items/Fellrüstung.png",
+      "benoetigt_von": ["Waldläufer"],
+      "anmerkung": null
+    }
+  }
+}

@@ -1,0 +1,35 @@
+Siedlungen
+|
+Siedlungen
+|
+Bei Nebelseetal-Online geht es zunächst darum, Eure Siedlungen aufzubauen. Wenn Ihr in
+der Gesamtübersicht auf das Auge hinter einem Siedlungsnamen klickt, gelangt Ihr zur
+Siedlugnsübersicht der entsprechenden Siedlung. Hier seht Ihr die Karte der Siedlung,
+die Rohstoffe, die sich in der Siedlung befinden und die Rohstoffproduktions-Auflistung.
+Außerdem erscheint am oberen Bildschirmrand das Siedlungsmenü, von dem aus Ihr alle Bereiche,
+die in der aktuellen Siedlung möglich sind, erreichen könnt. Außerdem könnt ihr mittels des
+Auswahlfeldes unter dem Menü, zwischen Euren Siedlungen hin- und herwechseln.
+Hier eine kurze Beschreibung der wichtigsten Buttons:
+Siedlungsübersicht
+Über diesen Button gelangt Ihr wieder auf die Hauptübersicht Eurer Siedlung.
+Gebäude bauen
+Hier gelangt Ihr zum Baumenü Eurer Siedlung. Dort sind alle Gebäude aufgelistet,
+die Ihr in in der Siedlung errichten könnt. Klickt auf das Gebäude, welches Ihr
+errichten möchtet und platziert es anschließend auf der Siedlungskarte.
+Gebäude abreißen
+Mittels dieser Schaltfläche könnt Ihr Gebäude, die Ihr nicht mehr benötigt, wieder
+abreißen. Es wird eine Kartenansicht angezeigt, auf der Ihr das entsprechende
+Gebäude anklicken müsst. Nach einer erneuten Sicherheitsabfrage wird es aus
+der Siedlung entfernt. Ihr erhaltet keinerlei Ressourcen dadurch zurück. Lediglich
+das Feld, auf dem das Gebäude stand, ist wieder frei und kann neu bebaut werden.
+Dies ermöglicht Euch, z.B. eure Rohstoffproduktion umzustellen.
+Lager
+Im Lager habt Ihr eine Übersicht über alle in der Siedlung befindlichen Waren und Einheiten.
+Aufträge
+Hier könnt Ihr den Einheiten, die in der Siedlung stationiert sind, Aufträge erteilen.
+Ihr findet hier ausserdem eure aktiven Handelsaufträge. Des weiteren
+könnt Ihr hier neue Siedlungen gründen oder auch aufgeben.
+Nähere Informationen hierzu findet Ihr unter Siedeln.
+Des Weiteren gibt es noch eine Reihe Spezialbuttons, die im späteren Verlauf des
+Spiels noch hinzukommen. Deren Funktion wird in den entsprechenden Bereichen dieser
+Anleitung behandelt.

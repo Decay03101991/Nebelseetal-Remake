@@ -1,0 +1,23 @@
+Einheiten
+|
+Einheiten
+Zum Transport von Rohstoffen und Waren benötigt Ihr Transportkarren, zum Handeln mit
+anderen Spielern Handelskarren. Zur Verteidigung Eures oder zum Angreifen anderer Reiche
+sind Militäreinheiten unabdingbar.
+In Nebelseetal-Online gibt es grundlegend drei Einheitentypen. Die Karren, die Kundschafter und die
+Armee-Einheiten.
+Karren werden zum Transport von Waren und Rohstoffen und zum Handeln mit anderen Spielern benötigt.
+Kundschafter werden zur Spionage und Spionageabwehr eingesetzt.
+Armee-Einheiten verteidigen Eure Siedlungen, oder greifen andere Spieler an.
+Zum Bau von Karren benötigt Ihr einen Stellmacher, zum Ausbilden von Kundschaftern eine Diebesgilde und
+Armee-Einheiten werden in der Kriegerakademie ausgebildet. In jeder Eurer Siedlungen kann jeweils nur eine
+Kriegerakademie, eine Diebesgilde und ein Stellmacher errichtet werden. Diese Gebäude werden stufenweise
+ausgebaut. Je höher die Stufe, desto schneller werden die entsprechenden Einheiten ausgebildet.
+Sobald Ihr eines dieser Gebäude errichtet habt, erscheint im
+Siedlungsmenü der Button
+Stellmacher, Diebesgilde bzw. Kriegerakademie. In jedem dieser Gebäude könnt Ihr Einheiten in
+Auftrag geben, indem Ihr die Anzahl der auszubildenden Einheiten in die Eingabefelder, unter der
+Einheitenbezeichnung, eintragt und anschließend auf Auftrag erteilen klickt. Die ausgewählten
+Einheiten werden dann in eine Warteschlange gestellt und nacheinander ausgebildet bzw. gebaut.
+Eine vollständige Liste aller Einheiten, deren Kosten und Voraussetzungen findet Ihr
+hier.

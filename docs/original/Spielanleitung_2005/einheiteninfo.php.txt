@@ -1,0 +1,23 @@
+Einheiteninfo
+|
+|
+| Mut:
+| %
+| Geschwindigkeit:
+|
+| Angriff:
+| %
+| Verteidigung:
+| %
+| Sinnesschärfe:
+| %
+| Schleichen:
+| %
+| Rüstung:
+|
+| Lebenspunkte:
+|
+| Schaden:
+| -
+| Ladung:
+|

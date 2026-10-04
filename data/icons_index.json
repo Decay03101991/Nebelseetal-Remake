@@ -1,0 +1,276 @@
+{
+  "_hinweis": "Originalname -> Icon-Datei. 'vorhanden' = Daniels Datei, 'neu' = aus dem Blatt geschnitten.",
+  "stand": "2026-10-04",
+  "icons": {
+    "Bürgerwehr": {
+      "pfad": "assets/icons/original_units/Soldat.png",
+      "quelle": "vorhanden",
+      "blatt": "Nahkämpfer_Icons.png",
+      "zelle": 1
+    },
+    "Kämpfer": {
+      "pfad": "assets/icons/original_units/Kämpfer.png",
+      "quelle": "vorhanden",
+      "blatt": "Nahkämpfer_Icons.png",
+      "zelle": 2
+    },
+    "Krieger": {
+      "pfad": "assets/icons/original_units/Krieger.png",
+      "quelle": "vorhanden",
+      "blatt": "Nahkämpfer_Icons.png",
+      "zelle": 3
+    },
+    "Ritter": {
+      "pfad": "assets/icons/original_units/Ritter.png",
+      "quelle": "vorhanden",
+      "blatt": "Nahkämpfer_Icons.png",
+      "zelle": 4
+    },
+    "Paladin": {
+      "pfad": "assets/icons/original_units/Paladin.png",
+      "quelle": "vorhanden",
+      "blatt": "Nahkämpfer_Icons.png",
+      "zelle": 5
+    },
+    "Kurzbogenschütze": {
+      "pfad": "assets/icons/original_units/Einfacher Bogenschütze.png",
+      "quelle": "vorhanden",
+      "blatt": "Fernkämpfer_Icons.png",
+      "zelle": 1
+    },
+    "Bogenschütze": {
+      "pfad": "assets/icons/original_units/Kurzbogenschütze.png",
+      "quelle": "vorhanden",
+      "blatt": "Fernkämpfer_Icons.png",
+      "zelle": 2
+    },
+    "Langbogenschütze": {
+      "pfad": "assets/icons/original_units/elfen_portrait.png",
+      "quelle": "vorhanden",
+      "blatt": "Fernkämpfer_Icons.png",
+      "zelle": 3
+    },
+    "Armbrustschütze": {
+      "pfad": "assets/icons/original_units/Armbrustschütze.png",
+      "quelle": "vorhanden",
+      "blatt": "Fernkämpfer_Icons.png",
+      "zelle": 4
+    },
+    "Streuner": {
+      "pfad": "assets/icons/units/Streuner.png",
+      "quelle": "neu",
+      "blatt": "Zusatzeinheiten_Icons.png",
+      "zelle": 1
+    },
+    "Gauner": {
+      "pfad": "assets/icons/units/Gauner.png",
+      "quelle": "neu",
+      "blatt": "Zusatzeinheiten_Icons.png",
+      "zelle": 2
+    },
+    "Dieb": {
+      "pfad": "assets/icons/units/Dieb.png",
+      "quelle": "neu",
+      "blatt": "Zusatzeinheiten_Icons.png",
+      "zelle": 3
+    },
+    "Meisterdieb": {
+      "pfad": "assets/icons/units/Meisterdieb.png",
+      "quelle": "neu",
+      "blatt": "Zusatzeinheiten_Icons.png",
+      "zelle": 4
+    },
+    "Kundschafter": {
+      "pfad": "assets/icons/units/Kundschafter.png",
+      "quelle": "neu",
+      "blatt": "Zusatzeinheiten_Icons.png",
+      "zelle": 5
+    },
+    "Waldläufer": {
+      "pfad": "assets/icons/units/Waldläufer.png",
+      "quelle": "neu",
+      "blatt": "Zusatzeinheiten_Icons.png",
+      "zelle": 6
+    },
+    "Handkarren": {
+      "pfad": "assets/icons/original_units/Karren.png",
+      "quelle": "vorhanden",
+      "blatt": "Karren_Icons.png",
+      "zelle": 1
+    },
+    "Einspänner": {
+      "pfad": "assets/icons/original_units/Einspänner.png",
+      "quelle": "vorhanden",
+      "blatt": "Karren_Icons.png",
+      "zelle": 2
+    },
+    "Zweispänner": {
+      "pfad": "assets/icons/original_units/Zweispänner.png",
+      "quelle": "vorhanden",
+      "blatt": "Karren_Icons.png",
+      "zelle": 3
+    },
+    "Handelskarawane": {
+      "pfad": "assets/icons/original_units/HandelsKarawane.png",
+      "quelle": "vorhanden",
+      "blatt": "Karren_Icons.png",
+      "zelle": 4
+    },
+    "Große Handelskarawane": {
+      "pfad": "assets/icons/original_units/Händler.png",
+      "quelle": "vorhanden",
+      "blatt": "Karren_Icons.png",
+      "zelle": 5
+    },
+    "Siedlerkarren": {
+      "pfad": "assets/icons/original_units/Siedlungskarren.png",
+      "quelle": "vorhanden",
+      "blatt": "Karren_Icons.png",
+      "zelle": 6
+    },
+    "Belagerungsturm": {
+      "pfad": "assets/icons/original_units/Einfacher Belagerungsturm.png",
+      "quelle": "vorhanden",
+      "blatt": "Belagerungseinheiten_Icons.png",
+      "zelle": 1
+    },
+    "Ramme": {
+      "pfad": "assets/icons/units/Ramme.png",
+      "quelle": "neu",
+      "blatt": "Belagerungseinheiten_Icons.png",
+      "zelle": 2
+    },
+    "Großer Belagerungsturm": {
+      "pfad": "assets/icons/units/Großer Belagerungsturm.png",
+      "quelle": "neu",
+      "blatt": "Belagerungseinheiten_Icons.png",
+      "zelle": 3
+    },
+    "Große Ramme": {
+      "pfad": "assets/icons/units/Große Ramme.png",
+      "quelle": "neu",
+      "blatt": "Belagerungseinheiten_Icons.png",
+      "zelle": 4
+    },
+    "Balliste": {
+      "pfad": "assets/icons/units/Balliste.png",
+      "quelle": "neu",
+      "blatt": "Belagerungseinheiten_Icons.png",
+      "zelle": 5
+    },
+    "Katapult": {
+      "pfad": "assets/icons/units/Katapult.png",
+      "quelle": "neu",
+      "blatt": "Belagerungseinheiten_Icons.png",
+      "zelle": 6
+    },
+    "Großes Katapult": {
+      "pfad": "assets/icons/original_units/Katapult.png",
+      "quelle": "vorhanden",
+      "blatt": "Belagerungseinheiten_Icons.png",
+      "zelle": 7
+    },
+    "Messer": {
+      "pfad": "assets/icons/items/Messer.png",
+      "quelle": "neu",
+      "blatt": "WaffenWerkzeuge_Icons.png",
+      "zelle": 1
+    },
+    "Dolch": {
+      "pfad": "assets/icons/items/Dolch.png",
+      "quelle": "neu",
+      "blatt": "WaffenWerkzeuge_Icons.png",
+      "zelle": 2
+    },
+    "Kurzschwert": {
+      "pfad": "assets/icons/items/Kurzschwert.png",
+      "quelle": "neu",
+      "blatt": "WaffenWerkzeuge_Icons.png",
+      "zelle": 3
+    },
+    "Schwert": {
+      "pfad": "assets/icons/items/Schwert.png",
+      "quelle": "neu",
+      "blatt": "WaffenWerkzeuge_Icons.png",
+      "zelle": 4
+    },
+    "Zweihänder": {
+      "pfad": "assets/icons/items/Zweihänder.png",
+      "quelle": "neu",
+      "blatt": "WaffenWerkzeuge_Icons.png",
+      "zelle": 5
+    },
+    "Kurzbogen": {
+      "pfad": "assets/icons/items/Kurzbogen.png",
+      "quelle": "neu",
+      "blatt": "WaffenWerkzeuge_Icons.png",
+      "zelle": 6
+    },
+    "Bogen": {
+      "pfad": "assets/icons/items/Bogen.png",
+      "quelle": "neu",
+      "blatt": "WaffenWerkzeuge_Icons.png",
+      "zelle": 7
+    },
+    "Langbogen": {
+      "pfad": "assets/icons/items/Langbogen.png",
+      "quelle": "neu",
+      "blatt": "WaffenWerkzeuge_Icons.png",
+      "zelle": 8
+    },
+    "Armbrust": {
+      "pfad": "assets/icons/items/Armbrust.png",
+      "quelle": "neu",
+      "blatt": "WaffenWerkzeuge_Icons.png",
+      "zelle": 9
+    },
+    "Kettenhemd": {
+      "pfad": "assets/icons/items/Kettenhemd.png",
+      "quelle": "neu",
+      "blatt": "RüstungenMäntel_Icons.png",
+      "zelle": 1
+    },
+    "Plattenrüstung": {
+      "pfad": "assets/icons/items/Plattenrüstung.png",
+      "quelle": "neu",
+      "blatt": "RüstungenMäntel_Icons.png",
+      "zelle": 2
+    },
+    "Magischer Paladinharnisch": {
+      "pfad": "assets/icons/items/Magischer Paladinharnisch.png",
+      "quelle": "neu",
+      "blatt": "RüstungenMäntel_Icons.png",
+      "zelle": 3
+    },
+    "Wollumhang": {
+      "pfad": "assets/icons/items/Wollumhang.png",
+      "quelle": "neu",
+      "blatt": "RüstungenMäntel_Icons.png",
+      "zelle": 4
+    },
+    "Lederrüstung": {
+      "pfad": "assets/icons/items/Lederrüstung.png",
+      "quelle": "neu",
+      "blatt": "RüstungenMäntel_Icons.png",
+      "zelle": 5
+    },
+    "Diebesumhang": {
+      "pfad": "assets/icons/items/Diebesumhang.png",
+      "quelle": "neu",
+      "blatt": "RüstungenMäntel_Icons.png",
+      "zelle": 6
+    },
+    "Fellumhang": {
+      "pfad": "assets/icons/items/Fellumhang.png",
+      "quelle": "neu",
+      "blatt": "RüstungenMäntel_Icons.png",
+      "zelle": 7
+    },
+    "Fellrüstung": {
+      "pfad": "assets/icons/items/Fellrüstung.png",
+      "quelle": "neu",
+      "blatt": "RüstungenMäntel_Icons.png",
+      "zelle": 8
+    }
+  }
+}
