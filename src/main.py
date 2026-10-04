@@ -198,6 +198,33 @@ def icon_pfad(relativ: str) -> str:
     return os.path.join(ICON_WURZEL, relativ.replace("/", os.sep))
 
 
+# ---------- Baupreise ----------
+# VORSCHLAG, nicht belegt: das Handbuch nennt keine Baupreise (geprueft 04.10.2026).
+# Die Zahlen stehen in data/baupreise.json und sind dort begruendet; Daniel kann sie dort aendern.
+
+BAUPREISE_DATEI = os.path.join(ICON_WURZEL, "data", "baupreise.json")
+
+
+def baukosten(gebaeude_key: str, stufe: int = 0) -> dict:
+    """Baupreis eines Gebaeudes. Ausbau auf Stufe n kostet das n-fache (Vorschlag)."""
+    try:
+        with open(BAUPREISE_DATEI, encoding="utf-8") as f:
+            daten = json.load(f)["preise"]
+    except (OSError, KeyError, ValueError):
+        return {}
+    kennung = gelaende.finde_gebaeude(gebaeude_key) or gebaeude_key
+    eintrag = daten.get(kennung) or {}
+    faktor = max(1, stufe)
+    return {r: v * faktor for r, v in eintrag.items() if r in RESOURCES}
+
+
+def kosten_text(kosten: dict) -> str:
+    """Kosten als lesbarer Text, z. B. '8 Holz, 4 Stein'."""
+    if not kosten:
+        return "Preis offen"
+    return ", ".join(f"{int(v)} {r.capitalize()}" for r, v in kosten.items())
+
+
 # Die neun Originalrohstoffe aus data/resources.json (Handbuch Seiten 9-10), in der Reihenfolge
 # des Handbuchs. Erfunden waren: kristall, stoff, geld, wissen — eisen hiess im Handbuch Metall.
 RESOURCES = ["holz", "stein", "metall", "mana", "nahrung", "gold", "wolle", "leder", "pferde"]
@@ -758,6 +785,7 @@ class NebelseetalApp:
             pass
         mapping = {
             "Dorfzentrum": self._render_overview,
+            "Siedlungskarte": self._render_settlement_map,
             "Lager": self._render_storage,
             "Kaserne": self._render_barracks,
             "Marktplatz": self._render_market,
@@ -794,6 +822,12 @@ class NebelseetalApp:
             row.pack(fill=tk.X, padx=10, pady=2)
             tk.Label(row, text=f"{s.name} ({s.map_id})", fg=self.skin["text"], bg=self.skin["panel"], width=20, anchor=tk.W).pack(side=tk.LEFT, padx=5)
             tk.Label(row, text=f"Gebäude: {len(s.buildings)}", fg="#DAA520", bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
+            if getattr(s, "karte", None):
+                tk.Label(row, text=f"{s.karte['typ_name']} · Felder belegt: {len(s.bauten)}",
+                         fg=self.skin["text"], bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
+                tk.Button(row, text="Karte öffnen", command=lambda ss=s: self._oeffne_siedlungskarte(ss),
+                          bg=self.skin["button"], fg=self.skin["gold"],
+                          activebackground="#5D4037").pack(side=tk.LEFT, padx=5)
             entry = tk.Entry(row, bg=self.skin["panel"], fg=self.skin["text"], width=18)
             entry.insert(0, s.name)
             entry.pack(side=tk.LEFT, padx=5)
@@ -898,6 +932,158 @@ class NebelseetalApp:
         resource = "holz"
         self.state.resources[resource].amount = max(0, self.state.resources[resource].amount - amount)
         self._log(f"Transport von {amount} {resource} zur Siedlung {settlement.name} gestartet.")
+
+    # ---------- Siedlungskarte (Handbuch S. 259/283/292/313) ----------
+
+    def _oeffne_siedlungskarte(self, siedlung):
+        self.karten_siedlung = siedlung
+        self.karten_feld = None
+        self._switch_view("Siedlungskarte")
+
+    def _karten_feld_waehlen(self, feld: int):
+        self.karten_feld = feld
+        self._render_view()
+
+    def _karten_bauen(self, gebaeude_key: str):
+        siedlung = getattr(self, "karten_siedlung", None)
+        feld = getattr(self, "karten_feld", None)
+        if siedlung is None or feld is None:
+            return
+        name = gelaende.gebaeude_name(gebaeude_key)
+        kosten = baukosten(gebaeude_key)
+        fehlt = [r for r, v in kosten.items() if self.state.resources[r].amount < v]
+        if fehlt:
+            self._log(f"Nicht genug Rohstoffe für {name}: es fehlt {', '.join(sorted(fehlt))}.")
+            return
+        ok, meldung = bauen_auf_karte(siedlung, gebaeude_key, feld)
+        if not ok:
+            self._log(f"Bau nicht möglich: {meldung}")
+            return
+        for r, v in kosten.items():
+            self.state.resources[r].amount -= v
+        self._log(f"{name} gebaut — {meldung}")
+        self.karten_feld = None
+        self._render_view()
+
+    def _karten_abreissen(self):
+        siedlung = getattr(self, "karten_siedlung", None)
+        feld = getattr(self, "karten_feld", None)
+        if siedlung is None or feld is None:
+            return
+        gebaut = siedlung.bauten.pop(str(feld), None)
+        if gebaut:
+            self._log(f"{gelaende.gebaeude_name(gebaut)} auf Feld {feld} abgerissen "
+                      f"(keine Erstattung der Baustoffe — das Handbuch nennt keine).")
+        self.karten_feld = None
+        self._render_view()
+
+    def _karten_zuwaeisen(self, siedlung):
+        """Siedlungen aus alten Spielständen nachträglich eine Karte geben."""
+        try:
+            siedlung.karte = neue_siedlungskarte(
+                [s.karte for s in self.state.settlements if s is not siedlung])
+        except RuntimeError as fehler:
+            self._log(f"Keine Karte zugewiesen: {fehler}")
+            return
+        self._log(f"{siedlung.name} hat jetzt eine {siedlung.karte['typ_name']}.")
+
+    def _render_settlement_map(self):
+        tk.Label(self.content, text="Siedlungskarte", font=("Blackletter", 20, "bold"),
+                 fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 2))
+        siedlung = getattr(self, "karten_siedlung", None)
+
+        if siedlung is None or not getattr(siedlung, "karte", None):
+            tk.Label(self.content, text="Noch keine Siedlung gewählt.", fg=self.skin["text"],
+                     bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
+            mit_karte = [s for s in self.state.settlements if getattr(s, "karte", None)]
+            if mit_karte:
+                for s in mit_karte:
+                    tk.Button(self.content, text=f"Karte von {s.name} öffnen",
+                              command=lambda ss=s: self._oeffne_siedlungskarte(ss),
+                              bg="#3e2723", fg=self.skin["gold"]).pack(anchor=tk.W, padx=10, pady=2)
+            tk.Label(self.content, text="Siedlungen ohne Karte (aus älteren Spielständen):",
+                     fg=self.skin["text"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(8, 0))
+            for s in self.state.settlements:
+                if not getattr(s, "karte", None):
+                    tk.Button(self.content, text=f"{s.name} eine Karte zuweisen",
+                              command=lambda ss=s: (self._karten_zuwaeisen(ss), self._render_view()),
+                              bg=self.skin["button"], fg=self.skin["gold"]).pack(anchor=tk.W, padx=10, pady=2)
+            if not self.state.settlements:
+                tk.Label(self.content, text="Gründe im Dorfzentrum zuerst eine Siedlung.",
+                         fg=self.skin["text"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=8)
+            return
+
+        karte = siedlung.karte
+        tk.Label(self.content, text=f"{siedlung.name} — {karte['typ_name']}",
+                 fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
+        tk.Label(self.content, text=f"Vorteil: {karte['vorteil']}", fg=self.skin["text"],
+                 bg=self.skin["bg"], wraplength=780, justify=tk.LEFT).pack(anchor=tk.W, padx=10)
+        zaehlung = ", ".join(f"{gelaende.name(a)} {n}" for a, n in karte["zaehlung"].items() if n)
+        tk.Label(self.content, text=zaehlung, fg=self.skin["text"], bg=self.skin["bg"],
+                 wraplength=780, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(2, 6))
+
+        raster_rahmen = tk.Frame(self.content, bg=self.skin["bg"])
+        raster_rahmen.pack(anchor=tk.W, padx=10)
+        for i, art in enumerate(karte["raster"]):
+            gebaut = siedlung.bauten.get(str(i))
+            beschriftung = gelaende.gebaeude_name(gebaut)[:6] if gebaut else str(i)
+            knopf = tk.Button(raster_rahmen, text=beschriftung, width=6, height=2,
+                              bg=gelaende.farbe(art), fg="#F2ECDF", activebackground=gelaende.farbe(art),
+                              relief=(tk.SUNKEN if gebaut else tk.RAISED), bd=2,
+                              command=lambda idx=i: self._karten_feld_waehlen(idx))
+            knopf.grid(row=i // karte["spalten"], column=i % karte["spalten"], padx=1, pady=1)
+            if i == getattr(self, "karten_feld", None):
+                knopf.config(highlightbackground="#FFC300", highlightthickness=3)
+
+        legende = tk.Frame(self.content, bg=self.skin["bg"])
+        legende.pack(anchor=tk.W, padx=10, pady=(6, 2))
+        for art in gelaende.GELAENDEARTEN:
+            tk.Label(legende, text="   ", bg=gelaende.farbe(art)).pack(side=tk.LEFT, padx=(5, 1))
+            tk.Label(legende, text=gelaende.name(art), fg=self.skin["text"],
+                     bg=self.skin["bg"]).pack(side=tk.LEFT)
+        tk.Label(self.content, text="Sumpf ist nicht bebaubar (Handbuch S. 11). "
+                                   "Feld anklicken zeigt die Eignung (Handbuch S. 7/8).",
+                 fg=self.skin["text"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(2, 4))
+
+        info = tk.Frame(self.content, bg=self.skin["panel"])
+        info.pack(fill=tk.X, padx=10, pady=6)
+        feld = getattr(self, "karten_feld", None)
+        if feld is None:
+            tk.Label(info, text="Ein Feld auf der Karte anklicken, um dort zu bauen.",
+                     fg=self.skin["text"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=6, pady=6)
+            return
+
+        art = karte["raster"][feld]
+        gebaut = siedlung.bauten.get(str(feld))
+        tk.Label(info, text=f"Feld {feld} — {gelaende.name(art)}", fg=self.skin["gold"],
+                 bg=self.skin["panel"], font=("TkDefaultFont", 11, "bold")).pack(anchor=tk.W, padx=6, pady=(6, 2))
+
+        if gebaut:
+            erlaubt, warum = gelaende.bau_moeglich(gebaut, art)
+            tk.Label(info, text=f"Hier steht: {gelaende.gebaeude_name(gebaut)} — {warum}",
+                     fg=self.skin["text"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=6)
+            tk.Button(info, text="Abreißen", command=self._karten_abreissen, bg="#3e2723",
+                      fg=self.skin["gold"]).pack(anchor=tk.W, padx=6, pady=6)
+            return
+
+        passend = [(k, g) for k, g in sorted(gelaende.alle_gebaeude().items(),
+                                             key=lambda x: x[1]["name"])
+                   if gelaende.bau_moeglich(k, art)[0]]
+        if not passend:
+            tk.Label(info, text="Auf diesem Gelände kann nichts gebaut werden.",
+                     fg=self.skin["text"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=6, pady=6)
+            return
+
+        tk.Label(info, text=f"Hier möglich ({len(passend)} Gebäude):", fg=self.skin["text"],
+                 bg=self.skin["panel"]).pack(anchor=tk.W, padx=6)
+        knopfreihe = tk.Frame(info, bg=self.skin["panel"])
+        knopfreihe.pack(anchor=tk.W, padx=6, pady=6)
+        for i, (k, g) in enumerate(passend):
+            kosten = baukosten(k)
+            tk.Button(knopfreihe, text=f"{g['name']}  ({kosten_text(kosten)})",
+                      command=lambda kk=k: self._karten_bauen(kk), bg=self.skin["button"],
+                      fg=self.skin["gold"], activebackground="#5D4037").grid(
+                row=i // 3, column=i % 3, padx=3, pady=2, sticky=tk.W)
 
     def _render_portal(self):
         tk.Label(self.content, text="Portal", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))

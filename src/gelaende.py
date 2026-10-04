@@ -86,6 +86,17 @@ def farbe(art_id: str) -> str:
     return ARTEN[art_id]["farbe"]
 
 
+def alle_gebaeude() -> dict:
+    """Alle Gebaeude aus data/buildings.json als {kennung: eintrag}."""
+    return dict(_GEBAEUDE)
+
+
+def gebaeude_name(kennung: str) -> str:
+    """Anzeigename eines Gebaeudes (akzeptiert Kennung oder Name)."""
+    gid = finde_gebaeude(kennung)
+    return _GEBAEUDE[gid]["name"] if gid else str(kennung)
+
+
 # --------------------------------------------------------------------------
 # Erträge
 # --------------------------------------------------------------------------

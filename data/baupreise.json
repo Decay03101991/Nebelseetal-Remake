@@ -1,0 +1,36 @@
+{
+  "_hinweis": "BAUPREISE — VORSCHLAG, NICHT BELEGT. Das Originalhandbuch nennt Erträge und Wirkungen, aber KEINE Baupreise (geprüft am 04.10.2026: in der Textfassung steht keine einzige Gebaeudepreisangabe). Diese Preise sind aus dem Ertrag ableitet, nicht gewuerfelt, und warten auf Daniels Abnahme.",
+  "_quelle": "docs/audits/astra_wirtschaft_antwort.txt (astra, Einsatz 3, 04.10.2026), Auswertung in docs/ENTWURF_WIRTSCHAFT.md",
+  "_ableitung": [
+    "Eine Referenz-Produzentenstunde ist 4 Holz oder 4 Stein wert (Normertrag eines guten Standorts).",
+    "Materialbudget nach Gebaeudeart: Basisproduktion 3 Arbeitsstunden, Spezialproduktion 6, Werkstaetten 10, Ausbildungsstaetten 14.",
+    "Ausbau auf Stufe n kostet das n-fache des Grundpreises (linearer Materialbedarf)."
+  ],
+  "_regel_fuer_aenderungen": "Daniel kann jede Zahl hier aendern; sie gilt dann sofort fuer alle neuen Bauten. Die Preise werden beim Bauen abgezogen und sind im Spiel sichtbar.",
+  "preise": {
+    "holzfaeller": {"holz": 8, "stein": 4, "budget": "Basisproduktion (3 Arbeitsstunden)"},
+    "steinmetz": {"holz": 8, "stein": 4, "budget": "Basisproduktion (3 Arbeitsstunden), damit Stein den Einstieg nicht blockiert"},
+    "erzmine": {"holz": 16, "stein": 8, "budget": "Spezialproduktion (6)"},
+    "tempel": {"holz": 16, "stein": 8, "budget": "Spezialproduktion (6), Mana-Kette"},
+    "farm": {"holz": 8, "stein": 4, "budget": "Basisproduktion (3), Grundversorgung"},
+    "goldmine": {"holz": 16, "stein": 8, "budget": "Spezialproduktion (6)"},
+    "schafszucht": {"holz": 16, "stein": 8, "budget": "Spezialproduktion (6), Stall und Textilkette"},
+    "rinderfarm": {"holz": 16, "stein": 8, "budget": "Spezialproduktion (6), Nahrung und Leder"},
+    "pferdezucht": {"holz": 16, "stein": 8, "budget": "Spezialproduktion (6), Transport- und Reiterkette"},
+    "jaeger": {"holz": 8, "stein": 4, "budget": "Basisproduktion (3), forschungsfreier Einstieg"},
+    "schmiede": {"holz": 24, "stein": 16, "budget": "Werkstatt (10)"},
+    "bogenbauer": {"holz": 24, "stein": 16, "budget": "Werkstatt (10)"},
+    "naehstube": {"holz": 24, "stein": 16, "budget": "Werkstatt (10)"},
+    "kriegerakademie": {"holz": 32, "stein": 24, "budget": "Ausbildungsstaette (14)"},
+    "diebesgilde": {"holz": 32, "stein": 24, "budget": "Ausbildungsstaette (14)"},
+    "stellmacher": {"holz": 32, "stein": 24, "budget": "Ausbildungsstaette (14)"},
+    "verteidigungswall": {"holz": 16, "stein": 16, "budget": "Schutzbudget (8)"},
+    "bibliothek": {"holz": 12, "stein": 8, "budget": "Forschungszugang (5), bewusst unter Werkstattkosten"},
+    "haus": {"holz": 8, "stein": 4, "budget": "Basisbudget fuer Siedlerkapazitaet"},
+    "lager": {"holz": 4, "stein": 4, "budget": "Infrastruktur (2)"}
+  },
+  "regeln": {
+    "ausbau_linear": "Ausbau auf Stufe n kostet das n-fache des Grundpreises — VORSCHLAG.",
+    "startwerte": "Start 100 Holz, 100 Stein, 10 Siedler (Handbuch S. 7) — damit sind zu Beginn Holzfäller, Steinmetz, Farm, Jäger, Haus und Lager bezahlbar."
+  }
+}
