@@ -329,6 +329,7 @@ nachzulesen im Skill `kosten-schutzregel` („laufende Ausnahme"). Außerhalb di
 
 | Commit | Inhalt |
 |---|---|
+| `ca6970e` | W4b-5 dokumentiert: Übergabe, Brett und Entwicklungsprotokoll mit Kosten |
 | `a158175` | **W4b-5**: die 20 Originalgebäude wirken aus den Siedlungskarten (630 Prüfungen grün) |
 | `fb2ec06` | Kosten ins Entwicklungsprotokoll, falsche Kontostände richtiggestellt |
 | `26c0149` | Entwicklungsprotokoll eingeführt (Daniel schreibt die Entstehung mit) |
