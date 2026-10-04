@@ -108,8 +108,40 @@ if os.path.exists(os.path.join(ROOT, "data", "icons_index.json")):
     check("neu geschnittene Icons = 28", neu == 28, f"{neu} Stueck")
 
 
-# ------------------------------------------------------------------ 5 Oberflaeche
-abschnitt("5. Oberflaeche (ohne Fenster)")
+# ------------------------------------------------------------------ 5 Datengrundlagen
+abschnitt("5. Datengrundlagen aus den Originaldaten")
+_DATEN = [
+    ("data/unit_stats.json", "einheiten", 28),
+    ("data/items.json", "waren", 17),
+    ("data/research.json", "forschungen", 21),
+    ("data/resources.json", "rohstoffe", 9),
+    ("data/buildings.json", "gebaeude", 20),
+]
+for _rel, _key, _soll in _DATEN:
+    _p = os.path.join(ROOT, _rel)
+    if not os.path.exists(_p):
+        befund(f"{_rel} fehlt", "noch nicht erzeugt")
+        continue
+    _d = json.load(open(_p, encoding="utf-8"))
+    _block = _d.get(_key)
+    _n = len(_block) if _block is not None else 0
+    check(f"{_rel}: {_soll} Eintraege", _n == _soll, f"{_n} gefunden")
+
+# Wallstufen liegen im Gebaeude Verteidigungswall
+_bp = os.path.join(ROOT, "data", "buildings.json")
+if os.path.exists(_bp):
+    _b = json.load(open(_bp, encoding="utf-8"))
+    _wall = [e for e in _b.get("gebaeude", []) if e.get("id") == "verteidigungswall"]
+    _stufen = _wall[0].get("stufen", []) if _wall else []
+    check("Verteidigungswall hat 10 Stufen", len(_stufen) == 10, f"{len(_stufen)} Stufen")
+    if len(_stufen) == 10:
+        check("Wallstufe 10 ist Bollwerk mit 1000",
+              _stufen[9].get("name") == "Bollwerk"
+              and _stufen[9].get("schwellenwert_fussttruppen") == 1000)
+
+
+# ------------------------------------------------------------------ 6 Oberflaeche
+abschnitt("6. Oberflaeche (ohne Fenster)")
 tk = ausnahme("tkinter laden", lambda: __import__("tkinter"))
 
 if tk is not None:
