@@ -70,7 +70,7 @@ if st:
 abschnitt("3. Einheiten und Icons")
 einheiten = main.UNITS
 icons = main.UNIT_ICONS
-check("Einheiten im Code", len(einheiten) == 36, f"{len(einheiten)} Stueck")
+check("Einheiten im Code = 28 Originaleinheiten", len(einheiten) == 28, f"{len(einheiten)} Stueck")
 check("jede Einheit hat einen Icon-Eintrag", all(k in icons for k in einheiten))
 
 from collections import Counter
@@ -88,12 +88,16 @@ if _fehlend:
 else:
     check("alle Icon-Dateien vorhanden", True)
 
-_ohne_kampf = [k for k in einheiten if bs.get_combat_power({k: 1}, {}) == 0]
-if _ohne_kampf:
-    befund(f"{len(_ohne_kampf)} von {len(einheiten)} Einheiten haben Kampfkraft 0",
-           "Hauptursache 'kein Kampf moeglich' — wird in W1 behoben")
-else:
-    check("jede Einheit hat Kampfkraft", True)
+# Kampfkraft rollenbewusst: Karren und Belagerungswaffen kaempfen im Original nicht und
+# haben darum zu Recht keine Kampfkraft — sie wirken ueber Ladung bzw. Schlagkraft.
+import einheiten as _ein
+_kaempfer = [k for k in einheiten if _ein.ist_kaempfer(k)]
+_ohne_kampf = [k for k in _kaempfer if bs.get_combat_power({k: 1}, {}) == 0]
+check(f"alle {len(_kaempfer)} Kaempfer und Kundschafter haben Kampfkraft", not _ohne_kampf,
+      ", ".join(_ohne_kampf))
+_nichtkaempfer = [k for k in einheiten if not _ein.ist_kaempfer(k)]
+check("Nichtkaempfer sind vollzaehlig vorhanden (Karren 6, Belagerung 7)",
+      len(_nichtkaempfer) == 13, f"{len(_nichtkaempfer)} Stueck")
 
 
 if os.path.exists(os.path.join(ROOT, "data", "icons_index.json")):
@@ -183,7 +187,7 @@ if tk is not None:
             app.state.resources["wissen"].amount = 5000
             app._upgrade_building("holzfäller")
             app._start_research("landwirtschaft")
-            app._train_unit("krieger")
+            app._train_unit("Krieger")
             app._found_settlement()
             app._save()
             root.update_idletasks()

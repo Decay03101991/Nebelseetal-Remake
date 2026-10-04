@@ -131,6 +131,21 @@ RESOURCE_ICONS = {
     "holz": "🌲", "stein": "🪨", "nahrung": "🌾", "kristall": "🔮", "gold": "💎",
     "eisen": "⛏️", "leder": "🦬", "stoff": "🧵", "geld": "💰", "wissen": "📖"
 }
+# ACHTUNG: Diese Gebaeudetabelle ist noch die alte, erfundene Fassung (10 Gebaeude).
+# Sie wurde beim Umbau versehentlich mitgeloescht und hier wiederhergestellt, damit das Spiel
+# laeuft. Die 20 Originalgebaeude aus data/buildings.json folgen im naechsten Schritt (W4).
+BUILDINGS: Dict[str, Building] = {
+    "holzfäller": Building("holzfäller", "Holzfäller", description="Erzeugt Holz.", base_cost={"holz": 10, "stein": 5, "nahrung": 1}),
+    "steinmetz": Building("steinmetz", "Steinmetz", description="Fördert Stein.", base_cost={"holz": 5, "stein": 10, "nahrung": 1}),
+    "jäger": Building("jäger", "Jäger", description="Erzeugt Nahrung.", base_cost={"holz": 25, "stein": 25, "nahrung": 1}),
+    "haus": Building("haus", "Haus", description="+5 Bevölkerung.", base_cost={"holz": 80, "stein": 50}),
+    "schmiede": Building("schmiede", "Schmiede", description="Eisenverarbeitung.", base_cost={"holz": 40, "stein": 60, "eisen": 20}),
+    "bibliothek": Building("bibliothek", "Bibliothek", description="+Forschung.", base_cost={"holz": 60, "stein": 40, "kristall": 20}),
+    "markt": Building("markt", "Marktplatz", description="Handel mit Bots.", base_cost={"holz": 50, "stein": 50, "geld": 20}),
+    "kaserne": Building("kaserne", "Kaserne", description="Einheitenausbildung.", base_cost={"holz": 80, "stein": 80, "eisen": 40}),
+    "turm": Building("turm", "Wachturm", description="Verteidigung +", base_cost={"stein": 120, "eisen": 60}),
+    "portal": Building("portal", "Portal", description="Kartenwechsel + Forschung.", base_cost={"kristall": 100, "geld": 100, "wissen": 50}),
+}
 # Einheiten der Originaldaten (Handbuch Seiten 14-17).
 # Vorher standen hier 36 erfundene Einheiten (Worg, Drache, Troll, Golem ...): sie sind
 # ersatzlos entfernt, alles kommt aus data/units.json ueber die Bruecke einheiten.py.
@@ -1247,8 +1262,12 @@ class NebelseetalApp:
         building_level = self.state.buildings.get("kaserne", Building("", "")).level
         time_min = get_training_time(key, levels, building_level)
         cost = u.cost
-        if all(self.state.resources[k].amount >= v for k, v in cost.items()):
-            for k, v in cost.items():
+        # Die 9 Originalrohstoffe des Handbuchs (metall, wolle, pferde, mana ...) sind noch nicht
+        # in der Rohstoffliste des Spiels — die Angleichung folgt im naechsten Schritt (W4).
+        # Bis dahin werden unbekannte Kostenfelder uebersprungen statt einen Absturz zu erzeugen.
+        bekannt = {k: v for k, v in cost.items() if k in self.state.resources}
+        if all(self.state.resources[k].amount >= v for k, v in bekannt.items()):
+            for k, v in bekannt.items():
                 self.state.resources[k].amount -= v
             u.count += 1
             self._log(f"{u.name} ausgebildet. Ausbildungszeit: {time_min:.1f} min")

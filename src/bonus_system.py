@@ -49,17 +49,6 @@ BUILDING_BASE_COST: Dict[str, Dict[str, float]] = {
     "portal":    {"kristall": 100, "geld": 100, "wissen": 50},
 }
 
-# Tier scaling: T1=1.0, T2=2.0, T3=3.0, T4=4.5, T5=6.0
-TIER_SCALE: Dict[str, float] = {
-    "siedler": 1.0,
-    "krieger": 1.5,
-    "bogenschütze": 2.0,
-    "reiter": 3.0,
-    "mönch": 2.5,
-    "golem": 4.5,
-    "spion": 1.2,
-}
-
 
 # ---------- Bonus Calculation ----------
 
