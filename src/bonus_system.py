@@ -41,12 +41,12 @@ BUILDING_BASE_COST: Dict[str, Dict[str, float]] = {
     "steinmetz": {"holz": 5,  "stein": 10, "nahrung": 1},
     "jäger":     {"holz": 25, "stein": 25, "nahrung": 1},
     "haus":      {"holz": 80, "stein": 50},
-    "schmiede": {"holz": 40, "stein": 60, "eisen": 20},
-    "bibliothek":{"holz": 60, "stein": 40, "kristall": 20},
-    "markt":     {"holz": 50, "stein": 50, "geld": 20},
-    "kaserne":   {"holz": 80, "stein": 80, "eisen": 40},
-    "turm":      {"stein": 120, "eisen": 60},
-    "portal":    {"kristall": 100, "geld": 100, "wissen": 50},
+    "schmiede": {"holz": 40, "stein": 60, "metall": 20},
+    "bibliothek":{"holz": 60, "stein": 40, "mana": 20},
+    "markt":     {"holz": 50, "stein": 50, "gold": 20},
+    "kaserne":   {"holz": 80, "stein": 80, "metall": 40},
+    "turm":      {"stein": 120, "metall": 60},
+    "portal":    {"mana": 150, "gold": 100},
 }
 
 

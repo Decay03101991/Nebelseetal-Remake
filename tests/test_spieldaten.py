@@ -67,4 +67,33 @@ erwartet = {"Nahkampf": 5, "Fernkampf": 4, "Kundschafter": 6, "Karren": 6, "Bela
 for k, n in erwartet.items():
     check(f"{k}: {n} Einheiten", len(kat.get(k, [])) == n, f"{len(kat.get(k, []))} gefunden")
 
+abschnitt("Rohstoffliste des Spiels = die 9 Originalrohstoffe (W4a)")
+import main as _main
+
+_soll = [r["id"] for r in S.rohstoffe()]
+check("das Spiel kennt genau die 9 Originalrohstoffe", _main.RESOURCES == _soll,
+      f"Spiel: {_main.RESOURCES} | Original: {_soll}")
+check("keine erfundenen Rohstoffe mehr",
+      not (set(_main.RESOURCES) & {"kristall", "stoff", "geld", "wissen", "eisen"}),
+      str(sorted(set(_main.RESOURCES) & {"kristall", "stoff", "geld", "wissen", "eisen"})))
+
+_start = _main.GameState()
+check("Startwerte des Handbuchs Seite 7 (100 Holz, 100 Stein, 10 Siedler)",
+      _start.resources["holz"].amount == 100 and _start.resources["stein"].amount == 100
+      and _start.population == 10.0,
+      f"Holz {_start.resources['holz'].amount}, Stein {_start.resources['stein'].amount}, "
+      f"Siedler {_start.population}")
+
+_kostenfelder = set()
+for _u in _main.UNITS.values():
+    _kostenfelder |= set(_u.cost) - {"siedler"}     # Siedler zahlt die Bevoelkerung
+check("jede Einheit bezahlt nur bekannte Rohstoffe",
+      _kostenfelder <= set(_main.RESOURCES), str(sorted(_kostenfelder - set(_main.RESOURCES))))
+
+_waren_felder = set()
+for _w in _main.GOODS.values():
+    _waren_felder |= set(_w.base_cost)
+check("jede Ware kostet nur bekannte Rohstoffe",
+      _waren_felder <= set(_main.RESOURCES), str(sorted(_waren_felder - set(_main.RESOURCES))))
+
 sys.exit(bericht())

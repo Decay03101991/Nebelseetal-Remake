@@ -84,19 +84,19 @@ GOODS: Dict[str, Goods] = {
     "bier": Goods("Bier", "🍺", {"nahrung": 30}, "Getränk für die Bevölkerung."),
     "holzplanken": Goods("Holzplanken", "🪵", {"holz": 40}, "Baumaterial."),
     "steinblöcke": Goods("Steinblöcke", "🧱", {"stein": 40}, "Baumaterial."),
-    "eisenbarren": Goods("Eisenbarren", "🔩", {"eisen": 40}, "Metallverarbeitung."),
-    "stoffballen": Goods("Stoffballen", "🧶", {"stoff": 30}, "Textil."),
-    "glas": Goods("Glas", "🔮", {"kristall": 30}, "Magisches Glas."),
-    "goldmünzen": Goods("Goldmünzen", "🪙", {"geld": 50}, "Währung."),
-    "buch": Goods("Buch", "📕", {"wissen": 40}, "Wissen aufschreiben."),
-    "zaubertrank": Goods("Zaubertrank", "🧪", {"kristall": 30, "wissen": 20}, "Magisch."),
-    "schwert": Goods("Schwert", "⚔️", {"eisen": 40, "holz": 20}, "Waffe."),
-    "rüstung": Goods("Rüstung", "🛡️", {"eisen": 50, "leder": 30}, "Schutz."),
-    "pfeil": Goods("Pfeil", "➳", {"holz": 20, "eisen": 10}, "Munition."),
+    "eisenbarren": Goods("Eisenbarren", "🔩", {"metall": 40}, "Metallverarbeitung."),
+    "stoffballen": Goods("Stoffballen", "🧶", {"wolle": 30}, "Textil."),
+    "glas": Goods("Glas", "🔮", {"mana": 30}, "Magisches Glas."),
+    "goldmünzen": Goods("Goldmünzen", "🪙", {"gold": 50}, "Währung."),
+    "buch": Goods("Buch", "📕", {"mana": 40}, "Wissen aufschreiben."),
+    "zaubertrank": Goods("Zaubertrank", "🧪", {"mana": 50}, "Magisch."),
+    "schwert": Goods("Schwert", "⚔️", {"metall": 40, "holz": 20}, "Waffe."),
+    "rüstung": Goods("Rüstung", "🛡️", {"metall": 50, "leder": 30}, "Schutz."),
+    "pfeil": Goods("Pfeil", "➳", {"holz": 20, "metall": 10}, "Munition."),
     "katapultmunition": Goods("Katapultmunition", "💣", {"stein": 30, "holz": 20}, "Belagerung."),
-    "medizin": Goods("Medizin", "💉", {"wissen": 20, "kristall": 15}, "Heilung."),
-    "seide": Goods("Seide", "👘", {"stoff": 40, "geld": 30}, "Luxus."),
-    "trank": Goods("Trank", "🧪", {"kristall": 20, "nahrung": 10}, "Stärkung."),
+    "medizin": Goods("Medizin", "💉", {"mana": 35}, "Heilung."),
+    "seide": Goods("Seide", "👘", {"wolle": 40, "gold": 30}, "Luxus."),
+    "trank": Goods("Trank", "🧪", {"mana": 20, "nahrung": 10}, "Stärkung."),
 }
 
 @dataclass
@@ -126,10 +126,12 @@ class Settlement:
 
 # ---------- Config ----------
 
-RESOURCES = ["holz", "stein", "nahrung", "kristall", "gold", "eisen", "leder", "stoff", "geld", "wissen"]
+# Die neun Originalrohstoffe aus data/resources.json (Handbuch Seiten 9-10), in der Reihenfolge
+# des Handbuchs. Erfunden waren: kristall, stoff, geld, wissen — eisen hiess im Handbuch Metall.
+RESOURCES = ["holz", "stein", "metall", "mana", "nahrung", "gold", "wolle", "leder", "pferde"]
 RESOURCE_ICONS = {
-    "holz": "🌲", "stein": "🪨", "nahrung": "🌾", "kristall": "🔮", "gold": "💎",
-    "eisen": "⛏️", "leder": "🦬", "stoff": "🧵", "geld": "💰", "wissen": "📖"
+    "holz": "🌲", "stein": "🪨", "metall": "⛏️", "mana": "🔮", "nahrung": "🌾",
+    "gold": "💰", "wolle": "🧶", "leder": "🦬", "pferde": "🐴",
 }
 # ACHTUNG: Diese Gebaeudetabelle ist noch die alte, erfundene Fassung (10 Gebaeude).
 # Sie wurde beim Umbau versehentlich mitgeloescht und hier wiederhergestellt, damit das Spiel
@@ -139,12 +141,12 @@ BUILDINGS: Dict[str, Building] = {
     "steinmetz": Building("steinmetz", "Steinmetz", description="Fördert Stein.", base_cost={"holz": 5, "stein": 10, "nahrung": 1}),
     "jäger": Building("jäger", "Jäger", description="Erzeugt Nahrung.", base_cost={"holz": 25, "stein": 25, "nahrung": 1}),
     "haus": Building("haus", "Haus", description="+5 Bevölkerung.", base_cost={"holz": 80, "stein": 50}),
-    "schmiede": Building("schmiede", "Schmiede", description="Eisenverarbeitung.", base_cost={"holz": 40, "stein": 60, "eisen": 20}),
-    "bibliothek": Building("bibliothek", "Bibliothek", description="+Forschung.", base_cost={"holz": 60, "stein": 40, "kristall": 20}),
-    "markt": Building("markt", "Marktplatz", description="Handel mit Bots.", base_cost={"holz": 50, "stein": 50, "geld": 20}),
-    "kaserne": Building("kaserne", "Kaserne", description="Einheitenausbildung.", base_cost={"holz": 80, "stein": 80, "eisen": 40}),
-    "turm": Building("turm", "Wachturm", description="Verteidigung +", base_cost={"stein": 120, "eisen": 60}),
-    "portal": Building("portal", "Portal", description="Kartenwechsel + Forschung.", base_cost={"kristall": 100, "geld": 100, "wissen": 50}),
+    "schmiede": Building("schmiede", "Schmiede", description="Eisenverarbeitung.", base_cost={"holz": 40, "stein": 60, "metall": 20}),
+    "bibliothek": Building("bibliothek", "Bibliothek", description="+Forschung.", base_cost={"holz": 60, "stein": 40, "mana": 20}),
+    "markt": Building("markt", "Marktplatz", description="Handel mit Bots.", base_cost={"holz": 50, "stein": 50, "gold": 20}),
+    "kaserne": Building("kaserne", "Kaserne", description="Einheitenausbildung.", base_cost={"holz": 80, "stein": 80, "metall": 40}),
+    "turm": Building("turm", "Wachturm", description="Verteidigung +", base_cost={"stein": 120, "metall": 60}),
+    "portal": Building("portal", "Portal", description="Kartenwechsel + Forschung.", base_cost={"mana": 150, "gold": 100}),
 }
 # Einheiten der Originaldaten (Handbuch Seiten 14-17).
 # Vorher standen hier 36 erfundene Einheiten (Worg, Drache, Troll, Golem ...): sie sind
@@ -169,30 +171,30 @@ for _name, _e in einheiten.alle().items():
 del _name, _e
 
 RESEARCHES: Dict[str, Research] = {
-    "landwirtschaft": Research("landwirtschaft", "Landwirtschaft", max_level=5, cost={"wissen": 10}, effect="+12% Nahrung/Min"),
-    "bergbau": Research("bergbau", "Bergbau", max_level=5, cost={"wissen": 10}, effect="+12% Stein/Eisen/Min"),
-    "militär": Research("militär", "Militärtaktik", max_level=5, cost={"wissen": 12}, effect="+8% Angriff/Verteidigung"),
-    "vermessung": Research("vermessung", "Vermessung", max_level=3, cost={"wissen": 15}, effect="Mehr Karteninformationen"),
-    "handel": Research("handel", "Handel", max_level=5, cost={"wissen": 10}, effect="+8% Handelsbonus"),
-    "architektur": Research("architektur", "Architektur", max_level=5, cost={"wissen": 12}, effect="-6% Baukosten"),
-    "alchemie": Research("alchemie", "Alchemie", max_level=3, cost={"wissen": 20, "kristall": 15}, effect="Kristallproduktion frei"),
-    "spionage": Research("spionage", "Spionage", max_level=3, cost={"wissen": 15}, effect="Mehr Spionerfolg"),
-    "navigation": Research("navigation", "Navigation", max_level=3, cost={"wissen": 15}, effect="Portal effizienter"),
-    "medizin": Research("medizin", "Medizin", max_level=3, cost={"wissen": 12}, effect="Weniger Verluste nach Kampf"),
-    "taktik": Research("taktik", "Taktik", max_level=5, cost={"wissen": 15}, effect="+10% Angriff"),
-    "verteidigung": Research("verteidigung", "Verteidigung", max_level=5, cost={"wissen": 15}, effect="+10% Verteidigung"),
-    "logistik": Research("logistik", "Logistik", max_level=3, cost={"wissen": 20}, effect="Mehr Truppenkapazität"),
-    "alchemie_2": Research("alchemie_2", "Alchemie II", max_level=3, cost={"wissen": 30, "kristall": 25}, effect="Mehr Kristall"),
-    "wirtschaft": Research("wirtschaft", "Wirtschaft", max_level=5, cost={"wissen": 12}, effect="+10% Produktion"),
-    "diplomatie": Research("diplomatie", "Diplomatie", max_level=3, cost={"wissen": 18}, effect="Handelsbonus +"),
-    "magie": Research("magie", "Magie", max_level=3, cost={"wissen": 30, "kristall": 20}, effect="Magische Einheiten"),
-    "zauberei": Research("zauberei", "Zauberei", max_level=3, cost={"wissen": 35, "kristall": 25}, effect="Zaubermacht"),
+    "landwirtschaft": Research("landwirtschaft", "Landwirtschaft", max_level=5, effect="+12% Nahrung/Min"),
+    "bergbau": Research("bergbau", "Bergbau", max_level=5, effect="+12% Stein/Eisen/Min"),
+    "militär": Research("militär", "Militärtaktik", max_level=5, effect="+8% Angriff/Verteidigung"),
+    "vermessung": Research("vermessung", "Vermessung", max_level=3, effect="Mehr Karteninformationen"),
+    "handel": Research("handel", "Handel", max_level=5, effect="+8% Handelsbonus"),
+    "architektur": Research("architektur", "Architektur", max_level=5, effect="-6% Baukosten"),
+    "alchemie": Research("alchemie", "Alchemie", max_level=3, effect="Kristallproduktion frei"),
+    "spionage": Research("spionage", "Spionage", max_level=3, effect="Mehr Spionerfolg"),
+    "navigation": Research("navigation", "Navigation", max_level=3, effect="Portal effizienter"),
+    "medizin": Research("medizin", "Medizin", max_level=3, effect="Weniger Verluste nach Kampf"),
+    "taktik": Research("taktik", "Taktik", max_level=5, effect="+10% Angriff"),
+    "verteidigung": Research("verteidigung", "Verteidigung", max_level=5, effect="+10% Verteidigung"),
+    "logistik": Research("logistik", "Logistik", max_level=3, effect="Mehr Truppenkapazität"),
+    "alchemie_2": Research("alchemie_2", "Alchemie II", max_level=3, effect="Mehr Kristall"),
+    "wirtschaft": Research("wirtschaft", "Wirtschaft", max_level=5, effect="+10% Produktion"),
+    "diplomatie": Research("diplomatie", "Diplomatie", max_level=3, effect="Handelsbonus +"),
+    "magie": Research("magie", "Magie", max_level=3, effect="Magische Einheiten"),
+    "zauberei": Research("zauberei", "Zauberei", max_level=3, effect="Zaubermacht"),
 }
 MAPS = [
     {"id": "kontinent", "name": "Der Kontinent", "size": 20, "difficulty": 1, "bonus": "nahrung", "npcs": ["dorf", "händler"], "quests": ["Erstes Zuhause", "Siedlerzug"], "sectors": True},
     {"id": "wald", "name": "Nebelwald", "size": 8, "difficulty": 2, "bonus": "holz", "npcs": ["jäger", "schamane"], "quests": ["Geister des Waldes", "Verlorenes Artefakt"]},
     {"id": "berge", "name": "Hochfels", "size": 8, "difficulty": 3, "bonus": "stein", "npcs": ["zwerge", "drachen"], "quests": ["Der verborgene Schacht", "Drachenei"]},
-    {"id": "sümpfe", "name": "Glimmersümpfe", "size": 7, "difficulty": 2, "bonus": "kristall", "npcs": ["hexe", "banditen"], "quests": ["Sumpffieber", "Banditenlager"]},
+    {"id": "sümpfe", "name": "Glimmersümpfe", "size": 7, "difficulty": 2, "bonus": "mana", "npcs": ["hexe", "banditen"], "quests": ["Sumpffieber", "Banditenlager"]},
     {"id": "portalreich", "name": "Portalreich", "size": 10, "difficulty": 4, "bonus": "gold", "npcs": ["wächter", "magier"], "quests": ["Portalwächter", "Arkaner Schlüssel"]},
 ]
 BOTS = [
@@ -276,9 +278,10 @@ def research_multiplier(state: "GameState", key: str) -> float:
 class GameState:
     def __init__(self):
         self.resources: Dict[str, Resource] = {r: Resource(r) for r in RESOURCES}
-        self.resources["holz"].amount = 10
-        self.resources["stein"].amount = 10
-        self.resources["nahrung"].amount = 10
+        # Startwerte laut Handbuch Seite 7: 10 Siedler, 100 Holz, 100 Steine.
+        # Weitere Rohstoffe nennt das Handbuch nicht — sie starten bei 0.
+        self.resources["holz"].amount = 100
+        self.resources["stein"].amount = 100
         self.buildings: Dict[str, Building] = {k: Building(**asdict(v)) for k, v in BUILDINGS.items()}
         self.units: Dict[str, Unit] = {k: Unit(**asdict(v)) for k, v in UNITS.items()}
         self.research: Dict[str, Research] = {k: Research(**asdict(v)) for k, v in RESEARCHES.items()}
@@ -288,7 +291,7 @@ class GameState:
         self.unlocked_maps: List[str] = ["kontinent"]
         self.active_maps: List[str] = ["kontinent"]
         self.map_switch_cost = 150
-        self.population = 0
+        self.population = 10.0   # 10 Siedler laut Handbuch Seite 7
         self.max_population = 10
         self.score = 0
         self.day = 1
@@ -350,11 +353,11 @@ class GameState:
                     if terrain == "forest":
                         tile.resources = {"holz": random.randint(50, 150)}
                     elif terrain == "mountain":
-                        tile.resources = {"stein": random.randint(50, 150), "eisen": random.randint(20, 80)}
+                        tile.resources = {"stein": random.randint(50, 150), "metall": random.randint(20, 80)}
                     elif terrain == "ruins":
-                        tile.resources = {"wissen": random.randint(30, 100), "kristall": random.randint(20, 60)}
+                        tile.resources = {"mana": random.randint(50, 160)}
                     elif terrain == "village":
-                        tile.resources = {"nahrung": random.randint(40, 120), "geld": random.randint(10, 40)}
+                        tile.resources = {"nahrung": random.randint(40, 120), "gold": random.randint(10, 40)}
                     if random.random() < 0.2:
                         tile.npc_faction = random.choice(cfg["npcs"])
                     if random.random() < 0.15:
@@ -368,9 +371,9 @@ class GameState:
                     if terrain == "forest":
                         tile.resources = {"holz": random.randint(30, 90)}
                     elif terrain == "mountain":
-                        tile.resources = {"stein": random.randint(30, 90), "eisen": random.randint(5, 30)}
+                        tile.resources = {"stein": random.randint(30, 90), "metall": random.randint(5, 30)}
                     elif terrain == "ruins":
-                        tile.resources = {"wissen": random.randint(10, 40), "kristall": random.randint(5, 20)}
+                        tile.resources = {"mana": random.randint(15, 60)}
                     if random.random() < 0.15:
                         tile.npc_faction = random.choice(cfg["npcs"])
                     if random.random() < 0.1:
@@ -542,13 +545,13 @@ class NebelseetalApp:
             "holz": "holzfäller",
             "stein": "steinmetz",
             "nahrung": "jäger",
-            "kristall": "bibliothek",
+            "mana": "bibliothek",
             "gold": "portal",
-            "eisen": "schmiede",
+            "metall": "schmiede",
             "leder": "jäger",
-            "stoff": "markt",
-            "geld": "markt",
-            "wissen": "bibliothek",
+            "wolle": "markt",
+            "gold": "markt",
+            "mana": "bibliothek",
         }
         return mapping.get(resource, "")
 
@@ -696,19 +699,19 @@ class NebelseetalApp:
                 self.state.max_population += 5
                 b.production = {}
             elif b.id == "bibliothek":
-                b.production = {"wissen": b.level * 2.0}
+                b.production = {}   # belegt: die Bibliothek ermoeglicht Forschung
             elif b.id == "kaserne":
                 b.production = {}
             elif b.id == "portal":
-                b.production = {"wissen": b.level * 1.0}
+                b.production = {}
                 self._unlock_next_map()
             else:
                 prod_map = {
                     "holzfäller": {"holz": b.level * 1.2},
                     "steinmetz": {"stein": b.level * 1.2},
                     "jäger": {"nahrung": b.level * 1.0},
-                    "schmiede": {"eisen": b.level * 0.8},
-                    "markt": {"geld": b.level * 0.5},
+                    "schmiede": {"metall": b.level * 0.8},
+                    "markt": {"gold": b.level * 0.5},
                     "turm": {},
                 }
                 b.production = prod_map.get(b.id, {})
@@ -974,10 +977,10 @@ class NebelseetalApp:
         if self.state.current_map == map_id:
             self._log("Bereits auf dieser Karte.")
             return
-        if self.state.resources["geld"].amount < self.state.map_switch_cost:
+        if self.state.resources["gold"].amount < self.state.map_switch_cost:
             self._log("Nicht genug Geld für Kartenwechsel.")
             return
-        self.state.resources["geld"].amount -= self.state.map_switch_cost
+        self.state.resources["gold"].amount -= self.state.map_switch_cost
         self.state.current_map = map_id
         self.state.generate_map(map_id)
         self.state.map_switch_cost += 50
@@ -1027,7 +1030,7 @@ class NebelseetalApp:
             elif tile.quest and not tile.quest_done:
                 tile.quest_done = True
                 self.state.ruf += 15
-                self.state.resources["geld"].amount += 20
+                self.state.resources["gold"].amount += 20
                 self._log(f"Quest abgeschlossen: {tile.quest}. Ruf +15, Geld +20")
             else:
                 self._log(f"{label}: {tile.terrain}")
@@ -1100,7 +1103,7 @@ class NebelseetalApp:
         if player_power > bot_power:
             gain_ruf = max(5, int(15 * military))
             self.state.ruf += gain_ruf
-            for res in ["holz", "stein", "geld"]:
+            for res in ["holz", "stein", "gold"]:
                 self.state.resources[res].amount += random.randint(5, 15)
             report = f"Sieg über {bot.name}! Ruf +{gain_ruf}, Ressourcen geplündert."
             self.state.messages.append({"text": report, "type": "kampf"})
@@ -1262,13 +1265,21 @@ class NebelseetalApp:
         building_level = self.state.buildings.get("kaserne", Building("", "")).level
         time_min = get_training_time(key, levels, building_level)
         cost = u.cost
-        # Die 9 Originalrohstoffe des Handbuchs (metall, wolle, pferde, mana ...) sind noch nicht
-        # in der Rohstoffliste des Spiels — die Angleichung folgt im naechsten Schritt (W4).
-        # Bis dahin werden unbekannte Kostenfelder uebersprungen statt einen Absturz zu erzeugen.
-        bekannt = {k: v for k, v in cost.items() if k in self.state.resources}
-        if all(self.state.resources[k].amount >= v for k, v in bekannt.items()):
-            for k, v in bekannt.items():
+        # Siedler sind im Original die Bevoelkerung, keine lagerbare Ressource
+        # (Handbuch Seite 10): der Siedleranteil wird von der Bevoelkerung bezahlt.
+        siedler = int(cost.get("siedler", 0))
+        rohstoffe = {k: v for k, v in cost.items() if k != "siedler"}
+        unbekannt = [k for k in rohstoffe if k not in self.state.resources]
+        if unbekannt:
+            # Kein stilles Ueberspringen: ein unbekannter Rohstoff ist ein Datenfehler.
+            self._log(f"Ausbildung nicht möglich: unbekannte Rohstoffe {unbekannt}")
+            return
+        genug = (all(self.state.resources[k].amount >= v for k, v in rohstoffe.items())
+                 and self.state.population >= siedler)
+        if genug:
+            for k, v in rohstoffe.items():
                 self.state.resources[k].amount -= v
+            self.state.population -= siedler
             u.count += 1
             self._log(f"{u.name} ausgebildet. Ausbildungszeit: {time_min:.1f} min")
         else:

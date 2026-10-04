@@ -181,10 +181,11 @@ if tk is not None:
             root.update()
             app.state.resources["holz"].amount = 5000
             app.state.resources["stein"].amount = 5000
-            app.state.resources["eisen"].amount = 5000
+            app.state.resources["metall"].amount = 5000
             app.state.resources["nahrung"].amount = 5000
-            app.state.resources["geld"].amount = 5000
-            app.state.resources["wissen"].amount = 5000
+            app.state.resources["gold"].amount = 5000
+            app.state.resources["mana"].amount = 5000
+            app.state.population = 5000.0   # Siedler sind Bevoelkerung, keine Ressource
             app._upgrade_building("holzfäller")
             app._start_research("landwirtschaft")
             app._train_unit("Krieger")
