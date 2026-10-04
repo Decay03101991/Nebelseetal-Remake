@@ -300,6 +300,13 @@ bezogen berechnet: meiste Leistung für geringste Ausgabe."
 **Kostenregel für die teuren Aufrufe:** nach dem Lauf wird sofort gemessen (`tageskosten_check.py`)
 und die Differenz ins Protokoll geschrieben. Bei DeepSeek müssen **1,00 USD liegen bleiben**.
 
+### Ausgang der beiden teuren Aufrufe
+
+| Zeit | Aufruf | Ergebnis |
+|---|---|---|
+| 23:52 | **astra (Bilder, Kartenentwurf) — fertig, Rückgabewert 0** | Geschrieben: `docs/KARTEN_ENTWURF.md` (48 Zeilen, jede Aussage als `[BELEGT: Foto …]` oder `[VORSCHLAG]`) und `docs/audits/astra_karten.txt`. **Der Befund ist negativ und wertvoll: auf keinem der drei GameStar-Fotos ist eine Siedlungskarte zu sehen** — Foto 1 Nachrichtenansicht, Foto 2 **Portal**ansicht (das 20×20-Raster gehört dorthin), Foto 3 Baumenü. Das frühere astra-Gutachten (21:0x) war unabhängig zum selben Ergebnis gekommen → unsere Siedlungskarte ist **eigene Gestaltung**, kein Originalbeleg. Zusätzlich fand astra einen **echten Widerspruch in unseren Daten** (`data/gelaende.json`: 8×5 = 40 Felder *und* 56 Felder), vom Koordinator nachgerechnet und als Frage 12 vorgelegt. **Kosten dieses Aufrufs: +0,67 USD** (Messung 10,92 → 11,59 USD unmittelbar danach) — im Rahmen des Veranschlagten (1,27 USD aus dem letzten Mal) |
+| — | **v4-pro (Umsetzungs- und Kampfplan)** | schreibt noch; Ergebnis und Kosten werden nachgetragen |
+
 **Sicherung (projektunabhaengig):** 12 Dateien gesichert nach `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-04_2324` — Vorgabe von Daniel am 04.10.2026, damit das Protokoll auch ohne diesen Projektordner weiterlebt. Zeiger auf die juengste Fassung: `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`.
 
 **Sicherung (projektunabhaengig):** 12 Dateien gesichert nach `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-04_2324` — Vorgabe von Daniel am 04.10.2026, damit das Protokoll auch ohne diesen Projektordner weiterlebt. Zeiger auf die juengste Fassung: `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`.
