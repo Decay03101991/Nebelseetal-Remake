@@ -183,6 +183,7 @@ Modellaufträge über den Anbieter. Schätzungen sind als Schätzung gekennzeich
 | Kartenentwurf aus den Original-Screenshots (23:35) | `gpt-6-astra` | **0,67 USD** (10,92 → 11,59 USD, gemessen) |
 | Umsetzungs- und Kampfplan (23:35) | `deepseek-v4-pro` | **0,12 USD** (Anteil) |
 | **Beide teuren Aufrufe zusammen** | astra + v4-pro | **+0,79 USD** (10,9244 → 11,71 USD) |
+| **05.10. 23:49–00:45: Schritte 1–3 einhängen (Speichern, Punkte, Kampf) + drei Verdrahtungs-Prüfdateien** | `deepseek-v4-flash` (Koordinator) + `flash`-Unteragenten — **kein** teurer Aufruf | **0,1442 USD = 0,1285 EUR** (Tagessumme 05.10., `scripts/tageskosten_check.py --json`: 4 Sitzungen, Modelle `deepseek-flash`/`deepseek-v4-flash`; Kurs 0,89087) |
 
 **Bezahlte Modellaufträge am 04.10.2026 (Tagesverlauf, vor dieser Sitzung):**
 
@@ -328,10 +329,47 @@ Vorgängersitzung eingetroffen (`5f7ee39`, `4bf6a45` — beide nur `docs/`), wä
 lief. Sie wurden **nicht** überschrieben, sondern gelesen; `main.py` trägt ausschließlich die eigenen
 Änderungen (Beleg: `git diff --stat src/main.py` = 42 Einfügungen, 9 Löschungen).
 
+**Daniels Input in dieser Sitzung (mit Zeitstempel):**
+
+| Zeit | Input |
+|---|---|
+| 23:49 (04.10.) | **Startauftrag** (wörtlich in `docs/PROJEKT_STAND.md`, Abschnitt 0): Ziel übernehmen, dann die Arbeitsreihenfolge aus `docs/UMSETZUNG_EINHAENGEN.md`, Abschnitt 5, abarbeiten — Schritt 1 ist `speichern` an `main.py:627-628` —, nach jedem Schritt `run_tests.bat` (erwartet 1651/0/9 über 23 Dateien) und eine Protokollzeile; am Ende die `.exe` neu bauen und startprüfen |
+| 00:02 | „ich möchte dass du das Ziel nun selbstständig weiter verfolgst, bitte delegier die aufgaben sinnvoll und arbeite effektiv. Prüfe immer wieder deine ergebnisse, arbeite sauber effizient und klug mit teuren modellen" + Kontostände: DeepSeek **1,70 USD**, OpenAI **3,04 USD** |
+| 00:06 | „viel erfolg bei der zielerfüllung" |
+| 00:12 | „beachte das du das protokoll sinnvoll weiterführst" |
+| 00:35 | „halte das entwicklungsprotokoll übersichtlich und schlank und sinnvoll" |
+| 00:44 | „Wichtig ist: Wann haben wir es getan, was war mein Input und was deiner, was haben wir grob vor gehabt bis hin zu das kam dabei heraus … inklusive Kosten und Ausgaben die real passiert sind mit Belegen und Zeitstempel" |
+
+**Mein Vorgehen (Koordinator, damit es nachvollziehbar bleibt):** Ausgangsmarke **selbst messen** statt
+aus der Übergabe abschreiben · jede Änderung mit einer **eigenen** Nachprüfung nach anderem Verfahren als
+der Kind-Test · `main.py` nur selbst anfassen, `flash`-Unteragenten nur für **neue** Prüfdateien · nach
+jedem Schritt Sammellauf, Protokollzeile, projektunabhängige Sicherung, kleiner Commit · kein teurer Aufruf.
+
 | Zeit | Schritt | Ergebnis / Beleg |
 |---|---|---|
 | 23:49 | **Ausgangsmarke gemessen** (nicht aus der Übergabe abgeschrieben) | 23 Prüfdateien in der Bash nachgefahren — `run_tests.bat` endet mit `pause` und läuft ohne Tastatur nicht durch, deshalb ein eigenes Laufskript (`nebel_suite.py`, liest die Dateiliste aus `run_tests.bat`): **1651 bestanden, 0 Fehler, 9 Befunde über 23 Dateien**, Rückgabewert 0. Deckt sich mit der Übergabe — keine Abweichung |
-| 23:55 | **Schritt 1 — W8 robustes Speichern eingehängt** (`main.py:627-628`) | Vorher schrieb `GameState.save` direkt (`open(path,"w")` + `json.dump`) und `load` direkt (`json.load`). Jetzt: `speichern.sichere_kopie(path)` legt die Sicherung `.bak` **vor** dem Überschreiben an, `speichern.speichere(data, path)` schreibt über eine geprüfte `.tmp` und setzt sie mit `os.replace` um; die Rückgabe wird ausgewertet und bei `ok == False` ehrlich geloggt (der alte Stand bleibt stehen). `load()` liest über `speichern.lade`, versucht bei beschädigter Datei `speichern.wiederherstellen` aus `.bak` und gibt `True/False` statt `None`; `NebelseetalApp` räumt beim Start mit `speichern.aufraeumen` liegengebliebene `.tmp` weg; `_save`/`_load` melden den ehrlichen Ausgang. `import speichern` ergänzt |
-| 23:56 | **Nachprüfung mit eigenem Verfahren** (nicht der Kind-Test) | `nebel_w8_probe.py`: **7 Proben bestanden** — (1) Datei gültig, keine `.tmp`-Leiche; (2) zweites Speichern legt `.bak` mit dem **alten** Stand an, die Zieldatei trägt den neuen; (3) nach Beschädigung stellt `load()` aus `.bak` wieder her und liefert `True`; (4) fehlende Datei → ehrlich `False`; (5) Zielpfad ist ein Ordner → `False`, keine Ausnahme, Meldung „Speichern fehlgeschlagen", Ordner unangetastet; (6) `aufraeumen` entfernt **nur** die `.tmp`; (7) eine Spielstandsdatei im **alten** Format lädt weiter |
-| 00:02 | **Kind-Test, Grundprüfung, Sammellauf** | `tests/test_speichern_robust.py` **95 bestanden, 0 Fehler, 5 Befunde** · `tests/test_baseline.py` **40/0/0** · Sammellauf **1651 bestanden, 0 Fehler, 9 Befunde über 23 Dateien** — unverändert grün, kein Rückschritt |
-| 00:01 | **Unteragent beauftragt (flash)** | `tests/test_w8_einhaengung.py` — prüft die **Verdrahtung** (nicht das Modul): dass `GameState.save/load` wirklich über `speichern` gehen, inklusive Sicherung, Wiederherstellung und ehrlichem Scheitern. Ergebnis wird in der nächsten Zeile vermerkt |
+| 23:55 | **1 · W8 Speichern** (`main.py:627-628`) | statt direktem `json.dump`/`json.load` jetzt `speichern.sichere_kopie` + `speichere` (geprüfte `.tmp`, dann `os.replace`) und im Lesen `lade` + `wiederherstellen` aus `.bak`; `aufraeumen` beim Start; `_save`/`_load` melden den ehrlichen Ausgang |
+| 23:56 | **Nachprüfung (eigenes Verfahren, nicht der Kind-Test)** | `nebel_w8_probe.py` **7 Proben**: Sicherung trägt den **alten** Stand · Wiederherstellung nach Beschädigung · ehrliches `False` bei unmöglichem Ziel · keine `.tmp`-Leiche · altes Dateiformat lädt weiter |
+| 00:02 | **Kind-Test, Grundprüfung, Sammellauf** | speichern **95/0/5** · baseline **40/0/0** · Sammellauf **1651/0/9** über 23 Dateien — unverändert grün |
+| 00:01 | **Unteragenten beauftragt (flash)** | je eine neue Prüfdatei für die **Verdrahtung** (Einzelheiten am Ende des Abschnitts) |
+| 00:12 | **1 · W8 Speichern abgeschlossen** (`main.py:627-628`) | Commit `9ec34fb`; Papiere gesichert (16 Dateien, Prüfsummen gleich) |
+| 00:20 | **2 · W6 Punkte** | Seitenleiste und Ruhmeshalle rechnen mit `punkte.*` (Stufe³ · Einheitenwerte + Wallstufe³ · halbe Summe) statt `score`/`ruf`; eigener Nachweis `nebel_w6_probe.py` **6 Proben** · `test_punkte.py` **76/0/0** · Sammellauf **1651/0/9** |
+| 00:34 | **3 · W2/W2b Kampf** | beide Daumenangriffe ersetzt durch **einen** Weg: `_truppen_nach_rolle` → `kampf.fuehre_schlacht` → `kampfbericht.spieldaten_anwenden` → Bericht in den Reiter Nachrichten; eigener Nachweis `nebel_w2_probe.py` **7 Proben**. Sammellauf nach dem Schritt **1651/0/9**, nach Aufnahme der neuen Prüfdateien **1734/0/14** über 25 Dateien |
+
+**Offene Punkte aus dieser Sitzung (ehrlich):**
+
+- Angriffe auf **Bots** sind mit den heutigen Armeen (20–120 Stück **je Einheit**, alter Code, **nicht** aus
+  dem Handbuch) praktisch aussichtslos; echte Bot-Stärken und echtes Bot-Lager gehören zu Schritt 8 (botkern).
+- Die Vorräte eines Ziels kommen bis dahin aus den **VORSCHLAG**-Spannen in `botkern` (dort als Vorschlag
+  gekennzeichnet); für **Kartenangriffe** gibt es kein belegtes Lager → Frage an Daniel.
+
+**Unteragenten** (flash, je eine **neue** Prüfdatei, die ausschließlich die **Verdrahtung** prüft — nie
+die Module selbst; sie committen nicht, der Koordinator prüft nach): `test_w8_einhaengung.py` **39/0/5** und
+`test_punkte_einhaengung.py` **44/0/0** — vom Koordinator selbst nachgefahren und inhaltlich geprüft, beide
+in `run_tests.bat` aufgenommen — der Sammellauf steht dadurch bei **1734 bestanden, 0 Fehler, 14 Befunde
+über 25 Dateien** (die fünf zusätzlichen Befunde sind die ehrlichen Grenzen von `speichern`, die der
+Kind-Test meldet);
+`test_kampf_einhaengung.py` läuft noch.
+
+**Zeitaufwand.** 04.10. 23:49 → 05.10. 00:45 = **rund 1 Stunde**, eine Sitzung, drei Schritte (Speichern,
+Punkte, Kampf) samt drei Unteragenten und Nachprüfungen.

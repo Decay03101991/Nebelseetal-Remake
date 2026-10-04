@@ -26,6 +26,10 @@ import berater
 import tor
 import wirtschaft
 import speichern   # W8: robustes Speichern/Laden (atomar, geprueft, mit Sicherung)
+import punkte      # W6: Forschungs-, Kriegs- und Gesamtpunkte nach den Originalformeln
+import kampf       # W2: Vorrunde, Kampfsequenzen, Flucht, Beute (Handbuch S. 20-23)
+import kampfbericht  # W2b: Vorrunden-Pruefung, Mauerschaden, Beute, Bericht
+import botkern     # W5: Bot-Regeln (hier: die Vorschlagsspannen fuer die Vorraete der Bots)
 
 
 # ---------- Data Models ----------
@@ -1525,25 +1529,94 @@ class NebelseetalApp:
             cy = int(ty) * cell_h + cell_h/2
             self.map_canvas.create_text(cx, cy, text=f"⚔️{timer_txt}", fill="#FFD700", font=("Arial", 8))
 
+    # ---------- Angriff: kampf + kampfbericht (Umsetzungsplan, Abschnitte 1.3 und 2) ----------
+    #
+    # Vorher rechnete die Oberflaeche mit einer eigenen Daumenformel ("player_power >
+    # defense_power") und erfand Beute. Jetzt laeuft JEDER Angriff durch denselben Ablauf:
+    # Truppenpruefung -> Vorrunde/Wallschwellen -> bis zu zehn Kampfsequenzen -> Beute nach
+    # Karrenladung -> Bericht in den Reiter "Nachrichten" -> Verluste und Beute in den Spielstand.
+
+    def _truppen_nach_rolle(self):
+        """Teilt die eigenen Einheiten in die Rollen des Handbuchs (einheiten.py)."""
+        kaempfer, belagerung, karren = {}, {}, {}
+        for kennung, einheit in self.state.units.items():
+            if einheit.count <= 0:
+                continue
+            rolle = einheit.rolle or einheiten.rolle(kennung)
+            if rolle in ("kaempfer", "kundschafter"):
+                kaempfer[kennung] = einheit.count
+            elif rolle == "belagerung":
+                belagerung[kennung] = einheit.count
+            elif rolle == "karren":
+                karren[kennung] = einheit.count
+        return kaempfer, belagerung, karren
+
+    def _vorraete_des_ziels(self, ziel) -> dict:
+        """Die Vorraete des Angegriffenen.
+
+        Fuehrt das Ziel eigene Vorraete (botkern-Bots tun das), gelten die. Sonst kommen die
+        VORSCHLAG-Spannen aus `botkern` (dort ausdruecklich als Vorschlag gekennzeichnet, weil die
+        Vorlage kein Startinventar nennt) - der Startwert haengt am Namen, damit derselbe Gegner
+        immer dasselbe Lager hat.
+        """
+        eigene = getattr(ziel, "vorraete", None)
+        if isinstance(eigene, dict) and eigene:
+            return dict(eigene)
+        if isinstance(ziel, dict) and ziel.get("vorraete"):
+            return dict(ziel["vorraete"])
+        name = getattr(ziel, "name", None) or (ziel.get("name") if isinstance(ziel, dict) else "") or ""
+        rng = random.Random(f"nebel-vorraete-{name}")
+        return {stoff: rng.randint(lo, hi)
+                for stoff, (lo, hi) in botkern.VORSCHLAG_START_VORRAETE.items()}
+
+    def _angriff_durchfuehren(self, ziel_name: str, verteidiger: dict, wall_stufe: int = 0,
+                              wall_zustand: float = 100.0, vorraete=None,
+                              verteidiger_karren=None, vorrat_ziel=None) -> bool:
+        """Ein Angriff vom Klick bis zum Bericht (Umsetzungsplan, Abschnitt 2).
+
+        Gibt ``False`` zurueck, wenn gar nicht gekaempft wurde (keine Truppen). Der Spielstand
+        wird nur bei einem wirklich durchgefuehrten Angriff veraendert.
+        """
+        kaempfer, belagerung, karren = self._truppen_nach_rolle()
+        if not kaempfer and not belagerung:
+            # Belegter Wortlaut (spielschicht.py:525-526): ohne Schlagkraft kein Angriff.
+            meldung = "Keine Kaempfer und keine Belagerungswaffen vorhanden."
+            self.state.messages.append({"text": meldung, "type": "kampf"})
+            self._log(meldung)
+            return False
+
+        angreifer = dict(kaempfer)
+        angreifer.update(belagerung)
+        if vorraete is None:
+            vorraete = self._vorraete_des_ziels(vorrat_ziel if vorrat_ziel is not None else {})
+
+        ergebnis = kampf.fuehre_schlacht(
+            angreifer, dict(verteidiger or {}), int(wall_stufe), float(wall_zustand),
+            angreifer_karren=karren or None, verteidiger_karren=verteidiger_karren or None,
+            vorraete=dict(vorraete or {}), rng=random.Random())
+
+        # Verluste und Beute in den Spielstand buchen (kampfbericht rechnet, main.py schreibt).
+        vorher = {"ressourcen": {k: v.amount for k, v in self.state.resources.items()},
+                  "einheiten": {k: v.count for k, v in self.state.units.items()}}
+        neu = kampfbericht.spieldaten_anwenden(vorher, ergebnis)
+        for stoff, menge in neu.get("ressourcen", {}).items():
+            if stoff in self.state.resources:
+                self.state.resources[stoff].amount = float(menge)
+        for kennung, anzahl in neu.get("einheiten", {}).items():
+            if kennung in self.state.units:
+                self.state.units[kennung].count = max(0, int(anzahl))
+
+        bericht = kampfbericht.bericht(ergebnis)
+        self.state.messages.append(
+            {"text": bericht["titel"] + "\n" + "\n".join(bericht["zeilen"]), "type": "kampf"})
+        self._log(f"{bericht['titel']} — Ziel {ziel_name}, Ausgang {ergebnis.get('ausgang')}.")
+        return True
+
     def _attack_map(self, map_id: str):
-        levels = {k: v.level for k, v in self.state.research.items()}
-        military = get_military_multiplier(levels)
-        player_power = get_combat_power({u: max(1, self.state.units[u].count) for u in self.state.units}, levels)
-        defense_power = 20 + sum(v * 3 for v in self.state.map_garrison.get(map_id, {}).values())
-        if player_power > defense_power:
-            loot = random.randint(10, 30)
-            bonus = next(m for m in MAPS if m["id"] == map_id)["bonus"]
-            self.state.resources[bonus].amount += loot
-            self.state.ruf += 10
-            report = f"Eroberung auf {map_id}: +{loot} {bonus}, Ruf +10"
-            self.state.messages.append({"text": report, "type": "kampf"})
-            self._log(report)
-        else:
-            loss = random.randint(5, 15)
-            self.state.resources["nahrung"].amount = max(0, self.state.resources["nahrung"].amount - loss)
-            report = f"Angriff auf {map_id} fehlgeschlagen. -{loss} Nahrung"
-            self.state.messages.append({"text": report, "type": "kampf"})
-            self._log(report)
+        ziel = next((m for m in MAPS if m["id"] == map_id), None)
+        garrison = dict(self.state.map_garrison.get(map_id, {}) or {})
+        self._angriff_durchfuehren(ziel["name"] if ziel else map_id, garrison,
+                                   wall_stufe=0, wall_zustand=100.0, vorrat_ziel=ziel or map_id)
 
     def _activate_map(self, map_id: str):
         if map_id not in self.state.active_maps:
@@ -1670,25 +1743,12 @@ class NebelseetalApp:
         if self.state.noob_protection and bot.noob_protection:
             self._log(f"{bot.name} steht unter Noobschutz. Angriff nicht möglich.")
             return
-        levels = {k: v.level for k, v in self.state.research.items()}
-        military = get_military_multiplier(levels, get_defense_bonus(gebaeude_wirkung.wall_stufe(self.state.settlements)))
-        player_power = get_combat_power(
-            {u: max(1, self.state.units[u].count) for u in self.state.units}, levels)
-        bot_power = random.randint(20, 80) * bot.aggression + bot.ruf
-        if player_power > bot_power:
-            gain_ruf = max(5, int(15 * military))
-            self.state.ruf += gain_ruf
-            for res in ["holz", "stein", "gold"]:
-                self.state.resources[res].amount += random.randint(5, 15)
-            report = f"Sieg über {bot.name}! Ruf +{gain_ruf}, Ressourcen geplündert."
-            self.state.messages.append({"text": report, "type": "kampf"})
-            self._log(report)
-        else:
-            loss = max(0, random.randint(8, 25) - get_medic_redution(levels))
-            self.state.resources["nahrung"].amount = max(0, self.state.resources["nahrung"].amount - loss)
-            report = f"Niederlage gegen {bot.name}. -{loss} Nahrung"
-            self.state.messages.append({"text": report, "type": "kampf"})
-            self._log(report)
+        # W2/W2b: kein Daumenvergleich mehr, sondern der Originalablauf. Die Verteidiger sind
+        # die Armee des Bots, seine Vorraete liefert `_vorraete_des_ziels` (bis Schritt 8 aus
+        # den VORSCHLAG-Spannen in botkern, danach aus dem Bot selbst). Einen Wall hat ein Bot
+        # in unseren Daten nicht - also Stufe 0, ehrlich, ohne erfundenen Wert.
+        self._angriff_durchfuehren(bot.name, dict(bot.army or {}), wall_stufe=0,
+                                   wall_zustand=100.0, vorrat_ziel=bot)
 
     def _render_battle_simulator(self):
         tk.Label(self.content, text="Kampfsimulator", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
@@ -1713,15 +1773,19 @@ class NebelseetalApp:
             self._log(f"Niederlage im Simulator. Gegner Stärke {enemy_power}, deine Stärke {int(player_power)}")
 
     def _render_hall_of_fame(self):
-        levels = {k: v.level for k, v in self.state.research.items()}
+        # W6: dieselben Originalformeln wie in der Seitenleiste. Vorher stand hier die falsche
+        # Gesamtsumme `score + ruf + Kampfkraft aller Einheiten`.
+        staende = {k: v.level for k, v in self.state.research.items()}
+        einheiten = {k: v.count for k, v in self.state.units.items()}
+        wall_stufe = gebaeude_wirkung.wall_stufe(self.state.settlements)
         total_units = sum(self.state.units[u].count for u in self.state.units)
-        total_combat = int(get_combat_power({u: max(1, self.state.units[u].count) for u in self.state.units}, levels))
         tk.Label(self.content, text="Ruhmeshalle", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
         tk.Label(self.content, text="Eure Punkte", fg="#C0C0C0", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
-        tk.Label(self.content, text=f"Forschung: {self.state.score}", fg="#DAA520", bg=self.skin["bg"]).pack(anchor=tk.W, padx=20)
-        tk.Label(self.content, text=f"Krieg: {self.state.ruf}", fg=self.skin["red"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=20)
+        tk.Label(self.content, text=f"Forschung: {punkte.forschungspunkte(staende)}", fg="#DAA520", bg=self.skin["bg"]).pack(anchor=tk.W, padx=20)
+        tk.Label(self.content, text=f"Krieg: {punkte.kriegspunkte(einheiten, wall_stufe)}", fg=self.skin["red"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=20)
+        tk.Label(self.content, text=f"Wallstufe: {wall_stufe}", fg=self.skin["text"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=20)
         tk.Label(self.content, text=f"Truppen: {total_units}", fg=self.skin["text"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=20)
-        tk.Label(self.content, text=f"Gesamt: {self.state.score + self.state.ruf + total_combat}", fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=20)
+        tk.Label(self.content, text=f"Gesamt: {punkte.gesamtpunkte(staende, einheiten, wall_stufe)}", fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=20)
 
     def _render_news(self):
         tk.Label(self.content, text="Neuigkeiten", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
@@ -2047,10 +2111,15 @@ class NebelseetalApp:
             prod_text = f"+{rate:g}/h" if rate else "0"
             lbl.config(text=f"{RESOURCE_ICONS[r]} {int(res.amount)} ({prod_text})")
         self.lbl_day.config(text=f"Tag {self.state.day}")
-        total_units = sum(self.state.units[u].count for u in self.state.units)
-        self.lbl_forschung.config(text=f"Forschung: {self.state.score}")
-        self.lbl_krieg.config(text=f"Krieg: {self.state.ruf}")
-        self.lbl_gesamt.config(text=f"Gesamt: {self.state.score + self.state.ruf + total_units}")
+        # W6: die Punktanzeige kommt aus den Originalformeln (src/punkte.py, Handbuch S. 3/5/6).
+        # Vorher standen hier `score`, `ruf` und eine selbst gebaute Summe - die Gesamtzahl
+        # war damit nachweislich falsch.
+        staende = {k: v.level for k, v in self.state.research.items()}
+        einheiten = {k: v.count for k, v in self.state.units.items()}
+        wall_stufe = gebaeude_wirkung.wall_stufe(self.state.settlements)
+        self.lbl_forschung.config(text=f"Forschung: {punkte.forschungspunkte(staende)}")
+        self.lbl_krieg.config(text=f"Krieg: {punkte.kriegspunkte(einheiten, wall_stufe)}")
+        self.lbl_gesamt.config(text=f"Gesamt: {punkte.gesamtpunkte(staende, einheiten, wall_stufe)}")
 
 
 def _laeuft_schon(lock_path: str) -> bool:
