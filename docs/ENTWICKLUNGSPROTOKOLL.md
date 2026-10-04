@@ -360,3 +360,5 @@ Abschnitte 4 und 5; die Startzeile in `docs/PROJEKT_STAND.md`, Abschnitt 0.
 Stand in Belegen, **der eine** nächste Schritt mit `Datei:Zeile` und erwarteter Prüfzahl, eine
 „nicht erneut zu prüfen"-Tabelle, Sekunden-Checks statt Sammellauf. Dazu gehört auch: **keine halbe
 Änderung hinterlassen** — lieber sauber enden als `main.py` halb umgebaut übergeben.
+
+**Sicherung (projektunabhaengig):** 14 Dateien gesichert nach `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-04_2346` — Vorgabe von Daniel am 04.10.2026, damit das Protokoll auch ohne diesen Projektordner weiterlebt. Zeiger auf die juengste Fassung: `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`.
