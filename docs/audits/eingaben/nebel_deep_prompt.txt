@@ -1,0 +1,35 @@
+Du bist Spieldesign-Analyst und arbeitest als One-Shot-Agent. Projekt: D:\Arbeiten\Nebelseetal_Remake
+
+LIES ZUERST (vollstaendig, bevor du schreibst):
+- docs/original/Spielanleitung_2009_Textfassung.txt   (das komplette Originalhandbuch, 24 Seiten)
+- docs/original/ORIGINAL_Einheiten_Waren_Rohstoffe.md
+- docs/original/ORIGINAL_Kampf_und_Punkte.md
+- data/units.json, data/items.json, data/research.json, data/resources.json, data/buildings.json
+- docs/PLAN_AUS_HANDBUCH.md, docs/PROJEKT_STAND.md
+
+AUFGABE: Verstehe das Spiel ALS GANZES und schreibe genau eine Datei: docs/SPIELVERSTAENDNIS.md
+Ziel: Ein Entwickler soll daraus ein gutes EINZELSPIELER-Spiel bauen koennen, ohne das Original zu verfaelschen.
+
+GLIEDERUNG (mit Seitenverweisen auf das Handbuch):
+1. Der Kern-Kreislauf in fuenf Saetzen, danach als Ablaufdiagramm in Textform.
+2. Abhaengigkeitsgraph: Was schaltet was frei (Rohstoff -> Gebaeude -> Forschung -> Ware -> Einheit -> Krieg -> Beute),
+   mit den konkreten Zahlen aus den Datendateien.
+3. Taktung und Engpaesse: Wo bremst das Original (Forschung Stufe^2, Siedler 1/Stunde, Mana, Pferde, Gold).
+   Welche Groesse ist der eigentliche Taktgeber? Mit Belegen aus den Daten.
+4. Wirtschaftliche Durchrechnung fuer einen sinnvollen Spielstart (die ersten drei Spieltage):
+   welche Gebaeude, in welcher Reihenfolge, welche Mengen. Rechne mit den Originalwerten und ZEIGE die Rechnung.
+5. Kampf als System: Wann lohnt ein Angriff; welche Rolle spielen Schlagkraft, Wallstufen, Belagerungswaffen,
+   Transportkarren. Rechne das Beispiel aus dem Handbuch nach.
+6. Einzelspieler-Umbau: Fuer JEDEN Punkt, der im Original andere Spieler braucht, die konkrete Loesung
+   und die Wirkung auf das Spielgefuehl.
+7. Widersprueche, Luecken und Risiken im Original (z.B. fehlendes MU bei Karren und Belagerungswaffen,
+   TP=0 bei zwei Tuermen, Abweichungen 2005 gegen 2009) — je mit Vorschlag, was im Remake zu tun ist.
+8. Empfohlene Umsetzungsreihenfolge in Paketen mit Abnahmekriterien und je Paket einer Einschaetzung,
+   wie spielbar das Spiel danach ist.
+9. Was das Spiel BRAUCHT, damit es Spass macht (Taktung, Fortschrittsgefuehl, klare Ziele) — konkret, nicht allgemein.
+
+REGELN:
+- Deutsch. Nutze AUSSCHLIESSLICH Originalangaben; erfinde nichts. Fehlt eine Angabe, schreibe das ausdruecklich hin.
+- Jede Zahl mit Quelle: Handbuchseite oder Dateiname.
+- Schreibe genau eine Datei: docs/SPIELVERSTAENDNIS.md. Aendere sonst nichts im Projekt.
+- Keine Platzhalter, keine leeren Abschnitte. Lieber kuerzer und belegt als lang und vage.

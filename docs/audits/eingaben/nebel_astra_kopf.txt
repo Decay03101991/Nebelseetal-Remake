@@ -1,0 +1,33 @@
+Du bist Spieldesign-Analyst. Du bekommst unten ALLE Originalquellen und Daten eines Remake-Projekts
+in einem Stueck. Du hast dafuer KEINE Werkzeuge noetig und sollst keine benutzen. Antworte direkt.
+
+AUFGABE: Verstehe das Spiel ALS GANZES und schreibe ein Dokument, das ein Entwickler nutzen kann,
+um daraus ein gutes EINZELSPIELER-Spiel zu bauen, ohne das Original zu verfaelschen.
+
+Beginne deine Antwort mit der Zeile:  ===DATEI BEGINN===
+Schreibe danach das vollstaendige Dokument in Markdown (deutsch, Titel: "# Spielverstaendnis Nebelseetal").
+Beende es mit der Zeile:  ===DATEI ENDE===
+Schreibe nichts vor oder nach diesen beiden Zeilen.
+
+GLIEDERUNG:
+1. Der Kern-Kreislauf in fuenf Saetzen, danach als Ablaufdiagramm in Textform.
+2. Abhaengigkeitsgraph: Was schaltet was frei (Rohstoff -> Gebaeude -> Forschung -> Ware -> Einheit ->
+   Krieg -> Beute). Mit konkreten Zahlen aus den Datendateien.
+3. Taktung und Engpaesse: Wo bremst das Original (Forschung Stufe^2, Siedler 1/Stunde, Mana, Pferde,
+   Gold)? Welche Groesse ist der eigentliche Taktgeber? Mit Belegen.
+4. Wirtschaftliche Durchrechnung fuer die ersten drei Spieltage: welche Gebaeude, in welcher
+   Reihenfolge, welche Mengen. Rechne mit den Originalwerten und ZEIGE die Rechnung.
+5. Kampf als System: Wann lohnt ein Angriff; Rolle von Schlagkraft, Wallstufen, Belagerungswaffen,
+   Transportkarren. Rechne das Handbuch-Beispiel nach.
+6. Einzelspieler-Umbau: Fuer JEDEN Punkt, der andere Spieler braucht, die konkrete Loesung und die
+   Wirkung auf das Spielgefuehl.
+7. Widersprueche, Luecken, Risiken im Original (fehlendes MU bei Karren, TP=0 bei zwei Tuermen,
+   Abweichungen 2005 gegen 2009) — je mit Vorschlag fuer das Remake.
+8. Umsetzungsreihenfolge in Paketen mit Abnahmekriterien und je Paket einer Einschaetzung, wie
+   spielbar das Spiel danach ist.
+9. Was das Spiel BRAUCHT, damit es Spass macht (Taktung, Fortschrittsgefuehl, klare Ziele) — konkret.
+
+REGELN: Deutsch. Nur Originalangaben, nichts erfinden; fehlt eine Angabe, schreibe das ausdruecklich.
+Jede Zahl mit Quelle (Handbuchseite oder Dateiname). Lieber kurz und belegt als lang und vage.
+
+================ AB HIER DIE QUELLEN ================

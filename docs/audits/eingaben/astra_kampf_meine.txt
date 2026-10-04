@@ -1,0 +1,62 @@
+
+======================= (B) MEINE UMSETZUNG =======================
+Datei: src/kampf.py (Funktion fuehre_schlacht). Werte kommen aus data/units.json.
+
+ROLLEN: Jede Einheit hat eine Rolle: kaempfer (Nahkampf/Fernkampf), kundschafter,
+karren, belagerung. Karren und Belagerungswaffen haben im Handbuch keine LE/AT/PA und
+kaempfen deshalb nicht. Belagerungswaffen haben TP (Mauerschaden) und SK (Schlagkraft).
+Karren haben Ladung. MU fehlt bei genau diesen 13 Einheiten.
+
+VORRUNDE: Ich pruefe die Schlagkraft (Summe SK) der Fusstruppen gegen den Schwellenwert der
+Wallstufe. Meine ANNAHME: Fusstruppen = Nahkampf + Fernkampf (Kundschafter zaehlen nicht,
+Karren und Belagerungswaffen auch nicht). Wallstufen aus data/buildings.json:
+1 Erdwall 10; 2 Steinwall 40; 3 Kleine Palisade 90; 4 Palisade 160; 5 Verstaerkte Palisade 250
+(Belagerung 500); 6 Mauer 360 (600); 7 Verstaerkte Mauer 490 (700); 8 Festungsmauer 640 (800);
+9 Verstaerkte Festungsmauer 810 (900); 10 Bollwerk 1000 (1000).
+Ab Stufe 5 pruefe ich ZUSAETZLICH die SK der Belagerungswaffen gegen die zweite Schwelle.
+Ein beschaedigter Wall senkt beide Schwellen proportional: Schwelle * (Zustand / 100).
+Wird eine Schwelle nicht erreicht, endet die Schlacht sofort: Ergebnis "unentschieden",
+Rueckzug, keine Kampfsequenz, keine Verluste.
+
+MAUERSCHADEN: Je Belagerungswaffe ein Zufallswert zwischen TP_min und TP_max, davon die
+Ausbaustufe der Mauer abgezogen, mindestens 0. Die Summe wird vom Mauerzustand abgezogen
+(1 Punkt = 1 Prozent, Zustand 100 -> 0). Ohne Belagerungswaffen kein Mauerschaden.
+
+KAMPFSEQUENZEN: hoechstens 10. Eine Sequenz laeuft so:
+  a) FERNKAMPF: jeder lebende Fernkaempfer des Angreifers greift EINMAL an; Ziel ist eine
+     zufaellige gegnerische FUSSTRUPPE, gibt es keine, eine zufaellige gegnerische
+     Fernkampfeinheit. Danach dasselbe fuer den Verteidiger. Das laeuft NACHEINANDER ab,
+     nicht gleichzeitig: die Verluste der Angreifer-Schuetzen wirken auf die Ziele der
+     Verteidiger-Schuetzen in derselben Sequenz.
+  b) NAHKAMPF: jeder lebende Nahkaempfer des Angreifers greift EINE zufaellige gegnerische
+     Nahkampfeinheit an, danach jeder Nahkaempfer des Verteidigers.
+  Ich berechne Verluste also fortlaufend waehrend der Sequenz, nicht erst nach der Sequenz.
+
+ZWEIKAMPF: Wer hoeheren MU hat, beginnt; bei Gleichstand beginnt der Verteidiger.
+  - Wurf 1-100 <= AT des Angreifers = Treffer, sonst Fehlschlag (kein Schaden).
+  - Bei Treffer: Parade-Wurf 1-100 <= PA des Verteidigers = Parade, kein Schaden.
+  - Sonst Schaden = Zufall(TP_min..TP_max) minus RS, mindestens 1; wird von LE abgezogen.
+  - LE < 1 = tot. LE < 5 = Fluchtprobe: Wurf 1-100 > MU bedeutet geflohen; Geflohene
+    kehren nach der Schlacht zurueck und zaehlen NICHT als Verlust.
+  - ERSCHOEPFUNG: wer einen Zweikampf gewinnt, verliert 1 AT und 1 PA, dauerhaft bis
+    Schlachtende (summiert sich ueber mehrere Zweikaempfe).
+
+AUSGANG: Hat der Verteidiger keine lebenden Fusstruppen mehr, siegt der Angreifer. Hat der
+Angreifer keine lebenden Fusstruppen mehr, siegt der Verteidiger. Sonst unentschieden.
+
+BEUTE: Nur wenn der Angreifer siegt UND lebende Transportkarren mitfuehrt. Kapazitaet ist
+die Summe der Ladung dieser Karren. Die Beute wird proportional zu den vorhandenen Vorraeten
+verteilt, begrenzt durch die Kapazitaet und den Bestand.
+
+KARREN UND BELAGERUNGSWAFFEN DES VERLIERERS: Verliert der Angreifer, hat jede Karre und jede
+Belagerungswaffe eine Fluchtchance von 40 Prozent plus 5 Prozent je Kampfsequenz (Wurf 1-100
+<= Chance = entkommen). Bei unentschieden bleibt alles.
+
+BEKANNTE UNSICHERHEITEN, DIE ICH SELBST SEHE:
+  1. Fusstruppen-Definition (Nahkampf + Fernkampf) ist meine Annahme.
+  2. "Fernkampf gleichzeitig" setze ich sequenziell um.
+  3. Erschoepfung: ich ziehe sie nur beim Sieger des jeweiligen Zweikampfs ab und dauerhaft.
+  4. Wenn nach 10 Sequenzen beide Seiten noch Fusstruppen haben, nenne ich es unentschieden.
+  5. Ich rechne mit einzelnen Einheiten (jede mit eigener LE), nicht mit Gruppen.
+
+======================= ENDE =======================

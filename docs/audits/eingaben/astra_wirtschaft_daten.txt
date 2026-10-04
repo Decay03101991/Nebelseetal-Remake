@@ -1,0 +1,96 @@
+HARTE GRUNDLAGEN AUS DEN ORIGINALDATEN (Handbuch 2009). Nur diese Zahlen sind belegt.
+
+=== GEBAEUDE (data/buildings.json) — das Handbuch nennt Ertraege, KEINE Preise ===
+- Holzfäller [Produktion] -> Holz | Ertrag/Stunde: {'Wald': 4, 'Steppe': 2} | Voraussetzung: keine (ohne Forschung baubar) | Wirkung: produziert Holz
+- Steinmetz [Produktion] -> Stein | Ertrag/Stunde: {'Berg': 4, 'Hügel': 2} | Voraussetzung: Baukunst | Wirkung: produziert Stein
+- Erzmine [Produktion] -> Metall | Ertrag/Stunde: {'Berg': 3, 'Hügel': 1.5} | Voraussetzung: Baukunst | Wirkung: produziert Metall
+- Tempel [Produktion] -> Mana | Ertrag/Stunde: {'Nebelsee': 5, 'alle Gelände außer Sumpf': 1} | Voraussetzung: Baukunst | Wirkung: produziert Mana
+- Farm [Produktion] -> Nahrung | Ertrag/Stunde: {'Grasland': 4, 'Steppe': 2} | Voraussetzung: Baukunst | Wirkung: produziert Nahrung
+- Goldmine [Produktion] -> Gold | Ertrag/Stunde: {'Berg': 3, 'Hügel': 1.5} | Voraussetzung: Baukunst | Wirkung: produziert Gold
+- Schafszucht [Produktion] -> Wolle | Ertrag/Stunde: {'Grasland': 3, 'Steppe': 1.5} | Voraussetzung: Baukunst | Wirkung: produziert Wolle
+- Rinderfarm [Produktion] -> Leder | Ertrag/Stunde: {'Grasland': 3, 'Steppe': 1.5} | Voraussetzung: Baukunst | Wirkung: produziert Leder
+- Pferdezucht [Produktion] -> Pferde | Ertrag/Stunde: {'Grasland': 3, 'Steppe': 1.5} | Voraussetzung: Baukunst | Wirkung: produziert Pferde
+- Jäger [Produktion] -> ['Nahrung', 'Leder'] | Ertrag/Stunde: {'Wald': {'Nahrung': 2, 'Leder': 2}, 'Steppe': {'Nahrung': 1, 'Leder': 1}} | Voraussetzung: keine (ohne Forschung baubar) | Wirkung: produziert Nahrung und Leder aus der Jagd
+- Schmiede [Werkstatt] | Voraussetzung: Baukunst | Wirkung: stellt Waffen und Rüstungen her (Waren der Schmiede, u. a. Messer, Dolch, Kurzschwert, Schwert, Zweihänder, Kettenhemd, Plattenrüstung, Magischer Paladinharnisch; Voraussetzungen je Ware über Waffentechnik/Rüstungsbau/Magiekunde)
+- Bogenbauer [Werkstatt] | Voraussetzung: Baukunst | Wirkung: stellt Fernwaffen her (Kurzbogen, Bogen, Langbogen, Armbrust; Voraussetzungen über Waffentechnik)
+- Nähstube [Werkstatt] | Voraussetzung: Baukunst | Wirkung: stellt Stoff- und Fellkleidung her (Wollumhang, Lederrüstung, Diebesumhang, Fellumhang, Fellrüstung; Voraussetzungen über Nähkunst/Rüstungsbau)
+- Kriegerakademie [Ausbildung] | Voraussetzung: Baukunst | Wirkung: bildet Armee-Einheiten (Kampfeinheiten) aus: Nahkampf (Bürgerwehr, Kämpfer, Krieger, Ritter, Paladin) und Fernkampf (Kurzbogenschütze, Bogenschütze, Langbogenschütze, Armbrustschütze)
+- Diebesgilde [Ausbildung] | Voraussetzung: Baukunst | Wirkung: bildet Kundschafter aus (Streuner, Gauner, Dieb, Meisterdieb, Kundschafter, Waldläufer)
+- Stellmacher [Ausbildung] | Voraussetzung: Baukunst | Wirkung: baut Karren (Handkarren, Einspänner, Zweispänner, Handelskarawane, Große Handelskarawane, Siedlerkarren) und Belagerungswaffen (Belagerungsturm, Ramme, Großer Belagerungsturm, Große Ramme, Balliste, Katapult, Großes Katapult); Voraussetzungen über Wagenbau
+- Verteidigungswall [Verteidigung] | Voraussetzung: Baukunst (schaltet Verteidigungsforschung frei); neue Schutzmöglichkeiten über die Forschung 'Verteidigungsanlagen' | Wirkung: Schutz vor Angriffen. In der Vorrunde einer Schlacht wird geprüft, ob die Schlagkraft (SK) der angreifenden Fußtruppen den Schwellenwert des Walls erreicht; ab der verstärkten Palisade ist zusätzlich Schlagkraft von Belagerungswaffen nötig. Reicht sie nicht, zieht der Angreifer ohne Beute ab (Kampf = unentschieden). Beschädigte Mauern verlangen prozentual weniger Schlagkraft. Schaden je Belagerungswaffe = Zufallswert des Waffenschadens minus Ausbaustufe der Mauer, dann vom Zustand der Mauer abgezogen.
+- Bibliothek [Sonstiges] | Voraussetzung: keine (ohne Forschung baubar) | Wirkung: ermöglicht Forschung; Ausbau in Stufen erweitert die Forschungsmöglichkeiten; mit jeder Stufe teurer. Nur auf Grasland, Steppe oder Nebelsee errichtbar.
+- Haus [Sonstiges] | Voraussetzung: keine (ohne Forschung baubar) | Wirkung: erhöht die Siedlergrenze um 5 Siedler je Haus
+- Lager [Sonstiges] | Voraussetzung: keine belegt | Wirkung: gibt einen Überblick über alle in der Siedlung befindlichen Waren und Einheiten; der Warenbestand wird hier geprüft
+
+=== ROHSTOFFE ===
+- holz: ['Holzfäller'] | {'Wald': 4, 'Steppe': 2}
+- stein: ['Steinmetz'] | {'Berg': 4, 'Hügel': 2}
+- metall: ['Erzmine'] | {'Berg': 3, 'Hügel': 1.5}
+- mana: ['Tempel'] | {'Nebelsee': 5, 'alle Gelände außer Sumpf': 1}
+- nahrung: ['Farm', 'Jäger', 'Rinderfarm (siehe Leder, Anmerkung)'] | {'Grasland': 4, 'Steppe': 2}
+- gold: ['Goldmine'] | {'Berg': 3, 'Hügel': 1.5}
+- wolle: ['Schafszucht'] | {'Grasland': 3, 'Steppe': 1.5}
+- leder: ['Rinderfarm', 'Jäger'] | {'Grasland': 3, 'Steppe': 1.5}
+- pferde: ['Pferdezucht'] | {'Grasland': 3, 'Steppe': 1.5}
+
+=== SIEDLER ===
+{"produktion_pro_stunde": 1, "grenze_neue_siedlung": {"handbuch_2009": 10, "fassung_2005": 5}, "erhoehung_pro_haus": 5, "abweichung": "Siedlergrenze einer neuen Siedlung: Handbuch 2009 = 10 Siedler, 2005er Fassung = 5 Siedler. Erhöhung pro Haus in beiden Fassungen +5."}
+
+=== EINHEITENKOSTEN (belegt) ===
+- Bürgerwehr (Nahkampf, aus Kriegerakademie): Kosten {'siedler': 1, 'nahrung': 100, 'leder': 50, 'wolle': 50} | Waren [] | Kriegspunkte 1
+- Kämpfer (Nahkampf, aus Kriegerakademie): Kosten {'siedler': 1, 'gold': 250} | Waren ['Kurzschwert', 'Lederrüstung'] | Kriegspunkte 2
+- Krieger (Nahkampf, aus Kriegerakademie): Kosten {'siedler': 1, 'gold': 500, 'pferde': 1} | Waren ['Schwert', 'Kettenhemd'] | Kriegspunkte 4
+- Ritter (Nahkampf, aus Kriegerakademie): Kosten {'siedler': 1, 'gold': 1000, 'pferde': 1} | Waren ['Schwert', 'Plattenrüstung'] | Kriegspunkte 8
+- Paladin (Nahkampf, aus Kriegerakademie): Kosten {'siedler': 1, 'gold': 2000, 'mana': 10, 'pferde': 1} | Waren ['Zweihänder', 'Schwert', 'Magischer Paladinharnisch'] | Kriegspunkte 16
+- Kurzbogenschütze (Fernkampf, aus Kriegerakademie): Kosten {'siedler': 1, 'gold': 250} | Waren ['Kurzbogen'] | Kriegspunkte 2
+- Bogenschütze (Fernkampf, aus Kriegerakademie): Kosten {'siedler': 1, 'gold': 500} | Waren ['Bogen'] | Kriegspunkte 4
+- Langbogenschütze (Fernkampf, aus Kriegerakademie): Kosten {'siedler': 1, 'gold': 1000} | Waren ['Langbogen'] | Kriegspunkte 8
+- Armbrustschütze (Fernkampf, aus Kriegerakademie): Kosten {'siedler': 1, 'gold': 2000} | Waren ['Armbrust', 'Lederrüstung'] | Kriegspunkte 10
+- Streuner (Kundschafter, aus Diebesgilde): Kosten {'siedler': 1, 'nahrung': 100, 'gold': 50} | Waren ['Wollumhang'] | Kriegspunkte 1
+- Gauner (Kundschafter, aus Diebesgilde): Kosten {'siedler': 1, 'gold': 250} | Waren ['Messer', 'Diebesumhang'] | Kriegspunkte 2
+- Dieb (Kundschafter, aus Diebesgilde): Kosten {'siedler': 1, 'gold': 500} | Waren ['Dolch', 'Diebesumhang'] | Kriegspunkte 4
+- Meisterdieb (Kundschafter, aus Diebesgilde): Kosten {'siedler': 1, 'gold': 750} | Waren ['Kurzschwert', 'Diebesumhang'] | Kriegspunkte 8
+- Kundschafter (Kundschafter, aus Diebesgilde): Kosten {'siedler': 1, 'gold': 1000} | Waren ['Schwert', 'Fellumhang'] | Kriegspunkte 10
+- Waldläufer (Kundschafter, aus Diebesgilde): Kosten {'siedler': 1, 'gold': 2000} | Waren ['Schwert', 'Fellrüstung'] | Kriegspunkte 16
+- Handkarren (Karren, aus Stellmacher): Kosten {'holz': 100, 'metall': 15, 'leder': 15, 'wolle': 15, 'siedler': 1} | Waren [] | Kriegspunkte 1
+- Einspänner (Karren, aus Stellmacher): Kosten {'holz': 250, 'metall': 100, 'leder': 200, 'wolle': 200, 'pferde': 1, 'siedler': 2} | Waren [] | Kriegspunkte 2
+- Zweispänner (Karren, aus Stellmacher): Kosten {'holz': 500, 'metall': 150, 'leder': 250, 'wolle': 250, 'pferde': 2, 'siedler': 2} | Waren [] | Kriegspunkte 3
+- Handelskarawane (Karren, aus Stellmacher): Kosten {'holz': 500, 'metall': 250, 'gold': 200, 'wolle': 500, 'leder': 500, 'siedler': 10, 'pferde': 15} | Waren [] | Kriegspunkte None
+- Große Handelskarawane (Karren, aus Stellmacher): Kosten {'holz': 1000, 'metall': 500, 'gold': 400, 'wolle': 1000, 'leder': 1000, 'siedler': 20, 'pferde': 30} | Waren [] | Kriegspunkte None
+- Siedlerkarren (Karren, aus Stellmacher): Kosten {'holz': 200, 'metall': 80, 'leder': 150, 'wolle': 100, 'pferde': 4, 'siedler': 5, 'nahrung': 300} | Waren [] | Kriegspunkte None
+- Belagerungsturm (Belagerung, aus Stellmacher): Kosten {'holz': 800, 'metall': 50, 'leder': 500, 'pferde': 10, 'siedler': 5} | Waren [] | Kriegspunkte 2
+- Ramme (Belagerung, aus Stellmacher): Kosten {'holz': 500, 'metall': 150, 'leder': 100, 'pferde': 10, 'siedler': 5} | Waren [] | Kriegspunkte 3
+- Großer Belagerungsturm (Belagerung, aus Stellmacher): Kosten {'holz': 1200, 'metall': 80, 'leder': 800, 'pferde': 15, 'siedler': 7} | Waren [] | Kriegspunkte 4
+- Große Ramme (Belagerung, aus Stellmacher): Kosten {'holz': 1100, 'metall': 300, 'leder': 250, 'pferde': 20, 'siedler': 10} | Waren [] | Kriegspunkte 5
+- Balliste (Belagerung, aus Stellmacher): Kosten {'holz': 600, 'metall': 200, 'leder': 300, 'pferde': 10, 'siedler': 10} | Waren [] | Kriegspunkte 6
+- Katapult (Belagerung, aus Stellmacher): Kosten {'holz': 1500, 'metall': 200, 'leder': 1000, 'pferde': 20, 'siedler': 10} | Waren [] | Kriegspunkte 7
+- Großes Katapult (Belagerung, aus Stellmacher): Kosten {'holz': 1900, 'metall': 300, 'leder': 1400, 'pferde': 25, 'siedler': 15} | Waren [] | Kriegspunkte 8
+
+=== WAREN (17) ===
+- Messer: Werkstatt Schmiede | Voraussetzung keine | benoetigt von ['Gauner']
+- Dolch: Werkstatt Schmiede | Voraussetzung Waffentechnik 1 | benoetigt von ['Dieb']
+- Kurzschwert: Werkstatt Schmiede | Voraussetzung Waffentechnik 3 | benoetigt von ['Kämpfer', 'Meisterdieb']
+- Schwert: Werkstatt Schmiede | Voraussetzung Waffentechnik 5 | benoetigt von ['Krieger', 'Ritter', 'Paladin', 'Kundschafter', 'Waldläufer']
+- Zweihänder: Werkstatt Schmiede | Voraussetzung Waffentechnik 8 | benoetigt von ['Paladin']
+- Kettenhemd: Werkstatt Schmiede | Voraussetzung Rüstungsbau 3 | benoetigt von ['Krieger']
+- Plattenrüstung: Werkstatt Schmiede | Voraussetzung Rüstungsbau 5 | benoetigt von ['Ritter']
+- Magischer Paladinharnisch: Werkstatt Schmiede | Voraussetzung Rüstungsbau 7 + Magiekunde 2 | benoetigt von ['Paladin']
+- Kurzbogen: Werkstatt Bogner | Voraussetzung Waffentechnik 2 | benoetigt von ['Kurzbogenschütze']
+- Bogen: Werkstatt Bogner | Voraussetzung Waffentechnik 4 | benoetigt von ['Bogenschütze']
+- Langbogen: Werkstatt Bogner | Voraussetzung Waffentechnik 6 | benoetigt von ['Langbogenschütze']
+- Armbrust: Werkstatt Bogner | Voraussetzung Waffentechnik 8 | benoetigt von ['Armbrustschütze']
+- Wollumhang: Werkstatt Nähstube | Voraussetzung keine | benoetigt von ['Streuner']
+- Lederrüstung: Werkstatt Nähstube | Voraussetzung Nähkunst 1 + Rüstungsbau 2 | benoetigt von ['Kämpfer', 'Armbrustschütze']
+- Diebesumhang: Werkstatt Nähstube | Voraussetzung Nähkunst 2 | benoetigt von ['Gauner', 'Dieb', 'Meisterdieb']
+- Fellumhang: Werkstatt Nähstube | Voraussetzung Nähkunst 4 | benoetigt von ['Kundschafter']
+- Fellrüstung: Werkstatt Nähstube | Voraussetzung Nähkunst 6 | benoetigt von ['Waldläufer']
+
+=== FORSCHUNGSREGELN (belegt) ===
+{
+ "dauer": "neue Stufe zum Quadrat in Stunden",
+ "kosten": "verdoppeln sich je Stufe; Handbuch Seite 13 nennt als Beispiel 50 Holz auf Stufe 1 -> 50, 100, 200, 400 (als Grundbetrag im Spiel umgesetzt, Funktion spieldaten.forschungs_kosten)",
+ "stufe_steigt": "erst nach Ablauf der Forschungszeit",
+ "abbruch": "Zeit und Ressourcen verloren",
+ "blockiert": "Forschungsbereich der Siedlung waehrend der Studien"
+}
+Anzahl Forschungen: 21
