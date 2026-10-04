@@ -387,6 +387,11 @@ jedem Schritt Sammellauf, Protokollzeile, projektunabhängige Sicherung, kleiner
   5.000 Mana **aus einer Siedlung** — im Spiel steht dieser Hinweis sichtbar in der Ansicht, sauber wäre
   ein Manavorrat je Siedlung (steht auch in `spielschicht.offene_luecken()`). Die **Startdimension 1** ist
   ein VORSCHLAG; das Handbuch nennt keine.
+- **Kampfbericht nennt das Ziel nicht** (gefunden vom Unteragenten beim Nachprüfen von Schritt 3): in
+  der Nachricht steht nur „Schlachtsbericht: Der Angreifer siegt …" — der **Zielname** steht allein in
+  der Logzeile (`_angriff_durchfuehren` schreibt ihn nur ins Log). Kleine Verbesserung für später: den
+  Zielnamen in die Meldung aufnehmen (`main.py` `_angriff_durchfuehren`), damit man im Reiter
+  „Nachrichten" sieht, wozu der Bericht gehört.
 
 **Unteragenten** (flash, je eine **neue** Prüfdatei, die ausschließlich die **Verdrahtung** prüft — nie
 die Module selbst; sie committen nicht, der Koordinator prüft nach): `test_w8_einhaengung.py` **39/0/5**,
