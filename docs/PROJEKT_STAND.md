@@ -67,14 +67,40 @@ Protokollzeile; am Ende die `.exe` neu bauen (`tools/build_exe.py`) und startpr�
 | Offene Fragen an Daniel | **13** — `docs/FRAGEN_FUER_MORGEN.md` |
 | Brett der Kinder | **abgeschafft** (Daniel, 04.10.) — Kinder melden im Abschlussbericht, der Koordinator prüft nach und trägt in `docs/BOARD.md` ein |
 
-**Die Startzeile steht oben in Abschnitt 0** — sie nennt den Plan und Schritt 1. Vor dem Weiterarbeiten
-kurz prüfen, dass wirklich nichts läuft und die Lage stimmt:
+### So startet die neue Sitzung (kurz — nichts doppelt prüfen!)
+
+**Regel: nur das prüfen, was sich seit dieser Übergabe geändert hat.** Der Sammellauf ist teuer
+(rund 7 Minuten) und war beim Schreiben dieser Zeilen grün. Wenn `git log` zeigt, dass seither
+**nur Dokumente** dazukamen, ist ein neuer Sammellauf **nicht** nötig — erst nach der ersten
+Änderung an `src/`.
 
 ```bash
 cd /d/Arbeiten/Nebelseetal_Remake
-git status --short                                   # leer = sauber
-MSYS2_ARG_CONV_EXCL='*' cmd /c run_tests.bat          # erwartet: 1651 bestanden, 0 Fehler, 9 Befunde
+git log --oneline -3     # was kam seit 9bbb3c2 dazu? nur docs/* => nichts nachzuprüfen
+git status --short       # leer = sauber (wenn nicht: erst fragen, nicht überschreiben)
 ```
+
+**Nicht erneut zu prüfen (Beleg steht hier, nicht im Kopf):**
+
+| Sache | Beleg | Stand |
+|---|---|---|
+| Prüfstand | `run_tests.bat`, Rückgabewert **0** | 04.10.2026, 23:40 — **1651 / 0 Fehler / 9 Befunde**, 23 Dateien |
+| Die zehn Kind-Module | je eigener Lauf des Koordinators | 23:16–23:20, Zahlen in der Tabelle oben |
+| `.exe` + Passworttor | Startlauf mit Fenster, sauberes Schließen | 22:42; Datei 14.024.744 Byte im Projektordner |
+| Papiere gesichert | `MANIFEST.txt` mit SHA256 je Datei | 04.10.2026 nach jeder Änderung, 14 Dateien |
+
+**Erst wenn `src/` angefasst wird:** den betroffenen Einzeltest laufen lassen (nicht den Sammellauf!),
+und den Sammellauf einmal am Ende des Schritts.
+
+### Schritt 1 (der einzige nächste Schritt)
+
+`src/speichern.py` einhängen — **`main.py:608-634`**: in `save()` das direkte Schreiben
+(Zeile **627-628**: `open(path,"w")` + `json.dump`) durch `speichern.sichere_kopie(path)` +
+`speichern.speichere(data, path)` ersetzen (Rückgabe `(ok, grund)` auswerten und bei `ok == False`
+über `self._log(...)` melden), in `load()` über `speichern.lade(path)` lesen und bei Fehlschlag
+`speichern.wiederherstellen(path)` versuchen. Einzelprüfung danach:
+`python -X utf8 tests/test_speichern_robust.py` → **95 grün** · `tests/test_baseline.py` → **40 grün**.
+Alles Weitere steht in `docs/UMSETZUNG_EINHAENGEN.md`, Abschnitt 4 und 5.
 
 ---
 
