@@ -230,9 +230,19 @@ def pruefen():
         app._start_research(forsch_key)
         tick()
         aktionen += 1
-        check("Forschung erhoeht die Stufe der Forschung",
-              app.state.research[forsch_key].level == stufe_vorher + 1,
-              f"{forsch_key}: {stufe_vorher} -> {app.state.research[forsch_key].level}")
+        # W4c: Die Forschung LAEUFT jetzt (Wartezeit) — die Stufe steigt erst nach Ablauf der Zeit.
+        startet_ohne_stufe = app.state.research[forsch_key].level == stufe_vorher
+        _auftrag = app.state.forschungsauftraege.get(forsch_key) or {}
+        app.state.forschung_fortschreiben(
+            float(_auftrag.get("startzeit") or 0)
+            + main.forschung.dauer_sekunden(int(_auftrag.get("zielstufe") or 1)) + 1)
+        tick()
+        check("Forschung laeuft mit Wartezeit und steigt erst nach Ablauf",
+              startet_ohne_stufe
+              and app.state.research[forsch_key].level == stufe_vorher + 1
+              and forsch_key not in app.state.forschungsauftraege,
+              f"{forsch_key}: {stufe_vorher} -> {app.state.research[forsch_key].level}, "
+              f"Auftraege {sorted(app.state.forschungsauftraege)}")
 
         # Ausbildung: Kriegerakademie bauen, dann eine Einheit ausbilden
         f_aka = freies_feld("kriegerakademie")

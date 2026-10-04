@@ -35,6 +35,7 @@ import botkern     # W5: Bot-Regeln (hier: die Vorschlagsspannen fuer die Vorrae
 import portalraum  # W5-2: die 20 Dimensionen des Limbus, Raster, Wechselkosten und -sperre
 import werkstatt   # W3: die drei Werkstaetten, die 17 Waren und ihre Warteschlangen
 import auftraege   # W7: Auftraege (Missionen) mit Reisezeit, Rueckkehr und Bericht
+import forschung  # W4c: Forschung braucht Zeit - die Stufe steigt erst nach Ablauf
 
 
 # ---------- Data Models ----------
@@ -494,6 +495,11 @@ class GameState:
         # Einheiten, Start und Ziel, Reisezeit, Fracht und Status (hinreise/am_ziel/rueckreise/
         # abgeschlossen). Die Einheiten sind ab dem Start unterwegs (siehe auftrag_starten).
         self.auftraege: List[dict] = auftraege.neue_liste()
+        # W4c (forschung, src/forschung.py): die LAUFENDE Forschung je Gebiet. Die Stufe bleibt
+        # EINE Wahrheit in `self.research[...].level`; hier steht nur der Auftrag
+        # {'zielstufe','startzeit','dauer_stunden','kosten'}. Der Stand, mit dem das Modul
+        # rechnet, wird bei jedem Aufruf daraus frisch gebaut (keine zweite Wahrheit).
+        self.forschungsauftraege: Dict[str, dict] = {}
 
     def _unlock_next_map(self):
         if len(self.active_maps) >= MAX_ACTIVE_MAPS:
@@ -792,6 +798,41 @@ class GameState:
         self._log(f"Kampf am Ziel {eintrag.get('nach')}: {ergebnis.get('ausgang')}.")
         return ergebnis
 
+    def forschung_stand(self) -> Dict[str, Dict[str, object]]:
+        """Der Stand, mit dem `src/forschung.py` rechnet — aus EINER Wahrheit gebaut.
+
+        `self.research[...].level` ist die Stufe; `self.forschungsauftraege` haelt nur den
+        laufenden Auftrag je Gebiet. Damit gibt es keine zweite Stufenwahrheit.
+        """
+        return {k: {"stufe": int(v.level), "auftrag": self.forschungsauftraege.get(k)}
+                for k, v in self.research.items()}
+
+    def forschung_fortschreiben(self, jetzt: float) -> List[str]:
+        """Laufende Forschung weiterlaufen lassen (W4c).
+
+        Die Stufe steigt **erst nach Ablauf** der Zeit (Dauer = Stufe zum Quadrat in Stunden,
+        Handbuch S. 12/13). `forschung.abschliessen` ist mehrfach aufrufbar und laesst jedes
+        Gebiet genau einmal steigen. Rueckgabe: die gestiegenen Gebiete.
+        """
+        if not self.forschungsauftraege:
+            return []
+        stand = self.forschung_stand()
+        gestiegen = forschung.abschliessen(stand, jetzt)
+        for gebiet in gestiegen:
+            eintrag = stand.get(gebiet) or {}
+            stufe = int(eintrag.get("stufe") or 0)
+            eintrag_res = self.research.get(gebiet)
+            if eintrag_res is not None:
+                eintrag_res.level = stufe
+                name = eintrag_res.name
+            else:
+                name = gebiet
+            self.forschungsauftraege.pop(gebiet, None)
+            meldung = f"Forschung {name} auf Stufe {stufe} abgeschlossen."
+            self._log(meldung)
+            self.messages.append({"text": meldung, "type": "forschung"})
+        return gestiegen
+
     def tick(self, dt_seconds: float):
         dt_h = dt_seconds / 3600.0
         levels = {k: v.level for k, v in self.research.items()}
@@ -826,6 +867,8 @@ class GameState:
         self.werkstatt_fortschreiben(time.time())
         # W7: Auftraege weiterlaufen lassen (Ankunft buchen, Heimkehrer gutschreiben).
         self.auftraege_fortschreiben(time.time())
+        # W4c: die Forschung weiterlaufen lassen - die Stufe steigt erst nach Ablauf der Zeit.
+        self.forschung_fortschreiben(time.time())
         self.last_tick = time.time()
 
     def save(self, path: str):
@@ -852,6 +895,7 @@ class GameState:
             "waren": self.waren,
             "werkstaetten": self.werkstaetten,
             "auftraege": self.auftraege,
+            "forschungsauftraege": self.forschungsauftraege,
         }
         # W8 (docs/UMSETZUNG_EINHAENGEN.md, Abschnitt 4): erst sichern, dann atomar ueber eine
         # gepruefte Zwischendatei schreiben. Schlaegt etwas fehl, bleibt der alte Spielstand
@@ -918,6 +962,9 @@ class GameState:
                              if isinstance(v, dict)}
         # W7: laufende Auftraege (unterwegs befindliche Einheiten sind hier schon abgezogen)
         self.auftraege = [e for e in (data.get("auftraege") or []) if isinstance(e, dict)]
+        # W4c: die laufende Forschung je Gebiet (die Stufe steht in `research`)
+        self.forschungsauftraege = {k: v for k, v in (data.get("forschungsauftraege") or {}).items()
+                                   if isinstance(v, dict) and k in self.research}
         # FIX 4b: Karte + Bots laden (wurde vorher nicht persistiert)
         saved_tiles = data.get("map_tiles")
         saved_bots = data.get("bots")
@@ -2410,38 +2457,74 @@ class NebelseetalApp:
 
     def _render_research(self):
         tk.Label(self.content, text="Forschung", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
-        levels = {k: v.level for k, v in self.state.research.items()}
+        tk.Label(self.content, text="Forschung braucht eine Bibliothek und Zeit: die Dauer ist die "
+                                    "Stufe zum Quadrat in Stunden (Handbuch S. 12/13). Die Stufe "
+                                    "steigt erst nach Ablauf.",
+                 fg="#C0C0C0", bg=self.skin["bg"], wraplength=780,
+                 justify=tk.LEFT).pack(anchor=tk.W, padx=10)
+        # W4c: laufende Forschung mit Restzeit. Gezeigt wird, was `forschung.fortschritt` wirklich
+        # hergibt (keine eigene Rechnung in der Oberflaeche).
+        stand = self.state.forschung_stand()
+        laufend = forschung.fortschritt(stand, time.time())
         for key, r in self.state.research.items():
             frame = tk.Frame(self.content, bg=self.skin["panel"])
             frame.pack(fill=tk.X, padx=10, pady=2)
             tk.Label(frame, text=r.name, fg=self.skin["text"], bg=self.skin["panel"], width=15, anchor=tk.W).pack(side=tk.LEFT, padx=5)
             tk.Label(frame, text=f"Stufe {r.level}/{r.max_level}", fg="#DAA520", bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
             tk.Label(frame, text=r.effect, fg="#C0C0C0", bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
-            if r.level < r.max_level:
-                tk.Button(frame, text="Forschen", command=lambda k=key: self._start_research(k), bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
+            zustand = laufend.get(key) or {}
+            if zustand.get("laufend"):
+                rest = float(zustand.get("reststunden") or 0.0)
+                tk.Label(frame, text=f"läuft auf Stufe {zustand.get('zielstufe')} · noch {rest:.1f} h",
+                         fg=self.skin["gold"], bg=self.skin["panel"]).pack(side=tk.RIGHT, padx=5)
+            elif r.level < r.max_level:
+                kosten = forschung.naechste_kosten(stand, key)
+                tk.Button(frame, text=f"Forschen ({int(kosten.get('holz', 0))} Holz)",
+                          command=lambda k=key: self._start_research(k), bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
 
     def _start_research(self, key: str):
+        """Forschung STARTEN — sie laeuft dann (W4c).
+
+        Die Stufe steigt **nicht mehr im selben Klick**: `forschung.starten` zieht die Kosten
+        (Stufe 1 = 50 Holz, dann Verdopplung — Handbuch S. 13) ab und setzt den Auftrag mit
+        Dauer = Stufe zum Quadrat in Stunden (S. 12). Den Ablauf treibt `GameState.tick` ueber
+        `forschung_fortschreiben`; die Stufe steigt erst nach Ablauf.
+        """
         # W4b-5: Forschung braucht eine Bibliothek auf einer Siedlungskarte (Handbuch Seite 12).
         erlaubt, meldung = gebaeude_wirkung.forschung_erlaubt(self.state.settlements)
         if not erlaubt:
             self._log(meldung)
-            return
-        r = self.state.research[key]
-        # Rohstoffkosten nach Handbuch Seite 13: Stufe 1 = 50 Holz, je weitere Stufe das Doppelte.
-        cost = spieldaten.forschungs_kosten(r.level + 1)
-        levels = {k: v.level for k, v in self.state.research.items()}
-        unbekannt = [k for k in cost if k not in self.state.resources]
-        if unbekannt:
-            self._log(f"Forschung nicht möglich: unbekannte Rohstoffe {unbekannt}")
-            return
-        if all(self.state.resources[k].amount >= v for k, v in cost.items()):
-            for k, v in cost.items():
-                self.state.resources[k].amount -= v
-            r.level += 1
-            self.state.score += 10
-            self._log(f"{r.name} auf Stufe {r.level} erforscht. Kosten: {cost}")
-        else:
-            self._log(f"Nicht genug Ressourcen für Forschung. Benötigt: {cost}")
+            return False
+        r = self.state.research.get(key)
+        if r is None:
+            self._log(f"Unbekanntes Forschungsgebiet: {key}.")
+            return False
+        if int(r.level) >= int(r.max_level):
+            self._log(f"{r.name} ist mit Stufe {r.level} bereits ausgeforscht.")
+            return False
+        roh = {k: v.amount for k, v in self.state.resources.items()}
+        stand = self.state.forschung_stand()
+        ok, meldung = forschung.starten(key, stand, time.time(), True, roh)
+        if not ok:
+            self._log(f"Forschung nicht gestartet: {meldung}")
+            return False
+        # Der Kern hat die Kosten in `roh` abgezogen; bucht der Aufrufer sie nicht zurueck, ist
+        # nichts bezahlt. Der Auftrag kommt aus dem Stand in den Spielstand.
+        for stoff, menge in roh.items():
+            if stoff in self.state.resources:
+                self.state.resources[stoff].amount = float(menge)
+        auftrag = stand.get(key, {}).get("auftrag")
+        if isinstance(auftrag, dict):
+            self.state.forschungsauftraege[key] = auftrag
+        stunden = float(auftrag.get("dauer_stunden") or 0) if isinstance(auftrag, dict) else 0.0
+        self._log(f"{meldung} Die Stufe steigt nach Ablauf der Zeit.")
+        self.state.messages.append(
+            {"text": f"{r.name}: Forschung auf Stufe "
+                     f"{(int(auftrag.get('zielstufe') or 0) if isinstance(auftrag, dict) else 0)} "
+                     f"laeuft ({stunden:g} h).", "type": "forschung"})
+        if hasattr(self, "content"):
+            self._render_view()
+        return True
 
     def _render_barracks(self):
         tk.Label(self.content, text="Kaserne", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))

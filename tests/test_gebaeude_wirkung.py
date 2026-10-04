@@ -202,11 +202,25 @@ check("die Meldung nennt die Bibliothek", any("Bibliothek" in z for z in spiel.l
       str(spiel.log[-2:]))
 
 spiel.settlements.append(bib)
-app_los._start_research("Felderwirtschaft")
-check("mit Bibliothek steigt die Stufe", spiel.research["Felderwirtschaft"].level == 1,
-      str(spiel.research["Felderwirtschaft"].level))
+gestartet = app_los._start_research("Felderwirtschaft")
+check("mit Bibliothek STARTET die Forschung, die Stufe steigt aber noch nicht (W4c)",
+      gestartet is True and spiel.research["Felderwirtschaft"].level == 0
+      and isinstance(spiel.forschungsauftraege.get("Felderwirtschaft"), dict),
+      f"Rueckgabe {gestartet}, Stufe {spiel.research['Felderwirtschaft'].level}, "
+      f"Auftraege {sorted(spiel.forschungsauftraege)}")
 check("und die Handbuchkosten (Stufe 1 = 50 Holz) sind abgezogen",
       spiel.resources["holz"].amount == 450, str(spiel.resources["holz"].amount))
+
+# W4c: Die Stufe steigt nach ABLAUF der Zeit (Dauer = Stufe zum Quadrat in Stunden, S. 12).
+_auftrag = spiel.forschungsauftraege["Felderwirtschaft"]
+_jetzt = _auftrag["startzeit"] + M.forschung.dauer_sekunden(1) + 1
+_gestiegen = spiel.forschung_fortschreiben(_jetzt)
+check("nach Ablauf der Zeit steigt die Stufe genau einmal (kein zweites Mal)",
+      _gestiegen == ["Felderwirtschaft"] and spiel.research["Felderwirtschaft"].level == 1
+      and "Felderwirtschaft" not in spiel.forschungsauftraege
+      and spiel.forschung_fortschreiben(_jetzt) == [],
+      f"gestiegen {_gestiegen}, Stufe {spiel.research['Felderwirtschaft'].level}, "
+      f"Auftraege {sorted(spiel.forschungsauftraege)}")
 
 
 # ==========================================================================
