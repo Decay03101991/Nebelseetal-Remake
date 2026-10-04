@@ -96,4 +96,13 @@ for _w in _main.GOODS.values():
 check("jede Ware kostet nur bekannte Rohstoffe",
       _waren_felder <= set(_main.RESOURCES), str(sorted(_waren_felder - set(_main.RESOURCES))))
 
+abschnitt("Forschungskosten nach Handbuch Seite 13")
+_reihe = [S.forschungs_kosten(n)["holz"] for n in (1, 2, 3, 4)]
+check("Stufen 1-4 kosten 50, 100, 200, 400 Holz", _reihe == [50, 100, 200, 400], str(_reihe))
+check("Stufe 5 kostet 800 Holz (Verdopplung geht weiter)", S.forschungs_kosten(5)["holz"] == 800)
+check("Grundbetrag ist als Konstante belegt", S.FORSCHUNG_GRUNDKOSTEN_HOLZ == 50)
+check("Stufe 0 kostet nichts", S.forschungs_kosten(0) == {})
+check("die Kostenzahl steht auch in data/research.json",
+      "50 Holz" in S.forschungsregeln().get("kosten", ""), S.forschungsregeln().get("kosten"))
+
 sys.exit(bericht())

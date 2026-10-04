@@ -19,6 +19,7 @@ from bonus_system import (
     UNIT_BASE, UNIT_TRAIN_BASE, BUILDING_BASE_COST, TIER_SCALE,
 )
 import einheiten
+import spieldaten
 
 
 # ---------- Data Models ----------
@@ -1229,16 +1230,21 @@ class NebelseetalApp:
 
     def _start_research(self, key: str):
         r = self.state.research[key]
-        cost = r.cost
+        # Rohstoffkosten nach Handbuch Seite 13: Stufe 1 = 50 Holz, je weitere Stufe das Doppelte.
+        cost = spieldaten.forschungs_kosten(r.level + 1)
         levels = {k: v.level for k, v in self.state.research.items()}
+        unbekannt = [k for k in cost if k not in self.state.resources]
+        if unbekannt:
+            self._log(f"Forschung nicht möglich: unbekannte Rohstoffe {unbekannt}")
+            return
         if all(self.state.resources[k].amount >= v for k, v in cost.items()):
             for k, v in cost.items():
                 self.state.resources[k].amount -= v
             r.level += 1
             self.state.score += 10
-            self._log(f"{r.name} auf Stufe {r.level} erforscht.")
+            self._log(f"{r.name} auf Stufe {r.level} erforscht. Kosten: {cost}")
         else:
-            self._log("Nicht genug Ressourcen für Forschung.")
+            self._log(f"Nicht genug Ressourcen für Forschung. Benötigt: {cost}")
 
     def _render_barracks(self):
         tk.Label(self.content, text="Kaserne", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))

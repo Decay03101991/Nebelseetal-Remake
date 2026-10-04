@@ -157,6 +157,26 @@ def forschungsdauer_stunden(neue_stufe: int) -> Optional[int]:
     return None
 
 
+# Handbuch Seite 12/13, woertlich:
+#   "Die Rohstoffkosten die zum Forschen aufgebracht werden muessen, verdoppeln sich pro Stufe.
+#    Das bedeutet, wenn Du fuer eine Forschung Stufe1 50 Holz benoetigst, benoetigst Du fuer
+#    Stufe2 100 Holz, fuer Stufe3 200 Holz, fuer Stufe4 400 Holz usw."
+# Daraus: Grundbetrag 50 Holz auf Stufe 1, je weitere Stufe das Doppelte.
+FORSCHUNG_GRUNDKOSTEN_HOLZ = 50
+
+
+def forschungs_kosten(neue_stufe: int, rohstoff: str = "holz") -> Dict[str, int]:
+    """Rohstoffkosten, um eine Forschung auf `neue_stufe` zu bringen (Handbuch Seite 13).
+
+    Stufe 1 = 50, Stufe 2 = 100, Stufe 3 = 200, Stufe 4 = 400 … — genau die Zahlenreihe des
+    Handbuchbeispiels. Das Handbuch nennt als Beispiel Holz; fuer die uebrigen Forschungen
+    ist dort kein eigener Rohstoff abgedruckt.
+    """
+    if neue_stufe < 1:
+        return {}
+    return {rohstoff: FORSCHUNG_GRUNDKOSTEN_HOLZ * 2 ** (neue_stufe - 1)}
+
+
 def kriegspunkte_verteidigung(ausbaustufe: int) -> int:
     """Originalregel: Ausbaustufe hoch drei."""
     return ausbaustufe ** 3
