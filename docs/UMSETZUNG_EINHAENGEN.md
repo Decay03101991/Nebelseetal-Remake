@@ -1,6 +1,6 @@
 # Nebelseetal Remake — Umsetzung: die fertigen Module in die Oberfläche einhängen
 
-Stand: 05.10.2026. Dieses Dokument ist der **präzise Umsetzungsplan, keine Umsetzung**.
+Stand: 04.10.2026 (23:35 geschrieben). Dieses Dokument ist der **präzise Umsetzungsplan, keine Umsetzung**.
 
 - Keine der zwölf gelesenen Dateien wurde verändert; es wird genau diese eine Datei neu angelegt.
 - Gelesen (je einmal, unverändert): `main.py`, `spielschicht.py`, `kampf.py`, `kampfbericht.py`,
@@ -353,7 +353,7 @@ aufgenommen sind (siehe Schritt 11).
 
 ---
 
-## 6. NACHTRAG DES KOORDINATORS (05.10.2026, 00:05) — die „unklar"-Stellen sind beantwortet
+## 6. NACHTRAG DES KOORDINATORS (04.10.2026, 23:42) — die „unklar"-Stellen sind beantwortet
 
 Der Plan wurde geschrieben, **eine Minute bevor** die Übergabe aktualisiert wurde. Die drei offenen
 Punkte sind inzwischen gemessen (nicht geschätzt):
