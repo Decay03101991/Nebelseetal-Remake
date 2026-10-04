@@ -20,10 +20,15 @@ STAND = "2026-10-04"
 
 
 def projektwurzel() -> str:
-    """Projektwurzel — funktioniert als Skript und in einer gepackten Anwendung."""
+    """Projektwurzel — funktioniert als Skript und in einer gepackten Anwendung.
+
+    In der EXE (PyInstaller) liegen die Datendateien NICHT neben der Exe, sondern im
+    entpackten Zwischenordner ``sys._MEIPASS``; genau dort sucht PyInstaller sie auch fuer
+    ``__file__``. Ohne diesen Zweig findet die fertige EXE ihre ``data/*.json`` nicht.
+    """
     import sys
     if getattr(sys, "frozen", False):                     # PyInstaller
-        return os.path.dirname(os.path.abspath(sys.executable))
+        return getattr(sys, "_MEIPASS", None) or os.path.dirname(os.path.abspath(sys.executable))
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 

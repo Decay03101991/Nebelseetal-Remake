@@ -23,6 +23,7 @@ import spieldaten
 import gelaende
 import gebaeude_wirkung
 import berater
+import tor
 import wirtschaft
 
 
@@ -210,6 +211,22 @@ def bauen_auf_karte(siedlung: "Settlement", gebaeude_key: str, feld: int) -> tup
 # Icon-Dateien: bevorzugt die freigestellte Fassung aus assets/icons/clean/ — dort ist der
 # Blatthintergrund entfernt (tools/clean_icons.py). Fehlt sie, wird die Originaldatei genommen.
 ICON_WURZEL = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def ist_verpackt() -> bool:
+    """Laeuft das Programm als EXE (PyInstaller)?"""
+    import sys
+    return bool(getattr(sys, "frozen", False))
+
+
+def schreibordner() -> str:
+    """Wohin Spielstand und Sperrdatei gehoeren — NIE in den Programmordner.
+
+    In der fertigen EXE ist der Programmordner oft schreibgeschuetzt, und die Einzeldatei entpackt
+    sich in einen Zwischenordner, der beim Beenden verschwindet. Deshalb liegt alles Schreibbare
+    unter ``~/.nebelseetal`` — dort liegt auch das Passworttor (`tor.ORDNER`).
+    """
+    return tor.ORDNER
 
 
 def icon_pfad(relativ: str) -> str:
@@ -656,18 +673,125 @@ class GameState:
 # ---------- GUI ----------
 
 class NebelseetalApp:
-    def __init__(self, root: tk.Tk):
+    def __init__(self, root: tk.Tk, tor_pfad: Optional[str] = None):
         self.root = root
         self.root.title("Nebelseetal Remake")
         self.root.geometry("1024x720")
         self.state = GameState()
         self.state.generate_map(self.state.current_map)
-        self.save_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "savegame.json")
+        # Spielstand: im Entwicklungsbetrieb neben dem Quelltext, in der EXE im Nutzerordner
+        # (der Programmordner kann schreibgeschuetzt sein und wird beim Einzeldatei-Start entpackt).
+        if ist_verpackt():
+            self.save_path = os.path.join(schreibordner(), "savegame.json")
+        else:
+            self.save_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "savegame.json")
         self.current_view = "Dorfzentrum"
         self.skin_name = "standard"
         self.skin = SKINS[self.skin_name]
         self._icon_cache: Dict[str, object] = {}   # haelt Tk-Bilder am Leben (sonst raeumt Tk sie weg)
-        self._build_loading_screen()
+        # Schritt 8 (docs/WEG_ZUR_EXE.md): erst das Passworttor, dann das Spiel.
+        self.tor_pfad = tor_pfad or tor.STANDARD_PFAD
+        self._tor_screen()
+
+    # ---------- Passworttor (Schritt 8) ----------
+
+    def _tor_screen(self):
+        """Das Tor vor dem Spielstart: Passwort festlegen (Erststart) oder eingeben."""
+        for widget in self.root.winfo_children():
+            widget.destroy()
+        self.root.configure(bg="#2a0605")
+        rahmen = tk.Frame(self.root, bg="#2a0605")
+        rahmen.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+        self.tor_rahmen = rahmen
+        tk.Label(rahmen, text="Nebelseetal", font=("Blackletter", 44, "bold"),
+                 fg="#FFCC33", bg="#2a0605").pack(pady=(0, 2))
+        tk.Label(rahmen, text="Remake", font=("Blackletter", 20), fg="#FF6600",
+                 bg="#2a0605").pack(pady=(0, 16))
+        if tor.hat_passwort(self.tor_pfad):
+            self._tor_anmelden()
+        else:
+            self._tor_festlegen()
+
+    def _tor_festlegen(self):
+        """Erststart: Daniel setzt das Passwort selbst — zweimal eingeben."""
+        tk.Label(self.tor_rahmen, text="Beim ersten Start legst du das Passwort selbst fest.\n"
+                                       "Gespeichert wird nur ein Prüfwert davon, nie das Passwort.",
+                 fg="#FFFF99", bg="#2a0605", justify=tk.CENTER).pack(pady=(0, 12))
+        tk.Label(self.tor_rahmen, text="Passwort", fg="#C0C0C0", bg="#2a0605").pack()
+        self.tor_neu1 = tk.Entry(self.tor_rahmen, show="*", width=28, justify=tk.CENTER)
+        self.tor_neu1.pack()
+        tk.Label(self.tor_rahmen, text="Wiederholung", fg="#C0C0C0", bg="#2a0605").pack(pady=(8, 0))
+        self.tor_neu2 = tk.Entry(self.tor_rahmen, show="*", width=28, justify=tk.CENTER)
+        self.tor_neu2.pack()
+        self.tor_meldung = tk.Label(self.tor_rahmen, text="", fg="#e53935", bg="#2a0605",
+                                    wraplength=420, justify=tk.CENTER)
+        self.tor_meldung.pack(pady=(8, 0))
+        tk.Button(self.tor_rahmen, text="Passwort festlegen und starten", command=self._tor_setzen,
+                  bg="#3e2723", fg="#FFCC33", activebackground="#5D4037").pack(pady=10)
+        self.tor_neu1.focus_set()
+        self.tor_neu2.bind("<Return>", lambda _e: self._tor_setzen())
+        tk.Label(self.tor_rahmen,
+                 text=f"Notausgang: die Datei „{self.tor_pfad}“ löschen — dann verlangt das Spiel beim\n"
+                      f"nächsten Start ein NEUES Passwort. Der Spielstand bleibt erhalten.",
+                 fg="#C0C0C0", bg="#2a0605", justify=tk.CENTER, wraplength=460).pack(pady=(10, 0))
+
+    def _tor_setzen(self):
+        ok, meldung = tor.setze_passwort(self.tor_neu1.get(), self.tor_neu2.get(), self.tor_pfad)
+        if ok:
+            self.tor_neu1.delete(0, tk.END)
+            self.tor_neu2.delete(0, tk.END)
+            self.tor_meldung.config(text="Passwort gesetzt. Das Spiel startet …", fg="#7CFC00")
+            self._log(f"Passworttor eingerichtet ({meldung})")
+            self.root.after(600, self._build_loading_screen)
+        else:
+            self.tor_meldung.config(text=meldung, fg="#e53935")
+
+    def _tor_anmelden(self):
+        """Jeder weitere Start: Passwort verlangen (mit Wartezeit nach Fehlversuchen)."""
+        tk.Label(self.tor_rahmen, text="Dieses Spiel ist passwortgeschützt.\n"
+                                       "(Hinweis: in einer Kopie des Ordners steckt dasselbe Passwort.)",
+                 fg="#FFFF99", bg="#2a0605", justify=tk.CENTER).pack(pady=(0, 12))
+        tk.Label(self.tor_rahmen, text="Passwort", fg="#C0C0C0", bg="#2a0605").pack()
+        self.tor_eingabe = tk.Entry(self.tor_rahmen, show="*", width=28, justify=tk.CENTER)
+        self.tor_eingabe.pack()
+        self.tor_meldung = tk.Label(self.tor_rahmen, text="", fg="#e53935", bg="#2a0605",
+                                    wraplength=420, justify=tk.CENTER)
+        self.tor_meldung.pack(pady=(8, 0))
+        self.tor_knopf = tk.Button(self.tor_rahmen, text="Spiel starten", command=self._tor_pruefen,
+                                   bg="#3e2723", fg="#FFCC33", activebackground="#5D4037")
+        self.tor_knopf.pack(pady=10)
+        self.tor_eingabe.focus_set()
+        self.tor_eingabe.bind("<Return>", lambda _e: self._tor_pruefen())
+        tk.Label(self.tor_rahmen,
+                 text=f"Notausgang: die Datei „{self.tor_pfad}“ löschen setzt das Tor zurück\n"
+                      f"(Spielstand bleibt erhalten).",
+                 fg="#C0C0C0", bg="#2a0605", justify=tk.CENTER, wraplength=460).pack(pady=(10, 0))
+        self._tor_wartezeit_anzeigen()
+
+    def _tor_pruefen(self):
+        ok, meldung = tor.pruefe_passwort(self.tor_eingabe.get(), self.tor_pfad)
+        self.tor_eingabe.delete(0, tk.END)
+        if ok:
+            self.tor_meldung.config(text="Zugang gewährt. Das Spiel startet …", fg="#7CFC00")
+            self._log("Passworttor geöffnet.")
+            self.root.after(400, self._build_loading_screen)
+        else:
+            self.tor_meldung.config(text=meldung, fg="#e53935")
+            self._tor_wartezeit_anzeigen()
+
+    def _tor_wartezeit_anzeigen(self):
+        """Nach zu vielen Fehlversuchen bleibt der Knopf so lange gesperrt."""
+        rest = tor.restwartezeit(self.tor_pfad)
+        if rest > 0:
+            self.tor_knopf.config(state=tk.DISABLED)
+            self.tor_meldung.config(text=f"Zu viele Fehlversuche. Noch {int(rest) + 1} Sekunden warten.",
+                                    fg="#e53935")
+            self.root.after(1000, self._tor_wartezeit_anzeigen)
+        else:
+            try:
+                self.tor_knopf.config(state=tk.NORMAL)
+            except Exception:
+                pass
 
     def _lade_icon(self, relativ: str, faktor: int = 2):
         """Laedt ein Icon als Tk-Bild. faktor=2 halbiert grosse Icons (~90px -> ~45px)."""
@@ -1893,21 +2017,54 @@ class NebelseetalApp:
         self.lbl_gesamt.config(text=f"Gesamt: {self.state.score + self.state.ruf + total_units}")
 
 
+def _laeuft_schon(lock_path: str) -> bool:
+    """Prueft die Sperrdatei — und fasst dabei KEINEN Prozess an.
+
+    Der frueher benutzte Aufruf ``os.kill(pid, 0)`` **beendet** unter Windows den Prozess
+    (dort wird Signal 0 als TerminateProcess ausgefuehrt). Steht eine alte Nummer in der Datei und
+    ist sie inzwischen an ein fremdes Programm vergeben, traefe es das falsche — deshalb wird hier
+    nur gefragt: gibt es diesen Prozess noch?
+    """
+    try:
+        with open(lock_path, encoding="utf-8") as f:
+            pid = int(f.read().strip())
+    except (OSError, ValueError):
+        return False
+    if pid <= 0:
+        return False
+    try:
+        import ctypes
+        from ctypes import wintypes
+        PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+        STILL_ACTIVE = 259
+        kernel32 = ctypes.windll.kernel32
+        handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+        if not handle:
+            return False                      # den Prozess gibt es nicht (mehr): alte Sperre
+        try:
+            code = wintypes.DWORD()
+            if kernel32.GetExitCodeProcess(handle, ctypes.byref(code)):
+                return code.value == STILL_ACTIVE
+            return True
+        finally:
+            kernel32.CloseHandle(handle)
+    except Exception:
+        # Ohne ctypes (theoretisch) lieber NICHT blockieren als das Starten verhindern.
+        return False
+
+
 def main():
     import sys
-    import os
-    lock_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "game.lock")
-    if os.path.exists(lock_path):
-        try:
-            with open(lock_path, "r") as f:
-                pid = int(f.read().strip())
-            os.kill(pid, 0)
-            print("Spiel läuft bereits.")
-            sys.exit(0)
-        except Exception:
-            pass
-    with open(lock_path, "w") as f:
-        f.write(str(os.getpid()))
+    lock_path = os.path.join(schreibordner(), "game.lock")
+    if _laeuft_schon(lock_path):
+        print("Spiel läuft bereits.")
+        sys.exit(0)
+    try:
+        os.makedirs(os.path.dirname(lock_path), exist_ok=True)
+        with open(lock_path, "w") as f:
+            f.write(str(os.getpid()))
+    except OSError:
+        pass
     try:
         root = tk.Tk()
         app = NebelseetalApp(root)
