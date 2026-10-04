@@ -326,3 +326,37 @@ und die Differenz ins Protokoll geschrieben. Bei DeepSeek müssen **1,00 USD lie
 **Sicherung (projektunabhaengig):** 14 Dateien gesichert nach `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-04_2345` — Vorgabe von Daniel am 04.10.2026, damit das Protokoll auch ohne diesen Projektordner weiterlebt. Zeiger auf die juengste Fassung: `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`.
 
 **Sicherung (projektunabhaengig):** 14 Dateien gesichert nach `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-04_2346` — Vorgabe von Daniel am 04.10.2026, damit das Protokoll auch ohne diesen Projektordner weiterlebt. Zeiger auf die juengste Fassung: `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`.
+
+---
+
+## Sitzungswechsel (04.10.2026, 23:47 — Uhrzeit mit `date` geprüft)
+
+**Auftrag von Daniel:** „fertig machen zum Session-Wechsel" und „trage den Sessionwechsel in das
+Protokoll ein". Diese Sitzung endet hier sauber; die nächste macht genau an dieser Stelle weiter.
+
+**Zustand beim Wechsel — jeder Punkt mit Beleg, nichts geschätzt:**
+
+| Punkt | Beleg |
+|---|---|
+| Arbeitsverzeichnis | **sauber**, letzter Commit `0206e8a` (`git status` leer) |
+| Prüfstand | **1651 bestanden, 0 Fehler, 9 Befunde** über 23 Dateien, `run_tests.bat` Rückgabewert **0**, gemessen 04.10.2026 23:40 |
+| Nichts läuft | kein Hintergrundprozess, kein Unteragent, kein offenes Fenster (nachgeprüft) |
+| Zehn Kind-Module | fertig und **vom Koordinator nachgerechnet**: 94 + 118 + 69 + 76 + 108 + 133 + 90 + 111 + 95 + 64 = **958** — aber **nicht eingehängt** |
+| Auslieferung | `Nebelseetal_Remake.exe`, 14.024.744 Byte, mit Passworttor startgeprüft (04.10. 22:42) |
+| Papiere gesichert | `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-04_2346` — 14 Dateien, SHA256 je Datei im `MANIFEST.txt` geprüft; Zeiger `zuletzt.txt` |
+| Kosten der Sitzung | teure Aufrufe zusammen **+0,79 USD** (astra für die Bilder, v4-pro für den Plan). Guthaben: OpenAI **4,08** · DeepSeek **2,08** USD — die von Daniel gewünschte 1,00-USD-Reserve ist unberührt |
+| Offene Fragen | **13** an Daniel, in `docs/FRAGEN_FUER_MORGEN.md` |
+
+**Was die neue Sitzung NICHT neu prüfen muss:** `docs/PROJEKT_STAND.md`, Abschnitt 0b, Tabelle
+„Nicht erneut zu prüfen". Es genügt der Sekunden-Check (`git log --oneline -3`, `git status --short`) —
+der Sammellauf wird erst nach der ersten echten Änderung an `src/` wiederholt.
+
+**Der eine nächste Schritt:** `src/speichern.py` einhängen in `main.py:608-634` (das direkte Schreiben
+steht in Zeile **627-628**); danach `tests/test_speichern_robust.py` → **95 grün** und
+`tests/test_baseline.py` → **40 grün**. Der vollständige Plan steht in `docs/UMSETZUNG_EINHAENGEN.md`,
+Abschnitte 4 und 5; die Startzeile in `docs/PROJEKT_STAND.md`, Abschnitt 0.
+
+**Neue Hausregel aus dieser Sitzung:** Übergaben werden nach dem Skill `uebergabe-handoff` geschrieben —
+Stand in Belegen, **der eine** nächste Schritt mit `Datei:Zeile` und erwarteter Prüfzahl, eine
+„nicht erneut zu prüfen"-Tabelle, Sekunden-Checks statt Sammellauf. Dazu gehört auch: **keine halbe
+Änderung hinterlassen** — lieber sauber enden als `main.py` halb umgebaut übergeben.
