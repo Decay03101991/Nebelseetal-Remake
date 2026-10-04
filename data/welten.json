@@ -1,0 +1,100 @@
+{
+  "_hinweis": "Weltkarte des Limbus. BELEGT ist: alle Welten liegen im magischen Limbus, der sich in 20 Dimensionen aufteilt; die sechs Weltnamen stammen von der alten Website; die Portalkosten haengen von der Entfernung ab. NICHT BELEGT ist die Anordnung/Besetzung der Dimensionen in der Ebene (x/y) und die genaue Kostenformel - beides ist als VORSCHLAG gekennzeichnet und darf geaendert werden.",
+  "_belegt": [
+    "Alle Welten in Nebelseetal liegen im magischen Limbus, der sich in 20 Dimensionen aufteilt und ueber magische Portale verbunden ist (Handbuch 2009, S. 80).",
+    "Die sechs Weltnamen Armageddon, Ragnaroek, Utgard, Midgard, Valhalla, Limbus stammen von der alten Website (screens.php).",
+    "Je weiter eine andere Spielwelt entfernt liegt, desto mehr Mana kostet das Portal (Handbuch 2009, S. 82; Portal-Anleitung 2005, portal.php)."
+  ],
+  "_nicht_belegt": [
+    "Die Anordnung der 20 Dimensionen in der Limbus-Ebene und ihre x/y-Koordinaten.",
+    "Welche Dimension welche der sechs belegten Welten traegt.",
+    "Die Portalkostenformel samt Grundbetrag und Kosten je Schritt."
+  ],
+  "_quelle": [
+    "docs/original/Spielanleitung_2009_Textfassung.txt (Portal, S. 80-83)",
+    "docs/original/Spielanleitung_2005/portal.php.txt (Portalkoordinaten: X/Y = Position in der Dimension, Z = Dimension; 20 Dimensionen, je 20x20 Felder; 5000 Mana fuer einen Koordinatenwechsel)",
+    "docs/original/recherche/screens.html (Weltnamen)"
+  ],
+  "welten_belegt": ["Armageddon", "Ragnaroek", "Utgard", "Midgard", "Valhalla", "Limbus"],
+  "belegte_regeln": {
+    "felder_je_dimension": 20,
+    "felder_je_dimension_gesamt": 400,
+    "_belegt_felder": "Woertlich (portal.php 2005, Z. 22): 'in jeder Dimension sind 20 mal 20 Felder frei fuer Spielerwelten.' Also 20 x 20 = 400 Felder je Dimension.",
+    "portalkoordinaten": "X und Y sind die Position im Feld der Dimension, Z ist die Dimension selbst (portal.php 2005).",
+    "koordinatenwechsel": {
+      "kosten_mana": 5000,
+      "hoechstens_je_stunden": 24,
+      "_belegt": "Woertlich (portal.php 2005, Z. 25): 'Welt an ihren neuen Platz verschiebt. Sie benoetigen hierfuer 5.000 Mana.' sowie 'Ihr habt die Moeglichkeit, einmal binnen 24 Stunden, eure Koordinaten zu wechseln.'"
+    },
+    "bannerfarben": {
+      "eigene_welt": "gruen",
+      "fremde_welten": "rot",
+      "_belegt": "Woertlich (portal.php 2005): 'Eure Welt wird durch ein gruenes Banner markiert, fremde Welten durch rote.'"
+    }
+  },
+  "ebene": {
+    "_hinweis": "VORSCHLAG: Die 20 Dimensionen werden hier als je ein Punkt in einer 10x10-Ebene (x/y von 0 bis 9) dargestellt. Im Original ist JEDE Dimension ein eigenes 20x20-Raster (belegt, portal.php); diese Uebersicht fasst jede Dimension zu einem Punkt zusammen. Die konkreten x/y-Werte sind NICHT belegt.",
+    "x_von": 0,
+    "x_bis": 9,
+    "y_von": 0,
+    "y_bis": 9,
+    "anzahl": 20
+  },
+  "portalregel": {
+    "art": "manhattan",
+    "grundbetrag": 100,
+    "kosten_je_schritt": 25,
+    "standart_umkreis": 3,
+    "formel": "mana = grundbetrag + kosten_je_schritt * entfernung_in_schritten",
+    "_belegt": "Belegt: die Portalkosten haengen von der Entfernung ab; in eine andere Dimension zu reisen kostet deutlich mehr Mana (Handbuch 2009, S. 82; portal.php 2005).",
+    "_vorschlag": "VORSCHLAG: als einfache Regel Grundbetrag 100 Mana plus 25 Mana je Schritt. Die genauen Zahlen sind NICHT belegt und duerfen geaendert werden."
+  },
+  "dimensionen": [
+    {"kennung": "d01", "name": "Armageddon", "x": 0, "y": 0, "welt": "Armageddon",
+     "_belegt": "Weltname Armageddon belegt (alte Website, screens.php).",
+     "_vorschlag": "Lage x=0, y=0 im Limbus-Raster - VORSCHLAG."},
+    {"kennung": "d02", "name": "Ragnaroek", "x": 9, "y": 0, "welt": "Ragnaroek",
+     "_belegt": "Weltname Ragnaroek belegt (alte Website, screens.php).",
+     "_vorschlag": "Lage x=9, y=0 im Limbus-Raster - VORSCHLAG."},
+    {"kennung": "d03", "name": "Utgard", "x": 0, "y": 9, "welt": "Utgard",
+     "_belegt": "Weltname Utgard belegt (alte Website, screens.php).",
+     "_vorschlag": "Lage x=0, y=9 im Limbus-Raster - VORSCHLAG."},
+    {"kennung": "d04", "name": "Midgard", "x": 5, "y": 5, "welt": "Midgard",
+     "_belegt": "Weltname Midgard belegt (alte Website, screens.php).",
+     "_vorschlag": "Lage x=5, y=5 im Limbus-Raster - VORSCHLAG."},
+    {"kennung": "d05", "name": "Valhalla", "x": 4, "y": 4, "welt": "Valhalla",
+     "_belegt": "Weltname Valhalla belegt (alte Website, screens.php).",
+     "_vorschlag": "Lage x=4, y=4 im Limbus-Raster - VORSCHLAG."},
+    {"kennung": "d06", "name": "Limbus", "x": 9, "y": 9, "welt": "Limbus",
+     "_belegt": "Weltname Limbus belegt (alte Website, screens.php).",
+     "_vorschlag": "Lage x=9, y=9 im Limbus-Raster - VORSCHLAG."},
+    {"kennung": "d07", "name": "Dimension 07", "x": 2, "y": 2, "welt": null,
+     "_vorschlag": "Freie Dimension ohne eine der sechs belegten Welten - Besetzung und Lage VORSCHLAG."},
+    {"kennung": "d08", "name": "Dimension 08", "x": 3, "y": 7, "welt": null,
+     "_vorschlag": "Freie Dimension ohne eine der sechs belegten Welten - Besetzung und Lage VORSCHLAG."},
+    {"kennung": "d09", "name": "Dimension 09", "x": 7, "y": 3, "welt": null,
+     "_vorschlag": "Freie Dimension ohne eine der sechs belegten Welten - Besetzung und Lage VORSCHLAG."},
+    {"kennung": "d10", "name": "Dimension 10", "x": 7, "y": 7, "welt": null,
+     "_vorschlag": "Freie Dimension ohne eine der sechs belegten Welten - Besetzung und Lage VORSCHLAG."},
+    {"kennung": "d11", "name": "Dimension 11", "x": 1, "y": 5, "welt": null,
+     "_vorschlag": "Freie Dimension ohne eine der sechs belegten Welten - Besetzung und Lage VORSCHLAG."},
+    {"kennung": "d12", "name": "Dimension 12", "x": 5, "y": 1, "welt": null,
+     "_vorschlag": "Freie Dimension ohne eine der sechs belegten Welten - Besetzung und Lage VORSCHLAG."},
+    {"kennung": "d13", "name": "Dimension 13", "x": 5, "y": 8, "welt": null,
+     "_vorschlag": "Freie Dimension ohne eine der sechs belegten Welten - Besetzung und Lage VORSCHLAG."},
+    {"kennung": "d14", "name": "Dimension 14", "x": 8, "y": 4, "welt": null,
+     "_vorschlag": "Freie Dimension ohne eine der sechs belegten Welten - Besetzung und Lage VORSCHLAG."},
+    {"kennung": "d15", "name": "Dimension 15", "x": 2, "y": 8, "welt": null,
+     "_vorschlag": "Freie Dimension ohne eine der sechs belegten Welten - Besetzung und Lage VORSCHLAG."},
+    {"kennung": "d16", "name": "Dimension 16", "x": 4, "y": 2, "welt": null,
+     "_vorschlag": "Freie Dimension ohne eine der sechs belegten Welten - Besetzung und Lage VORSCHLAG."},
+    {"kennung": "d17", "name": "Dimension 17", "x": 6, "y": 6, "welt": null,
+     "_vorschlag": "Freie Dimension ohne eine der sechs belegten Welten - Besetzung und Lage VORSCHLAG."},
+    {"kennung": "d18", "name": "Dimension 18", "x": 8, "y": 8, "welt": null,
+     "_vorschlag": "Freie Dimension ohne eine der sechs belegten Welten - Besetzung und Lage VORSCHLAG."},
+    {"kennung": "d19", "name": "Dimension 19", "x": 3, "y": 4, "welt": null,
+     "_vorschlag": "Freie Dimension ohne eine der sechs belegten Welten - Besetzung und Lage VORSCHLAG."},
+    {"kennung": "d20", "name": "Dimension 20", "x": 1, "y": 1, "welt": null,
+     "_vorschlag": "Freie Dimension ohne eine der sechs belegten Welten - Besetzung und Lage VORSCHLAG."}
+  ]
+}
