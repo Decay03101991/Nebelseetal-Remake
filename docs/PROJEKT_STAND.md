@@ -247,6 +247,7 @@ Weiter offen:
 | `docs/PROJEKT_STAND.md` | dieses Dokument — Wiederaufnahme ohne Chatverlauf |
 | `docs/AGENTEN_PLAN.md` | **wie die Sitzung ihre Agenten aufteilt und welches Modell wann** — inklusive Auftragsvorlage zum Kopieren |
 | `docs/BOARD.md` | **Kommunikationsbrett der Unteragenten** — Ansprüche, Ergebnisse, Meldungen |
+| `docs/LEHREN.md` | **ehrliche Nachlese** der Sitzung: 13 Fehler, was gut lief, was dauerhaft gilt |
 | `docs/ORDNUNG.md` | was wohin gehört |
 | `docs/audits/` + `eingaben/` | alle Modelldaten (Abschnitt 4) |
 | `tests/` (10 Dateien) + `run_tests.bat` | Wahrheitsquelle „läuft es noch?" |
