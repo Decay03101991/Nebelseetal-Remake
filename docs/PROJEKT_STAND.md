@@ -50,6 +50,34 @@ Protokollzeile; am Ende die `.exe` neu bauen (`tools/build_exe.py`) und startpr�
 
 ---
 
+## 0b. Stand beim Sitzungswechsel (04.10.2026, 23:45 — mit `date` geprüft)
+
+**Nichts ist in Arbeit. Kein Prozess läuft, kein Kind arbeitet. Arbeitsverzeichnis sauber**
+(Commit `9bbb3c2`), alles committet, Papiere projektunabhängig gesichert
+(`D:\Arbeiten\Hermes\Nebelseetal_Protokoll\`, 14 Dateien, Prüfsummen geprüft).
+
+| Was | Stand (gemessen) |
+|---|---|
+| Prüfstand | **1651 bestanden, 0 Fehler, 9 Befunde** über **23 Dateien** (`run_tests.bat`, Rückgabewert 0) |
+| Fertige Module (alle vom Koordinator nachgerechnet) | `forschung_wirkung` 94 · `werkstatt` 118 · `portalraum` 69 · `punkte` 76 · `kampfbericht` 108 · `spielschicht` 133 · `botkern` 90 · `auftraege` 111 · `speichern` 95 · `oberflaeche_original` 64 |
+| Eingehängt | W4b-5 (Gebäudewirkungen), W4b-6 (21 Forschungen + alle neun Rohstoffe), Passworttor |
+| **Nicht** eingehängt | die zehn Module in der Oberfläche — **das ist der nächste Schritt**, nach `docs/UMSETZUNG_EINHAENGEN.md` |
+| `.exe` | liegt im Projektordner (14.024.744 Byte), mit Tor startgeprüft; **Neubau erst nach dem Einhängen** |
+| Kosten der Nacht | teure Aufrufe zusammen **+0,79 USD** (astra für die Bilder, v4-pro für den Plan); Guthaben: OpenAI **4,08** · DeepSeek **2,08** USD (1,00-USD-Reserve unberührt) |
+| Offene Fragen an Daniel | **13** — `docs/FRAGEN_FUER_MORGEN.md` |
+| Brett der Kinder | **abgeschafft** (Daniel, 04.10.) — Kinder melden im Abschlussbericht, der Koordinator prüft nach und trägt in `docs/BOARD.md` ein |
+
+**Die Startzeile steht oben in Abschnitt 0** — sie nennt den Plan und Schritt 1. Vor dem Weiterarbeiten
+kurz prüfen, dass wirklich nichts läuft und die Lage stimmt:
+
+```bash
+cd /d/Arbeiten/Nebelseetal_Remake
+git status --short                                   # leer = sauber
+MSYS2_ARG_CONV_EXCL='*' cmd /c run_tests.bat          # erwartet: 1651 bestanden, 0 Fehler, 9 Befunde
+```
+
+---
+
 ## 1. In zwei Befehlen prüfen
 
 ```bash

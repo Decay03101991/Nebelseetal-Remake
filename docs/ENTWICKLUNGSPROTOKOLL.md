@@ -300,6 +300,13 @@ bezogen berechnet: meiste Leistung für geringste Ausgabe."
 **Kostenregel für die teuren Aufrufe:** nach dem Lauf wird sofort gemessen (`tageskosten_check.py`)
 und die Differenz ins Protokoll geschrieben. Bei DeepSeek müssen **1,00 USD liegen bleiben**.
 
+### Abschluss dieser Sitzung (04.10.2026, 23:45, mit `date` geprüft)
+
+| Zeit | Schritt | Ergebnis / Beleg |
+|---|---|---|
+| 23:45 | **Sitzungswechsel vorbereitet** (Auftrag Daniel: „fertig machen zum Session-Wechsel") | Nichts in Arbeit, kein Prozess, kein Kind; Arbeitsverzeichnis sauber (Commit `9bbb3c2`). Übergabe um Abschnitt **0b „Stand beim Sitzungswechsel"** ergänzt (Prüfstand, fertige Module, was **nicht** eingehängt ist, Kosten, offene Fragen, Prüfbefehle). Startzeile führt auf `docs/UMSETZUNG_EINHAENGEN.md`; **Schritt 1 ist `speichern` an `main.py:608-634`** (direktes Schreiben in Zeile 627-628). Ein Umsetzungsschritt in `main.py` wurde **absichtlich nicht** mehr begonnen: bei fast vollem Kontext wäre das Risiko am laufenden Spiel zu groß — die Sitzung endet lieber sauber als halb geändert |
+| 23:45 | **Selbstkontrolle vor dem Abschluss** | `git status` leer · Sicherung projektunabhängig erneuert (Prüfsummen gleich) · keine offenen Fenster · Zeitangaben diesmal mit `date` geprüft (der Schätzer-Fehler von 23:42 ist korrigiert und im Protokoll vermerkt) |
+
 ### Ausgang der beiden teuren Aufrufe
 
 | Zeit | Aufruf | Ergebnis |
