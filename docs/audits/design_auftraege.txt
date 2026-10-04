@@ -1,0 +1,84 @@
+Warning: Unknown toolsets: kiri_engine
+Query: Du bist Spieldesigner und liest GENAU DIESE Datei: 
+D:/Arbeiten/Nebelseetal_Remake/docs/original/Spielanleitung_2009_Textfassung.tx
+t (das Originalhandbuch). Danach KEIN weiteres Werkzeug, keine weiteren Dateien
+- antworte direkt. AUFGABE: Entwirf das Auftrags- und Botschaftersystem fuer 
+ein EINZELSPIELER-Remake. Belegt sind (Handbuch): Einheiten koennen 
+stationiert, transportiert, zum Handeln geschickt und zum Angriff geschickt 
+werden; eine Strecke dauert genauso lange wie der Rueckweg; Kosten in Gold, 
+Nahrung und Mana; Beladung durch Karren; Der Spieler muss Portalkoordinaten 
+anderer Spieler kennen; Einheiten kehren nach einer Mission zurueck; 
+Kundschafter erkunden. Im Einzelspieler-Remake uebernimmt eine BOT-KI die Rolle
+der anderen Spieler. Liefere: a) die vollstaendige Liste der Auftragsarten mit 
+ihren Feldern (was wird gespeichert), b) den zeitlichen Ablauf (Hinreise, 
+Handlung, Rueckkehr, Bericht) in klaren Schritten, c) wie die Bot-KI darauf 
+antwortet (wann Handel annimmt, wann verteidigt, wann selbst angreift) mit 
+nachvollziehbaren Regeln und Zahlen, d) die Beute- und Verlustregeln nach dem 
+Handbuch, e) die drei Faelle, in denen ein Auftrag scheitern kann, und was der 
+Spieler dann sieht. REGELN: Deutsch, hoechstens 90 Zeilen. Jede Zahl aus dem 
+Handbuch WOERTLICH belegen (Seitenzahl), jede eigene Zahl als VORSCHLAG 
+kennzeichnen. Keine Platzhalter.
+Initializing agent...
+────────────────────────────────────────
+
+  ┊ 📖 preparing read_file…
+  ┊ 📖 read      Spielanleitung_2009_Textfassung.txt  69.2s
+
+╭─ ☤ Hermes ───────────────────────────────────────────────────────────────────╮
+Auftrags- und Botschaftersystem — Einzelspieler-Remake (Entwurf)
+Grundlage: Spielanleitung_2009_Textfassung.txt. Handbuchzahlen sind mit Seitenzahl belegt; eigene Zahlen sind als VORSCHLAG markiert.
+
+a) Auftragsarten und gespeicherte Felder
+Gemeinsame Felder jedes Auftragsdatensatzes:
+  auftrag_id, status {laufend, abgeschlossen, gescheitert}
+  start_siedlung_id
+  ziel: {eigene_siedlung_id} oder {spieler_id, portalkoordinaten}
+  einheiten: liste {einheit_id, anzahl}
+  reisedauer_hin (Stunden), reisedauer_gesamt, abfahrt_zeitpunkt, ankunft_zeitpunkt
+  geschwindigkeit: 100% bis 10%, Drossel in 10%-Schritten (Seite 20)
+  kosten: {gold, nahrung, mana} — Mana nur bei fremdem Ziel (Seite 20)
+
+  1. Stationieren (Seite 19): zusätzlich mitgeführte_waren {ware_id, menge}, nur wenn Karren dabei. Fremde Siedlungen sind ausgeschlossen (Seite 19: "nicht möglich, Einheiten in fremden Siedlungen zu stationieren").
+  2. Spionage (Seite 20): zusätzlich pferde_mitgegeben (ja/nein); Ergebnis = spionagebericht.
+  3. Transportieren (Seite 20): zusätzlich waren {ware_id, menge}; nur Handkarre/Einspänner/Zweispänner; Rückkehr vorgesehen.
+  4. Handeln (Seite 20): zusätzlich waren {ware_id, menge}, kaufpreis_gold, handelsstatus {offen, bestätigt, abgelehnt}; nur Handelskarawanen.
+  5. Angriff (Seite 20): zusätzlich kampfergebnis {sieger, beute, verluste, wall_zustand}.
+
+b) Zeitlicher Ablauf
+  1. Start: Spieler wählt Einheiten + Anzahl, Ziel, Auftragsart. Kosten (Gold/Nahrung, bei fremdem Ziel + Mana) werden sofort abgezogen; Einheiten reisen los (Seite 20).
+  2. Hinreise: Dauer reisedauer_hin; die Zeitangabe gilt für EINE Strecke (Seite 19).
+  3. Handlung am Ziel: stationieren = verbleiben; spionieren = umsehen; transportieren = Waren abladen; handeln = auf Bestätigung/Ablehnung warten (Seite 20); angreifen = Vorrunde (Wall) + Kampfsequenzen (Seite 21-22).
+  4. Rückkehr (falls vorgesehen): Transport kehrt zur Startsiedlung zurück, Gesamtdauer = doppelt so lange wie eine Strecke (Seite 19). Spion kehrt zurück und erstattet Bericht (Seite 24). Handelskarawane kehrt nur bei Ablehnung zurück (Seite 20).
+  5. Bericht: Bestätigungsmeldung im Nachrichtenmenü, sobald Einheiten den Auftrag erfüllt haben (Seite 4).
+
+c) Bot-KI (übernimmt die anderen Spieler)
+  Verteidigen: Bot-KI verteidigt automatisch mit ihren stationierten Kampfeinheiten, Ablauf exakt nach Handbuch (Vorrunde Seite 21; Schlacht max. 10 Kampfsequenzen, Seite 22). Keine eigene Entscheidungslogik nötig — deterministisch.
+  Handel annehmen/ablehnen: VORSCHLAG: Bot-KI vergleicht Kaufpreis mit internem Referenzpreis (VORSCHLAG: Referenz = Beschaffungskosten der Waren × 1,2). Bestätigt, wenn Kaufpreis ≥ Referenz; lehnt sonst ab, Karawane kehrt mit Waren zurück (Seite 20). VORSCHLAG: je Siedlung ein "Händler-Temperament", das die Schwelle um ±10% verschiebt.
+  Selbst angreifen: VORSCHLAG: periodische Prüfung (VORSCHLAG: alle 6-24 h, zufällig). Angriff nur, wenn alle Bedingungen erfüllt:
+    - Götterschutz: Ziel liegt im Bereich eigene Punktzahl ±20% (Seite 6, eingeschränkter Götterschutz bis 299 Punkte).
+    - Schlagkraft der Bot-Truppe ≥ Schwellenwert des Zielwalls (Seite 21), sonst kein Angriff.
+    - VORSCHLAG: erwartete Beute ≥ Mana-Kosten des Portals × 2 (Erwartung aus letzter Spionage).
+    - VORSCHLAG: Wahrscheinlichkeit steigt mit Punktedifferenz zugunsten der Bot-KI.
+
+d) Beute- und Verlustregeln (nach Handbuch)
+  Beute: geplündert wird nur, wenn der Angreifer Transportkarren in der Angriffstruppe mitführt (Seite 23). Beutemenge im Handbuch nicht beziffert → VORSCHLAG: 50% der lagernden Ressourcen, gedeckelt durch Ladekapazität der Karren (Seite 17: Handkarren 40, Einspänner 100, Zweispänner 250).
+  Einheiten: tote Einheiten werden nach der Schlacht gelöscht; geflohene stehen wieder zur Verfügung (Seite 23).
+  Karren/Belagerungswaffen des Verlierers: "verliert einen Teil", abhängig von der Schlachtdauer; Fluchtchance jeder Einheit 40%, erhöht um 5% je Kampfsequenz (Seite 23).
+  Unentschieden: alle Karren und Belagerungswaffen bleiben erhalten (Seite 23); Angreifer ohne Beute.
+
+e) Drei Fälle, in denen ein Auftrag scheitert
+  1. Wall nicht überwunden: Schlagkraft < Schwellenwert → Truppen ziehen "unverrichteter Dinge" zurück, Kampf gilt als unentschieden (Seite 21). Spieler sieht: Meldung im Nachrichtenmenü (unentschieden, Wall nicht überwunden); Truppen kehren zurück, keine Beute, Karren erhalten (Seite 23).
+  2. Schlacht nach 10 Kampfsequenzen unentschieden: kein Sieger → Angreifer zieht sich ohne Beute zurück (Seite 22). Spieler sieht: Meldung "Schlacht unentschieden"; Truppen kehren zurück, alle Karren/Belagerungswaffen erhalten (Seite 23).
+  3. Handel abgelehnt: Handelspartner (Bot-KI) lehnt ab → Karawane kehrt mit den Waren zurück (Seite 20). Spieler sieht: Meldung "Handel abgelehnt", Waren wieder im Lager, das Gold wurde nie transferiert.
+
+Anmerkung: Spionage scheitert im Handbuch nicht — die Werte SI/HE haben laut Seite 18 "noch keinen Einfluss auf das Spiel", ein Bericht wird immer erstattet (Seite 24).
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Resume this session with:
+  hermes --resume 20261004_211144_b37718
+  hermes -c "Auftrags- und Botschaftersystem für Einzelspieler-Remake"
+
+Session:        20261004_211144_b37718
+Title:          Auftrags- und Botschaftersystem für Einzelspieler-Remake
+Duration:       4m 16s
+Messages:       4 (1 user, 2 tool calls)
