@@ -1,0 +1,34 @@
+{
+  "_hinweis": "Das WOERTLICH belegte Original-Menue von Nebelseetal (Browser-Original) in der belegten Reihenfolge, plus die Entscheidung, welche Eintraege in ein OFFLINE-Einzelspieler-Remake gehoeren. Forum, Chat, Spieler werben und Logout sind Netz-/Mehrspielerfunktionen; sie werden dokumentiert, aber NICHT in das ausgelieferte Spiel uebernommen. Diese Datei darf Daniel aendern - sie gilt dann sofort.",
+  "_quelle": [
+    "docs/audits/astra_gamestar_antwort.txt - Screenshot 1838855 (Bild 1) liest das Menue woertlich: Uebersicht, Portal, Diplomatie, Einstellungen, Ruhmeshalle, Gildenhalle, Voraussetzungen, Nachrichten, Neuigkeiten, Anleitung, Schlachtsimulator, Forum, Chat, Spieler werben, Logout",
+    "Screenshot 1838856 (Bild 2) bestaetigt die Schreibweise 'Gildenhalle'",
+    "docs/PROJEKT_STAND.md, Abschnitt 3 'Original-Menue (woertlich aus dem Screenshot 1838855)'",
+    "Rohstoffleiste oben, links 'Eure Punkte: Forschung / Krieg / Gesamt', unten 'Laufende Auftraege:' - dieselbe Quelle"
+  ],
+  "_namensregel": "Namen sind in ASCII-Transliteration gesetzt (Uebersicht statt mit Umlaut), damit Code und Pruefdatei reines ASCII bleiben. Die Wortform selbst ist unveraendert.",
+  "netz_eintraege": ["Forum", "Chat", "Spieler werben", "Logout"],
+  "punktezeile": {
+    "titel": "Eure Punkte",
+    "zeilen": ["Forschung", "Krieg", "Gesamt"],
+    "darunter": "Laufende Auftraege:",
+    "quelle": "docs/audits/astra_gamestar_antwort.txt, Screenshot 1838855, Bild 1 (links 'Eure Punkte', darunter 'Laufende Auftraege:') und docs/PROJEKT_STAND.md, Abschnitt 'Original-Menue'"
+  },
+  "eintraege": [
+    {"name": "Uebersicht", "reihenfolge": 1, "quelle": "Screenshot 1838855, Bild 1; PROJEKT_STAND Abschnitt 'Original-Menue'", "offline": true, "grund": "Kernansicht des Spiels, ohne Netz spielbar"},
+    {"name": "Portal", "reihenfolge": 2, "quelle": "Screenshot 1838855, Bild 1; PROJEKT_STAND Abschnitt 'Original-Menue'", "offline": true, "grund": "Weltenwechsel/Portalraum ist belegt und im Einzelspieler spielbar"},
+    {"name": "Diplomatie", "reihenfolge": 3, "quelle": "Screenshot 1838855, Bild 1; PROJEKT_STAND Abschnitt 'Original-Menue'", "offline": true, "grund": "Beziehungen lassen sich gegen Bots fuehren, kein Netz noetig"},
+    {"name": "Einstellungen", "reihenfolge": 4, "quelle": "Screenshot 1838855, Bild 1; PROJEKT_STAND Abschnitt 'Original-Menue'", "offline": true, "grund": "reine Spieloptionen, lokal"},
+    {"name": "Ruhmeshalle", "reihenfolge": 5, "quelle": "Screenshot 1838855, Bild 1; PROJEKT_STAND Abschnitt 'Original-Menue'", "offline": true, "grund": "Punkterangliste gibt es mit Bots auch ohne Netz"},
+    {"name": "Gildenhalle", "reihenfolge": 6, "quelle": "Screenshot 1838855, Bild 1 und 1838856, Bild 2; PROJEKT_STAND Abschnitt 'Original-Menue'", "offline": true, "grund": "Gildenhalle als Gebaeude/Uebersicht lokal fuehrbar"},
+    {"name": "Voraussetzungen", "reihenfolge": 7, "quelle": "Screenshot 1838855, Bild 1; PROJEKT_STAND Abschnitt 'Original-Menue'", "offline": true, "grund": "Infoseite zu Bau- und Forschungsbedingungen, lokal"},
+    {"name": "Nachrichten", "reihenfolge": 8, "quelle": "Screenshot 1838855, Bild 1; PROJEKT_STAND Abschnitt 'Original-Menue'", "offline": true, "grund": "Postfach fuer Spielmeldungen, ohne Netz darstellbar"},
+    {"name": "Neuigkeiten", "reihenfolge": 9, "quelle": "Screenshot 1838855, Bild 1; PROJEKT_STAND Abschnitt 'Original-Menue'", "offline": true, "grund": "Spielmeldungen/Chronik, lokal"},
+    {"name": "Anleitung", "reihenfolge": 10, "quelle": "Screenshot 1838855, Bild 1; PROJEKT_STAND Abschnitt 'Original-Menue'", "offline": true, "grund": "Handbuch/Anleitung, reine Leseansicht"},
+    {"name": "Schlachtsimulator", "reihenfolge": 11, "quelle": "Screenshot 1838855, Bild 1; PROJEKT_STAND Abschnitt 'Original-Menue'", "offline": true, "grund": "Kampfsimulator rechnet lokal, kein Netz noetig"},
+    {"name": "Forum", "reihenfolge": 12, "quelle": "Screenshot 1838855, Bild 1; PROJEKT_STAND Abschnitt 'Original-Menue'", "offline": false, "grund": "Netzfunktion (Mehrspieler-Forum) - im Einzelspieler-Remake NICHT enthalten, nur dokumentiert"},
+    {"name": "Chat", "reihenfolge": 13, "quelle": "Screenshot 1838855, Bild 1; PROJEKT_STAND Abschnitt 'Original-Menue'", "offline": false, "grund": "Netzfunktion (Echtzeit-Chat) - im Einzelspieler-Remake NICHT enthalten, nur dokumentiert"},
+    {"name": "Spieler werben", "reihenfolge": 14, "quelle": "Screenshot 1838855, Bild 1; PROJEKT_STAND Abschnitt 'Original-Menue'", "offline": false, "grund": "Netzfunktion (Spieler anwerben) - im Einzelspieler-Remake NICHT enthalten, nur dokumentiert"},
+    {"name": "Logout", "reihenfolge": 15, "quelle": "Screenshot 1838855, Bild 1; PROJEKT_STAND Abschnitt 'Original-Menue'", "offline": false, "grund": "Netzfunktion (Abmelden vom Server) - im Einzelspieler-Remake NICHT enthalten, nur dokumentiert"}
+  ]
+}

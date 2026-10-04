@@ -27,9 +27,10 @@ Vorgaben aus der Sitzung vom 04.10.2026:
 - **Nach jedem groben Schritt eine Zeile ins Entwicklungsprotokoll** (`docs/ENTWICKLUNGSPROTOKOLL.md`):
   Zeit, Schritt, Ergebnis, Beleg (Prüfzahl/Commit). Nur anhängen, Fehler mit hinein — Daniel
   schreibt die Entstehung des Spiels mit.
-- **Unteragenten arbeiten an eigenen Dateien und haben ein Kommunikationsbrett** (`docs/BOARD.md`):
-  vorher lesen, Dateien beanspruchen, danach Ergebnis mit echten Zahlen eintragen. Aufteilung und
-  Modellwahl sind in `docs/AGENTEN_PLAN.md` vorgeschrieben (Daniels Vorgabe vom 04.10.2026).
+- **Unteragenten arbeiten nur an eigenen Dateien und führen kein eigenes Brett** (Vorgabe Daniel,
+  04.10.2026): sie bauen neue Dateien, prüfen sie selbst und melden ihr Ergebnis im
+  Abschlussbericht. Der **Koordinator** prüft nach und trägt in `docs/BOARD.md` ein. Aufteilung und
+  Modellwahl stehen in `docs/AGENTEN_PLAN.md`.
 - **Ordnerstruktur aufgeräumt halten** — Regeln in `docs/ORDNUNG.md`.
 - **Kein teuer erarbeitetes Modellergebnis darf verloren gehen** (Abschnitt 4).
 - Wenn das Kontextfenster voll wird: **Daniel warnen** und diese Übergabe aktualisieren.
@@ -38,11 +39,11 @@ Vorgaben aus der Sitzung vom 04.10.2026:
 
 ```
 Lies D:/Arbeiten/Nebelseetal_Remake/docs/PROJEKT_STAND.md und übernimm das laufende Ziel aus
-Abschnitt 0. Lies dann docs/AGENTEN_PLAN.md (Agentenaufteilung, Modellwahl, Postfach-Brett) und
+Abschnitt 0. Lies dann docs/AGENTEN_PLAN.md (Agentenaufteilung, Modellwahl) und
 docs/FRAGEN_FUER_MORGEN.md (die offenen Fragen an Daniel). Arbeite nach Abschnitt 6 weiter —
 nächster Schritt: die fertigen Module (Waren, Kampf, Aufträge, Portal, Punkte, Speichern, Bots)
 über src/spielschicht.py in main.py einhängen, dann die .exe neu bauen. Prüfe jede Zahl selbst
-nach: `run_tests.bat`. Vor der Arbeit `python tools/brett.py lesen`.
+nach: `run_tests.bat`.
 ```
 
 ---
@@ -114,7 +115,7 @@ und Logos (32 Bilddateien in `docs/original/karten/`), die Common-Crawl-Seitenru
 | **Auskunft** | Reiter „Chat" antwortet aus den Spieldaten — ohne Netz, ohne Schlüssel | `src/berater.py`, 65 Prüfungen |
 | **Karten** | 5 Kartentypen mit eigenen Vorteilen; 2 Mustervorlagen | `docs/MUSTERVORLAGEN.md` |
 | **Tor & Auslieferung** (Schritt 8+9) | **Passworttor** (PBKDF2, Erststart setzt selbst, Wartezeit nach Fehlversuchen) und die **`.exe`** — gebaut mit PyInstaller, Einzeldatei ohne Konsole, Symbol mit 6 Größen; Start aus einem Pfad mit Leerzeichen belegt | `src/tor.py` + 61 Prüfungen, `tools/build_exe.py`, Startlauf 04.10. 22:42 |
-| **Sechs neue Module** (Kinder-Arbeit, je eigene Prüfdatei) | W4b-6 `forschung_wirkung` (94) · W3 `werkstatt` (118) · W5-2 `portalraum` (69) · W6 `punkte` (76) · W2b `kampfbericht` (108) · dazu `tools/brett.py` (Brett der Kinder, nebenläufigkeitssicher) | 465 Prüfungen grün |
+| **Sechs neue Module** (Kinder-Arbeit, je eigene Prüfdatei) | W4b-6 `forschung_wirkung` (94) · W3 `werkstatt` (118) · W5-2 `portalraum` (69) · W6 `punkte` (76) · W2b `kampfbericht` (108) | 465 Prüfungen grün |
 
 ### Neu gefundene Originalwerte (wichtig!)
 
@@ -193,7 +194,7 @@ verloren gegangen (die Kartenanalyse und die Siedlungsvorlage).
 | ~~Die 20 Originalgebäude wirken nur als Anzeige~~ | **erledigt am 04.10.2026 (W4b-5)** — Haus, Bibliothek, die drei Ausbildungsstätten und der Wall wirken jetzt aus den bebauten Feldern | — |
 | ~~Haus und Bibliothek gibt es doppelt (global *und* auf der Karte)~~ | **erledigt mit W4b-5** — die fünf erfundenen globalen Gebäude (Haus, Bibliothek, Kaserne, Wachturm, Portal) sind ersatzlos entfallen; `main.BUILDINGS` ist leer | — |
 | ~~Forschung wirkt nur auf Holz, Stein, Nahrung~~ | **erledigt am 04.10.2026 (W4b-6)** — `bonus_system.get_production_multiplier` liefert die belegten Faktoren für **alle neun** Rohstoffe; im Spiel stehen jetzt die **21 Originalforschungen** statt 18 erfundener Gebiete | — |
-| **Fertig gebaut, aber noch nicht in der Oberfläche** (Stand 23:12) | die Module sind geprüft grün, aber `main.py` ruft sie noch nicht auf: W3 Waren/Werkstätten, W2b Kampfbericht, W6 Punkte/Sieg-Niederlage, W5-2 Portalraum, W5 Bot-Kern. **Das Einhängen ist der nächste Schritt** (Fachschicht + Oberfläche). **Noch nicht gebaut:** W8 robustes Speichern, WA Aufträge, W7 Menü-Vergleich — ihre Kinder wurden nach einem Abbruch neu gestartet | Einhängen |
+| **Fertig gebaut, aber noch nicht in der Oberfläche** (Stand 23:20) | die Module sind geprüft grün, aber `main.py` ruft sie noch nicht auf: W3 Waren/Werkstätten, W2b Kampfbericht, W6 Punkte, W5-2 Portalraum, W5 Bot-Kern, **W8 robustes Speichern (95)**, **W7 Menü-Vergleich (64)**. **Das Einhängen ist der nächste Schritt** (Fachschicht + Oberfläche). **Noch nicht gebaut:** WA Aufträge (Kind arbeitet) | Einhängen |
 | **Forschung im Spiel steigt SOFORT** (neu entdeckt mit W4b-5) | `src/forschung.py` (Dauer = Stufe² Stunden, Stufe steigt erst nach Ablauf) ist fertig, aber **nicht eingehängt**: `_start_research` zieht die Kosten und erhöht die Stufe im selben Klick. Die Bibliothekspflicht greift jetzt — die Wartezeit fehlt | Einhängen (mit der Fachschicht) |
 | **Wallstufen wirken noch nicht im Kampf** | die Schwellenwerte sind abrufbar (`gebaeude_wirkung.wall_schwelle`, `kampfbericht.vorrunde`), aber es gibt noch keinen Angriff aus der Oberfläche | Einhängen |
 | 17 Waren als Emoji statt Handwerk | das Werkstatt-Modul rechnet Warteschlangen richtig — es erscheint nur noch nicht im Fenster | Einhängen |
@@ -256,10 +257,13 @@ verloren gegangen (die Kartenanalyse und die Siedlungsvorlage).
    Bericht) mit einer Angriffs-Schaltfläche verbinden und den Bericht in die Nachrichten legen.
 10. **W3 — Waren im Fenster**: `src/werkstatt.py` in einer Ansicht (Warteschlangen, parallele
     Werkstätten) sichtbar machen.
-11. **W8 — robustes Speichern**: `src/speichern.py` ist **noch nicht gebaut** (Kind läuft) — danach
-    statt des direkten Schreibens in `main.py` verwenden.
-12. **W7 — Oberfläche**: das Vergleichsmodul (Kind läuft) liefert die Abweichungsliste; danach die
-    Menüordnung nach der belegten Liste nachbauen (Netz-Einträge bleiben draußen).
+11. **W8 — robustes Speichern**: `src/speichern.py` + `tests/test_speichern_robust.py` sind **fertig und
+    von mir nachgerechnet** (95 grün, 5 ehrliche Befunde: keine Dateisperre gegen zwei Schreiber,
+    Klartext, kein Verzeichnis-Sync). Jetzt **in `main.py` einhängen** (statt des direkten Schreibens).
+12. **W7 — Oberfläche**: `src/oberflaeche_original.py` + `data/menue_original.json` + Prüfdatei sind
+    **fertig und nachgerechnet** (64 grün; einen echten Fehler im Kind-Test selbst gefunden und
+    behoben — es suchte das Wort „tkinter" auch in der Beschreibung). Danach die Menüordnung nach der
+    belegten Liste nachbauen (Netz-Einträge bleiben draußen).
 13. **W9 — Auslieferung**: `.exe` **neu bauen** (`tools/build_exe.py`) und erneut startprüfen.
 14. **Karten und Weltdaten sichern**: an jedem Paketende `python tools/protokoll_sichern.py --protokoll`.
 
@@ -341,7 +345,7 @@ nachzulesen im Skill `kosten-schutzregel` („laufende Ausnahme"). Außerhalb di
 |---|---|
 | `docs/PROJEKT_STAND.md` | dieses Dokument — Wiederaufnahme ohne Chatverlauf |
 | `docs/AGENTEN_PLAN.md` | **wie die Sitzung ihre Agenten aufteilt und welches Modell wann** — inklusive Auftragsvorlage zum Kopieren |
-| `docs/BOARD.md` | **Kommunikationsbrett der Unteragenten** — Ansprüche, Ergebnisse, Meldungen |
+| `docs/BOARD.md` | **Tagebuch des Koordinators für Daniel** — was die Kinder gemeldet haben. Kein Brett der Kinder (Vorgabe Daniel 04.10.2026) |
 | `docs/LEHREN.md` | **ehrliche Nachlese** der Sitzung: 13 Fehler, was gut lief, was dauerhaft gilt |
 | `docs/ENTWICKLUNGSPROTOKOLL.md` | **laufendes Protokoll** der groben Arbeitsschritte **mit Kosten** (Daniel schreibt die Entstehung mit) — nach jedem Schritt fortschreiben |
 | `docs/ORDNUNG.md` | was wohin gehört |

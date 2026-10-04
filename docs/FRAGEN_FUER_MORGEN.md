@@ -48,12 +48,13 @@ geprüft. Offen ist vor allem **ein** Schritt: diese Bausteine in die Oberfläch
 - **Passworttor** (`src/tor.py`, 61 Prüfungen).
 - **W4b-6**: die 21 Originalforschungen sind im Spiel, und Forschung wirkt jetzt auf **alle neun**
   Rohstoffe (belegte Prozentsätze statt erfundener).
-- **Sechs Kinder-Module**, jedes mit eigener Prüfdatei, zusammen **465 grüne Prüfungen**:
-  `forschung_wirkung` · `werkstatt` (Waren und Werkstätten) · `portalraum` (20 Dimensionen) ·
-  `punkte` (Punkte, Ruf, Götterschutz) · `kampfbericht` (Vorrunde, Mauerschaden, Beute, Bericht) ·
-  `tools/brett.py` (nebenläufigkeitssicheres Brett der Unteragenten).
-- **Weitere Kinder laufen noch** (Aufträge WA, Menü-Vergleich W7, robustes Speichern W8,
-  Fachschicht, Bot-Kern) — ihre Ergebnisse kommen als Meldung.
+- **Zehn Kinder-Module**, jedes mit eigener Prüfdatei, zusammen **958 grüne Prüfungen**:
+  `forschung_wirkung` 94 · `werkstatt` 118 · `portalraum` 69 · `punkte` 76 · `kampfbericht` 108 ·
+  `spielschicht` 133 · `botkern` 90 · `speichern` 95 · `oberflaeche_original` 64 · `auftraege` 111.
+  **Jedes von mir selbst nachgerechnet**, nicht geglaubt (und im Menü-Modul dabei ein echter Fehler
+  im Kind-Test gefunden und behoben).
+- **Kein Brett der Kinder mehr** (deine Anweisung, 04.10.2026): sie melden ihr Ergebnis im
+  Abschlussbericht, ich führe zusammen. `docs/BOARD.md` bleibt als Tagebuch für dich.
 - Das **Entwicklungsprotokoll** ist fortgeschrieben (Abschnitte G, H, I) samt gemessenen Kosten.
 
 ## 4. Was noch fehlt bis „fertig"

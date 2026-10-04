@@ -1,18 +1,22 @@
-# Kommunikationsbrett
+# Tagebuch des Koordinators
 
-**Zweck:** Unteragenten arbeiten an getrennten Dateien, müssen aber voneinander wissen. Dieses Brett
-ist der einzige gemeinsame Ort — es liegt in Git, also sieht es jede Sitzung und jeder Agent.
+**Zweck:** Dies ist **Daniels** Brett. Der Hauptagent (Koordinator) trägt hier zusammen, was die
+Unteragenten geliefert haben — mit **echten** Prüfzahlen. Es ist **kein** Brett der Kinder mehr:
+die Kinder sprechen nicht untereinander und führen kein eigenes Brett (Vorgabe Daniel, 04.10.2026).
+
+**Warum kein Brett der Kinder:** Ein Kinder-Brett ist eine zweite Wahrheit — ein Kind kann dort
+„fertig" melden, während seine eigene Prüfdatei rot ist (genau so passiert am 04.10.2026:
+`oberflaeche_original` 63 grün / 1 rot; gefunden hat es der Koordinator, nicht das Brett).
+Verbindlich sind allein `run_tests.bat`, die Commits und die Übergabe.
 
 **Regeln (kurz):**
 
-1. **Vor dem Arbeiten lesen.** Wer hier Dateien beansprucht hat, ist für andere tabu.
-2. **Beanspruchen, bevor geschrieben wird** — eine Zeile in „Laufende Ansprüche".
-3. **Nach dem Arbeiten Ergebnis eintragen** — mit **echten** Zahlen aus der eigenen Prüfung.
-4. **Nur anhängen.** Fremde Einträge niemals ändern oder löschen.
-5. **Bei Kollision nicht selbst lösen**: hier melden und den Hauptagenten entscheiden lassen.
-6. Kurz halten: drei Zeilen reichen. Das Brett ist kein Tagebuch.
+1. Der Koordinator trägt ein, was er **selbst nachgeprüft** hat.
+2. Jede Zeile braucht eine echte Prüfzahl oder einen Commit.
+3. **Nur anhängen.** Fremde Einträge werden nicht geändert.
+4. Kurz halten: zwei Zeilen reichen.
 
-Format einer Zeile: `Zeit | Agent | Dateien | Ziel/Ergebnis | Prüfung | offen`
+Format einer Zeile: `Zeit | Agent | Dateien | Ergebnis | Prüfung`
 
 ---
 

@@ -58,28 +58,17 @@ gemessen den gesamten Prüflauf spürbar verlangsamt und den Rechner ausgelastet
    Differenz nehmen), DeepSeek `/user/balance` vorher/nachher.
 6. **Antwort sofort sichern**: `docs/audits/` (Zwischenspeicher wird nach 24 h geleert!).
 
-## 4. Das Kommunikationsbrett
+## 4. Kein Brett der Kinder
 
-Es gibt **zwei** Fassungen desselben Bretts — eine für Menschen, eine für die Kinder:
+Die Kinder sprechen **nicht** untereinander und führen **kein eigenes Brett**. Der Koordinator
+(Hauptagent) führt zusammen: er verteilt die Aufträge, liest die Prüfzahlen, prüft sie nach und
+trägt das Ergebnis in `docs/BOARD.md` (Tagebuch für Daniel) sowie in die Übergabe ein.
 
-| Fassung | Wo | Wozu |
-|---|---|---|
-| **Tagebuch (menschlich)** | `docs/BOARD.md` | Der Hauptagent trägt hier zusammen, was die Kinder gemeldet haben. Daniel liest hier. |
-| **Postfach (Maschine)** | `board/` + `tools/brett.py` | Jedes Kind liest und schreibt hier. **Ein Eintrag = eine Datei** — damit überschreiben sich zwei Kinder nie (dieselbe Falle wie zwei Kinder in derselben Quelldatei). |
-
-Die Befehle (jedes Kind benutzt sie selbst):
-
-```bash
-python tools/brett.py lesen        # erst lesen: wer hat was belegt, was ist frei
-python tools/brett.py belegen --agent kind-a --dateien "src/a.py,tests/test_a.py" --text "baue Modul a"
-python tools/brett.py melden  --agent kind-a --text "fertig, 42 Pruefungen gruen" --pruefung "42/0"
-python tools/brett.py freigeben --agent kind-a --text "Dateien wieder frei"
-python tools/brett.py luecken      # was noch belegt und nicht freigegeben ist
-```
-
-Regeln: vor der Arbeit lesen, Dateien belegen, danach melden und freigeben. Nur anhängen —
-Einträge werden nie umgeschrieben. Kollisionen meldet das Kind hier, es löst sie nicht selbst.
-Der Hauptagent trägt die Meldungen gesammelt in `docs/BOARD.md` nach.
+Grund (belegt am 04.10.2026): Ein Brett der Kinder wird zur **zweiten Wahrheit** — ein Kind kann
+dort „fertig" melden, während seine Prüfdatei rot ist (genau so passiert: `oberflaeche_original`
+63 grün / 1 rot, gefunden hat es der Koordinator, nicht das Brett). Verbindlich sind allein
+`run_tests.bat`, die Commits und die Übergabe. Kollisionen verhindert die Auftragsregel
+„nur neue Dateien, nichts Bestehendes anfassen" — nicht ein Brett.
 
 ## 5. Auftragsvorlage für ein Kind (kopieren und anpassen)
 
@@ -88,7 +77,6 @@ Goal (one sentence, what must exist when done).
 
 Context:
 - Project path: D:/Arbeiten/Nebelseetal_Remake (Windows, bash/MSYS; native tools need C:/... paths).
-- Read first: `python tools/brett.py lesen` (Postfach: wer hat was belegt?) und `python tools/brett.py luecken`.
 - Then read the source files you must obey (never change them).
 - Sources you may read but NEVER change: <exact paths>.
 - The rule set to obey (original vs proposal): <the belegt facts, verbatim>.
@@ -97,15 +85,12 @@ Context:
 - Write in German (user-facing texts) / plain ASCII in code paths.
 
 Work steps:
-1. `python tools/brett.py belegen --agent <name> --dateien "<deine Dateien>" --text "<kurz>"`.
-2. Bauen. Eigene Pruefdatei schreiben und laufen lassen.
-3. `python tools/brett.py melden --agent <name> --text "<Ergebnis>" --pruefung "<gruen>/<rot>"`.
-4. `python tools/brett.py freigeben --agent <name>`.
+1. Bauen. Eigene Pruefdatei schreiben und laufen lassen.
+2. Ergebnis im Abschlussbericht melden (Dateien, Prüfzahl, was rot war).
 
 Acceptance criteria:
 - <test file> ends with sys.exit(bericht()) and reports at least N checks.
 - Run: python -X utf8 <test file> — report the REAL output.
-- Post your entry with tools/brett.py when done.
 
 Report back (max 15 lines): files created, checks passed/failed, what did not work, what you could
 not verify. Never prettify a red check.
