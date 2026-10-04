@@ -33,9 +33,9 @@
       "name": "Wald",
       "bebaubar": true,
       "haeufigkeit": 18,
-      "farbe": "#2E4A22",
-      "farbe_rand": "#22371A",
-      "_belegt": "Name und Ertraege belegt (Holzfäller Wald 4). Haeufigkeit VORSCHLAG."
+      "farbe": "#3F6B24",
+      "farbe_rand": "#2E4E1A",
+      "_belegt": "Name und Ertraege belegt (Holzfäller Wald 4). Farbe im Rahmen der Original-Farbwelt (Forumslogo-Gruen #5C9E31, dunkel abgesenkt fuer die dunkle Oberflaeche). Haeufigkeit VORSCHLAG."
     },
     {
       "id": "huegel",
@@ -74,6 +74,20 @@
       "_belegt": "BEWIESEN: 'Sümpfe können nicht bebaut werden' (Handbuch S. 11). Haeufigkeit VORSCHLAG."
     }
   ],
+  "_farbwelt_original": {
+    "_hinweis": "Die Farben des Originals, aus den vier erhaltenen Originalbildern der alten Website abgelesen (astra-Analyse 04.10.2026, Rohantwort in docs/audits/astra_wallpaper_antwort.txt). Werte sind angenaehert, nicht gemessen - das ist in der Quelle ausdruecklich vermerkt.",
+    "spieloberflaeche": {
+      "hintergrund": "#0A0A0A bis #1A1A1A",
+      "rahmen": "#2F2F2F bis #4A4A4A",
+      "text": "#E8E8E8",
+      "bronze_gold": "#A9793F bis #C49A5A",
+      "ueberschriften_rotbraun": "#8B3A2A",
+      "navigation_dunkelgruen": "#2E4A2E"
+    },
+    "titelbild": {"himmel": "#E67E22", "gelb": "#FFC300", "schrift": "#FFF44F", "rot": "#D32F2F"},
+    "forumlogo": {"gelb": "#E6C84A", "gruen": "#5C9E31", "braun": "#6B4F2A", "orange": "#D9822B", "rot": "#B22222", "nebel": "#E6E6D8"},
+    "banner": {"blauviolett": "#0B0B2A bis #1B1B3A", "gold": "#E0A030", "grau": "#777777"}
+  },
   "kartentypen": {
     "_hinweis": "PRODUKTENTSCHEIDUNG Daniel (04.10.2026): 'es muss trotzdem mehrere karten geben mit verschiedenen vorteilen'. Die Gewichte sind Vorschlaege; die genannten Vorteile folgen aus den belegten Ertraegen der Gebaeude. Jede Karte muss die Mindestbesatz-Regel erfuellen, damit sie spielbar ist.",
     "listen": [
