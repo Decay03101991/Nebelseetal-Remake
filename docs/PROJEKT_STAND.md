@@ -38,10 +38,11 @@ Vorgaben aus der Sitzung vom 04.10.2026:
 
 ```
 Lies D:/Arbeiten/Nebelseetal_Remake/docs/PROJEKT_STAND.md und übernimm das laufende Ziel aus
-Abschnitt 0. Lies dann docs/AGENTEN_PLAN.md (Agentenaufteilung und Modellwahl) und docs/BOARD.md
-(das Kommunikationsbrett der Unteragenten). Arbeite nach Abschnitt 6 weiter — nächster Schritt:
-W4b-6, der Produktionsfaktor für alle neun Rohstoffe (W4b-5 ist erledigt). Prüfe jede Zahl selbst
-nach, statt Meldungen zu glauben.
+Abschnitt 0. Lies dann docs/AGENTEN_PLAN.md (Agentenaufteilung, Modellwahl, Postfach-Brett) und
+docs/FRAGEN_FUER_MORGEN.md (die offenen Fragen an Daniel). Arbeite nach Abschnitt 6 weiter —
+nächster Schritt: die fertigen Module (Waren, Kampf, Aufträge, Portal, Punkte, Speichern, Bots)
+über src/spielschicht.py in main.py einhängen, dann die .exe neu bauen. Prüfe jede Zahl selbst
+nach: `run_tests.bat`. Vor der Arbeit `python tools/brett.py lesen`.
 ```
 
 ---
