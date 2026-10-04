@@ -92,6 +92,26 @@ Projektordner genau **eine** startbare Fassung steht. Die Belege der Originalrec
 | 21:41 | **Doppelte JSON-Schlüssel geprüft** | Falle real passiert (jaeger, haus) — jetzt in `tests/test_spieldaten.py` abgesichert |
 | 21:50 | **W4b-4: Kartenerträge angebunden** | bebaute Felder liefern wirklich Rohstoffe; ein echter Fehler dabei gefunden (Kennungen „Holz" gegen „holz") → **526 Prüfungen, 0 Fehler über elf Dateien** |
 
+### G. W4b-5: die 20 Originalgebäude wirken (22:05–22:15)
+
+| Zeit | Schritt | Ergebnis / Beleg |
+|---|---|---|
+| 22:05 | **W4b-5 begonnen** | Übergabe, Agentenplan, Brett und dieses Protokoll gelesen; Ist-Stand gemessen: **526 Prüfungen grün** über elf Dateien |
+| 22:06 | **Kosten vorher gemessen** | Tagessumme **8,81 EUR** (9,89 USD) — über dem normalen 4-EUR-Limit, aber für diesen Auftrag von Daniel ausgesetzt (Skill `kosten-schutzregel`, laufende Ausnahme). Kein teures Modell nötig |
+| 22:08 | **Wirkungsmodul gebaut** | `src/gebaeude_wirkung.py` + `data/gebaeude_wirkung.json`: Bevölkerung (10 Siedler je Siedlung, +5 je Haus, 1 Siedler/Stunde, Heilkunde +10 % je Stufe), Bibliothekspflicht und Standortregel, die drei Ausbildungsstätten (Zuordnung aus `data/units.json`, kein Wert geraten), Wallstufen mit Schwellenwerten und Kriegspunkten |
+| 22:10 | **ins Spiel gehängt** | `main.BUILDINGS` ist leer: Haus hebt die Siedlergrenze, Bibliothek schaltet Forschung frei, Ausbildung nur mit der zuständigen Stätte (Stufe = Tempo), Verteidigungsbonus am Wall statt am erfundenen Wachturm, Ausbauen auf der Karte (Wall bis 10); `max_je_siedlung` wird durchgesetzt |
+| 22:11 | **erster Lauf rot — und das war richtig so** | `test_siedlungskarte` schlug an, weil ich den Gebäudeschlüssel beim Bauen normalisiert hatte; die Prüfung hielt zu Recht fest, dass `bauten` den übergebenen Schlüssel speichert. **Verhalten zurückgenommen, nicht die Prüfung aufgeweicht.** Dazu zwei eigene Testfehler (Krieger kostet Gold und Pferde; ohne belegte Ausbildungsdauer bleibt die Zeit bei 0,5 Minuten) — beide ehrlich gemacht statt weggerechnet |
+| 22:12 | **grün** | `run_tests.bat`: **630 Prüfungen, 0 Fehler, 1 Befund** über **zwölf** Dateien (neu: `tests/test_gebaeude_wirkung.py`, 103 Prüfungen). Commit `a158175` |
+| 22:13 | **echter Start** | `python src/main.py` im Fenster: Fenstertitel „Nebelseetal Remake" (PID 19232), danach beendet; keine Dateileiche im Projektordner, keine zweite Fassung |
+| 22:15 | **Kosten nachher gemessen** | Tagessumme **8,87 EUR** (9,96 USD) → dieser Schritt ≈ **0,06 EUR** |
+
+**Drei ehrliche Nebenbefunde beim Nachprüfen** (stehen in `docs/PROJEKT_STAND.md` Abschnitt 5/6):
+der erfundene Portal-Bau ist ersatzlos entfallen (weitere Karten schaltet jetzt die Forschung
+„Vermessung" frei — Entscheidung für Daniel); die Originalregel „höchstens eines je Siedlung" gilt
+jetzt; und beim Nachsehen fiel auf, dass `src/forschung.py` und `src/welt.py` zwar fertig geprüft,
+im Spiel aber **nicht eingehängt** sind — die Forschung steigt noch im selben Klick, und im Portal
+steckt noch das alte `MAPS`-Modell.
+
 ---
 
 ## Kosten
@@ -122,6 +142,21 @@ kostenlos.
 entstehen, bei aufgebrauchtem Guthaben brechen die Aufrufe ab.
 **DeepSeek:** 3,32 USD (aus der Übergabe; **nicht nachgeprüft**). Davon muss ein Rest bleiben.
 
+### Kosten dieses Schritts (W4b-5, 04.10.2026)
+
+| Schritt | Modell | Kosten |
+|---|---|---|
+| W4b-5 (Wirkungsmodul, Einhängen in `main.py`, 103 neue Prüfungen, Doku) | `deepseek-v4-flash` (Standard) | **≈ 0,06 EUR** — gemessen als Differenz der Tagessumme |
+
+**Wie gemessen:** `tageskosten_check.py --json` vor dem Schritt (8,81 EUR) und danach (8,87 EUR);
+die Differenz enthält jede Modellnutzung im selben Zeitfenster (auch andere Profile). Kein teures
+Modell im Einsatz: `gpt-6-astra` war nicht nötig (keine Bilddeutung — alle Zahlen stehen im Handbuch
+und in den Datendateien), `deepseek-v4-pro` ebenfalls nicht.
+**Zur 4-EUR-Regel:** der Tag liegt mit 8,87 EUR über dem normalen Limit; für den Auftrag
+„Nebelseetal Remake so gut wie möglich" hat Daniel die Regel ausgesetzt (Skill `kosten-schutzregel`,
+laufende Ausnahme). Auto-Recharge ist aus — Schulden sind nicht möglich.
+**DeepSeek-Guthaben:** nicht nachgeprüft (der Schlüssel liegt nur in Hermes, nicht in der Shell).
+
 ### Die teuerste Einzelheit (wichtig fürs nächste Mal)
 
 Bei `gpt-6-astra` sind die **Cache-Schreibkosten** der größte Posten: **3,56 USD gegen 0,94 USD
@@ -143,3 +178,18 @@ dem Tageswert der Ausgaben-API, der in Schüben aktualisiert und deshalb unbrauc
 - **Ziel noch offen:** es gibt noch keine `.exe` mit Passworttor (Paket W9).
 - **Nächster Schritt:** W4b-5 — die 20 Originalgebäude samt ihren Wirkungen ins Spiel holen.
 - Die vollständige Historie: `git log --oneline` (40 Commits).
+
+---
+
+## Stand nach W4b-5 (04.10.2026, 22:15)
+
+- **630 Prüfungen, 0 Fehler, 1 Befund** über **zwölf** Dateien (`run_tests.bat`), Commit `a158175`.
+  Der Befund ist bekannt und ehrlich: das Handbuch nennt keine Ausbildungsdauer, deshalb senkt die
+  Stufe einer Ausbildungsstätte noch nichts messbar.
+- **Ziel weiterhin offen:** es gibt noch keine `.exe` mit Passworttor (Paket W9).
+- **Nächster Schritt:** W4b-6 — der Produktionsfaktor für alle neun Rohstoffe (gehört mit den
+  21 Originalforschungen zusammen, weil die Faktoren an deren Namen hängen).
+- **Neu entdeckt und als eigener Schritt vermerkt:** `src/forschung.py` und `src/welt.py` sind fertig
+  geprüft, aber im Spiel **nicht eingehängt** — die Forschungsstufe steigt noch im selben Klick, und
+  im Portal steckt noch das alte `MAPS`-Modell.
+- Die vollständige Historie: `git log --oneline`.

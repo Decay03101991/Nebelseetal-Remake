@@ -24,6 +24,7 @@ Format einer Zeile: `Zeit | Agent | Dateien | Ziel/Ergebnis | Prüfung | offen`
 
 | Zeit | Agent | Dateien | Ergebnis | Prüfung |
 |---|---|---|---|---|
+| 22:12 | Hauptagent | `src/gebaeude_wirkung.py` (neu), `data/gebaeude_wirkung.json` (neu), `src/main.py`, `src/gelaende.py`, `data/buildings.json`, `tests/test_gebaeude_wirkung.py` (neu), `tests/test_baseline.py`, `run_tests.bat` | **W4b-5**: die 20 Originalgebäude wirken aus den bebauten Feldern — Haus/Bibliothek/Ausbildungsstätten/Wall; die fünf erfundenen globalen Gebäude entfallen | **103 grün** (neu), Gesamtlauf **630, 0 Fehler, 1 Befund**, Commit `a158175` |
 | 21:17 | codewirtschaft | `src/wirtschaft.py`, `tests/test_wirtschaft.py` | Ertrag aus den Siedlungskarten, Kapazität, Textfassung | **42 grün** |
 | 23:05 | Hauptagent | `src/main.py`, `tests/test_ertrag_anbindung.py` | **W4b-4**: Kartenerträge liefern jetzt wirklich — Zeitlauf UND Anzeige aus einer Quelle | **21 grün**, Gesamtlauf 526 |
 | 23:00 | Hauptagent | `data/baupreise.json`, `src/main.py`, `src/berater.py` | die vier BELEGTEN Originalpreise; Siedler kostet Bevölkerung | Gesamtlauf 526 grün |
@@ -37,13 +38,25 @@ Format einer Zeile: `Zeit | Agent | Dateien | Ziel/Ergebnis | Prüfung | offen`
 
 ## Meldungen an den Hauptagenten
 
+- **Zwei fertige Module hängen NICHT im Spiel** (Hauptagent, 22:12): `src/forschung.py` (Dauer =
+  Stufe² Stunden, Stufe steigt erst nach Ablauf) und `src/welt.py` (20 Dimensionen, Portalkosten)
+  sind beide geprüft grün, werden aber vom Fenster nicht benutzt — `_start_research` erhöht die
+  Stufe noch im selben Klick, und im Portal steckt weiter das alte `MAPS`-Modell. Beides steht jetzt
+  als eigener Schritt in `docs/PROJEKT_STAND.md` Abschnitt 5/6 (W4c-Nachtrag, W5-2).
+- **Bibliothek und Ausbildungsstätten: Stufen sind Vorschlag** (Hauptagent, 22:12): belegt ist nur,
+  DASS es Stufen gibt. Eingetragen sind 5 (Wall: die belegten 10) — in `data/gebaeude_wirkung.json`
+  änderbar. Ebenso nicht belegt: die Höhe des Verteidigungsboni (+50 % je Stufe aus `bonus_system`).
+- **Ausbildungsdauer fehlt im Handbuch** (Hauptagent, 22:12): `bonus_system.UNIT_TRAIN_BASE = 0`,
+  daher bleibt die Ausbildungszeit bei 0,5 Minuten stehen und die Stufe der Stätte senkt noch nichts
+  messbar. Ehrlich als Befund gemeldet, nicht als grün verkauft.
 - **Kennungen in Lesefassung** (Hauptagent, 23:05): `wirtschaft.ertrag_gesamt()` liefert die
   Rohstoffe als „Holz“, „Nahrung“ … — das Spiel rechnet mit „holz“. Beim Anbinden unbedingt
   umschreiben (`k.lower()`), sonst schreibt der Zeitlauf stillschweigend **nichts** gut.
 - **Eine Quelle für Rohstoffe** (Hauptagent, 23:05): die 5 rohstofferzeugenden Gebäude sind aus
   `main.BUILDINGS` entfernt (Holzfäller, Steinmetz, Jäger, Schmiede, Markt). Es gibt jetzt genau
   **eine** Produktionsquelle: die bebauten Felder der Siedlungskarten. Wer sie zurückholt, erzeugt
-  doppelten Ertrag.
+  doppelten Ertrag. **Seit W4b-5 ist `main.BUILDINGS` ganz leer** — auch Haus, Bibliothek, Kaserne,
+  Wachturm und Portal sind entfallen; ihre Wirkungen stehen in `src/gebaeude_wirkung.py`.
 - **Doppelte JSON-Schlüssel sind jetzt geprüft** (`tests/test_spieldaten.py`): JSON nimmt still den
   letzten Eintrag. Real passiert in `data/baupreise.json` (jaeger + haus doppelt) — der Test schlug
   mit 8/4 statt 80/50 an. Neue Datendateien sind damit abgesichert.

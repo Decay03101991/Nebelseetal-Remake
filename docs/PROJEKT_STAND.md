@@ -1,6 +1,7 @@
 # Nebelseetal Remake — Projektstand und Übergabe
 
-Stand: **04.10.2026, 22:00**. Diese Fassung ersetzt die vorherige (archiviert unter
+Stand: **04.10.2026, 22:15**. Diese Fassung ersetzt die vorherige (archiviert unter
+`docs/archiv/PROJEKT_STAND_alt_2026-10-04_2200.md`; die Fassung davor unter
 `docs/archiv/PROJEKT_STAND_alt_2026-10-04.md`).
 **Diese Datei ist der Einstiegspunkt.** Jede neue Sitzung liest zuerst hier — nicht die Chat-Historie.
 
@@ -39,8 +40,8 @@ Vorgaben aus der Sitzung vom 04.10.2026:
 Lies D:/Arbeiten/Nebelseetal_Remake/docs/PROJEKT_STAND.md und übernimm das laufende Ziel aus
 Abschnitt 0. Lies dann docs/AGENTEN_PLAN.md (Agentenaufteilung und Modellwahl) und docs/BOARD.md
 (das Kommunikationsbrett der Unteragenten). Arbeite nach Abschnitt 6 weiter — nächster Schritt:
-W4b-5, die 20 Originalgebäude samt ihren Wirkungen ins Spiel holen (W4b-4 ist erledigt). Prüfe
-jede Zahl selbst nach, statt Meldungen zu glauben.
+W4b-6, der Produktionsfaktor für alle neun Rohstoffe (W4b-5 ist erledigt). Prüfe jede Zahl selbst
+nach, statt Meldungen zu glauben.
 ```
 
 ---
@@ -53,9 +54,11 @@ run_tests.bat
 git log --oneline | head -12
 ```
 
-Erwartet: **526 bestanden, 0 Fehler, 0 Befunde** über elf Prüfdateien:
-baseline 39 · spieldaten 52 · kampf 42 · gelaende 81 · siedlungskarte 33 · kartenansicht 40 ·
-berater 66 · wirtschaft 42 · forschung 68 · welt 42 · ertrag_anbindung 21.
+Erwartet: **630 bestanden, 0 Fehler, 1 Befund** über zwölf Prüfdateien:
+baseline 39 · spieldaten 53 · kampf 42 · gelaende 81 · siedlungskarte 33 · kartenansicht 40 ·
+berater 66 · wirtschaft 42 · forschung 68 · welt 42 · ertrag_anbindung 21 · gebaeude_wirkung 103.
+Der eine **Befund** ist ehrlich und bekannt: das Handbuch nennt keine Ausbildungsdauer, deshalb
+kann die Stufe einer Ausbildungsstätte die Dauer noch nicht messbar senken (`bonus_system.UNIT_TRAIN_BASE = 0`).
 
 Grün heißt „nichts ist kaputt und die umgestellten Teile halten sich ans Handbuch" — **nicht**
 „Spiel ist fertig". Was fehlt, steht in Abschnitt 5.
@@ -99,6 +102,7 @@ und Logos (32 Bilddateien in `docs/original/karten/`), die Common-Crawl-Seitenru
 | **W4b-1** Gelände | 7 Geländearten, Erträge je Geländeart, Sümpfe gesperrt | `src/gelaende.py`, 81 Prüfungen |
 | **W4b-2** Siedlungskarte | eigene Karte je Siedlung, **niemals zwei gleiche**; Bauen mit Eignungsanzeige; Abreißen | 33 + 37 Prüfungen, S. 259/283/292/313 |
 | **W4b-3** Wirtschaft | Ertrag aus den bebauten Feldern, Summe über Siedlungen, Forschungsfaktor | `src/wirtschaft.py`, 42 Prüfungen |
+| **W4b-5** Die 20 Originalgebäude | **jede** Wirkung kommt aus den bebauten Feldern: Haus +5 Siedler, Bibliothek schaltet Forschung frei, Kriegerakademie/Diebesgilde/Stellmacher bilden aus, Verteidigungswall mit 10 Stufen; die fünf erfundenen globalen Gebäude sind entfallen | `src/gebaeude_wirkung.py` + `data/gebaeude_wirkung.json`, 103 Prüfungen |
 | **W4c** Forschung | Stufe steigt erst nach Ablauf · Dauer Stufe² Stunden · Kosten verdoppeln · Bibliothek nötig · Abbruch kostet Rohstoffe | `src/forschung.py`, 68 Prüfungen |
 | **W5-1** Weltkarte (Modell) | Limbus mit 20 Dimensionen | `src/welt.py` + `data/welten.json`, 42 Prüfungen |
 | **WA** Aufträge/Bots (Entwurf) | Auftragsarten, Ablauf, Bot-Regeln, Beute, drei Scheiterfälle | `docs/ENTWURF_AUFTRAEGE.md`, Seite für Seite nachgeprüft |
@@ -121,7 +125,16 @@ Zwei unabhängige Quellen stimmen überein. Der Fehler ist überall derselbe: dr
 ist **widerlegt** und in `data/baupreise.json` zu korrigieren.
 
 Weitere belegte Originalregeln (Seiten von 2005):
-- **1 Siedler je Stunde**; Siedlergrenze **5 je Siedlung + 5 je Haus**
+- **1 Siedler je Stunde**; Siedlergrenze **10 je Siedlung + 5 je Haus** (Handbuch 2009 S. 11 wörtlich;
+  die 2005er Fassung nannte 5 — Versionsunterschied). **Seit W4b-5 rechnet das Spiel damit** —
+  vorher wuchs die Bevölkerung mit einem erfundenen Wert von 30 Siedlern je Stunde.
+- **Bibliothek** nur auf Grasland, Steppe oder Nebelsee, eine je Siedlung — seit W4b-5 als
+  Standortregel im Spiel (`data/buildings.json`, Feld `nur_auf`).
+- **Ausbildung:** Kriegerakademie → 9 Kampfeinheiten, Diebesgilde → 6 Kundschafter, Stellmacher →
+  6 Karren + 7 Belagerungswaffen. Das steht je Einheit in `data/units.json` (Feld `gebaeude`);
+  seit W4b-5 bildet das Spiel nur dort aus, wo die Stätte wirklich steht.
+- **Verteidigungswall:** 10 Stufen von Erdwall bis Bollwerk; Schwellenwerte der Vorrunde (Stufe 4
+  Palisade = 160 Schlagkraft, ab Stufe 5 zusätzlich Belagerungswaffen); Kriegspunkte = Stufe hoch drei.
 - Heilkunde: **+10 % Siedlerproduktion je Stufe**
 - Weltkoordinaten **(X, Y, Z)**: X/Y im 20×20-Raster der eigenen Dimension, Z = Dimension.
   Andere Dimensionen kosten viel Mana — erst in der eigenen Dimension suchen.
@@ -170,13 +183,17 @@ verloren gegangen (die Kartenanalyse und die Siedlungsvorlage).
 | fehlt | Folge | Paket |
 |---|---|---|
 | ~~Kartenerträge an die Rohstoffproduktion angebunden~~ | **erledigt am 04.10.2026 (W4b-4)** — bebaute Felder liefern jetzt wirklich | — |
-| 5 Wirkungsgebäude global statt 20 Originalgebäude | die 20 stehen auf der Karte, aber Kaserne/Turm/Portal/Bibliothek/Haus haben ihre Wirkung nur global | W4b-5 |
-| Haus und Bibliothek gibt es doppelt (global *und* auf der Karte) | die Kartenfassung hat noch keine Wirkung (+5 Bevölkerung / Forschung) | W4b-5 |
+| ~~Die 20 Originalgebäude wirken nur als Anzeige~~ | **erledigt am 04.10.2026 (W4b-5)** — Haus, Bibliothek, die drei Ausbildungsstätten und der Wall wirken jetzt aus den bebauten Feldern | — |
+| ~~Haus und Bibliothek gibt es doppelt (global *und* auf der Karte)~~ | **erledigt mit W4b-5** — die fünf erfundenen globalen Gebäude (Haus, Bibliothek, Kaserne, Wachturm, Portal) sind ersatzlos entfallen; `main.BUILDINGS` ist leer | — |
 | Forschung wirkt nur auf Holz, Stein, Nahrung | Metall, Leder, Mana, Gold, Wolle, Pferde bleiben bei Faktor 1,0 | W4b-6 |
-| 17 Waren als Emoji statt Handwerk | Handwerk fehlt | W3 |
+| **Forschung im Spiel steigt SOFORT** (neu entdeckt mit W4b-5) | `src/forschung.py` (Dauer = Stufe² Stunden, Stufe steigt erst nach Ablauf) ist fertig, aber **nicht eingehängt**: `_start_research` zieht die Kosten und erhöht die Stufe im selben Klick. Die Bibliothekspflicht greift jetzt — die Wartezeit fehlt | W4c-Nachtrag |
+| **Die 21 Originalforschungen fehlen im Spiel** (neu entdeckt) | im Spiel stehen noch die 18 erfundenen Gebiete; dadurch greift die belegte Bauregel „Baukunst nötig" nicht, und die Forschungsvoraussetzungen der Einheiten (z. B. Kriegskunst für den Kämpfer) bleiben ungeprüft | Forschung ins Spiel |
+| **Ausbildungsdauer fehlt** (bekannter Befund) | das Handbuch nennt keine Dauer (`UNIT_TRAIN_BASE = 0`), deshalb bleibt die Ausbildungszeit bei 0,5 Minuten stehen und die Stufe der Stätte senkt noch nichts messbar | offene Entscheidung bei Daniel |
+| **Wallstufen wirken noch nicht im Kampf** | die Schwellenwerte sind abrufbar (`gebaeude_wirkung.wall_schwelle`), aber die Vorrunde der Schlacht ist noch nicht aus dem Spiel auslösbar | W2b |
+| 17 Waren als Emoji statt Handwerk | Werkstätten (Schmiede, Bogenbauer, Nähstube) stellen noch keine Waren her | W3 |
 | Auftragssystem nur als Entwurf | keine Missionen auslösbar | WA |
 | Kampf nur als Modul | nicht aus dem Spiel auslösbar | W2b |
-| Weltkarte nur als Rechenmodell | keine Portalansicht im Fenster | W5-2 |
+| Weltkarte nur als Rechenmodell | `src/welt.py` (20 Dimensionen) ist fertig, im Fenster steckt aber noch das alte `MAPS`-Modell; keine Portalansicht | W5-2 |
 | Oberfläche weicht vom Original ab | Original-Menü belegt, Reihenfolge fehlt | W7 |
 | kein Passworttor, keine `.exe` | **das Ziel ist noch nicht erreicht** | W9 |
 
@@ -190,24 +207,54 @@ verloren gegangen (die Kartenanalyse und die Siedlungsvorlage).
    nichts gut; jetzt wird an der Grenze umgeschrieben. (b) die fünf rohstofferzeugenden Gebäude
    (Holzfäller, Steinmetz, Jäger, Schmiede, Markt) sind aus der globalen Liste entfernt — sonst
    hätten beide Systeme denselben Rohstoff erzeugt.
-   *Achtung — vom Wirtschaftsmodul gemeldet und offen:* `bonus_system.get_production_multiplier`
-   erhöht nur **Holz, Stein, Nahrung** (und das alte „eisen"). **Metall, Leder, Mana, Gold, Wolle und
-   Pferde bleiben bei Faktor 1,0** — Forschung wirkt dort nicht. Das ist eine Lücke im Bonus-System,
-   nicht im neuen Modul; beim Anbinden entscheiden, ob sie geschlossen wird.
-2. **Baupreise korrigieren** in `data/baupreise.json`: die vier belegten Werte eintragen
-   (1 Siedler statt 1 Nahrung), den widerlegten Vorschlag kennzeichnen.
-3. **Weltkarte auf das belegte Modell umstellen**: 20 Dimensionen · je 20×20 Felder · (X, Y, Z) ·
-   Ritual 5.000 Mana aus einer Siedlung · eigene Welt grün, fremde rot.
-4. **W4b-5 — die 20 Originalgebäude** ins Spiel (statt 10), Preise wie belegt.
-5. **WA — Auftragssystem** nach `docs/ENTWURF_AUFTRAEGE.md`.
-6. **W2b — Kampf ins Spiel** (auslösbar, Bericht in den Nachrichten).
-7. **W7 — Oberfläche** nach der belegten Menüliste.
-8. **W9 — Auslieferung** als `.exe` mit Passworttor (`docs/WEG_ZUR_EXE.md`).
+2. ~~**Baupreise korrigieren**~~ **erledigt am 04.10.2026 (Commit `4b84544`).**
+3. ~~**W4b-5 — die 20 Originalgebäude samt Wirkungen**~~ **erledigt am 04.10.2026 (Commit `a158175`).**
+   Jede Wirkung kommt jetzt aus den bebauten Feldern der Siedlungskarten: Haus +5 Siedler je
+   Siedlung, 1 neuer Siedler je Stunde (Heilkunde +10 % je Stufe), Bibliothek schaltet die Forschung
+   frei und steht nur auf Grasland/Steppe/Nebelsee, Kriegerakademie/Diebesgilde/Stellmacher bilden
+   die passenden Einheiten aus (Stufe = Tempo), der Verteidigungswall trägt 10 Stufen samt
+   Schwellenwerten und Kriegspunkten. Ausbauen geht auf der Karte (Wall bis 10, Bibliothek und
+   Ausbildungsstätten bis 5 — **Vorschlag**, das Handbuch nennt keine Zahl). Die fünf erfundenen
+   globalen Gebäude sind entfallen. **103 Prüfungen** in `tests/test_gebaeude_wirkung.py`,
+   Gesamtlauf 630 bei 0 Fehlern und 1 bekanntem Befund. **Drei ehrliche Nebenfund:** der
+   erfundene Portal-Bau ist weg (weitere Karten schaltet jetzt die Forschung „Vermessung" frei);
+   die `max_je_siedlung`-Regel aus dem Original wird nun durchgesetzt; und beim Nachprüfen fiel auf,
+   dass `src/forschung.py` und `src/welt.py` zwar fertig, aber im Spiel **nicht eingehängt** sind.
+4. **W4b-6 — Produktionsfaktor für alle neun Rohstoffe** (offen aus W4b-4): `bonus_system`
+   erhöht bisher nur Holz, Stein, Nahrung; Metall, Leder, Mana, Gold, Wolle und Pferde bleiben bei
+   1,0. Diese Faktoren hängen an den **21 Originalforschungen** (Felderwirtschaft, Steinbruch,
+   Forstwirtschaft, Tierhaltung, Minenarbeit, Götterkunde) — deshalb gehören beide zusammen:
+   die 21 Forschungen ins Spiel holen und dabei die Bauregel „Baukunst" sowie die
+   Forschungsvoraussetzungen der Einheiten nachziehen.
+5. **W4c-Nachtrag — Forschung mit Wartezeit**: `src/forschung.py` (Dauer = Stufe² Stunden, Stufe
+   steigt erst nach Ablauf, Abbruch kostet Rohstoffe) im Fenster einhängen; heute steigt die Stufe
+   sofort beim Klick.
+6. **W5-2 — Weltkarte einhängen**: `src/welt.py` (20 Dimensionen, Portalkosten) ersetzt das alte
+   `MAPS`-Modell im Fenster samt Portalansicht.
+7. **WA — Auftragssystem** nach `docs/ENTWURF_AUFTRAEGE.md`.
+8. **W2b — Kampf ins Spiel** (auslösbar, Bericht in den Nachrichten); dabei die Wallschwellen aus
+   `gebaeude_wirkung.wall_schwelle` in der Vorrunde verwenden.
+9. **W7 — Oberfläche** nach der belegten Menüliste.
+10. **W9 — Auslieferung** als `.exe` mit Passworttor (`docs/WEG_ZUR_EXE.md`).
 
 ## 7. Offene Entscheidungen (Daniel)
 
 **Entschärft:** Baupreise — vier Gebäude sind jetzt belegt (Abschnitt 3). Offen bleibt nur die
 Bepreisung der übrigen, deren Menüeintrag wir nicht im Bild haben.
+
+**Neu aus W4b-5 (jeweils mit Vorschlag umgesetzt, damit das Spiel läuft — bitte bestätigen oder ändern):**
+
+- **Ausbaustufen von Bibliothek und Ausbildungsstätten**: das Handbuch belegt, *dass* es Stufen
+  gibt, nennt aber keine Zahl. Umgesetzt sind **5 Stufen** (wie die Forschungsstufen) — in
+  `data/gebaeude_wirkung.json` änderbar. Der Wall hat die belegten **10**.
+- **Höhe des Verteidigungsboni**: der Wall trägt jetzt den Bonus, aber die Zahl (+50 % je Stufe)
+  stammt aus `bonus_system` und ist **nicht belegt** (vorher hing sie am erfundenen Wachturm).
+- **Ausbildungsdauer**: das Handbuch nennt keine. Sie steht deshalb bei 0,5 Minuten, und die Stufe
+  der Stätte verändert bisher nichts Messbares. Ohne Daniels Zahl bleibt das so.
+- **Weitere Karten**: schaltet jetzt die Forschung **„Vermessung"** frei (der erfundene
+  Portal-Bau ist entfallen). Alternative wäre eine eigene Portalmechanik nach `docs/welt.py`.
+- **Siedlergrenze**: 10 je Siedlung + 5 je Haus (belegt); **vor** der ersten Siedlung 10
+  (Startwert). So ist der Spielstart bewohnbar — bitte bestätigen.
 
 Weiter offen:
 
@@ -243,13 +290,24 @@ Weiter offen:
   kein Arbeiter.
 - **Kleine Commits** nach jedem Paket.
 
-## 9. Guthaben (Stand 22:00)
+## 9. Guthaben (Stand 22:15)
 
 | Konto | Stand | Regel |
 |---|---|---|
 | OpenAI (astra) | **5,56 USD verfügbar** — 3,33 USD am 04.10. verbraucht (gemessen über `/v1/organization/costs?group_by=line_item`), von Daniel von der Billing-Seite abgelesen; Auto-Recharge aus, keine Schulden möglich | nur noch für Bilddeutung |
-| DeepSeek | 3,32 USD (**nicht nachgeprüft**) | ein kleiner Rest **muss** bleiben |
+| DeepSeek | 3,32 USD (**nicht nachgeprüft** — der Schlüssel liegt nur in Hermes, nicht in der Shell des Agenten) | ein kleiner Rest **muss** bleiben |
 | Kosten je Auftrag | v4-pro 0,04–0,12 USD · astra 0,47 USD (3 Bilder). **Größter Posten sind die Cache-Schreibkosten** (3,56 gegen 0,94 USD Ausgabe) → Aufträge kurz halten | `docs/ENTWICKLUNGSPROTOKOLL.md` (Abschnitt Kosten), Skill `kosten-schutzregel` |
+
+**Kosten des Schritts W4b-5 (gemessen, nicht geschätzt):** Tagessumme vor dem Schritt
+**8,81 EUR** (9,89 USD), danach **8,87 EUR** (9,96 USD) → **rund 0,06 EUR**
+(`tageskosten_check.py --json`, summiert über **alle** Profile; die Differenz enthält jede Nutzung
+im selben Zeitfenster). Es wurde **kein** teures Modell eingesetzt: kein `gpt-6-astra` (Bilddeutung
+war nicht nötig — alle Angaben stehen in Handbuch und Datendateien) und kein `deepseek-v4-pro`.
+
+**Zur 4-EUR-Regel:** die Tagessumme liegt mit 8,87 EUR über dem normalen Limit von 4 EUR. Für
+diesen Auftrag („Nebelseetal Remake so gut wie möglich") hat Daniel die Tagesregel ausgesetzt —
+nachzulesen im Skill `kosten-schutzregel` („laufende Ausnahme"). Außerhalb dieses Auftrags gilt die
+4-EUR-Regel unverändert.
 
 ## 10. Dauerhaftes Arbeitssystem
 
@@ -262,7 +320,7 @@ Weiter offen:
 | `docs/ENTWICKLUNGSPROTOKOLL.md` | **laufendes Protokoll** der groben Arbeitsschritte **mit Kosten** (Daniel schreibt die Entstehung mit) — nach jedem Schritt fortschreiben |
 | `docs/ORDNUNG.md` | was wohin gehört |
 | `docs/audits/` + `eingaben/` | alle Modelldaten (Abschnitt 4) |
-| `tests/` (elf Dateien) + `run_tests.bat` | Wahrheitsquelle „läuft es noch?" |
+| `tests/` (zwölf Dateien) + `run_tests.bat` | Wahrheitsquelle „läuft es noch?" — Stand 04.10.2026: **630 Prüfungen, 0 Fehler, 1 Befund** |
 | Skills `multi-agent-coding`, `kosten-schutzregel`, `nebelseetal-remake` | Betriebs- und Projektwissen |
 | Kanban-Board `nebelseetal` | Paketliste (Verteiler braucht laufendes Gateway) |
 | `D:/Arbeiten/_Quarantaene/` | alte Builds (dort: `Nebelsee Memory.exe` mit README) |
@@ -271,6 +329,11 @@ Weiter offen:
 
 | Commit | Inhalt |
 |---|---|
+| `a158175` | **W4b-5**: die 20 Originalgebäude wirken aus den Siedlungskarten (630 Prüfungen grün) |
+| `fb2ec06` | Kosten ins Entwicklungsprotokoll, falsche Kontostände richtiggestellt |
+| `26c0149` | Entwicklungsprotokoll eingeführt (Daniel schreibt die Entstehung mit) |
+| `472704f` | W4b-4: Kartenerträge liefern wirklich Rohstoffe (526 Prüfungen grün) |
+| `4b84544` | Baupreise auf die BELEGTEN Originalwerte korrigiert + Siedler als Baukosten |
 | *(neu)* | alle Modelldaten ins Projekt gesichert (23 Dateien, 908 KB) |
 | `295301a` | drei neue Module, Mustervorlagen, Original-Screenshots — 488 Prüfungen grün |
 | `b75400a` | Auftrags- und Bot-Entwurf, Seite für Seite nachgeprüft |
