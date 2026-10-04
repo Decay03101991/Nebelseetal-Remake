@@ -183,7 +183,8 @@ Modellaufträge über den Anbieter. Schätzungen sind als Schätzung gekennzeich
 | Kartenentwurf aus den Original-Screenshots (23:35) | `gpt-6-astra` | **0,67 USD** (10,92 → 11,59 USD, gemessen) |
 | Umsetzungs- und Kampfplan (23:35) | `deepseek-v4-pro` | **0,12 USD** (Anteil) |
 | **Beide teuren Aufrufe zusammen** | astra + v4-pro | **+0,79 USD** (10,9244 → 11,71 USD) |
-| **05.10. 23:49–00:45: Schritte 1–3 einhängen (Speichern, Punkte, Kampf) + drei Verdrahtungs-Prüfdateien** | `deepseek-v4-flash` (Koordinator) + `flash`-Unteragenten — **kein** teurer Aufruf | **0,1442 USD = 0,1285 EUR** (Tagessumme 05.10., `scripts/tageskosten_check.py --json`: 4 Sitzungen, Modelle `deepseek-flash`/`deepseek-v4-flash`; Kurs 0,89087) |
+| **05.10. 23:49–00:32: Schritte 1–3 und 6 einhängen (Speichern, Punkte, Kampf, Portal) + drei Verdrahtungs-Prüfdateien** | `deepseek-v4-flash` (Koordinator) + `flash`-Unteragenten — **kein** teurer Aufruf | **0,1928 USD = 0,1718 EUR** (Tagessumme 05.10. bis 00:32, `scripts/tageskosten_check.py --json`: 4 Sitzungen, Modelle `deepseek-flash`/`deepseek-v4-flash`; Kurs 0,89087) |
+| **05.10. 00:31: Rat des teuren Modells an den Koordinator** (auf Daniels Wunsch, Frage und Antwort in `docs/audits/`) | `gpt-6-astra` | **0,3444 USD** (Differenz 0,1928 → 0,5372 USD, gemessen) — **ein** Umlauf ohne Werkzeuge, 1 min 47 s; Tagessumme danach **0,5372 USD = 0,4786 EUR** |
 
 **Bezahlte Modellaufträge am 04.10.2026 (Tagesverlauf, vor dieser Sitzung):**
 
@@ -329,16 +330,17 @@ Vorgängersitzung eingetroffen (`5f7ee39`, `4bf6a45` — beide nur `docs/`), wä
 lief. Sie wurden **nicht** überschrieben, sondern gelesen; `main.py` trägt ausschließlich die eigenen
 Änderungen (Beleg: `git diff --stat src/main.py` = 42 Einfügungen, 9 Löschungen).
 
-**Daniels Input in dieser Sitzung (mit Zeitstempel):**
+**Daniels Input in dieser Sitzung.** Belegte Uhrzeit gibt es nur für den Sitzungsbeginn (23:49, `date`);
+die Chat-Zurufe stehen ohne Uhrzeit im Verlauf und sind deshalb **in der Reihenfolge** gelistet.
 
-| Zeit | Input |
-|---|---|
-| 23:49 (04.10.) | **Startauftrag** (wörtlich in `docs/PROJEKT_STAND.md`, Abschnitt 0): Ziel übernehmen, dann die Arbeitsreihenfolge aus `docs/UMSETZUNG_EINHAENGEN.md`, Abschnitt 5, abarbeiten — Schritt 1 ist `speichern` an `main.py:627-628` —, nach jedem Schritt `run_tests.bat` (erwartet 1651/0/9 über 23 Dateien) und eine Protokollzeile; am Ende die `.exe` neu bauen und startprüfen |
-| 00:02 | „ich möchte dass du das Ziel nun selbstständig weiter verfolgst, bitte delegier die aufgaben sinnvoll und arbeite effektiv. Prüfe immer wieder deine ergebnisse, arbeite sauber effizient und klug mit teuren modellen" + Kontostände: DeepSeek **1,70 USD**, OpenAI **3,04 USD** |
-| 00:06 | „viel erfolg bei der zielerfüllung" |
-| 00:12 | „beachte das du das protokoll sinnvoll weiterführst" |
-| 00:35 | „halte das entwicklungsprotokoll übersichtlich und schlank und sinnvoll" |
-| 00:44 | „Wichtig ist: Wann haben wir es getan, was war mein Input und was deiner, was haben wir grob vor gehabt bis hin zu das kam dabei heraus … inklusive Kosten und Ausgaben die real passiert sind mit Belegen und Zeitstempel" |
+| Nr. | Zeit (Beleg) | Input |
+|---|---|---|
+| 1 | 23:49 (04.10.), `date` | **Startauftrag** (wörtlich in `docs/PROJEKT_STAND.md`, Abschnitt 0): Ziel übernehmen, dann die Arbeitsreihenfolge aus `docs/UMSETZUNG_EINHAENGEN.md`, Abschnitt 5, abarbeiten — Schritt 1 ist `speichern` an `main.py:627-628` —, nach jedem Schritt `run_tests.bat` (erwartet 1651/0/9 über 23 Dateien) und eine Protokollzeile; am Ende die `.exe` neu bauen und startprüfen |
+| 2 | während Schritt 1 | „ich möchte dass du das Ziel nun selbstständig weiter verfolgst, bitte delegier die aufgaben sinnvoll und arbeite effektiv. Prüfe immer wieder deine ergebnisse, arbeite sauber effizient und klug mit teuren modellen" + Kontostände: DeepSeek **1,70 USD**, OpenAI **3,04 USD** |
+| 3 | während Schritt 1 | „viel erfolg bei der zielerfüllung" |
+| 4 | nach Commit `9ec34fb` (00:03) | „beachte das du das protokoll sinnvoll weiterführst" |
+| 5 | nach Commit `b14f7f5` (00:25) | „halte das entwicklungsprotokoll übersichtlich und schlank und sinnvoll" |
+| 6 | während Schritt 6 (00:26) | „Wichtig ist: Wann haben wir es getan, was war mein Input und was deiner, was haben wir grob vor gehabt bis hin zu das kam dabei heraus … inklusive Kosten und Ausgaben die real passiert sind mit Belegen und Zeitstempel" |
 
 **Mein Vorgehen (Koordinator, damit es nachvollziehbar bleibt):** Ausgangsmarke **selbst messen** statt
 aus der Übergabe abschreiben · jede Änderung mit einer **eigenen** Nachprüfung nach anderem Verfahren als
@@ -347,14 +349,20 @@ jedem Schritt Sammellauf, Protokollzeile, projektunabhängige Sicherung, kleiner
 
 | Zeit | Schritt | Ergebnis / Beleg |
 |---|---|---|
-| 23:49 | **Ausgangsmarke gemessen** (nicht aus der Übergabe abgeschrieben) | 23 Prüfdateien in der Bash nachgefahren — `run_tests.bat` endet mit `pause` und läuft ohne Tastatur nicht durch, deshalb ein eigenes Laufskript (`nebel_suite.py`, liest die Dateiliste aus `run_tests.bat`): **1651 bestanden, 0 Fehler, 9 Befunde über 23 Dateien**, Rückgabewert 0. Deckt sich mit der Übergabe — keine Abweichung |
-| 23:55 | **1 · W8 Speichern** (`main.py:627-628`) | statt direktem `json.dump`/`json.load` jetzt `speichern.sichere_kopie` + `speichere` (geprüfte `.tmp`, dann `os.replace`) und im Lesen `lade` + `wiederherstellen` aus `.bak`; `aufraeumen` beim Start; `_save`/`_load` melden den ehrlichen Ausgang |
+| 23:52 | **Ausgangsmarke gemessen** (nicht aus der Übergabe abgeschrieben) | 23 Prüfdateien in der Bash nachgefahren — `run_tests.bat` endet mit `pause` und läuft ohne Tastatur nicht durch, deshalb ein eigenes Laufskript (`nebel_suite.py`, liest die Dateiliste aus `run_tests.bat`): **1651 bestanden, 0 Fehler, 9 Befunde über 23 Dateien**, Rückgabewert 0 (Laufprotokoll 23:52:49). Deckt sich mit der Übergabe — keine Abweichung |
+| 23:55 | **1 · W8 Speichern** (`main.py:627-628`, Änderung 23:55:29) | statt direktem `json.dump`/`json.load` jetzt `speichern.sichere_kopie` + `speichere` (geprüfte `.tmp`, dann `os.replace`) und im Lesen `lade` + `wiederherstellen` aus `.bak`; `aufraeumen` beim Start; `_save`/`_load` melden den ehrlichen Ausgang |
 | 23:56 | **Nachprüfung (eigenes Verfahren, nicht der Kind-Test)** | `nebel_w8_probe.py` **7 Proben**: Sicherung trägt den **alten** Stand · Wiederherstellung nach Beschädigung · ehrliches `False` bei unmöglichem Ziel · keine `.tmp`-Leiche · altes Dateiformat lädt weiter |
-| 00:02 | **Kind-Test, Grundprüfung, Sammellauf** | speichern **95/0/5** · baseline **40/0/0** · Sammellauf **1651/0/9** über 23 Dateien — unverändert grün |
-| 00:01 | **Unteragenten beauftragt (flash)** | je eine neue Prüfdatei für die **Verdrahtung** (Einzelheiten am Ende des Abschnitts) |
-| 00:12 | **1 · W8 Speichern abgeschlossen** (`main.py:627-628`) | Commit `9ec34fb`; Papiere gesichert (16 Dateien, Prüfsummen gleich) |
-| 00:20 | **2 · W6 Punkte** | Seitenleiste und Ruhmeshalle rechnen mit `punkte.*` (Stufe³ · Einheitenwerte + Wallstufe³ · halbe Summe) statt `score`/`ruf`; eigener Nachweis `nebel_w6_probe.py` **6 Proben** · `test_punkte.py` **76/0/0** · Sammellauf **1651/0/9** |
-| 00:34 | **3 · W2/W2b Kampf** | beide Daumenangriffe ersetzt durch **einen** Weg: `_truppen_nach_rolle` → `kampf.fuehre_schlacht` → `kampfbericht.spieldaten_anwenden` → Bericht in den Reiter Nachrichten; eigener Nachweis `nebel_w2_probe.py` **7 Proben**. Sammellauf nach dem Schritt **1651/0/9**, nach Aufnahme der neuen Prüfdateien **1734/0/14** über 25 Dateien |
+| 00:00–00:02 | **Kind-Test, Grundprüfung, Sammellauf** | speichern **95/0/5** · baseline **40/0/0** · Sammellauf **1651/0/9** über 23 Dateien (Laufprotokoll 00:01:52) — unverändert grün |
+| 00:00–00:21 | **Unteragenten beauftragt (flash)** | je eine neue Prüfdatei für die **Verdrahtung** (Einzelheiten am Ende des Abschnitts); Dateizeitstempel 00:00:50 / 00:13 / 00:21:30 |
+| 00:03 | **1 · W8 Speichern abgeschlossen** | Commit `9ec34fb` (00:03:07); Papiere gesichert (16 Dateien, Prüfsummen gleich) |
+| 00:05–00:10 | **2 · W6 Punkte** | Seitenleiste und Ruhmeshalle rechnen mit `punkte.*` (Stufe³ · Einheitenwerte + Wallstufe³ · halbe Summe) statt `score`/`ruf`; eigener Nachweis `nebel_w6_probe.py` **6 Proben** (00:04:08) · `test_punkte.py` **76/0/0** · Sammellauf **1651/0/9** (00:09:58) |
+| 00:11–00:18 | **3 · W2/W2b Kampf** | beide Daumenangriffe ersetzt durch **einen** Weg: `_truppen_nach_rolle` → `kampf.fuehre_schlacht` → `kampfbericht.spieldaten_anwenden` → Bericht in den Reiter Nachrichten; eigener Nachweis `nebel_w2_probe.py` **7 Proben** (00:13:50) · Sammellauf **1651/0/9** (00:18:01) |
+| 00:24 | **Schritte 1–3 festgeschrieben** | Commit `b14f7f5` (00:24:46): Punkte + Kampf + die zwei fertigen Verdrahtungs-Prüfdateien; Sammellauf mit den neuen Dateien **1734/0/14 über 25 Dateien** (Laufprotokoll 00:24:18) |
+| 00:26–00:29 | **6 · W5-2 Portalraum** | `import portalraum`; der Portalreiter zeigt jetzt das **20×20-Raster** des Limbus (eigene Dimension grün, fremde rot — belegter Wortlaut), 20 Dimensionsknöpfe, Mana, Festpreis und Sperre; der Koordinatenwechsel prüft über `portalraum.wechsel_erlaubt`, bucht über `nach_wechsel` **genau einmal** 5.000 Mana ab und sperrt 24 h. Neue Zustandsfelder `eigene_dimension`/`eigene_dimensionen`/`letzter_wechsel` werden mitgespeichert. Die alte Kartenliste im Portalreiter ist ersetzt (Plan §1.6), die Bot-Liste bleibt. Sammellauf **1776 bestanden, 0 Fehler, 14 Befunde über 26 Dateien** (Laufprotokoll 00:28:58) |
+| 00:26 | **Nachprüfung Schritt 6** | `nebel_w5_probe.py` **7 Proben**: Ansicht rendert · **400 Felder** im Raster · ohne Mana ehrlich abgelehnt ohne Änderung · mit Mana genau 5.000 abgebucht · zweiter Wechsel in der Sperre **ohne** zweite Abbuchung · nach 25 h wieder möglich · Portalzustand übersteht Speichern/Laden |
+
+| 00:31 | **Teurer Aufruf auf Daniels Wunsch: `gpt-6-astra` um Rat gefragt** | Frage wortgetreu in `docs/audits/eingaben/astra_frage_koordinator.txt`, Antwort wortgetreu in **`docs/audits/astra_koordinator_rat.txt`** (47 Zeilen, Lauf 1 min 47 s, Sitzung `20261005_003107_da3e92`). Daniels Auftrag: worauf der Koordinator mit `flash` am meisten achten muss, welche Skills/Checklisten helfen, und wie der **Kontext** aufgebaut sein muss, damit trotz schwachem Modell möglichst wenig schiefgeht. **Kosten gemessen: 0,3444 USD** (Tagessumme vor dem Aufruf 0,1928 → danach **0,5372 USD**, `tageskosten_check.py --json`) |
+| 00:33 | **Was astra rät — sofort umgesetzt** | (a) **Nur eine Spieleraktion je Commit**, keine fremde Aufräumarbeit; (b) jede Einhängung mit **Rückruf-Vertrag** beginnen (Eingaben, Modulaufruf, veränderte Felder, Verhalten bei Ablehnung, Anzeige-Auffrischung, Speicherung) und **vor** jeder Änderung ablehnen, was nicht erfüllt ist; (c) **Verdrahtungsinventar** führen (Modul → Funktion → Aufrufer → erreichbare Aktion → geprüft) — Unteragent `tools/pruefe_verdrahtung.py` beauftragt; (d) **stille tkinter-Fehler laut machen** (`root.report_callback_exception`) — Unteragent `tests/test_gui_fehler.py` beauftragt; (e) Kontext klein halten: vollständiges `main.py` und ganze Testprotokolle **nicht** in den Kontext, Belege auf der Platte; (f) Berichte an Datei-Prüfsummen binden; (g) `.exe` aus einem **anderen Ordner** starten und dort Speichern/Laden prüfen |
 
 **Offene Punkte aus dieser Sitzung (ehrlich):**
 
@@ -362,14 +370,22 @@ jedem Schritt Sammellauf, Protokollzeile, projektunabhängige Sicherung, kleiner
   dem Handbuch) praktisch aussichtslos; echte Bot-Stärken und echtes Bot-Lager gehören zu Schritt 8 (botkern).
 - Die Vorräte eines Ziels kommen bis dahin aus den **VORSCHLAG**-Spannen in `botkern` (dort als Vorschlag
   gekennzeichnet); für **Kartenangriffe** gibt es kein belegtes Lager → Frage an Daniel.
+- **Portal (Schritt 6):** unser Mana liegt in **einem** gemeinsamen Vorrat, das Handbuch verlangt die
+  5.000 Mana **aus einer Siedlung** — im Spiel steht dieser Hinweis sichtbar in der Ansicht, sauber wäre
+  ein Manavorrat je Siedlung (steht auch in `spielschicht.offene_luecken()`). Die **Startdimension 1** ist
+  ein VORSCHLAG; das Handbuch nennt keine.
 
 **Unteragenten** (flash, je eine **neue** Prüfdatei, die ausschließlich die **Verdrahtung** prüft — nie
-die Module selbst; sie committen nicht, der Koordinator prüft nach): `test_w8_einhaengung.py` **39/0/5** und
-`test_punkte_einhaengung.py` **44/0/0** — vom Koordinator selbst nachgefahren und inhaltlich geprüft, beide
-in `run_tests.bat` aufgenommen — der Sammellauf steht dadurch bei **1734 bestanden, 0 Fehler, 14 Befunde
-über 25 Dateien** (die fünf zusätzlichen Befunde sind die ehrlichen Grenzen von `speichern`, die der
-Kind-Test meldet);
-`test_kampf_einhaengung.py` läuft noch.
+die Module selbst; sie committen nicht, der Koordinator prüft nach): `test_w8_einhaengung.py` **39/0/5**,
+`test_punkte_einhaengung.py` **44/0/0** und `test_kampf_einhaengung.py` **42/0/0** — alle drei vom
+Koordinator selbst nachgefahren und inhaltlich geprüft, alle drei in `run_tests.bat` aufgenommen. Der
+Sammellauf steht dadurch bei **1776 bestanden, 0 Fehler, 14 Befunde über 26 Dateien** (die fünf
+zusätzlichen Befunde sind die ehrlichen Grenzen von `speichern`, die der Kind-Test meldet).
 
-**Zeitaufwand.** 04.10. 23:49 → 05.10. 00:45 = **rund 1 Stunde**, eine Sitzung, drei Schritte (Speichern,
-Punkte, Kampf) samt drei Unteragenten und Nachprüfungen.
+**Zeitaufwand.** 04.10. 23:49 → 05.10. 00:29 = **40 Minuten**, eine Sitzung, vier Schritte (Speichern,
+Punkte, Kampf, Portal), drei Unteragenten, vier eigene Nachprüfungen, vier Sammelläufe.
+
+**Was danach noch offen ist (Reihenfolge aus `docs/UMSETZUNG_EINHAENGEN.md`, Abschnitt 5):** Schritt 4
+(Kartenansicht — laut Plan nur zu verifizieren), 5 (`werkstatt`), 7 (`auftraege`), 8 (`botkern`),
+9 (Fachschicht, freiwillig) und 10 (`.exe` neu bauen und startprüfen). Die `.exe` bleibt bis dahin die
+alte Fassung vom 04.10. 22:42 — neu gebaut wird sie **ganz zuletzt**, nach `docs/WEG_ZUR_EXE.md`.

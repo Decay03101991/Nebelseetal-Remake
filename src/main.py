@@ -30,6 +30,7 @@ import punkte      # W6: Forschungs-, Kriegs- und Gesamtpunkte nach den Original
 import kampf       # W2: Vorrunde, Kampfsequenzen, Flucht, Beute (Handbuch S. 20-23)
 import kampfbericht  # W2b: Vorrunden-Pruefung, Mauerschaden, Beute, Bericht
 import botkern     # W5: Bot-Regeln (hier: die Vorschlagsspannen fuer die Vorraete der Bots)
+import portalraum  # W5-2: die 20 Dimensionen des Limbus, Raster, Wechselkosten und -sperre
 
 
 # ---------- Data Models ----------
@@ -466,6 +467,12 @@ class GameState:
         self.settlements: List[Settlement] = []
         self.noob_protection: bool = True
         self.goods: Dict[str, int] = {key: 0 for key in GOODS}
+        # W5-2 (Portal, src/portalraum.py): die eigene Dimension im Limbus-Raster, die Dimensionen,
+        # in denen man schon Fuss gefasst hat, und der Zeitpunkt des letzten Koordinatenwechsels.
+        # Start in Dimension 1 - VORSCHLAG, das Handbuch nennt keine Startdimension.
+        self.eigene_dimension: int = 1
+        self.eigene_dimensionen: List[int] = [1]
+        self.letzter_wechsel: Optional[float] = None
 
     def _unlock_next_map(self):
         if len(self.active_maps) >= MAX_ACTIVE_MAPS:
@@ -628,6 +635,9 @@ class GameState:
             "map_tiles": [asdict(t) for t in self.map_tiles],
             "bots": [asdict(b) for b in self.bots],
             "map_bot_factions": self.map_bot_factions if hasattr(self, "map_bot_factions") else {},
+            "eigene_dimension": self.eigene_dimension,
+            "eigene_dimensionen": self.eigene_dimensionen,
+            "letzter_wechsel": self.letzter_wechsel,
         }
         # W8 (docs/UMSETZUNG_EINHAENGEN.md, Abschnitt 4): erst sichern, dann atomar ueber eine
         # gepruefte Zwischendatei schreiben. Schlaegt etwas fehl, bleibt der alte Spielstand
@@ -683,6 +693,10 @@ class GameState:
         self.settlements = [Settlement(**s) for s in data.get("settlements", [])]
         self.noob_protection = data.get("noob_protection", True)
         self.goods = data.get("goods", {key: 0 for key in GOODS})
+        # W5-2: Portalzustand (eigene Dimension, bekannte Dimensionen, letzter Wechsel)
+        self.eigene_dimension = int(data.get("eigene_dimension", 1) or 1)
+        self.eigene_dimensionen = list(data.get("eigene_dimensionen") or [1])
+        self.letzter_wechsel = data.get("letzter_wechsel")
         # FIX 4b: Karte + Bots laden (wurde vorher nicht persistiert)
         saved_tiles = data.get("map_tiles")
         saved_bots = data.get("bots")
@@ -1361,10 +1375,93 @@ class NebelseetalApp:
                       fg=self.skin["gold"], activebackground="#5D4037").grid(
                 row=i // 3, column=i % 3, padx=3, pady=2, sticky=tk.W)
 
+    def _dimensionsname(self, z: int) -> str:
+        """Der Name einer Dimension aus dem Limbus-Raster (`src/portalraum.py`)."""
+        eintraege = portalraum.dimensionen()
+        nummer = int(z)
+        if 1 <= nummer <= len(eintraege):
+            return str(eintraege[nummer - 1].get("name") or f"Dimension {nummer:02d}")
+        return f"unbekannte Dimension {z}"
+
+    def _sperre_text(self) -> str:
+        """Restzeit bis zum naechsten Koordinatenwechsel (belegte 24-Stunden-Sperre)."""
+        if self.state.letzter_wechsel is None:
+            return "noch nie gewechselt"
+        reste = 24 * 3600 - (time.time() - float(self.state.letzter_wechsel))
+        if reste <= 0:
+            return "abgelaufen"
+        return f"noch {reste / 3600.0:.2f} h"
+
+    def _portal_wechsel(self, nach_z: int):
+        """Ein Koordinatenwechsel: erst pruefen, dann GENAU EINMAL abbuchen (W5-2)."""
+        von_z = int(self.state.eigene_dimension)
+        mana = float(self.state.resources["mana"].amount)
+        erlaubt, meldung = portalraum.wechsel_erlaubt(von_z, nach_z, mana,
+                                                      self.state.letzter_wechsel, time.time())
+        if not erlaubt:
+            self._log(meldung)
+            self.state.messages.append({"text": meldung, "type": "portal"})
+            return False
+        gebucht = portalraum.nach_wechsel(mana, time.time())   # Festpreis, genau einmal
+        self.state.resources["mana"].amount = float(gebucht["mana"])
+        self.state.letzter_wechsel = gebucht["letzter_wechsel"]
+        self.state.eigene_dimension = int(nach_z)
+        if int(nach_z) not in self.state.eigene_dimensionen:
+            self.state.eigene_dimensionen.append(int(nach_z))
+        meldung = (f"Koordinatenwechsel nach Dimension {nach_z:02d} "
+                   f"({self._dimensionsname(nach_z)}): {gebucht['kosten']} Mana abgebucht, "
+                   f"24 Stunden gesperrt.")
+        self._log(meldung)
+        self.state.messages.append({"text": meldung, "type": "portal"})
+        self._render_view()
+        return True
+
     def _render_portal(self):
+        """Portalansicht aus `portalraum.py` (W5-2): das 20x20-Raster des Limbus.
+
+        Eigene Dimensionen sind gruen, fremde rot — wörtlich belegt (portal.php 2005: „Eure Welt
+        wird durch ein gruenes Banner markiert, fremde Welten durch rote"). `portalfarbe` liefert
+        die Farbe als WORT; hier wird sie in eine Tk-Farbe übersetzt.
+        """
+        farben = {"gruen": "#2ecc40", "rot": "#e53935"}
         tk.Label(self.content, text="Portal", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
-        tk.Label(self.content, text="Freigeschaltete Karten:", fg="#C0C0C0", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
-        tk.Label(self.content, text=f"{', '.join(self.state.unlocked_maps)}", fg="#DAA520", bg=self.skin["bg"]).pack(anchor=tk.W, padx=20)
+        tk.Label(self.content, text=portalraum.beschreibung(), fg="#C0C0C0", bg=self.skin["bg"], wraplength=760, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 6))
+
+        z = int(self.state.eigene_dimension)
+        eigene = list(self.state.eigene_dimensionen)
+        felder = portalraum.anzeige_raster(z, 10, eigene)
+        kante = portalraum._achsen()
+        tk.Label(self.content, text=f"Dimension {z:02d} — {self._dimensionsname(z)} "
+                                    f"({'eigene Welt (gruen)' if z in eigene else 'fremde Welt (rot)'})",
+                 fg="#DAA520", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
+        zeichenflaeche = tk.Canvas(self.content, width=400, height=400, bg=self.skin["bg"], highlightthickness=0)
+        zeichenflaeche.pack(anchor=tk.W, padx=10, pady=4)
+        zelle = max(4, 400 // max(1, kante))
+        for feld in felder:
+            x1, y1 = feld["x"] * zelle, feld["y"] * zelle
+            zeichenflaeche.create_rectangle(x1, y1, x1 + zelle, y1 + zelle,
+                                            fill=farben.get(feld["farbe"], "#555555"), outline="#111111")
+
+        mana = float(self.state.resources["mana"].amount)
+        erlaubt, meldung = portalraum.wechsel_erlaubt(z, z, mana, self.state.letzter_wechsel, time.time())
+        tk.Label(self.content, text=f"Mana: {int(mana)} · Wechsel kostet {portalraum.wechselkosten()} "
+                                    f"· Sperre: {self._sperre_text()}",
+                 fg=self.skin["text"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(4, 2))
+        tk.Label(self.content, text=("Koordinatenwechsel möglich." if erlaubt else f"Zurzeit nicht möglich: {meldung}"),
+                 fg="#DAA520" if erlaubt else self.skin["red"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
+        tk.Label(self.content, text="(Unser Mana liegt in EINEM gemeinsamen Vorrat — das Handbuch verlangt "
+                                    "die 5.000 Mana aus einer Siedlung. Vermerkt, noch nicht je Siedlung.)",
+                 fg="#8a8a8a", bg=self.skin["bg"], wraplength=760, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 6))
+
+        knopfreihe = tk.Frame(self.content, bg=self.skin["bg"])
+        knopfreihe.pack(anchor=tk.W, padx=10, pady=2)
+        for eintrag in portalraum.dimensionen():
+            nummer = int(str(eintrag["kennung"]).lstrip("d"))
+            eigen = nummer in eigene
+            tk.Button(knopfreihe, text=f"{nummer:02d}", width=3,
+                      bg="#1b5e20" if eigen else "#7f1d1d", fg=self.skin["gold"],
+                      command=lambda n=nummer: self._portal_wechsel(n)).pack(side=tk.LEFT, padx=1, pady=1)
+
         tk.Label(self.content, text="Welten anderer Spieler:", fg="#C0C0C0", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 0))
         for bot in self.state.bots:
             frame = tk.Frame(self.content, bg=self.skin["panel"])
