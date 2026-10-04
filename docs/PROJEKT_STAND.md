@@ -70,12 +70,47 @@ gleich, Zeiger `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`).
 
 ### Der EINE nächste Schritt
 
-**`forschung` mit Wartezeit einhängen (W4c-Nachtrag).** Heute steigt die Forschungsstufe **im selben Klick** (bekannter Mangel, in `docs/PROJEKT_STAND.md` §5 vermerkt). `src/forschung.py` ist fertig und geprüft (68 Prüfungen): Dauer = **Stufe² Stunden**, Kosten verdoppeln sich, Bibliothek nötig, Abbruch kostet Rohstoffe. Zu tun in `src/main.py`:
-1. `GameState` bekommt die laufende Forschung (`forschung.starten(...)`-Rückgabe merken) und ruft im `tick` `forschung.fortschritt(...)`; wenn die Zeit abgelaufen ist, steigt die Stufe.
-2. `NebelseetalApp._start_research` darf die Stufe **nicht mehr sofort** erhöhen — nur noch starten, Kosten abziehen, Meldung „Forschung läuft bis …".
-3. Anzeige im Reiter „Forschung" (Restzeit) und Speicherung des laufenden Vorhabens in `save`/`load`.
-Erwartet: `tests/test_forschung.py` 68 grün, `tests/test_gui_fehler.py` 22 grün, `tests/test_baseline.py` 40 grün, Sammellauf 1798 grün, Verdrahtungsprüfer **15 verdrahtet / 0 Treffer** (`forschung` wird verdrahtet).
-**Danach:** `botkern` vollständig → `welt` → **EXE neu bauen** und aus einem anderen Ordner startprüfen.
+**✅ Erledigt 01:52 — `forschung` läuft jetzt mit Wartezeit** (Commit `378f623`). Beleg: eigene
+Nachprüfung `nebel_w4c_probe.py` **23 Proben**, Sammellauf **1799/0/15 über 27 Dateien**,
+Verdrahtungsprüfer **15 verdrahtet / 0 Treffer**.
+
+**`botkern` vollständig einhängen (W5).** `src/botkern.py` ist fertig und geprüft (90 Prüfungen),
+aber bis heute **nur importiert**: es liefert nur die VORSCHLAG-Spannen für die Bot-Vorräte.
+Zu tun in `src/main.py`:
+1. **Erst § 1.8 in `docs/UMSETZUNG_EINHAENGEN.md` lesen** — er nennt die Stolperstelle: die
+   `BotPlayer`-Felder (`army`, `settlements`, `noob_protection`) haben **kein Gegenstück** im
+   `botkern`-dict. Adapter oder Migration **vor** dem Einbau entscheiden und im Protokoll begründen.
+2. `botkern.neue_bots` / `bots_tick` / `wirkung_anwenden` im Zeitlauf anbinden; `botkern.handelspreis`
+   erwartet den **Referenzpreis** (`referenzpreis_aus_beschaffung`; der Faktor ×1,2 steckt dort).
+3. Die erfundenen Bot-Armeen (20–120 Stück je Einheit) durch belegte Stärken ersetzen — erst damit
+   ist ein Bot-Angriff überhaupt gewinnbar.
+Erwartet: `tests/test_botkern.py` 90 grün, `tests/test_baseline.py` 40 grün,
+`tests/test_gui_fehler.py` 22 grün, Sammellauf ≥ 1799 grün, Verdrahtungsprüfer **0 Treffer** und
+`botkern` **verdrahtet** statt „nur importiert".
+**Danach:** `welt` → **EXE neu bauen** und aus einem anderen Ordner startprüfen.
+
+### Zielübergabe von Sitzung zu Sitzung (Vorgabe Daniel, 05.10.2026)
+
+**Das Ziel der alten Sitzung wird sauber beendet, und die neue Sitzung setzt genau dort an, wo die
+alte aufgehört hat — die Sitzung macht das selbst, nicht Daniel von Hand.**
+
+1. **Zielstand nachsehen, nie raten.** Ziele liegen im Zielregister (`state.db`, Tabelle
+   `state_meta`, Schlüssel `goal:<Sitzung>`). Eine Sitzung mit `status: active` **arbeitet weiter,
+   auch wenn ihr Chat archiviert ist** — am 05.10. war genau das der Fall (die alte Koordinator-
+   Sitzung hat bis 01:31 weitergeschrieben, während die neue Sitzung denselben Auftrag begann).
+   Abfrage (nur lesend):
+   `python -c "import sqlite3,json;c=sqlite3.connect('file:state.db?mode=ro',uri=True);[print(k,json.loads(v)['status']) for k,v in c.execute(\"select key,value from state_meta where key like 'goal:%'\")]"`
+2. **Altes Ziel sauber beenden:** `status` auf `cleared` setzen und im Feld `paused_reason`
+   festhalten, wer wann beendet hat (nicht löschen — der Datensatz bleibt nachvollziehbar). Im Chat
+   selbst tut `/goal clear` dasselbe.
+3. **Neues Ziel in der neuen Sitzung setzen** (`/goal <Zieltext>`, Wortlaut wie in der alten Sitzung)
+   — es darf **genau eine** aktive Zielverfolgung geben.
+4. **Wiedereinstiegspunkt belegen:** dieser Abschnitt (0c) nennt den EINEN nächsten Schritt mit Datei,
+   Fundstelle und **erwarteter Zahl**. Die neue Sitzung arbeitet genau diesen Schritt. Halbfertige
+   Arbeit der Vorgängerin wird **übernommen und geprüft**, nie stillschweigend verworfen.
+5. **Prüfen statt behaupten:** `git log --oneline -3` + `git status --short` zeigen, was wirklich
+   committet ist; `stat -c %y <datei>` zeigt, ob noch jemand schreibt. Erst danach anfassen.
+6. **Nur EINE schreibende Sitzung.** Läuft noch ein Geisterläufer: erst ihn beenden, dann arbeiten.
 
 ### Kontext-Paket für die neue Sitzung (bewusst klein halten — spart Geld und Fehler)
 
