@@ -56,6 +56,8 @@ MUSTER = [
     ("docs", "AUDIT_KONFORMITAET_astra.md"),
     ("docs", "UMSETZUNG_EINHAENGEN.md"),
     ("docs", "KARTEN_ENTWURF.md"),
+    ("docs", "SICHERUNGEN.md"),
+    ("docs", "ENTWICKLUNGSPROTOKOLL_VOR_VERDICHTUNG.md"),
 ]
 ORDNER = []                 # keine Unterordner mehr (das Brett der Kinder ist entfallen)
 
@@ -114,17 +116,22 @@ def sichere(ziel: Path, trocken: bool = False) -> tuple:
 
 
 def protokollzeile(ziel: Path, anzahl: int) -> None:
-    """Haengt eine Zeile ans Entwicklungsprotokoll (nur auf Wunsch)."""
-    pfad = WURZEL / "docs" / "ENTWICKLUNGSPROTOKOLL.md"
+    """Traegt die Sicherung in docs/SICHERUNGEN.md ein (Tabellenzeile).
+
+    Seit der Verdichtung vom 04.10.2026 (Wunsch von Daniel) bleibt das Entwicklungsprotokoll frei
+    von maschinellen Zeilen: es erzaehlt die Entstehung, die Sicherungen stehen hier als Tabelle.
+    """
+    pfad = WURZEL / "docs" / "SICHERUNGEN.md"
+    kopf = ("# Sicherungen des Protokolls (projektunabhängig)\n\n"
+            "Automatisch geführt von `tools/protokoll_sichern.py` — **gehört nicht ins "
+            "Entwicklungsprotokoll** (Verdichtung auf Daniels Wunsch, 04.10.2026).\n\n"
+            "| Zeit | Dateien | Ordner | Prüfsummen |\n|---|---|---|---|\n")
     if not pfad.exists():
-        print("Protokoll nicht gefunden — nichts angehaengt.")
-        return
+        pfad.write_text(kopf, encoding="utf-8")
     with open(pfad, "a", encoding="utf-8") as f:
-        f.write(f"\n**Sicherung (projektunabhaengig):** {anzahl} Dateien gesichert nach "
-                f"`{ziel}` — Vorgabe von Daniel am 04.10.2026, damit das Protokoll auch ohne "
-                f"diesen Projektordner weiterlebt. Zeiger auf die juengste Fassung: "
-                f"`{ziel.parent / 'zuletzt.txt'}`.\n")
-    print(f"Protokoll ergaenzt: {pfad}")
+        f.write(f"| {time.strftime('%Y-%m-%d %H:%M')} | {anzahl} | `{ziel}` | "
+                f"je Datei SHA256 im MANIFEST, geprüft |\n")
+    print(f"Sicherung eingetragen: {pfad}  (Protokoll bleibt unberuehrt)")
 
 
 def main() -> int:

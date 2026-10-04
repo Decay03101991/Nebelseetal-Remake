@@ -17,6 +17,18 @@ Commit) und Datum.
 
 ---
 
+## Wie dieses Protokoll geführt wird
+
+- **Nur anhängen**, nie rückwirkend umschreiben. (Einzige Ausnahme: die Verdichtung vom 04.10.2026
+  auf Daniels Wunsch — Zahlen, Entscheidungen, Fehler und Lehren blieben dabei vollständig erhalten.)
+- **Eine Zeile je grobem Schritt**: Zeit · Schritt · Ergebnis mit **echter** Zahl oder Commit.
+- **Fehler und Irrwege gehören hinein** — mit der Lehre daraus, nicht beschönigt.
+- **Kein „Stand"-Abschnitt pro Etappe**: neue Prüfstände sind eine Zeile in der Meilenstein-Tabelle.
+- **Sicherungen stehen nicht hier**, sondern in `docs/SICHERUNGEN.md` (maschinell geführt).
+- **Kosten nur gemessen** und mit Messmethode; Schätzung wird als Schätzung gekennzeichnet. Ein
+  Kostenabschnitt, nicht mehrere.
+- **Zielgröße: deutlich unter dem heutigen Umfang** (Verdichtung vom 04.10.2026: 364 -> 300 Zeilen). Wächst es darüber, wird verdichtet — nie auf Kosten von Inhalt.
+
 ## Vorgeschichte (vor dem 04.10.2026)
 
 Das Spiel selbst entstand früher: ein älterer Build (`Nebelsee Memory.exe` vom 27.08.2026) enthielt
@@ -159,110 +171,67 @@ das **Einhängen** (über die Fachschicht) und danach **ein Neubau der `.exe`**.
 
 ---
 
-## Kosten
+## Kosten (gemessen, nicht geschätzt)
 
-### Kosten der Nacht (22:15–23:10, gemessen)
+**Regel:** nur belegte Beträge. Tagesdifferenz über `scripts/tageskosten_check.py --json`, einzelne
+Modellaufträge über den Anbieter. Schätzungen sind als Schätzung gekennzeichnet.
 
-| Schritt | Modell | Kosten |
+| Zeitraum / Schritt | Modell | Kosten |
 |---|---|---|
-| Passworttor, `.exe`-Bau, acht Kinder-Aufträge, W4b-6-Einhängung, Doku | `deepseek-v4-flash` (Standard, Hauptagent **und** Kinder) | **Tagessumme 9,96 → 10,41 USD** = **≈ 0,45 USD (0,40 EUR)** für alles seit 22:15 |
+| 22:15–23:10: Passworttor, `.exe`-Bau, Kinder-Wellen, W4b-6, Doku | `deepseek-v4-flash` (Standard) | **≈ 0,45 USD** (Tagessumme 9,96 → 10,41 USD, gemessen) |
+| W4b-5 (Wirkungsmodul + Einhängen + 103 Prüfungen) | Standard | **≈ 0,06 EUR** (Differenz 8,81 → 8,87 EUR, gemessen) |
+| Kartenentwurf aus den Original-Screenshots (23:35) | `gpt-6-astra` | **0,67 USD** (10,92 → 11,59 USD, gemessen) |
+| Umsetzungs- und Kampfplan (23:35) | `deepseek-v4-pro` | **0,12 USD** (Anteil) |
+| **Beide teuren Aufrufe zusammen** | astra + v4-pro | **+0,79 USD** (10,9244 → 11,71 USD) |
 
-**Gemessen** über `tageskosten_check.py --json` (summiert über alle Profile): 22:15 = 9,96 USD /
-8,87 EUR, 23:10 = 10,41 USD / 9,27 EUR. Enthalten ist jede Nutzung im Zeitfenster.
-**Kein teures Modell im Einsatz:** `gpt-6-astra` wurde nicht gebraucht (keine Bilddeutung) und
-`deepseek-v4-pro` ebenfalls nicht — die Kinder liefen auf dem Standardmodell.
-**Guthaben (von Daniel abgelesen, 04.10. Nacht):** OpenAI **4,18 USD**, DeepSeek **2,60 USD**,
-davon bleiben **1,00 USD** unangetastet (Daniels Vorgabe für Grundfunktionen).
+**Bezahlte Modellaufträge am 04.10.2026 (Tagesverlauf, vor dieser Sitzung):**
 
-**Grundsatz:** nur belegte Beträge. Die Einzelposten sind Schätzungen je Auftrag (gerundet), der
-Tageswert ist **gemessen**. Wo nichts steht, wurde nichts bezahlt — die Unteragenten laufen auf
-`deepseek-flash` (Bruchteile eines Cents), die Recherchen (Web-Archiv, Common Crawl, GameStar) sind
-kostenlos.
-
-### Bezahlte Modellaufträge am 04.10.2026
-
-| Schritt | Modell | Kosten |
+| Auftrag | Modell | Kosten |
 |---|---|---|
-| Kampf-Audit gegen das Handbuch (19:51) | gpt-6-astra | 0,43 USD |
-| Konformitäts-Audit über 24 Handbuchseiten (19:58) | gpt-6-astra | ~0,78 USD |
-| Wirtschaftsentwurf (20:06) | gpt-6-astra | ~0,80 USD |
-| vier Website-Bilder gedeutet (20:26) | gpt-6-astra | ~0,30 USD |
-| Farbwelt aus vier Bildern (20:37) | gpt-6-astra | ~0,20 USD |
+| Kampf-Audit gegen das Handbuch | gpt-6-astra | 0,43 USD |
+| Konformitäts-Audit über 24 Handbuchseiten | gpt-6-astra | ~0,78 USD |
+| Wirtschaftsentwurf | gpt-6-astra | ~0,80 USD |
+| vier Website-Bilder gedeutet | gpt-6-astra | ~0,30 USD |
+| Farbwelt aus vier Bildern | gpt-6-astra | ~0,20 USD |
 | drei GameStar-Screenshots gedeutet (brachte die **echten Baupreise**) | gpt-6-astra | 0,47 USD |
 | Auftrags- und Bot-System-Entwurf | deepseek-v4-pro | 0,12 USD |
 | zwei Siedlungskarten-Vorlagen | deepseek-v4-pro | 0,04–0,12 USD |
 
-**Summe der astra-Einzelposten:** ~2,98 USD (sechs Aufträge).
-**Gemessen:** **3,33 USD** Verbrauch am 04.10. — ermittelt über
-`/v1/organization/costs?group_by=line_item`, nicht über den Tageswert.
-**Kontostand danach: 5,56 USD verfügbar** (von Daniel von der Billing-Seite abgelesen, Stand
-04.10.2026; erster Stand war 8,89 USD). Auto-Recharge ist **aus** — es können keine Schulden
-entstehen, bei aufgebrauchtem Guthaben brechen die Aufrufe ab.
-**DeepSeek:** 3,32 USD (aus der Übergabe; **nicht nachgeprüft**). Davon muss ein Rest bleiben.
+**Summe der astra-Einzelposten:** ~2,98 USD (sechs Aufträge) · **gemessen 3,33 USD** Verbrauch am
+04.10. über `/v1/organization/costs?group_by=line_item` (der **Tageswert** der Ausgaben-API ist
+unbrauchbar, er aktualisiert in Schüben — daher früher falsche Zahlen).
+**Kontostände:** 8,89 → 5,56 → 4,18 → **4,08 USD** (OpenAI) · 3,32 → 2,60 → **2,08 USD** (DeepSeek),
+alle von Daniel abgelesen. **Auto-Recharge ist aus** — es können keine Schulden entstehen.
+Bei DeepSeek bleiben 1,00 USD Reserve (Daniels Vorgabe); aktuell 1,08 USD darüber.
 
-### Kosten dieses Schritts (W4b-5, 04.10.2026)
+**Teuerste Einzelheit (Lehre):** bei `gpt-6-astra` sind die **Cache-Schreibkosten** der größte Posten
+(3,56 USD gegen 0,94 USD Ausgabe) — dieselbe lange Auftragsformulierung wiederholt sich teuer. Deshalb:
+Aufträge kurz halten, Formulierungen wiederverwenden, **Bilder nur an astra** (seine Stärke),
+Textarbeit an `deepseek-v4-pro` (gleiche Qualität zum Zehntelpreis, siehe `docs/LEHREN.md` §6).
 
-| Schritt | Modell | Kosten |
-|---|---|---|
-| W4b-5 (Wirkungsmodul, Einhängen in `main.py`, 103 neue Prüfungen, Doku) | `deepseek-v4-flash` (Standard) | **≈ 0,06 EUR** — gemessen als Differenz der Tagessumme |
+**Zur 4-EUR-Tagesregel:** der Tag liegt weit darüber; für den Auftrag „Nebelseetal Remake so gut wie
+möglich" hat Daniel die Regel ausgesetzt (Skill `kosten-schutzregel`, laufende Ausnahme).
 
-**Wie gemessen:** `tageskosten_check.py --json` vor dem Schritt (8,81 EUR) und danach (8,87 EUR);
-die Differenz enthält jede Modellnutzung im selben Zeitfenster (auch andere Profile). Kein teures
-Modell im Einsatz: `gpt-6-astra` war nicht nötig (keine Bilddeutung — alle Zahlen stehen im Handbuch
-und in den Datendateien), `deepseek-v4-pro` ebenfalls nicht.
-**Zur 4-EUR-Regel:** der Tag liegt mit 8,87 EUR über dem normalen Limit; für den Auftrag
-„Nebelseetal Remake so gut wie möglich" hat Daniel die Regel ausgesetzt (Skill `kosten-schutzregel`,
-laufende Ausnahme). Auto-Recharge ist aus — Schulden sind nicht möglich.
-**DeepSeek-Guthaben:** nicht nachgeprüft (der Schlüssel liegt nur in Hermes, nicht in der Shell).
+## Meilensteine (Prüfstand-Verlauf)
 
-### Die teuerste Einzelheit (wichtig fürs nächste Mal)
+Die jeweils **gemessenen** Sammelläufe; Details in `docs/PROJEKT_STAND.md` und im Git-Verlauf.
+Jeder neue Prüfstand kommt hier als **eine Zeile** dazu — kein eigener „Stand"-Abschnitt mehr.
 
-Bei `gpt-6-astra` sind die **Cache-Schreibkosten** der größte Posten: **3,56 USD gegen 0,94 USD
-Ausgabe**. Dieselbe lange Auftragsformulierung wiederholt sich also teuer. Regel daraus: Aufträge
-kurz halten und gleiche Formulierungen wiederverwenden.
+| Zeit (04.10.2026) | Prüfstand | Was erreicht wurde | Commit |
+|---|---|---|---|
+| 15:36 | **526** / 11 Dateien, 0 Fehler | Sicherheitsnetz, erste Belege, Rohbau | `472704f` |
+| 22:15 | **630** / 12, 0 Fehler, 1 Befund | **W4b-5**: die 20 Originalgebäude wirken aus den bebauten Feldern | `a158175` |
+| 22:34 | **691** / 13, 0 Fehler | **Passworttor** (PBKDF2) + `tools/build_exe.py` | — |
+| 23:02 | **1157** / 18, 0 Fehler, 2 Befunde | **W4b-6**: 21 Originalforschungen, Faktoren für alle neun Rohstoffe | `c0f4a5d` |
+| 23:40 | **1651** / 23, 0 Fehler, 9 Befunde | **zehn Kind-Module** fertig und nachgerechnet; Brett der Kinder abgeschafft | `f48e9d2` |
 
-### Widerspruch, richtiggestellt
+Die zwei Befunde der Frühphase sind ehrlich und bekannt: (1) das Handbuch nennt keine
+Ausbildungsdauer, deshalb senkt die Stufe einer Ausbildungsstätte noch nichts messbar; (2) `werkstatt`
+meldet eine Lücke in den Waren-Regeln, die das Handbuch offen lässt.
 
-Ältere Notizen im Projekt und in der Übergabe nannten „4,54 USD verbraucht → 1,02 USD Reserve" und
-„6,31 USD heute, 4,06 USD Mission, 1,50 USD Reserve". Diese Zahlen widersprechen sich und dem
-Messwert. **Richtig ist: 3,33 USD verbraucht, 5,56 USD verfügbar.** Die alten Angaben stammen aus
-dem Tageswert der Ausgaben-API, der in Schüben aktualisiert und deshalb unbrauchbar ist.
-
----
-
-## Stand
-
-- **526 Prüfungen, 0 Fehler** über elf Dateien (`run_tests.bat`), Commit `472704f`.
-- **Ziel noch offen:** es gibt noch keine `.exe` mit Passworttor (Paket W9).
-- **Nächster Schritt:** W4b-5 — die 20 Originalgebäude samt ihren Wirkungen ins Spiel holen.
-- Die vollständige Historie: `git log --oneline` (40 Commits).
-
----
-
-## Stand nach W4b-5 (04.10.2026, 22:15)
-
-- **630 Prüfungen, 0 Fehler, 1 Befund** über **zwölf** Dateien (`run_tests.bat`), Commit `a158175`.
-  Der Befund ist bekannt und ehrlich: das Handbuch nennt keine Ausbildungsdauer, deshalb senkt die
-  Stufe einer Ausbildungsstätte noch nichts messbar.
-- **Ziel weiterhin offen:** es gibt noch keine `.exe` mit Passworttor (Paket W9).
-- **Nächster Schritt:** W4b-6 — der Produktionsfaktor für alle neun Rohstoffe (gehört mit den
-  21 Originalforschungen zusammen, weil die Faktoren an deren Namen hängen).
-- **Neu entdeckt und als eigener Schritt vermerkt:** `src/forschung.py` und `src/welt.py` sind fertig
-  geprüft, aber im Spiel **nicht eingehängt** — die Forschungsstufe steigt noch im selben Klick, und
-  im Portal steckt noch das alte `MAPS`-Modell.
-- Die vollständige Historie: `git log --oneline`.
-
-**Sicherung (projektunabhaengig):** 14 Dateien gesichert nach `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-04_2302` — Vorgabe von Daniel am 04.10.2026, damit das Protokoll auch ohne diesen Projektordner weiterlebt. Zeiger auf die juengste Fassung: `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`.
-
-**Sicherung (projektunabhaengig):** 14 Dateien gesichert nach `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-04_2303` — Vorgabe von Daniel am 04.10.2026, damit das Protokoll auch ohne diesen Projektordner weiterlebt. Zeiger auf die juengste Fassung: `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`.
-
-**Sicherung (projektunabhaengig):** 14 Dateien gesichert nach `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-04_2304` — Vorgabe von Daniel am 04.10.2026, damit das Protokoll auch ohne diesen Projektordner weiterlebt. Zeiger auf die juengste Fassung: `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`.
-
-**Sicherung (projektunabhaengig):** 14 Dateien gesichert nach `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-04_2307` — Vorgabe von Daniel am 04.10.2026, damit das Protokoll auch ohne diesen Projektordner weiterlebt. Zeiger auf die juengste Fassung: `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`.
-
-**Sicherung (projektunabhaengig):** 17 Dateien gesichert nach `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-04_2311` — Vorgabe von Daniel am 04.10.2026, damit das Protokoll auch ohne diesen Projektordner weiterlebt. Zeiger auf die juengste Fassung: `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`.
-
----
+**Offen und neu entdeckt:** `src/forschung.py` (Wartezeit) und der Portalraum sind fertig geprüft,
+aber noch **nicht eingehängt** — die Forschungsstufe steigt noch im selben Klick, im Portal steckt
+noch das alte `MAPS`-Modell.
 
 ## J. Selbstprüfung, Brett-Abbau und alle zehn Module (23:10–23:35)
 
@@ -300,13 +269,6 @@ bezogen berechnet: meiste Leistung für geringste Ausgabe."
 **Kostenregel für die teuren Aufrufe:** nach dem Lauf wird sofort gemessen (`tageskosten_check.py`)
 und die Differenz ins Protokoll geschrieben. Bei DeepSeek müssen **1,00 USD liegen bleiben**.
 
-### Abschluss dieser Sitzung (04.10.2026, 23:45, mit `date` geprüft)
-
-| Zeit | Schritt | Ergebnis / Beleg |
-|---|---|---|
-| 23:45 | **Sitzungswechsel vorbereitet** (Auftrag Daniel: „fertig machen zum Session-Wechsel") | Nichts in Arbeit, kein Prozess, kein Kind; Arbeitsverzeichnis sauber (Commit `9bbb3c2`). Übergabe um Abschnitt **0b „Stand beim Sitzungswechsel"** ergänzt (Prüfstand, fertige Module, was **nicht** eingehängt ist, Kosten, offene Fragen, Prüfbefehle). Startzeile führt auf `docs/UMSETZUNG_EINHAENGEN.md`; **Schritt 1 ist `speichern` an `main.py:608-634`** (direktes Schreiben in Zeile 627-628). Ein Umsetzungsschritt in `main.py` wurde **absichtlich nicht** mehr begonnen: bei fast vollem Kontext wäre das Risiko am laufenden Spiel zu groß — die Sitzung endet lieber sauber als halb geändert |
-| 23:45 | **Selbstkontrolle vor dem Abschluss** | `git status` leer · Sicherung projektunabhängig erneuert (Prüfsummen gleich) · keine offenen Fenster · Zeitangaben diesmal mit `date` geprüft (der Schätzer-Fehler von 23:42 ist korrigiert und im Protokoll vermerkt) |
-
 ### Ausgang der beiden teuren Aufrufe
 
 | Zeit | Aufruf | Ergebnis |
@@ -314,18 +276,6 @@ und die Differenz ins Protokoll geschrieben. Bei DeepSeek müssen **1,00 USD lie
 | 23:38 | **astra (Bilder, Kartenentwurf) — fertig, Rückgabewert 0** | (Logdatei um 23:38 vollständig geschrieben, Fertigmeldung kam später) Geschrieben: `docs/KARTEN_ENTWURF.md` (48 Zeilen, jede Aussage als `[BELEGT: Foto …]` oder `[VORSCHLAG]`) und `docs/audits/astra_karten.txt`. **Der Befund ist negativ und wertvoll: auf keinem der drei GameStar-Fotos ist eine Siedlungskarte zu sehen** — Foto 1 Nachrichtenansicht, Foto 2 **Portal**ansicht (das 20×20-Raster gehört dorthin), Foto 3 Baumenü. Das frühere astra-Gutachten (21:0x) war unabhängig zum selben Ergebnis gekommen → unsere Siedlungskarte ist **eigene Gestaltung**, kein Originalbeleg. Zusätzlich fand astra einen **echten Widerspruch in unseren Daten** (`data/gelaende.json`: 8×5 = 40 Felder *und* 56 Felder), vom Koordinator nachgerechnet und als Frage 12 vorgelegt. **Kosten dieses Aufrufs: +0,67 USD** (Messung 10,92 → 11,59 USD unmittelbar danach) — im Rahmen des Veranschlagten (1,27 USD aus dem letzten Mal) |
 | — | **v4-pro (Umsetzungs- und Kampfplan)** | **fertig, Rückgabewert 0**: `docs/UMSETZUNG_EINHAENGEN.md` (352 Zeilen, 22,5 KB) — 1.0 Datenmodell-Abweichung (main.py = Datenklassen, Module = dict; Brücke `_als_dict`/`_aus_dict`), 1.1–1.9 je Modul die konkreten Aufrufstellen, 2 Kampfablauf mit allen fünf Fehlerfällen samt wörtlichen Meldungen, 3 Kartenansicht (laut Plan **kein** Umbau nötig), 4 Umstellung auf `speichern` (`main.py:627-628`), 5 Arbeitsreihenfolge mit erwarteten Prüfzahlen. **Beide teuren Aufrufe zusammen: +0,79 USD** (Messung 10,9244 → 11,71 USD) — deutlich unter dem Veranschlagten (1,39 USD) |
 | 23:42 | **Kontrolle durch den Koordinator** | Die drei „unklar"-Stellen des Plans aufgeklärt und in Abschnitt 6 des Plans nachgetragen (auftraege **111**, botkern **90**, Gesamt **1651/23**); bestätigt, dass der direkte Schreibort wirklich `main.py:627-628` ist. Startzeile in der Übergabe auf den Plan umgestellt. **Eigener Fehler dabei gefunden und behoben:** zwei Zeitangaben („00:05", „05.10.") waren geschätzt statt geprüft — `date` sagt 04.10.2026, 23:42, alle drei Stellen korrigiert |
-
-**Sicherung (projektunabhaengig):** 12 Dateien gesichert nach `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-04_2324` — Vorgabe von Daniel am 04.10.2026, damit das Protokoll auch ohne diesen Projektordner weiterlebt. Zeiger auf die juengste Fassung: `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`.
-
-**Sicherung (projektunabhaengig):** 12 Dateien gesichert nach `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-04_2324` — Vorgabe von Daniel am 04.10.2026, damit das Protokoll auch ohne diesen Projektordner weiterlebt. Zeiger auf die juengste Fassung: `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`.
-
-**Sicherung (projektunabhaengig):** 12 Dateien gesichert nach `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-04_2339` — Vorgabe von Daniel am 04.10.2026, damit das Protokoll auch ohne diesen Projektordner weiterlebt. Zeiger auf die juengste Fassung: `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`.
-
-**Sicherung (projektunabhaengig):** 14 Dateien gesichert nach `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-04_2342` — Vorgabe von Daniel am 04.10.2026, damit das Protokoll auch ohne diesen Projektordner weiterlebt. Zeiger auf die juengste Fassung: `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`.
-
-**Sicherung (projektunabhaengig):** 14 Dateien gesichert nach `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-04_2345` — Vorgabe von Daniel am 04.10.2026, damit das Protokoll auch ohne diesen Projektordner weiterlebt. Zeiger auf die juengste Fassung: `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`.
-
-**Sicherung (projektunabhaengig):** 14 Dateien gesichert nach `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-04_2346` — Vorgabe von Daniel am 04.10.2026, damit das Protokoll auch ohne diesen Projektordner weiterlebt. Zeiger auf die juengste Fassung: `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`.
 
 ---
 
@@ -360,5 +310,3 @@ Abschnitte 4 und 5; die Startzeile in `docs/PROJEKT_STAND.md`, Abschnitt 0.
 Stand in Belegen, **der eine** nächste Schritt mit `Datei:Zeile` und erwarteter Prüfzahl, eine
 „nicht erneut zu prüfen"-Tabelle, Sekunden-Checks statt Sammellauf. Dazu gehört auch: **keine halbe
 Änderung hinterlassen** — lieber sauber enden als `main.py` halb umgebaut übergeben.
-
-**Sicherung (projektunabhaengig):** 14 Dateien gesichert nach `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-04_2346` — Vorgabe von Daniel am 04.10.2026, damit das Protokoll auch ohne diesen Projektordner weiterlebt. Zeiger auf die juengste Fassung: `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`.
