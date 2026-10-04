@@ -151,7 +151,19 @@ Sechs Kinder liefen nach dieser Vorlage. Was den Unterschied machte:
 
 ## 7. Nach jedem Paket
 
-`run_tests.bat` (alle elf Dateien), Ergebnis in `docs/PROJEKT_STAND.md`, kleiner Commit,
-Brett-Eintrag, **und eine Zeile ins Entwicklungsprotokoll** (`docs/ENTWICKLUNGSPROTOKOLL.md`) mit
+`run_tests.bat` (alle Dateien), Ergebnis in `docs/PROJEKT_STAND.md`, kleiner Commit, Brett-Eintrag,
+**und eine Zeile ins Entwicklungsprotokoll** (`docs/ENTWICKLUNGSPROTOKOLL.md`) mit
 Zeit, Schritt, Ergebnis und Beleg. Nur anhängen, nie umschreiben — auch Fehler und Irrwege gehören
 hinein, denn Daniel schreibt die Entstehung des Spiels damit mit. Erst dann das nächste Paket.
+
+**Und danach: projektunabhängig sichern** (Vorgabe Daniel, 04.10.2026):
+
+```bash
+python tools/protokoll_sichern.py --protokoll
+```
+
+Das legt eine zeitgestempelte **vollständige Kopie** der führenden Papiere (Übergabe, Protokoll,
+Brett, Plan, Lehren, Ordnung, Weg zur EXE, Entwürfe, Audits) samt Prüfsummen nach
+`D:\Arbeiten\Hermes\Nebelseetal_Protokoll\<Zeitstempel>\`, erneuert den Zeiger `zuletzt.txt` und
+hängt eine Zeile ans Protokoll. Damit lebt die Entstehungsgeschichte weiter, **auch wenn der
+Projektordner verschoben, aufgeräumt oder gelöscht wird oder eine neue Sitzung beginnt**.

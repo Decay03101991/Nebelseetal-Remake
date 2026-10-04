@@ -54,12 +54,15 @@ run_tests.bat
 git log --oneline | head -12
 ```
 
-Erwartet: **691 bestanden, 0 Fehler, 1 Befund** über dreizehn Prüfdateien:
-baseline 39 · spieldaten 53 · kampf 42 · gelaende 81 · siedlungskarte 33 · kartenansicht 40 ·
-berater 66 · wirtschaft 42 · forschung 68 · welt 42 · ertrag_anbindung 21 · gebaeude_wirkung 103 ·
-tor 61.
-Der eine **Befund** ist ehrlich und bekannt: das Handbuch nennt keine Ausbildungsdauer, deshalb
-kann die Stufe einer Ausbildungsstätte die Dauer noch nicht messbar senken (`bonus_system.UNIT_TRAIN_BASE = 0`).
+Erwartet: **1157 bestanden, 0 Fehler, 2 Befunde** über achtzehn Prüfdateien
+(Stand 04.10.2026, 23:10 gemessen): baseline 40 · spieldaten 53 · kampf 42 · gelaende 81 ·
+siedlungskarte 33 · kartenansicht 40 · berater 66 · wirtschaft 42 · forschung 68 · welt 42 ·
+ertrag_anbindung 21 · gebaeude_wirkung 103 · tor 61 · forschung_wirkung 94 · werkstatt 118 ·
+portalraum 69 · punkte 76 · kampfbericht 108.
+Die zwei **Befunde** sind ehrlich und bekannt: (1) das Handbuch nennt keine Ausbildungsdauer,
+deshalb kann die Stufe einer Ausbildungsstätte die Dauer noch nicht messbar senken
+(`bonus_system.UNIT_TRAIN_BASE = 0`); (2) `werkstatt` meldet eine Lücke in den Waren-Regeln, die
+das Handbuch offen lässt.
 
 Grün heißt „nichts ist kaputt und die umgestellten Teile halten sich ans Handbuch" — **nicht**
 „Spiel ist fertig". Was fehlt, steht in Abschnitt 5.
