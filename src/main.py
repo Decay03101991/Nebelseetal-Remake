@@ -20,6 +20,7 @@ from bonus_system import (
 )
 import einheiten
 import spieldaten
+import gelaende
 
 
 # ---------- Data Models ----------
@@ -123,6 +124,60 @@ class Settlement:
     units: Dict[str, int] = field(default_factory=dict)
     garrison: Dict[str, int] = field(default_factory=dict)
     last_rename: float = 0.0
+    # Siedlungskarte (Handbuch S. 259/313): jede Siedlung hat eine eigene Geländekarte,
+    # niemals zwei eigene Siedlungen dieselbe. bauten ordnet Feld-Index -> Gebäude-Kennung.
+    karte: Optional[dict] = None
+    bauten: Dict[str, str] = field(default_factory=dict)
+
+
+# Handbuch S. 313: 'Einer neuen Siedlung wird per Zufall eine Karte zugewiesen. Es werden
+# niemals zwei Deiner Siedlungen die gleiche Karte bekommen.' Wie viele Siedlungen erlaubt
+# sind, sagt das Handbuch nicht ausdrücklich — sechs ist der belegte Stand (sechs Welten,
+# sechs Siedlungen je Spieler laut Konformitäts-Audit).
+SIEDLUNGEN_MAXIMUM = 6
+KARTENVERSUCHE = 400
+
+
+def karten_signatur(karte: dict) -> str:
+    """Eine Karte eindeutig beschreiben (Geländeart je Feld)."""
+    return "".join(karte["raster"])
+
+
+def neue_siedlungskarte(vorhandene: List[dict]) -> dict:
+    """
+    Weist einer neuen Siedlung eine zufällige Karte zu, die keine andere eigene Siedlung hat.
+
+    Handbuch S. 313. Wird kein freies Muster gefunden, wird das ehrlich gemeldet statt eine
+    doppelte Karte auszugeben.
+    """
+    vergeben = {karten_signatur(k) for k in vorhandene if k}
+    for _ in range(KARTENVERSUCHE):
+        karte = gelaende.siedlungskarte_erzeugen(random.randrange(1, 10 ** 9))
+        if karten_signatur(karte) not in vergeben:
+            return karte
+    raise RuntimeError("Keine neue Siedlungskarte gefunden")
+
+
+def bauen_auf_karte(siedlung: "Settlement", gebaeude_key: str, feld: int) -> tuple:
+    """
+    Setzt ein Gebäude auf ein Feld der Siedlungskarte.
+
+    Rückgabe: (ja/nein, Meldung). Prüft zuerst die Eignung (Handbuch S. 7/8: beim Bauen wird
+    die Eignung des Geländes angezeigt), dann ob das Feld frei ist.
+    """
+    if siedlung.karte is None:
+        return False, "Diese Siedlung hat noch keine Karte."
+    if not (0 <= feld < len(siedlung.karte["raster"])):
+        return False, f"Feld {feld} liegt nicht auf der Karte."
+    if str(feld) in siedlung.bauten:
+        return False, (f"Feld {feld} ist bereits belegt "
+                       f"({siedlung.bauten[str(feld)]}).")
+    art = siedlung.karte["raster"][feld]
+    erlaubt, warum = gelaende.bau_moeglich(gebaeude_key, art)
+    if not erlaubt:
+        return False, warum
+    siedlung.bauten[str(feld)] = gebaeude_key
+    return True, f"{warum} (Feld {feld})"
 
 
 # ---------- Config ----------
@@ -784,8 +839,8 @@ class NebelseetalApp:
             self._log("Nicht genug Ressourcen.")
 
     def _found_settlement(self):
-        if len(self.state.settlements) >= 3:
-            self._log("Maximale Siedlungsanzahl erreicht.")
+        if len(self.state.settlements) >= SIEDLUNGEN_MAXIMUM:
+            self._log(f"Maximale Siedlungsanzahl erreicht ({SIEDLUNGEN_MAXIMUM}).")
             return
         cfg = next(m for m in MAPS if m["id"] == self.state.current_map)
         size = cfg["size"]
@@ -799,11 +854,19 @@ class NebelseetalApp:
                 if any(s.name == name for s in self.state.settlements):
                     attempts += 1
                     continue
-                sett = Settlement(name=name, map_id=self.state.current_map, x=x, y=y)
+                # Handbuch S. 313: zufällige Karte, niemals dieselbe wie eine andere eigene Siedlung.
+                try:
+                    karte = neue_siedlungskarte([s.karte for s in self.state.settlements])
+                except RuntimeError as fehler:
+                    self._log(f"Keine Siedlung gegründet: {fehler}")
+                    return
+                sett = Settlement(name=name, map_id=self.state.current_map, x=x, y=y, karte=karte)
                 self.state.settlements.append(sett)
                 tile.npc_faction = "spieler"
                 tile.sector_name = name
                 self._log(f"Neue Siedlung '{name}' auf {self.state.current_map} bei {x}:{y} gegründet.")
+                self._log(f"  Karte: {karte['typ_name']} — {karte['vorteil']}")
+                self._log(f"  {gelaende.karte_beschreiben(karte)}")
                 return
             attempts += 1
         self._log("Kein geeigneter Platz für eine Siedlung gefunden.")
