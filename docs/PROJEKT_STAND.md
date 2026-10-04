@@ -193,7 +193,7 @@ verloren gegangen (die Kartenanalyse und die Siedlungsvorlage).
 | ~~Die 20 Originalgebäude wirken nur als Anzeige~~ | **erledigt am 04.10.2026 (W4b-5)** — Haus, Bibliothek, die drei Ausbildungsstätten und der Wall wirken jetzt aus den bebauten Feldern | — |
 | ~~Haus und Bibliothek gibt es doppelt (global *und* auf der Karte)~~ | **erledigt mit W4b-5** — die fünf erfundenen globalen Gebäude (Haus, Bibliothek, Kaserne, Wachturm, Portal) sind ersatzlos entfallen; `main.BUILDINGS` ist leer | — |
 | ~~Forschung wirkt nur auf Holz, Stein, Nahrung~~ | **erledigt am 04.10.2026 (W4b-6)** — `bonus_system.get_production_multiplier` liefert die belegten Faktoren für **alle neun** Rohstoffe; im Spiel stehen jetzt die **21 Originalforschungen** statt 18 erfundener Gebiete | — |
-| **Fertig gebaut, aber noch nicht in der Oberfläche** (Stand 23:00) | die Module sind geprüft grün, aber `main.py` ruft sie noch nicht auf: W3 Waren/Werkstätten, W2b Kampfbericht, W6 Punkte/Sieg-Niederlage, W5-2 Portalraum, W8 robustes Speichern, WA Aufträge, W5 Bots. **Das Einhängen ist der nächste Schritt** (Fachschicht + Oberfläche) | Einhängen |
+| **Fertig gebaut, aber noch nicht in der Oberfläche** (Stand 23:12) | die Module sind geprüft grün, aber `main.py` ruft sie noch nicht auf: W3 Waren/Werkstätten, W2b Kampfbericht, W6 Punkte/Sieg-Niederlage, W5-2 Portalraum, W5 Bot-Kern. **Das Einhängen ist der nächste Schritt** (Fachschicht + Oberfläche). **Noch nicht gebaut:** W8 robustes Speichern, WA Aufträge, W7 Menü-Vergleich — ihre Kinder wurden nach einem Abbruch neu gestartet | Einhängen |
 | **Forschung im Spiel steigt SOFORT** (neu entdeckt mit W4b-5) | `src/forschung.py` (Dauer = Stufe² Stunden, Stufe steigt erst nach Ablauf) ist fertig, aber **nicht eingehängt**: `_start_research` zieht die Kosten und erhöht die Stufe im selben Klick. Die Bibliothekspflicht greift jetzt — die Wartezeit fehlt | Einhängen (mit der Fachschicht) |
 | **Wallstufen wirken noch nicht im Kampf** | die Schwellenwerte sind abrufbar (`gebaeude_wirkung.wall_schwelle`, `kampfbericht.vorrunde`), aber es gibt noch keinen Angriff aus der Oberfläche | Einhängen |
 | 17 Waren als Emoji statt Handwerk | das Werkstatt-Modul rechnet Warteschlangen richtig — es erscheint nur noch nicht im Fenster | Einhängen |
@@ -248,15 +248,16 @@ verloren gegangen (die Kartenanalyse und die Siedlungsvorlage).
    richtig, `main._start_research` steigt aber noch sofort.
 7. **W5-2 — Portalansicht einhängen**: `src/portalraum.py` (20 Dimensionen, 5.000 Mana, 24-h-Sperre)
    ersetzt das alte `MAPS`-Modell im Portalreiter.
-8. **WA — Auftragssystem einhängen**: `src/auftraege.py` (Kind WA) über
-   `spielschicht`-Zustand anschließen; Reisezeit, Rückkehr, Beute.
+8. **WA — Auftragssystem**: `src/auftraege.py` ist **noch nicht gebaut** (Kind neu gestartet, nachdem
+   der erste Lauf abgebrochen wurde). Nach dem Eintreffen einhängen: Reisezeit, Rückkehr, Beute.
 9. **W2b — Kampf ins Spiel**: `src/kampfbericht.py` (Vorrunden-Schwellen, Mauerschaden, Beute,
    Bericht) mit einer Angriffs-Schaltfläche verbinden und den Bericht in die Nachrichten legen.
 10. **W3 — Waren im Fenster**: `src/werkstatt.py` in einer Ansicht (Warteschlangen, parallele
     Werkstätten) sichtbar machen.
-11. **W8 — robustes Speichern einhängen**: `src/speichern.py` (atomar, Sicherung, Wiederherstellen)
-    statt des direkten Schreibens in `main.py`.
-12. **W7 — Oberfläche** nach der belegten Menüliste (Netz-Einträge bleiben draußen).
+11. **W8 — robustes Speichern**: `src/speichern.py` ist **noch nicht gebaut** (Kind läuft) — danach
+    statt des direkten Schreibens in `main.py` verwenden.
+12. **W7 — Oberfläche**: das Vergleichsmodul (Kind läuft) liefert die Abweichungsliste; danach die
+    Menüordnung nach der belegten Liste nachbauen (Netz-Einträge bleiben draußen).
 13. **W9 — Auslieferung**: `.exe` **neu bauen** (`tools/build_exe.py`) und erneut startprüfen.
 14. **Karten und Weltdaten sichern**: an jedem Paketende `python tools/protokoll_sichern.py --protokoll`.
 
