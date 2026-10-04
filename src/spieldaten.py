@@ -20,16 +20,27 @@ STAND = "2026-10-04"
 
 
 def projektwurzel() -> str:
-    """Projektwurzel — funktioniert als Skript und in einer gepackten Anwendung.
+    """Wo liegen die Datendateien? Es wird **gesucht**, nicht geraten.
 
-    In der EXE (PyInstaller) liegen die Datendateien NICHT neben der Exe, sondern im
-    entpackten Zwischenordner ``sys._MEIPASS``; genau dort sucht PyInstaller sie auch fuer
-    ``__file__``. Ohne diesen Zweig findet die fertige EXE ihre ``data/*.json`` nicht.
+    Als Quelltext ist die Wurzel der Ordner ueber `src/`. In der fertigen EXE stimmt das nicht:
+    PyInstaller entpackt die mitgegebenen Ordner und die Module in einen Zwischenordner
+    (``sys._MEIPASS``), und ``__file__`` eines gepackten Moduls zeigt nicht dorthin, wo man denkt.
+    Deshalb werden die Kandidaten der Reihe nach geprueft — es gilt der erste, in dem wirklich
+    ``data/gelaende.json`` liegt. Findet keiner die Dateien, kommt der letzte Kandidat zurueck,
+    damit die Fehlermeldung den erwarteten Pfad zeigt.
     """
     import sys
-    if getattr(sys, "frozen", False):                     # PyInstaller
-        return getattr(sys, "_MEIPASS", None) or os.path.dirname(os.path.abspath(sys.executable))
-    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    kandidaten = []
+    basis = getattr(sys, "_MEIPASS", None)                    # PyInstaller (Einzeldatei/Ordner)
+    if basis:
+        kandidaten.append(basis)
+    if getattr(sys, "frozen", False):
+        kandidaten.append(os.path.dirname(os.path.abspath(sys.executable)))
+    kandidaten.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    for kandidat in kandidaten:
+        if kandidat and os.path.exists(os.path.join(kandidat, "data", "gelaende.json")):
+            return kandidat
+    return kandidaten[-1]
 
 
 def _lade(dateiname: str) -> Dict[str, Any]:

@@ -20,7 +20,11 @@ import json
 import random
 from pathlib import Path
 
-WURZEL = Path(__file__).resolve().parent.parent
+import spieldaten
+
+# Wurzel ueber EINE Stelle (spieldaten.projektwurzel) — sie findet die Datendateien auch in der
+# fertigen EXE, wo `__file__` nicht auf den entpackten Ordner zeigt.
+WURZEL = Path(spieldaten.projektwurzel())
 DATEN = WURZEL / "data"
 
 

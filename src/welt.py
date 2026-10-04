@@ -19,7 +19,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-WURZEL = Path(__file__).resolve().parent.parent
+import spieldaten
+
+# Wurzel ueber EINE Stelle (spieldaten.projektwurzel) — auch in der fertigen EXE richtig.
+WURZEL = Path(spieldaten.projektwurzel())
 DATEN = WURZEL / "data"
 
 

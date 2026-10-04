@@ -30,8 +30,11 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import einheiten
 import gelaende
+import spieldaten
 
-WURZEL = Path(__file__).resolve().parent.parent
+# Wurzel ueber EINE Stelle (spieldaten.projektwurzel) — sie findet die Datendateien auch in der
+# fertigen EXE. `Path(__file__).parent.parent` stimmt dort nicht.
+WURZEL = Path(spieldaten.projektwurzel())
 WIRKUNGSDATEI = WURZEL / "data" / "gebaeude_wirkung.json"
 
 # Ausbaustufen liegen in der Siedlung je FELD: {"Feldindex": Stufe}. Ein bebautes Feld ohne

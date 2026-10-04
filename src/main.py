@@ -210,7 +210,9 @@ def bauen_auf_karte(siedlung: "Settlement", gebaeude_key: str, feld: int) -> tup
 
 # Icon-Dateien: bevorzugt die freigestellte Fassung aus assets/icons/clean/ — dort ist der
 # Blatthintergrund entfernt (tools/clean_icons.py). Fehlt sie, wird die Originaldatei genommen.
-ICON_WURZEL = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# Die Wurzel kommt aus spieldaten: nur so findet die fertige EXE ihre Bilder
+# (`__file__` zeigt im Paket nicht auf den entpackten Ordner).
+ICON_WURZEL = spieldaten.projektwurzel()
 
 
 def ist_verpackt() -> bool:

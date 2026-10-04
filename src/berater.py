@@ -19,7 +19,7 @@ import os
 import gelaende
 import spieldaten
 
-WURZEL = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+WURZEL = spieldaten.projektwurzel()      # auch in der fertigen EXE richtig (eine Stelle: spieldaten)
 
 # Ein echtes Modell koennte hier angebunden werden (Schluessel NICHT in der Datei ablegen,
 # sondern in einer Konfiguration ausserhalb). Bleibt vorerst leer: die Auskunft unten
