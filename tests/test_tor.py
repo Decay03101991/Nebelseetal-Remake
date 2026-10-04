@@ -28,9 +28,17 @@ import tor as T
 import main as M
 
 
+_tempordner = []
+
+
 def neuer_pfad(name: str) -> str:
-    """Ein frischer Tor-Pfad in einem eigenen Ordner (nie Daniels echter)."""
+    """Ein frischer Tor-Pfad in einem eigenen Ordner (nie Daniels echter).
+
+    Der Ordner wird am Ende der Pruefung wieder entfernt — sonst bleiben bei jedem Lauf
+    Karteileichen im Zwischenspeicher liegen (im Projekt gilt: nach jedem Lauf aufraeumen).
+    """
     ordner = tempfile.mkdtemp(prefix="nebel_tor_")
+    _tempordner.append(ordner)
     return os.path.join(ordner, name)
 
 
@@ -285,5 +293,8 @@ if tk is not None:
     check("Hauptfenster hinter dem Tor laeuft durch", bool(ausnahme("Hauptfenster", app_probe_mit_tor)))
 else:
     befund("Fensterpruefung übersprungen", "kein tkinter verfügbar")
+
+for _ordner in _tempordner:                    # eigene Zwischenordner wieder wegraeumen
+    shutil.rmtree(_ordner, ignore_errors=True)
 
 sys.exit(bericht())
