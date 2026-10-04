@@ -1,0 +1,155 @@
+Warning: Unknown toolsets: kiri_engine
+Query: Du bist Regelgutachter fuer ein Spiel-Remake. Lies GENAU ZWEI Dateien 
+vollstaendig: (1) 
+D:/Arbeiten/Nebelseetal_Remake/docs/original/Spielanleitung_2009_Textfassung.tx
+t — das ist das Original-Handbuch, 24 Seiten. (2) 
+C:/Users/saras/AppData/Local/hermes/cache/scratch/astra_code_stand.txt — eine 
+ehrliche Selbstdarstellung des heutigen Codes. Nutze danach KEIN weiteres 
+Werkzeug und lies keine anderen Dateien. Antworte direkt als Text. AUFGABE: 
+Erstelle eine Pruefliste 'Regel des Handbuchs -> im Code vorhanden / teilweise 
+/ fehlt / abweichend'. Gehe die Handbuchseiten der Reihe nach durch (Seite 1 
+bis 24). Je Zeile: Handbuchseite, die Regel in einem Satz, Zustand im Code, und
+bei Abweichung was konkret fehlt. Zaehle am Ende auf, welche FUENF Luecken das 
+Spiel am wenigsten spielbar machen, in dieser Reihenfolge. Deutsch, hoechstens 
+120 Zeilen. Keine Zusammenfassung des Handbuchs, nur die Pruefliste. Erfinde 
+nichts: wenn eine Regel im Handbuch fehlt, schreibe 'Handbuch schweigt'.
+Initializing agent...
+────────────────────────────────────────
+
+  ┊ 📖 read      Spielanleitung_2009_Textfassung.txt  4.9s
+  ┊ 📖 read      astra_code_stand.txt  4.9s
+
+╭─ ☤ Hermes ───────────────────────────────────────────────────────────────────╮
+Bewertung ausschließlich anhand der beiden vollständig gelesenen Dateien; „vorhanden“ bedeutet laut Code-Selbstdarstellung, nicht unabhängig getestet. „Nicht belegt“ bedeutet nicht automatisch „fehlt“.
+
+Seite 1 | Keine Spielregel auf dem Titelblatt: Handbuch schweigt. | Kein Code-Abgleich erforderlich.
+Seite 2 | Das Spiel läuft online im Browser und ermöglicht Handel und Krieg zwischen Spielerwelten. | fehlt | Beschrieben ist Einzelspielerbetrieb ohne funktionierende Beziehungen zwischen Reichen; Browserbetrieb nicht belegt.
+Seite 2 | Gebäude liefern Rohstoffe für Ausbau, Forschung und Ausrüstung. | teilweise | Grundproduktion vorhanden, originale Produktions- und Ausrüstungsketten nicht durchgängig umgesetzt.
+Seite 2 | Produktion, Forschung und Einheitenbewegungen benötigen reale Zeit. | abweichend | Produktion hat Zeitschritte, Forschung und Ausbildung erfolgen sofort; echte Reisen fehlen.
+Seite 2 | Forschung erhöht Produktivität und schaltet Gebäude, Waren oder Einheiten frei. | teilweise | Forschung existiert; originale Effekte und Freischaltungen sind nicht belegt.
+Seite 2 | Spieler können gemeinsam Gilden gründen. | fehlt | Keine spielbare Gildenfunktion beschrieben.
+
+Seite 3 | Ein Reich darf höchstens sechs Siedlungen besitzen. | abweichend | Code begrenzt auf drei.
+Seite 3 | Hauptmenü, letzte fünf Nachrichten, eigene Punkte und Siedlungsauswahl sind erreichbar. | teilweise | Ansichten vorhanden; diese konkrete Navigation und Nachrichtenanzeige nicht belegt, Punkteberechnung falsch.
+Seite 3 | Die Ressourcenleiste zeigt lokal Siedlungsbestände, außerhalb einer Siedlung die Gesamtbestände. | teilweise | Rohstoffe vorhanden; kontextabhängige Anzeige und Summierung nicht belegt.
+Seite 3 | Der Limbus hat 20 Dimensionen, zeigt Weltpositionen und bestimmt entfernungsabhängige Portalkosten. | fehlt | Weder Limbus noch Entfernungssystem oder entsprechende Manakosten vorhanden.
+
+Seite 4 | Diplomatie erlaubt Gildenbeitritt, Gründung, Verwaltung, Verbündetensuche und Herrscherprofil. | fehlt | Diese Funktionen sind nicht als umgesetzt beschrieben.
+Seite 4 | Einstellungen erlauben Passwortwechsel, Newsletterwahl, Skinwechsel, Urlaub und endgültige Accountlöschung. | teilweise | Umsetzung dieser einzelnen Einstellungen nicht belegt.
+Seite 4 | Die Ruhmeshalle ordnet Spieler nach ihrer Stärke. | fehlt | Keine Rangliste, auch nicht gegen Bots.
+Seite 4 | Die Gildenhalle wertet nur Gilden mit mehr als zwei Mitgliedern nach deren zusammengezählten Punkten. | fehlt | Gildenhalle und entsprechende Wertung fehlen.
+Seite 4 | Eine Voraussetzungenansicht zeigt benötigte Gebäude- und Forschungsstufen sowie deren Erfüllung. | fehlt | Keine solche Prüfung und Anzeige belegt; zentrale Gebäudeprüfungen fehlen ausdrücklich.
+Seite 4 | Nachrichten enthalten Mitteilungen und Auftragsergebnisse; neue Nachrichten lassen den Nachrichtenbutton aufleuchten. | teilweise | Einzelne Meldungen vorhanden, vollständiger Nachrichtenablauf und Benachrichtigung nicht belegt.
+Seite 4 | Forum, IRC-Chat und Logout sind über das Hauptmenü erreichbar. | teilweise | Diese Zugänge sind nicht belegt.
+Seite 4 | Forschungspunkte sind die Summe der dritten Potenzen aller Forschungsstufen. | abweichend | Stattdessen werden zehn Punkte je Forschung addiert.
+
+Seite 5 | Militär-, Spionage-, Transport- und Belagerungseinheiten geben die jeweils aufgeführten Kriegspunkte. | teilweise | Originaleinheiten vorhanden; ihre Einbindung in eine korrekte Kriegspunktesumme fehlt.
+Seite 5 | Verteidigungsanlagen liefern ihre Ausbaustufe hoch drei als Kriegspunkte. | fehlt | Entsprechende Punkteberechnung fehlt.
+Seite 5 | Gesamtpunkte sind die halbierte Summe aus Forschungs- und Kriegspunkten; Einzelwerte sieht nur der Eigentümer. | abweichend | Formel nicht umgesetzt; Rangliste und Sichtbarkeitstrennung fehlen beziehungsweise sind nicht belegt.
+Seite 5 | Aktive Teilnahme erzeugt Rufpunkte. | vorhanden | Konkrete Vergabemengen: Handbuch schweigt; erfundene Mengen allein belegen keine Regelverletzung.
+
+Seite 6 | Ruf lässt sich gegen Boni eintauschen und zählt nicht zu den Gesamtpunkten. | teilweise | Rufzuwachs vorhanden; Einlösung und getrennte Wertung nicht belegt.
+Seite 6 | Bei Punktgleichheit entscheidet zuerst Ruf, danach die längere Serverzugehörigkeit. | fehlt | Rangliste und Sortierregeln fehlen.
+Seite 6 | Vollständiger Götterschutz gilt sieben Tage, endet aber schon mit dem ersten Kriegspunkt. | teilweise | Nur Schutzschalter vorhanden; Zeit- und Kriegspunktelogik fehlen, „zehn Tage“ in der Selbstdarstellung widerspricht dem Handbuch.
+Seite 6 | Bis 299 Punkte sind Angriffe nur innerhalb eigener Punkte ±20 % möglich; die 299-Punkte-Grenze darf nicht überschritten werden. | teilweise | Schutzschalter ersetzt weder Punkteprüfung noch Grenzprüfung.
+Seite 6 | Oberhalb von 300 Punkten besteht freie Angreifbarkeit; geschützte Gegner werden grün markiert. | fehlt | Angriffsprüfung und Markierung fehlen; zur eindeutigen Behandlung von genau 300 Punkten: Handbuch schweigt.
+
+Seite 7 | Der Spieler startet mit einer „Siedlung“, zehn Siedlern, 100 Holz und 100 Steinen. | teilweise | Startbestände vorhanden; exakte Anfangsbenennung und anfängliche Siedlungsanzahl nicht ausdrücklich belegt.
+Seite 7 | Die Startübersicht zeigt Siedlungen, Bestände, Einheiten, laufende Forschungen und sämtliche laufenden Aufträge. | teilweise | Ansichten und Lager vorhanden, laufende Forschung und echte Auftragsliste fehlen.
+
+Seite 8 | Die Siedlungsübersicht zeigt Karte, Rohstoffbestände, Stundenerträge und Fortschritt bis zur nächsten Ressourceneinheit. | teilweise | Bestand und Produktion vorhanden; Geländegrundlage fehlt, konkrete Ertrags- und Fortschrittsanzeigen nicht belegt.
+Seite 8 | Das Auftragsmenü steuert stationierte Einheiten und nimmt fremde Handelskarawanen zur Bestätigung auf. | fehlt | Keine echte Auftragssteuerung oder Handelsannahme vorhanden.
+Seite 8 | Holzfäller, Steinmetz, Jäger, Bibliothek und Häuser sind ohne Forschung baubar; weitere Produktionsgebäude benötigen Baukunst. | teilweise | Grundgebäude vorhanden, originale Baukunst-Freischaltungen nicht belegt; Gebäudekatalog weicht ab.
+Seite 8 | Gebäude werden auf Kartenfeldern platziert, deren Produktionseignung angezeigt wird; Verteidigung wird gesondert ausgebaut. | abweichend | Kein Siedlungsgelände, keine entsprechende Eignungsprüfung; Verteidigung nur als Turmstufe.
+Seite 8 | Abriss erfordert Bestätigung, gibt keine Ressourcen zurück und macht das Feld wieder bebaubar. | teilweise | Abrissablauf nicht belegt; ein entsprechendes Geländefeldsystem fehlt.
+
+Seite 9 | Das Lager zeigt Waren und Einheiten; Siedlungen lassen sich umbenennen. | vorhanden | Lageransicht und Umbenennen sind beschrieben.
+Seite 9 | Neugründung benötigt Ressourcen und Siedlerkarren und erlaubt höchstens sechs Siedlungen. | abweichend | Keine Kostenprüfung oder Karrenverbrauch, außerdem Drei-Siedlungen-Limit; konkrete Gründungsmengen: Handbuch schweigt.
+Seite 9 | Jede neue Siedlung erhält zufällig eine Karte, die keine andere eigene bestehende Siedlung besitzt. | abweichend | Gründung erfolgt auf der aktuellen Karte statt mit dieser Zufalls- und Ausschlussregel.
+Seite 9 | Nur bei mehreren Siedlungen darf eine nach Bestätigung samt sämtlichen Beständen aufgegeben werden. | fehlt | Siedlungsaufgabe nicht implementiert.
+Seite 9 | Zusätzliche Siedlungsmenüs erscheinen passend zu verfügbaren Einrichtungen. | teilweise | Mehrere Ansichten vorhanden; gebäudeabhängige Freischaltung nicht belegt.
+
+Seite 10 | Holzfäller liefern Wald/Steppe 4/2 Holz, Steinmetze Berg/Hügel 4/2 Stein und Farmen Grasland/Steppe 4/2 Nahrung je Stunde. | abweichend | Feste Gebäudeerträge statt Geländeproduktion; Farm fehlt im beschriebenen Gebäudekatalog.
+Seite 10 | Erz- und Goldminen liefern Berg/Hügel jeweils 3/1,5 Metall beziehungsweise Gold je Stunde. | fehlt | Beide Minentypen und Geländeabhängigkeit fehlen im beschriebenen Gebäudesystem.
+Seite 10 | Tempel liefern am Nebelsee fünf Mana, auf anderem bebaubarem Gelände ein Mana je Stunde. | fehlt | Tempel und entsprechende Geländeproduktion fehlen.
+Seite 10 | Schafs- und Pferdezucht liefern Grasland/Steppe 3/1,5 Wolle beziehungsweise Pferde; Rinderfarmen jeweils 3/1,5 Nahrung und Leder. | fehlt | Diese Produktionsgebäude und ihre Erträge fehlen.
+Seite 10 | Jäger liefern Wald/Steppe jeweils 2/1 Nahrung und Leder je Stunde. | abweichend | Jäger vorhanden, aber keine geländeabhängigen Erträge.
+
+Seite 11 | Sümpfe dürfen nicht bebaut werden. | fehlt | Ohne Gelände gibt es keine Sumpfsperre.
+Seite 11 | Siedlungen erhalten einen Siedler pro Stunde bis zur Grenze zehn plus fünf je Haus und zeigen den nächsten Zuwachs an. | abweichend | Zuwachs beträgt 30 pro Stunde; Grenze nutzt Hausstufe statt ausdrücklich Häuseranzahl, Zuwachsanzeige nicht belegt.
+
+Seite 12 | Forschung benötigt eine Bibliothek, höchstens eine je Siedlung, ausschließlich auf Grasland, Steppe oder Nebelsee. | fehlt | Bibliotheksprüfung und Geländeprüfung fehlen; Einzigartigkeitsprüfung nicht belegt.
+Seite 12 | Bibliotheksstufen eröffnen weitere Forschungen, und jeder Ausbau wird teurer. | teilweise | Verteuerter Stufenausbau vorhanden, Bibliotheksstufen werden als Forschungsvoraussetzung nicht geprüft; genaue Ausbaupreise: Handbuch schweigt.
+Seite 12 | Forschungsaufträge ziehen Ressourcen sofort ab und erhöhen nach Abschluss die Forschungsstufe um eins. | abweichend | Stufenerhöhung erfolgt sofort statt nach einer Studienzeit.
+Seite 12 | Forschung dauert neue Stufe zum Quadrat in Stunden und blockiert weitere Forschung sowie Bibliotheksausbau derselben Siedlung. | fehlt | Forschungsdauer und gegenseitige Sperren fehlen.
+Seite 12 | Forschungsabbruch verliert eingesetzte Ressourcen und bisherige Forschungszeit. | fehlt | Kein laufender, abbrechbarer Forschungsauftrag vorhanden.
+
+Seite 13 | Ein Abbruch verlangt Bestätigung und gibt den Forschungsbereich anschließend wieder frei. | fehlt | Abbruch- und Freigabeablauf fehlen.
+Seite 13 | Die alte Forschungsstufe bleibt bis zum Zeitablauf und erneuten Besuch des Forschungsbereichs bestehen. | abweichend | Sofortiger Stufenanstieg ohne Abschlussbesuch.
+Seite 13 | Forschungskosten verdoppeln sich je Stufe. | vorhanden | Verdopplung beschrieben; verbindliche Grundkosten je Forschungsart: Handbuch schweigt, 50 Holz sind nur ein Beispiel.
+
+Seite 14 | Schmiede, Bogenbauer und Nähstube produzieren Waffen, Rüstungen und Kleidung als Ausbildungsvoraussetzungen. | abweichend | Erfundenes Handelsgütersortiment statt funktionierender originaler Ausrüstungskette; Bogenbauer und Nähstube fehlen.
+Seite 14 | Bau und Nutzung der Fertigungsstätten hängen von Voraussetzungen ab und eröffnen passende Menüs. | teilweise | Schmiede vorhanden; originale Voraussetzungen und entsprechende Menüs nicht belegt.
+Seite 14 | Warenaufträge bilden Warteschlangen; zusätzliche Fertigungsgebäude ermöglichen parallele Herstellung. | fehlt | Originale Warenwarteschlangen und Parallelproduktion nicht umgesetzt.
+Seite 14 | Fehlende Ausrüstung kann durch Kauf oder Tausch beschafft werden. | fehlt | Kein funktionierender Handel.
+
+Seite 15 | Stellmacher erzeugen Karren und Belagerungswaffen, Diebesgilden Spione und Kriegerakademien Armeen. | abweichend | Alle Einheiten erscheinen in einer Kaserne; erforderliche Ausbildungsgebäude werden nicht geprüft.
+Seite 15 | Jede dieser Ausbildungsstätten ist je Siedlung einmal erlaubt und beschleunigt durch Ausbau die Ausbildung. | fehlt | Originale Gebäudestruktur und zeitabhängige Ausbildung fehlen.
+Seite 15 | Ausbildungsaufträge werden mengenweise eingereiht und nacheinander abgearbeitet. | abweichend | Ausbildung erfolgt sofort; konkrete Ausbildungszeiten: Handbuch schweigt.
+
+Seite 16 | Die aufgeführten Armeeeinheiten und Streuner bis Meisterdieb besitzen festgelegte Kosten, Voraussetzungen und Kampfwerte. | teilweise | Originaleinheiten und Kosten laut Selbstdarstellung vorhanden; einzelne Tabellenwerte und Forschungsprüfungen nicht nachgewiesen, Ausrüstungskette weicht ab.
+Seite 17 | Kundschafter und Waldläufer benötigen ihre Tabellenkosten sowie Heimlichkeit acht beziehungsweise zehn. | teilweise | Einheiten und Kosten vorhanden; konkrete Freischaltungsprüfung nicht belegt.
+Seite 17 | Karren und Karawanen besitzen festgelegte Baukosten, Wagenbau-Voraussetzungen, Geschwindigkeiten und Ladekapazitäten. | teilweise | Einheitendaten vorhanden; praktische Kapazitäts-, Reise- und Handelsnutzung fehlt.
+Seite 17 | Siedlerkarren, Belagerungsturm, Ramme und großer Belagerungsturm besitzen eigene Kosten, Voraussetzungen und Werte. | teilweise | Einheiten vorhanden; Gründung nutzt den Karren nicht korrekt, Belagerung ist nicht spielbar angebunden.
+
+Seite 18 | Große Ramme, Balliste, Katapult und großes Katapult besitzen die angegebenen Kosten, Wagenbau-Stufen, Schaden und Schlagkraft. | teilweise | Originaleinheiten und Kampfmodul vorhanden; einzelne Werte nicht nachgewiesen, Einsatz im Spiel fehlt.
+Seite 18 | LE, AT, PA, RS, TP, MU und SK bestimmen Überleben, Treffer, Abwehr, Schaden, Flucht und Wallüberwindung. | teilweise | Entsprechendes Kampfmodul beschrieben, aber nicht aus dem Spiel aufrufbar.
+Seite 18 | GS bestimmt Reisegeschwindigkeit; SI und HE haben im beschriebenen damaligen Spionagesystem noch keinen Einfluss. | teilweise | Echte Reisen und Spionage fehlen; fehlende SI-/HE-Wirkung ist ausdrücklich keine Lücke gegenüber diesem Handbuch.
+
+Seite 19 | Aufträge wählen vorhandene Einheiten mit Mengen und Kosten sowie Ziele über eigene Siedlungen, Portalkoordinaten, Verbündete oder Gildenmitglieder. | fehlt | Keine echte Einheiten- und Zielauswahl vorhanden.
+Seite 19 | Auftragsarten hängen von den gewählten Einheiten ab; Ziel und Reisedauer werden vor dem Start angezeigt. | fehlt | Diese Auftragsprüfung und Vorschau fehlen.
+Seite 19 | Angezeigte Reisezeit gilt für eine Strecke, eine Rückreise benötigt zusätzlich dieselbe Zeit. | fehlt | Kein Reise- und Rückkehrablauf vorhanden.
+Seite 19 | Stationieren verschiebt Einheiten dauerhaft ausschließlich in eigene Siedlungen; Karren können Ladung mitführen. | fehlt | Stationierungsauftrag und Ladungsübertragung fehlen.
+
+Seite 20 | Spionage liefert Informationen zur Zielsiedlung; mitgegebene Wechselpferde beschleunigen die Reise. | fehlt | Spionageauftrag, Bericht und Pferdebeschleunigung fehlen.
+Seite 20 | Transportkarren liefern ausgewählte Ladung innerhalb ihrer Kapazität ab und kehren zurück; Kriegsbegleitung bringt keinen Nutzen. | abweichend | Transportfunktion entfernt lediglich zehn Holz und meldet dies, ohne Ziel, Lieferung oder Rückkehr.
+Seite 20 | Karawanen verkaufen Ladung gegen vereinbartes Gold; Annahme schickt Gold zurück, Ablehnung die Ware. | fehlt | Bestätigung, Ablehnung und vollständiger Rücktransport fehlen.
+Seite 20 | Ein Angriffsauftrag führt Truppen zu einer feindlichen Siedlung zum Kampf und möglichen Raub. | fehlt | Keine Angriffsaktion, Zielanbindung oder Kampfauslösung vorhanden.
+Seite 20 | Reisen kosten einheitenabhängig Gold und Nahrung sowie zu fremden Welten entfernungsabhängig Mana. | fehlt | Auftragskosten und Portalentfernungen fehlen.
+Seite 20 | Geschwindigkeit ist in Zehn-Prozent-Schritten reduzierbar; langsamer bedeutet weniger Gold und mehr Nahrung. | fehlt | Geschwindigkeitswahl und Kostenwirkung fehlen.
+
+Seite 21 | Wälle verlangen Fußtruppen-SK von 10, 40, 90, 160, 250, 360, 490, 640, 810, 1000 sowie ab Stufe fünf Belagerungs-SK von 500 bis 1000. | teilweise | Wallschwellen liegen als Daten und im Kampfmodul vor, im Spiel gibt es nur einen Turm.
+Seite 21 | Unzureichende Schlagkraft führt zum Rückzug und Unentschieden; beschädigte Wälle senken beide Schwellen proportional. | teilweise | Vorrunde beschrieben, genaue Einzelregeln nicht separat nachgewiesen und nicht spielbar angebunden.
+Seite 21 | Mauerschaden entsteht aus zufälligem Waffenschaden abzüglich Wallstufe, sofern das Ergebnis positiv ist. | teilweise | Mauerschaden im Modul beschrieben, nicht im Spiel wirksam.
+
+Seite 22 | Mauerschaden wird für jede mitgeführte Belagerungswaffe einzeln ermittelt. | teilweise | Mauerschadenssystem vorhanden; Einzelerrechnung nicht ausdrücklich nachgewiesen, Spielanbindung fehlt.
+Seite 22 | Nach höchstens zehn Kampfsequenzen endet eine ungelöste Schlacht unentschieden mit Rückzug ohne Beute. | teilweise | Kampfsequenzen beschrieben; genaue Begrenzung nicht separat belegt, spielbarer Ablauf fehlt.
+Seite 22 | Fernkämpfer beider Seiten schießen vor Verlustberechnung gleichzeitig, zuerst auf Fußtruppen und ersatzweise auf Fernkämpfer. | teilweise | Gleichzeitiger Fernkampf beschrieben; konkrete Zielpriorität nicht einzeln belegt, Anbindung fehlt.
+Seite 22 | Angreifende Nahkämpfer kämpfen nacheinander gegen zufällige Gegner bis Tod oder Flucht; Sieger behalten Lebensenergieverluste. | teilweise | Zweikämpfe vorhanden; Detailtreue nicht einzeln belegt, Spielanbindung fehlt.
+Seite 22 | Im Zweikampf beginnt höherer Mut, bei Gleichstand der Verteidiger; Trefferprobe, Parade, Zufallsschaden und Rüstung bestimmen das Ergebnis. | teilweise | Kampfrunden vorhanden; diese Details nicht einzeln nachgewiesen, Spielanbindung fehlt.
+
+Seite 23 | Ein nicht parierter Treffer verursacht mindestens einen Schaden; unter einem Lebenspunkt stirbt die Einheit, unter fünf wird Flucht geprüft. | teilweise | Tod und Flucht im Kampfmodul beschrieben; genaue Schwellen nicht separat nachgewiesen, Anbindung fehlt.
+Seite 23 | Geflohene Einheiten bleiben nach der Schlacht verfügbar, tote werden entfernt; Zweikampfsieger verlieren kumulativ je einen AT- und PA-Punkt. | teilweise | Flucht und Erschöpfung vorhanden, aber keine spielwirksame Verarbeitung.
+Seite 23 | Der Angreifer gewinnt nach Ausschaltung aller Verteidiger und plündert nur mit Transportkarren; ohne angreifende Fußtruppen gewinnt der Verteidiger. | teilweise | Kampf und karrengebundene Beute beschrieben, keine spielbare Schlacht oder Beuteübertragung.
+Seite 23 | Verlierergeräte entkommen mit 40 % plus fünf Prozentpunkten je Kampfsequenz; bei Unentschieden bleiben alle Geräte erhalten. | teilweise | Geräteverluste beschrieben; genaue Formel und Unentschiedenbehandlung nicht einzeln nachgewiesen, Anbindung fehlt.
+
+Seite 24 | Spione reisen zum Gegner und zurück und berichten über Karte, Ressourcen, sämtliche stationierten Einheiten sowie Wallstufe und Zustand. | fehlt | Vollständiger Spionageablauf und Bericht fehlen.
+Seite 24 | Spiontypen unterscheiden sich außerhalb des Kampfes nur durch Reisegeschwindigkeit, nicht durch Berichtstiefe oder Spionageabwehr. | fehlt | Spionage fehlt insgesamt; unterschiedliche Berichte und Abwehr sind hier nur angekündigt, keine geltenden Regeln.
+Seite 24 | Zu einem verbindlichen Gesamtsieg, Spielende, Speicherformat oder vollständigen Forschungskatalog: Handbuch schweigt. | Kein belegbarer Fehlbestand | Die entsprechenden Behauptungen der Selbstdarstellung begründen keine Originalregel-Lücke.
+
+Die fünf spielbarkeitskritischsten Lücken, absteigend:
+1. Echte Aufträge und Zielbeziehungen fehlen: kein Warenfluss zwischen Siedlungen, kein Handel, keine Reisen und keine Spionage.
+2. Der vorhandene Kampf ist nicht spielbar angebunden: keine auswählbaren Angriffe und keine wirksamen Schlachtergebnisse.
+3. Die Wirtschaft ist nicht originalgetreu tragfähig: wichtige Produktionsgebäude und Geländeerträge fehlen, Siedler entstehen erheblich zu schnell.
+4. Die Forschungsprogression fehlt: Sofortabschlüsse ohne Bibliotheksprüfung, Wartezeit, Sperren oder Abbruch.
+5. Die Ausrüstungs- und Ausbildungskette fehlt: falsche Waren, fehlende Fertigungswarteschlangen und sofortige Rekrutierung ohne Ausbildungsstätten.
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Resume this session with:
+  hermes --resume 20261004_195427_94d75d
+  hermes -c "Pruefliste Handbuchregeln gegen Spiel-Remake-Code"
+
+Session:        20261004_195427_94d75d
+Title:          Pruefliste Handbuchregeln gegen Spiel-Remake-Code
+Duration:       2m 1s
+Messages:       5 (1 user, 3 tool calls)
