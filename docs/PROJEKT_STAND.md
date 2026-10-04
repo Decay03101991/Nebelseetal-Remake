@@ -116,6 +116,12 @@ Schon vorher offen:
 
 ## 7. Arbeitsweise in diesem Projekt
 
+- **Erst prüfen, WAS läuft** — nicht, was im Ordner liegt. Im Projekt lag ein alter EXE-Build
+  (`Nebelsee Memory.exe`, 27.08.2026) mit dem eingefrorenen alten Datenstand. Sein Fenster heißt
+  ebenfalls „Nebelseetal Remake", deshalb sah Daniel Golems und Pikeniere, obwohl der Code sie
+  längst nicht mehr kennt. **Regel:** Im Projektordner liegt genau **eine** ausführbare Fassung.
+  Alte Builds kommen in Quarantäne. Vor jeder Rückmeldung „das ist noch falsch" prüfen:
+  `tasklist /v /fo csv` zeigt den Fenstertitel des laufenden Programms, das hilft beim Zuordnen.
 - **Nie schätzen.** Fehlt ein Originalwert: `null` + Begründung, nicht raten.
 - **Originaldateien unantastbar**: die 7 Blätter, Daniels 17 Dateien, `docs/original/`.
 - **Prüfen statt behaupten**: nach jeder Änderung `run_tests.bat` — **alle drei** Dateien, nicht nur die
