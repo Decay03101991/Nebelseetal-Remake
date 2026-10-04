@@ -22,6 +22,7 @@ import einheiten
 import spieldaten
 import gelaende
 import berater
+import wirtschaft
 
 
 # ---------- Data Models ----------
@@ -244,13 +245,13 @@ RESOURCE_ICONS = {
 # Sie wurde beim Umbau versehentlich mitgeloescht und hier wiederhergestellt, damit das Spiel
 # laeuft. Die 20 Originalgebaeude aus data/buildings.json folgen im naechsten Schritt (W4).
 BUILDINGS: Dict[str, Building] = {
-    "holzfäller": Building("holzfäller", "Holzfäller", description="Erzeugt Holz.", base_cost={"holz": 10, "stein": 5, "nahrung": 1}),
-    "steinmetz": Building("steinmetz", "Steinmetz", description="Fördert Stein.", base_cost={"holz": 5, "stein": 10, "nahrung": 1}),
-    "jäger": Building("jäger", "Jäger", description="Erzeugt Nahrung.", base_cost={"holz": 25, "stein": 25, "nahrung": 1}),
+    # Nur noch Gebaeude, die eine WIRKUNG haben (Bevoelkerung, Forschung, Ausbildung, Verteidigung,
+    # Kartenwechsel). Die rohstofferzeugenden Gebaeude (Holzfaeller, Steinmetz, Jaeger, Schmiede,
+    # Markt) sind hier am 04.10.2026 entfernt: sie stehen jetzt auf der Siedlungskarte, und die
+    # Karte ist die EINZIGE Produktionsquelle. Sonst haetten beide Systeme denselben Rohstoff
+    # erzeugt (doppelter Ertrag) — und der alte Stufenertrag war ohnehin erfunden.
     "haus": Building("haus", "Haus", description="+5 Bevölkerung.", base_cost={"holz": 80, "stein": 50}),
-    "schmiede": Building("schmiede", "Schmiede", description="Eisenverarbeitung.", base_cost={"holz": 40, "stein": 60, "metall": 20}),
     "bibliothek": Building("bibliothek", "Bibliothek", description="+Forschung.", base_cost={"holz": 60, "stein": 40, "mana": 20}),
-    "markt": Building("markt", "Marktplatz", description="Handel mit Bots.", base_cost={"holz": 50, "stein": 50, "gold": 20}),
     "kaserne": Building("kaserne", "Kaserne", description="Einheitenausbildung.", base_cost={"holz": 80, "stein": 80, "metall": 40}),
     "turm": Building("turm", "Wachturm", description="Verteidigung +", base_cost={"stein": 120, "metall": 60}),
     "portal": Building("portal", "Portal", description="Kartenwechsel + Forschung.", base_cost={"mana": 150, "gold": 100}),
@@ -507,16 +508,29 @@ class GameState:
             return self.map_tiles[y * size + x]
         return None
 
+    def stundenertrag(self) -> dict:
+        """
+        Stuendlicher Rohstoffertrag aus allen Siedlungskarten (Handbuch: Ertrag je Geländeart).
+
+        EINE Quelle für Rechnung UND Anzeige. Die früheren festen Stufenerträge der Gebaeude sind
+        entfallen: sie haetten denselben Rohstoff ein zweites Mal erzeugt.
+
+        Das Wirtschaftsmodul liefert seine Kennungen in Lesefassung ("Holz"); hier werden sie auf
+        die Schreibweise der Spieldaten gebracht ("holz"), sonst findet der Zeitlauf sie nicht.
+        """
+        levels = {k: v.level for k, v in self.research.items()}
+        roh = wirtschaft.ertrag_gesamt(self.settlements, levels)
+        return {k.lower(): v for k, v in roh.items()}
+
     def tick(self, dt_seconds: float):
         dt_min = dt_seconds / 60.0
+        dt_h = dt_seconds / 3600.0
         levels = {k: v.level for k, v in self.research.items()}
-        for b in self.buildings.values():
-            if b.level > 0:
-                for res, rate in b.production.items():
-                    if res in self.resources:
-                        mult = get_production_multiplier(levels, res)
-                        self.resources[res].amount += rate * mult * dt_min
-                        self.resources[res].amount = round(self.resources[res].amount, 2)
+        # Rohstoffe kommen aus den BEBauten FELDERN der Siedlungskarten (W4b-4, 04.10.2026).
+        for res, rate_pro_stunde in self.stundenertrag().items():
+            if res in self.resources:
+                self.resources[res].amount = round(
+                    self.resources[res].amount + rate_pro_stunde * dt_h, 2)
         for bot in self.bots:
             if bot.settlements and random.random() < 0.05 * bot.aggression:
                 # nur Kaempfer und Kundschafter verteidigen — Karren und Belagerungswaffen nicht
@@ -664,21 +678,6 @@ class NebelseetalApp:
             print("LOADING_ERROR", e)
             self.root.after(500, self._build_main_ui)
 
-    def _resource_building_key(self, resource: str) -> str:
-        mapping = {
-            "holz": "holzfäller",
-            "stein": "steinmetz",
-            "nahrung": "jäger",
-            "mana": "bibliothek",
-            "gold": "portal",
-            "metall": "schmiede",
-            "leder": "jäger",
-            "wolle": "markt",
-            "gold": "markt",
-            "mana": "bibliothek",
-        }
-        return mapping.get(resource, "")
-
     def _cycle_skin(self):
         names = list(SKINS.keys())
         idx = names.index(self.skin_name)
@@ -697,11 +696,12 @@ class NebelseetalApp:
         top.pack_propagate(False)
         tk.Label(top, text="Nebelseetal", font=("Blackletter", 16, "bold"), fg=self.skin["gold"], bg=self.skin["topbar"]).pack(side=tk.LEFT, padx=10)
         self.res_labels_top = {}
+        ertrag_jetzt = self.state.stundenertrag()
         for r in RESOURCES:
             icon = RESOURCE_ICONS[r]
             amount = int(self.state.resources[r].amount)
-            prod = self.state.buildings.get(self._resource_building_key(r), Building("", "")).level
-            prod_text = f"+{prod}" if prod else "0"
+            rate = ertrag_jetzt.get(r, 0.0)
+            prod_text = f"+{rate:g}/h" if rate else "0"
             lbl = tk.Label(top, text=f"{icon} {int(amount)} ({prod_text})", fg=self.skin["text"], bg=self.skin["topbar"], font=("Arial", 9))
             lbl.pack(side=tk.LEFT, padx=6)
             self.res_labels_top[r] = lbl
@@ -867,15 +867,9 @@ class NebelseetalApp:
                 b.production = {}
                 self._unlock_next_map()
             else:
-                prod_map = {
-                    "holzfäller": {"holz": b.level * 1.2},
-                    "steinmetz": {"stein": b.level * 1.2},
-                    "jäger": {"nahrung": b.level * 1.0},
-                    "schmiede": {"metall": b.level * 0.8},
-                    "markt": {"gold": b.level * 0.5},
-                    "turm": {},
-                }
-                b.production = prod_map.get(b.id, {})
+                # Kein Gebaeude erzeugt mehr Rohstoffe — das tun ausschliesslich die bebauten
+                # Felder der Siedlungskarten (W4b-4). Vorher stand hier ein erfundener Stufenertrag.
+                b.production = {}
             self._log(f"{b.name} auf Stufe {b.level} ausgebaut.")
         else:
             self._log("Nicht genug Ressourcen.")
@@ -1753,10 +1747,11 @@ class NebelseetalApp:
         self.root.after(1000, self._tick_loop)
 
     def _render(self):
+        ertrag_jetzt = self.state.stundenertrag()
         for r, lbl in self.res_labels_top.items():
             res = self.state.resources[r]
-            prod = self.state.buildings.get(self._resource_building_key(r), Building("", "")).level
-            prod_text = f"+{prod}" if prod else "0"
+            rate = ertrag_jetzt.get(r, 0.0)
+            prod_text = f"+{rate:g}/h" if rate else "0"
             lbl.config(text=f"{RESOURCE_ICONS[r]} {int(res.amount)} ({prod_text})")
         self.lbl_day.config(text=f"Tag {self.state.day}")
         total_units = sum(self.state.units[u].count for u in self.state.units)

@@ -25,6 +25,8 @@ Format einer Zeile: `Zeit | Agent | Dateien | Ziel/Ergebnis | Prüfung | offen`
 | Zeit | Agent | Dateien | Ergebnis | Prüfung |
 |---|---|---|---|---|
 | 21:17 | codewirtschaft | `src/wirtschaft.py`, `tests/test_wirtschaft.py` | Ertrag aus den Siedlungskarten, Kapazität, Textfassung | **42 grün** |
+| 23:05 | Hauptagent | `src/main.py`, `tests/test_ertrag_anbindung.py` | **W4b-4**: Kartenerträge liefern jetzt wirklich — Zeitlauf UND Anzeige aus einer Quelle | **21 grün**, Gesamtlauf 526 |
+| 23:00 | Hauptagent | `data/baupreise.json`, `src/main.py`, `src/berater.py` | die vier BELEGTEN Originalpreise; Siedler kostet Bevölkerung | Gesamtlauf 526 grün |
 | 21:14 | codeforschung | `src/forschung.py`, `tests/test_forschung.py` | Forschungsablauf mit Zeit, Kosten, Abbruch | **68 grün** |
 | 21:15 | codewelt | `src/welt.py`, `data/welten.json`, `tests/test_welt.py` | Limbus, 20 Dimensionen, Entfernung, Portalkosten | **42 grün** |
 | 22:11 | astra (Bildmodell) | `docs/audits/astra_gamestar_antwort.txt` | drei Original-Screenshots gedeutet: Portalansicht 20×20 mit grün/rot, Original-Menü, **echte Baupreise** | 0,47 USD, vom Hauptagenten nachgeprüft |
@@ -35,6 +37,16 @@ Format einer Zeile: `Zeit | Agent | Dateien | Ziel/Ergebnis | Prüfung | offen`
 
 ## Meldungen an den Hauptagenten
 
+- **Kennungen in Lesefassung** (Hauptagent, 23:05): `wirtschaft.ertrag_gesamt()` liefert die
+  Rohstoffe als „Holz“, „Nahrung“ … — das Spiel rechnet mit „holz“. Beim Anbinden unbedingt
+  umschreiben (`k.lower()`), sonst schreibt der Zeitlauf stillschweigend **nichts** gut.
+- **Eine Quelle für Rohstoffe** (Hauptagent, 23:05): die 5 rohstofferzeugenden Gebäude sind aus
+  `main.BUILDINGS` entfernt (Holzfäller, Steinmetz, Jäger, Schmiede, Markt). Es gibt jetzt genau
+  **eine** Produktionsquelle: die bebauten Felder der Siedlungskarten. Wer sie zurückholt, erzeugt
+  doppelten Ertrag.
+- **Doppelte JSON-Schlüssel sind jetzt geprüft** (`tests/test_spieldaten.py`): JSON nimmt still den
+  letzten Eintrag. Real passiert in `data/baupreise.json` (jaeger + haus doppelt) — der Test schlug
+  mit 8/4 statt 80/50 an. Neue Datendateien sind damit abgesichert.
 - **Lücke im Produktionsfaktor** (von codewirtschaft, 21:17): `bonus_system.get_production_multiplier`
   erhöht nur Holz, Stein, Nahrung (und das alte „eisen"). Metall, Leder, Mana, Gold, Wolle und Pferde
   bleiben bei 1,0 — Forschung wirkt dort nicht. Betrifft W4b-4.

@@ -36,8 +36,8 @@ Vorgaben aus der Sitzung vom 04.10.2026:
 Lies D:/Arbeiten/Nebelseetal_Remake/docs/PROJEKT_STAND.md und übernimm das laufende Ziel aus
 Abschnitt 0. Lies dann docs/AGENTEN_PLAN.md (Agentenaufteilung und Modellwahl) und docs/BOARD.md
 (das Kommunikationsbrett der Unteragenten). Arbeite nach Abschnitt 6 weiter — nächster Schritt:
-W4b-4, die Kartenerträge an die Rohstoffproduktion anbinden. Prüfe jede Zahl selbst nach, statt
-Meldungen zu glauben.
+W4b-5, die 20 Originalgebäude samt ihren Wirkungen ins Spiel holen (W4b-4 ist erledigt). Prüfe
+jede Zahl selbst nach, statt Meldungen zu glauben.
 ```
 
 ---
@@ -50,9 +50,9 @@ run_tests.bat
 git log --oneline | head -12
 ```
 
-Erwartet: **488 bestanden, 0 Fehler, 0 Befunde** über zehn Prüfdateien:
-baseline 38 · spieldaten 40 · kampf 42 · gelaende 81 · siedlungskarte 33 · kartenansicht 37 ·
-berater 65 · wirtschaft 42 · forschung 68 · welt 42.
+Erwartet: **526 bestanden, 0 Fehler, 0 Befunde** über elf Prüfdateien:
+baseline 39 · spieldaten 52 · kampf 42 · gelaende 81 · siedlungskarte 33 · kartenansicht 40 ·
+berater 66 · wirtschaft 42 · forschung 68 · welt 42 · ertrag_anbindung 21.
 
 Grün heißt „nichts ist kaputt und die umgestellten Teile halten sich ans Handbuch" — **nicht**
 „Spiel ist fertig". Was fehlt, steht in Abschnitt 5.
@@ -88,7 +88,7 @@ und Logos (32 Bilddateien in `docs/original/karten/`), die Common-Crawl-Seitenru
 
 | Paket | Inhalt | Beleg / Prüfung |
 |---|---|---|
-| **W0** Sicherheitsnetz | Git, `.gitignore`, Prüfrahmen, `run_tests.bat` | 488 Prüfungen grün |
+| **W0** Sicherheitsnetz | Git, `.gitignore`, Prüfrahmen, `run_tests.bat` | 526 Prüfungen grün |
 | **W1a–c** Originaldaten + Icons | Handbuch 2009, 16 Website-Seiten, 15 Seiten von 2005, 45 Icons | `docs/original/`, `data/*.json` |
 | **W1d** Einheiten | 28 Originaleinheiten mit Rollen statt 36 erfundene | Paladin ×10 = 1450 |
 | **W2** Kampfablauf | `src/kampf.py`: Vorrunde, Mauerschaden, 10 Sequenzen, Flucht, Beute | 42 Prüfungen, Handbuch S. 20–22 |
@@ -166,8 +166,10 @@ verloren gegangen (die Kartenanalyse und die Siedlungsvorlage).
 
 | fehlt | Folge | Paket |
 |---|---|---|
-| Kartenerträge sind **noch nicht** an die Rohstoffproduktion angebunden | bebaute Felder erwirtschaften noch nichts | **W4b-4** |
-| 10 Gebäude im Spiel statt 20 | die Hälfte der Originalgebäude fehlt | W4b-5 |
+| ~~Kartenerträge an die Rohstoffproduktion angebunden~~ | **erledigt am 04.10.2026 (W4b-4)** — bebaute Felder liefern jetzt wirklich | — |
+| 5 Wirkungsgebäude global statt 20 Originalgebäude | die 20 stehen auf der Karte, aber Kaserne/Turm/Portal/Bibliothek/Haus haben ihre Wirkung nur global | W4b-5 |
+| Haus und Bibliothek gibt es doppelt (global *und* auf der Karte) | die Kartenfassung hat noch keine Wirkung (+5 Bevölkerung / Forschung) | W4b-5 |
+| Forschung wirkt nur auf Holz, Stein, Nahrung | Metall, Leder, Mana, Gold, Wolle, Pferde bleiben bei Faktor 1,0 | W4b-6 |
 | 17 Waren als Emoji statt Handwerk | Handwerk fehlt | W3 |
 | Auftragssystem nur als Entwurf | keine Missionen auslösbar | WA |
 | Kampf nur als Modul | nicht aus dem Spiel auslösbar | W2b |
@@ -177,8 +179,14 @@ verloren gegangen (die Kartenanalyse und die Siedlungsvorlage).
 
 ## 6. Nächste Schritte (in dieser Reihenfolge)
 
-1. **W4b-4 — Kartenerträge anbinden.** `wirtschaft.ertrag_gesamt()` in `GameState.tick` einhängen,
-   damit bebaute Felder wirklich Rohstoffe liefern. Danach zeigt die Karte Wirkung.
+1. ~~**W4b-4 — Kartenerträge anbinden**~~ **erledigt am 04.10.2026.** `GameState.stundenertrag()`
+   speist Zeitlauf und Anzeige aus `wirtschaft.ertrag_gesamt()`; 21 Prüfungen in
+   `tests/test_ertrag_anbindung.py` (Holzfäller auf Wald 4/h, Steppe 2/h, zwei Felder 8/h,
+   Bergbau Stufe 2 → 4,8/h). **Zwei Befunde dabei, beide behoben:** (a) das Wirtschaftsmodul liefert
+   die Kennungen in Lesefassung („Holz") — der Zeitlauf fand sie nicht und schrieb stillschweigend
+   nichts gut; jetzt wird an der Grenze umgeschrieben. (b) die fünf rohstofferzeugenden Gebäude
+   (Holzfäller, Steinmetz, Jäger, Schmiede, Markt) sind aus der globalen Liste entfernt — sonst
+   hätten beide Systeme denselben Rohstoff erzeugt.
    *Achtung — vom Wirtschaftsmodul gemeldet und offen:* `bonus_system.get_production_multiplier`
    erhöht nur **Holz, Stein, Nahrung** (und das alte „eisen"). **Metall, Leder, Mana, Gold, Wolle und
    Pferde bleiben bei Faktor 1,0** — Forschung wirkt dort nicht. Das ist eine Lücke im Bonus-System,

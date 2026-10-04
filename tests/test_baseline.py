@@ -37,7 +37,8 @@ check("Icon-Index vorhanden", os.path.exists(os.path.join(ROOT, "data", "icons_i
 abschnitt("2. Spielkern")
 st = ausnahme("GameState anlegen", lambda: main.GameState())
 if st:
-    check("Gebaeude angelegt", len(st.buildings) == 10, f"{len(st.buildings)} Stueck")
+    check("Gebaeude angelegt (nur Wirkungsgebaeude — die Produktion liegt auf der Siedlungskarte)",
+          len(st.buildings) == 5, f"{len(st.buildings)} Stueck: {sorted(st.buildings)}")
     check("Forschungen angelegt", len(st.research) == 18, f"{len(st.research)} Stueck")
     check("Waren angelegt", len(st.goods) == 17, f"{len(st.goods)} Stueck")
 
@@ -49,12 +50,15 @@ if st:
         return True
     check("alle 5 Karten erzeugbar", bool(ausnahme("Karten erzeugen", karten)))
 
-    st.buildings["holzfäller"].level = 3
-    st.buildings["holzfäller"].production = {"holz": 3.6}
+    # Die Rohstoffe kommen seit W4b-4 aus den BEBauten FELDERN der Siedlungskarten.
+    # Ohne Bebauung darf nichts wachsen: kein Gebaeude erzeugt mehr von sich aus Rohstoffe.
     vorher = st.resources["holz"].amount
     st.tick(600)
-    check("Produktion laeuft", st.resources["holz"].amount > vorher,
+    check("ohne bebaute Karte waechst kein Rohstoff", st.resources["holz"].amount == vorher,
           f"{vorher:.1f} -> {st.resources['holz'].amount:.1f}")
+    check("kein Gebaeude erzeugt von sich aus Rohstoffe",
+          all(not getattr(b, "production", {}) for b in st.buildings.values()),
+          str({k: b.production for k, b in st.buildings.items() if b.production}))
 
     def speichern():
         p = os.path.join(tempfile.gettempdir(), "nebel_test_save.json")
@@ -186,7 +190,7 @@ if tk is not None:
             app.state.resources["gold"].amount = 5000
             app.state.resources["mana"].amount = 5000
             app.state.population = 5000.0   # Siedler sind Bevoelkerung, keine Ressource
-            app._upgrade_building("holzfäller")
+            app._upgrade_building("haus")
             app._start_research("landwirtschaft")
             app._train_unit("Krieger")
             app._found_settlement()
