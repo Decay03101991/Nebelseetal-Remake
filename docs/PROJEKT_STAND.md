@@ -148,6 +148,7 @@ Schon vorher offen:
 | Skill `nebelseetal-remake` | Projektwissen, Fallen, Icon-Raster, Vorgängerregeln | Hermes-Skill |
 | Profil `coding` | eigener Arbeiter mit geklonten Regeln (`SOUL.md`) | Hermes-Profil |
 | Kanban-Board `nebelseetal` | dauerhafte Warteschlange der Pakete | `hermes kanban list` |
+| `D:/Arbeiten/_Quarantaene/` | alte Builds und Dateien, die nicht gelöscht werden sollen (dort: `Nebelsee Memory.exe` mit README) | außerhalb des Repos |
 
 **Hinweis:** Der Kanban-Verteiler läuft nur mit laufendem Gateway `Hermes_Gateway`. Ohne Gateway
 bleiben Aufgaben in `ready`; die Arbeit in einer Sitzung ist davon nicht betroffen.

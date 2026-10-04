@@ -231,4 +231,42 @@ def icon_probe():
 
 check("Icon-Probe laeuft durch", bool(ausnahme("Icons", icon_probe)))
 
+
+abschnitt("7. Rollbereich — lange Ansichten vollstaendig erreichbar")
+
+
+def roll_probe():
+    root = tk.Tk()
+    root.withdraw()
+    try:
+        app = main.NebelseetalApp(root)
+        app._build_main_ui()
+        root.update()
+        for u in app.state.units.values():
+            u.count = 3                      # realistisch lange Listen
+        for k in app.state.goods:
+            app.state.goods[k] = 7
+        app._switch_view("Lager")
+        root.update()
+        app.content_canvas.update_idletasks()
+        bbox = app.content_canvas.bbox("all")
+        gepackt = app.content_canvas.cget("scrollregion")
+        check("Rollbereich ist gesetzt", gepackt not in ("", None), str(gepackt))
+        check("Inhalt ist vollstaendig im Rollbereich",
+              (bbox[3] - bbox[1]) >= app.content.winfo_reqheight(),
+              f"{bbox[3] - bbox[1]} px Rollbereich gegen {app.content.winfo_reqheight()} px Inhalt")
+        app.content_canvas.yview_moveto(1.0)
+        root.update()
+        check("bis ans Ende rollbar", app.content_canvas.yview()[1] >= 0.99,
+              str(tuple(round(v, 2) for v in app.content_canvas.yview())))
+        check("Lager baut Waren- und Einheitenbereich auf",
+              len(app.content.winfo_children()) >= 4,
+              f"{len(app.content.winfo_children())} Bereiche")
+        return True
+    finally:
+        root.destroy()
+
+
+check("Rollbereich-Probe laeuft durch", bool(ausnahme("Rollbereich", roll_probe)))
+
 sys.exit(bericht())

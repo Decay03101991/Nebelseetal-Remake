@@ -643,8 +643,25 @@ class NebelseetalApp:
         tk.Label(left, text="Nebelseetal unterstützen", fg=self.skin["gold"], bg=self.skin["sidebar"], font=("Arial", 8)).pack(anchor=tk.W, padx=8)
         tk.Label(left, text="Logout", fg=self.skin["red"], bg=self.skin["sidebar"], font=("Arial", 8)).pack(anchor=tk.W, padx=8, pady=(2, 6))
 
-        self.content = tk.Frame(main, bg=self.skin["bg"])
-        self.content.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=6, pady=6)
+        # Rollbarer Inhaltsbereich. Gemessen am 04.10.2026: Lager braucht 1152 px, Kaserne 1379 px,
+        # das Fenster zeigt nur 720 px — ohne Rollen fehlte die untere Haelfte (Waren waren
+        # sichtbar, die Einheiten nicht).
+        inhalt_rahmen = tk.Frame(main, bg=self.skin["bg"])
+        inhalt_rahmen.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=6, pady=6)
+        self.content_canvas = tk.Canvas(inhalt_rahmen, bg=self.skin["bg"], highlightthickness=0, bd=0)
+        self.content_scroll = tk.Scrollbar(inhalt_rahmen, orient=tk.VERTICAL,
+                                           command=self.content_canvas.yview)
+        self.content_canvas.configure(yscrollcommand=self.content_scroll.set)
+        self.content_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        self.content_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.content = tk.Frame(self.content_canvas, bg=self.skin["bg"])
+        self._content_fenster = self.content_canvas.create_window((0, 0), window=self.content,
+                                                                  anchor="nw")
+        self.content.bind("<Configure>", lambda e: self.content_canvas.configure(
+            scrollregion=self.content_canvas.bbox("all")))
+        self.content_canvas.bind("<Configure>", lambda e: self.content_canvas.itemconfigure(
+            self._content_fenster, width=e.width))
+        self.content_canvas.bind_all("<MouseWheel>", self._rad_rollen)
         self._render_view()
 
         right = tk.Frame(main, bg=self.skin["sidebar"], width=220)
@@ -668,9 +685,22 @@ class NebelseetalApp:
             btn.config(fg=self.skin["gold"] if item == view else "#e53935")
         self._render_view()
 
+    def _rad_rollen(self, ereignis):
+        """Mausrad im Inhaltsbereich — schuetzt sich selbst, falls noch kein Rollbereich da ist."""
+        try:
+            if self.content_canvas.winfo_exists():
+                self.content_canvas.yview_scroll(int(-ereignis.delta / 120), "units")
+        except Exception:
+            pass
+
     def _render_view(self):
         for widget in self.content.winfo_children():
             widget.destroy()
+        # Neue Ansicht immer von oben zeigen, sonst startet sie mitten im Inhalt.
+        try:
+            self.content_canvas.yview_moveto(0)
+        except Exception:
+            pass
         mapping = {
             "Dorfzentrum": self._render_overview,
             "Lager": self._render_storage,
