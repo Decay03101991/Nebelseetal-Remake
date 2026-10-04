@@ -23,6 +23,9 @@ Vorgaben aus der Sitzung vom 04.10.2026:
   es können **keine Schulden** entstehen. Bei DeepSeek muss ein **kleiner Rest** bleiben. Teure
   Modelle nur mit Grund, Kosten nach jedem Aufruf messen.
 - **Agent-zu-Agent Englisch/ASCII erlaubt**, alles für Daniel bleibt **Deutsch**.
+- **Unteragenten arbeiten an eigenen Dateien und haben ein Kommunikationsbrett** (`docs/BOARD.md`):
+  vorher lesen, Dateien beanspruchen, danach Ergebnis mit echten Zahlen eintragen. Aufteilung und
+  Modellwahl sind in `docs/AGENTEN_PLAN.md` vorgeschrieben (Daniels Vorgabe vom 04.10.2026).
 - **Ordnerstruktur aufgeräumt halten** — Regeln in `docs/ORDNUNG.md`.
 - **Kein teuer erarbeitetes Modellergebnis darf verloren gehen** (Abschnitt 4).
 - Wenn das Kontextfenster voll wird: **Daniel warnen** und diese Übergabe aktualisieren.
@@ -31,8 +34,10 @@ Vorgaben aus der Sitzung vom 04.10.2026:
 
 ```
 Lies D:/Arbeiten/Nebelseetal_Remake/docs/PROJEKT_STAND.md und übernimm das laufende Ziel aus
-Abschnitt 0. Arbeite nach Abschnitt 6 weiter — nächster Schritt: W4b-4, die Kartenerträge an die
-Rohstoffproduktion anbinden. Prüfe jede Zahl selbst nach, statt Meldungen zu glauben.
+Abschnitt 0. Lies dann docs/AGENTEN_PLAN.md (Agentenaufteilung und Modellwahl) und docs/BOARD.md
+(das Kommunikationsbrett der Unteragenten). Arbeite nach Abschnitt 6 weiter — nächster Schritt:
+W4b-4, die Kartenerträge an die Rohstoffproduktion anbinden. Prüfe jede Zahl selbst nach, statt
+Meldungen zu glauben.
 ```
 
 ---
@@ -240,6 +245,8 @@ Weiter offen:
 | Baustein | Wo |
 |---|---|
 | `docs/PROJEKT_STAND.md` | dieses Dokument — Wiederaufnahme ohne Chatverlauf |
+| `docs/AGENTEN_PLAN.md` | **wie die Sitzung ihre Agenten aufteilt und welches Modell wann** — inklusive Auftragsvorlage zum Kopieren |
+| `docs/BOARD.md` | **Kommunikationsbrett der Unteragenten** — Ansprüche, Ergebnisse, Meldungen |
 | `docs/ORDNUNG.md` | was wohin gehört |
 | `docs/audits/` + `eingaben/` | alle Modelldaten (Abschnitt 4) |
 | `tests/` (10 Dateien) + `run_tests.bat` | Wahrheitsquelle „läuft es noch?" |
