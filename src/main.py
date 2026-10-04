@@ -31,6 +31,7 @@ import kampf       # W2: Vorrunde, Kampfsequenzen, Flucht, Beute (Handbuch S. 20
 import kampfbericht  # W2b: Vorrunden-Pruefung, Mauerschaden, Beute, Bericht
 import botkern     # W5: Bot-Regeln (hier: die Vorschlagsspannen fuer die Vorraete der Bots)
 import portalraum  # W5-2: die 20 Dimensionen des Limbus, Raster, Wechselkosten und -sperre
+import werkstatt   # W3: die drei Werkstaetten, die 17 Waren und ihre Warteschlangen
 
 
 # ---------- Data Models ----------
@@ -350,6 +351,13 @@ for _name, _eintrag in spieldaten.forschungen().items():
         effect=(_eintrag.get("wirkung") or "Wirkung im Handbuch nicht beschrieben")[:90],
     )
 del _name, _eintrag
+
+# W3 (Werkstatt): die 17 ORIGINALwaren aus data/items.json. Jede Ware nennt ihre Werkstatt,
+# ihre Voraussetzung (Forschung + Stufe) und ihr Original-Icon aus den Icon-Blaettern.
+WARE_EINTRAEGE: Dict[str, Dict[str, object]] = spieldaten.waren()
+WARE_ICONS: Dict[str, str] = {name: str(eintrag.get("icon") or "")
+                              for name, eintrag in WARE_EINTRAEGE.items()}
+
 MAPS = [
     {"id": "kontinent", "name": "Der Kontinent", "size": 20, "difficulty": 1, "bonus": "nahrung", "npcs": ["dorf", "händler"], "quests": ["Erstes Zuhause", "Siedlerzug"], "sectors": True},
     {"id": "wald", "name": "Nebelwald", "size": 8, "difficulty": 2, "bonus": "holz", "npcs": ["jäger", "schamane"], "quests": ["Geister des Waldes", "Verlorenes Artefakt"]},
@@ -473,6 +481,12 @@ class GameState:
         self.eigene_dimension: int = 1
         self.eigene_dimensionen: List[int] = [1]
         self.letzter_wechsel: Optional[float] = None
+        # W3 (Werkstatt, src/werkstatt.py): das Lager der 17 ORIGINALwaren aus data/items.json
+        # (vorher stand hier die erfundene GOODS-Liste mit Emoji) und je Werkstatt eine
+        # Warteschlange. Die Warteschlangen entstehen beim ersten Zugriff aus den wirklich
+        # gebauten Werkstaetten der Siedlungskarten.
+        self.waren: Dict[str, int] = {name: 0 for name in WARE_EINTRAEGE}
+        self.werkstaetten: Dict[str, dict] = {}
 
     def _unlock_next_map(self):
         if len(self.active_maps) >= MAX_ACTIVE_MAPS:
@@ -585,6 +599,62 @@ class GameState:
         roh = wirtschaft.ertrag_gesamt(self.settlements, levels)
         return {k.lower(): v for k, v in roh.items()}
 
+    # ---------------- W3: Werkstaetten, Originalwaren, Warteschlangen ----------------
+
+    def werkstatt_schlangen(self) -> Dict[str, dict]:
+        """Die Warteschlangen je gebauter Werkstatt.
+
+        Wie viele Werkstaetten es gibt und welcher Art, kommt aus den wirklich **bebauten
+        Feldern** der Siedlungskarten (`werkstatt.werkstaetten_bestand`) - nicht aus einer
+        zweiten, globalen Gebaeudeliste.
+        """
+        for kennung, anzahl in werkstatt.werkstaetten_bestand(self.settlements).items():
+            if anzahl <= 0:
+                continue
+            if kennung in self.werkstaetten:
+                self.werkstaetten[kennung]["werkstaetten"] = anzahl
+                self.werkstaetten[kennung]["kapazitaet"] = werkstatt.kapazitaet(anzahl)
+            else:
+                self.werkstaetten[kennung] = werkstatt.neue_warteschlange(kennung, anzahl)
+        return self.werkstaetten
+
+    def werkstatt_fortschreiben(self, jetzt: float) -> Dict[str, int]:
+        """Fertige Waren ins Lager buchen und melden, was diesmal ankam.
+
+        `werkstatt.fertige_waren` merkt sich, was schon gemeldet wurde - jede Ware kommt
+        deshalb genau einmal an, auch wenn der Zeitlauf häufig tickt.
+        """
+        gebucht: Dict[str, int] = {}
+        for schlange in self.werkstaetten.values():
+            for ware, anzahl in werkstatt.fertige_waren(schlange, jetzt).items():
+                self.waren[ware] = int(self.waren.get(ware, 0)) + int(anzahl)
+                gebucht[ware] = gebucht.get(ware, 0) + int(anzahl)
+        return gebucht
+
+    def ware_voraussetzung(self, ware: str):
+        """Prueft die belegte Voraussetzung einer Ware (Forschung + Stufe) gegen diesen Stand.
+
+        Rueckgabe (erfuellt, Begruendung). Eine Forschung, die wir nicht kennen, gilt als NICHT
+        erfuellt - es wird nichts erfunden und nichts stillschweigend durchgelassen.
+        """
+        eintrag = WARE_EINTRAEGE.get(ware) or {}
+        struktur = eintrag.get("voraussetzung_struktur")
+        if not isinstance(struktur, dict):
+            return True, "keine Voraussetzung belegt"
+        gebiet = str(struktur.get("forschung") or "")
+        if not gebiet:
+            return True, "keine Voraussetzung belegt"
+        try:
+            noetig = int(struktur.get("stufe") or 0)
+        except (TypeError, ValueError):
+            noetig = 0
+        forschung = self.research.get(gebiet)
+        if forschung is None:
+            return False, f"die Forschung '{gebiet}' kennen wir nicht - nicht erfuellbar"
+        if int(forschung.level) < noetig:
+            return False, f"{gebiet} Stufe {noetig} noetig, vorhanden ist Stufe {int(forschung.level)}"
+        return True, f"{gebiet} Stufe {noetig} vorhanden"
+
     def tick(self, dt_seconds: float):
         dt_h = dt_seconds / 3600.0
         levels = {k: v.level for k, v in self.research.items()}
@@ -615,6 +685,8 @@ class GameState:
         if self.day >= 3 and self.noob_protection:
             self.noob_protection = False
             self.messages.append({"text": "Noobschutz aufgehoben - die Welt ist jetzt gefaehrlich!", "type": "system"})
+        # W3: fertige Waren aus den Werkstatt-Warteschlangen ins Lager buchen (genau einmal).
+        self.werkstatt_fortschreiben(time.time())
         self.last_tick = time.time()
 
     def save(self, path: str):
@@ -638,6 +710,8 @@ class GameState:
             "eigene_dimension": self.eigene_dimension,
             "eigene_dimensionen": self.eigene_dimensionen,
             "letzter_wechsel": self.letzter_wechsel,
+            "waren": self.waren,
+            "werkstaetten": self.werkstaetten,
         }
         # W8 (docs/UMSETZUNG_EINHAENGEN.md, Abschnitt 4): erst sichern, dann atomar ueber eine
         # gepruefte Zwischendatei schreiben. Schlaegt etwas fehl, bleibt der alte Spielstand
@@ -697,6 +771,11 @@ class GameState:
         self.eigene_dimension = int(data.get("eigene_dimension", 1) or 1)
         self.eigene_dimensionen = list(data.get("eigene_dimensionen") or [1])
         self.letzter_wechsel = data.get("letzter_wechsel")
+        # W3: Warenlager (immer alle 17 Originalwaren) und die Werkstatt-Warteschlangen
+        geladene_waren = data.get("waren") or {}
+        self.waren = {name: int(geladene_waren.get(name, 0) or 0) for name in WARE_EINTRAEGE}
+        self.werkstaetten = {k: v for k, v in (data.get("werkstaetten") or {}).items()
+                             if isinstance(v, dict)}
         # FIX 4b: Karte + Bots laden (wurde vorher nicht persistiert)
         saved_tiles = data.get("map_tiles")
         saved_bots = data.get("bots")
@@ -1477,20 +1556,25 @@ class NebelseetalApp:
         print("[DEBUG] _render_storage called")
         tk.Label(self.content, text="Lager", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
         tk.Label(self.content, text="Waren und Einheiten in dieser Siedlung.", fg=self.skin["text"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
-        tk.Label(self.content, text="Waren:", fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 0))
+        tk.Label(self.content, text="Waren (die 17 Originalwaren aus data/items.json):", fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 0))
+        tk.Label(self.content, text=werkstatt.lager_text(self.state.waren), fg="#C0C0C0", bg=self.skin["bg"], wraplength=760, justify=tk.LEFT).pack(anchor=tk.W, padx=10)
         goods_frame = tk.Frame(self.content, bg=self.skin["panel"])
         goods_frame.pack(fill=tk.X, padx=10, pady=5)
         cols = 6
-        for idx, (key, g) in enumerate(GOODS.items()):
+        for idx, (key, menge) in enumerate(sorted(self.state.waren.items())):
             row = idx // cols
             col = idx % cols
             cell = tk.Frame(goods_frame, bg=self.skin["panel"], padx=10, pady=10, relief=tk.RIDGE, borderwidth=1)
             cell.grid(row=row, column=col, padx=4, pady=4, sticky="nsew")
             goods_frame.grid_columnconfigure(col, weight=1)
             goods_frame.grid_rowconfigure(row, weight=1)
-            tk.Label(cell, text=g.icon, fg=self.skin["text"], bg=self.skin["panel"], font=("Arial", 28)).pack(pady=(0, 4))
-            tk.Label(cell, text=g.name, fg=self.skin["text"], bg=self.skin["panel"], font=("Arial", 9)).pack()
-            tk.Label(cell, text=str(self.state.goods.get(key, 0)), fg=self.skin["gold"], bg=self.skin["panel"], font=("Arial", 11, "bold")).pack(pady=(2, 0))
+            _ware_bild = self._lade_icon(WARE_ICONS.get(key, ""))
+            if _ware_bild is not None:
+                tk.Label(cell, image=_ware_bild, bg=self.skin["panel"]).pack(pady=(0, 4))
+            else:
+                tk.Label(cell, text="?", fg=self.skin["text"], bg=self.skin["panel"], font=("Arial", 16)).pack(pady=(0, 4))
+            tk.Label(cell, text=key, fg=self.skin["text"], bg=self.skin["panel"], font=("Arial", 9)).pack()
+            tk.Label(cell, text=str(menge), fg=self.skin["gold"], bg=self.skin["panel"], font=("Arial", 11, "bold")).pack(pady=(2, 0))
         tk.Label(self.content, text="Einheiten:", fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 0))
         units_frame = tk.Frame(self.content, bg=self.skin["panel"])
         units_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
@@ -1510,6 +1594,53 @@ class NebelseetalApp:
                 tk.Label(cell, text="?", fg=self.skin["text"], bg=self.skin["panel"], font=("Arial", 16)).pack(pady=(0, 4))
             tk.Label(cell, text=u.name, fg=self.skin["text"], bg=self.skin["panel"], font=("Arial", 9)).pack()
             tk.Label(cell, text=str(u.count), fg=self.skin["gold"], bg=self.skin["panel"], font=("Arial", 11, "bold")).pack(pady=(2, 0))
+
+        # W3: die Werkstaetten. Gezeigt wird nur, was WIRKLICH auf der Siedlungskarte steht
+        # (`werkstatt.werkstaetten_bestand`), je Ware mit ihrer belegten Voraussetzung.
+        tk.Label(self.content, text="Werkstätten:", fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 0))
+        schlangen = self.state.werkstatt_schlangen()
+        if not schlangen:
+            tk.Label(self.content, text="Noch keine Werkstatt gebaut — auf der Siedlungskarte bauen.",
+                     fg="#8a8a8a", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
+        for kennung, schlange in sorted(schlangen.items()):
+            rahmen = tk.Frame(self.content, bg=self.skin["panel"])
+            rahmen.pack(fill=tk.X, padx=10, pady=3)
+            tk.Label(rahmen, text=f"{schlange.get('werkstatt')} ({schlange.get('kapazitaet')} Plätze)",
+                     fg=self.skin["text"], bg=self.skin["panel"], width=24, anchor=tk.W).pack(side=tk.LEFT, padx=5)
+            for ware in werkstatt.waren_der_werkstatt(kennung):
+                erfuellt, grund = self.state.ware_voraussetzung(ware)
+                knopf = tk.Button(rahmen, text=ware, command=lambda k=kennung, w=ware: self._ware_herstellen(k, w),
+                                  bg="#3e2723" if erfuellt else "#4a4a4a",
+                                  fg=self.skin["gold"] if erfuellt else "#9e9e9e")
+                if not erfuellt:
+                    knopf.config(state=tk.DISABLED)
+                knopf.pack(side=tk.LEFT, padx=2)
+            tk.Label(self.content, text="   " + werkstatt.fortschritt(schlange, time.time())["text"],
+                     fg="#C0C0C0", bg=self.skin["bg"]).pack(anchor=tk.W, padx=12)
+
+    def _ware_herstellen(self, kennung: str, ware: str):
+        """Eine Ware in die Warteschlange EINER Werkstatt stellen (W3).
+
+        Ablauf wie im Rueckruf-Vertrag: erst pruefen (Werkstatt gebaut? Voraussetzung erfuellt?),
+        dann einreihen; abgelehnt wird VOR jeder Aenderung.
+        """
+        schlange = self.state.werkstatt_schlangen().get(kennung)
+        if not schlange:
+            self._log(f"Keine Werkstatt '{kennung}' gebaut - zuerst auf der Siedlungskarte bauen.")
+            return False
+        erfuellt, grund = self.state.ware_voraussetzung(ware)
+        if not erfuellt:
+            self._log(f"{ware} nicht möglich: {grund}")
+            return False
+        stufe = 1
+        for siedlung in self.state.settlements:
+            stufe = max(stufe, werkstatt.werkstatt_stufe(siedlung, kennung))
+        werkstatt.fortschritt(schlange, time.time())     # die Uhr stellen, bevor eingereiht wird
+        ok, meldung = werkstatt.einreihen(schlange, ware, 1, stufe)
+        self._log(meldung)
+        if ok:
+            self._render_view()
+        return ok
 
     def _render_profiles(self):
         tk.Label(self.content, text="Spielerprofile", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
@@ -1628,8 +1759,8 @@ class NebelseetalApp:
 
     # ---------- Angriff: kampf + kampfbericht (Umsetzungsplan, Abschnitte 1.3 und 2) ----------
     #
-    # Vorher rechnete die Oberflaeche mit einer eigenen Daumenformel ("player_power >
-    # defense_power") und erfand Beute. Jetzt laeuft JEDER Angriff durch denselben Ablauf:
+    # Vorher rechnete die Oberflaeche mit einer eigenen Daumenformel ("mehr Kampfkraft als der
+    # Verteidiger") und erfand Beute. Jetzt laeuft JEDER Angriff durch denselben Ablauf:
     # Truppenpruefung -> Vorrunde/Wallschwellen -> bis zu zehn Kampfsequenzen -> Beute nach
     # Karrenladung -> Bericht in den Reiter "Nachrichten" -> Verluste und Beute in den Spielstand.
 
