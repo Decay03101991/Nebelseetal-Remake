@@ -54,6 +54,8 @@ MUSTER = [
     ("docs", "ENTWURF_AUFTRAEGE.md"),
     ("docs", "ENTWURF_WIRTSCHAFT.md"),
     ("docs", "AUDIT_KONFORMITAET_astra.md"),
+    ("docs", "UMSETZUNG_EINHAENGEN.md"),
+    ("docs", "KARTEN_ENTWURF.md"),
 ]
 ORDNER = []                 # keine Unterordner mehr (das Brett der Kinder ist entfallen)
 

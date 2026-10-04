@@ -39,11 +39,13 @@ Vorgaben aus der Sitzung vom 04.10.2026:
 
 ```
 Lies D:/Arbeiten/Nebelseetal_Remake/docs/PROJEKT_STAND.md und übernimm das laufende Ziel aus
-Abschnitt 0. Lies dann docs/AGENTEN_PLAN.md (Agentenaufteilung, Modellwahl) und
-docs/FRAGEN_FUER_MORGEN.md (die offenen Fragen an Daniel). Arbeite nach Abschnitt 6 weiter —
-nächster Schritt: die fertigen Module (Waren, Kampf, Aufträge, Portal, Punkte, Speichern, Bots)
-über src/spielschicht.py in main.py einhängen, dann die .exe neu bauen. Prüfe jede Zahl selbst
-nach: `run_tests.bat`.
+Abschnitt 0. Lies dann **docs/UMSETZUNG_EINHAENGEN.md** (der geprüfte Umsetzungsplan: Einhängen der
+zehn Module, Kampfablauf mit allen Fehlerfällen, Kartenansicht, Speichern, Arbeitsreihenfolge —
+samt Nachtrag des Koordinators), docs/AGENTEN_PLAN.md (Aufteilung, Modellwahl) und
+docs/FRAGEN_FUER_MORGEN.md (die offenen Fragen an Daniel). Arbeite die Arbeitsreihenfolge aus
+Abschnitt 5 des Plans ab — Schritt 1 ist **speichern** an `main.py:627-628`. Nach jedem Schritt
+`run_tests.bat` (erwartet **1651 bestanden, 0 Fehler, 9 Befunde** über 23 Dateien) und eine
+Protokollzeile; am Ende die `.exe` neu bauen (`tools/build_exe.py`) und startprüfen.
 ```
 
 ---
