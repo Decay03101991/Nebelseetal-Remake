@@ -65,6 +65,20 @@ wird **nichts geschätzt**. Eigene Zahlen stehen immer als `VORSCHLAG` mit Ablei
 1261×833 Pixel, in `docs/original/karten/`. Sie sind die **einzige verbliebene Quelle** echter
 Spielansichten. Auswertung: `docs/audits/astra_gamestar_antwort.txt` (0,47 USD).
 
+**Die Suche nach den Originalbildern ist ABGESCHLOSSEN — nicht wiederholen.** Vier Wege geprüft,
+alle negativ für die Spielansichten:
+
+| Weg | Ergebnis |
+|---|---|
+| Web-Archiv, CDX über `nebelseetal.de` **und alle sechs Unterdomänen** | kennt nur `screens.php`, **keine** der vier Bilddateien; Wildcard-Zeitstempel 2005–2015 → 404, die Unterdomänen haben 0 Bilddateien |
+| Web-Archiv, direkte Bildabrufe über vier Zeitstempel × fünf Server × vier Größen | kein Treffer |
+| Browserspiel-Portale, archive.today, YouTube, osnanet, Reddit (blockiert) | keine Spielbilder; der Reddit-Thread ließ sich nicht abrufen |
+| **Common Crawl** (66 Abfragen, 1 h) | 2009er Index hat die **Seiten** (`screens.php`, `wallpaper.php` — gesichert), aber **keine Bilder**; 2018 nur die geparkte Startseite |
+
+**Was es gibt und wo es liegt:** die GameStar-Screenshots (3), der Wallpaper, die Website-Schaltflächen
+und Logos (32 Bilddateien in `docs/original/karten/`), die Common-Crawl-Seitenruinen
+(`docs/original/karten/commoncrawl/`), die vier Website-Bilder in `docs/original/assets_website/`.
+
 ## 3. Was fertig ist
 
 | Paket | Inhalt | Beleg / Prüfung |
