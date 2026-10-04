@@ -21,6 +21,7 @@ from bonus_system import (
 import einheiten
 import spieldaten
 import gelaende
+import berater
 
 
 # ---------- Data Models ----------
@@ -1511,8 +1512,73 @@ class NebelseetalApp:
         tk.Label(self.content, text="Forum ist offline.", fg="#C0C0C0", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
 
     def _render_chat(self):
-        tk.Label(self.content, text="Chat", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
-        tk.Label(self.content, text="Chat ist offline.", fg="#C0C0C0", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
+        tk.Label(self.content, text="Auskunft im Spiel", font=("Blackletter", 20, "bold"),
+                 fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 2))
+        tk.Label(self.content,
+                 text="Ich antworte aus dem Originalhandbuch und den Spieldaten — ohne Netz und "
+                      "ohne Schlüssel. Bei Zahlen, die das Handbuch nicht nennt, sage ich es dazu.",
+                 fg=self.skin["text"], bg=self.skin["bg"], wraplength=780,
+                 justify=tk.LEFT).pack(anchor=tk.W, padx=10)
+
+        if not getattr(self, "chat_verlauf", None):
+            self.chat_verlauf = [("berater", berater.begruessung())]
+
+        rahmen = tk.Frame(self.content, bg=self.skin["panel"])
+        rahmen.pack(fill=tk.X, padx=10, pady=6)
+        for wer, text in self.chat_verlauf[-10:]:
+            tk.Label(rahmen, text=("Auskunft:  " if wer == "berater" else "Du:  ") + str(text),
+                     fg=(self.skin["gold"] if wer == "berater" else "#9FD6FF"),
+                     bg=self.skin["panel"], justify=tk.LEFT, anchor=tk.W,
+                     wraplength=740).pack(fill=tk.X, padx=6, pady=2)
+
+        zeile = tk.Frame(self.content, bg=self.skin["bg"])
+        zeile.pack(fill=tk.X, padx=10, pady=(4, 2))
+        self.chat_eingabe = tk.Entry(zeile, bg=self.skin["panel"], fg=self.skin["text"],
+                                     insertbackground=self.skin["text"])
+        self.chat_eingabe.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 6))
+        self.chat_eingabe.bind("<Return>", lambda _e: self._chat_fragen())
+        tk.Button(zeile, text="Fragen", command=self._chat_fragen, bg=self.skin["button"],
+                  fg=self.skin["gold"], activebackground="#5D4037").pack(side=tk.LEFT)
+        try:
+            self.chat_eingabe.focus_set()
+        except Exception:
+            pass
+
+        beispiele = tk.Frame(self.content, bg=self.skin["bg"])
+        beispiele.pack(anchor=tk.W, padx=10, pady=(2, 8))
+        tk.Label(beispiele, text="Zum Antippen:", fg=self.skin["text"],
+                 bg=self.skin["bg"]).pack(anchor=tk.W)
+        vorschlaege = ["Wie fange ich an?", "Was macht der Holzfäller?",
+                       "Welches Gelände braucht der Steinmetz?", "Wie läuft ein Kampf ab?",
+                       "Was kostet die Forschung?", "Was kann der Paladin?", "Gib mir einen Tipp"]
+        knopfreihe = tk.Frame(beispiele, bg=self.skin["bg"])
+        knopfreihe.pack(anchor=tk.W)
+        for i, frage in enumerate(vorschlaege):
+            tk.Button(knopfreihe, text=frage, command=lambda f=frage: self._chat_fragen(f),
+                      bg=self.skin["button"], fg=self.skin["gold"],
+                      activebackground="#5D4037").grid(row=i // 4, column=i % 4, padx=3, pady=2,
+                                                       sticky=tk.W)
+
+    def _chat_fragen(self, frage: str = None):
+        if frage is None:
+            try:
+                frage = self.chat_eingabe.get()
+            except Exception:
+                frage = ""
+        frage = (frage or "").strip()
+        if not frage:
+            return
+        if not getattr(self, "chat_verlauf", None):
+            self.chat_verlauf = []
+        self.chat_verlauf.append(("du", frage))
+        try:
+            antwort = berater.antwort(frage, self.state)
+        except Exception as fehler:                     # nie das Spiel zum Absturz bringen
+            antwort = (f"Das konnte ich nicht beantworten ({type(fehler).__name__}). "
+                       "Frag mich anders, zum Beispiel nach einem Gebäude, einer Einheit "
+                       "oder einem Gelände.")
+        self.chat_verlauf.append(("berater", antwort))
+        self._render_view()
 
     def _render_referral(self):
         tk.Label(self.content, text="Spieler werben", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))

@@ -145,6 +145,41 @@ check("die Siedlung nennt ihren Kartentyp",
 check("und hat eine Schaltfläche 'Karte öffnen'",
       any("Karte öffnen" == str(t) for t in knopf_texte), str(knopf_texte[:4]))
 
+abschnitt("Auskunft im Spiel — der Reiter Chat")
+app._switch_view("Chat")
+check("die Ansicht heißt Chat", app.current_view == "Chat", app.current_view)
+texte = sammle_texte(app.content)
+check("die Begrüßung steht da", any("Auskunft" in t for t in texte),
+      str(texte[:3]))
+check("das Eingabefeld ist da", hasattr(app, "chat_eingabe")
+      and app.chat_eingabe.winfo_exists())
+knopf_texte = [b.cget("text") for b in sammle_knoepfe(app.content)]
+check("es gibt Vorschlagsfragen zum Antippen", any("Holzfäller" in t for t in knopf_texte),
+      str(knopf_texte[:4]))
+
+vorher = len(getattr(app, "chat_verlauf", []))
+app._chat_fragen("Was macht der Holzfäller?")
+check("die Frage und die Antwort landen im Verlauf", len(app.chat_verlauf) == vorher + 2,
+      str(len(app.chat_verlauf)))
+letzte_frage, letzte_antwort = app.chat_verlauf[-2], app.chat_verlauf[-1]
+check("die Frage ist gespeichert", letzte_frage == ("du", "Was macht der Holzfäller?"),
+      str(letzte_frage))
+check("die Antwort nennt den Wald und 4 pro Stunde",
+      "Wald" in letzte_antwort[1] and "4" in letzte_antwort[1], letzte_antwort[1][:120])
+check("und wieder ist die Ansicht aufgebaut", len(app.content.winfo_children()) > 3)
+
+app._chat_fragen("Wie wird das Wetter?")
+check("unbekannte Frage wird ehrlich verneint", "Das weiß ich nicht" in app.chat_verlauf[-1][1],
+      app.chat_verlauf[-1][1][:90])
+
+app._chat_fragen("Paladin")
+check("Einzelfrage nach einer Einheit funktioniert", "Paladin" in app.chat_verlauf[-1][1],
+      app.chat_verlauf[-1][1][:80])
+
+app._chat_fragen("")
+check("eine leere Frage ändert nichts", len(app.chat_verlauf) == vorher + 6,
+      str(len(app.chat_verlauf)))
+
 abschnitt("Siedlungskarte im Fenster — Siedlung ohne Karte (alter Spielstand)")
 alt = M.Settlement(name="Alte Siedlung", map_id=app.state.current_map)
 app.state.settlements.append(alt)
