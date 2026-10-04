@@ -709,6 +709,8 @@ class GameState:
         ergebnis["gesamt"] = len(self.auftraege)
 
         for eintrag in auftraege.angekommen(self.auftraege, jetzt):
+            if eintrag.get("art") == "angreifen":
+                self.kampf_am_ziel(eintrag)      # W7: der echte Kampf, bevor gebucht wird
             vorher = {"ressourcen": {k: v.amount for k, v in self.resources.items()},
                       "einheiten": {k: u.count for k, u in self.units.items()}}
             neu = auftraege.spieldaten_anwenden(vorher, eintrag)
@@ -735,6 +737,59 @@ class GameState:
                     ergebnis["heimgekehrt"][name] = ergebnis["heimgekehrt"].get(name, 0) + int(anzahl)
         self.auftraege[:] = [e for e in self.auftraege
                              if not (e.get("status") == "abgeschlossen" and e.get("heimgekehrt"))]
+        return ergebnis
+
+    def kampf_am_ziel(self, eintrag: dict) -> dict:
+        """Den echten Kampf am Ziel austragen (Handbuch S. 21-23) - W7, Schritt 7 abgeschlossen.
+
+        `auftraege.py` rechnet nur Reisezeit und Beute; es erwartet `vorrunde` und `beute` als
+        **Eingabe**. Hier wird deshalb mit `kampf.fuehre_schlacht` gekaempft: die gefallenen
+        Einheiten gehen von den Auftrags-Einheiten ab (Heimkehrer sind also die Ueberlebenden),
+        und die Beute des Gefechts wird in `eintrag['beute']` uebernommen. Gebucht wird sie
+        gleich danach von `auftraege.spieldaten_anwenden` - also GENAU EINMAL.
+        """
+        ziel = eintrag.get("ziel") or {}
+        truppen = {str(k): int(v) for k, v in (eintrag.get("einheiten") or {}).items()}
+        kaempfer, belagerung, karren = {}, {}, {}
+        for name, anzahl in truppen.items():
+            rolle = einheiten.rolle(name)
+            if rolle in ("kaempfer", "kundschafter"):
+                kaempfer[name] = anzahl
+            elif rolle == "belagerung":
+                belagerung[name] = anzahl
+            elif rolle == "karren":
+                karren[name] = anzahl
+        geraet = dict(karren)
+        geraet.update(belagerung)          # kampf.py: Karren UND Belagerungswaffen des Angreifers
+
+        ergebnis = kampf.fuehre_schlacht(
+            kaempfer, dict(ziel.get("verteidiger") or {}),
+            int(ziel.get("wall_stufe") or 0), float(ziel.get("wall_zustand_prozent") or 100.0),
+            angreifer_karren=geraet or None,
+            verteidiger_karren=dict(ziel.get("verteidiger_karren") or {}) or None,
+            vorraete=dict(ziel.get("vorraete") or {}), rng=random.Random())
+
+        for name, anzahl in (ergebnis.get("verluste_angreifer") or {}).items():
+            rest = int(truppen.get(name, 0)) - int(anzahl)
+            if rest > 0:
+                truppen[name] = rest
+            else:
+                truppen.pop(name, None)
+        for name in (ergebnis.get("geraete_verloren") or []):
+            rest = int(truppen.get(name, 0)) - 1
+            if rest > 0:
+                truppen[name] = rest
+            else:
+                truppen.pop(name, None)
+        eintrag["einheiten"] = truppen
+        eintrag["beute"] = dict(ergebnis.get("beute") or {})
+        eintrag["vorrunde"] = {"bestanden": ergebnis.get("ausgang") != "unentschieden",
+                               "grund": ergebnis.get("bericht", "")}
+
+        bericht = kampfbericht.bericht(ergebnis)
+        self.messages.append({"text": f"Am Ziel {eintrag.get('nach')} — " + bericht["titel"] +
+                                      "\n" + "\n".join(bericht["zeilen"]), "type": "kampf"})
+        self._log(f"Kampf am Ziel {eintrag.get('nach')}: {ergebnis.get('ausgang')}.")
         return ergebnis
 
     def tick(self, dt_seconds: float):
@@ -2116,7 +2171,8 @@ class NebelseetalApp:
             self._log("Keine Kaempfer und keine Belagerungswaffen vorhanden.")
             return False
         ziel = {"name": bot.name, "fremd": True, "wall_stufe": 0, "wall_zustand_prozent": 100.0,
-                "vorraete": self._vorraete_des_ziels(bot)}
+                "vorraete": self._vorraete_des_ziels(bot),
+                "verteidiger": dict(bot.army or {})}
         entfernung = self._auftrag_entfernung()
         ok, meldung = self.state.auftrag_starten("angreifen", truppen,
                                                  self.state.settlements[0].name, ziel, entfernung)
