@@ -226,22 +226,39 @@ verloren gegangen (die Kartenanalyse und die Siedlungsvorlage).
    erfundene Portal-Bau ist weg (weitere Karten schaltet jetzt die Forschung „Vermessung" frei);
    die `max_je_siedlung`-Regel aus dem Original wird nun durchgesetzt; und beim Nachprüfen fiel auf,
    dass `src/forschung.py` und `src/welt.py` zwar fertig, aber im Spiel **nicht eingehängt** sind.
-4. **W4b-6 — Produktionsfaktor für alle neun Rohstoffe** (offen aus W4b-4): `bonus_system`
-   erhöht bisher nur Holz, Stein, Nahrung; Metall, Leder, Mana, Gold, Wolle und Pferde bleiben bei
-   1,0. Diese Faktoren hängen an den **21 Originalforschungen** (Felderwirtschaft, Steinbruch,
-   Forstwirtschaft, Tierhaltung, Minenarbeit, Götterkunde) — deshalb gehören beide zusammen:
-   die 21 Forschungen ins Spiel holen und dabei die Bauregel „Baukunst" sowie die
-   Forschungsvoraussetzungen der Einheiten nachziehen.
-5. **W4c-Nachtrag — Forschung mit Wartezeit**: `src/forschung.py` (Dauer = Stufe² Stunden, Stufe
-   steigt erst nach Ablauf, Abbruch kostet Rohstoffe) im Fenster einhängen; heute steigt die Stufe
-   sofort beim Klick.
-6. **W5-2 — Weltkarte einhängen**: `src/welt.py` (20 Dimensionen, Portalkosten) ersetzt das alte
-   `MAPS`-Modell im Fenster samt Portalansicht.
-7. **WA — Auftragssystem** nach `docs/ENTWURF_AUFTRAEGE.md`.
-8. **W2b — Kampf ins Spiel** (auslösbar, Bericht in den Nachrichten); dabei die Wallschwellen aus
-   `gebaeude_wirkung.wall_schwelle` in der Vorrunde verwenden.
-9. **W7 — Oberfläche** nach der belegten Menüliste.
-10. **W9 — Auslieferung** als `.exe` mit Passworttor (`docs/WEG_ZUR_EXE.md`).
+4. **Einhängen — die Reihenfolge** (Hauptagent, in einer neuen Sitzung): `src/spielschicht.py` ist die
+   tkinter-freie Fassade für genau diesen Schritt (133 Prüfungen). Ihre ehrlichen Lücken stehen in
+   `spielschicht.offene_luecken()` und sind beim Einhängen zu schließen:
+   (a) **Kampfverluste**: `kampf.py` ist in der Fassade nicht eingebunden — `angriff()` nutzt
+   `kampfbericht`, aber Einzelverluste je Einheit fehlen;
+   (b) **Ausbildungsdauer**: das Handbuch nennt keine, deshalb bildet die Fassade sofort aus;
+   (c) **Portal-Mana**: der Zustand führt EINEN Mana-Vorrat, das Original verlangt die 5.000 Mana
+   **aus einer Siedlung** — je Siedlung nachziehen;
+   (d) **`auftrag_starten` fehlt absichtlich**, weil `src/auftraege.py` beim Bau der Fassade noch
+   nicht existierte (Kind WA liefert es nach) — nach dem Einbau dort anschließen.
+   Achtung bei den Bots: `botkern.handelspreis()` erwartet den **Referenzpreis** und rechnet nur das
+   Temperament (±10 %); der Faktor ×1,2 sitzt in `botkern.referenzpreis_aus_beschaffung()`.
+5. ~~**W4b-6 — Produktionsfaktor für alle neun Rohstoffe**~~ **erledigt am 04.10.2026 (Commit `c0f4a5d`).**
+   `bonus_system.get_production_multiplier` holt die Faktoren aus `forschung_wirkung`; im Spiel stehen
+   jetzt die **21 Originalforschungen**. Offen bleibt nur die belegte Bauregel „Baukunst nötig"
+   (dafür müsste die Bibliotheksstufe die Baurechte steuern — eigener kleiner Schritt) und die
+   Forschungsvoraussetzungen der Einheiten (z. B. Kriegskunst für den Kämpfer).
+6. **W4c-Nachtrag — Forschung mit Wartezeit**: `src/forschung.py` (Dauer = Stufe² Stunden, Stufe
+   steigt erst nach Ablauf) in die Oberfläche einhängen; die Fassade `spielschicht` rechnet es schon
+   richtig, `main._start_research` steigt aber noch sofort.
+7. **W5-2 — Portalansicht einhängen**: `src/portalraum.py` (20 Dimensionen, 5.000 Mana, 24-h-Sperre)
+   ersetzt das alte `MAPS`-Modell im Portalreiter.
+8. **WA — Auftragssystem einhängen**: `src/auftraege.py` (Kind WA) über
+   `spielschicht`-Zustand anschließen; Reisezeit, Rückkehr, Beute.
+9. **W2b — Kampf ins Spiel**: `src/kampfbericht.py` (Vorrunden-Schwellen, Mauerschaden, Beute,
+   Bericht) mit einer Angriffs-Schaltfläche verbinden und den Bericht in die Nachrichten legen.
+10. **W3 — Waren im Fenster**: `src/werkstatt.py` in einer Ansicht (Warteschlangen, parallele
+    Werkstätten) sichtbar machen.
+11. **W8 — robustes Speichern einhängen**: `src/speichern.py` (atomar, Sicherung, Wiederherstellen)
+    statt des direkten Schreibens in `main.py`.
+12. **W7 — Oberfläche** nach der belegten Menüliste (Netz-Einträge bleiben draußen).
+13. **W9 — Auslieferung**: `.exe` **neu bauen** (`tools/build_exe.py`) und erneut startprüfen.
+14. **Karten und Weltdaten sichern**: an jedem Paketende `python tools/protokoll_sichern.py --protokoll`.
 
 ## 7. Offene Entscheidungen (Daniel)
 
