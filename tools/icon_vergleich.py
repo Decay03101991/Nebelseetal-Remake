@@ -53,9 +53,10 @@ def blatt(zeilen, ziel_pfad: str):
     W = breite_nummer + 2 * breite_zelle
     H = hoehe_zeile * len(bilder)
 
+    # Grundfläche als RGBA aufbauen (4 Byte je Pixel, deckend) — write_png erwartet RGBA.
     blatt_px = bytearray()
     for _ in range(W * H):
-        blatt_px += bytes(GRUND)
+        blatt_px += bytes((GRUND[0], GRUND[1], GRUND[2], 255))
 
     for i, (nummer, w1, h1, r1, w2, h2, r2) in enumerate(bilder):
         y0 = i * hoehe_zeile
