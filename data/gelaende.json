@@ -1,0 +1,135 @@
+{
+  "_hinweis": "Gelaendearten der Siedlungskarte. Die NAMEN und die Sumpf-Regel sind belegt (Handbuch 2009, S. 9-11). Die HAEUFIGKEIT der Gelaendearten ist NICHT belegt - sie ist als Vorschlag gekennzeichnet und darf von Daniel geaendert werden.",
+  "_quelle": "docs/original/Spielanleitung_2009_Textfassung.txt (Gelaende und Ertraege), data/buildings.json (Ertrag je Gelaendeart), docs/ENTWURF_WIRTSCHAFT.md",
+  "kartenmass": {
+    "spalten": 8,
+    "zeilen": 5,
+    "bauplaetze": 40,
+    "_herkunft": "VORSCHLAG (astra, Einsatz 3: 40 Bauplaetze je Siedlung). Handbuch nennt keine Kartengroesse.",
+    "felder": 56,
+    "_felder_herkunft": "56 Felder im Raster, davon 40 als Bauplaetze nutzbar; die uebrigen sind Wege/Wasser (VORSCHLAG)."
+  },
+  "gelaendearten": [
+    {
+      "id": "grasland",
+      "name": "Grasland",
+      "bebaubar": true,
+      "haeufigkeit": 20,
+      "farbe": "#5C7A3C",
+      "farbe_rand": "#48602F",
+      "_belegt": "Name und Ertraege belegt (Handbuch S. 10). Haeufigkeit VORSCHLAG."
+    },
+    {
+      "id": "steppe",
+      "name": "Steppe",
+      "bebaubar": true,
+      "haeufigkeit": 20,
+      "farbe": "#8C7A4A",
+      "farbe_rand": "#6E5F38",
+      "_belegt": "Name und Ertraege belegt. Haeufigkeit VORSCHLAG."
+    },
+    {
+      "id": "wald",
+      "name": "Wald",
+      "bebaubar": true,
+      "haeufigkeit": 18,
+      "farbe": "#2E4A22",
+      "farbe_rand": "#22371A",
+      "_belegt": "Name und Ertraege belegt (Holzfäller Wald 4). Haeufigkeit VORSCHLAG."
+    },
+    {
+      "id": "huegel",
+      "name": "Hügel",
+      "bebaubar": true,
+      "haeufigkeit": 13,
+      "farbe": "#6E5A3C",
+      "farbe_rand": "#54452E",
+      "_belegt": "Name und Ertraege belegt (Steinmetz Hügel 2). Haeufigkeit VORSCHLAG."
+    },
+    {
+      "id": "berg",
+      "name": "Berg",
+      "bebaubar": true,
+      "haeufigkeit": 12,
+      "farbe": "#5A5A62",
+      "farbe_rand": "#44444A",
+      "_belegt": "Name und Ertraege belegt (Steinmetz Berg 4, Erzmine 3). Haeufigkeit VORSCHLAG."
+    },
+    {
+      "id": "nebelsee",
+      "name": "Nebelsee",
+      "bebaubar": true,
+      "haeufigkeit": 7,
+      "farbe": "#2F4A5A",
+      "farbe_rand": "#243946",
+      "_belegt": "Name belegt, Tempel auf Nebelsee 5 (Handbuch S. 10). NICHT belegt: ob der Nebelsee bebaubar ist - hier als bebaubar gefuehrt, weil der Tempel dort gebaut wird. Haeufigkeit VORSCHLAG."
+    },
+    {
+      "id": "sumpf",
+      "name": "Sumpf",
+      "bebaubar": false,
+      "haeufigkeit": 10,
+      "farbe": "#3A3A2A",
+      "farbe_rand": "#2C2C20",
+      "_belegt": "BEWIESEN: 'Sümpfe können nicht bebaut werden' (Handbuch S. 11). Haeufigkeit VORSCHLAG."
+    }
+  ],
+  "kartentypen": {
+    "_hinweis": "PRODUKTENTSCHEIDUNG Daniel (04.10.2026): 'es muss trotzdem mehrere karten geben mit verschiedenen vorteilen'. Die Gewichte sind Vorschlaege; die genannten Vorteile folgen aus den belegten Ertraegen der Gebaeude. Jede Karte muss die Mindestbesatz-Regel erfuellen, damit sie spielbar ist.",
+    "listen": [
+      {
+        "id": "waldreich",
+        "name": "Waldreiche Karte",
+        "haeufigkeit": 20,
+        "vorteil": "Holz, Nahrung und Leder — Holzfäller 4/h und Jäger 2 Nahrung + 2 Leder je Waldfeld",
+        "beschreibung": "Viel Wald, wenig Gestein. Wer hier siedelt, baut mit Holz und ernährt sich vom Wald.",
+        "gewichte": {"grasland": 14, "steppe": 14, "wald": 36, "huegel": 10, "berg": 6, "nebelsee": 8, "sumpf": 12}
+      },
+      {
+        "id": "bergreich",
+        "name": "Steinreiche Karte",
+        "haeufigkeit": 20,
+        "vorteil": "Stein, Metall und Gold — Steinmetz 4/h sowie Erz- und Goldmine 3/h am Berg",
+        "beschreibung": "Berge und Hügel bestimmen das Bild. Hier liegen die Erze und das Gold.",
+        "gewichte": {"grasland": 12, "steppe": 10, "wald": 12, "huegel": 22, "berg": 28, "nebelsee": 6, "sumpf": 10}
+      },
+      {
+        "id": "weideland",
+        "name": "Weideland",
+        "haeufigkeit": 20,
+        "vorteil": "Nahrung, Wolle, Leder und Pferde — Farm 4/h, Schafszucht, Rinderfarm und Pferdezucht 3/h auf Grasland",
+        "beschreibung": "Weite Grasflächen und Steppe. Die Karte der Herden und der Versorgung.",
+        "gewichte": {"grasland": 32, "steppe": 26, "wald": 10, "huegel": 10, "berg": 6, "nebelsee": 6, "sumpf": 10}
+      },
+      {
+        "id": "nebelseeufer",
+        "name": "Nebelseeufer",
+        "haeufigkeit": 10,
+        "vorteil": "Mana — der Tempel liefert am Nebelsee 5/h statt 1/h, also das Fünffache",
+        "beschreibung": "Viel Nebelsee. Selten, aber der einzige Ort mit echter Mana-Ausbeute.",
+        "gewichte": {"grasland": 16, "steppe": 14, "wald": 18, "huegel": 10, "berg": 8, "nebelsee": 24, "sumpf": 10}
+      },
+      {
+        "id": "gemischt",
+        "name": "Ausgeglichene Karte",
+        "haeufigkeit": 30,
+        "vorteil": "keine Schwäche und kein Schwerpunkt — jedes Gut ist erreichbar, keines im Überfluss",
+        "beschreibung": "Von allem etwas. Der sichere Start ohne Ausrichtung.",
+        "gewichte": {"grasland": 20, "steppe": 20, "wald": 18, "huegel": 13, "berg": 12, "nebelsee": 7, "sumpf": 10}
+      }
+    ]
+  },
+  "regeln": {
+    "sumpf_unbebaubar": "BEWIESEN (Handbuch S. 11): auf Sumpf kann kein Gebäude stehen.",
+    "karte_je_siedlung": "BEWIESEN (Handbuch S. 313): 'Einer neuen Siedlung wird per Zufall eine Karte zugewiesen. Es werden niemals zwei Deiner Siedlungen die gleiche Karte bekommen.'",
+    "mindestbesatz": {
+      "_hinweis": "VORSCHLAG: jede Siedlung muss mindestens diese Felder haben, sonst ist sie nicht spielbar (kein Holz, kein Stein, keine Nahrung). Das Handbuch schweigt dazu.",
+      "wald": 2,
+      "berg": 2,
+      "grasland": 3,
+      "nebelsee": 1
+    },
+    "sumpf_hoechstens": 6,
+    "eignung_wird_angezeigt": "BEWIESEN (Handbuch S. 7/8): beim Bauen zeigt das Spiel die Eignung des Geländes an."
+  }
+}
