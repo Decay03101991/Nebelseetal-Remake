@@ -21,6 +21,7 @@ from bonus_system import (
 import einheiten
 import spieldaten
 import gelaende
+import gebaeude_wirkung
 import berater
 import wirtschaft
 
@@ -130,6 +131,9 @@ class Settlement:
     # niemals zwei eigene Siedlungen dieselbe. bauten ordnet Feld-Index -> Gebäude-Kennung.
     karte: Optional[dict] = None
     bauten: Dict[str, str] = field(default_factory=dict)
+    # Ausbaustufe je bebautem Feld (W4b-5). Belegt sind Stufen für den Verteidigungswall (10)
+    # und die drei Ausbildungsstätten; ein Feld ohne Eintrag gilt als Stufe 1.
+    stufen: Dict[str, int] = field(default_factory=dict)
 
 
 # Handbuch S. 313: 'Einer neuen Siedlung wird per Zufall eine Karte zugewiesen. Es werden
@@ -165,7 +169,11 @@ def bauen_auf_karte(siedlung: "Settlement", gebaeude_key: str, feld: int) -> tup
     Setzt ein Gebäude auf ein Feld der Siedlungskarte.
 
     Rückgabe: (ja/nein, Meldung). Prüft zuerst die Eignung (Handbuch S. 7/8: beim Bauen wird
-    die Eignung des Geländes angezeigt), dann ob das Feld frei ist.
+    die Eignung des Geländes angezeigt), dann ob das Feld frei ist, und zuletzt die belegte
+    Obergrenze je Siedlung (Kriegerakademie, Diebesgilde, Stellmacher und Bibliothek: je
+    höchstens eines — data/buildings.json, Feld 'max_je_siedlung').
+
+    Das neue Feld bekommt die Ausbaustufe 1 (W4b-5).
     """
     if siedlung.karte is None:
         return False, "Diese Siedlung hat noch keine Karte."
@@ -178,7 +186,22 @@ def bauen_auf_karte(siedlung: "Settlement", gebaeude_key: str, feld: int) -> tup
     erlaubt, warum = gelaende.bau_moeglich(gebaeude_key, art)
     if not erlaubt:
         return False, warum
+
+    kennung = gelaende.finde_gebaeude(gebaeude_key) or gebaeude_key
+    eintrag = gelaende.alle_gebaeude().get(kennung) or {}
+    grenze = eintrag.get("max_je_siedlung")
+    if isinstance(grenze, int) and grenze > 0:
+        schon_da = gebaeude_wirkung.gebaeude_stufe(siedlung, kennung) > 0
+        if schon_da and grenze <= 1:
+            return False, (f"{eintrag.get('name', kennung)} gibt es höchstens {grenze}× "
+                           f"je Siedlung (belegte Originalregel) — hier steht schon "
+                           f"eines. Stattdessen ausbauen.")
+
+    # Das Feld merkt sich die Ausbaustufe 1 (W4b-5); gespeichert wird der uebergebene
+    # Gebaeudeschluessel wie bisher — alle Leser (gelaende, wirtschaft, gebaeude_wirkung)
+    # verstehen Kennung UND Anzeigename.
     siedlung.bauten[str(feld)] = gebaeude_key
+    siedlung.stufen[str(feld)] = 1
     return True, f"{warum} (Feld {feld})"
 
 
@@ -241,21 +264,25 @@ RESOURCE_ICONS = {
     "holz": "🌲", "stein": "🪨", "metall": "⛏️", "mana": "🔮", "nahrung": "🌾",
     "gold": "💰", "wolle": "🧶", "leder": "🦬", "pferde": "🐴",
 }
-# ACHTUNG: Diese Gebaeudetabelle ist noch die alte, erfundene Fassung (10 Gebaeude).
-# Sie wurde beim Umbau versehentlich mitgeloescht und hier wiederhergestellt, damit das Spiel
-# laeuft. Die 20 Originalgebaeude aus data/buildings.json folgen im naechsten Schritt (W4).
-BUILDINGS: Dict[str, Building] = {
-    # Nur noch Gebaeude, die eine WIRKUNG haben (Bevoelkerung, Forschung, Ausbildung, Verteidigung,
-    # Kartenwechsel). Die rohstofferzeugenden Gebaeude (Holzfaeller, Steinmetz, Jaeger, Schmiede,
-    # Markt) sind hier am 04.10.2026 entfernt: sie stehen jetzt auf der Siedlungskarte, und die
-    # Karte ist die EINZIGE Produktionsquelle. Sonst haetten beide Systeme denselben Rohstoff
-    # erzeugt (doppelter Ertrag) — und der alte Stufenertrag war ohnehin erfunden.
-    "haus": Building("haus", "Haus", description="+5 Bevölkerung.", base_cost={"holz": 80, "stein": 50}),
-    "bibliothek": Building("bibliothek", "Bibliothek", description="+Forschung.", base_cost={"holz": 60, "stein": 40, "mana": 20}),
-    "kaserne": Building("kaserne", "Kaserne", description="Einheitenausbildung.", base_cost={"holz": 80, "stein": 80, "metall": 40}),
-    "turm": Building("turm", "Wachturm", description="Verteidigung +", base_cost={"stein": 120, "metall": 60}),
-    "portal": Building("portal", "Portal", description="Kartenwechsel + Forschung.", base_cost={"mana": 150, "gold": 100}),
-}
+# LEER seit W4b-5 (04.10.2026) — und das ist der Punkt.
+#
+# Hier standen fuenf ERFUNDENE Wirkungsgebaeude (Haus, Bibliothek, Kaserne, Wachturm, Portal).
+# Ihre Wirkung lag global, waehrend die 20 belegten Originalgebaeude aus data/buildings.json
+# zwar auf der Siedlungskarte standen, aber (ausser der Produktion) nichts taten. Seit W4b-5
+# kommt JEDE Gebaeudewirkung aus den bebauten Feldern der Siedlungskarten — die Rechnung dazu
+# steht in `gebaeude_wirkung.py`:
+#
+#   Haus           -> Siedlergrenze +5 Siedler (je Siedlung; Grundwert 10)
+#   Bibliothek     -> ermoeglicht Forschung (und nur auf Grasland/Steppe/Nebelsee)
+#   Kriegerakademie-> bildet die 9 Kampfeinheiten aus
+#   Diebesgilde    -> bildet die 6 Kundschafter aus
+#   Stellmacher    -> baut 6 Karren und 7 Belagerungswaffen
+#   Verteidigungswall -> Wallstufen, Schwellenwerte der Vorrunde, Kriegspunkte
+#   die uebrigen 14 -> Rohstoffertrag (Paket W4b-4, `wirtschaft.py`)
+#
+# Die erfundene globale Liste ist damit ersatzlos entfallen: sie haette jede Wirkung ein
+# zweites Mal erzeugt. Wer hier wieder ein Gebaeude eintraegt, baut den alten Fehler nach.
+BUILDINGS: Dict[str, Building] = {}
 # Einheiten der Originaldaten (Handbuch Seiten 14-17).
 # Vorher standen hier 36 erfundene Einheiten (Worg, Drache, Troll, Golem ...): sie sind
 # ersatzlos entfernt, alles kommt aus data/units.json ueber die Bruecke einheiten.py.
@@ -369,7 +396,9 @@ SKINS = {
 def research_multiplier(state: "GameState", key: str) -> float:
     levels = {k: v.level for k, v in state.research.items()}
     if key == "militär":
-        return get_military_multiplier(levels, get_defense_bonus(state.buildings.get("turm", Building("", "")).level))
+        # Der Verteidigungsbonus kommt seit W4b-5 vom BELEGTEN Verteidigungswall auf der
+        # Siedlungskarte — vorher hing er am erfundenen Wachturm aus main.BUILDINGS.
+        return get_military_multiplier(levels, get_defense_bonus(gebaeude_wirkung.wall_stufe(state.settlements)))
     if key == "landwirtschaft":
         return get_production_multiplier(levels, "nahrung")
     if key == "bergbau":
@@ -419,9 +448,11 @@ class GameState:
         candidates = [m for m in MAPS if m["id"] not in self.unlocked_maps]
         if not candidates:
             return
-        portal = self.buildings.get("portal")
         verm = self.research.get("vermessung")
-        if portal and portal.level >= 1 or (verm and verm.level >= 1):
+        # W4b-5: Der erfundene Gebaeude-Eintrag "Portal" ist entfallen (er steht nicht unter den
+        # 20 Originalgebaeuden). Weitere Karten schaltet die Forschung "Vermessung" frei —
+        # mehr Karteninformationen (Handbuch Seite 12).
+        if verm and verm.level >= 1:
             next_map = candidates[0]
             self.unlocked_maps.append(next_map["id"])
             self.active_maps.append(next_map["id"])
@@ -523,7 +554,6 @@ class GameState:
         return {k.lower(): v for k, v in roh.items()}
 
     def tick(self, dt_seconds: float):
-        dt_min = dt_seconds / 60.0
         dt_h = dt_seconds / 3600.0
         levels = {k: v.level for k, v in self.research.items()}
         # Rohstoffe kommen aus den BEBauten FELDERN der Siedlungskarten (W4b-4, 04.10.2026).
@@ -539,11 +569,13 @@ class GameState:
                 loss = max(0, int(get_military_multiplier(levels) * 10 * bot.aggression - get_medic_redution(levels)))
                 self.resources["nahrung"].amount = max(0, self.resources["nahrung"].amount - loss)
         # FIX 2+3: Tag fortschreiben (86400s = 1 Spieltag) + Noobschutz nach Tag 3 deaktivieren
-        # Bevoelkerung waechst langsam bis zum Limit (Haus erhoeht das Limit)
-        haus_level = self.buildings.get("haus", Building("", "")).level
-        self.max_population = 10 + 5 * haus_level
-        if self.population < self.max_population:
-            self.population = min(float(self.max_population), self.population + dt_min * 0.5)
+        # Siedlergrenze und Siedlerzuwachs kommen aus den Haeusern der Siedlungskarten (W4b-5):
+        # 10 Siedler je Siedlung, +5 je Haus, 1 neuer Siedler je Stunde (Handbuch Seite 11),
+        # mit Heilkunde +10 % je Stufe. Vorher stand hier ein erfundener Zuwachs von 30 je Stunde.
+        self.max_population = gebaeude_wirkung.bevoelkerungsgrenze(self.settlements)
+        zuwachs = gebaeude_wirkung.siedler_zuwachs_pro_stunde(self.settlements, levels) * dt_h
+        if zuwachs > 0 and self.population < self.max_population:
+            self.population = min(float(self.max_population), self.population + zuwachs)
         self._day_accum = getattr(self, "_day_accum", 0.0) + dt_seconds
         if self._day_accum >= 86400:
             self._day_accum -= 86400
@@ -820,7 +852,8 @@ class NebelseetalApp:
     def _render_overview(self):
         tk.Label(self.content, text="Siedlungsübersicht", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
         tk.Label(self.content, text="Eine Übersicht aller Gebäude.", fg=self.skin["text"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
-        tk.Label(self.content, text=f"Bevölkerung: {int(self.state.population)} / {self.state.max_population}",
+        _grenze = gebaeude_wirkung.bevoelkerungsgrenze(self.state.settlements)
+        tk.Label(self.content, text=f"Bevölkerung: {int(self.state.population)} / {_grenze}",
                  fg="#DAA520", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
         frame = tk.Frame(self.content, bg=self.skin["panel"])
         frame.pack(fill=tk.X, padx=10, pady=10)
@@ -842,37 +875,45 @@ class NebelseetalApp:
             tk.Button(row, text="Umbenennen", command=lambda ss=s, e=entry: self._rename_settlement(ss, e.get()), bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
             tk.Button(row, text="Transport", command=lambda ss=s: self._transport_to_settlement(ss), bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
         tk.Button(self.content, text="Neue Siedlung gründen", command=self._found_settlement, bg="#3e2723", fg=self.skin["gold"]).pack(anchor=tk.W, padx=10, pady=10)
-        for key, b in self.state.buildings.items():
-            frame = tk.Frame(self.content, bg=self.skin["panel"], relief=tk.FLAT, borderwidth=1)
-            frame.pack(fill=tk.X, padx=10, pady=2)
-            tk.Label(frame, text=b.name, fg=self.skin["text"], bg=self.skin["panel"], width=15, anchor=tk.W).pack(side=tk.LEFT, padx=5, pady=3)
-            tk.Label(frame, text=f"Stufe {b.level}", fg="#DAA520", bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
-            tk.Button(frame, text="Ausbauen", command=lambda k=key: self._upgrade_building(k), bg="#3e2723", fg=self.skin["gold"], activebackground="#5D4037").pack(side=tk.RIGHT, padx=5, pady=2)
+
+        # Wirkungen der 20 Originalgebaeude (W4b-5). Sie kommen AUSSCHLIESSLICH aus den bebauten
+        # Feldern der Siedlungskarten — die frueheren globalen Gebaeude (main.BUILDINGS) sind
+        # entfallen, sonst haette jede Wirkung zweimal existiert.
+        wirk = tk.Frame(self.content, bg=self.skin["panel"], relief=tk.FLAT, borderwidth=1)
+        wirk.pack(fill=tk.X, padx=10, pady=(2, 8))
+        tk.Label(wirk, text="Gebäudewirkungen (aus den Siedlungskarten)",
+                 fg=self.skin["gold"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=5, pady=(3, 0))
+        tk.Label(wirk, text=f"Siedlergrenze {_grenze} · Zuwachs "
+                            f"{gebaeude_wirkung.siedler_zuwachs_pro_stunde(self.state.settlements):g} Siedler/Stunde "
+                            f"(1 je Siedlung, Handbuch S. 11)",
+                 fg=self.skin["text"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=5)
+        _erlaubt, _meldung = gebaeude_wirkung.forschung_erlaubt(self.state.settlements)
+        tk.Label(wirk, text=f"Forschung: {_meldung}", fg=self.skin["text"],
+                 bg=self.skin["panel"]).pack(anchor=tk.W, padx=5)
+        tk.Label(wirk, text=f"Verteidigung: {gebaeude_wirkung.wall_beschreibung(self.state.settlements)}",
+                 fg=self.skin["text"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=5)
+        _zaehlung = gebaeude_wirkung.bestand(self.state.settlements)
+        if _zaehlung:
+            _text = ", ".join(f"{gelaende.gebaeude_name(k)} ×{n}" for k, n in sorted(
+                _zaehlung.items(), key=lambda x: gelaende.gebaeude_name(x[0])))
+            tk.Label(wirk, text=f"Gebäude auf den Karten: {_text}", fg=self.skin["text"],
+                     bg=self.skin["panel"], wraplength=780, justify=tk.LEFT).pack(anchor=tk.W, padx=5, pady=(0, 3))
+        for _k in ("werkstaetten", "baukunst", "lager"):
+            _luecke = gebaeude_wirkung.luecken().get(_k)
+            if _luecke:
+                tk.Label(wirk, text=f"Noch offen: {_luecke}", fg="#C0C0C0", bg=self.skin["panel"],
+                         wraplength=780, justify=tk.LEFT).pack(anchor=tk.W, padx=5)
 
     def _upgrade_building(self, key: str):
-        b = self.state.buildings[key]
-        cost = get_building_cost(key, b.level, {k: v.level for k, v in self.state.research.items()})
-        if all(self.state.resources[r].amount >= v for r, v in cost.items()):
-            for r, v in cost.items():
-                self.state.resources[r].amount -= v
-            b.level += 1
-            if b.id == "haus":
-                self.state.max_population += 5
-                b.production = {}
-            elif b.id == "bibliothek":
-                b.production = {}   # belegt: die Bibliothek ermoeglicht Forschung
-            elif b.id == "kaserne":
-                b.production = {}
-            elif b.id == "portal":
-                b.production = {}
-                self._unlock_next_map()
-            else:
-                # Kein Gebaeude erzeugt mehr Rohstoffe — das tun ausschliesslich die bebauten
-                # Felder der Siedlungskarten (W4b-4). Vorher stand hier ein erfundener Stufenertrag.
-                b.production = {}
-            self._log(f"{b.name} auf Stufe {b.level} ausgebaut.")
-        else:
-            self._log("Nicht genug Ressourcen.")
+        """Ausbau eines GLOBALEN Gebaeudes — gibt es seit W4b-5 nicht mehr.
+
+        Die Wirkungen der 20 Originalgebaeude haengen an den bebauten FELDERN der
+        Siedlungskarten; ausgebaut wird dort: Siedlungskarte oeffnen, Feld waehlen, "Ausbauen".
+        Diese Methode nennt den richtigen Weg, statt still nichts zu tun — alte Aufrufe und
+        Spielstaende landen hier.
+        """
+        self._log(f"'{key}' ist kein globales Gebäude: die Wirkungen kommen aus den bebauten "
+                  f"Feldern der Siedlungskarten — dort das Feld wählen und 'Ausbauen' benutzen.")
 
     def _found_settlement(self):
         if len(self.state.settlements) >= SIEDLUNGEN_MAXIMUM:
@@ -985,10 +1026,54 @@ class NebelseetalApp:
         if siedlung is None or feld is None:
             return
         gebaut = siedlung.bauten.pop(str(feld), None)
+        siedlung.stufen.pop(str(feld), None)
         if gebaut:
             self._log(f"{gelaende.gebaeude_name(gebaut)} auf Feld {feld} abgerissen "
                       f"(keine Erstattung der Baustoffe — das Handbuch nennt keine).")
         self.karten_feld = None
+        self._render_view()
+
+    def _karten_ausbauen(self):
+        """Hebt die Ausbaustufe des Gebaeudes auf dem gewaehlten Feld (W4b-5).
+
+        Handbuch: Der Verteidigungswall hat 10 Stufen (Erdwall … Bollwerk), und die drei
+        Ausbildungsstaetten werden stufenweise ausgebaut ('je hoeher die Stufe, desto
+        schneller'). Preis: das n-fache des Grundpreises (data/baupreise.json).
+        """
+        siedlung = getattr(self, "karten_siedlung", None)
+        feld = getattr(self, "karten_feld", None)
+        if siedlung is None or feld is None:
+            return
+        gebaut = siedlung.bauten.get(str(feld))
+        if not gebaut:
+            return
+        name = gelaende.gebaeude_name(gebaut)
+        stufe = gebaeude_wirkung.stufe_von_feld(siedlung, feld)
+        grenze = gebaeude_wirkung.max_stufe(gebaut)
+        if grenze is None:
+            self._log(f"{name} kennt keinen Ausbau — das Handbuch nennt für dieses Gebäude "
+                      f"keine Stufen.")
+            return
+        if stufe >= grenze:
+            self._log(f"{name} ist bereits auf der höchsten Stufe ({grenze}).")
+            return
+        kosten = baukosten(gebaut, stufe + 1)
+        fehlt = [r for r, v in kosten.items()
+                 if r != "siedler" and self.state.resources[r].amount < v]
+        if kosten.get("siedler", 0) > self.state.population:
+            fehlt.append("siedler")
+        if fehlt:
+            self._log(f"Nicht genug Rohstoffe für den Ausbau von {name}: es fehlt "
+                      f"{', '.join(sorted(fehlt))}.")
+            return
+        for r, v in kosten.items():
+            if r == "siedler":
+                self.state.population = max(0.0, self.state.population - v)
+            else:
+                self.state.resources[r].amount -= v
+        siedlung.stufen[str(feld)] = stufe + 1
+        self._log(f"{name} auf {gebaeude_wirkung.stufen_name(gebaut, stufe + 1)} ausgebaut "
+                  f"(Stufe {stufe + 1}).")
         self._render_view()
 
     def _karten_zuwaeisen(self, siedlung):
@@ -1073,11 +1158,30 @@ class NebelseetalApp:
                  bg=self.skin["panel"], font=("TkDefaultFont", 11, "bold")).pack(anchor=tk.W, padx=6, pady=(6, 2))
 
         if gebaut:
+            stufe = gebaeude_wirkung.stufe_von_feld(siedlung, feld)
+            grenze = gebaeude_wirkung.max_stufe(gebaut)
             erlaubt, warum = gelaende.bau_moeglich(gebaut, art)
-            tk.Label(info, text=f"Hier steht: {gelaende.gebaeude_name(gebaut)} — {warum}",
-                     fg=self.skin["text"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=6)
-            tk.Button(info, text="Abreißen", command=self._karten_abreissen, bg="#3e2723",
-                      fg=self.skin["gold"]).pack(anchor=tk.W, padx=6, pady=6)
+            tk.Label(info, text=f"Hier steht: {gelaende.gebaeude_name(gebaut)} — "
+                                f"{gebaeude_wirkung.stufen_name(gebaut, stufe)} ({warum})",
+                     fg=self.skin["text"], bg=self.skin["panel"], wraplength=780,
+                     justify=tk.LEFT).pack(anchor=tk.W, padx=6)
+            knopfreihe = tk.Frame(info, bg=self.skin["panel"])
+            knopfreihe.pack(anchor=tk.W, padx=6, pady=6)
+            if grenze is None:
+                tk.Label(knopfreihe, text="Kein Ausbau vorgesehen — das Handbuch nennt für "
+                                          "dieses Gebäude keine Stufen.",
+                         fg=self.skin["text"], bg=self.skin["panel"]).pack(side=tk.LEFT)
+            elif stufe >= grenze:
+                tk.Label(knopfreihe, text=f"Höchste Stufe erreicht ({grenze}) — "
+                                          f"{gebaeude_wirkung.stufen_name(gebaut, grenze)}.",
+                         fg=self.skin["text"], bg=self.skin["panel"]).pack(side=tk.LEFT)
+            else:
+                kosten = baukosten(gebaut, stufe + 1)
+                tk.Button(knopfreihe, text=f"Ausbauen auf Stufe {stufe + 1} ({kosten_text(kosten)})",
+                          command=self._karten_ausbauen, bg=self.skin["button"],
+                          fg=self.skin["gold"], activebackground="#5D4037").pack(side=tk.LEFT)
+            tk.Button(knopfreihe, text="Abreißen", command=self._karten_abreissen, bg="#3e2723",
+                      fg=self.skin["gold"]).pack(side=tk.LEFT, padx=6)
             return
 
         passend = [(k, g) for k, g in sorted(gelaende.alle_gebaeude().items(),
@@ -1413,7 +1517,7 @@ class NebelseetalApp:
             self._log(f"{bot.name} steht unter Noobschutz. Angriff nicht möglich.")
             return
         levels = {k: v.level for k, v in self.state.research.items()}
-        military = get_military_multiplier(levels, get_defense_bonus(self.state.buildings.get("turm", Building("", "")).level))
+        military = get_military_multiplier(levels, get_defense_bonus(gebaeude_wirkung.wall_stufe(self.state.settlements)))
         player_power = get_combat_power(
             {u: max(1, self.state.units[u].count) for u in self.state.units}, levels)
         bot_power = random.randint(20, 80) * bot.aggression + bot.ruf
@@ -1610,6 +1714,11 @@ class NebelseetalApp:
                 tk.Button(frame, text="Forschen", command=lambda k=key: self._start_research(k), bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
 
     def _start_research(self, key: str):
+        # W4b-5: Forschung braucht eine Bibliothek auf einer Siedlungskarte (Handbuch Seite 12).
+        erlaubt, meldung = gebaeude_wirkung.forschung_erlaubt(self.state.settlements)
+        if not erlaubt:
+            self._log(meldung)
+            return
         r = self.state.research[key]
         # Rohstoffkosten nach Handbuch Seite 13: Stufe 1 = 50 Holz, je weitere Stufe das Doppelte.
         cost = spieldaten.forschungs_kosten(r.level + 1)
@@ -1629,6 +1738,12 @@ class NebelseetalApp:
 
     def _render_barracks(self):
         tk.Label(self.content, text="Kaserne", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
+        tk.Label(self.content, text="Ausgebildet wird auf der Siedlungskarte (W4b-5): Kriegerakademie "
+                                    "für Kampfeinheiten, Diebesgilde für Kundschafter, Stellmacher für "
+                                    "Karren und Belagerungswaffen. Steht die Stätte nicht, fehlt hier "
+                                    "die Schaltfläche — die Stufe der Stätte bestimmt das Tempo.",
+                 fg="#C0C0C0", bg=self.skin["bg"], wraplength=780,
+                 justify=tk.LEFT).pack(anchor=tk.W, padx=10)
         for key, u in self.state.units.items():
             frame = tk.Frame(self.content, bg=self.skin["panel"])
             frame.pack(fill=tk.X, padx=10, pady=2)
@@ -1647,12 +1762,30 @@ class NebelseetalApp:
                         f"TP {_w.get('TP_min')}-{_w.get('TP_max')} / SK {_w.get('SK')}")
             tk.Label(frame, text=info, fg="#DAA520", bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
             tk.Label(frame, text=f"Anzahl: {u.count}", fg="#C0C0C0", bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
-            tk.Button(frame, text="Ausbilden", command=lambda k=key: self._train_unit(k), bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
+            # W4b-5: Die Ausbildungsstätte steht auf der Siedlungskarte (data/units.json nennt sie
+            # je Einheit). Fehlt sie, gibt es keine Schaltfläche — sondern den ehrlichen Grund.
+            _da, _staette, _stufe = gebaeude_wirkung.ausbildungsstaette(self.state.settlements, key)
+            if _da:
+                tk.Button(frame, text=f"Ausbilden ({gelaende.gebaeude_name(_staette)} Stufe {_stufe})",
+                          command=lambda k=key: self._train_unit(k), bg="#3e2723",
+                          fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
+            else:
+                _fehlt = gelaende.gebaeude_name(_staette) if _staette else "Ausbildungsstätte unbekannt"
+                tk.Label(frame, text=f"braucht {_fehlt}", fg="#e53935",
+                         bg=self.skin["panel"]).pack(side=tk.RIGHT, padx=5)
 
     def _train_unit(self, key: str):
         u = self.state.units[key]
         levels = {k: v.level for k, v in self.state.research.items()}
-        building_level = self.state.buildings.get("kaserne", Building("", "")).level
+        # W4b-5: Ausgebildet wird in der Stätte, die zu dieser Einheit gehört (data/units.json):
+        # Kriegerakademie, Diebesgilde oder Stellmacher. Ohne sie gibt es keine Ausbildung, und
+        # die STUFE der Stätte bestimmt das Tempo (vorher: erfundene Kaserne, Stufe global).
+        da, staette, stufe = gebaeude_wirkung.ausbildungsstaette(self.state.settlements, key)
+        if not da:
+            fehlt = gelaende.gebaeude_name(staette) if staette else "Ausbildungsstätte unbekannt"
+            self._log(f"{u.name} braucht {fehlt} auf einer Siedlungskarte — noch nicht gebaut.")
+            return
+        building_level = stufe
         time_min = get_training_time(key, levels, building_level)
         cost = u.cost
         # Siedler sind im Original die Bevoelkerung, keine lagerbare Ressource

@@ -37,8 +37,9 @@ check("Icon-Index vorhanden", os.path.exists(os.path.join(ROOT, "data", "icons_i
 abschnitt("2. Spielkern")
 st = ausnahme("GameState anlegen", lambda: main.GameState())
 if st:
-    check("Gebaeude angelegt (nur Wirkungsgebaeude — die Produktion liegt auf der Siedlungskarte)",
-          len(st.buildings) == 5, f"{len(st.buildings)} Stueck: {sorted(st.buildings)}")
+    check("keine globalen Wirkungsgebaeude mehr — W4b-5: alle Wirkungen kommen aus den "
+          "bebauten Feldern der Siedlungskarten",
+          len(st.buildings) == 0, f"{len(st.buildings)} Stueck: {sorted(st.buildings)}")
     check("Forschungen angelegt", len(st.research) == 18, f"{len(st.research)} Stueck")
     check("Waren angelegt", len(st.goods) == 17, f"{len(st.goods)} Stueck")
 
@@ -190,10 +191,27 @@ if tk is not None:
             app.state.resources["gold"].amount = 5000
             app.state.resources["mana"].amount = 5000
             app.state.population = 5000.0   # Siedler sind Bevoelkerung, keine Ressource
-            app._upgrade_building("haus")
-            app._start_research("landwirtschaft")
-            app._train_unit("Krieger")
             app._found_settlement()
+            assert app.state.settlements, "keine Siedlung gegruendet"
+
+            # W4b-5: Die Wirkungen kommen aus den bebauten FELDERN. Ein Haus hebt die
+            # Siedlergrenze um 5 (Handbuch S. 11) — vorher hing sie an einer globalen Liste.
+            siedlung = app.state.settlements[-1]
+            grenze_vorher = main.gebaeude_wirkung.bevoelkerungsgrenze(app.state.settlements)
+            feld = next(i for i, a in enumerate(siedlung.karte["raster"]) if a != "sumpf")
+            app._oeffne_siedlungskarte(siedlung)
+            app._karten_feld_waehlen(feld)
+            app._karten_bauen("haus")
+            grenze_nachher = main.gebaeude_wirkung.bevoelkerungsgrenze(app.state.settlements)
+            assert grenze_nachher == grenze_vorher + 5, f"{grenze_vorher} -> {grenze_nachher}"
+
+            # Ohne Bibliothek keine Forschung, ohne Ausbildungsstaette keine Ausbildung.
+            app._start_research("landwirtschaft")
+            assert any("Bibliothek" in z for z in app.state.log[-3:]), app.state.log[-3:]
+            app._train_unit("Krieger")
+            assert any("Kriegerakademie" in z for z in app.state.log[-3:]), app.state.log[-3:]
+            app._upgrade_building("haus")      # altes globales Gebaeude: wird ehrlich abgewiesen
+            assert any("kein globales" in z for z in app.state.log[-3:]), app.state.log[-3:]
             app._save()
             root.update_idletasks()
             return True

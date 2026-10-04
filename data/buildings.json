@@ -205,6 +205,8 @@
       "kategorie": "Sonstiges",
       "voraussetzung": "keine (ohne Forschung baubar)",
       "wirkung": "ermöglicht Forschung; Ausbau in Stufen erweitert die Forschungsmöglichkeiten; mit jeder Stufe teurer. Nur auf Grasland, Steppe oder Nebelsee errichtbar.",
+      "nur_auf": ["grasland", "steppe", "nebelsee"],
+      "_belegt_nur_auf": "Standortregel wörtlich belegt: ORIGINAL_Einheiten_Waren_Rohstoffe.md Abschnitt 4 — 'Bibliothek nur auf Grasland, Steppe oder Nebelsee, eine je Siedlung.'",
       "max_je_siedlung": 1,
       "anmerkung": "Während der Studien ist der Forschungsbereich der Siedlung blockiert."
     },

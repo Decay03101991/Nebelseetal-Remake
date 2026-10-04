@@ -143,6 +143,17 @@ def bau_moeglich(gebaeude_id: str, gelaende: str) -> tuple:
     if not ARTEN[art]["bebaubar"]:
         return False, f"{gname} kann nicht bebaut werden."
 
+    # Belegte Standortregel (W4b-5): manche Gebaeude duerfen nur auf bestimmten Gelaendearten
+    # stehen — z. B. die Bibliothek nur auf Grasland, Steppe oder Nebelsee. Steht als 'nur_auf'
+    # in data/buildings.json; fehlt der Eintrag, gilt die Regel nicht.
+    nur_auf = geb.get("nur_auf")
+    if nur_auf:
+        erlaubte = [NACH_NAME.get(a, a) for a in nur_auf]
+        if art not in erlaubte:
+            namen = ", ".join(ARTEN[a]["name"] for a in erlaubte if a in ARTEN)
+            return False, f"{geb['name']} darf nur auf {namen} stehen."
+        return True, f"{geb['name']} auf {gname} (belegte Standortregel)."
+
     ertrag = ertrag_pro_stunde(gebaeude_id, art)
     if ertrag is not None:
         if isinstance(ertrag, dict):
