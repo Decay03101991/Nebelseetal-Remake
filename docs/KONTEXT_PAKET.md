@@ -1,4 +1,4 @@
-# KONTEXT-PAKET — Nebelseetal Remake (Stand 05.10.2026, 22:03 · Zeiten mit `date` geholt)
+# KONTEXT-PAKET — Nebelseetal Remake (Stand 05.10.2026, 22:17 · Zeiten mit `date` geholt)
 
 **Diese Datei ist die Übergabe. Lies SIE zuerst (≈ 12 KB) und sonst nur, was hier als Zeiger steht —
 `docs/PROJEKT_STAND.md` (69 KB) und `docs/ENTWICKLUNGSPROTOKOLL.md` (93 KB) sind Nachschlagewerke,
@@ -11,33 +11,33 @@ Ziel: fertige, fehlerfrei spielbare, passwortgeschützte Einzelspieler-`.exe` (H
 
 | Was | Beleg |
 |---|---|
-| **Sammellauf** | **3850 bestanden · 0 Fehler · 22 Befunde · 52 Dateien** (21:5x; `…/cache/scratch/sammellauf.py`, 133 s) |
-| **Arbeitsbaum** | **sauber** (`git status --short` leer), letzter Commit **`358cb06`** (Schritt 9, Teil 4 + `.exe`) |
-| **`.exe`** | **14.630.304 Byte**, SHA256 `0f4683b78c9c51a1…`, Dateizeitstempel **21:52:40**; genau **eine** `.exe`, `build/`+`dist/` aufgeräumt. Die **Vorgängerfassung wurde diesmal VORHER gesichert** (`…\cache\scratch\exe_alt_2151_vor_teil4.exe`, 14.620.616 Byte — Lehre aus Teil 3b) |
-| **Startprüfung** | aus `…\hermes\cache\scratch\exestart` (anderer Ordner, Skript `startpruefung_1005_2156.ps1`): Fenstertitel **„Nebelseetal Remake"**, antwortet bei **+10/+20/+40 s**, **0** Fehlerberichte (WerFault), danach **0 offene Spielprozesse**, Startordner leer |
-| **Sicherung** | `docs/SICHERUNGEN.md` — 16 führende Papiere mit Prüfsummen (22:01, projektunabhängige Kopie unter `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\`) |
+| **Sammellauf** | **3903 bestanden · 0 Fehler · 22 Befunde · 52 Dateien** (22:1x; `…/cache/scratch/sammellauf.py`, 116 s) |
+| **Arbeitsbaum** | **sauber** (`git status --short` leer), letzter Commit **`e15e0e5`** (Schritt 9, Teil 5 + `.exe`) |
+| **`.exe`** | **14.637.617 Byte**, SHA256 `44bbf346755aa08d…`, Dateizeitstempel **22:13:23**; genau **eine** `.exe`, `build/`+`dist/` aufgeräumt; Vorgängerfassung vorher gesichert (`…\cache\scratch\exe_alt_2212_vor_teil5.exe`, 14.630.304 Byte) |
+| **Startprüfung** | aus `…\hermes\cache\scratch\exestart` (anderer Ordner, Skript `startpruefung_1005_2214.ps1`): Fenstertitel **„Nebelseetal Remake"**, antwortet bei **+10/+20/+40 s**, **0** Fehlerberichte (WerFault), danach **0 offene Spielprozesse**, Startordner leer |
+| **Sicherung** | `docs/SICHERUNGEN.md` — 16 führende Papiere mit Prüfsummen (22:16, projektunabhängige Kopie unter `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\`) |
 | **Zielregister** | nur **diese** Sitzung `20261005_212201_8bd3fb` aktiv (**0/20 Takte**), **kein fremdes aktives Ziel** (`--pruefen` rc=0); die Vorgängersitzung `20261005_201518_d2b523` ist auf `cleared` gesetzt |
-| **Kosten** | Tagesmessung **6,94 EUR / 4,00 EUR = „ÜBER_LIMIT"** (7,79 USD). **Daniel hat den Auftrag um 20:20 freigegeben** (nur `deepseek-flash`, kein teures Modell, keine Kinder, **1,00 USD DeepSeek bleiben als Reserve**). Gemessener Anteil dieser Sitzung: **+0,26 EUR** (21:12: 6,68 → 22:01: 6,94). Maßgeblich ist DeepSeeks Kontostand (Daniel liest ab) |
+| **Kosten** | Tagesmessung **7,04 EUR / 4,00 EUR = „ÜBER_LIMIT"** (7,90 USD). **Daniel hat den Auftrag um 20:20 freigegeben** (nur `deepseek-flash`, kein teures Modell, keine Kinder, **1,00 USD DeepSeek bleiben als Reserve**). Gemessener Anteil dieser Sitzung: **+0,36 EUR** (21:12: 6,68 → 22:16: 7,04). Maßgeblich ist DeepSeeks Kontostand (Daniel liest ab) |
 
 `git log --oneline -3` · `git status --short` · `python tools/zieluebergabe.py --pruefen` → alles in Sekunden.
 
 ## 2. Der EINE nächste Schritt
 
-**Schritt 9 läuft — die Teile 1, 2, 3a, 3b und 4 sind fertig; als Nächstes Teil 5.** Der Auftraggeber
-hat „Stück für Stück" entschieden: nach JEDEM Teil Einzeltest + einmal Sammellauf + Protokollzeile +
-kleiner Commit.
+**Schritt 9 läuft — die Teile 1, 2, 3a, 3b, 4 und 5 sind fertig; als Nächstes Teil 6.** Der
+Auftraggeber hat „Stück für Stück" entschieden: nach JEDEM Teil Einzeltest + einmal Sammellauf +
+Protokollzeile + kleiner Commit.
 
-**Teil 5 (der nächste Schritt): `_found_settlement`** (Entwurf Z. 777). Statt der zufälligen Erstwahl
-soll eine **Auswahlliste freier Karten aus dem Kartenvorrat** erscheinen — samt Nutzen, Kapazitäten,
-Preis und Mindestbestand —, und die Gründung läuft über **`absicht`** statt eines sofortigen `append`
-(mit Sperrgut und Vergabe; bei Absage wird alles zurückgegeben). Der erste Start übernimmt die
-Startbestände **genau einmal** (das macht Teil 3a schon) und die Startkarte.
+**Teil 6 (der nächste Schritt): Produktion und Aufträge je Ort** (Entwurf Z. 779/781):
+`_ware_herstellen` über `ware_start` des **ausgewählten Ortes** (keine spielerweite Werkstattstufe),
+`_train_unit` über `ausbildung_start` (und die **sofortige globale Ausrüstungsausgabe aus dem Altpfad
+entfernen**), `_start_research` über `forschung_start` (lokale Bibliothek, lokale Mittel, globales
+Wissen), `tick` über `ort_tick`. **Dort werden die Ortslager für Waren und Einheiten gefüllt** — bis
+dahin hilft der Übergang (Karren aus dem Reichsheer), der bei Transport und Gründung schon benannt ist.
 
-**Danach die Teile 6-8:** `_ware_herstellen`/`_train_unit`/`_start_research` je Ort (dort werden die
-**Ortslager für Waren und Einheiten** gefüllt — bis dahin sind die lokalen `einheiten` leer, siehe
-Übergang beim Transport), `_trade` über das bestätigte Angebot aus 8b, `_unlock_next_map` + Migration
-(Altspielstand ohne Versionsfeld → `mode="legacy"` mit Warnhinweis, neue Partien
-`mode="oeokonomie-1"`); **erst danach** Schritt 10 (`tick_bis` und die Aktivierung, Entwurf
+**Danach die Teile 7-8:** `_trade` über das bestätigte Angebot aus 8b oder eine deutliche
+„noch nicht verfügbar"-Meldung (nie der Alt-Gratisgewinn), `_unlock_next_map` (die „Vermessung"
+entfällt) + Migration (Altspielstand ohne Versionsfeld → `mode="legacy"` mit Warnhinweis, neue
+Partien `mode="oeokonomie-1"`); **erst danach** Schritt 10 (`tick_bis` und die Aktivierung, Entwurf
 Z. 791-1018) — **vorher darf der Ökonomiemodus NICHT aktiviert werden** (Entwurf Z. 1092).
 
 **Die Ordnungs-Einsicht, die den Rest bestimmt (beim Bau von Teil 1 gemessen):** die fünfzehn
@@ -91,10 +91,10 @@ Teil 4-7 umgestellt sind und der Zuschuss aus `verbrauche_am_ort` entfallen kann
 | 7 | `zielstatus` (Zielprüfung + Haltefenster 24 h) | `a2b6531`, `eee604e` |
 | 8a | `botkern.oekonomie_kartenwahl`, `oekonomie_angebot` | `3785b5d` |
 | 8b | Handels-Paar `handel_start`/`handel_abschluss` + Prüfdatei | `25466f5` · `test_handel_transaktion` **101/0/0** |
-| **9** | **`main`-Anbindung + Migration — TEILE 1-4 fertig, Teil 5 als Nächstes** | 9.1 `c099c4e` · 9.2 `1ce4ae3` · 9.3a `a0d432d` · 9.3b `65c41bf` · **9.4 `5a46ad7`** · `test_oekonomie_einhaengung` **196/0/1** |
+| **9** | **`main`-Anbindung + Migration — TEILE 1-5 fertig, Teil 6 als Nächstes** | 9.1 `c099c4e` · 9.2 `1ce4ae3` · 9.3a `a0d432d` · 9.3b `65c41bf` · 9.4 `5a46ad7` · **9.5 `fab8611`** · `test_oekonomie_einhaengung` **249/0/1** |
 | 10 | `tick_bis` + **Aktivierung** | offen |
 
-**Was die Teile 1, 2, 3a, 3b und 4 in `src/main.py` wirklich geändert haben:**
+**Was die Teile 1, 2, 3a, 3b, 4 und 5 in `src/main.py` wirklich geändert haben:**
 1. **Teil 1 (Ökonomie-Felder + Ort-Kennung):** die fünfzehn Felder aus Entwurf Z. 757-772 liegen in
    der `Settlement`-Dataclass (Vorgabewerte → **Altspielstände laden unverändert weiter**); sie bleiben
    bis zur Aktivierung leer, das Spiel rechnet weiter mit den globalen Beständen (**keine zweite
@@ -136,6 +136,16 @@ Teil 4-7 umgestellt sind und der Zuschuss aus `verbrauche_am_ort` entfallen kann
    Verweise), und `alle_einheiten()` zählt jetzt auch die **Ortslager** (Entwurf Z. 786) — sonst
    fielen die Karren nach der Heimkehr aus den Kriegspunkten. Die Oberfläche hat eine echte
    **Transportmaske** (Herkunft/Rohstoff/Menge/Karren, Ausgangs- und Zielbestand, Ladeplätze).
+6. **Teil 5 (die Gründung):** `GameState.kartenvorrat` ist **Spielzustand** (neun Koloniekarten,
+   Saat gemerkt, mitgespeichert; ein Altspielstand bekommt ihn nach). Der **erste Start** holt die
+   **Startkarte** aus dem Kern und übernimmt 10 Siedler · 100 Holz · 100 Stein genau einmal — keine
+   zufällige Erstwahl. Jede **Kolonie** läuft über den Kern: `gruendung_pruefen` ruft
+   `spieloekonomie.absicht` (freie Karte, Siedlungsgrenze, **Wagenbau**, **Siedlerkarren**,
+   **Mindestbestand im Ortslager**) und `vergabe`; `gruendung_ausfuehren` bucht das **Sperrgut
+   (Mindestbestand = Gebühr + Startpaket)** aus dem Ortslager der Ausgangssiedlung, verbraucht den
+   Siedlerkarren, vergibt die Karte und setzt **Startpaket + 5 Kolonisten** aufs **vorher gewählte**
+   Weltfeld. Die Auswahlmaske zeigt Nutzen (beste zuerst), Kapazitäten, Gebühr (320/200/150) und
+   Mindestbestand (480/300/250).
 
 ## 4. Arbeitsweise (Vorgabe Daniel — gilt unverändert)
 
@@ -175,6 +185,9 @@ am Ende die `.exe` neu bauen und aus einem **anderen** Ordner startprüfen.
 | **`Settlement(**neu)` und die Verweise der Oberfläche** | Der Ort wird in `self.settlements` ersetzt — `self.karten_siedlung` zeigt dann still auf einen alten Stand. Richtig: den **bestehenden** Gegenstand übernehmen (`_ort_uebernehmen`), nur bei echter Änderung. |
 | **Rundlauf-Tests brauchen eine ECHTE Karten-Kennung** | `current_map = "test"` lässt `load` abstürzen (`generate_map` → `StopIteration`). Für Speichern/Laden `map_id=current_map` benutzen. |
 | **Startprüfung als eigenen, einfachen Befehl fahren** | Ein Sammelbefehl (stat + find + cp + Prüfskript) blieb in der Freigabe hängen und wurde **nicht** ausgeführt — danach nie eine Prüfung als „gelaufen" melden; die Protokollzeile kommt erst mit dem Prüfergebnis. |
+| **`get_tile` braucht die aufgebaute Weltkarte** | Ein frischer Zustand (oder eine Prüfung) hat sie nicht: `self.map_tiles` ist leer → `IndexError`. Vor JEDEM Zugriff auf Weltfelder `_weltkarte_sicherstellen()` (baut die Karte genau dann auf, wenn sie fehlt). Beim Bau von Teil 5 **dreimal** passiert (Auswahl, Kolonie, Startsiedlung). |
+| **Wachen auf ersetzten Code umstellen** | Zwei P14-Wachen aus Teil 3a hingen an Zeilen der **alten** `_found_settlement` und wurden rot, als Teil 5 die Methode ersetzte. Nicht die Prüfung löschen: den **echten neuen Anker** suchen, der dieselbe Zusage belegt, und die Zusage stehen lassen. |
+| **`absicht` erwartet eine FLACHE Stufenkarte** | `{Gebiet: Stufe}` — nicht `forschung_stand()` (das liefert je Gebiet ein Verzeichnis) → sonst `TypeError` beim Vergleich. |
 
 ## 6. Nicht erneut zu prüfen (Beleg + Datum)
 
@@ -188,13 +201,19 @@ am Ende die `.exe` neu bauen und aus einem **anderen** Ordner startprüfen.
   beider Ansichten, P17 Quelltextwachen), Sammellauf **3797/0/22** über 52 Dateien (21:2x, 124 s).
 * **Schritt 9, Teil 4** — `5a46ad7`, dieselbe Prüfdatei **196/0/1** (neu: P18 ganzer Weg Start→Ankunft
   →Heimkehr, P19 neun Ablehnungen ohne jede Änderung, P20 laufender Transport über Speichern/Laden,
-  P21 Quelltextwachen), Sammellauf **3850/0/22** über 52 Dateien (21:5x, 133 s); am lebenden Fenster
-  gemessen (Maske, Start über die Oberfläche, Karren kehren ins Ortslager zurück).
+  P21 Quelltextwachen), Sammellauf **3850/0/22** über 52 Dateien (21:5x, 133 s).
+* **Schritt 9, Teil 5** — `fab8611`, dieselbe Prüfdatei **249/0/1** (neu: P22 Vorrat/Auswahlliste/
+  Sortierung/Weltfelder · P23 vier Ablehnungen ohne jede Änderung, ganzer Weg, Gebühr vernichtet,
+  Karte vergeben, Rundlauf, sechste Siedlung abgelehnt · P24 Startgründung mit Startkarte,
+  Quelltextwachen), Sammellauf **3903/0/22** über 52 Dateien (22:1x, 116 s); am lebenden Fenster
+  gemessen (Maske mit Nutzen/Preis/Minimum, Gründung über die Oberfläche, ehrliche Ablehnung ohne
+  Karren).
   Messwerte am lebenden Fenster: Dorfzentrum „Reich: 777 Holz, 300 Stein · 21 Siedler" **und**
   „lokal: 137.5 Holz, 42 Stein · 8 Siedler"; Siedlungskarte „Ortsbestand dieser Siedlung (lokal)".
-* Die neue `.exe` **startet** (21:56, Fenstertitel, antwortet 10/20/40 s, 0 Fehlerberichte, 0 offene
+* Die neue `.exe` **startet** (22:14, Fenstertitel, antwortet 10/20/40 s, 0 Fehlerberichte, 0 offene
   Prozesse); sie enthält die Feld-/Kennungs-Änderung, die Punkt- und Stationier-Korrektur, die
-  **Ortslager (3a)**, die **getrennte Anzeige (3b)** und den **echten Transport (4)**.
+  **Ortslager (3a)**, die **getrennte Anzeige (3b)**, den **echten Transport (4)** und die
+  **Gründung mit Kartenvorrat (5)**.
 * Der Sammellauf wird **nur nach einer echten Änderung an `src/`** wiederholt.
 * Fehlend von Schritt 8a: `tests/test_bot_oekonomie.py` und `docs/audits/pruefung_schritt8.md` (zwei
   gestoppte Kinder; Auftragstext in Protokollzeile 53).
@@ -226,6 +245,6 @@ am Ende die `.exe` neu bauen und aus einem **anderen** Ordner startprüfen.
 * Stand/Historie: `docs/PROJEKT_STAND.md` (0c Tabelle, 0e Übergabe) · `docs/ENTWICKLUNGSPROTOKOLL.md`
 * Werkzeuge: `tools/zieluebergabe.py` · `tools/protokoll_sichern.py` · `tools/build_exe.py`
 * Sammellauf: `C:\Users\saras\AppData\Local\hermes\cache\scratch\sammellauf.py` (liest `run_tests.bat`)
-* Startprüfung: `…\cache\scratch\exestart\startpruefung_1005_2156.ps1` (Prozesse, Titel, WerFault)
+* Startprüfung: `…\cache\scratch\exestart\startpruefung_1005_2214.ps1` (Prozesse, Titel, WerFault)
 * Bau-Umgebung für die `.exe` (Zwischenspeicher, 24 h): `…\cache\scratch\nebel_bauvenv`
   (`uv venv --python 3.14.7` · `uv pip install pyinstaller`), Aufruf mit `--python …/Scripts/python.exe`
