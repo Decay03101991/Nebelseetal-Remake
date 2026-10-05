@@ -174,6 +174,28 @@ class Settlement:
     # Ausbaustufe je bebautem Feld (W4b-5). Belegt sind Stufen für den Verteidigungswall (10)
     # und die drei Ausbildungsstätten; ein Feld ohne Eintrag gilt als Stufe 1.
     stufen: Dict[str, int] = field(default_factory=dict)
+    # --- Ökonomie-Paket, Entwurf Schritt 9 (Z. 757-772): die Felder einer LOKALEN Wirtschaft. ---
+    # Sie sind bis zur Aktivierung (Schritt 10) leer bzw. auf ihren Vorgabewerten: das Spiel rechnet
+    # weiterhin mit den GLOBALEN Beständen (`GameState.resources`, `.waren`, `.population`).
+    # Eine zweite führende Wahrheit entsteht damit NICHT — der Neumodus liest später ausschließlich
+    # diese Felder, der Altmodus nur die alten. Wer beides gleichzeitig führend führt, erzeugt die
+    # Wirkung zweimal (Entwurf Z. 774: „Das bisherige units/garrison nicht gleichzeitig als
+    # führende Bestände weiterführen. Altmodus liest alte Felder; Neumodus nur einheiten.").
+    id: str = ""
+    besitzer: str = "spieler"
+    dimension: int = 1
+    vorraete: Dict[str, float] = field(default_factory=dict)
+    waren: Dict[str, int] = field(default_factory=dict)
+    einheiten: Dict[str, int] = field(default_factory=dict)
+    bevoelkerung: float = 0.0
+    importiert: Dict[str, float] = field(default_factory=dict)
+    reserve: Dict[str, float] = field(default_factory=dict)
+    werkstaetten: Dict[str, dict] = field(default_factory=dict)
+    ausbildung: List[dict] = field(default_factory=list)
+    forschungsauftrag: Optional[dict] = None
+    produktionsjournal: List[dict] = field(default_factory=list)
+    verbrauchsjournal: List[dict] = field(default_factory=list)
+    fertigjournal: List[dict] = field(default_factory=list)
 
 
 # Handbuch S. 313: 'Einer neuen Siedlung wird per Zufall eine Karte zugewiesen. Es werden
@@ -182,6 +204,16 @@ class Settlement:
 # sechs Siedlungen je Spieler laut Konformitäts-Audit).
 SIEDLUNGEN_MAXIMUM = 6
 KARTENVERSUCHE = 400
+
+
+def siedlung_kennung(besitzer: str, map_id: str, x: int, y: int) -> str:
+    """Die stabile Kennung eines Ortes (Ökonomie-Paket, Entwurf Z. 774).
+
+    Wörtlich: „Neue Ort-ID bleibt beim Umbenennen stabil und gehört in jede Mission." Sie hängt
+    deshalb an **Besitzer und Weltfeld**, nie am Namen — Umbenennen ändert sie nicht, und eine
+    Mission kann ihr Ziel wiederfinden, auch wenn der Ort inzwischen anders heißt.
+    """
+    return f"{besitzer}:{map_id}:{x}:{y}"
 
 
 def karten_signatur(karte: dict) -> str:
@@ -1205,6 +1237,12 @@ class GameState:
         self.movements = data.get("movements", [])
         self.messages = data.get("messages", [])
         self.settlements = [Settlement(**s) for s in data.get("settlements", [])]
+        # Ökonomie-Paket Schritt 9: Altspielstände kennen die Ort-Kennung nicht. Sie bekommen sie
+        # hier EINMALIG deterministisch aus Besitzer und Weltfeld — nicht aus dem Namen, damit ein
+        # späteres Umbenennen die Kennung nie ändert (Entwurf Z. 774).
+        for s in self.settlements:
+            if not s.id:
+                s.id = siedlung_kennung(s.besitzer, s.map_id, s.x, s.y)
         self.hatte_siedlung = bool(data.get("hatte_siedlung", bool(self.settlements)))
         self.spielende = data.get("spielende")
         self.noob_protection = data.get("noob_protection", True)
@@ -1812,7 +1850,8 @@ class NebelseetalApp:
                 except RuntimeError as fehler:
                     self._log(f"Keine Siedlung gegründet: {fehler}")
                     return
-                sett = Settlement(name=name, map_id=self.state.current_map, x=x, y=y, karte=karte)
+                sett = Settlement(name=name, map_id=self.state.current_map, x=x, y=y, karte=karte,
+                                  id=siedlung_kennung("spieler", self.state.current_map, x, y))
                 self.state.settlements.append(sett)
                 # Sieg/Niederlage: erst ab der ersten Siedlung wird ueberhaupt bewertet.
                 self.state.hatte_siedlung = True
