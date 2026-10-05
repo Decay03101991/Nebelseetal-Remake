@@ -2926,6 +2926,60 @@ def _laeuft_schon(lock_path: str) -> bool:
         return False
 
 
+# --------------------------------------------------------------- Ladeansicht (Titelbild)
+
+# Das Titelbild als ABGELEITETE PNG-Fassung: Tk liest nur PNG/GIF, die beigelegte Originaldatei
+# ist ein JPEG. Die Originaldatei bleibt unveraendert im Projektordner liegen (nicht umbenannt,
+# nicht verschoben, nicht beschnitten) — die PNG-Fassung liegt daneben in `assets/loadingpage/`
+# und wird von dort auch in die EXE gebuendelt (`assets` ist mitgegeben).
+LADEBILD_PNG = ("assets", "loadingpage", "Nebelseetal_Loadingpage.png")
+
+
+def ladebild_pfad() -> str:
+    """Der Pfad des Titelbilds — gesucht ueber die Projektwurzel, nicht geraten."""
+    return os.path.join(spieldaten.projektwurzel(), *LADEBILD_PNG)
+
+
+def zeige_loadingpage(root):
+    """Die Ladeansicht zeigen: Titelbild + Hinweis, waehrend der Start rechnet.
+
+    Tk liest kein JPEG; fehlt die PNG-Fassung oder kann Tk sie nicht lesen, bleibt es bei einer
+    **ehrlichen Textzeile** — der Start wird nie blockiert und nie eine leere Flaeche gezeigt.
+    Die Ansicht raeumt sich selbst weg: `NebelseetalApp._tor_screen` zerstoert alle Inhalte des
+    Fensters, bevor es das Passworttor aufbaut.
+
+    Rueckgabe: das Bildobjekt (muss am Leben bleiben, sonst raeumt Tk es weg) oder None.
+    """
+    try:
+        for widget in root.winfo_children():
+            widget.destroy()
+        root.title("Nebelseetal Remake — einen Augenblick")
+        root.configure(bg="#1b1109")
+        rahmen = tk.Frame(root, bg="#1b1109")
+        rahmen.place(relx=0.5, rely=0.45, anchor=tk.CENTER)
+        bild = None
+        pfad = ladebild_pfad()
+        if os.path.exists(pfad):
+            try:
+                bild = tk.PhotoImage(file=pfad)
+            except Exception:
+                bild = None
+        if bild is not None:
+            tk.Label(rahmen, image=bild, bg="#1b1109").pack()
+        else:
+            tk.Label(rahmen, text="Nebelseetal", font=("Blackletter", 44, "bold"),
+                     fg="#FFCC33", bg="#1b1109").pack(pady=20)
+        tk.Label(rahmen, text="Das Tal erwacht — die Karte wird gelegt.",
+                 font=("Arial", 12), fg="#E8D9B5", bg="#1b1109").pack(pady=(10, 0))
+        tk.Label(rahmen, text="Nebelseetal Remake", font=("Arial", 10),
+                 fg="#8a7a5c", bg="#1b1109").pack(pady=(2, 0))
+        root.update()
+        return bild
+    except Exception:
+        # Ein fehlendes Bild darf den Start nie verhindern.
+        return None
+
+
 def main():
     import sys
     lock_path = os.path.join(schreibordner(), "game.lock")
@@ -2940,6 +2994,9 @@ def main():
         pass
     try:
         root = tk.Tk()
+        # Die Ladeansicht steht, waehrend der Start rechnet (Karte legen, Spielstand pruefen,
+        # Passworttor). Sie verschwindet von selbst: das Tor raeumt alle Fensterinhalte weg.
+        zeige_loadingpage(root)
         app = NebelseetalApp(root)
         root.mainloop()
     finally:
