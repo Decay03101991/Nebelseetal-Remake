@@ -31,10 +31,15 @@ Die vorige Generation (`src/karten_optik.py`, `src/welt_optik.py`) bleibt **als 
 1. **Geländefarben für Steppe/Hügel/Sumpf** stehen nicht im astra-Bericht. Sie kommen über
    `gelaende.farbe()` — im Modul über `_flaeche_farbe()`; für die vier genannten Arten bleiben die
    astra-Werte maßgeblich. Keine zweite Farbwahrheit.
-2. **`#637451` als Lichtfarbe von Ebene UND Wald.** astra nennt **drei** Lichtfarben
-   (#637451, #96958A, #658594) für **vier** Geländearten. Das Modul dokumentiert die Annahme in
-   `offene_luecken()`. Nicht eigenmächtig getrennt: eine vierte Lichtfarbe wäre erfunden.
-   **Offene Entscheidung für Daniel.**
+2. **`#637451` als Lichtfarbe von Ebene UND Wald — von Daniel entschieden (05.10.2026):**
+   Er hat auf die Frage „trennen?" geantwortet: *„Trennen: der Wald bekommt eine aus seiner eigenen
+   Farbe abgeleitete Lichtfarbe."* Umgesetzt in `src/welt_optik_fein.py`:
+   **`WELT1_LICHT_WALD = #6A7E6C = _aufhellen(#405A43, 0.22)`**. Die **Ebene** behält den astra-Wert
+   `#637451`. **Der Faktor 0,22 ist gerechnet, nicht erfunden:** astra nennt zu Gebirge und Wasser
+   Basis **und** Lichtfarbe; daraus ergibt sich der Aufhellungsgrad Richtung Weiß
+   (Gebirge 0,218 · Wasser 0,228 → Mittel 0,223 → gerundet 0,22). Vier neue Prüfungen in
+   `tests/test_welt_optik_fein.py` (**128 → 132**); die Entscheidung steht auch in
+   `offene_luecken()` des Moduls.
 3. **Raster 8×7 (astra) gegen 8×5 = 40 Felder (Projekt).** Die Module nehmen `spalten`/`zeilen` als
    Parameter; der Aufrufer übergibt die Werte der Siedlungskarte. astra hält die 8×7 für
    vorgegeben — **das ist Frage 12 an Daniel**, nicht stillschweigend geändert.
@@ -74,9 +79,15 @@ Feld (jetzt steht dort **kein Text** mehr; Name, Stufe und Ertrag nennt die Zeil
 
 ## Noch offen (Daniel)
 
+Am 05.10.2026 um 14:2x hat Daniel die Fragen vorgelegt bekommen (5 Fragen in einer Liste). Er hat
+**eine** beantwortet (die Lichtfarbe, siehe Falle 2) — die folgenden sind **unbeantwortet
+übersprungen** und bleiben offen:
+
 1. **Zeitfaktor** ×180 bestätigen oder ändern (`data/spielzeit.json`).
 2. **Die neun Geländeregeln** bestätigen oder ändern (eine Zeile je Gebäude in `data/buildings.json`).
 3. **Sieg-/Niederlagebedingung** — heute unerreichbar (`is_defeated()`).
-4. Neue Frage aus diesem Schritt: **Lichtfarbe `#637451`** für Ebene und Wald trennen (dann neu
-   erfunden) oder so lassen (astra-Vorgabe)?
-5. Unverändert offen: **Raster 8×7 oder 8×5** (Frage 12).
+4. **Raster 8×7 oder 8×5** (Frage 12).
+
+Beantwortet:
+
+5. **Lichtfarbe `#637451`** — **getrennt** (Wald bekommt `#6A7E6C`, gerechnet).

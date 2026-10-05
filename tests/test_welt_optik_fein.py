@@ -111,6 +111,21 @@ check("Welt 1: Rasterlinie 1 px in #38433C",
 check("Welt 1: drei Lichtfarben wie astra",
       (F.WELT1_LICHT_GRUEN, F.WELT1_LICHT_GEBIRGE, F.WELT1_LICHT_WASSER)
       == ("#637451", "#96958A", "#658594"))
+# Vorgabe Daniel 05.10.2026: der Wald bekommt eine EIGENE, aus seiner Grundfarbe GERECHNETE
+# Lichtfarbe — astra nennt nur drei Lichtfarben fuer vier Gelaendearten.
+check("Welt 1: der Wald hat eine eigene Lichtfarbe (getrennt von der Ebene)",
+      F.WELT1_LICHT_WALD != F.WELT1_LICHT_GRUEN and F.WELT1_LICHT_WALD.startswith("#")
+      and len(F.WELT1_LICHT_WALD) == 7, f"{F.WELT1_LICHT_WALD} gegen {F.WELT1_LICHT_GRUEN}")
+check("Welt 1: die Wald-Lichtfarbe ist aus der Wald-Grundfarbe gerechnet (heller, nicht gleich)",
+      F.WELT1_LICHT_WALD != F.WELT1_WALD
+      and all(int(F.WELT1_LICHT_WALD[i:i + 2], 16) > int(F.WELT1_WALD[i:i + 2], 16)
+              for i in (1, 3, 5)), f"{F.WELT1_WALD} -> {F.WELT1_LICHT_WALD}")
+check("Welt 1: der Ableitungsfaktor liegt im Bereich der astra-Paare (0.15 bis 0.30)",
+      0.15 <= F.LICHT_ABLEITUNG_FAKTOR <= 0.30, str(F.LICHT_ABLEITUNG_FAKTOR))
+check("Welt 1: die Wald-Lichtfarbe steht im Plan der Waldgruppen, das astra-Gruen nicht",
+      any(e.get("farbe") == F.WELT1_LICHT_WALD for e in F.gelaende_plan_fein("forest", 0.0, 0.0, 48.0))
+      and not any(e.get("farbe") == F.WELT1_LICHT_GRUEN
+                  for e in F.gelaende_plan_fein("forest", 0.0, 0.0, 48.0)))
 check("Welt 1: Ufersaum-Band #938A70, 2–3 px",
       F.WELT1_UFER == "#938A70" and (F.WELT1_UFER_MIN, F.WELT1_UFER_MAX) == (2, 3))
 check("Welt 2: Ortsfarben wie astra",

@@ -64,10 +64,32 @@ WELT1_RASTER = "#38433C"           # astra: "Rasterlinien nur 1 px in #38433C"
 WELT1_RASTER_BREITE = 1            # astra: "1 px"
 
 # astra: "Lichtfarben #637451, #96958A und #658594 verwenden." (drei Lichtfarben fuer vier
-# Gelaendearten -> #637451 wird fuer die gruene Ebene UND den Wald verwendet; siehe offene_luecken)
-WELT1_LICHT_GRUEN = "#637451"      # astra Lichtfarbe (Ebene/Wald)
+# Gelaendearten)
+WELT1_LICHT_GRUEN = "#637451"      # astra Lichtfarbe — gilt fuer die EBENE
 WELT1_LICHT_GEBIRGE = "#96958A"    # astra Lichtfarbe (Gebirge)
 WELT1_LICHT_WASSER = "#658594"     # astra Lichtfarbe (Wasser)
+
+# Der WALD bekommt eine EIGENE Lichtfarbe — Vorgabe Daniel 05.10.2026 ("trennen: der Wald
+# bekommt eine aus seiner eigenen Farbe abgeleitete Lichtfarbe"). astra nennt nur drei
+# Lichtfarben fuer vier Gelaendearten, deshalb lag #637451 sonst auf Ebene UND Wald.
+# Die Ableitung ist GERECHNET, nicht erfunden: astra gibt zu zwei Gelaendearten Basis UND
+# Lichtfarbe; daraus laesst sich der Aufhellungsgrad ablesen (heller Richtung Weiss, Faktor f):
+#   Gebirge #75766F -> #96958A:  f = 0.239 / 0.226 / 0.188 -> Mittel 0.218
+#   Wasser  #405F70 -> #658594:  f = 0.194 / 0.238 / 0.252 -> Mittel 0.228
+# Mittel aus beiden Paaren: 0.223 -> gerundet 0.22. Diesen Faktor bekommt der Wald auf SEINE
+# eigene Grundfarbe #405A43 angewandt.
+LICHT_ABLEITUNG_FAKTOR = 0.22
+
+
+def _aufhellen(farbe: str, faktor: float) -> str:
+    """Hellere Ableitung einer vorhandenen Farbe — GERECHNET, kein erfundener Farbwert."""
+    roh = str(farbe).lstrip("#")
+    teile = [int(roh[i:i + 2], 16) for i in (0, 2, 4)]
+    hell = [round(v + (255 - v) * faktor) for v in teile]
+    return "#" + "".join(f"{max(0, min(255, v)):02X}" for v in hell)
+
+
+WELT1_LICHT_WALD = _aufhellen(WELT1_WALD, LICHT_ABLEITUNG_FAKTOR)
 
 WELT1_UFER = "#938A70"             # astra: "an Ufern ein 2–3 px breites Band #938A70"
 WELT1_UFER_MIN = 2                 # astra: "2–3 px breit"
@@ -380,7 +402,7 @@ def _wald_fein(x0: float, y0: float, zelle: float, feld: tuple, stufe: str) -> l
                        "punkte": _p(x0, y0, zelle, uu - hw * 0.55, vv - 0.05)
                        + _p(x0, y0, zelle, uu, vv - 0.24)
                        + _p(x0, y0, zelle, uu + hw * 0.55, vv - 0.05),
-                       "farbe": WELT1_LICHT_GRUEN})
+                       "farbe": WELT1_LICHT_WALD})
     return formen
 
 
@@ -858,8 +880,10 @@ def uebersicht_plan_fein(tiles: list, kante: float, gitter: int, orte: list = ()
 def offene_luecken() -> list[str]:
     """Was dieses Modul bewusst NICHT aus den Quellen belegen kann (ehrlich gemeldet)."""
     return [
-        "astra nennt DREI Lichtfarben (#637451, #96958A, #658594) fuer VIER Gelaendearten; "
-        "#637451 wird daher fuer Ebene UND Wald verwendet — eine Annahme, siehe Welt 1.",
+        "astra nennt DREI Lichtfarben (#637451, #96958A, #658594) fuer VIER Gelaendearten. Die "
+        "Ebene behaelt den astra-Wert #637451; der Wald bekommt eine aus SEINER Grundfarbe "
+        "#405A43 GERECHNETE Lichtfarbe (Faktor 0.22 aus den beiden astra-Paaren Gebirge und "
+        "Wasser) — Vorgabe Daniel 05.10.2026, kein astra-Wert.",
         "Das Handbuch 2009 nennt KEINE Regionsnamen; die neun Namen in regionen_plan_fein "
         "stammen aus der read-only Kopie von main.WELT_REGIONEN und sind ein Vorschlag.",
         "Das Handbuch nennt KEINE Zoomstufen und keine Kachelgroessen. Die Stufen und der "
