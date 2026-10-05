@@ -675,3 +675,179 @@ def zielstatus(orte: list, jetzt: float, haltestart=None) -> dict:
     # aber „messbare Fehlgründe" (Z. 714). Nur eine Anzeige, keine Rechnung.
     return {"sieg": sieg, "haltestart": start, "qualitaet": q, "deckung": deckung,
             "reserve": reserve, "handel": handel, "armee": armee, "plan": plan_ok}
+
+
+# ---------------------------------------------------------------------------
+# Schritt 8b — bestätigter Fremdhandel: Angebot, beidseitige Sperre, Abschluss
+# (Entwurf Z. 752 sowie Z. 878-940)
+# ---------------------------------------------------------------------------
+#
+# Ein bestätigtes EINZELANGEBOT mit echter Handelskarawane — **keine** Netzfunktionen. Der alte
+# `_trade`-Pfad (Gratisrohstoffe) wird dafür **nicht** weiterverwendet, sondern ersetzt.
+#
+# BELEGT (Handbuch 2009, Z. 1120 ff. — Zitat und Zeile in
+# `docs/audits/handbuch_abgleich_2026-10-05.txt`): Handel zwischen eigenen Siedlungen ist belegt;
+# für den Handel mit Fremden nennt das Handbuch die Handelskarawane und die Rückkehr MIT den Waren
+# bei Ablehnung (S. 20). Der Preis wird beim Angebot festgelegt und danach nicht mehr verhandelt.
+#
+# Das Wesen der Transaktion ist die **Sperre**: Kaufpreis (Gold des Käufers) und Handelsgut (Lager
+# des Verkäufers) verlassen ab dem Start ihre Lager und liegen AM VERTRAG. Erst die Ankunft der
+# Karawane macht das Angebot wahr; kehrt sie ohne Annahme zurück, erhält jede Seite das Ihre
+# vollständig zurück — samt der **Importherkunft** (dieselbe anteilige Sperrlogik wie in
+# `transport_start`). So entstehen weder Gratisgewinne noch Geistergutschriften.
+#
+# Der Vertrag ist eine Mission mit `fremdvertrag=True`; gebucht wird er **ausschließlich** von
+# `handel_abschluss` — `auftraege.spieldaten_anwenden` lässt ihn unberührt (genau wie einen
+# Eigentransport). Die Ereignisschleife (Schritt 10) unterscheidet beide Wege an diesem Merkmal.
+#
+# **Die Annahme ist eine Entscheidung, kein Zufall** (Handbuch S. 20, belegt in
+# `auftraege.auftragsarten`: „Bei Ablehnung kehrt die Karawane MIT den Waren zurück, Gold wird nie
+# uebertragen."). Der Verkäuferort hält sie im Vertragsfeld `entscheidung` fest
+# (`handel_entscheiden`): `True` nimmt an, `False` lehnt ab, `None` überlässt die Entscheidung der
+# Ankunft — dann nimmt der Ort an, sobald die Karawane bei ihm steht und er noch seiner ist.
+# Ohne dieses Feld wäre die belegte Ablehnungsregel **nicht erreichbar** (der Entwurfscode nahm
+# immer an, sobald der Verkäuferort lebte) — gefunden beim Bau dieser Prüfdatei, eigener Zusatz,
+# den Daniel streichen kann.
+#
+# WICHTIG (Entwurf Z. 939): Der **Sieg-Handelsnachweis** bleibt ausschließlich den eigenen
+# Transporten vorbehalten. Ein Fremdkauf erhöht `importiert`/`verbrauchsjournal` des Käufers
+# deshalb NICHT — sonst könnte man sich den Handelsnachweis einfach kaufen.
+
+
+def handel_start(kaeufer: dict, verkaeufer: dict, einheitenbestand: dict, ware: str,
+                 menge: int, preis: float, kanal: str, jetzt: float):
+    """Ein bestätigtes Einzelangebot starten. Liefert ``(kaeufer_neu, verkaeufer_neu, vertrag)``.
+
+    ``kanal`` ist ``"vorraete"`` (Rohstoff) oder ``"waren"``. Geprüft wird **vor** jeder Buchung:
+    Kanal und Handelsgut, positives ganzzahliges Angebot, positiver endlicher Preis, fremder
+    Besitzer, gleiche Dimension, Karawane vor Ort, beidseitige Deckung (Lager **und** Gold) und
+    die Rückladung der Karawane. Jede Ablehnung ist ein ``ValueError`` — es wird nichts halb
+    gebucht, die übergebenen Orte bleiben unverändert.
+    """
+    if kanal not in ("vorraete", "waren"):
+        raise ValueError("Unbekannter Frachtkanal.")
+    if type(menge) is not int or menge <= 0:
+        raise ValueError("Ungültige Handelsmenge.")
+    if isinstance(preis, bool) or not isinstance(preis, (int, float)) or not math.isfinite(preis) \
+            or preis <= 0:
+        raise ValueError("Ungültiger Preis.")
+    if ware == "gold":
+        raise ValueError("Gold ist kein Handelsgut, sondern die Gegenleistung.")
+    if kaeufer["besitzer"] == verkaeufer["besitzer"]:
+        raise ValueError("Eigener Warentransport braucht keinen Kaufvertrag.")
+    if kaeufer["dimension"] != verkaeufer["dimension"]:
+        raise ValueError("Fremde Dimension benötigt noch unbelegte Missionstarife.")
+    if not einheitenbestand or any(type(n) is not int or n <= 0
+                                   for n in einheitenbestand.values()):
+        raise ValueError("Ungültige Karawanentruppe.")
+    if any(kaeufer["einheiten"].get(n, 0) < m for n, m in einheitenbestand.items()):
+        raise ValueError("Karawane fehlt vor Ort.")
+    if verkaeufer[kanal].get(ware, 0) < menge:
+        raise ValueError("Angebot nicht gedeckt: dem Verkäufer fehlt die Ware.")
+    gold = menge * preis
+    if kaeufer["vorraete"].get("gold", 0) < gold:
+        raise ValueError("Angebot nicht gedeckt: dem Käufer fehlt das Gold.")
+    d = abs(kaeufer["x"] - verkaeufer["x"]) + abs(kaeufer["y"] - verkaeufer["y"])
+    liste = []
+    ok, grund = auftraege.starten(liste, "handeln", einheitenbestand, kaeufer["id"],
+                                  verkaeufer["id"], d, jetzt, {})
+    if not ok:
+        raise ValueError(grund)
+    # Erst nach dem Auftragskern: die Karawanenpflicht steht BELEGT in `auftraege.auftragsarten`
+    # („Nur Handelskarawanen") — diese Meldung ist besser als eine selbst erfundene. Gebucht ist
+    # bis hierher nichts: `starten` füllt nur die Liste, die bei einer Ablehnung verworfen wird.
+    if menge > auftraege.ladung_der_mission(einheitenbestand):
+        raise ValueError("Kaufmenge übersteigt die Rückladung der Karawane.")
+    k, v, vertrag = copy.deepcopy(kaeufer), copy.deepcopy(verkaeufer), liste[0]
+
+    # Gegenleistung sperren: das Gold des Käufers (mit seinem Importanteil).
+    goldbestand = k["vorraete"].get("gold", 0)
+    sperrgold_import = 0.0 if goldbestand <= 0 else min(
+        k["importiert"].get("gold", 0), gold * k["importiert"].get("gold", 0) / goldbestand)
+    k["vorraete"]["gold"] = goldbestand - gold
+    k["importiert"]["gold"] = max(0.0, k["importiert"].get("gold", 0) - sperrgold_import)
+
+    # Handelsgut sperren: die Ware des Verkäufers (mit ihrem Importanteil, nur Rohstoffkanal).
+    verkauft_import = {}
+    if kanal == "vorraete":
+        lager = v["vorraete"].get(ware, 0)
+        anteil = 0.0 if lager <= 0 else menge * v["importiert"].get(ware, 0) / lager
+        verkauft_import[ware] = anteil
+        v["importiert"][ware] = max(0.0, v["importiert"].get(ware, 0) - anteil)
+    v[kanal][ware] = v[kanal].get(ware, 0) - menge
+
+    for n, z in einheitenbestand.items():
+        k["einheiten"][n] = k["einheiten"].get(n, 0) - z
+
+    vertrag.update({"fremdvertrag": True, "kaeufer": k["id"], "verkaeufer": v["id"],
+                    "kaeufer_owner": k["besitzer"], "verkaeufer_owner": v["besitzer"],
+                    "ware": ware, "menge": menge, "preis": float(preis), "kanal": kanal,
+                    "angenommen": False, "abgerechnet": False, "entscheidung": None,
+                    "sperrgold": gold, "sperrgold_import": sperrgold_import,
+                    "verkauft_import": verkauft_import})
+    vertrag["besitzer"] = k["besitzer"]
+    return k, v, vertrag
+
+
+def handel_entscheiden(vertrag: dict, angenommen: bool) -> dict:
+    """Die Entscheidung des Verkäuferorts festhalten (vor dem Abschluss). Liefert den Vertrag.
+
+    ``True`` nimmt das Angebot an, ``False`` lehnt es ab (belegt, Handbuch S. 20). Ein bereits
+    abgerechneter Vertrag lässt sich nicht mehr entscheiden.
+    """
+    neu = copy.deepcopy(vertrag)
+    if neu.get("abgerechnet"):
+        raise ValueError("Der Vertrag ist bereits abgerechnet.")
+    neu["entscheidung"] = bool(angenommen)
+    return neu
+
+
+def handel_abschluss(vertrag: dict, orte: dict, jetzt: float):
+    """Ankunft und Rückkehr eines Fremdvertrags buchen — **genau einmal**. ``(orte, vertrag)``.
+
+    * **Ankunft:** nimmt der Verkäuferort an (Feld `entscheidung`; ohne Entscheidung nimmt er an,
+      sobald die Karawane bei ihm steht und der Ort noch seiner ist), wandert das gesperrte Gold
+      zu ihm — mit der Importherkunft. Bei Ablehnung oder verlorenem Ort bleibt alles gesperrt.
+    * **Rückkehr:** bei Annahme kommt die Ware beim Käufer an, bei Ablehnung kehren Gold **und**
+      Ware vollständig zurück (belegte Regel, Handbuch S. 20); die Karawane kommt in beiden
+      Fällen heim.
+    * Ist der **Käuferort** verloren, bleibt das Gut AM VERTRAG — keine Geistergutschrift, keine
+      Schenkung an einen neuen Besitzer (Entwurf Z. 924/932).
+    """
+    neu, m = copy.deepcopy(orte), copy.deepcopy(vertrag)
+    kaeufer, verkaeufer = neu.get(m["kaeufer"]), neu.get(m["verkaeufer"])
+
+    if jetzt >= m["ankunft"] and not m["angenommen"]:
+        if m.get("entscheidung") is not False and verkaeufer is not None \
+                and verkaeufer["besitzer"] == m["verkaeufer_owner"]:
+            verkaeufer["vorraete"]["gold"] = verkaeufer["vorraete"].get("gold", 0) + m["sperrgold"]
+            verkaeufer["importiert"]["gold"] = (verkaeufer["importiert"].get("gold", 0)
+                                               + m["sperrgold_import"])
+            m["sperrgold"], m["sperrgold_import"] = 0.0, 0.0
+            m["angenommen"] = True
+
+    if jetzt >= m["rueckkehr"] and not m["abgerechnet"]:
+        if kaeufer is None or kaeufer["besitzer"] != m["kaeufer_owner"]:
+            return neu, m          # Gut bleibt am Vertrag; ein späterer eigener Ort kann es noch erhalten.
+        if m["angenommen"]:
+            kaeufer[m["kanal"]][m["ware"]] = kaeufer[m["kanal"]].get(m["ware"], 0) + m["menge"]
+            # Bewusst KEIN Eintrag in `importiert`: ein Fremdkauf ist kein eigener Handelsnachweis.
+        else:
+            kaeufer["vorraete"]["gold"] = kaeufer["vorraete"].get("gold", 0) + m["sperrgold"]
+            kaeufer["importiert"]["gold"] = (kaeufer["importiert"].get("gold", 0)
+                                            + m["sperrgold_import"])
+            m["sperrgold"], m["sperrgold_import"] = 0.0, 0.0
+            if verkaeufer is not None and verkaeufer["besitzer"] == m["verkaeufer_owner"]:
+                verkaeufer[m["kanal"]][m["ware"]] = (verkaeufer[m["kanal"]].get(m["ware"], 0)
+                                                     + m["menge"])
+                if m["kanal"] == "vorraete":
+                    verkaeufer["importiert"][m["ware"]] = (
+                        verkaeufer["importiert"].get(m["ware"], 0)
+                        + m["verkauft_import"].get(m["ware"], 0))
+            else:
+                # Verlorenes Verkäufergut bleibt vermerkt; nicht an einen neuen Besitzer schenken.
+                m["verlorenes_sperrgut"] = {m["ware"]: m["menge"]}
+        for n, z in m["einheiten"].items():
+            kaeufer["einheiten"][n] = kaeufer["einheiten"].get(n, 0) + z
+        m["abgerechnet"] = True
+    return neu, m

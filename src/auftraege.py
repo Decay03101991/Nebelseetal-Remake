@@ -476,7 +476,9 @@ def spieldaten_anwenden(zustand_vorher: Any, fertig: Any) -> Dict[str, Any]:
     # wird ausschliesslich von `spieloekonomie.transport_fortschritt` gebucht. Diese Funktion darf
     # ihn NIE anwenden — sonst waere dieselbe Fracht zweimal gebucht. `angewendet` wird dabei
     # absichtlich NICHT gesetzt, damit `transport_fortschritt` weiterarbeiten kann.
-    if e.get("eigentransport"):
+    # Dasselbe gilt fuer einen FREMDVERTRAG (Oekonomie-Paket, Schritt 8b): er gehoert
+    # `spieloekonomie.handel_abschluss` allein.
+    if e.get("eigentransport") or e.get("fremdvertrag"):
         return neu
 
     for feld in ("beute", "rueckgut"):
