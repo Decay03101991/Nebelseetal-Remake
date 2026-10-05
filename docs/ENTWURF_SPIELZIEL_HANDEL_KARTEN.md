@@ -92,3 +92,25 @@ größte Bau im Spiel, soll also deutlich mehr kosten als ein Haus — und **dan
 4. Handel zwischen eigenen Siedlungen als Träger des Spiels ausbauen (Warenpreise je Siedlung aus
    den Kartenvorteilen).
 5. Erst danach die Sieg-/Niederlagebedingung endgültig festlegen und die `.exe` neu bauen.
+
+---
+
+## 8. Nachtrag: drei weitere Vorgaben Daniels (05.10.2026, 16:2x — wörtlich)
+
+> „weiter: Natürlich soll man nicht gewinnen wenn man nur unvorteilhafte karten auswählt. Schwierigere
+> Bots müssen das wissen und danach handeln"
+
+> „leicht mittel schwer reicht"
+
+Daraus folgt für den Entwurf:
+
+1. **Die Qualität der Kartenwahl entscheidet mit.** Wer nur unvorteilhafte Karten besiedelt, darf
+   **nicht** gewinnen können. Das Ziel braucht deshalb eine **messbare** Kopplung an den Ertrag/wert
+   der eigenen Siedlungen (nicht nur eine Punktzahl aus Forschung und Krieg).
+2. **Bots kennen die Ökonomie.** Je Schwierigkeitsstufe bewerten sie Karten, planen Neugründungen,
+   handeln — und bestrafen einen Spieler, der schlechte Karten nimmt (früher auf die guten Karten,
+   Preisdruck im Handel).
+3. **Drei Schwierigkeitsstufen genügen:** leicht / mittel / schwer.
+
+**Der vollständige Auftrag an das starke Modell steht in `docs/AUFTRAG_SOL_SPIELOEKONOMIE.md`** —
+mit allen Randbedingungen, dem gemessenen Ist-Zustand und der geforderten Gliederung A–H.
