@@ -626,6 +626,11 @@ class GameState:
         # ihn nachträglich bekommt, ohne dass sich etwas an seinen Siedlungen ändert.
         self.kartenvorrat: Dict[str, dict] = {}
         self.kartenvorrat_seed: str = ""
+        # Ökonomie-Paket, Schritt 9, Teil 6b — die EINE Uhr der Orte (Entwurf Z. 592-648):
+        # `spielsekunden` ist SPIELZEIT, nicht Rechnerzeit. `main._tick_loop` multipliziert genau
+        # einmal mit `spielzeit.faktor()`; alles Ökonomische rechnet nur mit dieser Zahl, damit
+        # Ernte, Werkstattwaren und Ausbildungen denselben Zeitbegriff benutzen.
+        self.spielsekunden: float = 0.0
         # Ökonomie-Paket, Schritt 9, Teil 6 (Entwurf: „aktive_siedlung_id"): auf WELCHEN Ort sich
         # Lager, Kaserne und Forschung beziehen. Bis Teil 5 lasen diese Ansichten den Reichsbestand
         # — ohne diesen Zeiger könnte keine Ware und keine Einheit je im richtigen Lager landen.
@@ -1710,21 +1715,42 @@ class GameState:
         return ergebnis
 
     def tick(self, dt_seconds: float):
-        dt_h = dt_seconds / 3600.0
         levels = {k: v.level for k, v in self.research.items()}
-        # Rohstoffe kommen aus den BEBAUTEN FELDERN der Siedlungskarten (W4b-4, 04.10.2026).
-        # Oekonomie-Paket, Schritt 9, Teil 3: der Ertrag landet im LOKALEN Lager der Siedlung, die
-        # ihn erzeugt, und wird zugleich in die Gesamtsicht gebucht (Reich = Uebergangsrest +
-        # Summe der Ortslager) — so stimmen beide Zahlen zusammen. Ohne Siedlung gibt es keinen
-        # Erzeuger; `stundenertrag()` (Anzeige) ist genau die Summe dieser lokalen Ertraege.
+        # Ökonomie-Paket, Schritt 9, Teil 6b: EINE Uhr JE ORT — der Kern rechnet.
+        #
+        # `spieloekonomie.ort_tick` erntet (aus DERSELBEN Quelle wie die Anzeige,
+        # `wirtschaft.ertrag_gesamt`), schreibt den Siedlerzuwachs bis zur Grenze des Ortes fort,
+        # holt fertige Werkstattwaren ins LAGER DES ORTES und bucht abgeschlossene Ausbildungen
+        # genau einmal. Vorher buchte `tick` die Ernte SELBST — und `ort_tick` tut dasselbe:
+        # nebeneinander hätte das JEDE ERNTE VERDOPPELT. Deshalb steht hier jetzt nur der Kern.
+        #
+        # Die Gesamtsicht (Reich = Übergangsbestand + Summe der Ortslager) wird um genau die
+        # Zuwächse nachgeführt, die die Orte WIRKLICH bekommen haben — berechnet aus dem
+        # Unterschied vor/nach dem Kern, nicht aus einer zweiten Ertragsformel. Eine zweite
+        # Rechnung wäre eine zweite Wahrheit.
+        _ab = float(getattr(self, "spielsekunden", 0.0))
+        _bis = _ab + dt_seconds
+        # Teil 6c: was in diesem Takt WIRKLICH fertig wurde (Ware im Ortslager, ausgebildete
+        # Einheit). Die Oberfläche braucht das, um neu zu zeichnen — sonst bliebe die fertige Ware
+        # unsichtbar, bis der Spieler die Ansicht wechselt.
+        eingetroffen: List[str] = []
         for siedlung in self.settlements:
-            for res, rate_pro_stunde in self.ertrag_je_ort(siedlung).items():
-                if not rate_pro_stunde:
-                    continue
-                zuwachs = rate_pro_stunde * dt_h
-                siedlung.vorraete[res] = round(siedlung.vorraete.get(res, 0.0) + zuwachs, 2)
-                if res in self.resources:
-                    self.resources[res].amount = round(self.resources[res].amount + zuwachs, 2)
+            _vorher_vorrat = {k: float(v) for k, v in (siedlung.vorraete or {}).items()}
+            _vorher_leute = float(siedlung.bevoelkerung or 0.0)
+            _journal_vorher = len(siedlung.fertigjournal or [])
+            _neu = spieloekonomie.ort_tick(asdict(siedlung), _ab, _bis, levels)
+            if not self._ort_uebernehmen(siedlung.id, _neu):
+                continue
+            for _zeile in (_neu.get("fertigjournal") or [])[_journal_vorher:]:
+                eingetroffen.append(f"{_zeile.get('name')} in {siedlung.name}")
+            for res, menge in (_neu.get("vorraete") or {}).items():
+                zuwachs = float(menge) - _vorher_vorrat.get(res, 0.0)
+                if abs(zuwachs) > 1e-12 and res in self.resources:
+                    self.resources[res].amount = round(float(self.resources[res].amount) + zuwachs, 2)
+            zuwachs_leute = float(_neu.get("bevoelkerung", 0.0)) - _vorher_leute
+            if abs(zuwachs_leute) > 1e-12:
+                self.population = float(self.population) + zuwachs_leute
+        self.spielsekunden = _bis
         # W5: Die Bots handeln nach `botkern` (Angriffstakt 6-24 h, Handelsschwelle, Wirtschaft).
         # Vorher stand hier eine erfundene Schaedigung: 5 % x Aggression, fester Nahrungsabzug.
         self.bots_fortschreiben(time.time())
@@ -1733,10 +1759,10 @@ class GameState:
         # Siedlergrenze und Siedlerzuwachs kommen aus den Haeusern der Siedlungskarten (W4b-5):
         # 10 Siedler je Siedlung, +5 je Haus, 1 neuer Siedler je Stunde (Handbuch Seite 11),
         # mit Heilkunde +10 % je Stufe. Vorher stand hier ein erfundener Zuwachs von 30 je Stunde.
+        # Teil 6b: der ZUWACHS wird nicht mehr hier gerechnet — er entsteht in `ort_tick` je Ort
+        # (bis zu dessen eigener Grenze) und wird oben als Unterschied in die Gesamtsicht gebucht.
+        # Hier bleibt nur die GESAMTGRENZE für die Anzeige, damit keine zweite Zuwachsformel läuft.
         self.max_population = gebaeude_wirkung.bevoelkerungsgrenze(self.settlements)
-        zuwachs = gebaeude_wirkung.siedler_zuwachs_pro_stunde(self.settlements, levels) * dt_h
-        if zuwachs > 0 and self.population < self.max_population:
-            self.population = min(float(self.max_population), self.population + zuwachs)
         self._day_accum = getattr(self, "_day_accum", 0.0) + dt_seconds
         if self._day_accum >= 86400:
             self._day_accum -= 86400
@@ -1763,6 +1789,11 @@ class GameState:
         # W4c: die Forschung weiterlaufen lassen - die Stufe steigt erst nach Ablauf der Zeit.
         self.forschung_fortschreiben(time.time())
         self.last_tick = time.time()
+        # Teil 6c: was in diesem Takt fertig wurde, geht an den Aufrufer ZURÜCK — die Oberfläche
+        # zeichnet daraufhin neu (`NebelseetalApp._tick_loop`). `GameState` kennt keine Ansicht.
+        for _was in eingetroffen[:4]:
+            self._log(f"Fertig: {_was}")
+        return eingetroffen
 
     def save(self, path: str):
         data = {
@@ -1782,6 +1813,7 @@ class GameState:
             "kartenvorrat": self.kartenvorrat,
             "kartenvorrat_seed": self.kartenvorrat_seed,
             "aktive_siedlung_id": self.aktive_siedlung_id,
+            "spielsekunden": self.spielsekunden,
             "noob_protection": self.noob_protection,
             "goods": self.goods,
             "map_tiles": [asdict(t) for t in self.map_tiles],
@@ -1873,6 +1905,9 @@ class GameState:
         # Teil 6: der Zeiger auf den Ort. Ein ALTER Spielstand kennt ihn nicht — dann bleibt er
         # leer und `aktive_siedlung()` faellt auf die erste Siedlung (und berichtigt ihn dort).
         self.aktive_siedlung_id = str(data.get("aktive_siedlung_id") or "")
+        # Teil 6b: die Spieluhr. Ein Stand von vor Teil 6 kennt sie nicht — dann beginnt sie bei 0;
+        # `ort_tick` verbietet nur ein ZURÜCKLAUFEN der Zeit, nicht den Neubeginn.
+        self.spielsekunden = float(data.get("spielsekunden") or 0.0)
         if not self.kartenvorrat:
             self.kartenvorrat_anlegen()
         self.hatte_siedlung = bool(data.get("hatte_siedlung", bool(self.settlements)))
@@ -3400,52 +3435,65 @@ class NebelseetalApp:
             tk.Label(cell, text=u.name, fg=self.skin["text"], bg=self.skin["panel"], font=("Arial", 9)).pack()
             tk.Label(cell, text=str(u.count), fg=self.skin["gold"], bg=self.skin["panel"], font=("Arial", 11, "bold")).pack(pady=(2, 0))
 
-        # W3: die Werkstaetten. Gezeigt wird nur, was WIRKLICH auf der Siedlungskarte steht
-        # (`werkstatt.werkstaetten_bestand`), je Ware mit ihrer belegten Voraussetzung.
-        tk.Label(self.content, text="Werkstätten:", fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 0))
-        schlangen = self.state.werkstatt_schlangen()
-        if not schlangen:
+        # Teil 6c: die Werkstaetten und ihre Warteschlangen liegen IM ORT
+        # (`Settlement.werkstaetten`), nicht mehr in einer reichsweiten Schlange. Gezeigt wird nur,
+        # was WIRKLICH auf der Karte DIESER Siedlung steht (`werkstatt.werkstaetten_bestand`), und
+        # die Uhr ist die Spieluhr (`state.spielsekunden`), nicht die Rechnerzeit — die Ware kommt
+        # in `ort_tick` an.
+        tk.Label(self.content, text="Werkstätten vor Ort:", fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 0))
+        _bestand_ort = {k: v for k, v in (werkstatt.werkstaetten_bestand([_ort]) if _ort is not None
+                                         else {}).items() if v > 0}
+        if not _bestand_ort:
             tk.Label(self.content, text="Noch keine Werkstatt gebaut — auf der Siedlungskarte bauen.",
                      fg="#8a8a8a", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
-        for kennung, schlange in sorted(schlangen.items()):
+        for kennung in sorted(_bestand_ort):
+            schlange = ((_ort.werkstaetten or {}) if _ort is not None else {}).get(kennung)
+            _name = (schlange or werkstatt.neue_warteschlange(kennung, _bestand_ort[kennung])
+                     ).get("werkstatt")
             rahmen = tk.Frame(self.content, bg=self.skin["panel"])
             rahmen.pack(fill=tk.X, padx=10, pady=3)
-            tk.Label(rahmen, text=f"{schlange.get('werkstatt')} ({schlange.get('kapazitaet')} Plätze)",
-                     fg=self.skin["text"], bg=self.skin["panel"], width=24, anchor=tk.W).pack(side=tk.LEFT, padx=5)
+            tk.Label(rahmen, text=f"{_name} ({_bestand_ort[kennung]} Stück vor Ort)",
+                     fg=self.skin["text"], bg=self.skin["panel"], width=28, anchor=tk.W).pack(side=tk.LEFT, padx=5)
             for ware in werkstatt.waren_der_werkstatt(kennung):
                 erfuellt, grund = self.state.ware_voraussetzung(ware)
-                knopf = tk.Button(rahmen, text=ware, command=lambda k=kennung, w=ware: self._ware_herstellen(k, w),
+                knopf = tk.Button(rahmen, text=ware, command=lambda w=ware: self._ware_herstellen(w),
                                   bg="#3e2723" if erfuellt else "#4a4a4a",
                                   fg=self.skin["gold"] if erfuellt else "#9e9e9e")
                 if not erfuellt:
                     knopf.config(state=tk.DISABLED)
                 knopf.pack(side=tk.LEFT, padx=2)
-            tk.Label(self.content, text="   " + werkstatt.fortschritt(schlange, time.time())["text"],
-                     fg="#C0C0C0", bg=self.skin["bg"]).pack(anchor=tk.W, padx=12)
+            if schlange:
+                tk.Label(self.content,
+                         text="   " + werkstatt.fortschritt(schlange, self.state.spielsekunden)["text"],
+                         fg="#C0C0C0", bg=self.skin["bg"]).pack(anchor=tk.W, padx=12)
 
-    def _ware_herstellen(self, kennung: str, ware: str):
-        """Eine Ware in die Warteschlange EINER Werkstatt stellen (W3).
+    def _ware_herstellen(self, ware: str):
+        """Eine Ware in der Werkstatt DIESES Ortes herstellen lassen — ueber den Kern (`ware_start`).
 
-        Ablauf wie im Rueckruf-Vertrag: erst pruefen (Werkstatt gebaut? Voraussetzung erfuellt?),
-        dann einreihen; abgelehnt wird VOR jeder Aenderung.
+        Oekonomie-Paket, Schritt 9, Teil 6c (Entwurf Z. 779: „Herstellung gegen gewaehlten Ort").
+        Der Kern prueft: freigegebenes Rezept, Forschungsvoraussetzungen der Ware, **Werkstatt VOR
+        ORT** und die **Materialkosten im lokalen Lager**. Abgelehnt wird VOR jeder Aenderung —
+        gearbeitet wird auf einer Kopie, uebernommen erst nach Erfolg. Fertig wird die Ware in
+        `ort_tick`, und zwar im **Ortslager** (genau einmal).
+
+        Die fruehere reichsweite Warteschlange (`werkstatt_schlangen`) ist damit fuer die
+        Herstellung weg: sie hatte EINE Schlange fuer alle Siedlungen und buchte die Ware in den
+        GLOBALEN Bestand — die Ware konnte so in einer Stadt entstehen und in einer anderen liegen.
         """
-        schlange = self.state.werkstatt_schlangen().get(kennung)
-        if not schlange:
-            self._log(f"Keine Werkstatt '{kennung}' gebaut - zuerst auf der Siedlungskarte bauen.")
+        ort = self.state.aktive_siedlung()
+        if ort is None:
+            self._log("Keine Siedlung — es gibt keine Werkstatt vor Ort.")
             return False
-        erfuellt, grund = self.state.ware_voraussetzung(ware)
-        if not erfuellt:
-            self._log(f"{ware} nicht möglich: {grund}")
+        levels = {k: int(v.level) for k, v in self.state.research.items()}
+        try:
+            neu = spieloekonomie.ware_start(asdict(ort), ware, levels, self.state.spielsekunden)
+        except ValueError as fehler:
+            self._log(f"{ware} nicht möglich: {fehler}")
             return False
-        stufe = 1
-        for siedlung in self.state.settlements:
-            stufe = max(stufe, werkstatt.werkstatt_stufe(siedlung, kennung))
-        werkstatt.fortschritt(schlange, time.time())     # die Uhr stellen, bevor eingereiht wird
-        ok, meldung = werkstatt.einreihen(schlange, ware, 1, stufe)
-        self._log(meldung)
-        if ok:
-            self._render_view()
-        return ok
+        self.state._ort_uebernehmen(ort.id, neu)
+        self._log(f"{ware} in der Werkstatt von {ort.name} in Arbeit.")
+        self._render_view()
+        return True
 
     def _render_profiles(self):
         tk.Label(self.content, text="Spielerprofile", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
@@ -4771,7 +4819,12 @@ class NebelseetalApp:
                 info = (f"LE {_w.get('LE')} / AT {_w.get('AT')} / PA {_w.get('PA')} / "
                         f"TP {_w.get('TP_min')}-{_w.get('TP_max')} / SK {_w.get('SK')}")
             tk.Label(frame, text=info, fg="#DAA520", bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
-            tk.Label(frame, text=f"Anzahl: {u.count}", fg="#C0C0C0", bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
+            # Teil 6c: seit die Einheiten VOR ORT entstehen (`ort_tick`), muss die Kaserne BEIDE
+            # Zahlen zeigen — sonst stuende hier 0, waehrend im Ortslager Einheiten liegen.
+            _ort_k = self.state.aktive_siedlung()
+            _lokal_k = int((getattr(_ort_k, "einheiten", None) or {}).get(key, 0)) if _ort_k else 0
+            tk.Label(frame, text=f"Anzahl: {_lokal_k} vor Ort · Reich: {u.count}",
+                     fg="#C0C0C0", bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
             # W4b-5: Die Ausbildungsstätte steht auf der Siedlungskarte (data/units.json nennt sie
             # je Einheit). Fehlt sie, gibt es keine Schaltfläche — sondern den ehrlichen Grund.
             _da, _staette, _stufe = gebaeude_wirkung.ausbildungsstaette(self.state.settlements, key)
@@ -4785,8 +4838,11 @@ class NebelseetalApp:
                 if _frei:
                     _knopf.pack(side=tk.RIGHT, padx=5)
                     if ausruestung.bedarf(key):
+                        # Teil 6c: die Ausruestung wird VOR ORT verbraucht — also wird auch die
+                        # Anzeige gegen das Ortslager gerechnet (dieselbe Quelle wie die Ausbildung).
                         tk.Label(frame, text="Waren: " + ausruestung.bestand_text(
-                            ausruestung.fehlende(key, self.state.waren)),
+                            ausruestung.fehlende(key, (getattr(_ort_k, "waren", None) or {})
+                                                 if _ort_k else self.state.waren)),
                             fg="#C0C0C0", bg=self.skin["panel"]).pack(side=tk.RIGHT, padx=5)
                 else:
                     _knopf.config(state=tk.DISABLED, disabledforeground="#8a8a8a")
@@ -4814,80 +4870,94 @@ class NebelseetalApp:
             erreicht = int(eintrag.level) if eintrag is not None else 0
             if erreicht < f_stufe:
                 return False, f"braucht {f_name} Stufe {f_stufe} (erreicht: {erreicht})"
-        fehlt = ausruestung.fehlende(key, self.state.waren)
+        # Teil 6c: die Ausruestung liegt VOR ORT (`Settlement.waren`) — dieselbe Quelle, aus der
+        # `ausbildung_start` sie verbraucht. Oben, ueber dem Siedlungslager, zaehlt der
+        # Reichsbestaand als Uebergang (solange es keine Siedlung gibt, gibt es kein Ortslager).
+        _ort_lager = self.state.aktive_siedlung()
+        lager = (dict(getattr(_ort_lager, "waren", None) or {}) if _ort_lager is not None
+                 else dict(self.state.waren or {}))
+        fehlt = ausruestung.fehlende(key, lager)
         if fehlt:
             # Soll/Ist je Ware — so verlangt es das astra-Gutachten. `ausruestung.fehlende`
             # liefert nur die Fehlmenge; Soll = Ist + Fehlmenge (Befund des Kinder-Moduls vom
             # 05.10.2026: `bestand_text` zeigt bei reinen Zahlen nur die Fehlmenge).
             teile = []
             for ware, menge in sorted(fehlt.items()):
-                ist = int((self.state.waren or {}).get(ware, 0))
+                ist = int(lager.get(ware, 0))
                 teile.append(f"{ware} {ist}/{ist + int(menge)}")
             return False, ("braucht Ausrüstung — " + " · ".join(teile) +
                            " (Werkstätten: Schmiede, Bogner, Nähstube)")
         return True, ""
 
     def _train_unit(self, key: str):
+        """Eine Einheit in DIESEM Ort ausbilden lassen — ueber den Kern (`ausbildung_start`).
+
+        Oekonomie-Paket, Schritt 9, Teil 6c (Entwurf Z. 781: „Ausbildung gegen gewaehlten Ort").
+        Der Kern prueft VIER Dinge: Forschungsstufe der Einheit, **Ausbildungsstaette VOR ORT**,
+        **genug freie Siedler im Ort** und die **Ausruestung im lokalen Warenlager**. Verbraucht
+        werden Kosten, Siedler und Ausruestung; die Einheit entsteht erst am Ende der
+        Ausbildungszeit in `ort_tick` — genau einmal.
+
+        Der Altpfad ist damit weg: das fruehere **sofortige Hochzaehlen der Einheit** gibt es nicht
+        mehr. Er haette die Einheit
+        sofort und ohne Ortsbezug in den Reichsbestand gesetzt und die Ausruestung GLOBAL
+        verbraucht — zwei Wege zu derselben Einheit sind genau das, was der Entwurf verbietet
+        („Altmodus liest alte Felder; Neumodus nur einheiten", Z. 774).
+        """
         u = self.state.units[key]
-        levels = {k: v.level for k, v in self.state.research.items()}
-        # W4b-5: Ausgebildet wird in der Stätte, die zu dieser Einheit gehört (data/units.json):
-        # Kriegerakademie, Diebesgilde oder Stellmacher. Ohne sie gibt es keine Ausbildung, und
-        # die STUFE der Stätte bestimmt das Tempo (vorher: erfundene Kaserne, Stufe global).
-        da, staette, stufe = gebaeude_wirkung.ausbildungsstaette(self.state.settlements, key)
-        if not da:
-            fehlt = gelaende.gebaeude_name(staette) if staette else "Ausbildungsstätte unbekannt"
-            self._log(f"{u.name} braucht {fehlt} auf einer Siedlungskarte — noch nicht gebaut.")
+        ort = self.state.aktive_siedlung()
+        if ort is None:
+            # Wie beim Bauen: ohne Siedlung gibt es kein Ortslager — der Grund nennt trotzdem die
+            # fehlende Stätte (sie steht in data/units.json).
+            _staette = (einheiten.alle().get(key) or {}).get("gebaeude")
+            _name = gelaende.gebaeude_name(_staette) if _staette else "Ausbildungsstätte"
+            self._log(f"{u.name} braucht {_name} auf einer Siedlungskarte — es gibt noch keine "
+                      f"Siedlung.")
+            return False
+        # Die Stätte ist die GRUNDBEDINGUNG: ohne sie gibt es keinen Ort, an dem ausgebildet wird.
+        # Sie steht deshalb VOR der Forschungs-/Ausrüstungsprüfung — und ihr Name kommt aus derselben
+        # Quelle wie beim Bauen. (Der Kern prüft sie ebenfalls; hier geht es um den genauen Grund.)
+        _da, _staette, _stufe = gebaeude_wirkung.ausbildungsstaette([ort], key)
+        if not _da:
+            _name = gelaende.gebaeude_name(_staette) if _staette else "Ausbildungsstätte"
+            meldung = f"{u.name} braucht {_name} auf einer Siedlungskarte — noch nicht gebaut."
+            self._log(meldung)
+            self.state.messages.append({"text": meldung, "type": "ausbildung"})
             self._render_view()
-            return
-        building_level = stufe
-        time_min = get_training_time(key, levels, building_level)
-        # Vorgabe Daniel 05.10.2026: „manche Einheiten brauchen gewisse Rüstungen oder Items,
-        # damit sie überhaupt produzierbar sind — auch wenn man die Truppen vielleicht schon
-        # erforscht hat." BEIDE Bedingungen stehen belegt in data/units.json ('voraussetzung'
-        # = Forschung + Stufe, 'waren' = Ausrüstung). Die Prüfung selbst steht EINMAL in
-        # `_ausbildungs_hindernis` — Ansicht und Ausbildung nutzen dieselbe Quelle.
+            return False
+        # Erst die BEGRUENDUNG aus derselben Quelle wie die Ansicht (Soll/Ist), dann die verbindliche
+        # Pruefung im Kern: so liest der Spieler den genauen Grund, und der Kern entscheidet.
         frei, grund = self._ausbildungs_hindernis(key)
         if not frei:
             meldung = f"{u.name} {grund}."
             self._log(meldung)
             self.state.messages.append({"text": meldung, "type": "ausbildung"})
             self._render_view()
-            return
-        cost = u.cost
-        # Siedler sind im Original die Bevoelkerung, keine lagerbare Ressource
-        # (Handbuch Seite 10): der Siedleranteil wird von der Bevoelkerung bezahlt.
-        siedler = int(cost.get("siedler", 0))
-        rohstoffe = {k: v for k, v in cost.items() if k != "siedler"}
-        unbekannt = [k for k in rohstoffe if k not in self.state.resources]
-        if unbekannt:
-            # Kein stilles Ueberspringen: ein unbekannter Rohstoff ist ein Datenfehler.
-            self._log(f"Ausbildung nicht möglich: unbekannte Rohstoffe {unbekannt}")
+            return False
+        levels = {k: int(v.level) for k, v in self.state.research.items()}
+        try:
+            neu = spieloekonomie.ausbildung_start(asdict(ort), key, levels, self.state.spielsekunden)
+        except ValueError as fehler:
+            grund = str(fehler)
+            # Der Kern sagt knapp, WAS fehlt ("Ausbildungsstätte fehlt vor Ort."). Der Spieler
+            # braucht den Namen des Gebaeudes — er kommt aus derselben Quelle wie beim Bauen.
+            if "Ausbildungsstätte fehlt vor Ort" in grund:
+                _staette = (einheiten.alle().get(key) or {}).get("gebaeude")
+                _name = gelaende.gebaeude_name(_staette) if _staette else "Ausbildungsstätte"
+                grund = f"es fehlt {_name} in dieser Siedlung"
+            meldung = f"{u.name} nicht ausgebildet: {grund}"
+            self._log(meldung)
+            self.state.messages.append({"text": meldung, "type": "ausbildung"})
             self._render_view()
-            return
-        # Teil 3: bezahlt wird aus dem GANZEN Reich (Reichsbestand + Ortslager), nicht mehr nur
-        # aus dem Reichsbestand - sonst waere eine Ausbildung unmoeglich, sobald die Siedlung die
-        # Rohstoffe fuehrt. `verbrauche_reichsweit` prueft vorher und bucht dann atomar.
-        kosten_gesamt = dict(rohstoffe)
-        if siedler:
-            kosten_gesamt["siedler"] = siedler
-        ok_kosten, meldung_kosten = self.state.verbrauche_reichsweit(kosten_gesamt)
-        if not ok_kosten:
-            self._log(f"{u.name} nicht ausgebildet: {meldung_kosten}")
-            self.state.messages.append({"text": f"{u.name}: {meldung_kosten}",
-                                        "type": "ausbildung"})
-            self._render_view()
-            return
-        # Die Ausrüstung wird beim Erteilen des Auftrags verbraucht (Entwurf deepseek-v4-pro,
-        # 05.10.2026: „Auftrag erteilen setzt vorhandene Mittel voraus" — dieselbe Logik wie
-        # bei der Forschung, wo ein Abbruch die Rohstoffe ersatzlos kostet).
-        self.state.waren = ausruestung.verbrauchen(self.state.waren, key)
-        u.count += 1
-        _waren_zeile = (" Ausrüstung verbraucht: " + ", ".join(ausruestung.bedarf(key))
-                        if ausruestung.bedarf(key) else "")
-        self._log(f"{u.name} ausgebildet. Ausbildungszeit: {time_min:.1f} min.{_waren_zeile}")
-        # Ohne Neuzeichnen sieht der Spieler die neue Stueckzahl nicht (dieselbe Fehlerklasse
-        # wie bei der Siedlungsgruendung).
+            return False
+        self.state._ort_uebernehmen(ort.id, neu)
+        _auftrag = (neu.get("ausbildung") or [{}])[-1]
+        _minuten = max(0.0, float(_auftrag.get("ende", self.state.spielsekunden))
+                       - float(self.state.spielsekunden)) / 60.0
+        self._log(f"{u.name} in Ausbildung vor Ort ({ort.name}) — fertig in {_minuten:.1f} "
+                  f"Spielminuten. Die Einheit entsteht am Ende der Zeit im Ortslager.")
         self._render_view()
+        return True
 
     def _save(self):
         ok = self.state.save(self.save_path)
@@ -4941,7 +5011,11 @@ class NebelseetalApp:
             # Der Zeitfaktor staucht die Spieluhr, NICHT die Handbuchformeln: `tick` bekommt
             # Spielsekunden. Bei ×180 ist eine echte Sekunde 180 Spielsekunden (eine Spielstunde
             # dauert 20 echte Sekunden) — sonst lieferte ein Holzfäller 4 Holz je ECHTER Stunde.
-            self.state.tick(dt * spielzeit.faktor())
+            _eingetroffen = self.state.tick(dt * spielzeit.faktor())
+            # Teil 6c: ist dabei eine Ware oder eine Einheit fertig geworden, wird die Ansicht neu
+            # gezeichnet — sonst bliebe sie unsichtbar, bis der Spieler die Ansicht wechselt.
+            if _eingetroffen and getattr(self, "content", None) is not None:
+                self._render_view()
         # movements arrival
         for m in self.state.movements[:]:
             if now >= m["arrival"]:

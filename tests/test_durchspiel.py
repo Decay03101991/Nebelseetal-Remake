@@ -151,25 +151,40 @@ def partiedurchlauf():
 
         # ------------------------------------------------------------- 4. Ausbildung
         abschnitt("4. Einheiten ausbilden")
-        for stoff in ("wolle", "leder", "pferde", "metall", "gold", "nahrung"):
-            gs.resources[stoff].amount = 5000.0
+        # Teil 6b/6c: Rohstoffe, Siedler und Ausruestung liegen VOR ORT; die Einheit entsteht am
+        # Ende der Ausbildungszeit im ORTSLAGER (`ort_tick`) — nicht mehr sofort im Reichsbestand.
+        _ort4 = gs.aktive_siedlung()
+        check("es gibt eine Siedlung mit Ortslager", _ort4 is not None)
+        for stoff in gs.resources:
+            _ort4.vorraete[stoff] = 5000.0
+        _ort4.bevoelkerung = max(float(_ort4.bevoelkerung), 50.0)
 
         def bezahlbar(k):
-            """Reicht unser Lager fuer die belegten Kosten dieser Einheit? (Siedler = Bevoelkerung)"""
+            """Reicht das ORTSLAGER fuer die belegten Kosten dieser Einheit? (Siedler = Bevoelkerung)"""
             for stoff, menge in (einheiten.alle()[k].get("kosten") or {}).items():
-                res = gs.resources.get(stoff)
-                if res is not None and res.amount < menge:
+                if stoff == "siedler":
+                    if float(_ort4.bevoelkerung) < menge:
+                        return False
+                    continue
+                if float((_ort4.vorraete or {}).get(stoff, 0.0)) < menge:
                     return False
             return True
 
         krieger = next((k for k, u in gs.units.items()
                         if u.rolle == "kaempfer" and bezahlbar(k)), None)
         check("es gibt eine bezahlbare Kampfeinheit im Spiel", krieger is not None)
-        vorher_anzahl = int(gs.units[krieger].count)
+        for _w in (einheiten.alle()[krieger].get("waren") or []):     # Ausruestung vor Ort
+            _ort4.waren[_w] = 1
+        vorher_anzahl = int((_ort4.einheiten or {}).get(krieger, 0))
         app._train_unit(krieger)
         check("mit der Kriegerakademie laesst sich eine Kampfeinheit ausbilden",
-              int(gs.units[krieger].count) == vorher_anzahl + 1,
-              f"{krieger}: {vorher_anzahl} -> {gs.units[krieger].count}")
+              any(a.get("einheit") == krieger for a in (_ort4.ausbildung or [])),
+              f"{krieger}: Auftraege {_ort4.ausbildung}")
+        gs.spielsekunden = float((_ort4.ausbildung or [{}])[-1].get("ende", 0.0)) + 1.0
+        gs.tick(0.0)
+        check("nach Ablauf der Zeit steht sie im ORTSLAGER (genau einmal)",
+              int((_ort4.einheiten or {}).get(krieger, 0)) == vorher_anzahl + 1,
+              f"{krieger}: {vorher_anzahl} -> {(_ort4.einheiten or {}).get(krieger)}")
         check("dafuer wurde bezahlt, ohne ins Minus zu rutschen", not keine_negativen(gs))
 
         # ------------------------------------------------------------- 5. Auftrag
@@ -266,12 +281,24 @@ def partiedurchlauf():
 
         # ------------------------------------------------------------- 11. Werkstatt
         abschnitt("11. Werkstatt: eine Ware herstellen")
-        check("die gebaute Schmiede fuehrt eine Warteschlange",
-              "schmiede" in gs.werkstatt_schlangen(), str(list(gs.werkstatt_schlangen())))
+        # Teil 6c: die Werkstatt arbeitet VOR ORT (`Settlement.werkstaetten`) und die Ware kommt
+        # nach der Rezeptzeit ins ORTSLAGER (`ort_tick`) — die reichsweite Schlange gibt es fuer
+        # die Herstellung nicht mehr.
+        _ort11 = gs.aktive_siedlung()
+        check("die gebaute Schmiede steht VOR ORT",
+              werkstatt.werkstaetten_bestand([_ort11]).get("schmiede", 0) > 0,
+              str(werkstatt.werkstaetten_bestand([_ort11])))
         ware = next((w for w in werkstatt.waren_der_werkstatt("schmiede")
                      if gs.ware_voraussetzung(w)[0]), None)
         check("es gibt eine Ware mit erfuellter Voraussetzung", ware is not None, str(ware))
-        check("sie laesst sich einreihen", app._ware_herstellen("schmiede", ware) is True)
+        for _stoff in gs.resources:                      # Werkstattkosten liegen im Ortslager
+            _ort11.vorraete[_stoff] = max(float(_ort11.vorraete.get(_stoff, 0.0)), 5000.0)
+        check("sie laesst sich einreihen", app._ware_herstellen(ware) is True)
+        check("die Ware steht in der Warteschlange DIESES Ortes",
+              any(a.get("ware") == ware
+                  for s in (_ort11.werkstaetten or {}).values()
+                  for a in (s.get("auftraege") or [])),
+              str(_ort11.werkstaetten))
         if ware and not werkstatt.dauer_sekunden(ware, 1):
             befund(f"Ware '{ware}' ohne belegte Dauer",
                    "das Handbuch nennt fuer sie keine Bauzeit — sie bleibt wartend in der "

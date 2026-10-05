@@ -407,8 +407,9 @@ check("P14: _karten_bauen zahlt ueber verbrauche_am_ort",
 check("P14: _karten_ausbauen zahlt ueber verbrauche_am_ort",
       _q2.count("verbrauche_am_ort(siedlung, kosten)") >= 2,
       str(_q2.count("verbrauche_am_ort(siedlung, kosten)")))
-check("P14: tick bucht die Produktion je Ort (ertrag_je_ort)",
-      "for res, rate_pro_stunde in self.ertrag_je_ort(siedlung).items():" in _q2)
+check("P14: tick laesst die Ernte JE ORT vom Kern buchen (Teil 6b, genau einmal)",
+      "spieloekonomie.ort_tick(asdict(siedlung), _ab, _bis, levels)" in _q2
+      and "for res, rate_pro_stunde in self.ertrag_je_ort(siedlung).items():" not in _q2)
 check("P14: die Gruendung uebernimmt die Startwerte in das Ortslager",
       "sett.vorraete = dict(start)" in _q2 and "self.state.population = 0.0" in _q2)
 check("P14: eine Kolonie zahlt ihr Startpaket aus dem Lager der Mutter",
@@ -912,6 +913,141 @@ check("P25: die Lageransicht zeigt das Ortslager der aktiven Siedlung",
       and "Einheiten vor Ort:" in _q6)
 check("P25: die bisherigen Listen heissen jetzt ehrlich Reich/Uebergang",
       "Waren (Reich" in _q6 and "Einheiten (Reich" in _q6)
+
+
+abschnitt("P26: Teil 6b - EINE Uhr je Ort (kein Doppelertrag)")
+
+_karte26, _wald26 = karte_und_felder("wald")
+st26 = M.GameState()
+ort26 = M.Settlement(name="Waldort", map_id="kontinent", karte=_karte26,
+                     id=M.siedlung_kennung("spieler", "kontinent", 4, 4))
+st26.settlements.append(ort26)
+_bau_ok, _bau_meldung = M.bauen_auf_karte(ort26, "holzfaeller", _wald26[0])
+check("P26: der Holzfaeller steht (Vorbedingung)", _bau_ok, _bau_meldung)
+_rate26 = st26.ertrag_je_ort(ort26).get("holz", 0.0)
+check("P26: der Ort erzeugt 4 Holz je Stunde", abs(_rate26 - 4.0) < 1e-9, str(_rate26))
+check("P26: die Spieluhr startet bei 0", abs(float(st26.spielsekunden)) < 1e-9,
+      str(st26.spielsekunden))
+_reich26 = float(st26.resources["holz"].amount)
+_leute26 = float(st26.population)
+
+st26.tick(3600)
+check("P26: eine Stunde Spielzeit ist genau eine Stunde auf der Uhr",
+      abs(float(st26.spielsekunden) - 3600.0) < 1e-9, str(st26.spielsekunden))
+check("P26: die Ernte kommt GENAU EINMAL an (nicht doppelt)",
+      abs(float(ort26.vorraete.get("holz", 0.0)) - _rate26) < 1e-9, str(ort26.vorraete))
+check("P26: die Gesamtsicht waechst um DIESELBE Menge (keine zweite Rechnung)",
+      abs(float(st26.resources["holz"].amount) - _reich26 - _rate26) < 1e-9,
+      "%r -> %r" % (_reich26, st26.resources["holz"].amount))
+check("P26: das Produktionsjournal hat genau EINE Zeile je Takt",
+      len(ort26.produktionsjournal) == 1, str(len(ort26.produktionsjournal)))
+check("P26: ... und die Zeile nennt das Fenster der Uhr",
+      abs(ort26.produktionsjournal[0]["ab"]) < 1e-9
+      and abs(ort26.produktionsjournal[0]["bis"] - 3600.0) < 1e-9,
+      str(ort26.produktionsjournal[0]))
+check("P26: der Siedlerzuwachs kommt einmal je Stunde (Handbuch: 1 je Siedlung)",
+      abs(float(ort26.bevoelkerung) - 1.0) < 1e-9, str(ort26.bevoelkerung))
+check("P26: die Gesamtsicht waechst um denselben Siedler (kein zweiter Zuwachs)",
+      abs(float(st26.population) - _leute26 - 1.0) < 1e-9,
+      "%r -> %r" % (_leute26, st26.population))
+
+st26.tick(1800)
+st26.tick(1800)
+check("P26: zwei halbe Takte ernten dasselbe wie ein ganzer",
+      abs(float(ort26.vorraete.get("holz", 0.0)) - 2 * _rate26) < 1e-9, str(ort26.vorraete))
+check("P26: das Journal hat jetzt drei Zeilen (ein Eintrag je Takt)",
+      len(ort26.produktionsjournal) == 3, str(len(ort26.produktionsjournal)))
+check("P26: die Uhr steht auf zwei Stunden",
+      abs(float(st26.spielsekunden) - 7200.0) < 1e-9, str(st26.spielsekunden))
+
+pfad_u = temp("uhr_rundlauf.json")
+check("P26: der Stand wird geschrieben", bool(st26.save(pfad_u)))
+st27 = M.GameState()
+check("P26: der Stand wird geladen", st27.load(pfad_u) is True)
+check("P26: die Spieluhr ueberlebt Speichern und Laden",
+      abs(float(st27.spielsekunden) - 7200.0) < 1e-9, str(st27.spielsekunden))
+check("P26: das Journal des Ortes ueberlebt es ebenfalls",
+      len(st27.settlements[0].produktionsjournal) == 3,
+      str(len(st27.settlements[0].produktionsjournal)))
+
+import json as _json7  # noqa: E402
+_roh7 = _json7.load(open(pfad_u, encoding="utf-8"))
+_roh7.pop("spielsekunden", None)
+_json7.dump(_roh7, open(pfad_u, "w", encoding="utf-8"))
+st28 = M.GameState()
+check("P26: ein Spielstand OHNE die Uhr laedt weiter (kein Absturz)", st28.load(pfad_u) is True)
+check("P26: ... und beginnt dann bei 0", abs(float(st28.spielsekunden)) < 1e-9,
+      str(st28.spielsekunden))
+
+check("P26: `tick` bucht die Ernte nicht mehr selbst (eine Formel statt zweier)",
+      "rate_pro_stunde * dt_h" not in _q6)
+check("P26: der Siedlerzuwachs wird nicht mehr in `tick` gerechnet",
+      "siedler_zuwachs_pro_stunde(self.settlements, levels) * dt_h" not in _q6)
+check("P26: der Kern ist die Quelle der Ernte im Takt",
+      "spieloekonomie.ort_tick(asdict(siedlung), _ab, _bis, levels)" in _q6)
+
+
+abschnitt("P27: Teil 6c - Ware und Ausbildung VOR ORT (der Kern rechnet, nicht mehr das Reich)")
+
+_karte27, _ = karte_und_felder("grasland", anzahl=3)
+check("P27: eine Karte fuer die Werkstatt ist da", _karte27 is not None)
+st29 = M.GameState()
+ort29 = M.Settlement(name="Werkdorf", map_id="kontinent", karte=_karte27,
+                     id=M.siedlung_kennung("spieler", "kontinent", 6, 6))
+st29.settlements.append(ort29)
+_feld29 = next((i for i, a in enumerate(_karte27["raster"])
+                if M.gelaende.bau_moeglich("schmiede", a)[0]), None)
+check("P27: es gibt ein Feld fuer die Schmiede", _feld29 is not None, str(_feld29))
+_bau29, _meld29 = M.bauen_auf_karte(ort29, "schmiede", _feld29)
+check("P27: die Schmiede steht VOR ORT", _bau29, _meld29)
+ort29.vorraete = {r: 5000.0 for r in M.RESOURCES}
+# Die Waren-Voraussetzungen (Forschung) sind hier nicht der Pruefgegenstand - dieser Test prueft
+# Warteschlange und Ankunft VOR ORT. Deshalb die Forschung freischalten, damit das Schwert (die
+# EINZIGE Ware mit belegter Dauer: 1200 s) wirklich herstellbar ist.
+for _r29 in st29.research.values():
+    _r29.level = int(_r29.max_level)
+
+app29 = M.NebelseetalApp.__new__(M.NebelseetalApp)
+app29.state = st29
+app29.content = None
+app29._log = lambda msg: st29.log.append(msg)
+app29._render_view = lambda: None
+
+# Das Handbuch belegt die Dauer nur fuer EINE Ware - eine Ware ohne Dauer bleibt ehrlich wartend.
+_kand29 = [w for w in M.werkstatt.waren_der_werkstatt("schmiede")
+           if st29.ware_voraussetzung(w)[0]]
+ware29 = next((w for w in _kand29 if M.werkstatt.dauer_sekunden(w, 1)), None)
+check("P27: es gibt eine Ware mit erfuellter Voraussetzung UND belegter Dauer",
+      ware29 is not None, str(_kand29))
+_waren_reich_vorher = {k: int(v) for k, v in (st29.waren or {}).items()}
+check("P27: sie laesst sich VOR ORT einreihen", app29._ware_herstellen(ware29) is True)
+check("P27: ... und steht in der Warteschlange DIESES Ortes",
+      any(a.get("ware") == ware29 for s in (ort29.werkstaetten or {}).values()
+          for a in (s.get("auftraege") or [])), str(ort29.werkstaetten))
+
+_ort29_vorher = int((ort29.waren or {}).get(ware29, 0))
+st29.spielsekunden = float(st29.spielsekunden) + float(M.werkstatt.dauer_sekunden(ware29, 1)) + 1.0
+st29.tick(0.0)
+check("P27: nach der Rezeptzeit liegt die Ware im ORTSLAGER",
+      int((ort29.waren or {}).get(ware29, 0)) == _ort29_vorher + 1, str(ort29.waren))
+check("P27: der Takt meldet sie zurueck (dafuer wird neu gezeichnet)",
+      any(ware29 in z for z in st29.log[-3:]), str(st29.log[-3:]))
+check("P27: das Warenlager des REICHS bleibt unberuehrt (nur der Ort arbeitet)",
+      {k: int(v) for k, v in (st29.waren or {}).items()} == _waren_reich_vorher,
+      str(st29.waren))
+st29.tick(0.0)
+check("P27: ein zweiter Takt bucht die Ware NICHT noch einmal",
+      int((ort29.waren or {}).get(ware29, 0)) == _ort29_vorher + 1, str(ort29.waren))
+
+_q7 = open(os.path.join(SRC, "main.py"), encoding="utf-8").read()
+check("P27: die Herstellung geht ueber den Kern (ware_start)", "spieloekonomie.ware_start(" in _q7)
+check("P27: die Ausbildung geht ueber den Kern (ausbildung_start)",
+      "spieloekonomie.ausbildung_start(" in _q7)
+check("P27: der Altpfad 'sofort hochzaehlen' ist verschwunden", "u.count += 1" not in _q7)
+check("P27: die Herstellung nutzt NICHT mehr die reichsweite Schlange",
+      "self.state.werkstatt_schlangen().get(kennung)" not in _q7)
+check("P27: die Kaserne zeigt beide Zahlen (vor Ort UND Reich)",
+      "Anzahl: {_lokal_k} vor Ort \u00b7 Reich: {u.count}" in _q7)
 
 
 sys.exit(bericht())

@@ -348,11 +348,25 @@ def main_() -> int:
               f"{len(ks)} Knoepfe")
         if ks:
             # Die guenstigste bezahlbare Einheit nehmen (Kampfeinheiten kosten Gold).
-            vorher = sum(u.count for u in st.units.values())
+            # Teil 6c: Kosten, Siedler und Ausruestung liegen VOR ORT, und die Einheit entsteht am
+            # Ende der Ausbildungszeit im Ortslager (`ort_tick`) — nicht mehr sofort im Reich.
+            _ort_s = st.aktive_siedlung()
+            for _k in st.resources:
+                _ort_s.vorraete[_k] = max(float(_ort_s.vorraete.get(_k, 0.0)), 5000.0)
+            _ort_s.bevoelkerung = max(float(_ort_s.bevoelkerung), 100.0)
+            vorher = sum(int(v) for v in (_ort_s.einheiten or {}).values())
             ks[0].invoke()
             tick()
-            nachher = sum(u.count for u in st.units.values())
-            check("ein Knopfdruck bildet GENAU eine Einheit aus", nachher == vorher + 1,
+            check("der Knopfdruck gibt genau EINEN Ausbildungsauftrag vor Ort",
+                  len(_ort_s.ausbildung or []) == 1, str(_ort_s.ausbildung))
+            if _ort_s.ausbildung:          # die Spieluhr bis ans Ende stellen, dann der ECHTE Takt
+                st.spielsekunden = float(_ort_s.ausbildung[-1].get("ende", 0.0)) + 1.0
+                st.last_tick = time.time() - 1.0
+                app._tick_loop()           # tick -> bucht die Einheit vor Ort -> zeichnet neu
+            tick()
+            nachher = sum(int(v) for v in (_ort_s.einheiten or {}).values())
+            check("nach der Ausbildungszeit steht GENAU eine neue Einheit im Ortslager",
+                  nachher == vorher + 1,
                   f"{vorher} -> {nachher} | Status: {app.lbl_status.cget('text')[:80]}")
             check("die neue Einheit ist im Fenster zu sehen",
                   any("Anzahl: 1" in z for z in _texte(app.root)),

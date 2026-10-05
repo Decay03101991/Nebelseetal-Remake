@@ -158,16 +158,26 @@ check("ein frisches Spiel startet mit 10 Siedlern (Handbuch S. 7)",
 st.tick(3600)
 check("ohne Siedlung waechst die Bevoelkerung nicht", st.population == 10.0, str(st.population))
 
+# Teil 6b: die Siedler wachsen IM ORT (`ort_tick`), die Gesamtsicht wird nur um diese Zuwaechse
+# nachgefuehrt (Spiegel = Uebergangsrest + Zuwaechse der Ortslager; die 10 Start-Siedler wurden
+# hier direkt in den Ort gesetzt, der Uebergangsrest ist 0). Deshalb stehen im Ort die ABSOLUTEN
+# Zahlen und in der Gesamtsicht die ZUWAECHSE — beide Ansichten erzaehlen dieselbe Geschichte.
+mit_haus.bevoelkerung = 10.0
+st.population = 0.0
 st.settlements.append(mit_haus)
 st.tick(3600)
-check("mit einem Haus sind es nach einer Stunde 11 Siedler",
-      round(st.population, 2) == 11.0, str(st.population))
+check("mit einem Haus sind es nach einer Stunde 11 Siedler IM ORT",
+      round(float(mit_haus.bevoelkerung), 2) == 11.0, str(mit_haus.bevoelkerung))
+check("die Gesamtsicht waechst um genau diesen einen Zuwachs",
+      round(st.population, 2) == 1.0, str(st.population))
 check("die Siedlergrenze steht im Spielstand auf 15", st.max_population == 15,
       str(st.max_population))
 for _ in range(6):
     st.tick(3600)
-check("die Bevoelkerung bleibt an der Grenze stehen (15)",
-      round(st.population, 2) == 15.0, str(st.population))
+check("die Bevoelkerung bleibt an der Grenze des Ortes stehen (15)",
+      round(float(mit_haus.bevoelkerung), 2) == 15.0, str(mit_haus.bevoelkerung))
+check("... und die Gesamtsicht ist um dieselben fuenf Zuwaechse mitgewachsen (5)",
+      round(st.population, 2) == 5.0, str(st.population))
 _ok_zwei, _meld_zwei = M.bauen_auf_karte(mit_haus, "haus", gras[1])
 check("ein zweites Haus hebt die Grenze dieser Siedlung auf 20",
       _ok_zwei and W.bevoelkerungsgrenze(st.settlements) == 20,
@@ -327,6 +337,14 @@ check("und der Grund steht im Protokoll",
       any("Kriegerakademie" in z for z in spiel2.log[-2:]), str(spiel2.log[-2:]))
 
 spiel2.settlements.append(militaer)
+# Teil 6b/6c: Siedler, Rohstoffe und Ausruestung liegen IM ORT — `ausbildung_start` liest das
+# Ortslager, und die Einheit entsteht dort. Die Pruefung stellt deshalb dieselbe Datenlage VOR ORT
+# her, die die Regeln fordern (data/units.json): der Krieger kostet 1 Siedler, 500 Gold und
+# 1 Pferd — nicht Holz und Stein. Fehlt eine dieser Waren, sagt der Kern „Lokales Lager reicht
+# nicht." und bildet nichts aus.
+militaer.bevoelkerung = 500.0
+militaer.vorraete = {r: 5000.0 for r in M.RESOURCES}
+militaer.waren = {}
 app2._train_unit("Krieger")
 # NEU (Vorgabe Daniel 05.10.2026): mit Staette allein wird NICHT mehr ausgebildet — es fehlen
 # Forschung (Kriegskunst 3) und Ausruestung (Schwert + Kettenhemd). Beides steht in
@@ -347,21 +365,35 @@ check("und der Grund nennt die fehlende Ware mit Soll/Ist",
       str(spiel2.log[-2:]))
 
 # Erst Forschung UND Lager: jetzt wird ausgebildet, und die Waren werden verbraucht.
-spiel2.waren["Schwert"] = 1
-spiel2.waren["Kettenhemd"] = 1
+militaer.waren["Schwert"] = 1
+militaer.waren["Kettenhemd"] = 1
 app2._train_unit("Krieger")
 check("mit Forschung UND Ausruestung wird der Krieger ausgebildet",
-      spiel2.units["Krieger"].count == 1, str(spiel2.units["Krieger"].count))
-check("die Ausruestung ist verbraucht (Schwert und Kettenhemd auf 0)",
-      spiel2.waren["Schwert"] == 0 and spiel2.waren["Kettenhemd"] == 0,
-      f"Schwert {spiel2.waren['Schwert']}, Kettenhemd {spiel2.waren['Kettenhemd']}")
-check("und der Siedleranteil kommt von der Bevoelkerung (Handbuch S. 10)",
-      spiel2.population < 500.0, str(spiel2.population))
+      any(a.get("einheit") == "Krieger" for a in militaer.ausbildung),
+      str(militaer.ausbildung))
+check("die Ausruestung VOR ORT ist verbraucht (Schwert und Kettenhemd auf 0)",
+      militaer.waren.get("Schwert", 0) == 0 and militaer.waren.get("Kettenhemd", 0) == 0,
+      f"Schwert {militaer.waren.get('Schwert')}, Kettenhemd {militaer.waren.get('Kettenhemd')}")
+check("und der Siedleranteil kommt von der Bevoelkerung des Ortes (Handbuch S. 10)",
+      militaer.bevoelkerung < 500.0, str(militaer.bevoelkerung))
+
+# Die Einheit entsteht erst AM ENDE der Ausbildungszeit, gebucht von `ort_tick` (Teil 6b/6c).
+check("vor Ablauf der Zeit steht noch keine Einheit im Ortslager",
+      int((militaer.einheiten or {}).get("Krieger", 0)) == 0,
+      str(militaer.einheiten))
+spiel2.spielsekunden = float(militaer.ausbildung[-1]["ende"]) + 1.0
+spiel2.tick(0)
+check("nach Ablauf steht der Krieger im ORTSLAGER (genau einmal)",
+      int((militaer.einheiten or {}).get("Krieger", 0)) == 1, str(militaer.einheiten))
+spiel2.tick(0)
+check("... und ein zweiter Takt bucht ihn NICHT noch einmal",
+      int((militaer.einheiten or {}).get("Krieger", 0)) == 1, str(militaer.einheiten))
 
 # Einheiten ohne Voraussetzung und ohne Waren bleiben sofort ausbildbar.
 app2._train_unit("Bürgerwehr")
 check("die Buergerwehr braucht weder Forschung noch Ware (data/units.json)",
-      spiel2.units["Bürgerwehr"].count == 1, str(spiel2.units["Bürgerwehr"].count))
+      any(a.get("einheit") == "Bürgerwehr" for a in militaer.ausbildung),
+      str(militaer.ausbildung))
 
 
 # ==========================================================================

@@ -246,8 +246,9 @@ def pruefen():
               f"Auftraege {sorted(app.state.forschungsauftraege)}")
 
         # Ausbildung: Kriegerakademie bauen, dann eine Einheit ausbilden.
-        # Vorgabe Daniel 05.10.2026: Forschung UND Ausruestung sind Bedingungen. Der Test legt
-        # deshalb genau die Datenlage her, die die Daten fordern (data/units.json).
+        # Vorgabe Daniel 05.10.2026: Forschung UND Ausruestung sind Bedingungen. Teil 6c: Rohstoffe,
+        # Siedler und Ausruestung liegen VOR ORT (`Settlement.vorraete/bevoelkerung/waren`) — und die
+        # Einheit entsteht erst AM ENDE der Ausbildungszeit im Ortslager, gebucht von `ort_tick`.
         f_aka = freies_feld("kriegerakademie")
         app._karten_feld_waehlen(f_aka)
         app._karten_bauen("kriegerakademie")
@@ -258,26 +259,37 @@ def pruefen():
         _vor = (_roh.get("voraussetzung") or {}).get("forschung")
         if _vor:
             app.state.research[_vor].level = int(_roh["voraussetzung"]["stufe"])
+        _ort_g = app.state.aktive_siedlung()
+        for _stoff in app.state.resources:                      # die belegten Kosten vor Ort
+            _ort_g.vorraete[_stoff] = max(float(_ort_g.vorraete.get(_stoff, 0.0)), 5000.0)
+        _ort_g.bevoelkerung = max(float(_ort_g.bevoelkerung), 20.0)
         for _ware in (_roh.get("waren") or []):
-            app.state.waren[_ware] = 1
-        anzahl_vorher = app.state.units[einheit_key].count
+            _ort_g.waren[_ware] = 1
+        anzahl_vorher = int((_ort_g.einheiten or {}).get(einheit_key, 0))
         app._train_unit(einheit_key)
         tick()
         aktionen += 1
-        check("Ausbildung erhoeht die Anzahl der Einheit",
-              app.state.units[einheit_key].count == anzahl_vorher + 1,
-              f"{einheit_key}: {anzahl_vorher} -> {app.state.units[einheit_key].count}")
+        check("die Ausbildung steht als Auftrag VOR ORT",
+              any(a.get("einheit") == einheit_key for a in (_ort_g.ausbildung or [])),
+              str(_ort_g.ausbildung))
+        # Die Spieluhr vorstellen: danach bucht `ort_tick` die Einheit ins Ortslager (genau einmal).
+        app.state.spielsekunden = float((_ort_g.ausbildung or [{}])[-1].get("ende", 0.0)) + 1.0
+        app.state.tick(0.0)
+        tick()
+        check("Ausbildung erhoeht die Anzahl der Einheit IM ORTSLAGER",
+              int((_ort_g.einheiten or {}).get(einheit_key, 0)) == anzahl_vorher + 1,
+              f"{einheit_key}: {anzahl_vorher} -> {(_ort_g.einheiten or {}).get(einheit_key)}")
 
         # Und die Sperre wirkt: ohne die Ausruestung gibt es keine zweite Einheit.
         for _ware in (_roh.get("waren") or []):
-            app.state.waren[_ware] = 0
+            _ort_g.waren[_ware] = 0
         if _roh.get("waren"):
-            _vorher = app.state.units[einheit_key].count
+            _vorher = int((_ort_g.einheiten or {}).get(einheit_key, 0))
             app._train_unit(einheit_key)
             tick()
             check("ohne Ausruestung wird KEINE weitere Einheit ausgebildet",
-                  app.state.units[einheit_key].count == _vorher,
-                  f"{einheit_key}: {_vorher} -> {app.state.units[einheit_key].count}")
+                  int((_ort_g.einheiten or {}).get(einheit_key, 0)) == _vorher,
+                  f"{einheit_key}: {_vorher} -> {(_ort_g.einheiten or {}).get(einheit_key)}")
 
         # Speichern
         app._save()
