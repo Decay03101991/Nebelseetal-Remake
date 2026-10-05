@@ -57,7 +57,7 @@ auf `cleared` gesetzt (Grund im Datensatz, kein fremdes aktives Ziel). Die neue 
 
 ---
 
-## 0c. Stand (05.10.2026, 17:00, fortgeschrieben 18:30, 20:40 und 20:51 — mit `date`, `git log`, Sammellauf und Startprüfung geprüft)
+## 0c. Stand (05.10.2026, 17:00, fortgeschrieben 18:30, 20:40, 20:51 und 21:12 — mit `date`, `git log`, Sammellauf und Startprüfung geprüft)
 
 > ### NEU: Schritt 31 fertig · Daniels Richtungsentscheidung · zwei starke Modellläufe ausgewertet
 >
@@ -142,9 +142,9 @@ nach Daniels Spielbericht — den **Zeitfaktor** samt sichtbarem Rohstoffeingang
 | `.exe` | **05.10. 13:41 gebaut** (Dateizeitstempel `13:41:04`): **14.531.774 Byte**, SHA256 `bffd3c444d6eb1433b14c1b7a768946cc45bdc1d8511332bca0de33bc7a85ed3`, aus `C:\Users\saras` startgeprüft (ein Fenster, genau eine Instanz) — **enthält Zeitfaktor, Rohstoff-Warnung und Geländeregeln** (Schritte 27 und 28). Ältere Fassungen: 13:29 (14.524.603 Byte, `1fad511d…`, Geländeregeln) · 12:38 (14.524.225 Byte, `63b09fbf…`). `build/`, `dist/`, `.spec`, `__pycache__` sind aufgeräumt, genau eine EXE im Projektordner. **Wichtig:** nur diese Fassung zeigt Tempo und Warnung — wer mit einer älteren spielt, sieht den Zeitfaktor nicht |
 | Guthaben | **von Daniel abgelesen am 05.10. um 13:48: OpenAI 2,17 USD · DeepSeek 4,06 USD** (11:00: 2,66 / 4,97 → im Nachmittag 0,49 bzw. 0,91 USD verbraucht). **Gemessener Tagesverbrauch laut `scripts/tageskosten_check.py`: 4,13 USD ≈ 3,68 EUR über 23 Sitzungen und 4 Modelle = 80 % des harten Tageslimits (4 EUR) — Lage „WARNUNG".** Für die nächste Sitzung heißt das: **keine teuren Aufrufe ohne Begründung**, Kinder und Prüfer nur auf `deepseek-flash`, Bilddeutungen (astra) nur, wenn es wirklich nicht anders geht. **Beobachtung zum Messskript:** es meldete zwischen 13:45 und 13:48 nur +0,005 USD, während Daniels Guthabenanzeige um **0,19 USD** fiel — die Schätzung läuft der Anbieterwahrheit nach. **Maßgeblich ist die Guthabenanzeige des Anbieters, nicht die Schätzung** |
 
-### Der EINE nächste Schritt (Stand 05.10.2026, 20:51 — Schritt 9 läuft: **Teil 1 und 2 fertig, nächster ist Teil 3, die lokalen Lager**)
+### Der EINE nächste Schritt (Stand 05.10.2026, 21:12 — Schritt 9 läuft: **Teile 1 bis 3a fertig (die Ortslager führen), nächster ist Teil 3b, die Anzeige**)
 
-**Der nächste Schritt jetzt:** **Schritt 9, Teil 3 — die lokalen Lager führen und die Siedlungskarte darauf umstellen.** Die fünfzehn Ortsfelder sind angelegt, aber **leer**; solange sie leer sind, kann kein Rückruf auf sie umgestellt werden (`transport_start`, `verbrauchen`, `ware_start` prüfen ihre Deckung im lokalen Lager und würden jede Zahlung ablehnen). Deshalb zuerst: die erste Siedlung übernimmt die belegten Startwerte (10 Siedler, 100 Holz, 100 Stein) in ihr eigenes Lager, die **lokalen Lager sind führend** und die globalen Werte werden nur noch **abgeleitet** (`_global_aus_orten()`), `aktive_siedlung_id` steuert jede Zahlung der Siedlungskarte (`verbrauchen` gegen diesen Ort), und die Anzeige trennt „lokal" und „Gesamtreich". **Erwartet:** der betroffene Einzeltest grün, der **Sammellauf** weiter ohne Fehler, eine **Protokollzeile**, `python tools/protokoll_sichern.py --protokoll` und ein kleiner Commit — Teil für Teil. Danach die Teile 4–7 (`_transport_to_settlement` vollständig ersetzen, `_found_settlement` mit Kartenauswahl und `absicht`, `_ware_herstellen`/`_train_unit`/`_start_research`, `_trade`) und zuletzt Speicherung/Migration; **erst danach** Schritt 10 (`tick_bis` und die Aktivierung, Entwurf Z. 791-1018). Die Reihenfolge im Einzelnen steht im Kontext-Paket, Abschnitt 2, jede Zeile mit ihrer Entwurfsstelle.
+**Der nächste Schritt jetzt:** **Schritt 9, Teil 3b — die Anzeige trennen („lokal" und „gesamtes Reich").** Seit Teil 3a führen die Ortslager (`Settlement.vorraete`/`bevoelkerung`); die Seitenleiste und die Siedlungsliste zeigen aber weiter nur die Gesamtsicht, sodass eine Zahl nicht mehr bedeutet, was sie sagt. Zu tun: je Ort „lokal: …" neben „Reich: …", den Ortsbestand in der Siedlungskarte hervorheben und beide Ansichten im Spielstand speichern und laden (Rundlauf prüfen). **Erwartet:** der betroffene Einzeltest grün, der **Sammellauf** weiter ohne Fehler, eine **Protokollzeile**, `python tools/protokoll_sichern.py --protokoll` und ein kleiner Commit. Danach die Teile 4-7 (`_transport_to_settlement` vollständig ersetzen, `_found_settlement` mit Kartenauswahl/`absicht`/Preis, `_ware_herstellen`/`_train_unit`/`_start_research` je Ort, `_trade`) und zuletzt `_unlock_next_map` + Migration; **erst danach** Schritt 10 (`tick_bis` und die Aktivierung, Entwurf Z. 791-1018). Einzelheiten je Zeile: `docs/KONTEXT_PAKET.md`, Abschnitt 2, und Entwurf Z. 755-789.
 
 **Das Gesamtpaket** hat der Auftraggeber ausdrücklich so entschieden („das ganze Paket in der
 Reihenfolge des Papiers — kein Halbumbau"): zuerst die vier Handbuch-Korrekturen, dann die neun
@@ -181,7 +181,7 @@ Teil 3 (lokale Lager) ist der nächste Schritt, danach die Teile 4–7 und Schri
 | 6 | Forschung je Siedlung: `forschung_start`, `forschung_abschluss` | **fertig** | `1d64cd6`, `c590951` · `test_lokale_forschung` **47/0/0**, Audit `pruefung_schritt6.md` ohne verhaltensrelevante Abweichung |
 | 7 | Zielprüfung und Haltefenster (`zielstatus`) | **fertig** | `a2b6531`, `52` · `test_versorgungsziel` **69/0/0**; Audit fand zwei echte Beanstandungen an meinem Code, beide behoben |
 | 8 | Bot-Planung (8a) · Handels-Paar `handel_start`/`handel_abschluss` (8b) | **beide fertig** | 8a: `3785b5d` · `test_botkern` **90/0/0** (botkern bleibt reines ASCII) · 8b: `25466f5` · `test_handel_transaktion` **101/0/0**, Sammellauf **3654/0/21** über 51 Dateien |
-| 9 | `main`-Anbindung und Migration | **läuft: Teil 1 und 2 fertig** | 9.1 `c099c4e` (Felder, Ort-Kennung) · 9.2 `1ce4ae3` (Punkte, Stationier-Fehler behoben) · `test_oekonomie_einhaengung` **88/0/1**, Sammellauf **3742/0/22** über 52 Dateien · **Teil 3 (lokale Lager) offen** |
+| 9 | `main`-Anbindung und Migration | **läuft: Teile 1-3a fertig** | 9.1 `c099c4e` (Felder, Ort-Kennung) · 9.2 `1ce4ae3` (Punkte, Stationier-Fehler behoben) · `test_oekonomie_einhaengung` **88/0/1**, Sammellauf **3742/0/22** über 52 Dateien · **Teil 3 (lokale Lager) offen** |
 | 10 | Ereignisschleife `tick_bis` und Aktivierung | offen | — |
 
 **Aus Schritt 5 ist bewusst noch NICHT gebaut:** die Umstellung der `main`-Uhr auf `spielsekunden`
@@ -320,7 +320,7 @@ nicht · die Uhr ist gemischt). Die reine Kostenregel steht im Sitzungsgedächtn
 liegt jetzt bei **2665**. Wer eine feste Sollzahl aufschreibt, erzeugt Falschalarm; verbindlich ist
 **0 Fehler**, nicht die Summe.
 
-## 0e. Übergabe an die nächste Sitzung (05.10.2026, 20:51 — mit `date`, Sammellauf, `.exe`-Startprüfung, `git log` und Kostenmessung belegt)
+## 0e. Übergabe an die nächste Sitzung (05.10.2026, 21:12 — mit `date`, Sammellauf, `.exe`-Startprüfung, `git log` und Kostenmessung belegt)
 
 ### Startzeile zum Kopieren
 
@@ -346,12 +346,12 @@ So erzeugt (Werkzeug, startet nichts): `python tools/zieluebergabe.py --startzei
 
 | Was | Beleg (gemessen, nicht geschätzt) |
 |---|---|
-| **Sammellauf** | **3742 bestanden, 0 Fehler, 22 Befunde über 52 Dateien**, 20:48, 109 s (`…/cache/scratch/sammellauf.py`) — Teil 9.1 brachte +74, Teil 9.2 +14; der 22. Befund ist der ehrlich benannte Lager-Befund der stationierten Truppe |
-| **Arbeitsbaum** | **sauber** — `git status --short` ist leer; letzter Commit **`1ce4ae3`** (Schritt 9, Teil 2) |
-| **`.exe`** | **14.612.879 Byte**, SHA256 `bc20441748adca2881fdce34acceb4339075f6d802a5fa6f1331bec846c18213`, Dateizeitstempel **20:49:57**; startgeprüft aus `…\cache\scratch\exestart` (anderer Ordner): Fenstertitel **„Nebelseetal Remake"**, antwortet bei **+10/+20/+40 s**, **0** Fehlerberichte (WerFault), danach **0 offene Spielprozesse**, Startordner leer. Sie enthält die Änderungen aus Schritt 9, Teil 1 und 2 **im Spiel wirksam** (Punktestand und Stationieren) |
+| **Sammellauf** | **3775 bestanden, 0 Fehler, 22 Befunde über 52 Dateien**, 21:1x, 105 s — Teil 9.1 +74, 9.2 +14, **9.3a +33**; der 22. Befund ist der ehrlich benannte Lager-Befund der stationierten Truppe |
+| **Arbeitsbaum** | **sauber** — `git status --short` ist leer; letzter Commit **`a0d432d`** (Schritt 9, Teil 3a) |
+| **`.exe`** | **14.618.766 Byte**, SHA256 `799c8a68bdca7fe3638c3dcbffb59c975830d140be3c46c2ae285b6b41f86730`, Dateizeitstempel **21:09:43**; startgeprüft aus `…\cache\scratch\exestart` (anderer Ordner): Fenstertitel **„Nebelseetal Remake"**, antwortet bei **+10/+20/+40 s**, **0** Fehlerberichte (WerFault), danach **0 offene Spielprozesse**, Startordner leer. Sie enthält die Änderungen aus Schritt 9, Teil 1 und 2 **im Spiel wirksam** (Punktestand und Stationieren) |
 | **Sicherung** | `docs/SICHERUNGEN.md` — **16 Dateien** mit Prüfsummen, 20:50 (`protokoll_sichern.py --protokoll`, projektunabhängige Kopie unter `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\`) |
 | **Zielregister** | nur **diese** Sitzung aktiv (**1/20 Takte**, `20261005_201518_d2b523`), **kein fremdes aktives Ziel** (`--pruefen` → rc=0) |
-| **Kosten** | **Tagesmessung 6,59 EUR von 4,00 EUR = ÜBER dem harten Limit** (7,40 USD). **Daniel hat den Auftrag um 20:20 freigegeben** — nur `deepseek-flash`, kein teures Modell, keine Kinder, **1,00 USD DeepSeek bleiben als Reserve**. Gemessener Anteil dieser Sitzung: **+0,14 EUR** (6,45 → 6,59) |
+| **Kosten** | **Tagesmessung 6,68 EUR von 4,00 EUR = ÜBER dem harten Limit** (7,40 USD). **Daniel hat den Auftrag um 20:20 freigegeben** — nur `deepseek-flash`, kein teures Modell, keine Kinder, **1,00 USD DeepSeek bleiben als Reserve**. Gemessener Anteil dieser Sitzung: **+0,23 EUR** (6,45 → 6,68) |
 
 ### Der EINE nächste Schritt
 
@@ -368,7 +368,8 @@ UI-Zustand. **Erwartetes Ergebnis:** Einzeltest grün, Sammellauf weiter **ohne 
 | Schritte **0–7** des Ökonomie-Pakets | Tabelle in 0c; jede Zeile mit Commit `203e2fa` … `eee604e` und Prüfzahlen |
 | Schritt **8b** (Handels-Paar) | `25466f5`, `tests/test_handel_transaktion.py` **101/0/0**, Sammellauf **3654/0/21** über 51 Dateien (20:27) — die Prüfdatei steckt in `run_tests.bat` |
 | Schritt **9, Teil 1** (Felder, Ort-Kennung) | `c099c4e`, `test_oekonomie_einhaengung` **74/0/0**, Sammellauf **3728/0/21** (20:44) |
-| Schritt **9, Teil 2** (Punkte, Stationier-Fehler) | `1ce4ae3`, dieselbe Prüfdatei **88/0/1**, Sammellauf **3742/0/22** über 52 Dateien (20:48); der Befund ist die stationierte Truppe ohne Lager |
+| Schritt **9, Teil 2** (Punkte, Stationier-Fehler) | `1ce4ae3`, dieselbe Prüfdatei **88/0/1**, Sammellauf **3742/0/22** über 52 Dateien (20:48) |
+| Schritt **9, Teil 3a** (Ortslager führen) | `a0d432d`, dieselbe Prüfdatei **121/0/1**, Sammellauf **3775/0/22** über 52 Dateien (21:1x); die 10 Fehler des ersten Laufs sind behoben und im Protokoll benannt |
 | Schritt **8a** (`oekonomie_kartenwahl`, `oekonomie_angebot`) | `3785b5d`, `test_botkern` **90/0/0** (botkern bleibt reines ASCII); die *prüfenden Kinder* dazu wurden gestoppt → **die Prüfdatei fehlt noch** |
 | `test_baseline` war **nur zufällig grün** | behoben 18:17: Haus wird jetzt auf ein Feld gesetzt, wo es stehen darf; **dreimal 40/0/0** belegt, seither kein Ausreißer |
 | `.exe` startet | 20:49:57 gebaut, aus einem anderen Ordner geprüft (Titel, antwortet 10/20/40 s, 0 Fehlerberichte, 0 offene Prozesse) |

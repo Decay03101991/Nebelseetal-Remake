@@ -1,4 +1,4 @@
-# KONTEXT-PAKET — Nebelseetal Remake (Stand 05.10.2026, 20:51 · Zeiten mit `date` geholt)
+# KONTEXT-PAKET — Nebelseetal Remake (Stand 05.10.2026, 21:12 · Zeiten mit `date` geholt)
 
 **Diese Datei ist die Übergabe. Lies SIE zuerst (≈ 10 KB) und sonst nur, was hier als Zeiger steht —
 `docs/PROJEKT_STAND.md` (69 KB) und `docs/ENTWICKLUNGSPROTOKOLL.md` (80 KB) sind Nachschlagewerke,
@@ -11,21 +11,31 @@ Ziel: fertige, fehlerfrei spielbare, passwortgeschützte Einzelspieler-`.exe` (H
 
 | Was | Beleg |
 |---|---|
-| **Sammellauf** | **3742 bestanden · 0 Fehler · 22 Befunde · 52 Dateien** (20:48; `…/cache/scratch/sammellauf.py`, 109 s) |
-| **Arbeitsbaum** | **sauber** (`git status --short` leer), letzter Commit **`1ce4ae3`** — 20:50 |
-| **`.exe`** | **14.612.879 Byte**, SHA256 `bc20441748adca28…`, Dateizeitstempel **20:49:57**; genau **eine** `.exe`, `build/`+`dist/` aufgeräumt; Vorgängerfassung liegt als `…\cache\scratch\exe_alt_2030.exe` |
+| **Sammellauf** | **3775 bestanden · 0 Fehler · 22 Befunde · 52 Dateien** (21:1x; `…/cache/scratch/sammellauf.py`, 105 s) |
+| **Arbeitsbaum** | **sauber** (`git status --short` leer), letzter Commit **`a0d432d`** (Schritt 9, Teil 3a) |
+| **`.exe`** | **14.618.766 Byte**, SHA256 `799c8a68bdca7fe3…`, Dateizeitstempel **21:09:43**; genau **eine** `.exe`, `build/`+`dist/` aufgeräumt; Vorgängerfassung liegt als `…\cache\scratch\exe_alt_2030.exe` |
 | **Startprüfung** | aus `…\hermes\cache\scratch\exestart` (anderer Ordner, Skript `startpruefung_1005_2055.ps1`): Fenstertitel **„Nebelseetal Remake"**, antwortet bei **+10/+20/+40 s**, **0** Fehlerberichte (WerFault), danach **0 offene Spielprozesse**, Startordner leer |
 | **Sicherung** | `docs/SICHERUNGEN.md` — 16 führende Papiere mit Prüfsummen (20:50, projektunabhängige Kopie unter `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\`) |
 | **Zielregister** | nur **diese** Sitzung `20261005_201518_d2b523` aktiv (**0/20 Takte** laut Werkzeug), **kein fremdes aktives Ziel** (`--pruefen` rc=0) |
-| **Kosten** | Tagesmessung **6,59 EUR / 4,00 EUR = „UEBER_LIMIT"** (7,40 USD). **Daniel hat den Auftrag um 20:20 freigegeben** (nur `deepseek-flash`, kein teures Modell, keine Kinder, **1,00 USD DeepSeek bleiben als Reserve**). Gemessener Anteil dieser Sitzung: **+0,14 EUR** (20:15: 6,45 → 20:51: 6,59). Maßgeblich ist DeepSeeks Kontostand (Daniel liest ab: 2,01 USD um 20:20) |
+| **Kosten** | Tagesmessung **6,68 EUR / 4,00 EUR = „UEBER_LIMIT"** (7,40 USD). **Daniel hat den Auftrag um 20:20 freigegeben** (nur `deepseek-flash`, kein teures Modell, keine Kinder, **1,00 USD DeepSeek bleiben als Reserve**). Gemessener Anteil dieser Sitzung: **+0,23 EUR** (20:15: 6,45 → 21:12: 6,68). Maßgeblich ist DeepSeeks Kontostand (Daniel liest ab: 2,01 USD um 20:20) |
 
 `git log --oneline -3` · `git status --short` · `python tools/zieluebergabe.py --pruefen` → alles in Sekunden.
 
 ## 2. Der EINE nächste Schritt
 
-**Schritt 9 läuft — Teile 1 und 2 sind fertig; als Nächstes Teil 3.** Der Auftraggeber hat für diese
-Sitzung „Stück für Stück" entschieden: nach JEDEM Teil Einzeltest + einmal Sammellauf + Protokollzeile
-+ kleiner Commit.
+**Schritt 9 läuft — Teile 1, 2 und 3a sind fertig; als Nächstes Teil 3b.** Der Auftraggeber hat
+„Stück für Stück" entschieden: nach JEDEM Teil Einzeltest + einmal Sammellauf + Protokollzeile +
+kleiner Commit.
+
+**Teil 3b (der nächste Schritt): die ANZEIGE trennen — „lokal" und „gesamtes Reich".** Seit Teil 3a
+liegt der Bestand in den Ortslagern (`Settlement.vorraete`/`bevoelkerung`); die Seitenleiste und die
+Siedlungsliste zeigen aber weiter nur die Gesamtsicht (`GameState.resources`/`population`). Der
+Spieler liest damit eine Zahl, die nicht mehr „Lager dieser Siedlung" bedeutet. Zu tun: in der
+Siedlungsliste je Ort „lokal: …" neben „Reich: …" zeigen, in der Siedlungskarte den Ortsbestand
+hervorheben, und im Spielstand beide Ansichten speichern/laden (Rundlauf prüfen). Danach die
+Teile 4-7 (`_transport_to_settlement` vollständig ersetzen, `_found_settlement` mit Kartenauswahl/
+`absicht`/Preis, `_ware_herstellen`/`_train_unit`/`_start_research` je Ort, `_trade`) und zuletzt
+`_unlock_next_map` + Migration; **erst danach** Schritt 10 (`tick_bis` und die Aktivierung).
 
 **Die Ordnungs-Einsicht, die den Rest bestimmt (beim Bau von Teil 1 gemessen):** die fünfzehn
 Ortsfelder sind angelegt, aber **leer**. Solange sie leer sind, kann KEIN Rückruf auf sie umgestellt
@@ -79,7 +89,7 @@ Rückrufe umstellen.** Vorgeschlagene Reihenfolge (meine Lesart des Entwurfs Z. 
 | 7 | `zielstatus` (Zielprüfung + Haltefenster 24 h) | `a2b6531`, `eee604e` |
 | 8a | `botkern.oekonomie_kartenwahl`, `oekonomie_angebot` | `3785b5d` |
 | 8b | Handels-Paar `handel_start`/`handel_abschluss` + Prüfdatei | `25466f5` · `test_handel_transaktion` **101/0/0** |
-| **9** | **`main`-Anbindung + Migration — TEIL 1 und 2 fertig, Teil 3 als Nächstes** | 9.1: `c099c4e` · 9.2: `1ce4ae3` · `test_oekonomie_einhaengung` **88/0/1** |
+| **9** | **`main`-Anbindung + Migration — TEILE 1-3a fertig, Teil 3b als Nächstes** | 9.1 `c099c4e` · 9.2 `1ce4ae3` · **9.3a `a0d432d`** · `test_oekonomie_einhaengung` **121/0/1** |
 | 10 | `tick_bis` + **Aktivierung** | offen |
 
 **Was Teil 1 und 2 in `src/main.py` wirklich geändert haben:**
@@ -126,6 +136,8 @@ am Ende die `.exe` neu bauen und aus einem **anderen** Ordner startprüfen.
 | `docs/PROJEKT_STAND.md`, Abschnitt „Der EINE nächste Schritt" | darf **kein `###`** enthalten (`test_zieluebergabe`) → Zwischentitel als **Fett**. |
 | Prüf-Fehler ≠ Ausreißer | erst nachsehen, dann abtun (belegte Fälle: zu lockere Prüfung, Haus auf unerlaubtem Feld). |
 | Kinderarbeit | nur `deepseek-flash`; Kindberichte sind kein Beweis. |
+| **Nach einer Lager-Umstellung zählt jede Vorprüfung** | Als die Ortslager führend wurden, lasen die Vorprüfungen in `_karten_bauen`, `_karten_ausbauen` und im Knopf-Text weiter nur den Reichsbestand — der Sammellauf fand **10 echte Fehler** (mit echten Startwerten ließ sich nichts mehr bauen). Regel: nach so einer Umstellung zuerst den Sammellauf, dann **jede** Vorprüfung auf dieselbe Deckungsfrage umstellen. |
+| **Prüfungen mit ECHTEN Startwerten sind die besten Wächter** | `test_startspiel`, `test_durchspiel` und `test_gui_fehler` fanden die Umstellung sofort; Prüfungen, die sich selbst `resources = 100000` setzen, hätten sie nie bemerkt. |
 
 ## 6. Nicht erneut zu prüfen (Beleg + Datum)
 
@@ -136,6 +148,8 @@ am Ende die `.exe` neu bauen und aus einem **anderen** Ordner startprüfen.
 * Die neue `.exe` **startet** (20:49:57, Fenstertitel, antwortet 10/20/40 s, 0 Fehlerberichte, 0
   offene Prozesse) — sie enthält die Feld-/Kennungs-Änderung **und** die Punkt- und
   Stationier-Korrektur.
+* **Schritt 9, Teil 3a** — `a0d432d`, `test_oekonomie_einhaengung` **121/0/1**, Sammellauf **3775/0/22**
+  über 52 Dateien (21:1x). Die neue `.exe` (**21:09:43**) enthält sie **im Spiel wirksam**.
 * Der Sammellauf wird **nur nach einer echten Änderung an `src/`** wiederholt.
 * Fehlend von Schritt 8a: `tests/test_bot_oekonomie.py` und `docs/audits/pruefung_schritt8.md` (zwei
   gestoppte Kinder; Auftragstext in Protokollzeile 53).
