@@ -212,6 +212,11 @@ Handbuch-Korrekturen aus Schritt 0**; startgeprüft aus
 `C:\Users\saras\AppData\Local\hermes\cache\scratch\exestart` (Fenstertitel „Nebelseetal Remake", kein
 Fehlerbericht, danach 0 offene Spielprozesse). Die Schritte 1–5 sind in ihr **noch nicht wirksam** —
 nichts im Spiel ruft `src/spieloekonomie.py` auf.
+**Und der Neubau vom 05.10. um 19:11** (14.580.766 Byte, SHA256
+`59f308bcff84107f90b3bd0dd7be105658d0ebf7245b5ac351b59fb8d94baca9`) — er enthält **Daniels
+Layoutwunsch**: die Bauauswahl steht **rechts neben der Karte** als Liste (eine Zeile je Gebäude),
+und das Fenster wächst mit dem Bildschirm. Startgeprüft aus demselben anderen Ordner (Fenstertitel
+„Nebelseetal Remake", 0 Fehlerberichte, danach 0 offene Spielprozesse).
 
 1. **Erledigt in Schritt 29** — die zwei Feinkarten-Module (`karten_optik_fein`, `welt_optik_fein`)
    sind eingehängt; die Notizen unten bleiben als Nachvollziehbarkeit stehen. astra hat die
