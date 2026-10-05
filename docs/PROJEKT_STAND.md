@@ -36,6 +36,9 @@ VORRANG.
 **Erste Handlung der neuen Sitzung:** `python tools/zieluebergabe.py --pruefen` (0 = kein fremdes Ziel).
 **Vor dem Sammellauf keine Spielprozesse offen lassen** — sonst schlägt die erste Prüfdatei ohne
 Ausgabe fehl (belegt 05.10., siehe Lehre (e) unten).
+**Achtung, zwei Startzeilen:** `tools/zieluebergabe.py --startzeile` liefert eine **allgemeine
+Vorlage**; verbindlich ist die **Startzeile direkt hier oben** (sie kennt den echten nächsten Schritt
+und den Stand von heute).
 
 **Zum eigenen Ziel:** das Ziel dieser Sitzung (`20261005_104846_864c4b`) ist **sauber beendet**
 (`cleared`, Grund im Datensatz, gesetzt 13:44 mit `tools/zieluebergabe.py --beenden`). Es läuft
@@ -78,10 +81,10 @@ nach Daniels Spielbericht — den **Zeitfaktor** samt sichtbarem Rohstoffeingang
 
 ### Der EINE nächste Schritt
 
-1. **Die `.exe` neu bauen** (`tools/build_exe.py`) und aus einem anderen Ordner startprüfen — die
-   neuen Geländeregeln stehen in `data/buildings.json` und sind **erst nach dem Neubau im Spiel**;
-   danach `build`, `dist`, `*.spec`, `__pycache__` aufräumen (genau eine EXE im Projektordner).
-2. **Die zwei Feinkarten-Module einhängen** (`karten_optik_fein`, `welt_optik_fein`). astra hat die
+**Erledigt und nicht zu wiederholen:** der `.exe`-Neubau nach den Geländeregeln — **gebaut am
+05.10. um 13:41:04** (14.531.774 Byte, SHA256 `bffd3c44…`), aus `C:\Users\saras` startgeprüft.
+
+1. **Die zwei Feinkarten-Module einhängen** (`karten_optik_fein`, `welt_optik_fein`). astra hat die
    Zahlen geliefert: Baukörper 44×46 px, Dach 38×16, Sockel 36×5, Tür 6×10, Fenster 4×5 (#875241/
    #59382F/#C0AD86/#8F795C) · Uferband 3–5 px #999071 nur an echten Land-Wasser-Grenzen · Weg 8 px
    #75674F mit 4 px Innenlinie #A28E69 · Auswahl 5 px #172128 + 2 px #E4C77D + vier 8-px-Eckwinkel ·
@@ -94,9 +97,9 @@ nach Daniels Spielbericht — den **Zeitfaktor** samt sichtbarem Rohstoffeingang
    (c) astra spricht vom **8×7-Raster**, im Projekt gilt `spalten 8 × zeilen 5 = 40 Felder`
    (Frage 12 an Daniel) — die Module nehmen `spalten`/`zeilen` als Parameter, die Zahlen also vom
    Aufrufer übergeben, nie im Modul festlegen.
-3. **Aufgabenkarte für den Einstieg** (Entwurf Abschnitt D): Holzfäller/Steinmetz → Bibliothek →
+2. **Aufgabenkarte für den Einstieg** (Entwurf Abschnitt D): Holzfäller/Steinmetz → Bibliothek →
    Baukunst → Farm/Haus → Schmiedekunst → Schmiede/Nähstube → erste Ware → erste Einheit.
-4. **Offene Entscheidungen für Daniel:** **Zeitfaktor bestätigen** — er ist jetzt gebaut und in den
+3. **Offene Entscheidungen für Daniel:** **Zeitfaktor bestätigen** — er ist jetzt gebaut und in den
    Einstellungen umstellbar (Vorschlag ×180 = 1 Spielstunde in 20 Sekunden; ×1 = Originaltempo) ·
    **die neun Geländeregeln bestätigen oder ändern** (eine
    Zeile je Gebäude in `data/buildings.json`) · **Sieg-/Niederlagebedingung** (heute
