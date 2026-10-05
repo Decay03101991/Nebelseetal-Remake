@@ -41,20 +41,20 @@ Vorgaben aus der Sitzung vom 04.10.2026:
 Lies D:/Arbeiten/Nebelseetal_Remake/docs/PROJEKT_STAND.md (Einstiegspunkt) und übernimm das laufende
 Ziel aus Abschnitt 0. Lies dann NUR das Kontext-Paket aus Abschnitt 0c (eine Seite + zwei
 Dokumentabschnitte + die Zieldatei an der Aufrufstelle) — die Chat-Historie brauchst du nicht.
-Der EINE nächste Schritt steht in Abschnitt 0c. **Stand 05.10.2026, 03:04 (diese Sitzung, gemessen):**
-die Modul-Reihe ist abgeschlossen (`forschung`, `botkern`, `welt` eingehängt, Verdrahtungsprüfer
-17/0/0 — kein Modul mehr offen), das Auftragssystem samt Oberfläche steht, Durchspiel- und
-GUI-Fehler-Prüfung laufen mit, die `.exe` ist gebaut und startgeprüft, das Protokoll ist verdichtet
-(462 → 314 Zeilen, Vor-Fassung aufbewahrt). **Prüfstand: 1929 bestanden, 0 Fehler, 19 Befunde über
-32 Dateien.** Der nächste Schritt ist damit kein Bauen mehr, sondern das **Durchspielen mit Daniels
-Passwort** (kann nur Daniel: das Tor wird nie vom Agenten passiert) — und optional die drei belegten
-Handbuch-Lücken (Mana je Siedlung, Werkstatt-Materialkosten, Sieg-/Niederlagebedingung), für die das
-Handbuch keine Vorlage nennt.
+Der EINE nächste Schritt steht in Abschnitt 0c (Stand 06:05): **es ist kein Bauen mehr offen** — die
+Modul-Reihe ist eingehängt, das Auftragssystem samt Oberfläche steht, das Protokoll ist verdichtet
+(314 Zeilen), die `.exe` ist gebaut und startgeprüft, Prüfstand 1929/0/19 über 32 Dateien. Nächster
+Schritt: erst diese Sitzung übernehmen (Einzelheiten unter dem Block), dann am Wiedereinstiegspunkt
+weitermachen — **Durchspielen mit Daniels Passwort** oder die drei belegten Handbuch-Lücken.
 Nach jedem Schritt: betroffenen Einzeltest + einmal Sammellauf, eine Protokollzeile (Zeit, Schritt,
 Ergebnis, Beleg, Kosten), `python tools/protokoll_sichern.py --protokoll`, kleiner Commit. Prüfende
 Unteragenten erst NACH dem Commit loslassen. Am Ende der Reihe die `.exe` neu bauen
 (`tools/build_exe.py`) und aus einem anderen Ordner startprüfen.
 ```
+
+**Stand 06:05 (Übergabe, gemessen):** seit 03:04 ist **nichts** gelaufen — kein Geisterläufer, alle alten Ziele `cleared`, dieses Ziel steht auf **pausiert (8/20 Takte)**, es arbeitet also nichts von selbst weiter. Prüfstand **1929/0/19 über 32 Dateien**, Protokoll **314 Zeilen** (Vor-Fassung aufbewahrt), `.exe` **14.454.894 Byte**, SHA256 `29eaaf76c70fc76a45bc5fe97775511e04fae0318d8275d55314c184d83d13cc`, startgeprüft. Letzte Commits: `dece98b` (Protokoll verdichtet), `15a8cff` (Übergabe + Skill). Kosten heute ab 00:00 **1,05 USD**; das DeepSeek-Guthaben bitte in der neuen Sitzung erneut ablesen — ich kann es nicht messen.
+
+**Erste Handlung der neuen Sitzung:** `python tools/zieluebergabe.py --pruefen` zeigt den Stand; `--beenden 20261005_005307_bf5031 --grund "abgeschlossen, neue Sitzung uebernimmt"` beendet **genau** dieses Ziel (nichts wird gelöscht, der Grund bleibt im Datensatz). Danach am Wiedereinstiegspunkt weitermachen.
 
 ---
 
