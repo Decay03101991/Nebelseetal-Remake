@@ -170,8 +170,8 @@ Siedlung), danach 7, 8, 9 und zuletzt die Aktivierung (10).**
 | 3 | lokale Lager und Transportbuchung (Karrenpflicht) | **fertig** | `40` · `test_lokale_lager` **70/0/0**, `test_warentransport` **45/0/0** |
 | 4 | Warenrezepte (`data/warenrezepte.json`) und lokale Ausbildung | **fertig** | `e6fd766`, `3bdbc6a` · `test_warenrezepte` **26/0/0**, `test_ausbildungsauftraege` **49/0/0** |
 | 5 | gemeinsame Spieluhr: `ort_tick`, `fensterproduktion` | **Kern fertig** | `319c16b`, `a83ec25` · `test_oekonomie_uhr` **42/0/0** |
-| 6 | Forschung je Siedlung | **offen — der nächste Schritt** | — |
-| 7 | Zielprüfung und Haltefenster | offen | — |
+| 6 | Forschung je Siedlung: `forschung_start`, `forschung_abschluss` | **fertig** | `1d64cd6`, `c590951` · `test_lokale_forschung` **47/0/0**, Audit `pruefung_schritt6.md` ohne verhaltensrelevante Abweichung |
+| 7 | Zielprüfung und Haltefenster (`zielstatus`) | **offen — der nächste Schritt** | — |
 | 8 | Bot-Planung | offen | — |
 | 9 | `main`-Anbindung und Migration | offen | — |
 | 10 | Ereignisschleife `tick_bis` und Aktivierung | offen | — |
