@@ -30,9 +30,23 @@ Protokollzeile + kleiner Commit.
 **Teil 6 (der nächste Schritt): Produktion und Aufträge je Ort** (Entwurf Z. 779/781):
 `_ware_herstellen` über `ware_start` des **ausgewählten Ortes** (keine spielerweite Werkstattstufe),
 `_train_unit` über `ausbildung_start` (und die **sofortige globale Ausrüstungsausgabe aus dem Altpfad
-entfernen**), `_start_research` über `forschung_start` (lokale Bibliothek, lokale Mittel, globales
-Wissen), `tick` über `ort_tick`. **Dort werden die Ortslager für Waren und Einheiten gefüllt** — bis
+`_start_research` über `forschung_start` (lokale Bibliothek, lokale Mittel, globales Wissen),
+`tick` über `ort_tick`. **Dort werden die Ortslager für Waren und Einheiten gefüllt** — bis
 dahin hilft der Übergang (Karren aus dem Reichsheer), der bei Transport und Gründung schon benannt ist.
+
+> **⚠ VOR dem ersten Handgriff in Teil 6 lesen (05.10.2026, 22:20 — aus dem Quelltext belegt, nicht
+> vermutet):** `spieloekonomie.ort_tick` (Z. 488-520) **erntet SELBST**: es bucht
+> `wirtschaft.ertrag_gesamt` auf `vorraete`, den Siedlerzuwachs bis zur Grenze und jede Spanne ins
+> `produktionsjournal`. `GameState.tick` bucht die Produktion seit **Teil 3a** aber **schon je Ort**
+> — aus **derselben** Quelle. Wer `ort_tick` einfach zusätzlich in die Spielschleife hängt,
+> **verdoppelt jede Ernte** (und lässt die Siedler doppelt wachsen).
+> **Teil 6 ist deshalb EIN Stück:** die Produktionsbuchung aus `tick` **entfernen** und `ort_tick` an
+> ihre Stelle setzen (eine Uhr, ein Journal) — und der Test muss „genau einmal geerntet" nachrechnen.
+> Ebenso gehören Werkstattwaren und Ausbildung zusammen: `ware_start` legt die Schlange in
+> `ort["werkstaetten"]`, `ausbildung_start` den Auftrag in `ort["ausbildung"]` — **fertig gebucht
+> wird beides erst von `ort_tick`** (Z. 510-519). Ohne `ort_tick` in der Schleife käme keine Ware
+> und keine Einheit je an. Und: Teil 6 braucht **zuerst** den UI-Zustand **`aktive_siedlung_id`**
+> (welchen Ort meinen Lager, Kaserne und Forschung?), sonst landet jede Ware im falschen Lager.
 
 **Danach die Teile 7-8:** `_trade` über das bestätigte Angebot aus 8b oder eine deutliche
 „noch nicht verfügbar"-Meldung (nie der Alt-Gratisgewinn), `_unlock_next_map` (die „Vermessung"
