@@ -8,25 +8,31 @@ Abschnitte 1–11 sind der ältere, weiterhin gültige Rahmen; **Abschnitt 0c is
 
 ---
 
-## 0. DAS LAUFENDE ZIEL — BITTE ÜBERNEHMEN
+## 0. DAS LAUFENDE GESAMTZIEL — BITTE ÜBERNEHMEN
 
-Daniels Ziel, wörtlich:
+**Regel (Vorgabe Daniel, 05.10.2026):** Das **Gesamtziel** unten wird **nie** verändert oder ersetzt.
+Jede neue Sitzung **passt nur ihre eigene Zielsetzung an den aktuellen Schritt an** (Zieltext im
+Register = Wortlaut unten; der jeweilige Schritt steht in der Startzeile und in Abschnitt 0c,
+Unterabschnitt „Der EINE nächste Schritt").
+
+Daniels Ziel, wörtlich **und unverändert seit dem ersten Auftrag**:
 
 > „Eine fertige schlüssige fehlerfrei Spielbare .exe, die stabil das Spiel Nebelseetal (damals
 > Browsergame) als remake und Einzelspielerspiel startet. Überprüft und vllt so gesichert das man es
 > nur spielen kann mit meinem vorgegebenen Passwort."
 
-**Startzeile für die neue Sitzung (zum Kopieren):**
+**Startzeile für die neue Sitzung (zum Kopieren — Stand 05.10.2026, 14:40, Schritt 30):**
 
 ```
 Lies D:\Arbeiten\Nebelseetal_Remake\docs\PROJEKT_STAND.md, Abschnitt 0c (Stand, Kontext-Paket, der
 EINE nächste Schritt) — die Chat-Historie brauchst du nicht. Dann: python tools/zieluebergabe.py
---pruefen und setze dein eigenes Ziel (/goal <Wortlaut aus Abschnitt 0>). Arbeite danach den EINEN
-nächsten Schritt aus Abschnitt 0c: (1) die zwei Feinkarten-Module einhängen
-(src/karten_optik_fein.py, src/welt_optik_fein.py) — die astra-Zahlen und die drei Einhänge-Fallen
-stehen in 0c; (2) die offenen Entscheidungen von Daniel einholen (Zeitfaktor ×180 bestätigen, die
-neun Geländeregeln, Sieg-/Niederlagebedingung). Nach jedem Schritt: betroffener Einzeltest + einmal
-Sammellauf, eine Protokollzeile (Zeit mit `date` holen, nie schätzen), python
+--pruefen und setze dein eigenes Ziel: als Wortlaut das UNVERÄNDERTE Gesamtziel aus Abschnitt 0
+(Schritt 29 ist erledigt — nichts davon wiederholen). Arbeite danach den EINEN nächsten Schritt aus
+Abschnitt 0c: (1) das Siedlungskarten-Raster auf 8 × 7 = 56 Felder umstellen, davon 40 bebaubar
+(Daniels Entscheidung 14:24; Vorarbeit in docs/PLAN_RASTER_8x7.md, vom Koordinator nachzurechnen);
+(2) Daniel die Sieg-/Niederlage-Vorschläge aus docs/ENTSCHEIDUNGEN_FUER_DANIEL.md vorlegen und nach
+seiner Wahl bauen. Nach jedem Schritt: betroffener Einzeltest + einmal Sammellauf (keine
+Spielprozesse offen lassen), eine Protokollzeile (Zeit mit `date` holen, nie schätzen), python
 tools/protokoll_sichern.py --protokoll, kleiner Commit; prüfende Unteragenten erst NACH dem Commit.
 Ändert sich etwas in src/ oder data/*.json, am Ende die .exe neu bauen (tools/build_exe.py) und aus
 einem anderen Ordner startprüfen. Kommt von Daniel ein Spielbericht zur aktuellen .exe, hat der
@@ -137,6 +143,13 @@ nach Daniels Spielbericht — den **Zeitfaktor** samt sichtbarem Rohstoffeingang
    vom Koordinator an den Kernzahlen nachgeprüft. **Erst Daniel vorlegen, dann bauen.**
 3. **Aufgabenkarte für den Einstieg** (Entwurf Abschnitt D): Holzfäller/Steinmetz → Bibliothek →
    Baukunst → Farm/Haus → Schmiedekunst → Schmiede/Nähstube → erste Ware → erste Einheit.
+
+**Arbeitsweise für diesen Schritt (Vorgabe Daniel, unverändert):** nach jedem Schritt den betroffenen
+Einzeltest **und einmal den Sammellauf** — dabei **keine Spielprozesse offen lassen** (sonst schlägt die
+erste Prüfdatei ohne Ausgabe fehl). Danach **eine Protokollzeile** mit der Zeit aus `date` (nie
+schätzen), dann `python tools/protokoll_sichern.py --protokoll` und ein **kleiner Commit**. Prüfende
+Unteragenten erst **NACH** dem Commit loslassen. Ändert sich etwas in `src/` oder `data/*.json`, am
+Ende die `.exe` neu bauen (`tools/build_exe.py`) und aus einem **anderen** Ordner startprüfen.
 
 ### (Liste vom Vormittag — Schritt 1 ist erledigt, der Rest bleibt gültig)
 
