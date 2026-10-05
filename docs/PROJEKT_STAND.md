@@ -1,6 +1,7 @@
 # Nebelseetal Remake — Projektstand und Übergabe
 
-Stand: **05.10.2026, 15:16** (mit `date` geprüft; Schritt 30 ist gebaut). Diese Fassung ersetzt die
+Stand: **05.10.2026, 17:00** (mit `date`, `git log`, Sammellauf und Startprüfung geprüft; Schritt 31 ist
+gebaut, 32–34 sind Dokumente). Diese Fassung ersetzt die
 vorherige (archiviert unter `docs/archiv/PROJEKT_STAND_alt_2026-10-04_2345.md`; die Fassungen davor
 unter `docs/archiv/PROJEKT_STAND_alt_2026-10-04_2200.md` und `..._alt_2026-10-04.md`).
 **Diese Datei ist der Einstiegspunkt.** Jede neue Sitzung liest zuerst hier — nicht die Chat-Historie.
@@ -21,20 +22,20 @@ Daniels Ziel, wörtlich **und unverändert seit dem ersten Auftrag**:
 > Browsergame) als remake und Einzelspielerspiel startet. Überprüft und vllt so gesichert das man es
 > nur spielen kann mit meinem vorgegebenen Passwort."
 
-**Startzeile für die neue Sitzung (zum Kopieren — Stand 05.10.2026, 15:16, Schritt 30 ist erledigt):**
+**Startzeile für die neue Sitzung (zum Kopieren — Stand 05.10.2026, 17:00, Schritt 31 ist erledigt):**
 
 ```
 Lies D:\Arbeiten\Nebelseetal_Remake\docs\PROJEKT_STAND.md, Abschnitt 0c (Stand, Kontext-Paket, der
 EINE nächste Schritt) — die Chat-Historie brauchst du nicht. Dann: python tools/zieluebergabe.py
 --pruefen und setze dein eigenes Ziel: als Wortlaut das UNVERÄNDERTE Gesamtziel aus Abschnitt 0
-(Schritt 30 ist erledigt — nichts davon wiederholen). Arbeite danach den EINEN nächsten Schritt aus
-Abschnitt 0c: die Sieg-/Niederlage-Bedingung nach Daniels Wahl bauen (die drei Vorschläge wurden ihm
-am 05.10.2026 um 15:16 vorgelegt; Empfehlung A = Punkteziel, Schwelle 300 steht schon in
-src/punkte.py). Nach jedem Schritt: betroffener Einzeltest + einmal Sammellauf (keine Spielprozesse
-offen lassen), eine Protokollzeile (Zeit mit `date` holen, nie schätzen), python
-tools/protokoll_sichern.py --protokoll, kleiner Commit; prüfende Unteragenten erst NACH dem Commit.
-Ändert sich etwas in src/ oder data/*.json, am Ende die .exe neu bauen (tools/build_exe.py) und aus
-einem anderen Ordner startprüfen. Kommt von Daniel ein Spielbericht zur aktuellen .exe, hat der
+(Schritt 31 ist erledigt — nichts davon wiederholen). Arbeite danach den EINEN nächsten Schritt aus
+Abschnitt 0c: das Ökonomie-Paket in der Reihenfolge des Entwurfs
+docs/audits/entwurf_spieloekonomie_sol_2026-10-05.txt (9 Schritte), und zwar ZUERST die vier
+Handbuch-Korrekturen aus docs/audits/handbuch_abgleich_2026-10-05.txt. Nach jedem Schritt:
+betroffener Einzeltest + einmal Sammellauf (keine Spielprozesse offen lassen), eine Protokollzeile
+(Zeit mit `date` holen, nie schätzen), python tools/protokoll_sichern.py --protokoll, kleiner Commit;
+prüfende Unteragenten erst NACH dem Commit. Am Ende des Pakets die .exe neu bauen (tools/build_exe.py)
+und aus einem anderen Ordner startprüfen. Kommt von Daniel ein Spielbericht zur aktuellen .exe, hat der
 VORRANG.
 ```
 
@@ -45,52 +46,62 @@ Ausgabe fehl (belegt 05.10., siehe Lehre (e) unten).
 Vorlage**; verbindlich ist die **Startzeile direkt hier oben** (sie kennt den echten nächsten Schritt
 und den Stand von heute).
 
-**Zum eigenen Ziel:** das Ziel der Sitzung `20261005_150058_c9027c` ist **aktiv** (Wortlaut aus
-Abschnitt 0, gesetzt am 05.10.2026 um 15:01). Die vorige Sitzung (`20261005_135121_6629ef`) ist auf
-`cleared` gesetzt, ihr Grund steht im Datensatz. Es laeuft nichts von selbst weiter ausserhalb dieser
-Sitzung.
+**Zum eigenen Ziel:** das Ziel der Sitzung `20261005_150058_c9027c` wird beim Sitzungswechsel sauber auf
+`cleared` gesetzt (Grund im Datensatz). Die neue Sitzung braucht ein **neues** Ziel mit dem Wortlaut aus
+Abschnitt 0.
 
 ---
 
-## 0c. Stand (05.10.2026, 15:16 — mit `date`, `git log`, Sammellauf und Startprüfung geprüft)
+## 0c. Stand (05.10.2026, 17:00 — mit `date`, `git log`, Sammellauf und Startprüfung geprüft)
 
-> ### NEU: Schritt 30 ist fertig (Sitzung `20261005_150058_c9027c`)
+> ### NEU: Schritt 31 fertig · Daniels Richtungsentscheidung · zwei starke Modellläufe ausgewertet
 >
-> **Das Siedlungskarten-Raster ist 8 × 7 = 56 Felder, davon genau 40 bebaubar** (Daniels Entscheidung
-> vom 05.10.2026, 14:24). **Prüfbelege:** `test_gelaende` **91/0/0** · Sammellauf **2649 bestanden,
-> 0 Fehler, 21 Befunde über 41 Dateien** · Zeilen im `docs/BOARD.md` (15:13 und 15:14) und im
-> Protokoll (15:11 und 15:16) · projektunabhängige Sicherung der 16 führenden Papiere.
+> **1. Raster 8 × 7 = 56 Felder, davon 40 bebaubar (Schritt 30, Commit `ec89dc6`).** Gesperrt ist **nur
+> der Sumpf** (Variante B; das Handbuch belegt sieben Geländearten). `bauplaetze` heißt jetzt „bebaubare
+> Felder", neu dazu `felder` = 56. Unabhängig nachgeprüft (1600 Karten, 0 Verstöße).
 >
-> **`.exe`:** **14.575.032 Byte**, SHA256 `72c19192…`, Dateizeitstempel `15:14:33`, genau **eine** EXE
-> im Projektordner, aus `C:\Users\saras` startgeprüft (genau **ein** Fenster „Nebelseetal Remake",
-> antwortet bei 10/20/40 s, sauber über `WM_CLOSE` geschlossen, danach **kein** Prozess offen). Diese
-> Fassung enthält das neue Raster — wer mit der Fassung von 14:28 spielt, sieht noch 8×5.
+> **2. Sieg/Niederlage eingehängt (Schritt 31, Commit `2cb8ce6`).** `GameState.punktestand()` +
+> `spielausgang()` über `src/punkte.py`; `_pruefe_spielende()` hält den Ausgang **einmal** fest;
+> Seitenleiste zeigt „Ziel: x / 300 Punkte" bzw. **SIEG**/**NIEDERLAGE**; die Spieluhr steht danach;
+> der Ausgang wird mitgespeichert. **Vor der ersten Siedlung gilt die Partie nicht als verloren.**
+> Prüfbeleg: `test_punkte_einhaengung` **60/0/0**.
 >
-> **Wie es gebaut ist:** `data/gelaende.json` → `zeilen` 5 → 7; die Regel `sumpf_hoechstens: 6` ist
-> durch **`sperrfelder: 16`** ersetzt. `gelaende.siedlungskarte_erzeugen` zieht die **40 bebaubaren**
-> Felder aus den sechs bebaubaren Geländearten und die **16 Sperrfelder** (nur Sumpf) getrennt nach
-> Kartentyp-Gewicht, mischt sie und hält den Mindestbesatz ein — Sperrfelder werden dabei nie
-> angefasst. `bauplaetze` heißt jetzt **bebaubare** Felder (vorher war es die Gesamtzahl — der alte
-> Doppelsinn), neu dazu `felder` = 56. Alte 40er-Spielstände bleiben ladbar (`main` zeichnet mit den
-> Maßen aus der Karte selbst).
+> **3. Daniels neue Richtungsvorgabe (05.10.2026, 16:1x–16:2x), wörtlich in
+> `docs/ENTWURF_SPIELZIEL_HANDEL_KARTEN.md`:** kein „wer schneller ist, gewinnt" — **Handel zwischen
+> den eigenen Siedlungen** und die **Wahl der richtigen Karten** tragen das Spiel; eine Neugründung muss
+> **teuer** sein und ein **Mindestguthaben** verlangen; nur die **Startkarte** ist ausgeglichen, die
+> Neugründungen kommen aus einem Vorrat mit **2–3 ausgeglichenen** und sonst spezialisierten Karten;
+> **entschieden:** der **Punktestand** (Forschung **und** Krieg) entscheidet, verdient über eine echte
+> Ökonomie · Gründungspreis **320/200/150 + Startpaket 160/100/100 + Mindestbestand 480/300/250 + ein
+> Siedlerkarren** („so übernehmen, später nach und nach anpassen") · **Startkarte + 10 Karten** bei
+> höchstens 6 Siedlungen · Bots **leicht/mittel/schwer** kennen die Ökonomie.
 >
-> **Ehrlich benannte Abweichung vom Plan:** `docs/PLAN_RASTER_8x7.md` empfahl **Variante A** (achtes
-> Gelände „Wasser"); gebaut ist **Variante B (nur Sumpf)**, weil das Handbuch **sieben** Geländearten
-> belegt und nur den Sumpf als unbebaubar. Will Daniel ein Wasserbild, ist das eine kleine Änderung —
-> die Frage ist offen, aber unkritisch.
+> **4. Zwei starke Modellläufe (Kosten gemessen, nicht geschätzt):** der Ökonomie-Entwurf auf
+> `gpt-6.1-sol` kostete **1,2332 USD** (`docs/audits/entwurf_spieloekonomie_sol_2026-10-05.txt`, 1140
+> Zeilen, Gliederung A–H mit Code); der **Handbuch-Abgleich** auf `deepseek-v4-pro` **0,2459 USD**
+> (`docs/audits/handbuch_abgleich_2026-10-05.txt`, 145 Zeilen, jede Stelle mit Zitat).
 >
-> **Unabhängig nachgeprüft** (Unteragent, nur lesend, nach dem Commit): 1600 Karten (320 Saaten ×
-> 5 Kartentypen), **0 Verstöße** — 56/40/16 exakt, unter den gesperrten Feldern **nur** Sumpf,
-> Mindestbesatz erfüllt, deterministisch, Sumpf für alle 20 Gebäude verboten, Nebelsee nur Bibliothek
-> und Tempel; dazu die **eigene Stichprobe** des Koordinators (1200 Karten, 0 Verstöße).
+> **5. Der Handbuch-Abgleich hat vier echte Widersprüche in unserem Code gefunden** (alle vom
+> Koordinator selbst nachgelesen — **das Handbuch gewinnt**):
+> **Götterschutz** 7 Tage und Ende mit dem ersten Kriegspunkt (HB Z. 215-217) gegen fest **Tag 3**
+> (`main.py` Z. 1093) · **Steinmetz ohne Forschung** baubar (HB Z. 279-281) gegen **Baukunst**
+> (`buildings.json` Z. 44) · ein Forschungsauftrag sperrt die **ganze Siedlung** (HB Z. 423-424) gegen
+> nur dasselbe Gebiet (`forschung.py` Z. 123-124) · **Rinderfarm Nahrung UND Leder** (HB Z. 362-365)
+> gegen nur Leder. Dazu vier Funktionsfehler: **„Vermessung" existiert nicht** (Karten werden nie
+> freigeschaltet) · **`_transport_to_settlement` bucht 10 Holz ab, ohne Gutschrift** — es gibt also
+> **keine** Handelsmechanik · die **Uhr ist gemischt** (×180 nur für die Produktion) · der **Bot-Handel
+> verschenkt** Zufallsrohstoffe.
 >
-> **OFFEN — wartet auf Daniel:** die **Sieg-/Niederlagebedingung**. Die drei Vorschläge wurden ihm am
-> 05.10.2026 um 15:16 vorgelegt (Empfehlung A: Punkteziel, Schwelle **300**, steht schon in
-> `src/punkte.py` als `VORSCHLAG_ZIEL_PUNKTE`; `punkte.sieg_oder_niederlage()` gibt es bereits, nur
-> `main.is_defeated()` ist unerreichbar).
+> **6. `.exe`:** **14.577.217 Byte**, SHA256 `9f5c1deb…`, Dateizeitstempel `16:59:37`, genau **eine**
+> EXE, aus `C:\Users\saras` startgeprüft (ein Fenster, antwortet 10/20/40 s, sauber über `WM_CLOSE`,
+> danach 0 Prozesse). Enthält Raster **und** Sieg-/Niederlagebedingung.
 >
-> **Guthaben (Daniel abgelesen, 05.10.2026): DeepSeek 3,67 USD · OpenAI 2,17 USD.** In diesem Takt lief
-> nur `deepseek-v4-flash` (kein Bildmodell, kein v4-pro).
+> **7. Prüfstand:** Sammellauf **2665 bestanden, 0 Fehler, 21 Befunde über 41 Dateien**. **Guthaben
+> (Daniel abgelesen 16:5x): DeepSeek 3,24 USD · OpenAI 0,97 USD.**
+>
+> **Bau-Umgebung für die `.exe` (liegt im Zwischenspeicher und wird nach 24 h geleert — dann neu
+> anlegen):** `uv venv --python 3.14.7 <ordner>` · `uv pip install --python <ordner>/Scripts/python.exe
+> pyinstaller` · `python tools/build_exe.py --python <ordner>/Scripts/python.exe`.
 
 **Darunter der Stand vom Vormittag** (Sitzung `20261005_104846_864c4b`, sauber beendet um 13:44) —
 gültig, wo oben nichts Neues steht:
@@ -126,27 +137,33 @@ nach Daniels Spielbericht — den **Zeitfaktor** samt sichtbarem Rohstoffeingang
 | `.exe` | **05.10. 13:41 gebaut** (Dateizeitstempel `13:41:04`): **14.531.774 Byte**, SHA256 `bffd3c444d6eb1433b14c1b7a768946cc45bdc1d8511332bca0de33bc7a85ed3`, aus `C:\Users\saras` startgeprüft (ein Fenster, genau eine Instanz) — **enthält Zeitfaktor, Rohstoff-Warnung und Geländeregeln** (Schritte 27 und 28). Ältere Fassungen: 13:29 (14.524.603 Byte, `1fad511d…`, Geländeregeln) · 12:38 (14.524.225 Byte, `63b09fbf…`). `build/`, `dist/`, `.spec`, `__pycache__` sind aufgeräumt, genau eine EXE im Projektordner. **Wichtig:** nur diese Fassung zeigt Tempo und Warnung — wer mit einer älteren spielt, sieht den Zeitfaktor nicht |
 | Guthaben | **von Daniel abgelesen am 05.10. um 13:48: OpenAI 2,17 USD · DeepSeek 4,06 USD** (11:00: 2,66 / 4,97 → im Nachmittag 0,49 bzw. 0,91 USD verbraucht). **Gemessener Tagesverbrauch laut `scripts/tageskosten_check.py`: 4,13 USD ≈ 3,68 EUR über 23 Sitzungen und 4 Modelle = 80 % des harten Tageslimits (4 EUR) — Lage „WARNUNG".** Für die nächste Sitzung heißt das: **keine teuren Aufrufe ohne Begründung**, Kinder und Prüfer nur auf `deepseek-flash`, Bilddeutungen (astra) nur, wenn es wirklich nicht anders geht. **Beobachtung zum Messskript:** es meldete zwischen 13:45 und 13:48 nur +0,005 USD, während Daniels Guthabenanzeige um **0,19 USD** fiel — die Schätzung läuft der Anbieterwahrheit nach. **Maßgeblich ist die Guthabenanzeige des Anbieters, nicht die Schätzung** |
 
-### Der EINE nächste Schritt (Stand 05.10.2026, 15:16 — Schritt 30 ist ERLEDIGT)
+### Der EINE nächste Schritt (Stand 05.10.2026, 17:00 — Schritt 31 ist ERLEDIGT)
 
-**Der neue nächste Schritt: die Sieg-/Niederlagebedingung nach Daniels Wahl bauen und einhängen.**
+**Der neue nächste Schritt: das Ökonomie-Paket bauen — zuerst die vier Handbuch-Korrekturen, dann die
+neun Schritte des Entwurfs.** Der Auftraggeber hat das Paket ausdrücklich so entschieden („das ganze
+Paket in der Reihenfolge des Papiers — kein Halbumbau").
 
-1. **Sieg/Niederlage** — Daniel hatte am 05.10.2026 „Vorschläge abwarten" entschieden. Die drei
-   Vorschläge liegen fertig in `docs/ENTSCHEIDUNGEN_FUER_DANIEL.md` (Abschnitt 3) und wurden ihm am
-   05.10.2026 um 15:16 vorgelegt. **Empfehlung A: Punkteziel** — Sieg, sobald
-   `(Kriegs- + Forschungspunkte) / 2` die Schwelle erreicht (**300** steht schon als
-   `VORSCHLAG_ZIEL_PUNKTE` in `src/punkte.py`); Niederlage, wenn keine Siedlung **und** keine Einheit
-   mehr übrig sind. Der Ansatz ist gebaut (`punkte.sieg_oder_niederlage()`), aber **nicht eingehängt**
-   (`main.is_defeated()` ist unerreichbar). **Erst Daniels Wahl abwarten, dann einhängen, testen,
-   protokollieren, committen — und am Ende die `.exe` neu bauen.**
-2. **Aufgabenkarte für den Einstieg** (Entwurf Abschnitt D): Holzfäller/Steinmetz → Bibliothek →
-   Baukunst → Farm/Haus → Schmiedekunst → Schmiede/Nähstube → erste Ware → erste Einheit.
+1. **Die vier Handbuch-Korrekturen** (`docs/audits/handbuch_abgleich_2026-10-05.txt`, Abschnitt „Die
+   zehn wichtigsten Abweichungen", Punkt 1–4): Götterschutz **7 Tage** bzw. Ende mit dem ersten
+   Kriegspunkt statt Tag 3 · **Steinmetz ohne Forschung** · Forschung sperrt die **ganze Siedlung** ·
+   **Rinderfarm Nahrung UND Leder**. Jede ist belegt, **das Handbuch gewinnt** — keine Rückfrage nötig.
+2. **Schritt 1 des Entwurfs** (`docs/audits/entwurf_spieloekonomie_sol_2026-10-05.txt`, Z. 209-233):
+   `data/gelaende.json` um `kartenvorrat` (Startkarte + zehn Koloniekarten mit den Feldkontingenten aus
+   Tabelle B) erweitern · neue `data/spieloekonomie.json` (Gründung, Fenster, Schwellen, Planbedarf,
+   Bot-Stufen) · neue `tests/test_spieloekonomie.py`. **Die alten `kartentypen.listen` und ihr Generator
+   bleiben unverändert**, bis der letzte Integrationsschritt kommt.
+3. **Danach die Schritte 2–9 des Entwurfs** in ihrer Reihenfolge (deterministischer Kern · lokale Lager
+   und Transportbuchung · Warenrezepte und lokale Ausbildung · gemeinsame Spieluhr · Forschung je
+   Siedlung · Zielprüfung und Haltefenster · Bot-Planung · `main`-Anbindung und Migration).
+   **Erst nach dem letzten Schritt** wird auf den Ökonomiemodus umgestellt; Altpartien bleiben Altmodus.
 
 **Arbeitsweise für diesen Schritt (Vorgabe Daniel, unverändert):** nach jedem Schritt den betroffenen
 Einzeltest **und einmal den Sammellauf** — dabei **keine Spielprozesse offen lassen** (sonst schlägt die
 erste Prüfdatei ohne Ausgabe fehl). Danach **eine Protokollzeile** mit der Zeit aus `date` (nie
 schätzen), dann `python tools/protokoll_sichern.py --protokoll` und ein **kleiner Commit**. Prüfende
 Unteragenten erst **NACH** dem Commit loslassen. Ändert sich etwas in `src/` oder `data/*.json`, am
-Ende die `.exe` neu bauen (`tools/build_exe.py`) und aus einem **anderen** Ordner startprüfen.
+Ende die `.exe` neu bauen (`tools/build_exe.py`) und aus einem **anderen** Ordner startprüfen. Bei
+jedem Schritt, der eine **belegte** Handbuchregel berührt: **erst das Handbuch lesen**, dann ändern.
 
 ### (Liste vom Vormittag — die Punkte 1 und 3 sind inzwischen erledigt)
 
@@ -193,50 +210,55 @@ Stand.
 Schritt aus Abschnitt 0c: die Weltkarte nach der astra-Vorgabe nachziehen (Zeichenfläche, Zoomstufen,
 Scrollbalken, Detailpanel, Übersichtskarte)." — **erledigt in Schritt 24–26** (Weltkarte) und
 **Schritt 27** (Geländeregeln). Der aktuelle nächste Schritt steht oben in dieser Liste.
-## 0d. Abschluss und Selbstreflexion dieser Sitzung (05.10.2026, 14:45 — mit `date` geprüft)
+## 0d. Abschluss und Selbstreflexion dieser Sitzung (05.10.2026, 17:00 — mit `date` geprüft)
 
-**Zustand:** nichts läuft. Kein Prozess offen (Spiel und Unteragenten alle beendet), Arbeitsverzeichnis
-**sauber**, alles committet bis `64b1b85`. Ziel dieser Sitzung (`20261005_135121_6629ef`) ist im Register
-auf **`cleared`** gesetzt, der Grund steht im Datensatz; **das Gesamtziel in Abschnitt 0 bleibt
-unverändert**. Letzter Sammellauf: **2644 bestanden, 0 Fehler, 21 Befunde über 41 Dateien**.
+**Zustand:** nichts läuft. Kein Prozess offen, Arbeitsverzeichnis **sauber** (alle Commits bis
+`d03861a` + die Dokumente dieses Abschlusses), **genau eine** EXE im Projektordner, keine Bau-Reste
+(`build/`, `dist/`, `.spec`, `__pycache__` entfernt), die 16 führenden Papiere projektunabhängig
+gesichert (`D:\Arbeiten\Hermes\Nebelseetal_Protokoll\`). Letzter Sammellauf: **2665 bestanden,
+0 Fehler, 21 Befunde über 41 Dateien**. Das Gesamtziel in Abschnitt 0 bleibt **unverändert**.
 
-**Was diese Sitzung geleistet hat (Schritt 29, Commits `306a89d` … `64b1b85`):** die zwei
-Feinkarten-Module eingehängt (mit den drei Einhänge-Fallen aus 0c), Daniels vier Entscheidungen
-eingeholt und im Register/Datendatei/Doku festgehalten, die Wald-Lichtfarbe getrennt (gerechnet),
-`.exe` 14.574.335 Byte (`4d17a109…`, 14:28:09) aus einem anderen Ordner startgeprüft, Übergabe 0c auf
-den neuen Stand samt **Gesamtziel-Regel** gebracht, Raster-Plan 8×7 nachgerechnet, die Vorgaben des
-Auftraggebers (Gesamtziel nicht verlieren · Selbstoptimierung bei jedem Sitzungswechsel) als Regeln
-festgeschrieben.
+**Was diese Sitzung geleistet hat (Schritt 30–34):** das Siedlungskarten-Raster auf **8 × 7 = 56
+Felder, 40 bebaubar** umgestellt · die **Sieg-/Niederlagebedingung** eingehängt · Daniels **neue
+Richtungsvorgabe** (Handel und Kartenwahl statt Wettlauf) aufgenommen und in vier Entscheidungen
+festgehalten · einen **Ökonomie-Entwurf** von `gpt-6.1-sol` eingeholt, **nachgerechnet** und gesichert
+· einen **Handbuch-Abgleich** von `deepseek-v4-pro` eingeholt, ausgewertet und die vier gefundenen
+Widersprüche selbst im Handbuch bestätigt · `.exe` zweimal neu gebaut und startgeprüft.
 
-**Was gut lief:** erst 0c lesen statt Historie · Zielregister prüfen, bevor etwas angefasst wird · die
-Fallenliste aus 0c war echt und hat Arbeit gespart · jede Zahl mit Werkzeugausgabe belegt · jede
-Kindmeldung stichprobenartig selbst nachgerechnet · ein roter Startbefund wurde **nicht** schöngeredet,
-sondern wiederholt gemessen.
+**Was gut lief:** erst 0c gelesen statt Historie · Zielregister vor der ersten Änderung geprüft · jede
+Zahl mit Werkzeugausgabe belegt · den Kindbericht **selbst nachgemessen** (1200 Karten, 0 Verstöße)
+statt geglaubt · den Entwurf des starken Modells **nachgerechnet** (alle Kernzahlen reproduziert, die
+Kernbehauptung bestätigt) · beide Quellenfehler **wörtlich im Handbuch** nachgeschlagen, statt sie zu
+übernehmen · Kosten ehrlich korrigiert, sobald die Messung sie widerlegte.
 
-**Meine fünf eigenen Fehler — damit die nächste Sitzung sie nicht wiederholt:**
+**Meine fünf Fehler — damit die nächste Sitzung sie nicht wiederholt:**
 
-1. `json.dump` mit `indent=1` hat `data/buildings.json` **komplett umformatiert** (383 Zeilen) —
-   bemerkt, aus git wiederhergestellt, sauber mit `indent=2` neu geschrieben (Diff: 2 Zeilen).
-   *Regel: vorher die vorhandene Einrückung der Datei ansehen.*
-2. Der Umbau von 0c hat `tests/test_zieluebergabe.py` **rot** gemacht: der Abschnitt „Der EINE nächste
-   Schritt" **muss** die Wörter „Sammellauf"/„Protokoll" enthalten. *Regel: der Abschnitt hat eine
-   Prüfzusage; die Arbeitsweise gehört hinein.*
-3. Der Startlauf wurde **zu früh gemessen** (18 s: zwei Fenster, eines „(Keine Rückmeldung)"). Erst mit
-   10/20/40 s und je 5 s Antwortfrist ist die Messung belastbar. *Regel: Geduld statt Schnellschuss.*
-4. Mein Auftragstext an das Plan-Kind enthielt eine **falsche Voraussetzung** („Sumpf **und Nebelsee**
-   nicht bebaubar"). Das Kind hat den Widerspruch gemeldet und recht. *Regel: Voraussetzungen im Auftrag
-   selbst prüfen, bevor man sie einem Kind vorsetzt.*
-5. Ein Commit-Text nannte **Zahlen, die erst der Lauf liefert** (2643/0/22 statt 2644/0/21). Korrigiert
-   per `--amend`. *Regel: gemessene Zahlen erst nach der Messung schreiben.*
+1. **Kostenschätzung um Faktor 3 daneben.** Ich sagte 0,15–0,40 USD für den Entwurf, gemessen wurden
+   **1,2332 USD**; beim Abgleich wiederholt (0,05–0,15 gesagt, **0,2459** gemessen). *Ursache, die ich
+   nicht bedacht hatte:* das Modell liest den **ganzen** Kontext bei **jedem** Aufruf neu.
+   *Regel: Aufrufe × Kontextgröße rechnen, `--usage-file` mitgeben, Kontostand vorher nennen.*
+2. **Ich habe dem starken Modell einen falschen Ist-Zustand vorgegeben** („Transport vorhanden",
+   „Vermessung schaltet Karten frei"). Es hat mich korrigiert. *Regel: eigene Ist-Angaben vorher prüfen —
+   derselbe Fehler wie am 05.10. vormittags bei „Sumpf und Nebelsee".*
+3. **Die erste Startprüfung war falsch gebaut.** Ich suchte die Fenster nach Prozess-Kennung; eine
+   PyInstaller-Einzeldatei startet aber **zwei** Prozesse, das Fenster gehört dem Kind. *Regel: Fenster
+   nach **Titel** suchen, nicht nach PID.*
+4. **Fast zu früh gebaut.** Nach dem Handbuch-Abgleich wollte ich direkt loslegen; Auftraggeber musste
+   erst anordnen, **alles** gegen das Handbuch abzugleichen. *Regel: erst die Quelle prüfen, dann bauen —
+   der Entwurf hätte sonst vier belegte Regeln mit falschen Werten eingebaut.*
+5. **Zwei Protokollzeilen mit Platzhalterzeit** (`16:5x`, `17:0x`) geschrieben und erst danach durch die
+   echte `date`-Zeit ersetzt. *Regel: die Zeit **vor** dem Schreiben holen.*
 
-**Nebenbefund, der bleibt:** die Sammellauf-Summe schwankt um ±1 (2643/0/22 ↔ 2644/0/21), weil
-`test_startspiel` je Lauf andere **Befunde** statt bestandener Prüfungen melden kann: zwei sind
-kartenabhängig („Kriegerakademie liess sich auf dieser Karte nicht setzen" / „Bibliothek liess sich auf
-dieser Karte nicht setzen"), einer ist **zufallsabhängig** („in 25 erzwungenen Bot-Zügen kam kein Angriff
-vor"). Alle drei sind ehrliche Hinweise, **keine Fehler** (Fehler: in allen Läufen **0**). Belegt:
-zweimal hintereinander **46/0/0** (0 Befunde), in anderen Läufen **45/0/1**. Und: **während eines
-Sammellaufs darf kein Unteragent im Projekt arbeiten** (belegt: `test_baseline` 39/2 als erste Datei,
-allein 40/0/0).
+**Dauerhaft aufgenommen:** das Gesamt-Verfahren steht jetzt im Skill `nebelseetal-remake` (Abschnitt
+„Neue Lehren 05.10.2026, Abend"): Auftragsdatei → **ein** starker Lauf → Tabelle mit Zitat-Urteil →
+**jeden Kernbefund selbst nachlesen**; dazu die belegten Handbuch-Regeln als Nachschlagewerk
+(Götterschutz 7 Tage · Steinmetz ohne Forschung · Forschung sperrt die Siedlung · Rinderfarm mit
+Nahrung **und** Leder · 6 Siedlungen · Karten per Zufall · Beute nur mit Karren · „Vermessung" gibt es
+nicht · die Uhr ist gemischt). Die reine Kostenregel steht im Sitzungsgedächtnis.
+
+**Nebenbefund, der bleibt:** die Sammlung der Prüfungen wächst mit jedem neuen Test — der Sammellauf
+liegt jetzt bei **2665**. Wer eine feste Sollzahl aufschreibt, erzeugt Falschalarm; verbindlich ist
+**0 Fehler**, nicht die Summe.
 
 ## 0b. Stand beim Sitzungswechsel (04.10.2026, 23:45 — mit `date` geprüft)
 
