@@ -628,14 +628,39 @@ class GameState:
     def is_defeated(self) -> bool:
         return self.current_map == "kontinent" and len(self.active_maps) == 0
 
+    def alle_einheiten(self) -> Dict[str, int]:
+        """Alle ECHTEN Einheiten des Spielers: anwesend **und** unterwegs, jede genau einmal.
+
+        Ökonomie-Paket, Entwurf Schritt 9 (Z. 786): „Einheiten für Originalpunkte ausschließlich als
+        Summe örtlicher und unterwegs befindlicher echter Bestände ableiten; unterwegs nicht nochmals
+        als Garnison zählen."
+
+        In diesem Modell ist `self.units` der Bestand **zuhause**; unterwegs befindliche Einheiten
+        sind beim Start davon abgezogen und stehen in der Mission. Gezählt wird deshalb der Heimat-
+        bestand plus jede Mission, die noch **nicht heimgekehrt** ist (`heimgekehrt`) — beim
+        Stationieren setzt `auftraege_fortschreiben` diesen Merker sofort, zurückkehrende Truppen
+        bekommen ihre Zahl genau in demselben Aufruf zurück. Damit zählt keine Einheit zweimal und
+        keine fällt während der Reise aus der Wertung (vorher sanken die Kriegspunkte, solange die
+        Armee unterwegs war).
+        """
+        gesamt = {k: int(v.count) for k, v in self.units.items()}
+        for eintrag in self.auftraege:
+            if eintrag.get("heimgekehrt"):
+                continue
+            for name, anzahl in (eintrag.get("einheiten") or {}).items():
+                gesamt[name] = gesamt.get(name, 0) + int(anzahl)
+        return gesamt
+
     def punktestand(self) -> dict:
         """Forschungs-, Kriegs- und Gesamtpunkte nach den Originalformeln (Handbuch S. 3/5/6).
 
         EINE Quelle: src/punkte.py. Vorher rechnete die Oberflaeche an mehreren Stellen eigene
         Summen — so entstand nachweislich eine falsche Gesamtzahl.
+        Die Einheiten kommen aus `alle_einheiten()`: anwesende **und** unterwegs befindliche,
+        jede genau einmal (Entwurf Z. 786).
         """
         staende = {k: v.level for k, v in self.research.items()}
-        einheiten = {k: int(v.count) for k, v in self.units.items()}
+        einheiten = self.alle_einheiten()
         wall = gebaeude_wirkung.wall_stufe(self.settlements)
         return {
             "staende": staende,
@@ -862,6 +887,16 @@ class GameState:
             for name, anzahl in (neu.get("einheiten") or {}).items():
                 if name in self.units:
                     self.units[name].count = max(0, int(anzahl))
+            # Echter Fund beim Ökonomie-Paket, Schritt 9 (Teil 2, 05.10.2026): ein STATIONIERENDER
+            # Auftrag verlor seine Truppe ZWEIMAL. `auftrag_starten` nimmt die Einheiten schon beim
+            # Start aus dem Bestand (Z. 836, „sie sind ab jetzt unterwegs"); der Auftragskern zieht
+            # für die Art „stationieren" bei der Ankunft noch einmal ab (sein Vertrag, in
+            # tests/test_auftraege.py belegt: Eingabe „Kämpfer 2" -> 0). Hier wird der Kern-Abzug
+            # deshalb aufgehoben: die Truppe bleibt am Ziel, sie geht genau EINMAL ab.
+            if eintrag.get("art") == "stationieren":
+                for name in (eintrag.get("einheiten") or {}):
+                    if name in self.units and name in vorher["einheiten"]:
+                        self.units[name].count = max(0, int(vorher["einheiten"][name]))
             bericht = auftraege.bericht(eintrag)
             self.messages.append({"text": bericht["titel"] + "\n" + "\n".join(bericht["zeilen"]),
                                   "type": "auftrag"})

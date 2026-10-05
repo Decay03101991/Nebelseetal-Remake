@@ -24,7 +24,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from harness import abschnitt, bericht, check, import_src, projektwurzel  # noqa: E402
+from harness import abschnitt, befund, bericht, check, import_src, projektwurzel  # noqa: E402
 
 ROOT, SRC = import_src()
 import main as M  # noqa: E402
@@ -196,5 +196,83 @@ check("P5: die Journale starten leer",
 check("P5: der Besitzer eines Spielerortes ist 'spieler'", neu_ort.besitzer == "spieler")
 check("P5: Dimension 1 ist die Startdimension (Vorschlag, Handbuch schweigt)",
       neu_ort.dimension == 1)
+
+
+# --------------------------------------------------------------------------
+abschnitt("P6: Anwesende UND unterwegs befindliche Einheiten - jede genau einmal (Entwurf Z. 786)")
+
+st2 = M.GameState()
+st2.units["Krieger"].count = 5
+st2.units["Handkarren"].count = 3
+vorher = dict(st2.alle_einheiten())
+check("P6: ohne Auftrag zaehlt der Heimatbestand",
+      vorher.get("Krieger") == 5 and vorher.get("Handkarren") == 3, str(vorher))
+
+ok, meldung = st2.auftrag_starten("transportieren", {"Krieger": 2, "Handkarren": 1},
+                                 "Siedlung 1", {"name": "Siedlung 2"}, 4.0)
+check("P6: der Transport startet", ok, meldung)
+check("P6: zuhause sind die Einheiten abgezogen",
+      st2.units["Krieger"].count == 3 and st2.units["Handkarren"].count == 2,
+      "%s / %s" % (st2.units["Krieger"].count, st2.units["Handkarren"].count))
+check("P6: unterwegs zaehlen sie weiter - die Summe bleibt gleich",
+      st2.alle_einheiten() == vorher, str(st2.alle_einheiten()))
+
+ps = st2.punktestand()
+check("P7: der Punktestand nennt anwesende UND unterwegs",
+      ps["einheiten"].get("Krieger") == 5, str(ps["einheiten"]))
+import punkte as PU  # noqa: E402
+check("P7: die Kriegspunkte kommen aus der EINEN Quelle src/punkte.py",
+      ps["krieg"] == PU.kriegspunkte(st2.alle_einheiten(), ps["wall_stufe"]),
+      "%r / %r" % (ps["krieg"], PU.kriegspunkte(st2.alle_einheiten(), ps["wall_stufe"])))
+# Gegenprobe: mit NUR den anwesenden Einheiten waeren die Punkte kleiner - die Pruefung ist
+# also nicht leer (sie faellt auf der alten Fassung durch).
+nur_zuhause = PU.kriegspunkte({k: int(v.count) for k, v in st2.units.items()}, ps["wall_stufe"])
+check("P7: Gegenprobe - 'nur zuhause' waere wirklich weniger",
+      nur_zuhause < ps["krieg"], "%r < %r" % (nur_zuhause, ps["krieg"]))
+
+_m = st2.auftraege[0]
+st2.auftraege_fortschreiben(_m["rueckkehr"] + 1.0)
+check("P8: die Truppe ist wieder zuhause",
+      st2.units["Krieger"].count == 5 and st2.units["Handkarren"].count == 3,
+      "%s / %s" % (st2.units["Krieger"].count, st2.units["Handkarren"].count))
+check("P8: der Auftrag ist aus der Liste", st2.auftraege == [], str(st2.auftraege))
+check("P8: die Summe bleibt gleich - keine Doppelzaehlung, kein Verlust",
+      st2.alle_einheiten() == vorher, str(st2.alle_einheiten()))
+
+
+# --------------------------------------------------------------------------
+abschnitt("P9: Die Kriegspunkte brechen waehrend der Reise nicht ein")
+
+st3 = M.GameState()
+st3.units["Krieger"].count = 5
+st3.units["Handkarren"].count = 3
+k_vorher = st3.punktestand()["krieg"]
+st3.auftrag_starten("transportieren", {"Krieger": 2, "Handkarren": 1},
+                    "Siedlung 1", {"name": "Siedlung 2"}, 4.0)
+k_unterwegs = st3.punktestand()["krieg"]
+check("P9: die Kriegspunkte sind unterwegs dieselben", k_unterwegs == k_vorher,
+      "%r / %r" % (k_vorher, k_unterwegs))
+
+
+# --------------------------------------------------------------------------
+abschnitt("P10: Stationieren - die Truppe verlaesst den Bestand genau einmal")
+
+st4 = M.GameState()
+st4.units["Krieger"].count = 5
+st4.units["Handkarren"].count = 3
+st4.auftrag_starten("stationieren", {"Krieger": 2}, "Siedlung 1", {"name": "Siedlung 2"}, 4.0)
+check("P10: unterwegs zaehlt die Truppe noch", st4.alle_einheiten().get("Krieger") == 5,
+      str(st4.alle_einheiten()))
+_m4 = st4.auftraege[0]
+st4.auftraege_fortschreiben(_m4["rueckkehr"] + 1.0)
+check("P10: danach ist sie aus dem Bestand (kein Doppelzaehlen)",
+      st4.alle_einheiten().get("Krieger") == 3, str(st4.alle_einheiten()))
+check("P10: der Auftrag ist beendet", st4.auftraege == [], str(st4.auftraege))
+# Ehrlich benannt: bis es je Ort eigene Einheitenbestaende gibt (Schritt 9, spaeterer Teil), steht
+# eine stationierte Truppe in KEINEM Lager - sie ist weder zuhause noch unterwegs.
+befund("P10: stationierte Truppen haben noch kein eigenes Lager (bis zur per-Ort-Umstellung)",
+       "2 Krieger stehen nach dem Stationieren in keinem Bestand - das oertliche Feld "
+       "'einheiten' ist bis zur Aktivierung leer (Entwurf Z. 774).")
+
 
 sys.exit(bericht())
