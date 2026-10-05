@@ -135,8 +135,7 @@ nach Daniels Spielbericht — den **Zeitfaktor** samt sichtbarem Rohstoffeingang
    (Kartenerzeugung, `siedlungskarte_erzeugen`, „niemals zwei gleiche") · `src/main.py`
    (Zeichnung, Klickrechnung, Speichern/Laden) · die Prüfdateien, die 40 Felder annehmen (Suche nach
    „40" und „spalten"). **Vorarbeit liegt vor:** `docs/PLAN_RASTER_8x7.md` (Unteragent) — Bestandsaufnahme
-   mit Fundstellen, zwei Varianten für die 16 nicht bebaubaren Felder, Reihenfolge, Risiken. Vom
-   Koordinator noch nachzurechnen.
+   mit Fundstellen, zwei Varianten für die 16 nicht bebaubaren Felder, Reihenfolge, Risiken. Vom Koordinator **nachgerechnet** (Zahlen stimmen, 05.10.2026). Sein Befund: nicht bebaubar ist **nur der Sumpf** — der Nebelsee ist es (Bibliothek/Tempel); die 16 Sperrfelder brauchen also Wege/Wasser (Variante A, passt zur Notiz in `data/gelaende.json`) oder eine Sumpf-Ausweitung (B).
 2. **Sieg-/Niederlagebedingung** — Daniel hat auf „Vorschläge abwarten" entschieden. Die Vorschläge
    liegen fertig in `docs/ENTSCHEIDUNGEN_FUER_DANIEL.md` (Empfehlung A: Punkteziel; im Code steht der
    Ansatz schon in `src/punkte.py` — `VORSCHLAG_ZIEL_PUNKTE = 300`, `sieg_oder_niederlage()`); sie sind
