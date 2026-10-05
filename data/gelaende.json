@@ -133,6 +133,26 @@
       }
     ]
   },
+  "kartenvorrat": {
+    "_hinweis": "Fester Kartenvorrat fuer Neugruendungen (Vorgabe Daniel 05.10.2026: 'nur 2 oder 3 start map aehnlich ausgeglichene karten ... die anderen karten sollen eher Minen und Steinmetze bevorzugen oder Farmen oder holz oder mischungen aus zweien und von dem dritten fast nichts'). Die Gewichte sind hier zugleich EXAKTE Feldkontingente: jede Karte hat 56 Felder, davon 40 bebaubar und 16 Sumpf. Eine Neugruendung zieht NICHT zufaellig, sondern aus diesem festen Vorrat. Die alten kartentypen.listen und ihr Generator bleiben unveraendert (Altpartien).",
+    "_herkunft": "VORSCHLAG: docs/audits/entwurf_spieloekonomie_sol_2026-10-05.txt, Tabelle B (Z. 68-80). Nachgerechnet: 7 Geländearten, Summe je Zeile 56, davon 40 bebaubar und 16 Sumpf, Mindestbesatz erfüllt. Daniel hat die Zahlen am 05.10.2026 mit 'so übernehmen, später nach und nach anpassen' bestätigt. OFFENER PUNKT: Daniel nannte 'Startkarte + 10 Karten'; Tabelle B liefert 10 Karten GESAMT (Startkarte + 9 Koloniekarten). Eine zehnte Koloniekarte ist leicht ergänzbar, falls er 11 Karten meinte.",
+    "start": {
+      "id": "start",
+      "name": "Startkarte (ausgeglichen)",
+      "gewichte": {"grasland": 8, "steppe": 8, "wald": 8, "huegel": 7, "berg": 7, "nebelsee": 2, "sumpf": 16}
+    },
+    "kolonien": [
+      {"id": "ausgleich_a", "name": "Ausgeglichene Karte A", "gewichte": {"grasland": 9, "steppe": 7, "wald": 8, "huegel": 6, "berg": 8, "nebelsee": 2, "sumpf": 16}},
+      {"id": "ausgleich_b", "name": "Ausgeglichene Karte B", "gewichte": {"grasland": 7, "steppe": 9, "wald": 9, "huegel": 7, "berg": 6, "nebelsee": 2, "sumpf": 16}},
+      {"id": "ausgleich_c", "name": "Ausgeglichene Karte C", "gewichte": {"grasland": 8, "steppe": 8, "wald": 7, "huegel": 8, "berg": 7, "nebelsee": 2, "sumpf": 16}},
+      {"id": "holz", "name": "Holzkarte", "gewichte": {"grasland": 3, "steppe": 2, "wald": 28, "huegel": 2, "berg": 4, "nebelsee": 1, "sumpf": 16}},
+      {"id": "minen", "name": "Minenkarte (Stein und Erz)", "gewichte": {"grasland": 3, "steppe": 2, "wald": 2, "huegel": 10, "berg": 22, "nebelsee": 1, "sumpf": 16}},
+      {"id": "farmen", "name": "Farmkarte", "gewichte": {"grasland": 27, "steppe": 6, "wald": 2, "huegel": 2, "berg": 2, "nebelsee": 1, "sumpf": 16}},
+      {"id": "holz_minen", "name": "Mischkarte Holz und Minen", "gewichte": {"grasland": 3, "steppe": 2, "wald": 16, "huegel": 5, "berg": 13, "nebelsee": 1, "sumpf": 16}},
+      {"id": "holz_farmen", "name": "Mischkarte Holz und Farmen", "gewichte": {"grasland": 17, "steppe": 2, "wald": 16, "huegel": 2, "berg": 2, "nebelsee": 1, "sumpf": 16}},
+      {"id": "minen_farmen", "name": "Mischkarte Minen und Farmen", "gewichte": {"grasland": 17, "steppe": 2, "wald": 2, "huegel": 5, "berg": 13, "nebelsee": 1, "sumpf": 16}}
+    ]
+  },
   "regeln": {
     "sumpf_unbebaubar": "BEWIESEN (Handbuch S. 11): auf Sumpf kann kein Gebäude stehen.",
     "karte_je_siedlung": "BEWIESEN (Handbuch S. 313): 'Einer neuen Siedlung wird per Zufall eine Karte zugewiesen. Es werden niemals zwei Deiner Siedlungen die gleiche Karte bekommen.'",
