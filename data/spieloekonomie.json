@@ -1,6 +1,6 @@
 {
   "_hinweis": "Regeldaten der Spielökonomie (Ökonomie-Paket). Schritt 1 des Entwurfs: nur DATEN, keine Aktivierung. Der bestehende Altmodus läuft unverändert weiter, bis der letzte Integrationsschritt den Ökonomiemodus einschaltet. Keine Datei liest diese Werte derzeit.",
-  "_herkunft": "VORSCHLAG: Ableitungen A–H aus docs/audits/entwurf_spieloekonomie_sol_2026-10-05.txt (Codeblock Z. 214-231). KEINE Originalpreisbehauptung — das Handbuch 2009 nennt weder Gründungsgebühr noch Warenpreise. Die Kernzahlen hat Daniel am 05.10.2026 mit 'so übernehmen, später nach und nach anpassen' bestätigt: Gründung 320/200/150 + Startpaket 160/100/100 + Mindestbestand 480/300/250 + ein Siedlerkarren.",
+  "_herkunft": "VORSCHLAG: Ableitungen A–H aus docs/audits/entwurf_spieloekonomie_sol_2026-10-05.txt (Codeblock Z. 214-231). KEINE Originalpreisbehauptung — das Handbuch 2009 nennt weder Gründungsgebühr noch Warenpreise. Die Kernzahlen hat Daniel am 05.10.2026 mit 'so übernehmen, später nach und nach anpassen' bestätigt: Gründung 320/200/150 + Startpaket 160/100/100 + Mindestbestand 480/300/250 + ein Siedlerkarren. EINZELNE PLANPOSTEN SIND BELEGT (der Entwurf nennt sie 'BELEGT als Planposten', Z. 44-46): Stein 50 (ein Haus), Nahrung 100 (ein Streuner), Gold 300 (Kämpfer 250 + Streuner 50). Alle übrigen Werte dieser Datei sind VORSCHLAG.",
   "version": "oekonomie-1",
   "baukunst_mindeststufe": 1,
   "gruendung": {

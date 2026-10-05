@@ -1,0 +1,170 @@
+{
+  "Messer": {
+    "kosten": {
+      "metall": 1
+    },
+    "dauer": 1200,
+    "voraussetzungen": {},
+    "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
+  },
+  "Dolch": {
+    "kosten": {
+      "metall": 2
+    },
+    "dauer": 2400,
+    "voraussetzungen": {
+      "Waffentechnik": 1
+    },
+    "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
+  },
+  "Kurzschwert": {
+    "kosten": {
+      "metall": 4
+    },
+    "dauer": 4800,
+    "voraussetzungen": {
+      "Waffentechnik": 3
+    },
+    "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
+  },
+  "Schwert": {
+    "kosten": {
+      "metall": 1
+    },
+    "dauer": 1200,
+    "voraussetzungen": {
+      "Waffentechnik": 5
+    },
+    "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
+  },
+  "Zweihänder": {
+    "kosten": {
+      "metall": 9
+    },
+    "dauer": 10800,
+    "voraussetzungen": {
+      "Waffentechnik": 8
+    },
+    "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
+  },
+  "Kettenhemd": {
+    "kosten": {
+      "metall": 4
+    },
+    "dauer": 4800,
+    "voraussetzungen": {
+      "Rüstungsbau": 3
+    },
+    "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
+  },
+  "Plattenrüstung": {
+    "kosten": {
+      "metall": 6
+    },
+    "dauer": 7200,
+    "voraussetzungen": {
+      "Rüstungsbau": 5
+    },
+    "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
+  },
+  "Magischer Paladinharnisch": {
+    "kosten": {
+      "metall": 10
+    },
+    "dauer": 12000,
+    "voraussetzungen": {
+      "Rüstungsbau": 7,
+      "Magiekunde": 2
+    },
+    "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
+  },
+  "Kurzbogen": {
+    "kosten": {
+      "holz": 4
+    },
+    "dauer": 3600,
+    "voraussetzungen": {
+      "Waffentechnik": 2
+    },
+    "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
+  },
+  "Bogen": {
+    "kosten": {
+      "holz": 7
+    },
+    "dauer": 6000,
+    "voraussetzungen": {
+      "Waffentechnik": 4
+    },
+    "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
+  },
+  "Langbogen": {
+    "kosten": {
+      "holz": 10
+    },
+    "dauer": 8400,
+    "voraussetzungen": {
+      "Waffentechnik": 6
+    },
+    "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
+  },
+  "Armbrust": {
+    "kosten": {
+      "holz": 12
+    },
+    "dauer": 10800,
+    "voraussetzungen": {
+      "Waffentechnik": 8
+    },
+    "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
+  },
+  "Wollumhang": {
+    "kosten": {
+      "wolle": 1
+    },
+    "dauer": 1200,
+    "voraussetzungen": {},
+    "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
+  },
+  "Lederrüstung": {
+    "kosten": {
+      "leder": 4
+    },
+    "dauer": 4800,
+    "voraussetzungen": {
+      "Nähkunst": 1,
+      "Rüstungsbau": 2
+    },
+    "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
+  },
+  "Diebesumhang": {
+    "kosten": {
+      "wolle": 3
+    },
+    "dauer": 3600,
+    "voraussetzungen": {
+      "Nähkunst": 2
+    },
+    "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
+  },
+  "Fellumhang": {
+    "kosten": {
+      "leder": 5
+    },
+    "dauer": 6000,
+    "voraussetzungen": {
+      "Nähkunst": 4
+    },
+    "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
+  },
+  "Fellrüstung": {
+    "kosten": {
+      "leder": 7
+    },
+    "dauer": 8400,
+    "voraussetzungen": {
+      "Nähkunst": 6
+    },
+    "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
+  }
+}
