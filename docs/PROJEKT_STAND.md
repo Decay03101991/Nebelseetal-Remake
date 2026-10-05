@@ -157,6 +157,18 @@ Paket in der Reihenfolge des Papiers — kein Halbumbau").
    Siedlung · Zielprüfung und Haltefenster · Bot-Planung · `main`-Anbindung und Migration).
    **Erst nach dem letzten Schritt** wird auf den Ökonomiemodus umgestellt; Altpartien bleiben Altmodus.
 
+**Vorgemerkt für NACH diesem Paket (Vorgabe Daniel, 05.10.2026, 18:1x): die Kampfverluste
+verdrahten.** Wörtlich: bei verlorenem Kampf soll „ein prozentualer anteil an truppen vernichtet"
+werden, „vorallem Karren und Transporteinheiten"; bei Sieg überleben die Transporteinheiten; bei
+knapp gewonnenen, fast gleichen Kämpfen muss „trotzdem" ein großer Teil der Armee Schaden nehmen
+oder sterben, aber „nicht immer alle truppen vernichtet" sein. **Befund:** das Handbuch nennt die
+Regel wörtlich (S. 23, Z. 1330-1338: der **Verlierer** verliert einen Teil seiner Karren und
+Belagerungswaffen, Fluchtchance **40 % + 5 % je Kampfsequenz**; unentschieden kostet nichts), und
+`src/kampf.py` **hat sie gebaut** (`_geraeteverluste`, Z. 192-202; Einzelverluste Z. 181-189).
+**Es fehlt allein die Verdrahtung in die Oberfläche** — das nennt `spielschicht.offene_luecken()`
+selbst. Festgehalten in `docs/ENTWURF_KAMPFVERLUSTE.md` (mit der einen offenen Entscheidung: keine
+erfundene Prozentzahl, erst bauen und messen).
+
 **Arbeitsweise für diesen Schritt (Vorgabe Daniel, unverändert):** nach jedem Schritt den betroffenen
 Einzeltest **und einmal den Sammellauf** — dabei **keine Spielprozesse offen lassen** (sonst schlägt die
 erste Prüfdatei ohne Ausgabe fehl). Danach **eine Protokollzeile** mit der Zeit aus `date` (nie
