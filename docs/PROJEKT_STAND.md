@@ -137,11 +137,18 @@ nach Daniels Spielbericht — den **Zeitfaktor** samt sichtbarem Rohstoffeingang
 | `.exe` | **05.10. 13:41 gebaut** (Dateizeitstempel `13:41:04`): **14.531.774 Byte**, SHA256 `bffd3c444d6eb1433b14c1b7a768946cc45bdc1d8511332bca0de33bc7a85ed3`, aus `C:\Users\saras` startgeprüft (ein Fenster, genau eine Instanz) — **enthält Zeitfaktor, Rohstoff-Warnung und Geländeregeln** (Schritte 27 und 28). Ältere Fassungen: 13:29 (14.524.603 Byte, `1fad511d…`, Geländeregeln) · 12:38 (14.524.225 Byte, `63b09fbf…`). `build/`, `dist/`, `.spec`, `__pycache__` sind aufgeräumt, genau eine EXE im Projektordner. **Wichtig:** nur diese Fassung zeigt Tempo und Warnung — wer mit einer älteren spielt, sieht den Zeitfaktor nicht |
 | Guthaben | **von Daniel abgelesen am 05.10. um 13:48: OpenAI 2,17 USD · DeepSeek 4,06 USD** (11:00: 2,66 / 4,97 → im Nachmittag 0,49 bzw. 0,91 USD verbraucht). **Gemessener Tagesverbrauch laut `scripts/tageskosten_check.py`: 4,13 USD ≈ 3,68 EUR über 23 Sitzungen und 4 Modelle = 80 % des harten Tageslimits (4 EUR) — Lage „WARNUNG".** Für die nächste Sitzung heißt das: **keine teuren Aufrufe ohne Begründung**, Kinder und Prüfer nur auf `deepseek-flash`, Bilddeutungen (astra) nur, wenn es wirklich nicht anders geht. **Beobachtung zum Messskript:** es meldete zwischen 13:45 und 13:48 nur +0,005 USD, während Daniels Guthabenanzeige um **0,19 USD** fiel — die Schätzung läuft der Anbieterwahrheit nach. **Maßgeblich ist die Guthabenanzeige des Anbieters, nicht die Schätzung** |
 
-### Der EINE nächste Schritt (Stand 05.10.2026, 17:00 — Schritt 31 ist ERLEDIGT)
+### Der EINE nächste Schritt (Stand 05.10.2026, 19:40 — Ökonomie-Paket: Schritte 0–8a fertig; **nächster: das Handels-Paar**)
 
-**Der neue nächste Schritt: das Ökonomie-Paket bauen — zuerst die vier Handbuch-Korrekturen, dann die
-neun Schritte des Entwurfs.** Der Auftraggeber hat das Paket ausdrücklich so entschieden („das ganze
-Paket in der Reihenfolge des Papiers — kein Halbumbau").
+**Der nächste Schritt jetzt:** das Paar **`handel_start`/`handel_abschluss`** in
+`src/spieloekonomie.py` (Entwurf Z. 752, Muster `transport_start`: Preis beim Angebot fest, Mengen
+gesperrt, Abschluss nach der Reise, Rückgabe bei Ablehnung, **keine Netzfunktionen, keine
+Gratisgewinne**) samt **`tests/test_handel_transaktion.py`**. Erwartetes Ergebnis: die neue Prüfdatei
+grün und der Sammellauf bei **3553 + N** Zusagen ohne Fehler. Danach Schritt 9 (`main`-Anbindung und
+Migration) und Schritt 10 (Ereignisschleife `tick_bis`, dann Aktivierung).
+
+**Das Gesamtpaket** hat der Auftraggeber ausdrücklich so entschieden („das ganze Paket in der
+Reihenfolge des Papiers — kein Halbumbau"): zuerst die vier Handbuch-Korrekturen, dann die neun
+Schritte des Entwurfs.
 
 1. **Die vier Handbuch-Korrekturen** (`docs/audits/handbuch_abgleich_2026-10-05.txt`, Abschnitt „Die
    zehn wichtigsten Abweichungen", Punkt 1–4): Götterschutz **7 Tage** bzw. Ende mit dem ersten
@@ -217,6 +224,10 @@ nichts im Spiel ruft `src/spieloekonomie.py` auf.
 Layoutwunsch**: die Bauauswahl steht **rechts neben der Karte** als Liste (eine Zeile je Gebäude),
 und das Fenster wächst mit dem Bildschirm. Startgeprüft aus demselben anderen Ordner (Fenstertitel
 „Nebelseetal Remake", 0 Fehlerberichte, danach 0 offene Spielprozesse).
+**Und der Neubau vom 05.10. um 19:35 — die aktuelle Auslieferung:** 14.607.530 Byte, SHA256
+`942e07046df3add46237442f61cc85cce528528444c907de1d30a21768b0a873`; sie enthält den
+kompletten committeten Stand (Ökonomie-Paket Schritte 0–8a — **im Spiel noch nicht wirksam**, weil
+nichts `src/spieloekonomie.py` aufruft) und den Layoutwunsch (Bauauswahl rechts neben der Karte).
 
 1. **Erledigt in Schritt 29** — die zwei Feinkarten-Module (`karten_optik_fein`, `welt_optik_fein`)
    sind eingehängt; die Notizen unten bleiben als Nachvollziehbarkeit stehen. astra hat die
@@ -308,7 +319,76 @@ nicht · die Uhr ist gemischt). Die reine Kostenregel steht im Sitzungsgedächtn
 liegt jetzt bei **2665**. Wer eine feste Sollzahl aufschreibt, erzeugt Falschalarm; verbindlich ist
 **0 Fehler**, nicht die Summe.
 
-## 0b. Stand beim Sitzungswechsel (04.10.2026, 23:45 — mit `date` geprüft)
+## 0e. Übergabe an die nächste Sitzung (05.10.2026, 19:40 — mit `date`, Sammellauf, `.exe`-Startprüfung, `git log` und Kostenmessung belegt)
+
+### Startzeile zum Kopieren
+
+> Lies `D:\Arbeiten\Nebelseetal_Remake\docs\PROJEKT_STAND.md`, Abschnitt **0c** (Stand in Belegen,
+> der EINE nächste Schritt, Kontext-Paket) und **0e** (Übergabe). Lies sonst nur das Kontext-Paket und
+> die dort genannten Stellen. Nach jedem Schritt: betroffener Einzeltest + einmal Sammellauf, eine
+> Protokollzeile (Zeit, Schritt, Ergebnis, Beleg, Kosten), `python tools/protokoll_sichern.py
+> --protokoll`, kleiner Commit. Am Ende der Reihe: `tools/build_exe.py` und Startprüfung aus einem
+> anderen Ordner. **Vor der ersten Änderung:** `python tools/zieluebergabe.py --pruefen` (0 = nur
+> diese Sitzung hat ein aktives Ziel). **Ziel in der neuen Sitzung setzen:** `/goal <Wortlaut aus
+> Abschnitt 0>`.
+
+### Stand in Belegen
+
+| Was | Beleg (gemessen, nicht geschätzt) |
+|---|---|
+| **Sammellauf** | **3553 bestanden, 0 Fehler, 21 Befunde über 50 Dateien**, 19:36 (`…/cache/scratch/sammellauf.py`) |
+| **Arbeitsbaum** | **sauber** — `git status --short` ist leer; letzter Commit **`361c2d2`** |
+| **`.exe`** | **14.607.530 Byte**, SHA256 `942e07046df3add46237442f61cc85cce528528444c907de1d30a21768b0a873`, gebaut **19:35**; startgeprüft aus `…\cache\scratch\exestart`: Fenstertitel **„Nebelseetal Remake"**, **0** Fehlerberichte, danach **0 offene Spielprozesse**, Startordner bleibt leer. Sie enthält **Daniels Layoutwunsch** (Bauauswahl **rechts neben** der Karte) |
+| **Sicherung** | `docs/SICHERUNGEN.md` — **16 Dateien** mit Prüfsummen, 19:36 (`protokoll_sichern.py --protokoll`) |
+| **Zielregister** | nur **diese** Sitzung aktiv (**8/20 Takte**), **kein fremdes aktives Ziel** (`--pruefen` → rc=0) |
+| **Kosten** | **Tagesmessung 6,38 EUR von 4,00 EUR = ÜBER dem harten Limit** (7,16 USD, 50 Sitzungen, 5 Modelle) → **die neue Sitzung darf nur kostenlose/lokale Wege nutzen, bis Daniel das Limit freigibt.** Die Schätzung liegt erfahrungsgemäß **unter** der Anbieterwahrheit — es ist also eher mehr |
+
+### Der EINE nächste Schritt
+
+**Das Handels-Paar `handel_start`/`handel_abschluss`** in **`src/spieloekonomie.py`** (Entwurf Z. 752,
+Muster `transport_start`) samt **`tests/test_handel_transaktion.py`**.
+**Erwartetes Ergebnis:** neue Prüfdatei grün, Sammellauf **3553 + N** ohne Fehler.
+Danach Schritt 9 (`main`-Anbindung und Migration) und Schritt 10 (`tick_bis`, dann Aktivierung).
+
+### Nicht erneut zu prüfen (je mit Beleg und Datum)
+
+| Was | Beleg |
+|---|---|
+| Schritte **0–7** des Ökonomie-Pakets | Tabelle in 0c; jede Zeile mit Commit `203e2fa` … `eee604e` und Prüfzahlen |
+| Schritt **8a** (`oekonomie_kartenwahl`, `oekonomie_angebot`) | `3785b5d`, `test_botkern` **90/0/0** (botkern bleibt reines ASCII); die *prüfenden Kinder* dazu wurden gestoppt → **die Prüfdatei fehlt noch** |
+| `test_baseline` war **nur zufällig grün** | behoben 18:17: Haus wird jetzt auf ein Feld gesetzt, wo es stehen darf; **dreimal 40/0/0** belegt, seither kein Ausreißer |
+| `.exe` startet | 19:35 aus einem anderen Ordner geprüft (Titel, 0 Fehlerberichte, 0 offene Prozesse) |
+| Der Baum ist sauber | 19:37: `git status --short` leer |
+
+### Sekunden-Checks für den Anfang
+
+```bash
+git -C D:/Arbeiten/Nebelseetal_Remake log --oneline -3
+git -C D:/Arbeiten/Nebelseetal_Remake status --short
+python D:/Arbeiten/Nebelseetal_Remake/tools/zieluebergabe.py --pruefen
+```
+
+### Offene Punkte **für Daniel** (Entscheidungen, nichts davon ist eigenmächtig geändert)
+
+1. **Kampfverluste verdrahten** — das Handbuch nennt die Regel wörtlich (S. 23), `src/kampf.py` hat
+   sie gebaut, es fehlt die Anbindung; Belege und die eine offene Frage (Prozent-Untergrenze oder nur
+   Simulation?) stehen in **`docs/ENTWURF_KAMPFVERLUSTE.md`**.
+2. **Forschungsstufe global oder je Siedlung?** Das Handbuch schweigt dazu; Bibliothek, Auftrag und
+   Sperre sind belegt **je Siedlung**. Drei Wege in **`docs/audits/belege_forschung_je_siedlung.md`**.
+3. **Reserve-Anzeige** in `zielstatus` (`bool(orte)`) ist ein gekennzeichneter **VORSCHLAG** und
+   ändert den Sieg nicht — auf Daniels Wort wird sie gestrichen.
+4. **Skill-Kopie im Profil `coding` ist veraltet** (4.589 Byte vom 04.10. gegen 38 KB in `default`) —
+   auf Daniels Wort nachziehen, fremde Profile fasst der Agent nicht von selbst an.
+5. **Kostendeckel**: heute überschritten (siehe oben).
+
+### Zwei gestoppte Kinder (ehrlich vermerkt)
+
+Für Schritt 8a waren zwei prüfende Kinder unterwegs: die Prüfdatei `tests/test_bot_oekonomie.py`
+(15 Zusagen) und die Abweichungsliste `docs/audits/pruefung_schritt8.md` (10 Prüfpunkte). Sie wurden
+für die **saubere** Übergabe **gestoppt, bevor sie Dateien anlegten** — der Baum ist deshalb leer.
+Die Aufträge sind in der Protokollzeile **53** vollständig beschrieben und in Sekunden neu ausgelöst.
+
+
 
 **Nichts ist in Arbeit. Kein Prozess läuft, kein Kind arbeitet. Arbeitsverzeichnis sauber**
 (Commit `9bbb3c2`), alles committet, Papiere projektunabhängig gesichert
