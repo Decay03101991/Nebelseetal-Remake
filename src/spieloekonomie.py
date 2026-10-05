@@ -26,7 +26,9 @@ import random
 from pathlib import Path
 
 import auftraege
+import ausruestung
 import einheiten  # noqa: F401  (vom Entwurf vorgesehen; hier für spätere Schritte)
+import gebaeude_wirkung
 import gelaende
 import spieldaten
 import werkstatt
@@ -449,7 +451,6 @@ def ausbildung_start(ort: dict, name: str, forschung: dict, jetzt: float) -> dic
     voraus = eintrag.get("voraussetzung") or {}
     if voraus and forschung.get(voraus.get("forschung"), 0) < voraus.get("stufe", 0):
         raise ValueError("Einheitenforschung fehlt.")
-    import gebaeude_wirkung
     geb = gelaende.finde_gebaeude(str(eintrag.get("gebaeude") or ""))
     stufe = gebaeude_wirkung.gebaeude_stufe(ort, geb)
     if stufe <= 0:
@@ -470,3 +471,66 @@ def ausbildung_start(ort: dict, name: str, forschung: dict, jetzt: float) -> dic
                               "ende": freie_zeit + REGELN["pilot_ausbildung_minuten"] * 60,
                               "gebucht": False})
     return neu
+
+
+# ---------------------------------------------------------------------------
+# Schritt 5 — gemeinsame Spieluhr: lokale Produktion und Fortschritt
+# (Entwurf Z. 592-648)
+# ---------------------------------------------------------------------------
+#
+# Der Ökonomiemodus hat EINE Uhr: `spielsekunden` (Spielzeit, nicht Rechnerzeit). Dieses Modul
+# rechnet nur damit; `main._tick_loop` multipliziert genau einmal mit `spielzeit.faktor()`.
+# Solange der Ökonomiemodus nicht aktiviert ist, ruft niemand diese Funktionen auf.
+
+
+def ort_tick(ort: dict, ab: float, bis: float, forschung: dict) -> dict:
+    """Einen Ort von Spielzeit `ab` bis `bis` fortschreiben. Liefert den neuen Ort.
+
+    Produziert über `wirtschaft.ertrag_gesamt` (dieselbe Quelle wie die Anzeige), schreibt
+    Siedlerzuwachs bis zur Grenze fort, holt fertige Werkstattwaren ins Lager und bucht
+    abgeschlossene Ausbildungen **genau einmal** (`gebucht`). Jede Produktionsspanne landet im
+    `produktionsjournal` — Grundlage des Versorgungsfensters (Schritt 7).
+    """
+    if bis < ab:
+        raise ValueError("Spielzeit darf nicht zurücklaufen.")
+    neu = copy.deepcopy(ort)
+    ertrag = {k.lower(): v for k, v in wirtschaft.ertrag_gesamt([neu], forschung).items()}
+    produktion = {}
+    for r, rate in ertrag.items():
+        menge = rate * (bis - ab) / 3600.0
+        neu["vorraete"][r] = neu["vorraete"].get(r, 0) + menge
+        produktion[r] = menge
+    grenze = gebaeude_wirkung.bevoelkerungsgrenze([neu])
+    zuwachs = gebaeude_wirkung.siedler_zuwachs_pro_stunde([neu], forschung) * (bis - ab) / 3600.0
+    neu["bevoelkerung"] = min(grenze, neu["bevoelkerung"] + zuwachs)
+    if bis > ab:
+        neu["produktionsjournal"].append({"ab": ab, "bis": bis, "mengen": produktion})
+    for schlange in neu["werkstaetten"].values():
+        for ware, n in werkstatt.fertige_waren(schlange, bis).items():
+            neu["waren"][ware] = neu["waren"].get(ware, 0) + n
+            neu["fertigjournal"].append({"zeit": bis, "art": "ware", "name": ware})
+    for a in neu["ausbildung"]:
+        if not a["gebucht"] and a["ende"] <= bis:
+            name = a["einheit"]
+            neu["einheiten"][name] = neu["einheiten"].get(name, 0) + 1
+            a["gebucht"] = True
+            neu["fertigjournal"].append({"zeit": a["ende"], "art": "einheit", "name": name})
+    return neu
+
+
+def fensterproduktion(orte: list, jetzt: float) -> dict:
+    """Tatsächlich produzierte Mengen im Versorgungsfenster (rückblickend bis `jetzt`).
+
+    Zählt aus den `produktionsjournal`-Zeilen anteilig — eine Zeile, die nur halb ins Fenster
+    reicht, zählt auch nur halb. So kann eine Momentaufnahme die Versorgung nicht vortäuschen.
+    """
+    start = jetzt - REGELN["versorgung_stunden"] * 3600
+    out: dict = {}
+    for ort in orte:
+        for zeile in ort.get("produktionsjournal") or []:
+            dauer = zeile["bis"] - zeile["ab"]
+            anteil = max(0.0, min(jetzt, zeile["bis"]) - max(start, zeile["ab"]))
+            if dauer > 0 and anteil > 0:
+                for r, n in (zeile.get("mengen") or {}).items():
+                    out[r] = out.get(r, 0) + n * anteil / dauer
+    return out
