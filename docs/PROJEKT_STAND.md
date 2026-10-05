@@ -66,6 +66,13 @@ zu einem Erlebnis zu machen").
    #75674F mit 4 px Innenlinie #A28E69 · Auswahl 5 px #172128 + 2 px #E4C77D + vier 8-px-Eckwinkel ·
    Stufenpips 4×4 px · Koordinatenleiste 18 px · Weltkarte: 1-px-Raster #38433C, Varianten
    **deterministisch aus den Feldkoordinaten** (sonst springt das Bild beim Neuzeichnen).
+   **Drei Dinge beim Einhängen beachten** (Befunde der Kinder, 05.10.2026): (a) Geländefarben für
+   Steppe/Hügel/Sumpf stehen **nicht** im astra-Bericht — sie gehören aus `gelaende.farbe()` bezogen,
+   sonst entstehen zwei Farbwahrheiten; (b) `#637451` wird im Modul für Ebene **und** Wald verwendet
+   (astra nennt drei Lichtfarben für vier Geländearten) — beim Einhängen prüfen und ggf. trennen;
+   (c) astra spricht vom **8×7-Raster**, im Projekt gilt `spalten 8 × zeilen 5 = 40 Felder`
+   (Frage 12 an Daniel) — die Module nehmen `spalten`/`zeilen` als Parameter, die Zahlen also vom
+   Aufrufer übergeben, nie im Modul festlegen.
 2. **Aufgabenkarte für den Einstieg** (Entwurf Abschnitt D): Holzfäller/Steinmetz → Bibliothek →
    Baukunst → Farm/Haus → Schmiedekunst → Schmiede/Nähstube → erste Ware → erste Einheit.
 3. **Offene Entscheidungen für Daniel:** Zeitfaktor (1 Spielstunde = 20 Sekunden statt 1 Stunde —
