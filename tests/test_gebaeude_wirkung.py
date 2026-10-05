@@ -125,6 +125,21 @@ check("ein Haus wirkt nur in seiner eigenen Siedlung",
       W.siedlergrenze_je_siedlung(ohne_haus) == 10
       and W.siedlergrenze_je_siedlung(mit_haus) == 15)
 
+# Hausausbau (VORSCHLAG, Vorgabe Daniel 05.10.2026: „der Häuserausbau ist noch nicht klug
+# entworfen"): jede Ausbaustufe hebt die Siedlergrenze um weitere 5. Stufe 1 = belegtes Haus.
+_haus_stufe3 = siedlung_mit(karte, [(gras[0], "haus")])
+_haus_stufe3.stufen = {"0": 3}
+check("ein Haus auf Stufe 3 hebt die Grenze auf 10 + 15 = 25",
+      W.siedlergrenze_je_siedlung(_haus_stufe3) == 25,
+      str(W.siedlergrenze_je_siedlung(_haus_stufe3)))
+_zwei_haeuser = siedlung_mit(karte, [(gras[0], "haus"), (gras[1], "haus")])
+_zwei_haeuser.stufen = {"0": 2}
+check("Stufe 2 + Stufe 1 ergeben 10 + 15 = 25 (nur das ausgebaute Haus zaehlt hoeher)",
+      W.siedlergrenze_je_siedlung(_zwei_haeuser) == 25,
+      str(W.siedlergrenze_je_siedlung(_zwei_haeuser)))
+check("alte Spielstaende ohne Stufenangabe zaehlen jedes Haus als Stufe 1",
+      W.siedlergrenze_je_siedlung(mit_haus) == 15, str(W.siedlergrenze_je_siedlung(mit_haus)))
+
 check("der Zuwachs ist 1 Siedler je Stunde und Siedlung",
       W.siedler_zuwachs_pro_stunde([mit_haus]) == 1.0,
       str(W.siedler_zuwachs_pro_stunde([mit_haus])))
@@ -376,7 +391,8 @@ check("Kriegerakademie, Diebesgilde und Stellmacher haben Stufen (Vorschlag 5)",
 check("die Bibliothek hat Stufen (Vorschlag 5)", W.max_stufe("bibliothek") == 5)
 check("ein Holzfäller hat keinen Ausbau (das Handbuch nennt keine Stufen)",
       W.max_stufe("holzfaeller") is None)
-check("ein Haus hat keinen Ausbau", W.max_stufe("haus") is None)
+check("ein Haus hat Ausbaustufen bis 4 (VORSCHLAG, Vorgabe Daniel 05.10.2026)",
+      W.max_stufe("haus") == 4, str(W.max_stufe("haus")))
 check("ein Gebaeude ohne Eintrag liefert Stufe 1 (alte Spielstaende)",
       W.stufe_von_feld({"bauten": {"0": "haus"}}, 0) == 1)
 check("eine gespeicherte Stufe wird gelesen",

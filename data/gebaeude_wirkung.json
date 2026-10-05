@@ -37,9 +37,19 @@
     "diebesgilde": 5,
     "stellmacher": 5,
     "bibliothek": 5,
-    "_vorschlag": "Wall 10 ist BELEGT (buildings.json). Bibliothek und die drei Ausbildungsstaetten: das Handbuch belegt nur, dass es Stufen gibt; die Zahl 5 ist VORSCHLAG (siehe ausbildung._stufen_vorschlag). Fuer alle anderen der 20 Gebaeude gibt es keinen Ausbau (null)."
+    "haus": 4,
+    "_vorschlag": "Wall 10 ist BELEGT (buildings.json). Haus bis Stufe 4, Bibliothek und die drei Ausbildungsstaetten: das Handbuch belegt nur, dass es Stufen gibt; die ZAHLEN sind VORSCHLAG (Haus: Vorgabe Daniel 05.10.2026 - 'der Haeuserausbau ist noch nicht klug entworfen'). Stufe 1 = das belegte Haus (+5 Siedler); jede weitere Stufe hebt die Siedlergrenze um weitere 5. Fuer alle anderen der 20 Gebaeude gibt es keinen Ausbau (null)."
   },
   "ausbau_linear": "Ausbau auf Stufe n kostet das n-fache des Grundpreises - dieselbe Regel wie in data/baupreise.json (dort als VORSCHLAG gekennzeichnet).",
+  "haus_stufen": {
+    "_hinweis": "VORSCHLAG (Entwurf deepseek-v4-pro, 05.10.2026, docs/audits/entwurf_ausruestung_forschung_haus_2026-10-05.txt, Abschnitt C). Stufe 1 ist das BELEGTE Haus (Handbuch Seite 11: +5 Siedler je Haus). Die Stufen 2-4 heben NUR die Siedlergrenze (+5 je Stufe), NICHT den Zuwachs (1 Siedler je Stunde) - der Zuwachs ist belegt und hat mit der Heilkunde (+10 % je Stufe) bereits seinen belegten Hebel.",
+    "stufen": {
+      "1": {"kosten": {"holz": 80, "stein": 50}, "siedler": 5, "belegt": true},
+      "2": {"kosten": {"holz": 160, "stein": 100}, "siedler": 10, "belegt": false},
+      "3": {"kosten": {"holz": 240, "stein": 150}, "siedler": 15, "belegt": false},
+      "4": {"kosten": {"holz": 320, "stein": 200}, "siedler": 20, "belegt": false}
+    }
+  },
   "offene_luecken": {
     "werkstaetten": "Schmiede, Bogenbauer und Naehstube stellen im Original Waren her. Das Waren-Handwerk fehlt noch - Paket W3 (PROJEKT_STAND.md, Abschnitt 5).",
     "baukunst": "Das Original verlangt fuer die meisten Gebaeude die Forschung 'Baukunst' (Holzfaeller, Steinmetz, Jaeger, Bibliothek und Haeuser sind ohne Forschung baubar). Im Spiel stehen noch die 18 erfundenen Forschungsgebiete; 'Baukunst' gibt es dort nicht. Die Bauregel greift daher erst mit dem Paket, das die 21 Originalforschungen ins Spiel holt.",

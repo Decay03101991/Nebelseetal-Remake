@@ -37,6 +37,11 @@ import werkstatt   # W3: die drei Werkstaetten, die 17 Waren und ihre Warteschla
 import auftraege   # W7: Auftraege (Missionen) mit Reisezeit, Rueckkehr und Bericht
 import forschung  # W4c: Forschung braucht Zeit - die Stufe steigt erst nach Ablauf
 import welt        # W4d: die Weltkarte des Limbus (20 Dimensionen, sechs belegte Welten)
+# Feinere Kartenoptik (Kinder-Arbeit vom 05.10.2026, vom Koordinator nachgerechnet): beide Module
+# liefern Zeichenplaene als DATEN und zeichnen sie ueber `zeichne` auf eine beliebige Leinwand.
+# Sie ersetzen die duennen Einzelstriche der ersten Fassung — Siedlungskarte UND Weltkarte.
+import karten_optik   # Siedlungskarte: 7 Gelaende-Embleme, Gebaeude mit Stufenpips, Wege, Raster
+import welt_optik     # Weltkarte: 6 Gelaendemalereien, Fahne, Auswahl, Regionsnamen, Uebersicht
 
 
 # ---------- Data Models ----------
@@ -1860,65 +1865,6 @@ class NebelseetalApp:
         return chr(ord("A") + spalte) if 0 <= spalte < 26 else str(spalte)
 
     @staticmethod
-    def _gelaende_emblem(canvas, art: str, x0: float, y0: float, zelle: float) -> None:
-        """Ein kleines Emblem je Geländeart, mit Zeichenbefehlen gemalt.
-
-        astra-Gutachten 05.10.2026: „Gelände nie ausschließlich durch Farbe unterscheiden"
-        und „keine gemischten Emoji-Schriftzeichen als Kartensymbolsatz".
-        """
-        m = zelle / 2.0
-        cx, cy = x0 + m, y0 + m
-        dunkel, hell = "#1B2A1E", "#E8EEF2"
-        if art == "wald":
-            for dx in (-11, 0, 11):
-                canvas.create_polygon(cx + dx, cy - 14, cx + dx - 7, cy + 3, cx + dx + 7, cy + 3,
-                                      fill=dunkel, outline="")
-                canvas.create_rectangle(cx + dx - 1.5, cy + 3, cx + dx + 1.5, cy + 8,
-                                        fill="#4A3A22", outline="")
-        elif art == "berg":
-            canvas.create_polygon(cx - 15, cy + 10, cx - 1, cy - 13, cx + 15, cy + 10,
-                                  fill=dunkel, outline="")
-            canvas.create_polygon(cx - 6, cy - 4, cx - 1, cy - 13, cx + 4, cy - 4,
-                                  fill=hell, outline="")
-        elif art == "huegel":
-            canvas.create_arc(cx - 16, cy - 4, cx + 2, cy + 14, start=0, extent=180,
-                              style="chord", fill=dunkel, outline="")
-            canvas.create_arc(cx - 2, cy - 9, cx + 16, cy + 14, start=0, extent=180,
-                              style="chord", fill=dunkel, outline="")
-        elif art == "nebelsee":
-            for dy in (-5, 4):
-                canvas.create_line(cx - 15, cy + dy, cx - 7, cy + dy - 4, cx + 1, cy + dy,
-                                   cx + 9, cy + dy - 4, cx + 15, cy + dy, fill=hell,
-                                   width=2, smooth=True)
-        elif art == "sumpf":
-            for dx in (-10, 0, 10):
-                canvas.create_line(cx + dx, cy - 8, cx + dx, cy + 8, fill=dunkel, width=2)
-            canvas.create_line(cx - 13, cy + 11, cx + 13, cy + 11, fill="#9AB0C4", width=2)
-        elif art == "steppe":
-            for dy in (-6, 0, 6):
-                canvas.create_line(cx - 12, cy + dy, cx + 12, cy + dy, fill=dunkel, width=2)
-        elif art == "grasland":
-            for dx in (-9, 0, 9):
-                canvas.create_line(cx + dx, cy + 8, cx + dx - 4, cy - 8, fill=dunkel, width=2)
-
-    @staticmethod
-    def _gebaeude_zeichen(canvas, x0: float, y0: float, zelle: float, tags=()) -> None:
-        """Ein einheitliches Gebäudezeichen auf einem bebauten Feld (Dach + Körper).
-
-        Die Fläche ist zu klein für Namen und Ertrag — 64 px. astra-Nachprüfung 05.10.2026:
-        „Gebäudenamen und Erträge überlagern sich beziehungsweise werden an Feldgrenzen
-        abgeschnitten." Auf dem Feld bleibt deshalb nur das Zeichen; die Angaben stehen
-        unter der Karte im Detailbereich.
-        """
-        m = zelle / 2.0
-        cx = x0 + m
-        dach, koerper = "#F2C94C", "#8A6A2A"
-        canvas.create_polygon(cx - 16, y0 + m + 2, cx, y0 + m - 16, cx + 16, y0 + m + 2,
-                              fill=dach, outline="#17212B", tags=tags)
-        canvas.create_rectangle(cx - 11, y0 + m + 2, cx + 11, y0 + m + 18,
-                                fill=koerper, outline="#17212B", tags=tags)
-
-    @staticmethod
     def _ertrag_kurz(gebaeude_key: str, art: str) -> str:
         """Ertrag eines Gebäudes auf diesem Feld, kurz: „4 Holz/h" oder „kein Rohstoffertrag"."""
         ertrag = gelaende.ertrag_pro_stunde(gebaeude_key, art)
@@ -1934,9 +1880,14 @@ class NebelseetalApp:
         """Die Siedlungskarte als Zeichenfläche (64-px-Felder).
 
         Vorher war das ein Raster kleiner Knöpfe mit abgeschnittenen Gebäudenamen; laut
-        astra-Bildgutachten vom 05.10.2026 sah das „wie eine farbige Tabelle aus". Jetzt:
-        Geländefarbe PLUS Emblem, Koordinate oben links, vollständiger Gebäudename (umgebrochen)
-        und Ertrag auf dem Feld, gewähltes Feld mit Cyanrahmen und Eckmarken.
+        astra-Bildgutachten vom 05.10.2026 sah das „wie eine farbige Tabelle aus". Seit dem
+        05.10.2026 kommen die Zeichen aus `src/karten_optik.py` (Paket „feinere Kartenoptik",
+        Kinder-Arbeit, vom Koordinator nachgerechnet): Gelände-Emblem mit 4–10 Formen je Art,
+        Gebäudezeichen je Gebäudefamilie mit Stufenpips, **Wege** zwischen benachbarten bebauten
+        Feldern. Die Pläne sind Daten — `tests/test_karten_optik.py` prüft sie ohne Fenster.
+
+        Gezeichnet wird in drei Durchgängen, damit die Wege UNTER den Gebäuden liegen:
+        (1) Felder, Koordinaten, Auswahl · (2) Wege · (3) Embleme und Gebäude.
         """
         zelle = 64
         spalten = int(karte.get("spalten") or 8)
@@ -1947,26 +1898,19 @@ class NebelseetalApp:
                            highlightthickness=0, bd=0)
         canvas.pack(anchor=tk.W, padx=10)
         gewaehlt = getattr(self, "karten_feld", None)
-        for i, art in enumerate(karte["raster"]):
+        raster = karte["raster"]
+
+        # ---- Durchgang 1: die Felder selbst ------------------------------------------------
+        for i, art in enumerate(raster):
             sp, ze = i % spalten, i // spalten
             x0, y0 = rand + sp * zelle, rand + ze * zelle
             x1, y1 = x0 + zelle, y0 + zelle
             tag = f"feld:{i}"
             canvas.create_rectangle(x0, y0, x1, y1, fill=gelaende.farbe(art),
                                     outline="#17212B", width=2, tags=(tag,))
-            self._gelaende_emblem(canvas, art, x0, y0, zelle)
             canvas.create_text(x0 + 4, y0 + 3, text=f"{self._spaltenname(sp)}{ze + 1}",
                                anchor=tk.NW, fill="#17212B",
                                font=("TkDefaultFont", 8, "bold"), tags=(tag,))
-            gebaut = siedlung.bauten.get(str(i))
-            if gebaut:
-                # astra-Nachprüfung 05.10.2026: Name UND Ertrag auf 64 px überlagern sich und
-                # werden an den Feldgrenzen abgeschnitten. Auf dem Feld steht deshalb nur ein
-                # Gebäudezeichen und die Stufe; alle Angaben stehen unter der Karte.
-                stufe = gebaeude_wirkung.stufe_von_feld(siedlung, i)
-                self._gebaeude_zeichen(canvas, x0, y0, zelle, tags=(tag,))
-                canvas.create_text(x1 - 5, y1 - 5, text=f"St. {stufe}", anchor=tk.SE,
-                                   fill="#7FD1FF", font=("TkDefaultFont", 8, "bold"), tags=(tag,))
             if i == gewaehlt:
                 canvas.create_rectangle(x0 + 1, y0 + 1, x1 - 1, y1 - 1, outline="#38BDF8",
                                         width=4, tags=(tag,))
@@ -1974,6 +1918,36 @@ class NebelseetalApp:
                     canvas.create_rectangle(ex - 3, ey - 3, ex + 3, ey + 3, fill="#38BDF8",
                                             outline="", tags=(tag,))
             canvas.tag_bind(tag, "<Button-1>", lambda _e, idx=i: self._karten_feld_waehlen(idx))
+
+        # ---- Durchgang 2: Wege zwischen benachbarten bebauten Feldern ----------------------
+        if getattr(siedlung, "bauten", None):
+            karten_optik.zeichne(canvas,
+                                 karten_optik.wege_plan(dict(siedlung.bauten), spalten, zelle,
+                                                        x0=float(rand), y0=float(rand)),
+                                 tags=("weg",))
+
+        # ---- Durchgang 3: Gelände-Emblem, darauf das Gebäude samt Stufenpips --------------
+        for i, art in enumerate(raster):
+            sp, ze = i % spalten, i // spalten
+            x0, y0 = rand + sp * zelle, rand + ze * zelle
+            tag = f"feld:{i}"
+            karten_optik.zeichne(canvas, karten_optik.emblem_plan(art, x0, y0, zelle),
+                                 tags=(tag,))
+            gebaut = siedlung.bauten.get(str(i))
+            if gebaut:
+                # astra-Nachprüfung 05.10.2026: Name UND Ertrag auf 64 px überlagern sich und
+                # werden an den Feldgrenzen abgeschnitten. Auf dem Feld steht deshalb nur das
+                # Gebäudezeichen samt Stufe; alle Angaben stehen unter der Karte.
+                stufe = gebaeude_wirkung.stufe_von_feld(siedlung, i)
+                karten_optik.zeichne(
+                    canvas,
+                    karten_optik.gebaeude_plan(gebaut, x0, y0, zelle, stufe=stufe,
+                                               max_stufe=gebaeude_wirkung.max_stufe(gebaut)),
+                    tags=(tag,))
+                canvas.create_text(x0 + zelle - 5, y0 + zelle - 5, text=f"St. {stufe}",
+                                   anchor=tk.SE, fill="#7FD1FF",
+                                   font=("TkDefaultFont", 8, "bold"), tags=(tag,))
+
         # Zusätzlich ein Klick auf die GANZE Fläche: die Rechnung aus der Mausposition ist
         # robuster als die Bindung je Objekt (und prüfbar, weil sie auch bei erzeugten
         # Klick-Ereignissen greift).
@@ -2500,17 +2474,12 @@ class NebelseetalApp:
         gitter = max(1, int(self._map_size or 20))
         breite = klein.winfo_width()
         kante = float(breite if breite and breite > 10 else 132)
-        kachel = kante / gitter
-        for tile in self.state.map_tiles:
-            klein.create_rectangle(tile.x * kachel, tile.y * kachel,
-                                   (tile.x + 1) * kachel, (tile.y + 1) * kachel,
-                                   fill=WELT_GELAENDEFARBEN.get(tile.terrain, "#111317"),
-                                   outline="")
-        for s in self.state.settlements:
-            if s.map_id != self.state.current_map:
-                continue
-            cx, cy = (s.x + 0.5) * kachel, (s.y + 0.5) * kachel
-            klein.create_oval(cx - 2, cy - 2, cx + 2, cy + 2, fill="#2563EB", outline="")
+        orte = [(int(s.x), int(s.y)) for s in self.state.settlements
+                if s.map_id == self.state.current_map]
+        # Die Uebersicht zeichnet der Plan aus `src/welt_optik.py` (400 Kacheln + Ortspunkte +
+        # Rahmen der Auswahl); die Ausschnittsmarke darueber legt `_welt_uebersicht_update` nach.
+        welt_optik.zeichne(klein, welt_optik.uebersicht_plan(
+            self.state.map_tiles, kante, gitter, orte=orte, auswahl=self.welt_auswahl))
         self._welt_uebersicht_rahmen = klein.create_rectangle(0, 0, 0, 0, outline="#F3F4F6", width=2)
         self._welt_uebersicht_update()
 
@@ -2709,18 +2678,21 @@ class NebelseetalApp:
         if eigene is not None:
             name = str(eigene.name)
             gebaut = len(getattr(eigene, "bauten", {}) or {})
-            gebaeude = f"{gebaut} Gebäude" if gebaut else "keine"
+            inhalt, inhalt_label = (f"{gebaut} Gebäude" if gebaut else "keine"), "Gebäude"
             status = "Eigene Siedlung"
         else:
             name = self._welt_ort_name(tile) or "Unbenannter Ort"
             status = "Unpassierbar (Wasser)" if tile.terrain == "water" else (
                 "Zugänglich" if tile.discovered else "Unbetreten")
             stoffe = ", ".join(f"{k} {int(v)}" for k, v in (tile.resources or {}).items())
-            gebaeude = stoffe if stoffe else "keine"
+            # astra (05.10.2026): „Rohstoffvorkommen nicht als Gebäude bezeichnen" — ein
+            # Vorkommen ist kein Bauwerk, es steht deshalb unter „Vorkommen".
+            inhalt = stoffe if stoffe else "keine"
+            inhalt_label = "Vorkommen" if stoffe else "Gebäude"
         return {"x": x, "y": y, "tile": tile, "eigene": eigene, "name": name,
                 "koordinate": self._welt_koordinate(x, y),
                 "gelaende": WELT_GELAENDENAMEN.get(tile.terrain, str(tile.terrain)),
-                "status": status, "gebaeude": gebaeude}
+                "status": status, "gebaeude": inhalt, "gebaeude_label": inhalt_label}
 
     def _welt_detail_zeichnen(self):
         """Das feste Detailpanel rechts — Ort, Gelände, Status, Gebäude, Aktion."""
@@ -2745,7 +2717,7 @@ class NebelseetalApp:
                  wraplength=270, justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(6, 2))
         for zeile in (f"Gelände: {daten['gelaende']}",
                       f"Status: {daten['status']}",
-                      f"Gebäude: {daten['gebaeude']}"):
+                      f"{daten['gebaeude_label']}: {daten['gebaeude']}"):
             tk.Label(rahmen, text=zeile, fg=self.skin["text"], bg=self.skin["panel"],
                      wraplength=270, justify=tk.LEFT).pack(anchor=tk.W, padx=6)
         eigene = daten["eigene"]
@@ -2791,57 +2763,6 @@ class NebelseetalApp:
         self._show_buildings = not getattr(self, "_show_buildings", True)
         self._draw_map()
 
-    @staticmethod
-    def _welt_gelaende_zeichen(canvas, art: str, x0: float, y0: float, zelle: float) -> None:
-        """Ein Geländezeichen für die Weltkarte (astra: Gelände nie nur über die Farbe).
-
-        Eigene Zeichen für die sechs Geländearten der WELTkarte; die Siedlungskarte hat ihre
-        eigenen (``_gelaende_emblem``) mit anderer Geländeliste. Beide sind mit Zeichenbefehlen
-        gemalt — kein Emoji, kein Zusatzpaket.
-        """
-        m = zelle / 2.0
-        cx, cy = x0 + m, y0 + m
-        dunkel, hell = "#101A12", "#D7E3EC"
-        if art == "forest":
-            for dx in (-0.22, 0.0, 0.22):
-                canvas.create_polygon(cx + dx * zelle, cy - 0.30 * zelle,
-                                      cx + dx * zelle - 0.15 * zelle, cy + 0.06 * zelle,
-                                      cx + dx * zelle + 0.15 * zelle, cy + 0.06 * zelle,
-                                      fill=dunkel, outline="")
-                canvas.create_rectangle(cx + dx * zelle - 0.03 * zelle, cy + 0.06 * zelle,
-                                        cx + dx * zelle + 0.03 * zelle, cy + 0.18 * zelle,
-                                        fill="#4A3A22", outline="")
-        elif art == "mountain":
-            canvas.create_polygon(cx - 0.32 * zelle, cy + 0.22 * zelle,
-                                  cx, cy - 0.28 * zelle,
-                                  cx + 0.32 * zelle, cy + 0.22 * zelle, fill=dunkel, outline="")
-            canvas.create_polygon(cx - 0.10 * zelle, cy - 0.05 * zelle,
-                                  cx, cy - 0.28 * zelle,
-                                  cx + 0.10 * zelle, cy - 0.05 * zelle, fill=hell, outline="")
-        elif art == "water":
-            for dy in (-0.10, 0.08):
-                canvas.create_line(cx - 0.30 * zelle, cy + dy * zelle,
-                                   cx - 0.14 * zelle, cy + dy * zelle - 0.08 * zelle,
-                                   cx + 0.02 * zelle, cy + dy * zelle,
-                                   cx + 0.18 * zelle, cy + dy * zelle - 0.08 * zelle,
-                                   cx + 0.30 * zelle, cy + dy * zelle,
-                                   fill=hell, width=2, smooth=True)
-        elif art == "plains":
-            for dy in (-0.10, 0.06):
-                canvas.create_line(cx - 0.24 * zelle, cy + dy * zelle,
-                                   cx + 0.24 * zelle, cy + dy * zelle, fill=dunkel, width=2)
-        elif art == "village":
-            canvas.create_polygon(cx - 0.24 * zelle, cy + 0.04 * zelle, cx, cy - 0.20 * zelle,
-                                  cx + 0.24 * zelle, cy + 0.04 * zelle, fill="#F2C94C", outline="")
-            canvas.create_rectangle(cx - 0.16 * zelle, cy + 0.04 * zelle,
-                                    cx + 0.16 * zelle, cy + 0.24 * zelle,
-                                    fill="#8A6A2A", outline="#17212B")
-        elif art == "ruins":
-            for dx in (-0.20, 0.0, 0.20):
-                canvas.create_rectangle(cx + dx * zelle - 0.05 * zelle, cy - 0.16 * zelle,
-                                        cx + dx * zelle + 0.05 * zelle, cy + 0.20 * zelle,
-                                        fill="#B9AEE0", outline="")
-
     def _welt_regionen(self, gitter: int):
         """Regionen (3x3) einmal GROSS beschriften — VORSCHLAG, das Handbuch nennt keine Namen."""
         kanten = [int(gitter * i / 3) for i in range(4)]
@@ -2883,8 +2804,11 @@ class NebelseetalApp:
                                     fill=WELT_GELAENDEFARBEN.get(tile.terrain, "#111317"),
                                     outline="#0B0F12",
                                     tags=(f"weltfeld:{tile.x}:{tile.y}", "weltfeld"))
-            if zelle >= 32:
-                self._welt_gelaende_zeichen(canvas, tile.terrain, x1, y1, zelle)
+            if zelle >= 24:
+                # Feinere Gelaendemalerei je Feld aus `src/welt_optik.py` (Kinder-Arbeit,
+                # nachgerechnet): 4–10 Formen statt weniger Striche.
+                welt_optik.zeichne(canvas, welt_optik.gelaende_plan(tile.terrain, x1, y1, zelle),
+                                   tags=(f"weltfeld:{tile.x}:{tile.y}",))
         if zelle >= 24:
             for rcx, rcy, rname in self._welt_regionen(gitter):
                 canvas.create_text(rcx, rcy, text=rname, fill="#8A94A0",
@@ -2900,27 +2824,19 @@ class NebelseetalApp:
                 cx, cy = tile.x * zelle + zelle / 2.0, tile.y * zelle + zelle / 2.0
                 canvas.create_oval(cx - 5, cy - 5, cx + 5, cy + 5, fill="#F2C94C",
                                    outline="#17212B", tags="weltort")
-                name = self._welt_ort_name(tile)
-                if name and zelle >= 32:
-                    canvas.create_text(cx, cy + zelle * 0.36, text=name, fill="#E6E9EE",
-                                       font=("TkDefaultFont", 8), tags="weltort")
         # Der eigene Ort: weiße Fahne auf blauem Sockel, daneben „Hier" (astra A3)
         for s in self.state.settlements:
             if s.map_id != self.state.current_map:
                 continue
-            cx, cy = s.x * zelle + zelle / 2.0, s.y * zelle + zelle / 2.0
-            canvas.create_rectangle(cx - 6, cy + 3, cx + 6, cy + 11, fill="#2563EB",
-                                    outline="#0B0F12", tags="welthier")
-            canvas.create_line(cx, cy + 3, cx, cy - 13, fill="#F3F4F6", width=2, tags="welthier")
-            canvas.create_polygon(cx, cy - 13, cx + 15, cy - 8, cx, cy - 3, fill="#F3F4F6",
-                                  outline="", tags="welthier")
-            canvas.create_text(cx, cy + 20, text="Hier", fill="#F3F4F6",
+            welt_optik.zeichne(canvas, welt_optik.fahne_plan(s.x * zelle, s.y * zelle, zelle),
+                               tags=("welthier",))
+            canvas.create_text(s.x * zelle + zelle / 2.0, s.y * zelle + zelle * 0.95,
+                               text="Hier", fill="#F3F4F6",
                                font=("TkDefaultFont", 8, "bold"), tags="welthier")
         if getattr(self, "welt_auswahl", None):
             ax, ay = int(self.welt_auswahl[0]), int(self.welt_auswahl[1])
-            canvas.create_rectangle(ax * zelle + 1, ay * zelle + 1,
-                                    (ax + 1) * zelle - 1, (ay + 1) * zelle - 1,
-                                    outline="#38BDF8", width=3, tags="welt_auswahl")
+            welt_optik.zeichne(canvas, welt_optik.auswahl_plan(ax * zelle, ay * zelle, zelle),
+                               tags=("welt_auswahl",))
         start = getattr(self, "_welt_start", None)
         if start:
             sx, sy = int(start[0]), int(start[1])

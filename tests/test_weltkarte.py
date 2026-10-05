@@ -188,9 +188,21 @@ check("das Detailpanel kennt das gewaehlte Feld", daten is not None and daten["x
 check("es nennt die Koordinate in Kartenform (z. B. D5)", bool(daten) and daten["koordinate"] == "D5",
       str(daten and daten["koordinate"]))
 detail_texte = texte(getattr(app, "welt_detail", app.content))
-for begriff in ("Gelände:", "Status:", "Gebäude:"):
+for begriff in ("Gelände:", "Status:"):
     check(f"das Panel zeigt „{begriff}" + '"', any(begriff in t for t in detail_texte),
           " | ".join(detail_texte[:8]))
+check("das Panel nennt den Inhalt mit dem richtigen Wort (Vorkommen statt Gebäude)",
+      any(("Vorkommen:" in t) or ("Gebäude:" in t) for t in detail_texte),
+      " | ".join(detail_texte[:8]))
+check("ein Rohstofffeld heisst im Panel „Vorkommen" + '"',
+      daten is not None and (daten["gebaeude_label"] == "Vorkommen" if daten["gebaeude"] != "keine"
+                             else daten["gebaeude_label"] == "Gebäude"),
+      str(daten and daten["gebaeude_label"]))
+check("die Ortsnamen stehen NICHT mehr auf jedem Feld (astra: kein Namensrauschen)",
+      not any(app.map_canvas.type(o) == "text" and str(app.map_canvas.itemcget(o, "text")).strip()
+              not in ("Hier",) and "weltregion" not in app.map_canvas.gettags(o)
+              for o in app.map_canvas.find_all()),
+      "es stehen wieder Namen auf den Feldern")
 
 # ------------------------------------------------------------------ 7 Gebietsleiste
 abschnitt("7. Gebietsleiste oben — gesperrte Gebiete ausdruecklich benannt (astra A3)")

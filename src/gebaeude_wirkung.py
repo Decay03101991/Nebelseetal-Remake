@@ -140,9 +140,23 @@ def stufen_name(gebaeude, stufe: int) -> str:
 # --------------------------------------------------------------------------
 
 def siedlergrenze_je_siedlung(siedlung) -> int:
-    """10 Siedler je Siedlung + 5 je Haus (Handbuch Seite 11)."""
+    """10 Siedler je Siedlung + 5 je Haus — und je Ausbaustufe weitere 5 (VORSCHLAG).
+
+    Belegt ist Stufe 1: „+5 je Haus" (Handbuch Seite 11). Die Ausbaustufen des Hauses sind
+    VORSCHLAG (Haus bis Stufe 4, je Stufe +5) — Quelle: data/gebaeude_wirkung.json,
+    Abschnitt „haus_stufen", festgehalten nach der Vorgabe Daniel vom 05.10.2026
+    („der Häuserausbau ist noch nicht klug entworfen"). Ein Haus ohne gespeicherte Stufe
+    zählt wie Stufe 1, damit alte Spielstände unverändert bleiben.
+    """
     r = regeln()["bevoelkerung"]
-    return int(r["grund_je_siedlung"]) + int(r["je_haus"]) * anzahl([siedlung], "haus")
+    haeuser = anzahl([siedlung], "haus")
+    if haeuser <= 0:
+        return int(r["grund_je_siedlung"])
+    stufen = 0
+    for feld, gebaeude in (getattr(siedlung, "bauten", {}) or {}).items():
+        if _kennung(gebaeude) == "haus":
+            stufen += max(1, stufe_von_feld(siedlung, feld))
+    return int(r["grund_je_siedlung"]) + int(r["je_haus"]) * (stufen or haeuser)
 
 
 def bevoelkerungsgrenze(siedlungen) -> int:
