@@ -95,6 +95,27 @@ Format einer Zeile: `Zeit | Agent | Dateien | Ergebnis | Prüfung`
 - **Preisvorschlag widerlegt** (Hauptagent, 21:50): astra's abgeleitete Baupreise (8 Holz + 4 Stein)
   sind falsch; die echten stehen im GameStar-Screenshot und stimmen mit unserem alten Code überein.
 
+## 05.10.2026 (Abend) — Ökonomie-Paket, Berichte der Kinder
+
+- **Prüfer „vier Handbuch-Korrekturen" (Kind, nur lesend, Commit `203e2fa`): 18 Tabellenzeilen,
+  0 Widersprüche, 0 Befunde.** Der Prüfer hat alle vier Handbuchzitate selbst im Original gefunden
+  (Götterschutz Z. 214-221 · Steinmetz Z. 279-281 · Forschung sperrt die Siedlung Z. 423-424 ·
+  Rinderfarm Z. 362-365), den Code dagegen gehalten, nach Resten des alten Verhaltens gesucht
+  (kein `day >= 3`, kein `Baukunst` beim Steinmetz, kein Einzelgebiet-Check in `forschung.py`) und
+  belegt, dass `test_forschung.py` die **Ablehnung eines anderen Gebiets** wirklich prüft (unter der
+  alten Regel wäre die Prüfung rot geworden — kein Scheingrün). Einzeltests: `test_forschung`
+  70/0/0 · `test_gelaende` 92/0/0 · `test_punkte` 76/0/0. Ehrlich benannt, was er NICHT konnte:
+  Sammellauf-Zahl (verboten), `test_startspiel`/`test_spielschicht` nicht gelaufen.
+- **Offene Frage des Prüfers, vom Koordinator beantwortet:** ob auch **Spionage- und Transport-
+  einheiten** Kriegspunkte tragen und damit den Götterschutz beenden. **Ja — und das ist belegt:**
+  das Handbuch gibt Streuner 1 (Z. 171) und Handkarren 1 / Einspänner 2 / Zweispänner 3
+  (Z. 183-187) ausdrücklich Punkte. Wer also einen Karren baut, bekommt seinen ersten Kriegspunkt
+  und der Schutz endet — genau wie es die Handbuchregel sagt. **Kein Fehler**, aber beim Spielen zu
+  wissen: nur **Siedlerkarren und Handelskarawanen** haben „Punktewert: -" (`data/units.json`).
+- **Kind W** baut die Warenrezepte-Ableitung, **Kind V** prüft den Ökonomie-Kern mit eigenen
+  Rechenwegen nach, **Kind A** vergleicht die Regeldaten mit dem Entwurf — alle nur mit **neuen**
+  Dateien. Ihre Zahlen prüft der Koordinator nach, erst dann wird committet.
+
 ## Freie Dateien (können sofort beansprucht werden)
 
 `src/main.py` (nur durch den Hauptagenten) · `src/gelaende.py` · `src/wirtschaft.py` ·
