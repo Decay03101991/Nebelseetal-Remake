@@ -28,6 +28,8 @@ from pathlib import Path
 import auftraege
 import ausruestung
 import einheiten  # noqa: F401  (vom Entwurf vorgesehen; hier für spätere Schritte)
+import forschung
+import forschungspfad
 import gebaeude_wirkung
 import gelaende
 import spieldaten
@@ -534,3 +536,73 @@ def fensterproduktion(orte: list, jetzt: float) -> dict:
                 for r, n in (zeile.get("mengen") or {}).items():
                     out[r] = out.get(r, 0) + n * anteil / dauer
     return out
+
+
+# ---------------------------------------------------------------------------
+# Schritt 6 — Forschung JE SIEDLUNG: lokaler Forschungsstart statt globaler
+# Bibliotheksabkürzung (Entwurf Z. 650-686)
+# ---------------------------------------------------------------------------
+#
+# BELEGT (Handbuch 2009): die Bibliothek ist je Siedlung (Z. 404 „In jeder Siedlung kann nur eine
+# einzige Bibliothek gebaut werden."), und die Sperre gilt „in der Siedlung, in der geforscht wird"
+# (Z. 423-424); Z. 245 spricht von den „in den Siedlungen laufenden Forschungen" (Mehrzahl) — zwei
+# Siedlungen dürfen also **verschiedene** Gebiete gleichzeitig erforschen. Der laufende Auftrag hängt
+# darum am **Ort** (`ort["forschungsauftrag"]`), nicht am Spieler.
+#
+# Die erreichte **Stufe** bleibt in `wissen` (dem übergebenen Stand) — ob dieser Stand je Siedlung
+# oder für das ganze Volk gilt, sagt das Handbuch **nicht** (Z. 104-106 „Dein Volk" gegen Z. 397
+# „Deine Siedlungen"); das ist offen und in `docs/audits/belege_forschung_je_siedlung.md` festgehalten.
+
+
+def forschung_start(ort: dict, gebiet: str, wissen: dict, jetzt: float,
+                    weitere_orte: list = ()) -> dict:
+    """Einen Forschungsauftrag **in dieser Siedlung** erteilen. Liefert den neuen Ort.
+
+    Prüft: keine zweite Forschung in derselben Bibliothek · bekanntes Gebiet · Voraussetzungen
+    über `forschungspfad.erfuellt` (mit der Bibliotheksstufe **dieses** Ortes) · Rohstoffe.
+    Die Kosten werden beim Start verbraucht; die Stufe steigt erst am Ende (`forschung_abschluss`).
+
+    `weitere_orte` sind die übrigen **eigenen** Orte. Der Entwurf (Z. 685) verlangt ausdrücklich,
+    dass dieselbe Zielstufe nicht gleichzeitig in zwei Städten läuft — sonst zahlt man zweimal und
+    lernt einmal. Verschiedene Gebiete dürfen in verschiedenen Bibliotheken parallel laufen.
+    """
+    neu = copy.deepcopy(ort)
+    if neu.get("forschungsauftrag") is not None:
+        raise ValueError("Diese Bibliothek forscht bereits.")
+    if gebiet not in spieldaten.forschungen():
+        raise ValueError("Unbekanntes Forschungsgebiet.")
+    bibliothek = gebaeude_wirkung.bibliothek_stufe([neu])
+    ok, grund = forschungspfad.erfuellt(gebiet, wissen, bibliothek)
+    if not ok:
+        raise ValueError(grund)
+    ziel = wissen.get(gebiet, 0) + 1
+    for anderer in weitere_orte or ():
+        a = (anderer or {}).get("forschungsauftrag")
+        if a and a.get("gebiet") == gebiet and a.get("zielstufe") == ziel:
+            raise ValueError(f"{gebiet} Stufe {ziel} forscht bereits eine andere Siedlung — "
+                             f"zweimal dieselbe Stufe zahlt doppelt und bringt nichts.")
+    kosten = forschung.kosten(ziel)
+    neu = verbrauchen(neu, kosten, jetzt)
+    stand = {gebiet: {"stufe": wissen.get(gebiet, 0), "auftrag": None}}
+    # Material ist oben schon transaktional bezahlt → `forschung.starten` darf nichts abziehen.
+    ok, grund = forschung.starten(gebiet, stand, jetzt, bibliothek > 0, None)
+    if not ok:
+        raise ValueError(grund)
+    neu["forschungsauftrag"] = {"gebiet": gebiet, **stand[gebiet]["auftrag"]}
+    return neu
+
+
+def forschung_abschluss(ort: dict, wissen: dict, jetzt: float) -> tuple:
+    """Eine abgelaufene Forschung **dieser Siedlung** verbuchen. Liefert ``(ort, wissen)``.
+
+    Die Stufe steigt nur nach oben (`max`) — zweimal abschließen kann nichts doppeln —, der Auftrag
+    wird gelöscht und die Fertigstellung ins `fertigjournal` geschrieben (Grundlage der Zielprüfung,
+    Schritt 7).
+    """
+    neu, kenntnis = copy.deepcopy(ort), dict(wissen)
+    a = neu.get("forschungsauftrag")
+    if a and a["startzeit"] + a["dauer_stunden"] * 3600 <= jetzt:
+        kenntnis[a["gebiet"]] = max(kenntnis.get(a["gebiet"], 0), a["zielstufe"])
+        neu["forschungsauftrag"] = None
+        neu["fertigjournal"].append({"zeit": jetzt, "art": "forschung", "name": a["gebiet"]})
+    return neu, kenntnis
