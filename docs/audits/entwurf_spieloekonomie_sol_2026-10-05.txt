@@ -1,0 +1,1140 @@
+NEBELSEETAL-REMAKE: SPIELÖKONOMIE, KARTENWAHL UND HANDEL
+Entwurf SOL zum Auftrag vom 05.10.2026. Status: Vorschlag zur Entscheidung und Umsetzung.
+
+Prüfumfang und Quellen
+Der Auftrag wurde vollständig gelesen. Projektcode, Datentabellen, Original-Textfassung und vorhandene Prüfungen wurden ausschließlich gelesen. Keine Projektprüfung, kein Projektimport, kein git, kein Commit, kein Spielstart. Die Rechnungen unten wurden mit Python und gelesenen JSON-Werten nachvollzogen; das ist keine Ausführung des vorgeschlagenen Spielcodes. Die Implementierungsblöcke sind nicht laufzeitgeprüft. Die im Auftrag genannte grüne Ausgangsmarke ist eine übernommene Angabe, kein hier wiederholter Sammellauf.
+[BELEGT: docs/AUFTRAG_SOL_SPIELOEKONOMIE.md §3] Ausgangsmarke: 2665 bestanden, 0 Fehler, 21 Befunde über 41 Dateien. Bestehende belegte Prüfaussagen bleiben bestehen; neue Ökonomieregeln erhalten zusätzliche Prüfungen. Vorschlags-Siegtests müssen ausdrücklich ersetzt werden, nicht still entfernt.
+Quellenschlüssel: HB = docs/original/Spielanleitung_2009_Textfassung.txt; G = data/gelaende.json; B = data/buildings.json; BP = data/baupreise.json; U = data/units.json; R = data/research.json; W = data/items.json; Z = data/spielzeit.json.
+Alle aus Stammdaten berechneten Tabellen tragen dieselbe Herkunft wie ihre Eingaben. Alle neuen Schwellen, Gewichte und Gebühren sind VORSCHLÄGE. Positionsindizes, Schleifenzähler und neutrale Rechenidentitäten in Code sind keine zusätzlich erfundenen Spielwerte.
+
+Wichtige Abweichungen vom behaupteten Ist-Zustand
+[BELEGT: src/main.py:1831–1839] _transport_to_settlement ist KEIN funktionierender Transport: Er zieht bis zu 10 Holz aus dem globalen Lager ab, ohne Zielgutschrift, Karrenprüfung oder Auftrag. Ein vorhandener Methodenname ist hier keine vorhandene Handelsmechanik.
+[BELEGT: src/main.py:1070–1102, 3930–3937] Produktion erhält beschleunigte dt, aber Forschung, Waren, Missionen und Bots erhalten time.time(). ×180 beschleunigt derzeit NICHT alle diese Abläufe. Alle folgenden Echtzeiten gelten deshalb erst NACH dem Uhrumbau.
+[BELEGT: R; src/main.py:575–579, 377–385] Vermessung gehört nicht zu den geladenen Originalforschungen. Der aktuelle Freischaltpfad fragt einen nicht vorhandenen Schlüssel ab. Keine neue 22. Forschung erfinden: Wagenbau und Siedlerkarren benutzen.
+[BELEGT: HB S.9, Zeilen 307–315; U/Siedlerkarren] Neue Siedlungen brauchen Siedlerkarren; deren belegte Kosten sind erheblich. Der bisherige Entwurf ohne Karren unterschätzt Gründungszeit und Rohstoffbedarf.
+[BELEGT: HB S.10, Zeilen 362–365; B/rinderfarm] Die Rinderfarm liefert Nahrung UND Leder. B enthält bisher nur den Lederertrag. Das ist ein Quellenfehler, kein frei wählbarer Balancehebel.
+[BELEGT: HB S.8, Zeilen 279–281; B/steinmetz] Steinmetze sind laut HB ohne Forschung baubar; B behauptet Baukunst. HB geht vor.
+[BELEGT: HB S.12; src/forschung.py:119–124] Der Kern sperrt derzeit nur das Forschungsgebiet statt die Bibliothek einer Siedlung. Das ist für Parallelisierung und Zeitbeispiele wichtig.
+[BELEGT: src/main.py:3306–3329] Bot-Handelsklick erzeugt kostenlose Zufallsrohstoffe. Das muss im Ökonomiemodus vollständig weg, nicht nur einen neuen Preis darüber anzeigen.
+[BELEGT: src/werkstatt.py:145–159, 214–227; src/main.py:2436–2458] Viele Waren warten wegen unbekannter Dauer ewig; außerdem fehlen Materialkosten beim Einreihen. Ohne ausdrückliche Rezeptvorschläge gibt es keine geschlossene Spielökonomie.
+[BELEGT: HB S.9] Die Grenze von sechs Siedlungen ist tatsächlich direkt belegt, nicht nur aus sechs Welten abgeleitet. Feste Kartenauswahl statt Zufallszuweisung ist Daniels ausdrückliche Remake-Abweichung.
+
+A. DAS SPIELZIEL
+
+Empfehlung: ein dauerhaft versorgter, komplementärer Siedlungsverbund; kein Erstplatz-Wettlauf.
+[VORSCHLAG: Start plus je ein Vorteil in Holz, Gestein und Landwirtschaft] Mindestens vier eigene Siedlungen. Höchstens sechs bleiben nach HB bestehen. Bots lösen keinen automatischen Punktsieg aus; wirtschaftlicher Druck entsteht aus tatsächlicher Konkurrenz und Angeboten.
+Eine Karte hat drei Vergleichsachsen, ohne Forschung:
+  H = 4·Wald + 2·Steppe; Gestein = 4·Berg + 2·Hügel; Agrar = 4·Grasland + 2·Steppe.
+[BELEGT: HB S.10; G] Diese Formeln sind jeweils die unabhängige Holz-, Stein- und Farmobergrenze. Sie sind KEIN gleichzeitig erzeugbarer Gesamtplan.
+Die Startreferenz ist (48,42,48) aus Tabelle B. Je Achse muss mindestens eine eigene Karte 1,4-mal diese Referenz erreichen. Zusätzlich muss der Mittelwert des eigenen Verbunds auf JEDER Achse mindestens der Startreferenz entsprechen.
+[VORSCHLAG: niedrigster Vorteil einer Zweiermischung ist 68/48 = 1,4167; Schwelle 1,4 lässt alle vorgesehenen Mischungen zu] Spezialistenschwelle 1,4. Der Mittelwertfilter 1,0 verhindert sechs Holzkolonien mit nominell riesigem Gesamtertrag, aber dauerhaft unterversorgtem Bergbau.
+Messbare Konsequenz: Start plus ausschließlich ausgeglichene Karten kann nie gewinnen, auch nicht mit beliebig vielen Forschungs- oder Kriegspunkten. Deren größter Holzfaktor ist 1,125; der Gesteinfaktor höchstens 1,0476. Auch nur Holz- oder nur Farmkarten scheitern an den anderen Achsen. Eine einzelne schwächere Karte ist nicht verboten, wenn der übrige Verbund ihre Lücke sinnvoll ausgleicht.
+
+Zusätzlich muss während eines vollständigen Versorgungsfensters Folgendes gelten:
+  • Tatsächlich PRODUZIERTE Mengen decken den Planbedarf jedes der neun Rohstoffe.
+  • Jedes lokale Lager enthält seinen ausgewiesenen Reservenplan; globale Summen ersetzen das nicht.
+  • Mindestens zwei unterschiedliche Importrohstoffe wurden in unterschiedlichen Zielstädten tatsächlich für Bau, Ware, Forschung oder Ausbildung verbraucht.
+  • Mindestens eine eigene ausgerüstete Kampfeinheit und ein Kundschafter existieren; fertiggestellte Ware und Forschung sind protokolliert.
+[VORSCHLAG: Handbuch kennt Tag und laufende Aufträge; ein ganzer Tag verhindert Momentaufnahmen] Fenster 24 Spielstunden = 480 echte Sekunden bei ×180. Jede Unterbrechung setzt den Haltebeginn zurück. Alte, längst gelieferte Fracht zählt nicht als frischer Handelsnachweis.
+[VORSCHLAG: kleinster überprüfbarer Militärverbund ohne erfundene Kampfkraft] Die Einheitenrollen werden aus einheiten.rolle gelesen; keine Summierung von Karren als Kampfeinheiten.
+
+Referenz-Planbedarf je Versorgungsfenster (kein neuer Truppenunterhalt!)
+Rohstoff | Menge/24 h | Herkunft/Ableitung
+Holz     | 180        | [VORSCHLAG: ein Haus 80 plus Forschung auf Stufe 2 mit bisheriger Basis 100]
+Stein    | 50         | [BELEGT als Planposten: BP/haus]
+Nahrung  | 100        | [BELEGT als Planposten: U/Streuner]
+Gold     | 300        | [BELEGT als Planposten: U/Kämpfer 250 plus U/Streuner 50]
+Metall   | 6          | [VORSCHLAG: zwei Stunden einer Erzmine am Berg]
+Wolle    | 6          | [VORSCHLAG: zwei Stunden einer Schafszucht auf Grasland]
+Leder    | 6          | [VORSCHLAG: zwei Stunden einer Rinderfarm auf Grasland]
+Pferde   | 1          | [VORSCHLAG: ein Drittel einer Pferdezuchtstunde]
+Mana     | 5          | [VORSCHLAG: eine Tempelstunde am Nebelsee]
+Diese Planposten sind Reserven und Produktionsnachweise für den Sieg, kein automatischer periodischer Abzug. Wirklich gebucht werden nur tatsächlich erteilte Aufträge. Die universelle Forschungsbasis 50 Holz ist ein bestehender Remake-Vorschlag aus dem HB-Beispiel, nicht der Nachweis identischer Originalkosten für alle Gebiete.
+Lokaler Reservenplan: Spieler ordnet die Posten seinen Städten zu; Summen müssen den obigen Korb vollständig decken. Default: gesamter Korb in der Hauptstadt, in Kolonien zusätzliche Ausbaureserven nach C. Eine Änderung des Plans setzt das Haltefenster zurück.
+
+Niederlage: keine eigene Siedlung UND keine Rückgründungsmöglichkeit. Dazu zählen auch Siedlerkarren in laufenden Missionen und die dafür noch nutzbare freie Karte. Vor dem ersten Siedlungsstart keine Niederlage.
+[VORSCHLAG: HB benennt keinen Einzelspielersieg] Eine isolierte Einheit ohne Siedlerkarren kann nicht endlos vor einer bereits verlorenen Partie schützen. Der Verlust einer Siedlung allein ist noch keine Niederlage.
+Alle Karten vergeben: kein Gratis-Sieg. Produktion, Handel, Forschung und Militär laufen weiter. Eine Karte kann durch Aufgabe/Verlust frei werden; kein zweites identisches Exemplar erzeugen. Ein Bot kann ein Angebot zum Verkauf seiner Kolonie machen; ansonsten Rückeroberung als eigenes späteres Kampf-/Besitzpaket. Ohne Besitzwechsel darf Kartenknappheit nicht als vollständig durchspielbar beworben werden.
+Bei Verlust: lokale Bauten, Lager und stationierte Einheiten betreffen genau diese Stadt; globales Wissen bleibt. Laufende eigene Transporte kehren mit Restfracht zum noch existierenden Ausgangsort zurück, sonst zu einer eigenen Ersatzsiedlung. Falls keine existiert, Fracht bleibt am Auftrag und ist nicht global verfügbar. Haltefenster und Kartenqualität neu prüfen.
+
+Alternative: freies Endlosspiel mit derselben Verbundwertung, aber ohne automatische Siegschwelle.
+[VORSCHLAG: Originalaufbau ohne belegten Spielsieg] Siegzahl = keine; stattdessen sichtbare Versorgungswertung 0–100 %, gedeckelt durch den schwächsten Rohstoff und die Kartenqualität. Niederlage wie oben. Vorteil: keine künstliche Endlinie; Nachteil: Daniels Wunsch nach einer gewonnenen Partie wird nicht erfüllt. Daher nicht empfohlen.
+
+B. KARTENVORRAT UND AUSWAHL
+
+[BELEGT: HB S.9] Sechs gleichzeitig eigene Siedlungen. [VORSCHLAG: mehr Auswahl als Bauplätze erzeugt echte Opportunitätskosten] Startkarte plus neun öffentliche Koloniekarten. Davon drei ausgeglichen, drei reine und drei doppelte Schwerpunkte. Jeder Akteur bekommt eine private ausgeglichene Startkarte; Startkarten sind nicht Teil des umkämpften Vorrats. Keine Erweiterung des Siedlungslimits.
+[VORSCHLAG: feste Mengen statt unabhängiger Ziehungen sichern Spezialisierung und Minimum in JEDER Saat] gewichte sind hier zugleich exakte Feldkontingente. Die Saat permutiert nur die Positionen. Der bisherige Zufallsgenerator bleibt für Altfassungen unverändert. Ein bloßer Wechsel seiner Ziehgewichte wäre nicht ausreichend: zufällige Nachfüllung kann Schwerpunkte verwässern.
+
+Vollständige Gewichtetabelle; Spalten immer in dieser Reihenfolge:
+Kennung        | Grasland | Steppe | Wald | Hügel | Berg | Nebelsee | Sumpf
+start          | 8        | 8      | 8    | 7     | 7    | 2        | 16
+ ausgleich_a   | 9        | 7      | 8    | 6     | 8    | 2        | 16
+ ausgleich_b   | 7        | 9      | 9    | 7     | 6    | 2        | 16
+ ausgleich_c   | 8        | 8      | 7    | 8     | 7    | 2        | 16
+ holz          | 3        | 2      | 28   | 2     | 4    | 1        | 16
+ minen         | 3        | 2      | 2    | 10    | 22   | 1        | 16
+ farmen        | 27       | 6      | 2    | 2     | 2    | 1        | 16
+ holz_minen    | 3        | 2      | 16   | 5     | 13   | 1        | 16
+ holz_farmen   | 17       | 2      | 16   | 2     | 2    | 1        | 16
+ minen_farmen  | 17       | 2      | 2    | 5     | 13   | 1        | 16
+[VORSCHLAG: alle Verteilungen aus 40 bebaubaren Plätzen, garantiertem Mindestbesatz und symmetrischem Dreierportfolio abgeleitet] Alle Zeilen haben exakt 56 Felder; die ersten sechs Spalten summieren sich jeweils zu 40. Alle haben Wald≥2, Berg≥2, Grasland≥3, Nebelsee≥1. Keine achte Geländeart. Sumpfgewicht 16 ändert hier die Anzahl nicht mehr, sondern dokumentiert das feste Kontingent.
+Die drei ausgeglichenen Karten differieren in ihren Kontingenten; identische Saaten können deshalb keine identischen Karten erzeugen. Bei privaten Startkarten die Eigentümerkennung in die Saat aufnehmen.
+
+Neun unabhängige Ertragsobergrenzen je Karte, je Stunde, ohne Forschungsbonus:
+Kennung       | Holz | Stein | Metall | Mana | Nahrung | Gold | Wolle | Leder | Pferde
+start         | 48   | 42    | 31,5   | 48   | 64      | 31,5 | 36    | 52    | 36
+ ausgleich_a  | 46   | 44    | 33     | 48   | 66      | 33   | 37,5  | 53,5  | 37,5
+ ausgleich_b  | 54   | 38    | 28,5   | 48   | 64      | 28,5 | 34,5  | 52,5  | 34,5
+ ausgleich_c  | 44   | 44    | 33     | 48   | 62      | 33   | 36    | 50    | 36
+ holz         | 116  | 20    | 15     | 44   | 72      | 15   | 12    | 68    | 12
+ minen        | 12   | 108   | 81     | 44   | 20      | 81   | 12    | 16    | 12
+ farmen       | 20   | 12    | 9      | 44   | 124     | 9    | 90    | 94    | 90
+ holz_minen   | 68   | 62    | 46,5   | 44   | 48      | 46,5 | 12    | 44    | 12
+ holz_farmen  | 68   | 12    | 9      | 44   | 104     | 9    | 54    | 86    | 54
+ minen_farmen | 12   | 62    | 46,5   | 44   | 76      | 46,5 | 54    | 58    | 54
+[BELEGT: HB S.10, Kontingente VORSCHLAG aus obiger Tabelle; rechnerisch nachgerechnet] Leder berücksichtigt die HB-Korrektur der Rinderfarm. Mana = 5 je See plus 1 je anderem bebaubarem Feld. Nahrung wählt Farm auf Grasland/Steppe und Jäger im Wald. Jedes Feld wird pro Rohstoff optimal behandelt; daher diese Spalten NIE gleichzeitig als tatsächliche Stundenproduktion summieren. Genau dieselbe Einschränkung steht in wirtschaft.kapazitaet.
+Start: alle neun Werte sind positiv. Ein echter gleichzeitiger Neun-Rohstoff-Plan steht in E. „Fast nichts“ ist nicht überall absolut zwei Felder: Agrar hat drei Pflicht-Grasfelder; Holz hat zwei Pflicht-Wälder, teilweise zusätzlich arme Steppe. Entscheidend ist die im Code sichtbare geringe Achsenkapazität.
+
+Qualitätsbeispiel, [VORSCHLAG: Portfolioprüfung aus obigen Daten]:
+Start+Holz+Minen+Farmen: Achsenmittel relativ zum Start = (1,0208; 1,0833; 1,0417); beste Einzelkarte = (2,4167; 2,5714; 2,5). Besteht die Kartenprüfung.
+Start+alle drei ausgeglichenen Karten: scheitert sicher am Spezialistennachweis. Mehr Forschung kann diese rein topografische Aussage nicht überstimmen.
+Start+alle drei Mischungen: besteht; Holz 1,4167, Gestein 1,4762, Agrar 1,5 liefern die Spezialistennachweise. Kein Zwang, stets die drei reinen Karten zu nehmen.
+
+C. GRÜNDUNG: PREIS, RESERVE, VORAUSSETZUNGEN UND KONKURRENZ
+
+Erste Siedlung: kostenloses Einrichten des belegten Startbestands, NICHT wiederholbar.
+[BELEGT: HB S.7] 100 Holz, 100 Stein, 10 freie Siedler; alle anderen Rohstoffe null. Keine kostenlose Infrastruktur.
+
+Weitere Siedlungen, zusätzlich zum vorher bezahlten Siedlerkarren:
+Posten                   | Holz | Stein | Nahrung | Herkunft
+Gründungsgebühr           | 320  | 200   | 150     | [VORSCHLAG: vier Häuser zu 80/50; halber Nahrungsbedarf des Siedlerkarrens]
+Kolonie-Startpaket        | 160  | 100   | 100     | [VORSCHLAG: zwei Häuserbudget; ein Streuner-Nahrungsbudget]
+Mindestbestand vorher    | 480  | 300   | 250     | [VORSCHLAG: Gebühr plus Paket; beide aus EINER Ausgangssiedlung]
+Paket wird NICHT erzeugt: es wird aus dem Ausgangslager physisch der Kolonie zugeordnet. Die Gebühr wird vernichtet. Alle zusätzlich vorhandenen Mengen bleiben am Ausgangsort. Genau diese Trennung verhindert „neue Stadt schenkt Holz“ und globales Zusammenkratzen ohne Transport.
+[BELEGT: U/Siedlerkarren] Karrenbau kostet 200 Holz, 80 Metall, 150 Leder, 100 Wolle, 4 Pferde, 5 Siedler, 300 Nahrung. Wagenbau Stufe 1 und Stellmacher erforderlich.
+[VORSCHLAG: HB verlangt Karren, nennt hier keine Anzahl/Verbrauchsregel] Ein Siedlerkarren wird bei erfolgreicher Gründung verbraucht; seine bereits bezahlten fünf Siedler werden als fünf freie Kolonisten in der neuen Stadt geführt. Kein zweiter zusätzlicher Siedlerabzug. Ein leerer Gründungsklick ohne Karren scheitert.
+[VORSCHLAG: bisherige Standortpraxis vereinheitlichen] Kolonien liegen in der eigenen Dimension; keine neue Dimension zur kostenlosen Abkürzung der Original-Manakosten. Start- und Zielfeld müssen frei, benannt und eindeutig sein. Forschung Wagenbau 1 ist die einzige zusätzliche Gründungsforschung; Baukunst wird für den vorausgehenden Ausbau ohnehin benötigt.
+
+Konkurrenz besteht nur zwischen Spieler und lokalen Bots, nicht zwischen Netzspielern.
+[VORSCHLAG: gemeinsame Planungsfenster statt Klickgeschwindigkeit] Alle 24 Spielstunden werden verbindliche Gründungsabsichten gemeinsam abgerechnet. Pro Akteur höchstens eine Absicht; davor darf er seine freie Zielkarte ändern oder absagen. Gebühr, Paket und Karren werden bis dahin gesperrt. Derselbe Spielzeitpunkt erfasst alle Absichten vor der Vergabe.
+Bei identischer Wunschkarte gewinnt der höhere marginale Komplementaritätsnutzen nach H; Gleichstand über SHA-256 aus gespeicherter Partiensaat, Runde, Kartenkennung und Eigentümerkennung, niemals über Ankunftsreihenfolge. Verlierer erhalten genau ihr Sperrgut zurück. Gewinner erhalten keine nachträgliche kostenlose Zweitwahl. Bots bezahlen dieselben Mengen.
+Vergabefenster ist kein allgemeiner Rundenmodus: Produktion und Reisen bleiben Echtzeit. Das Fenster begrenzt nur Kartenreservierung. Wartezeit höchstens ein Fenster; keine unbefristete Gratisreservierung. Ein Verlust der Ausgangsstadt annulliert die Absicht, sofern das Sperrgut noch zur Stadt gehört.
+[VORSCHLAG: deterministische Entfernungen ohne positionslosen Bot] Jeder Vorratskarte ein freies Weltfeld zuordnen und mitspeichern. Kontinent/Dimension ist nicht mit dem Geländeraster einer Kolonie zu verwechseln.
+
+Sparzeit allgemein:
+  t = max_r(max(0, Mindestbestand_r + offene Zusatzkosten_r − Bestand_r) / tatsächlicher Ertrag_r).
+Bei Ertrag null und positiver Lücke ist t unendlich; die Oberfläche nennt Erzeuger oder Importbedarf statt einer falschen Uhr. Population und Voraussetzungen zusätzlich separat prüfen. Finanzierbarkeit ist keine Verfügbarkeitsgarantie auf eine umkämpfte Karte.
+[BELEGT: Z] Eine Spielstunde = 3600/180 = 20 echte Sekunden.
+Beispiel ab dem in E dokumentierten Ausbau: Holzbestand 143, Holzrate 16/h; benötigtes Holz bis zu bezahlten beiden Karren UND Gründungsminimum 780. Holzwartezeit (780−143)/16 = 39,8125 h. Wollwartezeit 115/3 = 38,3333 h. Holz ist hier Engpass; früheste Finanzierung t=89,8125 h, plus vorgeschlagene Ausbildungszeit, dann nächste Vergabe t=96 h. Das ist ein rechnerischer günstiger Ablauf, NICHT als gemessene optimale Partie ausgegeben. E nutzt bewusst t=100 für Karrenaufträge und die Vergabe t=120.
+
+D. HANDEL ZWISCHEN EIGENEN SIEDLUNGEN
+
+Eine lokale Wirtschaft ist Voraussetzung, nicht Kür: vorraete, waren, einheiten, freie Bevölkerung, Werkstattaufträge und Bibliotheksauftrag liegen je Settlement. Forschungswissen bleibt spielerweit. Gemeinsame Summen sind ausschließlich abgeleitete Anzeige; kein Auftrag darf damit bezahlen. Lokale Einheitengarnison ist keine zweite Kopie der globalen Armee.
+
+Warenpreise: lokale Schattenpreise in Goldäquivalenten, keine Zahlung an sich selbst.
+Für Rohstoff r:
+  bester_Einzelfeldertrag(r) = Maximum aus B über baubare Gelände.
+  Grundpreis(r) = bester_Goldertrag / bester_Einzelfeldertrag(r).
+  Kartenfaktor(r) = begrenzt(Startkapazität(r)/Lokalkapazität(r), 0,5, 4).
+  Vorratsfaktor(r) = begrenzt(2·Reserve(r)/(Reserve(r)+Bestand(r)), 0,5, 2).
+  Schattenpreis = Grundpreis · Kartenfaktor · Vorratsfaktor.
+[VORSCHLAG: Gold als vorhandenes Vergleichsgut; Halbierung/Vervierfachung verhindern extreme Preise und Nullpreise] Grenzen 0,5/4 und 0,5/2. Bei Reserve null ist Vorratsfaktor neutral 1; eine fehlende Kapazität ist Knappheit, niemals gratis.
+Bei genau erreichtem Reservebestand ist der Vorratsfaktor 1. Holz und Stein haben Grundpreis 0,75 Gold; Metall, Wolle, Leder, Pferde 1; Nahrung 0,75; Mana 0,6; Gold selbst stets 1 ohne Karten-/Bestandsfaktor, um die Recheneinheit nicht gegen sich selbst aufzuwerten.
+[VORSCHLAG: Materialkosten plus gebundene Werkstattzeit] Warenpreis = Summe(Materialbedarf·lokaler Schattenpreis) + Fertigungsstunden·bester_Goldertrag. Forschungsvoraussetzungen schaffen Verfügbarkeit, nicht zusätzliche Rohstoffe.
+
+Eigener Transport bucht Bestand ab und am Ziel zu; Geldsaldo null. Der Vorteil ist eingesparte Produktions- und Bauplatzzeit, kein Goldschöpfungstrick. Preisunterschied dient als Planungshinweis und Bots vergleichen externe Kauf-/Verkaufangebote damit.
+Für externe Angebote: botkern.referenzpreis_aus_beschaffung und botkern.handelspreis weiterverwenden; deren 1,2 und ±10 % sind bestehende VORSCHLÄGE, keine Original-Handelspreise. Kauf und Verkauf müssen gleichzeitig Ware und Gegenleistung sperren, bei bestätigtem Abschluss beide umverteilen. Ablehnung führt zur Rückkehr mit unverändertem Sperrgut. Keine Gratisressourcen aus _trade.
+
+[BELEGT: src/auftraege.py:133–155; U/Handkarren] Reisezeit pro Strecke = Entfernung/Geschwindigkeit·SEKUNDEN_JE_FELD. Bestehendes SEKUNDEN_JE_FELD=3600 ist VORSCHLAG, kein Originalentfernungsbeleg. Hin und zurück zweimal diese Zeit. Geschwindigkeit der langsamsten mitreisenden Einheit; Ladefähigkeit aus einheiten.kapazitaet. Handkarren 40, GS 10. [VORSCHLAG: bestehende UI-Distanz generalisiert] Entfernung = Manhattanabstand der echten Weltkoordinaten; bei verschiedenen Dimensionen zunächst ablehnen, statt Originalportal-Manakosten zu erfinden.
+[VORSCHLAG: keine belegte Unfallwahrscheinlichkeit] Zivile eigene Route verliert zufällig 0 %. Risiko kommt aus dem tatsächlichen Stadtverlust bzw. einer expliziten späteren Abfangmission; keine passive Schadenswürfel. Gold-/Nahrungs-Reisekosten sind im HB erwähnt, aber ohne hier belegte Beträge; im ersten eigenen Transportpaket explizit null, als offene Abweichung sichtbar. Fremdmissionen dürfen dadurch nicht die Original-Manapflicht verlieren.
+
+Warum besser als Selbstproduktion:
+Minenkarte: vier gute Goldminen erzeugen 12 Gold/h. Vier arme Hügelminen anderswo nur 6 Gold/h, bei gleichen Baukosten. Ein Handkarren auf einer Distanz von vier Feldern liefert theoretisch 40/(2·0,4)=50 Einheiten/h. Selbst zwei Fahrten sind daher nicht der Engpass gegenüber 12 Gold/h. Mit Metall/Goldimporten bleiben in der Landwirtschaft Grasfelder für Schafe/Pferde/Farmen frei; reine Autarkie verbraucht die seltenen Bergplätze gleichzeitig für Stein, Metall und Gold.
+[VORSCHLAG: typübergreifender Bauplatzvergleich mit HB-Ertrag] Eine reine Farmkarte hat nur zwei gute Bergfelder. Wer dort Stein, Metall und Gold parallel stark ausbauen will, kann nicht allen drei gute Standorte geben. Der Minenpartner hat 22 Bergfelder. Das ist der strukturelle Handelsgewinn, nicht ein erfundener Produktionsbonus.
+Rundfahrt ohne tatsächlichen Bedarf zählt nicht zum Sieg. Importherkunft wird beim Verbrauch proportional abgebaut; Eigenproduktion wird getrennt geführt. Niemand kann dieselben vierzig Güter beliebig hin und her fahren und damit Versorgungsleistung vortäuschen.
+
+E. DURCHGERECHNETER BALANCE-NACHWEIS
+
+Dies ist eine konservative Beispielbilanz, kein Bestzeitversuch und kein ausgeführter Spieltest. Alle Baupreise aus BP; die nicht belegten BP-Preise bleiben bestehende VORSCHLÄGE. Bau ohne Wartezeit entspricht dem Ist-Code; spätere Bauzeiten wären ein separates Paket. Forschungen seriell in derselben Bibliothek. Karren-/Einheitendauer und Wollumhangdauer hier ausdrücklich vorgeschlagene 20 Spielminuten, von der einzigen belegten Warenzeit als einheitlicher Pilotwert abgeleitet.
+Der Ablauf „erste Forschung erst nach zweiter Siedlung“ wäre unmöglich: Baukunst/Wagenbau werden vorher benötigt. Das Beispiel enthält deshalb notwendige Vorforschungen und zeigt nach dem Handel die erste neue Entwicklungsforschung. Das ist keine still übersprungene Voraussetzung.
+
+Startkarte: Saat bestimmt Positionen, Kontingente aus B.
+Zeit h      | Handlung und Bilanz | Herkunft
+0           | Zwei Holzfäller im Wald, zwei Steinmetze am Berg, ein Jäger im Wald, Bibliothek auf Steppe. Kosten 67 Holz/63 Stein/5 Siedler. Rest 33/37/5. | [BELEGT: BP, HB; Bibliothekpreis bestehender VORSCHLAG]
+0–2,125     | Erträge 8 Holz/8 Stein/2 Nahrung/2 Leder pro h. Bei t=2,125 sind 50 Holz verfügbar. | [BELEGT: HB-Erträge; gerechnet]
+2,125       | Baukunst 1 bezahlen: 50 Holz. | [VORSCHLAG: bestehende Forschungsbasis aus HB-Beispiel]
+3,125       | Baukunst 1 beendet; eine Stunde Dauer. | [BELEGT: HB S.12]
+50          | 383 Holz, 437 Stein, 100 Nahrung, 100 Leder vor Ausbau. Zusätzliche Bauten unten kosten 190 Holz/118 Stein/4 Siedler. Danach 193/319/6 freie Siedler. | [BELEGT/VORSCHLAG: BP, gerechnet]
+50          | Wagenbau 1: weitere 50 Holz; Rest Holz143. Fertig bei51. | [VORSCHLAG Basis; BELEGT Dauer]
+100         | Vor Karren: Holz943, Stein919, Nahrung750, Metall300, Leder350, Wolle150, Pferde150, Gold150, Mana250; Bevölkerung10. | [BELEGT: Erträge aus HB; gerechnet]
+100         | Siedlerkarren UND Handkarren kosten zusammen Holz300, Metall95, Leder165, Wolle115, Pferde4, Nahrung300, Siedler6. Rest Holz643, Stein919, Nahrung450, Metall205, Leder185, Wolle35, Pferde146, Gold150, Mana250, Bevölkerung4. | [BELEGT: U; gerechnet]
+100,6667    | Beide Karren fertig, da seriell im selben Stellmacher je20min; Sperrung der Gründungsabsicht. Finanzierung vollständig erfüllt. | [VORSCHLAG: Ausbildungsdauer]
+120         | Nächste gemeinsame Vergabe; Minenkarte gewonnen, wenn keine höhere konkurrierende Absicht. Nach Gebühr und Paket bleibt Herkunft Holz483, Stein859, Nahrung460, Metall325, Leder285, Wolle95, Pferde206, Gold210, Mana350. | [VORSCHLAG: Runde, Gebühr/Paket; gerechnet]
+120         | Neue Kolonie hat Holz160, Stein100, Nahrung100, fünf Kolonisten; keine anderen geschenkten Rohstoffe. Bau vier Goldminen, zwei Berg-Steinmetze, ein Wald-Holzfäller, Bibliothek: 96Holz/65Stein/3Siedler. Rest64/35/100 und zwei Kolonisten. | [VORSCHLAG Paket; BP, gerechnet]
+120–123,3333| Goldrate neue Kolonie12/h; vierzig Gold entstehen. Herkunftskarren ist vorher mit Ausbauholz angekommen und am Ziel stationiert; Distanz4, GS10, Ankunft120,4. | [BELEGT: U, HB; Strecke VORSCHLAG]
+123,3333    | Vierzig Gold zurück zur Hauptstadt senden; Ladung40. | [BELEGT: U/Handkarren]
+123,7333    | Vierzig Gold im Ziel gebucht, genau einmal. Kein Gold-Schattenpreisgewinn. | [BELEGT: Reiseformel übernommen; gerechnet]
+123,7333    | Hauptstadt baut Nähstube24/16 und Diebesgilde32/24; Wollumhang mit vorgeschlagenem Rezept1Wolle in20min. | [VORSCHLAG Rezept/Dauer; BP, W]
+124,0667    | Wollumhang fertig; Streuner bezahlen: 100Nahrung, 50Gold, ein Siedler, Wollumhang. | [BELEGT: U/Streuner]
+124,4       | Streuner nach Pilot-Ausbildungsdauer fertig. Er ist Kundschafter, keine vollwertige Kampfeinheit. | [VORSCHLAG Dauer; BELEGT Rolle]
+124,4–125,4 | Felderwirtschaft1 aus lokalem Holz bezahlen und erforschen; danach Nahrung13·1,1=14,3/h. | [BELEGT: R/Felderwirtschaft, HB-Dauer; Basis50 bestehender VORSCHLAG]
+[BELEGT: Z, gerechnet] t120 entspricht 2400s=40 echten Minuten; Goldankunft t123,7333 entspricht2474,6667s. Die vorgeschlagenen20Spielminuten entsprechen6,6667 echten Sekunden, Forschung1h entspricht20 echten Sekunden. Im jetzigen gemischten Uhrenstand gilt das NICHT.
+
+Ausbau bei t50, gleichzeitig realisierbarer Produktionsplan:
+Gebäude          | Gesamtzahl | Gelände | Ertrag/h
+Holzfäller       | 4          | Wald    | 16Holz
+Steinmetz        | 4          | 2Berg+2Hügel | 12Stein
+Jäger            | 1          | Wald    | 2Nahrung+2Leder
+Farm             | 2          | Grasland| 8Nahrung
+Rinderfarm       | 1          | Grasland| 3Nahrung+3Leder
+Schafszucht      | 1          | Grasland| 3Wolle
+Pferdezucht      | 1          | Grasland| 3Pferde
+Erzmine          | 2          | Berg    | 6Metall
+Goldmine         | 1          | Berg    | 3Gold
+Tempel           | 1          | Nebelsee| 5Mana
+[BELEGT: HB S.10; gerechnet] 18 Produktionsgebäude plus Bibliothek und Stellmacher =20 Felder, nur die Hälfte der40 Bauplätze. Beansprucht5Wald,5Grasland,5Berg,2Hügel,1See,2Infrastrukturfelder auf Steppe. Alle neun Güter gleichzeitig positiv; keine Addition unabhängiger Obergrenzen.
+Bei t120 außerdem eine Holz-Ausbaulieferung mit dem Handkarren als Stationierauftrag an die Kolonie: Fracht bis40 aus dem Herkunftslager, Abzug vor Abfahrt; für das konkrete40Gold-Beispiel reichen auch null Fracht und die bereits zugewiesenen Startmittel. Das Stationieren verschiebt den Karren wirklich, nicht globales Eigentum ohne Ort.
+
+Militärischer Ausbau nach dem Streuner:
+Kämpfer benötigt Kriegskunst1, Kurzschwert und Lederrüstung. Kurzschwert braucht Waffentechnik3; Lederrüstung Nähkunst1 UND Rüstungsbau2. Bibliothek3, Schmiedekunst1, Nähen1 und die entsprechenden Werkstätten müssen vorher tatsächlich verfügbar sein. [BELEGT: U, W, R; keine Voraussetzungen umgangen]
+[VORSCHLAG: konkrete Pilotrezepte] Kurzschwert4Metall und Lederrüstung4Leder, jeweils80min nach F. Der erste Kämpfer braucht außerdem250Gold und einenSiedler. VierGoldminen plus Hauptstadtmine ergeben15Gold/h; das finanziert250Gold in16,6667h, also333,3333 echten Sekunden ohne weitere Goldausgaben. Ein100Nahrung/50Gold-Streuner plus ein250Gold-Kämpfer je24h benötigen12,5Gold/h;15Gold/h trägt beides mit2,5Gold/h Reserve. Hauptstadt allein mit3Gold/h könnte es NICHT tragen.
+[BELEGT: Forschungsdauerformel; gerechnet] Seriell notwendige Erststufen und Folgestufen für diesen Pfad nach Wagenbau/Baukunst: Schmiedekunst1, Nähen1, Kriegskunst1, Waffentechnik1–3, Rüstungsbau1–2, Nähkunst1 ergeben23 Spielstunden reine Forschung. Holzbudget nach bisheriger Basis beträgt700; Bibliotheksausbau2+3 kostet60Holz/40Stein nach BP. Allein16Holz/h liefert nur384Holz/Tag: Forschungskosten, nicht Wartezeiten, sind daher der Engpass. Holzspezialist und echte Zulieferung tragen die Weiterentwicklung. Das 24h-Fenster verlangt keine tägliche erneute Forschung auf identischen Stufen.
+Kippen: zu wenige Goldminen; kein Wagenbau/Siedlerkarren; keine korrigierte Rinderfarm; globale Materialbezahlung; kostenloser Handel; weniger verfügbare Karrenladung als geplante Warenrate; Forschungsbasis exponentiell steigend. Beispiel Stufe5 braucht nach bisheriger Basis800Holz und25h; bei16Holz/h sind50h Materialwartezeit, bei zusätzlichem Holzverbund deutlich weniger. Preise oder HB-Formel nicht heimlich senken.
+
+F. UMSETZUNGSPLAN MIT CODE UND PRÜFAUSSAGEN
+
+Jeder Schritt darf zunächst nur neue Module hinzufügen; der bisherige Modus bleibt bis zum letzten Integrationsschritt aktiv. Erst danach neue Partien auf Ökonomieversion umstellen. Altpartien bleiben ausdrücklich Altmodus. „Prüfstand zwischen Schritten grün“ ist eine Umsetzungspflicht; hier wurden keine Tests ausgeführt.
+Der folgende Code ist ein konkreter Kern plus präzise Anschlussänderungen, kein Auftrag, diese Dateien jetzt zu schreiben. Abhängigkeiten nur Standardbibliothek und bereits vorhandene Module. Eine Schnittstelle, die einen nicht implementierten Besitzwechsel erwartet, wird nicht als fertig bezeichnet.
+
+1. Quellenfehler und neue Regeldaten, ohne Aktivierung.
+Dateien: data/buildings.json, data/gelaende.json, neue data/spieloekonomie.json.
+Präziser Daten-Diff in B/rinderfarm: ertrag_pro_stunde auf {"Grasland":{"Nahrung":3,"Leder":3},"Steppe":{"Nahrung":1.5,"Leder":1.5}} setzen; rohstoff auf ["Nahrung","Leder"]. Steinmetz.voraussetzung auf "keine (ohne Forschung baubar)" mit HB-S.8-Quelle. Das erfordert keine neue Ertragszahl im Python-Code.
+G zusätzlich kartenvorrat={"start":... ,"kolonien":[...]} mit den zehn Zeilen der Tabelle B; je Eintrag id, name und gewichte. Alte kartentypen.listen und deren Generator unverändert lassen. Namen in Deutsch, Kennungen exakt aus B. Weder Mindestbesatz noch Kartenmass duplizieren.
+Neue Regeldaten als JSON; alle Mengen unten VORSCHLAG gemäß A–C, Maß/Uhr bestehende Quelle:
+{
+  "version": "oekonomie-1","baukunst_mindeststufe":1,
+  "gruendung": {"hausmultiplikator":4,"reserve_hausmultiplikator":2,
+    "nahrung_karrenanteil":0.5,"reserve_nahrung_einheit":"Streuner",
+    "karren":"Siedlerkarren","forschung":"Wagenbau","stufe":1},
+  "vergabe_stunden":24,"versorgung_stunden":24,"mindestsiedlungen":4,
+  "spezialistenfaktor":1.4,"portfoliofaktor":1.0,
+  "plan": {"holz":180,"stein":50,"nahrung":100,"gold":300,"metall":6,
+    "wolle":6,"leder":6,"pferde":1,"mana":5},
+  "kartenpreisgrenzen":[0.5,4.0],"vorratspreisgrenzen":[0.5,2.0],
+  "pilot_ausbildung_minuten":20,"pilot_waren_minuten":20,
+  "bots": {
+    "leicht":{"gruenden":false,"bewerten_stunden":24,"reserve_stunden":6,"ablehnungsnutzen":0.0},
+    "mittel":{"gruenden":true,"bewerten_stunden":6,"reserve_stunden":12,"ablehnungsnutzen":0.0},
+    "schwer":{"gruenden":true,"bewerten_stunden":1,"reserve_stunden":24,"ablehnungsnutzen":0.0}
+  },
+  "_herkunft":"VORSCHLAG: Ableitungen A–H; keine Originalpreisbehauptung"
+}
+Prüfaussagen: Rinderfarm bringt3/3 und1,5/1,5; sieben Arten, Mindestbesatz und40/16 unverändert; keine neuen Forschungsgebiete. Mitziehen: tests/test_gelaende.py, test_wirtschaft.py, test_spieldaten.py, test_ertrag_anbindung.py. Neue test_spieloekonomie.py prüft die Konfigurationsherkunft.
+
+2. Neuer deterministischer Kern, zunächst ohne main-Abhängigkeit.
+Datei: src/spieloekonomie.py, vollständige Funktionen im folgenden Python-Block.
+Die G-Einträge aus Schritt1 sind die einzige Wahrheit für die Kontingente. Ein Feldindex wird nur durch die Saat permutiert. Wirtschaft.kapazitaet benutzt nach Schritt1 automatisch die richtige Rinderfarm.
+PYTHON — src/spieloekonomie.py — Daten, Karten, Qualität, Preise und Gründung
+from __future__ import annotations
+import copy
+import hashlib
+import json
+import math
+import random
+from pathlib import Path
+import einheiten
+import gelaende
+import spieldaten
+import wirtschaft
+
+DATEN = Path(spieldaten.projektwurzel()) / "data"
+def lade(name):
+    return json.loads((DATEN / name).read_text(encoding="utf-8"))
+REGELN = lade("spieloekonomie.json")
+G = lade("gelaende.json")
+BP = lade("baupreise.json")["preise"]
+U = lade("units.json")["einheiten"]
+
+def mengen(kosten):
+    return {k: float(v) for k, v in kosten.items()
+            if isinstance(v, (int, float)) and not isinstance(v, bool)}
+
+def gruendungskosten():
+    r = REGELN["gruendung"]
+    haus = mengen(BP["haus"])
+    preis = {k: v * r["hausmultiplikator"] for k, v in haus.items()}
+    paket = {k: v * r["reserve_hausmultiplikator"] for k, v in haus.items()}
+    preis["nahrung"] = U[r["karren"]]["kosten"]["nahrung"] * r["nahrung_karrenanteil"]
+    paket["nahrung"] = U[r["reserve_nahrung_einheit"]]["kosten"]["nahrung"]
+    minimum = {k: preis.get(k, 0) + paket.get(k, 0) for k in preis.keys() | paket.keys()}
+    return preis, paket, minimum
+
+def feste_karte(seed, eintrag):
+    w = eintrag["gewichte"]
+    if set(w) != set(gelaende.GELAENDEARTEN):
+        raise ValueError("Kontingente müssen genau die bekannten Geländearten enthalten.")
+    if any(type(v) is not int or v < 0 for v in w.values()):
+        raise ValueError("Kontingente müssen nichtnegative ganze Zahlen sein.")
+    m = G["kartenmass"]
+    if sum(w.values()) != m["spalten"] * m["zeilen"]:
+        raise ValueError("Kontingente passen nicht zum Kartenmaß.")
+    if w[gelaende.SUMPF] != G["regeln"]["sperrfelder"]:
+        raise ValueError("Sumpfkontingent verletzt die Sperrfeldregel.")
+    for art, minimum in G["regeln"]["mindestbesatz"].items():
+        if not art.startswith("_") and w[art] < minimum:
+            raise ValueError("Mindestbesatz verletzt: " + art)
+    raster = [art for art in gelaende.GELAENDEARTEN for _ in range(w[art])]
+    random.Random(str(seed)).shuffle(raster)
+    breite = m["spalten"]
+    return {"seed":str(seed),"spalten":breite,"zeilen":m["zeilen"],
+            "felder":len(raster),"bauplaetze":len(raster)-w[gelaende.SUMPF],
+            "raster":raster,"zeilen_raster":[raster[i:i+breite] for i in range(0,len(raster),breite)],
+            "zaehlung":dict(w),"typ":eintrag["id"],"typ_name":eintrag["name"],
+            "vorteil":"Feste Kontingente; Ertragsprofil und Versorgungsplan beachten."}
+
+def vorrat(seed):
+    return {e["id"]:{"karte":feste_karte(f"{seed}:{e['id']}",e),"besitzer":None}
+            for e in G["kartenvorrat"]["kolonien"]}
+
+def startkarte(seed, eigentuemer):
+    return feste_karte(f"{seed}:start:{eigentuemer}",G["kartenvorrat"]["start"])
+
+def kapazitaeten(karte):
+    return {k.lower():float(v) for k,v in wirtschaft.kapazitaet({"karte":karte}).items()}
+
+def achsen(karte):
+    n = karte["zaehlung"]
+    return (n["wald"] * gelaende.ertrag_pro_stunde("holzfaeller","wald")
+            + n["steppe"] * gelaende.ertrag_pro_stunde("holzfaeller","steppe"),
+            n["berg"] * gelaende.ertrag_pro_stunde("steinmetz","berg")
+            + n["huegel"] * gelaende.ertrag_pro_stunde("steinmetz","huegel"),
+            n["grasland"] * gelaende.ertrag_pro_stunde("farm","grasland")
+            + n["steppe"] * gelaende.ertrag_pro_stunde("farm","steppe"))
+
+def relativ(karte):
+    basis = achsen(feste_karte("referenz",G["kartenvorrat"]["start"]))
+    return tuple(a/b for a,b in zip(achsen(karte),basis))
+
+def kartenqualitaet(karten):
+    if not karten:
+        return {"erfuellt":False,"mittel":(0,0,0),"beste":(0,0,0)}
+    werte = [relativ(k) for k in karten]
+    mittel = tuple(sum(w[i] for w in werte)/len(werte) for i in range(3))
+    beste = tuple(max(w[i] for w in werte) for i in range(3))
+    ok = (len(karten) >= REGELN["mindestsiedlungen"]
+          and min(mittel) >= REGELN["portfoliofaktor"]
+          and min(beste) >= REGELN["spezialistenfaktor"])
+    return {"erfuellt":ok,"mittel":mittel,"beste":beste}
+
+def kartennutzen(karten, kandidat):
+    vorher = [relativ(k) for k in karten]
+    neu = relativ(kandidat)
+    if not vorher:
+        return sum(neu)
+    # Defizite und fehlende Spezialisten, nicht maximale Holzsumme.
+    bedarf = [max(0,REGELN["portfoliofaktor"]*len(vorher)-sum(w[i] for w in vorher))
+              + max(0,REGELN["spezialistenfaktor"]-max(w[i] for w in vorher))
+              for i in range(3)]
+    return sum(neu[i]*(1+bedarf[i]) for i in range(3))
+
+def _begrenzen(wert, grenzen):
+    return min(grenzen[1],max(grenzen[0],wert))
+
+def einzelmaximum():
+    beste = {}
+    for art in gelaende.GELAENDEARTEN:
+        if not gelaende.ist_bebaubar(art):
+            continue
+        for kennung, geb in gelaende.alle_gebaeude().items():
+            e = gelaende.ertrag_pro_stunde(kennung,art)
+            if isinstance(e,(int,float)):
+                e = {geb["rohstoff"]:e}
+            for r,v in (e or {}).items():
+                beste[r.lower()] = max(beste.get(r.lower(),0),float(v))
+    return beste
+
+def schattenpreis(karte, rohstoff, bestand, reserve):
+    if rohstoff == "gold":
+        return 1.0
+    beste = einzelmaximum()
+    lokal = kapazitaeten(karte).get(rohstoff,0)
+    start = kapazitaeten(feste_karte("preis",G["kartenvorrat"]["start"]))[rohstoff]
+    ratio = start/lokal if lokal > 0 else math.inf
+    k = _begrenzen(ratio,REGELN["kartenpreisgrenzen"])
+    v = 1.0 if reserve <= 0 else _begrenzen(2*reserve/(reserve+bestand),REGELN["vorratspreisgrenzen"])
+    return beste["gold"]/beste[rohstoff]*k*v
+
+def bezahlbar(bestand, kosten):
+    return all(math.isfinite(v) and v >= 0 and bestand.get(r,0) >= v
+               for r,v in kosten.items())
+
+def buchen(bestand, delta):
+    neu = dict(bestand)
+    for r,v in delta.items():
+        if not math.isfinite(v):
+            raise ValueError("Nicht endliche Buchung.")
+        neu[r] = neu.get(r,0)+v
+        if neu[r] < -1e-9:
+            raise ValueError("Nicht genügend Bestand: " + r)
+        neu[r] = max(0.0,neu[r])
+    return neu
+
+def absicht(quelle, karte_id, karten, freie, forschung, runde):
+    r = REGELN["gruendung"]
+    if karte_id not in freie or freie[karte_id]["besitzer"] is not None:
+        raise ValueError("Karte nicht frei.")
+    if len(karten) >= quelle["siedlungsgrenze"]:
+        raise ValueError("Siedlungsgrenze erreicht.")
+    if forschung.get(r["forschung"],0) < r["stufe"]:
+        raise ValueError("Gründungsforschung fehlt.")
+    if quelle["einheiten"].get(r["karren"],0) < 1:
+        raise ValueError("Siedlerkarren fehlt.")
+    preis,paket,minimum = gruendungskosten()
+    if not bezahlbar(quelle["vorraete"],minimum):
+        raise ValueError("Lokaler Mindestbestand fehlt.")
+    return {"quelle":quelle["id"],"besitzer":quelle["besitzer"],"karte_id":karte_id,
+            "runde":runde,"sperrgut":minimum,"preis":preis,"paket":paket,
+            "nutzen":kartennutzen(karten,freie[karte_id]["karte"])}
+
+def vergabe(absichten, freie, seed, runde):
+    # Sortierung ist unabhängig von Listen-/Klickreihenfolge.
+    def rang(a):
+        text = f"{seed}:{runde}:{a['karte_id']}:{a['besitzer']}"
+        return (-a["nutzen"],hashlib.sha256(text.encode("utf-8")).hexdigest())
+    ergebnis, akteure, vergeben = [], set(), set()
+    for a in sorted(absichten,key=rang):
+        if a["runde"] != runde or a["besitzer"] in akteure:
+            raise ValueError("Unzulässige doppelte oder veraltete Absicht.")
+        akteure.add(a["besitzer"])
+        ok = a["karte_id"] in freie and freie[a["karte_id"]]["besitzer"] is None and a["karte_id"] not in vergeben
+        ergebnis.append((a,ok))
+        if ok:
+            vergeben.add(a["karte_id"])
+    return ergebnis
+ENDE PYTHON
+Prüfaussagen: alle zehn Karten über eine feste Saatliste immer40/16 und Mindestbesatz; reproduzierbare Raster; TabelleB exakt; sämtliche ausgeglichenen Karten scheitern unabhängig vom Forschungsstand am Siegfilter. Die Saattestliste gehört in tests/test_spieloekonomie.py, zusätzlich test_gelaende.py und test_siedlungskarte.py. Keine alten Generatorvergleiche auf neue Kontingente umbiegen.
+
+3. Lokale Lager und Transportbuchung als reine Transaktionen.
+Datei: src/spieloekonomie.py ergänzen. Die Argumente sind einfache serialisierbare Orts-Dictionaries; main-Adapter baut sie aus Settlement. Forschungsstände bleiben außerhalb der Ortsdaten.
+PYTHON — src/spieloekonomie.py — sperren, liefern und Importherkunft
+import auftraege
+
+def verbrauchen(ort, kosten, jetzt):
+    neu = copy.deepcopy(ort)
+    if not bezahlbar(neu["vorraete"],kosten):
+        raise ValueError("Lokales Lager reicht nicht.")
+    for r,m in kosten.items():
+        v = neu["vorraete"].get(r,0)
+        importiert = neu["importiert"].get(r,0)
+        genutzt = 0 if v <= 0 else m * importiert / v
+        neu["vorraete"][r] = v-m
+        neu["importiert"][r] = max(0,importiert-genutzt)
+        if genutzt > 0:
+            neu["verbrauchsjournal"].append({"zeit":jetzt,"rohstoff":r,"menge":genutzt,"ziel":ort["id"]})
+    return neu
+
+def transport_start(quelle, ziel, bestand, fracht, jetzt):
+    if quelle["besitzer"] != ziel["besitzer"]:
+        raise ValueError("Für eigene Transporte muss der Besitzer übereinstimmen.")
+    if quelle["dimension"] != ziel["dimension"]:
+        raise ValueError("Dimensionswechsel braucht eigene Portalregeln.")
+    if not bestand or not all(type(n) is int and n > 0 for n in bestand.values()):
+        raise ValueError("Ungültige Transporttruppe.")
+    if any(quelle["einheiten"].get(n,0)<m for n,m in bestand.items()):
+        raise ValueError("Einheiten sind nicht am Ausgangsort.")
+    if any(type(m) is not int or m < 0 for m in fracht.values()):
+        raise ValueError("Fracht muss aus nichtnegativen ganzen Mengen bestehen.")
+    if set(fracht)-set(quelle["vorraete"]):
+        raise ValueError("Unbekannter Rohstoff; Waren brauchen ausdrücklich einen Warenauftrag.")
+    if not bezahlbar(quelle["vorraete"],fracht):
+        raise ValueError("Fracht fehlt am Ausgangsort.")
+    d = abs(quelle["x"]-ziel["x"])+abs(quelle["y"]-ziel["y"])
+    liste = []
+    ok, meldung = auftraege.starten(liste,"transportieren",bestand,quelle["id"],ziel["id"],d,jetzt,fracht)
+    if not ok:
+        raise ValueError(meldung)
+    neu = copy.deepcopy(quelle)
+    anteil = {}
+    for r,m in fracht.items():
+        v = neu["vorraete"][r]
+        anteil[r] = 0 if v <= 0 else m*neu["importiert"].get(r,0)/v
+        neu["vorraete"][r] -= m
+        neu["importiert"][r] = max(0,neu["importiert"].get(r,0)-anteil[r])
+    for n,m in bestand.items():
+        neu["einheiten"][n] -= m
+    mission = liste[0]
+    mission.update({"eigentransport":True,"ziel_id":ziel["id"],"quelle_id":quelle["id"],
+                    "ursprung_import":anteil,"geliefert_lokal":False,"heimgekehrt_lokal":False})
+    mission["besitzer"] = quelle["besitzer"]
+    return neu,mission
+
+def transport_fortschritt(mission, orte, jetzt):
+    neu = copy.deepcopy(orte)
+    m = copy.deepcopy(mission)
+    ziel = neu.get(m["ziel_id"])
+    quelle = neu.get(m["quelle_id"])
+    if jetzt >= m["ankunft"] and not m["geliefert_lokal"]:
+        if ziel is not None and ziel["besitzer"] == m["besitzer"]:
+            for r,n in m["fracht"].items():
+                ziel["vorraete"][r] = ziel["vorraete"].get(r,0)+n
+                # Nicht als lokaler Verbrauch werten: erst ein späterer echter Auftrag zählt.
+                ziel["importiert"][r] = ziel["importiert"].get(r,0)+n
+            m["fracht"] = {}
+            if m.get("stationieren_lokal"):
+                for n,k in m["einheiten"].items():
+                    ziel["einheiten"][n] = ziel["einheiten"].get(n,0)+k
+                m["einheiten"] = {}
+                m["heimgekehrt_lokal"] = True
+        m["geliefert_lokal"] = True
+    if jetzt >= m["rueckkehr"] and not m["heimgekehrt_lokal"]:
+        if quelle is None:
+            # Besitzer ist beim Start zusätzlich vom Adapter festzuhalten.
+            quelle = next((o for _,o in sorted(neu.items()) if o["besitzer"] == m["besitzer"]),None)
+        if quelle is not None:
+            for n,k in m["einheiten"].items():
+                quelle["einheiten"][n] = quelle["einheiten"].get(n,0)+k
+            for r,k in m["fracht"].items():
+                quelle["vorraete"][r] = quelle["vorraete"].get(r,0)+k
+                quelle["importiert"][r] = quelle["importiert"].get(r,0)+m["ursprung_import"].get(r,0)
+            m["fracht"] = {}
+            m["heimgekehrt_lokal"] = True
+    return neu,m
+ENDE PYTHON
+Transport hält die Besitzerkennung fest und prüft sie bei Ankunft auch ohne weiter vorhandene Ausgangsstadt. Bei Rückkehr zusätzlich quelle["besitzer"] gegen m["besitzer"] prüfen; ein eroberter Ausgangsort gilt wie ein nicht mehr vorhandener Ausgangsort.
+Für Waren dieselbe Transportfunktion über einen getrennten Bestandskanal erweitern: frachtkanal="waren"; Kosten-/Importledger für Sieg bleibt nur bei Rohstoffen. Vor Aktivierung eigenen test_warentransport.py erstellen, sonst Warenhandel nicht anbieten. Gold kann wie ein Rohstoff transportiert werden; keine Goldzahlung an sich selbst.
+Prüfaussagen: keine negative/gebrochene Fracht, echte Ausgangsgarnison, Überladung, volle Rückgabe bei Ablehnung/Zielverlust, kein doppeltes Buchen bei t=Ankunft und t=Rückkehr, Speichern/Laden mitten im Auftrag. Mitziehen: test_auftraege.py, test_w8_einhaengung.py, test_durchspiel.py, test_speichern_robust.py, neue test_lokale_lager.py. Bestehende auftraege.spieldaten_anwenden darf auf eigentransport niemals angewendet werden.
+
+4. Pilotrezepte, lokale Ausbildung und echte Verbrauchsbelege.
+Dateien: neue data/warenrezepte.json; src/spieloekonomie.py ergänzen; src/werkstatt.py.dauer_sekunden.
+[VORSCHLAG: ein Materialproduzent und seine optimale Stundenrate als transparente Ableitung] Für jede Ware ohne belegte Dauer: t = Pilot20min·(1+Summe ihrer Forschungsstufen). Material = aufgerundeter Normertrag während t. Schmiede verwendet Metall, Bogenbauer Holz, Nähstube Leder für Leder-/Fellwaren und Wolle für Umhänge ohne Fell. Die einzige belegte Schwertdauer bleibt unverändert20min; Rezeptmenge daraus1Metall ist ein VORSCHLAG und kein Originalbeleg. Keine Ware mit kombinierter Voraussetzung als „keine Voraussetzung“ behandeln.
+PYTHON — src/spieloekonomie.py — vollständige Rezeptableitung und Voraussetzungen
+import re
+import werkstatt
+
+def warenforderungen(name):
+    t = lade("items.json")["waren"][name]["voraussetzung"]
+    if t == "keine":
+        return {}
+    out = {}
+    for teil in t.split("+"):
+        treffer = re.fullmatch(r"\s*(.*?)\s+(\d+)\s*",teil)
+        if treffer is None or treffer[1] not in spieldaten.forschungen():
+            raise ValueError("Ungeklärte Warenvoraussetzung: " + t)
+        out[treffer[1]] = int(treffer[2])
+    return out
+
+def pilotrezept(name):
+    forderungen = warenforderungen(name)
+    belegt = werkstatt.BELEGTE_DAUER_SEKUNDEN.get(name)
+    dauer = belegt if belegt is not None else REGELN["pilot_waren_minuten"]*60*(1+sum(forderungen.values()))
+    typ = werkstatt.werkstatt_fuer(name)
+    material = "metall" if typ == "schmiede" else "holz" if typ == "bogenbauer" else "leder" if ("Leder" in name or "Fell" in name) else "wolle"
+    menge = math.ceil(einzelmaximum()[material]*dauer/3600)
+    return {"kosten":{material:menge},"dauer":dauer,"voraussetzungen":forderungen,
+            "_herkunft":"VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"}
+
+def ware_start(ort, ware, forschung, jetzt, rezepte):
+    neu = copy.deepcopy(ort)
+    if ware not in rezepte:
+        raise ValueError("Keine freigegebene Rezeptangabe.")
+    rezept = rezepte[ware]
+    if any(forschung.get(f,0)<n for f,n in rezept["voraussetzungen"].items()):
+        raise ValueError("Warenvoraussetzung fehlt.")
+    typ = werkstatt.werkstatt_fuer(ware)
+    zahl = werkstatt.werkstaetten_bestand([neu])[typ]
+    if zahl <= 0:
+        raise ValueError("Werkstatt nicht in dieser Stadt.")
+    neu = verbrauchen(neu,rezept["kosten"],jetzt)
+    schlange = neu["werkstaetten"].setdefault(typ,werkstatt.neue_warteschlange(typ,zahl))
+    schlange["werkstaetten"] = zahl
+    schlange["kapazitaet"] = zahl
+    werkstatt.fortschritt(schlange,jetzt)
+    ok,meldung = werkstatt.einreihen(schlange,ware,1,1)
+    if not ok:
+        raise ValueError(meldung)
+    schlange["einheiten"][-1]["dauer"] = rezept["dauer"]
+    schlange["auftraege"][-1]["dauer"] = rezept["dauer"]
+    return neu
+
+def ausbildung_start(ort, name, forschung, jetzt):
+    eintrag = U[name]
+    voraus = eintrag.get("voraussetzung") or {}
+    if voraus and forschung.get(voraus["forschung"],0)<voraus["stufe"]:
+        raise ValueError("Einheitenforschung fehlt.")
+    import gebaeude_wirkung
+    geb = gelaende.finde_gebaeude(eintrag["gebaeude"])
+    stufe = gebaeude_wirkung.gebaeude_stufe(ort,geb)
+    if stufe <= 0:
+        raise ValueError("Ausbildungsstätte fehlt vor Ort.")
+    kosten = dict(eintrag["kosten"])
+    siedler = kosten.pop("siedler",0)
+    if ort["bevoelkerung"] < siedler:
+        raise ValueError("Freie Siedler fehlen vor Ort.")
+    waren = eintrag.get("waren") or []
+    # Stückbedarf aus bestehender Ausrüstungszuordnung, nicht nur Namen vergleichen.
+    import ausruestung
+    if ausruestung.fehlende(name,ort["waren"]):
+        raise ValueError("Ausrüstung fehlt vor Ort.")
+    neu = verbrauchen(ort,kosten,jetzt)
+    neu["bevoelkerung"] -= siedler
+    neu["waren"] = ausruestung.verbrauchen(neu["waren"],name)
+    freie_zeit = max([jetzt]+[a["ende"] for a in neu["ausbildung"] if a["gebaeude"] == geb])
+    # Pilotregel: Dauer nicht als Originalwert ausgeben; keine Sofortausbildung.
+    neu["ausbildung"].append({"einheit":name,"gebaeude":geb,"start":freie_zeit,
+                             "ende":freie_zeit+REGELN["pilot_ausbildung_minuten"]*60,
+                             "gebucht":False})
+    return neu
+ENDE PYTHON
+Die abgeleiteten Rezepte bei Umsetzung einmal als freizugebende data/warenrezepte.json schreiben; zur Laufzeit ausschließlich diese Datei laden, nicht erneut generieren. Damit sind spätere Balancekorrekturen datengesteuert. Vollständige Rezeptliste ergibt sich aus allen W/waren-Schlüsseln; neue Prüfung verlangt exakt dieselbe Schlüsselmenge. Die Materialmengen sind bewusst Pilotannahmen, keine nachgewiesenen Originalrezepte.
+Präziser Diff werkstatt.dauer_sekunden: nach dem Lookup BELEGTE_DAUER_SEKUNDEN bei basis is None den Eintrag aus data/warenrezepte.json[ware]["dauer"] lesen; dauer_belegt bleibt unverändert. Vor Schritt4 bleibt unbekannte Dauer None; danach verlangen die Pilotmodus-Tests Fertigstellung. Altkernmodus darf über optional rezepte=None erhalten bleiben, damit reine Originaldatenprüfungen nicht still falsche Belegtbehauptungen bekommen.
+Prüfaussagen: jede der17 Waren hat Herkunft; kombinierte Sperren vollständig; Materialabzug genau einmal; Wollumhang1Wolle/20min, Kurzschwert4Metall/80min, Lederrüstung4Leder/80min; Schwertdauer bleibt1200s. Mitziehen: test_werkstatt.py, test_ausruestung.py, test_forschungspfad.py, test_durchspiel.py; neue test_warenrezepte.py und test_ausbildungsauftraege.py.
+
+5. Gemeinsame Spieluhr und lokale Zeitintegration.
+Dateien: src/main.py.GameState.__init__, tick, save, load; alle Startzeitpunkte; src/spieloekonomie.py ergänzen.
+PYTHON — src/spieloekonomie.py — lokale Produktion und Fortschritt
+import gebaeude_wirkung
+
+def ort_tick(ort, ab, bis, forschung):
+    if bis < ab:
+        raise ValueError("Spielzeit darf nicht zurücklaufen.")
+    neu = copy.deepcopy(ort)
+    ertrag = {k.lower():v for k,v in wirtschaft.ertrag_gesamt([neu],forschung).items()}
+    produktion = {}
+    for r,rate in ertrag.items():
+        menge = rate*(bis-ab)/3600
+        neu["vorraete"][r] = neu["vorraete"].get(r,0)+menge
+        produktion[r] = menge
+    grenze = gebaeude_wirkung.bevoelkerungsgrenze([neu])
+    zuwachs = gebaeude_wirkung.siedler_zuwachs_pro_stunde([neu],forschung)*(bis-ab)/3600
+    neu["bevoelkerung"] = min(grenze,neu["bevoelkerung"]+zuwachs)
+    if bis > ab:
+        neu["produktionsjournal"].append({"ab":ab,"bis":bis,"mengen":produktion})
+    for schlange in neu["werkstaetten"].values():
+        for ware,n in werkstatt.fertige_waren(schlange,bis).items():
+            neu["waren"][ware] = neu["waren"].get(ware,0)+n
+            neu["fertigjournal"].append({"zeit":bis,"art":"ware","name":ware})
+    for a in neu["ausbildung"]:
+        if not a["gebucht"] and a["ende"] <= bis:
+            name = a["einheit"]
+            neu["einheiten"][name] = neu["einheiten"].get(name,0)+1
+            a["gebucht"] = True
+            neu["fertigjournal"].append({"zeit":a["ende"],"art":"einheit","name":name})
+    return neu
+
+def fensterproduktion(orte, jetzt):
+    start = jetzt-REGELN["versorgung_stunden"]*3600
+    out = {}
+    for ort in orte:
+        for zeile in ort["produktionsjournal"]:
+            dauer = zeile["bis"]-zeile["ab"]
+            anteil = max(0,min(jetzt,zeile["bis"])-max(start,zeile["ab"]))
+            if dauer > 0 and anteil > 0:
+                for r,n in zeile["mengen"].items():
+                    out[r] = out.get(r,0)+n*anteil/dauer
+    return out
+ENDE PYTHON
+Präzise Diffs main:
+  • __init__: self.spielsekunden=0.0; self.partiensaat als ausdrücklich übergebene/gespeicherte Saat; keine random.Random() ohne Saat im neuen Modus.
+  • tick(dt_seconds): self.spielsekunden += dt_seconds ist die einzige Fortschreibung; _tick_loop multipliziert genau einmal wie bisher mit spielzeit.faktor().
+  • In GameState.tick time.time() für bots_fortschreiben, werkstatt_fortschreiben, auftraege_fortschreiben, forschung_fortschreiben durch self.spielsekunden ersetzen. last_tick bleibt REALER Pollzeitpunkt.
+  • In auftrag_starten (Zeile800), _ware_herstellen (Zeile2453), _start_research (Zeile3725): time.time() durch state.spielsekunden bzw. self.spielsekunden ersetzen.
+  • save/load übernehmen spielsekunden, partie-saat, absichten, kartenvorrat, haltestart, lokale Lager/Aufträge/Journale. last_tick beim Laden neu time.time(), kein Offline-Geld aus absichtlich verstellter Rechneruhr.
+  • Lokaler Produktionspfad ersetzt die globale Gutschrift in tick, nicht zusätzlich darunter einbauen.
+  • _day_accum über while statt if fortschreiben, damit großer dt mehrere Spieltage korrekt nachholt.
+  • Eigenmissionen vor dem globalen auftraege.spieldaten_anwenden abfangen und ausschließlich mit transport_fortschritt buchen; danach continue.
+Präzise Ereignisschleife für den neuen tick-Pfad:
+  In aufsteigender Spielzeit bis zum Tickende integrieren; nächstes Ereignis ist Minimum aller Missionsankünfte/-rückkehrten, Ausbildungsenden, Warenenden, Forschungsenden, Botplanzeiten und Vergabegrenzen. ort_tick bis Ereignis, dann alle gleichzeitigen Abschlüsse nach stabilen Kennungen, dann Forschungsstände aktualisieren, dann Bots/Absichten sammeln, dann gemeinsame Vergabe, dann Zielprüfung. Keine Produktion für ein nachträglich bei Tickende erbautes Gebäude rückwirkend über den ganzen Tick buchen.
+Dieser Algorithmus braucht eine neue reine tick_bis-Funktion und einheitliche Ereigniskennungen; vor dessen Fertigstellung darf Ökonomiemodus NICHT aktiviert werden. Die einzelnen Rechenfunktionen oben sind unmittelbar einsetzbar, aber ein großer dt ohne Ereignissplitting ist kein gleichwertiger Ersatz.
+Prüfaussagen: tick(3600) gleich36×tick(100), einschließlich Forschung, Ankunft und Produktion; Save/Load erhält Restzeiten, Tempowechsel verändert keine gespeicherte Spielsekunden-Dauer; ×180 wirkt bei allen vier Abläufen. Mitziehen: test_spielzeit.py, test_forschung.py, test_ertrag_anbindung.py, test_auftraege.py, test_botkern.py, test_startspiel.py, test_durchspiel.py; neue test_oekonomie_uhr.py.
+
+6. Lokaler Forschungsstart statt globaler Bibliotheksabkürzung.
+Datei: src/spieloekonomie.py; Anschluss main._start_research und forschung_fortschreiben.
+PYTHON — src/spieloekonomie.py — Forschung je Bibliothek
+import forschung
+import forschungspfad
+
+def forschung_start(ort, gebiet, wissen, jetzt):
+    neu = copy.deepcopy(ort)
+    if neu["forschungsauftrag"] is not None:
+        raise ValueError("Diese Bibliothek forscht bereits.")
+    if gebiet not in spieldaten.forschungen():
+        raise ValueError("Unbekanntes Forschungsgebiet.")
+    bibliothek = gebaeude_wirkung.bibliothek_stufe([neu])
+    ok,grund = forschungspfad.erfuellt(gebiet,wissen,bibliothek)
+    if not ok:
+        raise ValueError(grund)
+    kosten = forschung.kosten(wissen.get(gebiet,0)+1)
+    neu = verbrauchen(neu,kosten,jetzt)
+    stand = {gebiet:{"stufe":wissen.get(gebiet,0),"auftrag":None}}
+    # Material wurde schon transaktional bezahlt; nicht erneut an starten übergeben.
+    ok,grund = forschung.starten(gebiet,stand,jetzt,bibliothek>0,None)
+    if not ok:
+        raise ValueError(grund)
+    neu["forschungsauftrag"] = {"gebiet":gebiet,**stand[gebiet]["auftrag"]}
+    return neu
+
+def forschung_abschluss(ort, wissen, jetzt):
+    neu,kenntnis = copy.deepcopy(ort),dict(wissen)
+    a = neu["forschungsauftrag"]
+    if a and a["startzeit"]+a["dauer_stunden"]*3600 <= jetzt:
+        kenntnis[a["gebiet"]] = max(kenntnis.get(a["gebiet"],0),a["zielstufe"])
+        neu["forschungsauftrag"] = None
+        neu["fertigjournal"].append({"zeit":jetzt,"art":"forschung","name":a["gebiet"]})
+    return neu,kenntnis
+ENDE PYTHON
+Adapter muss außerdem gleichzeitige Forschung derselben Zielstufe in verschiedenen Städten verhindern, sonst doppelte Kosten ohne Wissensgewinn. Vor forschung_start alle eigenen Ortsaufträge auf dasselbe gebiet/erreichte Zielstufe prüfen und ablehnen. Unterschiedliche Gebiete dürfen in unterschiedlichen Bibliotheken laufen.
+Mitziehen: test_forschung.py, test_forschungspfad.py, test_forschung_wirkung.py, test_gui_fehler.py; neue test_lokale_forschung.py. Neue Prüfung: zweite Forschung in derselben Bibliothek abgelehnt, in zweiter Bibliothek anderes Gebiet erlaubt; Ausbau einer beschäftigten Bibliothek abgelehnt. Universelle Basis50 bleibt ausdrücklich Vorschlag.
+
+7. Zielprüfung und Haltefenster, unabhängig von Originalpunkten.
+Datei: src/spieloekonomie.py; Anschluss main.GameState.spielausgang und NebelseetalApp._pruefe_spielende.
+PYTHON — src/spieloekonomie.py — versorgungsziel
+
+def zielstatus(orte, jetzt, haltestart):
+    q = kartenqualitaet([o["karte"] for o in orte])
+    menge = fensterproduktion(orte,jetzt)
+    plan = REGELN["plan"]
+    reserviert = {r:sum(o["reserve"].get(r,0) for o in orte) for r in plan}
+    plan_ok = bezahlbar(reserviert,plan)
+    deckung = min((menge.get(r,0)/n for r,n in plan.items() if n>0),default=0)
+    reserve = all(bezahlbar(o["vorraete"],o["reserve"]) for o in orte)
+    ab = jetzt-REGELN["versorgung_stunden"]*3600
+    importe = {(o["id"],z["rohstoff"]) for o in orte for z in o["verbrauchsjournal"]
+               if ab < z["zeit"] <= jetzt and z["menge"]>0}
+    handel = len({r for _,r in importe})>=2 and len({i for i,_ in importe})>=2
+    rollen = {einheiten.rolle(n) for o in orte for n,k in o["einheiten"].items() if k>0}
+    armee = "kaempfer" in rollen and "kundschafter" in rollen
+    fertig = {z["art"] for o in orte for z in o["fertigjournal"]}
+    ok = q["erfuellt"] and plan_ok and deckung>=1 and reserve and handel and armee and {"ware","forschung"}<=fertig
+    start = (jetzt if haltestart is None else haltestart) if ok else None
+    sieg = ok and jetzt-start>=REGELN["versorgung_stunden"]*3600
+    return {"sieg":sieg,"haltestart":start,"qualitaet":q,"deckung":deckung,
+            "reserve":reserve,"handel":handel,"armee":armee}
+ENDE PYTHON
+[VORSCHLAG: konservative Stabilitätsprüfung] Volles rückblickendes Produktionsfenster PLUS anschließendes Haltefenster ist absichtlich strenger als bloß24h seit dem ersten guten Gebäude; früheste Entscheidung nach zwei vollständig aufgebauten Versorgungsfenstern. Anzeige muss dies deutlich machen. Wird nur ein Fenster gewünscht, Daniel entscheidet die Lockerung; nicht kommentarlos beim Einbau ändern.
+Präziser main.GameState.spielausgang-Diff: im Ökonomiemodus zuerst echte Niederlage/Rückgründbarkeit prüfen, dann zielstatus(alle eigenen Orte,...); haltestart übernehmen; bei sieg "sieg", sonst "weiter" mit messbaren Fehlgründen. punkte.sieg_oder_niederlage ausschließlich im Altmodus aufrufen. punktestand und alle Original-Punkteformeln unverändert lassen. _pruefe_spielende kann unverändert einmalig einfrieren.
+Prüfaussagen: Forschungs-/Kriegspunktfarm mit schlechten Karten gewinnt nie; Hin-und-her-Fracht ohne Verbrauch gewinnt nie; Verlust einer Schlüsselkarte setzt Haltebeginn zurück; Speicherstand bewahrt Haltebeginn; die Reserveprüfung verwendet örtlichen Bestand. Mitziehen: test_punkte.py bleibt Originalformeln; test_punkte_einhaengung.py unterscheidet Altmodus300 vom neuen Modus; test_durchspiel.py, neue test_versorgungsziel.py. Keine300-Punkte-Zusage als „Original“ umdeuten.
+
+8. Bot-Planung und externe Handelsangebote.
+Datei: src/botkern.py, neue reine Funktionen unten; keine zusätzlichen Gratisbestände.
+PYTHON — src/botkern.py — wirtschaftliche Kartenauswahl und Preis
+
+def oekonomie_kartenwahl(stufe, eigene_karten, freie_karten, raten, bedarf, regeln):
+    import spieloekonomie as O
+    profil = regeln["bots"][stufe]
+    if not profil["gruenden"]:
+        return None
+    kandidaten = []
+    for kennung,eintrag in sorted(freie_karten.items()):
+        if eintrag["besitzer"] is not None:
+            continue
+        nutzen = O.kartennutzen(eigene_karten,eintrag["karte"])
+        if stufe == "mittel":
+            # Aktuell schwächste Deckung priorisieren, bei Gleichstand Kennung.
+            rohstoff = min(sorted(bedarf),key=lambda r:raten.get(r,0)/bedarf[r])
+            nutzen = O.kapazitaeten(eintrag["karte"]).get(rohstoff,0)
+        if nutzen > profil["ablehnungsnutzen"]:
+            kandidaten.append((-nutzen,kennung))
+    return min(kandidaten)[1] if kandidaten else None
+
+def oekonomie_angebot(stufe, karte, rohstoff, bestand, tagesbedarf, temperament, regeln):
+    import spieloekonomie as O
+    h = regeln["bots"][stufe]["reserve_stunden"]
+    reserve = tagesbedarf*h/regeln["versorgung_stunden"]
+    if bestand <= reserve:
+        return {"verkaufbar":0,"preis":None,"reserve":reserve}
+    p = O.schattenpreis(karte,rohstoff,bestand,reserve)
+    ref = referenzpreis_aus_beschaffung(p)
+    return {"verkaufbar":math.floor(bestand-reserve),
+            "preis":handelspreis(ref,temperament),"reserve":reserve}
+ENDE PYTHON
+Präziser Import-Diff: import math in botkern.py. Der Preis ist pro Einheit der konkret angebotenen Ware, nicht ein pauschaler Kämpferpreis für alle Rohstoffe.
+Botaktionen brauchen Ortsdaten aus demselben Ökonomiekern und dieselben Bezahl-/Bau-/Ausbildungsfunktionen. Der alte bots_fortschreiben-Pfad mit zufälligen Wirkungen darf im Ökonomiemodus nicht parallel laufen. Bots müssen zuerst Erzeuger, Bibliothek, Baukunst, Stellmacher, Wagenbau und Karren finanzieren. Neuer Scheduler fährt oekonomie_kartenwahl im Takt aus Regeldaten und legt nur bei erfüllter absicht-Prüfung ein Gebot ab. Ein bloßes Inkrementieren von gebaut/geforscht ist keine Wirtschaft.
+Externer Handel vorläufig als bestätigte Einzelangebote mit echter Handelskarawane aus U; keine Netzfunktionen. Preis fest bei Angebot, Mengen/Gegenleistung vor Start sperren, Abschluss nach Reise, Rückgabe bei Ablehnung. Es fehlen im vorhandenen Auftragskern Gegenlagertransaktion und bestätigte Angebotsannahme; diese müssen als separates handel_start/handel_abschluss-Paar nach dem Muster transport_start entstehen. Nicht _trade aufrufen und Gratisgewinne nur anders beschriften.
+Prüfaussagen: leicht nie Gründungsabsicht; mittel schwächster Rohstoff; schwer maximaler Portfolionutzen bei vollständiger Kandidatenliste; ab ausreichenden Mitteln Gebot spätestens nächster Planungstakt plus nächste gemeinsame Vergabe; keine feste t=N-Gründung ohne Mittel als Fake-Test. Mitziehen: test_botkern.py, test_startspiel.py, test_durchspiel.py; neue test_bot_oekonomie.py und test_handel_transaktion.py.
+
+9. main-Anbindung, Anzeige, Migration und Aktivierung.
+Dateien: src/main.py.Settlement, GameState.__init__/save/load; UI-Rückrufe.
+PYTHON — src/main.py — präzise zusätzliche Settlement-Felder (in vorhandene Dataclass)
+    id: str = ""
+    besitzer: str = "spieler"
+    dimension: int = 1
+    vorraete: Dict[str,float] = field(default_factory=dict)
+    waren: Dict[str,int] = field(default_factory=dict)
+    einheiten: Dict[str,int] = field(default_factory=dict)
+    bevoelkerung: float = 0.0
+    importiert: Dict[str,float] = field(default_factory=dict)
+    reserve: Dict[str,float] = field(default_factory=dict)
+    werkstaetten: Dict[str,dict] = field(default_factory=dict)
+    ausbildung: List[dict] = field(default_factory=list)
+    forschungsauftrag: Optional[dict] = None
+    produktionsjournal: List[dict] = field(default_factory=list)
+    verbrauchsjournal: List[dict] = field(default_factory=list)
+    fertigjournal: List[dict] = field(default_factory=list)
+ENDE PYTHON
+Das bisherige units/garrison nicht gleichzeitig als führende Bestände weiterführen. Altmodus liest alte Felder; Neumodus nur einheiten. Neue Ort-ID bleibt beim Umbenennen stabil und gehört in jede Mission. Siedlungsgrenze im absicht-Adapter aus SIEDLUNGEN_MAXIMUM übergeben, nicht erneut6 in den Kern schreiben.
+Die Initialpopulation0 in der Dataclass ist kein neuer Startwert: erste Siedlung übernimmt10 aus vorhandenen Startdaten; Kolonie übernimmt5 aus dem bezahlten Siedlerkarren. Neuer UI-Zustand aktive_siedlung_id steuert ALLE Zahlungen und Bestandsanzeigen.
+Präzise Rückruf-Diffs:
+  • _found_settlement: erster Start übernimmt Startbestände genau einmal und startkarte; danach öffnet eine Auswahlliste freier KarteIDs samt kartennutzen/Kapazitäten/Preis/Minimum, ruft absicht statt sofort append auf. Keine zufällige Erstwahl, kein zufälliges Weltfeld nach erfolgreicher Zahlung.
+  • Beim Einreichen: kopierten Ort validieren, minimum und einen Karren in gesondertes Absicht-Sperrgut verschieben. Bei Absage zurückgeben. Bei Vergabe: Gewinnerpaket samt5Kolonisten/gewähltem Raster auf das gespeicherte freie Weltfeld setzen; Gebühr vernichten; Verlierersperrgut zurückgeben. Eine Transaktion erst nach allen Validierungen veröffentlichen.
+  • _transport_to_settlement: Herkunft separat wählen; Rohstoff/Menge/Karren abfragen; transport_start(asdict(Quelle),asdict(Ziel),...) ausführen, Ergebnis mit Settlement(**neu) ersetzen; mission anhängen. Vorherige Methode mit festem10Holz vollständig ersetzen.
+  • _karten_bauen/_karten_ausbauen: Kosten aus BP gegen gewählten Ort prüfen; mittels verbrauchen buchen; Siedler aus dessen bevoelkerung. Eignung/Maximalzahl weiter bauen_auf_karte. Bibliotheksausbau bei forschungsauftrag ablehnen. Baukunstpflicht aus belegtem Ausnahmesatz S.8, übrige Mindeststufe1 als expliziter VORSCHLAG.
+  • _ware_herstellen: ware_start des ausgewählten Orts; keine spielerweite höchste Werkstattstufe oder globale Kapazität verwenden.
+  • _train_unit: ausbildung_start ausgewählten Orts; u.count+=1 und sofortige globale Ausrüstungsausgabe aus altem Pfad vollständig entfernen.
+  • _start_research: forschung_start ausgewählten Orts; lokale Bibliothek, lokale Mittel, globales Wissen. Forschung läuft seriell je Bibliothek.
+  • _trade: bestätigtes konkretes Angebot oder deutliche „noch nicht verfügbar“-Meldung; nie Alt-Gratisgewinn. _activate_map/_welt_bewegen und _tick_loop dürfen im neuen Modus keine alten Zufallsbeuten erzeugen.
+  • _unlock_next_map: Vermessung-Abfrage entfällt im neuen Siedlungspfad. Kartenangebote sind kein MAPS-Regionsunlock. Alte fünf Weltregionen nicht als neue Siedlungskarten verkaufen.
+  • punktestand: Einheiten für Originalpunkte ausschließlich als Summe örtlicher und unterwegs befindlicher echter Bestände ableiten; unterwegs nicht nochmals als Garnison zählen.
+Speicherung: asdict(Settlement) hält neue Ortsfelder bereits fest. Globale resources/waren/units/population im Neumodus aus Anzeigen ableiten, NICHT zurückladen oder eigenständig bezahlen. Legacy-Felder nur im Altmodus sichern. _day_accum zusätzlich sichern statt beim Laden auf0 setzen.
+Migration: Ohne explizite Daniel-Entscheidung keine automatische Konvertierung alter Ressourcen. Ist ein Altspielstand ohne Versionsfeld vorhanden, mode="legacy", Regeln und Punktziel behalten, Warnhinweis anzeigen. Neue Partien mode="oekonomie-1". Vor späterer Migration vollständige Kopie, keine alten Raster nachgenerieren, keine Lager vervielfachen; globale Bestände einmalig einer gewählten Hauptstadt zuordnen, Gesamtmengen vorher/nachher identisch. Das ist ein eigenes Folgepaket, nicht dieser Auftrag.
+Prüfaussagen: sichtbare Ausgangs- und Zielbestände, echtes Wartelabel, defizitäre Karte mit Fehlrohstoff statt nutzloser Nullzahl, Gründungsklick zeichnet neu. Import-/Exportkanal bleibt bei Umbenennung korrekt. Mitziehen: test_gui_fehler.py, test_baseline.py, test_startspiel.py, test_kartenansicht.py, test_siedlungskarte.py, test_w8_einhaengung.py, test_speichern_robust.py, test_durchspiel.py, test_punkte_einhaengung.py.
+
+10. Ergänzende vollständige Transaktionen und Ereignisschleife.
+Datei: src/spieloekonomie.py, Ergänzung zu Schritten3/5/8/9. Keine neue Regel; diese Funktionen konkretisieren die zuvor beschriebenen Anschlussstellen. Ortsfelder ausschließlich nach Settlement-Schema. Zustandsabbild ist transient oder selbst die führende Spielstandstruktur, niemals parallel zu eigenständig beschreibbaren Settlement-Lagern.
+PYTHON — src/spieloekonomie.py — neue Orte und gesperrte Gründung
+
+def ort_neu(kennung, besitzer, karte, ort, mittel, kolonie=False):
+    rohstoffe = [r.lower() for r in einzelmaximum()]
+    _,paket,_ = gruendungskosten()
+    return {"id":kennung,"name":kennung,"besitzer":besitzer,"map_id":ort["map_id"],
+            "dimension":ort["dimension"],"x":ort["x"],"y":ort["y"],"karte":karte,
+            "buildings":{},"units":{},"garrison":{},"last_rename":0.0,
+            "bauten":{},"stufen":{},"vorraete":{r:mittel.get(r,0) for r in rohstoffe},
+            "waren":{},"einheiten":{},"bevoelkerung":mittel.get("siedler",0),
+            "importiert":{},"reserve":dict(paket if kolonie else REGELN["plan"]),
+            "werkstaetten":{},"ausbildung":[],"forschungsauftrag":None,
+            "produktionsjournal":[],"verbrauchsjournal":[],"fertigjournal":[]}
+
+def gruendung_sperren(zustand, quelle_id, karte_id, grenze):
+    neu = copy.deepcopy(zustand)
+    quelle = neu["orte"][quelle_id]
+    owner = quelle["besitzer"]
+    if any(a["besitzer"]==owner for a in neu["absichten"]):
+        raise ValueError("Vor neuer Absicht zunächst die bisherige absagen.")
+    karten = [o["karte"] for o in neu["orte"].values() if o["besitzer"]==owner]
+    a = absicht({**quelle,"siedlungsgrenze":grenze},karte_id,karten,neu["vorrat"],
+                neu["wissen"][owner],neu["runde"])
+    a["importiert"] = {}
+    for r,n in a["sperrgut"].items():
+        anteil = n*quelle["importiert"].get(r,0)/quelle["vorraete"][r]
+        a["importiert"][r] = anteil
+        quelle["vorraete"][r] -= n
+        quelle["importiert"][r] = max(0,quelle["importiert"].get(r,0)-anteil)
+    quelle["einheiten"][REGELN["gruendung"]["karren"]] -= 1
+    neu["absichten"].append(a)
+    return neu
+
+def gruendung_absagen(zustand, owner):
+    neu = copy.deepcopy(zustand)
+    behalten = []
+    for a in neu["absichten"]:
+        if a["besitzer"] != owner:
+            behalten.append(a)
+            continue
+        q = neu["orte"].get(a["quelle"])
+        if q is not None and q["besitzer"]==owner:
+            q["vorraete"] = buchen(q["vorraete"],a["sperrgut"])
+            q["importiert"] = buchen(q["importiert"],a["importiert"])
+            k = REGELN["gruendung"]["karren"]
+            q["einheiten"][k] = q["einheiten"].get(k,0)+1
+    neu["absichten"] = behalten
+    return neu
+
+def gruendung_vergeben(zustand):
+    neu = copy.deepcopy(zustand)
+    gueltig = [a for a in neu["absichten"] if a["quelle"] in neu["orte"]
+               and neu["orte"][a["quelle"]]["besitzer"]==a["besitzer"]]
+    for a,gewonnen in vergabe(gueltig,neu["vorrat"],neu["seed"],neu["runde"]):
+        if not gewonnen:
+            neu = gruendung_absagen(neu,a["besitzer"])
+            continue
+        entry = neu["vorrat"][a["karte_id"]]
+        platz = entry["ort"]
+        if any((o["dimension"],o["x"],o["y"])==
+               (platz["dimension"],platz["x"],platz["y"]) for o in neu["orte"].values()):
+            neu = gruendung_absagen(neu,a["besitzer"])
+            continue
+        kennung = f"{a['besitzer']}:{a['karte_id']}:{neu['runde']}"
+        karren = U[REGELN["gruendung"]["karren"]]
+        mittel = {**a["paket"],"siedler":karren["kosten"]["siedler"]}
+        kolonie = ort_neu(kennung,a["besitzer"],entry["karte"],platz,mittel,True)
+        # Paket bleibt derselbe physische Bestand, einschließlich Importanteil.
+        for r,n in a["paket"].items():
+            kolonie["importiert"][r] = a["importiert"].get(r,0)*n/a["sperrgut"][r]
+        neu["orte"][kennung] = kolonie
+        entry["besitzer"] = a["besitzer"]
+    neu["absichten"] = []
+    neu["runde"] += 1
+    neu["naechste_vergabe"] += REGELN["vergabe_stunden"]*3600
+    return neu
+
+def station_start(quelle,ziel,bestand,fracht,jetzt):
+    q,m = transport_start(quelle,ziel,bestand,fracht,jetzt)
+    m["stationieren_lokal"] = True
+    return q,m
+ENDE PYTHON
+Stationierung ist im obigen transport_fortschritt bereits eingearbeitet: bei erfolgreicher Ankunft bleiben die Einheiten am Ziel; bei Zielverlust gilt die unveränderte Rückkehrzeit. Kein Karren wird doppelt am Ausgangs- und Zielort gehalten.
+Prüfaussagen: Paket nicht vervielfacht; Quelle behält Rest; Absage erhält Importanteile; Reihenfolge von Absichten egal; keine doppelte Kolonie auf einem Weltfeld; Stationierkarren ist am Ziel und nicht wieder am Ausgangsort. Neue test_gruendung_transaktion.py und test_lokale_lager.py.
+
+PYTHON — src/spieloekonomie.py — konkreter bestätigter Fremdhandel
+
+def handel_start(kaeufer,verkaeufer,einheitenbestand,ware,menge,preis,kanal,jetzt):
+    if kanal not in ("vorraete","waren") or type(menge) is not int or menge<=0:
+        raise ValueError("Ungültiges Angebot.")
+    if kaeufer["besitzer"]==verkaeufer["besitzer"]:
+        raise ValueError("Eigener Warentransport braucht keinen Kaufvertrag.")
+    if kaeufer["dimension"]!=verkaeufer["dimension"]:
+        raise ValueError("Fremde Dimension benötigt noch unbelegte Missionstarife.")
+    if not math.isfinite(preis) or preis<=0 or ware=="gold":
+        raise ValueError("Preis oder Handelsgut ungültig.")
+    if any(type(n) is not int or n<=0 for n in einheitenbestand.values()):
+        raise ValueError("Ungültige Karawanentruppe.")
+    if any(kaeufer["einheiten"].get(n,0)<k for n,k in einheitenbestand.items()):
+        raise ValueError("Karawane fehlt vor Ort.")
+    if verkaeufer[kanal].get(ware,0)<menge or kaeufer["vorraete"].get("gold",0)<menge*preis:
+        raise ValueError("Angebot nicht beidseitig gedeckt.")
+    if sum([menge])>auftraege.ladung_der_mission(einheitenbestand):
+        raise ValueError("Kaufmenge übersteigt Rückladung.")
+    d = abs(kaeufer["x"]-verkaeufer["x"])+abs(kaeufer["y"]-verkaeufer["y"])
+    liste = []
+    ok,grund = auftraege.starten(liste,"handeln",einheitenbestand,kaeufer["id"],
+                               verkaeufer["id"],d,jetzt,{})
+    if not ok:
+        raise ValueError(grund)
+    k,v,m = copy.deepcopy(kaeufer),copy.deepcopy(verkaeufer),liste[0]
+    k["vorraete"]["gold"] -= menge*preis
+    v[kanal][ware] -= menge
+    for n,z in einheitenbestand.items():
+        k["einheiten"][n] -= z
+    m.update({"fremdvertrag":True,"kaeufer":k["id"],"verkaeufer":v["id"],
+              "kaeufer_owner":k["besitzer"],"verkaeufer_owner":v["besitzer"],
+              "ware":ware,"menge":menge,"preis":preis,"kanal":kanal,
+              "angenommen":False,"abgerechnet":False,"sperrgold":menge*preis})
+    return k,v,m
+
+def handel_abschluss(vertrag,orte,jetzt):
+    neu,m = copy.deepcopy(orte),copy.deepcopy(vertrag)
+    k,v = neu.get(m["kaeufer"]),neu.get(m["verkaeufer"])
+    if jetzt>=m["ankunft"] and not m["angenommen"]:
+        if v is not None and v["besitzer"]==m["verkaeufer_owner"]:
+            v["vorraete"]["gold"] = v["vorraete"].get("gold",0)+m["sperrgold"]
+            m["sperrgold"] = 0
+            m["angenommen"] = True
+    if jetzt>=m["rueckkehr"] and not m["abgerechnet"]:
+        if k is None or k["besitzer"]!=m["kaeufer_owner"]:
+            return neu,m  # Gut bleibt am Vertrag, keine Geistergutschrift.
+        if m["angenommen"]:
+            k[m["kanal"]][m["ware"]] = k[m["kanal"]].get(m["ware"],0)+m["menge"]
+        else:
+            k["vorraete"]["gold"] += m["sperrgold"]
+            if v is not None and v["besitzer"]==m["verkaeufer_owner"]:
+                v[m["kanal"]][m["ware"]] = v[m["kanal"]].get(m["ware"],0)+m["menge"]
+            else:
+                # Verlorenes Verkäufergut bleibt vermerkt; nicht an neuen Besitzer schenken.
+                m["verlorenes_sperrgut"] = {m["ware"]:m["menge"]}
+        for n,z in m["einheiten"].items():
+            k["einheiten"][n] = k["einheiten"].get(n,0)+z
+        m["abgerechnet"] = True
+    return neu,m
+ENDE PYTHON
+Fremdvertrag wird nur nach ausdrücklicher Annahme beider Seiten erstellt, nicht bereits bei bloßer Anzeige. Verkaufbare Menge aus Botreserve prüfen, dann beidseitig sperren. Import-Siegbelege bleiben ausschließlich interne Transporte: externe Käufe erhöhen keinen eigenen Handelsnachweis. Verkäufer-Importherkunft proportional abziehen und beim abgelehnten Vertrag zurückgeben; dieselbe anteilige Sperrlogik wie gruendung_sperren anwenden. Goldimportanteil des Käufers beim Sperren entsprechend behandeln. Diese Herkunftserweiterung ändert keine Preise/Mengen.
+Prüfaussagen: Rohstoff- und Warenangebot, echte Handelskarawane, Zahlung statt Gratisgewinn, Rückladung, Abbruch, Zielverlust, kein doppelter Abschluss. Neue test_handel_transaktion.py, test_warentransport.py.
+
+PYTHON — src/spieloekonomie.py — vollständiger Ereignistreiber mit Bot-Callback
+
+def ereigniszeiten(z):
+    t = z["zeit"]
+    out = [z["naechste_vergabe"]]
+    out.extend(b["naechster_plan"] for b in z["bots"].values())
+    for m in z["missionen"]:
+        out.extend((m["ankunft"],m["rueckkehr"]))
+    for o in z["orte"].values():
+        out.extend(a["ende"] for a in o["ausbildung"] if not a["gebucht"])
+        a = o["forschungsauftrag"]
+        if a:
+            out.append(a["startzeit"]+a["dauer_stunden"]*3600)
+        for schlange in o["werkstaetten"].values():
+            werkstatt.fortschritt(schlange,t)
+            out.extend(a["ende"] for a in schlange["einheiten"]
+                       if a["ende"] is not None and not a["gemeldet"])
+    return [v for v in out if v>t]
+
+def tick_bis(zustand,ende,bot_planen):
+    z = copy.deepcopy(zustand)
+    if not math.isfinite(ende) or ende<z["zeit"]:
+        raise ValueError("Ungültiges Tickende.")
+    while z["zeit"]<ende:
+        ab = z["zeit"]
+        bis = min([ende]+ereigniszeiten(z))
+        for kennung in sorted(z["orte"]):
+            o = z["orte"][kennung]
+            z["orte"][kennung] = ort_tick(o,ab,bis,z["wissen"][o["besitzer"]])
+        z["zeit"] = bis
+        for kennung in sorted(z["orte"]):
+            o = z["orte"][kennung]
+            o,w = forschung_abschluss(o,z["wissen"][o["besitzer"]],bis)
+            z["orte"][kennung],z["wissen"][o["besitzer"]] = o,w
+        for i,m in enumerate(z["missionen"]):
+            if m.get("fremdvertrag"):
+                z["orte"],z["missionen"][i] = handel_abschluss(m,z["orte"],bis)
+            else:
+                z["orte"],z["missionen"][i] = transport_fortschritt(m,z["orte"],bis)
+        for owner in sorted(z["bots"]):
+            b = z["bots"][owner]
+            if b["naechster_plan"]<=bis:
+                z = bot_planen(z,owner)
+                profil = REGELN["bots"][z["bots"][owner]["stufe"]]
+                z["bots"][owner]["naechster_plan"] = bis+profil["bewerten_stunden"]*3600
+        if z["naechste_vergabe"]<=bis:
+            z = gruendung_vergeben(z)
+        eigene = [o for o in z["orte"].values() if o["besitzer"]=="spieler"]
+        ziel = zielstatus(eigene,bis,z.get("haltestart"))
+        z["haltestart"] = ziel["haltestart"]
+        z["zielstatus"] = ziel
+    return z
+ENDE PYTHON
+Zustandsschema: zeit, seed, orte, wissen={Besitzer:Originalforschungsstände}, missionen, absichten, vorrat, runde, naechste_vergabe, bots={Besitzer:{stufe,naechster_plan}}, haltestart. Erste Runde0, naechste_vergabe aus Regeldauer; erster Botplan ebenfalls positiv aus Takt, niemals uninitialisierte negative Zeit. Vorratsorte beim Partiestart deterministisch aus freien Weltfeldern wählen und als entry["ort"] mit Dimension/x/y/map_id speichern. keine dynamische zufällige Umplatzierung.
+Der Bot-Callback ist eine echte bezahlte Planung. Der folgende Pilotplan baut zunächst eine tragfähige Hauptstadt und spart anschließend auf Gründung. Ausbau der Kolonien und automatisierte Lieferpläne sind getrennte Erweiterungen; die Vorgaben zu Verkauf/Reserve und Kartenwahl gelten bereits.
+PYTHON — src/spieloekonomie.py — bezahlter deterministischer Botplan
+
+def bau_einsetzen(ort, geb, wissen, jetzt):
+    frei_ohne = {"holzfaeller","steinmetz","jaeger","bibliothek","haus"}
+    if geb not in frei_ohne and wissen.get("Baukunst",0)<REGELN["baukunst_mindeststufe"]:
+        raise ValueError("Baukunst fehlt.")
+    daten = gelaende.alle_gebaeude()[geb]
+    maximum = daten.get("max_je_siedlung")
+    vorhanden = sum(gelaende.finde_gebaeude(x)==geb for x in ort["bauten"].values())
+    if isinstance(maximum,int) and vorhanden>=maximum:
+        raise ValueError("Gebäudegrenze erreicht.")
+    kandidaten = []
+    for i,art in enumerate(ort["karte"]["raster"]):
+        if str(i) in ort["bauten"] or not gelaende.bau_moeglich(geb,art)[0]:
+            continue
+        e = gelaende.ertrag_pro_stunde(geb,art)
+        wert = sum(e.values()) if isinstance(e,dict) else float(e or 0)
+        kandidaten.append((-wert,i))
+    if not kandidaten:
+        raise ValueError("Kein geeignetes freies Feld.")
+    kosten = mengen(BP[geb])
+    siedler = kosten.pop("siedler",0)
+    if ort["bevoelkerung"]<siedler:
+        raise ValueError("Siedler fehlen.")
+    neu = verbrauchen(ort,kosten,jetzt)
+    neu["bevoelkerung"] -= siedler
+    feld = str(min(kandidaten)[1])
+    neu["bauten"][feld],neu["stufen"][feld] = geb,1
+    return neu
+
+def bot_planen(zustand,owner):
+    import botkern
+    z = copy.deepcopy(zustand)
+    orte = [o for o in z["orte"].values() if o["besitzer"]==owner]
+    if not orte:
+        return z
+    o = next((o for o in orte if o["karte"]["typ"]==G["kartenvorrat"]["start"]["id"]),orte[0])
+    wissen,zeit = z["wissen"][owner],z["zeit"]
+    # Mengen des Startplans in E, einmalig als Regeldaten laden, nicht im Code wiederholen.
+    bootstrap = REGELN["bot_startplan"]
+    try:
+        for geb,anzahl in bootstrap["grundbau"].items():
+            vorhanden = sum(gelaende.finde_gebaeude(g)==geb for g in o["bauten"].values())
+            if vorhanden<anzahl:
+                z["orte"][o["id"]] = bau_einsetzen(o,geb,wissen,zeit)
+                return z
+        if wissen.get("Baukunst",0)<REGELN["baukunst_mindeststufe"]:
+            if o["forschungsauftrag"] is None:
+                z["orte"][o["id"]] = forschung_start(o,"Baukunst",wissen,zeit)
+            return z
+        for geb,anzahl in bootstrap["ausbau"].items():
+            vorhanden = sum(gelaende.finde_gebaeude(g)==geb for g in o["bauten"].values())
+            if vorhanden<anzahl:
+                z["orte"][o["id"]] = bau_einsetzen(o,geb,wissen,zeit)
+                return z
+        if wissen.get("Wagenbau",0)<REGELN["gruendung"]["stufe"]:
+            if o["forschungsauftrag"] is None:
+                z["orte"][o["id"]] = forschung_start(o,"Wagenbau",wissen,zeit)
+            return z
+        stufe = z["bots"][owner]["stufe"]
+        if not REGELN["bots"][stufe]["gruenden"] or any(a["besitzer"]==owner for a in z["absichten"]):
+            return z
+        karre = REGELN["gruendung"]["karren"]
+        if o["einheiten"].get(karre,0)<1:
+            if not any(a["einheit"]==karre and not a["gebucht"] for a in o["ausbildung"]):
+                z["orte"][o["id"]] = ausbildung_start(o,karre,wissen,zeit)
+            return z
+        raten = {r.lower():v for r,v in wirtschaft.ertrag_gesamt(orte,wissen).items()}
+        kandidat = botkern.oekonomie_kartenwahl(stufe,[x["karte"] for x in orte],
+                    z["vorrat"],raten,REGELN["plan"],REGELN)
+        if kandidat is not None and len(orte)<z["siedlungsgrenze"]:
+            return gruendung_sperren(z,o["id"],kandidat,z["siedlungsgrenze"])
+    except ValueError:
+        return z  # Bezahlen/Standort abgelehnt: warten, kein Gratisersatz.
+    return z
+ENDE PYTHON
+Regeldaten ergänzen: bot_startplan.grundbau={"holzfaeller":2,"steinmetz":2,"jaeger":1,"bibliothek":1}; bot_startplan.ausbau={"holzfaeller":4,"steinmetz":4,"farm":2,"rinderfarm":1,"schafszucht":1,"pferdezucht":1,"erzmine":2,"goldmine":1,"tempel":1,"stellmacher":1}. [VORSCHLAG: identischer nachgerechneter Hauptstadtplan E, keine anderen Startvorteile] Reihenfolge der JSON-Einträge gehört zum versionierten Plan. Zustand.siedlungsgrenze aus main.SIEDLUNGEN_MAXIMUM übernehmen. „Baukunst-Mindeststufe1“ benötigt einen eigenen Datenparameter baukunst_mindeststufe statt dauerhafter Zweckentfremdung der Gründungsstufe; beide Zeilen mit REGELN["gruendung"]["stufe"] im Baukunstpfad durch diesen Parameter ersetzen.
+Leicht baut ebenfalls real, expandiert aber nie. Mittel/schwer unterscheiden Planungsabstände und Kartenwahl; alle zahlen dieselben Preise. Neue test_bot_oekonomie.py prüft genau diese Funktionen, Mittelablehnung bei leerem Lager und schwere Wahl nach kompletter Freikartenliste.
+Zeitnull-Aufträge müssen vor der Ereignisschleife explizit verarbeitet werden; Pilotaufträge haben positive Dauer. Neue test_oekonomie_uhr.py verwendet diesen Callback mit bezahlten Mitteln, nicht zufällige Gratiseffekte.
+Zusätzliche Zeitgrenzen für Handelsnachweis-Ablauf und Halteende in ereigniszeiten aufnehmen: Verbrauchsjournalzeiten+Versorgungsfenster, produktionsjournal-Grenzen+Fenster, haltestart+Fenster. Damit löst auch ein einziger sehr großer Tick kein abgelaufenes Siegfenster über falsch spätes Prüfen aus. Schwellenüberschreitungen des linearen Produktionsfensters können analytisch zwischen diesen Grenzen bestimmt werden; alternativ Zielprüfung auf einem in data festgelegten Spielsekundenraster, ebenfalls als Ereignis, und jeder große/kleine Tick benutzt dasselbe Raster. Kein unterschiedliches Prüfraster abhängig von dt.
+
+Präzise main-Fassade (kein zweites Lager): GameState erstellt vor einem Kernaufruf z["orte"] aus asdict eigener/bot Settlement-Objekte, übernimmt danach jede komplette Ortsrückgabe zurück in genau diese Objekte und verwirft das Abbild. Alternativ orte-Dictionary als einzige Wahrheit und Settlement-Objekte nur als kurzlebige Ansichtsmodelle führen. Beide Varianten sind erlaubt; Mischbetrieb ist verboten.
+PYTHON — src/main.py — aktive Stadt und atomare lokale Aktionen
+    def ort_aktion(self, kennung, funktion, *argumente):
+        import spieloekonomie as O
+        i = next(i for i,s in enumerate(self.settlements) if s.id==kennung)
+        vorher = self.settlements[i]
+        wissen = {k:v.level for k,v in self.research.items()}
+        neu = funktion(asdict(vorher),*argumente,wissen,self.spielsekunden)
+        self.settlements[i] = Settlement(**neu)
+        return neu
+ENDE PYTHON
+Die Funktionsargumente müssen im Adapter exakt zur jeweiligen Signatur passen; ware_start braucht zum Beispiel die explizit geladene Rezeptdatei am Ende. Deshalb keine ungeprüfte universelle Argumentreihenfolge für alle Rückrufe verwenden: ausbildung_start(ort,name,wissen,zeit) passt direkt, forschung_start ebenfalls; ware_start über einen ausdrücklich benannten Wrapper mit rezepte übergeben. Neues test_gui_fehler.py kontrolliert alle Rückrufe mit echten lokal bezahlten Mitteln, nicht nur Rendern.
+
+Integrations-Gate vor Aktivierung
+Die vollständigen Kernfunktionen oben einschließlich Vergabe, Vertragsabschluss und tick_bis sind Entwurfscode, nicht hier ausgeführte Implementierung. Präzisierende Diffs zu Stationierung, Herkunft und Prüfraster sind Bestandteil des Pakets. Bot-Bauplanung, UI-Dialoge und Besitzverlust müssen gegen die genannten Verträge implementiert werden; GUI-Rückrufe allein reichen nicht. Aktivierung erst, wenn sämtliche benannten Prüfungen samt unverändertem Sammellauf tatsächlich ausgeführt sind. Keine Behauptung, der bestehende Prüfstand sei durch dieses Papier bereits grün gehalten worden.
+
+G. RISIKEN UND OFFENE ENTSCHEIDUNGEN
+
+1. Feste Auswahl statt Original-Zufallszuweisung ist Daniels bewusste Abweichung. Im Spiel kennzeichnen, nicht als HB-Regel ausgeben. Sechs Siedlungen und Geländeerträge bleiben Original.
+2. Umfang: Lokalität, Uhr, Besitz und Aufträge sind ein Architekturpaket, kein weiterer Preisparameter. Halbumbau wäre schlimmer als der Ist-Zustand, weil sichtbare Handelspreise dann eine unbenutzbare Ökonomie verschleiern.
+3. Gleichzeitige Ressourcenherkunft kann durch Umladen manipuliert werden. Importverbrauch belegt Transportbedarf, nicht automatisch „sinnvollen“ Handel; Reserve-/Portfolio-/Produktionsprüfung sind zusätzliche Sicherungen. Optional strengere Ursprungslotführung statt proportionaler Herkunft, wenn Daniel jede Ware rückverfolgbar will.
+4. Unabhängige Obergrenzen eignen sich für Topologie/Preise, nicht als vollständig realisierbare Baupläne. Bots brauchen echte Feldzuteilung, sonst überschätzen sie Gold+Metall+Stein auf denselben zwei Bergen.
+5. Pilotrezepte sind die größte unbelegte Balancefläche. Schwertdauer20min ist belegt, Materialkosten allerWaren nicht. Bei fehlender Rezeptfreigabe kann der Originalmodus die Lücke weiterhin ehrlich anzeigen, aber keine durchspielbare Wirtschaft versprechen.
+6. Bibliothek-Höchststufe5 blockiert Magiekunde6 aus R. Nicht still erhöhen; Daniel muss den bestehenden Vorschlagsdeckel mindestens auf den nötigen belegten Voraussetzungspfad anheben oder bewusst Magiesystem verschieben. Das ist kein Grund, Magiekunde-Voraussetzungen abzusenken.
+7. Götterschutz: main beendet ihn abTag3; HB nennt siebenTage und vorzeitiges Ende über Kriegspunkte. Ökonomieprojekt darf den falschen Schutz nicht als Balancekonstante weiterbenutzen. Eigenes konformes Schutzpaket vor militärischer Konkurrenz, mit test_punkte/test_startspiel; kein Test künstlich aufTag3 festnageln.
+8. Fremdhandel benötigt sehr teure Handelskarawanen nach U. Das ist Absicht im Original und kein Grund, einen Handkarren kostenlos zur Karawane zu erklären. Eigener Transport bleibt sofort nach Handkarrenbau möglich; externer Markt ist späteres Spiel.
+9. Reservierte Karten können die gute Auswahl blockieren. Gemeinsame Vergabe begrenzt Klickvorsprung, löst aber keine dauerhaft vonBots gehaltenen Schlüsselprofile. Bei fünf Bots und neun Koloniekarten müssen Wiedererwerb/Verkauf oder Rückeroberung tatsächlich funktionieren; sonst droht mathematisch unmöglicher Sieg. Alternative für erste Umsetzung: nur zwei wirtschaftlich expandierende Bots, weitere als stationäre Händler, ausdrücklich VORSCHLAG statt Gegnerzahl heimlich ändern.
+10. Halteprüfung und Journalwachstum: Journale nach Ende des relevanten Fensters verdichten/abschneiden, aber Siegbelege für fertige Ware/Forschung als kleine kumulative Bool-Merker behalten. Im Papier nichts davon löschen. Prüfer der Implementierung soll große Spielstände und lange Partien berücksichtigen.
+11. Keine Modus-Umschaltung mitten in einer Partie. Version, Saat, Reserven, Importherkunft und alle Uhrstände zusammen speichern. Zufalls-RNG bei Kämpfen als gespeicherte missionsbezogene Saat aus Partiensaat+AuftragsID, nicht random.Random() ohne Saat.
+12. Preisgrenzen, Karrenverbrauch, Pilotrezepte/Ausbildungsdauer,24h-Vergabe,4-Siedlungs-Ziel,1,4-Faktor, Reservekorb und zwei Versorgungsfenster sind Daniels Entscheidungen. Originalwerte und Prüfzusagen dürfen dadurch nicht gelockert werden.
+13. H liefert konkrete Planungspolitik; ein kompletter Bot-Bauplatzoptimierer ist im Ist-Code nicht vorhanden. Keine feste „Bot siedelt nachN“ behaupten, solange er die belegten Karrenkosten nicht real bezahlen kann.
+
+H. BOTS: LEICHT / MITTEL / SCHWER
+
+Schwierigkeit verändert Wissen und Planung, NICHT Erträge, Baupreise oder Startgeschenke. Persönliches Temperament/aggression/trading bleiben eigene Parameter und ersetzen die Schwierigkeitsstufe nicht.
+
+Stufe  | Kartenwahl | Sparen und Gründung | Handel und Reserven | messbare Regel
+leicht | kennt lokale Erträge, aber keine Portfoliooptimierung; kann ausgeglichene Karte bevorzugen, gründet im Pilot nicht selbst | baut im eigenen Gebiet; kein Sperren umkämpfter Karten | 6h tatsächlicher geplanter Bedarf zurückhalten, Überschuss anbieten; bestehendes Temperament | nie absicht erzeugen; keine Verkäufe unter Reserve; keine Materialgeschenke
+mittel | wählt Karte mit höchster Obergrenze des aktuell am schlechtesten gedeckten Rohstoffs; lehnt Nutzen≤0 ab | bei freien Karten und Finanzierung Ziel alle6h neu bewerten; zuerst Baukunst/Wagenbau/Karren; Sparbudget nicht für unnötige neue Werkstatt aufbrauchen |12h Bedarfreserve, eigene Partner mit Defizit bedienen; Preis aus eigener Karte und Lager, 1,2/Temperament übernehmen | bei ausreichenden Mitteln spätestens6h bis Absicht, dann höchstens24h bis Vergabe; Entscheidung deterministisch
+schwer | bewertet jede freie Karte gegen gesamtes eigenes Portfolio; nimmt höchsten kartennutzen, bei Gleichstand KarteID; simuliert zusätzlich belegbare Feldbelegung | alle1h neu planen; nach Gründung Engpass neu bestimmen; als nächstes fehlende Spezialistenachse statt größte Summe |24h Reserve für den nächsten echten Bau-/Forschungs-/Ausbildungsplan, Überschuss an Partner mit größtem Bedarf verkaufen; nie künstlich Lager auffüllen | bei Finanzierung innerhalb1h Absicht für beste freie Karte; Reihenfolge egal, vollständige Liste geprüft; Verluste lösen binnen1h neue Planung aus
+[VORSCHLAG: bestehender Bot-Angriffskorridor6–24h und ein Versorgungsfenster24h] Takte und Reserven aus derselben Größenordnung, in neuen Regeldaten. Grenzen beziehen sich auf Spielstunden, nicht Rechneruhr. Leichtexpandieren optional später, aber nicht zum Testen schwerer Bots vortäuschen.
+
+Schwerer Bot bewertet zusätzlich einen realistischen Ausbauplan:
+  Defizit_r = max(0, geplante24h-Ausgaben_r − eigene24h-Produktion_r − frei verwendbarer Bestand_r).
+  Nutzen(Karte) = Summe(Achsenkapazität·(1+Portfoliolücke)) aus Kern; danach Machbarkeit einer konkreten Feldbelegung prüfen.
+  Transport wählen, wenn Importankunft vor lokaler Herstellung UND Ladebedarf ≤ reale Rundlaufleistung UND Lieferant eigene Reserve behält.
+  Goldbudget_r = Menge_r·konkreter Angebotspreis_r; ohne verfügbares Gold keine Zusage.
+[VORSCHLAG: wirklicher marginaler Nutzen statt versteckter Cheaterboni] Die oben ausgeschriebene Kernfunktion ist die erste Bewertung; ein schwererBot muss Kandidaten mit unzulässigen Bauplänen verwerfen, nicht deren unabhängige Kapazitätsspalten als echte simultane Produktion verwenden.
+
+Wie schlechte Kartenwahl des Spielers bestraft wird:
+  • Gute Karten gehen bei fairer Vergabe an den Akteur mit größerem komplementärem Nutzen; der Spieler kann nicht alles durch schnelle Klicks sichern.
+  • Ein schwererBot mit Bergbauüberschuss verkauft unter seinem realen Knappheitspreis erst dann, wenn eigenes Reservebudget gedeckt ist. Hoher Importbedarf beim Spieler trifft dadurch auf echten begrenzten Vorrat, nicht endlosen Billigmarkt.
+  • Vollständig holzlastiger Spieler exportiert Holz gegen viele Verkäufer; seine Abnehmer haben niedrige Holz-Schattenpreise und dürfen Angebote über ihrer konkreten Zahlungsbereitschaft ablehnen. Das ist realer Preisdruck, keine willkürliche Strafsteuer.
+  • Innerhalb der Noobschutzregeln greift ein schwererBot erst an, wenn der echte Kampfsimulator eine tragfähige Angriffstruppe und ausreichende Karren zeigt; kein unmittelbarer Lagerabzug aus einem Zählerzug. Zielpriorität nach sichtbarer schwächster lokal versorgter Verteidigung, keine allwissende Nutzung geheimer Spieleraufträge.
+[VORSCHLAG: Wirtschaftsschwierigkeit darf Sichtbarkeit verbessern, aber keine unsichtbaren Daten erfinden] Ohne Erkundung nur öffentlich sichtbare Kartenprofile/Angebote; ausgekundschaftete Garnison mitZeitstempel. Kampfentscheidung und Eroberung bleiben an vorhandenen Originalkampf gebunden.
+
+Vorhanden und weiterverwendbar:
+[BELEGT: src/botkern.py] Temperament, referenzpreis_aus_beschaffung, handelspreis, begrenzte Beute, gesäte Kernfunktionen; [BELEGT: src/auftraege.py] Reise-/Ladungsprüfung; [BELEGT: wirtschaft.kapazitaet und siedlung_ertrag] Potenzial und echte Produktion; [BELEGT: docs/ENTWURF_AUFTRAEGE.md] keine Stationierung bei Fremden, Handelskarawanen, Rückkehr beiAblehnung. Die Kennzeichnung „belegte Referenzpreisformel“ im Botcode belegt den vorhandenen Entwurf, nicht das Originalhandbuch.
+Fehlt: realeBot-Siedlungskarten mitBauten und lokalenLagern, bezahlte Auftragsketten, gemeinsameKartenvergabe, verbindlicheGegenlagertransaktion, lokaleRisiken/Besitzwechsel, durchgehendeSpieluhr, Warenrezepte und konformeSichtbarkeit. Diese Lücken müssen vor „schwer spielt ökonomisch“ geschlossen werden.
+
+Abnahme dieses Entwurfs
+Die Vorgaben A–H sind bearbeitet; alle zehn Karten einschließlich Start haben vollständige siebenartige Kontingente, alle neun Ertragsobergrenzen und die Mindest-/Rasterprüfung. Originalpreise und Ertragstabelle werden nicht für bequemeres Pacing verbogen. Das Beispiel enthält die tatsächlichen teuren Siedlerkarren und benennt die unvermeidbaren Vorforschungen. Code und präzise Anschlussstellen liegen nur in dieser Ausgabedatei.
+Nicht behauptet: ausgeführte Projektprüfungen, grüne Implementierung, fertiger Bot-Bauoptimierer oder fertiger Besitzwechsel. Das Papier ist der umsetzungsreife Regel- und Transaktionsentwurf mit ausdrücklich benannten Integrationspaketen; ohne deren Ausführung bleibt das Spiel unverändert.
