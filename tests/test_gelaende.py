@@ -66,9 +66,26 @@ for geb in ("holzfaeller", "steinmetz", "farm", "tempel", "schmiede", "haus", "l
 check("kein Gebäude darf auf Sumpf stehen", not sumpf_verbote, ", ".join(sumpf_verbote))
 
 ok, txt = G.bau_moeglich("schmiede", "wald")
-check("Schmiede steht auf jedem bebauten Gelände (kein Geländebezug)", ok is True, txt)
+check("Schmiede hat einen Geländebezug (Grasland, Steppe, Hügel, Berg)",
+      ok is False and "Grasland" in txt, txt)
+ok, txt = G.bau_moeglich("schmiede", "huegel")
+check("auf dem Hügel steht sie", ok is True, txt)
 ok, txt = G.bau_moeglich("haus", "berg")
-check("Haus ebenfalls", ok is True, txt)
+check("Haus hat einen Geländebezug (nicht auf Fels)", ok is False and "Grasland" in txt, txt)
+ok, txt = G.bau_moeglich("haus", "nebelsee")
+check("und nicht im Nebelsee (Vorgabe Daniel 05.10.2026)", ok is False, txt)
+ok, txt = G.bau_moeglich("haus", "grasland")
+check("auf Grasland steht es", ok is True, txt)
+# Vorgabe Daniel 05.10.2026: „intelligent angewendet auf ALLE Gebäude" — jedes Gebäude muss
+# auf JEDEM Gelände eine klare Antwort geben, und der Nebelsee ist nur Bibliothek und Tempel.
+ohne_antwort = [g for g in G.alle_gebaeude()
+                if not isinstance(G.bau_moeglich(g, "grasland")[1], str)
+                or G.bau_moeglich(g, "grasland")[1].strip() == ""]
+check("jedes Gebäude gibt auf jedem Gelände eine Begründung", not ohne_antwort,
+      ", ".join(ohne_antwort))
+nebelsee_erlaubt = [g for g in G.alle_gebaeude() if G.bau_moeglich(g, "nebelsee")[0]]
+check("im Nebelsee dürfen nur Bibliothek und Tempel stehen",
+      sorted(nebelsee_erlaubt) == ["bibliothek", "tempel"], ", ".join(sorted(nebelsee_erlaubt)))
 
 nein, warum = G.bau_moeglich("gibtsnicht", "wald")
 check("unbekanntes Gebäude wird abgelehnt", nein is False, warum)

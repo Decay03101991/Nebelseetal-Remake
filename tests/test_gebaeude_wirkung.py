@@ -271,8 +271,10 @@ check("ohne Akademie: nicht ausbildbar", da is False and stufe == 0,
       f"{da} {staette} {stufe}")
 check("und der Grund nennt die Kriegerakademie", staette == "kriegerakademie", str(staette))
 
-karte_wald, wald = karte_mit("wald", anzahl=2)
-militaer = siedlung_mit(karte_wald, [(wald[0], "kriegerakademie")])
+# Geländeregel (Vorgabe Daniel 05.10.2026): die Kriegerakademie steht nur auf Grasland,
+# Steppe oder Hügel — deshalb wird sie hier auf Grasland gebaut, nicht im Wald.
+karte_gras, gras_felder = karte_mit("grasland", anzahl=2)
+militaer = siedlung_mit(karte_gras, [(gras_felder[0], "kriegerakademie")])
 da, staette, stufe = W.ausbildungsstaette([militaer], "Krieger")
 check("mit Akademie: ausbildbar (Stufe 1)", da is True and stufe == 1, f"{da} {stufe}")
 moeglich, gesperrt = W.ausbildbare_einheiten([militaer])
@@ -280,6 +282,8 @@ check("mit Akademie sind genau die 9 Kampfeinheiten ausbildbar", len(moeglich) =
       f"{len(moeglich)}: {moeglich}")
 check("Kundschafter und Karren bleiben gesperrt", "Streuner" in gesperrt and "Handkarren" in gesperrt)
 
+# Für Diebesgilde und Stellmacher (beide im Wald erlaubt) die Waldkarte hier bereitstellen.
+karte_wald, wald = karte_mit("wald", anzahl=2)
 gilde = siedlung_mit(karte_wald, [(wald[0], "diebesgilde")])
 moeglich_g, _ = W.ausbildbare_einheiten([gilde])
 check("mit der Diebesgilde sind genau die 6 Kundschafter ausbildbar", len(moeglich_g) == 6,
@@ -290,8 +294,8 @@ check("mit dem Stellmacher sind genau die 13 Karren und Belagerungswaffen ausbil
       len(moeglich_s) == 13, f"{len(moeglich_s)}: {moeglich_s}")
 
 check("eine zweite Kriegerakademie in derselben Siedlung wird abgelehnt",
-      M.bauen_auf_karte(militaer, "kriegerakademie", wald[1])[0] is False,
-      M.bauen_auf_karte(militaer, "kriegerakademie", wald[1])[1])
+      M.bauen_auf_karte(militaer, "kriegerakademie", gras_felder[1])[0] is False,
+      M.bauen_auf_karte(militaer, "kriegerakademie", gras_felder[1])[1])
 
 abschnitt("Ausbildung — die Stufe der Staette bestimmt das Tempo")
 

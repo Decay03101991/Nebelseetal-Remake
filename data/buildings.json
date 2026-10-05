@@ -6,7 +6,13 @@
     "docs/original/Spielanleitung_2009_Textfassung.txt, Seite 7/8 (Bauen, Lager, Siedeln), Seite 9/10 (Produktionsgebäude), Seite 13/14 (Werkstätten und Ausbildungsgebäude), Seite 20 (Verteidigungswall)",
     "docs/original/ORIGINAL_Kampf_und_Punkte.md, Abschnitt 2.1 (Wallschwellen-Tabelle)"
   ],
-  "kategorien": ["Produktion", "Werkstatt", "Ausbildung", "Verteidigung", "Sonstiges"],
+  "kategorien": [
+    "Produktion",
+    "Werkstatt",
+    "Ausbildung",
+    "Verteidigung",
+    "Sonstiges"
+  ],
   "regeln": {
     "ohne_forschung_baubar": "Holzfäller, Steinmetze, Jäger, Bibliothek und Häuser können bereits ohne Forschung gebaut werden.",
     "baukunst": "Für alle restlichen Gebäude werden Kenntnisse in der Forschung 'Baukunst' benötigt.",
@@ -25,7 +31,10 @@
       "voraussetzung": "keine (ohne Forschung baubar)",
       "wirkung": "produziert Holz",
       "rohstoff": "Holz",
-      "ertrag_pro_stunde": { "Wald": 4, "Steppe": 2 },
+      "ertrag_pro_stunde": {
+        "Wald": 4,
+        "Steppe": 2
+      },
       "abweichung": "Steppe: 2005 = 1, Handbuch 2009 = 2 (Wald in beiden Fassungen 4)."
     },
     {
@@ -35,7 +44,10 @@
       "voraussetzung": "Baukunst",
       "wirkung": "produziert Stein",
       "rohstoff": "Stein",
-      "ertrag_pro_stunde": { "Berg": 4, "Hügel": 2 },
+      "ertrag_pro_stunde": {
+        "Berg": 4,
+        "Hügel": 2
+      },
       "abweichung": "Hügel: 2005 = 1, Handbuch 2009 = 2 (Berg in beiden Fassungen 4)."
     },
     {
@@ -45,7 +57,10 @@
       "voraussetzung": "Baukunst",
       "wirkung": "produziert Metall",
       "rohstoff": "Metall",
-      "ertrag_pro_stunde": { "Berg": 3, "Hügel": 1.5 },
+      "ertrag_pro_stunde": {
+        "Berg": 3,
+        "Hügel": 1.5
+      },
       "abweichung": "Hügel: 2005 = 1, Handbuch 2009 = 1,5 (Berg in beiden Fassungen 3)."
     },
     {
@@ -55,7 +70,10 @@
       "voraussetzung": "Baukunst",
       "wirkung": "produziert Mana",
       "rohstoff": "Mana",
-      "ertrag_pro_stunde": { "Nebelsee": 5, "alle Gelände außer Sumpf": 1 },
+      "ertrag_pro_stunde": {
+        "Nebelsee": 5,
+        "alle Gelände außer Sumpf": 1
+      },
       "abweichung": "Nebelsee: 2005 = 8, Handbuch 2009 = 5; übriges Gelände (außer Sumpf): 2005 = 2, Handbuch 2009 = 1."
     },
     {
@@ -65,7 +83,10 @@
       "voraussetzung": "Baukunst",
       "wirkung": "produziert Nahrung",
       "rohstoff": "Nahrung",
-      "ertrag_pro_stunde": { "Grasland": 4, "Steppe": 2 },
+      "ertrag_pro_stunde": {
+        "Grasland": 4,
+        "Steppe": 2
+      },
       "abweichung": null
     },
     {
@@ -75,7 +96,10 @@
       "voraussetzung": "Baukunst",
       "wirkung": "produziert Gold",
       "rohstoff": "Gold",
-      "ertrag_pro_stunde": { "Berg": 3, "Hügel": 1.5 },
+      "ertrag_pro_stunde": {
+        "Berg": 3,
+        "Hügel": 1.5
+      },
       "abweichung": "Hügel: 2005 = 1, Handbuch 2009 = 1,5 (Berg in beiden Fassungen 3).",
       "anmerkung": "Schreibweise 2005: 'Goldmiene'."
     },
@@ -86,7 +110,10 @@
       "voraussetzung": "Baukunst",
       "wirkung": "produziert Wolle",
       "rohstoff": "Wolle",
-      "ertrag_pro_stunde": { "Grasland": 3, "Steppe": 1.5 },
+      "ertrag_pro_stunde": {
+        "Grasland": 3,
+        "Steppe": 1.5
+      },
       "abweichung": "Grasland: 2005 = 2, Handbuch 2009 = 3; Steppe: 2005 = 1, Handbuch 2009 = 1,5.",
       "anmerkung": "Schreibweise 2005: 'Schafzucht'."
     },
@@ -97,7 +124,10 @@
       "voraussetzung": "Baukunst",
       "wirkung": "produziert Leder",
       "rohstoff": "Leder",
-      "ertrag_pro_stunde": { "Grasland": 3, "Steppe": 1.5 },
+      "ertrag_pro_stunde": {
+        "Grasland": 3,
+        "Steppe": 1.5
+      },
       "abweichung": "Grasland: 2005 = 2, Handbuch 2009 = 3; Steppe: 2005 = 1, Handbuch 2009 = 1,5.",
       "anmerkung": "Die 2009er Tabelle nennt wörtlich 'Grasland (3 Nahrung, 3 Leder), Steppe (1,5 Nahrung, 1,5 Leder)'. Ob ein zweiter Ertrag (Nahrung) gemeint ist, ist nicht eindeutig; als Leder-Ertrag 3 / 1,5 übernommen."
     },
@@ -108,7 +138,10 @@
       "voraussetzung": "Baukunst",
       "wirkung": "produziert Pferde",
       "rohstoff": "Pferde",
-      "ertrag_pro_stunde": { "Grasland": 3, "Steppe": 1.5 },
+      "ertrag_pro_stunde": {
+        "Grasland": 3,
+        "Steppe": 1.5
+      },
       "abweichung": "Grasland: 2005 = 2, Handbuch 2009 = 3; Steppe: 2005 = 1, Handbuch 2009 = 1,5."
     },
     {
@@ -117,8 +150,20 @@
       "kategorie": "Produktion",
       "voraussetzung": "keine (ohne Forschung baubar)",
       "wirkung": "produziert Nahrung und Leder aus der Jagd",
-      "rohstoff": ["Nahrung", "Leder"],
-      "ertrag_pro_stunde": { "Wald": { "Nahrung": 2, "Leder": 2 }, "Steppe": { "Nahrung": 1, "Leder": 1 } },
+      "rohstoff": [
+        "Nahrung",
+        "Leder"
+      ],
+      "ertrag_pro_stunde": {
+        "Wald": {
+          "Nahrung": 2,
+          "Leder": 2
+        },
+        "Steppe": {
+          "Nahrung": 1,
+          "Leder": 1
+        }
+      },
       "abweichung": "2005: nur Wald (1 Nahrung, 1 Leder), kein Steppe-Ertrag. Handbuch 2009: Wald (2 Nahrung, 2 Leder) und Steppe (1 Nahrung, 1 Leder).",
       "anmerkung": "Laut 2005er Fassung jagt der Jäger ausschließlich im Wald."
     },
@@ -129,7 +174,15 @@
       "voraussetzung": "Baukunst",
       "wirkung": "stellt Waffen und Rüstungen her (Waren der Schmiede, u. a. Messer, Dolch, Kurzschwert, Schwert, Zweihänder, Kettenhemd, Plattenrüstung, Magischer Paladinharnisch; Voraussetzungen je Ware über Waffentechnik/Rüstungsbau/Magiekunde)",
       "mehrfach_moeglich": true,
-      "fertigt_parallel": true
+      "fertigt_parallel": true,
+      "nur_auf": [
+        "grasland",
+        "steppe",
+        "huegel",
+        "berg"
+      ],
+      "nur_auf_grund": "verarbeitet Erz — die Minen liegen auf Huegel und Berg",
+      "nur_auf_belegt": false
     },
     {
       "id": "bogenbauer",
@@ -139,7 +192,15 @@
       "wirkung": "stellt Fernwaffen her (Kurzbogen, Bogen, Langbogen, Armbrust; Voraussetzungen über Waffentechnik)",
       "mehrfach_moeglich": true,
       "fertigt_parallel": true,
-      "anmerkung": "Handbuch 2009 (Seite 13) nennt das Gebäude 'Bogenbauer'; die Auswertung ORIGINAL_Einheiten_Waren_Rohstoffe.md (Abschnitt 3) führt es als 'Bogner'."
+      "anmerkung": "Handbuch 2009 (Seite 13) nennt das Gebäude 'Bogenbauer'; die Auswertung ORIGINAL_Einheiten_Waren_Rohstoffe.md (Abschnitt 3) führt es als 'Bogner'.",
+      "nur_auf": [
+        "grasland",
+        "steppe",
+        "wald",
+        "huegel"
+      ],
+      "nur_auf_grund": "braucht Holz für Bögen (Wald) und Platz zum Arbeiten",
+      "nur_auf_belegt": false
     },
     {
       "id": "naehstube",
@@ -148,7 +209,14 @@
       "voraussetzung": "Baukunst",
       "wirkung": "stellt Stoff- und Fellkleidung her (Wollumhang, Lederrüstung, Diebesumhang, Fellumhang, Fellrüstung; Voraussetzungen über Nähkunst/Rüstungsbau)",
       "mehrfach_moeglich": true,
-      "fertigt_parallel": true
+      "fertigt_parallel": true,
+      "nur_auf": [
+        "grasland",
+        "steppe",
+        "wald"
+      ],
+      "nur_auf_grund": "verarbeitet Wolle und Leder von der Weide sowie Felle aus dem Wald",
+      "nur_auf_belegt": false
     },
     {
       "id": "kriegerakademie",
@@ -157,7 +225,14 @@
       "voraussetzung": "Baukunst",
       "wirkung": "bildet Armee-Einheiten (Kampfeinheiten) aus: Nahkampf (Bürgerwehr, Kämpfer, Krieger, Ritter, Paladin) und Fernkampf (Kurzbogenschütze, Bogenschütze, Langbogenschütze, Armbrustschütze)",
       "max_je_siedlung": 1,
-      "stufen": "wird stufenweise ausgebaut; je höher die Stufe, desto schneller werden Einheiten ausgebildet"
+      "stufen": "wird stufenweise ausgebaut; je höher die Stufe, desto schneller werden Einheiten ausgebildet",
+      "nur_auf": [
+        "grasland",
+        "steppe",
+        "huegel"
+      ],
+      "nur_auf_grund": "Übungsplatz braucht freie Fläche — kein Wald, kein Fels, kein Wasser",
+      "nur_auf_belegt": false
     },
     {
       "id": "diebesgilde",
@@ -166,7 +241,14 @@
       "voraussetzung": "Baukunst",
       "wirkung": "bildet Kundschafter aus (Streuner, Gauner, Dieb, Meisterdieb, Kundschafter, Waldläufer)",
       "max_je_siedlung": 1,
-      "stufen": "wird stufenweise ausgebaut; je höher die Stufe, desto schneller werden Einheiten ausgebildet"
+      "stufen": "wird stufenweise ausgebaut; je höher die Stufe, desto schneller werden Einheiten ausgebildet",
+      "nur_auf": [
+        "grasland",
+        "steppe",
+        "wald"
+      ],
+      "nur_auf_grund": "versteckt sich in der Siedlung oder im Wald",
+      "nur_auf_belegt": false
     },
     {
       "id": "stellmacher",
@@ -176,7 +258,15 @@
       "wirkung": "baut Karren (Handkarren, Einspänner, Zweispänner, Handelskarawane, Große Handelskarawane, Siedlerkarren) und Belagerungswaffen (Belagerungsturm, Ramme, Großer Belagerungsturm, Große Ramme, Balliste, Katapult, Großes Katapult); Voraussetzungen über Wagenbau",
       "max_je_siedlung": 1,
       "stufen": "wird stufenweise ausgebaut; je höher die Stufe, desto schneller werden Einheiten gebaut",
-      "anmerkung": "Originalschreibweise 'Stellmacher' (nicht 'Stallmacher'), im Handbuch 4x belegt."
+      "anmerkung": "Originalschreibweise 'Stellmacher' (nicht 'Stallmacher'), im Handbuch 4x belegt.",
+      "nur_auf": [
+        "grasland",
+        "steppe",
+        "wald",
+        "huegel"
+      ],
+      "nur_auf_grund": "arbeitet Holz (Karren und Belagerungswaffen)",
+      "nur_auf_belegt": false
     },
     {
       "id": "verteidigungswall",
@@ -186,18 +276,77 @@
       "wirkung": "Schutz vor Angriffen. In der Vorrunde einer Schlacht wird geprüft, ob die Schlagkraft (SK) der angreifenden Fußtruppen den Schwellenwert des Walls erreicht; ab der verstärkten Palisade ist zusätzlich Schlagkraft von Belagerungswaffen nötig. Reicht sie nicht, zieht der Angreifer ohne Beute ab (Kampf = unentschieden). Beschädigte Mauern verlangen prozentual weniger Schlagkraft. Schaden je Belagerungswaffe = Zufallswert des Waffenschadens minus Ausbaustufe der Mauer, dann vom Zustand der Mauer abgezogen.",
       "kriegspunkte": "Ausbaustufe hoch drei (Beispiel: Palisade Stufe 4 = 64 Kriegspunkte)",
       "stufen": [
-        { "stufe": 1, "name": "Erdwall", "schwellenwert_fussttruppen": 10, "schwellenwert_belagerungswaffen": null },
-        { "stufe": 2, "name": "Steinwall", "schwellenwert_fussttruppen": 40, "schwellenwert_belagerungswaffen": null },
-        { "stufe": 3, "name": "Kleine Palisade", "schwellenwert_fussttruppen": 90, "schwellenwert_belagerungswaffen": null },
-        { "stufe": 4, "name": "Palisade", "schwellenwert_fussttruppen": 160, "schwellenwert_belagerungswaffen": null },
-        { "stufe": 5, "name": "Verstärkte Palisade", "schwellenwert_fussttruppen": 250, "schwellenwert_belagerungswaffen": 500 },
-        { "stufe": 6, "name": "Mauer", "schwellenwert_fussttruppen": 360, "schwellenwert_belagerungswaffen": 600 },
-        { "stufe": 7, "name": "Verstärkte Mauer", "schwellenwert_fussttruppen": 490, "schwellenwert_belagerungswaffen": 700 },
-        { "stufe": 8, "name": "Festungsmauer", "schwellenwert_fussttruppen": 640, "schwellenwert_belagerungswaffen": 800 },
-        { "stufe": 9, "name": "Verstärkte Festungsmauer", "schwellenwert_fussttruppen": 810, "schwellenwert_belagerungswaffen": 900 },
-        { "stufe": 10, "name": "Bollwerk", "schwellenwert_fussttruppen": 1000, "schwellenwert_belagerungswaffen": 1000 }
+        {
+          "stufe": 1,
+          "name": "Erdwall",
+          "schwellenwert_fussttruppen": 10,
+          "schwellenwert_belagerungswaffen": null
+        },
+        {
+          "stufe": 2,
+          "name": "Steinwall",
+          "schwellenwert_fussttruppen": 40,
+          "schwellenwert_belagerungswaffen": null
+        },
+        {
+          "stufe": 3,
+          "name": "Kleine Palisade",
+          "schwellenwert_fussttruppen": 90,
+          "schwellenwert_belagerungswaffen": null
+        },
+        {
+          "stufe": 4,
+          "name": "Palisade",
+          "schwellenwert_fussttruppen": 160,
+          "schwellenwert_belagerungswaffen": null
+        },
+        {
+          "stufe": 5,
+          "name": "Verstärkte Palisade",
+          "schwellenwert_fussttruppen": 250,
+          "schwellenwert_belagerungswaffen": 500
+        },
+        {
+          "stufe": 6,
+          "name": "Mauer",
+          "schwellenwert_fussttruppen": 360,
+          "schwellenwert_belagerungswaffen": 600
+        },
+        {
+          "stufe": 7,
+          "name": "Verstärkte Mauer",
+          "schwellenwert_fussttruppen": 490,
+          "schwellenwert_belagerungswaffen": 700
+        },
+        {
+          "stufe": 8,
+          "name": "Festungsmauer",
+          "schwellenwert_fussttruppen": 640,
+          "schwellenwert_belagerungswaffen": 800
+        },
+        {
+          "stufe": 9,
+          "name": "Verstärkte Festungsmauer",
+          "schwellenwert_fussttruppen": 810,
+          "schwellenwert_belagerungswaffen": 900
+        },
+        {
+          "stufe": 10,
+          "name": "Bollwerk",
+          "schwellenwert_fussttruppen": 1000,
+          "schwellenwert_belagerungswaffen": 1000
+        }
       ],
-      "anmerkung": "Schwellenwert Belagerungswaffen ist für die Stufen 1-4 nicht nötig ('-' in der Quelle) und daher null."
+      "anmerkung": "Schwellenwert Belagerungswaffen ist für die Stufen 1-4 nicht nötig ('-' in der Quelle) und daher null.",
+      "nur_auf": [
+        "grasland",
+        "steppe",
+        "wald",
+        "huegel",
+        "berg"
+      ],
+      "nur_auf_grund": "ein Wall steht auf Land — nicht im Nebelsee",
+      "nur_auf_belegt": false
     },
     {
       "id": "bibliothek",
@@ -205,7 +354,11 @@
       "kategorie": "Sonstiges",
       "voraussetzung": "keine (ohne Forschung baubar)",
       "wirkung": "ermöglicht Forschung; Ausbau in Stufen erweitert die Forschungsmöglichkeiten; mit jeder Stufe teurer. Nur auf Grasland, Steppe oder Nebelsee errichtbar.",
-      "nur_auf": ["grasland", "steppe", "nebelsee"],
+      "nur_auf": [
+        "grasland",
+        "steppe",
+        "nebelsee"
+      ],
       "_belegt_nur_auf": "Standortregel wörtlich belegt: ORIGINAL_Einheiten_Waren_Rohstoffe.md Abschnitt 4 — 'Bibliothek nur auf Grasland, Steppe oder Nebelsee, eine je Siedlung.'",
       "max_je_siedlung": 1,
       "anmerkung": "Während der Studien ist der Forschungsbereich der Siedlung blockiert."
@@ -217,7 +370,15 @@
       "voraussetzung": "keine (ohne Forschung baubar)",
       "wirkung": "erhöht die Siedlergrenze um 5 Siedler je Haus",
       "max_je_siedlung": null,
-      "abweichung": null
+      "abweichung": null,
+      "nur_auf": [
+        "grasland",
+        "steppe",
+        "wald",
+        "huegel"
+      ],
+      "nur_auf_grund": "Wohnraum braucht Baugrund: kein Fels (Berg), kein Wasser/Nebel (Nebelsee)",
+      "nur_auf_belegt": false
     },
     {
       "id": "lager",
@@ -225,7 +386,21 @@
       "kategorie": "Sonstiges",
       "voraussetzung": "keine belegt",
       "wirkung": "gibt einen Überblick über alle in der Siedlung befindlichen Waren und Einheiten; der Warenbestand wird hier geprüft",
-      "anmerkung": "Das Handbuch 2009 (Seite 8/9) führt 'Lager' als Siedlungsmenüpunkt unter 'Lager'; ob es ein eigenständiges Bauwerk ist, ist nicht ausdrücklich belegt."
+      "anmerkung": "Das Handbuch 2009 (Seite 8/9) führt 'Lager' als Siedlungsmenüpunkt unter 'Lager'; ob es ein eigenständiges Bauwerk ist, ist nicht ausdrücklich belegt.",
+      "nur_auf": [
+        "grasland",
+        "steppe",
+        "wald",
+        "huegel"
+      ],
+      "nur_auf_grund": "Lager braucht trockenen Boden, wie das Haus",
+      "nur_auf_belegt": false
     }
-  ]
+  ],
+  "_gelaenderegeln_vorschlag": {
+    "_vorgabe": "Daniel, 05.10.2026: 'ich wollte das ja intelligent angewendet auf alle gebäude haben … ein gebäude hat im sumpf nichts verloren als regel … zum beispiel.'",
+    "_belegt": "Sumpf unbebaubar für ALLE (Handbuch S. 11) · Bibliothek nur Grasland/Steppe/Nebelsee (S. 11) · Tempel 'Nebelsee 5, alles außer Sumpf 1' · Erträge der Produktionsgebäude je Geländeart (daraus folgen Holzfäller, Steinmetz, Erz-/Goldmine, die vier Zuchten und der Jäger schon vorher).",
+    "_vorschlag": "Haus, Lager, Schmiede, Bogenbauer, Nähstube, Kriegerakademie, Diebesgilde, Stellmacher, Verteidigungswall — das Handbuch nennt für sie keine Geländeregel. Folge: Nebelsee ist nur noch für Bibliothek und Tempel bebaubar.",
+    "_aenderbar": "Diese Regeln stehen nur in DIESER Datei. Wer eine Liste ändert oder löscht (null), ändert das Spiel sofort — wie bei allen Wirkungen hier."
+  }
 }

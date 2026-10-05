@@ -40,7 +40,7 @@ weiter. Eine neue Sitzung braucht ein **neues** Ziel mit dem Wortlaut oben.
 
 ---
 
-## 0c. Stand (05.10.2026, 12:40 — mit `date`, `git log` und Sammellauf geprüft)
+## 0c. Stand (05.10.2026, 13:30 — mit `date`, `git log` und Sammellauf geprüft)
 
 **Diese Sitzung läuft und hat ein aktives Ziel** (`20261005_104846_864c4b`, im Register gesetzt,
 `--pruefen` = 0, kein fremdes aktives Ziel). Sie arbeitet an Daniels Erweiterung vom 05.10.:
@@ -49,10 +49,11 @@ zu einem Erlebnis zu machen").
 
 | Was | Stand (gemessen) |
 |---|---|
-| Prüfstand | **2559 bestanden, 0 Fehler, 21 Befunde über 40 Dateien** (Sammellauf 12:22) |
+| Prüfstand | **2565 bestanden, 0 Fehler, 21 Befunde über 40 Dateien** (Sammellauf 13:2x, sauberer Lauf ohne offene Spielprozesse) |
 | **Ausrüstungskette (erledigt, Schritt 26)** | `_train_unit` verlangt jetzt **beides** aus `data/units.json`: die **Forschungsstufe** (Kämpfer 1 · Krieger 3 · Ritter 7 · Paladin 10 · Gauner Heimlichkeit 1 · Karren/Belagerung Wagenbau 1–10) **und die Ausrüstung** (14 der 28 Einheiten brauchen Waren — Krieger: Schwert + Kettenhemd · Paladin: Zweihänder + Schwert + Harnisch). Die Waren werden beim Auftrag verbraucht; der Knopf ist gesperrt und nennt das Fehlende mit Soll/Ist. Früher war **keine** dieser Bedingungen wirksam |
 | **Forschung (erledigt, Schritt 26)** | `_start_research` erzwingt die Voraussetzungen aus `data/research.json`; die Ansicht zeigt je Forschung „schaltet frei — Waren/Einheiten" bzw. „gesperrt: Grund". Quelle: `src/forschungspfad.py` (123 Prüfungen) |
 | **Hausausbau (erledigt, Schritt 25)** | Haus bis **Stufe 4**, je Stufe **+5 Siedler** (Stufe 1 = belegtes Haus, VORSCHLAG für 2–4). `data/gebaeude_wirkung.json` → „haus_stufen" |
+| **Geländeregeln (erledigt, Schritt 27)** | Jedes der 20 Gebäude hat jetzt eine Eignungsregel in `data/buildings.json` (`nur_auf`). Belegt: Sumpf für alle gesperrt · Bibliothek Grasland/Steppe/Nebelsee · Tempel überall außer Sumpf · Produktionsgebäude aus der Handbuch-Ertragstabelle (Holzfäller Steppe/Wald · Steinmetz, Erz- und Goldmine Hügel/Berg · vier Zuchten Grasland/Steppe · Jäger Steppe/Wald). **VORSCHLAG für die neun übrigen** (Haus, Lager, Schmiede, Bogenbauer, Nähstube, Kriegerakademie, Diebesgilde, Stellmacher, Wall) — in der Datei als Vorschlag gekennzeichnet, von Daniel änderbar. **Folge: im Nebelsee stehen nur noch Bibliothek und Tempel.** Geprüft in `tests/test_gelaende.py` (86/0/0) |
 | **Feinere Karten (Schritt 24/25)** | eingehängt: `src/karten_optik.py` (Siedlungskarte) und `src/welt_optik.py` (Weltkarte). **Gebaut, NOCH NICHT eingehängt:** `src/karten_optik_fein.py` (80 Prüfungen) und `src/welt_optik_fein.py` (128) — die Umsetzung des zweiten astra-Gutachtens |
 | Gutachten dieser Sitzung | `docs/audits/ux_astra_karten_feinheit_2026-10-05.txt` (astra über zwei echte Aufnahmen in `docs/audits/aufnahmen_2026-10-05/`) · `docs/audits/entwurf_ausruestung_forschung_haus_2026-10-05.txt` (deepseek-v4-pro: Kette, Forschungstabelle, Hausstufen, 30-Minuten-Einstieg, Zeitfaktor 1:20 als VORSCHLAG) |
 | `.exe` | **05.10. 12:38 gebaut** (Dateizeitstempel `12:38:43`, geprüft mit `stat`): **14.524.225 Byte**, SHA256 `63b09fbf1914e7cbe414c6f89fa0086d4b884ecd5f3babd1c727f8230021d0d2`, aus `C:\Users\saras` startgeprüft: **ein** Fenster „Nebelseetal Remake" mit stehendem Passworttor. Gebaut **nach** dem letzten Quellcode-Commit `f077e75` (12:38:13) — die `.exe` entspricht also dem Stand von `src/`. `build/`, `dist/`, `.spec` und `__pycache__` sind aufgeräumt, genau eine EXE im Projektordner. **Das ist die Fassung für Daniels Spielbericht.** *Korrektur:* in der Übergabe stand zuerst „12:52" — das war geschätzt; der echte Zeitstempel ist 12:38 |
@@ -60,7 +61,10 @@ zu einem Erlebnis zu machen").
 
 ### Der EINE nächste Schritt
 
-1. **Die zwei Feinkarten-Module einhängen** (`karten_optik_fein`, `welt_optik_fein`). astra hat die
+1. **Die `.exe` neu bauen** (`tools/build_exe.py`) und aus einem anderen Ordner startprüfen — die
+   neuen Geländeregeln stehen in `data/buildings.json` und sind **erst nach dem Neubau im Spiel**;
+   danach `build`, `dist`, `*.spec`, `__pycache__` aufräumen (genau eine EXE im Projektordner).
+2. **Die zwei Feinkarten-Module einhängen** (`karten_optik_fein`, `welt_optik_fein`). astra hat die
    Zahlen geliefert: Baukörper 44×46 px, Dach 38×16, Sockel 36×5, Tür 6×10, Fenster 4×5 (#875241/
    #59382F/#C0AD86/#8F795C) · Uferband 3–5 px #999071 nur an echten Land-Wasser-Grenzen · Weg 8 px
    #75674F mit 4 px Innenlinie #A28E69 · Auswahl 5 px #172128 + 2 px #E4C77D + vier 8-px-Eckwinkel ·
@@ -73,20 +77,28 @@ zu einem Erlebnis zu machen").
    (c) astra spricht vom **8×7-Raster**, im Projekt gilt `spalten 8 × zeilen 5 = 40 Felder`
    (Frage 12 an Daniel) — die Module nehmen `spalten`/`zeilen` als Parameter, die Zahlen also vom
    Aufrufer übergeben, nie im Modul festlegen.
-2. **Aufgabenkarte für den Einstieg** (Entwurf Abschnitt D): Holzfäller/Steinmetz → Bibliothek →
+3. **Aufgabenkarte für den Einstieg** (Entwurf Abschnitt D): Holzfäller/Steinmetz → Bibliothek →
    Baukunst → Farm/Haus → Schmiedekunst → Schmiede/Nähstube → erste Ware → erste Einheit.
-3. **Offene Entscheidungen für Daniel:** Zeitfaktor (1 Spielstunde = 20 Sekunden statt 1 Stunde —
-   sonst ist Forschung im Sitzen nicht erlebbar) · **Sieg-/Niederlagebedingung** (heute unerreichbar!)
-   · Kampfmagie als einziger größerer Vorschlag · Ausbaustufen des Hauses bestätigen.
-4. **`.exe` neu bauen** (`tools/build_exe.py`) und aus einem anderen Ordner startprüfen; danach
-   `build`, `dist`, `*.spec`, `__pycache__` aufräumen (genau eine EXE im Projektordner).
+4. **Offene Entscheidungen für Daniel:** **die neun Geländeregeln bestätigen oder ändern** (eine
+   Zeile je Gebäude in `data/buildings.json`) · Zeitfaktor (1 Spielstunde = 20 Sekunden statt
+   1 Stunde — sonst ist Forschung im Sitzen nicht erlebbar) · **Sieg-/Niederlagebedingung** (heute
+   unerreichbar!) · Kampfmagie als einziger größerer Vorschlag · Ausbaustufen des Hauses
+   bestätigen (Stufe 4, je +5 Siedler) · Raster 8×7 oder 8×5.
 
 **Lehren dieser Reihe:** (a) ein grüner Prüfstand beweist keine Spielbarkeit — die alte Prüfung fuhr
 Methoden statt Schaltflächen; (b) **Zeiten nie schätzen**, immer `date`; (c) eine Zeichenfläche, die
 im Fenster mitwächst, macht ihre Scrollbalken wirkungslos (feste Größe!); (d) **kein Kind und kein
 Sammellauf laufen lassen, während `main.py` umgebaut wird** — der Lauf misst sonst einen
 Zwischenstand; (e) beim Sammellauf **keine Spielprozesse** offen lassen (`test_tor` meldet sonst
-einen zweiten Start als Fehler).
+einen zweiten Start als Fehler; am 05.10. schlug `test_baseline` als erste Datei zweimal mit leerer
+Ausgabe fehl, während das Spiel offen war — allein und im sauberen Lauf 40/0/0); (f) ändert man eine
+**Datendatei** (`data/*.json`), muss die `.exe` neu gebaut werden, sonst spielt Daniel den alten
+Stand.
+
+**Auftrag vom 05.10.2026 (wörtlich, zur Nachvollziehbarkeit):** „Arbeite danach den EINEN nächsten
+Schritt aus Abschnitt 0c: die Weltkarte nach der astra-Vorgabe nachziehen (Zeichenfläche, Zoomstufen,
+Scrollbalken, Detailpanel, Übersichtskarte)." — **erledigt in Schritt 24–26** (Weltkarte) und
+**Schritt 27** (Geländeregeln). Der aktuelle nächste Schritt steht oben in dieser Liste.
 ## 0b. Stand beim Sitzungswechsel (04.10.2026, 23:45 — mit `date` geprüft)
 
 **Nichts ist in Arbeit. Kein Prozess läuft, kein Kind arbeitet. Arbeitsverzeichnis sauber**

@@ -61,6 +61,14 @@ def eingefroren(z):
     return json.dumps(z, sort_keys=True, ensure_ascii=False)
 
 
+# Gelaenderegeln (Vorgabe Daniel 05.10.2026, data/buildings.json): jedes Gebaeude hat jetzt eine
+# Eignungsregel. Die Pruefungen waehlen ihre Felder deshalb nach der Regel, nicht beliebig.
+_SCHMIEDE_FELDER = {"grasland", "steppe", "huegel", "berg"}
+_AKADEMIE_FELDER = {"grasland", "steppe", "huegel"}
+_GILDE_FELDER = {"grasland", "steppe", "wald"}
+_WALL_FELDER = {"grasland", "steppe", "wald", "huegel", "berg"}
+
+
 def leeres_feld(z):
     """Ein Feld OHNE Gebaeude (fuer die Abriss-Fehlerpruefung)."""
     bauten = z["siedlungen"][0]["bauten"]
@@ -177,9 +185,9 @@ check("abgelehnte Bibliothek aendert nichts", eingefroren(zmax) == _vor)
 
 # zwei Werkstaetten derselben Art sind erlaubt (Warteschlange parallel)
 zw = S.neuer_zustand()
-_p1, _p2 = feld(zw), None
+_p1, _p2 = feld(zw, _SCHMIEDE_FELDER), None
 S.bauen(zw, 0, "schmiede", _p1)
-_p2 = feld(zw)
+_p2 = feld(zw, _SCHMIEDE_FELDER)
 ok, meldung = S.bauen(zw, 0, "schmiede", _p2)
 check("eine zweite Schmiede ist erlaubt (max_je_siedlung leer)", ok is True, meldung)
 _bestand = GW.bestand(zw["siedlungen"]).get("schmiede")
@@ -207,7 +215,7 @@ check("abgelehnter Ausbau aendert nichts", eingefroren(za) == _vor)
 
 # Wall: 16 Holz + 16 Stein Grundpreis, Stufe 2 kostet das Doppelte
 zwall = S.neuer_zustand()
-_wf = feld(zwall)
+_wf = feld(zwall, _WALL_FELDER)
 ok, meldung = S.bauen(zwall, 0, "verteidigungswall", _wf)
 check("Verteidigungswall wird gebaut", ok is True, meldung)
 _h1, _s1 = zwall["ressourcen"]["holz"], zwall["ressourcen"]["stein"]
@@ -232,7 +240,7 @@ check("abgelehnter Ausbau ueber Hoechststufe aendert nichts", eingefroren(zwall)
 
 # Ausbau ohne Rohstoffe
 zarm = S.neuer_zustand()
-_af = feld(zarm)
+_af = feld(zarm, _WALL_FELDER)
 S.bauen(zarm, 0, "verteidigungswall", _af)
 zarm["ressourcen"]["holz"] = 0
 zarm["ressourcen"]["stein"] = 0
@@ -340,7 +348,7 @@ ok, meldung = S.ausbilden(zt, "Bürgerwehr")
 check("Ausbildung ohne Staette wird abgelehnt", ok is False and "nicht gebaut" in meldung, meldung)
 check("abgelehnte Ausbildung aendert nichts", eingefroren(zt) == _vor)
 
-_ka = feld(zt)
+_ka = feld(zt, _AKADEMIE_FELDER)
 ok, meldung = S.bauen(zt, 0, "kriegerakademie", _ka)
 check("Kriegerakademie gebaut", ok is True, meldung)
 _vor = eingefroren(zt)
@@ -364,7 +372,7 @@ check("die Ausbildung steht in den Nachrichten",
 
 # fehlende Ware im Lager
 zdg = S.neuer_zustand()
-_dg = feld(zdg)
+_dg = feld(zdg, _GILDE_FELDER)
 S.bauen(zdg, 0, "diebesgilde", _dg)
 zdg["ressourcen"]["nahrung"] = 500
 zdg["ressourcen"]["gold"] = 500
@@ -393,7 +401,7 @@ check("abgelehntes Fertigen aendert nichts", eingefroren(zws) == _vor)
 check("Werkstatt-Zuordnung: Schwert -> Schmiede", W.werkstatt_fuer("Schwert") == "schmiede")
 check("die belegte Schwerdauer ist 1200 s (20 min)", W.dauer_sekunden("Schwert") == 1200.0)
 
-_ws = feld(zws)
+_ws = feld(zws, _SCHMIEDE_FELDER)
 S.bauen(zws, 0, "schmiede", _ws)
 ok, meldung = S.ware_fertigen(zws, 0, "Schwert", 1, 0.0)
 check("Schwert wird in die Warteschlange gestellt", ok is True, meldung)
@@ -407,8 +415,8 @@ check("das fertige Schwert steht in den Nachrichten",
 
 # Handbuchbeispiel: 10 Schwerter mit zwei Schmieden = 100 min statt 200 min
 z2 = S.neuer_zustand()
-S.bauen(z2, 0, "schmiede", feld(z2))
-S.bauen(z2, 0, "schmiede", feld(z2))
+S.bauen(z2, 0, "schmiede", feld(z2, _SCHMIEDE_FELDER))
+S.bauen(z2, 0, "schmiede", feld(z2, _SCHMIEDE_FELDER))
 ok, meldung = S.ware_fertigen(z2, 0, "Schwert", 10, 0.0)
 check("10 Schwerter bei 2 Schmieden werden eingereiht", ok is True, meldung)
 S.tick(z2, 5999, 5999)
@@ -497,7 +505,7 @@ check("Kriegspunkte enthalten die Einheitenwerte (2 x 1 = 2)",
 
 # Wallstufe hoch drei zaehlt mit
 zwall2 = S.neuer_zustand()
-_wf = feld(zwall2)
+_wf = feld(zwall2, _WALL_FELDER)
 S.bauen(zwall2, 0, "verteidigungswall", _wf)
 S.ausbauen(zwall2, 0, _wf)
 _pw = S.punkte(zwall2, 0.0)

@@ -90,8 +90,16 @@ check("und der Steinmetz NICHT (liefert auf Wald nichts)",
 check("die Kosten stehen an der Schaltfläche",
       any("Holz" in n and "Stein" in n for n in namen),
       str([n for n in namen if "Holzfäller" in n]))
-check("auch die Ausbildungsstätten werden angeboten (kein Geländebezug)",
-      any("Kriegerakademie" in n for n in namen), str([n for n in namen if "akademie" in n.lower()]))
+check("die Ausbildungsstätten haben einen Geländebezug (Vorgabe Daniel 05.10.2026)",
+      not any("Kriegerakademie" in n for n in namen),
+      str([n for n in namen if "akademie" in n.lower()]))
+# Auf einem Graslandfeld muss sie dagegen angeboten werden — die Regel gilt je Gelände.
+_grasfeld = raster.index("grasland")
+app._karten_feld_waehlen(_grasfeld)
+_namen_gras = [b.cget("text") for b in sammle_knoepfe(app.content)]
+check("auf Grasland wird die Kriegerakademie angeboten",
+      any("Kriegerakademie" in n for n in _namen_gras),
+      str([n for n in _namen_gras if "akademie" in n.lower()]))
 
 abschnitt("Siedlungskarte im Fenster — Sumpf ist gesperrt")
 sumpf = raster.index("sumpf")
