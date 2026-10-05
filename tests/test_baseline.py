@@ -58,10 +58,16 @@ if st:
 
     # Die Rohstoffe kommen seit W4b-4 aus den BEBauten FELDERN der Siedlungskarten.
     # Ohne Bebauung darf nichts wachsen: kein Gebaeude erzeugt mehr von sich aus Rohstoffe.
+    # W5: fuer DIESE Messung sind die Bots stillgelegt — ein Bot-Angriff nimmt Beute und waere
+    # eine Verwechslung von Ertrag und Pluenderung; das Angriffsverhalten selbst prueft
+    # `nebel_w5bot_probe.py`.
+    _bots_merk = list(st.bots)
+    st.bots = []
     vorher = st.resources["holz"].amount
     st.tick(600)
     check("ohne bebaute Karte waechst kein Rohstoff", st.resources["holz"].amount == vorher,
           f"{vorher:.1f} -> {st.resources['holz'].amount:.1f}")
+    st.bots = _bots_merk
     check("kein Gebaeude erzeugt von sich aus Rohstoffe",
           all(not getattr(b, "production", {}) for b in st.buildings.values()),
           str({k: b.production for k, b in st.buildings.items() if b.production}))
