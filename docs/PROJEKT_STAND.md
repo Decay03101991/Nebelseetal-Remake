@@ -70,24 +70,30 @@ gleich, Zeiger `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`).
 
 ### Der EINE nächste Schritt
 
-**✅ Erledigt 01:52 — `forschung` läuft jetzt mit Wartezeit** (Commit `378f623`). Beleg: eigene
-Nachprüfung `nebel_w4c_probe.py` **23 Proben**, Sammellauf **1799/0/15 über 27 Dateien**,
-Verdrahtungsprüfer **15 verdrahtet / 0 Treffer**.
+**Die Modul-Reihe aus `docs/UMSETZUNG_EINHAENGEN.md` (Abschnitt 5) ist durch** — `forschung` (W4c),
+`botkern` (W5) und `welt` (W4d) sind eingehängt, jede Einhängung mit eigener Nachprüfung. Belege:
+Verdrahtungsprüfer **17 verdrahtet / 0 nur importiert / 0 nicht eingebunden, Rückgabewert 0**
+(**kein Modul mehr offen**) · Sammellauf **1799/0/15 über 27 Dateien** · `.exe` vom 05.10. **02:08**
+gebaut, SHA256 `cfa0ed70460568ab57ee2176d31c4fe3f13fc7cf5d934367bde9679ef6c4df86`, aus einem anderen
+Ordner startgeprüft (Fenster „Nebelseetal Remake", Tor steht).
 
-**`botkern` vollständig einhängen (W5).** `src/botkern.py` ist fertig und geprüft (90 Prüfungen),
-aber bis heute **nur importiert**: es liefert nur die VORSCHLAG-Spannen für die Bot-Vorräte.
-Zu tun in `src/main.py`:
-1. **Erst § 1.8 in `docs/UMSETZUNG_EINHAENGEN.md` lesen** — er nennt die Stolperstelle: die
-   `BotPlayer`-Felder (`army`, `settlements`, `noob_protection`) haben **kein Gegenstück** im
-   `botkern`-dict. Adapter oder Migration **vor** dem Einbau entscheiden und im Protokoll begründen.
-2. `botkern.neue_bots` / `bots_tick` / `wirkung_anwenden` im Zeitlauf anbinden; `botkern.handelspreis`
-   erwartet den **Referenzpreis** (`referenzpreis_aus_beschaffung`; der Faktor ×1,2 steckt dort).
-3. Die erfundenen Bot-Armeen (20–120 Stück je Einheit) durch belegte Stärken ersetzen — erst damit
-   ist ein Bot-Angriff überhaupt gewinnbar.
-Erwartet: `tests/test_botkern.py` 90 grün, `tests/test_baseline.py` 40 grün,
-`tests/test_gui_fehler.py` 22 grün, Sammellauf ≥ 1799 grün, Verdrahtungsprüfer **0 Treffer** und
-`botkern` **verdrahtet** statt „nur importiert".
-**Danach:** `welt` → **EXE neu bauen** und aus einem anderen Ordner startprüfen.
+**Was für das Ziel noch fehlt — ehrlich, in dieser Reihenfolge:**
+
+1. **Durchspielen.** Die `.exe` ist **start- und tor-geprüft, aber niemand hat eine Partie
+   durchgespielt** (Sieg/Niederlage nennt das Handbuch nicht, siehe §7). Das ist der größte offene
+   Punkt: eine Partie mit Protokoll führen, jeden gefundenen Fehler als neue Protokollzeile und,
+   wo es sein muss, als eigenen Schritt.
+2. **Die drei belegten Lücken des Handbuchs** (jede ist im Spiel sichtbar vermerkt):
+   **Mana je Siedlung** statt eines gemeinsamen Vorrats (das Portal verlangt 5.000 Mana aus EINER
+   Siedlung), **Materialkosten der Werkstätten** (das Handbuch nennt kein Rezept), **Sieg-/
+   Niederlagebedingung**.
+3. **Feiner Rest:** der **Erlös beim Handeln** bleibt ein VORSCHLAG-Wert (das Handbuch nennt keinen
+   Warenpreis) · die **Kampfbericht-Meldung** nennt das Ziel bisher nur im Log · der **Kampfsimulator**
+   ist ein Trockenkurs (bucht nichts) — so gewollt, aber ungeprüft im Spiel.
+
+**Nach jedem dieser Punkte:** betroffenen Einzeltest + einmal Sammellauf, Protokollzeile,
+`python tools/protokoll_sichern.py --protokoll`, kleiner Commit, und am Ende der Reihe die `.exe`
+neu bauen und aus einem anderen Ordner startprüfen.
 
 ### Zielübergabe von Sitzung zu Sitzung (Vorgabe Daniel, 05.10.2026)
 
