@@ -29,7 +29,7 @@ EINE nächste Schritt) — die Chat-Historie brauchst du nicht. Dann: python too
 --pruefen und setze dein eigenes Ziel: als Wortlaut das UNVERÄNDERTE Gesamtziel aus Abschnitt 0
 (Schritt 29 ist erledigt — nichts davon wiederholen). Arbeite danach den EINEN nächsten Schritt aus
 Abschnitt 0c: (1) das Siedlungskarten-Raster auf 8 × 7 = 56 Felder umstellen, davon 40 bebaubar
-(Daniels Entscheidung 14:24; Vorarbeit in docs/PLAN_RASTER_8x7.md, vom Koordinator nachzurechnen);
+(Daniels Entscheidung 14:24; der Plan docs/PLAN_RASTER_8x7.md liegt vor und ist vom Koordinator nachgerechnet — nur der Sumpf ist unbebaubar, der Nebelsee nicht);
 (2) Daniel die Sieg-/Niederlage-Vorschläge aus docs/ENTSCHEIDUNGEN_FUER_DANIEL.md vorlegen und nach
 seiner Wahl bauen. Nach jedem Schritt: betroffener Einzeltest + einmal Sammellauf (keine
 Spielprozesse offen lassen), eine Protokollzeile (Zeit mit `date` holen, nie schätzen), python
