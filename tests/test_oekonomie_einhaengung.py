@@ -860,4 +860,58 @@ check("P24: der Knopf heisst Gruenden und bucht ueber die eine Stelle",
       "Gr\u00fcnden" in _quelle_kolonie and "_gruendung_ausfuehren(" in _quelle_kolonie)
 
 
+abschnitt("P25: Teil 6a - der Zeiger auf den AKTIVEN Ort")
+
+st15 = M.GameState()
+check("P25: ein frischer Zustand hat keinen Ort gewaehlt", st15.aktive_siedlung_id == "")
+check("P25: ohne Siedlung gibt es keine aktive Siedlung", st15.aktive_siedlung() is None)
+
+q15a = M.Settlement(name="Erste", map_id=st15.current_map, x=0, y=0,
+                    id=M.siedlung_kennung("spieler", st15.current_map, 0, 0))
+q15b = M.Settlement(name="Zweite", map_id=st15.current_map, x=1, y=0,
+                    id=M.siedlung_kennung("spieler", st15.current_map, 1, 0))
+st15.settlements = [q15a, q15b]
+check("P25: ohne Wahl faellt sie auf die ERSTE und berichtigt den Zeiger",
+      st15.aktive_siedlung() is q15a and st15.aktive_siedlung_id == q15a.id,
+      st15.aktive_siedlung_id)
+st15.aktive_siedlung_id = q15b.id
+check("P25: eine getroffene Wahl bleibt stehen", st15.aktive_siedlung() is q15b)
+st15.aktive_siedlung_id = "gibtsnicht"
+check("P25: ein veralteter Zeiger wird berichtigt statt abzustuerzen",
+      st15.aktive_siedlung() is q15a and st15.aktive_siedlung_id == q15a.id,
+      st15.aktive_siedlung_id)
+
+pfad_a = temp("aktiv_rundlauf.json")
+st15.aktive_siedlung_id = q15b.id
+check("P25: der Stand wird geschrieben", bool(st15.save(pfad_a)))
+st16 = M.GameState()
+check("P25: der Stand wird geladen", st16.load(pfad_a) is True)
+check("P25: der aktive Ort ueberlebt Speichern und Laden",
+      st16.aktive_siedlung_id == q15b.id, st16.aktive_siedlung_id)
+check("P25: und er zeigt auf DIESE der beiden Siedlungen",
+      st16.aktive_siedlung() is not None and st16.aktive_siedlung().id == q15b.id,
+      str(getattr(st16.aktive_siedlung(), "name", None)))
+
+import json as _json6  # noqa: E402
+_roh = _json6.load(open(pfad_a, encoding="utf-8"))
+_roh.pop("aktive_siedlung_id", None)
+_json6.dump(_roh, open(pfad_a, "w", encoding="utf-8"))
+st17 = M.GameState()
+check("P25: ein Spielstand OHNE das Feld laedt weiter (kein Absturz)", st17.load(pfad_a) is True)
+check("P25: ... und faellt dann auf die erste Siedlung",
+      st17.aktive_siedlung_id == "" and st17.settlements
+      and st17.aktive_siedlung().id == st17.settlements[0].id, st17.aktive_siedlung_id)
+
+_q6 = open(os.path.join(SRC, "main.py"), encoding="utf-8").read()
+check("P25: die Liste zeigt den aktiven Ort und laesst ihn setzen",
+      "Als aktiv setzen" in _q6 and "def _siedlung_aktiv_setzen" in _q6)
+check("P25: die geoeffnete Siedlungskarte wird zum aktiven Ort",
+      "self.state.aktive_siedlung_id = siedlung.id" in _q6)
+check("P25: die Lageransicht zeigt das Ortslager der aktiven Siedlung",
+      "Ortslager der aktiven Siedlung" in _q6 and "Waren vor Ort:" in _q6
+      and "Einheiten vor Ort:" in _q6)
+check("P25: die bisherigen Listen heissen jetzt ehrlich Reich/Uebergang",
+      "Waren (Reich" in _q6 and "Einheiten (Reich" in _q6)
+
+
 sys.exit(bericht())

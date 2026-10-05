@@ -626,6 +626,11 @@ class GameState:
         # ihn nachträglich bekommt, ohne dass sich etwas an seinen Siedlungen ändert.
         self.kartenvorrat: Dict[str, dict] = {}
         self.kartenvorrat_seed: str = ""
+        # Ökonomie-Paket, Schritt 9, Teil 6 (Entwurf: „aktive_siedlung_id"): auf WELCHEN Ort sich
+        # Lager, Kaserne und Forschung beziehen. Bis Teil 5 lasen diese Ansichten den Reichsbestand
+        # — ohne diesen Zeiger könnte keine Ware und keine Einheit je im richtigen Lager landen.
+        # Er wird mitgespeichert, zeigt er ins Leere, berichtigt ihn `aktive_siedlung()`.
+        self.aktive_siedlung_id: str = ""
         # Sieg/Niederlage (Vorgabe Daniel 05.10.2026, Option A): Sieg bei der Zielpunktzahl,
         # Niederlage ohne Siedlung UND ohne Einheit. Das Handbuch nennt keine Bedingung — die
         # Formeln und die Schwelle stehen in src/punkte.py (dort als VORSCHLAG gekennzeichnet).
@@ -845,6 +850,22 @@ class GameState:
         levels = {k: v.level for k, v in self.research.items()}
         roh = wirtschaft.ertrag_gesamt([siedlung], levels)
         return {k.lower(): float(v) for k, v in roh.items()}
+
+    def aktive_siedlung(self) -> Optional[Settlement]:
+        """Die Siedlung, auf die sich Lager, Kaserne und Forschung BEZIEHEN (Teil 6).
+
+        Der Zeiger `aktive_siedlung_id` ist UI-Zustand. Zeigt er ins Leere — frischer Stand, ein
+        Spielstand von vor Teil 6, eine inzwischen umbenannte oder fehlende Siedlung —, wird auf die
+        ERSTE Siedlung zurückgefallen **und der Zeiger dabei berichtigt**: sonst liefe die nächste
+        Buchung wieder ins falsche Lager. Ohne Siedlungen liefert die Hilfe `None`.
+        """
+        for s in self.settlements:
+            if s.id == self.aktive_siedlung_id:
+                return s
+        if self.settlements:
+            self.aktive_siedlung_id = self.settlements[0].id
+            return self.settlements[0]
+        return None
 
     def ortslager(self) -> Dict[str, float]:
         """Die Summe der LOKALEN Lager aller eigenen Siedlungen (ohne den Übergangsbestand)."""
@@ -1760,6 +1781,7 @@ class GameState:
             # bleibt vergeben) — ohne ihn könnte ein geladener Stand Karten doppelt vergeben.
             "kartenvorrat": self.kartenvorrat,
             "kartenvorrat_seed": self.kartenvorrat_seed,
+            "aktive_siedlung_id": self.aktive_siedlung_id,
             "noob_protection": self.noob_protection,
             "goods": self.goods,
             "map_tiles": [asdict(t) for t in self.map_tiles],
@@ -1848,6 +1870,9 @@ class GameState:
         self.kartenvorrat = {k: v for k, v in (data.get("kartenvorrat") or {}).items()
                              if isinstance(v, dict) and v.get("karte")}
         self.kartenvorrat_seed = str(data.get("kartenvorrat_seed") or "")
+        # Teil 6: der Zeiger auf den Ort. Ein ALTER Spielstand kennt ihn nicht — dann bleibt er
+        # leer und `aktive_siedlung()` faellt auf die erste Siedlung (und berichtigt ihn dort).
+        self.aktive_siedlung_id = str(data.get("aktive_siedlung_id") or "")
         if not self.kartenvorrat:
             self.kartenvorrat_anlegen()
         self.hatte_siedlung = bool(data.get("hatte_siedlung", bool(self.settlements)))
@@ -2265,10 +2290,23 @@ class NebelseetalApp:
         tk.Label(frame, text="Reich: " + reichsbestand_text(self.state),
                  fg="#DAA520", bg=self.skin["panel"], wraplength=780, justify=tk.LEFT,
                  font=("Arial", 9)).pack(anchor=tk.W, padx=5)
+        # Teil 6: WELCHER Ort gemeint ist, muss sichtbar sein. Die Hilfe berichtigt einen leeren
+        # oder veralteten Zeiger — hier einmal gelesen, damit die Liste und die Buchungen dieselbe
+        # Siedlung meinen (eine Quelle, keine zweite Wahrheit in der Anzeige).
+        _aktiv = self.state.aktive_siedlung()
+        _aktiv_id = _aktiv.id if _aktiv is not None else ""
         for i, s in enumerate(self.state.settlements):
             row = tk.Frame(self.content, bg=self.skin["panel"])
             row.pack(fill=tk.X, padx=10, pady=2)
             tk.Label(row, text=f"{s.name} ({s.map_id})", fg=self.skin["text"], bg=self.skin["panel"], width=20, anchor=tk.W).pack(side=tk.LEFT, padx=5)
+            if s.id == _aktiv_id:
+                tk.Label(row, text="aktiv", fg="#7FD1FF", bg=self.skin["panel"],
+                         font=("Arial", 9, "bold")).pack(side=tk.LEFT, padx=4)
+            else:
+                tk.Button(row, text="Als aktiv setzen",
+                          command=lambda ss=s: self._siedlung_aktiv_setzen(ss),
+                          bg=self.skin["button"], fg=self.skin["gold"],
+                          activebackground="#5D4037").pack(side=tk.LEFT, padx=4)
             tk.Label(row, text=f"Gebäude auf der Karte: {len(getattr(s, 'bauten', {}) or {})}",
                      fg="#DAA520", bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
             if getattr(s, "karte", None):
@@ -2717,8 +2755,20 @@ class NebelseetalApp:
 
     # ---------- Siedlungskarte (Handbuch S. 259/283/292/313) ----------
 
+    def _siedlung_aktiv_setzen(self, siedlung):
+        """Diesen Ort zum AKTIVEN machen (Teil 6). Lager, Kaserne und Forschung beziehen sich
+        danach auf ihn — die eine Quelle bleibt `state.aktive_siedlung()`."""
+        self.state.aktive_siedlung_id = getattr(siedlung, "id", "")
+        self._log(f"Aktive Siedlung: {siedlung.name} — Lager, Kaserne und Forschung beziehen sich "
+                  f"jetzt auf diesen Ort.")
+        self._render_view()
+
     def _oeffne_siedlungskarte(self, siedlung):
         self.karten_siedlung = siedlung
+        # Teil 6: wer eine Siedlungskarte öffnet, meint DIESEN Ort — Lager, Kaserne und Forschung
+        # beziehen sich von jetzt an darauf (eine Quelle: `state.aktive_siedlung()`).
+        if getattr(siedlung, "id", ""):
+            self.state.aktive_siedlung_id = siedlung.id
         self.karten_feld = None
         self._switch_view("Siedlungskarte")
 
@@ -3287,7 +3337,31 @@ class NebelseetalApp:
         print("[DEBUG] _render_storage called")
         tk.Label(self.content, text="Lager", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
         tk.Label(self.content, text="Waren und Einheiten in dieser Siedlung.", fg=self.skin["text"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
-        tk.Label(self.content, text="Waren (die 17 Originalwaren aus data/items.json):", fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 0))
+        # Teil 6: das LOKALE Lager des AKTIVEN Ortes — die Felder, die seit Teil 3a führen
+        # (`Settlement.vorraete/waren/einheiten/bevoelkerung`). Darunter steht weiter die
+        # Gesamtsicht (Reich) aus dem Übergangsbestand. Bis Teil 6 füllen sich diese lokalen
+        # Felder nur über Transport und Gründung — das steht hier ehrlich dabei, statt eine
+        # leere Liste als Spielinhalt auszugeben.
+        _ort = self.state.aktive_siedlung()
+        if _ort is not None:
+            _bestand = tk.Frame(self.content, bg="#1B2A2F", highlightbackground="#7FD1FF",
+                                highlightthickness=1)
+            _bestand.pack(fill=tk.X, padx=10, pady=(8, 4))
+            tk.Label(_bestand, text=f"Ortslager der aktiven Siedlung: {_ort.name}",
+                     fg="#7FD1FF", bg="#1B2A2F", font=("Arial", 10, "bold"),
+                     anchor=tk.W).pack(anchor=tk.W, padx=8, pady=(6, 0))
+            tk.Label(_bestand, text=ortsbestand_text(_ort), fg="#C0C0C0", bg="#1B2A2F",
+                     wraplength=760, justify=tk.LEFT, font=("Arial", 9)).pack(anchor=tk.W, padx=8)
+            _waren_lokal = ", ".join(f"{k} {v}" for k, v in sorted((_ort.waren or {}).items())) or "keine"
+            _einh_lokal = ", ".join(f"{k} {v}" for k, v in sorted((_ort.einheiten or {}).items())) or "keine"
+            tk.Label(_bestand, text=f"Waren vor Ort: {_waren_lokal}", fg="#C0C0C0", bg="#1B2A2F",
+                     wraplength=760, justify=tk.LEFT, font=("Arial", 9)).pack(anchor=tk.W, padx=8)
+            tk.Label(_bestand, text=f"Einheiten vor Ort: {_einh_lokal}", fg="#C0C0C0", bg="#1B2A2F",
+                     wraplength=760, justify=tk.LEFT, font=("Arial", 9)).pack(anchor=tk.W, padx=8, pady=(0, 6))
+        else:
+            tk.Label(self.content, text="Noch keine Siedlung — es gibt (noch) kein Ortslager.",
+                     fg="#8a8a8a", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
+        tk.Label(self.content, text="Waren (Reich/Übergang — die 17 Originalwaren aus data/items.json):", fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 0))
         tk.Label(self.content, text=werkstatt.lager_text(self.state.waren), fg="#C0C0C0", bg=self.skin["bg"], wraplength=760, justify=tk.LEFT).pack(anchor=tk.W, padx=10)
         goods_frame = tk.Frame(self.content, bg=self.skin["panel"])
         goods_frame.pack(fill=tk.X, padx=10, pady=5)
@@ -3306,7 +3380,7 @@ class NebelseetalApp:
                 tk.Label(cell, text="?", fg=self.skin["text"], bg=self.skin["panel"], font=("Arial", 16)).pack(pady=(0, 4))
             tk.Label(cell, text=key, fg=self.skin["text"], bg=self.skin["panel"], font=("Arial", 9)).pack()
             tk.Label(cell, text=str(menge), fg=self.skin["gold"], bg=self.skin["panel"], font=("Arial", 11, "bold")).pack(pady=(2, 0))
-        tk.Label(self.content, text="Einheiten:", fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 0))
+        tk.Label(self.content, text="Einheiten (Reich/Übergang):", fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 0))
         units_frame = tk.Frame(self.content, bg=self.skin["panel"])
         units_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
         ucols = 6
