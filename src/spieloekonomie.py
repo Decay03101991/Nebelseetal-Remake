@@ -29,6 +29,7 @@ import auftraege
 import einheiten  # noqa: F401  (vom Entwurf vorgesehen; hier für spätere Schritte)
 import gelaende
 import spieldaten
+import werkstatt
 import wirtschaft
 
 DATEN = Path(spieldaten.projektwurzel()) / "data"
@@ -42,6 +43,10 @@ REGELN = lade("spieloekonomie.json")
 G = lade("gelaende.json")
 BP = lade("baupreise.json")["preise"]
 U = lade("units.json")["einheiten"]
+# Die freigegebenen Warenrezepte (Oekonomie-Paket, Schritt 4). Zur Laufzeit wird AUSSCHLIESSLICH
+# diese eingefrorene Datei gelesen - nicht neu abgeleitet (Entwurf Z. 588). Erzeugt von
+# `tools/warenrezepte_ableiten.py`.
+WARENREZEPTE = lade("warenrezepte.json")
 
 
 def mengen(kosten) -> dict:
@@ -381,3 +386,82 @@ def station_start(quelle: dict, ziel: dict, bestand: dict, fracht: dict, jetzt: 
     q, m = transport_start(quelle, ziel, bestand, fracht, jetzt)
     m["stationieren_lokal"] = True
     return q, m
+
+
+# ---------------------------------------------------------------------------
+# Schritt 4 — Pilotrezepte, lokale Ausbildung und echte Verbrauchsbelege
+# (Entwurf Z. 507-590)
+# ---------------------------------------------------------------------------
+#
+# Die Rezepte stehen eingefroren in `data/warenrezepte.json` (erzeugt von
+# `tools/warenrezepte_ableiten.py`); zur Laufzeit wird ausschliesslich diese Datei gelesen.
+# Alle Dauerangaben ausser dem Schwert (1200 s, belegt) sind VORSCHLAG.
+
+
+def ware_start(ort: dict, ware: str, forschung: dict, jetzt: float,
+               rezepte: dict = None) -> dict:
+    """Reiht eine Ware in die Werkstatt DIESER Siedlung ein. Liefert den neuen Ort.
+
+    Geprueft werden (1) ein freigegebenes Rezept, (2) die Forschungsvoraussetzungen der Ware,
+    (3) eine Werkstatt VOR ORT, (4) die Materialkosten im lokalen Lager. Die Dauer kommt aus
+    dem Rezept in die Warteschlange — die einzige belegte Dauer (Schwert) bleibt unberuehrt.
+    """
+    neu = copy.deepcopy(ort)
+    rezepte = WARENREZEPTE if rezepte is None else rezepte
+    if ware not in rezepte:
+        raise ValueError("Keine freigegebene Rezeptangabe.")
+    rezept = rezepte[ware]
+    if any(forschung.get(f, 0) < n for f, n in rezept["voraussetzungen"].items()):
+        raise ValueError("Warenvoraussetzung fehlt.")
+    typ = werkstatt.werkstatt_fuer(ware)
+    if typ is None:
+        raise ValueError("Ware gehoert zu keiner Werkstatt.")
+    zahl = werkstatt.werkstaetten_bestand([neu])[typ]
+    if zahl <= 0:
+        raise ValueError("Werkstatt nicht in dieser Stadt.")
+    neu = verbrauchen(neu, rezept["kosten"], jetzt)
+    schlange = neu["werkstaetten"].setdefault(typ, werkstatt.neue_warteschlange(typ, zahl))
+    schlange["werkstaetten"] = zahl
+    schlange["kapazitaet"] = werkstatt.kapazitaet(zahl)
+    werkstatt.fortschritt(schlange, jetzt)
+    ok, meldung = werkstatt.einreihen(schlange, ware, 1, 1, rezepte)
+    if not ok:
+        raise ValueError(meldung)
+    return neu
+
+
+def ausbildung_start(ort: dict, name: str, forschung: dict, jetzt: float) -> dict:
+    """Beginnt die Ausbildung EINER Einheit vor Ort. Liefert den neuen Ort.
+
+    Geprueft werden (1) die Forschungsstufe der Einheit, (2) die Ausbildungsstaette VOR ORT
+    (Kriegerakademie / Diebesgilde / Stellmacher), (3) genug freie Siedler, (4) die
+    Ausruestung im lokalen Warenlager. Verbraucht werden Kosten, Siedler und Ausruestung —
+    die Einheit selbst entsteht erst am Ende der Ausbildungszeit (`ort_tick`, Schritt 5).
+    """
+    eintrag = U.get(name)
+    if eintrag is None:
+        raise ValueError("Unbekannte Einheit: " + str(name))
+    voraus = eintrag.get("voraussetzung") or {}
+    if voraus and forschung.get(voraus.get("forschung"), 0) < voraus.get("stufe", 0):
+        raise ValueError("Einheitenforschung fehlt.")
+    import gebaeude_wirkung
+    geb = gelaende.finde_gebaeude(str(eintrag.get("gebaeude") or ""))
+    stufe = gebaeude_wirkung.gebaeude_stufe(ort, geb)
+    if stufe <= 0:
+        raise ValueError("Ausbildungsstätte fehlt vor Ort.")
+    kosten = dict(eintrag.get("kosten") or {})
+    siedler = kosten.pop("siedler", 0)
+    if ort["bevoelkerung"] < siedler:
+        raise ValueError("Freie Siedler fehlen vor Ort.")
+    import ausruestung
+    if ausruestung.fehlende(name, ort["waren"]):
+        raise ValueError("Ausrüstung fehlt vor Ort.")
+    neu = verbrauchen(ort, kosten, jetzt)
+    neu["bevoelkerung"] -= siedler
+    neu["waren"] = ausruestung.verbrauchen(neu["waren"], name)
+    freie_zeit = max([jetzt] + [a["ende"] for a in neu["ausbildung"] if a["gebaeude"] == geb])
+    # Pilotregel: die Dauer ist kein Originalwert (das Handbuch nennt keine Ausbildungsdauer).
+    neu["ausbildung"].append({"einheit": name, "gebaeude": geb, "start": freie_zeit,
+                              "ende": freie_zeit + REGELN["pilot_ausbildung_minuten"] * 60,
+                              "gebucht": False})
+    return neu

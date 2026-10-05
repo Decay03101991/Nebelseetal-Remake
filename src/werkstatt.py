@@ -142,13 +142,25 @@ def _stufe_faktor(stufe: int) -> float:
     return 1.0 + STUFE_TEMPO_PROZENT / 100.0 * (_stufe_wert(stufe) - 1)
 
 
-def dauer_sekunden(ware: str, stufe: int = 1) -> Optional[float]:
-    """Fertigungsdauer in Sekunden - None, wenn das Handbuch keine Dauer nennt.
+def dauer_sekunden(ware: str, stufe: int = 1,
+                   rezepte: Optional[Dict[str, Any]] = None) -> Optional[float]:
+    """Fertigungsdauer in Sekunden - None, wenn weder Handbuch noch Rezept eine Dauer nennen.
 
     Belegt ist nur das Schwert-Beispiel mit 20 Minuten (1200 s). Fuer alle anderen Waren
     wird NICHTS geschaetzt. Hoehere Stufe verkuerzt die belegte Grunddauer (VORSCHLAG).
+
+    ``rezepte`` (Vorgabe None = Altmodus, unveraendert): die freigegebene
+    ``data/warenrezepte.json``. Wird sie uebergeben, gilt fuer Waren OHNE belegte Dauer die
+    dort eingefrorene Vorschlagsdauer (Oekonomie-Paket, Schritt 4 — Entwurf Z. 588-589).
+    ``dauer_belegt`` bleibt bewusst unveraendert: nur das Schwert ist belegt.
     """
     basis = BELEGTE_DAUER_SEKUNDEN.get(ware)
+    if basis is None and rezepte:
+        wert = (rezepte.get(ware) or {}).get("dauer")
+        try:
+            basis = float(wert)
+        except (TypeError, ValueError):
+            basis = None
     if basis is None:
         return None
     return round(basis / _stufe_faktor(stufe), 3)
@@ -192,8 +204,12 @@ def neue_warteschlange(typ: str, anzahl_werkstaetten: int) -> Dict[str, Any]:
 
 
 def einreihen(schlange: Dict[str, Any], ware: str,
-              anzahl: int, stufe: int = 1) -> Tuple[bool, str]:
-    """Eine Ware in die Warteschlange stellen. (ok, Meldung)."""
+              anzahl: int, stufe: int = 1,
+              rezepte: Optional[Dict[str, Any]] = None) -> Tuple[bool, str]:
+    """Eine Ware in die Warteschlange stellen. (ok, Meldung).
+
+    ``rezepte`` wird an ``dauer_sekunden`` durchgereicht (Vorgabe None = Altmodus, unveraendert).
+    """
     if not isinstance(schlange, dict) or "einheiten" not in schlange:
         return False, "Keine gueltige Warteschlange uebergeben."
     if ware not in _waren():
@@ -212,7 +228,7 @@ def einreihen(schlange: Dict[str, Any], ware: str,
         return False, "Die Anzahl muss groesser als 0 sein."
 
     s = _stufe_wert(stufe)
-    dauer = dauer_sekunden(ware, s)
+    dauer = dauer_sekunden(ware, s, rezepte)
     ab = schlange.get("_uhr")
     for _ in range(menge):
         schlange["einheiten"].append({
