@@ -46,9 +46,9 @@ Ausgabe fehl (belegt 05.10., siehe Lehre (e) unten).
 Vorlage**; verbindlich ist die **Startzeile direkt hier oben** (sie kennt den echten nächsten Schritt
 und den Stand von heute).
 
-**Zum eigenen Ziel:** das Ziel der Sitzung `20261005_150058_c9027c` wird beim Sitzungswechsel sauber auf
-`cleared` gesetzt (Grund im Datensatz). Die neue Sitzung braucht ein **neues** Ziel mit dem Wortlaut aus
-Abschnitt 0.
+**Zum eigenen Ziel:** das Ziel der Sitzung `20261005_150058_c9027c` ist am 05.10.2026 um 17:01 sauber
+auf `cleared` gesetzt (Grund im Datensatz, kein fremdes aktives Ziel). Die neue Sitzung braucht ein
+**neues** Ziel mit dem Wortlaut aus Abschnitt 0 — geprüft, dass kein Geisterläufer arbeitet.
 
 ---
 
