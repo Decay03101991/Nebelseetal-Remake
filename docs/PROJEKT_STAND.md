@@ -381,6 +381,14 @@ python D:/Arbeiten/Nebelseetal_Remake/tools/zieluebergabe.py --pruefen
    auf Daniels Wort nachziehen, fremde Profile fasst der Agent nicht von selbst an.
 5. **Kostendeckel**: heute überschritten (siehe oben).
 
+### Zielverfolgung
+
+Die Zielverfolgung **dieser** Sitzung wurde am 05.10. um 19:40 auf **`cleared`** gesetzt (Grund im
+Datensatz: „Sitzung regulär übergeben … Ziel wird in der neuen Sitzung neu gesetzt"). Das ist kein
+Löschen — der Datensatz bleibt nachvollziehbar. **Gegenprobe:** `tools/zieluebergabe.py --pruefen`
+→ rc=0, „**Kein fremdes aktives Ziel — es arbeitet keine andere Sitzung**". Wer hier doch weitermachen
+will: `python tools/zieluebergabe.py --fortsetzen 20261005_170227_cfa071`.
+
 ### Zwei gestoppte Kinder (ehrlich vermerkt)
 
 Für Schritt 8a waren zwei prüfende Kinder unterwegs: die Prüfdatei `tests/test_bot_oekonomie.py`
