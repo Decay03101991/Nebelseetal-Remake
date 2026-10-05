@@ -1251,6 +1251,15 @@ class NebelseetalApp:
         self.root = root
         self.root.title("Nebelseetal Remake")
         self.root.geometry("1024x720")
+        # Daniels Layoutwunsch 05.10.2026 (die Bauauswahl steht RECHTS neben der Karte) braucht
+        # Breite: die Karte allein ist 8 x 64 + 18 = 530 px breit, die Auswahlspalte rund 330 px.
+        # Darum wächst das Fenster mit dem Bildschirm — bleibt aber IMMER innerhalb von ihm.
+        try:
+            _breit = max(1024, min(1560, int(self.root.winfo_screenwidth()) - 90))
+            _hoch = max(720, min(940, int(self.root.winfo_screenheight()) - 120))
+            self.root.geometry(f"{_breit}x{_hoch}")
+        except Exception:
+            pass  # ohne Bildschirmmaße bleibt es beim Vorgabemaß 1024x720
         self.state = GameState()
         self.state.generate_map(self.state.current_map)
         # Spielstand: im Entwicklungsbetrieb neben dem Quelltext, in der EXE im Nutzerordner
@@ -1990,7 +1999,7 @@ class NebelseetalApp:
             return f"+5 Wohnraum" if stoff == "" and "haus" in str(gebaeude_key).lower() else "kein Rohstoffertrag"
         return f"{ertrag:g} {stoff.capitalize()}/h" if stoff else f"{ertrag:g}/h"
 
-    def _zeichne_siedlungskarte(self, siedlung, karte) -> None:
+    def _zeichne_siedlungskarte(self, siedlung, karte, eltern=None) -> None:
         """Die Siedlungskarte als Zeichenfläche (64-px-Felder), feinere Fassung.
 
         Vorher war das ein Raster kleiner Knöpfe mit abgeschnittenen Gebäudenamen; laut
@@ -2018,10 +2027,17 @@ class NebelseetalApp:
         # astra „Siedlung 3": „Koordinaten in eine 18 px breite beziehungsweise hohe äußere
         # Rasterleiste verlegen" — dieselbe Zahl liefert das Modul als KOORDINATEN_BREITE.
         rand = int(karten_optik_fein.KOORDINATEN_BREITE)
-        canvas = tk.Canvas(self.content, width=rand + spalten * zelle,
+        canvas = tk.Canvas(eltern if eltern is not None else self.content,
+                           width=rand + spalten * zelle,
                            height=rand + zeilen * zelle, bg="#17212B",
                            highlightthickness=0, bd=0)
-        canvas.pack(anchor=tk.W, padx=10)
+        # Daniels Wunsch 05.10.2026 (rote Stiftskizze): die Bauauswahl steht RECHTS neben der
+        # Karte, nicht darunter. Dafür rückt die Karte in einen waagerechten Block (`eltern`)
+        # und liegt dort links. Ohne `eltern` bleibt der alte Weg (untereinander) gültig.
+        if eltern is not None:
+            canvas.pack(side=tk.LEFT, anchor=tk.NW)
+        else:
+            canvas.pack(anchor=tk.W, padx=10)
         gewaehlt = getattr(self, "karten_feld", None)
 
         def _feld_ecke(i: int):
@@ -2158,7 +2174,7 @@ class NebelseetalApp:
         tk.Label(self.content, text=f"{siedlung.name} — {karte['typ_name']}",
                  fg=self.skin["gold"], bg=self.skin["bg"],
                  font=("TkDefaultFont", 13, "bold")).pack(anchor=tk.W, padx=10)
-        tk.Label(self.content, text="Wähle ein Feld auf der Karte. Darunter steht, was dort "
+        tk.Label(self.content, text="Wähle ein Feld auf der Karte. Rechts daneben steht, was dort "
                                     "gebaut werden kann und was es einbringt.",
                  fg="#F3F4F6", bg=self.skin["bg"], wraplength=800,
                  justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 2))
@@ -2167,10 +2183,15 @@ class NebelseetalApp:
                  fg=self.skin["text"], bg=self.skin["bg"], wraplength=800,
                  justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 4))
 
+        # Daniels Wunsch 05.10.2026 (rote Stiftskizze): Karte LINKS, die Bauauswahl RECHTS
+        # daneben — vorher stand die Auswahl unter der Karte und der Platz daneben blieb leer.
+        kartenblock = tk.Frame(self.content, bg=self.skin["bg"])
+        kartenblock.pack(anchor=tk.W, padx=10)
+
         # astra-Bildgutachten 05.10.2026: 64-px-Felder mit Gelände-EMBLEM (Farbe allein
         # reicht nicht), Koordinaten statt interner Feldnummern, kräftiger Auswahlrahmen.
         # Vorher: ein Raster kleiner Knöpfe mit abgeschnittenen Namen („Steinm", „Holzfä").
-        self._zeichne_siedlungskarte(siedlung, karte)
+        self._zeichne_siedlungskarte(siedlung, karte, eltern=kartenblock)
 
         legende = tk.Frame(self.content, bg=self.skin["bg"])
         legende.pack(anchor=tk.W, padx=10, pady=(4, 2))
@@ -2183,8 +2204,11 @@ class NebelseetalApp:
                                    "Gebäude zeigen seine Ausbaustufe.",
                  fg=self.skin["text"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(2, 4))
 
-        info = tk.Frame(self.content, bg=self.skin["panel"])
-        info.pack(fill=tk.X, padx=10, pady=6)
+        # Daniels Wunsch 05.10.2026 (Stiftskizze): die Auswahl steht RECHTS neben der Karte —
+        # als eigene Spalte im Kartenblock, nicht als Streifen unter der Karte.
+        info = tk.Frame(kartenblock, bg=self.skin["panel"], highlightbackground="#5D4037",
+                        highlightthickness=1)
+        info.pack(side=tk.LEFT, anchor=tk.N, fill=tk.Y, padx=(12, 0))
         feld = getattr(self, "karten_feld", None)
         if feld is None:
             tk.Label(info, text="Ein Feld auf der Karte anklicken, um dort zu bauen.",
@@ -2211,7 +2235,7 @@ class NebelseetalApp:
             erlaubt, warum = gelaende.bau_moeglich(gebaut, art)
             tk.Label(info, text=f"Hier steht: {gelaende.gebaeude_name(gebaut)} — "
                                 f"{gebaeude_wirkung.stufen_name(gebaut, stufe)} ({warum})",
-                     fg=self.skin["text"], bg=self.skin["panel"], wraplength=780,
+                     fg=self.skin["text"], bg=self.skin["panel"], wraplength=300,
                      justify=tk.LEFT).pack(anchor=tk.W, padx=6)
             knopfreihe = tk.Frame(info, bg=self.skin["panel"])
             knopfreihe.pack(anchor=tk.W, padx=6, pady=6)
@@ -2245,9 +2269,11 @@ class NebelseetalApp:
         # wird benannt statt still abgelehnt.
         tk.Label(info, text=f"Hier kannst du {len(passend)} Gebäude bauen — der Ertrag gilt für "
                             f"dieses Feld ({gelaende.name(art)}):",
-                 fg=self.skin["text"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=6)
+                 fg=self.skin["text"], bg=self.skin["panel"], wraplength=300,
+                 justify=tk.LEFT).pack(anchor=tk.W, padx=6)
+        # Eine Zeile je Gebäude (Daniels Skizze: „auflisten") — vorher drei nebeneinander.
         knopfreihe = tk.Frame(info, bg=self.skin["panel"])
-        knopfreihe.pack(anchor=tk.W, padx=6, pady=6)
+        knopfreihe.pack(anchor=tk.W, fill=tk.X, padx=6, pady=6)
         for i, (k, g) in enumerate(passend):
             kosten = baukosten(k) or {}
             _fehlt = [r for r, v in kosten.items()
@@ -2258,10 +2284,10 @@ class NebelseetalApp:
             text = f"{g['name']}\n{self._ertrag_kurz(k, art)} · {kosten_text(kosten)}"
             if _fehlt:
                 text += f"\nfehlt noch: {', '.join(sorted(_fehlt))}"
-            tk.Button(knopfreihe, text=text, justify=tk.LEFT,
+            tk.Button(knopfreihe, text=text, justify=tk.LEFT, anchor=tk.W,
                       command=lambda kk=k: self._karten_bauen(kk), bg=self.skin["button"],
                       fg=self.skin["gold"], activebackground="#5D4037").grid(
-                row=i // 3, column=i % 3, padx=3, pady=2, sticky=tk.W)
+                row=i, column=0, padx=2, pady=2, sticky=tk.EW)
 
     def _dimensionsname(self, z: int) -> str:
         """Der Name einer Dimension aus dem Limbus-Raster (`src/portalraum.py`)."""
