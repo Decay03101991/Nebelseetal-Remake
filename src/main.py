@@ -493,6 +493,10 @@ class GameState:
         self.score = 0
         self.day = 1
         self.last_tick = time.time()
+        # W5: Der Bot-Zug laeuft alle BOT_TAKT_SEKUNDEN. Ohne diesen Startwert waere der
+        # Abstand beim ersten Tick riesig (- jetzt - 0) und ALLE Bots haetten sofort gezogen —
+        # am Spielanfang, mitten im Noobschutz, mit voller Pluenderung.
+        self._letzter_bot_takt = time.time()
         self.ruf = 0
         self.log: List[str] = []
         self.map_garrison: Dict[str, Dict[str, int]] = {}
@@ -965,12 +969,20 @@ class GameState:
                 continue
             if zug.get("aktion") == "angreifen":
                 beute = dict((zug.get("wirkung") or {}).get("beute") or {})
-                for stoff, menge in beute.items():
-                    if stoff in self.resources:
-                        self.resources[stoff].amount = max(
-                            0.0, float(self.resources[stoff].amount) - float(menge))
-                if beute:
-                    self.messages.append({"text": zug.get("meldung"), "type": "bot"})
+                if beute and getattr(self, "noob_protection", False):
+                    # Der Noobschutz (Tag 1-3) schuetzt die Startwerte. Vorher zog der erste Bot
+                    # SOFORT und pluenderte 50 % — von 100 Holz/100 Stein blieben 30/30, bevor
+                    # der Spieler etwas bauen konnte.
+                    self.messages.append({
+                        "text": f"Noobschutz aktiv: {zug.get('meldung')} Die Beute bleibt uns.",
+                        "type": "bot"})
+                else:
+                    for stoff, menge in beute.items():
+                        if stoff in self.resources:
+                            self.resources[stoff].amount = max(
+                                0.0, float(self.resources[stoff].amount) - float(menge))
+                    if beute:
+                        self.messages.append({"text": zug.get("meldung"), "type": "bot"})
                 ergebnis["angriffe"].append(zug.get("meldung"))
             # Erst den Zug des Kerns uebernehmen (Beute, Zaehler, naechstes Fenster), DANN aus
             # der eigenen Kasse aufstellen - sonst waere die Beute wieder weg.
@@ -1127,6 +1139,9 @@ class GameState:
         if saved_bots:
             self.bots = [BotPlayer(**b) for b in saved_bots]
         self._day_accum = 0.0
+        # Der Bot-Zug darf nach dem Laden nicht sofort losgehen (sonst pluendern die Bots
+        # genau in der Sekunde, in der ein alter Spielstand geoeffnet wird).
+        self._letzter_bot_takt = time.time()
         return True
 
     def _log(self, msg: str):
@@ -1408,6 +1423,11 @@ class NebelseetalApp:
             pass
 
     def _render_view(self):
+        # Eine Pruefung darf eine App ohne aufgebaute Oberflaeche benutzen (z. B.
+        # tests/test_gebaeude_wirkung.py baut nur den Zustand und ruft Aktionen direkt).
+        # Dann gibt es nichts zu zeichnen — die Neuzeichnung ist trotzdem kein Fehler.
+        if getattr(self, "content", None) is None:
+            return
         for widget in self.content.winfo_children():
             widget.destroy()
         # Neue Ansicht immer von oben zeigen, sonst startet sie mitten im Inhalt.
@@ -1550,12 +1570,18 @@ class NebelseetalApp:
                 self.state.settlements.append(sett)
                 tile.npc_faction = "spieler"
                 tile.sector_name = name
-                self._log(f"Neue Siedlung '{name}' auf {self.state.current_map} bei {x}:{y} gegründet.")
+                # Die Hauptmeldung ZULETZT: die Statuszeile zeigt immer die letzte Zeile.
                 self._log(f"  Karte: {karte['typ_name']} — {karte['vorteil']}")
                 self._log(f"  {gelaende.karte_beschreiben(karte)}")
+                self._log(f"Neue Siedlung '{name}' gegründet — im Dorfzentrum steht jetzt "
+                          f"„Karte öffnen\": dort Felder bebauen und Rohstoffe fördern.")
+                # Ohne Neuzeichnen sieht der Spieler NICHTS: die Siedlungsliste bliebe leer
+                # und der Knopf „Karte öffnen" erschiene nie. Genau daran hing das ganze Spiel.
+                self._render_view()
                 return
             attempts += 1
         self._log("Kein geeigneter Platz für eine Siedlung gefunden.")
+        self._render_view()
 
     def _rename_settlement(self, settlement: Settlement, new_name: str):
         now = time.time()
@@ -1575,15 +1601,18 @@ class NebelseetalApp:
         settlement.name = new_name.strip()
         settlement.last_rename = now
         self._log(f"Siedlung umbenannt in '{settlement.name}'.")
+        self._render_view()
 
     def _transport_to_settlement(self, settlement: Settlement):
         if settlement.map_id != self.state.current_map:
             self._log("Transport nur zur aktuellen Karte möglich.")
+            self._render_view()
             return
         amount = 10
         resource = "holz"
         self.state.resources[resource].amount = max(0, self.state.resources[resource].amount - amount)
         self._log(f"Transport von {amount} {resource} zur Siedlung {settlement.name} gestartet.")
+        self._render_view()
 
     # ---------- Siedlungskarte (Handbuch S. 259/283/292/313) ----------
 
@@ -2251,6 +2280,7 @@ class NebelseetalApp:
         self.state.generate_map(map_id)
         self.state.map_switch_cost += 50
         self._log(f"Gewechselt zu {map_id}. Nächster Wechsel: {self.state.map_switch_cost}")
+        self._render_view()
 
     def _station_on_map(self, map_id: str):
         total = sum(self.state.units[u].count for u in self.state.units)
@@ -2770,6 +2800,7 @@ class NebelseetalApp:
         if not da:
             fehlt = gelaende.gebaeude_name(staette) if staette else "Ausbildungsstätte unbekannt"
             self._log(f"{u.name} braucht {fehlt} auf einer Siedlungskarte — noch nicht gebaut.")
+            self._render_view()
             return
         building_level = stufe
         time_min = get_training_time(key, levels, building_level)
@@ -2782,6 +2813,7 @@ class NebelseetalApp:
         if unbekannt:
             # Kein stilles Ueberspringen: ein unbekannter Rohstoff ist ein Datenfehler.
             self._log(f"Ausbildung nicht möglich: unbekannte Rohstoffe {unbekannt}")
+            self._render_view()
             return
         genug = (all(self.state.resources[k].amount >= v for k, v in rohstoffe.items())
                  and self.state.population >= siedler)
@@ -2793,6 +2825,9 @@ class NebelseetalApp:
             self._log(f"{u.name} ausgebildet. Ausbildungszeit: {time_min:.1f} min")
         else:
             self._log("Nicht genug Ressourcen für Ausbildung.")
+        # Ohne Neuzeichnen sieht der Spieler die neue Stueckzahl nicht (dieselbe Fehlerklasse
+        # wie bei der Siedlungsgruendung).
+        self._render_view()
 
     def _save(self):
         ok = self.state.save(self.save_path)
