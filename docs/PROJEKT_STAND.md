@@ -1,9 +1,10 @@
 # Nebelseetal Remake — Projektstand und Übergabe
 
-Stand: **05.10.2026, 00:55**. Diese Fassung ersetzt die vorherige (archiviert unter
-`docs/archiv/PROJEKT_STAND_alt_2026-10-04_2345.md`; die Fassungen davor unter
-`docs/archiv/PROJEKT_STAND_alt_2026-10-04_2200.md` und `..._alt_2026-10-04.md`).
+Stand: **05.10.2026, 10:42** (Sitzungswechsel; mit `date` geprüft). Diese Fassung ersetzt die
+vorherige (archiviert unter `docs/archiv/PROJEKT_STAND_alt_2026-10-04_2345.md`; die Fassungen davor
+unter `docs/archiv/PROJEKT_STAND_alt_2026-10-04_2200.md` und `..._alt_2026-10-04.md`).
 **Diese Datei ist der Einstiegspunkt.** Jede neue Sitzung liest zuerst hier — nicht die Chat-Historie.
+Abschnitte 1–11 sind der ältere, weiterhin gültige Rahmen; **Abschnitt 0c ist der aktuelle Stand.**
 
 ---
 
@@ -15,167 +16,62 @@ Daniels Ziel, wörtlich:
 > Browsergame) als remake und Einzelspielerspiel startet. Überprüft und vllt so gesichert das man es
 > nur spielen kann mit meinem vorgegebenen Passwort."
 
-Vorgaben aus der Sitzung vom 04.10.2026:
-
-- **Passwort:** Daniel setzt es **selbst beim ersten Start**. Es kommt **niemals** in den Chat, ich
-  frage nie danach. Gespeichert wird nur ein gesalzener Prüfwert lokal. Ehrlich benannt: ein lokales
-  Tor hält Gelegenheitsspieler ab, mehr nicht. Entwurf: `docs/WEG_ZUR_EXE.md`.
-- **Guthaben:** das OpenAI-Guthaben stand für diesen Auftrag zur Verfügung; Auto-Recharge ist aus,
-  es können **keine Schulden** entstehen. Bei DeepSeek muss ein **kleiner Rest** bleiben. Teure
-  Modelle nur mit Grund, Kosten nach jedem Aufruf messen.
-- **Agent-zu-Agent Englisch/ASCII erlaubt**, alles für Daniel bleibt **Deutsch**.
-- **Nach jedem groben Schritt eine Zeile ins Entwicklungsprotokoll** (`docs/ENTWICKLUNGSPROTOKOLL.md`):
-  Zeit, Schritt, Ergebnis, Beleg (Prüfzahl/Commit). Nur anhängen, Fehler mit hinein — Daniel
-  schreibt die Entstehung des Spiels mit.
-- **Unteragenten arbeiten nur an eigenen Dateien und führen kein eigenes Brett** (Vorgabe Daniel,
-  04.10.2026): sie bauen neue Dateien, prüfen sie selbst und melden ihr Ergebnis im
-  Abschlussbericht. Der **Koordinator** prüft nach und trägt in `docs/BOARD.md` ein. Aufteilung und
-  Modellwahl stehen in `docs/AGENTEN_PLAN.md`.
-- **Ordnerstruktur aufgeräumt halten** — Regeln in `docs/ORDNUNG.md`.
-- **Kein teuer erarbeitetes Modellergebnis darf verloren gehen** (Abschnitt 4).
-- Wenn das Kontextfenster voll wird: **Daniel warnen** und diese Übergabe aktualisieren.
-
 **Startzeile für die neue Sitzung (zum Kopieren):**
 
 ```
-Lies D:/Arbeiten/Nebelseetal_Remake/docs/PROJEKT_STAND.md (Einstiegspunkt) und übernimm das laufende
-Ziel aus Abschnitt 0. Lies dann NUR das Kontext-Paket aus Abschnitt 0c (eine Seite + zwei
-Dokumentabschnitte + die Zieldatei an der Aufrufstelle) — die Chat-Historie brauchst du nicht.
-Der EINE nächste Schritt steht in Abschnitt 0c (Stand 06:05): **es ist kein Bauen mehr offen** — die
-Modul-Reihe ist eingehängt, das Auftragssystem samt Oberfläche steht, das Protokoll ist verdichtet
-(314 Zeilen), die `.exe` ist gebaut und startgeprüft, Prüfstand 1929/0/19 über 32 Dateien. Nächster
-Schritt: erst diese Sitzung übernehmen (Einzelheiten unter dem Block), dann am Wiedereinstiegspunkt
-weitermachen — **Durchspielen mit Daniels Passwort** oder die drei belegten Handbuch-Lücken.
-Nach jedem Schritt: betroffenen Einzeltest + einmal Sammellauf, eine Protokollzeile (Zeit, Schritt,
-Ergebnis, Beleg, Kosten), `python tools/protokoll_sichern.py --protokoll`, kleiner Commit. Prüfende
-Unteragenten erst NACH dem Commit loslassen. Am Ende der Reihe die `.exe` neu bauen
-(`tools/build_exe.py`) und aus einem anderen Ordner startprüfen.
+Lies D:\Arbeiten\Nebelseetal_Remake\docs\PROJEKT_STAND.md, Abschnitt 0c (Stand, Kontext-Paket, der
+EINE nächste Schritt) — die Chat-Historie brauchst du nicht. Dann: python tools/zieluebergabe.py
+--pruefen (0 = kein fremdes aktives Ziel; es ist nichts zu beenden) und setze dein eigenes Ziel
+(/goal <Wortlaut aus Abschnitt 0>). Arbeite danach den EINEN nächsten Schritt aus Abschnitt 0c:
+die Weltkarte nach der astra-Vorgabe nachziehen (Zeichenfläche, Zoomstufen, Scrollbalken,
+Detailpanel, Übersichtskarte). Nach jedem Schritt: betroffener Einzeltest + einmal Sammellauf, eine
+Protokollzeile (Zeit mit `date` holen, nie schätzen), python tools/protokoll_sichern.py --protokoll,
+kleiner Commit; prüfende Unteragenten erst NACH dem Commit. Am Ende der Reihe die .exe neu bauen
+(tools/build_exe.py) und aus einem anderen Ordner startprüfen. Kommt von Daniel ein Spielbericht zur
+aktuellen .exe, hat der VORRANG.
 ```
 
-**Stand 06:05 (Übergabe, gemessen):** seit 03:04 ist **nichts** gelaufen — kein Geisterläufer, alle alten Ziele `cleared`, dieses Ziel steht auf **pausiert (8/20 Takte)**, es arbeitet also nichts von selbst weiter. Prüfstand **1929/0/19 über 32 Dateien**, Protokoll **314 Zeilen** (Vor-Fassung aufbewahrt), `.exe` **14.454.894 Byte**, SHA256 `29eaaf76c70fc76a45bc5fe97775511e04fae0318d8275d55314c184d83d13cc`, startgeprüft. Letzte Commits: `dece98b` (Protokoll verdichtet), `15a8cff` (Übergabe + Skill). Kosten heute ab 00:00 **1,05 USD**; das DeepSeek-Guthaben bitte in der neuen Sitzung erneut ablesen — ich kann es nicht messen.
+**Erste Handlung der neuen Sitzung:** `python tools/zieluebergabe.py --pruefen` zeigt, dass nichts
+Fremdes läuft (alle Nebelseetal-Ziele stehen auf `cleared` oder `done`). Es ist **nichts** zu beenden.
 
-**Erste Handlung der neuen Sitzung:** das Zielregister ist **schon sauber** — diese Sitzung hat ihr Ziel am 05.10. 06:15 auf `cleared` gesetzt (Grund im Datensatz), geprüft mit `python tools/zieluebergabe.py --pruefen` (kein aktives Ziel). Es ist nichts zu beenden; die neue Sitzung setzt nur ihr eigenes Ziel (`/goal …`) und arbeitet am Wiedereinstiegspunkt weiter.
+**Zum eigenen Ziel:** das Ziel der Sitzung `20261005_060851_4f4be3` hat der **Zielrichter auf `done`
+gesetzt** (1/20 Takte) — die Zielverfolgung dieser Sitzung ist beendet, es läuft nichts von selbst
+weiter. Eine neue Sitzung braucht ein **neues** Ziel mit dem Wortlaut oben.
 
 ---
 
-## 0c. Stand beim Sitzungswechsel (05.10.2026, 00:49 — mit `date` geprüft)
+## 0c. Stand beim Sitzungswechsel (05.10.2026, 10:42 — mit `date` und `git log` geprüft)
 
-**Nichts läuft. Arbeitsverzeichnis sauber** (Commit `a1f224a`, `git status` leer), Papiere
-projektunabhängig gesichert (`python tools/protokoll_sichern.py --protokoll`: 16 Dateien, Prüfsummen
-gleich, Zeiger `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`).
+**Nichts läuft.** Arbeitsverzeichnis **sauber** (letzter Commit `4207126`, `git status` leer), kein
+Spielprozess mehr offen, kein fremdes aktives Ziel.
 
 | Was | Stand (gemessen) |
 |---|---|
-| Prüfstand | **1798 bestanden, 0 Fehler, 15 Befunde über 27 Dateien**, Rückgabewert 0 (Lauf 05.10. 00:49:17) |
-| Neu eingehängt in dieser Sitzung | **1 · `speichern`** (atomar, Sicherung, Wiederherstellung) · **2 · `punkte`** (Originalformeln in Seitenleiste + Ruhmeshalle) · **3 · `kampf` + `kampfbericht`** (ein Angriffsweg für Karte und Bot, Bericht in die Nachrichten) · **6 · `portalraum`** (20×20-Raster, 5.000 Mana, 24-h-Sperre) · **5 · `werkstatt`** (17 Originalwaren mit Original-Icons, Werkstätten, Warteschlangen, Voraussetzungen) |
-| Neue Prüfdateien | `test_w8_einhaengung` 39 · `test_punkte_einhaengung` 44 · `test_kampf_einhaengung` 42 · `test_gui_fehler` 22 (stille tkinter-Fehler werden laut) |
-| Neues Werkzeug | `tools/pruefe_verdrahtung.py` — Textbeweis aus `main.py`: **14 verdrahtet** (Stand 01:16), `botkern` nur importiert, `forschung`/`welt` nicht eingebunden; meldet doppelte Definitionen und zweite Wahrheiten (aktuell **0** Treffer) |
-| **Noch nicht fertig** | `forschung` (die Stufe steigt noch **sofort** statt nach Stufe² Stunden), `welt` (Weltkarte mit 20 Dimensionen), Teile von `botkern` (Bot-Verhalten je Runde) |
-| **Neu erledigt (01:26)** | **Auftragssystem ist FERTIG** (Schritt 7): Reisezeit, Ankunft mit **echtem Kampf** (`kampf.fuehre_schlacht` gegen die mitgeführte Verteidiger-Armee), Verluste mindern die Heimkehrer, Beute genau einmal gebucht, Berichte in den Nachrichten, Oberfläche (Knopf in der Diplomatie, „Laufende Aufträge" im Dorfzentrum) |
-| `.exe` | **05.10. 01:29 neu gebaut**: `Nebelseetal_Remake.exe`, **14.130.477 Byte**, SHA256 `09b789d5e96eec7334beea1bd1ded05af0d7dd42e48c46ed4613524d1b9cb043`; **Startprüfung bestanden** (Pfad mit Leerzeichen, Fenster „Nebelseetal Remake", kein Absturz, Passworttor steht; Passwort **nicht** eingegeben). Enthält Speichern, Punkte, Kampf, Portal, Werkstatt, Kampfsimulator und die kämpfenden Aufträge — **ohne** die drei offenen Punkte |
-| Kosten dieser Sitzung | **0,8362 USD = 0,7449 EUR** (`scripts/tageskosten_check.py --json`, Messung 01:24), davon **0,3444 USD** der auf Daniels Wunsch geholte `gpt-6-astra`-Rat; der Rest ist Koordinator + `flash`-Unteragenten |
-| Guthaben | Daniel ablesen lassen: OpenAI **3,04 → ~2,70 USD**, DeepSeek **1,70 USD** (Reserve 1,00 USD unberührt) — bitte bei der nächsten Sitzung erneut ablesen, ich kann es nicht messen |
-| Guthaben (neue Sitzung, **05.10. 06:25 von Daniel selbst abgelesen**) | **DeepSeek 5,48 USD** (platform.deepseek.com/usage — also aufgeladen, die 1,00-USD-Reserve bleibt unberührt) · **OpenAI 3,01 USD** (platform.openai.com → Billing/Overview). Damit ist der Auftrag weiter finanzierbar; teure Modelle nur mit Grund, Kosten nach jedem Aufruf messen |
+| Prüfstand | **1967 bestanden, 0 Fehler, 19 Befunde über 33 Dateien** (Sammellauf 07:0x, alle Rückgabewerte 0) |
+| Diese Sitzung geleistet | **Spielbarkeit hergestellt** (Siedlung → Karte → bauen → Ertrag; Ausbildung und Forschung laufen) und die **Oberfläche** nach dem Bildgutachten umgebaut |
+| Der schwerste Fund | „spielbar ist gar nichts" bei **grünem** Prüfstand: `_found_settlement` legte die Siedlung an, **zeichnete die Ansicht aber nicht neu** — damit war der ganze Weg versperrt. Commit `3688912`; neue Prüfdatei `tests/test_startspiel.py` (**37 Prüfungen, dreimal stabil 37/0/0**) |
+| Zweiter Fund | die Bots plünderten im **ersten** Tick **70 Holz + 70 Stein** am Tag 1 — **während der Noobschutz aktiv war**. Behoben, Meldung in den Nachrichten |
+| Oberfläche | Aufgabenkarte „Dein nächster Schritt" (aus dem Spielzustand abgeleitet, Knopf springt zur richtigen Ansicht) · Kennzahlen widerspruchsfrei · Entwicklertexte aus der Ansicht verbannt · **Siedlungskarte als Zeichenfläche** (64-px-Felder, Gelände-Embleme, Koordinaten A1–H5, Legende, Cyan-Auswahl, Ertrag im Bauknopf, Feld bleibt nach dem Bau ausgewählt) · Weltkarte ruhiger. Commits `c80154a`, `2a2b0a1` |
+| Gutachten gesichert | `docs/audits/ux_astra_bildurteil_2026-10-05.txt` (Umbau-Vorgaben) und `ux_astra_nachpruefung_2026-10-05.txt` (Nachprüfung: (b)/(f) behoben, (a)/(c)/(e) teilweise, drei Nachforderungen umgesetzt) |
+| `.exe` | 05.10. **07:05** gebaut: **14.464.338 Byte**, SHA256 `58cd48e9f527772c403a07a29ce419a35f41bfa50e473f23444cbe1bd722a401`, aus `C:\Users\saras` startgeprüft (Fenster „Nebelseetal Remake", eine Instanz, Passworttor steht). **Enthält Spielbarkeits-Fix UND Oberflächen-Umbau** |
+| Protokoll | **98 Zeilen** (auf Daniels Wunsch gekürzt; die Vollfassung mit 320 Zeilen liegt als `docs/ENTWICKLUNGSPROTOKOLL_VOLLFASSUNG_2026-10-05_0820.md` im Projekt, Commit `6cf1920`) |
+| Kosten heute (05.10.) | **1,6668 EUR** (`scripts/tageskosten_check.py --json`) — darin zwei Bildaufrufe an `gpt-6-astra` (14.279 Token). Die genaue OpenAI-Rechnung bitte auf der Billing-Seite ablesen: die Kosten-API ist mit dem vorhandenen Schlüssel **gesperrt** (HTTP 403) |
+| Guthaben | **von Daniel abzulesen.** Letzter Stand (06:25): DeepSeek **5,48 USD** · OpenAI **3,01 USD**; die zwei Bildaufrufe sind davon abgegangen |
+| Wartet auf Daniel | **Spielbericht zur neuen `.exe`** (er hat bisher die alte Fassung gespielt) · drei Handbuch-Lücken brauchen eine Zahl von ihm: **Mana je Siedlung** statt eines gemeinsamen Vorrats · **Materialkosten der Werkstätten** · **Sieg-/Niederlagebedingung** · der Erlös beim Handeln ist weiterhin ein VORSCHLAG (das Handbuch nennt keinen Warenpreis) |
 
 ### Der EINE nächste Schritt
 
-**Die Modul-Reihe aus `docs/UMSETZUNG_EINHAENGEN.md` (Abschnitt 5) ist durch** — `forschung` (W4c),
-`botkern` (W5) und `welt` (W4d) sind eingehängt, jede Einhängung mit eigener Nachprüfung. Belege:
-Verdrahtungsprüfer **17 verdrahtet / 0 nur importiert / 0 nicht eingebunden, Rückgabewert 0**
-(**kein Modul mehr offen**) · Sammellauf **1799/0/15 über 27 Dateien** · `.exe` vom 05.10. **02:08**
-gebaut, SHA256 `cfa0ed70460568ab57ee2176d31c4fe3f13fc7cf5d934367bde9679ef6c4df86`, aus einem anderen
-Ordner startgeprüft (Fenster „Nebelseetal Remake", Tor steht).
+**Die Weltkarte nachziehen.** astra hat den Umbau konkret beschrieben; der mittlere Teil ist schon
+drin (gedämpfte Farben, Legende, „Hier"-Markierung, kein Namensrauschen). Es fehlt der große Teil:
+in `src/main.py`, `_render_maps` und `_draw_map` — **Zeichenfläche mit 48 px je Feld**, eigene
+**Scrollbalken** waagerecht und senkrecht, **Zoomstufen** („− 100 % +"), eine kleine
+**Übersichtskarte** oben rechts, ein festes **Detailpanel** (Ort · Gelände · Status · Gebäude ·
+Aktion) und Ortsnamen nur an echten Orten. Wortlaut in
+`docs/audits/ux_astra_bildurteil_2026-10-05.txt`, Abschnitt A3.
+**Erwartetes Ergebnis:** neue Prüfdatei `tests/test_weltkarte.py` (Zoom, Auswahl, Detailpanel,
+Legende) grün · Sammellauf ohne neue Fehler · Protokollzeile · `.exe` neu bauen und startprüfen.
 
-**Was für das Ziel noch fehlt — ehrlich, in dieser Reihenfolge:**
-
-1. **Durchspielen** — **automatisch geprüft seit 05.10. 02:16**: `tests/test_durchspiel.py`
-   (36 Prüfungen) spielt eine Partie über die Spielmethoden und hat dabei einen **echten**
-   Fehler gefunden (die Einheiten wurden beim Speichern nie geschrieben — behoben). Offen bleibt
-   die **Partie von Hand mit Daniels Passwort** — nur er kann und darf das Tor passieren — sowie
-   die Frage, wie eine Partie endet (Sieg/Niederlage nennt das Handbuch nicht, siehe §7).
-2. **Die drei belegten Lücken des Handbuchs** (jede ist im Spiel sichtbar vermerkt):
-   **Mana je Siedlung** statt eines gemeinsamen Vorrats (das Portal verlangt 5.000 Mana aus EINER
-   Siedlung), **Materialkosten der Werkstätten** (das Handbuch nennt kein Rezept), **Sieg-/
-   Niederlagebedingung**.
-3. **Feiner Rest:** der **Erlös beim Handeln** bleibt ein VORSCHLAG-Wert (das Handbuch nennt keinen
-   Warenpreis) · die **Kampfbericht-Meldung** nennt das Ziel bisher nur im Log · der **Kampfsimulator**
-   ist ein Trockenkurs (bucht nichts) — so gewollt, aber ungeprüft im Spiel.
-
-**Nach jedem dieser Punkte:** betroffenen Einzeltest + einmal Sammellauf, Protokollzeile,
-`python tools/protokoll_sichern.py --protokoll`, kleiner Commit, und am Ende der Reihe die `.exe`
-neu bauen und aus einem anderen Ordner startprüfen.
-
-### Zielübergabe von Sitzung zu Sitzung (Vorgabe Daniel, 05.10.2026)
-
-**Das Ziel der alten Sitzung wird sauber beendet, und die neue Sitzung setzt genau dort an, wo die
-alte aufgehört hat — die Sitzung macht das selbst, nicht Daniel von Hand.**
-
-1. **Zielstand nachsehen, nie raten.** Ziele liegen im Zielregister (`state.db`, Tabelle
-   `state_meta`, Schlüssel `goal:<Sitzung>`). Eine Sitzung mit `status: active` **arbeitet weiter,
-   auch wenn ihr Chat archiviert ist** — am 05.10. war genau das der Fall (die alte Koordinator-
-   Sitzung hat bis 01:31 weitergeschrieben, während die neue Sitzung denselben Auftrag begann).
-   Abfrage (nur lesend):
-   `python -c "import sqlite3,json;c=sqlite3.connect('file:state.db?mode=ro',uri=True);[print(k,json.loads(v)['status']) for k,v in c.execute(\"select key,value from state_meta where key like 'goal:%'\")]"`
-2. **Altes Ziel sauber beenden:** `status` auf `cleared` setzen und im Feld `paused_reason`
-   festhalten, wer wann beendet hat (nicht löschen — der Datensatz bleibt nachvollziehbar). Im Chat
-   selbst tut `/goal clear` dasselbe.
-   **Werkzeug statt Handarbeit** (`tools/zieluebergabe.py`, Prüfdatei
-   `tests/test_zieluebergabe.py` 26 Prüfungen):
-   `--pruefen` (nur lesen; Rückgabe **1** = ein fremdes Ziel ist aktiv) ·
-   `--stand` (Tabelle aller Ziele) · `--beenden <Sitzung>` (GENAU diese Sitzung `cleared`) ·
-   `--fortsetzen <Sitzung>` (pausiertes Ziel wieder `active`) ·
-   `--naechster-schritt` (den EINEN nächsten Schritt aus diesem Abschnitt) ·
-   `--startzeile` (Startzeile für die neue Sitzung). Es startet **keine** Sitzung von selbst.
-3. **Neues Ziel in der neuen Sitzung setzen** (`/goal <Zieltext>`, Wortlaut wie in der alten Sitzung)
-   — es darf **genau eine** aktive Zielverfolgung geben.
-4. **Wiedereinstiegspunkt belegen:** dieser Abschnitt (0c) nennt den EINEN nächsten Schritt mit Datei,
-   Fundstelle und **erwarteter Zahl**. Die neue Sitzung arbeitet genau diesen Schritt. Halbfertige
-   Arbeit der Vorgängerin wird **übernommen und geprüft**, nie stillschweigend verworfen.
-5. **Prüfen statt behaupten:** `git log --oneline -3` + `git status --short` zeigen, was wirklich
-   committet ist; `stat -c %y <datei>` zeigt, ob noch jemand schreibt. Erst danach anfassen.
-6. **Nur EINE schreibende Sitzung.** Läuft noch ein Geisterläufer: erst ihn beenden, dann arbeiten.
-
-### Kontext-Paket für die neue Sitzung (bewusst klein halten — spart Geld und Fehler)
-
-| Reihenfolge | Was laden | Warum nicht mehr |
-|---|---|---|
-| 1 | **diese Datei, Abschnitt 0c** | Stand in Belegen und der eine nächste Schritt; der Rest der Datei ist Historie |
-| 2 | `docs/ENTWICKLUNGSPROTOKOLL.md`, **nur den Abschnitt „05.10.2026 — Tag 2"** | was zuletzt wirklich passierte, samt Irrwegen und Kosten |
-| 3 | `docs/UMSETZUNG_EINHAENGEN.md`, **nur § 1.7 (Aufträge) und § 2 (Kampfablauf-Fehlerfälle)** | der Plan für genau diesen Schritt |
-| 4 | `src/auftraege.py` — **nur der Modulkopf und die öffentlichen Funktionen** (`grep -n "^def "`) | die Signaturen genügen; das Innenleben ist durch 111 Prüfungen gedeckt |
-| 5 | `src/main.py` — **nur** `GameState.__init__`, die Fundstelle des „Transport"-Knopfes, `_tick_loop`, `save`/`load` | nie die ganze 2400-Zeilen-Datei laden |
-| 6 | `data/*.json` **nur**, wenn eine konkrete Zahl gebraucht wird (und dann mit Quelle) | Zahlen haben eine Quelle, nicht im Kopf |
-
-**Nicht in den Kontext:** die vollständige `main.py`, ganze Testprotokolle (nur Fehlerzeilen),
-die Chat-Historie, `docs/archiv/`, `docs/audits/` (außer man braucht ein bestimmtes Gutachten),
-abgeschlossene Schritte im Detail, wiederholte Regeltexte.
-
-**Werkzeuge statt Lesen:** `python tools/pruefe_verdrahtung.py` sagt in Sekunden, welche Module wirklich
-verdrahtet sind (und ob es eine zweite Wahrheit gibt); der Sammellauf ist die Wahrheit über den Zustand;
-`docs/SICHERUNGEN.md` zeigt, wo die Papiere liegen; `git log --oneline -3` + `git status --short` sind
-die Sekunden-Checks vor dem Anfassen von `src/`.
-
-**Zwei Hausregeln, die diese Sitzung teuer gelernt hat:** (a) **eine Spieleraktion je Commit** —
-keine fremde Aufräumarbeit mit hineinnehmen; (b) **prüfende Unteragenten erst nach dem Commit
-loslassen**, sonst messen sie einen bewegten Zwischenstand.
-
-### Danach in dieser Reihenfolge
-
-`auftraege` (Reisezeit, Rückkehr, Beute, Bericht) · `forschung` mit Wartezeit statt Sofort-Stufe ·
-`botkern` vollständig (Bot-Stärken und echtes Bot-Lager — heute sind die Bot-Armeen erfundene
-20–120 je Einheit, dadurch ist ein Bot-Angriff praktisch aussichtslos) · `welt`/Portalraum-Feinschliff ·
-**danach die `.exe` erneut bauen** (die Fassung vom 05.10. 00:53 enthält die noch offenen Module nicht)
-und wieder aus einem anderen Ordner startprüfen.
-
-### Nicht erneut zu prüfen (Beleg steht hier)
-
-| Sache | Beleg | Stand |
-|---|---|---|
-| Prüfstand | Lauf 01:18, Rückgabewert 0 | 1798 / 0 Fehler / 15 Befunde, 27 Dateien |
-| Die Einhängungen | je eigene Nachprüfung des Koordinators + Sammellauf | 05.10. 23:55–01:22 |
-| Stille tkinter-Fehler | `test_gui_fehler` 22/0/1 | 18 Ansichten, 13 Aktionen, 0 echte Fehler |
-| Verdrahtungsstand | `tools/pruefe_verdrahtung.py` | 14 verdrahtet, 1 nur importiert (`botkern`), 2 offen (`forschung`, `welt`), 0 zweite Wahrheiten |
-| Papiere gesichert | `MANIFEST.txt` mit SHA256 je Datei | 05.10. 01:08, 16 Dateien |
+**VORRANG hat ein Spielbericht von Daniel:** findet er beim Spielen etwas, ist zuerst das dran.
 
 ### So startet die neue Sitzung (Sekunden-Checks statt Sammellauf)
 
@@ -185,8 +81,27 @@ git log --oneline -3     # nur docs/* dazu? dann ist nichts nachzuprüfen
 git status --short       # leer = sauber
 ```
 
-Nur wenn `src/` angefasst wird: betroffenen Einzeltest laufen lassen, **einmal** am Ende des Schritts
-den Sammellauf.
+Nur wenn `src/` angefasst wird: betroffenen Einzeltest laufen lassen, **einmal** am Ende den
+Sammellauf.
+
+### Kontext-Paket für die neue Sitzung (bewusst klein halten)
+
+| Reihenfolge | Was laden | Warum nicht mehr |
+|---|---|---|
+| 1 | **diese Datei, Abschnitt 0c** | Stand in Belegen und der eine nächste Schritt |
+| 2 | `docs/ENTWICKLUNGSPROTOKOLL.md` — jetzt **98 Zeilen**, ganz lesbar | was wirklich passiert ist, mit Kennungen |
+| 3 | `docs/audits/ux_astra_bildurteil_2026-10-05.txt`, **Abschnitt A3 und C** | der Plan für die Weltkarte |
+| 4 | `src/main.py` — **nur** `_render_maps`, `_draw_map`, `_on_map_click` | das Innenleben ist durch Prüfungen gedeckt |
+| 5 | `tests/test_startspiel.py` als **Vorlage** für eine Prüfdatei, die echte Klicks fährt | zeigt, wie man Oberfläche prüft |
+
+**Nicht in den Kontext:** die vollständige `main.py` (über 3.200 Zeilen), ganze Testprotokolle,
+`docs/archiv/`, die Chat-Historie, die Vollfassung des Protokolls.
+
+**Zwei Lehren dieser Sitzung, die teuer waren:** (a) **ein grüner Prüfstand beweist keine
+Spielbarkeit** — die alte Prüfung fuhr die *Methoden* statt der Schaltflächen und mit 100.000
+Rohstoffen statt mit den Startwerten (100 Holz, 100 Stein, 10 Siedler); (b) **Zeiten nie schätzen** —
+drei Protokollzeilen standen mit erfundenen Uhrzeiten (07:05/08:20/08:45), die echten
+Commit-Zeiten sind 06:41/07:04/07:14. Beides steht im Protokoll und im Skill `nebelseetal-remake`.
 
 ---
 

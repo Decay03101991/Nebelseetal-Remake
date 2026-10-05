@@ -53,9 +53,14 @@ nichts wird geschätzt.
 | 02:24–02:45 | Aufträge kämpfen am Ziel, Kampfbericht nennt das Ziel, `tools/zieluebergabe.py`, Ladeansicht mit Titelbild, Symbol aus dem Nebelsee-Bild | **1799/0/15**, **1776 bestanden**, **1835/0/16**, **1847/0/17**, **1873/0/17**, **1892/0/18**, **1912/0/19**; Symbol in sechs Größen **16/32/48/64/128/256** (die alte braune Wappenfarbe war **65/31/13**, die beigelegte Datei war ein GIF) |
 | 02:47–03:00 | Protokoll verdichtet (462 → 302 Zeilen); die Verlustprüfung fand einen **echten Verlust** und behob ihn | `9e2a1e4` (Vor-Fassung aufbewahrt), `dece98b` |
 | 06:06–06:28 | Sitzung sauber übergeben: Zielregister beendet, Kanban-Karten archiviert, Übergabe nachgezogen, neues Ziel gesetzt | `32152e1`, `15a8cff`, `dece98b` |
-| 07:05 | **Der schwerste Fund:** „spielbar ist gar nichts" — eine fehlende Neuzeichnung blockierte das ganze Spiel; dazu plünderten die Bots am Tag 1 im Noobschutz **70 Holz + 70 Stein** | `3688912` — **1959/0/20** über 33 Dateien |
-| 08:20 | **Benutzerführung und Karten** nach dem Bildgutachten von `gpt-6-astra`: Aufgabenkarte, Siedlungskarte als Zeichenfläche, Weltkarte ohne Konfetti | `c80154a`, `2a2b0a1` — **1967/0/19** über 33 Dateien |
-| 08:45 | Protokoll auf Ihre Vorgabe hin gekürzt; die vollständige Fassung (320 Zeilen) aufbewahrt und committet | `6cf1920` |
+| 06:41 | **Der schwerste Fund:** „spielbar ist gar nichts" — eine fehlende Neuzeichnung blockierte das ganze Spiel; dazu plünderten die Bots am Tag 1 im Noobschutz **70 Holz + 70 Stein** | `3688912` — **1959/0/20** über 33 Dateien |
+| 07:04 | **Benutzerführung und Karten** nach dem Bildgutachten von `gpt-6-astra`: Aufgabenkarte, Siedlungskarte als Zeichenfläche, Weltkarte ohne Konfetti | `c80154a`, `2a2b0a1` — **1967/0/19** über 33 Dateien |
+| 07:14 | Protokoll auf Ihre Vorgabe hin gekürzt; die vollständige Fassung (320 Zeilen) aufbewahrt und committet | `6cf1920` |
+
+**Eigene Korrektur, mit `git log` belegt:** die drei Zeilen zu Schritt 21/22 und zur Kürzung standen
+zuerst mit **geschätzten** Zeiten (07:05, 08:20, 08:45). Die echten Commit-Zeiten sind **06:41**,
+**07:04** und **07:14** — ich hatte vor dem Schreiben nicht `date` gefragt. Zeiten werden ab jetzt
+immer mit `date` (oder `git log --format=%ci`) geholt, nie aus dem Gefühl geschrieben.
 
 ## Kennungen (alle Commits, die dieses Protokoll nennt)
 
@@ -96,3 +101,5 @@ sie ausgesetzt.
   liegt) · nie schätzen — fehlt ein Wert, `null` plus Begründung · jede Modell- und Kind-Antwort
   nachrechnen · Unteragenten arbeiten nur an neuen Dateien mit eigener Prüfdatei und führen kein
   eigenes Brett · Agent-zu-Agent Englisch/ASCII, alles für Daniel Deutsch · kleine Commits.
+
+| 10:42 | **23 · Sitzungswechsel: Übergabe neu geschrieben und einen eigenen Zeitfehler korrigiert** | Abschnitt 0 und 0c in `docs/PROJEKT_STAND.md` neu gefasst: Stand in Belegen, der EINE nächste Schritt (**Weltkarte nach der astra-Vorgabe**), das Kontext-Paket und die Startzeile zum Kopieren. **Zielregister geprüft:** kein fremdes aktives Ziel, kein Spielprozess offen — und das eigene Ziel hat der **Zielrichter auf `done` gesetzt** (1/20 Takte), es läuft also nichts von selbst weiter; eine neue Sitzung setzt ein **neues** Ziel. **Eigener Fehler, gefunden und behoben:** drei Zeilen dieses Protokolls standen mit **geschätzten** Uhrzeiten (07:05 / 08:20 / 08:45), die echten Commit-Zeiten sind **06:41 / 07:04 / 07:14** — korrigiert und als Korrektur gekennzeichnet. Belege: Prüfstand **1967/0/19** über 33 Dateien · `.exe` 14.464.338 Byte, SHA256 `58cd48e9…`, aus einem anderen Ordner startgeprüft · Arbeitsverzeichnis sauber. |
