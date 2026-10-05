@@ -383,6 +383,25 @@ MAPS = [
     {"id": "sümpfe", "name": "Glimmersümpfe", "size": 7, "difficulty": 2, "bonus": "mana", "npcs": ["hexe", "banditen"], "quests": ["Sumpffieber", "Banditenlager"]},
     {"id": "portalreich", "name": "Portalreich", "size": 10, "difficulty": 4, "bonus": "gold", "npcs": ["wächter", "magier"], "quests": ["Portalwächter", "Arkaner Schlüssel"]},
 ]
+# ---------- Weltkarte: astra-Bildgutachten 05.10.2026, Abschnitt A3 ----------
+# astra verlangt ein gedämpftes Farbbild, 48 px je Feld als Standard und Zoomstufen. Die Stufen,
+# die Regionsnamen und die Übersichtskarte sind unser VORSCHLAG — das Originalhandbuch nennt
+# weder Kachelgrößen noch Regionsnamen; es belegt nur die 20x20-Dimension und grün/rot im Portal.
+WELT_ZOOM_STUFEN = (16, 24, 32, 48, 64, 96)
+WELT_ZOOM_STANDARD = 48
+WELT_GELAENDEFARBEN = {
+    "forest": "#2F4A2E", "plains": "#6E7A3A", "mountain": "#5B5F63",
+    "water": "#1F4E6E", "village": "#8A6A2A", "ruins": "#4A3B63",
+}
+WELT_GELAENDENAMEN = {
+    "forest": "Wald", "plains": "Ebene", "mountain": "Gebirge",
+    "water": "Wasser", "village": "Dorf", "ruins": "Ruine",
+}
+WELT_GELAENDEREIHENFOLGE = ("forest", "plains", "mountain", "water", "village", "ruins")
+WELT_REGIONEN = ("Nordwesten", "Norden", "Nordosten",
+                 "Westen", "Zentrum", "Osten",
+                 "Südwesten", "Süden", "Südosten")
+
 BOTS = [
     BotPlayer("Haug", "menschlich", aggression=0.3, trading=0.8),
     BotPlayer("Brynhild", "menschlich", aggression=0.5, trading=0.6),
@@ -2334,60 +2353,432 @@ class NebelseetalApp:
     def _save_profile(self):
         self._log("Profil gespeichert. Noch ohne dauerhafte Speicherung.")
 
+    # ---------- Weltkarte (astra-Bildgutachten 05.10.2026, Abschnitt A3) ----------
+    #
+    # astra wörtlich: „Die Karte ist ein grelles Farbmosaik ohne lesbare räumliche Struktur",
+    # „Es fehlen Standort, Auswahl und verständlicher Klickzweck", „Kartenwechsel und
+    # Zugangsvoraussetzungen verschwinden am unteren Rand". Umgebaut wurde: eine Zeichenfläche mit
+    # 48 px je Feld in EIGENEN Scrollbalken, Zoomstufen („−  100 %  +"), die Gebietsleiste OBEN,
+    # eine kleine Übersichtskarte oben rechts, ein festes Detailpanel rechts — und ein einfacher
+    # Klick wählt nur aus (vorher erforschte und erledigte er still Nebenwirkungen).
+
+    def _welt_gebiet_status(self, map_id: str) -> str:
+        """hier / aktiv / freigeschaltet / gesperrt — dieselbe Einteilung wie in den Spieldaten."""
+        if map_id == self.state.current_map:
+            return "hier"
+        if map_id in self.state.active_maps:
+            return "aktiv"
+        if map_id in self.state.unlocked_maps:
+            return "freigeschaltet"
+        return "gesperrt"
+
+    def _welt_gebiet_name(self, map_id: str) -> str:
+        cfg = next((m for m in MAPS if m["id"] == map_id), None)
+        return str(cfg["name"]) if cfg else str(map_id)
+
+    def _welt_gebiet_beschriftung(self, map_id: str) -> str:
+        """Der Text im Gebietsmenü — gesperrte Gebiete ausdrücklich benannt (astra A3)."""
+        status = self._welt_gebiet_status(map_id)
+        name = self._welt_gebiet_name(map_id)
+        if status == "hier":
+            return f"{name} (hier)"
+        if status == "aktiv":
+            return name
+        if status == "freigeschaltet":
+            return f"{name} – nicht betreten"
+        return f"{name} – gesperrt"
+
+    def _welt_gebiet_wechseln(self, beschriftung: str):
+        for m in MAPS:
+            if self._welt_gebiet_beschriftung(m["id"]) == beschriftung:
+                self.welt_gebiet = m["id"]
+                self.welt_auswahl = None
+                self._render_view()
+                return
+
+    def _welt_koordinate(self, x: int, y: int) -> str:
+        """A1, G12 — dieselbe Schreibweise wie auf der Siedlungskarte."""
+        return f"{self._spaltenname(int(x))}{int(y) + 1}"
+
+    def _welt_zoom_prozent(self) -> int:
+        zelle = float(getattr(self, "welt_zelle", WELT_ZOOM_STANDARD))
+        return int(round(100.0 * zelle / WELT_ZOOM_STANDARD))
+
+    def _welt_zoom(self, richtung: int):
+        """Eine Zoomstufe weiter/zurück; die Mitte der Ansicht bleibt stehen (astra A3)."""
+        stufen = list(WELT_ZOOM_STUFEN)
+        aktuell = int(getattr(self, "welt_zelle", WELT_ZOOM_STANDARD))
+        i = stufen.index(aktuell) if aktuell in stufen else stufen.index(WELT_ZOOM_STANDARD)
+        neu = stufen[max(0, min(len(stufen) - 1, i + richtung))]
+        if neu == aktuell:
+            return
+        c = getattr(self, "map_canvas", None)
+        mitte = (0.5, 0.5)
+        if c is not None and c.winfo_exists():
+            alt = max(1.0, self._map_size * aktuell)
+            mitte = (c.canvasx(max(1, c.winfo_width()) / 2.0) / alt,
+                     c.canvasy(max(1, c.winfo_height()) / 2.0) / alt)
+        self.welt_zelle = neu
+        self._draw_map()
+        beschriftung = getattr(self, "welt_zoom_label", None)
+        if beschriftung is not None:
+            beschriftung.config(text=f"{self._welt_zoom_prozent()} %")
+        if c is not None and c.winfo_exists():
+            neu_gesamt = max(1.0, self._map_size * neu)
+            c.xview_moveto(max(0.0, min(1.0, mitte[0] - (c.winfo_width() / 2.0) / neu_gesamt)))
+            c.yview_moveto(max(0.0, min(1.0, mitte[1] - (c.winfo_height() / 2.0) / neu_gesamt)))
+            self._welt_uebersicht_update()
+
+    def _welt_rad(self, ereignis):
+        """Mausrad über der Karte scrollt die KARTE, nicht die Seite."""
+        c = getattr(self, "map_canvas", None)
+        if c is None or not c.winfo_exists():
+            return
+        c.yview_scroll(int(-ereignis.delta / 120), "units")
+        self._welt_uebersicht_update()
+
+    def _welt_mitte(self, x: int, y: int):
+        """Die Ansicht auf ein Feld ziehen (für „Zum aktuellen Ort")."""
+        c = getattr(self, "map_canvas", None)
+        if c is None or not c.winfo_exists():
+            return
+        gesamt = max(1.0, int(self._map_size or 20) * int(self.welt_zelle))
+        bw = float(c.winfo_width() if c.winfo_width() > 10 else 640)
+        bh = float(c.winfo_height() if c.winfo_height() > 10 else 470)
+        zx = (x + 0.5) * self.welt_zelle - bw / 2.0
+        zy = (y + 0.5) * self.welt_zelle - bh / 2.0
+        c.xview_moveto(max(0.0, min(1.0, zx / gesamt)))
+        c.yview_moveto(max(0.0, min(1.0, zy / gesamt)))
+        self._welt_uebersicht_update()
+
+    def _welt_aktueller_ort(self):
+        """Der eigene Ort auf der gezeigten Karte (oder None)."""
+        return next((s for s in self.state.settlements if s.map_id == self.state.current_map), None)
+
+    def _welt_zum_aktuellen_ort(self):
+        ort = self._welt_aktueller_ort()
+        if ort is None:
+            self._log("Noch kein eigener Ort auf dieser Karte.")
+            return
+        self.welt_auswahl = (int(ort.x), int(ort.y))
+        self._welt_detail_zeichnen()
+        self._draw_map()
+        self._welt_mitte(int(ort.x), int(ort.y))
+
+    def _welt_uebersicht_update(self):
+        """Den SICHTBAREN Ausschnitt als Rechteck in der kleinen Übersichtskarte zeigen."""
+        klein = getattr(self, "welt_uebersicht", None)
+        rahmen = getattr(self, "_welt_uebersicht_rahmen", None)
+        c = getattr(self, "map_canvas", None)
+        if klein is None or rahmen is None or c is None:
+            return
+        try:
+            if not klein.winfo_exists() or not c.winfo_exists():
+                return
+            kante = float(klein.winfo_width() or 132)
+            gesamt = max(1.0, int(self._map_size or 20) * int(self.welt_zelle))
+            x0 = c.canvasx(0) / gesamt * kante
+            y0 = c.canvasy(0) / gesamt * kante
+            x1 = c.canvasx(max(1, c.winfo_width())) / gesamt * kante
+            y1 = c.canvasy(max(1, c.winfo_height())) / gesamt * kante
+            klein.coords(rahmen, x0, y0, max(2.0, min(kante, x1)), max(2.0, min(kante, y1)))
+            klein.tag_raise(rahmen)
+        except Exception:
+            pass
+
+    def _welt_uebersicht_zeichnen(self):
+        """Die kleine Übersichtskarte (Geländefarben, eigener Ort, aktuelles Feld)."""
+        klein = getattr(self, "welt_uebersicht", None)
+        if klein is None or not klein.winfo_exists():
+            return
+        klein.delete("all")
+        self._welt_uebersicht_rahmen = None
+        if self.welt_gebiet != self.state.current_map or not self.state.map_tiles:
+            klein.create_text(66, 66, text="nicht betreten", fill="#8A94A0",
+                              font=("TkDefaultFont", 8))
+            return
+        gitter = max(1, int(self._map_size or 20))
+        breite = klein.winfo_width()
+        kante = float(breite if breite and breite > 10 else 132)
+        kachel = kante / gitter
+        for tile in self.state.map_tiles:
+            klein.create_rectangle(tile.x * kachel, tile.y * kachel,
+                                   (tile.x + 1) * kachel, (tile.y + 1) * kachel,
+                                   fill=WELT_GELAENDEFARBEN.get(tile.terrain, "#111317"),
+                                   outline="")
+        for s in self.state.settlements:
+            if s.map_id != self.state.current_map:
+                continue
+            cx, cy = (s.x + 0.5) * kachel, (s.y + 0.5) * kachel
+            klein.create_oval(cx - 2, cy - 2, cx + 2, cy + 2, fill="#2563EB", outline="")
+        self._welt_uebersicht_rahmen = klein.create_rectangle(0, 0, 0, 0, outline="#F3F4F6", width=2)
+        self._welt_uebersicht_update()
+
+    def _welt_legende(self, eltern):
+        """Legende als eigene Beschriftungen — Gelände, Ortszeichen und der eigene Ort."""
+        legende = tk.Frame(eltern, bg=self.skin["panel"])
+        legende.pack(fill=tk.X, padx=6, pady=(8, 0))
+        tk.Label(legende, text="Legende", fg=self.skin["gold"], bg=self.skin["panel"],
+                 font=("TkDefaultFont", 10, "bold")).pack(anchor=tk.W)
+        for art in WELT_GELAENDEREIHENFOLGE:
+            zeile = tk.Frame(legende, bg=self.skin["panel"])
+            zeile.pack(anchor=tk.W, fill=tk.X)
+            tk.Label(zeile, text="      ", bg=WELT_GELAENDEFARBEN[art]).pack(side=tk.LEFT, padx=(0, 4))
+            tk.Label(zeile, text=WELT_GELAENDENAMEN[art], fg="#E6E9EE",
+                     bg=self.skin["panel"]).pack(side=tk.LEFT)
+        tk.Label(legende, text="●  Ort (Rohstoffe, Lager, Aufgabe)", fg="#E6E9EE",
+                 bg=self.skin["panel"]).pack(anchor=tk.W, pady=(4, 0))
+        tk.Label(legende, text="⚑  Hier — deine Siedlung", fg="#E6E9EE",
+                 bg=self.skin["panel"]).pack(anchor=tk.W)
+
+    def _welt_gebiet_panel(self, eltern, map_id: str):
+        """Was rechts vom Gebietsmenü steht, wenn dieses Gebiet nicht die eigene Karte ist."""
+        status = self._welt_gebiet_status(map_id)
+        name = self._welt_gebiet_name(map_id)
+        rahmen = tk.Frame(eltern, bg=self.skin["panel"])
+        rahmen.pack(fill=tk.BOTH, expand=True, padx=18, pady=18)
+        if status == "gesperrt":
+            tk.Label(rahmen, text=f"{name} ist gesperrt.", fg=self.skin["gold"],
+                     bg=self.skin["panel"], font=("TkDefaultFont", 13, "bold")).pack(anchor=tk.W)
+            tk.Label(rahmen, text="Zugang: Portal ausbauen oder „Vermessung“ erforschen.",
+                     fg=self.skin["text"], bg=self.skin["panel"], wraplength=560,
+                     justify=tk.LEFT).pack(anchor=tk.W, pady=(2, 10))
+            tk.Button(rahmen, text="Zum Portal", command=lambda: self._switch_view("Portal"),
+                      bg=self.skin["button"], fg=self.skin["gold"]).pack(anchor=tk.W, pady=2)
+            tk.Button(rahmen, text="Zur Forschung", command=lambda: self._switch_view("Forschung"),
+                      bg=self.skin["button"], fg=self.skin["gold"]).pack(anchor=tk.W, pady=2)
+            return
+        tk.Label(rahmen, text=f"{name} — noch nicht betreten.", fg=self.skin["gold"],
+                 bg=self.skin["panel"], font=("TkDefaultFont", 13, "bold")).pack(anchor=tk.W)
+        besatzung = sum(self.state.map_garrison.get(map_id, {}).values())
+        tk.Label(rahmen, text=f"Besatzung: {besatzung} Einheiten.", fg=self.skin["text"],
+                 bg=self.skin["panel"]).pack(anchor=tk.W, pady=(2, 10))
+        if map_id in self.state.active_maps:
+            tk.Button(rahmen, text=f"Betreten ({self.state.map_switch_cost} Gold)",
+                      command=lambda mid=map_id: self._enter_map(mid), bg=self.skin["button"],
+                      fg=self.skin["gold"]).pack(anchor=tk.W, pady=2)
+            tk.Button(rahmen, text="Einheiten stationieren",
+                      command=lambda mid=map_id: self._station_on_map(mid),
+                      bg=self.skin["button"], fg=self.skin["gold"]).pack(anchor=tk.W, pady=2)
+            if map_id != "kontinent":
+                tk.Button(rahmen, text="Angreifen", command=lambda mid=map_id: self._attack_map(mid),
+                          bg=self.skin["button"], fg=self.skin["red"]).pack(anchor=tk.W, pady=2)
+                tk.Button(rahmen, text="Karte zerstören",
+                          command=lambda mid=map_id: self._destroy_map(mid),
+                          bg=self.skin["button"], fg=self.skin["red"]).pack(anchor=tk.W, pady=2)
+        else:
+            tk.Label(rahmen, text="Freigeschaltet, aber noch nicht betreten — der Wechsel "
+                                  "kostet Gold.", fg=self.skin["text"], bg=self.skin["panel"],
+                     wraplength=560, justify=tk.LEFT).pack(anchor=tk.W)
+
     def _render_maps(self):
-        tk.Label(self.content, text="Weltkarte — Orte entdecken", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 2))
+        tk.Label(self.content, text="Weltkarte – Orte entdecken",
+                 font=("Blackletter", 20, "bold"), fg=self.skin["gold"],
+                 bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 2))
         tk.Label(self.content, text="Hier erkundest du die Welt. Gebäude, die Rohstoffe liefern, "
                                     "baust du NICHT hier, sondern auf der Karte deiner Siedlung "
-                                    "(Dorfzentrum → „Karte öffnen“). Ein Klick auf ein Feld zeigt, "
-                                    "was dort liegt.",
-                 fg="#F3F4F6", bg=self.skin["bg"], wraplength=820,
+                                    "(Dorfzentrum → „Karte öffnen“). Ein Klick wählt ein Feld aus — "
+                                    "was dort liegt, steht rechts.",
+                 fg="#F3F4F6", bg=self.skin["bg"], wraplength=940,
                  justify=tk.LEFT).pack(anchor=tk.W, padx=10)
-        cfg = next(m for m in MAPS if m["id"] == self.state.current_map)
-        size = cfg["size"]
-        frame = tk.Frame(self.content, bg=self.skin["panel"])
-        frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        self.map_canvas = tk.Canvas(frame, width=520, height=520, bg=self.skin["bg"], highlightthickness=0)
-        self.map_canvas.pack()
+
+        if not hasattr(self, "welt_gebiet") or self.welt_gebiet not in [m["id"] for m in MAPS]:
+            self.welt_gebiet = self.state.current_map
+        if not hasattr(self, "welt_zelle"):
+            self.welt_zelle = WELT_ZOOM_STANDARD
+        if not hasattr(self, "welt_auswahl"):
+            self.welt_auswahl = None
+        if not hasattr(self, "_show_buildings"):
+            self._show_buildings = True
+        if not hasattr(self, "_welt_start"):
+            self._welt_start = None
+        self._map_size = next(m for m in MAPS if m["id"] == self.state.current_map)["size"]
+
+        # --- Gebietsleiste OBEN (astra A3: der Kartenwechsel gehört nicht unter die Karte) ---
+        leiste = tk.Frame(self.content, bg=self.skin["panel"])
+        leiste.pack(fill=tk.X, padx=10, pady=(6, 2))
+        tk.Label(leiste, text="Gebiet:", fg=self.skin["gold"], bg=self.skin["panel"],
+                 font=("TkDefaultFont", 10, "bold")).pack(side=tk.LEFT, padx=(6, 2))
+        werte = [self._welt_gebiet_beschriftung(m["id"]) for m in MAPS]
+        self.welt_gebiet_var = tk.StringVar(value=self._welt_gebiet_beschriftung(self.welt_gebiet))
+        self.welt_gebiet_menu = tk.OptionMenu(leiste, self.welt_gebiet_var, *werte,
+                                             command=self._welt_gebiet_wechseln)
+        self.welt_gebiet_menu.config(bg=self.skin["button"], fg=self.skin["gold"],
+                                     activebackground="#5D4037", highlightthickness=0,
+                                     font=("TkDefaultFont", 10))
+        try:
+            self.welt_gebiet_menu["menu"].config(bg=self.skin["panel"], fg=self.skin["text"])
+        except Exception:
+            pass
+        self.welt_gebiet_menu.pack(side=tk.LEFT)
+        tk.Button(leiste, text="Zum aktuellen Ort", command=self._welt_zum_aktuellen_ort,
+                  bg=self.skin["button"], fg=self.skin["gold"]).pack(side=tk.LEFT, padx=8)
+
+        # --- Zoomstufen („−  100 %  +", astra A3) ---
+        tk.Label(leiste, text="Zoom:", fg=self.skin["text"], bg=self.skin["panel"]).pack(
+            side=tk.LEFT, padx=(14, 2))
+        tk.Button(leiste, text="−", width=2, command=lambda: self._welt_zoom(-1),
+                  bg=self.skin["button"], fg=self.skin["gold"]).pack(side=tk.LEFT)
+        self.welt_zoom_label = tk.Label(leiste, text=f"{self._welt_zoom_prozent()} %",
+                                        fg=self.skin["text"], bg=self.skin["panel"], width=6)
+        self.welt_zoom_label.pack(side=tk.LEFT)
+        tk.Button(leiste, text="+", width=2, command=lambda: self._welt_zoom(1),
+                  bg=self.skin["button"], fg=self.skin["gold"]).pack(side=tk.LEFT)
+        tk.Button(leiste, text="Ortszeichen ausblenden", command=self._toggle_buildings,
+                  bg=self.skin["button"], fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=6)
+
+        # --- Hauptbereich: links die Zeichenfläche, rechts Übersicht + Legende + Detailpanel ---
+        haupt = tk.Frame(self.content, bg=self.skin["bg"])
+        haupt.pack(fill=tk.BOTH, expand=True, padx=10, pady=(4, 10))
+        links = tk.Frame(haupt, bg=self.skin["panel"])
+        links.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        rechts = tk.Frame(haupt, bg=self.skin["panel"], width=300)
+        rechts.pack(side=tk.RIGHT, fill=tk.Y, padx=(10, 0))
+        rechts.pack_propagate(False)
+
+        if self.welt_gebiet != self.state.current_map:
+            self.map_canvas = None
+            self._welt_gebiet_panel(links, self.welt_gebiet)
+        else:
+            self._welt_zeichnen_aufbau(links)
+
+        # Übersichtskarte oben rechts im Kartenbereich
+        tk.Label(rechts, text="Übersicht", fg=self.skin["gold"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=6)
+        self.welt_uebersicht = tk.Canvas(rechts, width=132, height=132, bg="#0F1418",
+                                         highlightthickness=1, highlightbackground="#3A4550")
+        self.welt_uebersicht.pack(anchor=tk.W, padx=6, pady=(2, 0))
+        self._welt_uebersicht_zeichnen()
+
+        self._welt_legende(rechts)
+
+        # Festes Detailpanel (astra A3: „[Ortsname] · G12 / Gelände / Status / Gebäude / Aktion")
+        tk.Label(rechts, text="Ausgewählter Ort", fg=self.skin["gold"], bg=self.skin["panel"]).pack(
+            anchor=tk.W, padx=6, pady=(10, 0))
+        self.welt_detail = tk.Frame(rechts, bg=self.skin["panel"], bd=1, relief=tk.GROOVE)
+        self.welt_detail.pack(fill=tk.X, padx=6, pady=(2, 6))
+        self._welt_detail_zeichnen()
+
+    def _welt_zeichnen_aufbau(self, eltern):
+        """Die eigentliche Zeichenfläche samt eigener waagerechter und senkrechter Scrollbalken."""
+        self.map_canvas = tk.Canvas(eltern, width=720, height=480, bg="#0F1418",
+                                    highlightthickness=0)
+        xsb = tk.Scrollbar(eltern, orient=tk.HORIZONTAL,
+                           command=lambda *a: (self.map_canvas.xview(*a),
+                                               self._welt_uebersicht_update()))
+        ysb = tk.Scrollbar(eltern, orient=tk.VERTICAL,
+                           command=lambda *a: (self.map_canvas.yview(*a),
+                                               self._welt_uebersicht_update()))
+        self.map_canvas.config(xscrollcommand=xsb.set, yscrollcommand=ysb.set)
+        self.welt_xsb, self.welt_ysb = xsb, ysb
+        ysb.pack(side=tk.RIGHT, fill=tk.Y)
+        xsb.pack(side=tk.BOTTOM, fill=tk.X)
+        # FESTE Groesse, nicht expandierend: sonst waechst die Zeichenflaeche auf die Fensterbreite
+        # und bei 48 px passt die ganze Karte hinein — die Scrollbalken waeren ohne Wirkung
+        # (astra A3: „Die gesamte Karte muss nicht gleichzeitig ins Fenster passen").
+        self.map_canvas.pack(side=tk.LEFT)
         self.map_canvas.bind("<Button-1>", self._on_map_click)
-        self._map_size = size
-        self._show_buildings = True
-        tk.Button(self.content, text="Kartenzeichen (Orte) ausblenden", command=self._toggle_buildings, bg=self.skin["button"], fg=self.skin["gold"]).pack(anchor=tk.W, padx=10, pady=(2, 6))
-        self._render_map_controls()
-        self._draw_map(size)
+        self.map_canvas.bind("<MouseWheel>", self._welt_rad)
+        self.map_canvas.bind("<Configure>", lambda _e: self._welt_uebersicht_update())
+        self._draw_map()
 
-    def _render_map_controls(self):
-        """Kartenliste mit Betreten/Stationieren/Angreifen/Zerstören."""
-        ctrl = tk.Frame(self.content, bg=self.skin["panel"])
-        ctrl.pack(fill=tk.X, padx=10, pady=(0, 10))
-        tk.Label(ctrl, text="Kartenverwaltung", fg=self.skin["gold"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=5, pady=(4, 2))
-        for m in MAPS:
-            row = tk.Frame(ctrl, bg=self.skin["panel"])
-            row.pack(fill=tk.X, padx=5, pady=1)
-            if m["id"] in self.state.active_maps:
-                status = "aktiv (hier)" if m["id"] == self.state.current_map else "aktiv"
-            elif m["id"] in self.state.unlocked_maps:
-                status = "freigeschaltet"
-            else:
-                status = "gesperrt"
-            garrison = sum(self.state.map_garrison.get(m["id"], {}).values())
-            tk.Label(row, text=f"{m['name']} [{status}] Besatzung: {garrison}",
-                     fg=self.skin["text"], bg=self.skin["panel"], width=40, anchor=tk.W).pack(side=tk.LEFT, padx=2)
-            if m["id"] in self.state.active_maps:
-                if m["id"] != self.state.current_map:
-                    tk.Button(row, text=f"Betreten ({self.state.map_switch_cost} 💰)",
-                              command=lambda mid=m["id"]: self._enter_map(mid),
-                              bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=2)
-                tk.Button(row, text="Stationieren", command=lambda mid=m["id"]: self._station_on_map(mid),
-                          bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=2)
-                if m["id"] != "kontinent":
-                    tk.Button(row, text="Angreifen", command=lambda mid=m["id"]: self._attack_map(mid),
-                              bg="#3e2723", fg=self.skin["red"]).pack(side=tk.RIGHT, padx=2)
-                    tk.Button(row, text="Zerstören", command=lambda mid=m["id"]: self._destroy_map(mid),
-                              bg="#3e2723", fg=self.skin["red"]).pack(side=tk.RIGHT, padx=2)
-            else:
-                tk.Label(row, text="Portal ausbauen oder Vermessung erforschen",
-                         fg="#8a8a8a", bg=self.skin["panel"]).pack(side=tk.RIGHT, padx=5)
+    def _welt_ort_name(self, tile) -> str:
+        """Eindeutiger Ortsname NUR an echten Orten (astra A3: kein Namensrauschen)."""
+        eigene = next((s for s in self.state.settlements
+                       if s.map_id == self.state.current_map
+                       and int(s.x) == int(tile.x) and int(s.y) == int(tile.y)), None)
+        if eigene is not None:
+            return str(eigene.name)[:16]
+        if tile.npc_faction:
+            return str(tile.npc_faction)[:16]
+        if tile.quest and not tile.quest_done:
+            return str(tile.quest)[:18]
+        return ""
 
+    def _welt_auswahl_daten(self):
+        """Alle Angaben zum ausgewählten Feld für das Detailpanel (eine Quelle)."""
+        auswahl = getattr(self, "welt_auswahl", None)
+        if not auswahl or self.welt_gebiet != self.state.current_map:
+            return None
+        x, y = int(auswahl[0]), int(auswahl[1])
+        tile = self.state.get_tile(x, y, self._map_size)
+        if tile is None:
+            return None
+        eigene = next((s for s in self.state.settlements
+                       if s.map_id == self.state.current_map
+                       and int(s.x) == x and int(s.y) == y), None)
+        if eigene is not None:
+            name = str(eigene.name)
+            gebaut = len(getattr(eigene, "bauten", {}) or {})
+            gebaeude = f"{gebaut} Gebäude" if gebaut else "keine"
+            status = "Eigene Siedlung"
+        else:
+            name = self._welt_ort_name(tile) or "Unbenannter Ort"
+            status = "Unpassierbar (Wasser)" if tile.terrain == "water" else (
+                "Zugänglich" if tile.discovered else "Unbetreten")
+            stoffe = ", ".join(f"{k} {int(v)}" for k, v in (tile.resources or {}).items())
+            gebaeude = stoffe if stoffe else "keine"
+        return {"x": x, "y": y, "tile": tile, "eigene": eigene, "name": name,
+                "koordinate": self._welt_koordinate(x, y),
+                "gelaende": WELT_GELAENDENAMEN.get(tile.terrain, str(tile.terrain)),
+                "status": status, "gebaeude": gebaeude}
+
+    def _welt_detail_zeichnen(self):
+        """Das feste Detailpanel rechts — Ort, Gelände, Status, Gebäude, Aktion."""
+        rahmen = getattr(self, "welt_detail", None)
+        if rahmen is None:
+            return
+        try:
+            if not rahmen.winfo_exists():
+                return
+        except Exception:
+            return
+        for kind in rahmen.winfo_children():
+            kind.destroy()
+        daten = self._welt_auswahl_daten()
+        if daten is None:
+            tk.Label(rahmen, text="Ein Feld auf der Karte anklicken.", fg=self.skin["text"],
+                     bg=self.skin["panel"], wraplength=260, justify=tk.LEFT).pack(
+                anchor=tk.W, padx=6, pady=6)
+            return
+        tk.Label(rahmen, text=f"{daten['name']} · {daten['koordinate']}", fg=self.skin["gold"],
+                 bg=self.skin["panel"], font=("TkDefaultFont", 11, "bold"),
+                 wraplength=270, justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(6, 2))
+        for zeile in (f"Gelände: {daten['gelaende']}",
+                      f"Status: {daten['status']}",
+                      f"Gebäude: {daten['gebaeude']}"):
+            tk.Label(rahmen, text=zeile, fg=self.skin["text"], bg=self.skin["panel"],
+                     wraplength=270, justify=tk.LEFT).pack(anchor=tk.W, padx=6)
+        eigene = daten["eigene"]
+        tile = daten["tile"]
+        if eigene is not None:
+            tk.Button(rahmen, text="Siedlung öffnen",
+                      command=lambda s=eigene: self._oeffne_siedlungskarte(s),
+                      bg="#2563EB", fg="#FFFFFF").pack(anchor=tk.W, padx=6, pady=(6, 2))
+        elif tile.quest and not tile.quest_done:
+            tk.Button(rahmen, text="Ort erkunden",
+                      command=lambda x=daten["x"], y=daten["y"]: self._welt_ort_erkunden(x, y),
+                      bg=self.skin["button"], fg=self.skin["gold"]).pack(anchor=tk.W, padx=6, pady=(6, 2))
+        elif tile.terrain != "water" and not tile.discovered:
+            tk.Button(rahmen, text="Ort erkunden",
+                      command=lambda x=daten["x"], y=daten["y"]: self._welt_ort_erkunden(x, y),
+                      bg=self.skin["button"], fg=self.skin["gold"]).pack(anchor=tk.W, padx=6, pady=(6, 2))
+        if self.state.current_map in self.state.active_maps and \
+                sum(self.state.units[u].count for u in self.state.units) > 0:
+            tk.Button(rahmen, text="Einheiten stationieren",
+                      command=lambda: self._station_on_map(self.state.current_map),
+                      bg=self.skin["button"], fg=self.skin["gold"]).pack(anchor=tk.W, padx=6, pady=2)
+        start = getattr(self, "_welt_start", None)
+        if start is None:
+            if sum(self.state.units[u].count for u in self.state.units) > 0:
+                tk.Button(rahmen, text="Truppen von hier bewegen",
+                          command=lambda: self._welt_bewegung_starten(),
+                          bg=self.skin["button"], fg=self.skin["gold"]).pack(anchor=tk.W, padx=6, pady=2)
+        else:
+            tk.Label(rahmen, text=f"Start {self._welt_koordinate(start[0], start[1])}: jetzt ein "
+                                  f"Nachbarfeld anklicken.", fg="#FDBA74", bg=self.skin["panel"],
+                     wraplength=270, justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(4, 0))
+            tk.Button(rahmen, text="Abbrechen", command=self._welt_bewegung_abbrechen,
+                      bg=self.skin["button"], fg=self.skin["text"]).pack(anchor=tk.W, padx=6, pady=2)
     def _enter_map(self, map_id: str):
         self._activate_map(map_id)
         self._render_view()
@@ -2397,75 +2788,160 @@ class NebelseetalApp:
         self._render_view()
 
     def _toggle_buildings(self):
-        self._show_buildings = not self._show_buildings
-        cfg = next(m for m in MAPS if m["id"] == self.state.current_map)
-        self._draw_map(cfg["size"])
+        self._show_buildings = not getattr(self, "_show_buildings", True)
+        self._draw_map()
 
-    def _draw_map(self, size: int):
-        if not hasattr(self, "map_canvas"):
+    @staticmethod
+    def _welt_gelaende_zeichen(canvas, art: str, x0: float, y0: float, zelle: float) -> None:
+        """Ein Geländezeichen für die Weltkarte (astra: Gelände nie nur über die Farbe).
+
+        Eigene Zeichen für die sechs Geländearten der WELTkarte; die Siedlungskarte hat ihre
+        eigenen (``_gelaende_emblem``) mit anderer Geländeliste. Beide sind mit Zeichenbefehlen
+        gemalt — kein Emoji, kein Zusatzpaket.
+        """
+        m = zelle / 2.0
+        cx, cy = x0 + m, y0 + m
+        dunkel, hell = "#101A12", "#D7E3EC"
+        if art == "forest":
+            for dx in (-0.22, 0.0, 0.22):
+                canvas.create_polygon(cx + dx * zelle, cy - 0.30 * zelle,
+                                      cx + dx * zelle - 0.15 * zelle, cy + 0.06 * zelle,
+                                      cx + dx * zelle + 0.15 * zelle, cy + 0.06 * zelle,
+                                      fill=dunkel, outline="")
+                canvas.create_rectangle(cx + dx * zelle - 0.03 * zelle, cy + 0.06 * zelle,
+                                        cx + dx * zelle + 0.03 * zelle, cy + 0.18 * zelle,
+                                        fill="#4A3A22", outline="")
+        elif art == "mountain":
+            canvas.create_polygon(cx - 0.32 * zelle, cy + 0.22 * zelle,
+                                  cx, cy - 0.28 * zelle,
+                                  cx + 0.32 * zelle, cy + 0.22 * zelle, fill=dunkel, outline="")
+            canvas.create_polygon(cx - 0.10 * zelle, cy - 0.05 * zelle,
+                                  cx, cy - 0.28 * zelle,
+                                  cx + 0.10 * zelle, cy - 0.05 * zelle, fill=hell, outline="")
+        elif art == "water":
+            for dy in (-0.10, 0.08):
+                canvas.create_line(cx - 0.30 * zelle, cy + dy * zelle,
+                                   cx - 0.14 * zelle, cy + dy * zelle - 0.08 * zelle,
+                                   cx + 0.02 * zelle, cy + dy * zelle,
+                                   cx + 0.18 * zelle, cy + dy * zelle - 0.08 * zelle,
+                                   cx + 0.30 * zelle, cy + dy * zelle,
+                                   fill=hell, width=2, smooth=True)
+        elif art == "plains":
+            for dy in (-0.10, 0.06):
+                canvas.create_line(cx - 0.24 * zelle, cy + dy * zelle,
+                                   cx + 0.24 * zelle, cy + dy * zelle, fill=dunkel, width=2)
+        elif art == "village":
+            canvas.create_polygon(cx - 0.24 * zelle, cy + 0.04 * zelle, cx, cy - 0.20 * zelle,
+                                  cx + 0.24 * zelle, cy + 0.04 * zelle, fill="#F2C94C", outline="")
+            canvas.create_rectangle(cx - 0.16 * zelle, cy + 0.04 * zelle,
+                                    cx + 0.16 * zelle, cy + 0.24 * zelle,
+                                    fill="#8A6A2A", outline="#17212B")
+        elif art == "ruins":
+            for dx in (-0.20, 0.0, 0.20):
+                canvas.create_rectangle(cx + dx * zelle - 0.05 * zelle, cy - 0.16 * zelle,
+                                        cx + dx * zelle + 0.05 * zelle, cy + 0.20 * zelle,
+                                        fill="#B9AEE0", outline="")
+
+    def _welt_regionen(self, gitter: int):
+        """Regionen (3x3) einmal GROSS beschriften — VORSCHLAG, das Handbuch nennt keine Namen."""
+        kanten = [int(gitter * i / 3) for i in range(4)]
+        zelle = float(getattr(self, "welt_zelle", WELT_ZOOM_STANDARD))
+        out = []
+        for z in range(3):
+            for s in range(3):
+                x0, x1 = kanten[s], kanten[s + 1]
+                y0, y1 = kanten[z], kanten[z + 1]
+                if x1 <= x0 or y1 <= y0:
+                    continue
+                out.append(((x0 + x1) / 2.0 * zelle, (y0 + y1) / 2.0 * zelle,
+                            WELT_REGIONEN[z * 3 + s]))
+        return out
+
+    def _draw_map(self, size: int = None):
+        """Zeichnet die Weltkarte auf die Zeichenfläche (astra A3: feste Zellgröße, Scrollbereich).
+
+        ``size`` bleibt als Parameter erhalten, weil der Zeitlauf die Methode aufruft; die
+        maßgebliche Größe ist die aktuelle Karte (``self._map_size``).
+        """
+        if self.welt_gebiet != self.state.current_map:
             return
-        self.map_canvas.delete("all")
-        w, h = 520, 520
-        cell_w = w / size
-        cell_h = h / size
-        # astra-Bildgutachten 05.10.2026: „Die Weltkarte ist visuelles Konfetti." — gedämpfte
-        # Geländefarben statt greller Flächen, keine abgeschnittenen Ortsnamen auf jedem Feld.
-        colors = {
-            "forest": "#2F4A2E", "plains": "#6E7A3A", "mountain": "#5B5F63",
-            "water": "#1F4E6E", "village": "#8A6A2A", "ruins": "#4A3B63"
-        }
-        namen = {"forest": "Wald", "plains": "Ebene", "mountain": "Gebirge",
-                 "water": "Wasser", "village": "Dorf", "ruins": "Ruine"}
+        canvas = getattr(self, "map_canvas", None)
+        if canvas is None:
+            return
+        try:
+            if not canvas.winfo_exists():
+                return
+        except Exception:
+            return
+        canvas.delete("all")
+        gitter = max(1, int(self._map_size or size or 20))
+        zelle = int(getattr(self, "welt_zelle", WELT_ZOOM_STANDARD))
+        canvas.config(scrollregion=(0, 0, gitter * zelle, gitter * zelle))
         for tile in self.state.map_tiles:
-            x1 = tile.x * cell_w
-            y1 = tile.y * cell_h
-            x2 = x1 + cell_w
-            y2 = y1 + cell_h
-            self.map_canvas.create_rectangle(x1, y1, x2, y2,
-                                             fill=colors.get(tile.terrain, "#111317"),
-                                             outline="#111317")
-            if getattr(self, "_show_buildings", True) and (tile.npc_faction or tile.quest
-                                                           or tile.resources):
-                # Ein Punkt statt eines Emoji-Zeichens (Emoji sind auf Karten ungleich groß).
-                self.map_canvas.create_oval(x1 + cell_w * 0.32, y1 + cell_h * 0.32,
-                                            x2 - cell_w * 0.32, y2 - cell_h * 0.32,
-                                            fill="#F2C94C", outline="")
-        # Eigene Siedlungen deutlich markieren (astra: „Wo bin ich?")
+            x1, y1 = tile.x * zelle, tile.y * zelle
+            canvas.create_rectangle(x1, y1, x1 + zelle, y1 + zelle,
+                                    fill=WELT_GELAENDEFARBEN.get(tile.terrain, "#111317"),
+                                    outline="#0B0F12",
+                                    tags=(f"weltfeld:{tile.x}:{tile.y}", "weltfeld"))
+            if zelle >= 32:
+                self._welt_gelaende_zeichen(canvas, tile.terrain, x1, y1, zelle)
+        if zelle >= 24:
+            for rcx, rcy, rname in self._welt_regionen(gitter):
+                canvas.create_text(rcx, rcy, text=rname, fill="#8A94A0",
+                                   font=("TkDefaultFont", 10, "bold"), tags="weltregion")
+        if getattr(self, "_show_buildings", True):
+            orte = {(int(s.x), int(s.y)) for s in self.state.settlements
+                    if s.map_id == self.state.current_map}
+            for tile in self.state.map_tiles:
+                if (int(tile.x), int(tile.y)) in orte:
+                    continue
+                if not (tile.npc_faction or tile.quest or tile.resources):
+                    continue
+                cx, cy = tile.x * zelle + zelle / 2.0, tile.y * zelle + zelle / 2.0
+                canvas.create_oval(cx - 5, cy - 5, cx + 5, cy + 5, fill="#F2C94C",
+                                   outline="#17212B", tags="weltort")
+                name = self._welt_ort_name(tile)
+                if name and zelle >= 32:
+                    canvas.create_text(cx, cy + zelle * 0.36, text=name, fill="#E6E9EE",
+                                       font=("TkDefaultFont", 8), tags="weltort")
+        # Der eigene Ort: weiße Fahne auf blauem Sockel, daneben „Hier" (astra A3)
         for s in self.state.settlements:
             if s.map_id != self.state.current_map:
                 continue
-            cx, cy = s.x * cell_w + cell_w / 2, s.y * cell_h + cell_h / 2
-            self.map_canvas.create_oval(cx - 7, cy - 7, cx + 7, cy + 7, fill="#2563EB", outline="")
-            self.map_canvas.create_text(cx, cy - 14, text="Hier", fill="#F3F4F6",
-                                        font=("TkDefaultFont", 8, "bold"))
-        # Legende (astra: Legende Zeile 1 = Geländearten)
-        ly = h - 14
-        for i, art in enumerate(("forest", "plains", "mountain", "water", "village", "ruins")):
-            lx = 6 + i * 86
-            self.map_canvas.create_rectangle(lx, ly - 8, lx + 12, ly + 4,
-                                             fill=colors[art], outline="#111317")
-            self.map_canvas.create_text(lx + 18, ly - 2, text=namen[art], anchor=tk.W,
-                                        fill="#E6E9EE", font=("TkDefaultFont", 8))
-        self.map_canvas.create_oval(w - 120, ly - 6, w - 112, ly + 2, fill="#F2C94C", outline="")
-        self.map_canvas.create_text(w - 106, ly - 2, text="Ort erforschen", anchor=tk.W,
-                                    fill="#E6E9EE", font=("TkDefaultFont", 8))
-        self.map_canvas.create_oval(w - 30, ly - 6, w - 22, ly + 2, fill="#2563EB", outline="")
-        self.map_canvas.create_text(w - 18, ly - 2, text="Siedlung", anchor=tk.W,
-                                    fill="#E6E9EE", font=("TkDefaultFont", 8))
-        # movements
-        now = time.time()
+            cx, cy = s.x * zelle + zelle / 2.0, s.y * zelle + zelle / 2.0
+            canvas.create_rectangle(cx - 6, cy + 3, cx + 6, cy + 11, fill="#2563EB",
+                                    outline="#0B0F12", tags="welthier")
+            canvas.create_line(cx, cy + 3, cx, cy - 13, fill="#F3F4F6", width=2, tags="welthier")
+            canvas.create_polygon(cx, cy - 13, cx + 15, cy - 8, cx, cy - 3, fill="#F3F4F6",
+                                  outline="", tags="welthier")
+            canvas.create_text(cx, cy + 20, text="Hier", fill="#F3F4F6",
+                               font=("TkDefaultFont", 8, "bold"), tags="welthier")
+        if getattr(self, "welt_auswahl", None):
+            ax, ay = int(self.welt_auswahl[0]), int(self.welt_auswahl[1])
+            canvas.create_rectangle(ax * zelle + 1, ay * zelle + 1,
+                                    (ax + 1) * zelle - 1, (ay + 1) * zelle - 1,
+                                    outline="#38BDF8", width=3, tags="welt_auswahl")
+        start = getattr(self, "_welt_start", None)
+        if start:
+            sx, sy = int(start[0]), int(start[1])
+            canvas.create_rectangle(sx * zelle + 3, sy * zelle + 3,
+                                    (sx + 1) * zelle - 3, (sy + 1) * zelle - 3,
+                                    outline="#FDBA74", width=2, tags="weltstart")
+        jetzt = time.time()
         for m in self.state.movements[:]:
-            remaining = max(0, int(m["arrival"] - now))
-            if remaining <= 0:
+            rest = max(0, int(m["arrival"] - jetzt))
+            if rest <= 0:
                 continue
-            mins, secs = divmod(remaining, 60)
-            hours, mins = divmod(mins, 60)
-            tx, ty = m["to"].split(":")
-            cx = int(tx) * cell_w + cell_w / 2
-            cy = int(ty) * cell_h + cell_h / 2
-            self.map_canvas.create_text(cx, cy, text=f"{hours:02d}:{mins:02d}:{secs:02d}",
-                                        fill="#FFD166", font=("TkDefaultFont", 8, "bold"))
-
+            stunden, rest = divmod(rest, 3600)
+            minuten, sekunden = divmod(rest, 60)
+            try:
+                tx, ty = (int(t) for t in str(m["to"]).split(":"))
+            except (TypeError, ValueError):
+                continue
+            cx, cy = tx * zelle + zelle / 2.0, ty * zelle + zelle / 2.0
+            canvas.create_text(cx, cy, text=f"{stunden:02d}:{minuten:02d}:{sekunden:02d}",
+                               fill="#FFD166", font=("TkDefaultFont", 8, "bold"))
+        self._welt_uebersicht_zeichnen()
     # ---------- Angriff: kampf + kampfbericht (Umsetzungsplan, Abschnitte 1.3 und 2) ----------
     #
     # Vorher rechnete die Oberflaeche mit einer eigenen Daumenformel ("mehr Kampfkraft als der
@@ -2595,68 +3071,105 @@ class NebelseetalApp:
         self._render_view()
 
     def _on_map_click(self, event):
-        cfg = next(m for m in MAPS if m["id"] == self.state.current_map)
-        size = cfg["size"]
-        w = self.map_canvas.winfo_width()
-        h = self.map_canvas.winfo_height()
-        if w < 10 or h < 10:
-            return
-        cell_w = w / size
-        cell_h = h / size
-        x = int(event.x / cell_w)
-        y = int(event.y / cell_h)
-        tile = self.state.get_tile(x, y, size)
-        if tile:
-            tile.discovered = True
-            if cfg.get("sectors") and tile.sector_name:
-                label = f"Sektor {tile.sector_name} ({tile.sector})"
-            else:
-                label = f"Karte {x},{y}"
-            if tile.resources:
-                msg = ", ".join(f"{k}: {int(v)}" for k, v in tile.resources.items())
-                self._log(f"{label}: {tile.terrain} — {msg}")
-            elif tile.npc_faction:
-                self._log(f"{label}: {tile.terrain} — NPC: {tile.npc_faction}")
-            elif tile.quest and not tile.quest_done:
-                tile.quest_done = True
-                self.state.ruf += 15
-                self.state.resources["gold"].amount += 20
-                self._log(f"Quest abgeschlossen: {tile.quest}. Ruf +15, Geld +20")
-            else:
-                self._log(f"{label}: {tile.terrain}")
-            # original movement
-            if hasattr(self, "_pending_move"):
-                _, start_tile = self._pending_move
-                if abs(start_tile.x - x) + abs(start_tile.y - y) == 1:
-                    # FIX 5: Truppen fuer Bewegung abbuchen (Klon-Exploit verhindern)
-                    moving = {u: self.state.units[u].count for u in self.state.units if self.state.units[u].count > 0}
-                    units = {u: max(1, c) for u, c in moving.items()}
-                    if sum(units.values()) > 0:
-                        for u, c in units.items():
-                            self.state.units[u].count = max(0, self.state.units[u].count - c)
-                        distance = abs(start_tile.x - x) + abs(start_tile.y - y)
-                        duration = max(2, distance * 5)
-                        target_map = self.state.current_map
-                        target_bot = None
-                        for bot in self.state.bots:
-                            if random.random() < 0.3:
-                                target_bot = bot
-                                break
-                        self.state.movements.append({
-                            "from": f"{start_tile.x}:{start_tile.y}",
-                            "to": f"{x}:{y}",
-                            "units": units,
-                            "arrival": time.time() + duration * 60,
-                            "map": target_map,
-                            "target_bot": target_bot.name if target_bot else None,
-                            "tile_key": f"{x}:{y}",
-                        })
-                        self._log(f"Truppen bewegen nach {x}:{y}. Ankunft in {duration} Minuten.")
-                del self._pending_move
-                self._render_view()
-            else:
-                self._pending_move = ("move", tile)
+        """Ein Klick WÄHLT NUR AUS (astra A3) — kein stiller Nebenwirkung mehr.
 
+        Erkunden, Bewegen und Stationieren laufen über ausdrücklich benannte Schaltflächen im
+        Detailpanel. Ausnahme: Ist ein Zug gestartet („Truppen von hier bewegen"), führt ein Klick
+        auf ein NACHBARFELD den Zug aus.
+        """
+        if self.welt_gebiet != self.state.current_map:
+            return
+        canvas = getattr(self, "map_canvas", None)
+        if canvas is None or not canvas.winfo_exists():
+            return
+        gitter = max(1, int(self._map_size or 20))
+        zelle = int(getattr(self, "welt_zelle", WELT_ZOOM_STANDARD))
+        x = int(canvas.canvasx(event.x) // zelle)
+        y = int(canvas.canvasy(event.y) // zelle)
+        if not (0 <= x < gitter and 0 <= y < gitter):
+            return
+        start = getattr(self, "_welt_start", None)
+        if start is not None:
+            if abs(int(start[0]) - x) + abs(int(start[1]) - y) == 1:
+                self._welt_bewegen((int(start[0]), int(start[1])), (x, y))
+                return
+            self._welt_start = None
+            self._log("Zug abgebrochen: nur ein Nachbarfeld ist ein Ziel.")
+        self.welt_auswahl = (x, y)
+        self._welt_detail_zeichnen()
+        self._draw_map()
+
+    def _welt_bewegung_starten(self):
+        if not getattr(self, "welt_auswahl", None):
+            self._log("Erst ein Feld auswählen.")
+            return
+        self._welt_start = (int(self.welt_auswahl[0]), int(self.welt_auswahl[1]))
+        self._log(f"Zug vorbereitet ab {self._welt_koordinate(*self._welt_start)} — "
+                  f"jetzt ein Nachbarfeld anklicken.")
+        self._welt_detail_zeichnen()
+        self._draw_map()
+
+    def _welt_bewegung_abbrechen(self):
+        self._welt_start = None
+        self._log("Zug abgebrochen.")
+        self._welt_detail_zeichnen()
+        self._draw_map()
+
+    def _welt_bewegen(self, start, ziel):
+        """Truppen von einem Feld auf ein Nachbarfeld schicken (alter Ablauf, ausdrücklich gestartet)."""
+        moving = {u: self.state.units[u].count for u in self.state.units
+                  if self.state.units[u].count > 0}
+        if sum(moving.values()) <= 0:
+            self._welt_start = None
+            self._log("Keine Truppen zum Bewegen.")
+            self._welt_detail_zeichnen()
+            self._draw_map()
+            return
+        abstand = abs(int(start[0]) - int(ziel[0])) + abs(int(start[1]) - int(ziel[1]))
+        dauer = max(2, abstand * 5)
+        ziel_bot = None
+        for bot in self.state.bots:
+            if random.random() < 0.3:
+                ziel_bot = bot
+                break
+        self.state.movements.append({
+            "from": f"{int(start[0])}:{int(start[1])}",
+            "to": f"{int(ziel[0])}:{int(ziel[1])}",
+            "units": dict(moving),
+            "arrival": time.time() + dauer * 60,
+            "map": self.state.current_map,
+            "target_bot": ziel_bot.name if ziel_bot else None,
+            "tile_key": f"{int(ziel[0])}:{int(ziel[1])}",
+        })
+        for u, anzahl in moving.items():
+            self.state.units[u].count = max(0, self.state.units[u].count - anzahl)
+        self._welt_start = None
+        self.welt_auswahl = (int(ziel[0]), int(ziel[1]))
+        self._log(f"Truppen bewegen nach {self._welt_koordinate(*ziel)}. "
+                  f"Ankunft in {dauer} Minuten.")
+        self._welt_detail_zeichnen()
+        self._draw_map()
+
+    def _welt_ort_erkunden(self, x: int, y: int):
+        """Den gewählten Ort erforschen — bewusst über eine Schaltfläche, nicht über den Klick."""
+        tile = self.state.get_tile(int(x), int(y), self._map_size)
+        if tile is None:
+            return
+        ort = self._welt_koordinate(int(x), int(y))
+        tile.discovered = True
+        if tile.quest and not tile.quest_done:
+            tile.quest_done = True
+            self.state.ruf += 15
+            self.state.resources["gold"].amount += 20
+            self._log(f"Aufgabe abgeschlossen: {tile.quest} ({ort}). Ruf +15, Gold +20")
+        elif tile.resources:
+            stoffe = ", ".join(f"{k}: {int(v)}" for k, v in tile.resources.items())
+            self._log(f"{ort} erkundet ({tile.terrain}): {stoffe}")
+        else:
+            self._log(f"{ort} erkundet ({tile.terrain}).")
+        self.welt_auswahl = (int(x), int(y))
+        self._welt_detail_zeichnen()
+        self._draw_map()
     def _render_diplomacy(self):
         tk.Label(self.content, text="Diplomatie", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
         for bot in self.state.bots:

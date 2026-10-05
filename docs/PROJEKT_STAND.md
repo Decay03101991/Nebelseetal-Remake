@@ -40,38 +40,49 @@ weiter. Eine neue Sitzung braucht ein **neues** Ziel mit dem Wortlaut oben.
 
 ---
 
-## 0c. Stand beim Sitzungswechsel (05.10.2026, 10:42 — mit `date` und `git log` geprüft)
+## 0c. Stand (05.10.2026, 11:23 — mit `date`, `git log` und Sammellauf geprüft)
 
-**Nichts läuft.** Arbeitsverzeichnis **sauber** (letzter Commit `4207126`, `git status` leer), kein
-Spielprozess mehr offen, kein fremdes aktives Ziel.
+**Diese Sitzung läuft und hat ein aktives Ziel** (`20261005_104846_864c4b`, im Zielregister gesetzt
+und zurückgelesen; `tools/zieluebergabe.py --pruefen` = **0**, kein fremdes aktives Ziel). Sie
+arbeitet am Weltkarten-Schritt und führt ihn fort.
+
+Arbeitsverzeichnis: die Änderungen dieses Schritts sind committet, siehe „Letzte Commits".
 
 | Was | Stand (gemessen) |
 |---|---|
-| Prüfstand | **1967 bestanden, 0 Fehler, 19 Befunde über 33 Dateien** (Sammellauf **07:03**, alle Rückgabewerte 0) |
-| Diese Sitzung geleistet | **Spielbarkeit hergestellt** (Siedlung → Karte → bauen → Ertrag; Ausbildung und Forschung laufen) und die **Oberfläche** nach dem Bildgutachten umgebaut |
-| Der schwerste Fund | „spielbar ist gar nichts" bei **grünem** Prüfstand: `_found_settlement` legte die Siedlung an, **zeichnete die Ansicht aber nicht neu** — damit war der ganze Weg versperrt. Commit `3688912`; neue Prüfdatei `tests/test_startspiel.py` (**37 Prüfungen, dreimal stabil 37/0/0**) |
-| Zweiter Fund | die Bots plünderten im **ersten** Tick **70 Holz + 70 Stein** am Tag 1 — **während der Noobschutz aktiv war**. Behoben, Meldung in den Nachrichten |
-| Oberfläche | Aufgabenkarte „Dein nächster Schritt" (aus dem Spielzustand abgeleitet, Knopf springt zur richtigen Ansicht) · Kennzahlen widerspruchsfrei · Entwicklertexte aus der Ansicht verbannt · **Siedlungskarte als Zeichenfläche** (64-px-Felder, Gelände-Embleme, Koordinaten A1–H5, Legende, Cyan-Auswahl, Ertrag im Bauknopf, Feld bleibt nach dem Bau ausgewählt) · Weltkarte ruhiger. Commits `c80154a`, `2a2b0a1` |
-| Gutachten gesichert | `docs/audits/ux_astra_bildurteil_2026-10-05.txt` (Umbau-Vorgaben) und `ux_astra_nachpruefung_2026-10-05.txt` (Nachprüfung: (b)/(f) behoben, (a)/(c)/(e) teilweise, drei Nachforderungen umgesetzt) |
-| `.exe` | 05.10. **07:05** gebaut: **14.464.338 Byte**, SHA256 `58cd48e9f527772c403a07a29ce419a35f41bfa50e473f23444cbe1bd722a401`, aus `C:\Users\saras` startgeprüft (Fenster „Nebelseetal Remake", eine Instanz, Passworttor steht). **Enthält Spielbarkeits-Fix UND Oberflächen-Umbau** |
-| Protokoll | **98 Zeilen** (auf Daniels Wunsch gekürzt; die Vollfassung mit 320 Zeilen liegt als `docs/ENTWICKLUNGSPROTOKOLL_VOLLFASSUNG_2026-10-05_0820.md` im Projekt, Commit `6cf1920`) |
-| Kosten heute (05.10.) | **1,6668 EUR** (`scripts/tageskosten_check.py --json`) — darin zwei Bildaufrufe an `gpt-6-astra` (14.279 Token). Die genaue OpenAI-Rechnung bitte auf der Billing-Seite ablesen: die Kosten-API ist mit dem vorhandenen Schlüssel **gesperrt** (HTTP 403) |
-| Guthaben | **von Daniel abzulesen.** Letzter Stand (06:25): DeepSeek **5,48 USD** · OpenAI **3,01 USD**; die zwei Bildaufrufe sind davon abgegangen |
-| Wartet auf Daniel | **Spielbericht zur neuen `.exe`** (er hat bisher die alte Fassung gespielt) · drei Handbuch-Lücken brauchen eine Zahl von ihm: **Mana je Siedlung** statt eines gemeinsamen Vorrats · **Materialkosten der Werkstätten** · **Sieg-/Niederlagebedingung** · der Erlös beim Handeln ist weiterhin ein VORSCHLAG (das Handbuch nennt keinen Warenpreis) |
+| Prüfstand | **2023 bestanden, 0 Fehler, 21 Befunde über 34 Dateien** (Sammellauf **11:23**, alle Rückgabewerte 0) |
+| Diese Sitzung geleistet | (1) **Weltkarte** nach der astra-Vorgabe (A3) umgebaut · (2) zwei Kinder-Module für **feinere Karten** gebaut und nachgerechnet · (3) Übergabe und Zielregister sauber übernommen |
+| **Weltkarte (erledigt 11:23)** | `src/main.py`: **48 px je Feld** in eigenen waagerechten und senkrechten Scrollbalken · Zoomstufen „− 100 % +" (16–96 px) · kleine Übersichtskarte mit Ausschnittsrechteck · festes Detailpanel (Ort · Koordinate / Gelände / Status / Gebäude / Aktion) · Gebietsleiste **oben** mit ausdrücklich benannten gesperrten Gebieten („Nebelwald – gesperrt", „Zum Portal" / „Zur Forschung") · Fahne „Hier" · 9 Regionsnamen einmal groß · **ein Klick wählt nur noch aus** (vorher still: Ruf +15, Gold +20, Aufgabe erledigt, Truppenbewegung). **Fund beim Prüfen:** die Zeichenfläche wuchs auf Fensterbreite — dadurch waren die Scrollbalken wirkungslos; behoben. Neue Prüfdatei `tests/test_weltkarte.py` (**58/0/0**) |
+| **Feinere Karten (gebaut, NOCH NICHT eingehängt)** | `src/karten_optik.py` (Siedlungskarte: 7 Gelände-Embleme mit 4–10 Formen, Gebäudezeichen mit Stufenpips, Wege zwischen benachbarten Feldern, Rasterplan) **54/0/0** · `src/welt_optik.py` (Weltkarte: 6 Geländesymbole, Fahne, Auswahlrahmen, 9 Regionsnamen, Übersicht mit 400 Kacheln) **70/0/0** — beide vom Koordinator mit **eigenem** Verfahren nachgerechnet (0 Fehler: Randtreue bei 32/48/64/96 px, Determinismus, keine Emoji, kein tkinter-Import) |
+| Der schwerste Fund (07:04) | „spielbar ist gar nichts" bei **grünem** Prüfstand: `_found_settlement` legte die Siedlung an, **zeichnete die Ansicht aber nicht neu** — damit war der ganze Weg versperrt. Commit `3688912` |
+| Zweiter Fund (07:04) | die Bots plünderten im **ersten** Tick **70 Holz + 70 Stein** am Tag 1 — **während der Noobschutz aktiv war**. Behoben, Meldung in den Nachrichten |
+| Oberfläche (07:04) | Aufgabenkarte „Dein nächster Schritt" (aus dem Spielzustand abgeleitet) · Kennzahlen widerspruchsfrei · **Siedlungskarte als Zeichenfläche** (64-px-Felder, Gelände-Embleme, Koordinaten A1–H5, Legende, Cyan-Auswahl) · Commits `c80154a`, `2a2b0a1` |
+| Gutachten gesichert | `docs/audits/ux_astra_bildurteil_2026-10-05.txt` (Umbau-Vorgaben, Abschnitt A3 = Weltkarte) und `ux_astra_nachpruefung_2026-10-05.txt` |
+| `.exe` | 05.10. **07:05** gebaut: **14.464.338 Byte**, SHA256 `58cd48e9…`, aus `C:\Users\saras` startgeprüft. **Enthält den Weltkarten-Umbau noch NICHT** — Neubau am Ende dieser Reihe |
+| Protokoll | **106 Zeilen** (auf Daniels Wunsch gekürzt; die Vollfassungen liegen im Projekt) |
+| Kosten heute (05.10.) | vor dieser Sitzung **1,6668 EUR**; diese Sitzung bisher nur `deepseek-v4-flash` — Messung am Schrittende |
+| Guthaben | **von Daniel abgelesen (05.10., ~11:00): OpenAI 2,66 USD · DeepSeek 4,97 USD** |
+| Wartet auf Daniel | **Spielbericht zur neuen `.exe`** (hat VORRANG — er hat bisher die alte Fassung gespielt) · drei Handbuch-Lücken brauchen eine Zahl von ihm: **Mana je Siedlung** · **Materialkosten der Werkstätten** · **Sieg-/Niederlagebedingung** · der Erlös beim Handeln bleibt VORSCHLAG |
 
 ### Der EINE nächste Schritt
 
-**Die Weltkarte nachziehen.** astra hat den Umbau konkret beschrieben; der mittlere Teil ist schon
-drin (gedämpfte Farben, Legende, „Hier"-Markierung, kein Namensrauschen). Es fehlt der große Teil:
-in `src/main.py`, `_render_maps` und `_draw_map` — **Zeichenfläche mit 48 px je Feld**, eigene
-**Scrollbalken** waagerecht und senkrecht, **Zoomstufen** („− 100 % +"), eine kleine
-**Übersichtskarte** oben rechts, ein festes **Detailpanel** (Ort · Gelände · Status · Gebäude ·
-Aktion) und Ortsnamen nur an echten Orten. Wortlaut in
-`docs/audits/ux_astra_bildurteil_2026-10-05.txt`, Abschnitt A3.
-**Erwartetes Ergebnis:** neue Prüfdatei `tests/test_weltkarte.py` (Zoom, Auswahl, Detailpanel,
-Legende) grün · Sammellauf ohne neue Fehler · Protokollzeile · `.exe` neu bauen und startprüfen.
+**Die zwei feineren Karten-Module einhängen — und astra über echte Aufnahmen urteilen lassen.**
+Daniels Erweiterung (05.10., ~11:00): „ich möchte erweitern, dass ich die Karten bebauung und
+siedlungs umsetzung usw noch feiner und detailierter überarbeitet haben will. Mach das mit Astra und
+dem restlichen Guthaben für open ai."
 
-**VORRANG hat ein Spielbericht von Daniel:** findet er beim Spielen etwas, ist zuerst das dran.
+1. `src/karten_optik.zeichne()` in `_zeichne_siedlungskarte` einhängen (Embleme, Gebäude mit
+   Stufenpips, Wege, Raster) und `src/welt_optik` dort in `_draw_map`, wo es die Zeichnung verbessert.
+2. **Echte Aufnahmen** von Siedlungs- und Weltkarte machen — das Hilfsskript `nebel_show.py` baut die
+   Ansichten ohne Passworttor — und **`gpt-6-astra`** damit beauftragen. Der Auftragstext liegt in
+   `astra_karten_auftrag.txt`; die Antwort gehört nach `docs/audits/` (Zwischenspeicher wird nach 24 h
+   geleert).
+3. Den Befund umsetzen. Je Schritt: betroffener Einzeltest + **einmal** Sammellauf, eine Protokollzeile
+   (Zeit mit `date`), `python tools/protokoll_sichern.py --protokoll`, kleiner Commit.
+4. Am Ende der Reihe: `tools/build_exe.py` und Startprüfung aus einem **anderen Ordner**.
+
+**Erwartetes Ergebnis:** Siedlungskarte und Weltkarte sichtbar feiner · Sammellauf ohne neue Fehler ·
+eine Protokollzeile je Schritt · neue `.exe` startgeprüft.
 
 ### So startet die neue Sitzung (Sekunden-Checks statt Sammellauf)
 
@@ -82,26 +93,29 @@ git status --short       # leer = sauber
 ```
 
 Nur wenn `src/` angefasst wird: betroffenen Einzeltest laufen lassen, **einmal** am Ende den
-Sammellauf.
+Sammellauf. Der Sammellauf läuft über `run_tests.bat` (endet mit `pause`, deshalb aus der Bash das
+Hilfsskript im Zwischenspeicher nutzen, das dieselbe Dateiliste liest).
 
 ### Kontext-Paket für die neue Sitzung (bewusst klein halten)
 
 | Reihenfolge | Was laden | Warum nicht mehr |
 |---|---|---|
 | 1 | **diese Datei, Abschnitt 0c** | Stand in Belegen und der eine nächste Schritt |
-| 2 | `docs/ENTWICKLUNGSPROTOKOLL.md` — jetzt **98 Zeilen**, ganz lesbar | was wirklich passiert ist, mit Kennungen |
-| 3 | `docs/audits/ux_astra_bildurteil_2026-10-05.txt`, **Abschnitt A3 und C** | der Plan für die Weltkarte |
-| 4 | `src/main.py` — **nur** `_render_maps`, `_draw_map`, `_on_map_click` | das Innenleben ist durch Prüfungen gedeckt |
-| 5 | `tests/test_startspiel.py` als **Vorlage** für eine Prüfdatei, die echte Klicks fährt | zeigt, wie man Oberfläche prüft |
+| 2 | `docs/ENTWICKLUNGSPROTOKOLL.md` — ganz lesbar | was wirklich passiert ist, mit Kennungen |
+| 3 | `docs/audits/ux_astra_bildurteil_2026-10-05.txt`, **Abschnitt A3** (+ C) | der Plan für die Weltkarte (abgearbeitet) und die Kartenoptik |
+| 4 | `src/main.py` — nur die Methoden mit `welt_` im Namen, `_zeichne_siedlungskarte`, `_draw_map` | das Innenleben ist durch Prüfungen gedeckt |
+| 5 | `src/karten_optik.py`, `src/welt_optik.py` — die beiden fertigen Module | sie sind der nächste Einbau |
+| 6 | `tests/test_weltkarte.py` und `tests/test_startspiel.py` als **Vorlage** für Oberflächenprüfungen | zeigen, wie man echte Klicks fährt |
 
-**Nicht in den Kontext:** die vollständige `main.py` (über 3.200 Zeilen), ganze Testprotokolle,
+**Nicht in den Kontext:** die vollständige `main.py` (über 3.300 Zeilen), ganze Testprotokolle,
 `docs/archiv/`, die Chat-Historie, die Vollfassung des Protokolls.
 
-**Zwei Lehren dieser Sitzung, die teuer waren:** (a) **ein grüner Prüfstand beweist keine
-Spielbarkeit** — die alte Prüfung fuhr die *Methoden* statt der Schaltflächen und mit 100.000
-Rohstoffen statt mit den Startwerten (100 Holz, 100 Stein, 10 Siedler); (b) **Zeiten nie schätzen** —
-drei Protokollzeilen standen mit erfundenen Uhrzeiten (07:05/08:20/08:45), die echten
-Commit-Zeiten sind 06:41/07:04/07:14. Beides steht im Protokoll und im Skill `nebelseetal-remake`.
+**Drei Lehren dieser Reihe, die teuer waren:** (a) **ein grüner Prüfstand beweist keine Spielbarkeit** —
+die alte Prüfung fuhr die *Methoden* statt der Schaltflächen; (b) **Zeiten nie schätzen** — drei
+Protokollzeilen standen mit erfundenen Uhrzeiten, die echten Commit-Zeiten waren andere; (c) **eine
+Zeichenfläche, die im Fenster mitwächst, macht ihre Scrollbalken wirkungslos** — sie muss eine feste
+Größe behalten, sonst passt die ganze Karte hinein und es gibt nichts zu scrollen (beim Weltkarten-Umbau
+genau so passiert und in `tests/test_weltkarte.py` jetzt abgesichert).
 
 ---
 
