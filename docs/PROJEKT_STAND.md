@@ -227,10 +227,14 @@ sondern wiederholt gemessen.
 5. Ein Commit-Text nannte **Zahlen, die erst der Lauf liefert** (2643/0/22 statt 2644/0/21). Korrigiert
    per `--amend`. *Regel: gemessene Zahlen erst nach der Messung schreiben.*
 
-**Nebenbefund, der bleibt:** die Sammellauf-Summe schwankt um ±1 (2643/0/22 ↔ 2644/0/21), weil eine
-kartenabhängige Prüfung in `test_startspiel` mal als Befund, mal als bestanden zählt — Fehler sind in
-beiden Fällen **0**. Und: **während eines Sammellaufs darf kein Unteragent im Projekt arbeiten** (belegt:
-`test_baseline` 39/2 als erste Datei, allein 40/0/0).
+**Nebenbefund, der bleibt:** die Sammellauf-Summe schwankt um ±1 (2643/0/22 ↔ 2644/0/21), weil
+`test_startspiel` je Lauf andere **Befunde** statt bestandener Prüfungen melden kann: zwei sind
+kartenabhängig („Kriegerakademie liess sich auf dieser Karte nicht setzen" / „Bibliothek liess sich auf
+dieser Karte nicht setzen"), einer ist **zufallsabhängig** („in 25 erzwungenen Bot-Zügen kam kein Angriff
+vor"). Alle drei sind ehrliche Hinweise, **keine Fehler** (Fehler: in allen Läufen **0**). Belegt:
+zweimal hintereinander **46/0/0** (0 Befunde), in anderen Läufen **45/0/1**. Und: **während eines
+Sammellaufs darf kein Unteragent im Projekt arbeiten** (belegt: `test_baseline` 39/2 als erste Datei,
+allein 40/0/0).
 
 ## 0b. Stand beim Sitzungswechsel (04.10.2026, 23:45 — mit `date` geprüft)
 
