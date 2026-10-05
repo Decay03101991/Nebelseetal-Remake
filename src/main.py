@@ -348,6 +348,56 @@ def kosten_text(kosten: dict) -> str:
     return ", ".join(f"{int(v)} {r.capitalize()}" for r, v in kosten.items())
 
 
+# ---------- Die zwei Ansichten: "lokal" und "Reich" (Schritt 9, Teil 3b) ----------
+# Seit Teil 3a FUEHREN die Ortslager (`Settlement.vorraete`/`.bevoelkerung`); die Gesamtsicht
+# (`GameState.resources`/`.population`) ist die Summe aus Uebergangsrest und Ortslagern. Vorher
+# zeigten Seitenleiste und Siedlungsliste nur die Gesamtsicht — der Spieler las damit eine Zahl,
+# die nicht mehr "Lager dieser Siedlung" bedeutet (KONTEXT_PAKET, Abschnitt 2, Teil 3b). Diese
+# beiden Helfer sind die EINE Quelle fuer den Wortlaut, damit Liste und Siedlungskarte nie
+# auseinanderlaufen und die Pruefung sie ohne Fenster nachrechnen kann.
+
+def zahl_text(wert) -> str:
+    """Eine Zahl lesbar: ganze ohne Nachkommastelle, sonst auf eine Stelle gerundet."""
+    z = float(wert)
+    return str(int(round(z))) if abs(z - round(z)) < 1e-9 else f"{z:.1f}"
+
+
+def mengen_text(werte: dict, reihenfolge=None, leer: str = "leer") -> str:
+    """Nur die vorhandenen Posten als 'Menge Name', in fester Reihenfolge.
+
+    ``reihenfolge`` ist die Wunschordnung (z. B. ``RESOURCES``); unbekannte Posten folgen
+    alphabetisch, damit auch eine Ware aus einem alten Spielstand nicht stillschweigend
+    verschwindet.
+    """
+    posten = {str(k): float(v) for k, v in (werte or {}).items() if float(v) > 1e-9}
+    if not posten:
+        return leer
+    vorne = [k for k in (reihenfolge or []) if k in posten]
+    hinten = sorted(k for k in posten if k not in vorne)
+    return ", ".join(f"{zahl_text(posten[k])} {k.capitalize()}" for k in vorne + hinten)
+
+
+def ortsbestand_text(siedlung) -> str:
+    """Der sichtbare Bestand EINES Ortes — das LOKALE Lager (fuehrend seit Teil 3a).
+
+    Liest genau ``Settlement.vorraete``/``Settlement.bevoelkerung``, nie den Reichsbestand.
+    Der Gegenpart fuer das ganze Reich ist ``reichsbestand_text``.
+    """
+    text = mengen_text(getattr(siedlung, "vorraete", None) or {}, RESOURCES)
+    return f"{text} \u00b7 {zahl_text(getattr(siedlung, 'bevoelkerung', 0.0))} Siedler"
+
+
+def reichsbestand_text(state) -> str:
+    """Der sichtbare GESAMTBESTAND des Reiches (``GameState.resources``/``.population``).
+
+    Seit Teil 3a ist das die Summe aus Uebergangsrest und Ortslagern; die Anzeige nennt sie
+    deshalb ausdruecklich 'Reich', damit sie nicht mit dem Lager EINER Siedlung verwechselt wird.
+    """
+    werte = {r: res.amount for r, res in (getattr(state, "resources", None) or {}).items()}
+    text = mengen_text(werte, RESOURCES)
+    return f"{text} \u00b7 {zahl_text(getattr(state, 'population', 0.0))} Siedler"
+
+
 # Die neun Originalrohstoffe aus data/resources.json (Handbuch Seiten 9-10), in der Reihenfolge
 # des Handbuchs. Erfunden waren: kristall, stoff, geld, wissen — eisen hiess im Handbuch Metall.
 RESOURCES = ["holz", "stein", "metall", "mana", "nahrung", "gold", "wolle", "leder", "pferde"]
@@ -1658,6 +1708,11 @@ class NebelseetalApp:
         top.pack(fill=tk.X, side=tk.TOP)
         top.pack_propagate(False)
         tk.Label(top, text="Nebelseetal", font=("Blackletter", 16, "bold"), fg=self.skin["gold"], bg=self.skin["topbar"]).pack(side=tk.LEFT, padx=10)
+        # Schritt 9, Teil 3b: diese Leiste zeigt den GESAMTBESTAND (Reich), nicht das Lager einer
+        # Siedlung — seit Teil 3a fuehren die Ortslager. Ohne das Wort "Reich" liest der Spieler
+        # die Zahl als "mein Lager" (KONTEXT_PAKET, Abschnitt 2, Teil 3b).
+        tk.Label(top, text="Reich:", fg=self.skin["gold"], bg=self.skin["topbar"],
+                 font=("Arial", 9, "bold")).pack(side=tk.LEFT, padx=(4, 0))
         self.res_labels_top = {}
         ertrag_jetzt = self.state.stundenertrag()
         for r in RESOURCES:
@@ -1822,7 +1877,7 @@ class NebelseetalApp:
         _bewohnt = int(self.state.population)
         _ueber = _bewohnt > _grenze
         tk.Label(self.content,
-                 text=f"Siedler: {_bewohnt} · Wohnraum: {_grenze}"
+                 text=f"Siedler (Reich): {_bewohnt} · Wohnraum: {_grenze}"
                       + ("  ⚠ überbelegt — es wächst kein Siedler nach, bis ein Haus steht."
                          if _ueber else ""),
                  fg=("#FDBA74" if _ueber else "#DAA520"),
@@ -1830,6 +1885,12 @@ class NebelseetalApp:
         frame = tk.Frame(self.content, bg=self.skin["panel"])
         frame.pack(fill=tk.X, padx=10, pady=10)
         tk.Label(frame, text="Siedlungen:", fg=self.skin["gold"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=5)
+        # Schritt 9, Teil 3b: die Gesamtsicht (Reich) steht VOR der Liste, je Ort darunter sein
+        # Lokalbestand. Seit Teil 3a fuehren die Ortslager — vorher las der Spieler hier eine
+        # Zahl, die nicht mehr "Lager dieser Siedlung" bedeutet (KONTEXT_PAKET, Abschnitt 2).
+        tk.Label(frame, text="Reich: " + reichsbestand_text(self.state),
+                 fg="#DAA520", bg=self.skin["panel"], wraplength=780, justify=tk.LEFT,
+                 font=("Arial", 9)).pack(anchor=tk.W, padx=5)
         for i, s in enumerate(self.state.settlements):
             row = tk.Frame(self.content, bg=self.skin["panel"])
             row.pack(fill=tk.X, padx=10, pady=2)
@@ -1847,6 +1908,11 @@ class NebelseetalApp:
             entry.pack(side=tk.LEFT, padx=5)
             tk.Button(row, text="Umbenennen", command=lambda ss=s, e=entry: self._rename_settlement(ss, e.get()), bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
             tk.Button(row, text="Transport", command=lambda ss=s: self._transport_to_settlement(ss), bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
+            # Schritt 9, Teil 3b: "lokal: …" neben "Reich: …" — das Lager DIESES Ortes, das seit
+            # Teil 3a fuehrt (Settlement.vorraete/bevoelkerung), nicht die Gesamtsicht.
+            tk.Label(self.content, text="lokal: " + ortsbestand_text(s),
+                     fg="#7FD1FF", bg=self.skin["bg"], wraplength=780, justify=tk.LEFT,
+                     font=("Arial", 9)).pack(anchor=tk.W, padx=30)
         tk.Button(self.content, text="Neue Siedlung gründen", command=self._found_settlement, bg="#3e2723", fg=self.skin["gold"]).pack(anchor=tk.W, padx=10, pady=10)
 
         # W7: die laufenden Auftraege (im Original steht unten "Laufende Auftraege"). Die Einheiten
@@ -2446,6 +2512,20 @@ class NebelseetalApp:
                                     "gebaut werden kann und was es einbringt.",
                  fg="#F3F4F6", bg=self.skin["bg"], wraplength=800,
                  justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 2))
+        # Schritt 9, Teil 3b: der Ortsbestand DIESER Siedlung steht hervorgehoben ueber der Karte.
+        # Die Leiste ganz oben zeigt dagegen das ganze Reich — zwei Ansichten, zwei Zahlen
+        # (KONTEXT_PAKET, Abschnitt 2, Teil 3b).
+        _bestand = tk.Frame(self.content, bg="#1B2A2F", highlightbackground="#7FD1FF",
+                            highlightthickness=1)
+        _bestand.pack(fill=tk.X, padx=10, pady=(2, 4))
+        tk.Label(_bestand, text="Ortsbestand dieser Siedlung (lokal — fuehrend seit Teil 3a)",
+                 fg="#7FD1FF", bg="#1B2A2F", font=("TkDefaultFont", 10, "bold")
+                 ).pack(anchor=tk.W, padx=8, pady=(6, 0))
+        tk.Label(_bestand, text=ortsbestand_text(siedlung), fg="#F3F4F6", bg="#1B2A2F",
+                 wraplength=820, justify=tk.LEFT).pack(anchor=tk.W, padx=8, pady=(0, 6))
+        tk.Label(self.content, text="Zum Vergleich das ganze Reich: " + reichsbestand_text(self.state),
+                 fg="#DAA520", bg=self.skin["bg"], wraplength=820, justify=tk.LEFT,
+                 font=("Arial", 9)).pack(anchor=tk.W, padx=10, pady=(0, 4))
         zaehlung = ", ".join(f"{gelaende.name(a)} {n}" for a, n in karte["zaehlung"].items() if n)
         tk.Label(self.content, text=f"Vorteil: {karte['vorteil']} · {zaehlung}",
                  fg=self.skin["text"], bg=self.skin["bg"], wraplength=800,

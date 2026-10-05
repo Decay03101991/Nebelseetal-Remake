@@ -419,4 +419,100 @@ check("P14: das Oekonomie-Modul ist jetzt wirklich eingebunden (Schritt 9)",
       "import spieloekonomie" in _q2)
 
 
+# --------------------------------------------------------------------------
+abschnitt("P15: Die zwei Ansichten sind getrennt - 'lokal' gegen 'Reich' (Teil 3b)")
+
+# Belegte Startwerte (Handbuch S. 7): 10 Siedler, 100 Holz, 100 Stein.
+st7 = M.GameState()
+ort7 = M.Settlement(name="Startort", map_id="kontinent", x=0, y=0,
+                    id=M.siedlung_kennung("spieler", "kontinent", 0, 0))
+ort7.vorraete = {"holz": 100.0, "stein": 100.0}
+ort7.bevoelkerung = 10.0
+st7.settlements.append(ort7)
+
+lokal7 = M.ortsbestand_text(ort7)
+reich7 = M.reichsbestand_text(st7)
+check("P15: der Ortsbestand nennt die belegten Startwerte",
+      "100 Holz" in lokal7 and "100 Stein" in lokal7 and "10 Siedler" in lokal7, lokal7)
+check("P15: der Reichsbestand nennt die Gesamtsicht",
+      "100 Holz" in reich7 and "10 Siedler" in reich7, reich7)
+
+# Die Trennung ist nur echt, wenn beide Zahlen auseinanderlaufen koennen.
+ort7.vorraete = {"holz": 137.5, "stein": 42.0}
+ort7.bevoelkerung = 8.0
+st7.resources["holz"].amount = 777.0
+st7.resources["stein"].amount = 300.0
+st7.population = 21.0
+lokal7 = M.ortsbestand_text(ort7)
+reich7 = M.reichsbestand_text(st7)
+check("P15: 'lokal' liest NUR das Ortslager (137.5 Holz / 8 Siedler)",
+      "137.5 Holz" in lokal7 and "42 Stein" in lokal7 and "8 Siedler" in lokal7, lokal7)
+check("P15: 'lokal' zeigt den Reichsbestand NICHT (kein 777)",
+      "777" not in lokal7, lokal7)
+check("P15: 'Reich' liest die Gesamtsicht (777 Holz / 21 Siedler)",
+      "777 Holz" in reich7 and "300 Stein" in reich7 and "21 Siedler" in reich7, reich7)
+check("P15: 'Reich' zeigt das Ortslager NICHT als eigene Zahl (kein 137.5)",
+      "137.5" not in reich7, reich7)
+check("P15: die zwei Ansichten sind wirklich verschieden", lokal7 != reich7,
+      "%r vs %r" % (lokal7, reich7))
+check("P15: gerade Zahlen ohne Nachkommastelle, krumme mit einer",
+      M.zahl_text(7.0) == "7" and M.zahl_text(137.5) == "137.5" and M.zahl_text(0) == "0")
+check("P15: ein leerer Ort wird ehrlich als leer gemeldet",
+      M.ortsbestand_text(M.Settlement(name="Leer", map_id="x")) == "leer \u00b7 0 Siedler",
+      M.ortsbestand_text(M.Settlement(name="Leer", map_id="x")))
+check("P15: ein unbekannter Posten verschwindet nicht (alte Spielstaende)",
+      "5 Kristall" in M.mengen_text({"kristall": 5.0}), M.mengen_text({"kristall": 5.0}))
+
+
+# --------------------------------------------------------------------------
+abschnitt("P16: Beide Ansichten ueberleben Speichern und Laden (Rundlauf, Teil 3b)")
+
+pfad_b = temp("ansichten_rundlauf.json")
+st8 = M.GameState()
+ort8 = M.Settlement(name="Beideo", map_id="kontinent", x=2, y=5,
+                    id=M.siedlung_kennung("spieler", "kontinent", 2, 5))
+ort8.vorraete = {"holz": 61.5, "stein": 12.0}
+ort8.bevoelkerung = 4.0
+st8.settlements.append(ort8)
+st8.resources["holz"].amount = 900.0
+st8.resources["stein"].amount = 55.0
+st8.population = 33.0
+vorher_lokal = M.ortsbestand_text(ort8)
+vorher_reich = M.reichsbestand_text(st8)
+check("P16: der Spielstand wird geschrieben", bool(st8.save(pfad_b)))
+
+zweit8 = M.GameState()
+check("P16: der Spielstand wird geladen", zweit8.load(pfad_b) is True)
+geladen8 = zweit8.settlements[0] if zweit8.settlements else M.Settlement(name="?", map_id="?")
+check("P16: die LOKALE Ansicht ist nach dem Laden gleich",
+      M.ortsbestand_text(geladen8) == vorher_lokal,
+      "%r != %r" % (M.ortsbestand_text(geladen8), vorher_lokal))
+check("P16: die REICHS-Ansicht ist nach dem Laden gleich",
+      M.reichsbestand_text(zweit8) == vorher_reich,
+      "%r != %r" % (M.reichsbestand_text(zweit8), vorher_reich))
+check("P16: die zwei Ansichten sind auch nach dem Laden noch verschieden",
+      M.ortsbestand_text(geladen8) != M.reichsbestand_text(zweit8))
+# Gegenprobe: waeren beide Ansichten dieselbe Quelle, faellt dieser Vergleich durch.
+check("P16: Gegenprobe - Ortslager und Reichsbestand sind wirklich zwei Zahlen",
+      float(geladen8.vorraete.get("holz", 0.0)) != float(zweit8.resources["holz"].amount),
+      "%r vs %r" % (geladen8.vorraete.get("holz"), zweit8.resources["holz"].amount))
+
+
+# --------------------------------------------------------------------------
+abschnitt("P17: Die Anzeigen rufen wirklich die zwei Ansichten (Quelltextwachen)")
+
+_q3 = open(os.path.join(SRC, "main.py"), encoding="utf-8").read()
+check("P17: die Siedlungsliste zeigt 'Reich: '",
+      '"Reich: " + reichsbestand_text(self.state)' in _q3)
+check("P17: jede Siedlungszeile zeigt 'lokal: '",
+      '"lokal: " + ortsbestand_text(s)' in _q3)
+check("P17: die Siedlungskarte hebt den Ortsbestand hervor",
+      "ortsbestand_text(siedlung)" in _q3)
+check("P17: die Kopfleiste nennt die Gesamtsicht 'Reich'", 'text="Reich:"' in _q3)
+check("P17: die Bevoelkerung im Dorfzentrum ist als Reichs-Zahl gekennzeichnet",
+      '"Siedler (Reich):' in _q3)
+check("P17: der Wortlaut kommt aus EINER Quelle (kein zweiter Text im Aufrufer)",
+      _q3.count("def ortsbestand_text") == 1 and _q3.count("def reichsbestand_text") == 1)
+
+
 sys.exit(bericht())
