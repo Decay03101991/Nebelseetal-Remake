@@ -357,7 +357,7 @@ liegt jetzt bei **2665**. Wer eine feste Sollzahl aufschreibt, erzeugt Falschala
 > **ANWEISUNG AN DIE NEUE SITZUNG: NOCH NICHT ARBEITEN.** Der Auftrag ist an einem **sauberen Punkt**
 > angehalten (Teil 7b fertig, `.exe` gebaut **und** startgeprüft, alles committet und gesichert).
 > **Lies die Startzeile, prüfe in Sekunden nach (git log/status, `--pruefen`), setze dein Ziel — und
-> warte dann auf Daniels Wort.** Beginne erst mit **Teil 8**, wenn Daniel ausdrücklich „weiter\" sagt.
+> warte dann auf Daniels Wort.** Beginne erst mit **Teil 8**, wenn Daniel ausdrücklich „weiter" sagt.
 > **Kein Sammellauf, keine Prüfung, keine Änderung vorher** (er wäre ohnehin schon grün: 4023/0/22).
 
 ### Startzeile zum Kopieren
