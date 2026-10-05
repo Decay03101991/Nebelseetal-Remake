@@ -191,6 +191,47 @@ Stand.
 Schritt aus Abschnitt 0c: die Weltkarte nach der astra-Vorgabe nachziehen (Zeichenfläche, Zoomstufen,
 Scrollbalken, Detailpanel, Übersichtskarte)." — **erledigt in Schritt 24–26** (Weltkarte) und
 **Schritt 27** (Geländeregeln). Der aktuelle nächste Schritt steht oben in dieser Liste.
+## 0d. Abschluss und Selbstreflexion dieser Sitzung (05.10.2026, 14:45 — mit `date` geprüft)
+
+**Zustand:** nichts läuft. Kein Prozess offen (Spiel und Unteragenten alle beendet), Arbeitsverzeichnis
+**sauber**, alles committet bis `64b1b85`. Ziel dieser Sitzung (`20261005_135121_6629ef`) ist im Register
+auf **`cleared`** gesetzt, der Grund steht im Datensatz; **das Gesamtziel in Abschnitt 0 bleibt
+unverändert**. Letzter Sammellauf: **2644 bestanden, 0 Fehler, 21 Befunde über 41 Dateien**.
+
+**Was diese Sitzung geleistet hat (Schritt 29, Commits `306a89d` … `64b1b85`):** die zwei
+Feinkarten-Module eingehängt (mit den drei Einhänge-Fallen aus 0c), Daniels vier Entscheidungen
+eingeholt und im Register/Datendatei/Doku festgehalten, die Wald-Lichtfarbe getrennt (gerechnet),
+`.exe` 14.574.335 Byte (`4d17a109…`, 14:28:09) aus einem anderen Ordner startgeprüft, Übergabe 0c auf
+den neuen Stand samt **Gesamtziel-Regel** gebracht, Raster-Plan 8×7 nachgerechnet, die Vorgaben des
+Auftraggebers (Gesamtziel nicht verlieren · Selbstoptimierung bei jedem Sitzungswechsel) als Regeln
+festgeschrieben.
+
+**Was gut lief:** erst 0c lesen statt Historie · Zielregister prüfen, bevor etwas angefasst wird · die
+Fallenliste aus 0c war echt und hat Arbeit gespart · jede Zahl mit Werkzeugausgabe belegt · jede
+Kindmeldung stichprobenartig selbst nachgerechnet · ein roter Startbefund wurde **nicht** schöngeredet,
+sondern wiederholt gemessen.
+
+**Meine fünf eigenen Fehler — damit die nächste Sitzung sie nicht wiederholt:**
+
+1. `json.dump` mit `indent=1` hat `data/buildings.json` **komplett umformatiert** (383 Zeilen) —
+   bemerkt, aus git wiederhergestellt, sauber mit `indent=2` neu geschrieben (Diff: 2 Zeilen).
+   *Regel: vorher die vorhandene Einrückung der Datei ansehen.*
+2. Der Umbau von 0c hat `tests/test_zieluebergabe.py` **rot** gemacht: der Abschnitt „Der EINE nächste
+   Schritt" **muss** die Wörter „Sammellauf"/„Protokoll" enthalten. *Regel: der Abschnitt hat eine
+   Prüfzusage; die Arbeitsweise gehört hinein.*
+3. Der Startlauf wurde **zu früh gemessen** (18 s: zwei Fenster, eines „(Keine Rückmeldung)"). Erst mit
+   10/20/40 s und je 5 s Antwortfrist ist die Messung belastbar. *Regel: Geduld statt Schnellschuss.*
+4. Mein Auftragstext an das Plan-Kind enthielt eine **falsche Voraussetzung** („Sumpf **und Nebelsee**
+   nicht bebaubar"). Das Kind hat den Widerspruch gemeldet und recht. *Regel: Voraussetzungen im Auftrag
+   selbst prüfen, bevor man sie einem Kind vorsetzt.*
+5. Ein Commit-Text nannte **Zahlen, die erst der Lauf liefert** (2643/0/22 statt 2644/0/21). Korrigiert
+   per `--amend`. *Regel: gemessene Zahlen erst nach der Messung schreiben.*
+
+**Nebenbefund, der bleibt:** die Sammellauf-Summe schwankt um ±1 (2643/0/22 ↔ 2644/0/21), weil eine
+kartenabhängige Prüfung in `test_startspiel` mal als Befund, mal als bestanden zählt — Fehler sind in
+beiden Fällen **0**. Und: **während eines Sammellaufs darf kein Unteragent im Projekt arbeiten** (belegt:
+`test_baseline` 39/2 als erste Datei, allein 40/0/0).
+
 ## 0b. Stand beim Sitzungswechsel (04.10.2026, 23:45 — mit `date` geprüft)
 
 **Nichts ist in Arbeit. Kein Prozess läuft, kein Kind arbeitet. Arbeitsverzeichnis sauber**
