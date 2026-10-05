@@ -1,6 +1,6 @@
-# KONTEXT-PAKET — Nebelseetal Remake (Stand 05.10.2026, 21:36 · Zeiten mit `date` geholt)
+# KONTEXT-PAKET — Nebelseetal Remake (Stand 05.10.2026, 22:03 · Zeiten mit `date` geholt)
 
-**Diese Datei ist die Übergabe. Lies SIE zuerst (≈ 11 KB) und sonst nur, was hier als Zeiger steht —
+**Diese Datei ist die Übergabe. Lies SIE zuerst (≈ 12 KB) und sonst nur, was hier als Zeiger steht —
 `docs/PROJEKT_STAND.md` (69 KB) und `docs/ENTWICKLUNGSPROTOKOLL.md` (93 KB) sind Nachschlagewerke,
 keine Einstiegslektüre.** Projekt: `D:\Arbeiten\Nebelseetal_Remake` (bash/MSYS, `python -X utf8`).
 Ziel: fertige, fehlerfrei spielbare, passwortgeschützte Einzelspieler-`.exe` (Handbuch 2009 = Wahrheit).
@@ -11,34 +11,34 @@ Ziel: fertige, fehlerfrei spielbare, passwortgeschützte Einzelspieler-`.exe` (H
 
 | Was | Beleg |
 |---|---|
-| **Sammellauf** | **3797 bestanden · 0 Fehler · 22 Befunde · 52 Dateien** (21:2x; `…/cache/scratch/sammellauf.py`, 124 s) |
-| **Arbeitsbaum** | **sauber** (`git status --short` leer), letzter Commit **`65c41bf`** (Schritt 9, Teil 3b) |
-| **`.exe`** | **14.620.616 Byte**, SHA256 `21eeda941f355756…`, Dateizeitstempel **21:32:50**; genau **eine** `.exe`, `build/`+`dist/` aufgeräumt. **Ehrlich vermerkt:** `tools/build_exe.py` legt **keine** Kopie an — die Vorgängerfassung (14.618.766, 21:09:43) wurde diesmal **überschrieben**; ihre Quelle liegt in git (`a0d432d`) und ist daraus reproduzierbar. Die noch vorhandene Kopie `…\cache\scratch\exe_alt_2030.exe` stammt von 20:49 |
-| **Startprüfung** | aus `…\hermes\cache\scratch\exestart` (anderer Ordner, Skript `startpruefung_1005_2133.ps1`): Fenstertitel **„Nebelseetal Remake"**, antwortet bei **+10/+20/+40 s**, **0** Fehlerberichte (WerFault), danach **0 offene Spielprozesse**, Startordner leer |
-| **Sicherung** | `docs/SICHERUNGEN.md` — 16 führende Papiere mit Prüfsummen (21:35, projektunabhängige Kopie unter `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\`) |
+| **Sammellauf** | **3850 bestanden · 0 Fehler · 22 Befunde · 52 Dateien** (21:5x; `…/cache/scratch/sammellauf.py`, 133 s) |
+| **Arbeitsbaum** | **sauber** (`git status --short` leer), letzter Commit **`358cb06`** (Schritt 9, Teil 4 + `.exe`) |
+| **`.exe`** | **14.630.304 Byte**, SHA256 `0f4683b78c9c51a1…`, Dateizeitstempel **21:52:40**; genau **eine** `.exe`, `build/`+`dist/` aufgeräumt. Die **Vorgängerfassung wurde diesmal VORHER gesichert** (`…\cache\scratch\exe_alt_2151_vor_teil4.exe`, 14.620.616 Byte — Lehre aus Teil 3b) |
+| **Startprüfung** | aus `…\hermes\cache\scratch\exestart` (anderer Ordner, Skript `startpruefung_1005_2156.ps1`): Fenstertitel **„Nebelseetal Remake"**, antwortet bei **+10/+20/+40 s**, **0** Fehlerberichte (WerFault), danach **0 offene Spielprozesse**, Startordner leer |
+| **Sicherung** | `docs/SICHERUNGEN.md` — 16 führende Papiere mit Prüfsummen (22:01, projektunabhängige Kopie unter `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\`) |
 | **Zielregister** | nur **diese** Sitzung `20261005_212201_8bd3fb` aktiv (**0/20 Takte**), **kein fremdes aktives Ziel** (`--pruefen` rc=0); die Vorgängersitzung `20261005_201518_d2b523` ist auf `cleared` gesetzt |
-| **Kosten** | Tagesmessung **6,78 EUR / 4,00 EUR = „UEBER_LIMIT"** (7,61 USD). **Daniel hat den Auftrag um 20:20 freigegeben** (nur `deepseek-flash`, kein teures Modell, keine Kinder, **1,00 USD DeepSeek bleiben als Reserve**). Gemessener Anteil dieser Sitzung: **+0,10 EUR** (21:12: 6,68 → 21:35: 6,78). Maßgeblich ist DeepSeeks Kontostand (Daniel liest ab) |
+| **Kosten** | Tagesmessung **6,94 EUR / 4,00 EUR = „ÜBER_LIMIT"** (7,79 USD). **Daniel hat den Auftrag um 20:20 freigegeben** (nur `deepseek-flash`, kein teures Modell, keine Kinder, **1,00 USD DeepSeek bleiben als Reserve**). Gemessener Anteil dieser Sitzung: **+0,26 EUR** (21:12: 6,68 → 22:01: 6,94). Maßgeblich ist DeepSeeks Kontostand (Daniel liest ab) |
 
 `git log --oneline -3` · `git status --short` · `python tools/zieluebergabe.py --pruefen` → alles in Sekunden.
 
 ## 2. Der EINE nächste Schritt
 
-**Schritt 9 läuft — die Teile 1, 2, 3a und 3b sind fertig; als Nächstes Teil 4.** Der Auftraggeber hat
-„Stück für Stück" entschieden: nach JEDEM Teil Einzeltest + einmal Sammellauf + Protokollzeile +
+**Schritt 9 läuft — die Teile 1, 2, 3a, 3b und 4 sind fertig; als Nächstes Teil 5.** Der Auftraggeber
+hat „Stück für Stück" entschieden: nach JEDEM Teil Einzeltest + einmal Sammellauf + Protokollzeile +
 kleiner Commit.
 
-**Teil 4 (der nächste Schritt): `_transport_to_settlement` vollständig ersetzen** (Entwurf Z. 779).
-Der Altpfad `spieldaten_anwenden` lässt Transportmissionen absichtlich unberührt; Teil 4 fragt
-**Herkunft, Rohstoff, Menge und Karren** ab, benutzt `transport_start`/`transport_fortschritt` und
-schreibt das Ergebnis mit `Settlement(**neu)` zurück. Die Mission **muss** in der Auftragsschleife
-über `transport_fortschritt` gebucht werden (`eigentransport=True`) — sonst kommt am Ziel nichts an.
+**Teil 5 (der nächste Schritt): `_found_settlement`** (Entwurf Z. 777). Statt der zufälligen Erstwahl
+soll eine **Auswahlliste freier Karten aus dem Kartenvorrat** erscheinen — samt Nutzen, Kapazitäten,
+Preis und Mindestbestand —, und die Gründung läuft über **`absicht`** statt eines sofortigen `append`
+(mit Sperrgut und Vergabe; bei Absage wird alles zurückgegeben). Der erste Start übernimmt die
+Startbestände **genau einmal** (das macht Teil 3a schon) und die Startkarte.
 
-**Danach die Teile 5-8:** `_found_settlement` (Kartenauswahl, `absicht`, Preis, Mindestbestand),
-`_ware_herstellen`/`_train_unit`/`_start_research` je Ort, `_trade` über das bestätigte Angebot aus
-8b, `_unlock_next_map` + Migration (Altspielstand ohne Versionsfeld → `mode="legacy"` mit
-Warnhinweis, neue Partien `mode="oeokonomie-1"`); **erst danach** Schritt 10 (`tick_bis` und die
-Aktivierung, Entwurf Z. 791-1018) — **vorher darf der Ökonomiemodus NICHT aktiviert werden**
-(Entwurf Z. 1092).
+**Danach die Teile 6-8:** `_ware_herstellen`/`_train_unit`/`_start_research` je Ort (dort werden die
+**Ortslager für Waren und Einheiten** gefüllt — bis dahin sind die lokalen `einheiten` leer, siehe
+Übergang beim Transport), `_trade` über das bestätigte Angebot aus 8b, `_unlock_next_map` + Migration
+(Altspielstand ohne Versionsfeld → `mode="legacy"` mit Warnhinweis, neue Partien
+`mode="oeokonomie-1"`); **erst danach** Schritt 10 (`tick_bis` und die Aktivierung, Entwurf
+Z. 791-1018) — **vorher darf der Ökonomiemodus NICHT aktiviert werden** (Entwurf Z. 1092).
 
 **Die Ordnungs-Einsicht, die den Rest bestimmt (beim Bau von Teil 1 gemessen):** die fünfzehn
 Ortsfelder sind angelegt, aber **leer**. Solange sie leer sind, kann KEIN Rückruf auf sie umgestellt
@@ -91,10 +91,10 @@ Teil 4-7 umgestellt sind und der Zuschuss aus `verbrauche_am_ort` entfallen kann
 | 7 | `zielstatus` (Zielprüfung + Haltefenster 24 h) | `a2b6531`, `eee604e` |
 | 8a | `botkern.oekonomie_kartenwahl`, `oekonomie_angebot` | `3785b5d` |
 | 8b | Handels-Paar `handel_start`/`handel_abschluss` + Prüfdatei | `25466f5` · `test_handel_transaktion` **101/0/0** |
-| **9** | **`main`-Anbindung + Migration — TEILE 1-3b fertig, Teil 4 als Nächstes** | 9.1 `c099c4e` · 9.2 `1ce4ae3` · 9.3a `a0d432d` · **9.3b `65c41bf`** · `test_oekonomie_einhaengung` **143/0/1** |
+| **9** | **`main`-Anbindung + Migration — TEILE 1-4 fertig, Teil 5 als Nächstes** | 9.1 `c099c4e` · 9.2 `1ce4ae3` · 9.3a `a0d432d` · 9.3b `65c41bf` · **9.4 `5a46ad7`** · `test_oekonomie_einhaengung` **196/0/1** |
 | 10 | `tick_bis` + **Aktivierung** | offen |
 
-**Was die Teile 1, 2, 3a und 3b in `src/main.py` wirklich geändert haben:**
+**Was die Teile 1, 2, 3a, 3b und 4 in `src/main.py` wirklich geändert haben:**
 1. **Teil 1 (Ökonomie-Felder + Ort-Kennung):** die fünfzehn Felder aus Entwurf Z. 757-772 liegen in
    der `Settlement`-Dataclass (Vorgabewerte → **Altspielstände laden unverändert weiter**); sie bleiben
    bis zur Aktivierung leer, das Spiel rechnet weiter mit den globalen Beständen (**keine zweite
@@ -125,6 +125,17 @@ Teil 4-7 umgestellt sind und der Zuschuss aus `verbrauche_am_ort` entfallen kann
    Bevölkerungszeile „Siedler (Reich):". **Rundlauf geprüft:** Speichern/Laden trug beide Felder schon
    (`asdict`/`Settlement(**s)`) — vor und nach dem Laden sind Lokal- und Reichstext gleich und
    weiterhin verschieden. Am lebenden Fenster gemessen (Ortslager 137,5 Holz gegen Reich 777 Holz).
+5. **Teil 4 (der Transport funktioniert wirklich):** die alte Methode buchte **fest 10 Holz** vom
+   Reichsbestand ab und schrieb **nichts** gut — es gab keine Mechanik. Neu:
+   `GameState.transport_an_ort(quelle, ziel, rohstoff, menge, karren)` prüft alles und bucht im KERN
+   (`spieloekonomie.transport_start`), `_eigentransport_buchen` führt die Mission bei **jedem Takt**
+   über `transport_fortschritt` (Ankunft: Fracht + Importherkunft ins **Ortslager** des Ziels;
+   Rückkehr: Karren ins Ortslager der Herkunft — je genau einmal). `spieldaten_anwenden` bleibt für
+   Eigentransporte unberührt (Entwurf Z. 505), die Heimkehr läuft **nicht** über den Reichsbestand.
+   `_ort_uebernehmen` bringt den **bestehenden** Ort auf den neuen Stand (die Oberfläche hält
+   Verweise), und `alle_einheiten()` zählt jetzt auch die **Ortslager** (Entwurf Z. 786) — sonst
+   fielen die Karren nach der Heimkehr aus den Kriegspunkten. Die Oberfläche hat eine echte
+   **Transportmaske** (Herkunft/Rohstoff/Menge/Karren, Ausgangs- und Zielbestand, Ladeplätze).
 
 ## 4. Arbeitsweise (Vorgabe Daniel — gilt unverändert)
 
@@ -159,6 +170,11 @@ am Ende die `.exe` neu bauen und aus einem **anderen** Ordner startprüfen.
 | **Escape-Ebenen in der Leseausgabe** | Wer Text aus einer Werkzeug-Ausgabe in eine Datei kopiert, kopiert deren Escapes mit: am 05.10. standen ein `\"` und ein `\cache`, wo ein `"` und ein `\` gehörten (Protokollzeile 65 und der erste Anlauf der Übergabe) — beide nachgebessert. Regel: **nach dem Schreiben zurücklesen** und die kritischen Zeichen zählen. |
 | **`.exe`-Neubau überschreibt die Vorgängerfassung** | `tools/build_exe.py` legt **keine** Kopie an. Vor dem Bau `cp Nebelseetal_Remake.exe …/cache/scratch/exe_alt_HHMM.exe`, sonst ist die alte Fassung weg (05.10. beim Bau von Teil 3b passiert; die Quelle bleibt in git reproduzierbar). |
 | **Zwei Ansichten brauchen EINE Quelle** | Wird dieselbe Zahl an drei Stellen getippt (Siedlungsliste, Karte, Kopfleiste), laufen die Texte auseinander. Deshalb `ortsbestand_text`/`reichsbestand_text` als **einzige** Quelle — und die Prüfung wacht per Quelltext darüber, dass die Aufrufer sie benutzen. |
+| **Wachen auf die GANZEN Zeilen ankern** | `"amount = 10" not in quelle` schlug an, weil es `amount = 100` (der belegte Startwert) mitfindet — gefunden hat es der Prüflauf, nicht das Nachdenken. Muster immer mit Zeilenumbruch bilden (`'amount = 10\n        resource'`). |
+| **Ein neuer Rückruf braucht oft eine ZWEITE Änderung, damit er nicht tot ist** | Der Transport hängt an Karren im **lokalen** `Settlement.einheiten` — die sind bis Teil 6 leer. Lösung wie die Übergangskasse aus 3a: den fehlenden Karren aus dem Reichsheer holen und **ins Ortslager legen**. |
+| **`Settlement(**neu)` und die Verweise der Oberfläche** | Der Ort wird in `self.settlements` ersetzt — `self.karten_siedlung` zeigt dann still auf einen alten Stand. Richtig: den **bestehenden** Gegenstand übernehmen (`_ort_uebernehmen`), nur bei echter Änderung. |
+| **Rundlauf-Tests brauchen eine ECHTE Karten-Kennung** | `current_map = "test"` lässt `load` abstürzen (`generate_map` → `StopIteration`). Für Speichern/Laden `map_id=current_map` benutzen. |
+| **Startprüfung als eigenen, einfachen Befehl fahren** | Ein Sammelbefehl (stat + find + cp + Prüfskript) blieb in der Freigabe hängen und wurde **nicht** ausgeführt — danach nie eine Prüfung als „gelaufen" melden; die Protokollzeile kommt erst mit dem Prüfergebnis. |
 
 ## 6. Nicht erneut zu prüfen (Beleg + Datum)
 
@@ -170,11 +186,15 @@ am Ende die `.exe` neu bauen und aus einem **anderen** Ordner startprüfen.
   über 52 Dateien (21:1x).
 * **Schritt 9, Teil 3b** — `65c41bf`, dieselbe Prüfdatei **143/0/1** (neu: P15 Trennung, P16 Rundlauf
   beider Ansichten, P17 Quelltextwachen), Sammellauf **3797/0/22** über 52 Dateien (21:2x, 124 s).
+* **Schritt 9, Teil 4** — `5a46ad7`, dieselbe Prüfdatei **196/0/1** (neu: P18 ganzer Weg Start→Ankunft
+  →Heimkehr, P19 neun Ablehnungen ohne jede Änderung, P20 laufender Transport über Speichern/Laden,
+  P21 Quelltextwachen), Sammellauf **3850/0/22** über 52 Dateien (21:5x, 133 s); am lebenden Fenster
+  gemessen (Maske, Start über die Oberfläche, Karren kehren ins Ortslager zurück).
   Messwerte am lebenden Fenster: Dorfzentrum „Reich: 777 Holz, 300 Stein · 21 Siedler" **und**
   „lokal: 137.5 Holz, 42 Stein · 8 Siedler"; Siedlungskarte „Ortsbestand dieser Siedlung (lokal)".
-* Die neue `.exe` **startet** (21:33, Fenstertitel, antwortet 10/20/40 s, 0 Fehlerberichte, 0 offene
-  Prozesse); sie enthält die Feld-/Kennungs-Änderung, die Punkt- und Stationier-Korrektur, **die
-  Ortslager (3a)** und **die getrennte Anzeige (3b)**.
+* Die neue `.exe` **startet** (21:56, Fenstertitel, antwortet 10/20/40 s, 0 Fehlerberichte, 0 offene
+  Prozesse); sie enthält die Feld-/Kennungs-Änderung, die Punkt- und Stationier-Korrektur, die
+  **Ortslager (3a)**, die **getrennte Anzeige (3b)** und den **echten Transport (4)**.
 * Der Sammellauf wird **nur nach einer echten Änderung an `src/`** wiederholt.
 * Fehlend von Schritt 8a: `tests/test_bot_oekonomie.py` und `docs/audits/pruefung_schritt8.md` (zwei
   gestoppte Kinder; Auftragstext in Protokollzeile 53).
@@ -206,6 +226,6 @@ am Ende die `.exe` neu bauen und aus einem **anderen** Ordner startprüfen.
 * Stand/Historie: `docs/PROJEKT_STAND.md` (0c Tabelle, 0e Übergabe) · `docs/ENTWICKLUNGSPROTOKOLL.md`
 * Werkzeuge: `tools/zieluebergabe.py` · `tools/protokoll_sichern.py` · `tools/build_exe.py`
 * Sammellauf: `C:\Users\saras\AppData\Local\hermes\cache\scratch\sammellauf.py` (liest `run_tests.bat`)
-* Startprüfung: `…\cache\scratch\exestart\startpruefung_1005_2133.ps1` (Prozesse, Titel, WerFault)
+* Startprüfung: `…\cache\scratch\exestart\startpruefung_1005_2156.ps1` (Prozesse, Titel, WerFault)
 * Bau-Umgebung für die `.exe` (Zwischenspeicher, 24 h): `…\cache\scratch\nebel_bauvenv`
   (`uv venv --python 3.14.7` · `uv pip install pyinstaller`), Aufruf mit `--python …/Scripts/python.exe`

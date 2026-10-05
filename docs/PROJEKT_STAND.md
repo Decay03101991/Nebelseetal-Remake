@@ -142,9 +142,9 @@ nach Daniels Spielbericht — den **Zeitfaktor** samt sichtbarem Rohstoffeingang
 | `.exe` | **05.10. 13:41 gebaut** (Dateizeitstempel `13:41:04`): **14.531.774 Byte**, SHA256 `bffd3c444d6eb1433b14c1b7a768946cc45bdc1d8511332bca0de33bc7a85ed3`, aus `C:\Users\saras` startgeprüft (ein Fenster, genau eine Instanz) — **enthält Zeitfaktor, Rohstoff-Warnung und Geländeregeln** (Schritte 27 und 28). Ältere Fassungen: 13:29 (14.524.603 Byte, `1fad511d…`, Geländeregeln) · 12:38 (14.524.225 Byte, `63b09fbf…`). `build/`, `dist/`, `.spec`, `__pycache__` sind aufgeräumt, genau eine EXE im Projektordner. **Wichtig:** nur diese Fassung zeigt Tempo und Warnung — wer mit einer älteren spielt, sieht den Zeitfaktor nicht |
 | Guthaben | **von Daniel abgelesen am 05.10. um 13:48: OpenAI 2,17 USD · DeepSeek 4,06 USD** (11:00: 2,66 / 4,97 → im Nachmittag 0,49 bzw. 0,91 USD verbraucht). **Gemessener Tagesverbrauch laut `scripts/tageskosten_check.py`: 4,13 USD ≈ 3,68 EUR über 23 Sitzungen und 4 Modelle = 80 % des harten Tageslimits (4 EUR) — Lage „WARNUNG".** Für die nächste Sitzung heißt das: **keine teuren Aufrufe ohne Begründung**, Kinder und Prüfer nur auf `deepseek-flash`, Bilddeutungen (astra) nur, wenn es wirklich nicht anders geht. **Beobachtung zum Messskript:** es meldete zwischen 13:45 und 13:48 nur +0,005 USD, während Daniels Guthabenanzeige um **0,19 USD** fiel — die Schätzung läuft der Anbieterwahrheit nach. **Maßgeblich ist die Guthabenanzeige des Anbieters, nicht die Schätzung** |
 
-### Der EINE nächste Schritt (Stand 05.10.2026, 21:36 — Schritt 9 läuft: **Teile 1 bis 3b fertig (Ortslager führen, Anzeige getrennt), nächster ist Teil 4, der Transport**)
+### Der EINE nächste Schritt (Stand 05.10.2026, 22:03 — Schritt 9 läuft: **Teile 1 bis 4 fertig (Ortslager, Anzeige, Transport), nächster ist Teil 5, die Gründung**)
 
-**Der nächste Schritt jetzt:** **Schritt 9, Teil 4 — `_transport_to_settlement` vollständig ersetzen** (Entwurf Z. 779). Der Altpfad `spieldaten_anwenden` lässt Transportmissionen absichtlich unberührt; Teil 4 fragt **Herkunft, Rohstoff, Menge und Karren** ab, benutzt `transport_start`/`transport_fortschritt` und schreibt das Ergebnis mit `Settlement(**neu)` zurück. Die Mission **muss** in der Auftragsschleife über `transport_fortschritt` gebucht werden (`eigentransport=True`) — sonst kommt am Ziel nichts an. **Erwartet:** der betroffene Einzeltest grün, der **Sammellauf** weiter ohne Fehler, eine **Protokollzeile** (Zeit aus `date`), `python tools/protokoll_sichern.py --protokoll` und ein kleiner Commit. Danach die Teile 5-8 (`_found_settlement` mit Kartenauswahl/`absicht`/Preis, `_ware_herstellen`/`_train_unit`/`_start_research` je Ort, `_trade`, `_unlock_next_map` + Migration); **erst danach** Schritt 10 (`tick_bis` und die Aktivierung, Entwurf Z. 791-1018) — vorher darf der Ökonomiemodus NICHT aktiviert werden. Einzelheiten je Zeile: `docs/KONTEXT_PAKET.md`, Abschnitt 2, und Entwurf Z. 755-789.
+**Der nächste Schritt jetzt:** **Schritt 9, Teil 5 — `_found_settlement`** (Entwurf Z. 777). Statt der zufälligen Erstwahl soll eine **Auswahlliste freier Karten aus dem Kartenvorrat** erscheinen — samt Nutzen, Kapazitäten, Preis und Mindestbestand —, und die Gründung läuft über **`absicht`** statt eines sofortigen `append` (Sperrgut, Vergabe, bei Absage alles zurück). Der erste Start übernimmt die Startbestände genau einmal (macht Teil 3a) und die Startkarte. **Erwartet:** der betroffene Einzeltest grün, der **Sammellauf** weiter ohne Fehler (3850), eine **Protokollzeile** (Zeit aus `date`), `python tools/protokoll_sichern.py --protokoll` und ein kleiner Commit. Danach die Teile 6-8 (`_ware_herstellen`/`_train_unit`/`_start_research` je Ort — dort werden die Ortslager für Waren und Einheiten gefüllt —, `_trade`, `_unlock_next_map` + Migration); **erst danach** Schritt 10 (`tick_bis` und die Aktivierung, Entwurf Z. 791-1018) — vorher darf der Ökonomiemodus NICHT aktiviert werden. Einzelheiten je Zeile: `docs/KONTEXT_PAKET.md`, Abschnitt 2, und Entwurf Z. 755-789.
 
 **Das Gesamtpaket** hat der Auftraggeber ausdrücklich so entschieden („das ganze Paket in der
 Reihenfolge des Papiers — kein Halbumbau"): zuerst die vier Handbuch-Korrekturen, dann die neun
@@ -168,9 +168,11 @@ Schritte des Entwurfs.
 
 **Schritte 0 bis 8b sind ERLEDIGT und geprüft; Schritt 9 läuft — Teil 1 (Felder und Ort-Kennung),
 Teil 2 (Punkte aus anwesenden UND unterwegs befindlichen Einheiten, Doppelabzug beim Stationieren behoben),
-Teil 3a (die **Ortslager führen**: Produktion je Ort, Bezahlung Ortslager-zuerst, Gründung mit echten Startwerten)
-und Teil 3b (die **Anzeige getrennt**: „lokal" neben „Reich" in Kopfleiste, Siedlungsliste und Siedlungskarte)
-sind fertig. Teil 4 (der Transport) ist der nächste Schritt, danach die Teile 5–8 und Schritt 10 (Aktivierung).**
+Teil 3a (die **Ortslager führen**: Produktion je Ort, Bezahlung Ortslager-zuerst, Gründung mit echten Startwerten),
+Teil 3b (die **Anzeige getrennt**: „lokal" neben „Reich" in Kopfleiste, Siedlungsliste und Siedlungskarte) und
+Teil 4 (der **eigene Transport funktioniert wirklich**: Herkunft/Rohstoff/Menge/Karren, Ankunft ins Ortslager
+des Ziels, Karren zurück ins Ortslager der Herkunft, `alle_einheiten` zählt auch die Ortslager)
+sind fertig. Teil 5 (die Gründung) ist der nächste Schritt, danach die Teile 6–8 und Schritt 10 (Aktivierung).**
 
 | Schritt | Inhalt | Stand | Beleg (Commit / Prüfzahl) |
 |---|---|---|---|
@@ -183,7 +185,7 @@ sind fertig. Teil 4 (der Transport) ist der nächste Schritt, danach die Teile 5
 | 6 | Forschung je Siedlung: `forschung_start`, `forschung_abschluss` | **fertig** | `1d64cd6`, `c590951` · `test_lokale_forschung` **47/0/0**, Audit `pruefung_schritt6.md` ohne verhaltensrelevante Abweichung |
 | 7 | Zielprüfung und Haltefenster (`zielstatus`) | **fertig** | `a2b6531`, `52` · `test_versorgungsziel` **69/0/0**; Audit fand zwei echte Beanstandungen an meinem Code, beide behoben |
 | 8 | Bot-Planung (8a) · Handels-Paar `handel_start`/`handel_abschluss` (8b) | **beide fertig** | 8a: `3785b5d` · `test_botkern` **90/0/0** (botkern bleibt reines ASCII) · 8b: `25466f5` · `test_handel_transaktion` **101/0/0**, Sammellauf **3654/0/21** über 51 Dateien |
-| 9 | `main`-Anbindung und Migration | **läuft: Teile 1-3b fertig** | 9.1 `c099c4e` (Felder, Ort-Kennung) · 9.2 `1ce4ae3` (Punkte, Stationier-Fehler behoben) · 9.3a `a0d432d` (Ortslager führen, Vorprüfungen mit umgestellt) · 9.3b `65c41bf` (Anzeige lokal/Reich, Rundlauf geprüft) · `test_oekonomie_einhaengung` **143/0/1**, Sammellauf **3797/0/22** über 52 Dateien · **Teil 4 (Transport) offen** |
+| 9 | `main`-Anbindung und Migration | **läuft: Teile 1-4 fertig** | 9.1 `c099c4e` · 9.2 `1ce4ae3` · 9.3a `a0d432d` (Ortslager führen) · 9.3b `65c41bf` (Anzeige lokal/Reich) · 9.4 `5a46ad7` (eigener Transport über den Kern, Maske, `alle_einheiten` mit Ortslagern) · `test_oekonomie_einhaengung` **196/0/1**, Sammellauf **3850/0/22** über 52 Dateien · **Teil 5 (Gründung) offen** |
 | 10 | Ereignisschleife `tick_bis` und Aktivierung | offen | — |
 
 **Aus Schritt 5 ist bewusst noch NICHT gebaut:** die Umstellung der `main`-Uhr auf `spielsekunden`
@@ -322,7 +324,7 @@ nicht · die Uhr ist gemischt). Die reine Kostenregel steht im Sitzungsgedächtn
 liegt jetzt bei **2665**. Wer eine feste Sollzahl aufschreibt, erzeugt Falschalarm; verbindlich ist
 **0 Fehler**, nicht die Summe.
 
-## 0e. Übergabe an die nächste Sitzung (05.10.2026, 21:36 — mit `date`, Sammellauf, `.exe`-Startprüfung, `git log` und Kostenmessung belegt)
+## 0e. Übergabe an die nächste Sitzung (05.10.2026, 22:03 — mit `date`, Sammellauf, `.exe`-Startprüfung, `git log` und Kostenmessung belegt)
 
 ### Startzeile zum Kopieren
 
@@ -341,29 +343,28 @@ So erzeugt (Werkzeug, startet nichts): `python tools/zieluebergabe.py --startzei
 >
 > Ziel in DIESER Sitzung setzen: `/goal <Wortlaut aus D:\Arbeiten\Nebelseetal_Remake\docs\PROJEKT_STAND.md 0c>`
 >
-> **Kosten:** Tageslimit am 05.10. überschritten (Stand 21:35: **6,78 / 4,00 EUR**) — **Daniel hat den
+> **Kosten:** Tageslimit am 05.10. überschritten (Stand 22:01: **6,94 / 4,00 EUR**) — **Daniel hat den
 > Auftrag um 20:20 freigegeben**: nur deepseek-flash, kein teures Modell, keine Kinder, 1,00 USD DeepSeek
-> bleiben Reserve. Gemessener Anteil der Sitzung `20261005_212201_8bd3fb`: **+0,10 EUR**.
+> bleiben Reserve. Gemessener Anteil der Sitzung `20261005_212201_8bd3fb`: **+0,26 EUR**.
 
 ### Stand in Belegen
 
 | Was | Beleg (gemessen, nicht geschätzt) |
 |---|---|
-| **Sammellauf** | **3797 bestanden, 0 Fehler, 22 Befunde über 52 Dateien**, 21:2x, 124 s — Teil 9.1 +74, 9.2 +14, 9.3a +33, **9.3b +22**; der 22. Befund ist der ehrlich benannte Lager-Befund der stationierten Truppe |
-| **Arbeitsbaum** | **sauber** — `git status --short` ist leer; letzter Commit **`65c41bf`** (Schritt 9, Teil 3b) |
-| **`.exe`** | **14.620.616 Byte**, SHA256 `21eeda941f355756c6e3b7af19021c7c4c81f410ff1ca81aa85f7577887d4ec6`, Dateizeitstempel **21:32:50**; startgeprüft aus `…\cache\scratch\exestart` (anderer Ordner, `startpruefung_1005_2133.ps1`): Fenstertitel **„Nebelseetal Remake"**, antwortet bei **+10/+20/+40 s**, **0** Fehlerberichte (WerFault), danach **0 offene Spielprozesse**, Startordner leer. Sie enthält die Änderungen aus Schritt 9, Teil 1, 2, **3a und 3b**. **Ehrlich vermerkt:** die Vorgängerfassung (14.618.766) wurde beim Bau **überschrieben**, keine Kopie; die Quelle liegt in git (`a0d432d`) |
-| **Sicherung** | `docs/SICHERUNGEN.md` — **16 Dateien** mit Prüfsummen, 21:35 (`protokoll_sichern.py --protokoll`, projektunabhängige Kopie unter `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\`) |
+| **Sammellauf** | **3850 bestanden, 0 Fehler, 22 Befunde über 52 Dateien**, 21:5x, 133 s — Teil 9.1 +74, 9.2 +14, 9.3a +33, 9.3b +22, **9.4 +53**; der 22. Befund ist der ehrlich benannte Lager-Befund der stationierten Truppe |
+| **Arbeitsbaum** | **sauber** — `git status --short` ist leer; letzter Commit **`358cb06`** (Schritt 9, Teil 4 + `.exe`) |
+| **`.exe`** | **14.630.304 Byte**, SHA256 `0f4683b78c9c51a137f2b64d3548eb7f073a16e0b6ae2da8053770b2bdad78b1`, Dateizeitstempel **21:52:40**; startgeprüft aus `…\cache\scratch\exestart` (anderer Ordner, `startpruefung_1005_2156.ps1`): Fenstertitel **„Nebelseetal Remake"**, antwortet bei **+10/+20/+40 s**, **0** Fehlerberichte (WerFault), danach **0 offene Spielprozesse**, Startordner leer. Sie enthält die Änderungen aus Schritt 9, Teil 1, 2, 3a, 3b und **4**. Die **Vorgängerfassung wurde diesmal VORHER gesichert** (`…\cache\scratch\exe_alt_2151_vor_teil4.exe`, 14.620.616 Byte — Lehre aus Teil 3b) |
+| **Sicherung** | `docs/SICHERUNGEN.md` — **16 Dateien** mit Prüfsummen, 22:01 (`protokoll_sichern.py --protokoll`, projektunabhängige Kopie unter `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\`) |
 | **Zielregister** | nur **diese** Sitzung aktiv (**0/20 Takte**, `20261005_212201_8bd3fb`), **kein fremdes aktives Ziel** (`--pruefen` → rc=0); die Vorgängersitzung `20261005_201518_d2b523` steht auf `cleared` |
-| **Kosten** | **Tagesmessung 6,78 EUR von 4,00 EUR = ÜBER dem harten Limit** (7,61 USD). **Daniel hat den Auftrag um 20:20 freigegeben** — nur `deepseek-flash`, kein teures Modell, keine Kinder, **1,00 USD DeepSeek bleiben als Reserve**. Gemessener Anteil der Sitzung `20261005_212201_8bd3fb`: **+0,10 EUR** (6,68 → 6,78) |
+| **Kosten** | **Tagesmessung 6,94 EUR von 4,00 EUR = ÜBER dem harten Limit** (7,79 USD). **Daniel hat den Auftrag um 20:20 freigegeben** — nur `deepseek-flash`, kein teures Modell, keine Kinder, **1,00 USD DeepSeek bleiben als Reserve**. Gemessener Anteil der Sitzung `20261005_212201_8bd3fb`: **+0,26 EUR** (6,68 → 6,94) |
 
 ### Der EINE nächste Schritt
 
-**Schritt 9, Teil 4 — `_transport_to_settlement` vollständig ersetzen** (Entwurf Z. 779). Herkunft, Rohstoff,
-Menge und Karren abfragen, `transport_start`/`transport_fortschritt` benutzen, das Ergebnis mit
-`Settlement(**neu)` zurückschreiben und die Mission anhängen — sie **muss** in der Auftragsschleife über
-`transport_fortschritt` gebucht werden (`eigentransport=True`). **Erwartetes Ergebnis:** Einzeltest grün,
-Sammellauf weiter **ohne Fehler** (3797), eine Protokollzeile (Zeit aus `date`), `protokoll_sichern.py --protokoll`,
-kleiner Commit. Einzelheiten: `docs/KONTEXT_PAKET.md`, Abschnitt 2.
+**Schritt 9, Teil 5 — `_found_settlement`** (Entwurf Z. 777). Auswahlliste freier Karten aus dem Kartenvorrat
+(Nutzen, Kapazitäten, Preis, Mindestbestand), Gründung über **`absicht`** statt sofortigem `append`, Sperrgut und
+Vergabe, bei Absage alles zurück; keine zufällige Erstwahl. **Erwartetes Ergebnis:** Einzeltest grün, Sammellauf
+weiter **ohne Fehler** (3850), eine Protokollzeile (Zeit aus `date`), `protokoll_sichern.py --protokoll`, kleiner
+Commit. Einzelheiten: `docs/KONTEXT_PAKET.md`, Abschnitt 2.
 
 ### Nicht erneut zu prüfen (je mit Beleg und Datum)
 
@@ -375,9 +376,10 @@ kleiner Commit. Einzelheiten: `docs/KONTEXT_PAKET.md`, Abschnitt 2.
 | Schritt **9, Teil 2** (Punkte, Stationier-Fehler) | `1ce4ae3`, dieselbe Prüfdatei **88/0/1**, Sammellauf **3742/0/22** über 52 Dateien (20:48) |
 | Schritt **9, Teil 3a** (Ortslager führen) | `a0d432d`, dieselbe Prüfdatei **121/0/1**, Sammellauf **3775/0/22** über 52 Dateien (21:1x); die 10 Fehler des ersten Laufs sind behoben und im Protokoll benannt |
 | Schritt **9, Teil 3b** (Anzeige lokal/Reich) | `65c41bf`, dieselbe Prüfdatei **143/0/1** (neu P15/P16/P17), Sammellauf **3797/0/22** über 52 Dateien (21:2x, 124 s); am lebenden Fenster gemessen: Dorfzentrum „Reich: 777 Holz, 300 Stein · 21 Siedler" **und** „lokal: 137.5 Holz, 42 Stein · 8 Siedler", Siedlungskarte mit hervorgehobenem Ortsbestand |
+| Schritt **9, Teil 4** (eigener Transport) | `5a46ad7`, dieselbe Prüfdatei **196/0/1** (neu P18 ganzer Weg · P19 neun Ablehnungen ohne jede Änderung · P20 laufender Transport über Speichern/Laden · P21 Quelltextwachen), Sammellauf **3850/0/22** über 52 Dateien (21:5x, 133 s); die alte Methode mit festem 10 Holz ist verschwunden (Quelltextwache) |
 | Schritt **8a** (`oekonomie_kartenwahl`, `oekonomie_angebot`) | `3785b5d`, `test_botkern` **90/0/0** (botkern bleibt reines ASCII); die *prüfenden Kinder* dazu wurden gestoppt → **die Prüfdatei fehlt noch** |
 | `test_baseline` war **nur zufällig grün** | behoben 18:17: Haus wird jetzt auf ein Feld gesetzt, wo es stehen darf; **dreimal 40/0/0** belegt, seither kein Ausreißer |
-| `.exe` startet | 21:32:50 gebaut (14.620.616 Byte, SHA256 `21eeda94…`), aus einem anderen Ordner geprüft (Titel, antwortet 10/20/40 s, 0 Fehlerberichte, 0 offene Prozesse, Startordner leer) |
+| `.exe` startet | 21:52:40 gebaut (14.630.304 Byte, SHA256 `0f4683b7…`), aus einem anderen Ordner geprüft (Titel, antwortet 10/20/40 s, 0 Fehlerberichte, 0 offene Prozesse, Startordner leer); Vorgängerfassung vorher gesichert |
 | Der Baum ist sauber | 20:33: `git status --short` leer (Commit `25466f5`) |
 
 ### Sekunden-Checks für den Anfang
