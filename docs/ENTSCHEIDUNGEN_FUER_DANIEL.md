@@ -6,8 +6,11 @@ sind als **VORSCHLAG** mit Ableitung gekennzeichnet; wo das Handbuch schweigt, s
 
 **Stand:** 05.10.2026, 14:02 (mit `date` geprüft).
 
-**Status:** erzeugt vom Unteragenten, vom Koordinator nachgeprüft: **noch offen** (keine der drei
-Fragen ist beantwortet).
+**Status:** erzeugt vom Unteragenten, vom Koordinator an den Kernzahlen nachgeprüft — und
+**beantwortet**: Daniel hat am 05.10.2026 um 14:24 entschieden (siehe „Antworten" am Ende).
+Die Zahlen der Vorlage wurden stichprobenartig nachgerechnet und stimmen
+(`punkte.VORSCHLAG_ZIEL_PUNKTE = 300`, `punkte.sieg_oder_niederlage()`, `spielzeit.STANDARD_FAKTOR = 180`,
+`data/spielzeit.json` „belegt": false).
 
 ---
 
@@ -154,3 +157,20 @@ Sieg/Niederlage: [ ] A Punkteziel (Schwelle ____)  [ ] B Nebenwelten + Punkte  [
 **Grenzen:** Der PDF-Volltext ist nicht durchsuchbar (Binärdatei); die zitierbare Prüfung lief über die
 Textfassung `Spielanleitung_2009_Textfassung.txt` (laut `00_QUELLEN.md` dieselbe Anleitung). Keine weitere
 `ORIGINAL_*.md` enthält eine Sieg-/Niederlage- oder Geländeregel-Angabe.
+
+---
+
+## Antworten (Daniel, 05.10.2026, 14:24 — festgehalten vom Koordinator)
+
+| Frage | Daniels Entscheidung | Zustand |
+|---|---|---|
+| 1 Zeitfaktor | **×180 so lassen** (1 Spielstunde = 20 Sekunden) | nichts zu ändern, Wert steht so |
+| 2 Die neun Geländeregeln | **alle neun so lassen** | in `data/buildings.json` als `_bestaetigt` eingetragen |
+| 3 Sieg-/Niederlagebedingung | **Vorschläge abwarten** — diese Vorlage zuerst vorlegen | **offen**, siehe unten |
+
+Zusätzlich an dem Tag entschieden (nicht Teil dieser Vorlage): die **Lichtfarbe** wird getrennt (Wald
+bekommt `#6A7E6C`, aus seiner Grundfarbe gerechnet) und das **Kartenmaß** wird **8×7 = 56 Felder,
+davon 40 bebaubar**.
+
+**Noch vorzulegen:** die drei Optionen zu Sieg/Niederlage aus Abschnitt 3 — Empfehlung des Autors ist
+A) Punkteziel (Schwelle im Code heute 300, `src/punkte.py`).
