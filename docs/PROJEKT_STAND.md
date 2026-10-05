@@ -172,7 +172,7 @@ Siedlung), danach 7, 8, 9 und zuletzt die Aktivierung (10).**
 | 5 | gemeinsame Spieluhr: `ort_tick`, `fensterproduktion` | **Kern fertig** | `319c16b`, `a83ec25` · `test_oekonomie_uhr` **42/0/0** |
 | 6 | Forschung je Siedlung: `forschung_start`, `forschung_abschluss` | **fertig** | `1d64cd6`, `c590951` · `test_lokale_forschung` **47/0/0**, Audit `pruefung_schritt6.md` ohne verhaltensrelevante Abweichung |
 | 7 | Zielprüfung und Haltefenster (`zielstatus`) | **fertig** | `a2b6531`, `52` · `test_versorgungsziel` **69/0/0**; Audit fand zwei echte Beanstandungen an meinem Code, beide behoben |
-| 8 | Bot-Planung | **offen — der nächste Schritt** | — |
+| 8 | Bot-Planung: `oekonomie_kartenwahl`, `oekonomie_angebot` (**8a** fertig) · Handels-Paar `handel_start`/`handel_abschluss` | **8a fertig, Rest offen** | `3785b5d` · `test_botkern` **90/0/0** (botkern bleibt reines ASCII); Prüfdatei/Audit laufen · **nächster Schritt: das Handels-Paar** |
 | 9 | `main`-Anbindung und Migration | offen | — |
 | 10 | Ereignisschleife `tick_bis` und Aktivierung | offen | — |
 
