@@ -318,4 +318,73 @@ finally:
         except Exception:
             pass
 
+# ==========================================================================
+# 5. Sieg und Niederlage (Schritt 31, Vorgabe Daniel 05.10.2026: Option A)
+# ==========================================================================
+
+abschnitt("Sieg und Niederlage — Zielzahl 300, Niederlage ohne Siedlung und Einheit")
+
+check("die Zielzahl steht im Punktemodul (300)", P.VORSCHLAG_ZIEL_PUNKTE == 300,
+      str(P.VORSCHLAG_ZIEL_PUNKTE))
+check("die Zielzahl ist als VORSCHLAG gekennzeichnet (das Handbuch nennt keine)",
+      P.vorschlaege().get("ziel_punkte", {}).get("status") == "VORSCHLAG",
+      str(P.vorschlaege().get("ziel_punkte")))
+
+root = None
+try:
+    root, app = setze_still(None)
+    zustand = app.state
+    check("die Seitenleiste hat eine Ziel-Zeile",
+          beschriftung(getattr(app, "lbl_ziel", None)).startswith("Ziel:"),
+          repr(beschriftung(getattr(app, "lbl_ziel", None))))
+
+    check("vor der ersten Siedlung gilt die Partie NICHT als verloren",
+          zustand.spielausgang()[0] == "weiter", zustand.spielausgang()[1])
+
+    app._found_settlement()
+    check("nach dem Gruenden laeuft die Partie", zustand.spielausgang()[0] == "weiter",
+          zustand.spielausgang()[1])
+    check("die Gruendung setzt das Kennzeichen hatte_siedlung", zustand.hatte_siedlung is True)
+
+    # Sieg ueber die Zielpunktzahl: eine Forschung auf Stufe 9 ergibt 729 Forschungspunkte.
+    gebiet = sorted(zustand.research)[0]
+    zustand.research[gebiet].level = 9
+    check("Stufe 9 gibt 729 Forschungspunkte (9 hoch 3)",
+          P.forschungspunkte({gebiet: 9}) == 729, str(P.forschungspunkte({gebiet: 9})))
+    stand = zustand.punktestand()
+    check("die Gesamtpunktzahl liegt ueber dem Ziel von 300",
+          stand["gesamt"] >= P.VORSCHLAG_ZIEL_PUNKTE, str(stand["gesamt"]))
+    art, grund = zustand.spielausgang()
+    check("erreichte Zielpunktzahl ergibt Sieg", art == "sieg", f"{art}: {grund}")
+
+    app._render()
+    check("die Ziel-Zeile meldet den Sieg",
+          beschriftung(app.lbl_ziel).startswith("SIEG"), repr(beschriftung(app.lbl_ziel)))
+    check("der Ausgang steht im Zustand", zustand.spielende == "sieg")
+    check("und als Nachricht in den Meldungen",
+          any(m.get("type") == "spielende" for m in zustand.messages), str(zustand.messages[-2:]))
+    check("ein zweiter Aufruf aendert nichts (keine doppelte Meldung)",
+          app._pruefe_spielende() == "sieg"
+          and len([m for m in zustand.messages if m.get("type") == "spielende"]) == 1,
+          str([m for m in zustand.messages if m.get("type") == "spielende"]))
+
+    # Niederlage: keine Siedlung und keine Einheit mehr.
+    zustand.spielende = None
+    zustand.settlements = []
+    for einheit in zustand.units.values():
+        einheit.count = 0
+    art, grund = zustand.spielausgang()
+    check("ohne Siedlung und ohne Einheit ist die Partie verloren", art == "niederlage",
+          f"{art}: {grund}")
+    app._render()
+    check("die Ziel-Zeile meldet die Niederlage",
+          beschriftung(app.lbl_ziel).startswith("NIEDERLAGE"), repr(beschriftung(app.lbl_ziel)))
+    check("der Ausgang steht im Zustand", zustand.spielende == "niederlage")
+finally:
+    if root is not None:
+        try:
+            root.destroy()
+        except Exception:
+            pass
+
 sys.exit(bericht())

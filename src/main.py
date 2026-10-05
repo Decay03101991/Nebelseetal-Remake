@@ -10,7 +10,7 @@ import random
 import time
 import tkinter as tk
 from dataclasses import dataclass, field, asdict
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from bonus_system import (
     # Nur noch, was main.py wirklich benutzt. Die erfundenen Kampf- und Preisformeln
@@ -536,6 +536,12 @@ class GameState:
         self.movements: List[dict] = []
         self.messages: List[dict] = []
         self.settlements: List[Settlement] = []
+        # Sieg/Niederlage (Vorgabe Daniel 05.10.2026, Option A): Sieg bei der Zielpunktzahl,
+        # Niederlage ohne Siedlung UND ohne Einheit. Das Handbuch nennt keine Bedingung — die
+        # Formeln und die Schwelle stehen in src/punkte.py (dort als VORSCHLAG gekennzeichnet).
+        # `hatte_siedlung` verhindert, dass das Spiel VOR der ersten Siedlung als verloren gilt.
+        self.hatte_siedlung = False
+        self.spielende: Optional[str] = None
         self.noob_protection: bool = True
         self.goods: Dict[str, int] = {key: 0 for key in GOODS}
         # W5-2 (Portal, src/portalraum.py): die eigene Dimension im Limbus-Raster, die Dimensionen,
@@ -589,6 +595,41 @@ class GameState:
 
     def is_defeated(self) -> bool:
         return self.current_map == "kontinent" and len(self.active_maps) == 0
+
+    def punktestand(self) -> dict:
+        """Forschungs-, Kriegs- und Gesamtpunkte nach den Originalformeln (Handbuch S. 3/5/6).
+
+        EINE Quelle: src/punkte.py. Vorher rechnete die Oberflaeche an mehreren Stellen eigene
+        Summen — so entstand nachweislich eine falsche Gesamtzahl.
+        """
+        staende = {k: v.level for k, v in self.research.items()}
+        einheiten = {k: int(v.count) for k, v in self.units.items()}
+        wall = gebaeude_wirkung.wall_stufe(self.settlements)
+        return {
+            "staende": staende,
+            "einheiten": einheiten,
+            "wall_stufe": wall,
+            "forschung": punkte.forschungspunkte(staende),
+            "krieg": punkte.kriegspunkte(einheiten, wall),
+            "gesamt": punkte.gesamtpunkte(staende, einheiten, wall),
+        }
+
+    def spielausgang(self) -> Tuple[str, str]:
+        """('sieg'|'niederlage'|'weiter', Begruendung) aus src/punkte.py.
+
+        Vorgabe Daniel 05.10.2026 (Option A): Sieg, sobald die Gesamtpunktzahl die Zielzahl
+        erreicht (300, `punkte.VORSCHLAG_ZIEL_PUNKTE`); Niederlage, sobald keine Siedlung UND
+        keine Einheit mehr da ist. Vor der ersten Siedlung laeuft nichts — sonst waere die
+        Partie in der ersten Sekunde verloren.
+        """
+        if not self.hatte_siedlung:
+            return ("weiter", "Noch keine Siedlung gegruendet — die Partie hat nicht begonnen.")
+        stand = self.punktestand()
+        return punkte.sieg_oder_niederlage({
+            "siedlungen": list(self.settlements),
+            "einheiten": stand["einheiten"],
+            "punkte": stand["gesamt"],
+        })
 
     def generate_map(self, map_id: str):
         cfg = next(m for m in MAPS if m["id"] == map_id)
@@ -1088,6 +1129,10 @@ class GameState:
             # Fehler, gefunden von der Durchspiel-Pruefung (05.10.2026): die Einheiten wurden
             # NIE mitgespeichert - nach dem Laden stand die Armee auf 0.
             "units": {k: int(u.count) for k, u in self.units.items()},
+            # Sieg/Niederlage (Schritt 31): die Partie-Entscheidung gehoert in den Spielstand,
+            # sonst gilt ein gewonnenes Spiel nach dem Laden wieder als offen.
+            "hatte_siedlung": getattr(self, "hatte_siedlung", False),
+            "spielende": getattr(self, "spielende", None),
         }
         # W8 (docs/UMSETZUNG_EINHAENGEN.md, Abschnitt 4): erst sichern, dann atomar ueber eine
         # gepruefte Zwischendatei schreiben. Schlaegt etwas fehl, bleibt der alte Spielstand
@@ -1146,6 +1191,8 @@ class GameState:
         self.movements = data.get("movements", [])
         self.messages = data.get("messages", [])
         self.settlements = [Settlement(**s) for s in data.get("settlements", [])]
+        self.hatte_siedlung = bool(data.get("hatte_siedlung", bool(self.settlements)))
+        self.spielende = data.get("spielende")
         self.noob_protection = data.get("noob_protection", True)
         self.goods = data.get("goods", {key: 0 for key in GOODS})
         # W5-2: Portalzustand (eigene Dimension, bekannte Dimensionen, letzter Wechsel)
@@ -1444,6 +1491,12 @@ class NebelseetalApp:
         self.lbl_krieg.pack(anchor=tk.W, padx=5)
         self.lbl_gesamt = tk.Label(right, text="Gesamt: 0", fg=self.skin["gold"], bg=self.skin["sidebar"])
         self.lbl_gesamt.pack(anchor=tk.W, padx=5, pady=(0, 10))
+        # Sieg/Niederlage (Vorgabe Daniel 05.10.2026, Option A): das Ziel und der Stand stehen
+        # sichtbar in der Seitenleiste, damit der Spieler weiss, worauf er hinarbeitet.
+        self.lbl_ziel = tk.Label(right, text=f"Ziel: 0 / {punkte.VORSCHLAG_ZIEL_PUNKTE} Punkte",
+                                 fg=self.skin["text"], bg=self.skin["sidebar"], wraplength=200,
+                                 justify=tk.LEFT)
+        self.lbl_ziel.pack(anchor=tk.W, padx=5, pady=(0, 10))
 
         # FIX 1: Tick-Loop starten (Produktion, Tag, Bewegung, Render laufen lassen)
         if not getattr(self, "_tick_started", False):
@@ -1738,6 +1791,8 @@ class NebelseetalApp:
                     return
                 sett = Settlement(name=name, map_id=self.state.current_map, x=x, y=y, karte=karte)
                 self.state.settlements.append(sett)
+                # Sieg/Niederlage: erst ab der ersten Siedlung wird ueberhaupt bewertet.
+                self.state.hatte_siedlung = True
                 tile.npc_faction = "spieler"
                 tile.sector_name = name
                 # Die Hauptmeldung ZULETZT: die Statuszeile zeigt immer die letzte Zeile.
@@ -3853,10 +3908,29 @@ class NebelseetalApp:
         except Exception:
             pass
 
+    def _pruefe_spielende(self):
+        """Sieg/Niederlage pruefen und EINMAL festhalten (Vorgabe Daniel 05.10.2026, Option A).
+
+        Wird aus dem Takt aufgerufen. Ist die Partie entschieden, steht sie im Zustand
+        (`state.spielende`), in den Nachrichten und im Log — und die Spieluhr wird danach nicht
+        mehr weitergezogen (siehe `_tick_loop`). Rueckgabe: 'sieg', 'niederlage' oder None.
+        Die Bedingung selbst kommt aus `src/punkte.py` (dort als VORSCHLAG gekennzeichnet,
+        weil das Handbuch keine nennt).
+        """
+        if getattr(self.state, "spielende", None):
+            return self.state.spielende
+        art, grund = self.state.spielausgang()
+        if art == "weiter":
+            return None
+        self.state.spielende = art
+        self.state.messages.append({"type": "spielende", "text": grund})
+        self._log(grund)
+        return art
+
     def _tick_loop(self):
         now = time.time()
         dt = now - self.state.last_tick
-        if dt > 0:
+        if dt > 0 and getattr(self.state, "spielende", None) is None:
             # Der Zeitfaktor staucht die Spieluhr, NICHT die Handbuchformeln: `tick` bekommt
             # Spielsekunden. Bei ×180 ist eine echte Sekunde 180 Spielsekunden (eine Spielstunde
             # dauert 20 echte Sekunden) — sonst lieferte ein Holzfäller 4 Holz je ECHTER Stunde.
@@ -3928,6 +4002,21 @@ class NebelseetalApp:
         self.lbl_forschung.config(text=f"Forschung: {punkte.forschungspunkte(staende)}")
         self.lbl_krieg.config(text=f"Krieg: {punkte.kriegspunkte(einheiten, wall_stufe)}")
         self.lbl_gesamt.config(text=f"Gesamt: {punkte.gesamtpunkte(staende, einheiten, wall_stufe)}")
+        # Schritt 31: Ziel und Spielende sichtbar machen (Vorgabe Daniel 05.10.2026, Option A).
+        # ZUERST pruefen, DANN anzeigen — sonst zeigt die Leiste einen Takt lang den alten Stand.
+        self._pruefe_spielende()
+        ziel = punkte.VORSCHLAG_ZIEL_PUNKTE
+        stand = self.state.punktestand()
+        if getattr(self, "lbl_ziel", None) is not None:
+            if self.state.spielende == "sieg":
+                self.lbl_ziel.config(text=f"SIEG — Ziel von {ziel} Punkten erreicht.",
+                                     fg=self.skin["gold"])
+            elif self.state.spielende == "niederlage":
+                self.lbl_ziel.config(text="NIEDERLAGE — keine Siedlung und keine Einheit mehr.",
+                                     fg=self.skin["red"])
+            else:
+                self.lbl_ziel.config(text=f"Ziel: {stand['gesamt']} / {ziel} Punkte",
+                                     fg=self.skin["text"])
 
 
 def _laeuft_schon(lock_path: str) -> bool:
