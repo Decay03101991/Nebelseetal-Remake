@@ -398,11 +398,16 @@ python D:/Arbeiten/Nebelseetal_Remake/tools/zieluebergabe.py --pruefen
 
 ### Zielverfolgung
 
-Die Zielverfolgung **dieser** Sitzung wurde am 05.10. um 19:40 auf **`cleared`** gesetzt (Grund im
-Datensatz: „Sitzung regulär übergeben … Ziel wird in der neuen Sitzung neu gesetzt"). Das ist kein
-Löschen — der Datensatz bleibt nachvollziehbar. **Gegenprobe:** `tools/zieluebergabe.py --pruefen`
-→ rc=0, „**Kein fremdes aktives Ziel — es arbeitet keine andere Sitzung**". Wer hier doch weitermachen
-will: `python tools/zieluebergabe.py --fortsetzen 20261005_170227_cfa071`.
+Die Zielverfolgung **dieser** Sitzung (`20261005_201518_d2b523`) wurde am 05.10. um 21:2x auf
+**`cleared`** gesetzt (`python tools/zieluebergabe.py --beenden 20261005_201518_d2b523`) — Grund
+im Datensatz: „Sitzung regulär übergeben; Ziel wird in der neuen Sitzung neu gesetzt". Das ist
+kein Löschen — der Datensatz bleibt nachvollziehbar. **Gegenprobe:** `tools/zieluebergabe.py`
+`--pruefen` → rc=0, „Kein fremdes aktives Ziel — es arbeitet keine andere Sitzung", und diese
+Sitzung verfolgt kein aktives Ziel mehr (die Zielschleife läuft also nicht von selbst weiter).
+Wer hier doch weitermachen will: `python tools/zieluebergabe.py --fortsetzen
+20261005_201518_d2b523`.
+`desktop/interrupted_turns.json` enthielt beim Übergeben **nur** diese Sitzung (der laufende
+Turn) — kein fremder Schreiber.
 
 ### Zwei gestoppte Kinder (ehrlich vermerkt)
 
