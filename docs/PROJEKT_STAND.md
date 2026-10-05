@@ -206,6 +206,12 @@ jedem Schritt, der eine **belegte** Handbuchregel berührt: **erst das Handbuch 
 
 **Erledigt und nicht zu wiederholen:** der `.exe`-Neubau nach den Geländeregeln — **gebaut am
 05.10. um 13:41:04** (14.531.774 Byte, SHA256 `bffd3c44…`), aus `C:\Users\saras` startgeprüft.
+**Und der Neubau vom 05.10. um 18:36** — diese `.exe` (14.578.109 Byte, SHA256
+`f198ccf7985bce0f7e6886598391523f41afc19ac1b93d7e150365eb577732f1`) enthält **erstmals die vier
+Handbuch-Korrekturen aus Schritt 0**; startgeprüft aus
+`C:\Users\saras\AppData\Local\hermes\cache\scratch\exestart` (Fenstertitel „Nebelseetal Remake", kein
+Fehlerbericht, danach 0 offene Spielprozesse). Die Schritte 1–5 sind in ihr **noch nicht wirksam** —
+nichts im Spiel ruft `src/spieloekonomie.py` auf.
 
 1. **Erledigt in Schritt 29** — die zwei Feinkarten-Module (`karten_optik_fein`, `welt_optik_fein`)
    sind eingehängt; die Notizen unten bleiben als Nachvollziehbarkeit stehen. astra hat die
