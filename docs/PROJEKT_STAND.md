@@ -79,10 +79,11 @@ Ordner startgeprüft (Fenster „Nebelseetal Remake", Tor steht).
 
 **Was für das Ziel noch fehlt — ehrlich, in dieser Reihenfolge:**
 
-1. **Durchspielen.** Die `.exe` ist **start- und tor-geprüft, aber niemand hat eine Partie
-   durchgespielt** (Sieg/Niederlage nennt das Handbuch nicht, siehe §7). Das ist der größte offene
-   Punkt: eine Partie mit Protokoll führen, jeden gefundenen Fehler als neue Protokollzeile und,
-   wo es sein muss, als eigenen Schritt.
+1. **Durchspielen** — **automatisch geprüft seit 05.10. 02:16**: `tests/test_durchspiel.py`
+   (36 Prüfungen) spielt eine Partie über die Spielmethoden und hat dabei einen **echten**
+   Fehler gefunden (die Einheiten wurden beim Speichern nie geschrieben — behoben). Offen bleibt
+   die **Partie von Hand mit Daniels Passwort** — nur er kann und darf das Tor passieren — sowie
+   die Frage, wie eine Partie endet (Sieg/Niederlage nennt das Handbuch nicht, siehe §7).
 2. **Die drei belegten Lücken des Handbuchs** (jede ist im Spiel sichtbar vermerkt):
    **Mana je Siedlung** statt eines gemeinsamen Vorrats (das Portal verlangt 5.000 Mana aus EINER
    Siedlung), **Materialkosten der Werkstätten** (das Handbuch nennt kein Rezept), **Sieg-/

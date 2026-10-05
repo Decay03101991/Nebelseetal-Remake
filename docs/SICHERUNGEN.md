@@ -32,3 +32,5 @@ Automatisch geführt von `tools/protokoll_sichern.py` — **gehört nicht ins En
 | 2026-10-05 02:02 | 16 | `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-05_0202` | je Datei SHA256 im MANIFEST, geprüft |
 | 2026-10-05 02:06 | 16 | `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-05_0206` | je Datei SHA256 im MANIFEST, geprüft |
 | 2026-10-05 02:09 | 16 | `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-05_0209` | je Datei SHA256 im MANIFEST, geprüft |
+| 2026-10-05 02:10 | 16 | `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-05_0210` | je Datei SHA256 im MANIFEST, geprüft |
+| 2026-10-05 02:17 | 16 | `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\2026-10-05_0217` | je Datei SHA256 im MANIFEST, geprüft |

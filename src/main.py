@@ -1040,6 +1040,9 @@ class GameState:
             "werkstaetten": self.werkstaetten,
             "auftraege": self.auftraege,
             "forschungsauftraege": self.forschungsauftraege,
+            # Fehler, gefunden von der Durchspiel-Pruefung (05.10.2026): die Einheiten wurden
+            # NIE mitgespeichert - nach dem Laden stand die Armee auf 0.
+            "units": {k: int(u.count) for k, u in self.units.items()},
         }
         # W8 (docs/UMSETZUNG_EINHAENGEN.md, Abschnitt 4): erst sichern, dann atomar ueber eine
         # gepruefte Zwischendatei schreiben. Schlaegt etwas fehl, bleibt der alte Spielstand
@@ -1080,6 +1083,11 @@ class GameState:
         for k, v in data.get("research", {}).items():
             if k in self.research:
                 self.research[k] = Research(**v)
+        # Die Anzahl je Einheit. Alte Spielstaende kennen das Feld nicht: sie laden weiter und
+        # haben dann 0 Einheiten (die Zahlen wurden damals nie geschrieben) - kein Absturz.
+        for k, anzahl in (data.get("units") or {}).items():
+            if k in self.units:
+                self.units[k].count = max(0, int(anzahl))
         self.population = data.get("population", 0)
         self.max_population = data.get("max_population", 10)
         self.score = data.get("score", 0)
