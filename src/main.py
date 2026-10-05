@@ -38,6 +38,7 @@ import auftraege   # W7: Auftraege (Missionen) mit Reisezeit, Rueckkehr und Beri
 import forschung  # W4c: Forschung braucht Zeit - die Stufe steigt erst nach Ablauf
 import welt        # W4d: die Weltkarte des Limbus (20 Dimensionen, sechs belegte Welten)
 import spielzeit   # Spieluhr: der Zeitfaktor (Vorgabe Daniel 05.10.2026, Spielbericht)
+import spieloekonomie  # Oekonomie-Paket Schritt 9: Ortslager, Gruendungskosten, Verbrauch je Ort
 # Feinere Kartenoptik (Kinder-Arbeit vom 05.10.2026, vom Koordinator nachgerechnet): beide Module
 # liefern Zeichenplaene als DATEN und zeichnen sie ueber `zeichne` auf eine beliebige Leinwand.
 # Sie ersetzen die duennen Einzelstriche der ersten Fassung — Siedlungskarte UND Weltkarte.
@@ -773,6 +774,145 @@ class GameState:
         roh = wirtschaft.ertrag_gesamt(self.settlements, levels)
         return {k.lower(): v for k, v in roh.items()}
 
+    # ------------- Oekonomie-Paket Schritt 9, Teil 3: die LOKALEN Lager -------------
+
+    def ertrag_je_ort(self, siedlung: Settlement) -> Dict[str, float]:
+        """Stundenertrag EINER Siedlung (Kennungen klein - dieselbe Schreibweise wie `tick`)."""
+        levels = {k: v.level for k, v in self.research.items()}
+        roh = wirtschaft.ertrag_gesamt([siedlung], levels)
+        return {k.lower(): float(v) for k, v in roh.items()}
+
+    def ortslager(self) -> Dict[str, float]:
+        """Die Summe der LOKALEN Lager aller eigenen Siedlungen (ohne den Übergangsbestand)."""
+        summen: Dict[str, float] = {}
+        for s in self.settlements:
+            for r, v in (s.vorraete or {}).items():
+                summen[r] = round(summen.get(r, 0.0) + float(v), 2)
+        return summen
+
+    def ortsdeckung(self, siedlung: Settlement, kosten: dict) -> Dict[str, float]:
+        """Was FEHLT, wenn auch der Reichsbestand mitzahlen darf. Leer = gedeckt.
+
+        Geprüft wird gegen die zwei Quellen, aus denen `verbrauche_am_ort` wirklich zahlt: das
+        LOKALE Lager des Ortes und den Reichsbestand (Übergang). So wird nie halb gebucht.
+        """
+        fehlt: Dict[str, float] = {}
+        for r, v in (kosten or {}).items():
+            if r == "siedler":
+                haben = float(siedlung.bevoelkerung) + float(self.population)
+            else:
+                haben = float(siedlung.vorraete.get(r, 0.0))
+                if r in self.resources:
+                    haben += float(self.resources[r].amount)
+            if haben + 1e-9 < float(v):
+                fehlt[r] = round(float(v) - haben, 2)
+        return fehlt
+
+    def verbrauche_am_ort(self, siedlung: Settlement, kosten: dict) -> Tuple[bool, str]:
+        """Kosten aus dem LOKALEN Lager EINES Ortes bezahlen. Liefert ``(ok, Meldung)``.
+
+        Ökonomie-Paket, Schritt 9, Teil 3 (Entwurf Z. 779-780: „Kosten aus BP gegen gewählten Ort
+        prüfen; mittels verbrauchen buchen; Siedler aus dessen bevoelkerung"). Führend ist das
+        lokale Lager des Ortes; erst wenn es nicht reicht, zahlt der **Reichsbestand** dazu.
+        Gebucht wird ausschließlich nach erfolgreicher Vorprüfung — eine Ablehnung ändert NICHTS.
+
+        ÜBERGANG, ehrlich benannt (Entwurf Z. 787): alte Spielstände tragen ihre Rohstoffe noch im
+        Reichsbestand (`GameState.resources`). Bis auch sie in Ortslagern führen, ist der
+        Reichsbestand die zweite Kasse — gezogen wird nur der fehlende Betrag, nie mehr. Die
+        Zielform („Globale resources … im Neumodus aus Anzeigen ableiten") erreicht der spätere
+        Teil, indem dieser Zuschuss entfällt.
+        """
+        fehlt = self.ortsdeckung(siedlung, kosten)
+        if fehlt:
+            return False, "es fehlt " + ", ".join(f"{r} ({w:.2f})" for r, w in sorted(fehlt.items()))
+        for stoff, menge in (kosten or {}).items():
+            if stoff == "siedler":
+                aus_ort = min(float(siedlung.bevoelkerung), float(menge))
+                siedlung.bevoelkerung = float(siedlung.bevoelkerung) - aus_ort
+                rest = float(menge) - aus_ort
+                if rest > 0:
+                    self.population = max(0.0, float(self.population) - rest)
+                continue
+            aus_ort = min(float(siedlung.vorraete.get(stoff, 0.0)), float(menge))
+            siedlung.vorraete[stoff] = round(float(siedlung.vorraete.get(stoff, 0.0)) - aus_ort, 2)
+            rest = float(menge) - aus_ort
+            if rest > 0 and stoff in self.resources:
+                self.resources[stoff].amount = round(float(self.resources[stoff].amount) - rest, 2)
+        return True, ""
+
+    def reichsdeckung(self, kosten: dict) -> Dict[str, float]:
+        """Was FEHLT, wenn das GANZE Reich zahlt (alle Ortslager + Reichsbestand). Leer = gedeckt.
+
+        Für **globale** Aktionen, die zu keiner einzelnen Siedlung gehören (z. B. der Kartenwechsel
+        auf der Weltkarte, Handbuch S. 19).
+        """
+        fehlt: Dict[str, float] = {}
+        for r, v in (kosten or {}).items():
+            if r == "siedler":
+                haben = float(self.population) + sum(float(s.bevoelkerung) for s in self.settlements)
+            else:
+                haben = float(self.resources[r].amount) if r in self.resources else 0.0
+                haben += sum(float(s.vorraete.get(r, 0.0)) for s in self.settlements)
+            if haben + 1e-9 < float(v):
+                fehlt[r] = round(float(v) - haben, 2)
+        return fehlt
+
+    def verbrauche_reichsweit(self, kosten: dict) -> Tuple[bool, str]:
+        """Kosten für eine GLOBALE Aktion aus dem ganzen Reich bezahlen. ``(ok, Meldung)``.
+
+        Erst der Reichsbestand, dann die Ortslager (nach Kennung, damit es wiederholbar bleibt).
+        Nach erfolgreicher Vorprüfung; eine Ablehnung ändert nichts.
+        """
+        fehlt = self.reichsdeckung(kosten)
+        if fehlt:
+            return False, "es fehlt " + ", ".join(f"{r} ({w:.2f})" for r, w in sorted(fehlt.items()))
+        for stoff, menge in (kosten or {}).items():
+            rest = float(menge)
+            if stoff == "siedler":
+                nimm = min(rest, float(self.population))
+                self.population = max(0.0, float(self.population) - nimm)
+                rest -= nimm
+                for s in sorted(self.settlements, key=lambda x: x.id):
+                    if rest <= 1e-9:
+                        break
+                    nimm = min(rest, float(s.bevoelkerung))
+                    s.bevoelkerung = float(s.bevoelkerung) - nimm
+                    rest -= nimm
+                continue
+            if stoff in self.resources:
+                nimm = min(rest, float(self.resources[stoff].amount))
+                self.resources[stoff].amount = round(float(self.resources[stoff].amount) - nimm, 2)
+                rest -= nimm
+            for s in sorted(self.settlements, key=lambda x: x.id):
+                if rest <= 1e-9:
+                    break
+                nimm = min(rest, float(s.vorraete.get(stoff, 0.0)))
+                s.vorraete[stoff] = round(float(s.vorraete.get(stoff, 0.0)) - nimm, 2)
+                rest -= nimm
+        return True, ""
+
+    def reich_abzug(self, stoff: str, menge: float) -> float:
+        """Eine Abgabe (z. B. Bot-Beute) trifft Reichsbestand UND Ortslager anteilig (Übergang).
+
+        Der Reichsbestand ist die Gesamtsicht aus Übergangsrest und Ortslagern; eine Abgabe, die
+        nur ihn trifft, würde die Bücher auseinanderlaufen lassen. Sie nimmt denselben Anteil aus
+        den Ortslagern - nie negativ, nie mehr als vorhanden.
+        """
+        menge = float(menge)
+        if menge <= 0:
+            return 0.0
+        if stoff in self.resources:
+            self.resources[stoff].amount = max(
+                0.0, round(float(self.resources[stoff].amount) - menge, 2))
+        verfuegbar = sum(float(s.vorraete.get(stoff, 0.0)) for s in self.settlements)
+        if verfuegbar <= 0:
+            return menge
+        anteil = min(1.0, menge / verfuegbar)
+        for s in self.settlements:
+            vorher = float(s.vorraete.get(stoff, 0.0))
+            s.vorraete[stoff] = round(vorher - vorher * anteil, 2)
+        return menge
+
     # ---------------- W3: Werkstaetten, Originalwaren, Warteschlangen ----------------
 
     def werkstatt_schlangen(self) -> Dict[str, dict]:
@@ -1120,9 +1260,9 @@ class GameState:
                         "type": "bot"})
                 else:
                     for stoff, menge in beute.items():
-                        if stoff in self.resources:
-                            self.resources[stoff].amount = max(
-                                0.0, float(self.resources[stoff].amount) - float(menge))
+                        # Teil 3: die Beute trifft Reichsbestand UND Ortslager anteilig - sonst
+                        # laufen die Buecher auseinander (Reich = Uebergangsrest + Ortslager).
+                        self.reich_abzug(stoff, float(menge))
                     if beute:
                         self.messages.append({"text": zug.get("meldung"), "type": "bot"})
                 ergebnis["angriffe"].append(zug.get("meldung"))
@@ -1138,11 +1278,19 @@ class GameState:
     def tick(self, dt_seconds: float):
         dt_h = dt_seconds / 3600.0
         levels = {k: v.level for k, v in self.research.items()}
-        # Rohstoffe kommen aus den BEBauten FELDERN der Siedlungskarten (W4b-4, 04.10.2026).
-        for res, rate_pro_stunde in self.stundenertrag().items():
-            if res in self.resources:
-                self.resources[res].amount = round(
-                    self.resources[res].amount + rate_pro_stunde * dt_h, 2)
+        # Rohstoffe kommen aus den BEBAUTEN FELDERN der Siedlungskarten (W4b-4, 04.10.2026).
+        # Oekonomie-Paket, Schritt 9, Teil 3: der Ertrag landet im LOKALEN Lager der Siedlung, die
+        # ihn erzeugt, und wird zugleich in die Gesamtsicht gebucht (Reich = Uebergangsrest +
+        # Summe der Ortslager) — so stimmen beide Zahlen zusammen. Ohne Siedlung gibt es keinen
+        # Erzeuger; `stundenertrag()` (Anzeige) ist genau die Summe dieser lokalen Ertraege.
+        for siedlung in self.settlements:
+            for res, rate_pro_stunde in self.ertrag_je_ort(siedlung).items():
+                if not rate_pro_stunde:
+                    continue
+                zuwachs = rate_pro_stunde * dt_h
+                siedlung.vorraete[res] = round(siedlung.vorraete.get(res, 0.0) + zuwachs, 2)
+                if res in self.resources:
+                    self.resources[res].amount = round(self.resources[res].amount + zuwachs, 2)
         # W5: Die Bots handeln nach `botkern` (Angriffstakt 6-24 h, Handelsschwelle, Wirtschaft).
         # Vorher stand hier eine erfundene Schaedigung: 5 % x Aggression, fester Nahrungsabzug.
         self.bots_fortschreiben(time.time())
@@ -1885,8 +2033,52 @@ class NebelseetalApp:
                 except RuntimeError as fehler:
                     self._log(f"Keine Siedlung gegründet: {fehler}")
                     return
+                # Oekonomie-Paket, Schritt 9, Teil 3: die ERSTE Siedlung uebernimmt die belegten
+                # Startwerte (10 Siedler, 100 Holz, 100 Stein - Handbuch S. 7) in ihr eigenes
+                # Lager; eine KOLONIE bekommt das Startpaket aus dem Lager der Mutter und
+                # verlangt vorher das Mindestguthaben (Entwurf Z. 775/777). Beides ist eine echte
+                # Uebertragung - verschenkt wird nichts. Preis, Kartenauswahl und Vergabe
+                # (absicht/vergabe) folgen in einem eigenen Teil.
+                siedler = 0
+                if not self.state.settlements:
+                    bevoelkerung_start = float(self.state.population)
+                    start = {r: float(res.amount) for r, res in self.state.resources.items()
+                             if float(res.amount) > 0}
+                else:
+                    _, paket_r, minimum = spieloekonomie.gruendungskosten()
+                    mutter = max(self.state.settlements,
+                                 key=lambda s: (sum((s.vorraete or {}).values()), s.id))
+                    gesamt = {r: float(paket_r.get(r, 0.0)) + float(minimum.get(r, 0.0))
+                              for r in set(paket_r) | set(minimum)}
+                    fehlt = self.state.ortsdeckung(mutter, gesamt)
+                    karren = spieloekonomie.REGELN["gruendung"]["karren"]
+                    siedler = int(spieloekonomie.U.get(karren, {}).get("kosten", {}).get("siedler", 0))
+                    if float(self.state.population) + 1e-9 < siedler:
+                        fehlt["siedler"] = round(siedler - float(self.state.population), 2)
+                    if fehlt:
+                        self._log("Keine Siedlung gegründet: eine Neugründung verlangt das "
+                                  "Startpaket und ein Mindestguthaben im Lager von "
+                                  f"{mutter.name} — es fehlt "
+                                  + ", ".join(f"{r} ({w:.2f})" for r, w in sorted(fehlt.items())) + ".")
+                        return
+                    bevoelkerung_start = 0.0
+                    start = {}
                 sett = Settlement(name=name, map_id=self.state.current_map, x=x, y=y, karte=karte,
                                   id=siedlung_kennung("spieler", self.state.current_map, x, y))
+                if not self.state.settlements:
+                    for r in list(start):
+                        self.state.resources[r].amount = 0.0
+                    self.state.population = 0.0
+                else:
+                    ok_zahlung, meldung_zahlung = self.state.verbrauche_am_ort(mutter, paket_r)
+                    if not ok_zahlung:
+                        self._log(f"Keine Siedlung gegründet: {meldung_zahlung}")
+                        return
+                    self.state.population = max(0.0, float(self.state.population) - siedler)
+                    start = {r: float(v) for r, v in paket_r.items()}
+                    bevoelkerung_start = float(siedler)
+                sett.vorraete = dict(start)
+                sett.bevoelkerung = float(bevoelkerung_start)
                 self.state.settlements.append(sett)
                 # Sieg/Niederlage: erst ab der ersten Siedlung wird ueberhaupt bewertet.
                 self.state.hatte_siedlung = True
@@ -1957,12 +2149,12 @@ class NebelseetalApp:
         if not kosten:
             self._log(f"Für {name} ist kein Preis hinterlegt — Bau abgebrochen.")
             return
-        # Rohstoff-Kosten prüfen; der Siedler kommt aus der Bevölkerung, nicht aus dem Lager.
-        fehlt = [r for r, v in kosten.items()
-                 if r != "siedler" and self.state.resources[r].amount < v]
-        braucht_siedler = kosten.get("siedler", 0)
-        if braucht_siedler > self.state.population:
-            fehlt.append("siedler")
+        # Rohstoff- UND Siedler-Kosten gegen dieselben zwei Quellen prüfen, aus denen
+        # `verbrauche_am_ort` gleich zahlt (Ortslager zuerst, dann der Reichsbestand). Vorher las
+        # diese Vorprüfung nur den Reichsbestand - seit Teil 3 liegt der Startbestand aber im
+        # ORT, und der Bau wurde mit "es fehlt holz" abgelehnt, obwohl die Siedlung es hatte
+        # (gefunden vom Sammellauf: test_startspiel, test_durchspiel, test_gui_fehler).
+        fehlt = self.state.ortsdeckung(siedlung, kosten)
         if fehlt:
             self._log(f"Nicht genug Rohstoffe für {name}: es fehlt "
                       f"{', '.join(sorted(fehlt))}.")
@@ -1971,11 +2163,14 @@ class NebelseetalApp:
         if not ok:
             self._log(f"Bau nicht möglich: {meldung}")
             return
-        for r, v in kosten.items():
-            if r == "siedler":
-                self.state.population = max(0.0, self.state.population - v)
-            else:
-                self.state.resources[r].amount -= v
+        # Oekonomie-Paket, Schritt 9, Teil 3: bezahlt wird aus dem LAGER DIESER Siedlung (Siedler
+        # aus ihrer Bevoelkerung). Die Vorpruefung oben und die Buchung hier benutzen dieselben
+        # zwei Quellen (Ortslager + Reichsbestand als Uebergang) - deshalb kann die Zahlung nicht
+        # mehr halb gelingen.
+        ok_zahlung, meldung_zahlung = self.state.verbrauche_am_ort(siedlung, kosten)
+        if not ok_zahlung:
+            self._log(f"Nicht genug im Lager von {siedlung.name} für {name}: {meldung_zahlung}")
+            return
         self._log(f"{name} gebaut — {meldung}")
         # astra-Nachprüfung 05.10.2026: „Nach dem Bau bleibt dasselbe Feld ausgewählt und das
         # Panel wechselt zur Gebäudeansicht." Vorher löschte das Spiel hier die Auswahl — der
@@ -2028,19 +2223,18 @@ class NebelseetalApp:
             self._log(f"{name} ist bereits auf der höchsten Stufe ({grenze}).")
             return
         kosten = baukosten(gebaut, stufe + 1)
-        fehlt = [r for r, v in kosten.items()
-                 if r != "siedler" and self.state.resources[r].amount < v]
-        if kosten.get("siedler", 0) > self.state.population:
-            fehlt.append("siedler")
+        # Dieselbe Deckungsfrage wie beim Bauen: Ortslager zuerst, dann der Reichsbestand.
+        fehlt = self.state.ortsdeckung(siedlung, kosten)
         if fehlt:
             self._log(f"Nicht genug Rohstoffe für den Ausbau von {name}: es fehlt "
                       f"{', '.join(sorted(fehlt))}.")
             return
-        for r, v in kosten.items():
-            if r == "siedler":
-                self.state.population = max(0.0, self.state.population - v)
-            else:
-                self.state.resources[r].amount -= v
+        # Oekonomie-Paket, Schritt 9, Teil 3: der Ausbau zahlt aus dem Lager DIESER Siedlung.
+        ok_zahlung, meldung_zahlung = self.state.verbrauche_am_ort(siedlung, kosten)
+        if not ok_zahlung:
+            self._log(f"Nicht genug im Lager von {siedlung.name} für den Ausbau von {name}: "
+                      f"{meldung_zahlung}")
+            return
         siedlung.stufen[str(feld)] = stufe + 1
         self._log(f"{name} auf {gebaeude_wirkung.stufen_name(gebaut, stufe + 1)} ausgebaut "
                   f"(Stufe {stufe + 1}).")
@@ -2350,11 +2544,10 @@ class NebelseetalApp:
         knopfreihe.pack(anchor=tk.W, fill=tk.X, padx=6, pady=6)
         for i, (k, g) in enumerate(passend):
             kosten = baukosten(k) or {}
-            _fehlt = [r for r, v in kosten.items()
-                      if r != "siedler" and r in self.state.resources
-                      and self.state.resources[r].amount < v]
-            if kosten.get("siedler", 0) > self.state.population:
-                _fehlt.append("Siedler")
+            # Dieselbe Deckungsfrage wie die Zahlung selbst (Ortslager zuerst, dann der
+            # Reichsbestand) - sonst zeigt der Knopf "fehlt noch: holz", obwohl die Siedlung
+            # das Holz hat (Fund des Sammellaufs nach Teil 3).
+            _fehlt = self.state.ortsdeckung(siedlung, kosten)
             text = f"{g['name']}\n{self._ertrag_kurz(k, art)} · {kosten_text(kosten)}"
             if _fehlt:
                 text += f"\nfehlt noch: {', '.join(sorted(_fehlt))}"
@@ -3281,10 +3474,12 @@ class NebelseetalApp:
         if self.state.current_map == map_id:
             self._log("Bereits auf dieser Karte.")
             return
-        if self.state.resources["gold"].amount < self.state.map_switch_cost:
-            self._log("Nicht genug Geld für Kartenwechsel.")
+        # Teil 3: Gold liegt im Ort (Goldmine) - eine GLOBALE Aktion zahlt aus dem ganzen Reich.
+        ok_zahlung, meldung_zahlung = self.state.verbrauche_reichsweit(
+            {"gold": float(self.state.map_switch_cost)})
+        if not ok_zahlung:
+            self._log(f"Nicht genug Geld für Kartenwechsel: {meldung_zahlung}")
             return
-        self.state.resources["gold"].amount -= self.state.map_switch_cost
         self.state.current_map = map_id
         self.state.generate_map(map_id)
         self.state.map_switch_cost += 50
@@ -3842,7 +4037,12 @@ class NebelseetalApp:
             self.state.messages.append({"text": f"{r.name} gesperrt — {_warum}",
                                         "type": "forschung"})
             return False
-        roh = {k: v.amount for k, v in self.state.resources.items()}
+        # Teil 3: die Rohstoffe liegen im ORT - die Forschung zahlt aus dem GANZEN Reich
+        # (Reichsbestand + alle Ortslager). Der Kern zieht seine Kosten von dieser Summe ab; der
+        # Abzug wird danach reichsweit gebucht (erst Reichsbestand, dann die Ortslager).
+        roh = {k: float(v.amount) for k, v in self.state.resources.items()}
+        for stoff, menge in self.state.ortslager().items():
+            roh[stoff] = round(roh.get(stoff, 0.0) + float(menge), 4)
         stand = self.state.forschung_stand()
         ok, meldung = forschung.starten(key, stand, time.time(), True, roh)
         if not ok:
@@ -3850,9 +4050,14 @@ class NebelseetalApp:
             return False
         # Der Kern hat die Kosten in `roh` abgezogen; bucht der Aufrufer sie nicht zurueck, ist
         # nichts bezahlt. Der Auftrag kommt aus dem Stand in den Spielstand.
-        for stoff, menge in roh.items():
-            if stoff in self.state.resources:
-                self.state.resources[stoff].amount = float(menge)
+        abzug = {k: round(float(self.state.resources[k].amount) - float(menge), 4)
+                 for k, menge in roh.items()
+                 if k in self.state.resources and float(self.state.resources[k].amount) - float(menge) > 1e-9}
+        if abzug:
+            ok_zahlung, meldung_zahlung = self.state.verbrauche_reichsweit(abzug)
+            if not ok_zahlung:
+                self._log(f"Forschung nicht bezahlt: {meldung_zahlung}")
+                return False
         auftrag = stand.get(key, {}).get("auftrag")
         if isinstance(auftrag, dict):
             self.state.forschungsauftraege[key] = auftrag
@@ -3984,22 +4189,27 @@ class NebelseetalApp:
             self._log(f"Ausbildung nicht möglich: unbekannte Rohstoffe {unbekannt}")
             self._render_view()
             return
-        genug = (all(self.state.resources[k].amount >= v for k, v in rohstoffe.items())
-                 and self.state.population >= siedler)
-        if genug:
-            for k, v in rohstoffe.items():
-                self.state.resources[k].amount -= v
-            self.state.population -= siedler
-            # Die Ausrüstung wird beim Erteilen des Auftrags verbraucht (Entwurf deepseek-v4-pro,
-            # 05.10.2026: „Auftrag erteilen setzt vorhandene Mittel voraus" — dieselbe Logik wie
-            # bei der Forschung, wo ein Abbruch die Rohstoffe ersatzlos kostet).
-            self.state.waren = ausruestung.verbrauchen(self.state.waren, key)
-            u.count += 1
-            _waren_zeile = (" Ausrüstung verbraucht: " + ", ".join(ausruestung.bedarf(key))
-                            if ausruestung.bedarf(key) else "")
-            self._log(f"{u.name} ausgebildet. Ausbildungszeit: {time_min:.1f} min.{_waren_zeile}")
-        else:
-            self._log("Nicht genug Ressourcen für Ausbildung.")
+        # Teil 3: bezahlt wird aus dem GANZEN Reich (Reichsbestand + Ortslager), nicht mehr nur
+        # aus dem Reichsbestand - sonst waere eine Ausbildung unmoeglich, sobald die Siedlung die
+        # Rohstoffe fuehrt. `verbrauche_reichsweit` prueft vorher und bucht dann atomar.
+        kosten_gesamt = dict(rohstoffe)
+        if siedler:
+            kosten_gesamt["siedler"] = siedler
+        ok_kosten, meldung_kosten = self.state.verbrauche_reichsweit(kosten_gesamt)
+        if not ok_kosten:
+            self._log(f"{u.name} nicht ausgebildet: {meldung_kosten}")
+            self.state.messages.append({"text": f"{u.name}: {meldung_kosten}",
+                                        "type": "ausbildung"})
+            self._render_view()
+            return
+        # Die Ausrüstung wird beim Erteilen des Auftrags verbraucht (Entwurf deepseek-v4-pro,
+        # 05.10.2026: „Auftrag erteilen setzt vorhandene Mittel voraus" — dieselbe Logik wie
+        # bei der Forschung, wo ein Abbruch die Rohstoffe ersatzlos kostet).
+        self.state.waren = ausruestung.verbrauchen(self.state.waren, key)
+        u.count += 1
+        _waren_zeile = (" Ausrüstung verbraucht: " + ", ".join(ausruestung.bedarf(key))
+                        if ausruestung.bedarf(key) else "")
+        self._log(f"{u.name} ausgebildet. Ausbildungszeit: {time_min:.1f} min.{_waren_zeile}")
         # Ohne Neuzeichnen sieht der Spieler die neue Stueckzahl nicht (dieselbe Fehlerklasse
         # wie bei der Siedlungsgruendung).
         self._render_view()

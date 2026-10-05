@@ -275,4 +275,148 @@ befund("P10: stationierte Truppen haben noch kein eigenes Lager (bis zur per-Ort
        "'einheiten' ist bis zur Aktivierung leer (Entwurf Z. 774).")
 
 
+
+# --------------------------------------------------------------------------
+abschnitt("P11: Produktion je Ort - der Ertrag landet im LOKALEN Lager (Entwurf Schritt 9, Teil 3)")
+
+# Karte und Bauhilfe: die Karten-Suche steht in tests/test_ertrag_anbindung.py. Diese Datei fuehrt
+# sich beim Import SELBST aus (`sys.exit(bericht())`) und steht dann nicht in `sys.modules` - der
+# belegte Weg im Projekt ist deshalb: eigene Hilfsdaten bauen statt eine Pruefdatei umzubauen.
+def karte_und_felder(art, anzahl=1):
+    """Eine Siedlungskarte mit mindestens ``anzahl`` Feldern der Gelaendeart samt Feldindizes."""
+    import gelaende as G
+    for typ in ("waldreich", "gemischt", "bergreich", "weideland", "nebelseeufer"):
+        for s in range(500):
+            karte = G.siedlungskarte_erzeugen(s, typ_id=typ)
+            felder = [i for i, a in enumerate(karte["raster"]) if a == art]
+            if len(felder) >= anzahl:
+                return karte, felder
+    return None, []
+
+
+_karte, _wald = karte_und_felder("wald")
+check("P11: eine Waldkarte ist gefunden", _karte is not None and bool(_wald))
+
+st5 = M.GameState()
+ort5 = M.Settlement(name="Waldort", map_id="test", karte=_karte,
+                    id=M.siedlung_kennung("spieler", "test", 0, 0))
+st5.settlements.append(ort5)
+ok, meldung = M.bauen_auf_karte(ort5, "holzfaeller", _wald[0])
+check("P11: der Holzfaeller steht auf dem Waldfeld", ok, meldung)
+check("P11: der Ertrag DIESES Ortes ist 4 Holz je Stunde",
+      abs(st5.ertrag_je_ort(ort5).get("holz", 0.0) - 4.0) < 1e-9, str(st5.ertrag_je_ort(ort5)))
+check("P11: die Gesamtsicht nennt denselben Wert",
+      abs(float(st5.stundenertrag().get("holz", 0.0)) - 4.0) < 1e-9, str(st5.stundenertrag()))
+
+_global_vorher = float(st5.resources["holz"].amount)
+st5.tick(3600)
+check("P11: nach einer Stunde liegen 4 Holz im LOKALEN Lager des Ortes",
+      abs(float(ort5.vorraete.get("holz", 0.0)) - 4.0) < 1e-9, str(ort5.vorraete))
+check("P11: die Gesamtsicht waechst um dieselben 4 Holz (eine Wahrheit, zwei Ansichten)",
+      abs(float(st5.resources["holz"].amount) - _global_vorher - 4.0) < 1e-9,
+      "%r -> %r" % (_global_vorher, st5.resources["holz"].amount))
+check("P11: die Summe der Ortslager nennt genau diese 4 Holz",
+      abs(float(st5.ortslager().get("holz", 0.0)) - 4.0) < 1e-9, str(st5.ortslager()))
+
+
+# --------------------------------------------------------------------------
+abschnitt("P12: Bezahlt wird aus dem Lager DIESES Ortes (verbrauche_am_ort)")
+
+ort5.vorraete["holz"] = 100.0
+ort5.vorraete["stein"] = 100.0
+_reich_holz = float(st5.resources["holz"].amount)
+ok, meldung = st5.verbrauche_am_ort(ort5, {"holz": 30.0})
+check("P12: die Zahlung aus dem Ortslager gelingt", ok, meldung)
+check("P12: das Ortslager sinkt (100 -> 70)", abs(ort5.vorraete["holz"] - 70.0) < 1e-9,
+      str(ort5.vorraete))
+check("P12: der Reichsbestand bleibt unberuehrt, weil der Ort zahlen konnte",
+      abs(float(st5.resources["holz"].amount) - _reich_holz) < 1e-9,
+      "%r -> %r" % (_reich_holz, st5.resources["holz"].amount))
+
+# Uebergangskasse: reicht der Ort nicht, zahlt der Reichsbestand genau den REST dazu.
+ort5.vorraete["stein"] = 0.0
+st5.resources["stein"].amount = 50.0
+ok, meldung = st5.verbrauche_am_ort(ort5, {"stein": 20.0})
+check("P12: Stein kommt dann ganz aus dem Reichsbestand (50 -> 30)", ok, meldung)
+check("P12: der Reichsbestand Stein ist 30",
+      abs(float(st5.resources["stein"].amount) - 30.0) < 1e-9,
+      str(st5.resources["stein"].amount))
+ok, meldung = st5.verbrauche_am_ort(ort5, {"holz": 40.0})
+check("P12: Holz kommt ganz aus dem Ortslager, solange es reicht (70 -> 30)", ok, meldung)
+check("P12: das Ortslager Holz ist 30", abs(ort5.vorraete["holz"] - 30.0) < 1e-9,
+      str(ort5.vorraete))
+
+# Ablehnung: NICHTS wird gebucht (Vergleich gegen Kopien).
+import copy as _copy  # noqa: E402
+st5.resources["stein"].amount = 1.0
+_ort_kopie = _copy.deepcopy(ort5.vorraete)
+_reich_kopie = {k: float(v.amount) for k, v in st5.resources.items()}
+ok, meldung = st5.verbrauche_am_ort(ort5, {"stein": 999.0})
+check("P12: eine ungedeckte Zahlung wird abgelehnt", not ok, meldung)
+check("P12: die Meldung nennt das Fehlende", "stein" in meldung, meldung)
+check("P12: das Ortslager bleibt unveraendert", ort5.vorraete == _ort_kopie, str(ort5.vorraete))
+check("P12: der Reichsbestand bleibt unveraendert",
+      {k: float(v.amount) for k, v in st5.resources.items()} == _reich_kopie,
+      str({k: float(v.amount) for k, v in st5.resources.items()}))
+check("P12: ortsdeckung nennt genau den fehlenden Betrag (999 - 0 - 1)",
+      abs(st5.ortsdeckung(ort5, {"stein": 999.0})["stein"] - 998.0) < 1e-9,
+      str(st5.ortsdeckung(ort5, {"stein": 999.0})))
+
+# Siedler: erst aus der Bevoelkerung des Ortes, dann aus dem Reich.
+ort5.bevoelkerung = 3.0
+st5.population = 5.0
+ok, meldung = st5.verbrauche_am_ort(ort5, {"siedler": 4.0})
+check("P12: Siedler werden am Ort und dann im Reich genommen", ok, meldung)
+check("P12: der Ort hat danach 0 Siedler", abs(ort5.bevoelkerung) < 1e-9, str(ort5.bevoelkerung))
+check("P12: das Reich hat danach 4 Siedler", abs(float(st5.population) - 4.0) < 1e-9,
+      str(st5.population))
+
+
+# --------------------------------------------------------------------------
+abschnitt("P13: Ein Abzug trifft Reichsbestand UND Ortslager (Uebergangs-Invariante)")
+
+st6 = M.GameState()
+o_a = M.Settlement(name="A", map_id="test", id="spieler:test:0:0")
+o_b = M.Settlement(name="B", map_id="test", id="spieler:test:1:0")
+o_a.vorraete = {"holz": 60.0}
+o_b.vorraete = {"holz": 40.0}
+st6.settlements = [o_a, o_b]
+st6.resources["holz"].amount = 150.0
+st6.reich_abzug("holz", 50.0)
+check("P13: der Reichsbestand sinkt um 50 (150 -> 100)",
+      abs(float(st6.resources["holz"].amount) - 100.0) < 1e-9,
+      str(st6.resources["holz"].amount))
+check("P13: die Ortslager sinken anteilig (60 -> 30, 40 -> 20)",
+      abs(o_a.vorraete["holz"] - 30.0) < 1e-9 and abs(o_b.vorraete["holz"] - 20.0) < 1e-9,
+      "%r / %r" % (o_a.vorraete["holz"], o_b.vorraete["holz"]))
+st6.reich_abzug("holz", 10000.0)
+check("P13: ein zu grosser Abzug macht nichts negativ",
+      float(st6.resources["holz"].amount) >= 0.0 and o_a.vorraete["holz"] >= 0.0
+      and o_b.vorraete["holz"] >= 0.0,
+      "%r / %r / %r" % (st6.resources["holz"].amount, o_a.vorraete["holz"], o_b.vorraete["holz"]))
+check("P13: ein Abzug von 0 aendert nichts",
+      abs(st6.reich_abzug("holz", 0.0)) < 1e-9)
+
+
+# --------------------------------------------------------------------------
+abschnitt("P14: Die Rueckrufe zahlen wirklich am Ort (Quelltextwachen)")
+
+_q2 = open(os.path.join(SRC, "main.py"), encoding="utf-8").read()
+check("P14: _karten_bauen zahlt ueber verbrauche_am_ort",
+      "ok_zahlung, meldung_zahlung = self.state.verbrauche_am_ort(siedlung, kosten)" in _q2)
+check("P14: _karten_ausbauen zahlt ueber verbrauche_am_ort",
+      _q2.count("verbrauche_am_ort(siedlung, kosten)") >= 2,
+      str(_q2.count("verbrauche_am_ort(siedlung, kosten)")))
+check("P14: tick bucht die Produktion je Ort (ertrag_je_ort)",
+      "for res, rate_pro_stunde in self.ertrag_je_ort(siedlung).items():" in _q2)
+check("P14: die Gruendung uebernimmt die Startwerte in das Ortslager",
+      "die ERSTE Siedlung uebernimmt die belegten" in _q2)
+check("P14: eine Kolonie zahlt ihr Startpaket aus dem Lager der Mutter",
+      "verbrauche_am_ort(mutter, paket_r)" in _q2)
+check("P14: die Bot-Beute trifft beide Buecher (reich_abzug)",
+      "self.reich_abzug(stoff, float(menge))" in _q2)
+check("P14: das Oekonomie-Modul ist jetzt wirklich eingebunden (Schritt 9)",
+      "import spieloekonomie" in _q2)
+
+
 sys.exit(bericht())

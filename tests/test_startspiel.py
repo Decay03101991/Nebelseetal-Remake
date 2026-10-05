@@ -232,14 +232,21 @@ def main_() -> int:
             beschriftung = str(wahl.cget("text"))
             if any(n in beschriftung for n in ("Holzfäller", "Steinmetz", "Jäger", "Farm",
                                               "Erzmine", "Goldmine", "Schafszucht")):
-                vorher = {k: st.resources[k].amount for k in st.resources}
+                # Oekonomie-Paket Schritt 9, Teil 3: bezahlt wird aus dem LOKALEN Lager der
+                # Siedlung - gemessen wird deshalb der gesamte Bestand (Reich + Ort).
+                vorher = {k: float(st.resources[k].amount) for k in st.resources}
+                vorher_ort = {k: float(v) for k, v in siedlung.vorraete.items()}
                 wahl.invoke()
                 tick()
-                nachher = {k: st.resources[k].amount for k in st.resources}
+                nachher = {k: float(st.resources[k].amount) for k in st.resources}
+                _bezahlt = {}
+                for _k in vorher:
+                    _delta = ((vorher[_k] + vorher_ort.get(_k, 0.0))
+                              - (nachher[_k] + float(siedlung.vorraete.get(_k, 0.0))))
+                    if abs(_delta) > 1e-9:
+                        _bezahlt[_k] = round(_delta, 1)
                 gebaut = {"feld": i, "gebaeude": beschriftung.split("\n")[0],
-                          "art": siedlung.karte["raster"][i],
-                          "bezahlt": {k: round(vorher[k] - nachher[k], 1) for k in vorher
-                                      if vorher[k] != nachher[k]}}
+                          "art": siedlung.karte["raster"][i], "bezahlt": _bezahlt}
                 break
         if gebaut:
             break
