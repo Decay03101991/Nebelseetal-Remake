@@ -25,6 +25,7 @@ import math
 import random
 from pathlib import Path
 
+import auftraege
 import einheiten  # noqa: F401  (vom Entwurf vorgesehen; hier für spätere Schritte)
 import gelaende
 import spieldaten
@@ -240,3 +241,143 @@ def vergabe(absichten: list, freie: dict, seed, runde: int) -> list:
         if ok:
             vergeben.add(a["karte_id"])
     return ergebnis
+
+
+# ---------------------------------------------------------------------------
+# Schritt 3 — lokale Lager und Transportbuchung (Entwurf Z. 417-505)
+# ---------------------------------------------------------------------------
+#
+# Eine lokale Wirtschaft ist Voraussetzung, nicht Kür für: Vorräte, Waren, Einheiten und
+# Werkstatt-/Bibliotheksauftrag — sie liegen JE SIEDLUNG. Gemeinsame Summen sind nur abgeleitete
+# Anzeige; kein Auftrag darf damit bezahlen. „Beute gibt es nur mit Transportkarren" ist
+# belegt (Handbuch S. 23) und wird von `auftraege.starten` für die Art „transportieren"
+# bereits erzwungen („Transportieren braucht mindestens einen Karren.").
+#
+# WICHTIG für die spätere main-Anbindung (Entwurf Z. 505): `auftraege.spieldaten_anwenden`
+# darf auf einen EIGENTRANSPORT niemals angewendet werden — eigene Transporte bucht
+# ausschließlich `transport_fortschritt`.
+
+
+def verbrauchen(ort: dict, kosten: dict, jetzt: float) -> dict:
+    """Bucht Kosten aus dem LOKALEN Lager ab und schreibt die Importherkunft mit.
+
+    Der Verbrauch wird anteilig aus dem importierten Bestand gedeckt — so belegt das
+    Verbrauchsjournal, dass wirklich eine gelieferte Fracht genutzt wurde (Siegnachweis,
+    Schritt 7). Reicht das lokale Lager nicht, ist das ein Fehler, keine stille Nullbuchung.
+    """
+    neu = copy.deepcopy(ort)
+    if not bezahlbar(neu["vorraete"], kosten):
+        raise ValueError("Lokales Lager reicht nicht.")
+    for r, m in kosten.items():
+        v = neu["vorraete"].get(r, 0)
+        importiert = neu["importiert"].get(r, 0)
+        genutzt = 0 if v <= 0 else m * importiert / v
+        neu["vorraete"][r] = v - m
+        neu["importiert"][r] = max(0, importiert - genutzt)
+        if genutzt > 0:
+            neu["verbrauchsjournal"].append({"zeit": jetzt, "rohstoff": r, "menge": genutzt,
+                                             "ziel": ort["id"]})
+    return neu
+
+
+def transport_start(quelle: dict, ziel: dict, bestand: dict, fracht: dict, jetzt: float,
+                    frachtkanal: str = "vorraete"):
+    """Startet einen Transport zwischen EIGENEN Siedlungen. Liefert (neue_quelle, mission).
+
+    ``frachtkanal`` ist ``"vorraete"`` (Rohstoffe) oder ``"waren"``. Importherkunft und
+    Verbrauchsjournal gelten nur für Rohstoffe — der Siegnachweis zählt keine Waren.
+    Jede Ablehnung wirft ``ValueError``; es wird nichts halb gebucht.
+    """
+    if frachtkanal not in ("vorraete", "waren"):
+        raise ValueError("Unbekannter Frachtkanal.")
+    if quelle["besitzer"] != ziel["besitzer"]:
+        raise ValueError("Für eigene Transporte muss der Besitzer übereinstimmen.")
+    if quelle["dimension"] != ziel["dimension"]:
+        raise ValueError("Dimensionswechsel braucht eigene Portalregeln.")
+    if not bestand or not all(type(n) is int and n > 0 for n in bestand.values()):
+        raise ValueError("Ungültige Transporttruppe.")
+    if any(quelle["einheiten"].get(n, 0) < m for n, m in bestand.items()):
+        raise ValueError("Einheiten sind nicht am Ausgangsort.")
+    if any(type(m) is not int or m < 0 for m in fracht.values()):
+        raise ValueError("Fracht muss aus nichtnegativen ganzen Mengen bestehen.")
+    if frachtkanal == "vorraete" and set(fracht) - set(quelle["vorraete"]):
+        raise ValueError("Unbekannter Rohstoff; Waren brauchen ausdrücklich einen Warenauftrag.")
+    if not bezahlbar(quelle[frachtkanal], fracht):
+        raise ValueError("Fracht fehlt am Ausgangsort.")
+    d = abs(quelle["x"] - ziel["x"]) + abs(quelle["y"] - ziel["y"])
+    liste = []
+    ok, meldung = auftraege.starten(liste, "transportieren", bestand, quelle["id"], ziel["id"],
+                                    d, jetzt, fracht)
+    if not ok:
+        raise ValueError(meldung)
+    neu = copy.deepcopy(quelle)
+    anteil = {}
+    for r, m in fracht.items():
+        v = neu[frachtkanal][r]
+        anteil[r] = (0 if (v <= 0 or frachtkanal != "vorraete")
+                     else m * neu["importiert"].get(r, 0) / v)
+        neu[frachtkanal][r] -= m
+        if frachtkanal == "vorraete":
+            neu["importiert"][r] = max(0, neu["importiert"].get(r, 0) - anteil[r])
+    for n, m in bestand.items():
+        neu["einheiten"][n] -= m
+    mission = liste[0]
+    mission.update({"eigentransport": True, "ziel_id": ziel["id"], "quelle_id": quelle["id"],
+                    "frachtkanal": frachtkanal, "ursprung_import": anteil,
+                    "geliefert_lokal": False, "heimgekehrt_lokal": False})
+    mission["besitzer"] = quelle["besitzer"]
+    return neu, mission
+
+
+def transport_fortschritt(mission: dict, orte: dict, jetzt: float):
+    """Bucht Ankunft und Rückkehr eines eigenen Transports **genau einmal**. (orte, mission).
+
+    Bei Ankunft wird die Fracht am Ziel gutgeschrieben; bei Rückkehr kehrt sie (samt
+    Importherkunft) zum Ausgangsort zurück. Ist der Ausgangsort verloren oder erobert, gilt
+    er wie ein nicht mehr vorhandener: dann wird eine eigene Ersatzsiedlung gesucht, sonst
+    bleibt die Fracht am Auftrag — **keine** Geistergutschrift.
+    """
+    neu = copy.deepcopy(orte)
+    m = copy.deepcopy(mission)
+    kanal = m.get("frachtkanal", "vorraete")
+    ziel = neu.get(m["ziel_id"])
+    if jetzt >= m["ankunft"] and not m["geliefert_lokal"]:
+        if ziel is not None and ziel["besitzer"] == m["besitzer"]:
+            for r, n in m["fracht"].items():
+                ziel[kanal][r] = ziel[kanal].get(r, 0) + n
+                if kanal == "vorraete":
+                    # Nicht als lokaler Verbrauch werten: erst ein späterer echter Auftrag zählt.
+                    ziel["importiert"][r] = ziel["importiert"].get(r, 0) + n
+            m["fracht"] = {}
+            if m.get("stationieren_lokal"):
+                for n, k in m["einheiten"].items():
+                    ziel["einheiten"][n] = ziel["einheiten"].get(n, 0) + k
+                m["einheiten"] = {}
+                m["heimgekehrt_lokal"] = True
+        m["geliefert_lokal"] = True
+    if jetzt >= m["rueckkehr"] and not m["heimgekehrt_lokal"]:
+        quelle = neu.get(m["quelle_id"])
+        if quelle is not None and quelle["besitzer"] != m["besitzer"]:
+            quelle = None            # eroberter Ausgangsort zählt wie ein verlorener
+        if quelle is None:
+            quelle = next((o for _, o in sorted(neu.items()) if o["besitzer"] == m["besitzer"]),
+                          None)
+            m["ersatzort"] = quelle["id"] if quelle is not None else None
+        if quelle is not None:
+            for n, k in m["einheiten"].items():
+                quelle["einheiten"][n] = quelle["einheiten"].get(n, 0) + k
+            for r, k in m["fracht"].items():
+                quelle[kanal][r] = quelle[kanal].get(r, 0) + k
+                if kanal == "vorraete":
+                    quelle["importiert"][r] = (quelle["importiert"].get(r, 0)
+                                               + m["ursprung_import"].get(r, 0))
+            m["fracht"] = {}
+        m["heimgekehrt_lokal"] = True
+    return neu, m
+
+
+def station_start(quelle: dict, ziel: dict, bestand: dict, fracht: dict, jetzt: float):
+    """Ein Transport, dessen Einheiten am Ziel bleiben (Stationierung). (neue_quelle, mission)."""
+    q, m = transport_start(quelle, ziel, bestand, fracht, jetzt)
+    m["stationieren_lokal"] = True
+    return q, m
