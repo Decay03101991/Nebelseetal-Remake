@@ -36,6 +36,7 @@ import portalraum  # W5-2: die 20 Dimensionen des Limbus, Raster, Wechselkosten 
 import werkstatt   # W3: die drei Werkstaetten, die 17 Waren und ihre Warteschlangen
 import auftraege   # W7: Auftraege (Missionen) mit Reisezeit, Rueckkehr und Bericht
 import forschung  # W4c: Forschung braucht Zeit - die Stufe steigt erst nach Ablauf
+import welt        # W4d: die Weltkarte des Limbus (20 Dimensionen, sechs belegte Welten)
 
 
 # ---------- Data Models ----------
@@ -1880,6 +1881,34 @@ class NebelseetalApp:
         tk.Label(self.content, text="(Unser Mana liegt in EINEM gemeinsamen Vorrat — das Handbuch verlangt "
                                     "die 5.000 Mana aus einer Siedlung. Vermerkt, noch nicht je Siedlung.)",
                  fg="#8a8a8a", bg=self.skin["bg"], wraplength=760, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 6))
+
+        # W4d: die WELTKARTE des Limbus aus `src/welt.py` — die 20 Dimensionen an ihren Plaetzen
+        # (x/y aus data/welten.json), eigene gruen, fremde rot. Die sechs BELEGTEN Weltnamen sind
+        # die einzigen, die das Handbuch nennt; die Anordnung ist der VORSCHLAG der Datei.
+        meine_kennung = f"d{int(z):02d}"
+        tk.Label(self.content, text="Weltkarte des Limbus — die sechs belegten Welten: "
+                                    + ", ".join(str(d["welt"]) for d in welt.welten()),
+                 fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(6, 0))
+        tk.Label(self.content, text=welt.beschreibung(meine_kennung), fg=self.skin["text"],
+                 bg=self.skin["bg"], wraplength=760, justify=tk.LEFT).pack(anchor=tk.W, padx=10)
+        karte = tk.Canvas(self.content, width=310, height=310, bg=self.skin["bg"], highlightthickness=0)
+        karte.pack(anchor=tk.W, padx=10, pady=4)
+        kachel = max(8, 310 // 10)
+        for _d in welt.dimensionen():
+            _nr = int(str(_d["kennung"]).lstrip("d"))
+            _x1, _y1 = int(_d["x"]) * kachel, int(_d["y"]) * kachel
+            karte.create_rectangle(_x1, _y1, _x1 + kachel - 2, _y1 + kachel - 2,
+                                   fill=farben["gruen"] if _nr in eigene else farben["rot"],
+                                   outline="#111111")
+            karte.create_text(_x1 + kachel // 2 - 1, _y1 + kachel // 2 - 1,
+                              text=f"{_nr:02d}", fill="#ffffff", font=("Arial", 7))
+        _nachbarn = welt.nachbarn(meine_kennung)[:4]
+        if _nachbarn:
+            tk.Label(self.content, text="Portalpreise in die Nachbardimensionen: " + " · ".join(
+                        f"{n['kennung']} ({int(n['_entfernung'])} Schritte) "
+                        f"{welt.portalkosten(meine_kennung, n['kennung'])} Mana" for n in _nachbarn),
+                     fg=self.skin["text"], bg=self.skin["bg"], wraplength=760,
+                     justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 4))
 
         knopfreihe = tk.Frame(self.content, bg=self.skin["bg"])
         knopfreihe.pack(anchor=tk.W, padx=10, pady=2)
