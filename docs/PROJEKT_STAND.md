@@ -47,7 +47,7 @@ Spielprozess mehr offen, kein fremdes aktives Ziel.
 
 | Was | Stand (gemessen) |
 |---|---|
-| Prüfstand | **1967 bestanden, 0 Fehler, 19 Befunde über 33 Dateien** (Sammellauf 07:0x, alle Rückgabewerte 0) |
+| Prüfstand | **1967 bestanden, 0 Fehler, 19 Befunde über 33 Dateien** (Sammellauf **07:03**, alle Rückgabewerte 0) |
 | Diese Sitzung geleistet | **Spielbarkeit hergestellt** (Siedlung → Karte → bauen → Ertrag; Ausbildung und Forschung laufen) und die **Oberfläche** nach dem Bildgutachten umgebaut |
 | Der schwerste Fund | „spielbar ist gar nichts" bei **grünem** Prüfstand: `_found_settlement` legte die Siedlung an, **zeichnete die Ansicht aber nicht neu** — damit war der ganze Weg versperrt. Commit `3688912`; neue Prüfdatei `tests/test_startspiel.py` (**37 Prüfungen, dreimal stabil 37/0/0**) |
 | Zweiter Fund | die Bots plünderten im **ersten** Tick **70 Holz + 70 Stein** am Tag 1 — **während der Noobschutz aktiv war**. Behoben, Meldung in den Nachrichten |
