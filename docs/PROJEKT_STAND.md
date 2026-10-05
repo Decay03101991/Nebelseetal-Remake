@@ -52,7 +52,7 @@ auf `cleared` gesetzt (Grund im Datensatz, kein fremdes aktives Ziel). Die neue 
 
 ---
 
-## 0c. Stand (05.10.2026, 17:00 — mit `date`, `git log`, Sammellauf und Startprüfung geprüft)
+## 0c. Stand (05.10.2026, 17:00, fortgeschrieben 18:30 — mit `date`, `git log`, Sammellauf und Startprüfung geprüft)
 
 > ### NEU: Schritt 31 fertig · Daniels Richtungsentscheidung · zwei starke Modellläufe ausgewertet
 >
@@ -156,6 +156,31 @@ Paket in der Reihenfolge des Papiers — kein Halbumbau").
    und Transportbuchung · Warenrezepte und lokale Ausbildung · gemeinsame Spieluhr · Forschung je
    Siedlung · Zielprüfung und Haltefenster · Bot-Planung · `main`-Anbindung und Migration).
    **Erst nach dem letzten Schritt** wird auf den Ökonomiemodus umgestellt; Altpartien bleiben Altmodus.
+
+#### Ist-Stand des Pakets (05.10.2026, 18:30 — mit Werkzeugen geprüft, nicht behauptet)
+
+**Schritte 0 bis 5 sind ERLEDIGT und geprüft. Der nächste Schritt ist Schritt 6 (Forschung je
+Siedlung), danach 7, 8, 9 und zuletzt die Aktivierung (10).**
+
+| Schritt | Inhalt | Stand | Beleg (Commit / Prüfzahl) |
+|---|---|---|---|
+| 0 | die vier Handbuch-Korrekturen | **fertig** | `203e2fa` · Kinderprüfung 18 Zeilen, **0 Widersprüche** (`6f8ef2f`) |
+| 1 | Kartenvorrat · `data/spieloekonomie.json` · `test_spieloekonomie.py` | **fertig** | `c68a60f` |
+| 2 | deterministischer Kern `src/spieloekonomie.py` | **fertig** | `a50edd6` · `test_oekonomie_kern_unabhaengig` **158/0/0** |
+| 3 | lokale Lager und Transportbuchung (Karrenpflicht) | **fertig** | `40` · `test_lokale_lager` **70/0/0**, `test_warentransport` **45/0/0** |
+| 4 | Warenrezepte (`data/warenrezepte.json`) und lokale Ausbildung | **fertig** | `e6fd766`, `3bdbc6a` · `test_warenrezepte` **26/0/0**, `test_ausbildungsauftraege` **49/0/0** |
+| 5 | gemeinsame Spieluhr: `ort_tick`, `fensterproduktion` | **Kern fertig** | `319c16b`, `a83ec25` · `test_oekonomie_uhr` **42/0/0** |
+| 6 | Forschung je Siedlung | **offen — der nächste Schritt** | — |
+| 7 | Zielprüfung und Haltefenster | offen | — |
+| 8 | Bot-Planung | offen | — |
+| 9 | `main`-Anbindung und Migration | offen | — |
+| 10 | Ereignisschleife `tick_bis` und Aktivierung | offen | — |
+
+**Aus Schritt 5 ist bewusst noch NICHT gebaut:** die Umstellung der `main`-Uhr auf `spielsekunden`
+(genau **eine** Stelle mit `spielzeit.faktor()`). Das gehört zur Anbindung (9/10), und **vorher darf
+der Ökonomiemodus NICHT aktiviert werden** (Entwurf Z. 1092). Bis dahin läuft der **Altmodus
+unverändert**, und **nichts** im Spiel ruft `src/spieloekonomie.py` auf — das ist Zusage, nicht Zufall,
+und wird von den Prüfdateien mitgeprüft.
 
 **Vorgemerkt für NACH diesem Paket (Vorgabe Daniel, 05.10.2026, 18:1x): die Kampfverluste
 verdrahten.** Wörtlich: bei verlorenem Kampf soll „ein prozentualer anteil an truppen vernichtet"
