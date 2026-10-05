@@ -619,6 +619,13 @@ class GameState:
         self.movements: List[dict] = []
         self.messages: List[dict] = []
         self.settlements: List[Settlement] = []
+        # Ökonomie-Paket, Schritt 9, Teil 5 (Entwurf Z. 777): der feste KARTENVORRAT für
+        # Neugründungen (Startkarte + zehn Koloniekarten, data/gelaende.json). Der Vorrat ist
+        # Spielzustand — eine vergebene Karte bleibt vergeben — und wird deshalb mitgespeichert.
+        # Er wird beim ersten Zugriff angelegt (`kartenvorrat_anlegen`), damit ein ALTER Spielstand
+        # ihn nachträglich bekommt, ohne dass sich etwas an seinen Siedlungen ändert.
+        self.kartenvorrat: Dict[str, dict] = {}
+        self.kartenvorrat_seed: str = ""
         # Sieg/Niederlage (Vorgabe Daniel 05.10.2026, Option A): Sieg bei der Zielpunktzahl,
         # Niederlage ohne Siedlung UND ohne Einheit. Das Handbuch nennt keine Bedingung — die
         # Formeln und die Schwelle stehen in src/punkte.py (dort als VORSCHLAG gekennzeichnet).
@@ -1133,6 +1140,178 @@ class GameState:
             eintrag["heimgekehrt"] = True
         return eintrag
 
+    # ---------------- Ökonomie-Paket, Schritt 9, Teil 5: die Gründung (Entwurf Z. 777) ----------------
+    # „_found_settlement: erster Start übernimmt Startbestände genau einmal und startkarte; danach
+    # öffnet eine Auswahlliste freier KarteIDs samt kartennutzen/Kapazitäten/Preis/Minimum, ruft
+    # absicht statt sofort append auf. Keine zufällige Erstwahl, kein zufälliges Weltfeld nach
+    # erfolgreicher Zahlung." Der Kern ist `src/spieloekonomie.py` (absicht/vergabe/vergabe-Regeln).
+
+    def kartenvorrat_anlegen(self, seed: str = "") -> Dict[str, dict]:
+        """Den Kartenvorrat für Neugründungen anlegen (die Startkarte bleibt außerhalb).
+
+        Die Saat wird gemerkt: derselbe Spielstand ergibt denselben Vorrat, und ein geladener
+        Stand vergibt seine Karten genau so weiter, wie er sie angelegt hat.
+        """
+        if not seed:
+            seed = self.kartenvorrat_seed or "nebel-%d" % random.randrange(1, 10 ** 9)
+        self.kartenvorrat_seed = str(seed)
+        self.kartenvorrat = spieloekonomie.vorrat(self.kartenvorrat_seed)
+        return self.kartenvorrat
+
+    def freie_koloniekarten(self) -> list:
+        """Die freien Koloniekarten mit allem, was die Auswahl braucht (Entwurf Z. 777).
+
+        Je Karte: Kennung, Karte, **Nutzen** für unser Portfolio, Stundenkapazitäten,
+        **Gründungsgebühr** und **Mindestbestand**. Sortiert nach Nutzen (beste zuerst) — die
+        Liste ist damit eine Empfehlung und keine Zufallswahl.
+        """
+        if not self.kartenvorrat:
+            self.kartenvorrat_anlegen()
+        vorhandene = [s.karte for s in self.settlements if getattr(s, "karte", None)]
+        preis, _paket, minimum = spieloekonomie.gruendungskosten()
+        eintraege = []
+        for kennung, eintrag in sorted(self.kartenvorrat.items()):
+            if eintrag.get("besitzer") is not None:
+                continue
+            karte = eintrag.get("karte") or {}
+            eintraege.append({
+                "karte_id": kennung,
+                "karte": karte,
+                "nutzen": spieloekonomie.kartennutzen(vorhandene, karte),
+                "kapazitaeten": spieloekonomie.kapazitaeten(karte),
+                "preis": dict(preis),
+                "minimum": dict(minimum),
+            })
+        eintraege.sort(key=lambda e: (-e["nutzen"], e["karte_id"]))
+        return eintraege
+
+    def _weltkarte_sicherstellen(self) -> None:
+        """Die Weltkarte aufbauen, falls sie noch fehlt (Auswahl UND Gründung brauchen sie).
+
+        `get_tile` greift auf `self.map_tiles` zu; ein frischer Zustand oder eine Prüfung hat die
+        Karte noch nicht aufgebaut (die Anwendung erzeugt sie beim Start). Ohne diese Zeile stürzte
+        die Auswahl mit `IndexError` ab statt zu arbeiten.
+        """
+        cfg = next((m for m in MAPS if m["id"] == self.current_map), None)
+        if cfg is not None and len(self.map_tiles) < cfg["size"] * cfg["size"]:
+            self.generate_map(self.current_map)
+
+    def freie_weltfelder(self, anzahl: int = 6) -> list:
+        """Die freien Weltfelder der aktuellen Karte in FESTER Reihenfolge (kein Zufall).
+
+        Entwurf Z. 777: das Weltfeld wird VOR der Zahlung festgelegt („kein zufälliges Weltfeld
+        nach erfolgreicher Zahlung"), deshalb eine nachprüfbare Auswahl.
+        """
+        cfg = next((m for m in MAPS if m["id"] == self.current_map), None)
+        if cfg is None:
+            return []
+        self._weltkarte_sicherstellen()
+        felder = []
+        for y in range(cfg["size"]):
+            for x in range(cfg["size"]):
+                feld = self.get_tile(x, y, cfg["size"])
+                if feld is None or feld.terrain == "water" or feld.npc_faction:
+                    continue
+                felder.append((x, y))
+                if len(felder) >= anzahl:
+                    break
+            if len(felder) >= anzahl:
+                break
+        return felder
+
+    def gruendung_pruefen(self, quelle: Settlement, karte_id: str, feld) -> Tuple[bool, str, dict]:
+        """Eine Gründungsabsicht prüfen, OHNE etwas zu buchen. ``(ok, Meldung, Absicht)``.
+
+        Geprüft wird über den KERN (`spieloekonomie.absicht`): freie Karte, Siedlungsgrenze,
+        Gründungsforschung, **Siedlerkarren** und **Mindestbestand im Ortslager** der Ausgangs-
+        siedlung. Der Siedlerkarren kommt zur Not als Übergang aus dem Reichsheer (wie beim
+        Transport) — sonst wäre die Gründung unerreichbar, solange die Ortslager für Einheiten
+        noch leer sind (Teil 6 füllt sie).
+        """
+        if quelle is None:
+            return False, "Keine Ausgangssiedlung gewählt.", {}
+        if not karte_id:
+            return False, "Keine Karte gewählt.", {}
+        if not self.kartenvorrat:
+            self.kartenvorrat_anlegen()
+        karren = spieloekonomie.REGELN["gruendung"]["karren"]
+        quelle_dict = asdict(quelle)
+        quelle_dict["siedlungsgrenze"] = SIEDLUNGEN_MAXIMUM
+        im_ort = int((quelle_dict.get("einheiten") or {}).get(karren, 0))
+        aus_reich = max(0, 1 - im_ort)
+        if aus_reich:
+            verfuegbar = int(self.units[karren].count) if karren in self.units else 0
+            if verfuegbar < aus_reich:
+                return False, (f"Für eine Neugründung wird ein {karren} gebraucht — er steht "
+                               f"weder im Lager von {quelle.name} noch im Reichsheer "
+                               f"(ausgebildet wird er im Stellmacher)."), {}
+            quelle_dict["einheiten"][karren] = im_ort + aus_reich
+        vorhandene = [s.karte for s in self.settlements if getattr(s, "karte", None)]
+        # `absicht` erwartet eine FLACHE Stufenkarte {Gebiet: Stufe} — `forschung_stand()` liefert
+        # je Gebiet ein Verzeichnis, das wäre ein Vergleich von Dict und Zahl (TypeError).
+        stufen = {k: int(v.level) for k, v in self.research.items()}
+        try:
+            absicht = spieloekonomie.absicht(quelle_dict, karte_id, vorhandene, self.kartenvorrat,
+                                             stufen, 0)
+        except ValueError as fehler:
+            return False, str(fehler), {}
+        absicht["weltfeld"] = list(feld or [])
+        absicht["aus_reich"] = aus_reich
+        # Die Vergabe kommt ebenfalls aus dem KERN (ein Bewerber: der Spieler).
+        entschieden = spieloekonomie.vergabe([absicht], self.kartenvorrat, self.kartenvorrat_seed, 0)
+        if not entschieden or not entschieden[0][1]:
+            return False, "Diese Karte ist nicht mehr frei.", {}
+        return True, "", absicht
+
+    def gruendung_ausfuehren(self, quelle: Settlement, karte_id: str, feld) -> Tuple[bool, str]:
+        """Eine geprüfte Gründung buchen. ``(ok, Meldung)`` — vorher wird ALLES erneut geprüft.
+
+        Gebucht wird in dieser Reihenfolge: Sperrgut (Mindestbestand = Gebühr + Startpaket) aus
+        dem **Ortslager** der Ausgangssiedlung, der **Siedlerkarren** (er wird für die Gründung
+        verbraucht — die Entwurfslesart zu „Sperrgut des Gewinners"), die Karte wird vergeben, und
+        die neue Siedlung bekommt **Startpaket + 5 Kolonisten** und ihr gewähltes Weltfeld. Die
+        Gebühr ist damit vernichtet (Mindestbestand minus Startpaket), die Gesamtmengen bleiben
+        sonst erhalten. Schlägt eine Prüfung fehl, ist NICHTS gebucht.
+        """
+        ok, meldung, absicht = self.gruendung_pruefen(quelle, karte_id, feld)
+        if not ok:
+            return False, meldung
+        x, y = [int(v) for v in absicht["weltfeld"]]
+        self._weltkarte_sicherstellen()
+        if not self.get_tile(x, y, next(m for m in MAPS if m["id"] == self.current_map)["size"]):
+            return False, "Das gewählte Weltfeld liegt nicht auf der Karte."
+        ok_zahlung, meldung_zahlung = self.verbrauche_am_ort(quelle, absicht["sperrgut"])
+        if not ok_zahlung:
+            return False, meldung_zahlung
+        karren = spieloekonomie.REGELN["gruendung"]["karren"]
+        if absicht["aus_reich"] and karren in self.units:
+            self.units[karren].count = max(0, int(self.units[karren].count) - absicht["aus_reich"])
+        im_ort = int((quelle.einheiten or {}).get(karren, 0))
+        if im_ort > 0:
+            quelle.einheiten[karren] = im_ort - 1
+            if quelle.einheiten[karren] <= 0:
+                quelle.einheiten.pop(karren, None)
+        siedler = int(spieloekonomie.U.get(karren, {}).get("kosten", {}).get("siedler", 0))
+        karte = self.kartenvorrat[karte_id]["karte"]
+        name = f"Siedlung {len(self.settlements) + 1}"
+        neu = Settlement(name=name, map_id=self.current_map, x=x, y=y, karte=karte,
+                         id=siedlung_kennung("spieler", self.current_map, x, y))
+        neu.vorraete = {r: float(v) for r, v in absicht["paket"].items()}
+        neu.bevoelkerung = float(siedler)
+        self.settlements.append(neu)
+        self.kartenvorrat[karte_id]["besitzer"] = "spieler"
+        self.hatte_siedlung = True
+        size = next(m for m in MAPS if m["id"] == self.current_map)["size"]
+        tile = self.get_tile(x, y, size)
+        if tile is not None:
+            tile.npc_faction = "spieler"
+            tile.sector_name = name
+        meldung = (f"Neue Siedlung '{name}' gegründet ({karte['typ_name']}, Feld {x}/{y}) — "
+                   f"{siedler} Kolonisten und das Startpaket sind angekommen; "
+                   f"im Ortslager von {quelle.name} ist der Mindestbestand verbraucht.")
+        self._log(meldung)
+        return True, meldung
+
     # ---------------- W3: Werkstaetten, Originalwaren, Warteschlangen ----------------
 
     def werkstatt_schlangen(self) -> Dict[str, dict]:
@@ -1577,6 +1756,10 @@ class GameState:
             "movements": self.movements,
             "messages": self.messages,
             "settlements": [asdict(s) for s in self.settlements],
+            # Ökonomie-Paket, Teil 5: der Kartenvorrat ist Spielzustand (eine vergebene Karte
+            # bleibt vergeben) — ohne ihn könnte ein geladener Stand Karten doppelt vergeben.
+            "kartenvorrat": self.kartenvorrat,
+            "kartenvorrat_seed": self.kartenvorrat_seed,
             "noob_protection": self.noob_protection,
             "goods": self.goods,
             "map_tiles": [asdict(t) for t in self.map_tiles],
@@ -1660,6 +1843,13 @@ class GameState:
         for s in self.settlements:
             if not s.id:
                 s.id = siedlung_kennung(s.besitzer, s.map_id, s.x, s.y)
+        # Ökonomie-Paket, Teil 5: den Kartenvorrat laden. Ein ALTER Spielstand kennt ihn nicht —
+        # dann wird er nachträglich angelegt (seine bestehenden Siedlungen bleiben unverändert).
+        self.kartenvorrat = {k: v for k, v in (data.get("kartenvorrat") or {}).items()
+                             if isinstance(v, dict) and v.get("karte")}
+        self.kartenvorrat_seed = str(data.get("kartenvorrat_seed") or "")
+        if not self.kartenvorrat:
+            self.kartenvorrat_anlegen()
         self.hatte_siedlung = bool(data.get("hatte_siedlung", bool(self.settlements)))
         self.spielende = data.get("spielende")
         self.noob_protection = data.get("noob_protection", True)
@@ -2262,90 +2452,145 @@ class NebelseetalApp:
                   f"Feldern der Siedlungskarten — dort das Feld wählen und 'Ausbauen' benutzen.")
 
     def _found_settlement(self):
+        """Eine Siedlung gründen (Ökonomie-Paket, Schritt 9, Teil 5; Entwurf Z. 777).
+
+        Der ERSTE Start ist belegt und bleibt einfach: er übernimmt die Startbestände genau einmal
+        und die **Startkarte** — ohne Gebühr, ohne Auswahl. Jede weitere Siedlung ist eine
+        **Kolonie**: sie kommt aus dem **Kartenvorrat**, kostet die Gründungsgebühr und verlangt
+        das Mindestguthaben plus einen Siedlerkarren. Geprüft wird über den Kern (`absicht`),
+        vergeben mit `vergabe`; die Auswahl zeigt Nutzen, Kapazitäten, Preis und Mindestbestand,
+        und das Weltfeld steht VOR der Zahlung fest.
+        """
         if len(self.state.settlements) >= SIEDLUNGEN_MAXIMUM:
             self._log(f"Maximale Siedlungsanzahl erreicht ({SIEDLUNGEN_MAXIMUM}).")
             return
+        if not self.state.settlements:
+            self._erste_siedlung_gruenden()
+            return
+        self._kolonie_gruenden()
+
+    def _erste_siedlung_gruenden(self):
+        """Startkarte und belegte Startwerte (Handbuch S. 7: 10 Siedler · 100 Holz · 100 Stein)."""
         cfg = next(m for m in MAPS if m["id"] == self.state.current_map)
         size = cfg["size"]
-        attempts = 0
-        while attempts < 200:
+        self.state._weltkarte_sicherstellen()      # die Startsiedlung steht auf einem Weltfeld
+        if not self.state.kartenvorrat_seed:
+            self.state.kartenvorrat_seed = "nebel-%d" % random.randrange(1, 10 ** 9)
+        if not self.state.kartenvorrat:
+            self.state.kartenvorrat_anlegen(self.state.kartenvorrat_seed)
+        karte = spieloekonomie.startkarte(self.state.kartenvorrat_seed, "spieler")
+        for _ in range(200):
             x = random.randint(0, size - 1)
             y = random.randint(0, size - 1)
             tile = self.state.get_tile(x, y, size)
-            if tile and tile.terrain != "water" and not tile.npc_faction:
-                name = f"Siedlung {len(self.state.settlements)+1}"
-                if any(s.name == name for s in self.state.settlements):
-                    attempts += 1
-                    continue
-                # Handbuch S. 313: zufällige Karte, niemals dieselbe wie eine andere eigene Siedlung.
-                try:
-                    karte = neue_siedlungskarte([s.karte for s in self.state.settlements])
-                except RuntimeError as fehler:
-                    self._log(f"Keine Siedlung gegründet: {fehler}")
-                    return
-                # Oekonomie-Paket, Schritt 9, Teil 3: die ERSTE Siedlung uebernimmt die belegten
-                # Startwerte (10 Siedler, 100 Holz, 100 Stein - Handbuch S. 7) in ihr eigenes
-                # Lager; eine KOLONIE bekommt das Startpaket aus dem Lager der Mutter und
-                # verlangt vorher das Mindestguthaben (Entwurf Z. 775/777). Beides ist eine echte
-                # Uebertragung - verschenkt wird nichts. Preis, Kartenauswahl und Vergabe
-                # (absicht/vergabe) folgen in einem eigenen Teil.
-                siedler = 0
-                if not self.state.settlements:
-                    bevoelkerung_start = float(self.state.population)
-                    start = {r: float(res.amount) for r, res in self.state.resources.items()
-                             if float(res.amount) > 0}
-                else:
-                    _, paket_r, minimum = spieloekonomie.gruendungskosten()
-                    mutter = max(self.state.settlements,
-                                 key=lambda s: (sum((s.vorraete or {}).values()), s.id))
-                    gesamt = {r: float(paket_r.get(r, 0.0)) + float(minimum.get(r, 0.0))
-                              for r in set(paket_r) | set(minimum)}
-                    fehlt = self.state.ortsdeckung(mutter, gesamt)
-                    karren = spieloekonomie.REGELN["gruendung"]["karren"]
-                    siedler = int(spieloekonomie.U.get(karren, {}).get("kosten", {}).get("siedler", 0))
-                    if float(self.state.population) + 1e-9 < siedler:
-                        fehlt["siedler"] = round(siedler - float(self.state.population), 2)
-                    if fehlt:
-                        self._log("Keine Siedlung gegründet: eine Neugründung verlangt das "
-                                  "Startpaket und ein Mindestguthaben im Lager von "
-                                  f"{mutter.name} — es fehlt "
-                                  + ", ".join(f"{r} ({w:.2f})" for r, w in sorted(fehlt.items())) + ".")
-                        return
-                    bevoelkerung_start = 0.0
-                    start = {}
-                sett = Settlement(name=name, map_id=self.state.current_map, x=x, y=y, karte=karte,
-                                  id=siedlung_kennung("spieler", self.state.current_map, x, y))
-                if not self.state.settlements:
-                    for r in list(start):
-                        self.state.resources[r].amount = 0.0
-                    self.state.population = 0.0
-                else:
-                    ok_zahlung, meldung_zahlung = self.state.verbrauche_am_ort(mutter, paket_r)
-                    if not ok_zahlung:
-                        self._log(f"Keine Siedlung gegründet: {meldung_zahlung}")
-                        return
-                    self.state.population = max(0.0, float(self.state.population) - siedler)
-                    start = {r: float(v) for r, v in paket_r.items()}
-                    bevoelkerung_start = float(siedler)
-                sett.vorraete = dict(start)
-                sett.bevoelkerung = float(bevoelkerung_start)
-                self.state.settlements.append(sett)
-                # Sieg/Niederlage: erst ab der ersten Siedlung wird ueberhaupt bewertet.
-                self.state.hatte_siedlung = True
-                tile.npc_faction = "spieler"
-                tile.sector_name = name
-                # Die Hauptmeldung ZULETZT: die Statuszeile zeigt immer die letzte Zeile.
-                self._log(f"  Karte: {karte['typ_name']} — {karte['vorteil']}")
-                self._log(f"  {gelaende.karte_beschreiben(karte)}")
-                self._log(f"Neue Siedlung '{name}' gegründet — im Dorfzentrum steht jetzt "
-                          f"„Karte öffnen\": dort Felder bebauen und Rohstoffe fördern.")
-                # Ohne Neuzeichnen sieht der Spieler NICHTS: die Siedlungsliste bliebe leer
-                # und der Knopf „Karte öffnen" erschiene nie. Genau daran hing das ganze Spiel.
-                self._render_view()
-                return
-            attempts += 1
-        self._log("Kein geeigneter Platz für eine Siedlung gefunden.")
+            if not (tile and tile.terrain != "water" and not tile.npc_faction):
+                continue
+            start = {r: float(res.amount) for r, res in self.state.resources.items()
+                     if float(res.amount) > 0}
+            bevoelkerung_start = float(self.state.population)
+            sett = Settlement(name="Siedlung 1", map_id=self.state.current_map, x=x, y=y,
+                              karte=karte,
+                              id=siedlung_kennung("spieler", self.state.current_map, x, y))
+            sett.vorraete = dict(start)
+            sett.bevoelkerung = bevoelkerung_start
+            self.state.settlements.append(sett)
+            # Die Startwerte werden EINMAL übernommen (verschoben, nicht kopiert) — sonst stünden
+            # sie doppelt: einmal im Ortslager und einmal im Reichsbestand (Entwurf Z. 775).
+            for r in list(start):
+                self.state.resources[r].amount = 0.0
+            self.state.population = 0.0
+            self.state.hatte_siedlung = True
+            tile.npc_faction = "spieler"
+            tile.sector_name = sett.name
+            # Die Hauptmeldung ZULETZT: die Statuszeile zeigt immer die letzte Zeile.
+            self._log(f"  Karte: {karte['typ_name']} — {karte['vorteil']}")
+            self._log(f"  {gelaende.karte_beschreiben(karte)}")
+            self._log(f"Neue Siedlung '{sett.name}' gegründet — im Dorfzentrum steht jetzt "
+                      f"„Karte öffnen\": dort Felder bebauen und Rohstoffe fördern.")
+            # Ohne Neuzeichnen sieht der Spieler NICHTS: die Siedlungsliste bliebe leer.
+            self._render_view()
+            return
+        self._log("Kein geeigneter Platz für die Startsiedlung gefunden.")
         self._render_view()
+
+    def _kolonie_gruenden(self):
+        """Die Auswahlmaske einer Neugründung öffnen: Kartenvorrat, Nutzen, Preis, Weltfeld."""
+        karten = self.state.freie_koloniekarten()
+        if not karten:
+            self._log("Keine freie Koloniekarte mehr im Vorrat — es lässt sich keine Siedlung "
+                      "mehr gründen.")
+            return
+        felder = self.state.freie_weltfelder(6)
+        if not felder:
+            self._log("Kein freies Weltfeld für eine Gründung gefunden.")
+            return
+        quellen = sorted(self.state.settlements,
+                         key=lambda s: (-sum((s.vorraete or {}).values()), s.id))
+        quelle_zu_name = {s.name: s for s in quellen}
+        karte_zu_text = {f"{k['karte_id']} · {k['karte']['typ_name']} · Nutzen {k['nutzen']:.2f}": k
+                         for k in karten}
+        feld_zu_text = {f"Feld {x}/{y}": (x, y) for x, y in felder}
+
+        fenster = tk.Toplevel(self.root)
+        fenster.title("Neue Siedlung gründen")
+        fenster.configure(bg=self.skin["bg"])
+
+        def _zeile(text, farbe=None, reihe=0, spalte=0, spann=2):
+            tk.Label(fenster, text=text, fg=farbe or self.skin["text"], bg=self.skin["bg"],
+                     anchor=tk.W, justify=tk.LEFT, wraplength=760).grid(
+                row=reihe, column=spalte, columnspan=spann, sticky=tk.W, padx=10,
+                pady=(4, 0) if reihe else (10, 4))
+
+        _zeile("Neue Siedlung gründen (Kolonie)", self.skin["gold"], 0)
+        var_quelle = tk.StringVar(value=quellen[0].name)
+        _zeile("Ausgangssiedlung (zahlt Sperrgut und Karren):", None, 1, 0, 1)
+        tk.OptionMenu(fenster, var_quelle, *quelle_zu_name.keys()).grid(
+            row=1, column=1, sticky=tk.W, padx=10, pady=(4, 0))
+        var_karte = tk.StringVar(value=next(iter(karte_zu_text)))
+        _zeile("Karte aus dem Vorrat (Nutzen = Nutzen für unseren Verbund):", None, 2, 0, 1)
+        tk.OptionMenu(fenster, var_karte, *karte_zu_text.keys()).grid(
+            row=2, column=1, sticky=tk.W, padx=10, pady=(4, 0))
+        var_feld = tk.StringVar(value=next(iter(feld_zu_text)))
+        _zeile("Weltfeld (steht VOR der Zahlung fest):", None, 3, 0, 1)
+        tk.OptionMenu(fenster, var_feld, *feld_zu_text.keys()).grid(
+            row=3, column=1, sticky=tk.W, padx=10, pady=(4, 0))
+
+        e_karte = karten[0]
+        preis_t = ", ".join(f"{int(v)} {r.capitalize()}" for r, v in sorted(e_karte["preis"].items()))
+        min_t = ", ".join(f"{int(v)} {r.capitalize()}" for r, v in sorted(e_karte["minimum"].items()))
+        kap_t = ", ".join(f"{r.capitalize()} {v:g}/h" for r, v in
+                          sorted(e_karte["kapazitaeten"].items()) if v) or "keine Erzeuger"
+        _zeile(f"Gebühr: {preis_t}", None, 4)
+        _zeile(f"Mindestbestand im Ortslager der Ausgangssiedlung: {min_t}", None, 5)
+        _zeile(f"Erzeugerprofil der erstgenannten Karte: {kap_t}", "#7FD1FF", 6)
+        _zeile("Ortslager der Ausgangssiedlung: " + ortsbestand_text(quellen[0]), None, 7)
+        _zeile("Verlangt außerdem: Wagenbau (Forschung) und einen Siedlerkarren.", "#FDBA74", 8)
+
+        def _starten():
+            gewaehlt = karte_zu_text.get(var_karte.get())
+            ok, _meldung = self._gruendung_ausfuehren(quelle_zu_name.get(var_quelle.get()),
+                                                      (gewaehlt or {}).get("karte_id"),
+                                                      feld_zu_text.get(var_feld.get()))
+            if ok:
+                fenster.destroy()
+
+        tk.Button(fenster, text="Gründen", command=_starten, bg="#3e2723", fg=self.skin["gold"],
+                  activebackground="#5D4037").grid(row=9, column=0, columnspan=2, sticky=tk.W,
+                                                   padx=10, pady=10)
+
+    def _gruendung_ausfuehren(self, quelle, karte_id, feld):
+        """Die Eingaben der Gründungsmaske ausführen — die EINE Stelle, die bucht. ``(ok, Meldung)``.
+
+        Getrennt von der Maske, damit die Prüfung den ganzen Weg ohne Fenster gehen kann.
+        """
+        ok, meldung = self.state.gruendung_ausfuehren(quelle, karte_id, feld)
+        if not ok:
+            self._log(f"Gründung nicht möglich: {meldung}")
+            return False, meldung
+        neu = self.state.settlements[-1]
+        self._log(f"  Karte: {neu.karte['typ_name']} — {neu.karte.get('vorteil', '')}")
+        self._render_view()
+        return True, meldung
 
     def _rename_settlement(self, settlement: Settlement, new_name: str):
         now = time.time()

@@ -410,9 +410,9 @@ check("P14: _karten_ausbauen zahlt ueber verbrauche_am_ort",
 check("P14: tick bucht die Produktion je Ort (ertrag_je_ort)",
       "for res, rate_pro_stunde in self.ertrag_je_ort(siedlung).items():" in _q2)
 check("P14: die Gruendung uebernimmt die Startwerte in das Ortslager",
-      "die ERSTE Siedlung uebernimmt die belegten" in _q2)
+      "sett.vorraete = dict(start)" in _q2 and "self.state.population = 0.0" in _q2)
 check("P14: eine Kolonie zahlt ihr Startpaket aus dem Lager der Mutter",
-      "verbrauche_am_ort(mutter, paket_r)" in _q2)
+      'verbrauche_am_ort(quelle, absicht["sperrgut"])' in _q2)
 check("P14: die Bot-Beute trifft beide Buecher (reich_abzug)",
       "self.reich_abzug(stoff, float(menge))" in _q2)
 check("P14: das Oekonomie-Modul ist jetzt wirklich eingebunden (Schritt 9)",
@@ -681,6 +681,183 @@ check("P21: der Kern transport_start wird wirklich benutzt",
       "spieloekonomie.transport_start(quelle_dict, asdict(ziel), karren," in _q4)
 check("P21: der Kern transport_fortschritt wird wirklich benutzt",
       "spieloekonomie.transport_fortschritt(dict(eintrag), orte, jetzt)" in _q4)
+
+
+# --------------------------------------------------------------------------
+abschnitt("P22: Teil 5 - Kartenvorrat und Auswahlliste (Entwurf Z. 777)")
+
+st12 = M.GameState()
+check("P22: ein frischer Zustand hat noch keinen Vorrat", st12.kartenvorrat == {})
+check("P22: Anlegen liefert die Koloniekarten", len(st12.kartenvorrat_anlegen("probe")) == 9,
+      str(len(st12.kartenvorrat)))
+check("P22: die Saat wird gemerkt (derselbe Stand vergibt dieselben Karten)",
+      st12.kartenvorrat_seed == "probe")
+check("P22: alle Karten sind frei",
+      all(v.get("besitzer") is None for v in st12.kartenvorrat.values()))
+
+q12 = M.Settlement(name="Haupt", map_id=st12.current_map, x=0, y=0,
+                   id=M.siedlung_kennung("spieler", st12.current_map, 0, 0),
+                   karte=M.spieloekonomie.startkarte("probe", "spieler"))
+st12.settlements = [q12]
+_liste = st12.freie_koloniekarten()
+check("P22: die Auswahlliste nennt alle freien Karten", len(_liste) == 9, str(len(_liste)))
+check("P22: jeder Eintrag traegt Nutzen, Kapazitaeten, Gebuehr und Mindestbestand",
+      all({"nutzen", "kapazitaeten", "preis", "minimum"} <= set(e) for e in _liste))
+check("P22: die Liste ist nach Nutzen sortiert (beste zuerst)",
+      all(_liste[i]["nutzen"] >= _liste[i + 1]["nutzen"] for i in range(len(_liste) - 1)),
+      str([round(e["nutzen"], 2) for e in _liste]))
+check("P22: die Gebuehr ist die belegte (320/200/150)",
+      abs(_liste[0]["preis"]["holz"] - 320.0) < 1e-9 and abs(_liste[0]["preis"]["stein"] - 200.0) < 1e-9
+      and abs(_liste[0]["preis"]["nahrung"] - 150.0) < 1e-9, str(_liste[0]["preis"]))
+check("P22: der Mindestbestand ist die belegte Summe (480/300/250)",
+      abs(_liste[0]["minimum"]["holz"] - 480.0) < 1e-9
+      and abs(_liste[0]["minimum"]["stein"] - 300.0) < 1e-9
+      and abs(_liste[0]["minimum"]["nahrung"] - 250.0) < 1e-9, str(_liste[0]["minimum"]))
+check("P22: das Erzeugerprofil nennt Stundenertraege",
+      isinstance(_liste[0]["kapazitaeten"], dict) and bool(_liste[0]["kapazitaeten"]))
+
+_f1 = st12.freie_weltfelder(4)
+_f2 = st12.freie_weltfelder(4)
+check("P22: die Weltfelder sind in fester Reihenfolge (kein Zufall)", _f1 == _f2, str(_f1))
+check("P22: es sind vier Felder", len(_f1) == 4, str(len(_f1)))
+check("P22: kein Feld ist Wasser oder schon vergeben",
+      all((st12.get_tile(x, y, 20) is not None
+           and st12.get_tile(x, y, 20).terrain != "water"
+           and not st12.get_tile(x, y, 20).npc_faction) for x, y in _f1), str(_f1))
+
+
+# --------------------------------------------------------------------------
+abschnitt("P23: Teil 5 - die Gruendung geht ueber den Kern (absicht) und bucht richtig")
+
+pfad_g = temp("gruendung_rundlauf.json")
+st13 = M.GameState()
+st13.kartenvorrat_anlegen("probe")
+q13 = M.Settlement(name="Haupt", map_id=st13.current_map, x=0, y=0,
+                   id=M.siedlung_kennung("spieler", st13.current_map, 0, 0),
+                   karte=M.spieloekonomie.startkarte("probe", "spieler"))
+q13.vorraete = {"holz": 700.0, "stein": 450.0, "nahrung": 350.0}
+q13.bevoelkerung = 20.0
+st13.settlements = [q13]
+st13.units["Siedlerkarren"].count = 1
+
+
+def nichts_geaendert(name, karte_id="ausgleich_a", feld=(3, 0)):
+    """Eine Ablehnung darf weder Vorrat noch Lager noch Siedlungen anfassen."""
+    _v = {k: dict(v) for k, v in st13.kartenvorrat.items()}
+    _q = _copy4.deepcopy(q13.vorraete)
+    _k = int(st13.units["Siedlerkarren"].count)
+    _n = len(st13.settlements)
+    ok, meldung, _a = st13.gruendung_pruefen(q13, karte_id, feld)
+    check("P23: %s wird abgelehnt" % name, not ok, meldung)
+    check("P23: %s laesst Vorrat, Ortslager, Karren und Siedlungen unveraendert" % name,
+          st13.kartenvorrat == _v and q13.vorraete == _q
+          and int(st13.units["Siedlerkarren"].count) == _k
+          and len(st13.settlements) == _n, meldung)
+
+
+nichts_geaendert("ohne Wagenbau", "ausgleich_a")
+st13.research["Wagenbau"].level = 1
+st13.units["Siedlerkarren"].count = 0
+nichts_geaendert("ohne Siedlerkarren", "ausgleich_a")
+st13.units["Siedlerkarren"].count = 1
+_kopie_lager = _copy4.deepcopy(q13.vorraete)
+q13.vorraete = {"holz": 100.0, "stein": 100.0, "nahrung": 100.0}
+nichts_geaendert("ohne Mindestbestand", "ausgleich_a")
+q13.vorraete = _kopie_lager
+nichts_geaendert("unbekannte Karte", "gibtsnicht")
+
+ok, meldung, _a = st13.gruendung_pruefen(q13, "ausgleich_a", (3, 0))
+check("P23: mit Forschung, Karren und Mindestbestand ist die Absicht gueltig", ok, meldung)
+check("P23: die Absicht nennt Sperrgut, Gebuehr und Paket",
+      abs(_a.get("sperrgut", {}).get("holz", 0) - 480.0) < 1e-9
+      and abs(_a.get("preis", {}).get("holz", 0) - 320.0) < 1e-9
+      and abs(_a.get("paket", {}).get("holz", 0) - 160.0) < 1e-9, str(_a.get("sperrgut")))
+check("P23: die Absicht traegt das gewaehlte Weltfeld", _a.get("weltfeld") == [3, 0],
+      str(_a.get("weltfeld")))
+
+_karren_vorher = int(st13.units["Siedlerkarren"].count)
+ok, meldung = st13.gruendung_ausfuehren(q13, "ausgleich_a", (3, 0))
+check("P23: die Gruendung gelingt", ok, meldung)
+check("P23: es gibt jetzt ZWEI Siedlungen", len(st13.settlements) == 2, str(len(st13.settlements)))
+_g = st13.settlements[-1]
+check("P23: die neue Siedlung steht auf dem gewaehlten Weltfeld", (_g.x, _g.y) == (3, 0),
+      "%s/%s" % (_g.x, _g.y))
+check("P23: sie bekommt das Startpaket (160/100/100)",
+      abs(_g.vorraete.get("holz", 0) - 160.0) < 1e-9 and abs(_g.vorraete.get("stein", 0) - 100.0) < 1e-9
+      and abs(_g.vorraete.get("nahrung", 0) - 100.0) < 1e-9, str(_g.vorraete))
+check("P23: und die 5 Kolonisten aus dem Siedlerkarren", abs(_g.bevoelkerung - 5.0) < 1e-9,
+      str(_g.bevoelkerung))
+check("P23: die Ausgangssiedlung hat den Mindestbestand verloren (700 -> 220)",
+      abs(q13.vorraete.get("holz", 0) - 220.0) < 1e-9
+      and abs(q13.vorraete.get("stein", 0) - 150.0) < 1e-9
+      and abs(q13.vorraete.get("nahrung", 0) - 100.0) < 1e-9, str(q13.vorraete))
+check("P23: die Gebuehr ist vernichtet (Mindestbestand minus Paket), nichts doppelt",
+      abs(q13.vorraete["holz"] + _g.vorraete["holz"] - 380.0) < 1e-9,
+      "%s + %s" % (q13.vorraete["holz"], _g.vorraete["holz"]))
+check("P23: der Siedlerkarren ist verbraucht",
+      int(st13.units["Siedlerkarren"].count) == _karren_vorher - 1, str(st13.units["Siedlerkarren"].count))
+check("P23: die Karte ist aus dem Vorrat vergeben",
+      st13.kartenvorrat["ausgleich_a"]["besitzer"] == "spieler",
+      str(st13.kartenvorrat["ausgleich_a"]["besitzer"]))
+check("P23: sie steht nicht mehr in der Auswahlliste",
+      all(e["karte_id"] != "ausgleich_a" for e in st13.freie_koloniekarten()))
+check("P23: das Weltfeld gehoert jetzt dem Spieler",
+      st13.get_tile(3, 0, 20).npc_faction == "spieler", str(st13.get_tile(3, 0, 20).npc_faction))
+check("P23: die Siedlung traegt eine stabile Kennung",
+      _g.id == M.siedlung_kennung("spieler", st13.current_map, 3, 0), _g.id)
+
+check("P23: der Spielstand wird geschrieben", bool(st13.save(pfad_g)))
+zweit13 = M.GameState()
+check("P23: der Spielstand wird geladen", zweit13.load(pfad_g) is True)
+check("P23: der Vorrat kennt die vergebene Karte nach dem Laden",
+      zweit13.kartenvorrat.get("ausgleich_a", {}).get("besitzer") == "spieler",
+      str(zweit13.kartenvorrat.get("ausgleich_a", {}).get("besitzer")))
+check("P23: kein ALTSPIELSTAND ohne Vorrat stuerzt ab",
+      len(zweit13.freie_koloniekarten()) == 8, str(len(zweit13.freie_koloniekarten())))
+# Gegenprobe: eine schon vergebene Karte ist nicht mehr zu haben.
+check("P23: dieselbe Karte laesst sich nicht zweimal vergeben",
+      not zweit13.gruendung_pruefen(zweit13.settlements[0], "ausgleich_a", (5, 0))[0])
+
+
+# --------------------------------------------------------------------------
+abschnitt("P24: Teil 5 - die Startgruendung und die Anbindung im Quelltext")
+
+st14 = M.GameState()
+app_vierzehn = M.NebelseetalApp.__new__(M.NebelseetalApp)   # ohne Fenster: nur die Methoden
+app_vierzehn.state = st14
+app_vierzehn.content = None
+app_vierzehn._log = lambda msg: st14.log.append(msg)
+app_vierzehn._render_view = lambda: None
+app_vierzehn._found_settlement()
+check("P24: die erste Siedlung entsteht", len(st14.settlements) == 1, str(len(st14.settlements)))
+_start = st14.settlements[0]
+check("P24: sie traegt die STARTKARTE (keine zufaellige Erstwahl)",
+      _start.karte["typ"] == M.spieloekonomie.G["kartenvorrat"]["start"]["id"],
+      str(_start.karte.get("typ")))
+check("P24: sie uebernimmt die belegten Startwerte (10 Siedler, 100 Holz, 100 Stein)",
+      abs(_start.bevoelkerung - 10.0) < 1e-9 and abs(_start.vorraete.get("holz", 0) - 100.0) < 1e-9
+      and abs(_start.vorraete.get("stein", 0) - 100.0) < 1e-9, str(_start.vorraete))
+check("P24: die Startwerte werden GENAU EINMAL uebernommen (Reich ist leer)",
+      float(st14.resources["holz"].amount) == 0.0 and float(st14.population) == 0.0,
+      "%s / %s" % (st14.resources["holz"].amount, st14.population))
+check("P24: der Kartenvorrat wurde dabei angelegt", len(st14.kartenvorrat) == 9,
+      str(len(st14.kartenvorrat)))
+
+import inspect as _inspect5  # noqa: E402
+_q5 = open(os.path.join(SRC, "main.py"), encoding="utf-8").read()
+check("P24: die Gruendung ruft den Kern absicht", "spieloekonomie.absicht(" in _q5)
+check("P24: die Gruendung ruft den Kern vergabe", "spieloekonomie.vergabe([" in _q5)
+check("P24: die Startkarte kommt aus dem Kern", "spieloekonomie.startkarte(" in _q5)
+_quelle_found = _inspect5.getsource(M.NebelseetalApp._found_settlement)
+check("P24: _found_settlement ist nur noch die Weiche (Erststart oder Kolonie)",
+      "_erste_siedlung_gruenden()" in _quelle_found and "_kolonie_gruenden()" in _quelle_found)
+check("P24: die Zufallskarte ist aus der Gruendung verschwunden",
+      "neue_siedlungskarte" not in _q5.split("def _kolonie_gruenden")[1].split("def _gruendung")[0])
+_quelle_kolonie = _inspect5.getsource(M.NebelseetalApp._kolonie_gruenden)
+check("P24: die Maske zeigt die Auswahlliste und die Weltfelder",
+      "freie_koloniekarten()" in _quelle_kolonie and "freie_weltfelder(" in _quelle_kolonie)
+check("P24: der Knopf heisst Gruenden und bucht ueber die eine Stelle",
+      "Gr\u00fcnden" in _quelle_kolonie and "_gruendung_ausfuehren(" in _quelle_kolonie)
 
 
 sys.exit(bericht())
