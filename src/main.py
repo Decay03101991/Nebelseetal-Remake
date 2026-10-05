@@ -2513,7 +2513,9 @@ class NebelseetalApp:
         if status == "gesperrt":
             tk.Label(rahmen, text=f"{name} ist gesperrt.", fg=self.skin["gold"],
                      bg=self.skin["panel"], font=("TkDefaultFont", 13, "bold")).pack(anchor=tk.W)
-            tk.Label(rahmen, text="Zugang: Portal ausbauen oder „Vermessung“ erforschen.",
+            tk.Label(rahmen, text="Zugang: die Forschung „Vermessung“ auf Stufe 1 — dafür braucht "
+                                  "es eine Bibliothek auf einer Siedlungskarte (der frühere "
+                                  "Portal-Bau ist entfallen).",
                      fg=self.skin["text"], bg=self.skin["panel"], wraplength=560,
                      justify=tk.LEFT).pack(anchor=tk.W, pady=(2, 10))
             tk.Button(rahmen, text="Zum Portal", command=lambda: self._switch_view("Portal"),
@@ -2530,7 +2532,11 @@ class NebelseetalApp:
             tk.Button(rahmen, text=f"Betreten ({self.state.map_switch_cost} Gold)",
                       command=lambda mid=map_id: self._enter_map(mid), bg=self.skin["button"],
                       fg=self.skin["gold"]).pack(anchor=tk.W, pady=2)
-            tk.Button(rahmen, text="Einheiten stationieren",
+            # astra A3 verlangt „Stationieren" nur im Detailbereich eines AUSGEWÄHLTEN Ortes.
+            # Hier steht bewusst ein anderer Fall: das ganze Gebiet ist noch nicht betreten, es
+            # gibt dort also nichts auszuwählen — der Knopf sagt deshalb ausdrücklich, wohin die
+            # Truppen gehen (Prüfbericht des Unteragenten vom 05.10.2026, 11:29).
+            tk.Button(rahmen, text="Einheiten auf dieses Gebiet stationieren",
                       command=lambda mid=map_id: self._station_on_map(mid),
                       bg=self.skin["button"], fg=self.skin["gold"]).pack(anchor=tk.W, pady=2)
             if map_id != "kontinent":
