@@ -399,11 +399,16 @@ def main_() -> int:
         if ks:
             key = next((k for k, r in st.research.items() if r.level < r.max_level), None)
             vorher = st.research[key].level if key else None
+            # Teil 6 (Rest): die Handbuchkosten kommen aus dem ORTSLAGER des aktiven Ortes,
+            # und der Auftrag steht dort — nicht mehr reichsweit.
+            _ort_f = st.aktive_siedlung()
+            for _r in st.resources:
+                _ort_f.vorraete[_r] = max(float(_ort_f.vorraete.get(_r, 0.0)), 5000.0)
             ks[0].invoke()
             tick()
-            auftrag = st.forschungsauftraege.get(key) or {}
-            check("die Forschung LAEUFT (Auftrag gesetzt) statt sofort zu steigen", bool(auftrag),
-                  str(auftrag)[:120])
+            auftrag = getattr(_ort_f, "forschungsauftrag", None) or {}
+            check("die Forschung LAEUFT im Ort (Auftrag gesetzt) statt sofort zu steigen",
+                  bool(auftrag.get("gebiet")), str(auftrag)[:120])
             check("die Stufe steigt NICHT im selben Klick",
                   key is None or st.research[key].level == vorher,
                   f"{vorher} -> {st.research[key].level if key else '?'}")

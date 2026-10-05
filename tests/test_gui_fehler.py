@@ -232,18 +232,20 @@ def pruefen():
         tick()
         aktionen += 1
         # W4c: Die Forschung LAEUFT jetzt (Wartezeit) — die Stufe steigt erst nach Ablauf der Zeit.
+        # Teil 6 (Rest): der Auftrag steht im AKTIVEN ORT, und die Spieluhr bucht den Abschluss.
         startet_ohne_stufe = app.state.research[forsch_key].level == stufe_vorher
-        _auftrag = app.state.forschungsauftraege.get(forsch_key) or {}
-        app.state.forschung_fortschreiben(
-            float(_auftrag.get("startzeit") or 0)
-            + main.forschung.dauer_sekunden(int(_auftrag.get("zielstufe") or 1)) + 1)
+        _ort_f = app.state.aktive_siedlung()
+        _auftrag = getattr(_ort_f, "forschungsauftrag", None) or {}
+        app.state.spielsekunden = (float(_auftrag.get("startzeit") or 0)
+                                   + float(_auftrag.get("dauer_stunden") or 0) * 3600.0 + 1.0)
+        app.state.tick(0.0)
         tick()
         check("Forschung laeuft mit Wartezeit und steigt erst nach Ablauf",
               startet_ohne_stufe
               and app.state.research[forsch_key].level == stufe_vorher + 1
-              and forsch_key not in app.state.forschungsauftraege,
+              and getattr(_ort_f, "forschungsauftrag", None) is None,
               f"{forsch_key}: {stufe_vorher} -> {app.state.research[forsch_key].level}, "
-              f"Auftraege {sorted(app.state.forschungsauftraege)}")
+              f"Auftrag {getattr(_ort_f, 'forschungsauftrag', None)}")
 
         # Ausbildung: Kriegerakademie bauen, dann eine Einheit ausbilden.
         # Vorgabe Daniel 05.10.2026: Forschung UND Ausruestung sind Bedingungen. Teil 6c: Rohstoffe,

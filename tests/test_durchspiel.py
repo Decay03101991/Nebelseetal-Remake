@@ -140,14 +140,22 @@ def partiedurchlauf():
         forsch_key = ("Felderwirtschaft" if "Felderwirtschaft" in gs.research
                       else next(iter(gs.research)))
         stufe0 = int(gs.research[forsch_key].level)
+        # Teil 6 (Rest): geforscht wird im AKTIVEN Ort aus dessen Lager, die Stufe steigt nach
+        # Ablauf der Zeit auf der Spieluhr (`spieloekonomie.forschung_abschluss`).
+        _ort3 = gs.aktive_siedlung()
+        for _r3 in gs.resources:
+            _ort3.vorraete[_r3] = max(float(_ort3.vorraete.get(_r3, 0.0)), 5000.0)
         check("die Forschung startet mit der Bibliothek", app._start_research(forsch_key) is True)
         check("die Stufe steigt NICHT im selben Klick", int(gs.research[forsch_key].level) == stufe0)
-        gs.forschungsauftraege[forsch_key]["startzeit"] -= 24 * 3600.0
+        _a3 = getattr(_ort3, "forschungsauftrag", None) or {}
+        check("der Auftrag steht im ORT (nicht mehr reichsweit)", bool(_a3.get("gebiet")), str(_a3))
+        gs.spielsekunden = (float(_a3.get("startzeit") or 0)
+                            + float(_a3.get("dauer_stunden") or 0) * 3600.0 + 1.0)
         gs.tick(0.0)
         check("nach Ablauf der Zeit steigt sie genau einmal",
               int(gs.research[forsch_key].level) == stufe0 + 1
-              and forsch_key not in gs.forschungsauftraege,
-              f"{stufe0} -> {gs.research[forsch_key].level}")
+              and getattr(_ort3, "forschungsauftrag", None) is None,
+              f"{stufe0} -> {gs.research[forsch_key].level}, Auftrag {_ort3.forschungsauftrag}")
 
         # ------------------------------------------------------------- 4. Ausbildung
         abschnitt("4. Einheiten ausbilden")

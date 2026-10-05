@@ -227,25 +227,37 @@ check("die Meldung nennt die Bibliothek", any("Bibliothek" in z for z in spiel.l
       str(spiel.log[-2:]))
 
 spiel.settlements.append(bib)
+# Teil 6 (Rest): geforscht wird im AKTIVEN Ort — die Bibliothek muss DORT stehen, und die
+# Handbuchkosten kommen aus dem LOKALEN Lager („lokale Bibliothek, lokale Mittel"). Der Ort
+# braucht dafür eine EIGENE Kennung (die Testhilfe vergibt keine).
+bib.id = M.siedlung_kennung("spieler", "test", 1, 1)
+app_los.state.aktive_siedlung_id = bib.id
+bib.vorraete = {"holz": 500.0}
 gestartet = app_los._start_research("Felderwirtschaft")
 check("mit Bibliothek STARTET die Forschung, die Stufe steigt aber noch nicht (W4c)",
       gestartet is True and spiel.research["Felderwirtschaft"].level == 0
-      and isinstance(spiel.forschungsauftraege.get("Felderwirtschaft"), dict),
+      and isinstance(getattr(bib, "forschungsauftrag", None), dict),
       f"Rueckgabe {gestartet}, Stufe {spiel.research['Felderwirtschaft'].level}, "
-      f"Auftraege {sorted(spiel.forschungsauftraege)}")
-check("und die Handbuchkosten (Stufe 1 = 50 Holz) sind abgezogen",
-      spiel.resources["holz"].amount == 450, str(spiel.resources["holz"].amount))
+      f"Auftrag {getattr(bib, 'forschungsauftrag', None)}")
+check("und die Handbuchkosten (Stufe 1 = 50 Holz) sind IM ORT abgezogen",
+      bib.vorraete.get("holz") == 450.0, str(bib.vorraete))
+check("das Reichslager bleibt unberuehrt", spiel.resources["holz"].amount == 500,
+      str(spiel.resources["holz"].amount))
 
-# W4c: Die Stufe steigt nach ABLAUF der Zeit (Dauer = Stufe zum Quadrat in Stunden, S. 12).
-_auftrag = spiel.forschungsauftraege["Felderwirtschaft"]
-_jetzt = _auftrag["startzeit"] + M.forschung.dauer_sekunden(1) + 1
-_gestiegen = spiel.forschung_fortschreiben(_jetzt)
+# W4c: Die Stufe steigt nach ABLAUF der Zeit (Dauer = Stufe zum Quadrat in Stunden, S. 12) —
+# gebucht von der Spieluhr des Ortes (`spieloekonomie.forschung_abschluss` in `tick`).
+_auftrag = bib.forschungsauftrag
+_ende = float(_auftrag["startzeit"]) + float(_auftrag["dauer_stunden"]) * 3600.0
+spiel.spielsekunden = _ende + 1.0
+spiel.tick(0.0)
 check("nach Ablauf der Zeit steigt die Stufe genau einmal (kein zweites Mal)",
-      _gestiegen == ["Felderwirtschaft"] and spiel.research["Felderwirtschaft"].level == 1
-      and "Felderwirtschaft" not in spiel.forschungsauftraege
-      and spiel.forschung_fortschreiben(_jetzt) == [],
-      f"gestiegen {_gestiegen}, Stufe {spiel.research['Felderwirtschaft'].level}, "
-      f"Auftraege {sorted(spiel.forschungsauftraege)}")
+      spiel.research["Felderwirtschaft"].level == 1
+      and getattr(bib, "forschungsauftrag", None) is None,
+      f"Stufe {spiel.research['Felderwirtschaft'].level}, Auftrag {bib.forschungsauftrag}")
+spiel.tick(0.0)
+check("... und ein zweiter Takt laesst sie nicht weitersteigen",
+      spiel.research["Felderwirtschaft"].level == 1,
+      str(spiel.research["Felderwirtschaft"].level))
 
 
 # ==========================================================================

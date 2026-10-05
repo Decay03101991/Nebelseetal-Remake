@@ -1050,4 +1050,59 @@ check("P27: die Kaserne zeigt beide Zahlen (vor Ort UND Reich)",
       "Anzahl: {_lokal_k} vor Ort \u00b7 Reich: {u.count}" in _q7)
 
 
+abschnitt("P28: Teil 6 (Rest) - die Forschung forscht IM ORT")
+
+_q8 = open(os.path.join(SRC, "main.py"), encoding="utf-8").read()
+check("P28: der Start geht ueber den Kern (forschung_start)",
+      "spieloekonomie.forschung_start(" in _q8)
+check("P28: der Abschluss laeuft ueber den Kern (forschung_abschluss)",
+      "spieloekonomie.forschung_abschluss(" in _q8)
+check("P28: der reichsweite Altpfad ist verschwunden",
+      "def forschung_fortschreiben" not in _q8)
+
+st30 = M.GameState()
+q30 = M.Settlement(name="Denkort", map_id=st30.current_map, x=0, y=0, id="ort-d",
+                   forschungsauftrag={"gebiet": "Felderwirtschaft", "zielstufe": 1,
+                                      "startzeit": 0.0, "dauer_stunden": 1.0})
+st30.settlements = [q30]
+_stand30 = st30.forschung_stand()
+check("P28: der Stand holt den Auftrag aus dem ORT",
+      (_stand30.get("Felderwirtschaft") or {}).get("auftrag") is not None,
+      str((_stand30.get("Felderwirtschaft") or {}).get("auftrag")))
+check("P28: ein Gebiet ohne Auftrag hat auch keinen im Stand",
+      (_stand30.get("Kriegskunst") or {}).get("auftrag") is None)
+
+_stufe30 = int(st30.research["Felderwirtschaft"].level)
+st30.spielsekunden = 3601.0
+st30.tick(0.0)
+check("P28: nach Ablauf steigt die Stufe und der Auftrag ist weg",
+      int(st30.research["Felderwirtschaft"].level) == _stufe30 + 1
+      and q30.forschungsauftrag is None,
+      "%s / %r" % (st30.research["Felderwirtschaft"].level, q30.forschungsauftrag))
+check("P28: die Fertigstellung steht im Journal des Ortes",
+      any(z.get("art") == "forschung" for z in (q30.fertigjournal or [])),
+      str((q30.fertigjournal or [])[-2:]))
+st30.tick(0.0)
+check("P28: ein zweiter Takt hebt die Stufe NICHT weiter",
+      int(st30.research["Felderwirtschaft"].level) == _stufe30 + 1,
+      str(st30.research["Felderwirtschaft"].level))
+
+# Ein Spielstand von VOR Teil 6 traegt seine Auftraege reichsweit - sie muessen in einen Ort.
+pfad30 = temp("forschung_alt.json")
+st31 = M.GameState()
+st31.settlements = [M.Settlement(name="Altort", map_id=st31.current_map, id="ort-alt")]
+check("P28: der Stand wird geschrieben", bool(st31.save(pfad30)))
+import json as _json8  # noqa: E402
+_roh8 = _json8.load(open(pfad30, encoding="utf-8"))
+_roh8["forschungsauftraege"] = {"Felderwirtschaft": {"gebiet": "Felderwirtschaft", "zielstufe": 1,
+                                                     "startzeit": 0.0, "dauer_stunden": 1.0}}
+_json8.dump(_roh8, open(pfad30, "w", encoding="utf-8"))
+st32 = M.GameState()
+check("P28: der alte Stand laedt weiter (kein Absturz)", st32.load(pfad30) is True)
+check("P28: der reichsweite Auftrag ist in den ORT umgezogen",
+      bool((st32.settlements[0].forschungsauftrag or {}).get("gebiet"))
+      and st32.forschungsauftraege == {},
+      "%r / %r" % (st32.settlements[0].forschungsauftrag, st32.forschungsauftraege))
+
+
 sys.exit(bericht())

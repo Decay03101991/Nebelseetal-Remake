@@ -1551,34 +1551,40 @@ class GameState:
     def forschung_stand(self) -> Dict[str, Dict[str, object]]:
         """Der Stand, mit dem `src/forschung.py` rechnet — aus EINER Wahrheit gebaut.
 
-        `self.research[...].level` ist die Stufe; `self.forschungsauftraege` haelt nur den
-        laufenden Auftrag je Gebiet. Damit gibt es keine zweite Stufenwahrheit.
+        `self.research[...].level` ist die Stufe. Seit Teil 6 (Rest) steht der **laufende Auftrag**
+        im ORT (`Settlement.forschungsauftrag`) — Entwurf Z. 779: „lokale Bibliothek, lokale
+        Mittel, globales Wissen". Hier werden die Aufträge der Orte eingesammelt, damit es keine
+        zweite Auftrags-Wahrheit gibt. Ein Spielstand von vor Teil 6 traegt seine Auftraege noch in
+        `self.forschungsauftraege`; `load` zieht sie in den ersten Ort um.
         """
-        return {k: {"stufe": int(v.level), "auftrag": self.forschungsauftraege.get(k)}
+        auftraege: Dict[str, dict] = {}
+        for siedlung in self.settlements:
+            a = getattr(siedlung, "forschungsauftrag", None)
+            if a and a.get("gebiet"):
+                auftraege[a["gebiet"]] = a
+        return {k: {"stufe": int(v.level), "auftrag": auftraege.get(k)}
                 for k, v in self.research.items()}
 
-    def forschung_fortschreiben(self, jetzt: float) -> List[str]:
-        """Laufende Forschung weiterlaufen lassen (W4c).
+    # `forschung_fortschreiben` (der reichsweite Altpfad, W4c) ist WEG: die Forschung laeuft seit
+    # Teil 6 ueber die Spieluhr der ORTE (`spieloekonomie.forschung_abschluss` in `tick`). Zwei
+    # Wege fuer dieselbe Stufe waeren eine zweite fuehrende Wahrheit (Entwurf Z. 774) — und die
+    # Kosten kaemen aus dem falschen Lager.
 
-        Die Stufe steigt **erst nach Ablauf** der Zeit (Dauer = Stufe zum Quadrat in Stunden,
-        Handbuch S. 12/13). `forschung.abschliessen` ist mehrfach aufrufbar und laesst jedes
-        Gebiet genau einmal steigen. Rueckgabe: die gestiegenen Gebiete.
+    def _forschung_abschluss_buchen(self, wissen: Dict[str, int]) -> List[str]:
+        """Gestiegene Forschungsstufen aus dem Kern in den Spielstand uebernehmen (Teil 6 Rest).
+
+        `spieloekonomie.forschung_abschluss` hebt die Stufe nur nach oben (`max`) und loescht den
+        Auftrag im Ort; hier wird sie an `self.research` geschrieben und gemeldet. Rueckgabe: die
+        gestiegenen Gebiete (fuer die Meldung an der Oberflaeche).
         """
-        if not self.forschungsauftraege:
-            return []
-        stand = self.forschung_stand()
-        gestiegen = forschung.abschliessen(stand, jetzt)
-        for gebiet in gestiegen:
-            eintrag = stand.get(gebiet) or {}
-            stufe = int(eintrag.get("stufe") or 0)
-            eintrag_res = self.research.get(gebiet)
-            if eintrag_res is not None:
-                eintrag_res.level = stufe
-                name = eintrag_res.name
-            else:
-                name = gebiet
-            self.forschungsauftraege.pop(gebiet, None)
-            meldung = f"Forschung {name} auf Stufe {stufe} abgeschlossen."
+        gestiegen: List[str] = []
+        for gebiet, stufe in (wissen or {}).items():
+            eintrag = self.research.get(gebiet)
+            if eintrag is None or int(stufe) <= int(eintrag.level):
+                continue
+            eintrag.level = int(stufe)
+            gestiegen.append(gebiet)
+            meldung = f"Forschung {eintrag.name} auf Stufe {stufe} abgeschlossen."
             self._log(meldung)
             self.messages.append({"text": meldung, "type": "forschung"})
         return gestiegen
@@ -1734,15 +1740,21 @@ class GameState:
         # Einheit). Die Oberfläche braucht das, um neu zu zeichnen — sonst bliebe die fertige Ware
         # unsichtbar, bis der Spieler die Ansicht wechselt.
         eingetroffen: List[str] = []
+        # Teil 6 (Rest): auch die FORSCHUNG laeuft auf dieser Uhr. `forschung_abschluss` hebt die
+        # Stufe im WISSEN (global) und loescht den Auftrag im ORT — genau einmal.
+        _wissen = {k: int(v.level) for k, v in self.research.items()}
         for siedlung in self.settlements:
             _vorher_vorrat = {k: float(v) for k, v in (siedlung.vorraete or {}).items()}
             _vorher_leute = float(siedlung.bevoelkerung or 0.0)
             _journal_vorher = len(siedlung.fertigjournal or [])
             _neu = spieloekonomie.ort_tick(asdict(siedlung), _ab, _bis, levels)
+            _neu, _wissen = spieloekonomie.forschung_abschluss(_neu, _wissen, _bis)
             if not self._ort_uebernehmen(siedlung.id, _neu):
                 continue
             for _zeile in (_neu.get("fertigjournal") or [])[_journal_vorher:]:
-                eingetroffen.append(f"{_zeile.get('name')} in {siedlung.name}")
+                _was = (f"Forschung {_zeile.get('name')}" if _zeile.get("art") == "forschung"
+                        else str(_zeile.get("name")))
+                eingetroffen.append(f"{_was} in {siedlung.name}")
             for res, menge in (_neu.get("vorraete") or {}).items():
                 zuwachs = float(menge) - _vorher_vorrat.get(res, 0.0)
                 if abs(zuwachs) > 1e-12 and res in self.resources:
@@ -1750,6 +1762,8 @@ class GameState:
             zuwachs_leute = float(_neu.get("bevoelkerung", 0.0)) - _vorher_leute
             if abs(zuwachs_leute) > 1e-12:
                 self.population = float(self.population) + zuwachs_leute
+        # Gestiegene Forschungsstufen aus dem Kern in den Spielstand uebernehmen (Teil 6 Rest).
+        self._forschung_abschluss_buchen(_wissen)
         self.spielsekunden = _bis
         # W5: Die Bots handeln nach `botkern` (Angriffstakt 6-24 h, Handelsschwelle, Wirtschaft).
         # Vorher stand hier eine erfundene Schaedigung: 5 % x Aggression, fester Nahrungsabzug.
@@ -1786,8 +1800,6 @@ class GameState:
         self.werkstatt_fortschreiben(time.time())
         # W7: Auftraege weiterlaufen lassen (Ankunft buchen, Heimkehrer gutschreiben).
         self.auftraege_fortschreiben(time.time())
-        # W4c: die Forschung weiterlaufen lassen - die Stufe steigt erst nach Ablauf der Zeit.
-        self.forschung_fortschreiben(time.time())
         self.last_tick = time.time()
         # Teil 6c: was in diesem Takt fertig wurde, geht an den Aufrufer ZURÜCK — die Oberfläche
         # zeichnet daraufhin neu (`NebelseetalApp._tick_loop`). `GameState` kennt keine Ansicht.
@@ -1928,6 +1940,20 @@ class GameState:
         # W4c: die laufende Forschung je Gebiet (die Stufe steht in `research`)
         self.forschungsauftraege = {k: v for k, v in (data.get("forschungsauftraege") or {}).items()
                                    if isinstance(v, dict) and k in self.research}
+        # Teil 6 (Rest): ein Spielstand von VOR Teil 6 traegt seine Forschungsauftraege noch
+        # reichsweit (`forschungsauftraege`). Sie gehoeren jetzt in einen ORT — sonst gaebe es zwei
+        # fuehrende Auftrags-Wahrheiten und die Stufe wuerde zweimal bezahlt. Umgezogen wird in den
+        # ersten Ort (der Auftrag nennt sein Gebiet selbst); danach ist der Altpfad leer.
+        if self.forschungsauftraege and self.settlements:
+            _ziel_ort = next((s for s in self.settlements
+                              if not getattr(s, "forschungsauftrag", None)), None)
+            if _ziel_ort is not None:
+                _gebiet, _auftrag = next(iter(self.forschungsauftraege.items()))
+                _ziel_ort.forschungsauftrag = dict(_auftrag)
+                self._log(f"Forschungsauftrag {_gebiet} aus einem alten Spielstand in "
+                          f"{_ziel_ort.name} umgezogen (jetzt forscht der Ort, nicht das Reich).")
+            for _g in list(self.forschungsauftraege):
+                self.forschungsauftraege.pop(_g, None)
         # FIX 4b: Karte + Bots laden (wurde vorher nicht persistiert)
         saved_tiles = data.get("map_tiles")
         saved_bots = data.get("bots")
@@ -2880,8 +2906,10 @@ class NebelseetalApp:
         # Handbuch S. 12 (Z. 423-424): Während eines Forschungsauftrags darf die Bibliothek NICHT
         # ausgebaut werden (KORREKTUR 05.10.2026). Die Bibliothek ist die eine Forschungsstätte,
         # also gilt die Sperre, solange irgendein Forschungsauftrag läuft.
-        if gebaut == "bibliothek" and getattr(self.state, "forschungsauftraege", None):
-            laufend = next(iter(self.state.forschungsauftraege), "")
+        _forschend = next((s for s in self.state.settlements
+                           if getattr(s, "forschungsauftrag", None)), None)
+        if gebaut == "bibliothek" and _forschend is not None:
+            laufend = (_forschend.forschungsauftrag or {}).get("gebiet", "")
             self._log(f"{name} kann nicht ausgebaut werden, solange {laufend} erforscht wird "
                       f"(Handbuch S. 12).")
             return
@@ -4681,7 +4709,9 @@ class NebelseetalApp:
         # W4c: laufende Forschung mit Restzeit. Gezeigt wird, was `forschung.fortschritt` wirklich
         # hergibt (keine eigene Rechnung in der Oberflaeche).
         stand = self.state.forschung_stand()
-        laufend = forschung.fortschritt(stand, time.time())
+        # Teil 6 (Rest): die Spieluhr, nicht die Rechnerzeit — die Auftraege rechnen in
+        # Spielsekunden (`spieloekonomie.forschung_start`/`forschung_abschluss`).
+        laufend = forschung.fortschritt(stand, self.state.spielsekunden)
         # Eine Quelle fuer Sperren, Begruendungen und Freischaltungen (forschungspfad).
         _bib = gebaeude_wirkung.bibliothek_stufe(self.state.settlements)
         _stufen = {k: v.level for k, v in self.state.research.items()}
@@ -4729,67 +4759,50 @@ class NebelseetalApp:
                              bg=self.skin["panel"]).pack(side=tk.RIGHT, padx=5)
 
     def _start_research(self, key: str):
-        """Forschung STARTEN — sie laeuft dann (W4c).
+        """Forschung in DIESEM Ort starten — ueber den Kern (`forschung_start`).
 
-        Die Stufe steigt **nicht mehr im selben Klick**: `forschung.starten` zieht die Kosten
-        (Stufe 1 = 50 Holz, dann Verdopplung — Handbuch S. 13) ab und setzt den Auftrag mit
-        Dauer = Stufe zum Quadrat in Stunden (S. 12). Den Ablauf treibt `GameState.tick` ueber
-        `forschung_fortschreiben`; die Stufe steigt erst nach Ablauf.
+        Oekonomie-Paket, Schritt 9, Teil 6 (Rest; Entwurf Z. 779: „lokale Bibliothek, lokale
+        Mittel, globales Wissen"). Der Kern prueft: kein zweiter Auftrag in derselben Bibliothek,
+        bekanntes Gebiet, die Voraussetzungen aus `forschungspfad` (mit der Bibliotheksstufe DIESES
+        Ortes) — und **die Rohstoffe im lokalen Lager**. Abgelehnt wird VOR jeder Aenderung.
+
+        Die Stufe steigt **erst nach Ablauf** der Zeit, gebucht von `tick` ueber
+        `spieloekonomie.forschung_abschluss` (Dauer = Stufe zum Quadrat in Stunden, Handbuch
+        S. 12/13) — nicht im selben Klick. Der reichsweite Altpfad (`forschung_fortschreiben`) ist
+        weg: er haette dieselbe Stufe ein zweites Mal zahlen lassen.
         """
-        # W4b-5: Forschung braucht eine Bibliothek auf einer Siedlungskarte (Handbuch Seite 12).
-        erlaubt, meldung = gebaeude_wirkung.forschung_erlaubt(self.state.settlements)
-        if not erlaubt:
-            self._log(meldung)
-            return False
         r = self.state.research.get(key)
         if r is None:
             self._log(f"Unbekanntes Forschungsgebiet: {key}.")
             return False
+        ort = self.state.aktive_siedlung()
+        if ort is None:
+            self._log(f"{r.name} braucht eine Bibliothek auf einer Siedlungskarte — es gibt noch "
+                      f"keine Siedlung.")
+            return False
+        # Grundbedingung ZUERST und mit Namen (wie bei der Ausbildung): ohne Bibliothek VOR ORT
+        # gibt es keinen Ort, an dem geforscht wird.
+        if gebaeude_wirkung.bibliothek_stufe([ort]) <= 0:
+            self._log(f"{r.name} braucht eine Bibliothek in dieser Siedlung — noch nicht gebaut.")
+            return False
         if int(r.level) >= int(r.max_level):
             self._log(f"{r.name} ist mit Stufe {r.level} bereits ausgeforscht.")
             return False
-        # Vorgabe Daniel 05.10.2026 („die Forschung ist noch nicht klug entworfen"): die
-        # Voraussetzungen aus data/research.json sind jetzt VERBINDLICH (z. B. Waffentechnik
-        # braucht Bibliothek 3 + Schmiedekunst 1). Prüfung und Begründung kommen aus
-        # `forschungspfad` — dieselbe Quelle wie die Anzeige.
-        _stufen = {k: v.level for k, v in self.state.research.items()}
-        _erfuellt, _warum = forschungspfad.erfuellt(
-            key, _stufen, gebaeude_wirkung.bibliothek_stufe(self.state.settlements))
-        if not _erfuellt:
-            self._log(f"{r.name} ist noch gesperrt: {_warum}")
-            self.state.messages.append({"text": f"{r.name} gesperrt — {_warum}",
+        wissen = {k: int(v.level) for k, v in self.state.research.items()}
+        weitere = [asdict(s) for s in self.state.settlements if s.id != ort.id]
+        try:
+            neu = spieloekonomie.forschung_start(asdict(ort), key, wissen,
+                                                 self.state.spielsekunden, weitere)
+        except ValueError as fehler:
+            meldung = f"Forschung nicht gestartet: {fehler}"
+            self._log(meldung)
+            self.state.messages.append({"text": f"{r.name} gesperrt — {fehler}",
                                         "type": "forschung"})
             return False
-        # Teil 3: die Rohstoffe liegen im ORT - die Forschung zahlt aus dem GANZEN Reich
-        # (Reichsbestand + alle Ortslager). Der Kern zieht seine Kosten von dieser Summe ab; der
-        # Abzug wird danach reichsweit gebucht (erst Reichsbestand, dann die Ortslager).
-        roh = {k: float(v.amount) for k, v in self.state.resources.items()}
-        for stoff, menge in self.state.ortslager().items():
-            roh[stoff] = round(roh.get(stoff, 0.0) + float(menge), 4)
-        stand = self.state.forschung_stand()
-        ok, meldung = forschung.starten(key, stand, time.time(), True, roh)
-        if not ok:
-            self._log(f"Forschung nicht gestartet: {meldung}")
-            return False
-        # Der Kern hat die Kosten in `roh` abgezogen; bucht der Aufrufer sie nicht zurueck, ist
-        # nichts bezahlt. Der Auftrag kommt aus dem Stand in den Spielstand.
-        abzug = {k: round(float(self.state.resources[k].amount) - float(menge), 4)
-                 for k, menge in roh.items()
-                 if k in self.state.resources and float(self.state.resources[k].amount) - float(menge) > 1e-9}
-        if abzug:
-            ok_zahlung, meldung_zahlung = self.state.verbrauche_reichsweit(abzug)
-            if not ok_zahlung:
-                self._log(f"Forschung nicht bezahlt: {meldung_zahlung}")
-                return False
-        auftrag = stand.get(key, {}).get("auftrag")
-        if isinstance(auftrag, dict):
-            self.state.forschungsauftraege[key] = auftrag
-        stunden = float(auftrag.get("dauer_stunden") or 0) if isinstance(auftrag, dict) else 0.0
-        self._log(f"{meldung} Die Stufe steigt nach Ablauf der Zeit.")
-        self.state.messages.append(
-            {"text": f"{r.name}: Forschung auf Stufe "
-                     f"{(int(auftrag.get('zielstufe') or 0) if isinstance(auftrag, dict) else 0)} "
-                     f"laeuft ({stunden:g} h).", "type": "forschung"})
+        self.state._ort_uebernehmen(ort.id, neu)
+        _a = neu.get("forschungsauftrag") or {}
+        self._log(f"{r.name} laeuft jetzt in {ort.name} — Stufe {_a.get('zielstufe')} nach "
+                  f"{float(_a.get('dauer_stunden') or 0.0):g} h Spielzeit (Handbuch S. 12).")
         if hasattr(self, "content"):
             self._render_view()
         return True
