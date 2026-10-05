@@ -276,24 +276,55 @@ def partiedurchlauf():
 
         # ------------------------------------------------------------- 10. Handel
         abschnitt("10. Handel mit einem Bot")
+        # Teil 7b: der Handel laeuft ueber den BESTAETIGTEN KAUFVERTRAG. Ist er nicht moeglich, wird
+        # ehrlich abgelehnt und NICHTS gebucht — der alte Gratisgewinn bleibt gesperrt.
         bot.trading = 0.9
         bot.gehandelt = 0
+        bot.vorraete["holz"] = 500
         _vorher_roh = {k: float(v.amount) for k, v in gs.resources.items()}
         _vorher_ruf = int(gs.ruf)
         log_vorher = len(gs.log)
-        handel = app._trade(bot)
-        # Teil 7: der Altpfad schenkte Ware ohne Gegenleistung (`random.randint` direkt ins Lager)
-        # — dieser Weg ist GESPERRT. Bis der bestaetigte Kaufvertrag angeschlossen ist, wird der
-        # Handel ehrlich abgelehnt und es wird NICHTS gebucht.
-        check("der Handel wird ehrlich abgelehnt (kein Gratisgewinn)",
-              handel is False and any("noch nicht verfügbar" in z for z in gs.log[log_vorher:]),
+        ohne_karawane = app._handel_ausfuehren(bot, sied, "holz", 3, 1.0, "", "1")
+        check("ohne Handelskarawane wird der Handel ehrlich abgelehnt",
+              ohne_karawane[0] is False
+              and any("HANDELSKARAWANE" in z or "Handelskarawane" in z
+                      for z in gs.log[log_vorher:]),
               str(gs.log[log_vorher:]))
         check("dabei wird NICHTS gebucht (keine Rohstoffe, kein Ruf, kein Handelszaehler)",
               {k: float(v.amount) for k, v in gs.resources.items()} == _vorher_roh
-              and int(gs.ruf) == _vorher_ruf and int(bot.gehandelt) == 0,
-              "Ruf %s, gehandelt %s" % (gs.ruf, bot.gehandelt))
+              and int(gs.ruf) == _vorher_ruf and int(bot.gehandelt) == 0 and not gs.auftraege,
+              "Ruf %s, gehandelt %s, Auftraege %s" % (gs.ruf, bot.gehandelt, len(gs.auftraege)))
         bot.trading = 0.1
-        check("ein Bot ohne Handelsneigung handelt nicht", app._trade(bot) is False)
+        check("ein Bot ohne Handelsneigung handelt nicht",
+              app._handel_ausfuehren(bot, sied, "holz", 3, 1.0, "Handelskarawane", "1")[0] is False)
+
+        # Der GANZE Weg mit echten Werten: Karawane und Gold im Ortslager, Ankunft und Rueckkehr
+        # bucht die Auftragsschleife, der Bot entscheidet bei der Ankunft ueber seinen Schwellenpreis.
+        bot.trading = 0.9
+        sied.einheiten["Handelskarawane"] = int(sied.einheiten.get("Handelskarawane", 0)) + 1
+        sied.vorraete["gold"] = float(sied.vorraete.get("gold", 0.0)) + 6000.0
+        _holz_ort = float(sied.vorraete.get("holz", 0.0))
+        _schwelle = main.botkern.handelspreis(
+            main.botkern.referenzpreis_aus_beschaffung(main.BOT_BESCHAFFUNGSKOSTEN),
+            float(bot.temperament))
+        ok_kauf, meldung_kauf = app._handel_ausfuehren(bot, sied, "holz", 3, _schwelle,
+                                                       "Handelskarawane", "1")
+        check("der bestaetigte Kaufvertrag wird gestartet",
+              ok_kauf is True and len(gs.auftraege) == 1, str(meldung_kauf))
+        _vertrag = gs.auftraege[0]
+        check("Ware und Gold sind beidseitig gesperrt (Gratisgewinn bleibt unmoeglich)",
+              float(bot.vorraete.get("holz", 0)) == 497.0
+              and abs(float(_vertrag.get("sperrgold") or 0) - 3.0 * float(_schwelle)) < 1e-6,
+              "Bot-Holz %s, Sperrgold %s" % (bot.vorraete.get("holz"), _vertrag.get("sperrgold")))
+        gs.auftraege_fortschreiben(float(_vertrag["rueckkehr"]))
+        check("der Handel wird bei der Rueckkehr genau einmal gebucht (Ware im Ortslager)",
+              float(sied.vorraete.get("holz", 0.0)) == _holz_ort + 3.0
+              and int(sied.einheiten.get("Handelskarawane", 0)) == 1 and not gs.auftraege,
+              "Holz %s, Karawane %s, Auftraege %s" % (sied.vorraete.get("holz"),
+                                                      sied.einheiten.get("Handelskarawane"),
+                                                      len(gs.auftraege)))
+        check("nach dem Handel ist kein Wert negativ", not keine_negativen(gs),
+              str(keine_negativen(gs)))
 
         # ------------------------------------------------------------- 11. Werkstatt
         abschnitt("11. Werkstatt: eine Ware herstellen")

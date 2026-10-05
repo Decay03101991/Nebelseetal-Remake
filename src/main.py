@@ -5,6 +5,7 @@ Multi-map system, trade, combat, research, bots, stationing.
 """
 from __future__ import annotations
 import json
+import math
 import os
 import random
 import time
@@ -1166,6 +1167,261 @@ class GameState:
             eintrag["heimgekehrt"] = True
         return eintrag
 
+    # -------- Ökonomie-Paket, Schritt 9, Teil 7b: der BESTÄTIGTE KAUFVERTRAG (Auditteil 8b) --------
+    # Entwurf Z. 779/781 („bestätigtes Angebot … oder eine deutliche noch-nicht-verfügbar-Meldung").
+    # Der Spieler ist der KÄUFER, der Bot der VERKÄUFER: der Bot bietet einen Rohstoff aus seinen
+    # Vorräten an, der Spieler zahlt Gold aus dem ORTSLAGER und stellt die HANDELSKARAWANE. Belegt
+    # (Handbuch S. 20, Abschnitt „Handel"): gehandelt wird nur mit Handelskarawanen, der Preis steht
+    # beim Angebot fest, und bei Ablehnung kehrt die Karawane MIT den Waren zurück — Gold wird nie
+    # übertragen. Geprüft und gesperrt wird ausschließlich im Kern (`spieloekonomie.handel_start`),
+    # gebucht wird die Ankunft von `_fremdvertrag_buchen` (Muster: `_eigentransport_buchen`, Teil 4).
+
+    def handelskarawanen_bestand(self, siedlung: Settlement) -> Dict[str, int]:
+        """Die verfügbaren HANDELSKARAWANEN eines Ortes — Ortslager zuerst, dann das Reichsheer.
+
+        Nur ECHTE Handelskarawanen: Handkarren, Einspänner und Zweispänner tragen Fracht, dürfen
+        aber nicht handeln (belegt in `auftraege.auftragsarten`: „Nur Handelskarawanen", Handbuch
+        S. 20). Fehlt ein Karren im Ortslager, kommt er wie beim Transport als ÜBERGANG aus dem
+        Reichsheer — dieselbe ehrlich benannte Übergangskasse.
+        """
+        bestand: Dict[str, int] = {}
+        for name, anzahl in (getattr(siedlung, "einheiten", None) or {}).items():
+            if "Handelskarawane" in str(name) and int(anzahl) > 0:
+                bestand[name] = int(bestand.get(name, 0)) + int(anzahl)
+        for name, einheit in self.units.items():
+            if "Handelskarawane" in str(name) and int(einheit.count) > 0:
+                bestand[name] = int(bestand.get(name, 0)) + int(einheit.count)
+        return bestand
+
+    def bot_standort(self, siedlung: Settlement) -> Tuple[int, int]:
+        """Das ANGENOMMENE Weltfeld einer Bot-Siedlung — eine Annahme, ehrlich benannt.
+
+        Bot-Siedlungen führen bei uns KEINE Koordinaten; es gilt dieselbe Annahme wie in
+        `_auftrag_entfernung` (Kartenmitte). Läge die eigene Siedlung genau auf diesem Feld, wäre
+        die Entfernung 0 und der Auftragskern würde ablehnen — dann rückt die ANNAHME um ein Feld,
+        damit die Karawane eine echte Strecke hat. Ein Vorschlag, kein belegter Wert.
+        """
+        cfg = next((m for m in MAPS if m["id"] == self.current_map), None)
+        groesse = int(cfg["size"]) if cfg else 20
+        mitte = groesse // 2
+        if siedlung is not None and (int(siedlung.x), int(siedlung.y)) == (mitte, mitte):
+            mitte = mitte + 1 if mitte + 1 < groesse else max(0, mitte - 1)
+        return mitte, mitte
+
+    def bot_als_ort(self, bot: BotPlayer, x: int, y: int, dimension: int) -> Dict[str, object]:
+        """Der Bot in der Form, die der HANDELSKERN braucht — ein FREMDER Ort.
+
+        `bot_als_dict` ist die Form für `botkern`; sie führt WEDER `besitzer` NOCH `dimension`,
+        `vorraete`, `einheiten` oder `x`/`y` — GEMESSEN, nicht angenommen. Für
+        `spieloekonomie.handel_start` fehlen genau diese Felder, deshalb hier die zweite, klar
+        benannte Übersetzung: Besitzer `bot:<Name>`, Lager `bot.vorraete`, Wagenpark `bot.lager`.
+        `waren` und `importiert` führt ein Bot nicht (keine Warenrezepte, keinen Siegnachweis) —
+        sie sind leer und werden nicht zurückgelesen.
+        """
+        return {"id": "bot:%s" % bot.name, "name": bot.name, "besitzer": "bot:%s" % bot.name,
+                "dimension": int(dimension), "x": int(x), "y": int(y), "bevoelkerung": 0.0,
+                "vorraete": {str(k): float(v) for k, v in (bot.vorraete or {}).items()},
+                "waren": {}, "einheiten": {}, "importiert": {}}
+
+    def bot_vorraete_uebernehmen(self, bot: BotPlayer, ort: dict) -> None:
+        """Die VORRÄTE aus einem Bot-Ortsdict zurück in den Spielstand (eine Quelle bleibt botkern).
+
+        Ganze Zahlen bleiben ganze Zahlen; nur ein echter Bruchteil (Gold bei krummem Preis) wird
+        als Kommazahl behalten — nicht stillschweigend gerundet, damit dem Bot kein Ganzes
+        verschwindet.
+        """
+        if not isinstance(ort, dict):
+            return
+        sauber: Dict[str, object] = {}
+        for stoff, menge in (ort.get("vorraete") or {}).items():
+            zahl = float(menge)
+            sauber[str(stoff)] = int(zahl) if zahl.is_integer() else zahl
+        bot.vorraete = sauber
+
+    def handel_mit_bot(self, bot: BotPlayer, quelle: Settlement, ware: str, menge, preis,
+                       karawane: dict, jetzt: float = None) -> Tuple[bool, str]:
+        """Ein BESTÄTIGTES KAUFANGEBOT an einen fremden Bot schicken. Liefert ``(ok, Meldung)``.
+
+        Geprüft und gesperrt wird ausschließlich im KERN (`spieloekonomie.handel_start`): Ware,
+        Menge, Preis, fremder Besitzer, gleiche Dimension, Handelskarawane vor Ort, beidseitige
+        Deckung (Lager UND Gold) und die Rückladung. Abgelehnt wird VOR jeder Änderung. Fehlt Gold
+        oder Karawane im Ortslager, kommt der Fehlbetrag als ÜBERGANG aus dem Reich — der Bot zahlt
+        nichts dazu.
+        """
+        jetzt = time.time() if jetzt is None else float(jetzt)
+        if bot is None:
+            return False, "Kein Handelspartner gewählt."
+        if quelle is None:
+            return False, "Für einen Handel braucht es zuerst eine eigene Siedlung."
+        if float(bot.trading) <= 0.3:
+            return False, (f"{bot.name} handelt nicht (Handelsneigung "
+                           f"{int(float(bot.trading) * 100)} %).")
+        try:
+            if isinstance(menge, bool):
+                raise ValueError
+            roh_menge = menge
+            menge = int(menge)
+            if isinstance(roh_menge, float) and float(roh_menge) != float(menge):
+                raise ValueError          # 2,5 Stueck gibt es nicht — nicht stillschweigend kuerzen
+        except (TypeError, ValueError):
+            return False, "Die Menge muss eine ganze Zahl sein."
+        if menge <= 0:
+            return False, "Die Menge muss größer als 0 sein."
+        try:
+            if isinstance(preis, bool):
+                raise ValueError
+            preis = float(preis)
+        except (TypeError, ValueError):
+            return False, "Der Preis muss eine Zahl sein."
+        if not math.isfinite(preis) or preis <= 0:
+            return False, "Der Preis muss eine positive Zahl sein."
+        stoff = str(ware or "").lower()
+        if stoff == "gold":
+            return False, "Gold ist die Gegenleistung und kein Handelsgut."
+        if stoff not in RESOURCES or stoff not in (bot.vorraete or {}):
+            return False, f"{bot.name} hat kein {ware} im Angebot."
+        try:
+            karawane = {str(n): int(k) for n, k in (karawane or {}).items() if int(k) > 0}
+        except (TypeError, ValueError):
+            return False, "Die Karawanen-Anzahl muss eine ganze Zahl sein."
+        if not karawane:
+            return False, ("Für einen Handel wird eine HANDELSKARAWANE gebraucht (Handbuch S. 20) "
+                           "— Handkarren und Einspänner tragen Fracht, handeln aber nicht.")
+        kein_handel = [n for n in karawane if "Handelskarawane" not in str(n)]
+        if kein_handel:
+            return False, ("Handeln ist nur mit Handelskarawanen möglich (Handbuch S. 20): "
+                           + ", ".join(sorted(kein_handel)) + " kann nicht handeln.")
+        ladung = int(auftraege.ladung_der_mission(karawane))
+        if menge > ladung:
+            return False, ("Überladen: %d passen nicht auf %d Ladeplätze (%s)."
+                           % (menge, ladung, ", ".join("%s x%d" % (n, a)
+                                                       for n, a in sorted(karawane.items()))))
+
+        # Übergang, ehrlich benannt: erst das Ortslager, dann das Reich — nur der Fehlbetrag.
+        gold_gesamt = menge * preis
+        aus_reich_karren: Dict[str, int] = {}
+        for name, anzahl in karawane.items():
+            im_ort = int((getattr(quelle, "einheiten", None) or {}).get(name, 0))
+            rest = anzahl - im_ort
+            if rest <= 0:
+                continue
+            verfuegbar = int(self.units[name].count) if name in self.units else 0
+            if verfuegbar < rest:
+                return False, (f"Nicht genug {name}: der Ort hat {im_ort}, im Reichsheer stehen "
+                               f"{verfuegbar} — gebraucht werden {anzahl}.")
+            aus_reich_karren[name] = rest
+        gold_im_ort = float((getattr(quelle, "vorraete", None) or {}).get("gold", 0.0))
+        aus_reich_gold = max(0.0, gold_gesamt - gold_im_ort)
+        if aus_reich_gold > 0.0:
+            reich_gold = float(self.resources["gold"].amount) if "gold" in self.resources else 0.0
+            if reich_gold + 1e-9 < aus_reich_gold:
+                return False, (f"Zu wenig Gold: im Ortslager liegen {gold_im_ort:g}, im Reich "
+                               f"{reich_gold:g} — der Kauf kostet {gold_gesamt:g} "
+                               f"({menge} x {preis:g} je Stück).")
+
+        x, y = self.bot_standort(quelle)
+        dimension = int(getattr(quelle, "dimension", 1))
+        kaeufer = asdict(quelle)
+        for name, anzahl in aus_reich_karren.items():
+            kaeufer["einheiten"][name] = int(kaeufer["einheiten"].get(name, 0)) + anzahl
+        kaeufer["vorraete"]["gold"] = gold_im_ort + aus_reich_gold
+        try:
+            kaeufer_neu, verkaeufer_neu, vertrag = spieloekonomie.handel_start(
+                kaeufer, self.bot_als_ort(bot, x, y, dimension), karawane, stoff, menge, preis,
+                "vorraete", jetzt)
+        except ValueError as fehler:
+            return False, str(fehler)
+
+        # Ab hier ist alles geprüft — erst jetzt wird gebucht (keine halbe Buchung).
+        if aus_reich_gold > 0.0:
+            self.resources["gold"].amount = float(self.resources["gold"].amount) - aus_reich_gold
+        for name, anzahl in aus_reich_karren.items():
+            if name in self.units:
+                self.units[name].count = max(0, int(self.units[name].count) - anzahl)
+        self._ort_uebernehmen(quelle.id, kaeufer_neu)
+        self.bot_vorraete_uebernehmen(bot, verkaeufer_neu)
+        vertrag["von"] = quelle.name
+        vertrag["nach"] = bot.name
+        vertrag["bot"] = bot.name
+        vertrag["ziel"] = {"name": bot.name, "fremd": True}
+        vertrag["bot_x"], vertrag["bot_y"] = int(x), int(y)
+        vertrag["dimension"] = dimension
+        self.auftraege.append(vertrag)
+        meldung = ("Kaufangebot an %s: %d %s für %g Gold (%g je Stück, Karawane %s); Ankunft in "
+                   "%.2f h — ob der Handel zustande kommt, entscheidet %s bei der Ankunft."
+                   % (bot.name, menge, stoff.capitalize(), gold_gesamt, preis,
+                      ", ".join("%s x%d" % (n, a) for n, a in sorted(karawane.items())),
+                      float(vertrag.get("reisezeit") or 0.0) / 3600.0, bot.name))
+        self._log(meldung)
+        self.messages.append({"text": meldung, "type": "handel"})
+        return True, meldung
+
+    def _fremdvertrag_buchen(self, eintrag: dict, jetzt: float) -> dict:
+        """Einen FREMDVERTRAG über den KERN buchen — die ANKUNFT entscheidet (Auditteil 8b).
+
+        `spieloekonomie.handel_abschluss` bucht Ankunft und Rückkehr genau einmal: nimmt der
+        Verkäuferort an, wandert das gesperrte Gold zu ihm und die Ware kommt bei der Rückkehr beim
+        Käufer an; lehnt er ab, kehren Gold UND Ware vollständig zurück. Dass abgelehnt werden kann,
+        ist belegt (Handbuch S. 20: „Bei Ablehnung kehrt die Karawane MIT den Waren zurück, Gold
+        wird nie übertragen"); der GRUND ist es nicht — hier entscheidet der belegte Schwellenpreis
+        des Bots (`botkern.handelspreis`), also genau der Preis, den die Meldung aus Teil 7a schon
+        nannte. Das ist ein Vorschlag. `auftraege.spieldaten_anwenden` lässt einen Fremdvertrag
+        unberührt; gebucht wird ausschließlich hier.
+        """
+        vertrag = dict(eintrag)
+        der_bot = next((b for b in self.bots
+                        if ("bot:%s" % b.name) == str(vertrag.get("verkaeufer"))), None)
+        if jetzt >= float(vertrag.get("ankunft") or 0.0) and vertrag.get("entscheidung") is None \
+                and not vertrag.get("abgerechnet") and der_bot is not None:
+            referenz = botkern.referenzpreis_aus_beschaffung(BOT_BESCHAFFUNGSKOSTEN)
+            schwelle = float(botkern.handelspreis(referenz, float(der_bot.temperament)))
+            try:
+                vertrag = spieloekonomie.handel_entscheiden(
+                    vertrag, float(vertrag.get("preis") or 0.0) + 1e-9 >= schwelle)
+            except ValueError:
+                pass
+        angenommen_vorher = bool(vertrag.get("angenommen"))
+        abgerechnet_vorher = bool(vertrag.get("abgerechnet"))
+
+        orte = {s.id: asdict(s) for s in self.settlements if s.id}
+        if der_bot is not None:
+            orte[str(vertrag.get("verkaeufer"))] = self.bot_als_ort(
+                der_bot, int(vertrag.get("bot_x") or 0), int(vertrag.get("bot_y") or 0),
+                int(vertrag.get("dimension") or 1))
+        neu, m = spieloekonomie.handel_abschluss(vertrag, orte, jetzt)
+        for kennung, daten in neu.items():
+            bot_dazu = next((b for b in self.bots if ("bot:%s" % b.name) == kennung), None)
+            if bot_dazu is not None:
+                self.bot_vorraete_uebernehmen(bot_dazu, daten)
+            else:
+                self._ort_uebernehmen(kennung, daten)
+
+        menge = int(m.get("menge") or 0)
+        stoff = str(m.get("ware") or "").capitalize()
+        if m.get("angenommen") and not angenommen_vorher:
+            text = ("%s nimmt das Kaufangebot an: %d %s für %g Gold sind unterwegs."
+                    % (m.get("nach"), menge, stoff, float(m.get("preis") or 0.0) * menge))
+            self.messages.append({"text": text, "type": "handel"})
+            self._log(text)
+        abgerechnet_jetzt = bool(m.get("abgerechnet")) and not abgerechnet_vorher
+        if abgerechnet_jetzt:
+            if m.get("angenommen"):
+                text = ("Handel abgeschlossen: %d %s sind im Ortslager von %s angekommen."
+                        % (menge, stoff, m.get("von")))
+            else:
+                text = ("Handel abgelehnt: %s schickt die Karawane MIT den %d %s zurück — "
+                        "Gold wurde nicht übertragen." % (m.get("nach"), menge, stoff))
+            self.messages.append({"text": text, "type": "handel"})
+            self._log(text)
+        eintrag.clear()
+        eintrag.update(m)
+        # Der Merker kommt NACH der Übernahme (sonst löscht ihn `update`): erst wenn der Vertrag
+        # wirklich abgerechnet ist, gilt er als heimgekehrt — dann entfernt ihn das Ende des Takts,
+        # und die Karawane wird nicht noch einmal im Reichsheer gezählt.
+        if abgerechnet_jetzt:
+            eintrag["heimgekehrt"] = True
+        return eintrag
+
     # ---------------- Ökonomie-Paket, Schritt 9, Teil 5: die Gründung (Entwurf Z. 777) ----------------
     # „_found_settlement: erster Start übernimmt Startbestände genau einmal und startkarte; danach
     # öffnet eine Auswahlliste freier KarteIDs samt kartennutzen/Kapazitäten/Preis/Minimum, ruft
@@ -1447,9 +1703,13 @@ class GameState:
         for eintrag in list(self.auftraege):
             if eintrag.get("eigentransport"):
                 self._eigentransport_buchen(eintrag, jetzt)
+            # Teil 7b: ein FREMDVERTRAG (Kaufvertrag mit einem Bot) gehört ebenso dem Kern allein —
+            # die ANKUNFT entscheidet, `handel_abschluss` bucht Gold, Ware und Heimkehr genau einmal.
+            elif eintrag.get("fremdvertrag"):
+                self._fremdvertrag_buchen(eintrag, jetzt)
 
         for eintrag in auftraege.angekommen(self.auftraege, jetzt):
-            if eintrag.get("eigentransport"):
+            if eintrag.get("eigentransport") or eintrag.get("fremdvertrag"):
                 continue                  # oben gebucht, in den ORTSLAGERN statt im Reichsbestand
             if eintrag.get("art") == "angreifen":
                 self.kampf_am_ziel(eintrag)      # W7: der echte Kampf, bevor gebucht wird
@@ -1479,8 +1739,10 @@ class GameState:
 
         for eintrag in self.auftraege:
             # Ein eigener Transport bringt seine Karren in den ORTSLAGER zurück (oben gebucht),
-            # NICHT in den Reichsbestand — sonst stünde dieselbe Truppe zweimal.
-            if eintrag.get("eigentransport"):
+            # NICHT in den Reichsbestand — sonst stünde dieselbe Truppe zweimal. Für einen
+            # Fremdvertrag (Teil 7b) gilt dasselbe: die Handelskarawane kommt über
+            # `handel_abschluss` in das Ortslager des Käufers zurück.
+            if eintrag.get("eigentransport") or eintrag.get("fremdvertrag"):
                 continue
             if eintrag.get("status") != "abgeschlossen" or eintrag.get("heimgekehrt"):
                 continue
@@ -2810,6 +3072,118 @@ class NebelseetalApp:
         ok, meldung = self.state.transport_an_ort(quelle, ziel, rohstoff, menge, karren)
         if not ok:
             self._log(f"Transport nicht gestartet: {meldung}")
+            return False, meldung
+        self._render_view()
+        return True, meldung
+
+    # ---------- Teil 7b: die Handelsmaske (Ware, Menge, Preis — Entwurf Z. 779/781) ----------
+
+    def _handel_maske(self, bot: BotPlayer):
+        """Die Maske des BESTÄTIGTEN KAUFVERTRAGS: Ware, Menge und Preis wählen.
+
+        Muster ist die Transportmaske aus Teil 4: alles, was der Spieler entscheiden muss, steht
+        sichtbar da (Angebot und Schwellenpreis des Bots, Ortslager des Käufers, Ladeplätze) — und
+        der Knopf bucht über die EINE Stelle `_handel_ausfuehren`, die auch ohne Fenster prüfbar ist.
+        """
+        quelle = self.state.aktive_siedlung()
+        if quelle is None:
+            self._log("Für einen Handel braucht es zuerst eine eigene Siedlung.")
+            return
+        angebot = sorted(k for k, v in (bot.vorraete or {}).items()
+                         if k in RESOURCES and k != "gold" and float(v) > 0)
+        karawanen = self.state.handelskarawanen_bestand(quelle)
+        referenz = botkern.referenzpreis_aus_beschaffung(BOT_BESCHAFFUNGSKOSTEN)
+        schwelle = float(botkern.handelspreis(referenz, float(bot.temperament)))
+        x, y = self.state.bot_standort(quelle)
+
+        fenster = tk.Toplevel(self.root)
+        fenster.title(f"Handel mit {bot.name}")
+        fenster.configure(bg=self.skin["bg"])
+
+        def _zeile(text):
+            return tk.Label(fenster, text=text, fg=self.skin["text"], bg=self.skin["bg"],
+                            anchor=tk.W, justify=tk.LEFT, wraplength=560)
+
+        tk.Label(fenster, text=f"Kaufvertrag mit {bot.name}", fg=self.skin["gold"],
+                 bg=self.skin["bg"], font=("TkDefaultFont", 11, "bold")).grid(
+            row=0, column=0, columnspan=2, sticky=tk.W, padx=10, pady=(10, 4))
+        _zeile("Käufer (aktive Siedlung): " + quelle.name + " — " + ortsbestand_text(quelle)).grid(
+            row=1, column=0, columnspan=2, sticky=tk.W, padx=10)
+        _zeile(f"Bot-Siedlung: angenommen auf Feld {x}/{y} (Bots führen keine Koordinaten).").grid(
+            row=2, column=0, columnspan=2, sticky=tk.W, padx=10, pady=(0, 4))
+
+        var_ware = tk.StringVar(value=angebot[0] if angebot else "")
+        _zeile("Ware (Angebot des Bots):").grid(row=3, column=0, sticky=tk.W, padx=10)
+        if angebot:
+            tk.OptionMenu(fenster, var_ware, *angebot).grid(row=3, column=1, sticky=tk.W, padx=10)
+        else:
+            tk.Label(fenster, text="kein Rohstoff im Angebot", fg="#FDBA74",
+                     bg=self.skin["bg"]).grid(row=3, column=1, sticky=tk.W, padx=10)
+        _zeile("Bestand des Bots: " + (", ".join("%s %g" % (k, float(v))
+                                                 for k, v in sorted((bot.vorraete or {}).items()))
+                                       or "nichts")).grid(
+            row=4, column=0, columnspan=2, sticky=tk.W, padx=10)
+
+        _zeile("Menge:").grid(row=5, column=0, sticky=tk.W, padx=10)
+        e_menge = tk.Entry(fenster, width=10)
+        e_menge.insert(0, "10")
+        e_menge.grid(row=5, column=1, sticky=tk.W, padx=10)
+
+        _zeile("Preis je Stück (Gold):").grid(row=6, column=0, sticky=tk.W, padx=10)
+        e_preis = tk.Entry(fenster, width=10)
+        e_preis.insert(0, ("%.2f" % schwelle).rstrip("0").rstrip("."))
+        e_preis.grid(row=6, column=1, sticky=tk.W, padx=10)
+        _zeile("Schwellenpreis dieses Bots: %g Gold — darunter lehnt er bei der Ankunft ab "
+               "(Handbuch S. 20: bei Ablehnung kehrt die Karawane MIT den Waren zurück, Gold wird "
+               "nie übertragen)." % schwelle).grid(
+            row=7, column=0, columnspan=2, sticky=tk.W, padx=10)
+
+        var_karawane = tk.StringVar(value=next(iter(sorted(karawanen)), ""))
+        _zeile("Handelskarawane (Ortslager + Reichsheer):").grid(row=8, column=0, sticky=tk.W, padx=10)
+        if karawanen:
+            tk.OptionMenu(fenster, var_karawane, *sorted(karawanen)).grid(
+                row=8, column=1, sticky=tk.W, padx=10)
+        else:
+            tk.Label(fenster, text="keine — sie entsteht im Stellmacher", fg="#FDBA74",
+                     bg=self.skin["bg"]).grid(row=8, column=1, sticky=tk.W, padx=10)
+        _zeile("Karawanen-Anzahl:").grid(row=9, column=0, sticky=tk.W, padx=10)
+        e_karawane = tk.Entry(fenster, width=10)
+        e_karawane.insert(0, "1")
+        e_karawane.grid(row=9, column=1, sticky=tk.W, padx=10)
+        _zeile("Ladeplätze: " + (", ".join("%s x%d (%d Plätze)" % (n, a, einheiten.ladung(n) * a)
+                                          for n, a in sorted(karawanen.items()))
+                                or "ohne Handelskarawane kein Handel (Handbuch S. 20)")).grid(
+            row=10, column=0, columnspan=2, sticky=tk.W, padx=10, pady=(0, 6))
+
+        def _starten():
+            ok, _meldung = self._handel_ausfuehren(bot, quelle, var_ware.get(), e_menge.get(),
+                                                   e_preis.get(), var_karawane.get(),
+                                                   e_karawane.get())
+            if ok:
+                fenster.destroy()
+
+        knopf = tk.Button(fenster, text="Kaufvertrag schicken", command=_starten, bg="#3e2723",
+                          fg=self.skin["gold"], activebackground="#5D4037")
+        if not karawanen or not angebot:
+            knopf.config(state=tk.DISABLED)
+        knopf.grid(row=11, column=0, columnspan=2, sticky=tk.W, padx=10, pady=10)
+
+    def _handel_ausfuehren(self, bot, quelle, ware, menge, preis, karawanen_name, karawanen_anzahl):
+        """Die Eingaben der Handelsmaske ausführen — die EINE Stelle, die bucht (Teil 7b).
+
+        Getrennt von der Maske, damit die Prüfung den ganzen Weg ohne Fenster gehen kann.
+        Liefert ``(ok, Meldung)``.
+        """
+        try:
+            anzahl = int(karawanen_anzahl)
+        except (TypeError, ValueError):
+            meldung = "Die Karawanen-Anzahl muss eine ganze Zahl sein."
+            self._log(meldung)
+            return False, meldung
+        karawane = {str(karawanen_name): anzahl} if karawanen_name else {}
+        ok, meldung = self.state.handel_mit_bot(bot, quelle, ware, menge, preis, karawane)
+        if not ok:
+            self._log(f"Handel nicht gestartet: {meldung}")
             return False, meldung
         self._render_view()
         return True, meldung
@@ -4372,33 +4746,28 @@ class NebelseetalApp:
                       bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
 
     def _trade(self, bot: BotPlayer):
-        """Handel mit einem Bot — ehrlich abgelehnt, KEIN Gratisgewinn (Teil 7, Entwurf Z. 779/781).
+        """Handel mit einem Bot: der BESTÄTIGTE KAUFVERTRAG (Teil 7b, Entwurf Z. 779/781).
 
-        Der Altpfad schenkte Ware: `random.randint`-Mengen landeten **ohne Gegenleistung** direkt in
-        `GameState.resources` — Gold floss nie, der Bot zahlte nichts. Das widerspricht dem
-        Ökonomiemodus, in dem jede Ware einen Erzeuger und einen Transport hat. Der Entwurf verlangt
-        den Handel über das **bestätigte Angebot** (`spieloekonomie.handel_start` /
-        `handel_entscheiden` / `handel_abschluss` liegen im Kern) — oder eine deutliche
-        „noch nicht verfügbar"-Meldung. **Nie** den Alt-Gratisgewinn.
-
-        Bis dieser Weg angeschlossen ist, nennt die Meldung den Grund und den nächsten Schritt; es
-        wird **nichts** gebucht (kein Rohstoff, kein Gold, kein Ruf, kein Handelszähler am Bot).
+        Es gibt genau EINEN Weg: das bestätigte Angebot über `spieloekonomie.handel_start` /
+        `handel_entscheiden` / `handel_abschluss`. Der Altpfad, der Ware ohne Gegenleistung schenkte
+        (`random.randint`-Mengen direkt ins Lager, kein Gold, Ruf und Handelszähler stiegen mit), ist
+        gesperrt (`01fe939`) und kehrt nicht zurück. Ist der Handel wirklich nicht möglich, wird das
+        ehrlich gesagt — gebucht wird dann NICHTS (kein Rohstoff, kein Gold, kein Ruf, kein
+        Handelszähler am Bot).
         """
-        referenz = botkern.referenzpreis_aus_beschaffung(BOT_BESCHAFFUNGSKOSTEN)
-        schwelle = botkern.handelspreis(referenz, bot.temperament)
-        if bot.trading <= 0.3:
-            self._log(f"{bot.name} handelt nicht (Handelsneigung {int(bot.trading * 100)} %, "
-                      f"Schwellenpreis {schwelle}).")
+        if not self.state.settlements:
+            self._log("Für einen Handel braucht es zuerst eine eigene Siedlung.")
             return False
-        meldung = (f"Handel mit {bot.name} noch nicht verfügbar — der Altpfad hätte Ware ohne "
-                   f"Gegenleistung geschenkt und ist deshalb gesperrt. Der bestätigte Kaufvertrag "
-                   f"(Ware, Menge, Preis {schwelle:g}, Karawane) wird in Teil 7 angeschlossen; bis "
-                   f"dahin wird NICHTS gebucht.")
-        self._log(meldung)
-        self.state.messages.append(
-            {"text": f"Handel mit {bot.name}: noch nicht verfügbar (kein Gratisgewinn)",
-             "type": "handel"})
-        return False
+        if float(bot.trading) <= 0.3:
+            self._log(f"{bot.name} handelt nicht (Handelsneigung "
+                      f"{int(float(bot.trading) * 100)} %).")
+            return False
+        if getattr(self, "root", None) is None:
+            self._log("Handel braucht das Spielfenster (Maske für Ware, Menge und Preis) — "
+                      "gebucht wird über `handel_mit_bot`.")
+            return False
+        self._handel_maske(bot)
+        return True
 
     def _attack(self, bot: BotPlayer):
         if self.state.noob_protection and bot.noob_protection:

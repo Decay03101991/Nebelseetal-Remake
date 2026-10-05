@@ -674,8 +674,9 @@ check("P21: die Maske bucht ueber den Kern",
 check("P21: die Auftragsschleife fuehrt Eigentransporte ueber den Kern",
       "self._eigentransport_buchen(eintrag, jetzt)" in _q4)
 check("P21: die Auftragsschleife ueberspringt sie auch beim Ankunftsbericht",
-      _q4.count('if eintrag.get("eigentransport"):') >= 3,
-      str(_q4.count('if eintrag.get("eigentransport"):')))
+      _q4.count('if eintrag.get("eigentransport") or eintrag.get("fremdvertrag"):') >= 2
+      and "self._eigentransport_buchen(eintrag, jetzt)" in _q4,
+      str(_q4.count('if eintrag.get("eigentransport") or eintrag.get("fremdvertrag"):')))
 check("P21: alle_einheiten nennt auch die ORTSLAGER (Entwurf Z. 786)",
       'for name, anzahl in (getattr(siedlung, "einheiten", None) or {}).items():' in _q4)
 check("P21: der Kern transport_start wird wirklich benutzt",
@@ -1110,8 +1111,8 @@ abschnitt("P29: Teil 7 - der Gratisgewinn beim Handel ist GESPERRT")
 _q9 = open(os.path.join(SRC, "main.py"), encoding="utf-8").read()
 check("P29: die erfundene Gratis-Menge ist verschwunden",
       "random.randint(15, 35)" not in _q9 and "gains[res] * bonus" not in _q9)
-check("P29: der Handel wird ehrlich abgelehnt statt zu schenken",
-      '"type": "handel"' in _q9 and "noch nicht verf\u00fcgbar" in _q9)
+check("P29: der Handel laeuft jetzt ueber die EINE Maske (Ware, Menge, Preis)",
+      '"type": "handel"' in _q9 and "def _handel_maske" in _q9 and "def handel_mit_bot" in _q9)
 _kern9 = open(os.path.join(SRC, "spieloekonomie.py"), encoding="utf-8").read()
 check("P29: der Kern hat den bestaetigten Kaufvertrag (der naechste Schritt)",
       all(("def %s(" % f) in _kern9 for f in ("handel_start", "handel_entscheiden",
@@ -1131,13 +1132,226 @@ app33._log = lambda msg: st33.log.append(msg)
 app33._render_view = lambda: None
 _roh33 = {k: float(v.amount) for k, v in st33.resources.items()}
 _ruf33 = int(st33.ruf)
-check("P29: der Handel wird abgelehnt", app33._trade(_bot33) is False)
+check("P29: ohne eigene Siedlung wird der Handel ehrlich abgelehnt",
+      app33._trade(_bot33) is False)
 check("P29: NICHTS wird gebucht (kein Rohstoff, kein Ruf, kein Handelszaehler)",
       {k: float(v.amount) for k, v in st33.resources.items()} == _roh33
       and int(st33.ruf) == _ruf33 and int(_bot33.gehandelt) == 0,
       "Ruf %s, gehandelt %s" % (st33.ruf, _bot33.gehandelt))
 check("P29: die Meldung nennt den Grund",
-      any("noch nicht verf\u00fcgbar" in z for z in st33.log[-2:]), str(st33.log[-2:]))
+      any("eigene Siedlung" in z for z in st33.log[-2:]), str(st33.log[-2:]))
+
+
+# --------------------------------------------------------------------------
+abschnitt("P30: Teil 7b - der BESTAETIGTE KAUFVERTRAG (Auditteil 8b)")
+
+_schwelle30 = float(M.botkern.handelspreis(
+    M.botkern.referenzpreis_aus_beschaffung(M.BOT_BESCHAFFUNGSKOSTEN), 0.0))
+check("P30: der Schwellenpreis ist die belegte Formel (250 x 1,2)",
+      abs(_schwelle30 - 300.0) < 1e-9, str(_schwelle30))
+
+
+def neuer_handel(gold_ort=0.0, gold_reich=2000.0, karren_ort=1, karren_reich=0,
+                 bot_vorraete=None, trading=0.9, temperament=0.0, x=3, y=7):
+    """Ein Spielstand mit EINEM Ort (Kaeufer) und EINEM Bot (Verkaeufer)."""
+    z = M.GameState()
+    ort = M.Settlement(name="Waldort", map_id=z.current_map, x=x, y=y,
+                       id=M.siedlung_kennung("spieler", z.current_map, x, y),
+                       vorraete={"holz": 10.0, "gold": float(gold_ort)},
+                       einheiten=({"Handelskarawane": int(karren_ort)} if karren_ort else {}),
+                       importiert={})
+    z.settlements = [ort]
+    z.aktive_siedlung_id = ort.id
+    z.resources["gold"].amount = float(gold_reich)
+    if karren_reich and "Handelskarawane" in z.units:
+        z.units["Handelskarawane"].count = int(karren_reich)
+    bot = M.BotPlayer(name="Probe-Bot", faction="nord", aggression=0.5, trading=trading,
+                      temperament=temperament,
+                      vorraete=dict(bot_vorraete if bot_vorraete is not None
+                                    else {"holz": 500, "gold": 100}))
+    z.bots = [bot]
+    return z, ort, bot
+
+
+def spielergold(z, ort):
+    """Das Gold des Spielers: Reich + Ortslager + das AM VERTRAG gesperrte Kaufgold."""
+    summe = float(z.resources["gold"].amount) + float(ort.vorraete.get("gold", 0.0))
+    for e in z.auftraege:
+        if e.get("fremdvertrag") and e.get("kaeufer_owner") == "spieler":
+            summe += float(e.get("sperrgold") or 0.0)
+    return summe
+
+
+# (a) Der Bot als ORTSDICT: bot_als_dict fuehrt die Handelsfelder wirklich nicht.
+_z30, _o30, _b30 = neuer_handel()
+check("P30: das Reichsheer kennt die Handelskarawane", "Handelskarawane" in _z30.units,
+      str(sorted(_z30.units)))
+_d30 = _z30.bot_als_dict(_b30)
+check("P30: bot_als_dict fuehrt die Handelsfelder NICHT (gemessen, nicht angenommen)",
+      not ({"besitzer", "dimension", "einheiten", "x", "y"} & set(_d30)),
+      "unerwartet vorhanden: %s" % sorted({"besitzer", "dimension", "einheiten", "x", "y"} & set(_d30)))
+_ort30 = _z30.bot_als_ort(_b30, 10, 10, 1)
+check("P30: bot_als_ort ist ein FREMDER Ort mit Besitzer, Dimension, Lage und Lager",
+      _ort30["besitzer"] != "spieler" and int(_ort30["dimension"]) == 1
+      and int(_ort30["x"]) == 10 and int(_ort30["y"]) == 10
+      and isinstance(_ort30["vorraete"], dict) and float(_ort30["vorraete"].get("holz", 0)) == 500.0,
+      str(sorted(_ort30)))
+check("P30: Karawanen kommen aus Ortslager UND Reichsheer",
+      _z30.handelskarawanen_bestand(_o30) == {"Handelskarawane": 1},
+      str(_z30.handelskarawanen_bestand(_o30)))
+_z30.units["Handelskarawane"].count = 2
+if "Handkarren" in _z30.units:
+    _z30.units["Handkarren"].count = 7
+check("P30: Handkarren handeln NICHT (Handbuch S. 20)",
+      _z30.handelskarawanen_bestand(_o30) == {"Handelskarawane": 3},
+      str(_z30.handelskarawanen_bestand(_o30)))
+
+_cfg30 = next((m for m in M.MAPS if m["id"] == _z30.current_map), None)
+_mitte30 = int(_cfg30["size"]) // 2 if _cfg30 else 10
+check("P30: der Bot-Standort ist die Kartenmitte (Bots fuehren keine Koordinaten)",
+      _z30.bot_standort(_o30) == (_mitte30, _mitte30), str(_z30.bot_standort(_o30)))
+_z30b, _o30b, _b30b = neuer_handel(x=_mitte30, y=_mitte30)
+check("P30: die ANNAHME rueckt um ein Feld, damit die Strecke nicht 0 ist",
+      _z30b.bot_standort(_o30b) != (_mitte30, _mitte30)
+      and _z30b.handel_mit_bot(_b30b, _o30b, "holz", 3, _schwelle30, {"Handelskarawane": 1})[0] is True,
+      str(_z30b.bot_standort(_o30b)))
+
+# (b) Ehrliche Ablehnungen - ohne jede Buchung.
+_z31, _o31, _b31 = neuer_handel(gold_reich=0.0)
+_spur31 = json.dumps({"roh": {k: float(v.amount) for k, v in _z31.resources.items()},
+                      "ort": _o31.vorraete, "ein": _o31.einheiten, "bot": _b31.vorraete},
+                     sort_keys=True)
+_weiger31 = [
+    _z31.handel_mit_bot(_b31, _o31, "holz", 3, _schwelle30, {"Handelskarawane": 1}),      # 0 Gold
+    _z31.handel_mit_bot(_b31, _o31, "holz", 3, _schwelle30, {}),                          # keine Karawane
+    _z31.handel_mit_bot(_b31, _o31, "holz", 3, _schwelle30, {"Handkarren": 1}),           # falscher Karren
+    _z31.handel_mit_bot(_b31, _o31, "gold", 3, _schwelle30, {"Handelskarawane": 1}),      # Gold als Ware
+    _z31.handel_mit_bot(_b31, _o31, "metall", 3, _schwelle30, {"Handelskarawane": 1}),    # nicht im Angebot
+    _z31.handel_mit_bot(_b31, _o31, "holz", 0, _schwelle30, {"Handelskarawane": 1}),      # Menge 0
+    _z31.handel_mit_bot(_b31, _o31, "holz", -3, _schwelle30, {"Handelskarawane": 1}),     # Menge negativ
+    _z31.handel_mit_bot(_b31, _o31, "holz", 2.5, _schwelle30, {"Handelskarawane": 1}),    # halbe Stuecke
+    _z31.handel_mit_bot(_b31, _o31, "holz", 3, 0.0, {"Handelskarawane": 1}),              # Preis 0
+    _z31.handel_mit_bot(_b31, _o31, "holz", 3, -1.0, {"Handelskarawane": 1}),             # Preis negativ
+    _z31.handel_mit_bot(_b31, _o31, "holz", 99999, _schwelle30, {"Handelskarawane": 1}),  # ueberladen
+    _z31.handel_mit_bot(_b31, _o31, "holz", 3, _schwelle30, {"Handelskarawane": "x"}),    # keine Zahl
+]
+check("P30: zwoelf ehrliche Ablehnungen", all(o is False for o, _m in _weiger31)
+      and len(_weiger31) == 12, str([o for o, _m in _weiger31]))
+check("P30: jede Ablehnung nennt einen Grund", all(str(_m).strip() for _o, _m in _weiger31),
+      str([_m for _o, _m in _weiger31 if not str(_m).strip()]))
+check("P30: keine Ablehnung bucht irgendetwas (Ort, Reich, Bot, Auftraege)",
+      json.dumps({"roh": {k: float(v.amount) for k, v in _z31.resources.items()},
+                  "ort": _o31.vorraete, "ein": _o31.einheiten, "bot": _b31.vorraete},
+                 sort_keys=True) == _spur31 and _z31.auftraege == [],
+      str(_z31.auftraege))
+_z31b, _o31b, _b31b = neuer_handel(trading=0.1)
+check("P30: ein Bot ohne Handelsneigung handelt nicht",
+      _z31b.handel_mit_bot(_b31b, _o31b, "holz", 3, _schwelle30, {"Handelskarawane": 1})[0] is False
+      and _z31b.auftraege == [])
+_z32, _o32, _b32 = neuer_handel(gold_reich=100000.0)
+_gedeckt32 = _z32.handel_mit_bot(_b32, _o32, "holz", 600, 1.0, {"Handelskarawane": 1})
+check("P30: der Kern lehnt ein nicht gedecktes Angebot ab (Ware des Verkaeufers)",
+      _gedeckt32[0] is False and "gedeckt" in str(_gedeckt32[1]) and _z32.auftraege == [],
+      str(_gedeckt32))
+
+# (c) Start sperrt beidseitig; der Uebergang aus dem Reich liefert nur den Fehlbetrag.
+_z33, _o33, _b33 = neuer_handel(gold_ort=100.0, gold_reich=2000.0, karren_ort=0, karren_reich=1)
+_gold33 = spielergold(_z33, _o33)
+_ok33, _m33 = _z33.handel_mit_bot(_b33, _o33, "holz", 3, _schwelle30, {"Handelskarawane": 1}, 0.0)
+check("P30: das Kaufangebot wird gestartet", _ok33 is True, str(_m33))
+_v33 = _z33.auftraege[0] if _z33.auftraege else {}
+check("P30: es liegt EIN Fremdvertrag in den Auftraegen",
+      len(_z33.auftraege) == 1 and _v33.get("fremdvertrag") is True, str(_z33.auftraege))
+check("P30: Ware UND Gold sind gesperrt (beide Seiten verlassen ihre Lager)",
+      float(_b33.vorraete.get("holz", 0)) == 497.0 and float(_b33.vorraete.get("gold", 0)) == 100.0
+      and float(_o33.vorraete.get("gold", 0)) == 0.0
+      and abs(float(_v33.get("sperrgold") or 0) - 900.0) < 1e-9,
+      "Bot-Holz %s, Bot-Gold %s, Ort-Gold %s, Sperrgold %s"
+      % (_b33.vorraete.get("holz"), _b33.vorraete.get("gold"), _o33.vorraete.get("gold"),
+         _v33.get("sperrgold")))
+check("P30: die Karawane ist aus dem Ortslager weg", int(_o33.einheiten.get("Handelskarawane", 0)) == 0,
+      str(_o33.einheiten))
+check("P30: das Reich liefert nur den FEHLBETRAG (Karawane und Gold)",
+      int(_z33.units["Handelskarawane"].count) == 0
+      and abs(float(_z33.resources["gold"].amount) - 1200.0) < 1e-9,
+      "Karren %s, Reichsgold %s" % (_z33.units["Handelskarawane"].count,
+                                    _z33.resources["gold"].amount))
+check("P30: der Gesamtbestand ist beim Start unveraendert (nichts verschenkt)",
+      abs(spielergold(_z33, _o33) - _gold33) < 1e-9, str(spielergold(_z33, _o33)))
+
+# (d) Ankunft und Rueckkehr - der ganze Weg ueber die Auftragsschleife.
+_z34, _o34, _b34 = neuer_handel()
+_ok34, _m34 = _z34.handel_mit_bot(_b34, _o34, "holz", 3, _schwelle30, {"Handelskarawane": 1}, 0.0)
+_v34 = _z34.auftraege[0]
+_gold34 = spielergold(_z34, _o34)
+_z34.auftraege_fortschreiben(float(_v34["ankunft"]))
+check("P30: bei der Ankunft nimmt der Bot an (der Preis erreicht seinen Schwellenpreis)",
+      bool(_z34.auftraege) and _z34.auftraege[0].get("entscheidung") is True
+      and _z34.auftraege[0].get("angenommen") is True,
+      str(_z34.auftraege[0].get("entscheidung")))
+check("P30: das gesperrte Gold liegt danach beim Verkaeufer",
+      float(_b34.vorraete.get("gold", 0)) == 1000.0, str(_b34.vorraete.get("gold")))
+check("P30: bezahlt ist genau der Preis (900 Gold)",
+      abs((_gold34 - spielergold(_z34, _o34)) - 900.0) < 1e-9,
+      str(_gold34 - spielergold(_z34, _o34)))
+_z34.auftraege_fortschreiben(float(_v34["rueckkehr"]))
+check("P30: bei der Rueckkehr kommt die Ware ins ORTSLAGER und die Karawane heim",
+      float(_o34.vorraete.get("holz", 0)) == 13.0
+      and int(_o34.einheiten.get("Handelskarawane", 0)) == 1 and _z34.auftraege == [],
+      "Holz %s, Karawane %s, Auftraege %s" % (_o34.vorraete.get("holz"),
+                                              _o34.einheiten.get("Handelskarawane"),
+                                              len(_z34.auftraege)))
+check("P30: das Reichsheer hat die Karawane NICHT zurueckbekommen (sie liegt im Ort)",
+      int(_z34.units["Handelskarawane"].count) == 0, str(_z34.units["Handelskarawane"].count))
+
+# (e) Ablehnung: Gold wird nie uebertragen, die Karawane kehrt MIT den Waren zurueck.
+_z35, _o35, _b35 = neuer_handel()
+_z35.handel_mit_bot(_b35, _o35, "holz", 3, 1.0, {"Handelskarawane": 1}, 0.0)
+_v35 = _z35.auftraege[0]
+_gold35 = spielergold(_z35, _o35)
+_holz35 = float(_o35.vorraete.get("holz", 0))
+_z35.auftraege_fortschreiben(float(_v35["rueckkehr"]))
+check("P30: ein zu niedriger Preis wird bei der Ankunft ABGELEHNT (belegte Regel)",
+      _v35.get("entscheidung") is False and _v35.get("angenommen") is False,
+      str(_v35.get("entscheidung")))
+check("P30: Gold wurde NIE uebertragen", float(_b35.vorraete.get("gold", 0)) == 100.0,
+      str(_b35.vorraete.get("gold")))
+check("P30: die Ware des Verkaeufers ist unversehrt zurueck",
+      float(_b35.vorraete.get("holz", 0)) == 500.0, str(_b35.vorraete.get("holz")))
+check("P30: der Kaeufer hat Gold und Karawane vollstaendig zurueck",
+      abs(spielergold(_z35, _o35) - _gold35) < 1e-9
+      and int(_o35.einheiten.get("Handelskarawane", 0)) == 1
+      and float(_o35.vorraete.get("holz", 0)) == _holz35 and _z35.auftraege == [],
+      "Gold %s, Karawane %s, Holz %s" % (spielergold(_z35, _o35),
+                                         _o35.einheiten.get("Handelskarawane"),
+                                         _o35.vorraete.get("holz")))
+
+# (f) Kein doppelter Abschluss.
+_z36, _o36, _b36 = neuer_handel()
+_z36.handel_mit_bot(_b36, _o36, "holz", 3, _schwelle30, {"Handelskarawane": 1}, 0.0)
+_v36 = _z36.auftraege[0]
+_z36._fremdvertrag_buchen(_v36, float(_v36["rueckkehr"]))
+_h36 = float(_o36.vorraete.get("holz", 0))
+_g36 = float(_b36.vorraete.get("gold", 0))
+for _i in range(3):
+    _z36._fremdvertrag_buchen(_v36, float(_v36["rueckkehr"]) + 1000.0 * (_i + 1))
+check("P30: dreimal nachbuchen doppelt nichts",
+      float(_o36.vorraete.get("holz", 0)) == _h36 and float(_b36.vorraete.get("gold", 0)) == _g36
+      and int(_o36.einheiten.get("Handelskarawane", 0)) == 1,
+      "Holz %s, Bot-Gold %s" % (_o36.vorraete.get("holz"), _b36.vorraete.get("gold")))
+
+# (g) Quelltextwachen.
+check("P30: die Auftragsschleife bucht den Fremdvertrag und laesst ihn nicht im Reich landen",
+      "self._fremdvertrag_buchen(eintrag, jetzt)" in _q9
+      and 'if eintrag.get("eigentransport") or eintrag.get("fremdvertrag")' in _q9)
+check("P30: der Gratisgewinn ist und bleibt weg",
+      "random.randint(15, 35)" not in _q9 and "gains[res]" not in _q9)
+check("P30: die Maske laesst Ware, Menge und Preis waehlen",
+      all(m in _q9 for m in ("def _handel_maske", "var_ware", "e_menge", "e_preis",
+                             "def _handel_ausfuehren")))
+check("P30: der Auftragskern wendet einen Fremdvertrag nicht an (eine Buchung)",
+      'e.get("eigentransport") or e.get("fremdvertrag")'
+      in open(os.path.join(SRC, "auftraege.py"), encoding="utf-8").read())
 
 
 sys.exit(bericht())
