@@ -24,6 +24,7 @@ veraendert; `wirkung_anwenden` gibt zu einem Zug einen NEUEN Bot zurueck.
 from __future__ import annotations
 
 import copy
+import math
 import random
 from typing import Any, Dict, List, Optional
 
@@ -489,3 +490,66 @@ def offene_luecken() -> Dict[str, str]:
             "Nicht geregelt: woher der Beschaffungspreis eines Bots stammt. `tick` nutzt "
             "welt['referenzpreis'], sonst 0.",
     }
+
+
+# ------------------------------------------------------------------ 9. Oekonomie: Kartenwahl und Angebot
+# Entwurf Schritt 8 (Z. 717-753). Reine Funktionen: sie rechnen nur und veraendern nichts.
+# `spieloekonomie` wird ERST in der Funktion geladen, damit dieser Kern ohne den
+# Oekonomiekern importierbar bleibt (und umgekehrt kein Ring entsteht).
+#
+# Preisregel des Entwurfs (Z. 750): der Preis gilt fuer die KONKRET angebotene Ware, nicht als
+# pauschaler Preis fuer alle Rohstoffe. Er kommt aus dem LOKALEN Schattenpreis dieses Ortes
+# (`spieloekonomie.schattenpreis`), wird auf den Beschaffungspreis umgerechnet und erst dann mit
+# dem Temperament des Bots gewichtet.
+#
+# Keine Zugaben: was hier herauskommt, ist ein ANGEBOT (Kennung / Menge / Preis). Gebucht wird
+# nichts - das tun die bestaetigten Auftraege (`transport_start` und das Handels-Paar).
+
+
+def oekonomie_kartenwahl(stufe: str, eigene_karten: list, freie_karten: dict,
+                         raten: dict, bedarf: dict, regeln: dict):
+    """Welche freie Karte soll dieser Bot bilden? Liefert die Kennung oder ``None``.
+
+    ``regeln['bots'][stufe]`` entscheidet: **leicht** gruendet nie (``gruenden`` False -> None).
+    **mittel** nimmt die Karte, die den aktuell SCHLECHTEST gedeckten Rohstoff am besten traegt
+    (kleinster Wert ``raten/bedarf``; bei Gleichstand entscheidet die Kennung, weil sortiert
+    wird). **schwer** nimmt den hoechsten Portfolio-Nutzen ueber die vollstaendige
+    Kandidatenliste. Karten mit Besitzer und Karten unter ``ablehnungsnutzen`` fallen weg.
+    """
+    import spieloekonomie as O
+
+    profil = regeln["bots"][stufe]
+    if not profil["gruenden"]:
+        return None
+    kandidaten = []
+    for kennung, eintrag in sorted(freie_karten.items()):
+        if eintrag["besitzer"] is not None:
+            continue
+        nutzen = O.kartennutzen(eigene_karten, eintrag["karte"])
+        if stufe == "mittel":
+            # Aktuell schwaechste Deckung priorisieren, bei Gleichstand Kennung.
+            rohstoff = min(sorted(bedarf), key=lambda r: raten.get(r, 0) / bedarf[r])
+            nutzen = O.kapazitaeten(eintrag["karte"]).get(rohstoff, 0)
+        if nutzen > profil["ablehnungsnutzen"]:
+            kandidaten.append((-nutzen, kennung))
+    return min(kandidaten)[1] if kandidaten else None
+
+
+def oekonomie_angebot(stufe: str, karte: dict, rohstoff: str, bestand: float,
+                      tagesbedarf: float, temperament: float, regeln: dict) -> dict:
+    """Was darf der Bot von ``rohstoff`` anbieten, und zu welchem Preis?
+
+    Der Bot haelt zuerst seine Reserve: ``tagesbedarf * reserve_stunden / versorgung_stunden``.
+    Reicht der Bestand nicht darueber hinaus, ist nichts verkaufbar (``verkaufbar`` 0,
+    ``preis`` None) - **kein Gratisverkauf auf Kosten der Versorgung**.
+    """
+    import spieloekonomie as O
+
+    h = regeln["bots"][stufe]["reserve_stunden"]
+    reserve = tagesbedarf * h / regeln["versorgung_stunden"]
+    if bestand <= reserve:
+        return {"verkaufbar": 0, "preis": None, "reserve": reserve}
+    p = O.schattenpreis(karte, rohstoff, bestand, reserve)
+    ref = referenzpreis_aus_beschaffung(p)
+    return {"verkaufbar": math.floor(bestand - reserve),
+            "preis": handelspreis(ref, temperament), "reserve": reserve}
