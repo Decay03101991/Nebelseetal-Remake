@@ -65,13 +65,16 @@ kinder = app.content.winfo_children()
 check("die Ansicht hat Inhalte aufgebaut", len(kinder) > 3, f"{len(kinder)} Elemente")
 check("die gewaehlte Siedlung ist gesetzt", app.karten_siedlung is siedlung)
 
-# Das Raster muss 40 anklickbare Felder haben
-rasters = [w for w in kinder if isinstance(w, tk.Frame)]
-kacheln = []
-for rahmen in rasters:
-    kacheln += [w for w in rahmen.winfo_children() if isinstance(w, tk.Button)]
-check("40 anklickbare Felder im Raster", len(kacheln) == 40, f"{len(kacheln)} Kacheln")
-farben = {k.cget("bg") for k in kacheln}
+# Die Karte ist eine Zeichenfläche (astra-Gutachten 05.10.2026): jedes Feld ist ein Objekt
+# mit dem Tag 'feld:i' und anklickbar. Vorher waren es 40 kleine Knöpfe im Raster.
+canvas = getattr(app, "karten_canvas", None)
+check("die Karte ist eine Zeichenfläche", canvas is not None)
+felder_da = ([i for i in range(len(siedlung.karte["raster"]))
+              if canvas.find_withtag(f"feld:{i}")] if canvas is not None else [])
+check("40 anklickbare Felder auf der Karte", len(felder_da) == 40, f"{len(felder_da)} Felder")
+farben = ({canvas.itemcget(o, "fill") for i in range(len(siedlung.karte["raster"]))
+           for o in canvas.find_withtag(f"feld:{i}")
+           if canvas.type(o) == "rectangle" and canvas.itemcget(o, "fill")} if canvas is not None else set())
 check("die Kacheln tragen die Gelaendefarben", len(farben) >= 4, f"{len(farben)} Farben")
 
 abschnitt("Siedlungskarte im Fenster — Feld waehlen und Eignung lesen")
@@ -125,7 +128,8 @@ check(f"Stein wurde abgezogen ({kosten['stein']})",
 check("ein Siedler arbeitet jetzt im Gebäude (Bevölkerung sinkt)",
       app.state.population == vorher_siedler - 1,
       f"{vorher_siedler} -> {app.state.population}")
-check("das Feld ist danach abgewählt", app.karten_feld is None)
+check("das Feld bleibt ausgewählt und zeigt das neue Gebäude (astra-Nachprüfung 05.10.2026)",
+      app.karten_feld == wald, f"karten_feld={app.karten_feld}")
 
 abschnitt("Siedlungskarte im Fenster — zu wenig Rohstoffe wird gemeldet")
 app.state.resources["holz"].amount = 1

@@ -138,19 +138,49 @@ def main_() -> int:
     check("die Siedlungskarte ist die aktuelle Ansicht", app.current_view == "Siedlungskarte",
           app.current_view)
     siedlung = st.settlements[-1]
-    raster = [k for k in _knoepfe(app.content, "") if str(k.cget("text")).isdigit()]
-    check("die Karte zeigt ihre Felder als Schaltflaechen",
-          len(raster) == len(siedlung.karte["raster"]),
-          f"{len(raster)} von {len(siedlung.karte['raster'])}")
+    # Die Karte ist jetzt eine Zeichenfläche (astra-Gutachten: 64-px-Felder mit Emblem).
+    # Geprüft wird, dass jedes Feld als anklickbares Objekt (tag 'feld:i') vorhanden ist.
+    canvas = getattr(app, "karten_canvas", None)
+    check("die Karte ist eine Zeichenfläche", canvas is not None)
+    if canvas is not None:
+        felder_da = [i for i in range(len(siedlung.karte["raster"]))
+                     if canvas.find_withtag(f"feld:{i}")]
+        check("jedes Feld ist auf der Karte gezeichnet und anklickbar",
+              len(felder_da) == len(siedlung.karte["raster"]),
+              f"{len(felder_da)} von {len(siedlung.karte['raster'])}")
+        # Feld A1 mit einem ECHTEN Klick wählen und den Auswahlrahmen prüfen.
+        canvas.event_generate("<Button-1>", x=20 + 32, y=20 + 32)
+        tick()
+        check("der Klick auf ein Feld wählt genau dieses Feld", app.karten_feld == 0,
+              str(getattr(app, "karten_feld", None)))
+        # Nach dem Klick wird die Ansicht neu gezeichnet — die Zeichenfläche ist dann ein
+        # NEUES Objekt. Deshalb frisch holen (sonst greift die Prüfung auf ein zerstörtes zu).
+        frisch = app.karten_canvas
+        check("das gewählte Feld bekommt einen Cyanrahmen",
+              any(frisch.itemcget(o, "outline") == "#38BDF8"
+                  for o in frisch.find_withtag("feld:0") if frisch.type(o) == "rectangle"),
+              "kein Cyanrahmen gefunden")
+    else:
+        befund("keine Zeichenfläche gefunden — Kartendarstellung nicht geprueft")
 
     # ---------------------------------------------------------------- 4 Bebauen
-    abschnitt("4. Ein Feld bebauen — ueber die Schaltflaechen im Fenster")
+    abschnitt("4. Ein Feld bebauen — über echte Klicks auf die Zeichenfläche")
     gebaut = None
+    klick_ok = False
+    ZELLE, RAND = 64, 20
     for i in range(len(siedlung.karte["raster"])):
         if str(i) in siedlung.bauten:
             continue
-        app._karten_feld_waehlen(i)
+        # Echter Klick auf das Feld in der Zeichenfläche (geht über tag_bind wie ein Mausklick).
+        cx = RAND + (i % int(siedlung.karte.get("spalten") or 8)) * ZELLE + ZELLE // 2
+        cy = RAND + (i // int(siedlung.karte.get("spalten") or 8)) * ZELLE + ZELLE // 2
+        canvas = getattr(app, "karten_canvas", None)
+        if canvas is None:
+            break
+        canvas.event_generate("<Button-1>", x=cx, y=cy)
         tick()
+        if getattr(app, "karten_feld", None) == i:
+            klick_ok = True
         for wahl in _knoepfe(app.content, ""):
             beschriftung = str(wahl.cget("text"))
             if any(n in beschriftung for n in ("Holzfäller", "Steinmetz", "Jäger", "Farm",
@@ -159,21 +189,40 @@ def main_() -> int:
                 wahl.invoke()
                 tick()
                 nachher = {k: st.resources[k].amount for k in st.resources}
-                gebaut = {"feld": i, "gebaeude": beschriftung.split("  ")[0],
+                gebaut = {"feld": i, "gebaeude": beschriftung.split("\n")[0],
                           "art": siedlung.karte["raster"][i],
                           "bezahlt": {k: round(vorher[k] - nachher[k], 1) for k in vorher
                                       if vorher[k] != nachher[k]}}
                 break
         if gebaut:
             break
+    # Nach einem erfolgreichen Bau löscht das Spiel die Auswahl (karten_feld = None) — die
+    # Prüfung merkt sich deshalb, ob ein Klick getroffen hat, statt am Ende zu messen.
+    check("der Klick auf ein Feld wählt genau dieses Feld", klick_ok)
     check("auf einem Feld liess sich ein Rohstoffbetrieb bauen", bool(gebaut), str(gebaut))
     if gebaut:
         check("das Gebaeude steht auf dem Feld",
               siedlung.bauten.get(str(gebaut["feld"])) is not None, str(siedlung.bauten))
         check("die Kosten wurden abgezogen", bool(gebaut["bezahlt"]), str(gebaut["bezahlt"]))
-        check("das Gebaeude ist im Fenster sichtbar (Knopf traegt den Namen)",
-              any(gebaut["gebaeude"][:6] in str(k.cget("text")) for k in _knoepfe(app.content, "")),
-              gebaut["gebaeude"])
+        canvas = getattr(app, "karten_canvas", None)
+        if canvas is not None:
+            texte_auf_feld = [canvas.itemcget(o, "text")
+                              for o in canvas.find_withtag(f"feld:{gebaut['feld']}")
+                              if canvas.type(o) == "text"]
+            # astra-Nachprüfung: Name und Ertrag gehörten NICHT auf die 64-px-Felder (sie
+            # überlagerten sich). Auf dem Feld steht nur das Zeichen mit der Stufe.
+            check("das Feld traegt das Gebaeudezeichen und die Stufe, keinen abgeschnittenen Namen",
+                  any(t.startswith("St.") for t in texte_auf_feld)
+                  and not any(gebaut["gebaeude"] in t for t in texte_auf_feld),
+                  " | ".join(texte_auf_feld)[:160])
+            check("das Feld bleibt nach dem Bau ausgewaehlt", app.karten_feld == gebaut["feld"],
+                  str(app.karten_feld))
+            panel = " ".join(_texte(app.content))
+            check("unter der Karte stehen Name, Stufe und Ertrag des Gebaeudes",
+                  gebaut["gebaeude"] in panel and "Stufe" in panel,
+                  " | ".join(z for z in _texte(app.content) if "Hier steht" in z)[:200] or panel[:160])
+        else:
+            befund("keine Zeichenfläche — Gebaeude auf dem Feld nicht nachpruefbar")
 
     # ---------------------------------------------------------------- 5 Ertrag
     abschnitt("5. Eine Stunde Spielzeit: der Betrieb muss liefern")

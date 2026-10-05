@@ -1462,11 +1462,32 @@ class NebelseetalApp:
             tk.Label(self.content, text=f"{self.current_view} kommt bald.", fg="#DAA520", bg=self.skin["bg"]).pack(padx=20, pady=20)
 
     def _render_overview(self):
-        tk.Label(self.content, text="Siedlungsübersicht", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
-        tk.Label(self.content, text="Eine Übersicht aller Gebäude.", fg=self.skin["text"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
+        tk.Label(self.content, text="Dorfzentrum", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 2))
         _grenze = gebaeude_wirkung.bevoelkerungsgrenze(self.state.settlements)
-        tk.Label(self.content, text=f"Bevölkerung: {int(self.state.population)} / {_grenze}",
-                 fg="#DAA520", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
+
+        # ---- Aufgabenkarte: der EINE naechste Schritt (astra-Bildgutachten 05.10.2026) ----
+        # Vorher stand hier "Eine Übersicht aller Gebäude" — die Startansicht sagte dem Spieler
+        # nicht, was zu tun ist, und der Knopf "Karte öffnen" war zwischen Verwaltung versteckt.
+        _schritt = self.naechster_schritt()
+        _karte = tk.Frame(self.content, bg="#263B47", highlightbackground="#38BDF8", highlightthickness=1)
+        _karte.pack(fill=tk.X, padx=10, pady=(6, 10))
+        tk.Label(_karte, text="Dein nächster Schritt", fg="#7FD1FF", bg="#263B47",
+                 font=("TkDefaultFont", 12, "bold")).pack(anchor=tk.W, padx=10, pady=(8, 0))
+        tk.Label(_karte, text=_schritt["text"], fg="#F3F4F6", bg="#263B47",
+                 wraplength=760, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(2, 6))
+        tk.Button(_karte, text=_schritt["knopf"], command=_schritt["aktion"], bg="#2563EB",
+                  fg="white", activebackground="#1D4ED8", activeforeground="white",
+                  font=("TkDefaultFont", 11, "bold")).pack(anchor=tk.W, padx=10, pady=(0, 10))
+
+        # ---- Kennzahlen in Klartext (vorher "Bevölkerung: 60 / 15" ohne Erklärung) ----
+        _bewohnt = int(self.state.population)
+        _ueber = _bewohnt > _grenze
+        tk.Label(self.content,
+                 text=f"Siedler: {_bewohnt} · Wohnraum: {_grenze}"
+                      + ("  ⚠ überbelegt — es wächst kein Siedler nach, bis ein Haus steht."
+                         if _ueber else ""),
+                 fg=("#FDBA74" if _ueber else "#DAA520"),
+                 bg=self.skin["bg"], wraplength=780, justify=tk.LEFT).pack(anchor=tk.W, padx=10)
         frame = tk.Frame(self.content, bg=self.skin["panel"])
         frame.pack(fill=tk.X, padx=10, pady=10)
         tk.Label(frame, text="Siedlungen:", fg=self.skin["gold"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=5)
@@ -1474,7 +1495,8 @@ class NebelseetalApp:
             row = tk.Frame(self.content, bg=self.skin["panel"])
             row.pack(fill=tk.X, padx=10, pady=2)
             tk.Label(row, text=f"{s.name} ({s.map_id})", fg=self.skin["text"], bg=self.skin["panel"], width=20, anchor=tk.W).pack(side=tk.LEFT, padx=5)
-            tk.Label(row, text=f"Gebäude: {len(s.buildings)}", fg="#DAA520", bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
+            tk.Label(row, text=f"Gebäude auf der Karte: {len(getattr(s, 'bauten', {}) or {})}",
+                     fg="#DAA520", bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
             if getattr(s, "karte", None):
                 tk.Label(row, text=f"{s.karte['typ_name']} · Felder belegt: {len(s.bauten)}",
                          fg=self.skin["text"], bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
@@ -1516,6 +1538,13 @@ class NebelseetalApp:
                             f"{gebaeude_wirkung.siedler_zuwachs_pro_stunde(self.state.settlements):g} Siedler/Stunde "
                             f"(1 je Siedlung, Handbuch S. 11)",
                  fg=self.skin["text"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=5)
+        # astra-Nachprüfung: „Zuwachs 1 Siedler/Stunde" widersprach der Überbelegungs-Warnung.
+        # Angezeigt wird jetzt, was WIRKLICH passiert, und was möglich wäre.
+        _moeglich = gebaeude_wirkung.siedler_zuwachs_pro_stunde(self.state.settlements)
+        if _bewohnt >= _grenze and _moeglich > 0:
+            tk.Label(wirk, text=f"Aktuelles Wachstum: 0 Siedler/Stunde — der Wohnraum ist voll. "
+                                f"Möglich wären +{_moeglich:g}/Stunde, sobald ein Haus steht.",
+                     fg="#FDBA74", bg=self.skin["panel"]).pack(anchor=tk.W, padx=5)
         _erlaubt, _meldung = gebaeude_wirkung.forschung_erlaubt(self.state.settlements)
         tk.Label(wirk, text=f"Forschung: {_meldung}", fg=self.skin["text"],
                  bg=self.skin["panel"]).pack(anchor=tk.W, padx=5)
@@ -1527,11 +1556,91 @@ class NebelseetalApp:
                 _zaehlung.items(), key=lambda x: gelaende.gebaeude_name(x[0])))
             tk.Label(wirk, text=f"Gebäude auf den Karten: {_text}", fg=self.skin["text"],
                      bg=self.skin["panel"], wraplength=780, justify=tk.LEFT).pack(anchor=tk.W, padx=5, pady=(0, 3))
-        for _k in ("werkstaetten", "baukunst", "lager"):
-            _luecke = gebaeude_wirkung.luecken().get(_k)
-            if _luecke:
-                tk.Label(wirk, text=f"Noch offen: {_luecke}", fg="#C0C0C0", bg=self.skin["panel"],
-                         wraplength=780, justify=tk.LEFT).pack(anchor=tk.W, padx=5)
+        # Entwicklerhinweise gehoeren NICHT auf die Spielansicht (astra-Gutachten: „Die
+        # Startseite sieht wie eine interne Projektstatusseite aus"). Sie bleiben erreichbar,
+        # sind aber standardmaessig zu.
+        _luecken = [x for x in (gebaeude_wirkung.luecken().get(k)
+                                for k in ("werkstaetten", "baukunst", "lager")) if x]
+        if _luecken:
+            _offen = bool(getattr(self, "_zeige_technik", False))
+            tk.Button(wirk, text=("Technische Hinweise ausblenden" if _offen
+                                  else f"Technische Hinweise einblenden ({len(_luecken)})"),
+                      command=self._toggle_technik, bg=self.skin["button"],
+                      fg="#C0C0C0").pack(anchor=tk.W, padx=5, pady=(3, 3))
+            if _offen:
+                for _luecke in _luecken:
+                    tk.Label(wirk, text=f"Noch offen: {_luecke}", fg="#C0C0C0", bg=self.skin["panel"],
+                             wraplength=780, justify=tk.LEFT).pack(anchor=tk.W, padx=5)
+
+    def _toggle_technik(self):
+        """Entwicklerhinweise ein-/ausblenden (stehen nicht ungefragt in der Spielansicht)."""
+        self._zeige_technik = not bool(getattr(self, "_zeige_technik", False))
+        self._render_view()
+
+    def naechster_schritt(self) -> dict:
+        """Der EINE naechste Schritt fuer den Spieler — als Karte oben im Dorfzentrum.
+
+        Beantwortet „Wo fange ich an, wie mache ich weiter?" aus dem Spielzustand.
+        Reihenfolge nach Handbuch: Siedlung → Feld bebauen → was Forschung/Ausbildung
+        freischaltet → forschen und ausbilden. Rueckgabe: {text, knopf, aktion}.
+        Vorbild: astra-Bildgutachten vom 05.10.2026, Abschnitt B.
+        """
+        st = self.state
+        if not st.settlements:
+            return {"text": "Gründe zuerst eine Siedlung — sie ist dein Bauplatz. Die "
+                            "Siedlungskarte wird dir dabei automatisch zugewiesen (Handbuch "
+                            "S. 313); du brauchst kein freies Feld auf der Weltkarte.",
+                    "knopf": "Siedlung gründen",
+                    "aktion": self._found_settlement}
+
+        s = st.settlements[-1]
+        gebaut = len(getattr(s, "bauten", {}) or {})
+        if gebaut == 0:
+            return {"text": f"Deine Siedlung „{s.name}“ hat noch kein Gebäude. Öffne ihre Karte "
+                            "und baue einen Holzfäller auf ein Waldfeld — er liefert Holz pro "
+                            "Stunde. (Grün/Steppe sind für Farmen, Berge für Minen.)",
+                    "knopf": f"„{s.name}“ öffnen — Gebäude bauen",
+                    "aktion": (lambda ss=s: self._oeffne_siedlungskarte(ss))}
+
+        erlaubt, _ = gebaeude_wirkung.forschung_erlaubt(st.settlements)
+        # astra-Nachprüfung 05.10.2026: die Aufgabenkarte muss den SICHTBAREN Engpass nennen.
+        # Überbelegung blockiert das Siedlerwachstum — das ist wichtiger als alles andere.
+        if int(st.population) >= gebaeude_wirkung.bevoelkerungsgrenze(st.settlements):
+            return {"text": f"Deine Siedlung ist überbelegt ({int(st.population)} Siedler, "
+                            f"{gebaeude_wirkung.bevoelkerungsgrenze(st.settlements)} Wohnraum). "
+                            "Baue ein Haus auf ein freies Feld — jedes Haus schafft 5 Wohnraum, "
+                            "erst dann wachsen wieder Siedler nach.",
+                    "knopf": f"„{s.name}“ öffnen — Haus bauen",
+                    "aktion": (lambda ss=s: self._oeffne_siedlungskarte(ss))}
+        if not erlaubt:
+            return {"text": "Baue als Nächstes eine Bibliothek — erst dann kannst du forschen. "
+                            "Sie darf nur auf Grasland, Steppe oder Nebelsee stehen.",
+                    "knopf": f"„{s.name}“ öffnen — Bibliothek bauen",
+                    "aktion": (lambda ss=s: self._oeffne_siedlungskarte(ss))}
+
+        laufend = forschung.fortschritt(st.forschung_stand(), time.time())
+        im_gange = [k for k, v in (laufend or {}).items() if (v or {}).get("laufend")]
+        if im_gange:
+            key = im_gange[0]
+            rest = float((laufend.get(key) or {}).get("reststunden") or 0.0)
+            return {"text": f"Die Forschung „{st.research[key].name}“ läuft noch {rest:.1f} Stunden. "
+                            "Vertreibe dir die Zeit mit Bauen: jedes Gebäude auf einem Feld erhöht "
+                            "deine Rohstoffe pro Stunde.",
+                    "knopf": f"„{s.name}“ öffnen — weiterbauen",
+                    "aktion": (lambda ss=s: self._oeffne_siedlungskarte(ss))}
+
+        da, _, _ = gebaeude_wirkung.ausbildungsstaette(st.settlements, "Bürgerwehr")
+        if not da:
+            return {"text": "Baue eine Kriegerakademie — dann kannst du in der Kaserne Truppen "
+                            "ausbilden (Bürgerwehr kostet Nahrung, Leder und Wolle, kein Gold).",
+                    "knopf": f"„{s.name}“ öffnen — Kriegerakademie bauen",
+                    "aktion": (lambda ss=s: self._oeffne_siedlungskarte(ss))}
+
+        return {"text": "Grundgerüst steht: Siedlung, Gebäude, Bibliothek und Akademie. "
+                        "Jetzt lohnt sich Ausbauen (Stufe erhöht den Ertrag), Forschen und "
+                        "Truppen ausbilden — oder eine zweite Siedlung gründen.",
+                "knopf": f"„{s.name}“ öffnen — weiterbauen",
+                "aktion": (lambda ss=s: self._oeffne_siedlungskarte(ss))}
 
     def _upgrade_building(self, key: str):
         """Ausbau eines GLOBALEN Gebaeudes — gibt es seit W4b-5 nicht mehr.
@@ -1655,7 +1764,9 @@ class NebelseetalApp:
             else:
                 self.state.resources[r].amount -= v
         self._log(f"{name} gebaut — {meldung}")
-        self.karten_feld = None
+        # astra-Nachprüfung 05.10.2026: „Nach dem Bau bleibt dasselbe Feld ausgewählt und das
+        # Panel wechselt zur Gebäudeansicht." Vorher löschte das Spiel hier die Auswahl — der
+        # Spieler sah nach dem Bauen kein Ergebnis, nur die Statuszeile.
         self._render_view()
 
     def _karten_abreissen(self):
@@ -1724,6 +1835,144 @@ class NebelseetalApp:
             return
         self._log(f"{siedlung.name} hat jetzt eine {siedlung.karte['typ_name']}.")
 
+    @staticmethod
+    def _spaltenname(spalte: int) -> str:
+        """A, B, C … als Spaltenbeschriftung — statt interner Feldnummern (astra-Gutachten)."""
+        return chr(ord("A") + spalte) if 0 <= spalte < 26 else str(spalte)
+
+    @staticmethod
+    def _gelaende_emblem(canvas, art: str, x0: float, y0: float, zelle: float) -> None:
+        """Ein kleines Emblem je Geländeart, mit Zeichenbefehlen gemalt.
+
+        astra-Gutachten 05.10.2026: „Gelände nie ausschließlich durch Farbe unterscheiden"
+        und „keine gemischten Emoji-Schriftzeichen als Kartensymbolsatz".
+        """
+        m = zelle / 2.0
+        cx, cy = x0 + m, y0 + m
+        dunkel, hell = "#1B2A1E", "#E8EEF2"
+        if art == "wald":
+            for dx in (-11, 0, 11):
+                canvas.create_polygon(cx + dx, cy - 14, cx + dx - 7, cy + 3, cx + dx + 7, cy + 3,
+                                      fill=dunkel, outline="")
+                canvas.create_rectangle(cx + dx - 1.5, cy + 3, cx + dx + 1.5, cy + 8,
+                                        fill="#4A3A22", outline="")
+        elif art == "berg":
+            canvas.create_polygon(cx - 15, cy + 10, cx - 1, cy - 13, cx + 15, cy + 10,
+                                  fill=dunkel, outline="")
+            canvas.create_polygon(cx - 6, cy - 4, cx - 1, cy - 13, cx + 4, cy - 4,
+                                  fill=hell, outline="")
+        elif art == "huegel":
+            canvas.create_arc(cx - 16, cy - 4, cx + 2, cy + 14, start=0, extent=180,
+                              style="chord", fill=dunkel, outline="")
+            canvas.create_arc(cx - 2, cy - 9, cx + 16, cy + 14, start=0, extent=180,
+                              style="chord", fill=dunkel, outline="")
+        elif art == "nebelsee":
+            for dy in (-5, 4):
+                canvas.create_line(cx - 15, cy + dy, cx - 7, cy + dy - 4, cx + 1, cy + dy,
+                                   cx + 9, cy + dy - 4, cx + 15, cy + dy, fill=hell,
+                                   width=2, smooth=True)
+        elif art == "sumpf":
+            for dx in (-10, 0, 10):
+                canvas.create_line(cx + dx, cy - 8, cx + dx, cy + 8, fill=dunkel, width=2)
+            canvas.create_line(cx - 13, cy + 11, cx + 13, cy + 11, fill="#9AB0C4", width=2)
+        elif art == "steppe":
+            for dy in (-6, 0, 6):
+                canvas.create_line(cx - 12, cy + dy, cx + 12, cy + dy, fill=dunkel, width=2)
+        elif art == "grasland":
+            for dx in (-9, 0, 9):
+                canvas.create_line(cx + dx, cy + 8, cx + dx - 4, cy - 8, fill=dunkel, width=2)
+
+    @staticmethod
+    def _gebaeude_zeichen(canvas, x0: float, y0: float, zelle: float, tags=()) -> None:
+        """Ein einheitliches Gebäudezeichen auf einem bebauten Feld (Dach + Körper).
+
+        Die Fläche ist zu klein für Namen und Ertrag — 64 px. astra-Nachprüfung 05.10.2026:
+        „Gebäudenamen und Erträge überlagern sich beziehungsweise werden an Feldgrenzen
+        abgeschnitten." Auf dem Feld bleibt deshalb nur das Zeichen; die Angaben stehen
+        unter der Karte im Detailbereich.
+        """
+        m = zelle / 2.0
+        cx = x0 + m
+        dach, koerper = "#F2C94C", "#8A6A2A"
+        canvas.create_polygon(cx - 16, y0 + m + 2, cx, y0 + m - 16, cx + 16, y0 + m + 2,
+                              fill=dach, outline="#17212B", tags=tags)
+        canvas.create_rectangle(cx - 11, y0 + m + 2, cx + 11, y0 + m + 18,
+                                fill=koerper, outline="#17212B", tags=tags)
+
+    @staticmethod
+    def _ertrag_kurz(gebaeude_key: str, art: str) -> str:
+        """Ertrag eines Gebäudes auf diesem Feld, kurz: „4 Holz/h" oder „kein Rohstoffertrag"."""
+        ertrag = gelaende.ertrag_pro_stunde(gebaeude_key, art)
+        if isinstance(ertrag, dict):
+            return " · ".join(f"{v:g} {k.capitalize()}/h" for k, v in ertrag.items())
+        eintrag = gelaende.alle_gebaeude().get(gelaende.finde_gebaeude(gebaeude_key)) or {}
+        stoff = str(eintrag.get("rohstoff") or "").strip()
+        if ertrag is None:
+            return f"+5 Wohnraum" if stoff == "" and "haus" in str(gebaeude_key).lower() else "kein Rohstoffertrag"
+        return f"{ertrag:g} {stoff.capitalize()}/h" if stoff else f"{ertrag:g}/h"
+
+    def _zeichne_siedlungskarte(self, siedlung, karte) -> None:
+        """Die Siedlungskarte als Zeichenfläche (64-px-Felder).
+
+        Vorher war das ein Raster kleiner Knöpfe mit abgeschnittenen Gebäudenamen; laut
+        astra-Bildgutachten vom 05.10.2026 sah das „wie eine farbige Tabelle aus". Jetzt:
+        Geländefarbe PLUS Emblem, Koordinate oben links, vollständiger Gebäudename (umgebrochen)
+        und Ertrag auf dem Feld, gewähltes Feld mit Cyanrahmen und Eckmarken.
+        """
+        zelle = 64
+        spalten = int(karte.get("spalten") or 8)
+        zeilen = int(karte.get("zeilen") or 5)
+        rand = 20
+        canvas = tk.Canvas(self.content, width=rand + spalten * zelle,
+                           height=rand + zeilen * zelle, bg="#17212B",
+                           highlightthickness=0, bd=0)
+        canvas.pack(anchor=tk.W, padx=10)
+        gewaehlt = getattr(self, "karten_feld", None)
+        for i, art in enumerate(karte["raster"]):
+            sp, ze = i % spalten, i // spalten
+            x0, y0 = rand + sp * zelle, rand + ze * zelle
+            x1, y1 = x0 + zelle, y0 + zelle
+            tag = f"feld:{i}"
+            canvas.create_rectangle(x0, y0, x1, y1, fill=gelaende.farbe(art),
+                                    outline="#17212B", width=2, tags=(tag,))
+            self._gelaende_emblem(canvas, art, x0, y0, zelle)
+            canvas.create_text(x0 + 4, y0 + 3, text=f"{self._spaltenname(sp)}{ze + 1}",
+                               anchor=tk.NW, fill="#17212B",
+                               font=("TkDefaultFont", 8, "bold"), tags=(tag,))
+            gebaut = siedlung.bauten.get(str(i))
+            if gebaut:
+                # astra-Nachprüfung 05.10.2026: Name UND Ertrag auf 64 px überlagern sich und
+                # werden an den Feldgrenzen abgeschnitten. Auf dem Feld steht deshalb nur ein
+                # Gebäudezeichen und die Stufe; alle Angaben stehen unter der Karte.
+                stufe = gebaeude_wirkung.stufe_von_feld(siedlung, i)
+                self._gebaeude_zeichen(canvas, x0, y0, zelle, tags=(tag,))
+                canvas.create_text(x1 - 5, y1 - 5, text=f"St. {stufe}", anchor=tk.SE,
+                                   fill="#7FD1FF", font=("TkDefaultFont", 8, "bold"), tags=(tag,))
+            if i == gewaehlt:
+                canvas.create_rectangle(x0 + 1, y0 + 1, x1 - 1, y1 - 1, outline="#38BDF8",
+                                        width=4, tags=(tag,))
+                for ex, ey in ((x0, y0), (x1, y0), (x0, y1), (x1, y1)):
+                    canvas.create_rectangle(ex - 3, ey - 3, ex + 3, ey + 3, fill="#38BDF8",
+                                            outline="", tags=(tag,))
+            canvas.tag_bind(tag, "<Button-1>", lambda _e, idx=i: self._karten_feld_waehlen(idx))
+        # Zusätzlich ein Klick auf die GANZE Fläche: die Rechnung aus der Mausposition ist
+        # robuster als die Bindung je Objekt (und prüfbar, weil sie auch bei erzeugten
+        # Klick-Ereignissen greift).
+        def _klick(ereignis):
+            spalte = int((ereignis.x - rand) // zelle)
+            zeile = int((ereignis.y - rand) // zelle)
+            if 0 <= spalte < spalten and 0 <= zeile < zeilen:
+                self._karten_feld_waehlen(zeile * spalten + spalte)
+
+        canvas.bind("<Button-1>", _klick)
+        for sp in range(spalten):
+            canvas.create_text(rand + sp * zelle + zelle / 2, 8, text=self._spaltenname(sp),
+                               fill="#9AA7B4", font=("TkDefaultFont", 9, "bold"))
+        for ze in range(zeilen):
+            canvas.create_text(9, rand + ze * zelle + zelle / 2, text=str(ze + 1),
+                               fill="#9AA7B4", font=("TkDefaultFont", 9, "bold"))
+        self.karten_canvas = canvas
+
     def _render_settlement_map(self):
         tk.Label(self.content, text="Siedlungskarte", font=("Blackletter", 20, "bold"),
                  fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 2))
@@ -1752,34 +2001,30 @@ class NebelseetalApp:
 
         karte = siedlung.karte
         tk.Label(self.content, text=f"{siedlung.name} — {karte['typ_name']}",
-                 fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
-        tk.Label(self.content, text=f"Vorteil: {karte['vorteil']}", fg=self.skin["text"],
-                 bg=self.skin["bg"], wraplength=780, justify=tk.LEFT).pack(anchor=tk.W, padx=10)
+                 fg=self.skin["gold"], bg=self.skin["bg"],
+                 font=("TkDefaultFont", 13, "bold")).pack(anchor=tk.W, padx=10)
+        tk.Label(self.content, text="Wähle ein Feld auf der Karte. Darunter steht, was dort "
+                                    "gebaut werden kann und was es einbringt.",
+                 fg="#F3F4F6", bg=self.skin["bg"], wraplength=800,
+                 justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 2))
         zaehlung = ", ".join(f"{gelaende.name(a)} {n}" for a, n in karte["zaehlung"].items() if n)
-        tk.Label(self.content, text=zaehlung, fg=self.skin["text"], bg=self.skin["bg"],
-                 wraplength=780, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(2, 6))
+        tk.Label(self.content, text=f"Vorteil: {karte['vorteil']} · {zaehlung}",
+                 fg=self.skin["text"], bg=self.skin["bg"], wraplength=800,
+                 justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 4))
 
-        raster_rahmen = tk.Frame(self.content, bg=self.skin["bg"])
-        raster_rahmen.pack(anchor=tk.W, padx=10)
-        for i, art in enumerate(karte["raster"]):
-            gebaut = siedlung.bauten.get(str(i))
-            beschriftung = gelaende.gebaeude_name(gebaut)[:6] if gebaut else str(i)
-            knopf = tk.Button(raster_rahmen, text=beschriftung, width=6, height=2,
-                              bg=gelaende.farbe(art), fg="#F2ECDF", activebackground=gelaende.farbe(art),
-                              relief=(tk.SUNKEN if gebaut else tk.RAISED), bd=2,
-                              command=lambda idx=i: self._karten_feld_waehlen(idx))
-            knopf.grid(row=i // karte["spalten"], column=i % karte["spalten"], padx=1, pady=1)
-            if i == getattr(self, "karten_feld", None):
-                knopf.config(highlightbackground="#FFC300", highlightthickness=3)
+        # astra-Bildgutachten 05.10.2026: 64-px-Felder mit Gelände-EMBLEM (Farbe allein
+        # reicht nicht), Koordinaten statt interner Feldnummern, kräftiger Auswahlrahmen.
+        # Vorher: ein Raster kleiner Knöpfe mit abgeschnittenen Namen („Steinm", „Holzfä").
+        self._zeichne_siedlungskarte(siedlung, karte)
 
         legende = tk.Frame(self.content, bg=self.skin["bg"])
-        legende.pack(anchor=tk.W, padx=10, pady=(6, 2))
+        legende.pack(anchor=tk.W, padx=10, pady=(4, 2))
         for art in gelaende.GELAENDEARTEN:
             tk.Label(legende, text="   ", bg=gelaende.farbe(art)).pack(side=tk.LEFT, padx=(5, 1))
             tk.Label(legende, text=gelaende.name(art), fg=self.skin["text"],
                      bg=self.skin["bg"]).pack(side=tk.LEFT)
         tk.Label(self.content, text="Sumpf ist nicht bebaubar (Handbuch S. 11). "
-                                   "Feld anklicken zeigt die Eignung (Handbuch S. 7/8).",
+                                   "Blau umrandet = gewähltes Feld.",
                  fg=self.skin["text"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(2, 4))
 
         info = tk.Frame(self.content, bg=self.skin["panel"])
@@ -1792,8 +2037,17 @@ class NebelseetalApp:
 
         art = karte["raster"][feld]
         gebaut = siedlung.bauten.get(str(feld))
-        tk.Label(info, text=f"Feld {feld} — {gelaende.name(art)}", fg=self.skin["gold"],
+        _spalten = int(karte.get("spalten") or 8)
+        _koord = f"{self._spaltenname(feld % _spalten)}{feld // _spalten + 1}"
+        _bebaubar = gelaende.ist_bebaubar(art)
+        _lage = "belegt" if gebaut else ("frei · bebaubar" if _bebaubar else "nicht bebaubar")
+        tk.Label(info, text=f"{_koord} · {gelaende.name(art)} — {_lage}", fg=self.skin["gold"],
                  bg=self.skin["panel"], font=("TkDefaultFont", 11, "bold")).pack(anchor=tk.W, padx=6, pady=(6, 2))
+        if not _bebaubar and not gebaut:
+            tk.Label(info, text="Hier kannst du nicht bauen: Sumpf ist unbebaubar und damit "
+                                "wertlos (Handbuch S. 11).",
+                     fg="#FDBA74", bg=self.skin["panel"]).pack(anchor=tk.W, padx=6, pady=(0, 6))
+            return
 
         if gebaut:
             stufe = gebaeude_wirkung.stufe_von_feld(siedlung, feld)
@@ -1830,13 +2084,25 @@ class NebelseetalApp:
                      fg=self.skin["text"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=6, pady=6)
             return
 
-        tk.Label(info, text=f"Hier möglich ({len(passend)} Gebäude):", fg=self.skin["text"],
-                 bg=self.skin["panel"]).pack(anchor=tk.W, padx=6)
+        # astra-Bildgutachten: der Knopfteppich verschwieg die entscheidende Frage „Was bringt
+        # mir das hier?". Jetzt steht der Ertrag auf DIESEM Feld im Knopf, und was noch fehlt,
+        # wird benannt statt still abgelehnt.
+        tk.Label(info, text=f"Hier kannst du {len(passend)} Gebäude bauen — der Ertrag gilt für "
+                            f"dieses Feld ({gelaende.name(art)}):",
+                 fg=self.skin["text"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=6)
         knopfreihe = tk.Frame(info, bg=self.skin["panel"])
         knopfreihe.pack(anchor=tk.W, padx=6, pady=6)
         for i, (k, g) in enumerate(passend):
-            kosten = baukosten(k)
-            tk.Button(knopfreihe, text=f"{g['name']}  ({kosten_text(kosten)})",
+            kosten = baukosten(k) or {}
+            _fehlt = [r for r, v in kosten.items()
+                      if r != "siedler" and r in self.state.resources
+                      and self.state.resources[r].amount < v]
+            if kosten.get("siedler", 0) > self.state.population:
+                _fehlt.append("Siedler")
+            text = f"{g['name']}\n{self._ertrag_kurz(k, art)} · {kosten_text(kosten)}"
+            if _fehlt:
+                text += f"\nfehlt noch: {', '.join(sorted(_fehlt))}"
+            tk.Button(knopfreihe, text=text, justify=tk.LEFT,
                       command=lambda kk=k: self._karten_bauen(kk), bg=self.skin["button"],
                       fg=self.skin["gold"], activebackground="#5D4037").grid(
                 row=i // 3, column=i % 3, padx=3, pady=2, sticky=tk.W)
@@ -2069,7 +2335,13 @@ class NebelseetalApp:
         self._log("Profil gespeichert. Noch ohne dauerhafte Speicherung.")
 
     def _render_maps(self):
-        tk.Label(self.content, text="Karten", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
+        tk.Label(self.content, text="Weltkarte — Orte entdecken", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 2))
+        tk.Label(self.content, text="Hier erkundest du die Welt. Gebäude, die Rohstoffe liefern, "
+                                    "baust du NICHT hier, sondern auf der Karte deiner Siedlung "
+                                    "(Dorfzentrum → „Karte öffnen“). Ein Klick auf ein Feld zeigt, "
+                                    "was dort liegt.",
+                 fg="#F3F4F6", bg=self.skin["bg"], wraplength=820,
+                 justify=tk.LEFT).pack(anchor=tk.W, padx=10)
         cfg = next(m for m in MAPS if m["id"] == self.state.current_map)
         size = cfg["size"]
         frame = tk.Frame(self.content, bg=self.skin["panel"])
@@ -2079,7 +2351,7 @@ class NebelseetalApp:
         self.map_canvas.bind("<Button-1>", self._on_map_click)
         self._map_size = size
         self._show_buildings = True
-        tk.Button(self.content, text="Keine Gebäude", command=self._toggle_buildings, bg=self.skin["button"], fg=self.skin["gold"]).pack(anchor=tk.W, padx=10, pady=(2, 6))
+        tk.Button(self.content, text="Kartenzeichen (Orte) ausblenden", command=self._toggle_buildings, bg=self.skin["button"], fg=self.skin["gold"]).pack(anchor=tk.W, padx=10, pady=(2, 6))
         self._render_map_controls()
         self._draw_map(size)
 
@@ -2133,30 +2405,53 @@ class NebelseetalApp:
         if not hasattr(self, "map_canvas"):
             return
         self.map_canvas.delete("all")
-        w = 520
-        h = 520
+        w, h = 520, 520
         cell_w = w / size
         cell_h = h / size
+        # astra-Bildgutachten 05.10.2026: „Die Weltkarte ist visuelles Konfetti." — gedämpfte
+        # Geländefarben statt greller Flächen, keine abgeschnittenen Ortsnamen auf jedem Feld.
         colors = {
-            "forest": "#1b5e20", "plains": "#33691e", "mountain": "#4e342e",
-            "water": "#0d47a1", "village": "#ff8f00", "ruins": "#4a148c"
+            "forest": "#2F4A2E", "plains": "#6E7A3A", "mountain": "#5B5F63",
+            "water": "#1F4E6E", "village": "#8A6A2A", "ruins": "#4A3B63"
         }
-        icons = {
-            "forest": "🌲", "plains": "🌾", "mountain": "⛰️",
-            "water": "🌊", "village": "🏠", "ruins": "🏚️"
-        }
+        namen = {"forest": "Wald", "plains": "Ebene", "mountain": "Gebirge",
+                 "water": "Wasser", "village": "Dorf", "ruins": "Ruine"}
         for tile in self.state.map_tiles:
             x1 = tile.x * cell_w
             y1 = tile.y * cell_h
             x2 = x1 + cell_w
             y2 = y1 + cell_h
-            color = colors.get(tile.terrain, "#111")
-            self.map_canvas.create_rectangle(x1, y1, x2, y2, fill=color, outline="#000")
-            if tile.npc_faction or tile.quest or tile.resources:
-                symbol = icons.get(tile.terrain, "?")
-                self.map_canvas.create_text(x1 + cell_w/2, y1 + cell_h/2, text=symbol, fill="#fff", font=("Arial", int(min(cell_w, cell_h)/2.5)))
-            if tile.sector_name:
-                self.map_canvas.create_text(x1 + 2, y1 + 2, text=tile.sector_name, anchor=tk.NW, fill="#FFD700", font=("Arial", 7))
+            self.map_canvas.create_rectangle(x1, y1, x2, y2,
+                                             fill=colors.get(tile.terrain, "#111317"),
+                                             outline="#111317")
+            if getattr(self, "_show_buildings", True) and (tile.npc_faction or tile.quest
+                                                           or tile.resources):
+                # Ein Punkt statt eines Emoji-Zeichens (Emoji sind auf Karten ungleich groß).
+                self.map_canvas.create_oval(x1 + cell_w * 0.32, y1 + cell_h * 0.32,
+                                            x2 - cell_w * 0.32, y2 - cell_h * 0.32,
+                                            fill="#F2C94C", outline="")
+        # Eigene Siedlungen deutlich markieren (astra: „Wo bin ich?")
+        for s in self.state.settlements:
+            if s.map_id != self.state.current_map:
+                continue
+            cx, cy = s.x * cell_w + cell_w / 2, s.y * cell_h + cell_h / 2
+            self.map_canvas.create_oval(cx - 7, cy - 7, cx + 7, cy + 7, fill="#2563EB", outline="")
+            self.map_canvas.create_text(cx, cy - 14, text="Hier", fill="#F3F4F6",
+                                        font=("TkDefaultFont", 8, "bold"))
+        # Legende (astra: Legende Zeile 1 = Geländearten)
+        ly = h - 14
+        for i, art in enumerate(("forest", "plains", "mountain", "water", "village", "ruins")):
+            lx = 6 + i * 86
+            self.map_canvas.create_rectangle(lx, ly - 8, lx + 12, ly + 4,
+                                             fill=colors[art], outline="#111317")
+            self.map_canvas.create_text(lx + 18, ly - 2, text=namen[art], anchor=tk.W,
+                                        fill="#E6E9EE", font=("TkDefaultFont", 8))
+        self.map_canvas.create_oval(w - 120, ly - 6, w - 112, ly + 2, fill="#F2C94C", outline="")
+        self.map_canvas.create_text(w - 106, ly - 2, text="Ort erforschen", anchor=tk.W,
+                                    fill="#E6E9EE", font=("TkDefaultFont", 8))
+        self.map_canvas.create_oval(w - 30, ly - 6, w - 22, ly + 2, fill="#2563EB", outline="")
+        self.map_canvas.create_text(w - 18, ly - 2, text="Siedlung", anchor=tk.W,
+                                    fill="#E6E9EE", font=("TkDefaultFont", 8))
         # movements
         now = time.time()
         for m in self.state.movements[:]:
@@ -2165,12 +2460,11 @@ class NebelseetalApp:
                 continue
             mins, secs = divmod(remaining, 60)
             hours, mins = divmod(mins, 60)
-            timer_txt = f"{hours:02d}:{mins:02d}:{secs:02d}"
-            # draw marker on target
             tx, ty = m["to"].split(":")
-            cx = int(tx) * cell_w + cell_w/2
-            cy = int(ty) * cell_h + cell_h/2
-            self.map_canvas.create_text(cx, cy, text=f"⚔️{timer_txt}", fill="#FFD700", font=("Arial", 8))
+            cx = int(tx) * cell_w + cell_w / 2
+            cy = int(ty) * cell_h + cell_h / 2
+            self.map_canvas.create_text(cx, cy, text=f"{hours:02d}:{mins:02d}:{secs:02d}",
+                                        fill="#FFD166", font=("TkDefaultFont", 8, "bold"))
 
     # ---------- Angriff: kampf + kampfbericht (Umsetzungsplan, Abschnitte 1.3 und 2) ----------
     #
