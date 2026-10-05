@@ -472,6 +472,12 @@ def spieldaten_anwenden(zustand_vorher: Any, fertig: Any) -> Dict[str, Any]:
     e = fertig if isinstance(fertig, dict) else {}
     if e.get("angewendet"):
         return neu
+    # Oekonomie-Paket, Entwurf Z. 505 (hart erzwungen statt nur kommentiert): Ein EIGENTRANSPORT
+    # wird ausschliesslich von `spieloekonomie.transport_fortschritt` gebucht. Diese Funktion darf
+    # ihn NIE anwenden — sonst waere dieselbe Fracht zweimal gebucht. `angewendet` wird dabei
+    # absichtlich NICHT gesetzt, damit `transport_fortschritt` weiterarbeiten kann.
+    if e.get("eigentransport"):
+        return neu
 
     for feld in ("beute", "rueckgut"):
         for stoff, menge in (e.get(feld) or {}).items():

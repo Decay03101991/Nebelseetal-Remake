@@ -207,9 +207,15 @@ if tk is not None:
 
             # W4b-5: Die Wirkungen kommen aus den bebauten FELDERN. Ein Haus hebt die
             # Siedlergrenze um 5 (Handbuch S. 11) — vorher hing sie an einer globalen Liste.
+            # KORREKTUR 05.10.2026: Hier stand „das erste Feld, das nicht Sumpf ist". Seit den
+            # Geländeregeln (Schritt 27) darf das Haus aber nur auf Grasland/Steppe/Wald/Hügel
+            # stehen — lag das erste Feld auf dem **Nebelsee**, wurde der Bau abgelehnt und die
+            # Prüfung fiel mit „10 -> 10" aus, je nach zufälliger Karte. Ein grüner Lauf war
+            # damit kein Beweis. Jetzt wird ein Feld gewählt, auf dem das Haus WIRKLICH stehen darf.
             siedlung = app.state.settlements[-1]
             grenze_vorher = main.gebaeude_wirkung.bevoelkerungsgrenze(app.state.settlements)
-            feld = next(i for i, a in enumerate(siedlung.karte["raster"]) if a != "sumpf")
+            feld = next(i for i, a in enumerate(siedlung.karte["raster"])
+                        if main.gelaende.bau_moeglich("haus", a)[0])
             app._oeffne_siedlungskarte(siedlung)
             app._karten_feld_waehlen(feld)
             app._karten_bauen("haus")

@@ -377,7 +377,12 @@ def transport_fortschritt(mission: dict, orte: dict, jetzt: float):
                     quelle["importiert"][r] = (quelle["importiert"].get(r, 0)
                                                + m["ursprung_import"].get(r, 0))
             m["fracht"] = {}
-        m["heimgekehrt_lokal"] = True
+            m["heimgekehrt_lokal"] = True
+        # KEINE eigene Siedlung vorhanden: Fracht und Einheiten BLEIBEN am Auftrag, und der
+        # Merker bleibt AUS (Entwurf Z. 492/500: „Fracht bleibt am Auftrag und ist nicht global
+        # verfuegbar"). So kann ein spaeter auftauchender eigener Ort die Fracht noch erhalten —
+        # es wird nichts erfunden und an Fremde nichts verteilt.
+        # Fund der unabhaengigen Abweichungspruefung (docs/audits/pruefung_schritt3_4.md, Punkt 12).
     return neu, m
 
 
