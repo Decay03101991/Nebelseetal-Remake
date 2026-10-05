@@ -1,0 +1,24 @@
+======================================================================
+### 1. Bewertung (a)–(f)
+
+- **(a) Teilweise:** Die Aufgabenkarte erklärt mögliche Aktivitäten, priorisiert aber nicht den sichtbaren Engpass „60 Siedler / 15 Wohnraum“.
+- **(b) Behoben:** Der auffällige blaue Button „‚Siedlung 1‘ öffnen — weiterbauen“ bietet einen klar sichtbaren Einstieg.
+- **(c) Teilweise:** Geländezeichen und Koordinaten helfen, aber Gebäudenamen und Erträge überlagern sich weiterhin beziehungsweise werden an Feldgrenzen abgeschnitten.
+- **(d) Nicht als behoben belegbar:** Die Weltkarte ist auf keinem der beiden Bilder zu sehen.
+- **(e) Teilweise:** Die Entwicklertexte sind ausgeblendet, bleiben aber über „Technische Hinweise einblenden (3)“ Bestandteil der Spieloberfläche.
+- **(f) Behoben:** „Gebäude auf der Karte: 6“ stimmt mit der Gebäudeliste und den sechs bebauten Feldern überein.
+
+### 2. Schlechtester verbliebener Punkt
+
+**Die bebauten Kartenfelder sind kaum lesbar.** Gerade dort, wo ein neuer Spieler seine Gebäude verstehen und verwalten soll, konkurrieren Geländezeichen, Namen, Stufen und Erträge auf zu wenig Fläche.
+
+### 3. Nächste Verbesserungen – nach Wirkung
+
+1. **Gebäudedetails aus den 64-px-Feldern herausnehmen:** Auf B1–G1 jeweils nur ein eindeutiges Gebäudesymbol und eine kleine Stufenzahl anzeigen; rechts neben der Karte ein dunkelgraues Detailpanel mit weißem Text platzieren, beispielsweise **„Haus · G1 / Stufe 1 / Wohnraum +5“**. Nur das tatsächlich ausgewählte Feld erhält einen kräftigen cyanblauen Rahmen; bebaute Felder erhalten stattdessen ein neutrales Gebäudesymbol.
+
+2. **Aufgabenkarte auf Wohnraum ausrichten:** Im Dorfzentrum statt der Aktivitätenliste **„Dein Dorf ist überbelegt: 60 Siedler, 15 Wohnraum. Schaffe zusätzlichen Wohnraum, damit wieder Siedler nachwachsen.“** anzeigen; blauer Button **„Wohnraum schaffen →“**, der direkt die Siedlungskarte mit passenden Bau-/Ausbauoptionen öffnet.
+
+3. **Wachstumsanzeige widerspruchsfrei machen:** Unter „Gebäudewirkungen“ das unbedingte **„Zuwachs 1 Siedler/Stunde“** ersetzen durch orangefarbenes **„Aktuelles Wachstum: 0 Siedler/Stunde — Wohnraum fehlt“**; darunter in Weiß **„Mögliches Wachstum bei freiem Wohnraum: +1/Stunde“**. Die Warnung oben muss denselben Zustand wiedergeben, statt trotz vorhandenem Haus „bis ein Haus steht“ zu behaupten.
+======================================================================
+
+Verbrauch: {"prompt_tokens": 3710, "completion_tokens": 751, "total_tokens": 4461, "prompt_tokens_details": {"cached_tokens": 0, "audio_tokens": 0}, "completion_tokens_details": {"reasoning_tokens": 143, "audio_tokens": 0, "accepted_prediction_tokens": 0, "rejected_prediction_tokens": 0}}
