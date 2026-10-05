@@ -171,7 +171,7 @@ Siedlung), danach 7, 8, 9 und zuletzt die Aktivierung (10).**
 | 4 | Warenrezepte (`data/warenrezepte.json`) und lokale Ausbildung | **fertig** | `e6fd766`, `3bdbc6a` · `test_warenrezepte` **26/0/0**, `test_ausbildungsauftraege` **49/0/0** |
 | 5 | gemeinsame Spieluhr: `ort_tick`, `fensterproduktion` | **Kern fertig** | `319c16b`, `a83ec25` · `test_oekonomie_uhr` **42/0/0** |
 | 6 | Forschung je Siedlung: `forschung_start`, `forschung_abschluss` | **fertig** | `1d64cd6`, `c590951` · `test_lokale_forschung` **47/0/0**, Audit `pruefung_schritt6.md` ohne verhaltensrelevante Abweichung |
-| 7 | Zielprüfung und Haltefenster (`zielstatus`) | **Kern fertig** | `a2b6531` · 11 Zusagen selbst gemessen; Prüfdatei `test_versorgungsziel.py` und Audit laufen gerade |
+| 7 | Zielprüfung und Haltefenster (`zielstatus`) | **fertig** | `a2b6531`, `52` · `test_versorgungsziel` **69/0/0**; Audit fand zwei echte Beanstandungen an meinem Code, beide behoben |
 | 8 | Bot-Planung | **offen — der nächste Schritt** | — |
 | 9 | `main`-Anbindung und Migration | offen | — |
 | 10 | Ereignisschleife `tick_bis` und Aktivierung | offen | — |

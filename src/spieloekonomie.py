@@ -639,14 +639,22 @@ def zielstatus(orte: list, jetzt: float, haltestart=None) -> dict:
     aus **zwei Orten** müssen wirklich verbraucht worden sein) — nicht aus einer Momentaufnahme.
     """
     orte = [o for o in (orte or []) if isinstance(o, dict)]
-    q = kartenqualitaet([o["karte"] for o in orte]) if orte else {"erfuellt": False}
+    # Ohne Orte liefert `kartenqualitaet` selbst schon `{"erfuellt": False, ...}` (eigene Zeile
+    # dort) — die frühere Sonderbehandlung hier war unnötig und änderte die FORM des Feldes
+    # (ohne "mittel"/"beste"). Fund der Abweichungsprüfung zu Schritt 7.
+    q = kartenqualitaet([o["karte"] for o in orte])
     menge = fensterproduktion(orte, jetzt)
     plan = REGELN["plan"]
     reserviert = {r: sum((o.get("reserve") or {}).get(r, 0) for o in orte) for r in plan}
     plan_ok = bezahlbar(reserviert, plan)
     deckung = min((menge.get(r, 0) / n for r, n in plan.items() if n > 0), default=0.0)
-    # Leerer Verbund ist NIE versorgt (der Entwurf schreibt `all(...)`; ohne Orte wäre das
-    # leer-wahr und ein leerer Spielstand hätte „gehalten" — bewusste, dokumentierte Abweichung).
+    # VORSCHLAG (nicht belegt), bewusst vom Entwurf abweichend: der Entwurf schreibt hier
+    # `all(...)` ohne die Ortsgrenze. Die Prüfung zu Schritt 7 hat dargelegt, dass das den SIEG
+    # **nicht** ändert (ein leerer Verbund scheitert ohnehin an der Kartenqualität, die vier
+    # Siedlungen verlangt) — die frühere Begründung „ein leerer Spielstand hätte gehalten" war
+    # also falsch. Es bleibt eine **Anzeige**-Korrektur: `reserve` soll für einen Verbund ohne
+    # Siedlungen nicht „gehalten" melden. Auf `ok`/`sieg` wirkt sie nicht. Daniel kann sie
+    # streichen lassen; dann gilt wieder zeichengleich der Entwurf.
     reserve = bool(orte) and all(bezahlbar(o.get("vorraete") or {}, o.get("reserve") or {})
                                  for o in orte)
     ab = jetzt - REGELN["versorgung_stunden"] * 3600
