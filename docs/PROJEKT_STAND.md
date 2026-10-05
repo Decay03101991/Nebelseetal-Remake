@@ -110,6 +110,13 @@ alte aufgehört hat — die Sitzung macht das selbst, nicht Daniel von Hand.**
 2. **Altes Ziel sauber beenden:** `status` auf `cleared` setzen und im Feld `paused_reason`
    festhalten, wer wann beendet hat (nicht löschen — der Datensatz bleibt nachvollziehbar). Im Chat
    selbst tut `/goal clear` dasselbe.
+   **Werkzeug statt Handarbeit** (`tools/zieluebergabe.py`, Prüfdatei
+   `tests/test_zieluebergabe.py` 26 Prüfungen):
+   `--pruefen` (nur lesen; Rückgabe **1** = ein fremdes Ziel ist aktiv) ·
+   `--stand` (Tabelle aller Ziele) · `--beenden <Sitzung>` (GENAU diese Sitzung `cleared`) ·
+   `--fortsetzen <Sitzung>` (pausiertes Ziel wieder `active`) ·
+   `--naechster-schritt` (den EINEN nächsten Schritt aus diesem Abschnitt) ·
+   `--startzeile` (Startzeile für die neue Sitzung). Es startet **keine** Sitzung von selbst.
 3. **Neues Ziel in der neuen Sitzung setzen** (`/goal <Zieltext>`, Wortlaut wie in der alten Sitzung)
    — es darf **genau eine** aktive Zielverfolgung geben.
 4. **Wiedereinstiegspunkt belegen:** dieser Abschnitt (0c) nennt den EINEN nächsten Schritt mit Datei,
