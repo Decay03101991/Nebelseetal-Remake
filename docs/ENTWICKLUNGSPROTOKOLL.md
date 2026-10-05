@@ -413,6 +413,8 @@ jedem Schritt Sammellauf, Protokollzeile, projektunabhängige Sicherung, kleiner
 | 02:18 | **`.exe` nach dem Spielfehler neu gebaut und startgeprueft** | `python tools/build_exe.py` → **14.145.462 Byte**, SHA256 `225bb8275e78b52aa8acee392aef16453a43bff02d34050b902a9c69ddce8a9e`; genau eine EXE, keine Bau-Reste. Startprüfung aus `…\cache\scratch\Nebel Start Test 5\` (**Pfad mit Leerzeichen**): Fenster **„Nebelseetal Remake"**, `Responding: True`, Ausgabe **0 Byte**, **Tor steht** (Passwort nicht eingegeben); danach **0** Prozesse übrig, Testordner entfernt |
 | 02:18 | **Kosten (gemessen)** | Heute ab 00:00: **0,6915 USD ≈ 0,616 EUR**; diese Sitzung **0,2623 USD bei 208 Werkzeugen**. Weiterhin **kein** teurer Aufruf (alles `deepseek-v4-flash`). Guthaben DeepSeek nach Daniels Aufladen **6,08 USD** |
 
+| 02:24 | **12 · Durchspiel erweitert (Handel, Werkstatt, Karte) + Zielname in der Kampfmeldung** | `test_durchspiel.py` wuchs von 36 auf **48 Prüfungen**: **Handel** (belegte Schwelle genannt, am Bot gezählt, Ablehnung ohne Handelsneigung) · **Werkstatt** (die gebaute Schmiede führt eine Warteschlange, eine Ware mit erfüllter Voraussetzung lässt sich einreihen; **ehrlicher Befund**: „Messer" hat **keine** belegte Bauzeit und bleibt wartend — es wird nichts erfunden, die Lieferung prüft `test_werkstatt` mit einer belegten Ware) · **Kartenwechsel** (noch nicht freigeschaltete Karte wird **ehrlich abgelehnt, kein Gold weg** → dann Freischaltung und Wechsel mit Goldabzug) · **Kartenangriff** mit Bericht. Der im Protokoll notierte offene Punkt **„Kampfbericht nennt das Ziel nur im Log" ist behoben**: `_angriff_durchfuehren` schreibt jetzt „Ziel <Name> — Schlachtbericht …" in die Nachrichten (der Berichtswortlaut selbst bleibt unverändert). Die zwei Prüfungen in `test_kampf_einhaengung`, die auf den alten Anfang „Schlachtbericht" zeigten, sind auf den neuen Vertrag umgestellt. Belege: durchspiel **48/0/2** · kampf **42/0** · kampf_einhaengung **42/0** · kampfbericht **108/0** · baseline **40/0** · gui_fehler **22/0/1** · **Sammellauf 1847/0/17 über 28 Dateien** |
+
 **Offene Punkte aus dieser Sitzung (ehrlich):**
 
 - **Bot-Armeen (erledigt 02:01, W5):** die erfundenen **20–120 Stück je Einheit** sind ersetzt — ein
@@ -426,11 +428,10 @@ jedem Schritt Sammellauf, Protokollzeile, projektunabhängige Sicherung, kleiner
   5.000 Mana **aus einer Siedlung** — im Spiel steht dieser Hinweis sichtbar in der Ansicht, sauber wäre
   ein Manavorrat je Siedlung (steht auch in `spielschicht.offene_luecken()`). Die **Startdimension 1** ist
   ein VORSCHLAG; das Handbuch nennt keine.
-- **Kampfbericht nennt das Ziel nicht** (gefunden vom Unteragenten beim Nachprüfen von Schritt 3): in
-  der Nachricht steht nur „Schlachtsbericht: Der Angreifer siegt …" — der **Zielname** steht allein in
-  der Logzeile (`_angriff_durchfuehren` schreibt ihn nur ins Log). Kleine Verbesserung für später: den
-  Zielnamen in die Meldung aufnehmen (`main.py` `_angriff_durchfuehren`), damit man im Reiter
-  „Nachrichten" sieht, wozu der Bericht gehört.
+- **Kampfbericht nennt das Ziel — erledigt 02:24** (war ein offener Punkt aus Schritt 3): die
+  Meldung im Reiter „Nachrichten" beginnt jetzt mit „Ziel <Name> — Schlachtbericht …"; vorher stand
+  der Zielname allein in der Logzeile. Nachweis: Prüfung in `test_durchspiel` (Auftrag und Karte),
+  `test_kampf_einhaengung` auf den neuen Vertrag umgestellt.
 
 **Unteragenten** (flash, je eine **neue** Prüfdatei, die ausschließlich die **Verdrahtung** prüft — nie
 die Module selbst; sie committen nicht, der Koordinator prüft nach): `test_w8_einhaengung.py` **39/0/5**,

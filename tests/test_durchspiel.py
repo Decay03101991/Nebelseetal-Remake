@@ -28,6 +28,7 @@ from harness import abschnitt, ausnahme, befund, bericht, check, import_src
 
 ROOT, SRC = import_src()
 import einheiten  # noqa: E402
+import werkstatt  # noqa: E402
 
 
 def alle_text(w):
@@ -189,6 +190,10 @@ def partiedurchlauf():
         nachher_berichte = len([m for m in gs.messages if m.get("type") in ("auftrag", "kampf")])
         check("die Ankunft erzeugt Berichte (Auftrag und Kampf am Ziel)",
               nachher_berichte > vorher_berichte, f"{vorher_berichte} -> {nachher_berichte}")
+        kampf_meldungen = [m["text"] for m in gs.messages if m.get("type") == "kampf"]
+        check("die Kampfmeldung nennt das Ziel (nicht nur das Log)",
+              any(("Ziel " + bot.name) in t for t in kampf_meldungen),
+              str(kampf_meldungen[:1])[:120])
         check("die ueberlebenden Einheiten kommen heim",
               int(gs.units[krieger].count) > 0, str(gs.units[krieger].count))
         check("der Auftrag ist aus der Liste", not gs.auftraege)
@@ -246,7 +251,61 @@ def partiedurchlauf():
               app._portal_wechsel(ziel_dimension) is False
               and gs.resources["mana"].amount == mana_vorher)
 
-        # ------------------------------------------------------------- 9. Schluss
+        # ------------------------------------------------------------- 10. Handel
+        abschnitt("10. Handel mit einem Bot")
+        bot.trading = 0.9
+        bot.gehandelt = 0
+        log_vorher = len(gs.log)
+        handel = app._trade(bot)
+        check("der Handel laeuft und nennt die belegte Schwelle",
+              handel is True and any("Schwellenpreis" in z for z in gs.log[log_vorher:]),
+              str(gs.log[log_vorher:]))
+        check("der Handel wird am Bot gezaehlt", int(bot.gehandelt) == 1)
+        bot.trading = 0.1
+        check("ein Bot ohne Handelsneigung handelt nicht", app._trade(bot) is False)
+
+        # ------------------------------------------------------------- 11. Werkstatt
+        abschnitt("11. Werkstatt: eine Ware herstellen")
+        check("die gebaute Schmiede fuehrt eine Warteschlange",
+              "schmiede" in gs.werkstatt_schlangen(), str(list(gs.werkstatt_schlangen())))
+        ware = next((w for w in werkstatt.waren_der_werkstatt("schmiede")
+                     if gs.ware_voraussetzung(w)[0]), None)
+        check("es gibt eine Ware mit erfuellter Voraussetzung", ware is not None, str(ware))
+        check("sie laesst sich einreihen", app._ware_herstellen("schmiede", ware) is True)
+        if ware and not werkstatt.dauer_sekunden(ware, 1):
+            befund(f"Ware '{ware}' ohne belegte Dauer",
+                   "das Handbuch nennt fuer sie keine Bauzeit — sie bleibt wartend in der "
+                   "Warteschlange stehen (ehrlich, es wird nichts erfunden); die Lieferung "
+                   "selbst prueft test_werkstatt mit einer belegten Ware")
+
+        # ------------------------------------------------------------- 12. Karte
+        abschnitt("12. Kartenwechsel und Kartenangriff")
+        gs.resources["gold"].amount = 5000.0
+        gold_vorher = gs.resources["gold"].amount
+        switch_kosten = gs.map_switch_cost
+        app._activate_map("wald")
+        check("eine noch nicht freigeschaltete Karte wird ehrlich abgelehnt (kein Gold weg)",
+              gs.current_map != "wald" and gs.resources["gold"].amount == gold_vorher,
+              f"{gs.current_map} / {gs.resources['gold'].amount}")
+        gs.active_maps = list(dict.fromkeys(list(gs.active_maps) + ["wald"]))
+        app._activate_map("wald")
+        check("der Kartenwechsel kostet Gold und wechselt die Karte",
+              gs.current_map == "wald"
+              and gs.resources["gold"].amount == gold_vorher - switch_kosten,
+              f"{gs.current_map} / {gs.resources['gold'].amount}")
+        gs.units[krieger].count = 8
+        kampf_vorher = len([m for m in gs.messages if m.get("type") == "kampf"])
+        app._attack_map("wald")
+        kampf_nachher = len([m for m in gs.messages if m.get("type") == "kampf"])
+        check("ein Kartenangriff erzeugt einen Kampfbericht",
+              kampf_nachher > kampf_vorher, f"{kampf_vorher} -> {kampf_nachher}")
+        check("der Kartenbericht nennt das Ziel der Karte",
+              any("Nebelwald" in m["text"] for m in gs.messages if m.get("type") == "kampf"),
+              str([m["text"][:40] for m in gs.messages if m.get("type") == "kampf"][-1:]))
+        check("auch nach dem Kartenangriff ist kein Wert negativ",
+              not keine_negativen(gs), str(keine_negativen(gs)))
+
+        # ------------------------------------------------------------- 9. Schlussstand
         abschnitt("9. Schlussstand")
         app._switch_view("Nachrichten")
         root.update()

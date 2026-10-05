@@ -2221,8 +2221,12 @@ class NebelseetalApp:
                 self.state.units[kennung].count = max(0, int(anzahl))
 
         bericht = kampfbericht.bericht(ergebnis)
+        # Kleine, belegte Verbesserung (offener Punkt aus Schritt 3): das ZIEL steht in der
+        # Meldung, nicht nur im Log — sonst weiss man im Reiter „Nachrichten" nicht, wozu der
+        # Bericht gehoert. Der Wortlaut des Berichts selbst bleibt unveraendert.
         self.state.messages.append(
-            {"text": bericht["titel"] + "\n" + "\n".join(bericht["zeilen"]), "type": "kampf"})
+            {"text": f"Ziel {ziel_name} — " + bericht["titel"] + "\n" + "\n".join(bericht["zeilen"]),
+             "type": "kampf"})
         self._log(f"{bericht['titel']} — Ziel {ziel_name}, Ausgang {ergebnis.get('ausgang')}.")
         return True
 

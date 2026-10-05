@@ -237,7 +237,10 @@ try:
     meldung = letzte_nachricht(app)
     text = meldung.get("text", "")
     check("die letzte Meldung hat den Typ 'kampf'", meldung.get("type") == "kampf")
-    check("der Text beginnt mit 'Schlachtbericht'", text.startswith("Schlachtbericht"), text[:40])
+    # Seit 05.10.2026 nennt die Meldung ZUERST das Ziel: im Reiter „Nachrichten" war bisher nicht
+    # zu sehen, wozu der Bericht gehoert (offener Punkt aus Schritt 3, dort als Verbesserung notiert).
+    check("der Text nennt erst das Ziel und dann den Schlachtbericht",
+          text.startswith("Ziel ") and "Schlachtbericht" in text, text[:60])
     check("der Text enthaelt 'Ausgang:'", "Ausgang:" in text)
     check("der Text ist die Zusammenfassung aus kampfbericht.bericht (Titel + Zeilen)",
           "\n" in text and "Verluste Angreifer:" in text)
@@ -274,7 +277,7 @@ try:
           "die Truppen ziehen sich zurueck" in text,
           str([z for z in text.split("\n") if "zurueck" in z.lower()]))
     check("der Ausgang ist Unentschieden (Rueckzug ohne Beute)",
-          text.startswith("Schlachtbericht: Unentschieden"), text[:40])
+          "Schlachtbericht: Unentschieden" in text, text[:60])
 
     # ======================================================================
     # 10. _attack und _attack_map laufen wirklich durch denselben Weg
