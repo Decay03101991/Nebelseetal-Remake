@@ -21,6 +21,8 @@ from harness import abschnitt, bericht, check, import_src, projektwurzel
 ROOT, SRC = import_src()
 import spieldaten as S
 import spieloekonomie as O
+import werkstatt
+from pathlib import Path
 
 DATA = os.path.join(projektwurzel(), "data")
 G = json.loads(open(os.path.join(DATA, "gelaende.json"), encoding="utf-8").read())
@@ -384,5 +386,66 @@ check("buchen lehnt einen negativen Bestand ab",
       wirft(lambda: O.buchen({"holz": 10}, {"holz": -11})) == "ValueError")
 check("buchen lehnt nicht endliche Mengen ab",
       wirft(lambda: O.buchen({"holz": 10}, {"holz": float("inf")})) == "ValueError")
+
+# ==========================================================================
+abschnitt("12. Waren verfallen NICHT und bleiben lieferbar (Vorgabe Daniel 05.10.2026)")
+# Woertlich: „Wenn Items wie schwerter oder anderes produziert wurden und im Lager sind, koennen
+# diese nicht zeitlich ablaufen. Einmal produziert sind sie im Lager bis sie benutzt werden.
+# Auch produzierte Waren koennen, duerfen, sollen geliefert werden koennen." — beides geprueft.
+
+
+def _warenstadt(waren, bauten=None, x=0):
+    return {"id": "S1", "besitzer": "spieler", "map_id": "m", "dimension": 1, "x": x, "y": 0,
+            "bauten": dict(bauten or {"0": "schmiede"}), "stufen": {},
+            "vorraete": {"metall": 100.0, "leder": 100.0, "wolle": 100.0, "holz": 100.0},
+            "waren": dict(waren), "einheiten": {}, "bevoelkerung": 5.0, "importiert": {},
+            "verbrauchsjournal": [], "werkstaetten": {}, "ausbildung": []}
+
+
+# --- (1) Ein Warenlager kennt KEINEN Zeitablauf --------------------------------------------
+_ort = _warenstadt({"Schwert": 2})
+_nach_start = O.ware_start(_ort, "Schwert", {"Waffentechnik": 5}, 0.0)
+check("das Einreihen eines Auftrags laesst vorhandene Waren unangetastet",
+      _nach_start["waren"] == {"Schwert": 2}, str(_nach_start["waren"]))
+
+_schlange = _nach_start["werkstaetten"]["schmiede"]
+_sehr_spaet = 10 * 365 * 24 * 3600.0          # zehn Jahre Spielzeit
+_fortschritt = werkstatt.fortschritt(_schlange, _sehr_spaet)
+_fertig = werkstatt.fertige_waren(_schlange, _sehr_spaet)
+check("nach sehr langer Zeit ist die Ware fertig und liegt im Stapel", _fertig.get("Schwert") == 1,
+      str(_fertig))
+for _ware, _menge in _fertig.items():
+    _nach_start["waren"][_ware] = _nach_start["waren"].get(_ware, 0) + _menge
+check("das Lager hat danach 3 Schwerter (2 + 1 aus der Fertigung)",
+      _nach_start["waren"].get("Schwert") == 3, str(_nach_start["waren"]))
+check("und auch zehn Jahre spaeter sind es noch 3 — Waren verfallen NICHT",
+      _nach_start["waren"].get("Schwert") == 3, str(_nach_start["waren"]))
+
+# --- (2) Produzierte Waren sind lieferbar (Summe bleibt erhalten) ---------------------------
+_quelle = _warenstadt({"Schwert": 3}, x=0)
+_quelle["einheiten"] = {"Handkarren": 1}
+_ziel = _warenstadt({}, bauten={}, x=4)
+_ziel["id"] = "S2"
+_q, _m = O.transport_start(_quelle, _ziel, {"Handkarren": 1}, {"Schwert": 2}, 0.0, "waren")
+_orte, _m2 = O.transport_fortschritt(_m, {"S1": _q, "S2": _ziel}, _m["ankunft"])
+check("die Ware ist am Ziel angekommen", _orte["S2"]["waren"].get("Schwert") == 2,
+      str(_orte["S2"]["waren"]))
+check("und die Summe ueber beide Staedte bleibt 3 (nichts verschwindet, nichts entsteht)",
+      _orte["S1"]["waren"].get("Schwert", 0) + _orte["S2"]["waren"].get("Schwert", 0) == 3,
+      f"{_orte['S1']['waren']} + {_orte['S2']['waren']}")
+check("der Warenkanal schreibt KEINE Sieg-Importherkunft", _orte["S2"]["importiert"] == {},
+      str(_orte["S2"]["importiert"]))
+
+# --- (3) Wachen gegen einen spaeteren Verfallsmechanismus im Altmodus ----------------------
+_main_quelle = (Path(S.projektwurzel()) / "src" / "main.py").read_text(encoding="utf-8")
+_warenzeilen = [z.strip() for z in _main_quelle.splitlines()
+                if "self.waren[" in z and "=" in z and not z.strip().startswith("#")]
+check("kein Verfall: in main.py gibt es nur ZUGEWINN auf self.waren, keine Abwertung ueber die Zeit",
+      bool(_warenzeilen) and all(z.split("=", 1)[1].strip().find("+") >= 0 or "int(" in z
+                                 for z in _warenzeilen),
+      str(_warenzeilen))
+check("und kein Ablauf-Wort steht bei den Waren (kein Haltbarkeitsdatum)",
+      not any(w in _main_quelle.lower() for w in ("verfall", "verrott", "haltbar", "verderb")),
+      "kein Verfallswort in src/main.py")
 
 sys.exit(bericht())
