@@ -178,14 +178,21 @@ def naechster_schritt(pfad=None) -> str:
 
 
 def startzeile(eigene_sitzung: str = "") -> str:
-    """Die Startzeile fuer die neue Sitzung (wird ausgegeben, nichts wird gestartet)."""
+    """Die Startzeile fuer die neue Sitzung (wird ausgegeben, nichts wird gestartet).
+
+    Das KONTEXT-PAKET steht bewusst an erster Stelle: es ist die kleine Uebergabe (~8 KB), die
+    den Stand, den EINEN naechsten Schritt, die Roadmap und die teuer gelernten Fallen traegt.
+    `PROJEKT_STAND.md` ist mit ~68 KB Nachschlagewerk und wird nur bei Bedarf gelesen.
+    """
     return "\n".join([
-        f"Lies {PROJEKT / 'docs' / 'PROJEKT_STAND.md'}, Abschnitt 0c (Stand in Belegen, der EINE",
-        "naechste Schritt, Kontext-Paket). Lies sonst nur das Kontext-Paket und die dort genannten",
-        "Stellen. Nach jedem Schritt: betroffener Einzeltest + einmal Sammellauf, eine Protokollzeile",
-        "(Zeit, Schritt, Ergebnis, Beleg, Kosten), python tools/protokoll_sichern.py --protokoll,",
-        "kleiner Commit. Am Ende der Reihe: tools/build_exe.py und Startpruefung aus einem anderen",
-        "Ordner.",
+        f"Lies ZUERST {PROJEKT / 'docs' / 'KONTEXT_PAKET.md'} (klein: Belegstand, der EINE naechste",
+        "Schritt, Roadmap, Fallen, offene Entscheidungen, Zeiger auf Detailstellen).",
+        f"{PROJEKT / 'docs' / 'PROJEKT_STAND.md'} nur bei Bedarf (Historie; dort Abschnitt 0c"
+        " Stand/naechster Schritt, 0e Uebergabe). Lies sonst nur das Kontext-Paket und die dort",
+        "genannten Stellen. Nach jedem Schritt: betroffener Einzeltest + einmal Sammellauf, eine",
+        "Protokollzeile (Zeit, Schritt, Ergebnis, Beleg, Kosten),",
+        "python tools/protokoll_sichern.py --protokoll, kleiner Commit. Am Ende der Reihe:",
+        "tools/build_exe.py und Startpruefung aus einem anderen Ordner.",
         "",
         "Vor der ersten Aenderung: python tools/zieluebergabe.py --pruefen  (0 = nur diese Sitzung",
         "hat ein aktives Ziel; sonst den Geisterlaeufer mit --beenden SITZUNG sauber beenden).",

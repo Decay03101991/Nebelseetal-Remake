@@ -328,17 +328,22 @@ liegt jetzt bei **2665**. Wer eine feste Sollzahl aufschreibt, erzeugt Falschala
 
 ### Startzeile zum Kopieren
 
-> **Lies zuerst `D:\Arbeiten\Nebelseetal_Remake\docs\KONTEXT_PAKET.md`** — das ist die Übergabe in
-> **8,5 KB** (Belegstand, der EINE nächste Schritt, Roadmap, die teuer gelernten Fallen, offene
-> Entscheidungen, Zeiger auf Details). `docs\PROJEKT_STAND.md` (67 KB) nur für Historie und die
-> Abschnitte **0c** (Stand in Belegen, der EINE nächste Schritt, Kontext-Paket) und **0e** (Übergabe).
-> Lies sonst nur das Kontext-Paket und die dort genannten Stellen. Nach jedem Schritt: betroffener
-> Einzeltest + einmal Sammellauf, eine Protokollzeile (Zeit, Schritt, Ergebnis, Beleg, Kosten),
-> `python tools/protokoll_sichern.py --protokoll`, kleiner Commit. Am Ende der Reihe:
-> `tools/build_exe.py` und Startprüfung aus einem anderen Ordner. **Vor der ersten Änderung:**
-> `python tools/zieluebergabe.py --pruefen` (0 = nur diese Sitzung hat ein aktives Ziel).
-> **Ziel in der neuen Sitzung setzen:** `/goal <Wortlaut aus Abschnitt 0>`. **Kosten:** Tageslimit
-> am 05.10. überschritten — bis Daniel freigibt nur kostenlose/lokale Wege.
+So erzeugt (Werkzeug, startet nichts): `python tools/zieluebergabe.py --startzeile`
+
+> Lies ZUERST `D:\Arbeiten\Nebelseetal_Remake\docs\KONTEXT_PAKET.md` (klein: Belegstand, der EINE
+> naechste Schritt, Roadmap, Fallen, offene Entscheidungen, Zeiger auf Detailstellen).
+> `D:\Arbeiten\Nebelseetal_Remake\docs\PROJEKT_STAND.md` nur bei Bedarf (Historie; dort Abschnitt 0c
+> Stand/naechster Schritt, 0e Uebergabe). Lies sonst nur das Kontext-Paket und die dort genannten
+> Stellen. Nach jedem Schritt: betroffener Einzeltest + einmal Sammellauf, eine Protokollzeile
+> (Zeit, Schritt, Ergebnis, Beleg, Kosten), `python tools/protokoll_sichern.py --protokoll`, kleiner
+> Commit. Am Ende der Reihe: `tools/build_exe.py` und Startpruefung aus einem anderen Ordner.
+>
+> Vor der ersten Aenderung: `python tools/zieluebergabe.py --pruefen` (0 = nur diese Sitzung hat ein
+> aktives Ziel; sonst den Geisterlaeufer mit `--beenden SITZUNG` sauber beenden).
+>
+> Ziel in DIESER Sitzung setzen: `/goal <Wortlaut aus D:\Arbeiten\Nebelseetal_Remake\docs\PROJEKT_STAND.md 0c>`
+>
+> **Kosten:** Tageslimit am 05.10. überschritten — bis Daniel freigibt nur kostenlose/lokale Wege.
 
 ### Stand in Belegen
 
