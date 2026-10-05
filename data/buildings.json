@@ -41,7 +41,7 @@
       "id": "steinmetz",
       "name": "Steinmetz",
       "kategorie": "Produktion",
-      "voraussetzung": "Baukunst",
+      "voraussetzung": "keine (ohne Forschung baubar)",
       "wirkung": "produziert Stein",
       "rohstoff": "Stein",
       "ertrag_pro_stunde": {
@@ -122,14 +122,23 @@
       "name": "Rinderfarm",
       "kategorie": "Produktion",
       "voraussetzung": "Baukunst",
-      "wirkung": "produziert Leder",
-      "rohstoff": "Leder",
+      "wirkung": "produziert Nahrung und Leder",
+      "rohstoff": [
+        "Nahrung",
+        "Leder"
+      ],
       "ertrag_pro_stunde": {
-        "Grasland": 3,
-        "Steppe": 1.5
+        "Grasland": {
+          "Nahrung": 3,
+          "Leder": 3
+        },
+        "Steppe": {
+          "Nahrung": 1.5,
+          "Leder": 1.5
+        }
       },
       "abweichung": "Grasland: 2005 = 2, Handbuch 2009 = 3; Steppe: 2005 = 1, Handbuch 2009 = 1,5.",
-      "anmerkung": "Die 2009er Tabelle nennt wörtlich 'Grasland (3 Nahrung, 3 Leder), Steppe (1,5 Nahrung, 1,5 Leder)'. Ob ein zweiter Ertrag (Nahrung) gemeint ist, ist nicht eindeutig; als Leder-Ertrag 3 / 1,5 übernommen."
+      "anmerkung": "KORREKTUR 05.10.2026 (Handbuch gewinnt): Die 2009er Tabelle nennt wörtlich \"Grasland (3 Nahrung, 3 Leder), Steppe (1,5 Nahrung, 1,5 Leder)\" (Z. 362-365). Vorher führte die Datei nur Leder. Belegt durch docs/audits/handbuch_abgleich_2026-10-05.txt, Punkt 4."
     },
     {
       "id": "pferdezucht",

@@ -308,8 +308,8 @@ check("forschung_stand nennt 0,5 Reststunden nach 1800 s",
       abs(_fw["reststunden"] - 0.5) < 1e-9, str(_fw["reststunden"]))
 
 ok, meldung = S.forschung_starten(zf, "Forstwirtschaft", 1800)
-check("zweiter Auftrag im selben Gebiet wird abgelehnt",
-      ok is False and "laeuft" in meldung, meldung)
+check("zweiter Auftrag in derselben Siedlung wird abgelehnt (Handbuch S. 12)",
+      ok is False and ("laeuft" in meldung or "forscht" in meldung), meldung)
 ok, meldung = S.forschung_starten(zf, "GibtsNicht", 1800)
 check("unbekanntes Forschungsgebiet wird abgelehnt", ok is False, meldung)
 

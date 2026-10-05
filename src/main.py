@@ -1044,11 +1044,12 @@ class GameState:
             if zug.get("aktion") == "angreifen":
                 beute = dict((zug.get("wirkung") or {}).get("beute") or {})
                 if beute and getattr(self, "noob_protection", False):
-                    # Der Noobschutz (Tag 1-3) schuetzt die Startwerte. Vorher zog der erste Bot
-                    # SOFORT und pluenderte 50 % — von 100 Holz/100 Stein blieben 30/30, bevor
-                    # der Spieler etwas bauen konnte.
+                    # Der Götterschutz (Handbuch S. 6: die ersten sieben Tage bzw. bis zum ersten
+                    # Kriegspunkt) schuetzt die Startwerte. Vorher zog der erste Bot SOFORT und
+                    # pluenderte 50 % — von 100 Holz/100 Stein blieben 30/30, bevor der Spieler
+                    # etwas bauen konnte.
                     self.messages.append({
-                        "text": f"Noobschutz aktiv: {zug.get('meldung')} Die Beute bleibt uns.",
+                        "text": f"Götterschutz aktiv: {zug.get('meldung')} Die Beute bleibt uns.",
                         "type": "bot"})
                 else:
                     for stoff, menge in beute.items():
@@ -1078,7 +1079,8 @@ class GameState:
         # W5: Die Bots handeln nach `botkern` (Angriffstakt 6-24 h, Handelsschwelle, Wirtschaft).
         # Vorher stand hier eine erfundene Schaedigung: 5 % x Aggression, fester Nahrungsabzug.
         self.bots_fortschreiben(time.time())
-        # FIX 2+3: Tag fortschreiben (86400s = 1 Spieltag) + Noobschutz nach Tag 3 deaktivieren
+        # FIX 2+3: Tag fortschreiben (86400s = 1 Spieltag) + Götterschutz nach sieben Tagen bzw.
+        # beim ersten Kriegspunkt beenden (Handbuch S. 6, KORREKTUR 05.10.2026 — vorher Tag 3).
         # Siedlergrenze und Siedlerzuwachs kommen aus den Haeusern der Siedlungskarten (W4b-5):
         # 10 Siedler je Siedlung, +5 je Haus, 1 neuer Siedler je Stunde (Handbuch Seite 11),
         # mit Heilkunde +10 % je Stufe. Vorher stand hier ein erfundener Zuwachs von 30 je Stunde.
@@ -1090,9 +1092,21 @@ class GameState:
         if self._day_accum >= 86400:
             self._day_accum -= 86400
             self.day += 1
-        if self.day >= 3 and self.noob_protection:
-            self.noob_protection = False
-            self.messages.append({"text": "Noobschutz aufgehoben - die Welt ist jetzt gefaehrlich!", "type": "system"})
+        if self.noob_protection:
+            # Götterschutz (Handbuch S. 6, Z. 215-217; KORREKTUR 05.10.2026): neue Spieler sind die
+            # ersten SIEBEN Tage geschützt, der Schutz endet früher mit dem ERSTEN Kriegspunkt.
+            # Vorher stand hier ein fester Tag 3 — belegter Widerspruch gegen das Handbuch
+            # (docs/audits/handbuch_abgleich_2026-10-05.txt, Punkt 1). `self.day` startet bei 1,
+            # also sind „die ersten sieben Tage“ day 1..7 und der Schutz endet ab day 8.
+            krieg = punkte.kriegspunkte({k: int(v.count) for k, v in self.units.items()},
+                                        gebaeude_wirkung.wall_stufe(self.settlements))
+            if self.day > punkte.goetterschutz_tage() or krieg > 0:
+                self.noob_protection = False
+                grund = ("erster Kriegspunkt" if krieg > 0
+                         else f"{punkte.goetterschutz_tage()} Tage vorbei")
+                self.messages.append({
+                    "text": f"Götterschutz beendet ({grund}) - die Welt ist jetzt gefährlich!",
+                    "type": "system"})
         # W3: fertige Waren aus den Werkstatt-Warteschlangen ins Lager buchen (genau einmal).
         self.werkstatt_fortschreiben(time.time())
         # W7: Auftraege weiterlaufen lassen (Ankunft buchen, Heimkehrer gutschreiben).
@@ -1913,6 +1927,14 @@ class NebelseetalApp:
         if not gebaut:
             return
         name = gelaende.gebaeude_name(gebaut)
+        # Handbuch S. 12 (Z. 423-424): Während eines Forschungsauftrags darf die Bibliothek NICHT
+        # ausgebaut werden (KORREKTUR 05.10.2026). Die Bibliothek ist die eine Forschungsstätte,
+        # also gilt die Sperre, solange irgendein Forschungsauftrag läuft.
+        if gebaut == "bibliothek" and getattr(self.state, "forschungsauftraege", None):
+            laufend = next(iter(self.state.forschungsauftraege), "")
+            self._log(f"{name} kann nicht ausgebaut werden, solange {laufend} erforscht wird "
+                      f"(Handbuch S. 12).")
+            return
         stufe = gebaeude_wirkung.stufe_von_feld(siedlung, feld)
         grenze = gebaeude_wirkung.max_stufe(gebaut)
         if grenze is None:
@@ -3330,7 +3352,7 @@ class NebelseetalApp:
 
     def _attack(self, bot: BotPlayer):
         if self.state.noob_protection and bot.noob_protection:
-            self._log(f"{bot.name} steht unter Noobschutz. Angriff nicht möglich.")
+            self._log(f"{bot.name} steht unter Götterschutz. Angriff nicht möglich.")
             return
         # W2/W2b: kein Daumenvergleich mehr, sondern der Originalablauf. Die Verteidiger sind
         # die Armee des Bots, seine Vorraete liefert `_vorraete_des_ziels` (bis Schritt 8 aus
@@ -3946,7 +3968,7 @@ class NebelseetalApp:
                 tile = self.state.get_tile(x, y, size)
                 target_bot_name = m.get("target_bot")
                 if self.state.noob_protection and target_bot_name:
-                    report = f"Truppen sind in {m['to']} eingetroffen. Noobschutz aktiv: keine Plünderung gegen {target_bot_name}."
+                    report = f"Truppen sind in {m['to']} eingetroffen. Götterschutz aktiv: keine Plünderung gegen {target_bot_name}."
                 else:
                     loot = {}
                     if tile and tile.resources:

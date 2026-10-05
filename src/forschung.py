@@ -12,8 +12,12 @@ Belegte Originalregeln (Handbuch 2009, Seiten 11-13) — nicht neu erfunden, son
   * Dauer = neue Stufe zum Quadrat, in Stunden (`spieldaten.forschungsdauer_stunden`).
   * Die Stufe steigt **erst nach Ablauf** der Forschungszeit, nicht beim Klick.
   * Voraussetzung ist eine Bibliothek.
-  * Ein laufender Auftrag sperrt sein Gebiet (kein zweiter Auftrag parallel im selben
-    Gebiet; andere Gebiete bleiben frei).
+  * Ein laufender Auftrag sperrt die GANZE Siedlung: solange eine Bibliothek forscht, ist weder
+    eine weitere Forschung noch der Ausbau der Bibliothek moeglich (Handbuch S. 12, Z. 423-424).
+    KORREKTUR 05.10.2026: vorher sperrte der Code nur dasselbe Gebiet — belegter Widerspruch
+    gegen das Handbuch (docs/audits/handbuch_abgleich_2026-10-05.txt, Punkt 3). Das Handbuch
+    gewinnt. Solange es EINE Bibliothek gibt, heisst „die Siedlung“ faktisch „keine weitere
+    Forschung“; mit mehreren Siedlungen je eigener Bibliothek gilt die Sperre je Siedlung.
   * Abbruch: die Kosten sind verloren, die Stufe steigt nicht.
   * Forschungspunkte: Stufe hoch drei.
 
@@ -120,8 +124,14 @@ def starten(gebiet: str,
         return False, f"Unbekanntes Forschungsgebiet: {gebiet}."
     if not hat_bibliothek:
         return False, "Forschung braucht eine Bibliothek."
-    if stand[gebiet]["auftrag"] is not None:
-        return False, f"Im Gebiet {gebiet} laeuft schon ein Forschungsauftrag."
+    # Handbuch S. 12 (Z. 423-424): Während eines Forschungsauftrags kann in dieser Siedlung
+    # WEDER eine weitere Forschung erteilt noch die Bibliothek ausgebaut werden. Der Code
+    # sperrte früher nur das GLEICHE Gebiet (korrigiert 05.10.2026).
+    laufend = [name for name, eintrag in stand.items() if eintrag.get("auftrag") is not None]
+    if laufend:
+        return False, (f"In dieser Siedlung forscht bereits {laufend[0]} — "
+                       f"erst nach dessen Abschluss ist eine weitere Forschung möglich "
+                       f"(Handbuch S. 12).")
 
     neue_stufe = naechste_stufe(stand, gebiet)
     kosten_dict = kosten(neue_stufe)

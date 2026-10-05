@@ -4,7 +4,8 @@ Alle Originalregeln sind belegt (Handbuch 2009, Seiten 11-13):
   * Kosten verdoppeln sich je Stufe (50, 100, 200, 400 …).
   * Dauer = neue Stufe zum Quadrat in Stunden (3 -> 9, 5 -> 25).
   * Die Stufe steigt erst nach Ablauf der Zeit, nicht beim Klick.
-  * Bibliothek ist Voraussetzung; ein laufender Auftrag sperrt sein Gebiet.
+  * Bibliothek ist Voraussetzung; ein laufender Auftrag sperrt die GANZE Siedlung (Handbuch
+    S. 12, Z. 423-424: keine weitere Forschung, kein Bibliotheksausbau — korrigiert 05.10.2026).
   * Abbruch kostet die Rohstoffe; die Stufe steigt nicht.
   * Forschungspunkte = Stufe hoch drei.
 
@@ -130,7 +131,7 @@ nochmal = F.abschliessen(stand, 100 * H)
 check("zweiter Aufruf laesst nichts mehr steigen", nochmal == [], str(nochmal))
 check("Stufe bleibt nach zweitem Aufruf 1", stand["Kriegskunst"]["stufe"] == 1, "")
 
-abschnitt("Zweiter Auftrag im selben Gebiet wird abgelehnt (Gebiet gesperrt)")
+abschnitt("Zweiter Auftrag in derselben Siedlung wird abgelehnt (Siedlung gesperrt)")
 stand = F.neuer_stand()
 roh = {"holz": 10000}
 F.starten("Kriegskunst", stand, 0.0, hat_bibliothek=True, vorhandene_rohstoffe=roh)
@@ -138,15 +139,24 @@ ok2, meld2 = F.starten("Kriegskunst", stand, 0.5 * H, hat_bibliothek=True,
                        vorhandene_rohstoffe=roh)
 check("zweiter Start im selben Gebiet scheitert", ok2 is False, str((ok2, meld2)))
 check("Meldung erwaehnt den laufenden Auftrag",
-      "laeuft" in meld2.lower() or "auftrag" in meld2.lower(), meld2)
+      "laeuft" in meld2.lower() or "auftrag" in meld2.lower() or "forscht" in meld2.lower(), meld2)
 check("der laufende Auftrag bleibt unveraendert (Zielstufe 1, Start 0)",
       stand["Kriegskunst"]["auftrag"]["zielstufe"] == 1
       and stand["Kriegskunst"]["auftrag"]["startzeit"] == 0.0, "")
 check("abgelehnter zweiter Start kostet keine Rohstoffe (nur 50 weg)",
       roh["holz"] == 10000 - 50, str(roh["holz"]))
-ok3, _ = F.starten("Baukunst", stand, 0.5 * H, hat_bibliothek=True,
-                   vorhandene_rohstoffe=roh)
-check("ein anderes Gebiet darf parallel forschen", ok3 is True, "")
+# KORREKTUR 05.10.2026 (Handbuch S. 12, Z. 423-424 gewinnt): Ein laufender Forschungsauftrag
+# sperrt die GANZE Siedlung — es gibt hier nur EINE Bibliothek, also ist auch ein ANDERES
+# Gebiet gesperrt. Vorher erlaubte der Code parallele Forschung in anderen Gebieten; das war
+# ein belegter Widerspruch gegen das Handbuch (docs/audits/handbuch_abgleich_2026-10-05.txt).
+ok3, meld3 = F.starten("Baukunst", stand, 0.5 * H, hat_bibliothek=True,
+                       vorhandene_rohstoffe=roh)
+check("ein anderes Gebiet wird ebenfalls abgelehnt (die Siedlung forscht bereits)",
+      ok3 is False, str((ok3, meld3)))
+check("und der abgelehnte Start kostet nichts (Holz bleibt 9950)",
+      roh["holz"] == 10000 - 50, str(roh["holz"]))
+check("und im anderen Gebiet laeuft kein Auftrag",
+      stand["Baukunst"]["auftrag"] is None, str(stand["Baukunst"]["auftrag"]))
 
 abschnitt("Stufe 2: Dauer 4 Stunden, Kosten 100 Holz")
 stand = F.neuer_stand()

@@ -283,9 +283,9 @@ def main_() -> int:
     check("nach einer Stunde ist etwas DAZUKOMMEN", any(v > 0 for v in zuwachs.values()), str(zuwachs))
     check("durch den Ertrag ALLEIN geht nichts verloren", all(v > 0 for v in zuwachs.values()), str(zuwachs))
 
-    # ---------------------------------------------------------------- 6 Noobschutz
-    abschnitt("6. Noobschutz (Tag 1-3): kein Bot darf die Startwerte pluendern")
-    check("der Noobschutz ist am ersten Tag aktiv", st.noob_protection)
+    # ---------------------------------------------------------------- 6 Götterschutz
+    abschnitt("6. Götterschutz (die ersten sieben Tage): kein Bot darf die Startwerte pluendern")
+    check("der Götterschutz ist am ersten Tag aktiv", st.noob_protection)
     # Bot-Zuege erzwungen wiederholen: ob ein Bot angreift, entscheidet der Zufall
     # (`botkern`), deshalb wird hier ueber mehrere Zuege gemessen statt auf einen zu hoffen.
     angriff_gesehen = False
@@ -301,13 +301,13 @@ def main_() -> int:
         for k in vorher:
             if nachher[k] < vorher[k]:
                 gestohlen[k] = round(gestohlen.get(k, 0.0) + vorher[k] - nachher[k], 2)
-        if any("Noobschutz" in str(m.get("text")) for m in st.messages):
+        if any("Götterschutz" in str(m.get("text")) for m in st.messages):
             angriff_gesehen = True
-    check("kein Rohstoff wird waehrend des Noobschutzes gestohlen (25 Bot-Zuege)",
+    check("kein Rohstoff wird waehrend des Götterschutzes gestohlen (25 Bot-Zuege)",
           not gestohlen, str(gestohlen))
     if angriff_gesehen:
         check("ein abgewehrter Angriff steht mit Begruendung in den Nachrichten",
-              any("Noobschutz" in str(m.get("text")) for m in st.messages),
+              any("Götterschutz" in str(m.get("text")) for m in st.messages),
               str([m.get("text") for m in st.messages][-1:]))
     else:
         befund("in 25 erzwungenen Bot-Zuegen kam kein Angriff vor — der Schutzweg wurde "
@@ -389,6 +389,34 @@ def main_() -> int:
 
     abschnitt("9. Keine stillen Rueckruf-Fehler im ganzen Durchspiel")
     check("kein stiller Tkinter-Fehler", not _still, " | ".join(_still))
+
+    # ---------------------------------------------------------------- 10 Götterschutz
+    # KORREKTUR 05.10.2026 (Handbuch S. 6, Z. 215-217 gewinnt): Der Schutz dauert SIEBEN Tage
+    # (vorher endete er fest bei Tag 3) und endet vorzeitig mit dem ERSTEN Kriegspunkt.
+    # Beleg: docs/audits/handbuch_abgleich_2026-10-05.txt, Punkt 1. Geprueft am echten Zustand.
+    abschnitt("10. Götterschutz: sieben Tage bzw. Ende mit dem ersten Kriegspunkt (Handbuch S. 6)")
+    frisch = main.GameState()
+    check("zu Beginn ist der Götterschutz aktiv (Tag 1)", frisch.noob_protection is True)
+    frisch.day = 7
+    frisch.tick(0.0)                 # nur die Schutzpruefung anstossen, kein Tag vergeht
+    check("am siebten Tag schützt der Götterschutz noch", frisch.noob_protection is True)
+    frisch.day = 8
+    frisch.tick(0.0)
+    check("ab dem achten Tag ist der Götterschutz beendet", frisch.noob_protection is False)
+    check("die Meldung nennt den Grund (sieben Tage)",
+          any("Götterschutz beendet" in str(m.get("text")) for m in frisch.messages),
+          str(frisch.messages[-1:]))
+
+    zweit = main.GameState()
+    zweit.units["Krieger"].count = 1
+    check("ein Krieger bringt Kriegspunkte (Handbuch S. 5)",
+          main.punkte.kriegspunkte({"Krieger": 1}, 0) > 0)
+    zweit.tick(0.0)
+    check("der erste Kriegspunkt beendet den Götterschutz vorzeitig",
+          zweit.noob_protection is False)
+    check("und die Meldung nennt den Kriegspunkt",
+          any("erster Kriegspunkt" in str(m.get("text")) for m in zweit.messages),
+          str(zweit.messages[-1:]))
 
     root.destroy()
     return bericht()

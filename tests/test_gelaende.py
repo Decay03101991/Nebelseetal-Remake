@@ -26,12 +26,21 @@ faelle = [
     ("erzmine", "berg", 3), ("erzmine", "huegel", 1.5),
     ("goldmine", "berg", 3), ("goldmine", "huegel", 1.5),
     ("farm", "grasland", 4), ("farm", "steppe", 2),
-    ("schafszucht", "grasland", 3), ("rinderfarm", "grasland", 3), ("pferdezucht", "grasland", 3),
+    ("schafszucht", "grasland", 3), ("pferdezucht", "grasland", 3),
     ("tempel", "nebelsee", 5),
 ]
 for geb, art, soll in faelle:
     ist = G.ertrag_pro_stunde(geb, art)
     check(f"{geb} auf {art} = {soll}", ist == soll, f"gefunden {ist}")
+
+# KORREKTUR 05.10.2026 (Handbuch gewinnt, HB Z. 362-365): Die Rinderfarm liefert Nahrung UND
+# Leder — vorher führte buildings.json nur Leder. Beleg: docs/audits/handbuch_abgleich_2026-10-05.txt.
+check("Rinderfarm auf Grasland liefert Nahrung 3 UND Leder 3",
+      G.ertrag_pro_stunde("rinderfarm", "grasland") == {"Nahrung": 3, "Leder": 3},
+      str(G.ertrag_pro_stunde("rinderfarm", "grasland")))
+check("Rinderfarm auf Steppe liefert Nahrung 1,5 UND Leder 1,5",
+      G.ertrag_pro_stunde("rinderfarm", "steppe") == {"Nahrung": 1.5, "Leder": 1.5},
+      str(G.ertrag_pro_stunde("rinderfarm", "steppe")))
 
 check("Jäger auf Wald liefert Nahrung 2 und Leder 2",
       G.ertrag_pro_stunde("jaeger", "wald") == {"Nahrung": 2, "Leder": 2},
