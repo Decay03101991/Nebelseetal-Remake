@@ -1,4 +1,10 @@
-# KONTEXT-PAKET — Nebelseetal Remake (Stand 06.10.2026, 00:36 · Zeiten mit `date` geholt)
+# KONTEXT-PAKET — Nebelseetal Remake (Stand 06.10.2026, 01:02 · Zeiten mit `date` geholt)
+
+> **⏸ ANHALTEN — ZUERST LESEN, DANN WARTEN.** Die vorige Sitzung ist an einem **sauberen Punkt**
+> angehalten: **Teil 7b ist fertig, die `.exe` ist gebaut UND startgeprüft, alles ist committet und
+> gesichert.** Lies dieses Paket, mach die Sekunden-Checks (Abschnitt 1 und 8) — und **arbeite dann
+> NOCH NICHT**: kein Sammellauf, keine Prüfung, keine Änderung. **Warte auf Daniels Wort.** Erst
+> dann geht es mit **Teil 8** weiter (Abschnitt 2).
 
 **Diese Datei ist die Übergabe. Lies SIE zuerst (≈ 12 KB) und sonst nur, was hier als Zeiger steht —
 `docs/PROJEKT_STAND.md` (69 KB) und `docs/ENTWICKLUNGSPROTOKOLL.md` (93 KB) sind Nachschlagewerke,
@@ -11,19 +17,19 @@ Ziel: fertige, fehlerfrei spielbare, passwortgeschützte Einzelspieler-`.exe` (H
 
 | Was | Beleg |
 |---|---|
-| **Sammellauf** | **3986 bestanden · 0 Fehler · 22 Befunde · 52 Dateien** (00:2x; `…/cache/scratch/sammellauf.py`, 134 s) |
-| **Arbeitsbaum** | **sauber** (`git status --short` leer), letzter Commit **`01fe939`** (Teil 7a: Gratisgewinn gesperrt) |
-| **`.exe`** | **14.641.733 Byte**, SHA256 `524d6260e28daf74…`, Dateizeitstempel **00:27:57** — **GEBAUT, ABER NICHT STARTPGEPRÜFT** (die Prüfung hing in der Freigabe); Vorgängerfassung gesichert (`…\cache\scratch\exe_alt_0027_vor_teil7.exe`, 14.640.433 Byte). Prüfskript: `…\cache\scratch\exestart\startpruefung_1006_0029.ps1` |
-| **Startprüfung** | aus `…\hermes\cache\scratch\exestart` (anderer Ordner, Skript `startpruefung_1006_0029.ps1` — **noch nicht gelaufen**): Fenstertitel **„Nebelseetal Remake"**, antwortet bei **+10/+20/+40 s**, **0** Fehlerberichte (WerFault), danach **0 offene Spielprozesse**, Startordner leer |
-| **Sicherung** | `docs/SICHERUNGEN.md` — 16 führende Papiere mit Prüfsummen (00:35, projektunabhängige Kopie unter `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\`) |
-| **Zielregister** | nur **diese** Sitzung `20261005_212201_8bd3fb` aktiv (**0/20 Takte**), **kein fremdes aktives Ziel** (`--pruefen` rc=0); die Vorgängersitzung `20261005_201518_d2b523` ist auf `cleared` gesetzt |
-| **Kosten** | **Der Tag ist umgesprungen:** am 05.10. endete die Messung bei **7,25 EUR = ÜBER_LIMIT**; der **06.10.** steht bei **0,65 EUR / 4,00 EUR** (0,73 USD), Rest **+3,35 EUR**. **Daniel hat den Auftrag um 20:20 freigegeben** (nur `deepseek-flash`, kein teures Modell, keine Kinder, **1,00 USD DeepSeek bleiben als Reserve**). Anteil der Sitzung am 05.10.: **+0,57 EUR** (6,68 → 7,25); am 06.10. bisher **+0,65 EUR**. Maßgeblich ist DeepSeeks Kontostand (Daniel liest ab) |
+| **Sammellauf** | **4023 bestanden · 0 Fehler · 22 Befunde · 52 Dateien** (00:56–00:57; `…/cache/scratch/sammellauf.py`, **100 s**) |
+| **Arbeitsbaum** | **sauber** (`git status --short` leer), letzte Commits **`baecda9`** (`.exe`), **`f7dc77d`** (Teil 7b), **`d05af8d`** (Startprüfung) |
+| **`.exe`** | **14.652.257 Byte**, SHA256 `5dc00158bc3c1094…`, Dateizeitstempel **00:59:17** — **GEBAUT UND STARTPGEPRÜFT** (enthält Teil 7b); Vorgängerfassung vorher gesichert (`…\cache\scratch\exe_alt_0058_vor_teil7b.exe`, 14.641.733 Byte) |
+| **Startprüfung** | **beide Fassungen geprüft:** die aus Teil 7a **nachgeholt** (14.641.733 Byte, `524d6260…`, Skript `startpruefung_1006_0029.ps1`) und die neue (`startpruefung_1006_0100.ps1`) — aus `…\cache\scratch\exestart` (**anderer** Ordner): Fenstertitel **„Nebelseetal Remake"**, antwortet bei **+10/+20/+40 s**, **0** Fehlerberichte (WerFault), danach **0 offene Spielprozesse**, Startordner leer |
+| **Sicherung** | `docs/SICHERUNGEN.md` — 16 führende Papiere mit Prüfsummen (01:0x, projektunabhängige Kopie unter `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\`) |
+| **Zielregister** | Diese Sitzung `20261006_003807_ae9594` wird beim Übergeben auf **`cleared`** gesetzt; `--pruefen` → **rc=0, kein fremdes aktives Ziel**. Die neue Sitzung setzt ihr Ziel **selbst — und arbeitet dann noch nicht** (siehe oben) |
+| **Kosten** | **06.10. um 01:02 gemessen: 0,80 EUR / 4,00 EUR** (0,89 USD), Rest **+3,20 EUR**, Lage **„OK"**; Anteil dieser Sitzung **+0,13 EUR**. Der **05.10.** endete bei **7,25 EUR = ÜBER_LIMIT**. **Daniel hat den Auftrag freigegeben** (nur `deepseek-flash`, kein teures Modell, keine Kinder, **1,00 USD DeepSeek bleiben als Reserve**). Maßgeblich ist DeepSeeks Kontostand (Daniel liest ab) |
 
 `git log --oneline -3` · `git status --short` · `python tools/zieluebergabe.py --pruefen` → alles in Sekunden.
 
 ## 2. Der EINE nächste Schritt
 
-**Schritt 9 läuft — Teil 6 ist vollständig fertig, in Teil 7 ist der Gratisgewinn beim Handel gesperrt; offen sind der bestätigte Kaufvertrag (Teil 7b), die Startprüfung der aktuellen `.exe` und danach Teil 8 (Migration).** Der
+**Schritt 9 läuft — Teil 6 UND Teil 7 sind vollständig fertig (7a: Gratisgewinn gesperrt · 7b: der bestätigte Kaufvertrag läuft); offen ist nur noch Teil 8 (Kartenfreischaltung + Migration), danach Schritt 10 (Aktivierung).** Der
 Auftraggeber hat „Stück für Stück" entschieden: nach JEDEM Teil Einzeltest + einmal Sammellauf +
 Protokollzeile + kleiner Commit.
 
@@ -32,39 +38,45 @@ Spieluhr je Ort samt Ware, Ausbildung UND Forschung vor Ort.** Belege: `test_oek
 **312/0/1**, Sammellauf **3979/0/22** über 52 Dateien, `.exe` startgeprüft — Commits `ad12376`
 (6a), `0e4a08a` (6b/c), `35e1bd1` (Forschung), `7e83d42` (exe).
 
-**Der NÄCHSTE Schritt: Teil 7b — der bestätigte Kaufvertrag** (Entwurf Z. 779/781, Abschnitt 8b).
-Teil 7a ist erledigt: der **Gratisgewinn ist gesperrt** — `_trade` schenkte Rohstoffe ohne
-Gegenleistung und wird jetzt **ehrlich abgelehnt** (Grund, Schwellenpreis und Zeiger auf diesen
-Schritt stehen in der Meldung; gebucht wird nichts, `01fe939`). Jetzt fehlt der **Weg dahinter**:
-`spieloekonomie.handel_start` (Gegenstand, Menge, Preis, Karawane, Dimension, **beidseitige Deckung**
-aus Lager UND Gold), `handel_entscheiden` (die Gegenpartei sagt ja/nein) und `handel_abschluss` (die
-Ankunft buchen). Die Maske muss **Ware, Menge und Preis** wählen lassen; der Bot braucht seine Form
-als **Ortsdict** (`bot_als_dict` in `main.py` — vorher prüfen, ob `besitzer`, `dimension`,
-`vorraete`, `einheiten`, `x`, `y` darin stehen), und Karawane plus Gold liegen im **Ortslager**
-(Muster aus Teil 6c). **Lies dazu `docs/audits/entwurf_spieloekonomie_sol_2026-10-05.txt`,
-Abschnitt 8b** — dort steht der Vertragsweg, den dieser Schritt anschließt.
+**Der NÄCHSTE Schritt: Teil 8 — `_unlock_next_map` + Migration** (Entwurf Z. 788) — **erst auf Daniels
+Wort** (siehe die Pausenanweisung oben). Die erfundene **„Vermessung" entfällt**: die 21
+Originalforschungen kennen sie nicht, das Original vergibt Karten **per Zufall** (HB Z. 313) — die
+Freischaltung läuft über den **Kartenvorrat** aus Teil 5 (Wagenbau + Siedlerkarren). **Migration:** ein
+Altspielstand **ohne Versionsfeld** lädt als `mode="legacy"` **mit Warnhinweis**, **neue** Partien
+laufen als `mode="oeokonomie-1"`; **keine automatische Konvertierung ohne Daniels Wort**. **Erst
+danach** Schritt 10 (`tick_bis` und die **Aktivierung**, Entwurf Z. 791-1018) — **vorher darf der
+Ökonomiemodus NICHT aktiviert werden** (Entwurf Z. 1092).
 
-**DANACH Teil 8 — `_unlock_next_map` + Migration:** die „Vermessung" entfällt, ein Altspielstand
-ohne Versionsfeld lädt als `mode="legacy"` mit Warnhinweis, neue Partien als `mode="oeokonomie-1"`.
-**Erst danach** Schritt 10 (`tick_bis` und die **Aktivierung**, Entwurf Z. 791-1018) — **vorher darf
-der Ökonomiemodus NICHT aktiviert werden** (Entwurf Z. 1092).
+**Teil 7 ist FERTIG (06.10.2026):** **7a** — der Gratisgewinn ist gesperrt (`_trade` schenkte Rohstoffe
+ohne Gegenleistung und lehnt seither ehrlich ab, `01fe939`). **7b** — der **bestätigte Kaufvertrag**
+läuft: `_trade` öffnet die **Maske für Ware, Menge und Preis**, `bot_als_ort` übersetzt den Bot in
+einen fremden Ort (**gemessen:** `bot_als_dict` führt `besitzer`, `dimension`, `einheiten`, `x`, `y`
+**nicht**), `handel_mit_bot` lässt **nur den Kern** prüfen und beidseitig sperren (fehlt Gold oder
+Karawane im Ortslager, kommt der Fehlbetrag als **Übergang aus dem Reich**), `_fremdvertrag_buchen`
+lässt die **Ankunft entscheiden** (der Bot nimmt an, wenn der Preis seinen **Schwellenpreis** erreicht)
+und bucht **genau einmal**; `f7dc77d`. Belege: `test_oekonomie_einhaengung` **352/0/1** (neu P30),
+`test_durchspiel` **56/0/2**, Sammellauf **4023/0/22** über 52 Dateien.
 
-> **⚠ OFFEN aus Teil 7a — die `.exe` ist GEBAUT, aber NICHT startgeprüft:** **14.641.733 Byte**,
-> SHA256 `524d6260e28daf74…`, 00:27:57; Vorgängerfassung gesichert
-> (`…\cache\scratch\exe_alt_0027_vor_teil7.exe`, 14.640.433 Byte). Die Prüfung **lief nicht an** (der
-> Befehl hing in der Freigabe, keine Zustimmung) — sie ist **nicht** als bestanden gemeldet und die
-> Protokollzeile dafür fehlt absichtlich. **Erst prüfen, dann protokollieren:** Skript
-> `…\cache\scratch\exestart\startpruefung_1006_0029.ps1` (Titel, +10/+20/+40 s, WerFault,
-> offene Prozesse, Startordner leer) — oder die `.exe` aus einem anderen Ordner selbst starten und
-> das Ergebnis als Beleg eintragen.
+**Beide `.exe`-Prüfungen sind erledigt** (die offene Frage aus Teil 7a ist damit geschlossen): die
+Fassung aus Teil 7a ist **nachgeholt** startgeprüft (14.641.733 Byte, `524d6260…`, Zeile 80), und die
+`.exe` nach Teil 7b ist gebaut **und** startgeprüft (**14.652.257 Byte**, `5dc00158…`, Dateizeitstempel
+**00:59:17**, Zeile 82).
+
+> **ERLEDIGT (06.10., 00:38–00:40): die Startprüfung der `.exe` aus Teil 7a ist nachgeholt und
+> BESTANDEN** — 14.641.733 Byte, SHA256 `524d6260e28daf74…`, Fenstertitel **„Nebelseetal Remake"**,
+> antwortet bei **+10/+20/+40 s**, **0** Fehlerberichte (WerFault), danach **0 offene Spielprozesse**,
+> Startordner leer (Protokollzeile **80**, Commit `d05af8d`). Der Befehl war in der vorigen Sitzung
+> **nicht** gelaufen (er hing in der Freigabe) — deshalb fehlte die Zeile dort absichtlich; jetzt
+> steht sie **mit Beleg** da.
 
 **Die alten Beschreibungen des Teils (jetzt erfüllt) stehen darunter weiter:**
 
 **Danach die Teile 7-8:** `_trade` über das bestätigte Angebot aus 8b oder eine deutliche
-„noch nicht verfügbar"-Meldung (nie der Alt-Gratisgewinn), `_unlock_next_map` (die „Vermessung"
-entfällt) + Migration (Altspielstand ohne Versionsfeld → `mode="legacy"` mit Warnhinweis, neue
-Partien `mode="oeokonomie-1"`); **erst danach** Schritt 10 (`tick_bis` und die Aktivierung, Entwurf
-Z. 791-1018) — **vorher darf der Ökonomiemodus NICHT aktiviert werden** (Entwurf Z. 1092).
+„noch nicht verfügbar"-Meldung (nie der Alt-Gratisgewinn) — **ERLEDIGT** (7a gesperrt, 7b gebaut) ·
+`_unlock_next_map` (die „Vermessung" entfällt) + Migration (Altspielstand ohne Versionsfeld →
+`mode="legacy"` mit Warnhinweis, neue Partien `mode="oeokonomie-1"`) — **OFFEN, das ist Teil 8**;
+**erst danach** Schritt 10 (`tick_bis` und die Aktivierung, Entwurf Z. 791-1018) — **vorher darf der
+Ökonomiemodus NICHT aktiviert werden** (Entwurf Z. 1092).
 
 **Die Ordnungs-Einsicht, die den Rest bestimmt (beim Bau von Teil 1 gemessen):** die fünfzehn
 Ortsfelder sind angelegt, aber **leer**. Solange sie leer sind, kann KEIN Rückruf auf sie umgestellt
@@ -89,11 +101,13 @@ Rückrufe umstellen.** Vorgeschlagene Reihenfolge (meine Lesart des Entwurfs Z. 
   Vergabe, keine zufällige Erstwahl.
 * **Teil 6 — Produktion und Aufträge je Ort:** `_ware_herstellen` (`ware_start`), `_train_unit`
   (`ausbildung_start`), `_start_research` (`forschung_start`), `tick` über `ort_tick`.
-* **Teil 7 — `_trade`:** bestätigtes Angebot über das Paar aus Schritt 8b oder eine deutliche
-  „noch nicht verfügbar"-Meldung; **nie** der alte Gratisgewinn.
+* **Teil 7 — `_trade`: FERTIG (06.10.2026).** **7a** hat den Gratisgewinn gesperrt, **7b** den
+  **bestätigten Kaufvertrag** gebaut (Maske für Ware, Menge und Preis · Handelskarawane · der Bot
+  entscheidet bei der Ankunft) — `01fe939`, `f7dc77d`. **Nie** wieder der alte Gratisgewinn.
 * **Teil 8 — `_unlock_next_map`** (die erfundene „Vermessung" entfällt) und **Speicherung/Migration**
   (Entwurf Z. 788): Altspielstand ohne Versionsfeld → `mode="legacy"` mit Warnhinweis, neue Partien
-  `mode="oeokonomie-1"`, keine automatische Konvertierung ohne Daniels Wort.
+  `mode="oeokonomie-1"`, keine automatische Konvertierung ohne Daniels Wort —
+  **DAS IST DER NÄCHSTE SCHRITT (erst auf Daniels Wort).**
 * **Danach Schritt 10:** `tick_bis` + Ereignisschleife (Entwurf Z. 791-1018), **erst dann** die
   Aktivierung. Einzelheiten je Zeile: Entwurf Z. 755-789 in
   `docs/audits/entwurf_spieloekonomie_sol_2026-10-05.txt`.
@@ -117,7 +131,7 @@ Teil 4-7 umgestellt sind und der Zuschuss aus `verbrauche_am_ort` entfallen kann
 | 7 | `zielstatus` (Zielprüfung + Haltefenster 24 h) | `a2b6531`, `eee604e` |
 | 8a | `botkern.oekonomie_kartenwahl`, `oekonomie_angebot` | `3785b5d` |
 | 8b | Handels-Paar `handel_start`/`handel_abschluss` + Prüfdatei | `25466f5` · `test_handel_transaktion` **101/0/0** |
-| **9** | **`main`-Anbindung + Migration — Teil 6 fertig, in Teil 7a ist der Gratisgewinn gesperrt; das NÄCHSTE ist der bestätigte Kaufvertrag (7b)** | 9.1 `c099c4e` · 9.2 `1ce4ae3` · 9.3a `a0d432d` · 9.3b `65c41bf` · 9.4 `5a46ad7` · 9.5 `fab8611` · **9.6a `ad12376` · 9.6b/c `0e4a08a`** · `test_oekonomie_einhaengung` **301/0/1**, Sammellauf **3965/0/22** |
+| **9** | **`main`-Anbindung + Migration — Teil 6 UND Teil 7 sind fertig (7a Gratisgewinn gesperrt, 7b bestätigter Kaufvertrag); das NÄCHSTE ist Teil 8 (Kartenfreischaltung + Migration)** | 9.1 `c099c4e` · 9.2 `1ce4ae3` · 9.3a `a0d432d` · 9.3b `65c41bf` · 9.4 `5a46ad7` · 9.5 `fab8611` · **9.6a `ad12376` · 9.6b/c `0e4a08a` · 9.6-Rest `35e1bd1` · 9.7a `01fe939` · 9.7b `f7dc77d`** · `test_oekonomie_einhaengung` **352/0/1**, `test_durchspiel` 56/0/2, Sammellauf **4023/0/22** |
 | 10 | `tick_bis` + **Aktivierung** | offen |
 
 **Was die Teile 1, 2, 3a, 3b, 4 und 5 in `src/main.py` wirklich geändert haben:**
@@ -217,6 +231,9 @@ am Ende die `.exe` neu bauen und aus einem **anderen** Ordner startprüfen.
 | **`ort_tick` erntet SELBST** | Er bucht `wirtschaft.ertrag_gesamt` auf die Ortsvorräte, den Siedlerzuwachs und das `produktionsjournal`. Wer ihn NEBEN die Buchungen aus Teil 3a hängt, **verdoppelt jede Ernte**. Teil 6b hat deshalb die eigene Produktionsformel aus `tick` **entfernt** — eine Uhr, eine Formel. Die alte Wache „4 Holz, nicht 8" ist der Beweis. |
 | **Ware und Einheit kommen erst mit dem Takt an** | `ware_start`/`ausbildung_start` legen nur den Auftrag an (`ort["werkstaetten"]`/`ort["ausbildung"]`); fertig gebucht wird in `ort_tick`. Ohne Takt kommt nichts an — und ohne **Neuzeichnen** (`tick` gibt die Fertigmeldungen zurück, die App zeichnet dann) sieht der Spieler es nie. |
 | **Prüfungen kodieren die alte Wahrheit** | Nach dem Umbau auf „vor Ort" mussten `test_gebaeude_wirkung`, `test_gui_fehler`, `test_durchspiel`, `test_startspiel` ihre DATENLAGE umstellen (Rohstoffe, Siedler, Ausrüstung ins Ortslager; die Einheit nach der Ausbildungszeit im Ortslager prüfen). Zwei meiner NEUEN Erwartungen waren zusätzlich falsch (die Gesamtsicht führt **Zuwächse**, nicht Absolutwerte) — die Prüfung wurde korrigiert, nicht der Code. |
+| **Ein Merker MUSS nach `clear()/update()` gesetzt werden** | `eintrag.clear(); eintrag.update(m)` (das Muster aus Teil 4) **löscht alles**, was vorher am Eintrag hing: in Teil 7b wurde `eintrag["heimgekehrt"] = True` davor gesetzt und war danach **weg** — der Vertrag blieb in der Auftragsliste stehen und wäre bei jedem Takt erneut gebucht worden. Gefunden hat es die Prüfung („bei der Rückkehr … Aufträge 0"), nicht das Nachdenken. Regel: den Merker **immer nach** der Übernahme setzen. |
+| **`self.state` gibt es nur in der APP-Klasse, nicht in `GameState`** | In `GameState` heißen die Felder `self.settlements`, `self.bots`, `self.current_map`, `self.units`, `self.resources`; `self.state` gibt es nur in `NebelseetalApp`. Der erste Probelauf von `bot_standort`/`_fremdvertrag_buchen` brach mit `AttributeError` ab — der **fensterlose Probelauf VOR dem Testschreiben** hat es gefunden. Regel: neue `GameState`-Methoden zuerst mit einem kleinen Skript anlaufen lassen. |
+| **Ein Name ist KEIN Beweis für seine Felder** | Das Papier sagte „der Bot braucht seine Form als Ortsdict — **vorher prüfen**, ob `besitzer`, `dimension`, `vorraete`, `einheiten`, `x`, `y` in `bot_als_dict` stehen". Sie stehen **nicht** (gemessen: es ist die Form für `botkern`). Statt `bot_als_dict` zu erweitern (das hätte `botkern` eine zweite Wahrheit gegeben) gibt es die zweite, klar benannte Übersetzung `bot_als_ort`. |
 
 ## 6. Nicht erneut zu prüfen (Beleg + Datum)
 
@@ -257,20 +274,32 @@ am Ende die `.exe` neu bauen und aus einem **anderen** Ordner startprüfen.
   fertig: 0 | Restzeit 20.0 Minuten", Kaserne „Anzahl: 2 vor Ort · Reich: 0").
   Messwerte am lebenden Fenster: Dorfzentrum „Reich: 777 Holz, 300 Stein · 21 Siedler" **und**
   „lokal: 137.5 Holz, 42 Stein · 8 Siedler"; Siedlungskarte „Ortsbestand dieser Siedlung (lokal)".
-* Die neue `.exe` **startet** (00:18, Fenstertitel, antwortet 10/20/40 s, 0 Fehlerberichte, 0 offene
-  Prozesse); sie enthält die **Ortslager (3a)**, die **getrennte Anzeige (3b)**, den **echten
-  Transport (4)**, die **Gründung mit Kartenvorrat (5)**, den **aktiven Ort (6a)**, die **eine
-  Spieluhr je Ort samt Ware und Ausbildung vor Ort (6b/c)** und die **Forschung je Ort (Teil 6
-  Rest)**.
+* **Schritt 9, Teil 7a (Gratisgewinn gesperrt)** — `01fe939`, `test_oekonomie_einhaengung` **319/0/1**,
+  `test_durchspiel` **52/0/2**, Sammellauf **3986/0/22** (00:2x, 134 s).
+* **Schritt 9, Teil 7b (der bestätigte Kaufvertrag)** — `f7dc77d`, `test_oekonomie_einhaengung`
+  **352/0/1** (neu **P30**: zwölf Ablehnungen ohne jede Buchung · Sperre beidseitig · Ankunft/Annahme ·
+  belegte Ablehnung mit vollständiger Rückgabe · kein doppelter Abschluss · Gesamtbestand gerechnet ·
+  Quelltextwachen), `test_durchspiel` **52 → 56/0/2** (ganzer Weg mit echten Werten),
+  `test_handel_transaktion` **101/0/0**, `test_auftraege` 111/0/1, `test_botkern` 90/0/0,
+  `test_gui_fehler` 24/0/1, `test_startspiel` 54/0/0, `test_gebaeude_wirkung` 120/0/1, Sammellauf
+  **4023/0/22** über 52 Dateien (00:5x, 100 s); am **lebenden Fenster** gemessen (Maske „Handel mit
+  Haug" mit Ware/Menge/Preis, Schwellenpreis 300, Knopf gesperrt ohne Handelskarawane).
+* Die neue `.exe` **startet** (**00:59:17**, 14.652.257 Byte, SHA256 `5dc00158…`; Fenstertitel,
+  antwortet 10/20/40 s, 0 Fehlerberichte, 0 offene Prozesse, Startordner leer — Protokollzeile 82);
+  sie enthält den **bestätigten Kaufvertrag (7b)** zusätzlich zu allem aus 3a, 3b, 4, 5, 6a/b/c, der
+  Forschung je Ort und dem gesperrten Gratisgewinn (7a). Auch die **Vorgängerfassung aus 7a** ist
+  startgeprüft (Zeile 80).
 * Der Sammellauf wird **nur nach einer echten Änderung an `src/`** wiederholt.
 * Fehlend von Schritt 8a: `tests/test_bot_oekonomie.py` und `docs/audits/pruefung_schritt8.md` (zwei
   gestoppte Kinder; Auftragstext in Protokollzeile 53).
 
 ## 7. Offene Entscheidungen für Daniel (nichts eigenmächtig geändert)
 
-0. **Aus 8b:** `handel_entscheiden` + Feld `entscheidung` (macht die belegte Ablehnungsregel S. 20
-   erreichbar) und die Wache in `auftraege.spieldaten_anwenden` für Fremdverträge — streichbar, dann
-   gilt der Entwurf wörtlich (mit totem Zweig).
+0. **Aus 8b (ENTSCHIEDEN und gebaut):** `handel_entscheiden` + Feld `entscheidung` (macht die belegte
+   Ablehnungsregel S. 20 erreichbar) und die Wache in `auftraege.spieldaten_anwenden` für
+   Fremdverträge sind in **Teil 7b eingebaut** (`f7dc77d`). **Offen bleibt nur:** *wann* der Bot
+   ablehnt — gebaut ist der **Schwellenpreis** (`botkern.handelspreis`), belegt ist nur, **dass** es
+   eine Ablehnung gibt. Streichbar, dann lehnt der Bot nie ab (toter Zweig wie im Entwurf).
 1. **Aus 9.1:** die Ort-Kennung `besitzer:map_id:x:y` — sie hängt am Weltfeld; **wenn eine Siedlung
    jemals das Feld wechselt**, braucht sie eine andere Form (Entwurf nennt keine).
 2. **Aus 9.2:** die stationierte Truppe hat **noch kein Lager** (Befund): bis die Ortslager führen,
@@ -282,7 +311,9 @@ am Ende die `.exe` neu bauen und aus einem **anderen** Ordner startprüfen.
    `docs/audits/belege_forschung_je_siedlung.md` (V1/V2/V3).
 5. **Reserve-Anzeige** in `zielstatus` (`bool(orte)`) ist gekennzeichneter **VORSCHLAG**.
 6. **Skill-Kopie im Profil `coding` veraltet** — nur auf Daniels Wort nachziehen.
-7. **Kostendeckel:** heute überschritten, für diesen Auftrag **freigegeben** (Reserve 1,00 USD).
+7. **Kostendeckel:** heute **nicht** überschritten — **0,80 / 4,00 EUR** (um 01:02 gemessen, Lage „OK");
+   die Freigabe (nur `deepseek-flash`, kein teures Modell, keine Kinder, **Reserve 1,00 USD DeepSeek**)
+   gilt weiter.
 
 ## 8. Wo die Details liegen (nur bei Bedarf lesen)
 
@@ -293,6 +324,8 @@ am Ende die `.exe` neu bauen und aus einem **anderen** Ordner startprüfen.
 * Stand/Historie: `docs/PROJEKT_STAND.md` (0c Tabelle, 0e Übergabe) · `docs/ENTWICKLUNGSPROTOKOLL.md`
 * Werkzeuge: `tools/zieluebergabe.py` · `tools/protokoll_sichern.py` · `tools/build_exe.py`
 * Sammellauf: `C:\Users\saras\AppData\Local\hermes\cache\scratch\sammellauf.py` (liest `run_tests.bat`)
-* Startprüfung: `…\cache\scratch\exestart\startpruefung_1006_0018.ps1` (Prozesse, Titel, WerFault)
+* Startprüfung: `…\cache\scratch\exestart\startpruefung_1006_0100.ps1` (die neueste; Prozesse, Titel,
+  WerFault, Startordner) — die Prüfung läuft als **eigener, einfacher Befehl** aus einem **anderen**
+  Ordner
 * Bau-Umgebung für die `.exe` (Zwischenspeicher, 24 h): `…\cache\scratch\nebel_bauvenv`
   (`uv venv --python 3.14.7` · `uv pip install pyinstaller`), Aufruf mit `--python …/Scripts/python.exe`
