@@ -131,6 +131,44 @@ def main_() -> int:
     check("die Ansicht wurde neu gezeichnet (kein stiller Knopfdruck)",
           not _still, " | ".join(_still))
 
+    # ------------------------------------------- 2b Daniels Spielbericht vom 05.10.2026
+    # „so kann es passieren, dass man kein holz mehr bekommt, weil man keinen holzfäller
+    # gebaut hatte" — die Aufgabenkarte muss den fehlenden Erzeuger VOR dem Forschen nennen.
+    abschnitt("2b. Aufgabenkarte nennt den fehlenden Rohstoff-Erzeuger")
+    _schritt = app.naechster_schritt()
+    check("ohne Gebäude führt sie zum Holzfäller", "Holzfäller" in _schritt["text"],
+          _schritt["text"][:160])
+
+    _sied = st.settlements[0]
+    _raster = _sied.karte["raster"]
+    _gras = [i for i, a in enumerate(_raster) if a == "grasland"]
+    if _gras:
+        ok, meldung = main.bauen_auf_karte(_sied, "haus", _gras[0])
+        check("Haus gebaut — aber kein einziger Erzeuger", ok is True, meldung)
+        _schritt = app.naechster_schritt()
+        check("jetzt nennt die Karte ausdrücklich das fehlende Holz",
+              "Holz" in _schritt["text"] and "Holzfäller" in _schritt["text"],
+              _schritt["text"][:200])
+        check("und sagt, wo Holz wächst (Wald)", "Wald" in _schritt["text"],
+              _schritt["text"][:200])
+        check("der Knopf führt in die Siedlungskarte", "öffnen" in _schritt["knopf"],
+              _schritt["knopf"])
+        app._render()
+        check("die Warnung steht auch in der Kopfzeile (⚠ statt einer irreführenden 0)",
+              "⚠" in app.res_labels_top["holz"].cget("text"),
+              app.res_labels_top["holz"].cget("text"))
+
+        _wald = [i for i, a in enumerate(_raster) if a == "wald"]
+        if _wald:
+            ok, meldung = main.bauen_auf_karte(_sied, "holzfaeller", _wald[0])
+            check("Holzfäller auf Wald gebaut", ok is True, meldung)
+            _schritt = app.naechster_schritt()
+            check("mit Holzquelle verschwindet die Holz-Warnung aus der Karte",
+                  "kein Holz da" not in _schritt["text"], _schritt["text"][:200])
+            app._render()
+            check("und aus der Kopfzeile", "⚠" not in app.res_labels_top["holz"].cget("text"),
+                  app.res_labels_top["holz"].cget("text"))
+
     # ---------------------------------------------------------------- 3 Karte oeffnen
     abschnitt("3. Karte oeffnen und Felder sehen")
     geoeffnet, _ = _drueck(app, "Karte öffnen")

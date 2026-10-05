@@ -49,7 +49,9 @@ zu einem Erlebnis zu machen").
 
 | Was | Stand (gemessen) |
 |---|---|
-| Prüfstand | **2565 bestanden, 0 Fehler, 21 Befunde über 40 Dateien** (Sammellauf 13:2x, sauberer Lauf ohne offene Spielprozesse) |
+| Prüfstand | **2599 bestanden, 0 Fehler, 21 Befunde über 41 Dateien** (Sammellauf 13:3x, sauberer Lauf ohne offene Spielprozesse) |
+| **Zeitfaktor (erledigt, Schritt 28)** | `src/spielzeit.py` + `data/spielzeit.json`: **Standard ×180** (VORSCHLAG: 1 Spielstunde = 20 echte Sekunden; ×1 = Originaltempo weiter wählbar). **Die Handbuchformeln bleiben unangetastet** — nur die Spieluhr läuft schneller; angewandt an einer Stelle (`_tick_loop`), Wegezeiten rechnen mit, in den **Einstellungen** umstellbar, Kopfzeile zeigt „Tempo ×180 · 1 Std = 20 s". **Belegter Befund (Daniels Spielbericht):** vorher rechnete `tick` Echtzeitsekunden 1:1 — 4 Holz je **echter** Stunde, nach einer Sekunde auf 0,00 gerundet, also kein sichtbarer Eingang |
+| **Aufgabenkarte gegen das Festbauen (erledigt, Schritt 28)** | Die Karte nennt **vor** dem Forschen den fehlenden Erzeuger samt Feld und Preis (Holz → Holzfäller · Stein → Steinmetz · Nahrung → Farm); die Kopfzeile zeigt für Kernrohstoffe ohne Erzeuger **⚠** statt „(0)". Geprüft in `tests/test_startspiel.py` (46/0/0) |
 | **Ausrüstungskette (erledigt, Schritt 26)** | `_train_unit` verlangt jetzt **beides** aus `data/units.json`: die **Forschungsstufe** (Kämpfer 1 · Krieger 3 · Ritter 7 · Paladin 10 · Gauner Heimlichkeit 1 · Karren/Belagerung Wagenbau 1–10) **und die Ausrüstung** (14 der 28 Einheiten brauchen Waren — Krieger: Schwert + Kettenhemd · Paladin: Zweihänder + Schwert + Harnisch). Die Waren werden beim Auftrag verbraucht; der Knopf ist gesperrt und nennt das Fehlende mit Soll/Ist. Früher war **keine** dieser Bedingungen wirksam |
 | **Forschung (erledigt, Schritt 26)** | `_start_research` erzwingt die Voraussetzungen aus `data/research.json`; die Ansicht zeigt je Forschung „schaltet frei — Waren/Einheiten" bzw. „gesperrt: Grund". Quelle: `src/forschungspfad.py` (123 Prüfungen) |
 | **Hausausbau (erledigt, Schritt 25)** | Haus bis **Stufe 4**, je Stufe **+5 Siedler** (Stufe 1 = belegtes Haus, VORSCHLAG für 2–4). `data/gebaeude_wirkung.json` → „haus_stufen" |
@@ -79,9 +81,10 @@ zu einem Erlebnis zu machen").
    Aufrufer übergeben, nie im Modul festlegen.
 3. **Aufgabenkarte für den Einstieg** (Entwurf Abschnitt D): Holzfäller/Steinmetz → Bibliothek →
    Baukunst → Farm/Haus → Schmiedekunst → Schmiede/Nähstube → erste Ware → erste Einheit.
-4. **Offene Entscheidungen für Daniel:** **die neun Geländeregeln bestätigen oder ändern** (eine
-   Zeile je Gebäude in `data/buildings.json`) · Zeitfaktor (1 Spielstunde = 20 Sekunden statt
-   1 Stunde — sonst ist Forschung im Sitzen nicht erlebbar) · **Sieg-/Niederlagebedingung** (heute
+4. **Offene Entscheidungen für Daniel:** **Zeitfaktor bestätigen** — er ist jetzt gebaut und in den
+   Einstellungen umstellbar (Vorschlag ×180 = 1 Spielstunde in 20 Sekunden; ×1 = Originaltempo) ·
+   **die neun Geländeregeln bestätigen oder ändern** (eine
+   Zeile je Gebäude in `data/buildings.json`) · **Sieg-/Niederlagebedingung** (heute
    unerreichbar!) · Kampfmagie als einziger größerer Vorschlag · Ausbaustufen des Hauses
    bestätigen (Stufe 4, je +5 Siedler) · Raster 8×7 oder 8×5.
 

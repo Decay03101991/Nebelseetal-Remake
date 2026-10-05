@@ -37,6 +37,7 @@ import werkstatt   # W3: die drei Werkstaetten, die 17 Waren und ihre Warteschla
 import auftraege   # W7: Auftraege (Missionen) mit Reisezeit, Rueckkehr und Bericht
 import forschung  # W4c: Forschung braucht Zeit - die Stufe steigt erst nach Ablauf
 import welt        # W4d: die Weltkarte des Limbus (20 Dimensionen, sechs belegte Welten)
+import spielzeit   # Spieluhr: der Zeitfaktor (Vorgabe Daniel 05.10.2026, Spielbericht)
 # Feinere Kartenoptik (Kinder-Arbeit vom 05.10.2026, vom Koordinator nachgerechnet): beide Module
 # liefern Zeichenplaene als DATEN und zeichnen sie ueber `zeichne` auf eine beliebige Leinwand.
 # Sie ersetzen die duennen Einzelstriche der ersten Fassung — Siedlungskarte UND Weltkarte.
@@ -1369,13 +1370,22 @@ class NebelseetalApp:
             amount = int(self.state.resources[r].amount)
             rate = ertrag_jetzt.get(r, 0.0)
             prod_text = f"+{rate:g}/h" if rate else "0"
-            lbl = tk.Label(top, text=f"{icon} {int(amount)} ({prod_text})", fg=self.skin["text"], bg=self.skin["topbar"], font=("Arial", 9))
+            # Ein Kernrohstoff ohne Erzeuger wird als Warnung gezeigt: „(0)" sieht sonst aus
+            # wie ein Anzeigefehler — genau der Eindruck aus Daniels Spielbericht vom 05.10.2026.
+            ohne_quelle = rate <= 0 and r in ("holz", "stein", "nahrung") and bool(self.state.settlements)
+            lbl = tk.Label(top, text=f"{icon} {int(amount)} ({'⚠' if ohne_quelle else prod_text})",
+                           fg=("#FDBA74" if ohne_quelle else self.skin["text"]),
+                           bg=self.skin["topbar"], font=("Arial", 9))
             lbl.pack(side=tk.LEFT, padx=6)
             self.res_labels_top[r] = lbl
         for txt, cmd in [("Speichern", self._save), ("Laden", self._load), ("Skin", self._cycle_skin), ("Beenden", self.root.quit)]:
             tk.Button(top, text=txt, command=cmd, bg=self.skin["button"], fg=self.skin["gold"], relief=tk.FLAT, padx=8, pady=2).pack(side=tk.RIGHT, padx=4)
         self.lbl_day = tk.Label(top, text=f"Tag {self.state.day}", fg=self.skin["gold"], bg=self.skin["topbar"])
         self.lbl_day.pack(side=tk.RIGHT, padx=10)
+        # Zeitfaktor sichtbar machen: sonst fragt man sich, warum nichts wächst.
+        self.lbl_tempo = tk.Label(top, text=f"Tempo {spielzeit.text()}", fg=self.skin["text"],
+                                  bg=self.skin["topbar"], font=("Arial", 9))
+        self.lbl_tempo.pack(side=tk.RIGHT, padx=10)
 
         # Statuszeile unten: muss VOR dem expandierenden main-Frame gepackt werden,
         # sonst frisst main den ganzen Platz und die Zeile bleibt 1 px hoch.
@@ -1640,6 +1650,25 @@ class NebelseetalApp:
                             "erst dann wachsen wieder Siedler nach.",
                     "knopf": f"„{s.name}“ öffnen — Haus bauen",
                     "aktion": (lambda ss=s: self._oeffne_siedlungskarte(ss))}
+        # Daniels Spielbericht 05.10.2026: „so kann es passieren, dass man kein holz mehr bekommt,
+        # weil man keinen holzfäller gebaut hatte". Die Karte nennt deshalb jetzt den fehlenden
+        # Erzeuger samt Feld und Preis, BEVOR sie zum Forschen schickt.
+        ertrag = st.stundenertrag()
+        for stoff, geb_key, felder_text in (
+                ("holz", "holzfaeller", "auf Wald 4 Holz/h, auf Steppe 2"),
+                ("stein", "steinmetz", "auf Berg 4 Stein/h, auf Hügel 2"),
+                ("nahrung", "farm", "auf Grasland 4 Nahrung/h, auf Steppe 2")):
+            if float(ertrag.get(stoff, 0.0)) > 0:
+                continue
+            eintrag = gelaende.alle_gebaeude().get(geb_key) or {}
+            preis = kosten_text(baukosten(geb_key) or {})
+            return {"text": f"Ohne {stoff.capitalize()}-Quelle geht es nicht weiter: es ist kein "
+                            f"{stoff.capitalize()} da und es wächst keines nach. Baue einen "
+                            f"{eintrag.get('name', geb_key)} — {felder_text}"
+                            + (f" (Kosten: {preis})." if preis else "."),
+                    "knopf": f"„{s.name}“ öffnen — {eintrag.get('name', geb_key)} bauen",
+                    "aktion": (lambda ss=s: self._oeffne_siedlungskarte(ss))}
+
         if not erlaubt:
             return {"text": "Baue als Nächstes eine Bibliothek — erst dann kannst du forschen. "
                             "Sie darf nur auf Grasland, Steppe oder Nebelsee stehen.",
@@ -3062,7 +3091,7 @@ class NebelseetalApp:
             "from": f"{int(start[0])}:{int(start[1])}",
             "to": f"{int(ziel[0])}:{int(ziel[1])}",
             "units": dict(moving),
-            "arrival": time.time() + dauer * 60,
+            "arrival": time.time() + spielzeit.echtzeit_fuer_spielstunden(dauer / 60.0),
             "map": self.state.current_map,
             "target_bot": ziel_bot.name if ziel_bot else None,
             "tile_key": f"{int(ziel[0])}:{int(ziel[1])}",
@@ -3331,7 +3360,33 @@ class NebelseetalApp:
 
     def _render_settings(self):
         tk.Label(self.content, text="Einstellungen", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
-        tk.Label(self.content, text="Spieleinstellungen folgen in einer späteren Version.", fg="#C0C0C0", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
+        tk.Label(self.content,
+                 text="Spielzeit (Zeitfaktor) — die Handbuchformeln bleiben, nur die Spieluhr läuft\n"
+                      "schneller. Bei „1 Std = 20 s“ dauert eine Spielstunde 20 echte Sekunden:\n"
+                      "ein Holzfäller auf Wald bringt dann 4 Holz alle 20 Sekunden.",
+                 fg=self.skin["text"], bg=self.skin["bg"], justify=tk.LEFT,
+                 font=("Arial", 9)).pack(anchor=tk.W, padx=10, pady=(4, 6))
+
+        zeile = tk.Frame(self.content, bg=self.skin["bg"])
+        zeile.pack(anchor=tk.W, padx=10)
+        tk.Label(zeile, text="Tempo:", fg=self.skin["text"], bg=self.skin["bg"],
+                 font=("Arial", 9)).pack(side=tk.LEFT, padx=(0, 6))
+
+        def _tempo_setzen(wert):
+            spielzeit.setzen(wert)
+            self._log(f"Spielzeit auf {spielzeit.text()} gestellt.")
+            self._render_settings()
+
+        for stufe in spielzeit.stufen():
+            ist_gewaehlt = abs(stufe - spielzeit.faktor()) < 1e-9
+            tk.Button(zeile, text=spielzeit.text(stufe), command=lambda s=stufe: _tempo_setzen(s),
+                      bg=(self.skin["gold"] if ist_gewaehlt else self.skin["button"]),
+                      fg=(self.skin["bg"] if ist_gewaehlt else self.skin["gold"]),
+                      relief=tk.FLAT, padx=8, pady=2).pack(side=tk.LEFT, padx=3)
+
+        tk.Label(self.content, text="Weitere Spieleinstellungen folgen in einer späteren Version.",
+                 fg="#C0C0C0", bg=self.skin["bg"], font=("Arial", 9)).pack(anchor=tk.W, padx=10,
+                                                                          pady=(10, 0))
 
     def _render_help(self):
         tk.Label(self.content, text="Anleitung", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
@@ -3695,7 +3750,10 @@ class NebelseetalApp:
         now = time.time()
         dt = now - self.state.last_tick
         if dt > 0:
-            self.state.tick(dt)
+            # Der Zeitfaktor staucht die Spieluhr, NICHT die Handbuchformeln: `tick` bekommt
+            # Spielsekunden. Bei ×180 ist eine echte Sekunde 180 Spielsekunden (eine Spielstunde
+            # dauert 20 echte Sekunden) — sonst lieferte ein Holzfäller 4 Holz je ECHTER Stunde.
+            self.state.tick(dt * spielzeit.faktor())
         # movements arrival
         for m in self.state.movements[:]:
             if now >= m["arrival"]:
@@ -3748,8 +3806,12 @@ class NebelseetalApp:
             res = self.state.resources[r]
             rate = ertrag_jetzt.get(r, 0.0)
             prod_text = f"+{rate:g}/h" if rate else "0"
-            lbl.config(text=f"{RESOURCE_ICONS[r]} {int(res.amount)} ({prod_text})")
+            ohne_quelle = rate <= 0 and r in ("holz", "stein", "nahrung") and bool(self.state.settlements)
+            lbl.config(text=f"{RESOURCE_ICONS[r]} {int(res.amount)} ({'⚠' if ohne_quelle else prod_text})",
+                       fg=("#FDBA74" if ohne_quelle else self.skin["text"]))
         self.lbl_day.config(text=f"Tag {self.state.day}")
+        if getattr(self, "lbl_tempo", None) is not None:
+            self.lbl_tempo.config(text=f"Tempo {spielzeit.text()}")
         # W6: die Punktanzeige kommt aus den Originalformeln (src/punkte.py, Handbuch S. 3/5/6).
         # Vorher standen hier `score`, `ruf` und eine selbst gebaute Summe - die Gesamtzahl
         # war damit nachweislich falsch.
