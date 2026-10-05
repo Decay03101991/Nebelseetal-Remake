@@ -515,4 +515,172 @@ check("P17: der Wortlaut kommt aus EINER Quelle (kein zweiter Text im Aufrufer)"
       _q3.count("def ortsbestand_text") == 1 and _q3.count("def reichsbestand_text") == 1)
 
 
+# --------------------------------------------------------------------------
+abschnitt("P18: Teil 4 - der EIGENE Transport geht den ganzen Weg (Kern + Auftragsschleife)")
+
+st9 = M.GameState()
+q9 = M.Settlement(name="Waldheim", map_id="test", x=0, y=0, id="spieler:test:0:0")
+z9 = M.Settlement(name="Steinberg", map_id="test", x=2, y=0, id="spieler:test:2:0")
+q9.vorraete = {"holz": 100.0, "stein": 100.0}
+q9.bevoelkerung = 10.0
+z9.vorraete = {"holz": 0.0}
+z9.bevoelkerung = 10.0
+st9.settlements = [q9, z9]
+st9.current_map = "test"
+st9.units["Handkarren"].count = 1
+_reich_holz = float(st9.resources["holz"].amount)
+
+ok, meldung = st9.transport_an_ort(q9, z9, "holz", 20, {"Handkarren": 1}, jetzt=1000.0)
+check("P18: der Transport startet", ok, meldung)
+check("P18: genau EINE Mission haengt in der Auftragsliste", len(st9.auftraege) == 1,
+      str(len(st9.auftraege)))
+_m9 = st9.auftraege[0]
+check("P18: die Mission ist ein EIGENTRANSPORT (der Altpfad darf sie nie buchen)",
+      _m9.get("eigentransport") is True, str(_m9.get("eigentransport")))
+check("P18: die Fracht steht an der Mission", _m9.get("fracht") == {"holz": 20},
+      str(_m9.get("fracht")))
+check("P18: der Karren reist mit", _m9.get("einheiten") == {"Handkarren": 1},
+      str(_m9.get("einheiten")))
+check("P18: die Fracht ist aus dem ORTSLAGER abgebucht (100 -> 80)",
+      abs(q9.vorraete["holz"] - 80.0) < 1e-9, str(q9.vorraete))
+check("P18: der Reichsbestand bleibt unberuehrt (ein Transport ist eine Bewegung, keine Produktion)",
+      abs(float(st9.resources["holz"].amount) - _reich_holz) < 1e-9,
+      str(st9.resources["holz"].amount))
+check("P18: der Karren ist aus dem Reichsheer in die Mission gewandert",
+      int(st9.units["Handkarren"].count) == 0, str(st9.units["Handkarren"].count))
+check("P18: der Karren faellt nicht aus der Wertung (unterwegs zaehlt weiter)",
+      st9.alle_einheiten().get("Handkarren") == 1, str(st9.alle_einheiten()))
+
+st9.auftraege_fortschreiben(float(_m9["ankunft"]) + 1.0)
+check("P18: nach der Ankunft liegen 20 Holz im ORTSLAGER des Ziels",
+      abs(float(z9.vorraete.get("holz", 0.0)) - 20.0) < 1e-9, str(z9.vorraete))
+check("P18: die Importherkunft ist mitgebucht (Siegnachweis, Schritt 7)",
+      abs(float(z9.importiert.get("holz", 0.0)) - 20.0) < 1e-9, str(z9.importiert))
+check("P18: der Reichsbestand hat die Fracht NICHT noch einmal bekommen",
+      abs(float(st9.resources["holz"].amount) - _reich_holz) < 1e-9,
+      str(st9.resources["holz"].amount))
+
+st9.auftraege_fortschreiben(float(_m9["rueckkehr"]) + 1.0)
+check("P18: der Karren steht wieder im ORTSLAGER der Herkunft",
+      int(q9.einheiten.get("Handkarren", 0)) == 1, str(q9.einheiten))
+check("P18: der Auftrag ist beendet", st9.auftraege == [], str(st9.auftraege))
+check("P18: der Karren steht NICHT doppelt (Ort ODER Reich, nie beides)",
+      int(q9.einheiten.get("Handkarren", 0)) + int(st9.units["Handkarren"].count) == 1,
+      str(q9.einheiten) + " / " + str(st9.units["Handkarren"].count))
+check("P18: die Wertung bleibt gleich (alle_einheiten nennt den ORT mit)",
+      st9.alle_einheiten().get("Handkarren") == 1, str(st9.alle_einheiten()))
+_weitere = st9.auftraege_fortschreiben(float(_m9["rueckkehr"]) + 5.0)
+check("P18: Fracht kommt genau EINMAL an (zweiter Aufruf aendert nichts)",
+      abs(float(z9.vorraete.get("holz", 0.0)) - 20.0) < 1e-9, str(z9.vorraete))
+check("P18: Ankunft UND Heimkehr stehen als Bericht in den Nachrichten",
+      len([m for m in st9.messages if "Transport" in str(m.get("text"))]) >= 2,
+      str(len(st9.messages)))
+
+
+# --------------------------------------------------------------------------
+abschnitt("P19: Teil 4 - jede Ablehnung aendert NICHTS")
+
+import copy as _copy4  # noqa: E402
+
+st10 = M.GameState()
+q10 = M.Settlement(name="A", map_id="test", x=0, y=0, id="spieler:test:0:0")
+z10 = M.Settlement(name="B", map_id="test", x=1, y=0, id="spieler:test:1:0")
+q10.vorraete = {"holz": 50.0}
+z10.vorraete = {"holz": 0.0}
+st10.settlements = [q10, z10]
+st10.current_map = "test"
+st10.units["Handkarren"].count = 2
+
+
+def unveraendert(name, args):
+    """Eine Ablehnung darf den Spielstand nicht anfassen (Vergleich gegen Kopien)."""
+    _q = _copy4.deepcopy(q10.vorraete)
+    _qe = _copy4.deepcopy(q10.einheiten)
+    _z = _copy4.deepcopy(z10.vorraete)
+    _karren = int(st10.units["Handkarren"].count)
+    _auftraege = len(st10.auftraege)
+    ok, meldung = st10.transport_an_ort(*args)
+    check("P19: %s wird abgelehnt" % name, not ok, meldung)
+    check("P19: %s laesst Ortslager, Ziel, Karren und Auftraege unveraendert" % name,
+          q10.vorraete == _q and q10.einheiten == _qe and z10.vorraete == _z
+          and int(st10.units["Handkarren"].count) == _karren
+          and len(st10.auftraege) == _auftraege,
+          "%r / %r / %r" % (q10.vorraete, z10.vorraete, st10.units["Handkarren"].count))
+
+
+unveraendert("ohne Karren", (q10, z10, "holz", 10, {}, 1.0))
+unveraendert("Herkunft gleich Ziel", (q10, q10, "holz", 10, {"Handkarren": 1}, 1.0))
+unveraendert("Menge 0", (q10, z10, "holz", 0, {"Handkarren": 1}, 1.0))
+unveraendert("unbekannter Rohstoff", (q10, z10, "kristall", 10, {"Handkarren": 1}, 1.0))
+unveraendert("Ueberladung (5000 auf 40 Plaetze)", (q10, z10, "holz", 5000, {"Handkarren": 1}, 1.0))
+unveraendert("Fracht fehlt im Ortslager", (q10, z10, "holz", 500, {"Handkarren": 1}, 1.0))
+unveraendert("kein Transportmittel (Krieger)", (q10, z10, "holz", 10, {"Krieger": 1}, 1.0))
+unveraendert("zu viele Karren", (q10, z10, "holz", 10, {"Handkarren": 9}, 1.0))
+unveraendert("andere Karte", (q10, M.Settlement(name="Weit", map_id="kontinent", x=1, y=1,
+                                                id="spieler:kontinent:1:1"),
+                              "holz", 10, {"Handkarren": 1}, 1.0))
+ok, meldung = st10.transport_an_ort(q10, z10, "holz", 10, {"Handkarren": 1}, 1.0)
+check("P19: die Gegenprobe - ein gueltiger Transport geht durch", ok, meldung)
+
+
+# --------------------------------------------------------------------------
+abschnitt("P20: Teil 4 - ein laufender Transport ueberlebt Speichern und Laden")
+
+pfad_t = temp("transport_rundlauf.json")
+st11 = M.GameState()
+# Echte Karten-Kennung, sonst kann `load` die Karte nicht aufbauen (`generate_map` kennt "test" nicht).
+q11 = M.Settlement(name="Quelle", map_id=st11.current_map, x=0, y=0,
+                   id="spieler:%s:0:0" % st11.current_map)
+z11 = M.Settlement(name="Ziel", map_id=st11.current_map, x=3, y=0,
+                   id="spieler:%s:3:0" % st11.current_map)
+q11.vorraete = {"holz": 40.0}
+z11.vorraete = {}
+st11.settlements = [q11, z11]
+st11.units["Handkarren"].count = 1
+ok, meldung = st11.transport_an_ort(q11, z11, "holz", 25, {"Handkarren": 1}, jetzt=2000.0)
+check("P20: der Transport startet", ok, meldung)
+check("P20: der Spielstand wird geschrieben", bool(st11.save(pfad_t)))
+
+zweit11 = M.GameState()
+check("P20: der Spielstand wird geladen", zweit11.load(pfad_t) is True)
+check("P20: der Auftrag ist noch da", len(zweit11.auftraege) == 1, str(len(zweit11.auftraege)))
+_a11 = zweit11.auftraege[0] if zweit11.auftraege else {}
+check("P20: er ist immer noch ein Eigentransport", _a11.get("eigentransport") is True)
+check("P20: die Fracht steht noch an der Mission", _a11.get("fracht") == {"holz": 25},
+      str(_a11.get("fracht")))
+check("P20: das abgebuchte Ortslager ist erhalten (40 -> 15)",
+      abs(float(zweit11.settlements[0].vorraete.get("holz", 0.0)) - 15.0) < 1e-9,
+      str(zweit11.settlements[0].vorraete))
+zweit11.auftraege_fortschreiben(float(_a11["ankunft"]) + 1.0)
+check("P20: nach dem Laden kommt die Fracht am Ziel an",
+      abs(float(zweit11.settlements[1].vorraete.get("holz", 0.0)) - 25.0) < 1e-9,
+      str(zweit11.settlements[1].vorraete))
+zweit11.auftraege_fortschreiben(float(_a11["rueckkehr"]) + 1.0)
+check("P20: und der Karren kommt heim",
+      int(zweit11.settlements[0].einheiten.get("Handkarren", 0)) == 1,
+      str(zweit11.settlements[0].einheiten))
+
+
+# --------------------------------------------------------------------------
+abschnitt("P21: Teil 4 - die Anbindung im Quelltext (Wachen)")
+
+_q4 = open(os.path.join(SRC, "main.py"), encoding="utf-8").read()
+check("P21: die alte Methode mit festem 10 Holz ist vollstaendig ersetzt",
+      'amount = 10\n        resource' not in _q4 and 'resource = "holz"' not in _q4,
+      "noch vorhanden")
+check("P21: die Maske bucht ueber den Kern",
+      "transport_an_ort(quelle, ziel, rohstoff, menge, karren)" in _q4)
+check("P21: die Auftragsschleife fuehrt Eigentransporte ueber den Kern",
+      "self._eigentransport_buchen(eintrag, jetzt)" in _q4)
+check("P21: die Auftragsschleife ueberspringt sie auch beim Ankunftsbericht",
+      _q4.count('if eintrag.get("eigentransport"):') >= 3,
+      str(_q4.count('if eintrag.get("eigentransport"):')))
+check("P21: alle_einheiten nennt auch die ORTSLAGER (Entwurf Z. 786)",
+      'for name, anzahl in (getattr(siedlung, "einheiten", None) or {}).items():' in _q4)
+check("P21: der Kern transport_start wird wirklich benutzt",
+      "spieloekonomie.transport_start(quelle_dict, asdict(ziel), karren," in _q4)
+check("P21: der Kern transport_fortschritt wird wirklich benutzt",
+      "spieloekonomie.transport_fortschritt(dict(eintrag), orte, jetzt)" in _q4)
+
+
 sys.exit(bericht())

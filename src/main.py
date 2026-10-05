@@ -695,6 +695,13 @@ class GameState:
         Armee unterwegs war).
         """
         gesamt = {k: int(v.count) for k, v in self.units.items()}
+        # Ökonomie-Paket, Schritt 9, Teil 4: die Karren eines EIGENEN Transports stehen nach der
+        # Heimkehr im ORTSLAGER. Entwurf Z. 786 verlangt die Summe „örtlicher und unterwegs
+        # befindlicher echter Bestände" — ohne diese Zeile fielen die Karren aus den Kriegspunkten,
+        # sobald ein Transport zurück ist (ihr Lager wäre keine der beiden Quellen mehr).
+        for siedlung in self.settlements:
+            for name, anzahl in (getattr(siedlung, "einheiten", None) or {}).items():
+                gesamt[name] = gesamt.get(name, 0) + int(anzahl)
         for eintrag in self.auftraege:
             if eintrag.get("heimgekehrt"):
                 continue
@@ -963,6 +970,169 @@ class GameState:
             s.vorraete[stoff] = round(vorher - vorher * anteil, 2)
         return menge
 
+    # ---------------- Ökonomie-Paket, Schritt 9, Teil 4: der EIGENE Transport ----------------
+    # Entwurf Z. 779: „_transport_to_settlement: Herkunft separat wählen; Rohstoff/Menge/Karren
+    # abfragen; transport_start(asdict(Quelle),asdict(Ziel),…) ausführen, Ergebnis mit
+    # Settlement(**neu) ersetzen; mission anhängen. Vorherige Methode mit festem 10 Holz
+    # vollständig ersetzen." Der Kern ist `src/spieloekonomie.py` — hier wird nur der Spielstand
+    # getauscht und die Auftragsschleife angebunden.
+
+    def _ort_uebernehmen(self, kennung: str, daten: dict) -> bool:
+        """Den Stand EINES Ortes aus dem Kern übernehmen (Entwurf: „Settlement(**neu)").
+
+        Der Gegenstand bleibt derselbe: die Oberfläche hält Verweise auf die Siedlung (z. B. die
+        geöffnete Siedlungskarte), und ein Austausch in der Liste würde sie still auf einen alten
+        Stand zeigen lassen. Übernommen werden ALLE Felder des frischen Standes — und nur dann,
+        wenn sich wirklich etwas geändert hat (sonst schreibt jeder Takt alle Orte neu).
+        """
+        try:
+            frisch = Settlement(**daten)
+        except TypeError:
+            return False
+        for siedlung in self.settlements:
+            if siedlung.id == kennung:
+                if siedlung.__dict__ != frisch.__dict__:
+                    siedlung.__dict__.clear()
+                    siedlung.__dict__.update(frisch.__dict__)
+                return True
+        return False
+
+    def transport_karren_bestand(self, quelle: Settlement) -> Dict[str, int]:
+        """Welche Karren für einen Transport von ``quelle`` bereitstehen (Ort zuerst, dann Reich).
+
+        Reine Auswahlhilfe für die Oberfläche: das ORTSLAGER ist führend (Teil 3a), der
+        Reichsbestand zählt als Übergang dazu — dieselbe Reihenfolge, in der `transport_an_ort`
+        die Truppe wirklich nimmt.
+        """
+        bestand: Dict[str, int] = {}
+        for name, anzahl in (getattr(quelle, "einheiten", None) or {}).items():
+            if einheiten.ist_transport(name) and int(anzahl) > 0:
+                bestand[name] = int(bestand.get(name, 0)) + int(anzahl)
+        for name, einheit in self.units.items():
+            if einheiten.ist_transport(name) and int(einheit.count) > 0:
+                bestand[name] = int(bestand.get(name, 0)) + int(einheit.count)
+        return bestand
+
+    def transport_an_ort(self, quelle: Settlement, ziel: Settlement, rohstoff: str, menge,
+                         karren: dict, jetzt: float = None) -> Tuple[bool, str]:
+        """Einen EIGENEN Transport zwischen zwei Siedlungen starten. Liefert ``(ok, Meldung)``.
+
+        Geprüft und gebucht wird ausschließlich im KERN (`spieloekonomie.transport_start`); hier
+        wird nur der Spielstand getauscht (`_ort_uebernehmen`) und die Mission angehängt. Die
+        Fracht kommt aus dem **Ortslager des Ausgangsortes** — das ist seit Teil 3a der führende
+        Bestand. Reicht der Ort an Karren nicht, kommt der fehlende Teil als **Übergang** aus dem
+        Reichsheer (dieselbe Übergangskasse wie beim Bezahlen). Abgelehnt wird VOR jeder Änderung.
+        """
+        jetzt = time.time() if jetzt is None else float(jetzt)
+        if quelle is None or ziel is None:
+            return False, "Herkunft und Ziel müssen gewählt sein."
+        if quelle is ziel or quelle.id == ziel.id:
+            return False, "Herkunft und Ziel sind dieselbe Siedlung."
+        if quelle.map_id != self.current_map or ziel.map_id != self.current_map:
+            return False, "Transporte gehen nur innerhalb der gewählten Karte."
+        try:
+            menge = int(menge)
+        except (TypeError, ValueError):
+            return False, "Die Menge muss eine ganze Zahl sein."
+        if menge <= 0:
+            return False, "Die Menge muss größer als 0 sein."
+        stoff = str(rohstoff or "").lower()
+        if stoff not in self.resources:
+            return False, f"Unbekannter Rohstoff '{rohstoff}'."
+        karren = {str(n): int(k) for n, k in (karren or {}).items() if int(k) > 0}
+        if not karren:
+            return False, ("Für einen Transport wird mindestens ein Karren gebraucht "
+                           "(Handbuch S. 23).")
+        kein_karren = [n for n in karren if not einheiten.ist_transport(n)]
+        if kein_karren:
+            return False, ("Kein Transportmittel: " + ", ".join(sorted(kein_karren))
+                           + " — tragen kann nur ein Karren (Handbuch S. 23).")
+        ladung = int(auftraege.ladung_der_mission(karren))
+        if menge > ladung:
+            return False, (f"Überladen: {menge} passen nicht auf {ladung} Ladeplätze "
+                           f"({', '.join(f'{k}x {n}' for n, k in sorted(karren.items()))}).")
+
+        # Übergang, ehrlich benannt: erst das Ortslager, dann das Reichsheer — nur der Fehlbetrag.
+        aus_reich: Dict[str, int] = {}
+        for name, anzahl in karren.items():
+            im_ort = int((getattr(quelle, "einheiten", None) or {}).get(name, 0))
+            rest = anzahl - im_ort
+            if rest <= 0:
+                continue
+            verfuegbar = int(self.units[name].count) if name in self.units else 0
+            if verfuegbar < rest:
+                return False, (f"Nicht genug {name}: der Ort hat {im_ort}, im Reichsheer stehen "
+                               f"{verfuegbar} — gebraucht werden {anzahl}.")
+            aus_reich[name] = rest
+
+        im_ort = float((getattr(quelle, "vorraete", None) or {}).get(stoff, 0.0))
+        if im_ort + 1e-9 < menge:
+            return False, (f"{quelle.name} hat nur {im_ort:g} {stoff.capitalize()} im Ortslager — "
+                           f"für {menge} fehlen {menge - im_ort:g}. Transporte bewegen den Bestand "
+                           f"DES ORTES (führend seit Teil 3a), nicht den Reichsbestand.")
+
+        quelle_dict = asdict(quelle)
+        for name, anzahl in aus_reich.items():
+            quelle_dict["einheiten"][name] = int(quelle_dict["einheiten"].get(name, 0)) + anzahl
+        try:
+            neu, mission = spieloekonomie.transport_start(quelle_dict, asdict(ziel), karren,
+                                                          {stoff: menge}, jetzt)
+        except ValueError as fehler:
+            return False, str(fehler)
+
+        # Ab hier ist alles geprüft — erst jetzt wird der Spielstand getauscht (keine halbe Buchung).
+        for name, anzahl in aus_reich.items():
+            if name in self.units:
+                self.units[name].count = max(0, int(self.units[name].count) - anzahl)
+        self._ort_uebernehmen(quelle.id, neu)
+        mission["von"] = quelle.name
+        mission["nach"] = ziel.name
+        mission["ziel"] = {"name": ziel.name, "id": ziel.id}
+        self.auftraege.append(mission)
+        meldung = (f"Transport gestartet: {menge} {stoff.capitalize()} von {quelle.name} nach "
+                   f"{ziel.name} ({', '.join(f'{k}x {n}' for n, k in sorted(karren.items()))}); "
+                   f"Ankunft in {float(mission.get('reisezeit') or 0.0) / 3600.0:.2f} h.")
+        self._log(meldung)
+        return True, meldung
+
+    def _eigentransport_buchen(self, eintrag: dict, jetzt: float) -> dict:
+        """Einen EIGENEN Transport über den KERN buchen (Ankunft und Rückkehr je genau einmal).
+
+        `spieloekonomie.transport_fortschritt` schreibt die Fracht am Ziel in das ORTSLAGER (samt
+        Importherkunft) und lässt die Karren beim Ausgangsort zurück. `auftraege.spieldaten_anwenden`
+        darf ihn NIE anwenden (Entwurf Z. 505, dort hart erzwungen); deshalb läuft die Heimkehr hier
+        und NICHT über den Reichsbestand. Ist der Ausgangsort verloren, sucht der Kern eine eigene
+        Ersatzsiedlung; gibt es keine, bleibt die Fracht am Auftrag — keine Geistergutschrift.
+        """
+        fracht_vorher = dict(eintrag.get("fracht") or {})
+        truppe_vorher = dict(eintrag.get("einheiten") or {})
+        vorher_geliefert = bool(eintrag.get("geliefert_lokal"))
+        vorher_heim = bool(eintrag.get("heimgekehrt_lokal"))
+        orte = {s.id: asdict(s) for s in self.settlements if s.id}
+        neu, m = spieloekonomie.transport_fortschritt(dict(eintrag), orte, jetzt)
+        for kennung, daten in neu.items():
+            self._ort_uebernehmen(kennung, daten)
+        if m.get("geliefert_lokal") and not vorher_geliefert:
+            self.messages.append({"type": "auftrag", "text":
+                                  f"Transport angekommen in {m.get('nach')}: "
+                                  + ", ".join(f"{int(v)} {k.capitalize()}"
+                                              for k, v in sorted(fracht_vorher.items()))
+                                  + " im Ortslager gutgeschrieben."})
+        if m.get("heimgekehrt_lokal") and not vorher_heim:
+            self.messages.append({"type": "auftrag", "text":
+                                  f"Transport heimgekehrt nach {m.get('von')}: "
+                                  + ", ".join(f"{int(v)} {k}" for k, v in sorted(truppe_vorher.items()))
+                                  + " wieder im Ortslager."})
+        eintrag.clear()
+        eintrag.update(m)
+        # Erst wenn die Karren wirklich heim sind, gilt der Auftrag als heimgekehrt: sobald dieser
+        # Merker steht, wird die Mission nicht mehr doppelt gezählt (`alle_einheiten`) und am Ende
+        # des Takts entfernt. Bleibt die Heimkehr aus (kein eigener Ort mehr), bleibt auch die
+        # Mission stehen — der Kern hält die Fracht am Auftrag.
+        if m.get("geliefert_lokal") and m.get("heimgekehrt_lokal"):
+            eintrag["heimgekehrt"] = True
+        return eintrag
+
     # ---------------- W3: Werkstaetten, Originalwaren, Warteschlangen ----------------
 
     def werkstatt_schlangen(self) -> Dict[str, dict]:
@@ -1065,7 +1235,17 @@ class GameState:
         auftraege.fortschritt(self.auftraege, jetzt)
         ergebnis["gesamt"] = len(self.auftraege)
 
+        # Ökonomie-Paket, Schritt 9, Teil 4: eigene Transporte bucht der KERN — er schreibt die
+        # Fracht am Ziel in das ORTSLAGER und lässt die Karren beim Ausgangsort zurück. Jede
+        # Mission wird bei JEDEM Takt geführt (Ankunft und Rückkehr fallen zu verschiedenen Zeiten
+        # an), und `auftraege.spieldaten_anwenden` lässt sie absichtlich unberührt (Entwurf Z. 505).
+        for eintrag in list(self.auftraege):
+            if eintrag.get("eigentransport"):
+                self._eigentransport_buchen(eintrag, jetzt)
+
         for eintrag in auftraege.angekommen(self.auftraege, jetzt):
+            if eintrag.get("eigentransport"):
+                continue                  # oben gebucht, in den ORTSLAGERN statt im Reichsbestand
             if eintrag.get("art") == "angreifen":
                 self.kampf_am_ziel(eintrag)      # W7: der echte Kampf, bevor gebucht wird
             vorher = {"ressourcen": {k: v.amount for k, v in self.resources.items()},
@@ -1093,6 +1273,10 @@ class GameState:
             ergebnis["neu"].append(bericht["titel"])
 
         for eintrag in self.auftraege:
+            # Ein eigener Transport bringt seine Karren in den ORTSLAGER zurück (oben gebucht),
+            # NICHT in den Reichsbestand — sonst stünde dieselbe Truppe zweimal.
+            if eintrag.get("eigentransport"):
+                continue
             if eintrag.get("status") != "abgeschlossen" or eintrag.get("heimgekehrt"):
                 continue
             eintrag["heimgekehrt"] = True
@@ -2183,16 +2367,108 @@ class NebelseetalApp:
         self._log(f"Siedlung umbenannt in '{settlement.name}'.")
         self._render_view()
 
-    def _transport_to_settlement(self, settlement: Settlement):
-        if settlement.map_id != self.state.current_map:
+    def _transport_to_settlement(self, ziel: Settlement):
+        """Die Transportmaske öffnen (Ökonomie-Paket, Schritt 9, Teil 4; Entwurf Z. 779).
+
+        Hier stand vorher ein fester Transport von **10 Holz**, der den Reichsbestand abzog und
+        NICHTS gutschrieb — eine Mechanik gab es damit nicht (so fand es der Handbuch-Abgleich).
+        Jetzt werden **Herkunft, Rohstoff, Menge und Karren** abgefragt, und gebucht wird der Kern
+        (`state.transport_an_ort` → `spieloekonomie.transport_start`).
+        """
+        if ziel.map_id != self.state.current_map:
             self._log("Transport nur zur aktuellen Karte möglich.")
-            self._render_view()
             return
-        amount = 10
-        resource = "holz"
-        self.state.resources[resource].amount = max(0, self.state.resources[resource].amount - amount)
-        self._log(f"Transport von {amount} {resource} zur Siedlung {settlement.name} gestartet.")
+        quellen = [s for s in self.state.settlements
+                   if s.id != ziel.id and s.map_id == self.state.current_map]
+        if not quellen:
+            self._log("Für einen Transport braucht es eine ZWEITE eigene Siedlung auf dieser "
+                      "Karte — erst gründen, dann transportieren.")
+            return
+        name_zu_ort = {s.name: s for s in quellen}
+
+        fenster = tk.Toplevel(self.root)
+        fenster.title(f"Transport nach {ziel.name}")
+        fenster.configure(bg=self.skin["bg"])
+
+        def _zeile(text):
+            return tk.Label(fenster, text=text, fg=self.skin["text"], bg=self.skin["bg"],
+                            anchor=tk.W, justify=tk.LEFT)
+
+        tk.Label(fenster, text=f"Transport nach {ziel.name}", fg=self.skin["gold"],
+                 bg=self.skin["bg"], font=("TkDefaultFont", 11, "bold")).grid(
+            row=0, column=0, columnspan=2, sticky=tk.W, padx=10, pady=(10, 4))
+
+        var_quelle = tk.StringVar(value=quellen[0].name)
+        _zeile("Herkunft (Ortslager):").grid(row=1, column=0, sticky=tk.W, padx=10)
+        tk.OptionMenu(fenster, var_quelle, *name_zu_ort.keys()).grid(
+            row=1, column=1, sticky=tk.W, padx=10)
+
+        var_rohstoff = tk.StringVar(value="holz")
+        _zeile("Rohstoff:").grid(row=2, column=0, sticky=tk.W, padx=10)
+        tk.OptionMenu(fenster, var_rohstoff, *RESOURCES).grid(row=2, column=1, sticky=tk.W, padx=10)
+
+        _zeile("Menge:").grid(row=3, column=0, sticky=tk.W, padx=10)
+        e_menge = tk.Entry(fenster, width=10)
+        e_menge.insert(0, "10")
+        e_menge.grid(row=3, column=1, sticky=tk.W, padx=10)
+
+        # Nur ECHTE Transporteinheiten (Karren) stehen zur Wahl — dieselbe Prüfung wie die Buchung.
+        karren_bestand = self.state.transport_karren_bestand(quellen[0])
+        var_karren = tk.StringVar(value=next(iter(sorted(karren_bestand)), ""))
+        _zeile("Karren (Ort + Reichsheer):").grid(row=4, column=0, sticky=tk.W, padx=10)
+        if karren_bestand:
+            tk.OptionMenu(fenster, var_karren, *sorted(karren_bestand)).grid(
+                row=4, column=1, sticky=tk.W, padx=10)
+        else:
+            tk.Label(fenster, text="keine — ein Karren wird im Stellmacher ausgebildet",
+                     fg="#FDBA74", bg=self.skin["bg"]).grid(row=4, column=1, sticky=tk.W, padx=10)
+        _zeile("Karren-Anzahl:").grid(row=5, column=0, sticky=tk.W, padx=10)
+        e_karren = tk.Entry(fenster, width=10)
+        e_karren.insert(0, "1")
+        e_karren.grid(row=5, column=1, sticky=tk.W, padx=10)
+
+        # Was da ist und was passt — offen benannt, statt still abzulehnen.
+        _zeile("Im Ortslager der Herkunft: " + ortsbestand_text(quellen[0])).grid(
+            row=6, column=0, columnspan=2, sticky=tk.W, padx=10, pady=(6, 0))
+        _zeile("Ladeplätze: " + (", ".join(f"{k}x {n} ({einheiten.ladung(n)} Plätze)"
+                                           for n, k in sorted(karren_bestand.items()))
+                                 or "ohne Karren kein Transport (Handbuch S. 23)")).grid(
+            row=7, column=0, columnspan=2, sticky=tk.W, padx=10)
+        _zeile("Zielbestand: " + ortsbestand_text(ziel)).grid(
+            row=8, column=0, columnspan=2, sticky=tk.W, padx=10, pady=(0, 6))
+
+        def _starten():
+            ok, _meldung = self._transport_ausfuehren(
+                name_zu_ort.get(var_quelle.get()), ziel, var_rohstoff.get(), e_menge.get(),
+                var_karren.get(), e_karren.get())
+            if ok:
+                fenster.destroy()
+
+        knopf = tk.Button(fenster, text="Transport starten", command=_starten, bg="#3e2723",
+                          fg=self.skin["gold"], activebackground="#5D4037")
+        if not karren_bestand:
+            knopf.config(state=tk.DISABLED)
+        knopf.grid(row=9, column=0, columnspan=2, sticky=tk.W, padx=10, pady=10)
+
+    def _transport_ausfuehren(self, quelle, ziel, rohstoff, menge, karren_name, karren_anzahl):
+        """Die Eingaben der Transportmaske ausführen — die EINE Stelle, die bucht.
+
+        Getrennt von der Maske, damit die Prüfung den ganzen Weg ohne Fenster gehen kann.
+        Liefert ``(ok, Meldung)``.
+        """
+        try:
+            anzahl = int(karren_anzahl)
+        except (TypeError, ValueError):
+            meldung = "Die Karren-Anzahl muss eine ganze Zahl sein."
+            self._log(meldung)
+            return False, meldung
+        karren = {str(karren_name): anzahl} if karren_name else {}
+        ok, meldung = self.state.transport_an_ort(quelle, ziel, rohstoff, menge, karren)
+        if not ok:
+            self._log(f"Transport nicht gestartet: {meldung}")
+            return False, meldung
         self._render_view()
+        return True, meldung
 
     # ---------- Siedlungskarte (Handbuch S. 259/283/292/313) ----------
 
