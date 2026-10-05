@@ -3455,8 +3455,13 @@ class NebelseetalApp:
                     _teile = []
                     if _was.get("waren"):
                         _teile.append("Waren: " + ", ".join(_was["waren"]))
-                    if _was.get("einheiten"):
-                        _teile.append("Einheiten: " + ", ".join(_was["einheiten"]))
+                    # Einheiten, die diese Forschung UNMITTELBAR verlangen (data/units.json,
+                    # z. B. Gauner: Heimlichkeit 1). Über den Warenweg allein kommen sie nicht
+                    # vor — das hat das Kinder-Modul als Grenze gemeldet (05.10.2026).
+                    _direkt = sorted(n for n, e in einheiten.alle().items()
+                                     if str((e.get("voraussetzung") or {}).get("forschung") or "") == key)
+                    if _direkt:
+                        _teile.append("Einheiten: " + ", ".join(_direkt))
                     if _teile:
                         tk.Label(frame, text="schaltet frei — " + " · ".join(_teile),
                                  fg="#8FBF7F", bg=self.skin["panel"]).pack(side=tk.RIGHT, padx=5)
@@ -3592,7 +3597,14 @@ class NebelseetalApp:
                 return False, f"braucht {f_name} Stufe {f_stufe} (erreicht: {erreicht})"
         fehlt = ausruestung.fehlende(key, self.state.waren)
         if fehlt:
-            return False, ("braucht Ausrüstung — " + ausruestung.bestand_text(fehlt) +
+            # Soll/Ist je Ware — so verlangt es das astra-Gutachten. `ausruestung.fehlende`
+            # liefert nur die Fehlmenge; Soll = Ist + Fehlmenge (Befund des Kinder-Moduls vom
+            # 05.10.2026: `bestand_text` zeigt bei reinen Zahlen nur die Fehlmenge).
+            teile = []
+            for ware, menge in sorted(fehlt.items()):
+                ist = int((self.state.waren or {}).get(ware, 0))
+                teile.append(f"{ware} {ist}/{ist + int(menge)}")
+            return False, ("braucht Ausrüstung — " + " · ".join(teile) +
                            " (Werkstätten: Schmiede, Bogner, Nähstube)")
         return True, ""
 
