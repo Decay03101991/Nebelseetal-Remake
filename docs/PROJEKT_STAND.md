@@ -157,7 +157,7 @@ Paket in der Reihenfolge des Papiers — kein Halbumbau").
    Siedlung · Zielprüfung und Haltefenster · Bot-Planung · `main`-Anbindung und Migration).
    **Erst nach dem letzten Schritt** wird auf den Ökonomiemodus umgestellt; Altpartien bleiben Altmodus.
 
-#### Ist-Stand des Pakets (05.10.2026, 18:30 — mit Werkzeugen geprüft, nicht behauptet)
+**Ist-Stand des Pakets (05.10.2026, 18:30 — mit Werkzeugen geprüft, nicht behauptet):**
 
 **Schritte 0 bis 5 sind ERLEDIGT und geprüft. Der nächste Schritt ist Schritt 6 (Forschung je
 Siedlung), danach 7, 8, 9 und zuletzt die Aktivierung (10).**
