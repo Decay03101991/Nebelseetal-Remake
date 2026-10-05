@@ -1,6 +1,6 @@
 # Nebelseetal Remake — Projektstand und Übergabe
 
-Stand: **05.10.2026, 10:42** (Sitzungswechsel; mit `date` geprüft). Diese Fassung ersetzt die
+Stand: **05.10.2026, 15:16** (mit `date` geprüft; Schritt 30 ist gebaut). Diese Fassung ersetzt die
 vorherige (archiviert unter `docs/archiv/PROJEKT_STAND_alt_2026-10-04_2345.md`; die Fassungen davor
 unter `docs/archiv/PROJEKT_STAND_alt_2026-10-04_2200.md` und `..._alt_2026-10-04.md`).
 **Diese Datei ist der Einstiegspunkt.** Jede neue Sitzung liest zuerst hier — nicht die Chat-Historie.
@@ -21,18 +21,17 @@ Daniels Ziel, wörtlich **und unverändert seit dem ersten Auftrag**:
 > Browsergame) als remake und Einzelspielerspiel startet. Überprüft und vllt so gesichert das man es
 > nur spielen kann mit meinem vorgegebenen Passwort."
 
-**Startzeile für die neue Sitzung (zum Kopieren — Stand 05.10.2026, 14:40, Schritt 30):**
+**Startzeile für die neue Sitzung (zum Kopieren — Stand 05.10.2026, 15:16, Schritt 30 ist erledigt):**
 
 ```
 Lies D:\Arbeiten\Nebelseetal_Remake\docs\PROJEKT_STAND.md, Abschnitt 0c (Stand, Kontext-Paket, der
 EINE nächste Schritt) — die Chat-Historie brauchst du nicht. Dann: python tools/zieluebergabe.py
 --pruefen und setze dein eigenes Ziel: als Wortlaut das UNVERÄNDERTE Gesamtziel aus Abschnitt 0
-(Schritt 29 ist erledigt — nichts davon wiederholen). Arbeite danach den EINEN nächsten Schritt aus
-Abschnitt 0c: (1) das Siedlungskarten-Raster auf 8 × 7 = 56 Felder umstellen, davon 40 bebaubar
-(Daniels Entscheidung 14:24; der Plan docs/PLAN_RASTER_8x7.md liegt vor und ist vom Koordinator nachgerechnet — nur der Sumpf ist unbebaubar, der Nebelsee nicht);
-(2) Daniel die Sieg-/Niederlage-Vorschläge aus docs/ENTSCHEIDUNGEN_FUER_DANIEL.md vorlegen und nach
-seiner Wahl bauen. Nach jedem Schritt: betroffener Einzeltest + einmal Sammellauf (keine
-Spielprozesse offen lassen), eine Protokollzeile (Zeit mit `date` holen, nie schätzen), python
+(Schritt 30 ist erledigt — nichts davon wiederholen). Arbeite danach den EINEN nächsten Schritt aus
+Abschnitt 0c: die Sieg-/Niederlage-Bedingung nach Daniels Wahl bauen (die drei Vorschläge wurden ihm
+am 05.10.2026 um 15:16 vorgelegt; Empfehlung A = Punkteziel, Schwelle 300 steht schon in
+src/punkte.py). Nach jedem Schritt: betroffener Einzeltest + einmal Sammellauf (keine Spielprozesse
+offen lassen), eine Protokollzeile (Zeit mit `date` holen, nie schätzen), python
 tools/protokoll_sichern.py --protokoll, kleiner Commit; prüfende Unteragenten erst NACH dem Commit.
 Ändert sich etwas in src/ oder data/*.json, am Ende die .exe neu bauen (tools/build_exe.py) und aus
 einem anderen Ordner startprüfen. Kommt von Daniel ein Spielbericht zur aktuellen .exe, hat der
@@ -46,50 +45,52 @@ Ausgabe fehl (belegt 05.10., siehe Lehre (e) unten).
 Vorlage**; verbindlich ist die **Startzeile direkt hier oben** (sie kennt den echten nächsten Schritt
 und den Stand von heute).
 
-**Zum eigenen Ziel:** das Ziel dieser Sitzung (`20261005_104846_864c4b`) ist **sauber beendet**
-(`cleared`, Grund im Datensatz, gesetzt 13:44 mit `tools/zieluebergabe.py --beenden`). Es läuft
-nichts von selbst weiter; die neue Sitzung braucht ein **neues** Ziel mit dem Wortlaut oben.
+**Zum eigenen Ziel:** das Ziel der Sitzung `20261005_150058_c9027c` ist **aktiv** (Wortlaut aus
+Abschnitt 0, gesetzt am 05.10.2026 um 15:01). Die vorige Sitzung (`20261005_135121_6629ef`) ist auf
+`cleared` gesetzt, ihr Grund steht im Datensatz. Es laeuft nichts von selbst weiter ausserhalb dieser
+Sitzung.
 
 ---
 
-## 0c. Stand (05.10.2026, 14:31 — mit `date`, `git log`, Sammellauf und Startprüfung geprüft)
+## 0c. Stand (05.10.2026, 15:16 — mit `date`, `git log`, Sammellauf und Startprüfung geprüft)
 
-> ### NEU: Schritt 29 ist fertig (Sitzung `20261005_135121_6629ef`)
+> ### NEU: Schritt 30 ist fertig (Sitzung `20261005_150058_c9027c`)
 >
-> **Die zwei Feinkarten-Module sind eingehängt.** `src/main.py` zeichnet Siedlungs- und Weltkarte
-> aus `src/karten_optik_fein.py` / `src/welt_optik_fein.py` (zweites astra-Gutachten
-> `docs/audits/ux_astra_karten_feinheit_2026-10-05.txt`); die vorige Generation bleibt **nur** als
-> Renderer `zeichne`. Änderungen sichtbar in der Oberfläche: Koordinaten in einer 18-px-Leiste
-> (Buchstaben A–H wie das Panel), **kein** Stempel „St. n" mehr auf dem Feld (Stufenpips am
-> Baukörper), goldener Auswahlrahmen, Weg 8 px mit 4 px Innenlinie, Ufersaum nur an echten
-> Land-Wasser-Grenzen, Weltkarte mit 1-px-Raster nur zu ungleichen Nachbarn, Lager/Ruine als
-> Silhouette (Rohstoffvorkommen bleibt ein Punkt), Übersicht 4 × 4 px je Feld (132 → 80 px),
-> Detailpanel 248 px mit Umbruch innerhalb. Einzelheiten: `docs/EINHAENGEN_FEINKARTEN.md`.
-> **Prüfbelege:** Sammellauf **2643 bestanden, 0 Fehler, 22 Befunde über 41 Dateien** · `test_weltkarte`
-> 82/0/0 · `test_kartenansicht` 57/0/0 · `test_startspiel` 46/0/0 · `test_karten_optik_fein` 84/0/0 ·
-> `test_welt_optik_fein` 132/0/0 · `pruefe_verdrahtung` 17 verdrahtet/0 offen · Tempo gemessen 0,28 s
-> bzw. 0,14 s je Neuzeichnen. Unabhängig nachgeprüft von einem Unteragenten:
-> `docs/PRUEFUNG_FEINKARTEN_29.md` — 62 astra-Konstanten nachgemessen, **0 Abweichungen** (ehrlicher
-> Befund dort: die alten Plan-Bauer sind nicht tot, ihre eigenen alten Prüfdateien nutzen sie noch).
-> **Commits:** `306a89d` (Module) · `c4eabca` (`306a89d`) · `c51bdd4` (Entscheidungen) · `e87f6e9`.
+> **Das Siedlungskarten-Raster ist 8 × 7 = 56 Felder, davon genau 40 bebaubar** (Daniels Entscheidung
+> vom 05.10.2026, 14:24). **Prüfbelege:** `test_gelaende` **91/0/0** · Sammellauf **2649 bestanden,
+> 0 Fehler, 21 Befunde über 41 Dateien** · Zeilen im `docs/BOARD.md` (15:13 und 15:14) und im
+> Protokoll (15:11 und 15:16) · projektunabhängige Sicherung der 16 führenden Papiere.
 >
-> **`.exe`:** **14.574.335 Byte**, SHA256 `4d17a1093426e86a…`, Dateizeitstempel `14:28:09`, genau eine
-> EXE im Projektordner, aus `C:\Users\saras` startgeprüft (genau **ein** Fenster, antwortet bei 10/20/40 s,
-> sauber über `WM_CLOSE` geschlossen). **Beobachtung:** 18 s nach dem Start waren kurzzeitig **zwei**
-> Fenster zu sehen, eines mit „(Keine Rückmeldung)" — mit Geduld ist es genau eines; beim nächsten
-> Startlauf darauf achten. Wer mit der Fassung von 13:41 spielt, sieht die feinen Karten **nicht**.
+> **`.exe`:** **14.575.032 Byte**, SHA256 `72c19192…`, Dateizeitstempel `15:14:33`, genau **eine** EXE
+> im Projektordner, aus `C:\Users\saras` startgeprüft (genau **ein** Fenster „Nebelseetal Remake",
+> antwortet bei 10/20/40 s, sauber über `WM_CLOSE` geschlossen, danach **kein** Prozess offen). Diese
+> Fassung enthält das neue Raster — wer mit der Fassung von 14:28 spielt, sieht noch 8×5.
 >
-> **Daniels Entscheidungen vom 05.10.2026 (14:24):** Zeitfaktor **×180 bestätigt** · die neun
-> Geländeregeln **alle bestätigt** (in `data/buildings.json` als `_bestaetigt` vermerkt) · Lichtfarbe
-> **getrennt** (Wald `#6A7E6C`, aus seiner Grundfarbe gerechnet) · **Kartenmaß 8×7 = 56 Felder, davon
-> 40 bebaubar** → **das ist der nächste Bauschritt** · Sieg-/Niederlage: **Vorschläge abwarten**.
+> **Wie es gebaut ist:** `data/gelaende.json` → `zeilen` 5 → 7; die Regel `sumpf_hoechstens: 6` ist
+> durch **`sperrfelder: 16`** ersetzt. `gelaende.siedlungskarte_erzeugen` zieht die **40 bebaubaren**
+> Felder aus den sechs bebaubaren Geländearten und die **16 Sperrfelder** (nur Sumpf) getrennt nach
+> Kartentyp-Gewicht, mischt sie und hält den Mindestbesatz ein — Sperrfelder werden dabei nie
+> angefasst. `bauplaetze` heißt jetzt **bebaubare** Felder (vorher war es die Gesamtzahl — der alte
+> Doppelsinn), neu dazu `felder` = 56. Alte 40er-Spielstände bleiben ladbar (`main` zeichnet mit den
+> Maßen aus der Karte selbst).
 >
-> **Guthaben (Daniel abgelesen):** DeepSeek **3,80 USD** (13:48: 4,06) · OpenAI **2,17 USD** (unverändert —
-> in diesem Takt lief kein Bildmodell und kein v4-pro). **Daniel hat ausdrücklich gesagt: Guthaben nutzen,
-> damit es vorangeht** — teure Modelle bleiben trotzdem begründungspflichtig.
+> **Ehrlich benannte Abweichung vom Plan:** `docs/PLAN_RASTER_8x7.md` empfahl **Variante A** (achtes
+> Gelände „Wasser"); gebaut ist **Variante B (nur Sumpf)**, weil das Handbuch **sieben** Geländearten
+> belegt und nur den Sumpf als unbebaubar. Will Daniel ein Wasserbild, ist das eine kleine Änderung —
+> die Frage ist offen, aber unkritisch.
 >
-> **Zielregister:** Sitzung `20261005_135121_6629ef` hat ein **aktives** Ziel (Wortlaut aus Abschnitt 0) —
-> sie arbeitet weiter.
+> **Unabhängig nachgeprüft** (Unteragent, nur lesend, nach dem Commit): 1600 Karten (320 Saaten ×
+> 5 Kartentypen), **0 Verstöße** — 56/40/16 exakt, unter den gesperrten Feldern **nur** Sumpf,
+> Mindestbesatz erfüllt, deterministisch, Sumpf für alle 20 Gebäude verboten, Nebelsee nur Bibliothek
+> und Tempel; dazu die **eigene Stichprobe** des Koordinators (1200 Karten, 0 Verstöße).
+>
+> **OFFEN — wartet auf Daniel:** die **Sieg-/Niederlagebedingung**. Die drei Vorschläge wurden ihm am
+> 05.10.2026 um 15:16 vorgelegt (Empfehlung A: Punkteziel, Schwelle **300**, steht schon in
+> `src/punkte.py` als `VORSCHLAG_ZIEL_PUNKTE`; `punkte.sieg_oder_niederlage()` gibt es bereits, nur
+> `main.is_defeated()` ist unerreichbar).
+>
+> **Guthaben (Daniel abgelesen, 05.10.2026): DeepSeek 3,67 USD · OpenAI 2,17 USD.** In diesem Takt lief
+> nur `deepseek-v4-flash` (kein Bildmodell, kein v4-pro).
 
 **Darunter der Stand vom Vormittag** (Sitzung `20261005_104846_864c4b`, sauber beendet um 13:44) —
 gültig, wo oben nichts Neues steht:
@@ -125,22 +126,19 @@ nach Daniels Spielbericht — den **Zeitfaktor** samt sichtbarem Rohstoffeingang
 | `.exe` | **05.10. 13:41 gebaut** (Dateizeitstempel `13:41:04`): **14.531.774 Byte**, SHA256 `bffd3c444d6eb1433b14c1b7a768946cc45bdc1d8511332bca0de33bc7a85ed3`, aus `C:\Users\saras` startgeprüft (ein Fenster, genau eine Instanz) — **enthält Zeitfaktor, Rohstoff-Warnung und Geländeregeln** (Schritte 27 und 28). Ältere Fassungen: 13:29 (14.524.603 Byte, `1fad511d…`, Geländeregeln) · 12:38 (14.524.225 Byte, `63b09fbf…`). `build/`, `dist/`, `.spec`, `__pycache__` sind aufgeräumt, genau eine EXE im Projektordner. **Wichtig:** nur diese Fassung zeigt Tempo und Warnung — wer mit einer älteren spielt, sieht den Zeitfaktor nicht |
 | Guthaben | **von Daniel abgelesen am 05.10. um 13:48: OpenAI 2,17 USD · DeepSeek 4,06 USD** (11:00: 2,66 / 4,97 → im Nachmittag 0,49 bzw. 0,91 USD verbraucht). **Gemessener Tagesverbrauch laut `scripts/tageskosten_check.py`: 4,13 USD ≈ 3,68 EUR über 23 Sitzungen und 4 Modelle = 80 % des harten Tageslimits (4 EUR) — Lage „WARNUNG".** Für die nächste Sitzung heißt das: **keine teuren Aufrufe ohne Begründung**, Kinder und Prüfer nur auf `deepseek-flash`, Bilddeutungen (astra) nur, wenn es wirklich nicht anders geht. **Beobachtung zum Messskript:** es meldete zwischen 13:45 und 13:48 nur +0,005 USD, während Daniels Guthabenanzeige um **0,19 USD** fiel — die Schätzung läuft der Anbieterwahrheit nach. **Maßgeblich ist die Guthabenanzeige des Anbieters, nicht die Schätzung** |
 
-### Der EINE nächste Schritt (Stand 05.10.2026, 14:31 — Schritt 29 ist ERLEDIGT)
+### Der EINE nächste Schritt (Stand 05.10.2026, 15:16 — Schritt 30 ist ERLEDIGT)
 
-**Der neue nächste Schritt: das Raster der Siedlungskarte auf 8 × 7 = 56 Felder umstellen, davon 40 bebaubar.**
+**Der neue nächste Schritt: die Sieg-/Niederlagebedingung nach Daniels Wahl bauen und einhängen.**
 
-1. **Raster 8×7 = 56 Felder, 40 bebaubar** — **Daniels Entscheidung vom 05.10.2026, 14:24** (er hat aus
-   drei Möglichkeiten genau diese gewählt; der astra-Bericht hält die 8×7 für „vorgegeben", das Handbuch
-   nennt keine Größe). Zu ändern: `data/gelaende.json` (spalten/zeilen) · `src/gelaende.py`
-   (Kartenerzeugung, `siedlungskarte_erzeugen`, „niemals zwei gleiche") · `src/main.py`
-   (Zeichnung, Klickrechnung, Speichern/Laden) · die Prüfdateien, die 40 Felder annehmen (Suche nach
-   „40" und „spalten"). **Vorarbeit liegt vor:** `docs/PLAN_RASTER_8x7.md` (Unteragent) — Bestandsaufnahme
-   mit Fundstellen, zwei Varianten für die 16 nicht bebaubaren Felder, Reihenfolge, Risiken. Vom Koordinator **nachgerechnet** (Zahlen stimmen, 05.10.2026). Sein Befund: nicht bebaubar ist **nur der Sumpf** — der Nebelsee ist es (Bibliothek/Tempel); die 16 Sperrfelder brauchen also Wege/Wasser (Variante A, passt zur Notiz in `data/gelaende.json`) oder eine Sumpf-Ausweitung (B).
-2. **Sieg-/Niederlagebedingung** — Daniel hat auf „Vorschläge abwarten" entschieden. Die Vorschläge
-   liegen fertig in `docs/ENTSCHEIDUNGEN_FUER_DANIEL.md` (Empfehlung A: Punkteziel; im Code steht der
-   Ansatz schon in `src/punkte.py` — `VORSCHLAG_ZIEL_PUNKTE = 300`, `sieg_oder_niederlage()`); sie sind
-   vom Koordinator an den Kernzahlen nachgeprüft. **Erst Daniel vorlegen, dann bauen.**
-3. **Aufgabenkarte für den Einstieg** (Entwurf Abschnitt D): Holzfäller/Steinmetz → Bibliothek →
+1. **Sieg/Niederlage** — Daniel hatte am 05.10.2026 „Vorschläge abwarten" entschieden. Die drei
+   Vorschläge liegen fertig in `docs/ENTSCHEIDUNGEN_FUER_DANIEL.md` (Abschnitt 3) und wurden ihm am
+   05.10.2026 um 15:16 vorgelegt. **Empfehlung A: Punkteziel** — Sieg, sobald
+   `(Kriegs- + Forschungspunkte) / 2` die Schwelle erreicht (**300** steht schon als
+   `VORSCHLAG_ZIEL_PUNKTE` in `src/punkte.py`); Niederlage, wenn keine Siedlung **und** keine Einheit
+   mehr übrig sind. Der Ansatz ist gebaut (`punkte.sieg_oder_niederlage()`), aber **nicht eingehängt**
+   (`main.is_defeated()` ist unerreichbar). **Erst Daniels Wahl abwarten, dann einhängen, testen,
+   protokollieren, committen — und am Ende die `.exe` neu bauen.**
+2. **Aufgabenkarte für den Einstieg** (Entwurf Abschnitt D): Holzfäller/Steinmetz → Bibliothek →
    Baukunst → Farm/Haus → Schmiedekunst → Schmiede/Nähstube → erste Ware → erste Einheit.
 
 **Arbeitsweise für diesen Schritt (Vorgabe Daniel, unverändert):** nach jedem Schritt den betroffenen
@@ -150,12 +148,13 @@ schätzen), dann `python tools/protokoll_sichern.py --protokoll` und ein **klein
 Unteragenten erst **NACH** dem Commit loslassen. Ändert sich etwas in `src/` oder `data/*.json`, am
 Ende die `.exe` neu bauen (`tools/build_exe.py`) und aus einem **anderen** Ordner startprüfen.
 
-### (Liste vom Vormittag — Schritt 1 ist erledigt, der Rest bleibt gültig)
+### (Liste vom Vormittag — die Punkte 1 und 3 sind inzwischen erledigt)
 
 **Erledigt und nicht zu wiederholen:** der `.exe`-Neubau nach den Geländeregeln — **gebaut am
 05.10. um 13:41:04** (14.531.774 Byte, SHA256 `bffd3c44…`), aus `C:\Users\saras` startgeprüft.
 
-1. **Die zwei Feinkarten-Module einhängen** (`karten_optik_fein`, `welt_optik_fein`). astra hat die
+1. **Erledigt in Schritt 29** — die zwei Feinkarten-Module (`karten_optik_fein`, `welt_optik_fein`)
+   sind eingehängt; die Notizen unten bleiben als Nachvollziehbarkeit stehen. astra hat die
    Zahlen geliefert: Baukörper 44×46 px, Dach 38×16, Sockel 36×5, Tür 6×10, Fenster 4×5 (#875241/
    #59382F/#C0AD86/#8F795C) · Uferband 3–5 px #999071 nur an echten Land-Wasser-Grenzen · Weg 8 px
    #75674F mit 4 px Innenlinie #A28E69 · Auswahl 5 px #172128 + 2 px #E4C77D + vier 8-px-Eckwinkel ·
@@ -170,12 +169,15 @@ Ende die `.exe` neu bauen (`tools/build_exe.py`) und aus einem **anderen** Ordne
    Aufrufer übergeben, nie im Modul festlegen.
 2. **Aufgabenkarte für den Einstieg** (Entwurf Abschnitt D): Holzfäller/Steinmetz → Bibliothek →
    Baukunst → Farm/Haus → Schmiedekunst → Schmiede/Nähstube → erste Ware → erste Einheit.
-3. **Offene Entscheidungen für Daniel:** **Zeitfaktor bestätigen** — er ist jetzt gebaut und in den
+3. **Erledigt am 05.10.2026 (14:24) — alles beantwortet:** **Zeitfaktor bestätigt** (×180) · die
+   neun Geländeregeln bestätigt · Raster **8×7 = 56/40 gebaut (Schritt 30)** · Lichtfarbe getrennt ·
+   **Sieg-/Niederlage: Vorschläge am 15:16 vorgelegt, Wahl offen.** Der ursprüngliche Wortlaut dieser
+   Zeile: **Zeitfaktor bestätigen** — er ist jetzt gebaut und in den
    Einstellungen umstellbar (Vorschlag ×180 = 1 Spielstunde in 20 Sekunden; ×1 = Originaltempo) ·
    **die neun Geländeregeln bestätigen oder ändern** (eine
    Zeile je Gebäude in `data/buildings.json`) · **Sieg-/Niederlagebedingung** (heute
    unerreichbar!) · Kampfmagie als einziger größerer Vorschlag · Ausbaustufen des Hauses
-   bestätigen (Stufe 4, je +5 Siedler) · Raster 8×7 oder 8×5.
+   bestätigen (Stufe 4, je +5 Siedler) · Raster 8×7 oder 8×5 — **entschieden und gebaut: 8×7, 40 von 56 bebaubar.**
 
 **Lehren dieser Reihe:** (a) ein grüner Prüfstand beweist keine Spielbarkeit — die alte Prüfung fuhr
 Methoden statt Schaltflächen; (b) **Zeiten nie schätzen**, immer `date`; (c) eine Zeichenfläche, die
