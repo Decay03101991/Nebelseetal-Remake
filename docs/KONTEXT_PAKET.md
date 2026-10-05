@@ -13,7 +13,7 @@ Ziel: fertige, fehlerfrei spielbare, passwortgeschützte Einzelspieler-`.exe` (H
 |---|---|
 | **Sammellauf** | **3654 bestanden · 0 Fehler · 21 Befunde · 51 Dateien** (20:27; `…/cache/scratch/sammellauf.py`, 108 s) |
 | **Arbeitsbaum** | **sauber** (`git status --short` leer), letzter Commit **`25466f5`** — 20:33 |
-| **`.exe`** | **14.611.526 Byte**, SHA256 `11e7042f6c50fadf…`, gebaut **20:35**; genau **eine** `.exe`, `build/`+`dist/` aufgeräumt |
+| **`.exe`** | **14.611.526 Byte**, SHA256 `11e7042f6c50fadf…`, Dateizeitstempel **20:30:30**; genau **eine** `.exe`, `build/`+`dist/` aufgeräumt |
 | **Startprüfung** | aus `…\hermes\cache\scratch\exestart` (anderer Ordner): Fenstertitel **„Nebelseetal Remake"**, antwortet bei **+10/+20/+40 s**, **0** Fehlerberichte (WerFault), danach **0 offene Spielprozesse**, Startordner leer |
 | **Sicherung** | `docs/SICHERUNGEN.md` — 16 führende Papiere mit Prüfsummen (20:33, `protokoll_sichern.py --protokoll`) |
 | **Zielregister** | nur **diese** Sitzung `20261005_201518_d2b523` aktiv (**1/20 Takte**), **kein fremdes aktives Ziel** (`--pruefen` rc=0) |
@@ -123,7 +123,7 @@ am Ende die `.exe` neu bauen und aus einem **anderen** Ordner startprüfen.
 * **Schritt 8b** — Commit `25466f5`, `tests/test_handel_transaktion.py` **101/0/0**, Sammellauf
   **3654/0/21** über 51 Dateien (20:27). Die neue Prüfdatei steckt in `run_tests.bat`.
 * `test_baseline` ist seit **18:17 deterministisch** (Haus auf einem erlaubten Feld, dreimal 40/0/0).
-* Die `.exe` **startet** (**20:35** aus anderem Ordner: Titel, antwortet 10/20/40 s, 0 Fehlerberichte,
+* Die `.exe` **startet** (**unmittelbar nach dem Bau, 20:30** aus anderem Ordner: Titel, antwortet 10/20/40 s, 0 Fehlerberichte,
   0 offene Prozesse).
 * Der Sammellauf wird **nur nach einer echten Änderung an `src/`** wiederholt (nicht nach
   Dokument-Commits).
@@ -157,4 +157,4 @@ am Ende die `.exe` neu bauen und aus einem **anderen** Ordner startprüfen.
 * Stand/Historie: `docs/PROJEKT_STAND.md` (0c Tabelle, 0e Übergabe) · `docs/ENTWICKLUNGSPROTOKOLL.md`
 * Werkzeuge: `tools/zieluebergabe.py` · `tools/protokoll_sichern.py` · `tools/build_exe.py`
 * Sammellauf: `C:\Users\saras\AppData\Local\hermes\cache\scratch\sammellauf.py` (liest `run_tests.bat`)
-* Startprüfung: `…\cache\scratch\exestart\startpruefung_1005_2035.ps1` (Prozesse, Titel, WerFault)
+* Startprüfung: `…\cache\scratch\exestart\startpruefung_1005_2030.ps1` (Prozesse, Titel, WerFault)

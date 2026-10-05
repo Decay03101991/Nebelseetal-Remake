@@ -350,7 +350,7 @@ So erzeugt (Werkzeug, startet nichts): `python tools/zieluebergabe.py --startzei
 |---|---|
 | **Sammellauf** | **3654 bestanden, 0 Fehler, 21 Befunde über 51 Dateien**, 20:27, 108 s (`…/cache/scratch/sammellauf.py`) — Schritt 8b brachte +101 |
 | **Arbeitsbaum** | **sauber** — `git status --short` ist leer; letzter Commit **`25466f5`** (Schritt 8b) |
-| **`.exe`** | **14.611.526 Byte**, SHA256 `11e7042f6c50fadf1defd369d700371f69211d580bdfe7fb742346b7bb78417e`, gebaut **20:35**; startgeprüft aus `…\cache\scratch\exestart` (anderer Ordner): Fenstertitel **„Nebelseetal Remake"**, antwortet bei **+10/+20/+40 s**, **0** Fehlerberichte (WerFault), danach **0 offene Spielprozesse**, Startordner leer. Genau **eine** `.exe`, `build/`/`dist/`/`.spec` aufgeräumt |
+| **`.exe`** | **14.611.526 Byte**, SHA256 `11e7042f6c50fadf1defd369d700371f69211d580bdfe7fb742346b7bb78417e`, Dateizeitstempel **20:30:30**; startgeprüft aus `…\cache\scratch\exestart` (anderer Ordner): Fenstertitel **„Nebelseetal Remake"**, antwortet bei **+10/+20/+40 s**, **0** Fehlerberichte (WerFault), danach **0 offene Spielprozesse**, Startordner leer. Genau **eine** `.exe`, `build/`/`dist/`/`.spec` aufgeräumt |
 | **Sicherung** | `docs/SICHERUNGEN.md` — **16 Dateien** mit Prüfsummen, 20:33 (`protokoll_sichern.py --protokoll`, projektunabhängige Kopie unter `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\`) |
 | **Zielregister** | nur **diese** Sitzung aktiv (**1/20 Takte**, `20261005_201518_d2b523`), **kein fremdes aktives Ziel** (`--pruefen` → rc=0) |
 | **Kosten** | **Tagesmessung 6,52 EUR von 4,00 EUR = ÜBER dem harten Limit** (7,32 USD, 52 Sitzungen, 5 Modelle). **Daniel hat den Auftrag am 05.10. um 20:20 ausdrücklich freigegeben** — Bedingung: nur `deepseek-flash`, kein teures Modell, keine Kinder, **1,00 USD DeepSeek bleiben als Reserve** (Guthaben 2,01 USD). Gemessener Anteil dieser Sitzung: **+0,07 EUR** (6,45 → 6,52). Die Schätzung liegt erfahrungsgemäß **unter** der Anbieterwahrheit |
@@ -371,7 +371,7 @@ Abschnitt 2.
 | Schritt **8b** (Handels-Paar) | `25466f5`, `tests/test_handel_transaktion.py` **101/0/0**, Sammellauf **3654/0/21** über 51 Dateien (20:27) — die Prüfdatei steckt in `run_tests.bat` |
 | Schritt **8a** (`oekonomie_kartenwahl`, `oekonomie_angebot`) | `3785b5d`, `test_botkern` **90/0/0** (botkern bleibt reines ASCII); die *prüfenden Kinder* dazu wurden gestoppt → **die Prüfdatei fehlt noch** |
 | `test_baseline` war **nur zufällig grün** | behoben 18:17: Haus wird jetzt auf ein Feld gesetzt, wo es stehen darf; **dreimal 40/0/0** belegt, seither kein Ausreißer |
-| `.exe` startet | 20:35 aus einem anderen Ordner geprüft (Titel, antwortet 10/20/40 s, 0 Fehlerberichte, 0 offene Prozesse) |
+| `.exe` startet | unmittelbar nach dem Bau (20:30) aus einem anderen Ordner geprüft (Titel, antwortet 10/20/40 s, 0 Fehlerberichte, 0 offene Prozesse) |
 | Der Baum ist sauber | 20:33: `git status --short` leer (Commit `25466f5`) |
 
 ### Sekunden-Checks für den Anfang
