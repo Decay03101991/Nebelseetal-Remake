@@ -54,7 +54,7 @@ Unteragenten erst NACH dem Commit loslassen. Am Ende der Reihe die `.exe` neu ba
 
 **Stand 06:05 (Übergabe, gemessen):** seit 03:04 ist **nichts** gelaufen — kein Geisterläufer, alle alten Ziele `cleared`, dieses Ziel steht auf **pausiert (8/20 Takte)**, es arbeitet also nichts von selbst weiter. Prüfstand **1929/0/19 über 32 Dateien**, Protokoll **314 Zeilen** (Vor-Fassung aufbewahrt), `.exe` **14.454.894 Byte**, SHA256 `29eaaf76c70fc76a45bc5fe97775511e04fae0318d8275d55314c184d83d13cc`, startgeprüft. Letzte Commits: `dece98b` (Protokoll verdichtet), `15a8cff` (Übergabe + Skill). Kosten heute ab 00:00 **1,05 USD**; das DeepSeek-Guthaben bitte in der neuen Sitzung erneut ablesen — ich kann es nicht messen.
 
-**Erste Handlung der neuen Sitzung:** `python tools/zieluebergabe.py --pruefen` zeigt den Stand; `--beenden 20261005_005307_bf5031 --grund "abgeschlossen, neue Sitzung uebernimmt"` beendet **genau** dieses Ziel (nichts wird gelöscht, der Grund bleibt im Datensatz). Danach am Wiedereinstiegspunkt weitermachen.
+**Erste Handlung der neuen Sitzung:** das Zielregister ist **schon sauber** — diese Sitzung hat ihr Ziel am 05.10. 06:15 auf `cleared` gesetzt (Grund im Datensatz), geprüft mit `python tools/zieluebergabe.py --pruefen` (kein aktives Ziel). Es ist nichts zu beenden; die neue Sitzung setzt nur ihr eigenes Ziel (`/goal …`) und arbeitet am Wiedereinstiegspunkt weiter.
 
 ---
 
@@ -75,6 +75,7 @@ gleich, Zeiger `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt`).
 | `.exe` | **05.10. 01:29 neu gebaut**: `Nebelseetal_Remake.exe`, **14.130.477 Byte**, SHA256 `09b789d5e96eec7334beea1bd1ded05af0d7dd42e48c46ed4613524d1b9cb043`; **Startprüfung bestanden** (Pfad mit Leerzeichen, Fenster „Nebelseetal Remake", kein Absturz, Passworttor steht; Passwort **nicht** eingegeben). Enthält Speichern, Punkte, Kampf, Portal, Werkstatt, Kampfsimulator und die kämpfenden Aufträge — **ohne** die drei offenen Punkte |
 | Kosten dieser Sitzung | **0,8362 USD = 0,7449 EUR** (`scripts/tageskosten_check.py --json`, Messung 01:24), davon **0,3444 USD** der auf Daniels Wunsch geholte `gpt-6-astra`-Rat; der Rest ist Koordinator + `flash`-Unteragenten |
 | Guthaben | Daniel ablesen lassen: OpenAI **3,04 → ~2,70 USD**, DeepSeek **1,70 USD** (Reserve 1,00 USD unberührt) — bitte bei der nächsten Sitzung erneut ablesen, ich kann es nicht messen |
+| Guthaben (neue Sitzung, **05.10. 06:25 von Daniel selbst abgelesen**) | **DeepSeek 5,48 USD** (platform.deepseek.com/usage — also aufgeladen, die 1,00-USD-Reserve bleibt unberührt) · **OpenAI 3,01 USD** (platform.openai.com → Billing/Overview). Damit ist der Auftrag weiter finanzierbar; teure Modelle nur mit Grund, Kosten nach jedem Aufruf messen |
 
 ### Der EINE nächste Schritt
 
