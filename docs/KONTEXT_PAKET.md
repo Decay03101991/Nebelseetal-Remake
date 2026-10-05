@@ -1,4 +1,4 @@
-# KONTEXT-PAKET — Nebelseetal Remake (Stand 05.10.2026, 22:17 · Zeiten mit `date` geholt)
+# KONTEXT-PAKET — Nebelseetal Remake (Stand 05.10.2026, 23:57 · Zeiten mit `date` geholt)
 
 **Diese Datei ist die Übergabe. Lies SIE zuerst (≈ 12 KB) und sonst nur, was hier als Zeiger steht —
 `docs/PROJEKT_STAND.md` (69 KB) und `docs/ENTWICKLUNGSPROTOKOLL.md` (93 KB) sind Nachschlagewerke,
@@ -11,13 +11,13 @@ Ziel: fertige, fehlerfrei spielbare, passwortgeschützte Einzelspieler-`.exe` (H
 
 | Was | Beleg |
 |---|---|
-| **Sammellauf** | **3903 bestanden · 0 Fehler · 22 Befunde · 52 Dateien** (22:1x; `…/cache/scratch/sammellauf.py`, 116 s) |
-| **Arbeitsbaum** | **sauber** (`git status --short` leer), letzter Commit **`e15e0e5`** (Schritt 9, Teil 5 + `.exe`) |
-| **`.exe`** | **14.637.617 Byte**, SHA256 `44bbf346755aa08d…`, Dateizeitstempel **22:13:23**; genau **eine** `.exe`, `build/`+`dist/` aufgeräumt; Vorgängerfassung vorher gesichert (`…\cache\scratch\exe_alt_2212_vor_teil5.exe`, 14.630.304 Byte) |
-| **Startprüfung** | aus `…\hermes\cache\scratch\exestart` (anderer Ordner, Skript `startpruefung_1005_2214.ps1`): Fenstertitel **„Nebelseetal Remake"**, antwortet bei **+10/+20/+40 s**, **0** Fehlerberichte (WerFault), danach **0 offene Spielprozesse**, Startordner leer |
-| **Sicherung** | `docs/SICHERUNGEN.md` — 16 führende Papiere mit Prüfsummen (22:16, projektunabhängige Kopie unter `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\`) |
+| **Sammellauf** | **3965 bestanden · 0 Fehler · 22 Befunde · 52 Dateien** (23:5x; `…/cache/scratch/sammellauf.py`, 100 s) |
+| **Arbeitsbaum** | **sauber** (`git status --short` leer), letzter Commit **`47b4a48`** (Schritt 9, Teil 6b+6c + `.exe`) |
+| **`.exe`** | **14.640.905 Byte**, SHA256 `0786111cd5a000c3…`, Dateizeitstempel **23:54:57**; genau **eine** `.exe`, `build/`+`dist/` aufgeräumt; Vorgängerfassung vorher gesichert (`…\cache\scratch\exe_alt_2354_vor_teil6.exe`, 14.637.617 Byte) |
+| **Startprüfung** | aus `…\hermes\cache\scratch\exestart` (anderer Ordner, Skript `startpruefung_1005_2358.ps1`): Fenstertitel **„Nebelseetal Remake"**, antwortet bei **+10/+20/+40 s**, **0** Fehlerberichte (WerFault), danach **0 offene Spielprozesse**, Startordner leer |
+| **Sicherung** | `docs/SICHERUNGEN.md` — 16 führende Papiere mit Prüfsummen (23:56, projektunabhängige Kopie unter `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\`) |
 | **Zielregister** | nur **diese** Sitzung `20261005_212201_8bd3fb` aktiv (**0/20 Takte**), **kein fremdes aktives Ziel** (`--pruefen` rc=0); die Vorgängersitzung `20261005_201518_d2b523` ist auf `cleared` gesetzt |
-| **Kosten** | Tagesmessung **7,04 EUR / 4,00 EUR = „ÜBER_LIMIT"** (7,90 USD). **Daniel hat den Auftrag um 20:20 freigegeben** (nur `deepseek-flash`, kein teures Modell, keine Kinder, **1,00 USD DeepSeek bleiben als Reserve**). Gemessener Anteil dieser Sitzung: **+0,36 EUR** (21:12: 6,68 → 22:16: 7,04). Maßgeblich ist DeepSeeks Kontostand (Daniel liest ab) |
+| **Kosten** | Tagesmessung **7,25 EUR / 4,00 EUR = „ÜBER_LIMIT"** (8,13 USD). **Daniel hat den Auftrag um 20:20 freigegeben** (nur `deepseek-flash`, kein teures Modell, keine Kinder, **1,00 USD DeepSeek bleiben als Reserve**). Gemessener Anteil dieser Sitzung: **+0,57 EUR** (21:12: 6,68 → 23:57: 7,25). Maßgeblich ist DeepSeeks Kontostand (Daniel liest ab) |
 
 `git log --oneline -3` · `git status --short` · `python tools/zieluebergabe.py --pruefen` → alles in Sekunden.
 
@@ -27,7 +27,11 @@ Ziel: fertige, fehlerfrei spielbare, passwortgeschützte Einzelspieler-`.exe` (H
 Auftraggeber hat „Stück für Stück" entschieden: nach JEDEM Teil Einzeltest + einmal Sammellauf +
 Protokollzeile + kleiner Commit.
 
-**Teil 6 (der nächste Schritt): Produktion und Aufträge je Ort** (Entwurf Z. 779/781):
+**Teil 6 ist zu zwei Dritteln fertig (6a/b/c); als Nächstes: die Forschung je Ort** (Entwurf Z. 779/781).**
+
+**FERTIG in Teil 6:** `aktive_siedlung_id` (6a, `ad12376`), die **eine Spieluhr je Ort** (6b: `spielsekunden`, `tick` über `ort_tick`, **keine Doppelernte** — die eigene Produktionsformel in `tick` ist entfernt) und **Ware + Ausbildung VOR ORT** (6c: `_ware_herstellen` → `ware_start`, `_train_unit` → `ausbildung_start`, der Altpfad „sofort hochzählen" und der globale Ausrüstungsverbrauch sind weg; Einheit und Ware entstehen am Ende der Zeit im **Ortslager**) — Commit `0e4a08a`.
+
+**OFFEN (der nächste Schritt):** `_start_research` über **`forschung_start`** (lokale Bibliothek, **lokale Mittel**, globales Wissen) und der Abschluss über `forschung_abschluss` je Ort — der Altpfad `forschung_fortschreiben` läuft heute noch GLOBAL und muss zusammen mit seinem Takt wandern, sonst zahlen zwei Wege für dieselbe Stufe. Die alten Beschreibungen des Teils stehen darunter weiter (sie sind noch gültig für die Forschung): (Entwurf Z. 779/781):
 `_ware_herstellen` über `ware_start` des **ausgewählten Ortes** (keine spielerweite Werkstattstufe),
 `_train_unit` über `ausbildung_start` (und die **sofortige globale Ausrüstungsausgabe aus dem Altpfad
 `_start_research` über `forschung_start` (lokale Bibliothek, lokale Mittel, globales Wissen),
@@ -105,7 +109,7 @@ Teil 4-7 umgestellt sind und der Zuschuss aus `verbrauche_am_ort` entfallen kann
 | 7 | `zielstatus` (Zielprüfung + Haltefenster 24 h) | `a2b6531`, `eee604e` |
 | 8a | `botkern.oekonomie_kartenwahl`, `oekonomie_angebot` | `3785b5d` |
 | 8b | Handels-Paar `handel_start`/`handel_abschluss` + Prüfdatei | `25466f5` · `test_handel_transaktion` **101/0/0** |
-| **9** | **`main`-Anbindung + Migration — TEILE 1-5 fertig, Teil 6 als Nächstes** | 9.1 `c099c4e` · 9.2 `1ce4ae3` · 9.3a `a0d432d` · 9.3b `65c41bf` · 9.4 `5a46ad7` · **9.5 `fab8611`** · `test_oekonomie_einhaengung` **249/0/1** |
+| **9** | **`main`-Anbindung + Migration — TEILE 1-6a/b/c fertig, Forschung je Ort als Nächstes** | 9.1 `c099c4e` · 9.2 `1ce4ae3` · 9.3a `a0d432d` · 9.3b `65c41bf` · 9.4 `5a46ad7` · 9.5 `fab8611` · **9.6a `ad12376` · 9.6b/c `0e4a08a`** · `test_oekonomie_einhaengung` **301/0/1**, Sammellauf **3965/0/22** |
 | 10 | `tick_bis` + **Aktivierung** | offen |
 
 **Was die Teile 1, 2, 3a, 3b, 4 und 5 in `src/main.py` wirklich geändert haben:**
@@ -202,6 +206,9 @@ am Ende die `.exe` neu bauen und aus einem **anderen** Ordner startprüfen.
 | **`get_tile` braucht die aufgebaute Weltkarte** | Ein frischer Zustand (oder eine Prüfung) hat sie nicht: `self.map_tiles` ist leer → `IndexError`. Vor JEDEM Zugriff auf Weltfelder `_weltkarte_sicherstellen()` (baut die Karte genau dann auf, wenn sie fehlt). Beim Bau von Teil 5 **dreimal** passiert (Auswahl, Kolonie, Startsiedlung). |
 | **Wachen auf ersetzten Code umstellen** | Zwei P14-Wachen aus Teil 3a hingen an Zeilen der **alten** `_found_settlement` und wurden rot, als Teil 5 die Methode ersetzte. Nicht die Prüfung löschen: den **echten neuen Anker** suchen, der dieselbe Zusage belegt, und die Zusage stehen lassen. |
 | **`absicht` erwartet eine FLACHE Stufenkarte** | `{Gebiet: Stufe}` — nicht `forschung_stand()` (das liefert je Gebiet ein Verzeichnis) → sonst `TypeError` beim Vergleich. |
+| **`ort_tick` erntet SELBST** | Er bucht `wirtschaft.ertrag_gesamt` auf die Ortsvorräte, den Siedlerzuwachs und das `produktionsjournal`. Wer ihn NEBEN die Buchungen aus Teil 3a hängt, **verdoppelt jede Ernte**. Teil 6b hat deshalb die eigene Produktionsformel aus `tick` **entfernt** — eine Uhr, eine Formel. Die alte Wache „4 Holz, nicht 8" ist der Beweis. |
+| **Ware und Einheit kommen erst mit dem Takt an** | `ware_start`/`ausbildung_start` legen nur den Auftrag an (`ort["werkstaetten"]`/`ort["ausbildung"]`); fertig gebucht wird in `ort_tick`. Ohne Takt kommt nichts an — und ohne **Neuzeichnen** (`tick` gibt die Fertigmeldungen zurück, die App zeichnet dann) sieht der Spieler es nie. |
+| **Prüfungen kodieren die alte Wahrheit** | Nach dem Umbau auf „vor Ort" mussten `test_gebaeude_wirkung`, `test_gui_fehler`, `test_durchspiel`, `test_startspiel` ihre DATENLAGE umstellen (Rohstoffe, Siedler, Ausrüstung ins Ortslager; die Einheit nach der Ausbildungszeit im Ortslager prüfen). Zwei meiner NEUEN Erwartungen waren zusätzlich falsch (die Gesamtsicht führt **Zuwächse**, nicht Absolutwerte) — die Prüfung wurde korrigiert, nicht der Code. |
 
 ## 6. Nicht erneut zu prüfen (Beleg + Datum)
 
@@ -222,12 +229,24 @@ am Ende die `.exe` neu bauen und aus einem **anderen** Ordner startprüfen.
   Quelltextwachen), Sammellauf **3903/0/22** über 52 Dateien (22:1x, 116 s); am lebenden Fenster
   gemessen (Maske mit Nutzen/Preis/Minimum, Gründung über die Oberfläche, ehrliche Ablehnung ohne
   Karren).
+* **Schritt 9, Teil 6a** — `ad12376`, dieselbe Prüfdatei **264/0/1** (neu: P25 der Zeiger auf den
+  aktiven Ort, Speichern/Laden, Stand ohne das Feld lädt weiter), Sammellauf **3917/0/23** über
+  52 Dateien.
+* **Schritt 9, Teil 6b+6c** — `0e4a08a`, dieselbe Prüfdatei **301/0/1** (neu: P26 die Spieluhr je
+  Ort, **kein Doppelertrag** — die Wache aus Teil 3a „4 Holz, nicht 8" hält weiter, Journal genau
+  eine Zeile je Takt · P27 Ware VOR ORT bis zur Ankunft im Ortslager, Reichslager unberührt,
+  Quelltextwachen), **`test_gebaeude_wirkung` 118/0/1**, **`test_startspiel` 54/0/0** (Knopfdruck →
+  Auftrag vor Ort → Einheit nach der Zeit, im FENSTER sichtbar), **`test_baseline` 40/0/0**,
+  **`test_durchspiel` 51/0/2**, Sammellauf **3965/0/22** über 52 Dateien (23:5x, 100 s); am lebenden
+  Fenster gemessen (Lager „Schmiede (1 Stück vor Ort)" und nach dem Einreihen „in Arbeit: 1 |
+  fertig: 0 | Restzeit 20.0 Minuten", Kaserne „Anzahl: 2 vor Ort · Reich: 0").
   Messwerte am lebenden Fenster: Dorfzentrum „Reich: 777 Holz, 300 Stein · 21 Siedler" **und**
   „lokal: 137.5 Holz, 42 Stein · 8 Siedler"; Siedlungskarte „Ortsbestand dieser Siedlung (lokal)".
-* Die neue `.exe` **startet** (22:14, Fenstertitel, antwortet 10/20/40 s, 0 Fehlerberichte, 0 offene
+* Die neue `.exe` **startet** (23:58, Fenstertitel, antwortet 10/20/40 s, 0 Fehlerberichte, 0 offene
   Prozesse); sie enthält die Feld-/Kennungs-Änderung, die Punkt- und Stationier-Korrektur, die
-  **Ortslager (3a)**, die **getrennte Anzeige (3b)**, den **echten Transport (4)** und die
-  **Gründung mit Kartenvorrat (5)**.
+  **Ortslager (3a)**, die **getrennte Anzeige (3b)**, den **echten Transport (4)**, die
+  **Gründung mit Kartenvorrat (5)**, den **aktiven Ort (6a)** und die **eine Spieluhr je Ort samt
+  Ware und Ausbildung vor Ort (6b+6c)**.
 * Der Sammellauf wird **nur nach einer echten Änderung an `src/`** wiederholt.
 * Fehlend von Schritt 8a: `tests/test_bot_oekonomie.py` und `docs/audits/pruefung_schritt8.md` (zwei
   gestoppte Kinder; Auftragstext in Protokollzeile 53).
@@ -259,6 +278,6 @@ am Ende die `.exe` neu bauen und aus einem **anderen** Ordner startprüfen.
 * Stand/Historie: `docs/PROJEKT_STAND.md` (0c Tabelle, 0e Übergabe) · `docs/ENTWICKLUNGSPROTOKOLL.md`
 * Werkzeuge: `tools/zieluebergabe.py` · `tools/protokoll_sichern.py` · `tools/build_exe.py`
 * Sammellauf: `C:\Users\saras\AppData\Local\hermes\cache\scratch\sammellauf.py` (liest `run_tests.bat`)
-* Startprüfung: `…\cache\scratch\exestart\startpruefung_1005_2214.ps1` (Prozesse, Titel, WerFault)
+* Startprüfung: `…\cache\scratch\exestart\startpruefung_1005_2358.ps1` (Prozesse, Titel, WerFault)
 * Bau-Umgebung für die `.exe` (Zwischenspeicher, 24 h): `…\cache\scratch\nebel_bauvenv`
   (`uv venv --python 3.14.7` · `uv pip install pyinstaller`), Aufruf mit `--python …/Scripts/python.exe`
