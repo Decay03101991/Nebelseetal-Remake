@@ -278,12 +278,20 @@ def partiedurchlauf():
         abschnitt("10. Handel mit einem Bot")
         bot.trading = 0.9
         bot.gehandelt = 0
+        _vorher_roh = {k: float(v.amount) for k, v in gs.resources.items()}
+        _vorher_ruf = int(gs.ruf)
         log_vorher = len(gs.log)
         handel = app._trade(bot)
-        check("der Handel laeuft und nennt die belegte Schwelle",
-              handel is True and any("Schwellenpreis" in z for z in gs.log[log_vorher:]),
+        # Teil 7: der Altpfad schenkte Ware ohne Gegenleistung (`random.randint` direkt ins Lager)
+        # — dieser Weg ist GESPERRT. Bis der bestaetigte Kaufvertrag angeschlossen ist, wird der
+        # Handel ehrlich abgelehnt und es wird NICHTS gebucht.
+        check("der Handel wird ehrlich abgelehnt (kein Gratisgewinn)",
+              handel is False and any("noch nicht verfügbar" in z for z in gs.log[log_vorher:]),
               str(gs.log[log_vorher:]))
-        check("der Handel wird am Bot gezaehlt", int(bot.gehandelt) == 1)
+        check("dabei wird NICHTS gebucht (keine Rohstoffe, kein Ruf, kein Handelszaehler)",
+              {k: float(v.amount) for k, v in gs.resources.items()} == _vorher_roh
+              and int(gs.ruf) == _vorher_ruf and int(bot.gehandelt) == 0,
+              "Ruf %s, gehandelt %s" % (gs.ruf, bot.gehandelt))
         bot.trading = 0.1
         check("ein Bot ohne Handelsneigung handelt nicht", app._trade(bot) is False)
 

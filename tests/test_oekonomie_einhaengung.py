@@ -1105,4 +1105,39 @@ check("P28: der reichsweite Auftrag ist in den ORT umgezogen",
       "%r / %r" % (st32.settlements[0].forschungsauftrag, st32.forschungsauftraege))
 
 
+abschnitt("P29: Teil 7 - der Gratisgewinn beim Handel ist GESPERRT")
+
+_q9 = open(os.path.join(SRC, "main.py"), encoding="utf-8").read()
+check("P29: die erfundene Gratis-Menge ist verschwunden",
+      "random.randint(15, 35)" not in _q9 and "gains[res] * bonus" not in _q9)
+check("P29: der Handel wird ehrlich abgelehnt statt zu schenken",
+      '"type": "handel"' in _q9 and "noch nicht verf\u00fcgbar" in _q9)
+_kern9 = open(os.path.join(SRC, "spieloekonomie.py"), encoding="utf-8").read()
+check("P29: der Kern hat den bestaetigten Kaufvertrag (der naechste Schritt)",
+      all(("def %s(" % f) in _kern9 for f in ("handel_start", "handel_entscheiden",
+                                              "handel_abschluss")))
+
+st33 = M.GameState()
+# Ein Bot wie im Spiel gebaut (ein frischer Zustand hat noch keine Weltkarte und damit keine Bots).
+_roh_bot33 = M.asdict(M.BOTS[0])
+_roh_bot33.update({"name": "Probe-Bot", "trading": 0.9, "gehandelt": 0})
+_bot33 = M.BotPlayer(**_roh_bot33)
+check("P29: der Probe-Bot handelt gern (Handelsneigung 90 %)", float(_bot33.trading) == 0.9,
+      str(_bot33.trading))
+app33 = M.NebelseetalApp.__new__(M.NebelseetalApp)
+app33.state = st33
+app33.content = None
+app33._log = lambda msg: st33.log.append(msg)
+app33._render_view = lambda: None
+_roh33 = {k: float(v.amount) for k, v in st33.resources.items()}
+_ruf33 = int(st33.ruf)
+check("P29: der Handel wird abgelehnt", app33._trade(_bot33) is False)
+check("P29: NICHTS wird gebucht (kein Rohstoff, kein Ruf, kein Handelszaehler)",
+      {k: float(v.amount) for k, v in st33.resources.items()} == _roh33
+      and int(st33.ruf) == _ruf33 and int(_bot33.gehandelt) == 0,
+      "Ruf %s, gehandelt %s" % (st33.ruf, _bot33.gehandelt))
+check("P29: die Meldung nennt den Grund",
+      any("noch nicht verf\u00fcgbar" in z for z in st33.log[-2:]), str(st33.log[-2:]))
+
+
 sys.exit(bericht())

@@ -4372,11 +4372,17 @@ class NebelseetalApp:
                       bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
 
     def _trade(self, bot: BotPlayer):
-        """Handeln mit einem Bot (W5): die Schwelle kommt aus der belegten Formel.
+        """Handel mit einem Bot — ehrlich abgelehnt, KEIN Gratisgewinn (Teil 7, Entwurf Z. 779/781).
 
-        `botkern.handelspreis` = Referenzpreis (Beschaffungskosten x 1,2) verschoben um das
-        Temperament des Bots (+-10 %). Der **Erloes** bleibt ein VORSCHLAG-Wert — das Handbuch
-        nennt keinen Warenpreis (steht so in `botkern.offene_luecken`).
+        Der Altpfad schenkte Ware: `random.randint`-Mengen landeten **ohne Gegenleistung** direkt in
+        `GameState.resources` — Gold floss nie, der Bot zahlte nichts. Das widerspricht dem
+        Ökonomiemodus, in dem jede Ware einen Erzeuger und einen Transport hat. Der Entwurf verlangt
+        den Handel über das **bestätigte Angebot** (`spieloekonomie.handel_start` /
+        `handel_entscheiden` / `handel_abschluss` liegen im Kern) — oder eine deutliche
+        „noch nicht verfügbar"-Meldung. **Nie** den Alt-Gratisgewinn.
+
+        Bis dieser Weg angeschlossen ist, nennt die Meldung den Grund und den nächsten Schritt; es
+        wird **nichts** gebucht (kein Rohstoff, kein Gold, kein Ruf, kein Handelszähler am Bot).
         """
         referenz = botkern.referenzpreis_aus_beschaffung(BOT_BESCHAFFUNGSKOSTEN)
         schwelle = botkern.handelspreis(referenz, bot.temperament)
@@ -4384,17 +4390,15 @@ class NebelseetalApp:
             self._log(f"{bot.name} handelt nicht (Handelsneigung {int(bot.trading * 100)} %, "
                       f"Schwellenpreis {schwelle}).")
             return False
-        levels = {k: v.level for k, v in self.state.research.items()}
-        bonus = get_trade_bonus(levels)
-        gains = {"holz": random.randint(15, 35), "stein": random.randint(10, 30), "nahrung": random.randint(20, 40)}
-        res = random.choice(list(gains.keys()))
-        gain = int(gains[res] * bonus)
-        self.state.resources[res].amount += gain
-        self.state.ruf += 2
-        bot.gehandelt = int(bot.gehandelt) + 1
-        self._log(f"Handel mit {bot.name}: +{gain} {res} zum Schwellenpreis {schwelle} "
-                  f"(Menge ist ein VORSCHLAG-Wert).")
-        return True
+        meldung = (f"Handel mit {bot.name} noch nicht verfügbar — der Altpfad hätte Ware ohne "
+                   f"Gegenleistung geschenkt und ist deshalb gesperrt. Der bestätigte Kaufvertrag "
+                   f"(Ware, Menge, Preis {schwelle:g}, Karawane) wird in Teil 7 angeschlossen; bis "
+                   f"dahin wird NICHTS gebucht.")
+        self._log(meldung)
+        self.state.messages.append(
+            {"text": f"Handel mit {bot.name}: noch nicht verfügbar (kein Gratisgewinn)",
+             "type": "handel"})
+        return False
 
     def _attack(self, bot: BotPlayer):
         if self.state.noob_protection and bot.noob_protection:
