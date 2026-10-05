@@ -21,31 +21,46 @@ Daniels Ziel, wörtlich:
 ```
 Lies D:\Arbeiten\Nebelseetal_Remake\docs\PROJEKT_STAND.md, Abschnitt 0c (Stand, Kontext-Paket, der
 EINE nächste Schritt) — die Chat-Historie brauchst du nicht. Dann: python tools/zieluebergabe.py
---pruefen (0 = kein fremdes aktives Ziel; es ist nichts zu beenden) und setze dein eigenes Ziel
-(/goal <Wortlaut aus Abschnitt 0>). Arbeite danach den EINEN nächsten Schritt aus Abschnitt 0c:
-die Weltkarte nach der astra-Vorgabe nachziehen (Zeichenfläche, Zoomstufen, Scrollbalken,
-Detailpanel, Übersichtskarte). Nach jedem Schritt: betroffener Einzeltest + einmal Sammellauf, eine
-Protokollzeile (Zeit mit `date` holen, nie schätzen), python tools/protokoll_sichern.py --protokoll,
-kleiner Commit; prüfende Unteragenten erst NACH dem Commit. Am Ende der Reihe die .exe neu bauen
-(tools/build_exe.py) und aus einem anderen Ordner startprüfen. Kommt von Daniel ein Spielbericht zur
-aktuellen .exe, hat der VORRANG.
+--pruefen und setze dein eigenes Ziel (/goal <Wortlaut aus Abschnitt 0>). Arbeite danach den EINEN
+nächsten Schritt aus Abschnitt 0c: (1) die zwei Feinkarten-Module einhängen
+(src/karten_optik_fein.py, src/welt_optik_fein.py) — die astra-Zahlen und die drei Einhänge-Fallen
+stehen in 0c; (2) die offenen Entscheidungen von Daniel einholen (Zeitfaktor ×180 bestätigen, die
+neun Geländeregeln, Sieg-/Niederlagebedingung). Nach jedem Schritt: betroffener Einzeltest + einmal
+Sammellauf, eine Protokollzeile (Zeit mit `date` holen, nie schätzen), python
+tools/protokoll_sichern.py --protokoll, kleiner Commit; prüfende Unteragenten erst NACH dem Commit.
+Ändert sich etwas in src/ oder data/*.json, am Ende die .exe neu bauen (tools/build_exe.py) und aus
+einem anderen Ordner startprüfen. Kommt von Daniel ein Spielbericht zur aktuellen .exe, hat der
+VORRANG.
 ```
 
-**Erste Handlung der neuen Sitzung:** `python tools/zieluebergabe.py --pruefen` zeigt, dass nichts
-Fremdes läuft (alle Nebelseetal-Ziele stehen auf `cleared` oder `done`). Es ist **nichts** zu beenden.
+**Erste Handlung der neuen Sitzung:** `python tools/zieluebergabe.py --pruefen` (0 = kein fremdes Ziel).
+**Vor dem Sammellauf keine Spielprozesse offen lassen** — sonst schlägt die erste Prüfdatei ohne
+Ausgabe fehl (belegt 05.10., siehe Lehre (e) unten).
 
-**Zum eigenen Ziel:** das Ziel der Sitzung `20261005_060851_4f4be3` hat der **Zielrichter auf `done`
-gesetzt** (1/20 Takte) — die Zielverfolgung dieser Sitzung ist beendet, es läuft nichts von selbst
-weiter. Eine neue Sitzung braucht ein **neues** Ziel mit dem Wortlaut oben.
+**Zum eigenen Ziel:** das Ziel dieser Sitzung (`20261005_104846_864c4b`) ist **sauber beendet**
+(`cleared`, Grund im Datensatz, gesetzt 13:44 mit `tools/zieluebergabe.py --beenden`). Es läuft
+nichts von selbst weiter; die neue Sitzung braucht ein **neues** Ziel mit dem Wortlaut oben.
 
 ---
 
-## 0c. Stand (05.10.2026, 13:30 — mit `date`, `git log` und Sammellauf geprüft)
+## 0c. Stand (05.10.2026, 13:45 — mit `date`, `git log`, `zieluebergabe --stand` und Sammellauf geprüft)
 
-**Diese Sitzung läuft und hat ein aktives Ziel** (`20261005_104846_864c4b`, im Register gesetzt,
-`--pruefen` = 0, kein fremdes aktives Ziel). Sie arbeitet an Daniels Erweiterung vom 05.10.:
-**feinere Karten** und **Ausrüstung, Forschung, Häuserausbau** („Abläufe selbst durchzuspielen und
-zu einem Erlebnis zu machen").
+**Diese Sitzung (`20261005_104846_864c4b`) ist am 05.10.2026 um 13:44 sauber beendet** (`cleared`,
+kein fremdes aktives Ziel — `--pruefen` = 0). Sie hat Daniels Erweiterung vom 05.10. umgesetzt:
+**feinere Karten**, **Ausrüstung/Forschung/Hausausbau**, **Geländeregeln für alle Gebäude** und —
+nach Daniels Spielbericht — den **Zeitfaktor** samt sichtbarem Rohstoffeingang.
+
+### Nicht erneut zu prüfen (Stand 05.10.2026, alles mit Beleg)
+
+| Was | Beleg | Wann |
+|---|---|---|
+| **Sammellauf 2599 bestanden, 0 Fehler, 21 Befunde über 41 Dateien** | Protokoll 28 + BOARD + `docs/ENTWICKLUNGSPROTOKOLL.md` | 13:3x |
+| **`.exe` 14.531.774 Byte, SHA256 `bffd3c44…`** (Zeitfaktor + Warnung + Geländeregeln) | `stat -c %y` = `13:41:04`, Startprüfung aus `C:\Users\saras` | 13:41 |
+| **Geländeregeln unabhängig gegengeprüft: 6 Prüfsteine, 0 Abweichungen**, Alt-Spielstände ladbar | BOARD-Zeile „kind-pruefer (Geländeregeln)" | 13:33 |
+| Zeitfaktor: Handbuchformeln unangetastet, ×180 = 1 Spielstunde in 20 s | `tests/test_spielzeit.py` **24/0/0** | 13:2x |
+| Aufgabenkarte nennt den fehlenden Erzeuger, Kopfzeile warnt statt „(0)" | `tests/test_startspiel.py` **46/0/0** | 13:3x |
+| Alle 20 Gebäude haben eine Geländeregel, Nebelsee nur Bibliothek+Tempel | `tests/test_gelaende.py` **86/0/0** | 13:2x |
+| Papiere außerhalb des Projekts gesichert (16 Dateien, Prüfsummen) | `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\zuletzt.txt` | 13:43 |
 
 | Was | Stand (gemessen) |
 |---|---|

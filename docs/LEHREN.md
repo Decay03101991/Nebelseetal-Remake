@@ -50,3 +50,51 @@ bestätigte und das starke Modell ein Gegenmodell lieferte.
 
 **Regel daraus:** Eine Kennzeichnung im eigenen Code („Vorschlag", „erfunden") ist eine Behauptung,
 kein Beweis — sie gehört genauso geprüft wie fremde Zahlen.
+
+## Reflexion der Sitzung 05.10.2026 (Nachmittag, Schritte 24–28)
+
+**Auftrag:** Daniels Erweiterung (feinere Karten, Ausrüstung/Forschung/Hausausbau), dann zwei
+Vorgaben aus dem Chat („intelligent auf ALLE Gebäude", „ein Gebäude hat im Sumpf nichts verloren")
+und zuletzt ein **Spielbericht zur laufenden `.exe`** — der Vorrang hatte.
+
+**Was gut lief**
+
+1. **Erst messen, dann bauen.** Der Auftrag lautete, die Sumpfregel auf alle Gebäude anzuwenden. Die
+   Messung (`bau_regeln_ist.py`, 20 Gebäude × 7 Gelände) zeigte: die Sumpfregel galt längst für alle —
+   ohne Regel waren **9 andere** Gebäude (Haus im Nebelsee war möglich). Hätte ich drauflos gebaut,
+   hätte ich Daniel ohne Beleg widersprochen.
+2. **Der Spielbericht wurde zur Ursachensuche, nicht zur Vermutung.** Zwei belegte Ursachen: die
+   Spieluhr rechnete Echtzeit 1:1 (`dt_h = dt_seconds / 3600`) → 4 Holz je **echter** Stunde; und die
+   Rundung auf zwei Stellen machte daraus nach einer Sekunde „0,00". Beides mit Testzahlen belegt.
+3. **Jeder Schritt ist einzeln zurücknehmbar:** Einzeltest → Sammellauf → Protokollzeile → Commit,
+   fünf kleine Commits statt einem großen.
+4. **Prüfer erst nach dem Commit**, Kinder lesen nur und committen nicht — der Prüfer fand dennoch
+   einen echten Punkt: Alt-Spielstände bleiben ladbar (dynamisch belegt).
+
+**Meine vier Fehler dieser Sitzung (ehrlich, mit Folge)**
+
+1. **Eine Zeit geschätzt.** In der Übergabe stand „.exe 12:52" — echt war **12:38:43**
+   (Dateistempel). Das verletzt die eigene Projektregel „Zeiten nie schätzen". Es fiel nur auf, weil
+   ich die Dateizeit nachgeprüft habe; korrigiert mit sichtbarem Vermerk in 0c.
+2. **Folgen einer Datenänderung unterschätzt.** Die Geländeregeln stehen in `data/buildings.json`;
+   ich hatte vier Prüfdateien im Blick — der **Sammellauf fand zwei weitere** (`test_baseline`,
+   `test_spielschicht`, 16 Fehler). Ohne ihn wäre ein roter Stand gemeldet worden.
+3. **Sammellauf parallel zum laufenden Spiel.** `test_baseline` schlug zweimal als erste Datei mit
+   **leerer Ausgabe** fehl, während Daniels Spiel offen war; allein 40/0/0. Die Regel stand längst im
+   Projekt — ich habe sie nicht befolgt, weil gerade zugeschaut wurde.
+4. **EXE-Neubau nicht von Anfang an mitgedacht.** Nach der ersten Regeländerung in `data/` wäre die
+   `.exe` veraltet geblieben. Jetzt Lehre (f) in 0c: **Datendatei geändert → `.exe` neu bauen.**
+
+**Protokollführung — Selbstbewertung**
+
+* Gut: jede Zeile nennt Uhrzeit (mit `date`), Belegzahlen, Dateien und Prüfzahl; die Commits tragen
+  dieselben Zahlen, sodass Protokoll und Historie zusammenpassen.
+* Schwach: die Zeile zu Schritt 28 ist ~4.500 Zeichen lang und damit unlesbar. **Künftig: maximal
+  ~1.200 Zeichen je Zeile, Details in ein eigenes Dokument unter `docs/`.**
+* Schwach: Lehren standen über 0c, BOARD und Commit-Nachrichten verstreut. **Sie gehören hierher
+  (`docs/LEHREN.md`), die Übergabe verweist nur darauf.**
+
+**Zahlen der Sitzung:** 5 Schritte (24–28) + eine Korrektur · 41 Prüfdateien, **2599 grün, 0 Fehler,
+21 Befunde** · drei `.exe`-Bauten (12:38, 13:29, 13:41) · sechs Kinder (vier Module, ein Nachrechner,
+ein Prüfer) · Kosten nur `deepseek-v4-flash` (Kinder/Prüfer) plus zwei astra-Bildaufrufe und ein
+v4-pro-Entwurf aus dem Vormittagsauftrag.
