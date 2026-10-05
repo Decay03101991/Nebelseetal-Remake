@@ -17,7 +17,7 @@ from bonus_system import (
     # (`get_combat_power`, `get_unit_stats`, `get_building_cost`, `get_map_switch_cost`,
     # `UNIT_BASE`, `UNIT_TRAIN_BASE`, `BUILDING_BASE_COST`, `TIER_SCALE`) sind hier nicht mehr
     # im Spiel: Kaempfe rechnet src/kampf.py, Preise kommen aus data/*.json, Punkte aus src/punkte.py.
-    get_military_multiplier, get_trade_bonus, get_defense_bonus, get_medic_redution,
+    get_military_multiplier, get_trade_bonus, get_defense_bonus,
     get_training_time,
 )
 import einheiten
@@ -127,6 +127,19 @@ class BotPlayer:
     ruf: int = 0
     noob_protection: bool = True
     last_rename: float = 0.0
+    # W5 (botkern): die Felder, mit denen `src/botkern.py` rechnet. Sie sind der EINE Ort, an dem
+    # ein Bot Vorräte, Wagenpark und Handels-Temperament führt; `bot_als_dict`/`bot_aus_dict`
+    # uebersetzen sie in die dict-Form des Kerns und wieder zurueck (keine zweite Wahrheit).
+    temperament: float = 0.0
+    vorraete: Dict[str, int] = field(default_factory=dict)
+    lager: Dict[str, int] = field(default_factory=dict)
+    naechster_angriff: float = 0.0
+    letzter_angriff: Optional[float] = None
+    angriffe: int = 0
+    gebaut: int = 0
+    geforscht: int = 0
+    gehandelt: int = 0
+    punkte: int = 0
 
 
 @dataclass
@@ -376,6 +389,14 @@ BOTS = [
     BotPlayer("Silra", "elfisch", aggression=0.2, trading=0.9),
     BotPlayer("Krank", "monster", aggression=0.9, trading=0.0),
 ]
+# W5 (botkern): Der Bot-Zug. Der Entwurf nennt den Pruefrhythmus "alle 6 bis 24 Stunden"
+# (VORSCHLAG, in botkern.py belegt vermerkt); `botkern.tick` wuerde bei jedem Sekundentakt eine
+# Meldung erzeugen, deshalb wird der Bot-Zug stundenweise gefahren.
+BOT_TAKT_SEKUNDEN = 3600.0
+# W5: Grundlage des Handels-Schwellenpreises. Das Handbuch nennt keinen Warenpreis; die einzige
+# BELEGTE Preistafel im Projekt ist der Einheitenpreis (`data/units.json`). Genommen wird der
+# Kaempfer (1 Siedler + 250 Gold) -> Referenzpreis 250 x 1,2 = 300 (VORSCHLAG der Wahl).
+BOT_BESCHAFFUNGSKOSTEN = 250.0
 MENU_ITEMS = [
     "Dorfzentrum", "Lager", "Kaserne", "Marktplatz", "Gilde", "Nachrichten",
     "Portal", "Karten", "Forschung", "Diplomatie", "Einstellungen",
@@ -587,11 +608,15 @@ class GameState:
             d = asdict(b)
             n_sett = random.randint(1, 3)
             d["settlements"] = [f"{b.name}s Siedlung {i+1}" for i in range(n_sett)]
-            pool = random.sample(list(UNITS.keys()), min(5, len(UNITS)))
-            d["army"] = {u: random.randint(20, 120) for u in pool}
+            # W5 (botkern): KEINE erfundene Armee mehr. Hier stand `random.randint(20, 120)` JE
+            # EINHEIT — damit war jeder Bot-Angriff aussichtslos. Der Bot legt jetzt Vorräte und
+            # Wagenpark an und stellt seine Einheiten daraus nach den BELEGTEN Preisen auf.
+            d["army"] = {}
             d["ruf"] = random.randint(0, 60)
             bots.append(BotPlayer(**d))
         self.bots = bots
+        for b in self.bots:
+            self.bot_vorrat_anlegen(b)
 
     def get_tile(self, x: int, y: int, size: int) -> Optional[MapTile]:
         if 0 <= x < size and 0 <= y < size:
@@ -833,6 +858,128 @@ class GameState:
             self.messages.append({"text": meldung, "type": "forschung"})
         return gestiegen
 
+    # ---------------- W5: Bots (src/botkern.py) ----------------
+
+    def bot_als_dict(self, bot: BotPlayer) -> Dict[str, object]:
+        """Der Bot in der Form, mit der `src/botkern.py` rechnet — aus EINER Quelle.
+
+        Die Werte kommen aus dem `BotPlayer`; der Bot-Kern veraendert die dicts nicht (reine
+        Funktionen), `bot_aus_dict` schreibt das Ergebnis zurueck.
+        """
+        return {"id": bot.name, "name": bot.name, "fraktion": bot.faction,
+                "aggression": float(bot.aggression), "trading": float(bot.trading),
+                "temperament": float(bot.temperament), "punkte": int(bot.punkte),
+                "ruf": int(bot.ruf), "vorraete": dict(bot.vorraete), "lager": dict(bot.lager),
+                "armee": dict(bot.army), "letzter_angriff": bot.letzter_angriff,
+                "naechster_angriff": float(bot.naechster_angriff), "angriffe": int(bot.angriffe),
+                "gebaut": int(bot.gebaut), "geforscht": int(bot.geforscht),
+                "gehandelt": int(bot.gehandelt)}
+
+    def bot_aus_dict(self, bot: BotPlayer, daten: dict) -> None:
+        """Zurueck in den Spielstand: nur die Felder, die der Bot-Kern fuehrt."""
+        if not isinstance(daten, dict):
+            return
+        bot.vorraete = {str(k): int(v) for k, v in (daten.get("vorraete") or {}).items()}
+        bot.lager = {str(k): int(v) for k, v in (daten.get("lager") or {}).items()}
+        bot.naechster_angriff = float(daten.get("naechster_angriff") or 0.0)
+        bot.letzter_angriff = daten.get("letzter_angriff")
+        bot.angriffe = int(daten.get("angriffe") or 0)
+        bot.gebaut = int(daten.get("gebaut") or 0)
+        bot.geforscht = int(daten.get("geforscht") or 0)
+        bot.gehandelt = int(daten.get("gehandelt") or 0)
+
+    def bot_vorrat_anlegen(self, bot: BotPlayer) -> None:
+        """Startvorräte und Wagenpark eines Bots anlegen.
+
+        Die Spannen sind VORSCHLAG (`botkern.VORSCHLAG_START_VORRAETE`; die Vorlage nennt kein
+        Bot-Inventar). Zusaetzlich bekommt der Bot die BELEGTEN Startwerte des Spielers
+        (Handbuch S. 7: 10 Siedler, 100 Holz, 100 Steine) — ohne sie koennte er keine einzige
+        Einheit bezahlen, weil die belegten Preise Siedler nennen.
+        """
+        if not bot.vorraete:
+            rng = random.Random(f"nebel-bot-vorrat-{bot.name}")
+            bot.vorraete = {stoff: rng.randint(lo, hi)
+                            for stoff, (lo, hi) in botkern.VORSCHLAG_START_VORRAETE.items()}
+        for stoff, menge in (("siedler", 10), ("holz", 100), ("stein", 100)):
+            if stoff not in bot.vorraete:
+                bot.vorraete[stoff] = menge
+        if not bot.lager:
+            rng = random.Random(f"nebel-bot-lager-{bot.name}")
+            karren = sorted((n for n in einheiten.namen()
+                             if einheiten.ist_transport(n) and einheiten.ladung(n) > 0),
+                            key=lambda n: einheiten.ladung(n))
+            if karren:
+                bot.lager = {karren[0]: rng.randint(0, int(botkern.VORSCHLAG_START_KARREN[1]))}
+
+    def bot_armee_aufstellen(self, bot: BotPlayer) -> Optional[str]:
+        """Der Bot stellt EINE Einheit auf, die er aus SEINEN Vorräten bezahlen kann.
+
+        Die Preise sind BELEGT (`data/units.json`, `einheiten.alle()[name]['kosten']`), bezahlt
+        wird aus `bot.vorraete`. Frueher stand hier eine erfundene Armee von **20-120 Stueck je
+        Einheit** — damit war ein Bot-Angriff aussichtslos. VORSCHLAG ist nur die Reihenfolge
+        (Kaempfer vor Kundschaftern) und dass ein Bot wie auf einem Markt kauft.
+
+        Rueckgabe: Name der aufgestellten Einheit oder ``None``.
+        """
+        for name in sorted(einheiten.namen(), key=lambda n: (einheiten.rolle(n) != "kaempfer", n)):
+            if einheiten.rolle(name) not in ("kaempfer", "kundschafter"):
+                continue
+            rohkosten = einheiten.alle()[name].get("kosten") or {}
+            kosten = {str(k): int(v) for k, v in rohkosten.items()}
+            if not kosten or not all(bot.vorraete.get(k, 0) >= v for k, v in kosten.items()):
+                continue
+            for stoff, menge in kosten.items():
+                bot.vorraete[stoff] = bot.vorraete.get(stoff, 0) - menge
+            bot.army[name] = bot.army.get(name, 0) + 1
+            return name
+        return None
+
+    def bots_fortschreiben(self, jetzt: float) -> dict:
+        """Einen Bot-Zug fahren (W5): die Entscheidung kommt aus `botkern`, gebucht wird hier.
+
+        `welt['vorraete']` sind UNSERE Lager: greift ein Bot an, nimmt er davon 50 %, gedeckelt
+        durch seinen eigenen Wagenpark (ENTWURF, Abschnitt Bot-KI). Was er nimmt, geht hier
+        **genau einmal** ab. `welt['referenzpreis']` ist der belegte Handelspreis
+        (Beschaffungskosten x 1,2). Der Zug laeuft nur alle `BOT_TAKT_SEKUNDEN`.
+        """
+        ergebnis = {"bots": 0, "takt": BOT_TAKT_SEKUNDEN, "aktionen": {}, "angriffe": []}
+        if not self.bots:
+            return ergebnis
+        letzter = float(getattr(self, "_letzter_bot_takt", 0.0) or 0.0)
+        if jetzt - letzter < BOT_TAKT_SEKUNDEN:
+            return ergebnis
+        self._letzter_bot_takt = jetzt
+        ergebnis["bots"] = len(self.bots)
+
+        rng = random.Random()
+        welt = {"vorraete": {k: int(v.amount) for k, v in self.resources.items()},
+                "referenzpreis": botkern.referenzpreis_aus_beschaffung(BOT_BESCHAFFUNGSKOSTEN)}
+        daten = [self.bot_als_dict(b) for b in self.bots]
+        stand = botkern.bots_tick(daten, welt, jetzt, rng)
+        ergebnis["aktionen"] = dict(stand.get("aktionen") or {})
+
+        for start, zug in zip(daten, stand.get("ergebnisse") or []):
+            bot = next((b for b in self.bots if b.name == str(start.get("name"))), None)
+            if bot is None:
+                continue
+            if zug.get("aktion") == "angreifen":
+                beute = dict((zug.get("wirkung") or {}).get("beute") or {})
+                for stoff, menge in beute.items():
+                    if stoff in self.resources:
+                        self.resources[stoff].amount = max(
+                            0.0, float(self.resources[stoff].amount) - float(menge))
+                if beute:
+                    self.messages.append({"text": zug.get("meldung"), "type": "bot"})
+                ergebnis["angriffe"].append(zug.get("meldung"))
+            # Erst den Zug des Kerns uebernehmen (Beute, Zaehler, naechstes Fenster), DANN aus
+            # der eigenen Kasse aufstellen - sonst waere die Beute wieder weg.
+            self.bot_aus_dict(bot, botkern.wirkung_anwenden(start, zug))
+            self.bot_armee_aufstellen(bot)
+
+        for zeile in stand.get("nachrichten") or []:
+            self._log(str(zeile))
+        return ergebnis
+
     def tick(self, dt_seconds: float):
         dt_h = dt_seconds / 3600.0
         levels = {k: v.level for k, v in self.research.items()}
@@ -841,13 +988,9 @@ class GameState:
             if res in self.resources:
                 self.resources[res].amount = round(
                     self.resources[res].amount + rate_pro_stunde * dt_h, 2)
-        for bot in self.bots:
-            if bot.settlements and random.random() < 0.05 * bot.aggression:
-                # nur Kaempfer und Kundschafter verteidigen — Karren und Belagerungswaffen nicht
-                defense = sum(self.units[u].defense * max(1, self.units[u].count)
-                              for u in self.units if einheiten.ist_kaempfer(u))
-                loss = max(0, int(get_military_multiplier(levels) * 10 * bot.aggression - get_medic_redution(levels)))
-                self.resources["nahrung"].amount = max(0, self.resources["nahrung"].amount - loss)
+        # W5: Die Bots handeln nach `botkern` (Angriffstakt 6-24 h, Handelsschwelle, Wirtschaft).
+        # Vorher stand hier eine erfundene Schaedigung: 5 % x Aggression, fester Nahrungsabzug.
+        self.bots_fortschreiben(time.time())
         # FIX 2+3: Tag fortschreiben (86400s = 1 Spieltag) + Noobschutz nach Tag 3 deaktivieren
         # Siedlergrenze und Siedlerzuwachs kommen aus den Haeusern der Siedlungskarten (W4b-5):
         # 10 Siedler je Siedlung, +5 je Haus, 1 neuer Siedler je Stunde (Handbuch Seite 11),
@@ -2166,9 +2309,18 @@ class NebelseetalApp:
                       bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
 
     def _trade(self, bot: BotPlayer):
+        """Handeln mit einem Bot (W5): die Schwelle kommt aus der belegten Formel.
+
+        `botkern.handelspreis` = Referenzpreis (Beschaffungskosten x 1,2) verschoben um das
+        Temperament des Bots (+-10 %). Der **Erloes** bleibt ein VORSCHLAG-Wert — das Handbuch
+        nennt keinen Warenpreis (steht so in `botkern.offene_luecken`).
+        """
+        referenz = botkern.referenzpreis_aus_beschaffung(BOT_BESCHAFFUNGSKOSTEN)
+        schwelle = botkern.handelspreis(referenz, bot.temperament)
         if bot.trading <= 0.3:
-            self._log(f"{bot.name} handelt nicht.")
-            return
+            self._log(f"{bot.name} handelt nicht (Handelsneigung {int(bot.trading * 100)} %, "
+                      f"Schwellenpreis {schwelle}).")
+            return False
         levels = {k: v.level for k, v in self.state.research.items()}
         bonus = get_trade_bonus(levels)
         gains = {"holz": random.randint(15, 35), "stein": random.randint(10, 30), "nahrung": random.randint(20, 40)}
@@ -2176,7 +2328,10 @@ class NebelseetalApp:
         gain = int(gains[res] * bonus)
         self.state.resources[res].amount += gain
         self.state.ruf += 2
-        self._log(f"Handel mit {bot.name}: +{gain} {res}")
+        bot.gehandelt = int(bot.gehandelt) + 1
+        self._log(f"Handel mit {bot.name}: +{gain} {res} zum Schwellenpreis {schwelle} "
+                  f"(Menge ist ein VORSCHLAG-Wert).")
+        return True
 
     def _attack(self, bot: BotPlayer):
         if self.state.noob_protection and bot.noob_protection:
