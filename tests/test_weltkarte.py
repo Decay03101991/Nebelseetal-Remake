@@ -272,8 +272,15 @@ alle_texte = texte(app.content)
 for gelaende_name in ("Wald", "Ebene", "Gebirge", "Wasser"):
     check(f"die Legende nennt {gelaende_name}", any(gelaende_name == t for t in alle_texte),
           str([t for t in alle_texte if len(t) < 12][:10]))
-regionen = app.map_canvas.find_withtag("weltregion")
+regionen = app.map_canvas.find_withtag("weltname")
 check("die Regionen sind einmal gross beschriftet", len(regionen) == 9, f"{len(regionen)} Namen")
+schatten = app.map_canvas.find_withtag("weltschatten")
+check("zu jedem Regionsnamen gehoert ein versetzter Schatten (#26312B)",
+      len(schatten) == 9 and all(app.map_canvas.itemcget(o, "fill") == "#26312B"
+                                 for o in schatten), f"{len(schatten)} Schatten")
+check("die Regionsnamen tragen die astra-Farbe #D7CEB4",
+      bool(regionen) and all(app.map_canvas.itemcget(o, "fill") == "#D7CEB4" for o in regionen),
+      str([app.map_canvas.itemcget(o, "fill") for o in regionen[:3]]))
 
 # ------------------------------------------------------------------ 10 Ortszeichen ausblenden
 abschnitt("10. Ortszeichen lassen sich ausblenden")
@@ -293,6 +300,136 @@ if schalter:
     check("wieder eingeblendet sind es so viele wie vorher",
           len(app.map_canvas.find_withtag("weltort")) == vorher_orte,
           f"{len(app.map_canvas.find_withtag('weltort'))} statt {vorher_orte}")
+
+# ------------------------------------------------- 11 Feinere Karten (Einhängen 05.10.2026)
+abschnitt("11. Die feineren Zeichen aus src/welt_optik_fein.py sind eingehängt")
+import welt_optik_fein as WF                                        # noqa: E402
+
+app.welt_zelle = 48
+app.welt_auswahl = None
+app._draw_map()
+tick()
+_leinwand = app.map_canvas
+
+
+def _fill_farben(canvas, typ):
+    raus = set()
+    for o in canvas.find_all():
+        if canvas.type(o) != typ:
+            continue
+        try:
+            f = canvas.itemcget(o, "fill")
+        except Exception:
+            continue
+        if f:
+            raus.add(str(f))
+    return raus
+
+
+_alle_flaechen = _fill_farben(_leinwand, "rectangle")
+_alle_linien = _fill_farben(_leinwand, "line")
+check("die Landschaft traegt die astra-Farben aus Welt 1 (Ebene/Wald/Gebirge/Wasser)",
+      {"#707B58", "#405A43", "#75766F", "#405F70"} <= _alle_flaechen,
+      str(sorted(_alle_flaechen)))
+check("die alten Uebersichtsfarben sind von der Landschaft verschwunden",
+      not ({"#6E7A3A", "#2F4A2E", "#5B5F63", "#1F4E6E"} & _alle_flaechen),
+      str(sorted(_alle_flaechen)))
+check("die Rasterlinien sind 1 px in #38433C (astra Welt 1)",
+      "#38433C" in _alle_linien, str(sorted(_alle_linien)))
+check("der Ufersaum #938A70 liegt an echten Land-Wasser-Grenzen",
+      "#938A70" in _alle_flaechen, str(sorted(_alle_flaechen)))
+check("die Gelaendeformen sind flaechig vorhanden (mehr als 400 Objekte)",
+      len(_leinwand.find_all()) > 400, f"{len(_leinwand.find_all())} Objekte")
+check("genau EIN Feldobjekt je Feld traegt das Sammel-Tag",
+      len(_leinwand.find_withtag("weltfeld")) == 400,
+      f"{len(_leinwand.find_withtag('weltfeld'))} Objekte")
+# Determinismus: dieselben Feldkoordinaten ergeben dieselbe Zeichnung (nichts springt).
+app._draw_map()
+tick()
+check("zweimal zeichnen ergibt dieselbe Objektzahl (deterministische Varianten)",
+      len(_leinwand.find_all()) == len(app.map_canvas.find_all()),
+      f"{len(_leinwand.find_all())} vorher")
+# Ortszeichen: Lager und Ruine sind Silhouetten, ein Vorkommen ist KEIN Gebaeude.
+_lager = _leinwand.find_withtag("weltlager")
+_ruinen = _leinwand.find_withtag("weltruine")
+_vorkommen = _leinwand.find_withtag("weltvorkommen")
+_lager_felder = [t for t in app.state.map_tiles if t.npc_faction]
+_quest_felder = [t for t in app.state.map_tiles if t.quest and not t.quest_done]
+check("Lager fremder Voelker sind als Silhouette gezeichnet",
+      (len(_lager) > 0) == (len(_lager_felder) > 0), f"{len(_lager)} Objekte, "
+      f"{len(_lager_felder)} Felder")
+check("Orte mit Aufgabe sind als Ruine gezeichnet",
+      (len(_ruinen) > 0) == (len(_quest_felder) > 0), f"{len(_ruinen)} Objekte, "
+      f"{len(_quest_felder)} Felder")
+check("die Ortszeichen bestehen aus mehreren Formen je Ort (Silhouette, kein Punkt)",
+      len(_lager) + len(_ruinen) >= len(_lager_felder) + len(_quest_felder),
+      f"{len(_lager) + len(_ruinen)} Formen")
+check("ein Rohstoffvorkommen bleibt ein kleiner Punkt",
+      all(_leinwand.type(o) == "oval" for o in _vorkommen),
+      str([_leinwand.type(o) for o in _vorkommen[:3]]))
+# Eigene Fahne: blauer Sockel #356D98 (astra Welt 2).
+check("die eigene Fahne steht auf dem blauen Sockel #356D98",
+      "#356D98" in _fill_farben(_leinwand, "rectangle"),
+      str(sorted(_fill_farben(_leinwand, "rectangle"))))
+# Auswahl: goldene Markierung mit dunkler Unterkontur (astra Welt 3).
+app.welt_auswahl = (3, 4)
+app._draw_map()
+tick()
+_auswahl = _leinwand.find_withtag("welt_auswahl")
+check("die Auswahl zeichnet der Feinplan (Unterkontur + Gold + vier Eckwinkel = 6)",
+      len(_auswahl) == 6, f"{len(_auswahl)} Objekte")
+_auswahl_farben = {_leinwand.itemcget(o, "fill") if _leinwand.type(o) == "line"
+                   else _leinwand.itemcget(o, "outline") for o in _auswahl}
+check("die Auswahl ist gold mit dunkler Unterkontur",
+      "#E4C77D" in _auswahl_farben and "#17212B" in _auswahl_farben, str(sorted(_auswahl_farben)))
+
+# Uebersichtskarte: 4 x 4 px je Weltfeld (astra Welt 3), Sichtrahmen weiss 1 px.
+abschnitt("11b. Die Uebersicht folgt den astra-Massen (4 x 4 px je Weltfeld)")
+_uebersicht = app.welt_uebersicht
+_gitter = max(1, int(app._map_size or 20))
+check("die Uebersichtskarte ist 4 px je Feld gross",
+      int(_uebersicht.cget("width")) == WF.WELT3_UEBERSICHT_KACHEL * _gitter,
+      f"{_uebersicht.cget('width')} px fuer {_gitter} Felder")
+_kacheln = [o for o in _uebersicht.find_all() if _uebersicht.type(o) == "rectangle"]
+check("sie zeigt alle Felder als Kacheln", len(_kacheln) >= _gitter * _gitter,
+      f"{len(_kacheln)} Kacheln")
+_k0 = _uebersicht.coords(_kacheln[0])
+check("eine Kachel ist 4 x 4 px",
+      abs((_k0[2] - _k0[0]) - 4.0) < 0.01 and abs((_k0[3] - _k0[1]) - 4.0) < 0.01,
+      str(_k0))
+check("der Sichtrahmen ist weiss und 1 px breit (astra Welt 3)",
+      str(_uebersicht.itemcget(app._welt_uebersicht_rahmen, "outline")) == WF.WELT3_SICHT_RAHMEN
+      and int(float(_uebersicht.itemcget(app._welt_uebersicht_rahmen, "width"))) == 1,
+      f"{_uebersicht.itemcget(app._welt_uebersicht_rahmen, 'outline')} / "
+      f"{_uebersicht.itemcget(app._welt_uebersicht_rahmen, 'width')}")
+
+# Detailpanel: 248 px breit, 12 px Innenabstand — KEIN Text laeuft aus dem Panel heraus.
+abschnitt("11c. Das Detailpanel hat die astra-Masse und schneidet nichts ab")
+
+
+def _labels(widget, out=None):
+    out = [] if out is None else out
+    try:
+        if widget.winfo_class() == "Label":
+            out.append(widget)
+    except Exception:
+        pass
+    for k in widget.winfo_children():
+        _labels(k, out)
+    return out
+
+
+_masse = getattr(app, "_panel_masse", {}) or {}
+check("das Panel ist 248 px breit und 12 px eingerueckt (astra Welt 3)",
+      int(_masse.get("breite", 0)) == WF.detail_masse()["breite"]
+      and int(_masse.get("innenabstand", -1)) == WF.detail_masse()["innenabstand"],
+      str(_masse))
+app._welt_detail_zeichnen()
+tick()
+_zu_breit = [str(l.cget("text"))[:40] for l in _labels(app.welt_detail)
+             if int(l.winfo_reqwidth()) > WF.detail_masse()["breite"]]
+check("keine Panelzeile ist breiter als das Panel (nichts wird abgeschnitten)",
+      not _zu_breit, str(_zu_breit))
 
 root.destroy()
 sys.exit(bericht())

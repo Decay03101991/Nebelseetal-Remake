@@ -139,6 +139,35 @@ check("ein Siedler arbeitet jetzt im Gebäude (Bevölkerung sinkt)",
 check("das Feld bleibt ausgewählt und zeigt das neue Gebäude (astra-Nachprüfung 05.10.2026)",
       app.karten_feld == wald, f"karten_feld={app.karten_feld}")
 
+abschnitt("Siedlungskarte — die feinere Fassung aus src/karten_optik_fein.py ist eingehängt")
+import karten_optik_fein as KF                                       # noqa: E402
+canvas = app.karten_canvas
+check("die Siedlungskarte ist noch die Zeichenfläche", canvas is not None)
+_fuell = {canvas.itemcget(o, "fill") for o in canvas.find_all()
+          if canvas.type(o) == "rectangle" and canvas.itemcget(o, "fill")}
+check("das Gelände trägt die astra-Farben (Ebene #74805A, Wald #455E43)",
+      {"#74805A", "#455E43"} <= _fuell, str(sorted(_fuell)))
+_raender = {canvas.itemcget(o, "outline") for o in canvas.find_all()
+            if canvas.type(o) in ("rectangle", "oval")}
+check("die alte blaue Feldmarkierung #38BDF8 ist verschwunden",
+      "#38BDF8" not in (_fuell | _raender), str(sorted(_raender)))
+_text = [str(canvas.itemcget(o, "text")) for o in canvas.find_all() if canvas.type(o) == "text"]
+check("die Koordinatenleiste zeigt die Buchstaben des Panels (A–H)",
+      _text[:8] == list("ABCDEFGH"), str(_text))
+check("und darunter die Zeilen 1..5 — sonst stehen keine Zahlen im Feld",
+      _text[8:13] == ["1", "2", "3", "4", "5"], str(_text))
+check("kein Feld trägt mehr einen Stempel 'St. n' (astra: Stufenanzeige aus der Silhouette)",
+      not any(t.startswith("St.") for t in _text), str(_text))
+_auswahl = canvas.find_withtag("auswahl")
+check("das gewählte Feld trägt den Auswahlrahmen des Feinplans (Gold + Unterkontur + 4 Winkel)",
+      len(_auswahl) == 6, f"{len(_auswahl)} Objekte")
+check("unter dem Gold liegt die dunkle Unterkontur #172128",
+      any(canvas.itemcget(o, "outline") == KF.AUSWAHL_GOLD for o in _auswahl
+          if canvas.type(o) == "rectangle")
+      and any(canvas.itemcget(o, "outline") == KF.AUSWAHL_UNTER_FARBE for o in _auswahl
+              if canvas.type(o) == "rectangle"),
+      str([canvas.itemcget(o, "outline") for o in _auswahl if canvas.type(o) == "rectangle"]))
+
 abschnitt("Siedlungskarte im Fenster — zu wenig Rohstoffe wird gemeldet")
 app.state.resources["holz"].amount = 1
 app.state.resources["stein"].amount = 1
@@ -200,6 +229,63 @@ check("Einzelfrage nach einer Einheit funktioniert", "Paladin" in app.chat_verla
 app._chat_fragen("")
 check("eine leere Frage ändert nichts", len(app.chat_verlauf) == vorher + 6,
       str(len(app.chat_verlauf)))
+
+abschnitt("Siedlungskarte — Wege und Stufenpips im Feinplan (astra Siedlung 2 und 3)")
+weg = M.Settlement(name="Wegprobe", map_id=app.state.current_map,
+                   karte=G.siedlungskarte_erzeugen(77, typ_id="weideland"))
+app.state.settlements.append(weg)
+app.state.resources["holz"].amount = 400
+app.state.resources["stein"].amount = 400
+app._oeffne_siedlungskarte(weg)
+_raster_w = weg.karte["raster"]
+_spalten_w = int(weg.karte["spalten"])
+
+
+def _graslandpaar(raster, spalten):
+    """Zwei ORTHOGONAL benachbarte Graslandfelder (dort ist ein Haus erlaubt)."""
+    for i, a in enumerate(raster):
+        if a != "grasland":
+            continue
+        if (i % spalten) != spalten - 1 and raster[i + 1] == "grasland":
+            return i, i + 1
+        if i + spalten < len(raster) and raster[i + spalten] == "grasland":
+            return i, i + spalten
+    return None
+
+
+_paar = _graslandpaar(_raster_w, _spalten_w)
+check("die Probekarte hat zwei aneinander grenzende Graslandfelder", _paar is not None, str(_paar))
+if _paar:
+    _a, _b = _paar
+    app._karten_feld_waehlen(_a)
+    app._karten_bauen("haus")
+    app._karten_feld_waehlen(_b)
+    app._karten_bauen("haus")
+    check("beide Häuser stehen auf benachbarten Feldern",
+          weg.bauten.get(str(_a)) == "haus" and weg.bauten.get(str(_b)) == "haus",
+          str(weg.bauten))
+    _cw = app.karten_canvas
+    _wege = _cw.find_withtag("weg")
+    check("zwischen zwei bebauten Nachbarfeldern liegt ein Wegabschnitt",
+          len(_wege) == 4, f"{len(_wege)} Objekte (2 Felder x 2 Linien)")
+    check("der Weg ist #75674F mit 4-px-Innenlinie #A28E69 (astra Siedlung 2)",
+          {_cw.itemcget(o, "fill") for o in _wege} == {KF.WEG_FARBE, KF.WEG_INNEN_FARBE},
+          str(sorted({_cw.itemcget(o, "fill") for o in _wege})))
+    _pips = [o for o in _cw.find_withtag(f"feld:{_a}") if _cw.type(o) == "rectangle"
+             and _cw.itemcget(o, "fill") == KF.PIP_FARBE]
+    check("das Haus zeigt seine erreichte Stufe als goldenen Pip", bool(_pips), f"{len(_pips)} Pips")
+    if _pips:
+        _pk = _cw.coords(_pips[0])
+        check("ein Pip ist 4 × 4 px (astra Siedlung 3)",
+              abs((_pk[2] - _pk[0]) - 4.0) < 0.01 and abs((_pk[3] - _pk[1]) - 4.0) < 0.01,
+              str(_pk))
+    # Die Pips sind 4 x 4 px; der Bodenschatten des Baukörpers nutzt dieselbe dunkle Farbe und
+    # wird deshalb über die Größe ausgeschlossen (PIP_LEER == BODENSCHATTEN == #343B30).
+    _alle_pips = [o for o in _cw.find_withtag(f"feld:{_a}") if _cw.type(o) == "rectangle"
+                  and _cw.itemcget(o, "fill") in (KF.PIP_FARBE, KF.PIP_LEER)
+                  and abs((_cw.coords(o)[2] - _cw.coords(o)[0]) - 4.0) < 0.01]
+    check("die Zahl der Pips ist die Höchststufe des Hauses (4)",
+          len(_alle_pips) == 4, f"{len(_alle_pips)} Pips")
 
 abschnitt("Siedlungskarte im Fenster — Siedlung ohne Karte (alter Spielstand)")
 alt = M.Settlement(name="Alte Siedlung", map_id=app.state.current_map)

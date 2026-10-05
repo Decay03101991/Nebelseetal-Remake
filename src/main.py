@@ -41,8 +41,12 @@ import spielzeit   # Spieluhr: der Zeitfaktor (Vorgabe Daniel 05.10.2026, Spielb
 # Feinere Kartenoptik (Kinder-Arbeit vom 05.10.2026, vom Koordinator nachgerechnet): beide Module
 # liefern Zeichenplaene als DATEN und zeichnen sie ueber `zeichne` auf eine beliebige Leinwand.
 # Sie ersetzen die duennen Einzelstriche der ersten Fassung — Siedlungskarte UND Weltkarte.
-import karten_optik   # Siedlungskarte: 7 Gelaende-Embleme, Gebaeude mit Stufenpips, Wege, Raster
-import welt_optik     # Weltkarte: 6 Gelaendemalereien, Fahne, Auswahl, Regionsnamen, Uebersicht
+import karten_optik   # Siedlungskarte: der Renderer (`zeichne`) fuer beide Plan-Fassungen
+import welt_optik     # Weltkarte: der Renderer (`zeichne`) fuer beide Plan-Fassungen
+# Zweite astra-Auswertung (05.10.2026) — die FEINERE Fassung. Beide Module liefern nur Plaene
+# (Daten), gezeichnet werden sie mit `karten_optik.zeichne` bzw. `welt_optik.zeichne`.
+import karten_optik_fein   # Baukoerper 44x46, Ufer nur an echten Grenzen, Wege, Leiste, Pips
+import welt_optik_fein     # zusammenhängende Landschaften, Ortssilhouetten, Panelmasse
 # Vorgabe Daniel 05.10.2026: Einheiten brauchen ihre AUSRUESTUNG, nicht nur die Forschung.
 # `ausruestung` liest den Warenbedarf aus data/units.json und rechnet Fehlmengen und Verbrauch.
 import ausruestung
@@ -1910,76 +1914,130 @@ class NebelseetalApp:
         return f"{ertrag:g} {stoff.capitalize()}/h" if stoff else f"{ertrag:g}/h"
 
     def _zeichne_siedlungskarte(self, siedlung, karte) -> None:
-        """Die Siedlungskarte als Zeichenfläche (64-px-Felder).
+        """Die Siedlungskarte als Zeichenfläche (64-px-Felder), feinere Fassung.
 
         Vorher war das ein Raster kleiner Knöpfe mit abgeschnittenen Gebäudenamen; laut
         astra-Bildgutachten vom 05.10.2026 sah das „wie eine farbige Tabelle aus". Seit dem
-        05.10.2026 kommen die Zeichen aus `src/karten_optik.py` (Paket „feinere Kartenoptik",
-        Kinder-Arbeit, vom Koordinator nachgerechnet): Gelände-Emblem mit 4–10 Formen je Art,
-        Gebäudezeichen je Gebäudefamilie mit Stufenpips, **Wege** zwischen benachbarten bebauten
-        Feldern. Die Pläne sind Daten — `tests/test_karten_optik.py` prüft sie ohne Fenster.
+        05.10.2026 kommen die Zeichen aus `src/karten_optik.py`, seit diesem Einhängen aus der
+        feineren Fassung `src/karten_optik_fein.py` (zweite astra-Auswertung,
+        `docs/audits/ux_astra_karten_feinheit_2026-10-05.txt`, Kinder-Arbeit, vom Koordinator
+        nachgerechnet): Baukörper 44 × 46 px je Gebäudefamilie mit Dach, Sockel, Tür und
+        Stufenpips (4 × 4 px), Gelände mit größeren Strukturformen, Uferband nur an echten
+        Land-Wasser-Grenzen, Wege 8 px mit 4 px Innenlinie, goldener Auswahlrahmen mit vier
+        Eckwinkeln und die Koordinaten in einer 18 px breiten äußeren Rasterleiste.
 
-        Gezeichnet wird in drei Durchgängen, damit die Wege UNTER den Gebäuden liegen:
-        (1) Felder, Koordinaten, Auswahl · (2) Wege · (3) Embleme und Gebäude.
+        Gezeichnet wird in vier Durchgängen: (1) Gelände, Koordinaten · (2) Wege · (3) Gebäude ·
+        (4) Auswahlrahmen zuletzt. So liegen die Wege unter den Baukörpern und die Auswahl
+        sichtbar über allem.
+
+        Die Beschriftung der Leiste sind die Buchstaben der Siedlungskarte (A–H) — dieselben, die
+        das Detailpanel und der Spielstand nennen (`_spaltenname`). Ohne sie zeigte die Leiste
+        Ziffern und das Panel daneben „D3": zwei Wahrheiten für dieselbe Koordinate.
         """
         zelle = 64
         spalten = int(karte.get("spalten") or 8)
         zeilen = int(karte.get("zeilen") or 5)
-        rand = 20
+        raster = karte["raster"]
+        # astra „Siedlung 3": „Koordinaten in eine 18 px breite beziehungsweise hohe äußere
+        # Rasterleiste verlegen" — dieselbe Zahl liefert das Modul als KOORDINATEN_BREITE.
+        rand = int(karten_optik_fein.KOORDINATEN_BREITE)
         canvas = tk.Canvas(self.content, width=rand + spalten * zelle,
                            height=rand + zeilen * zelle, bg="#17212B",
                            highlightthickness=0, bd=0)
         canvas.pack(anchor=tk.W, padx=10)
         gewaehlt = getattr(self, "karten_feld", None)
-        raster = karte["raster"]
 
-        # ---- Durchgang 1: die Felder selbst ------------------------------------------------
+        def _feld_ecke(i: int):
+            """Linke obere Ecke des Feldes i in Zeichenkoordinaten."""
+            return rand + (i % spalten) * zelle, rand + (i // spalten) * zelle
+
+        def _nachbararten(i: int) -> dict:
+            """Die Geländearten der echten Nachbarfelder (für Uferband und Innenkanten)."""
+            spalte, zeile = i % spalten, i // spalten
+            arten: dict = {}
+            if zeile > 0:
+                arten["norden"] = raster[i - spalten]
+            if spalte < spalten - 1:
+                arten["osten"] = raster[i + 1]
+            if zeile < zeilen - 1:
+                arten["sueden"] = raster[i + spalten]
+            if spalte > 0:
+                arten["westen"] = raster[i - 1]
+            return arten
+
+        bauten: dict = {}
+        for schluessel, gebaeude in (getattr(siedlung, "bauten", None) or {}).items():
+            try:
+                bauten[int(schluessel)] = gebaeude
+            except (TypeError, ValueError):
+                continue
+
+        def _kein_wasser(i: int) -> bool:
+            """Wasser trägt keinen Weg (astra: „Keine Wege automatisch durch Wasser")."""
+            return 0 <= i < len(raster) and raster[i] not in ("nebelsee", "wasser")
+
+        # ---- Durchgang 1: das Gelände (Fläche, Struktur, Uferband, Innenkanten) -------------
         for i, art in enumerate(raster):
-            sp, ze = i % spalten, i // spalten
-            x0, y0 = rand + sp * zelle, rand + ze * zelle
-            x1, y1 = x0 + zelle, y0 + zelle
+            x0, y0 = _feld_ecke(i)
             tag = f"feld:{i}"
-            canvas.create_rectangle(x0, y0, x1, y1, fill=gelaende.farbe(art),
-                                    outline="#17212B", width=2, tags=(tag,))
-            canvas.create_text(x0 + 4, y0 + 3, text=f"{self._spaltenname(sp)}{ze + 1}",
-                               anchor=tk.NW, fill="#17212B",
-                               font=("TkDefaultFont", 8, "bold"), tags=(tag,))
-            if i == gewaehlt:
-                canvas.create_rectangle(x0 + 1, y0 + 1, x1 - 1, y1 - 1, outline="#38BDF8",
-                                        width=4, tags=(tag,))
-                for ex, ey in ((x0, y0), (x1, y0), (x0, y1), (x1, y1)):
-                    canvas.create_rectangle(ex - 3, ey - 3, ex + 3, ey + 3, fill="#38BDF8",
-                                            outline="", tags=(tag,))
+            karten_optik.zeichne(
+                canvas,
+                karten_optik_fein.gelaende_plan_fein(art, x0, y0, zelle, _nachbararten(i)),
+                tags=(tag,))
             canvas.tag_bind(tag, "<Button-1>", lambda _e, idx=i: self._karten_feld_waehlen(idx))
 
         # ---- Durchgang 2: Wege zwischen benachbarten bebauten Feldern ----------------------
-        if getattr(siedlung, "bauten", None):
-            karten_optik.zeichne(canvas,
-                                 karten_optik.wege_plan(dict(siedlung.bauten), spalten, zelle,
-                                                        x0=float(rand), y0=float(rand)),
-                                 tags=("weg",))
-
-        # ---- Durchgang 3: Gelände-Emblem, darauf das Gebäude samt Stufenpips --------------
-        for i, art in enumerate(raster):
-            sp, ze = i % spalten, i // spalten
-            x0, y0 = rand + sp * zelle, rand + ze * zelle
-            tag = f"feld:{i}"
-            karten_optik.zeichne(canvas, karten_optik.emblem_plan(art, x0, y0, zelle),
-                                 tags=(tag,))
-            gebaut = siedlung.bauten.get(str(i))
-            if gebaut:
-                # astra-Nachprüfung 05.10.2026: Name UND Ertrag auf 64 px überlagern sich und
-                # werden an den Feldgrenzen abgeschnitten. Auf dem Feld steht deshalb nur das
-                # Gebäudezeichen samt Stufe; alle Angaben stehen unter der Karte.
-                stufe = gebaeude_wirkung.stufe_von_feld(siedlung, i)
+        # Das Modul kennt weder Wasser noch Gebäude; die Auswahl der Richtungen macht deshalb
+        # der Aufrufer: nur zwischen zwei bebauten Feldern, die kein Wasser sind.
+        for i in sorted(bauten):
+            if not _kein_wasser(i):
+                continue
+            spalte, zeile = i % spalten, i // spalten
+            richtungen = []
+            if zeile > 0 and (i - spalten) in bauten and _kein_wasser(i - spalten):
+                richtungen.append("norden")
+            if spalte < spalten - 1 and (i + 1) in bauten and _kein_wasser(i + 1):
+                richtungen.append("osten")
+            if zeile < zeilen - 1 and (i + spalten) in bauten and _kein_wasser(i + spalten):
+                richtungen.append("sueden")
+            if spalte > 0 and (i - 1) in bauten and _kein_wasser(i - 1):
+                richtungen.append("westen")
+            if richtungen:
+                x0, y0 = _feld_ecke(i)
                 karten_optik.zeichne(
                     canvas,
-                    karten_optik.gebaeude_plan(gebaut, x0, y0, zelle, stufe=stufe,
-                                               max_stufe=gebaeude_wirkung.max_stufe(gebaut)),
-                    tags=(tag,))
-                canvas.create_text(x0 + zelle - 5, y0 + zelle - 5, text=f"St. {stufe}",
-                                   anchor=tk.SE, fill="#7FD1FF",
-                                   font=("TkDefaultFont", 8, "bold"), tags=(tag,))
+                    karten_optik_fein.wegabschnitt_plan(tuple(richtungen), x0, y0, zelle),
+                    tags=("weg",))
+
+        # ---- Durchgang 3: Gebäude als Baukörper samt Stufenpips -----------------------------
+        # astra „Siedlung 3": Koordinaten UND Stufenanzeigen aus den Gebäudesilhouetten heraus-
+        # nehmen; die genaue Stufe nennt der Ausbaubereich unter der Karte („Stufe 2 — …").
+        for i, gebaut in sorted(bauten.items()):
+            if not 0 <= i < len(raster):
+                continue
+            x0, y0 = _feld_ecke(i)
+            stufe = gebaeude_wirkung.stufe_von_feld(siedlung, i)
+            karten_optik.zeichne(
+                canvas,
+                karten_optik_fein.gebaeude_baukasten_plan(
+                    gebaut, x0, y0, zelle, stufe=stufe,
+                    max_stufe=gebaeude_wirkung.max_stufe(gebaut)),
+                tags=(f"feld:{i}",))
+
+        # ---- Durchgang 4: der Auswahlrahmen ZULETZT (liegt über allem) ----------------------
+        if gewaehlt is not None and 0 <= int(gewaehlt) < len(raster):
+            x0, y0 = _feld_ecke(int(gewaehlt))
+            karten_optik.zeichne(canvas,
+                                 karten_optik_fein.auswahl_plan_fein(x0, y0, zelle),
+                                 tags=(f"feld:{int(gewaehlt)}", "auswahl"))
+
+        # ---- Die Koordinatenleiste in der 18 px breiten äußeren Leiste ----------------------
+        karten_optik.zeichne(
+            canvas,
+            karten_optik_fein.koordinatenleiste_plan(
+                spalten, zeilen, zelle, rand=float(rand),
+                spaltennamen=[self._spaltenname(s) for s in range(spalten)],
+                zeilennamen=[str(z + 1) for z in range(zeilen)]))
 
         # Zusätzlich ein Klick auf die GANZE Fläche: die Rechnung aus der Mausposition ist
         # robuster als die Bindung je Objekt (und prüfbar, weil sie auch bei erzeugten
@@ -1991,12 +2049,6 @@ class NebelseetalApp:
                 self._karten_feld_waehlen(zeile * spalten + spalte)
 
         canvas.bind("<Button-1>", _klick)
-        for sp in range(spalten):
-            canvas.create_text(rand + sp * zelle + zelle / 2, 8, text=self._spaltenname(sp),
-                               fill="#9AA7B4", font=("TkDefaultFont", 9, "bold"))
-        for ze in range(zeilen):
-            canvas.create_text(9, rand + ze * zelle + zelle / 2, text=str(ze + 1),
-                               fill="#9AA7B4", font=("TkDefaultFont", 9, "bold"))
         self.karten_canvas = canvas
 
     def _render_settlement_map(self):
@@ -2050,7 +2102,8 @@ class NebelseetalApp:
             tk.Label(legende, text=gelaende.name(art), fg=self.skin["text"],
                      bg=self.skin["bg"]).pack(side=tk.LEFT)
         tk.Label(self.content, text="Sumpf ist nicht bebaubar (Handbuch S. 11). "
-                                   "Blau umrandet = gewähltes Feld.",
+                                   "Gold umrandet = gewähltes Feld; die Punkte unter einem "
+                                   "Gebäude zeigen seine Ausbaustufe.",
                  fg=self.skin["text"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(2, 4))
 
         info = tk.Frame(self.content, bg=self.skin["panel"])
@@ -2482,7 +2535,7 @@ class NebelseetalApp:
         try:
             if not klein.winfo_exists() or not c.winfo_exists():
                 return
-            kante = float(klein.winfo_width() or 132)
+            kante = self._welt_uebersicht_kante()
             gesamt = max(1.0, int(self._map_size or 20) * int(self.welt_zelle))
             x0 = c.canvasx(0) / gesamt * kante
             y0 = c.canvasy(0) / gesamt * kante
@@ -2493,27 +2546,42 @@ class NebelseetalApp:
         except Exception:
             pass
 
+    def _welt_uebersicht_kante(self) -> float:
+        """Kantenlänge der Übersichtskarte in px (astra Welt 3: „4 × 4 px je Weltfeld").
+
+        Die Zahl kommt aus dem Feinmodul (``WELT3_UEBERSICHT_KACHEL``) und wächst mit dem Raster
+        — 20 Felder ergeben 80 px. Vorher war die Übersicht fest 132 px breit, also 6,6 px je
+        Feld, und der Sichtrahmen rechnete gegen die Fensterbreite statt gegen die Kachelzahl.
+        """
+        return float(welt_optik_fein.WELT3_UEBERSICHT_KACHEL * max(1, int(self._map_size or 20)))
+
     def _welt_uebersicht_zeichnen(self):
-        """Die kleine Übersichtskarte (Geländefarben, eigener Ort, aktuelles Feld)."""
+        """Die kleine Übersichtskarte (Geländefarben, eigener Ort, aktuelles Feld).
+
+        astra Welt 3: „Übersicht oben rechts mit 4 × 4 px je Weltfeld, ohne Geländeornamente";
+        der Sichtausschnitt trägt einen weißen 1-px-Rahmen #F2EEDB. Beides kommt aus
+        `src/welt_optik_fein.py` — die Kachelzahl folgt dem Bild (`_welt_uebersicht_kante`).
+        """
         klein = getattr(self, "welt_uebersicht", None)
         if klein is None or not klein.winfo_exists():
             return
         klein.delete("all")
         self._welt_uebersicht_rahmen = None
+        kante = self._welt_uebersicht_kante()
         if self.welt_gebiet != self.state.current_map or not self.state.map_tiles:
-            klein.create_text(66, 66, text="nicht betreten", fill="#8A94A0",
+            klein.create_text(kante / 2.0, kante / 2.0, text="nicht betreten", fill="#8A94A0",
                               font=("TkDefaultFont", 8))
             return
         gitter = max(1, int(self._map_size or 20))
-        breite = klein.winfo_width()
-        kante = float(breite if breite and breite > 10 else 132)
         orte = [(int(s.x), int(s.y)) for s in self.state.settlements
                 if s.map_id == self.state.current_map]
-        # Die Uebersicht zeichnet der Plan aus `src/welt_optik.py` (400 Kacheln + Ortspunkte +
-        # Rahmen der Auswahl); die Ausschnittsmarke darueber legt `_welt_uebersicht_update` nach.
-        welt_optik.zeichne(klein, welt_optik.uebersicht_plan(
+        # Die Uebersicht zeichnet der Plan aus `src/welt_optik_fein.py` (400 Kacheln + Ortspunkte +
+        # Auswahlmarkierung); die Ausschnittsmarke darueber legt `_welt_uebersicht_update` nach.
+        welt_optik.zeichne(klein, welt_optik_fein.uebersicht_plan_fein(
             self.state.map_tiles, kante, gitter, orte=orte, auswahl=self.welt_auswahl))
-        self._welt_uebersicht_rahmen = klein.create_rectangle(0, 0, 0, 0, outline="#F3F4F6", width=2)
+        self._welt_uebersicht_rahmen = klein.create_rectangle(
+            0, 0, 0, 0, outline=welt_optik_fein.WELT3_SICHT_RAHMEN,
+            width=welt_optik_fein.WELT3_SICHT_RAHMEN_BREITE)
         self._welt_uebersicht_update()
 
     def _welt_legende(self, eltern):
@@ -2528,8 +2596,12 @@ class NebelseetalApp:
             tk.Label(zeile, text="      ", bg=WELT_GELAENDEFARBEN[art]).pack(side=tk.LEFT, padx=(0, 4))
             tk.Label(zeile, text=WELT_GELAENDENAMEN[art], fg="#E6E9EE",
                      bg=self.skin["panel"]).pack(side=tk.LEFT)
-        tk.Label(legende, text="●  Ort (Rohstoffe, Lager, Aufgabe)", fg="#E6E9EE",
+        tk.Label(legende, text="●  Vorkommen (Rohstoffe — kein Gebäude)", fg="#E6E9EE",
                  bg=self.skin["panel"]).pack(anchor=tk.W, pady=(4, 0))
+        tk.Label(legende, text="▁  Lager eines fremden Volkes", fg="#E6E9EE",
+                 bg=self.skin["panel"]).pack(anchor=tk.W)
+        tk.Label(legende, text="▨  Ruine (Ort mit Aufgabe)", fg="#E6E9EE",
+                 bg=self.skin["panel"]).pack(anchor=tk.W)
         tk.Label(legende, text="⚑  Hier — deine Siedlung", fg="#E6E9EE",
                  bg=self.skin["panel"]).pack(anchor=tk.W)
 
@@ -2638,9 +2710,13 @@ class NebelseetalApp:
         # --- Hauptbereich: links die Zeichenfläche, rechts Übersicht + Legende + Detailpanel ---
         haupt = tk.Frame(self.content, bg=self.skin["bg"])
         haupt.pack(fill=tk.BOTH, expand=True, padx=10, pady=(4, 10))
+        # astra Welt 3: „Rechtes Detailpanel fest etwa 248 px breit, 12 px Innenabstand, Schrift
+        # etwa 14 px, Titel 18 px" — die Maße kommen aus src/welt_optik_fein.py (detail_masse).
+        self._panel_masse = welt_optik_fein.detail_masse()
+        _panelbreite = int(self._panel_masse["breite"])
         links = tk.Frame(haupt, bg=self.skin["panel"])
         links.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        rechts = tk.Frame(haupt, bg=self.skin["panel"], width=300)
+        rechts = tk.Frame(haupt, bg=self.skin["panel"], width=_panelbreite)
         rechts.pack(side=tk.RIGHT, fill=tk.Y, padx=(10, 0))
         rechts.pack_propagate(False)
 
@@ -2650,9 +2726,13 @@ class NebelseetalApp:
         else:
             self._welt_zeichnen_aufbau(links)
 
-        # Übersichtskarte oben rechts im Kartenbereich
-        tk.Label(rechts, text="Übersicht", fg=self.skin["gold"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=6)
-        self.welt_uebersicht = tk.Canvas(rechts, width=132, height=132, bg="#0F1418",
+        # Übersichtskarte oben rechts im Kartenbereich — Kantenlänge astra Welt 3: „4 × 4 px je
+        # Weltfeld" (20 Felder = 80 px), nicht mehr die feste Fensterbreite 132.
+        _uebersicht_kante = int(self._welt_uebersicht_kante())
+        tk.Label(rechts, text="Übersicht", fg=self.skin["gold"], bg=self.skin["panel"]).pack(
+            anchor=tk.W, padx=6)
+        self.welt_uebersicht = tk.Canvas(rechts, width=_uebersicht_kante,
+                                         height=_uebersicht_kante, bg="#0F1418",
                                          highlightthickness=1, highlightbackground="#3A4550")
         self.welt_uebersicht.pack(anchor=tk.W, padx=6, pady=(2, 0))
         self._welt_uebersicht_zeichnen()
@@ -2745,20 +2825,24 @@ class NebelseetalApp:
             return
         for kind in rahmen.winfo_children():
             kind.destroy()
+        # astra Welt 3: „12 px Innenabstand" — die Textbreite bleibt INNERHALB des 248-px-Panels,
+        # sonst schneidet der Rahmen die Zeilen ab (pack_propagate(False) auf der rechten Spalte).
+        _masse = getattr(self, "_panel_masse", None) or welt_optik_fein.detail_masse()
+        _umbruch = int(_masse["breite"]) - 2 * int(_masse["innenabstand"])
         daten = self._welt_auswahl_daten()
         if daten is None:
             tk.Label(rahmen, text="Ein Feld auf der Karte anklicken.", fg=self.skin["text"],
-                     bg=self.skin["panel"], wraplength=260, justify=tk.LEFT).pack(
+                     bg=self.skin["panel"], wraplength=_umbruch, justify=tk.LEFT).pack(
                 anchor=tk.W, padx=6, pady=6)
             return
         tk.Label(rahmen, text=f"{daten['name']} · {daten['koordinate']}", fg=self.skin["gold"],
                  bg=self.skin["panel"], font=("TkDefaultFont", 11, "bold"),
-                 wraplength=270, justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(6, 2))
+                 wraplength=_umbruch, justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(6, 2))
         for zeile in (f"Gelände: {daten['gelaende']}",
                       f"Status: {daten['status']}",
                       f"{daten['gebaeude_label']}: {daten['gebaeude']}"):
             tk.Label(rahmen, text=zeile, fg=self.skin["text"], bg=self.skin["panel"],
-                     wraplength=270, justify=tk.LEFT).pack(anchor=tk.W, padx=6)
+                     wraplength=_umbruch, justify=tk.LEFT).pack(anchor=tk.W, padx=6)
         eigene = daten["eigene"]
         tile = daten["tile"]
         if eigene is not None:
@@ -2787,7 +2871,7 @@ class NebelseetalApp:
         else:
             tk.Label(rahmen, text=f"Start {self._welt_koordinate(start[0], start[1])}: jetzt ein "
                                   f"Nachbarfeld anklicken.", fg="#FDBA74", bg=self.skin["panel"],
-                     wraplength=270, justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(4, 0))
+                     wraplength=_umbruch, justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(4, 0))
             tk.Button(rahmen, text="Abbrechen", command=self._welt_bewegung_abbrechen,
                       bg=self.skin["button"], fg=self.skin["text"]).pack(anchor=tk.W, padx=6, pady=2)
     def _enter_map(self, map_id: str):
@@ -2801,21 +2885,6 @@ class NebelseetalApp:
     def _toggle_buildings(self):
         self._show_buildings = not getattr(self, "_show_buildings", True)
         self._draw_map()
-
-    def _welt_regionen(self, gitter: int):
-        """Regionen (3x3) einmal GROSS beschriften — VORSCHLAG, das Handbuch nennt keine Namen."""
-        kanten = [int(gitter * i / 3) for i in range(4)]
-        zelle = float(getattr(self, "welt_zelle", WELT_ZOOM_STANDARD))
-        out = []
-        for z in range(3):
-            for s in range(3):
-                x0, x1 = kanten[s], kanten[s + 1]
-                y0, y1 = kanten[z], kanten[z + 1]
-                if x1 <= x0 or y1 <= y0:
-                    continue
-                out.append(((x0 + x1) / 2.0 * zelle, (y0 + y1) / 2.0 * zelle,
-                            WELT_REGIONEN[z * 3 + s]))
-        return out
 
     def _draw_map(self, size: int = None):
         """Zeichnet die Weltkarte auf die Zeichenfläche (astra A3: feste Zellgröße, Scrollbereich).
@@ -2837,44 +2906,82 @@ class NebelseetalApp:
         gitter = max(1, int(self._map_size or size or 20))
         zelle = int(getattr(self, "welt_zelle", WELT_ZOOM_STANDARD))
         canvas.config(scrollregion=(0, 0, gitter * zelle, gitter * zelle))
+        # Nachbararten vorab aus den Feldern (fuer Innenkanten und Ufersaeume, astra Welt 1).
+        gelaende_von = {(int(t.x), int(t.y)): t.terrain for t in self.state.map_tiles}
+
+        def _nachbar_gelaende(x: int, y: int) -> dict:
+            """Nachbararten des Weltfeldes (x, y) fuer Innenkanten und Ufersaeume."""
+            arten: dict = {}
+            for richtung, dx, dy in (("norden", 0, -1), ("sueden", 0, 1),
+                                     ("westen", -1, 0), ("osten", 1, 0)):
+                art = gelaende_von.get((x + dx, y + dy))
+                if art is not None:
+                    arten[richtung] = art
+            return arten
+
         for tile in self.state.map_tiles:
             x1, y1 = tile.x * zelle, tile.y * zelle
-            canvas.create_rectangle(x1, y1, x1 + zelle, y1 + zelle,
-                                    fill=WELT_GELAENDEFARBEN.get(tile.terrain, "#111317"),
-                                    outline="#0B0F12",
-                                    tags=(f"weltfeld:{tile.x}:{tile.y}", "weltfeld"))
-            if zelle >= 24:
-                # Feinere Gelaendemalerei je Feld aus `src/welt_optik.py` (Kinder-Arbeit,
-                # nachgerechnet): 4–10 Formen statt weniger Striche.
-                welt_optik.zeichne(canvas, welt_optik.gelaende_plan(tile.terrain, x1, y1, zelle),
-                                   tags=(f"weltfeld:{tile.x}:{tile.y}",))
+            feldtag = f"weltfeld:{tile.x}:{tile.y}"
+            # Feinere Landschaftsmalerei je Feld aus `src/welt_optik_fein.py` (zweite astra-
+            # Auswertung, Kinder-Arbeit, nachgerechnet): Flaechenfarbe, 1-px-Rasterlinien nur zu
+            # ungleichen Nachbarn, Ufersaum an Land-Wasser-Grenzen und die Gelaendeformen. Die
+            # Detailstufe waehlt das Modul selbst (16/24 einfach, 32 reduziert, ab 48 voll), und
+            # die Varianten kommen DETERMINISTISCH aus den Feldkoordinaten — nichts springt beim
+            # Neuzeichnen.
+            plan = welt_optik_fein.gelaende_plan_fein(
+                tile.terrain, x1, y1, zelle, feld=(tile.x, tile.y),
+                nachbarn=_nachbar_gelaende(int(tile.x), int(tile.y)))
+            # Das erste Element ist die Gelaendeflaeche; NUR sie traegt das Sammel-Tag 'weltfeld'
+            # — daran haengt die Pruefung „jedes Feld ist gezeichnet" (400 Objekte).
+            welt_optik.zeichne(canvas, plan[:1], tags=(feldtag, "weltfeld"))
+            if len(plan) > 1:
+                welt_optik.zeichne(canvas, plan[1:], tags=(feldtag,))
         if zelle >= 24:
-            for rcx, rcy, rname in self._welt_regionen(gitter):
-                canvas.create_text(rcx, rcy, text=rname, fill="#8A94A0",
-                                   font=("TkDefaultFont", 10, "bold"), tags="weltregion")
+            # Regionsnamen einmal je Region in ~18 px mit 1 px versetztem dunklem Schatten
+            # (astra Welt 2). Die Schatten tragen zusaetzlich 'weltschatten', damit die neun
+            # NAMEN zaehlbar bleiben (tests/test_weltkarte.py).
+            regionen = welt_optik_fein.regionen_plan_fein(gitter, float(zelle), anzahl=3)
+            welt_optik.zeichne(canvas, [e for e in regionen if e.get("rolle") == "schatten"],
+                               tags=("weltregion", "weltschatten"))
+            welt_optik.zeichne(canvas, [e for e in regionen if e.get("rolle") != "schatten"],
+                               tags=("weltregion", "weltname"))
         if getattr(self, "_show_buildings", True):
             orte = {(int(s.x), int(s.y)) for s in self.state.settlements
                     if s.map_id == self.state.current_map}
             for tile in self.state.map_tiles:
                 if (int(tile.x), int(tile.y)) in orte:
                     continue
-                if not (tile.npc_faction or tile.quest or tile.resources):
-                    continue
-                cx, cy = tile.x * zelle + zelle / 2.0, tile.y * zelle + zelle / 2.0
-                canvas.create_oval(cx - 5, cy - 5, cx + 5, cy + 5, fill="#F2C94C",
-                                   outline="#17212B", tags="weltort")
+                x1, y1 = tile.x * zelle, tile.y * zelle
+                if tile.npc_faction:
+                    # Lager eines fremden Volkes: niedrige Einfriedung (astra Welt 2).
+                    welt_optik.zeichne(
+                        canvas, welt_optik_fein.ortsilhouette_plan("lager", x1, y1, zelle),
+                        tags=("weltort", "weltlager"))
+                elif tile.quest and not tile.quest_done:
+                    # Ort mit Aufgabe: gebrochene Mauerlinie.
+                    welt_optik.zeichne(
+                        canvas, welt_optik_fein.ortsilhouette_plan("ruine", x1, y1, zelle),
+                        tags=("weltort", "weltruine"))
+                elif tile.resources:
+                    # Ein Rohstoffvorkommen ist KEIN Gebaeude (astra Welt 3: „Rohstoffvorkommen
+                    # nicht als Gebaeude bezeichnen") — es bekommt keinen Ortsbau, nur einen Punkt.
+                    cx, cy = x1 + zelle / 2.0, y1 + zelle / 2.0
+                    canvas.create_oval(cx - 4, cy - 4, cx + 4, cy + 4, fill="#F2C94C",
+                                       outline="#17212B", tags=("weltort", "weltvorkommen"))
         # Der eigene Ort: weiße Fahne auf blauem Sockel, daneben „Hier" (astra A3)
         for s in self.state.settlements:
             if s.map_id != self.state.current_map:
                 continue
-            welt_optik.zeichne(canvas, welt_optik.fahne_plan(s.x * zelle, s.y * zelle, zelle),
+            welt_optik.zeichne(canvas,
+                               welt_optik_fein.fahne_plan_fein(s.x * zelle, s.y * zelle, zelle),
                                tags=("welthier",))
             canvas.create_text(s.x * zelle + zelle / 2.0, s.y * zelle + zelle * 0.95,
                                text="Hier", fill="#F3F4F6",
                                font=("TkDefaultFont", 8, "bold"), tags="welthier")
         if getattr(self, "welt_auswahl", None):
             ax, ay = int(self.welt_auswahl[0]), int(self.welt_auswahl[1])
-            welt_optik.zeichne(canvas, welt_optik.auswahl_plan(ax * zelle, ay * zelle, zelle),
+            welt_optik.zeichne(canvas,
+                               welt_optik_fein.auswahl_plan_fein(ax * zelle, ay * zelle, zelle),
                                tags=("welt_auswahl",))
         start = getattr(self, "_welt_start", None)
         if start:

@@ -339,6 +339,27 @@ check("die obere Leiste ist rand hoch (18 px)",
 check("die Koordinatenleiste ist deterministisch",
       KF.koordinatenleiste_plan(8, 7, 64.0) == KF.koordinatenleiste_plan(8, 7, 64.0))
 
+# Die Siedlungskarte uebergibt die im Spiel ueblichen Buchstaben (main._spaltenname A-H), damit
+# die Leiste und das Detailpanel dieselbe Koordinate nennen (Einhängen 05.10.2026).
+_leiste_buchstaben = KF.koordinatenleiste_plan(8, 7, 64.0,
+                                               spaltennamen=[chr(ord("A") + i) for i in range(8)],
+                                               zeilennamen=[str(z + 1) for z in range(7)])
+_buchstaben = [e.get("text") for e in _leiste_buchstaben if e.get("form") == "text"][:8]
+check("spaltennamen ersetzen die Ziffern der Leiste (A-H)",
+      _buchstaben == list("ABCDEFGH"), str(_buchstaben))
+check("ohne spaltennamen bleibt es bei den Ziffern",
+      [e.get("text") for e in KF.koordinatenleiste_plan(8, 7, 64.0)
+       if e.get("form") == "text"][:3] == ["1", "2", "3"])
+check("die Leiste hat mit Namen so viele Texte wie mit Ziffern",
+      len([e for e in _leiste_buchstaben if e.get("form") == "text"]) == len(_texte))
+try:
+    KF.koordinatenleiste_plan(8, 7, 64.0, spaltennamen=["A", "B"])
+    _kurz = None
+except ValueError as _f:
+    _kurz = str(_f)
+check("eine zu kurze Namenliste wird abgelehnt statt still gemischt",
+      _kurz is not None and "spaltennamen" in _kurz, str(_kurz))
+
 
 # ==========================================================================
 # 6. Farben, Format und offene Luecken

@@ -774,15 +774,29 @@ def stufenpips_plan(x0: float, y0: float, zelle: float, stufe: int,
 # --------------------------------------------------------------------------
 
 def koordinatenleiste_plan(spalten: int, zeilen: int, zelle: float,
-                           rand: float = 18.0) -> list[dict]:
+                           rand: float = 18.0,
+                           spaltennamen: list | None = None,
+                           zeilennamen: list | None = None) -> list[dict]:
     """Die aeussere Rasterleiste mit Koordinaten (Spalten und Zeilen).
 
     Die Leiste ist ``rand`` px breit beziehungsweise hoch (Vorgabe 18 px aus "Siedlung 3") und
     legt sich als Winkel ueber und links neben das Raster. Jede Spalte und jede Zeile bekommt
-    eine Ziffer (Spalten oben, Zeilen links) in der Panel-Textfarbe #EEE2CA.
+    eine Beschriftung (Spalten oben, Zeilen links) in der Panel-Textfarbe #EEE2CA.
+
+    Ohne ``spaltennamen``/``zeilennamen`` steht dort die Ziffer der Spalte bzw. Zeile. Sind die
+    Listen angegeben, werden IHRE Eintraege benutzt — die Siedlungskarte schreibt damit die im
+    Spiel ueblichen Buchstaben A-H (``main._spaltenname``), damit die Leiste und das Detailpanel
+    dieselbe Koordinate nennen. Eine zu kurze Liste wirft einen ValueError (keine stille
+    Mischung aus Buchstabe und Ziffer).
     """
     spalten = int(spalten)
     zeilen = int(zeilen)
+    if spaltennamen is not None and len(list(spaltennamen)) < spalten:
+        raise ValueError(
+            f"spaltennamen hat {len(list(spaltennamen))} Eintraege, erwartet {spalten}")
+    if zeilennamen is not None and len(list(zeilennamen)) < zeilen:
+        raise ValueError(
+            f"zeilennamen hat {len(list(zeilennamen))} Eintraege, erwartet {zeilen}")
     breit = spalten * zelle
     hoch = zeilen * zelle
     x0r, y0r = rand, rand          # das Raster beginnt hinter der Leiste
@@ -797,11 +811,13 @@ def koordinatenleiste_plan(spalten: int, zeilen: int, zelle: float,
          "punkte": [x0r, y0r, x0r, y0r + hoch]},
     ]
     for c in range(1, spalten + 1):
+        beschriftung = str(list(spaltennamen)[c - 1]) if spaltennamen is not None else str(c)
         formen.append({"form": "text", "farbe": KOORDINATEN_TEXT, "font": font, "anker": "center",
-                       "punkt": [x0r + (c - 0.5) * zelle, rand / 2.0], "text": str(c)})
+                       "punkt": [x0r + (c - 0.5) * zelle, rand / 2.0], "text": beschriftung})
     for r in range(1, zeilen + 1):
+        beschriftung = str(list(zeilennamen)[r - 1]) if zeilennamen is not None else str(r)
         formen.append({"form": "text", "farbe": KOORDINATEN_TEXT, "font": font, "anker": "center",
-                       "punkt": [rand / 2.0, y0r + (r - 0.5) * zelle], "text": str(r)})
+                       "punkt": [rand / 2.0, y0r + (r - 0.5) * zelle], "text": beschriftung})
     return formen
 
 
@@ -837,8 +853,10 @@ def offene_luecken() -> list[str]:
         "einen ValueError ausloesen.",
         "Ufer und Innenkanten haengen an der Uebergabe von 'nachbarn'; ohne Nachbarangabe zeichnet "
         "das Feld alle vier Kanten und kein Ufer.",
-        "Die Koordinatenleiste zeichnet nur Ziffern (Spalten und Zeilen); Buchstaben oder ein "
-        "fester Ausschnitt sind in der Vorlage nicht genannt.",
+        "Die Koordinatenleiste zeichnet von sich aus Ziffern; Buchstaben oder ein fester Ausschnitt "
+        "sind in der Vorlage nicht genannt. Der Aufrufer kann mit 'spaltennamen'/'zeilennamen' die "
+        "im Spiel ueblichen Buchstaben A-H uebergeben (main._spaltenname), damit Leiste und Panel "
+        "dieselbe Koordinate nennen.",
         "Wege und Auswahl kennen weder Wasser noch Gebaeude: der Aufrufer muss Wege aus Wasser "
         "und Gebaeuden heraushalten (so in 'Siedlung 3' gefordert).",
     ]

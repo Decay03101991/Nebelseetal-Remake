@@ -37,6 +37,7 @@ os.chdir(SRC)
 
 import tkinter as tk                                  # noqa: E402
 import main                                           # noqa: E402
+import karten_optik_fein                              # noqa: E402
 
 # ---------- Hilfen: im Fenster lesen und druecken ----------
 
@@ -187,17 +188,25 @@ def main_() -> int:
               len(felder_da) == len(siedlung.karte["raster"]),
               f"{len(felder_da)} von {len(siedlung.karte['raster'])}")
         # Feld A1 mit einem ECHTEN Klick wählen und den Auswahlrahmen prüfen.
-        canvas.event_generate("<Button-1>", x=20 + 32, y=20 + 32)
+        canvas.event_generate("<Button-1>", x=18 + 32, y=18 + 32)   # Feld A1 (Leiste 18 px)
         tick()
         check("der Klick auf ein Feld wählt genau dieses Feld", app.karten_feld == 0,
               str(getattr(app, "karten_feld", None)))
         # Nach dem Klick wird die Ansicht neu gezeichnet — die Zeichenfläche ist dann ein
         # NEUES Objekt. Deshalb frisch holen (sonst greift die Prüfung auf ein zerstörtes zu).
         frisch = app.karten_canvas
-        check("das gewählte Feld bekommt einen Cyanrahmen",
-              any(frisch.itemcget(o, "outline") == "#38BDF8"
-                  for o in frisch.find_withtag("feld:0") if frisch.type(o) == "rectangle"),
-              "kein Cyanrahmen gefunden")
+        # astra „Siedlung 3" (05.10.2026): statt des alten Cyanrahmens der goldene Auswahlrahmen
+        # 3 px nach innen — dunkle Unterkontur #172128 mit 5 px, darueber #E4C77D mit 2 px und
+        # vier 8-px-Eckwinkel. Die Farben kommen aus dem Modul, nicht aus dem Test.
+        _auswahl = frisch.find_withtag("auswahl")
+        check("das gewählte Feld bekommt den goldenen Auswahlrahmen (astra Siedlung 3)",
+              len(_auswahl) == 6
+              and any(frisch.itemcget(o, "outline") == karten_optik_fein.AUSWAHL_GOLD
+                      for o in _auswahl if frisch.type(o) == "rectangle")
+              and any(frisch.itemcget(o, "outline") == karten_optik_fein.AUSWAHL_UNTER_FARBE
+                      for o in _auswahl if frisch.type(o) == "rectangle"),
+              f"{len(_auswahl)} Objekte: "
+              f"{[frisch.itemcget(o, 'outline') for o in _auswahl if frisch.type(o) == 'rectangle']}")
     else:
         befund("keine Zeichenfläche gefunden — Kartendarstellung nicht geprueft")
 
@@ -205,7 +214,7 @@ def main_() -> int:
     abschnitt("4. Ein Feld bebauen — über echte Klicks auf die Zeichenfläche")
     gebaut = None
     klick_ok = False
-    ZELLE, RAND = 64, 20
+    ZELLE, RAND = 64, int(karten_optik_fein.KOORDINATEN_BREITE)   # Leiste 18 px (astra)
     for i in range(len(siedlung.karte["raster"])):
         if str(i) in siedlung.bauten:
             continue
@@ -247,12 +256,12 @@ def main_() -> int:
             texte_auf_feld = [canvas.itemcget(o, "text")
                               for o in canvas.find_withtag(f"feld:{gebaut['feld']}")
                               if canvas.type(o) == "text"]
-            # astra-Nachprüfung: Name und Ertrag gehörten NICHT auf die 64-px-Felder (sie
-            # überlagerten sich). Auf dem Feld steht nur das Zeichen mit der Stufe.
-            check("das Feld traegt das Gebaeudezeichen und die Stufe, keinen abgeschnittenen Namen",
-                  any(t.startswith("St.") for t in texte_auf_feld)
-                  and not any(gebaut["gebaeude"] in t for t in texte_auf_feld),
-                  " | ".join(texte_auf_feld)[:160])
+            # astra (05.10.2026, „Siedlung 1" und „Siedlung 3"): Name, Ertrag UND Stufenstempel
+            # gehoeren NICHT auf die 64-px-Felder — dort steht nur der Baukörper. Namen, Stufe und
+            # Ertrag nennt die Zeile unter der Karte (naechste Pruefung).
+            check("das Feld traegt nur das Gebaeudezeichen und KEINEN Text mehr",
+                  bool(canvas.find_withtag(f"feld:{gebaut['feld']}")) and not texte_auf_feld,
+                  f"Texte auf dem Feld: {texte_auf_feld}")
             check("das Feld bleibt nach dem Bau ausgewaehlt", app.karten_feld == gebaut["feld"],
                   str(app.karten_feld))
             panel = " ".join(_texte(app.content))
