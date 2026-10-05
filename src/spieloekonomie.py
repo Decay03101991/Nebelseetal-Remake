@@ -606,3 +606,64 @@ def forschung_abschluss(ort: dict, wissen: dict, jetzt: float) -> tuple:
         neu["forschungsauftrag"] = None
         neu["fertigjournal"].append({"zeit": jetzt, "art": "forschung", "name": a["gebiet"]})
     return neu, kenntnis
+
+
+# ---------------------------------------------------------------------------
+# Schritt 7 — Zielprüfung und Haltefenster, UNABHÄNGIG von den Originalpunkten
+# (Entwurf Z. 688-715)
+# ---------------------------------------------------------------------------
+#
+# Der Altmodus gewinnt über Punkte (`punkte.sieg_oder_niederlage`). Der Ökonomiemodus gewinnt
+# über eine **versorgte Wirtschaft**: gute Karten, gedeckter Plan, gehaltene Reserve, echter
+# Handel, beide Rollen, Ware **und** Forschung fertig — und das alles **ein volles
+# Versorgungsfenster lang** (Haltefenster). Die Original-Punkteformeln bleiben unangetastet.
+#
+# Der Zweck ist ausdrücklich der **Ausschluss von Scheinsiegen**: wer nur Punkte farmt, Fracht
+# sinnlos hin und her schiebt oder seine Schlüsselkarte verliert, erfüllt die Bedingungen nicht
+# und verliert damit auch das Haltefenster wieder (Entwurf Z. 715).
+#
+# `reserve` (was ein Ort im Fenster zurücklegen WILL) wird je Ort erwartet — gesetzt wird es von
+# der Aufstellung/Planung (Schritt 8/9). Fehlt es, gilt „keine Reserve gefordert": dann kann der
+# Plan nicht gedeckt sein und das Ziel ist nicht erreicht (VORSCHLAG, konservativ — der Entwurf
+# verlangt genau diese Strenge, damit ein Sieg nicht zufällig geschieht).
+
+
+def zielstatus(orte: list, jetzt: float, haltestart=None) -> dict:
+    """Sind die Bedingungen des Versorgungsziels erfüllt — und wie lange schon?
+
+    Liefert ``sieg``, ``haltestart`` (None, wenn gerade nicht erfüllt — dann beginnt das
+    Haltefenster neu), ``qualitaet``, ``deckung``, ``reserve``, ``handel``, ``armee`` und ``plan``.
+
+    Gemessen wird **rückblickend**: die Deckung kommt aus dem tatsächlichen Produktionsjournal
+    (`fensterproduktion`), der Handel aus dem Verbrauchsjournal (mindestens **zwei Rohstoffe**
+    aus **zwei Orten** müssen wirklich verbraucht worden sein) — nicht aus einer Momentaufnahme.
+    """
+    orte = [o for o in (orte or []) if isinstance(o, dict)]
+    q = kartenqualitaet([o["karte"] for o in orte]) if orte else {"erfuellt": False}
+    menge = fensterproduktion(orte, jetzt)
+    plan = REGELN["plan"]
+    reserviert = {r: sum((o.get("reserve") or {}).get(r, 0) for o in orte) for r in plan}
+    plan_ok = bezahlbar(reserviert, plan)
+    deckung = min((menge.get(r, 0) / n for r, n in plan.items() if n > 0), default=0.0)
+    # Leerer Verbund ist NIE versorgt (der Entwurf schreibt `all(...)`; ohne Orte wäre das
+    # leer-wahr und ein leerer Spielstand hätte „gehalten" — bewusste, dokumentierte Abweichung).
+    reserve = bool(orte) and all(bezahlbar(o.get("vorraete") or {}, o.get("reserve") or {})
+                                 for o in orte)
+    ab = jetzt - REGELN["versorgung_stunden"] * 3600
+    importe = {(o.get("id"), z["rohstoff"]) for o in orte
+               for z in (o.get("verbrauchsjournal") or [])
+               if ab < z["zeit"] <= jetzt and z["menge"] > 0}
+    handel = len({r for _, r in importe}) >= 2 and len({i for i, _ in importe}) >= 2
+    rollen = {einheiten.rolle(n) for o in orte for n, k in (o.get("einheiten") or {}).items()
+              if k > 0}
+    armee = "kaempfer" in rollen and "kundschafter" in rollen
+    fertig = {z["art"] for o in orte for z in (o.get("fertigjournal") or [])}
+    ok = (bool(q.get("erfuellt")) and plan_ok and deckung >= 1 and reserve and handel and armee
+          and {"ware", "forschung"} <= fertig)
+    start = (jetzt if haltestart is None else haltestart) if ok else None
+    sieg = bool(ok and start is not None
+                and jetzt - start >= REGELN["versorgung_stunden"] * 3600)
+    # `plan` ist über den Entwurf hinaus — er nennt die Rückgabe ohne diesen Schlüssel, verlangt
+    # aber „messbare Fehlgründe" (Z. 714). Nur eine Anzeige, keine Rechnung.
+    return {"sieg": sieg, "haltestart": start, "qualitaet": q, "deckung": deckung,
+            "reserve": reserve, "handel": handel, "armee": armee, "plan": plan_ok}
