@@ -90,14 +90,23 @@ check("im Nebelsee dürfen nur Bibliothek und Tempel stehen",
 nein, warum = G.bau_moeglich("gibtsnicht", "wald")
 check("unbekanntes Gebäude wird abgelehnt", nein is False, warum)
 
-abschnitt("Siedlungskarte — Aufbau")
+abschnitt("Siedlungskarte — Aufbau (8x7 = 56 Felder, davon 40 bebaubar)")
 k = G.siedlungskarte_erzeugen(20261004)
 check("8 Spalten", k["spalten"] == 8, str(k["spalten"]))
-check("5 Zeilen", k["zeilen"] == 5, str(k["zeilen"]))
-check("40 Bauplätze", k["bauplaetze"] == 40, str(k["bauplaetze"]))
-check("das Raster hat 40 Felder", len(k["raster"]) == 40, str(len(k["raster"])))
+check("7 Zeilen", k["zeilen"] == 7, str(k["zeilen"]))
+check("das Raster hat 56 Felder", k["felder"] == 56 and len(k["raster"]) == 56,
+      f"felder {k.get('felder')}, raster {len(k['raster'])}")
+check("40 Bauplätze (nur die bebaubaren Felder)", k["bauplaetze"] == 40, str(k["bauplaetze"]))
+check("genau 16 Felder sind nicht bebaubar",
+      sum(1 for a in k["raster"] if not G.ist_bebaubar(a)) == 16,
+      str(len([a for a in k["raster"] if not G.ist_bebaubar(a)])) +
+      " Felder: " + str(sorted({a for a in k["raster"] if not G.ist_bebaubar(a)})))
+check("die 40 Bauplätze sind genau die bebaubaren Felder",
+      k["bauplaetze"] == sum(1 for a in k["raster"] if G.ist_bebaubar(a)), str(k["bauplaetze"]))
 check("die Zeilenansicht passt zum Raster",
       [f for z in k["zeilen_raster"] for f in z] == k["raster"])
+check("die Zeilenansicht hat 7 Zeilen zu je 8 Feldern",
+      len(k["zeilen_raster"]) == 7 and all(len(z) == 8 for z in k["zeilen_raster"]))
 check("alle Felder sind bekannte Geländearten",
       set(k["raster"]) <= set(G.GELAENDEARTEN), str(sorted(set(k["raster"]) - set(G.GELAENDEARTEN))))
 
@@ -116,10 +125,13 @@ for saat in range(300):
     for art, n in mindest.items():
         if kk["zaehlung"][art] < n:
             fehler.append((saat, art, kk["zaehlung"][art]))
-    if kk["zaehlung"]["sumpf"] > 6:
-        fehler.append((saat, "sumpf zu viel", kk["zaehlung"]["sumpf"]))
+    if sum(1 for a in kk["raster"] if not G.ist_bebaubar(a)) != 16 or kk["bauplaetze"] != 40:
+        fehler.append((saat, "nicht 40/16", sum(1 for a in kk["raster"] if not G.ist_bebaubar(a)),
+                       kk["bauplaetze"]))
 check("300 Karten erfüllen alle den Mindestbesatz", not fehler,
       f"{len(fehler)} Verstöße, z. B. {fehler[:3]}")
+check("300 Karten haben jede genau 40 bebaubare und 16 gesperrte Felder", not fehler,
+      str(fehler[:3]))
 
 abschnitt("Siedlungskarte — Vielfalt")
 karten = {tuple(G.siedlungskarte_erzeugen(s)["raster"]) for s in range(50)}
@@ -128,9 +140,10 @@ check("50 Saaten ergeben mindestens 45 verschiedene Karten", len(karten) >= 45,
 
 abschnitt("Siedlungskarte — Beschreibungen")
 txt = G.karte_beschreiben(G.siedlungskarte_erzeugen(1))
-check("Textfassung nennt Maße und Saat", "8x5" in txt and "Saat 1" in txt, txt)
+check("Textfassung nennt Maße und Saat", "8x7" in txt and "Saat 1" in txt, txt)
+check("Textfassung nennt 40 von 56 Feldern bebaubar", "40 von 56" in txt, txt)
 bild = G.karte_als_text(G.siedlungskarte_erzeugen(1))
-check("Rasterfassung hat 5 Zeilen", len(bild.splitlines()) == 5)
+check("Rasterfassung hat 7 Zeilen", len(bild.splitlines()) == 7)
 check("und 8 Felder je Zeile", all(len(z.split()) == 8 for z in bild.splitlines()))
 
 abschnitt("Kartentypen — mehrere Karten mit verschiedenen Vorteilen")
@@ -168,9 +181,10 @@ for tid in G.KARTENTYPEN:
         for art, n in mindest.items():
             if kk["zaehlung"][art] < n:
                 verstoesse.append((tid, saat, art, kk["zaehlung"][art]))
-        if kk["zaehlung"]["sumpf"] > 6:
-            verstoesse.append((tid, saat, "sumpf", kk["zaehlung"]["sumpf"]))
-check("300 Karten aller Typen erfüllen Mindestbesatz und Sumpfgrenze", not verstoesse,
+        if sum(1 for a in kk["raster"] if not G.ist_bebaubar(a)) != 16 or kk["bauplaetze"] != 40:
+            verstoesse.append((tid, saat, "nicht 40/16",
+                               sum(1 for a in kk["raster"] if not G.ist_bebaubar(a)), kk["bauplaetze"]))
+check("300 Karten aller Typen erfüllen Mindestbesatz und die 40/16-Aufteilung", not verstoesse,
       f"{len(verstoesse)} Verstöße, z. B. {verstoesse[:3]}")
 
 abschnitt("Kartentypen — der Vorteil ist in Zahlen messbar (Mittel über 40 Karten)")
@@ -182,9 +196,17 @@ def mittel(tid: str, rohstoff: str) -> float:
 
 
 def erwartet(tid: str, art: str) -> float:
-    """Erwartungswert einer Geländeart aus den Gewichten des Kartentyps."""
+    """Erwartungswert einer Geländeart aus den Gewichten des Kartentyps.
+
+    56 Felder, davon 16 gesperrt: die bebaubaren Arten teilen sich die 40 freien Felder nach
+    ihren Gewichten, die gesperrten Arten die 16 nach ihren eigenen Gewichten (nur Sumpf).
+    """
     g = G.KARTENTYPEN[tid]["gewichte"]
-    return round(40 * g[art] / sum(g.values()), 1)
+    if not G.ist_bebaubar(art):
+        summe = sum(v for k, v in g.items() if not G.ist_bebaubar(k))
+        return round(16 * g[art] / summe, 1)
+    summe = sum(v for k, v in g.items() if G.ist_bebaubar(k))
+    return round(40 * g[art] / summe, 1)
 
 
 for tid in G.KARTENTYPEN:

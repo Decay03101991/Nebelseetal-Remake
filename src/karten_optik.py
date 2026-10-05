@@ -586,8 +586,8 @@ def offene_luecken() -> list[str]:
     return [
         "Die 7 Gelaende-Embleme sind Vorschlaege: das Handbuch 2009 nennt keine Vorgabe fuer "
         "die Kartenoptik (nur die 7 Gelaendearten selbst sind belegt).",
-        "Die Kartengroesse 8x5 = 40 Bauplaetze ist in data/gelaende.json als VORSCHLAG "
-        "gekennzeichnet; das Handbuch nennt keine Kartengroesse.",
+        "Die Kartengroesse 8x7 = 56 Felder mit 40 bebaubaren ist Daniel-Entscheidung ",
+        "(05.10.2026); das Handbuch nennt keine Kartengroesse.",
         "Die Kartenfarben in data/gelaende.json sind angenaehert, nicht gemessen "
         "(docs/audits/astra_wallpaper_antwort.txt).",
         "Die Zuordnung der Gebaeude zu Familien spiegelt die Spalte 'kategorie' aus "

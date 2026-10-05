@@ -109,8 +109,8 @@ def partiedurchlauf():
         app._found_settlement()
         check("die erste Siedlung wird gegruendet", bool(gs.settlements))
         sied = gs.settlements[0]
-        check("sie hat eine eigene Karte mit 40 Feldern",
-              bool(sied.karte) and len(sied.karte["raster"]) == 40,
+        check("sie hat eine eigene Karte mit 56 Feldern",
+              bool(sied.karte) and len(sied.karte["raster"]) == 56,
               str(len(sied.karte["raster"]) if sied.karte else 0))
 
         # ------------------------------------------------------------- 2. Bauen

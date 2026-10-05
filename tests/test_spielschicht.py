@@ -105,7 +105,9 @@ check("uebrige Rohstoffe starten bei 0",
 check("10 Siedler zum Start (Handbuch S. 7)", z0["bevoelkerung"] == 10)
 check("genau eine Start-Siedlung mit eigener Karte",
       len(z0["siedlungen"]) == 1 and isinstance(z0["siedlungen"][0].get("karte"), dict))
-check("die Startkarte hat 40 Bauplaetze", len(raster(z0)) == 40)
+check("die Startkarte hat 56 Felder, davon 40 Bauplaetze",
+      len(raster(z0)) == 56 and z0["siedlungen"][0]["karte"].get("bauplaetze") == 40,
+      f"{len(raster(z0))} Felder, {z0['siedlungen'][0]['karte'].get('bauplaetze')} Bauplaetze")
 
 _gebiete = sorted(z0["forschung"].keys())
 check("der Forschungsstand sind die 21 Originalgebiete",

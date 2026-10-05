@@ -1936,7 +1936,7 @@ class NebelseetalApp:
         """
         zelle = 64
         spalten = int(karte.get("spalten") or 8)
-        zeilen = int(karte.get("zeilen") or 5)
+        zeilen = int(karte.get("zeilen") or 7)
         raster = karte["raster"]
         # astra „Siedlung 3": „Koordinaten in eine 18 px breite beziehungsweise hohe äußere
         # Rasterleiste verlegen" — dieselbe Zahl liefert das Modul als KOORDINATEN_BREITE.

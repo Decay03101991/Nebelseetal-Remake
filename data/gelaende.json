@@ -3,11 +3,11 @@
   "_quelle": "docs/original/Spielanleitung_2009_Textfassung.txt (Gelaende und Ertraege), data/buildings.json (Ertrag je Gelaendeart), docs/ENTWURF_WIRTSCHAFT.md",
   "kartenmass": {
     "spalten": 8,
-    "zeilen": 5,
+    "zeilen": 7,
     "bauplaetze": 40,
-    "_herkunft": "VORSCHLAG (astra, Einsatz 3: 40 Bauplaetze je Siedlung). Handbuch nennt keine Kartengroesse.",
+    "_herkunft": "Daniel-Entscheidung 05.10.2026, 14:24: 8 Spalten x 7 Zeilen = 56 Felder, davon 40 bebaubar. Das Handbuch nennt keine Kartengroesse.",
     "felder": 56,
-    "_felder_herkunft": "56 Felder im Raster, davon 40 als Bauplaetze nutzbar; die uebrigen sind Wege/Wasser (VORSCHLAG)."
+    "_felder_herkunft": "56 Felder im Raster, davon 40 bebaubar; die uebrigen 16 sind Sumpf (nicht bebaubar, Handbuch S. 11). Der Nebelsee IST bebaubar (Bibliothek und Tempel stehen dort)."
   },
   "gelaendearten": [
     {
@@ -143,7 +143,8 @@
       "grasland": 3,
       "nebelsee": 1
     },
-    "sumpf_hoechstens": 6,
+    "sperrfelder": 16,
+    "_sperrfelder_hinweis": "Genau so viele Felder je Siedlungskarte sind nicht bebaubar (Sumpf). 56 Felder - 16 = 40 bebaubar (Daniel 05.10.2026). Nicht bebaubar ist NUR der Sumpf; der Nebelsee ist baubar.",
     "eignung_wird_angezeigt": "BEWIESEN (Handbuch S. 7/8): beim Bauen zeigt das Spiel die Eignung des Geländes an."
   }
 }

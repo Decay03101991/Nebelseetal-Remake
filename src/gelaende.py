@@ -11,7 +11,8 @@ Belegt (Handbuch 2009, S. 9-11):
   * beim Bauen zeigt das Spiel die Eignung des Gelaendes an
 
 NICHT belegt (als Vorschlag gekennzeichnet, in data/gelaende.json aenderbar):
-  * Kartenmass (8x5 = 40 Bauplaetze) und die Haeufigkeit der Gelaendearten
+  * Kartenmass (8x7 = 56 Felder, davon 40 bebaubar - Daniel-Entscheidung 05.10.2026) und die
+    Haeufigkeit der Gelaendearten
   * wo Gebaeude OHNE Gelaendebezug (Schmiede, Haus, Lager, Bibliothek) stehen duerfen
 """
 from __future__ import annotations
@@ -187,6 +188,10 @@ def siedlungskarte_erzeugen(seed, mass: dict = None, typ_id: str = None) -> dict
     Jeder Kartentyp hat eigene Gewichte und damit eigene Vorteile (data/gelaende.json).
     Die Karte erfuellt die Mindestbesatz-Regel, damit jede Siedlung spielbar ist
     (Holz, Stein, Nahrung, Nebelsee fuer den Tempel).
+
+    Das Mass steht in `data/gelaende.json` (`kartenmass`): 8 x 7 = 56 Felder, davon 40 bebaubar
+    (Daniel-Entscheidung 05.10.2026). Genau `regeln.sperrfelder` (16) Felder sind nicht bebaubar —
+    das ist der Sumpf; der Nebelsee ist baubar.
     """
     rng = random.Random(seed)
     mass = mass or _GELAENDE["kartenmass"]
@@ -197,37 +202,51 @@ def siedlungskarte_erzeugen(seed, mass: dict = None, typ_id: str = None) -> dict
     typ = KARTENTYPEN[typ_id] if typ_id else karten_typ(seed)
     gewichte = typ["gewichte"]
     erlaubt = [a for a in _GELAENDE["gelaendearten"]]
+    bebaubar = [a for a in erlaubt if a["bebaubar"]]
+    gesperrt = [a for a in erlaubt if not a["bebaubar"]]
+    bebaubar_ids = {a["id"] for a in bebaubar}
+    gesperrt_ids = {a["id"] for a in gesperrt}
 
-    def ziehen(aus: list) -> str:
-        s = sum(gewichte.get(a["id"], a["haeufigkeit"]) for a in aus)
-        r = rng.uniform(0, s)
-        k = 0.0
-        for a in aus:
-            k += gewichte.get(a["id"], a["haeufigkeit"])
-            if r <= k:
-                return a["id"]
-        return aus[-1]["id"]
+    def ziehe(aus: list, wieviele: int) -> list:
+        """`wieviele` Gelaendearten nach Gewicht ziehen (gleiche Saat -> gleiches Ergebnis)."""
+        out = []
+        for _ in range(wieviele):
+            s = sum(gewichte.get(a["id"], a["haeufigkeit"]) for a in aus)
+            r = rng.uniform(0, s)
+            k = 0.0
+            for a in aus:
+                k += gewichte.get(a["id"], a["haeufigkeit"])
+                if r <= k:
+                    out.append(a["id"])
+                    break
+            else:
+                out.append(aus[-1]["id"])
+        return out
 
-    raster = [ziehen(erlaubt) for _ in range(plaetze)]
+    # Sperrfelder: genau `sperrfelder` Felder sind nicht bebaubar (Daniel-Entscheidung 05.10.2026:
+    # 8x7 = 56 Felder, davon 40 bebaubar). Nur der Sumpf ist nicht bebaubar; der Nebelsee ist es.
+    sperren = int(regeln.get("sperrfelder") or 0)
+    if gesperrt and 0 < sperren < plaetze:
+        raster = ziehe(bebaubar, plaetze - sperren) + ziehe(gesperrt, sperren)
+        rng.shuffle(raster)
+    else:
+        raster = ziehe(erlaubt, plaetze)
 
-    # Mindestbesatz sicherstellen: fehlende Gelaendearten auf zufaelligen Feldern erzwingen
+    # Mindestbesatz sicherstellen: fehlende Gelaendearten auf zufaelligen Feldern erzwingen.
+    # Sperrfelder werden dabei NIE angefasst, sonst stimmt die 40/16-Aufteilung nicht mehr.
     def haeufigkeit(art_id: str) -> int:
         return raster.count(art_id)
 
     def ersetzen(art_id: str, wieviele: int) -> None:
+        mindest = regeln["mindestbesatz"]
         for _ in range(wieviele):
             # bevorzugt ein Feld ersetzen, das selbst nicht zu einer knappen Art gehoert
-            for _versuch in range(60):
-                i = rng.randrange(plaetze)
-                alt = raster[i]
-                mindest = regeln["mindestbesatz"]
-                knapp = [k for k, n in mindest.items()
-                         if not k.startswith("_") and haeufigkeit(k) <= n]
-                if alt not in knapp:
-                    raster[i] = art_id
-                    break
-            else:
-                raster[rng.randrange(plaetze)] = art_id
+            frei = [i for i, a in enumerate(raster)
+                    if a not in gesperrt_ids and haeufigkeit(a) > mindest.get(a, 0)]
+            if not frei:
+                frei = [i for i, a in enumerate(raster) if a not in gesperrt_ids]
+            if frei:
+                raster[rng.choice(frei)] = art_id
 
     for art_id, mindest in regeln["mindestbesatz"].items():
         if art_id.startswith("_"):
@@ -236,19 +255,15 @@ def siedlungskarte_erzeugen(seed, mass: dict = None, typ_id: str = None) -> dict
         if fehlt > 0:
             ersetzen(art_id, fehlt)
 
-    # Sumpf deckeln, falls er die Obergrenze reisst
-    grenze = regeln["sumpf_hoechstens"]
-    while haeufigkeit(SUMPF) > grenze:
-        i = raster.index(SUMPF)
-        raster[i] = ziehen([a for a in erlaubt if a["id"] != SUMPF])
-
     zeilen_liste = [raster[i * spalten:(i + 1) * spalten] for i in range(zeilen)]
     zaehlung = {a: raster.count(a) for a in GELAENDEARTEN}
+    bauplaetze = sum(zaehlung[a] for a in bebaubar_ids)
     return {
         "seed": seed,
         "spalten": spalten,
         "zeilen": zeilen,
-        "bauplaetze": plaetze,
+        "felder": plaetze,
+        "bauplaetze": bauplaetze,
         "raster": raster,
         "zeilen_raster": zeilen_liste,
         "zaehlung": zaehlung,
@@ -303,8 +318,10 @@ def karte_profil(zaehlung: dict) -> dict:
 def karte_beschreiben(karte: dict) -> str:
     """Kurze Textfassung der Karte (fuer Berichte und Pruefungen)."""
     teile = [f"{ARTEN[a]['name']}: {n}" for a, n in karte["zaehlung"].items() if n]
+    felder = karte.get("felder") or karte["spalten"] * karte["zeilen"]
     return (f"{karte['typ_name']} {karte['spalten']}x{karte['zeilen']} "
-            f"({karte['bauplaetze']} Plätze, Saat {karte['seed']}): " + ", ".join(teile))
+            f"({karte['bauplaetze']} von {felder} Feldern bebaubar, Saat {karte['seed']}): "
+            + ", ".join(teile))
 
 
 def karte_als_text(karte: dict) -> str:

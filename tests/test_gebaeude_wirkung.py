@@ -128,12 +128,12 @@ check("ein Haus wirkt nur in seiner eigenen Siedlung",
 # Hausausbau (VORSCHLAG, Vorgabe Daniel 05.10.2026: „der Häuserausbau ist noch nicht klug
 # entworfen"): jede Ausbaustufe hebt die Siedlergrenze um weitere 5. Stufe 1 = belegtes Haus.
 _haus_stufe3 = siedlung_mit(karte, [(gras[0], "haus")])
-_haus_stufe3.stufen = {"0": 3}
+_haus_stufe3.stufen = {str(gras[0]): 3}
 check("ein Haus auf Stufe 3 hebt die Grenze auf 10 + 15 = 25",
       W.siedlergrenze_je_siedlung(_haus_stufe3) == 25,
       str(W.siedlergrenze_je_siedlung(_haus_stufe3)))
 _zwei_haeuser = siedlung_mit(karte, [(gras[0], "haus"), (gras[1], "haus")])
-_zwei_haeuser.stufen = {"0": 2}
+_zwei_haeuser.stufen = {str(gras[0]): 2}
 check("Stufe 2 + Stufe 1 ergeben 10 + 15 = 25 (nur das ausgebaute Haus zaehlt hoeher)",
       W.siedlergrenze_je_siedlung(_zwei_haeuser) == 25,
       str(W.siedlergrenze_je_siedlung(_zwei_haeuser)))

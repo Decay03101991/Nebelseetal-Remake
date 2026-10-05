@@ -178,7 +178,7 @@ erw_stein = 4 * KW["zaehlung"]["berg"] + 2 * KW["zaehlung"]["huegel"]
 check("Stein-Kapazität = 4*Berg + 2*Hügel (Steinmetz)",
       kap.get("Stein") == erw_stein, f"{kap.get('Stein')} gegen {erw_stein}")
 erw_mana = 5 * KW["zaehlung"]["nebelsee"] + (
-    KW["bauplaetze"] - KW["zaehlung"]["sumpf"] - KW["zaehlung"]["nebelsee"])
+    KW["bauplaetze"] - KW["zaehlung"]["nebelsee"])
 check("Mana-Kapazität = 5*Nebelsee + 1*alle übrigen bebaubaren Felder (Tempel)",
       kap.get("Mana") == erw_mana, f"{kap.get('Mana')} gegen {erw_mana}")
 
