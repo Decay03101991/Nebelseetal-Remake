@@ -1,4 +1,4 @@
-# KONTEXT-PAKET — Nebelseetal Remake (Stand 06.10.2026, 00:20 · Zeiten mit `date` geholt)
+# KONTEXT-PAKET — Nebelseetal Remake (Stand 06.10.2026, 00:36 · Zeiten mit `date` geholt)
 
 **Diese Datei ist die Übergabe. Lies SIE zuerst (≈ 12 KB) und sonst nur, was hier als Zeiger steht —
 `docs/PROJEKT_STAND.md` (69 KB) und `docs/ENTWICKLUNGSPROTOKOLL.md` (93 KB) sind Nachschlagewerke,
@@ -11,19 +11,19 @@ Ziel: fertige, fehlerfrei spielbare, passwortgeschützte Einzelspieler-`.exe` (H
 
 | Was | Beleg |
 |---|---|
-| **Sammellauf** | **3979 bestanden · 0 Fehler · 22 Befunde · 52 Dateien** (00:1x; `…/cache/scratch/sammellauf.py`, 149 s) |
-| **Arbeitsbaum** | **sauber** (`git status --short` leer), letzter Commit **`7e83d42`** (Schritt 9, Teil 6 REST = Forschung + `.exe`) |
-| **`.exe`** | **14.640.433 Byte**, SHA256 `db779ccdcd92b99e…`, Dateizeitstempel **00:16:23**; genau **eine** `.exe`, `build/`+`dist/` aufgeräumt; Vorgängerfassung vorher gesichert (`…\cache\scratch\exe_alt_0015_vor_forschung.exe`, 14.640.905 Byte) |
-| **Startprüfung** | aus `…\hermes\cache\scratch\exestart` (anderer Ordner, Skript `startpruefung_1006_0018.ps1`): Fenstertitel **„Nebelseetal Remake"**, antwortet bei **+10/+20/+40 s**, **0** Fehlerberichte (WerFault), danach **0 offene Spielprozesse**, Startordner leer |
-| **Sicherung** | `docs/SICHERUNGEN.md` — 16 führende Papiere mit Prüfsummen (00:19, projektunabhängige Kopie unter `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\`) |
+| **Sammellauf** | **3986 bestanden · 0 Fehler · 22 Befunde · 52 Dateien** (00:2x; `…/cache/scratch/sammellauf.py`, 134 s) |
+| **Arbeitsbaum** | **sauber** (`git status --short` leer), letzter Commit **`01fe939`** (Teil 7a: Gratisgewinn gesperrt) |
+| **`.exe`** | **14.641.733 Byte**, SHA256 `524d6260e28daf74…`, Dateizeitstempel **00:27:57** — **GEBAUT, ABER NICHT STARTPGEPRÜFT** (die Prüfung hing in der Freigabe); Vorgängerfassung gesichert (`…\cache\scratch\exe_alt_0027_vor_teil7.exe`, 14.640.433 Byte). Prüfskript: `…\cache\scratch\exestart\startpruefung_1006_0029.ps1` |
+| **Startprüfung** | aus `…\hermes\cache\scratch\exestart` (anderer Ordner, Skript `startpruefung_1006_0029.ps1` — **noch nicht gelaufen**): Fenstertitel **„Nebelseetal Remake"**, antwortet bei **+10/+20/+40 s**, **0** Fehlerberichte (WerFault), danach **0 offene Spielprozesse**, Startordner leer |
+| **Sicherung** | `docs/SICHERUNGEN.md` — 16 führende Papiere mit Prüfsummen (00:35, projektunabhängige Kopie unter `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\`) |
 | **Zielregister** | nur **diese** Sitzung `20261005_212201_8bd3fb` aktiv (**0/20 Takte**), **kein fremdes aktives Ziel** (`--pruefen` rc=0); die Vorgängersitzung `20261005_201518_d2b523` ist auf `cleared` gesetzt |
-| **Kosten** | **Der Tag ist umgesprungen:** am 05.10. endete die Messung bei **7,25 EUR = ÜBER_LIMIT**; der **06.10. beginnt frisch** — Stand 00:18: **0,60 EUR / 4,00 EUR** (0,67 USD), Rest **+3,40 EUR**. **Daniel hat den Auftrag um 20:20 freigegeben** (nur `deepseek-flash`, kein teures Modell, keine Kinder, **1,00 USD DeepSeek bleiben als Reserve**). Anteil der Sitzung am 05.10.: **+0,57 EUR** (6,68 → 7,25); am 06.10. bisher **+0,60 EUR**. Maßgeblich ist DeepSeeks Kontostand (Daniel liest ab) |
+| **Kosten** | **Der Tag ist umgesprungen:** am 05.10. endete die Messung bei **7,25 EUR = ÜBER_LIMIT**; der **06.10.** steht bei **0,65 EUR / 4,00 EUR** (0,73 USD), Rest **+3,35 EUR**. **Daniel hat den Auftrag um 20:20 freigegeben** (nur `deepseek-flash`, kein teures Modell, keine Kinder, **1,00 USD DeepSeek bleiben als Reserve**). Anteil der Sitzung am 05.10.: **+0,57 EUR** (6,68 → 7,25); am 06.10. bisher **+0,65 EUR**. Maßgeblich ist DeepSeeks Kontostand (Daniel liest ab) |
 
 `git log --oneline -3` · `git status --short` · `python tools/zieluebergabe.py --pruefen` → alles in Sekunden.
 
 ## 2. Der EINE nächste Schritt
 
-**Schritt 9 läuft — die Teile 1, 2, 3a, 3b, 4 und 5 sind fertig; als Nächstes Teil 6.** Der
+**Schritt 9 läuft — Teil 6 ist vollständig fertig, in Teil 7 ist der Gratisgewinn beim Handel gesperrt; offen sind der bestätigte Kaufvertrag (Teil 7b), die Startprüfung der aktuellen `.exe` und danach Teil 8 (Migration).** Der
 Auftraggeber hat „Stück für Stück" entschieden: nach JEDEM Teil Einzeltest + einmal Sammellauf +
 Protokollzeile + kleiner Commit.
 
@@ -32,15 +32,31 @@ Spieluhr je Ort samt Ware, Ausbildung UND Forschung vor Ort.** Belege: `test_oek
 **312/0/1**, Sammellauf **3979/0/22** über 52 Dateien, `.exe` startgeprüft — Commits `ad12376`
 (6a), `0e4a08a` (6b/c), `35e1bd1` (Forschung), `7e83d42` (exe).
 
-**Der NÄCHSTE Schritt: Teil 7 — `_trade`** (Entwurf Z. 779/781, Abschnitt 8b): der Handel läuft über
-das **bestätigte Angebot** aus 8b (`handel_start`/`handel_entscheiden`/`handel_abschluss` liegen im
-Kern) — oder er wird mit einer **deutlichen „noch nicht verfügbar"-Meldung** abgelehnt. **Nie** der
-Alt-Gratisgewinn (`_trade` schenkt heute Ware ohne Gegenleistung). Danach **Teil 8 —
-`_unlock_next_map` + Migration**: die „Vermessung" entfällt, ein Altspielstand ohne Versionsfeld
-lädt als `mode="legacy"` mit Warnhinweis, neue Partien als `mode="oeokonomie-1"`. **Erst danach**
-Schritt 10 (`tick_bis` und die **Aktivierung**, Entwurf Z. 791-1018) — **vorher darf der
-Ökonomiemodus NICHT aktiviert werden** (Entwurf Z. 1092). Einzelheiten je Zeile:
-`docs/KONTEXT_PAKET.md`, Abschnitt 2, und Entwurf Z. 755-789.
+**Der NÄCHSTE Schritt: Teil 7b — der bestätigte Kaufvertrag** (Entwurf Z. 779/781, Abschnitt 8b).
+Teil 7a ist erledigt: der **Gratisgewinn ist gesperrt** — `_trade` schenkte Rohstoffe ohne
+Gegenleistung und wird jetzt **ehrlich abgelehnt** (Grund, Schwellenpreis und Zeiger auf diesen
+Schritt stehen in der Meldung; gebucht wird nichts, `01fe939`). Jetzt fehlt der **Weg dahinter**:
+`spieloekonomie.handel_start` (Gegenstand, Menge, Preis, Karawane, Dimension, **beidseitige Deckung**
+aus Lager UND Gold), `handel_entscheiden` (die Gegenpartei sagt ja/nein) und `handel_abschluss` (die
+Ankunft buchen). Die Maske muss **Ware, Menge und Preis** wählen lassen; der Bot braucht seine Form
+als **Ortsdict** (`bot_als_dict` in `main.py` — vorher prüfen, ob `besitzer`, `dimension`,
+`vorraete`, `einheiten`, `x`, `y` darin stehen), und Karawane plus Gold liegen im **Ortslager**
+(Muster aus Teil 6c). **Lies dazu `docs/audits/entwurf_spieloekonomie_sol_2026-10-05.txt`,
+Abschnitt 8b** — dort steht der Vertragsweg, den dieser Schritt anschließt.
+
+**DANACH Teil 8 — `_unlock_next_map` + Migration:** die „Vermessung" entfällt, ein Altspielstand
+ohne Versionsfeld lädt als `mode="legacy"` mit Warnhinweis, neue Partien als `mode="oeokonomie-1"`.
+**Erst danach** Schritt 10 (`tick_bis` und die **Aktivierung**, Entwurf Z. 791-1018) — **vorher darf
+der Ökonomiemodus NICHT aktiviert werden** (Entwurf Z. 1092).
+
+> **⚠ OFFEN aus Teil 7a — die `.exe` ist GEBAUT, aber NICHT startgeprüft:** **14.641.733 Byte**,
+> SHA256 `524d6260e28daf74…`, 00:27:57; Vorgängerfassung gesichert
+> (`…\cache\scratch\exe_alt_0027_vor_teil7.exe`, 14.640.433 Byte). Die Prüfung **lief nicht an** (der
+> Befehl hing in der Freigabe, keine Zustimmung) — sie ist **nicht** als bestanden gemeldet und die
+> Protokollzeile dafür fehlt absichtlich. **Erst prüfen, dann protokollieren:** Skript
+> `…\cache\scratch\exestart\startpruefung_1006_0029.ps1` (Titel, +10/+20/+40 s, WerFault,
+> offene Prozesse, Startordner leer) — oder die `.exe` aus einem anderen Ordner selbst starten und
+> das Ergebnis als Beleg eintragen.
 
 **Die alten Beschreibungen des Teils (jetzt erfüllt) stehen darunter weiter:**
 
@@ -101,7 +117,7 @@ Teil 4-7 umgestellt sind und der Zuschuss aus `verbrauche_am_ort` entfallen kann
 | 7 | `zielstatus` (Zielprüfung + Haltefenster 24 h) | `a2b6531`, `eee604e` |
 | 8a | `botkern.oekonomie_kartenwahl`, `oekonomie_angebot` | `3785b5d` |
 | 8b | Handels-Paar `handel_start`/`handel_abschluss` + Prüfdatei | `25466f5` · `test_handel_transaktion` **101/0/0** |
-| **9** | **`main`-Anbindung + Migration — TEILE 1-6a/b/c fertig, Forschung je Ort als Nächstes** | 9.1 `c099c4e` · 9.2 `1ce4ae3` · 9.3a `a0d432d` · 9.3b `65c41bf` · 9.4 `5a46ad7` · 9.5 `fab8611` · **9.6a `ad12376` · 9.6b/c `0e4a08a`** · `test_oekonomie_einhaengung` **301/0/1**, Sammellauf **3965/0/22** |
+| **9** | **`main`-Anbindung + Migration — Teil 6 fertig, in Teil 7a ist der Gratisgewinn gesperrt; das NÄCHSTE ist der bestätigte Kaufvertrag (7b)** | 9.1 `c099c4e` · 9.2 `1ce4ae3` · 9.3a `a0d432d` · 9.3b `65c41bf` · 9.4 `5a46ad7` · 9.5 `fab8611` · **9.6a `ad12376` · 9.6b/c `0e4a08a`** · `test_oekonomie_einhaengung` **301/0/1**, Sammellauf **3965/0/22** |
 | 10 | `tick_bis` + **Aktivierung** | offen |
 
 **Was die Teile 1, 2, 3a, 3b, 4 und 5 in `src/main.py` wirklich geändert haben:**
