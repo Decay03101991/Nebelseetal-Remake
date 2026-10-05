@@ -324,10 +324,40 @@ check("und der Grund steht im Protokoll",
 
 spiel2.settlements.append(militaer)
 app2._train_unit("Krieger")
-check("mit Akademie wird ein Krieger ausgebildet",
+# NEU (Vorgabe Daniel 05.10.2026): mit Staette allein wird NICHT mehr ausgebildet — es fehlen
+# Forschung (Kriegskunst 3) und Ausruestung (Schwert + Kettenhemd). Beides steht in
+# data/units.json; die Pruefung steckt in main._ausbildungs_hindernis.
+check("mit Akademie, aber ohne Forschung/Ausruestung wird der Krieger abgelehnt",
+      spiel2.units["Krieger"].count == 0, str(spiel2.units["Krieger"].count))
+check("und der Grund nennt die fehlende Forschung mit Soll/Ist",
+      any("Kriegskunst Stufe 3" in z and "erreicht" in z for z in spiel2.log[-2:]),
+      str(spiel2.log[-2:]))
+
+# Mit erfuellter Forschung bleibt die Ausruestung die zweite Bedingung.
+spiel2.research["Kriegskunst"].level = 3
+app2._train_unit("Krieger")
+check("ohne Ausruestung wird auch mit Forschung nicht ausgebildet",
+      spiel2.units["Krieger"].count == 0, str(spiel2.units["Krieger"].count))
+check("und der Grund nennt die fehlende Ware mit Soll/Ist",
+      any("Ausrüstung" in z and "Schwert" in z for z in spiel2.log[-2:]),
+      str(spiel2.log[-2:]))
+
+# Erst Forschung UND Lager: jetzt wird ausgebildet, und die Waren werden verbraucht.
+spiel2.waren["Schwert"] = 1
+spiel2.waren["Kettenhemd"] = 1
+app2._train_unit("Krieger")
+check("mit Forschung UND Ausruestung wird der Krieger ausgebildet",
       spiel2.units["Krieger"].count == 1, str(spiel2.units["Krieger"].count))
+check("die Ausruestung ist verbraucht (Schwert und Kettenhemd auf 0)",
+      spiel2.waren["Schwert"] == 0 and spiel2.waren["Kettenhemd"] == 0,
+      f"Schwert {spiel2.waren['Schwert']}, Kettenhemd {spiel2.waren['Kettenhemd']}")
 check("und der Siedleranteil kommt von der Bevoelkerung (Handbuch S. 10)",
       spiel2.population < 500.0, str(spiel2.population))
+
+# Einheiten ohne Voraussetzung und ohne Waren bleiben sofort ausbildbar.
+app2._train_unit("Bürgerwehr")
+check("die Buergerwehr braucht weder Forschung noch Ware (data/units.json)",
+      spiel2.units["Bürgerwehr"].count == 1, str(spiel2.units["Bürgerwehr"].count))
 
 
 # ==========================================================================

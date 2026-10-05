@@ -35,6 +35,7 @@ if main is None:
 import random
 import tkinter as tk
 import gelaende as G
+import einheiten      # data/units.json: die Forschungs- und Waren-Voraussetzung je Einheit
 
 # Marke, an der die absichtliche Fehlerzeile spaeter wieder erkannt und aus der
 # gezaehlten Liste entfernt wird (Punkt 5 der Aufgabe).
@@ -244,13 +245,21 @@ def pruefen():
               f"{forsch_key}: {stufe_vorher} -> {app.state.research[forsch_key].level}, "
               f"Auftraege {sorted(app.state.forschungsauftraege)}")
 
-        # Ausbildung: Kriegerakademie bauen, dann eine Einheit ausbilden
+        # Ausbildung: Kriegerakademie bauen, dann eine Einheit ausbilden.
+        # Vorgabe Daniel 05.10.2026: Forschung UND Ausruestung sind Bedingungen. Der Test legt
+        # deshalb genau die Datenlage her, die die Daten fordern (data/units.json).
         f_aka = freies_feld("kriegerakademie")
         app._karten_feld_waehlen(f_aka)
         app._karten_bauen("kriegerakademie")
         tick()
         aktionen += 1
         einheit_key = "Krieger" if "Krieger" in app.state.units else next(iter(app.state.units))
+        _roh = einheiten.alle().get(einheit_key) or {}
+        _vor = (_roh.get("voraussetzung") or {}).get("forschung")
+        if _vor:
+            app.state.research[_vor].level = int(_roh["voraussetzung"]["stufe"])
+        for _ware in (_roh.get("waren") or []):
+            app.state.waren[_ware] = 1
         anzahl_vorher = app.state.units[einheit_key].count
         app._train_unit(einheit_key)
         tick()
@@ -258,6 +267,17 @@ def pruefen():
         check("Ausbildung erhoeht die Anzahl der Einheit",
               app.state.units[einheit_key].count == anzahl_vorher + 1,
               f"{einheit_key}: {anzahl_vorher} -> {app.state.units[einheit_key].count}")
+
+        # Und die Sperre wirkt: ohne die Ausruestung gibt es keine zweite Einheit.
+        for _ware in (_roh.get("waren") or []):
+            app.state.waren[_ware] = 0
+        if _roh.get("waren"):
+            _vorher = app.state.units[einheit_key].count
+            app._train_unit(einheit_key)
+            tick()
+            check("ohne Ausruestung wird KEINE weitere Einheit ausgebildet",
+                  app.state.units[einheit_key].count == _vorher,
+                  f"{einheit_key}: {_vorher} -> {app.state.units[einheit_key].count}")
 
         # Speichern
         app._save()

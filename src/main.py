@@ -42,6 +42,10 @@ import welt        # W4d: die Weltkarte des Limbus (20 Dimensionen, sechs belegt
 # Sie ersetzen die duennen Einzelstriche der ersten Fassung — Siedlungskarte UND Weltkarte.
 import karten_optik   # Siedlungskarte: 7 Gelaende-Embleme, Gebaeude mit Stufenpips, Wege, Raster
 import welt_optik     # Weltkarte: 6 Gelaendemalereien, Fahne, Auswahl, Regionsnamen, Uebersicht
+# Vorgabe Daniel 05.10.2026: Einheiten brauchen ihre AUSRUESTUNG, nicht nur die Forschung.
+# `ausruestung` liest den Warenbedarf aus data/units.json und rechnet Fehlmengen und Verbrauch.
+import ausruestung
+import forschungspfad  # Forschung: was jetzt geht, was blockiert ist und was es freischaltet
 
 
 # ---------- Data Models ----------
@@ -3415,6 +3419,9 @@ class NebelseetalApp:
         # hergibt (keine eigene Rechnung in der Oberflaeche).
         stand = self.state.forschung_stand()
         laufend = forschung.fortschritt(stand, time.time())
+        # Eine Quelle fuer Sperren, Begruendungen und Freischaltungen (forschungspfad).
+        _bib = gebaeude_wirkung.bibliothek_stufe(self.state.settlements)
+        _stufen = {k: v.level for k, v in self.state.research.items()}
         for key, r in self.state.research.items():
             frame = tk.Frame(self.content, bg=self.skin["panel"])
             frame.pack(fill=tk.X, padx=10, pady=2)
@@ -3427,9 +3434,31 @@ class NebelseetalApp:
                 tk.Label(frame, text=f"läuft auf Stufe {zustand.get('zielstufe')} · noch {rest:.1f} h",
                          fg=self.skin["gold"], bg=self.skin["panel"]).pack(side=tk.RIGHT, padx=5)
             elif r.level < r.max_level:
+                # Vorgabe Daniel 05.10.2026: eine Forschung ist erst startbar, wenn die
+                # Voraussetzungen aus data/research.json erfuellt sind — der Knopf ist sonst
+                # gesperrt, der Grund steht mit Soll/Ist daneben, und was die Forschung
+                # freischaltet, steht gleich mit dabei (Quelle: `forschungspfad`).
+                _frei, _warum = forschungspfad.erfuellt(key, _stufen, _bib)
                 kosten = forschung.naechste_kosten(stand, key)
-                tk.Button(frame, text=f"Forschen ({int(kosten.get('holz', 0))} Holz)",
-                          command=lambda k=key: self._start_research(k), bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
+                _knopf = tk.Button(frame, text=f"Forschen ({int(kosten.get('holz', 0))} Holz)",
+                                   command=lambda k=key: self._start_research(k), bg="#3e2723",
+                                   fg=self.skin["gold"])
+                if _frei:
+                    _knopf.pack(side=tk.RIGHT, padx=5)
+                    _was = forschungspfad.schaltet_frei(key)
+                    _teile = []
+                    if _was.get("waren"):
+                        _teile.append("Waren: " + ", ".join(_was["waren"]))
+                    if _was.get("einheiten"):
+                        _teile.append("Einheiten: " + ", ".join(_was["einheiten"]))
+                    if _teile:
+                        tk.Label(frame, text="schaltet frei — " + " · ".join(_teile),
+                                 fg="#8FBF7F", bg=self.skin["panel"]).pack(side=tk.RIGHT, padx=5)
+                else:
+                    _knopf.config(state=tk.DISABLED, disabledforeground="#8a8a8a")
+                    _knopf.pack(side=tk.RIGHT, padx=5)
+                    tk.Label(frame, text=f"gesperrt: {_warum}", fg="#FDBA74",
+                             bg=self.skin["panel"]).pack(side=tk.RIGHT, padx=5)
 
     def _start_research(self, key: str):
         """Forschung STARTEN — sie laeuft dann (W4c).
@@ -3450,6 +3479,18 @@ class NebelseetalApp:
             return False
         if int(r.level) >= int(r.max_level):
             self._log(f"{r.name} ist mit Stufe {r.level} bereits ausgeforscht.")
+            return False
+        # Vorgabe Daniel 05.10.2026 („die Forschung ist noch nicht klug entworfen"): die
+        # Voraussetzungen aus data/research.json sind jetzt VERBINDLICH (z. B. Waffentechnik
+        # braucht Bibliothek 3 + Schmiedekunst 1). Prüfung und Begründung kommen aus
+        # `forschungspfad` — dieselbe Quelle wie die Anzeige.
+        _stufen = {k: v.level for k, v in self.state.research.items()}
+        _erfuellt, _warum = forschungspfad.erfuellt(
+            key, _stufen, gebaeude_wirkung.bibliothek_stufe(self.state.settlements))
+        if not _erfuellt:
+            self._log(f"{r.name} ist noch gesperrt: {_warum}")
+            self.state.messages.append({"text": f"{r.name} gesperrt — {_warum}",
+                                        "type": "forschung"})
             return False
         roh = {k: v.amount for k, v in self.state.resources.items()}
         stand = self.state.forschung_stand()
@@ -3505,13 +3546,49 @@ class NebelseetalApp:
             # je Einheit). Fehlt sie, gibt es keine Schaltfläche — sondern den ehrlichen Grund.
             _da, _staette, _stufe = gebaeude_wirkung.ausbildungsstaette(self.state.settlements, key)
             if _da:
-                tk.Button(frame, text=f"Ausbilden ({gelaende.gebaeude_name(_staette)} Stufe {_stufe})",
-                          command=lambda k=key: self._train_unit(k), bg="#3e2723",
-                          fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
+                # Vorgabe Daniel 05.10.2026: ohne Forschung UND ohne Ausrüstung wird nicht
+                # ausgebildet — der Knopf ist dann gesperrt und der Grund steht daneben.
+                _frei, _grund = self._ausbildungs_hindernis(key)
+                _knopf = tk.Button(frame, text=f"Ausbilden ({gelaende.gebaeude_name(_staette)} Stufe {_stufe})",
+                                   command=lambda k=key: self._train_unit(k), bg="#3e2723",
+                                   fg=self.skin["gold"])
+                if _frei:
+                    _knopf.pack(side=tk.RIGHT, padx=5)
+                    if ausruestung.bedarf(key):
+                        tk.Label(frame, text="Waren: " + ausruestung.bestand_text(
+                            ausruestung.fehlende(key, self.state.waren)),
+                            fg="#C0C0C0", bg=self.skin["panel"]).pack(side=tk.RIGHT, padx=5)
+                else:
+                    _knopf.config(state=tk.DISABLED, disabledforeground="#8a8a8a")
+                    _knopf.pack(side=tk.RIGHT, padx=5)
+                    tk.Label(frame, text=_grund, fg="#FDBA74", bg=self.skin["panel"],
+                             wraplength=380, justify=tk.LEFT).pack(side=tk.RIGHT, padx=5)
             else:
                 _fehlt = gelaende.gebaeude_name(_staette) if _staette else "Ausbildungsstätte unbekannt"
                 tk.Label(frame, text=f"braucht {_fehlt}", fg="#e53935",
                          bg=self.skin["panel"]).pack(side=tk.RIGHT, padx=5)
+
+    def _ausbildungs_hindernis(self, key: str) -> tuple:
+        """Was der Ausbildung im Weg steht — Forschung oder Ausrüstung (Vorgabe Daniel 05.10.2026).
+
+        Rückgabe ``(True, "")``, wenn nichts fehlt, sonst ``(False, Grund)``. Die Begründung nennt
+        das Fehlende mit Soll/Ist. EINE Quelle für Ansicht und Ausbildung: die Forschungsstufe aus
+        ``data/units.json`` ('voraussetzung') und die Waren aus ``ausruestung``.
+        """
+        rohdaten = einheiten.alle().get(key) or {}
+        vor = rohdaten.get("voraussetzung") or {}
+        if vor.get("forschung"):
+            f_name = str(vor["forschung"])
+            f_stufe = int(vor.get("stufe") or 0)
+            eintrag = self.state.research.get(f_name)
+            erreicht = int(eintrag.level) if eintrag is not None else 0
+            if erreicht < f_stufe:
+                return False, f"braucht {f_name} Stufe {f_stufe} (erreicht: {erreicht})"
+        fehlt = ausruestung.fehlende(key, self.state.waren)
+        if fehlt:
+            return False, ("braucht Ausrüstung — " + ausruestung.bestand_text(fehlt) +
+                           " (Werkstätten: Schmiede, Bogner, Nähstube)")
+        return True, ""
 
     def _train_unit(self, key: str):
         u = self.state.units[key]
@@ -3527,6 +3604,18 @@ class NebelseetalApp:
             return
         building_level = stufe
         time_min = get_training_time(key, levels, building_level)
+        # Vorgabe Daniel 05.10.2026: „manche Einheiten brauchen gewisse Rüstungen oder Items,
+        # damit sie überhaupt produzierbar sind — auch wenn man die Truppen vielleicht schon
+        # erforscht hat." BEIDE Bedingungen stehen belegt in data/units.json ('voraussetzung'
+        # = Forschung + Stufe, 'waren' = Ausrüstung). Die Prüfung selbst steht EINMAL in
+        # `_ausbildungs_hindernis` — Ansicht und Ausbildung nutzen dieselbe Quelle.
+        frei, grund = self._ausbildungs_hindernis(key)
+        if not frei:
+            meldung = f"{u.name} {grund}."
+            self._log(meldung)
+            self.state.messages.append({"text": meldung, "type": "ausbildung"})
+            self._render_view()
+            return
         cost = u.cost
         # Siedler sind im Original die Bevoelkerung, keine lagerbare Ressource
         # (Handbuch Seite 10): der Siedleranteil wird von der Bevoelkerung bezahlt.
@@ -3544,8 +3633,14 @@ class NebelseetalApp:
             for k, v in rohstoffe.items():
                 self.state.resources[k].amount -= v
             self.state.population -= siedler
+            # Die Ausrüstung wird beim Erteilen des Auftrags verbraucht (Entwurf deepseek-v4-pro,
+            # 05.10.2026: „Auftrag erteilen setzt vorhandene Mittel voraus" — dieselbe Logik wie
+            # bei der Forschung, wo ein Abbruch die Rohstoffe ersatzlos kostet).
+            self.state.waren = ausruestung.verbrauchen(self.state.waren, key)
             u.count += 1
-            self._log(f"{u.name} ausgebildet. Ausbildungszeit: {time_min:.1f} min")
+            _waren_zeile = (" Ausrüstung verbraucht: " + ", ".join(ausruestung.bedarf(key))
+                            if ausruestung.bedarf(key) else "")
+            self._log(f"{u.name} ausgebildet. Ausbildungszeit: {time_min:.1f} min.{_waren_zeile}")
         else:
             self._log("Nicht genug Ressourcen für Ausbildung.")
         # Ohne Neuzeichnen sieht der Spieler die neue Stueckzahl nicht (dieselbe Fehlerklasse
