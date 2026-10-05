@@ -7,6 +7,11 @@ unter `docs/archiv/PROJEKT_STAND_alt_2026-10-04_2200.md` und `..._alt_2026-10-04
 **Diese Datei ist der Einstiegspunkt.** Jede neue Sitzung liest zuerst hier — nicht die Chat-Historie.
 Abschnitte 1–11 sind der ältere, weiterhin gültige Rahmen; **Abschnitt 0c ist der aktuelle Stand.**
 
+> **KONTEXT-OPTIMIERUNG (05.10.2026, 19:45):** Zum **Weiterarbeiten** zuerst das kleine
+> **`docs/KONTEXT_PAKET.md`** lesen (**8,5 KB** statt 67 KB — Belegstand, der EINE nächste Schritt,
+> Roadmap, die teuer gelernten Fallen, offene Daniel-Entscheidungen, Zeiger auf die Detailstellen).
+> Diese Datei hier nur für die **Historie** und die Abschnitte 0/0c/0e.
+
 ---
 
 ## 0. DAS LAUFENDE GESAMTZIEL — BITTE ÜBERNEHMEN
@@ -323,14 +328,17 @@ liegt jetzt bei **2665**. Wer eine feste Sollzahl aufschreibt, erzeugt Falschala
 
 ### Startzeile zum Kopieren
 
-> Lies `D:\Arbeiten\Nebelseetal_Remake\docs\PROJEKT_STAND.md`, Abschnitt **0c** (Stand in Belegen,
-> der EINE nächste Schritt, Kontext-Paket) und **0e** (Übergabe). Lies sonst nur das Kontext-Paket und
-> die dort genannten Stellen. Nach jedem Schritt: betroffener Einzeltest + einmal Sammellauf, eine
-> Protokollzeile (Zeit, Schritt, Ergebnis, Beleg, Kosten), `python tools/protokoll_sichern.py
-> --protokoll`, kleiner Commit. Am Ende der Reihe: `tools/build_exe.py` und Startprüfung aus einem
-> anderen Ordner. **Vor der ersten Änderung:** `python tools/zieluebergabe.py --pruefen` (0 = nur
-> diese Sitzung hat ein aktives Ziel). **Ziel in der neuen Sitzung setzen:** `/goal <Wortlaut aus
-> Abschnitt 0>`.
+> **Lies zuerst `D:\Arbeiten\Nebelseetal_Remake\docs\KONTEXT_PAKET.md`** — das ist die Übergabe in
+> **8,5 KB** (Belegstand, der EINE nächste Schritt, Roadmap, die teuer gelernten Fallen, offene
+> Entscheidungen, Zeiger auf Details). `docs\PROJEKT_STAND.md` (67 KB) nur für Historie und die
+> Abschnitte **0c** (Stand in Belegen, der EINE nächste Schritt, Kontext-Paket) und **0e** (Übergabe).
+> Lies sonst nur das Kontext-Paket und die dort genannten Stellen. Nach jedem Schritt: betroffener
+> Einzeltest + einmal Sammellauf, eine Protokollzeile (Zeit, Schritt, Ergebnis, Beleg, Kosten),
+> `python tools/protokoll_sichern.py --protokoll`, kleiner Commit. Am Ende der Reihe:
+> `tools/build_exe.py` und Startprüfung aus einem anderen Ordner. **Vor der ersten Änderung:**
+> `python tools/zieluebergabe.py --pruefen` (0 = nur diese Sitzung hat ein aktives Ziel).
+> **Ziel in der neuen Sitzung setzen:** `/goal <Wortlaut aus Abschnitt 0>`. **Kosten:** Tageslimit
+> am 05.10. überschritten — bis Daniel freigibt nur kostenlose/lokale Wege.
 
 ### Stand in Belegen
 
