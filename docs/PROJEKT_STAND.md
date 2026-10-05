@@ -41,7 +41,15 @@ Vorgaben aus der Sitzung vom 04.10.2026:
 Lies D:/Arbeiten/Nebelseetal_Remake/docs/PROJEKT_STAND.md (Einstiegspunkt) und übernimm das laufende
 Ziel aus Abschnitt 0. Lies dann NUR das Kontext-Paket aus Abschnitt 0c (eine Seite + zwei
 Dokumentabschnitte + die Zieldatei an der Aufrufstelle) — die Chat-Historie brauchst du nicht.
-Der EINE nächste Schritt steht in Abschnitt 0c: das Auftragssystem (`src/auftraege.py`) einhängen.
+Der EINE nächste Schritt steht in Abschnitt 0c. **Stand 05.10.2026, 03:04 (diese Sitzung, gemessen):**
+die Modul-Reihe ist abgeschlossen (`forschung`, `botkern`, `welt` eingehängt, Verdrahtungsprüfer
+17/0/0 — kein Modul mehr offen), das Auftragssystem samt Oberfläche steht, Durchspiel- und
+GUI-Fehler-Prüfung laufen mit, die `.exe` ist gebaut und startgeprüft, das Protokoll ist verdichtet
+(462 → 314 Zeilen, Vor-Fassung aufbewahrt). **Prüfstand: 1929 bestanden, 0 Fehler, 19 Befunde über
+32 Dateien.** Der nächste Schritt ist damit kein Bauen mehr, sondern das **Durchspielen mit Daniels
+Passwort** (kann nur Daniel: das Tor wird nie vom Agenten passiert) — und optional die drei belegten
+Handbuch-Lücken (Mana je Siedlung, Werkstatt-Materialkosten, Sieg-/Niederlagebedingung), für die das
+Handbuch keine Vorlage nennt.
 Nach jedem Schritt: betroffenen Einzeltest + einmal Sammellauf, eine Protokollzeile (Zeit, Schritt,
 Ergebnis, Beleg, Kosten), `python tools/protokoll_sichern.py --protokoll`, kleiner Commit. Prüfende
 Unteragenten erst NACH dem Commit loslassen. Am Ende der Reihe die `.exe` neu bauen
