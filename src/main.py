@@ -667,21 +667,19 @@ class GameState:
         # rechnet, wird bei jedem Aufruf daraus frisch gebaut (keine zweite Wahrheit).
         self.forschungsauftraege: Dict[str, dict] = {}
 
-    def _unlock_next_map(self):
-        if len(self.active_maps) >= MAX_ACTIVE_MAPS:
-            return
-        candidates = [m for m in MAPS if m["id"] not in self.unlocked_maps]
-        if not candidates:
-            return
-        verm = self.research.get("vermessung")
-        # W4b-5: Der erfundene Gebaeude-Eintrag "Portal" ist entfallen (er steht nicht unter den
-        # 20 Originalgebaeuden). Weitere Karten schaltet die Forschung "Vermessung" frei —
-        # mehr Karteninformationen (Handbuch Seite 12).
-        if verm and verm.level >= 1:
-            next_map = candidates[0]
-            self.unlocked_maps.append(next_map["id"])
-            self.active_maps.append(next_map["id"])
-            self._log(f"Neue Karte entdeckt: {next_map['name']}")
+    # Oekonomie-Paket, Schritt 9, Teil 8 (Entwurf Z. 785): HIER stand `GameState._unlock_next_map`.
+    # Es hat die Forschung "Vermessung" abgefragt — die es unter den 21 Originalforschungen NICHT
+    # gibt (belegt in tests/test_spieloekonomie.py, Z. 198). Der Zweig konnte deshalb nie
+    # ausloesen; die Methode hatte keinen einzigen Aufrufer, und sie benutzte `MAX_ACTIVE_MAPS`,
+    # das im ganzen Projekt nirgends definiert ist (bei einem Aufruf waere sie mit `NameError`
+    # gestorben). Entwurf Z. 785 woertlich: "Vermessung-Abfrage entfaellt im neuen Siedlungspfad.
+    # Kartenangebote sind kein MAPS-Regionsunlock. Alte fuenf Weltregionen nicht als neue
+    # Siedlungskarten verkaufen."
+    # Was stattdessen gilt: die fuenf Weltregionen (MAPS) sind das ALTE Kartensystem und werden
+    # nicht durch eine Forschung geoeffnet; neue Siedlungskarten kommen aus dem KARTENVORRAT
+    # (Teil 5: Wagenbau + Siedlerkarren, `_found_settlement`). `unlocked_maps`/`active_maps`
+    # werden seither nur noch gelesen und aus einem alten Spielstand uebernommen — niemand
+    # schaltet hier etwas frei (Wache: P31 in tests/test_oekonomie_einhaengung.py).
 
     def destroy_map(self, map_id: str):
         if map_id == "kontinent":
@@ -4109,9 +4107,18 @@ class NebelseetalApp:
         if status == "gesperrt":
             tk.Label(rahmen, text=f"{name} ist gesperrt.", fg=self.skin["gold"],
                      bg=self.skin["panel"], font=("TkDefaultFont", 13, "bold")).pack(anchor=tk.W)
-            tk.Label(rahmen, text="Zugang: die Forschung „Vermessung“ auf Stufe 1 — dafür braucht "
-                                  "es eine Bibliothek auf einer Siedlungskarte (der frühere "
-                                  "Portal-Bau ist entfallen).",
+            # Teil 8 (Entwurf Z. 785): hier stand die Zusage "Zugang: die Forschung „Vermessung“
+            # auf Stufe 1". Diese Forschung gibt es unter den 21 Originalforschungen NICHT — die
+            # Zusage war also nie erfuellbar. An ihrer Stelle steht jetzt die Wahrheit: die fuenf
+            # Weltregionen sind das ALTE Kartensystem, und neue Spielkarten kommen ueber den
+            # Kartenvorrat bei der Gruendung (Wagenbau + Siedlerkarren) — die Regionen selbst sind
+            # KEINE Siedlungskarten.
+            tk.Label(rahmen, text="Dieses Gebiet gehört zum alten Weltkartensystem und wird im "
+                                  "Remake nicht freigeschaltet: die Forschung „Vermessung“ gibt "
+                                  "es unter den 21 Originalforschungen nicht (Original und "
+                                  "Handbuch kennen sie nicht). Neue Spielkarten kommen über den "
+                                  "Kartenvorrat bei der Gründung (Wagenbau + Siedlerkarren); die "
+                                  "fünf Weltregionen sind keine Siedlungskarten.",
                      fg=self.skin["text"], bg=self.skin["panel"], wraplength=560,
                      justify=tk.LEFT).pack(anchor=tk.W, pady=(2, 10))
             tk.Button(rahmen, text="Zum Portal", command=lambda: self._switch_view("Portal"),

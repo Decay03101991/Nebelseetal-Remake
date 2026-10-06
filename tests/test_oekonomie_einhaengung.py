@@ -1354,4 +1354,86 @@ check("P30: der Auftragskern wendet einen Fremdvertrag nicht an (eine Buchung)",
       in open(os.path.join(SRC, "auftraege.py"), encoding="utf-8").read())
 
 
+# --------------------------------------------------------------------------
+abschnitt("P31: Teil 8a - die Kartenfreischaltung ist ehrlich (die Vermessung entfaellt)")
+
+# Entwurf Z. 785 woertlich: "Vermessung-Abfrage entfaellt im neuen Siedlungspfad. Kartenangebote
+# sind kein MAPS-Regionsunlock. Alte fuenf Weltregionen nicht als neue Siedlungskarten verkaufen."
+# Gemessen (nicht angenommen): `_unlock_next_map` hatte KEINEN Aufrufer und benutzte
+# `MAX_ACTIVE_MAPS`, das im ganzen Projekt nirgends definiert ist - ein Aufruf waere mit
+# `NameError` gestorben. Und die abgefragte Forschung "vermessung" gibt es unter den 21
+# Originalforschungen nicht (Wache: tests/test_spieloekonomie.py, Z. 198).
+_q10 = open(os.path.join(SRC, "main.py"), encoding="utf-8").read()
+check("P31: die Methode _unlock_next_map ist fort (sie hatte keinen Aufrufer)",
+      "def _unlock_next_map" not in _q10)
+check("P31: keine Abfrage einer Forschung 'vermessung' mehr",
+      '"vermessung"' not in _q10)
+check("P31: die tote Konstante MAX_ACTIVE_MAPS wird nicht mehr benutzt",
+      ">= MAX_ACTIVE_MAPS" not in _q10)
+check("P31: niemand schaltet eine Weltregion frei (kein unlocked_maps.append)",
+      "unlocked_maps.append" not in _q10 and "active_maps.append" not in _q10)
+check("P31: die falsche Zusage im Gebietspanel ('Zugang: die Forschung ...') ist weg",
+      'text="Zugang: die Forschung' not in _q10)
+check("P31: an ihrer Stelle steht die ehrliche Begruendung",
+      "21 Originalforschungen" in _q10 and "sind keine Siedlungskarten" in _q10,
+      "Originalforschungen: %s / Siedlungskarten: %s"
+      % ("21 Originalforschungen" in _q10, "sind keine Siedlungskarten" in _q10))
+check("P31: der Weg zu neuen Karten bleibt der Kartenvorrat (Teil 5)",
+      "spieloekonomie.absicht(" in _q10 and "freie_koloniekarten()" in _q10)
+
+# (a) Eine Gruendung schaltet KEINE Weltregion frei (kein Regionsunlock durch Kartenangebote).
+st18 = M.GameState()
+app18 = M.NebelseetalApp.__new__(M.NebelseetalApp)   # ohne Fenster: nur die Methoden
+app18.state = st18
+app18.content = None
+app18._log = lambda msg: st18.log.append(msg)
+app18._render_view = lambda: None
+app18._found_settlement()
+check("P31: die erste Gruendung laeuft (Vorbedingung)", len(st18.settlements) == 1,
+      str(len(st18.settlements)))
+check("P31: sie schaltet KEINE Weltregion frei",
+      (list(st18.unlocked_maps), list(st18.active_maps)) == (["kontinent"], ["kontinent"]),
+      str((st18.unlocked_maps, st18.active_maps)))
+check("P31: die Gruendungswege fassen die Sperrliste nicht an (keine Region wird freigeschaltet)",
+      all("unlocked_maps" not in _inspect5.getsource(_fn18)
+          and "active_maps" not in _inspect5.getsource(_fn18)
+          for _fn18 in (M.NebelseetalApp._found_settlement, M.NebelseetalApp._kolonie_gruenden,
+                        M.NebelseetalApp._gruendung_ausfuehren)))
+
+# (c) Ein KARTENANGEBOT (Kolonie) ist kein Regionsunlock - der ganze Weg mit echten Werten.
+st19 = M.GameState()
+st19.kartenvorrat_anlegen("probe18")
+q19 = M.Settlement(name="Mutter", map_id=st19.current_map, x=0, y=0,
+                   id=M.siedlung_kennung("spieler", st19.current_map, 0, 0),
+                   karte=M.spieloekonomie.startkarte("probe18", "spieler"))
+q19.vorraete = {"holz": 700.0, "stein": 450.0, "nahrung": 350.0}
+q19.bevoelkerung = 20.0
+st19.settlements = [q19]
+st19.research["Wagenbau"].level = 1
+st19.units["Siedlerkarren"].count = 1
+_regionen19 = (list(st19.unlocked_maps), list(st19.active_maps))
+_ok19, _meldung19, _a19 = st19.gruendung_pruefen(q19, "ausgleich_a", (3, 0))
+check("P31: eine Kolonie ist mit Wagenbau, Karren und Mindestbestand moeglich (Vorbedingung)",
+      _ok19, _meldung19)
+_ok19b, _meldung19b = st19.gruendung_ausfuehren(q19, "ausgleich_a", (3, 0))
+check("P31: die Kolonie wird gegruendet (Vorbedingung)", _ok19b, _meldung19b)
+check("P31: die zweite Siedlung steht (die Karte kam aus dem Kartenvorrat)",
+      len(st19.settlements) == 2, str(len(st19.settlements)))
+check("P31: das Kartenangebot ist KEIN Regionsunlock (Sperrliste unveraendert)",
+      (list(st19.unlocked_maps), list(st19.active_maps)) == _regionen19,
+      str((st19.unlocked_maps, st19.active_maps)))
+
+# (b) Die fuenf Weltregionen sind keine Siedlungskarten.
+_regions_ids18 = {str(m["id"]) for m in M.MAPS}
+_karten_ids18 = set(st18.kartenvorrat)
+check("P31: es sind fuenf Weltregionen", len(_regions_ids18) == 5, str(sorted(_regions_ids18)))
+check("P31: die Kartenvorrats-IDs sind keine Regions-IDs",
+      not (_karten_ids18 & _regions_ids18), str(sorted(_karten_ids18 & _regions_ids18)))
+_regions_namen18 = _regions_ids18 | {str(m["name"]) for m in M.MAPS}
+_kartennamen18 = {str(v["karte"].get("typ_name", "")) for v in st18.kartenvorrat.values()}
+check("P31: keine Karte traegt einen Regionsnamen (keine Region wird als Karte verkauft)",
+      bool(_kartennamen18) and not (_kartennamen18 & _regions_namen18),
+      str(sorted(_kartennamen18)))
+
+
 sys.exit(bericht())
