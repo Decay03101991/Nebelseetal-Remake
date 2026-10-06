@@ -2000,7 +2000,6 @@ class GameState:
         return ergebnis
 
     def tick(self, dt_seconds: float):
-        levels = {k: v.level for k, v in self.research.items()}
         # Ökonomie-Paket, Schritt 9, Teil 6b: EINE Uhr JE ORT — der Kern rechnet.
         #
         # `spieloekonomie.ort_tick` erntet (aus DERSELBEN Quelle wie die Anzeige,
@@ -2022,14 +2021,44 @@ class GameState:
         # Teil 6 (Rest): auch die FORSCHUNG laeuft auf dieser Uhr. `forschung_abschluss` hebt die
         # Stufe im WISSEN (global) und loescht den Auftrag im ORT — genau einmal.
         _wissen = {k: int(v.level) for k, v in self.research.items()}
-        for siedlung in self.settlements:
-            _vorher_vorrat = {k: float(v) for k, v in (siedlung.vorraete or {}).items()}
-            _vorher_leute = float(siedlung.bevoelkerung or 0.0)
-            _journal_vorher = len(siedlung.fertigjournal or [])
-            _neu = spieloekonomie.ort_tick(asdict(siedlung), _ab, _bis, levels)
-            _neu, _wissen = spieloekonomie.forschung_abschluss(_neu, _wissen, _bis)
-            if not self._ort_uebernehmen(siedlung.id, _neu):
+        # Oekonomie-Paket, Schritt 10 Teil 2 (Entwurf Z. 645-648): die ORTSSEITE faehrt jetzt ueber
+        # die EREIGNISUHR. `tick_bis` zerlegt den Takt in genau die Spannen, die die Ereignisse
+        # vorgeben (Ausbildungsende, Forschungsende, fertige Werkstattware) — ein grosser Takt ist
+        # damit GENAU so viel wie viele kleine. Vorher lief EINE Spanne [ab, bis]: eine Forschung,
+        # die mitten im Takt fertig wurde, wirkte erst am Spannenende auf die Produktion (belegt in
+        # tests/test_oekonomie_uhr.py, 13i: 4.000000 statt 4.372222 Holz).
+        _vorher_orte = {}
+        _schluessel33 = {}
+        for _nr33, _s33 in enumerate(self.settlements):
+            # Ein Ort OHNE Kennung (kommt in Prüfungen und Hilfsbauten vor) bekommt hier einen
+            # Arbeitsplatz-Schlüssel. Wichtig: NICHT nach `id` filtern — sonst fiele so ein Ort
+            # stillschweigend aus dem Takt (gefunden von den Wachen P27/P28 am 06.10.2026).
+            _k33 = _s33.id or "__ort_ohne_kennung_%d" % _nr33
+            _vorher_orte[_k33] = asdict(_s33)
+            _schluessel33[_k33] = _s33
+        _neu_orte, _keine_missionen, _wissen, _zeit, _ereigniszeiten = spieloekonomie.tick_bis(
+            _vorher_orte, [], _wissen, _ab, _bis)
+        for _kennung, siedlung in _schluessel33.items():
+            _neu = _neu_orte.get(_kennung)
+            if _neu is None:
                 continue
+            _alt = _vorher_orte.get(_kennung) or {}
+            _vorher_vorrat = {k: float(v) for k, v in (_alt.get("vorraete") or {}).items()}
+            _vorher_leute = float(_alt.get("bevoelkerung") or 0.0)
+            _journal_vorher = len(_alt.get("fertigjournal") or [])
+            if siedlung.id:
+                if not self._ort_uebernehmen(siedlung.id, _neu):
+                    continue
+            else:
+                # Ohne Kennung wird DIESER Gegenstand übernommen (über die Kennung könnte
+                # `_ort_uebernehmen` den falschen Ort treffen — mehrere könnten leer sein).
+                try:
+                    _frisch = Settlement(**_neu)
+                except TypeError:
+                    continue
+                if siedlung.__dict__ != _frisch.__dict__:
+                    siedlung.__dict__.clear()
+                    siedlung.__dict__.update(_frisch.__dict__)
             for _zeile in (_neu.get("fertigjournal") or [])[_journal_vorher:]:
                 _was = (f"Forschung {_zeile.get('name')}" if _zeile.get("art") == "forschung"
                         else str(_zeile.get("name")))
@@ -2043,7 +2072,8 @@ class GameState:
                 self.population = float(self.population) + zuwachs_leute
         # Gestiegene Forschungsstufen aus dem Kern in den Spielstand uebernehmen (Teil 6 Rest).
         self._forschung_abschluss_buchen(_wissen)
-        self.spielsekunden = _bis
+        # Die Uhr steht genau auf dem Ende des Takts (`tick_bis` liefert die erreichte Spielzeit).
+        self.spielsekunden = _zeit
         # W5: Die Bots handeln nach `botkern` (Angriffstakt 6-24 h, Handelsschwelle, Wirtschaft).
         # Vorher stand hier eine erfundene Schaedigung: 5 % x Aggression, fester Nahrungsabzug.
         self.bots_fortschreiben(time.time())

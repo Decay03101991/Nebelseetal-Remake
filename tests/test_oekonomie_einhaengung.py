@@ -407,8 +407,9 @@ check("P14: _karten_bauen zahlt ueber verbrauche_am_ort",
 check("P14: _karten_ausbauen zahlt ueber verbrauche_am_ort",
       _q2.count("verbrauche_am_ort(siedlung, kosten)") >= 2,
       str(_q2.count("verbrauche_am_ort(siedlung, kosten)")))
-check("P14: tick laesst die Ernte JE ORT vom Kern buchen (Teil 6b, genau einmal)",
-      "spieloekonomie.ort_tick(asdict(siedlung), _ab, _bis, levels)" in _q2
+check("P14: tick laesst die Ernte JE ORT vom Kern buchen (seit Schritt 10 ueber die Ereignisuhr)",
+      "spieloekonomie.tick_bis(" in _q2
+      and "spieloekonomie.ort_tick(" not in _q2
       and "for res, rate_pro_stunde in self.ertrag_je_ort(siedlung).items():" not in _q2)
 check("P14: die Gruendung uebernimmt die Startwerte in das Ortslager",
       "sett.vorraete = dict(start)" in _q2 and "self.state.population = 0.0" in _q2)
@@ -984,8 +985,9 @@ check("P26: `tick` bucht die Ernte nicht mehr selbst (eine Formel statt zweier)"
       "rate_pro_stunde * dt_h" not in _q6)
 check("P26: der Siedlerzuwachs wird nicht mehr in `tick` gerechnet",
       "siedler_zuwachs_pro_stunde(self.settlements, levels) * dt_h" not in _q6)
-check("P26: der Kern ist die Quelle der Ernte im Takt",
-      "spieloekonomie.ort_tick(asdict(siedlung), _ab, _bis, levels)" in _q6)
+check("P26: der Kern ist die Quelle der Ernte im Takt (seit Schritt 10 die Ereignisuhr)",
+      "spieloekonomie.tick_bis(" in _q6
+      and "ort_tick(" in open(os.path.join(SRC, "spieloekonomie.py"), encoding="utf-8").read())
 
 
 abschnitt("P27: Teil 6c - Ware und Ausbildung VOR ORT (der Kern rechnet, nicht mehr das Reich)")
@@ -1056,8 +1058,10 @@ abschnitt("P28: Teil 6 (Rest) - die Forschung forscht IM ORT")
 _q8 = open(os.path.join(SRC, "main.py"), encoding="utf-8").read()
 check("P28: der Start geht ueber den Kern (forschung_start)",
       "spieloekonomie.forschung_start(" in _q8)
-check("P28: der Abschluss laeuft ueber den Kern (forschung_abschluss)",
-      "spieloekonomie.forschung_abschluss(" in _q8)
+check("P28: der Abschluss laeuft ueber den Kern (forschung_abschluss, seit Schritt 10 in der Ereignisuhr)",
+      "forschung_abschluss(o, neu_wissen, bis)" in open(os.path.join(SRC, "spieloekonomie.py"),
+                                                          encoding="utf-8").read()
+      and "spieloekonomie.tick_bis(" in _q8)
 check("P28: der reichsweite Altpfad ist verschwunden",
       "def forschung_fortschreiben" not in _q8)
 
@@ -1524,6 +1528,85 @@ check("P32: der Modus schaltet NOCH NICHTS - er wird nur gesetzt, gesichert, gel
 check("P32: die Aktivierung steht nicht im Oekonomiekern",
       "oeokonomie-1" not in open(os.path.join(SRC, "spieloekonomie.py"),
                                  encoding="utf-8").read())
+
+
+# --------------------------------------------------------------------------
+abschnitt("P33: Schritt 10, Teil 2 - die Ortseite laeuft ueber die EREIGNISUHR (tick_bis)")
+
+# Entwurf Z. 648 woertlich: "tick(3600) gleich 36x tick(100), einschliesslich Forschung, Ankunft und
+# Produktion". Hier wird das im SPIEL nachgerechnet (nicht nur im Kern): derselbe Zustand einmal in
+# EINEM grossen Takt und einmal in 36 kleinen - und eine Forschung, die MITTEN im Fenster fertig
+# wird, muss ab ihrem Zeitpunkt wirken.
+import copy as _copy33  # noqa: E402
+
+
+def _takt_ort33():
+    _karte33, _felder33 = karte_und_felder("wald")
+    _s33 = M.Settlement(name="Taktort", map_id="kontinent", karte=_karte33,
+                        id=M.siedlung_kennung("spieler", "kontinent", 9, 9))
+    _s33.vorraete = {"holz": 0.0}
+    _s33.bevoelkerung = 5.0
+    _ok33, _m33 = M.bauen_auf_karte(_s33, "holzfaeller", _felder33[0])
+    _s33.forschungsauftrag = {"gebiet": "Forstwirtschaft", "zielstufe": 1, "startzeit": 0.0,
+                              "dauer_stunden": 250.0 / 3600.0}
+    return _s33, _ok33, _m33
+
+
+def _zustand33():
+    _st33 = M.GameState()
+    _s33, _ok33, _m33 = _takt_ort33()
+    _st33.settlements = [_s33]
+    _st33.aktive_siedlung_id = _s33.id
+    return _st33, _ok33, _m33
+
+
+_stA, _okA, _mA = _zustand33()
+check("P33: der Taktort steht (Vorbedingung)", _okA, _mA)
+_stB = _copy33.deepcopy(_stA)
+_stA.tick(3600.0)
+for _i in range(36):
+    _stB.tick(100.0)
+_oA = _stA.settlements[0]
+_oB = _stB.settlements[0]
+check("P33: ein grosser Takt ergibt GENAU so viel Holz wie 36 kleine (im Spiel)",
+      abs(float(_oA.vorraete.get("holz", 0.0)) - float(_oB.vorraete.get("holz", 0.0))) < 1e-9,
+      "gross %s klein %s" % (_oA.vorraete.get("holz"), _oB.vorraete.get("holz")))
+check("P33: die Forschung ist in BEIDEN Faellen auf Stufe 1 gewachsen",
+      _stA.research["Forstwirtschaft"].level == 1 and _stB.research["Forstwirtschaft"].level == 1,
+      "%s / %s" % (_stA.research["Forstwirtschaft"].level, _stB.research["Forstwirtschaft"].level))
+check("P33: der Forschungsauftrag ist in beiden Faellen abgeschlossen",
+      _oA.forschungsauftrag is None and _oB.forschungsauftrag is None,
+      "%s / %s" % (_oA.forschungsauftrag, _oB.forschungsauftrag))
+check("P33: die Spieluhr steht in beiden Faellen auf 3600",
+      abs(_stA.spielsekunden - 3600.0) < 1e-9 and abs(_stB.spielsekunden - 3600.0) < 1e-9,
+      "%s / %s" % (_stA.spielsekunden, _stB.spielsekunden))
+check("P33: die Bevoelkerung waechst in beiden Faellen gleich",
+      abs(float(_oA.bevoelkerung) - float(_oB.bevoelkerung)) < 1e-9,
+      "%s / %s" % (_oA.bevoelkerung, _oB.bevoelkerung))
+check("P33: die Forschung wirkt MITTEN im Fenster (mehr als ohne Bonus, weniger als voll)",
+      float(_oA.vorraete.get("holz", 0.0)) > 4.0 and float(_oA.vorraete.get("holz", 0.0)) < 4.4,
+      str(_oA.vorraete.get("holz")))
+
+# Der ALTE Weg (eine Spanne) liefert WENIGER - der Unterschied ist die Zerlegung.
+_q33 = M.GameState()
+_s33b, _ok33b, _m33b = _takt_ort33()
+_alt33 = M.spieloekonomie.ort_tick(M.asdict(_s33b), 0.0, 3600.0, {})
+_alt33, _w33 = M.spieloekonomie.forschung_abschluss(_alt33, {}, 3600.0)
+check("P33: der alte Weg (eine Spanne) ergibt belegbar weniger Holz",
+      float(_alt33["vorraete"]["holz"]) < float(_oA.vorraete.get("holz", 0.0)) - 1e-9,
+      "alt %s zerlegt %s" % (_alt33["vorraete"]["holz"], _oA.vorraete.get("holz")))
+
+# Quelltextwachen: im Spiel steht jetzt die Ereignisuhr, die Ein-Spannen-Buchung ist weg.
+_q12 = open(os.path.join(SRC, "main.py"), encoding="utf-8").read()
+check("P33: main.tick benutzt die Ereignisuhr (tick_bis)",
+      "spieloekonomie.tick_bis(" in _q12)
+check("P33: die Ein-Spannen-Buchung in tick ist verschwunden",
+      "spieloekonomie.ort_tick(asdict(siedlung), _ab, _bis" not in _q12)
+check("P33: die erreichte Spielzeit kommt zurueck aus dem Kern",
+      "self.spielsekunden = _zeit" in _q12)
+check("P33: die Zerlegung steht NICHT im Spiel, sondern im Kern (eine Wahrheit)",
+      "ereigniszeiten(" in open(os.path.join(SRC, "spieloekonomie.py"),
+                                encoding="utf-8").read())
 
 
 sys.exit(bericht())

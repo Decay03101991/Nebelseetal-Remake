@@ -593,18 +593,19 @@ def tick_bis(orte: dict, missionen: list, wissen: dict, jetzt: float, ende: floa
     neu_missionen = copy.deepcopy(missionen or [])
     neu_wissen = dict(wissen or {})
     ereignisse: List[float] = []
-    t = jetzt
-    schritte = 0
-    while t < ende:
-        schritte += 1
-        if schritte > 5000:                      # Schutz gegen eine Ereignisschleife
-            raise ValueError("Zu viele Ereignisse in einer Spanne.")
-        bis = min([ende] + ereigniszeiten(neu_orte, neu_missionen, t))
+
+    def abrechnen(ab: float, bis: float):
+        """Bucht die Spanne [ab, bis]: je Ort ernten/warten/lernen, Abschlüsse und Missionen.
+
+        Bei `ab == bis` wird **nichts geerntet** (die Spanne ist 0), aber sehr wohl **Fälliges**
+        gebucht: eine fertige Werkstattware, eine abgeschlossene Ausbildung, ein fälliger
+        Forschungsabschluss und eine fällige Ankunft. Genau das braucht ein Takt OHNE Spanne,
+        wenn die Uhr von außen gestellt wurde (die Prüfungen P27/P28 haben es gefunden).
+        """
+        nonlocal neu_orte, neu_missionen, neu_wissen
         for kennung in sorted(neu_orte):
             o = neu_orte[kennung]
-            # `wissen` ist die FLACHE Stufenkarte {Gebiet: Stufe} — dieselbe Form, die
-            # `main.tick` an `ort_tick` gibt (eine Wahrheit über den Forschungsstand).
-            neu_orte[kennung] = ort_tick(o, t, bis, neu_wissen)
+            neu_orte[kennung] = ort_tick(o, ab, bis, neu_wissen)
         if forschung_buchen:
             for kennung in sorted(neu_orte):
                 o = neu_orte[kennung]
@@ -615,6 +616,19 @@ def tick_bis(orte: dict, missionen: list, wissen: dict, jetzt: float, ende: floa
                 neu_orte, neu_missionen[i] = handel_abschluss(m, neu_orte, bis)
             else:
                 neu_orte, neu_missionen[i] = transport_fortschritt(m, neu_orte, bis)
+
+    if ende == jetzt:
+        abrechnen(jetzt, jetzt)
+        return neu_orte, neu_missionen, neu_wissen, ende, ereignisse
+
+    t = jetzt
+    schritte = 0
+    while t < ende:
+        schritte += 1
+        if schritte > 5000:                      # Schutz gegen eine Ereignisschleife
+            raise ValueError("Zu viele Ereignisse in einer Spanne.")
+        bis = min([ende] + ereigniszeiten(neu_orte, neu_missionen, t))
+        abrechnen(t, bis)
         ereignisse.append(bis)
         t = bis
     return neu_orte, neu_missionen, neu_wissen, t, ereignisse
