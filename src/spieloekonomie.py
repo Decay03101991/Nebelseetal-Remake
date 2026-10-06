@@ -538,6 +538,88 @@ def fensterproduktion(orte: list, jetzt: float) -> dict:
     return out
 
 
+def ereigniszeiten(orte: dict, missionen: list, jetzt: float) -> list:
+    """Die Spielzeiten der NÄCHSTEN Ereignisse (Entwurf Z. 950-960).
+
+    Ein **Ereignis** ist etwas, das den Zustand sprunghaft ändert: das Ende einer Ausbildung,
+    das Ende eines Forschungsauftrags, eine fertig gewordene Werkstattware und die Ankunft oder
+    Rückkehr einer Mission. Nur Zeiten **nach** `jetzt` kommen zurück — ein längst fälliges
+    Ereignis wird nicht wiederholt, es wird beim nächsten Schritt ohnehin nachgebucht.
+    """
+    zeiten: List[float] = []
+    for o in (orte or {}).values() if isinstance(orte, dict) else (orte or []):
+        for a in (o.get("ausbildung") or []):
+            if not a.get("gebucht") and a.get("ende") is not None:
+                zeiten.append(float(a["ende"]))
+        a = o.get("forschungsauftrag")
+        if a:
+            zeiten.append(float(a["startzeit"]) + float(a["dauer_stunden"]) * 3600.0)
+        for schlange in (o.get("werkstaetten") or {}).values():
+            for e in (schlange.get("einheiten") or []):
+                if e.get("ende") is not None and not e.get("gemeldet"):
+                    zeiten.append(float(e["ende"]))
+    for m in (missionen or []):
+        for feld in ("ankunft", "rueckkehr"):
+            if m.get(feld):
+                zeiten.append(float(m[feld]))
+    return sorted(t for t in zeiten if t > jetzt)
+
+
+def tick_bis(orte: dict, missionen: list, wissen: dict, jetzt: float, ende: float,
+             forschung_buchen: bool = True) -> tuple:
+    """Die Spieluhr in EREIGNISGRÖSSEN fortschreiben (Entwurf Z. 645-648 und Z. 961-1009).
+
+    Ein großer Sprung (etwa eine Stunde Spielzeit) wird in die Spannen zerlegt, die die
+    **Ereignisse des Zustands** vorgeben — nicht in feste Häppchen. Innerhalb jeder Spanne wird je
+    Ort `ort_tick` gebucht und danach der Abschluss je Ort sowie der Fortschritt je Mission
+    geprüft. Dadurch ist ein einziger großer Sprung **genau so viel** wie viele kleine Schritte:
+    eine Forschung, die mitten im Fenster fertig wird, wirkt **ab ihrem Zeitpunkt** auf die
+    Produktion (ohne Zerlegung wirkte sie erst am Spannenende — genau der Fehler, den der Entwurf
+    verbietet: „ein großer dt ohne Ereignissplitting ist kein gleichwertiger Ersatz").
+
+    Liefert ``(orte, missionen, wissen, zeit, ereignisse)``:
+      * ``orte`` — neuer Stand je Kennung (dict)
+      * ``missionen`` — fortgeschriebene Missionen (Ankunft/Rückkehr **genau einmal**)
+      * ``wissen`` — der (ggf. gestiegene) Forschungsstand ``{Gebiet: Stufe}``
+      * ``zeit`` — die erreichte Spielzeit (== `ende`)
+      * ``ereignisse`` — die Spielzeiten, an denen wirklich gebucht wurde (Nachweis)
+
+    **Reine Funktion:** der übergebene Zustand wird nicht verändert.
+    """
+    if not math.isfinite(ende) or not math.isfinite(jetzt) or ende < jetzt:
+        raise ValueError("Ungültiges Tickende.")
+    neu_orte = copy.deepcopy(orte) if isinstance(orte, dict) else {o["id"]: copy.deepcopy(o)
+                                                                  for o in (orte or [])}
+    neu_missionen = copy.deepcopy(missionen or [])
+    neu_wissen = dict(wissen or {})
+    ereignisse: List[float] = []
+    t = jetzt
+    schritte = 0
+    while t < ende:
+        schritte += 1
+        if schritte > 5000:                      # Schutz gegen eine Ereignisschleife
+            raise ValueError("Zu viele Ereignisse in einer Spanne.")
+        bis = min([ende] + ereigniszeiten(neu_orte, neu_missionen, t))
+        for kennung in sorted(neu_orte):
+            o = neu_orte[kennung]
+            # `wissen` ist die FLACHE Stufenkarte {Gebiet: Stufe} — dieselbe Form, die
+            # `main.tick` an `ort_tick` gibt (eine Wahrheit über den Forschungsstand).
+            neu_orte[kennung] = ort_tick(o, t, bis, neu_wissen)
+        if forschung_buchen:
+            for kennung in sorted(neu_orte):
+                o = neu_orte[kennung]
+                o, neu_wissen = forschung_abschluss(o, neu_wissen, bis)
+                neu_orte[kennung] = o
+        for i, m in enumerate(neu_missionen):
+            if m.get("fremdvertrag"):
+                neu_orte, neu_missionen[i] = handel_abschluss(m, neu_orte, bis)
+            else:
+                neu_orte, neu_missionen[i] = transport_fortschritt(m, neu_orte, bis)
+        ereignisse.append(bis)
+        t = bis
+    return neu_orte, neu_missionen, neu_wissen, t, ereignisse
+
+
 # ---------------------------------------------------------------------------
 # Schritt 6 — Forschung JE SIEDLUNG: lokaler Forschungsstart statt globaler
 # Bibliotheksabkürzung (Entwurf Z. 650-686)

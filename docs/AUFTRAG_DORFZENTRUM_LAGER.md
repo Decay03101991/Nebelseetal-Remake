@@ -62,7 +62,20 @@ dehnendes 6-Spalten-Raster ohne Funktionen.
 4. **Nichts erfinden**: jede Umlagerung läuft über die belegten Wege (`transport_start`,
    `verbrauchen`, Ortslager-zuerst) — kein zweiter Zahlweg.
 
-## 4. Offene Fragen an Daniel
+## 4. Fragen an Daniel — **BEANTWORTET** (06.10.2026, 08:4x)
+
+1. **Der abgebrochene Satz** war nicht abgebrochen, sondern **umgestellt geliefert**: „Es sollte hier
+   möglich sein, **Gesamtlagerbestände** zu sehen. **Aber auch die Bestände in den einzelnen
+   Siedlungen** usw.“ → Das Lager braucht **beides**: die **Gesamtsicht** (über alle Siedlungen) und
+   **je Siedlung** deren eigene Bestände.
+2. **Reihenfolge: erst Schritt 10 (Aktivierung), dann dieses UI-Paket** (Daniel bestätigt die
+   Empfehlung). Grund: danach ist die Datenlage endgültig — das Dashboard wird **einmal** richtig
+   gebaut, nicht zweimal.
+3. **Der Gebäudebau lebt im Dorfzentrum als Dashboard; die Siedlungskarte zeigt nur noch und wählt
+   aus.**
+4. `.exe`-Neubau + Startprüfung nach dem UI-Paket (Projektregel) bleibt.
+
+*(Die Fragen standen so zur Entscheidung:)*
 
 1. **Der abgebrochene Satz:** „Es sollte hier möglich sein, Gesamt lagerbest…“ — **wie geht er
    weiter?** (Gesamtlagerbestände **aller** Siedlungen sehen? Waren **umlagern**? Beides?)
