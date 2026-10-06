@@ -1436,4 +1436,94 @@ check("P31: keine Karte traegt einen Regionsnamen (keine Region wird als Karte v
       str(sorted(_kartennamen18)))
 
 
+# --------------------------------------------------------------------------
+abschnitt("P32: Teil 8b - Speicherung und Migration (Version, Modus, Warnhinweis)")
+
+# Entwurf Z. 789 woertlich: "Ist ein Altspielstand ohne Versionsfeld vorhanden, mode=\"legacy\",
+# Regeln und Punktziel behalten, Warnhinweis anzeigen. Neue Partien mode=\"oeokonomie-1\"."
+# "Ohne explizite Daniel-Entscheidung keine automatische Konvertierung alter Ressourcen."
+check("P32: die Konstanten sind da (2 = neue Form, 1 = der alte unversionierte Stand)",
+      M.STAND_VERSION == 2 and M.STAND_VERSION_ALT == 1,
+      "%s / %s" % (M.STAND_VERSION, M.STAND_VERSION_ALT))
+check("P32: die Modi heissen wie in der Uebergabe",
+      M.MODUS_NEU == "oeokonomie-1" and M.MODUS_LEGACY == "legacy",
+      "%r / %r" % (M.MODUS_NEU, M.MODUS_LEGACY))
+
+# (a) Eine NEUE Partie laeuft als oeokonomie-1 (Version 2).
+_st20 = M.GameState()
+check("P32: eine neue Partie ist Version 2 und Modus oeokonomie-1",
+      _st20.stand_version == 2 and _st20.mode == "oeokonomie-1",
+      "%s / %s" % (_st20.stand_version, _st20.mode))
+
+# (b) Der Spielstand traegt beide Felder - und den Tagesrest.
+_pfad20 = temp("migration_neu.json")
+_st20._day_accum = 3600.0 * 13 + 42.0
+check("P32: der neue Spielstand wird geschrieben", bool(_st20.save(_pfad20)))
+_roh20 = json.load(open(_pfad20, encoding="utf-8"))
+check("P32: der Spielstand traegt stand_version und mode",
+      _roh20.get("stand_version") == 2 and _roh20.get("mode") == "oeokonomie-1",
+      "%r / %r" % (_roh20.get("stand_version"), _roh20.get("mode")))
+check("P32: der Tagesrest wird mitgesichert (Entwurf: 'statt beim Laden auf 0 setzen')",
+      abs(float(_roh20.get("_day_accum") or 0.0) - _st20._day_accum) < 1e-9,
+      str(_roh20.get("_day_accum")))
+_st21 = M.GameState()
+check("P32: der Stand wird geladen", _st21.load(_pfad20) is True)
+check("P32: Version, Modus und Tagesrest ueberleben den Rundlauf",
+      _st21.stand_version == 2 and _st21.mode == "oeokonomie-1"
+      and abs(_st21._day_accum - _st20._day_accum) < 1e-9,
+      "%s / %s / %s" % (_st21.stand_version, _st21.mode, _st21._day_accum))
+check("P32: ein Stand MIT Versionsfeld warnt NICHT",
+      not any("Altspielstand" in str(m.get("text")) for m in _st21.messages))
+
+# (c) Ein ALTSPIELSTAND (ohne Versionsfeld) laedt als legacy MIT Warnhinweis - und OHNE Umrechnung.
+_pfad21 = temp("migration_alt.json")
+_daten21 = dict(_roh20)
+for _f in ("stand_version", "mode", "_day_accum"):
+    _daten21.pop(_f, None)
+check("P32: der Altstand kennt die neuen Felder wirklich nicht",
+      not ({"stand_version", "mode", "_day_accum"} & set(_daten21)), str(sorted(_daten21)))
+_daten21["resources"]["holz"]["amount"] = 123.5
+_daten21["population"] = 7.0
+with open(_pfad21, "w", encoding="utf-8") as fh:
+    json.dump(_daten21, fh)
+_st22 = M.GameState()
+check("P32: der Altstand laedt", _st22.load(_pfad21) is True)
+check("P32: er laeuft als Modus 'legacy' auf der alten Form (Version 1)",
+      _st22.mode == "legacy" and _st22.stand_version == 1,
+      "%s / %s" % (_st22.mode, _st22.stand_version))
+check("P32: der Warnhinweis ist SICHTBAR (in den Nachrichten, Art 'warnung')",
+      any("Altspielstand" in str(m.get("text")) and m.get("type") == "warnung"
+          for m in _st22.messages), str(_st22.messages[-2:]))
+check("P32: und er steht auch in den Log-Zeilen",
+      any("Altspielstand" in str(z) for z in _st22.log), str(_st22.log[-2:]))
+check("P32: NICHTS wird umgerechnet (Bestand und Bevoelkerung bleiben, wie sie waren)",
+      float(_st22.resources["holz"].amount) == 123.5 and float(_st22.population) == 7.0,
+      "%s / %s" % (_st22.resources["holz"].amount, _st22.population))
+check("P32: der Tagesrest eines Altstandes beginnt bei 0 (keine erfundene Zahl)",
+      abs(float(_st22._day_accum)) < 1e-9, str(_st22._day_accum))
+_st22b = M.GameState()
+_st22b.load(_pfad21)
+check("P32: der Warnhinweis steht genau EINMAL in den Nachrichten (kein Fluten beim Laden)",
+      sum(1 for m in _st22b.messages if "Altspielstand" in str(m.get("text"))) == 1,
+      str(sum(1 for m in _st22b.messages if "Altspielstand" in str(m.get("text")))))
+
+# (d) Quelltextwachen: das Feld ist ein MERKER, keine Schaltung (Entwurf Z. 1092).
+_q11 = open(os.path.join(SRC, "main.py"), encoding="utf-8").read()
+check("P32: der Spielstand schreibt beide Felder",
+      '"stand_version": self.stand_version' in _q11 and '"mode": self.mode' in _q11)
+check("P32: das Laden liest sie und kennt den Altstand",
+      'data.get("stand_version")' in _q11 and "self.mode = MODUS_LEGACY" in _q11
+      and '"type": "warnung"' in _q11)
+check("P32: der Modus schaltet NOCH NICHTS - er wird nur gesetzt, gesichert, geladen, gemeldet",
+      'self.mode: str = MODUS_NEU' in _q11 and '"mode": self.mode' in _q11
+      and 'self.mode = MODUS_LEGACY' in _q11
+      and 'self.mode = str(data.get("mode") or MODUS_NEU)' in _q11
+      and 'self.mode ==' not in _q11 and "== MODUS_NEU" not in _q11
+      and "== MODUS_LEGACY" not in _q11,
+      "kein Vergleich auf den Modus - nur Setzen, Sichern, Laden, Melden")
+check("P32: die Aktivierung steht nicht im Oekonomiekern",
+      "oeokonomie-1" not in open(os.path.join(SRC, "spieloekonomie.py"),
+                                 encoding="utf-8").read())
+
+
 sys.exit(bericht())

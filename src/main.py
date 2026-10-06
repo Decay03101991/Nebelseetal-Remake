@@ -207,6 +207,18 @@ class Settlement:
 SIEDLUNGEN_MAXIMUM = 6
 KARTENVERSUCHE = 400
 
+# Oekonomie-Paket, Schritt 9, Teil 8b (Entwurf Z. 789, "Migration"): Version und Modus des
+# SPIELSTANDS. `STAND_VERSION_ALT = 1` ist der ALTE, unversionierte Stand — erkennbar daran, dass
+# das Feld im Spielstand FEHLT. Ab Version 2 schreibt der Spielstand beide Felder mit.
+# `mode` ist bis Schritt 10 ein reiner MERKER (Entwurf Z. 1092: "vorher darf der Oekonomiemodus
+# NICHT aktiviert werden"): neue Partien laufen als `oeokonomie-1`, ein geladener Altstand als
+# `legacy`. Es wird NICHTS umgerechnet — der Altmodus rechnet unveraendert mit den globalen
+# Bestaenden (keine automatische Konvertierung ohne Daniels Wort).
+STAND_VERSION_ALT = 1
+STAND_VERSION = 2
+MODUS_NEU = "oeokonomie-1"
+MODUS_LEGACY = "legacy"
+
 
 def siedlung_kennung(besitzer: str, map_id: str, x: int, y: int) -> str:
     """Die stabile Kennung eines Ortes (Ökonomie-Paket, Entwurf Z. 774).
@@ -644,6 +656,13 @@ class GameState:
         self.hatte_siedlung = False
         self.spielende: Optional[str] = None
         self.noob_protection: bool = True
+        # Oekonomie-Paket, Schritt 9, Teil 8b (Entwurf Z. 789): Version und Modus des Spielstands.
+        # `stand_version` ist die FORM (1 = der alte, unversionierte Stand — dort fehlt das Feld;
+        # 2 = mit Versions- und Modusfeld). `mode` ist bis Schritt 10 ein reiner MERKER: eine NEUE
+        # Partie laeuft als `oeokonomie-1`, ein geladener Altstand als `legacy`. Der Oekonomiemodus
+        # wird dadurch NICHT aktiviert (Entwurf Z. 1092) und nichts wird umgerechnet.
+        self.stand_version: int = STAND_VERSION
+        self.mode: str = MODUS_NEU
         self.goods: Dict[str, int] = {key: 0 for key in GOODS}
         # W5-2 (Portal, src/portalraum.py): die eigene Dimension im Limbus-Raster, die Dimensionen,
         # in denen man schon Fuss gefasst hat, und der Zeitpunkt des letzten Koordinatenwechsels.
@@ -2105,6 +2124,12 @@ class GameState:
             # sonst gilt ein gewonnenes Spiel nach dem Laden wieder als offen.
             "hatte_siedlung": getattr(self, "hatte_siedlung", False),
             "spielende": getattr(self, "spielende", None),
+            # Teil 8b (Entwurf Z. 789): die FORM des Spielstands (Version + Modus) und der
+            # Tagesrest. Entwurf woertlich: "_day_accum zusaetzlich sichern statt beim Laden auf 0
+            # setzen" — sonst beginnt der Spieltag nach jedem Laden von vorn.
+            "stand_version": self.stand_version,
+            "mode": self.mode,
+            "_day_accum": getattr(self, "_day_accum", 0.0),
         }
         # W8 (docs/UMSETZUNG_EINHAENGEN.md, Abschnitt 4): erst sichern, dann atomar ueber eine
         # gepruefte Zwischendatei schreiben. Schlaegt etwas fehl, bleibt der alte Spielstand
@@ -2180,6 +2205,24 @@ class GameState:
         # Teil 6b: die Spieluhr. Ein Stand von vor Teil 6 kennt sie nicht — dann beginnt sie bei 0;
         # `ort_tick` verbietet nur ein ZURÜCKLAUFEN der Zeit, nicht den Neubeginn.
         self.spielsekunden = float(data.get("spielsekunden") or 0.0)
+        # Teil 8b, MIGRATION (Entwurf Z. 789): ein Spielstand OHNE Versionsfeld ist ein
+        # ALTSPIELSTAND. Er laedt als `mode="legacy"` MIT Warnhinweis — seine Regeln und sein
+        # Punktziel bleiben unveraendert, und es wird NICHTS umgerechnet ("ohne explizite
+        # Daniel-Entscheidung keine automatische Konvertierung alter Ressourcen"). Neue Partien
+        # laufen als `oeokonomie-1`. Das Feld ist ein MERKER, keine Schaltung (Entwurf Z. 1092).
+        roh_version = data.get("stand_version")
+        if roh_version is None:
+            self.stand_version = STAND_VERSION_ALT
+            self.mode = MODUS_LEGACY
+            self._altstand_warnen()
+        else:
+            self.stand_version = int(roh_version)
+            self.mode = str(data.get("mode") or MODUS_NEU)
+            if self.mode not in (MODUS_NEU, MODUS_LEGACY):
+                # Nicht raten und nicht stillschweigend verbiegen: den fremden Wert uebernehmen
+                # und ehrlich vermerken.
+                self._log("Warnhinweis: unbekannter Modus '%s' im Spielstand - er wird "
+                          "unveraendert uebernommen." % self.mode)
         if not self.kartenvorrat:
             self.kartenvorrat_anlegen()
         self.hatte_siedlung = bool(data.get("hatte_siedlung", bool(self.settlements)))
@@ -2223,7 +2266,10 @@ class GameState:
             self.generate_map(self.current_map)
         if saved_bots:
             self.bots = [BotPlayer(**b) for b in saved_bots]
-        self._day_accum = 0.0
+        # Teil 8b (Entwurf Z. 789: "_day_accum zusaetzlich sichern statt beim Laden auf 0 setzen"):
+        # der Tagesrest kommt jetzt aus dem Spielstand. Ein Stand, der das Feld nicht kennt (alles
+        # vor Teil 8b), beginnt unveraendert bei 0 — kein Absturz, keine erfundene Zahl.
+        self._day_accum = float(data.get("_day_accum") or 0.0)
         # Der Bot-Zug darf nach dem Laden nicht sofort losgehen (sonst pluendern die Bots
         # genau in der Sekunde, in der ein alter Spielstand geoeffnet wird).
         self._letzter_bot_takt = time.time()
@@ -2233,6 +2279,21 @@ class GameState:
         self.log.append(msg)
         if len(self.log) > 200:
             self.log = self.log[-200:]
+
+    def _altstand_warnen(self):
+        """Den Warnhinweis fuer einen geladenen ALTSPIELSTAND sichtbar machen (Entwurf Z. 789).
+
+        Wörtlich: „Ist ein Altspielstand ohne Versionsfeld vorhanden, mode="legacy", Regeln und
+        Punktziel behalten, Warnhinweis anzeigen." Er geht deshalb in die Log-Zeilen UND in die
+        sichtbaren Nachrichten (die Nachrichtenansicht zeigt die letzten 20). Mehrfaches Laden
+        derselben Datei soll die Liste nicht fluten — der Eintrag kommt deshalb nur EINMAL vor.
+        """
+        text = ("Altspielstand geladen (ohne Versionsfeld): diese Partie laeuft im Modus 'legacy' "
+                "- ihre Regeln und ihr Punktziel bleiben unveraendert. Es wird nichts umgerechnet.")
+        self._log("Warnhinweis: " + text)
+        eintrag = {"text": "Warnhinweis: " + text, "type": "warnung"}
+        if eintrag not in self.messages:
+            self.messages.append(eintrag)
 
 
 # ---------- GUI ----------
