@@ -57,7 +57,7 @@ auf `cleared` gesetzt (Grund im Datensatz, kein fremdes aktives Ziel). Die neue 
 
 ---
 
-## 0c. Stand (05.10.2026, 17:00, fortgeschrieben 18:30, 20:40, 20:51 und 21:12 — mit `date`, `git log`, Sammellauf und Startprüfung geprüft)
+## 0c. Stand (05.10.2026, 17:00, fortgeschrieben 18:30, 20:40, 20:51 und 21:12 sowie am **06.10. um 01:05 und 08:25** — mit `date`, `git log`, Sammellauf und Startprüfung geprüft)
 
 > ### NEU: Schritt 31 fertig · Daniels Richtungsentscheidung · zwei starke Modellläufe ausgewertet
 >
@@ -142,21 +142,30 @@ nach Daniels Spielbericht — den **Zeitfaktor** samt sichtbarem Rohstoffeingang
 | `.exe` | **05.10. 13:41 gebaut** (Dateizeitstempel `13:41:04`): **14.531.774 Byte**, SHA256 `bffd3c444d6eb1433b14c1b7a768946cc45bdc1d8511332bca0de33bc7a85ed3`, aus `C:\Users\saras` startgeprüft (ein Fenster, genau eine Instanz) — **enthält Zeitfaktor, Rohstoff-Warnung und Geländeregeln** (Schritte 27 und 28). Ältere Fassungen: 13:29 (14.524.603 Byte, `1fad511d…`, Geländeregeln) · 12:38 (14.524.225 Byte, `63b09fbf…`). `build/`, `dist/`, `.spec`, `__pycache__` sind aufgeräumt, genau eine EXE im Projektordner. **Wichtig:** nur diese Fassung zeigt Tempo und Warnung — wer mit einer älteren spielt, sieht den Zeitfaktor nicht |
 | Guthaben | **von Daniel abgelesen am 05.10. um 13:48: OpenAI 2,17 USD · DeepSeek 4,06 USD** (11:00: 2,66 / 4,97 → im Nachmittag 0,49 bzw. 0,91 USD verbraucht). **Gemessener Tagesverbrauch laut `scripts/tageskosten_check.py`: 4,13 USD ≈ 3,68 EUR über 23 Sitzungen und 4 Modelle = 80 % des harten Tageslimits (4 EUR) — Lage „WARNUNG".** Für die nächste Sitzung heißt das: **keine teuren Aufrufe ohne Begründung**, Kinder und Prüfer nur auf `deepseek-flash`, Bilddeutungen (astra) nur, wenn es wirklich nicht anders geht. **Beobachtung zum Messskript:** es meldete zwischen 13:45 und 13:48 nur +0,005 USD, während Daniels Guthabenanzeige um **0,19 USD** fiel — die Schätzung läuft der Anbieterwahrheit nach. **Maßgeblich ist die Guthabenanzeige des Anbieters, nicht die Schätzung** |
 
-### Der EINE nächste Schritt (Stand 06.10.2026, 01:05 — **Teil 6 UND Teil 7 sind FERTIG**; nächster ist **Teil 8 (Kartenfreischaltung + Migration)**, danach Schritt 10 (Aktivierung). Die Startprüfung der `.exe` ist nachgeholt und **bestanden**.)
+### Der EINE nächste Schritt (Stand 06.10.2026, 08:25 — **Teil 8 ist FERTIG**; nächster ist **Schritt 10 (`tick_bis` + Aktivierung)**. Die `.exe` nach Teil 8 ist gebaut **und** startgeprüft.)
 
-**Der nächste Schritt jetzt:** **Teil 8 — `_unlock_next_map` + Migration** (Entwurf Z. 788). Die
-erfundene **„Vermessung" entfällt**: die 21 Originalforschungen kennen sie nicht, das Original vergibt
-Karten **per Zufall** (HB Z. 313) — die Freischaltung läuft über den **Kartenvorrat** aus Teil 5
-(Wagenbau + Siedlerkarren), nicht über eine 22. Forschung. **Migration:** ein Altspielstand **ohne
-Versionsfeld** lädt als `mode="legacy"` mit Warnhinweis, **neue** Partien laufen als
-`mode="oeokonomie-1"`; **keine automatische Konvertierung ohne Daniels Wort**. **Erst danach**
-Schritt 10 (`tick_bis` + Ereignisschleife, Entwurf Z. 791-1018) und die **Aktivierung** — vorher darf
-der Ökonomiemodus NICHT aktiviert werden (Entwurf Z. 1092). **Lies dazu
-`docs/audits/entwurf_spieloekonomie_sol_2026-10-05.txt`, Abschnitt 8/`unlock`.** **Erwartet:**
-betroffener Einzeltest grün, **Sammellauf** ohne Fehler (**4023** bestanden, 22 Befunde, 52 Dateien),
-**Protokollzeile** (Zeit aus `date`), `python tools/protokoll_sichern.py --protokoll`, kleiner Commit;
-ändert sich `src/` oder `data/*.json`, am Ende die `.exe` neu bauen und aus einem **anderen** Ordner
-startprüfen.
+**Der nächste Schritt jetzt:** **Schritt 10 — die Ereignisschleife `tick_bis` und die AKTIVIERUNG**
+(Entwurf Z. 791-1018). **Erst jetzt** darf der Ökonomiemodus aktiviert werden (Entwurf Z. 1092) —
+bis dahin läuft der **Altmodus unverändert**, und `mode` im Spielstand ist ein **Merker ohne
+Schaltung** (die Wache P32 in `tests/test_oekonomie_einhaengung.py` wacht darüber). Dazu gehört die
+Umstellung der `main`-Uhr auf `spielsekunden` (genau **eine** Stelle mit `spielzeit.faktor()`,
+Entwurf Z. 592-648 und 791 ff.). **Lies dafür `docs/audits/entwurf_spieloekonomie_sol_2026-10-05.txt`,
+Abschnitt 10 (Z. 791-1018) und die Aktivierungsstelle Z. 1092.** **Erwartet:** betroffener Einzeltest
+grün, **Sammellauf** ohne Fehler (**4061** bestanden, 22 Befunde, 52 Dateien), **Protokollzeile**
+(Zeit aus `date`), `python tools/protokoll_sichern.py --protokoll`, kleiner Commit; ändert sich `src/`
+oder `data/*.json`, am Ende die `.exe` neu bauen und aus einem **anderen** Ordner startprüfen.
+
+**Teil 8 ist FERTIG (06.10.2026, 08:16–08:25):** **8a** — die Kartenfreischaltung ist ehrlich: die
+erfundene **„Vermessung“** ist weg, `_unlock_next_map` ist **gelöscht** (sie hatte **keinen** Aufrufer,
+fragte die Forschung `"vermessung"` ab, die es unter den 21 Originalforschungen **nicht** gibt, und
+benutzte `MAX_ACTIVE_MAPS`, das im ganzen Projekt nirgends definiert ist); das Gebietspanel sagt jetzt
+die Wahrheit — neue Karten kommen über den **Kartenvorrat** (Wagenbau + Siedlerkarren), die **fünf
+Weltregionen sind keine Siedlungskarten** (`d937d47`). **8b** — Speicherung und Migration:
+`stand_version`/`mode` im Spielstand, ein Altspielstand **ohne Versionsfeld** lädt als
+`mode="legacy"` **mit sichtbarem Warnhinweis** und **ohne jede Umrechnung**, neue Partien laufen als
+`mode="oeokonomie-1"`, `_day_accum` wird mitgesichert (`e8edc1e`). Belege: `test_oekonomie_einhaengung`
+**352 → 390/0/1** (neu P31/P32), Sammellauf **4061/0/22** über 52 Dateien, `.exe` **14.652.424 Byte**,
+SHA256 `c1523670aa307077…`, Dateizeitstempel **08:22:35**, startgeprüft (Protokollzeilen 84, 85, 86).
 
 **Teil 7 ist FERTIG (06.10.2026):** **7a** hat den Gratisgewinn beim Handel gesperrt (`_trade`
 schenkte Rohstoffe ohne Gegenleistung — seither ehrliche Ablehnung, `01fe939`), **7b** hat den
@@ -169,6 +178,8 @@ Byte, SHA256 `524d6260e28daf74…`, Titel „Nebelseetal Remake", antwortet +10/
 Fehlerberichte, 0 offene Prozesse — Protokollzeile 80), und die `.exe` **nach Teil 7b** ist gebaut und
 startgeprüft (**14.652.257 Byte**, SHA256 `5dc00158bc3c1094…`, Dateizeitstempel **00:59:17**,
 Protokollzeile 82).
+Die `.exe` **nach Teil 8** ist ebenfalls gebaut **und** startgeprüft (**14.652.424 Byte**, SHA256
+`c1523670aa307077…`, Dateizeitstempel **08:22:35**, Protokollzeile 86).
 **Das Gesamtpaket** hat der Auftraggeber ausdrücklich so entschieden („das ganze Paket in der
 Reihenfolge des Papiers — kein Halbumbau"): zuerst die vier Handbuch-Korrekturen, dann die neun
 Schritte des Entwurfs.
@@ -200,7 +211,7 @@ Teil 5 (die **Gründung**: Kartenvorrat als Spielzustand, erste Siedlung mit Sta
 selbst gewählten Weltfeld)
 sind fertig — **Teil 6, Teil 7a und Teil 7b sind damit abgeschlossen** (der Handel ist kein Gratisgewinn
 mehr, sondern ein **bestätigter Kaufvertrag** mit Ware, Menge, Preis und Handelskarawane).
-**Jetzt Teil 8 (Kartenfreischaltung + Migration), danach Schritt 10 (Aktivierung).**
+**Teil 8 ist seit dem 06.10. um 08:25 ebenfalls fertig — jetzt fehlt nur noch Schritt 10 (die Aktivierung des Ökonomiemodus).**
 
 | Schritt | Inhalt | Stand | Beleg (Commit / Prüfzahl) |
 |---|---|---|---|
@@ -213,8 +224,8 @@ mehr, sondern ein **bestätigter Kaufvertrag** mit Ware, Menge, Preis und Handel
 | 6 | Forschung je Siedlung: `forschung_start`, `forschung_abschluss` | **fertig** | `1d64cd6`, `c590951` · `test_lokale_forschung` **47/0/0**, Audit `pruefung_schritt6.md` ohne verhaltensrelevante Abweichung |
 | 7 | Zielprüfung und Haltefenster (`zielstatus`) | **fertig** | `a2b6531`, `52` · `test_versorgungsziel` **69/0/0**; Audit fand zwei echte Beanstandungen an meinem Code, beide behoben |
 | 8 | Bot-Planung (8a) · Handels-Paar `handel_start`/`handel_abschluss` (8b) | **beide fertig** | 8a: `3785b5d` · `test_botkern` **90/0/0** (botkern bleibt reines ASCII) · 8b: `25466f5` · `test_handel_transaktion` **101/0/0**, Sammellauf **3654/0/21** über 51 Dateien |
-| 9 | `main`-Anbindung und Migration | **läuft: Teil 6 UND Teil 7 sind FERTIG, offen ist nur noch Teil 8 (Migration)** | 9.1 `c099c4e` · 9.2 `1ce4ae3` · 9.3a `a0d432d` · 9.3b `65c41bf` · 9.4 `5a46ad7` · 9.5 `fab8611` · 9.6a `ad12376` (aktiver Ort) · 9.6b/c `0e4a08a` (eine Uhr je Ort, keine Doppelernte) · 9.6-Rest `35e1bd1` (Forschung je Ort, Altpfad entfernt) · 9.7a `01fe939` (Gratisgewinn gesperrt) · 9.7b `f7dc77d` (**bestätigter Kaufvertrag**: `handel_mit_bot`, `_fremdvertrag_buchen`, Maske für Ware/Menge/Preis) · `.exe`-Startprüfungen `d05af8d` und `baecda9` · `test_oekonomie_einhaengung` **319 → 352/0/1**, `test_durchspiel` 56/0/2, **Sammellauf 4023/0/22** über 52 Dateien · **offen nur noch Teil 8** |
-| 10 | Ereignisschleife `tick_bis` und Aktivierung | offen | — |
+| 9 | `main`-Anbindung und Migration | **FERTIG — Teil 1 bis Teil 8 sind gebaut; offen ist nur noch Schritt 10** | 9.1 `c099c4e` · 9.2 `1ce4ae3` · 9.3a `a0d432d` · 9.3b `65c41bf` · 9.4 `5a46ad7` · 9.5 `fab8611` · 9.6a `ad12376` · 9.6b/c `0e4a08a` · 9.6-Rest `35e1bd1` · 9.7a `01fe939` · 9.7b `f7dc77d` · **9.8a `d937d47` (Kartenfreischaltung ehrlich) · 9.8b `e8edc1e` (Version/Modus + Migration)** · `test_oekonomie_einhaengung` **390/0/1**, `test_durchspiel` 56/0/2, **Sammellauf 4061/0/22** über 52 Dateien · **offen nur noch Schritt 10** |
+| 10 | Ereignisschleife `tick_bis` und Aktivierung | **offen — der nächste Schritt** | — |
 
 **Aus Schritt 5 ist bewusst noch NICHT gebaut:** die Umstellung der `main`-Uhr auf `spielsekunden`
 (genau **eine** Stelle mit `spielzeit.faktor()`). Das gehört zur Anbindung (9/10), und **vorher darf
@@ -352,13 +363,13 @@ nicht · die Uhr ist gemischt). Die reine Kostenregel steht im Sitzungsgedächtn
 liegt jetzt bei **2665**. Wer eine feste Sollzahl aufschreibt, erzeugt Falschalarm; verbindlich ist
 **0 Fehler**, nicht die Summe.
 
-## 0e. Übergabe an die nächste Sitzung (06.10.2026, 01:02 — mit `date`, Sammellauf, `git log`, Startprüfung und Kostenmessung belegt; **nichts ist offen, die neue Sitzung soll zuerst PAUSIEREN**)
+## 0e. Übergabe an die nächste Sitzung (angelegt 06.10.2026, 01:02 · **fortgeschrieben 08:25 nach Teil 8** — mit `date`, Sammellauf, `git log`, Startprüfung und Kostenmessung belegt; **die Pause ist von Daniel aufgehoben**, Teil 8 ist fertig)
 
-> **ANWEISUNG AN DIE NEUE SITZUNG: NOCH NICHT ARBEITEN.** Der Auftrag ist an einem **sauberen Punkt**
-> angehalten (Teil 7b fertig, `.exe` gebaut **und** startgeprüft, alles committet und gesichert).
-> **Lies die Startzeile, prüfe in Sekunden nach (git log/status, `--pruefen`), setze dein Ziel — und
-> warte dann auf Daniels Wort.** Beginne erst mit **Teil 8**, wenn Daniel ausdrücklich „weiter" sagt.
-> **Kein Sammellauf, keine Prüfung, keine Änderung vorher** (er wäre ohnehin schon grün: 4023/0/22).
+> **ERLEDIGT (HISTORISCH) — die alte Pause-Anweisung.** Sie galt für Sitzung `20261006_011522_6f090e`,
+> die am 06.10. um 01:15 den Ist-Stand nachgeprüft, ihr Ziel gesetzt und dann **gewartet** hat.
+> Daniel hat die Pause um **08:08 aufgehoben** („ok es geht weiter“) — seither ist **Teil 8 fertig**
+> (8a `d937d47`, 8b `e8edc1e`, Sammellauf **4061/0/22**, `.exe` **14.652.424 Byte** gebaut und
+> startgeprüft). **Nichts davon ist zu wiederholen.**
 
 ### Startzeile zum Kopieren
 
@@ -372,45 +383,42 @@ So erzeugt (Werkzeug, startet nichts): `python tools/zieluebergabe.py --startzei
 > (Zeit, Schritt, Ergebnis, Beleg, Kosten), `python tools/protokoll_sichern.py --protokoll`, kleiner
 > Commit. Am Ende der Reihe: `tools/build_exe.py` und Startpruefung aus einem anderen Ordner.
 >
-> **BITTE ANHALTEN: diese Sitzung ist an einem sauberen Punkt angehalten. Lies das Kontext-Paket,
-> prüfe kurz nach (Sekunden-Checks unten) — und ARBEITE DANN NOCH NICHT. Warte auf Daniels Wort.**
-> Der nächste Schritt, wenn es weitergeht, ist **Teil 8 (Kartenfreischaltung + Migration)** —
-> Einzelheiten in `docs/KONTEXT_PAKET.md`, Abschnitt 2 und 7.
+> **Die Pause ist vorbei (HISTORISCH, oben erklärt) — die Sitzung arbeitet weiter.** **Teil 8 ist fertig**,
+> der nächste Schritt ist **Schritt 10 (`tick_bis` + Aktivierung)** — Einzelheiten in `docs/KONTEXT_PAKET.md`,
+> Abschnitt 2, und in 0c oben.
 >
 > Vor der ersten Aenderung: `python tools/zieluebergabe.py --pruefen` (0 = kein fremdes aktives Ziel;
 > sonst den Geisterlaeufer mit `--beenden SITZUNG` sauber beenden).
 >
 > Ziel in DIESER Sitzung setzen: `/goal <Wortlaut aus D:\Arbeiten\Nebelseetal_Remake\docs\PROJEKT_STAND.md 0c>`
 >
-> **Kosten:** Der 05.10. endete über dem Limit (23:57: **7,25 / 4,00 EUR**); der **06.10.** steht um
-> 01:02 gemessen bei **0,80 / 4,00 EUR** (0,89 USD, Rest **+3,20 EUR**, Lage **OK**,
-> `…\hermes\scripts\tageskosten_check.py`) — **Daniel hat den Auftrag freigegeben**: nur
-> `deepseek-flash`, kein teures Modell, keine Kinder, die **1,00 USD DeepSeek-Reserve bleibt
-> unangetastet**. Gemessener Anteil dieser Sitzung: **+0,13 EUR** (0,67 → 0,80).
+> **Kosten:** Der 05.10. endete über dem Limit (23:57: **7,25 / 4,00 EUR**). Der **06.10.** steht um
+> 01:02 gemessen bei **0,80 / 4,00 EUR** und um **08:25 bei 0,95 / 4,00 EUR** (Rest **+3,05 EUR**,
+> Lage **OK**, `C:/Users/saras/AppData/Local/hermes/scripts/tageskosten_check.py`) — **Daniels Freigabe
+> gilt weiter**: nur `deepseek-flash`, kein teures Modell, keine Kinder, die **1,00 USD DeepSeek-Reserve
+> bleibt unangetastet**. Anteil dieser Sitzung: **+0,15 EUR** (0,80 → 0,95).
 
 ### Stand in Belegen
 
 | Was | Beleg (gemessen, nicht geschätzt) |
 |---|---|
-| **Sammellauf** | **4023 bestanden, 0 Fehler, 22 Befunde über 52 Dateien**, 00:56–00:57, **100 s** — die Reihe: 9.1 +74, 9.2 +14, 9.3a +33, 9.3b +22, 9.4 +53, 9.5 +53, 9.6a +14, 9.6b/c +48, 6 Rest +11, 7a +7, **7b +37** (33 in `test_oekonomie_einhaengung`, 4 in `test_durchspiel`); der 22. Befund ist der ehrlich benannte Lager-Befund der stationierten Truppe (23, wenn zusätzlich der Zufallsbefund aus `test_startspiel` auftritt) |
-| **Arbeitsbaum** | **sauber** (`git status --short` leer); letzte Commits **`baecda9`** (`.exe`-Zeile 82), **`f7dc77d`** (Teil 7b), **`d05af8d`** (Startprüfung, Zeile 80) |
-| **`.exe`** | **14.652.257 Byte**, SHA256 `5dc00158bc3c109457ff89e0a559a94dfbc66d12883aaa8bda0c3cf75d50c36d`, Dateizeitstempel **00:59:17** — **GEBAUT UND STARTPGEPRÜFT** (aus `…\cache\scratch\exestart`, anderem Ordner, `startpruefung_1006_0100.ps1`): Fenstertitel **„Nebelseetal Remake"**, antwortet bei **+10/+20/+40 s**, **0** Fehlerberichte (WerFault), danach **0 offene Spielprozesse**, Startordner leer. Sie enthält den **bestätigten Kaufvertrag (7b)** zusätzlich zu allem aus 9.1–9.6 und 7a. Vorgängerfassung gesichert (`…\cache\scratch\exe_alt_0058_vor_teil7b.exe`, 14.641.733 Byte). Die **Vorgängerfassung aus 7a** ist ebenfalls startgeprüft (14.641.733 Byte, `524d6260…`, Zeile 80) |
+| **Sammellauf** | **4061 bestanden, 0 Fehler, 22 Befunde über 52 Dateien**, 08:1x (98 s) — Teil 8a **+17** (4040) und Teil 8b **+21** (4061); davor **4023** (00:56–00:57, 100 s; Reihe 9.1 +74, 9.2 +14, 9.3a +33, 9.3b +22, 9.4 +53, 9.5 +53, 9.6a +14, 9.6b/c +48, 6-Rest +11, 7a +7, 7b +37). Der 22. Befund ist der ehrlich benannte Lager-Befund der stationierten Truppe (23, wenn zusätzlich der Zufallsbefund aus `test_startspiel` auftritt) |
+| **Arbeitsbaum** | **sauber** (`git status --short` leer); letzte Commits **`e8edc1e`** (Zeile 85, Teil 8b) und **`d937d47`** (Zeile 84, Teil 8a) — davor `2fc9431` (Sicherungszeile vor dem Herunterfahren), `e6b9f5c`, `2fef00a`, `9698250` und `baecda9` (`.exe`-Zeile 82) |
+| **`.exe`** | **14.652.424 Byte**, SHA256 `c1523670aa307077fd8be3c0858d52a44a1a20a40c024f1d2275658c4276ac75`, Dateizeitstempel **08:22:35** — **GEBAUT UND STARTPGEPRÜFT** (aus `…\cache\scratch\exestart`, einem **anderen** Ordner, Skript `startpruefung_1006_0822.ps1`): Fenstertitel **„Nebelseetal Remake“**, antwortet bei **+10/+20/+40 s**, **0** Fehlerberichte (WerFault), danach **0 offene Spielprozesse**, Startordner leer. Sie enthält **Teil 8** zusätzlich zu allem aus 3a–7b. Vorgängerfassung gesichert (`…\cache\scratch\exe_alt_0821_vor_teil8.exe`, 14.652.257 Byte) |
 | **Sicherung** | `docs/SICHERUNGEN.md` — **16 Dateien** mit Prüfsummen, 01:0x (`protokoll_sichern.py --protokoll`, projektunabhängige Kopie unter `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\`) |
-| **Zielregister** | Diese Sitzung `20261006_003807_ae9594` wird beim Übergeben mit `--beenden` auf **`cleared`** gesetzt (Grund im Datensatz, kein Löschen); die Vorgängerin `20261005_212201_8bd3fb` steht ebenfalls auf `cleared`. **Gegenprobe `--pruefen` → rc=0, kein fremdes aktives Ziel.** Die **neue** Sitzung setzt ihr Ziel selbst — **und arbeitet dann noch nicht** (Anweisung oben) |
-| **Kosten** | **06.10. um 01:02 gemessen: 0,80 EUR von 4,00 EUR** (0,89 USD), **Rest +3,20 EUR**, Lage **„OK"** (2 Sitzungen, Modelle `deepseek-flash`/`deepseek-v4-flash`); Anteil dieser Sitzung **+0,13 EUR**. Der **05.10.** endete über dem Limit (**7,25 EUR**). **Daniels Freigabe gilt:** nur `deepseek-flash`, kein teures Modell, keine Kinder, **1,00 USD DeepSeek bleiben als Reserve** |
+| **Zielregister** | Diese Sitzung `20261006_011522_6f090e` führt ihr Ziel **aktiv** (Teil 8 → jetzt Schritt 10): am 06.10. um 01:2x von Daniel pausiert (damit beim Neustart nichts von allein läuft) und um **08:08** mit „es geht weiter“ wieder auf `active` gesetzt — Gegenprobe `--pruefen` → rc=0, „kein fremdes aktives Ziel“. Die Vorgängerin `20261006_003807_ae9594` steht auf **`cleared`** (übergeben, nicht gelöscht) |
+| **Kosten** | **06.10. um 08:25 gemessen: 0,95 EUR von 4,00 EUR**, **Rest +3,05 EUR**, Lage **„OK“** (3 Sitzungen, Modelle `deepseek-flash`/`deepseek-v4-flash`); um 01:02 waren es **0,80** EUR. Der **05.10.** endete über dem Limit (**7,25 EUR**). **Daniels Freigabe gilt weiter:** nur `deepseek-flash`, kein teures Modell, keine Kinder, **1,00 USD DeepSeek-Reserve unangetastet** |
 
 ### Der EINE nächste Schritt
 
-**Teil 8 — `_unlock_next_map` + Migration** (Entwurf Z. 788), **erst auf Daniels Wort** (siehe Anweisung
-oben). Die erfundene **„Vermessung" entfällt** (die 21 Originalforschungen kennen sie nicht; das Original
-vergibt Karten per Zufall), die Freischaltung läuft über den **Kartenvorrat** aus Teil 5. **Migration:**
-Altspielstand **ohne Versionsfeld** → `mode="legacy"` **mit Warnhinweis**, neue Partien
-`mode="oeokonomie-1"`, **keine automatische Konvertierung**. **Danach** Schritt 10 (`tick_bis` +
-Aktivierung) — vorher darf der Ökonomiemodus NICHT aktiviert werden (Entwurf Z. 1092).
-**Erwartetes Ergebnis:** Einzeltest grün, **Sammellauf** weiter **ohne Fehler** (**4023** bestanden,
-22 Befunde, 52 Dateien), eine **Protokollzeile** (Zeit aus `date`), `protokoll_sichern.py --protokoll`,
-kleiner Commit; bei Änderungen an `src/`/`data/*.json` am Ende die `.exe` neu bauen **und** startprüfen.
-Einzelheiten: `docs/KONTEXT_PAKET.md`, Abschnitt 2, und 0c oben.
+**Schritt 10 — die Ereignisschleife `tick_bis` und die AKTIVIERUNG** (Entwurf Z. 791-1018).
+**Erst jetzt** darf der Ökonomiemodus aktiviert werden (Entwurf Z. 1092); bis dahin läuft der
+**Altmodus unverändert** und `mode` ist ein Merker ohne Schaltung (Wache P32). **Erwartetes Ergebnis:**
+Einzeltest grün, **Sammellauf** weiter **ohne Fehler** (**4061** bestanden, 22 Befunde, 52
+Dateien), eine **Protokollzeile** (Zeit aus `date`), `protokoll_sichern.py --protokoll`, kleiner
+Commit; bei Änderungen an `src/`/`data/*.json` am Ende die `.exe` neu bauen **und** startprüfen.
+**Teil 8 ist abgeschlossen** (8a `d937d47`, 8b `e8edc1e`) — Einzelheiten in `docs/KONTEXT_PAKET.md`,
+Abschnitt 2, und 0c oben.
 
 ### Nicht erneut zu prüfen (je mit Beleg und Datum)
 
@@ -433,6 +441,9 @@ Einzelheiten: `docs/KONTEXT_PAKET.md`, Abschnitt 2, und 0c oben.
 | `.exe` startet (7a, NACHGEHOLT) | **erledigt** — 14.641.733 Byte, SHA256 `524d6260…`, gebaut 00:27:57; Startprüfung **nachgeholt** (Protokollzeile 80, `d05af8d`): Titel „Nebelseetal Remake", antwortet +10/+20/+40 s, 0 Fehlerberichte, danach 0 offene Prozesse, Startordner leer |
 | `.exe` nach Teil 7b (gebaut UND geprüft) | **erledigt** — **14.652.257 Byte**, SHA256 `5dc00158…`, Dateizeitstempel 00:59:17; Startprüfung aus `…\cache\scratch\exestart`, Skript `startpruefung_1006_0100.ps1` (Protokollzeile 82, `baecda9`); Vorgängerfassung vorher gesichert (`exe_alt_0058_vor_teil7b.exe`) |
 | Der Baum ist sauber | 20:33: `git status --short` leer (Commit `25466f5`) |
+| Schritt **9, Teil 8a** (Kartenfreischaltung ehrlich) | `d937d47`, `test_oekonomie_einhaengung` **352 → 369/0/1** (neu P31: keine `"vermessung"`-Abfrage · kein `unlocked_maps.append` · `MAX_ACTIVE_MAPS` unbenutzt · die falsche Zusage ist weg · **Erstgründung UND Kolonie schalten keine Weltregion frei** · Karten-IDs/-Namen sind keine Regions-IDs/-Namen), `test_weltkarte` **82/0/0**, Sammellauf **4040/0/22** über 52 Dateien (08:1x, 116 s) |
+| Schritt **9, Teil 8b** (Version, Modus, Migration) | `e8edc1e`, dieselbe Prüfdatei **390/0/1** (neu P32: Konstanten · neue Partie `oeokonomie-1` · Spielstand trägt beide Felder + `_day_accum` · **Altstand ohne Versionsfeld lädt als `legacy` MIT Warnhinweis** · Warnung genau einmal · **nichts umgerechnet** · der Modus wird nirgends verglichen), Sammellauf **4061/0/22** über 52 Dateien (08:1x, 98 s) |
+| `.exe` nach Teil 8 (gebaut UND geprüft) | **14.652.424 Byte**, SHA256 `c1523670…`, Dateizeitstempel 08:22:35; Startprüfung aus `…\cache\scratch\exestart`, Skript `startpruefung_1006_0822.ps1` (Protokollzeile 86) |
 
 ### Sekunden-Checks für den Anfang
 
