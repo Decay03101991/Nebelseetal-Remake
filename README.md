@@ -1,43 +1,82 @@
 # Nebelseetal Remake
 
-Entwicklungsprojekt: Einzelspieler-Remake des historischen Browserspiels *Nebelseetal*.
+<p align="center">
+  <img src="Nebelseetal_Loadingpage.jpg" alt="Nebelseetal – historisches Titelbild" width="455">
+</p>
 
-> **Status:** In Entwicklung; kein freigegebener Windows-Release. Funktionsfaehigkeit, Vollstaendigkeit und grafische Abnahme sind noch nicht abschliessend belegt.
+**Ein eigenständiges, lokal laufendes Einzelspieler-Remake des früheren Browser-Strategiespiels _Nebelseetal_.** Im Mittelpunkt stehen der Aufbau mehrerer Siedlungen, Rohstoffwirtschaft, Handel, Forschung und Auseinandersetzungen mit computergesteuerten Gegnern.
 
-## Aktueller Entwicklungsstand
+> **Entwicklungsstand: experimentell.** Der Quellcode ist einsehbar und kann getestet werden. Es gibt bislang **keine offiziell freigegebene, vollständig getestete Windows-Version**. Nicht alle Spielsysteme sind fertig oder im Zusammenspiel überprüft.
 
-- [Projektstatus und Stand der Spielbereiche](docs/PROJEKT_STAND.md)
-- [Offizielles Entwicklungsprotokoll](docs/ENTWICKLUNGSPROTOKOLL.md)
-- [Projektplanung und Aufgabenverteilung](docs/AGENTEN_PLAN.md)
-- [Projektordnung](docs/ORDNUNG.md)
-- [Test- und Auslieferungsanforderungen](docs/WEG_ZUR_EXE.md)
+## Auf einen Blick
 
-Diese Dokumente stammen aus dem lokalen Projekt. Bei jeder veroeffentlichten Aenderung
-muessen sie mit dem tatsaechlich eingecheckten Code abgeglichen werden.
+| | |
+|---|---|
+| **Plattform** | Windows (Entwicklungsstart über Python und Tkinter) |
+| **Spielmodus** | Einzelspieler, lokal, ohne Spielserver |
+| **Technik** | Python, Tkinter, JSON-Spieldaten |
+| **Aktueller Stand** | [Spielbereiche, offene Arbeiten und bekannte Grenzen](docs/BESUCHER_STATUS.md) |
+| **Entwicklungsverlauf** | [Offizielles Entwicklungsprotokoll](docs/ENTWICKLUNGSPROTOKOLL.md) |
+| **Mitmachen** | [Fehler melden oder Vorschläge einreichen](https://github.com/Decay03101991/Nebelseetal-Remake/issues) |
 
-## Verzeichnisuebersicht
+## Was ist im Projekt enthalten?
 
-- `src/` – Spielcode
-- `data/` – Spielwerte und Konfiguration ohne Geheimnisse
-- `assets/` – benoetigte Grafiken
-- `tests/` – automatisierte Pruefungen
-- `tools/` – Entwicklungswerkzeuge
-- `docs/` – Protokolle, Planung, Herkunft und Forschungsbelege
+- Siedlungskarten, Gebäude, Ressourcen und lokale Lager
+- Einheiten, Waren, Ausbildung, Forschung und Spielzeit
+- Handel, Transporte und Missions-/Kampfsysteme in unterschiedlichen Entwicklungsständen
+- Computergesteuerte Gegner, Punkte sowie Sieg-/Niederlagelogik
+- Lokales Speichern und Laden; persönliche Passwortabfrage beim Spielstart
+- Grafiken, historische Recherche und technische Prüfdateien
 
-## Start / Test
+**Wichtig:** „Im Projekt enthalten“ bedeutet nicht automatisch, dass jede Funktion vollständig integriert, ausbalanciert oder im fertigen Spielablauf geprüft ist. Die genaue Einordnung steht im [Statusbericht](docs/BESUCHER_STATUS.md).
 
-**Festgelegtes Verhalten:** Jeder Nutzer richtet beim ersten Start sein eigenes lokales Passwort ein.
-Er ist keine zentrale Zugangsbeschraenkung fuer eine oeffentliche Quellcodeveroeffentlichung.
-Das Projekt ist noch kein allgemein freigegebener Spiel-Release.
+## Spiel ausprobieren
 
-Auf Windows kann der Entwicklungsstand nach Pruefung der Abhaengigkeiten ueber
-`Nebelseetal_Remake.bat` gestartet werden; die Auslieferung als EXE ist gesondert zu testen.
+Derzeit steht **keine freigegebene EXE unter Releases** bereit. Du kannst die experimentelle Python-Fassung unter Windows aus dem Quellcode starten:
 
-## Entwicklung und Protokollierung
+1. Auf **Code → Download ZIP** klicken und das ZIP entpacken.
+2. Python 3 mit Tkinter installieren (Entwicklungsstand zuletzt mit Python 3.14 dokumentiert).
+3. Im entpackten Projektordner `Nebelseetal_Remake.bat` doppelklicken.
+4. Beim ersten Start ein **eigenes lokales Passwort** festlegen.
 
-Die offizielle Projektkoordination, Integration und Git-Freigabe liegt bei Hermes.
-Die GitHub-Kopie soll die freigegebenen Arbeitsdateien spiegeln, nicht automatisch
-ungetestete GPT-Vorausarbeit in den Hauptbranch uebernehmen.
+Die ausführliche Anleitung mit Voraussetzungen und bekannten Einschränkungen steht unter **[Spiel testen – Windows](docs/SPIEL_TESTEN.md)**.
 
-Sensible Dateien wie `tor.json`, lokale `.env`-Dateien, Schluessel, Spielstaende,
-Build-Ausgaben und persoenliche Zugangsdaten gehoeren nicht ins Repository.
+Hinweis: Die Passwortabfrage ist eine lokale Zugangshürde, kein Kopierschutz oder zentraler Anmeldedienst. Das Passwort wird nicht ins GitHub-Repository hochgeladen.
+
+## Entwicklungsstand und Dokumentation
+
+Dieses Repository zeigt den veröffentlichten Entwicklungszweig. Die maßgeblichen Unterlagen findest du hier:
+
+| Dokument | Zweck |
+|---|---|
+| [Besucher-Status](docs/BESUCHER_STATUS.md) | Verständlicher Überblick über alle größeren Spielbereiche und offene Punkte |
+| [Entwicklungsprotokoll](docs/ENTWICKLUNGSPROTOKOLL.md) | Chronik der Entwicklungsschritte mit Fehlern, Korrekturen und Testbelegen |
+| [Archivierte Protokoll-Vollfassung](docs/ENTWICKLUNGSPROTOKOLL_VOLLFASSUNG_2026-10-05_0820.md) | Historische Detailfassung; nicht automatisch der neueste Stand |
+| [Projektstand / Übergabe](docs/PROJEKT_STAND.md) | Detaillierte technische Projektplanung mit teils historischen Abschnitten |
+| [Projektordnung](docs/ORDNUNG.md) | Struktur des Arbeitsordners und Regeln für Änderungen |
+| [Weg zur Windows-EXE](docs/WEG_ZUR_EXE.md) | Abnahmekriterien für eine spätere veröffentlichbare Version |
+
+**Der Standbericht für Besucher ist eine Zusammenfassung**, nicht die zweite verbindliche Planung. Bei Widersprüchen haben der tatsächlich veröffentlichte Code, die Tests und das offizielle Entwicklungsprotokoll Vorrang.
+
+## Fehler melden und Rückmeldung geben
+
+Teste gern die Abläufe und melde reproduzierbare Fehler über [GitHub Issues](https://github.com/Decay03101991/Nebelseetal-Remake/issues/new/choose). Nützlich sind die verwendete Windows-/Python-Version, die genauen Schritte, das erwartete und tatsächliche Ergebnis sowie gegebenenfalls ein Screenshot.
+
+**Bitte keine Passwörter, API-Schlüssel oder privaten Spielstände veröffentlichen.**
+
+## Projektstruktur
+
+```text
+src/       Spielcode
+assets/    Spielgrafiken und Icons
+data/      Spielwerte und Definitionen
+tests/     Automatisierte Prüfungen
+tools/     Entwicklungs- und Buildwerkzeuge
+docs/      Protokoll, Status, Recherche, Planung und Originalbelege
+```
+
+## Veröffentlichung, Rechte und Verantwortung
+
+Dies ist ein **unabhängiges Fan-/Remake-Projekt** und keine offizielle Neuveröffentlichung des ursprünglichen Browsergames. Im Repository liegen auch historische Originalbelege und Grafiken. Für sie gelten gegebenenfalls Rechte Dritter. **Öffentliche Lesbarkeit ist nicht gleichbedeutend mit einer allgemeinen Weiterverwendungslizenz.** Eine solche Lizenz wird hier nicht behauptet.
+
+Die laufende Gesamtkoordination und Freigabe des eigentlichen Spielcodes liegt beim lokalen Projektkoordinator Hermes. Vorbereitungen anderer Entwicklungsagenten werden erst nach Prüfung und Integration Teil dieses Hauptstands.
