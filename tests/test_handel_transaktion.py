@@ -1,7 +1,7 @@
 # -*- coding: ascii -*-
 """Pruefung des bestaetigten FREMDHANDELS (Oekonomie-Paket, Schritt 8b).
 
-Quelle: `docs/audits/entwurf_spieloekonomie_sol_2026-10-05.txt`, Z. 752 und Z. 878-940:
+Quelle: `archiv/analysen/audits/entwurf_spieloekonomie_sol_2026-10-05.txt`, Z. 752 und Z. 878-940:
 
     'Externer Handel vorlaeufig als bestaetigte Einzelangebote mit echter Handelskarawane aus U;
      keine Netzfunktionen. Preis fest bei Angebot, Mengen/Gegenleistung vor Start sperren,

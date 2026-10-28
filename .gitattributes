@@ -1,0 +1,15 @@
+# Nebelseetal Remake: Bilder, Archive und Programme niemals als Text umwandeln.
+*.gif binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.bmp binary
+*.webp binary
+*.tif binary
+*.tiff binary
+*.pdf binary
+*.zip binary
+*.exe binary
+*.dll binary
+*.odt binary

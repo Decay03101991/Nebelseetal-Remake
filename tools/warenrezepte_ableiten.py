@@ -1,6 +1,6 @@
 """Nebelseetal Remake - Warenrezepte aus dem Oekonomie-Entwurf ableiten (Werkzeug).
 
-Quelle: docs/audits/entwurf_spieloekonomie_sol_2026-10-05.txt, Abschnitt "4. Pilotrezepte,
+Quelle: archiv/analysen/audits/entwurf_spieloekonomie_sol_2026-10-05.txt, Abschnitt "4. Pilotrezepte,
 lokale Ausbildung und echte Verbrauchsbelege", Codeblock Zeilen 507-534.
 
 Das ist ein REINES STANDARDWERKZEUG. Es liest die Projektdateien, leitet fuer JEDE Ware aus

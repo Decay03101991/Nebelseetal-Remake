@@ -26,8 +26,8 @@ from pathlib import Path
 
 WURZEL = Path(__file__).resolve().parent.parent
 PROTOKOLL = WURZEL / "docs" / "ENTWICKLUNGSPROTOKOLL.md"
-VORFASSUNG = WURZEL / "docs" / "ENTWICKLUNGSPROTOKOLL_VOR_VERDICHTUNG_2026-10-05.md"
-SICHERUNGEN = WURZEL / "docs" / "SICHERUNGEN.md"
+VORFASSUNG = WURZEL / "archiv" / "dokumentation" / "protokoll_alte_fassungen" / "ENTWICKLUNGSPROTOKOLL_VOR_VERDICHTUNG_2026-10-05.md"
+SICHERUNGEN = WURZEL / "archiv" / "dokumentation" / "projektunterlagen_historisch" / "SICHERUNGEN.md"
 
 # Zielgroesse aus den Regeln im Protokollkopf (Verdichtung 04.10.: 364 -> 300 Zeilen).
 ZIELZEILEN = 320

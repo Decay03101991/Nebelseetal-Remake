@@ -75,7 +75,7 @@ def blatt(zeilen, ziel_pfad: str):
 
 
 def main() -> int:
-    zielordner = WURZEL / "docs" / "icon_preview"
+    zielordner = WURZEL / "archiv" / "bildstudien" / "icon_preview"
     zielordner.mkdir(parents=True, exist_ok=True)
     gruppen = [
         ("Einheiten_original", "assets/icons/original_units"),

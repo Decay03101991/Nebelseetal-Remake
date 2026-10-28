@@ -21,6 +21,7 @@ from __future__ import annotations
 import io
 import json
 import os
+import math
 
 ORDNER = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PFAD = os.path.join(ORDNER, "data", "spielzeit.json")
@@ -74,7 +75,7 @@ def faktor() -> float:
             wert = float(daten().get("faktor", STANDARD_FAKTOR))
         except (TypeError, ValueError):
             wert = STANDARD_FAKTOR
-        _gemerkt = wert if wert > 0 else STANDARD_FAKTOR
+        _gemerkt = wert if math.isfinite(wert) and wert > 0 else STANDARD_FAKTOR
     return _gemerkt
 
 
@@ -85,7 +86,7 @@ def setzen(wert: float) -> float:
         neu = float(wert)
     except (TypeError, ValueError):
         return faktor()
-    if not neu > 0:
+    if not math.isfinite(neu) or neu <= 0:
         return faktor()
     werte = daten()
     werte["faktor"] = neu

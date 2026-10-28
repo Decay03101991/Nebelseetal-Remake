@@ -12,7 +12,7 @@ Ausbaustufe als Pips und legt die Koordinaten in eine aeussere Rasterleiste.
 Grundlage ALLER Zahlen ist die Auswertung eines Bildmodells (gpt-6-astra) an zwei echten
 Bildschirmfotos:
 
-    docs/audits/ux_astra_karten_feinheit_2026-10-05.txt
+    archiv/analysen/audits/ux_astra_karten_feinheit_2026-10-05.txt
 
   * Abschnitt "Siedlung 1 – Gebäude"          -> Gebaeude (Baukasten)
   * Abschnitt "Siedlung 2 – Gelände und Wege" -> Gelaende, Wege
@@ -55,7 +55,7 @@ FORMEN = ("polygon", "rectangle", "oval", "line", "text", "arc")
 
 # --------------------------------------------------------------------------
 # Astra-Masse, Siedlung 1 — Gebaeude (bei 64 px Feldgroesse).
-# Quelle: docs/audits/ux_astra_karten_feinheit_2026-10-05.txt, Abschnitt "Siedlung 1 – Gebäude":
+# Quelle: archiv/analysen/audits/ux_astra_karten_feinheit_2026-10-05.txt, Abschnitt "Siedlung 1 – Gebäude":
 #   "Bei 64 px Feldgröße einen Bereich von 44 × 46 px für Gebäude reservieren.
 #    Hauptkörper etwa 30 × 22 px, Dach 38 × 16 px, Sockel 36 × 5 px; Tür 6 × 10 px,
 #    Fenster 4 × 5 px."
@@ -844,7 +844,7 @@ def offene_luecken() -> list[str]:
     """Was dieses Modul bewusst NICHT belegen kann (ehrlich gemeldet)."""
     return [
         "Alle Masszahlen stammen aus der Bildmodell-Auswertung "
-        "docs/audits/ux_astra_karten_feinheit_2026-10-05.txt (Vorschlaege, keine belegten "
+        "archiv/analysen/audits/ux_astra_karten_feinheit_2026-10-05.txt (Vorschlaege, keine belegten "
         "Eigenschaften des Originals); das Handbuch 2009 nennt keine Kartenoptik.",
         "Das Bildmodell nennt die Gelaendeart 'Wasser'; im Projekt heisst sie 'nebelsee' — beide "
         "Schreibweisen werden als Wasser behandelt.",

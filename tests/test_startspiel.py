@@ -132,43 +132,60 @@ def main_() -> int:
     check("die Ansicht wurde neu gezeichnet (kein stiller Knopfdruck)",
           not _still, " | ".join(_still))
 
-    # ------------------------------------------- 2b Daniels Spielbericht vom 05.10.2026
-    # „so kann es passieren, dass man kein holz mehr bekommt, weil man keinen holzfäller
-    # gebaut hatte" — die Aufgabenkarte muss den fehlenden Erzeuger VOR dem Forschen nennen.
-    abschnitt("2b. Aufgabenkarte nennt den fehlenden Rohstoff-Erzeuger")
+    # ------------------------------------------- 2b Grundversorgung statt alte Warnannahmen
+    # Seit Ortslagern/Grundproduktion ist Holz (+1/h) ohne Gebaeude vorhanden;
+    # nach dem ersten Haus ist NAHRUNG der fehlende Erzeuger. Der Test darf
+    # nicht die alte Holz-Fehlwarnung erzwingen und damit die reale Oekonomie zerstoeren.
+    abschnitt("2b. Naechster Schritt und Warnungen anhand tatsaechlicher Produktion")
     _schritt = app.naechster_schritt()
-    check("ohne Gebäude führt sie zum Holzfäller", "Holzfäller" in _schritt["text"],
-          _schritt["text"][:160])
+    check("ohne Gebaeude fuehrt die Einstiegskarte zum Holzfaeller",
+          "Holzfäller" in _schritt["text"], _schritt["text"][:160])
 
     _sied = st.settlements[0]
     _raster = _sied.karte["raster"]
     _gras = [i for i, a in enumerate(_raster) if a == "grasland"]
     if _gras:
         ok, meldung = main.bauen_auf_karte(_sied, "haus", _gras[0])
-        check("Haus gebaut — aber kein einziger Erzeuger", ok is True, meldung)
+        check("Haus gebaut, noch kein Nahrungs-Erzeuger", ok is True, meldung)
         _schritt = app.naechster_schritt()
-        check("jetzt nennt die Karte ausdrücklich das fehlende Holz",
+        # FIX04f: Nach Gruendung muss erst Holz, Stein und Nahrung wirklich
+        # produziert werden; Haus allein ueberspringt die Pflichtversorgung nicht.
+        check("Aufgabenkarte priorisiert fehlende Holzproduktion nach Hausbau",
               "Holz" in _schritt["text"] and "Holzfäller" in _schritt["text"],
               _schritt["text"][:200])
-        check("und sagt, wo Holz wächst (Wald)", "Wald" in _schritt["text"],
+        check("Aufgabenkarte empfiehlt Wald fuer den Holzfaeller",
+              "Wald" in _schritt["text"] and "Steppe" in _schritt["text"],
               _schritt["text"][:200])
-        check("der Knopf führt in die Siedlungskarte", "öffnen" in _schritt["knopf"],
+        check("Aufgabenknopf fuehrt zum Bauen auf der Karte", "öffnen" in _schritt["knopf"],
               _schritt["knopf"])
         app._render()
-        check("die Warnung steht auch in der Kopfzeile (⚠ statt einer irreführenden 0)",
-              "⚠" in app.res_labels_top["holz"].cget("text"),
+        check("fehlende Nahrungserzeugung ist in der Kopfzeile markiert",
+              "⚠" in app.res_labels_top["nahrung"].cget("text"),
+              app.res_labels_top["nahrung"].cget("text"))
+        check("Holz-Grundproduktion wird nicht faelschlich als Ausfall markiert",
+              "⚠" not in app.res_labels_top["holz"].cget("text")
+              and st.stundenertrag().get("holz", 0) > 0,
               app.res_labels_top["holz"].cget("text"))
 
         _wald = [i for i, a in enumerate(_raster) if a == "wald"]
         if _wald:
             ok, meldung = main.bauen_auf_karte(_sied, "holzfaeller", _wald[0])
-            check("Holzfäller auf Wald gebaut", ok is True, meldung)
-            _schritt = app.naechster_schritt()
-            check("mit Holzquelle verschwindet die Holz-Warnung aus der Karte",
-                  "kein Holz da" not in _schritt["text"], _schritt["text"][:200])
+            check("Holzfaeller auf Originalkarten-Wald gebaut", ok is True, meldung)
             app._render()
-            check("und aus der Kopfzeile", "⚠" not in app.res_labels_top["holz"].cget("text"),
+            check("Holzertrag wird in der Kopfzeile sichtbar erhoeht",
+                  "⚠" not in app.res_labels_top["holz"].cget("text")
+                  and st.stundenertrag().get("holz", 0) > 1,
                   app.res_labels_top["holz"].cget("text"))
+            # Jaeger ist im Gegensatz zur Farm ohne Baukunst moeglich.
+            _weiterer_wald = next((i for i in _wald if str(i) not in _sied.bauten), None)
+            if _weiterer_wald is not None:
+                ok, meldung = main.bauen_auf_karte(_sied, "jaeger", _weiterer_wald)
+                check("Jaeger liefert Nahrung ohne Baukunst", ok is True, meldung)
+                app._render()
+                check("Nahrungswarnung verschwindet nach echtem Erzeuger",
+                      st.stundenertrag().get("nahrung", 0) > 0
+                      and "⚠" not in app.res_labels_top["nahrung"].cget("text"),
+                      app.res_labels_top["nahrung"].cget("text"))
 
     # ---------------------------------------------------------------- 3 Karte oeffnen
     abschnitt("3. Karte oeffnen und Felder sehen")
@@ -219,8 +236,8 @@ def main_() -> int:
         if str(i) in siedlung.bauten:
             continue
         # Echter Klick auf das Feld in der Zeichenfläche (geht über tag_bind wie ein Mausklick).
-        cx = RAND + (i % int(siedlung.karte.get("spalten") or 8)) * ZELLE + ZELLE // 2
-        cy = RAND + (i // int(siedlung.karte.get("spalten") or 8)) * ZELLE + ZELLE // 2
+        cx = RAND + (i % int(siedlung.karte["spalten"])) * ZELLE + ZELLE // 2
+        cy = RAND + (i // int(siedlung.karte["spalten"])) * ZELLE + ZELLE // 2
         canvas = getattr(app, "karten_canvas", None)
         if canvas is None:
             break
@@ -245,7 +262,8 @@ def main_() -> int:
                               - (nachher[_k] + float(siedlung.vorraete.get(_k, 0.0))))
                     if abs(_delta) > 1e-9:
                         _bezahlt[_k] = round(_delta, 1)
-                gebaut = {"feld": i, "gebaeude": beschriftung.split("\n")[0],
+                gebaut = {"feld": i, "gebaeude": main.gelaende.gebaeude_name(
+                    siedlung.bauten.get(str(i), beschriftung.split("\n")[0])),
                           "art": siedlung.karte["raster"][i], "bezahlt": _bezahlt}
                 break
         if gebaut:
@@ -321,54 +339,87 @@ def main_() -> int:
                "in diesem Lauf nicht ausgeloest (nichts gestohlen, aber auch nichts belegt)")
 
     # ---------------------------------------------------------------- 7 Ausbildung
-    abschnitt("7. Ausbildung: Gebaeude bauen, dann den Knopf druecken")
-    # Genug Mittel, damit dieser Schritt die Ausbildung prueft und nicht die Wirtschaft.
-    for k in ("holz", "stein", "nahrung", "leder", "wolle", "gold"):
-        if k in st.resources:
-            st.resources[k].amount = 5000
-    st.population = 100.0
-    akademie_gebaut = False
-    for i in range(len(siedlung.karte["raster"])):
-        if str(i) in siedlung.bauten:
-            continue
-        app._karten_feld_waehlen(i)
-        tick()
-        ok, beschriftung = _drueck(app, "Kriegerakademie")
-        if ok:
-            akademie_gebaut = True
-            break
-    if not akademie_gebaut:
-        befund("Kriegerakademie liess sich auf dieser Karte nicht setzen (Standortregel) — "
-               "Ausbildung konnte nicht geprueft werden")
-    else:
+    abschnitt("7. Forschung Baukunst -> Akademie -> Ausbildung (echte Spielregeln)")
+    # Fuer die vollstaendige Bedienkette mit echten Bau-/Forschungsaktionen
+    # reichen die Ortslager und die vorhandenen Siedler aus; keine Einheit
+    # entsteht gratis, keine Forschungsstufe wird im Test hochgeschrieben.
+    _ort_s = st.aktive_siedlung()
+    for _k in st.resources:
+        _ort_s.vorraete[_k] = max(float(_ort_s.vorraete.get(_k, 0.0)), 5000.0)
+    _ort_s.bevoelkerung = max(float(_ort_s.bevoelkerung), 100.0)
+
+    def _baue_regulaer(kennung):
+        app._oeffne_siedlungskarte(siedlung)
+        for _i in range(len(siedlung.karte["raster"])):
+            if str(_i) in siedlung.bauten:
+                continue
+            if not main.gelaende.bau_moeglich(kennung, siedlung.karte["raster"][_i])[0]:
+                continue
+            _vorher = len(siedlung.bauten)
+            app._karten_feld_waehlen(_i)
+            app._karten_bauen(kennung)
+            tick()
+            if len(siedlung.bauten) == _vorher + 1:
+                return _i
+        return None
+
+    # Die Sperre vor Baukunst ist ABSICHT, nicht ein Akademie-Defekt.
+    _akademie_feld = next((i for i, art in enumerate(siedlung.karte["raster"])
+                            if str(i) not in siedlung.bauten
+                            and main.gelaende.bau_moeglich("kriegerakademie", art)[0]), None)
+    if _akademie_feld is not None:
+        _anzahl = len(siedlung.bauten)
+        app._oeffne_siedlungskarte(siedlung)
+        app._karten_feld_waehlen(_akademie_feld)
+        app._karten_bauen("kriegerakademie")
+        check("Akademie vor Baukunst gesperrt (keine Gratis-Baustelle)",
+              len(siedlung.bauten) == _anzahl and st.research["Baukunst"].level == 0)
+
+    _bib = _baue_regulaer("bibliothek")
+    check("Bibliothek mit regulärer Bauaktion errichtet", _bib is not None, str(_bib))
+    if _bib is not None:
+        _vor_stufe = int(st.research["Baukunst"].level)
+        check("Baukunst-Forschung im Ortslager gestartet", app._start_research("Baukunst") is True)
+        _auftrag = _ort_s.forschungsauftrag or {}
+        check("Forschung ist ein Zeitauftrag, kein Sofortbonus",
+              bool(_auftrag.get("gebiet")) and st.research["Baukunst"].level == _vor_stufe,
+              str(_auftrag))
+        if _auftrag:
+            st.spielsekunden = (float(_auftrag.get("startzeit") or 0.0)
+                                + float(_auftrag.get("dauer_stunden") or 0.0) * 3600 + 1)
+            st.tick(0.0)
+        check("Baukunst nach echter Spielzeit Stufe 1 erreicht",
+              st.research["Baukunst"].level == _vor_stufe + 1
+              and _ort_s.forschungsauftrag is None,
+              str(st.research["Baukunst"].level))
+
+    akademie = _baue_regulaer("kriegerakademie")
+    check("Akademie nach Baukunst wirklich gebaut", akademie is not None, str(akademie))
+    if akademie is not None:
         app._switch_view("Kaserne")
         tick()
-        ks = _knoepfe(app.root, "Ausbilden")
-        check("mit der Kriegerakademie steht ein 'Ausbilden'-Knopf bereit", bool(ks),
-              f"{len(ks)} Knoepfe")
+        ks = [k for k in _knoepfe(app.root, "Ausbilden")
+              if str(k.cget("state")) == "normal"]
+        check("Kaserne bietet aktiven Ausbilden-Knopf", bool(ks), f"{len(ks)} aktiv")
         if ks:
-            # Die guenstigste bezahlbare Einheit nehmen (Kampfeinheiten kosten Gold).
-            # Teil 6c: Kosten, Siedler und Ausruestung liegen VOR ORT, und die Einheit entsteht am
-            # Ende der Ausbildungszeit im Ortslager (`ort_tick`) — nicht mehr sofort im Reich.
             _ort_s = st.aktive_siedlung()
+            _ort_s.bevoelkerung = max(float(_ort_s.bevoelkerung), 100.0)
             for _k in st.resources:
                 _ort_s.vorraete[_k] = max(float(_ort_s.vorraete.get(_k, 0.0)), 5000.0)
-            _ort_s.bevoelkerung = max(float(_ort_s.bevoelkerung), 100.0)
-            vorher = sum(int(v) for v in (_ort_s.einheiten or {}).values())
+            _vorher = sum(int(v) for v in (_ort_s.einheiten or {}).values())
             ks[0].invoke()
             tick()
-            check("der Knopfdruck gibt genau EINEN Ausbildungsauftrag vor Ort",
+            check("Knopf erzeugt genau einen Orts-Ausbildungsauftrag",
                   len(_ort_s.ausbildung or []) == 1, str(_ort_s.ausbildung))
-            if _ort_s.ausbildung:          # die Spieluhr bis ans Ende stellen, dann der ECHTE Takt
-                st.spielsekunden = float(_ort_s.ausbildung[-1].get("ende", 0.0)) + 1.0
-                st.last_tick = time.time() - 1.0
-                app._tick_loop()           # tick -> bucht die Einheit vor Ort -> zeichnet neu
+            if _ort_s.ausbildung:
+                st.spielsekunden = float(_ort_s.ausbildung[-1].get("ende", 0.0)) + 1
+                st.tick(0.0)
+                app._render_view()
             tick()
-            nachher = sum(int(v) for v in (_ort_s.einheiten or {}).values())
-            check("nach der Ausbildungszeit steht GENAU eine neue Einheit im Ortslager",
-                  nachher == vorher + 1,
-                  f"{vorher} -> {nachher} | Status: {app.lbl_status.cget('text')[:80]}")
-            check("die neue Einheit ist im Fenster zu sehen",
+            _nachher = sum(int(v) for v in (_ort_s.einheiten or {}).values())
+            check("nach Ausbildungszeit genau eine neue lokale Einheit",
+                  _nachher == _vorher + 1, f"{_vorher} -> {_nachher}")
+            check("neue Einheit im Fenster sichtbar",
                   any("Anzahl: 1" in z for z in _texte(app.root)),
                   " | ".join(z for z in _texte(app.root) if "Anzahl" in z)[:200])
 
@@ -378,8 +429,9 @@ def main_() -> int:
     # AKTUELLE Ansicht neu, und die war nach dem Kaserne-Schritt nicht mehr die Karte.
     app._oeffne_siedlungskarte(siedlung)
     tick()
-    biblio = False
-    for i in range(len(siedlung.karte["raster"])):
+    biblio = any(main.gelaende.finde_gebaeude(b) == "bibliothek"
+                 for b in siedlung.bauten.values())
+    for i in range(len(siedlung.karte["raster"])) if not biblio else ():
         if str(i) in siedlung.bauten:
             continue
         app._karten_feld_waehlen(i)
@@ -419,7 +471,7 @@ def main_() -> int:
     # ---------------------------------------------------------------- 10 Götterschutz
     # KORREKTUR 05.10.2026 (Handbuch S. 6, Z. 215-217 gewinnt): Der Schutz dauert SIEBEN Tage
     # (vorher endete er fest bei Tag 3) und endet vorzeitig mit dem ERSTEN Kriegspunkt.
-    # Beleg: docs/audits/handbuch_abgleich_2026-10-05.txt, Punkt 1. Geprueft am echten Zustand.
+    # Beleg: archiv/analysen/audits/handbuch_abgleich_2026-10-05.txt, Punkt 1. Geprueft am echten Zustand.
     abschnitt("10. Götterschutz: sieben Tage bzw. Ende mit dem ersten Kriegspunkt (Handbuch S. 6)")
     frisch = main.GameState()
     check("zu Beginn ist der Götterschutz aktiv (Tag 1)", frisch.noob_protection is True)

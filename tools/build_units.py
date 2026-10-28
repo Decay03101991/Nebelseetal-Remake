@@ -9,8 +9,10 @@ import json
 import os
 import re
 import sys
+from pathlib import Path
 
-ROOT = r"D:\Arbeiten\Nebelseetal_Remake"
+# Immer die entpackte Projektkopie verwenden; niemals ein anderes lokales Projekt.
+ROOT = str(Path(__file__).resolve().parent.parent)
 DOC = os.path.join(ROOT, "docs", "original", "ORIGINAL_Einheiten_Waren_Rohstoffe.md")
 
 ROHSTOFFE = {"siedler", "gold", "nahrung", "leder", "wolle", "metall", "mana", "holz",
@@ -145,7 +147,12 @@ out = {
     "einheiten": einheiten,
 }
 p = os.path.join(ROOT, "data", "units.json")
-json.dump(out, open(p, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
+if "--legacy-neuschreiben" not in sys.argv:
+    print("ABBRUCH: Historischer Generator wuerde neue Originalwerte ueberschreiben. "
+          "Nur bewusst mit --legacy-neuschreiben ausfuehren.")
+    sys.exit(2)
+with open(p, "w", encoding="utf-8") as f:
+    json.dump(out, f, indent=2, ensure_ascii=False)
 print(f"geschrieben: {p}  ({os.path.getsize(p)} Byte, {len(einheiten)} Einheiten)")
 
 # ------------------------------------------------------------------ Pruefung

@@ -36,8 +36,8 @@ from pathlib import Path
 SCHLUESSEL = "goal:%s"
 
 # Das Projekt, dessen Uebergabe gelesen wird (nur fuer --naechster-schritt/--startzeile).
-PROJEKT = Path(r"D:\Arbeiten\Nebelseetal_Remake")
-STAND_DATEI = PROJEKT / "docs" / "PROJEKT_STAND.md"
+PROJEKT = Path(__file__).resolve().parent.parent
+STAND_DATEI = PROJEKT / "docs" / "AKTUELLER_STAND.md"
 
 
 def register_pfad() -> Path:
@@ -168,36 +168,29 @@ def naechster_schritt(pfad=None) -> str:
     if not datei.exists():
         return f"Uebergabedokument nicht gefunden: {datei}"
     text = datei.read_text(encoding="utf-8", errors="replace")
-    marke = "### Der EINE nächste Schritt"
+    marke = "## Next actions für den temporären Coding-Agenten"
     stelle = text.find(marke)
     if stelle < 0:
         return f"'{marke}' steht nicht in {datei.name}."
     rest = text[stelle + len(marke):]
-    ende = rest.find("\n### ")
-    return rest[:ende if ende > 0 else len(rest)].strip()
+    ende = rest.find("\n## ")
+    return (rest[:ende if ende > 0 else len(rest)].strip()
+            + "\n\nVerpflichtend: Einzeltest, Sammellauf und Eintrag ins zentrale "
+              "Entwicklungsprotokoll.md nach jedem bestaetigten Fix.")
 
 
 def startzeile(eigene_sitzung: str = "") -> str:
-    """Die Startzeile fuer die neue Sitzung (wird ausgegeben, nichts wird gestartet).
-
-    Das KONTEXT-PAKET steht bewusst an erster Stelle: es ist die kleine Uebergabe (~8 KB), die
-    den Stand, den EINEN naechsten Schritt, die Roadmap und die teuer gelernten Fallen traegt.
-    `PROJEKT_STAND.md` ist mit ~68 KB Nachschlagewerk und wird nur bei Bedarf gelesen.
-    """
+    """Ausgabe einer rein informativen Wiedereinstiegsanweisung – keine Agentenaktion."""
     return "\n".join([
-        f"Lies ZUERST {PROJEKT / 'docs' / 'KONTEXT_PAKET.md'} (klein: Belegstand, der EINE naechste",
-        "Schritt, Roadmap, Fallen, offene Entscheidungen, Zeiger auf Detailstellen).",
-        f"{PROJEKT / 'docs' / 'PROJEKT_STAND.md'} nur bei Bedarf (Historie; dort Abschnitt 0c"
-        " Stand/naechster Schritt, 0e Uebergabe). Lies sonst nur das Kontext-Paket und die dort",
-        "genannten Stellen. Nach jedem Schritt: betroffener Einzeltest + einmal Sammellauf, eine",
-        "Protokollzeile (Zeit, Schritt, Ergebnis, Beleg, Kosten),",
-        "python tools/protokoll_sichern.py --protokoll, kleiner Commit. Am Ende der Reihe:",
-        "tools/build_exe.py und Startpruefung aus einem anderen Ordner.",
-        "",
-        "Vor der ersten Aenderung: python tools/zieluebergabe.py --pruefen  (0 = nur diese Sitzung",
-        "hat ein aktives Ziel; sonst den Geisterlaeufer mit --beenden SITZUNG sauber beenden).",
-        "",
-        f"Ziel in DIESER Sitzung setzen: /goal <Wortlaut aus {PROJEKT / 'docs' / 'PROJEKT_STAND.md'} 0c>",
+        f"Lies ZUERST {PROJEKT / 'docs' / 'HERMES_UEBERGABE_AKTUELL.md'} als einzige aktive Hermes-Uebergabe.",
+        f"Lies {PROJEKT / 'docs' / 'AKTUELLER_STAND.md'} fuer die offenen Schritte und Spielbereiche.",
+        f"Lies {PROJEKT / 'docs' / 'HERMES_KONTROLLE_UND_SKILLS.md'} fuer geltende Sicherheits- und Lernregeln.",
+        "Nach jedem Schritt: gezielter Einzeltest + Sammellauf (run_tests.bat unter Windows),",
+        "eine Zeile ins zentrale docs/ENTWICKLUNGSPROTOKOLL.md mit Testbeleg;",
+        "anschliessend Freigabe durch Hermes, sauberer Commit und nach Sicherheitspruefung Push.",
+        "Vor der ersten Aenderung: python tools/zieluebergabe.py --pruefen",
+        "Ein fremdes aktives Ziel nie parallel weiterbearbeiten (gegebenenfalls --beenden SITZUNG).",
+        "Ziel in DIESER Sitzung setzen: /goal <naechster offener Schritt aus docs/AKTUELLER_STAND.md>",
     ])
 
 

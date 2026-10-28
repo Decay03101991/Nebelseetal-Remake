@@ -1,65 +1,63 @@
-# NEBELSEETAL REMAKE – oeffentliche GitHub-Spiegelkopie
-# Achtung: Diese Regeln schuetzen NICHT vor Geheimnissen, die im Quelltext
-# oder in der bereits versionierten Git-Historie stehen.
-
-# Vertrauliche Konfiguration, Credentials und Passwort-Pruefwerte
+# Lokale Archive und vertrauliche Altstaende (nicht oeffentlich pushen)
+/archiv/
+# Secrets / persoenliche Zugangsdateien
 .env
 .env.*
 !.env.example
 **/tor.json
 **/credentials.json
 **/secrets.json
+**/secret.json
 **/token.json
 *.pem
 *.key
 *.p12
 *.pfx
-*.p8
-id_rsa*
-id_ed25519*
-
-# Persoenliche Spielstaende und Laufzeitdaten
+*passwort*.txt
+*password*.txt
+# Spielstaende und privater Laufzeitstatus
 savegame.json
 savegame.json.*
-savegame*.bak
+**/savegame.json
+**/savegame.json.*
 savegames/
 saves/
 *.sav
-game.lock
 *.lock
-
-# Entwicklungs-, Build- und Cache-Artefakte
-__pycache__/
-*.py[cod]
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.venv/
-venv/
+*.bak
+*.tmp
+# Build / generierte Dateien / Testumgebungen
 build/
 dist/
 *.spec
 *.exe
-*.dll
-*.tmp
-*.orig
-*.bak
-*.log
-
-# Alte Builds und Doppelungen, nicht Teil des aktiven Spiels
-_Quarantaene/
-Quarantäne/
-
-# Zu gross fuer normale GitHub-Repositories (> 100 MiB):
-# Kopie vorerst nur lokal; bei ausdruecklichem Wunsch Git LFS einrichten.
-/Vorausarbeit gpt chat/NEBELSEETAL_GPT_GESAMTPAKET_KORRIGIERT_28.10.2026.zip
-
-# Archivdateien enthalten moeglicherweise private Dateien und sind separat zu pruefen
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+# Archivpakete (nicht ins oeffentliche Repo)
 *.zip
 *.7z
 *.rar
+# Logdateien
+*.log
 
-# OS
-.DS_Store
-Thumbs.db
-Desktop.ini
+# Lokale manuelle Ruecklage der vorherigen Projektstruktur
+/Alles alte/
+/Alles_alte/
+NEBELSEETAL_FIX*_FORTSCHRITT_WINDOWS.txt
+
+# FIX04g: keine privaten archivierten Spielstaende oder lokalen Runtime-Daten
+**/archiv/spielstaende/**
+**/savegame_slot*.json
+**/admin_teststand.json
+**/admin_tor.json
+**/ARCHIV_INFO.json
+
+# FIX04j: oeffentlicher Windows-Build nur als Releases-Artefakt
+/release_public/
+/build_public_tmp/
+/dist_public_tmp/
+
+/docs/archiv/

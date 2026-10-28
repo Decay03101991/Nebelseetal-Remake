@@ -5,7 +5,7 @@ Gegenstand sind die NEUEN Funktionen in src/spieloekonomie.py:
   verbrauchen, transport_start, transport_fortschritt, station_start.
 
 Geprueft werden die acht Pflichtzusagen aus
-docs/audits/entwurf_spieloekonomie_sol_2026-10-05.txt, Zeile 505:
+archiv/analysen/audits/entwurf_spieloekonomie_sol_2026-10-05.txt, Zeile 505:
   1. Verbrauch zieht genau die Kosten, begrenzt aufs lokale Lager, Journal anteilig.
   2. Startpruefungen (Besitzer, Dimension, Ausgangsgarnison, Karrenpflicht, Fracht).
   3. Gute Fahrt: genaue Abbuchung, Ankunft genau einmal, Rueckkehr, kein Doppelbuchen.

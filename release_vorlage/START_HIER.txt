@@ -1,0 +1,13 @@
+NEBELSEETAL REMAKE - OEFFENTLICHE WINDOWS-TESTVERSION
+
+1. Den gesamten ZIP-Inhalt in einen neuen Ordner entpacken.
+2. Nebelseetal_Remake_Testversion.exe per Doppelklick starten.
+3. Beim ersten Start ein EIGENES Passwort festlegen und sicher notieren.
+4. Im normalen Spielermodus einen Spielerslot laden oder eine Partie starten.
+5. Fehler/Probleme nach FEHLER_MELDEN.txt dokumentieren.
+
+KEINE ADMIN-FUNKTIONEN in der oeffentlichen Testoberflaeche.
+Die lokale Entwicklerfassung bleibt getrennt und enthaelt den Admin-Testbereich.
+Bitte vorab SYSTEMANFORDERUNGEN.txt und BEKANNTE_GRENZEN.txt lesen.
+
+Testversion: keine vollstaendige Spiel- oder Kompatibilitaetsgarantie.

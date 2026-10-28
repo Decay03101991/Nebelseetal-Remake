@@ -2,7 +2,7 @@
 Nebelseetal Remake - Menue-Vergleich (Paket W7, 04.10.2026).
 
 Stellt das WOERTLICH belegte Original-Menue (Datenblatt `data/menue_original.json`,
-Quelle: docs/audits/astra_gamestar_antwort.txt, Screenshot 1838855) gegen das Menue
+Quelle: archiv/analysen/audits/astra_gamestar_antwort.txt, Screenshot 1838855) gegen das Menue
 des laufenden Spiels. Das laufende Menue steht als `MENU_ITEMS` in `src/main.py`;
 dieses Modul LIEST `main.py` als TEXT und importiert es NICHT (main ist eine
 Fensteranwendung).

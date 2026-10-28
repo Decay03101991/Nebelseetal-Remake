@@ -78,10 +78,16 @@ def _serialisiere(daten):
 
 
 def _entferne_quiet(pfad: str) -> None:
-    """Eine Datei loeschen, ohne je zu werfen (Aufraeumen nach einem Fehler)."""
+    """Fehlgeschlagene Zwischendatei archivieren statt vernichten.
+
+    Schlaegt das Archivieren fehl, bleibt der Rest am bisherigen Ort und kann
+    beim naechsten Start erneut geprueft werden. Nie einen echten Slot anfassen.
+    """
+    if not os.path.isfile(pfad) or not pfad.endswith(ENDUNG_TMP):
+        return
     try:
-        if os.path.exists(pfad):
-            os.remove(pfad)
+        import spielstand_archiv
+        spielstand_archiv.archiviere(pfad, "abgebrochen", "Fehlgeschlagener Speicherversuch")
     except OSError:
         pass
 
@@ -266,11 +272,11 @@ def pruefe_datei(pfad: str) -> dict:
 # ---------------------------------------------------------------- Aufraeumen
 
 def aufraeumen(pfad: str) -> list:
-    """Entfernt liegengebliebene Zwischendateien zum Zielpfad und meldet, was weg ist.
+    """Archiviert liegengebliebene Zwischendateien zum Zielpfad und meldet sie.
 
-    Entfernt werden nur Dateien, die mit dem Namen der Zieldatei beginnen und auf ``.tmp``
+    Archiviert werden nur Dateien, die mit dem Namen der Zieldatei beginnen und auf ``.tmp``
     enden (z. B. ``savegame.json.tmp`` aus einem abgebrochenen Lauf). Die Zieldatei selbst
-    und die Sicherung ``.bak`` bleiben unberuehrt. Rueckgabe: Liste der entfernten Pfade.
+    und die Sicherung ``.bak`` bleiben unberuehrt. Rueckgabe: Liste der archivierten Ursprungsnamen.
     """
     entfernt: list = []
     ordner = os.path.dirname(os.path.abspath(pfad))
@@ -283,8 +289,11 @@ def aufraeumen(pfad: str) -> list:
         if name.startswith(basis + ".") and name.endswith(ENDUNG_TMP):
             voll = os.path.join(ordner, name)
             try:
-                os.remove(voll)
-                entfernt.append(voll)
+                import spielstand_archiv
+                ok, _ = spielstand_archiv.archiviere(
+                    voll, "abgebrochen", "Zwischendatei nach abgebrochenem Speichervorgang")
+                if ok:
+                    entfernt.append(voll)
             except OSError:
                 pass
     return entfernt

@@ -119,9 +119,14 @@ def pruefe_ergebnis() -> Path:
         raise SystemExit(f"FEHLER: die EXE ist mit {groesse} Byte zu klein — da fehlt etwas")
 
     ziel = WURZEL / exe.name
-    if ziel.exists():
-        ziel.unlink()
-    shutil.copy2(exe, ziel)
+    # Atomarer Austausch: Bei Schreibfehlern bleibt die alte EXE unversehrt.
+    zwischen = WURZEL / (exe.name + ".neubau.tmp")
+    try:
+        shutil.copy2(exe, zwischen)
+        os.replace(zwischen, ziel)
+    finally:
+        if zwischen.exists():
+            zwischen.unlink()
 
     weitere = [p.name for p in WURZEL.glob("*.exe") if p.name != ziel.name]
     if weitere:
@@ -166,6 +171,10 @@ def main() -> int:
     if fehler:
         melde("Bau abgebrochen — die Voraussetzungen fehlen.")
         return 1
+    if sys.platform != "win32":
+        melde("ABBRUCH: Windows-.exe darf nur auf Windows gebaut werden; "
+              "PyInstaller kann nicht von Linux nach Windows kreuzkompilieren.")
+        return 2
 
     if not args.ohne_saeubern:
         saeubere()

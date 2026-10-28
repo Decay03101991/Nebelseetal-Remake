@@ -20,7 +20,8 @@ Aufruf:
     python tools/protokoll_sichern.py                 # sichern + Bericht
     python tools/protokoll_sichern.py --pruefen       # nur vergleichen, nichts schreiben
     python tools/protokoll_sichern.py --protokoll     # zusaetzlich eine Zeile im Protokoll anhaengen
-    python tools/protokoll_sichern.py --ziel "D:/Pfad"  # anderer Zielort
+    python tools/protokoll_sichern.py --ziel "D:/Pfad"  # optionaler anderer Zielort
+    set NEBEL_PROTOKOLL_ZIEL=D:/Arbeiten/Hermes/Nebelseetal_Protokoll
 
 Geprueft wird am Ende: jede Datei muss am Ziel liegen UND dieselbe Pruefsumme haben. Weicht etwas
 ab, meldet das Skript einen Fehler (Rueckgabewert 1) statt "fertig".
@@ -36,7 +37,7 @@ import time
 from pathlib import Path
 
 WURZEL = Path(__file__).resolve().parent.parent
-STANDARD_ZIEL = Path("D:/Arbeiten/Hermes/Nebelseetal_Protokoll")
+STANDARD_ZIEL = Path(os.environ["NEBEL_PROTOKOLL_ZIEL"]).expanduser() if os.environ.get("NEBEL_PROTOKOLL_ZIEL") else WURZEL.parent / "Nebelseetal_Remake_Protokoll"
 
 # Was gesichert wird: die fuehrenden Papiere dieser Sitzung.
 # (Frueher kam hier auch der Ordner board/ dazu — das Brett der Kinder wurde am 04.10.2026 auf

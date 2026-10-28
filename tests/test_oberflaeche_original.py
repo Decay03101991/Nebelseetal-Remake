@@ -2,7 +2,7 @@
 Menue-Vergleich Original gegen Spiel (Paket W7, 04.10.2026).
 
 Prueft `src/oberflaeche_original.py` gegen das belegte Original-Menue
-(docs/audits/astra_gamestar_antwort.txt, Screenshot 1838855) und gegen das
+(archiv/analysen/audits/astra_gamestar_antwort.txt, Screenshot 1838855) und gegen das
 laufende Menue in `src/main.py`. Beweist ausdruecklich:
 
   * das Original hat die belegten Eintraege in der belegten Reihenfolge,

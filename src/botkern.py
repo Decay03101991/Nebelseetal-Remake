@@ -521,6 +521,25 @@ def oekonomie_kartenwahl(stufe: str, eigene_karten: list, freie_karten: dict,
     profil = regeln["bots"][stufe]
     if not profil["gruenden"]:
         return None
+    # Der Bot darf bei fehlendem/Null-Bedarf keine Karte "auf Verdacht" nehmen.
+    # 0/0 und fehlende Werte fuehrten bisher im Mittel-Modus zum Absturz.
+    deckung = {}
+    if stufe == "mittel":
+        for rohstoff, wert in (bedarf or {}).items():
+            try:
+                soll = float(wert)
+                ist = float((raten or {}).get(rohstoff, 0))
+            except (ValueError, TypeError, OverflowError):
+                continue
+            if not math.isfinite(soll) or soll <= 0:
+                continue
+            if not math.isfinite(ist) or ist < 0:
+                ist = 0.0
+            deckung[rohstoff] = ist / soll
+        if not deckung:
+            return None
+        mangel_rohstoff = min(sorted(deckung), key=deckung.get)
+
     kandidaten = []
     for kennung, eintrag in sorted(freie_karten.items()):
         if eintrag["besitzer"] is not None:
@@ -528,8 +547,7 @@ def oekonomie_kartenwahl(stufe: str, eigene_karten: list, freie_karten: dict,
         nutzen = O.kartennutzen(eigene_karten, eintrag["karte"])
         if stufe == "mittel":
             # Aktuell schwaechste Deckung priorisieren, bei Gleichstand Kennung.
-            rohstoff = min(sorted(bedarf), key=lambda r: raten.get(r, 0) / bedarf[r])
-            nutzen = O.kapazitaeten(eintrag["karte"]).get(rohstoff, 0)
+            nutzen = O.kapazitaeten(eintrag["karte"]).get(mangel_rohstoff, 0)
         if nutzen > profil["ablehnungsnutzen"]:
             kandidaten.append((-nutzen, kennung))
     return min(kandidaten)[1] if kandidaten else None

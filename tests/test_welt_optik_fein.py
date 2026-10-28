@@ -1,7 +1,7 @@
 """
 Prueft die FEINEREN Zeichenplaene der WELTkarte (src/welt_optik_fein.py) OHNE Fenster.
 
-Grundlage sind die astra-Zahlen aus docs/audits/ux_astra_karten_feinheit_2026-10-05.txt
+Grundlage sind die astra-Zahlen aus archiv/analysen/audits/ux_astra_karten_feinheit_2026-10-05.txt
 (Abschnitte Welt 1/2/3). Geprueft werden: die sechs Gelaendezeichen (Formenzahl, Lage in der
 Zelle, Determinismus, Nachbarkanten, Ufersaum, Zoomstufen, ValueError), die drei Ortsilhouetten,
 die Fahne, die goldene Auswahl, die Regionsbeschriftung mit Schatten, die 4-px-Uebersichtskarte

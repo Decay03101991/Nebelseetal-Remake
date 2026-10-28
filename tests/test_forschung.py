@@ -148,7 +148,7 @@ check("abgelehnter zweiter Start kostet keine Rohstoffe (nur 50 weg)",
 # KORREKTUR 05.10.2026 (Handbuch S. 12, Z. 423-424 gewinnt): Ein laufender Forschungsauftrag
 # sperrt die GANZE Siedlung — es gibt hier nur EINE Bibliothek, also ist auch ein ANDERES
 # Gebiet gesperrt. Vorher erlaubte der Code parallele Forschung in anderen Gebieten; das war
-# ein belegter Widerspruch gegen das Handbuch (docs/audits/handbuch_abgleich_2026-10-05.txt).
+# ein belegter Widerspruch gegen das Handbuch (archiv/analysen/audits/handbuch_abgleich_2026-10-05.txt).
 ok3, meld3 = F.starten("Baukunst", stand, 0.5 * H, hat_bibliothek=True,
                        vorhandene_rohstoffe=roh)
 check("ein anderes Gebiet wird ebenfalls abgelehnt (die Siedlung forscht bereits)",

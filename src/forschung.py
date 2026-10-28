@@ -15,7 +15,7 @@ Belegte Originalregeln (Handbuch 2009, Seiten 11-13) — nicht neu erfunden, son
   * Ein laufender Auftrag sperrt die GANZE Siedlung: solange eine Bibliothek forscht, ist weder
     eine weitere Forschung noch der Ausbau der Bibliothek moeglich (Handbuch S. 12, Z. 423-424).
     KORREKTUR 05.10.2026: vorher sperrte der Code nur dasselbe Gebiet — belegter Widerspruch
-    gegen das Handbuch (docs/audits/handbuch_abgleich_2026-10-05.txt, Punkt 3). Das Handbuch
+    gegen das Handbuch (archiv/analysen/audits/handbuch_abgleich_2026-10-05.txt, Punkt 3). Das Handbuch
     gewinnt. Solange es EINE Bibliothek gibt, heisst „die Siedlung“ faktisch „keine weitere
     Forschung“; mit mehreren Siedlungen je eigener Bibliothek gilt die Sperre je Siedlung.
   * Abbruch: die Kosten sind verloren, die Stufe steigt nicht.

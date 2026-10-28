@@ -104,14 +104,14 @@ check("aus Sicht einer ganz neuen Sitzung gibt es noch ein aktives (jetzt eigene
 
 abschnitt("5. Der Wiedereinstiegspunkt und die Startzeile")
 
-schritt = Z.naechster_schritt(os.path.join(ROOT, "docs", "PROJEKT_STAND.md"))
+schritt = Z.naechster_schritt(os.path.join(ROOT, "docs", "AKTUELLER_STAND.md"))
 check("der naechste Schritt wird aus dem Uebergabedokument gelesen",
       len(schritt) > 100 and "###" not in schritt, schritt[:100])
 check("er nennt den Sammellauf und die Protokollpflicht",
       "Sammellauf" in schritt or "Protokoll" in schritt, schritt[:160])
 zeile = Z.startzeile("20261009_000000_neu")
 check("die Startzeile nennt die Uebergabe-Datei und die Uebergabe-Pruefung",
-      "PROJEKT_STAND.md" in zeile and "zieluebergabe.py --pruefen" in zeile, zeile[:160])
+      "HERMES_UEBERGABE_AKTUELL.md" in zeile and "zieluebergabe.py --pruefen" in zeile, zeile[:160])
 check("die Startzeile nennt /goal und den Sammellauf",
       "/goal" in zeile and "Sammellauf" in zeile)
 check("die Startzeile startet NICHTS von allein (kein Sitzungsbefehl)",

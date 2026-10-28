@@ -71,10 +71,10 @@
       "wirkung": "produziert Mana",
       "rohstoff": "Mana",
       "ertrag_pro_stunde": {
-        "Nebelsee": 5,
-        "alle Gelände außer Sumpf": 1
+        "Nebelsee": 8,
+        "alle Gelände außer Sumpf": 2
       },
-      "abweichung": "Nebelsee: 2005 = 8, Handbuch 2009 = 5; übriges Gelände (außer Sumpf): 2005 = 2, Handbuch 2009 = 1."
+      "abweichung": "2009-Handbuch 5/1; neue Quelle WeitereWerteKampfsystem.odt, S.4, 8/2."
     },
     {
       "id": "farm",
@@ -129,16 +129,16 @@
       ],
       "ertrag_pro_stunde": {
         "Grasland": {
-          "Nahrung": 3,
+          "Nahrung": 1,
           "Leder": 3
         },
         "Steppe": {
-          "Nahrung": 1.5,
+          "Nahrung": 0.5,
           "Leder": 1.5
         }
       },
-      "abweichung": "Grasland: 2005 = 2, Handbuch 2009 = 3; Steppe: 2005 = 1, Handbuch 2009 = 1,5.",
-      "anmerkung": "KORREKTUR 05.10.2026 (Handbuch gewinnt): Die 2009er Tabelle nennt wörtlich \"Grasland (3 Nahrung, 3 Leder), Steppe (1,5 Nahrung, 1,5 Leder)\" (Z. 362-365). Vorher führte die Datei nur Leder. Belegt durch docs/audits/handbuch_abgleich_2026-10-05.txt, Punkt 4."
+      "abweichung": "2009-Handbuch: Nahrung und Leder 3/3 auf Grasland, 1,5/1,5 auf Steppe; neue Quelle WeitereWerteKampfsystem.odt, S.4: 1 Nahrung +3 Leder bzw. 0,5 +1,5.",
+      "anmerkung": "Neu dokumentierter Originalstand (GPT-NE01); Nahrungsanteil ist von Forschungsboni ausgenommen."
     },
     {
       "id": "pferdezucht",
@@ -408,7 +408,7 @@
   ],
   "_gelaenderegeln_vorschlag": {
     "_vorgabe": "Daniel, 05.10.2026: 'ich wollte das ja intelligent angewendet auf alle gebäude haben … ein gebäude hat im sumpf nichts verloren als regel … zum beispiel.'",
-    "_belegt": "Sumpf unbebaubar für ALLE (Handbuch S. 11) · Bibliothek nur Grasland/Steppe/Nebelsee (S. 11) · Tempel 'Nebelsee 5, alles außer Sumpf 1' · Erträge der Produktionsgebäude je Geländeart (daraus folgen Holzfäller, Steinmetz, Erz-/Goldmine, die vier Zuchten und der Jäger schon vorher).",
+    "_belegt": "Sumpf unbebaubar für ALLE (Handbuch S. 11) · Bibliothek nur Grasland/Steppe/Nebelsee (S. 11) · Tempel Nebelsee 8, sonst 2 (neue Tabelle 28.10.2026) · Erträge der Produktionsgebäude je Geländeart (daraus folgen Holzfäller, Steinmetz, Erz-/Goldmine, die vier Zuchten und der Jäger schon vorher).",
     "_vorschlag": "Haus, Lager, Schmiede, Bogenbauer, Nähstube, Kriegerakademie, Diebesgilde, Stellmacher, Verteidigungswall — das Handbuch nennt für sie keine Geländeregel. Folge: Nebelsee ist nur noch für Bibliothek und Tempel bebaubar.",
     "_aenderbar": "Diese Regeln stehen nur in DIESER Datei. Wer eine Liste ändert oder löscht (null), ändert das Spiel sofort — wie bei allen Wirkungen hier.",
     "_bestaetigt": "Daniel, 05.10.2026 (14:24): Alle neun so lassen, wie sie jetzt im Spiel stehen. Die neun Regeln sind damit GESETZT, nicht mehr Vorschlag; der Wortlaut oben bleibt als Herkunft stehen."

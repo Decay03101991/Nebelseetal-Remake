@@ -72,8 +72,10 @@ check("das Modul laedt main.py NICHT (keine GUI-Abhaengigkeit)",
 check("das Modul laedt kein tkinter",
       re.search(r"^\s*(import|from)\s+tkinter\b", _quelltext, re.M) is None)
 _std = set(re.findall(r"^\s*import\s+([a-zA-Z_][\w]*)", _quelltext, re.M))
-check("das Modul nutzt nur die Standardbibliothek",
-      _std <= {"json", "os", "time", "sys"}, str(sorted(_std)))
+# FIX04g: Der Archiv-Helfer ist ein lokales Modul, das selbst nur Standardbibliothek
+# benutzt. Kein Netz, keine GUI und keine externen Abhaengigkeiten.
+check("nur Standardbibliothek und lokaler Archiv-Helfer",
+      _std <= {"json", "os", "time", "sys", "spielstand_archiv"}, str(sorted(_std)))
 
 _luecken = SP.offene_luecken()
 check("offene_luecken() liefert ein dict", isinstance(_luecken, dict), str(type(_luecken)))

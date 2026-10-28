@@ -24,7 +24,7 @@ sys.path.insert(0, str(WURZEL / "src"))
 import gelaende as G  # noqa: E402
 import main as M  # noqa: E402
 
-ZIEL = WURZEL / "docs" / "karten_vorschau"
+ZIEL = WURZEL / "archiv" / "bildstudien" / "karten_vorschau"
 
 FELD = 34          # Kantenlaenge einer Kachel in Pixeln
 RAHMEN = 1         # Rahmen zwischen den Feldern
