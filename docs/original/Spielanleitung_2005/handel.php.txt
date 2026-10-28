@@ -1,0 +1,52 @@
+Handel
+|
+Handel
+|
+Um mit anderen Spielern Handel zu treiben, benötigt Ihr Handelskarren. Nur Geschäfte die
+mit diesen Fuhrwerken gegen Gold getätigt werden, werden mit Handelspunkten vergütet. Nähere
+Infos zum Punktesystem in Nebelseetal-Online erhaltet Ihr hier.
+Zunächst müsst Ihr einen Handelspartner finden, der Euch Waren oder Rohstoffe abkauft.
+Dies können z.B. Spieler sein, die zwar bestimmte Einheiten ausbilden können, aber nicht
+die Voraussetzungen erfüllen um entsprechende Waffen herzustellen. Das
+Forum kann bei der
+Suche nach Handelspartnern sehr hilfreich sein. Habt ihr einen Handelspartner
+gefunden, der Eure Ware kaufen möchte, vereinbart einen Kaufpreis in Gold mit ihm.
+Um einem Spieler Handelswaren zukommen zu lassen klickt im
+Siedlungsmenü auf Aufträge. Wählt dort
+so viele Handelskarren aus, wie Ihr benötigt um die Waren zu transportieren. Es ist wichtig, das
+Ihr für Handelsaufträge ausschließlich Handelskarren und/oder große Handelskarren auswählt.
+Wählt anschließend als Auftragsziel Fremde Siedlung aus und gebt die Portalkoordinaten
+des Spielers an, mit dem Ihr handeln möchtet. Die Portalkoordinaten könnt ihr im Portalbereich abrufen,
+indem Ihr mit der Maus auf einen Spieler zeigt und einen Moment wartet. Klickt auf weiter um
+zu den Auftragseinstellungen zu gelangen.
+Hier seht Ihr nun in dem Auswahlfeld oben alle Siedlungen die der Handelspartner besitzt. Wählt
+die Siedlung aus, zu der die Handelsware transportiert werden soll. Wählt unter Auftrag Handel
+aus und gebt alle Rohstoffe und Waren an, die ihr verkaufen möchtet. Unter der Rohstoff- und Warenauswahl
+müsst ihr noch den verlangten Preis für die Handelsware in Gold angeben. Habt Ihr alle Angaben gemacht
+klickt auf Auftrag erteilen.
+Die Handelskarren transportieren nun die Ware zu der von Euch angegebenen Siedlung. Sind sie dort
+angekommen, warten sie in der Siedlung bis Euer Handelspartner den Handel bestätigt. Dann
+kehren die Karren mit dem Gold zu Eurer Siedlung zurück und ihr bekommt Handelspunkte.
+Ihr habt jederzeit die Möglichkeit unter
+Aufträge im Siedlungsmenü die
+Handelskarren zurückzurufen. Außerdem kann euer Handelspartner den Handel ablehnen.
+In beiden Fällen bekommt Ihr keine Handelspunkte und die Handelskarren kehren mit der
+gesamten Ladung zu Eurer Siedlung zurück.
+Einen Handel bestätigen, ablehnen oder zurückrufen:
+Um einen Handel zu bestätigen wartet ab, bis die Händler des Verkäufers in Eurer Siedlung
+eingetroffen sind. Klickt anschließend im Siedlungsmenü
+auf den Button Aufträge. Hier seht Ihr eine Auflistung aller Händler, die in
+Eurer aktuellen Siedlung auf Eure Bestätigung warten. Die Händler die von Eurer aktuellen
+Siedlung zu anderen Spielern ausgesandt wurden, um dort Waren zu verkaufen, können dort ebenfals
+eingesehen werden. Eine Auflistung hinter dem Namen und der Siedlung des Handelspartners,
+zeigt alle Waren, welche die Karren geladen haben und den
+geforderten Preis in Gold an. Hinter jedem einzelnen Auftrag befinden sich Buttons, mit denen
+Ihr bei Euren Aufträgen die Karren zurückbeordern, bei Karren anderer Spieler den Auftrag
+annehmen oder ablehnen könnt. Nehmt Ihr als Käufer einen Auftrag an, so werden die Handelswaren in Eurer
+aktuellen Siedlung abgeladen und das Gold aus der Siedlung in die Karren verladen. Die Händler
+verlassen dann Eure Siedlung wieder Richtung Startsiedlung des Verkäufers. Habt Ihr zu wenig
+Gold in der Siedlung um die Ware zu bezahlen, so müsst ihr zuerst das Gold aus anderen Siedlungen
+heranschaffen, oder warten bis Eure Goldminen die entsprechende Menge gefördert haben, bevor Ihr den
+Handel bestätigen könnt. Ruft Ihr als Verkäufer einen Eurer Handelskarren zurück,
+oder lehnt einen Handel als Käufer ab, kehren die Handelskarren zu ihrer Heimatsiedlung,
+mit allen Handelswaren zurück. Dabei werden keine Handelspunkte vergeben.

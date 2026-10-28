@@ -1,0 +1,65 @@
+# NEBELSEETAL REMAKE – oeffentliche GitHub-Spiegelkopie
+# Achtung: Diese Regeln schuetzen NICHT vor Geheimnissen, die im Quelltext
+# oder in der bereits versionierten Git-Historie stehen.
+
+# Vertrauliche Konfiguration, Credentials und Passwort-Pruefwerte
+.env
+.env.*
+!.env.example
+**/tor.json
+**/credentials.json
+**/secrets.json
+**/token.json
+*.pem
+*.key
+*.p12
+*.pfx
+*.p8
+id_rsa*
+id_ed25519*
+
+# Persoenliche Spielstaende und Laufzeitdaten
+savegame.json
+savegame.json.*
+savegame*.bak
+savegames/
+saves/
+*.sav
+game.lock
+*.lock
+
+# Entwicklungs-, Build- und Cache-Artefakte
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+build/
+dist/
+*.spec
+*.exe
+*.dll
+*.tmp
+*.orig
+*.bak
+*.log
+
+# Alte Builds und Doppelungen, nicht Teil des aktiven Spiels
+_Quarantaene/
+Quarantäne/
+
+# Zu gross fuer normale GitHub-Repositories (> 100 MiB):
+# Kopie vorerst nur lokal; bei ausdruecklichem Wunsch Git LFS einrichten.
+/Vorausarbeit gpt chat/NEBELSEETAL_GPT_GESAMTPAKET_KORRIGIERT_28.10.2026.zip
+
+# Archivdateien enthalten moeglicherweise private Dateien und sind separat zu pruefen
+*.zip
+*.7z
+*.rar
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini

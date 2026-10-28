@@ -1,0 +1,51 @@
+Du bist Spieleentwickler:in. Aufgabe in DREI Schritten, dann antworte kurz — kein weiteres Werkzeug.
+
+1) Lies:  D:/Arbeiten/Nebelseetal_Remake/docs/original/ORIGINAL_Kampf_und_Punkte.md
+   und:   D:/Arbeiten/Nebelseetal_Remake/data/units.json
+   und:   D:/Arbeiten/Nebelseetal_Remake/data/buildings.json
+
+2) Schreibe GENAU EINE Datei: D:/Arbeiten/Nebelseetal_Remake/src/kampf.py
+
+Sie setzt den Kampfablauf aus dem Handbuch (Seiten 20-22) exakt um, als reine Python-Funktion
+ohne Oberflaeche, nur Standardbibliothek, ohne Platzhalter und ohne TODO:
+
+    def fuehre_schlacht(angreifer: dict, verteidiger: dict, wall_stufe: int,
+                        wall_zustand: float = 100.0, angreifer_karren: dict | None = None,
+                        rng=None) -> dict
+
+- angreifer/verteidiger: {einheitenname: anzahl}; Karren und Belagerungswaffen werden getrennt als
+  angreifer_karren uebergeben.
+- Regeln in dieser Reihenfolge:
+  a) VORRUNDE: Schlagkraft aller angreifenden Fusstruppen (SK) muss den Schwellenwert der Wallstufe
+     erreichen; ab der Stufe, ab der eine Belagerungsschwelle angegeben ist, zusaetzlich Schlagkraft
+     der Belagerungswaffen. Nicht erreicht -> Rueckzug, Ergebnis "unentschieden".
+  b) MAUERSCHADEN: je Belagerungswaffe Zufallswert im TP-Bereich minus Ausbaustufe der Mauer,
+     mindestens 0; Abzug vom Zustand (Prozent). Beschaedigte Mauer verlangt prozentual weniger
+     Schlagkraft.
+  c) hoechstens 10 KAMPFSEQUENZEN. Je Sequenz: zuerst FERNKAMPF gleichzeitig (Fernkaempfer schiessen
+     auf die Fusstruppen des Gegners, gibt es keine, auf dessen Fernkaempfer), danach Verluste auf
+     BEIDEN Seiten berechnen, danach stuermen die NAHKAMPF-Einheiten nacheinander je eine ZUFAELLIGE
+     gegnerische Nahkampfeinheit an.
+  d) ZWEIKAMPF: hoeherer MU beginnt (bei Gleichstand der Verteidiger). Zufallszahl 1-100 <= AT =
+     Treffer, sonst Fehlschlag. Bei Treffer pariert der Verteidiger mit PA; gelingt die Parade, kein
+     Schaden. Sonst Schaden = Zufallswert im TP-Bereich minus RS, mindestens 1, Abzug von LE.
+     LE < 1 = tot; LE < 5 = Fluchtprobe ueber MU (Misslingen = geflohen, kehrt nach der Schlacht
+     zurueck).
+  e) ERSCHOEPFUNG: der Sieger eines Zweikampfs verliert bis Schlachtende je 1 AT und 1 PA (summiert
+     sich).
+  f) AUSGANG: alle Verteidiger tot oder geflohen -> Angreifer siegt und PLAUNDERT, wenn er
+     Transportkarren mitfuehrt (Beute = Ladung, begrenzt auf die vorhandenen Vorraete).
+     Alle angreifenden Fusstruppen tot oder geflohen -> Verteidiger siegt.
+     Der Verlierer verliert einen Teil der Karren und Belagerungswaffen: je Einheit 40 Prozent
+     Fluchtchance, +5 Prozent je Kampfsequenz. Unentschieden -> alle Karren und Belagerungswaffen
+     bleiben.
+- Rueckgabe: dict mit "ausgang" ("angreifer"/"verteidiger"/"unentschieden"), "sequenzen" (Liste mit
+  den Ereignissen je Sequenz als Text), "verluste_angreifer", "verluste_verteidiger", "geflohen",
+  "mauer_zustand", "beute", "bericht" (mehrzeiliger Text auf Deutsch, wie ein Kampfbericht).
+- WICHTIG: Werte, die im Handbuch fehlen (z. B. MU bei Karren und Belagerungswaffen), NICHT raten:
+  solche Einheiten kaempfen nicht und nehmen nur an der Vorrunde bzw. am Mauerschaden teil.
+
+3) Pruefe die Datei:  python -c "import sys; sys.path.insert(0,'D:/Arbeiten/Nebelseetal_Remake/src'); import kampf; print('import ok')"
+
+Antworte danach in hoechstens fuenf Zeilen: Datei geschrieben, Import geprueft, welche Regel am
+unsichersten war. Keine weitere Datei anfassen.

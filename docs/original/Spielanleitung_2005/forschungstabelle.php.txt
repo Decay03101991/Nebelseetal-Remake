@@ -1,0 +1,135 @@
+Forschungstabelle
+|
+Forschungstabelle
+| Bezeichnung
+| Wirkung
+| Voraussetzung
+|
+Kriegskunst
+|
+Die Kunst des bewaffneten Kampfes und des taktischen Vorgehens auf dem Schlachtfeld ermöglicht es Euch, Eure Armee duch stärkere Einheiten aufzuwerten.
+|
+Bibliothek 1
+|
+Heimlichkeit
+|
+Die hohe Kunst des Schleichens, ist die Grundlage um gute Spione auszubilden.
+|
+Bibliothek 1
+|
+Schmiedekunst
+|
+Mit Schmiedekunst erhöht Ihr die Effektivität Eurer Waffen und Rüstungen um je 5%.
+|
+Bibliothek 1
+|
+Bogenbau
+|
+Neue Techniken beim Bogenbau steigern die Geschwindigkeit, mit der Euer Bogenbauer produziert.
+|
+Bibliothek 1
+|
+Nähen
+|
+Neue Nähtechniken beschleunigen die Arbeit Eurer Schneider in der Näherei.
+|
+Bibliothek 1
+|
+Waffentechnik
+|
+Waffentechnik ermöglicht es Euch, neue Arten von Waffen herzustellen.
+|
+Bibliothek 3
+Schmiedekunst 1
+|
+Rüstungsbau
+|
+Rüstungsbau ermöglicht Euren Schmieden, neue Arten von Rüstungen herzustellen.
+|
+Bibliothek 3
+Schmiedekunst 1
+|
+Nähkunst
+|
+Die Verfeinerung der Nähkünste ermöglicht Euch, neue Umhänge und Lederrüstungen herzustellen.
+|
+Bibliothek 2
+Nähen 1
+|
+Magiekunde
+|
+Die Erforschung der arkanen Künste, ist Voraussetzung für die verschiedenen Pfade der Magie.
+|
+Bibliothek 6
+|
+Kampfmagie
+|
+Durch den Pfad der Kampfmagie, erlangt Ihr neue magische Formeln, um vernichtende Zauber über Eure Feinde zu sprechen.
+|
+Magiekunde 4
+|
+Baukunst
+|
+Baukunst ist eine wichtige Voraussetzung für einige Forschungen, die es Euch ermöglichen, Eure Siedlungen besser zu verteidigen.
+|
+Bibliothek 1
+|
+Mauerbau
+|
+Mit neuen Erkenntnissen im Mauerbau könnt Ihr die Effizienz Eurer Verteidigungsanlagen erhöhen. Pro Stufe erhöht sich der Verteidigungswert um 10%.
+|
+Verteidigungsanlagen 5
+|
+Verteidigungsanlagen
+|
+Mit der Weiterentwicklung von Verteidigungsanlagen, stehen euch neue Möglichkeiten offen, Eure Siedlungen vor Angriffen zu schützen.
+|
+Baukunst 3
+|
+Wagenbau
+|
+Neue Erkenntnisse bei der Konstruktion von Fahrzeugen, ermöglicht Euren Stellmachern, neue Arten von Karren zu bauen.
+|
+Bibliothek 1
+|
+Felderwirtschaft
+|
+Felderwirtschaft erhöht die Nahrungsproduktion Eurer Siedlungen um 10% pro Stufe.
+|
+Bibliothek 1
+|
+Steinbruch
+|
+Neue Techniken beim Abbau von Steinen, erhöhen die Steinproduktion Eurer Steinmetze um 10% pro Stufe.
+|
+Bibliothek 3
+|
+Forstwirtschaft
+|
+Forstwirtschaft erhöht die Effektivität Eurer Holzfäller um 10% pro Stufe.
+|
+Bibliothek 3
+|
+Tierhaltung
+|
+Durch neue Erkenntnisse in der Tierhaltung, könnt Ihr Eure Pferde-, Woll- und Lederproduktion um je 5% pro Stufe erhöhen.
+|
+Bibliothek 2
+|
+Minenarbeit
+|
+Durch neue Techniken bei der Arbeit in Euren Minen, erhöht Ihr die Metall- und Goldproduktion um je 5% pro Stufe.
+|
+Bibliothek 3
+|
+Götterkunde
+|
+Neue Erkenntnisse über die Götter, verschaffen Euch pro Stufe 5% mehr Mana.
+|
+Bibliothek 5
+|
+Heilkunde
+|
+Je besser Eure Heiler über Hygiene, Krankheiten und die Versorgung von Wunden Bescheid wissen, desto schneller steigt Eure Siedleranzahl. Die Siedlerproduktion steigt um 10% pro Stufe.
+|
+Bibliothek 3

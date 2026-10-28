@@ -1,0 +1,145 @@
+{
+  "_hinweis": "Die 21 Forschungen des Originals 'Nebelseetal Online' als Datendatei. 'wirkung' ist jeweils der wortgetreue Wirkungstext; wo die archivierte 2005er Tabelle und das Handbuch 2009 voneinander abweichen, stehen beide Werte und ein Feld 'abweichung'. 'wirkung_struktur' und 'voraussetzung_struktur' sind nur gesetzt, wo die Vorlage eine eindeutige Zuordnung erlaubt (pro_stufe_prozent bleibt null, wenn das Original keinen Prozentwert nennt). Nichts erfunden.",
+  "_quelle": [
+    "docs/original/ORIGINAL_Einheiten_Waren_Rohstoffe.md (Abschnitt 5 'Forschung', Stand aus dem Handbuch 2009)",
+    "docs/original/Spielanleitung_2005/forschungstabelle.php.txt (wortgetreue Originaltabelle, Spielanleitung 2005)",
+    "docs/original/Spielanleitung_2009_Textfassung.txt, Seiten 11-13 (Forschungsablauf)"
+  ],
+  "regeln": {
+    "dauer": "neue Stufe zum Quadrat in Stunden",
+    "kosten": "verdoppeln sich je Stufe; Handbuch Seite 13 nennt als Beispiel 50 Holz auf Stufe 1 -> 50, 100, 200, 400 (als Grundbetrag im Spiel umgesetzt, Funktion spieldaten.forschungs_kosten)",
+    "stufe_steigt": "erst nach Ablauf der Forschungszeit",
+    "abbruch": "Zeit und Ressourcen verloren",
+    "blockiert": "Forschungsbereich der Siedlung waehrend der Studien"
+  },
+  "forschungen": {
+    "Kriegskunst": {
+      "wirkung": "Die Kunst des bewaffneten Kampfes und des taktischen Vorgehens auf dem Schlachtfeld ermöglicht es Euch, Eure Armee duch stärkere Einheiten aufzuwerten.",
+      "wirkung_struktur": {"art": "kampf", "ziel": "armee-einheiten", "pro_stufe_prozent": null},
+      "voraussetzung": "Bibliothek 1",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 1}]
+    },
+    "Heimlichkeit": {
+      "wirkung": "Die hohe Kunst des Schleichens, ist die Grundlage um gute Spione auszubilden.",
+      "wirkung_struktur": {"art": "voraussetzung", "ziel": "spione", "pro_stufe_prozent": null},
+      "voraussetzung": "Bibliothek 1",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 1}]
+    },
+    "Schmiedekunst": {
+      "wirkung": "Mit Schmiedekunst erhöht Ihr die Effektivität Eurer Waffen und Rüstungen um je 5%.",
+      "wirkung_struktur": {"art": "produktion", "ziel": "waffen und ruestungen", "pro_stufe_prozent": 5},
+      "voraussetzung": "Bibliothek 1",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 1}]
+    },
+    "Bogenbau": {
+      "wirkung": "Neue Techniken beim Bogenbau steigern die Geschwindigkeit, mit der Euer Bogenbauer produziert.",
+      "wirkung_struktur": {"art": "produktion", "ziel": "bogenproduktion", "pro_stufe_prozent": null},
+      "voraussetzung": "Bibliothek 1",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 1}]
+    },
+    "Nähen": {
+      "wirkung": "Neue Nähtechniken beschleunigen die Arbeit Eurer Schneider in der Näherei.",
+      "wirkung_struktur": {"art": "produktion", "ziel": "schneiderei", "pro_stufe_prozent": null},
+      "voraussetzung": "Bibliothek 1",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 1}]
+    },
+    "Waffentechnik": {
+      "wirkung": "Waffentechnik ermöglicht es Euch, neue Arten von Waffen herzustellen.",
+      "wirkung_struktur": {"art": "voraussetzung", "ziel": "waffenarten", "pro_stufe_prozent": null},
+      "voraussetzung": "Bibliothek 3 + Schmiedekunst 1",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 3}, {"art": "forschung", "name": "Schmiedekunst", "stufe": 1}]
+    },
+    "Rüstungsbau": {
+      "wirkung": "Rüstungsbau ermöglicht Euren Schmieden, neue Arten von Rüstungen herzustellen.",
+      "wirkung_struktur": {"art": "voraussetzung", "ziel": "ruestungsarten", "pro_stufe_prozent": null},
+      "voraussetzung": "Bibliothek 3 + Schmiedekunst 1",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 3}, {"art": "forschung", "name": "Schmiedekunst", "stufe": 1}]
+    },
+    "Nähkunst": {
+      "wirkung": "Die Verfeinerung der Nähkünste ermöglicht Euch, neue Umhänge und Lederrüstungen herzustellen.",
+      "wirkung_struktur": {"art": "voraussetzung", "ziel": "umhaenge und lederruestungen", "pro_stufe_prozent": null},
+      "voraussetzung": "Bibliothek 2 + Nähen 1",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 2}, {"art": "forschung", "name": "Nähen", "stufe": 1}]
+    },
+    "Magiekunde": {
+      "wirkung": "Die Erforschung der arkanen Künste, ist Voraussetzung für die verschiedenen Pfade der Magie.",
+      "wirkung_struktur": {"art": "voraussetzung", "ziel": "magiepfade", "pro_stufe_prozent": null},
+      "voraussetzung": "Bibliothek 6",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 6}]
+    },
+    "Kampfmagie": {
+      "wirkung": "Durch den Pfad der Kampfmagie, erlangt Ihr neue magische Formeln, um vernichtende Zauber über Eure Feinde zu sprechen.",
+      "wirkung_struktur": {"art": "kampf", "ziel": "zauber", "pro_stufe_prozent": null},
+      "voraussetzung": "Magiekunde 4",
+      "voraussetzung_struktur": [{"art": "forschung", "name": "Magiekunde", "stufe": 4}]
+    },
+    "Baukunst": {
+      "wirkung": "Baukunst ist eine wichtige Voraussetzung für einige Forschungen, die es Euch ermöglichen, Eure Siedlungen besser zu verteidigen.",
+      "wirkung_struktur": {"art": "voraussetzung", "ziel": "verteidigungsforschung", "pro_stufe_prozent": null},
+      "voraussetzung": "Bibliothek 1",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 1}]
+    },
+    "Mauerbau": {
+      "wirkung": "Mit neuen Erkenntnissen im Mauerbau könnt Ihr die Effizienz Eurer Verteidigungsanlagen erhöhen. Pro Stufe erhöht sich der Verteidigungswert um 10%.",
+      "wirkung_struktur": {"art": "kampf", "ziel": "verteidigungswert", "pro_stufe_prozent": 10},
+      "voraussetzung": "Verteidigungsanlagen 5",
+      "voraussetzung_struktur": [{"art": "forschung", "name": "Verteidigungsanlagen", "stufe": 5}]
+    },
+    "Verteidigungsanlagen": {
+      "wirkung": "Mit der Weiterentwicklung von Verteidigungsanlagen, stehen euch neue Möglichkeiten offen, Eure Siedlungen vor Angriffen zu schützen.",
+      "wirkung_struktur": {"art": "voraussetzung", "ziel": "verteidigungsanlagen", "pro_stufe_prozent": null},
+      "voraussetzung": "Baukunst 3",
+      "voraussetzung_struktur": [{"art": "forschung", "name": "Baukunst", "stufe": 3}]
+    },
+    "Wagenbau": {
+      "wirkung": "Neue Erkenntnisse bei der Konstruktion von Fahrzeugen, ermöglicht Euren Stellmachern, neue Arten von Karren zu bauen.",
+      "wirkung_struktur": {"art": "voraussetzung", "ziel": "karren", "pro_stufe_prozent": null},
+      "voraussetzung": "Bibliothek 1",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 1}],
+      "wirkung_2009": "neue Karren und Belagerungswaffen",
+      "abweichung": "Wirkungstext weicht ab: Die 2005er Tabelle nennt als Wirkung nur 'neue Arten von Karren'. Die Zusammenfassung aus dem Handbuch 2009 (ORIGINAL_Einheiten_Waren_Rohstoffe.md, Abschnitt 5) nennt zusätzlich 'und Belagerungswaffen' (Stellmacher fertigt laut Handbuch Seite 15 Karren und Belagerungswaffen). Voraussetzung (Bibliothek 1) ist in beiden Quellen identisch."
+    },
+    "Felderwirtschaft": {
+      "wirkung": "Felderwirtschaft erhöht die Nahrungsproduktion Eurer Siedlungen um 10% pro Stufe.",
+      "wirkung_struktur": {"art": "produktion", "ziel": "nahrung", "pro_stufe_prozent": 10},
+      "voraussetzung": "Bibliothek 1",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 1}]
+    },
+    "Steinbruch": {
+      "wirkung": "Neue Techniken beim Abbau von Steinen, erhöhen die Steinproduktion Eurer Steinmetze um 10% pro Stufe.",
+      "wirkung_struktur": {"art": "produktion", "ziel": "stein", "pro_stufe_prozent": 10},
+      "voraussetzung": "Bibliothek 3",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 3}]
+    },
+    "Forstwirtschaft": {
+      "wirkung": "Forstwirtschaft erhöht die Effektivität Eurer Holzfäller um 10% pro Stufe.",
+      "wirkung_struktur": {"art": "produktion", "ziel": "holz", "pro_stufe_prozent": 10},
+      "voraussetzung": "Bibliothek 3",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 3}]
+    },
+    "Tierhaltung": {
+      "wirkung": "Durch neue Erkenntnisse in der Tierhaltung, könnt Ihr Eure Pferde-, Woll- und Lederproduktion um je 5% pro Stufe erhöhen.",
+      "wirkung_struktur": {"art": "produktion", "ziel": "pferde, wolle, leder", "pro_stufe_prozent": 5},
+      "voraussetzung": "Bibliothek 2",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 2}]
+    },
+    "Minenarbeit": {
+      "wirkung": "Durch neue Techniken bei der Arbeit in Euren Minen, erhöht Ihr die Metall- und Goldproduktion um je 5% pro Stufe.",
+      "wirkung_struktur": {"art": "produktion", "ziel": "metall, gold", "pro_stufe_prozent": 5},
+      "voraussetzung": "Bibliothek 3",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 3}]
+    },
+    "Götterkunde": {
+      "wirkung": "Neue Erkenntnisse über die Götter, verschaffen Euch pro Stufe 5% mehr Mana.",
+      "wirkung_struktur": {"art": "produktion", "ziel": "mana", "pro_stufe_prozent": 5},
+      "voraussetzung": "Bibliothek 5",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 5}]
+    },
+    "Heilkunde": {
+      "wirkung": "Je besser Eure Heiler über Hygiene, Krankheiten und die Versorgung von Wunden Bescheid wissen, desto schneller steigt Eure Siedleranzahl. Die Siedlerproduktion steigt um 10% pro Stufe.",
+      "wirkung_struktur": {"art": "produktion", "ziel": "siedlerproduktion", "pro_stufe_prozent": 10},
+      "voraussetzung": "Bibliothek 3",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 3}]
+    }
+  }
+}

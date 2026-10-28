@@ -1,0 +1,1047 @@
+{
+  "_hinweis": "Nur Originalangaben aus dem Handbuch 2009 und der Spielanleitung 2005. Felder, die die Vorlage nicht hergibt, sind null und stehen in 'nicht_original'. Es ist KEIN Wert geraten.",
+  "_quelle": "docs/original/Nebelseetal_Spielanleitung_2009.pdf, docs/original/Spielanleitung_2005/",
+  "anzahl": 28,
+  "einheiten": {
+    "Bürgerwehr": {
+      "kategorie": "Nahkampf",
+      "gebaeude": "Kriegerakademie",
+      "kosten": {
+        "siedler": 1,
+        "nahrung": 100,
+        "leder": 50,
+        "wolle": 50
+      },
+      "waren": [],
+      "voraussetzung": null,
+      "kriegspunkte": 1,
+      "werte": {
+        "LE": 15,
+        "AT": 20,
+        "PA": 20,
+        "SI": 10,
+        "HE": 10,
+        "RS": 0,
+        "TP_min": 1,
+        "TP_max": 6,
+        "GS": 5,
+        "MU": 40,
+        "SK": 1
+      },
+      "icon": "assets/icons/original_units/Soldat.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Kämpfer": {
+      "kategorie": "Nahkampf",
+      "gebaeude": "Kriegerakademie",
+      "kosten": {
+        "siedler": 1,
+        "gold": 250
+      },
+      "waren": [
+        "Kurzschwert",
+        "Lederrüstung"
+      ],
+      "voraussetzung": {
+        "forschung": "Kriegskunst",
+        "stufe": 1
+      },
+      "kriegspunkte": 2,
+      "werte": {
+        "LE": 20,
+        "AT": 40,
+        "PA": 25,
+        "SI": 10,
+        "HE": 15,
+        "RS": 1,
+        "TP_min": 2,
+        "TP_max": 8,
+        "GS": 10,
+        "MU": 75,
+        "SK": 2
+      },
+      "icon": "assets/icons/original_units/Kämpfer.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Krieger": {
+      "kategorie": "Nahkampf",
+      "gebaeude": "Kriegerakademie",
+      "kosten": {
+        "siedler": 1,
+        "gold": 500,
+        "pferde": 1
+      },
+      "waren": [
+        "Schwert",
+        "Kettenhemd"
+      ],
+      "voraussetzung": {
+        "forschung": "Kriegskunst",
+        "stufe": 3
+      },
+      "kriegspunkte": 4,
+      "werte": {
+        "LE": 30,
+        "AT": 50,
+        "PA": 40,
+        "SI": 15,
+        "HE": 15,
+        "RS": 2,
+        "TP_min": 3,
+        "TP_max": 10,
+        "GS": 25,
+        "MU": 85,
+        "SK": 3
+      },
+      "icon": "assets/icons/original_units/Krieger.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Ritter": {
+      "kategorie": "Nahkampf",
+      "gebaeude": "Kriegerakademie",
+      "kosten": {
+        "siedler": 1,
+        "gold": 1000,
+        "pferde": 1
+      },
+      "waren": [
+        "Schwert",
+        "Plattenrüstung"
+      ],
+      "voraussetzung": {
+        "forschung": "Kriegskunst",
+        "stufe": 7
+      },
+      "kriegspunkte": 8,
+      "werte": {
+        "LE": 35,
+        "AT": 70,
+        "PA": 50,
+        "SI": 15,
+        "HE": 5,
+        "RS": 4,
+        "TP_min": 4,
+        "TP_max": 15,
+        "GS": 20,
+        "MU": 95,
+        "SK": 4
+      },
+      "icon": "assets/icons/original_units/Ritter.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Paladin": {
+      "kategorie": "Nahkampf",
+      "gebaeude": "Kriegerakademie",
+      "kosten": {
+        "siedler": 1,
+        "gold": 2000,
+        "mana": 10,
+        "pferde": 1
+      },
+      "waren": [
+        "Zweihänder",
+        "Schwert",
+        "Magischer Paladinharnisch"
+      ],
+      "voraussetzung": {
+        "forschung": "Kriegskunst",
+        "stufe": 10
+      },
+      "kriegspunkte": 16,
+      "werte": {
+        "LE": 50,
+        "AT": 85,
+        "PA": 60,
+        "SI": 20,
+        "HE": 0,
+        "RS": 6,
+        "TP_min": 6,
+        "TP_max": 20,
+        "GS": 20,
+        "MU": 100,
+        "SK": 5
+      },
+      "icon": "assets/icons/original_units/Paladin.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Kurzbogenschütze": {
+      "kategorie": "Fernkampf",
+      "gebaeude": "Kriegerakademie",
+      "kosten": {
+        "siedler": 1,
+        "gold": 250
+      },
+      "waren": [
+        "Kurzbogen"
+      ],
+      "voraussetzung": {
+        "forschung": "Kriegskunst",
+        "stufe": 2
+      },
+      "kriegspunkte": 2,
+      "werte": {
+        "LE": 15,
+        "AT": 40,
+        "PA": 0,
+        "SI": 10,
+        "HE": 10,
+        "RS": 0,
+        "TP_min": 1,
+        "TP_max": 6,
+        "GS": 5,
+        "MU": 60,
+        "SK": 1
+      },
+      "icon": "assets/icons/original_units/Einfacher Bogenschütze.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Bogenschütze": {
+      "kategorie": "Fernkampf",
+      "gebaeude": "Kriegerakademie",
+      "kosten": {
+        "siedler": 1,
+        "gold": 500
+      },
+      "waren": [
+        "Bogen"
+      ],
+      "voraussetzung": {
+        "forschung": "Kriegskunst",
+        "stufe": 4
+      },
+      "kriegspunkte": 4,
+      "werte": {
+        "LE": 15,
+        "AT": 50,
+        "PA": 0,
+        "SI": 10,
+        "HE": 10,
+        "RS": 0,
+        "TP_min": 1,
+        "TP_max": 8,
+        "GS": 5,
+        "MU": 60,
+        "SK": 2
+      },
+      "icon": "assets/icons/original_units/Kurzbogenschütze.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Langbogenschütze": {
+      "kategorie": "Fernkampf",
+      "gebaeude": "Kriegerakademie",
+      "kosten": {
+        "siedler": 1,
+        "gold": 1000
+      },
+      "waren": [
+        "Langbogen"
+      ],
+      "voraussetzung": {
+        "forschung": "Kriegskunst",
+        "stufe": 6
+      },
+      "kriegspunkte": 8,
+      "werte": {
+        "LE": 20,
+        "AT": 60,
+        "PA": 0,
+        "SI": 10,
+        "HE": 10,
+        "RS": 0,
+        "TP_min": 1,
+        "TP_max": 10,
+        "GS": 5,
+        "MU": 60,
+        "SK": 4
+      },
+      "icon": "assets/icons/original_units/elfen_portrait.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Armbrustschütze": {
+      "kategorie": "Fernkampf",
+      "gebaeude": "Kriegerakademie",
+      "kosten": {
+        "siedler": 1,
+        "gold": 2000
+      },
+      "waren": [
+        "Armbrust",
+        "Lederrüstung"
+      ],
+      "voraussetzung": {
+        "forschung": "Kriegskunst",
+        "stufe": 8
+      },
+      "kriegspunkte": 10,
+      "werte": {
+        "LE": 20,
+        "AT": 60,
+        "PA": 0,
+        "SI": 10,
+        "HE": 10,
+        "RS": 1,
+        "TP_min": 2,
+        "TP_max": 12,
+        "GS": 5,
+        "MU": 60,
+        "SK": 5
+      },
+      "icon": "assets/icons/original_units/Armbrustschütze.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Streuner": {
+      "kategorie": "Kundschafter",
+      "gebaeude": "Diebesgilde",
+      "kosten": {
+        "siedler": 1,
+        "nahrung": 100,
+        "gold": 50
+      },
+      "waren": [
+        "Wollumhang"
+      ],
+      "voraussetzung": null,
+      "kriegspunkte": 1,
+      "werte": {
+        "LE": 10,
+        "AT": 10,
+        "PA": 15,
+        "SI": 30,
+        "HE": 30,
+        "RS": 0,
+        "TP_min": 1,
+        "TP_max": 4,
+        "GS": 10,
+        "MU": 60,
+        "SK": 2
+      },
+      "icon": "assets/icons/units/Streuner.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Gauner": {
+      "kategorie": "Kundschafter",
+      "gebaeude": "Diebesgilde",
+      "kosten": {
+        "siedler": 1,
+        "gold": 250
+      },
+      "waren": [
+        "Messer",
+        "Diebesumhang"
+      ],
+      "voraussetzung": {
+        "forschung": "Heimlichkeit",
+        "stufe": 1
+      },
+      "kriegspunkte": 2,
+      "werte": {
+        "LE": 15,
+        "AT": 30,
+        "PA": 20,
+        "SI": 50,
+        "HE": 45,
+        "RS": 0,
+        "TP_min": 1,
+        "TP_max": 6,
+        "GS": 15,
+        "MU": 65,
+        "SK": 3
+      },
+      "icon": "assets/icons/units/Gauner.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Dieb": {
+      "kategorie": "Kundschafter",
+      "gebaeude": "Diebesgilde",
+      "kosten": {
+        "siedler": 1,
+        "gold": 500
+      },
+      "waren": [
+        "Dolch",
+        "Diebesumhang"
+      ],
+      "voraussetzung": {
+        "forschung": "Heimlichkeit",
+        "stufe": 3
+      },
+      "kriegspunkte": 4,
+      "werte": {
+        "LE": 15,
+        "AT": 40,
+        "PA": 40,
+        "SI": 65,
+        "HE": 70,
+        "RS": 0,
+        "TP_min": 2,
+        "TP_max": 7,
+        "GS": 20,
+        "MU": 70,
+        "SK": 5
+      },
+      "icon": "assets/icons/units/Dieb.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Meisterdieb": {
+      "kategorie": "Kundschafter",
+      "gebaeude": "Diebesgilde",
+      "kosten": {
+        "siedler": 1,
+        "gold": 750
+      },
+      "waren": [
+        "Kurzschwert",
+        "Diebesumhang"
+      ],
+      "voraussetzung": {
+        "forschung": "Heimlichkeit",
+        "stufe": 5
+      },
+      "kriegspunkte": 8,
+      "werte": {
+        "LE": 20,
+        "AT": 40,
+        "PA": 45,
+        "SI": 70,
+        "HE": 80,
+        "RS": 0,
+        "TP_min": 3,
+        "TP_max": 8,
+        "GS": 25,
+        "MU": 80,
+        "SK": 7
+      },
+      "icon": "assets/icons/units/Meisterdieb.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Kundschafter": {
+      "kategorie": "Kundschafter",
+      "gebaeude": "Diebesgilde",
+      "kosten": {
+        "siedler": 1,
+        "gold": 1000
+      },
+      "waren": [
+        "Schwert",
+        "Fellumhang"
+      ],
+      "voraussetzung": {
+        "forschung": "Heimlichkeit",
+        "stufe": 8
+      },
+      "kriegspunkte": 10,
+      "werte": {
+        "LE": 25,
+        "AT": 50,
+        "PA": 60,
+        "SI": 85,
+        "HE": 90,
+        "RS": 1,
+        "TP_min": 2,
+        "TP_max": 9,
+        "GS": 30,
+        "MU": 90,
+        "SK": 9
+      },
+      "icon": "assets/icons/units/Kundschafter.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Waldläufer": {
+      "kategorie": "Kundschafter",
+      "gebaeude": "Diebesgilde",
+      "kosten": {
+        "siedler": 1,
+        "gold": 2000
+      },
+      "waren": [
+        "Schwert",
+        "Fellrüstung"
+      ],
+      "voraussetzung": {
+        "forschung": "Heimlichkeit",
+        "stufe": 10
+      },
+      "kriegspunkte": 16,
+      "werte": {
+        "LE": 30,
+        "AT": 60,
+        "PA": 65,
+        "SI": 90,
+        "HE": 95,
+        "RS": 2,
+        "TP_min": 3,
+        "TP_max": 10,
+        "GS": 35,
+        "MU": 100,
+        "SK": 11
+      },
+      "icon": "assets/icons/units/Waldläufer.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Handkarren": {
+      "kategorie": "Karren",
+      "gebaeude": "Stellmacher",
+      "kosten": {
+        "holz": 100,
+        "metall": 15,
+        "leder": 15,
+        "wolle": 15,
+        "siedler": 1
+      },
+      "waren": [],
+      "voraussetzung": null,
+      "kriegspunkte": 1,
+      "werte": {
+        "LE": null,
+        "AT": null,
+        "PA": null,
+        "SI": null,
+        "HE": null,
+        "RS": null,
+        "TP_min": null,
+        "TP_max": null,
+        "GS": 10,
+        "MU": null,
+        "SK": 0
+      },
+      "icon": "assets/icons/original_units/Karren.png",
+      "ladung": 40,
+      "nicht_original": [
+        "werte.LE (in der Vorlage nicht abgedruckt)",
+        "werte.AT (in der Vorlage nicht abgedruckt)",
+        "werte.PA (in der Vorlage nicht abgedruckt)",
+        "werte.SI (in der Vorlage nicht abgedruckt)",
+        "werte.HE (in der Vorlage nicht abgedruckt)",
+        "werte.RS (in der Vorlage nicht abgedruckt)",
+        "werte.TP_min (in der Vorlage nicht abgedruckt)",
+        "werte.TP_max (in der Vorlage nicht abgedruckt)",
+        "werte.MU (in der Vorlage nicht abgedruckt)"
+      ]
+    },
+    "Einspänner": {
+      "kategorie": "Karren",
+      "gebaeude": "Stellmacher",
+      "kosten": {
+        "holz": 250,
+        "metall": 100,
+        "leder": 200,
+        "wolle": 200,
+        "pferde": 1,
+        "siedler": 2
+      },
+      "waren": [],
+      "voraussetzung": {
+        "forschung": "Wagenbau",
+        "stufe": 3
+      },
+      "kriegspunkte": 2,
+      "werte": {
+        "LE": null,
+        "AT": null,
+        "PA": null,
+        "SI": null,
+        "HE": null,
+        "RS": null,
+        "TP_min": null,
+        "TP_max": null,
+        "GS": 25,
+        "MU": null,
+        "SK": 0
+      },
+      "icon": "assets/icons/original_units/Einspänner.png",
+      "ladung": 100,
+      "nicht_original": [
+        "werte.LE (in der Vorlage nicht abgedruckt)",
+        "werte.AT (in der Vorlage nicht abgedruckt)",
+        "werte.PA (in der Vorlage nicht abgedruckt)",
+        "werte.SI (in der Vorlage nicht abgedruckt)",
+        "werte.HE (in der Vorlage nicht abgedruckt)",
+        "werte.RS (in der Vorlage nicht abgedruckt)",
+        "werte.TP_min (in der Vorlage nicht abgedruckt)",
+        "werte.TP_max (in der Vorlage nicht abgedruckt)",
+        "werte.MU (in der Vorlage nicht abgedruckt)"
+      ]
+    },
+    "Zweispänner": {
+      "kategorie": "Karren",
+      "gebaeude": "Stellmacher",
+      "kosten": {
+        "holz": 500,
+        "metall": 150,
+        "leder": 250,
+        "wolle": 250,
+        "pferde": 2,
+        "siedler": 2
+      },
+      "waren": [],
+      "voraussetzung": {
+        "forschung": "Wagenbau",
+        "stufe": 7
+      },
+      "kriegspunkte": 3,
+      "werte": {
+        "LE": null,
+        "AT": null,
+        "PA": null,
+        "SI": null,
+        "HE": null,
+        "RS": null,
+        "TP_min": null,
+        "TP_max": null,
+        "GS": 30,
+        "MU": null,
+        "SK": 0
+      },
+      "icon": "assets/icons/original_units/Zweispänner.png",
+      "ladung": 250,
+      "nicht_original": [
+        "werte.LE (in der Vorlage nicht abgedruckt)",
+        "werte.AT (in der Vorlage nicht abgedruckt)",
+        "werte.PA (in der Vorlage nicht abgedruckt)",
+        "werte.SI (in der Vorlage nicht abgedruckt)",
+        "werte.HE (in der Vorlage nicht abgedruckt)",
+        "werte.RS (in der Vorlage nicht abgedruckt)",
+        "werte.TP_min (in der Vorlage nicht abgedruckt)",
+        "werte.TP_max (in der Vorlage nicht abgedruckt)",
+        "werte.MU (in der Vorlage nicht abgedruckt)"
+      ]
+    },
+    "Handelskarawane": {
+      "kategorie": "Karren",
+      "gebaeude": "Stellmacher",
+      "kosten": {
+        "holz": 500,
+        "metall": 250,
+        "gold": 200,
+        "wolle": 500,
+        "leder": 500,
+        "siedler": 10,
+        "pferde": 15
+      },
+      "waren": [],
+      "voraussetzung": {
+        "forschung": "Wagenbau",
+        "stufe": 2
+      },
+      "kriegspunkte": null,
+      "werte": {
+        "LE": null,
+        "AT": null,
+        "PA": null,
+        "SI": null,
+        "HE": null,
+        "RS": null,
+        "TP_min": null,
+        "TP_max": null,
+        "GS": 25,
+        "MU": null,
+        "SK": 0
+      },
+      "icon": "assets/icons/original_units/HandelsKarawane.png",
+      "ladung": 1000,
+      "nicht_original": [
+        "werte.LE (in der Vorlage nicht abgedruckt)",
+        "werte.AT (in der Vorlage nicht abgedruckt)",
+        "werte.PA (in der Vorlage nicht abgedruckt)",
+        "werte.SI (in der Vorlage nicht abgedruckt)",
+        "werte.HE (in der Vorlage nicht abgedruckt)",
+        "werte.RS (in der Vorlage nicht abgedruckt)",
+        "werte.TP_min (in der Vorlage nicht abgedruckt)",
+        "werte.TP_max (in der Vorlage nicht abgedruckt)",
+        "werte.MU (in der Vorlage nicht abgedruckt)"
+      ]
+    },
+    "Große Handelskarawane": {
+      "kategorie": "Karren",
+      "gebaeude": "Stellmacher",
+      "kosten": {
+        "holz": 1000,
+        "metall": 500,
+        "gold": 400,
+        "wolle": 1000,
+        "leder": 1000,
+        "siedler": 20,
+        "pferde": 30
+      },
+      "waren": [],
+      "voraussetzung": {
+        "forschung": "Wagenbau",
+        "stufe": 6
+      },
+      "kriegspunkte": null,
+      "werte": {
+        "LE": null,
+        "AT": null,
+        "PA": null,
+        "SI": null,
+        "HE": null,
+        "RS": null,
+        "TP_min": null,
+        "TP_max": null,
+        "GS": 30,
+        "MU": null,
+        "SK": 0
+      },
+      "icon": "assets/icons/original_units/Händler.png",
+      "ladung": 2500,
+      "nicht_original": [
+        "werte.LE (in der Vorlage nicht abgedruckt)",
+        "werte.AT (in der Vorlage nicht abgedruckt)",
+        "werte.PA (in der Vorlage nicht abgedruckt)",
+        "werte.SI (in der Vorlage nicht abgedruckt)",
+        "werte.HE (in der Vorlage nicht abgedruckt)",
+        "werte.RS (in der Vorlage nicht abgedruckt)",
+        "werte.TP_min (in der Vorlage nicht abgedruckt)",
+        "werte.TP_max (in der Vorlage nicht abgedruckt)",
+        "werte.MU (in der Vorlage nicht abgedruckt)"
+      ]
+    },
+    "Siedlerkarren": {
+      "kategorie": "Karren",
+      "gebaeude": "Stellmacher",
+      "kosten": {
+        "holz": 200,
+        "metall": 80,
+        "leder": 150,
+        "wolle": 100,
+        "pferde": 4,
+        "siedler": 5,
+        "nahrung": 300
+      },
+      "waren": [],
+      "voraussetzung": {
+        "forschung": "Wagenbau",
+        "stufe": 1
+      },
+      "kriegspunkte": null,
+      "werte": {
+        "LE": null,
+        "AT": null,
+        "PA": null,
+        "SI": null,
+        "HE": null,
+        "RS": null,
+        "TP_min": null,
+        "TP_max": null,
+        "GS": 20,
+        "MU": null,
+        "SK": 0
+      },
+      "icon": "assets/icons/original_units/Siedlungskarren.png",
+      "ladung": null,
+      "nicht_original": [
+        "werte.LE (in der Vorlage nicht abgedruckt)",
+        "werte.AT (in der Vorlage nicht abgedruckt)",
+        "werte.PA (in der Vorlage nicht abgedruckt)",
+        "werte.SI (in der Vorlage nicht abgedruckt)",
+        "werte.HE (in der Vorlage nicht abgedruckt)",
+        "werte.RS (in der Vorlage nicht abgedruckt)",
+        "werte.TP_min (in der Vorlage nicht abgedruckt)",
+        "werte.TP_max (in der Vorlage nicht abgedruckt)",
+        "werte.MU (in der Vorlage nicht abgedruckt)"
+      ]
+    },
+    "Belagerungsturm": {
+      "kategorie": "Belagerung",
+      "gebaeude": "Stellmacher",
+      "kosten": {
+        "holz": 800,
+        "metall": 50,
+        "leder": 500,
+        "pferde": 10,
+        "siedler": 5
+      },
+      "waren": [],
+      "voraussetzung": {
+        "forschung": "Wagenbau",
+        "stufe": 4
+      },
+      "kriegspunkte": 2,
+      "werte": {
+        "LE": null,
+        "AT": null,
+        "PA": null,
+        "SI": null,
+        "HE": null,
+        "RS": null,
+        "TP_min": 0,
+        "TP_max": 0,
+        "GS": 15,
+        "MU": null,
+        "SK": 35
+      },
+      "icon": "assets/icons/original_units/Einfacher Belagerungsturm.png",
+      "ladung": null,
+      "nicht_original": [
+        "werte.LE (in der Vorlage nicht abgedruckt)",
+        "werte.AT (in der Vorlage nicht abgedruckt)",
+        "werte.PA (in der Vorlage nicht abgedruckt)",
+        "werte.SI (in der Vorlage nicht abgedruckt)",
+        "werte.HE (in der Vorlage nicht abgedruckt)",
+        "werte.RS (in der Vorlage nicht abgedruckt)",
+        "werte.MU (in der Vorlage nicht abgedruckt)"
+      ]
+    },
+    "Ramme": {
+      "kategorie": "Belagerung",
+      "gebaeude": "Stellmacher",
+      "kosten": {
+        "holz": 500,
+        "metall": 150,
+        "leder": 100,
+        "pferde": 10,
+        "siedler": 5
+      },
+      "waren": [],
+      "voraussetzung": {
+        "forschung": "Wagenbau",
+        "stufe": 5
+      },
+      "kriegspunkte": 3,
+      "werte": {
+        "LE": null,
+        "AT": null,
+        "PA": null,
+        "SI": null,
+        "HE": null,
+        "RS": null,
+        "TP_min": 0,
+        "TP_max": 4,
+        "GS": 15,
+        "MU": null,
+        "SK": 25
+      },
+      "icon": "assets/icons/units/Ramme.png",
+      "ladung": null,
+      "nicht_original": [
+        "werte.LE (in der Vorlage nicht abgedruckt)",
+        "werte.AT (in der Vorlage nicht abgedruckt)",
+        "werte.PA (in der Vorlage nicht abgedruckt)",
+        "werte.SI (in der Vorlage nicht abgedruckt)",
+        "werte.HE (in der Vorlage nicht abgedruckt)",
+        "werte.RS (in der Vorlage nicht abgedruckt)",
+        "werte.MU (in der Vorlage nicht abgedruckt)"
+      ]
+    },
+    "Großer Belagerungsturm": {
+      "kategorie": "Belagerung",
+      "gebaeude": "Stellmacher",
+      "kosten": {
+        "holz": 1200,
+        "metall": 80,
+        "leder": 800,
+        "pferde": 15,
+        "siedler": 7
+      },
+      "waren": [],
+      "voraussetzung": {
+        "forschung": "Wagenbau",
+        "stufe": 6
+      },
+      "kriegspunkte": 4,
+      "werte": {
+        "LE": null,
+        "AT": null,
+        "PA": null,
+        "SI": null,
+        "HE": null,
+        "RS": null,
+        "TP_min": 0,
+        "TP_max": 0,
+        "GS": 15,
+        "MU": null,
+        "SK": 45
+      },
+      "icon": "assets/icons/units/Großer Belagerungsturm.png",
+      "ladung": null,
+      "nicht_original": [
+        "werte.LE (in der Vorlage nicht abgedruckt)",
+        "werte.AT (in der Vorlage nicht abgedruckt)",
+        "werte.PA (in der Vorlage nicht abgedruckt)",
+        "werte.SI (in der Vorlage nicht abgedruckt)",
+        "werte.HE (in der Vorlage nicht abgedruckt)",
+        "werte.RS (in der Vorlage nicht abgedruckt)",
+        "werte.MU (in der Vorlage nicht abgedruckt)"
+      ]
+    },
+    "Große Ramme": {
+      "kategorie": "Belagerung",
+      "gebaeude": "Stellmacher",
+      "kosten": {
+        "holz": 1100,
+        "metall": 300,
+        "leder": 250,
+        "pferde": 20,
+        "siedler": 10
+      },
+      "waren": [],
+      "voraussetzung": {
+        "forschung": "Wagenbau",
+        "stufe": 7
+      },
+      "kriegspunkte": 5,
+      "werte": {
+        "LE": null,
+        "AT": null,
+        "PA": null,
+        "SI": null,
+        "HE": null,
+        "RS": null,
+        "TP_min": 0,
+        "TP_max": 8,
+        "GS": 15,
+        "MU": null,
+        "SK": 35
+      },
+      "icon": "assets/icons/units/Große Ramme.png",
+      "ladung": null,
+      "nicht_original": [
+        "werte.LE (in der Vorlage nicht abgedruckt)",
+        "werte.AT (in der Vorlage nicht abgedruckt)",
+        "werte.PA (in der Vorlage nicht abgedruckt)",
+        "werte.SI (in der Vorlage nicht abgedruckt)",
+        "werte.HE (in der Vorlage nicht abgedruckt)",
+        "werte.RS (in der Vorlage nicht abgedruckt)",
+        "werte.MU (in der Vorlage nicht abgedruckt)"
+      ]
+    },
+    "Balliste": {
+      "kategorie": "Belagerung",
+      "gebaeude": "Stellmacher",
+      "kosten": {
+        "holz": 600,
+        "metall": 200,
+        "leder": 300,
+        "pferde": 10,
+        "siedler": 10
+      },
+      "waren": [],
+      "voraussetzung": {
+        "forschung": "Wagenbau",
+        "stufe": 8
+      },
+      "kriegspunkte": 6,
+      "werte": {
+        "LE": null,
+        "AT": null,
+        "PA": null,
+        "SI": null,
+        "HE": null,
+        "RS": null,
+        "TP_min": 1,
+        "TP_max": 10,
+        "GS": 15,
+        "MU": null,
+        "SK": 25
+      },
+      "icon": "assets/icons/units/Balliste.png",
+      "ladung": null,
+      "nicht_original": [
+        "werte.LE (in der Vorlage nicht abgedruckt)",
+        "werte.AT (in der Vorlage nicht abgedruckt)",
+        "werte.PA (in der Vorlage nicht abgedruckt)",
+        "werte.SI (in der Vorlage nicht abgedruckt)",
+        "werte.HE (in der Vorlage nicht abgedruckt)",
+        "werte.RS (in der Vorlage nicht abgedruckt)",
+        "werte.MU (in der Vorlage nicht abgedruckt)"
+      ]
+    },
+    "Katapult": {
+      "kategorie": "Belagerung",
+      "gebaeude": "Stellmacher",
+      "kosten": {
+        "holz": 1500,
+        "metall": 200,
+        "leder": 1000,
+        "pferde": 20,
+        "siedler": 10
+      },
+      "waren": [],
+      "voraussetzung": {
+        "forschung": "Wagenbau",
+        "stufe": 9
+      },
+      "kriegspunkte": 7,
+      "werte": {
+        "LE": null,
+        "AT": null,
+        "PA": null,
+        "SI": null,
+        "HE": null,
+        "RS": null,
+        "TP_min": 2,
+        "TP_max": 13,
+        "GS": 15,
+        "MU": null,
+        "SK": 45
+      },
+      "icon": "assets/icons/units/Katapult.png",
+      "ladung": null,
+      "nicht_original": [
+        "werte.LE (in der Vorlage nicht abgedruckt)",
+        "werte.AT (in der Vorlage nicht abgedruckt)",
+        "werte.PA (in der Vorlage nicht abgedruckt)",
+        "werte.SI (in der Vorlage nicht abgedruckt)",
+        "werte.HE (in der Vorlage nicht abgedruckt)",
+        "werte.RS (in der Vorlage nicht abgedruckt)",
+        "werte.MU (in der Vorlage nicht abgedruckt)"
+      ]
+    },
+    "Großes Katapult": {
+      "kategorie": "Belagerung",
+      "gebaeude": "Stellmacher",
+      "kosten": {
+        "holz": 1900,
+        "metall": 300,
+        "leder": 1400,
+        "pferde": 25,
+        "siedler": 15
+      },
+      "waren": [],
+      "voraussetzung": {
+        "forschung": "Wagenbau",
+        "stufe": 10
+      },
+      "kriegspunkte": 8,
+      "werte": {
+        "LE": null,
+        "AT": null,
+        "PA": null,
+        "SI": null,
+        "HE": null,
+        "RS": null,
+        "TP_min": 5,
+        "TP_max": 18,
+        "GS": 15,
+        "MU": null,
+        "SK": 55
+      },
+      "icon": "assets/icons/original_units/Katapult.png",
+      "ladung": null,
+      "nicht_original": [
+        "werte.LE (in der Vorlage nicht abgedruckt)",
+        "werte.AT (in der Vorlage nicht abgedruckt)",
+        "werte.PA (in der Vorlage nicht abgedruckt)",
+        "werte.SI (in der Vorlage nicht abgedruckt)",
+        "werte.HE (in der Vorlage nicht abgedruckt)",
+        "werte.RS (in der Vorlage nicht abgedruckt)",
+        "werte.MU (in der Vorlage nicht abgedruckt)"
+      ]
+    }
+  }
+}

@@ -1,0 +1,100 @@
+STAND DES CODES — Nebelseetal Remake, 04.10.2026. Ehrliche Selbstdarstellung, absichtlich ohne
+Beschönigung. Grundlage ist der tatsächliche Code (src/main.py, src/kampf.py, src/einheiten.py,
+src/spieldaten.py, src/bonus_system.py) und die Datendateien unter data/.
+Bei jedem Punkt steht: umgesetzt / teilweise / fehlt.
+
+== Siedlungen ==
+- Anzahl: der Code erlaubt 3 Siedlungen (in _found_settlement geprueft). Handbuch: bis 6. -> ABWEICHUNG
+- Siedeln: _found_settlement legt eine Siedlung auf der aktuellen Karte an. Der Siedlerkarren
+  (Ladung) wird nicht verbraucht, es gibt keine Kostenpruefung fuer das Siedeln. -> TEILWEISE
+- Gelände: eine Siedlung hat KEIN Gelände. Das Handbuch laesst Gebäude nur auf bestimmten
+  Geländearten zu (Bibliothek nur Grasland/Steppe/Nebelsee; Sümpfe unbebaubar). -> FEHLT
+- Lager, Umbenennen, Siedlung aufgeben: Lageransicht vorhanden; Umbenennen vorhanden (last_rename);
+  Siedlung aufgeben: -> FEHLT
+
+== Gebäude ==
+- 10 Gebäude im Code (erfunden: holzfäller, steinmetz, jäger, haus, schmiede, bibliothek, markt,
+  kaserne, turm, portal). Handbuch: 20 Gebäude. -> ABWEICHUNG
+- Baupreise: erfundene Zahlen, nur die Rohstoffnamen sind original. Das Handbuch nennt KEINE Preise.
+- Ertrag: feste Zahlen je Gebäude im Code (prod_map). Handbuch: Ertrag je GELAENDEART
+  (Beispiel Holzfäller: Wald 4/h, Steppe 2/h). -> ABWEICHUNG
+- Ausbau: Stufe +1, Kosten steigen linear mit (level+1). Handbuch: "Der Ausbau wird mit jeder
+  Stufe teurer" (ohne Zahlen). -> TEILWEISE
+- Verteidigungswall mit 10 Stufen und Schwellenwerten: Daten liegen vor (data/buildings.json),
+  im Spiel ist der Wall aber nur ein Turm mit level. -> TEILWEISE
+
+== Rohstoffe und Siedler ==
+- 9 Originalrohstoffe im Code, Startwerte 100 Holz / 100 Stein / 10 Siedler. -> UMGESETZT
+- Produktion: nur über Gebäude-prod_map, NICHT je Geländeart. -> ABWEICHUNG
+- Siedlerzuwachs: der Code zählt 0,5 Siedler je MINUTE (tick: population + dt_min * 0.5), also
+  30 je Stunde. Handbuch: 1 Siedler je STUNDE, Grenze 10, +5 je Haus. -> ABWEICHUNG (30 statt 1)
+- Siedlergrenze: max_population = 10 + 5 * haus_level. -> UMGESETZT
+
+== Forschung ==
+- 18 Forschungen im Code (erfunden), Handbuch hat 21. -> ABWEICHUNG
+- Kosten: 50 Holz auf Stufe 1, Verdopplung je Stufe (Handbuch Seite 13, belegt). -> UMGESETZT
+- DAUER: die Stufe steigt SOFORT beim Klick. Die Originalregel "Dauer = neue Stufe zum Quadrat in
+  Stunden, Stufe steigt erst nach Ablauf" ist NICHT umgesetzt. -> FEHLT (gravierend)
+- Voraussetzung: es wird NICHT geprueft, ob überhaupt eine Bibliothek existiert oder welche Stufe
+  sie hat. Handbuch: Forschung braucht eine Bibliothek; jede Forschung hat eine Bibliotheksstufe
+  als Voraussetzung. -> FEHLT
+- Während der Studien ist der Forschungsbereich blockiert; Abbruch kostet Zeit und Ressourcen. -> FEHLT
+
+== Einheiten ==
+- 28 Originaleinheiten mit Rollen (kaempfer, kundschafter, karren, belagerung), Kosten aus den
+  Daten, Siedleranteil aus der Bevölkerung. -> UMGESETZT
+- Ausbildung: sofort, ohne Dauer und ohne Ausbildungsgebäude-Prüfung (Kriegerakademie, Diebesgilde,
+  Stellmacher). Handbuch nennt keine Ausbildungsdauer, aber die Gebäude. -> ABWEICHUNG
+- Einheiten werden nicht nach Gebäude gruppiert; die Kaserne listet alle 28. -> ABWEICHUNG
+
+== Kampf ==
+- src/kampf.py setzt den Ablauf der Seiten 20-23 um: Vorrunde mit Wallschwellen, Mauerschaden,
+  Kampfsequenzen mit gleichzeitigem Fernkampf, Zweikämpfe in Kampfrunden, Erschöpfung, Flucht,
+  Beute nur mit Transportkarren, Geräteverluste des Verlierers. 42 eigene Prüfungen.
+- ABER: kämpfbar ist es im Spiel NICHT. Es gibt keine Aktion "Angriff" mit Zielauswahl, keine
+  Anbindung an Bot-Siedlungen, keinen Bericht im Nachrichtenbereich. Die Oberfläche ruft kampf.py
+  nirgends auf. -> FEHLT (Anbindung)
+
+== Bots und Welt ==
+- 5 Bots mit erfundenen Werten (aggression, trading), ohne echtes Verhalten: sie bauen keine
+  Siedlungen aus, forschen nicht, greifen nicht an. -> FEHLT
+- 5 Karten mit erfundenen NPCs und Quests. Kein Limbus, keine Entfernungstabelle, keine
+  Manakosten für Sprünge zwischen Welten. -> FEHLT
+
+== Aufträge ==
+- Vorhanden: eine Transportfunktion, die 10 Holz von der eigenen Siedlung abzieht und eine Meldung
+  schreibt (feste Menge, kein echtes Ziel). "Besuchen" bei Bots meldet, dass es im Einzelspieler
+  nicht möglich ist. -> FAST ALLES FEHLT
+- Handbuch Seite 18/19: Stationieren, Transportieren (nur mit Transportkarren, kehrt zurück),
+  Handeln (Handelskarawane, Partner bestätigt oder lehnt ab), Spionage (Bericht), Angriff.
+  Zeiten gelten für eine Strecke; Kosten Gold + Nahrung, bei fremden Siedlungen zusätzlich Mana
+  je Entfernung; Geschwindigkeit in 10-%-Schritten drosselbar. -> FEHLT
+
+== Punkte, Ruf, Schutz ==
+- Punktestand: der Code addiert 10 Punkte je Forschung (erfunden). Handbuch Seite 3-5:
+  Forschungspunkte = Summe Stufe hoch drei je Forschung; Kriegspunkte je Einheit plus
+  Verteidigungsanlagen hoch drei; Gesamtpunktzahl = (Kriegspunkte + Forschungspunkte) / 2.
+  Es gibt KEINE Rangliste gegen die Bots. -> ABWEICHUNG
+- Ruf: wird bei Aktionen erhöht (Werte erfunden). Handbuch: nicht in der Gesamtpunktzahl und bei
+  Punktgleichheit entscheidend. -> TEILWEISE
+- Götterschutz: ein Schalter noob_protection. Handbuch: 7 Tage unangreifbar, endet mit dem ersten
+  Kriegspunkt; bis 299 Punkte eingeschränkter Schutz (Angriff nur im Bereich ±20 %). -> TEILWEISE
+
+== Waren ==
+- 17 erfundene Handelsgüter (Brot, Bier, Glas ...) mit Emoji. Handbuch: 17 gefertigte WAREN
+  (Messer, Dolch, Schwert, Bogen, Kettenhemd ...) aus Schmiede, Bogenbauer und Nähstube, mit
+  Warteschlangen; Waren sind Voraussetzung für Einheiten. -> ABWEICHUNG
+
+== Oberfläche ==
+- 17 Ansichten, Rollbereich, Original-Icons (freigestellt), Statuszeile. -> UMGESETZT
+- Sieg/Niederlage: es gibt keine Siegbedingung und kein Spielende. -> FEHLT
+- Speichern/Laden: vorhanden, ohne Versionskennung und ohne Sicherung. -> TEILWEISE
+
+== Nicht umgesetzt, im Handbuch aber genannt ==
+- Spionage und Spionagebericht (Seite 23/24)
+- Handel mit Bestätigung durch den Partner
+- Manakosten des Portals abhängig von der Entfernung
+- 10-%-Geschwindigkeitsdrosselung mit Wirkung auf Gold/Nahrung
+- Sieben Tage Götterschutz (Handbuch Seite 5/6) und eingeschränkter Schutz bis 299 Punkte
+- Ruhmeshalle, Gildenhalle (Einzelspieler: gegen Bots)
+- Auftragsliste mit laufenden Aufträgen und Restzeit

@@ -1,0 +1,23 @@
+Menue
+| Das Spiel
+Skins
+Punktesystem
+|
+| Siedlungen
+Rohstoffproduktion
+Siedeln
+|
+|
+Forschung
+Forschungstabelle
+|
+| Waren
+Warentabelle
+|
+| Einheiten
+Einheitentabelle
+|
+| Aufträge
+Portal
+Handel
+Spionage

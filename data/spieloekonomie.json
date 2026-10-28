@@ -1,0 +1,46 @@
+{
+  "_hinweis": "Regeldaten der Spielökonomie (Ökonomie-Paket). Schritt 1 des Entwurfs: nur DATEN, keine Aktivierung. Der bestehende Altmodus läuft unverändert weiter, bis der letzte Integrationsschritt den Ökonomiemodus einschaltet. Keine Datei liest diese Werte derzeit.",
+  "_herkunft": "VORSCHLAG: Ableitungen A–H aus docs/audits/entwurf_spieloekonomie_sol_2026-10-05.txt (Codeblock Z. 214-231). KEINE Originalpreisbehauptung — das Handbuch 2009 nennt weder Gründungsgebühr noch Warenpreise. Die Kernzahlen hat Daniel am 05.10.2026 mit 'so übernehmen, später nach und nach anpassen' bestätigt: Gründung 320/200/150 + Startpaket 160/100/100 + Mindestbestand 480/300/250 + ein Siedlerkarren. EINZELNE PLANPOSTEN SIND BELEGT (der Entwurf nennt sie 'BELEGT als Planposten', Z. 44-46): Stein 50 (ein Haus), Nahrung 100 (ein Streuner), Gold 300 (Kämpfer 250 + Streuner 50). Alle übrigen Werte dieser Datei sind VORSCHLAG.",
+  "version": "oekonomie-1",
+  "baukunst_mindeststufe": 1,
+  "gruendung": {
+    "_hinweis": "Gründungsgebühr = 4 × Hauspreis, Startpaket = 2 × Hauspreis (beide aus data/baupreise.json abgeleitet, nur Zahlen). Nahrung: Gebühr = halber Nahrungsbedarf des Siedlerkarrens, Startpaket = ein Streuner-Nahrungsbudget. Mindestbestand = Gebühr + Paket, muss VOR der Gründung in EINER Ausgangssiedlung liegen.",
+    "hausmultiplikator": 4,
+    "reserve_hausmultiplikator": 2,
+    "nahrung_karrenanteil": 0.5,
+    "reserve_nahrung_einheit": "Streuner",
+    "karren": "Siedlerkarren",
+    "forschung": "Wagenbau",
+    "stufe": 1
+  },
+  "vergabe_stunden": 24,
+  "versorgung_stunden": 24,
+  "mindestsiedlungen": 4,
+  "spezialistenfaktor": 1.4,
+  "portfoliofaktor": 1.0,
+  "plan": {
+    "holz": 180,
+    "stein": 50,
+    "nahrung": 100,
+    "gold": 300,
+    "metall": 6,
+    "wolle": 6,
+    "leder": 6,
+    "pferde": 1,
+    "mana": 5
+  },
+  "kartenpreisgrenzen": [0.5, 4.0],
+  "vorratspreisgrenzen": [0.5, 2.0],
+  "pilot_ausbildung_minuten": 20,
+  "pilot_waren_minuten": 20,
+  "bots": {
+    "leicht": {"gruenden": false, "bewerten_stunden": 24, "reserve_stunden": 6, "ablehnungsnutzen": 0.0},
+    "mittel": {"gruenden": true, "bewerten_stunden": 6, "reserve_stunden": 12, "ablehnungsnutzen": 0.0},
+    "schwer": {"gruenden": true, "bewerten_stunden": 1, "reserve_stunden": 24, "ablehnungsnutzen": 0.0}
+  },
+  "bot_startplan": {
+    "_hinweis": "VORSCHLAG: der nachgerechnete Hauptstadtplan E des Entwurfs (Z. 1073) — kein Startvorteil, dieselben Preise für alle. Wird erst in Schritt 8 (Bot-Planung) benutzt.",
+    "grundbau": {"holzfaeller": 2, "steinmetz": 2, "jaeger": 1, "bibliothek": 1},
+    "ausbau": {"holzfaeller": 4, "steinmetz": 4, "farm": 2, "rinderfarm": 1, "schafszucht": 1, "pferdezucht": 1, "erzmine": 2, "goldmine": 1, "tempel": 1, "stellmacher": 1}
+  }
+}

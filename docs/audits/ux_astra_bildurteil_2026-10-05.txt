@@ -1,0 +1,275 @@
+======================================================================
+## A) Die drei wichtigsten Mängel je Ansicht – mit konkretem Umbau
+
+### 1. Dorfzentrum / Startansicht
+
+**1. Die Startansicht zeigt Verwaltung, aber keinen Einstieg.**
+
+„Siedlungsübersicht“, „Gebäude: 0“, „Transport“ und „Umbenennen“ beantworten nicht: **Was soll ich jetzt tun?** Der wichtige Knopf „Karte öffnen“ ist zwischen Verwaltungsfunktionen versteckt.
+
+**Umbau:**
+- Direkt unter „Dorfzentrum“ eine hervorgehobene Aufgabenkarte:
+  > **Dein nächster Schritt: Holzproduktion erhöhen**  
+  > Öffne deine Siedlung und baue einen weiteren Holzfäller.
+- Darunter ein primärer Knopf: **„Siedlung öffnen →“**.
+- Aufgabenkarte: Hintergrund `#263B47`, Text `#F3F4F6`; primärer Knopf `#2563EB`, weißer Text, mindestens 36 px hoch.
+- Die bestehende Siedlungszeile darunter vereinfachen:
+  > **Siedlung 1 · Kontinent**  
+  > Gebäude: 6 · Freie Felder: [tatsächliche Zahl]
+- „Umbenennen“ und „Transport“ in einen nachrangigen Bereich **„Siedlung verwalten“** verschieben.
+
+Die Zahlen müssen aus demselben Bestand kommen wie die Siedlungskarte.
+
+**2. Die Anzeige widerspricht sich und erklärt ihre Zahlen nicht.**
+
+Oben steht „Gebäude: 0“, weiter unten werden sechs Gebäude aufgezählt. „Bevölkerung: 60 / 15“ sieht nach einer massiven Überbelegung aus, bleibt aber unkommentiert. Die Rohstoffleiste besteht aus winzigen Symbolen und Zahlen ohne verständliche Namen.
+
+**Umbau:**
+- Rohstoffe mit Namen anzeigen, gegebenenfalls in zwei Zeilen:
+  > **Holz: 3.000 · +2/h**  
+  > **Stein: 3.000 · +4/h**
+  
+  Die Zuordnung und Werte kommen aus den tatsächlichen Spieldaten, nicht aus geratenen Symbolbedeutungen.
+- Bevölkerung ausschreiben:
+  > **Siedler: 60 · Kapazität: 15**
+- Falls das wirklich eine Kapazitätsüberschreitung ist: orange Warnzeile `#FDBA74` mit der **tatsächlichen Folge**, etwa ausbleibendem Zuwachs. Falls die beiden Zahlen etwas anderes bedeuten, genau diese Begriffe verwenden.
+- Gebäudewirkungen auf drei verständliche Kennzahlen reduzieren: **Produktion**, **Wohnraum**, **Verteidigung**. Details über **„Alle Gebäudewirkungen“** öffnen.
+
+**3. Die Oberfläche zeigt Entwicklerinterna und eine überladene Navigation.**
+
+„PROJEKT_STAND.md“, „buildings.json“, „Paket W3“ und Hinweise auf erfundene Forschungsgebiete gehören nicht auf die Startseite. Gleichzeitig konkurrieren Forum, Chat, Spielerwerbung und Logout mit dem eigentlichen Einzelspielerspiel.
+
+**Umbau:**
+- Die „Noch offen“-Absätze vollständig aus der Spielansicht entfernen.
+- Linke Hauptnavigation auf diese Einträge reduzieren:
+  1. **Dorfzentrum**
+  2. **Siedlung – Bauen**
+  3. **Weltkarte – Orte**
+  4. **Lager**
+  5. **Forschung**
+  6. **Weitere Bereiche ▸**
+- Funktionierende weitere Spielsysteme unter „Weitere Bereiche“ sammeln. Für diese Fassung irrelevante Einträge wie Spielerwerbung entfernen.
+- Aktiven Eintrag mit Hintergrund `#334155` und einem 4 px breiten blauen linken Rand kennzeichnen; nicht nur die Textfarbe ändern.
+- „Eure Punkte“ aus der permanenten rechten Spalte entfernen und im Dorfzentrum unter **„Fortschritt“** unterbringen. Der Platz wird für Bedienung gebraucht.
+
+---
+
+### 2. Siedlungskarte
+
+**1. Die Felder sind zu klein; Gebäudenamen werden verstümmelt.**
+
+„Steinm“, „Holzfä“, „Kriege“ und „Biblio“ sind keine gute Gebäudedarstellung. Die ungefähr 50 × 40 px großen Flächen wirken wie eine Ansammlung von Formularschaltflächen, nicht wie eine Siedlung.
+
+**Umbau:**
+- Raster auf einem `tk.Canvas` zeichnen, Standardfeldgröße **64 × 64 px**, Zoomstufen **48 / 64 / 80 / 96 px**.
+- Gelände als Hintergrund, Gebäude als eigenes Piktogramm darüber darstellen.
+- Pro Feld oben links die Koordinate, mittig das Gebäude, unten ein kurzer Ertrag.
+- Vollständiger Gebäudename steht im festen Detailbereich rechts; bei genügend Zoom zusätzlich auf dem Feld.
+- Überschrift: **„Siedlung 1 – Gebäude bauen“**.
+- Direkt darunter:
+  > **Wähle ein freies Feld. Rechts siehst du, was dort gebaut werden kann.**
+
+**2. Das ausgewählte Feld ist auf der Karte nicht deutlich erkennbar.**
+
+Unten steht „Feld 27 — Steppe“. Im Raster muss man die Zahl erst suchen. Es fehlt eine unübersehbare Verbindung zwischen Karte und Detailbereich.
+
+**Umbau:**
+- Ausgewähltes Feld mit **4 px cyanfarbenem Rahmen `#38BDF8`**, zusätzlicher dunkler Innenkontur und Eckmarkierungen zeichnen.
+- Die Bezeichnung überall gleich halten: beispielsweise **„D4 · Steppe“** statt interner Feldnummer 27.
+- Rechts dauerhaft ein **240 px breites Detailpanel**:
+  > **D4 · Steppe**  
+  > Frei · Bebaubar  
+  > Gebäude: keines  
+  > Ertrag: keiner
+- Nicht bebaubare Felder erhalten dort eine konkrete Erklärung:
+  > **Hier kannst du nicht bauen: Sumpf.**
+- Hover bekommt nur einen dünnen hellen Rahmen. Hover und Auswahl dürfen nicht gleich aussehen.
+
+**3. 17 gleichgewichtete Bauknöpfe überfordern und erklären keine Wirkung.**
+
+Die Auswahl zeigt Kosten, aber weder Nutzen noch Empfehlung. Unklar bleibt auch, ob ein Klick sofort baut.
+
+**Umbau:**
+- Den Knopfteppich durch Tabs ersetzen: **„Produktion“**, **„Wohnen“**, **„Militär“**, **„Weitere“**.
+- Eine Gebäudeliste wählt zunächst nur das Gebäude aus. Gebaut wird ausschließlich über einen separaten Knopf.
+- Beispiel im rechten Detailpanel:
+  > **Holzfäller**  
+  > Produziert Holz.  
+  > Ertrag auf diesem Feld: **+[Wert] Holz/h**  
+  > Kosten: **10 Holz · 5 Stein · 1 Siedler**
+- Darunter **„Holzfäller bauen“**, blau.
+- Bei fehlenden Mitteln Knopf deaktivieren und direkt darüber beispielsweise:
+  > **Es fehlen: 2 Holz.**
+- Nicht verfügbare oder noch nicht funktionsfähige Gebäude nicht als normale Bauaktionen anbieten.
+- Nach dem Bau bleibt dasselbe Feld ausgewählt und das Panel wechselt zur Gebäudeansicht.
+
+---
+
+### 3. Weltkarte
+
+**1. Die Karte ist ein grelles Farbmosaik ohne lesbare räumliche Struktur.**
+
+Orange, Blau, Violett und Grün konkurrieren auf winzigen Feldern. Wiederholte, abgeschnittene Texte wie „Nord…“ und „Mitte…“ erzeugen Rauschen statt Orientierung.
+
+**Umbau:**
+- Haupttitel **„Weltkarte – Orte entdecken“**.
+- Gedämpfte Geländefarben verwenden; Orange und Violett nicht als beliebige Vollflächen einsetzen.
+- Standardzoom **48 px pro Feld**. Die gesamte Karte muss nicht gleichzeitig ins Fenster passen.
+- Raster in einem Canvas mit eigener horizontaler und vertikaler Scrollbar; Zoombedienung darüber: **„−  100 %  +“**.
+- Richtungsnamen aus den einzelnen Feldern entfernen. Regionen einmal groß beschriften; eindeutige Ortsnamen nur an tatsächlichen Orten anzeigen.
+- Eine kleine Übersichtskarte oben rechts im Kartenbereich zeigt den sichtbaren Ausschnitt als Rechteck.
+
+**2. Es fehlen Standort, Auswahl und verständlicher Klickzweck.**
+
+Das Bild sagt nicht zuverlässig: Wo bin ich? Welches Feld ist ausgewählt? Was bewirkt ein Klick? „Keine Gebäude“ unter der Karte wirkt wie ein zusammenhangloser Knopf.
+
+**Umbau:**
+- Aktuellen Ort mit einer weißen Fahne auf blauem Sockel markieren, daneben **„Hier“**.
+- Über der Karte **„Zum aktuellen Ort“** anbieten.
+- Ein einfacher Klick wählt nur aus; Ortswechsel erfolgt über einen ausdrücklich benannten Knopf.
+- Rechts festes Detailpanel:
+  > **[Ortsname] · G12**  
+  > Gelände: Wald  
+  > Status: Zugänglich  
+  > Gebäude: keine  
+  > **[Ort öffnen]**
+- Bei Auswahl einer eigenen Siedlung heißt die Aktion **„Siedlung öffnen“**.
+- Das lose Element „Keine Gebäude“ entfällt. Diese Information gehört zum ausgewählten Ort.
+
+**3. Kartenwechsel und Zugangsvoraussetzungen verschwinden am unteren Rand.**
+
+„Kartenverwaltung“, „Der Kontinent“, „Nebelwald“ und „Stationieren“ sind unter die große Karte gedrückt. Damit ist ausgerechnet der Zugang zu anderen Karten schlecht erreichbar.
+
+**Umbau:**
+- Oberhalb des Canvas eine feste Leiste:
+  > **Gebiet: [Kontinent ▼]**
+- Im Auswahlmenü gesperrte Gebiete ausdrücklich benennen: **„Nebelwald – gesperrt“**. Sie bleiben zur Erklärung auswählbar.
+- Bei gesperrtem Gebiet rechts:
+  > **Nebelwald ist gesperrt.**  
+  > Zugang: Portal ausbauen oder „Vermessung“ erforschen.
+- Darunter **„Zum Portal“** und **„Zur Forschung“**. Benötigte Stufen ergänzen, sofern die Spielregeln welche verlangen.
+- „Stationieren“ nur im Detailbereich eines geeigneten ausgewählten Ortes anzeigen, mit **„Einheiten stationieren“** beschriften.
+
+---
+
+## B) Konkretes Erstspieler-Konzept
+
+### Ein kurzer geführter Bauvorgang, dann die Weltkarte
+
+Die abgebildete Siedlung besitzt bereits einen Holzfäller, eine Farm und weitere Gebäude. Das Tutorial sollte deshalb nicht behaupten, die Siedlung sei leer.
+
+**Die folgende Abfolge erhöht die vorhandene Holzproduktion.** Beim Start muss dafür ein tatsächlich zulässiges freies Feld mit bezahlbarem Holzfällerbau vorhanden sein. Das Tutorial darf nicht auf einem unlösbaren Auftrag stehen bleiben.
+
+Eine kompakte Aufgabenkarte bleibt über den Ansichten sichtbar. Kein Stapel modaler Dialoge. Rechts darin steht immer **„Einführung beenden“**.
+
+| Schritt | Text im Spiel | Führung und Abschluss |
+|---|---|---|
+| **1. Siedlung öffnen** | **„Deine Siedlung produziert bereits Rohstoffe. Baue einen weiteren Holzfäller, um mehr Holz zu erhalten.“** | Blauer Knopf **„Siedlung öffnen“**. Öffnet die Baukarte. |
+| **2. Bauplatz wählen** | **„Wähle das markierte Feld. Hier kannst du einen Holzfäller bauen.“** | Ein tatsächlich freies, geeignetes Feld erhält einen gestrichelten blauen Rahmen und **„Bauplatz“**. Karte wird dorthin gescrollt. Andere Felder bleiben bedienbar. |
+| **3. Bau prüfen** | **„Der Holzfäller kostet 10 Holz, 5 Stein und 1 Siedler. Sein Ertrag steht rechts.“** | Im Detailpanel ist „Holzfäller“ vorausgewählt. Kosten und tatsächlicher Geländeertrag stehen über **„Holzfäller bauen“**. |
+| **4. Bauen** | **„Klicke auf ‚Holzfäller bauen‘.“** | Nach erfolgreichem Bau erscheint das Gebäudesymbol auf genau diesem Feld. Meldung: **„Holzfäller gebaut. Holzproduktion: +[gesamt]/h.“** |
+| **5. Produktion verstehen** | **„Rohstoffe werden automatisch erzeugt. Oben siehst du deinen Vorrat und den Zuwachs pro Stunde.“** | Holz-Anzeige erhält vorübergehend einen cyanfarbenen Rand. Knopf **„Weiter zur Weltkarte“**. Kein Warten auf den nächsten Produktionstakt. |
+| **6. Weltkarte verstehen** | **„Hier findest du andere Orte und Gebiete. Wähle einen Ort; rechts stehen seine Aktionen.“** | Weltkarte öffnet am aktuellen Ort. Standortmarkierung und Detailpanel sind sichtbar. Nach Auswahl eines Ortes: **„Einführung abschließen“**. |
+
+Falls Bauen im Spiel eine Bauzeit hat, muss Schritt 4 stattdessen **„Holzfäller im Bau · Fertig in [Zeit]“** anzeigen. Ertrag erst nach Fertigstellung als aktiv darstellen.
+
+**Nach Abschluss** steht im Dorfzentrum keine leere Willkommenszeile, sondern:
+
+> **Was möchtest du als Nächstes tun?**  
+> **[Weitere Gebäude bauen] [Forschung öffnen] [Welt erkunden]**
+
+Das ist die eigentliche Fortsetzungslogik: **Feld wählen → Wirkung und Kosten prüfen → ausdrücklich bauen → Ergebnis am Feld und in der Rohstoffleiste sehen.**
+
+*Die Platzhalter `[Wert]`, `[gesamt]` und `[Zeit]` werden durch echte Spielwerte ersetzt.*
+
+---
+
+## C) Verbindliche Gestaltungsregeln für beide Karten
+
+### Gelände
+
+Diese Zuordnung für die Siedlungskarte verwenden und auf der Weltkarte überall dort übernehmen, wo dieselben Geländearten vorkommen. Weltkartenfarben dürfen nicht stillschweigend eine andere Bedeutung bekommen.
+
+| Gelände | Flächenfarbe | Zusätzliches Erkennungsmerkmal |
+|---|---|---|
+| Grasland | `#A8BE83` | Zwei kleine Grasbüschel |
+| Steppe | `#D6BE82` | Kurze waagerechte Halmlinien |
+| Wald | `#50794F` | Gruppe aus drei dunkelgrünen Baumkronen |
+| Hügel | `#AD9674` | Zwei abgerundete Hügelkonturen |
+| Berg | `#929DA8` | Graue Dreiecksgipfel mit heller Spitze |
+| Nebelsee | `#6BA5BC` | Zwei helle Wellenlinien |
+| Sumpf | `#7C8870` | Schilf und kleine Wasserstriche |
+
+- Gelände nie ausschließlich durch Farbe unterscheiden.
+- Symbole als einheitliche PNGs über `PhotoImage` oder aus Canvas-Linien und Polygonen zeichnen. **Keine gemischten Emoji-Schriftzeichen** als Kartensymbolsatz.
+- Texte auf dunklen kleinen Unterlagen `#17212B`, Schrift `#F3F4F6`; nicht gelb direkt auf wechselnden Geländehelligkeiten.
+
+### Feldaufbau der Siedlungskarte
+
+Bei 64 px Feldgröße:
+
+- **Oben links:** Koordinate, beispielsweise `C2`.
+- **Mitte:** 24–28 px großes Gebäudesymbol.
+- **Unten:** Ertrag, beispielsweise `+2 Holz/h`, **nur wenn dies der tatsächliche Wert ist**.
+- Gebäudename vollständig im rechten Detailpanel; kein „Holzfä“ auf dem Feld.
+- Leere Felder zeigen Gelände und Koordinate, keine unnötige Null.
+- Bei mehreren Erzeugnissen unten **„2 Erträge“**; vollständige Werte im Detailpanel.
+- Wohngebäude zeigen eine Kapazitätsangabe statt eines erfundenen Rohstoffertrags.
+- Bauzustand: kleines Hammersymbol mit Fortschrittsbalken; aktiven Ertrag noch nicht anzeigen.
+
+**Gebäudesymbole:** Holzfäller = Axt und Stamm; Steinmetz = Hammer und Steinblock; Farm = Ähre; Haus = Dach; Bibliothek = Buch; Kriegerakademie = Schild.
+
+### Feldaufbau der Weltkarte
+
+- Gelände bildet den Hintergrund.
+- Orte erhalten eindeutige Symbole: eigene Siedlung = Haus mit blauer Fahne; Portal = Torbogen; gesperrtes Ziel = zusätzliches Schloss.
+- Bei mehreren Gebäuden auf einem Weltfeld **„3 Gebäude“** statt drei winziger Symbole anzeigen.
+- Produktion nur anzeigen, wenn das Weltfeld tatsächlich eigene Produktion hat. Sonst **„Kein eigener Ertrag“** im Detailpanel.
+- Bei herausgezoomter Karte nur Gelände, wichtige Ortssymbole und Standort zeigen. Keine abgeschnittenen Namen.
+- Vollständiger Ortsname, Gebäude und alle Erträge bleiben jederzeit über Auswahl rechts lesbar.
+
+### Auswahl, Legende und Bedienung
+
+- **Auswahl:** 4 px Cyanrahmen plus Eckmarkierungen.
+- **Hover:** 1 px heller Rahmen.
+- **Aktueller Standort:** Fahne und „Hier“, unabhängig von der Auswahl.
+- **Gesperrt:** Schloss plus Erklärung; nicht nur dunkler färben.
+- Legende fest unter dem Canvas, nicht unter einer langen scrollenden Gesamtseite:
+  - Zeile 1: die sieben Geländearten mit Farbfeld **und** Symbol.
+  - Zeile 2: **Ausgewählt · Hier · Gebäude · Gesperrt** mit ihren Markierungen.
+- Koordinatenränder: oben Buchstaben, links Zahlen. Keine internen IDs 0–39 als primäre Spielbeschriftung.
+
+### Konkrete tkinter-Struktur
+
+```text
+Kopf: Ressourcen
+Navigation | Aufgabenkarte / Ansichtstitel
+           | Kartenwerkzeugleiste
+           | Canvas + eigene Scrollbars | Detailpanel, 240 px
+           | Legende                    | Aktionsknopf
+```
+
+- Hauptbereich mit `grid`; Kartenzeile und Kartenspalte erhalten `weight=1`.
+- Detailpanel und Werkzeugleiste bleiben beim Kartenscrollen stehen.
+- Canvas-Objekte eines Feldes mit gemeinsamem Tag wie `tile:C2` versehen; Klick über `tag_bind` bindet Gelände, Symbol und Beschriftung an dieselbe Auswahl.
+- Grundschrift mindestens **11 pt**, Detailüberschriften **13 pt**, Ansichtstitel **20 pt**.
+- Allgemeiner Hintergrund `#18212B`, Panel `#243140`, Fließtext `#F3F4F6`. Gold nur für den Spieltitel oder einzelne besondere Werte, nicht für praktisch jeden Text.
+
+---
+
+## D) Was an den Bildern konkret schlecht ist
+
+- **Die Startseite sieht wie eine interne Projektstatusseite aus.** Dateinamen und offene Entwicklungspakete erklären dem Spieler nicht das Spiel, sondern konfrontieren ihn mit dessen unfertigem Zustand.
+- **„Gebäude: 0“ neben sechs aufgezählten Gebäuden untergräbt sofort das Vertrauen.** Ein Anfänger weiß nicht, welche Anzeige stimmt.
+- **„Bevölkerung: 60 / 15“ ist ohne Erklärung eine schlechte Zahlenanzeige.** Sie zwingt zum Raten.
+- **Die Siedlungskarte sieht wie eine farbige Tabelle aus.** Abgeschnittene Gebäudenamen ersetzen keine erkennbare Bebauung.
+- **Die Weltkarte ist visuelles Konfetti.** Zu kleine Felder, zu viele grelle Farben und hunderte Textfragmente verhindern Orientierung.
+- **Der Bauauswahldialog ist ein Knopfteppich.** Er zeigt viele Möglichkeiten, aber verschweigt die entscheidende Frage: Was bringt mir dieses Gebäude hier?
+- **Die Platzverteilung ist verkehrt.** Für dauerhaft null Punkte gibt es eine eigene Spalte; Kartendetails und Weltkartenaktionen werden dagegen nach unten gedrängt.
+- **Die fast durchgehend gelbe Schrift auf rotbraunen Flächen erzeugt keine Hierarchie.** Überschrift, Hilfstext, Rohstoffwert und Aktion kämpfen in derselben Signalfarbe um Aufmerksamkeit.
+
+**Die wichtigste Änderung ist nicht schönere Illustration, sondern eine sichtbare Handlungskette: nächster Schritt oben, auswählbarer Ort in der Karte, verständliche Wirkung rechts und genau ein eindeutiger Ausführungsknopf.**
+======================================================================
+
+Verbrauch: {"prompt_tokens": 5379, "completion_tokens": 4439, "total_tokens": 9818, "prompt_tokens_details": {"cached_tokens": 0, "audio_tokens": 0}, "completion_tokens_details": {"reasoning_tokens": 131, "audio_tokens": 0, "accepted_prediction_tokens": 0, "rejected_prediction_tokens": 0}}
+Modell: gpt-6-astra

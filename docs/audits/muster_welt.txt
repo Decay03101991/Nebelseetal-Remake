@@ -1,0 +1,88 @@
+Query: Du bist Spieldesigner. Lies GENAU DIESE Datei: 
+D:/Arbeiten/Nebelseetal_Remake/docs/ENTWURF_AUFTRAEGE.md (Auftrags- und 
+Bot-System) und, falls vorhanden, 
+D:/Arbeiten/Nebelseetal_Remake/data/welten.json . Danach KEIN weiteres 
+Werkzeug. AUFGABE: Entwirf eine MUSTERVORLAGE fuer die Weltkarte (den Limbus) 
+als fertiges Raster von 20 Spalten und 20 Zeilen. BELEGTE Vorgaben, die du 
+einhalten musst: (a) 'Es gibt 20 Dimensionen, in jeder Dimension sind 20 mal 20
+Felder frei fuer Spielerwelten.' (b) 'Ihr habt die Moeglichkeit, einmal binnen 
+24 Stunden, eure Koordinaten zu wechseln. Sie benoetigen hierfuer 5.000 Mana.' 
+(c) 'Eure Welt wird durch ein gruenes Banner markiert, fremde Welten durch 
+rote.' (d) Die sechs alten Welten hiessen Armageddon, Ragnaroek, Utgard, 
+Midgard, Valhalla, Limbus. Deine Aufgabe: (1) Lege die eigene Startwelt und die
+sechs belegten Welten auf konkrete Koordinaten im 20x20-Raster und zeige das 
+Raster als Textblock, in dem jede Zelle ein Zeichen traegt (z.B. Punkt = frei, 
+G = eigene Welt, A/R/U/M/V/L = die sechs Welten) - 20 Zeilen a 20 Zeichen, mit 
+Spalten- und Zeilenbeschriftung. (2) Nenne fuer jede der sechs Welten die 
+Entfernung zur Startwelt in Schritten (Manhattan) und die daraus folgenden 
+Manakosten nach der Regel in data/welten.json. (3) Erklaere in drei Saetzen, 
+warum die Welten so verteilt sind (welche Spielweise das erzwingt: nahe Welten 
+= frueher Handel, ferne = spaetere Raubzuege). (4) Nenne die naechste und die 
+fernste Welt mit ihren Kosten. REGELN: Deutsch, hoechstens 60 Zeilen. Das 
+Raster muss vollstaendig und echt sein. Wo du frei entschieden hast, schreibe 
+VORSCHLAG dazu; die Punkte a-d sind belegt und nicht zu aendern.
+Initializing agent...
+────────────────────────────────────────
+
+  ┊ 📖 preparing read_file…
+  ┊ 📖 read      ENTWURF_AUFTRAEGE.md  21.4s
+  ┊ 📖 read      welten.json  20.8s
+
+╭─ ☤ Hermes ───────────────────────────────────────────────────────────────────╮
+MUSTERVORLAGE WELTKARTE (LIMBUS) — 20 x 20 Felder
+
+Belegt (a-d, unveraendert): 20 x 20 Felder; Koordinatenwechsel 5.000 Mana, hoechstens 1x je 24 h; eigene Welt gruenes Banner, fremde rote; die sechs Welten Armageddon, Ragnaroek, Utgard, Midgard, Valhalla, Limbus.
+VORSCHLAG (frei gewaehlt): alle konkreten Koordinaten unten, die Anordnung sowie die Kostenformel (100 Mana Grundbetrag + 25 je Schritt; aus welten.json "portalregel", dort selbst als VORSCHLAG gekennzeichnet). Hinweis: belegt sind 20 Dimensionen a 20x20 Felder; dieses Raster zeigt VORSCHLAG-maessig EINE solche 20x20-Ebene, in der die sieben Welten gemeinsam liegen.
+
+Legende: G = eigene Startwelt (gruen) · A/R/U/M/V/L = fremde Welten (rot) · . = freies Feld
+Spalten (x) waagerecht 1-20 von links, Zeilen (y) senkrecht 1-20 von oben.
+
+
+           11111111112
+   12345678901234567890
+ 1 A...................
+ 2 ....................
+ 3 ....................
+ 4 ....................
+ 5 ....................
+ 6 .............R......
+ 7 ....................
+ 8 ....................
+ 9 .......V............
+10 .........GM.........
+11 ....................
+12 ....................
+13 ....................
+14 ....................
+15 .........U..........
+16 ....................
+17 ....................
+18 ....................
+19 ....................
+20 ...................L
+
+
+Entfernung zur Startwelt G(10,10) — Manhattan (|dx|+|dy|) und Manakosten (100 + 25 x Schritte):
+
+  Welt          Koord.      Schritte   Mana
+  Midgard   M   (11,10)       1         125
+  Valhalla  V   ( 8, 9)       3         175
+  Utgard    U   (10,15)       5         225
+  Ragnaroek R   (14, 6)       8         300
+  Armageddon A  ( 1, 1)      18         550
+  Limbus    L   (20,20)      20         600
+
+Warum so verteilt (drei Saetze): Die zwei nahen Welten Midgard und Valhalla liegen ein bis drei Schritte entfernt und lassen sich ab Spielstart mit billigen Portalen (125-175 Mana) per Handelskarawane erreichen, was fruehen Handel ermoeglicht. Die mittlere Distanz von Utgard und Ragnaroek macht Spionage, Stationierung und erste Angriffe erst nach etwas Ausbau sinnvoll, weil die Manakosten (225-300) spuerbar werden. Armageddon und Limbus an den aeussersten Ecken erzwingen spaete, vorbereitete Raubzuege, da die hohen Portalkosten (550-600 Mana) sich nur mit voller Transportkarren-Beute lohnen.
+
+Naechste Welt: Midgard (M) — 1 Schritt, 125 Mana.
+Fernste Welt: Limbus (L) — 20 Schritte, 600 Mana.
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Resume this session with:
+  hermes --resume 20261004_212348_3b8a67
+  hermes -c "Entwurf 20x20 Weltkarte Limbus Raster"
+
+Session:        20261004_212348_3b8a67
+Title:          Entwurf 20x20 Weltkarte Limbus Raster
+Duration:       2m 27s
+Messages:       5 (1 user, 3 tool calls)

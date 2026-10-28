@@ -1,0 +1,3867 @@
+
+
+########## DATEI: docs/original/Spielanleitung_2009_Textfassung.txt ##########
+===== Seite 1 =====
+Nebelseetal Online
+– Spielanleitung -
+ 
+(01.09.2006)
+Besonderen Dank an 
+„Dwarf“, „Jorgas“, „Mike aus EM“ und „Punisher“
+für die Mitarbeit an dieser Anleitung.
+Seite 1
+
+
+===== Seite 2 =====
+Das Spiel 
+Nebelseetal-Online ist ein Online Aufbauspiel, welches komplett in Deinem Browser läuft. Das 
+Spielen sowie die Anmeldung sind kostenlos. 
+Du übernimmst die Rolle eines Herrschers über ein mittelalterliches Reich und musst Dein 
+Geschick in Wirtschaft, Diplomatie und Krieg unter Beweis stellen. Jedes Reich liegt auf einer 
+eigenen Welt, welche durch magische Portale verbunden sind. Durch die Portale kannst Du 
+Handel treiben oder Kriege mit den Herrschern anderer Reiche führen. Du startest das Spiel 
+mit einer Siedlung die es zunächst auszubauen gilt. 
+Dazu musst Du die Rohstoffproduktion erhöhen, indem Du produzierende Gebäude wie 
+Holzfällerhütten, Steinmetze, Farmen oder Minen errichtest. Die so gewonnenen Rohstoffe 
+kannst Du nutzen um weitere Gebäude zu erbauen, Forschungen zu betreiben oder Waffen und 
+Rüstungen für Deine Armee herzustellen. 
+Das Spiel läuft in Echtzeit, was bedeutet, dass Rohstoffproduktionen, Einheitenbewegungen, 
+Forschungen etc. nicht in Runden ablaufen, sondern eine gewisse Zeit benötigen und dann 
+abgeschlossen sind. Wenn Du beispielsweise durch eine Holzfällerhütte 4 Einheiten Holz pro 
+Stunde produzierst, bekommt Deine Siedlung alle 15 Minuten 1 Einheit Holz gutgeschrieben. 
+Eine Forschung die 2 Tage und 10 Stunden dauert, ist auch erst 58 Stunden nachdem Du sie in 
+Auftrag gegeben hast abgeschlossen.  
+Deine Gelehrten betreiben Forschungen in der Bibliothek. Diese Untersuchungen erhöhen 
+beispielsweise die Produktivität Deiner Gebäude, oder sie sind wichtige Voraussetzungen zum 
+Bau bestimmter Einheiten und Waren. 
+Hast Du genügend Rohstoffe angesammelt so kannst Du damit beginnen auf Deiner Welt 
+neues Land zu erschließen und neue Siedlungen zu gründen. So kannst Du ein großes und 
+mächtiges Imperium erschaffen. 
+Du hast auch die Möglichkeit mit anderen Spielern eine Gilde zu gründen, um gemeinsam 
+gegen stärkere Tyrannen vorzugehen, organisiert Handelswaren herzustellen und zu 
+verkaufen, oder selbst Angst und Schrecken zu verbreiten. In Nebelseetal-Online stehen Euch 
+viele Wege offen. Versucht Euch einfach mal als Herrscher in einer fantastischen Welt voller 
+Magie und Gefahren... 
+Seite 2
+
+
+===== Seite 3 =====
+Grundlegendes
+In diesem Abschnitt der Anleitung werden grundlegende Dinge, wie das Spielziel, der 
+Bildschirmaufbau oder das Punktesystem erklärt. 
+Spielziel
+Jeder hat bei Nebelseetal sicher seine eigenen Ziele. Großer Feldherr, friedlicher Forscher oder 
+einflussreicher Händler, das alles ist möglich. Der Weg zu jedem dieser Ziele führt jedoch über 
+die Rohstoffe, die Du für so gut wie alles im Nebelseetal benötigst. Der direkteste Weg an 
+Rohstoffe zu kommen ist, sie mit speziellen Gebäuden zu erwirtschaften. Später kommen dann 
+noch die Möglichkeiten Raub und Handel hinzu. 
+Um viele Rohstoffe zu bekommen musst Du viele Gebäude bauen. Mit den Rohstoffen kannst 
+Du dann forschen, um z.B. Deine Rohstoffproduktion zu steigern, oder neue Rohstoffe zu 
+ermöglichen (z.B. Wolle oder Gold). Wenn Du genug zusammengetragen hast, kannst Du 
+zusätzliche Siedlungen gründen (bis maximal 6 Siedlungen) und somit noch mehr Rohstoffe 
+ansammeln.
+Bildschirmaufbau
+Am linken Bildschirmrand befindet sich das Hauptmenü. Von hier aus gelangst Du in die 
+verschiedenen Hauptbereiche des Spiels. Außerdem werden hier die neusten fünf Nachrichten, 
+die Du erhalten hast und Deine Punkte angezeigt. Über das Dropdownfeld, über dem Menü 
+kannst Du zwischen Deinen Siedlungsübersichtseiten und der Spielübersichtsseite wechseln.
+Am oberen Bildschirmrand befindet sich die Ressourcenleiste. Wenn Du Dich in einem 
+Unterbereich einer Deiner Siedlungen befindest, werden hier die Ressourcen selbiger 
+angezeigt. In der Hauptübersicht und in allen anderen Bereichen, die keiner bestimmten 
+Siedlung zugeordnet sind, stehen hier die Gesamtressourcen aus allen Siedlungen.
+In der Mitte des Bildschirms befindet sich der Hauptanzeigebereich. Hier werden die Inhalte 
+der verschiedenen Spielbereiche angezeigt. 
+In manchen Bereichen, wie z.B. der Siedlungsübersicht, wird am rechten Bildschirmrand ein 
+weiteres Menü eingeblendet. Über dieses gelangt man in weitere Unterbereiche des Spiels.
+Hauptmenü
+Hier eine kurze Erläuterung zu den einzelnen Hauptmenüpunkten, eine genaue Beschreibung 
+findest Du in den Entsprechenden Abschnitten dieser Anleitung:
+Übersicht
+Über diesen Menüpunkt kommst Du direkt auf die Spielübersichtsseite, auf der Du auch direkt 
+nach dem Einloggen landest.
+Portal
+Alle Welten in Nebelseetal, liegen im magischen Limbus, der sich in 20 Dimensionen aufteilt. 
+Diese sind über magische Portale miteinander verbunden. Im Portalbereich siehst Du die 
+Position Deiner Welt und die der Welten anderer Spieler im Limbus. Je weiter eine andere 
+Spielwelt von Deiner Welt entfernt liegt, desto mehr Mana kostet es, das Portal zu öffnen, um 
+Einheiten zu diesem Spieler zu entsenden.
+Seite 3
+
+
+===== Seite 4 =====
+Diplomatie
+Im Diplomatiebereich kannst Du einer Gilde beitreten, eine eigene Gilde Gründen und 
+verwalten, verbündete Spieler (Buddyliste) suchen und Dein Herrscherprofil (Spielerprofil) 
+anlegen. 
+Einstellungen
+Hier kannst Du Dein Passwort ändern, den Newsletter bestellen/abbestellen, einen anderen 
+Spielskin wählen, in den Urlaubsmodus wechseln und, falls gewünscht, Deinen Account 
+löschen. Letzteres kann nicht rückgängig gemacht werden!
+Ruhmeshalle
+In diesem Bereich kannst Du sehen wie Stark andere Spieler sind und wo Du dich unter ihnen 
+platzierst.
+Gildenhalle
+In der Gildenhalle sind alle Gilden nach ihrer Stärke aufgelistet. Die Gildenstärke ergibt sich aus 
+den Punkten ihrer Mitglieder. Es werden nur Gilden mit mehr als zwei Mitgliedern gewertet.
+Voraussetzungen
+Um Einheiten auszubilden, Gebäude zu bauen, Waren zu produzieren und Forschungen zu 
+betreiben muss Dein Volk bestimmte Voraussetzungen, wie Gebäudestufen oder 
+Forschungsstufen erfüllen. Welche Voraussetzungen das sind und ob Dein Volk sie schon erfüllt 
+hat kannst Du in diesem Bereich einsehen.
+Nachrichten
+Im Nachrichtenmenü siehst Du alle Nachrichten, die an Dich gesendet wurden und Du 
+bekommst hierher die Bestätigungsmeldungen, wenn Einheiten von Dir Deine Aufträge erfüllt 
+haben. Wenn Du eine Neue Nachricht erhalten hast, leuchtet der Nachrichtenbutton auf.
+Forum
+Über diesen Link gelangst Du ins Nebelseetal-Forum.
+IRC-Chat
+Über diesen Link gelangst Du direkt in den Nebelseetal IRC-Chanel.
+Logout
+Wenn Du Deine Spielzüge getätigt hast, kannst Du dich hier ausloggen.
+Punktesystem
+Um in der Ruhmeshalle, in der alle Spieler aufgeführt werden, weit oben zu stehen, musst Du 
+möglichst viele Gesamtpunkte erreichen. In Nebelseetal-Online gibt es drei verschiedene Arten 
+von Punkten: 
+Forschungspunkte
+Diese Punkte geben Deinen aktuellen Forschungsstand an. Für jede Forschung die Du erlangt 
+hast, wird die Forschungsstufe hoch drei genommen. Die so gewonnenen Werte, werden 
+anschließend addiert und ergeben Deine Forschungspunkteanzahl.
+Ein Beispiel:
+Felderwirtschaft Stufe 1 = 1 Punkt (1*1*1=1)
+Kriegskunst Stufe 4 = 64 Punkte (4*4*4=64)
+Minenarbeit Stufe 2 = 8 Punkte (2*2*2=8)
+Gesamtforschungspunkte = 73 (1+64+8=73)
+Seite 4
+
+
+===== Seite 5 =====
+Kriegspunkte
+Für jede Militär- und Spionageeinheit die Du ausbildest, bekommst Du Kriegspunkte. Wie viele 
+Punkte hängt von der entsprechenden Einheit ab:
+•
+Bürgerwehr: 1 Punkt 
+•
+Kämpfer: 2 Punkte 
+•
+Krieger: 4 Punkte 
+•
+Ritter: 8 Punkte 
+•
+Paladin: 16 Punkte 
+•
+Kurzbogenschütze: 2 Punkte 
+•
+Bogenschütze: 4 Punkte 
+•
+Langbogenschütze: 8 Punkte 
+•
+Armbrustschütze: 10 Punkte 
+•
+Belagerungsturm: 2 Punkte
+•
+Ramme: 3 Punkte
+•
+großer Belagerungsturm: 4 Punkte
+•
+große Ramme: 5 Punkte
+•
+Balliste: 6 Punkte
+•
+Katapult: 7 Punkte
+•
+großes Katapult: 8 Punkte
+•
+Streuner: 1 Punkte 
+•
+Gauner: 2 Punkte 
+•
+Dieb: 4 Punkte 
+•
+Meisterdieb: 8 Punkte 
+•
+Kundschafter: 10 Punkte 
+•
+Waldläufer: 16 Punkte 
+•
+Handkarren: 1 Punkt
+•
+Einspänner: 2 Punkte
+•
+Zweispänner: 3 Punkte
+Ein Beispiel:
+10 Paladine + 12 Bogenschützen = 10*16 + 12*4 = 208  Kriegspunkte
+Des weiteren bekommst Du für deine Verteidigungsanlagen Kriegspunkte. Dies berechnen sich, 
+indem die Ausbaustufe hoch drei genommen werden.
+Ein Beispiel:
+Palisade (Ausbaustufe 4) = 64 Kriegspunkte (4*4*4=64)
+Gesamtpunktzahl
+Die Gesamtpunktzahl besteht aus der Summe von den Kriegs- und Forschungspunkten. Das 
+Ergebnis wird dann durch zwei geteilt. 
+Die Gesamtpunktzahl kann man in der Ruhmeshalle sehen, die Kriegs- und Forschungspunkte 
+kann man dort nicht erkennen, sie werden Dir nur für Deinen Account unter dem Hauptmenü 
+angezeigt.
+Ein Beispiel:
+(150 Forschungspunkte + 200 Kriegspunkte) / 2 =  175 Gesamtpunkte 
+Rufpunkte
+Für das aktive teilnehmen am Spiel bekommst Du Rufpunkte. Diese fließen nicht mit in die 
+Seite 5
+
+
+===== Seite 6 =====
+Gesamtpunktzahl ein sondern können gegen Boni, wie z.B. Extraressourcen eingetauscht 
+werden. Dies kannst du unter dem Menüpunkt „Diplomatie->Euer Ruf“ tun.
+In der Ruhmeshalle werden die Rufpunkte ebenfalls aufgelistet. Sie sind ausschlaggebend, 
+wenn zwei Spieler die gleiche Gesamtpunktzahl haben. Der Spieler, der den höheren Ruf 
+besitzt steht dann weiter oben. Haben beide Spieler ebenfalls die gleiche Anzahl an 
+Rufpunkten, steht der Spieler oben, der schon länger auf dem Server angemeldet ist.
+Götterschutz
+Alle neuen Spieler befinden sich die ersten sieben Tage im so genannten Götterschutz und 
+können nicht angegriffen werden. Dieser Schutz hält allerdings nur so lange an, bis der 
+entsprechende Spieler seinen ersten Kriegspunkt bekommt. Wer also nach vier Tagen beginnt 
+seine Verteidigungsanlagen auszubauen, oder eine Militär- bzw. Spionageeinheit ausbildet, 
+kann bereits ab diesem Zeitpunkt angegriffen werden. Du musst Dir also zu Beginn des Spiels 
+vorerst keine Gedanken über Angriffe feindlicher Spieler machen. Erst nach dem ersten 
+Kriegspunkt bzw. sieben Tagen Spielzeit gilt folgende Regelung:
+Spieler bis maximal 299 Punkte befinden sich im eingeschränkten Götterschutz. Innerhalb des 
+eingeschränkten Götterschutzes kannst Du nur Spieler angreifen, die im Bereich „eigene 
+Punktzahl +/- 20%“ liegen. Zum Beispiel kannst Du mit 100 Punkten alle anderen Spieler 
+zwischen 80 und 120 Punkten angreifen. 
+Ein Angriff über die Götterschutzgrenze von 299 Punkten hinweg ist in keine Richtung möglich! 
+Ein Spieler mit 299 Punkten kann also nur Spieler zwischen 240 und 299 Punkten angreifen 
+und kann von allen Feinden oberhalb von 299 Punkten nicht angegriffen werden.
+Alle Spieler über 300 Punkten befinden sich außerhalb des Götterschutzes und können alle 
+anderen Spieler über 300 Punkten angreifen und von ihnen angegriffen werden.
+Es ist mehr als nur ratsam, das Du Dir vor dem Verlassen des Götterschutzes, eine andere Art 
+von Schutz zulegst. Die üblichste Methode ist, dass Du Dich einer wehrhaften Gilde anschließt, 
+oder Dir mächtige Verbündete suchst. 
+Spieler die Dir gegenüber im Götterschutz sind erkennst Du daran, dass ihre Namen in der 
+Ruhmeshalle und im Portal grün dargestellt werden. Außerdem sind sie im Portalbereich 
+zusätzlich mit einem grünen Punkt gekennzeichnet.
+Seite 6
+
+
+===== Seite 7 =====
+Spielübersichtsseite:
+Nachdem Du Dich ins Spiel eingeloggt hast, landest Du direkt auf der Spielübersichtsseite. Hier 
+siehst Du eine Liste Deiner Siedlungen (anfangs nur eine Siedlung mit der Bezeichnung 
+„Siedlung“) mit einer Auflistung der aktuell gelagerten Rohstoffe und Einheiten. Außerdem 
+werden hier die in den Siedlungen laufenden Forschungen angezeigt. Jeder Spieler beginnt das 
+Spiel mit 10 Siedlern, 100 Holz und 100 Steinen.
+Über den Siedlungen wird eine Liste aller laufenden Aufträge angezeigt. Dies können sowohl 
+Transporte zwischen Dir und anderen Spielern sein, als auch Angriffe auf eine Deiner 
+Siedlungen.
+Seite 7
+
+
+===== Seite 8 =====
+Siedlungen:
+Siedlungsübersichtsseite
+Wenn Du dich auf der Spielübersichtsseite befindest, kannst Du entweder durch einen Klick auf 
+den Siedlungsnamen, oder über das Dropdownmenü, über dem Hauptmenü, in die 
+Siedlungsübersicht Deiner Siedlung(en) wechseln. 
+Hier siehst Du eine Karte der Siedlung, die in der Siedlung gelagerten Rohstoffe und eine 
+Tabelle, in der Du den Rohstoffzuwachs ablesen kannst. 
+Die Ressourcenanzeige am oberen Bildschirmrand zeigt Dir, wie viele Rohstoffe in der 
+Aktuellen Siedlung gelagert sind. Die Werte in Klammern zeigen den Ressourcenzuwachs pro 
+Stunde. Der Balken zeigt an, wann die nächste Einheit einer Ressource hinzukommt.
+Rechts am Bildschirmrand ist das Siedlungsmenü, von dem aus Du auf alle Bereiche zugreifen 
+kannst, die in der aktuellen Siedlung verfügbar sind. 
+Die einzelnen Siedlungsmenüpunkte im Überblick: 
+Siedlungsübersicht
+Über diesen Button gelangst Du wieder auf die Siedlungsübersicht der aktuellen Siedlung 
+zurück, falls Du in einen der anderen Bereiche, wie beispielsweise „Aufträge“ gewechselt hast.
+Aufträge
+Hier kannst Du den Einheiten, die in der aktuellen Siedlung stationiert sind, Aufträge erteilen. 
+Auch warten hier die Handelskarawanen anderer Spieler auf Deine Bestätigung. Dieser 
+Menüpunkt ist erstmal weniger wichtig, da Du anfangs noch keine Einheiten besitzt. Auf das 
+versenden von Einheiten, wird später noch näher eingegangen.
+Bauen
+Hier gelangst Du in das Baumenü der aktuellen Siedlung. Es gibt hier zwei Bereiche, 
+„Produktion“ und „Verteidigung“.
+Produktion
+Es sind alle Gebäude aufgelistet, die Du bereits erforscht hast (Holzfäller, Steinmetze, 
+Jäger, Bibliothek und Häuser können bereits ohne Forschungen gebaut werden, für die 
+restlichen Gebäude benötigst Du Kenntnisse in der Forschung „Baukunst“). Klicke auf 
+das Feld „ ... bauen“ neben dem Gebäude, welches Du errichten möchtest und platziere 
+es anschließend auf der Siedlungskarte. Wenn Du den Mauszeiger über ein Feld hältst 
+wird Dir automatisch angezeigt wie gut (hohe Produktion / niedrige Produktion / gar 
+nicht möglich) dieses Feld, für die Produktion geeignet ist. Eine genaue Auflistung, 
+welche Felder für welches Gebäude geeignet und wie hoch die Erträge sind, findest Du 
+weiter unten in dieser Anleitung. 
+Verteidigung
+Im Bereich Verteidigung kannst Du Deine Verteidigungsanlagen ausbauen, um dich vor 
+feindlichen Angriffen zu schützen.
+Gebäude abreißen
+Mittels dieser Schaltfläche kannst Du Gebäude abreißen. Es wird wieder die Kartenansicht 
+geöffnet, in der Du das abzureißende Gebäude anklicken kannst. Nach einer erneuten 
+Sicherheitsabfrage wird es aus der Siedlung entfernt. Du erhältst durch einen Abriss keinerlei 
+Ressourcen zurück. Lediglich das Feld, auf dem das Gebäude stand, ist wieder frei und kann 
+neu bebaut werden. Dies ermöglicht Dir, im späteren Verlauf des Spiels, Deine 
+Rohstoffproduktion umzustellen. 
+Seite 8
+
+
+===== Seite 9 =====
+Lager
+Im Lager kannst Du dir einen Überblick über alle in der Siedlung befindlichen Waren und 
+Einheiten verschaffen.
+Umbenennen
+Hier kannst Du den Siedlungsnamen individuell gestalten. 
+Siedeln
+Um eine neue Siedlung zu gründen, klicke im Siedlungsmenü auf den Button „Siedeln“. Dort 
+werden Dir die benötigten Ressourcen angezeigt. Hast Du genügend Ressourcen gesammelt 
+und die nötigen Siedlerkarren gebaut, kannst Du eine neue Siedlung errichten, indem Du einen 
+Namen für die Siedlung eingibst und auf „Siedeln“ klickst. Es ist nicht möglich mehr als 6 
+Siedlungen zu errichten. 
+Einer neuen Siedlung wird per Zufall eine Karte zugewiesen. Es werden niemals zwei Deiner 
+Siedlungen die gleiche Karte bekommen, es ist jedoch möglich, dass, nachdem Du eine 
+Siedlung aufgegeben hast, die gleiche Karte bei einer Neugründung wieder auftaucht. 
+--Tipp: Auch wenn Du eine schlechte Karte mit wenigen nutzbaren, oder nur schlecht 
+nutzbaren Feldern bekommst, warte mit dem aufgeben der Siedlung, bis Du alle 6 
+Siedlungen gegründet hast. So ist das Risiko geringer, die selbe, schlechte Karte erneut 
+zu bekommen.
+Siedlung aufgeben
+Wenn Du mehr als eine Siedlung besitzt, kannst Du eine der Siedlungen aufgeben. Dazu 
+wechsele auf die aufzugebende Siedlung und klicke im Siedlungsmenü auf „Siedlung 
+aufgeben“. Nach einer erneuten Sicherheitsabfrage wird die Siedlung gelöscht.
+Bedenke aber, dass das Löschen nicht rückgängig gemacht werden kann und dabei ALLE 
+Einheiten, Waren, Gebäude und Ressourcen der Siedlung verloren gehen! Das Löschen einer 
+Siedlung ist in erster Linie sinnvoll, wenn Du eine besonders schlechte Siedlungskarte erwischt 
+hast. 
+Weitere Optionen
+Im späteren Verlauf des Spiels werden noch weitere Buttons im Siedlungsmenü auftauchen. 
+Diese führen beispielsweise in die Kriegerakademie in der Einheiten ausgebildet werden 
+können, oder in die Bibliothek in der Du neue Wissensgebiete erforschen kannst. Diese Buttons 
+und die dazu gehörigen Bereiche, werden in den entsprechenden Abschnitten dieser Anleitung 
+näher erläutert.
+Seite 9
+
+
+===== Seite 10 =====
+Rohstoffproduktion und Gebäude:
+Gebäude
+Rohstoff Produktion
+Holzfäller
+Holz
+Wald (4), Steppe (2)
+Steinmetz
+Stein
+Berg (4), Hügel (2)
+Erzmine
+Metall
+Berg (3), Hügel (1,5)
+Tempel
+Mana
+Nebelsee (5), alle außer Sumpf (1)
+Farm
+Nahrung
+Grasland (4), Steppe (2)
+Goldmine
+Gold
+Berg (3), Hügel (1,5)
+Schafszucht
+Wolle
+Grasland (3), Steppe (1,5)
+Rinderfarm
+Leder
+Grasland (3 Nahrung, 3 Leder),
+Steppe (1,5 Nahrung, 1,5 Leder)
+Pferdezucht
+Pferde
+Grasland (3), Steppe (1,5)
+Jäger
+Nahrung, 
+Leder
+Wald (2 Nahrung, 2 Leder), 
+Steppe (1 Nahrung, 1 Leder)
+Seite 10
+
+
+===== Seite 11 =====
+Jedes Gebäude produziert auf 2 verschiedenen Geländearten unterschiedliche Mengen an 
+Rohstoffen. Wie viele Ressourcen pro Stunde produziert werden, kannst Du aus der Tabelle 
+oben entnehmen. Der Wert in Klammern geben die Produktionsmenge pro Stunde an. Sümpfe 
+sind unbebaubar und somit für Eure Siedlungen völlig wertlos. 
+Deine Siedlung bekommt, außer den Rohstoffen, noch einen neuen Siedler pro Stunde, bis ihre 
+Siedlergrenze erreicht ist. Diese Grenze liegt in jeder neuen Siedlung bei 10 Siedlern. Wenn Du 
+in Deiner Siedlung Häuser errichtest, erhöht sich der Grenzwert um 5 Siedler pro Haus. Wann 
+Du den nächsten Siedler bekommst, kannst Du in der Siedlungsübersicht, unter der 
+Rohstoffzuwachstabelle sehen. 
+Neben den schon genannten Rohstoffe produzierenden Gebäuden, gibt es noch die 
+Produktions- und Ausbildungsstätten. Diese werden in späteren Abschnitten dieser Anleitung 
+genauer beschrieben.
+Seite 11
+
+
+===== Seite 12 =====
+Forschung:
+Bibliothek
+Forschungen sind wichtige Voraussetzungen, für Einheiten, Waffen, Gebäude und weitere 
+Forschungsmöglichkeiten. Manche von ihnen erhöhen die Produktivität Deiner Siedlungen, 
+andere ermöglichen den Bau neuer Gebäude und Einheiten oder steigern die Effektivität Deiner 
+Kampfeinheiten. 
+Um Forschung zu betreiben musst Du in Deiner Siedlung zunächst eine Bibliothek bauen. Dies 
+kannst Du über den Button „Bauen“ im Siedlungsmenü tun. 
+Hast Du genügend Ressourcen gesammelt, klicke in der Siedlungsübersicht auf „Bauen“ und 
+wähle die Bibliothek aus. Sie kann nur auf Grasland, Steppe oder Nebelseen errichtet werden. 
+In jeder Siedlung kann nur eine einzige Bibliothek gebaut werden. 
+Verfügt Deine Siedlung über eine Bibliothek, erscheint im Siedlungsmenü der Button 
+„Forschung“. Über diesen gelangst Du in den Forschungsbereich. In Diesem kannst Du, 
+solange Deine Gelehrten nicht mit Studien beschäftigt sind, die Bibliothek ausbauen, oder 
+einen Forschungsauftrag erteilen. 
+Ausbauen der Bibliothek
+Das Ausbauen der Bibliothek erfolgt in Stufen. Mit jeder Stufe, die Deine Bibliothek ausgebaut 
+wird, stehen Dir weitere Forschungsmöglichkeiten in ihr offen. Welche Voraussetzungen Du für 
+die Forschungen benötigst kannst Du unter „Voraussetzungen“ im Hauptmenü erfahren. Wenn 
+Du genügend Ressourcen gesammelt hast, klicke im Forschungsbereich auf den Button 
+„Bibliothek ausbauen“, um die Stufe der Bibliothek um 1 zu erhöhen. Der Ausbau wird mit 
+jeder Stufe teurer. 
+Forschung
+Um Forschungsaufträge an Deine Gelehrten zu erteilen, suche Dir im Forschungsbereich die 
+entsprechende Forschung aus und klicke dort auf „Forschen“. Die benötigten Ressourcen 
+werden sofort zum experimentieren in die Bibliothek geschafft und Deine Gelehrten beginnen 
+mit ihren Studien. 
+Auch die Entwicklung Deiner Forschungsmöglichkeiten wird in Stufen angegeben und erhöht 
+sich pro Forschungsauftrag um 1. Ein Forschungsauftrag dauert (Neue Stufe*Neue Stufe) in 
+Stunden. Während dieser Zeit kannst Du in der Siedlung, in der geforscht wird, weder die 
+Bibliothek ausbauen, noch einen weiteren Forschungsauftrag erteilen. 
+Solltest Du Dich, aus welchem Grund auch immer, dazu entschließen die laufende Forschung 
+abzubrechen, sind sowohl die investierte Zeit, als auch die eingesetzten Ressourcen verloren. 
+Ein Beispiel: 
+Du möchtest Deine Kenntnisse in der „Baukunst“ von Stufe 2 auf Stufe 3 anheben. Du hast 
+bereits die nötigen Ressourcen gesammelt und in der Bibliothek sitzen Deine Gelehrten faul 
+herum und erfreuen sich an Rauschkraut, Wein und diskutieren über philosophische Fragen... 
+Sobald Du nun auf „Baukunst erforschen“ klickst, werden die für die Forschung benötigten 
+Ressourcen von Deinem Siedlungsbestand abgezogen. Die Gelehrten machen sich sofort daran 
+die Komplexität der „Baukunst“ zu erforschen. 
+Seite 12
+
+
+===== Seite 13 =====
+Da Du diese auf die Stufe 3 anheben möchtest, wird das 9 Stunden in Anspruch nehmen. (3 * 
+3 = 9) Während dieser Zeit, ist in der Siedlung, in der geforscht wird, der gesamte 
+Forschungsbereich blockiert. Du kannst dort lediglich noch den Fortschritt der Studien 
+beobachten, oder Deine Gelehrten anweisen, ihre Studien einzustellen. Solltest Du Dich zu 
+Letzterem entscheiden, klicke auf den Button „Forschung abbrechen“. 
+Nach einer erneuten Sicherheitsabfrage stellen Deine Gelehrten ihre Arbeit ein. In diesem Fall 
+kannst Du, sofort wieder uneingeschränkt auf den Forschungsbereich zugreifen, allerdings sind 
+die eingesetzten Ressourcen für die abgebrochene Forschung verloren. 
+WICHTIG: Während der gesamten Studienzeit bleibt die Stufe Deiner Forschung noch auf 
+ihrem alten Wert! Erst wenn die Forschungszeit vollständig abgelaufen ist und Du erneut den 
+Forschungsbereich besuchst, um das Ergebnis deiner Gelehrten zu begutachten, erhöht sich 
+die Stufe des Forschungsprojekts um 1. 
+Die Rohstoffkosten die zum Forschen aufgebracht werden müssen, verdoppeln sich pro Stufe. 
+Das bedeutet, wenn Du für eine Forschung Stufe1 50Holz benötigst, benötigst Du für Stufe2 
+100Holz, für Stufe3 200Holz, für Stufe4 400Holz usw. 
+Seite 13
+
+
+===== Seite 14 =====
+Waren:
+Um Militäreinheiten ausbilden zu können, musst Du zuerst einmal Waffen und Rüstungen 
+produzieren. Auch ist für Deine Kundschafter Woll- oder Fellkleidung erforderlich. 
+Um diese Waren produzieren zu können, musst Du zunächst eine Schmiede, Nähstube oder 
+einen Bogenbauer in Deiner Siedlung errichten. In der Schmiede stellst Du Waffen und 
+Rüstungen, beim Bogenbauer Fernwaffen und in der Nähstube Stoff- und Fellkleidung her. 
+Bedenke das Du zum Bau dieser Gebäude bestimmte Voraussetzungen erfüllen musst. Diese 
+kannst Du im Hauptmenü unter „Voraussetzungen“ einsehen.
+Sobald Du das Gebäude errichtet hast, erscheint im Siedlungsmenü der Button „Schmied“, 
+„Bogenbauer“ bzw. „Schneider“. In jedem dieser Bereiche kannst Du Waren in Auftrag geben, 
+indem Du die Anzahl der anzufertigenden Gegenstände in die Eingabefelder, unter der 
+Warenbezeichnung einträgst und anschließend auf „Auftrag erteilen“ klickst. Die zu fertigenden 
+Waren werden dann in eine Warteschlange gestellt und nacheinander abgearbeitet. Je mehr 
+Fertigungsgebäude Du errichtest, desto mehr Waren werden gleichzeitig angefertigt. 
+Ein Beispiel: 
+Du gibst 10 Schwerter in Auftrag. Für ein Schwert benötigt Dein Schmied 20 Minuten. Wenn 
+Du in Deiner Siedlung zwei Schmieden gebaut hast, werden immer zwei Schwerter gleichzeitig 
+in dieser Zeit gefertigt. Um den gesamten Auftrag abzuschließen benötigst Du also statt 200 
+nur 100 Minuten. 
+Deinen Warenbestand kannst Du in Deinem Lager überprüfen. Dieses erreichst Du über das 
+Siedlungsmenü der jeweiligen Siedlung. 
+Es kann durchaus vorkommen, dass Du Einheiten ausbilden kannst, aber noch nicht die 
+erforderlichen Voraussetzungen erfüllst, um die benötigten Waren herzustellen. In diesem Fall 
+kannst Du versuchen, einen Handelspartner zu finden, der Dir die Waren verkauft oder gegen 
+Rohstoffe eintauscht. 
+Seite 14
+
+
+===== Seite 15 =====
+Einheiten:
+Zum Transport von Rohstoffen und Waren benötigst Du Transportkarren, zum Handeln mit anderen 
+Spielern Handelskarawanen. Zur Verteidigung Deines, oder zum Angreifen anderer Reiche sind 
+Militäreinheiten unabdingbar. 
+In Nebelseetal gibt es grundlegend vier Einheitentypen. Die Karren, die Belagerungswaffen, die 
+Kundschafter und die Kampfeinheiten.
+•
+Karren werden zum Transport von Waren und Rohstoffen und zum Handeln mit anderen 
+Spielern benötigt.
+•
+Belagerungswaffen werden zur Erstürmung großer Verteidigungsanlagen benötigt.
+•
+Kundschafter werden zur Spionage eingesetzt. 
+•
+Kampfeinheiten verteidigen Eure Siedlungen oder greifen auf Befehl andere Spieler an.
+Zum Bau von Karren und Belagerungswaffen benötigst Du einen Stellmacher, zum Ausbilden 
+von Kundschaftern eine Diebesgilde und Armee-Einheiten werden in der Kriegerakademie 
+ausgebildet. 
+In jeder Deiner Siedlungen kann jeweils nur eine Kriegerakademie, eine Diebesgilde und ein 
+Stellmacher gebaut werden. Die Gebäude werden stufenweise ausgebaut. Je höher die Stufe, 
+desto schneller werden dort Einheiten ausgebildet.
+Sobald Du eines dieser Gebäude errichtet hast, erscheint im Siedlungsmenü der Button 
+„Stellmacher“, „Diebesgilde“ bzw. „Kriegerakademie“. In jedem dieser Gebäude kannst Du 
+Einheiten in Auftrag geben, indem Du die Anzahl der auszubildenden Einheiten in die 
+Eingabefelder, unter der Einheitenbezeichnung, einträgst und anschließend auf „Auftrag 
+erteilen“ klickst. Die ausgewählten Einheiten werden dann in eine Warteschlange gestellt und 
+nacheinander ausgebildet bzw. gebaut. 
+Seite 15
+
+
+===== Seite 16 =====
+Einheitentabelle
+Hier siehst Du eine Auflistung aller Einheiten, die es in Nebelseetal gibt:
+Armeeeinheiten (Kriegerakademie):
+Bezeichnung
+Kosten
+Voraussetzungen, 
+Anmerkungen
+LE
+AT
+PA
+SI
+HE
+RS
+TP
+GS
+MU
+SK
+Bürgerwehr
+Punktewert: 1
+1 Siedler, 
+100  Nahrung, 
+50 Leder, 
+50 Wolle
+-
+15
+20
+20
+10
+10
+0
+1-6
+5
+40
+1
+Kämpfer
+Punktewert: 2
+1 Siedler, 
+250 Gold, 
+1 Kurzschwert, 
+1 Lederrüstung
+Kriegskunst 1
+20
+40
+25
+10
+15
+1
+2-8
+10
+75
+2
+Krieger
+Punktewert: 4
+1 Siedler, 
+500 Gold, 
+1 Schwert, 
+1 Kettenhemd, 
+1 Pferd
+Kriegskunst 3
+30
+50
+40
+15
+15
+2
+3-10
+25
+85
+3
+Ritter
+Punktewert: 8
+1 Siedler, 
+1000 Gold, 
+1 Schwert, 
+1 Pferd, 
+1 Plattenrüstung
+Kriegskunst 7
+35
+70
+50
+15
+5
+4
+4-15
+20
+95
+4
+Paladin
+Punktewert: 16
+1 Siedler, 
+2000 Gold, 
+10 Mana, 
+1 Zweihänder, 
+1 Schwert, 
+1 Pferd, 
+1 Paladinharnisch
+Kriegskunst 10
+50
+85
+60
+20
+0
+6
+6-20
+20
+100
+5
+Kurzbogenschütze
+Punktewert: 2
+1 Siedler, 
+250 Gold, 
+1 Kurzbogen
+Kriegskunst 2
+15
+40
+0
+10
+10
+0
+1-6
+5
+60
+1
+Bogenschütze
+Punktewert: 4
+1 Siedler, 
+500 Gold, 
+1 Bogen
+Kriegskunst 4
+15
+50
+0
+10
+10
+0
+1-8
+5
+60
+2
+Langbogenschütze
+Punktewert: 8
+1 Siedler, 
+1000 Gold, 
+1 Langbogen
+Kriegskunst 6
+20
+60
+0
+10
+10
+0
+1-10
+5
+60
+4
+Armbrustschütze
+Punktewert: 10
+1 Siedler, 
+2000 Gold, 
+1 Armbrust, 
+1 Lederrüstung
+Kriegskunst 8
+20
+60
+0
+10
+10
+1
+2-12
+5
+60
+5
+Kundschafter (Diebesgilde):
+Bezeichnung
+Kosten
+Voraussetzungen, 
+Anmerkungen
+LE
+AT
+PA
+SI
+HE
+RS
+TP
+GS
+MU
+SK
+Streuner
+Punktewert: 1
+1 Siedler, 
+100 Nahrung, 
+50 Gold
+1 Wollumhang
+-
+10
+10
+15
+30
+30
+0
+1-4
+10
+60
+2
+Gauner
+Punktewert: 2
+1 Siedler, 
+250 Gold, 
+1 Messer, 
+1 Diebesumhang
+Heimlichkeit 1
+15
+30
+20
+50
+45
+0
+1-6
+15
+65
+3
+Dieb
+Punktewert: 4
+1 Siedler, 
+500 Gold, 
+1 Dolch, 
+1 Diebesumhang
+Heimlichkeit 3
+15
+40
+40
+65
+70
+0
+2-7
+20
+70
+5
+Meisterdieb
+Punktewert: 8
+1 Siedler, 
+750 Gold, 
+1 Kurzschwert, 
+1 Diebesumhang
+Heimlichkeit 5
+20
+40
+45
+70
+80
+0
+3-8
+25
+80
+7
+Seite 16
+
+
+===== Seite 17 =====
+Bezeichnung
+Kosten
+Voraussetzungen, 
+Anmerkungen
+LE
+AT
+PA
+SI
+HE
+RS
+TP
+GS
+MU
+SK
+Kundschafter
+Punktewert: 10
+1 Siedler, 
+1000 Gold, 
+1 Schwert, 
+1 Fellumhang
+Heimlichkeit 8
+25
+50
+60
+85
+90
+1
+2-9
+30
+90
+9
+Waldläufer
+Punktewert: 16
+1 Siedler, 
+2000 Gold, 
+1 Schwert, 
+1 Fellrüstung
+Heimlichkeit 10
+30
+60
+65
+90
+95
+2
+3-10
+35
+100
+11
+Karren und Belagerungwaffen (Stellmacher):
+Bezeichnung
+Kosten
+Voraussetzungen, 
+Anmerkungen
+LE
+AT
+PA
+SI
+HE
+RS
+TP
+GS
+SK
+Handkarren
+Punktewert: 1
+100 Holz, 
+15 Metall, 
+15 Leder, 
+15 Wolle, 
+1 Siedler
+-
+Ladung: 40
+-
+-
+-
+-
+-
+-
+-
+10
+0
+Einspänner
+Punktewert: 2
+250 Holz, 
+100 Metall, 
+200 Leder, 
+200 Wolle, 
+1 Pferd, 
+2 Siedler
+Wagenbau 3
+Ladung: 100
+-
+-
+-
+-
+-
+-
+-
+25
+0
+Zweispänner
+Punktewert: 3
+500 Holz, 
+150 Metall, 
+250 Leder, 
+250 Wolle, 
+2 Pferde, 
+2 Siedler
+Wagenbau 7
+Ladung: 250
+-
+-
+-
+-
+-
+-
+-
+30
+0
+Handelskarawane 
+Punktewert: -
+500 Holz
+250 Metall
+200 Gold
+500 Wolle
+500 Leder
+10 Siedler
+15 Pferde 
+Wagenbau 2
+Ladung: 1000
+-
+-
+-
+-
+-
+-
+-
+25
+0
+Gr. Handels-
+karawane
+Punktewert: -
+1000 Holz
+500 Metall
+400 Gold
+1000 Wolle
+1000 Leder
+20 Siedler
+30 Pferde
+Wagenbau 6
+Ladung: 2500
+-
+-
+-
+-
+-
+-
+-
+30
+0
+Siedlerkarren
+Punktewert: -
+200 Holz, 
+80 Metall, 
+150 Leder, 
+100 Wolle, 
+4 Pferde, 
+5 Siedler, 
+300 Nahrung
+Wagenbau 1
+-
+-
+-
+-
+-
+-
+-
+20
+0
+Belagerungswaffen:
+Belagerungsturm
+800 Holz, 
+50 Metall, 
+500 Leder, 
+10 Pferde, 
+5 Siedler
+Wagenbau 4
+-
+-
+-
+-
+-
+-
+0
+15
+35
+Ramme
+500 Holz, 
+150 Metall, 
+100 Leder, 
+10 Pferde, 
+5 Siedler
+Wagenbau 5
+-
+-
+-
+-
+-
+-
+0-4
+15
+25
+Gr. Belagerungsturm
+1200 Holz, 
+80 Metall, 
+800 Leder, 
+15 Pferde, 
+7 Siedler
+Wagenbau 6
+-
+-
+-
+-
+-
+-
+0
+15
+45
+Seite 17
+
+
+===== Seite 18 =====
+Bezeichnung
+Kosten
+Voraussetzungen, 
+Anmerkungen
+LE
+AT
+PA
+SI
+HE
+RS
+TP
+GS
+SK
+Gr. Ramme
+1100 Holz, 
+300 Metall,  
+250 Leder, 
+20 Pferde, 
+10 Siedler
+Wagenbau 7
+-
+-
+-
+-
+-
+-
+0-8
+15
+35
+Balliste
+600 Holz, 
+200 Metall, 
+300 Leder, 
+10 Pferde, 
+10 Siedler
+Wagenbau 8
+-
+-
+-
+-
+-
+-
+1-10
+15
+25
+Katapult
+1500 Holz, 
+200 Metall, 
+1000 Leder, 
+20 Pferde, 
+10 Siedler
+Wagenbau 9
+-
+-
+-
+-
+-
+-
+2-13
+15
+45
+Gr. Katapult
+1900 Holz, 
+300 Metall, 
+1400 Leder, 
+25 Pferde, 
+15 Siedler
+Wagenbau 10
+-
+-
+-
+-
+-
+-
+5-18
+15
+55
+Abkürzungen:
+Sollte bei einer Einheit ein Wert nicht angegeben sein, ist dieser für die Aufträge, die Du mit 
+Ihr ausführen kannst, nicht relevant.
+LE: Die Lebensenergie einer Einheit. Je höher diese ist, desto mehr Schaden verkraftet sie in der 
+Schlacht.
+AT: Der Angriffs- oder Attackewert einer Einheit. Je höher dieser ist, desto höher ist ihre Chance mit der 
+Waffe einen Treffer zu landen.
+PA: Der Verteidigungs- oder Paradewert. Je höher dieser Wert ist, desto höher ist die Chance der Einheit 
+eine gegnerische, geglückte Attacke abzuwehren. 
+SI: Der Sinnesschärfewert gibt an, wie Aufmerksam eine Einheit ist und wie leicht sie Spione entdecken 
+kann. (Das Spionagesystem ist zur Zeit in einer Überarbeitungsphase. Dieser Wert hat im Moment noch 
+keinen Einfluss auf das Spiel.)
+HE: Der Heimlichkeitswert gibt an, wie gut eine Einheit sich unauffällig verhalten kann, um der 
+Entdeckung durch Feinde zu entgehen. (Das Spionagesystem ist zur Zeit in einer Überarbeitungsphase. 
+Der Wert hat noch keinen Einfluss auf das Spiel.)
+RS: Der Rüstungsschutz bietet der Einheit Schutz, vor dem vom Gegner angerichteten Schaden. Je höher 
+der Wert, desto weniger Schaden nimmt die Einheit bei einem Treffer.
+TP: Die Trefferpunkte geben an, wie viel Schaden eine Einheit bei einem Treffer anrichtet. Der Schaden 
+senkt die Lebensenergie des Gegners. 
+GS: Der Geschwindigkeitswert gibt die Reisegeschwindigkeit einer Einheit an. Je höher dieser Wert, desto 
+schneller kann die Einheit zwischen zwei Siedlungen reisen.
+MU: Der Mutwert gibt an, wie entschlossen eine Einheit im Kampf ist und wie leicht sie in die Flucht 
+geschlagen werden kann.
+SK: Die Schlagkraft einer Einheit wird benötigt, um die gegnerische Verteidigung zu durchbrechen.
+Seite 18
+
+
+===== Seite 19 =====
+Aufträge:
+Einheiten und Zielspieler auswählen
+Über den Button „Aufträge“ im Siedlungsmenü, kannst Du Deinen Einheiten Befehle erteilen. 
+Um einen Auftrag einzuleiten klicke im Siedlungsmenü auf Aufträge. Alle Deine hier 
+stationierten Einheiten werden angezeigt. 
+Gib hinter den Einheiten die Anzahl an, die Du entsenden möchtest. Bei den Einheiten stehen 
+auch die Kosten, die ein Auftrag verursacht. Wähle das Auftragsziel aus, zu dem Deine 
+Einheiten aufbrechen sollen:
+Eigene Siedlung
+Wenn Du mehr als eine Siedlung besitzt, kannst Du Deine Einheiten zu einer anderen Deiner 
+Siedlungen schicken, um z.B. Rohstoffe und Waren dorthin zu transportieren.
+Portalkoordinaten
+Wenn Du Deine Einheiten zu einem anderen Spieler schickst, musst Du seine Portalkoordinaten 
+kennen. Diese stehen entweder in der Ruhmeshalle hinter dem Namen des Spielers, oder im 
+Informationsfeld im Portal. Du hast auch die Möglichkeit, Aufträge über das Auftragsicon hinter 
+den Spielern in der Ruhmeshalle oder im Portal zu erteilen. In diesem Fall werden die 
+Koordinaten das entsprechenden Spielers automatisch hier eingetragen.
+Verbündeter
+Wenn Du verbündete Spieler hast, kannst Du diese hier direkt als Ziel für Deinen Auftrag 
+auswählen. Du musst die Koordinaten nicht erst ausfindig machen.
+Gildenmitglied
+Bist Du in einer Gilde, kannst Du hier eines Deiner Gildemitglieder als Ziel für Deinen Auftrag 
+auswählen. 
+Auftragsdetails
+Im nächsten Auswahlschirm werden zuerst die Zielsiedlung und die Auftragsart festgelegt. Je 
+nach Art des Auftrags, müssen zusätzlich noch einige Einstellungen getätigt werden. Außerdem 
+wird hier angezeigt, wie Lange der Auftrag dauern wird. Die Zeitangaben gelten für eine 
+Strecke. Wenn also 2 Stunden angegeben sind, benötigen Deine Einheiten 2 Stunden um die 
+Zielsiedlung zu erreichen. Sollten die Einheiten, wie beispielsweise bei einem Transport, wieder 
+zur Startsiedlung zurückkehren, dauert der Auftrag doppelt so lange.
+Zielsiedlung
+In dem Auswahlfeld oben auf der Seite wähle zuerst die Siedlung aus, die das Ziel des 
+Auftrages werden soll. 
+Auftragsart
+Als nächstes muss die Art des Auftrags gewählt werden. Welche Arten zur Auswahl stehen 
+hängt von den, von Dir zuvor gewählten Einheiten ab:
+Stationieren
+Stationieren bedeutet, dass Deine Einheiten von einer Siedlung zu einer anderen reisen 
+und dort verbleiben. Dabei können sie auch Waren mitnehmen, sofern sich Karren unter 
+ihnen befinden. Stationieren kann man in der Regel alle Einheitentypen, es ist allerdings 
+nicht möglich, Einheiten in fremden Siedlungen zu stationieren. 
+Seite 19
+
+
+===== Seite 20 =====
+Spionage
+Mit Deinen Spionageeinheiten kannst du andere Spieler ausspionieren. Du erhältst dann 
+einen Spionagebericht, mit einer Karte der Siedlung, den dort lagernden Ressourcen 
+und der in der Siedlung stationierten Einheiten. Du kannst deinen Spionen Pferde 
+mitgeben. Sie können dann schneller reisen, da sie, wenn ihr Pferd erschöpft ist, auf ein 
+frisches Pferd umsteigen können.
+Transportieren
+Bei einem Transport reisen die Einheiten von einer Siedlung zur anderen, liefern dort 
+ihre Waren ab und reisen wieder zurück zur Startsiedlung. Dies ist nur mit 
+Transporteinheiten wie der Handkarre, dem Einspänner und dem Zweispänner möglich. 
+Zwar können Kriegseinheiten den Transport begleiten, jedoch erfüllen sie dabei keinen 
+Nutzen. 
+Es werden alle Waren und Rohstoffe angezeigt, die in Deiner Siedlung gelagert sind. Gib 
+jeweils unter den entsprechenden Waren an wie viel Deine Einheiten von ihr mitnehmen 
+sollen. Wie viel sie transportieren können, kommt auf die Einheiten an, die Ihr 
+mitnehmt. 
+Handeln
+Beim Handeln werden Waren oder Rohstoffe mittels Handelskarawanen an einen 
+anderen Spieler verkauft. Dazu werden die Karawanen mit Waren beladen und ein 
+Kaufpreis wird festgelegt. Der Handelspartner kann den Handel bestätigen oder 
+ablehnen. Bei einer Bestätigung wird das vereinbarte Gold automatisch zum Verkäufer 
+transportiert, wird der Handel abgelehnt, kehrt die Karawane mit den Waren zu Dir 
+zurück.
+Angriff
+Mit dieser Aktion kannst Du deinen Truppen befehlen eine feindliche Siedlung 
+anzugreifen, um die gegnerische Armee zu schwächen, oder die dort lagernden 
+Ressourcen zu rauben. Näheres zum Kampf wird im Abschnitt „Kampf“ dieser Anleitung 
+erläutert.
+Auftragskosten
+Ein Auftrag zwischen Euren eigenen Siedlungen kostet, je nach Einheiten, verschiedene 
+Mengen an Gold und Nahrung. 
+Aufträge zu fremden Siedlungen kosten zusätzlich Mana, um das magische Portal zu den 
+fremden Spielwelten zu öffnen. Wie viel Mana hängt von der Entfernung der Zielwelt ab. Wenn 
+Ihr genauer planen möchtet, wann die Einheiten ihr Ziel erreichen, dann könnt Ihr die 
+Geschwindigkeit in 10% Schritten drosseln. Die aktuelle Dauer der Mission wird im Feld 
+"Reisedauer" angezeigt. Je langsamer Eure Einheiten reisen, desto weniger Gold benötigen sie. 
+Allerdings steigt dabei der Bedarf an Nahrung. Wenn Ihr alles angegeben habt, klickt auf 
+„Auftrag erteilen“ um den Auftrag zu starten. Die Auftragskosten werden abgezogen und Eure 
+Einheiten reisen los. 
+Seite 20
+
+
+===== Seite 21 =====
+Kampf:
+Neben der Rohstoffproduktion gibt es die Möglichkeit, Ressourcen und Waren zu rauben. Um 
+dies zu bewerkstelligen, musst Du einen Angriffsauftrag erteilen. Deine ausgewählten Truppen 
+begeben sich dann zu der ausgewählten Zielsiedlung und Kämpfen mit den dort stationierten 
+Einheiten. Wie genau Du einen solchen Angriff befiehlst, kannst du weiter oben, unter 
+„Aufträge“ in dieser Anleitung nachlesen.
+Vorrunde
+Bevor eine Schlacht beginnt müssen die Angreifenden Truppen die Verteidigungsanlagen der 
+anzugreifenden Siedlung überwinden. Dies wird folgendermaßen gehandhabt:
+Es wird ermittelt, ob der Angreifer mit seiner Armee den feindlichen Verteidigungswall 
+überwinden kann. Dazu wird die Schlagkraft aller angreifenden Fußtruppen zusammengezählt. 
+Diese Gesamtschlagkraft muss höher oder gleich dem Schwellenwert des entsprechenden 
+Verteidigungswalls sein. Ab der verstärkten Palisade ist zudem eine gewisse Schlagkraft von 
+Belagerungswaffen aufzubringen. Reicht die gesamte Schlagkraft des Angreifers nicht aus, um 
+den Wall zu überwinden, ziehen sich die Truppen unverrichteter Dinge zurück. Der Kampf gilt 
+dann als unentschieden.
+Schwellenwerte der Verteidigungsanlagen:
+Verteidigungswall 
+(Ausbaustufe)
+Schwellenwert
+Fußtruppen
+Schwellenwert 
+Belagerungswaffen
+Erdwall (1)
+10
+-
+Steinwall (2)
+40
+-
+Kleine Palisade (3)
+90
+-
+Palisade (4)
+160
+-
+Verstärkte Palisade (5)
+250
+500
+Mauer (6)
+360
+600
+Verstärkte Mauer (7)
+490
+700
+Festungsmauer (8)
+640
+800
+Verstärkte Festungsmauer (9)
+810
+900
+Bollwerk (10)
+1000
+1000
+Einige Belagerungswaffen richten Schaden an der Mauer an. Bei einer beschädigten Mauer 
+müssen prozentual weniger Schlagkraftpunkte aufgebracht werden.
+Ein Beispiel: 
+Eine verstärkte Mauer deren Zustand nur noch 50% beträgt, kann mit 245 Schlagkraftpunkten 
+von Fußtruppen und 350 Schlagkraftpunkten von Belagerungswaffen erstürmt werden. Also 
+jeweils 50% der Schlagkraft, die normalerweise aufgebracht werden muss.
+Der Schaden wird durch den Schaden der Belagerungswaffe (siehe Einheitentabelle) und der 
+Ausbaustufe der Mauer ermittelt. Der Schaden wird durch Zufall bestimmt und die Ausbaustufe 
+danach abgezogen. Bleibt ein positiver Wert übrig, wird er von dem Zustand der Mauer 
+abgezogen.
+Ein Beispiel: 
+Ein Katapult (Schaden: 2-13) wird bei einem Angriff auf eine Mauer (Zustand 100%, 
+Seite 21
+
+
+===== Seite 22 =====
+Ausbaustufe 6) mitgeführt. Bei dem Schaden wird eine 8 ermittelt. Nun wird die Ausbaustufe 
+davon abgezogen. Die übrig bleibenden 2 Schadenspunkte (8-6=2) werden vom Zustand der 
+Mauer abgezogen. Nach dem Kampf weist sie nur noch einen Zustand von 98% auf. Der 
+Schaden wird für jede, beim Angriff mitgeführte Belagerungswaffe, einzeln ermittelt. 
+Ist der Verteidigungswall überwunden, beginnt die eigentliche Schlacht.
+Kampfsequenzen
+Eine Schlacht läuft in Kampfsequenzen ab. In jeder Kampfsequenz, kämpfen die sich 
+gegenüber stehenden Einheiten miteinander. Wenn nach 10 Kampfsequenzen noch kein Sieger 
+feststeht, geht die Schlacht unentschieden aus. Der Angreifer zieht sich in dem Fall ohne Beute 
+zurück.
+Eine Kampfsequenz läuft folgendermaßen ab:
+Zuerst schießen alle angreifenden Fernkämpfer (sofern vorhanden) auf die Fußtruppen des 
+Verteidigers. Sind keine Fußtruppen des Verteidigers vorhanden werden die Verteidigenden 
+Fernkampfeinheiten aufs Korn genommen.  
+Gleichzeitig schießen die Verteidigenden Fernkampfeinheiten auf die Fußtruppen des 
+Angreifers. Auch hier werden, falls der Angreifer keine Fußtruppen mehr hat, seine 
+Fernkampfeinheiten beschossen.
+(Gleichzeitig bedeutet, das Verteidiger und Angreifer ZUERST feuern und ANSCHLIEßEND die 
+Verluste auf beiden Seiten berechnet werden).
+Als nächstes stürmen die angreifenden Nahkampfeinheiten nacheinander zu einer zufälligen 
+verteidigenden Nahkampfeinheit. Sind keine verteidigenden Nahkampfeinheiten mehr übrig 
+werden die verteidigenden Fernkampfeinheiten angegriffen. Die beiden Einheiten kämpfen 
+solange, bis eine der beiden tot ist, oder flieht. Die erlittenen Lebensenergieverluste des 
+Siegers werden mit in die nächste Kampfsequenz übernommen. Nach alle angreifenden 
+Einheiten gekämpft haben, beginnt die nächste Kampfsequenz. Die Schlacht ist vorbei, 
+sobald eine der beiden Armeen keine Nahkampfeinheiten mehr hat, oder 10 Kampfsequenzen 
+vorüber sind.
+Zweikampf
+Der Zweikampf zweier Einheiten läuft in Kampfrunden ab. Die Einheit mit dem höchsten 
+Mutwert beginnt mit der ersten Runde ihren Angriff. Sind die Mutwerte der Einheiten gleich, 
+beginnt die Verteidigende Einheit. Anschließend ist die jeweils andere Einheit mit Angreifen an 
+der Reihe.
+Der Angreifer hat, je nach Einheitentyp, eine bestimmte Chance den Gegner zu treffen. Es wird 
+eine Zahl zwischen 1 und 100 ermittelt. Ist der ermittelte Wert kleiner oder gleich seiner 
+Angriffsfertigkeit, trifft er den Gegner, ansonsten verfehlt er ihn und der Verteidiger ist an der 
+Reihe mit Angreifen.
+Wird der Verteidiger getroffen, wird anhand seiner Verteidigungsfertigkeit ermittelt, ob er den 
+Schlag abwehren kann. Schafft er es, den Schlag abzuwehren, erleidet er keinerlei Schaden 
+und ist seinerseits mit Angreifen an der Reihe.
+Schafft der Verteidiger es nicht einen Schlag zu parieren, werden die Schadenspunkte, die der 
+Angreifer verursacht, ermittelt und von der Lebensenergie des Verteidigers abgezogen. Die 
+Schadenspunkte werden zufällig, innerhalb bestimmter Grenzen, ermittelt und sind bei der 
+Entsprechenden Einheit vermerkt, z.B. 1-6 oder 2-8. (Siehe Einheitentabelle) 
+Von den ermittelten Schadenspunkten wird der Rüstungswert des Verteidigers abgezogen. 
+Sinken die Schadenspunkte dadurch auf 0 oder darunter, erleidet der getroffene trotzdem 
+Seite 22
+
+
+===== Seite 23 =====
+einen Schadenspunkt. Der Schaden wird von den Lebenspunkten der Einheit abgezogen.
+Sinkt die Lebensenergie einer Einheit unter 1, stirbt sie. Sinkt die Lebensenergie unter 5, wird 
+anhand ihres Mut-Wertes entschieden, ob sie weiterhin im Kampf geschehen bleibt, oder 
+Flieht. Geflohene Einheiten stehen dem Angreifenden/Verteidigenden Spieler nach der Schlacht 
+wieder zur Verfügung, Tote Einheiten werden nach der Schlacht gelöscht. Je geringer der 
+Mutwert der Einheit, desto höher die Wahrscheinlichkeit, das sie flieht.
+Erschöpfung
+Der Sieger eines Zweikampfes, wird durch den anstrengenden Kampf müde. Seine Angriffs- 
+und Abwehrfähigkeit sinkt bis zum Ende der Schlacht um einen Punkt, bei mehreren 
+Zweikämpfen summiert sich die Erschöpfung natürlich.
+So ist es möglich, auch starke Einheiten mir der entsprechenden Übermacht an schwachen 
+Einheiten, zu besiegen.
+Ausgang der Schlacht
+Sind alle verteidigenden Einheiten tot oder geflohen gewinnt der Angreifer die Schlacht. Falls 
+er Transportkarren in seiner Angriffstruppe mitführt, beginnen diese die Siedlung zu plündern. 
+Sind alle angreifenden Fußtruppen tot oder geflohen, gewinnt der Verteidiger die Schlacht.
+Der Verlierer verliert einen Teil seiner stationierten bzw. mitgeschickten Karren und 
+Belagerungswaffen. Wie viele, hängt von der Dauer der Schlacht ab. Jede Einheit hat eine 
+Fluchtchance von 40%. Jede Kampfsequenz, die die Schlacht dauert erhöht sich diese Chance 
+um 5%. 
+Geht die Schlacht unentschieden aus, bleiben alle Karren und Belagerungswaffen erhalten.
+Seite 23
+
+
+===== Seite 24 =====
+Spionage:
+Bevor Du einen Gegner angreifst, solltest Du ihn ausspionieren, um seine Armeestärke, die 
+Stärke seiner Verteidigungsanlagen und die Menge an Ressourcen, die es zu plündern gibt, 
+herauszubekommen.
+Zum Spionieren brauchst Du Spionageeinheiten. Diese werden in der Diebesgilde ausgebildet.
+Der einzige Unterschied zwischen den verschiedenen Spionageeinheiten ist, neben den Werten 
+für eine Schlacht, die Reisegeschwindigkeit. Je besser die Spionageeinheit, desto schneller 
+kann sie andere Siedlungen erreichen. Wie genau Du einen Spionageauftrag erteilst, erfährst 
+Du weiter oben in dieser Anleitung unter „Aufträge“. 
+Ist der Spionageauftrag erteilt, eilt Dein Spion zu der fremden Siedlung und schaut sich dort 
+um. Anschließend kehrt er in Deine Siedlung zurück und erstattet Bericht. Dieser 
+Spionagebericht enthält folgendes:
+- eine Karte der Siedlungen,
+- eine Liste der Ressourcen, die dort gelagert sind,
+- eine Liste aller stationierten Einheiten,
+- die Verteidigungsanlagen und deren Zustand
+Eine Erweiterung des Spionagesystems ist geplant und wird bald umgesetzt. Dann werden die 
+verschiedenen Spionageeinheiten auch verschieden detaillierte Berichte abliefern und man wird 
+sich gegen Spionage schützen können...
+Ende der überarbeiteten Anleitung
+Weitere Abschnitte, wie eine genaue Beschreibung des Diplomatiebereiches, werden folgen. 
+Wenn Du Fehler oder Ungereimtheiten entdeckst, melde diese bitte an 
+nebelgeist@nebelseetal.de
+Seite 24
+
+
+########## DATEI: docs/original/ORIGINAL_Einheiten_Waren_Rohstoffe.md ##########
+# Originaldaten: Einheiten, Waren, Rohstoffe, Forschung
+
+**Richtschnur für das Remake.** Quelle: Original-Handbuch `Nebelseetal_Spielanleitung_2009.pdf`
+(Textfassung: `Spielanleitung_2009_Textfassung.txt`) und archivierte Spielanleitung 2004–2007
+(`Spielanleitung_2005/`). Archiv-Stände: `00_QUELLEN.md`.
+
+Wo die 2005er HTML-Fassung und das 2009er Handbuch voneinander abweichen, ist das **ausdrücklich
+vermerkt** und nicht stillschweigend vereinheitlicht.
+
+---
+
+## 1. Einheiten — **28 Stück**, vier Typen
+
+Das Handbuch nennt wörtlich **vier Einheitentypen**: „Die Karren, die Belagerungswaffen, die
+Kundschafter und die Kampfeinheiten." Ausbildungsgebäude:
+
+| Typ | Gebäude |
+|---|---|
+| Karren und Belagerungswaffen | **Stellmacher** (Originalschreibweise, 4× belegt — *nicht* „Stallmacher") |
+| Kundschafter | Diebesgilde |
+| Kampfeinheiten (Armee) | Kriegerakademie |
+
+Je Siedlung höchstens eines dieser Gebäude; höhere Stufe = schnellere Ausbildung.
+Ausbildung läuft laut Handbuch über „Auftrag erteilen" in eine **Warteschlange**, nacheinander
+abgearbeitet.
+
+### 1.1 Kampfeinheiten — Nahkampf (Kriegerakademie) — 5
+
+| # | Bezeichnung | Kriegspunkte | Kosten | Voraussetzung (Handbuch 2009) | (2005er Tabelle) |
+|---|---|---|---|---|---|
+| 1 | Bürgerwehr | 1 | 1 Siedler, 100 Nahrung, 50 Leder, 50 Wolle | — | keine |
+| 2 | Kämpfer | 2 | 1 Siedler, 250 Gold, 1 Kurzschwert, 1 Lederrüstung | Kriegskunst 1 | Kriegskunst 1 |
+| 3 | Krieger | 4 | 1 Siedler, 500 Gold, 1 Schwert, 1 Kettenhemd, 1 Pferd | Kriegskunst 3 | Kriegskunst 4 |
+| 4 | Ritter | 8 | 1 Siedler, 1000 Gold, 1 Schwert, 1 Pferd, 1 Plattenrüstung | Kriegskunst 7 | Kriegskunst 7 |
+| 5 | Paladin | 16 | 1 Siedler, 2000 Gold, 10 Mana, 1 Zweihänder, 1 Schwert, 1 Pferd, 1 Paladinharnisch | Kriegskunst 10 | Kriegskunst 10 |
+
+### 1.2 Kampfeinheiten — Fernkampf (Kriegerakademie) — 4
+
+| # | Bezeichnung | Kriegspunkte | Kosten | Voraussetzung |
+|---|---|---|---|---|
+| 6 | Kurzbogenschütze | 2 | 1 Siedler, 250 Gold, 1 Kurzbogen | Kriegskunst 2 |
+| 7 | Bogenschütze | 4 | 1 Siedler, 500 Gold, 1 Bogen | Kriegskunst 4 |
+| 8 | Langbogenschütze | 8 | 1 Siedler, 1000 Gold, 1 Langbogen | Kriegskunst 6 |
+| 9 | Armbrustschütze | 10 | 1 Siedler, 2000 Gold, 1 Armbrust, 1 Lederrüstung | Kriegskunst 8 |
+
+### 1.3 Kundschafter (Diebesgilde) — 6
+
+| # | Bezeichnung | Kriegspunkte | Kosten | Voraussetzung |
+|---|---|---|---|---|
+| 10 | Streuner | 1 | 1 Siedler, 100 Nahrung, 50 Gold, 1 Wollumhang | — |
+| 11 | Gauner | 2 | 1 Siedler, 250 Gold, 1 Messer, 1 Diebesumhang | Heimlichkeit 1 |
+| 12 | Dieb | 4 | 1 Siedler, 500 Gold, 1 Dolch, 1 Diebesumhang | Heimlichkeit 3 |
+| 13 | Meisterdieb | 8 | 1 Siedler, 750 Gold, 1 Kurzschwert, 1 Diebesumhang | Heimlichkeit 5 |
+| 14 | Kundschafter | 10 | 1 Siedler, 1000 Gold, 1 Schwert, 1 Fellumhang | Heimlichkeit 8 |
+| 15 | Waldläufer | 16 | 1 Siedler, 2000 Gold, 1 Schwert, 1 Fellrüstung | Heimlichkeit 10 |
+
+### 1.4 Karren (Stellmacher) — 6
+
+| # | Bezeichnung | Kriegspunkte | Ladung | Kosten | Voraussetzung |
+|---|---|---|---|---|---|
+| 16 | Handkarren | 1 | 40 | 100 Holz, 15 Metall, 15 Leder, 15 Wolle, 1 Siedler | — |
+| 17 | Einspänner | 2 | 100 | 250 Holz, 100 Metall, 200 Leder, 200 Wolle, 1 Pferd, 2 Siedler | Wagenbau 3 |
+| 18 | Zweispänner | 3 | 250 | 500 Holz, 150 Metall, 250 Leder, 250 Wolle, 2 Pferde, 2 Siedler | Wagenbau 7 |
+| 19 | Handelskarawane | — | 1000 | 500 Holz, 250 Metall, 200 Gold, 500 Wolle, 500 Leder, 10 Siedler, 15 Pferde | Wagenbau 2 |
+| 20 | Große Handelskarawane | — | 2500 | 1000 Holz, 500 Metall, 400 Gold, 1000 Wolle, 1000 Leder, 20 Siedler, 30 Pferde | Wagenbau 6 |
+| 21 | Siedlerkarren | — | — | 200 Holz, 80 Metall, 150 Leder, 100 Wolle, 4 Pferde, 5 Siedler, 300 Nahrung | Wagenbau 1 |
+
+### 1.5 Belagerungswaffen (Stellmacher) — 7
+
+| # | Bezeichnung | Kriegspunkte | Kosten | Voraussetzung |
+|---|---|---|---|---|
+| 22 | Belagerungsturm | 2 | 800 Holz, 50 Metall, 500 Leder, 10 Pferde, 5 Siedler | Wagenbau 4 |
+| 23 | Ramme | 3 | 500 Holz, 150 Metall, 100 Leder, 10 Pferde, 5 Siedler | Wagenbau 5 |
+| 24 | Großer Belagerungsturm | 4 | 1200 Holz, 80 Metall, 800 Leder, 15 Pferde, 7 Siedler | Wagenbau 6 |
+| 25 | Große Ramme | 5 | 1100 Holz, 300 Metall, 250 Leder, 20 Pferde, 10 Siedler | Wagenbau 7 |
+| 26 | Balliste | 6 | 600 Holz, 200 Metall, 300 Leder, 10 Pferde, 10 Siedler | Wagenbau 8 |
+| 27 | Katapult | 7 | 1500 Holz, 200 Metall, 1000 Leder, 20 Pferde, 10 Siedler | Wagenbau 9 |
+| 28 | Großes Katapult | 8 | 1900 Holz, 300 Metall, 1400 Leder, 25 Pferde, 15 Siedler | Wagenbau 10 |
+
+**Summe: 5 + 4 + 6 + 6 + 7 = 28** — genau die 28 Einzelbilder der fünf Einheiten-Icon-Blätter.
+
+---
+
+## 2. Werte einer Einheit (Original-Abkürzungen, Handbuch Seite 17)
+
+| Kürzel | Bedeutung |
+|---|---|
+| LE | Lebensenergie — je höher, desto mehr Schaden wird verkraftet |
+| AT | Angriffswert — Trefferchance |
+| PA | Paradewert — Chance, eine gegnerische Attacke abzuwehren |
+| SI | Sinnesschärfe — Spione entdecken (Handbuch: „hat im Moment noch keinen Einfluss") |
+| HE | Heimlichkeit — unauffälliges Verhalten (Handbuch: noch ohne Einfluss) |
+| RS | Rüstungsschutz — senkt den erlittenen Schaden |
+| TP | Trefferpunkte — Schaden pro Treffer, als Bereich (z. B. 2-13) |
+| GS | Geschwindigkeit — Reisegeschwindigkeit |
+| MU | Mut — Kampfentschlossenheit und Fluchtwahrscheinlichkeit |
+| SK | **Schlagkraft** — nötig, um die Verteidigung zu durchbrechen |
+
+**Die Zahlenwerte sind bewusst nicht als Tabelle eingetragen.** Die automatische PDF-Auslesung
+liefert die Zahlenreihen, aber die Spalten laufen ineinander (Kopfzeile „LE AT PA SI HE RS TP GS MU SK",
+Zeilen teils mit 8 statt 10 Werten). Eine falsche Zuordnung wäre schlimmer als keine. Rohwerte:
+`Spielanleitung_2009_Textfassung.txt`, Seiten 15–17. Nächster Schritt: an der gedruckten Seite
+ablesen und spaltensicher übernehmen.
+
+Einzelwerte, die wörtlich belegt sind: Katapult **Schaden 2-13**; Palisade Ausbaustufe 4 → 64 Kriegspunkte.
+
+---
+
+## 3. Waren — **17 Stück** in drei Werkstätten
+
+| Werkstatt | Bezeichnung | Voraussetzung |
+|---|---|---|
+| Schmiede | Messer | — |
+| Schmiede | Dolch | Waffentechnik 1 |
+| Schmiede | Kurzschwert | Waffentechnik 3 |
+| Schmiede | Schwert | Waffentechnik 5 |
+| Schmiede | Zweihänder | Waffentechnik 8 |
+| Schmiede | Kettenhemd | Rüstungsbau 3 |
+| Schmiede | Plattenrüstung | Rüstungsbau 5 |
+| Schmiede | Magischer Paladinharnisch | Rüstungsbau 7 + Magiekunde 2 |
+| Bogner | Kurzbogen | Waffentechnik 2 |
+| Bogner | Bogen | Waffentechnik 4 |
+| Bogner | Langbogen | Waffentechnik 6 |
+| Bogner | Armbrust | Waffentechnik 8 |
+| Nähstube | Wollumhang | — |
+| Nähstube | Lederrüstung | Nähkunst 1 + Rüstungsbau 2 |
+| Nähstube | Diebesumhang | Nähkunst 2 |
+| Nähstube | Fellumhang | Nähkunst 4 |
+| Nähstube | Fellrüstung | Nähkunst 6 |
+
+**Summe: 17** — genau die 17 Einzelbilder der zwei Item-Icon-Blätter.
+
+**Fertigungsregeln (Handbuch Seite 13):** Waren laufen über Warteschlangen; **mehrere gleiche
+Werkstätten fertigen parallel**. Beispiel: 10 Schwerter à 20 Minuten mit zwei Schmieden = 100 statt
+200 Minuten. Der Warenbestand wird im **Lager** geprüft.
+
+---
+
+## 4. Rohstoffe — 9 Stück (Handbuch Seite 9/10)
+
+| Gebäude | Rohstoff | Produktion/Stunde |
+|---|---|---|
+| Holzfäller | Holz | Wald 4, Steppe 2 |
+| Steinmetz | Stein | Berg 4, Hügel 2 |
+| Erzmine | Metall | Berg 3, Hügel 1,5 |
+| Tempel | Mana | Nebelsee 5, alles außer Sumpf 1 |
+| Farm | Nahrung | Grasland 4, Steppe 2 |
+| Goldmine | Gold | Berg 3, Hügel 1,5 |
+| Schafszucht | Wolle | Grasland 3, Steppe 1,5 |
+| Rinderfarm | Leder | Grasland 3 + 3, Steppe 1,5 + 1,5 |
+| Pferdezucht | Pferde | Grasland 3, Steppe 1,5 |
+| Jäger | Nahrung + Leder | Wald 2 + 2, Steppe 1 + 1 |
+
+- Sümpfe sind **unbebaubar**.
+- Der **Rohstoffzuwachs pro Stunde** steht im Spiel in Klammern hinter dem Bestand; ein **Balken**
+  zeigt, wann die nächste Einheit dazukommt.
+- **Siedler:** 1 pro Stunde bis zur Grenze. Grenze laut Handbuch **10 je Siedlung**, **+5 pro Haus**
+  (die 2005er Fassung nannte 5 — Versionsunterschied).
+- **Startwerte:** 10 Siedler, 100 Holz, 100 Steine. Maximal **6 Siedlungen**; die Karte wird zufällig
+  zugewiesen, nie zweimal dieselbe gleichzeitig.
+- Bibliothek nur auf Grasland, Steppe oder Nebelsee, **eine je Siedlung**.
+- Bauen: Holzfäller, Steinmetze, Jäger, Bibliothek und Häuser sind **ohne Forschung** möglich,
+  alles Weitere braucht **Baukunst**. Gebäude werden auf der **Siedlungskarte** platziert; der
+  Mauszeiger zeigt die Eignung des Feldes an. Ein Abriss bringt **keine** Rohstoffe zurück.
+
+---
+
+## 5. Forschung — 21 Einträge
+
+| Bezeichnung | Wirkung | Voraussetzung |
+|---|---|---|
+| Kriegskunst | stärkere Armee-Einheiten | Bibliothek 1 |
+| Heimlichkeit | Grundlage für Spione | Bibliothek 1 |
+| Schmiedekunst | Waffen und Rüstungen je +5 % | Bibliothek 1 |
+| Bogenbau | schnellere Bogenproduktion | Bibliothek 1 |
+| Nähen | schnellere Schneiderei | Bibliothek 1 |
+| Waffentechnik | neue Waffenarten | Bibliothek 3 + Schmiedekunst 1 |
+| Rüstungsbau | neue Rüstungsarten | Bibliothek 3 + Schmiedekunst 1 |
+| Nähkunst | neue Umhänge und Lederrüstungen | Bibliothek 2 + Nähen 1 |
+| Magiekunde | Voraussetzung für Magiepfade | Bibliothek 6 |
+| Kampfmagie | vernichtende Zauber | Magiekunde 4 |
+| Baukunst | schaltet Verteidigungsforschung frei | Bibliothek 1 |
+| Mauerbau | Verteidigungswert +10 % je Stufe | Verteidigungsanlagen 5 |
+| Verteidigungsanlagen | neue Schutzmöglichkeiten | Baukunst 3 |
+| Wagenbau | neue Karren **und Belagerungswaffen** | Bibliothek 1 |
+| Felderwirtschaft | Nahrung +10 % je Stufe | Bibliothek 1 |
+| Steinbruch | Stein +10 % je Stufe | Bibliothek 3 |
+| Forstwirtschaft | Holz +10 % je Stufe | Bibliothek 3 |
+| Tierhaltung | Pferde, Wolle, Leder je +5 % je Stufe | Bibliothek 2 |
+| Minenarbeit | Metall und Gold je +5 % je Stufe | Bibliothek 3 |
+| Götterkunde | Mana +5 % je Stufe | Bibliothek 5 |
+| Heilkunde | Siedlerproduktion +10 % je Stufe | Bibliothek 3 |
+
+**Forschungsregeln (Handbuch Seite 11/12):**
+- Dauer = **neue Stufe² Stunden** (Beispiel: Baukunst 2 → 3 dauert 9 Stunden).
+- Ressourcenkosten **verdoppeln sich je Stufe** (50 → 100 → 200 → 400).
+- Während der Studien ist der Forschungsbereich der Siedlung **blockiert**.
+- Die Stufe steigt **erst nach Ablauf**, nicht beim Start.
+- **Abbruch** kostet Zeit **und** Ressourcen ersatzlos.
+
+---
+
+## 6. Namensabgleich: vorhandene Dateien ↔ Original
+
+Daniels 17 benannte Dateien in `assets/icons/original_units/` bleiben **unangetastet**.
+Abgleich (Änderungen nur nach seiner Entscheidung):
+
+| vorhandene Datei | Originalname | Bewertung |
+|---|---|---|
+| `Krieger.png`, `Kämpfer.png`, `Ritter.png`, `Paladin.png` | Krieger, Kämpfer, Ritter, Paladin | **passt** |
+| `Kurzbogenschütze.png`, `Armbrustschütze.png` | Kurzbogenschütze, Armbrustschütze | **passt** |
+| `Einspänner.png`, `Zweispänner.png`, `Katapult.png` | Einspänner, Zweispänner, Katapult | **passt** |
+| `Soldat.png` | **Bürgerwehr** | anderer Name |
+| `Einfacher Bogenschütze.png` | **Bogenschütze** | „Einfacher" gibt es im Original nicht |
+| `Einfacher Belagerungsturm.png` | **Belagerungsturm** | „Einfacher" gibt es nicht; große Stufe heißt „Großer …" |
+| `Karren.png` | **Handkarren** | anderer Name |
+| `Siedlungskarren.png` | **Siedlerkarren** | anderer Name |
+| `Händler.png` | **Handelskarawane?** | unsicher — doppelt zu `HandelsKarawane.png` |
+| `HandelsKarawane.png` | **Große Handelskarawane?** | unsicher |
+| `elfen_portrait.png` | **Langbogenschütze?** | unklar — am Bild zu prüfen |
+
+**Das Original kennt keine Vorsilbe „Einfacher".** Es gibt die normale und die **große** Ausführung
+(Großer Belagerungsturm, Große Ramme, Großes Katapult, Große Handelskarawane).
+
+**Noch ohne eigene Datei (11):** Streuner, Gauner, Dieb, Meisterdieb, Kundschafter, Waldläufer (6)
+sowie Ramme, Großer Belagerungsturm, Große Ramme, Balliste, Großes Katapult (5).
+
+---
+
+## 7. Was das für den Code bedeutet
+
+| im Code heute | Original |
+|---|---|
+| 36 Einheiten mit erfundenen Namen (Worg, Hexe, Drache, Troll, Ork, Golem …) | **28 Einheiten**, Namen siehe Abschnitt 1 |
+| Rohstoffe `kristall, eisen, stoff, geld, wissen` | **Mana, Metall, Wolle, Pferde** — kein Kristall, kein „Geld" als Rohstoff |
+| 17 Waren nur als Emoji-Einträge | **17 Waren** als gefertigte Ausrüstung mit Werkstatt und Voraussetzung |
+| Kampf = ein Zufallsvergleich | **Vorrunde + Kampfsequenzen + Zweikämpfe** (siehe `ORIGINAL_Kampf_und_Punkte.md`) |
+| keine Belagerung, keine Karren, kein Ladungssystem | 7 Belagerungswaffen, 6 Karren mit Ladung |
+| Punkte = Forschung + Krieg + Truppenzahl | Forschungspunkte = Σ Stufe³, Kriegspunkte je Einheit, Verteidigungsanlagen³, Gesamt = (Krieg + Forschung) / 2 |
+
+
+########## DATEI: docs/original/ORIGINAL_Kampf_und_Punkte.md ##########
+# Originaldaten: Kampf, Aufträge, Punkte, Schutz
+
+**Richtschnur für das Remake.** Quelle: Original-Handbuch `Nebelseetal_Spielanleitung_2009.pdf`
+(Seiten 4/5, 18–23). Textfassung: `Spielanleitung_2009_Textfassung.txt`.
+Ergänzend: `Spielanleitung_2005/punktesystem.php.txt`, `handel.php.txt`, `portal.php.txt`.
+
+---
+
+## 1. Auftragsarten (Handbuch Seite 18/19)
+
+Einheiten werden über den Menüpunkt **Aufträge** befehligt. Ziele: eigene Siedlung,
+**Portalkoordinaten**, Verbündeter, Gildenmitglied.
+
+| Auftragsart | Ablauf |
+|---|---|
+| **Stationieren** | Einheiten reisen zu einer Siedlung und bleiben dort; mit Karren können Waren mitgenommen werden. In **fremden** Siedlungen nicht möglich. |
+| **Spionage** | Spionagebericht mit Siedlungskarte, gelagerten Ressourcen, stationierten Einheiten, Verteidigungsanlagen und deren Zustand. Pferde können mitgegeben werden (frisches Pferd = schneller). |
+| **Transportieren** | Nur mit Transporteinheiten (Handkarre, Einspänner, Zweispänner). Liefert ab und **kehrt zurück**. Kriegseinheiten können begleiten, nützen aber nichts. |
+| **Handeln** | Handelskarawanen zu einem anderen Spieler, mit Kaufpreis. Der Partner bestätigt (Gold fließt automatisch) oder lehnt ab (Karawane kehrt mit Ware zurück). |
+| **Angriff** | Truppen greifen eine feindliche Siedlung an. Siehe Abschnitt 2. |
+
+**Zeitangaben gelten für eine Strecke.** Bei Rückkehr (z. B. Transport) dauert der Auftrag doppelt so lang.
+
+**Auftragskosten:** eigene Siedlungen kosten Gold und Nahrung (je nach Einheiten); fremde Siedlungen
+zusätzlich **Mana für das Portal**, abhängig von der Entfernung der Zielwelt. Geschwindigkeit ist in
+**10-%-Schritten drosselbar**: langsamer = **weniger Gold, mehr Nahrung**, angezeigt als „Reisedauer".
+
+---
+
+## 2. Kampfablauf (Handbuch Seite 20–22)
+
+### 2.1 Vorrunde — Verteidigungswall überwinden
+
+Zuerst wird geprüft, ob der Angreifer den Wall überwinden kann. Dazu wird die **Schlagkraft (SK)
+aller angreifenden Fußtruppen** summiert. Sie muss den **Schwellenwert** des Walls erreichen.
+Ab der **verstärkten Palisade** ist zusätzlich Schlagkraft von **Belagerungswaffen** nötig.
+Reicht sie nicht, ziehen sich die Truppen zurück — der Kampf gilt als **unentschieden**.
+
+| Verteidigungswall (Ausbaustufe) | Schwellenwert Fußtruppen | Schwellenwert Belagerungswaffen |
+|---|---|---|
+| Erdwall (1) | 10 | — |
+| Steinwall (2) | 40 | — |
+| Kleine Palisade (3) | 90 | — |
+| Palisade (4) | 160 | — |
+| Verstärkte Palisade (5) | 250 | 500 |
+| Mauer (6) | 360 | 600 |
+| Verstärkte Mauer (7) | 490 | 700 |
+| Festungsmauer (8) | 640 | 800 |
+| Verstärkte Festungsmauer (9) | 810 | 900 |
+| Bollwerk (10) | 1000 | 1000 |
+
+**Mauerschaden:** Belagerungswaffen beschädigen die Mauer; eine beschädigte Mauer verlangt
+**prozentual weniger Schlagkraft**. Beispiel aus dem Handbuch: eine verstärkte Mauer (Stufe 7) mit
+nur noch 50 % Zustand ist mit 245 Schlagkraft Fußtruppen + 350 Schlagkraft Belagerungswaffen zu
+stürmen (jeweils die Hälfte).
+
+Schadensermittlung: **Schaden der Waffe (Zufallswert, siehe Einheitentabelle) minus Ausbaustufe der
+Mauer**; bleibt ein positiver Rest, wird er vom Zustand der Mauer abgezogen.
+Beispiel: Katapult (Schaden **2-13**) gegen Mauer Stufe 6, gewürfelt 8 → 8 − 6 = 2 → Zustand 100 % → **98 %**.
+Der Schaden wird **für jede mitgeführte Belagerungswaffe einzeln** ermittelt.
+
+### 2.2 Kampfsequenzen
+
+- Eine Schlacht läuft in **Kampfsequenzen**. Nach **10 Sequenzen** ohne Sieger endet sie
+  **unentschieden** — der Angreifer zieht sich **ohne Beute** zurück.
+- Ablauf je Sequenz:
+  1. **Fernkampf gleichzeitig**: angreifende Fernkämpfer schießen auf die **Fußtruppen** des
+     Verteidigers (sind keine vorhanden, auf dessen Fernkämpfer) — gleichzeitig schießen die
+     verteidigenden Fernkämpfer auf die Fußtruppen des Angreifers (analog). **Erst beide feuern,
+     dann werden die Verluste beider Seiten berechnet.**
+  2. **Nahkampf**: die angreifenden Nahkämpfer stürmen **nacheinander** je eine **zufällige**
+     verteidigende Nahkampfeinheit (sind keine mehr da, die Fernkämpfer).
+  3. Nach allen angreifenden Einheiten beginnt die nächste Sequenz.
+- Ende: eine Armee hat **keine Nahkampfeinheiten** mehr, **oder** 10 Sequenzen sind vorbei.
+
+### 2.3 Zweikampf (Einheit gegen Einheit)
+
+- Läuft in **Kampfrunden**. Die Einheit mit dem **höheren Mutwert (MU)** beginnt; bei Gleichstand
+  der Verteidiger.
+- Angriff: Zufallszahl 1–100 **≤ AT** = Treffer. Sonst verfehlt, der Gegner ist dran.
+- Bei Treffer: Prüfung, ob der Verteidiger mit seinem **PA** pariert. Pariert er, **kein Schaden**,
+  und er ist selbst mit Angreifen dran.
+- Kein Parieren: Schaden = Zufallswert im **TP-Bereich** der Einheit **minus RS** des Verteidigers.
+  Sinkt der Wert dadurch auf 0 oder darunter, wird trotzdem **1 Schadenspunkt** angerichtet.
+  Der Schaden geht von der **LE** ab.
+- **LE unter 1** → Einheit stirbt (wird nach der Schlacht gelöscht).
+  **LE unter 5** → anhand des **MU** entscheidet sich, ob sie weiterkämpft oder **flieht**.
+  Geflohene Einheiten stehen dem Spieler nach der Schlacht **wieder zur Verfügung**.
+  Je niedriger der MU, desto wahrscheinlicher die Flucht.
+- **Erschöpfung:** der Sieger eines Zweikampfs verliert **1 Punkt AT und PA** bis zum Ende der
+  Schlacht (summiert sich). Deshalb kann Übermacht schwacher Einheiten starke besiegen.
+
+### 2.4 Ausgang der Schlacht
+
+- Sind **alle verteidigenden Einheiten tot oder geflohen**, gewinnt der **Angreifer**. Führt er
+  **Transportkarren** mit, beginnen diese die Siedlung zu **plündern**.
+- Sind **alle angreifenden Fußtruppen tot oder geflohen**, gewinnt der **Verteidiger**.
+- Der **Verlierer** verliert einen Teil seiner Karren und Belagerungswaffen; wie viele, hängt von der
+  Dauer ab. Jede Einheit hat **40 % Fluchtchance**, die pro Kampfsequenz um **5 %** steigt.
+- **Unentschieden:** alle Karren und Belagerungswaffen bleiben erhalten.
+
+---
+
+## 3. Punktesystem (Handbuch Seite 3–5)
+
+| Punktart | Berechnung |
+|---|---|
+| **Forschungspunkte** | Summe aller Forschungsstufen **hoch drei**. Beispiel: Felderwirtschaft 1 = 1, Kriegskunst 4 = 64, Minenarbeit 2 = 8 → **73** |
+| **Kriegspunkte** | je Einheit ein fester Punktewert (siehe Liste unten) **plus** Verteidigungsanlagen: **Ausbaustufe³**. Beispiel: Palisade Stufe 4 = **64** |
+| **Gesamtpunktzahl** | **(Kriegspunkte + Forschungspunkte) / 2** |
+| **Rufpunkte** | für aktive Spielteilnahme; gehen **nicht** in die Gesamtpunktzahl ein, sind gegen Boni (z. B. Extraressourcen) eintauschbar. Bei Punktgleichheit entscheidet der **höhere Ruf**, danach das **frühere Anmeldedatum**. |
+
+**Kriegspunkte je Einheit (wörtlich aus dem Handbuch):**
+Bürgerwehr 1 · Kämpfer 2 · Krieger 4 · Ritter 8 · Paladin 16 ·
+Kurzbogenschütze 2 · Bogenschütze 4 · Langbogenschütze 8 · Armbrustschütze 10 ·
+Belagerungsturm 2 · Ramme 3 · Großer Belagerungsturm 4 · Große Ramme 5 · Balliste 6 · Katapult 7 ·
+Großes Katapult 8 · Streuner 1 · Gauner 2 · Dieb 4 · Meisterdieb 8 · Kundschafter 10 ·
+Waldläufer 16 · Handkarren 1 · Einspänner 2 · Zweispänner 3.
+(Handelskarawanen, Siedlerkarren und Sammlerkarren haben **„Punktewert: -"**, geben also **keine** Kriegspunkte.)
+
+Beispiel aus dem Handbuch: 10 Paladine + 12 Bogenschützen = 10·16 + 12·4 = **208 Kriegspunkte**.
+
+---
+
+## 4. Götterschutz (Handbuch Seite 5)
+
+- Neue Spieler sind die **ersten sieben Tage** geschützt und **nicht angreifbar**.
+- Der Schutz endet **früher**, sobald der Spieler seinen **ersten Kriegspunkt** erhält — also bereits
+  beim Ausbau von Verteidigungsanlagen oder bei der ersten Militär-/Spionageeinheit.
+- **Bis 299 Punkte: eingeschränkter Götterschutz.** Angriff nur auf Spieler im Bereich
+  **eigene Punktzahl ± 20 %**. Über die Grenze von 299 Punkten hinweg ist **kein** Angriff möglich
+  (in keine Richtung). Ein Spieler mit 299 Punkten kann nur 240–299 angreifen und ist für alle
+  oberhalb 299 nicht angreifbar.
+- **Ab 300 Punkten: kein Schutz** mehr.
+- Geschützte Spieler erscheinen in Ruhmeshalle und Portal **grün** und mit einem **grünen Punkt**.
+
+---
+
+## 5. Weitere belegte Spieldaten
+
+| Regel | Wert |
+|---|---|
+| Startwerte | 10 Siedler, 100 Holz, 100 Steine |
+| Maximale Siedlungen | 6 |
+| Siedlungsnamen | Karte wird zufällig zugewiesen; nie zweimal dieselbe gleichzeitig |
+| Schriftverkehr | Nachrichten leuchten auf; Bestätigungen über erfüllte Aufträge laufen dort ein |
+| Gildenwertung | nur Gilden mit **mehr als zwei** Mitgliedern werden gewertet |
+| Rangfolge bei Punktgleichheit | höherer Ruf, danach früheres Anmeldedatum |
+| Bauplätze | Gebäude auf der Siedlungskarte platzieren; Mauszeiger zeigt Eignung; Abriss bringt nichts zurück |
+| Echtzeit | Produktion, Bewegung, Forschung laufen in Echtzeit ab, nicht in Runden |
+| Bibliothek | nur auf Grasland, Steppe oder Nebelsee; **eine je Siedlung** |
+| Ausbildungsgebäude | Kriegerakademie, Diebesgilde, Stellmacher — je **eines** je Siedlung |
+| Werkstätten | Schmiede, Bogner, Nähstube — **mehrfach** möglich, fertigen parallel |
+
+
+########## DATEI: docs/PLAN_AUS_HANDBUCH.md ##########
+# Plan nach dem Original-Handbuch — als Einzelspieler-Spiel
+
+**Grundlage:** `docs/original/Nebelseetal_Spielanleitung_2009.pdf` (24 Seiten).
+Seitenangaben sind **Handbuch-Druckseiten**. Jedes Kapitel wird nach drei Fragen abgearbeitet:
+
+1. **Original** — was steht dort?
+2. **Einzelspieler** — was wird daraus ohne andere Spieler?
+3. **Paket/Stand** — wer baut es, was ist schon da?
+
+Alles, was im Original einen **anderen Spieler** voraussetzt, wird auf **Bots** abgebildet — nicht
+gestrichen. Nur reine Netzfunktionen (Chat, Forum, Anmeldung) entfallen.
+
+---
+
+## Übersicht: 24 Seiten → Pakete
+
+| Seite | Thema | Einzelspieler-Kern | Paket | Stand |
+|---|---|---|---|---|
+| 1 | Das Spiel | Echtzeit-Aufbauspiel, ein Herrscher, eine Start­siedlung | W1d | Code fehlt |
+| 2 | Grundlegendes: Ziel, Bildschirmaufbau, Hauptmenü | Überblick + Portal (→ Weltenkarte) | W7 | teils |
+| 3 | Nebenbereiche, Punktesystem (Forschung) | Gilde/Ruhmeshalle gegen Bots | W6 | offen |
+| 4 | Kriegspunkte, Gesamtpunktzahl | Rechnung 1:1 übernehmen | W6 | offen |
+| 5 | Rufpunkte, Götterschutz | Schutz gegen Bots statt Spieler | W5 | offen |
+| 6 | Spielübersichtsseite | Siedlungsliste + laufende Aufträge | W7 | teils |
+| 7 | Siedlungsübersicht, Baumenü | Karte, Zuwachs, Gebäude setzen/abreißen | W4/W7 | teils |
+| 8 | Lager, Siedeln, aufgeben | bis 6 Siedlungen, Karte zufällig | W4 | teils |
+| 9–10 | Rohstoffe und Gebäude | 9 Rohstoffe, Geländeertrag, Siedler | W1d/W4 | Daten da |
+| 11–12 | Forschung | Dauer Stufe², Kosten verdoppeln | W1d/W4 | Daten da |
+| 13 | Waren | 3 Werkstätten, Warteschlangen | W3 | Daten da |
+| 14 | Einheiten | 4 Typen, 3 Ausbildungsgebäude | W1d | Daten da |
+| 15–17 | Einheitentabelle und Werte | 28 Einheiten, LE…SK | W1d | Daten da |
+| 18–19 | Aufträge | Stationieren, Spionage, Transport, Handel, Angriff | W4/W5 | offen |
+| 20–22 | Kampf | Vorrunde, Sequenzen, Zweikampf | W2 | **als Nächstes** |
+| 23 | Spionage | Bericht gegen Bots | W5 | offen |
+| 24 | Ende | — | — | — |
+
+---
+
+## Teil A — Grundlagen (Seite 1–5)
+
+### Seite 1 — Das Spiel
+**Original:** Browserspiel, kostenlos, Echtzeit („nicht in Runden"), der Spieler ist Herrscher über
+ein mittelalterliches Reich, jedes Reich auf eigener Welt, verbunden durch **Portale**. Start mit
+einer Siedlung. Rohstoffe → Gebäude → Forschung → Waffen/Rüstungen → Armee.
+**Einzelspieler:** Der Zeitablauf bleibt Echtzeit, wird aber **skalierbar** (Faktor einstellbar:
+Original-Tempo bis stark beschleunigt). Das Portal führt nicht zu Spielerwelten, sondern zur
+**Weltenkarte mit den fünf Karten** (Kontinent, Nebelwald, Hochfels, Glimmersümpfe, Portalreich).
+**Paket:** W1d (Zeitablauf), W5 (Weltenkarte).
+**Offen:** Zeitfaktor als Standard (Daniel).
+
+### Seite 2 — Grundlegendes: Spielziel, Bildschirmaufbau, Hauptmenü
+**Original:** Ziel ist frei wählbar (Feldherr, Forscher, Händler) — alles läuft über Rohstoffe.
+**Maximal 6 Siedlungen.** Bildschirm: links Hauptmenü, oben Ressourcenleiste (in einer Siedlung:
+deren Bestände, sonst Gesamtsumme), Mitte Hauptanzeige, rechts Zusatzmenü in manchen Bereichen.
+Hauptmenü: Übersicht, Portal. Im Portal: Position der eigenen Welt im **Limbus, 20 Dimensionen**;
+Entfernung bestimmt die Manakosten des Portals.
+**Einzelspieler:** Layout 1:1 übernehmen (haben wir schon: Leiste oben, Menü links, Inhalt Mitte,
+Zusatzspalte rechts). Der Limbus wird zur **Entfernungsmatrix zwischen den fünf Karten** — Mana
+kostet der Sprung zwischen Karten, abhängig von einer festen Entfernungstabelle.
+**Paket:** W7 (Layout, ist da), W5 (Entfernung/ Mana).
+
+### Seite 3 — Nebenbereiche und Punktesystem
+**Original:** Diplomatie (Gilde gründen/beitreten, Buddyliste, Herrscherprofil), Einstellungen
+(Passwort, Newsletter, Skin, Urlaubsmodus, Account löschen), Ruhmeshalle (Vergleich mit anderen),
+Gildenhalle (Gilden ab drei Mitgliedern gewertet), Voraussetzungen-Übersicht, Nachrichten (mit
+Bestätigungen erfüllter Aufträge), Forum, IRC-Chat, Logout.
+**Punktesystem:** Forschungspunkte = Summe **Stufe hoch drei** je Forschung
+(Beispiel Handbuch: Felderwirtschaft 1 = 1, Kriegskunst 4 = 64, Minenarbeit 2 = 8 → **73**).
+**Einzelspieler:**
+- **Ruhmeshalle:** Rangliste gegen die **Bots** — gleiche Rechnung, dadurch fair vergleichbar.
+- **Gildenhalle:** entfällt als Netzfunktion; optional als „Bündnis" mit zwei Bots (KANN).
+- **Diplomatie:** bleibt als **Beziehungsseite** zu den Bots (Handel, Angriff, Ruf).
+- **Skin:** bleibt (haben wir: drei Skins). **Urlaubsmodus:** wird zur **Pause** (Spielzeit anhalten).
+- **Entfällt:** Passwort, Newsletter, Account löschen, Forum, IRC-Chat, Logout, Buddyliste.
+- **Nachrichten:** bleiben und werden wichtiger — hier landen Auftragsbestätigungen und Kampfberichte.
+**Paket:** W6 (Punkte, Rangliste), W7 (Nachrichten/Skins/Pause).
+
+### Seite 4 — Kriegspunkte und Gesamtpunktzahl
+**Original:** Kriegspunkte je Einheit (Bürgerwehr 1 … Paladin 16, Armbrustschütze 10, Katapult 7,
+Großes Katapult 8 …), **Verteidigungsanlagen = Ausbaustufe hoch drei** (Palisade 4 = 64).
+**Gesamtpunktzahl = (Kriegspunkte + Forschungspunkte) / 2.** Beispiel: (150 + 200) / 2 = 175.
+**Einzelspieler:** Rechnung unverändert übernehmen. Die Punktewerte stehen schon in
+`data/units.json` (25 von 28 belegt; Handelskarawanen und Siedlerkarren haben laut Handbuch keinen
+Punktewert — genau so übernommen).
+**Paket:** W6.
+
+### Seite 5 — Rufpunkte und Götterschutz
+**Original:** Rufpunkte für aktive Teilnahme, **nicht** in der Gesamtpunktzahl, eintauschbar gegen
+Boni; entscheiden bei Punktgleichheit, danach das frühere Anmeldedatum.
+**Götterschutz:** erste **7 Tage** unangreifbar; endet früher mit dem **ersten Kriegspunkt**.
+Bis **299 Punkte** eingeschränkter Schutz: Angriff nur im Bereich **±20 %**. Ab 300 kein Schutz.
+Geschützte Spieler erscheinen grün.
+**Einzelspieler:** Götterschutz wird zum **Anfängerschutz gegen Bots**: Die Bots greifen erst an,
+wenn der Spieler seinen ersten Kriegspunkt hat oder Tag 7 erreicht ist; danach greifen nur Bots im
+Punktebereich ±20 % an. Anmeldungsdatum entfällt → bei Punktgleichheit entscheidet der **Ruf**.
+Rufpunkte bleiben und werden gegen Boni (Rohstoffe, Mana) eintauschbar.
+**Paket:** W5 (Schutz, Bot-Angriffe), W6 (Ruf).
+
+---
+
+## Teil B — Siedlungen und Wirtschaft (Seite 6–13)
+
+### Seite 6 — Spielübersichtsseite
+**Original:** Nach dem Einloggen: Liste der Siedlungen mit gelagerten Rohstoffen und Einheiten,
+laufende Forschungen, darüber eine Liste **aller laufenden Aufträge**.
+Start: **10 Siedler, 100 Holz, 100 Steine**.
+**Einzelspieler:** Startwerte exakt so (`data/resources.json`). Auftragsliste zeigt Bewegungen,
+Transporte und Angriffe mit Restzeit.
+**Paket:** W4 (Startwerte, Auftragsliste), W7 (Anzeige).
+
+### Seite 7 — Siedlungsübersicht und Baumenü
+**Original:** Karte der Siedlung, gelagerte Rohstoffe, Zuwachstabelle; Ressourcenanzeige mit
+**Balken bis zur nächsten Einheit**; rechtes Siedlungsmenü. Menüpunkte: Siedlungsübersicht,
+**Aufträge**, **Bauen** (Bereiche Produktion und Verteidigung), **Gebäude abreißen**
+(Sicherheitsabfrage, keine Rohstoffe zurück, Feld wird frei).
+**Einzelspieler:** Vollständig baubar. Wichtig: Gebäude werden **auf der Siedlungskarte platziert**,
+der Mauszeiger zeigt die Eignung (hohe/niedrige/keine Produktion). Das ist der größte
+Oberflächen-Umbau — die heutige Liste „Stufe 0 / Ausbauen" ersetzt das nicht.
+**Paket:** W4 (Bau, Eignung, Abbruch), W7 (Karte + Menü).
+
+### Seite 8 — Lager, Umbenennen, Siedeln, aufgeben
+**Original:** **Lager** zeigt Waren und Einheiten. **Umbenennen** frei. **Siedeln:** kostet
+Ressourcen und **Siedlerkarren**; höchstens **6 Siedlungen**; neue Siedlung bekommt eine **zufällige
+Karte**, nie zweimal dieselbe gleichzeitig. **Siedlung aufgeben** löscht alles endgültig.
+**Einzelspieler:** Übernehmen. Die „Karten" der Siedlungen werden aus einem Vorrat von
+Siedlungskarten gezogen (Terrainverteilung je Geländeart) — damit sind Sümpfe, Wald, Berge usw. echt
+und die Ertragstabelle stimmt.
+**Paket:** W4.
+
+### Seite 9–10 — Rohstoffproduktion und Gebäude
+**Original:** 10 produzierende Gebäude mit Ertrag **pro Stunde je Geländeart** (z. B. Holzfäller:
+Wald 4, Steppe 2; Tempel/Mana: Nebelsee 5, sonst 1; Jäger: Wald 2+2). Sümpfe **unbebaubar**.
+**Ein Siedler pro Stunde** bis zur Grenze; Grenze **10**, **+5 pro Haus**.
+**Einzelspieler:** Alles 1:1 aus `data/resources.json` und `data/buildings.json`. Der Siedlerzuwachs
+ist der Taktgeber der Wirtschaft.
+**Paket:** W4. **Stand:** Daten fertig und geprüft.
+
+### Seite 11–12 — Forschung
+**Original:** Bibliothek bauen (nur Grasland/Steppe/Nebelsee, **eine** je Siedlung), in Stufen
+ausbauen, Forschung beauftragen. **Dauer = neue Stufe² Stunden.** **Kosten verdoppeln sich je
+Stufe.** Während der Studien ist der Bereich **blockiert**; die Stufe steigt **erst nach Ablauf**;
+**Abbruch** kostet Zeit und Ressourcen.
+**Einzelspieler:** Übernehmen. Bei beschleunigtem Tempo wird nur der Zeitfaktor geteilt, die Formel
+bleibt.
+**Paket:** W4. **Stand:** 21 Forschungen in `data/research.json`.
+
+### Seite 13 — Waren
+**Original:** Schmiede (Waffen/Rüstungen), Bogenbauer (Fernwaffen), Nähstube (Stoff/Fell). Waren
+laufen über **Warteschlangen**; **mehrere gleiche Werkstätten fertigen parallel** (Beispiel: 10
+Schwerter à 20 Min. mit zwei Schmieden = 100 statt 200 Min.). Warenbestand im Lager.
+**Einzelspieler:** Übernehmen. Die Waren sind im Original **Voraussetzung für Einheiten** — diese
+Verknüpfung steht schon in `data/units.json` (`waren` je Einheit) und in `data/items.json`
+(`benoetigt_von`).
+**Paket:** W3.
+
+---
+
+## Teil C — Einheiten und Krieg (Seite 14–22)
+
+### Seite 14 — Einheiten
+**Original:** **Vier Typen**: Karren, Belagerungswaffen, Kundschafter, Kampfeinheiten. Ausbildungs-
+gebäude: **Stellmacher** (Karren + Belagerung), **Diebesgilde** (Kundschafter), **Kriegerakademie**
+(Kampf), je eines je Siedlung, höhere Stufe = schneller.
+**Einzelspieler:** Übernehmen. Heute bildet der Code alle Einheiten in einer Kaserne aus → wird auf
+die drei Gebäude aufgeteilt.
+**Paket:** W1d. **Stand:** 28 Einheiten mit Gebäudezuordnung in `data/units.json`.
+
+### Seite 15–17 — Einheitentabelle, Werte, Abkürzungen
+**Original:** Alle 28 Einheiten mit Kosten (Gold, Rohstoffe, Siedler, Pferde, Waren) und einer
+Wertetabelle: **LE, AT, PA, SI, HE, RS, TP, GS, MU, SK**. Karren haben **Ladung**.
+**Einzelspieler:** 1:1. Zwei belegte Eigenheiten: Für die Gruppe *Karren und Belagerungswaffen*
+druckt das Handbuch **kein MU** — die 13 Einheiten haben dort `null`; für Belagerungsturm und
+Großen Belagerungsturm steht TP als **0** („kein Schaden", nicht „kein Wert").
+**Paket:** W1d. **Stand:** `data/units.json`, `data/unit_stats.json` (15 vollständig, 13 mit Lücken,
+jede Lücke begründet). **Offene Entscheidung:** Ersatzregel für MU bei diesen 13 (Vorschlag: MU 0,
+damit Karren nicht fliehen — sie sollen laut Seite 22 Ausrüstung bergen).
+
+### Seite 18–19 — Aufträge
+**Original:** Auftragsarten: **Stationieren**, **Spionage**, **Transportieren** (nur mit
+Transportkarren, kehrt zurück), **Handeln** (Handelskarawanen, Partner bestätigt oder lehnt ab),
+**Angriff**. Ziele im Original: eigene Siedlung, **Portalkoordinaten**, Verbündeter, Gildenmitglied.
+**Zeitangaben gelten für eine Strecke** (Rückkehr = doppelt). **Kosten:** Gold + Nahrung, bei fremden
+Siedlungen zusätzlich **Mana je Entfernung**. Geschwindigkeit in **10-%-Schritten drosselbar**:
+langsamer = weniger Gold, mehr Nahrung.
+**Einzelspieler:** Ziele sind eigene Siedlungen oder **Bot-Siedlungen** (statt Koordinaten: Auswahl
+aus der Weltenkarte). Handeln läuft als **Angebot mit Annehmen/Ablehnen** durch den Bot.
+Geschwindigkeitswahl bleibt (10-%-Schritte) und wirkt auf Gold/Nahrung.
+**Paket:** W4 (Transport/Stationieren), W5 (Handel, Spionage, Angriff).
+
+### Seite 20–22 — Kampf — **das Herzstück**
+**Original:**
+1. **Vorrunde:** Schlagkraft **aller angreifenden Fußtruppen** muss den **Schwellenwert des Walls**
+   erreichen; ab verstärkter Palisade zusätzlich Schlagkraft von **Belagerungswaffen**. Schafft er es
+   nicht, zieht er sich zurück — **unentschieden**. Wallstufen 1–10 (Erdwall 10 … Bollwerk 1000/1000).
+2. **Mauerschaden:** Schaden der Belagerungswaffe (Zufallswert, z. B. Katapult 2-13) **minus
+   Ausbaustufe der Mauer**; Rest geht vom Zustand ab (Beispiel: 8 − 6 = 2 → Mauer von 100 % auf 98 %).
+   Beschädigte Mauer verlangt **prozentual weniger** Schlagkraft.
+3. **Kampfsequenzen:** höchstens **10**. Je Sequenz: **Fernkampf zuerst und gleichzeitig** (auf die
+   Fußtruppen des Gegners, sonst auf dessen Fernkämpfer) → **dann Verluste auf beiden Seiten
+   berechnen** → dann stürmen die **Nahkämpfer nacheinander** je eine **zufällige** gegnerische
+   Nahkampfeinheit.
+4. **Zweikampf:** höherer **MU** beginnt (Gleichstand: Verteidiger). **Zufallszahl 1–100 ≤ AT** =
+   Treffer; sonst Fehlschlag. Bei Treffer prüft der Verteidiger mit **PA**; pariert er, kein Schaden.
+   Sonst Schaden = Zufallswert im **TP-Bereich minus RS**, mindestens 1. Abzug von **LE**.
+   **LE < 1** = tot, **LE < 5** = Fluchtprobe über **MU**; Geflohene kehren nach der Schlacht zurück.
+5. **Erschöpfung:** Der Sieger eines Zweikampfs verliert **1 AT und 1 PA** bis Schlachtende
+   (summiert sich) — deshalb kann Übermacht schwacher Einheiten starke besiegen.
+6. **Ausgang:** alle Verteidiger tot/geflohen → **Angreifer siegt** und **plündert** (wenn er
+   **Transportkarren** mitführt). Alle angreifenden Fußtruppen tot/geflohen → **Verteidiger siegt**.
+   Der **Verlierer** verliert einen Teil der Karren und Belagerungswaffen: **40 % Fluchtchance je
+   Einheit, +5 % je Kampfsequenz**. Unentschieden → alle Karren und Belagerungswaffen bleiben.
+**Einzelspieler:** Der Ablauf wird **wörtlich** umgesetzt — genau das fehlt heute (der Code macht
+einen einzigen Zufallsvergleich). Alles, was dafür nötig ist, liegt vor: Werte (`data/units.json`),
+Wallschwellen (`data/buildings.json`), Ablaufregeln (`docs/original/ORIGINAL_Kampf_und_Punkte.md`).
+Der Kampf läuft **schrittweise sichtbar** ab (Sequenz für Sequenz) und endet mit einem **Bericht**,
+der im Nachrichtenbereich archiviert wird.
+**Paket:** W2. **Offene Entscheidung:** Sollen die 10 Sequenzen im Echtzeit-Takt laufen (zuschauen)
+oder in einem Zug berechnet und als Bericht gezeigt werden? Vorschlag: **als Bericht**, mit Option
+„Schritt für Schritt".
+
+---
+
+## Teil D — Spionage und Ende (Seite 23–24)
+
+### Seite 23 — Spionage
+**Original:** Spionageeinheiten aus der Diebesgilde; Unterschied ist neben den Kampfwerten die
+**Reisegeschwindigkeit**. Bericht enthält Siedlungskarte, gelagerte Ressourcen, stationierte
+Einheiten, Verteidigungsanlagen samt Zustand. **Pferde** können mitgegeben werden (frisches Pferd =
+schneller).
+**Einzelspieler:** Gegen **Bot-Siedlungen**. Der Bericht ist der Schlüssel zum Angriff: erst
+ausspähen, dann entscheiden. Bots spionieren auch den Spieler aus (Hinweis im Nachrichtenbereich).
+**Paket:** W5.
+
+### Seite 24 — Ende der Anleitung
+**Original:** Weitere Abschnitte (z. B. Diplomatie) waren angekündigt, aber nicht erschienen.
+**Einzelspieler:** Der Diplomatiebereich wird aus dem, was belegt ist, gebaut (Bots, Ruf, Handel,
+Angriff) — **nichts erfinden**, was nicht im Handbuch steht.
+
+---
+
+## Einzelspieler-Abbildung auf einen Blick
+
+| Original setzt voraus | Ersatz im Einzelspieler | Paket |
+|---|---|---|
+| Andere Spieler | **Bots** mit Profil, Siedlungen, Armee, Verhalten | W1d/W5 |
+| Portalkoordinaten | Auswahl aus der **Weltenkarte** (5 Karten) | W5 |
+| Limbus/Entfernung | feste **Entfernungstabelle** zwischen den Karten → Manakosten | W5 |
+| Handel mit Bestätigung | Bot-**Angebot** mit Annehmen/Ablehnen | W5 |
+| Deine Siedlung / fremde Siedlung | eigene Siedlung / **Bot-Siedlung** | W4/W5 |
+| Gildenhalle, Buddyliste | entfällt bzw. „Bündnis" (KANN) | — |
+| Chat, Forum, IRC, Login, Passwort, Newsletter | entfällt | — |
+| Urlaubsmodus | **Pause** (Spielzeit anhalten) | W7 |
+| Ruhmeshalle | **Rangliste gegen Bots** (gleiche Rechnung) | W6 |
+| Anmeldedatum bei Punktgleichheit | entfällt → **Ruf** entscheidet | W6 |
+| Speedserver (200×) | **Zeitfaktor** in den Einstellungen | W1d |
+
+## Reihenfolge (nach Blockade, nicht nach Kapitelnummer)
+
+1. **W1d — Code auf die Originaldaten umstellen** (S. 9–17): 28 Einheiten, 9 Rohstoffe, 17 Waren,
+   21 Forschungen, 20 Gebäude. Danach: 28/28 Einheiten mit Kampfkraft > 0. *Blockiert alles andere.*
+2. **W2 — Kampf** (S. 20–22): Vorrunde, 10 Sequenzen, Zweikampf, Erschöpfung, Flucht, Beute, Bericht.
+3. **W3 — Waren und Handwerk** (S. 13): Werkstätten, Warteschlangen, Waren als Einheitenvoraussetzung.
+4. **W4 — Wirtschaft und Siedlungen** (S. 6–12): Baukosten/zeiten, Geländeertrag, Siedler, Siedeln.
+5. **W5 — Welt, Bots, Aufträge** (S. 18–19, 23): Weltenkarte, Bot-Verhalten, Handel, Spionage, Schutz.
+6. **W6 — Punkte und Ziel** (S. 3–5): Punkteformeln, Rangliste, Ruf, Sieg/Niederlage.
+7. **W7 — Oberfläche** (S. 2, 6–8): Siedlungskarte mit Platzierung, Original-Icons, Nachrichten, Pause.
+8. **W8 — Speichern** robust + Versionskennung.
+9. **W9 — Portable Windows-Version** + README.
+
+## Offene Entscheidungen (Daniel)
+
+1. **Zeitfaktor** als Standard: Original-Tempo oder beschleunigt? (Forschung Stufe² Stunden wäre im
+   Original 25 Stunden für Stufe 5.)
+2. **Kampfdarstellung:** Bericht in einem Zug, oder Sequenzen Schritt für Schritt?
+3. **MU fehlt** für die 13 Karren/Belagerungswaffen: MU 0 setzen (fliehen nie), oder eine eigene
+   Regel?
+4. **Ziel:** Sieg über alle vier Nebenwelten + Punktzahl, oder reine Punktwertung?
+5. **Gildenhalle/Bündnis:** weglassen oder als Bündnis mit zwei Bots?
+
+
+########## DATEI: docs/PROJEKT_STAND.md ##########
+# Nebelseetal Remake — Projektstand
+
+**Diese Datei ist der Einstiegspunkt.** Jede neue Sitzung liest zuerst hier — nicht die Chat-Historie.
+Sie wird nach jedem Arbeitsschritt aktualisiert. Stand: 04.10.2026.
+
+---
+
+## 1. In drei Befehlen prüfen
+
+```bash
+cd /d/Arbeiten/Nebelseetal_Remake
+python tests/test_baseline.py     # oder: run_tests.bat
+git log --oneline | head -10
+```
+
+Erwartet: **26 bestanden, 0 Fehler, 2 Befunde**. Die zwei Befunde sind bekannte Altlasten im Code
+(29 Einheiten ohne Kampfkraft, Platzhalter-Icons) und werden in W1b/W2 abgebaut. Ein grüner Lauf
+bedeutet also *nicht* „Spiel fertig".
+
+## 2. Richtschnur
+
+**Das Original-Handbuch ist verbindlich** (von Daniel bestätigt). Alle Namen, Zahlen und Regeln
+stammen daraus. Liegt eine Angabe dort nicht vor, wird sie **null** gesetzt und begründet — es wird
+**nichts geschätzt**. Originalquellen: `docs/original/` (PDF, 16 archivierte Seiten, 13 Website-Seiten,
+ausgelesene Tabellen als Markdown).
+
+## 3. Was fertig ist
+
+| Paket | Inhalt | Beleg |
+|---|---|---|
+| **W0** Sicherheitsnetz | Git-Repo (Branch `main`), `.gitignore`, Prüfrahmen `tests/` + `run_tests.bat` | 3 Commits, 26 Prüfungen grün |
+| **W1a** Originaldaten | `docs/original/` mit Handbuch, Spielanleitung 2005, Website, ausgelesenen Tabellen | selbst gegen das PDF nachgeprüft |
+| **W1b** Icons | 45 Ausschnitte: 17 vorhandene + 28 neu geschnitten, Zuordnung mit Beleg | `data/icon_map.json`, `data/icons_index.json` |
+| **W1c** Datengrundlagen | 28 Einheiten, 17 Waren, 21 Forschungen, 9 Rohstoffe, 20 Gebäude + 10 Wallstufen | `data/*.json`, je Datei `_quelle` |
+
+### Artefaktkarte
+
+| Datei | Inhalt |
+|---|---|
+| `data/units.json` | **28 Originaleinheiten**: Kosten, Waren, Voraussetzung, Kriegspunkte, Ladung, Kampfwerte, Icon |
+| `data/unit_stats.json` | Kampfwerte spaltensicher aus dem Handbuch (15 vollständig, 13 ohne MU — in der Vorlage nicht abgedruckt) |
+| `data/items.json` | 17 Waren mit Werkstatt, Voraussetzung, Icon, verbrauchenden Einheiten |
+| `data/research.json` | 21 Forschungen + Ablaufregeln (Dauer = Stufe², Kosten verdoppeln sich) |
+| `data/resources.json` | 9 Rohstoffe, Ertrag je Geländeart, Siedlerregeln, Startwerte |
+| `data/buildings.json` | 20 Gebäude + Verteidigungswall Stufen 1–10 mit Schwellenwerten |
+| `data/icon_map.json` | Blatt-Zelle → Originalname, **mit Beleg je Eintrag** |
+| `data/icons_index.json` | Originalname → Icon-Datei (45 Einträge) |
+| `assets/icons/units/` | 11 Einheiten-Icons (neu geschnitten) |
+| `assets/icons/items/` | 17 Waren-Icons (neu geschnitten) |
+| `assets/icons/original_units/` | **Daniels 17 Dateien — unangetastet** |
+| `tools/slice_icons.py` | Icon-Schnitt: `--preview` (nummerierte Kontrollblätter), `--write` (schneidet + Index) |
+| `tools/build_units.py` | erzeugt `data/units.json` reproduzierbar aus den Originalquellen |
+| `tools/pdf_stats.py` | liest die Wertetabelle mit Koordinaten aus dem PDF |
+| `docs/original/ORIGINAL_*.md` | ausgelesene Originaldaten als lesbare Fassung |
+| `docs/icon_preview/` | Kontrollblätter für die gemeinsame Abnahme |
+
+## 4. Was der Code noch NICHT kann (der eigentliche Umbau)
+
+Der Code läuft, benutzt aber **erfundene Daten**. Gemessen:
+
+| im Code | Original | Folge |
+|---|---|---|
+| **36 Einheiten**, davon 31 erfunden (Worg, Drache, Troll, Ork, Golem …) | **28** | Kampf sinnlos: 29 von 36 haben Kampfkraft 0 |
+| 10 Rohstoffe (`kristall, stoff, geld, wissen` …) | 9 (Holz, Stein, Metall, Mana, Nahrung, Gold, Wolle, Leder, Pferde) | falsche Wirtschaft |
+| 18 Forschungen | 21 | — |
+| 10 Gebäude | 20 | — |
+| 17 Waren nur als Emoji-Einträge | 17 gefertigte Waren mit Werkstatt | Handwerk fehlt |
+| Kampf = ein Zufallsvergleich | Vorrunde + bis zu 10 Kampfsequenzen + Zweikämpfe | kein Kampfablauf |
+| keine Karren, keine Belagerung | 6 Karren + 7 Belagerungswaffen | — |
+
+## 5. Nächste Schritte
+
+1. **W1d — Code auf die Originaldaten umstellen.** `src/main.py` und `src/bonus_system.py` aus
+   `data/*.json` speisen statt aus eigenen Tabellen. Danach: **eine** Wertequelle, Anzeige stimmt
+   mit Rechnung überein. Erwartetes Ergebnis: 28/28 Einheiten mit Kampfkraft > 0.
+2. **W2 — Kampfablauf** nach `docs/original/ORIGINAL_Kampf_und_Punkte.md`: Vorrunde mit
+   Wallschwellen, bis zu 10 Kampfsequenzen, Fernkampf gleichzeitig, Zweikämpfe mit AT/PA/RS/TP,
+   Erschöpfung, Flucht ab LE < 5, Beute durch Transportkarren, Bericht.
+3. **W3 — Handwerk**: Waren in Schmiede/Bogner/Nähstube fertigen (Warteschlangen, mehrere
+   Werkstätten parallel), Waren als Voraussetzung für Einheiten.
+4. **W4 — Wirtschaft**: Bauzeiten (Stufe² bei Forschung belegt), Siedler (1/Stunde, Grenze 10, +5 je Haus), Lagerkapazität.
+5. **W5 — Welt und Gegner**: Bots nach Originalverhalten, Götterschutz (7 Tage, eingeschränkt bis 299 Punkte).
+6. **W6 — Punkte und Ziel**: Forschungspunkte = Σ Stufe³, Kriegspunkte je Einheit, Verteidigungsanlagen³, Gesamt = (Krieg + Forschung) / 2.
+7. **W7 — Oberfläche**: Original-Icons einbinden, Kaserne/Lager/Karten mit echten Werten.
+8. **W8 — Speichern** robust + Versionskennung; **W9 — portable Windows-Version**.
+
+## 6. Offene Entscheidungen (Daniel)
+
+- **Kampftempo**: Original ist Echtzeit (Forschung Stufe² Stunden). Beschleunigt für Einzelspieler?
+- **Karten**: Reicht der Kontinent mit Sektoren, oder die vier kleinen Welten voll ausbauen?
+- **Ziel**: Siegbedingung — alle Welten + eroberte Siedlungen + Punktzahl, oder reine Punktewertung?
+- **Einheitenwert-Lücken**: Für die 13 Karren/Belagerungswaffen fehlt MU in der Vorlage. Regel
+  festlegen (z. B. MU = 0, damit sie nicht fliehen — Karren sollen laut Handbuch Waren bergen).
+
+## 7. Arbeitsweise in diesem Projekt
+
+- **Nie schätzen.** Fehlt ein Originalwert: `null` + Begründung, nicht raten.
+- **Originaldateien unantastbar**: die 7 Blätter, Daniels 17 Dateien, `docs/original/`.
+- **Prüfen statt behaupten**: nach jeder Änderung `python tests/test_baseline.py`, bei
+  Oberflächenänderungen zusätzlich ein echter Start mit Fenstertitel-Prüfung.
+- **Unteragenten berichten nur** — jedes Ergebnis wird selbst nachgeprüft (zwei Kinder-Meldungen
+  waren schon falsch, drei eigene Prüfungen ebenfalls). Gegengeprüft wird mit einem **anderen
+  Verfahren** als dem des Berichtenden.
+- **Kleine Commits** nach jedem Paket, damit jeder Schritt rücknehmbar ist.
+- **Blätter für Daniel**: `docs/icon_preview/` enthält nummerierte Kontrollblätter; solche
+  Entscheidungen werden vorgelegt, nicht allein getroffen.
+
+## 8. Commit-Historie
+
+| Commit | Inhalt |
+|---|---|
+| `5234e79` | `data/units.json`: 28 Originaleinheiten, `tools/build_units.py` |
+| `329081f` | Datengrundlagen aus den Originaldaten (4 Pakete) |
+| `f46d702` | Grundstand vor dem Umbau: Spiel läuft, Originaldaten und Icons gesichert |
+
+
+########## DATEI: data/units.json ##########
+{
+  "_hinweis": "Nur Originalangaben aus dem Handbuch 2009 und der Spielanleitung 2005. Felder, die die Vorlage nicht hergibt, sind null und stehen in 'nicht_original'. Es ist KEIN Wert geraten.",
+  "_quelle": "docs/original/Nebelseetal_Spielanleitung_2009.pdf, docs/original/Spielanleitung_2005/",
+  "anzahl": 28,
+  "einheiten": {
+    "Bürgerwehr": {
+      "kategorie": "Nahkampf",
+      "gebaeude": "Kriegerakademie",
+      "kosten": {
+        "siedler": 1,
+        "nahrung": 100,
+        "leder": 50,
+        "wolle": 50
+      },
+      "waren": [],
+      "voraussetzung": null,
+      "kriegspunkte": 1,
+      "werte": {
+        "LE": 15,
+        "AT": 20,
+        "PA": 20,
+        "SI": 10,
+        "HE": 10,
+        "RS": 0,
+        "TP_min": 1,
+        "TP_max": 6,
+        "GS": 5,
+        "MU": 40,
+        "SK": 1
+      },
+      "icon": "assets/icons/original_units/Soldat.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Kämpfer": {
+      "kategorie": "Nahkampf",
+      "gebaeude": "Kriegerakademie",
+      "kosten": {
+        "siedler": 1,
+        "gold": 250
+      },
+      "waren": [
+        "Kurzschwert",
+        "Lederrüstung"
+      ],
+      "voraussetzung": {
+        "forschung": "Kriegskunst",
+        "stufe": 1
+      },
+      "kriegspunkte": 2,
+      "werte": {
+        "LE": 20,
+        "AT": 40,
+        "PA": 25,
+        "SI": 10,
+        "HE": 15,
+        "RS": 1,
+        "TP_min": 2,
+        "TP_max": 8,
+        "GS": 10,
+        "MU": 75,
+        "SK": 2
+      },
+      "icon": "assets/icons/original_units/Kämpfer.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Krieger": {
+      "kategorie": "Nahkampf",
+      "gebaeude": "Kriegerakademie",
+      "kosten": {
+        "siedler": 1,
+        "gold": 500,
+        "pferde": 1
+      },
+      "waren": [
+        "Schwert",
+        "Kettenhemd"
+      ],
+      "voraussetzung": {
+        "forschung": "Kriegskunst",
+        "stufe": 3
+      },
+      "kriegspunkte": 4,
+      "werte": {
+        "LE": 30,
+        "AT": 50,
+        "PA": 40,
+        "SI": 15,
+        "HE": 15,
+        "RS": 2,
+        "TP_min": 3,
+        "TP_max": 10,
+        "GS": 25,
+        "MU": 85,
+        "SK": 3
+      },
+      "icon": "assets/icons/original_units/Krieger.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Ritter": {
+      "kategorie": "Nahkampf",
+      "gebaeude": "Kriegerakademie",
+      "kosten": {
+        "siedler": 1,
+        "gold": 1000,
+        "pferde": 1
+      },
+      "waren": [
+        "Schwert",
+        "Plattenrüstung"
+      ],
+      "voraussetzung": {
+        "forschung": "Kriegskunst",
+        "stufe": 7
+      },
+      "kriegspunkte": 8,
+      "werte": {
+        "LE": 35,
+        "AT": 70,
+        "PA": 50,
+        "SI": 15,
+        "HE": 5,
+        "RS": 4,
+        "TP_min": 4,
+        "TP_max": 15,
+        "GS": 20,
+        "MU": 95,
+        "SK": 4
+      },
+      "icon": "assets/icons/original_units/Ritter.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Paladin": {
+      "kategorie": "Nahkampf",
+      "gebaeude": "Kriegerakademie",
+      "kosten": {
+        "siedler": 1,
+        "gold": 2000,
+        "mana": 10,
+        "pferde": 1
+      },
+      "waren": [
+        "Zweihänder",
+        "Schwert",
+        "Magischer Paladinharnisch"
+      ],
+      "voraussetzung": {
+        "forschung": "Kriegskunst",
+        "stufe": 10
+      },
+      "kriegspunkte": 16,
+      "werte": {
+        "LE": 50,
+        "AT": 85,
+        "PA": 60,
+        "SI": 20,
+        "HE": 0,
+        "RS": 6,
+        "TP_min": 6,
+        "TP_max": 20,
+        "GS": 20,
+        "MU": 100,
+        "SK": 5
+      },
+      "icon": "assets/icons/original_units/Paladin.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Kurzbogenschütze": {
+      "kategorie": "Fernkampf",
+      "gebaeude": "Kriegerakademie",
+      "kosten": {
+        "siedler": 1,
+        "gold": 250
+      },
+      "waren": [
+        "Kurzbogen"
+      ],
+      "voraussetzung": {
+        "forschung": "Kriegskunst",
+        "stufe": 2
+      },
+      "kriegspunkte": 2,
+      "werte": {
+        "LE": 15,
+        "AT": 40,
+        "PA": 0,
+        "SI": 10,
+        "HE": 10,
+        "RS": 0,
+        "TP_min": 1,
+        "TP_max": 6,
+        "GS": 5,
+        "MU": 60,
+        "SK": 1
+      },
+      "icon": "assets/icons/original_units/Einfacher Bogenschütze.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Bogenschütze": {
+      "kategorie": "Fernkampf",
+      "gebaeude": "Kriegerakademie",
+      "kosten": {
+        "siedler": 1,
+        "gold": 500
+      },
+      "waren": [
+        "Bogen"
+      ],
+      "voraussetzung": {
+        "forschung": "Kriegskunst",
+        "stufe": 4
+      },
+      "kriegspunkte": 4,
+      "werte": {
+        "LE": 15,
+        "AT": 50,
+        "PA": 0,
+        "SI": 10,
+        "HE": 10,
+        "RS": 0,
+        "TP_min": 1,
+        "TP_max": 8,
+        "GS": 5,
+        "MU": 60,
+        "SK": 2
+      },
+      "icon": "assets/icons/original_units/Kurzbogenschütze.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Langbogenschütze": {
+      "kategorie": "Fernkampf",
+      "gebaeude": "Kriegerakademie",
+      "kosten": {
+        "siedler": 1,
+        "gold": 1000
+      },
+      "waren": [
+        "Langbogen"
+      ],
+      "voraussetzung": {
+        "forschung": "Kriegskunst",
+        "stufe": 6
+      },
+      "kriegspunkte": 8,
+      "werte": {
+        "LE": 20,
+        "AT": 60,
+        "PA": 0,
+        "SI": 10,
+        "HE": 10,
+        "RS": 0,
+        "TP_min": 1,
+        "TP_max": 10,
+        "GS": 5,
+        "MU": 60,
+        "SK": 4
+      },
+      "icon": "assets/icons/original_units/elfen_portrait.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Armbrustschütze": {
+      "kategorie": "Fernkampf",
+      "gebaeude": "Kriegerakademie",
+      "kosten": {
+        "siedler": 1,
+        "gold": 2000
+      },
+      "waren": [
+        "Armbrust",
+        "Lederrüstung"
+      ],
+      "voraussetzung": {
+        "forschung": "Kriegskunst",
+        "stufe": 8
+      },
+      "kriegspunkte": 10,
+      "werte": {
+        "LE": 20,
+        "AT": 60,
+        "PA": 0,
+        "SI": 10,
+        "HE": 10,
+        "RS": 1,
+        "TP_min": 2,
+        "TP_max": 12,
+        "GS": 5,
+        "MU": 60,
+        "SK": 5
+      },
+      "icon": "assets/icons/original_units/Armbrustschütze.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Streuner": {
+      "kategorie": "Kundschafter",
+      "gebaeude": "Diebesgilde",
+      "kosten": {
+        "siedler": 1,
+        "nahrung": 100,
+        "gold": 50
+      },
+      "waren": [
+        "Wollumhang"
+      ],
+      "voraussetzung": null,
+      "kriegspunkte": 1,
+      "werte": {
+        "LE": 10,
+        "AT": 10,
+        "PA": 15,
+        "SI": 30,
+        "HE": 30,
+        "RS": 0,
+        "TP_min": 1,
+        "TP_max": 4,
+        "GS": 10,
+        "MU": 60,
+        "SK": 2
+      },
+      "icon": "assets/icons/units/Streuner.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Gauner": {
+      "kategorie": "Kundschafter",
+      "gebaeude": "Diebesgilde",
+      "kosten": {
+        "siedler": 1,
+        "gold": 250
+      },
+      "waren": [
+        "Messer",
+        "Diebesumhang"
+      ],
+      "voraussetzung": {
+        "forschung": "Heimlichkeit",
+        "stufe": 1
+      },
+      "kriegspunkte": 2,
+      "werte": {
+        "LE": 15,
+        "AT": 30,
+        "PA": 20,
+        "SI": 50,
+        "HE": 45,
+        "RS": 0,
+        "TP_min": 1,
+        "TP_max": 6,
+        "GS": 15,
+        "MU": 65,
+        "SK": 3
+      },
+      "icon": "assets/icons/units/Gauner.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Dieb": {
+      "kategorie": "Kundschafter",
+      "gebaeude": "Diebesgilde",
+      "kosten": {
+        "siedler": 1,
+        "gold": 500
+      },
+      "waren": [
+        "Dolch",
+        "Diebesumhang"
+      ],
+      "voraussetzung": {
+        "forschung": "Heimlichkeit",
+        "stufe": 3
+      },
+      "kriegspunkte": 4,
+      "werte": {
+        "LE": 15,
+        "AT": 40,
+        "PA": 40,
+        "SI": 65,
+        "HE": 70,
+        "RS": 0,
+        "TP_min": 2,
+        "TP_max": 7,
+        "GS": 20,
+        "MU": 70,
+        "SK": 5
+      },
+      "icon": "assets/icons/units/Dieb.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Meisterdieb": {
+      "kategorie": "Kundschafter",
+      "gebaeude": "Diebesgilde",
+      "kosten": {
+        "siedler": 1,
+        "gold": 750
+      },
+      "waren": [
+        "Kurzschwert",
+        "Diebesumhang"
+      ],
+      "voraussetzung": {
+        "forschung": "Heimlichkeit",
+        "stufe": 5
+      },
+      "kriegspunkte": 8,
+      "werte": {
+        "LE": 20,
+        "AT": 40,
+        "PA": 45,
+        "SI": 70,
+        "HE": 80,
+        "RS": 0,
+        "TP_min": 3,
+        "TP_max": 8,
+        "GS": 25,
+        "MU": 80,
+        "SK": 7
+      },
+      "icon": "assets/icons/units/Meisterdieb.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Kundschafter": {
+      "kategorie": "Kundschafter",
+      "gebaeude": "Diebesgilde",
+      "kosten": {
+        "siedler": 1,
+        "gold": 1000
+      },
+      "waren": [
+        "Schwert",
+        "Fellumhang"
+      ],
+      "voraussetzung": {
+        "forschung": "Heimlichkeit",
+        "stufe": 8
+      },
+      "kriegspunkte": 10,
+      "werte": {
+        "LE": 25,
+        "AT": 50,
+        "PA": 60,
+        "SI": 85,
+        "HE": 90,
+        "RS": 1,
+        "TP_min": 2,
+        "TP_max": 9,
+        "GS": 30,
+        "MU": 90,
+        "SK": 9
+      },
+      "icon": "assets/icons/units/Kundschafter.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Waldläufer": {
+      "kategorie": "Kundschafter",
+      "gebaeude": "Diebesgilde",
+      "kosten": {
+        "siedler": 1,
+        "gold": 2000
+      },
+      "waren": [
+        "Schwert",
+        "Fellrüstung"
+      ],
+      "voraussetzung": {
+        "forschung": "Heimlichkeit",
+        "stufe": 10
+      },
+      "kriegspunkte": 16,
+      "werte": {
+        "LE": 30,
+        "AT": 60,
+        "PA": 65,
+        "SI": 90,
+        "HE": 95,
+        "RS": 2,
+        "TP_min": 3,
+        "TP_max": 10,
+        "GS": 35,
+        "MU": 100,
+        "SK": 11
+      },
+      "icon": "assets/icons/units/Waldläufer.png",
+      "ladung": null,
+      "nicht_original": []
+    },
+    "Handkarren": {
+      "kategorie": "Karren",
+      "gebaeude": "Stellmacher",
+      "kosten": {
+        "holz": 100,
+        "metall": 15,
+        "leder": 15,
+        "wolle": 15,
+        "siedler": 1
+      },
+      "waren": [],
+      "voraussetzung": null,
+      "kriegspunkte": 1,
+      "werte": {
+        "LE": null,
+        "AT": null,
+        "PA": null,
+        "SI": null,
+        "HE": null,
+        "RS": null,
+        "TP_min": null,
+        "TP_max": null,
+        "GS": 10,
+        "MU": null,
+        "SK": 0
+      },
+      "icon": "assets/icons/original_units/Karren.png",
+      "ladung": 40,
+      "nicht_original": [
+        "werte.LE (in der Vorlage nicht abgedruckt)",
+        "werte.AT (in der Vorlage nicht abgedruckt)",
+        "werte.PA (in der Vorlage nicht abgedruckt)",
+        "werte.SI (in der Vorlage nicht abgedruckt)",
+        "werte.HE (in der Vorlage nicht abgedruckt)",
+        "werte.RS (in der Vorlage nicht abgedruckt)",
+        "werte.TP_min (in der Vorlage nicht abgedruckt)",
+        "werte.TP_max (in der Vorlage nicht abgedruckt)",
+        "werte.MU (in der Vorlage nicht abgedruckt)"
+      ]
+    },
+    "Einspänner": {
+      "kategorie": "Karren",
+      "gebaeude": "Stellmacher",
+      "kosten": {
+        "holz": 250,
+        "metall": 100,
+        "leder": 200,
+        "wolle": 200,
+        "pferde": 1,
+        "siedler": 2
+      },
+      "waren": [],
+      "voraussetzung": {
+        "forschung": "Wagenbau",
+        "stufe": 3
+      },
+      "kriegspunkte": 2,
+      "werte": {
+        "LE": null,
+        "AT": null,
+        "PA": null,
+        "SI": null,
+        "HE": null,
+        "RS": null,
+        "TP_min": null,
+        "TP_max": null,
+        "GS": 25,
+        "MU": null,
+        "SK": 0
+      },
+      "icon": "assets/icons/original_units/Einspänner.png",
+      "ladung": 100,
+      "nicht_original": [
+        "werte.LE (in der Vorlage nicht abgedruckt)",
+        "werte.AT (in der Vorlage nicht abgedruckt)",
+        "werte.PA (in der Vorlage nicht abgedruckt)",
+        "werte.SI (in der Vorlage nicht abgedruckt)",
+        "werte.HE (in der Vorlage nicht abgedruckt)",
+        "werte.RS (in der Vorlage nicht abgedruckt)",
+        "werte.TP_min (in der Vorlage nicht abgedruckt)",
+        "werte.TP_max (in der Vorlage nicht abgedruckt)",
+        "werte.MU (in der Vorlage nicht abgedruckt)"
+      ]
+    },
+    "Zweispänner": {
+      "kategorie": "Karren",
+      "gebaeude": "Stellmacher",
+      "kosten": {
+        "holz": 500,
+        "metall": 150,
+        "leder": 250,
+        "wolle": 250,
+        "pferde": 2,
+        "siedler": 2
+      },
+      "waren": [],
+      "voraussetzung": {
+        "forschung": "Wagenbau",
+        "stufe": 7
+      },
+      "kriegspunkte": 3,
+      "werte": {
+        "LE": null,
+        "AT": null,
+        "PA": null,
+        "SI": null,
+        "HE": null,
+        "RS": null,
+        "TP_min": null,
+        "TP_max": null,
+        "GS": 30,
+        "MU": null,
+        "SK": 0
+      },
+      "icon": "assets/icons/original_units/Zweispänner.png",
+      "ladung": 250,
+      "nicht_original": [
+        "werte.LE (in der Vorlage nicht abgedruckt)",
+        "werte.AT (in der Vorlage nicht abgedruckt)",
+        "werte.PA (in der Vorlage nicht abgedruckt)",
+        "werte.SI (in der Vorlage nicht abgedruckt)",
+        "werte.HE (in der Vorlage nicht abgedruckt)",
+        "werte.RS (in der Vorlage nicht abgedruckt)",
+        "werte.TP_min (in der Vorlage nicht abgedruckt)",
+        "werte.TP_max (in der Vorlage nicht abgedruckt)",
+        "werte.MU (in der Vorlage nicht abgedruckt)"
+      ]
+    },
+    "Handelskarawane": {
+      "kategorie": "Karren",
+      "gebaeude": "Stellmacher",
+      "kosten": {
+        "holz": 500,
+        "metall": 250,
+        "gold": 200,
+        "wolle": 500,
+        "leder": 500,
+        "siedler": 10,
+        "pferde": 15
+      },
+      "waren": [],
+      "voraussetzung": {
+        "forschung": "Wagenbau",
+        "stufe": 2
+      },
+      "kriegspunkte": null,
+      "werte": {
+        "LE": null,
+        "AT": null,
+        "PA": null,
+        "SI": null,
+        "HE": null,
+        "RS": null,
+        "TP_min": null,
+        "TP_max": null,
+        "GS": 25,
+        "MU": null,
+        "SK": 0
+      },
+      "icon": "assets/icons/original_units/HandelsKarawane.png",
+      "ladung": 1000,
+      "nicht_original": [
+        "werte.LE (in der Vorlage nicht abgedruckt)",
+        "werte.AT (in der Vorlage nicht abgedruckt)",
+        "werte.PA (in der Vorlage nicht abgedruckt)",
+        "werte.SI (in der Vorlage nicht abgedruckt)",
+        "werte.HE (in der Vorlage nicht abgedruckt)",
+        "werte.RS (in der Vorlage nicht abgedruckt)",
+        "werte.TP_min (in der Vorlage nicht abgedruckt)",
+        "werte.TP_max (in der Vorlage nicht abgedruckt)",
+        "werte.MU (in der Vorlage nicht abgedruckt)"
+      ]
+    },
+    "Große Handelskarawane": {
+      "kategorie": "Karren",
+      "gebaeude": "Stellmacher",
+      "kosten": {
+        "holz": 1000,
+        "metall": 500,
+        "gold": 400,
+        "wolle": 1000,
+        "leder": 1000,
+        "siedler": 20,
+        "pferde": 30
+      },
+      "waren": [],
+      "voraussetzung": {
+        "forschung": "Wagenbau",
+        "stufe": 6
+      },
+      "kriegspunkte": null,
+      "werte": {
+        "LE": null,
+        "AT": null,
+        "PA": null,
+        "SI": null,
+        "HE": null,
+        "RS": null,
+        "TP_min": null,
+        "TP_max": null,
+        "GS": 30,
+        "MU": null,
+        "SK": 0
+      },
+      "icon": "assets/icons/original_units/Händler.png",
+      "ladung": 2500,
+      "nicht_original": [
+        "werte.LE (in der Vorlage nicht abgedruckt)",
+        "werte.AT (in der Vorlage nicht abgedruckt)",
+        "werte.PA (in der Vorlage nicht abgedruckt)",
+        "werte.SI (in der Vorlage nicht abgedruckt)",
+        "werte.HE (in der Vorlage nicht abgedruckt)",
+        "werte.RS (in der Vorlage nicht abgedruckt)",
+        "werte.TP_min (in der Vorlage nicht abgedruckt)",
+        "werte.TP_max (in der Vorlage nicht abgedruckt)",
+        "werte.MU (in der Vorlage nicht abgedruckt)"
+      ]
+    },
+    "Siedlerkarren": {
+      "kategorie": "Karren",
+      "gebaeude": "Stellmacher",
+      "kosten": {
+        "holz": 200,
+        "metall": 80,
+        "leder": 150,
+        "wolle": 100,
+        "pferde": 4,
+        "siedler": 5,
+        "nahrung": 300
+      },
+      "waren": [],
+      "voraussetzung": {
+        "forschung": "Wagenbau",
+        "stufe": 1
+      },
+      "kriegspunkte": null,
+      "werte": {
+        "LE": null,
+        "AT": null,
+        "PA": null,
+        "SI": null,
+        "HE": null,
+        "RS": null,
+        "TP_min": null,
+        "TP_max": null,
+        "GS": 20,
+        "MU": null,
+        "SK": 0
+      },
+      "icon": "assets/icons/original_units/Siedlungskarren.png",
+      "ladung": null,
+      "nicht_original": [
+        "werte.LE (in der Vorlage nicht abgedruckt)",
+        "werte.AT (in der Vorlage nicht abgedruckt)",
+        "werte.PA (in der Vorlage nicht abgedruckt)",
+        "werte.SI (in der Vorlage nicht abgedruckt)",
+        "werte.HE (in der Vorlage nicht abgedruckt)",
+        "werte.RS (in der Vorlage nicht abgedruckt)",
+        "werte.TP_min (in der Vorlage nicht abgedruckt)",
+        "werte.TP_max (in der Vorlage nicht abgedruckt)",
+        "werte.MU (in der Vorlage nicht abgedruckt)"
+      ]
+    },
+    "Belagerungsturm": {
+      "kategorie": "Belagerung",
+      "gebaeude": "Stellmacher",
+      "kosten": {
+        "holz": 800,
+        "metall": 50,
+        "leder": 500,
+        "pferde": 10,
+        "siedler": 5
+      },
+      "waren": [],
+      "voraussetzung": {
+        "forschung": "Wagenbau",
+        "stufe": 4
+      },
+      "kriegspunkte": 2,
+      "werte": {
+        "LE": null,
+        "AT": null,
+        "PA": null,
+        "SI": null,
+        "HE": null,
+        "RS": null,
+        "TP_min": 0,
+        "TP_max": 0,
+        "GS": 15,
+        "MU": null,
+        "SK": 35
+      },
+      "icon": "assets/icons/original_units/Einfacher Belagerungsturm.png",
+      "ladung": null,
+      "nicht_original": [
+        "werte.LE (in der Vorlage nicht abgedruckt)",
+        "werte.AT (in der Vorlage nicht abgedruckt)",
+        "werte.PA (in der Vorlage nicht abgedruckt)",
+        "werte.SI (in der Vorlage nicht abgedruckt)",
+        "werte.HE (in der Vorlage nicht abgedruckt)",
+        "werte.RS (in der Vorlage nicht abgedruckt)",
+        "werte.MU (in der Vorlage nicht abgedruckt)"
+      ]
+    },
+    "Ramme": {
+      "kategorie": "Belagerung",
+      "gebaeude": "Stellmacher",
+      "kosten": {
+        "holz": 500,
+        "metall": 150,
+        "leder": 100,
+        "pferde": 10,
+        "siedler": 5
+      },
+      "waren": [],
+      "voraussetzung": {
+        "forschung": "Wagenbau",
+        "stufe": 5
+      },
+      "kriegspunkte": 3,
+      "werte": {
+        "LE": null,
+        "AT": null,
+        "PA": null,
+        "SI": null,
+        "HE": null,
+        "RS": null,
+        "TP_min": 0,
+        "TP_max": 4,
+        "GS": 15,
+        "MU": null,
+        "SK": 25
+      },
+      "icon": "assets/icons/units/Ramme.png",
+      "ladung": null,
+      "nicht_original": [
+        "werte.LE (in der Vorlage nicht abgedruckt)",
+        "werte.AT (in der Vorlage nicht abgedruckt)",
+        "werte.PA (in der Vorlage nicht abgedruckt)",
+        "werte.SI (in der Vorlage nicht abgedruckt)",
+        "werte.HE (in der Vorlage nicht abgedruckt)",
+        "werte.RS (in der Vorlage nicht abgedruckt)",
+        "werte.MU (in der Vorlage nicht abgedruckt)"
+      ]
+    },
+    "Großer Belagerungsturm": {
+      "kategorie": "Belagerung",
+      "gebaeude": "Stellmacher",
+      "kosten": {
+        "holz": 1200,
+        "metall": 80,
+        "leder": 800,
+        "pferde": 15,
+        "siedler": 7
+      },
+      "waren": [],
+      "voraussetzung": {
+        "forschung": "Wagenbau",
+        "stufe": 6
+      },
+      "kriegspunkte": 4,
+      "werte": {
+        "LE": null,
+        "AT": null,
+        "PA": null,
+        "SI": null,
+        "HE": null,
+        "RS": null,
+        "TP_min": 0,
+        "TP_max": 0,
+        "GS": 15,
+        "MU": null,
+        "SK": 45
+      },
+      "icon": "assets/icons/units/Großer Belagerungsturm.png",
+      "ladung": null,
+      "nicht_original": [
+        "werte.LE (in der Vorlage nicht abgedruckt)",
+        "werte.AT (in der Vorlage nicht abgedruckt)",
+        "werte.PA (in der Vorlage nicht abgedruckt)",
+        "werte.SI (in der Vorlage nicht abgedruckt)",
+        "werte.HE (in der Vorlage nicht abgedruckt)",
+        "werte.RS (in der Vorlage nicht abgedruckt)",
+        "werte.MU (in der Vorlage nicht abgedruckt)"
+      ]
+    },
+    "Große Ramme": {
+      "kategorie": "Belagerung",
+      "gebaeude": "Stellmacher",
+      "kosten": {
+        "holz": 1100,
+        "metall": 300,
+        "leder": 250,
+        "pferde": 20,
+        "siedler": 10
+      },
+      "waren": [],
+      "voraussetzung": {
+        "forschung": "Wagenbau",
+        "stufe": 7
+      },
+      "kriegspunkte": 5,
+      "werte": {
+        "LE": null,
+        "AT": null,
+        "PA": null,
+        "SI": null,
+        "HE": null,
+        "RS": null,
+        "TP_min": 0,
+        "TP_max": 8,
+        "GS": 15,
+        "MU": null,
+        "SK": 35
+      },
+      "icon": "assets/icons/units/Große Ramme.png",
+      "ladung": null,
+      "nicht_original": [
+        "werte.LE (in der Vorlage nicht abgedruckt)",
+        "werte.AT (in der Vorlage nicht abgedruckt)",
+        "werte.PA (in der Vorlage nicht abgedruckt)",
+        "werte.SI (in der Vorlage nicht abgedruckt)",
+        "werte.HE (in der Vorlage nicht abgedruckt)",
+        "werte.RS (in der Vorlage nicht abgedruckt)",
+        "werte.MU (in der Vorlage nicht abgedruckt)"
+      ]
+    },
+    "Balliste": {
+      "kategorie": "Belagerung",
+      "gebaeude": "Stellmacher",
+      "kosten": {
+        "holz": 600,
+        "metall": 200,
+        "leder": 300,
+        "pferde": 10,
+        "siedler": 10
+      },
+      "waren": [],
+      "voraussetzung": {
+        "forschung": "Wagenbau",
+        "stufe": 8
+      },
+      "kriegspunkte": 6,
+      "werte": {
+        "LE": null,
+        "AT": null,
+        "PA": null,
+        "SI": null,
+        "HE": null,
+        "RS": null,
+        "TP_min": 1,
+        "TP_max": 10,
+        "GS": 15,
+        "MU": null,
+        "SK": 25
+      },
+      "icon": "assets/icons/units/Balliste.png",
+      "ladung": null,
+      "nicht_original": [
+        "werte.LE (in der Vorlage nicht abgedruckt)",
+        "werte.AT (in der Vorlage nicht abgedruckt)",
+        "werte.PA (in der Vorlage nicht abgedruckt)",
+        "werte.SI (in der Vorlage nicht abgedruckt)",
+        "werte.HE (in der Vorlage nicht abgedruckt)",
+        "werte.RS (in der Vorlage nicht abgedruckt)",
+        "werte.MU (in der Vorlage nicht abgedruckt)"
+      ]
+    },
+    "Katapult": {
+      "kategorie": "Belagerung",
+      "gebaeude": "Stellmacher",
+      "kosten": {
+        "holz": 1500,
+        "metall": 200,
+        "leder": 1000,
+        "pferde": 20,
+        "siedler": 10
+      },
+      "waren": [],
+      "voraussetzung": {
+        "forschung": "Wagenbau",
+        "stufe": 9
+      },
+      "kriegspunkte": 7,
+      "werte": {
+        "LE": null,
+        "AT": null,
+        "PA": null,
+        "SI": null,
+        "HE": null,
+        "RS": null,
+        "TP_min": 2,
+        "TP_max": 13,
+        "GS": 15,
+        "MU": null,
+        "SK": 45
+      },
+      "icon": "assets/icons/units/Katapult.png",
+      "ladung": null,
+      "nicht_original": [
+        "werte.LE (in der Vorlage nicht abgedruckt)",
+        "werte.AT (in der Vorlage nicht abgedruckt)",
+        "werte.PA (in der Vorlage nicht abgedruckt)",
+        "werte.SI (in der Vorlage nicht abgedruckt)",
+        "werte.HE (in der Vorlage nicht abgedruckt)",
+        "werte.RS (in der Vorlage nicht abgedruckt)",
+        "werte.MU (in der Vorlage nicht abgedruckt)"
+      ]
+    },
+    "Großes Katapult": {
+      "kategorie": "Belagerung",
+      "gebaeude": "Stellmacher",
+      "kosten": {
+        "holz": 1900,
+        "metall": 300,
+        "leder": 1400,
+        "pferde": 25,
+        "siedler": 15
+      },
+      "waren": [],
+      "voraussetzung": {
+        "forschung": "Wagenbau",
+        "stufe": 10
+      },
+      "kriegspunkte": 8,
+      "werte": {
+        "LE": null,
+        "AT": null,
+        "PA": null,
+        "SI": null,
+        "HE": null,
+        "RS": null,
+        "TP_min": 5,
+        "TP_max": 18,
+        "GS": 15,
+        "MU": null,
+        "SK": 55
+      },
+      "icon": "assets/icons/original_units/Katapult.png",
+      "ladung": null,
+      "nicht_original": [
+        "werte.LE (in der Vorlage nicht abgedruckt)",
+        "werte.AT (in der Vorlage nicht abgedruckt)",
+        "werte.PA (in der Vorlage nicht abgedruckt)",
+        "werte.SI (in der Vorlage nicht abgedruckt)",
+        "werte.HE (in der Vorlage nicht abgedruckt)",
+        "werte.RS (in der Vorlage nicht abgedruckt)",
+        "werte.MU (in der Vorlage nicht abgedruckt)"
+      ]
+    }
+  }
+}
+
+########## DATEI: data/items.json ##########
+{
+  "_hinweis": "Die 17 Waren des Originals. werkstatt/voraussetzung 1:1 aus ORIGINAL_Einheiten_Waren_Rohstoffe.md Abschnitt 3 (bestätigt durch Spielanleitung_2005/warentabelle.php.txt und Spielanleitung_2009_Textfassung.txt Seite 14). benoetigt_von abgeleitet aus den Kostentabellen der 28 Einheiten (ORIGINAL_Einheiten_Waren_Rohstoffe.md Abschnitt 1). voraussetzung_struktur nur bei eindeutiger Einzelvoraussetzung gesetzt, sonst null (kombinierte Voraussetzungen sind nicht eindeutig zerlegbar). icon exakt aus data/icons_index.json uebernommen.",
+  "_quelle": "docs/original/ORIGINAL_Einheiten_Waren_Rohstoffe.md (§1 Einheiten, §3 Waren); docs/original/Spielanleitung_2005/warentabelle.php.txt; docs/original/Spielanleitung_2009_Textfassung.txt; data/icons_index.json",
+  "waren": {
+    "Messer": {
+      "werkstatt": "Schmiede",
+      "voraussetzung": "keine",
+      "voraussetzung_struktur": null,
+      "icon": "assets/icons/items/Messer.png",
+      "benoetigt_von": ["Gauner"],
+      "anmerkung": null
+    },
+    "Dolch": {
+      "werkstatt": "Schmiede",
+      "voraussetzung": "Waffentechnik 1",
+      "voraussetzung_struktur": {"forschung": "Waffentechnik", "stufe": 1},
+      "icon": "assets/icons/items/Dolch.png",
+      "benoetigt_von": ["Dieb"],
+      "anmerkung": null
+    },
+    "Kurzschwert": {
+      "werkstatt": "Schmiede",
+      "voraussetzung": "Waffentechnik 3",
+      "voraussetzung_struktur": {"forschung": "Waffentechnik", "stufe": 3},
+      "icon": "assets/icons/items/Kurzschwert.png",
+      "benoetigt_von": ["Kämpfer", "Meisterdieb"],
+      "anmerkung": null
+    },
+    "Schwert": {
+      "werkstatt": "Schmiede",
+      "voraussetzung": "Waffentechnik 5",
+      "voraussetzung_struktur": {"forschung": "Waffentechnik", "stufe": 5},
+      "icon": "assets/icons/items/Schwert.png",
+      "benoetigt_von": ["Krieger", "Ritter", "Paladin", "Kundschafter", "Waldläufer"],
+      "anmerkung": null
+    },
+    "Zweihänder": {
+      "werkstatt": "Schmiede",
+      "voraussetzung": "Waffentechnik 8",
+      "voraussetzung_struktur": {"forschung": "Waffentechnik", "stufe": 8},
+      "icon": "assets/icons/items/Zweihänder.png",
+      "benoetigt_von": ["Paladin"],
+      "anmerkung": null
+    },
+    "Kettenhemd": {
+      "werkstatt": "Schmiede",
+      "voraussetzung": "Rüstungsbau 3",
+      "voraussetzung_struktur": {"forschung": "Rüstungsbau", "stufe": 3},
+      "icon": "assets/icons/items/Kettenhemd.png",
+      "benoetigt_von": ["Krieger"],
+      "anmerkung": null
+    },
+    "Plattenrüstung": {
+      "werkstatt": "Schmiede",
+      "voraussetzung": "Rüstungsbau 5",
+      "voraussetzung_struktur": {"forschung": "Rüstungsbau", "stufe": 5},
+      "icon": "assets/icons/items/Plattenrüstung.png",
+      "benoetigt_von": ["Ritter"],
+      "anmerkung": null
+    },
+    "Magischer Paladinharnisch": {
+      "werkstatt": "Schmiede",
+      "voraussetzung": "Rüstungsbau 7 + Magiekunde 2",
+      "voraussetzung_struktur": null,
+      "icon": "assets/icons/items/Magischer Paladinharnisch.png",
+      "benoetigt_von": ["Paladin"],
+      "anmerkung": "Kombinierte Voraussetzung (zwei Forschungen), daher voraussetzung_struktur null. In der Einheiten-Kostentabelle nur als 'Paladinharnisch' gefuehrt (Spielanleitung_2009_Textfassung.txt Zeile 612), gemeint ist diese Ware."
+    },
+    "Kurzbogen": {
+      "werkstatt": "Bogner",
+      "voraussetzung": "Waffentechnik 2",
+      "voraussetzung_struktur": {"forschung": "Waffentechnik", "stufe": 2},
+      "icon": "assets/icons/items/Kurzbogen.png",
+      "benoetigt_von": ["Kurzbogenschütze"],
+      "anmerkung": null
+    },
+    "Bogen": {
+      "werkstatt": "Bogner",
+      "voraussetzung": "Waffentechnik 4",
+      "voraussetzung_struktur": {"forschung": "Waffentechnik", "stufe": 4},
+      "icon": "assets/icons/items/Bogen.png",
+      "benoetigt_von": ["Bogenschütze"],
+      "anmerkung": null
+    },
+    "Langbogen": {
+      "werkstatt": "Bogner",
+      "voraussetzung": "Waffentechnik 6",
+      "voraussetzung_struktur": {"forschung": "Waffentechnik", "stufe": 6},
+      "icon": "assets/icons/items/Langbogen.png",
+      "benoetigt_von": ["Langbogenschütze"],
+      "anmerkung": null
+    },
+    "Armbrust": {
+      "werkstatt": "Bogner",
+      "voraussetzung": "Waffentechnik 8",
+      "voraussetzung_struktur": {"forschung": "Waffentechnik", "stufe": 8},
+      "icon": "assets/icons/items/Armbrust.png",
+      "benoetigt_von": ["Armbrustschütze"],
+      "anmerkung": null
+    },
+    "Wollumhang": {
+      "werkstatt": "Nähstube",
+      "voraussetzung": "keine",
+      "voraussetzung_struktur": null,
+      "icon": "assets/icons/items/Wollumhang.png",
+      "benoetigt_von": ["Streuner"],
+      "anmerkung": null
+    },
+    "Lederrüstung": {
+      "werkstatt": "Nähstube",
+      "voraussetzung": "Nähkunst 1 + Rüstungsbau 2",
+      "voraussetzung_struktur": null,
+      "icon": "assets/icons/items/Lederrüstung.png",
+      "benoetigt_von": ["Kämpfer", "Armbrustschütze"],
+      "anmerkung": "Kombinierte Voraussetzung (zwei Forschungen), daher voraussetzung_struktur null."
+    },
+    "Diebesumhang": {
+      "werkstatt": "Nähstube",
+      "voraussetzung": "Nähkunst 2",
+      "voraussetzung_struktur": {"forschung": "Nähkunst", "stufe": 2},
+      "icon": "assets/icons/items/Diebesumhang.png",
+      "benoetigt_von": ["Gauner", "Dieb", "Meisterdieb"],
+      "anmerkung": null
+    },
+    "Fellumhang": {
+      "werkstatt": "Nähstube",
+      "voraussetzung": "Nähkunst 4",
+      "voraussetzung_struktur": {"forschung": "Nähkunst", "stufe": 4},
+      "icon": "assets/icons/items/Fellumhang.png",
+      "benoetigt_von": ["Kundschafter"],
+      "anmerkung": null
+    },
+    "Fellrüstung": {
+      "werkstatt": "Nähstube",
+      "voraussetzung": "Nähkunst 6",
+      "voraussetzung_struktur": {"forschung": "Nähkunst", "stufe": 6},
+      "icon": "assets/icons/items/Fellrüstung.png",
+      "benoetigt_von": ["Waldläufer"],
+      "anmerkung": null
+    }
+  }
+}
+
+
+########## DATEI: data/research.json ##########
+{
+  "_hinweis": "Die 21 Forschungen des Originals 'Nebelseetal Online' als Datendatei. 'wirkung' ist jeweils der wortgetreue Wirkungstext; wo die archivierte 2005er Tabelle und das Handbuch 2009 voneinander abweichen, stehen beide Werte und ein Feld 'abweichung'. 'wirkung_struktur' und 'voraussetzung_struktur' sind nur gesetzt, wo die Vorlage eine eindeutige Zuordnung erlaubt (pro_stufe_prozent bleibt null, wenn das Original keinen Prozentwert nennt). Nichts erfunden.",
+  "_quelle": [
+    "docs/original/ORIGINAL_Einheiten_Waren_Rohstoffe.md (Abschnitt 5 'Forschung', Stand aus dem Handbuch 2009)",
+    "docs/original/Spielanleitung_2005/forschungstabelle.php.txt (wortgetreue Originaltabelle, Spielanleitung 2005)",
+    "docs/original/Spielanleitung_2009_Textfassung.txt, Seiten 11-13 (Forschungsablauf)"
+  ],
+  "regeln": {
+    "dauer": "neue Stufe zum Quadrat in Stunden",
+    "kosten": "verdoppeln sich je Stufe",
+    "stufe_steigt": "erst nach Ablauf der Forschungszeit",
+    "abbruch": "Zeit und Ressourcen verloren",
+    "blockiert": "Forschungsbereich der Siedlung waehrend der Studien"
+  },
+  "forschungen": {
+    "Kriegskunst": {
+      "wirkung": "Die Kunst des bewaffneten Kampfes und des taktischen Vorgehens auf dem Schlachtfeld ermöglicht es Euch, Eure Armee duch stärkere Einheiten aufzuwerten.",
+      "wirkung_struktur": {"art": "kampf", "ziel": "armee-einheiten", "pro_stufe_prozent": null},
+      "voraussetzung": "Bibliothek 1",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 1}]
+    },
+    "Heimlichkeit": {
+      "wirkung": "Die hohe Kunst des Schleichens, ist die Grundlage um gute Spione auszubilden.",
+      "wirkung_struktur": {"art": "voraussetzung", "ziel": "spione", "pro_stufe_prozent": null},
+      "voraussetzung": "Bibliothek 1",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 1}]
+    },
+    "Schmiedekunst": {
+      "wirkung": "Mit Schmiedekunst erhöht Ihr die Effektivität Eurer Waffen und Rüstungen um je 5%.",
+      "wirkung_struktur": {"art": "produktion", "ziel": "waffen und ruestungen", "pro_stufe_prozent": 5},
+      "voraussetzung": "Bibliothek 1",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 1}]
+    },
+    "Bogenbau": {
+      "wirkung": "Neue Techniken beim Bogenbau steigern die Geschwindigkeit, mit der Euer Bogenbauer produziert.",
+      "wirkung_struktur": {"art": "produktion", "ziel": "bogenproduktion", "pro_stufe_prozent": null},
+      "voraussetzung": "Bibliothek 1",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 1}]
+    },
+    "Nähen": {
+      "wirkung": "Neue Nähtechniken beschleunigen die Arbeit Eurer Schneider in der Näherei.",
+      "wirkung_struktur": {"art": "produktion", "ziel": "schneiderei", "pro_stufe_prozent": null},
+      "voraussetzung": "Bibliothek 1",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 1}]
+    },
+    "Waffentechnik": {
+      "wirkung": "Waffentechnik ermöglicht es Euch, neue Arten von Waffen herzustellen.",
+      "wirkung_struktur": {"art": "voraussetzung", "ziel": "waffenarten", "pro_stufe_prozent": null},
+      "voraussetzung": "Bibliothek 3 + Schmiedekunst 1",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 3}, {"art": "forschung", "name": "Schmiedekunst", "stufe": 1}]
+    },
+    "Rüstungsbau": {
+      "wirkung": "Rüstungsbau ermöglicht Euren Schmieden, neue Arten von Rüstungen herzustellen.",
+      "wirkung_struktur": {"art": "voraussetzung", "ziel": "ruestungsarten", "pro_stufe_prozent": null},
+      "voraussetzung": "Bibliothek 3 + Schmiedekunst 1",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 3}, {"art": "forschung", "name": "Schmiedekunst", "stufe": 1}]
+    },
+    "Nähkunst": {
+      "wirkung": "Die Verfeinerung der Nähkünste ermöglicht Euch, neue Umhänge und Lederrüstungen herzustellen.",
+      "wirkung_struktur": {"art": "voraussetzung", "ziel": "umhaenge und lederruestungen", "pro_stufe_prozent": null},
+      "voraussetzung": "Bibliothek 2 + Nähen 1",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 2}, {"art": "forschung", "name": "Nähen", "stufe": 1}]
+    },
+    "Magiekunde": {
+      "wirkung": "Die Erforschung der arkanen Künste, ist Voraussetzung für die verschiedenen Pfade der Magie.",
+      "wirkung_struktur": {"art": "voraussetzung", "ziel": "magiepfade", "pro_stufe_prozent": null},
+      "voraussetzung": "Bibliothek 6",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 6}]
+    },
+    "Kampfmagie": {
+      "wirkung": "Durch den Pfad der Kampfmagie, erlangt Ihr neue magische Formeln, um vernichtende Zauber über Eure Feinde zu sprechen.",
+      "wirkung_struktur": {"art": "kampf", "ziel": "zauber", "pro_stufe_prozent": null},
+      "voraussetzung": "Magiekunde 4",
+      "voraussetzung_struktur": [{"art": "forschung", "name": "Magiekunde", "stufe": 4}]
+    },
+    "Baukunst": {
+      "wirkung": "Baukunst ist eine wichtige Voraussetzung für einige Forschungen, die es Euch ermöglichen, Eure Siedlungen besser zu verteidigen.",
+      "wirkung_struktur": {"art": "voraussetzung", "ziel": "verteidigungsforschung", "pro_stufe_prozent": null},
+      "voraussetzung": "Bibliothek 1",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 1}]
+    },
+    "Mauerbau": {
+      "wirkung": "Mit neuen Erkenntnissen im Mauerbau könnt Ihr die Effizienz Eurer Verteidigungsanlagen erhöhen. Pro Stufe erhöht sich der Verteidigungswert um 10%.",
+      "wirkung_struktur": {"art": "kampf", "ziel": "verteidigungswert", "pro_stufe_prozent": 10},
+      "voraussetzung": "Verteidigungsanlagen 5",
+      "voraussetzung_struktur": [{"art": "forschung", "name": "Verteidigungsanlagen", "stufe": 5}]
+    },
+    "Verteidigungsanlagen": {
+      "wirkung": "Mit der Weiterentwicklung von Verteidigungsanlagen, stehen euch neue Möglichkeiten offen, Eure Siedlungen vor Angriffen zu schützen.",
+      "wirkung_struktur": {"art": "voraussetzung", "ziel": "verteidigungsanlagen", "pro_stufe_prozent": null},
+      "voraussetzung": "Baukunst 3",
+      "voraussetzung_struktur": [{"art": "forschung", "name": "Baukunst", "stufe": 3}]
+    },
+    "Wagenbau": {
+      "wirkung": "Neue Erkenntnisse bei der Konstruktion von Fahrzeugen, ermöglicht Euren Stellmachern, neue Arten von Karren zu bauen.",
+      "wirkung_struktur": {"art": "voraussetzung", "ziel": "karren", "pro_stufe_prozent": null},
+      "voraussetzung": "Bibliothek 1",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 1}],
+      "wirkung_2009": "neue Karren und Belagerungswaffen",
+      "abweichung": "Wirkungstext weicht ab: Die 2005er Tabelle nennt als Wirkung nur 'neue Arten von Karren'. Die Zusammenfassung aus dem Handbuch 2009 (ORIGINAL_Einheiten_Waren_Rohstoffe.md, Abschnitt 5) nennt zusätzlich 'und Belagerungswaffen' (Stellmacher fertigt laut Handbuch Seite 15 Karren und Belagerungswaffen). Voraussetzung (Bibliothek 1) ist in beiden Quellen identisch."
+    },
+    "Felderwirtschaft": {
+      "wirkung": "Felderwirtschaft erhöht die Nahrungsproduktion Eurer Siedlungen um 10% pro Stufe.",
+      "wirkung_struktur": {"art": "produktion", "ziel": "nahrung", "pro_stufe_prozent": 10},
+      "voraussetzung": "Bibliothek 1",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 1}]
+    },
+    "Steinbruch": {
+      "wirkung": "Neue Techniken beim Abbau von Steinen, erhöhen die Steinproduktion Eurer Steinmetze um 10% pro Stufe.",
+      "wirkung_struktur": {"art": "produktion", "ziel": "stein", "pro_stufe_prozent": 10},
+      "voraussetzung": "Bibliothek 3",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 3}]
+    },
+    "Forstwirtschaft": {
+      "wirkung": "Forstwirtschaft erhöht die Effektivität Eurer Holzfäller um 10% pro Stufe.",
+      "wirkung_struktur": {"art": "produktion", "ziel": "holz", "pro_stufe_prozent": 10},
+      "voraussetzung": "Bibliothek 3",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 3}]
+    },
+    "Tierhaltung": {
+      "wirkung": "Durch neue Erkenntnisse in der Tierhaltung, könnt Ihr Eure Pferde-, Woll- und Lederproduktion um je 5% pro Stufe erhöhen.",
+      "wirkung_struktur": {"art": "produktion", "ziel": "pferde, wolle, leder", "pro_stufe_prozent": 5},
+      "voraussetzung": "Bibliothek 2",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 2}]
+    },
+    "Minenarbeit": {
+      "wirkung": "Durch neue Techniken bei der Arbeit in Euren Minen, erhöht Ihr die Metall- und Goldproduktion um je 5% pro Stufe.",
+      "wirkung_struktur": {"art": "produktion", "ziel": "metall, gold", "pro_stufe_prozent": 5},
+      "voraussetzung": "Bibliothek 3",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 3}]
+    },
+    "Götterkunde": {
+      "wirkung": "Neue Erkenntnisse über die Götter, verschaffen Euch pro Stufe 5% mehr Mana.",
+      "wirkung_struktur": {"art": "produktion", "ziel": "mana", "pro_stufe_prozent": 5},
+      "voraussetzung": "Bibliothek 5",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 5}]
+    },
+    "Heilkunde": {
+      "wirkung": "Je besser Eure Heiler über Hygiene, Krankheiten und die Versorgung von Wunden Bescheid wissen, desto schneller steigt Eure Siedleranzahl. Die Siedlerproduktion steigt um 10% pro Stufe.",
+      "wirkung_struktur": {"art": "produktion", "ziel": "siedlerproduktion", "pro_stufe_prozent": 10},
+      "voraussetzung": "Bibliothek 3",
+      "voraussetzung_struktur": [{"art": "gebaeude", "name": "Bibliothek", "stufe": 3}]
+    }
+  }
+}
+
+
+########## DATEI: data/resources.json ##########
+{
+  "_hinweis": "Die 9 Rohstoffe des Originals 'Nebelseetal Online' als Datendatei. 'ertrag_pro_stunde' ist der Stand des Handbuchs 2009 (Abschnitt 4 der Auswertung ORIGINAL_Einheiten_Waren_Rohstoffe.md, Seiten 9/10). Wo die archivierte 2005er HTML-Fassung abweicht, steht der 2005er Wert unter 'ertrag_2005' und die Differenz in 'abweichung'. Nichts erfunden; wo die Quelle mehrdeutig ist, steht das in 'anmerkung'.",
+  "_quelle": [
+    "docs/original/ORIGINAL_Einheiten_Waren_Rohstoffe.md, Abschnitt 4 'Rohstoffe - 9 Stueck' (Stand Handbuch 2009)",
+    "docs/original/Spielanleitung_2005/rohstoffe.php.txt (wortgetreue Originaltabelle, Spielanleitung 2005)",
+    "docs/original/Spielanleitung_2009_Textfassung.txt, Seiten 9 und 10 (Produktion), Seite 11 (Siedlerregeln)"
+  ],
+  "versionsvermerk": "Zwei Fassungen belegt: archivierte Spielanleitung 2005 (HTML) und Handbuch 2009 (Textfassung). Sie weichen bei mehreren Ertraegen und bei der Siedlergrenze ab. Primaerwerte = 2009; Abweichungen sind je Rohstoff in 'abweichung' bzw. unter 'siedler' vermerkt.",
+  "gebaeude_ohne_forschung": ["Holzfäller", "Steinmetz", "Jäger", "Bibliothek", "Haus"],
+  "regeln": {
+    "gelände": "Jedes produzierende Gebäude erzeugt auf 2 verschiedenen Geländearten unterschiedliche Mengen. Ausnahme: der Jäger (in der 2005er Fassung nur Wald, 2009 auch Steppe).",
+    "sumpf": "Sümpfe sind unbebaubar und für Siedlungen wertlos.",
+    "zuwachs": "Der Wert in Klammern ist die Produktionsmenge pro Stunde; der Rohstoffzuwachs pro Stunde steht im Spiel in Klammern hinter dem Bestand, ein Balken zeigt, wann die nächste Einheit dazukommt.",
+    "echtzeit": "Produktion läuft in Echtzeit (Beispiel Handbuch: 4 Holz/Stunde = alle 15 Minuten 1 Einheit Holz).",
+    "abriss": "Ein Abriss bringt keine Rohstoffe zurück.",
+    "bibliothek": "Bibliothek nur auf Grasland, Steppe oder Nebelsee, eine je Siedlung."
+  },
+  "siedler": {
+    "produktion_pro_stunde": 1,
+    "grenze_neue_siedlung": {
+      "handbuch_2009": 10,
+      "fassung_2005": 5
+    },
+    "erhoehung_pro_haus": 5,
+    "abweichung": "Siedlergrenze einer neuen Siedlung: Handbuch 2009 = 10 Siedler, 2005er Fassung = 5 Siedler. Erhöhung pro Haus in beiden Fassungen +5."
+  },
+  "startwerte": {
+    "siedler": 10,
+    "holz": 100,
+    "steine": 100,
+    "_anmerkung": "Startwerte laut Handbuch 2009 Seite 7 (10 Siedler, 100 Holz, 100 Steine) und ORIGINAL_Kampf_und_Punkte.md Abschnitt 5."
+  },
+  "max_siedlungen": 6,
+  "rohstoffe": [
+    {
+      "id": "holz",
+      "name": "Holz",
+      "erzeugendes_gebaeude": ["Holzfäller"],
+      "ertrag_pro_stunde": { "Wald": 4, "Steppe": 2 },
+      "ertrag_2005": { "Wald": 4, "Steppe": 1 },
+      "abweichung": "Steppe: 2005 = 1, Handbuch 2009 = 2. Wald in beiden Fassungen 4."
+    },
+    {
+      "id": "stein",
+      "name": "Stein",
+      "erzeugendes_gebaeude": ["Steinmetz"],
+      "ertrag_pro_stunde": { "Berg": 4, "Hügel": 2 },
+      "ertrag_2005": { "Berg": 4, "Hügel": 1 },
+      "abweichung": "Hügel: 2005 = 1, Handbuch 2009 = 2. Berg in beiden Fassungen 4."
+    },
+    {
+      "id": "metall",
+      "name": "Metall",
+      "erzeugendes_gebaeude": ["Erzmine"],
+      "ertrag_pro_stunde": { "Berg": 3, "Hügel": 1.5 },
+      "ertrag_2005": { "Berg": 3, "Hügel": 1 },
+      "abweichung": "Hügel: 2005 = 1, Handbuch 2009 = 1,5. Berg in beiden Fassungen 3."
+    },
+    {
+      "id": "mana",
+      "name": "Mana",
+      "erzeugendes_gebaeude": ["Tempel"],
+      "ertrag_pro_stunde": { "Nebelsee": 5, "alle Gelände außer Sumpf": 1 },
+      "ertrag_2005": { "Nebelsee": 8, "alle Gelände außer Sumpf": 2 },
+      "abweichung": "Nebelsee: 2005 = 8, Handbuch 2009 = 5. Übriges Gelände (außer Sumpf): 2005 = 2, Handbuch 2009 = 1."
+    },
+    {
+      "id": "nahrung",
+      "name": "Nahrung",
+      "erzeugendes_gebaeude": ["Farm", "Jäger", "Rinderfarm (siehe Leder, Anmerkung)"],
+      "ertrag_pro_stunde": { "Grasland": 4, "Steppe": 2 },
+      "ertrag_2005": { "Grasland": 4, "Steppe": 2 },
+      "abweichung": null,
+      "weitere_erzeuger": {
+        "Jäger": {
+          "ertrag_pro_stunde": { "Wald": 2, "Steppe": 1 },
+          "ertrag_2005": { "Wald": 1 },
+          "abweichung": "Jäger: Handbuch 2009 nennt zusätzlich Steppe (1 Nahrung), 2005 nur Wald (1 Nahrung); Wald: 2005 = 1, 2009 = 2."
+        }
+      }
+    },
+    {
+      "id": "gold",
+      "name": "Gold",
+      "erzeugendes_gebaeude": ["Goldmine"],
+      "ertrag_pro_stunde": { "Berg": 3, "Hügel": 1.5 },
+      "ertrag_2005": { "Berg": 3, "Hügel": 1 },
+      "abweichung": "Hügel: 2005 = 1, Handbuch 2009 = 1,5. Berg in beiden Fassungen 3.",
+      "anmerkung": "Schreibweise 2005: 'Goldmiene', Handbuch 2009: 'Goldmine'."
+    },
+    {
+      "id": "wolle",
+      "name": "Wolle",
+      "erzeugendes_gebaeude": ["Schafszucht"],
+      "ertrag_pro_stunde": { "Grasland": 3, "Steppe": 1.5 },
+      "ertrag_2005": { "Grasland": 2, "Steppe": 1 },
+      "abweichung": "Grasland: 2005 = 2, Handbuch 2009 = 3. Steppe: 2005 = 1, Handbuch 2009 = 1,5.",
+      "anmerkung": "Schreibweise 2005: 'Schafzucht', Handbuch 2009: 'Schafszucht'."
+    },
+    {
+      "id": "leder",
+      "name": "Leder",
+      "erzeugendes_gebaeude": ["Rinderfarm", "Jäger"],
+      "ertrag_pro_stunde": { "Grasland": 3, "Steppe": 1.5 },
+      "ertrag_2005": { "Grasland": 2, "Steppe": 1 },
+      "abweichung": "Grasland: 2005 = 2, Handbuch 2009 = 3. Steppe: 2005 = 1, Handbuch 2009 = 1,5.",
+      "anmerkung": "Die 2009er Tabelle nennt für die Rinderfarm wörtlich 'Grasland (3 Nahrung, 3 Leder), Steppe (1,5 Nahrung, 1,5 Leder)'. Ob damit ein zweiter Ertrag (Nahrung) gemeint ist oder eine Übernahme aus der Jäger-Zeile vorliegt, ist nicht eindeutig; als Leder-Ertrag sind 3 / 1,5 übernommen. Die 2005er Tabelle führt nur einen Einzelwert (Grasland 2, Steppe 1).",
+      "weitere_erzeuger": {
+        "Jäger": {
+          "ertrag_pro_stunde": { "Wald": 2, "Steppe": 1 },
+          "ertrag_2005": { "Wald": 1 },
+          "abweichung": "Jäger: Handbuch 2009 nennt zusätzlich Steppe (1 Leder), 2005 nur Wald (1 Leder); Wald: 2005 = 1, 2009 = 2."
+        }
+      }
+    },
+    {
+      "id": "pferde",
+      "name": "Pferde",
+      "erzeugendes_gebaeude": ["Pferdezucht"],
+      "ertrag_pro_stunde": { "Grasland": 3, "Steppe": 1.5 },
+      "ertrag_2005": { "Grasland": 2, "Steppe": 1 },
+      "abweichung": "Grasland: 2005 = 2, Handbuch 2009 = 3. Steppe: 2005 = 1, Handbuch 2009 = 1,5."
+    }
+  ]
+}
+
+
+########## DATEI: data/buildings.json ##########
+{
+  "_hinweis": "Die belegten Gebäude des Originals 'Nebelseetal Online' als Datendatei, gruppiert nach 'kategorie' (Produktion, Werkstatt, Ausbildung, Verteidigung, Sonstiges). 'voraussetzung' nennt die im Original belegte Forschungs-/Gebäudevoraussetzung, 'wirkung' die belegte Funktion. Für die Verteidigungsanlage enthält 'stufen' alle 10 Ausbaustufen mit Namen und Schwellenwerten. Wo die 2005er Fassung und das Handbuch 2009 abweichen, steht das in 'abweichung'. Nichts erfunden.",
+  "_quelle": [
+    "docs/original/ORIGINAL_Einheiten_Waren_Rohstoffe.md, Abschnitt 3 (Werkstätten), Abschnitt 4 (produzierende Gebäude, Bauen, Siedlergrenze) und Abschnitt 5 (Forschung)",
+    "docs/original/Spielanleitung_2005/rohstoffe.php.txt (wortgetreue Originaltabelle 2005)",
+    "docs/original/Spielanleitung_2009_Textfassung.txt, Seite 7/8 (Bauen, Lager, Siedeln), Seite 9/10 (Produktionsgebäude), Seite 13/14 (Werkstätten und Ausbildungsgebäude), Seite 20 (Verteidigungswall)",
+    "docs/original/ORIGINAL_Kampf_und_Punkte.md, Abschnitt 2.1 (Wallschwellen-Tabelle)"
+  ],
+  "kategorien": ["Produktion", "Werkstatt", "Ausbildung", "Verteidigung", "Sonstiges"],
+  "regeln": {
+    "ohne_forschung_baubar": "Holzfäller, Steinmetze, Jäger, Bibliothek und Häuser können bereits ohne Forschung gebaut werden.",
+    "baukunst": "Für alle restlichen Gebäude werden Kenntnisse in der Forschung 'Baukunst' benötigt.",
+    "platzierung": "Gebäude werden auf der Siedlungskarte platziert; der Mauszeiger zeigt die Eignung des Feldes (hohe Produktion / niedrige Produktion / gar nicht möglich).",
+    "abriss": "Ein Abriss bringt keine Rohstoffe zurück; nur das Feld wird wieder frei.",
+    "verteidigungsbereich": "Im Baumenü gibt es die Bereiche 'Produktion' und 'Verteidigung'; Ausbau der Verteidigungsanlagen erfolgt im Bereich Verteidigung.",
+    "werkstaetten_parallel": "Waren laufen über Warteschlangen; mehrere gleiche Werkstätten (Schmiede, Bogner, Nähstube) fertigen parallel (Beispiel Handbuch: 10 Schwerter à 20 Min. mit zwei Schmieden = 100 statt 200 Min.).",
+    "ausbildungsgebaeude": "Kriegerakademie, Diebesgilde und Stellmacher je höchstens eines je Siedlung; höhere Stufe = schnellere Ausbildung.",
+    "lager_pruefung": "Der Warenbestand wird im Lager geprüft."
+  },
+  "gebaeude": [
+    {
+      "id": "holzfaeller",
+      "name": "Holzfäller",
+      "kategorie": "Produktion",
+      "voraussetzung": "keine (ohne Forschung baubar)",
+      "wirkung": "produziert Holz",
+      "rohstoff": "Holz",
+      "ertrag_pro_stunde": { "Wald": 4, "Steppe": 2 },
+      "abweichung": "Steppe: 2005 = 1, Handbuch 2009 = 2 (Wald in beiden Fassungen 4)."
+    },
+    {
+      "id": "steinmetz",
+      "name": "Steinmetz",
+      "kategorie": "Produktion",
+      "voraussetzung": "Baukunst",
+      "wirkung": "produziert Stein",
+      "rohstoff": "Stein",
+      "ertrag_pro_stunde": { "Berg": 4, "Hügel": 2 },
+      "abweichung": "Hügel: 2005 = 1, Handbuch 2009 = 2 (Berg in beiden Fassungen 4)."
+    },
+    {
+      "id": "erzmine",
+      "name": "Erzmine",
+      "kategorie": "Produktion",
+      "voraussetzung": "Baukunst",
+      "wirkung": "produziert Metall",
+      "rohstoff": "Metall",
+      "ertrag_pro_stunde": { "Berg": 3, "Hügel": 1.5 },
+      "abweichung": "Hügel: 2005 = 1, Handbuch 2009 = 1,5 (Berg in beiden Fassungen 3)."
+    },
+    {
+      "id": "tempel",
+      "name": "Tempel",
+      "kategorie": "Produktion",
+      "voraussetzung": "Baukunst",
+      "wirkung": "produziert Mana",
+      "rohstoff": "Mana",
+      "ertrag_pro_stunde": { "Nebelsee": 5, "alle Gelände außer Sumpf": 1 },
+      "abweichung": "Nebelsee: 2005 = 8, Handbuch 2009 = 5; übriges Gelände (außer Sumpf): 2005 = 2, Handbuch 2009 = 1."
+    },
+    {
+      "id": "farm",
+      "name": "Farm",
+      "kategorie": "Produktion",
+      "voraussetzung": "Baukunst",
+      "wirkung": "produziert Nahrung",
+      "rohstoff": "Nahrung",
+      "ertrag_pro_stunde": { "Grasland": 4, "Steppe": 2 },
+      "abweichung": null
+    },
+    {
+      "id": "goldmine",
+      "name": "Goldmine",
+      "kategorie": "Produktion",
+      "voraussetzung": "Baukunst",
+      "wirkung": "produziert Gold",
+      "rohstoff": "Gold",
+      "ertrag_pro_stunde": { "Berg": 3, "Hügel": 1.5 },
+      "abweichung": "Hügel: 2005 = 1, Handbuch 2009 = 1,5 (Berg in beiden Fassungen 3).",
+      "anmerkung": "Schreibweise 2005: 'Goldmiene'."
+    },
+    {
+      "id": "schafszucht",
+      "name": "Schafszucht",
+      "kategorie": "Produktion",
+      "voraussetzung": "Baukunst",
+      "wirkung": "produziert Wolle",
+      "rohstoff": "Wolle",
+      "ertrag_pro_stunde": { "Grasland": 3, "Steppe": 1.5 },
+      "abweichung": "Grasland: 2005 = 2, Handbuch 2009 = 3; Steppe: 2005 = 1, Handbuch 2009 = 1,5.",
+      "anmerkung": "Schreibweise 2005: 'Schafzucht'."
+    },
+    {
+      "id": "rinderfarm",
+      "name": "Rinderfarm",
+      "kategorie": "Produktion",
+      "voraussetzung": "Baukunst",
+      "wirkung": "produziert Leder",
+      "rohstoff": "Leder",
+      "ertrag_pro_stunde": { "Grasland": 3, "Steppe": 1.5 },
+      "abweichung": "Grasland: 2005 = 2, Handbuch 2009 = 3; Steppe: 2005 = 1, Handbuch 2009 = 1,5.",
+      "anmerkung": "Die 2009er Tabelle nennt wörtlich 'Grasland (3 Nahrung, 3 Leder), Steppe (1,5 Nahrung, 1,5 Leder)'. Ob ein zweiter Ertrag (Nahrung) gemeint ist, ist nicht eindeutig; als Leder-Ertrag 3 / 1,5 übernommen."
+    },
+    {
+      "id": "pferdezucht",
+      "name": "Pferdezucht",
+      "kategorie": "Produktion",
+      "voraussetzung": "Baukunst",
+      "wirkung": "produziert Pferde",
+      "rohstoff": "Pferde",
+      "ertrag_pro_stunde": { "Grasland": 3, "Steppe": 1.5 },
+      "abweichung": "Grasland: 2005 = 2, Handbuch 2009 = 3; Steppe: 2005 = 1, Handbuch 2009 = 1,5."
+    },
+    {
+      "id": "jaeger",
+      "name": "Jäger",
+      "kategorie": "Produktion",
+      "voraussetzung": "keine (ohne Forschung baubar)",
+      "wirkung": "produziert Nahrung und Leder aus der Jagd",
+      "rohstoff": ["Nahrung", "Leder"],
+      "ertrag_pro_stunde": { "Wald": { "Nahrung": 2, "Leder": 2 }, "Steppe": { "Nahrung": 1, "Leder": 1 } },
+      "abweichung": "2005: nur Wald (1 Nahrung, 1 Leder), kein Steppe-Ertrag. Handbuch 2009: Wald (2 Nahrung, 2 Leder) und Steppe (1 Nahrung, 1 Leder).",
+      "anmerkung": "Laut 2005er Fassung jagt der Jäger ausschließlich im Wald."
+    },
+    {
+      "id": "schmiede",
+      "name": "Schmiede",
+      "kategorie": "Werkstatt",
+      "voraussetzung": "Baukunst",
+      "wirkung": "stellt Waffen und Rüstungen her (Waren der Schmiede, u. a. Messer, Dolch, Kurzschwert, Schwert, Zweihänder, Kettenhemd, Plattenrüstung, Magischer Paladinharnisch; Voraussetzungen je Ware über Waffentechnik/Rüstungsbau/Magiekunde)",
+      "mehrfach_moeglich": true,
+      "fertigt_parallel": true
+    },
+    {
+      "id": "bogenbauer",
+      "name": "Bogenbauer",
+      "kategorie": "Werkstatt",
+      "voraussetzung": "Baukunst",
+      "wirkung": "stellt Fernwaffen her (Kurzbogen, Bogen, Langbogen, Armbrust; Voraussetzungen über Waffentechnik)",
+      "mehrfach_moeglich": true,
+      "fertigt_parallel": true,
+      "anmerkung": "Handbuch 2009 (Seite 13) nennt das Gebäude 'Bogenbauer'; die Auswertung ORIGINAL_Einheiten_Waren_Rohstoffe.md (Abschnitt 3) führt es als 'Bogner'."
+    },
+    {
+      "id": "naehstube",
+      "name": "Nähstube",
+      "kategorie": "Werkstatt",
+      "voraussetzung": "Baukunst",
+      "wirkung": "stellt Stoff- und Fellkleidung her (Wollumhang, Lederrüstung, Diebesumhang, Fellumhang, Fellrüstung; Voraussetzungen über Nähkunst/Rüstungsbau)",
+      "mehrfach_moeglich": true,
+      "fertigt_parallel": true
+    },
+    {
+      "id": "kriegerakademie",
+      "name": "Kriegerakademie",
+      "kategorie": "Ausbildung",
+      "voraussetzung": "Baukunst",
+      "wirkung": "bildet Armee-Einheiten (Kampfeinheiten) aus: Nahkampf (Bürgerwehr, Kämpfer, Krieger, Ritter, Paladin) und Fernkampf (Kurzbogenschütze, Bogenschütze, Langbogenschütze, Armbrustschütze)",
+      "max_je_siedlung": 1,
+      "stufen": "wird stufenweise ausgebaut; je höher die Stufe, desto schneller werden Einheiten ausgebildet"
+    },
+    {
+      "id": "diebesgilde",
+      "name": "Diebesgilde",
+      "kategorie": "Ausbildung",
+      "voraussetzung": "Baukunst",
+      "wirkung": "bildet Kundschafter aus (Streuner, Gauner, Dieb, Meisterdieb, Kundschafter, Waldläufer)",
+      "max_je_siedlung": 1,
+      "stufen": "wird stufenweise ausgebaut; je höher die Stufe, desto schneller werden Einheiten ausgebildet"
+    },
+    {
+      "id": "stellmacher",
+      "name": "Stellmacher",
+      "kategorie": "Ausbildung",
+      "voraussetzung": "Baukunst",
+      "wirkung": "baut Karren (Handkarren, Einspänner, Zweispänner, Handelskarawane, Große Handelskarawane, Siedlerkarren) und Belagerungswaffen (Belagerungsturm, Ramme, Großer Belagerungsturm, Große Ramme, Balliste, Katapult, Großes Katapult); Voraussetzungen über Wagenbau",
+      "max_je_siedlung": 1,
+      "stufen": "wird stufenweise ausgebaut; je höher die Stufe, desto schneller werden Einheiten gebaut",
+      "anmerkung": "Originalschreibweise 'Stellmacher' (nicht 'Stallmacher'), im Handbuch 4x belegt."
+    },
+    {
+      "id": "verteidigungswall",
+      "name": "Verteidigungswall",
+      "kategorie": "Verteidigung",
+      "voraussetzung": "Baukunst (schaltet Verteidigungsforschung frei); neue Schutzmöglichkeiten über die Forschung 'Verteidigungsanlagen'",
+      "wirkung": "Schutz vor Angriffen. In der Vorrunde einer Schlacht wird geprüft, ob die Schlagkraft (SK) der angreifenden Fußtruppen den Schwellenwert des Walls erreicht; ab der verstärkten Palisade ist zusätzlich Schlagkraft von Belagerungswaffen nötig. Reicht sie nicht, zieht der Angreifer ohne Beute ab (Kampf = unentschieden). Beschädigte Mauern verlangen prozentual weniger Schlagkraft. Schaden je Belagerungswaffe = Zufallswert des Waffenschadens minus Ausbaustufe der Mauer, dann vom Zustand der Mauer abgezogen.",
+      "kriegspunkte": "Ausbaustufe hoch drei (Beispiel: Palisade Stufe 4 = 64 Kriegspunkte)",
+      "stufen": [
+        { "stufe": 1, "name": "Erdwall", "schwellenwert_fussttruppen": 10, "schwellenwert_belagerungswaffen": null },
+        { "stufe": 2, "name": "Steinwall", "schwellenwert_fussttruppen": 40, "schwellenwert_belagerungswaffen": null },
+        { "stufe": 3, "name": "Kleine Palisade", "schwellenwert_fussttruppen": 90, "schwellenwert_belagerungswaffen": null },
+        { "stufe": 4, "name": "Palisade", "schwellenwert_fussttruppen": 160, "schwellenwert_belagerungswaffen": null },
+        { "stufe": 5, "name": "Verstärkte Palisade", "schwellenwert_fussttruppen": 250, "schwellenwert_belagerungswaffen": 500 },
+        { "stufe": 6, "name": "Mauer", "schwellenwert_fussttruppen": 360, "schwellenwert_belagerungswaffen": 600 },
+        { "stufe": 7, "name": "Verstärkte Mauer", "schwellenwert_fussttruppen": 490, "schwellenwert_belagerungswaffen": 700 },
+        { "stufe": 8, "name": "Festungsmauer", "schwellenwert_fussttruppen": 640, "schwellenwert_belagerungswaffen": 800 },
+        { "stufe": 9, "name": "Verstärkte Festungsmauer", "schwellenwert_fussttruppen": 810, "schwellenwert_belagerungswaffen": 900 },
+        { "stufe": 10, "name": "Bollwerk", "schwellenwert_fussttruppen": 1000, "schwellenwert_belagerungswaffen": 1000 }
+      ],
+      "anmerkung": "Schwellenwert Belagerungswaffen ist für die Stufen 1-4 nicht nötig ('-' in der Quelle) und daher null."
+    },
+    {
+      "id": "bibliothek",
+      "name": "Bibliothek",
+      "kategorie": "Sonstiges",
+      "voraussetzung": "keine (ohne Forschung baubar)",
+      "wirkung": "ermöglicht Forschung; Ausbau in Stufen erweitert die Forschungsmöglichkeiten; mit jeder Stufe teurer. Nur auf Grasland, Steppe oder Nebelsee errichtbar.",
+      "max_je_siedlung": 1,
+      "anmerkung": "Während der Studien ist der Forschungsbereich der Siedlung blockiert."
+    },
+    {
+      "id": "haus",
+      "name": "Haus",
+      "kategorie": "Sonstiges",
+      "voraussetzung": "keine (ohne Forschung baubar)",
+      "wirkung": "erhöht die Siedlergrenze um 5 Siedler je Haus",
+      "max_je_siedlung": null,
+      "abweichung": null
+    },
+    {
+      "id": "lager",
+      "name": "Lager",
+      "kategorie": "Sonstiges",
+      "voraussetzung": "keine belegt",
+      "wirkung": "gibt einen Überblick über alle in der Siedlung befindlichen Waren und Einheiten; der Warenbestand wird hier geprüft",
+      "anmerkung": "Das Handbuch 2009 (Seite 8/9) führt 'Lager' als Siedlungsmenüpunkt unter 'Lager'; ob es ein eigenständiges Bauwerk ist, ist nicht ausdrücklich belegt."
+    }
+  ]
+}

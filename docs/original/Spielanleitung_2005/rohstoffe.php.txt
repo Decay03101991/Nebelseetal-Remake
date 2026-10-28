@@ -1,0 +1,27 @@
+Home
+|
+Rohstoffproduktion
+|
+Rohstoffe werden benötigt um neue Gebäude zu errichten, Wahren herzustellen und Einheiten auszubilden.
+In Eurer Siedlung könnt ihr Rohstoffe produzierende Gebäude errichten. Diese sind im Einzelnen:
+| Gebäude | Rohstoff | Produktion
+| Holzfäller | Holz | Wald(4) / Steppe(1)
+| Steinmetz | Steine | Berg(4) / Hügel(1)
+| Erzmine | Metall | Berg(3) / Hügel(1)
+| Tempel | Mana | Nebelsee(8) / Alle außer Sumpf(2)
+| Farm | Nahrung | Grasland(4) / Steppe(2)
+| Goldmiene | Gold | Berg(3) / Hügel(1)
+| Schafzucht | Wolle | Grasland(2) / Steppe(1)
+| Rinderfarm | Leder | Grasland(2) / Steppe(1)
+| Pferdezucht | Pferde | Grasland(2) / Steppe(1)
+| Jäger | Nahrung, Leder | Wald(1 Nahrung,1 Leder)
+Jedes Gebäude produziert auf 2 verschiedenen Geländearten unterschiedliche Mengen an Rohstoffen.
+Dies gillt nicht für den Jäger, der ausschließlich im Wald nach Beute jagt.
+Wieviel pro Stunde produziert wird, könnt ihr
+aus der Tabelle oben entnehmen. Der Wert in Klammern gibt die Produktionsmenge pro Stunde an.
+Sümpfe sind unbebaubar und somit für Eure Siedlungen völlig wertlos.
+Eure Siedlung bekommt außer den Rohstoffen einen neuen Siedler pro Stunde,
+bis ihre Siedlergrenze erreicht ist. Diese Grenze liegt
+in jeder neuen Siedlung bei 5 Siedlern. Wenn ihr in Eurer Siedlung Häuser
+errichtet, erhöht sich der Grenzwert um 5 Siedler pro Haus. Wann ihr den nächsten
+Siedler bekommt, könnt ihr in der Siedlungsübersicht sehen.

@@ -1,0 +1,49 @@
+Punktesystem
+|
+Punktesystem
+|
+In Nebelseetal-Online gibt es 3 verschiedene Arten von Punkten:
+Forschungspunkte
+Diese Punkte geben Euren aktuellen Forschungsstand an. Für jede Forschung die Ihr
+erlangt habt, wird die Stufe mit sich selbst multipliziert. Diese Werte werden
+anschließend addiert und ergeben Eure Forschungspunkteanzahl.
+Ein Beispiel:
+Felderwirtschaft Stufe 1 = 1 Punkt (1*1=1)
+Kriegskunst Stufe 4 = 16 Punkt (4*4=16)
+Minenarbeit Stufe 2 = 4 Punkt (2*2=4)
+Gesamtforschungspunkte = 21 (1+16+4=21)
+Kriegspunkte
+Für jede Militär- und Spionageeinheit die Ihr ausbildet, bekommt Ihr Kriegspunkte.
+Wieviele Punkte hängt von der entsprechenden Einheit ab:
+Bürgerwehr: 1 Punkt
+Kämpfer: 2 Punkte
+Krieger: 4 Punkte
+Ritter: 8 Punkte
+Paladin: 16 Punkte
+Kurzbogenschütze: 2 Punkte
+Bogenschütze: 4 Punkte
+Langbogenschütze: 8 Punkte
+Armbrustschütze: 10 Punkte
+Streuner: 1 Punkte
+Gauner: 2 Punkte
+Dieb: 4 Punkte
+Meisterdieb: 8 Punkte
+Kundschafter: 10 Punkte
+Waldläufer: 16 Punkte
+Solltet Ihr Einheiten verlieren, verringern sich auch Eure Kriegspunkte, um den entsprechenden Wert!
+Handelspunkte
+Handelspunkte bekommt Ihr, wenn Ihr über das Handelssystem Waren gegen Gold eintauscht.
+Für je 100 Gold, die Ihr durch Handel erwirtschaftet, bekommt ihr einen Handelspunkt. Kleinere
+Beträge werden mit eingerechnet. Wenn Ihr also etwas für 20 Gold verkauft bekommt Ihr 0,2 Punkte.
+Wenn Ihr 24 Stunden keine Handelseinkünfte hattet, verliert ihr einen Handelspunkt.
+Ein Beispiel:
+Ihr verkauft 100 Schwerter für 300 Gold. Dafür bekommt ihr drei (300:100=3) Handelspunkte. Wenn Ihr nun 24 Stunden
+lang nichts mehr verkauft wird euch ein Handelspunkt abgezogen. Nach weiteren 24 Stunden ein weiterer.
+Dies bedeutet, das Ihr nach drei Tagen alle drei Handelspunkte wieder verlohren habt.
+Ihr könnt dies verhindern in dem Ihr aktiv weiter handelt. Wenn Ihr, nachdem
+Ihr die drei Punkte aus dem Beispiel oben bekommen habt, einen weiteren Handel abschließt,
+bleiben eure Handelspunkte weitere 24 Stunden erhalten. Erst wenn nach dem letzten, abgeschlossenen Handel
+24 Stunden vergangen sind, reduzieren sich eure Handelspunkte. Wenn Ihr also täglich mindestens einen
+Handel mit einem anderen Spieler abschließt, verliert ihr keine Punkte.
+Alle drei Punktearten fließen zu je einem Drittel in Eure Gesamtpunktezahl ein.
+Diese geben Euren Platz in der Gesamtwertung an.

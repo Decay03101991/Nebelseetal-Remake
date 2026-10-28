@@ -1,0 +1,58 @@
+{
+  "_hinweis": "WIRKUNGEN der 20 Originalgebaeude (Paket W4b-5, 04.10.2026). Bis hierher lagen die Wirkungen in fuenf ERFUNDENEN Gebaeuden (Haus, Bibliothek, Kaserne, Wachturm, Portal) und wirkten global; die 20 belegten Originalgebaeude standen zwar auf der Siedlungskarte, taten aber ausser der Produktion nichts. Hier stehen die belegten Zahlen; was die Quelle nicht hergibt, ist null und begruendet. Dieses Blatt darf Daniel aendern - es gilt dann sofort.",
+  "_quelle": [
+    "docs/original/Spielanleitung_2009_Textfassung.txt, Seite 11 (Siedlergrenze, Siedlerzuwachs) und Seite 12 (Forschung braucht eine Bibliothek)",
+    "docs/original/ORIGINAL_Einheiten_Waren_Rohstoffe.md, Abschnitt 4 (Bauen, Siedlergrenze, Bibliothek) und Abschnitt 5 (Forschung)",
+    "data/buildings.json (die 20 Gebaeude samt Wirkung, Voraussetzung, 'max_je_siedlung' und den 10 Wallstufen)",
+    "data/units.json (je Einheit das Feld 'gebaeude' - daraus ergibt sich, welche Ausbildungsstaette sie braucht)",
+    "docs/original/ORIGINAL_Kampf_und_Punkte.md, Abschnitt 2.1 (Wallschwellen) und Abschnitt 6 (Kriegspunkte)"
+  ],
+  "bevoelkerung": {
+    "grund_je_siedlung": 10,
+    "je_haus": 5,
+    "siedler_je_stunde": 1,
+    "heilkunde_prozent_je_stufe": 10,
+    "startwert_ohne_siedlung": 10,
+    "_belegt": "Handbuch Seite 11, wortwoertlich: 'Deine Siedlung bekommt, ausser den Rohstoffen, noch einen neuen Siedler pro Stunde, bis ihre Siedlergrenze erreicht ist. Diese Grenze liegt in jeder neuen Siedlung bei 10 Siedlern. Wenn Du in Deiner Siedlung Haeuser errichtest, erhoeht sich der Grenzwert um 5 Siedler pro Haus.' Heilkunde: 'Siedlerproduktion +10 % je Stufe' (ORIGINAL_Einheiten_Waren_Rohstoffe.md, Abschnitt 5).",
+    "_startwert": "Vor der ersten Siedlung bekommt der Spieler den belegten Startwert von 10 Siedlern (Handbuch Seite 7) - sonst waere der Start unbewohnbar."
+  },
+  "forschung": {
+    "bibliothek_noetig": true,
+    "_belegt": "Handbuch Seite 12: 'Um Forschung zu betreiben musst Du in Deiner Siedlung zunaechst eine Bibliothek bauen.' Die Bibliothek selbst kostet keinen Forschungsaufwand (buildings.json: 'keine (ohne Forschung baubar)')."
+  },
+  "ausbildung": {
+    "_belegt": "Handbuch Seite 14-17. Je Einheit steht das Gebaeude in data/units.json (Feld 'gebaeude'): Kriegerakademie 9 Kampfeinheiten, Diebesgilde 6 Kundschafter, Stellmacher 6 Karren + 7 Belagerungswaffen. buildings.json: 'Kriegerakademie, Diebesgilde und Stellmacher je hoechstens eines je Siedlung; hoehere Stufe = schnellere Ausbildung.'",
+    "stufen_hoechstens": 5,
+    "_stufen_vorschlag": "VORSCHLAG: Das Handbuch belegt, DASS die drei Ausbildungsstaetten Stufen haben, nennt aber keine Anzahl. Hier stehen 5 wie bei den Forschungsstufen (Handbuch Seite 13). Daniel kann die Zahl in dieser Datei aendern."
+  },
+  "verteidigung": {
+    "wall_stufen_hoechstens": 10,
+    "kriegspunkte": "ausbaustufe hoch drei",
+    "_belegt": "data/buildings.json (Verteidigungswall, 10 Stufen von Erdwall bis Bollwerk mit Schwellenwerten) und ORIGINAL_Kampf_und_Punkte.md (Schwellen der Vorrunde, Kriegspunkte = Ausbaustufe hoch drei).",
+    "_verteidigungsbonus_offen": "Die HOEHE des Verteidigungsboni ist NICHT belegt. Sie kommt weiterhin aus bonus_system.get_defense_bonus (+50 % je Stufe) - der Wall hat den erfundenen Wachturm dort ersetzt. Steht in docs/PROJEKT_STAND.md unter den offenen Entscheidungen."
+  },
+  "ausbaustufen_hoechstens": {
+    "verteidigungswall": 10,
+    "kriegerakademie": 5,
+    "diebesgilde": 5,
+    "stellmacher": 5,
+    "bibliothek": 5,
+    "haus": 4,
+    "_vorschlag": "Wall 10 ist BELEGT (buildings.json). Haus bis Stufe 4, Bibliothek und die drei Ausbildungsstaetten: das Handbuch belegt nur, dass es Stufen gibt; die ZAHLEN sind VORSCHLAG (Haus: Vorgabe Daniel 05.10.2026 - 'der Haeuserausbau ist noch nicht klug entworfen'). Stufe 1 = das belegte Haus (+5 Siedler); jede weitere Stufe hebt die Siedlergrenze um weitere 5. Fuer alle anderen der 20 Gebaeude gibt es keinen Ausbau (null)."
+  },
+  "ausbau_linear": "Ausbau auf Stufe n kostet das n-fache des Grundpreises - dieselbe Regel wie in data/baupreise.json (dort als VORSCHLAG gekennzeichnet).",
+  "haus_stufen": {
+    "_hinweis": "VORSCHLAG (Entwurf deepseek-v4-pro, 05.10.2026, docs/audits/entwurf_ausruestung_forschung_haus_2026-10-05.txt, Abschnitt C). Stufe 1 ist das BELEGTE Haus (Handbuch Seite 11: +5 Siedler je Haus). Die Stufen 2-4 heben NUR die Siedlergrenze (+5 je Stufe), NICHT den Zuwachs (1 Siedler je Stunde) - der Zuwachs ist belegt und hat mit der Heilkunde (+10 % je Stufe) bereits seinen belegten Hebel.",
+    "stufen": {
+      "1": {"kosten": {"holz": 80, "stein": 50}, "siedler": 5, "belegt": true},
+      "2": {"kosten": {"holz": 160, "stein": 100}, "siedler": 10, "belegt": false},
+      "3": {"kosten": {"holz": 240, "stein": 150}, "siedler": 15, "belegt": false},
+      "4": {"kosten": {"holz": 320, "stein": 200}, "siedler": 20, "belegt": false}
+    }
+  },
+  "offene_luecken": {
+    "werkstaetten": "Schmiede, Bogenbauer und Naehstube stellen im Original Waren her. Das Waren-Handwerk fehlt noch - Paket W3 (PROJEKT_STAND.md, Abschnitt 5).",
+    "baukunst": "Das Original verlangt fuer die meisten Gebaeude die Forschung 'Baukunst' (Holzfaeller, Steinmetz, Jaeger, Bibliothek und Haeuser sind ohne Forschung baubar). Im Spiel stehen noch die 18 erfundenen Forschungsgebiete; 'Baukunst' gibt es dort nicht. Die Bauregel greift daher erst mit dem Paket, das die 21 Originalforschungen ins Spiel holt.",
+    "lager": "Der Lager-Eintrag (buildings.json) beschreibt eine Uebersicht ueber Waren und Einheiten - das ist die Ansicht 'Lager' im Menue, keine Zahl."
+  }
+}

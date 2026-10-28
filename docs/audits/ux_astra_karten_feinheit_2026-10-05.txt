@@ -1,0 +1,75 @@
+A) Wirksamste Änderungen nach Wirkung
+
+Alle folgenden Änderungen sind VORSCHLÄGE, keine belegten Eigenschaften des Originals; Raster, Geländearten und Spielregeln bleiben unverändert.
+
+Siedlungskarte
+1. Gebäude als unterscheidbare kleine Baukörper mit Dachflächen, Sockel, Tür und gebäudetypischen Anbauten zeichnen, damit die Bebauung statt der derzeit ähnlichen Zeichen das Kartenbild prägt.
+2. Gelände durch wenige größere Strukturformen, nachbarschaftsabhängige Ufer und zurückhaltende Wege differenzieren, damit die Siedlung zusammenhängend und nicht wie eine Sammlung isolierter Kästchen wirkt.
+3. Auswahl deutlich vom Gelände absetzen und Koordinaten sowie Stufenanzeigen aus den Gebäudesilhouetten herausnehmen, damit zusätzliche Details die Bedienbarkeit nicht verschlechtern.
+
+Weltkarte
+1. Zusammenhängende Landschaften durch abgestimmte Feldkanten und charakteristische Geländeformen sichtbar machen, damit das dichte Raster als Landschaft lesbar wird.
+2. Orte mit klar verschiedenen Silhouetten und einer abgestuften Beschriftung darstellen, damit Häuser, Ruinen und eigener Standort nicht zwischen gleichgewichtigen Zeichen und Texten untergehen.
+3. Auswahl, Übersichtskarte und festes Detailpanel unmittelbar miteinander verknüpfen, damit der ausgewählte Ort auch ohne Lesen des Panels auffindbar ist.
+
+B) Konkrete Ausführung
+
+Die Befehlszahlen sind ungefähre Zahlen einzelner Canvas-Zeichenoperationen; Zusatzaufwand ist ausdrücklich gekennzeichnet.
+
+Siedlung 1 – Gebäude
+Ort: Feld.
+Bei 64 px Feldgröße einen Bereich von 44 × 46 px für Gebäude reservieren. Hauptkörper etwa 30 × 22 px, Dach 38 × 16 px, Sockel 36 × 5 px; Tür 6 × 10 px, Fenster 4 × 5 px. Dach in zwei Flächen #875241 und #59382F, Wände #C0AD86 und #8F795C, Kontur #302924, versetzter Bodenschatten #343B30. Einheitlicher Lichteinfall von links oben.
+Unterscheidung über Silhouetten: Lager mit seitlichem 10 × 14-px-Anbau, Kaserne mit breiter Front und zwei Pfosten, Produktionsgebäude mit passendem kleinen Arbeitsdetail; nur vorhandene Gebäudetypen verwenden.
+Etwa 12–20 zusätzliche Befehle je bebautem Feld; keine Geländedetails unter dem Baukörper zeichnen.
+
+Siedlung 2 – Gelände und Wege
+Ort: Feld und Feldrand.
+Bei 64 px Grundflächen beispielsweise Ebene #74805A, Wald #455E43, Gebirge #77776C, Wasser #416875; vorhandene weitere Geländearten behalten eigene Farben.
+Ebene: drei bis fünf 3–6 px lange Halmlinien. Wald: drei versetzte Baumgruppen von etwa 14 × 20 px mit Kronen #344C38 und #60734B. Gebirge: zwei 18–28 px breite Felsformen mit Lichtfläche #969385. Wasser: zwei bis drei 12–22 px lange Linien in #6D9296.
+Ufer nur an tatsächlichen Land-Wasser-Grenzen als 3–5 px breites Polygonband #999071 zeichnen; die Geländezuordnung des Feldes bleibt eindeutig.
+Wege, sofern vorgesehen: 8 px breite Linie #75674F mit 4 px breiter Innenlinie #A28E69, an gemeinsamen Feldkanten exakt anschließen. Keine Wege automatisch durch Wasser oder Gebäude; rein dekorative Wege vermitteln keine neue Transportmechanik.
+Etwa 5–12 Befehle je Geländefeld, auf Wald etwa 13–17; zusätzlich 2–4 für einen Wegabschnitt.
+
+Siedlung 3 – Auswahl und Anzeigen
+Ort: Feldrand, Bildrand und Detailpanel.
+Bei 64 px Auswahlrechteck 3 px nach innen setzen: dunkle Unterkontur #172128 mit 5 px Strichbreite, darüber #E4C77D mit 2 px. Vier 8 px lange Eckwinkel verstärken die Markierung, ohne das Feld zu überdecken.
+Koordinaten in eine 18 px breite beziehungsweise hohe äußere Rasterleiste verlegen; das vorgegebene 8×7-Raster bleibt bestehen. Stufenpips als 4 × 4-px-Quadrate mit 2 px Abstand auf einem dunklen Streifen unter dem Gebäude, bei Platzmangel exakte Stufe nur im Panel.
+Detailpanel: ausgewählte Koordinate und Gebäude in einer eigenen Kopfzeile, Text #EEE2CA auf #3e1c1a.
+Zusätzlich etwa 6 Befehle im ausgewählten Feld, ein Streifen plus ein Befehl je Stufenpip; Koordinaten und Panel getrennt davon.
+
+Welt 1 – Landschaft
+Ort: Feld und Feldrand.
+Bei 48 px Ebene #707B58, Wald #405A43, Gebirge #75766F, Wasser #405F70; Rasterlinien nur 1 px in #38433C.
+Wald mit zwei bis drei 10–16 px breiten Baumgruppen, Gebirge mit zwei 16–22 px breiten Gratpolygonen und Wasser mit zwei 12–18 px langen Wellenlinien strukturieren. Lichtfarben #637451, #96958A und #658594 verwenden.
+Zwischen gleichartigen Nachbarfeldern keine zusätzliche Innenkante; an Ufern ein 2–3 px breites Band #938A70. Konturen anhand der Nachbarfelder bestimmen, nicht durch Änderung der Weltkarte.
+Etwa 4–11 Befehle je Feld, bei Wald bis etwa 14. Varianten deterministisch aus Feldkoordinaten wählen, damit Details beim Neuzeichnen nicht springen.
+
+Welt 2 – Orte und Beschriftung
+Ort: Feld und Kartenfläche.
+Bei 48 px Ortszeichen auf etwa 24 × 28 px begrenzen: Dorf mit zwei Dachkörpern, Ruine mit gebrochener Mauerlinie, Lager mit niedriger Einfriedung. Wände #B9A582, Dächer #81503F, Ruinen #969083, dunkle Konturen #292B27.
+Eigener Ort: blauer Sockel 20 × 6 px in #356D98, Mast 2 × 21 px in #D8D3BD, weiße Fahne 12 × 8 px in #F2EEDB.
+Dauerhafte kleine Ortsnamen aus den Feldern entfernen; Namen bei Auswahl im Panel anzeigen. Regionsnamen einmal je Region in etwa 18 px Schriftgröße, #D7CEB4 mit um 1 px versetztem dunklem Textschatten #26312B; nicht über wichtige Ortszeichen legen.
+Zusätzlich etwa 7–13 Befehle je Ort, etwa 4–5 für die eigene Fahne; zwei Textbefehle je Regionsname. Bei 16/24 px nur Geländefläche und einfaches Ortszeichen, bei 32 px reduzierte Silhouetten, ab 48 px volle Details.
+
+Welt 3 – Orientierung
+Ort: Feldrand, Bildrand und Detailpanel.
+Bei 48 px dieselbe goldene Auswahl wie in der Siedlung verwenden, aber 2 px eingerückt und mit 6 px langen Eckwinkeln; die eigene Fahne bleibt unabhängig davon sichtbar.
+Übersicht oben rechts mit 4 × 4 px je Weltfeld, ohne Geländeornamente. Sichtausschnitt mit weißem 1-px-Rahmen #F2EEDB, Auswahl mit goldener Markierung #E4C77D und dunkler Unterkontur kennzeichnen.
+Rechtes Detailpanel fest etwa 248 px breit, 12 px Innenabstand, Schrift etwa 14 px, Titel 18 px; Name/Koordinate, Gelände, Besuchsstatus und Inhalt in getrennten Zeilen. Rohstoffvorkommen nicht als Gebäude bezeichnen.
+Zusätzlich etwa 6 Befehle im ausgewählten Hauptkartenfeld; in der Übersicht ein Rechteck je Weltfeld plus wenige Markierungen. Keine zusätzlichen Beschriftungen auf allen Hauptkartenfeldern.
+
+C) Was unterbleiben sollte
+
+Fotorealistische Texturen, weiche Schatten, echte Transparenz, Unschärfe und geglättete Kurven: Unter den vorgegebenen Zeichenmitteln sind sie nicht sinnvoll erreichbar; wenige harte Farbflächen passen besser.
+
+Künstliches Antialiasing durch viele Zwischenfarben oder übereinandergelegte Konturen: Das erhöht Aufwand und Objektzahl, ohne die Lesbarkeit zuverlässig zu verbessern.
+
+Einzelne Grashalme über ganze Flächen, Ziegelreihen auf jedem Dach und große Mengen winziger Steinchen: Bei 48 beziehungsweise 64 px entsteht überwiegend Bildrauschen statt erkennbarer Detailtiefe.
+
+Unveränderte Detailfülle über alle Zoomstufen: Bei 16/24 px müssen Fenster, Dachdetails und Beschriftungen entfallen; Canvas-Geometrie und Textgrößen brauchen getrennte Zoomanpassungen.
+
+Dauernd animiertes Wasser, pulsierende Auswahl und vollständiges Löschen samt Neuaufbau der Karte bei jeder Mausbewegung: tkinter kann einfache Animationen, hier stehen Aufwand und visuelle Unruhe aber in keinem guten Verhältnis zum Nutzen.
+
+Isometrische Gebäude, die mehrere Felder verdecken, sowie dekorative Straßen, Brücken oder Mauern mit scheinbarer Spielfunktion: Sie verschleiern Feldzugehörigkeit oder behaupten unbelegte Mechaniken; Detailgewinn darf weder das Raster noch die Regeln umdeuten.
+
+session_id: 20261005_113751_ba45e5

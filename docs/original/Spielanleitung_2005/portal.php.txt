@@ -1,0 +1,46 @@
+Portal
+|
+Portal
+|
+Portale
+Ihr spielt auf einer Welt unter vielen. Auf jeder Welt in Nebelseetal-Online gibt es ein magisches Portal, welches
+Eure Welt mit der aller anderen Spieler verbinden kann. So ist es Euch möglich untereinander
+Handel zu treiben, aber auch Krieg zu führen. Das Aussenden von Truppen oder
+Waren erfordert allerdings eine Aktivierung des Portals mittels Magie. Dies kostet Euch, unabhängig
+von der Anzahl der Einheiten, jedes Mal eine bestimmte Menge Mana.
+Diese ist von der Entfernung, der zu besuchenden Welt, im magischen Limbus abhängig. Liegt
+Sie weit von Eurer Welt entfernt, oder gar in einer anderen Dimension, kostet es
+Euch viel Mana. Ist sie nah an Eurer Welt gelegen, benötigt Ihr nur wenig von der
+kostbaren, magischen Energie.
+Portalkoordinaten
+Jede Spielerwelt liegt im magischen Limbus, auf bestimmten Koordinaten. Diese bestehen
+aus drei Zahlen. Die ersten beiden (X und Y), zeigen die Position Eurer Welt, auf
+einem zweidimensionalem Raster, in Eurer Dimension an. Die dritte Zahl (Z) zeigt die Dimension an, in
+der sich Eure Welt befindet. Die Dimensionen zu durchdringen, um Welten in einer
+anderen Dimension zu besuchen, kostet Euch viel Mana. Deswegen ist es ratsam
+vorerst Verbündete (oder Gegner), in eurer Dimension zu suchen. Es gibt 20 Dimensionen,
+in jeder Dimension sind 20 mal 20 Felder frei für Spielerwelten.
+Ihr habt die Möglichkeit, einmal binnen 24 Stunden, eure Koordinaten zu wechseln. Dazu rufen
+Eure Magier, durch machtvolle Formeln, eine Verwirbelung des Limbusses hervor, die Eure
+Welt an ihren neuen Platz verschiebt. Sie benötigen hierfür 5.000 Mana.
+Da die magische Zeremonie in einer Eurer Siedlungen abgehalten wird, darf das Mana nicht
+über mehrere Siedlungen verteilt, sondern muss in einer einzelnen Siedlung verfügbar sein.
+Portalkoordinaten wechseln
+Um Eure Welt zu verschieben, wechselt zunächst auf die Portalansicht. Wenn ihr innerhalb der
+letzten 24 Stunden Eure Koordinaten nicht gewechselt habt, befindet sich unter dem
+Koordinatenraster ein Button "Verschiebungsritual durchführen". Nach einem Klick auf diesen,
+werden Euch alle Eure Siedlungen in einer Auswahlbox aufgelistet, die genügend Mana
+für das Ritual zur Verfügung haben. Wählt die Siedlung aus, aus der das Mana verbraucht
+werden soll, gebt die von Euch gewünschten, neuen Portalkoordinaten ein und klickt auf
+"Ritual durchführen". Eure Welt wird nun auf die neuen Koordinaten verschoben.
+Falls ihr Eure Welt erneut verschieben möchtet, müsst Ihr 24 Stunden warten und erneut
+5.000 Mana aufbringen.
+Die Portalanzeige
+Im Spielmenü befindet sich der Button "Portal". Wenn Ihr ihn anklickt, könnt
+Ihr das Raster Eurer Dimension sehen. Eure Welt wird durch ein grünes Banner markiert,
+fremde Welten durch rote. Zeigt mit dem Mauspfeil auf ein Banner um den Namen
+und die Koordinaten des Besitzers zu erfahren. Außerdem werden die Reisekosten
+an Mana angezeigt.
+Mit dem Auswahlmenü über dem Raster könnt Ihr Euch die Karten der anderen
+Dimensionen ansehen. Wählt einfach eine Dimension aus, um zu den verschiedenen
+Dimensionsrastern zu wechseln.

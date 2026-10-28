@@ -1,0 +1,21 @@
+Siedeln
+|
+Siedeln
+|
+Eine neue Siedlung gründen:
+Um eine neue Siedlung zu gründen, klickt im Siedlungsmenü
+auf den Button Aufträge und dort auf Neue Siedlung gründen.
+Dort werden Euch die benötigten Ressourcen angezeigt. Habt Ihr genügend Ressourcen gesammelt,
+könnt Ihr eine neue Siedlung errichten, indem Ihr einen Namen für die Siedlung eingebt und auf
+Siedeln klickt. Es ist nicht möglich mehr als 10 Siedlungen zu errichten. Einer neuen Siedlung
+wird per Zufall eine Karte zugewiesen. Es werden niemals zwei Eurer Siedlungen die gleiche Karte
+bekommen. Es ist jedoch möglich, dass, nachdem ihr eine Siedlung aufgegeben habt, die gleiche
+Karte bei einer Neugründung wieder auftaucht.
+Eine Siedlung aufgeben:
+Wenn Ihr mehr als eine Siedlung besitzt, könnt Ihr eine Siedlung aufgeben.
+Dazu wechselt auf die aufzugebende Siedlung und klickt im Siedlungsmenü auf Aufträge und dort auf Diese Siedlung aufgeben.
+Nach einer erneuten Sicherheitsabfrage wird die Siedlung gelöscht.
+Bedenkt aber, dass das Löschen nicht rückgängig gemacht werden kann und dabei
+ALLE Einheiten, Waren, Gebäude und Ressourcen der Siedlung verloren gehen! Das Löschen
+einer Siedlung ist in erster Linie sinnvoll, wenn Ihr eine besonders schlechte Siedlungskarte
+erwischt habt.
