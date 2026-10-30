@@ -179,6 +179,30 @@ check("die andere Bibliothek bleibt stehen", zwei[0].bauten.get("0") == "bibliot
 
 print()
 print("=" * 70)
+print("6. Zwei Navigationsebenen wie im Original")
+print("=" * 70)
+check("EBENEN nennt Uebersicht und Siedlung", main.EBENEN == ("Uebersicht", "Siedlung"),
+      str(main.EBENEN))
+uebersicht = main.menu_fuer_ebene([Ort(["bibliothek", "kriegerakademie", "stellmacher"])],
+                                  "Uebersicht")
+siedlung = main.menu_fuer_ebene([Ort(["bibliothek", "kriegerakademie", "stellmacher"])],
+                                "Siedlung")
+check("Uebersicht enthaelt Portal", "Portal" in uebersicht, str(uebersicht))
+check("Uebersicht enthaelt NICHT Dorfzentrum", "Dorfzentrum" not in uebersicht, str(uebersicht))
+check("Uebersicht enthaelt NICHT Forschung", "Forschung" not in uebersicht, str(uebersicht))
+check("Siedlung enthaelt Dorfzentrum", "Dorfzentrum" in siedlung, str(siedlung))
+check("Siedlung enthaelt Forschung (Bibliothek steht)", "Forschung" in siedlung, str(siedlung))
+check("Siedlung enthaelt Stellmacher", "Stellmacher" in siedlung, str(siedlung))
+check("Siedlung enthaelt NICHT Portal", "Portal" not in siedlung, str(siedlung))
+check("beide Ebenen zusammen = menu_sichtbar",
+      sorted(uebersicht + siedlung) == sorted(main.menu_sichtbar(
+          [Ort(["bibliothek", "kriegerakademie", "stellmacher"])])),
+      f"{len(uebersicht)} + {len(siedlung)}")
+check("jeder Menuepunkt hat eine Ebene", all(p in main.EBENE_JE_PUNKT for p in main.MENU_ITEMS),
+      str([p for p in main.MENU_ITEMS if p not in main.EBENE_JE_PUNKT]))
+
+print()
+print("=" * 70)
 print(f"ERGEBNIS: {len(bestanden)} bestanden, {len(fehler)} Fehler, {len(befunde)} Befunde")
 print("=" * 70)
 for f in fehler:

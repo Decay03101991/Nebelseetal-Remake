@@ -282,7 +282,8 @@ def app_probe_mit_tor():
         # Die Wache vergleicht deshalb gegen DIESELBE Quelle (`menu_sichtbar`) statt gegen eine
         # feste 17. Die Zusage bleibt: nach dem Tor steht die fertige Leiste.
         check("nach dem Tor baut sich das Hauptfenster auf (Menueleiste vollstaendig)",
-              list(getattr(app, "menu_buttons", {})) == M.menu_sichtbar(app.state.settlements),
+              list(getattr(app, "menu_buttons", {})) == M.menu_fuer_ebene(
+                  app.state.settlements, app.ebene),
               f"{len(getattr(app, 'menu_buttons', {}))} Knoepfe: {sorted(getattr(app, 'menu_buttons', {}))}")
         check("die Statuszeile ist vorhanden und gefüllt",
               bool(app.lbl_status.cget("text")) and app.lbl_status.winfo_reqheight() > 12,

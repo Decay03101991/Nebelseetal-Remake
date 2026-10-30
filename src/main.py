@@ -610,7 +610,6 @@ def bibliotheken_im_spiel(settlements) -> int:
 
 def menu_sichtbar(settlements) -> list:
     """Welche Menuepunkte stehen offen? Haengt nur davon ab, welche Gebaeude stehen.
-
     Ein Gebaeude-Menuepunkt existiert erst, wenn das Gebaeude auf irgendeiner Siedlung steht.
     Steht die Kaserne nicht, wird auch ein gebauter Stellmacher sichtbar (er wird dann direkt
     hinter "Lager" einsortiert) - sonst waere er unerreichbar.
@@ -634,6 +633,46 @@ def menu_sichtbar(settlements) -> list:
             sichtbar.insert(sichtbar.index("Lager") + 1 if "Lager" in sichtbar else len(sichtbar),
                             extra)
     return sichtbar
+
+
+# Das Original hat ZWEI Navigationsebenen, oben links umschaltbar "Uebersicht" / "Siedlung"
+# (GameStar-Screenshots web_1838856 und web_1838857, ausgewertet in
+# docs/quellen/ORIGINAL_UI_BEFUNDE.md). Die linke Leiste traegt in beiden Ebenen dieselben
+# Punkte - je nach Ebene sind es andere, weil die Siedlungsbereiche nur in der Siedlung stehen.
+EBENEN = ("Uebersicht", "Siedlung")
+
+# Menuepunkt -> Ebene, in der er im Original steht.
+EBENE_JE_PUNKT = {
+    "Dorfzentrum": "Siedlung",
+    "Lager": "Siedlung",
+    "Kaserne": "Siedlung",
+    "Stellmacher": "Siedlung",
+    "Diebesgilde": "Siedlung",
+    "Marktplatz": "Siedlung",
+    "Forschung": "Siedlung",
+    "Karten": "Siedlung",
+    "Gilde": "Uebersicht",
+    "Nachrichten": "Uebersicht",
+    "Portal": "Uebersicht",
+    "Diplomatie": "Uebersicht",
+    "Einstellungen": "Uebersicht",
+    "Ruhmeshalle": "Uebersicht",
+    "Anleitung": "Uebersicht",
+    "Kampfsimulator": "Uebersicht",
+    "Forum": "Uebersicht",
+    "Chat": "Uebersicht",
+    "Spieler werben": "Uebersicht",
+}
+
+
+def menu_fuer_ebene(settlements, ebene: str) -> list:
+    """Die Leiste EINER Ebene — aufgebaut auf `menu_sichtbar()` (eine Quelle fuer die Freigabe).
+
+    Wer einen Punkt ohne Ebene eintraegt, landet in "Uebersicht" (sichere Voreinstellung:
+    die Weltpunkte sind immer da, die Siedlungspunkte brauchen ein Gebaeude).
+    """
+    return [punkt for punkt in menu_sichtbar(settlements)
+            if EBENE_JE_PUNKT.get(punkt, "Uebersicht") == ebene]
 
 SKINS = {
     "standard": {
@@ -3086,14 +3125,40 @@ class NebelseetalApp:
 
         left = tk.Frame(main, bg=self.skin["sidebar"], width=180)
         left.pack(side=tk.LEFT, fill=tk.Y)
-        tk.Label(left, text="Menü", fg=self.skin["gold"], bg=self.skin["sidebar"], font=("Arial", 10, "bold")).pack(anchor=tk.W, padx=8, pady=(8, 4))
         self.sidebar_frame = left
+        # Zwei Navigationsebenen wie im Original (GameStar-Screenshots): "Uebersicht" fuer die
+        # Welt (Portal, Diplomatie, Punkte) und "Siedlung" fuer die Dorfbereiche.
+        self.ebene = getattr(self, "ebene", "Siedlung")
+        ebenen_leiste = tk.Frame(left, bg=self.skin["sidebar"])
+        ebenen_leiste.pack(fill=tk.X, padx=4, pady=(6, 4))
+        self.ebene_buttons = {}
+        for ebene in EBENEN:
+            knopf = tk.Button(ebenen_leiste, text=ebene, relief=tk.FLAT,
+                              fg=self.skin["red"], bg=self.skin["button"],
+                              activebackground=self.skin["button_active"],
+                              activeforeground=self.skin["gold"],
+                              command=lambda e=ebene: self._ebene_wechseln(e))
+            knopf.pack(fill=tk.X, pady=1, ipady=2)
+            self.ebene_buttons[ebene] = knopf
+        tk.Label(left, text="Menü", fg=self.skin["gold"], bg=self.skin["sidebar"], font=("Arial", 10, "bold")).pack(anchor=tk.W, padx=8, pady=(4, 4))
         # Daniel 30.10.2026: Menuepunkte erscheinen erst mit ihrem Gebaeude. Die Knoepfe stehen
         # deshalb in einem eigenen Rahmen, der bei jedem Bau und Abriss neu gefuellt wird.
         self.menu_liste = tk.Frame(left, bg=self.skin["sidebar"])
         self.menu_liste.pack(fill=tk.X)
         self.menu_buttons = {}
         self._menue_auffrischen()
+        # "Eure Punkte" steht im Original dauerhaft in der Leiste (Forschung / Krieg / Gesamt).
+        self.punkte_leiste = tk.Frame(left, bg=self.skin["sidebar"])
+        self.punkte_leiste.pack(fill=tk.X, pady=(12, 2))
+        tk.Label(self.punkte_leiste, text="Eure Punkte", fg=self.skin["gold"],
+                 bg=self.skin["sidebar"], font=("Arial", 9, "bold")).pack(anchor=tk.W, padx=8)
+        self.punkte_labels = {}
+        for _name in ("Forschung", "Krieg", "Gesamt"):
+            _lbl = tk.Label(self.punkte_leiste, text=f"{_name}: 0", fg=self.skin["red"],
+                            bg=self.skin["sidebar"], font=("Arial", 9))
+            _lbl.pack(anchor=tk.W, padx=12)
+            self.punkte_labels[_name] = _lbl
+        self._punkte_leiste_aktualisieren()
 
         tk.Frame(left, height=16, bg=self.skin["sidebar"]).pack()
         tk.Label(left, text="Nebelseetal unterstützen", fg=self.skin["gold"], bg=self.skin["sidebar"], font=("Arial", 8)).pack(anchor=tk.W, padx=8)
@@ -3214,11 +3279,55 @@ class NebelseetalApp:
         for knopf in (getattr(self, "menu_buttons", None) or {}).values():
             knopf.destroy()
         self.menu_buttons = {}
-        for item in menu_sichtbar(getattr(self.state, "settlements", None)):
+        ebene = getattr(self, "ebene", "Siedlung")
+        for name, knopf in (getattr(self, "ebene_buttons", None) or {}).items():
+            try:
+                knopf.config(fg=self.skin["gold"] if name == ebene else self.skin["red"],
+                             bg=self.skin["button_active"] if name == ebene else self.skin["button"])
+            except Exception:
+                pass
+        for item in menu_fuer_ebene(getattr(self.state, "settlements", None), ebene):
             btn = tk.Button(self.menu_liste, text=item, fg=self.skin["red"], bg=self.skin["sidebar"], activebackground=self.skin["button_active"], activeforeground=self.skin["gold"],
                             relief=tk.FLAT, anchor=tk.W, padx=12, command=lambda i=item: self._switch_view(i))
             btn.pack(fill=tk.X, pady=1, ipady=2)
             self.menu_buttons[item] = btn
+
+    def _punkte_leiste_aktualisieren(self):
+        """Zieht "Eure Punkte" in der Seitenleiste nach (EINE Quelle: `state.punktestand()`)."""
+        labels = getattr(self, "punkte_labels", None)
+        if not labels:
+            return
+        try:
+            stand = self.state.punktestand()
+        except Exception:
+            return
+        for name, wert in (("Forschung", stand.get("forschung", 0)),
+                           ("Krieg", stand.get("krieg", 0)),
+                           ("Gesamt", stand.get("gesamt", 0))):
+            knopf = labels.get(name)
+            if knopf is not None:
+                try:
+                    knopf.config(text=f"{name}: {wert}")
+                except Exception:
+                    pass
+
+    def _ebene_wechseln(self, ebene: str):
+        """Schaltet zwischen "Uebersicht" und "Siedlung" um (wie das Aufklappmenue im Original).
+
+        Bleibt die bisherige Ansicht in der neuen Ebene nicht vorhanden, wird auf den
+        Standardpunkt der Ebene gewechselt — sonst staende der Inhalt ohne Menuepunkt da.
+        """
+        if ebene not in EBENEN:
+            return
+        self.ebene = ebene
+        self._menue_auffrischen()
+        if self.current_view not in self.menu_buttons:
+            ziel = "Dorfzentrum" if ebene == "Siedlung" else "Portal"
+            if ziel in self.menu_buttons:
+                self.current_view = ziel
+            elif self.menu_buttons:
+                self.current_view = next(iter(self.menu_buttons))
+        self._switch_view(self.current_view)
 
     def _switch_view(self, view: str):
         self.current_view = view
@@ -3243,6 +3352,9 @@ class NebelseetalApp:
             return
         for widget in self.content.winfo_children():
             widget.destroy()
+        # Punkte stehen im Original dauerhaft in der Leiste (GameStar-Screenshot: "Eure Punkte:
+        # Forschung / Krieg / Gesamt"). Sie werden bei jedem Neuzeichnen mitgezogen.
+        self._punkte_leiste_aktualisieren()
         # Neue Ansicht immer von oben zeigen, sonst startet sie mitten im Inhalt.
         try:
             self.content_canvas.yview_moveto(0)
@@ -3377,7 +3489,9 @@ class NebelseetalApp:
         wirk.pack(fill=tk.X, padx=10, pady=(2, 8))
         tk.Label(wirk, text="Gebäudewirkungen (aus den Siedlungskarten)",
                  fg=self.skin["gold"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=5, pady=(3, 0))
-        tk.Label(wirk, text=f"Siedlergrenze {_grenze} · Zuwachs "
+        _haeuser = max(0, (_grenze - 10) // 5)
+        tk.Label(wirk, text=f"Siedlergrenze {_grenze} (Grundwert 10 + {_haeuser} Haus/Häuser × 5) · "
+                            f"Zuwachs "
                             f"{gebaeude_wirkung.siedler_zuwachs_pro_stunde(self.state.settlements):g} Siedler/Stunde "
                             f"(1 je Siedlung, Handbuch S. 11)",
                  fg=self.skin["text"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=5)
