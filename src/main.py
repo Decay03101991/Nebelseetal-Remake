@@ -671,8 +671,15 @@ def menu_fuer_ebene(settlements, ebene: str) -> list:
     Wer einen Punkt ohne Ebene eintraegt, landet in "Uebersicht" (sichere Voreinstellung:
     die Weltpunkte sind immer da, die Siedlungspunkte brauchen ein Gebaeude).
     """
-    return [punkt for punkt in menu_sichtbar(settlements)
-            if EBENE_JE_PUNKT.get(punkt, "Uebersicht") == ebene]
+    punkte = [punkt for punkt in menu_sichtbar(settlements)
+              if EBENE_JE_PUNKT.get(punkt, "Uebersicht") == ebene]
+    # "Voraussetzungen" steht im Original im Hauptmenue und zeigt die Forschungsbedingungen
+    # (Handbuch Seite 12). Unser MENU_ITEMS (die belegte Liste) fuehrt ihn nicht, deshalb
+    # kommt er als Zusatzpunkt dazu - nicht in die belegte Liste hineingeschrieben.
+    if ebene == "Uebersicht":
+        punkte.insert(punkte.index("Ruhmeshalle") + 1 if "Ruhmeshalle" in punkte else len(punkte),
+                      "Voraussetzungen")
+    return punkte
 
 SKINS = {
     "standard": {
@@ -3365,6 +3372,7 @@ class NebelseetalApp:
             "Siedlungskarte": self._render_settlement_map,
             "Lager": self._render_storage,
             "Kaserne": self._render_barracks,
+            "Voraussetzungen": self._render_voraussetzungen,
             "Stellmacher": self._render_stellmacher,
             "Diebesgilde": self._render_diebesgilde,
             "Marktplatz": self._render_market,
@@ -6114,6 +6122,47 @@ class NebelseetalApp:
     def _render_referral(self):
         tk.Label(self.content, text="Spieler werben", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
         tk.Label(self.content, text="Werben folgt in einer späteren Version.", fg="#C0C0C0", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
+
+    def _render_voraussetzungen(self):
+        """Zeigt, welche Forschung welche Bedingung hat (Original-Hauptmenue, Handbuch Seite 12).
+
+        Quelle ist `data/research.json` (Feld `voraussetzung`, z. B. "Bibliothek 3" oder
+        "Bibliothek 3 + Schmiedekunst 1"). Der erreichte Stand kommt aus `state.research` —
+        also dieselbe Quelle, die auch forscht. Nichts wird hier geschaetzt.
+        """
+        tk.Label(self.content, text="Voraussetzungen", font=("Blackletter", 20, "bold"),
+                 fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
+        tk.Label(self.content, text="Welche Forschung welche Bedingung hat — Handbuch Seite 12: "
+                                    "„Welche Voraussetzungen Du für die Forschungen benötigst, "
+                                    "kannst Du unter Voraussetzungen im Hauptmenü erfahren.“",
+                 fg="#C0C0C0", bg=self.skin["bg"], wraplength=780,
+                 justify=tk.LEFT).pack(anchor=tk.W, padx=10)
+        pfad = os.path.join(spieldaten.projektwurzel(), "data", "research.json")
+        try:
+            with open(pfad, encoding="utf-8") as f:
+                daten = json.load(f)
+        except (OSError, ValueError) as fehler:
+            self._log(f"Voraussetzungen nicht lesbar: {fehler}")
+            return
+        eintraege = daten.get("forschungen") or daten
+        kopf = tk.Frame(self.content, bg=self.skin["panel"])
+        kopf.pack(fill=tk.X, padx=10, pady=(6, 0))
+        for text, breite in (("Forschung", 22), ("Bedingung", 34), ("Stufe", 6)):
+            tk.Label(kopf, text=text, width=breite, anchor=tk.W, fg=self.skin["gold"],
+                     bg=self.skin["panel"]).pack(side=tk.LEFT, padx=4)
+        for name in sorted(eintraege):
+            wert = eintraege[name] if isinstance(eintraege[name], dict) else {}
+            bedingung = str(wert.get("voraussetzung") or "—")
+            eintrag = self.state.research.get(name)
+            erreicht = int(getattr(eintrag, "level", 0) or 0)
+            zeile = tk.Frame(self.content, bg=self.skin["panel"])
+            zeile.pack(fill=tk.X, padx=10, pady=1)
+            tk.Label(zeile, text=name, width=22, anchor=tk.W, fg=self.skin["text"],
+                     bg=self.skin["panel"]).pack(side=tk.LEFT, padx=4)
+            tk.Label(zeile, text=bedingung, width=34, anchor=tk.W, fg="#DAA520",
+                     bg=self.skin["panel"]).pack(side=tk.LEFT, padx=4)
+            tk.Label(zeile, text=str(erreicht), width=6, anchor=tk.W,
+                     fg=self.skin["text"], bg=self.skin["panel"]).pack(side=tk.LEFT, padx=4)
 
     def _render_research(self):
         tk.Label(self.content, text="Forschung", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))

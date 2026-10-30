@@ -188,6 +188,8 @@ uebersicht = main.menu_fuer_ebene([Ort(["bibliothek", "kriegerakademie", "stellm
 siedlung = main.menu_fuer_ebene([Ort(["bibliothek", "kriegerakademie", "stellmacher"])],
                                 "Siedlung")
 check("Uebersicht enthaelt Portal", "Portal" in uebersicht, str(uebersicht))
+check("Uebersicht enthaelt Voraussetzungen (Original-Menuepunkt)",
+      "Voraussetzungen" in uebersicht, str(uebersicht))
 check("Uebersicht enthaelt NICHT Dorfzentrum", "Dorfzentrum" not in uebersicht, str(uebersicht))
 check("Uebersicht enthaelt NICHT Forschung", "Forschung" not in uebersicht, str(uebersicht))
 check("Siedlung enthaelt Dorfzentrum", "Dorfzentrum" in siedlung, str(siedlung))
