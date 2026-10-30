@@ -574,6 +574,64 @@ MENU_ITEMS = [
     "Ruhmeshalle", "Anleitung", "Kampfsimulator", "Forum", "Chat", "Spieler werben"
 ]
 
+# Daniel 30.10.2026: "Ab dem Moment wo man einen Stellmacher gebaut hat, sollte links im Menü
+# auch ein Stellmacher auftauchen ... genauso mit der Kriegerakademie oder dem Bogenmacher ...
+# Forschung soll als Menüpunkt erst existieren, sobald eine Bibliothek errichtet wurde."
+# MENU_ITEMS bleibt die BELEGTE Original-Liste (tests/test_oberflaeche_original.py vergleicht sie
+# mit dem Original-Muster) — hier wird nur gefiltert, nie etwas hinzu erfunden.
+# Menüpunkt -> Gebaeude, das ihn freischaltet.
+MENUE_BEDINGUNG = {
+    "Kaserne": "kriegerakademie",
+    "Forschung": "bibliothek",
+    "Stellmacher": "stellmacher",
+    "Diebesgilde": "diebesgilde",
+}
+
+# Daniel 30.10.2026: hoechstens ZWEI Bibliotheken je Spieler - eine je Karte. Eine zweite
+# anderswo ist erlaubt (dort sammeln sich die Rohstoffe besser), eine dritte nicht.
+BIBLIOTHEK_OBERGRENZE = 2
+
+
+def bibliotheken_im_spiel(settlements) -> int:
+    """Zaehlt die stehenden Bibliotheken ueber ALLE Siedlungen des Spielers.
+
+    EINE Quelle fuer die Obergrenze und fuer die Abriss-Sperre ("die letzte bleibt stehen").
+    """
+    anzahl = 0
+    for siedlung in (settlements or []):
+        for wert in ((getattr(siedlung, "bauten", None) or {}).values()):
+            if str(wert).lower().startswith("bibliothek"):
+                anzahl += 1
+    return anzahl
+
+
+def menu_sichtbar(settlements) -> list:
+    """Welche Menuepunkte stehen offen? Haengt nur davon ab, welche Gebaeude stehen.
+
+    Ein Gebaeude-Menuepunkt existiert erst, wenn das Gebaeude auf irgendeiner Siedlung steht.
+    Steht die Kaserne nicht, wird auch ein gebauter Stellmacher sichtbar (er wird dann direkt
+    hinter "Lager" einsortiert) - sonst waere er unerreichbar.
+    """
+    gebaut = set()
+    for siedlung in (settlements or []):
+        gebaut.update(str(v) for v in (getattr(siedlung, "bauten", None) or {}).values())
+    sichtbar = []
+    for item in MENU_ITEMS:
+        schluessel = MENUE_BEDINGUNG.get(item)
+        if schluessel is not None and schluessel not in gebaut:
+            continue
+        sichtbar.append(item)
+        if item == "Kaserne":
+            for extra, bedingung in (("Stellmacher", "stellmacher"),
+                                     ("Diebesgilde", "diebesgilde")):
+                if bedingung in gebaut:
+                    sichtbar.append(extra)
+    for extra, bedingung in (("Stellmacher", "stellmacher"), ("Diebesgilde", "diebesgilde")):
+        if bedingung in gebaut and extra not in sichtbar:
+            sichtbar.insert(sichtbar.index("Lager") + 1 if "Lager" in sichtbar else len(sichtbar),
+                            extra)
+    return sichtbar
+
 SKINS = {
     "standard": {
         "bg": "#2a0605",
@@ -3026,12 +3084,13 @@ class NebelseetalApp:
         left = tk.Frame(main, bg=self.skin["sidebar"], width=180)
         left.pack(side=tk.LEFT, fill=tk.Y)
         tk.Label(left, text="Menü", fg=self.skin["gold"], bg=self.skin["sidebar"], font=("Arial", 10, "bold")).pack(anchor=tk.W, padx=8, pady=(8, 4))
+        self.sidebar_frame = left
+        # Daniel 30.10.2026: Menuepunkte erscheinen erst mit ihrem Gebaeude. Die Knoepfe stehen
+        # deshalb in einem eigenen Rahmen, der bei jedem Bau und Abriss neu gefuellt wird.
+        self.menu_liste = tk.Frame(left, bg=self.skin["sidebar"])
+        self.menu_liste.pack(fill=tk.X)
         self.menu_buttons = {}
-        for item in MENU_ITEMS:
-            btn = tk.Button(left, text=item, fg=self.skin["red"], bg=self.skin["sidebar"], activebackground=self.skin["button_active"], activeforeground=self.skin["gold"],
-                            relief=tk.FLAT, anchor=tk.W, padx=12, command=lambda i=item: self._switch_view(i))
-            btn.pack(fill=tk.X, pady=1, ipady=2)
-            self.menu_buttons[item] = btn
+        self._menue_auffrischen()
 
         tk.Frame(left, height=16, bg=self.skin["sidebar"]).pack()
         tk.Label(left, text="Nebelseetal unterstützen", fg=self.skin["gold"], bg=self.skin["sidebar"], font=("Arial", 8)).pack(anchor=tk.W, padx=8)
@@ -3141,6 +3200,23 @@ class NebelseetalApp:
                 getattr(self, "_aufgaben_sichtbar_zuletzt", aufgabe_sichtbar) != aufgabe_sichtbar):
             self._render_view()
 
+    def _menue_auffrischen(self):
+        """Baut die linke Menueleiste neu — abhaengig von den stehenden Gebaeuden (Daniel 30.10.2026).
+
+        Wird beim Start und nach jedem Bau und Abriss gerufen. EINE Quelle fuer die Auswahl:
+        `menu_sichtbar()`; hier steht nur die Darstellung.
+        """
+        if getattr(self, "menu_liste", None) is None:
+            return
+        for knopf in (getattr(self, "menu_buttons", None) or {}).values():
+            knopf.destroy()
+        self.menu_buttons = {}
+        for item in menu_sichtbar(getattr(self.state, "settlements", None)):
+            btn = tk.Button(self.menu_liste, text=item, fg=self.skin["red"], bg=self.skin["sidebar"], activebackground=self.skin["button_active"], activeforeground=self.skin["gold"],
+                            relief=tk.FLAT, anchor=tk.W, padx=12, command=lambda i=item: self._switch_view(i))
+            btn.pack(fill=tk.X, pady=1, ipady=2)
+            self.menu_buttons[item] = btn
+
     def _switch_view(self, view: str):
         self.current_view = view
         for item, btn in self.menu_buttons.items():
@@ -3174,6 +3250,8 @@ class NebelseetalApp:
             "Siedlungskarte": self._render_settlement_map,
             "Lager": self._render_storage,
             "Kaserne": self._render_barracks,
+            "Stellmacher": self._render_stellmacher,
+            "Diebesgilde": self._render_diebesgilde,
             "Marktplatz": self._render_market,
             "Gilde": self._render_guild,
             "Nachrichten": self._render_messages,
@@ -3840,6 +3918,15 @@ class NebelseetalApp:
         if siedlung is None or feld is None:
             return
         name = gelaende.gebaeude_name(gebaeude_key)
+        # Daniel 30.10.2026: hoechstens ZWEI Bibliotheken je Spieler (eine je Karte). Eine zweite
+        # anderswo ist ausdruecklich erlaubt (dort sammeln sich die Rohstoffe besser), eine dritte
+        # nicht; die erste im Startdorf darf weg, sobald die zweite steht.
+        if str(gebaeude_key).lower().startswith("bibliothek"):
+            vorhanden = bibliotheken_im_spiel(self.state.settlements)
+            if vorhanden >= BIBLIOTHEK_OBERGRENZE:
+                self._log(f"Es sind höchstens {BIBLIOTHEK_OBERGRENZE} Bibliotheken möglich — "
+                          "eine je Karte, eine dritte nicht. Reisse zuerst eine ab.")
+                return
         if gebaeude_key == "verteidigungswall" and self.state._lokale_kasse_aktiv():
             self._log("Wall belegt kein Baufeld: im Dorfzentrum 'Wall errichten' waehlen.")
             return
@@ -3889,6 +3976,7 @@ class NebelseetalApp:
         siedlung.bauten = bau_probe.bauten
         siedlung.stufen = bau_probe.stufen
         self._log(f"{name} gebaut — {meldung}")
+        self._menue_auffrischen()
         # astra-Nachprüfung 05.10.2026: „Nach dem Bau bleibt dasselbe Feld ausgewählt und das
         # Panel wechselt zur Gebäudeansicht." Vorher löschte das Spiel hier die Auswahl — der
         # Spieler sah nach dem Bauen kein Ergebnis, nur die Statuszeile.
@@ -3920,6 +4008,15 @@ class NebelseetalApp:
                 self._log(risiko[0])
                 return
         # Handbuch: Abriss nach Bestaetigung, keinerlei Erstattung.
+        # Daniel 30.10.2026: Die Bibliothek ist essenziell — die LETZTE darf nicht abgerissen
+        # werden. Eine zweite woanders bauen und dann die erste abzureissen ist erlaubt.
+        if str(gebaut) == "bibliothek":
+            _bibliotheken = sum(1 for _s in self.state.settlements
+                                for _v in ((_s.bauten or {}).values()) if str(_v) == "bibliothek")
+            if _bibliotheken <= 1:
+                self._log("Die letzte Bibliothek kann nicht abgerissen werden — ohne sie gibt es "
+                          "keine Forschung. Baue erst eine zweite, dann kannst du diese abreissen.")
+                return
         # Ohne root wird der Weg auch in kopflosen Regeltests nutzbar.
         if getattr(self, 'root', None) is not None:
             from tkinter import messagebox
@@ -3929,6 +4026,7 @@ class NebelseetalApp:
                 return
         siedlung.bauten.pop(str(feld), None)
         siedlung.stufen.pop(str(feld), None)
+        self._menue_auffrischen()
         self._log(f"{gelaende.gebaeude_name(gebaut)} auf Feld {feld} abgerissen "
                   f"(keine Erstattung der Baustoffe — das Handbuch nennt keine).")
         self.karten_feld = None
@@ -6009,14 +6107,36 @@ class NebelseetalApp:
         return True
 
     def _render_barracks(self):
-        tk.Label(self.content, text="Kaserne", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
-        tk.Label(self.content, text="Ausgebildet wird auf der Siedlungskarte (W4b-5): Kriegerakademie "
-                                    "für Kampfeinheiten, Diebesgilde für Kundschafter, Stellmacher für "
-                                    "Karren und Belagerungswaffen. Steht die Stätte nicht, fehlt hier "
-                                    "die Schaltfläche — die Stufe der Stätte bestimmt das Tempo.",
+        """Kaserne = Truppen der Kriegerakademie (Vorgabe Daniel 30.10.2026).
+
+        Daniel: "Truppen werden in der Kriegerakademie ausgebildet" — Karren und
+        Belagerungswaffen gehoeren in den Stellmacher, Kundschafter in die Diebesgilde.
+        Bis zum 30.10.2026 listete diese Ansicht ALLE 28 Einheiten; deshalb standen Handkarren
+        in der Truppenausbildung, obwohl `data/units.json` sie dem Stellmacher zuordnet.
+        """
+        self._render_ausbildung("Kriegerakademie", "Kaserne")
+
+    def _render_stellmacher(self):
+        """Stellmacher: Karren und Belagerungswaffen. Menuepunkt erst ab gebautem Stellmacher."""
+        self._render_ausbildung("Stellmacher", "Stellmacher")
+
+    def _render_diebesgilde(self):
+        """Diebesgilde: Kundschafter. Menuepunkt erst ab gebauter Diebesgilde."""
+        self._render_ausbildung("Diebesgilde", "Diebesgilde")
+
+    def _render_ausbildung(self, staette: str, titel: str):
+        tk.Label(self.content, text=titel, font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
+        tk.Label(self.content, text=f"Ausgebildet wird auf der Siedlungskarte (W4b-5). Hier stehen "
+                                    f"ausschliesslich die Einheiten der {staette}; die Stufe des "
+                                    "Gebaeudes bestimmt das Tempo. Steht die Stätte nicht, fehlt "
+                                    "die Schaltfläche und der Grund steht daneben.",
                  fg="#C0C0C0", bg=self.skin["bg"], wraplength=780,
                  justify=tk.LEFT).pack(anchor=tk.W, padx=10)
+        _angezeigt = 0
         for key, u in self.state.units.items():
+            if str((einheiten.alle().get(key) or {}).get("gebaeude") or "") != staette:
+                continue
+            _angezeigt += 1
             frame = tk.Frame(self.content, bg=self.skin["panel"])
             frame.pack(fill=tk.X, padx=10, pady=2)
             _bild = self._lade_icon(UNIT_ICONS.get(key, ""))
@@ -6067,6 +6187,9 @@ class NebelseetalApp:
                 _fehlt = gelaende.gebaeude_name(_staette) if _staette else "Ausbildungsstätte unbekannt"
                 tk.Label(frame, text=f"braucht {_fehlt}", fg="#e53935",
                          bg=self.skin["panel"]).pack(side=tk.RIGHT, padx=5)
+        if _angezeigt == 0:
+            tk.Label(self.content, text=f"Keine Einheit wird in der {staette} ausgebildet.",
+                     fg="#FDBA74", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=8)
 
     def _ausbildungs_hindernis(self, key: str) -> tuple:
         """Was der Ausbildung im Weg steht — Forschung oder Ausrüstung (Vorgabe Daniel 05.10.2026).

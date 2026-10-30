@@ -288,7 +288,13 @@ def verbrauchen(ort: dict, kosten: dict, jetzt: float) -> dict:
     """
     neu = copy.deepcopy(ort)
     if not bezahlbar(neu["vorraete"], kosten):
-        raise ValueError("Lokales Lager reicht nicht.")
+        # Daniel 30.10.2026: Die alte Meldung sagte nur "Lokales Lager reicht nicht." - bei
+        # 1.137 Nahrung im Ort las der Spieler das als Anzeigefehler. Jetzt steht da, WELCHER
+        # Rohstoff fehlt und um wieviel (Beispiel: "holz fehlt 62.80 (37.20 von 100)").
+        import fehlbestand
+        fehlt = fehlbestand.fehlbestand(neu["vorraete"], kosten)
+        raise ValueError("Lokales Lager reicht nicht: "
+                         + fehlbestand.text(fehlt, neu["vorraete"], kosten))
     for r, m in kosten.items():
         v = neu["vorraete"].get(r, 0)
         importiert = neu["importiert"].get(r, 0)
@@ -464,7 +470,11 @@ def ausbildung_start(ort: dict, name: str, forschung: dict, jetzt: float) -> dic
         raise ValueError("Unbekannte Einheit: " + str(name))
     voraus = eintrag.get("voraussetzung") or {}
     if voraus and forschung.get(voraus.get("forschung"), 0) < voraus.get("stufe", 0):
-        raise ValueError("Einheitenforschung fehlt.")
+        # Daniel 30.10.2026: "Einheitenforschung fehlt" sagt nicht, welche - beim Siedlerkarren
+        # ist es Wagenbau. Die Meldung nennt jetzt Name, Soll- und Ist-Stufe.
+        raise ValueError(
+            f"Einheitenforschung fehlt: {voraus.get('forschung')} Stufe {voraus.get('stufe', 0)} "
+            f"(erreicht: {forschung.get(voraus.get('forschung'), 0)}).")
     geb = gelaende.finde_gebaeude(str(eintrag.get("gebaeude") or ""))
     stufe = gebaeude_wirkung.gebaeude_stufe(ort, geb)
     if stufe <= 0:

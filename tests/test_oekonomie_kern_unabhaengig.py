@@ -1,6 +1,13 @@
 # -*- coding: ascii -*-
 """Unabhaengige Nachpruefung des oekonomischen Kerns (EIGENE Rechenwege).
 
+HISTORISCH - NICHT MEHR IM SAMMELLAUF (30.10.2026):
+Dieser Block rechnet mit einem 8x7-Kartenraster (56 Felder) und bricht deshalb seit der
+Umstellung auf die 127 Originalkarten (10x10, 100 Felder) mit `KeyError: 'kartenmass'` ab.
+Die Datei bleibt als Zeitzeugnis stehen (Vorgaengerarbeit wird nicht geloescht); den Dienst
+im Sammellauf uebernimmt der fachliche Nachfolger
+`tests/test_oekonomie_kern_10x10_nachfolger.py` (97 Pruefungen, 0 Fehler, 4 Befunde).
+
 Dieses Skript glaubt dem Koordinator NICHT: es liest die Daten selbst
 (data/gelaende.json, data/buildings.json, data/spieloekonomie.json und den
 Entwurfstext) und rechnet Kontingente, Achsen und Schattenpreis mit eigenem

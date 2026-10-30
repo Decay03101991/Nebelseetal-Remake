@@ -277,9 +277,13 @@ def app_probe_mit_tor():
         app = M.NebelseetalApp(root, tor_pfad=pfad)
         app._build_main_ui()
         root.update()
-        check("nach dem Tor baut sich das Hauptfenster auf (17 Menuepunkte)",
-              len(getattr(app, "menu_buttons", {})) == len(M.MENU_ITEMS),
-              str(len(getattr(app, "menu_buttons", {}))))
+        # 30.10.2026: Die Menueleiste ist seit Daniels Vorgabe DYNAMISCH - sie zeigt nur, was
+        # freigeschaltet ist (Forschung erst ab Bibliothek, Kaserne erst ab Kriegerakademie).
+        # Die Wache vergleicht deshalb gegen DIESELBE Quelle (`menu_sichtbar`) statt gegen eine
+        # feste 17. Die Zusage bleibt: nach dem Tor steht die fertige Leiste.
+        check("nach dem Tor baut sich das Hauptfenster auf (Menueleiste vollstaendig)",
+              list(getattr(app, "menu_buttons", {})) == M.menu_sichtbar(app.state.settlements),
+              f"{len(getattr(app, 'menu_buttons', {}))} Knoepfe: {sorted(getattr(app, 'menu_buttons', {}))}")
         check("die Statuszeile ist vorhanden und gefüllt",
               bool(app.lbl_status.cget("text")) and app.lbl_status.winfo_reqheight() > 12,
               f"'{app.lbl_status.cget('text')[:30]}' / {app.lbl_status.winfo_reqheight()} px")

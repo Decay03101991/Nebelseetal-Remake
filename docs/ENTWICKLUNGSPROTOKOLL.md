@@ -569,3 +569,34 @@ vollstaendige E2E-Freigabe - die Uebernahme ist Code, nicht Freigabe.
 **Eigene Fehler in diesem Schritt:** zwei Sperrmeldungen im Spielstand als "doppelte Buchfuehrung"
 gedeutet - falsch, `_reichsanzeige_aus_orten()` (`main.py:1008`) schreibt die Reichswerte als Summe
 der Orte ("niemals eine zweite Kasse"). Nach dem Nachlesen im Code zurueckgenommen.
+
+
+## HERMES-UI-01 - 30.10.2026 - Gebaeude-Menues, ehrliche Sperrmeldungen, Original-Oberflaeche
+
+**Auftrag Daniel 30.10.2026:** "Ab dem Moment wo man einen Stellmacher gebaut hat, sollte links im
+Menue auch ein Stellmacher auftauchen ... Forschung soll als Menuepunkt erst existieren sobald eine
+Bibliothek errichtet wurde ... Truppen werden in der Kriegerakademie ausgebildet ... Das gehoert
+grundsaetzlich ueberarbeitet." Ausserdem: "wir haben mittlerweile so viele kleine Eindruecke und
+Screens und Bilder von Original-Quellen, dass wir vieles daraus erschliessen muessen."
+
+| Zeit | Schritt | Ergebnis / Belege |
+|---|---|---|
+| 23:00 | Ursache des Handkarren-Aergers GEMESSEN (nicht geraten) | `ausbildung_start` mit Daniels echtem Spielstand aufgerufen: bei 37,2 Holz abgelehnt, bei 475,2 Holz angenommen (100 Holz + 1 Siedler, 20 min). Es fehlte **Holz**, nicht Lagerkapazitaet. Siedlerkarren abgelehnt: **Wagenbau Stufe 1 fehlt** |
+| 23:05 | Sperrmeldungen nennen jetzt das Fehlende | `spieloekonomie.verbrauchen` -> "Lokales Lager reicht nicht: holz fehlt 62.80 (37.20 von 100)"; `ausbildung_start` -> "Einheitenforschung fehlt: Wagenbau Stufe 1 (erreicht: 0)." Baustein `src/fehlbestand.py` (Kind-Lieferung, 12+ Pruefungen) |
+| 23:15 | Menueleiste ist jetzt DYNAMISCH | `menu_sichtbar()` als EINE Quelle: Kaserne erst mit Kriegerakademie, Forschung erst mit Bibliothek, Stellmacher/Diebesgilde mit ihrem Gebaeude. `MENU_ITEMS` bleibt die belegte Original-Liste (17 Eintraege, unveraendert) |
+| 23:20 | Ausbildung nach Gebaeude getrennt | `_render_ausbildung(staette, titel)`: Kaserne = 9 Kampfeinheiten der Kriegerakademie, Stellmacher = Karren + Belagerungswaffen (13), Diebesgilde = Kundschafter (6). Vorher listete die Kaserne ALLE 28 Einheiten - daher standen Handkarren in der Truppenausbildung |
+| 23:25 | Bibliothek-Regeln nach Daniels Ansage | hoechstens ZWEI Bibliotheken je Spieler (`BIBLIOTHEK_OBERGRENZE`), eine je Siedlung (data: max_je_siedlung=1); die letzte laesst sich nicht abreissen, eine zweite anderswo schon |
+| 23:40 | Alter Oekonomie-Test abgeloest | Nachfolger `tests/test_oekonomie_kern_10x10_nachfolger.py`: **97 bestanden, 0 Fehler, 4 Befunde**; der alte 8x7-Test bleibt als Zeitzeugnis im Projekt, ist aber nicht mehr im Sammellauf (Kopf der Datei sagt warum) |
+| 23:50 | Neue Wache | `tests/test_gebaeude_menue_und_meldungen.py`: **26 bestanden, 0 Fehler** |
+| 00:05 | Original-Oberflaeche ausgewertet | `docs/quellen/ORIGINAL_UI_BEFUNDE.md`: zwei GameStar-Screenshots gelesen. Befund: im Original gibt es ZWEI Navigationsebenen ("Uebersicht" und "Siedlung") mit derselben Leiste; Reiter Siedlungsuebersicht/Produktion/Verteidigung; rote Lagerbalken unter jedem Rohstoff (= Speicherkapazitaet, die unser Code gar nicht kennt); Portal mit 20x20-Gitter und Koordinaten (15-18--9) |
+| 00:10 | Sammellauf | **58 gruen / 1 rot / 59 Dateien, 659 s**. Rot war `test_tor.py` mit "17 Menuepunkte": die Wache kodierte die ALTE feste Leiste. Umgestellt auf `menu_sichtbar()` (Zusage bleibt), danach einzeln **61 bestanden, 0 Fehler** |
+
+**Eigene Fehler in diesem Schritt:** den Sammellauf zuerst waehrend einer parallelen npm-Installation
+laufen lassen - `test_tor` brauchte 80 s statt 19 s. Ergebnis war trotzdem echt, aber die Laufzeit
+war nicht belastbar. Ausserdem war meine erste Fassung des Abriss-Tests falsch aufgebaut (Feld 1
+war eine Farm, nicht die Bibliothek) - der Test hat es selbst gemeldet.
+
+**Offen und ehrlich:** das starke Modell (`deepseek-v4-pro`) haengt seit 23:00 in "finishing an
+interrupted source update / Preparing Node dependencies" fest; der Entwurf
+`docs/ENTWURF_AUSBILDUNG_HERSTELLER_20261030.md` existiert deshalb noch NICHT. Die Umsetzung oben
+ist ohne ihn entstanden, aus Daniels Ansagen und den Original-Belegen.
