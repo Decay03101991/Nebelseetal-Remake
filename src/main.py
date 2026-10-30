@@ -587,8 +587,11 @@ MENUE_BEDINGUNG = {
     "Diebesgilde": "diebesgilde",
 }
 
-# Daniel 30.10.2026: hoechstens ZWEI Bibliotheken je Spieler - eine je Karte. Eine zweite
-# anderswo ist erlaubt (dort sammeln sich die Rohstoffe besser), eine dritte nicht.
+# Vorgabe Daniel 30.10.2026: hoechstens ZWEI Bibliotheken je Spieler - eine je Karte.
+# ACHTUNG, Abgleich 30.10.2026: Das Handbuch setzt diese Gesamtgrenze NICHT. Es sagt woertlich
+# (Spielanleitung 2009, Seite 12): "In jeder Siedlung kann nur eine einzige Bibliothek gebaut
+# werden." - also eine je Siedlung, ohne Obergrenze ueber das Spiel. Daniels Zwei-Grenze ist
+# damit STRENGER als das Original und bleibt als seine Entscheidung stehen, bis er sie kippt.
 BIBLIOTHEK_OBERGRENZE = 2
 
 
