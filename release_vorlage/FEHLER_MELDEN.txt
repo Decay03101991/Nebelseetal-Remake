@@ -1,0 +1,13 @@
+NEBELSEETAL REMAKE - SO MELDEST DU TESTFEHLER
+
+GitHub: https://github.com/Decay03101991/Nebelseetal-Remake/issues
+
+Bitte angeben:
+- Windows-Version und 64-Bit/ARM-Angabe; grobe RAM-/Display-Konfiguration
+- Versionsname und SHA256 der getesteten EXE
+- Genaue Schritte, erwartetes und beobachtetes Verhalten
+- Screenshots ohne Passwort/andere private Daten
+- Trat der Fehler erneut auf? (ja/nein)
+
+KEINE Passwoerter, Zugangstokens, private Spielstaende oder persoenliche
+Daten in oeffentliche GitHub-Issues kopieren.

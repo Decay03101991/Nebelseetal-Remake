@@ -1,0 +1,26 @@
+NEBELSEETAL REMAKE - SYSTEMANFORDERUNGEN (vorlaeufig)
+Stand: 28.10.2026 | Oeffentliche Windows-Testversion | KEIN finaler Release
+
+NACHGEWIESENE TESTUMGEBUNG
+- Windows 11 Home, 64 Bit (Build 26300)
+- Intel 64-Bit-Prozessor, etwa 2,3 GHz
+- Rund 12 GB Arbeitsspeicher
+- Bildschirm mit mindestens 1024 x 720 nutzbarer Fensterflaeche fuer das Spiel
+- Eine eigens auf Windows erstellte EXE lief auf diesem System.
+
+VORLAEUFIGE ORIENTIERUNG FUER TESTER (KEIN VALIDIERTER MINDESTWERT)
+- Windows 11, 64 Bit empfohlen / bislang als funktionsfaehig bestaetigt
+- 8 GB RAM als vorsichtige Testempfehlung, nicht durch Messungen abgesichert
+- 64-Bit-Prozessor (Intel/AMD), ausreichend freier Hauptspeicher
+- 1366 x 768 oder groessere Anzeige empfohlen; ggf. Windows-Skalierung pruefen
+- Mindestens 1 GB freier Speicherplatz als Reserve empfohlen; genaue
+  Download-/Entpackgroesse richtet sich nach der erzeugten EXE
+
+Nicht verifiziert: Windows 10, Windows auf ARM, 4 GB RAM, kleine Displays,
+sehr langsame Geraete oder laengeres Spielen unter Dauerlast. Die eigentlichen
+Mindestanforderungen koennen erst nach Tests auf weiteren Rechnern festgelegt werden.
+
+Die fertige Windows-EXE soll ohne Python-Installation starten.
+Kein Internetzugang fuer das eigentliche lokale Spiel erforderlich.
+Die EXE kann bei unbekanntem Herausgeber einen SmartScreen-Hinweis ausloesen;
+pruefe Herkunft und Pruefsumme und umgehe Sicherheitswarnungen nicht blind.

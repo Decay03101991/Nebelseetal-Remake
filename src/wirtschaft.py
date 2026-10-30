@@ -63,7 +63,7 @@ def _zahl_text(zahl) -> str:
 # 1. Ertrag einer Siedlung
 # --------------------------------------------------------------------------
 
-def siedlung_ertrag(siedlung) -> dict:
+def siedlung_ertrag(siedlung, forschung_level=None) -> dict:
     """
     Stuendlicher Ertrag EINER Siedlung als {Rohstoff: Menge_pro_Stunde}.
 
@@ -76,6 +76,14 @@ def siedlung_ertrag(siedlung) -> dict:
     Ergebnis-dict unter dem Schluessel ``UEBERSPRUNGEN`` (Liste); die Liste ist leer, wenn
     nichts uebersprungen wurde.
     """
+    # Nur die Produktion des konkreten Gebaeudes wird erforscht; diese Quelle
+    # dokumentiert zwei Ausnahmen: Jaeger komplett, Rinderfarm nur Nahrung.
+    # Das verhindert einen unberechtigten globalen Bonus im gemischten Lager.
+    def effektive_rate(geb_id, roh, menge):
+        if not forschung_level or geb_id == "jaeger" or (geb_id == "rinderfarm" and roh.lower() == "nahrung"):
+            return menge
+        return menge * bonus_system.get_production_multiplier(forschung_level, roh.lower())
+
     ergebnis: dict = {}
     uebersprungen: list = []
     ergebnis[UEBERSPRUNGEN] = uebersprungen
@@ -127,13 +135,13 @@ def siedlung_ertrag(siedlung) -> dict:
 
         if isinstance(ertrag, dict):
             for roh, menge in ertrag.items():
-                ergebnis[roh] = ergebnis.get(roh, 0) + menge
+                ergebnis[roh] = ergebnis.get(roh, 0) + effektive_rate(geb_id, roh, menge)
         else:
             roh = _rohstoff_von(geb_id)
             if not roh:
                 uebersprungen.append(f"Feld {feld}: kein Rohstoff zu {geb_id} bekannt")
                 continue
-            ergebnis[roh] = ergebnis.get(roh, 0) + ertrag
+            ergebnis[roh] = ergebnis.get(roh, 0) + effektive_rate(geb_id, roh, ertrag)
 
     return ergebnis
 
@@ -147,6 +155,22 @@ def uebersprungen_von(ertrag: dict) -> list:
 # 2. Summe ueber alle Siedlungen
 # --------------------------------------------------------------------------
 
+# Jolly Rogers Original-Tutorial, Seite 3: 1 Holz und 1 Stein pro Stunde als
+# "Grundeinkommen" ZUSAETZLICH zum Gebaeudeertrag. Das gilt fuer neu angelegte
+# Partien mit den historischen Originalkarten. Die fruehere generierte 8x7-Welt
+# bleibt aus Kompatibilitaetsgruenden unveraendert (Legacy-Bestand nicht migrieren).
+# Die Grundversorgung wird NACH dem Forschungsbonus gebucht, damit eine Forschung
+# auf Holzfaeller/Steinmetze nicht versehentlich das Grundeinkommen vervielfacht.
+ORIGINAL_GRUNDEINKOMMEN = {"Holz": 1.0, "Stein": 1.0}
+
+
+def _ist_neue_originalsiedlung(siedlung) -> bool:
+    karte = _feld(siedlung, "karte")
+    return bool(isinstance(karte, dict) and karte.get("originalkarte_id")
+                and karte.get("spalten") == 10 and karte.get("zeilen") == 10
+                and len(karte.get("raster") or []) == 100)
+
+
 def ertrag_gesamt(siedlungen, forschung_level=None) -> dict:
     """
     Summe des stuendlichen Ertrags ueber mehrere Siedlungen.
@@ -158,14 +182,14 @@ def ertrag_gesamt(siedlungen, forschung_level=None) -> dict:
     """
     gesamt: dict = {}
     for siedlung in siedlungen:
-        teil = siedlung_ertrag(siedlung)
+        teil = siedlung_ertrag(siedlung, forschung_level=forschung_level)
         for roh, menge in teil.items():
             if roh == UEBERSPRUNGEN:
                 continue
-            rate = menge
-            if forschung_level:
-                rate *= bonus_system.get_production_multiplier(forschung_level, roh.lower())
-            gesamt[roh] = gesamt.get(roh, 0.0) + rate
+            gesamt[roh] = gesamt.get(roh, 0.0) + menge
+        if _ist_neue_originalsiedlung(siedlung):
+            for roh, grundrate in ORIGINAL_GRUNDEINKOMMEN.items():
+                gesamt[roh] = gesamt.get(roh, 0.0) + grundrate
     return {roh: round(menge, 2) for roh, menge in gesamt.items()}
 
 

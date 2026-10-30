@@ -589,7 +589,7 @@ def offene_luecken() -> list[str]:
         "Die Kartengroesse 8x7 = 56 Felder mit 40 bebaubaren ist Daniel-Entscheidung ",
         "(05.10.2026); das Handbuch nennt keine Kartengroesse.",
         "Die Kartenfarben in data/gelaende.json sind angenaehert, nicht gemessen "
-        "(docs/audits/astra_wallpaper_antwort.txt).",
+        "(archiv/analysen/audits/astra_wallpaper_antwort.txt).",
         "Die Zuordnung der Gebaeude zu Familien spiegelt die Spalte 'kategorie' aus "
         "data/buildings.json (20 Gebaeude); ein dort neu ergaenztes Gebaeude fehlt hier und "
         "wuerde einen ValueError ausloesen.",

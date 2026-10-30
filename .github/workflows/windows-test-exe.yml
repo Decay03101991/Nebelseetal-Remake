@@ -1,0 +1,38 @@
+# Manueller GitHub-Windows-Testbuild: nur oeffentliche Spielerversion als Artefakt.
+# Admin-Entwicklercode bleibt weiterhin vollstaendig im Git-Repository.
+name: Oeffentliche Windows-Testversion bauen
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows-public-exe:
+    runs-on: windows-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: PyInstaller installieren
+        run: python -m pip install --disable-pip-version-check "pyinstaller>=6.22,<7"
+      - name: Release-Modus und Quellen pruefen
+        run: |
+          python tools/build_public_exe.py --pruefen
+          python tests/test_public_edition_fix04j.py
+      - name: Windows-Testpaket bauen
+        run: python tools/build_public_exe.py
+      - name: EXE pruefen und Paket-Hash anzeigen
+        shell: pwsh
+        run: |
+          $exe = Get-Item .\release_public\Nebelseetal_Remake_Testversion.exe
+          if ($exe.Length -lt 3MB) { throw 'EXE zu klein' }
+          $stream = [IO.File]::OpenRead($exe.FullName)
+          try { if ($stream.ReadByte() -ne 77 -or $stream.ReadByte() -ne 90) { throw 'Kein Windows-PE-Header' } } finally { $stream.Dispose() }
+          Get-Content .\release_public\SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Nebelseetal_oeffentliche_Windows_Testversion_FIX04j
+          path: release_public/Nebelseetal_Remake_Testversion_FIX04j.zip
+          retention-days: 30
+          if-no-files-found: error

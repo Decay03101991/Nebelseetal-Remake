@@ -174,3 +174,398 @@ sie ausgesetzt.
 | 08:32 | **87 · Auftrag „Dorfzentrum als Dashboard und Lager mit Funktion“ aufgenommen (Entwurf, noch nichts gebaut)** | **Daniels Wünsche (06.10.2026, 08:3x)** stehen wörtlich im neuen Papier `docs/AUFTRAG_DORFZENTRUM_LAGER.md`: das **Dorfzentrum** soll die Übersicht der gewählten und ausgebauten **Maps** bieten (nicht erst im Untermenü der einzelnen Karte), **Bauen und Rohstoffgewinnung zentral**, der **Gebäudebau als Dashboard neben die Maps**; der Stil der Knöpfe (Umbenennen/Transport/Gründen) gefällt, die **Gesamtansicht** muss aber angepasst werden, „da es der Dreh- und Angelpunkt ist“. Im **Lager** sind die **Kacheln zu groß und nicht gleichmäßig an ihre Icons angepasst**, und es soll **mehr Funktion** geben („Gesamt lagerbest…“ — die Nachricht bricht hier ab). **Ist-Zustand gemessen statt behauptet:** `_render_overview` (Z. 2614 ff.) ist heute eine Liste mit Knöpfen, `_render_storage` (Z. 3832 ff.) ein Textblock plus **dehnendes 6-Spalten-Raster** (`sticky="nsew"` + `weight=1`, Icons nur halbiert) mit **45 Kacheln** (17 Waren + 28 Einheiten). **Drei offene Fragen an Daniel** (im Papier, Abschnitt 4): der abgebrochene Satz · **Reihenfolge** (Empfehlung: **erst Schritt 10**, weil die Aktivierung die Ortslager von „Übergang“ auf „führend“ umstellt und das Dashboard sonst zweimal gebaut würde) · ob die Bauauswahl ins Dorfzentrum oder **neben** die geöffnete Karte gehört. **Nichts gebaut, nichts geändert** — reine Aufnahme. Kosten: nur `deepseek-v4-flash`. |
 | 08:40 | **88 · Schritt 10 (Teil 1): die EREIGNISUHR im Kern — `ereigniszeiten` und `tick_bis`** | **Entwurf Z. 645-648 und 961-1009 wörtlich:** „Dieser Algorithmus braucht eine neue reine `tick_bis`-Funktion und einheitliche Ereigniskennungen; vor dessen Fertigstellung darf Ökonomiemodus NICHT aktiviert werden. Die einzelnen Rechenfunktionen oben sind unmittelbar einsetzbar, aber ein großer dt ohne Ereignissplitting ist kein gleichwertiger Ersatz.“ **Neu in `src/spieloekonomie.py`:** `ereigniszeiten(orte, missionen, jetzt)` liefert die Spielzeiten der nächsten Ereignisse (Ende einer Ausbildung, Ende eines Forschungsauftrags, fertige Werkstattware, Ankunft/Rückkehr einer Mission — nur Zukünftiges, ein gebuchtes Ereignis zählt nicht mehr); `tick_bis(orte, missionen, wissen, jetzt, ende)` zerlegt einen großen Sprung **in die Spannen, die die Ereignisse vorgeben**, bucht je Spanne `ort_tick`, den Forschungsabschluss je Ort und den Fortschritt je Mission (Eigentransport über `transport_fortschritt`, Fremdvertrag über `handel_abschluss`) und liefert `(orte, missionen, wissen, zeit, ereignisse)` — reine Funktion, der übergebene Zustand bleibt unberührt. **Damit ist die Pflichtzusage des Entwurfs nachgerechnet:** `tick(3600) == 36 × tick(100)` **exakt** — auch wenn eine **Forschung mitten im Fenster** fertig wird (sie wirkt ab ihrem Zeitpunkt auf die Produktion: 4.372222 Holz statt 4.000000, gegen den alten Weg einer einzigen Spanne belegt). **Ehrlich benannter eigener Fehler:** in der ersten Fassung suchte `tick_bis` den Wissensstand **je Besitzer** (`wissen.get(besitzer)`) — unsere Stufenkarte ist aber **flach** (`{Gebiet: Stufe}`, genau die Form, die `main.tick` an `ort_tick` gibt); die Prüfung 13j fand es sofort (Forschung ohne Wirkung). **Vier eigene Prüffehler zusätzlich gefunden und behoben** (doppelte Ereigniszeit in den Testdaten · ein versehentlich doppelt gefahrener Volllauf · zwei Siedlungen mit **derselben** Kennung, dadurch „Start und Ziel sind dieselbe Siedlung“ · eine überladene Karre — 50 Fracht auf 40 Ladeplätze). **Belege:** `test_oekonomie_uhr` **42 → 65 bestanden, 0 Fehler, 0 Befunde** (neu Abschnitt 13: alle vier Ereignisarten · nur Zukünftiges · Zerlegung exakt gleich · **ohne Zerlegung weniger Ertrag** · Stufe wirkt ab dem Ereignis · Ankunft/Rückkehr genau einmal · zweiter Lauf bucht nichts doppelt · Ware und Ausbildung genau einmal · reine Funktion · ehrliche Ablehnungen) · **Sammellauf 4084 bestanden, 0 Fehler, 22 Befunde über 52 Dateien** (4061 + 23 ✔, 98 s). **Noch NICHT angeschlossen:** `main` ruft `tick_bis` noch nicht — heute läuft `GameState.tick` weiter über EINE Spanne. Das ist der nächste Teilschritt (Anbindung), erst danach die **Aktivierung** (Entwurf Z. 1092). Kosten: nur `deepseek-v4-flash`; Tagesstand **0,95 EUR / 4,00 EUR**. |
 | 08:49 | **89 · Schritt 10 (Teil 2): die ORTSSEITE des Spiels faehrt ueber die Ereignisuhr — und die Wachen fanden dabei zwei echte Fehler** | **Was geaendert ist:** `GameState.tick` baut jetzt den transienten Zustand (`{Kennung: asdict(Siedlung)}`) und ruft **`spieloekonomie.tick_bis`** — die Ortseite (Ernte, Werkstattwaren, Ausbildung, Forschung, Siedlerzuwachs) laeuft damit **in Ereignisspannen** statt in einer einzigen Spanne. Die Gesamtsicht (Reich) fuehrt die Zuwaechse wie bisher nach (Differenz vor/nach dem Kern), `self.spielsekunden = _zeit` kommt aus dem Kern zurueck; `levels`/die Ein-Spannen-Buchung in `tick` sind **weg** — im Spiel steht nur noch `tick_bis`, die Zerlegung lebt im Kern (eine Wahrheit). **Die Wachen fanden zwei ECHTE Fehler:** (1) Orte **ohne Kennung** (Testhilfen, Hilfsbauten) fielen still aus dem Takt, weil der neue Weg nach `id` filterte — P27/P28 wurden rot; jetzt bekommt jeder Ort einen Arbeitsschluessel und der Gegenstand selbst wird uebernommen. (2) Ein Takt **ohne Spanne** (`tick(0.0)` nach von aussen gestellter Uhr) buchte **Faelliges** nicht mehr (fertige Werkstattware, abgeschlossener Forschungsauftrag, faellige Ankunft) — genau der Fall, den P27/P28 pruefen; `tick_bis` hat dafuer jetzt die Abrechnung `abrechnen(ab, bis)` und bucht bei `ab == bis` nichts Geerntetes, aber alles Faellige. **Eigener Fehler dabei:** die innere Funktion brauchte `nonlocal` (sonst `UnboundLocalError`) — vom Kern-Test sofort gezeigt. **Drei alte Wachen auf den neuen Anker umgestellt** (P14/P26/P28: die Zusage bleibt — „der Kern ist die Quelle“, „genau einmal“ —, nur der Anker wandert von `ort_tick(...)` auf `tick_bis(...)`; P28 prueft jetzt den echten Aufruf im Kern). **Ehrlich gemessen und benannt:** die **Missionsseite laeuft weiter auf ECHTZEIT** — `transport_an_ort`/`handel_mit_bot` setzen ohne Angabe `jetzt = time.time()`, und `tick` ruft `auftraege_fortschreiben(time.time())`; das ist die naechste Teilscheibe (10 Teil 3: Transporte, Vertraege, Stationieren, Bewegungen und Bots auf **dieselbe** Uhr) — **erst danach** die Aktivierung (Entwurf Z. 1092). **Belege:** `test_oekonomie_uhr` **65/0/0** · `test_oekonomie_einhaengung` **390 → 402/0/1** (neu P33: im Spiel ergibt EIN Takt 3600 s genau so viel wie 36 x 100 s, Forschung wirkt ab ihrem Zeitpunkt — 4.372222 gegen 4.0 beim alten Weg —, Forschungsauftrag abgeschlossen, Uhr und Bevoelkerung gleich, Quelltextwachen) · **Sammellauf 4096 bestanden, 0 Fehler, 22 Befunde ueber 52 Dateien** (4084 + 12 ✔, 100 s). Kosten: nur `deepseek-v4-flash`; Tagesstand **1,0x EUR / 4,00 EUR**. |
+
+## 28.10.2026 — EXTERNE temporäre GPT-Koordination (nicht in Hermes-Hauptbranch integriert)
+
+| 08:30 | **GPT-E01 bis E04 · Arbeitskopie** | Ursprungs-ZIP unverändert, SHA256 `a71d0cdbaad4345c…`; isolierte Behebung der vier nachgewiesenen Fehlergruppen: Orts-/Reichskasse, Fernbuchung, Baukunst, Mehrtagestick. Originalwerte nicht geändert. Keine Git-Commits, keine neue EXE. **Gezielte Abnahme: 37/0**, vorher rot. |
+| 08:30 | **GPT-E05 bis E06 · Save-Schutz, Karren und Diagnose** | `oekonomie_aktiv` zur Erkennung alter unaktivierter V2-Stände; echter Eigenkarren Hinweg/Ankunft/Rückkehr, Test für Save/Load ohne stille Migration. **312 gezielte Prüfungen grün**; historischer Gesamt-Einzeldateilauf **43/52 sauber, 9 rote** (plus 0 nicht parsebar). **Release nicht freigegeben.** Detaillierte Belege: `docs/GPT_TESTBERICHT_28-10-2026.md`. |
+
+| 28.10.2026 09:45 CET | **GPT-W02, externer temporärer Koordinator – Dorfwall in Arbeitskopie integriert** | `src/main.py`: Ortspersistenz, lokale 16/16-Buchung, Forschung, Rahmen + Tor, getrennte Punkte, Legacy getrennt; 15+9+4 = 28 Regel-/Integration-/GUI-Tests grün. Originaldaten unverändert; keine EXE, kein Commit. Quelle: `docs/GPT_WALL_AUDIT_2026-10-28.md`. |
+| 28.10.2026 09:45 CET | **GPT-W03, externer temporärer Koordinator – Bot-Wall und echte Überfallprüfung** | Bots können nicht mehr per bloßer Aktion Reichsvorrat plündern: `kampf.fuehre_schlacht` mit Ortswall/Truppen/Karren, Beute nur bei Angreifersieg; gespeicherter Bot-Wallstatus. 5/0 eigene Tests; unabhängige `test_botkern` 90/0, `test_auftraege` 111/0. `src/main.py`, `tests/test_gpt_wall_bot_kampf.py`. |
+| 28.10.2026 09:45 CET | **GPT-W04, breiter Kontrolllauf und ehrliche Gegenprobe** | 69 Testdateien, 58 grün (3.721 Prüfungen), 11 rot/Timeout; davon zehn im unveränderten Ausgangsstand bereits rot/Timeout, eine Punkte-Prüfdatei nun durch neue Semantik rot. Alte Kartenansicht von 10 auf 11 Befunde. Neue GUI-Probe zuerst wegen Versorgungswarnung rot, mit vorhandenen Rohstoffproduzenten korrekt grün. Kein Release/Windows-Build. Quelle: `docs/GPT_WALL_VOLLLAUF_2026-10-28.json`. |
+
+| 28.10.2026 09:50 CET | **GPT-W05 · externer temporärer Entwickler – veralteten Punktetest fachlich ersetzt** | Alter `tests/test_punkte_einhaengung.py` (60 Fälle, nach neuem Wall 17 rot) bytegleich nach `docs/archiv/` gesichert; neuer echter GUI-/Regeltest **10/10 OK**, deckt zwei Dorfwälle, per-Ort-Punkte, Forschungsupdate, Legacy und Sidebar/Ruhmeshalle ab. Keine Engineänderung. Neuer Volltest durch Ausführungszeitlimit abgebrochen: nur 31 Dateien abgeschlossen, 28 grün, 3 rot; vollständiger Vor-W05-Lauf 58/69; offen: Windows-Gesamtlauf und Build. Beleg: `docs/GPT_WALL_W05_TEILKONTROLLE.md`. Keine Commits; Hermes bleibt Chef. |
+
+| 28.10.2026 10:03 CET | **GPT-WI-01 · ChatGPT (externer Entwicklungsagent) – Warenbild-Zuordnung korrigiert** | Ausgangsbasis GPT-W05 unveraendert gesichert; 6 Original-PNGs **und** 6 vom Spiel bevorzugte `clean/items`-PNGs innerhalb einer separaten Arbeitskopie anhand Daniels Sichtpruefung korrekt zugeordnet. `data/icons_index.json` und `data/icon_map.json` angeglichen; 6/6 neue Tests, Basis-GUI 40/0, Werkstatt 118/0/1, Ausruestung 68/0/1. Originalsprite-Blatt, Einheiten, Spielwerte unveraendert. **Keine EXE, kein Git-Commit, keine Hauptbranch-Aenderung.** Ausfuehrlicher Nachweis: `docs/GPT_WAREN_ICONS_KORREKTUR_28-10-2026.md`. |
+
+| 2026-10-28 09:12 UTC | **GPT-B01: externe GPT-Zuarbeit – Bot-Wall-Zielplanung / ehrliche Kampfmeldungen** | Neues `src/bot_angriffsplanung.py`; `src/main.py` fuehrt Botangriffe nur gegen Orte mit erreichbarer Original-SK-Vorrunde aus, meldet Beute ausschliesslich nach `kampf.fuehre_schlacht` (kein Ergebnis aus Prognose). `tests/test_gpt_bot_angriffsplanung.py`: 16 bestanden. Referenz: `docs/gpt_externe_uebergabe_20261028/PRUEFUNG.md`. Keine Veraenderung von Originalwerten, kein Windows-Build. **Autor: ChatGPT, externer zeitweiliger Entwickler; keine Hermes-Integration/kein Git-Commit.** |
+| 2026-10-28 09:12 UTC | **GPT-B02: externe GPT-Zuarbeit – Bot-Ergebnisidentitaet** | `botkern.bots_tick` sortiert alphabetisch; fruehere `zip`-Zuordnung war falsch. `main.py` koppelt `zug` jetzt ueber eindeutigen Bot-Namen. Reverse-Order-Regression bestanden. 14 gezielte Testdateien zusammen 638 erfolgreiche Einzelkontrollen, voller Gesamtlauf offen. **Autor: ChatGPT, externer zeitweiliger Entwickler; keine Hermes-Integration/kein Git-Commit.** |
+
+| 2026-10-28 10:17 UTC | **GPT-KZ01/KZ02 · ChatGPT, externer temporärer Entwicklungsagent – Karten-Siegfilter / echte Kartenziehung** | In eigener Arbeitskopie: `src/spieloekonomie.py` entkoppelt bei ORIGINAL-10x10 den Wirtschafts-Sieg von historischen Gütegruppen und ehemals für 8x7 geschätzten Mittelwert-/Spezialisten-Schwellen; vier Orte und ALLE echten Versorgungsbedingungen bleiben Pflicht. `kartennutzen` gewichtet nach tatsächlich verfügbaren Gelände-Ertragsachsen, nicht Quelle/Gütekategorie. `src/originalkarten.py` reserviert die Startkarte auch in der optionalen Zufallsziehung, benutzt gleichverteiltes deterministisches `randrange`, liefert mit `ziehchancen` exakt berechenbare Wahrscheinlichkeiten. Manuelle Kartenwahl wurde nicht verändert. Neuer `tests/test_gpt_originalkarten_sieg_neu.py`: **11/11** bestanden; Originalkartenkatalog **1286/1286**; insgesamt 13 gezielte Testdateien, davon 10 grün, **3 bereits im unveränderten GPT-Vorgängerstand rot** (alte 8x7-Annahmen; siehe `docs/GPT_KARTENZIEL_PRUEFUNG.json`). Das Original-Backup blieb nach SHA256-Vergleich unverändert; keine Windows-EXE, kein Commit, keine Releasefreigabe. Kontext: `00_START_HERMES_GPT_KARTENZIEL.md`. Vollständiger Ablauf und offene Aufgaben: `docs/GPT_ENTWICKLUNGSPROTOKOLL_KARTENZIEL_28-10-2026.md`. Hermes bleibt Hauptkoordinator. |
+
+
+| 2026-10-28 11:17 UTC | **GPT-KA01 bis KA06 · ChatGPT, externer zeitweiliger Entwicklungsagent** | Neues Forum-Kampfsystem mit 15 Profilen als einheitliche Remake-Kampflogik; alte Variante gesichert; echten Bot-Beute-Gegeneintrag; alte Tests archiviert und korrekt modernisiert; Bogenschützen fälschlich zur Wall-Nahkampf-SK gezählt — **behoben**. **14 ausgewählte Testdateien grün**, darunter Kampf 36/0 und Integration 42/0; kein gesamter Windows-Release-Test. Siehe `docs/GPT_ENTWICKLUNGSPROTOKOLL_KAMPF_28-10-2026.md`. Kein Git-Commit, Hermes Hauptkoordination. |
+
+| 28.10.2026 | **GPT-ABS01 · ChatGPT (externer Entwickler): weitere Originalwerte fachlich integriert** | Neue Quelle `WeitereWerteKampfsystem.odt` in `docs/quellen/` erhalten. Sieben Kampfwert-Spannen in `src/kampf.py` aktualisiert; Tempel- und Rinderfarm-Ertraege plus Teil-Forschungsboni in `src/wirtschaft.py` und `src/gelaende.py` auf Originaldaten korrigiert. Gilden-Rangwertformel in isoliertem Referenzmodul geprueft, **kein** neuer Multiplayer-Modus. Neue Quelle belegt die Aenderungen, nicht mehr allein die Erinnerung an einzelne Server. Tests: `tests/test_gpt_ne01_origwerte.py` und Nachbarschaft, gemessene Einzelzahlen in `docs/GPT_NE01_TESTERGEBNISSE.json`. Alte irrefuehrende Jaegerbonus-Testannahme angepasst. Kein Windows-Build. Hermes' Hauptbranch unveraendert. |
+| 28.10.2026 | **GPT-ABS02 · ChatGPT (externer Entwickler): portabler lokaler Windows-Testaufbau** | Eigenstaendige Testkopie mit `START_SPIEL_WINDOWS.bat`, `EXE_ERSTELLEN_WINDOWS.bat` und relativem Datenwurzel-Check. `tools/protokoll_sichern.py` benoetigt standardmaessig **keinen** konkreten Laufwerkspfad mehr; Sicherung in Projekt-Geschwisterordner oder explizites Ziel (`NEBEL_PROTOKOLL_ZIEL`, `--ziel`). Neuer Test `tests/test_gpt_portable_uebergabe.py`. In Linux **keine** Windows-EXE gebaut, keinen lokalen Windows-Start vorgetaeuscht. Siehe `TESTEN_UNTER_WINDOWS.md`. |
+| 28.10.2026 | **GPT-ABS03 · ChatGPT (externer Entwickler): optimierte abschliessende Hermes-Chatuebergabe** | Fuehrende Akten getrennt: <4-KB-Startdokument `00_START_HERMES_NEUER_CHAT.md`, kompletter Status `docs/GPT_AKTUELLER_ENTWICKLUNGSSTAND_2026-10-28.md`, unabhaengige Testbelege `docs/GPT_ABSCHLUSS_TESTERGEBNISSE.json`, Skills-Vorschlaege `docs/GPT_HERMES_SKILL_LERNREGELN_2026-10-28.md`. Alte Hermes-Git-Geschichte und Sicherungen unveraendert; offene P0-Aufgaben und Bot-Chat-P3 sichtbar; kein Release. |
+| 28.10.2026 | **GPT-ABS04 · ChatGPT (externer Entwickler): gezielter Regressionstest und Bauvoraussetzungen** | `tools/gpt_abschluss_tests.py` protokolliert 21/21 gruen abgeschlossene Testdateien, 989 einzeln bezifferbare Kontrollen (nicht jede Datei gibt Einzelzahlen aus), 0 rote in dieser Auswahl; `docs/GPT_ABSCHLUSS_TESTERGEBNISSE.json`. Zusaetzliche Windows-EXE-Voraussetzungen mit `tools/build_exe.py --pruefen` erfolgreich; 6/6 Build-Vorpruefungsdateien unter virtueller Linux-GUI. **Kein Windows-Build, kein gesamter alter Testsatz, keine Releasefreigabe.** |
+| 28.10.2026 | **GPT-ABS05 · ChatGPT (externer Entwickler): Testspielstaende vom Hauptkonto getrennt** | `src/main.py` akzeptiert `NEBEL_SPIELDATEN_ORDNER` fuer Admin-Testwelt und normale Testslots; nur in der Testfassung wird dies durch `START_SPIEL_WINDOWS.bat` und `START_EXE_TEST_WINDOWS.bat` vorgegeben. Das bestehende Grundpasswort `tor.STANDARD_PFAD` bleibt unabhaengig davon erhalten. **Direkter** EXE-Doppelklick ohne Testwrapper nutzt den normalen Speicherpfad: fuer lokale Tests Wrapper verwenden. `tools/admin_einrichten.py` respektiert die Test-Umgebungsvariable. Regression in `tests/test_gpt_portable_uebergabe.py`. Keine Freigabe, kein Windows-EXE-Build. |
+| 28.10.2026 | **GPT-ABS06 · ChatGPT (externer Entwickler): Gesamt-ZIP / Testfassung / Hermes-Aenderungsdelta** | Aktuelle Arbeitskopie als eigene ZIP und zusaetzlich kumulatives Gesamtpaket mit unveraendertem Hermes-Original-ZIP, getrennten technischen Diffs und optimierter Uebergabe erstellt. SHA256-Listen/ZIP-Integritaet in der Paketuebergabe. **Kein Import in Hermes Hauptbranch und kein Git-Commit.** Weitere Schritte und Blocker in `docs/GPT_AKTUELLER_ENTWICKLUNGSSTAND_2026-10-28.md`. |
+
+| 28.10.2026 | **GPT-FIX01 · Externer ChatGPT-Entwicklungsagent: historische Tests an das reale Ortslagermodell angeglichen** | **Ausschließlich isolierte GPT-Testfassung, kein Hermes-Commit oder GitHub-Push.** Nach unabhängigem 88-Dateien-Screening (74 bestanden / 13 rot / 1 Timeout; vorheriger Prüflauf) die Tests `tests/test_ertrag_anbindung.py` (18/3 -> **22/0**), `tests/test_spielzeit.py` (19/5 -> **24/0**) und `tests/test_spielschicht.py` (132/1 -> **133/0**, 1 bereits bekannter Befund) vorsichtig modernisiert. Ursache: alte Tests manipulierten die nur abgeleitete Reichsanzeige statt der führenden Ortslager oder verlangten das entfallene 8×7-Raster. **Keine produktiven Wirtschaftsfunktionen oder Originalwerte geändert.** Neu `tests/test_gpt_fixrunde_ortslager_zeit_20261028.py`: **5/5** echte Start-, Produktion-, Buchungs-, Save/Load-Regressionen. `test_spielzeit.py` liefert jetzt bei Fehlern korrekt Exit-Code 1. Nachbarschaft: 16/17 ausgewählte Testdateien direkt grün; der 17. GUI-Kampftest zunächst mangels DISPLAY rot, mit `xvfb-run` **7/7** grün. Kein neuer Gesamtlauf, weiterhin 10 historische rote Testdateien und ein GUI-Timeout aus dem letzten 88er-Lauf als **offen**, nicht still als grün umgedeutet. Weitere Informationen und genaue Grenzen: `docs/GPT_FIXRUNDE_2026-10-28.md`, `docs/GPT_FIXRUNDE_TESTERGEBNISSE.json`. **Keine Windows-EXE, keine Releasefreigabe.** |
+
+
+---
+
+## GPT-KONSOLIDIERUNG-01 – 28.10.2026 – EINZIGE AKTIVE ORDNER-/DOKUMENTENFASSUNG
+
+**Ausfuehrender Agent:** ChatGPT auf ausdruecklichen Nutzerauftrag, Aenderungen „als waerst du Hermes“ strukturell umzusetzen. **Technischer Geltungsbereich:** ausschliesslich die neue, separate konsolidierte Arbeitskopie auf Basis der GPT-Testfassung nach FIX01. Weder Daniels lokale Originale noch GitHub wurden veraendert. Hermes ist nach Wiederaufnahme fuer Abgleich, Freigabe und GitHub-Pflege verantwortlich.
+
+**Ausgangsstand:** Quellcode-/Spieldaten aus `Nebelseetal_GPT_Testfassung` nach der FIX01-Testbereinigung; Hermes-Altstand aus `01_BASELINE/Nebelseetal_Remake_UNVERAENDERT.zip`. Neuere, seit Upload erfolgte Original-Arbeiten auf Daniels Windows-Rechner konnten nicht geprueft werden. Kein Release.
+
+**Durchgefuehrte technische Aenderungen:**
+
+- Aktiver Quellcode `src/`, Spieldaten `data/`, aktive Bilder `assets/`, Tests `tests/`, Werkzeuge `tools/` als EIN Spielkern vereinheitlicht. `src/*.py`-Spiellogik nicht inhaltlich geaendert.
+- Historische 00_START-Hermes-Einstiege, fruehere Versionsprotokolle, doppelte Status- und GPT-Berichte sowie Audits, alte Screenshots, Quarantaene und Zwischenausgaben in `archiv/` verschoben; **ein aktives `docs/ENTWICKLUNGSPROTOKOLL.md`** inklusive unveraenderter frueherer Eintraege.
+- 87 logische Datei-/Verzeichnisumzuege in `archiv/manifeste/ORDNER_UMZUGSPLAN.json` einzeln verzeichnet, inklusive Grund.
+- Icon-Schnittvorlagen nach `assets/quellbilder/einheiten/` und `assets/quellbilder/waren/`, Originaltitelbild und Originalsymbol nach `assets/quellbilder/`; Pfade in `tools/slice_icons.py`, `tests/test_gpt_waren_icons.py`, `tests/test_loadingpage.py`, `tests/test_exe_symbol.py` korrigiert. Keine veraenderten Bildbytes; Inventar mit SHA-256.
+- Testvorlagen nach `tests/vorlagen/` und zugehoerige Vorpruefung aktualisiert; Bildvorschauwerkzeuge in `tools/` schreiben neu in den Archiv-Vorschaubereich. Kommentare mit Historien-Links unter `archiv/analysen/audits/` angepasst.
+- Neues `README.md`, `START_HIER.txt`, `docs/AKTUELLER_STAND.md`, `docs/ORDNUNG.md`, `docs/BILDINVENTAR.md`, `docs/BAUMENUE_ABGLEICH.md`, `docs/BESUCHER_STATUS.md`, `docs/SPIEL_TESTEN.md`, `docs/HERMES_UEBERGABE_AKTUELL.md`; alle zentral und gegeneinander verlinkt.
+- Historischer Hermes-Hauptstand als separate **bereinigte** Archiv-ZIP unter `archiv/altstaende/` konserviert (entfernt wurden .git, alte EXEs sowie erkannte Passwort-/Savegame-/Sicherungsartefakte; Einzelheiten unter `archiv/manifeste/BASELINE_AUSGESCHLOSSENE_DATEIEN.json`). Stand umfasst 760 archivierte Dateien. Die Ursprungs-ZIP und die echte Git-Historie werden **nicht** ersetzt.
+- `START_SPIEL_WINDOWS.bat`, `START_EXE_TEST_WINDOWS.bat` halten Testdaten neuer Arbeitsfassung getrennt in `KONSOLIDIERT_20261028`; `Nebelseetal_Remake.bat` startet nun kontrolliert den aktuellen Quellcode statt einen unklaren Alt-Build. EXE-Buildhilfe auf vorhandenes `docs/WEG_ZUR_EXE.md` korrigiert.
+- `.gitignore` um lokales Archiv, Passwortdateien, Spielstaende, EXE- und Buildartefakte erweitert. **Eine .gitignore entfernt keine Geheimnisse aus vorhandenen Git-Commits oder aus schon versionierten Dateien.** Vor oeffentlicher Verteilung sind manueller Geheimnis-/Rechtecheck und Git-HEAD-Abgleich Pflicht.
+- Historischen Screenshot `docs/nebelseetal_gamestar2.jpg` belassen, historische Bauauswahl in `docs/BAUMENUE_ABGLEICH.md` analysiert. Der Screenshot ist eine **Referenz** und derzeit nicht als eigenes Baumenue nachgebildet. Hier **keine** neue Baumenue-Spielfunktion behauptet.
+- `assets`-Bildinventar mit Hinweis auf potentielle statisch nicht referenzierte Dateien und exakten Byte-Duplikatgruppen erstellt. Keine Grafiken allein anhand einer Wortsuche geloescht.
+
+**Unveraendert offen:** alte fehlgeschlagene Wirtschafts-/Bau-/Handels-/GUI-Tests, kompletter End-to-End- und Windows-EXE-Test, Bot-Wirtschaft und Belagerung, 25 optisch unbestätigte Kartenraster, historische Bauoberflaeche. GPT-FIX01 selektive Testergebnisse sind nicht mit einer vollstaendig gruenen Testsuite gleichzusetzen.
+
+**Naechster Schritt fuer Hermes:** aktuelles echtes Git mit dieser konsolidierten Kopie vergleichen, Pfadmigration und Build auf Windows pruefen; danach gezielter Merge und eigener Commit, erst nach Sicherheitspruefung GitHub aktualisieren. Keine parallelen Chroniken einfuehren. Testergebnisse dieser Ordnungsrunde werden im anschliessenden Abschnitt dokumentiert.
+
+
+### GPT-KONSOLIDIERUNG-02 – 28.10.2026 – Nutzer-Erweiterung: Dokumenteninventar und Windows-EXE
+
+**Aktion:** Alle textbasierten Projekt-, Original- und Archivdokumente mit Textextraktion/Titel, Groesse, SHA-256 und Ablageklasse inventarisiert (`archiv/manifeste/DOKUMENTE_VOLLINVENTAR.json`), Quellen- und Prioritaetenuebersicht geschrieben (`docs/QUELLEN_UND_DOKUMENTE.md`). Historische und aktuelle Dokumente bleiben bewusst getrennt. Eine falsch etikettierte `docs/original/Nebelseetal_Spielanleitung_2009.odt` wurde nach SHA-Vergleich in `archiv/dokumentation/duplikate_falschbenannt/` verschoben (war PDF und bytegleich zur kanonischen PDF). **Neuer inhaltlicher Befund:** Die Handbuch-PDF heisst `...2009`, traegt innen aber das Datum **01.09.2006**. Keine Aussage, dass alle alten Einzelaussagen manuell verifiziert worden sind.
+
+**Aktion:** Neue Windows-Buildhilfe `EXE_NEUESTEN_STAND_BAUEN.bat` als deutlichen Einstieg, `docs/WINDOWS_EXE_HERSTELLUNG.md` mit Test- und Freigabehinweisen, und optionaler manueller GitHub-Actions-Workflow `.github/workflows/windows-test-exe.yml` fuer den Windows-Build. `README.md`, `START_HIER.txt`, `docs/AKTUELLER_STAND.md`, `docs/ORDNUNG.md` und **einzige** `docs/HERMES_UEBERGABE_AKTUELL.md` auf neuen Stand gebracht.
+
+**EXE-Status:** In der Linux-Arbeitsumgebung war eine aktuelle Windows-EXE weder herstellbar noch unabhaengig testbar. **Es wurde keine Windows-EXE als fertig ausgegeben.** Ein alter Build aus dem Nutzer-Ursprungsarchiv ist weder aktuell noch ein zulässiger Ersatz. Hermes soll nach Merge-Abnahme mit dem neuen Windows-Starter die aktuelle EXE bauen, GUI und Ressourcen testen und erst dann in den aktiven Ordner legen und spaeter GitHub-Release erwaegen.
+
+**Geltungsbereich und Git:** Veraendert wurde ausschliesslich die separate konsolidierte Arbeitskopie. Weder Daniels Windows-Original noch sein GitHub-Repository wurden geschrieben. Neue Skripte sowie Workflow noch nicht unter Windows ausgefuehrt. Offene Aufgaben bleiben unveraendert.
+
+
+### GPT-KONSOLIDIERUNG-03 – 28.10.2026 – Testabnahme und Paketvorbereitung
+
+**Gezielter erweiterter Nachtest:** 35 ausgewaehlte Testdateien. Unter Linux scheiterten zuerst 5: 4 wegen nicht nutzbarer Tk-Anzeige `:0`, 1 historischer Kartenansichtstest. Erneuter Lauf der vier GUI-Tests mit `xvfb-run -a` erfolgreich: `test_gpt_profile_login.py` (9/9), `test_kampf_einhaengung.py` (42/42), `test_loadingpage.py` (bestanden, Fallback-Hinweis), `test_tor.py` (61/61). Ergebnis **34 von 35 Testdateien erfolgreich** in passender Testumgebung. Dieses Ergebnis ist **keine** vollstaendige 88-Dateien-Suite und keine Windows-Releaseabnahme. Rohprotokolle: `archiv/manifeste/TESTLAUF_KONSOLIDIERUNG_02.json` sowie `RETEST_*.txt`.
+
+**Offener Fehler:** `test_kartenansicht.py` faellt unter virtueller Anzeige mit **45 bestandenen Einzelkontrollen und 11 Fehlkontrollen** auf: Bau auf Sumpf/Walloption, lokale Baukosten, Feldbelegung, Siedlerabbuchung, Bauprotokoll, zwei Nachbarhaeuser, Wegsegment und Stufenpips. Vermutete Altannahmen rund um globale versus lokale Lager duerfen **nicht** ohne neuen Regressionstest als erledigt gelten. Historische Bauoberflaeche selbst bleibt offen.
+
+**Strukturpruefung:** `src`, `data`, `assets`, `tests` und `tools` enthalten die einzige aktive Spielcodebasis; genau eine aktive `docs/ENTWICKLUNGSPROTOKOLL.md`. Dokumenten- und Bildinventare erhalten, Archiv bewusst nicht fuer GitHub. Die vorherige Hermes-Baseline bleibt als **bereinigte** Archiv-ZIP. Das Originalarchiv auf Daniels Rechner nicht loeschen.
+
+**EXE:** Echte aktuelle Windows-EXE **nicht vorhanden**, da Linux-Host. `EXE_NEUESTEN_STAND_BAUEN.bat` und manuelles GitHub-Windows-Workflow erzeugen sie erst nach Ausfuehrung und erfolgreichem Build. Keine Fake-EXE, kein historischer Build als neuer Stand. **Hermes-Auftrag:** zuerst Git-HEAD/Build-Voraussetzungen pruefen, dann Windows bauen, testen, Spielstand pruefen und nur nach Freigabe GitHub aktualisieren.
+
+**Eingangsmaterial des Nutzers:** Die vorliegenden Uploads enthalten eine Projekt-ZIP und Uebergaben. Inhalte, die ausschliesslich auf Daniels Windows-Laufwerk liegen und hier nicht uebertragen wurden, konnten nicht umsortiert oder geprueft werden. Dafuer ist das private Ablagefach `archiv/ALTDATEIEN_DANIEL_HIER_ABLEGEN` angelegt. Kein direktes Schreiben in Nutzerordner/Remote.
+
+
+### GPT-KARTEN-ORIGINAL-01 – 28.10.2026 – Entscheidung Daniel: ausschließlich Originalkarten
+
+**Auftrag:** Die zuvor aus Erinnerungen erzeugten 8×7-Siedlungskarten und selbstgezeichneten Wald-/Gebirgssymbole vollständig aus dem aktiven Kartenpfad entfernen. Nur die neuen 127 Originalkarten einschließlich Gelände-Optik verwenden. Hauptprojekt weiterhin getrennte GPT-Kopie; Hermes bleibt Hauptkoordinator.
+
+**Konkrete Codeänderungen:** `src/gelaende.py`: 8×7-Kartentyp-/Rastergenerator durch originalbasierte Kompatibilitätsfunktion ersetzt; Altparameter `mass`/`typ_id` lösen Fehler aus. `src/spieloekonomie.py`: ehemaliges `feste_karte` deaktiviert. `data/gelaende.json`: alte Kartentypen/`kartenmass`/`kartenvorrat` entfernt, vorheriger Inhalt archiviert unter `archiv/legacy_karten_8x7/`. `src/originalkarten_grafik.py` neu mit validierter 10×10-Original-ID-/Bildpfad-Zuordnung. `src/main.py`: der Siedlungsrenderer nutzt jetzt das direkt aus der Originalkarte erzeugte PNG statt hypothetischer Geländesymbole und zeichnet Gebäude/Wege/Koordinaten darüber; `GameState.load` lehnt nicht-originale Karten VOR Mutation ab, alter separater Alt-Stand-Ladeknopf entfernt. Historische Savegames bleiben Dateien im Archiv; keine Migration.
+
+**Grafikänderungen:** 127 unveränderte Quellbilder unter `assets/karten/original`, SHA-256 jeweils geprüft. 127 laufzeitfähige PNGs `assets/karten/spielfeld/original-*.png` im Maß 640×640, nearest-neighbor vergrößert (echte Baum-/Felsformen bleiben). `data/originalkarten/grafik_manifest.json` enthält Herkunft und Hashes. `tools/originalkarten_grafiken_bauen.py` für Rebuild (Pillow nur in Buildumgebung).
+
+**Tests/Archiv:** 17 alte Testdateien mit Generator- oder 8×7-Testvoraussetzungen nach `archiv/tests_legacy_8x7/` verschoben, im `run_tests.bat` durch neue Pflichtprüfung ergänzt – dies ist keine Heilung dieser Tests, sondern eine offen ausgewiesene Regressionstest-Schuld. `tests/test_originalkarten_only.py`: 7/7 erfolgreich (127 Kartendateien und alle Hashes, echte Tk-PhotoImage-Öffnung, Fehlverhalten bei Altformat). `tests/test_gpt_wallsystem_eingehaengt.py`: Testfixture von künstlicher 2×2-Karte auf echte Originalkarte umgestellt, 9/9 bestanden. `test_startspiel.py`: 45/50 Kontrollen bestanden, 5 Fehler (Bau-/Warnhinweise, Kartenfeld/Training) und 1 Befund; noch offen. `archiv/manifeste/ORIGINALKARTEN_UMSTELLUNG_20261028.json` hält alle Alt→Neu-Zuordnungen.
+
+**Offen und zwingend:** 25 automatisch erkannte Kartenraster manuell anhand des Originalbildes prüfen; alte Ökonomie-/Gebäude-/Bot-/Lade-Tests auf echte 10×10-Kartenfixtures portieren; echte Windows-GUI inklusive Speichern/Laden; neue echte Windows-EXE; reale Hermes-HEAD-/GitHub-Freigabe. Kein Windows-Release behauptet. Bei Laufzeitfehler fehlt ein Originalbild: sichtbare Fehlermeldung statt erfundene Ersatzkarte. Die 20×20-Weltkarte ist eine andere Spielebene und bleibt unverändert.
+
+**Skills / Wiederaufnahme:** `docs/HERMES_KONTROLLE_UND_SKILLS.md` sowie `docs/HERMES_UEBERGABE_AKTUELL.md` ergänzen die bekannten Regeln; die früheren Protokollfassungen bleiben allein im Archiv. Genau **ein** aktives `docs/ENTWICKLUNGSPROTOKOLL.md`.
+
+**Nachprüfung GPT-KARTEN-ORIGINAL-01b:** `tests/test_originalkarten_savegames.py` ergänzend 2/2 unter virtueller Tk-Anzeige; Originalkarte behält ihre ID und Raster nach Save/Load; eine künstliche 8×7-Quelle wird vor Mutation abgewiesen. `run_tests.bat` um diese Pflichtkontrolle ergänzt. Gesamtstand der beiden neuen Originalkarten-Testdateien 9/9, keine Gesamt-Releasefreigabe.
+
+
+### GPT-FIX02 – 28.10.2026 – Karteninteraktion, Startpartie und E2E-Regression
+
+**Rolle/Quelle:** ChatGPT als zeitweiliger Coding-Agent, isolierte Arbeitskopie von `NEBELSEETAL_REMAKE_KONSOLIDIERT_NUR_ORIGINALKARTEN_28.10.2026.zip`. Hermes bleibt alleiniger Head-Koordinator; kein Zugriff auf Daniels aktuelles Windows-Git und **kein GitHub-Push**.
+
+1. **Tatsaechlicher GUI-Defekt behoben:** `src/main.py::_zeichne_siedlungskarte` zeichnete nur EIN gesamtes Originalbild. Selektierte/gebaute Felder hatten `feld:i`-Tags, freie Felder nicht, weshalb `test_startspiel.py` nur **2 von 100** semantischen Feldern fand. Jetzt kommen **100 unsichtbare, einzeln getaggte Rechteckregionen** auf das unveraenderte Originalbild; das Canvas-Koordinaten-Clickbinding bleibt. Weder Original-PNGs noch Feldtyp-/Produktionsdaten geaendert. `tests/test_gpt_originalkarten_feldklick.py` neu: 2 GUI-Regressionstests, alle 100 Tags sowie Klicks auf Rand-/Innenfelder; **2/2**.
+2. **Historischen Start-Test repariert, Regeln nicht abgeschwaecht:** `tests/test_startspiel.py` ging faelschlich davon aus, dass nach einem Haus zuerst eine Holz-Nullrate gewarnt werden muss. Die aktuelle Grundrate von Holz betraegt aber **1/h**, waehrend in diesem Aufbau Nahrung fehlt. Der Test prueft jetzt die Nahrungsknappheit, den Jaeger als Abhilfe und die bestehende Holzrate. Er baut nicht mehr heimlich ohne Baukunst die Kriegerakademie: Er prueft die Sperre, baut regulär eine Bibliothek, startet **Baukunst** am Ort, laesst die Spielzeit ablaufen, baut dann die Akademie und bildet nach bezahltem Auftrag eine Buergerwehr aus. **Vorher 45/5/1, nachher 61 bestanden / 0 Fehler / 1 Befund**.
+3. **Durchspieltest an echte 10x10-Karten und Ortskassen angepasst:** `tests/test_durchspiel.py` prueft nun 100 Felder/Original-ID statt 56; errichtet zuerst die drei Startbauten, forscht Baukunst, baut danach Kriegerakademie und Schmiede. Save/Load-Snapshot normalisiert vor Vergleich die abgeleitete Reichsanzeige (`_reichsanzeige_aus_orten`), veraendert keine zweite Kasse. Fehlermeldung beim Handel wird aus dem tatsaechlichen Rueckgabewert gelesen, Kartenwechsel-Gold im echten Ortslager bereitgestellt. Werkstatt prueft neue Warteschlange, Fertigstellung einer Ware und keine Doppelbuchung. Messer-Dauer 1200 Spielsekunden stammt aus dokumentiertem **Remake-Vorschlag**, nicht aus historischer Originalquelle. **Vorher 46/10/2, nachher 64 bestanden / 0 Fehler / 2 Befunde**. Nur Testannahmen und Testablauf aktualisiert; keine erfundenen Wirtschaftswertkorrekturen.
+4. **Wall-GUI mit echten Originalkarten statt 8x7:** `tests/test_gpt_wall_gui.py` benutzt jetzt eine echte `originalkarten.startkarte` und sucht Wald-/Bergfelder im Raster statt das Bilddatenraster zu manipulieren; die vier GUI-Tests bestehen **4/4**. Die Wallbelegung kostet Rohstoffe und belegt weiterhin kein Kartenfeld.
+5. **Selektiver Nachtest:** 24 verschiedene Testdateien erfolgreich: 13 in einer ersten Batterie, 10 weitere separat (Wall-Test nach Korrektur erneut erfolgreich), danach auch `tests/test_gui_fehler.py` nach Modernisierung. Der alte Test blieb zunaechst stehen, weil beim Abriss eine unbeantwortete Tk-Nachfrage geoeffnet wurde; der Test simuliert ausschliesslich fuer diese eine Aktion die Bestaetigung. Weitere Altannahmen: Wall wurde als Feldgebaeude getestet, und `.save()`/`.load()` oeffnen heute drei Slotdialoge statt direkt `savegame.json` zu nutzen. Neue Pruefung: ausbaubare Bibliothek statt Wall, echte Baukunst vor Akademie, Buergerwehr statt erforschter Krieger und isolierte Save/Load-Datei. Danach **23/0/1** im Callback-Test (18 Ansichten, 13 Aktionen, absichtliche Callback-Fehlerfalle funktioniert). Andere archivierte Kartenansichtstests und die volle Testsuite sind weiterhin offen.
+6. **Windows-Testskript:** `run_tests.bat` um den neuen Originalkarten-Feldklicktest ergaenzt; unter Windows noch NICHT ausgefuehrt.
+7. **Grenzen:** keine neue Windows-EXE, keine Windows-GUI-Abnahme; weiterhin 25 Originalkartenraster manuell unbestaetigt, Botwirtschaft/Belagerung und historische Baumenue-Reproduktion offen. Die Codeaenderung ist auf die transparenten Kartenfeld-Tags beschraenkt, nicht auf Kampf-, Karten- oder Wirtschaftsregeln. Vor Release die vollstaendige Suite und Windows-Build durchfuehren.
+
+**Hermes-Handoff:** Zuerst `docs/AKTUELLER_STAND.md`, danach diesen Eintrag, `docs/HERMES_UEBERGABE_AKTUELL.md` sowie ggf. das Delta-Manifest unter `archiv/manifeste/GPT_FIX02_AENDERUNGEN.json` lesen. Nach Rueckkehr Git-HEAD differenzieren und Risiken bewerten. GitHub-Update **erst am Ende nach abgeschlossener Fehler- und Sicherheitspruefung**, entsprechend Daniels letzter Anweisung.
+
+
+### GPT-FIX02b – 28.10.2026 – Nachfolgetest für archivierten Kartenansichtstest
+
+**Ausführender temporärer Coding-Agent:** ChatGPT; **Freigabe und spätere Git-Integration:** ausschließlich Hermes. Basis ist die isolierte konsolidierte Hauptfassung einschließlich GPT-FIX02. Keine Änderung an Daniels Rechner oder öffentlichem GitHub.
+
+**Auslöser:** `archiv/tests_legacy_8x7/test_kartenansicht.py` enthält 11 nicht bestandene historische Kontrollen. Seine Annahmen verwenden unter anderem ein künstliches 8×7-Raster, alte Gelände-Zeichenfarben, eine zweite Reichs-Rohstoffkasse und das frühere Baumenü. Die früheren Anforderungen sind nicht komplett entfallen, aber der Test ist in der alten Form nicht als gültiger Regressionstest geeignet.
+
+**Neue aktive Testdatei:** `tests/test_gpt_originalkarten_baukasse.py`. Unter echtem Tkinter/virtueller GUI und einer regulär gegründeten neuen Siedlung mit echter 10×10-Originalkarte prüft sie: (1) Holzfällerbau mit Abzug von Holz, Stein und Siedlern ausschließlich im aktuellen Ortslager und gleichzeitiger Ableitung der Reichsanzeige; (2) keine zweite Zahlung bei erneutem Bauen auf belegtem Feld; (3) keine Teilzahlung und keine Feldmutation bei Rohstoffmangel; (4) Originalkarten-Hintergrundgrafik, 100 klickbare Regionen und Feldwahl bleiben nach dem Bau erhalten. Für die einzelnen Bau-Transaktionstests werden erhöhte **lokale Test-Lagerbestände** gesetzt, ohne reale Spielregeln oder Produktionswerte zu ändern.
+
+**Testergebnis:** `xvfb-run -a python -X utf8 tests/test_gpt_originalkarten_baukasse.py` → **4 Tests, 4 bestanden, 0 Fehler**. `run_tests.bat` um die neue Prüfung ergänzt. Damit sind nun **25 ausgewählte Testdateien** grün; keine gesamte Suite. Alte Kartenansicht-Prüfung mit elf historischen Fehlerkontrollen bleibt bis zur vollständigen Übertragung der übrigen Anforderungen (Bauoptionen, Haus-Nachbarschaft/Wege, Auswahl- und Stufengrafik, Chat/Baumenü) ausdrücklich im Archiv und **offen**.
+
+**Aktualisierte Dokumente:** `docs/BESUCHER_STATUS.md`, `START_HIER.txt`, `PROJEKTUEBERSICHT_WINDOWS.txt`, `docs/AKTUELLER_STAND.md`, `docs/HERMES_UEBERGABE_AKTUELL.md`. Das ist weiterhin das **einzige aktive Entwicklungsprotokoll**. Keine Windows-EXE vorhanden; GitHub erst am Ende aktualisieren.
+
+
+### GPT-FIX02c – 28.10.2026 – Lokale Paketintegrität und Pfadkorrektur (noch ohne GitHub-Push)
+
+- **Quelle:** Von Daniel neu hochgeladenes `Nebelseetal_Remake(2).zip` (16:59 Uhr); Vergleich mit `NEBELSEETAL_REMAKE_HAUPTFASSUNG_FIX02_28.10.2026.zip`. Alle **1.229 von 1.229 Projektdateien identisch nach SHA-256**, null fehlen oder weichen ab. Archivtest erfolgreich. Zusätzlich `.git` aus dem lokalen Altstand und eine Fortschritts-TXT; `Alles alte` war in der eingereichten ZIP nicht enthalten und wurde daher nicht geprüft. **Keine aktuelle EXE** enthalten.
+- **Testnachweis (Linux/Xvfb):** Originalkarten, Save/Load, Feldklick, Baukasse, Startspiel, Durchspiel, Werkstatt, Portabilität und Wirtschafts-E2E bestanden (10 ausgewählte Testdateien). Protokollprüfung und Zielübergabe zunächst mit historischen Pfaden fehlgeschlagen. Kein vollständiger Suite- oder Windows-Test.
+- **Pfadfix:** `tools/pruefe_protokoll.py` und `tests/test_protokoll.py` lesen Vorverdichtung/Sicherungen aus `archiv/dokumentation/` statt fehlenden Dateien unter `docs/`. `tools/zieluebergabe.py` und `tests/test_zieluebergabe.py` lesen ab sofort den **aktuellen** Stand `docs/AKTUELLER_STAND.md` und verweisen auf die einzige aktuelle `docs/HERMES_UEBERGABE_AKTUELL.md`. Historische Unterlagen werden **nicht** in aktive Verzeichnisse dupliziert.
+- **GitHub-Sicherheit:** Das hochgeladene `.git` ist der alte Hermes-Stand ohne `origin` und darf **nicht** an Stelle der GitHub-Kopie verwendet werden; keine Archivdaten, lokalen Geheimnisse oder privaten Spielstände pushen. GitHub-Repo weiterhin online **unverändert**. EXE erst nach Windows-Build und Laufzeittest veröffentlichen, keine alte EXE umbenennen.
+
+**GPT-FIX02c Nachtest:** Protokolltests `tests/test_protokoll.py` → **16 bestanden / 0 Fehler / 1 historischer Befund** (24 abweichende Absatzanfänge); Zielübergabe `tests/test_zieluebergabe.py` → **26 bestanden / 0 Fehler**. Git im isolierten Test enthielt den historischen lokalen Head; auf öffentlichem GitHub ist dessen Historie nicht garantiert. `docs/GITHUB_VEROEFFENTLICHUNG_FIX02c.md` beschreibt die manuelle, sichere Veröffentlichung mit erst nach realem Windows-Test erlaubtem Pre-Release.
+
+
+**GPT-FIX02c Windows-Bauvorprüfung:** `tools/gpt_windows_vorpruefung.py` referenzierte nicht mehr vorhandenes `test_gpt_originaltreue.py`; durch den bestehenden `tests/test_gpt_originalkarten_katalog.py` ersetzt. `xvfb-run -a python tools/gpt_windows_vorpruefung.py` → **6/6 ausgewählte Testdateien erfolgreich** (Linux mit virtueller Anzeige; kein Windows-Build). Historische Testsammlung `tools/gpt_abschluss_tests.py` enthält weitere drei fehlende Testverweise und bleibt als offener Prüfpunkt markiert. Veröffentlichung erst nach echtem Windows-Test.
+
+
+## GPT-FIX02d-R2 - Startdokumente vereinheitlicht (28.10.2026)
+
+**Nutzerentscheidung:** Keine eigene `START_HIER.txt`. Nur `README.md` als Spielstart-/GitHub-Einstieg und `docs/HERMES_UEBERGABE_AKTUELL.md` als alleinige aktuelle Hermes-Uebergabe; nur `docs/ENTWICKLUNGSPROTOKOLL.md` als aktives Protokoll. Bisherige Statusdatei `docs/AKTUELLER_STAND.md` bleibt einzige spielbereichsbezogene Kurzuebersicht.
+
+**Durchgefuehrte Aenderungen:** `START_HIER.txt`, `PROJEKTUEBERSICHT_WINDOWS.txt`, historische FIX02/FIX02c-Berichte sowie `Nebelseetal_Remake.bat` und `EXE_NEUESTEN_STAND_BAUEN.bat` wurden, soweit vorhanden, **archiviert statt geloescht**. `README.md` um aktuelle Windows-Spielstart-/Buildhinweise erweitert. Referenzen in `docs/AKTUELLER_STAND.md`, `docs/WINDOWS_EXE_HERSTELLUNG.md`, `docs/ORDNUNG.md`, `docs/HERMES_UEBERGABE_AKTUELL.md` und `docs/HERMES_KONTROLLE_UND_SKILLS.md` an die neue Einstiegsregel und das aktive Buildskript angepasst. Read-only-Ordnungspruefer in `tools/projekt_ordnung_audit.py` aktualisiert. Rueckweg: vollstaendige Sicherungen bearbeiteter Dokumente plus `archiv/ordnungsbereinigung_FIX02d_20261028/DATEIUMZUEGE.json` (Alt->Neu mit SHA256).
+
+**Sicherheitsgrenzen:** Kein aktiver `src`-/`assets`-/`data`-Code geaendert, keine Passwoerter/Spielstaende/Git-Historie geloescht. Kein Github-Push; keine angeblich aktuelle EXE. Hermes-Cronjob/Skills auf Daniels Rechner wurden nicht direkt angepasst: Hermes muss sie spaeter read-only pruefen und als Koordinator nach Uebernahme integrieren. Alte Abschnitte dieser Chronik erwaehnen natuerlich die damals gueltigen `START_HIER`-Wege und bleiben als unveraenderte Historie erhalten.
+
+**Offene Aufgaben:** Vollstaendige Testsuite, Windows-EXE und Praxistest, 25 visuelle Kartenraster, weitere Wirtschaft-/Bot-/UI-Fragen, spaetere freigegebene GitHub-Aktualisierung.
+
+
+### Nachtrag Hardware und Cleanups (GPT-FIX02d-R2)
+
+Fuer kuenftige Windows-Pruefungen: 64-Bit-Windows 11, rund 12 GB RAM, zuletzt ca. 3 GB frei. Darum serielle, ressourcenschonende Builds vorsehen und Systemressourcen zum Zeitpunkt des Builds erneut messen. Keine identifizierenden Rechner-/Kontodaten in Projektdateien uebernehmen. Hermes soll nach Wiederanlauf seinen **bestehenden** Laptop-Cleanup und die vorhandenen Skills pruefen und Vorschlaege zur Erkennung redundanter Projekttexte selbststaendig integrieren; noch keine reale Job-/Skill-Aenderung durch GPT.
+
+
+### GPT-FIX04 – 28.10.2026 – Historisches Baumenue / Kategorien / echte Bauvoraussetzungen
+
+**Ausfuehrender:** ChatGPT, voruebergehender Coding-Agent auf isolierter Arbeitskopie. **Head-Koordinator:** Hermes (alleinige Integrations-/Releasekontrolle). **Basis:** konsolidierte FIX02-Hauptfassung plus FIX02c-Pfadkorrektur; Daniels separat auf Windows erfolgreicher FIX03-Python-Start und EXE-Bau sind als Nutzer-Praxistest bekannt, aber nicht Teil dieser Linux-Buildumgebung. **GitHub:** absichtlich NICHT aktualisiert.
+
+**Quelle/Anlass:** `docs/nebelseetal_gamestar2.jpg` (historisches Baumenue) und `docs/BAUMENUE_ABGLEICH.md`: bisher zeigte die Feldansicht zahlreiche ungegliederte Bauknopfe ohne sichtbare Forschungs-/Kosten-Sperren. `data/buildings.json` dokumentiert bereits die Kategorien Produktion, Werkstatt, Ausbildung, Verteidigung und Sonstiges sowie Zwecke/Voraussetzungen. Kein zweites Preis- oder Wirtschaftssystem einfuehren.
+
+**Aktive Aenderungen (Dateipfade):**
+
+1. `src/baumenue_info.py` **neu**: reine, nicht mutierende Datenaufbereitung nach den Originalrubriken, `gelaende.bau_moeglich`, `bauen_auf_karte(..., nur_pruefen=True)`, bestehender `baukosten`-Funktion und `GameState.ortsdeckung`. Gibt Standort-Ertrag, Wirkungsbeschreibung, Voraussetzung, Kosten, konkrete Fehlmenge und Status aus. Kein zweiter Buchungspfad.
+2. `src/main.py`: Siedlungskarten-Baumenue rechts neben dem authentischen Originalbild hat jetzt eine Rubrik-Auswahl. Statt 20 gemischten Schaltflaechen wird nur die ausgewaehlte Gruppe gezeigt. Die Verteidigungsrubrik verweist auf den Dorfwall oberhalb der Karte, da dieser kein Kartenfeld belegt. Die Baufunktion `_karten_bauen` bleibt unveraendert; gesperrte Schaltflaechen bleiben klickbar und liefern weiterhin die echte Begruendung aus dem Regelkern. Die Feldkoordinaten im Detailpanel verwenden die echte Originalkartenspaltenzahl, keinen 8x7-Fallback.
+3. `tests/test_gpt_baumenue_kategorien_fix04.py` **neu**: 5 reale Tkinter-GUI-Tests fuer Rubrikwechsel per OptionMenu, Baukunst-Sperren, unveraendertes Ortslager beim Rendern, echte Holzfaellerabbuchung/Originalbild und Sumpf-/Wall-Verhalten. **5/5 bestanden** unter Xvfb.
+4. `tests/test_startspiel.py`: alter Test extrahierte den Namen des Gebaeudes aus der gesamten Button-Textzeile; nach der neuen mehrzeiligen Wirkungsbeschreibung war das keine stabile Annahme mehr. Erwartung jetzt ueber den tatsaechlich gebauten Schluessel/Originalnamen. Gleichfalls 8x7-Fallback aus Test-Klickkoordinaten entfernt. **61 bestandene Kontrollen, 0 Fehler, 1 dokumentierter Zufallsbefund (Bot-Angriff trat nicht auf)**.
+5. `run_tests.bat`: Aufnahme des neuen Rubrik-Regressionstests. Unter Windows wird das von Daniel bestaetigte Astral-Python 3.11.16 ueber den lokalen WindowsApps-Pfad erkannt, mit `py -3` und `python` als Fallback. Keine globalen PATH-Aenderungen, keine Python-Neuinstallation und keine Aenderung an Hermes/WSL.
+
+**Weitere gezielte Nachtests (Linux mit virtueller Tk-Anzeige):** Kartenfeldklick, Baukasse, Durchspiel, Callback-Fehlertest, Dorfwall, reine Originalkarten, Save/Load, Katalog und Hermes-Zieluebergabe waren erfolgreich. Die Protokoll-Commit-Pruefung in der **isolierten Kopie ohne `.git`** kann die 27 alten lokalen Commit-Kennungen nicht gegen die Historie bestaetigen und ist dort rot; dies ist keine Codefreigabe, vor einer Integration an Hermes' echtem Git-HEAD erneut pruefen. Historischer 24-Absatz-Befund bleibt. Der aufwendige historische Quellen-Hash-/ODT-Test konnte in diesem Lauf nicht abgeschlossen werden; keine Gesamt-Suite oder Windows-Freigabe behaupten.
+
+**Windows-Praxistest durch Daniel vor FIX04:** Die aus FIX03 neu gebaute Windows-EXE startete, Admin-Zugang und Originalkartengrafik wurden erprobt, und Speichern/Laden im normalen Spielermodus funktionierte. Diese Ergebnisse gelten **nicht automatisch fuer FIX04**: nach Uebernahme muss die EXE neu gebaut und das Baumenue unter Windows manuell getestet werden. Keine alte EXE unveraendert als FIX04 ausgeben.
+
+**Offen:** Bedienbarkeit der Kategorien bei kleinen Aufloesungen/scrollbaren langen Eintraegen unter echtem Windows pruefen; historischen Kartenansichtstest mit seinen restlichen Nachbarschafts-/Wege-/Stufenanforderungen weiter migrieren. `main.MAPS` enthaelt noch gesonderte, vorlaeufig benannte Weltregionen (z.B. Glimmersümpfe); diese sind nicht die 127 originalen **Siedlungskarten**, koennen aber im Gesamtdesign der Originaltreue widersprechen. VOR einer Entfernung Systemverwendung/gesicherte historische Quelle pruefen; niemals unbemerkt Karten freischalten oder Spielstaende brechen. Bot-Wirtschaft und vollstaendige Suite weiterhin offen.
+
+**Lernregel fuer Hermes:** GUI-Informationen zu Baupreisen, Standort, Forschung und Ortslager nur aus EINEM Regelkern ableiten; jede Anzeige-Aenderung braucht GUI-Test **und** Buchungstest; bei Refactorings Tests nicht an mehrzeiligen Buttonlabels statt tatsaechlichen Schluesseln ausrichten. Nach Integration in die eigenen Skills/den Cleanup-Cronjob den urspruenglichen Alt→Neu-Pfadabgleich und die Sicherheits-/Duplikatpruefung beibehalten; keine automatischen Loeschungen.
+
+
+### GPT-FIX04c / FIX04d – 28.10.2026 – Begleitende Spielerhilfe und Admin-Anzeigeausnahme
+
+**Ausfuehrender:** ChatGPT, zeitweiser Coding-Agent in isolierter Kopie. **Head-Koordinator:** Hermes, unveraendert. **Keine Integration in Daniels Windows-Ordner oder GitHub durch ChatGPT.** Basierend auf FIX04-Kategorien, FIX04b-Standorttipps und der konsolidierten Originalkarten-Fassung; die lokal unter Windows getestete FIX03-EXE enthaelt diese Aenderungen noch nicht.
+
+**Anforderung:** Genaue, spielstandabhaengige Tipps waehrend des Götterschutzes; nach Schutzende Seitenpanel automatisch aus, Hilfe als eigene Ansicht jederzeit aufrufbar. Der Admin muss die Panel-Sichtbarkeit auch waehrend des Schutzes getrennt umschalten koennen; dies darf weder Schutzstatus noch Kampfregeln aendern.
+
+**Code:**
+- `src/spielerhilfe.py` (FIX04c + FIX04d): 10 vorbereitete Fragen, sinnvolle naechste Schritte und standortbezogene Bautipps aus aktuellen Regeln. `hilfe_sichtbar(zustand, admin_freigabe=...)` und `admin_hilfe_modus_text` trennen Schutzstatus von UI-Override. Beim Zwangs-Anzeigen nach Schutzende behauptet die Seitenhilfe **nicht** faelschlich, der Schutz gelte noch.
+- `src/main.py`: fortbestehende Spielerhilfe-Schaltflaeche und Seitenpanel; UI-Sichtbarkeit nach tatsaechlicher Schutzvariable. `GameState.admin_hilfe_modus` ist `auto` ab Werk und wird **nur in getrennte Admin-Spielstaende** gespeichert; normale Slots enthalten die Einstellung nie. Unzulaessige Speicherwerte fallen auf `auto` zurueck. `src/main.py::_render_help` erlaeutert die Admin-Ausnahme auch bei aktivem, manuell ausgeblendetem Schutz.
+- `src/admin_werkzeuge.py::spielerhilfe_modus_setzen`: nur bei expliziter Freigabe und `admin_teststand` + aktivem Oekonomiemodus. Drei gueltige Werte: `auto`, `anzeigen`, `ausblenden`; alle sonstigen Werte werden abgewiesen. Keine Veraenderung an `state.noob_protection`.
+- `src/admin_oberflaeche.py`: neuer Reiter **Spielerhilfe / Anzeige** in den schon passwortgeschuetzten Admin-Werkzeugen; die Auswahl ist manuell uebernehmbar und ueber bestehendes „Adminstand sichern“ speicherbar. Anzeige im Hauptfenster sofort aktualisiert.
+- `run_tests.bat`: Regressionen fuer Baumenue, Standorttipps, FIX04c-Spielerhilfe und FIX04d-Adminhilfe aufgenommen.
+
+**Pruefergebnisse (Linux, bei GUI mit Xvfb, gezielt):** `tests/test_gpt_admin_spielerhilfe_fix04d.py` **7/7**; FIX04c-Hilfe **5/5**, Baumenue **5/5**; `test_gpt_adminwerkzeuge.py` **44/44**, `test_gpt_speicherslots_admin.py` **71/71**, `test_startspiel.py` **61/61** (1 Befund: kein zufaelliger Botangriff), `test_durchspiel.py` **64/64** (2 bekannte Befunde). Dies ist **keine** volle Suite, keine Windows-EXE-Pruefung fuer FIX04d und keine Releasefreigabe. Vorherige FIX03-EXE **neu bauen** und Admin-Umschaltung plus Save/Load unter Windows pruefen.
+
+**Neue verbindliche Lernregel fuer Hermes und die Skills:** Jede neue oder groessere aktive Spielfunktion durch eine **Admin-Testbarkeitspruefung** begleiten: (1) Was muss gezielt ein-/ausschaltbar oder reproduzierbar sein? (2) Welche rein visuellen Schalter duerfen ohne Aenderung der Spielregeln arbeiten? (3) Sind Admin- und normale Spielstaende strikt getrennt? (4) Welche Regressionen pruefen Autorisierung, Schutz vor Seiteneffekten und Save/Load? (5) Gibt es einen `auto`-/Reset-Pfad? Nicht jede Funktion benoetigt einen Cheat; Ausnahmen begruenden und im einzigen Protokoll festhalten. Kein automatisches Teilen von Adminrechten mit normalem Spiel.
+
+**Offen / GitHub-Freigabe:** Vor Release Windows-FIX04d-EXE aus aktivem `src` erstellen, Adminhilfe mit aktivem und beendetem Schutz manuell testen, normale Slots + Persistenz erneut pruefen, weitere bekannte Alt-Tests und Botwirtschaft bearbeiten. Repository derzeit NICHT aktualisiert; kein Push und keine Weitergabe privater Admin-/Tor-Dateien. Hermes soll nach Rueckuebernahme Git und Projektstand gegen die aktuelle Kopie vergleichen, seine Skills/Cleanup-Regeln selbst pruefen und freigegebene Aenderungen uebernehmen.
+
+
+## GPT-FIX04e/f/g – 28.10.2026 – Spielerhilfe-Pflicht, Speicherarchiv, Slotverwaltung
+
+**Verantwortung:** ChatGPT, temporaerer Coding-Agent auf isolierter Kopie. Hermes bleibt alleiniger Head-Koordinator; GitHub und Daniels Windows-Dateien wurden nicht direkt veraendert. Dieses Delta vereint FIX04e, FIX04f und FIX04g relativ zu FIX04d.
+
+### Ausgangslage / Ursache
+1. Nach Admin-Umschaltung auf `ausblenden` blieb im Dorfzentrum die aeltere Karte `Dein naechster Schritt` sichtbar, da diese eine zweite Anzeigelogik hatte.
+2. Daniel praezisierte die Regel: Die Dorfzentrum-Aufgabe ist bis zur ERSTEN Gruendung und laufender echter Holz-/Stein-/Nahrungsproduktion verpflichtend, auch bei Admin-`ausblenden` und nach Schutzende. Passives Anfangseinkommen zaehlt nicht; die rechte allgemeine Hilfe bleibt abschaltbar.
+3. Loeschen und Aufraeumen von Spielstanddaten hatte bislang keine zentrale, datierte Archivverwaltung; der Spieler konnte seine drei Slots nicht geordnet loeschen/wiederherstellen.
+
+### Code / konkrete Pfade
+- `src/spielerhilfe.py`: `startaufgabe_pflicht`, `grundproduktion_erste_siedlung` mit Ertraegen aus echter Siedlungskarte; keine zweite Wirtschaftsberechnung, duplizierte Funktionsdefinition aus Zwischenstand entfernt. Aktuelle Spielstandverwaltungsantwort erweitert.
+- `src/main.py`: gemeinsame Sichtbarkeitsregel und gesonderte Pflicht fuer die Dorfzentrum-Karte; `_spielerhilfe_anzeige_aktualisieren` ohne Render-Dauerschleife. Neuer `Spielstände`-Knopf bei normalen Profilen sowie `Admin-Spielstaende` ausschliesslich im freigegebenen Adminprofil. `NebelseetalApp._spielstand_verwaltung` bietet datiertes Archivieren und explizites Wiederherstellen. Bei neuem Admin-Teststand wird auf ABSICHTLICHES Ueberschreiben hingewiesen. `spielstand_archiv.ordner_anlegen()` initialisiert die privaten Unterordner.
+- `src/spielstand_archiv.py` NEU: alleiniger Kern fuer `archivwurzel`, `ordner_anlegen`, `archiviere`, `archivierte_staende`, `wiederherstellen`. Bei Aktion `Loeschen`: vorhandene Datei nach `<SPIELSTANDORDNER>/archiv/spielstaende/spieler/slot_1..3/<YYYY-MM-DD_HH-MM-SS_us>_<id>/` bzw. `admin/<zeit_id>/` verschieben; gleichnamiges `.bak` soweit moeglich mitnehmen, `ARCHIV_INFO.json` (Zeitpunkt/Grund/Name) schreiben. Kollisionen durch UUID ausgeschlossen; fehlgeschlagener Move entfernt NIE den Quellstand. Wiederherstellung nur aus dem dazugehoerigen privaten Archiv, nur nach expliziter Ueberschreibungsfreigabe; das Archivoriginal bleibt.
+- `src/speichern.py`: liegengelassene `.tmp`-Reste nach Speicherabbruch ins private `archiv/spielstaende/abgebrochen/` verlagern statt kommentarlos `os.remove` aufzurufen. Fehlerhafte Zwischenschreibversuche gleich behandeln. Normales atomisches `os.replace` bei bewusstem Save/Overwrite bleibt aus Kompatibilitaet unveraendert; `.bak` ist technische Sicherheitskopie, KEINE neue Archivversion.
+- `archiv/spielstaende/`: Ordnerstruktur im Projekt mit `spieler/slot_1`, `slot_2`, `slot_3`, `admin`, `testbereinigung`, `abgebrochen`, README_PRIVAT.txt. **Dies ist nur die Referenzstruktur; echte Spielstandarchive liegen privat beim jeweiligen Save-Verzeichnis**, nicht im oeffentlichen Repository. `.gitignore` ergaenzt um Runtime-/Archiv-Ausnahmen.
+- `run_tests.bat` nimmt FIX04e/f/g-Regressionsfaelle auf. `tests/test_gpt_admin_hilfe_navigation_fix04e.py`, `tests/test_gpt_pflicht_starthilfe_fix04f.py`, `tests/test_gpt_spielstandarchiv_fix04g.py` neu. `tests/test_speichern_robust.py` akzeptiert das lokale reine-Standardbibliothek-Archivmodul als Abhaengigkeit. `tests/test_startspiel.py` erwartet jetzt die verbindliche Holzversorgung vor Nahrung/Farm, statt die alte Direkt-Farmempfehlung nach Hausbau.
+
+### Pruefung (nur isolierte Linux-/Xvfb-Testumgebung)
+Gezielter Lauf: `test_gpt_spielstandarchiv_fix04g.py` 13/13; Pflicht-Start 9/9; Hilfe-Navigation 5/5; Adminhilfe 7/7; Profillogin 9/9; Slot/Admin 71/71; Speichern robust 95/95 (5 alte Befunde); W8-Anbindung 39/39 (5 alte Befunde); Adminwerkzeuge 44/44; Spielertipps 5/5; Spielstart 61/61 (1 Bot-Zufallsbefund); Durchspiel 64/64 (2 bekannte Befunde). Kein Nachweis fuer Windows-EXE/FIX04g, keine komplette Suite oder Releasefreigabe.
+
+### Risiken/Grenzen und offene Aufgaben
+- Archivieren kann **nur Aktionen des Spiels** kontrollieren; externes Loeschen im Explorer, Antivirenbereinigung und `TemporaryDirectory`-Loeschungen fremder Tests koennen nicht abgefangen werden. Admin- und Spielersaves, die im Spiel geloescht werden, gehen jedoch ins Archiv. Der reservierte Ordner `testbereinigung` ist fuer zukuenftige explizite Test-Cleanup-Routinen; keine bereits angebundene globale Cronjob-Loeschroutine behaupten.
+- Spielstandarchive enthalten private Daten; niemals ins oeffentliche GitHub, nie in ZIP-Uebergaben aufnehmen. Nachgelagerten Cronjob von Hermes so konfigurieren, dass Archive nicht routinemaessig geloescht werden; Vorhaben erst Vorschlag/Pruefung, keine ungefragte Regelmutation.
+- Windows-Praxis nach Patch: Spieler-/Admin-Speicherverwaltung mit Testslots ausprobieren, geloeschten Stand aus Archiv laden, Save/Load und Pflicht-Starthilfe pruefen; dann EXE neu bauen und testen. Vorhandene EXE enthaelt diese Aenderungen noch nicht.
+- Archive koennen mit der Zeit wachsen; nur eine spaetere separate Aufbewahrungsregel nach ausdruecklicher Freigabe einfuehren.
+
+
+## GPT-FIX04h – Spielstandverwaltung: sichtbare Slots, geschuetzte Wiederherstellung (28.10.2026)
+
+**Ausloeser / beobachtet unter Windows:** Spieler konnte Slot 2 erfolgreich speichern, archivieren, wiederherstellen und laden. Die bisherige Verwaltung zeigte den Restore-Bereich unter Slot 2 nahe Slot 3 (der leer war), bot normale geloeschte Staende ungefragt wieder zur Auswahl an und kann bei vielen Testlaeufen unlimitiert wachsen. Auftrag: bessere Optik, keine alten Archive im normalen Spiel, Entwicklungsarchiv vorerst behalten und spaetere Architekturentscheidung festhalten.
+
+**Aenderungen in separater Coding-Kopie:**
+- `src/main.py`: `_spielstand_verwaltung` neu aufgebaut: klare Zeilen fuer aktive Slots, keine alten Archiv-Dateipfade oder Restore-Combobox unter normalen Spielerslots. Loeschen fragt aktiv nach und archviert privat wie zuvor. Rechtepruefung fuer Admin-/Spielerprofil bleibt.
+- `src/main.py`: neue `_archiv_wiederherstellung_dialog` ausschliesslich fuer authentifizierte Admin-Testkonten. Echte Archivvorkommen pro Slot als benannte Zeilen mit Datum/Uhrzeit; keine Option fuer nicht vorhandenes Slot-3-Archiv. Bewusste Restore-Aktion mit Bestaetigung vor Rueckspielen; bei belegtem Zielslot Warnung vor absichtlichem Ueberschreiben. Keine Aenderung des Götterschutzes oder der Datenbuchungen.
+- `src/spielstand_archiv.py`: neuer read-only-Zähler `archiv_groesse`, nutzt Dateianzahl und Byteumfang ohne Loeschung. Admin-Dialog zeigt Groesse, Warnung ab 250 MiB. Archivbestandsdaten und private Passwoerter werden nicht in diese Uebergabe kopiert.
+- `tests/test_gpt_spielstandarchiv_fix04g.py`: frueheren GUI-Restore-Nachweis an die neue absichtlich eingeschraenkte UI angepasst; Datenfunktionalitaet weiterhin mit archivierten Testdaten nachgewiesen.
+- `tests/test_gpt_spielstand_gui_fix04h.py`: neuer Nachtest fuer fehlende Archivangebote im normalen Profil, verweigerten Direktzugriff, genaue Slotzuordnung (Slot 2 ohne Phantom-Slot-3), autorisierte Restore-Bestaetigung, Archivsicherheit und Admin-Rechtepruefung.
+- `README.md`, `docs/AKTUELLER_STAND.md`, `docs/HERMES_UEBERGABE_AKTUELL.md`, `run_tests.bat` auf FIX04h aktualisiert. **Dieses Dokument bleibt das einzige aktuelle Entwicklungsprotokoll.**
+
+**Pruefungen:** 6/6 neue FIX04h GUI-Tests und 13/13 angepasste FIX04g-Archivtests bestanden unter Linux mit Xvfb. Weiterhin bestanden: neun Profiltests, neun Pflicht-Starthilfe-Tests, sieben Admin-Hilfe-Tests, fuenf Navigations-/Hilfe-Tests sowie direkt ausgefuehrte Speicherslot-, Speicherrobustheits-, Start- und Durchspieltests. Einige alte Tests enthalten eigene Berichtsfunktionen und duerfen nicht als `unittest discover` bewertet werden. Exakter Abschlussprueflauf und Windows-Abnahme stehen im Auslieferungsmanifest. **Noch nicht lokal auf Daniels Windows-System eingespielt oder als EXE gebaut.**
+
+**Bewusst offen / Lernregel fuer Hermes:** Privates Entwicklungsarchiv kann wachsen. Vor oeffentlichem Release klaeren: weiterhin enthalten, optionale Funktion oder deaktivieren? Aufbewahrungsfrist, Groessenlimite, Komprimierung und sichere Test-Ruecksetzung sind gesonderte Architekturentscheidungen, keine Berechtigung zum automatischen Loeschen. Adminfunktionen bei Spielveraenderungen mitpruefen, normale Spieler nie ungefragt mit Geloeschtem konfrontieren, GUI-Slotzuordnung explizit testen, Tests nicht mit echtem Nutzerprofil ausfuehren. GitHub erst spaeter nach Freigabe.
+
+**Nachtest-Ergaenzung FIX04h:** Einzeltest `tests/test_protokoll.py` meldet 13 bestandene / 2 fehlgeschlagene Kontrollen sowie 2 historische Befunde. Die beiden Fehler betreffen die mangels originaler lokaler Git-Historie in der isolierten Kopie nicht aufloesbaren Commitkennungen und den davon abhaengigen Pruefskript-Rueckgabecode (nicht die neue Spielstand-UI). Der vorhandene grosse Protokollumfang und alte Absatzformulierungen sind weitere bekannte Befunde. NICHT als gruene Protokollpruefung deklarieren; Hermes muss im echten Git-Repository erneut pruefen. `tests/test_zieluebergabe.py` hat 26/26 Kontrollen bestanden.
+
+
+## GPT-FIX04i – 28.10.2026 – Admin-Leiste und originalgetreuer Schildhintergrund in Speicherfenstern
+
+**Verantwortlich:** ChatGPT als temporaerer Coding-Agent auf isolierter Projektkopie. Hermes bleibt Head-Koordinator. **Kein Push, kein Windows-EXE-Neubau und kein Eingriff in private Speicherdaten erfolgte.** Basis ist FIX04h. Alle Aenderungen in FIX04i sind gegen diese Basis nachvollziehbar.
+
+### Nutzerbefunde
+- Im Adminprofil war die Schaltflaeche `Admin-Spielstaende` oben rechts durch zu viele Ressourcen- und Aktionsanzeigen in einer einzigen Leiste abgeschnitten (Windows-Screenshot).
+- Der Nutzer bestaetigte die Spielstandverwaltung als funktional und gelungen; keine erneute Fachlogik-Ueberarbeitung gewuenscht.
+- Nebenfenster wie `Spielstaende verwalten` sollen das **vorhandene Schildbild aus dem Lade-/Anmeldekontext** benutzen (Datei `assets/loadingpage/Nebelseetal_Loadingpage.png`), nicht nur dunkelrot gestrichen werden.
+
+### Konkrete Codeaenderungen
+- `src/main.py::_build_main_ui`: statt 40px-Fixleiste getrennte Ressourcenzeilen und eine eigenstaendige Aktionszeile ohne starre Hoehen. `Admin-Spielstaende` bekommt dadurch ausreichend Raum; Reichsanzeige weiterhin nicht die Buchungsquelle der Ortslager. Keine neuen Aktionen/Berechtigungen.
+- `src/main.py::_schild_dialog_inhalt` neu: Einziger zentraler GUI-Helfer fuer Schildmotiv in Nebenfenstern; nutzt vorhandene Original-Ladebild-PNG direkt, haelt PhotoImage-Referenz am Fenster, laesst rechts Bild und links einen kontrastreichen, bedienbaren Bereich. Bei Bildausfall faellt nur das Motiv weg, nicht Speicher-/Ladefunktion. Keine duplizierte Grafikdatei oder neue Bildbibliothek.
+- `src/main.py::_spielstand_verwaltung`, `_archiv_wiederherstellung_dialog`, `_slot_auswahl`: nutzen denselben Hintergrundhelfer und groessere Fenster mit Mindestbreite. Alle bestehenden Slot-/Archiv-/Berechtigungsregeln bleiben unveraendert.
+- `tests/test_gpt_schild_nebenfenster_fix04i.py`: sechs neue GUI-Regressionen fuer Originalbild, Verwaltung, Laden, Adminarchiv, Bildausfall und separaten Admin-Aktionsbereich.
+- `tests/test_gpt_spielstandarchiv_fix04g.py`: reine Test-Infrastrukturanpassung: Listbox wird nach zusaetzlicher Layout-Frame-Verschachtelung rekursiv gefunden. Gleiche Fachpruefung fuer Slot 1 und Archiv-Restore bleibt erhalten.
+- `run_tests.bat`: gezielte neue GUI-Pruefung in die bestehende Liste aufgenommen. Nur ein aktives Protokoll, keine weitere Einstiegsanleitung.
+
+### Verifikation / Grenzen
+- Neu `test_gpt_schild_nebenfenster_fix04i.py`: 6/6 bestanden unter Linux mit virtueller X11-Anzeige.
+- Bestehendes `test_gpt_spielstand_gui_fix04h.py`: 6/6; `test_gpt_spielstandarchiv_fix04g.py`: 13/13; `test_gpt_profile_login.py`: 9/9; `test_gpt_admin_spielerhilfe_fix04d.py`: 7/7 bestanden.
+- Visualisierung ist unter Windows von Daniel noch manuell abzunehmen, insbesondere DPI-Skalierung/Fensterbreite. Die gesamte Testsuite und ein FIX04i-Windows-EXE-Build wurden NICHT ausgefuehrt. Das aktuelle Windows-EXE enthaelt diese Aenderungen noch NICHT.
+
+### Regel / Hermes-Wiederaufnahme
+GUI-Befunde fuer Administratorfunktionen muessen zusaetzlich unter normaler Anzeige und hohem Windows-DPI-Faktor geprueft werden. Gemeinsame Designkomponenten zentral implementieren, Originalassets wiederverwenden, Layout nicht durch starre Headerhoehe abschneiden, keine Funktion ohne ausdrueckliche Autorisierung des Admins exponieren. Auf Windows erst Patch uebernehmen, normale/admin Speicherfenster aufrufen, mit hoch skaliertem Desktop pruefen, Tests fahren, EXE neu bauen und erst nach Freigabe GitHub aktualisieren.
+
+
+## GPT-FIX04j – Öffentlicher Windows-Spielerbuild ohne Admin-Oberfläche (28.10.2026)
+
+**Auftrag:** Daniel wünscht ausdrücklich den *vollständigen* aktuellen Quellstand einschließlich aller Admin-Funktionen, Tests, Dokumente und Regeln im GitHub-Repository. **Nur** die für andere Spieler bereitgestellte Windows-Test-EXE soll keinen Admin-Bereich anbieten. Ein kleines Infopaket mit transparenten Systemanforderungen, Startanleitung und Fehlermeldung gehört ins Release-ZIP. Die lokale Entwicklerfassung mit Admin bleibt erhalten.
+
+**Geändert:**
+- `src/main.py`: Modusschalter auf Profilwahl, Rückkehr/Neustart, `_spiel_starten`, Admin-Authentifizierung, Admin-Werkzeuge und Speicherverwaltung angewendet. Im Public-Modus wird die Profilwahl übersprungen; normale Spielerslots bleiben. Lokales Public-Passwort getrennt vom Entwickler-Passwort.
+- `src/ausgabemodus.py`: zentrale Public-Modusabfrage. `src/public_start.py`: separater Einstieg und getrennter `%LOCALAPPDATA%/Nebelseetal_Remake/Public_Test_FIX04j`-Speicherordner, überschreibt absichtlich altes Test-Save-Override. **Keine feste Zugangsinformation** im Programm.
+- `tools/build_public_exe.py` / `PUBLIC_TEST_EXE_BAUEN_WINDOWS.bat`: isolierter Windows-PyInstaller-Build mit **eigenem EXE-Dateinamen**, ohne die Entwickler-EXE, alte `*.spec` oder Saves zu ersetzen; eigener Ausgabeordner `release_public/`, ZIP mit fünf Informationen/Prüfsummen.
+- `release_vorlage/`: Systemanforderungen, Startanleitung für Endnutzer, Grenzen, Fehler melden. `docs/RELEASE_PUBLIC_FIX04j.md`: Release-/Sicherheitsprüfung. `README.md` / `docs/AKTUELLER_STAND.md`: neuer Editionsunterschied; vorherige Aussagen bleiben als historischer Stand erkennbar.
+- `.github/workflows/windows-test-exe.yml`: der manuelle GitHub-Windows-Build erzeugt nur das Public-Test-ZIP als Artefakt; keine automatische Releasefreigabe. `tests/test_public_edition_fix04j.py`: Modus-, Speicherpfad-, Passwortpfad- und Admin-Bedienungsprüfungen.
+
+**Sicherheits-/Architekturgrenze:** Im öffentlichen Repo ist sämtlicher Admin-Code weiterhin verfügbar; die public EXE sperrt UI/Workflow, nicht die dekompilierbare Quell-/Bytecode-Logik. Für ein manipulationssicheres Verbot oder vollständiges Entfernen aus der EXE ist eine spätere Modultrennung notwendig. Dies ist ausdrücklich **kein** sicherer Kopierschutz.
+
+**Tests:** Neue Public-Edition-Tests 6/6 unter Linux/Xvfb und Bau-Voraussetzungsprüfung bestanden. Fuenf benachbarte Testdateien ebenfalls erfolgreich (Profil 9/9, Adminhilfe 7/7, Slot-GUI 6/6, Schild-GUI 6/6, Kartenkatalog 1286 Pruefungen). Das ersetzt keinen kompletten Windows-Test. Keine Windows-kompilierte FIX04j-EXE und kein GitHub-Push durchgeführt; Release bis Windows-Manuelltest, Geheimnisprüfung, Copyright-Prüfung und Hermes-Freigabe offen.
+
+**Hermes-Auftrag:** Vollständigen Admin-Quellcode im GitHub-Repo beibehalten; zwei Builds auseinanderhalten, nur die öffentliche ZIP für Tester, keine automatischen Uploads aus `release_public/` in Git; Ordnerregel, Cleanup und Skills auf Editions- und Save-Isolation erweitern, nur nach Prüfung übernehmen.
+
+<!-- NEBEL_FIX04J_GPT_UEBERGABEPROTOKOLL_20261028 -->
+## 2026-10-28 – GPT-Zuarbeit / GitHub-Pre-Release FIX04j / Übergabe an Hermes
+
+**Akteur:** ChatGPT als untergeordneter Zuarbeitsagent; lokale Prüfungen, GitHub-Desktop-Commit/Push und Release-Einstellungen durch Daniel ausgeführt. **Hermes:** derzeit nicht aktiv; Hauptkoordinator und spätere technische Verifikation.
+
+**Art der Änderung:** Dokumentations- und Übergabenachtrag. Das Installationspaket verändert keine Python-/Spieledateien, keine Grafiken, keine Git-Konfiguration und veröffentlicht selbst nichts.
+
+**Bisher laut Benutzer bestätigt:**
+- Aktuelle FIX04j-Dateien in die separate GitHub-Kopie `D:\Arbeiten\Nebelseetal_Remake_GitHub` übernommen; beim Abgleich meldete GitHub Desktop zunächst 443 Änderungen.
+- Historische `docs/archiv/`-Dateien aus aktuellem Git-Index entfernt; `.gitignore` dafür ergänzt; `.gitattributes` zur binären Behandlung von Originalgrafiken aktiviert (geprüft an einer GIF-Datei).
+- `git diff --cached --check` nach Bereinigung zweier Whitespace-Stellen ohne Treffer.
+- Name-/Pattern-basierte Sicherheitsprüfungen ohne offensichtliche Zugangsdaten; keine Garantie eines vollständigen Security-/History-Audits.
+- Lokaler Commit und Push nach GitHub sowie Veröffentlichung eines Pre-Releases `v0.4.0-test.1` von Daniel bestätigt; Commit-SHA und Remote-Release-Inhalte noch von Hermes technisch zu verifizieren.
+- Öffentliche Windows-EXE von Daniel praktisch getestet: Start, Admin-Einstieg nicht sichtbar, neues Spiel, speichern, Neustart, laden erfolgreich.
+- ZIP-Inhalt: EXE + fünf Textdateien, benannt im Hermes-Handoff.
+- ZIP-SHA256: `6677923094191c552d08bb6a6923847f5d08e41382dd80205894e41e2f356b30`.
+- Entpackte EXE-SHA256: `84c966470580442ac0f3736a676e1c38df66a61b4054d2d10455ee43c7f9022c`. Interne `SHA256SUMS.txt` stimmt mit EXE-SHA überein.
+
+**Angehängte Dokumentation:** `docs/HERMES_UEBERGABE_AKTUELL.md` um oben platzierten FIX04j-Statusabschnitt ergänzt. Alte Inhalte bleiben als Historie erhalten; widersprechende ältere Statusaussagen gelten als überholt.
+
+**Offen:** Remote-Release-/Commit-ID prüfen; Source-of-Truth und unterschiedliche lokale `.git`-Historien sicher klären; volle Regression, 25 Kartenraster, Bot-/Kampf-/Ökonomie-E2E, öffentliche/Entwickler-Save-Isolation und endgültige Release-Qualität. Bestehende Roadmap ohne Aufgabenverlust weiterführen.
+
+**Tests dieser Übergabeinstallation:** Vorhandensein der beiden kanonischen Dateien vor Schreibzugriff geprüft; Backups unter `docs/archiv/uebergabe_sicherungen/` erstellt. Installationsskript soll auf Wiederholung ohne doppelte Einträge reagieren. Der tatsächliche Scriptlauf und Ergebnis sind erst bei Daniel lokal zu bestätigen.
+
+
+<!-- GPT_FIX05_ISOLIERTE_PRUEFUNG_20261028 -->
+## GPT-FIX05 – externer Zuarbeitsagent, Code-/Kartenprüfung und Tempo-Persistenz (28.10.2026)
+
+**Akteur:** GPT-6, NUR isolierte Kopie des Nutzer-ZIPs. Keine Operation auf Daniels
+Windows-Verzeichnissen, kein Git-Commit/Push/Release, kein Mischen von `.git`.
+
+**Prüfungen vor Codeänderung:** 87 aktive `tests/test_*.py` in Linux/Python 3.13.5 mit
+Xvfb einzeln ausgeführt: **84 PASS, 3 FAIL**. Fehlfälle: veraltete EXE-frei-Annahme
+(`test_gpt_portable_uebergabe.py`); archivierungsbedürftige 8×7-Ökonomieannahme
+(`test_oekonomie_kern_unabhaengig.py`, `KeyError: kartenmass`); Protokoll-Commit-
+Prüfung ohne verfügbare `.git`. Letztere nach *unverändertem* Nachladen der lokalen
+`.git` aus genau demselben Archiv **15 PASS / 0 FAIL / 2 Befunde**; 27 bekannte
+historische Commit-IDs bestätigt. Lokaler ZIP-HEAD ist `1c4dffa3cf1c47c9c4963e9782b34272fcca29d1`;
+kein `origin` konfiguriert. Kein Rückschluss auf öffentliches GitHub-HEAD.
+
+**Änderungen (auf separater Kopie):** `src/spielzeit.py` – jetzt atomare,
+personen-/editionsgetrennte Einstellung `spielzeit_einstellung.json` in privatem
+Spielstandordner; Datenquelle `data/spielzeit.json` bleibt unverändert.
+`src/main.py` – Fehlerdialog bei Tempo-Schreibfehlern; `tests/test_gpt_portable_uebergabe.py`
+– historische, überholte EXE-Testannahme berichtigt; `tests/test_gpt_spielzeit_einstellungen_fix05.py`
+– sechs neue Regressionen inklusive echter Tkinter-Schaltfläche; `run_tests.bat`
+– neuen Test und FIX04j-Public-Test aufgenommen; `tools/originalkarten_grafiken_bauen.py`
+– Python-Escape-Warnung in Modulhilfe entfernt. Neue `docs/quellen/ORIGINALKARTEN_25_SICHTPRUEFUNG_OFFEN_FIX05.csv`
+und `docs/quellen/CODE_UND_KARTENPRUEFUNG_FIX05.md`. Korrekturabsatz in
+`docs/AKTUELLER_STAND.md` und diesem einzigen Hermes-Handoff.
+
+**Kartenprüfung:** 18 aktive JSON-Dateien valide; 127 eindeutige 10×10-Raster, alle
+127 historischen Bild-Hashes und Spielbild-Hashes korrekt, 117 Karten mit
+100 Original-Feldzahlen stimmen mit dem Raster überein. 10 historische
+Feldsumme-Abweichungen und 25 manuell offene Raster als Befund dokumentiert.
+
+**Geprüfte Nachbartests nach Patch:** Sechs neue Tempo-Regressionen, sechs
+Portabilitäts-Regressionen, neun Zeit-/Stempel-Regressionen bestanden;
+`tools/build_public_exe.py --pruefen` bestand nur die Vorprüfung und baut keine EXE.
+Gesamtregression, Windows-Neubau, reale Windows-GUI-Save-Runde, unabhängiger
+10×10-Ökonomie-Nachfolger sowie Bot-/Kampf-/Ökonomie-End-to-End offen.
+**Kein Release/Freigabeanspruch.** Details im separaten technischen Befundblatt
+und vollständig ausgefüllter Pflicht-Rückübergabe für Hermes; sämtliche alten
+Roadmap-Aufgaben bleiben fortzuführen.
+
+**FIX05 Abschlusskontrolle (zweiter Gesamtlauf):** 88 Testdateien, 87 mit Exitcode 0,
+1 mit Exitcode 1 (`tests/test_oekonomie_kern_unabhaengig.py`, alte 8×7-Annahme).
+Kein Verschweigen durch Test-Deaktivierung. Pflicht-Rückübergabe ausgefüllt und
+Delta mit Dateihashes vorbereitet; kein Windows-Build, kein Push.
+
+
+## HERMES-UEBERNAHME-01 - 30.10.2026 - die Oktober-Zuarbeit als Lieferung eines Kindes uebernommen
+
+**Rolle:** Alle Abschnitte oben mit `GPT-` sind Zuarbeit eines fremden Agenten (ChatGPT, 06.-28.10.2026),
+der zeitweise auch direkt in die fertige Fassung gebaut hat. Hermes hat diese Lieferung wie die Arbeit
+eines Kindes behandelt: geprueft, dann uebernommen - nur was belegt war. Daniels Ansage 30.10.2026:
+"das hat ein ChatGPT-LLM erarbeitet und sollst du als solches betrachten und in unser vorhandenes
+Projekt einarbeiten als haette ein anderer Agent das gemacht" und "mein Wunsch ist eine aktuelle Version".
+
+| Zeit | Schritt | Ergebnis / Belege |
+|---|---|---|
+| 20:55 | Sicherung vor der Uebernahme | `D:\Backups\Nebelseetal_vor_FIX05_20261030.zip` - 3.165 Eintraege, 82,8 MB, `testzip()` = None |
+| 20:57 | FIX05-Delta gegen den ECHTEN Stand geprueft | 9 von 9 vorhandenen Basis-Hashes exakt auf Manifest-Wert, 3 Neuanlagen fehlten wie angekuendigt, alle 12 Delta-Hashes OK |
+| 21:05 | Uebernahme | 11 von 12 Dateien uebernommen und jede gegen ihren Delta-Hash geprueft; `tools/originalkarten_grafiken_bauen.py` ABSICHTLICH nicht (die Delta-Fassung fuehrt nur ein doppeltes Backslash im Moduldocstring ein = Rueckschritt). Alte Fassungen: `cache/scratch/nebel_backup_fix05` |
+| 21:10 | Import-Probe | `spielzeit` + `main` (6.807 Zeilen) importieren sauber; `einstellungspfad()` = `~/.nebelseetal/spielzeit_einstellung.json` |
+| 22:33 | Sammellauf (Spiel geschlossen) | **56 gruen / 1 rot / 57 Dateien, 427 s**. Rot: `tests/test_oekonomie_kern_unabhaengig.py` (`KeyError: 'kartenmass'`, alte 8x7-Annahme - bekannte Altlast, KEIN FIX05-Fehler) |
+| 22:40 | Git-Zustand read-only belegt | keine gemeinsame Wurzel mit dem GitHub-Klon (`git merge-base` scheitert, der Klon-Stand ist im Hauptprojekt als Objekt unbekannt); **116 von 116** als geloescht gemeldeten Dateien aus dem eigenen HEAD wiederherstellbar (verschoben nach `archiv/`, per `.gitignore:2` ausgeschlossen); der Release-Tag des Klons ist lokal in KEINEM der beiden Repos vorhanden |
+
+**Was aus der Zuarbeit uebernommen ist:** Tempo-Einstellung im privaten Laufzeitordner (FIX05),
+Fehlerdialog bei Schreibfehlern, sechs neue Tempo-Regressionen, zwei neue Quelldokumente.
+**Was NICHT belegt ist:** der Windows-Neubau nach FIX05, die reale Windows-Save-Runde und die
+vollstaendige E2E-Freigabe - die Uebernahme ist Code, nicht Freigabe.
+
+**Daniels Spielbericht 30.10.2026 (offen, noch nicht gebaut):**
+- Handkarren stehen in der Truppenausbildung. Sie gehoeren **ausschliesslich** in den Stellmacher -
+  vorher sind sie gar nicht produzierbar, also haben sie dort nichts zu suchen.
+- Ausbildung war trotz mehrerer Stellmacher und mehrerer Lager nie moeglich; Meldung
+  "Lagerkapazitaet reicht nicht". Kein Spielzustand erreichbar, in dem ein Handkarren entsteht.
+- Regel (Daniel): je EIN Stellmacher / Bogenmacher / Item-Hersteller pro Karte genuegt; mehrere
+  machen nur bei Farm und Pferdezucht Sinn, weil sie die Produktion erhoehen. Gegen das Handbuch
+  pruefen, bevor sie festgeschrieben wird.
+- Grundsaetzlich ueberarbeiten, nicht nur die Meldung.
+
+**Eigene Fehler in diesem Schritt:** zwei Sperrmeldungen im Spielstand als "doppelte Buchfuehrung"
+gedeutet - falsch, `_reichsanzeige_aus_orten()` (`main.py:1008`) schreibt die Reichswerte als Summe
+der Orte ("niemals eine zweite Kasse"). Nach dem Nachlesen im Code zurueckgenommen.

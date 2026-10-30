@@ -40,6 +40,7 @@ import einheiten
 import forschung
 import gebaeude_wirkung as GW
 import gelaende
+import originalkarten
 import kampfbericht
 import portalraum
 import punkte as PUNKTE
@@ -159,7 +160,7 @@ def neuer_zustand(saat: int = START_SAAT) -> dict:
     Stufe 0), leere Waren-, Einheiten- und Ereignislisten sowie einen leeren
     Werkstatt-Bestand.
     """
-    karte = gelaende.siedlungskarte_erzeugen(saat)
+    karte = originalkarten.startkarte(saat, "spieler")
     siedlung = {
         "name": "Heimsiedlung",
         "map_id": "heim",

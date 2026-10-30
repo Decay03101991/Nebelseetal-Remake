@@ -6,7 +6,7 @@ Gegenstand sind die NEUEN Funktionen in src/spieloekonomie.py:
   fensterproduktion(orte, jetzt)     -> {rohstoff: menge}
 
 Richtschnur sind die zwoelf Pflichtzusagen aus
-docs/audits/entwurf_spieloekonomie_sol_2026-10-05.txt, Zeile 592-648, woertlich:
+archiv/analysen/audits/entwurf_spieloekonomie_sol_2026-10-05.txt, Zeile 592-648, woertlich:
   'tick(3600) gleich 36x tick(100), einschliesslich Forschung, Ankunft und Produktion'.
 
 Regeln aus data/spieloekonomie.json:

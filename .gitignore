@@ -1,23 +1,61 @@
-# Build-Artefakte (nach jedem Build entfernen)
+# Lokale Archive und vertrauliche Altstaende (nicht oeffentlich pushen)
+/archiv/
+# Secrets / persoenliche Zugangsdateien
+.env
+.env.*
+!.env.example
+**/tor.json
+**/credentials.json
+**/secrets.json
+**/secret.json
+**/token.json
+*.pem
+*.key
+*.p12
+*.pfx
+*passwort*.txt
+*password*.txt
+# Spielstaende und privater Laufzeitstatus
+savegame.json
+savegame.json.*
+**/savegame.json
+**/savegame.json.*
+savegames/
+saves/
+*.sav
+*.lock
+*.bak
+*.tmp
+# Build / generierte Dateien / Testumgebungen
 build/
 dist/
 *.spec
-__pycache__/
-*.pyc
-
-# Laufzeitdaten
-game.lock
-savegame.json
-*.bak
-*.tmp
-
-# Sicherungen aus der Entwicklung
-*.orig
-
-# Ausgelieferte Programme: nur EINE Fassung, und die entsteht erst beim Portieren (Paket W9).
-# Regel aus dem Vorfall vom 04.10.2026: ein alter EXE-Build (Nebelsee Memory.exe, 27.08.2026)
-# lag versioniert im Projekt und trug denselben Fenstertitel wie das Remake — Daniel sah darin
-# Golems und Pikeniere, obwohl der Code sie nicht mehr kannte. Alte Builds gehoeren in Quarantaene.
 *.exe
-_Quarantaene/
-Quarantäne/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+# Archivpakete (nicht ins oeffentliche Repo)
+*.zip
+*.7z
+*.rar
+# Logdateien
+*.log
+
+# Lokale manuelle Ruecklage der vorherigen Projektstruktur
+/Alles alte/
+/Alles_alte/
+NEBELSEETAL_FIX*_FORTSCHRITT_WINDOWS.txt
+
+# FIX04g: keine privaten archivierten Spielstaende oder lokalen Runtime-Daten
+**/archiv/spielstaende/**
+**/savegame_slot*.json
+**/admin_teststand.json
+**/admin_tor.json
+**/ARCHIV_INFO.json
+
+# FIX04j: oeffentlicher Windows-Build nur als Releases-Artefakt
+/release_public/
+/build_public_tmp/
+/dist_public_tmp/

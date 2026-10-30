@@ -1,13 +1,13 @@
 """Nebelseetal Remake — deterministischer Kern der Spielökonomie (Ökonomie-Paket, Schritt 2).
 
-Quelle: `docs/audits/entwurf_spieloekonomie_sol_2026-10-05.txt` (Abschnitt F, Schritt 2,
+Quelle: `archiv/analysen/audits/entwurf_spieloekonomie_sol_2026-10-05.txt` (Abschnitt F, Schritt 2,
 Codeblock Z. 237-414). Reine Rechenlogik **ohne** Oberfläche und **ohne** main-Abhängigkeit:
 Karten aus festen Kontingenten, Kartenqualität (drei Achsen), Schattenpreise und die
 Gründungs-Transaktion.
 
 Bewusste Grenzen dieses Schritts (stehen so im Entwurf):
-  * Die alten `kartentypen.listen` und ihr Generator bleiben **unverändert**; dieser Kern
-    benutzt ausschließlich `data/gelaende.json` → `kartenvorrat` als Wahrheit.
+  * Der historische 8x7-Generator ist stillgelegt und separat archiviert.
+    Spielkarten stammen nur aus `data/originalkarten/katalog.json`.
   * Nichts ruft dieses Modul auf. Der Ökonomiemodus wird erst nach dem letzten
     Integrationsschritt aktiviert; bis dahin läuft der Altmodus unverändert.
   * Alle Schwellen, Gewichte und Gebühren sind **VORSCHLAG** (siehe `data/spieloekonomie.json`).
@@ -32,6 +32,7 @@ import forschung
 import forschungspfad
 import gebaeude_wirkung
 import gelaende
+import originalkarten  # GPT-OK01: neue Spielstaende verwenden Originalkarten, 10x10
 import spieldaten
 import werkstatt
 import wirtschaft
@@ -72,39 +73,18 @@ def gruendungskosten():
 
 
 def feste_karte(seed, eintrag: dict) -> dict:
-    """Eine Karte aus festen Kontingenten (nur die Positionen sind durch die Saat gemischt)."""
-    w = eintrag["gewichte"]
-    if set(w) != set(gelaende.GELAENDEARTEN):
-        raise ValueError("Kontingente müssen genau die bekannten Geländearten enthalten.")
-    if any(type(v) is not int or v < 0 for v in w.values()):
-        raise ValueError("Kontingente müssen nichtnegative ganze Zahlen sein.")
-    m = G["kartenmass"]
-    if sum(w.values()) != m["spalten"] * m["zeilen"]:
-        raise ValueError("Kontingente passen nicht zum Kartenmaß.")
-    if w[gelaende.SUMPF] != G["regeln"]["sperrfelder"]:
-        raise ValueError("Sumpfkontingent verletzt die Sperrfeldregel.")
-    for art, minimum in G["regeln"]["mindestbesatz"].items():
-        if not art.startswith("_") and w[art] < minimum:
-            raise ValueError("Mindestbesatz verletzt: " + art)
-    raster = [art for art in gelaende.GELAENDEARTEN for _ in range(w[art])]
-    random.Random(str(seed)).shuffle(raster)
-    breite = m["spalten"]
-    return {"seed": str(seed), "spalten": breite, "zeilen": m["zeilen"],
-            "felder": len(raster), "bauplaetze": len(raster) - w[gelaende.SUMPF],
-            "raster": raster, "zeilen_raster": [raster[i:i + breite] for i in range(0, len(raster), breite)],
-            "zaehlung": dict(w), "typ": eintrag["id"], "typ_name": eintrag["name"],
-            "vorteil": "Feste Kontingente; Ertragsprofil und Versorgungsplan beachten."}
+    """Stillgelegter historischer 8x7-Generator (keine neuen Karten mehr)."""
+    raise ValueError("Historische 8x7-Karten sind archiviert; originalkarten.karte(ID) verwenden")
 
 
 def vorrat(seed) -> dict:
     """Der feste Kartenvorrat für Neugründungen (Koloniekarten, noch ohne Besitzer)."""
-    return {e["id"]: {"karte": feste_karte(f"{seed}:{e['id']}", e), "besitzer": None}
-            for e in G["kartenvorrat"]["kolonien"]}
+    return originalkarten.vorrat(seed)
 
 
 def startkarte(seed, eigentuemer) -> dict:
     """Die private, ausgeglichene Startkarte eines Akteurs (nicht Teil des Vorrats)."""
-    return feste_karte(f"{seed}:start:{eigentuemer}", G["kartenvorrat"]["start"])
+    return originalkarten.startkarte(seed, eigentuemer)
 
 
 def kapazitaeten(karte) -> dict:
@@ -125,34 +105,66 @@ def achsen(karte) -> tuple:
 
 def relativ(karte) -> tuple:
     """Die drei Achsen einer Karte im Verhältnis zur Startreferenz."""
-    basis = achsen(feste_karte("referenz", G["kartenvorrat"]["start"]))
+    basis = achsen(originalkarten.startkarte("referenz", "spieler"))
     return tuple(a / b for a, b in zip(achsen(karte), basis))
 
 
-def kartenqualitaet(karten: list) -> dict:
-    """Erfüllt ein Verbund die drei Bedingungen (Anzahl, Mittelwert, Spezialist)?
+def _ist_originalkarten_verbund(karten: list) -> bool:
+    """Nur neue, eindeutig markierte 10x10-Originalkarten; nie Legacy still umdeuten."""
+    return bool(karten) and all(
+        isinstance(k, dict) and k.get("originalkarte_id")
+        and k.get("spalten") == 10 and k.get("zeilen") == 10
+        and len(k.get("raster") or []) == 100 for k in karten)
 
-    ``mittel`` = Mittelwert der Achsen über alle Karten, ``beste`` = bester Einzelwert je
-    Achse. Alle Werte sind Verhältnisse zur Startreferenz.
+
+def kartenqualitaet(karten: list) -> dict:
+    """Prueft die Siedlungsgrundlage des Versorgungsziels.
+
+    GPT-KZ01 (28.10.2026): Bei neuen Originalkarten muss man nicht die
+    historischen Qualitaetsgruppen bzw. die zufaellig gezogene Zusammensetzung
+    ueberlisten. Ab vier Siedlungen ist die Karten-Grundbedingung erfuellt;
+    Leistung und Spezialisierung beweist erst die TATSAECHLICHE Wirtschaft in
+    ``zielstatus`` (Produktion, Reserve, Transport, Forschung, Waren, Heer).
+    Die drei Landschaftsachsen bleiben als Diagnose abrufbar. Fuer alte 8x7-
+    Testkarten bleibt die zuvor beschlossene Portfolioregel unangetastet.
     """
     if not karten:
-        return {"erfuellt": False, "mittel": (0, 0, 0), "beste": (0, 0, 0)}
+        return {"erfuellt": False, "mittel": (0, 0, 0), "beste": (0, 0, 0),
+                "modell": "keine_karten", "siedlungen": 0}
     werte = [relativ(k) for k in karten]
     mittel = tuple(sum(w[i] for w in werte) / len(werte) for i in range(3))
     beste = tuple(max(w[i] for w in werte) for i in range(3))
-    ok = (len(karten) >= REGELN["mindestsiedlungen"]
-          and min(mittel) >= REGELN["portfoliofaktor"]
+    genug_orte = len(karten) >= REGELN["mindestsiedlungen"]
+    if _ist_originalkarten_verbund(karten):
+        # Achtung: keine Kategorie und kein theoretischer Gold-/Lederwert hier!
+        # Der 24h-Produktionsplan und echte Waren-/Transportketten entscheiden.
+        return {"erfuellt": genug_orte, "mittel": mittel, "beste": beste,
+                "modell": "original_10x10_versorgung", "siedlungen": len(karten)}
+    ok = (genug_orte and min(mittel) >= REGELN["portfoliofaktor"]
           and min(beste) >= REGELN["spezialistenfaktor"])
-    return {"erfuellt": ok, "mittel": mittel, "beste": beste}
+    return {"erfuellt": ok, "mittel": mittel, "beste": beste,
+            "modell": "alt_8x7_portfolio", "siedlungen": len(karten)}
 
 
 def kartennutzen(karten: list, kandidat) -> float:
-    """Marginaler Nutzen einer Karte für ein bestehendes Portfolio (Defizite zählen mehr)."""
+    """Reproduzierbare Empfehlung nach ECHTEN Geländeerträgen (nie Katalog-Güte).
+
+    Bei neuen Originalkarten steigt der Nutzen einer Rohstoffachse, wenn sie
+    in den bisherigen Siedlungen unterversorgt ist. Hohe Potentiale bleiben
+    gut, aber eine zweite Spezialkarte in derselben Achse ist weniger wertvoll
+    als die erste. Keine versteckte Gewichtung der Gruppen beste/mittlere/
+    schlechte. Bei Alt-Karten bleibt der frühere Entwurfsnutzen bestehen.
+    """
     vorher = [relativ(k) for k in karten]
     neu = relativ(kandidat)
+    if _ist_originalkarten_verbund([*karten, kandidat]):
+        # Die Kopplung an die bestehende Summe verhindert künstliche
+        # Spezialistenhürden bei historischen Karten. Auch für die erste Karte
+        # definiert: Nenner 1.0 (keine Division durch 0).
+        sums = [sum(w[i] for w in vorher) for i in range(3)]
+        return sum(neu[i] / (1.0 + sums[i]) for i in range(3))
     if not vorher:
         return sum(neu)
-    # Defizite und fehlende Spezialisten, nicht maximale Holzsumme.
     bedarf = [max(0, REGELN["portfoliofaktor"] * len(vorher) - sum(w[i] for w in vorher))
               + max(0, REGELN["spezialistenfaktor"] - max(w[i] for w in vorher))
               for i in range(3)]
@@ -184,7 +196,7 @@ def schattenpreis(karte, rohstoff: str, bestand: float, reserve: float) -> float
         return 1.0
     beste = einzelmaximum()
     lokal = kapazitaeten(karte).get(rohstoff, 0)
-    start = kapazitaeten(feste_karte("preis", G["kartenvorrat"]["start"]))[rohstoff]
+    start = kapazitaeten(originalkarten.startkarte("preis", "spieler"))[rohstoff]
     ratio = start / lokal if lokal > 0 else math.inf
     k = _begrenzen(ratio, REGELN["kartenpreisgrenzen"])
     v = 1.0 if reserve <= 0 else _begrenzen(2 * reserve / (reserve + bestand), REGELN["vorratspreisgrenzen"])
@@ -386,7 +398,7 @@ def transport_fortschritt(mission: dict, orte: dict, jetzt: float):
         # Merker bleibt AUS (Entwurf Z. 492/500: „Fracht bleibt am Auftrag und ist nicht global
         # verfuegbar"). So kann ein spaeter auftauchender eigener Ort die Fracht noch erhalten —
         # es wird nichts erfunden und an Fremde nichts verteilt.
-        # Fund der unabhaengigen Abweichungspruefung (docs/audits/pruefung_schritt3_4.md, Punkt 12).
+        # Fund der unabhaengigen Abweichungspruefung (archiv/analysen/audits/pruefung_schritt3_4.md, Punkt 12).
     return neu, m
 
 
@@ -647,7 +659,7 @@ def tick_bis(orte: dict, missionen: list, wissen: dict, jetzt: float, ende: floa
 #
 # Die erreichte **Stufe** bleibt in `wissen` (dem übergebenen Stand) — ob dieser Stand je Siedlung
 # oder für das ganze Volk gilt, sagt das Handbuch **nicht** (Z. 104-106 „Dein Volk" gegen Z. 397
-# „Deine Siedlungen"); das ist offen und in `docs/audits/belege_forschung_je_siedlung.md` festgehalten.
+# „Deine Siedlungen"); das ist offen und in `archiv/analysen/audits/belege_forschung_je_siedlung.md` festgehalten.
 
 
 def forschung_start(ort: dict, gebiet: str, wissen: dict, jetzt: float,
@@ -710,12 +722,13 @@ def forschung_abschluss(ort: dict, wissen: dict, jetzt: float) -> tuple:
 # ---------------------------------------------------------------------------
 #
 # Der Altmodus gewinnt über Punkte (`punkte.sieg_oder_niederlage`). Der Ökonomiemodus gewinnt
-# über eine **versorgte Wirtschaft**: gute Karten, gedeckter Plan, gehaltene Reserve, echter
+# über eine **versorgte Wirtschaft**: genug Original-Siedlungen, gedeckter Plan,
+# gehaltene Reserve, echter
 # Handel, beide Rollen, Ware **und** Forschung fertig — und das alles **ein volles
 # Versorgungsfenster lang** (Haltefenster). Die Original-Punkteformeln bleiben unangetastet.
 #
 # Der Zweck ist ausdrücklich der **Ausschluss von Scheinsiegen**: wer nur Punkte farmt, Fracht
-# sinnlos hin und her schiebt oder seine Schlüsselkarte verliert, erfüllt die Bedingungen nicht
+# sinnlos hin und her schiebt oder seine notwendige Versorgung verliert, erfüllt die Bedingungen nicht
 # und verliert damit auch das Haltefenster wieder (Entwurf Z. 715).
 #
 # `reserve` (was ein Ort im Fenster zurücklegen WILL) wird je Ort erwartet — gesetzt wird es von
@@ -782,7 +795,7 @@ def zielstatus(orte: list, jetzt: float, haltestart=None) -> dict:
 # `_trade`-Pfad (Gratisrohstoffe) wird dafür **nicht** weiterverwendet, sondern ersetzt.
 #
 # BELEGT (Handbuch 2009, Z. 1120 ff. — Zitat und Zeile in
-# `docs/audits/handbuch_abgleich_2026-10-05.txt`): Handel zwischen eigenen Siedlungen ist belegt;
+# `archiv/analysen/audits/handbuch_abgleich_2026-10-05.txt`): Handel zwischen eigenen Siedlungen ist belegt;
 # für den Handel mit Fremden nennt das Handbuch die Handelskarawane und die Rückkehr MIT den Waren
 # bei Ablehnung (S. 20). Der Preis wird beim Angebot festgelegt und danach nicht mehr verhandelt.
 #

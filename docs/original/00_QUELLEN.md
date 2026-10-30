@@ -50,3 +50,5 @@ geglättet.
 
 Siehe auch `ORIGINAL_Einheiten_Waren_Rohstoffe.md` (ausgelesene Fassung) und
 `../nebelseetal_research.md` (frühere Recherche).
+
+> Quellenkorrektur vom 28.10.2026: Die Datei `Nebelseetal_Spielanleitung_2009.pdf` nennt innen **01.09.2006**. Der Name wurde aus Kompatibilitaetsgruenden nicht umbenannt. Die vermeintliche `.odt`-Datei war eine bytegleiche PDF mit falscher Endung und wurde archiviert.

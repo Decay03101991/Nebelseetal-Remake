@@ -1,0 +1,42 @@
+﻿NEBELSEETAL REMAKE - FIX02d-R2 (KORRIGIERTE ORDNUNGSREGEL)
+Stand: 28.10.2026
+
+DAS IST DIE KORRIGIERTE FASSUNG DES VORHERIGEN FIX02d-PAKETS.
+Die alte Variante soll NICHT ausgefuehrt werden.
+
+ZIEL:
+- README.md: EINZIGE Spielstart- und GitHub-Eintrittsseite.
+- docs\HERMES_UEBERGABE_AKTUELL.md: EINZIGE aktive Hermes-Anweisung.
+- docs\ENTWICKLUNGSPROTOKOLL.md: EINZIGES aktives Entwicklungsprotokoll.
+- docs\AKTUELLER_STAND.md: EINZIGER aktueller Spielbereichsstatus.
+- START_HIER.txt wird NICHT neu angelegt, sondern archiviert.
+
+SO GEHT ES:
+1. Dieses ZIP in D:\Arbeiten\Nebelseetal_Remake entpacken.
+   Wenn Windows nach Ersetzen im Ordner tools fragt: die Dateien aus DIESEM
+   Paket sind die neuere Fassung (R2); im Zweifelsfall den Dateinamen vergleichen.
+2. Explorer: D:\Arbeiten\Nebelseetal_Remake\tools
+3. Doppelklick: ORDNUNG_FIX02d_STARTEN.cmd
+4. Die geplanten Aenderungen pruefen und mit JA bestaetigen.
+   Danach im PowerShell-Fenster auf 'ERFOLG' achten. Fehler? STOPP und
+   den genauen Text oder Screenshot senden. NICHT erneut blind starten.
+5. Pruefen: Im Hauptordner keine aktuelle START_HIER.txt mehr;
+   README.md und die aktiven .bat-Starter sind vorhanden.
+6. Im docs-Ordner nur ein aktives ENTWICKLUNGSPROTOKOLL.md und
+   eine aktive HERMES_UEBERGABE_AKTUELL.md.
+
+ALTDATEIEN UND GEANDERTE DOKUMENTE WERDEN GESICHERT IN:
+  archiv\ordnungsbereinigung_FIX02d_20261028
+Dort auch DATEIUMZUEGE.json mit Pfaden und SHA-256-Werten.
+
+WICHTIG:
+- Nicht verwenden, wenn alte FIX02d-Bereinigung bereits gelaufen ist;
+  der Starter bricht dann sicher ab statt ungeprueft zu ueberschreiben.
+- Ordner 'Alles alte' unangetastet lassen.
+- Projektcode, Spielstaende, GitHub und Cronjobs werden NICHT veraendert.
+- Hermes muss vorhandene Laptop-Cleanup-Regeln spaeter selbst
+  pruefen und die nur lesende Ordnungskontrolle integrieren.
+- Eine neue Windows-EXE wird durch dieses Paket NICHT erzeugt.
+- Fuer deinen Windows-11-Laptop mit ca. 12 GB RAM: spaeter Builds
+  nacheinander, nicht parallel; vorab RAM und freien Speicher pruefen.
+- Persoenliche Rechnerkennungen und Netzwerkinfos bleiben draussen.

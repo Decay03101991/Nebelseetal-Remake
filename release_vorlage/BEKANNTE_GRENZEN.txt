@@ -1,0 +1,14 @@
+NEBELSEETAL REMAKE - TESTGRENZEN UND DATENSCHUTZ
+
+- Unfertige Einzelspieler-Testversion; kein offizieller fertiger Release.
+- 127 historische Originalkarten integriert, 25 Raster grafisch noch offen.
+- Bot-Wirtschaft/Belagerungsstrategie und vollstaendige Langzeittests offen.
+- Archive geloeschter Spielstaende sind aktuell Teil der Entwicklungslogik;
+  die endgueltige Aufbewahrungs- und Groessenregel ist noch NICHT festgelegt.
+- Nicht alle Windows-Versionen, Skalierungen und Grafikkonfigurationen getestet.
+- Die EXE enthaelt kein eingetragenes Betreiberpasswort. Beim Erststart wird
+  ein persoenliches Passwort lokal festgelegt.
+- Spielstaende und private Archive werden lokal verwaltet; bitte bei
+  Fehlermeldungen keine Passwoerter oder privaten Spielstaende posten.
+- Historische Bildmaterialien: Rechtefreigabe vor oeffentlicher
+  Weitergabe durch den Projektverantwortlichen separat zu pruefen.

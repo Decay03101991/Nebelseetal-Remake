@@ -5,7 +5,7 @@ Gegenstand sind die NEUEN Funktionen in src/spieloekonomie.py:
   ware_start(ort, ware, forschung, jetzt, rezepte=None) -> neuer Ort
   ausbildung_start(ort, name, forschung, jetzt)          -> neuer Ort
 
-Richtschnur ist der Entwurf docs/audits/entwurf_spieloekonomie_sol_2026-10-05.txt,
+Richtschnur ist der Entwurf archiv/analysen/audits/entwurf_spieloekonomie_sol_2026-10-05.txt,
 Zeilen 507-590 ('jede der 17 Waren hat Herkunft; kombinierte Sperren vollstaendig;
 Materialabzug genau einmal; Wollumhang 1 Wolle/20min, Kurzschwert 4 Metall/80min,
 Lederrustung 4 Leder/80min; Schwertdauer bleibt 1200s') und Abschnitt 4 des Entwurfs.

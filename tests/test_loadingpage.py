@@ -26,7 +26,7 @@ main = ausnahme("main importieren", lambda: __import__("main"))
 if main is None:
     sys.exit(bericht())
 
-ORIGINAL = os.path.join(ROOT, "Nebelseetal_Loadingpage.jpg")
+ORIGINAL = os.path.join(ROOT, "assets", "quellbilder", "Nebelseetal_Loadingpage.jpg")
 BEIGELEGT = os.path.join(ROOT, "assets", "loadingpage", "Nebelseetal_Loadingpage.png")
 
 def alle_text(w):
@@ -48,7 +48,7 @@ check("die beigelegte Originaldatei liegt noch genau so da",
       f"{os.path.getsize(ORIGINAL) if os.path.exists(ORIGINAL) else 'fehlt'} Byte")
 with open(ORIGINAL, "rb") as f:
     pruefsumme = hashlib.sha256(f.read()).hexdigest()
-check("ihre Pruefsumme ist unveraendert (nichts umbenannt, verschoben, beschnitten)",
+check("ihre Pruefsumme ist unveraendert (Dateiinhalt unveraendert, nur in assets/quellbilder einsortiert)",
       pruefsumme == "66956b880e1346bf7c2bda831b0d147e66f7a923b93dff0b0a35eaa71947e12c",
       pruefsumme)
 

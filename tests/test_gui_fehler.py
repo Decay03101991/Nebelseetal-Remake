@@ -21,6 +21,8 @@ from __future__ import annotations
 import os
 import sys
 import traceback
+import tempfile
+from unittest.mock import patch
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from harness import abschnitt, ausnahme, bericht, befund, check, import_src
@@ -198,35 +200,36 @@ def pruefen():
         check("Bauen auf einem Feld schreibt settlement.bauten",
               siedlung.bauten.get(str(f_haus)) == "haus", str(siedlung.bauten))
 
-        # Ausbauen: Verteidigungswall auf Stufe 2 heben
-        f_wall = freies_feld("verteidigungswall")
-        app._karten_feld_waehlen(f_wall)
-        app._karten_bauen("verteidigungswall")
+        # Der Wall ist seit GPT-W02 KEIN Feldgebäude. Teste den Gebaeudeausbau
+        # deshalb an einer Bibliothek; die Wall-Logik hat eigene Regressionen.
+        f_bib = freies_feld("bibliothek")
+        app._karten_feld_waehlen(f_bib)
+        app._karten_bauen("bibliothek")
         tick()
-        app._karten_feld_waehlen(f_wall)
+        app._karten_feld_waehlen(f_bib)
         app._karten_ausbauen()
         tick()
         aktionen += 1
-        check("Ausbauen hebt die Stufe des gewaehlten Feldes",
-              siedlung.stufen.get(str(f_wall)) == 2,
-              f"Feld {f_wall}: Stufe {siedlung.stufen.get(str(f_wall))}")
+        check("Ausbauen hebt die Stufe eines ausbaubaren Feldgebaeudes",
+              siedlung.stufen.get(str(f_bib)) == 2,
+              f"Feld {f_bib}: Stufe {siedlung.stufen.get(str(f_bib))}")
 
-        # Abreissen: das Haus-Feld wieder befreien
+        # Abrissbestaetigung ist in einer automatischen GUI-Pruefung keine
+        # Gelegenheit fuer einen menschlichen Mausklick: das positive Ergebnis
+        # wird eng fuer diesen einen Dialog simuliert. Der echte Button existiert.
         app._karten_feld_waehlen(f_haus)
-        app._karten_abreissen()
+        with patch("tkinter.messagebox.askyesno", return_value=True):
+            app._karten_abreissen()
         tick()
         aktionen += 1
         check("Abreissen entfernt das Gebaeude vom Feld",
               str(f_haus) not in siedlung.bauten, str(siedlung.bauten))
 
-        # Forschung: Bibliothek bauen, dann forschen
-        f_bib = freies_feld("bibliothek")
-        app._karten_feld_waehlen(f_bib)
-        app._karten_bauen("bibliothek")
-        tick()
+        # Die Bibliothek steht bereits: erst Baukunst regulär erforschen, damit
+        # nachher die Akademie gebaut werden darf. Keine Forschungsfreischaltung
+        # durch stilles Direktsetzen einer Stufe.
         aktionen += 1
-        forsch_key = ("Felderwirtschaft" if "Felderwirtschaft" in app.state.research
-                      else next(iter(app.state.research)))
+        forsch_key = "Baukunst"
         stufe_vorher = app.state.research[forsch_key].level
         app._start_research(forsch_key)
         tick()
@@ -256,7 +259,7 @@ def pruefen():
         app._karten_bauen("kriegerakademie")
         tick()
         aktionen += 1
-        einheit_key = "Krieger" if "Krieger" in app.state.units else next(iter(app.state.units))
+        einheit_key = "Bürgerwehr"  # ohne weitere Forschung oder Werkstattwaren ausbildbar
         _roh = einheiten.alle().get(einheit_key) or {}
         _vor = (_roh.get("voraussetzung") or {}).get("forschung")
         if _vor:
@@ -293,20 +296,24 @@ def pruefen():
                   int((_ort_g.einheiten or {}).get(einheit_key, 0)) == _vorher,
                   f"{einheit_key}: {_vorher} -> {(_ort_g.einheiten or {}).get(einheit_key)}")
 
-        # Speichern
-        app._save()
-        tick()
+        # Moderne Version: drei Spielerslots oeffnen Dialoge; der alte
+        # .save()/.load()-UI-Test an savegame.json wuerde im Hintergrund haengen.
+        # Der Dateitest nutzt deshalb einen EINZIGEN isolierten temporären Pfad.
+        # Slot-Dialoge haben eigene Tests; es wird hier kein Privat-Save beruehrt.
+        _pruef_save = os.path.join(tempfile.gettempdir(),
+                                  f"nebelseetal_gui_fehlertest_{os.getpid()}.json")
+        check("Speichern schreibt in einen isolierten Testpfad",
+              app.state.save(_pruef_save) and os.path.exists(_pruef_save), _pruef_save)
         aktionen += 1
-        check("Speichern legt die Spielstanddatei an",
-              os.path.exists(app.save_path), app.save_path)
-
-        # Laden
-        app._load()
-        tick()
+        _zweitzustand = main.GameState()
+        check("Laden der erzeugten Datei meldet Erfolg",
+              _zweitzustand.load(_pruef_save) is True)
+        for _ende in ("", ".bak", ".tmp"):
+            try:
+                os.remove(_pruef_save + _ende)
+            except FileNotFoundError:
+                pass
         aktionen += 1
-        check("Laden meldet Erfolg",
-              any("Spiel geladen" in z for z in app.state.log[-6:]),
-              str(app.state.log[-4:]))
 
         # Neu zeichnen
         ausnahme("app._render()", app._render)

@@ -1,14 +1,6 @@
 {
   "_hinweis": "Gelaendearten der Siedlungskarte. Die NAMEN und die Sumpf-Regel sind belegt (Handbuch 2009, S. 9-11). Die HAEUFIGKEIT der Gelaendearten ist NICHT belegt - sie ist als Vorschlag gekennzeichnet und darf von Daniel geaendert werden.",
   "_quelle": "docs/original/Spielanleitung_2009_Textfassung.txt (Gelaende und Ertraege), data/buildings.json (Ertrag je Gelaendeart), docs/ENTWURF_WIRTSCHAFT.md",
-  "kartenmass": {
-    "spalten": 8,
-    "zeilen": 7,
-    "bauplaetze": 40,
-    "_herkunft": "Daniel-Entscheidung 05.10.2026, 14:24: 8 Spalten x 7 Zeilen = 56 Felder, davon 40 bebaubar. Das Handbuch nennt keine Kartengroesse.",
-    "felder": 56,
-    "_felder_herkunft": "56 Felder im Raster, davon 40 bebaubar; die uebrigen 16 sind Sumpf (nicht bebaubar, Handbuch S. 11). Der Nebelsee IST bebaubar (Bibliothek und Tempel stehen dort)."
-  },
   "gelaendearten": [
     {
       "id": "grasland",
@@ -62,7 +54,7 @@
       "haeufigkeit": 7,
       "farbe": "#2F4A5A",
       "farbe_rand": "#243946",
-      "_belegt": "Name belegt, Tempel auf Nebelsee 5 (Handbuch S. 10). NICHT belegt: ob der Nebelsee bebaubar ist - hier als bebaubar gefuehrt, weil der Tempel dort gebaut wird. Haeufigkeit VORSCHLAG."
+      "_belegt": "Tempel auf Nebelsee: 8 Mana/h laut neuer Quelle WeitereWerteKampfsystem.odt S. 4; Handbuch 2009: 5 Mana/h."
     },
     {
       "id": "sumpf",
@@ -84,74 +76,25 @@
       "ueberschriften_rotbraun": "#8B3A2A",
       "navigation_dunkelgruen": "#2E4A2E"
     },
-    "titelbild": {"himmel": "#E67E22", "gelb": "#FFC300", "schrift": "#FFF44F", "rot": "#D32F2F"},
-    "forumlogo": {"gelb": "#E6C84A", "gruen": "#5C9E31", "braun": "#6B4F2A", "orange": "#D9822B", "rot": "#B22222", "nebel": "#E6E6D8"},
-    "banner": {"blauviolett": "#0B0B2A bis #1B1B3A", "gold": "#E0A030", "grau": "#777777"}
-  },
-  "kartentypen": {
-    "_hinweis": "PRODUKTENTSCHEIDUNG Daniel (04.10.2026): 'es muss trotzdem mehrere karten geben mit verschiedenen vorteilen'. Die Gewichte sind Vorschlaege; die genannten Vorteile folgen aus den belegten Ertraegen der Gebaeude. Jede Karte muss die Mindestbesatz-Regel erfuellen, damit sie spielbar ist.",
-    "listen": [
-      {
-        "id": "waldreich",
-        "name": "Waldreiche Karte",
-        "haeufigkeit": 20,
-        "vorteil": "Holz, Nahrung und Leder — Holzfäller 4/h und Jäger 2 Nahrung + 2 Leder je Waldfeld",
-        "beschreibung": "Viel Wald, wenig Gestein. Wer hier siedelt, baut mit Holz und ernährt sich vom Wald.",
-        "gewichte": {"grasland": 14, "steppe": 14, "wald": 36, "huegel": 10, "berg": 6, "nebelsee": 8, "sumpf": 12}
-      },
-      {
-        "id": "bergreich",
-        "name": "Steinreiche Karte",
-        "haeufigkeit": 20,
-        "vorteil": "Stein, Metall und Gold — Steinmetz 4/h sowie Erz- und Goldmine 3/h am Berg",
-        "beschreibung": "Berge und Hügel bestimmen das Bild. Hier liegen die Erze und das Gold.",
-        "gewichte": {"grasland": 12, "steppe": 10, "wald": 12, "huegel": 22, "berg": 28, "nebelsee": 6, "sumpf": 10}
-      },
-      {
-        "id": "weideland",
-        "name": "Weideland",
-        "haeufigkeit": 20,
-        "vorteil": "Nahrung, Wolle, Leder und Pferde — Farm 4/h, Schafszucht, Rinderfarm und Pferdezucht 3/h auf Grasland",
-        "beschreibung": "Weite Grasflächen und Steppe. Die Karte der Herden und der Versorgung.",
-        "gewichte": {"grasland": 32, "steppe": 26, "wald": 10, "huegel": 10, "berg": 6, "nebelsee": 6, "sumpf": 10}
-      },
-      {
-        "id": "nebelseeufer",
-        "name": "Nebelseeufer",
-        "haeufigkeit": 10,
-        "vorteil": "Mana — der Tempel liefert am Nebelsee 5/h statt 1/h, also das Fünffache",
-        "beschreibung": "Viel Nebelsee. Selten, aber der einzige Ort mit echter Mana-Ausbeute.",
-        "gewichte": {"grasland": 16, "steppe": 14, "wald": 18, "huegel": 10, "berg": 8, "nebelsee": 24, "sumpf": 10}
-      },
-      {
-        "id": "gemischt",
-        "name": "Ausgeglichene Karte",
-        "haeufigkeit": 30,
-        "vorteil": "keine Schwäche und kein Schwerpunkt — jedes Gut ist erreichbar, keines im Überfluss",
-        "beschreibung": "Von allem etwas. Der sichere Start ohne Ausrichtung.",
-        "gewichte": {"grasland": 20, "steppe": 20, "wald": 18, "huegel": 13, "berg": 12, "nebelsee": 7, "sumpf": 10}
-      }
-    ]
-  },
-  "kartenvorrat": {
-    "_hinweis": "Fester Kartenvorrat fuer Neugruendungen (Vorgabe Daniel 05.10.2026: 'nur 2 oder 3 start map aehnlich ausgeglichene karten ... die anderen karten sollen eher Minen und Steinmetze bevorzugen oder Farmen oder holz oder mischungen aus zweien und von dem dritten fast nichts'). Die Gewichte sind hier zugleich EXAKTE Feldkontingente: jede Karte hat 56 Felder, davon 40 bebaubar und 16 Sumpf. Eine Neugruendung zieht NICHT zufaellig, sondern aus diesem festen Vorrat. Die alten kartentypen.listen und ihr Generator bleiben unveraendert (Altpartien).",
-    "_herkunft": "VORSCHLAG: docs/audits/entwurf_spieloekonomie_sol_2026-10-05.txt, Tabelle B (Z. 68-80). Nachgerechnet: 7 Geländearten, Summe je Zeile 56, davon 40 bebaubar und 16 Sumpf, Mindestbesatz erfüllt. Daniel hat die Zahlen am 05.10.2026 mit 'so übernehmen, später nach und nach anpassen' bestätigt. OFFENER PUNKT: Daniel nannte 'Startkarte + 10 Karten'; Tabelle B liefert 10 Karten GESAMT (Startkarte + 9 Koloniekarten). Eine zehnte Koloniekarte ist leicht ergänzbar, falls er 11 Karten meinte.",
-    "start": {
-      "id": "start",
-      "name": "Startkarte (ausgeglichen)",
-      "gewichte": {"grasland": 8, "steppe": 8, "wald": 8, "huegel": 7, "berg": 7, "nebelsee": 2, "sumpf": 16}
+    "titelbild": {
+      "himmel": "#E67E22",
+      "gelb": "#FFC300",
+      "schrift": "#FFF44F",
+      "rot": "#D32F2F"
     },
-    "kolonien": [
-      {"id": "ausgleich_a", "name": "Ausgeglichene Karte A", "gewichte": {"grasland": 9, "steppe": 7, "wald": 8, "huegel": 6, "berg": 8, "nebelsee": 2, "sumpf": 16}},
-      {"id": "ausgleich_b", "name": "Ausgeglichene Karte B", "gewichte": {"grasland": 7, "steppe": 9, "wald": 9, "huegel": 7, "berg": 6, "nebelsee": 2, "sumpf": 16}},
-      {"id": "ausgleich_c", "name": "Ausgeglichene Karte C", "gewichte": {"grasland": 8, "steppe": 8, "wald": 7, "huegel": 8, "berg": 7, "nebelsee": 2, "sumpf": 16}},
-      {"id": "holz", "name": "Holzkarte", "gewichte": {"grasland": 3, "steppe": 2, "wald": 28, "huegel": 2, "berg": 4, "nebelsee": 1, "sumpf": 16}},
-      {"id": "minen", "name": "Minenkarte (Stein und Erz)", "gewichte": {"grasland": 3, "steppe": 2, "wald": 2, "huegel": 10, "berg": 22, "nebelsee": 1, "sumpf": 16}},
-      {"id": "farmen", "name": "Farmkarte", "gewichte": {"grasland": 27, "steppe": 6, "wald": 2, "huegel": 2, "berg": 2, "nebelsee": 1, "sumpf": 16}},
-      {"id": "holz_minen", "name": "Mischkarte Holz und Minen", "gewichte": {"grasland": 3, "steppe": 2, "wald": 16, "huegel": 5, "berg": 13, "nebelsee": 1, "sumpf": 16}},
-      {"id": "holz_farmen", "name": "Mischkarte Holz und Farmen", "gewichte": {"grasland": 17, "steppe": 2, "wald": 16, "huegel": 2, "berg": 2, "nebelsee": 1, "sumpf": 16}},
-      {"id": "minen_farmen", "name": "Mischkarte Minen und Farmen", "gewichte": {"grasland": 17, "steppe": 2, "wald": 2, "huegel": 5, "berg": 13, "nebelsee": 1, "sumpf": 16}}
-    ]
+    "forumlogo": {
+      "gelb": "#E6C84A",
+      "gruen": "#5C9E31",
+      "braun": "#6B4F2A",
+      "orange": "#D9822B",
+      "rot": "#B22222",
+      "nebel": "#E6E6D8"
+    },
+    "banner": {
+      "blauviolett": "#0B0B2A bis #1B1B3A",
+      "gold": "#E0A030",
+      "grau": "#777777"
+    }
   },
   "regeln": {
     "sumpf_unbebaubar": "BEWIESEN (Handbuch S. 11): auf Sumpf kann kein Gebäude stehen.",

@@ -152,3 +152,8 @@ Brett, Plan, Lehren, Ordnung, Weg zur EXE, Entwürfe, Audits) samt Prüfsummen n
 `D:\Arbeiten\Hermes\Nebelseetal_Protokoll\<Zeitstempel>\`, erneuert den Zeiger `zuletzt.txt` und
 hängt eine Zeile ans Protokoll. Damit lebt die Entstehungsgeschichte weiter, **auch wenn der
 Projektordner verschoben, aufgeräumt oder gelöscht wird oder eine neue Sitzung beginnt**.
+
+
+### Verbindliche Produktentscheidung 28.10.2026: Originalkarten ONLY
+
+Priorität nach Hermes-Rückkehr: Kein historischer 8×7-Kartengenerator mehr und kein erfundenes Gelaendebild in der Siedlungsoberfläche. Quelle `data/originalkarten/katalog.json` und 127 konkrete Bilddateien `assets/karten/spielfeld/`. Alte Testfixtures ausschließlich im Archiv; statt Schönfärberei auf Originalkarten portieren. Siehe `docs/KARTEN_NUR_ORIGINALE.md`, `docs/HERMES_KONTROLLE_UND_SKILLS.md`. Die 20×20-Weltebene ist ein separates System und nicht der ursprüngliche 8×7-Siedlungsgenerator.

@@ -4,6 +4,7 @@ Single-player, local, portable Windows desktop app.
 Multi-map system, trade, combat, research, bots, stationing.
 """
 from __future__ import annotations
+import copy
 import json
 import math
 import os
@@ -24,22 +25,34 @@ from bonus_system import (
 import einheiten
 import spieldaten
 import gelaende
+import baumenue_info  # FIX04: historische Rubriken und begruendete Bauangebote
+import spielerhilfe  # FIX04c: eingeblendete Einstiegshilfe und jederzeit erreichbare Fragen
+import originalkarten  # GPT-OK01: verifizierbarer Kartenkatalog
 import gebaeude_wirkung
 import berater
 import tor
 import wirtschaft
+import spielstaende
+import spielstand_archiv  # GPT: drei explizite Spielstands-Slots; Altdaten unveraendert
+import ausgabemodus  # FIX04j: separate oeffentliche Spielerversion ohne Admin-Einstieg
+import admin_teststand  # GPT: nur hinter gesonderter Admin-Pruefung
+import admin_oberflaeche  # GPT: separate Bedienoberflaeche, Regelkern in admin_werkzeuge
 import speichern   # W8: robustes Speichern/Laden (atomar, geprueft, mit Sicherung)
 import punkte      # W6: Forschungs-, Kriegs- und Gesamtpunkte nach den Originalformeln
 import kampf       # W2: Vorrunde, Kampfsequenzen, Flucht, Beute (Handbuch S. 20-23)
 import kampfbericht  # W2b: Vorrunden-Pruefung, Mauerschaden, Beute, Bericht
+import bot_angriffsplanung  # GPT-B01: Original-SK-Zielwahl und ehrliche Bot-Kampfberichte
 import botkern     # W5: Bot-Regeln (hier: die Vorschlagsspannen fuer die Vorraete der Bots)
 import portalraum  # W5-2: die 20 Dimensionen des Limbus, Raster, Wechselkosten und -sperre
 import werkstatt   # W3: die drei Werkstaetten, die 17 Waren und ihre Warteschlangen
 import auftraege   # W7: Auftraege (Missionen) mit Reisezeit, Rueckkehr und Bericht
 import forschung  # W4c: Forschung braucht Zeit - die Stufe steigt erst nach Ablauf
 import welt        # W4d: die Weltkarte des Limbus (20 Dimensionen, sechs belegte Welten)
+import zeitbasis  # GPT-Z01: lokale Datumsstempel, monotone Laufzeituhr, Nachrichten
 import spielzeit   # Spieluhr: der Zeitfaktor (Vorgabe Daniel 05.10.2026, Spielbericht)
 import spieloekonomie  # Oekonomie-Paket Schritt 9: Ortslager, Gruendungskosten, Verbrauch je Ort
+import versorgungsschutz  # GPT extern: Softlock-Praevention fuer neue lokale Partien
+import dorfwall  # GPT extern W-02: ein Wallzustand je Ort, originaltreue Schwellen
 # Feinere Kartenoptik (Kinder-Arbeit vom 05.10.2026, vom Koordinator nachgerechnet): beide Module
 # liefern Zeichenplaene als DATEN und zeichnen sie ueber `zeichne` auf eine beliebige Leinwand.
 # Sie ersetzen die duennen Einzelstriche der ersten Fassung — Siedlungskarte UND Weltkarte.
@@ -47,6 +60,7 @@ import karten_optik   # Siedlungskarte: der Renderer (`zeichne`) fuer beide Plan
 import welt_optik     # Weltkarte: der Renderer (`zeichne`) fuer beide Plan-Fassungen
 # Zweite astra-Auswertung (05.10.2026) — die FEINERE Fassung. Beide Module liefern nur Plaene
 # (Daten), gezeichnet werden sie mit `karten_optik.zeichne` bzw. `welt_optik.zeichne`.
+import originalkarten_grafik  # Authentische Kartenhintergruende aus 127 Originalbildern
 import karten_optik_fein   # Baukoerper 44x46, Ufer nur an echten Grenzen, Wege, Leiste, Pips
 import welt_optik_fein     # zusammenhängende Landschaften, Ortssilhouetten, Panelmasse
 # Vorgabe Daniel 05.10.2026: Einheiten brauchen ihre AUSRUESTUNG, nicht nur die Forschung.
@@ -157,6 +171,10 @@ class BotPlayer:
     geforscht: int = 0
     gehandelt: int = 0
     punkte: int = 0
+    # GPT W-03: ein Bot hat derzeit eine abstrakte Hauptsiedlung.
+    # Nur als Zwischenstufe; spaeter je Bot-Siedlung in eine eigene Ortsstruktur.
+    wall_stufe: int = 0
+    wall_zustand: float = 100.0
 
 
 @dataclass
@@ -176,6 +194,10 @@ class Settlement:
     # Ausbaustufe je bebautem Feld (W4b-5). Belegt sind Stufen für den Verteidigungswall (10)
     # und die drei Ausbildungsstätten; ein Feld ohne Eintrag gilt als Stufe 1.
     stufen: Dict[str, int] = field(default_factory=dict)
+    # GPT extern W-02: Ortswall belegt kein Kartenfeld. Die globale Freigabe liegt
+    # allein in Forschung 'Verteidigungsanlagen'; Schaden bleibt ortsgebunden.
+    mauer_besetzt: bool = False
+    mauer_zustand: float = 100.0
     # --- Ökonomie-Paket, Entwurf Schritt 9 (Z. 757-772): die Felder einer LOKALEN Wirtschaft. ---
     # Sie sind bis zur Aktivierung (Schritt 10) leer bzw. auf ihren Vorgabewerten: das Spiel rechnet
     # weiterhin mit den GLOBALEN Beständen (`GameState.resources`, `.waren`, `.population`).
@@ -244,13 +266,16 @@ def neue_siedlungskarte(vorhandene: List[dict]) -> dict:
     """
     vergeben = {karten_signatur(k) for k in vorhandene if k}
     for _ in range(KARTENVERSUCHE):
-        karte = gelaende.siedlungskarte_erzeugen(random.randrange(1, 10 ** 9))
+        karte = originalkarten.zufalls_originalkarte(random.randrange(1, 10 ** 9),
+                      vergeben={k.get("originalkarte_id") for k in vorhandene if k})
         if karten_signatur(karte) not in vergeben:
             return karte
     raise RuntimeError("Keine neue Siedlungskarte gefunden")
 
 
-def bauen_auf_karte(siedlung: "Settlement", gebaeude_key: str, feld: int) -> tuple:
+def bauen_auf_karte(siedlung: "Settlement", gebaeude_key: str, feld: int,
+                   forschungsstaende: Optional[dict] = None,
+                   nur_pruefen: bool = False) -> tuple:
     """
     Setzt ein Gebäude auf ein Feld der Siedlungskarte.
 
@@ -275,6 +300,15 @@ def bauen_auf_karte(siedlung: "Settlement", gebaeude_key: str, feld: int) -> tup
 
     kennung = gelaende.finde_gebaeude(gebaeude_key) or gebaeude_key
     eintrag = gelaende.alle_gebaeude().get(kennung) or {}
+    # Handbuch, Abschnitt Siedlungs-Baumenue: genau fuenf Gebaeude sind ohne
+    # Forschung baubar. Alle uebrigen erfordern Kenntnisse in Baukunst.
+    # Die Mindeststufe 1 ist eine dokumentierte Remake-Entscheidung, keine
+    # behauptete Originalzahl. Ohne nachgewiesene Forschung KEIN Freipass.
+    ohne_forschung = {"holzfaeller", "steinmetz", "jaeger", "bibliothek", "haus"}
+    if kennung not in ohne_forschung:
+        staende = forschungsstaende or {}
+        if int(staende.get("Baukunst", 0) or 0) < 1:
+            return False, "Baukunst Stufe 1 wird fuer dieses Gebaeude benoetigt."
     grenze = eintrag.get("max_je_siedlung")
     if isinstance(grenze, int) and grenze > 0:
         schon_da = gebaeude_wirkung.gebaeude_stufe(siedlung, kennung) > 0
@@ -286,8 +320,9 @@ def bauen_auf_karte(siedlung: "Settlement", gebaeude_key: str, feld: int) -> tup
     # Das Feld merkt sich die Ausbaustufe 1 (W4b-5); gespeichert wird der uebergebene
     # Gebaeudeschluessel wie bisher — alle Leser (gelaende, wirtschaft, gebaeude_wirkung)
     # verstehen Kennung UND Anzeigename.
-    siedlung.bauten[str(feld)] = gebaeude_key
-    siedlung.stufen[str(feld)] = 1
+    if not nur_pruefen:
+        siedlung.bauten[str(feld)] = gebaeude_key
+        siedlung.stufen[str(feld)] = 1
     return True, f"{warum} (Feld {feld})"
 
 
@@ -313,6 +348,12 @@ def schreibordner() -> str:
     sich in einen Zwischenordner, der beim Beenden verschwindet. Deshalb liegt alles Schreibbare
     unter ``~/.nebelseetal`` — dort liegt auch das Passworttor (`tor.ORDNER`).
     """
+    # GPT-ABS05: optionale isolierte Testwelt. Grundpassworttor bleibt GLOBAL
+    # bei tor.STANDARD_PFAD; nur Adminfreigabe und Spielstaende werden getrennt.
+    testpfad = os.environ.get("NEBEL_SPIELDATEN_ORDNER", "").strip()
+    if testpfad:
+        os.makedirs(testpfad, exist_ok=True)
+        return os.path.abspath(testpfad)
     return tor.ORDNER
 
 
@@ -621,16 +662,19 @@ class GameState:
         self.max_population = 10
         self.score = 0
         self.day = 1
-        self.last_tick = time.time()
+        self.last_tick = time.time()  # nur noch Kompatibilitaet/Anzeige
+        self._laufzeituhr = zeitbasis.Laufzeituhr()
         # W5: Der Bot-Zug laeuft alle BOT_TAKT_SEKUNDEN. Ohne diesen Startwert waere der
         # Abstand beim ersten Tick riesig (- jetzt - 0) und ALLE Bots haetten sofort gezogen —
         # am Spielanfang, mitten im Noobschutz, mit voller Pluenderung.
-        self._letzter_bot_takt = time.time()
+        # Seit Schritt 10 Teil 3 ist die Bot-Uhr die SPIELUHR: der Takt zaehlt in
+        # Spielsekunden (`spielsekunden` beginnt bei 0), nicht mehr in Rechnerzeit.
+        self._letzter_bot_takt = 0.0
         self.ruf = 0
         self.log: List[str] = []
         self.map_garrison: Dict[str, Dict[str, int]] = {}
         self.movements: List[dict] = []
-        self.messages: List[dict] = []
+        self.messages: List[dict] = zeitbasis.NachrichtenMitZeit(spieluhr=lambda: self.spielsekunden)
         self.settlements: List[Settlement] = []
         # Ökonomie-Paket, Schritt 9, Teil 5 (Entwurf Z. 777): der feste KARTENVORRAT für
         # Neugründungen (Startkarte + zehn Koloniekarten, data/gelaende.json). Der Vorrat ist
@@ -663,6 +707,13 @@ class GameState:
         # wird dadurch NICHT aktiviert (Entwurf Z. 1092) und nichts wird umgerechnet.
         self.stand_version: int = STAND_VERSION
         self.mode: str = MODUS_NEU
+        # Eigenes Aktivierungsmerkmal, nicht mit "mode" verwechseln: die am
+        # 06.10. erstellten Version-2-Staende fuehrten diesen Modus nur als MERKER.
+        # Fehlendes Feld im geladenen Stand heisst daher: keine stille Konversion.
+        self.oekonomie_aktiv: bool = True
+        self.admin_teststand: bool = False  # niemals normaler Spielstand
+        self.admin_hilfe_modus: str = "auto"  # FIX04d nur Teststand; keine Kampfwirkung
+        self.admin_weltkarten: dict = {}  # Admin-only: Weltkarten jenseits der aktuellen Ansicht
         self.goods: Dict[str, int] = {key: 0 for key in GOODS}
         # W5-2 (Portal, src/portalraum.py): die eigene Dimension im Limbus-Raster, die Dimensionen,
         # in denen man schon Fuss gefasst hat, und der Zeitpunkt des letzten Koordinatenwechsels.
@@ -744,6 +795,50 @@ class GameState:
                 gesamt[name] = gesamt.get(name, 0) + int(anzahl)
         return gesamt
 
+    def wall_stufe_am_ort(self, siedlung: Settlement) -> int:
+        """Neue Partie: Ortswall, Legacy: historisches Feldgebaeude (ohne Migration)."""
+        if self._lokale_kasse_aktiv():
+            return dorfwall.stufe(siedlung, self.research)
+        return gebaeude_wirkung.gebaeude_stufe(siedlung, "verteidigungswall")
+
+    def wall_kriegspunkte(self) -> int:
+        """Jeder aktivierte Dorfwall zaehlt einzeln nach Handbuch: Stufe hoch drei."""
+        if self._lokale_kasse_aktiv():
+            return sum(self.wall_stufe_am_ort(s) ** 3 for s in self.settlements)
+        # Legacy behält seine alte Berechnung exakt bei.
+        return gebaeude_wirkung.wall_stufe(self.settlements) ** 3
+
+    def wall_errichten(self, siedlung: Settlement) -> Tuple[bool, str]:
+        """Eine Errichtung pro Dorf mit der bestehenden, atomaren Ortskasse.
+
+        Kosten aus data/baupreise.json sind dokumentierte Remake-Vorschlaege.
+        Kein Feld belegt; unzureichende Forschung/Rohstoffe ändern nichts.
+        """
+        if not self._lokale_kasse_aktiv():
+            return False, "Ortswaelle stehen nur im neuen Wirtschaftsmodus zur Verfuegung."
+        if siedlung not in self.settlements:
+            return False, "Siedlung gehoert nicht zum Reich."
+        if siedlung.mauer_besetzt:
+            return False, "Wall in diesem Dorf bereits errichtet."
+        if dorfwall.forschungsstand(self.research) < 1:
+            return False, "Zuerst Verteidigungsanlagen erforschen."
+        kosten = baukosten("verteidigungswall")
+        if not kosten:
+            return False, "Kein Baupreis fuer die Dorfmauer hinterlegt."
+        if self.ortsdeckung(siedlung, kosten):
+            return False, "Zu wenig Rohstoffe im Dorflager fuer den Wall."
+        if not self.admin_teststand:
+            risiko = versorgungsschutz.risiko_nach_ausgabe(siedlung, kosten, baukosten)
+            if risiko:
+                return False, risiko[0]
+        ok, meldung = self.verbrauche_am_ort(siedlung, kosten)
+        if not ok:
+            return False, meldung
+        siedlung.mauer_besetzt = True
+        siedlung.mauer_zustand = 100.0
+        return True, (f"Wall in {siedlung.name} errichtet. "
+                      f"Stufe {self.wall_stufe_am_ort(siedlung)}; kein Feld belegt.")
+
     def punktestand(self) -> dict:
         """Forschungs-, Kriegs- und Gesamtpunkte nach den Originalformeln (Handbuch S. 3/5/6).
 
@@ -754,14 +849,17 @@ class GameState:
         """
         staende = {k: v.level for k, v in self.research.items()}
         einheiten = self.alle_einheiten()
-        wall = gebaeude_wirkung.wall_stufe(self.settlements)
+        wall = max((self.wall_stufe_am_ort(s) for s in self.settlements), default=0)
+        # Mehrere Mauern nicht als einen einzigen Maximalwall abrechnen.
+        forschung = punkte.forschungspunkte(staende)
+        krieg = punkte.kriegspunkte(einheiten, 0) + self.wall_kriegspunkte()
         return {
             "staende": staende,
             "einheiten": einheiten,
-            "wall_stufe": wall,
-            "forschung": punkte.forschungspunkte(staende),
-            "krieg": punkte.kriegspunkte(einheiten, wall),
-            "gesamt": punkte.gesamtpunkte(staende, einheiten, wall),
+            "wall_stufe": wall,  # Anzeige/Legacy-Schnittstelle; Punkte stehen separat
+            "forschung": forschung,
+            "krieg": krieg,
+            "gesamt": (forschung + krieg) // 2,
         }
 
     def spielausgang(self) -> Tuple[str, str]:
@@ -898,6 +996,25 @@ class GameState:
                 summen[r] = round(summen.get(r, 0.0) + float(v), 2)
         return summen
 
+    def _lokale_kasse_aktiv(self) -> bool:
+        """Neue Partien: Orte sind die einzigen physischen Bestandsquellen.
+
+        Bei unversionierten Legacy-Staenden bleibt die bisherige Uebergangs-
+        behandlung erhalten. Die Migration alter Saves ist eine separate Arbeit.
+        """
+        return (self.mode == MODUS_NEU and bool(self.oekonomie_aktiv)
+                and bool(self.settlements))
+
+    def _reichsanzeige_aus_orten(self) -> None:
+        """Reichswerte sind NUR eine Summe, niemals eine zweite Kasse."""
+        if not self._lokale_kasse_aktiv():
+            return
+        summen = self.ortslager()
+        for name, eintrag in self.resources.items():
+            eintrag.amount = round(float(summen.get(name, 0.0)), 2)
+        self.population = round(sum(float(s.bevoelkerung)
+                                    for s in self.settlements), 4)
+
     def ortsdeckung(self, siedlung: Settlement, kosten: dict) -> Dict[str, float]:
         """Was FEHLT, wenn auch der Reichsbestand mitzahlen darf. Leer = gedeckt.
 
@@ -907,10 +1024,12 @@ class GameState:
         fehlt: Dict[str, float] = {}
         for r, v in (kosten or {}).items():
             if r == "siedler":
-                haben = float(siedlung.bevoelkerung) + float(self.population)
+                haben = float(siedlung.bevoelkerung)
+                if not self._lokale_kasse_aktiv():
+                    haben += float(self.population)
             else:
                 haben = float(siedlung.vorraete.get(r, 0.0))
-                if r in self.resources:
+                if not self._lokale_kasse_aktiv() and r in self.resources:
                     haben += float(self.resources[r].amount)
             if haben + 1e-9 < float(v):
                 fehlt[r] = round(float(v) - haben, 2)
@@ -938,14 +1057,15 @@ class GameState:
                 aus_ort = min(float(siedlung.bevoelkerung), float(menge))
                 siedlung.bevoelkerung = float(siedlung.bevoelkerung) - aus_ort
                 rest = float(menge) - aus_ort
-                if rest > 0:
+                if rest > 0 and not self._lokale_kasse_aktiv():
                     self.population = max(0.0, float(self.population) - rest)
                 continue
             aus_ort = min(float(siedlung.vorraete.get(stoff, 0.0)), float(menge))
             siedlung.vorraete[stoff] = round(float(siedlung.vorraete.get(stoff, 0.0)) - aus_ort, 2)
             rest = float(menge) - aus_ort
-            if rest > 0 and stoff in self.resources:
+            if rest > 0 and not self._lokale_kasse_aktiv() and stoff in self.resources:
                 self.resources[stoff].amount = round(float(self.resources[stoff].amount) - rest, 2)
+        self._reichsanzeige_aus_orten()
         return True, ""
 
     def reichsdeckung(self, kosten: dict) -> Dict[str, float]:
@@ -957,10 +1077,13 @@ class GameState:
         fehlt: Dict[str, float] = {}
         for r, v in (kosten or {}).items():
             if r == "siedler":
-                haben = float(self.population) + sum(float(s.bevoelkerung) for s in self.settlements)
+                haben = sum(float(s.bevoelkerung) for s in self.settlements)
+                if not self._lokale_kasse_aktiv():
+                    haben += float(self.population)
             else:
-                haben = float(self.resources[r].amount) if r in self.resources else 0.0
-                haben += sum(float(s.vorraete.get(r, 0.0)) for s in self.settlements)
+                haben = sum(float(s.vorraete.get(r, 0.0)) for s in self.settlements)
+                if not self._lokale_kasse_aktiv() and r in self.resources:
+                    haben += float(self.resources[r].amount)
             if haben + 1e-9 < float(v):
                 fehlt[r] = round(float(v) - haben, 2)
         return fehlt
@@ -977,9 +1100,10 @@ class GameState:
         for stoff, menge in (kosten or {}).items():
             rest = float(menge)
             if stoff == "siedler":
-                nimm = min(rest, float(self.population))
-                self.population = max(0.0, float(self.population) - nimm)
-                rest -= nimm
+                if not self._lokale_kasse_aktiv():
+                    nimm = min(rest, float(self.population))
+                    self.population = max(0.0, float(self.population) - nimm)
+                    rest -= nimm
                 for s in sorted(self.settlements, key=lambda x: x.id):
                     if rest <= 1e-9:
                         break
@@ -987,7 +1111,7 @@ class GameState:
                     s.bevoelkerung = float(s.bevoelkerung) - nimm
                     rest -= nimm
                 continue
-            if stoff in self.resources:
+            if not self._lokale_kasse_aktiv() and stoff in self.resources:
                 nimm = min(rest, float(self.resources[stoff].amount))
                 self.resources[stoff].amount = round(float(self.resources[stoff].amount) - nimm, 2)
                 rest -= nimm
@@ -997,6 +1121,7 @@ class GameState:
                 nimm = min(rest, float(s.vorraete.get(stoff, 0.0)))
                 s.vorraete[stoff] = round(float(s.vorraete.get(stoff, 0.0)) - nimm, 2)
                 rest -= nimm
+        self._reichsanzeige_aus_orten()
         return True, ""
 
     def reich_abzug(self, stoff: str, menge: float) -> float:
@@ -1009,7 +1134,7 @@ class GameState:
         menge = float(menge)
         if menge <= 0:
             return 0.0
-        if stoff in self.resources:
+        if not self._lokale_kasse_aktiv() and stoff in self.resources:
             self.resources[stoff].amount = max(
                 0.0, round(float(self.resources[stoff].amount) - menge, 2))
         verfuegbar = sum(float(s.vorraete.get(stoff, 0.0)) for s in self.settlements)
@@ -1019,7 +1144,8 @@ class GameState:
         for s in self.settlements:
             vorher = float(s.vorraete.get(stoff, 0.0))
             s.vorraete[stoff] = round(vorher - vorher * anteil, 2)
-        return menge
+        self._reichsanzeige_aus_orten()
+        return min(menge, verfuegbar) if self._lokale_kasse_aktiv() else menge
 
     # ---------------- Ökonomie-Paket, Schritt 9, Teil 4: der EIGENE Transport ----------------
     # Entwurf Z. 779: „_transport_to_settlement: Herkunft separat wählen; Rohstoff/Menge/Karren
@@ -1045,6 +1171,7 @@ class GameState:
                 if siedlung.__dict__ != frisch.__dict__:
                     siedlung.__dict__.clear()
                     siedlung.__dict__.update(frisch.__dict__)
+                    self._reichsanzeige_aus_orten()
                 return True
         return False
 
@@ -1059,9 +1186,10 @@ class GameState:
         for name, anzahl in (getattr(quelle, "einheiten", None) or {}).items():
             if einheiten.ist_transport(name) and int(anzahl) > 0:
                 bestand[name] = int(bestand.get(name, 0)) + int(anzahl)
-        for name, einheit in self.units.items():
-            if einheiten.ist_transport(name) and int(einheit.count) > 0:
-                bestand[name] = int(bestand.get(name, 0)) + int(einheit.count)
+        if not self._lokale_kasse_aktiv():
+            for name, einheit in self.units.items():
+                if einheiten.ist_transport(name) and int(einheit.count) > 0:
+                    bestand[name] = int(bestand.get(name, 0)) + int(einheit.count)
         return bestand
 
     def transport_an_ort(self, quelle: Settlement, ziel: Settlement, rohstoff: str, menge,
@@ -1074,7 +1202,7 @@ class GameState:
         Bestand. Reicht der Ort an Karren nicht, kommt der fehlende Teil als **Übergang** aus dem
         Reichsheer (dieselbe Übergangskasse wie beim Bezahlen). Abgelehnt wird VOR jeder Änderung.
         """
-        jetzt = time.time() if jetzt is None else float(jetzt)
+        jetzt = float(self.spielsekunden) if jetzt is None else float(jetzt)
         if quelle is None or ziel is None:
             return False, "Herkunft und Ziel müssen gewählt sein."
         if quelle is ziel or quelle.id == ziel.id:
@@ -1110,7 +1238,8 @@ class GameState:
             rest = anzahl - im_ort
             if rest <= 0:
                 continue
-            verfuegbar = int(self.units[name].count) if name in self.units else 0
+            verfuegbar = (int(self.units[name].count) if name in self.units
+                          else 0) if not self._lokale_kasse_aktiv() else 0
             if verfuegbar < rest:
                 return False, (f"Nicht genug {name}: der Ort hat {im_ort}, im Reichsheer stehen "
                                f"{verfuegbar} — gebraucht werden {anzahl}.")
@@ -1139,6 +1268,8 @@ class GameState:
         mission["von"] = quelle.name
         mission["nach"] = ziel.name
         mission["ziel"] = {"name": ziel.name, "id": ziel.id}
+        # GPT-Z01: realer Startzeitpunkt nur fuer Protokoll, nicht die Ankunftsrechnung.
+        mission.update(zeitbasis.zeitmarke())
         self.auftraege.append(mission)
         meldung = (f"Transport gestartet: {menge} {stoff.capitalize()} von {quelle.name} nach "
                    f"{ziel.name} ({', '.join(f'{k}x {n}' for n, k in sorted(karren.items()))}); "
@@ -1164,14 +1295,16 @@ class GameState:
         for kennung, daten in neu.items():
             self._ort_uebernehmen(kennung, daten)
         if m.get("geliefert_lokal") and not vorher_geliefert:
-            self.messages.append({"type": "auftrag", "text":
-                                  f"Transport angekommen in {m.get('nach')}: "
+            self.messages.append({"type": "auftrag",
+                                  "spielzeit_sekunden": float(m.get("ankunft", jetzt)),
+                                  "text": f"Transport angekommen in {m.get('nach')}: "
                                   + ", ".join(f"{int(v)} {k.capitalize()}"
                                               for k, v in sorted(fracht_vorher.items()))
                                   + " im Ortslager gutgeschrieben."})
         if m.get("heimgekehrt_lokal") and not vorher_heim:
-            self.messages.append({"type": "auftrag", "text":
-                                  f"Transport heimgekehrt nach {m.get('von')}: "
+            self.messages.append({"type": "auftrag",
+                                  "spielzeit_sekunden": float(m.get("rueckkehr", jetzt)),
+                                  "text": f"Transport heimgekehrt nach {m.get('von')}: "
                                   + ", ".join(f"{int(v)} {k}" for k, v in sorted(truppe_vorher.items()))
                                   + " wieder im Ortslager."})
         eintrag.clear()
@@ -1265,7 +1398,7 @@ class GameState:
         oder Karawane im Ortslager, kommt der Fehlbetrag als ÜBERGANG aus dem Reich — der Bot zahlt
         nichts dazu.
         """
-        jetzt = time.time() if jetzt is None else float(jetzt)
+        jetzt = float(self.spielsekunden) if jetzt is None else float(jetzt)
         if bot is None:
             return False, "Kein Handelspartner gewählt."
         if quelle is None:
@@ -1322,13 +1455,18 @@ class GameState:
             rest = anzahl - im_ort
             if rest <= 0:
                 continue
-            verfuegbar = int(self.units[name].count) if name in self.units else 0
+            verfuegbar = (int(self.units[name].count) if name in self.units
+                          else 0) if not self._lokale_kasse_aktiv() else 0
             if verfuegbar < rest:
                 return False, (f"Nicht genug {name}: der Ort hat {im_ort}, im Reichsheer stehen "
                                f"{verfuegbar} — gebraucht werden {anzahl}.")
             aus_reich_karren[name] = rest
         gold_im_ort = float((getattr(quelle, "vorraete", None) or {}).get("gold", 0.0))
         aus_reich_gold = max(0.0, gold_gesamt - gold_im_ort)
+        if aus_reich_gold > 0.0 and self._lokale_kasse_aktiv():
+            return False, (f"Zu wenig Gold im Ortslager von {quelle.name}: "
+                           f"{gold_im_ort:g} vorhanden, {gold_gesamt:g} benoetigt. "
+                           "Ohne echten Transport kein Fernzugriff.")
         if aus_reich_gold > 0.0:
             reich_gold = float(self.resources["gold"].amount) if "gold" in self.resources else 0.0
             if reich_gold + 1e-9 < aus_reich_gold:
@@ -1363,6 +1501,7 @@ class GameState:
         vertrag["ziel"] = {"name": bot.name, "fremd": True}
         vertrag["bot_x"], vertrag["bot_y"] = int(x), int(y)
         vertrag["dimension"] = dimension
+        vertrag.update(zeitbasis.zeitmarke())
         self.auftraege.append(vertrag)
         meldung = ("Kaufangebot an %s: %d %s für %g Gold (%g je Stück, Karawane %s); Ankunft in "
                    "%.2f h — ob der Handel zustande kommt, entscheidet %s bei der Ankunft."
@@ -1418,7 +1557,8 @@ class GameState:
         if m.get("angenommen") and not angenommen_vorher:
             text = ("%s nimmt das Kaufangebot an: %d %s für %g Gold sind unterwegs."
                     % (m.get("nach"), menge, stoff, float(m.get("preis") or 0.0) * menge))
-            self.messages.append({"text": text, "type": "handel"})
+            self.messages.append({"text": text, "type": "handel",
+                                  "spielzeit_sekunden": float(m.get("ankunft", jetzt))})
             self._log(text)
         abgerechnet_jetzt = bool(m.get("abgerechnet")) and not abgerechnet_vorher
         if abgerechnet_jetzt:
@@ -1428,7 +1568,8 @@ class GameState:
             else:
                 text = ("Handel abgelehnt: %s schickt die Karawane MIT den %d %s zurück — "
                         "Gold wurde nicht übertragen." % (m.get("nach"), menge, stoff))
-            self.messages.append({"text": text, "type": "handel"})
+            self.messages.append({"text": text, "type": "handel",
+                                  "spielzeit_sekunden": float(m.get("rueckkehr", jetzt))})
             self._log(text)
         eintrag.clear()
         eintrag.update(m)
@@ -1538,6 +1679,9 @@ class GameState:
         quelle_dict["siedlungsgrenze"] = SIEDLUNGEN_MAXIMUM
         im_ort = int((quelle_dict.get("einheiten") or {}).get(karren, 0))
         aus_reich = max(0, 1 - im_ort)
+        if aus_reich and self._lokale_kasse_aktiv():
+            return False, (f"Ein {karren} muss in {quelle.name} stationiert sein. "
+                           "Karren aus anderen Orten zaehlen erst nach der Ankunft."), {}
         if aus_reich:
             verfuegbar = int(self.units[karren].count) if karren in self.units else 0
             if verfuegbar < aus_reich:
@@ -1598,6 +1742,7 @@ class GameState:
         neu.vorraete = {r: float(v) for r, v in absicht["paket"].items()}
         neu.bevoelkerung = float(siedler)
         self.settlements.append(neu)
+        self._reichsanzeige_aus_orten()
         self.kartenvorrat[karte_id]["besitzer"] = "spieler"
         self.hatte_siedlung = True
         size = next(m for m in MAPS if m["id"] == self.current_map)["size"]
@@ -1692,7 +1837,7 @@ class GameState:
             return False, f"Nicht genug Einheiten anwesend: {', '.join(sorted(zu_wenig))}."
 
         ok, meldung = auftraege.starten(self.auftraege, art, bestand, von, ziel,
-                                        float(entfernung), time.time(), fracht)
+                                        float(entfernung), float(self.spielsekunden), fracht)
         if not ok:
             return False, meldung
         for k, v in bestand.items():
@@ -1784,6 +1929,18 @@ class GameState:
         gleich danach von `auftraege.spieldaten_anwenden` - also GENAU EINMAL.
         """
         ziel = eintrag.get("ziel") or {}
+        bot_ziel = next((b for b in self.bots if b.name == ziel.get("bot_name")), None)
+        siedlung_ziel = next((ort for ort in self.settlements
+                              if ort.id == ziel.get("id")), None) if ziel.get("id") else None
+        wall_stufe = (int(bot_ziel.wall_stufe) if bot_ziel else
+                       self.wall_stufe_am_ort(siedlung_ziel) if siedlung_ziel
+                       else int(ziel.get("wall_stufe") or 0))
+        wall_zustand = (float(bot_ziel.wall_zustand) if bot_ziel else
+                        dorfwall.zustand(siedlung_ziel) if siedlung_ziel
+                        else float(ziel.get("wall_zustand_prozent", 100.0)))
+        ziel_def = (dict(bot_ziel.army) if bot_ziel else
+                    dict(siedlung_ziel.einheiten) if siedlung_ziel
+                    else dict(ziel.get("verteidiger") or {}))
         truppen = {str(k): int(v) for k, v in (eintrag.get("einheiten") or {}).items()}
         kaempfer, belagerung, karren = {}, {}, {}
         for name, anzahl in truppen.items():
@@ -1798,12 +1955,24 @@ class GameState:
         geraet.update(belagerung)          # kampf.py: Karren UND Belagerungswaffen des Angreifers
 
         ergebnis = kampf.fuehre_schlacht(
-            kaempfer, dict(ziel.get("verteidiger") or {}),
-            int(ziel.get("wall_stufe") or 0), float(ziel.get("wall_zustand_prozent") or 100.0),
+            kaempfer, ziel_def,
+            wall_stufe, wall_zustand,
             angreifer_karren=geraet or None,
             verteidiger_karren=dict(ziel.get("verteidiger_karren") or {}) or None,
-            vorraete=dict(ziel.get("vorraete") or {}), rng=random.Random())
+            vorraete=dict(ziel.get("vorraete") or {}), rng=random.Random(),
+            forschung_angreifer={k: int(v.level) for k, v in self.research.items()},
+            forschung_verteidiger=({k: int(v.level) for k, v in self.research.items()}
+                                   if siedlung_ziel is not None else None))
 
+        # Ortsbezogener Mauerschaden nach der wirklichen Belagerung, persistent.
+        if siedlung_ziel is not None and self._lokale_kasse_aktiv():
+            siedlung_ziel.mauer_zustand = float(ergebnis.get("mauer_zustand", wall_zustand))
+        if bot_ziel is not None:
+            bot_ziel.wall_zustand = float(ergebnis.get("mauer_zustand", wall_zustand))
+        verteidiger = siedlung_ziel.einheiten if siedlung_ziel else (bot_ziel.army if bot_ziel else None)
+        if verteidiger is not None:
+            for name, anzahl in (ergebnis.get("verluste_verteidiger") or {}).items():
+                verteidiger[name] = max(0, int(verteidiger.get(name, 0)) - int(anzahl))
         for name, anzahl in (ergebnis.get("verluste_angreifer") or {}).items():
             rest = int(truppen.get(name, 0)) - int(anzahl)
             if rest > 0:
@@ -1818,12 +1987,13 @@ class GameState:
                 truppen.pop(name, None)
         eintrag["einheiten"] = truppen
         eintrag["beute"] = dict(ergebnis.get("beute") or {})
-        eintrag["vorrunde"] = {"bestanden": ergebnis.get("ausgang") != "unentschieden",
+        eintrag["vorrunde"] = {"bestanden": bool(ergebnis.get("vorrunde_bestanden")),
                                "grund": ergebnis.get("bericht", "")}
 
         bericht = kampfbericht.bericht(ergebnis)
         self.messages.append({"text": f"Am Ziel {eintrag.get('nach')} — " + bericht["titel"] +
-                                      "\n" + "\n".join(bericht["zeilen"]), "type": "kampf"})
+                                      "\n" + "\n".join(bericht["zeilen"]), "type": "kampf",
+                              "spielzeit_sekunden": float(eintrag.get("ankunft") or self.spielsekunden)})
         self._log(f"Kampf am Ziel {eintrag.get('nach')}: {ergebnis.get('ausgang')}.")
         return ergebnis
 
@@ -1883,7 +2053,8 @@ class GameState:
                 "armee": dict(bot.army), "letzter_angriff": bot.letzter_angriff,
                 "naechster_angriff": float(bot.naechster_angriff), "angriffe": int(bot.angriffe),
                 "gebaut": int(bot.gebaut), "geforscht": int(bot.geforscht),
-                "gehandelt": int(bot.gehandelt)}
+                "gehandelt": int(bot.gehandelt), "wall_stufe": int(bot.wall_stufe),
+                "wall_zustand": float(bot.wall_zustand)}
 
     def bot_aus_dict(self, bot: BotPlayer, daten: dict) -> None:
         """Zurueck in den Spielstand: nur die Felder, die der Bot-Kern fuehrt."""
@@ -1968,38 +2139,85 @@ class GameState:
         stand = botkern.bots_tick(daten, welt, jetzt, rng)
         ergebnis["aktionen"] = dict(stand.get("aktionen") or {})
 
-        for start, zug in zip(daten, stand.get("ergebnisse") or []):
-            bot = next((b for b in self.bots if b.name == str(start.get("name"))), None)
-            if bot is None:
+        # GPT-B01: `botkern` plant nur die ABSICHT. Erfolg, Beute und Meldung
+        # duerfen erst nach tatsaechlichem Kampf entschieden werden. Keine
+        # irrefuehrenden "erbeutet"-Logzeilen aus dem Bot-Absichtskern.
+        # GPT-B02: botkern.bots_tick SORTIERT die Ergebnisse nach Namen.
+        # `zip(daten, ergebnisse)` wuerde daher einem fremden Bot dessen
+        # Angriff, Wartezeit und Beute zubuchen. Ausschliesslich nach der
+        # eindeutigen Bot-Kennung zuordnen; keinen stillen Positional-Fallback.
+        start_nach_name = {str(d['name']): d for d in daten}
+        bot_nach_name = {b.name: b for b in self.bots}
+        for zug in stand.get("ergebnisse") or []:
+            name = str(zug.get('bot') or '')
+            bot = bot_nach_name.get(name)
+            start = start_nach_name.get(name)
+            if bot is None or start is None:
                 continue
+            meldung = str(zug.get("meldung") or "")
             if zug.get("aktion") == "angreifen":
-                beute = dict((zug.get("wirkung") or {}).get("beute") or {})
-                if beute and getattr(self, "noob_protection", False):
-                    # Der Götterschutz (Handbuch S. 6: die ersten sieben Tage bzw. bis zum ersten
-                    # Kriegspunkt) schuetzt die Startwerte. Vorher zog der erste Bot SOFORT und
-                    # pluenderte 50 % — von 100 Holz/100 Stein blieben 30/30, bevor der Spieler
-                    # etwas bauen konnte.
-                    self.messages.append({
-                        "text": f"Götterschutz aktiv: {zug.get('meldung')} Die Beute bleibt uns.",
-                        "type": "bot"})
+                beute = {}
+                if self.noob_protection:
+                    meldung = f"{bot.name}: Angriff abgebrochen (Goetterschutz)."
                 else:
-                    for stoff, menge in beute.items():
-                        # Teil 3: die Beute trifft Reichsbestand UND Ortslager anteilig - sonst
-                        # laufen die Buecher auseinander (Reich = Uebergangsrest + Ortslager).
-                        self.reich_abzug(stoff, float(menge))
-                    if beute:
-                        self.messages.append({"text": zug.get("meldung"), "type": "bot"})
-                ergebnis["angriffe"].append(zug.get("meldung"))
-            # Erst den Zug des Kerns uebernehmen (Beute, Zaehler, naechstes Fenster), DANN aus
-            # der eigenen Kasse aufstellen - sonst waere die Beute wieder weg.
+                    bot_kaempfer = {n: int(v) for n, v in bot.army.items()
+                                     if einheiten.rolle(n) in ("kaempfer", "kundschafter")
+                                     and int(v) > 0}
+                    bot_geraet = {n: int(v) for n, v in bot.army.items()
+                                  if einheiten.rolle(n) == "belagerung" and int(v) > 0}
+                    bot_geraet.update({n: int(v) for n, v in (bot.lager or {}).items()
+                                      if einheiten.rolle(n) == "karren" and int(v) > 0})
+                    zielort, zielplan = bot_angriffsplanung.waehle_ziel(
+                        self.settlements, bot_kaempfer, bot_geraet,
+                        lambda ort: (self.wall_stufe_am_ort(ort),
+                                     dorfwall.zustand(ort) if self._lokale_kasse_aktiv()
+                                     else 100.0))
+                    if zielort is None:
+                        meldung = (f"{bot.name}: Angriff verschoben: "
+                                   f"{zielplan['grund']}")
+                    else:
+                        ws = self.wall_stufe_am_ort(zielort)
+                        wz = (dorfwall.zustand(zielort)
+                              if self._lokale_kasse_aktiv() else 100.0)
+                        kampf_result = kampf.fuehre_schlacht(
+                            bot_kaempfer, dict(zielort.einheiten), ws, wz,
+                            angreifer_karren=bot_geraet or None,
+                            vorraete=dict(zielort.vorraete), rng=rng,
+                            forschung_verteidiger={k: int(v.level) for k, v in self.research.items()})
+                        if self._lokale_kasse_aktiv():
+                            zielort.mauer_zustand = float(kampf_result.get("mauer_zustand", wz))
+                        for name, menge in (kampf_result.get("verluste_angreifer") or {}).items():
+                            bot.army[name] = max(0, int(bot.army.get(name, 0)) - int(menge))
+                        for name, menge in (kampf_result.get("verluste_verteidiger") or {}).items():
+                            zielort.einheiten[name] = max(
+                                0, int(zielort.einheiten.get(name, 0)) - int(menge))
+                        if kampf_result.get("ausgang") == "angreifer":
+                            beute = dict(kampf_result.get("beute") or {})
+                            for stoff, menge in beute.items():
+                                zielort.vorraete[stoff] = round(max(0.0, float(
+                                    zielort.vorraete.get(stoff, 0.0)) - float(menge)), 2)
+                            self._reichsanzeige_aus_orten()
+                        meldung = (f"{bot.name} gegen {zielort.name}: "
+                                   f"{kampf_result.get('ausgang')}; "
+                                   f"tatsaechliche Beute {beute}.")
+                        self.messages.append({"text": meldung, "type": "kampf"})
+                zug.setdefault("wirkung", {})["beute"] = beute
+                ergebnis["angriffe"].append(meldung)
+            self._log(meldung)
+            # `bot_aus_dict` darf nie mit der vom Kern nur PROGNOSTIZIERTEN
+            # Beute gefuettert werden. Auch nach einer Schlacht gilt nur die
+            # durch `kampf.fuehre_schlacht` bestaetigte Menge.
             self.bot_aus_dict(bot, botkern.wirkung_anwenden(start, zug))
             self.bot_armee_aufstellen(bot)
 
-        for zeile in stand.get("nachrichten") or []:
-            self._log(str(zeile))
         return ergebnis
 
     def tick(self, dt_seconds: float):
+        # Die monotone Laufzeituhr kann bei defektem Lieferanten oder einem
+        # ungueltigen Tempo keine NaN/Inf-Spielsekunden erzeugen duerfen.
+        dt_seconds = float(dt_seconds)
+        if not math.isfinite(dt_seconds) or dt_seconds < 0:
+            raise ValueError("Spielzeit muss endlich und nichtnegativ sein")
         # Ökonomie-Paket, Schritt 9, Teil 6b: EINE Uhr JE ORT — der Kern rechnet.
         #
         # `spieloekonomie.ort_tick` erntet (aus DERSELBEN Quelle wie die Anzeige,
@@ -2065,18 +2283,20 @@ class GameState:
                 eingetroffen.append(f"{_was} in {siedlung.name}")
             for res, menge in (_neu.get("vorraete") or {}).items():
                 zuwachs = float(menge) - _vorher_vorrat.get(res, 0.0)
-                if abs(zuwachs) > 1e-12 and res in self.resources:
+                if (not self._lokale_kasse_aktiv() and abs(zuwachs) > 1e-12
+                        and res in self.resources):
                     self.resources[res].amount = round(float(self.resources[res].amount) + zuwachs, 2)
             zuwachs_leute = float(_neu.get("bevoelkerung", 0.0)) - _vorher_leute
-            if abs(zuwachs_leute) > 1e-12:
+            if abs(zuwachs_leute) > 1e-12 and not self._lokale_kasse_aktiv():
                 self.population = float(self.population) + zuwachs_leute
+        self._reichsanzeige_aus_orten()
         # Gestiegene Forschungsstufen aus dem Kern in den Spielstand uebernehmen (Teil 6 Rest).
         self._forschung_abschluss_buchen(_wissen)
         # Die Uhr steht genau auf dem Ende des Takts (`tick_bis` liefert die erreichte Spielzeit).
         self.spielsekunden = _zeit
         # W5: Die Bots handeln nach `botkern` (Angriffstakt 6-24 h, Handelsschwelle, Wirtschaft).
         # Vorher stand hier eine erfundene Schaedigung: 5 % x Aggression, fester Nahrungsabzug.
-        self.bots_fortschreiben(time.time())
+        self.bots_fortschreiben(self.spielsekunden)
         # FIX 2+3: Tag fortschreiben (86400s = 1 Spieltag) + Götterschutz nach sieben Tagen bzw.
         # beim ersten Kriegspunkt beenden (Handbuch S. 6, KORREKTUR 05.10.2026 — vorher Tag 3).
         # Siedlergrenze und Siedlerzuwachs kommen aus den Haeusern der Siedlungskarten (W4b-5):
@@ -2087,17 +2307,15 @@ class GameState:
         # Hier bleibt nur die GESAMTGRENZE für die Anzeige, damit keine zweite Zuwachsformel läuft.
         self.max_population = gebaeude_wirkung.bevoelkerungsgrenze(self.settlements)
         self._day_accum = getattr(self, "_day_accum", 0.0) + dt_seconds
-        if self._day_accum >= 86400:
-            self._day_accum -= 86400
-            self.day += 1
+        tage, self._day_accum = divmod(self._day_accum, 86400.0)
+        self.day += int(tage)
         if self.noob_protection:
             # Götterschutz (Handbuch S. 6, Z. 215-217; KORREKTUR 05.10.2026): neue Spieler sind die
             # ersten SIEBEN Tage geschützt, der Schutz endet früher mit dem ERSTEN Kriegspunkt.
             # Vorher stand hier ein fester Tag 3 — belegter Widerspruch gegen das Handbuch
-            # (docs/audits/handbuch_abgleich_2026-10-05.txt, Punkt 1). `self.day` startet bei 1,
+            # (archiv/analysen/audits/handbuch_abgleich_2026-10-05.txt, Punkt 1). `self.day` startet bei 1,
             # also sind „die ersten sieben Tage“ day 1..7 und der Schutz endet ab day 8.
-            krieg = punkte.kriegspunkte({k: int(v.count) for k, v in self.units.items()},
-                                        gebaeude_wirkung.wall_stufe(self.settlements))
+            krieg = self.punktestand()["krieg"]
             if self.day > punkte.goetterschutz_tage() or krieg > 0:
                 self.noob_protection = False
                 grund = ("erster Kriegspunkt" if krieg > 0
@@ -2106,9 +2324,9 @@ class GameState:
                     "text": f"Götterschutz beendet ({grund}) - die Welt ist jetzt gefährlich!",
                     "type": "system"})
         # W3: fertige Waren aus den Werkstatt-Warteschlangen ins Lager buchen (genau einmal).
-        self.werkstatt_fortschreiben(time.time())
+        self.werkstatt_fortschreiben(self.spielsekunden)
         # W7: Auftraege weiterlaufen lassen (Ankunft buchen, Heimkehrer gutschreiben).
-        self.auftraege_fortschreiben(time.time())
+        self.auftraege_fortschreiben(self.spielsekunden)
         self.last_tick = time.time()
         # Teil 6c: was in diesem Takt fertig wurde, geht an den Aufrufer ZURÜCK — die Oberfläche
         # zeichnet daraufhin neu (`NebelseetalApp._tick_loop`). `GameState` kennt keine Ansicht.
@@ -2116,7 +2334,11 @@ class GameState:
             self._log(f"Fertig: {_was}")
         return eingetroffen
 
-    def save(self, path: str):
+    def save(self, path: str, admin_freigabe: bool = False):
+        if self.admin_teststand and not admin_freigabe:
+            self._log("Admin-Teststand darf nicht in einen regulaeren Slot gespeichert werden.")
+            return False
+        self._reichsanzeige_aus_orten()
         data = {
             "resources": {k: asdict(v) for k, v in self.resources.items()},
             "buildings": {k: asdict(v) for k, v in self.buildings.items()},
@@ -2159,7 +2381,14 @@ class GameState:
             # setzen" — sonst beginnt der Spieltag nach jedem Laden von vorn.
             "stand_version": self.stand_version,
             "mode": self.mode,
+            "oekonomie_aktiv": bool(self.oekonomie_aktiv),
+            "admin_teststand": bool(self.admin_teststand),
+            # Nur fuer getrennte Admin-Saves: niemals in normale Spielerslots schreiben.
+            **({"admin_hilfe_modus": self.admin_hilfe_modus} if self.admin_teststand else {}),
+            "admin_weltkarten": getattr(self, "admin_weltkarten", {}) if self.admin_teststand else {},
             "_day_accum": getattr(self, "_day_accum", 0.0),
+            # GPT-Z01: Archiv-Zeitpunkt, keine Simulations-/Wirtschaftsuhr.
+            **zeitbasis.zeitmarke(),
         }
         # W8 (docs/UMSETZUNG_EINHAENGEN.md, Abschnitt 4): erst sichern, dann atomar ueber eine
         # gepruefte Zwischendatei schreiben. Schlaegt etwas fehl, bleibt der alte Spielstand
@@ -2174,7 +2403,7 @@ class GameState:
             self._log(f"Speichern fehlgeschlagen - der alte Spielstand bleibt stehen: {meldung}")
         return ok
 
-    def load(self, path: str):
+    def load(self, path: str, admin_freigabe: bool = False):
         if not os.path.exists(path):
             return False
         # W8: ueber das robuste Modul lesen; ist die Datei beschaedigt, erst die Sicherung
@@ -2191,6 +2420,35 @@ class GameState:
             if data is None:
                 self._log(f"Laden abgebrochen - der bisherige Stand bleibt stehen: {fehler}")
                 return False
+        # Neue Hauptfassung: Ein alter 8x7-Spielstand bleibt als Archiv auf Disk,
+        # darf aber nicht mehr aktiv geladen oder heimlich in eine andere Karte verwandelt werden.
+        for siedlung in data.get("settlements", []):
+            karte = siedlung.get("karte") if isinstance(siedlung, dict) else None
+            if not karte:
+                continue  # Alte leerstehende Verwaltungseintraege noch ohne Landkarte
+            try:
+                originalkarten_grafik.grafikpfad(karte)
+            except (ValueError, FileNotFoundError) as fehler:
+                self._log("Archiv-Spielstand nicht ladbar (nur Originalkarten): " + str(fehler))
+                return False
+        for name, eintrag in (data.get("kartenvorrat") or {}).items():
+            karte = eintrag.get("karte") if isinstance(eintrag, dict) else None
+            if karte:
+                try:
+                    originalkarten_grafik.grafikpfad(karte)
+                except (ValueError, FileNotFoundError) as fehler:
+                    self._log("Alter Kartenvorrat nicht ladbar (" + str(name) + "): " + str(fehler))
+                    return False
+        # Ablehnung VOR der ersten Zustandsmutation: kein Adminstand im normalen Spiel.
+        if data.get("admin_teststand") and not admin_freigabe:
+            self._log("Admin-Teststand gesperrt: separate Adminfreigabe erforderlich.")
+            return False
+        self.admin_teststand = bool(data.get("admin_teststand", False))
+        hilfemodus = data.get("admin_hilfe_modus", "auto")
+        self.admin_hilfe_modus = (hilfemodus if self.admin_teststand and
+                                 hilfemodus in spielerhilfe.ADMIN_HILFE_MODI else "auto")
+        self.admin_weltkarten = (dict(data.get("admin_weltkarten") or {})
+                               if self.admin_teststand else {})
         for k, v in data.get("resources", {}).items():
             if k in self.resources:
                 self.resources[k] = Resource(**v)
@@ -2216,7 +2474,7 @@ class GameState:
         self.map_switch_cost = data.get("map_switch_cost", 150)
         self.map_garrison = data.get("map_garrison", {})
         self.movements = data.get("movements", [])
-        self.messages = data.get("messages", [])
+        self.messages = zeitbasis.NachrichtenMitZeit(data.get("messages", []), spieluhr=lambda: self.spielsekunden)
         self.settlements = [Settlement(**s) for s in data.get("settlements", [])]
         # Ökonomie-Paket Schritt 9: Altspielstände kennen die Ort-Kennung nicht. Sie bekommen sie
         # hier EINMALIG deterministisch aus Besitzer und Weltfeld — nicht aus dem Namen, damit ein
@@ -2253,11 +2511,19 @@ class GameState:
                 # und ehrlich vermerken.
                 self._log("Warnhinweis: unbekannter Modus '%s' im Spielstand - er wird "
                           "unveraendert uebernommen." % self.mode)
+        # Eine alte v2-Datei meldet bereits "oeokonomie-1", hatte diesen Modus
+        # aber laut Protokoll noch NICHT aktiviert. Die v2-Bestaende duerfen nicht
+        # als rein lokale Kasse neu gedeutet oder stillschweigend geloescht werden.
+        self.oekonomie_aktiv = (self.mode == MODUS_NEU
+                                and data.get("oekonomie_aktiv") is True)
         if not self.kartenvorrat:
             self.kartenvorrat_anlegen()
         self.hatte_siedlung = bool(data.get("hatte_siedlung", bool(self.settlements)))
         self.spielende = data.get("spielende")
         self.noob_protection = data.get("noob_protection", True)
+        # Kein Upgrade alter Legacy-Staende. Fuer neue, lokale Staende ist die
+        # globale Anzeige nur eine abgeleitete Summe nach dem Laden.
+        self._reichsanzeige_aus_orten()
         self.goods = data.get("goods", {key: 0 for key in GOODS})
         # W5-2: Portalzustand (eigene Dimension, bekannte Dimensionen, letzter Wechsel)
         self.eigene_dimension = int(data.get("eigene_dimension", 1) or 1)
@@ -2302,7 +2568,10 @@ class GameState:
         self._day_accum = float(data.get("_day_accum") or 0.0)
         # Der Bot-Zug darf nach dem Laden nicht sofort losgehen (sonst pluendern die Bots
         # genau in der Sekunde, in der ein alter Spielstand geoeffnet wird).
-        self._letzter_bot_takt = time.time()
+        self._letzter_bot_takt = float(self.spielsekunden)
+        # Neustart der monotone Echtzeituhr: keine Nachproduktion seit dem Save.
+        self._laufzeituhr.neu_ankern()
+        self.last_tick = time.time()
         return True
 
     def _log(self, msg: str):
@@ -2346,19 +2615,33 @@ class NebelseetalApp:
         self.state.generate_map(self.state.current_map)
         # Spielstand: im Entwicklungsbetrieb neben dem Quelltext, in der EXE im Nutzerordner
         # (der Programmordner kann schreibgeschuetzt sein und wird beim Einzeldatei-Start entpackt).
-        if ist_verpackt():
+        if ist_verpackt() or os.environ.get("NEBEL_SPIELDATEN_ORDNER"):
             self.save_path = os.path.join(schreibordner(), "savegame.json")
         else:
             self.save_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "savegame.json")
         # W8 (Vorschlag aus docs/UMSETZUNG_EINHAENGEN.md, 4.2): liegengebliebene Zwischendateien
         # eines abgebrochenen Schreibvorgangs entfernen - Zieldatei und Sicherung bleiben unberuehrt.
         speichern.aufraeumen(self.save_path)
+        self.slots_ordner = os.path.dirname(self.save_path)
+        # FIX04g: Auf private, von GitHub getrennte Spielstand-Archivstruktur achten.
+        # Angelegt werden nur Ordner, keine vorhandenen Spielstaende verschoben.
+        spielstand_archiv.ordner_anlegen(self.slots_ordner)
+        self.admin_tor_pfad = os.path.join(schreibordner(), "admin_tor.json")
+        self._admin_sitzung_freigegeben = False  # nur nach Admin-Authentifizierung
+        # GPT-PR01: Passworttor, Profil und Savegame sind drei getrennte Schichten.
+        self._tor_geoeffnet = False
+        self._profil = None  # None bis zur Wahl; "spieler" oder "admin"
         self.current_view = "Dorfzentrum"
         self.skin_name = "standard"
         self.skin = SKINS[self.skin_name]
         self._icon_cache: Dict[str, object] = {}   # haelt Tk-Bilder am Leben (sonst raeumt Tk sie weg)
         # Schritt 8 (docs/WEG_ZUR_EXE.md): erst das Passworttor, dann das Spiel.
-        self.tor_pfad = tor_pfad or tor.STANDARD_PFAD
+        # Public-Test: eigene lokale Passwortdatei; niemals die Entwickler-Tordatei anfassen.
+        # Der Build-Einstieg public_start.py setzt einen festen privaten Save-Ordner.
+        if ausgabemodus.ist_oeffentliche_testversion():
+            self.tor_pfad = tor_pfad or os.path.join(schreibordner(), "tor.json")
+        else:
+            self.tor_pfad = tor_pfad or tor.STANDARD_PFAD
         self._tor_screen()
 
     # ---------- Passworttor (Schritt 8) ----------
@@ -2410,7 +2693,8 @@ class NebelseetalApp:
             self.tor_neu2.delete(0, tk.END)
             self.tor_meldung.config(text="Passwort gesetzt. Das Spiel startet …", fg="#7CFC00")
             self._log(f"Passworttor eingerichtet ({meldung})")
-            self.root.after(600, self._build_loading_screen)
+            self._tor_geoeffnet = True
+            self.root.after(600, self._profil_auswahl)
         else:
             self.tor_meldung.config(text=meldung, fg="#e53935")
 
@@ -2442,7 +2726,8 @@ class NebelseetalApp:
         if ok:
             self.tor_meldung.config(text="Zugang gewährt. Das Spiel startet …", fg="#7CFC00")
             self._log("Passworttor geöffnet.")
-            self.root.after(400, self._build_loading_screen)
+            self._tor_geoeffnet = True
+            self.root.after(400, self._profil_auswahl)
         else:
             self.tor_meldung.config(text=meldung, fg="#e53935")
             self._tor_wartezeit_anzeigen()
@@ -2460,6 +2745,156 @@ class NebelseetalApp:
                 self.tor_knopf.config(state=tk.NORMAL)
             except Exception:
                 pass
+
+    # ---------- GPT-PR01: Nach Grundpasswort erst Profil auswaehlen ----------
+
+    def _profil_auswahl(self):
+        """Nur nach erfolgreichem Grundpasswort: zwei strikt getrennte Spielwege.
+
+        Das Tor steuert lediglich den Programmstart; es wird nie an ein Profil
+        oder einen Save-Slot gebunden. Der Admin besitzt sein EIGENES Passwort.
+        """
+        if not self._tor_geoeffnet:
+            return
+        self._profil = None
+        self._admin_sitzung_freigegeben = False
+        self.state = GameState()  # keine Daten aus der vorigen Sitzung mitnehmen
+        if ausgabemodus.ist_oeffentliche_testversion():
+            # Oeffentliche EXE: genau der normale Spielweg, ohne Admin-Profilauswahl.
+            self._spieler_auswahl()
+            return
+        for widget in self.root.winfo_children():
+            widget.destroy()
+        self.root.configure(bg="#2a0605")
+        frame = tk.Frame(self.root, bg="#2a0605")
+        frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+        tk.Label(frame, text="Nebelseetal - Profil waehlen", font=("Arial", 23, "bold"),
+                 fg="#FFCC33", bg="#2a0605").pack(pady=(0, 14))
+        tk.Label(frame, text="Das Grundpasswort hat den Spielstart freigegeben.\n"
+                 "Waehle nun deinen Spielmodus:", fg="#FFFF99", bg="#2a0605",
+                 justify=tk.CENTER).pack(pady=(0, 16))
+        tk.Button(frame, text="Mein Spielaccount - normal spielen",
+                  command=self._spieler_auswahl, width=38, pady=9,
+                  fg="#FFCC33", bg="#3e2723").pack(pady=7)
+        tk.Label(frame, text="Drei unabhaengige Spielstaende; keine Admin-Befehle.",
+                 fg="#C0C0C0", bg="#2a0605").pack()
+        tk.Button(frame, text="Mein Adminaccount - Testwelt und Cheats",
+                  command=self._admin_dialog, width=38, pady=9,
+                  fg="#FFCC33", bg="#3e2723").pack(pady=(19, 7))
+        tk.Label(frame, text="Separates Admin-Passwort und eigener Testspielstand.",
+                 fg="#C0C0C0", bg="#2a0605").pack()
+
+    def _spieler_auswahl(self):
+        """Die drei normalen Slots VOR dem Start des eigentlichen Spiels zeigen."""
+        if not self._tor_geoeffnet:
+            return
+        self._profil = None
+        for widget in self.root.winfo_children():
+            widget.destroy()
+        self.root.configure(bg="#2a0605")
+        frame = tk.Frame(self.root, bg="#2a0605")
+        frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+        tk.Label(frame, text="Mein Spielaccount", font=("Arial", 22, "bold"),
+                 fg="#FFCC33", bg="#2a0605").pack(pady=(0, 12))
+        tk.Label(frame, text="Einen von drei Spielstaenden waehlen oder neu beginnen:",
+                 fg="#FFFF99", bg="#2a0605").pack(pady=(0, 12))
+        for nummer in spielstaende.SLOTS:
+            zeile = tk.Frame(frame, bg="#2a0605")
+            zeile.pack(fill=tk.X, pady=4)
+            pfad = spielstaende.slot_pfad(self.slots_ordner, nummer)
+            tk.Label(zeile, text=spielstaende.slot_status(self.slots_ordner, nummer),
+                     fg="#FFFF99", bg="#2a0605", width=40,
+                     anchor=tk.W).pack(side=tk.LEFT)
+            tk.Button(zeile, text=f"Slot {nummer} laden", width=16,
+                      state=(tk.NORMAL if os.path.isfile(pfad) else tk.DISABLED),
+                      command=lambda n=nummer: self._spieler_slot_starten(n),
+                      fg="#FFCC33", bg="#3e2723").pack(side=tk.RIGHT)
+        tk.Button(frame, text="Spielstaende verwalten / archivieren", width=35,
+                  command=lambda: self._spielstand_verwaltung("spieler"),
+                  fg="#FFCC33", bg="#3e2723").pack(pady=(12, 2))
+        tk.Button(frame, text="Neue Partie beginnen", width=25,
+                  command=self._spieler_neu_starten,
+                  fg="#FFCC33", bg="#3e2723").pack(pady=(16, 8))
+        if not ausgabemodus.ist_oeffentliche_testversion():
+            tk.Button(frame, text="Zurueck zur Profilwahl", command=self._profil_auswahl,
+                      fg="#C0C0C0", bg="#3e2723").pack(pady=7)
+
+    def _spieler_neu_starten(self):
+        if not self._tor_geoeffnet:
+            return
+        neu = GameState()
+        neu.generate_map(neu.current_map)
+        self._spiel_starten(neu, "spieler")
+
+    def _spieler_slot_starten(self, nummer: int):
+        if not self._tor_geoeffnet:
+            return
+        from tkinter import messagebox
+        neu = GameState()
+        # Nie admin_freigabe=True fuer normale Slots!
+        if not neu.load(spielstaende.slot_pfad(self.slots_ordner, nummer)):
+            messagebox.showerror("Spielstand", f"Slot {nummer} nicht ladbar.", parent=self.root)
+            return
+        self._spiel_starten(neu, "spieler")
+
+    def _spiel_starten(self, zustand: GameState, profil: str):
+        """Eine explizite, validierte Profil- und Spielzustandsbindung."""
+        if not self._tor_geoeffnet or profil not in ("spieler", "admin"):
+            return False
+        if ausgabemodus.ist_oeffentliche_testversion() and profil != "spieler":
+            return False
+        if profil == "spieler" and zustand.admin_teststand:
+            return False
+        if profil == "admin" and (not self._admin_sitzung_freigegeben
+                                  or not zustand.admin_teststand):
+            return False
+        self.state = zustand
+        self._profil = profil
+        self._build_loading_screen()
+        return True
+
+    def _profil_zurueck(self):
+        """Vor einem Profilwechsel nicht still den aktuellen Stand vernichten."""
+        from tkinter import messagebox
+        if not self._tor_geoeffnet:
+            return
+        if self._profil == "spieler":
+            if not messagebox.askyesno("Profil wechseln", "Nicht gespeicherte Aenderungen "
+                                      "gehen verloren. Erst in Slot 1-3 speichern! "
+                                      "Trotzdem zur Profilwahl?", parent=self.root):
+                return
+        elif self._profil == "admin":
+            if not messagebox.askyesno("Profil wechseln", "Admin-Teststand jetzt sichern "
+                                      "und zur Profilwahl zurueckkehren?", parent=self.root):
+                return
+            if not self._admin_speichern():
+                return
+        if ausgabemodus.ist_oeffentliche_testversion():
+            self._spieler_auswahl()
+        else:
+            self._profil_auswahl()
+
+    def _admin_speichern(self):
+        """Admin sichert ausschliesslich die eigene Datei, nie normale Slots."""
+        if not (self._tor_geoeffnet and self._profil == "admin"
+                and self._admin_sitzung_freigegeben and self.state.admin_teststand):
+            return False
+        pfad = spielstaende.admin_pfad(schreibordner())
+        return bool(self.state.save(pfad, admin_freigabe=True))
+
+    def _admin_laden(self):
+        from tkinter import messagebox
+        if not (self._tor_geoeffnet and self._profil == "admin"
+                and self._admin_sitzung_freigegeben):
+            return False
+        neu = GameState()
+        if not neu.load(spielstaende.admin_pfad(schreibordner()), admin_freigabe=True):
+            messagebox.showwarning("Admin", "Admin-Teststand nicht lesbar.", parent=self.root)
+            return False
+        self.state = neu
+        self._build_main_ui()
+        self._render_view()
+        return True
 
     def _lade_icon(self, relativ: str, faktor: int = 2):
         """Laedt ein Icon als Tk-Bild. faktor=2 halbiert grosse Icons (~90px -> ~45px)."""
@@ -2515,38 +2950,69 @@ class NebelseetalApp:
             widget.destroy()
         self.root.configure(bg=self.skin["bg"])
 
-        top = tk.Frame(self.root, bg=self.skin["topbar"], height=40)
+        # FIX04i: Die fruehere einzelne 40px-Zeile wurde auf kleineren Fenstern
+        # von Reichsressourcen und acht Aktionsknopflaechen ueberfuellt.
+        # Getrennte Zeilen garantieren die Bedienbarkeit des Admin-Spielstandknopfs,
+        # ohne Rohstoffe oder Aktionen zu verbergen. Keine festen Zeilenhoehen:
+        # Windows-DPI-Skalierung darf die Beschriftungen nicht abschneiden.
+        top = tk.Frame(self.root, bg=self.skin["topbar"])
         top.pack(fill=tk.X, side=tk.TOP)
-        top.pack_propagate(False)
-        tk.Label(top, text="Nebelseetal", font=("Blackletter", 16, "bold"), fg=self.skin["gold"], bg=self.skin["topbar"]).pack(side=tk.LEFT, padx=10)
-        # Schritt 9, Teil 3b: diese Leiste zeigt den GESAMTBESTAND (Reich), nicht das Lager einer
-        # Siedlung — seit Teil 3a fuehren die Ortslager. Ohne das Wort "Reich" liest der Spieler
-        # die Zahl als "mein Lager" (KONTEXT_PAKET, Abschnitt 2, Teil 3b).
-        tk.Label(top, text="Reich:", fg=self.skin["gold"], bg=self.skin["topbar"],
-                 font=("Arial", 9, "bold")).pack(side=tk.LEFT, padx=(4, 0))
+        ressourcen_oben = tk.Frame(top, bg=self.skin["topbar"])
+        ressourcen_oben.pack(fill=tk.X)
+        ressourcen_unten = tk.Frame(top, bg=self.skin["topbar"])
+        ressourcen_unten.pack(fill=tk.X)
+        aktionsleiste = tk.Frame(top, bg=self.skin["topbar"])
+        aktionsleiste.pack(fill=tk.X, pady=(2, 3))
+        self.aktionsleiste = aktionsleiste  # Fuer Layout-Regressionstests.
+
+        tk.Label(ressourcen_oben, text="Nebelseetal", font=("Blackletter", 14, "bold"),
+                 fg=self.skin["gold"], bg=self.skin["topbar"]).pack(side=tk.LEFT, padx=(8, 12))
+        # Zwei kurze Ressourcenzeilen statt horizontaler Ueberlagerung mit Buttons.
+        # Anzeige bleibt Reichsbestand, die Ortslager bleiben Buchungsquelle.
+        tk.Label(ressourcen_oben, text="Reich:", fg=self.skin["gold"],
+                 bg=self.skin["topbar"], font=("Arial", 9, "bold")).pack(side=tk.LEFT, padx=(2, 4))
         self.res_labels_top = {}
         ertrag_jetzt = self.state.stundenertrag()
-        for r in RESOURCES:
+        for index, r in enumerate(RESOURCES):
             icon = RESOURCE_ICONS[r]
             amount = int(self.state.resources[r].amount)
             rate = ertrag_jetzt.get(r, 0.0)
             prod_text = f"+{rate:g}/h" if rate else "0"
-            # Ein Kernrohstoff ohne Erzeuger wird als Warnung gezeigt: „(0)" sieht sonst aus
-            # wie ein Anzeigefehler — genau der Eindruck aus Daniels Spielbericht vom 05.10.2026.
             ohne_quelle = rate <= 0 and r in ("holz", "stein", "nahrung") and bool(self.state.settlements)
-            lbl = tk.Label(top, text=f"{icon} {int(amount)} ({'⚠' if ohne_quelle else prod_text})",
+            zeile = ressourcen_oben if index < 4 else ressourcen_unten
+            lbl = tk.Label(zeile, text=f"{icon} {int(amount)} ({'⚠' if ohne_quelle else prod_text})",
                            fg=("#FDBA74" if ohne_quelle else self.skin["text"]),
                            bg=self.skin["topbar"], font=("Arial", 9))
-            lbl.pack(side=tk.LEFT, padx=6)
+            lbl.pack(side=tk.LEFT, padx=5)
             self.res_labels_top[r] = lbl
-        for txt, cmd in [("Speichern", self._save), ("Laden", self._load), ("Skin", self._cycle_skin), ("Beenden", self.root.quit)]:
-            tk.Button(top, text=txt, command=cmd, bg=self.skin["button"], fg=self.skin["gold"], relief=tk.FLAT, padx=8, pady=2).pack(side=tk.RIGHT, padx=4)
-        self.lbl_day = tk.Label(top, text=f"Tag {self.state.day}", fg=self.skin["gold"], bg=self.skin["topbar"])
+        self.lbl_day = tk.Label(ressourcen_unten, text=f"Tag {self.state.day}",
+                                fg=self.skin["gold"], bg=self.skin["topbar"])
         self.lbl_day.pack(side=tk.RIGHT, padx=10)
-        # Zeitfaktor sichtbar machen: sonst fragt man sich, warum nichts wächst.
-        self.lbl_tempo = tk.Label(top, text=f"Tempo {spielzeit.text()}", fg=self.skin["text"],
-                                  bg=self.skin["topbar"], font=("Arial", 9))
+        self.lbl_tempo = tk.Label(ressourcen_unten, text=f"Tempo {spielzeit.text()}",
+                                  fg=self.skin["text"], bg=self.skin["topbar"],
+                                  font=("Arial", 9))
         self.lbl_tempo.pack(side=tk.RIGHT, padx=10)
+
+        # Spielfunktionen und Admin-Funktionen teilen sich ausschliesslich die
+        # Aktionszeile, niemals die laengere Ressourcenanzeige.
+        aktionsknopfe = [("Spielerhilfe", lambda: self._switch_view("Anleitung")),
+                          ("Skin", self._cycle_skin), ("Profil wechseln", self._profil_zurueck),
+                          ("Beenden", self.root.quit)]
+        if (not ausgabemodus.ist_oeffentliche_testversion() and
+                self._profil == "admin" and self._admin_sitzung_freigegeben):
+            aktionsknopfe[:0] = [("Admin sichern", self._admin_speichern),
+                                 ("Admin laden", self._admin_laden),
+                                 ("Admin-Werkzeuge", self._admin_werkzeuge_dialog),
+                                 ("Admin-Spielstaende", lambda: self._spielstand_verwaltung("admin"))]
+        else:
+            aktionsknopfe[:0] = [("Speichern", self._save), ("Laden", self._load),
+                                 ("Spielstaende", lambda: self._spielstand_verwaltung("spieler"))]
+        self.aktionsknopfe = {}
+        for txt, cmd in aktionsknopfe:
+            btn = tk.Button(aktionsleiste, text=txt, command=cmd, bg=self.skin["button"],
+                            fg=self.skin["gold"], relief=tk.FLAT, padx=7, pady=3)
+            btn.pack(side=tk.RIGHT, padx=3)
+            self.aktionsknopfe[txt] = btn
 
         # Statuszeile unten: muss VOR dem expandierenden main-Frame gepackt werden,
         # sonst frisst main den ganzen Platz und die Zeile bleibt 1 px hoch.
@@ -2608,16 +3074,79 @@ class NebelseetalApp:
                                  justify=tk.LEFT)
         self.lbl_ziel.pack(anchor=tk.W, padx=5, pady=(0, 10))
 
+        # FIX04c: Eine kleine, nicht-invasive Orientierung nur waehrend des
+        # echten Götterschutzes; "Spielerhilfe" und "Anleitung" bleiben immer da.
+        self.hilfe_rahmen = tk.Frame(right, bg=self.skin["panel"])
+        tk.Label(self.hilfe_rahmen, text="Einstiegshilfe", fg=self.skin["gold"],
+                 bg=self.skin["panel"], font=("Arial", 10, "bold")).pack(
+                     anchor=tk.W, padx=6, pady=(6, 2))
+        self.hilfe_kurztext = tk.Label(self.hilfe_rahmen, text="", fg=self.skin["text"],
+                                      bg=self.skin["panel"], wraplength=200,
+                                      justify=tk.LEFT, anchor=tk.NW)
+        self.hilfe_kurztext.pack(fill=tk.X, padx=6, pady=(0, 4))
+        tk.Button(self.hilfe_rahmen, text="Alle Tipps und Fragen",
+                  command=lambda: self._switch_view("Anleitung"),
+                  bg=self.skin["button"], fg=self.skin["gold"]).pack(
+                      anchor=tk.W, padx=6, pady=(0, 6))
+        self._spielerhilfe_anzeige_aktualisieren()
+
         # FIX 1: Tick-Loop starten (Produktion, Tag, Bewegung, Render laufen lassen)
         if not getattr(self, "_tick_started", False):
             self._tick_started = True
             self.root.after(1000, self._tick_loop)
+
+    def _spielerhilfe_begleitend_sichtbar(self) -> bool:
+        """Eine Sichtbarkeitsregel fuer alle automatisch angezeigten Hilfekarten.
+
+        Admin-Override gilt ausschliesslich fuer den authentifizierten Teststand;
+        der Götterschutz und der manuelle Einstieg zur Hilfe bleiben unveraendert.
+        """
+        admin_freigabe = (self._profil == "admin" and
+                           self._admin_sitzung_freigegeben and
+                           getattr(self.state, "admin_teststand", False))
+        return spielerhilfe.hilfe_sichtbar(self.state, admin_freigabe=admin_freigabe)
+
+    def _spielerhilfe_aufgabenkarte_sichtbar(self) -> bool:
+        """Gruendung + produzierte Grundrohstoffe gehen jeder Ausblendregel vor.
+
+        Diese Pflicht gilt NUR fuer die Dorfzentrum-Karte "Dein naechster Schritt".
+        Das rechte allgemeine Hilfepanel bleibt per Admin schaltbar.
+        """
+        return (spielerhilfe.startaufgabe_pflicht(self.state) or
+                self._spielerhilfe_begleitend_sichtbar())
+
+    def _spielerhilfe_anzeige_aktualisieren(self):
+        """FIX04e: Seitenleiste UND Dorfzentrum-Hilfekarte synchron steuern."""
+        rahmen = getattr(self, "hilfe_rahmen", None)
+        if rahmen is None or not rahmen.winfo_exists():
+            return
+        sichtbar = self._spielerhilfe_begleitend_sichtbar()
+        if sichtbar:
+            admin_freigabe = (self._profil == "admin" and
+                               self._admin_sitzung_freigegeben and
+                               getattr(self.state, "admin_teststand", False))
+            text = spielerhilfe.kurzinfo(self.state, admin_freigabe=admin_freigabe)
+            if self.hilfe_kurztext.cget("text") != text:
+                self.hilfe_kurztext.configure(text=text)
+            if not rahmen.winfo_manager():
+                rahmen.pack(fill=tk.X, padx=5, pady=(2, 8))
+        elif rahmen.winfo_manager():
+            rahmen.pack_forget()
+
+        # Dorfzentrum-Pflichtkarte hat eine EIGENE Bedingung (Onboarding).
+        # Sonst koennte ein Admin mit ausgeblendeter Seitenhilfe die Aufgabe
+        # verstecken oder der Tick wuerde bei jeder Sekunde neu rendern.
+        aufgabe_sichtbar = self._spielerhilfe_aufgabenkarte_sichtbar()
+        if (getattr(self, "current_view", "") == "Dorfzentrum" and
+                getattr(self, "_aufgaben_sichtbar_zuletzt", aufgabe_sichtbar) != aufgabe_sichtbar):
+            self._render_view()
 
     def _switch_view(self, view: str):
         self.current_view = view
         for item, btn in self.menu_buttons.items():
             btn.config(fg=self.skin["gold"] if item == view else "#e53935")
         self._render_view()
+        self._spielerhilfe_anzeige_aktualisieren()
 
     def _rad_rollen(self, ereignis):
         """Mausrad im Inhaltsbereich — schuetzt sich selbst, falls noch kein Rollbereich da ist."""
@@ -2670,19 +3199,21 @@ class NebelseetalApp:
         tk.Label(self.content, text="Dorfzentrum", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 2))
         _grenze = gebaeude_wirkung.bevoelkerungsgrenze(self.state.settlements)
 
-        # ---- Aufgabenkarte: der EINE naechste Schritt (astra-Bildgutachten 05.10.2026) ----
-        # Vorher stand hier "Eine Übersicht aller Gebäude" — die Startansicht sagte dem Spieler
-        # nicht, was zu tun ist, und der Knopf "Karte öffnen" war zwischen Verwaltung versteckt.
-        _schritt = self.naechster_schritt()
-        _karte = tk.Frame(self.content, bg="#263B47", highlightbackground="#38BDF8", highlightthickness=1)
-        _karte.pack(fill=tk.X, padx=10, pady=(6, 10))
-        tk.Label(_karte, text="Dein nächster Schritt", fg="#7FD1FF", bg="#263B47",
-                 font=("TkDefaultFont", 12, "bold")).pack(anchor=tk.W, padx=10, pady=(8, 0))
-        tk.Label(_karte, text=_schritt["text"], fg="#F3F4F6", bg="#263B47",
-                 wraplength=760, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(2, 6))
-        tk.Button(_karte, text=_schritt["knopf"], command=_schritt["aktion"], bg="#2563EB",
-                  fg="white", activebackground="#1D4ED8", activeforeground="white",
-                  font=("TkDefaultFont", 11, "bold")).pack(anchor=tk.W, padx=10, pady=(0, 10))
+        # FIX04f: "Dein naechster Schritt" ist zwingend, bis die erste
+        # Siedlung Holz, Stein und Nahrung durch echte Gebaeude erwirtschaftet.
+        # Danach folgen die gewohnten Schutz-/Admin-Anzeigeregeln.
+        self._aufgaben_sichtbar_zuletzt = self._spielerhilfe_aufgabenkarte_sichtbar()
+        if self._aufgaben_sichtbar_zuletzt:
+            _schritt = self.naechster_schritt()
+            _karte = tk.Frame(self.content, bg="#263B47", highlightbackground="#38BDF8", highlightthickness=1)
+            _karte.pack(fill=tk.X, padx=10, pady=(6, 10))
+            tk.Label(_karte, text="Dein nächster Schritt", fg="#7FD1FF", bg="#263B47",
+                     font=("TkDefaultFont", 12, "bold")).pack(anchor=tk.W, padx=10, pady=(8, 0))
+            tk.Label(_karte, text=_schritt["text"], fg="#F3F4F6", bg="#263B47",
+                     wraplength=760, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(2, 6))
+            tk.Button(_karte, text=_schritt["knopf"], command=_schritt["aktion"], bg="#2563EB",
+                      fg="white", activebackground="#1D4ED8", activeforeground="white",
+                      font=("TkDefaultFont", 11, "bold")).pack(anchor=tk.W, padx=10, pady=(0, 10))
 
         # ---- Kennzahlen in Klartext (vorher "Bevölkerung: 60 / 15" ohne Erklärung) ----
         _bewohnt = int(self.state.population)
@@ -2747,7 +3278,9 @@ class NebelseetalApp:
             tk.Label(self.content, text="keine — Aufträge startet man in der Diplomatie.",
                      fg="#8a8a8a", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
         else:
-            stand = auftraege.fortschritt(self.state.auftraege, time.time())
+            # Schritt 10 Teil 3: die Restzeiten der Auftraege stehen auf der SPIELUHR — mit
+            # `time.time()` haette die Liste hier eine unsinnige Zahl gezeigt.
+            stand = auftraege.fortschritt(self.state.auftraege, float(self.state.spielsekunden))
             for eintrag in stand.get("je", []):
                 rest = float(eintrag.get("rest_sekunden") or 0.0)
                 tk.Label(self.content,
@@ -2822,7 +3355,8 @@ class NebelseetalApp:
                     "knopf": "Siedlung gründen",
                     "aktion": self._found_settlement}
 
-        s = st.settlements[-1]
+        pflicht_start = spielerhilfe.startaufgabe_pflicht(st)
+        s = st.settlements[0] if pflicht_start else st.settlements[-1]
         gebaut = len(getattr(s, "bauten", {}) or {})
         if gebaut == 0:
             return {"text": f"Deine Siedlung „{s.name}“ hat noch kein Gebäude. Öffne ihre Karte "
@@ -2831,33 +3365,32 @@ class NebelseetalApp:
                     "knopf": f"„{s.name}“ öffnen — Gebäude bauen",
                     "aktion": (lambda ss=s: self._oeffne_siedlungskarte(ss))}
 
-        erlaubt, _ = gebaeude_wirkung.forschung_erlaubt(st.settlements)
-        # astra-Nachprüfung 05.10.2026: die Aufgabenkarte muss den SICHTBAREN Engpass nennen.
-        # Überbelegung blockiert das Siedlerwachstum — das ist wichtiger als alles andere.
-        if int(st.population) >= gebaeude_wirkung.bevoelkerungsgrenze(st.settlements):
-            return {"text": f"Deine Siedlung ist überbelegt ({int(st.population)} Siedler, "
-                            f"{gebaeude_wirkung.bevoelkerungsgrenze(st.settlements)} Wohnraum). "
-                            "Baue ein Haus auf ein freies Feld — jedes Haus schafft 5 Wohnraum, "
-                            "erst dann wachsen wieder Siedler nach.",
-                    "knopf": f"„{s.name}“ öffnen — Haus bauen",
-                    "aktion": (lambda ss=s: self._oeffne_siedlungskarte(ss))}
-        # Daniels Spielbericht 05.10.2026: „so kann es passieren, dass man kein holz mehr bekommt,
-        # weil man keinen holzfäller gebaut hatte". Die Karte nennt deshalb jetzt den fehlenden
-        # Erzeuger samt Feld und Preis, BEVOR sie zum Forschen schickt.
-        ertrag = st.stundenertrag()
+        # FIX04f: Waehrend des Pflicht-Onboardings stehen aktive
+        # PRODUZENTEN vor Wohnraum/Forschung. Die passive Original-Grundrate
+        # von 1 Holz und 1 Stein/h zaehlt hier absichtlich NICHT.
+        produktionsrate = spielerhilfe.grundproduktion_erste_siedlung(st)
         for stoff, geb_key, felder_text in (
                 ("holz", "holzfaeller", "auf Wald 4 Holz/h, auf Steppe 2"),
-                ("stein", "steinmetz", "auf Berg 4 Stein/h, auf Hügel 2"),
-                ("nahrung", "farm", "auf Grasland 4 Nahrung/h, auf Steppe 2")):
-            if float(ertrag.get(stoff, 0.0)) > 0:
+                ("stein", "steinmetz", "auf Berg 4 Stein/h, auf Huegel 2"),
+                ("nahrung", "jaeger", "auf Wald 2 Nahrung/h + Leder (ohne Baukunst)")):
+            if float(produktionsrate.get(stoff, 0.0)) > 0:
                 continue
             eintrag = gelaende.alle_gebaeude().get(geb_key) or {}
             preis = kosten_text(baukosten(geb_key) or {})
-            return {"text": f"Ohne {stoff.capitalize()}-Quelle geht es nicht weiter: es ist kein "
-                            f"{stoff.capitalize()} da und es wächst keines nach. Baue einen "
-                            f"{eintrag.get('name', geb_key)} — {felder_text}"
+            return {"text": f"Fuer eine abgeschlossene Grundversorgung fehlt eine laufende "
+                            f"{stoff.capitalize()}-Produktion in deiner ersten Siedlung. "
+                            f"Baue einen {eintrag.get('name', geb_key)} — {felder_text}"
                             + (f" (Kosten: {preis})." if preis else "."),
                     "knopf": f"„{s.name}“ öffnen — {eintrag.get('name', geb_key)} bauen",
+                    "aktion": (lambda ss=s: self._oeffne_siedlungskarte(ss))}
+
+        erlaubt, _ = gebaeude_wirkung.forschung_erlaubt(st.settlements)
+        # Nach dem Grundaufbau werden wieder Wohnraum und Fortschritt empfohlen.
+        if int(st.population) >= gebaeude_wirkung.bevoelkerungsgrenze(st.settlements):
+            return {"text": f"Deine Siedlung ist ueberbelegt ({int(st.population)} Siedler, "
+                            f"{gebaeude_wirkung.bevoelkerungsgrenze(st.settlements)} Wohnraum). "
+                            "Baue ein Haus auf ein freies Feld, damit Siedler nachwachsen.",
+                    "knopf": f"„{s.name}“ öffnen — Haus bauen",
                     "aktion": (lambda ss=s: self._oeffne_siedlungskarte(ss))}
 
         if not erlaubt:
@@ -2866,7 +3399,7 @@ class NebelseetalApp:
                     "knopf": f"„{s.name}“ öffnen — Bibliothek bauen",
                     "aktion": (lambda ss=s: self._oeffne_siedlungskarte(ss))}
 
-        laufend = forschung.fortschritt(st.forschung_stand(), time.time())
+        laufend = forschung.fortschritt(st.forschung_stand(), float(st.spielsekunden))
         im_gange = [k for k, v in (laufend or {}).items() if (v or {}).get("laufend")]
         if im_gange:
             key = im_gange[0]
@@ -2949,6 +3482,7 @@ class NebelseetalApp:
             for r in list(start):
                 self.state.resources[r].amount = 0.0
             self.state.population = 0.0
+            self.state._reichsanzeige_aus_orten()
             self.state.hatte_siedlung = True
             tile.npc_faction = "spieler"
             tile.sector_name = sett.name
@@ -3306,6 +3840,9 @@ class NebelseetalApp:
         if siedlung is None or feld is None:
             return
         name = gelaende.gebaeude_name(gebaeude_key)
+        if gebaeude_key == "verteidigungswall" and self.state._lokale_kasse_aktiv():
+            self._log("Wall belegt kein Baufeld: im Dorfzentrum 'Wall errichten' waehlen.")
+            return
         kosten = baukosten(gebaeude_key)
         if not kosten:
             self._log(f"Für {name} ist kein Preis hinterlegt — Bau abgebrochen.")
@@ -3315,39 +3852,85 @@ class NebelseetalApp:
         # diese Vorprüfung nur den Reichsbestand - seit Teil 3 liegt der Startbestand aber im
         # ORT, und der Bau wurde mit "es fehlt holz" abgelehnt, obwohl die Siedlung es hatte
         # (gefunden vom Sammellauf: test_startspiel, test_durchspiel, test_gui_fehler).
+        staende = {k: int(v.level) for k, v in self.state.research.items()}
+        baubar, grund = bauen_auf_karte(
+            siedlung, gebaeude_key, feld, forschungsstaende=staende, nur_pruefen=True)
+        if not baubar:
+            self._log(f"Bau nicht moeglich: {grund}")
+            return
         fehlt = self.state.ortsdeckung(siedlung, kosten)
         if fehlt:
             self._log(f"Nicht genug Rohstoffe für {name}: es fehlt "
                       f"{', '.join(sorted(fehlt))}.")
             return
-        ok, meldung = bauen_auf_karte(siedlung, gebaeude_key, feld)
-        if not ok:
-            self._log(f"Bau nicht möglich: {meldung}")
-            return
         # Oekonomie-Paket, Schritt 9, Teil 3: bezahlt wird aus dem LAGER DIESER Siedlung (Siedler
         # aus ihrer Bevoelkerung). Die Vorpruefung oben und die Buchung hier benutzen dieselben
         # zwei Quellen (Ortslager + Reichsbestand als Uebergang) - deshalb kann die Zahlung nicht
         # mehr halb gelingen.
+        if self.state._lokale_kasse_aktiv() and not getattr(self.state, "admin_teststand", False):
+            risiko = versorgungsschutz.risiko_nach_ausgabe(
+                siedlung, kosten, baukosten, bau=(gebaeude_key, feld))
+            if risiko:
+                self._log(risiko[0])
+                return
+        # GPT-OEK03: Zuerst die Feldmutation auf einer KOPIE zu Ende pruefen.
+        # Niemals Baukosten abbuchen und danach erst feststellen, dass der Bau
+        # scheitert. Der echte Ort wird erst nach erfolgreicher Zahlung belegt.
+        bau_probe = copy.deepcopy(siedlung)
+        ok, meldung = bauen_auf_karte(bau_probe, gebaeude_key, feld,
+                                     forschungsstaende=staende)
+        if not ok:
+            self._log(f"Bau vor Zahlung abgelehnt: {meldung}")
+            return
         ok_zahlung, meldung_zahlung = self.state.verbrauche_am_ort(siedlung, kosten)
         if not ok_zahlung:
             self._log(f"Nicht genug im Lager von {siedlung.name} für {name}: {meldung_zahlung}")
             return
+        siedlung.bauten = bau_probe.bauten
+        siedlung.stufen = bau_probe.stufen
         self._log(f"{name} gebaut — {meldung}")
         # astra-Nachprüfung 05.10.2026: „Nach dem Bau bleibt dasselbe Feld ausgewählt und das
         # Panel wechselt zur Gebäudeansicht." Vorher löschte das Spiel hier die Auswahl — der
         # Spieler sah nach dem Bauen kein Ergebnis, nur die Statuszeile.
         self._render_view()
 
+    def _karten_wall_errichten(self):
+        siedlung = getattr(self, "karten_siedlung", None)
+        if siedlung is None:
+            return
+        ok, text = self.state.wall_errichten(siedlung)
+        self._log(text)
+        if ok:
+            self._render_view()
+
     def _karten_abreissen(self):
         siedlung = getattr(self, "karten_siedlung", None)
         feld = getattr(self, "karten_feld", None)
         if siedlung is None or feld is None:
             return
-        gebaut = siedlung.bauten.pop(str(feld), None)
+        gebaut = siedlung.bauten.get(str(feld))
+        if not gebaut:
+            return
+        # GPT extern 28.10.2026: einen letzten Produzenten nicht unbemerkt
+        # abbauen, wenn danach Holz/Stein dauerhaft unerreichbar waeren.
+        # Ein bereits blockiertes Dorf darf weiterhin Felder freiraeumen.
+        if self.state._lokale_kasse_aktiv() and not getattr(self.state, "admin_teststand", False):
+            risiko = versorgungsschutz.risiko_nach_abriss(siedlung, feld, baukosten)
+            if risiko:
+                self._log(risiko[0])
+                return
+        # Handbuch: Abriss nach Bestaetigung, keinerlei Erstattung.
+        # Ohne root wird der Weg auch in kopflosen Regeltests nutzbar.
+        if getattr(self, 'root', None) is not None:
+            from tkinter import messagebox
+            if not messagebox.askyesno('Gebaeude abreissen',
+                                      f'{gelaende.gebaeude_name(gebaut)} wirklich abreissen?\n'
+                                      'Es gibt keine Rohstoffe zurueck.', parent=self.root):
+                return
+        siedlung.bauten.pop(str(feld), None)
         siedlung.stufen.pop(str(feld), None)
-        if gebaut:
-            self._log(f"{gelaende.gebaeude_name(gebaut)} auf Feld {feld} abgerissen "
-                      f"(keine Erstattung der Baustoffe — das Handbuch nennt keine).")
+        self._log(f"{gelaende.gebaeude_name(gebaut)} auf Feld {feld} abgerissen "
+                  f"(keine Erstattung der Baustoffe — das Handbuch nennt keine).")
         self.karten_feld = None
         self._render_view()
 
@@ -3366,13 +3949,11 @@ class NebelseetalApp:
         if not gebaut:
             return
         name = gelaende.gebaeude_name(gebaut)
-        # Handbuch S. 12 (Z. 423-424): Während eines Forschungsauftrags darf die Bibliothek NICHT
-        # ausgebaut werden (KORREKTUR 05.10.2026). Die Bibliothek ist die eine Forschungsstätte,
-        # also gilt die Sperre, solange irgendein Forschungsauftrag läuft.
-        _forschend = next((s for s in self.state.settlements
-                           if getattr(s, "forschungsauftrag", None)), None)
-        if gebaut == "bibliothek" and _forschend is not None:
-            laufend = (_forschend.forschungsauftrag or {}).get("gebiet", "")
+        # GPT-OEK02: Original-Tutorial/Handbuch: Ausbauverbot gilt NUR fuer die
+        # Bibliothek der Siedlung, in der gerade geforscht wird. Forschung in
+        # Dorf A darf den Ausbau der Bibliothek in Dorf B nicht sperren.
+        if gebaut == "bibliothek" and getattr(siedlung, "forschungsauftrag", None):
+            laufend = (siedlung.forschungsauftrag or {}).get("gebiet", "")
             self._log(f"{name} kann nicht ausgebaut werden, solange {laufend} erforscht wird "
                       f"(Handbuch S. 12).")
             return
@@ -3393,6 +3974,11 @@ class NebelseetalApp:
                       f"{', '.join(sorted(fehlt))}.")
             return
         # Oekonomie-Paket, Schritt 9, Teil 3: der Ausbau zahlt aus dem Lager DIESER Siedlung.
+        if self.state._lokale_kasse_aktiv() and not getattr(self.state, "admin_teststand", False):
+            risiko = versorgungsschutz.risiko_nach_ausgabe(siedlung, kosten, baukosten)
+            if risiko:
+                self._log(risiko[0])
+                return
         ok_zahlung, meldung_zahlung = self.state.verbrauche_am_ort(siedlung, kosten)
         if not ok_zahlung:
             self._log(f"Nicht genug im Lager von {siedlung.name} für den Ausbau von {name}: "
@@ -3437,7 +4023,7 @@ class NebelseetalApp:
         astra-Bildgutachten vom 05.10.2026 sah das „wie eine farbige Tabelle aus". Seit dem
         05.10.2026 kommen die Zeichen aus `src/karten_optik.py`, seit diesem Einhängen aus der
         feineren Fassung `src/karten_optik_fein.py` (zweite astra-Auswertung,
-        `docs/audits/ux_astra_karten_feinheit_2026-10-05.txt`, Kinder-Arbeit, vom Koordinator
+        `archiv/analysen/audits/ux_astra_karten_feinheit_2026-10-05.txt`, Kinder-Arbeit, vom Koordinator
         nachgerechnet): Baukörper 44 × 46 px je Gebäudefamilie mit Dach, Sockel, Tür und
         Stufenpips (4 × 4 px), Gelände mit größeren Strukturformen, Uferband nur an echten
         Land-Wasser-Grenzen, Wege 8 px mit 4 px Innenlinie, goldener Auswahlrahmen mit vier
@@ -3452,8 +4038,8 @@ class NebelseetalApp:
         Ziffern und das Panel daneben „D3": zwei Wahrheiten für dieselbe Koordinate.
         """
         zelle = 64
-        spalten = int(karte.get("spalten") or 8)
-        zeilen = int(karte.get("zeilen") or 7)
+        spalten = int(karte.get("spalten") or 0)
+        zeilen = int(karte.get("zeilen") or 0)
         raster = karte["raster"]
         # astra „Siedlung 3": „Koordinaten in eine 18 px breite beziehungsweise hohe äußere
         # Rasterleiste verlegen" — dieselbe Zahl liefert das Modul als KOORDINATEN_BREITE.
@@ -3500,15 +4086,30 @@ class NebelseetalApp:
             """Wasser trägt keinen Weg (astra: „Keine Wege automatisch durch Wasser")."""
             return 0 <= i < len(raster) and raster[i] not in ("nebelsee", "wasser")
 
-        # ---- Durchgang 1: das Gelände (Fläche, Struktur, Uferband, Innenkanten) -------------
-        for i, art in enumerate(raster):
+        # ---- Durchgang 1: ECHTE historische 10x10-Kartengrafik -----------------------------
+        # Nicht mehr: nachgezaehlte Farben, Fantasie-Baumembleme, vereinfachte Bergformen.
+        # Die Positionen fuer Wege/Gebaeude stammen weiterhin aus dem Original-10x10-Raster.
+        # Eine alte 8x7-Siedlung darf kein heimliches Ersatzbild bekommen.
+        try:
+            originalbild = tk.PhotoImage(file=str(originalkarten_grafik.grafikpfad(karte)))
+        except (ValueError, FileNotFoundError, tk.TclError) as fehler:
+            canvas.create_text(rand + 12, rand + 22, anchor="nw", fill="#FFB7A5",
+                               text="Originalkarte nicht darstellbar: " + str(fehler),
+                               width=spalten * zelle - 24)
+            self.karten_canvas = canvas
+            return
+        canvas._originalkarten_bild = originalbild  # Tk-Grafikreferenz gegen Garbage Collection
+        canvas.create_image(rand, rand, anchor="nw", image=originalbild, tags=("originalkarte",))
+        # Die historische Originalkarte liegt als EIN Hintergrundbild im Canvas.
+        # Jede der 100 Zellen braucht trotzdem eine eigene semantische Trefferregion,
+        # damit GUI-Tests, Auswahlhilfen und zukuenftige barrierearme Bedienung
+        # einzelne Felder wiederfinden. Keine Fuellung/Umrandung: Bild bleibt original.
+        # Der Mausklick wird weiterhin ueber die Canvas-Koordinaten ausgewertet.
+        for i in range(len(raster)):
             x0, y0 = _feld_ecke(i)
-            tag = f"feld:{i}"
-            karten_optik.zeichne(
-                canvas,
-                karten_optik_fein.gelaende_plan_fein(art, x0, y0, zelle, _nachbararten(i)),
-                tags=(tag,))
-            canvas.tag_bind(tag, "<Button-1>", lambda _e, idx=i: self._karten_feld_waehlen(idx))
+            canvas.create_rectangle(x0, y0, x0 + zelle, y0 + zelle,
+                                    fill="", outline="", width=0,
+                                    tags=("kartenfeld", f"feld:{i}"))
 
         # ---- Durchgang 2: Wege zwischen benachbarten bebauten Feldern ----------------------
         # Das Modul kennt weder Wasser noch Gebäude; die Auswahl der Richtungen macht deshalb
@@ -3547,6 +4148,15 @@ class NebelseetalApp:
                     gebaut, x0, y0, zelle, stufe=stufe,
                     max_stufe=gebaeude_wirkung.max_stufe(gebaut)),
                 tags=(f"feld:{i}",))
+
+        # GPT W-02: gezeichneter Ortswall zwischen Baukoerper und Auswahl/Koordinaten.
+        # Er belegt kein Feld; Randkoordinaten der Bauplatzklicks bleiben identisch.
+        if self.state._lokale_kasse_aktiv():
+            wall = dorfwall.kennwerte(siedlung, self.state.research)
+            for teil in dorfwall.rahmen_plan(spalten, zeilen, zelle, rand,
+                                             wall["stufe"], wall["zustand_prozent"]):
+                canvas.create_line(*teil["linie"], fill=teil["farbe"],
+                                   width=teil["breite"], tags=("dorfwall",))
 
         # ---- Durchgang 4: der Auswahlrahmen ZULETZT (liegt über allem) ----------------------
         if gewaehlt is not None and 0 <= int(gewaehlt) < len(raster):
@@ -3638,6 +4248,22 @@ class NebelseetalApp:
         # Vorher: ein Raster kleiner Knöpfe mit abgeschnittenen Namen („Steinm", „Holzfä").
         self._zeichne_siedlungskarte(siedlung, karte, eltern=kartenblock)
 
+        # Dorfmauer ist Zustand der Siedlung, kein Baukoerper im 8x7-Raster.
+        if self.state._lokale_kasse_aktiv():
+            wall = dorfwall.kennwerte(siedlung, self.state.research)
+            wallzeile = tk.Frame(self.content, bg=self.skin["panel"])
+            wallzeile.pack(fill=tk.X, padx=10, pady=(4, 4))
+            tk.Label(wallzeile,
+                     text=(f"Dorfwall: {wall['name']} · Stufe {wall['stufe']} · "
+                           f"Zustand {wall['zustand_prozent']:.0f}%"
+                           if wall['stufe'] else "Dorfwall: noch nicht errichtet"),
+                     fg=self.skin["gold"], bg=self.skin["panel"]).pack(side=tk.LEFT, padx=8)
+            if not siedlung.mauer_besetzt:
+                preis = kosten_text(baukosten("verteidigungswall"))
+                tk.Button(wallzeile, text=f"Wall errichten / Wache besetzen ({preis})",
+                          command=self._karten_wall_errichten, bg=self.skin["button"],
+                          fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=8, pady=3)
+
         legende = tk.Frame(self.content, bg=self.skin["bg"])
         legende.pack(anchor=tk.W, padx=10, pady=(4, 2))
         for art in gelaende.GELAENDEARTEN:
@@ -3662,7 +4288,7 @@ class NebelseetalApp:
 
         art = karte["raster"][feld]
         gebaut = siedlung.bauten.get(str(feld))
-        _spalten = int(karte.get("spalten") or 8)
+        _spalten = int(karte["spalten"])
         _koord = f"{self._spaltenname(feld % _spalten)}{feld // _spalten + 1}"
         _bebaubar = gelaende.ist_bebaubar(art)
         _lage = "belegt" if gebaut else ("frei · bebaubar" if _bebaubar else "nicht bebaubar")
@@ -3701,37 +4327,69 @@ class NebelseetalApp:
                       fg=self.skin["gold"]).pack(side=tk.LEFT, padx=6)
             return
 
-        passend = [(k, g) for k, g in sorted(gelaende.alle_gebaeude().items(),
-                                             key=lambda x: x[1]["name"])
-                   if gelaende.bau_moeglich(k, art)[0]]
-        if not passend:
-            tk.Label(info, text="Auf diesem Gelände kann nichts gebaut werden.",
-                     fg=self.skin["text"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=6, pady=6)
+        # FIX04: Der historische Screenshot nennt eigene Bereiche fuer Produktion und
+        # Verteidigung; buildings.json hat fuenf Originalrubriken. Statt 20 gleichartigen
+        # Knopfzeilen wird jeweils nur eine Rubrik angezeigt. Status, Forschung, Kosten
+        # und Ortsdeckung werden aus DENSELBEN Funktionen wie beim wirklichen Bau gelesen.
+        kategorien = baumenue_info.KATEGORIEN
+        kategorie = getattr(self, "_karten_baukategorie", "Produktion")
+        if kategorie not in kategorien:
+            kategorie = "Produktion"
+        self._karten_baukategorie = kategorie
+        tk.Label(info, text=baumenue_info.SPIELERHILFE,
+                 fg="#F5D18B", bg=self.skin["panel"], wraplength=310,
+                 justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(4, 2))
+        zeile = tk.Frame(info, bg=self.skin["panel"])
+        zeile.pack(anchor=tk.W, fill=tk.X, padx=6, pady=(5, 3))
+        tk.Label(zeile, text="Baubereich:", fg=self.skin["text"],
+                 bg=self.skin["panel"]).pack(side=tk.LEFT)
+        auswahl = tk.StringVar(value=kategorie)
+        tk.OptionMenu(zeile, auswahl, *kategorien,
+                      command=lambda wert: (setattr(self, "_karten_baukategorie", wert),
+                                            self._render_view())).pack(side=tk.LEFT, padx=5)
+
+        if kategorie == "Verteidigung" and self.state._lokale_kasse_aktiv():
+            tk.Label(info, text="Der Dorfwall belegt kein Kartenfeld. "
+                         "Er wird oberhalb der Karte im Verteidigungsbereich errichtet.",
+                     fg=self.skin["text"], bg=self.skin["panel"], wraplength=310,
+                     justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=6)
             return
 
-        # astra-Bildgutachten: der Knopfteppich verschwieg die entscheidende Frage „Was bringt
-        # mir das hier?". Jetzt steht der Ertrag auf DIESEM Feld im Knopf, und was noch fehlt,
-        # wird benannt statt still abgelehnt.
-        tk.Label(info, text=f"Hier kannst du {len(passend)} Gebäude bauen — der Ertrag gilt für "
-                            f"dieses Feld ({gelaende.name(art)}):",
-                 fg=self.skin["text"], bg=self.skin["panel"], wraplength=300,
+        staende = {k: int(v.level) for k, v in self.state.research.items()}
+        angebote = baumenue_info.angebote(
+            feld, art, siedlung,
+            regelpruefung=lambda kennung: bauen_auf_karte(
+                siedlung, kennung, feld, forschungsstaende=staende, nur_pruefen=True),
+            kostenfunktion=baukosten,
+            deckungspruefung=lambda preis: self.state.ortsdeckung(siedlung, preis),
+            ertragsfunktion=self._ertrag_kurz,
+            kategorie=kategorie,
+            wall_ohne_feld=self.state._lokale_kasse_aktiv())
+        verfuegbar = sum(angebot["baubar"] for angebot in angebote)
+        tk.Label(info, text=(f"{kategorie}: {verfuegbar} sofort baubar, "
+                             f"{len(angebote) - verfuegbar} gesperrt / nicht finanzierbar."),
+                 fg=self.skin["text"], bg=self.skin["panel"], wraplength=310,
                  justify=tk.LEFT).pack(anchor=tk.W, padx=6)
-        # Eine Zeile je Gebäude (Daniels Skizze: „auflisten") — vorher drei nebeneinander.
+        if not angebote:
+            tk.Label(info, text="Keine passenden Gebäude in dieser Rubrik auf diesem Feld.",
+                     fg=self.skin["text"], bg=self.skin["panel"], wraplength=310,
+                     justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=6)
+            return
+
         knopfreihe = tk.Frame(info, bg=self.skin["panel"])
         knopfreihe.pack(anchor=tk.W, fill=tk.X, padx=6, pady=6)
-        for i, (k, g) in enumerate(passend):
-            kosten = baukosten(k) or {}
-            # Dieselbe Deckungsfrage wie die Zahlung selbst (Ortslager zuerst, dann der
-            # Reichsbestand) - sonst zeigt der Knopf "fehlt noch: holz", obwohl die Siedlung
-            # das Holz hat (Fund des Sammellaufs nach Teil 3).
-            _fehlt = self.state.ortsdeckung(siedlung, kosten)
-            text = f"{g['name']}\n{self._ertrag_kurz(k, art)} · {kosten_text(kosten)}"
-            if _fehlt:
-                text += f"\nfehlt noch: {', '.join(sorted(_fehlt))}"
+        for i, angebot in enumerate(angebote):
+            text = (f"{angebot['name']} — {angebot['wirkung']}\n"
+                    f"{angebot['ertrag']} · {kosten_text(angebot['kosten'])}\n"
+                    f"Voraussetzung: {angebot['voraussetzung']}\n"
+                    f"{angebot['status']}\n"
+                    f"{angebot['standort_hinweis']}")
             tk.Button(knopfreihe, text=text, justify=tk.LEFT, anchor=tk.W,
-                      command=lambda kk=k: self._karten_bauen(kk), bg=self.skin["button"],
-                      fg=self.skin["gold"], activebackground="#5D4037").grid(
-                row=i, column=0, padx=2, pady=2, sticky=tk.EW)
+                      # Gleicher Buchungsweg wie vorher: keine zweite Spiellogik.
+                      command=lambda kk=angebot["id"]: self._karten_bauen(kk),
+                      bg=self.skin["button"] if angebot["baubar"] else "#40352E",
+                      fg=self.skin["gold"], activebackground="#5D4037",
+                      wraplength=295).grid(row=i, column=0, padx=2, pady=2, sticky=tk.EW)
 
     def _dimensionsname(self, z: int) -> str:
         """Der Name einer Dimension aus dem Limbus-Raster (`src/portalraum.py`)."""
@@ -4582,7 +5240,7 @@ class NebelseetalApp:
             canvas.create_rectangle(sx * zelle + 3, sy * zelle + 3,
                                     (sx + 1) * zelle - 3, (sy + 1) * zelle - 3,
                                     outline="#FDBA74", width=2, tags="weltstart")
-        jetzt = time.time()
+        jetzt = float(self.state.spielsekunden)
         for m in self.state.movements[:]:
             rest = max(0, int(m["arrival"] - jetzt))
             if rest <= 0:
@@ -4653,16 +5311,34 @@ class NebelseetalApp:
             self._log(meldung)
             return False
 
+        # Belagerungsgeschuetze muessen als Geraet an den Kampf-Kern.
         angreifer = dict(kaempfer)
-        angreifer.update(belagerung)
-        if vorraete is None:
+        geraet = dict(karren)
+        geraet.update(belagerung)
+        if isinstance(vorrat_ziel, BotPlayer):
+            # Ein echter Bot darf nur seine tatsaechlich gespeicherten Gueter verlieren;
+            # keine vom Aufrufer frei vorgegebene Beutekasse akzeptieren.
+            vorraete = dict(vorrat_ziel.vorraete)
+        elif vorraete is None:
             vorraete = self._vorraete_des_ziels(vorrat_ziel if vorrat_ziel is not None else {})
 
         ergebnis = kampf.fuehre_schlacht(
             angreifer, dict(verteidiger or {}), int(wall_stufe), float(wall_zustand),
-            angreifer_karren=karren or None, verteidiger_karren=verteidiger_karren or None,
-            vorraete=dict(vorraete or {}), rng=random.Random())
+            angreifer_karren=geraet or None, verteidiger_karren=verteidiger_karren or None,
+            vorraete=dict(vorraete or {}), rng=random.Random(),
+            forschung_angreifer={k: int(v.level) for k, v in self.state.research.items()})
 
+        # Zielwall und Verteidiger muessen ebenfalls die echten Verluste behalten.
+        if isinstance(vorrat_ziel, BotPlayer):
+            vorrat_ziel.wall_zustand = float(ergebnis.get("mauer_zustand", wall_zustand))
+            for name, anzahl in (ergebnis.get("verluste_verteidiger") or {}).items():
+                vorrat_ziel.army[name] = max(0, int(vorrat_ziel.army.get(name, 0)) - int(anzahl))
+            # Beute hat eine Quelle: nicht beim Spieler gutschreiben UND
+            # zugleich beim Gegner unvermindert belassen.
+            if ergebnis.get("ausgang") == "angreifer":
+                for stoff, menge in (ergebnis.get("beute") or {}).items():
+                    vorrat_ziel.vorraete[stoff] = max(
+                        0, float(vorrat_ziel.vorraete.get(stoff, 0) or 0) - float(menge))
         # Verluste und Beute in den Spielstand buchen (kampfbericht rechnet, main.py schreibt).
         vorher = {"ressourcen": {k: v.amount for k, v in self.state.resources.items()},
                   "einheiten": {k: v.count for k, v in self.state.units.items()}}
@@ -4793,7 +5469,7 @@ class NebelseetalApp:
             "from": f"{int(start[0])}:{int(start[1])}",
             "to": f"{int(ziel[0])}:{int(ziel[1])}",
             "units": dict(moving),
-            "arrival": time.time() + spielzeit.echtzeit_fuer_spielstunden(dauer / 60.0),
+            "arrival": float(self.state.spielsekunden) + float(dauer) * 60.0,
             "map": self.state.current_map,
             "target_bot": ziel_bot.name if ziel_bot else None,
             "tile_key": f"{int(ziel[0])}:{int(ziel[1])}",
@@ -4875,8 +5551,8 @@ class NebelseetalApp:
         # die Armee des Bots, seine Vorraete liefert `_vorraete_des_ziels` (bis Schritt 8 aus
         # den VORSCHLAG-Spannen in botkern, danach aus dem Bot selbst). Einen Wall hat ein Bot
         # in unseren Daten nicht - also Stufe 0, ehrlich, ohne erfundenen Wert.
-        self._angriff_durchfuehren(bot.name, dict(bot.army or {}), wall_stufe=0,
-                                   wall_zustand=100.0, vorrat_ziel=bot)
+        self._angriff_durchfuehren(bot.name, dict(bot.army or {}), wall_stufe=bot.wall_stufe,
+                                   wall_zustand=bot.wall_zustand, vorrat_ziel=bot)
 
     # ---------- W7: Auftraege (Missionen) in der Oberflaeche ----------
 
@@ -4906,7 +5582,8 @@ class NebelseetalApp:
         if not truppen:
             self._log("Keine Kaempfer und keine Belagerungswaffen vorhanden.")
             return False
-        ziel = {"name": bot.name, "fremd": True, "wall_stufe": 0, "wall_zustand_prozent": 100.0,
+        ziel = {"name": bot.name, "bot_name": bot.name, "fremd": True,
+                "wall_stufe": bot.wall_stufe, "wall_zustand_prozent": bot.wall_zustand,
                 "vorraete": self._vorraete_des_ziels(bot),
                 "verteidiger": dict(bot.army or {})}
         entfernung = self._auftrag_entfernung()
@@ -4987,7 +5664,8 @@ class NebelseetalApp:
             angreifer, dict(gegner or {}), int(wall_stufe), 100.0,
             angreifer_karren=karren or None,
             vorraete=self._vorraete_des_ziels({"name": "Simulator-Gegner"}),
-            rng=random.Random())
+            rng=random.Random(),
+            forschung_angreifer={k: int(v.level) for k, v in self.state.research.items()})
         bericht = kampfbericht.bericht(ergebnis)
         kopf = f"Simulator (Trockenkurs) gegen Wallstufe {int(wall_stufe)} "
         self.state.messages.append({"text": kopf + "— " + bericht["titel"] + "\n" +
@@ -5002,15 +5680,15 @@ class NebelseetalApp:
         # Gesamtsumme `score + ruf + Kampfkraft aller Einheiten`.
         staende = {k: v.level for k, v in self.state.research.items()}
         einheiten = {k: v.count for k, v in self.state.units.items()}
-        wall_stufe = gebaeude_wirkung.wall_stufe(self.state.settlements)
+        wall_stufe = self.state.punktestand()["wall_stufe"]
         total_units = sum(self.state.units[u].count for u in self.state.units)
         tk.Label(self.content, text="Ruhmeshalle", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
         tk.Label(self.content, text="Eure Punkte", fg="#C0C0C0", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
         tk.Label(self.content, text=f"Forschung: {punkte.forschungspunkte(staende)}", fg="#DAA520", bg=self.skin["bg"]).pack(anchor=tk.W, padx=20)
-        tk.Label(self.content, text=f"Krieg: {punkte.kriegspunkte(einheiten, wall_stufe)}", fg=self.skin["red"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=20)
+        tk.Label(self.content, text=f"Krieg: {self.state.punktestand()['krieg']}", fg=self.skin["red"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=20)
         tk.Label(self.content, text=f"Wallstufe: {wall_stufe}", fg=self.skin["text"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=20)
         tk.Label(self.content, text=f"Truppen: {total_units}", fg=self.skin["text"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=20)
-        tk.Label(self.content, text=f"Gesamt: {punkte.gesamtpunkte(staende, einheiten, wall_stufe)}", fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=20)
+        tk.Label(self.content, text=f"Gesamt: {self.state.punktestand()['gesamt']}", fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=20)
 
     def _render_news(self):
         tk.Label(self.content, text="Neuigkeiten", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
@@ -5057,7 +5735,9 @@ class NebelseetalApp:
         tk.Label(self.content, text="Nachrichten", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
         for msg in reversed(self.state.messages[-20:]):
             color = "#e53935" if msg.get("type") == "kampf" else "#DAA520"
-            tk.Label(self.content, text=msg["text"], fg=color, bg=self.skin["bg"], wraplength=600, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 5))
+            tk.Label(self.content, text=zeitbasis.zeitstempel_text(msg) + msg["text"],
+                     fg=color, bg=self.skin["bg"], wraplength=600,
+                     justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 5))
 
     def _render_settings(self):
         tk.Label(self.content, text="Einstellungen", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
@@ -5074,7 +5754,11 @@ class NebelseetalApp:
                  font=("Arial", 9)).pack(side=tk.LEFT, padx=(0, 6))
 
         def _tempo_setzen(wert):
-            spielzeit.setzen(wert)
+            try:
+                spielzeit.setzen(wert)
+            except OSError as exc:
+                messagebox.showerror("Spielzeit konnte nicht gespeichert werden", str(exc))
+                return
             self._log(f"Spielzeit auf {spielzeit.text()} gestellt.")
             self._render_settings()
 
@@ -5090,8 +5774,54 @@ class NebelseetalApp:
                                                                           pady=(10, 0))
 
     def _render_help(self):
-        tk.Label(self.content, text="Anleitung", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
-        tk.Label(self.content, text="Klicke auf die Karte, um Sektoren zu erkunden. Klicke zuerst auf ein Feld, dann auf ein Nachbarfeld, um Truppen zu bewegen.", fg="#C0C0C0", bg=self.skin["bg"], wraplength=600, justify=tk.LEFT).pack(anchor=tk.W, padx=10)
+        """FIX04c: Dauerhaft erreichbare Spielerhilfe mit vorbereiteten Fragen."""
+        tk.Label(self.content, text="Spielerhilfe", font=("Blackletter", 20, "bold"),
+                 fg=self.skin["gold"], bg=self.skin["bg"]).pack(
+                     anchor=tk.W, padx=10, pady=(10, 4))
+        hilfe_admin = (self._profil == "admin" and self._admin_sitzung_freigegeben
+                       and getattr(self.state, "admin_teststand", False))
+        if spielerhilfe.schutz_aktiv(self.state):
+            schutztext = ("Götterschutz aktiv: Die Einstiegshilfe steht rechts neben dem Spiel. "
+                          "Sie verschwindet nach Schutzende automatisch." if
+                          spielerhilfe.hilfe_sichtbar(self.state, admin_freigabe=hilfe_admin)
+                          else "Götterschutz aktiv: Die Einstiegshilfe wurde im Admin-Test ausgeblendet.")
+        else:
+            schutztext = "Götterschutz beendet: Du kannst diese Hilfe weiterhin jederzeit öffnen."
+        admin_hinweis = spielerhilfe.admin_hilfe_modus_text(
+            self.state, admin_freigabe=(self._profil == "admin" and
+                                      self._admin_sitzung_freigegeben))
+        if admin_hinweis:
+            schutztext += " " + admin_hinweis
+        tk.Label(self.content, text=schutztext, fg=self.skin["text"],
+                 bg=self.skin["bg"], wraplength=740, justify=tk.LEFT).pack(
+                     anchor=tk.W, padx=10, pady=(0, 8))
+        tk.Label(self.content, text="Für deinen aktuellen Spielstand:",
+                 fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
+        tk.Label(self.content, text=spielerhilfe.naechster_schritt(self.state),
+                 fg=self.skin["text"], bg=self.skin["bg"], wraplength=740,
+                 justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 10))
+        tk.Label(self.content, text="Häufige Fragen (anklicken):",
+                 fg=self.skin["gold"], bg=self.skin["bg"],
+                 font=("Arial", 11, "bold")).pack(anchor=tk.W, padx=10, pady=(0, 4))
+        for frage in spielerhilfe.FRAGEN:
+            tk.Button(self.content, text=frage, anchor=tk.W,
+                      command=lambda f=frage: self._spielerhilfe_frage(f),
+                      bg=self.skin["button"], fg=self.skin["gold"],
+                      relief=tk.FLAT).pack(fill=tk.X, padx=10, pady=2)
+        if getattr(self, "_hilfe_letzte_antwort", None):
+            tk.Label(self.content, text=self._hilfe_letzte_antwort,
+                     fg=self.skin["text"], bg=self.skin["panel"],
+                     wraplength=720, justify=tk.LEFT, anchor=tk.NW,
+                     padx=12, pady=12).pack(fill=tk.X, padx=10, pady=(8, 8))
+        tk.Button(self.content, text="Weitere Fragen im Spielchat stellen",
+                  command=lambda: self._switch_view("Chat"),
+                  bg=self.skin["button"], fg=self.skin["gold"]).pack(
+                      anchor=tk.W, padx=10, pady=(8, 15))
+
+    def _spielerhilfe_frage(self, frage: str):
+        """Nur Auskunft, keinerlei Änderung an Ressourcen, Gebäuden oder Schutz."""
+        self._hilfe_letzte_antwort = spielerhilfe.antwort(frage, self.state)
+        self._render_view()
 
     def _render_forum(self):
         tk.Label(self.content, text="Forum", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
@@ -5443,22 +6173,392 @@ class NebelseetalApp:
         self._render_view()
         return True
 
+    def _schild_dialog_inhalt(self, fenster):
+        """FIX04i: Original-Schildmotiv hinter den Speicher-Nebenfenstern.
+
+        Die Grafik ist dieselbe wie auf dem Start-/Ladebild. Das Motiv wird nicht
+        verzerrt oder als neues Artwork dupliziert. Links liegt eine deckende,
+        kontrastreiche Bedienflaeche, rechts bleibt das Schild erkennbar.
+        Fehlende Grafiken sind kein Grund, das Speichern/Laden zu blockieren.
+        """
+        fenster.configure(bg="#190a08")
+        bild = None
+        try:
+            pfad = ladebild_pfad()
+            if os.path.isfile(pfad):
+                bild = tk.PhotoImage(file=pfad, master=fenster)
+        except (OSError, tk.TclError):
+            pass
+        if bild is not None:
+            hintergrund = tk.Label(fenster, image=bild, borderwidth=0,
+                                  highlightthickness=0, bg="#190a08")
+            hintergrund.place(relx=1.0, rely=0.5, anchor=tk.E)
+            hintergrund.lower()
+            # Tk haelt Grafikobjekte nicht automatisch am Leben.
+            fenster._nebelseetal_schild_bild = bild
+            fenster._nebelseetal_schild_label = hintergrund
+        inhalt = tk.Frame(fenster, bg=self.skin["panel"],
+                          highlightbackground="#8c633b", highlightthickness=1)
+        inhalt.place(x=12, y=12, relwidth=0.69, relheight=0.94,
+                     width=-12, height=-24)
+        return inhalt
+
+    def _spielstand_verwaltung(self, bereich: str):
+        """FIX04h: Spieler sehen aktive Slots, nie ungefragt geloeschte Archive.
+
+        Archiv-Wiederherstellung liegt in einem getrennten, nur fuer freigegebene
+        Admins zugreifbaren Werkzeug. Keine heimlichen Rueckholangebote im Spiel.
+        """
+        from tkinter import messagebox
+        admin_ok = (not ausgabemodus.ist_oeffentliche_testversion() and
+                    self._tor_geoeffnet and self._profil == "admin"
+                    and self._admin_sitzung_freigegeben and self.state.admin_teststand)
+        spieler_ok = (self._tor_geoeffnet and self._profil in (None, "spieler")
+                      and not self.state.admin_teststand)
+        if (bereich == "admin" and not admin_ok) or (bereich == "spieler" and not spieler_ok):
+            return False
+        speicherort = (self.slots_ordner if bereich == "spieler" else
+                       os.path.dirname(self.admin_tor_pfad))
+        fenster = tk.Toplevel(self.root)
+        fenster.title("Nebelseetal - Spielstaende verwalten")
+        fenster.geometry("980x475" if bereich == "admin" else "980x430")
+        fenster.minsize(890, 400)
+        inhalt_dialog = self._schild_dialog_inhalt(fenster)
+        fenster.transient(self.root)
+        fenster.grab_set()
+        tk.Label(inhalt_dialog, text="Aktive Spielstaende verwalten", bg=self.skin["panel"],
+                 fg=self.skin["gold"], font=("Arial", 14, "bold")).pack(pady=(16, 8))
+        tk.Label(inhalt_dialog, bg=self.skin["panel"], fg=self.skin["text"],
+                 text="Entfernen legt waehrend der Entwicklung eine private Sicherung ab.\n"
+                      "Geloeschte Staende erscheinen hier nicht erneut. Speichern in "
+                      "einen belegten Slot ueberschreibt ihn bewusst.",
+                 justify=tk.CENTER, wraplength=660).pack(pady=(0, 14))
+        inhalt = tk.Frame(inhalt_dialog, bg=self.skin["panel"])
+        inhalt.pack(fill=tk.X, padx=18)
+        meldung = tk.StringVar(value="")
+
+        def liste_aktualisieren():
+            for kind in inhalt.winfo_children():
+                kind.destroy()
+            nummern = spielstaende.SLOTS if bereich == "spieler" else (None,)
+            for n in nummern:
+                pfad = (spielstaende.slot_pfad(speicherort, n) if n is not None
+                        else spielstaende.admin_pfad(speicherort))
+                zeile = tk.Frame(inhalt, bg=self.skin["panel"],
+                                 highlightbackground=self.skin["button"],
+                                 highlightthickness=1)
+                zeile.pack(fill=tk.X, pady=4, ipady=6)
+                status = (spielstaende.slot_status(speicherort, n) if n else
+                          ("Admin-Teststand: vorhanden" if os.path.isfile(pfad)
+                           else "Admin-Teststand: leer"))
+                tk.Label(zeile, text=status, anchor=tk.W, padx=12,
+                         bg=self.skin["panel"], fg=self.skin["text"],
+                         font=("Arial", 10)).pack(side=tk.LEFT, fill=tk.X, expand=True)
+
+                def loeschen(ziel=pfad, slot=n):
+                    if not os.path.isfile(ziel):
+                        return
+                    wort = f"Slot {slot}" if slot else "Admin-Teststand"
+                    if not messagebox.askyesno(
+                            "Aktiven Spielstand entfernen",
+                            f"{wort} aus der aktiven Liste entfernen?\n\n"
+                            "Waehrend der Entwicklung wird der Stand vorher privat "
+                            "archiviert. Er wird normalen Spielern nicht automatisch "
+                            "wieder angeboten.\n\n"
+                            "Nicht gespeicherter Spielfortschritt wird nicht uebernommen.",
+                            parent=fenster):
+                        return
+                    ok, info = spielstand_archiv.archiviere(
+                        ziel, bereich, "Vom Nutzer in der Spielstandverwaltung entfernt")
+                    meldung.set((f"{wort} entfernt und privat gesichert."
+                                 if ok else f"Archivieren fehlgeschlagen: {info}"))
+                    liste_aktualisieren()
+
+                tk.Button(zeile, text="Loeschen (archivieren)", width=23,
+                          state=(tk.NORMAL if os.path.isfile(pfad) else tk.DISABLED),
+                          command=loeschen, bg=self.skin["button"],
+                          fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=10)
+        liste_aktualisieren()
+        if admin_ok:
+            tk.Button(inhalt_dialog, text="Entwicklerarchiv / Wiederherstellung",
+                      command=lambda: self._archiv_wiederherstellung_dialog(
+                          "admin", speicherort, fenster, liste_aktualisieren),
+                      bg=self.skin["button"], fg=self.skin["gold"]).pack(pady=(11, 2))
+            tk.Button(inhalt_dialog, text="Spielerslot-Archive pruefen (Admin)",
+                      command=lambda: self._archiv_wiederherstellung_dialog(
+                          "spieler", self.slots_ordner, fenster, liste_aktualisieren),
+                      bg=self.skin["button"], fg=self.skin["gold"]).pack(pady=(2, 2))
+        tk.Label(inhalt_dialog, textvariable=meldung, wraplength=665,
+                 bg=self.skin["panel"], fg=self.skin["gold"]).pack(padx=12, pady=(12, 5))
+        tk.Button(inhalt_dialog, text="Schliessen", width=18, command=fenster.destroy,
+                  bg=self.skin["button"], fg=self.skin["gold"]).pack(pady=(2, 12))
+        return True
+
+    def _archiv_wiederherstellung_dialog(self, bereich: str, speicherort: str,
+                                          eltern, nachher=None):
+        """FIX04h: separater, berechtigter Entwicklerzugang, keine Slot-Verwechslung.
+
+        Normale Spielersitzungen sehen weder Archivliste noch Restore-Aktion.
+        Die Funktion kann auch nicht ohne gueltige Admin-Sitzung aufgerufen werden.
+        """
+        from tkinter import messagebox
+        from datetime import datetime
+        admin_ok = (not ausgabemodus.ist_oeffentliche_testversion() and
+                    self._tor_geoeffnet and self._profil == "admin"
+                    and self._admin_sitzung_freigegeben and self.state.admin_teststand)
+        if not admin_ok or bereich not in ("spieler", "admin"):
+            return False
+        eintraege = []
+        nummern = spielstaende.SLOTS if bereich == "spieler" else (None,)
+        for n in nummern:
+            for pfad in spielstand_archiv.archivierte_staende(speicherort, bereich, n):
+                zeit = pfad.parent.name[:26]
+                try:
+                    zeit = datetime.strptime(zeit, "%Y-%m-%d_%H-%M-%S_%f").strftime("%d.%m.%Y %H:%M:%S")
+                except ValueError:
+                    zeit = "Zeitpunkt unbekannt"
+                label = f"{'Slot ' + str(n) if n else 'Admin-Teststand'}  |  {zeit}"
+                eintraege.append((label, pfad, n))
+        eintraege.sort(key=lambda eintrag: eintrag[1].parent.name, reverse=True)
+        dialog = tk.Toplevel(eltern)
+        dialog.title("Nebelseetal - Entwicklerarchiv")
+        dialog.geometry("980x570")
+        dialog.minsize(890, 500)
+        inhalt_dialog = self._schild_dialog_inhalt(dialog)
+        dialog.transient(eltern)
+        dialog.grab_set()
+        tk.Label(inhalt_dialog, text="Private Spielstandarchive (Admin)",
+                 bg=self.skin["panel"], fg=self.skin["gold"],
+                 font=("Arial", 14, "bold")).pack(pady=(16, 8))
+        tk.Label(inhalt_dialog, text="Nur fuer Entwicklung und Fehlersuche. Archivierte "
+                 "Staende sind kein normales Ladeangebot.\n"
+                 "Jeder Eintrag nennt den zugehoerigen Slot; ein leerer Slot ohne "
+                 "Archiv hat keinen Wiederherstellen-Eintrag.",
+                 justify=tk.CENTER, wraplength=660,
+                 bg=self.skin["panel"], fg=self.skin["text"]).pack(pady=(0, 12))
+        tk.Label(inhalt_dialog, text=f"Bereich: {'Spielerslots 1-3' if bereich == 'spieler' else 'Admin-Teststand'}",
+                 bg=self.skin["panel"], fg=self.skin["gold"]).pack(anchor=tk.W, padx=22)
+        liste_rahmen = tk.Frame(inhalt_dialog, bg=self.skin["panel"])
+        liste_rahmen.pack(fill=tk.BOTH, expand=True, padx=22, pady=(5, 7))
+        liste = tk.Listbox(liste_rahmen, height=10, font=("Arial", 10),
+                           bg=self.skin["button"], fg=self.skin["text"],
+                           selectbackground="#86572c", selectforeground="#ffffff",
+                           exportselection=False)
+        rolle = tk.Scrollbar(liste_rahmen, orient=tk.VERTICAL, command=liste.yview)
+        liste.configure(yscrollcommand=rolle.set)
+        liste.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        rolle.pack(side=tk.RIGHT, fill=tk.Y)
+        for label, _, _ in eintraege:
+            liste.insert(tk.END, label)
+        info = tk.StringVar(value=("Keine archivierten Spielstaende vorhanden."
+                                   if not eintraege else "Eintrag auswaehlen, dann bewusst wiederherstellen."))
+        tk.Label(inhalt_dialog, textvariable=info, bg=self.skin["panel"],
+                 fg=self.skin["gold"], wraplength=660).pack(pady=4)
+        dateien, bytes_groesse = spielstand_archiv.archiv_groesse(speicherort)
+        hinweis = (f"Archivgroesse: {dateien} Dateien, {bytes_groesse / (1024 * 1024):.1f} MiB. "
+                   "Keine automatische Loeschung; Aufbewahrungsregeln vor Release pruefen.")
+        if bytes_groesse >= 250 * 1024 * 1024:
+            hinweis += " ACHTUNG: Archiv ist ueber 250 MiB gross."
+        tk.Label(inhalt_dialog, text=hinweis, bg=self.skin["panel"],
+                 fg=self.skin["text"], wraplength=660).pack(pady=(0, 7))
+
+        def zurueck():
+            auswahl = liste.curselection()
+            if not auswahl:
+                info.set("Bitte zuerst einen Archivstand auswaehlen.")
+                return
+            _, quelle, slot = eintraege[auswahl[0]]
+            ziel = (spielstaende.slot_pfad(speicherort, slot) if slot is not None
+                    else spielstaende.admin_pfad(speicherort))
+            name = f"Slot {slot}" if slot else "Admin-Teststand"
+            belegt = os.path.isfile(ziel)
+            frage = (f"Archivstand fuer {name} wiederherstellen?\n\n"
+                     + ("ACHTUNG: Der aktive Slot wird dabei absichtlich ueberschrieben!"
+                        if belegt else "Derzeit ist dieser Slot leer."))
+            if not messagebox.askyesno("Entwickler-Wiederherstellung", frage,
+                                       parent=dialog):
+                return
+            ok, text = spielstand_archiv.wiederherstellen(
+                str(quelle), ziel, ueberschreiben=belegt)
+            info.set((f"{name} wiederhergestellt. Zum Spielen den Stand neu laden."
+                      if ok else "Fehler: " + text))
+            if ok and callable(nachher):
+                nachher()
+
+        unten = tk.Frame(inhalt_dialog, bg=self.skin["panel"])
+        unten.pack(pady=(0, 16))
+        tk.Button(unten, text="Ausgewaehlten Stand wiederherstellen", command=zurueck,
+                  state=(tk.NORMAL if eintraege else tk.DISABLED),
+                  bg=self.skin["button"], fg=self.skin["gold"]).pack(side=tk.LEFT, padx=8)
+        tk.Button(unten, text="Schliessen", command=dialog.destroy,
+                  bg=self.skin["button"], fg=self.skin["gold"]).pack(side=tk.LEFT, padx=8)
+        return True
+
+    def _slot_auswahl(self, modus):
+        """Drei sichtbar getrennte Slots, ohne automatische Ueberschreibung.
+
+        Der alte savegame.json wird nur beim LADEN gesondert angeboten und nie
+        automatisch in einen Slot verschoben oder geloescht.
+        """
+        if self._profil == "admin" or self.state.admin_teststand:
+            return  # keine regulären Slots aus dem Admin-Profil
+        from tkinter import messagebox
+        fenster = tk.Toplevel(self.root)
+        fenster.title("Nebelseetal - Speicherstaende")
+        fenster.geometry("980x400")
+        fenster.minsize(890, 360)
+        inhalt_dialog = self._schild_dialog_inhalt(fenster)
+        fenster.transient(self.root)
+        fenster.grab_set()
+        tk.Label(inhalt_dialog, text=("Spiel speichern" if modus == "save" else "Spiel laden"),
+                 bg=self.skin["panel"], fg=self.skin["gold"],
+                 font=("Arial", 13, "bold")).pack(padx=18, pady=12)
+
+        def waehle(n):
+            pfad = spielstaende.slot_pfad(self.slots_ordner, n)
+            if modus == "save":
+                if os.path.exists(pfad) and not messagebox.askyesno(
+                        "Bestehenden Stand ersetzen?",
+                        f"Slot {n} enthaelt bereits einen Spielstand. Wirklich ueberschreiben?",
+                        parent=fenster):
+                    return
+                ok = self.state.save(pfad)
+            else:
+                # Beim Laden einen FRISCHEN Zustand verwenden: alte Werte und
+                # Bots aus dem vorigen Spiel duerfen nicht in den neuen laufen.
+                neuer = GameState()
+                ok = neuer.load(pfad)
+                if ok:
+                    self.state = neuer
+                    self._admin_sitzung_freigegeben = False
+            if ok:
+                fenster.destroy()
+                self._log(f"Slot {n} {'gespeichert' if modus == 'save' else 'geladen'}.")
+                self._build_main_ui()
+                self._render_view()
+            else:
+                messagebox.showwarning("Nicht moeglich", "Aktion nicht moeglich; Spielstand bleibt erhalten.",
+                                       parent=fenster)
+
+        for nummer in spielstaende.SLOTS:
+            rahmen = tk.Frame(inhalt_dialog, bg=self.skin["panel"])
+            rahmen.pack(fill=tk.X, padx=18, pady=4)
+            tk.Button(rahmen, text=("Sichern" if modus == "save" else "Laden") + f" #{nummer}",
+                      command=lambda n=nummer: waehle(n), width=13,
+                      fg=self.skin["gold"], bg=self.skin["button"]).pack(side=tk.RIGHT)
+            tk.Label(rahmen, text=spielstaende.slot_status(self.slots_ordner, nummer),
+                     fg=self.skin["text"], bg=self.skin["panel"], anchor=tk.W,
+                     width=39).pack(side=tk.LEFT)
+        # Alte savegame.json bleibt als Datei/Archiv erhalten, aber kein aktiver Ladebutton.
+        # Dadurch werden keine veralteten Generator-Karten in die neue Hauptfassung gezogen.
+        tk.Button(inhalt_dialog, text="Schliessen", command=fenster.destroy,
+                  bg=self.skin["button"], fg=self.skin["gold"]).pack(pady=10)
+
     def _save(self):
-        ok = self.state.save(self.save_path)
-        if ok:
-            self._log("Spiel gespeichert.")
-        else:
-            self._log("Speichern fehlgeschlagen - siehe vorige Meldung.")
+        self._slot_auswahl("save")
 
     def _load(self):
-        geladen = self.state.load(self.save_path)
-        if hasattr(self, "content"):
-            self._render_view()
-            self._render()
-        if geladen:
-            self._log("Spiel geladen.")
+        self._slot_auswahl("load")
+
+    def _admin_dialog(self):
+        """Eigenes Admin-Profil nach dem Grundtor, mit SEPARATEM Admin-Passwort."""
+        from tkinter import simpledialog, messagebox
+        if ausgabemodus.ist_oeffentliche_testversion():
+            return  # Oeffentliche Testversion darf kein Admin-Tor anbieten.
+        if not self._tor_geoeffnet or self._profil is not None:
+            return  # Admin-Auswahl nur am Profilbildschirm
+        # Einmalige lokale Einrichtung direkt aus der EXE heraus: Der Nutzer muss
+        # das GRUNDTOR bereits geoeffnet haben. Danach hat Admin ein eigenes Passwort
+        # und eigene Datei; beim normalen Spielen wird es NIEMALS abgefragt.
+        erstes_passwort = None
+        if not tor.hat_passwort(self.admin_tor_pfad):
+            if not messagebox.askyesno(
+                    "Admin erstmalig einrichten",
+                    "Noch kein separates Admin-Passwort vorhanden.\n"
+                    "Jetzt einmalig einrichten? (mindestens 12 Zeichen)\n"
+                    "Das Grundpasswort bleibt unveraendert.", parent=self.root):
+                return
+            neu1 = simpledialog.askstring("Admin-Passwort", "Neues Admin-Passwort:",
+                                          show="*", parent=self.root)
+            if neu1 is None:
+                return
+            neu2 = simpledialog.askstring("Admin-Passwort", "Admin-Passwort wiederholen:",
+                                          show="*", parent=self.root)
+            if neu2 is None:
+                return
+            if len(neu1) < 12:
+                messagebox.showerror("Admin-Passwort", "Mindestens 12 Zeichen.", parent=self.root)
+                return
+            eingerichtet, hinweis = tor.setze_passwort(neu1, neu2, self.admin_tor_pfad)
+            if not eingerichtet:
+                messagebox.showerror("Admin-Passwort", hinweis, parent=self.root)
+                return
+            erstes_passwort = neu1  # nur fuer DIESE einmalige Anmeldung
+        geheim = (erstes_passwort if erstes_passwort is not None else
+                  simpledialog.askstring("Admin-Teststand", "Separates Admin-Passwort:",
+                                         show="*", parent=self.root))
+        if geheim is None:
+            return
+        ok, meldung = tor.pruefe_passwort(geheim, self.admin_tor_pfad)
+        if not ok:
+            messagebox.showerror("Admin-Zugriff verweigert", meldung, parent=self.root)
+            return
+        admin_pfad = spielstaende.admin_pfad(schreibordner())
+        auswahl = messagebox.askyesnocancel(
+            "Admin-Teststand", "Ja: frischen Teststand mit sechs Doerfern erzeugen.\n"
+            "Nein: bestehenden Admin-Teststand laden.\nAbbrechen: nichts aendern.",
+            parent=self.root)
+        if auswahl is None:
+            return
+        if auswahl:
+            if not messagebox.askyesno("Admin-Teststand", "Ein neuer Admin-Teststand wird angelegt. Der aktuell GESPEICHERTE "
+                                     "Admin-Teststand wird dabei absichtlich ueberschrieben "
+                                     "(keine Archivversion). Fortfahren?", parent=self.root):
+                return
+            neu = GameState()
+            neu.generate_map(neu.current_map)
+            try:
+                admin_teststand.teststand_aufbauen(neu, Settlement, siedlung_kennung)
+            except Exception as exc:
+                messagebox.showerror("Teststand nicht erzeugt", str(exc), parent=self.root)
+                return
+            if not neu.save(admin_pfad, admin_freigabe=True):
+                messagebox.showerror("Admin-Teststand", "Speichern gescheitert.", parent=self.root)
+                return
+            self.state = neu
         else:
-            self._log("Laden fehlgeschlagen - der bisherige Stand bleibt stehen (siehe Meldungen).")
+            neu = GameState()
+            if not neu.load(admin_pfad, admin_freigabe=True):
+                messagebox.showwarning("Admin-Teststand", "Noch kein lesbarer Admin-Teststand.",
+                                       parent=self.root)
+                return
+            self.state = neu
+        self._admin_sitzung_freigegeben = True
+        self._log("ADMIN-TESTSTAND geladen (kein regulaerer Spielstand).")
+        self._spiel_starten(self.state, "admin")
+
+    def _admin_werkzeuge_dialog(self):
+        """Nur nach separater Authentifizierung und im markierten Teststand."""
+        from tkinter import messagebox
+        if ausgabemodus.ist_oeffentliche_testversion():
+            return
+        if not (self._tor_geoeffnet and self._profil == "admin" and
+                self._admin_sitzung_freigegeben and
+                getattr(self.state, "admin_teststand", False) and
+                getattr(self.state, "oekonomie_aktiv", False)):
+            messagebox.showerror("Admin-Test", "Adminfreigabe fehlt.", parent=self.root)
+            return
+        admin_pfad = spielstaende.admin_pfad(schreibordner())
+        admin_oberflaeche.oeffnen(
+            self.root, self.state, MAPS,
+            speichern=lambda: self.state.save(admin_pfad, admin_freigabe=True),
+            aktualisieren=self._admin_ansicht_aktualisieren,
+        )
+
+    def _admin_ansicht_aktualisieren(self):
+        """Die normale Anzeige nach Admin-Aktionen aus EINEM Zustand neu aufbauen."""
+        self._build_main_ui()
+        self._render_view()
 
     def _log(self, msg: str):
         self.state._log(msg)
@@ -5478,6 +6578,8 @@ class NebelseetalApp:
         Die Bedingung selbst kommt aus `src/punkte.py` (dort als VORSCHLAG gekennzeichnet,
         weil das Handbuch keine nennt).
         """
+        if getattr(self.state, "admin_teststand", False):
+            return None  # Nur Testmodus: keine sofortige Sieg-/Niederlage-Sperre
         if getattr(self.state, "spielende", None):
             return self.state.spielende
         art, grund = self.state.spielausgang()
@@ -5489,8 +6591,8 @@ class NebelseetalApp:
         return art
 
     def _tick_loop(self):
-        now = time.time()
-        dt = now - self.state.last_tick
+        # GPT-Z01: Windows-Systemzeit kann springen. Nur monotone Laufzeit fuer Ticks.
+        dt = self.state._laufzeituhr.vergangen()
         if dt > 0 and getattr(self.state, "spielende", None) is None:
             # Der Zeitfaktor staucht die Spieluhr, NICHT die Handbuchformeln: `tick` bekommt
             # Spielsekunden. Bei ×180 ist eine echte Sekunde 180 Spielsekunden (eine Spielstunde
@@ -5502,7 +6604,7 @@ class NebelseetalApp:
                 self._render_view()
         # movements arrival
         for m in self.state.movements[:]:
-            if now >= m["arrival"]:
+            if float(self.state.spielsekunden) >= m["arrival"]:
                 tile_key = m.get("tile_key") or m["to"]
                 x_str, y_str = tile_key.split(":")
                 x, y = int(x_str), int(y_str)
@@ -5556,6 +6658,7 @@ class NebelseetalApp:
             lbl.config(text=f"{RESOURCE_ICONS[r]} {int(res.amount)} ({'⚠' if ohne_quelle else prod_text})",
                        fg=("#FDBA74" if ohne_quelle else self.skin["text"]))
         self.lbl_day.config(text=f"Tag {self.state.day}")
+        self._spielerhilfe_anzeige_aktualisieren()
         if getattr(self, "lbl_tempo", None) is not None:
             self.lbl_tempo.config(text=f"Tempo {spielzeit.text()}")
         # W6: die Punktanzeige kommt aus den Originalformeln (src/punkte.py, Handbuch S. 3/5/6).
@@ -5563,10 +6666,10 @@ class NebelseetalApp:
         # war damit nachweislich falsch.
         staende = {k: v.level for k, v in self.state.research.items()}
         einheiten = {k: v.count for k, v in self.state.units.items()}
-        wall_stufe = gebaeude_wirkung.wall_stufe(self.state.settlements)
-        self.lbl_forschung.config(text=f"Forschung: {punkte.forschungspunkte(staende)}")
-        self.lbl_krieg.config(text=f"Krieg: {punkte.kriegspunkte(einheiten, wall_stufe)}")
-        self.lbl_gesamt.config(text=f"Gesamt: {punkte.gesamtpunkte(staende, einheiten, wall_stufe)}")
+        stand_punkte = self.state.punktestand()
+        self.lbl_forschung.config(text=f"Forschung: {stand_punkte['forschung']}")
+        self.lbl_krieg.config(text=f"Krieg: {stand_punkte['krieg']}")
+        self.lbl_gesamt.config(text=f"Gesamt: {stand_punkte['gesamt']}")
         # Schritt 31: Ziel und Spielende sichtbar machen (Vorgabe Daniel 05.10.2026, Option A).
         # ZUERST pruefen, DANN anzeigen — sonst zeigt die Leiste einen Takt lang den alten Stand.
         self._pruefe_spielende()

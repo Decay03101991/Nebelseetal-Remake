@@ -1,6 +1,6 @@
 {
-  "_hinweis": "Originalname -> Icon-Datei. 'vorhanden' = Daniels Datei, 'neu' = aus dem Blatt geschnitten.",
-  "stand": "2026-10-04",
+  "_hinweis": "Originalname -> Icon-Datei. 'vorhanden' = Daniels Datei, 'neu' = aus dem Blatt geschnitten. GPT-WI-01, 28.10.2026: Rüstungs-/Umhang-Zellen nach Daniels Sichtprüfung korrigiert; Wollumhang/Fellrüstung schließt die sechste Vertauschung (aus der permutation abgeleitet).",
+  "stand": "2026-10-28 (Korrektur Warenbilder durch externen GPT-Agenten)",
   "icons": {
     "Bürgerwehr": {
       "pfad": "assets/icons/original_units/Soldat.png",
@@ -228,31 +228,31 @@
       "pfad": "assets/icons/items/Kettenhemd.png",
       "quelle": "neu",
       "blatt": "RüstungenMäntel_Icons.png",
-      "zelle": 1
+      "zelle": 3
     },
     "Plattenrüstung": {
       "pfad": "assets/icons/items/Plattenrüstung.png",
       "quelle": "neu",
       "blatt": "RüstungenMäntel_Icons.png",
-      "zelle": 2
+      "zelle": 4
     },
     "Magischer Paladinharnisch": {
       "pfad": "assets/icons/items/Magischer Paladinharnisch.png",
       "quelle": "neu",
       "blatt": "RüstungenMäntel_Icons.png",
-      "zelle": 3
+      "zelle": 5
     },
     "Wollumhang": {
       "pfad": "assets/icons/items/Wollumhang.png",
       "quelle": "neu",
       "blatt": "RüstungenMäntel_Icons.png",
-      "zelle": 4
+      "zelle": 8
     },
     "Lederrüstung": {
       "pfad": "assets/icons/items/Lederrüstung.png",
       "quelle": "neu",
       "blatt": "RüstungenMäntel_Icons.png",
-      "zelle": 5
+      "zelle": 2
     },
     "Diebesumhang": {
       "pfad": "assets/icons/items/Diebesumhang.png",
@@ -270,7 +270,7 @@
       "pfad": "assets/icons/items/Fellrüstung.png",
       "quelle": "neu",
       "blatt": "RüstungenMäntel_Icons.png",
-      "zelle": 8
+      "zelle": 1
     }
   }
 }

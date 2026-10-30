@@ -105,9 +105,15 @@ check("uebrige Rohstoffe starten bei 0",
 check("10 Siedler zum Start (Handbuch S. 7)", z0["bevoelkerung"] == 10)
 check("genau eine Start-Siedlung mit eigener Karte",
       len(z0["siedlungen"]) == 1 and isinstance(z0["siedlungen"][0].get("karte"), dict))
-check("die Startkarte hat 56 Felder, davon 40 Bauplaetze",
-      len(raster(z0)) == 56 and z0["siedlungen"][0]["karte"].get("bauplaetze") == 40,
-      f"{len(raster(z0))} Felder, {z0['siedlungen'][0]['karte'].get('bauplaetze')} Bauplaetze")
+# GPT-FIX01 (28.10.2026): Das alte 8x7/40-Felder-Pilotmodell wurde
+# durch Originalkarten mit 10x10 Raster abgeloest. Die Zahl bebaubarer
+# Felder ist KARTENABHAENGIG und damit keine feste 40/86-Konstante.
+_startkarte = z0["siedlungen"][0]["karte"]
+_baubar = sum(typ != G.SUMPF for typ in raster(z0))
+check("die Startkarte hat das 10x10-Originalraster und einen passenden Bauplatzzaehler",
+      len(raster(z0)) == 100 and _startkarte.get("bauplaetze") == _baubar,
+      f"{len(raster(z0))} Felder, {_startkarte.get('bauplaetze')} Bauplaetze, "
+      f"nachgerechnet {_baubar}")
 
 _gebiete = sorted(z0["forschung"].keys())
 check("der Forschungsstand sind die 21 Originalgebiete",

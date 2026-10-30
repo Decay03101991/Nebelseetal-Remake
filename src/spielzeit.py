@@ -10,20 +10,24 @@ Rohstoffeingang zu sehen, Forschung und Ausbau waren nicht erlebbar. Genau Danie
 4 Holz je Spielstunde). Nur die Spieluhr läuft schneller — wie auf einem Speedserver im Original
 (`docs/PLAN_AUS_HANDBUCH.md`, dort ausdrücklich als Daniels Entscheidung vermerkt).
 
-**Eine Quelle:** dieser Baustein. Der Faktor steht in ``data/spielzeit.json`` und lässt sich in den
-Einstellungen umstellen; das Spiel liest ihn an genau einer Stelle (`_tick_loop`).
+**Eine Quelle:** dieser Baustein. ``data/spielzeit.json`` ist unveraenderliche Standardvorgabe.
+Die Spielerwahl liegt im privaten Speicherordner und wird in der Uhr (`_tick_loop`) genutzt.
 
 **Nicht belegt** — das Handbuch kennt keinen Zeitfaktor für eine Einzelspieler-Fassung. Der
 Standardwert ist deshalb als VORSCHLAG gekennzeichnet und in den Einstellungen änderbar.
 """
 from __future__ import annotations
 
-import io
 import json
 import os
+import math
+import tempfile
+from pathlib import Path
 
-ORDNER = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PFAD = os.path.join(ORDNER, "data", "spielzeit.json")
+import spieldaten
+
+# Wie alle Datenquellen: unter PyInstaller das echte Bundle-Verzeichnis nutzen.
+PFAD = os.path.join(spieldaten.projektwurzel(), "data", "spielzeit.json")
 
 # VORSCHLAG: 1 Spielstunde = 20 Sekunden. Damit liefert der Holzfäller auf Wald (4 Holz/h)
 # 12 Holz in einer echten Minute — sichtbar, und eine Forschung von 3 Stunden dauert 1 Minute.
@@ -48,15 +52,31 @@ _VORGABE = {
 _gemerkt = None
 
 
-def _laden() -> dict:
+def einstellungspfad() -> Path:
+    """Schreibbare Benutzerdatei, niemals die gebuendelte data/spielzeit.json.
+
+    Oeffentliche und Entwickler-Edition verwenden den jeweiligen Spielstandordner.
+    Der Public-Einstieg setzt NEBEL_SPIELDATEN_ORDNER bereits vor dem Import.
+    """
+    override = os.environ.get("NEBEL_SPIELDATEN_ORDNER", "").strip()
+    if override:
+        return Path(override).expanduser().resolve() / "spielzeit_einstellung.json"
+    return Path.home() / ".nebelseetal" / "spielzeit_einstellung.json"
+
+
+def _lade_json(pfad: Path) -> dict | None:
     try:
-        with io.open(PFAD, encoding="utf-8") as f:
+        with pfad.open(encoding="utf-8") as f:
             daten = json.load(f)
-        if not isinstance(daten, dict):
-            raise ValueError("kein Objekt")
-        return daten
-    except Exception:
-        return dict(_VORGABE)
+        return daten if isinstance(daten, dict) else None
+    except (OSError, ValueError, UnicodeError):
+        return None
+
+
+def _laden() -> dict:
+    # Benutzerwahl hat Vorrang; Originaldatei bleibt ein read-only Default.
+    return (_lade_json(einstellungspfad()) or
+            _lade_json(Path(PFAD)) or dict(_VORGABE))
 
 
 def daten() -> dict:
@@ -74,25 +94,36 @@ def faktor() -> float:
             wert = float(daten().get("faktor", STANDARD_FAKTOR))
         except (TypeError, ValueError):
             wert = STANDARD_FAKTOR
-        _gemerkt = wert if wert > 0 else STANDARD_FAKTOR
+        _gemerkt = wert if math.isfinite(wert) and wert > 0 else STANDARD_FAKTOR
     return _gemerkt
 
 
 def setzen(wert: float) -> float:
-    """Faktor umstellen und in ``data/spielzeit.json`` schreiben. Liefert den neuen Wert."""
+    """Faktor atomar im privaten Benutzerordner speichern. Liefert den neuen Wert."""
     global _gemerkt
     try:
         neu = float(wert)
     except (TypeError, ValueError):
         return faktor()
-    if not neu > 0:
+    if not math.isfinite(neu) or neu <= 0:
         return faktor()
     werte = daten()
     werte["faktor"] = neu
-    werte["stufen"] = list(werte.get("stufen") or STUFEN)
-    with io.open(PFAD, "w", encoding="utf-8", newline="\n") as f:
-        f.write(json.dumps(werte, ensure_ascii=False, indent=2))
-        f.write("\n")
+    werte["stufen"] = stufen()
+    ziel = einstellungspfad()
+    ziel.parent.mkdir(parents=True, exist_ok=True)
+    # Atomarer Wechsel: kein halbes JSON nach Stromausfall oder Schreibfehler.
+    fd, tmp = tempfile.mkstemp(prefix=".spielzeit_", suffix=".tmp", dir=ziel.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as f:
+            json.dump(werte, f, ensure_ascii=False, indent=2)
+            f.write("\n")
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, ziel)
+    finally:
+        if os.path.exists(tmp):
+            os.unlink(tmp)
     _gemerkt = neu
     return neu
 
@@ -105,7 +136,14 @@ def vergessen():
 
 def stufen() -> list:
     """Die anwählbaren Stufen (immer mit dem aktuellen Wert)."""
-    werte = [float(s) for s in (daten().get("stufen") or STUFEN) if float(s) > 0]
+    werte = []
+    for stufe in (daten().get("stufen") or STUFEN):
+        try:
+            wert = float(stufe)
+            if math.isfinite(wert) and wert > 0:
+                werte.append(wert)
+        except (TypeError, ValueError):
+            continue
     if faktor() not in werte:
         werte.append(faktor())
     return sorted(set(werte))

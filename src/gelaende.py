@@ -7,18 +7,18 @@ Belegt (Handbuch 2009, S. 9-11):
   * Erträge haengen vom Gelaende ab (Holzfäller Wald 4/Steppe 2, Steinmetz Berg 4/Huegel 2,
     Erzmine Berg 3/Huegel 1,5, Goldmine Berg 3/Huegel 1,5, Farm Grasland 4/Steppe 2,
     Schafszucht/Rinderfarm/Pferdezucht Grasland 3/Steppe 1,5, Jaeger Wald Nahrung 2 + Leder 2,
-    Nebelsee-Steppe 1 + 1, Tempel Nebelsee 5 / sonst 1)
+    Nebelsee-Steppe 1 + 1, Tempel Nebelsee 8 / sonst 2)
   * beim Bauen zeigt das Spiel die Eignung des Gelaendes an
 
 NICHT belegt (als Vorschlag gekennzeichnet, in data/gelaende.json aenderbar):
-  * Kartenmass (8x7 = 56 Felder, davon 40 bebaubar - Daniel-Entscheidung 05.10.2026) und die
-    Haeufigkeit der Gelaendearten
+  * Historische Generator-Kartenmass (8x7 = 56 Felder, 40 bebaubar; Entscheidung 05.10.2026);
+    NUR fuer Legacy-Kompatibilitaet. Neue Karten aus `originalkarten.py` sind 10x10
+    (Originalsammlung des Nutzers vom 28.10.2026) und haben individuelle Baufeldzahlen.
   * wo Gebaeude OHNE Gelaendebezug (Schmiede, Haus, Lager, Bibliothek) stehen duerfen
 """
 from __future__ import annotations
 
 import json
-import random
 from pathlib import Path
 
 import spieldaten
@@ -42,24 +42,8 @@ NACH_NAME = {a["name"]: a["id"] for a in _GELAENDE["gelaendearten"]}
 GELAENDEARTEN = [a["id"] for a in _GELAENDE["gelaendearten"]]
 SUMPF = "sumpf"
 
-# Kartentypen mit verschiedenen Vorteilen (Produktentscheidung Daniel, 04.10.2026).
-KARTENTYPEN = {t["id"]: t for t in _GELAENDE["kartentypen"]["listen"]}
-KARTENTYP_REIHENFOLGE = [t["id"] for t in _GELAENDE["kartentypen"]["listen"]]
-
-
-def karten_typ(seed) -> dict:
-    """Waehlt den Kartentyp zu einer Saat (gleiche Saat -> gleicher Typ, wichtig fuer Speichern)."""
-    rng = random.Random(f"typ-{seed}")
-    liste = _GELAENDE["kartentypen"]["listen"]
-    summe = sum(t["haeufigkeit"] for t in liste)
-    r = rng.uniform(0, summe)
-    k = 0.0
-    for t in liste:
-        k += t["haeufigkeit"]
-        if r <= k:
-            return t
-    return liste[-1]
-
+# Neue Siedlungen nutzen ausschliesslich den verifizierbaren Originalkarten-Katalog.
+# Die alten 8x7-Kartentypen und deren Zufallsgenerator sind im Archiv.
 
 def name(art_id: str) -> str:
     """Anzeigename einer Gelaendeart."""
@@ -181,98 +165,15 @@ def bau_moeglich(gebaeude_id: str, gelaende: str) -> tuple:
 # --------------------------------------------------------------------------
 
 def siedlungskarte_erzeugen(seed, mass: dict = None, typ_id: str = None) -> dict:
+    """Kompatibilitaets-Einstieg fuer Originalkarten; NIEMALS 8x7 generieren.
+
+    Ueberholte typ_id/mass-Aufrufe muessen umgestellt werden: Ein alter
+    Kartentyp darf nicht unbemerkt auf eine erfundene Bildkarte abgebildet werden.
     """
-    Erzeugt die Gelaendekarte einer Siedlung.
-
-    Gleicher seed ergibt immer dieselbe Karte (wichtig fuer Speichern/Laden) — samt Kartentyp.
-    Jeder Kartentyp hat eigene Gewichte und damit eigene Vorteile (data/gelaende.json).
-    Die Karte erfuellt die Mindestbesatz-Regel, damit jede Siedlung spielbar ist
-    (Holz, Stein, Nahrung, Nebelsee fuer den Tempel).
-
-    Das Mass steht in `data/gelaende.json` (`kartenmass`): 8 x 7 = 56 Felder, davon 40 bebaubar
-    (Daniel-Entscheidung 05.10.2026). Genau `regeln.sperrfelder` (16) Felder sind nicht bebaubar —
-    das ist der Sumpf; der Nebelsee ist baubar.
-    """
-    rng = random.Random(seed)
-    mass = mass or _GELAENDE["kartenmass"]
-    regeln = _GELAENDE["regeln"]
-    spalten, zeilen = mass["spalten"], mass["zeilen"]
-    plaetze = spalten * zeilen
-
-    typ = KARTENTYPEN[typ_id] if typ_id else karten_typ(seed)
-    gewichte = typ["gewichte"]
-    erlaubt = [a for a in _GELAENDE["gelaendearten"]]
-    bebaubar = [a for a in erlaubt if a["bebaubar"]]
-    gesperrt = [a for a in erlaubt if not a["bebaubar"]]
-    bebaubar_ids = {a["id"] for a in bebaubar}
-    gesperrt_ids = {a["id"] for a in gesperrt}
-
-    def ziehe(aus: list, wieviele: int) -> list:
-        """`wieviele` Gelaendearten nach Gewicht ziehen (gleiche Saat -> gleiches Ergebnis)."""
-        out = []
-        for _ in range(wieviele):
-            s = sum(gewichte.get(a["id"], a["haeufigkeit"]) for a in aus)
-            r = rng.uniform(0, s)
-            k = 0.0
-            for a in aus:
-                k += gewichte.get(a["id"], a["haeufigkeit"])
-                if r <= k:
-                    out.append(a["id"])
-                    break
-            else:
-                out.append(aus[-1]["id"])
-        return out
-
-    # Sperrfelder: genau `sperrfelder` Felder sind nicht bebaubar (Daniel-Entscheidung 05.10.2026:
-    # 8x7 = 56 Felder, davon 40 bebaubar). Nur der Sumpf ist nicht bebaubar; der Nebelsee ist es.
-    sperren = int(regeln.get("sperrfelder") or 0)
-    if gesperrt and 0 < sperren < plaetze:
-        raster = ziehe(bebaubar, plaetze - sperren) + ziehe(gesperrt, sperren)
-        rng.shuffle(raster)
-    else:
-        raster = ziehe(erlaubt, plaetze)
-
-    # Mindestbesatz sicherstellen: fehlende Gelaendearten auf zufaelligen Feldern erzwingen.
-    # Sperrfelder werden dabei NIE angefasst, sonst stimmt die 40/16-Aufteilung nicht mehr.
-    def haeufigkeit(art_id: str) -> int:
-        return raster.count(art_id)
-
-    def ersetzen(art_id: str, wieviele: int) -> None:
-        mindest = regeln["mindestbesatz"]
-        for _ in range(wieviele):
-            # bevorzugt ein Feld ersetzen, das selbst nicht zu einer knappen Art gehoert
-            frei = [i for i, a in enumerate(raster)
-                    if a not in gesperrt_ids and haeufigkeit(a) > mindest.get(a, 0)]
-            if not frei:
-                frei = [i for i, a in enumerate(raster) if a not in gesperrt_ids]
-            if frei:
-                raster[rng.choice(frei)] = art_id
-
-    for art_id, mindest in regeln["mindestbesatz"].items():
-        if art_id.startswith("_"):
-            continue
-        fehlt = mindest - haeufigkeit(art_id)
-        if fehlt > 0:
-            ersetzen(art_id, fehlt)
-
-    zeilen_liste = [raster[i * spalten:(i + 1) * spalten] for i in range(zeilen)]
-    zaehlung = {a: raster.count(a) for a in GELAENDEARTEN}
-    bauplaetze = sum(zaehlung[a] for a in bebaubar_ids)
-    return {
-        "seed": seed,
-        "spalten": spalten,
-        "zeilen": zeilen,
-        "felder": plaetze,
-        "bauplaetze": bauplaetze,
-        "raster": raster,
-        "zeilen_raster": zeilen_liste,
-        "zaehlung": zaehlung,
-        "typ": typ["id"],
-        "typ_name": typ["name"],
-        "vorteil": typ["vorteil"],
-        "beschreibung": typ["beschreibung"],
-        "profil": karte_profil(zaehlung),
-    }
+    import originalkarten
+    if mass is not None or typ_id is not None:
+        raise ValueError("8x7-Altparameter nicht erlaubt: Originalkarte per ID waehlen")
+    return originalkarten.startkarte(seed, "spieler")
 
 
 def karte_profil(zaehlung: dict) -> dict:

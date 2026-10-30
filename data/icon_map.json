@@ -5,87 +5,312 @@
     "Nahkämpfer_Icons.png": {
       "beleg": "bestaetigt",
       "zellen": [
-        {"nr": 1, "original": "Bürgerwehr", "vorhandene_datei": "Soldat.png", "beleg": "bestaetigt"},
-        {"nr": 2, "original": "Kämpfer", "vorhandene_datei": "Kämpfer.png", "beleg": "bestaetigt"},
-        {"nr": 3, "original": "Krieger", "vorhandene_datei": "Krieger.png", "beleg": "bestaetigt"},
-        {"nr": 4, "original": "Ritter", "vorhandene_datei": "Ritter.png", "beleg": "bestaetigt"},
-        {"nr": 5, "original": "Paladin", "vorhandene_datei": "Paladin.png", "beleg": "bestaetigt"}
+        {
+          "nr": 1,
+          "original": "Bürgerwehr",
+          "vorhandene_datei": "Soldat.png",
+          "beleg": "bestaetigt"
+        },
+        {
+          "nr": 2,
+          "original": "Kämpfer",
+          "vorhandene_datei": "Kämpfer.png",
+          "beleg": "bestaetigt"
+        },
+        {
+          "nr": 3,
+          "original": "Krieger",
+          "vorhandene_datei": "Krieger.png",
+          "beleg": "bestaetigt"
+        },
+        {
+          "nr": 4,
+          "original": "Ritter",
+          "vorhandene_datei": "Ritter.png",
+          "beleg": "bestaetigt"
+        },
+        {
+          "nr": 5,
+          "original": "Paladin",
+          "vorhandene_datei": "Paladin.png",
+          "beleg": "bestaetigt"
+        }
       ]
     },
     "Fernkämpfer_Icons.png": {
       "beleg": "gemessen",
       "anmerkung": "Bogenlaenge steigt von Zelle 1 nach 3, Zelle 4 ist die Armbrust — deckt sich mit der Handbuchreihenfolge.",
       "zellen": [
-        {"nr": 1, "original": "Kurzbogenschütze", "vorhandene_datei": "Einfacher Bogenschütze.png", "beleg": "gemessen"},
-        {"nr": 2, "original": "Bogenschütze", "vorhandene_datei": "Kurzbogenschütze.png", "beleg": "gemessen"},
-        {"nr": 3, "original": "Langbogenschütze", "vorhandene_datei": "elfen_portrait.png", "beleg": "gemessen"},
-        {"nr": 4, "original": "Armbrustschütze", "vorhandene_datei": "Armbrustschütze.png", "beleg": "gemessen"}
+        {
+          "nr": 1,
+          "original": "Kurzbogenschütze",
+          "vorhandene_datei": "Einfacher Bogenschütze.png",
+          "beleg": "gemessen"
+        },
+        {
+          "nr": 2,
+          "original": "Bogenschütze",
+          "vorhandene_datei": "Kurzbogenschütze.png",
+          "beleg": "gemessen"
+        },
+        {
+          "nr": 3,
+          "original": "Langbogenschütze",
+          "vorhandene_datei": "elfen_portrait.png",
+          "beleg": "gemessen"
+        },
+        {
+          "nr": 4,
+          "original": "Armbrustschütze",
+          "vorhandene_datei": "Armbrustschütze.png",
+          "beleg": "gemessen"
+        }
       ]
     },
     "Zusatzeinheiten_Icons.png": {
       "beleg": "handbuch",
       "anmerkung": "Die sechs Kundschafter der Diebesgilde, aufsteigend nach Heimlichkeit.",
       "zellen": [
-        {"nr": 1, "original": "Streuner", "vorhandene_datei": null, "beleg": "handbuch"},
-        {"nr": 2, "original": "Gauner", "vorhandene_datei": null, "beleg": "handbuch"},
-        {"nr": 3, "original": "Dieb", "vorhandene_datei": null, "beleg": "handbuch"},
-        {"nr": 4, "original": "Meisterdieb", "vorhandene_datei": null, "beleg": "handbuch"},
-        {"nr": 5, "original": "Kundschafter", "vorhandene_datei": null, "beleg": "handbuch"},
-        {"nr": 6, "original": "Waldläufer", "vorhandene_datei": null, "beleg": "handbuch"}
+        {
+          "nr": 1,
+          "original": "Streuner",
+          "vorhandene_datei": null,
+          "beleg": "handbuch"
+        },
+        {
+          "nr": 2,
+          "original": "Gauner",
+          "vorhandene_datei": null,
+          "beleg": "handbuch"
+        },
+        {
+          "nr": 3,
+          "original": "Dieb",
+          "vorhandene_datei": null,
+          "beleg": "handbuch"
+        },
+        {
+          "nr": 4,
+          "original": "Meisterdieb",
+          "vorhandene_datei": null,
+          "beleg": "handbuch"
+        },
+        {
+          "nr": 5,
+          "original": "Kundschafter",
+          "vorhandene_datei": null,
+          "beleg": "handbuch"
+        },
+        {
+          "nr": 6,
+          "original": "Waldläufer",
+          "vorhandene_datei": null,
+          "beleg": "handbuch"
+        }
       ]
     },
     "Karren_Icons.png": {
       "beleg": "handbuch",
       "anmerkung": "Vier von Daniels Dateinamen sitzen exakt auf der Handbuchposition (Nr. 1, 2, 3, 4) — die Reihenfolge ist damit gestuetzt.",
       "zellen": [
-        {"nr": 1, "original": "Handkarren", "vorhandene_datei": "Karren.png", "beleg": "handbuch"},
-        {"nr": 2, "original": "Einspänner", "vorhandene_datei": "Einspänner.png", "beleg": "handbuch"},
-        {"nr": 3, "original": "Zweispänner", "vorhandene_datei": "Zweispänner.png", "beleg": "handbuch"},
-        {"nr": 4, "original": "Handelskarawane", "vorhandene_datei": "HandelsKarawane.png", "beleg": "handbuch"},
-        {"nr": 5, "original": "Große Handelskarawane", "vorhandene_datei": "Händler.png", "beleg": "handbuch"},
-        {"nr": 6, "original": "Siedlerkarren", "vorhandene_datei": "Siedlungskarren.png", "beleg": "handbuch"}
+        {
+          "nr": 1,
+          "original": "Handkarren",
+          "vorhandene_datei": "Karren.png",
+          "beleg": "handbuch"
+        },
+        {
+          "nr": 2,
+          "original": "Einspänner",
+          "vorhandene_datei": "Einspänner.png",
+          "beleg": "handbuch"
+        },
+        {
+          "nr": 3,
+          "original": "Zweispänner",
+          "vorhandene_datei": "Zweispänner.png",
+          "beleg": "handbuch"
+        },
+        {
+          "nr": 4,
+          "original": "Handelskarawane",
+          "vorhandene_datei": "HandelsKarawane.png",
+          "beleg": "handbuch"
+        },
+        {
+          "nr": 5,
+          "original": "Große Handelskarawane",
+          "vorhandene_datei": "Händler.png",
+          "beleg": "handbuch"
+        },
+        {
+          "nr": 6,
+          "original": "Siedlerkarren",
+          "vorhandene_datei": "Siedlungskarren.png",
+          "beleg": "handbuch"
+        }
       ]
     },
     "Belagerungseinheiten_Icons.png": {
       "beleg": "handbuch-pruefen",
       "anmerkung": "Zelle 1 ist durch Daniels Dateinamen gestuetzt. Die Zellen 2-6 beruhen allein auf der Handbuchreihenfolge: das Bild ist mit 90 px zu grob, um Turm, Ramme, Balliste und Katapult sicher zu unterscheiden. Zelle 7 waere danach das Grosse Katapult.",
       "zellen": [
-        {"nr": 1, "original": "Belagerungsturm", "vorhandene_datei": "Einfacher Belagerungsturm.png", "beleg": "handbuch"},
-        {"nr": 2, "original": "Ramme", "vorhandene_datei": null, "beleg": "handbuch-pruefen"},
-        {"nr": 3, "original": "Großer Belagerungsturm", "vorhandene_datei": null, "beleg": "handbuch-pruefen"},
-        {"nr": 4, "original": "Große Ramme", "vorhandene_datei": null, "beleg": "handbuch-pruefen"},
-        {"nr": 5, "original": "Balliste", "vorhandene_datei": null, "beleg": "handbuch-pruefen"},
-        {"nr": 6, "original": "Katapult", "vorhandene_datei": null, "beleg": "handbuch-pruefen"},
-        {"nr": 7, "original": "Großes Katapult", "vorhandene_datei": "Katapult.png", "beleg": "handbuch-pruefen"}
+        {
+          "nr": 1,
+          "original": "Belagerungsturm",
+          "vorhandene_datei": "Einfacher Belagerungsturm.png",
+          "beleg": "handbuch"
+        },
+        {
+          "nr": 2,
+          "original": "Ramme",
+          "vorhandene_datei": null,
+          "beleg": "handbuch-pruefen"
+        },
+        {
+          "nr": 3,
+          "original": "Großer Belagerungsturm",
+          "vorhandene_datei": null,
+          "beleg": "handbuch-pruefen"
+        },
+        {
+          "nr": 4,
+          "original": "Große Ramme",
+          "vorhandene_datei": null,
+          "beleg": "handbuch-pruefen"
+        },
+        {
+          "nr": 5,
+          "original": "Balliste",
+          "vorhandene_datei": null,
+          "beleg": "handbuch-pruefen"
+        },
+        {
+          "nr": 6,
+          "original": "Katapult",
+          "vorhandene_datei": null,
+          "beleg": "handbuch-pruefen"
+        },
+        {
+          "nr": 7,
+          "original": "Großes Katapult",
+          "vorhandene_datei": "Katapult.png",
+          "beleg": "handbuch-pruefen"
+        }
       ]
     },
     "WaffenWerkzeuge_Icons.png": {
       "beleg": "handbuch-pruefen",
       "anmerkung": "Neun Kacheln = fuenf Klingen und vier Fernwaffen. Die vier Boegen sitzen messbar auf Nr. 6-9, die Armbrust als breitestes Stueck auf Nr. 9. Die Reihenfolge der fuenf Klingen (Messer bis Zweihaender) stuetzt sich allein auf das Handbuch.",
       "zellen": [
-        {"nr": 1, "original": "Messer", "vorhandene_datei": null, "beleg": "handbuch-pruefen"},
-        {"nr": 2, "original": "Dolch", "vorhandene_datei": null, "beleg": "handbuch-pruefen"},
-        {"nr": 3, "original": "Kurzschwert", "vorhandene_datei": null, "beleg": "handbuch-pruefen"},
-        {"nr": 4, "original": "Schwert", "vorhandene_datei": null, "beleg": "handbuch-pruefen"},
-        {"nr": 5, "original": "Zweihänder", "vorhandene_datei": null, "beleg": "handbuch-pruefen"},
-        {"nr": 6, "original": "Kurzbogen", "vorhandene_datei": null, "beleg": "handbuch"},
-        {"nr": 7, "original": "Bogen", "vorhandene_datei": null, "beleg": "handbuch"},
-        {"nr": 8, "original": "Langbogen", "vorhandene_datei": null, "beleg": "handbuch"},
-        {"nr": 9, "original": "Armbrust", "vorhandene_datei": null, "beleg": "gemessen"}
+        {
+          "nr": 1,
+          "original": "Messer",
+          "vorhandene_datei": null,
+          "beleg": "handbuch-pruefen"
+        },
+        {
+          "nr": 2,
+          "original": "Dolch",
+          "vorhandene_datei": null,
+          "beleg": "handbuch-pruefen"
+        },
+        {
+          "nr": 3,
+          "original": "Kurzschwert",
+          "vorhandene_datei": null,
+          "beleg": "handbuch-pruefen"
+        },
+        {
+          "nr": 4,
+          "original": "Schwert",
+          "vorhandene_datei": null,
+          "beleg": "handbuch-pruefen"
+        },
+        {
+          "nr": 5,
+          "original": "Zweihänder",
+          "vorhandene_datei": null,
+          "beleg": "handbuch-pruefen"
+        },
+        {
+          "nr": 6,
+          "original": "Kurzbogen",
+          "vorhandene_datei": null,
+          "beleg": "handbuch"
+        },
+        {
+          "nr": 7,
+          "original": "Bogen",
+          "vorhandene_datei": null,
+          "beleg": "handbuch"
+        },
+        {
+          "nr": 8,
+          "original": "Langbogen",
+          "vorhandene_datei": null,
+          "beleg": "handbuch"
+        },
+        {
+          "nr": 9,
+          "original": "Armbrust",
+          "vorhandene_datei": null,
+          "beleg": "gemessen"
+        }
       ]
     },
     "RüstungenMäntel_Icons.png": {
       "beleg": "handbuch-pruefen",
-      "anmerkung": "Acht Kacheln = drei Metallruestungen und fuenf Stoff/Fellumhaenge. Die Metallmessung findet metallische Kacheln auf Nr. 1, 3 und 4 — das passt NICHT zur einfachen Reihenfolge 1-3. Deshalb ist die Zuordnung hier ausdruecklich offen.",
+      "anmerkung": "Korrektur GPT-WI-01 (28.10.2026): Die visuelle Zuordnung der Armor-Icons erfolgte nach Daniels Fehlermeldung zum Lager der alten EXE. Die sechs ursprünglichen Icon-Dateien wurden bytegenau umbenannt, die Original-Sprite-Tafel blieb unverändert. Die Rückzuordnung Wollumhang aus früherer Fellrüstung ist nicht ausdrücklich von Daniel bestätigt.",
       "zellen": [
-        {"nr": 1, "original": "Kettenhemd", "vorhandene_datei": null, "beleg": "handbuch-pruefen"},
-        {"nr": 2, "original": "Plattenrüstung", "vorhandene_datei": null, "beleg": "handbuch-pruefen"},
-        {"nr": 3, "original": "Magischer Paladinharnisch", "vorhandene_datei": null, "beleg": "handbuch-pruefen"},
-        {"nr": 4, "original": "Wollumhang", "vorhandene_datei": null, "beleg": "handbuch-pruefen"},
-        {"nr": 5, "original": "Lederrüstung", "vorhandene_datei": null, "beleg": "handbuch-pruefen"},
-        {"nr": 6, "original": "Diebesumhang", "vorhandene_datei": null, "beleg": "handbuch-pruefen"},
-        {"nr": 7, "original": "Fellumhang", "vorhandene_datei": null, "beleg": "handbuch-pruefen"},
-        {"nr": 8, "original": "Fellrüstung", "vorhandene_datei": null, "beleg": "handbuch-pruefen"}
+        {
+          "nr": 1,
+          "original": "Fellrüstung",
+          "vorhandene_datei": null,
+          "beleg": "Nutzer-Sichtprüfung 28.10.2026"
+        },
+        {
+          "nr": 2,
+          "original": "Lederrüstung",
+          "vorhandene_datei": null,
+          "beleg": "Nutzer-Sichtprüfung 28.10.2026"
+        },
+        {
+          "nr": 3,
+          "original": "Kettenhemd",
+          "vorhandene_datei": null,
+          "beleg": "Nutzer-Sichtprüfung 28.10.2026"
+        },
+        {
+          "nr": 4,
+          "original": "Plattenrüstung",
+          "vorhandene_datei": null,
+          "beleg": "Nutzer-Sichtprüfung 28.10.2026"
+        },
+        {
+          "nr": 5,
+          "original": "Magischer Paladinharnisch",
+          "vorhandene_datei": null,
+          "beleg": "Nutzer-Sichtprüfung 28.10.2026"
+        },
+        {
+          "nr": 6,
+          "original": "Diebesumhang",
+          "vorhandene_datei": null,
+          "beleg": "handbuch-pruefen"
+        },
+        {
+          "nr": 7,
+          "original": "Fellumhang",
+          "vorhandene_datei": null,
+          "beleg": "handbuch-pruefen"
+        },
+        {
+          "nr": 8,
+          "original": "Wollumhang",
+          "vorhandene_datei": null,
+          "beleg": "aus geschlossener Vertauschung abgeleitet; Sichtprüfung empfohlen"
+        }
       ]
     }
   },
@@ -93,6 +318,10 @@
     "ausschnitte_gesamt": 45,
     "durch_vorhandene_dateien_abgedeckt": 17,
     "noch_zu_schneiden": 28,
-    "aufteilung": {"Kundschafter": 6, "Belagerungswaffen": 5, "Waren": 17}
+    "aufteilung": {
+      "Kundschafter": 6,
+      "Belagerungswaffen": 5,
+      "Waren": 17
+    }
   }
 }

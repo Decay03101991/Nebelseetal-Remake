@@ -4,7 +4,7 @@ Das Protokoll ist kein Beiwerk, sondern das Dokument, mit dem Daniel die Entsteh
 mitschreibt. Diese Pruefdatei haelt seine eigenen Regeln fest:
 
   1. **Zielgroesse** — deutlich unter dem Umfang, ab dem verdichtet wird (ueber der Grenze: Befund).
-  2. **Keine Sicherungen im Protokoll** — die gehoeren nach `docs/SICHERUNGEN.md`.
+  2. **Keine Sicherungen im Protokoll** — die gehoeren nach `archiv/dokumentation/projektunterlagen_historisch/SICHERUNGEN.md`.
   3. **Belegbarkeit** — jede genannte Commit-Kennung muss es in git wirklich geben (keine erfundene).
   4. **Verdichten nimmt nichts weg** — gegenueber der Vor-Fassung darf keine Commit-Kennung und
      keine Pruefzahl fehlen.
@@ -29,7 +29,7 @@ sys.path.insert(0, os.path.join(ROOT, "tools"))
 import pruefe_protokoll as pz  # noqa: E402  (Werkzeug als Modul: dieselben Pruefungen)
 
 PROTOKOLL = os.path.join(ROOT, "docs", "ENTWICKLUNGSPROTOKOLL.md")
-VORFASSUNG = os.path.join(ROOT, "docs", "ENTWICKLUNGSPROTOKOLL_VOR_VERDICHTUNG_2026-10-05.md")
+VORFASSUNG = os.path.join(ROOT, "archiv", "dokumentation", "protokoll_alte_fassungen", "ENTWICKLUNGSPROTOKOLL_VOR_VERDICHTUNG_2026-10-05.md")
 
 abschnitt("1. Das Protokoll haelt seine Zielgroesse")
 
@@ -48,9 +48,9 @@ abschnitt("2. Keine Sicherungen im Protokoll, Sicherungen woanders")
 
 sicherungszeilen = [z for z in zeilen
                     if re.match(r"^\|\s*\d{1,2}[:.]\d{2}\s*\|\s*\*{0,2}Sicherungszeile", z)]
-check("keine Sicherungszeile im Protokoll (sie gehoeren nach docs/SICHERUNGEN.md)",
+check("keine Sicherungszeile im Protokoll (sie gehoeren nach archiv/dokumentation/projektunterlagen_historisch/SICHERUNGEN.md)",
       not sicherungszeilen, f"{len(sicherungszeilen)} gefunden")
-check("die Sicherungsdatei selbst gibt es", os.path.exists(os.path.join(ROOT, "docs", "SICHERUNGEN.md")))
+check("die Sicherungsdatei selbst gibt es", os.path.exists(os.path.join(ROOT, "archiv", "dokumentation", "projektunterlagen_historisch", "SICHERUNGEN.md")))
 
 abschnitt("3. Jede genannte Commit-Kennung gibt es wirklich")
 

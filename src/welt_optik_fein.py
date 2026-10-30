@@ -7,7 +7,7 @@ selbst nichts. Es braucht daher weder ein Fenster noch tkinter, Pillow, Emoji od
 Plaene sind ohne Anzeige pruefbar (tests/test_welt_optik_fein.py).
 
 Quelle ALLER Zahlen:
-  docs/audits/ux_astra_karten_feinheit_2026-10-05.txt
+  archiv/analysen/audits/ux_astra_karten_feinheit_2026-10-05.txt
   Abschnitte "Welt 1 – Landschaft", "Welt 2 – Orte und Beschriftung", "Welt 3 – Orientierung".
 Jede Modulkonstante nennt die Fundstelle im Kommentar. Die dort genannten Grundmaße gelten bei
 48 px je Feld (``MASS_PX``); alle anderen Zoomstufen werden daraus mit ``zelle / 48`` skaliert.

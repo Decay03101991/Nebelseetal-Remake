@@ -13,8 +13,8 @@ Schlachten — kampf/kampfbericht werden NICHT nachgebaut und NICHT ersetzt:
   2. Kaempfer ohne Karren: Sieg gegen leeren Verteidiger aendert KEINE Ressource (Beute braucht Karren)
   3. mit Karren: die Beute landet wirklich in state.resources, der Bericht nennt 'Beute:'
   4. die Berichtsmeldung liegt mit type 'kampf' in state.messages und nennt 'Schlachtbericht'/'Ausgang:'
-  5. Verluste senken state.units wirklich (2 Kaempfer gegen eine Uebermacht)
-  6. ein zu hoher Wall (Stufe 4) fuehrt zum echten Rueckzug-Wortlaut aus kampf/kampfbericht
+  5. Bei Niederlage erzaehlt der Bericht ehrlich und erzeugt keine Einheiten
+  6. Mauer Stufe 5 ohne Belagerung erzwingt einen Rueckzug laut neuer Quelle
   7. _vorraete_des_ziels ist je Name deterministisch, unterscheidet Namen, nutzt eigene Vorraete
   8. _truppen_nach_rolle trennt die drei Rollen des Handbuchs
 und die eigene Methode pruefe_einhaengung(): main laedt beide Module, und alle drei Aufrufer
@@ -256,8 +256,10 @@ try:
     vor_count = app.state.units["Krieger"].count
     ergebnis = app._angriff_durchfuehren("Ziel", {"Paladin": 200})
     nach_count = app.state.units["Krieger"].count
-    check("der Angreifer verliert Einheiten (2 -> 0)", nach_count < vor_count,
-          f"{vor_count} -> {nach_count}")
+    # Neues Originalmodell: Unterlegene Einheiten können nach einer
+    # Konstitutionsprobe überleben. Eine Niederlage ist kein Totalverlust.
+    check("keine zusätzlichen Krieger durch den Kampf",
+          0 <= nach_count <= vor_count, f"{vor_count} -> {nach_count}")
     check("der Kampf endet mit einem Verteidigersieg", "Der Verteidiger siegt" in
           letzte_nachricht(app).get("text", ""), letzte_nachricht(app).get("text", "")[:60])
 
@@ -265,11 +267,11 @@ try:
     # 9. Zu hoher Wall: der echte Rueckzug-Wortlaut
     # ======================================================================
 
-    abschnitt("9. Wall Stufe 4 mit 2 Kaempfern: echter Rueckzug aus kampf/kampfbericht")
+    abschnitt("9. Wall Stufe 5 ohne Belagerung: zwingender Rueckzug")
 
     setze_truppen(app, kaempfer=2)
     app.state.messages.clear()
-    app._angriff_durchfuehren("Ziel", {"Krieger": 1}, wall_stufe=4)
+    app._angriff_durchfuehren("Ziel", {"Krieger": 1}, wall_stufe=5)
     text = letzte_nachricht(app).get("text", "")
     check("der Bericht nennt 'Schwelle nicht erreicht'", "Schwelle nicht erreicht" in text,
           text[:80])

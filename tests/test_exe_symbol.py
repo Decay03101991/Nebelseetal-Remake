@@ -29,7 +29,7 @@ sys.path.insert(0, os.path.join(ROOT, "tools"))
 import build_exe  # noqa: E402  (der Pruefer des Bau-Werkzeugs selbst)
 
 ICO = os.path.join(ROOT, "assets", "icons", "nebelseetal.ico")
-QUELLE_GIF = os.path.join(ROOT, "nebelseetal.png")
+QUELLE_GIF = os.path.join(ROOT, "assets", "quellbilder", "nebelseetal.png")
 QUELLE_PNG = os.path.join(ROOT, "assets", "icons", "nebelseetal_symbol.png")
 WERKZEUG = os.path.join(ROOT, "tools", "mache_icon.py")
 SICHERUNGSORDNER = os.path.join(os.environ.get("LOCALAPPDATA", ROOT), "hermes", "cache",

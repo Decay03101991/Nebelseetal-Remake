@@ -109,15 +109,47 @@ def partiedurchlauf():
         app._found_settlement()
         check("die erste Siedlung wird gegruendet", bool(gs.settlements))
         sied = gs.settlements[0]
-        check("sie hat eine eigene Karte mit 56 Feldern",
-              bool(sied.karte) and len(sied.karte["raster"]) == 56,
+        check("sie hat eine echte 10x10-Originalkarte mit 100 Feldern",
+              bool(sied.karte) and len(sied.karte["raster"]) == 100
+              and bool(sied.karte.get("originalkarte_id")),
               str(len(sied.karte["raster"]) if sied.karte else 0))
 
         # ------------------------------------------------------------- 2. Bauen
         abschnitt("2. Bauen auf der Siedlungskarte")
+        # Erst Startgebaeude; Akademie/Schmiede sind bewusst durch Baukunst gesperrt.
+        # Anders als die alten Tests darf die Pruefung diese Spielregel nicht umgehen.
+        _ort_bau = gs.aktive_siedlung()
+        for _stoff in gs.resources:
+            _ort_bau.vorraete[_stoff] = max(float(_ort_bau.vorraete.get(_stoff, 0)), 5000.0)
+        _ort_bau.bevoelkerung = max(float(_ort_bau.bevoelkerung), 100.0)
         gebaut = {key: baue(app, sied, key)
-                  for key in ("holzfaeller", "haus", "bibliothek", "kriegerakademie", "schmiede")}
-        check("alle fuenf Gebaeude stehen auf der Karte",
+                  for key in ("holzfaeller", "haus", "bibliothek")}
+        check("die drei Startgebaeude stehen auf der Originalkarte",
+              all(v is not None for v in gebaut.values()), str(gebaut))
+        _feld_bk = next((i for i, t in enumerate(sied.karte["raster"])
+                         if str(i) not in sied.bauten
+                         and main.gelaende.bau_moeglich("kriegerakademie", t)[0]), None)
+        if _feld_bk is not None:
+            _ok, _grund = main.bauen_auf_karte(sied, "kriegerakademie", _feld_bk,
+                                               forschungsstaende={"Baukunst":0},
+                                               nur_pruefen=True)
+            check("Akademie ohne Baukunst korrekt gesperrt",
+                  not _ok and "Baukunst" in _grund, _grund)
+        _stand_bk = int(gs.research["Baukunst"].level)
+        check("Baukunst startet durch die Bibliothek", app._start_research("Baukunst") is True)
+        _auftrag_bk = gs.aktive_siedlung().forschungsauftrag or {}
+        check("Baukunst erreicht Stufe 1 nur nach abgelaufener Forschungszeit",
+              bool(_auftrag_bk.get("gebiet")) and gs.research["Baukunst"].level == _stand_bk,
+              str(_auftrag_bk))
+        if _auftrag_bk:
+            gs.spielsekunden = (float(_auftrag_bk.get("startzeit") or 0.0)
+                                + float(_auftrag_bk.get("dauer_stunden") or 0.0) * 3600 + 1)
+            gs.tick(0.0)
+        check("Baukunst-Forschung wirklich abgeschlossen",
+              gs.research["Baukunst"].level == _stand_bk + 1)
+        gebaut.update({key: baue(app, sied, key)
+                       for key in ("kriegerakademie", "schmiede")})
+        check("alle fuenf Gebaeude regelkonform errichtet",
               all(v is not None for v in gebaut.values()), str(gebaut))
         felder = [v for v in gebaut.values() if v is not None]
         check("kein Gebaeude steht zweimal auf demselben Feld", len(set(felder)) == len(felder))
@@ -240,6 +272,10 @@ def partiedurchlauf():
         for endung in ("", ".bak", ".tmp"):
             if os.path.exists(pfad + endung):
                 os.remove(pfad + endung)
+        # Reichsanzeige ist die BERECHNETE Summe aller Ortslager, keine zweite Kasse.
+        # Vor dem Snapshot dieselbe Synchronisation wie beim Speichern ausfuehren,
+        # sonst vergleicht man einen alten Anzeige-Cache mit der gespeicherten Wahrheit.
+        gs._reichsanzeige_aus_orten()
         merk = {"holz": gs.resources["holz"].amount, "stufe": int(gs.research[forsch_key].level),
                 "siedlungen": [s.name for s in gs.settlements],
                 "einheiten": {k: int(u.count) for k, u in gs.units.items()},
@@ -287,9 +323,8 @@ def partiedurchlauf():
         ohne_karawane = app._handel_ausfuehren(bot, sied, "holz", 3, 1.0, "", "1")
         check("ohne Handelskarawane wird der Handel ehrlich abgelehnt",
               ohne_karawane[0] is False
-              and any("HANDELSKARAWANE" in z or "Handelskarawane" in z
-                      for z in gs.log[log_vorher:]),
-              str(gs.log[log_vorher:]))
+              and "HANDELSKARAWANE" in str(ohne_karawane[1]).upper(),
+              str(ohne_karawane[1]))
         check("dabei wird NICHTS gebucht (keine Rohstoffe, kein Ruf, kein Handelszaehler)",
               {k: float(v.amount) for k, v in gs.resources.items()} == _vorher_roh
               and int(gs.ruf) == _vorher_ruf and int(bot.gehandelt) == 0 and not gs.auftraege,
@@ -346,15 +381,35 @@ def partiedurchlauf():
                   for s in (_ort11.werkstaetten or {}).values()
                   for a in (s.get("auftraege") or [])),
               str(_ort11.werkstaetten))
-        if ware and not werkstatt.dauer_sekunden(ware, 1):
-            befund(f"Ware '{ware}' ohne belegte Dauer",
-                   "das Handbuch nennt fuer sie keine Bauzeit — sie bleibt wartend in der "
-                   "Warteschlange stehen (ehrlich, es wird nichts erfunden); die Lieferung "
-                   "selbst prueft test_werkstatt mit einer belegten Ware")
+        # Das Einzelmodul hat nur fuers Schwert eine historisch belegte Dauer.
+        # Die AKTIVE Spieloekonomie nutzt fuer andere Waren einen in den
+        # Spieldaten explizit als Vorschlag dokumentierten Zeitwert. Deshalb
+        # nicht behaupten, diese Ware wuerde unendlich warten.
+        _schlange = (_ort11.werkstaetten or {}).get("schmiede") or {}
+        _wartend = (_schlange.get("einheiten") or [])
+        _dauer = float(_wartend[-1].get("dauer") or 0) if _wartend else 0
+        check("Werkstattauftrag hat in aktiven Rezepten eine endliche Dauer",
+              _dauer > 0, f"{ware}: {_dauer} Spielsekunden")
+        if ware and _dauer > 0:
+            _bestand_vorher = int((_ort11.waren or {}).get(ware, 0))
+            gs.tick(_dauer + 2.0)
+            check("Werkstatt liefert die Ware nach abgelaufener Spielzeit genau einmal",
+                  int((_ort11.waren or {}).get(ware, 0)) == _bestand_vorher + 1,
+                  f"{_bestand_vorher} -> {(_ort11.waren or {}).get(ware, 0)}")
+            gs.tick(0.0)
+            check("zweiter Takt erzeugt keine doppelte Warenbuchung",
+                  int((_ort11.waren or {}).get(ware, 0)) == _bestand_vorher + 1)
+        if ware and not werkstatt.dauer_belegt(ware):
+            befund(f"Ware '{ware}' nur mit dokumentierter Vorschlagsdauer",
+                   "der aktive Rezeptwert wurde geprueft, ist aber keine "
+                   "historisch belegte Original-Bauzeit")
 
         # ------------------------------------------------------------- 12. Karte
         abschnitt("12. Kartenwechsel und Kartenangriff")
-        gs.resources["gold"].amount = 5000.0
+        # Kartenwechsel zahlt lokal / reichsweit aus Ortslagern. Niemals nur
+        # die abgeleitete Reichsanzeige manipulieren: diese ist keine Kasse.
+        gs.aktive_siedlung().vorraete["gold"] = 5000.0
+        gs._reichsanzeige_aus_orten()
         gold_vorher = gs.resources["gold"].amount
         switch_kosten = gs.map_switch_cost
         app._activate_map("wald")

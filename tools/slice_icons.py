@@ -385,7 +385,7 @@ def write_from_map(root: str, map_path: str, dry: bool = False) -> list[str]:
     index = {}
     for sheet, blk in data["blaetter"].items():
         path = target = None
-        for sub, t in (("Einheiten Icons", "units"), ("Item Icons", "items")):
+        for sub, t in (("assets/quellbilder/einheiten", "units"), ("assets/quellbilder/waren", "items")):
             p = os.path.join(root, sub, sheet)
             if os.path.exists(p):
                 path, target = p, t
@@ -445,14 +445,14 @@ def main() -> int:
     ap.add_argument("--preview", action="store_true")
     ap.add_argument("--write", action="store_true")
     ap.add_argument("--out", default=os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                                  "..", "docs", "icon_preview"))
+                                                  "..", "archiv", "bildstudien", "icon_preview"))
     ap.add_argument("--scale", type=int, default=2)
     ap.add_argument("--only", default="", help="nur Dateien, deren Name das enthaelt")
     args = ap.parse_args()
 
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     sheets = []
-    for sub in ("Einheiten Icons", "Item Icons"):
+    for sub in ("assets/quellbilder/einheiten", "assets/quellbilder/waren"):
         d = os.path.join(root, sub)
         if os.path.isdir(d):
             for f in sorted(os.listdir(d)):

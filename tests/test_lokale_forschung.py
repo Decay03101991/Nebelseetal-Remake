@@ -6,7 +6,7 @@ Gegenstand sind die NEUEN Funktionen in src/spieloekonomie.py:
   forschung_abschluss(ort, wissen, jetzt)                        -> (neuer Ort, neues wissen)
 
 Richtschnur sind die Pflichtzusagen aus
-docs/audits/entwurf_spieloekonomie_sol_2026-10-05.txt, Zeile 650-686, woertlich:
+archiv/analysen/audits/entwurf_spieloekonomie_sol_2026-10-05.txt, Zeile 650-686, woertlich:
   'zweite Forschung in derselben Bibliothek abgelehnt, in zweiter Bibliothek anderes Gebiet
    erlaubt; ... Adapter muss ausserdem gleichzeitige Forschung derselben Zielstufe in
    verschiedenen Staedten verhindern, sonst doppelte Kosten ohne Wissensgewinn'.
