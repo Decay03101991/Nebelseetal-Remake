@@ -133,6 +133,9 @@ Drei Fragen sind dabei OFFEN geblieben - bis zur Antwort gilt der jetzige Stand.
 
 ## 10. Karten: freie Wahl (heute) oder Zufall wie im Original?
 
+> **BEANTWORTET 31.10.2026, 21:20: C — Wahl aus DREI gezogenen Karten.** Der Zufall entscheidet das
+> Angebot, der Spieler waehlt daraus. Noch NICHT gebaut (kommt nach den Mechaniken, Register 75).
+
 | | |
 |---|---|
 | **Messlage** | `tools/balancing_karten.py`: `originalkarten.vorrat()` gibt **alle 126** Karten frei, die Gruendungsmaske laesst die **freie Wahl**, `ziehchancen()` sagt selbst "nur_optionale_zufallsziehung_nicht_freie_auswahl". Das Original vergibt Karten **per Zufall** (Handbuch 2009, Z. 313). Gemessene Folge: freie Wahl = immer die beste Karte (Holz 12.730/Tag, Gold 1.534/Tag an 6 Siedlungen); Zufall = Median 24.964/Tag Ertrag gesamt, Gold 1.318/Tag, 5 % schlechteste nur 886 Gold/Tag. Pech entsteht heute ALSO GAR NICHT |

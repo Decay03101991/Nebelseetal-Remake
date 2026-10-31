@@ -711,6 +711,48 @@ def verbrauch_pro_stunde(orte, aktiv: bool | None = None) -> float:
     return bedarf / 24.0
 
 
+def nahrungsnot(ort, forschung: dict = None) -> dict:
+    """Steht der Ort in NAHRUNGSNOT? (Daniels Verschaerfung zu Entscheidung 7, Register 70/74.)
+
+    Not heisst BEIDES zusammen: das Ortslager hat **keine Nahrung mehr** (Bestand <= 0) UND der Ort
+    verbraucht **mehr, als er selbst erntet**. Dann kann die Siedlung ohne Nachlieferung nie wieder
+    Nahrung ansparen - und genau dann verbietet Daniel dort jede weitere Produktion und jede Zahlung.
+
+    Bewusst NICHT Not: ein Restbestand ueber 0 (Daniel 31.10.2026, Register 74: "erst wenn das
+    Ortslager LEER ist"), ein Ort ohne Garnison, ein Ort, der genauso viel erntet, wie er isst, und
+    ein abgeschalteter Verbrauch (`aktiv=false` in `data/nahrungsverbrauch.json`).
+
+    Rueckgabe (immer ein Dict, nie None):
+      not        bool    - steht der Ort in Nahrungsnot
+      bestand    float   - Nahrung im Ortslager
+      bedarf_tag float   - Verbrauch der Garnison je Spieltag
+      ernte_tag  float   - eigener Nahrungsertrag des Ortes je Spieltag
+      text       str     - fertiger Satz fuer Oberflaeche und Meldung (leer, wenn keine Not)
+    """
+    lager = ort.get("vorraete", {}) if isinstance(ort, dict) else getattr(ort, "vorraete", {})
+    bestand = float((lager or {}).get("nahrung", 0.0) or 0.0)
+    einheiten = _einheiten_von(ort)
+    bedarf_tag = tagesbedarf_nahrung(einheiten)
+    ernte_tag = 0.0
+    if isinstance(ort, dict):
+        try:
+            ertrag = wirtschaft.ertrag_gesamt([ort], forschung or {})
+            ernte_tag = float({str(k).lower(): v for k, v in ertrag.items()}.get("nahrung", 0.0)) * 24.0
+        except (KeyError, TypeError, ValueError):
+            ernte_tag = 0.0
+    not_ = bool(bedarf_tag > 0 and bestand <= 0.0 and bedarf_tag > ernte_tag)
+    if not not_:
+        return {"not": False, "bestand": bestand, "bedarf_tag": bedarf_tag,
+                "ernte_tag": ernte_tag, "text": ""}
+    fehlt = bedarf_tag - ernte_tag
+    text = ("Nahrungsnot in diesem Ort: keine Nahrung im Lager, die Garnison braucht %.1f je Tag "
+            "und der Ort erntet nur %.1f. Es wird nichts mehr gebaut, hergestellt, geforscht oder "
+            "ausgebildet, bis Nahrung nachgeliefert wird oder der Ort wieder mehr erntet als er "
+            "verbraucht (es fehlen %.1f je Tag)." % (bedarf_tag, ernte_tag, fehlt))
+    return {"not": True, "bestand": bestand, "bedarf_tag": bedarf_tag,
+            "ernte_tag": ernte_tag, "text": text}
+
+
 def ort_tick(ort: dict, ab: float, bis: float, forschung: dict) -> dict:
     """Einen Ort von Spielzeit `ab` bis `bis` fortschreiben. Liefert den neuen Ort.
 

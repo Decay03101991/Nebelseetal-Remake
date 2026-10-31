@@ -1869,6 +1869,14 @@ class GameState:
     # absicht statt sofort append auf. Keine zufällige Erstwahl, kein zufälliges Weltfeld nach
     # erfolgreicher Zahlung." Der Kern ist `src/spieloekonomie.py` (absicht/vergabe/vergabe-Regeln).
 
+    def nahrungsnot(self, siedlung) -> Dict[str, object]:
+        """Steht DIESER Ort in Nahrungsnot? (Daniels Vorgabe, Register 70/74.)
+
+        Rechnet ausschliesslich ueber `spieloekonomie.nahrungsnot` - dieselbe Funktion, deren
+        Schwelle im Register steht (Lager leer UND Verbrauch groesser als die eigene Ernte).
+        """
+        return spieloekonomie.nahrungsnot(asdict(siedlung), self.forschungs_stufen())
+
     def forschungs_stufen(self) -> Dict[str, int]:
         """Die erreichten Forschungsstufen als FLACHE Karte `{Gebiet: Stufe}`.
 
@@ -4343,6 +4351,17 @@ class NebelseetalApp:
                   f"jetzt auf diesen Ort.")
         self._render_view()
 
+    def _nahrungssperre(self, siedlung) -> str:
+        """Der Sperrtext fuer diesen Ort - leer heisst: keine Sperre (Register 70/74).
+
+        EINE Stelle fuer alle fuenf Zahlstellen (Bauen, Ausbauen, Ware, Forschung, Ausbildung)
+        und fuer die Anzeige. Daniel: keine weitere Produktion und keine Zahlung im Ort, solange
+        die Nahrung dort nicht ausgeglichen ist.
+        """
+        if siedlung is None:
+            return ""
+        return str((self.state.nahrungsnot(siedlung) or {}).get("text") or "")
+
     def _oeffne_siedlungskarte(self, siedlung):
         self.karten_siedlung = siedlung
         # Teil 6: wer eine Siedlungskarte öffnet, meint DIESEN Ort — Lager, Kaserne und Forschung
@@ -4360,6 +4379,10 @@ class NebelseetalApp:
         siedlung = getattr(self, "karten_siedlung", None)
         feld = getattr(self, "karten_feld", None)
         if siedlung is None or feld is None:
+            return
+        _sperre = self._nahrungssperre(siedlung)
+        if _sperre:
+            self._log(_sperre)
             return
         name = gelaende.gebaeude_name(gebaeude_key)
         # Daniel 30.10.2026: hoechstens ZWEI Bibliotheken je Spieler (eine je Karte). Eine zweite
@@ -4486,6 +4509,10 @@ class NebelseetalApp:
         siedlung = getattr(self, "karten_siedlung", None)
         feld = getattr(self, "karten_feld", None)
         if siedlung is None or feld is None:
+            return
+        _sperre = self._nahrungssperre(siedlung)
+        if _sperre:
+            self._log(_sperre)
             return
         gebaut = siedlung.bauten.get(str(feld))
         if not gebaut:
@@ -4772,6 +4799,13 @@ class NebelseetalApp:
                  ).pack(anchor=tk.W, padx=8, pady=(6, 0))
         tk.Label(_bestand, text=ortsbestand_text(siedlung), fg="#F3F4F6", bg="#1B2A2F",
                  wraplength=820, justify=tk.LEFT).pack(anchor=tk.W, padx=8, pady=(0, 6))
+        # Register 70/74: steht der Ort in Nahrungsnot, steht der Grund SICHTBAR ueber dem Lager -
+        # sonst sucht der Spieler, warum nichts mehr gebaut, hergestellt oder ausgebildet wird.
+        _not = self._nahrungssperre(siedlung)
+        if _not:
+            tk.Label(_bestand, text="⚠ " + _not, fg="#FDBA74", bg="#1B2A2F",
+                     wraplength=820, justify=tk.LEFT,
+                     font=("Arial", 9, "bold")).pack(anchor=tk.W, padx=8, pady=(0, 6))
         tk.Label(self.content, text="Zum Vergleich das ganze Reich: " + reichsbestand_text(self.state),
                  fg="#DAA520", bg=self.skin["bg"], wraplength=820, justify=tk.LEFT,
                  font=("Arial", 9)).pack(anchor=tk.W, padx=10, pady=(0, 4))
@@ -5186,7 +5220,11 @@ class NebelseetalApp:
         if ort is None:
             self._log("Keine Siedlung — es gibt keine Werkstatt vor Ort.")
             return False
-        levels = {k: int(v.level) for k, v in self.state.research.items()}
+        _sperre = self._nahrungssperre(ort)
+        if _sperre:
+            self._log(_sperre)
+            return False
+        levels = self.state.forschungs_stufen()
         try:
             neu = spieloekonomie.ware_start(asdict(ort), ware, levels, self.state.spielsekunden)
         except ValueError as fehler:
@@ -6653,6 +6691,10 @@ class NebelseetalApp:
             self._log(f"{r.name} braucht eine Bibliothek auf einer Siedlungskarte — es gibt noch "
                       f"keine Siedlung.")
             return False
+        _sperre = self._nahrungssperre(ort)
+        if _sperre:
+            self._log(_sperre)
+            return False
         # Grundbedingung ZUERST und mit Namen (wie bei der Ausbildung): ohne Bibliothek VOR ORT
         # gibt es keinen Ort, an dem geforscht wird.
         if gebaeude_wirkung.bibliothek_stufe([ort]) <= 0:
@@ -6899,6 +6941,10 @@ class NebelseetalApp:
             _name = gelaende.gebaeude_name(_staette) if _staette else "Ausbildungsstätte"
             self._log(f"{u.name} braucht {_name} auf einer Siedlungskarte — es gibt noch keine "
                       f"Siedlung.")
+            return False
+        _sperre = self._nahrungssperre(ort)
+        if _sperre:
+            self._log(_sperre)
             return False
         # Die Stätte ist die GRUNDBEDINGUNG: ohne sie gibt es keinen Ort, an dem ausgebildet wird.
         # Sie steht deshalb VOR der Forschungs-/Ausrüstungsprüfung — und ihr Name kommt aus derselben
