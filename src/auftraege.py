@@ -221,9 +221,50 @@ def _pruefe_fracht(fracht: Any, ladung: int) -> Tuple[bool, str, Dict[str, int]]
     return True, "", sauber
 
 
+# VORSCHLAG (Paket A2, 31.10.2026, Abschnitt "Kostentabelle"): Die Quellen nennen nur die
+# RICHTUNG der Reisekosten, KEINE Zahlen - Handbuch 2009, Seite 20: "Ein Auftrag ... kostet,
+# je nach Einheiten, verschiedene Mengen an Gold und Nahrung"; Drosselung: "desto weniger Gold
+# ... Allerdings steigt dabei der Bedarf an Nahrung"; fremdes Ziel: Mana nach Entfernung
+# (Vorversion 2006, Portal). Die drei Saetze hier sind der Vorschlag aus A2 - ausdruecklich
+# KEINE Originalregel, im Spieltest zu balancieren (A2 nennt sie selbst "reine Balance-Annahme").
+GOLD_JE_FELD_JE_GS = 0.1        # Gold je Einheit, Feld und GS-Punkt
+NAHRUNG_JE_FELD_DURCH_GS = 0.1  # Nahrung je Einheit und Feld, geteilt durch GS
+MANA_GRUND = 5.0                # Mana je Portalaktivierung, unabhaengig von der Truppenzahl
+MANA_JE_FELD = 0.5              # Mana je Feld Entfernung
+MANA_JE_DIMENSION = 20.0        # Mana je Dimensionsstufe (Z-Differenz)
+
+
+def kosten_der_mission(einheiten: Any, entfernung: Any, geschwindigkeit: Any,
+                       drosselung_prozent: Any = 0,
+                       dimensionen_unterschied: Any = 0,
+                       fremdes_ziel: bool = True) -> Dict[str, float]:
+    """Reisekosten einer Strecke in Gold, Nahrung und Mana (alle Saetze VORSCHLAG, s. o.).
+
+    Richtung belegt, Hoehe VORSCHLAG:
+      * Gold faellt mit der Drosselung (langsamer = billiger),
+      * Nahrung steigt mit der Drosselung,
+      * Mana kostet nur ein FREMDES Ziel (Portal oeffnen); zwischen eigenen Siedlungen 0.
+    """
+    entf = max(0.0, _als_zahl(entfernung))
+    gs = _als_zahl(geschwindigkeit)
+    if gs <= 0.0 or entf <= 0.0:
+        return {"gold": 0.0, "nahrung": 0.0, "mana": 0.0}
+    drosselung = min(90.0, max(0.0, _als_zahl(drosselung_prozent)))
+    tempo = 1.0 - drosselung / 100.0
+    anzahl = sum(max(0, _als_int(n)) for n in (einheiten or {}).values())
+    gold = GOLD_JE_FELD_JE_GS * entf * gs * tempo * max(1, anzahl)
+    nahrung = NAHRUNG_JE_FELD_DURCH_GS * entf / gs / tempo * max(1, anzahl)
+    mana = 0.0
+    if fremdes_ziel:
+        z = max(0, _als_int(dimensionen_unterschied))
+        mana = MANA_GRUND + MANA_JE_FELD * entf + MANA_JE_DIMENSION * z
+    return {"gold": round(gold, 2), "nahrung": round(nahrung, 2), "mana": round(mana, 2)}
+
+
 def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
             von: Any, nach: Any, entfernung: Any, jetzt: Any,
-            fracht: Any = None) -> Tuple[bool, str]:
+            fracht: Any = None, drosselung_prozent: Any = 0,
+            dimensionen_unterschied: Any = 0) -> Tuple[bool, str]:
     """Startet einen Auftrag und haengt ihn an `liste`. Liefert (ok, Meldung).
 
     `nach` ist der Zielname ODER ein Verzeichnis mit Zusatzangaben:
@@ -307,6 +348,12 @@ def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
     abreise = ankunft + AKTION_DAUER_SEKUNDEN
     rueckkehr = abreise + reisezeit * (HIN_UND_RUECK_FAKTOR - 1.0)
 
+    # Reisekosten (Paket A2): ein ANGRIFF geht immer gegen eine fremde Welt (Portal), sonst
+    # entscheidet das Feld 'fremd' am Ziel. Zwischen eigenen Siedlungen kostet das Portal nichts.
+    fremdes_ziel = bool(ziel.get("fremd")) or art == "angreifen"
+    kosten = kosten_der_mission(bestand, entf, gs, drosselung_prozent,
+                                dimensionen_unterschied, fremdes_ziel=fremdes_ziel)
+
     eintrag: Dict[str, Any] = {
         "art": art,
         "einheiten": dict(sorted(bestand.items())),
@@ -323,7 +370,7 @@ def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
         "rueckkehr": rueckkehr,
         "fracht": saubere_fracht,
         "ladung": ladung,
-        "kosten": {},                     # VORSCHLAG: keine belegten Reisekosten
+        "kosten": dict(kosten),           # VORSCHLAG-Saetze aus A2, siehe kosten_der_mission
         "beute": dict(zusatz.get("beute") or {}),
         "vorrunde": zusatz.get("vorrunde"),
         "rueckgut": {},
@@ -544,8 +591,12 @@ def offene_luecken() -> Dict[str, str]:
             "erkannt wird, sagt das Handbuch nicht; hier entscheidet das Feld 'fremd' am "
             "Ziel. Ein reiner Zielname gilt als eigene Siedlung.",
         "kosten":
-            "Reisekosten (Gold/Nahrung/Mana) sind hier leer gelassen: das Handbuch nennt "
-            "sie, beziffert sie aber nicht je Auftrag. Es wird kein Wert erfunden.",
+            "VORSCHLAG (Paket A2 vom 31.10.2026): Das Handbuch nennt die RICHTUNG der "
+            "Reisekosten, aber keine Zahlen ('Gold und Nahrung je nach Einheiten', "
+            "Drosselung: weniger Gold und mehr Nahrung, fremdes Ziel: Mana nach Entfernung). "
+            "Die drei Saetze in kosten_der_mission (0,1 Gold je Feld und GS-Punkt; "
+            "0,1 Nahrung je Feld durch GS; Mana 5 + 0,5 je Feld + 20 je Dimension) sind "
+            "ausdruecklich VORSCHLAG und im Spieltest zu balancieren.",
         "handel_gold":
             "Beim Handeln ist kein Goldpreis erfunden. Ohne Feld 'gold_bietet' am Ziel "
             "gibt es 0 Gold; eine Ablehnung bringt die Waren zurueck (S. 20).",

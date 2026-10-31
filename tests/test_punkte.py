@@ -51,15 +51,18 @@ check("kein Beleg behauptet eine Siegbedingung",
 
 _v = P.vorschlaege()
 check("vorschlaege() ist gefuellt", isinstance(_v, dict) and len(_v) >= 4, f"{len(_v)} Eintraege")
-check("jeder Vorschlag traegt den Status VORSCHLAG",
-      all(e.get("status") == "VORSCHLAG" for e in _v.values()),
+check("jeder Eintrag traegt einen bekannten Status",
+      all(e.get("status") in ("VORSCHLAG", "VERWORFEN", "ENTFERNT") for e in _v.values()),
       str([e.get("status") for e in _v.values()]))
 check("jeder Vorschlag nennt einen Grund",
       all(bool(e.get("grund")) for e in _v.values()))
-check("die Siegbedingung ist ausdruecklich ein Vorschlag",
-      _v.get("siegbedingung", {}).get("status") == "VORSCHLAG"
-      and "das Handbuch nennt keine Siegbedingung" == _v.get("siegbedingung", {}).get("grund"),
+check("die Siegbedingung ist ausdruecklich als ENTFERNT gefuehrt (E5)",
+      _v.get("siegbedingung", {}).get("status") == "ENTFERNT"
+      and "keine Siegbedingung" in _v.get("siegbedingung", {}).get("grund", ""),
       str(_v.get("siegbedingung")))
+check("die Zielpunktzahl 300 ist als VERWORFEN gefuehrt, nicht als Vorschlag",
+      _v.get("ziel_punkte", {}).get("status") == "VERWORFEN",
+      str(_v.get("ziel_punkte")))
 check("die Niederlagebedingung ist ausdruecklich ein Vorschlag",
       _v.get("niederlagebedingung", {}).get("status") == "VORSCHLAG"
       and "das Handbuch nennt keine Niederlagebedingung" == _v.get("niederlagebedingung", {}).get("grund"),
@@ -219,13 +222,13 @@ check("None als Rangliste ist erlaubt", P.rangliste(None) == [])
 
 
 # ==========================================================================
-# 9. Sieg oder Niederlage — als Vorschlag, ohne Handbuchbehauptung
+# 9. Spielausgang — KEIN Sieg (E5), Niederlage als einziger Abbruch
 # ==========================================================================
 
-abschnitt("Sieg/Niederlage — Vorschlag, das Handbuch nennt keine Bedingung")
+abschnitt("Spielausgang — kein Sieg (E5), Handbuch nennt keine Siegbedingung")
 
 _z_verlust = {"siedlungen": [], "einheiten": {}, "punkte": 10}
-_ergebnis = P.sieg_oder_niederlage(_z_verlust)
+_ergebnis = P.spielausgang(_z_verlust)
 check("ohne Siedlung und ohne Einheit ergibt sich Niederlage",
       _ergebnis[0] == "niederlage", str(_ergebnis))
 check("die Niederlagebegruendung nennt 'das Handbuch nennt keine Niederlagebedingung'",
@@ -233,29 +236,32 @@ check("die Niederlagebegruendung nennt 'das Handbuch nennt keine Niederlagebedin
 check("die Niederlage ist als VORSCHLAG gekennzeichnet",
       "VORSCHLAG" in _ergebnis[1], _ergebnis[1][:60])
 
-_z_sieg = {"siedlungen": [{"name": "S"}], "einheiten": {"Kämpfer": 1}, "punkte": 300}
-_sieg = P.sieg_oder_niederlage(_z_sieg)
-check("erreichte Zielpunktzahl ergibt Sieg", _sieg[0] == "sieg", str(_sieg))
-check("die Siegbegruendung nennt 'das Handbuch nennt keine Siegbedingung'",
-      "das Handbuch nennt keine Siegbedingung" in _sieg[1], _sieg[1])
-check("die Siegbegruendung ist als VORSCHLAG gekennzeichnet",
-      "VORSCHLAG" in _sieg[1], _sieg[1][:60])
+_z_viel = {"siedlungen": [{"name": "S"}], "einheiten": {"Kämpfer": 1}, "punkte": 300}
+_viel = P.spielausgang(_z_viel)
+check("300 Punkte ergeben KEINEN Sieg mehr (E5 vom 31.10.2026)", _viel[0] == "weiter", str(_viel))
+check("die Begruendung nennt die fehlende Siegbedingung",
+      "keine Siegbedingung" in _viel[1], _viel[1])
+check("100.000 Punkte ergeben ebenfalls keinen Sieg",
+      P.spielausgang(dict(_z_viel, punkte=100000))[0] == "weiter",
+      P.spielausgang(dict(_z_viel, punkte=100000))[0])
 
 _z_weiter = {"siedlungen": [{"name": "S"}], "einheiten": {"Kämpfer": 1}, "punkte": 5}
-_weiter = P.sieg_oder_niederlage(_z_weiter)
+_weiter = P.spielausgang(_z_weiter)
 check("ein normales Spiel ergibt 'weiter'", _weiter[0] == "weiter", str(_weiter))
-check("auch 'weiter' verweist ehrlich auf die fehlende Handbuchregel",
-      "das Handbuch nennt keine Siegbedingung" in _weiter[1], _weiter[1])
 
-check("kein Ergebnis behauptet, belegt zu sein",
-      all("BELEGT" not in P.sieg_oder_niederlage(z)[1]
-          for z in (_z_verlust, _z_sieg, _z_weiter)))
-check("das Ergebnis ist immer einer von sieg/niederlage/weiter",
-      all(P.sieg_oder_niederlage(z)[0] in ("sieg", "niederlage", "weiter")
-          for z in (_z_verlust, _z_sieg, _z_weiter)))
-check("eine eigene Zielpunktzahl wird beachtet",
+check("kein Ergebnis ist je 'sieg'",
+      all(P.spielausgang(z)[0] != "sieg" for z in (_z_verlust, _z_viel, _z_weiter)))
+check("das Ergebnis ist immer einer von niederlage/weiter",
+      all(P.spielausgang(z)[0] in ("niederlage", "weiter")
+          for z in (_z_verlust, _z_viel, _z_weiter)))
+check("der alte Name liefert dasselbe Ergebnis (Bruecke bleibt)",
+      P.sieg_oder_niederlage(_z_viel)[0] == "weiter", P.sieg_oder_niederlage(_z_viel)[0])
+check("die Zielpunktzahl-Konstante ist als verworfen dokumentiert",
+      P.ZIEL_PUNKTE_VERWORFEN == 300 and not hasattr(P, "VORSCHLAG_ZIEL_PUNKTE"),
+      str(getattr(P, "VORSCHLAG_ZIEL_PUNKTE", None)))
+check("ein mitgegebenes ziel_punkte entscheidet nichts mehr (E5)",
       P.sieg_oder_niederlage({"siedlungen": [{}], "einheiten": {"Kämpfer": 1},
-                              "punkte": 50, "ziel_punkte": 50})[0] == "sieg")
+                              "punkte": 50, "ziel_punkte": 50})[0] == "weiter")
 check("Sieg ist kein belegter Begriff im Handbuchbeleg-Verzeichnis",
       "sieg" not in [k.lower() for k in P.belegte_formeln()])
 

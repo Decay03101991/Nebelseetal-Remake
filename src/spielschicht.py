@@ -575,14 +575,14 @@ def punkte(zustand: dict, jetzt: float) -> dict:
     """Alle Punktarten aus ``src/punkte.py``.
 
     Forschungspunkte (Stufe hoch drei), Kriegspunkte (Einheitenwerte + Wallstufe
-    hoch drei), Gesamtpunktzahl (halbe Summe), Ruf, Goetterschutz und die
-    vorgeschlagene Sieg-/Niederlagelage.
+    hoch drei), Gesamtpunktzahl (halbe Summe), Ruf, Goetterschutz und den
+    Spielausgang (kein Sieg - E5, Niederlage nur ohne Siedlung und Einheit).
     """
     staende = _forschungsstaende(zustand)
     einh = zustand.get("einheiten") or {}
     wall = GW.wall_stufe(zustand.get("siedlungen") or [])
     gesamt = PUNKTE.gesamtpunkte(staende, einh, wall)
-    lage, grund = PUNKTE.sieg_oder_niederlage({
+    lage, grund = PUNKTE.spielausgang({
         "siedlungen": zustand.get("siedlungen") or [],
         "einheiten": einh,
         "punkte": gesamt,

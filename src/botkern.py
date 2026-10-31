@@ -29,6 +29,7 @@ import random
 from typing import Any, Dict, List, Optional
 
 import einheiten as E
+import punkte
 
 STAND = "2026-10-05.1"
 
@@ -112,12 +113,36 @@ def _kurz(werte: Optional[dict]) -> str:
 
 # ------------------------------------------------------------------ 1. neue Bots
 
+def bot_punkte(bot: dict) -> int:
+    """Kriegspunkte eines Bots aus SEINEN Werten, nach der belegten Formel.
+
+    BELEGT (Handbuch 2009, Seite 5; Registerpunkt 46): Kriegspunkte = Summe der Punktewerte
+    aller Einheiten + Wallstufe hoch drei. Bots haben im Remake keinen eigenen Wall
+    (`wall_stufe` fehlt oder ist 0), also zaehlen nur die Einheiten.
+
+    Vorher war `punkte` ein WUERFELWERT (`rng.randint(0, 300)`). Damit waren Rangliste,
+    Ruhmeshalle und das Goetterschutz-Band gegen Bots reiner Zufall - und `punkte.angreifbar`
+    liess sich darauf nicht anwenden. Diese Funktion ist die EINE Stelle, an der Bot-Punkte
+    entstehen; `wirkung_anwenden` schreibt sie nach jeder Aenderung der Armee fort.
+    """
+    bot = bot or {}
+    armee = bot.get("armee") if isinstance(bot.get("armee"), dict) else {}
+    wall = bot.get("wall_stufe", 0)
+    try:
+        return int(punkte.kriegspunkte(armee, wall))
+    except (TypeError, ValueError):
+        return 0
+
+
 def neue_bots(anzahl: int, rng: Optional[random.Random] = None) -> List[Dict[str, Any]]:
     """Erzeugt `anzahl` neue Bots mit plausiblen, belegten Wertebereichen.
 
     `aggression` und `trading` stammen gleichverteilt aus [0.0, 1.0] (belegter Bereich),
     `temperament` gleichverteilt aus [-1.0, 1.0] (die Vorlage nennt nur +-10 %, nicht die
     Verteilung - VORSCHLAG). Alles Zufaellige zieht aus `rng`; gleicher Seed -> gleiche Bots.
+
+    `punkte` ist KEIN Zufallswert mehr: jeder Bot startet mit leerer Armee bei 0 Punkten
+    (wie der Spieler) und waechst ueber `bot_armee_aufstellen` und `wirkung_anwenden`.
     """
     rng = rng or random.Random()
     try:
@@ -147,7 +172,8 @@ def neue_bots(anzahl: int, rng: Optional[random.Random] = None) -> List[Dict[str
             "aggression": round(rng.random(), 2),
             "trading": round(rng.random(), 2),
             "temperament": round(rng.uniform(-1.0, 1.0), 2),
-            "punkte": rng.randint(0, 300),
+            "punkte": 0,          # belegte Formel, siehe `bot_punkte`; waechst mit der Armee
+            "wall_stufe": 0,      # Bots haben im Remake keinen eigenen Wall (dokumentiert)
             "ruf": rng.randint(0, 60),
             "vorraete": vorraete,
             "lager": lager,
@@ -411,6 +437,10 @@ def wirkung_anwenden(bot: dict, ergebnis: dict) -> dict:
         neu["geforscht"] = _ganzzahl(neu.get("geforscht", 0)) + 1
     if w.get("bau"):
         neu["gebaut"] = _ganzzahl(neu.get("gebaut", 0)) + 1
+    # Punkte werden NICHT fortgeschrieben, sondern nach jeder Aenderung neu gerechnet
+    # (belegte Formel aus Einheiten und Wall, `bot_punkte`). Damit kann `punkte` nie
+    # von der Armee abweichen - die alte Wuerfelzahl konnte das dauerhaft.
+    neu["punkte"] = bot_punkte(neu)
     return neu
 
 

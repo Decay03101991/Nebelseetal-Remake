@@ -106,13 +106,20 @@ def main():
     # das ganze Dossier (129.000 Zeichen) bezahlt wird - Daniel: "keine unnoetigen Tokens".
     dossier = DOSSIER
     ziel = ZIEL
+    nur_paket = "--paket" in sys.argv
     if "--dossier" in sys.argv:
         dossier = os.path.abspath(sys.argv[sys.argv.index("--dossier") + 1])
     if "--ziel" in sys.argv:
         ziel = os.path.abspath(sys.argv[sys.argv.index("--ziel") + 1])
     with open(dossier, encoding="utf-8") as f:
         dossier = f.read()
-    prompt = AUFTRAG + "\n\n" + "=" * 78 + "\nDOSSIER\n" + "=" * 78 + "\n\n" + dossier
+    if nur_paket:
+        # Die Pakete A1-A4 sind selbsttragend: Rolle, Vorgaben, Quellen, Ausgabeformat stehen
+        # schon drin. Ein zweiter Auftragskopf davor widerspraeche ihrem Format und kostet nur
+        # Kontext - deshalb wird das Paket allein gesendet.
+        prompt = dossier
+    else:
+        prompt = AUFTRAG + "\n\n" + "=" * 78 + "\nDOSSIER\n" + "=" * 78 + "\n\n" + dossier
     log(f"Prompt {len(prompt)} Zeichen (~{len(prompt) / 3.5:.0f} Token), "
         f"Ziel {os.path.basename(ziel)}, Stillstandsschwelle {stillstand} s, max_tokens 48000")
     daten = json.dumps({
@@ -129,13 +136,20 @@ def main():
                  "Accept": "text/event-stream"})
 
     os.makedirs(os.path.dirname(ziel), exist_ok=True)
+    if "--trocken" in sys.argv:
+        # Kostet nichts: zeigt nur, was gesendet WUERDE (Prompt, Zieldatei, Aufrufe).
+        print(f"TROCKEN: Prompt {len(prompt)} Zeichen, Ziel {ziel}, Modell deepseek-v4-pro")
+        print(f"TROCKEN: geschaetzt {len(prompt) / 3.5 / 1e6 * 0.66 + 15000 / 1e6 * 1.98:.4f} USD")
+        print("--- erste 3 Zeilen Prompt ---")
+        print("\n".join(prompt.splitlines()[:3]))
+        return 0
     teile, nutzung, stuecke = [], {}, 0
     start = time.time()
     letztes_leben = start
     abbruch = None
     try:
         with urllib.request.urlopen(anfrage, timeout=60) as antwort:
-            with open(ZIEL, "w", encoding="utf-8", newline="\n") as datei:
+            with open(ziel, "w", encoding="utf-8", newline="\n") as datei:
                 for roh in antwort:
                     if time.time() - letztes_leben > stillstand:
                         abbruch = f"kein Lebenszeichen seit {stillstand} s"

@@ -378,4 +378,51 @@ befund("Reisezeit-Formel und Aktionsdauer sind VORSCHLAG",
        "Aufenthaltsdauer am Ziel; beide Werte stehen mit Grund in auftraege.offene_luecken()")
 
 
+# ==========================================================================
+# Reisekosten (Paket A2 vom 31.10.2026) - Richtung belegt, Hoehe VORSCHLAG
+# ==========================================================================
+abschnitt("Reisekosten: Gold, Nahrung, Mana (Paket A2)")
+
+_k1 = A.kosten_der_mission({"Kämpfer": 1}, 16, 10, fremdes_ziel=True)
+check("Gold je Einheit, Feld und GS-Punkt: 16 Felder, GS 10 -> 16 Gold",
+      _k1["gold"] == 16.0, str(_k1))
+check("Nahrung je Feld geteilt durch GS: 0,1 * 16 / 10 = 0,16",
+      _k1["nahrung"] == 0.16, str(_k1))
+check("Mana fremdes Ziel: 5 + 0,5 * 16 = 13", _k1["mana"] == 13.0, str(_k1))
+check("zwischen eigenen Siedlungen kostet das Portal nichts",
+      A.kosten_der_mission({"Kämpfer": 1}, 16, 10, fremdes_ziel=False)["mana"] == 0.0)
+check("eine Dimensionsstufe kostet 20 Mana zusaetzlich",
+      A.kosten_der_mission({"Kämpfer": 1}, 16, 10, dimensionen_unterschied=2)["mana"] == 53.0,
+      str(A.kosten_der_mission({"Kämpfer": 1}, 16, 10, dimensionen_unterschied=2)))
+
+_k10 = A.kosten_der_mission({"Kämpfer": 1}, 16, 10, drosselung_prozent=10)
+check("Drosselung um 10 Prozent: Gold faellt auf 90 Prozent (14,4)",
+      _k10["gold"] == 14.4, str(_k10))
+check("Drosselung um 10 Prozent: Nahrung steigt (0,18)",
+      _k10["nahrung"] == 0.18, str(_k10))
+
+_k3 = A.kosten_der_mission({"Kämpfer": 3}, 16, 10)
+check("drei Einheiten kosten dreimal so viel Gold wie eine",
+      _k3["gold"] == 3 * _k1["gold"], str(_k3))
+check("das Mana haengt NICHT an der Truppenzahl (Portal, belegt)",
+      _k3["mana"] == _k1["mana"], str(_k3))
+check("eine ungueltige Geschwindigkeit kostet nichts statt zu teilen durch 0",
+      A.kosten_der_mission({"Kämpfer": 1}, 16, 0)["gold"] == 0.0)
+check("die Kosten sind als VORSCHLAG markiert",
+      "VORSCHLAG" in (A.kosten_der_mission.__doc__ or ""),
+      (A.kosten_der_mission.__doc__ or "")[:60])
+
+_liste: list = []
+_ok, _meld = A.starten(_liste, "angreifen", {"Kämpfer": 2}, "A", {"name": "B", "fremd": True},
+                       16, 1000)
+check("ein gestarteter Auftrag traegt seine Kosten", _ok and _liste[0]["kosten"]["gold"] > 0,
+      str(_liste[0]["kosten"] if _liste else _meld))
+check("der Angriff gilt als fremdes Ziel (Mana faellig)", _liste[0]["kosten"]["mana"] > 0,
+      str(_liste[0]["kosten"]))
+_liste2: list = []
+A.starten(_liste2, "stationieren", {"Kämpfer": 1}, "A", {"name": "A2", "fremd": False}, 16, 1000)
+check("Stationieren in eigener Siedlung kostet kein Mana", _liste2[0]["kosten"]["mana"] == 0.0,
+      str(_liste2[0]["kosten"]))
+
+
 sys.exit(bericht())

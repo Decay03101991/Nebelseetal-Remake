@@ -349,7 +349,40 @@ check("jede Luecke begruendet sich (VORSCHLAG / Nicht geregelt)",
       all(("VORSCHLAG" in v) or ("Nicht geregelt" in v) for v in luecken.values()))
 
 
-# ============================================================ 13. Quellhygiene
+# ============================================================ 13. Bot-Punkte (Register 46)
+abschnitt("13. Bot-Punkte kommen aus der belegten Formel, nicht aus dem Zufall")
+
+import punkte as P
+
+_leer = {"armee": {}, "punkte": 0}
+check("ein Bot ohne Armee hat 0 Punkte", BK.bot_punkte(_leer) == 0, str(BK.bot_punkte(_leer)))
+check("Punkte entsprechen punkte.kriegspunkte der Armee",
+      BK.bot_punkte({"armee": {"Kämpfer": 2, "Ritter": 1}}) ==
+      P.kriegspunkte({"Kämpfer": 2, "Ritter": 1}, 0),
+      str(BK.bot_punkte({"armee": {"Kämpfer": 2, "Ritter": 1}})))
+check("eine Wallstufe zaehlt hoch drei mit",
+      BK.bot_punkte({"armee": {}, "wall_stufe": 2}) == 8,
+      str(BK.bot_punkte({"armee": {}, "wall_stufe": 2})))
+check("Unsinn in der Armee ergibt 0 statt Absturz",
+      BK.bot_punkte({"armee": "kaputt"}) == 0)
+
+_bots = BK.neue_bots(5, random.Random(7))
+check("kein neuer Bot startet mit Zufallspunkten",
+      all(b.get("punkte") == 0 for b in _bots), str([b.get("punkte") for b in _bots]))
+check("jeder neue Bot traegt ein Wallfeld", all("wall_stufe" in b for b in _bots))
+check("gleicher Seed ergibt gleiche Punkte",
+      [b.get("punkte") for b in BK.neue_bots(5, random.Random(7))] ==
+      [b.get("punkte") for b in _bots])
+
+_w = BK.wirkung_anwenden({"armee": {}, "punkte": 99}, {"wirkung": {}})
+check("wirkung_anwenden rechnet die Punkte neu (kein Fortschreiben der Wuerfelzahl)",
+      _w.get("punkte") == 0, str(_w.get("punkte")))
+_w2 = BK.wirkung_anwenden({"armee": {"Kämpfer": 3}, "punkte": 99}, {"wirkung": {}})
+check("Punkte folgen der Armee", _w2.get("punkte") == P.kriegspunkte({"Kämpfer": 3}, 0),
+      str(_w2.get("punkte")))
+
+
+# ============================================================ 14. Quellhygiene
 abschnitt("13. botkern.py - reine Logik, nur Standardbibliothek")
 
 check("botkern.py ist reines ASCII", all(ord(c) < 128 for c in TEXT))

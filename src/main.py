@@ -985,17 +985,18 @@ class GameState:
         }
 
     def spielausgang(self) -> Tuple[str, str]:
-        """('sieg'|'niederlage'|'weiter', Begruendung) aus src/punkte.py.
+        """('niederlage'|'weiter', Begruendung) aus src/punkte.py — es gibt keinen Sieg.
 
-        Vorgabe Daniel 05.10.2026 (Option A): Sieg, sobald die Gesamtpunktzahl die Zielzahl
-        erreicht (300, `punkte.VORSCHLAG_ZIEL_PUNKTE`); Niederlage, sobald keine Siedlung UND
-        keine Einheit mehr da ist. Vor der ersten Siedlung laeuft nichts — sonst waere die
-        Partie in der ersten Sekunde verloren.
+        E5 (Daniel, 31.10.2026): KEIN Sieg. Das Handbuch 2009 nennt keine Siegbedingung
+        (Seite 3: jeder Spieler hat seine eigenen Ziele), der frueher hier gerechnete
+        "Sieg bei 300 Punkten" ist VERWORFEN. Niederlage nur, wenn keine Siedlung UND
+        keine Einheit mehr da ist. Vor der ersten Siedlung laeuft nichts — sonst waere
+        die Partie in der ersten Sekunde verloren.
         """
         if not self.hatte_siedlung:
             return ("weiter", "Noch keine Siedlung gegruendet — die Partie hat nicht begonnen.")
         stand = self.punktestand()
-        return punkte.sieg_oder_niederlage({
+        return punkte.spielausgang({
             "siedlungen": list(self.settlements),
             "einheiten": stand["einheiten"],
             "punkte": stand["gesamt"],
@@ -1964,6 +1965,24 @@ class GameState:
             return False, meldung
         for k, v in bestand.items():
             self.units[k].count = max(0, int(self.units[k].count) - v)
+        # Reisekosten (Paket A2 vom 31.10.2026; Saetze VORSCHLAG, siehe
+        # auftraege.kosten_der_mission): bezahlt wird, was da ist - der Bestand wird nie
+        # negativ, und ein Auftrag wird NICHT abgelehnt, solange die Hoehe im Spieltest offen
+        # ist. Die Meldung nennt den Betrag, damit die Balance sichtbar bleibt.
+        kosten = dict((self.auftraege[-1] or {}).get("kosten") or {})
+        bezahlt = {}
+        for stoff, betrag in kosten.items():
+            if stoff not in self.resources or not betrag:
+                continue
+            lager = float(self.resources[stoff].amount)
+            zahlbar = min(float(betrag), lager)
+            if zahlbar > 0:
+                self.resources[stoff].amount = lager - zahlbar
+                bezahlt[stoff] = round(zahlbar, 2)
+        if bezahlt:
+            meldung += (" Kosten: " + ", ".join(f"{menge:g} {stoff}"
+                                                for stoff, menge in sorted(bezahlt.items()))
+                        + " (VORSCHLAG-Saetze aus A2).")
         self._log(meldung)
         return True, meldung
 
@@ -2108,7 +2127,21 @@ class GameState:
             else:
                 truppen.pop(name, None)
         eintrag["einheiten"] = truppen
-        eintrag["beute"] = dict(ergebnis.get("beute") or {})
+        # Beute: EINE Formel (`kampfbericht.beute_am_ziel`) fuer Bot-Pfad, Auftrags-Pfad und
+        # Direktangriff - und sie bucht beim Ziel ab. Vorher stand hier die Beute aus
+        # `kampf._beute` (nur Ladungsgrenze, ohne Staffelung) und das Ziel behielt alles.
+        # Das war der Befund Nr. 6 der externen Gegenpruefung vom 31.10.2026.
+        vorraete_ziel = (bot_ziel.vorraete if bot_ziel is not None else
+                         siedlung_ziel.vorraete if siedlung_ziel is not None else
+                         ziel.get("vorraete") if isinstance(ziel.get("vorraete"), dict) else {})
+        uebrig = int(sum(max(0, int(v)) for v in (verteidiger or {}).values()))
+        beute_gefecht, lager_danach = kampfbericht.beute_am_ziel(
+            geraet, dict(vorraete_ziel or {}), ausgang=ergebnis.get("ausgang"),
+            wall_zustand_vor=wall_zustand, verteidiger_uebrig=uebrig)
+        if beute_gefecht and vorraete_ziel is not None:
+            vorraete_ziel.clear()
+            vorraete_ziel.update(lager_danach)
+        eintrag["beute"] = beute_gefecht
         eintrag["vorrunde"] = {"bestanden": bool(ergebnis.get("vorrunde_bestanden")),
                                "grund": ergebnis.get("bericht", "")}
 
@@ -2301,40 +2334,49 @@ class GameState:
                         ws = self.wall_stufe_am_ort(zielort)
                         wz = (dorfwall.zustand(zielort)
                               if self._lokale_kasse_aktiv() else 100.0)
-                        # NICHT verdrahtet: der eingeschraenkte Goetterschutz (punkte.angreifbar).
-                        # Grund (31.10.2026 gemessen): `bot.punkte` ist ein Zufallswert
-                        # (botkern.py Z. 150: rng.randint(0,300)) und NICHT aus den Originalformeln
-                        # gerechnet. Mit einem 0-Punkte-Bot wuerde das Band 0-0 jeden Angriff
-                        # blockieren. Erst muessen die Bot-Punkte aus `punkte.kriegspunkte` kommen,
-                        # dann wird `punkte.angreifbar` hier eingetragen (offener Punkt, Register 41).
-                        kampf_result = kampf.fuehre_schlacht(
-                            bot_kaempfer, dict(zielort.einheiten), ws, wz,
-                            angreifer_karren=bot_geraet or None,
-                            vorraete=dict(zielort.vorraete), rng=rng,
-                            forschung_verteidiger={k: int(v.level) for k, v in self.research.items()})
-                        if self._lokale_kasse_aktiv():
-                            zielort.mauer_zustand = float(kampf_result.get("mauer_zustand", wz))
-                        for name, menge in (kampf_result.get("verluste_angreifer") or {}).items():
-                            bot.army[name] = max(0, int(bot.army.get(name, 0)) - int(menge))
-                        for name, menge in (kampf_result.get("verluste_verteidiger") or {}).items():
-                            zielort.einheiten[name] = max(
-                                0, int(zielort.einheiten.get(name, 0)) - int(menge))
-                        if kampf_result.get("ausgang") == "angreifer":
-                            # VORGABE Daniel 31.10.2026 (Registerpunkt 45): gestaffelte Beute -
-                            # Wallzustand VOR dem Kampf und die ueberlebenden Verteidiger entscheiden
-                            # ueber den Anteil; Ladung und Vorrat begrenzen ihn zusaetzlich.
-                            _uebrig = int(sum(max(0, int(v)) for v in zielort.einheiten.values()))
-                            beute = dict(kampfbericht.beute_staffel(
-                                bot_geraet or {}, dict(zielort.vorraete),
-                                wall_zustand_vor=wz, verteidiger_uebrig=_uebrig))
-                            for stoff, menge in beute.items():
-                                zielort.vorraete[stoff] = round(max(0.0, float(
-                                    zielort.vorraete.get(stoff, 0.0)) - float(menge)), 2)
-                            self._reichsanzeige_aus_orten()
-                        meldung = (f"{bot.name} gegen {zielort.name}: "
-                                   f"{kampf_result.get('ausgang')}; "
-                                   f"tatsaechliche Beute {beute}.")
-                        self.messages.append({"text": meldung, "type": "kampf"})
+                        # Goetterschutz, eingeschraenkt (belegt: Handbuch 2009, Seite 6;
+                        # Registerpunkt 41): anwendbar, SEIT die Bot-Punkte aus der belegten
+                        # Formel kommen (`botkern.bot_punkte`). Der volle 7-Tage-Schutz bleibt
+                        # `self.noob_protection`; hier geht es um die Grenze 299 und das Band
+                        # +/- 20 Prozent. Ein Angriff ueber die Grenze ist in KEINE Richtung
+                        # moeglich - auch nicht von einem Bot aus.
+                        _erlaubt, _grund = punkte.angreifbar(
+                            int(bot.punkte), int(self.punktestand()["gesamt"]))
+                        if not _erlaubt:
+                            meldung = (f"{bot.name}: Angriff auf {zielort.name} verschoben - "
+                                       f"{_grund}")
+                            zug.setdefault("wirkung", {})["angriff_verschoben"] = _grund
+                        else:
+                            kampf_result = kampf.fuehre_schlacht(
+                                bot_kaempfer, dict(zielort.einheiten), ws, wz,
+                                angreifer_karren=bot_geraet or None,
+                                vorraete=dict(zielort.vorraete), rng=rng,
+                                forschung_verteidiger={k: int(v.level) for k, v in self.research.items()})
+                            if self._lokale_kasse_aktiv():
+                                zielort.mauer_zustand = float(kampf_result.get("mauer_zustand", wz))
+                            for name, menge in (kampf_result.get("verluste_angreifer") or {}).items():
+                                bot.army[name] = max(0, int(bot.army.get(name, 0)) - int(menge))
+                            for name, menge in (kampf_result.get("verluste_verteidiger") or {}).items():
+                                zielort.einheiten[name] = max(
+                                    0, int(zielort.einheiten.get(name, 0)) - int(menge))
+                            if kampf_result.get("ausgang") == "angreifer":
+                                # VORGABE Daniel 31.10.2026 (Registerpunkt 45): gestaffelte Beute -
+                                # Wallzustand VOR dem Kampf und die ueberlebenden Verteidiger entscheiden
+                                # ueber den Anteil; Ladung und Vorrat begrenzen ihn zusaetzlich.
+                                # EINE Formel fuer alle drei Pfade: kampfbericht.beute_am_ziel
+                                # (rechnet UND bucht beim Ziel ab).
+                                _uebrig = int(sum(max(0, int(v)) for v in zielort.einheiten.values()))
+                                beute, _lager_danach = kampfbericht.beute_am_ziel(
+                                    bot_geraet or {}, dict(zielort.vorraete),
+                                    ausgang="angreifer", wall_zustand_vor=wz, verteidiger_uebrig=_uebrig)
+                                if beute:
+                                    zielort.vorraete.clear()
+                                    zielort.vorraete.update(_lager_danach)
+                                self._reichsanzeige_aus_orten()
+                            meldung = (f"{bot.name} gegen {zielort.name}: "
+                                       f"{kampf_result.get('ausgang')}; "
+                                       f"tatsaechliche Beute {beute}.")
+                            self.messages.append({"text": meldung, "type": "kampf"})
                 zug.setdefault("wirkung", {})["beute"] = beute
                 ergebnis["angriffe"].append(meldung)
             self._log(meldung)
@@ -3228,9 +3270,9 @@ class NebelseetalApp:
         self.lbl_krieg.pack(anchor=tk.W, padx=5)
         self.lbl_gesamt = tk.Label(right, text="Gesamt: 0", fg=self.skin["gold"], bg=self.skin["sidebar"])
         self.lbl_gesamt.pack(anchor=tk.W, padx=5, pady=(0, 10))
-        # Sieg/Niederlage (Vorgabe Daniel 05.10.2026, Option A): das Ziel und der Stand stehen
-        # sichtbar in der Seitenleiste, damit der Spieler weiss, worauf er hinarbeitet.
-        self.lbl_ziel = tk.Label(right, text=f"Ziel: 0 / {punkte.VORSCHLAG_ZIEL_PUNKTE} Punkte",
+        # Punkte statt Siegziel (E5): es gibt keinen Sieg, nur den Stand und die belegte
+        # Goetterschutzgrenze. Die Auszeichnungen kommen aus dem Paket A3.
+        self.lbl_ziel = tk.Label(right, text="Punkte: 0",
                                  fg=self.skin["text"], bg=self.skin["sidebar"], wraplength=200,
                                  justify=tk.LEFT)
         self.lbl_ziel.pack(anchor=tk.W, padx=5, pady=(0, 10))
@@ -5580,16 +5622,21 @@ class NebelseetalApp:
             forschung_angreifer={k: int(v.level) for k, v in self.state.research.items()})
 
         # Zielwall und Verteidiger muessen ebenfalls die echten Verluste behalten.
+        # Beute: EINE Formel (`kampfbericht.beute_am_ziel`) - Staffelung nach Wallzustand VOR
+        # dem Kampf, Ladungsgrenze, und Abbuchung beim Ziel. Was der Spieler bekommt, ist
+        # genau das, was dem Ziel fehlt (Befund Nr. 6 der externen Gegenpruefung, 31.10.2026).
+        uebrig = int(sum(max(0, int(v)) for v in (verteidiger or {}).values()))
+        beute_gefecht, lager_danach = kampfbericht.beute_am_ziel(
+            geraet, dict(vorraete or {}), ausgang=ergebnis.get("ausgang"),
+            wall_zustand_vor=wall_zustand, verteidiger_uebrig=uebrig)
+        ergebnis["beute"] = beute_gefecht
         if isinstance(vorrat_ziel, BotPlayer):
             vorrat_ziel.wall_zustand = float(ergebnis.get("mauer_zustand", wall_zustand))
             for name, anzahl in (ergebnis.get("verluste_verteidiger") or {}).items():
                 vorrat_ziel.army[name] = max(0, int(vorrat_ziel.army.get(name, 0)) - int(anzahl))
-            # Beute hat eine Quelle: nicht beim Spieler gutschreiben UND
-            # zugleich beim Gegner unvermindert belassen.
-            if ergebnis.get("ausgang") == "angreifer":
-                for stoff, menge in (ergebnis.get("beute") or {}).items():
-                    vorrat_ziel.vorraete[stoff] = max(
-                        0, float(vorrat_ziel.vorraete.get(stoff, 0) or 0) - float(menge))
+            if beute_gefecht:
+                vorrat_ziel.vorraete.clear()
+                vorrat_ziel.vorraete.update(lager_danach)
         # Verluste und Beute in den Spielstand buchen (kampfbericht rechnet, main.py schreibt).
         vorher = {"ressourcen": {k: v.amount for k, v in self.state.resources.items()},
                   "einheiten": {k: v.count for k, v in self.state.units.items()}}
@@ -7014,21 +7061,19 @@ class NebelseetalApp:
         self.lbl_forschung.config(text=f"Forschung: {stand_punkte['forschung']}")
         self.lbl_krieg.config(text=f"Krieg: {stand_punkte['krieg']}")
         self.lbl_gesamt.config(text=f"Gesamt: {stand_punkte['gesamt']}")
-        # Schritt 31: Ziel und Spielende sichtbar machen (Vorgabe Daniel 05.10.2026, Option A).
-        # ZUERST pruefen, DANN anzeigen — sonst zeigt die Leiste einen Takt lang den alten Stand.
+        # E5: KEIN Sieg. Angezeigt werden Stand, die belegte Goetterschutzgrenze und - falls
+        # eingetreten - die Niederlage. Beendet wird der Lauf nur noch dadurch.
         self._pruefe_spielende()
-        ziel = punkte.VORSCHLAG_ZIEL_PUNKTE
         stand = self.state.punktestand()
         if getattr(self, "lbl_ziel", None) is not None:
-            if self.state.spielende == "sieg":
-                self.lbl_ziel.config(text=f"SIEG — Ziel von {ziel} Punkten erreicht.",
-                                     fg=self.skin["gold"])
-            elif self.state.spielende == "niederlage":
+            if self.state.spielende == "niederlage":
                 self.lbl_ziel.config(text="NIEDERLAGE — keine Siedlung und keine Einheit mehr.",
                                      fg=self.skin["red"])
             else:
-                self.lbl_ziel.config(text=f"Ziel: {stand['gesamt']} / {ziel} Punkte",
-                                     fg=self.skin["text"])
+                self.lbl_ziel.config(
+                    text=f"Punkte: {stand['gesamt']} · Goetterschutz bis "
+                         f"{punkte.GOETTERSCHUTZ_PUNKTGRENZE} · kein Sieg",
+                    fg=self.skin["text"])
 
 
 def _laeuft_schon(lock_path: str) -> bool:

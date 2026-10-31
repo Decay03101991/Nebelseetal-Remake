@@ -41,10 +41,12 @@ import einheiten as _einheiten
 GOETTERSCHUTZ_TAGE = 7
 SEKUNDEN_JE_TAG = 86400
 
-# VORSCHLAG: Zielpunktzahl fuer den Sieg. Das Handbuch nennt keine Siegbedingung; 300 ist die
-# belegte Schutzgrenze (Handbuch S. 6 "Spieler ueber 300 Punkten befinden sich ausserhalb des
-# Goetterschutzes") und darum ein sichtbarer Meilenstein.
-VORSCHLAG_ZIEL_PUNKTE = 300
+# E5 (Daniel, 31.10.2026): Das Original kennt KEINEN SIEG. Handbuch 2009, Seite 3: "Jeder hat
+# bei Nebelseetal sicher seine eigenen Ziele" (Feldherr, Forscher, Haendler). Der frueher hier
+# stehende Vorschlag "Sieg bei 300 Gesamtpunkten" ist damit VERWORFEN und entfernt; 300 ist die
+# belegte GOETTERSCHUTZGRENZE (Seite 6), keine Siegbedingung. Ein Lauf endet nur durch
+# Niederlage - oder gar nicht. Die Bewertung ueber Auszeichnungen ist offen (Paket A3).
+ZIEL_PUNKTE_VERWORFEN = 300
 
 
 # --------------------------------------------------------------------------
@@ -267,39 +269,47 @@ def angreifbar(punkte_angreifer: Any, punkte_ziel: Any) -> Tuple[bool, str]:
 
 
 # --------------------------------------------------------------------------
-# 7. Sieg oder Niederlage (VORSCHLAG — das Handbuch nennt keine Bedingung)
+# 7. Spielausgang — KEIN Sieg (E5), Niederlage bleibt der einzige Abbruch
 # --------------------------------------------------------------------------
 
-def sieg_oder_niederlage(zustand: dict) -> Tuple[str, str]:
-    """('sieg'|'niederlage'|'weiter', Begruendung).
+def spielausgang(zustand: dict) -> Tuple[str, str]:
+    """('niederlage'|'weiter', Begruendung) — es gibt keinen Sieg.
 
-    VORSCHLAG: Das Handbuch nennt **keine** Sieg- oder Niederlagebedingung. Dieser
-    Baustein denkt sich zwei aus und markiert sie im Text ausdruecklich als Vorschlag:
+    E5 (Daniel, 31.10.2026): Das Handbuch 2009 nennt **keine** Siegbedingung, sondern
+    individuelle Ziele je Spieler (Seite 3). Der frueher hier gerechnete "Sieg bei 300
+    Gesamtpunkten" ist VERWORFEN - 300 ist die Goetterschutzgrenze (Seite 6), kein Ziel.
+    Es bleibt:
 
-      * Niederlage, sobald der Spieler keine Siedlung und keine Einheit mehr hat,
-      * Sieg, sobald die Zielpunktzahl erreicht ist (``ziel_punkte``, sonst 300).
+      * Niederlage, sobald der Spieler keine Siedlung und keine Einheit mehr hat
+        (sonst gibt es nichts mehr zu tun) - im Text als VORSCHLAG gekennzeichnet,
+        weil das Handbuch auch das nicht regelt,
+      * sonst 'weiter'. Ein Lauf endet nicht durch Punkte; die Bewertung ueber
+        Auszeichnungen ist offen (Paket A3, Entscheidung E5).
 
     Erwartete Schluessel in ``zustand``: ``siedlungen`` (Liste), ``einheiten``
-    (Name -> Anzahl), ``punkte`` und wahlweise ``ziel_punkte``.
+    (Name -> Anzahl); ``punkte`` wird nur noch fuer die Begruendung gelesen und
+    entscheidet nichts mehr.
     """
     z = zustand or {}
     siedlungen = z.get("siedlungen") or []
     anzahl_einheiten = 0
     for wert in (z.get("einheiten") or {}).values():
         anzahl_einheiten += _anzahl(wert)
-    punkte = _stufe(z.get("punkte", z.get("gesamtpunkte", 0)))
-    ziel = _stufe(z.get("ziel_punkte", VORSCHLAG_ZIEL_PUNKTE))
 
     if not siedlungen and anzahl_einheiten == 0:
         return ("niederlage",
                 "VORSCHLAG: keine Siedlung und keine Einheit mehr — das Handbuch nennt keine "
                 "Niederlagebedingung.")
-    if ziel > 0 and punkte >= ziel:
-        return ("sieg",
-                f"VORSCHLAG: Zielpunktzahl {ziel} erreicht — das Handbuch nennt keine Siegbedingung.")
     return ("weiter",
-            "weder Sieg noch Niederlage nach dem Vorschlag erreicht — das Handbuch nennt keine "
-            "Siegbedingung.")
+            "kein Sieg vorgesehen (E5): das Handbuch nennt keine Siegbedingung, jeder Spieler "
+            "hat seine eigenen Ziele.")
+
+
+# Alter Name bleibt als duenne Bruecke fuer Aufrufer, die noch nicht umgestellt sind.
+# Wer neu schreibt, ruft `spielausgang` - der Name sagt, was herauskommt: kein Sieg.
+def sieg_oder_niederlage(zustand: dict) -> Tuple[str, str]:
+    """Historischer Name von `spielausgang` (liefert nie mehr 'sieg')."""
+    return spielausgang(zustand)
 
 
 # --------------------------------------------------------------------------
@@ -350,14 +360,17 @@ def vorschlaege() -> Dict[str, Dict[str, str]]:
             "status": "VORSCHLAG",
         },
         "ziel_punkte": {
-            "wert": str(VORSCHLAG_ZIEL_PUNKTE),
-            "grund": "das Handbuch nennt keine Siegbedingung; 300 ist die belegte Schutzgrenze",
-            "status": "VORSCHLAG",
+            "wert": "keines — der Vorschlag 'Sieg bei 300' ist VERWORFEN (E5 vom 31.10.2026)",
+            "grund": "das Handbuch nennt keine Siegbedingung; 300 ist die belegte "
+                     "Goetterschutzgrenze (Seite 6), kein Spielziel",
+            "status": "VERWORFEN",
         },
         "siegbedingung": {
-            "wert": "Zielpunktzahl erreicht",
-            "grund": "das Handbuch nennt keine Siegbedingung",
-            "status": "VORSCHLAG",
+            "wert": "es gibt keine — ein Lauf endet nicht durch Punkte",
+            "grund": "das Handbuch nennt keine Siegbedingung (Seite 3: jeder Spieler hat seine "
+                     "eigenen Ziele — Feldherr, Forscher, Haendler); E5, Bewertung ueber "
+                     "Auszeichnungen offen (A3)",
+            "status": "ENTFERNT",
         },
         "niederlagebedingung": {
             "wert": "keine Siedlung und keine Einheit",

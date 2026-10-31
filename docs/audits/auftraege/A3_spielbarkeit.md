@@ -647,12 +647,11 @@ def gesamtpunkte(forschungsstaende: Optional[dict], einheiten: Optional[dict],
    },
    "abweichung": "Hügel: 2005 = 1, Handbuch 2009 = 1,5. Berg in beiden Fassungen 3.",
    "anmerkung": "Schreibweise 2005: 'Goldmiene', Handbuch 2009: 'Goldmine'."
-  },
-  {
-   "id": "wolle",
-   "name": "Wolle",
-   "erzeugendes_gebaeude": [
-    "S
+  }
+ ]
+}
+
+(Auszug an einer Eintragsgrenze beendet. Nicht mitgeliefert: Wolle, Leder, Pferde - fuer Wegzeit und Auftragskosten ohne Belang, gebraucht werden Gold, Nahrung und Mana.)
 
 Diese führen beispielsweise in die Kriegerakademie in der Einheiten ausgebildet werden 
 können, oder in die Bibliothek in der Du neue Wissensgebiete erforschen kannst. Diese Buttons 

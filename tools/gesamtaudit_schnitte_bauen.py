@@ -330,11 +330,32 @@ def einheiten_gs() -> str:
     return "\n".join(zeilen)
 
 
-def rohstoffe_raten() -> str:
+def rohstoffe_raten(budget: int = 4200) -> str:
+    """Rohstoffraten als JSON-Auszug - geschnitten an GANZEN Eintraegen, nie mitten im Wert.
+
+    Ein harter Zeichenschnitt (`[:4000]`) hat am 31.10.2026 das A2-Paket mitten im JSON
+    beendet (letzter Eintrag "Wolle", Wert abgeschnitten). Das Modell haette ein kaputtes
+    Dokument gelesen und den Schnitt fuer einen Datenfehler gehalten.
+    """
     import json
     d = json.load(open(os.path.join(HIER, "data", "resources.json"), encoding="utf-8"))
-    return json.dumps({k: v for k, v in d.items() if not k.startswith("_")},
-                      ensure_ascii=False, indent=1)[:4000]
+    d = {k: v for k, v in d.items() if not k.startswith("_")}
+    raus = {k: v for k, v in d.items() if k != "rohstoffe"}
+    raus["rohstoffe"] = []
+    weggelassen = []
+    for eintrag in d.get("rohstoffe", []):
+        probe = dict(raus, rohstoffe=raus["rohstoffe"] + [eintrag])
+        if len(json.dumps(probe, ensure_ascii=False, indent=1)) > budget:
+            weggelassen.append(str(eintrag.get("name") or eintrag.get("id")))
+            continue
+        raus["rohstoffe"].append(eintrag)
+    text = json.dumps(raus, ensure_ascii=False, indent=1)
+    if weggelassen:
+        text += ("\n\n(Auszug an einer Eintragsgrenze beendet. Nicht mitgeliefert: "
+                 + ", ".join(weggelassen)
+                 + " - fuer Wegzeit und Auftragskosten ohne Belang, gebraucht werden Gold, "
+                   "Nahrung und Mana.)")
+    return text
 
 
 def main():

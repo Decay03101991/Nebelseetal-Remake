@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import copy
 import random
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 import einheiten as E
 import gebaeude_wirkung as GW
@@ -277,6 +277,39 @@ def beute_staffel(einheiten_des_siegers: Dict[str, int],
             genommen[stoff] = nimm
             restplatz -= nimm
     return genommen
+
+
+def beute_am_ziel(einheiten_des_siegers: Dict[str, int],
+                  vorraete: Dict[str, float],
+                  ausgang: Any = "angreifer",
+                  wall_zustand_vor: Any = None,
+                  verteidiger_uebrig: Any = None) -> Tuple[Dict[str, int], Dict[str, float]]:
+    """Beute berechnen UND beim Ziel abbuchen - Rueckgabe (beute, vorraete_danach).
+
+    Warum es diese Funktion gibt (Befund der externen Gegenpruefung, 31.10.2026, Nr. 6):
+    Der Auftrags-Pfad schrieb die Beute dem Spieler gut, ohne sie beim Ziel abzuziehen -
+    Gueter aus dem Nichts. Der Bot-Pfad zog ab, rechnete die Menge aber mit einer anderen
+    Formel (`kampf._beute`: nur Ladungsgrenze). Jetzt gilt an EINER Stelle:
+
+      * Beute nur bei Angreifersieg (belegt: Handbuch S. 23, Z. 1307-1315),
+      * der Anteil kommt aus `beute_staffel` (Wallzustand VOR dem Kampf, ueberlebende
+        Verteidiger, Ladung, vorhandener Vorrat),
+      * was gutgeschrieben wird, wird beim Ziel abgebucht; kein Bestand wird negativ.
+    """
+    lager: Dict[str, float] = {}
+    for stoff, menge in (vorraete or {}).items():
+        wert = _als_zahl(menge)
+        lager[str(stoff)] = max(0.0, wert)
+
+    if str(ausgang or "") != "angreifer":
+        return {}, lager
+
+    beute_werte = dict(beute_staffel(einheiten_des_siegers, lager,
+                                    wall_zustand_vor=wall_zustand_vor,
+                                    verteidiger_uebrig=verteidiger_uebrig))
+    for stoff, menge in beute_werte.items():
+        lager[stoff] = round(max(0.0, lager.get(stoff, 0.0) - float(menge)), 2)
+    return beute_werte, lager
 
 
 def beute(einheiten_des_siegers: Dict[str, int],

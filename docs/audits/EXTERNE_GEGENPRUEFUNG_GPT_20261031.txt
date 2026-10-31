@@ -1,0 +1,185 @@
+﻿# Externe Gegenprüfung – Nebelseetal Remake
+
+**Prüfdatum:** 31.10.2026  
+**Geprüfter öffentlicher Stand:** `main`, Commit `954097aa19696e813b2ed875081ac121c6473574` (28.10.2026).  
+**Prüfauftrag:** `AUFTRAG_EXTERNE_PRUEFUNG_20261031.md` mit beigefügten Originaltexten in Abschnitt 4.
+
+Geprüft wurden der öffentliche Python-Code, die Datentabellen, das Handbuch und die im Auftrag vollständig überlieferten beiden Forumstexte. Die grundsätzliche Trennung des neueren Kampfsystems von älteren, weiterhin gültigen Zusatzregeln ist sinnvoll. Hauptkritik: Der zentrale Auftragskern verwendet bei der Wallprüfung Angriffswerte AT, der tatsächliche Kampf dagegen Schlagkraft SK, sodass Auftrag und Schlacht unterschiedliche Ergebnisse liefern.
+
+**Hinweis zur Zeilenzählung:** Datei-Zeilenangaben entsprechen den `L...`-Markierungen der geprüften Rohtextansicht (nullbasiert). Beim Nachschlagen in einem Texteditor mit 1-basierter Zählung jeweils **+1** verwenden.
+
+**Quellenverzeichnis zur Zeilenprüfung** (für die Rohdatei-Zeilen in den Tabellen):
+- [Handbuch, Volltext](https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/main/docs/original/Spielanleitung_2009_Textfassung.txt)
+- [Aufträge](https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/main/src/auftraege.py)
+- [Kampfsystem](https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/main/src/kampf.py)
+- [Spielebene](https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/main/src/main.py)
+- [Punkte](https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/main/src/punkte.py)
+- [Einheiten-Brücke](https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/main/src/einheiten.py)
+- [Einheiten-Daten](https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/main/data/units.json)
+- [Gebäude-Daten](https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/main/data/buildings.json)
+- [Rohstoff-Daten](https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/main/data/resources.json)
+- [Portalquelle 2006](https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/main/docs/original/Spielanleitung_2005/portal.php.txt)
+- [Weltmodell](https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/main/data/welten.json)
+- Forumstexte „Das Kampfsystem“, „Wissenswertes“ und die Original-Hintergrundgeschichte: wörtlich in Prüfauftrag Abschnitt 4.1, 4.2 bzw. 4.3.
+
+## Befundtabelle
+
+| Nr. | Bereich | Befund | Beleg im Remake (Datei:Zeile) | Beleg in Quelle (Dokument + Stelle) | Urteil | Empfehlung | Aufwand |
+|---|---|---|---|---|---|---|---|
+| 1 | Sieg | Die 300-Gesamtpunkte-Siegbedingung ist weiter aktiv, obwohl laut Auftrag verworfen. | `src/main.py:803–817`; `src/punkte.py:184–207` | Handbuch S. 3, Z. 46–55: individuelle Ziele; 300 als Schutzschwelle S. 6, Z. 208–224 | WIDERSPRUCH | Automatischen 300-Punkte-Sieg nicht anwenden | S |
+| 2 | Wallprüfung | Auftragsvorprüfung summiert AT, Kampf prüft SK. Eine Bürgerwehr hat AT20, SK1; Erdwall benötigt SK10. | `src/auftraege.py:108–110,245–254`; `src/kampf.py:175–190`; `data/units.json:17–28` | Handbuch S.21, Z. 1185–1237 | WIDERSPRUCH | Einheitliche, zeitgleiche SK-Prüfung | M |
+| 3 | Spionage | Keine fünfte Auftragsart im zentralen Auftragskern. | `src/auftraege.py:40–42,194–207` | Handbuch S.24, Z. 1319–1334 | FEHLT | Spionage mit Rückkehrbericht als Auftrag | M |
+| 4 | Reisekosten | Kostendiktat bleibt leer. | `src/auftraege.py:267–285` | Handbuch S.20, Z. 1165–1175 | FEHLT | Kostenmodell beschließen; Gold/Nahrung/Mana unterscheiden | M |
+| 5 | Mauerzeitpunkt | Mauerprüfung bei Auftragserteilung kann Mission vor Reise stoppen. | `src/auftraege.py:244–255`; `src/main.py:1734–1738` | Handbuch S.21, Z. 1185–1194 | WIDERSPRUCH | Verbindlich bei Ankunft prüfen | M |
+| 6 | Plünderung | Spielerbeute wird verbucht, aber keine entsprechende Abbuchung beim Ziel im sichtbaren Kampfpfad; Botraub zieht Zielvorräte ab. | `src/main.py:1737–1745,1781–1853,2032–2037` | Handbuch S.23, Z. 1307–1315 | WIDERSPRUCH | Lagertransaktion beidseitig durchführen | M |
+| 7 | Mana | 5/1 (`resources.json`) und 8/2 (`buildings.json`) gleichzeitig als Produktionsrate. | `data/resources.json:59–64`; `data/buildings.json:66–76` | Handbuch S.10, Z. 340–342 und „Wissenswertes“ 4.2, Mana-Produktion | DOPPELT | Daten auf maßgebende Quellenfassung ausrichten | S |
+| 8 | Kampfwerte | Kämpfer 2–20 im ersten Forumstext, 4–22 in „Wissenswertes“ und Code; zeitliche Quellenrangfolge nicht extern nachgewiesen. | `src/kampf.py:21–42` | Originaltexte 4.1 und 4.2 des Auftrags | UNBELEGT | Datierung/Quellenhierarchie prüfen | S |
+| 9 | Turmabschirmung | Code zieht 30 Prozentpunkte ab; Forum nennt 30 % Abschlag auf Fernkampfwert. | `src/kampf.py:194–216` | „Das Kampfsystem“ 4.1 | UNBELEGT | Prozentpunkt vs. Prozent ausdrücklich entscheiden | S |
+| 10 | Mauermalus | Lineare Interpolation mit Wallzustand ist ohne Formel in Originalquelle aktiv. | `src/kampf.py:201–215` | „Das Kampfsystem“ 4.1 | ERFUNDEN | Als VORSCHLAG kennzeichnen | S |
+| 11 | Schützenrückzug | 20 % der Anfangszahl aufgerundet statt offener 20-%-Angabe pro Sequenz. | `src/kampf.py:235–246` | „Das Kampfsystem“ 4.1 | UNBELEGT | Bezugsbasis und Rundung entscheiden | S |
+| 12 | Beuteanteil | 50-%-Vorschlag im Auftragskern, reale Kampfbeute von Karrenladung und Lagerverteilung bestimmt. | `src/auftraege.py:59–62,160–167`; `src/kampf.py:112–126,294–295` | Handbuch S.23, Z. 1307–1309 | DOPPELT | Nur eine verbindliche Formel | M |
+
+## A. Kampf
+
+### A1. Regeltabelle
+
+| Kampfschritt | Gilt | Quelle | Art |
+|---|---|---|---|
+| Wallvorrunde | SK der Fußtruppen und ab höheren Wallstufen Belagerungs-SK; Schwellen proportional zum bestehenden Zustand | Handbuch S.21, Z.1185–1237 + Forum 4.1 | ZUSAMMENFÜHRUNG |
+| Mauerschaden | Pro Belagerungsgerät `max(0, Wurf − Wallstufe)`; Schussvorrunden erst mit bisherigem Zustand, Schaden danach für Folgeschlachten | Handbuch S.21–22, Z.1238–1250 + Forum 4.1 | belegt |
+| Fernkampf | `Wallstufe + 1` Vorrunden, Bogenbau +2 %/Stufe, Turmschutz; Mauerabzug | Forum 4.1 | belegt; konkrete Malus-Interpolation VORSCHLAG |
+| Nahkampf | Schwächere Angreifer zuerst, Zufallsziel, Kampfwert aus Spanne, Forschung, Rüstung, Erschöpfung | Forum 4.1 | belegt |
+| Erschöpfung | 1/2/3/4 Fernkampfschaden; Stufen zur Kampfunfähigkeit; Sieger +2 Erschöpfung | Forum 4.1 | belegt |
+| Flucht | Pro Nahkampfsequenz 20 % stärkere Angreiferschützen zuerst; Konstitutionsprobe bei Überrennen | Forum 4.1 | belegt; Rundung VORSCHLAG |
+| Ausgang | Bis alle Angriffsnahkämpfer oder Verteidiger ausscheiden, spätestens zehn Sequenzen | Forum 4.1 | belegt |
+| Beute | Nur bei Angreifersieg mit Transportkarren | Handbuch S.23, Z.1307–1309; im Forum nicht geregelt | ZUSAMMENFÜHRUNG |
+| Geräteverlust | Verlierer hat pro Gerät `40 % + 5 Prozentpunkte je Sequenz` Fluchtchance | Handbuch S.23, Z.1311–1315; im Forum nicht geregelt | ZUSAMMENFÜHRUNG |
+| Punkte | Forschung ΣStufe³; Krieg Einheitspunkte + ΣWallstufe³; Gesamt = (Krieg + Forschung)/2 | Handbuch S.4–6, Z.114–196; „Wissenswertes“ 4.2 | belegt |
+
+Die älteren LE/AT/PA/MU-Zweikämpfe nicht zusätzlich zu den neueren Konstitutions- und Erschöpfungsmechaniken ausführen.
+
+### A2. Drei Alternativen
+
+| Weg | Vorteil | Nachteil, was verloren geht | Aufwand | Spielgefühl bei ×180 | Quellenkonflikt |
+|---|---|---|---|---|---|
+| Vollständig Handbuchsystem | Einheitliche alte Parameter | Neuere Forumsteile einschließlich Schützenvorrunden fallen weg | M | Traditionell, wenig differenziert | Ja |
+| Nur neues Forumssystem | Einheitlicher neuer Kern | Beute, Geräteverlust, Punkte müssen entfallen oder neu erfunden werden | M | Direkt, aber unvollständig | Ja |
+| Neuer Forumskampf plus ältere Nebenregeln | Beinahe alle belegten Mechaniken bleiben | Zusammenführung und Wertepriorität dokumentieren | M | Strategische Belagerung und vollständiger Kampf | Nein bei sauberer Trennung |
+
+**Empfehlung:** Dritter Weg; er verhindert Regelmischung in den Zweikämpfen, erhält aber ursprüngliche Zusatzmechaniken.
+
+### A3. Beutevarianten
+
+**Originaltreu:** `B = 1[Angreifersieg] × min(Karrenladung, aktueller Ziellagerbestand)`. Im Original ist eine zerstörte Mauer keine zwingende Bedingung für Beute.
+
+**VORSCHLAG gestaffelte Belagerungsbeute:** Wallzustand VOR Kampf >75 % → 0 %; 25–75 % → 25 %; >0–25 % → 60 %; 0 % → 100 %.
+
+`B = 1[Angreifersieg] × min(K, floor(p(W) × ΣL_i))`; `W`: Wallzustand davor; `K`: Karrenladung; `L_i`: lokale verfügbare Rohstoffe. Bei noch kampffähigen Verteidigern ist ein Angreifersieg ausgeschlossen. Überlebende *kampfUNfähige* Verteidiger schließen ihn nicht aus. Bei `K=400`, Lager 1.000 erhält ein Sieger gegen 100-%-Wall 0, gegen 60-%-Wall 250, gegen 20-%-Wall maximal 400. Vorteil: Angriffsstaffel und Belagerungsnutzen; Nachteil: bewusster Widerspruch zum ursprünglichen Beuterecht; Aufwand M. Nach einem Angriff muss die erbeutete Menge auch am Ziel abgezogen werden.
+
+## B. Wegzeiten, Kosten und Portal
+
+### B1. Drei Formeln (jeweils eine Strecke)
+
+`d`: Felder, `GS`: Einheiten-Geschwindigkeit, Dauer in Spielstunden. Bei ×180 gilt: **1 Spielstunde = 20 reale Sekunden**.
+
+| Formel | 6 Felder, GS5 | 6 Felder, GS35 | 16 Felder, GS5 | 16 Felder, GS35 | 32 Felder, GS5 | 32 Felder, GS35 |
+|---|---|---|---|---|---|---|
+| `T1=d/GS` (aktueller VORSCHLAG) | 1,200 h / 24 s | 0,171 h / 3,4 s | 3,200 h / 64 s | 0,457 h / 9,1 s | 6,400 h / 128 s | 0,914 h / 18,3 s |
+| `T2=4d/GS` (VORSCHLAG) | 4,800 h / 96 s | 0,686 h / 13,7 s | 12,800 h / 256 s | 1,829 h / 36,6 s | 25,600 h / 512 s | 3,657 h / 73,1 s |
+| `T3=0,5+3d/GS` (VORSCHLAG) | 4,100 h / 82 s | 1,014 h / 20,3 s | 10,100 h / 202 s | 1,871 h / 37,4 s | 19,700 h / 394 s | 3,243 h / 64,9 s |
+
+- T1: Vorteil vorhanden, Aufwand S; Nachteil schnelle Reisen von wenigen Sekunden, schwaches Distanzgefühl.
+- T2: Vorteil taktisch unterscheidbare Entfernung und langsame Transporte, Aufwand S–M; Nachteil Wartezeit bei weiten Strecken.
+- T3: Vorteil Grundzeit auch bei kurzen Strecken, Aufwand S–M; Nachteil erfundene fixe Zusatzzeit.
+- Empfehlung **T2** als explizit zu testender VORSCHLAG, keine Originalformel.
+
+### B2. Kosten
+
+Handbuch S.20, Z.1165–1175: Gold und Nahrung abhängig von Einheiten; langsamer bedeutet weniger Gold und mehr Nahrung; fremdes Ziel erfordert entfernungsabhängiges Mana. Keine Zahlenformel ist belegt. Portalquelle `portal.php.txt`, Z.5–13: **Mana pro Portalaktivierung, unabhängig von der Zahl der Truppen**.
+
+VORSCHLAG: `q`=Tempo 0,1...1,0, `c_e`=noch zu beschließender Kostenfaktor der Einheit (Beispiel 1). Gold je Einheit/Strecke `ceil(c_e*d*q/2)`, Nahrung je Einheit/Strecke `ceil(c_e*d/(2q))`. Für d16, q1: 8 Gold/8 Nahrung; q0,5: 4 Gold/16 Nahrung. Die Reisedauer bei Drosselung ist `4d/(GS*q)`. Das Modell für Kosten der Rückreise ist **nicht belegt**.
+
+Mana je fremder Welt-Aussendung: `ceil(10*sqrt(dx²+dy²)+100×I(dz≠0))` ist lediglich ein VORSCHLAG; innerhalb eigener Siedlungen 0 Portal-Mana. X/Y betreffen Koordinaten innerhalb einer Dimension, Z die Dimension, nicht einfach zwanzig auf einem 10×10-Raster verteilte Dimensionspunkte.
+
+### B3. Portal
+
+**Korrektur:** 5.000 Mana bezahlen laut Portalquelle Z.22–26 nicht „einen Weltwechsel“ der Truppen, sondern eine Verschiebung der EIGENEN Weltposition, maximal einmal je 24 Spielstunden, bezahlt aus EINER Siedlung.
+
+| Variante | Vorteil | Nachteil | Aufwand | Empfehlung |
+|---|---|---|---|---|
+| 20 Dimensionen, je 20×20 Positionen; wenig besetzte Welten; originale Weltverschiebung | Größte Quellentreue | Viel Leeraum | L | Nur bei bewusst gewünschtem Koordinaten-Spiel |
+| Wenige aktive Bot-Welten als Zielorte; Limbus mit 20 Dimensionen bleibt sichtbar; Mana je Reise; 5.000-Mana-Weltverschiebung optional | Gute Einzelspieler-Dichte bei erkennbarer Portalmechanik | Alte Platzfülle entfällt | M | **Bevorzugt** |
+
+Bei 8 Mana/Stunde (spätere Forumstabelle) braucht ein einzelner Nebelsee-Tempel für 5.000 Mana 625 Spielstunden = **3 h 28 min 20 s real**; bei 2 Mana/Stunde 2.500 Spielstunden = **13 h 53 min 20 s real**. Keine Startwerte/Forschungsboni eingerechnet. Als Pflichtpassage für gewöhnliche Reisen ungeeignet.
+
+## C. Balance ×180 und Laufabschluss
+
+| Größe | Original / belegter Wert | Reale Wirkung ×180 | Urteil |
+|---|---|---|---|
+| Uhr | 180 Spielsekunden pro Echtsekunde | 1 Spielstunde = 20 s, 1 Spieltag = 8 min | spielbar |
+| Holzfäller Wald | 4 Holz/Spielstunde | 1 Holz/5 s | spielbar |
+| Holzfäller Steppe | 2 Holz/Spielstunde | 1 Holz/10 s | spielbar |
+| Farm Grasland | 4 Nahrung/Spielstunde | 1 Nahrung/5 s | spielbar |
+| Mana Nebelsee | 8 laut „Wissenswertes“, 5 Handbuch | 1 Mana/2,5 s bzw. 4 s | spielbar, Quellenentscheidung erforderlich |
+| Siedler | 1/Spielstunde | 1 alle 20 s | spielbar |
+| Anfangsgrenze Siedler | 5 laut „Wissenswertes“, 10 laut Handbuch; +5/Haus | Begrenzung schnell erreicht | Urteil offen |
+| Forschung neue Stufe 1/2/3 | 1/4/9 Spielstunden | 20 s / 1:20 min / 3 min | spielbar |
+| Forschung neue Stufe 5/10 | 25/100 Spielstunden | 8:20 min / 33:20 min | zäh |
+| Forschung nacheinander 1–10 | Σn² = 385 Spielstunden | 2 h 8 min 20 s ohne Ressourcenwartezeit | zäh |
+| Forschungskosten | pro Stufe Verdopplung | 50 Holz bei Stufe 1 bedeutet 25.600 Holz bei Stufe 10 | potentiell unspielbar mit nur einem Produzenten |
+| Götterschutz | Max. 7 Spieltage, endet mit erstem Kriegspunkt früher | Max. 56 min | spielbar bei Bot-Regeltreue |
+| Weltverschiebung | 5.000 Mana, alle 24 Spielstunden maximal einmal | 8 min Zeitlimit vs. mehrere Stunden Manaaufbau | zäh, als Pflichtpassage unspielbar |
+| Punkte | Wallstufe³ + Einheitspunkte; Forschung ΣStufe³; Mittelwert | Wallstufe 9 liefert allein 729 Kriegspunkte, insgesamt mindestens 364 Punkte | spielbar als Messzahl, nicht als Siegbedingung |
+
+**Drei Endmodelle:**
+1. **Persönliche Chronik/Auszeichnungen**, jederzeit beendbar und weiter spielbar: Vorteil drei Originalrollen ohne festen Sieg; Nachteil weniger klarer Endpunkt; Aufwand M; empfohlen.
+2. **Zeitwertung nach 14 Spieltagen = 1 h 52 min real**, dann freiwillig weiter: Vorteil Läufe vergleichbar; Nachteil Zeitlimit neu erfunden und hohe Forschung benachteiligt; Aufwand M.
+3. **Geschichtenkampagne mit Abschlussauftrag**: Vorteil starkes narratives Ziel; Nachteil viele neue Inhalte und stärkster Eingriff in das offene Original; Aufwand L.
+
+**Kennzahlen zur Chronik:** Forschung ΣStufe³, Krieg ΣEinheitenpunkte+ΣWallstufe³, Gesamtmittelwert (Original); Zahl Siedlungen bis max. sechs und Ertrag je Spielstunde (Originalwerte); erfolgreiche Handelsaufträge, gehandelte Menge/Gold, siegreiche/abgewehrte Kämpfe, geraubte Vorräte, Verluste (neue AUSWERTUNGEN bestehender Aktionen, keine neuen Originalpunktarten).
+
+**Fehlende Daten:** durchgespielter Lauf mit Zeit bis erster Siedlung, erster Mauer, erster Bot-Begegnung und Stufe 10, Zahl paralleler Gebäude, wirkliche Lagerstände, Bot-Angriffshäufigkeit, Startressourcen und zugehörige Forschungsboni. Deshalb Balanceurteile nur indikativ.
+
+## D. Antrieb und Originallegende
+
+**Originalantrieb (sechs belegte Mechaniken):** Ruhmeshalle/Punkte (Handbuch S.4–6), Gilden/Diplomatie (S.2–4), Kampf/Spionage/Beute (S.21–24), Handel/Karawanen (S.19–20), Forschungen/Freischaltungen (S.12–14), Siedlungsgründung/Portal (S.3, 7–8). 
+
+| VORSCHLAG für Einzelspieler | Belegte Grundlage | Vergleichsmaßstab ohne Menschen | Aufwand |
+|---|---|---|---|
+| Bot-Ruhmeshalle | Original-Gesamtpunkte | Eigene Punkte gegen faire Bots | M |
+| Militärische Rivalen | Spionage, Angriff, Wall, Kampfbericht | Bot-Ziel erkunden, abwehren, besiegen | M |
+| Händlerlaufbahn | Produktion, Waren, Karawanen | abgeschlossene Aufträge, Gewinn und Versorgung | M |
+| Forschungsverlauf | Bibliothek/Freischaltungen | eigenes Fortschrittsprotokoll | S |
+| Limbus-Erkundung | Weltportal, Siedeln, Gelände | erreichte Orte und erschlossene Welten | M–L |
+
+**Wo das nicht trägt:** Bots ersetzen keine menschlichen Bündnisse; Ranglistenwerte ohne glaubwürdig wachsende Gegenspieler werden künstlich; wenige Bots begrenzen echte wirtschaftliche Nachfrage.
+
+**Legenden-Gerüst, ausschließlich Originalbausteine, unter 250 Wörtern:**
+
+**Belegt verwendet:**
+1. Die drei göttlichen Drachenbrüder Epheus, Tardas und Salmur erschaffen ein friedliches Nebelseetal und lassen die Völker darin leben und handeln.
+2. Salmur will weiter gestalten und verschenkt die bisher göttliche Magie an die Bewohner. Diese beherrschen sie nicht.
+3. Magie, Krieg und Verwüstung reißen die einstige Welt auseinander. Kontinente versinken; getrennte Welten entstehen, Völker verändern sich.
+4. Im Limbus verbinden magische Korridore und Portale die Bruchstücke der alten Welt.
+5. Die Landschaft bleibt wandelbar: Berge, Wald und Sümpfe verändern sich, bis Menschen an einem Ort siedeln.
+6. Epheus’ Tränen schaffen die Nebelseen, Salmur sieht sein Werk, Tardas kehrt zurück. Neue Herrscher beginnen ihr Zeitalter.
+
+**Neu erfunden:** Für das eigentliche Gerüst nichts. Eine neue Rahmenfigur, neue Missionen und Dialoge wären ein **VORSCHLAG** und gesondert zu kennzeichnen; die Originalgeschichte selbst sollte im Spiel unverändert zitiert werden. Quelle: Prüfauftrag Abschnitt 4.3, Website-Archiv 11.09.2007.
+
+**Die eine Frage:** Soll ein Erfolg als abgeschlossenes Abenteuer erlebt werden, oder als selbstbestimmter Reichsaufbau ohne verbindliches Ende?
+
+## Was nicht geprüft werden konnte
+
+1. Lokales Prüfregister `docs/PRUEFREGEL_ORIGINAL.md` und lokale Widerspruchsanalyse: nicht einsehbar.
+2. Lokale Entwürfe, Prüfberichte und Bewegungssystem-Landkarte aus Abschnitt 3.2: nicht einsehbar.
+3. Behaupteter Commit der Nacht 30./31.10.2026: öffentlich nicht sichtbar; ausgewertet wurde 28.10.2026.
+4. Tatsächliche Laufzeit- und Balancewirkung: kein vollständiger Spieltest mit repräsentativen Spielständen.
+5. Zeitliche Priorität der beiden Forumstabellen und exakte mathematische Bedeutung von Prozent-Mali: nicht abschließend belegbar.
+
+## Drei wichtigste Maßnahmen – nach Wirkung sortiert
+
+1. **Wall- und Beuteregeln konsistent machen:** dieselbe SK-Basis und aktuelle Zielzustände verwenden; plündernde Spieler dürfen keine Ressourcen aus dem Nichts erhalten.
+2. **Originaltreue sichern:** den verworfenen 300-Punkte-Sieg entfernen, Spionage als belegte Auftragsart berücksichtigen und Quellenkonflikte bei Kampf- und Produktionswerten explizit entscheiden.
+3. **Einzelspielerbalance festlegen:** Reisezeit, Kosten, Portal und freiwilliges Laufende als dokumentierte VORSCHLÄGE anhand eines vollständigen ×180-Testlaufs bewerten.
+
+**Status:** unabhängiges Arbeitspapier; keine Freigabe und keine Änderung am Projektcode vorgenommen.
