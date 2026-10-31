@@ -17,8 +17,8 @@ for name,wert in profile.items():
 check('15 Kampfprofile vollständig',len(kampf.PROFILE)==15)
 check('Modellversion dokumentiert', 'GPT-NE01' in kampf.STAND)
 
-abschnitt('B. Originalerträge, Quelle Wissenswertes S. 4')
-for geb,art,soll in [('tempel','nebelsee',8),('tempel','wald',2),('tempel','grasland',2),
+abschnitt('B. Originalerträge (Tempel aus Handbuch 2009 = 5/1, Entscheidung 31.10.2026; uebrige aus Wissenswertes S. 4)')
+for geb,art,soll in [('tempel','nebelsee',5),('tempel','wald',1),('tempel','grasland',1),
                       ('rinderfarm','grasland',{'Nahrung':1,'Leder':3}),
                       ('rinderfarm','steppe',{'Nahrung':0.5,'Leder':1.5})]:
     check(f'{geb}/{art}: {soll}', G.ertrag_pro_stunde(geb,art)==soll)
@@ -43,7 +43,7 @@ for geb,art_idx,raw,plus in [('farm',2,4,5.2),('holzfaeller',0,4,4.8)]:
 e=W.ertrag_gesamt([Dorf({'0':'jaeger','2':'farm','3':'rinderfarm','6':'tempel'})],levels)
 check('gemischte Nahrung 2 + 5.2 + 1 (nicht alles auf einmal mal 1.3)',e.get('Nahrung')==8.2,str(e))
 check('gemischtes Leder 2 + 3*1.2',e.get('Leder')==5.6,str(e))
-check('Tempel 8 * 1.05',e.get('Mana')==8.4,str(e))
+check('Tempel 5 * 1.05 (Handbuch 2009; 8/2 war die aeltere Forum-Fassung, Entscheidung 31.10.2026)',e.get('Mana')==5.25,str(e))
 check('Aufruf ohne Forschung unverändert', W.siedlung_ertrag(Dorf({'0':'jaeger'}))['Nahrung']==2)
 
 abschnitt('D. Historische Rangliste vom 31.08.2011')

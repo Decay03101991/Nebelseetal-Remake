@@ -312,6 +312,7 @@ def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
 
     # -------------------------------------------------------------- art-spezifische Regeln
     zusatz: Dict[str, Any] = {}
+    warnungen: List[str] = []    # Hinweise, die den Auftrag NICHT verhindern (z. B. Wallpruefung)
     if art == "stationieren":
         if ziel.get("fremd"):
             return False, ("Stationieren ist in fremden Siedlungen nicht moeglich "
@@ -332,9 +333,18 @@ def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
         if ziel.get("wall_stufe") is not None:
             vr = KB.vorrunde(fuss, bel, _als_int(ziel.get("wall_stufe")),
                              _als_zahl(ziel.get("wall_zustand_prozent"), 100.0))
-            if not vr.get("bestanden"):
-                return False, str(vr.get("grund") or "Die Vorrunde wurde nicht bestanden.")
             zusatz["vorrunde"] = vr
+            if not vr.get("bestanden"):
+                # ENTSCHEIDUNG Daniel 31.10.2026 (Frage 8): Die Wallpruefung gehoert zum KAMPF
+                # (Handbuch S. 21: "Bevor ein Kampf stattfindet ..."), nicht zur Auftragserteilung.
+                # Frueher wurde der Auftrag hier abgelehnt - dadurch entschied der Wallstand beim
+                # Absenden, obwohl er sich bis zur Ankunft aendern kann. Jetzt startet der Auftrag
+                # mit einer Warnung; entschieden wird bei Ankunft (`kampf.fuehre_schlacht` prueft
+                # dieselbe Schlagkraft-Schwelle).
+                warnungen.append(
+                    "WARNUNG: die Schlagkraft reicht am Ziel vermutlich nicht - "
+                    + str(vr.get("grund") or "die Vorrunde wuerde nicht bestanden.")
+                    + " Der Auftrag startet trotzdem; entschieden wird bei Ankunft.")
             if isinstance(ziel.get("vorraete"), dict):
                 # VORGABE Daniel 31.10.2026 (Registerpunkt 45): gestaffelte Beute nach Wallzustand
                 # und Verteidigern, statt pauschalem Anteil. Werte sind VORSCHLAG.
@@ -379,6 +389,7 @@ def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
         "ladung": ladung,
         "kosten": dict(kosten),           # VORSCHLAG-Saetze aus A2, siehe kosten_der_mission
         "beute": dict(zusatz.get("beute") or {}),
+        "warnungen": list(warnungen),
         "vorrunde": zusatz.get("vorrunde"),
         "rueckgut": {},
         "gold_verdient": 0,
@@ -394,9 +405,12 @@ def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
         eintrag["fracht"] = {}                              # verkauft: Waren bleiben am Ziel
 
     liste.append(eintrag)
-    return True, (f"Auftrag '{art}' von {start_name} nach {ziel_name} gestartet "
-                  f"(Reisezeit {reisezeit / 3600.0:.2f} h je Strecke, "
-                  f"Rueckkehr nach {rueckkehr / 3600.0:.2f} h).")
+    meldung = (f"Auftrag '{art}' von {start_name} nach {ziel_name} gestartet "
+               f"(Reisezeit {reisezeit / 3600.0:.2f} h je Strecke, "
+               f"Rueckkehr nach {rueckkehr / 3600.0:.2f} h).")
+    if warnungen:
+        meldung += " " + " ".join(warnungen)
+    return True, meldung
 
 
 # ------------------------------------------------------------------------ fortschritt

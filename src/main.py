@@ -3234,6 +3234,12 @@ class NebelseetalApp:
                             bg=self.skin["sidebar"], font=("Arial", 9))
             _lbl.pack(anchor=tk.W, padx=12)
             self.punkte_labels[_name] = _lbl
+        # Auszeichnungen statt Siegziel (E5, Paket A3): zwei schmale Zeilen unter den Punkten.
+        for _key in ("Auszeichnungen_1", "Auszeichnungen_2"):
+            _lbl = tk.Label(self.punkte_leiste, text="-", fg=self.skin["text"],
+                            bg=self.skin["sidebar"], font=("Arial", 8))
+            _lbl.pack(anchor=tk.W, padx=12)
+            self.punkte_labels[_key] = _lbl
         self._punkte_leiste_aktualisieren()
 
         tk.Frame(left, height=16, bg=self.skin["sidebar"]).pack()
@@ -3369,7 +3375,12 @@ class NebelseetalApp:
             self.menu_buttons[item] = btn
 
     def _punkte_leiste_aktualisieren(self):
-        """Zieht "Eure Punkte" in der Seitenleiste nach (EINE Quelle: `state.punktestand()`)."""
+        """Zieht "Eure Punkte" in der Seitenleiste nach (EINE Quelle: `state.punktestand()`).
+
+        Seit E5 (Daniel 31.10.2026) haengt darunter die Bewertung: vier Auszeichnungen aus
+        `punkte.auszeichnungen` (Paket A3). Es gibt keinen Sieg mehr, also ist das die
+        Rueckmeldung, worauf der Lauf zulaeuft - zwei Zeilen, damit die Leiste schmal bleibt.
+        """
         labels = getattr(self, "punkte_labels", None)
         if not labels:
             return
@@ -3386,6 +3397,25 @@ class NebelseetalApp:
                     knopf.config(text=f"{name}: {wert}")
                 except Exception:
                     pass
+        # Auszeichnungen (E5, A3): Kennzahlen belegt, Namen VORSCHLAG. Reine Anzeige.
+        zwei = labels.get("Auszeichnungen_1")
+        vier = labels.get("Auszeichnungen_2")
+        if zwei is None or vier is None:
+            return
+        try:
+            werte = {a["name"]: a["wert"] for a in punkte.auszeichnungen({
+                "forschungsstaende": {k: int(v.level) for k, v in self.state.research.items()},
+                "einheiten": {k: int(v.count) for k, v in self.state.units.items()},
+                "wall_stufe": max([0] + [int(self.wall_stufe_am_ort(o))
+                                         for o in self.state.settlements]),
+            })}
+        except Exception:
+            return
+        try:
+            zwei.config(text=f"Feldherr {werte.get('Feldherr', 0)} · Forscher {werte.get('Forscher', 0)}")
+            vier.config(text=f"Händler {werte.get('Händler', 0):g} · Gesamt {werte.get('Gesamtherrscher', 0)}")
+        except Exception:
+            pass
 
     def _ebene_wechseln(self, ebene: str):
         """Schaltet zwischen "Uebersicht" und "Siedlung" um (wie das Aufklappmenue im Original).

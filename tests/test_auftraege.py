@@ -185,11 +185,20 @@ check("die Ablehnung nennt die Schlagkraft", "Schlagkraft" in _ang[1], _ang[1])
 check("die Ablehnung nennt die Vorrunde", "Vorrunde" in _ang[1], _ang[1])
 
 # Angriff gegen einen Wall unterhalb der belegten Schwelle.
+# ENTSCHEIDUNG Daniel 31.10.2026 (Frage 8): Die Wallpruefung gehoert zum KAMPF (Handbuch S. 21
+# "Bevor ein Kampf stattfindet"), nicht zur Auftragserteilung. Der Auftrag startet jetzt mit
+# einer WARNUNG; entschieden wird bei Ankunft (dort prueft kampf.fuehre_schlacht dieselbe SK).
 _ziel_wall = {"name": "Feind", "wall_stufe": 4, "wall_zustand_prozent": 100.0}
-_sw = A.starten(_ab, "angreifen", {"Kämpfer": 1}, "H", _ziel_wall, 10, 0)
-check("Angriff unter der Wall-Schwelle wird abgelehnt", _sw[0] is False, _sw[1])
-check("die Ablehnung nennt die Schwelle 160 des Walls Stufe 4", "160" in _sw[1], _sw[1])
-check("der Angriff reicht gegen Wall Stufe 1 (Schwelle 10) und startet",
+_wall_liste: list = []          # eigene Liste: die Ablehnungs-Zaehlung weiter unten bleibt frei
+_sw = A.starten(_wall_liste, "angreifen", {"Kämpfer": 1}, "H", _ziel_wall, 10, 0)
+check("Angriff unter der Wall-Schwelle startet, aber mit Warnung", _sw[0] is True, _sw[1])
+check("die Warnung nennt die Schwelle 160 des Walls Stufe 4", "160" in _sw[1], _sw[1])
+check("die Warnung sagt, dass erst am Ziel entschieden wird",
+      "Ankunft" in _sw[1] or "Ziel" in _sw[1], _sw[1])
+check("der Auftrag traegt die Warnung in seiner Liste",
+      bool(_wall_liste and (_wall_liste[-1].get("warnungen") or [])),
+      str(_wall_liste[-1].get("warnungen") if _wall_liste else None))
+check("der Angriff reicht gegen Wall Stufe 1 (Schwelle 10) und startet ohne Warnung",
       A.starten(A.neue_liste(), "angreifen", {"Kämpfer": 5}, "H",
                 {"name": "Feind", "wall_stufe": 1}, 10, 0)[0] is True)
 # 5 Kaempfer = SK 10: seit die Vorrunde mit SK rechnet (Befund 2 der externen Gegenpruefung),
@@ -450,8 +459,8 @@ check("zwei Kämpfer bringen nicht das Vierzigfache (AT-Fehler waere hier)",
 _liste3: list = []
 _ok3, _m3 = A.starten(_liste3, "angreifen", {"Bürgerwehr": 1}, "A",
                       {"name": "B", "wall_stufe": 5}, 16, 1000)
-check("eine Bürgerwehr (SK 1) besteht die Vorrunde an Wallstufe 5 NICHT mehr",
-      not _ok3, f"ok={_ok3} / {_m3}")
+check("eine Bürgerwehr (SK 1) startet auch an Wallstufe 5, aber mit Warnung (Frage 8)",
+      _ok3 and "WARNUNG" in _m3, f"ok={_ok3} / {_m3[:120]}")
 
 
 sys.exit(bericht())

@@ -114,24 +114,42 @@ def _kurz(werte: Optional[dict]) -> str:
 # ------------------------------------------------------------------ 1. neue Bots
 
 def bot_punkte(bot: dict) -> int:
-    """Kriegspunkte eines Bots aus SEINEN Werten, nach der belegten Formel.
+    """GESAMTPUNKTE eines Bots nach den belegten Formeln - dieselbe Skala wie beim Spieler.
 
-    BELEGT (Handbuch 2009, Seite 5; Registerpunkt 46): Kriegspunkte = Summe der Punktewerte
-    aller Einheiten + Wallstufe hoch drei. Bots haben im Remake keinen eigenen Wall
-    (`wall_stufe` fehlt oder ist 0), also zaehlen nur die Einheiten.
+    BELEGT (Handbuch 2009, Seiten 4-6; Registerpunkte 31/32): Kriegspunkte = Summe der
+    Einheitenwerte + Wallstufe hoch drei; Forschungspunkte = Summe der Forschungsstufen hoch
+    drei; Gesamtpunkte = (Krieg + Forschung) / 2, abgerundet.
 
-    Vorher war `punkte` ein WUERFELWERT (`rng.randint(0, 300)`). Damit waren Rangliste,
-    Ruhmeshalle und das Goetterschutz-Band gegen Bots reiner Zufall - und `punkte.angreifbar`
-    liess sich darauf nicht anwenden. Diese Funktion ist die EINE Stelle, an der Bot-Punkte
-    entstehen; `wirkung_anwenden` schreibt sie nach jeder Aenderung der Armee fort.
+    Warum Gesamtpunkte und nicht Kriegspunkte (Entscheidung Daniel 31.10.2026, Frage 10):
+    die Ruhmeshalle und das Goetterschutz-Band vergleichen mit `punktestand()['gesamt']` des
+    Spielers. Solange der Bot nur Kriegspunkte fuehrte, wurde Krieg gegen Gesamt verglichen -
+    der Bot erschien doppelt so stark, wie er ist.
+
+    Forschung des Bots: hat er `forschung_stufen` (Stufe je Linie), gilt die belegte Formel
+    direkt. Sonst zaehlt sein Zaehler `geforscht` als EINE Forschungslinie - VORSCHLAG, weil
+    das Handbuch die Bot-Forschung nicht regelt (Bots haben im Remake keine Forschungsstaende).
+
+    Vorher war `punkte` ein WUERFELWERT (`rng.randint(0, 300)`): Rangliste, Ruhmeshalle und
+    Schutzband waren Zufall. Diese Funktion ist die EINE Stelle, an der Bot-Punkte entstehen;
+    `wirkung_anwenden` schreibt sie nach jeder Aenderung fort.
     """
     bot = bot or {}
     armee = bot.get("armee") if isinstance(bot.get("armee"), dict) else {}
     wall = bot.get("wall_stufe", 0)
+    stufen = bot.get("forschung_stufen")
+    if not isinstance(stufen, dict):
+        versuche = bot.get("geforscht", 0)
+        try:
+            versuche = int(versuche)
+        except (TypeError, ValueError):
+            versuche = 0
+        stufen = {"Forschung": versuche} if versuche > 0 else {}
     try:
-        return int(punkte.kriegspunkte(armee, wall))
+        krieg = int(punkte.kriegspunkte(armee, wall))
+        forschung = int(punkte.forschungspunkte(stufen))
     except (TypeError, ValueError):
         return 0
+    return (krieg + forschung) // 2
 
 
 def neue_bots(anzahl: int, rng: Optional[random.Random] = None) -> List[Dict[str, Any]]:

@@ -328,8 +328,8 @@ check("3f farm liefert auf Steppe 2", zahl("farm", "steppe") == 2,
       str(zahl("farm", "steppe")))
 check("3g goldmine liefert auf Berg 3 (bester Goldertrag)",
       zahl("goldmine", "berg") == 3, str(zahl("goldmine", "berg")))
-check("3h tempel liefert auf Nebelsee 8 (bester Manaertrag)",
-      zahl("tempel", "nebelsee") == 8, str(zahl("tempel", "nebelsee")))
+check("3h tempel liefert auf Nebelsee 5 (bester Manaertrag)",
+      zahl("tempel", "nebelsee") == 5, str(zahl("tempel", "nebelsee")))
 
 # Die Datei und der Kern muessen dasselbe sagen.
 _gleich, _ungleich, _rueckfall = [], [], []
@@ -346,17 +346,17 @@ for art in ARTEN:
 check("3i fuer alle ausdruecklich genannten Felder stimmt meine Tabelle mit gelaende.ertrag_pro_stunde",
       not _ungleich, "%d Abweichungen: %s" % (len(_ungleich), _ungleich[:3]))
 
-# Rueckfallschluessel ("alle Gelaende ausser Sumpf", z. B. Tempel 2) muss genau dort greifen.
+# Rueckfallschluessel ("alle Gelaende ausser Sumpf", Tempel 1 - Handbuch 2009, Entscheidung 31.10.2026) muss greifen.
 _alle_keys = [k for k in (GEB["tempel"].get("ertrag_pro_stunde") or {}) if k.startswith("alle")]
 check("3j die Stammdaten nennen fuer den Tempel einen Rueckfall fuer alle Gelaende ausser Sumpf",
-      len(_alle_keys) == 1 and GEB["tempel"]["ertrag_pro_stunde"][_alle_keys[0]] == 2,
+      len(_alle_keys) == 1 and GEB["tempel"]["ertrag_pro_stunde"][_alle_keys[0]] == 1,
       str(_alle_keys))
 _mit_rueckfall = [(g, a, k) for g, a, k in _rueckfall if k is not None]
 _ohne_ertrag = [(g, a) for g, a, k in _rueckfall if k is None]
 _hat_alle = {g for g, _a in _ohne_ertrag
              if any(kk.startswith("alle") for kk in (GEB[g].get("ertrag_pro_stunde") or {}))}
-check("3k der Rueckfall greift nur ausserhalb des Sumpfs und liefert dort 2",
-      bool(_mit_rueckfall) and all(a != "sumpf" and k == 2 for _g, a, k in _mit_rueckfall),
+check("3k der Rueckfall greift nur ausserhalb des Sumpfs und liefert dort 1",
+      bool(_mit_rueckfall) and all(a != "sumpf" and k == 1 for _g, a, k in _mit_rueckfall),
       str(_mit_rueckfall))
 check("3l ohne Rueckfall gibt es keinen Ertrag: entweder Sumpf oder die Stammdaten nennen kein 'alle'-Feld",
       all(a == "sumpf" or g not in _hat_alle for g, a in _ohne_ertrag),
@@ -452,9 +452,9 @@ for _feld, _geb in _bauten.items():
 _soll_felder["holz"] = _soll_felder.get("holz", 0) + GRUNDEINKOMMEN_HOLZ
 _soll_felder["stein"] = _soll_felder.get("stein", 0) + GRUNDEINKOMMEN_STEIN
 
-check("6b Handsumme der 86 Felder = Holz 112, Stein 76, Nahrung 80, Mana 32 (ohne Grundeinkommen)",
+check("6b Handsumme der 86 Felder = Holz 112, Stein 76, Nahrung 80, Mana 20 (ohne Grundeinkommen; Tempel seit 31.10.2026 = 5/1)",
       (_soll_felder["holz"] - GRUNDEINKOMMEN_HOLZ, _soll_felder["stein"] - GRUNDEINKOMMEN_STEIN,
-       _soll_felder["nahrung"], _soll_felder["mana"]) == (112, 76, 80, 32),
+       _soll_felder["nahrung"], _soll_felder["mana"]) == (112, 76, 80, 20),
       "Holz %s, Stein %s, Nahrung %s, Mana %s"
       % (_soll_felder["holz"] - GRUNDEINKOMMEN_HOLZ,
          _soll_felder["stein"] - GRUNDEINKOMMEN_STEIN,
@@ -464,8 +464,8 @@ check("6c das belegte Grundeinkommen der Originalsiedlung ist +1 Holz und +1 Ste
       "%s / %s" % (GRUNDEINKOMMEN_HOLZ, GRUNDEINKOMMEN_STEIN))
 
 _w_ertrag = {k.lower(): v for k, v in W.ertrag_gesamt([_o]).items()}
-check("6d wirtschaft.ertrag_gesamt == Handsumme (Holz 113, Stein 77, Nahrung 80, Mana 32)",
-      _w_ertrag == {"holz": 113.0, "stein": 77.0, "nahrung": 80.0, "mana": 32.0},
+check("6d wirtschaft.ertrag_gesamt == Handsumme (Holz 113, Stein 77, Nahrung 80, Mana 20)",
+      _w_ertrag == {"holz": 113.0, "stein": 77.0, "nahrung": 80.0, "mana": 20.0},
       str(_w_ertrag))
 
 _t1 = O.ort_tick(_o, 0, 3600, {})
@@ -589,7 +589,7 @@ check("8d ein Ort ohne Kartenkennung wird ohne Ausnahme fortgeschrieben",
       isinstance(_tK, dict) and len(_tK["produktionsjournal"]) == 1,
       "Journalzeilen %d" % len(_tK["produktionsjournal"]))
 check("8e ohne Kartenkennung fehlt NUR das Grundeinkommen (Holz 112, Stein 76)",
-      _wK == {"holz": 112.0, "stein": 76.0, "nahrung": 80.0, "mana": 32.0},
+      _wK == {"holz": 112.0, "stein": 76.0, "nahrung": 80.0, "mana": 20.0},
       str(_wK))
 check("8f die Feldertraege selbst bleiben unveraendert (Nahrung und Mana gleich)",
       _wK["nahrung"] == _w_ertrag["nahrung"] and _wK["mana"] == _w_ertrag["mana"],

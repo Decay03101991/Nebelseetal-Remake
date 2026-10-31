@@ -356,13 +356,20 @@ import punkte as P
 
 _leer = {"armee": {}, "punkte": 0}
 check("ein Bot ohne Armee hat 0 Punkte", BK.bot_punkte(_leer) == 0, str(BK.bot_punkte(_leer)))
-check("Punkte entsprechen punkte.kriegspunkte der Armee",
+check("Punkte sind GESAMTPUNKTE((Krieg + Forschung)/2), dieselbe Skala wie beim Spieler",
       BK.bot_punkte({"armee": {"Kämpfer": 2, "Ritter": 1}}) ==
-      P.kriegspunkte({"Kämpfer": 2, "Ritter": 1}, 0),
+      P.gesamtpunkte({}, {"Kämpfer": 2, "Ritter": 1}, 0),
       str(BK.bot_punkte({"armee": {"Kämpfer": 2, "Ritter": 1}})))
-check("eine Wallstufe zaehlt hoch drei mit",
-      BK.bot_punkte({"armee": {}, "wall_stufe": 2}) == 8,
+check("eine Wallstufe zaehlt hoch drei mit, danach halbiert",
+      BK.bot_punkte({"armee": {}, "wall_stufe": 2}) == 4,
       str(BK.bot_punkte({"armee": {}, "wall_stufe": 2})))
+check("Forschung des Bots zaehlt mit: 4 Versuche = Stufe 4 der einen Linie = 64 Krieg-zu-Forschung",
+      BK.bot_punkte({"armee": {}, "geforscht": 4}) == (0 + 4 ** 3) // 2,
+      str(BK.bot_punkte({"armee": {}, "geforscht": 4})))
+check("ausdrueckliche Forschungsstaende schlagen den Zaehler",
+      BK.bot_punkte({"armee": {}, "geforscht": 99, "forschung_stufen": {"A": 2, "B": 1}}) ==
+      (0 + (2 ** 3 + 1 ** 3)) // 2,
+      str(BK.bot_punkte({"armee": {}, "geforscht": 99, "forschung_stufen": {"A": 2, "B": 1}})))
 check("Unsinn in der Armee ergibt 0 statt Absturz",
       BK.bot_punkte({"armee": "kaputt"}) == 0)
 
@@ -378,7 +385,7 @@ _w = BK.wirkung_anwenden({"armee": {}, "punkte": 99}, {"wirkung": {}})
 check("wirkung_anwenden rechnet die Punkte neu (kein Fortschreiben der Wuerfelzahl)",
       _w.get("punkte") == 0, str(_w.get("punkte")))
 _w2 = BK.wirkung_anwenden({"armee": {"Kämpfer": 3}, "punkte": 99}, {"wirkung": {}})
-check("Punkte folgen der Armee", _w2.get("punkte") == P.kriegspunkte({"Kämpfer": 3}, 0),
+check("Punkte folgen der Armee", _w2.get("punkte") == P.gesamtpunkte({}, {"Kämpfer": 3}, 0),
       str(_w2.get("punkte")))
 
 

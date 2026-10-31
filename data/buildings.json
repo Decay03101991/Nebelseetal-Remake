@@ -71,10 +71,10 @@
       "wirkung": "produziert Mana",
       "rohstoff": "Mana",
       "ertrag_pro_stunde": {
-        "Nebelsee": 8,
-        "alle Gelände außer Sumpf": 2
+        "Nebelsee": 5,
+        "alle Gelände außer Sumpf": 1
       },
-      "abweichung": "2009-Handbuch 5/1; neue Quelle WeitereWerteKampfsystem.odt, S.4, 8/2."
+      "abweichung": "ENTSCHEIDUNG 31.10.2026 (Daniel): Handbuch 2009 gilt — 5/1. Die frueher hier gefuehrten 8/2 stammen aus dem aelteren Forumstext 'WeitereWerteKampfsystem' und bleiben nur als Geschichte in data/resources.json ('ertrag_2005') erhalten."
     },
     {
       "id": "farm",
