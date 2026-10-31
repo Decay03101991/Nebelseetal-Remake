@@ -72,6 +72,39 @@ import forschungspfad  # Forschung: was jetzt geht, was blockiert ist und was es
 
 # ---------- Data Models ----------
 
+def rueckmarsch_eintrag(bewegung: dict, jetzt: float) -> dict:
+    """Baut den Bewegungseintrag fuer den Rueckweg einer Truppe - oder gibt None zurueck.
+
+    Regeln (E3, Daniel 31.10.2026, Frage 14):
+      * Der Rueckweg dauert genau so lange wie der Hinweg (Dauer = Ankunft - Start).
+      * Start und Ziel werden getauscht, die Truppen bleiben dieselben.
+      * Ein Rueckmarsch erzeugt KEINEN weiteren Rueckmarsch (kein Kreislauf).
+      * Ohne messbare Dauer (0 oder negativ) gibt es keinen Rueckmarsch - die Truppen sind
+        sofort wieder da (dann bucht der Aufrufer sie direkt ein).
+
+    Rueckgabe: neuer Eintrag (dict) oder None.
+    """
+    if not isinstance(bewegung, dict) or bewegung.get("rueckweg"):
+        return None
+    try:
+        dauer = float(bewegung.get("arrival") or 0.0) - float(bewegung.get("start") or 0.0)
+    except (TypeError, ValueError):
+        return None
+    if dauer <= 0.0:
+        return None
+    return {
+        "from": bewegung.get("to"),
+        "to": bewegung.get("from"),
+        "units": dict(bewegung.get("units") or {}),
+        "start": float(jetzt),
+        "arrival": float(jetzt) + dauer,
+        "map": bewegung.get("map"),
+        "target_bot": None,
+        "tile_key": bewegung.get("from"),
+        "rueckweg": True,
+    }
+
+
 @dataclass
 class Resource:
     name: str
@@ -5810,10 +5843,12 @@ class NebelseetalApp:
             "from": f"{int(start[0])}:{int(start[1])}",
             "to": f"{int(ziel[0])}:{int(ziel[1])}",
             "units": dict(moving),
+            "start": float(self.state.spielsekunden),
             "arrival": float(self.state.spielsekunden) + float(dauer_sekunden),
             "map": self.state.current_map,
             "target_bot": ziel_bot.name if ziel_bot else None,
             "tile_key": f"{int(ziel[0])}:{int(ziel[1])}",
+            "rueckweg": False,
         })
         for u, anzahl in moving.items():
             self.state.units[u].count = max(0, self.state.units[u].count - anzahl)
@@ -7154,10 +7189,23 @@ class NebelseetalApp:
                         report = f"Truppen sind in {m['to']} eingetroffen. Beute: {parts}."
                     else:
                         report = f"Truppen sind in {m['to']} eingetroffen."
-                # FIX 5b: Truppen kehren nach Mission zurueck
-                for u, c in m.get("units", {}).items():
-                    if u in self.state.units:
-                        self.state.units[u].count += c
+                # E3 (Daniel 31.10.2026, Frage 14): Truppen sind nach der Ankunft NICHT sofort
+                # wieder verfuegbar - sie marschieren dieselbe Strecke zurueck (gleiche Dauer wie
+                # der Hinweg). Erst die Ankunft des Rueckmarsches bucht sie wieder ein.
+                _dauer_hin = max(0.0, float(m.get("arrival") or 0.0) - float(m.get("start") or 0.0))
+                if m.get("rueckweg") or _dauer_hin <= 0.0:
+                    for u, c in m.get("units", {}).items():
+                        if u in self.state.units:
+                            self.state.units[u].count += c
+                    if m.get("rueckweg"):
+                        report = (f"Truppen sind von {m['to']} wieder zu Hause "
+                                  f"({sum(int(c) for c in (m.get('units') or {}).values())} Einheiten).")
+                else:
+                    _rueck = rueckmarsch_eintrag(m, float(self.state.spielsekunden))
+                    if _rueck:
+                        self.state.movements.append(_rueck)
+                        report += (f" Rueckmarsch laeuft: Ankunft zu Hause in "
+                                   f"{_dauer_hin / 3600.0:.1f} Spielstunden.")
                 self.state.messages.append({"text": report, "type": "bewegung"})
                 self.state.movements.remove(m)
         self._render()
