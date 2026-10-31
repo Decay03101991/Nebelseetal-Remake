@@ -36,14 +36,19 @@ wieder.
 | 14 | **Sumpf ist unbebaubar**; jedes Produktionsgebäude hat zwei bevorzugte Geländearten | Spielanleitung 2009, Seite 10/11 (Z. 378–381) | **BELEGT** — Geländeregeln stimmen | 30.10.2026 |
 | 15 | **Bauvoraussetzungen je Gebäude** (sechs ohne Forschung: Holzfäller, Steinmetz, Jäger, Bibliothek, Haus, Lager; alle anderen `Baukunst`) | `data/buildings.json`, Feld `voraussetzung` je Eintrag | **FERTIG — NICHT NEU EINTRAGEN.** Am 30.10. versehentlich doppelt bearbeitet und zurückgenommen. Wer die Kette braucht: `python tools/freischaltung.py` liest sie, statt sie zu schreiben | 30.10.2026 |
 | 16 | **Gebäude-Baumenü** (Screenshot, Reiter, Kosten, offene GUI-Aufgaben) | `docs/BAUMENUE_ABGLEICH.md` | **FERTIG** — dort steht der Abgleich samt Aufgabenliste | 28.10.2026 |
+| 17 | **Es gibt KEINE Lagerkapazität.** „Lager" ist ein **Menüpunkt zur Übersicht** über Waren und Einheiten der Siedlung, keine Grenze | Spielanleitung 2009, Seite 9 (Z. 302–304) | **BELEGT** — Frage (a) damit erledigt; nichts einzubauen | 31.10.2026 |
+| 18 | **Der rote Balken** unter jedem Rohstoff zeigt, **wann die nächste Einheit dazukommt** (kein Lagerbalken!) | Spielanleitung 2009, Seite 7 (Z. 261–263) | **BELEGT** — die Deutung „Kapazität" war falsch; ggf. als Fortschrittsbalken nachbauen | 31.10.2026 |
+| 19 | **Mehrere Gebäude wirken additiv**: jedes bebaute Feld produziert für sich (Ertrag je Gelände), Siedlergrenze +5 je Haus | Spielanleitung 2009, Seiten 10–11 (Z. 338–386) | **BELEGT** — Frage (b) erledigt; keine Sonderregel für „zweites Gebäude" | 31.10.2026 |
+| 20 | **GS = Reisegeschwindigkeit** (höher = schneller zwischen zwei Siedlungen); Auftragsdauer wird **je Strecke** angezeigt, Rückkehr = doppelte Dauer. **Eine Zahlformel nennt das Handbuch nicht** | Spielanleitung 2009, Seite 18 (Z. 1103–1104) und Seite 19 (Z. 1136–1141) | **BELEGT (qualitativ)** — die Formel bleibt VORSCHLAG: Wegzeit = Felder ÷ GS der langsamsten Einheit | 31.10.2026 |
+| 21 | **Ziele eines Auftrags:** eigene Siedlung, **Portalkoordinaten** eines Spielers, Verbündeter, Gildenmitglied; Auftragsart hängt von den gewählten Einheiten ab | Spielanleitung 2009, Seite 19 (Z. 1114–1148) | **BELEGT** — Grundlage für Daniels Planungsplattform (C6) | 31.10.2026 |
 
 ## Offen — hier fehlt die Quelle (nicht raten!)
 
 | # | Frage | Status | Nächster Schritt |
 |---|---|---|---|
-| A | **Lagerkapazität**: Was bringt ein „Lager", wie hoch ist die Kapazität, wächst sie mit dem Ausbau? Im Original gibt es rote Balken je Rohstoff — unser Code kennt **keine** Kapazität | offen | Handbuch S. 7–12 und Screenshots auswerten; bis dahin **nichts einbauen** |
-| B | Wirkung eines **zweiten** Gebäudes derselben Art (Farm, Pferdezucht) — Daniel vermutet Produktionserhöhung | offen | Handbuch/Baumenü-Screenshot; **Achtung:** für Kriegerakademie/Diebesgilde/Stellmacher/Bibliothek ist „nur eines je Siedlung" belegt (Register 5/9) |
-| C | **Wegzeiten** für Truppen zwischen Siedlungen (Formel, Einheit, Einfluss der Geschwindigkeit GS) | offen | 2005er Seiten + Handbuch |
+| A | ~~**Lagerkapazität**~~ | **erledigt 31.10.**: es gibt keine (Register 17/18) — „Lager" ist eine Übersicht, der Balken zeigt die Zeit bis zur nächsten Einheit | — |
+| B | ~~Wirkung eines **zweiten** Gebäudes~~ | **erledigt 31.10.**: additiv, jedes Feld produziert für sich (Register 19) | — |
+| C | **Wegzeiten**: GS = Reisegeschwindigkeit, Dauer je Strecke, Rückkehr doppelt (Register 20) — **die Zahlenformel fehlt** | offen (Vorschlag nötig) | mit dem starken Modell entwerfen: Wegzeit = Felder ÷ GS, gegen gespielte Runden prüfen |
 | D | Wie wird entschieden, **wo** die 6 Siedlungen einer Partie liegen (Zufall belegt) und wie hängen Laufwege davon ab | teilweise belegt (Zufall) | Portal-/Weltseiten |
 | E | Kampfablauf im Bild: Reihenfolge, Anzeige, Beute | offen | Handbuchbilder `docs/original/handbuch_bilder/` (244 Dateien, nicht ausgewertet) |
 | F | ~~„Voraussetzungen" als eigener Menüpunkt — was zeigt er?~~ | **erledigt 30.10.**: er zeigt die Voraussetzungen der Forschungen (Handbuch Seite 12) | — |

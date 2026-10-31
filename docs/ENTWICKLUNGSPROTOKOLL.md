@@ -311,3 +311,18 @@ SHA256-Anfänge der ausgelieferten `.exe` (keine Commits): `58cd48e9` · `9f5c1d
 - **Schritt 10 offen:** Missionsseite läuft noch auf ECHTZEIT; danach die **Aktivierung** des Ökonomiemodus (Entwurf Z. 1092).
 - **Nicht belegt:** Windows-Neubau nach FIX05, reale Windows-Save-Runde, vollständige E2E-Freigabe, 25 Kartenraster unbestätigt, Bot-Wirtschaft und Belagerung.
 - **Arbeitsweise, die sich bewährt hat:** erst prüfen, was wirklich läuft (nicht, was im Ordner liegt) · nie schätzen — fehlt ein Wert, `null` plus Begründung · jede Modell- und Kind-Antwort nachrechnen · Unteragenten arbeiten nur an neuen Dateien mit eigener Prüfdatei und führen kein eigenes Brett · Kernlogik ohne Anzeige bleibt ASCII, ein Name ist kein Beweis · kleine Commits, eine Zeile je Schritt.
+
+## HERMES-UI-02 - 30./31.10.2026 - zwei Navigationsebenen, Voraussetzungen, Original-Auswertung
+
+| Zeit | Schritt | Ergebnis / Belege |
+|---|---|---|
+| 00:20 | Zwei Navigationsebenen wie im Original | Umschalter Uebersicht/Siedlung, `menu_fuer_ebene()` auf `menu_sichtbar()`; Punkteleiste (Forschung/Krieg/Gesamt) dauerhaft links |
+| 00:50 | Menuepunkt "Voraussetzungen" + Ansicht | zeigt je Forschung die Bedingung aus `data/research.json` und die erreichte Stufe (Handbuch Seite 12) |
+| 01:10 | Protokoll verdichtet: 602 -> 313 Zeilen | Vollfassung als `ENTWICKLUNGSPROTOKOLL_VOR_VERDICHTUNG_2026-10-30.md` gesichert; Pruefung: 27 Commit-Kennungen, 0 unbekannt, alle Pruefzahlen da |
+| 01:30 | Menue-Anzeige an das Original | `MENU_ANZEIGE` (Gilde->Gildenhalle, Kampfsimulator->Schlachtsimulator), "Neuigkeiten" neu; MENU_ITEMS bleibt unveraendert |
+| 01:40 | Handbuch ausgelesen: drei offene Mechanikfragen erledigt | **keine Lagerkapazitaet** (Seite 9), roter Balken = Zeit bis zur naechsten Einheit (Seite 7), mehrere Gebaeude wirken additiv (Seite 10/11), GS = Reisegeschwindigkeit (Seite 18/19) - die Zahlenformel fehlt und bleibt Vorschlag |
+| 01:45 | Pruefstand | test_gebaeude_menue_und_meldungen 42/0/0, test_tor 61/0/0, test_gui_fehler 23/0/1, test_baseline 40/0/0, test_protokoll 16/0/1, Rauchprobe der neuen Ansichten ohne Fehler |
+
+**Eigener Fehler:** die Bauvoraussetzungen wollte ich ein zweites Mal in die Daten schreiben, obwohl sie
+dort längst gepflegt sind - das Werkzeug verlangte eine Stufenzahl, die Daten nennen nur den Namen
+("Baukunst"). Zurückgenommen, Registerpunkt 15 als "FERTIG - nicht neu eintragen" festgehalten.
