@@ -31,6 +31,10 @@ Zusätzlich festgelegt:
   „ordentlich erklärt daneben“ steht.
 * **Laptop und WLAN schonen:** Modell-Läufe nacheinander, keine schweren Prüfläufe parallel.
 
+## 2a. Verbindliche Entscheidungen Daniels
+
+Alle offenen Fragen sind beantwortet: **`docs/ENTSCHEIDUNGEN_CODEAUDIT_20261031.md`** (zehn Punkte, aus zwei Auswahlrunden). Dort steht auch die Regel fuer die zwei Fragen, deren Entscheidung Daniel an mich uebertragen hat (Zeitlimit, Auswahl der sechs Dimensionen): erst Quelle, dann Indiz, dann eigene Loesung - und jede eigene Festlegung im Register als VORSCHLAG fuehren.
+
 ## 3. Was in dieser Runde schon gebaut ist
 
 | Werkzeug/Datei | Zweck |
@@ -82,21 +86,23 @@ wiederholen, nicht die ganze Kette:
 python -X utf8 tools/gesamtaudit_lauf.py --paket --dossier docs/audits/code/CODE_P3_*.md --ziel docs/audits/BEFUND_CODE_P3.md
 ```
 
-## 7. So wird umgesetzt (Reihenfolge nach Nutzen und Risiko)
+## 7. So wird umgesetzt — nach Daniels Entscheidungen (31.10.2026)
 
-1. **P2 (zuerst):** alte Schlachtfassung entfernen oder zusammenführen — kleinster Eingriff,
-   klarer Gewinn, `tests/test_gpt_kampf_forum_neu.py` und `test_kampf_einhaengung.py` sind der Beweis.
-2. **P3:** gemeinsame Helfer für Reisezeit/Kosten/Bestand/Beute — Register-Pflicht, weil sich Zahlen
-   ändern könnten (dann ist es kein Refactoring mehr, sondern eine Regeländerung).
-3. **P4:** gemeinsames Gerüst der Zeichenmodule — Vorsicht: Pixel dürfen sich nicht verschieben,
-   `test_welt_optik*`, `test_karten_optik*` vergleichen Zeichenpläne.
-4. **P5:** Ordner umziehen, **ein Schritt je Commit**, danach `tools/sammellauf.py` + EXE-Bau.
-5. **P1 (zuletzt):** `main.py` teilen — größter Hebel, größtes Risiko. Nach jedem Modul ein Commit
-   und ein voller Prüflauf.
+| Schritt | Was | Beweis |
+|---|---|---|
+| 0 | Voller Prüflauf + EXE neu bauen (Basis) | `tools/sammellauf.py` 0 rot |
+| 1 | P3.1–P3.3: gemeinsame Helfer, Karrenladung, Reisezeit-Kette | `test_auftraege`, `test_beute_*`, `test_kampf_einhaengung` |
+| 2 | P4: Zeichenmodule teilen | `test_welt_optik*`, `test_karten_optik*` |
+| 3 | Aufräumen: ungenutzte Methoden löschen, Belegdateien ins Archiv | `test_oberflaeche_original` (wandert mit), Sammellauf |
+| 4 | P5: Paketgerüst **mit `__init__.py`**, Umzug in Wellen, Shims bleiben vorerst | Sammellauf nach jeder Welle |
+| 5 | P1: **zuerst** der gemeinsame Render-Helfer, dann Spielkern, dann Ansichten | `test_startspiel`, `test_weltkarte`, `test_durchspiel` |
+| 6 | Prüfdateien in Themenordner umziehen (`tests/kern/`, `tests/ui/` …) | Sammellauf findet sie rekursiv |
+| 7 | Shims am Ende entfernen | Sammellauf + EXE-Bau |
+| 8 | Die fünf Mechaniken: Kartenkampf, Aufträge auf der Karte, Zeitlimit-/Tempo-Option, Dimensionen (6 aktiv), Spionage (nur Aufklärung) | je eigene Prüfdatei + Registereintrag |
+| 9 | Skills und Cleanup-Cronjob nachziehen; Git-Größe prüfen und berichten (nicht ändern) | Bericht, keine Codeänderung |
 
-**Harte Regel für alle Schritte:** ein Vorschlag = ein Commit = ein grüner Prüflauf. Wird etwas rot,
-zurücknehmen statt anpassen. Jeder Umbau bekommt einen Registereintrag; die Modulkarte wird nach dem
-letzten Schritt neu erzeugt (`tools/modulkarte_bauen.py`).
+**Harte Regel für jeden Schritt:** ein Vorschlag = ein Commit = ein grüner Prüflauf. Wird etwas rot,
+zurücknehmen statt anpassen. Registereintrag, Modulkarte neu bauen, Kosten notieren.
 
 ## 8. Budget und Kostenführung
 
@@ -104,6 +110,9 @@ letzten Schritt neu erzeugt (`tools/modulkarte_bauen.py`).
   stehen am Ende der Ausgabe (`Kosten: … USD`) und in `docs/audits/BEFUND_CODE_*.md`.
 * Bisher in dieser Runde: noch kein Lauf abgerechnet (Kette läuft).
 * **Nicht** mehrere Läufe parallel starten (Laptop + WLAN). Bei Abbruch den Einzellauf wiederholen.
+* **Entscheidung Daniels (31.10.2026):** Restbudget **nur für die Umsetzung**, keine Gegenpruefungs-Pakete
+  an grosse Modelle. Die Umsetzung macht Hermes selbst; ein Modellaufruf nur, wenn eine Frage ohne ihn
+  nicht zu beantworten ist - dann vorher melden.
 * Kosten nach jedem Lauf notieren; am Ende Summe gegen 3 EUR stellen und in
   `D:\Arbeiten\Finanzen\00_Uebersicht\DeepSeek_Kosten\README_Kostenuebersicht.md` fortschreiben.
 
@@ -147,7 +156,7 @@ mit `grep` nachprüfen, ob wirklich niemand sie aufruft.
 * Zwei neue Prüfungen grün: `test_textqualitaet` (169), `test_projektpfade` (101).
 * Kostenakte aktualisiert: neuer DeepSeek-Export vom 31.10. übernommen (Oktober **16,8062 USD**,
   Gesamt **33,3243 USD**, 31.10. allein **2,1200 USD / 1.228 Requests**), ZIP hashgleich in
-  `D:\Arbeiten\Finanzen _Uebersicht\DeepSeek_Kosten\Rohdaten\`.
+  `D:\Arbeiten\Finanzen\_Uebersicht\DeepSeek_Kosten\Rohdaten\`.
 
 **Offen (in dieser Reihenfolge):**
 1. Vollen Prüflauf starten (zwei neue Prüfdateien, P2-Änderung) — das ist der Startpunkt.
