@@ -1,0 +1,325 @@
+NEBELSEETAL REMAKE
+KONZEPTVORSCHLAG: KOORDINATENBASIERTE WELTKARTE, SIEDLUNGSVERSATZ,
+SPIONAGE, TRUPPENMAERSCHE UND KAMPFBERICHTE
+===============================================================
+Stand: 01.11.2026
+Referenzspiel: Lords Mobile (IGG)
+Empfaenger: Hermes, alleiniger Hauptkoordinator von Nebelseetal Remake
+Projekt: https://github.com/Decay03101991/Nebelseetal-Remake
+
+WICHTIGE EINORDNUNG
+-------------------
+Dieses Dokument beschreibt die recherchierte Grundmechanik des Mobile-Games
+Lords Mobile und leitet daraus Vorschlaege fuer Nebelseetal Remake ab.
+Die Vorschlaege sind keine verbindlichen Entwicklungsauftraege.
+Hermes muss sie mit aktuellem Code, Roadmap, vorhandenen Spielregeln und
+bereits implementierten Admin-/Testfunktionen vergleichen und selbst ueber
+eine eventuelle Umsetzung entscheiden.
+
+BEZEICHNUNG DER GESUCHTEN SPIELMECHANIK
+---------------------------------------
+"Koordinatenbasiertes Echtzeit-Strategiesystem mit Burg-/Siedlungs-
+teleportation, zeitabhaengigen Truppenmaerschen, Spionage und
+ereignisbasierten Kampf- und Spionageberichten."
+
+KERNPRINZIP DES VORBILDS LORDS MOBILE
+-------------------------------------
+Die Weltkarte besitzt ein Koordinatenraster. Burgen bzw. Siedlungen sind
+auf konkreten Kartenfeldern positioniert.
+
+Es gibt ZWEI getrennte Bewegungsmechaniken:
+
+1. Burgversetzung / Teleportation:
+   Die gesamte Burg wird mit ihrem Fortschritt auf eine freie, zulaessige
+   Position versetzt. Diese Versetzung folgt nicht der normalen Marschzeit.
+   Je nach Spielregel sind bestimmte Versetzungsarten, Gegenstaende oder
+   Bedingungen notwendig. Das erlaubt Annäherung, Flucht und taktisches
+   Positionieren.
+
+2. Truppen- und Spionagemarsch:
+   Einheiten bewegen sich von ihrer aktuellen Ausgangsposition zum Ziel.
+   Ihre Ankunftszeit haengt insbesondere von Entfernung und Tempo ab.
+   Beim Erreichen des Ziels erfolgt die Aufklaerung bzw. Kampfaufloesung;
+   danach entstehen entsprechende Berichte.
+
+Die Kombination ist entscheidend: Ein Spieler springt mit seiner Burg
+nahe an einen Feind heran, schickt Spione mit kurzer Marschzeit,
+wertet deren Bericht aus und startet anschliessend einen Angriff.
+Das gleiche Positionssystem erlaubt auch strategischen Rueckzug.
+
+ORIENTIERUNG AM ORIGINAL (VEREINFACHT)
+-------------------------------------
+* Weltkarte: Raster mit X-/Y-Koordinaten innerhalb eines Koenigreichs.
+* Burgversetzung: Gezielte oder zufaellige Versetzung nach gueltigen Regeln.
+* Marschzeiten: Entfernung und Bewegungsmodifikatoren bestimmen Dauer.
+* Spionage: Spionagetrupp reist zum Ziel und erstellt Informationsbericht.
+* Forschung: Kann Genauigkeit/Informationsumfang der Spionage verbessern.
+* Angriff: Armee marschiert, Kampf wird am Ziel aufgeloest.
+* Bericht: Kampfergebnis, beteiligte Einheiten, Verluste, Beute usw.
+* Fruehwarnung: Je nach Wach-/Aufklaerungssystem herannahende Feinde anzeigen.
+* Taktik: Versetzung, Entfernung, Timing und Reaktion greifen ineinander.
+
+Hinweis: Die konkrete Groesse der Lords-Mobile-Karte sowie Details von
+Spezialteleports und Schutzregeln sind versions- und situationsabhaengig.
+Fuer Nebelseetal sollen solche Werte nicht ungeprueft uebernommen werden.
+
+
+KONZEPT FUER NEBELSEETAL REMAKE
+==============================
+
+1. KOORDINATENBASIERTE WELTKARTE
+--------------------------------
+* Jedes Weltkartenfeld besitzt eindeutige X-/Y-Koordinaten.
+* Jede Siedlung besitzt eine persistierte Position (z.B. welt_id, x, y).
+* Spieler, neutrale Siedlungen, Feinde, Rohstofforte und Sonderorte werden
+  auf der Karte platziert.
+* Das Spiel unterscheidet begehbare, belegte und nicht zulaessige Felder.
+* Eine Koordinatensuche und ein Sprung zur Zielposition sind sinnvoll.
+* Entfernungsberechnung muss fuer alle Missionstypen konsistent sein.
+* Die Innenansicht einer Siedlung mit ihren Gebaeuden ist von ihrer
+  Weltposition getrennt: Beim Versetzen verschwinden keine Gebaeude.
+
+2. VERSATZ EINER VOLLSTAENDIGEN SIEDLUNG
+---------------------------------------
+Vorgeschlagene Varianten:
+* Gezielte Versetzung: Ein Spieler waehlt ein freies, erlaubtes Feld.
+* Zufallsversetzung: Das Spiel bestimmt ein zulaessiges Ziel.
+* Magische Portalversetzung: Welt- und forschungskompatible Variante
+  mit definierbaren Mana-, Forschungs- oder Abklingbedingungen.
+
+Bei einer Versetzung werden insbesondere NICHT geloescht:
+* Gebaeude und Ausbaustufen
+* Forschung und Fortschritt
+* Lokale Lagerbestaende und produzierte Items
+* Heimat-/Garnisonstruppen
+* Ausbildungs- und Produktionswarteschlangen (sofern Spielregel dies erlaubt)
+* Speicherstand und Siedlungsidentitaet
+
+Veraendert werden nur die dafuer vorgesehenen Positionsdaten und
+gegebenenfalls zulaessige, klar definierte Folgereaktionen.
+
+Wichtig: Hermes muss entscheiden, ob jede eigene Siedlung einzeln springt,
+ob alle gemeinsam versetzt werden koennen oder ob nur der Hauptsitz
+betroffen ist. Dies ist eine zentrale Designentscheidung.
+
+3. TRUPPENMAERSCHE UND MISSIONSSTATUS
+-------------------------------------
+Beim Versand waehlt der Spieler:
+1. Ausgangssiedlung
+2. Zielkoordinaten / Zielobjekt
+3. Missionsart: z.B. Spionieren, Angreifen, Verstaerken
+4. Einheitentypen und Anzahlen
+5. Optionale Anfuehrer bzw. Faehigkeiten
+
+Vor Bestaetigung muss die UI anzeigen:
+* Start- und Zielposition
+* Distanz
+* Geschwindigkeits-/Zeitberechnung
+* Voraussichtliche Ankunft und Rueckkehr
+* Tatsaechlich verfuegbare Truppen am Startort
+* Konkrete Gruende fuer nicht ausfuehrbare Auftraege
+
+Moegliche Missionsstatus:
+* Vorbereitung
+* Unterwegs
+* Angekommen / Aufloesung
+* Rueckweg
+* Abgeschlossen
+* Abgebrochen / Zurueckgerufen (nur nach festgelegten Regeln)
+
+Truppen auf Mission duerfen nicht gleichzeitig zu Hause ein zweites Mal
+verwendet werden. Missionen muessen Speichern und Laden ueberstehen.
+
+4. SPIONAGESYSTEM
+-----------------
+Ein Spionageauftrag erfordert zulaessige Einheiten und gegebenenfalls
+Forschung. Die Spione erreichen das Ziel nach der berechneten Marschzeit.
+
+Moegliche Berichtsinhalte:
+* Zielname und Koordinaten
+* Zeitpunkt der Aufklaerung
+* Verteidiger-/Truppenarten und Mengen
+* Verteidigungsanlagen und Boni
+* Rohstoffbestaende
+* Verstaerkungen und Sonderfaehigkeiten
+* Erfolg / Teilerfolg / Entdeckung / Scheitern
+
+Der Informationsgrad kann von eigener Spionageforschung und gegnerischer
+Abwehr abhaengen. Die Daten gelten fuer den Zeitpunkt der Erkundung;
+sie duerfen sich nicht heimlich live mit aktuellen Werten aktualisieren.
+
+5. ANGRIFF UND KAMPFBERICHT
+---------------------------
+Nach einer Aufklaerung stellt der Spieler eine Armee aus dem lokalen,
+verfuegbaren Truppenbestand seiner gewaehlten Ausgangssiedlung zusammen oder aus mehereren Dörfern gleichzeitig verwaltet.
+
+Beim Start:
+* Auftragsdaten eindeutig speichern.
+* Einheiten reservieren bzw. korrekt aus dem verfuegbaren Bestand buchen.
+* Keine Doppelverwendung derselben Truppen zulasen.
+* Ankunft nach einheitlicher Marschzeit berechnen.
+
+Bei Ankunft:
+* Tatsaechliche Verteidigungslage zum Ankunftszeitpunkt ermitteln.
+* Kampf nach den festgelegten Kampfformeln aufloesen.
+* Tote, Verwundete, Beute und gegebenenfalls Rueckkehrer buchen.
+* Ereignis-/Kampfbericht aus den realen Kampfdaten erstellen.
+
+Ein Kampfbericht sollte anzeigen:
+* Angreifer/Verteidiger, Ursprung/Ziel, Uhrzeit
+* Sieg/Niederlage und Aufloesungsdetails
+* Beteiligte Truppen und ihre Verluste
+* Eingesetzte Boni und wichtige Kampfeffekte
+* Erbeutete Rohstoffe und deren Zielort
+* Ueberlebende und Rueckkehrstatus
+
+Begriffsklaerung: Ein "Kampfbericht" beschreibt einen stattgefundenen
+Kampf. Ein "Fehlerbericht" oder eine "Fehlermeldung" beschreibt dagegen,
+warum eine Aktion nicht ausgefuehrt werden konnte.
+
+6. UI / BEDIENUNG
+----------------
+Beim Klick auf eine fremde Siedlung waeren kontextabhaengig sinnvoll:
+* Siedlung ansehen
+* Spionieren
+* Angreifen
+* Verstaerken (nur wenn zulaessig)
+* Koordinaten merken
+
+Beim Klick auf ein freies Feld:
+* "Siedlung hierher versetzen" (sofern zulaessig)
+* Feldinformationen und Entfernungen
+
+Fehlermeldungen muessen exakt sagen, welche Voraussetzung fehlt:
+* Zielfeld belegt
+* Zu wenig Mana / kein Versetzungsgegenstand
+* Forschung fehlt
+* Keine verfuegbaren Spione oder Truppen
+* Zu viele gleichzeitige Missionen
+* Ziel derzeit nicht angreifbar
+* Versetzung waehrend einer gesperrten Phase nicht erlaubt
+
+7. TECHNISCHE INVARIANTEN
+------------------------
+* Eine Siedlung besitzt genau eine gueltige Weltposition je Welt.
+* Zwei sich gegenseitig ausschliessende Objekte belegen nicht dasselbe Feld.
+* Eine Buchung erfolgt im richtigen lokalen Lager.
+* Marschzeiten verwenden eine gemeinsame Berechnungsregel.
+* Versetzen dupliziert keine Waren oder Truppen.
+* Versetzen verliert keine Produktions- oder Ausbildungsauftraege.
+* Bereits laufende Missionen folgen einer expliziten Versetzungsregel.
+* Truppen bleiben entlang des gesamten Missionslebenszyklus bilanziert.
+* Kampf-/Spionageberichte sind reproduzierbar auf den Ereignisdaten begruendet.
+* Abgelehnte Aktionen veraendern keine Bestaende.
+* Speicherung/Neuladen bringt keine stillen Positions- oder Bestandsaenderungen.
+
+8. OFFENE DESIGNENTSCHEIDUNGEN (HERMES ENTSCHEIDET)
+---------------------------------------------------
+* Hauptsitz oder einzelne Siedlungen versetzen?
+* Welche Kosten, Forschungsstufen, Abklingzeiten und Schutzmechanismen?
+* Duerfen Belagerung, Marsch oder Rueckweg ein Versetzen blockieren?
+* Wie reagieren bestehende Missionen, wenn der Startort springt?
+* Was geschieht, wenn das Ziel waehrend des Anmarsches springt?
+* Beeinflussen Gelaende, Wege, Wetter, Magie oder Einheitentyp Marschzeiten?
+* Welche Informationen sind bei Spionage zugaenglich?
+* Welche Anteile am Kampf sind fuer den Spieler transparent?
+* Was passiert bei gleichzeitigem Angriff mehrerer Spieler oder NPCs?
+
+9. BEISPIEL EINER SPIELSEQUENZ
+-----------------------------
+Beispielkoordinaten (frei gewaehlt, keine Originalwerte aus Lords Mobile):
+
+Eigene Siedlung:        (10,10)
+Feindliche Siedlung:    (100,70)
+Geplanter neuer Platz:  (80,40)
+
+Ablauf:
+1. Spieler findet den Feind ueber Weltkarte oder Koordinatensuche.
+2. Spieler prueft ein freies Feld bei (80,40) und teleportiert dorthin.
+3. Fortschritt, Bauten, Lager und Garnison bleiben erhalten.
+4. Spieler startet Spionage von (80,40) nach (100,70).
+5. Spione marschieren, erreichen das Ziel, liefern einen datierten Bericht.
+6. Spieler stellt anhand des Berichts passende Truppen zusammen.
+7. Angriff startet und nutzt die jetzt kuerzere Entfernung.
+8. Bei Ankunft wird der Kampf aufgeloest.
+9. Kampfbericht zeigt Verluste, Ergebnis und eventuelle Beute.
+10. Ueberlebende kehren entsprechend der festgelegten Rueckkehrregel zurueck.
+
+Der strategische Mehrwert liegt darin, dass die Siedlungsposition selbst
+ein taktisches Werkzeug ist: Naehe, Flucht, Aufklaerung und Angriffsfenster.
+
+10. VORSCHLAEGE FUER HERMES: ADMIN-/REGRESSIONSTESTS
+---------------------------------------------------
+Diese Pruefungen koennten in einer spaeteren Admin-Testzentrale als
+wiederholbare Szenarien hinterlegt werden. Kein Automatismus zur Umsetzung.
+
+Test A: Gueltige Teleportation
+* Freies Feld auswaehlen, versetzen, Lage und alle Bestaende vergleichen.
+* Erwartung: Neue Position; alle nicht betroffenen Daten unveraendert.
+
+Test B: Ungueltige Teleportation
+* Belegtes, gesperrtes oder ausserhalb der Karte liegendes Feld auswaehlen.
+* Erwartung: Klare Fehlermeldung; keine Kosten, keine Positionsaenderung.
+
+Test C: Marschzeit aus Entfernung
+* Gleiche Einheit zu nahen und fernen Zielen schicken.
+* Erwartung: Nach einheitlicher Formel korrekte unterschiedliche Zeiten.
+
+Test D: Spionage -> Bericht -> Angriff
+* Erst spionieren, Bericht sichern, Truppen danach regulär angreifen lassen.
+* Erwartung: Bericht konsistent, Angriff bei Ankunft korrekt aufgeloest.
+
+Test E: Siedlung springt waehrend eigener Truppenmission
+* Mission starten, dann Siedlung versetzen.
+* Erwartung: Exakt zuvor definierte Regel, keine verlorenen Truppen.
+
+Test F: Ziel springt waehrend des Angriffs
+* Angriff starten, Ziel vor Ankunft versetzen.
+* Erwartung: Klar definierte Behandlung statt instabiler Zielreferenz.
+
+Test G: Speichern / Laden mitten im Marsch
+* Mission starten, speichern, laden, bis Rueckkehr weiterlaufen lassen.
+* Erwartung: Keine doppelte Kampfaufloesung, unveraenderte Truppenbilanz.
+
+Test H: Lokales Lager gegen globale Anzeige
+* Beute, Mana-Teleportkosten und Truppen nur im zuständigen Ortslager buchen.
+* Erwartung: UI-Summen bleiben nach Tick und Speichern/Laden konsistent.
+
+Test I: Fehlerbehandlung
+* Alle Missionstypen mit unzureichenden Einheiten oder Ressourcen testen.
+* Erwartung: Ablehnung ist atomar; keine Teilabbuchung.
+
+Test J: Mehrere eigene Siedlungen
+* Zwei Ausgangssiedlungen mit unterschiedlicher Distanz und Garnison.
+* Erwartung: Truppen, Entfernung und Rueckkehr passen zum gewaehlten Start.
+
+11. LERNEFFEKT FUER HERMES UND SEINE SKILLS
+-----------------------------------------
+Hermes sollte bei dieser Mechanik nicht nur Einzelaktionen pruefen,
+sondern komplette, realistische Spielerketten:
+
+Weltposition -> Versetzung -> Spionagemarsch -> Bericht -> Angriffsplanung
+-> Truppenreservierung -> Marsch -> Kampf -> Beute -> Rueckweg -> Lager
+-> Speichern/Laden -> erneute Bestandspruefung.
+
+Moegliche Skill-/Pruefregel-Ergaenzungen (nur Vorschlaege):
+* Jede Zustandsaenderung braucht Vorher-/Nachher-Bilanz.
+* GUI-Anzeige und Spielkern erhalten dieselben Regeln und Datenquellen.
+* Bei Mehrsiedlungssystemen muss jede Mission einen expliziten Startort haben.
+* Position und Identitaet eines Ziels sind separat zu behandeln.
+* Laufende Ereignisse muessen Save-/Load- und Zeitfortschrittstests bestehen.
+* Tests duerfen Fehler nicht durch direkte Admin-Bestandsinjektionen verdecken.
+* Zusaetzlich zu Erfolgstests immer Grenz- und Negativfaelle pruefen.
+* Fuer Berichte die zur Laufzeit verwendeten Ereignisdaten sichern.
+* Jede Regelentscheidung von Hermes in Dokumentation und Regressionstests
+  nachvollziehbar festhalten.
+
+ABSCHLIESSENDE EMPFEHLUNG
+-------------------------
+Fuer Nebelseetal erscheint eine schrittweise Integration sinnvoll:
+Erst verbindliche Koordinaten- und Missionstypenregeln, dann konsistente
+Orts-/Truppenbestandslogik, danach Versetzung, Spionageberichte,
+Angriffskette und abschliessend Spezialfaelle. Keine davon ist hiermit
+freigegeben; Hermes entscheidet ueber Umsetzung und Prioritaeten.
+
+ENDE DES KONZEPTDOKUMENTS
