@@ -203,6 +203,29 @@ produziert in der Zeit weiter:**
 
 (Gold skaliert mit der **Armeegröße** — 40 Einheiten auf 10 Feldern kosten 1.000 Gold = 2 Krieger.)
 
+### 3.11 Nahrungsverbrauch der Garnison (Daniels Entscheidung 7, seit 31.10.2026 im Kern)
+
+Einheiten verbrauchen **laufend** Nahrung, nicht nur bei der Anschaffung. Den Betrag nennt **keine**
+Originalstelle — er ist ein VORSCHLAG und aus dem Reichsertrag hergeleitet
+(`data/nahrungsverbrauch.json`): **8 Nahrung je Einheit und Spieltag** = 1/3 je Spielstunde.
+
+| Garnison | Verbrauch je Spieltag | Anteil am Nahrungsertrag (5.542/Tag) | bleibt übrig |
+|---|---|---|---|
+| 50 Einheiten | 400 | 7,2 % | 5.142 |
+| 100 Einheiten | 800 | 14,4 % | 4.742 |
+| 200 Einheiten | 1.600 | 28,9 % | 3.942 |
+| **360 (Siedlerdeckel)** | **2.880** | **52,0 %** | **2.662** |
+
+**Befund.** Der Ertrag trägt **692** Einheiten, der Siedlerdeckel liegt bei **360** — eine Armee kann
+das Reich also nicht aushungern, eine große bindet aber die Hälfte der Nahrung. Zusammen mit den
+Waren, die ebenfalls Nahrung kosten (Brot 20, Bier 30, Trank 10) und den Einheitenpreisen
+(Streuner/Bürgerwehr 100, Siedlerkarren 300) bleibt Nahrung ein **zweiter Engpass neben Gold**,
+aber ein tragbarer.
+
+**Nicht gebaut (bewusst):** keine Strafe bei Unterdeckung (keine Toten, kein Aufstand). Der Bestand
+fällt auf 0, der Rest steht als `unterdeckung` im `produktionsjournal`. Eine Strafe wäre eine eigene
+Entscheidung Daniels.
+
 ---
 
 ## 4. Verdikt je Prüffrage
@@ -258,6 +281,7 @@ sondern hier festgelegt. Ein Gate ist eine Zahl, die sich aus den Daten rechnen 
 | G-4 Forschung | Ein Forschungszweig auf 10 in ≤ 10 Spieltagen | **erfüllt** (7 Tage) |
 | G-5 Ausbildung | 100 Einheiten in ≤ 5 Spieltagen ausgerüstet | **erfüllt** (3 Tage) |
 | G-6 Wellen | Ein Feldzug ≤ 5 Aufträge | **verfehlt** (14) |
+| G-7 Nahrung trägt die Armee | Garnison beim vollen Siedlerdeckel (360) bindet ≤ 60 % des Nahrungsertrags | **erfüllt** (52,0 %) |
 
 **Regel:** Ein Gate, das verfehlt wird, ist **kein Fehler im Code**, sondern eine offene
 Balancing-Frage (siehe Abschnitt 5). Erst wenn Daniel entschieden hat, wird die Zahl geändert — dann
@@ -268,7 +292,8 @@ muss dieses Dokument neu gemessen werden.
 ## 7. Wartung
 
 1. **Nach jeder Änderung** an `data/units.json`, `data/buildings.json`, `data/warenrezepte.json`,
-   `data/research.json` oder an `beute_staffel` / `kosten_der_mission` / `reisezeit_sekunden`:
+   `data/research.json`, `data/nahrungsverbrauch.json` oder an `beute_staffel` /
+   `kosten_der_mission` / `reisezeit_sekunden` / `tagesbedarf_nahrung`:
    `python -X utf8 tools/balancing_messung.py` laufen lassen.
 2. Die Tabellen in Abschnitt 3 **ersetzen** (nicht anhängen) und das Datum im Kopf ändern.
 3. Verdikt (Abschnitt 4) und Gates (Abschnitt 6) neu beurteilen; ein geändertes Urteil mit einem Satz

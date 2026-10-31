@@ -76,3 +76,42 @@ Folge und eine Empfehlung.
 | **C — Lagerlimit** | Obergrenze je Rohstoff und Siedlung (z. B. 10.000). Folge: ebenfalls Remake-Regel; macht Lagerausbau nötig, den es im Original nicht gibt |
 | **Empfehlung** | **A zuerst**, dann im Spieltest prüfen; erst wenn Beute sich tot anfühlt, B als abschaltbare Regel |
 | **Frage** | A (so lassen), B (Unterhalt) oder C (Lagerlimit)? |
+
+
+---
+
+# Nachtrag 31.10.2026, 20:25 - nach dem Einbau des Nahrungsverbrauchs (Register 69)
+
+Der Verbrauch ist gebaut und laeuft (8 Nahrung je Einheit und Spieltag, `data/nahrungsverbrauch.json`).
+Drei Fragen sind dabei OFFEN geblieben - bis zur Antwort gilt der jetzige Stand.
+
+## 7. Was passiert, wenn die Nahrung nicht reicht (Unterdeckung)?
+
+| | |
+|---|---|
+| **Messlage** | Der Bestand faellt heute auf 0, der Rest steht als `unterdeckung` im `produktionsjournal` - sonst passiert NICHTS. Keine Quelle nennt eine Strafe (Handbuch 2009 und Fassung 2006 kennen Nahrung nur als Preis) |
+| **A - keine Strafe (heute)** | Der Spieler merkt es nur an der Kopfzeile (Rate wird negativ und orange hinterlegt) und im Lager. Folge: die Regel ist eine reine Wirtschaftsbremse, kein Risiko |
+| **B - Einheiten hungern** | Bei Unterdeckung verliert die Garnison Einheiten (Vorschlag: 1 von 10 je Spieltag ohne Deckung, erst Karren, dann Kaempfer). Folge: Armee wird ein echter Posten - aber eine erfundene Strafe |
+| **C - nur Warnung** | Eine deutliche Meldung in der Kopfzeile und in der Siedlungsansicht, kein Verlust. Folge: ehrlich, aber ohne Druck |
+| **Empfehlung** | **C zuerst** (Warnung sichtbar machen), **B** nur wenn sich zeigt, dass Nahrung sonst bedeutungslos ist |
+| **Frage** | A (so lassen), B (Einheiten hungern) oder C (nur Warnung)? |
+
+## 8. Essen die Siedler (Bevoelkerung) auch?
+
+| | |
+|---|---|
+| **Messlage** | Heute isst nur das ORTSHEER. Die Siedler (Bevoelkerung, 10 + 5 je Haus, bis 360 im Reich) kosten nichts. Im Original ist das genauso (keine Unterhaltsregel, Register 17 / Frage 6) |
+| **A - nur Einheiten (heute)** | Einfach und erklaerbar. Folge: eine Siedlung ohne Armee hat keinen Nahrungsbedarf |
+| **B - auch Siedler** | Z. B. 1 Nahrung je Siedler und Tag (VORSCHLAG). Folge: 360 Siedler = 360/Tag, jede Siedlung braucht dauerhaft eine Farm; die Regel wird greifbar auch ohne Armee |
+| **Empfehlung** | **A** - Daniels Entscheidung 7 nennt ausdruecklich Einheiten, nicht Siedler |
+| **Frage** | A (nur Einheiten) oder B (auch Siedler)? |
+
+## 9. Ziehen Einheiten auf einem Auftrag zusaetzlich Nahrung?
+
+| | |
+|---|---|
+| **Messlage** | Nein. Ein Auftrag zahlt heute seine Reisekosten (`auftraege.kosten_der_mission`, `NAHRUNG_JE_FELD_DURCH_GS` = 0,1 je Einheit und Feld), waehrend der Marsch isst die Truppe NICHT zusaetzlich (kein doppelter Abzug) |
+| **A - so lassen (heute)** | Eine Quelle, keine Doppelbelastung. Folge: ein langer Feldzug ist nicht teurer als heute |
+| **B - Marsch kostet den Tagessatz** | Zusaetzlich 8 je Einheit und Spieltag waehrend des Marsches. Folge: lange Wege werden spuerbar teuer, das Beuteverhaeltnis verschiebt sich |
+| **Empfehlung** | **A** - die Reisekosten gibt es schon; zwei Nahrungsposten fuer denselben Marsch waeren eine zweite Wahrheit |
+| **Frage** | A (so lassen) oder B (Marsch kostet zusaetzlich)? |

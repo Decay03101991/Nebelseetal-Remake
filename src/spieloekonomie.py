@@ -59,6 +59,16 @@ U = lade("units.json")["einheiten"]
 # `tools/warenrezepte_ableiten.py`.
 WARENREZEPTE = lade("warenrezepte.json")
 
+# Laufender Nahrungsverbrauch der Garnison (Daniels Entscheidung 7 vom 31.10.2026: "Einheiten
+# verbrauchen laufend Nahrung"). Der BETRAG ist VORSCHLAG und aus dem Reichsertrag hergeleitet
+# (Rechnung in data/nahrungsverbrauch.json und docs/SPIELBALANCING_TEST.md) - KEINE Originalstelle
+# nennt einen solchen Verbrauch. `aktiv` in der Datei ist der Schalter: false nimmt den Verbrauch
+# vollstaendig heraus, ohne Code zu loeschen (Muster wie AUSBILDUNG_STUFENFAKTOR_AKTIV).
+NAHRUNG = lade("nahrungsverbrauch.json")
+NAHRUNGSVERBRAUCH_AKTIV = bool(NAHRUNG.get("aktiv", True))
+NAHRUNG_JE_EINHEIT_TAG = float(NAHRUNG.get("je_einheit_pro_tag") or 0.0)
+
+
 
 def mengen(kosten) -> dict:
     """Nur die echten Mengen eines Kosten-Eintrags (Kennzeichnungen wie ``_belegt`` fallen weg)."""
@@ -666,6 +676,41 @@ def ausbildung_start(ort: dict, name: str, forschung: dict, jetzt: float) -> dic
 # Solange der Ökonomiemodus nicht aktiviert ist, ruft niemand diese Funktionen auf.
 
 
+def tagesbedarf_nahrung(einheiten, aktiv: bool | None = None) -> float:
+    """Nahrungsbedarf einer Einheitengruppe je SPIELTAG (VORSCHLAG, `data/nahrungsverbrauch.json`).
+
+    EINE Rechenstelle fuer Kern (``ort_tick``) und Anzeige (Kopfzeile) - sonst entstehen zwei
+    Wahrheiten. ``aktiv`` ueberschreibt den Schalter der Datendatei (fuer Pruefungen).
+    Gezaehlt wird JEDE Einheit gleich; Karren und Belagerungsgeraete fahren mit, weil sie im
+    Ortslager als Einheiten gefuehrt werden (die Datenlage kennt keinen zweiten Zaehler).
+    """
+    if aktiv is None:
+        aktiv = NAHRUNGSVERBRAUCH_AKTIV
+    if not aktiv or NAHRUNG_JE_EINHEIT_TAG <= 0:
+        return 0.0
+    anzahl = 0.0
+    for menge in (einheiten or {}).values():
+        if isinstance(menge, bool) or not isinstance(menge, (int, float)):
+            continue
+        if not math.isfinite(float(menge)) or menge <= 0:
+            continue
+        anzahl += float(menge)
+    return anzahl * NAHRUNG_JE_EINHEIT_TAG
+
+
+def _einheiten_von(ort) -> dict:
+    """Die Einheiten eines Ortes - als Dict ODER als Siedlungsobjekt (``Settlement.einheiten``)."""
+    if isinstance(ort, dict):
+        return ort.get("einheiten") or {}
+    return getattr(ort, "einheiten", None) or {}
+
+
+def verbrauch_pro_stunde(orte, aktiv: bool | None = None) -> float:
+    """Laufender Nahrungsverbrauch ALLER Siedlungen je Spielstunde (fuer die Anzeige)."""
+    bedarf = sum(tagesbedarf_nahrung(_einheiten_von(ort), aktiv) for ort in (orte or []))
+    return bedarf / 24.0
+
+
 def ort_tick(ort: dict, ab: float, bis: float, forschung: dict) -> dict:
     """Einen Ort von Spielzeit `ab` bis `bis` fortschreiben. Liefert den neuen Ort.
 
@@ -673,6 +718,12 @@ def ort_tick(ort: dict, ab: float, bis: float, forschung: dict) -> dict:
     Siedlerzuwachs bis zur Grenze fort, holt fertige Werkstattwaren ins Lager und bucht
     abgeschlossene Ausbildungen **genau einmal** (`gebucht`). Jede Produktionsspanne landet im
     `produktionsjournal` — Grundlage des Versorgungsfensters (Schritt 7).
+
+    Seit Daniels Entscheidung 7 (31.10.2026) verbraucht die GARNISON laufend Nahrung
+    (`tagesbedarf_nahrung`, Betrag VORSCHLAG). Der Verbrauch steht als eigener Posten neben der
+    Produktion im Journal - `mengen` bleibt die reine Ernte, damit das Versorgungsfenster
+    unveraendert weiterrechnet. Reicht die Nahrung nicht, faellt der Bestand auf 0 und der Rest
+    steht als `unterdeckung` im Journal; eine Strafe dafuer gibt es bewusst nicht.
     """
     if bis < ab:
         raise ValueError("Spielzeit darf nicht zurücklaufen.")
@@ -683,11 +734,26 @@ def ort_tick(ort: dict, ab: float, bis: float, forschung: dict) -> dict:
         menge = rate * (bis - ab) / 3600.0
         neu["vorraete"][r] = neu["vorraete"].get(r, 0) + menge
         produktion[r] = menge
+    # Nahrungsverbrauch der Garnison: NACH der Ernte gebucht (der Ort isst, was er erntet),
+    # je echte Spielspanne. KEIN Verbrauch bei leerer Spanne und bei leerem Ortslager-Heer.
+    verbrauch = 0.0
+    unterdeckung = 0.0
+    if bis > ab:
+        bedarf = tagesbedarf_nahrung(neu.get("einheiten") or {}) * (bis - ab) / 86400.0
+        if bedarf > 0:
+            vorher = float(neu["vorraete"].get("nahrung", 0.0) or 0.0)
+            verbrauch = min(bedarf, max(0.0, vorher))
+            unterdeckung = bedarf - verbrauch
+            neu["vorraete"]["nahrung"] = vorher - verbrauch
     grenze = gebaeude_wirkung.bevoelkerungsgrenze([neu])
     zuwachs = gebaeude_wirkung.siedler_zuwachs_pro_stunde([neu], forschung) * (bis - ab) / 3600.0
     neu["bevoelkerung"] = min(grenze, neu["bevoelkerung"] + zuwachs)
     if bis > ab:
-        neu["produktionsjournal"].append({"ab": ab, "bis": bis, "mengen": produktion})
+        zeile = {"ab": ab, "bis": bis, "mengen": produktion}
+        if verbrauch > 0 or unterdeckung > 0:
+            zeile["verbrauch"] = {"nahrung": verbrauch}
+            zeile["unterdeckung"] = unterdeckung
+        neu["produktionsjournal"].append(zeile)
     for schlange in neu["werkstaetten"].values():
         for ware, n in werkstatt.fertige_waren(schlange, bis).items():
             neu["waren"][ware] = neu["waren"].get(ware, 0) + n

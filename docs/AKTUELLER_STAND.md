@@ -46,6 +46,18 @@
 
 ## Next actions für den temporären Coding-Agenten
 
+> **GELTENDER STAND 31.10.2026 (Hermes).** Diese Ueberschrift ist der Wiedereinstiegspunkt, den
+> `tools/zieluebergabe.py` liest; die Liste darunter ist **HISTORIE der GPT-Runde vom 28.10.2026** und
+> **nicht mehr** der Fahrplan. Geltend: Hermes fuehrt das Projekt seit 30.10.2026 zurueck, der
+> naechste Schritt steht in der jeweils juengsten Datei `docs/UEBERGABE_<JJJJMMTT_HHMM>.md`
+> (31.10.2026, 19:58: Nahrungsverbrauch je Einheit war Schritt 1, danach
+> Wagenbau-Kapazitaet -> Sofortangriff reist -> Bot-Wirtschaft + Wall -> Kampfplanungsseite).
+> Nach JEDEM Schritt gilt verpflichtend: Registereintrag in `docs/PRUEFREGEL_ORIGINAL.md`,
+> Protokollzeile in `docs/ENTWICKLUNGSPROTOKOLL.md`, Einzeltest **und** voller Sammellauf
+> (`python -X utf8 tools/sammellauf.py`), neue EXE mit Startpruefung, dann EIN Commit.
+
+**Historisch (28.10.2026, GPT-Runde - nur noch Nachweis, kein Auftrag):**
+
 1. Original-Raster und sichtbares Originalbild für die 25 Karten manuell Feld für Feld abnehmen; automatische Klassifikation nicht ungeprüft korrigieren.
 2. Historische Wirtschafts-/Baumenü-Tests mit 10×10-Originalkarten neu aufbauen (Archiv bewahren), fehlende UI-Funktionen implementieren.
 3. Bot-Ökonomie, Handel, Produktion, Kampf, Save/Load als echte Spielrunde nachweisen.

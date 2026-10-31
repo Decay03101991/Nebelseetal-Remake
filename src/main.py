@@ -493,6 +493,29 @@ RESOURCE_ICONS = {
     "holz": "🌲", "stein": "🪨", "metall": "⛏️", "mana": "🔮", "nahrung": "🌾",
     "gold": "💰", "wolle": "🧶", "leder": "🦬", "pferde": "🐴",
 }
+
+
+def kopf_zeilen_text(state, rohstoff: str, ertrag_jetzt: dict) -> Tuple[str, bool]:
+    """Beschriftung eines Rohstoffs in der Kopfzeile: Bestand und Rate je Spielstunde.
+
+    EINE Stelle fuer Aufbau und Neuzeichnen der Kopfzeile. Bei **Nahrung** ist die Rate NETTO:
+    Ernte minus laufender Verbrauch der Garnison aus `spieloekonomie.verbrauch_pro_stunde` -
+    dieselbe Funktion, die auch `spieloekonomie.ort_tick` bucht (keine zweite Rechnung).
+    Rueckgabe: (Text, Warnfarbe). Warnfarbe bisher = "kein Erzeuger"; neu zusaetzlich bei
+    negativer Netto-Rate (die Garnison isst mehr, als der Ort erntet).
+    """
+    menge = int(getattr(state.resources[rohstoff], "amount", 0))
+    ernte = float(ertrag_jetzt.get(rohstoff, 0.0) or 0.0)
+    rate = ernte
+    if rohstoff == "nahrung":
+        rate = ernte - spieloekonomie.verbrauch_pro_stunde(getattr(state, "settlements", []) or [])
+    ohne_quelle = ernte <= 0 and rohstoff in ("holz", "stein", "nahrung") and bool(state.settlements)
+    if ohne_quelle:
+        return f"{RESOURCE_ICONS[rohstoff]} {menge} (\u26a0)", True
+    # Vorher stand hier `if rate else "0"` - eine NEGATIVE Rate ergab "+-3/h". Jetzt sauber.
+    text = f"+{rate:g}/h" if rate > 0 else (f"{rate:g}/h" if rate < 0 else "0")
+    return f"{RESOURCE_ICONS[rohstoff]} {menge} ({text})", rate < 0
+
 # LEER seit W4b-5 (04.10.2026) — und das ist der Punkt.
 #
 # Hier standen fuenf ERFUNDENE Wirkungsgebaeude (Haus, Bibliothek, Kaserne, Wachturm, Portal).
@@ -3335,14 +3358,10 @@ class NebelseetalApp:
         self.res_labels_top = {}
         ertrag_jetzt = self.state.stundenertrag()
         for index, r in enumerate(RESOURCES):
-            icon = RESOURCE_ICONS[r]
-            amount = int(self.state.resources[r].amount)
-            rate = ertrag_jetzt.get(r, 0.0)
-            prod_text = f"+{rate:g}/h" if rate else "0"
-            ohne_quelle = rate <= 0 and r in ("holz", "stein", "nahrung") and bool(self.state.settlements)
             zeile = ressourcen_oben if index < 4 else ressourcen_unten
-            lbl = tk.Label(zeile, text=f"{icon} {int(amount)} ({'⚠' if ohne_quelle else prod_text})",
-                           fg=("#FDBA74" if ohne_quelle else self.skin["text"]),
+            text, warnung = kopf_zeilen_text(self.state, r, ertrag_jetzt)
+            lbl = tk.Label(zeile, text=text,
+                           fg=("#FDBA74" if warnung else self.skin["text"]),
                            bg=self.skin["topbar"], font=("Arial", 9))
             lbl.pack(side=tk.LEFT, padx=5)
             self.res_labels_top[r] = lbl
@@ -7413,12 +7432,9 @@ class NebelseetalApp:
     def _render(self):
         ertrag_jetzt = self.state.stundenertrag()
         for r, lbl in self.res_labels_top.items():
-            res = self.state.resources[r]
-            rate = ertrag_jetzt.get(r, 0.0)
-            prod_text = f"+{rate:g}/h" if rate else "0"
-            ohne_quelle = rate <= 0 and r in ("holz", "stein", "nahrung") and bool(self.state.settlements)
-            lbl.config(text=f"{RESOURCE_ICONS[r]} {int(res.amount)} ({'⚠' if ohne_quelle else prod_text})",
-                       fg=("#FDBA74" if ohne_quelle else self.skin["text"]))
+            text, warnung = kopf_zeilen_text(self.state, r, ertrag_jetzt)
+            lbl.config(text=text,
+                       fg=("#FDBA74" if warnung else self.skin["text"]))
         self.lbl_day.config(text=f"Tag {self.state.day}")
         self._spielerhilfe_anzeige_aktualisieren()
         if getattr(self, "lbl_tempo", None) is not None:

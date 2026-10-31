@@ -1,0 +1,10 @@
+{
+  "_hinweis": "Laufender Nahrungsverbrauch der Einheiten, die in einer Siedlung stehen. WICHTIG: KEINE Originalstelle nennt einen solchen Verbrauch - Handbuch 2009 und Vorversion 2006 kennen Nahrung nur als Anschaffungspreis (Bürgerwehr/Streuner 100, Siedlerkarren 300) und als Reisekosten. Der Betrag hier ist ein VORSCHLAG auf Daniels Entscheidung 7 vom 31.10.2026 ('Einheiten verbrauchen laufend Nahrung, Betrag ausrechnen, im Balancing beobachten und nachjustieren').",
+  "_herkunft": "Rechnung, nicht gegriffen: der Reichsertrag an Nahrung betraegt 230,93/h = 5.542/Tag (tools/balancing_messung.py, Ausbauplan je Siedlung, 6 Siedlungen - nachgemessen 31.10.2026). Mit 8 Nahrung je Einheit und Spieltag binden 100 Krieger 800/Tag = 14,4 % des Ertrags (spuerbar, tragbar); der volle Siedlerdeckel von 360 Einheiten bindet 2.880/Tag = 52 % - eine Armee allein kann das Reich also nicht aushungern, eine grosse schon spuerbar belasten. Beide Zahlen stehen in docs/SPIELBALANCING_TEST.md.",
+  "version": "nahrung-1",
+  "aktiv": true,
+  "je_einheit_pro_tag": 8,
+  "_geltungsbereich": "Nur Einheiten im ORTSLAGER (Settlement.einheiten), also die Garnison einer Siedlung. Einheiten auf einem Auftrag zahlen ihre Reisekosten ueber auftraege.kosten_der_mission (NAHRUNG_JE_FELD_DURCH_GS) und werden hier NICHT doppelt belastet. Siedler (Bevoelkerung) essen in diesem Schritt nicht mit - das waere eine eigene Entscheidung.",
+  "_unterdeckung": "Reicht die Nahrung im Ortslager nicht, faellt der Bestand auf 0 und der Rest wird als Unterdeckung im produktionsjournal gebucht. Es gibt KEINE Strafe (keine Toten, kein Aufstand, keine Flucht) - eine Strafe waere eine eigene Entscheidung Daniels und ist hier bewusst nicht erfunden.",
+  "_abschaltbar": "aktiv=false schaltet den Verbrauch vollstaendig ab, ohne Code zu loeschen (Muster wie AUSBILDUNG_STUFENFAKTOR_AKTIV in src/spieloekonomie.py)."
+}
