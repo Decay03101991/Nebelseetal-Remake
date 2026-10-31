@@ -1,0 +1,81 @@
+{
+  "_zweck": "Zuordnung der acht Original-Gebaeudemotive (Handbuch 2009, Seite 1) zu Gebaeudetypen aus data/buildings.json.",
+  "_quelle": "docs/original/handbuch_bilder/seite01_bild01,04,05,06,07,08,09,10.jpeg -> assets/icons/gebaeude/motiv_1..8.png (100x100 px, PNG, weil Tk kein JPEG liest)",
+  "_sichtung": "docs/audits/BILDQUELLEN_SICHTUNG_20261101.md (alle 244 Handbuchbilder auf sechs Kontaktboegen)",
+  "_regel": "Nur Motive mit 'eingebaut': true erscheinen auf der Siedlungskarte. 'eingebaut': false heisst: Motiv ist vorhanden, die Zuordnung ist aber NICHT belegt - Daniel ordnet zu, dann wird nur dieses Feld geaendert. Es wird nichts geraten.",
+  "_entscheidung_offen": "Daniel 01.11.2026 gefragt: welche Nummer ist welches Gebaeude? Die vier unklaren Motive (2, 3, 4, 6) warten auf seine Antwort.",
+  "motive": [
+    {
+      "motiv": 1,
+      "datei": "assets/icons/gebaeude/motiv_1.png",
+      "gebaeude": "haus",
+      "eingebaut": true,
+      "sicher": true,
+      "beschreibung": "kleines Haus mit gelbem Satteldach, Fass und Holzstapel im Hof",
+      "begruendung": "Wohnhaus ist am Motiv eindeutig (Dach, Schornstein, Hof)."
+    },
+    {
+      "motiv": 2,
+      "datei": "assets/icons/gebaeude/motiv_2.png",
+      "gebaeude": null,
+      "eingebaut": false,
+      "sicher": false,
+      "beschreibung": "runder Kuppelbau auf Holzkonstruktion mit Zaun",
+      "begruendung": "Kann Muehle, Tempel oder Marktplatz sein - ohne Beschriftung nicht entscheidbar."
+    },
+    {
+      "motiv": 3,
+      "datei": "assets/icons/gebaeude/motiv_3.png",
+      "gebaeude": null,
+      "eingebaut": false,
+      "sicher": false,
+      "beschreibung": "offenes Holzgeruest, graues Schraegdach, Vorraete im Inneren",
+      "begruendung": "Lager oder Werkstatt - beide Lesarten sind moeglich."
+    },
+    {
+      "motiv": 4,
+      "datei": "assets/icons/gebaeude/motiv_4.png",
+      "gebaeude": null,
+      "eingebaut": false,
+      "sicher": false,
+      "beschreibung": "gelbes Dach mit dunklem Holzanbau, Rasenflaeche",
+      "begruendung": "Scheune, Farm oder Muehle - nicht entscheidbar."
+    },
+    {
+      "motiv": 5,
+      "datei": "assets/icons/gebaeude/motiv_5.png",
+      "gebaeude": "kriegerakademie",
+      "eingebaut": true,
+      "sicher": true,
+      "beschreibung": "grauer Steinbau mit Zinnen, Treppe und roten Fahnen",
+      "begruendung": "Zinnen und Fahnen sind ein Wehrbau; im Spiel ist die Kriegerakademie (Menuepunkt 'Kaserne') das einzige Gebaeude, das Truppen ausbildet und mit Fahnen dargestellt ist."
+    },
+    {
+      "motiv": 6,
+      "datei": "assets/icons/gebaeude/motiv_6.png",
+      "gebaeude": null,
+      "eingebaut": false,
+      "sicher": false,
+      "beschreibung": "zweites offenes Holzgeruest, andere Inneneinrichtung",
+      "begruendung": "Werkstatt oder Lager - nicht entscheidbar."
+    },
+    {
+      "motiv": 7,
+      "datei": "assets/icons/gebaeude/motiv_7.png",
+      "gebaeude": "erzmine",
+      "eingebaut": true,
+      "sicher": true,
+      "beschreibung": "grauer Felshuengel mit dunklem Stollen und Lore",
+      "begruendung": "Stollen und Lore sind eine Mine; von den drei Abbaugebaeuden ist die Erzmine das Metall-Gebaeude."
+    },
+    {
+      "motiv": 8,
+      "datei": "assets/icons/gebaeude/motiv_8.png",
+      "gebaeude": null,
+      "eingebaut": false,
+      "sicher": false,
+      "beschreibung": "braune Holzscheune mit grossem Dach auf Stelzen",
+      "begruendung": "Stall, Farm oder Jaegerhuette - nicht entscheidbar."
+    }
+  ]
+}

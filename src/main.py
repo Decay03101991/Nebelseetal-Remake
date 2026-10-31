@@ -571,6 +571,34 @@ BUILDINGS: Dict[str, Building] = {}
 # Karren und Belagerungswaffen haben im Handbuch keine LE/AT, weil sie nicht kaempfen —
 # attack und defense bleiben dort 0, und `rolle` sagt, wie die Einheit wirkt.
 UNIT_ICONS: Dict[str, str] = {}
+
+
+def _lade_gebaeude_motive() -> Dict[str, str]:
+    """Gebaeudetyp -> Motivdatei, NUR fuer belegte Zuordnungen (A-2, 01.11.2026).
+
+    Quelle ist `data/gebaeude_motive.json`: acht Original-Gebaeudemotive aus dem Handbuch 2009,
+    aber nur die Motive mit `eingebaut: true` erscheinen auf der Karte. Die uebrigen sind
+    gefunden und warten auf Daniels Zuordnung - geraten wird nichts. Die Sichtung aller 244
+    Handbuchbilder steht in `docs/audits/BILDQUELLEN_SICHTUNG_20261101.md`.
+    """
+    pfad = os.path.join(ICON_WURZEL, "data", "gebaeude_motive.json")
+    try:
+        with open(pfad, encoding="utf-8") as f:
+            daten = json.load(f)
+    except (OSError, ValueError, KeyError):
+        return {}
+    motive: Dict[str, str] = {}
+    for eintrag in daten.get("motive") or []:
+        if not isinstance(eintrag, dict) or not eintrag.get("eingebaut"):
+            continue
+        gebaeude = eintrag.get("gebaeude")
+        datei = eintrag.get("datei")
+        if gebaeude and datei:
+            motive[str(gebaeude)] = str(datei)
+    return motive
+
+
+GEBAEUDE_MOTIVE: Dict[str, str] = _lade_gebaeude_motive()
 UNITS: Dict[str, Unit] = {}
 for _name, _e in einheiten.alle().items():
     if _e["icon"]:
@@ -3347,6 +3375,57 @@ class NebelseetalApp:
         self._icon_cache[pfad] = bild
         return bild
 
+    def _lade_gebaeude_motiv(self, gebaeude_key: str, faktor: int = 2):
+        """Das Originalmotiv eines Gebaeudes als Tk-Bild - oder None, wenn keines belegt ist.
+
+        Nur Motive aus `data/gebaeude_motive.json` mit `eingebaut: true` kommen hier durch
+        (`GEBAEUDE_MOTIVE`). Die Bilder sind 100 x 100 px; `faktor=2` halbiert sie auf 50 px,
+        damit sie in eine 64-px-Kachel mit Rand passen.
+        """
+        relativ = GEBAEUDE_MOTIVE.get(str(gebaeude_key))
+        if not relativ:
+            return None
+        pfad = icon_pfad(relativ)
+        if not pfad or not os.path.exists(pfad):
+            return None
+        if not hasattr(self, "_motiv_cache"):
+            self._motiv_cache = {}
+        schluessel = (pfad, faktor)
+        if schluessel in self._motiv_cache:
+            return self._motiv_cache[schluessel]
+        try:
+            bild = tk.PhotoImage(file=pfad)
+            if faktor > 1:
+                bild = bild.subsample(faktor)
+        except Exception:                                    # noqa: BLE001
+            return None
+        self._motiv_cache[schluessel] = bild
+        return bild
+
+    def _stufenpips_zeichnen(self, canvas, x0: float, y0: float, zelle: float,
+                             stufe: float, feld: int) -> None:
+        """Die Ausbaustufe als kleine Punkte unter einem Originalmotiv (A-2).
+
+        Bei den gezeichneten Baukoerpern kommen die Punkte aus `karten_optik_fein`; beim
+        Handbuchbild fehlen sie, deshalb stehen sie hier - gleiche Bedeutung, gleiche Stelle
+        (die Legende sagt: "die Punkte unter einem Gebäude zeigen seine Ausbaustufe").
+        """
+        try:
+            anzahl = max(0, min(5, int(stufe)))
+        except (TypeError, ValueError):
+            return
+        if anzahl <= 0:
+            return
+        _groesse, _abstand = 4, 6
+        _breite = anzahl * _abstand - (_abstand - _groesse)
+        _start = x0 + (zelle - _breite) / 2
+        _y = y0 + zelle - 7
+        for k in range(anzahl):
+            px = _start + k * _abstand
+            canvas.create_rectangle(px, _y, px + _groesse, _y + _groesse,
+                                    fill="#F5D76E", outline="#7a5c14",
+                                    tags=(f"feld:{feld}", "stufenpip"))
+
     def _build_loading_screen(self):
         for widget in self.root.winfo_children():
             widget.destroy()
@@ -4829,12 +4908,21 @@ class NebelseetalApp:
                 continue
             x0, y0 = _feld_ecke(i)
             stufe = gebaeude_wirkung.stufe_von_feld(siedlung, i)
-            karten_optik.zeichne(
-                canvas,
-                karten_optik_fein.gebaeude_baukasten_plan(
-                    gebaut, x0, y0, zelle, stufe=stufe,
-                    max_stufe=gebaeude_wirkung.max_stufe(gebaut)),
-                tags=(f"feld:{i}",))
+            # A-2 (Daniels Spielbericht 31.10.2026: "Platzhalter durch Originalgrafik ersetzen"):
+            # fuer Gebaeude mit BELEGTEM Originalmotiv steht das Handbuchbild auf dem Feld, sonst
+            # weiter der gezeichnete Baukoerper. Die Ausbaustufe bleibt in beiden Faellen sichtbar.
+            _motiv = self._lade_gebaeude_motiv(gebaut)
+            if _motiv is not None:
+                _mx, _my = int(x0 + zelle / 2), int(y0 + zelle / 2 + 2)
+                canvas.create_image(_mx, _my, image=_motiv, tags=(f"feld:{i}", "motiv"))
+                self._stufenpips_zeichnen(canvas, x0, y0, zelle, stufe, i)
+            else:
+                karten_optik.zeichne(
+                    canvas,
+                    karten_optik_fein.gebaeude_baukasten_plan(
+                        gebaut, x0, y0, zelle, stufe=stufe,
+                        max_stufe=gebaeude_wirkung.max_stufe(gebaut)),
+                    tags=(f"feld:{i}",))
 
         # GPT W-02: gezeichneter Ortswall zwischen Baukoerper und Auswahl/Koordinaten.
         # Er belegt kein Feld; Randkoordinaten der Bauplatzklicks bleiben identisch.
