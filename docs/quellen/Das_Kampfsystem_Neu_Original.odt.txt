@@ -1,0 +1,108 @@
+Das Kampfsystem
+Das Kampfsystem zu verstehen ist ein bedeutender Schritt um im Nebelseetal bestehen zu können. Hier findet ihr die , durch mich vervollständigte, Erklärung aus dem Forum.
+Hier ist der detaillierte neue Kampfablauf:Aktuell gelten diese Werte:
+Bürgerwehr
+Konstitution: 5%,
+Kampfwert: 1-12
+Rüstung: 0
+Kämpfer
+Konstitution: 15%
+Kampfwert: 2-20
+Rüstung: 2
+Krieger
+Konstitution: 25%
+Kampfwert: 3-25
+Rüstung: 4
+Ritter
+Konstitution: 50%
+Kampfwert: 4-35
+Rüstung: 8
+Paladin
+Konstitution: 70%
+Kampfwert: 5-45
+Rüstung: 12
+Kurzbogenschütze
+Konstitution: 15%
+Kampfwert: 1-12
+Rüstung: 0
+Fernkampf: 20%
+Bogenschütze
+Konstitution: 25%
+Kampfwert: 1-12
+Rüstung: 0
+Fernkampf: 30%
+Langbogenschütze
+Konstitution: 35%
+Kampfwert: 1-12
+Rüstung: 0
+Fernkampf: 55%
+Armbrustschütze
+Konstitution: 45%
+Kampfwert: 1-12
+Rüstung: 2
+Fernkampf: 70%
+Streuner
+Konstitution: 5%
+Kampfwert: 2-15
+Rüstung: 0
+Gauner
+Konstitution: 15%
+Kampfwert: 2-20
+Rüstung: 0
+Dieb
+Konstitution: 25%
+Kampfwert: 2-25
+Rüstung: 0
+Meisterdieb
+Konstitution: 35%
+Kampfwert: 2-30
+Rüstung: 0
+Kundschafter
+Konstitution: 45%
+Kampfwert: 2-35
+Rüstung: 2
+Waldläufer
+Konstitution: 55%
+Kampfwert: 2-40
+Rüstung: 4
+Der Kampfablauf:Bevor ein Kampf stattfindet wird erst überprüft ob die Nahkampfeinheiten und die Belagerungswaffen über genug Schlagkraft verfügen die Mauer des Verteidigers zu überwinden. Wenn dieses der Fall ist kann der Kampf beginnen. Wenn nicht zieht sich der Angreifer wieder zurück.Vorrunde - FernkampfEs gibt vor der Schlacht Mauerstufe+1 Vorrunden, in der die Fernkämpfer beider Seiten, die gegnerischen Nahkampfeinheiten (Wenn keine mehr übrig sind auch die Fernkampfeinheiten) beschießen.Modifizierung des FernkampfwertesDurch die Mauer ist es für die angreifenden Schützen allerdings schwieriger die gegnerischen Einheiten zu treffen. Pro Mauerstufe ist der Fernkampfwert der angreifenden Schützen um 5% gesenkt. Die Beschädigung der Mauer wird hierbei berücksichtigt.Aber die Beschädigung durch die aktuell mitgeführten Belagerungswaffen wird erst nach der Vorrunde berechnet.Außerdem werden angreifende Nahkämpfer durch Belagerungstürme geschützt. Normale Belagerungstürme können 10 Einheiten und große Belagerungstürme 30 Einheiten schützen. Wenn diese Einheiten  beschossen werden bekommt der Fernkämpfer einen Malus von 30% auf dern Fernkampfwert.In Türmen werden immer zuerst die besten Einheiten geschützt.Die Forschung Bogenbau erhöht die Trefferchance der Schützen um 2% pro Stufe.SchadenGetroffene Einheiten erleiden Erschöpfungschaden. Je Fernkampfeinheit ist dieser Erschöpfungsschaden unterschiedlich hoch. Die Verschiedenen Einheitentypen können verschieden hohen, durch Fernkampf erlittenen Erschöpfungsschaden einstecken, bevor sie kampfunfähig werden:Erschöpfungsschaden:
+Kurzbogenschützen
+1 Erschöpfungsschaden pro Treffer
+Bogenschützen
+2 Erschöpfungsschaden pro Treffer
+Langbogenschützen
+3 Erschöpfungsschaden pro Treffer
+Armbrustschützen
+4 Erschöpfungsschaden pro Treffer
+Kampfunfähigkeit bei Erschöpfung:
+Bürgerwehr
+1 Erschöpfungspunkt
+Kämpfer
+3 Erschöpfungspunkte
+Krieger
+5 Erschöpfungspunkte
+Ritter
+7 Erschöpfungspunkte
+Paladin
+9 Erschöpfungspunkte
+Kurzbogenschützen
+1 Erschöpfungspunkt
+Bogenschützen
+2 Erschöpfungspunkte
+Langbogenschützen
+3 Erschöpfungspunkte
+Armbrustschützen
+4 Erschöpfungspunkte
+Streuner
+1 Erschöpfungspunkt
+Gauner
+2 Erschöpfungspunkte
+Dieb
+3 Erschöpfungspunkte
+Meisterdieb
+4 Erschöpfungspunkte
+Kundschafter
+5 Erschöpfungspunkte
+Waldläufer
+6 Erschöpfungspunkte
+ Wird eine Einheit Kampfunfähig, wird anhand ihrer Konstitution bestimmt, ob sie die Schlacht überlebt, oder stirbt. Sie nimmt aber in beiden Fällen nicht weiter an der Schlacht teil. Ein durch Zufall bestimmter Wert zwischen 1 und 100 muss kleiner, oder gleich der Konstitution der Einheit sein, damit sie überlebt.Nach den Vorrundenbeginnen sich die angreifenden Schützen zurückzuziehen. Die Verteidiger machen sich auf einen Nahkampf gefasst.Jede Kampfsequenz ziehen sich 20% der Fernkämpfer des Angreifers zurück, beginnend mit den stärksten Einheiten. Sollteder Angreifer die Schlacht verlieren (unentschiedene Schlachten gewinnen beide Seiten), werden die noch nicht geflohenen Fernkampfeinheiten überrannt. Unabhängig von der noch verbliebenen verteidigenden Armee, legen alle nicht zurückgezogenen Fernkämpfer eine Konstitutionsprobe ab um zu bestimmen, ob sie das Schlachtfeld lebend verlassen.Belagerung / MauerschadenAußerdem wird jetzt die Beschädigung der Mauer durch Katapulte etc. berechnet. Diese wirkt sich also nicht auf den aktuellen Kampf aus, da die Fernkämpfer schon geschossen haben. Beim nächsten Kampf allerdings (falls die Mauer nicht repariert wird) schießen die Fernkämpfer dementsprechend weniger und es muss auch weniger Schlagkraft aufgebracht werden.Der Mauerschaden wird wie folgt errechnet: Zuerst wird der Schaden ermittel die eine Belagerungswaffe macht. Bei einem Katapult wäre das zb. 2 - 13. Hier wird als Beispiel eine 9 ermittelt. Nehmen wir an der Angreifer hat eine Mauer Stufe 5 dann wird von den 9 Schaden noch 5 abgezogen(Mauerstufe). Somit macht das Katapult 4 Schaden und die Mauer hätte statt 100% nur noch 96%. So wird das für jede Belagerungswaffe getrennt gerechnet. Das heißt zb das eine kleine Ramme die max.4 Schaden macht einer Mauer Stufe 5 nichts anhaben kann.Also die Formel lautet: Schaden der Belagerungswaffe - Mauerstufe = Schaden an der MauerDie SchlachtIn der Schlacht suchen sich alle angreifenden Einheiten (die schwächsten zuerst) per Zufall eine verteidigende Nahkampfeinheit heraus und gehen mit dieser Einheit in den Nahkampf.ZweikampfDabei wird für jeden der Kontrahenten eine Zufallszahl, zwischen dem beim Kampfwert angegebenen Wert der Einheit, ermittelt. Dieser Ermittelte Wert wird um 10% pro Stufe der Forschung Schmiedekunst erhöht. Anschließend wird der Rüstungswert des Gegners, ebenfalls um 10% pro Schmiedekunststufe des Gegners erhöht, von dem Ergebnis abgezogen. Um den endgültigen Kampfwert zu erhalten wird nun noch die bisher in der Schlacht erlittene Erschöpfung der Einheit vom Wert subtrahiert.Die Einheit mit dem höheren Ergebnis gewinnt den Zweikampf, erleidet aber 2 Punkte Erschöpfung. Die Einheit die verliert muss, wie beim Fernkampf eine Konstitutionsprobe bestehen um die Schlacht zu überleben. Sie scheidet aber in jedem Fall aus der Schlacht aus.Haben beide am Zweikampf beteiligten Einheiten den selben ermittelten Kampfwert, gelten beide Einheiten als Verlierer, scheiden aus und müssen eine Konstitutionsprobe bestehen um zu überleben.Die Schlacht ist beendet, wenn entweder alle angreifenden Nahkampfeinheiten ausgeschieden sind, alle Einheiten des Verteidigers (Fern- und Nahkampfeinheiten) besiegt wurden, oder nach 10 Sequenzen kein Gewinner feststeht.

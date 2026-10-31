@@ -27,7 +27,9 @@ STAND = "2026-10-28.GPT-NE01.wissenswertes"
 #  Erschöpfung durch Treffer, Schwelle zur Kampfunfähigkeit)
 # Basis aus 'Das Kampfsystem.odt'; Kampfwert-Spannen nach dem neueren
 # 'WeitereWerteKampfsystem.odt' (Tabelle Einheitenwerte, S. 5/6).
-# Konflikt mit dem ersten Forumstext dokumentiert: docs/GPT_NE01_*.md.
+# Konflikt Handbuch 2009 (LE/AT/PA) gegen dieses Forum-Original: Registerpunkt 40 in
+# docs/PRUEFREGEL_ORIGINAL.md und docs/PRUEFUNG_ENTWURF_WEGZEIT_KAMPF_20261031.md §3.1.
+# (Der frueher hier genannte Ort docs/GPT_NE01_*.md existiert nicht - geprueft 31.10.2026.)
 PROFILE = {
     "Bürgerwehr": (5, 1, 12, 0, None, 0, 1),
     "Kämpfer": (15, 4, 22, 2, None, 0, 3),

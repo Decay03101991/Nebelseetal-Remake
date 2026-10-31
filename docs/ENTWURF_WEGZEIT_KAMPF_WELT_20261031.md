@@ -1,5 +1,30 @@
 # Entwurf: Wegzeit, Kampfablauf und Weltlage im Nebelseetal-Remake
 
+> ## ⚠ GEPRÜFT AM 31.10.2026 — VOR DEM BAUEN LESEN
+>
+> Dieses Papier ist ein **VORSCHLAG** des starken Modells. Es wurde am 31.10.2026 gegen Handbuch
+> 2009, Vorversion 2006 und den Code geprüft. Ergebnis: **§1 (Wegzeit) und §3 (Weltlage) sind
+> brauchbar, §2 (Kampfablauf) ist in Teilen falsch** und darf so nicht umgesetzt werden.
+>
+> **Prüfbericht:** `docs/PRUEFUNG_ENTWURF_WEGZEIT_KAMPF_20261031.md` (jede Aussage mit Quelle)
+>
+> Die sechs falschen Stellen in §2 im Kurzüberblick:
+> 1. „Wallstufenwerte fehlen" — sie stehen im Handbuch selbst (Z. 1216–1252) **und** in `data/buildings.json`.
+> 2. „sonst halbierter Schaden" — die Truppen **ziehen sich zurück, der Kampf ist unentschieden** (Z. 1213–1215).
+> 3. „Zweikampfformel ist Vorschlag" — wörtlich belegt (Z. 1296–1309), gilt aber für das **Handbuch-Modell**.
+> 4. Erschöpfung und „10 Sequenzen" — beides **belegt** (Z. 1324–1328, Z. 1274–1278), nicht offen.
+> 5. „Punkteformel Vorschlag" — **belegt** (Handbuch S. 5; `src/punkte.py` rechnet so).
+> 6. „`src/kampf.py` mit `_zweikampf`, `_geraeteverluste`" — diese Funktionen stehen in
+>    `src/kampf_alt_handbuch_2009.py`; `kampf.py` folgt dem **neueren Forum-Original**.
+>
+> Und in §3: „`movements` ist heute immer leer" ist falsch — `main.py` legt Bewegungen an
+> (Z. 5707) und wertet die Ankunft aus (Z. 6937); daneben läuft der vollständige Auftragspfad
+> `self.auftraege` (`src/auftraege.py`). **Zwei Bewegungssysteme**, siehe Entscheidung E3.
+>
+> Die wirklich offenen Entscheidungen stehen in §6 des Prüfberichts (**E1–E5**), nicht in der
+> Tabelle §5 dieses Papiers.
+
+
 ## 1. Wegzeit (c)
 
 ### 1.1 Formel
