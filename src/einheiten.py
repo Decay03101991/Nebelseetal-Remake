@@ -61,14 +61,17 @@ def alle() -> Dict[str, Dict[str, Any]]:
 
 
 def namen() -> List[str]:
+    """Alle Einheitennamen aus data/units.json, in Dateireihenfolge."""
     return list(alle().keys())
 
 
 def nach_rolle(rolle: str) -> List[str]:
+    """Alle Einheiten einer Rolle ('kaempfer', 'karren', 'belagerung', 'kundschafter')."""
     return [n for n, e in alle().items() if e["rolle"] == rolle]
 
 
 def rolle(name: str) -> Optional[str]:
+    """Die Rolle einer Einheit oder None, wenn der Name unbekannt ist."""
     e = alle().get(name)
     return e["rolle"] if e else None
 
@@ -84,29 +87,35 @@ def ist_transport(name: str) -> bool:
 
 
 def ist_belagerung(name: str) -> bool:
+    """Ist die Einheit eine Belagerungswaffe (Ramme, Katapult, Turm)?"""
     return rolle(name) == "belagerung"
 
 
 # --------------------------------------------------------------- Originalwerte
 
 def _w(name: str, feld: str) -> Any:
+    """Ein Originalwert roh aus den Daten (AT, PA, LE, SK, GS ...); None, wenn das Handbuch ihn nicht druckt."""
     e = alle().get(name)
     return e["werte"].get(feld) if e else None
 
 
 def angriff(name: str) -> int:
+    """Angriffswert (AT) - im Handbuch die Chance, mit der Waffe zu treffen."""
     return int(_w(name, "AT") or 0)
 
 
 def verteidigung(name: str) -> int:
+    """Verteidigungswert (PA) - die Chance, einen Treffer abzuwehren."""
     return int(_w(name, "PA") or 0)
 
 
 def leben(name: str) -> int:
+    """Lebensenergie (LE) - wie viel Schaden die Einheit verkraftet."""
     return int(_w(name, "LE") or 0)
 
 
 def schlagkraft(name: str) -> int:
+    """Schlagkraft (SK) - die Kennzahl, die die Wallschwelle prueft (nicht AT!)."""
     return int(_w(name, "SK") or 0)
 
 
@@ -116,6 +125,7 @@ def mut(name: str) -> Optional[int]:
 
 
 def geschwindigkeit(name: str) -> int:
+    """Reisegeschwindigkeit (GS); die langsamste Einheit bestimmt das Tempo der Gruppe."""
     return int(_w(name, "GS") or 0)
 
 
@@ -126,10 +136,12 @@ def mauer_schaden(name: str) -> Tuple[int, int]:
 
 
 def ladung(name: str) -> int:
+    """Ladeplaetze als Karren (0 fuer Kaempfer und Belagerungswaffen)."""
     return int(alle()[name]["ladung"] or 0) if name in alle() else 0
 
 
 def kriegspunkte(name: str) -> Optional[int]:
+    """Fester Punktewert der Einheit fuer die Kriegspunkte (None = 'Punktewert -')."""
     e = alle().get(name)
     return e["kriegspunkte"] if e else None
 
@@ -185,6 +197,7 @@ def beschreibung(name: str) -> str:
 
 
 def uebersicht() -> Dict[str, int]:
+    """Kurzstatistik: wie viele Einheiten je Rolle, wie viele Originalwerte fehlen."""
     d = {"gesamt": len(alle())}
     for r in ROLLEN_TEXT:
         d[r] = len(nach_rolle(r))

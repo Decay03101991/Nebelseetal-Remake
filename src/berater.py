@@ -28,6 +28,7 @@ ANTWORT_QUELLE_LLM = None
 
 
 def _norm(text: str) -> str:
+    """Vergleichsform eines Textes (klein, ohne Doppelleerzeichen) fuer die Stichwortsuche."""
     import unicodedata
     text = unicodedata.normalize("NFC", str(text)).lower()
     return (text.replace("ä", "ae").replace("ö", "oe")
@@ -35,11 +36,13 @@ def _norm(text: str) -> str:
 
 
 def _datei(name: str) -> dict:
+    """Pfad einer Datei innerhalb des Projekts."""
     with open(os.path.join(WURZEL, "data", name), encoding="utf-8") as f:
         return json.load(f)
 
 
 def _baupreise() -> dict:
+    """Die Baukosten-Tabelle aus data/baupreise.json."""
     try:
         return _datei("baupreise.json")["preise"]
     except (OSError, KeyError, ValueError):
@@ -60,6 +63,7 @@ def _baupreise() -> dict:
 # --------------------------------------------------------------------------
 
 def _gebaeude_text(kennung: str, geb: dict) -> list:
+    """Antworttext zu einem Gebaeude: Kosten, Voraussetzung, Ertrag."""
     zeilen = [f"{geb['name']} ({geb.get('kategorie', 'ohne Kategorie')})"]
     if geb.get("wirkung"):
         zeilen.append(f"  Wirkung: {geb['wirkung']}")
@@ -92,6 +96,7 @@ def _gebaeude_text(kennung: str, geb: dict) -> list:
 
 
 def _einheit_text(name: str, e: dict) -> list:
+    """Antworttext zu einer Einheit: Rolle, Werte, Kosten, Gebaeude."""
     werte_daten = e.get("werte") or {}
     werte = []
     for feld, beschriftung in [("LE", "Lebensenergie"), ("AT", "Attacke"), ("PA", "Parade"),
@@ -121,6 +126,7 @@ def _einheit_text(name: str, e: dict) -> list:
 
 
 def _ware_text(name: str, w: dict) -> list:
+    """Antworttext zu einer Ware: Rezept und Werkstatt."""
     zeilen = [f"{name}"]
     if w.get("werkstatt"):
         zeilen.append(f"  Hergestellt in: {w['werkstatt']}")
@@ -138,6 +144,7 @@ def _ware_text(name: str, w: dict) -> list:
 # --------------------------------------------------------------------------
 
 def _antwort_gelaende() -> list:
+    """Antwort auf eine Frage nach dem Gelaende (was waechst wo)."""
     zeilen = ["Es gibt sieben Geländearten (Handbuch S. 9-11):"]
     for art in gelaende.GELAENDEARTEN:
         zeilen.append(f"  {gelaende.name(art)} — {'bebaubar' if gelaende.ist_bebaubar(art) else 'NICHT bebaubar'}")
@@ -151,6 +158,7 @@ def _antwort_gelaende() -> list:
 
 
 def _antwort_forschung() -> list:
+    """Antwort auf eine Frage nach der Forschung (Dauer, Kosten, Reihenfolge)."""
     regeln = spieldaten.forschungsregeln()
     zeilen = ["Forschung (Handbuch S. 12/13):",
               f"  Kosten: {regeln.get('kosten', '50 Holz, je Stufe verdoppelt')}",
@@ -164,6 +172,7 @@ def _antwort_forschung() -> list:
 
 
 def _antwort_kampf() -> list:
+    """Antwort auf eine Frage nach dem Kampf (Wall, Schlagkraft, Beute)."""
     return ["Kampf (Handbuch S. 20-22):",
             "  Zuerst die Fernkämpfer beider Seiten gleichzeitig, dann der Nahkampf.",
             "  Der Verteidigungswall muss vorher überwunden werden — jede Stufe hat einen "
@@ -178,6 +187,7 @@ def _antwort_kampf() -> list:
 
 
 def _antwort_punkte() -> list:
+    """Antwort auf eine Frage nach den Punkten (Krieg, Forschung, Gesamt)."""
     return ["Punkte (Handbuch S. 23):",
             "  Forschungspunkte: für jede Stufe wird die Stufe dreimal multipliziert — also Stufe hoch drei.",
             "  Kriegspunkte: für Verteidigungsanlagen die Ausbaustufe hoch drei, dazu Punkte für Einheitenverluste.",
@@ -186,6 +196,7 @@ def _antwort_punkte() -> list:
 
 
 def _antwort_portal() -> list:
+    """Antwort auf eine Frage nach Portal, Limbus und Dimensionen."""
     return ["Limbus und Portale (Handbuch S. 1/4/12):",
             "  Alle Welten liegen im Limbus, der sich in 20 Dimensionen teilt.",
             "  Verbunden sind sie über magische Portale.",
@@ -195,6 +206,7 @@ def _antwort_portal() -> list:
 
 
 def _antwort_start() -> list:
+    """Antwort auf eine Frage nach dem Spielstart (Startwerte, erste Schritte)."""
     return ["Der Start (Handbuch S. 7):",
             "  Du beginnst mit 100 Holz, 100 Stein und 10 Siedlern.",
             "  1. Im Dorfzentrum eine Siedlung gründen — sie bekommt eine eigene Geländekarte.",
@@ -205,6 +217,7 @@ def _antwort_start() -> list:
 
 
 def _antwort_steuerung() -> list:
+    """Antwort auf eine Frage nach der Bedienung (welcher Knopf wofuer)."""
     return ["Bedienung:",
             "  Links das Menü, oben die Rohstoffleiste.",
             "  Im Dorfzentrum stehen deine Siedlungen und der Weg zu ihrer Karte.",
@@ -215,6 +228,7 @@ def _antwort_steuerung() -> list:
 
 
 def _antwort_sieg() -> list:
+    """Antwort auf eine Frage nach Sieg und Niederlage (es gibt keinen Sieg)."""
     return ["Ziel:",
             "  Die Rangliste führt nach Gesamtpunkten; der Götterschutz gilt sieben Tage.",
             "  Ein eindeutiges Sieg- oder Niederlage-Ereignis nennt das Handbuch nicht — "
@@ -348,6 +362,7 @@ def tipps(zustand=None) -> str:
 
 
 def begruessung() -> str:
+    """Der erste Satz des Beraters beim Oeffnen."""
     return ("Ich bin die Auskunft im Spiel. Ich antworte aus dem Originalhandbuch und den "
             "Spieldaten — ohne Netz und ohne Schlüssel.\n"
             "Frag mich zum Beispiel:\n"

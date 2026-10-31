@@ -463,6 +463,89 @@ def ware_start(ort: dict, ware: str, forschung: dict, jetzt: float,
     return neu
 
 
+def ausbildung_uebersicht(ort: dict, jetzt: float) -> dict:
+    """Was gerade in DIESEM Ort ausgebildet wird - mit Restzeiten und Gesamtdauer.
+
+    Warum (Daniel 31.10.2026, eigener Spieltest): "die Handkarren werden unsichtbar produziert,
+    es gibt keine Anzeige fuer den Ausbildungsstand ... eine Uebersicht, wie lange die
+    Produktionszeit gesamt dauert". Die Auftraege liefen schon immer NACHEINANDER je Gebaeude
+    (`ausbildung_start` beginnt bei `freie_zeit` = Ende des letzten Auftrags desselben Gebaeudes),
+    aber niemand konnte das sehen.
+
+    Rueckgabe::
+
+        {"auftraege": [{"einheit", "gebaeude", "stufe", "start", "ende", "rest_sekunden",
+                        "dauer_sekunden", "laufend", "platz"}],
+         "gesamt_rest_sekunden": float,      # bis der LETZTE Auftrag fertig ist
+         "anzahl": int}
+    """
+    try:
+        jetzt = float(jetzt)
+    except (TypeError, ValueError):
+        jetzt = 0.0
+    auftraege = []
+    for eintrag in (ort.get("ausbildung") or []):
+        if not isinstance(eintrag, dict):
+            continue
+        try:
+            ende = float(eintrag.get("ende") or 0.0)
+            start = float(eintrag.get("start") or 0.0)
+        except (TypeError, ValueError):
+            continue
+        if eintrag.get("gebucht"):
+            continue
+        dauer = eintrag.get("dauer_sekunden")
+        if dauer is None:
+            dauer = max(0.0, ende - start)
+        auftraege.append({
+            "einheit": eintrag.get("einheit"),
+            "gebaeude": eintrag.get("gebaeude"),
+            "stufe": eintrag.get("stufe"),
+            "start": start,
+            "ende": ende,
+            "dauer_sekunden": float(dauer),
+            "rest_sekunden": max(0.0, ende - jetzt),
+            "laufend": start <= jetzt < ende,
+        })
+    auftraege.sort(key=lambda a: (a["ende"], str(a["einheit"])))
+    for platz, auftrag in enumerate(auftraege, start=1):
+        auftrag["platz"] = platz
+    gesamt = max([a["ende"] for a in auftraege], default=jetzt)
+    return {"auftraege": auftraege,
+            "gesamt_rest_sekunden": max(0.0, gesamt - jetzt),
+            "anzahl": len(auftraege)}
+
+
+def ausbildung_abbrechen(ort: dict, platz: int, jetzt: float) -> dict:
+    """Einen Ausbildungsauftrag streichen - OHNE Erstattung, weil die Quelle nichts regelt.
+
+    Belegt ist nur das Abbrechen von FORSCHUNG (Handbuch 2009, Z. 442: "Forschung abbrechen").
+    Fuer die Einheitenausbildung nennt weder das Handbuch 2009 noch die Vorversion 2006 eine
+    Regel zu Abbruch oder Erstattung - geprueft 31.10.2026. Deshalb: Streichen ja (der Spieler
+    soll nicht in einer Warteschlange festsitzen), Erstattung nein (kein erfundener Betrag).
+    Die verbrauchten Siedler, Kosten und Waren bleiben verbraucht.
+    """
+    liste = [a for a in (ort.get("ausbildung") or []) if isinstance(a, dict) and not a.get("gebucht")]
+    liste.sort(key=lambda a: (float(a.get("ende") or 0.0), str(a.get("einheit"))))
+    try:
+        platz = int(platz)
+    except (TypeError, ValueError):
+        return {"ok": False, "grund": "Ungueltiger Platz."}
+    if not 1 <= platz <= len(liste):
+        return {"ok": False, "grund": f"Platz {platz} gibt es nicht (1-{len(liste)})."}
+    ziel = liste[platz - 1]
+    try:
+        jetzt = float(jetzt)
+    except (TypeError, ValueError):
+        jetzt = 0.0
+    if float(ziel.get("start") or 0.0) <= jetzt and jetzt < float(ziel.get("ende") or 0.0):
+        return {"ok": False, "grund": "Dieser Auftrag laeuft gerade und kann nicht mehr gestrichen "
+                                      "werden - nur wartende Auftraege."}
+    neu = [a for a in (ort.get("ausbildung") or []) if a is not ziel]
+    return {"ok": True, "grund": "", "einheit": ziel.get("einheit"), "ausbildung": neu,
+            "erstattung": {}, "hinweis": "Keine Erstattung: die Quellen regeln das nicht."}
+
+
 def ausbildung_start(ort: dict, name: str, forschung: dict, jetzt: float) -> dict:
     """Beginnt die Ausbildung EINER Einheit vor Ort. Liefert den neuen Ort.
 

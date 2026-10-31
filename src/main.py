@@ -6443,6 +6443,7 @@ class NebelseetalApp:
                                     "die Schaltfläche und der Grund steht daneben.",
                  fg="#C0C0C0", bg=self.skin["bg"], wraplength=780,
                  justify=tk.LEFT).pack(anchor=tk.W, padx=10)
+        self._ausbildung_warteschlange_zeichnen(staette)
         _angezeigt = 0
         for key, u in self.state.units.items():
             if str((einheiten.alle().get(key) or {}).get("gebaeude") or "") != staette:
@@ -6501,6 +6502,80 @@ class NebelseetalApp:
         if _angezeigt == 0:
             tk.Label(self.content, text=f"Keine Einheit wird in der {staette} ausgebildet.",
                      fg="#FDBA74", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=8)
+
+    def _ausbildung_warteschlange_zeichnen(self, staette: str):
+        """Die Warteschlange der Ausbildungsstätte sichtbar machen (Daniels Spieltest 31.10.2026).
+
+        Vorher sah der Spieler nur den Knopf „Ausbilden" und danach nichts mehr — die Einheiten
+        wirkten „unsichtbar produziert". Hier steht jetzt: was läuft, was wartet, wie lange jeder
+        Auftrag noch braucht und wie lange die GESAMTE Schlange dauert (Spielzeit und Echtzeit
+        bei ×180). Die Reihenfolge ist echt sequenziell: `ausbildung_start` beginnt jeden neuen
+        Auftrag erst am Ende des letzten Auftrags derselben Werkstatt.
+        """
+        ort = self.state.aktive_siedlung()
+        if ort is None:
+            return
+
+        def _zeit(sekunden: float) -> str:
+            stunden = max(0.0, sekunden) / 3600.0
+            echt = int(round(stunden * 20))      # 1 Spielstunde = 20 echte Sekunden bei x180
+            minuten, rest = divmod(echt, 60)
+            return f"{stunden:.1f} Spielstunden (real {minuten}:{rest:02d})"
+
+        try:
+            uebersicht = spieloekonomie.ausbildung_uebersicht(asdict(ort), self.state.spielsekunden)
+        except Exception:                                # noqa: BLE001
+            return
+        rahmen = tk.Frame(self.content, bg=self.skin["panel"])
+        rahmen.pack(fill=tk.X, padx=10, pady=(8, 6))
+        tk.Label(rahmen,
+                 text=(f"In Arbeit: {uebersicht['anzahl']} Auftrag/Aufträge · "
+                       f"insgesamt noch {_zeit(uebersicht['gesamt_rest_sekunden'])}"),
+                 fg=self.skin["gold"], bg=self.skin["panel"],
+                 font=("Arial", 9, "bold")).pack(anchor=tk.W, padx=6, pady=(3, 2))
+        if not uebersicht["auftraege"]:
+            tk.Label(rahmen, text="Keine Aufträge in Arbeit.", fg="#C0C0C0",
+                     bg=self.skin["panel"]).pack(anchor=tk.W, padx=6, pady=2)
+        for auftrag in uebersicht["auftraege"]:
+            zeile = tk.Frame(rahmen, bg=self.skin["panel"])
+            zeile.pack(fill=tk.X, padx=6, pady=1)
+            tk.Label(zeile,
+                     text=f"{auftrag['platz']}. {auftrag['einheit']} "
+                          f"({gelaende.gebaeude_name(auftrag['gebaeude'])} Stufe {auftrag['stufe']}) "
+                          f"— {'läuft' if auftrag['laufend'] else 'wartet'}",
+                     fg=self.skin["text"], bg=self.skin["panel"]).pack(side=tk.LEFT)
+            tk.Label(zeile, text=f"fertig in {_zeit(auftrag['rest_sekunden'])}",
+                     fg=("#DAA520" if auftrag["laufend"] else "#C0C0C0"),
+                     bg=self.skin["panel"]).pack(side=tk.LEFT, padx=8)
+            if not auftrag["laufend"]:
+                tk.Button(zeile, text="Streichen (ohne Erstattung)",
+                          command=lambda p=auftrag["platz"]: self._ausbildung_streichen(p),
+                          bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=4)
+        tk.Label(rahmen,
+                 text="Reihenfolge: nacheinander. Streichen ist möglich, solange ein Auftrag "
+                      "wartet — eine Erstattung gibt es nicht, weil die Originale dazu nichts regeln.",
+                 fg="#8a8a8a", bg=self.skin["panel"], wraplength=760,
+                 justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(2, 4))
+
+    def _ausbildung_streichen(self, platz: int) -> bool:
+        """Einen wartenden Ausbildungsauftrag streichen (ohne Erstattung, siehe Kern-Docstring)."""
+        ort = self.state.aktive_siedlung()
+        if ort is None:
+            return False
+        ergebnis = spieloekonomie.ausbildung_abbrechen(asdict(ort), platz, self.state.spielsekunden)
+        if not ergebnis.get("ok"):
+            meldung = "Streichen nicht möglich: " + str(ergebnis.get("grund") or "")
+            self._log(meldung)
+            self.state.messages.append({"text": meldung, "type": "ausbildung"})
+            self._render_view()
+            return False
+        ort.ausbildung = list(ergebnis.get("ausbildung") or [])
+        meldung = (f"{ergebnis.get('einheit')} aus der Warteschlange gestrichen — "
+                   f"keine Erstattung (die Originale regeln das nicht).")
+        self._log(meldung)
+        self.state.messages.append({"text": meldung, "type": "ausbildung"})
+        self._render_view()
+        return True
 
     def _ausbildungs_hindernis(self, key: str) -> tuple:
         """Was der Ausbildung im Weg steht — Forschung oder Ausrüstung (Vorgabe Daniel 05.10.2026).

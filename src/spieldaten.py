@@ -44,6 +44,7 @@ def projektwurzel() -> str:
 
 
 def _lade(dateiname: str) -> Dict[str, Any]:
+    """Laedt eine Datei aus data/ als JSON - der eine Weg zu den Stammdaten."""
     pfad = os.path.join(projektwurzel(), "data", dateiname)
     with open(pfad, encoding="utf-8") as f:
         return json.load(f)
@@ -58,10 +59,12 @@ def einheiten() -> Dict[str, Dict[str, Any]]:
 
 
 def einheit(name: str) -> Optional[Dict[str, Any]]:
+    """Der Rohdatensatz einer Einheit aus data/units.json (None, wenn unbekannt)."""
     return einheiten().get(name)
 
 
 def einheiten_nach_kategorie() -> Dict[str, list[str]]:
+    """Einheiten gruppiert nach ihrer Kategorie (z. B. 'Armee', 'Karren')."""
     out: Dict[str, list[str]] = {}
     for name, e in einheiten().items():
         out.setdefault(e["kategorie"], []).append(name)
@@ -81,6 +84,7 @@ def wert(name: str, feld: str) -> Optional[float]:
 
 
 def wert_fehlt(name: str, feld: str) -> bool:
+    """True, wenn ein Originalwert im Datenbestand fehlt (None statt Zahl)."""
     return wert(name, feld) is None
 
 
@@ -91,22 +95,27 @@ def luecken() -> Dict[str, list[str]]:
 
 
 def kosten(name: str) -> Dict[str, int]:
+    """Baukosten der Einheit als Verzeichnis (leer, wenn nichts hinterlegt ist)."""
     return dict(einheit(name)["kosten"]) if einheit(name) else {}
 
 
 def benoetigte_waren(name: str) -> list[str]:
+    """Welche Waren die Einheit bei der Ausbildung verbraucht."""
     return list(einheit(name)["waren"]) if einheit(name) else []
 
 
 def kriegspunkte(name: str) -> Optional[int]:
+    """Punktewert der Einheit fuer die Kriegspunkte laut Daten."""
     return einheit(name)["kriegspunkte"] if einheit(name) else None
 
 
 def voraussetzung(name: str) -> Optional[Dict[str, Any]]:
+    """Forschungsvoraussetzung der Einheit, z. B. {'forschung': 'Wagenbau', 'stufe': 1}."""
     return einheit(name)["voraussetzung"] if einheit(name) else None
 
 
 def ladung(name: str) -> Optional[int]:
+    """Ladeplaetze der Einheit laut Daten (None, wenn nicht angegeben)."""
     return einheit(name)["ladung"] if einheit(name) else None
 
 
@@ -124,11 +133,13 @@ def icon_pfad(name: str) -> Optional[str]:
 
 @lru_cache(maxsize=1)
 def waren() -> Dict[str, Dict[str, Any]]:
+    """Alle Waren aus data/items.json."""
     return _lade("items.json")["waren"]
 
 
 @lru_cache(maxsize=1)
 def waren_icons() -> Dict[str, str]:
+    """Ware -> Icon-Pfad, nur fuer Waren, die ein Icon haben."""
     return {n: e["icon"] for n, e in waren().items() if e.get("icon")}
 
 
@@ -136,29 +147,35 @@ def waren_icons() -> Dict[str, str]:
 
 @lru_cache(maxsize=1)
 def forschungen() -> Dict[str, Dict[str, Any]]:
+    """Alle Forschungsgebiete aus data/research.json."""
     return _lade("research.json")["forschungen"]
 
 
 @lru_cache(maxsize=1)
 def forschungsregeln() -> Dict[str, str]:
+    """Regeln zur Forschung (Dauer, Kosten) aus data/research.json."""
     return _lade("research.json").get("regeln", {})
 
 
 @lru_cache(maxsize=1)
 def rohstoffe() -> Dict[str, Dict[str, Any]]:
+    """Alle Rohstoffe aus data/resources.json."""
     return _lade("resources.json")["rohstoffe"]
 
 
 @lru_cache(maxsize=1)
 def gebaeude() -> list[Dict[str, Any]]:
+    """Alle Gebaeude aus data/buildings.json."""
     return _lade("buildings.json")["gebaeude"]
 
 
 def gebaeude_nach_id() -> Dict[str, Dict[str, Any]]:
+    """Gebaeude als Verzeichnis id -> Datensatz (schneller Zugriff)."""
     return {g["id"]: g for g in gebaeude() if g.get("id")}
 
 
 def wallstufen() -> list[Dict[str, Any]]:
+    """Die Wallstufen des Verteidigungswalls (Schwellen, Kosten je Stufe)."""
     for g in gebaeude():
         if g.get("id") == "verteidigungswall":
             return g.get("stufen", [])
@@ -199,6 +216,7 @@ def kriegspunkte_verteidigung(ausbaustufe: int) -> int:
 
 
 def uebersicht() -> Dict[str, int]:
+    """Kurzstatistik ueber den Datenbestand (Anzahl Einheiten, Waren, Forschungen ...)."""
     return {
         "einheiten": len(einheiten()),
         "waren": len(waren()),
