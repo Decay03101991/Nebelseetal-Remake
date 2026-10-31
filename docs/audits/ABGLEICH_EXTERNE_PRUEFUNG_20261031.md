@@ -46,7 +46,7 @@ A1 (DeepSeek, 0,037 USD) prüft die Beutestaffelung gegen das Original und kommt
 > „Nach Material 1 (Abschnitt 2.4) gewinnt der Angreifer nur, wenn alle verteidigenden Einheiten tot
 > oder geflohen sind, also sind immer keine Verteidiger mehr; der Mauerzustand ist im Original kein
 > Faktor für die Beute. […] Die mit dem Original vereinbare Regel lautet: **100 % des Ortslagers,
-> begrenzt durch die Karrenladung**."
+> begrenzt durch die Karrenladung**.“
 
 **Das stimmt für das Original — und es gilt für unseren Kampf nur halb.** Nachgemessen (Probe mit
 `kampf.fuehre_schlacht`, Seed 11, drei echte Schlachten):

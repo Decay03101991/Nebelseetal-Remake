@@ -103,9 +103,9 @@ v4-pro-Entwurf aus dem Vormittagsauftrag.
 
 ## Nachtrag 31.10.2026 — Zitate werden berichtigt, aber nie stillschweigend
 
-Ein Rechtschreib-Durchgang über 48 Markdown-Dateien fand fünf „Tippfehler" — vier davon in
-**zitierten Originaltexten** der alten Website („Hier seit ihr sicher", „mit einender verbinden"),
-dazu 38 eingeklebte Stellen ohne Leerzeichen („Kampfablauf:Aktuell", „1123 Gebäude"). Meine erste
+Ein Rechtschreib-Durchgang über 48 Markdown-Dateien fand fünf „Tippfehler“ — vier davon in
+**zitierten Originaltexten** der alten Website („Hier seit ihr sicher“, „mit einender verbinden“),
+dazu 38 eingeklebte Stellen ohne Leerzeichen („Kampfablauf:Aktuell“, „1123 Gebäude“). Meine erste
 Antwort war: Zitate bleiben unangetastet. **Daniel hat das am 31.10.2026 anders entschieden** — und
 er hat recht: ein Zitat mit Lesefehler hilft niemandem. Die Bedingung ist die Nachvollziehbarkeit.
 
@@ -115,5 +115,5 @@ geändert; wo der Sinn betroffen sein könnte, wird nicht korrigiert, sondern an
 Nachweis: `docs/ZITATKORREKTUREN.md`, Werkzeug: `tools/zitatkorrekturen.py`.
 Für die Zeichen-Vereinheitlichung (372 Stellen in 22 Dateien): `tools/anfuehrungszeichen.py`.
 
-**Lehre für mich:** „Quellen schützt man, indem man sie unverändert lässt" war zu einfach gedacht.
+**Lehre für mich:** „Quellen schützt man, indem man sie unverändert lässt“ war zu einfach gedacht.
 Schutz heißt: nachweisbar ändern, nicht gar nicht ändern.

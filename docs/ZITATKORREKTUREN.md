@@ -2,7 +2,7 @@
 
 **Anweisung von Daniel am 31.10.2026:** „ich möchte bitte das du geprüfte schreibfehler aus
 den originalen zitate bitte schon verbesserst. Dies muss aber ausdrücklich festgehalten
-werden."
+werden.“
 
 Diese Datei ist der Nachweis. Betroffen ist ausschließlich
 `docs/audits/AUFTRAG_EXTERNE_PRUEFUNG_20261031.md` — dort stehen die Texte der alten Website
@@ -59,7 +59,7 @@ umgestellt.
 
 ## Was absichtlich NICHT korrigiert wurde
 
-* **Eigenheiten der Quelle:** „Ruhmeshalle", „Nebelseetal-Online", Großschreibung von „Du" — das ist Stil der Zeit, kein Fehler.
+* **Eigenheiten der Quelle:** „Ruhmeshalle“, „Nebelseetal-Online“, Großschreibung von „Du“ — das ist Stil der Zeit, kein Fehler.
 * **Dateinamen der Quelle:** `Grundlegenes.html` heißt im Original wirklich so.
 * **Zahlen und Werte:** unangetastet. Sie sind der Grund, warum zitiert wird.
 

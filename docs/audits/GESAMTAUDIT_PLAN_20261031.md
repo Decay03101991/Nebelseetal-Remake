@@ -3,7 +3,7 @@
 **Stand:** 31.10.2026, 02:45 · `06aabcb` · **Auftrag Daniel:** „mindestens einmal ein großes Modell
 unser Gesamtprojekt anschauen lassen … alles mit den Spiel bekannten Infos abgleichen — aber in einem
 begrenzten Format, damit es keine unendlichen Kosten verursacht. Nicht unnötige Tokens verblasen,
-sondern wirklich voranbringende Auswertungen und Wege für mich und das Spiel."
+sondern wirklich voranbringende Auswertungen und Wege für mich und das Spiel.“
 
 ---
 

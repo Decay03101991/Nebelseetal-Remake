@@ -20,7 +20,9 @@ import sys
 HIER = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OEFFNEN = "\u201e"     # deutsches Anfuehrungszeichen unten
 SCHLIESSEN = "\u201c"  # deutsches Anfuehrungszeichen oben
-MUSTER = re.compile(OEFFNEN + '([^' + SCHLIESSEN + OEFFNEN + '"]{1,300})"', re.S)
+# Bis 900 Zeichen: lange Zitate laufen ueber mehrere Zeilen (Daniels Auftrag im Handoff
+# ist so einer). Der Ausdruck stoppt am ersten “ - Paare koennen sich nicht verschlucken.
+MUSTER = re.compile(OEFFNEN + '([^' + SCHLIESSEN + OEFFNEN + '"]{1,900})"', re.S)
 
 
 def dateien() -> list:
@@ -44,6 +46,9 @@ def umbauen(text: str):
         return "\x01%d\x01" % (len(bloecke) - 1)
 
     ohne_code = re.sub(r"```.*?```", block_merken, text, flags=re.S)
+    # Inline-Code (`...`) ebenfalls schuetzen: dort stehen absichtlich Zeichenketten,
+    # etwa die Beispiele in der Korrekturliste.
+    ohne_code = re.sub("`[^`" + chr(10) + "]*`", block_merken, ohne_code)
     neu, tausch = MUSTER.subn(lambda m: OEFFNEN + m.group(1) + SCHLIESSEN, ohne_code)
     for i, stueck in enumerate(bloecke):
         neu = neu.replace("\x01%d\x01" % i, stueck)
