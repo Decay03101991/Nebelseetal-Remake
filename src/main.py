@@ -19,8 +19,9 @@ from bonus_system import (
     # (`get_combat_power`, `get_unit_stats`, `get_building_cost`, `get_map_switch_cost`,
     # `UNIT_BASE`, `UNIT_TRAIN_BASE`, `BUILDING_BASE_COST`, `TIER_SCALE`) sind hier nicht mehr
     # im Spiel: Kaempfe rechnet src/kampf.py, Preise kommen aus data/*.json, Punkte aus src/punkte.py.
+    # `get_training_time` ist am 31.10.2026 ebenfalls entfernt: es wurde nie aufgerufen und lieferte
+    # frueher stillschweigend 0,5 Minuten fuer jede Einheit (jetzt None = "nicht belegt").
     get_military_multiplier, get_trade_bonus, get_defense_bonus,
-    get_training_time,
 )
 import einheiten
 import spieldaten
@@ -7124,19 +7125,30 @@ class NebelseetalApp:
                 if self.state.noob_protection and target_bot_name:
                     report = f"Truppen sind in {m['to']} eingetroffen. Götterschutz aktiv: keine Plünderung gegen {target_bot_name}."
                 else:
-                    loot = {}
-                    if tile and tile.resources:
-                        for res, amount in tile.resources.items():
-                            gain = int(amount * random.uniform(0.1, 0.4))
-                            if gain > 0:
-                                loot[res] = gain
-                                if res in self.state.resources:
-                                    self.state.resources[res].amount += gain
-                    if target_bot_name and random.random() < 0.4:
-                        loss = random.randint(1, 4)
-                        unit_key = random.choice(list(self.state.units.keys()))
-                        self.state.units[unit_key].count = max(0, self.state.units[unit_key].count - loss)
-                        report = f"Truppen sind in {m['to']} eingetroffen. Kampf gegen {target_bot_name}: Verlust {loss} {unit_key}."
+                    # E3 (Daniel 31.10.2026, "ein Bewegungssystem"): Die Beute am Feld wird
+                    # NICHT mehr gewuerfelt (frueher 10-40 Prozent zufaellig, ohne Karren und
+                    # ohne Abbuchung - Gueter aus dem Nichts). Jetzt gilt dieselbe Formel wie
+                    # im Auftrags-Pfad: kampfbericht.beute_am_ziel (Staffel, Karrenladung,
+                    # Vorrat) UND das Feld verliert genau diese Menge.
+                    _truppen = {u: int(c) for u, c in (m.get("units") or {}).items() if int(c) > 0}
+                    _vorrat_feld = {k: float(v) for k, v in ((tile.resources if tile else None) or {}).items()}
+                    loot, _lager_danach = kampfbericht.beute_am_ziel(
+                        _truppen, _vorrat_feld, ausgang="angreifer",
+                        wall_zustand_vor=100.0, verteidiger_uebrig=0)
+                    if loot:
+                        for res, amount in loot.items():
+                            if res in self.state.resources:
+                                self.state.resources[res].amount += int(amount)
+                        if tile is not None:
+                            tile.resources = {str(k): round(max(0.0, float(v)), 2)
+                                              for k, v in (_lager_danach or {}).items()}
+                    # Kampf und Verluste am Feld: KEIN Muenzenwurf mehr. Ein Bewegungsschritt
+                    # auf der Karte ist ein Marsch; Kaempfe laufen ueber Auftraege bzw. den
+                    # Direktangriff (E3-Rest, siehe docs/audits/UMBAUPLAN_E3_BEWEGUNG_20261031.md).
+                    if target_bot_name and loot:
+                        report = (f"Truppen sind in {m['to']} eingetroffen und haben "
+                                  f"{target_bot_name} {', '.join(f'{v} {k}' for k, v in loot.items())} "
+                                  f"abgenommen.")
                     elif loot:
                         parts = ", ".join(f"+{v} {k}" for k, v in loot.items())
                         report = f"Truppen sind in {m['to']} eingetroffen. Beute: {parts}."
