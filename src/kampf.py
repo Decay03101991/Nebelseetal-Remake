@@ -50,6 +50,9 @@ PROFILE = {
 
 
 def _einheiten(aufstellung: Optional[dict], seite: str) -> list:
+
+
+    """Baut aus der Aufstellungs-Liste die Kaempfer einer Seite; Karren und Belagerung bleiben draussen."""
     result = []
     for name, anzahl in (aufstellung or {}).items():
         if name not in PROFILE:
@@ -71,22 +74,37 @@ def _einheiten(aufstellung: Optional[dict], seite: str) -> list:
 
 
 def _aktiv(u):
+
+
+    """Kampffaehig? False, wenn tot, inaktiv (Erschoepfung) oder im Rueckzug."""
     return not u["tot"] and not u["inaktiv"] and not u["rueckzug"]
 
 
 def _nah(truppe):
+
+
+    """Alle aktiven Nahkaempfer einer Truppe."""
     return [u for u in truppe if _aktiv(u) and u["fern"] is None]
 
 
 def _fern(truppe):
+
+
+    """Alle aktiven Fernkaempfer (mit Fernkampfwaffe) einer Truppe."""
     return [u for u in truppe if _aktiv(u) and u["fern"] is not None]
 
 
 def _alle(truppe):
+
+
+    """Alle aktiven Einheiten einer Truppe, egal ob nah oder fern."""
     return [u for u in truppe if _aktiv(u)]
 
 
 def _forschungsstufe(forschung: Optional[dict], name: str) -> int:
+
+
+    """Forschungsstufe eines Gebiets - gleich ob als Zahl, Verzeichnis oder Objekt abgelegt."""
     w = (forschung or {}).get(name, 0)
     if isinstance(w, dict):
         w = w.get("level", 0)
@@ -122,6 +140,9 @@ def _sieggeraete(geraete, sequenzen, rng):
 
 
 def _beute(karren, vorraete):
+
+
+    """Wie viel Beute die mitgefuehrten Karren aus dem Vorrat tragen koennen (Ladeplaetze mal Anzahl)."""
     kap = sum(E.ladung(name) * max(0, int(n)) for name, n in (karren or {}).items()
               if E.rolle(name) == "karren")
     lager = {n: max(0.0, float(v)) for n, v in (vorraete or {}).items() if v is not None}

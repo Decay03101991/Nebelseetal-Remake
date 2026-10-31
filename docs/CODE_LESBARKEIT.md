@@ -47,7 +47,7 @@ noch ohne Beschreibung sind. Es ändert **nichts** — es zeigt nur, wo Arbeit l
 |---|---|
 | Dateien in `src/` | 49 |
 | Funktionen/Klassen | 915 |
-| **ohne Docstring** | **213 (23 %)** — vor der Aufräumrunde 267 (29 %) |
+| **ohne Docstring** | **206 (22 %)** — vor der Aufräumrunde 267 (29 %) |
 | ohne Modul-Docstring | 0 |
 
 In dieser Runde ergänzt (jeweils geprüft, danach Tests grün):
@@ -60,13 +60,13 @@ In dieser Runde ergänzt (jeweils geprüft, danach Tests grün):
 | `src/zeitbasis.py` | 1 | Spieluhr: Faktor ×180, monotone Laufzeit, keine Systemzeit-Sprünge |
 | `src/dorfwall.py` | 3 | Mauerzustand je Ort (Prozent), Zugriff auf Dict oder Objekt |
 | `src/spielstaende.py` | 4 | Speicherslots 1–3, alter Einzelspielstand, Admin-Teststand |
+| `src/kampf.py` | 7 | Kern des Kampfmodells: Aufstellung, aktive Einheiten, Fern-/Nahkampf, Forschungsstufe, Beutekapazität |
 
 ## Wo noch Arbeit liegt (bewusst liegen gelassen)
 
 | Datei | offen | Einschätzung |
 |---|---|---|
 | `src/main.py` | 90 von 249 | Die Oberfläche. Viele Ein-Zeilen-Handler (`_on_...`, `_render_...`); sinnvoll ist hier eine Runde **dateiweise** (z. B. nur die Ausbildung-/Kampf-Ansichten), nicht am Stück |
-| `src/kampf.py` | 8 von 12 | Kern des Kampfmodells — hier lohnt Sorgfalt mehr als Tempo |
 | `src/kampf_alt_handbuch_2009.py` | 9 von 16 | Rückfallmodul, wird im Spiel nicht mehr benutzt; niedrige Priorität |
 | `src/admin_oberflaeche.py` | 12 von 13 | Admin-Fenster, nur für die Verwaltung |
 
