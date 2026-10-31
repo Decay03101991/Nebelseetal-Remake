@@ -82,6 +82,16 @@ Folge und eine Empfehlung.
 
 # Nachtrag 31.10.2026, 20:25 - nach dem Einbau des Nahrungsverbrauchs (Register 69)
 
+> **BEANTWORTET 31.10.2026, 20:40 (Daniel, Auswahlformular).** Antworten:
+> **7 = C, aber verschaerft:** bei Nahrungsnot im Ort wird dort **nichts mehr produziert**
+> (keine Truppen, keine Ware, kein Bau) und es koennen **keine Kosten mehr bezahlt** werden, bis die
+> Nahrung wieder ausgeglichen ist - die Armee wird dort versorgt, wo sie stationiert/eingelagert ist;
+> entweder Nahrung dorthin liefern oder die eigene Dorfproduktion ueber den Verbrauch bringen, damit
+> im Dorf wieder Nahrung gelagert wird. **Kein Verlust von Einheiten.**
+> **8 = A** (nur Einheiten essen, Siedler nicht). **9 = A** (Marsch kostet nur die Reisekosten, kein
+> doppelter Abzug). Gebaut ist davon bisher NUR der Verbrauch (Register 69) - die Sperre bei
+> Nahrungsnot und die sichtbare Warnung stehen als naechster Schritt in Register 70.
+
 Der Verbrauch ist gebaut und laeuft (8 Nahrung je Einheit und Spieltag, `data/nahrungsverbrauch.json`).
 Drei Fragen sind dabei OFFEN geblieben - bis zur Antwort gilt der jetzige Stand.
 
@@ -115,3 +125,19 @@ Drei Fragen sind dabei OFFEN geblieben - bis zur Antwort gilt der jetzige Stand.
 | **B - Marsch kostet den Tagessatz** | Zusaetzlich 8 je Einheit und Spieltag waehrend des Marsches. Folge: lange Wege werden spuerbar teuer, das Beuteverhaeltnis verschiebt sich |
 | **Empfehlung** | **A** - die Reisekosten gibt es schon; zwei Nahrungsposten fuer denselben Marsch waeren eine zweite Wahrheit |
 | **Frage** | A (so lassen) oder B (Marsch kostet zusaetzlich)? |
+
+
+---
+
+# Nachtrag 31.10.2026, 21:00 - Karten, Doerfer und Pech (Balancing-Test Teil 2)
+
+## 10. Karten: freie Wahl (heute) oder Zufall wie im Original?
+
+| | |
+|---|---|
+| **Messlage** | `tools/balancing_karten.py`: `originalkarten.vorrat()` gibt **alle 126** Karten frei, die Gruendungsmaske laesst die **freie Wahl**, `ziehchancen()` sagt selbst "nur_optionale_zufallsziehung_nicht_freie_auswahl". Das Original vergibt Karten **per Zufall** (Handbuch 2009, Z. 313). Gemessene Folge: freie Wahl = immer die beste Karte (Holz 12.730/Tag, Gold 1.534/Tag an 6 Siedlungen); Zufall = Median 24.964/Tag Ertrag gesamt, Gold 1.318/Tag, 5 % schlechteste nur 886 Gold/Tag. Pech entsteht heute ALSO GAR NICHT |
+| **A - freie Wahl (heute)** | Der Spieler nimmt immer die beste Karte. Folge: kein Pech, kein Aergernis - aber auch keine Entscheidung, und die 49 "schlechten" Karten sind reine Deko |
+| **B - Zufallsziehung wie im Original** | Jede Gruendung zieht eine freie Karte (gleichverteilt, reproduzierbar ueber den Seed). Folge: Pech ist moeglich (Gold -30 %), Daniel muss entscheiden, ob es dafuer einen Ausgleich gibt (z. B. Neu-Ziehen gegen Gebuehr) |
+| **C - Wahl aus DREI gezogenen Karten** | Der Zufall entscheidet das Angebot, der Spieler waehlt daraus. Folge: Pech bleibt spuerbar, ist aber nicht ausweglos - Mittelweg zwischen Original und Bedienbarkeit |
+| **Empfehlung** | **C** - Zufall ist belegt, reine Zufallsvergabe ohne Wahl waere im Remake bitter; C haelt beides |
+| **Frage** | A, B oder C? |

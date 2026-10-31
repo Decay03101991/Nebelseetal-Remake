@@ -228,6 +228,87 @@ Entscheidung Daniels.
 
 ---
 
+### 3.12 Karten, Dörfer und Pech (Teil 2 des Balancing-Tests, Daniel 31.10.2026)
+
+Daniel wörtlich: „Integriere in das balancing testing auch verschiedene karten dörfer die spieler
+besitzen können bis zu welchen zeitpunkten und beachte dabei das man auch richtig pech haben kann nur
+schlechte karten bekommt und deswegen sehr viele ressourcen verbraucht bevor man eine richtige neue
+karte besiedelt sowas kann enormen einfluss auf das spielverhalten haben.“
+
+**Werkzeug:** `python -X utf8 tools/balancing_karten.py [--spiele N] [--seed S]` — rechnet jede der
+127 Originalkarten einzeln durch (bester Ausbauplan, Stundenertrag), den Gründungs- und Ausbaubedarf
+aus `data/baupreise.json`/`data/units.json` und zwei Ziehungsarten.
+
+### Die Karten selbst (gemessen über alle 127)
+
+| Kategorie | Karten | freie Felder (min/median/max) | Nahrung/h | Holz/h | Gold/h |
+|---|---|---|---|---|---|
+| beste | 35 | 51 / 88 / 100 | 8,0 / 32,0 / 64,0 | 0 / 43,2 / 120,0 | 0 / 12,6 / 18,9 |
+| mittlere | 43 | 24 / 84 / 95 | 9,6 / 35,2 / 79,2 | 0 / 48,0 / 103,2 | 1,8 / 9,0 / 14,4 |
+| schlechte | 49 | 32 / 80 / 100 | 9,6 / 41,6 / 89,6 | 0 / 45,6 / 120,0 | 0 / 4,5 / 11,7 |
+
+**Befund 1: Die historische Kategorie-Ist-Zahl sagt wenig.** Fast jede Karte hat 80–100 freie Felder;
+die Kategorie beschreibt die **Mischung**, nicht die Größe. Gold reicht von 0 bis 18,9/h, Nahrung von
+8,0 bis 89,6/h. Die gemessen **stärkste** Karte trägt den Namen „Der ultimative Mist“ — und ist eine
+Karte der Gruppe *schlechte*. Wer nach dem Kategorienamen wählt, wählt falsch.
+
+### Was eine neue Siedlung wirklich kostet
+
+| Posten | Holz | Stein | Nahrung | Metall | Leder | Wolle | Pferde |
+|---|---|---|---|---|---|---|---|
+| Mindestbestand im Ortslager (Gründungsgebühr + Startpaket) | 480 | 300 | 250 | — | — | — | — |
+| Siedlerkarren (Pflicht, Handbuch) | 200 | — | 300 | 80 | 150 | 100 | 4 |
+| Forschung Wagenbau 1 | 50 | — | — | — | — | — | — |
+| **Summe vor dem ersten Bau** | **730** | **300** | **550** | **80** | **150** | **100** | **4** |
+| Ausbau der neuen Karte (10 Häuser + alle Produktionsgebäude) | 1.099–2.293 | 692–1.539 | — | — | — | — | — |
+| **Gesamt bis die Siedlung trägt** | **1.829–3.023** | **992–1.839** | 550 | 80 | 150 | 100 | 4 |
+
+**Befund 2 (Daniels Punkt):** die Gründungsgebühr ist **nicht** der Preis einer Siedlung — der Ausbau
+kostet das Zwei- bis Dreifache, bei einem großen Plan zusätzlich **50 Siedler**. Eine schlechte Karte
+ist deshalb teurer als eine gute: man zahlt dieselben Gebäude auf schlechteren Feldern.
+
+### Bis zu welchem Zeitpunkt hat man wie viele Dörfer (Vollertrag, Untergrenze)
+
+| Siedlungen | Reichsertrag/Tag | Tage bis zur nächsten Gründung |
+|---|---|---|
+| 1 → 2 | Holz 1.152 · Stein 288 · Nahrung 998 | 1,0 |
+| 2 → 3 | Holz 2.304 · Stein 576 · Nahrung 1.997 | 0,5 |
+| 3 → 4 | Holz 3.456 · Stein 864 · Nahrung 2.995 | 0,3 |
+| 4 → 5 | Holz 4.608 · Stein 1.152 · Nahrung 3.994 | 0,3 |
+| 5 → 6 | Holz 5.760 · Stein 1.440 · Nahrung 4.992 | 0,2 |
+
+**Lesart:** das ist eine **Untergrenze** (jede Siedlung hat ab Tag 1 den ganzen Ausbauplan). In
+Wahrheit kosten Bau und Forschung Zeit — die Anlauf-Simulation (Baureihenfolge, Stunden für Stunden)
+ist **noch nicht gebaut** und steht als offener Punkt (Frage 11).
+
+### Pech und Glück: zwei Ziehungsarten
+
+| Szenario | Holz/Tag | Stein/Tag | Nahrung/Tag | Gold/Tag |
+|---|---|---|---|---|
+| **PECH** — nur die 5 schlechtesten Karten | 2.650 | 864 | 2.726 | **648** |
+| **GLÜCK** — die 5 besten Karten | 12.730 | 2.045 | 9.926 | **1.534** |
+
+Zufall über 2.000 Partien (gleichverteilt aus den 126 freien Originalkarten):
+
+| Kennzahl | 5 % schlechteste | Median | 5 % beste |
+|---|---|---|---|
+| Reichsertrag/Tag (6 Siedlungen, Summe) | 20.525 | 24.964 | 29.740 |
+| **Gold/Tag** (der Engpass des Spiels) | **886** | **1.318** | **1.685** |
+
+**Befund 3:** die Kartenlage verschiebt den **Goldertrag um ±30 %** — bei 41 Spieltagen für 100
+Krieger sind das gut 12 Spieltage Unterschied. Das ist spürbar, aber nicht ruinös; ein echter
+Pechstrudel entsteht erst durch die **Ausbaukosten** (Befund 2), nicht durch den Ertrag allein.
+
+### Der wichtigste Befund: es gibt heute GAR KEINEN Zufall
+
+`originalkarten.vorrat()` gibt **alle** 126 Karten frei, die Gründungsmaske lässt die **freie Wahl**,
+und `ziehchancen()` sagt das selbst („nur_optionale_zufallsziehung_nicht_freie_auswahl“). Das Original
+vergibt Karten dagegen **per Zufall** (Handbuch 2009, Z. 313). Wer Pech haben soll, braucht also erst
+eine Entscheidung: freie Wahl (heute, kein Pech) oder Zufallsziehung (original, mit Pech). Das steht
+als **Frage 10** in `docs/FRAGEN_AN_DANIEL_20261031_1845.md` — ohne Entscheidung wird nichts gebaut.
+
+---
+
 ## 4. Verdikt je Prüffrage
 
 | # | Antwort aus den Messwerten | Urteil |
@@ -282,6 +363,8 @@ sondern hier festgelegt. Ein Gate ist eine Zahl, die sich aus den Daten rechnen 
 | G-5 Ausbildung | 100 Einheiten in ≤ 5 Spieltagen ausgerüstet | **erfüllt** (3 Tage) |
 | G-6 Wellen | Ein Feldzug ≤ 5 Aufträge | **verfehlt** (14) |
 | G-7 Nahrung trägt die Armee | Garnison beim vollen Siedlerdeckel (360) bindet ≤ 60 % des Nahrungsertrags | **erfüllt** (52,0 %) |
+| G-8 Erste Gründung | die STARTKARTE allein trägt den Gründungsbedarf in ≤ 10 Spieltagen (Vollertrag) | **erfüllt** (0,8 Tage) |
+| G-9 Pech nicht ruinös | auch die schlechteste Kartenlage trägt die 6. Siedlung in ≤ 120 Spieltagen | **erfüllt** (Vollertrag; die Anlaufzeit fehlt noch) |
 
 **Regel:** Ein Gate, das verfehlt wird, ist **kein Fehler im Code**, sondern eine offene
 Balancing-Frage (siehe Abschnitt 5). Erst wenn Daniel entschieden hat, wird die Zahl geändert — dann
