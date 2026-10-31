@@ -407,6 +407,18 @@ def icon_pfad(relativ: str) -> str:
 # Die Zahlen stehen in data/baupreise.json und sind dort begruendet; Daniel kann sie dort aendern.
 
 BAUPREISE_DATEI = os.path.join(ICON_WURZEL, "data", "baupreise.json")
+# Daniels Entscheidung 31.10.2026 (Frage 5 = B): Bauten binden keine Siedler mehr.
+BAUSIEDLER_DATEI = os.path.join(ICON_WURZEL, "data", "bausiedler.json")
+
+
+def bausiedler_aktiv() -> bool:
+    """Binden Bauten Siedler? (Daniels Entscheidung 31.10.2026, Frage 5 = B: NEIN.)
+
+    Die belegten Preise (Holzfäller, Steinmetz, Jäger je 1 Siedler, Screenshot 1838857) bleiben
+    in `data/baupreise.json` stehen; der Schalter in `data/bausiedler.json` nimmt nur den
+    Siedler-Posten aus der Zahlung. EINE Lesestelle: `wirtschaft.siedler_bindung_aktiv()`.
+    """
+    return wirtschaft.siedler_bindung_aktiv()
 
 
 def baukosten(gebaeude_key: str, stufe: int = 0) -> dict:
@@ -414,7 +426,9 @@ def baukosten(gebaeude_key: str, stufe: int = 0) -> dict:
     Baupreis eines Gebaeudes.
 
     Enthaelt neben Rohstoffen ggf. den Posten "siedler" (belegt: Holzfäller, Steinmetz und Jäger
-    kosten je 1 Siedler, der dann dort arbeitet). Ausbau auf Stufe n kostet das n-fache.
+    kosten je 1 Siedler, der dann dort arbeitet; Screenshot 1838857). Ausbau auf Stufe n kostet das
+    n-fache. Seit Daniels Entscheidung 31.10.2026 (Frage 5 = B) nimmt `bausiedler_aktiv()` diesen
+    Posten wieder heraus - die belegten Zahlen in der Datei bleiben unangetastet.
     """
     try:
         with open(BAUPREISE_DATEI, encoding="utf-8") as f:
@@ -425,8 +439,11 @@ def baukosten(gebaeude_key: str, stufe: int = 0) -> dict:
     eintrag = daten.get(kennung) or {}
     faktor = max(1, stufe)
     # nur Zahlen durchlassen: die Datei traegt auch Begruendungstexte (_belegt, budget)
-    return {r: v * faktor for r, v in eintrag.items()
-            if (r in RESOURCES or r == "siedler") and isinstance(v, (int, float))}
+    kosten = {r: v * faktor for r, v in eintrag.items()
+              if (r in RESOURCES or r == "siedler") and isinstance(v, (int, float))}
+    if not bausiedler_aktiv():
+        kosten.pop("siedler", None)
+    return kosten
 
 
 def kosten_text(kosten: dict) -> str:
@@ -4384,6 +4401,81 @@ class NebelseetalApp:
         self.karten_feld = None
         self._switch_view("Siedlungskarte")
 
+    def _dorf_uebersicht_zeichnen(self, eltern, siedlung) -> None:
+        """A-3: Dorfuebersicht rechts neben der Siedlungskarte.
+
+        Daniel im Spielbericht 31.10.2026: "welche gebaeude habe ich, wie viele, welcher ertrag".
+        Gezeigt wird je Gebaeudeart: **Anzahl · Stufe(n) · Stundenertrag · gebundene Siedler ·
+        Anteil am Ortsertrag**, darunter die **Summenzeile**. Alle Zahlen kommen aus
+        `wirtschaft.dorf_uebersicht`, also aus derselben Rechnung wie Produktion, Kopfzeile und
+        Ortsbestand - kein zweiter Rechenweg.
+        """
+        if not hasattr(self, "skin"):
+            return
+        rahmen = tk.Frame(eltern, bg=self.skin["panel"], highlightbackground="#5D4037",
+                          highlightthickness=1)
+        rahmen.pack(side=tk.LEFT, anchor=tk.N, fill=tk.Y, padx=(12, 0))
+        tk.Label(rahmen, text="Dorfübersicht", fg=self.skin["gold"], bg=self.skin["panel"],
+                 font=("TkDefaultFont", 11, "bold")).pack(anchor=tk.W, padx=8, pady=(6, 0))
+        try:
+            stufen = self.state.forschungs_stufen()
+        except (AttributeError, KeyError, TypeError):
+            stufen = {}
+        try:
+            daten = wirtschaft.dorf_uebersicht(siedlung, stufen)
+        except (KeyError, TypeError, ValueError):
+            daten = None
+        if daten is None:
+            tk.Label(rahmen, text="Übersicht nicht berechenbar.", fg="#FDBA74",
+                     bg=self.skin["panel"]).pack(anchor=tk.W, padx=8, pady=4)
+            return
+        if not daten["gebaeude"]:
+            tk.Label(rahmen, text="Noch kein Gebäude gebaut.", fg="#8a8a8a",
+                     bg=self.skin["panel"]).pack(anchor=tk.W, padx=8, pady=6)
+            return
+        tabelle = tk.Frame(rahmen, bg=self.skin["panel"])
+        tabelle.pack(anchor=tk.W, padx=6, pady=(4, 2))
+        kopfzeile = [("Gebäude", 140, tk.W), ("Anz.", 34, tk.E), ("Stufe", 56, tk.W),
+                     ("je Stunde", 128, tk.W), ("Anteil", 52, tk.E), ("Siedler", 48, tk.E)]
+        for spalte, (titel, breite, anker) in enumerate(kopfzeile):
+            tk.Label(tabelle, text=titel, fg="#C0C0C0", bg=self.skin["panel"],
+                     width=(breite // 8), anchor=anker,
+                     font=("Arial", 8, "bold")).grid(row=0, column=spalte, sticky="w")
+        for zeile, eintrag in enumerate(daten["gebaeude"][:26], start=1):
+            werte = [(eintrag["name"], tk.W, self.skin["text"]),
+                     (str(eintrag["anzahl"]), tk.E, self.skin["text"]),
+                     (eintrag["stufen_text"].replace("Stufe ", "").replace("Stufen ", ""),
+                      tk.W, self.skin["text"]),
+                     (eintrag["ertrag_text"] or "—", tk.W, "#DAA520"),
+                     (f"{eintrag['anteil'] * 100:.0f} %", tk.E, "#C0C0C0"),
+                     (str(eintrag["siedler"]) if eintrag["siedler"] else "—", tk.E, "#C0C0C0")]
+            for spalte, (text, anker, farbe) in enumerate(werte):
+                tk.Label(tabelle, text=text, fg=farbe, bg=self.skin["panel"],
+                         width=(kopfzeile[spalte][1] // 8), anchor=anker,
+                         font=("Arial", 8)).grid(row=zeile, column=spalte, sticky="w")
+        summe = daten["summe"]
+        tk.Frame(rahmen, bg="#5D4037", height=1).pack(fill=tk.X, padx=6, pady=(2, 2))
+        tk.Label(rahmen,
+                 text=(f"Summe: {summe['anzahl']} Gebäude · "
+                       f"{summe['ertrag_text'] or 'kein Ertrag'} · "
+                       f"Siedler gebunden: {summe['siedler']}"),
+                 fg=self.skin["gold"], bg=self.skin["panel"], font=("Arial", 9, "bold"),
+                 wraplength=430, justify=tk.LEFT).pack(anchor=tk.W, padx=8, pady=(0, 2))
+        tk.Label(rahmen, text=daten["hinweis"], fg="#8a8a8a", bg=self.skin["panel"],
+                 font=("Arial", 8), wraplength=430, justify=tk.LEFT
+                 ).pack(anchor=tk.W, padx=8, pady=(0, 2))
+        if daten["uebersprungen"]:
+            tk.Label(rahmen,
+                     text=("Nicht mitgerechnet: " + "; ".join(daten["uebersprungen"][:3])
+                           + (" …" if len(daten["uebersprungen"]) > 3 else "")),
+                     fg="#FDBA74", bg=self.skin["panel"], font=("Arial", 8),
+                     wraplength=430, justify=tk.LEFT).pack(anchor=tk.W, padx=8, pady=(0, 6))
+        tk.Label(rahmen,
+                 text=("Anteil = Summe aller Rohstoffe dieses Gebäudetyps geteilt durch den "
+                       "Gesamtertrag des Ortes (je Stunde)."),
+                 fg="#6b7280", bg=self.skin["panel"], font=("Arial", 7),
+                 wraplength=430, justify=tk.LEFT).pack(anchor=tk.W, padx=8, pady=(0, 6))
+
     def _karten_feld_waehlen(self, feld: int):
         self.karten_feld = feld
         self._render_view()
@@ -4869,6 +4961,11 @@ class NebelseetalApp:
         info = tk.Frame(kartenblock, bg=self.skin["panel"], highlightbackground="#5D4037",
                         highlightthickness=1)
         info.pack(side=tk.LEFT, anchor=tk.N, fill=tk.Y, padx=(12, 0))
+        # A-3 (Daniels Spielbericht 31.10.2026): die Dorfuebersicht steht als dritte Spalte
+        # rechts neben der Karte - welche Gebaeude, wie viele, welche Stufe, welcher Ertrag je
+        # Stunde, welchen Anteil sie am Ortsertrag haben, und die Summenzeile. Sie steht VOR der
+        # Feldauswahl, damit sie auch ohne gewaehltes Feld sichtbar ist.
+        self._dorf_uebersicht_zeichnen(kartenblock, siedlung)
         feld = getattr(self, "karten_feld", None)
         if feld is None:
             tk.Label(info, text="Ein Feld auf der Karte anklicken, um dort zu bauen.",

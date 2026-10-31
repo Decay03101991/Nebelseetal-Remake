@@ -38,7 +38,17 @@ class TestOriginalkartenBaukasse(unittest.TestCase):
         self.app._karten_bauen(gebaeude)
         self.root.update_idletasks()
 
-    def test_holzfaeller_bucht_nur_ortsbestandskosten_und_siedler(self):
+    def test_holzfaeller_bucht_nur_ortsbestandskosten_ohne_siedlerabzug(self):
+        """Holzfaeller zahlt aus dem Ortslager und bindet KEINEN Siedler mehr.
+
+        ENTSCHEIDUNG GEAENDERT (Daniel 31.10.2026, Auswahlformular Frage 5 = B): "Gebaeude binden
+        keine Siedler mehr (Remake-Abweichung)". Vorher hiess diese Wache
+        `test_holzfaeller_bucht_nur_ortsbestandskosten_und_siedler` und verlangte
+        `bevoelkerung - 1` - das war die BELEGTE Regel (Screenshot 1838857: "10 Holz, 5 Stein,
+        1 Siedler"), die der Schalter `data/bausiedler.json` jetzt abstellt. Die belegten Preise
+        bleiben in `data/baupreise.json` stehen; `tests/test_dorfuebersicht.py` prueft beide
+        Schalterstellungen.
+        """
         kosten = main.baukosten('holzfaeller')
         vorher = dict(self.ort.vorraete)
         bevoelkerung = self.ort.bevoelkerung
@@ -47,7 +57,8 @@ class TestOriginalkartenBaukasse(unittest.TestCase):
         self.assertEqual(self.ort.stufen.get(str(self.wald)), 1)
         self.assertEqual(self.ort.vorraete['holz'], vorher['holz'] - kosten['holz'])
         self.assertEqual(self.ort.vorraete['stein'], vorher['stein'] - kosten['stein'])
-        self.assertEqual(self.ort.bevoelkerung, bevoelkerung - kosten['siedler'])
+        self.assertNotIn('siedler', kosten)          # Daniels Entscheidung, Schalter aus
+        self.assertEqual(self.ort.bevoelkerung, bevoelkerung)
         self.assertEqual(self.app.state.resources['holz'].amount, self.ort.vorraete['holz'])
         self.assertEqual(self.app.state.resources['stein'].amount, self.ort.vorraete['stein'])
         self.assertEqual(self.app.karten_feld, self.wald)

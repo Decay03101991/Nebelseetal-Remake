@@ -63,47 +63,44 @@ def _zahl_text(zahl) -> str:
 # 1. Ertrag einer Siedlung
 # --------------------------------------------------------------------------
 
-def siedlung_ertrag(siedlung, forschung_level=None) -> dict:
+def _effektive_rate(geb_id, roh, menge, forschung_level):
+    """Ertrag eines Gebaeudes mit Forschungsfaktor - die EINE Stelle, die den Bonus anwendet.
+
+    Nur die Produktion des konkreten Gebaeudes wird erforscht; diese Quelle dokumentiert zwei
+    Ausnahmen: Jaeger komplett, Rinderfarm nur Nahrung. Das verhindert einen unberechtigten
+    globalen Bonus im gemischten Lager.
     """
-    Stuendlicher Ertrag EINER Siedlung als {Rohstoff: Menge_pro_Stunde}.
+    if (not forschung_level or geb_id == "jaeger"
+            or (geb_id == "rinderfarm" and roh.lower() == "nahrung")):
+        return menge
+    return menge * bonus_system.get_production_multiplier(forschung_level, roh.lower())
 
-    Fuer jedes belegte Feld wird die Gelaendeart aus ``siedlung.karte['raster']`` geholt
-    und der Ertrag des Gebaeudes dort aus ``gelaende.ertrag_pro_stunde`` gelesen. Zahlen
-    werden addiert, dicts (Jaeger: Nahrung und Leder) einzeln.
 
-    Uebersprungen und begruendet werden Felder ohne Karte, Suempfe, unbekannte Gebaeude
-    und Felder, auf denen das Gebaeude nichts liefert. Die Begruendungen stehen in der
-    Ergebnis-dict unter dem Schluessel ``UEBERSPRUNGEN`` (Liste); die Liste ist leer, wenn
-    nichts uebersprungen wurde.
+def _feld_ertraege(siedlung, forschung_level=None):
+    """Alle bebauten Felder mit ihrem Ertrag: ``([(geb_id, {roh: menge})], uebersprungen)``.
+
+    A-3 (Dorfuebersicht, 31.10.2026): `siedlung_ertrag` und `dorf_uebersicht` rechnen BEIDE hier
+    hinein - sonst gaebe es zwei Wahrheiten ueber denselben Ertrag.
     """
-    # Nur die Produktion des konkreten Gebaeudes wird erforscht; diese Quelle
-    # dokumentiert zwei Ausnahmen: Jaeger komplett, Rinderfarm nur Nahrung.
-    # Das verhindert einen unberechtigten globalen Bonus im gemischten Lager.
-    def effektive_rate(geb_id, roh, menge):
-        if not forschung_level or geb_id == "jaeger" or (geb_id == "rinderfarm" and roh.lower() == "nahrung"):
-            return menge
-        return menge * bonus_system.get_production_multiplier(forschung_level, roh.lower())
-
-    ergebnis: dict = {}
-    uebersprungen: list = []
-    ergebnis[UEBERSPRUNGEN] = uebersprungen
+    eintraege = []
+    uebersprungen = []
 
     karte = _feld(siedlung, "karte")
     if not karte:
         uebersprungen.append("Siedlung ohne Karte")
-        return ergebnis
+        return eintraege, uebersprungen
 
     raster = karte.get("raster") if isinstance(karte, dict) else None
     if not raster:
         uebersprungen.append("Karte ohne Raster")
-        return ergebnis
+        return eintraege, uebersprungen
 
     bauten = _feld(siedlung, "bauten")
     if bauten is None:
         uebersprungen.append("keine Bauten gespeichert")
-        return ergebnis
+        return eintraege, uebersprungen
     if not bauten:
-        return ergebnis
+        return eintraege, uebersprungen
 
     for feld_text, geb_eintrag in bauten.items():
         # Feldnummer pruefen
@@ -134,21 +131,174 @@ def siedlung_ertrag(siedlung, forschung_level=None) -> dict:
             continue
 
         if isinstance(ertrag, dict):
-            for roh, menge in ertrag.items():
-                ergebnis[roh] = ergebnis.get(roh, 0) + effektive_rate(geb_id, roh, menge)
+            eintraege.append((geb_id, {roh: _effektive_rate(geb_id, roh, menge, forschung_level)
+                                       for roh, menge in ertrag.items()}))
         else:
             roh = _rohstoff_von(geb_id)
             if not roh:
                 uebersprungen.append(f"Feld {feld}: kein Rohstoff zu {geb_id} bekannt")
                 continue
-            ergebnis[roh] = ergebnis.get(roh, 0) + effektive_rate(geb_id, roh, ertrag)
+            eintraege.append((geb_id, {roh: _effektive_rate(geb_id, roh, ertrag, forschung_level)}))
+    return eintraege, uebersprungen
 
+
+def siedlung_ertrag(siedlung, forschung_level=None) -> dict:
+    """
+    Stuendlicher Ertrag EINER Siedlung als {Rohstoff: Menge_pro_Stunde}.
+
+    Fuer jedes belegte Feld wird die Gelaendeart aus ``siedlung.karte['raster']`` geholt
+    und der Ertrag des Gebaeudes dort aus ``gelaende.ertrag_pro_stunde`` gelesen. Zahlen
+    werden addiert, dicts (Jaeger: Nahrung und Leder) einzeln.
+
+    Uebersprungen und begruendet werden Felder ohne Karte, Suempfe, unbekannte Gebaeude
+    und Felder, auf denen das Gebaeude nichts liefert. Die Begruendungen stehen in der
+    Ergebnis-dict unter dem Schluessel ``UEBERSPRUNGEN`` (Liste); die Liste ist leer, wenn
+    nichts uebersprungen wurde.
+    """
+    eintraege, uebersprungen = _feld_ertraege(siedlung, forschung_level)
+    ergebnis: dict = {UEBERSPRUNGEN: uebersprungen}
+    for _geb_id, ertrag in eintraege:
+        for roh, menge in ertrag.items():
+            ergebnis[roh] = ergebnis.get(roh, 0) + menge
     return ergebnis
 
 
 def uebersprungen_von(ertrag: dict) -> list:
     """Die Begruendungsliste aus einem Ergebnis von ``siedlung_ertrag`` (nie None)."""
     return list(ertrag.get(UEBERSPRUNGEN, []))
+
+
+# --------------------------------------------------------------------------
+# 1b. Dorfuebersicht: welche Gebaeude, wie viele, welcher Ertrag (A-3)
+# --------------------------------------------------------------------------
+
+def _lade_json(name: str) -> dict:
+    """Eine Datendatei aus ``data/`` lesen; fehlt sie, kommt ein leeres dict (kein Absturz)."""
+    import json
+    import os
+    try:
+        import spieldaten
+        wurzel = spieldaten.projektwurzel()
+        with open(os.path.join(wurzel, "data", name), encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError, KeyError):
+        return {}
+
+
+def siedler_bindung_aktiv() -> bool:
+    """Binden Bauten Siedler? Die EINE Lesestelle fuer `data/bausiedler.json`.
+
+    Daniels Entscheidung 31.10.2026 (Auswahlformular Frage 5 = B): NEIN. Die BELEGTEN Preise
+    (Holzfaeller, Steinmetz, Jaeger je 1 Siedler; Screenshot 1838857) bleiben in
+    `data/baupreise.json` stehen - der Schalter nimmt nur den Siedler-Posten aus der Zahlung.
+    Fehlt die Datei, gilt das Original (True): im Zweifel keine stille Abweichung.
+    """
+    daten = _lade_json("bausiedler.json")
+    return bool(daten.get("aktiv", True))
+
+
+def siedler_je_bau(geb_id: str) -> int:
+    """Belegter Siedler-Preis eines Gebaeudes (0, wenn die Quelle keinen nennt).
+
+    Gelesen wird die belegte Datei `data/baupreise.json` - NICHT der Schalter. So bleibt die
+    Herkunft sichtbar, auch wenn der Schalter die Zahlung gerade abstellt.
+    """
+    preise = _lade_json("baupreise.json").get("preise") or {}
+    eintrag = preise.get(geb_id) or {}
+    wert = eintrag.get("siedler")
+    if isinstance(wert, bool) or not isinstance(wert, (int, float)):
+        return 0
+    return int(wert)
+
+
+def dorf_uebersicht(siedlung, forschung_level=None, siedler_bindend=None) -> dict:
+    """Was steht in diesem Dorf, wie viel bringt es je Stunde, welchen Anteil hat es? (A-3)
+
+    Daniels Spielbericht 31.10.2026: "welche gebaeude habe ich, wie viele, welcher ertrag" - die
+    Siedlungskarte zeigte nur Felder, keine Summe. Gerechnet wird ueber `_feld_ertraege`, also
+    GENAU wie `siedlung_ertrag` und damit wie Produktion und Kopfzeile.
+
+    Rueckgabe::
+
+        {"gebaeude": [{"gebaeude", "name", "anzahl", "stufen", "stufen_text",
+                       "ertrag": {roh: menge}, "ertrag_text", "summe", "anteil",
+                       "siedler_je", "siedler"}],
+         "summe": {"anzahl", "ertrag", "ertrag_text", "summe", "siedler"},
+         "uebersprungen": [ ... ],
+         "siedler_bindend": bool,
+         "hinweis": str}
+    """
+    if siedler_bindend is None:
+        siedler_bindend = siedler_bindung_aktiv()
+    eintraege, uebersprungen = _feld_ertraege(siedlung, forschung_level)
+    stufen = _feld(siedlung, "stufen") or {}
+    bauten = _feld(siedlung, "bauten") or {}
+
+    gruppen: dict = {}
+    for feld_text, geb_eintrag in bauten.items():
+        geb_id = gelaende.finde_gebaeude(geb_eintrag)
+        if not geb_id:
+            continue
+        gruppe = gruppen.setdefault(geb_id, {"gebaeude": geb_id,
+                                             "name": gelaende.gebaeude_name(geb_id),
+                                             "anzahl": 0, "stufen": [], "ertrag": {}})
+        gruppe["anzahl"] += 1
+        try:
+            gruppe["stufen"].append(int(stufen.get(str(feld_text), stufen.get(feld_text, 1)) or 1))
+        except (TypeError, ValueError):
+            gruppe["stufen"].append(1)
+    for geb_id, ertrag in eintraege:
+        gruppe = gruppen.get(geb_id)
+        if gruppe is None:
+            continue
+        for roh, menge in ertrag.items():
+            gruppe["ertrag"][roh] = gruppe["ertrag"].get(roh, 0.0) + menge
+
+    gesamt_summe = 0.0
+    gesamt_ertrag: dict = {}
+    for gruppe in gruppen.values():
+        gruppe["summe"] = round(sum(gruppe["ertrag"].values()), 2)
+        gesamt_summe += gruppe["summe"]
+        for roh, menge in gruppe["ertrag"].items():
+            gesamt_ertrag[roh] = gesamt_ertrag.get(roh, 0.0) + menge
+
+    liste = []
+    gesamt_anzahl = 0
+    gesamt_siedler = 0
+    for geb_id, gruppe in gruppen.items():
+        stufen_liste = sorted(set(gruppe["stufen"]))
+        stufen_text = ("Stufe " + ", ".join(str(s) for s in stufen_liste)
+                       if len(stufen_liste) == 1
+                       else "Stufen " + ", ".join(str(s) for s in stufen_liste))
+        siedler_je = siedler_je_bau(geb_id)
+        gesamt_anzahl += gruppe["anzahl"]
+        gesamt_siedler += siedler_je * gruppe["anzahl"] if siedler_bindend else 0
+        liste.append({**gruppe,
+                      "ertrag": {roh: round(menge, 2) for roh, menge in gruppe["ertrag"].items()},
+                      "ertrag_text": ertrag_text(gruppe["ertrag"]),
+                      "stufen": stufen_liste,
+                      "stufen_text": stufen_text,
+                      "anteil": (round(gruppe["summe"] / gesamt_summe, 4)
+                                 if gesamt_summe > 0 else 0.0),
+                      "siedler_je": siedler_je,
+                      "siedler": (siedler_je * gruppe["anzahl"] if siedler_bindend else 0)})
+    liste.sort(key=lambda g: (-g["summe"], g["name"]))
+    if not siedler_bindend:
+        hinweis = ("Bauten binden keine Siedler (Daniels Entscheidung 31.10.2026). Die belegten "
+                   f"Preise nennen fuer {', '.join(sorted({g['name'] for g in liste if g['siedler_je']}))}"
+                   " je 1 Siedler — er wird derzeit nicht abgezogen.")
+        if not any(g["siedler_je"] for g in liste):
+            hinweis = "Bauten binden keine Siedler (Daniels Entscheidung 31.10.2026)."
+    else:
+        hinweis = "Bauten binden Siedler nach data/baupreise.json (belegt: Screenshot 1838857)."
+    return {"gebaeude": liste,
+            "summe": {"anzahl": gesamt_anzahl,
+                      "ertrag": {roh: round(menge, 2) for roh, menge in gesamt_ertrag.items()},
+                      "ertrag_text": ertrag_text(gesamt_ertrag),
+                      "summe": round(gesamt_summe, 2), "siedler": gesamt_siedler},
+            "uebersprungen": uebersprungen,
+            "siedler_bindend": bool(siedler_bindend),
+            "hinweis": hinweis}
 
 
 # --------------------------------------------------------------------------
