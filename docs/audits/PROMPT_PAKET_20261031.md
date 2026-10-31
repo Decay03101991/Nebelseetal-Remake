@@ -96,8 +96,9 @@ Kein Modell darf Code schreiben — es liefert Papiere, gebaut und geprüft wird
 | Bot-Pfad Beute | **gebaut**: der Bot-Angriff bucht jetzt `kampfbericht.beute_staffel` (main.py, Zweig „angreifen") |
 | Bot-Punkte | **erfunden**: `bot.punkte = rng.randint(0,300)` (`botkern.py` Z. 150) → Rangliste/Bewertung gegen Bots ist Zufall (Register 46) |
 
-**Regression nach diesen Umbauten:** 9 berührte Prüfdateien **9/9 grün, 504 Prüfungen, 0 Fehler, 52 s**
-(`tools/sammellauf.py`).
+**Regression nach diesen Umbauten:** 9 berührte Prüfdateien **9/9 grün, 504 Prüfungen, 0 Fehler, 52 s**;
+**vollständiger Lauf FINAL: 94 Dateien, 93 grün, 0 rot, 1 ausgesetzt, 3.504 Prüfungen, 511 s**
+(`docs/audits/sammellauf_20261031_0425.log`).
 
 ---
 
