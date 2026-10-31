@@ -38,7 +38,13 @@ seit A-1 auch fuer Mengen), J (mehrere Siedlungen mit eigenem Startort).
 
 ## 3. Wo das Konzept dem Projekt widerspricht
 
-1. **„Burg versetzen“ gibt es im Original nicht.** Belegt ist ein **Portal zwischen den Welten**
+1. **KORRIGIERT am 01.11.2026 — meine erste Fassung war falsch.** Ich hatte geschrieben, ein
+   Versetzen der Siedlung gebe es im Original nicht. `portalraum.py` führt aber den **belegten
+   Koordinatenwechsel** (5.000 Mana, höchstens 1× je 24 Stunden, von EINER Siedlung; Quelle
+   Portal-Anleitung 2005 und Handbuch 2009 S. 80–83). Es gibt das Ritual also, es ist nur nicht
+   im Spiel erreichbar. Abweichung vom Original wäre ein **frei wählbares Springen ohne Ritual**
+   — nicht das Ritual selbst. Details im Modell `docs/KONZEPT_SECHS_DOERFER_20261101.md`.
+   Unverändert gilt: belegt ist ein **Portal zwischen den Welten**
    (`portalraum.py`, Handbuch); ein frei waehlbares Springen auf der Karte ist eine
    **Lords-Mobile-Mechanik**, keine Nebelseetal-Regel. Wenn Daniel sie will, ist sie eine
    bewusste Remake-Abweichung — wie schon bei der Siedler-Bindung (Register 80) und dort
