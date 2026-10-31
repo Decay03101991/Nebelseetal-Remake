@@ -46,15 +46,24 @@
 
 ## Next actions für den temporären Coding-Agenten
 
-> **GELTENDER STAND 31.10.2026 (Hermes).** Diese Ueberschrift ist der Wiedereinstiegspunkt, den
+> **GELTENDER STAND 31.10.2026, 20:45 (Hermes).** Diese Ueberschrift ist der Wiedereinstiegspunkt, den
 > `tools/zieluebergabe.py` liest; die Liste darunter ist **HISTORIE der GPT-Runde vom 28.10.2026** und
-> **nicht mehr** der Fahrplan. Geltend: Hermes fuehrt das Projekt seit 30.10.2026 zurueck, der
-> naechste Schritt steht in der jeweils juengsten Datei `docs/UEBERGABE_<JJJJMMTT_HHMM>.md`
-> (31.10.2026, 19:58: Nahrungsverbrauch je Einheit war Schritt 1, danach
-> Wagenbau-Kapazitaet -> Sofortangriff reist -> Bot-Wirtschaft + Wall -> Kampfplanungsseite).
-> Nach JEDEM Schritt gilt verpflichtend: Registereintrag in `docs/PRUEFREGEL_ORIGINAL.md`,
-> Protokollzeile in `docs/ENTWICKLUNGSPROTOKOLL.md`, Einzeltest **und** voller Sammellauf
+> **nicht mehr** der Fahrplan. Geltend: Hermes fuehrt das Projekt seit 30.10.2026 zurueck.
+> **Fertig und committet (31.10.):** F-04 (`52b5a51`), Spielbalancing-Test (`1cd799b`), Befund Siedler/Bots
+> (`4e68de8`), **Nahrungsverbrauch je Einheit** (`8db75a6`, Register 69, 52 Pruefungen, Sammellauf 20:13 mit
+> 103 Dateien/102 gruen/3.756 Pruefungen), **Balancing-Test Teil 2 - Karten, Doerfer und Pech** (`bca75e1`,
+> Register 71, Werkzeug `tools/balancing_karten.py`, Gates G-8/G-9).
+> **Naechster Spielcode-Schritt:** Wagenbau-Kapazitaet (Daniels Entscheidung 2) - `einheiten.kapazitaet`/
+> `ladung_der_gruppe` um einen forschungsabhaengigen Bonus erweitern (Basiswerte aus `data/units.json`
+> bleiben), alle Aufrufer mitziehen (Auftragsladung, Beute, Transport, Handelskarawane, Anzeigen),
+> Pruefdatei, Register, voller Sammellauf, EXE, EIN Commit.
+> **Danach:** Sperre bei Nahrungsnot (Daniels Verschaerfung, Register 70) -> Sofortangriff reist ->
+> Kampfplanungsseite; **Bots spaeter** (Register 72, Daniels Ansage).
+> Nach JEDEM Schritt verpflichtend: Registereintrag in `docs/PRUEFREGEL_ORIGINAL.md`, Protokollzeile in
+> `docs/ENTWICKLUNGSPROTOKOLL.md`, Einzeltest **und** voller Sammellauf
 > (`python -X utf8 tools/sammellauf.py`), neue EXE mit Startpruefung, dann EIN Commit.
+> **Offene Fragen (Auswahlformular):** 7-9 beantwortet (Register 70), **Frage 10** offen (Kartenziehung:
+> freie Wahl / Zufall / Wahl aus drei gezogenen Karten).
 
 **Historisch (28.10.2026, GPT-Runde - nur noch Nachweis, kein Auftrag):**
 
