@@ -4417,6 +4417,19 @@ class NebelseetalApp:
         rahmen.pack(side=tk.LEFT, anchor=tk.N, fill=tk.Y, padx=(12, 0))
         tk.Label(rahmen, text="Dorfübersicht", fg=self.skin["gold"], bg=self.skin["panel"],
                  font=("TkDefaultFont", 11, "bold")).pack(anchor=tk.W, padx=8, pady=(6, 0))
+        # A-6: die freie Siedlerreserve steht auch HIER - an der Stelle, an der gebaut wird.
+        try:
+            _reserve = spieloekonomie.siedler_reserve(
+                asdict(siedlung), self.state.forschungs_stufen())
+            tk.Label(rahmen,
+                     text=(f"Freie Siedler: {_reserve['frei']:.1f} · Nachwuchs "
+                           f"{_reserve['zuwachs_stunde']:.1f}/h"
+                           + (" · ⚠ " + _reserve["text"] if _reserve["text"] else "")),
+                     fg=("#FDBA74" if _reserve["warnung"] else "#C0C0C0"),
+                     bg=self.skin["panel"], font=("Arial", 8), wraplength=430,
+                     justify=tk.LEFT).pack(anchor=tk.W, padx=8, pady=(0, 2))
+        except (AttributeError, KeyError, TypeError, ValueError):
+            pass
         try:
             stufen = self.state.forschungs_stufen()
         except (AttributeError, KeyError, TypeError):
@@ -6943,6 +6956,10 @@ class NebelseetalApp:
                  fg="#C0C0C0", bg=self.skin["bg"], wraplength=780,
                  justify=tk.LEFT).pack(anchor=tk.W, padx=10)
         self._ausbildung_warteschlange_zeichnen(staette)
+        # A-6 (Daniels Spielbericht 31.10.2026): sechs gescheiterte Ausbildungen, weil die
+        # Siedlerreserve unbemerkt auf 3,5 gefallen war. Hier steht sie VOR der ersten Einheit -
+        # mit der Zahl, die noch geht, und dem Nachwuchs je Spielstunde.
+        self._siedler_warnung_zeichnen()
         _angezeigt = 0
         for key, u in self.state.units.items():
             if str((einheiten.alle().get(key) or {}).get("gebaeude") or "") != staette:
@@ -7002,6 +7019,42 @@ class NebelseetalApp:
         if _angezeigt == 0:
             tk.Label(self.content, text=f"Keine Einheit wird in der {staette} ausgebildet.",
                      fg="#FDBA74", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=8)
+
+    def _siedler_warnung_zeichnen(self) -> None:
+        """A-6: die freie Siedlerreserve des Ortes sichtbar machen, bevor sie aufgebraucht ist.
+
+        Daniels Spielbericht 31.10.2026: nach 44 Bauten standen 3,5 Siedler, danach **sechs**
+        gescheiterte Ausbildungen ("Freie Siedler fehlen vor Ort") - niemand hatte ihn vorher
+        gewarnt. Seit seiner Entscheidung (Frage 5 = B) binden Bauten keine Siedler mehr, Siedler
+        gehen nur noch bei der Ausbildung weg; deshalb steht die Warnung hier und nicht am Bau.
+        Die Zahlen kommen aus `spieloekonomie.siedler_reserve` (dieselbe Quelle wie `bevoelkerung`).
+        """
+        ort = self.state.aktive_siedlung()
+        if ort is None or not hasattr(self, "content"):
+            return
+        try:
+            reserve = spieloekonomie.siedler_reserve(asdict(ort), self.state.forschungs_stufen())
+        except (AttributeError, KeyError, TypeError, ValueError):
+            return
+        rahmen = tk.Frame(self.content, bg=self.skin["panel"], highlightbackground="#5D4037",
+                          highlightthickness=1)
+        rahmen.pack(fill=tk.X, padx=10, pady=(0, 4))
+        _farbe = "#FDBA74" if reserve["warnung"] else "#C0C0C0"
+        _einheit, _je = reserve["guenstigste"]
+        _noch = reserve["moeglich"].get(_einheit, -1) if _einheit else -1
+        _noch_text = (f" · es gehen noch {_noch} × {_einheit}" if _noch >= 0 and _einheit
+                      else "")
+        tk.Label(rahmen,
+                 text=(f"Freie Siedler: {reserve['frei']:.1f} von {reserve['grenze']} · "
+                       f"Nachwuchs {reserve['zuwachs_stunde']:.1f} je Spielstunde"
+                       f"{_noch_text} · "
+                       f"Bauten binden keine Siedler (Entscheidung 31.10.2026)"),
+                 fg=self.skin["text"], bg=self.skin["panel"], font=("Arial", 9),
+                 anchor=tk.W, justify=tk.LEFT, wraplength=820).pack(anchor=tk.W, padx=8, pady=(3, 0))
+        if reserve["text"]:
+            tk.Label(rahmen, text="⚠ " + reserve["text"], fg=_farbe, bg=self.skin["panel"],
+                     font=("Arial", 9, "bold"), anchor=tk.W, justify=tk.LEFT, wraplength=820
+                     ).pack(anchor=tk.W, padx=8, pady=(0, 3))
 
     def _ausbildung_warteschlange_zeichnen(self, staette: str):
         """Die Warteschlange der Ausbildungsstätte sichtbar machen (Daniels Spieltest 31.10.2026).

@@ -738,6 +738,88 @@ def ausbildung_abbrechen(ort: dict, platz: int, jetzt: float) -> dict:
             "erstattung": {}, "hinweis": "Keine Erstattung: die Quellen regeln das nicht."}
 
 
+def siedler_reserve(ort: dict, forschung: dict = None) -> dict:
+    """Wie viele freie Siedler hat der Ort, und wie weit reichen sie noch? (A-6, 31.10.2026)
+
+    Daniels Spielbericht: **sechs gescheiterte Ausbildungen** ("Freie Siedler fehlen vor Ort"),
+    weil die Bevoelkerung von 10 auf 3,5 gefallen war, ohne dass ihn jemand vorher gewarnt hatte.
+    Mit seiner Entscheidung 31.10.2026 (Frage 5 = B) binden **Bauten keine Siedler** mehr; Siedler
+    gehen nur noch bei der **Ausbildung** weg (1 bis 20 je Einheit, siehe `data/units.json`).
+    Deshalb steht die Warnung hier - an der Stelle, die wirklich verbraucht.
+
+    Gerechnet wird aus DENSELBEN Quellen wie die Ausbildung: `bevoelkerung` des Ortes als Reserve,
+    `data/units.json` fuer den Siedler-Preis je Einheit, `gebaeude_wirkung.siedlergrenze_je_siedlung`
+    fuer die Obergrenze und `siedler_zuwachs_pro_stunde` fuer den Nachwuchs.
+
+    Rueckgabe::
+
+        {"frei": float, "grenze": int, "zuwachs_stunde": float,
+         "bedarf_je_einheit": {Einheit: Siedler}, "moeglich": {Einheit: Anzahl},
+         "engste": (Einheit, Siedler), "warnung": bool, "text": str}
+    """
+    try:
+        frei = float(ort.get("bevoelkerung", 0.0) or 0.0)
+    except (TypeError, ValueError):
+        frei = 0.0
+    grenze = 0
+    zuwachs = 0.0
+    try:
+        grenze = int(gebaeude_wirkung.siedlergrenze_je_siedlung(ort))
+    except (KeyError, TypeError, ValueError):
+        grenze = 0
+    try:
+        zuwachs = float(gebaeude_wirkung.siedler_zuwachs_pro_stunde([ort], forschung or {}))
+    except (KeyError, TypeError, ValueError):
+        zuwachs = 0.0
+    bedarf = {}
+    moeglich = {}
+    for name, eintrag in U.items():
+        try:
+            geb = gelaende.finde_gebaeude(str((eintrag or {}).get("gebaeude") or ""))
+        except (TypeError, ValueError):
+            continue
+        try:
+            if gebaeude_wirkung.gebaeude_stufe(ort, geb) <= 0:
+                continue
+        except (KeyError, TypeError, ValueError):
+            continue
+        kosten = (eintrag or {}).get("kosten") or {}
+        try:
+            je = int(kosten.get("siedler", 0) or 0)
+        except (TypeError, ValueError):
+            je = 0
+        bedarf[name] = je
+        moeglich[name] = (int(frei // je) if je > 0 else -1)
+    if not bedarf:
+        return {"frei": frei, "grenze": grenze, "zuwachs_stunde": zuwachs,
+                "bedarf_je_einheit": {}, "moeglich": {}, "engste": ("", 0),
+                "warnung": False, "text": ""}
+    engste = min(((n, j) for n, j in bedarf.items() if j > 0), key=lambda p: p[1],
+                 default=("", 0))
+    guenstigste = min(((n, j) for n, j in bedarf.items() if j > 0), key=lambda p: p[1],
+                      default=("", 0))
+    teuerste = max(((n, j) for n, j in bedarf.items() if j > 0), key=lambda p: p[1],
+                   default=("", 0))
+    # Die Warnschwelle haengt an der GUENSTIGSTEN Ausbildung des Ortes: reicht die Reserve nicht
+    # einmal fuer zwei davon, ist Schluss - das ist genau Daniels Lage mit 3,5 Siedlern gewesen.
+    grenzfall = guenstigste if guenstigste[0] else teuerste
+    warnung = bool(grenzfall[0]) and frei < float(grenzfall[1] * 2)
+    if not warnung:
+        text = ""
+    elif frei < float(grenzfall[1]):
+        text = (f"Nur {frei:.1f} freie Siedler im Ort — eine {grenzfall[0]} kostet "
+                f"{grenzfall[1]}. Es geht gerade keine einzige Ausbildung mehr; nachgeliefert "
+                f"werden {zuwachs:.1f} Siedler je Spielstunde.")
+    else:
+        text = (f"Nur {frei:.1f} freie Siedler im Ort — eine {grenzfall[0]} kostet "
+                f"{grenzfall[1]}, also gehen noch {int(frei) // grenzfall[1]}. Nachgeliefert "
+                f"werden {zuwachs:.1f} Siedler je Spielstunde.")
+    return {"frei": frei, "grenze": grenze, "zuwachs_stunde": zuwachs,
+            "bedarf_je_einheit": bedarf, "moeglich": moeglich,
+            "engste": grenzfall, "guenstigste": guenstigste, "teuerste": teuerste,
+            "warnung": warnung, "text": text}
+
+
 def ausbildung_grenzen(ort: dict, name: str, forschung: dict) -> dict:
     """Wie viele Einheiten dieser Art der Ort JETZT ausbilden kann - die EINE Rechenstelle.
 
