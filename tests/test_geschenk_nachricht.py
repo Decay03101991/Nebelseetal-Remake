@@ -11,10 +11,12 @@ Was diese Datei beweist
 -----------------------
 1. Die Nachrichtenansicht faerbt ueber EINE pruefbare Funktion (`main.nachrichten_farbe`):
    Kampf rot, Schenkung hellblau, alles andere Gold - keine Farbe im Zeichencode versteckt.
-2. Der Spielstand auf DIESEM Rechner traegt die Botschaft: Art `geschenk`, Zeitmarke vorhanden,
-   Text nennt Absender, Spieltag und Betraege.
-3. Die Botschaft LUEGT NICHT: die genannten Mengen stehen wirklich im Ortslager - der Test
-   vergleicht Text und Bestand, statt der Nachricht zu glauben.
+2. Der Spielstand auf DIESEM Rechner traegt die Botschaft: Art `geschenk`, Zeitmarke vorhanden, Text
+   nennt Absender, Spieltag und Betraege.
+3. Die Botschaft LUEGT NICHT - geprueft wird gegen den **Schnappschuss von der Schenkung**
+   (`~/.nebelseetal/archiv/SPIELBASIS_*.json`), NICHT gegen das heutige Lager. Grund (belegt
+   31.10.2026): die erste Fassung verglich mit dem Live-Lager; sobald Daniel spielte und baute, sank
+   der Bestand und die Pruefung wurde rot - sie mass den Spielverlauf, nicht die Botschaft.
 4. Die Erzaehlung haengt an belegten Namen (Midgard, Portal, Nebelsee), nicht an erfundenen Welten.
 
 Aufruf:  python -X utf8 tests/test_geschenk_nachricht.py
@@ -33,11 +35,26 @@ ROOT, SRC = import_src()
 import main  # noqa: E402
 
 SLOT = pathlib.Path.home() / ".nebelseetal" / "savegame_slot1.json"
+ARCHIV = pathlib.Path.home() / ".nebelseetal" / "archiv"
 
 
 def _zahl(text: str) -> float:
     """'2.000.000' -> 2000000.0 (deutsche Tausenderpunkte)."""
     return float(text.replace(".", "").replace(",", "."))
+
+
+def _schnappschuss() -> dict:
+    """Die Aufnahme von der Schenkung: Tag und Ortslager unmittelbar danach."""
+    for pfad in sorted(ARCHIV.glob("SPIELBASIS_*.json"), reverse=True):
+        try:
+            roh = json.loads(pfad.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if roh.get("vorraete"):
+            return {"tag": roh.get("tag"),
+                    "vorraete": {str(k).lower(): float(v) for k, v in roh["vorraete"].items()},
+                    "waren": roh.get("waren"), "datei": pfad.name}
+    return {}
 
 
 # ------------------------------------------------------ 1. Farbe in der Ansicht
@@ -47,10 +64,8 @@ check("Schenkung ist hellblau", main.nachrichten_farbe({"type": "geschenk"}) == 
 check("alles andere bleibt gold", main.nachrichten_farbe({"type": "forschung"}) == "#DAA520")
 check("ohne Art bleibt gold", main.nachrichten_farbe({}) == "#DAA520")
 check("None stuerzt nicht ab", main.nachrichten_farbe(None) == "#DAA520")
-quelle = main.__dict__["__loader__"].get_source("main") if hasattr(main.__dict__.get("__loader__"), "get_source") else ""
-if not quelle:
-    import inspect
-    quelle = inspect.getsource(main)
+import inspect  # noqa: E402
+quelle = inspect.getsource(main)
 check("die Ansicht nutzt die Funktion (keine zweite Farbregel im Code)",
       "color = nachrichten_farbe(msg)" in quelle)
 
@@ -64,6 +79,7 @@ daten = json.loads(SLOT.read_text(encoding="utf-8"))
 botschaften = [m for m in (daten.get("messages") or []) if m.get("type") == "geschenk"]
 check("mindestens eine Botschaft der Art 'geschenk' liegt im Spielstand", bool(botschaften),
       "Arten: %s" % sorted({m.get("type") for m in (daten.get("messages") or [])}))
+
 if botschaften:
     b = botschaften[-1]
     text = str(b.get("text") or "")
@@ -73,32 +89,39 @@ if botschaften:
     check("das Portal kommt vor (belegter Weg zwischen den Welten)", "Portal" in text)
     check("der Nebelsee kommt vor (Titel des Spiels)", "Nebelsee" in text)
     check("die Einmaligkeit steht ausdruecklich drin", "EINMALIG" in text.upper())
-    spieltag = int(daten.get("day") or 0)
-    check("der genannte Spieltag ist der echte Spieltag (%d)" % spieltag,
-          ("%d. Spieltag" % spieltag) in text, text[-60:])
+    check("kein erfundener Weltname",
+          all(w not in text for w in ("Avalon", "Narnia", "Zephyria")))
 
-    # 3. Text gegen Bestand: die Botschaft darf nicht mehr versprechen, als da ist
-    print("\n=== 3. Die Botschaft luegt nicht: Betraege gegen den Bestand ===")
-    ort = (daten.get("settlements") or [{}])[0]
-    lager = {k.lower(): float(v) for k, v in (ort.get("vorraete") or {}).items()}
+    print("\n=== 3. Die Botschaft luegt nicht: Betraege gegen den Stand BEI DER SCHENKUNG ===")
+    schnapp = _schnappschuss()
+    if not schnapp:
+        befund("kein Schnappschuss der Schenkung gefunden (SPIELBASIS_*.json fehlt)", "")
+        sys.exit(bericht())
+    check("Schnappschuss der Schenkung gefunden", bool(schnapp), schnapp.get("datei", ""))
+    lager = schnapp["vorraete"]
+    check("genannter Spieltag == Spieltag bei der Schenkung (%s)" % schnapp.get("tag"),
+          ("%s. Spieltag" % schnapp.get("tag")) in text, text[-60:])
     versprochen = {
         "holz": "2.000.000 Holz", "stein": "1.000.000 Stein", "metall": "500.000 Metall",
         "gold": "500.000 Gold", "nahrung": "500.000 Nahrung", "wolle": "200.000 Wolle",
         "leder": "200.000 Leder", "mana": "200.000 Mana", "pferde": "20.000 Pferde",
     }
     for stoff, satz in versprochen.items():
-        if satz not in text:
-            check("%s steht im Text" % stoff, False, satz)
-            continue
         betrag = _zahl(satz.split()[0])
-        check("%s: Text nennt %.0f, Lager hat %.0f" % (stoff, betrag, lager.get(stoff, 0)),
-              lager.get(stoff, 0) >= betrag, "Lager %.2f" % lager.get(stoff, 0))
-    waren = ort.get("waren") or {}
-    check("Werkstattwaren sind aufgefuellt (mindestens 17 Arten)", len(waren) >= 17,
-          "Arten: %d" % len(waren))
-    check("je Ware mindestens 500 Stueck", all(float(n) >= 500 for n in waren.values()))
-    check("Forschung: 1.074.150 Holz fuer alle 21 Gebiete stehen im Text",
-          "1.074.150" in text)
-    check("das Holz im Lager deckt die Forschung (>= 1.074.150)", lager.get("holz", 0) >= 1074150)
+        check("%s: Text nennt %.0f, Schenkung hatte %.0f" % (stoff, betrag, lager.get(stoff, 0)),
+              (satz in text) and lager.get(stoff, 0) >= betrag,
+              "Lager %.2f" % lager.get(stoff, 0))
+    check("Forschung: 1.074.150 Holz fuer alle 21 Gebiete stehen im Text", "1.074.150" in text)
+    check("das geschenkte Holz deckt die Forschung (>= 1.074.150)", lager.get("holz", 0) >= 1074150)
+    check("die Schenkung umfasste alle 17 Werkstattwaren", int(schnapp.get("waren") or 0) >= 17,
+          "Arten: %s" % schnapp.get("waren"))
+
+    heute = {k.lower(): float(v) for k, v in
+             ((daten.get("settlements") or [{}])[0].get("vorraete") or {}).items()}
+    abweichung = {k: round(heute.get(k, 0) - v, 1) for k, v in lager.items()
+                  if abs(heute.get(k, 0) - v) > 1}
+    if abweichung:
+        befund("heutiges Lager weicht von der Schenkung ab (gespielt/gebaut): "
+               + ", ".join("%s %+.0f" % (k, v) for k, v in sorted(abweichung.items())), "")
 
 sys.exit(bericht())
