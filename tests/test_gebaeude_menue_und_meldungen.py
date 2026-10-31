@@ -196,10 +196,15 @@ check("Siedlung enthaelt Dorfzentrum", "Dorfzentrum" in siedlung, str(siedlung))
 check("Siedlung enthaelt Forschung (Bibliothek steht)", "Forschung" in siedlung, str(siedlung))
 check("Siedlung enthaelt Stellmacher", "Stellmacher" in siedlung, str(siedlung))
 check("Siedlung enthaelt NICHT Portal", "Portal" not in siedlung, str(siedlung))
-check("beide Ebenen zusammen = menu_sichtbar",
-      sorted(uebersicht + siedlung) == sorted(main.menu_sichtbar(
-          [Ort(["bibliothek", "kriegerakademie", "stellmacher"])])),
+check("jeder freigegebene Punkt steht in genau einer Ebene",
+      all(p in uebersicht + siedlung for p in main.menu_sichtbar(
+          [Ort(["bibliothek", "kriegerakademie", "stellmacher"])]))
+      and len([p for p in uebersicht + siedlung
+               if p in main.menu_sichtbar([Ort(["bibliothek", "kriegerakademie", "stellmacher"])])])
+      == len(main.menu_sichtbar([Ort(["bibliothek", "kriegerakademie", "stellmacher"])])),
       f"{len(uebersicht)} + {len(siedlung)}")
+check("Voraussetzungen ist ein Zusatzpunkt, nicht Teil der belegten Liste",
+      "Voraussetzungen" not in main.MENU_ITEMS, str(main.MENU_ITEMS))
 check("jeder Menuepunkt hat eine Ebene", all(p in main.EBENE_JE_PUNKT for p in main.MENU_ITEMS),
       str([p for p in main.MENU_ITEMS if p not in main.EBENE_JE_PUNKT]))
 

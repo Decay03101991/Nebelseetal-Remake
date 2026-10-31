@@ -1,5 +1,18 @@
 # Anforderungen Daniel — Gebäude-Menüs, Ausbildung, Bibliothek, Kampf (30.10.2026)
 
+**Stand der Umsetzung (30.10.2026, nachts):**
+**ERLEDIGT:** A1 (Stellmacher-Menü ab Gebäude), A2 (Karren im Stellmacher), A3 (Truppen in der
+Kriegerakademie), A4 (eigene Ansicht je Gebäude: Stellmacher, Diebesgilde, Kaserne),
+A6 (Karren nicht mehr in der Truppenausbildung), B1 (Forschung erst ab Bibliothek),
+B2/B3 (letzte Bibliothek nicht abreißbar), zwei Navigationsebenen wie im Original,
+Menüpunkt „Voraussetzungen", „Eure Punkte" dauerhaft in der Leiste.
+**OFFEN:** A5 (Forschungsstufen erweitern die Auswahl — die Sperre wird schon erklärt, die
+Freischaltung selbst ist über `data/units.json` vorhanden, aber nicht im Spiel durchgespielt),
+A7 (ein Hersteller je Karte — im Code durchgesetzt, Handbuch bestätigt „eine Bibliothek je
+Siedlung", für die übrigen Gebäude offen), B4 (Original: eine Bibliothek **je Siedlung**, keine
+Gesamtgrenze — Daniels Zwei-Grenze ist strenger und bleibt als seine Entscheidung stehen),
+C1–C7 (Kampf, Portal, Wegzeiten, Planungsplattform: unverändert offen).
+
 **Zweck:** Daniels Ansagen im Wortlaut festhalten, bevor gebaut wird. Jeder Punkt hat eine Kennung,
 einen Beleg („Daniel, 30.10.2026") und eine Spalte „Beleglage", damit niemand später raten muss,
 was Vorgabe war und was gemessen ist.
