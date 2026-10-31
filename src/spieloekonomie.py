@@ -431,6 +431,65 @@ def station_start(quelle: dict, ziel: dict, bestand: dict, fracht: dict, jetzt: 
 # Alle Dauerangaben ausser dem Schwert (1200 s, belegt) sind VORSCHLAG.
 
 
+def ware_voraussetzungen_liste(ware: str, forschung: dict, rezepte: dict = None) -> list:
+    """Jede Forschungsbedingung einer Ware EINZELN — die EINE Quelle fuer Kern UND Anzeige.
+
+    F-04 der externen Spielpruefung (31.10.2026, Register 68): die Anzeige las `items.json`
+    (Feld `voraussetzung_struktur`) und gab bei fehlender Struktur `True` zurueck, waehrend der
+    Kern `warenrezepte.json` prueft — zwei Wahrheiten, beide gruen geprueft. Lederrüstung und
+    Magischer Paladinharnisch haben in `items.json` GAR KEINE Struktur, im Rezept aber je ZWEI
+    Bedingungen (UND). Deshalb gibt es nur noch diese eine Lesestelle; `ware_start` und
+    `GameState.ware_voraussetzung` rufen beide hier hinein.
+
+    Rueckgabe je Bedingung, in der Reihenfolge der Datei:
+      {"gebiet": str, "noetig": int, "vorhanden": int, "bekannt": bool, "erfuellt": bool}
+    Eine unbekannte Ware liefert eine leere Liste (der Kern lehnt sie mit
+    "Keine freigegebene Rezeptangabe." ab).
+    """
+    rezepte = WARENREZEPTE if rezepte is None else rezepte
+    rezept = rezepte.get(ware) or {}
+    bedingungen = rezept.get("voraussetzungen") or {}
+    liste: list = []
+    for gebiet, stufe in bedingungen.items():
+        try:
+            noetig = int(stufe)
+        except (TypeError, ValueError):
+            noetig = 0
+        bekannt = gebiet in forschung
+        try:
+            vorhanden = int(forschung.get(gebiet) or 0)
+        except (TypeError, ValueError):
+            vorhanden = 0
+        liste.append({"gebiet": str(gebiet), "noetig": noetig, "vorhanden": vorhanden,
+                      "bekannt": bekannt, "erfuellt": bool(bekannt and vorhanden >= noetig)})
+    return liste
+
+
+def ware_voraussetzung(ware: str, forschung: dict, rezepte: dict = None):
+    """(erfuellt, Begruendung) fuer die Forschungsvoraussetzungen einer Ware — eine Wahrheit.
+
+    Eine unbekannte Ware gilt als NICHT erfuellt, weil `ware_start` sie ablehnt; eine Forschung,
+    die dieser Stand nicht kennt, ebenfalls — es wird nichts erfunden und nichts durchgelassen.
+    Die Begruendung nennt JEDE Bedingung, nicht nur die erste offene.
+    """
+    rezepte = WARENREZEPTE if rezepte is None else rezepte
+    if ware not in rezepte:
+        return False, "keine freigegebene Rezeptangabe"
+    liste = ware_voraussetzungen_liste(ware, forschung, rezepte)
+    if not liste:
+        return True, "keine Voraussetzung belegt"
+    teile = []
+    for b in liste:
+        if not b["bekannt"]:
+            teile.append(f"die Forschung '{b['gebiet']}' kennen wir nicht - nicht erfuellbar")
+        elif b["erfuellt"]:
+            teile.append(f"{b['gebiet']} Stufe {b['noetig']} vorhanden")
+        else:
+            teile.append(f"{b['gebiet']} Stufe {b['noetig']} noetig, vorhanden ist Stufe "
+                         f"{b['vorhanden']}")
+    return all(b["erfuellt"] for b in liste), " · ".join(teile)
+
+
 def ware_start(ort: dict, ware: str, forschung: dict, jetzt: float,
                rezepte: dict = None) -> dict:
     """Reiht eine Ware in die Werkstatt DIESER Siedlung ein. Liefert den neuen Ort.
@@ -444,8 +503,9 @@ def ware_start(ort: dict, ware: str, forschung: dict, jetzt: float,
     if ware not in rezepte:
         raise ValueError("Keine freigegebene Rezeptangabe.")
     rezept = rezepte[ware]
-    if any(forschung.get(f, 0) < n for f, n in rezept["voraussetzungen"].items()):
-        raise ValueError("Warenvoraussetzung fehlt.")
+    erfuellt, begruendung = ware_voraussetzung(ware, forschung, rezepte)
+    if not erfuellt:
+        raise ValueError(f"Warenvoraussetzung fehlt: {begruendung}")
     typ = werkstatt.werkstatt_fuer(ware)
     if typ is None:
         raise ValueError("Ware gehoert zu keiner Werkstatt.")

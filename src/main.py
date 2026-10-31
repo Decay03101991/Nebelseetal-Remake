@@ -2047,29 +2047,27 @@ class GameState:
                 gebucht[ware] = gebucht.get(ware, 0) + int(anzahl)
         return gebucht
 
-    def ware_voraussetzung(self, ware: str):
-        """Prueft die belegte Voraussetzung einer Ware (Forschung + Stufe) gegen diesen Stand.
+    def _forschungsstufen(self) -> Dict[str, int]:
+        """{Gebiet: Stufe} aus dem Forschungsstand — eine Lesestelle fuer Warenpruefungen."""
+        return {k: int(v.level) for k, v in self.research.items()}
 
-        Rueckgabe (erfuellt, Begruendung). Eine Forschung, die wir nicht kennen, gilt als NICHT
-        erfuellt - es wird nichts erfunden und nichts stillschweigend durchgelassen.
+    def ware_voraussetzung(self, ware: str):
+        """Prueft die Voraussetzungen einer Ware — EINE Quelle fuer Kern UND Anzeige (F-04).
+
+        Gelesen wird `data/warenrezepte.json` ueber `spieloekonomie.ware_voraussetzung` — genau
+        die Funktion, mit der `ware_start` die Herstellung freigibt. Die fruehere zweite Wahrheit
+        (Feld `voraussetzung_struktur` aus `items.json`, bei fehlender Struktur stillschweigend
+        `True`) ist weg: Lederrüstung und Magischer Paladinharnisch haben dort GAR KEINE Struktur,
+        im Rezept aber je ZWEI Bedingungen (UND) — die Anzeige zeigte sie also als erlaubt, der
+        Kern lehnte ab (Register 68).
+
+        Rueckgabe (erfuellt, Begruendung); die Begruendung nennt jede Bedingung.
         """
-        eintrag = WARE_EINTRAEGE.get(ware) or {}
-        struktur = eintrag.get("voraussetzung_struktur")
-        if not isinstance(struktur, dict):
-            return True, "keine Voraussetzung belegt"
-        gebiet = str(struktur.get("forschung") or "")
-        if not gebiet:
-            return True, "keine Voraussetzung belegt"
-        try:
-            noetig = int(struktur.get("stufe") or 0)
-        except (TypeError, ValueError):
-            noetig = 0
-        forschung = self.research.get(gebiet)
-        if forschung is None:
-            return False, f"die Forschung '{gebiet}' kennen wir nicht - nicht erfuellbar"
-        if int(forschung.level) < noetig:
-            return False, f"{gebiet} Stufe {noetig} noetig, vorhanden ist Stufe {int(forschung.level)}"
-        return True, f"{gebiet} Stufe {noetig} vorhanden"
+        return spieloekonomie.ware_voraussetzung(ware, self._forschungsstufen())
+
+    def ware_voraussetzungen(self, ware: str) -> list:
+        """Jede Forschungsbedingung EINZELN — fuer die Anzeige, aus derselben Quelle wie der Kern."""
+        return spieloekonomie.ware_voraussetzungen_liste(ware, self._forschungsstufen())
 
     # ---------------- W7: Auftraege (Missionen) ----------------
 
@@ -5121,6 +5119,17 @@ class NebelseetalApp:
                 if not erfuellt:
                     knopf.config(state=tk.DISABLED)
                 knopf.pack(side=tk.LEFT, padx=2)
+            # F-04: JEDE Forschungsbedingung einzeln anzeigen (Register 68). Gezeigt werden nur
+            # Waren, denen wirklich etwas fehlt — sonst waere die Ansicht eine Litanei.
+            for ware in werkstatt.waren_der_werkstatt(kennung):
+                bedingungen = self.state.ware_voraussetzungen(ware)
+                if not bedingungen or all(b["erfuellt"] for b in bedingungen):
+                    continue
+                tk.Label(self.content,
+                         text="    " + ware + ": " + " · ".join(
+                             self._ware_bedingung_text(b) for b in bedingungen),
+                         fg="#C8A165", bg=self.skin["bg"], font=("Arial", 9),
+                         anchor=tk.W).pack(anchor=tk.W, padx=24)
             if schlange:
                 tk.Label(self.content,
                          text="   " + werkstatt.fortschritt(schlange, self.state.spielsekunden)["text"],
@@ -5153,6 +5162,17 @@ class NebelseetalApp:
         self._log(f"{ware} in der Werkstatt von {ort.name} in Arbeit.")
         self._render_view()
         return True
+
+    @staticmethod
+    def _ware_bedingung_text(bedingung: dict) -> str:
+        """Eine Forschungsbedingung einer Ware in Worten — erfuellt oder offen (F-04)."""
+        if not bedingung["bekannt"]:
+            return f"{bedingung['gebiet']} Stufe {bedingung['noetig']}: Forschung unbekannt"
+        if bedingung["erfuellt"]:
+            return (f"{bedingung['gebiet']} Stufe {bedingung['noetig']}: "
+                    f"erfuellt ({bedingung['vorhanden']})")
+        return (f"{bedingung['gebiet']} Stufe {bedingung['noetig']}: offen "
+                f"({bedingung['vorhanden']} von {bedingung['noetig']})")
 
     def _render_profiles(self):
         tk.Label(self.content, text="Spielerprofile", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
