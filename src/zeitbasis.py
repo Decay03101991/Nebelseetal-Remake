@@ -93,6 +93,7 @@ def zeitstempel_text(eintrag: dict) -> str:
 
 
 def offene_luecken() -> dict:
+    """Was die Zeitbasis absichtlich NICHT tut (kein Offline-Fortschritt, keine Systemzeit-Spruenge)."""
     return {
         "offline": "Kein Offline-Fortschritt; das Spiel ist beim Schliessen pausiert.",
         "systemzeit": "Rechnerzeit ist manipulierbar; Zeitstempel sind kein Sicherheitsnachweis.",

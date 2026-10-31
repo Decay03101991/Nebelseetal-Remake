@@ -12,22 +12,26 @@ SLOTS = (1, 2, 3)
 
 
 def ordner_vorbereiten(ordner: str) -> str:
+    """Legt den Speicherordner an, falls er fehlt, und gibt seinen Pfad zurueck."""
     p = Path(ordner)
     p.mkdir(parents=True, exist_ok=True)
     return str(p)
 
 
 def slot_pfad(ordner: str, nummer: int) -> str:
+    """Dateipfad eines Speicherslots (nur 1, 2 oder 3 sind zulaessig)."""
     if type(nummer) is not int or nummer not in SLOTS:
         raise ValueError("Nur die Speicherslots 1, 2 oder 3 sind zulaessig.")
     return str(Path(ordner) / f"savegame_slot{nummer}.json")
 
 
 def altstand_pfad(ordner: str) -> str:
+    """Pfad des alten Einzelspielstands (savegame.json) - nur fuer die Migration."""
     return str(Path(ordner) / "savegame.json")
 
 
 def admin_pfad(ordner: str) -> str:
+    """Pfad des Admin-Teststands (admin_teststand.json)."""
     return str(Path(ordner) / "admin_teststand.json")
 
 

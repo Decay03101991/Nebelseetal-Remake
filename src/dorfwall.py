@@ -19,10 +19,12 @@ from typing import Any, Mapping
 
 
 def _feld(objekt: Any, name: str, standard=None):
+    """Liest ein Feld aus einem Verzeichnis ODER aus einem Objekt (beide Formen kommen vor)."""
     return objekt.get(name, standard) if isinstance(objekt, dict) else getattr(objekt, name, standard)
 
 
 def _setzen(objekt: Any, name: str, wert):
+    """Schreibt ein Feld in ein Verzeichnis oder in ein Objekt - die zweite Haelfte des Zugriffs."""
     if isinstance(objekt, dict):
         objekt[name] = wert
     else:
@@ -50,6 +52,7 @@ def stufe(siedlung: Any, forschungen: Mapping[str, Any]) -> int:
 
 
 def zustand(siedlung: Any) -> float:
+    """Mauerzustand eines Ortes in Prozent (100 = unversehrt, 0 = eingerissen)."""
     try:
         wert = float(_feld(siedlung, 'mauer_zustand', 100.0))
     except (TypeError, ValueError):

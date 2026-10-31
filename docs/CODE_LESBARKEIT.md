@@ -47,7 +47,7 @@ noch ohne Beschreibung sind. Es ändert **nichts** — es zeigt nur, wo Arbeit l
 |---|---|
 | Dateien in `src/` | 49 |
 | Funktionen/Klassen | 915 |
-| **ohne Docstring** | **221 (24 %)** — vor der Aufräumrunde 267 (29 %) |
+| **ohne Docstring** | **213 (23 %)** — vor der Aufräumrunde 267 (29 %) |
 | ohne Modul-Docstring | 0 |
 
 In dieser Runde ergänzt (jeweils geprüft, danach Tests grün):
@@ -57,6 +57,9 @@ In dieser Runde ergänzt (jeweils geprüft, danach Tests grün):
 | `src/einheiten.py` | 13 | Brücke zu `data/units.json` — alle Werte (AT, PA, LE, SK, GS, Ladung, Punkte) an einer Stelle |
 | `src/spieldaten.py` | 18 | Zugriff auf alle Stammdaten in `data/` (Einheiten, Waren, Forschungen, Rohstoffe, Gebäude, Wallstufen) |
 | `src/berater.py` | 15 | Der Spielberater: beantwortet Fragen des Spielers aus den echten Daten |
+| `src/zeitbasis.py` | 1 | Spieluhr: Faktor ×180, monotone Laufzeit, keine Systemzeit-Sprünge |
+| `src/dorfwall.py` | 3 | Mauerzustand je Ort (Prozent), Zugriff auf Dict oder Objekt |
+| `src/spielstaende.py` | 4 | Speicherslots 1–3, alter Einzelspielstand, Admin-Teststand |
 
 ## Wo noch Arbeit liegt (bewusst liegen gelassen)
 
