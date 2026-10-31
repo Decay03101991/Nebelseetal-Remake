@@ -1,3 +1,68 @@
+# STAND 01.11.2026, 01:00 — verbindlich für den Wiedereinstieg
+
+> Dieser Block steht ÜBER den älteren Ständen. Die Angaben darunter (FIX05, FIX04j…) sind
+> historisch und nicht mehr die Wahrheit. Alles hier ist gemessen, der Beleg steht daneben.
+
+## Was in der Sitzung 31.10./01.11.2026 gebaut und committet wurde
+
+| Paket | Commit | Register | Prüfdatei | Sammellauf |
+|---|---|---|---|---|
+| A-1 Mengeneingabe für Ausbildung **und** Ware (Daniels Antwort 1 = B) | `7720e99` | 79 | `test_mengeneingabe` 69/0/0 | 22:57: 107 Dateien, 106 grün, 0 rot |
+| A-3 Dorfübersicht rechts der Karte + Siedler-Schalter (Antwort 2 = A, Antwort 5 = B) | `fe97182` | 80 | `test_dorfuebersicht` 24/0/1 | 23:22: 108 Dateien, 107 grün, 0 rot |
+| A-6 Siedler-Reserve sichtbar und gewarnt | `df6da4d` | 81 | `test_siedler_warnung` 29/0/1 | 23:52: 109 Dateien, 108 grün, 0 rot |
+| A-2 Original-Gebäudemotive auf der Karte | `97c1301` | 82 | `test_gebaeude_motive` 43/0/1 | 00:16: 110 Dateien, 109 grün, 0 rot, 4.022 Prüfungen |
+| Bildquellen gesichtet (A-2/A-4) | `8835f0a` | — | — | — |
+| Weltkarten-Konzept (Lords Mobile) aufgenommen und abgeglichen | `a037d5b` | — | — | — |
+| A-5 Designkonzept als **Papier** vorgelegt | `b6a886f` | 83 | — | — |
+
+Letzte EXE: `46.144.440 Byte`, SHA256 `6030147d…`, Startbeleg: Prozess 53 s stabil, Fenster mit
+Titel. **Offen:** die Sichtprüfung des Passworttors (Tk liefert keinen UIA-Baum).
+
+## Daniels Entscheidungen aus dem Formular (31.10.2026) — bindend
+
+1. A-1 Umfang = **B**: Ausbildung **und** Ware-Herstellung. *gebaut*
+2. A-3 Ort = **A**: rechte Spalte der Siedlungskarte. *gebaut*
+3. A-4 = **A**: aus den Handbuchbildern schneiden. **Erledigt durch Befund:** die 244
+   Handbuchbilder enthalten **keine** Rohstoff-Icons (nur Gebäudemodelle). Die einzige echte
+   Quelle ist die Rohstoffleiste auf `docs/original/karten/gamestar_nebelseetal_1838855_full.jpg`
+   (20–30 px, unscharf). **Neue Entscheidung nötig:** als Vorlage nachzeichnen (Empfehlung)
+   oder A-4 nach der Demo schieben.
+4. A-5 = am Original orientiert, benutzerfreundlich, jedes Menü und jeder Button mit genug Platz.
+   **Papier liegt vor** (`docs/design/SIEDLUNG_KONZEPT_20261101.html`, Bild daneben), Abnahme offen.
+5. Siedler-Mechanik = **B**: Bauten binden keine Siedler mehr. *gebaut als Schalter*
+   `data/bausiedler.json` (`aktiv: false`). **Achtung, bewusste Abweichung vom Original:**
+   Holzfäller, Steinmetz und Jäger kosten laut `data/baupreise.json` je 1 Siedler (Screenshot
+   1838857). `aktiv: true` stellt das Original wieder her.
+
+## Der EINE nächste Schritt: Entscheidung 1 — der Sofortangriff reist
+
+Daniels Entscheidung (31.10.2026): „Sofortangriff **reist** wie der Auftrag; der Knopf
+‚Angreifen' entfällt.“ Heute gibt es **zwei** Wege:
+
+* `NebelseetalApp._angriff_durchfuehren` (~Z. 6215) — **ohne** Reisezeit, direkt am Ziel.
+  Wird aufgerufen von `_attack(bot)` (~Z. 6472) und `_attack_map(map_id)` (~Z. 6274).
+* `NebelseetalApp._auftrag_angriff(bot)` (~Z. 6502) — **mit** Reisezeit, Rückkehr und Bericht
+  über `state.auftrag_starten("angreifen", …)`.
+
+**Ziel:** nur noch der Auftragsweg. Andockstellen: `_attack`, `_attack_map` (beide auf den
+Auftragsweg umstellen), ein neuer Auftragsweg für **Kartenangriffe** (`_attack_map` hat heute
+kein Gegenstück in `_auftrag_*`), und `_angriff_durchfuehren` stilllegen.
+
+**Wichtig vor dem Bauen:** drei Prüfdateien hängen heute am Sofortpfad und müssen mitwandern —
+`tests/test_kampf_einhaengung.py` (prüft `_angriff_durchfuehren` als EINEN Kampfweg),
+`tests/test_gpt_kampf_botbeute_echte_kasse.py` und
+`tests/test_produktionskette_ohne_cheats.py`. Neue Wachen nötig: Angriff kostet Reisezeit,
+Truppen sind während des Marsches nicht doppelt verfügbar, kein Pfad ohne Marsch mehr.
+
+## Was außerdem offen ist
+
+* **Vier unklare Gebäudemotive** (Nummern 2, 3, 4, 6 aus `D:	mp\motivbogen.png`): Daniel ordnet
+  zu, dann nur `data/gebaeude_motive.json` ändern (`eingebaut: true`, `gebaeude: <id>`).
+* **A-5 bauen** erst nach Abnahme des Papiers.
+* Weltkarten-Konzept: Abgleich liegt in `docs/KONZEPT_ABGLEICH_20261101.md`; Reihenfolge
+  vorgeschlagen (Spionage → Start-/Ziel-Schnappschuss → Portalversetzung → Frühwarnung),
+  **nichts freigegeben**.
+
 > **KORREKTUR / neuester Stand (FIX05, Stand 30.10.2026):** Die oeffentliche FIX04j-Test-EXE wurde laut bestaetigtem Nutzertest gestartet, gespeichert und geladen; aeltere Aussagen "noch keine gebaute EXE" unterhalb sind historisch ueberholt. **FIX05 ist am 30.10.2026 kontrolliert in dieses Projekt uebernommen** (11 von 12 Delta-Dateien, jede gegen ihren Manifest-Hash geprueft; `tools/originalkarten_grafiken_bauen.py` bewusst NICHT uebernommen, weil die Delta-Fassung nur ein doppeltes Backslash im Moduldocstring einfuehrt). Neu: Tempo-Einstellung liegt im privaten Laufzeitordner (`~/.nebelseetal/spielzeit_einstellung.json`) statt im PyInstaller-Buendel; Fehlerdialog bei Schreibfehlern; sechs neue Tempo-Regressionen. Neue 10x10-Originalkartenpruefung und alle offenen 25 Sichtpruefungen im `docs/quellen/CODE_UND_KARTENPRUEFUNG_FIX05.md` dokumentiert. **Windows-Neubau der EXE, vollstaendige Regression und Nutzerabnahme (Start/Speichern/Neustart/Laden) stehen noch aus** — die Uebernahme ist Code, nicht Freigabe.
 
 > **WICHTIGER NEUERER STAND (FIX04j, 28.10.2026):** Oeffentliche Test-EXE wird getrennt vom Admin-Entwicklerbuild vorbereitet. Das Repository enthaelt **saemtliche** Admin-Module und Dokumente; nur der oeffentliche EXE-Einstieg bietet keine Admin-UI. Es liegt hier **noch kein gebauter und unter Windows abgenommener FIX04j-Release** vor. Details: `docs/RELEASE_PUBLIC_FIX04j.md`, neuester Protokollabschnitt. Aeltere Statusangaben weiter unten sind historisch und nicht automatisch gueltig.
