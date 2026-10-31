@@ -62,4 +62,33 @@ def feld_wert(tile, name, standard=None):
 ## 4. Was du NICHT anfassen würdest
 
 - **Die konkreten Planfunktionen** (`gelaende_plan`, `emblem_plan`, `gebaeude_plan`, `ortsilhouette_plan`, `fahne_plan`, `auswahl_plan`, `regionen_plan`, `uebersicht_plan` usw.) mit ihren exakten Koordinaten, Farbwerten und Formreihenfolgen – die Tests prüfen diese Ausgaben pixelgenau; jede Änderung wäre sichtbar.  
-- **Die aus Quellen abgeleiteten Farbkonstanten und Ableitungsfaktoren** (z. B. `LICHT_ABLEITUNG_FAKTOR = 0.
+- **Die aus Quellen abgeleiteten Farbkonstanten und Ableitungsfaktoren** (z. B. `LICHT_ABLEITUNG_FAKTOR = 0.22`, `AUSWAHL_UNTER_FARBE = "#172128"`, `UFER_BREITE = 4.0`) – sie sind bewusst dokumentierte Vorschläge/Ableitungen und keine Duplikate.  
+- **Die `offene_luecken()`-Listen** – sie enthalten modulbezogene ehrliche Hinweise und sollen nicht zusammengefasst werden.  
+- **Die Testdateien selbst** – sie sind der Beweis, nicht der Umbaugegenstand.  
+- **Die Aufrufe in `main.py` und die dortigen `_render_*`-Methoden** – erst nach der Extraktion und nachdem alle Tests grün sind, darf man dort anpassen; sonst drohen subtile Pixel-/Reihenfolgeänderungen.
+
+## 5. Ordnung
+
+Saubere Dateistruktur für diesen Teil:
+
+```
+src/
+  optik/
+    __init__.py          # re-exportiert öffentliche Planfunktionen für main
+    plan_format.py       # Konstante FORMEN, ggf. Datentyp-Aliase
+    renderer.py          # zeichne, _fuell (aus Vorschlag 1)
+    helfer.py            # punkte, box, punkt, skala, aufhellen, abdunkeln, rgb, hex, feld_wert (aus Vorschlag 2)
+    welt_basis.py        # bisherige welt_optik.py ohne renderer/helfer
+    welt_fein.py         # bisherige welt_optik_fein.py ohne helfer
+    karten_basis.py      # bisherige karten_optik.py ohne renderer/helfer
+    karten_fein.py       # bisherige karten_optik_fein.py ohne helfer
+```
+
+**Reihenfolge des Umzugs ohne Importbrüche:**
+
+1. **`src/plan_renderer.py` anlegen** – `zeichne`/`_fuell` aus `welt_optik.py` kopieren; `welt_optik.py` importiert `from plan_renderer import zeichne` und löscht die lokale Definition. Danach `tests/test_welt_optik.py` grün.  
+2. **`karten_optik.py` umstellen** – ebenfalls `from plan_renderer import zeichne` importieren, lokale Definition löschen. Danach `tests/test_karten_optik.py` grün.  
+3. **`src/plan_helfer.py` anlegen** – zuerst die 100% identischen Helfer (`_punkte`, `_box`, `_feld`) verschieben; `welt_optik.py`, `karten_optik.py`, `welt_optik_fein.py`, `karten_optik_fein.py` nacheinander auf Importe umstellen. Jeweils Tests laufen lassen.  
+4. **Farbhelfer übernehmen** – `_aufhellen`, `_abdunkeln`, `_rgb`, `_hex`, `_skala` (mit `mass_px`-Parameter) in `plan_helfer.py`; `welt_optik_fein.py` und `karten_optik_fein.py` umstellen. Tests grün.  
+5. **Optional `main.py` auf neue Modulpfade umstellen** – erst wenn alle vier Testdateien grün sind; für die Übergangszeit können alte Modulnamen als dünne Re-Export-Dateien erhalten bleiben (z. B. `from optik.welt_basis import gelaende_plan`).  
+6. **Erst danach alte Grobdateien entfernen** – falls `grep -R "welt_optik" main.py src tests` und `grep -R "karten_optik\." main.py src tests` keine Aufrufer mehr zeigen; die zugehörigen Tests müssten dann angepasst oder entfernt werden.

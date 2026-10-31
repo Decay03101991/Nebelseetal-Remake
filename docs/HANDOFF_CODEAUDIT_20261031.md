@@ -117,3 +117,31 @@ dann Umsetzung in der Reihenfolge P2 → P3 → P4 → P5 → P1, je ein Commit 
 Prüflauf. Regeln: Spiel bleibt Spiel, jede Zahl bleibt gleich, Register fortschreiben,
 Modulkarte am Ende neu bauen, GitHub-Branch stand-20261031-1400 weiterführen (main unberührt).
 ```
+
+---
+
+## 10. Nachtrag 14:35 — Stand der Läufe und Kosten
+
+| Paket | Datei | Zeichen | Kosten |
+|---|---|---|---|
+| P2 | `docs/audits/BEFUND_CODE_P2.md` | 6.986 | 0,0351 USD |
+| P5 | `docs/audits/BEFUND_CODE_P5.md` | 10.143 | 0,0498 USD |
+| P3 | `docs/audits/BEFUND_CODE_P3.md` | 9.218 | Log |
+| P4 | `docs/audits/BEFUND_CODE_P4.md` | 6.719 | Log |
+| P1 | `docs/audits/BEFUND_CODE_P1.md` | läuft (107 k Token Prompt) | offen |
+
+**Zusammengefasst und geprüft:** `docs/audits/AUDIT_ZUSAMMENFASSUNG_20261031.md` — dort steht auch,
+welche Modellbefunde ich nachgemessen habe (drei richtig, einer falsch, einer halb richtig) und in
+welcher Reihenfolge umgesetzt wird.
+
+**Bereits umgesetzt:** P2 (Register 65, Commit `298510a`) — alte Schlachtfassung raus, `src/` von
+21.703 auf 21.302 Zeilen.
+
+**Offen für die nächste Sitzung (wichtig):**
+1. Umsetzung P3.1–P3.3 (gemeinsame Helfer) — klein, testbar.
+2. P4 und P1 auswerten und umsetzen (P1 zuletzt).
+3. **Skill- und Regelpflege nachziehen** (Daniel, 31.10.2026: „achte darauf das clean up cronjob und
+   deine skill und regelwerke auch immer schön mit allen veränderungen mithalten"): neue Werkzeuge
+   (`code_mass.py`, `modulkarte_bauen.py`, `codeaudit_pakete_bauen.py`, `anfuehrungszeichen.py`,
+   `zitatkorrekturen.py`) und die zwei neuen Prüfungen in `continuous-improvement` bzw. das passende
+   Skill aufnehmen; Cleanup-Cronjob prüfen, ob er die neuen Dateien kennt.
