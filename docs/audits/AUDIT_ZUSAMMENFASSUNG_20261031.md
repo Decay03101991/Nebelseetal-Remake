@@ -10,8 +10,8 @@ Budget: **3 EUR** aus dem DeepSeek-Guthaben.
 |---|---|---|---|
 | P2 | Zwei Schlacht-Implementierungen | vollständig, `BEFUND_CODE_P2.md`, 6.986 Zeichen | **0,0351 USD** |
 | P5 | Ordnerstruktur des Projekts | vollständig, `BEFUND_CODE_P5.md`, 10.143 Zeichen | **0,0498 USD** |
-| P3 | Doppelte Rechenwege (Wirtschaft/Aufträge) | vollständig, `BEFUND_CODE_P3.md`, 9.218 Zeichen | siehe Log |
-| P4 | Vier Zeichenmodule der Karten | gestartet, Ergebnis in `BEFUND_CODE_P4.md` | siehe Log |
+| P3 | Doppelte Rechenwege (Wirtschaft/Aufträge) | vollständig, `BEFUND_CODE_P3.md`, 9.218 Zeichen | **0,0673 USD** |
+| P4 | Vier Zeichenmodule der Karten | vollständig, `BEFUND_CODE_P4.md`, 9.388 Zeichen | **0,0617 USD** |
 | P1 | Aufteilung von `main.py` (107 k Token) | **noch nicht gestartet** — nach P4 | offen |
 
 Die ersten Läufe (P5, P3, P4) brachen zuerst an **WLAN-Aussetzern** ab (TimeoutError,
@@ -85,8 +85,10 @@ PyInstaller ist die klassische Variante sicherer. Entscheidung gehört zu Daniel
 |---|---|
 | P2 | 0,0351 |
 | P5 | 0,0498 |
-| P3 | siehe `docs/audits/BEFUND_CODE_P3.md` / Log |
-| P4, P1 | offen |
+| P3 | 0,0673 |
+| P4 | 0,0617 |
+| **Runde 1 zusammen** | **0,2139** |
+| P1 | läuft |
 
 **Budget 3 EUR ≈ 3,20 USD.** Nach den vier Paketen bleiben rund 2,9 USD für die zweite Runde:
 Gegenprüfung der Umbauten (Diff-Pakete), ein Paket „was hast du übersehen" und die Endkontrolle der
