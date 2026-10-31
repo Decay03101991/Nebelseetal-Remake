@@ -12,7 +12,7 @@ Budget: **3 EUR** aus dem DeepSeek-Guthaben.
 | P5 | Ordnerstruktur des Projekts | vollständig, `BEFUND_CODE_P5.md`, 10.143 Zeichen | **0,0498 USD** |
 | P3 | Doppelte Rechenwege (Wirtschaft/Aufträge) | vollständig, `BEFUND_CODE_P3.md`, 9.218 Zeichen | **0,0673 USD** |
 | P4 | Vier Zeichenmodule der Karten | vollständig, `BEFUND_CODE_P4.md`, 9.388 Zeichen | **0,0617 USD** |
-| P1 | Aufteilung von `main.py` (107 k Token) | **noch nicht gestartet** — nach P4 | offen |
+| P1 | Aufteilung von `main.py` (125 k Token Prompt) | vollständig, `BEFUND_CODE_P1.md`, 15.097 Zeichen | **0,1050 USD** |
 
 Die ersten Läufe (P5, P3, P4) brachen zuerst an **WLAN-Aussetzern** ab (TimeoutError,
 `getaddrinfo failed`) — ohne Kosten, weil keine Antwort ankam. Danach lief die Kette mit
@@ -58,6 +58,15 @@ stecken).
 5. Bestandsanwendung ist **ähnlich, aber nicht gleich** (`max(0, …)` vs. Ausnahme) — hier darf
    nicht vereinheitlicht werden, ohne die Regel zu entscheiden.
 
+**P1 — `main.py` (15.097 Zeichen, zehn Vorschläge):** `main.py` bündelt fünf Zuständigkeiten
+(Datenmodelle, `GameState` mit über 60 Methoden, Fensteraufbau, 27 Ansichten, Kartenzeichnung).
+Vorschlag 1: Spielkern nach `spielkern/` (Datenmodelle, `GameState`, Baupreise, Menü) → ~2.600
+Zeilen. Vorschlag 2: Ansichten als Mixins nach `gui/ansichten/` → ~3.000 Zeilen. Vorschlag 3: ein
+gemeinsamer Render-Helfer `seite_aufbauen(titel, untertitel, content)` → 150–200 Zeilen, weil 27
+Methoden dasselbe Gerüst wiederholen. Vorschlag 8: `_render_news` und `_upgrade_building` sind
+ungenutzt — **vor dem Löschen mit `grep` prüfen** (die genannten Prüfdateinamen des Modells sind
+teils geraten, z. B. `test_spieloekonomie.py` existiert nicht in dieser Form).
+
 **P5 — Ordnerstruktur (10.143 Zeichen):** schlägt sechs Themenpakete vor (`kern/`, `kampfsystem/`,
 `bot/`, `persistenz/`, `ui/`, `admin/`, `alt/`) mit einzeiligen Kompat-Shims an der Wurzel, damit
 Importe und die 98 Prüfdateien weiterlaufen; Umzug in 10 Schritten, nach jedem Schritt lauffähig,
@@ -87,8 +96,8 @@ PyInstaller ist die klassische Variante sicherer. Entscheidung gehört zu Daniel
 | P5 | 0,0498 |
 | P3 | 0,0673 |
 | P4 | 0,0617 |
-| **Runde 1 zusammen** | **0,2139** |
-| P1 | läuft |
+| P1 | 0,1050 |
+| **Runde 1 zusammen** | **0,3189** |
 
 **Budget 3 EUR ≈ 3,20 USD.** Nach den vier Paketen bleiben rund 2,9 USD für die zweite Runde:
 Gegenprüfung der Umbauten (Diff-Pakete), ein Paket „was hast du übersehen" und die Endkontrolle der
