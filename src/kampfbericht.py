@@ -30,6 +30,7 @@ from typing import Any, Dict, Optional, Tuple
 
 import einheiten as E
 import gebaeude_wirkung as GW
+import hilfen
 
 STAND = "2026-10-04.1"
 
@@ -45,21 +46,11 @@ AUSGANG_TEXT = {
 }
 
 
-def _als_zahl(wert: Any, vorgabe: float = 0.0) -> float:
-    """Nimmt Zahlen, Numerisches-als-Text und None; Unbrauchbares wird zur Vorgabe."""
-    if wert is None:
-        return float(vorgabe)
-    try:
-        return float(wert)
-    except (TypeError, ValueError):
-        return float(vorgabe)
-
-
-def _als_int(wert: Any, vorgabe: int = 0) -> int:
-    try:
-        return int(float(wert))
-    except (TypeError, ValueError):
-        return int(vorgabe)
+# Die Umrechner standen hier UND in `auftraege.py` doppelt (Code-Audit 31.10.2026, Befund P3
+# Vorschlag 1). Eine Fassung an einem Ort: `hilfen.py`; die privaten Namen bleiben als Verweis.
+_als_zahl = hilfen.als_zahl
+_als_int = hilfen.als_int
+_aufzaehlung = hilfen.aufzaehlung
 
 
 def _schwelle_wall(wall_stufe: int) -> Dict[str, Optional[int]]:
@@ -249,17 +240,11 @@ def beute_staffel(einheiten_des_siegers: Dict[str, int],
     -> 10 Prozent = 100, aber nur 40 passen hinein. Ohne Verteidiger -> 100 Prozent,
     begrenzt durch Ladung. Kein Karren -> keine Beute (belegt).
     """
-    kapazitaet = 0
-    for name, anzahl in (einheiten_des_siegers or {}).items():
-        kapazitaet += E.kapazitaet(name, max(0, _als_int(anzahl)))
+    kapazitaet = E.ladung_der_gruppe(einheiten_des_siegers)
     if kapazitaet <= 0:
         return {}
 
-    vorhanden: Dict[str, int] = {}
-    for stoff, menge in (vorraete or {}).items():
-        m = int(max(0.0, _als_zahl(menge)))
-        if m > 0:
-            vorhanden[stoff] = m
+    vorhanden: Dict[str, int] = hilfen.positive_ganze_werte(vorraete)
     gesamt = sum(vorhanden.values())
     if gesamt <= 0:
         return {}
@@ -340,15 +325,9 @@ def beute(einheiten_des_siegers: Dict[str, int],
     """
     del rng  # bewusst ungenutzt: die Verteilung ist nicht im Handbuch geregelt -> anteilig
 
-    kapazitaet = 0
-    for name, anzahl in (einheiten_des_siegers or {}).items():
-        kapazitaet += E.kapazitaet(name, max(0, _als_int(anzahl)))
+    kapazitaet = E.ladung_der_gruppe(einheiten_des_siegers)
 
-    vorhanden: Dict[str, int] = {}
-    for stoff, menge in (vorraete or {}).items():
-        m = int(max(0.0, _als_zahl(menge)))
-        if m > 0:
-            vorhanden[stoff] = m
+    vorhanden: Dict[str, int] = hilfen.positive_ganze_werte(vorraete)
 
     gesamt = sum(vorhanden.values())
     if kapazitaet <= 0 or gesamt <= 0:
@@ -370,8 +349,7 @@ def beute(einheiten_des_siegers: Dict[str, int],
 # ---------------------------------------------------------------------------- 4. Bericht
 
 def _aufzaehlung(werte: Dict[str, int]) -> str:
-    teile = [f"{name} {int(_als_zahl(anzahl))}" for name, anzahl in sorted((werte or {}).items())]
-    return ", ".join(teile) if teile else "keine"
+    return hilfen.aufzaehlung(werte)
 
 
 def bericht(ergebnis: Dict[str, Any]) -> Dict[str, str]:

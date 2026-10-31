@@ -16,6 +16,7 @@ from functools import lru_cache
 from typing import Any, Dict, List, Optional, Tuple
 
 import spieldaten
+import hilfen
 
 # Handbuch Seite 14: vier Typen — Karren, Belagerungswaffen, Kundschafter, Kampfeinheiten.
 ROLLEN: Dict[str, str] = {
@@ -172,6 +173,27 @@ def kampfstaerke(name: str, anzahl: int = 1) -> float:
 def kapazitaet(name: str, anzahl: int = 1) -> int:
     """Tragfaehigkeit fuer Beute (nur Karren)."""
     return ladung(name) * anzahl if ist_transport(name) else 0
+
+
+def ladung_der_gruppe(bestand: Any) -> int:
+    """Gesamte Tragfaehigkeit einer Gruppe `{name: anzahl}`.
+
+    Nur Karren tragen; Kaempfer, Kundschafter und Belagerungswaffen zaehlen 0. Angaben, die
+    keine ganze Zahl groesser 0 ergeben, werden uebergangen. Negative Ergebnisse sind
+    ausgeschlossen.
+
+    **EINE Stelle fuer die Karrenladung** (Code-Audit 31.10.2026, Befund P3 Vorschlag 2):
+    vorher summierten `auftraege.ladung_der_mission`, `kampfbericht.beute` und
+    `kampfbericht.beute_staffel` dieselbe Rechnung je fuer sich.
+    """
+    if not isinstance(bestand, dict):
+        return 0
+    gesamt = 0
+    for name, anzahl in bestand.items():
+        n = hilfen.als_int(anzahl, 0)
+        if n > 0:
+            gesamt += kapazitaet(str(name), n)
+    return max(0, gesamt)
 
 
 def beschreibung(name: str) -> str:

@@ -66,7 +66,7 @@ def main() -> int:
         wer = ", ".join(sorted(nutzer.get(f[:-3], []))) or "— (Einstieg oder ungenutzt)"
         zeilen.append(f"| `{f}` | {daten[f]['zeilen']} | {daten[f]['zweck']} | {wer} |\n")
 
-    zeilen.append("\n## Lesart der Spalte „wird gebraucht von\"\n\n")
+    zeilen.append("\n## Lesart der Spalte \u201ewird gebraucht von\u201c\n\n")
     zeilen.append("Steht dort `—`, ist die Datei entweder der Einstieg (`main.py`) oder sie wird von "
                   "niemandem mehr importiert (möglicher Rest, siehe `tools/code_mass.py`).\n")
     with open(ZIEL, "w", encoding="utf-8", newline="\n") as fh:

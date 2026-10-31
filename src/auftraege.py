@@ -42,6 +42,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import einheiten as E
 import kampfbericht as KB
+import hilfen
 
 STAND = "2026-10-04.1"
 
@@ -76,18 +77,12 @@ BEUTE_ANTEIL_PROZENT = 50
 
 # ------------------------------------------------------------------------------ Hilfen
 
-def _als_zahl(wert: Any, vorgabe: float = 0.0) -> float:
-    try:
-        return float(wert)
-    except (TypeError, ValueError):
-        return float(vorgabe)
-
-
-def _als_int(wert: Any, vorgabe: int = 0) -> int:
-    try:
-        return int(float(wert))
-    except (TypeError, ValueError):
-        return int(vorgabe)
+# Die Umrechner standen hier UND in `kampfbericht.py` doppelt (Code-Audit 31.10.2026, Befund P3
+# Vorschlag 1). Jetzt gibt es eine Fassung an einem Ort: `hilfen.py`. Die privaten Namen bleiben
+# als Verweis bestehen, damit der restliche Code dieser Datei unveraendert lesbar ist.
+_als_zahl = hilfen.als_zahl
+_als_int = hilfen.als_int
+_aufzaehlung = hilfen.aufzaehlung
 
 
 def _ziel_name(nach: Any) -> str:
@@ -101,15 +96,12 @@ def _ziel_daten(nach: Any) -> Dict[str, Any]:
 
 
 def _bestand(einheiten: Any) -> Dict[str, int]:
-    """Nimmt {name: anzahl} und liefert nur brauchbare, positive Eintraege."""
-    out: Dict[str, int] = {}
-    if not isinstance(einheiten, dict):
-        return out
-    for name, anzahl in einheiten.items():
-        n = _als_int(anzahl, 0)
-        if n > 0:
-            out[str(name)] = n
-    return out
+    """Nimmt {name: anzahl} und liefert nur brauchbare, positive Eintraege.
+
+    Die Filterregel steht seit dem Code-Audit 31.10.2026 in `hilfen.positive_ganze_werte`
+    (dieselbe Regel brauchen die Beutefunktionen fuer die Vorraete).
+    """
+    return hilfen.positive_ganze_werte(einheiten)
 
 
 def _unbekannte(bestand: Dict[str, int]) -> List[str]:
@@ -168,12 +160,31 @@ def reisezeit_sekunden(entfernung: Any, geschwindigkeit: Any) -> float:
     return e / g * SEKUNDEN_JE_FELD
 
 
-def ladung_der_mission(einheiten: Any) -> int:
-    """Gesamte Tragefaehigkeit der mitgefuehrten Karren (einheiten.kapazitaet).
+def _reise_zeiten(start: Any, reisezeit: Any,
+                  aktion_dauer: Any) -> Tuple[float, float, float]:
+    """(Ankunft, Abreise, Rueckkehr) - EINE Rechnung fuer `starten` und `_status_zeiten`.
 
-    Nur Transporteinheiten tragen; Kaempfer und Belagerungswaffen tragen nichts.
+    Vorher rechneten beide Stellen dieselbe Kette getrennt (Code-Audit 31.10.2026, Befund P3
+    Vorschlag 3); laufen sie auseinander, zeigt der Bericht andere Zeiten als der Auftrag
+    wirklich braucht. Der Rueckweg kostet so viel wie der Hinweg (HIN_UND_RUECK_FAKTOR).
     """
-    return int(max(0, sum(E.kapazitaet(n, k) for n, k in _bestand(einheiten).items())))
+    s = _als_zahl(start)
+    r = _als_zahl(reisezeit)
+    a = _als_zahl(aktion_dauer)
+    ankunft = s + r
+    abreise = ankunft + a
+    rueck = abreise + r * (HIN_UND_RUECK_FAKTOR - 1.0)
+    return ankunft, abreise, rueck
+
+
+def ladung_der_mission(einheiten: Any) -> int:
+    """Gesamte Tragefaehigkeit der mitgefuehrten Karren.
+
+    Nur Transporteinheiten tragen; Kaempfer und Belagerungswaffen tragen nichts. Der Name
+    bleibt oeffentlich (main.py, spieloekonomie und Pruefdateien rufen ihn), die Rechnung steht
+    seit dem Code-Audit 31.10.2026 an EINER Stelle: `einheiten.ladung_der_gruppe`.
+    """
+    return E.ladung_der_gruppe(einheiten)
 
 
 # ------------------------------------------------------------------------------ Arten
@@ -371,9 +382,7 @@ def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
 
     reisezeit = reisezeit_sekunden(entf, gs)
     start = _als_zahl(jetzt)
-    ankunft = start + reisezeit
-    abreise = ankunft + AKTION_DAUER_SEKUNDEN
-    rueckkehr = abreise + reisezeit * (HIN_UND_RUECK_FAKTOR - 1.0)
+    ankunft, abreise, rueckkehr = _reise_zeiten(start, reisezeit, AKTION_DAUER_SEKUNDEN)
 
     # Reisekosten (Paket A2): ein ANGRIFF geht immer gegen eine fremde Welt (Portal), sonst
     # entscheidet das Feld 'fremd' am Ziel. Zwischen eigenen Siedlungen kostet das Portal nichts.
@@ -426,13 +435,8 @@ def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
 # ------------------------------------------------------------------------ fortschritt
 
 def _status_zeiten(eintrag: Dict[str, Any]) -> Tuple[float, float, float]:
-    start = _als_zahl(eintrag.get("start"))
-    rez = _als_zahl(eintrag.get("reisezeit"))
-    akt = _als_zahl(eintrag.get("aktion_dauer"))
-    ankunft = start + rez
-    abreise = ankunft + akt
-    rueck = abreise + rez * (HIN_UND_RUECK_FAKTOR - 1.0)
-    return ankunft, abreise, rueck
+    return _reise_zeiten(eintrag.get("start"), eintrag.get("reisezeit"),
+                         eintrag.get("aktion_dauer"))
 
 
 def _status(eintrag: Dict[str, Any], jetzt: float) -> Tuple[str, float]:
@@ -501,9 +505,7 @@ def angekommen(liste: Any, jetzt: Any) -> List[Dict[str, Any]]:
 # ----------------------------------------------------------------------------- Bericht
 
 def _aufzaehlung(werte: Any) -> str:
-    if not isinstance(werte, dict) or not werte:
-        return "keine"
-    return ", ".join(f"{k} {int(_als_zahl(v))}" for k, v in sorted(werte.items()))
+    return hilfen.aufzaehlung(werte)
 
 
 def bericht(eintrag: Any) -> Dict[str, Any]:
