@@ -326,3 +326,51 @@ def fuehre_schlacht(angreifer: Dict[str, int], verteidiger: Dict[str, int],
             result["geraete_verloren"] = verl
     logs.append(f"Ausgang: {ausgang}; Nahkampf-Sequenzen: {nahkampf_sequenzen}")
     return fertig(ausgang)
+
+
+# --------------------------------------------------------------------------------------------
+# Was hier NICHT aus der Quelle stammt - jede Zahl mit Ort und Grund (Befunde der externen
+# Gegenpruefung vom 31.10.2026, Nr. 9/10/11; vorher standen diese Werte unkommentiert im Code).
+# --------------------------------------------------------------------------------------------
+
+def vorschlaege() -> Dict[str, Dict[str, str]]:
+    """Selbst gesetzte Werte des Kampfmodells - nichts davon steht so in einer Quelle."""
+    return {
+        "mauerabzug": {
+            "wert": "5 Prozentpunkte Fernkampf-Abzug je Wallstufe, gewichtet mit dem Wallzustand "
+                    "(abzug = 0.05 * stufe * zustand/100)",
+            "grund": "das Forum nennt einen Mauerabzug, aber KEINE Formel; die lineare "
+                     "Interpolation ist eine Auslegung",
+            "status": "VORSCHLAG",
+            "stelle": "fuehre_schlacht, Zeile mit 'abzug = 0.05 * stufe'",
+        },
+        "turmschutz": {
+            "wert": "ein Belagerungsturm schuetzt 10, ein Grosser 30 Nahkaempfer des Angreifers",
+            "grund": "das Forum nennt 'Schutz in Tuermen' ohne Zahl und ohne Bezugsgroesse "
+                     "(Prozent oder Stueckzahl) - hier als Stueckzahl gedeutet",
+            "status": "VORSCHLAG",
+            "stelle": "fuehre_schlacht, Block 'Schutz in Tuermen'",
+        },
+        "rueckzug_rundung": {
+            "wert": "20 Prozent der URSPRUENGLICHEN angreifenden Schuetzen je Vorrunde, aufgerundet "
+                    "(math.ceil)",
+            "grund": "das Forum nennt '20 Prozent' je Sequenz, aber keine Rundung und keine "
+                     "Bezugsbasis",
+            "status": "VORSCHLAG",
+            "stelle": "fuehre_schlacht, 'rueckzug_je_runde = math.ceil(...)'",
+        },
+        "kampfwert_spannen": {
+            "wert": "PROFILE-Spannen (z. B. Kaempfer 4-22) aus 'WeitereWerteKampfsystem'",
+            "grund": "die aeltere Forumstabelle nennt 2-20; der Konflikt ist als Registerpunkt 40 "
+                     "gefuehrt, die neuere Tabelle gewinnt (E1)",
+            "status": "ZUSAMMENFUEHRUNG",
+            "stelle": "PROFILE (Modulkopf)",
+        },
+        "beute_anteil": {
+            "wert": "gestaffelt 10/30/60/100 Prozent nach Wallzustand und ueberlebenden Verteidigern",
+            "grund": "das Original kennt nur '100 Prozent, begrenzt durch die Karrenladung'; die "
+                     "Staffelung ist Daniels Entscheidung E4 (Hausregel, bewusste Abweichung)",
+            "status": "VORSCHLAG",
+            "stelle": "kampfbericht.BEUTE_STAFFEL_PROZENT",
+        },
+    }

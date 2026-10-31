@@ -313,7 +313,77 @@ def sieg_oder_niederlage(zustand: dict) -> Tuple[str, str]:
 
 
 # --------------------------------------------------------------------------
-# 8. Belege und Vorschlaege
+# 8. Auszeichnungen statt Sieg (E5) — Kennzahlen belegt, Namen VORSCHLAG
+# --------------------------------------------------------------------------
+
+# ZUSAMMENFUEHRUNG (E1): Handelspunkte stehen NUR in der Vorversion 2006, nicht im Handbuch 2009.
+# Woertlich (docs/original/Spielanleitung_2005/punktesystem.php.txt, Z. 34-47): "Fuer je 100 Gold,
+# die Ihr durch Handel erwirtschaftet, bekommt ihr einen Handelspunkt. Kleinere Betraege werden mit
+# eingerechnet." und "Wenn Ihr 24 Stunden keine Handelseinkuenfte hattet, verliert ihr einen
+# Handelspunkt."
+# WICHTIG: die 2006er Fassung rechnet KRIEG + FORSCHUNG + HANDEL je zu einem Drittel in die
+# Gesamtpunkte (Z. 48). Das Handbuch 2009 kennt nur zwei Arten und halbiert die Summe - deshalb
+# bleiben die Handelspunkte hier eine KENNZAHL der Auszeichnung und fliessen NICHT in `gesamtpunkte`.
+HANDELSPUNKTE_JE_GOLD = 100.0
+HANDELSPUNKTE_VERFALL_SEKUNDEN = 24 * 3600
+
+
+def handelspunkte(gold_erloes: Any, letzter_handel: Any = None,
+                  jetzt: Any = None) -> float:
+    """Handelspunkte nach der Vorversion 2006 (ZUSAMMENFUEHRUNG, nicht im Handbuch 2009).
+
+    ``gold_erloes`` ist die Summe aller Goldbetraege aus abgeschlossenen Handelsauftraegen.
+    Je 100 Gold gibt es einen Punkt, kleinere Betraege zaehlen anteilig (20 Gold = 0,2).
+    Je volle 24 Stunden ohne Handelseinkunft verfaellt EIN Punkt - nicht unter 0.
+    """
+    erloes = max(0.0, _als_zahl(gold_erloes))
+    roh = erloes / HANDELSPUNKTE_JE_GOLD
+    if letzter_handel is None:
+        return round(roh, 2)
+    alter = max(0.0, _als_zahl(jetzt) - _als_zahl(letzter_handel))
+    verfall = int(alter // HANDELSPUNKTE_VERFALL_SEKUNDEN)
+    return round(max(0.0, roh - verfall), 2)
+
+
+def auszeichnungen(zustand: dict) -> List[Dict[str, Any]]:
+    """Vier Auszeichnungen statt eines Sieges (E5, Paket A3 vom 31.10.2026).
+
+    Die NAMEN sind VORSCHLAG, die KENNZAHLEN und Rechenwege sind belegt:
+      * Feldherr       - Kriegspunkte (Einheitenwerte + Wallstufe hoch drei, Handbuch S. 5)
+      * Forscher       - Forschungspunkte (Summe Stufe hoch drei, Handbuch S. 4)
+      * Haendler       - Handelspunkte (NUR Vorversion 2006, siehe `handelspunkte`)
+      * Gesamtherrscher - Gesamtpunkte ((Krieg + Forschung) / 2, Handbuch S. 5/6)
+    Erwartet in ``zustand``: ``forschung``/``forschungsstaende``, ``einheiten``, ``wall_stufe``,
+    wahlweise ``gold_erloes``, ``letzter_handel`` und ``jetzt``.
+    """
+    z = zustand or {}
+    staende = z.get("forschung") if isinstance(z.get("forschung"), dict) else \
+        z.get("forschungsstaende")
+    einheiten = z.get("einheiten") if isinstance(z.get("einheiten"), dict) else {}
+    wall = _stufe(z.get("wall_stufe", 0))
+    krieg = kriegspunkte(einheiten, wall)
+    forschung = forschungspunkte(staende)
+    gesamt = (krieg + forschung) // 2
+    handel = handelspunkte(z.get("gold_erloes", 0), z.get("letzter_handel"), z.get("jetzt"))
+    return [
+        {"name": "Feldherr", "kennzahl": "Kriegspunkte", "wert": krieg,
+         "rechenweg": "Summe der Einheitenpunkte + Wallstufe hoch drei (Handbuch S. 5)",
+         "status": "BELEGT"},
+        {"name": "Forscher", "kennzahl": "Forschungspunkte", "wert": forschung,
+         "rechenweg": "Summe der Forschungsstufen hoch drei (Handbuch S. 4)",
+         "status": "BELEGT"},
+        {"name": "Haendler", "kennzahl": "Handelspunkte", "wert": handel,
+         "rechenweg": "1 Punkt je 100 Gold Handelserlös, Verfall 1 Punkt je 24 h ohne Handel "
+                      "(Vorversion 2006, punktesystem.php Z. 34-47)",
+         "status": "ZUSAMMENFUEHRUNG"},
+        {"name": "Gesamtherrscher", "kennzahl": "Gesamtpunkte", "wert": gesamt,
+         "rechenweg": "(Kriegspunkte + Forschungspunkte) / 2, abgerundet (Handbuch S. 5/6)",
+         "status": "BELEGT"},
+    ]
+
+
+# --------------------------------------------------------------------------
+# 9. Belege und Vorschlaege
 # --------------------------------------------------------------------------
 
 def belegte_formeln() -> Dict[str, str]:

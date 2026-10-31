@@ -82,4 +82,22 @@ check('Leere Beteiligte ohne Truppen duerfen keine Beute erzeugen',
       not kampf.fuehre_schlacht({}, {},0,angreifer_karren={'Handkarren':2},vorraete={'holz':100},rng=R())['beute'])
 check('Originalcode als Rueckfall vorhanden', os.path.isfile(os.path.join(os.path.dirname(os.path.dirname(__file__)),'src','kampf_alt_handbuch_2009.py')))
 check('Kampfmodell eindeutig gekennzeichnet', 'GPT-NE01.wissenswertes' in kampf.STAND)
+
+abschnitt("Vorschlaege sind als solche gefuehrt (externe Gegenpruefung, Nr. 9/10/11)")
+_v = kampf.vorschlaege()
+check('kampf.vorschlaege() ist gefuellt', isinstance(_v, dict) and len(_v) >= 5, str(len(_v)))
+check('jeder Eintrag nennt Wert, Grund, Status und Stelle',
+      all(all(k in e for k in ('wert', 'grund', 'status', 'stelle')) for e in _v.values()),
+      str([k for k, e in _v.items() if not all(x in e for x in ('wert', 'grund', 'status', 'stelle'))]))
+check('der Mauermalus (erfundene Formel) ist als VORSCHLAG gefuehrt',
+      _v.get('mauerabzug', {}).get('status') == 'VORSCHLAG')
+check('der Turmschutz ist als VORSCHLAG gefuehrt',
+      _v.get('turmschutz', {}).get('status') == 'VORSCHLAG')
+check('die Rueckzug-Rundung ist als VORSCHLAG gefuehrt',
+      _v.get('rueckzug_rundung', {}).get('status') == 'VORSCHLAG')
+check('die Beutestaffelung ist als Abweichung (E4) gekennzeichnet',
+      _v.get('beute_anteil', {}).get('status') == 'VORSCHLAG'
+      and 'E4' in _v.get('beute_anteil', {}).get('grund', ''))
+check('kein Eintrag behauptet, belegt zu sein',
+      all(e.get('status') != 'BELEGT' for e in _v.values()))
 sys.exit(bericht())
