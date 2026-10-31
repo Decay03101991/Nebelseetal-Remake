@@ -11,6 +11,20 @@ Diese Datei hält jede Abweichung fest, damit niemand später glaubt, eine der b
 **Richtschnur des Remakes ist das Handbuch 2009** (Daniel, 04.10.2026) — die 2006er Zahlen gelten
 als ältere Fassung und werden nur dort genutzt, wo das Handbuch schweigt.
 
+## 0. Der Grundsatz (Daniel, 31.10.2026)
+
+Wörtlich: „ich gehe davon aus dass sich das Spiel damals natürlich auch entwickelt hat und das
+Balancing der aktuelleren Version deutlich besser war als zuvor."
+
+Daraus folgt die Trennlinie, die für jede Zahl gilt:
+
+| Was | Quelle | Begründung |
+|---|---|---|
+| **Balance-Zahlen** (Erträge, Siedlergrenze, Höchstzahl Siedlungen, Tempel-Ertrag, Kosten) | **2009** | die weiterentwickelte, besser ausbalancierte Fassung |
+| **Struktur und Mechanik** (welche Gebäude, welche Menüpunkte, welche Auftragsarten, Warenvoraussetzungen, Ausbildungsgeschwindigkeit, Punktelogik, Wallschwellen) | **beide** | was 2009 offenlässt, steht in 2006; was 2009 abgeschafft hat, zeigt 2006 als Geschichte |
+
+**Nicht** zurückdrehen: kein 2006er Wert ersetzt einen 2009er Wert, ohne dass Daniel es entscheidet.
+
 ---
 
 ## 1. Erträge je Gebäude und Gelände
