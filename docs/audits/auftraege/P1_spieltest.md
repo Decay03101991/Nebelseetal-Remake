@@ -55,9 +55,9 @@ Sprache: Deutsch. Keine Einleitung, kein Lob.
 SPIELVERLAUF (Simulation, ohne Oberflaeche)
 ==============================================================================
 
-# Spieltest-Simulation — 8 Spieltage, ohne Fenster gefahren
+# Spieltest-Simulation — 10 Spieltage, ohne Fenster gefahren
 
-**Erzeugt:** 31.10.2026 11:32 von `tools/spieltest_simulation.py` — reine Spiellogik (`src/spielschicht.py`), keine Oberflaeche.
+**Erzeugt:** 31.10.2026 12:38 von `tools/spieltest_simulation.py` — reine Spiellogik (`src/spielschicht.py`), keine Oberflaeche.
 **Spielerpolitik (dokumentiert, nicht optimal):** alle 20 Spielminuten ein Schritt; erst produzierende Gebaeude bauen, dann ausbauen; Forschung wenn bezahlbar; Einheiten ausbilden; ab Spieltag 2 ein Angriff auf Wallstufe 1.
 
 ## Tagesbilanzen
@@ -65,22 +65,24 @@ SPIELVERLAUF (Simulation, ohne Oberflaeche)
 | Spieltag | Holz | Stein | Nahrung | Gold | Mana | Krieg | Forschung | Gesamt | Einheiten | Gebaeude |
 |---|---|---|---|---|---|---|---|---|---|---|
 | 0 | 90 | 95 | 0 | 0 | 0 | 0 | 0 | **0** | 0 | 1 |
-| 1 | 242 | 64 | 91 | 0 | 0 | 0 | 0 | **0** | 0 | 4 |
-| 2 | 458 | 88 | 187 | 0 | 0 | 0 | 0 | **0** | 0 | 4 |
-| 3 | 674 | 111 | 283 | 0 | 0 | 0 | 0 | **0** | 0 | 4 |
-| 4 | 890 | 135 | 378 | 0 | 0 | 0 | 0 | **0** | 0 | 4 |
-| 5 | 1106 | 159 | 474 | 0 | 0 | 0 | 0 | **0** | 0 | 4 |
-| 6 | 1322 | 183 | 570 | 0 | 0 | 0 | 0 | **0** | 0 | 4 |
-| 7 | 1538 | 206 | 666 | 0 | 0 | 0 | 0 | **0** | 0 | 4 |
-| 8 | 1754 | 230 | 761 | 0 | 0 | 0 | 0 | **0** | 0 | 4 |
+| 1 | 30 | 116 | 153 | 123 | 0 | 0 | 1 | **0** | 0 | 12 |
+| 2 | 48 | 300 | 354 | 267 | 0 | 0 | 4 | **2** | 0 | 12 |
+| 3 | 44 | 356 | 556 | 411 | 0 | 0 | 4 | **2** | 0 | 12 |
+| 4 | 60 | 572 | 763 | 555 | 0 | 0 | 18 | **9** | 0 | 12 |
+| 5 | 76 | 788 | 974 | 699 | 0 | 0 | 32 | **16** | 0 | 12 |
+| 6 | 4 | 788 | 1185 | 843 | 0 | 0 | 32 | **16** | 0 | 12 |
+| 7 | 20 | 1004 | 1396 | 987 | 0 | 0 | 32 | **16** | 0 | 12 |
+| 8 | 36 | 1220 | 1614 | 1131 | 0 | 0 | 51 | **25** | 0 | 12 |
+| 9 | 52 | 1436 | 1835 | 1275 | 0 | 0 | 70 | **35** | 0 | 12 |
+| 10 | 68 | 1652 | 2056 | 1419 | 0 | 0 | 89 | **44** | 0 | 12 |
 
 ## Gebaut (Spieltag, was)
 
-T0.01 holzfäller, T0.03 holzfäller, T0.04 jaeger, T0.06 jaeger
+T0.01 holzfäller, T0.03 holzfäller, T0.04 bibliothek, T0.06 farm, T0.07 farm, T0.08 goldmine, T0.11 steinmetz, T0.14 steinmetz, T0.21 goldmine, T0.32 jaeger, T0.43 ausbau Feld 10, T0.56 jaeger, T0.69 kriegerakademie, T0.86 ausbau Feld 10, T1.08 ausbau Feld 10, T2.06 ausbau Feld 10, T2.36 ausbau Feld 19, T2.81 ausbau Feld 19, T5.25 ausbau Feld 19, T5.99 ausbau Feld 19
 
 ## Forschung
 
-_keine gestartet_
+T0.04 Felderwirtschaft, T1.32 Kriegskunst, T1.56 Baukunst, T1.78 Verteidigungsanlagen, T3.26 Felderwirtschaft, T3.72 Kriegskunst, T4.19 Baukunst, T4.65 Verteidigungsanlagen, T6.92 Felderwirtschaft, T7.83 Kriegskunst, T8.76 Baukunst, T9.69 Verteidigungsanlagen
 
 ## Ausbildung
 
@@ -92,10 +94,10 @@ _kein Kampf zustande gekommen (keine Kaempfer oder keine Karren)._
 
 ## Ende
 
-* Spieltag 8.0
-* Punkte: {'forschungspunkte': 0, 'kriegspunkte': 0, 'gesamtpunkte': 0, 'ruf': 0, 'wall_stufe': 0, 'goetterschutz': False, 'lage': 'weiter', 'lage_grund': 'kein Sieg vorgesehen (E5): das Handbuch nennt keine Siegbedingung, jeder Spieler hat seine eigenen Ziele.'}
+* Spieltag 10.0
+* Punkte: {'forschungspunkte': 89, 'kriegspunkte': 0, 'gesamtpunkte': 44, 'ruf': 0, 'wall_stufe': 0, 'goetterschutz': False, 'lage': 'weiter', 'lage_grund': 'kein Sieg vorgesehen (E5): das Handbuch nennt keine Siegbedingung, jeder Spieler hat seine eigenen Ziele.'}
 * Einheiten: {}
-* Rohstoffe: {'holz': 1754.0, 'stein': 230.08, 'metall': 0, 'mana': 0, 'nahrung': 761.43, 'gold': 0, 'wolle': 0, 'leder': 761.43, 'pferde': 0}
+* Rohstoffe: {'holz': 68.0, 'stein': 1651.98, 'metall': 0, 'mana': 0, 'nahrung': 2055.99, 'gold': 1419.0, 'wolle': 0, 'leder': 915.79, 'pferde': 0}
 
 ## Was ein Pruefer daraus ablesen kann
 

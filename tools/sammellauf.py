@@ -10,7 +10,9 @@ Grundsaetze (aus den Regeln dieser Sitzung):
   * Eine Datei gilt nur als gruen, wenn ihr Prozess-RC 0 ist UND die letzte
     ERGEBNIS-Zeile 0 Fehler nennt (nicht blind auf "exit 0" vertrauen).
   * Befunde (Befund != Fehler) werden gezaehlt, aber nicht als Fehler gewertet.
-  * Kein Zeitlimit fuer den ganzen Lauf; je Datei 300 s, damit ein Haenger auffaellt.
+  * Kein Zeitlimit fuer den ganzen Lauf; je Datei 420 s, damit ein Haenger auffaellt.
+    (300 s waren zu knapp: `test_durchspiel.py` braucht normal 214 s und lief am 31.10.2026
+    unter Last in das Limit - das ist kein Fehler im Spiel, sondern ein zu enger Deckel.)
 
 Aufruf:
   python -X utf8 tools/sammellauf.py                 # alle Dateien
@@ -31,7 +33,7 @@ TESTS = os.path.join(HIER, "tests")
 ERGEBNIS = re.compile(r"ERGEBNIS:\s*(\d+)\s*bestanden,\s*(\d+)\s*Fehler,\s*(\d+)\s*Befunde", re.I)
 UNITTEST = re.compile(r"Ran\s+(\d+)\s+tests?", re.I)
 UNITTEST_FAIL = re.compile(r"^FAILED\s*\(", re.M)
-JE_DATEI_SEKUNDEN = 300
+JE_DATEI_SEKUNDEN = 420
 
 
 def dateien(auswahl):

@@ -85,3 +85,25 @@ https://github.com/Decay03101991/Nebelseetal-Remake/pull/1 — betrifft kein Spi
 * Kein Sieg — E5, gebaut.
 * Bot-Punkte aus der Originalformel — belegt, gebaut.
 * Reisekosten-Höhe — VORSCHLAG aus A2, im Spieltest zu balancieren (kein Entscheid nötig, nur Beobachtung).
+
+---
+
+## Neu am 31.10.2026, 12:15 — aus deinem Spieltest und aus E3
+
+| # | Frage | Empfehlung |
+|---|---|---|
+| 12 | **Ausbildungsaufträge streichen:** Du hast nach einer Erstattung gefragt. Die Quellen regeln das **nicht** — belegt ist nur „Forschung abbrechen" (Handbuch Z. 442). Ich habe es so gebaut: Streichen möglich (nur wartende Aufträge), **keine Erstattung**. | So lassen (kein erfundener Betrag). Alternative: halbe Erstattung als klar gekennzeichneter VORSCHLAG |
+| 13 | **Kampf auf der Weltkarte:** Ein Zug von Feld zu Feld ist jetzt ein reiner Marsch — der frühere 40-%-Münzwurf (1–4 Einheiten weg) ist entfernt. Soll ein Marsch auf eine Bot-Siedlung kämpfen können? | **Ja, aber über `kampf.fuehre_schlacht`** (dieselbe Funktion wie Auftrag/Direktangriff), nicht über einen Würfel. Aufwand M |
+| 14 | **Rückweg auf der Karte:** Truppen sind nach der Ankunft sofort wieder verfügbar (alter FIX 5b). Im Auftrags-Pfad kostet der Rückweg die gleiche Zeit noch einmal. | **Rückweg auch auf der Karte berechnen** (ein Bewegungssystem, E3) — Aufwand S, ändert das Spielgefühl spürbar |
+| 15 | **Anzeige der Aufträge auf der Karte:** Aufträge laufen, sind auf der Karte aber nicht zu sehen (nur `movements` werden gezeichnet). | Zusammenlegen, wenn 13/14 gebaut sind (E3-Rest) |
+
+## Neu am 31.10.2026, 13:00 — aus dem fairen Modell-Lauf (`BEFUND_SPIELTEST_FAIR_20261031.md`)
+
+Dieser Lauf bewertet einen KORREKTEN Spielverlauf (12 Gebaeude, Gold 1.419, Nahrung 2.056 nach
+10 Spieltagen). Das Modell nennt jetzt Holz als Engstelle (Tag 6 auf 4) und empfiehlt:
+
+| # | Vorschlag des Modells | Meine Einschaetzung |
+|---|---|---|
+| 16 | **Start-Holz 90 → 250** | **Nein.** Die Startwerte sind belegt (Handbuch S. 7: 100 Holz, 100 Stein). Besser: Holzproduktion/Preise im Spieltest ansehen — sonst wird eine Originalzahl erfunden |
+| 17 | **Standardtempo x180 → x60** | **Deine Entscheidung.** ×180 war deine Vorgabe; das Modell argumentiert mit Bedenkzeit (1 Spieltag = 24 echte Minuten statt 8). Als **Option** im Startmenü denkbar |
+| 18 | **Automatik: erste Einheit ausbilden, sobald Akademie und 100 Gold stehen** | **Nein als Automatik**, ja als **Hinweis** („Akademie steht — es fehlen noch Waren aus der Werkstatt"). Ein Spiel, das selbst Einheiten baut, nimmt dir die Entscheidung |
