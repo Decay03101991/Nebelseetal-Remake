@@ -44,3 +44,9 @@ dann wird nachgefragt, nicht umgesetzt.
 **Regel aus Antwort 6 und 8:** Wo Daniel die Entscheidung an mich überträgt, gilt: erst Quelle, dann
 Indiz, dann eigene Lösung — und jede eigene Festlegung wird im Prüfregister als VORSCHLAG geführt,
 nie als Beleg.
+
+## Nachtrag: Portalkosten (dritte Runde, 31.10.2026, nach der externen Spielpruefung)
+
+| # | Frage | Daniels Antwort | Folge |
+|---|---|---|---|
+| 11 | **F-03 der externen Pruefung: aus welcher Kasse werden die 5.000 Mana des Portalwechsels bezahlt?** Die Ansicht bucht heute in die Reichsanzeige (`main.py:4771`), die selbst nur eine Summe der Ortslager ist. | **"um sachen wie das portal zu zahlen muss man halt rohstoffe in einem dorf zusammenfuehren um es zu bezahlen und dann zahlt man es von eben dem dorf"** | Das Portal zahlt **aus dem Ortslager der aktiven Siedlung** (`Settlement.vorraete`), nicht aus der Reichsanzeige. Reicht das Lager des aktiven Dorfes nicht, wird der Wechsel **abgelehnt** mit der Angabe, wie viel im Ort fehlt - kein stilles Zusammenziehen aus anderen Doerfern. Damit gilt fuer das Portal dieselbe Regel wie fuer Bauen, Forschung und Ausbildung: **bezahlt wird da, wo gehandelt wird**. Die Reichsanzeige bleibt reine Anzeige (Summe der Orte) und wird von `_reichsanzeige_aus_orten` abgeleitet. |
