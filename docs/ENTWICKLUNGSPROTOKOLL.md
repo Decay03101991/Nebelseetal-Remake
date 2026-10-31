@@ -326,3 +326,14 @@ SHA256-Anfänge der ausgelieferten `.exe` (keine Commits): `58cd48e9` · `9f5c1d
 **Eigener Fehler:** die Bauvoraussetzungen wollte ich ein zweites Mal in die Daten schreiben, obwohl sie
 dort längst gepflegt sind - das Werkzeug verlangte eine Stufenzahl, die Daten nennen nur den Namen
 ("Baukunst"). Zurückgenommen, Registerpunkt 15 als "FERTIG - nicht neu eintragen" festgehalten.
+
+## HERMES-ENTWURF-01 - 31.10.2026 - Wegzeit, Kampfablauf und Weltlage vom starken Modell
+
+| Zeit | Schritt | Ergebnis / Belege |
+|---|---|---|
+| 02:05 | Gebuendelter Auftrag an `deepseek-v4-pro` (direkt ueber die API, weil `hermes -z` in einer npm-Reparatur haengt) | Prompt mit Gesamtbild (Kernkreis, Ortslager, Spieluhr x180, Einzelspieler gegen Bots, Daniels Wuensche) und Querwirkungs-Pflicht; Kosten gemessen: **0,039 USD**, 161 s |
+| 02:07 | Ergebnis | `docs/ENTWURF_WEGZEIT_KAMPF_WELT_20261031.md`, 195 Zeilen: Formel `Dauer = 2*d/GS` mit `d = |dx|+|dy|+20*|dz|`, drei Beispiele bei x180, Kampfablauf mit Code-Abdeckung, Weltlage mit Bot-Integration und Planungsansicht, **11 Umsetzungsschritte mit Pruefzusage**, Tabelle der zehn offenen Entscheidungen |
+| 02:08 | Teuer gelernt | erster Lauf mit `max_tokens 16000` verbrauchte alles im Nachdenken (`reasoning_tokens = 16000`) und lieferte **0 Zeichen** (0,034 USD). Mit 48000 kamen 14.117 Denk- + 4.398 Antwort-Token. Ausserdem: zwei Laeufe zu frueh abgebrochen - Daniel: "grosse Modelle brauchen Zeit zum Nachdenken" |
+
+**Offen:** das Papier ist ein ENTWURF. Jede Zahl darin ist VORSCHLAG, nicht Handbuchbeleg; die zehn
+Entscheidungen in Abschnitt 5 muss Daniel treffen, bevor gebaut wird.
