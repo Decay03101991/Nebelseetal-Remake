@@ -34,6 +34,11 @@ STAND DER ENTSCHEIDUNGEN (Daniel, 31.10.2026):
     Ziele" - Spielziel = Feldherr, Forscher oder Haendler).
   * Stattdessen soll ein Lauf BEWERTET werden: Auszeichnungen fuer die meisten Forschungspunkte, die
     meisten Kriegspunkte, die groesste Wirtschaftsmacht o. Ae.
+  * STAND DER UMSETZUNG (31.10.2026): Die Punkteformel ist gebaut (`punkte.kriegspunkte`,
+  `punkte.gesamtpunkte`), die Zielzahl 300 steht noch als VORSCHLAG im Code
+  (`punkte.VORSCHLAG_ZIEL_PUNKTE`) und muss ersetzt werden. Der Goetterschutz-Bis-299-Punkte-Teil
+  ist als reine Funktion gebaut (`punkte.angreifbar`, `punkte.goetterschutz_band`,
+  `tests/test_goetterschutz_band.py` 23 Pruefungen), die Verdrahtung in die Bot-Angriffe fehlt.
 
 VERLANGE:
 1. Tabelle "Groesse | belegter Wert | Wirkung bei x180 (gerechnet) | Urteil (spielbar / zaeh /
@@ -416,6 +421,7 @@ Das Modul rechnet nur, zeichnet nichts und aendert keine andere Datei.
 """
 from __future__ import annotations
 
+import math
 from typing import Any, Dict, List, Optional, Tuple
 
 import einheiten as _einheiten
@@ -446,9 +452,9 @@ def _stufe(wert) -> int:
         return 0
 
 
-
 [...]
 
+    return summe
 
 
 # --------------------------------------------------------------------------
@@ -486,7 +492,6 @@ def gesamtpunkte(forschungsstaende: Optional[dict], einheiten: Optional[dict],
 
 # --------------------------------------------------------------------------
 # 4. Rufpunkte
-# --------------------------------------------------------------------------
 
 
 ==============================================================================

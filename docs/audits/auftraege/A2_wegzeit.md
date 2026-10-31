@@ -29,9 +29,10 @@ AUSGABEFORMAT (allgemein)
 AUFGABE B - WEGZEIT, AUFTRAGSKOSTEN, PORTAL: EIN ZAHLENSYSTEM FUER EIN EINZELSPIELER-SPIEL
 
 STAND DER ENTSCHEIDUNGEN (Daniel, 31.10.2026):
-  * Reiseformel: Dauer = 2 * d / GS ist als Arbeitsformel GESETZT (Faktor 2), ausdruecklich
-    anpassbar. Grund: bei x180 waeren Wege mit Faktor 1 so kurz, dass der Verteidiger keine
-    Vorwarnzeit hat.
+  * Reiseformel: Dauer = 2 * d / GS ist GESETZT und IM CODE AKTIV
+    (`auftraege.SEKUNDEN_JE_FELD = 7200`, Pruefdatei `tests/test_auftraege.py` 111 Pruefungen),
+    ausdruecklich anpassbar. Grund: bei x180 waeren Wege mit Faktor 1 so kurz, dass der
+    Verteidiger keine Vorwarnzeit hat. Pruefe den Faktor, erfinde keinen neuen.
   * Dimensionswechsel kostet KEINE Zeit (Daniel erinnert sich sehr sicher) - nur Mana.
   * Dimensionen existierten, weil hunderte Spieler Platz brauchten. Hier gibt es einen Menschen und
     wenige Bots -> Dimensionen sollen zu Spruengen in andere Laendereien werden.
@@ -203,15 +204,19 @@ Dimensionsrastern zu wechseln.
 3  AKTIVER CODE - Reisezeit und Kosten (src/auftraege.py)
 ==============================================================================
 
+import kampfbericht as KB
+
 STAND = "2026-10-04.1"
 
 # Die vier belegten Auftragsarten (docs/ENTWURF_AUFTRAEGE.md, Tabelle).
 AUFTRAGSARTEN: Tuple[str, ...] = ("stationieren", "transportieren", "handeln", "angreifen")
 
-# VORSCHLAG: Das Handbuch nennt keine Formel aus Entfernung und Geschwindigkeit; es nennt
-# nur Beispielstunden (S. 19). Hier gilt: 1 Entfernungseinheit bei Geschwindigkeit 1
-# dauert eine Stunde (3600 s). Grund: die Beispielangaben des Handbuchs rechnen in Stunden.
-SEKUNDEN_JE_FELD = 3600.0
+# VORGABE DANIEL 31.10.2026 (Registerpunkt 43): Das Handbuch nennt KEINE Formel aus Entfernung und
+# Geschwindigkeit, nur Beispielstunden (S. 19). Deshalb gilt als anpassbare Arbeitsformel:
+#     Dauer (eine Strecke) = 2 * Entfernung / Geschwindigkeit  ->  2 * 3600 s je Feld und GS 1
+# Grund fuer den Faktor 2: bei Spieluhr x180 waeren Wege mit Faktor 1 so kurz, dass der Verteidiger
+# keine Vorwarnzeit hat. Der Faktor ist EINE Konstante und wird hier bewusst offen benannt.
+SEKUNDEN_JE_FELD = 7200.0
 
 # BELEGT: die Rueckkehr dauert so lange wie eine Strecke, zusammen also das Doppelte (S. 19).
 HIN_UND_RUECK_FAKTOR = 2.0
@@ -228,12 +233,12 @@ AKTION_DAUER_SEKUNDEN = 0.0
 
 # VORSCHLAG: Beutemenge 50 % der Lager, gedeckelt durch die Karrenladung. Der Entwurf
 # selbst nennt diese Zahl ausdruecklich VORSCHLAG (docs/ENTWURF_AUFTRAEGE.md, "Was Daniel
-# entscheiden muss", Punkt 3). Sie wird hier nur fuer den Angriff weitergereicht.
-BEUTE_ANTEIL_PROZENT = 50
-
-
 
 [...]
+
+def _schlagkraft_belagerung(bestand: Dict[str, int]) -> float:
+    return float(sum(E.schlagkraft(n) * k for n, k in bestand.items() if E.ist_belagerung(n)))
+
 
 # ------------------------------------------------------------------------- Reisemodell
 
@@ -260,11 +265,6 @@ def ladung_der_mission(einheiten: Any) -> int:
     Nur Transporteinheiten tragen; Kaempfer und Belagerungswaffen tragen nichts.
     """
     return int(max(0, sum(E.kapazitaet(n, k) for n, k in _bestand(einheiten).items())))
-
-
-# ------------------------------------------------------------------------------ Arten
-
-def auftragsarten() -> Dict[str, Dict[str, Any]]:
 
 
 ==============================================================================

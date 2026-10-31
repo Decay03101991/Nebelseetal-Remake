@@ -104,6 +104,10 @@ TEIL A3: GESTAFFELTE BEUTE (Daniels Vorgabe, noch ohne Zahlen):
   * Keine Verteidiger mehr: der zum Angriffszeitpunkt vorhandene Bestand kann KOMPLETT mitgenommen
     werden - begrenzt durch die Karrenladung.
 Belegt ist nur: "nur Transportkarren pluendern" und "Beute ist durch die Ladung begrenzt".
+STAND DER UMSETZUNG (31.10.2026): Diese Staffelung ist bereits GEBAUT -
+`kampfbericht.beute_staffel` mit 10 % / 30 % / 60 % / 100 %, angeschlossen in `auftraege.starten`,
+Pruefdatei `tests/test_beute_staffel.py` (18 Pruefungen). Pruefe die WERTE und die Zuordnung
+der Lagen, statt neue zu erfinden - und sage, wo die Staffelung den Originalregeln widerspricht.
 Verlange: eine konkrete Staffelung mit Prozentwerten und die Formel, in der sie greift (Eingaben:
 Wallzustand vor dem Kampf, Wallzustand nach dem Kampf, ueberlebende Verteidiger, Karrenladung,
 Ortslager). Nenne je Zahl VORSCHLAG mit halbem Satz Begruendung. Sag ausdruecklich, ob diese
@@ -145,9 +149,10 @@ def a2() -> str:
 AUFGABE B - WEGZEIT, AUFTRAGSKOSTEN, PORTAL: EIN ZAHLENSYSTEM FUER EIN EINZELSPIELER-SPIEL
 
 STAND DER ENTSCHEIDUNGEN (Daniel, 31.10.2026):
-  * Reiseformel: Dauer = 2 * d / GS ist als Arbeitsformel GESETZT (Faktor 2), ausdruecklich
-    anpassbar. Grund: bei x180 waeren Wege mit Faktor 1 so kurz, dass der Verteidiger keine
-    Vorwarnzeit hat.
+  * Reiseformel: Dauer = 2 * d / GS ist GESETZT und IM CODE AKTIV
+    (`auftraege.SEKUNDEN_JE_FELD = 7200`, Pruefdatei `tests/test_auftraege.py` 111 Pruefungen),
+    ausdruecklich anpassbar. Grund: bei x180 waeren Wege mit Faktor 1 so kurz, dass der
+    Verteidiger keine Vorwarnzeit hat. Pruefe den Faktor, erfinde keinen neuen.
   * Dimensionswechsel kostet KEINE Zeit (Daniel erinnert sich sehr sicher) - nur Mana.
   * Dimensionen existierten, weil hunderte Spieler Platz brauchten. Hier gibt es einen Menschen und
     wenige Bots -> Dimensionen sollen zu Spruengen in andere Laendereien werden.
@@ -204,6 +209,11 @@ STAND DER ENTSCHEIDUNGEN (Daniel, 31.10.2026):
     Ziele" - Spielziel = Feldherr, Forscher oder Haendler).
   * Stattdessen soll ein Lauf BEWERTET werden: Auszeichnungen fuer die meisten Forschungspunkte, die
     meisten Kriegspunkte, die groesste Wirtschaftsmacht o. Ae.
+  * STAND DER UMSETZUNG (31.10.2026): Die Punkteformel ist gebaut (`punkte.kriegspunkte`,
+  `punkte.gesamtpunkte`), die Zielzahl 300 steht noch als VORSCHLAG im Code
+  (`punkte.VORSCHLAG_ZIEL_PUNKTE`) und muss ersetzt werden. Der Goetterschutz-Bis-299-Punkte-Teil
+  ist als reine Funktion gebaut (`punkte.angreifbar`, `punkte.goetterschutz_band`,
+  `tests/test_goetterschutz_band.py` 23 Pruefungen), die Verdrahtung in die Bot-Angriffe fehlt.
 
 VERLANGE:
 1. Tabelle "Groesse | belegter Wert | Wirkung bei x180 (gerechnet) | Urteil (spielbar / zaeh /
