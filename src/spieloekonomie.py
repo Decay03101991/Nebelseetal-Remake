@@ -324,7 +324,7 @@ def verbrauchen(ort: dict, kosten: dict, jetzt: float) -> dict:
 
 
 def transport_start(quelle: dict, ziel: dict, bestand: dict, fracht: dict, jetzt: float,
-                    frachtkanal: str = "vorraete"):
+                    frachtkanal: str = "vorraete", forschung: dict = None):
     """Startet einen Transport zwischen EIGENEN Siedlungen. Liefert (neue_quelle, mission).
 
     ``frachtkanal`` ist ``"vorraete"`` (Rohstoffe) oder ``"waren"``. Importherkunft und
@@ -350,7 +350,7 @@ def transport_start(quelle: dict, ziel: dict, bestand: dict, fracht: dict, jetzt
     d = abs(quelle["x"] - ziel["x"]) + abs(quelle["y"] - ziel["y"])
     liste = []
     ok, meldung = auftraege.starten(liste, "transportieren", bestand, quelle["id"], ziel["id"],
-                                    d, jetzt, fracht)
+                                    d, jetzt, fracht, forschung=forschung)
     if not ok:
         raise ValueError(meldung)
     neu = copy.deepcopy(quelle)
@@ -1059,7 +1059,7 @@ def zielstatus(orte: list, jetzt: float, haltestart=None) -> dict:
 
 
 def handel_start(kaeufer: dict, verkaeufer: dict, einheitenbestand: dict, ware: str,
-                 menge: int, preis: float, kanal: str, jetzt: float):
+                 menge: int, preis: float, kanal: str, jetzt: float, forschung: dict = None):
     """Ein bestätigtes Einzelangebot starten. Liefert ``(kaeufer_neu, verkaeufer_neu, vertrag)``.
 
     ``kanal`` ist ``"vorraete"`` (Rohstoff) oder ``"waren"``. Geprüft wird **vor** jeder Buchung:
@@ -1094,13 +1094,13 @@ def handel_start(kaeufer: dict, verkaeufer: dict, einheitenbestand: dict, ware: 
     d = abs(kaeufer["x"] - verkaeufer["x"]) + abs(kaeufer["y"] - verkaeufer["y"])
     liste = []
     ok, grund = auftraege.starten(liste, "handeln", einheitenbestand, kaeufer["id"],
-                                  verkaeufer["id"], d, jetzt, {})
+                                  verkaeufer["id"], d, jetzt, {}, forschung=forschung)
     if not ok:
         raise ValueError(grund)
     # Erst nach dem Auftragskern: die Karawanenpflicht steht BELEGT in `auftraege.auftragsarten`
     # („Nur Handelskarawanen") — diese Meldung ist besser als eine selbst erfundene. Gebucht ist
     # bis hierher nichts: `starten` füllt nur die Liste, die bei einer Ablehnung verworfen wird.
-    if menge > auftraege.ladung_der_mission(einheitenbestand):
+    if menge > auftraege.ladung_der_mission(einheitenbestand, forschung):
         raise ValueError("Kaufmenge übersteigt die Rückladung der Karawane.")
     k, v, vertrag = copy.deepcopy(kaeufer), copy.deepcopy(verkaeufer), liste[0]
 

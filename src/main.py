@@ -1508,7 +1508,7 @@ class GameState:
         if kein_karren:
             return False, ("Kein Transportmittel: " + ", ".join(sorted(kein_karren))
                            + " — tragen kann nur ein Karren (Handbuch S. 23).")
-        ladung = int(auftraege.ladung_der_mission(karren))
+        ladung = int(auftraege.ladung_der_mission(karren, self.forschungs_stufen()))
         if menge > ladung:
             return False, (f"Überladen: {menge} passen nicht auf {ladung} Ladeplätze "
                            f"({', '.join(f'{k}x {n}' for n, k in sorted(karren.items()))}).")
@@ -1538,7 +1538,8 @@ class GameState:
             quelle_dict["einheiten"][name] = int(quelle_dict["einheiten"].get(name, 0)) + anzahl
         try:
             neu, mission = spieloekonomie.transport_start(quelle_dict, asdict(ziel), karren,
-                                                          {stoff: menge}, jetzt)
+                                                          {stoff: menge}, jetzt,
+                                                          forschung=self.forschungs_stufen())
         except ValueError as fehler:
             return False, str(fehler)
 
@@ -1723,7 +1724,7 @@ class GameState:
         if kein_handel:
             return False, ("Handeln ist nur mit Handelskarawanen möglich (Handbuch S. 20): "
                            + ", ".join(sorted(kein_handel)) + " kann nicht handeln.")
-        ladung = int(auftraege.ladung_der_mission(karawane))
+        ladung = int(auftraege.ladung_der_mission(karawane, self.forschungs_stufen()))
         if menge > ladung:
             return False, ("Überladen: %d passen nicht auf %d Ladeplätze (%s)."
                            % (menge, ladung, ", ".join("%s x%d" % (n, a)
@@ -1765,7 +1766,7 @@ class GameState:
         try:
             kaeufer_neu, verkaeufer_neu, vertrag = spieloekonomie.handel_start(
                 kaeufer, self.bot_als_ort(bot, x, y, dimension), karawane, stoff, menge, preis,
-                "vorraete", jetzt)
+                "vorraete", jetzt, forschung=self.forschungs_stufen())
         except ValueError as fehler:
             return False, str(fehler)
 
@@ -1867,6 +1868,15 @@ class GameState:
     # öffnet eine Auswahlliste freier KarteIDs samt kartennutzen/Kapazitäten/Preis/Minimum, ruft
     # absicht statt sofort append auf. Keine zufällige Erstwahl, kein zufälliges Weltfeld nach
     # erfolgreicher Zahlung." Der Kern ist `src/spieloekonomie.py` (absicht/vergabe/vergabe-Regeln).
+
+    def forschungs_stufen(self) -> Dict[str, int]:
+        """Die erreichten Forschungsstufen als FLACHE Karte `{Gebiet: Stufe}`.
+
+        EINE Lesestelle fuer alles, was mit Forschungsstufen rechnet (Ladung mit Wagenbau-Bonus,
+        Kernfunktionen, Anzeigen). Vorher stand `{k: int(v.level) ...}` an sechs Stellen im Code -
+        jede davon haette den Wagenbau-Bonus vergessen koennen.
+        """
+        return {k: int(getattr(v, "level", 0) or 0) for k, v in (self.research or {}).items()}
 
     def kartenvorrat_anlegen(self, seed: str = "") -> Dict[str, dict]:
         """Den Kartenvorrat für Neugründungen anlegen (die Startkarte bleibt außerhalb).
@@ -2134,7 +2144,8 @@ class GameState:
             von = str(quelle.name or von)
 
         ok, meldung = auftraege.starten(self.auftraege, art, bestand, von, ziel,
-                                        float(entfernung), float(self.spielsekunden), fracht)
+                                        float(entfernung), float(self.spielsekunden), fracht,
+                                        forschung=self.forschungs_stufen())
         if not ok:
             return False, meldung
         # Der Auftrag traegt seine Quelle als KENNUNG - durch ALLE Phasen (F-09). Ohne diese
@@ -2345,7 +2356,8 @@ class GameState:
         uebrig = int(sum(max(0, int(v)) for v in (verteidiger or {}).values()))
         beute_gefecht, lager_danach = kampfbericht.beute_am_ziel(
             geraet, dict(vorraete_ziel or {}), ausgang=ergebnis.get("ausgang"),
-            wall_zustand_vor=wall_zustand, verteidiger_uebrig=uebrig)
+            wall_zustand_vor=wall_zustand, verteidiger_uebrig=uebrig,
+            forschung=self.forschungs_stufen())
         if beute_gefecht and vorraete_ziel is not None:
             vorraete_ziel.clear()
             vorraete_ziel.update(lager_danach)
@@ -2576,7 +2588,8 @@ class GameState:
                                 _uebrig = int(sum(max(0, int(v)) for v in zielort.einheiten.values()))
                                 beute, _lager_danach = kampfbericht.beute_am_ziel(
                                     bot_geraet or {}, dict(zielort.vorraete),
-                                    ausgang="angreifer", wall_zustand_vor=wz, verteidiger_uebrig=_uebrig)
+                                    ausgang="angreifer", wall_zustand_vor=wz, verteidiger_uebrig=_uebrig,
+                                    forschung=self.forschungs_stufen())
                                 if beute:
                                     zielort.vorraete.clear()
                                     zielort.vorraete.update(_lager_danach)
@@ -4166,7 +4179,8 @@ class NebelseetalApp:
         # Was da ist und was passt — offen benannt, statt still abzulehnen.
         _zeile("Im Ortslager der Herkunft: " + ortsbestand_text(quellen[0])).grid(
             row=6, column=0, columnspan=2, sticky=tk.W, padx=10, pady=(6, 0))
-        _zeile("Ladeplätze: " + (", ".join(f"{k}x {n} ({einheiten.ladung(n)} Plätze)"
+        _stufen_karren = self.state.forschungs_stufen()
+        _zeile("Ladeplätze: " + (", ".join(f"{k}x {n} ({einheiten.ladung_mit_bonus(n, _stufen_karren)} Plätze)"
                                            for n, k in sorted(karren_bestand.items()))
                                  or "ohne Karren kein Transport (Handbuch S. 23)")).grid(
             row=7, column=0, columnspan=2, sticky=tk.W, padx=10)
@@ -4280,7 +4294,8 @@ class NebelseetalApp:
         e_karawane = tk.Entry(fenster, width=10)
         e_karawane.insert(0, "1")
         e_karawane.grid(row=9, column=1, sticky=tk.W, padx=10)
-        _zeile("Ladeplätze: " + (", ".join("%s x%d (%d Plätze)" % (n, a, einheiten.ladung(n) * a)
+        _stufen_karren = self.state.forschungs_stufen()
+        _zeile("Ladeplätze: " + (", ".join("%s x%d (%d Plätze)" % (n, a, einheiten.kapazitaet_mit_bonus(n, a, _stufen_karren))
                                           for n, a in sorted(karawanen.items()))
                                 or "ohne Handelskarawane kein Handel (Handbuch S. 20)")).grid(
             row=10, column=0, columnspan=2, sticky=tk.W, padx=10, pady=(0, 6))
@@ -7381,7 +7396,8 @@ class NebelseetalApp:
                     _vorrat_feld = {k: float(v) for k, v in ((tile.resources if tile else None) or {}).items()}
                     loot, _lager_danach = kampfbericht.beute_am_ziel(
                         _truppen, _vorrat_feld, ausgang="angreifer",
-                        wall_zustand_vor=100.0, verteidiger_uebrig=0)
+                        wall_zustand_vor=100.0, verteidiger_uebrig=0,
+                        forschung=self.state.forschungs_stufen())
                     if loot:
                         for res, amount in loot.items():
                             if res in self.state.resources:

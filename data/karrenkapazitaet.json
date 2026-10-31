@@ -1,0 +1,11 @@
+{
+  "_hinweis": "Bonus auf die Karrenladung durch die Forschung 'Wagenbau'. BELEGT ist nur die RICHTUNG: Handbuch 2009 nennt Wagenbau als Voraussetzung fuer neue Karren und Belagerungswaffen (data/research.json, wirkung_struktur art 'voraussetzung', Ziel 'karren', KEIN Prozentwert). Daniel hat am 31.10.2026 entschieden (Entscheidung 2): die belegten Einheitenwerte aus data/units.json (Ladung 40/100/250/1000/2500) bleiben die BASIS, der Bonus kommt obendrauf. Der Prozentwert ist ein VORSCHLAG.",
+  "_herkunft": "Rechnung: Beute ist strukturell durch die Karrenladung gedeckelt (docs/SPIELBALANCING_TEST.md Abschnitt 3.9: 60 Zweispaenner holen an Spieltag 30 nur 33 % des Vorrats, an Spieltag 7 in 14 Wellen 98 %). Mit +10 % je Wagenbau-Stufe und Hoechststufe 10 verdoppelt sich die Ladung bei voller Forschung (Faktor 2,0) - 60 Zweispaenner tragen dann 30.000 statt 15.000, und ein Feldzug braucht rund die Haelfte der Wellen. Kein 2006er/2009er Wert ersetzt dabei die Basiswerte.",
+  "version": "karren-1",
+  "aktiv": true,
+  "forschung": "Wagenbau",
+  "pro_stufe_prozent": 10,
+  "hoechststufe": 10,
+  "_geltungsbereich": "Nur die TRAGFAEHIGKEIT (Ladung) von Karren. Geschwindigkeit, Preise und Siedlerbedarf bleiben unveraendert. Der Bonus gilt ueberall, wo aus der Ladung eine Kapazitaet gerechnet wird: Auftragsladung, Beute, Transport, Handelskarawane und die Anzeige der Ladeplaetze.",
+  "_abschaltbar": "aktiv=false nimmt den Bonus vollstaendig heraus (Basiswerte wie vorher), ohne Code zu loeschen - Muster wie AUSBILDUNG_STUFENFAKTOR_AKTIV."
+}

@@ -177,14 +177,16 @@ def _reise_zeiten(start: Any, reisezeit: Any,
     return ankunft, abreise, rueck
 
 
-def ladung_der_mission(einheiten: Any) -> int:
-    """Gesamte Tragefaehigkeit der mitgefuehrten Karren.
+def ladung_der_mission(einheiten: Any, forschung: Any = None) -> int:
+    """Gesamte Tragefaehigkeit der mitgefuehrten Karren (MIT Wagenbau-Bonus).
 
     Nur Transporteinheiten tragen; Kaempfer und Belagerungswaffen tragen nichts. Der Name
     bleibt oeffentlich (main.py, spieloekonomie und Pruefdateien rufen ihn), die Rechnung steht
     seit dem Code-Audit 31.10.2026 an EINER Stelle: `einheiten.ladung_der_gruppe`.
+    `forschung` ist die flache Stufenkarte `{Gebiet: Stufe}` - ohne sie rechnet die Ladung OHNE
+    Wagenbau-Bonus (Daniels Entscheidung 2, Register 73).
     """
-    return E.ladung_der_gruppe(einheiten)
+    return E.ladung_der_gruppe(einheiten, forschung)
 
 
 # ------------------------------------------------------------------------------ Arten
@@ -292,7 +294,7 @@ def kosten_der_mission(einheiten: Any, entfernung: Any, geschwindigkeit: Any,
 def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
             von: Any, nach: Any, entfernung: Any, jetzt: Any,
             fracht: Any = None, drosselung_prozent: Any = 0,
-            dimensionen_unterschied: Any = 0) -> Tuple[bool, str]:
+            dimensionen_unterschied: Any = 0, forschung: Any = None) -> Tuple[bool, str]:
     """Startet einen Auftrag und haengt ihn an `liste`. Liefert (ok, Meldung).
 
     `nach` ist der Zielname ODER ein Verzeichnis mit Zusatzangaben:
@@ -329,7 +331,7 @@ def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
         return False, "Keine mitgefuehrte Einheit hat eine Geschwindigkeit."
 
     ziel = _ziel_daten(nach)
-    ladung = ladung_der_mission(bestand)
+    ladung = ladung_der_mission(bestand, forschung)
 
     # -------------------------------------------------------------- art-spezifische Regeln
     zusatz: Dict[str, Any] = {}
@@ -372,7 +374,8 @@ def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
                 zusatz["beute"] = KB.beute_staffel(
                     bestand, ziel["vorraete"],
                     wall_zustand_vor=ziel.get("wall_zustand_prozent"),
-                    verteidiger_uebrig=ziel.get("verteidiger_uebrig"))
+                    verteidiger_uebrig=ziel.get("verteidiger_uebrig"),
+                    forschung=forschung)
                 zusatz["beute_lage"] = KB.beute_lage(
                     ziel.get("wall_zustand_prozent"), ziel.get("verteidiger_uebrig"))
 

@@ -12,11 +12,20 @@ fehlender Wert, sondern ihre Rolle. Genau darum gibt es `rolle` und nicht nur `a
 """
 from __future__ import annotations
 
+import json
+import math
+import os
 from functools import lru_cache
 from typing import Any, Dict, List, Optional, Tuple
 
 import spieldaten
 import hilfen
+
+
+def lade_regel(dateiname: str) -> Dict[str, Any]:
+    """Eine Regeldatendatei aus `data/` laden (oeffentlicher Weg, keine privaten Helfer)."""
+    with open(os.path.join(spieldaten.projektwurzel(), "data", dateiname), encoding="utf-8") as f:
+        return json.load(f)
 
 # Handbuch Seite 14: vier Typen — Karren, Belagerungswaffen, Kundschafter, Kampfeinheiten.
 ROLLEN: Dict[str, str] = {
@@ -171,12 +180,61 @@ def kampfstaerke(name: str, anzahl: int = 1) -> float:
 
 
 def kapazitaet(name: str, anzahl: int = 1) -> int:
-    """Tragfaehigkeit fuer Beute (nur Karren)."""
+    """Tragfaehigkeit fuer Beute (nur Karren) - BASISWERT ohne Forschungsbonus."""
     return ladung(name) * anzahl if ist_transport(name) else 0
 
 
-def ladung_der_gruppe(bestand: Any) -> int:
-    """Gesamte Tragfaehigkeit einer Gruppe `{name: anzahl}`.
+# Wagenbau-Bonus auf die Karrenladung (Daniels Entscheidung 2, 31.10.2026): die belegten Werte
+# aus data/units.json bleiben die BASIS, der Bonus kommt obendrauf. BELEGT ist nur die Richtung
+# (Wagenbau schaltet neue Karren frei), der Prozentwert ist VORSCHLAG - siehe
+# data/karrenkapazitaet.json. `aktiv=false` nimmt ihn vollstaendig heraus.
+KARREN = lade_regel("karrenkapazitaet.json")
+KARREN_BONUS_AKTIV = bool(KARREN.get("aktiv", True))
+KARREN_FORSCHUNG = str(KARREN.get("forschung") or "Wagenbau")
+KARREN_PRO_STUFE = float(KARREN.get("pro_stufe_prozent") or 0.0)
+KARREN_HOECHSTSTUFE = int(KARREN.get("hoechststufe") or 10)
+
+
+def stufe_von(forschung: Any, gebiet: str = None) -> int:
+    """Forschungsstufe eines Gebiets aus einer flachen Karte `{Gebiet: Stufe}` (0 = unbekannt)."""
+    if not isinstance(forschung, dict):
+        return 0
+    gebiet = gebiet or KARREN_FORSCHUNG
+    for name, wert in forschung.items():
+        if str(name) == gebiet:
+            n = hilfen.als_int(wert, 0)
+            return max(0, min(n, KARREN_HOECHSTSTUFE))
+    return 0
+
+
+def ladungs_bonus(forschung: Any) -> float:
+    """Faktor auf die Karrenladung: 1.0 ohne Forschung, +pro_stufe_prozent je Wagenbau-Stufe."""
+    if not KARREN_BONUS_AKTIV or KARREN_PRO_STUFE <= 0:
+        return 1.0
+    stufe = stufe_von(forschung)
+    return 1.0 + (KARREN_PRO_STUFE / 100.0) * stufe
+
+
+def ladung_mit_bonus(name: str, forschung: Any = None) -> int:
+    """Ladeplaetze EINER Einheit MIT Wagenbau-Bonus (ganzzahlig, nie kleiner als der Basiswert)."""
+    basis = ladung(name)
+    if basis <= 0:
+        return 0
+    return max(basis, int(math.floor(basis * ladungs_bonus(forschung) + 1e-9)))
+
+
+def kapazitaet_mit_bonus(name: str, anzahl: int = 1, forschung: Any = None) -> int:
+    """Tragfaehigkeit einer Gruppe MIT Bonus (Basis * Anzahl, dann der Faktor)."""
+    if not ist_transport(name) or isinstance(anzahl, bool):
+        return 0
+    n = hilfen.als_int(anzahl, 0)
+    if n <= 0:
+        return 0
+    return max(kapazitaet(name, n), int(math.floor(kapazitaet(name, n) * ladungs_bonus(forschung) + 1e-9)))
+
+
+def ladung_der_gruppe(bestand: Any, forschung: Any = None) -> int:
+    """Gesamte Tragfaehigkeit einer Gruppe `{name: anzahl}` - MIT Wagenbau-Bonus.
 
     Nur Karren tragen; Kaempfer, Kundschafter und Belagerungswaffen zaehlen 0. Angaben, die
     keine ganze Zahl groesser 0 ergeben, werden uebergangen. Negative Ergebnisse sind
@@ -184,15 +242,19 @@ def ladung_der_gruppe(bestand: Any) -> int:
 
     **EINE Stelle fuer die Karrenladung** (Code-Audit 31.10.2026, Befund P3 Vorschlag 2):
     vorher summierten `auftraege.ladung_der_mission`, `kampfbericht.beute` und
-    `kampfbericht.beute_staffel` dieselbe Rechnung je fuer sich.
+    `kampfbericht.beute_staffel` dieselbe Rechnung je fuer sich. Seit Daniels Entscheidung 2
+    (31.10.2026) kommt der Wagenbau-Bonus hier dazu - wer die Ladung rechnet, MUSS die
+    Forschungsstufen mitgeben (`{Gebiet: Stufe}`), sonst rechnet er ohne Bonus.
     """
     if not isinstance(bestand, dict):
         return 0
     gesamt = 0
+    factor = ladungs_bonus(forschung)
     for name, anzahl in bestand.items():
         n = hilfen.als_int(anzahl, 0)
         if n > 0:
-            gesamt += kapazitaet(str(name), n)
+            basis = kapazitaet(str(name), n)
+            gesamt += max(basis, int(math.floor(basis * factor + 1e-9)))
     return max(0, gesamt)
 
 

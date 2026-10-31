@@ -228,6 +228,24 @@ Entscheidung Daniels.
 
 ---
 
+### 3.11b Wagenbau auf der Karrenladung (Daniels Entscheidung 2, seit 31.10.2026 im Kern)
+
+Die belegten Ladungswerte (Handkarren 40, Einspänner 100, Zweispänner 250, Handelskarawane 1.000,
+Große Handelskarawane 2.500) bleiben die **Basis**; **Wagenbau** gibt **+10 % je Stufe** obendrauf,
+gedeckelt auf **Stufe 10 = Faktor 2,0** (`data/karrenkapazitaet.json`, VORSCHLAG, abschaltbar).
+
+| Wagenbau | Faktor | Zweispänner | 60 Zweispänner | Handelskarawane |
+|---|---|---|---|---|
+| 0 (Basis) | 1,00 | 250 | 15.000 | 1.000 |
+| 5 | 1,50 | 375 | 22.500 | 1.500 |
+| 10 | 2,00 | 500 | 30.000 | 2.000 |
+
+**Folge für die Beute (Abschnitt 3.9):** mit voller Forschung trägt dieselbe Flotte die doppelte
+Menge — der Feldzug braucht rechnerisch **etwa die Hälfte der Wellen**. **Offen:** diese Zahlen sind
+hier gerechnet, noch **nicht** durch `tools/balancing_messung.py` gefahren (das Werkzeug übergibt
+noch keine Forschungsstufen). Gates G-2 und G-6 sind deshalb mit Wagenbau **neu zu messen**, bevor
+sie als erfüllt oder verfehlt gelten.
+
 ### 3.12 Karten, Dörfer und Pech (Teil 2 des Balancing-Tests, Daniel 31.10.2026)
 
 Daniel wörtlich: „Integriere in das balancing testing auch verschiedene karten dörfer die spieler

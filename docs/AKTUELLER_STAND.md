@@ -53,12 +53,17 @@
 > (`4e68de8`), **Nahrungsverbrauch je Einheit** (`8db75a6`, Register 69, 52 Pruefungen, Sammellauf 20:13 mit
 > 103 Dateien/102 gruen/3.756 Pruefungen), **Balancing-Test Teil 2 - Karten, Doerfer und Pech** (`bca75e1`,
 > Register 71, Werkzeug `tools/balancing_karten.py`, Gates G-8/G-9).
-> **Naechster Spielcode-Schritt:** Wagenbau-Kapazitaet (Daniels Entscheidung 2) - `einheiten.kapazitaet`/
-> `ladung_der_gruppe` um einen forschungsabhaengigen Bonus erweitern (Basiswerte aus `data/units.json`
-> bleiben), alle Aufrufer mitziehen (Auftragsladung, Beute, Transport, Handelskarawane, Anzeigen),
-> Pruefdatei, Register, voller Sammellauf, EXE, EIN Commit.
-> **Danach:** Sperre bei Nahrungsnot (Daniels Verschaerfung, Register 70) -> Sofortangriff reist ->
-> Kampfplanungsseite; **Bots spaeter** (Register 72, Daniels Ansage).
+> **Fertig seit dem letzten Stand:** **Wagenbau-Kapazitaet** (Register 73) - `data/karrenkapazitaet.json`,
+> Bonus +10 % je Stufe (Deckel Stufe 10 = Faktor 2,0), EINE Rechnung `einheiten.ladung_der_gruppe`,
+> Stufen aus `GameState.forschungs_stufen()`, Pruefdatei 44/0/1, Sammellauf 20:58 (104 Dateien,
+> 103 gruen, 3.801 Pruefungen), EXE `aa2c48c6...`.
+> **Naechster Spielcode-Schritt:** Sperre bei Nahrungsnot (Daniels Verschaerfung, Register 70) - Kern
+> `spieloekonomie.nahrungsnot`, Sperre an den fuenf gemessenen Andockstellen (`_karten_bauen` 4344,
+> `_karten_ausbauen` 4464, `_ware_herstellen` 5157, `forschung_start` 6652, `_train_unit` 6863),
+> sichtbare Warnung, Pruefdatei mit Grenzfaellen, voller Sammellauf, EXE, EIN Commit.
+> **Danach:** Sofortangriff reist -> Kampfplanungsseite -> F-03 -> F-05/F-06 -> ... ; **Bots spaeter**
+> (Register 72, Daniels Ansage). Offen fuer die Messung: `tools/balancing_messung.py` uebergibt noch
+> keine Forschungsstufen, G-2/G-6 sind mit Wagenbau neu zu messen.
 > Nach JEDEM Schritt verpflichtend: Registereintrag in `docs/PRUEFREGEL_ORIGINAL.md`, Protokollzeile in
 > `docs/ENTWICKLUNGSPROTOKOLL.md`, Einzeltest **und** voller Sammellauf
 > (`python -X utf8 tools/sammellauf.py`), neue EXE mit Startpruefung, dann EIN Commit.

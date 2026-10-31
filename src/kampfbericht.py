@@ -227,7 +227,8 @@ def beute_lage(wall_zustand_vor: Any, verteidiger_uebrig: Any) -> str:
 def beute_staffel(einheiten_des_siegers: Dict[str, int],
                   vorraete: Dict[str, float],
                   wall_zustand_vor: Any = None,
-                  verteidiger_uebrig: Any = None) -> Dict[str, int]:
+                  verteidiger_uebrig: Any = None,
+                  forschung: Any = None) -> Dict[str, int]:
     """Beute nach Daniels Staffelung (Registerpunkt 45).
 
     Anteil = BEUTE_STAFFEL_PROZENT[beute_lage(...)], zusaetzlich begrenzt durch
@@ -240,7 +241,7 @@ def beute_staffel(einheiten_des_siegers: Dict[str, int],
     -> 10 Prozent = 100, aber nur 40 passen hinein. Ohne Verteidiger -> 100 Prozent,
     begrenzt durch Ladung. Kein Karren -> keine Beute (belegt).
     """
-    kapazitaet = E.ladung_der_gruppe(einheiten_des_siegers)
+    kapazitaet = E.ladung_der_gruppe(einheiten_des_siegers, forschung)
     if kapazitaet <= 0:
         return {}
 
@@ -280,7 +281,8 @@ def beute_am_ziel(einheiten_des_siegers: Dict[str, int],
                   vorraete: Dict[str, float],
                   ausgang: Any = "angreifer",
                   wall_zustand_vor: Any = None,
-                  verteidiger_uebrig: Any = None) -> Tuple[Dict[str, int], Dict[str, float]]:
+                  verteidiger_uebrig: Any = None,
+                  forschung: Any = None) -> Tuple[Dict[str, int], Dict[str, float]]:
     """Beute berechnen UND beim Ziel abbuchen - Rueckgabe (beute, vorraete_danach).
 
     Warum es diese Funktion gibt (Befund der externen Gegenpruefung, 31.10.2026, Nr. 6):
@@ -303,7 +305,8 @@ def beute_am_ziel(einheiten_des_siegers: Dict[str, int],
 
     beute_werte = dict(beute_staffel(einheiten_des_siegers, lager,
                                     wall_zustand_vor=wall_zustand_vor,
-                                    verteidiger_uebrig=verteidiger_uebrig))
+                                    verteidiger_uebrig=verteidiger_uebrig,
+                                    forschung=forschung))
     for stoff, menge in beute_werte.items():
         lager[stoff] = round(max(0.0, lager.get(stoff, 0.0) - float(menge)), 2)
     return beute_werte, lager
@@ -311,7 +314,8 @@ def beute_am_ziel(einheiten_des_siegers: Dict[str, int],
 
 def beute(einheiten_des_siegers: Dict[str, int],
           vorraete: Dict[str, float],
-          rng: Optional[random.Random] = None) -> Dict[str, int]:
+          rng: Optional[random.Random] = None,
+          forschung: Any = None) -> Dict[str, int]:
     """Was die Karren des Siegers tragen koennen (Handbuch Seite 22/23).
 
     Nur Transporteinheiten (Karren) tragen; Belagerungswaffen und Kaempfer tragen nichts.
@@ -325,7 +329,7 @@ def beute(einheiten_des_siegers: Dict[str, int],
     """
     del rng  # bewusst ungenutzt: die Verteilung ist nicht im Handbuch geregelt -> anteilig
 
-    kapazitaet = E.ladung_der_gruppe(einheiten_des_siegers)
+    kapazitaet = E.ladung_der_gruppe(einheiten_des_siegers, forschung)
 
     vorhanden: Dict[str, int] = hilfen.positive_ganze_werte(vorraete)
 
