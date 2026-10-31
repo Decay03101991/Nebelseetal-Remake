@@ -80,7 +80,11 @@ check('Aufruf mit Geraeten in Angreiferliste ist erlaubt', isinstance(kampf.fueh
       {'Krieger':2, 'Katapult':1}, {}, 0, rng=R())['bericht'],str))
 check('Leere Beteiligte ohne Truppen duerfen keine Beute erzeugen',
       not kampf.fuehre_schlacht({}, {},0,angreifer_karren={'Handkarren':2},vorraete={'holz':100},rng=R())['beute'])
-check('Originalcode als Rueckfall vorhanden', os.path.isfile(os.path.join(os.path.dirname(os.path.dirname(__file__)),'src','kampf_alt_handbuch_2009.py')))
+# 31.10.2026: Die alte Schlachtfassung (kampf_alt_handbuch_2009.py) wurde aus dem Spielcode
+# entfernt - sie wurde von niemandem importiert (nur diese Pruefung hielt sie am Leben).
+# Sie liegt als Beleg in archiv/alter_code/ und bleibt in der Git-Historie. Damit gilt:
+# genau EINE Schlachtfunktion im Spiel.
+check('nur eine Schlacht-Implementierung im Spielcode', not os.path.isfile(os.path.join(os.path.dirname(os.path.dirname(__file__)),'src','kampf_alt_handbuch_2009.py')))
 check('Kampfmodell eindeutig gekennzeichnet', 'GPT-NE01.wissenswertes' in kampf.STAND)
 
 abschnitt("Vorschlaege sind als solche gefuehrt (externe Gegenpruefung, Nr. 9/10/11)")
