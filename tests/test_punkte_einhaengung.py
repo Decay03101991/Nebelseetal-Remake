@@ -137,11 +137,17 @@ class PunkteAnzeigeNeumodus(unittest.TestCase):
         self.assertEqual(self.state.punktestand()['krieg'],125)
         self.assert_synchron()
 
-    def test_sieg_und_niederlage_unveraendert(self):
+    def test_spielausgang_ohne_sieg(self):
+        """E5 (31.10.2026): es gibt KEINEN Sieg mehr - hohe Punkte ergeben 'weiter'.
+
+        Frueher stand hier die Erwartung 'sieg' bei Forschungsstufe 9 (ueber 300 Punkte). Diese
+        Zielzahl ist als Siegbedingung verworfen (Handbuch 2009, Seite 3); das Original kennt
+        nur eigene Ziele. Niederlage bleibt der einzige Abbruch.
+        """
         self.state.hatte_siedlung=True
         self.state.settlements=[_dorf('A',1,False)]
         self.state.research['Felderwirtschaft'].level=9
-        self.assertEqual(self.state.spielausgang()[0],'sieg')
+        self.assertEqual(self.state.spielausgang()[0],'weiter')
         self.state.settlements=[]
         self.state.research['Felderwirtschaft'].level=0
         self.assertEqual(self.state.spielausgang()[0],'niederlage')

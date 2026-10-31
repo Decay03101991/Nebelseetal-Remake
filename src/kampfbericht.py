@@ -265,17 +265,29 @@ def beute_staffel(einheiten_des_siegers: Dict[str, int],
         return {}
 
     anteil = BEUTE_STAFFEL_PROZENT[beute_lage(wall_zustand_vor, verteidiger_uebrig)] / 100.0
-    ziel_menge = int(gesamt * anteil)
-    restplatz = min(kapazitaet, ziel_menge)
+    # Anteilig heisst: gegen die WIRKLICH mitnehmbare Menge rechnen, nicht gegen die ideale.
+    # Bisher stand hier `int(anteil_stoff * ziel_menge)` und danach ein Deckel `restplatz` -
+    # dadurch frass der alphabetisch erste Rohstoff die ganze Ladung (Befund 31.10.2026 aus
+    # `test_kampf_einhaengung`: erwartet Holz 50 / Stein 30, geliefert Holz 80 / Stein 0).
+    ziel = min(kapazitaet, int(gesamt * anteil))
+    if ziel <= 0:
+        return {}
     genommen: Dict[str, int] = {}
     for stoff in sorted(vorhanden):
-        if restplatz <= 0:
-            break
-        anteil_stoff = vorhanden[stoff] / gesamt
-        nimm = min(int(anteil_stoff * ziel_menge), vorhanden[stoff], restplatz)
+        nimm = min(int(vorhanden[stoff] / gesamt * ziel), vorhanden[stoff])
         if nimm > 0:
             genommen[stoff] = nimm
-            restplatz -= nimm
+    # Rest, der durch das Abrunden liegen bleibt, nach dem groessten Bestand auffuellen -
+    # nie ueber den vorhandenen Vorrat hinaus. So ist die Summe exakt und die Verteilung fair.
+    rest = ziel - sum(genommen.values())
+    for stoff in sorted(vorhanden, key=lambda s: (-vorhanden[s], s)):
+        if rest <= 0:
+            break
+        platz = vorhanden[stoff] - genommen.get(stoff, 0)
+        nimm = min(rest, platz)
+        if nimm > 0:
+            genommen[stoff] = genommen.get(stoff, 0) + nimm
+            rest -= nimm
     return genommen
 
 
