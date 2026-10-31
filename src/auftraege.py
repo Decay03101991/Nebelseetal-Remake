@@ -21,9 +21,11 @@ BELEGT (docs/ENTWURF_AUFTRAEGE.md, Handbuch 2009):
 
 NICHT belegt und darum VORSCHLAG (jeder eigene Wert mit Grund, siehe offene_luecken):
   * die Reisezeit-Formel SEKUNDEN_JE_FELD (das Handbuch nennt keine Entfernung/-
-    Geschwindigkeit-Formel, nur Beispielstunden),
+    Geschwindigkeit-Formel, nur Beispielstunden) - VORGABE Daniel 31.10.2026: Faktor 2,
+    anpassbar (Registerpunkt 43),
   * die Dauer der Handlung am Ziel AKTION_DAUER_SEKUNDEN = 0,
-  * der Beute-Anteil BEUTE_ANTEIL_PROZENT = 50 (der Entwurf nennt ihn selbst VORSCHLAG),
+  * der Beute-Anteil (VORGABE Daniel 31.10.2026: GESTAFFELT nach Wallzustand und Verteidigern,
+    siehe kampfbericht.beute_staffel; die Prozentwerte sind Vorschlag),
   * die Wahl der langsamsten Einheit als Reisegeschwindigkeit,
   * dass eine Angreifer-Fussttruppe aus Kampf- UND Kundschaftereinheiten besteht
     (der Begriff ist im Handbuch nicht definiert).
@@ -46,10 +48,12 @@ STAND = "2026-10-04.1"
 # Die vier belegten Auftragsarten (docs/ENTWURF_AUFTRAEGE.md, Tabelle).
 AUFTRAGSARTEN: Tuple[str, ...] = ("stationieren", "transportieren", "handeln", "angreifen")
 
-# VORSCHLAG: Das Handbuch nennt keine Formel aus Entfernung und Geschwindigkeit; es nennt
-# nur Beispielstunden (S. 19). Hier gilt: 1 Entfernungseinheit bei Geschwindigkeit 1
-# dauert eine Stunde (3600 s). Grund: die Beispielangaben des Handbuchs rechnen in Stunden.
-SEKUNDEN_JE_FELD = 3600.0
+# VORGABE DANIEL 31.10.2026 (Registerpunkt 43): Das Handbuch nennt KEINE Formel aus Entfernung und
+# Geschwindigkeit, nur Beispielstunden (S. 19). Deshalb gilt als anpassbare Arbeitsformel:
+#     Dauer (eine Strecke) = 2 * Entfernung / Geschwindigkeit  ->  2 * 3600 s je Feld und GS 1
+# Grund fuer den Faktor 2: bei Spieluhr x180 waeren Wege mit Faktor 1 so kurz, dass der Verteidiger
+# keine Vorwarnzeit hat. Der Faktor ist EINE Konstante und wird hier bewusst offen benannt.
+SEKUNDEN_JE_FELD = 7200.0
 
 # BELEGT: die Rueckkehr dauert so lange wie eine Strecke, zusammen also das Doppelte (S. 19).
 HIN_UND_RUECK_FAKTOR = 2.0
@@ -284,7 +288,14 @@ def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
                 return False, str(vr.get("grund") or "Die Vorrunde wurde nicht bestanden.")
             zusatz["vorrunde"] = vr
             if isinstance(ziel.get("vorraete"), dict):
-                zusatz["beute"] = KB.beute(bestand, ziel["vorraete"])
+                # VORGABE Daniel 31.10.2026 (Registerpunkt 45): gestaffelte Beute nach Wallzustand
+                # und Verteidigern, statt pauschalem Anteil. Werte sind VORSCHLAG.
+                zusatz["beute"] = KB.beute_staffel(
+                    bestand, ziel["vorraete"],
+                    wall_zustand_vor=ziel.get("wall_zustand_prozent"),
+                    verteidiger_uebrig=ziel.get("verteidiger_uebrig"))
+                zusatz["beute_lage"] = KB.beute_lage(
+                    ziel.get("wall_zustand_prozent"), ziel.get("verteidiger_uebrig"))
 
     ok_fracht, meld_fracht, saubere_fracht = _pruefe_fracht(fracht, ladung)
     if not ok_fracht:

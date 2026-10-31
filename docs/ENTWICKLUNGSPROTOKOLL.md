@@ -355,3 +355,17 @@ Entscheidungen in Abschnitt 5 muss Daniel treffen, bevor gebaut wird.
 **Eigener Fehler:** der erste Sammellauf-Entwurf zaehlte `other` als Zahl statt als Liste und brach beim
 Fazit ab; behoben, bevor ein echtes Ergebnis behauptet wurde. Die Zahl „60 von 60" aus der Uebergabe
 ist **nicht falsch, aber unvollstaendig** — sie deckte 60 der 92 Pruefdateien ab.
+
+## HERMES-UMSETZUNG-01 - 31.10.2026 - Reisezeit Faktor 2, gestaffelte Beute, Goetterschutz-Band
+
+| Zeit | Schritt | Ergebnis / Belege |
+|---|---|---|
+| 03:50 | **Reiseformel auf Faktor 2 gesetzt** (Daniels Entscheidung, Register 43) | `auftraege.SEKUNDEN_JE_FELD` 3600 -> **7200** (Dauer = 2·Distanz/GS). Pruefung: `test_auftraege` **111/0/1** (absolute Erwartung auf 20 h je 100 Felder bei GS 10 angepasst, mit Begruendung im Test), `test_gpt_zeit_auftragsketten` gruen, `test_handel_transaktion` **101/0/0** |
+| 04:00 | **Beute gestaffelt gebaut** (Daniels Entscheidung, Register 45) | `kampfbericht.beute_staffel` + `beute_lage`: **10 % (Wall heil) / 30 % (beschaedigt) / 60 % (gebrochen) / 100 % (keine Verteidiger)**, in jedem Fall begrenzt durch Karrenladung und Vorrat; `beute()` bleibt unveraendert (alte Regel). Angeschlossen im Angriffspfad `auftraege.starten` (Ziel meldet `wall_zustand_prozent` / `verteidiger_uebrig`). Pruefung: **`tests/test_beute_staffel.py` 18/0/1** |
+| 04:10 | **Goetterschutz-Band gebaut** (belegt, Register 41) | `punkte.goetterschutz_band` + `punkte.angreifbar`: bis 299 Punkte nur Ziele in **eigene Punkte ±20 %**, ueber die Grenze 299 **kein Angriff in keine Richtung**; Handbuchbeispiel **299 -> 240-299** trifft zu. Pruefung: **`tests/test_goetterschutz_band.py` 23/0/1** |
+| 04:15 | Regression der beruehrten Bereiche | `tools/sammellauf.py` ueber 9 Dateien: **9/9 gruen, 504 Pruefungen, 0 Fehler, 3 Befunde, 52 s** (auftraege, beute_staffel, goetterschutz_band, handel, kampf, kampf_einhaengung, kampfbericht, punkte, punkte_einhaengung) |
+| 04:15 | **Offen geblieben** (bewusst, fuer die naechste Sitzung) | (a) Bot-Angriffspfad in `main.py` nutzt weiter `kampf._beute` statt `beute_staffel`; (b) die Verdrahtung von `punkte.angreifbar` in die Bot-Angriffsentscheidung; (c) Bewertung/Auszeichnungen statt Sieg (E5); (d) Dimensionen als Laendereien (E5); (e) Altpfad `_welt_bewegen` ueber `auftraege.starten` leiten (E3) |
+
+**Eigener Fehler:** im neuen Prueffile `test_beute_staffel.py` war die Erwartung fuer die ALTE
+`beute()` falsch (ich nahm 400 als Summe an, die anteilige Verteilung ergibt 3x133 = 399). Pruefung
+korrigiert, nicht die Funktion — die alte Regel bleibt unveraendert.

@@ -28,6 +28,7 @@ Das Modul rechnet nur, zeichnet nichts und aendert keine andere Datei.
 """
 from __future__ import annotations
 
+import math
 from typing import Any, Dict, List, Optional, Tuple
 
 import einheiten as _einheiten
@@ -204,6 +205,65 @@ def goetterschutz_aktiv(seit: float, jetzt: float) -> bool:
     if alter < 0:
         return False
     return alter < GOETTERSCHUTZ_TAGE * SEKUNDEN_JE_TAG
+
+
+# BELEGT (Handbuch 2009, Seite 6, Z. 221-228; Registerpunkt 41): Der EINGESCHRAENKTE
+# Goetterschutz bis 299 Punkte. Woertlich: "Spieler bis maximal 299 Punkte befinden sich im
+# eingeschraenkten Goetterschutz. Innerhalb des eingeschraenkten Goetterschutzes kannst Du nur
+# Spieler angreifen, die im Bereich 'eigene Punktzahl +/- 20%' liegen." Und: "Ein Angriff ueber
+# die Goetterschutzgrenze von 299 Punkten hinweg ist in keine Richtung moeglich!"
+def _als_zahl(wert: Any, vorgabe: float = 0.0) -> float:
+    """Robuster Zahlwert (None, Text, Bool -> vorgabe), wie in den anderen Modulen."""
+    try:
+        return float(wert)
+    except (TypeError, ValueError):
+        return float(vorgabe)
+
+
+GOETTERSCHUTZ_PUNKTGRENZE = 299
+GOETTERSCHUTZ_BANDBREITE = 0.20
+
+
+def goetterschutz_band(punkte_eigene: Any) -> Tuple[int, int]:
+    """Erlaubter Zielbereich der eigenen Punktzahl (belegt: +/- 20 Prozent, hoechstens 299).
+
+    Untergrenze aufgerundet, Obergrenze abgerundet - so trifft das Beispiel des Handbuchs:
+    299 Punkte duerfen 240 bis 299 angreifen. Wer selbst ueber 299 liegt, hat keinen Schutz
+    und keinen Band (dann entscheidet allein die Grenze in `angreifbar`).
+    """
+    eigene = max(0.0, _als_zahl(punkte_eigene))
+    unten = int(math.ceil(eigene * (1.0 - GOETTERSCHUTZ_BANDBREITE)))
+    oben = int(math.floor(eigene * (1.0 + GOETTERSCHUTZ_BANDBREITE)))
+    return unten, min(oben, GOETTERSCHUTZ_PUNKTGRENZE)
+
+
+def angreifbar(punkte_angreifer: Any, punkte_ziel: Any) -> Tuple[bool, str]:
+    """Darf A den B angreifen? (belegt, Handbuch Seite 6, Z. 221-228; Registerpunkt 41)
+
+    Regeln, in dieser Reihenfolge:
+      1. Liegt einer der beiden ueber 299 und der andere nicht, ist KEIN Angriff moeglich -
+         in keine Richtung (die Grenze darf nicht ueberschritten werden).
+      2. Sind BEIDE ueber 299, gibt es keinen Schutz; der Angriff ist erlaubt.
+      3. Sind beide bei 299 oder darunter, muss das Ziel im Band +/- 20 Prozent der eigenen
+         Punktzahl liegen.
+
+    Rueckgabe: (erlaubt, Begruendung). Die Begruendung ist leer, wenn der Angriff erlaubt ist.
+    """
+    a = max(0.0, _als_zahl(punkte_angreifer))
+    z = max(0.0, _als_zahl(punkte_ziel))
+    ueber_a = a > GOETTERSCHUTZ_PUNKTGRENZE
+    ueber_z = z > GOETTERSCHUTZ_PUNKTGRENZE
+    if ueber_a != ueber_z:
+        return False, (f"Goetterschutzgrenze {GOETTERSCHUTZ_PUNKTGRENZE}: ein Angriff ueber die "
+                       f"Grenze hinweg ist in keine Richtung moeglich "
+                       f"(Angreifer {a:.0f}, Ziel {z:.0f}).")
+    if ueber_a and ueber_z:
+        return True, ""
+    unten, oben = goetterschutz_band(a)
+    if unten <= z <= oben:
+        return True, ""
+    return False, (f"Eingeschraenkter Goetterschutz: Ziel mit {z:.0f} Punkten liegt ausserhalb "
+                   f"von {unten}-{oben} (eigene {a:.0f} +/- 20 %).")
 
 
 # --------------------------------------------------------------------------

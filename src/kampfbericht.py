@@ -199,6 +199,86 @@ def mauer_schaden(belagerung: Dict[str, int],
 
 # ------------------------------------------------------------------------------ 3. Beute
 
+# VORGABE DANIEL 31.10.2026 (Registerpunkt 45): Die Beute wird GESTAFFELT, nicht pauschal.
+# Belegt ist nur: "nur Transportkarren pluendern" (Handbuch S. 23) und "Beute ist durch die
+# Ladung begrenzt". Die Prozentwerte sind VORSCHLAG und werden im Spieltest balanciert.
+# Reihenfolge der Pruefung: keine Verteidiger > Wall gebrochen > Wall beschaedigt > Wall heil.
+BEUTE_STAFFEL_PROZENT: Dict[str, int] = {
+    "keine_verteidiger": 100,   # niemand verteidigt mehr -> der ganze Bestand darf mit
+    "mauer_gebrochen": 60,      # Wall war beim Angriff schon bei 0 Prozent
+    "mauer_beschaedigt": 30,    # Wall bereits (teilweise) eingerissen
+    "mauer_heil": 10,           # erster erfolgreicher Angriff, Wall steht noch
+}
+
+
+def beute_lage(wall_zustand_vor: Any, verteidiger_uebrig: Any) -> str:
+    """Welche Lage gilt fuer die Staffelung? (VORGABE Daniel, Prozentwerte VORSCHLAG)
+
+    Keine Verteidiger mehr -> 'keine_verteidiger'; Wall bei 0 -> 'mauer_gebrochen';
+    Wall unter 100 (aber ueber 0) -> 'mauer_beschaedigt'; sonst 'mauer_heil'.
+    Unbekannte Angaben (None) gelten als "Wall heil, Verteidiger vorhanden" - der
+    vorsichtigste Fall, damit nichts verschenkt wird.
+    """
+    if verteidiger_uebrig is not None:
+        try:
+            if int(verteidiger_uebrig) <= 0:
+                return "keine_verteidiger"
+        except (TypeError, ValueError):
+            pass
+    zustand = _als_zahl(wall_zustand_vor, 100.0)
+    if zustand <= 0.0:
+        return "mauer_gebrochen"
+    if zustand < 99.5:          # alles unter "unversehrt" gilt als eingerissen
+        return "mauer_beschaedigt"
+    return "mauer_heil"
+
+
+def beute_staffel(einheiten_des_siegers: Dict[str, int],
+                  vorraete: Dict[str, float],
+                  wall_zustand_vor: Any = None,
+                  verteidiger_uebrig: Any = None) -> Dict[str, int]:
+    """Beute nach Daniels Staffelung (Registerpunkt 45).
+
+    Anteil = BEUTE_STAFFEL_PROZENT[beute_lage(...)], zusaetzlich begrenzt durch
+      * die Gesamtladung der mitgefuehrten Karren und
+      * den tatsaechlich vorhandenen Vorrat je Rohstoff.
+    Die Verteilung auf die Rohstoffe ist anteilig nach Vorratsmenge (das Handbuch
+    regelt die Aufteilung nicht).
+
+    Beispiele (Vorschlagswerte): Wall heil, 1.000 je Rohstoff, Handkarren (Ladung 40)
+    -> 10 Prozent = 100, aber nur 40 passen hinein. Ohne Verteidiger -> 100 Prozent,
+    begrenzt durch Ladung. Kein Karren -> keine Beute (belegt).
+    """
+    kapazitaet = 0
+    for name, anzahl in (einheiten_des_siegers or {}).items():
+        kapazitaet += E.kapazitaet(name, max(0, _als_int(anzahl)))
+    if kapazitaet <= 0:
+        return {}
+
+    vorhanden: Dict[str, int] = {}
+    for stoff, menge in (vorraete or {}).items():
+        m = int(max(0.0, _als_zahl(menge)))
+        if m > 0:
+            vorhanden[stoff] = m
+    gesamt = sum(vorhanden.values())
+    if gesamt <= 0:
+        return {}
+
+    anteil = BEUTE_STAFFEL_PROZENT[beute_lage(wall_zustand_vor, verteidiger_uebrig)] / 100.0
+    ziel_menge = int(gesamt * anteil)
+    restplatz = min(kapazitaet, ziel_menge)
+    genommen: Dict[str, int] = {}
+    for stoff in sorted(vorhanden):
+        if restplatz <= 0:
+            break
+        anteil_stoff = vorhanden[stoff] / gesamt
+        nimm = min(int(anteil_stoff * ziel_menge), vorhanden[stoff], restplatz)
+        if nimm > 0:
+            genommen[stoff] = nimm
+            restplatz -= nimm
+    return genommen
+
+
 def beute(einheiten_des_siegers: Dict[str, int],
           vorraete: Dict[str, float],
           rng: Optional[random.Random] = None) -> Dict[str, int]:

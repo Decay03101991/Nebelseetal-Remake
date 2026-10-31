@@ -81,7 +81,9 @@ check("die Rueckkehr dauert belegt doppelt so lange (Faktor 2)",
 
 abschnitt("Reisezeit - eine Strecke, symmetrisch und doppelt so lang zurueck")
 
-check("reisezeit_sekunden(100, 10) = 36000 s (10 h)", A.reisezeit_sekunden(100, 10) == 36000.0,
+# VORGABE Daniel 31.10.2026 (Registerpunkt 43): Faktor 2 -> 100 Felder bei GS 10 = 20 h.
+check("reisezeit_sekunden(100, 10) = 72000 s (20 h, Faktor 2 laut Daniels Entscheidung)",
+      A.reisezeit_sekunden(100, 10) == 72000.0,
       str(A.reisezeit_sekunden(100, 10)))
 check("reisezeit_sekunden(0, 10) = 0 s", A.reisezeit_sekunden(0, 10) == 0.0)
 check("eine negative Entfernung ergibt 0 s (nie negativ)", A.reisezeit_sekunden(-5, 10) == 0.0)
