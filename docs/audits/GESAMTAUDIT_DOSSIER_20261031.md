@@ -33,7 +33,7 @@ B1  PRUEFREGISTER DES ORIGINALS (40 Punkte, je mit Seite/Zeile)
 # Prüfregel gegen das Original — und was bereits geprüft ist
 
 **Daniel, 30.10.2026:** „Prüfe bitte alles was wir ins Spiel integrieren immer mit den Originalen
-Spielregeln und Abläufen und Zahlen und Werten ab." … „aber nicht alles tausendmal prüfen."
+Spielregeln und Abläufen und Zahlen und Werten ab.“ … „aber nicht alles tausendmal prüfen.“
 
 **Also:** jedes NEUE Ding wird gegen eine Quelle gehalten, das Urteil wird hier eingetragen, und
 was hier steht, wird **nicht erneut** nachgesehen. Nur ein echter Widerspruch öffnet einen Punkt
@@ -54,55 +54,55 @@ wieder.
 |---|---|---|---|---|
 | 1 | Baupreise Holzfäller 10 Holz/5 Stein/1 Siedler, Steinmetz 5/10/1, Jäger 25/25/1, Haus 80/50 | GameStar-Screenshot `web_1838857` + `data/baupreise.json` (`_hinweis`, `preise`) | **BELEGT** — unsere Daten stimmen | 30.10.2026 |
 | 2 | Haus hebt die Siedlergrenze um 5; Siedler, die in einem Gebäude arbeiten, belegen **keinen** Hausplatz | Screenshot `web_1838857` (Haustext wörtlich) + `gebaeude_wirkung.siedlergrenze_je_siedlung` (10 + 5 je Haus) | **BELEGT** — Rechnung stimmt | 30.10.2026 |
-| 3 | Portal: Koordinaten **X-Y-Z**, Gitter **20 × 20**, eigene Dimension/Reich = grüner Punkt, fremde = rote Punkte | Screenshot `web_1838856` (Koordinaten „15-18--9") + `docs/original/Spielanleitung_2005/portal.php.txt` | **BELEGT** | 30.10.2026 |
-| 4 | Navigation: **zwei Ebenen** („Übersicht" / „Siedlung"), Leiste immer gleich, Siedlungsreiter Siedlungsübersicht / Produktion / Verteidigung | Screenshot `web_1838856` + `web_1838857`, festgehalten in `docs/quellen/ORIGINAL_UI_BEFUNDE.md` | **BELEGT** | 30.10.2026 |
+| 3 | Portal: Koordinaten **X-Y-Z**, Gitter **20 × 20**, eigene Dimension/Reich = grüner Punkt, fremde = rote Punkte | Screenshot `web_1838856` (Koordinaten „15-18--9“) + `docs/original/Spielanleitung_2005/portal.php.txt` | **BELEGT** | 30.10.2026 |
+| 4 | Navigation: **zwei Ebenen** („Übersicht“ / „Siedlung“), Leiste immer gleich, Siedlungsreiter Siedlungsübersicht / Produktion / Verteidigung | Screenshot `web_1838856` + `web_1838857`, festgehalten in `docs/quellen/ORIGINAL_UI_BEFUNDE.md` | **BELEGT** | 30.10.2026 |
 | 5 | Ein Hersteller je Siedlung (Kriegerakademie, Diebesgilde, Stellmacher, Bibliothek je 1) | `data/buildings.json`, Feld `max_je_siedlung` = 1 | **BELEGT** — wird in `bauen_auf_karte` durchgesetzt | 30.10.2026 |
 | 6 | Handkarren/Siedlerkarren gehören zum Stellmacher; Siedlerkarren braucht Wagenbau 1 | `data/units.json` Felder `gebaeude` und `voraussetzung` | **BELEGT** | 30.10.2026 |
 | 7 | Höchstens zwei Bibliotheken je Spieler, eine je Siedlung, die letzte bleibt stehen | **Daniels Ansage 30.10.2026** (nicht aus den Originaldokumenten!) | **VORGABE DANIEL** | 30.10.2026 |
-| 8 | **Einheiten- und Item-Bilder passen** — keine Neuzuordnung, kein Neuschneiden, keine Umbenennung | **Ansage Daniel 30.10.2026** („die einheiten bilder und item bilder so passen") | **ABGESCHLOSSEN** | 30.10.2026 |
-| 9 | **Bibliothek erscheint als Menüpunkt erst mit der Bibliothek**; nur auf Grasland/Steppe/Nebelsee; eine je Siedlung (keine Gesamtgrenze im Original) | Spielanleitung 2009, Seite 12 (Z. 400–408) | **BELEGT** — Menüpunkt am 30.10. gebaut; Gelände und „eine je Siedlung" stimmten schon | 30.10.2026 |
+| 8 | **Einheiten- und Item-Bilder passen** — keine Neuzuordnung, kein Neuschneiden, keine Umbenennung | **Ansage Daniel 30.10.2026** („die einheiten bilder und item bilder so passen“) | **ABGESCHLOSSEN** | 30.10.2026 |
+| 9 | **Bibliothek erscheint als Menüpunkt erst mit der Bibliothek**; nur auf Grasland/Steppe/Nebelsee; eine je Siedlung (keine Gesamtgrenze im Original) | Spielanleitung 2009, Seite 12 (Z. 400–408) | **BELEGT** — Menüpunkt am 30.10. gebaut; Gelände und „eine je Siedlung“ stimmten schon | 30.10.2026 |
 | 10 | **Forschungsdauer = neue Stufe² in Stunden**, Stufe steigt erst nach Ablauf, Kosten verdoppeln sich je Stufe, Siedlung während der Studien blockiert | Spielanleitung 2009, Seite 12/13 (Z. 421–452) | **BELEGT** — `src/forschung.py` rechnet schon so | 30.10.2026 |
 | 11 | **Siedlergrenze 10 je neuer Siedlung, +5 je Haus, 1 Siedler/Stunde** | Spielanleitung 2009, Seite 11 (Z. 382–386) | **BELEGT** — `gebaeude_wirkung` stimmt | 30.10.2026 |
 | 12 | **Erträge je Gebäude und Gelände** (Holzfäller Wald 4/Steppe 2, Steinmetz Berg 4/Hügel 2, Erzmine 3/1,5, Tempel Nebelsee 5/sonst 1, Farm Grasland 4/Steppe 2, Goldmine 3/1,5, Schafszucht 3/1,5, Rinderfarm 3/3 bzw. 1,5/1,5, Pferdezucht 3/1,5, Jäger 2/2 bzw. 1/1) | Spielanleitung 2009, Seite 10 (Z. 338–373) | **BELEGT** — Tabelle steht in `docs/quellen/ORIGINAL_GEBAEUDE_UND_FREISCHALTUNG.md` | 30.10.2026 |
-| 13 | **Freischaltung neuer Gebäude/Einheiten läuft über Forschungsstufen**, nicht über eine Gebäudekette; „Voraussetzungen" im Hauptmenü zeigt die Bedingungen | Spielanleitung 2009, Seite 12 (Z. 396–412) | **BELEGT** | 30.10.2026 |
+| 13 | **Freischaltung neuer Gebäude/Einheiten läuft über Forschungsstufen**, nicht über eine Gebäudekette; „Voraussetzungen“ im Hauptmenü zeigt die Bedingungen | Spielanleitung 2009, Seite 12 (Z. 396–412) | **BELEGT** | 30.10.2026 |
 | 14 | **Sumpf ist unbebaubar**; jedes Produktionsgebäude hat zwei bevorzugte Geländearten | Spielanleitung 2009, Seite 10/11 (Z. 378–381) | **BELEGT** — Geländeregeln stimmen | 30.10.2026 |
 | 15 | **Bauvoraussetzungen je Gebäude** (sechs ohne Forschung: Holzfäller, Steinmetz, Jäger, Bibliothek, Haus, Lager; alle anderen `Baukunst`) | `data/buildings.json`, Feld `voraussetzung` je Eintrag | **FERTIG — NICHT NEU EINTRAGEN.** Am 30.10. versehentlich doppelt bearbeitet und zurückgenommen. Wer die Kette braucht: `python tools/freischaltung.py` liest sie, statt sie zu schreiben | 30.10.2026 |
 | 16 | **Gebäude-Baumenü** (Screenshot, Reiter, Kosten, offene GUI-Aufgaben) | `docs/BAUMENUE_ABGLEICH.md` | **FERTIG** — dort steht der Abgleich samt Aufgabenliste | 28.10.2026 |
-| 17 | **Es gibt KEINE Lagerkapazität.** „Lager" ist ein **Menüpunkt zur Übersicht** über Waren und Einheiten der Siedlung, keine Grenze | Spielanleitung 2009, Seite 9 (Z. 302–304) | **BELEGT** — Frage (a) damit erledigt; nichts einzubauen | 31.10.2026 |
-| 18 | **Der rote Balken** unter jedem Rohstoff zeigt, **wann die nächste Einheit dazukommt** (kein Lagerbalken!) | Spielanleitung 2009, Seite 7 (Z. 261–263) | **BELEGT** — die Deutung „Kapazität" war falsch; ggf. als Fortschrittsbalken nachbauen | 31.10.2026 |
-| 19 | **Mehrere Gebäude wirken additiv**: jedes bebaute Feld produziert für sich (Ertrag je Gelände), Siedlergrenze +5 je Haus | Spielanleitung 2009, Seiten 10–11 (Z. 338–386) | **BELEGT** — Frage (b) erledigt; keine Sonderregel für „zweites Gebäude" | 31.10.2026 |
+| 17 | **Es gibt KEINE Lagerkapazität.** „Lager“ ist ein **Menüpunkt zur Übersicht** über Waren und Einheiten der Siedlung, keine Grenze | Spielanleitung 2009, Seite 9 (Z. 302–304) | **BELEGT** — Frage (a) damit erledigt; nichts einzubauen | 31.10.2026 |
+| 18 | **Der rote Balken** unter jedem Rohstoff zeigt, **wann die nächste Einheit dazukommt** (kein Lagerbalken!) | Spielanleitung 2009, Seite 7 (Z. 261–263) | **BELEGT** — die Deutung „Kapazität“ war falsch; ggf. als Fortschrittsbalken nachbauen | 31.10.2026 |
+| 19 | **Mehrere Gebäude wirken additiv**: jedes bebaute Feld produziert für sich (Ertrag je Gelände), Siedlergrenze +5 je Haus | Spielanleitung 2009, Seiten 10–11 (Z. 338–386) | **BELEGT** — Frage (b) erledigt; keine Sonderregel für „zweites Gebäude“ | 31.10.2026 |
 | 20 | **GS = Reisegeschwindigkeit** (höher = schneller zwischen zwei Siedlungen); Auftragsdauer wird **je Strecke** angezeigt, Rückkehr = doppelte Dauer. **Eine Zahlformel nennt das Handbuch nicht** | Spielanleitung 2009, Seite 18 (Z. 1103–1104) und Seite 19 (Z. 1136–1141) | **BELEGT (qualitativ)** — die Formel bleibt VORSCHLAG: Wegzeit = Felder ÷ GS der langsamsten Einheit | 31.10.2026 |
 | 21 | **Ziele eines Auftrags:** eigene Siedlung, **Portalkoordinaten** eines Spielers, Verbündeter, Gildenmitglied; Auftragsart hängt von den gewählten Einheiten ab | Spielanleitung 2009, Seite 19 (Z. 1114–1148) | **BELEGT** — Grundlage für Daniels Planungsplattform (C6) | 31.10.2026 |
 | 22 | **Hauptmenü = die Welt-Ebene** (Übersicht, Portal, Diplomatie, Einstellungen, Ruhmeshalle, Gildenhalle, Voraussetzungen, Nachrichten, Forum, IRC-Chat, Logout); Umschalten über ein **Dropdownfeld über dem Menü** zwischen Siedlungsübersicht und Spielübersicht. Im Menü stehen die **neuesten fünf Nachrichten** und die Punkte | Fanpage-Anleitung 2007, `Grundlegenes.html` (web.archive.org, Capture 13.11.2007), Abschnitt Bildschirmaufbau/Hauptmenü | **BELEGT** — bestätigt unabhängig die am 30.10. gebauten zwei Navigationsebenen samt Punkteleiste | 31.10.2026 |
 | 23 | **Ressourcenleiste**: in einer Siedlung die Ressourcen DIESER Siedlung, in der Hauptübersicht und allen siedlungsfernen Bereichen die **Summe aller Siedlungen** | ebd., Bildschirmaufbau | **BELEGT** — deckt sich mit Ortslager + Reichssumme im Code | 31.10.2026 |
-| 24 | **Portal kostet nach Entfernung:** „Je weiter eine andere Spielwelt von Deiner Welt entfernt liegt, desto mehr Mana kostet es, das Portal zu öffnen, um Einheiten zu diesem Spieler zu entsenden." 20 Dimensionen im Limbus | ebd., Hauptmenü/Portal | **BELEGT — NEU.** Die 5.000 Mana sind der Dimensionswechsel; das Entsenden selbst kostet **entfernungsabhängig**. Im Entwurf vom 31.10. fehlte das | 31.10.2026 |
-| 25 | **„Voraussetzungen" zeigt ALLE Bedingungen**: für Einheiten, Gebäude, Waren UND Forschungen, samt „ob Dein Volk sie schon erfüllt hat" | ebd., Hauptmenü/Voraussetzungen | **BELEGT** — unsere Ansicht zeigt bisher nur Forschungen; Erweiterung nötig | 31.10.2026 |
+| 24 | **Portal kostet nach Entfernung:** „Je weiter eine andere Spielwelt von Deiner Welt entfernt liegt, desto mehr Mana kostet es, das Portal zu öffnen, um Einheiten zu diesem Spieler zu entsenden.“ 20 Dimensionen im Limbus | ebd., Hauptmenü/Portal | **BELEGT — NEU.** Die 5.000 Mana sind der Dimensionswechsel; das Entsenden selbst kostet **entfernungsabhängig**. Im Entwurf vom 31.10. fehlte das | 31.10.2026 |
+| 25 | **„Voraussetzungen“ zeigt ALLE Bedingungen**: für Einheiten, Gebäude, Waren UND Forschungen, samt „ob Dein Volk sie schon erfüllt hat“ | ebd., Hauptmenü/Voraussetzungen | **BELEGT** — unsere Ansicht zeigt bisher nur Forschungen; Erweiterung nötig | 31.10.2026 |
 | 26 | **Der Balken zeigt die Zeit bis zur nächsten Einheit** (unabhängige zweite Quelle) | Fanpage 2007, `Siedlung.html` | **BELEGT** — bestätigt Register 18 | 31.10.2026 |
-| 27 | **Wallschwellen (Vorrunde), vollständige Tabelle:** Fußtruppen-Schlagkraft / Belagerungs-Schlagkraft je Stufe — Erdwall 10/–, Steinwall 40/–, Kleine Palisade 90/–, Palisade 160/–, Verstärkte Palisade 250/500, Mauer 360/600, Verstärkte Mauer 490/700, Festungsmauer 640/800, Verstärkte Festungsmauer 810/900, Bollwerk 1000/1000. Beschädigter Wall senkt die Schwelle anteilig (Zustand 50 % = halbe Schlagkraft) | Fanpage 2007, `Kampf.html` | **BELEGT — NEU.** Gilt für das Remake, weil unser Verteidigungswall dieselben 10 Stufen führt. Stand im Entwurf als „Entscheidung Daniel" — ist es NICHT | 31.10.2026 |
+| 27 | **Wallschwellen (Vorrunde), vollständige Tabelle:** Fußtruppen-Schlagkraft / Belagerungs-Schlagkraft je Stufe — Erdwall 10/–, Steinwall 40/–, Kleine Palisade 90/–, Palisade 160/–, Verstärkte Palisade 250/500, Mauer 360/600, Verstärkte Mauer 490/700, Festungsmauer 640/800, Verstärkte Festungsmauer 810/900, Bollwerk 1000/1000. Beschädigter Wall senkt die Schwelle anteilig (Zustand 50 % = halbe Schlagkraft) | Fanpage 2007, `Kampf.html` | **BELEGT — NEU.** Gilt für das Remake, weil unser Verteidigungswall dieselben 10 Stufen führt. Stand im Entwurf als „Entscheidung Daniel“ — ist es NICHT | 31.10.2026 |
 | 28 | **Reicht die Schlagkraft nicht, ziehen sich die Truppen zurück — der Kampf gilt als unentschieden** | ebd. | **BELEGT** | 31.10.2026 |
 | 29 | **Auftragsarten:** Stationieren (alle Einheitentypen, nur eigene Siedlungen), Spionage (Bericht mit Karte, Ressourcen, stationierten Einheiten; Pferde machen Spione schneller), Transportieren (nur mit Handkarre/Einspänner/Zweispänner; Kriegseinheiten dürfen mit, nützen nichts), Handeln (Karawanen, Kaufpreis, Bestätigung durch den Partner) | Fanpage 2007, `Auftraege.html` | **BELEGT** — Grundlage der Auftrags-/Planungsansicht | 31.10.2026 |
 | 30 | **Jede Mechanik in BEIDEN Fassungen lesen.** Die Original-Seiten 2006 und das Handbuch 2009 weichen messbar ab (Siedlergrenze **5 vs. 10**, max. **10 vs. 6** Siedlungen, Tempel **8/2 vs. 5/1**, Jäger **nur Wald vs. Wald+Steppe**, Erträge allgemein). 2009 ist Richtschnur, 2006 zeigt die Entwicklung und füllt Lücken | `docs/original/Spielanleitung_2005/` (Seiten von 2006) gegen `Spielanleitung_2009_Textfassung.txt` | **BELEGT** — alle Abweichungen in `docs/quellen/ABWEICHUNGEN_2006_zu_2009.md`, nichts stillschweigend angeglichen | 31.10.2026 |
 | 31 | **Kriegspunkte je Einheit** (Bürgerwehr 1 … Paladin 16 … Waldläufer 16) stimmen in **allen 15 Werten** mit `data/units.json` überein | 2006er `punktesystem.php` gegen `data/units.json` | **BELEGT** — nichts zu ändern | 31.10.2026 |
 | 32 | **Gesamtpunktzahl:** 2009 = **(Krieg + Forschung) / 2**; 2006 = **je ein Drittel** aus Forschung, Krieg **und Handel**. Handelspunkte (1 je 100 Gold, Verfall 24 h) gibt es nur in der älteren Fassung | Handbuch S. 5/6 gegen 2006er `punktesystem.php` | **BELEGT beide** — Code folgt 2009 (richtig). Handelspunkte: **Entscheidung Daniel** | 31.10.2026 |
-| 33 | **Ausbildungsgeschwindigkeit steigt mit der Gebäudestufe** („Je höher die Stufe, desto schneller") und **ein Hersteller je Siedlung**; Menübutton erscheint mit dem Gebäude | 2006er `einheiten.php` | **BELEGT** — bestätigt den Bau vom 30.10.; offen bleibt die Stufenabhängigkeit der Ausbildungszeit | 31.10.2026 |
+| 33 | **Ausbildungsgeschwindigkeit steigt mit der Gebäudestufe** („Je höher die Stufe, desto schneller“) und **ein Hersteller je Siedlung**; Menübutton erscheint mit dem Gebäude | 2006er `einheiten.php` | **BELEGT** — bestätigt den Bau vom 30.10.; offen bleibt die Stufenabhängigkeit der Ausbildungszeit | 31.10.2026 |
 | 34 | **Warenvoraussetzungen** vollständig nur in der älteren Fassung: Messer (keine), Dolch (Waffentechnik 1), Kurzschwert (3), Schwert (5), Zweihänder (8), Kettenhemd (Rüstungsbau 3), Plattenrüstung (5), Paladinharnisch (Rüstungsbau 7 + Magiekunde 2), Kurzbogen (Waffentechnik 2), Bogen (4), Langbogen (6), Armbrust (8), Wollumhang (keine), Lederrüstung (Nähkunst 1 + Rüstungsbau 2), Diebesumhang (Nähkunst 2), Fellumhang (Nähkunst 4), Fellrüstung (Nähkunst 6) | 2006er `warentabelle.php` | **BELEGT** — gegen `data/warenrezepte.json` prüfen | 31.10.2026 |
 | 35 | **Wallschwellen stehen im Handbuch SELBST** (nicht nur auf der Fanpage 2007): Fußtruppen 10/40/90/160/250/360/490/640/810/1000, Belagerung ab Stufe 5: 500/600/700/800/900/1000. Beschädigte Mauer → prozentual weniger Schlagkraft (Beispiel: Verst. Mauer 50 % → 245/350) | Spielanleitung 2009, Seite 21 (Z. 1216–1258) — zweite, unabhängige Quelle zu Punkt 27 | **BELEGT** — Tabelle zusätzlich in `data/buildings.json` (Gebäude 16, Stufen 1–10); umgesetzt in `kampf.py` Z. 190–204 | 31.10.2026 |
-| 36 | **Reicht die Schlagkraft nicht, ziehen sich die Truppen zurück — der Kampf gilt als unentschieden.** Kein „halbierter Schaden" | Spielanleitung 2009, Seite 21 (Z. 1213–1215) | **BELEGT** — bestätigt Punkt 28 aus dem Handbuch selbst | 31.10.2026 |
+| 36 | **Reicht die Schlagkraft nicht, ziehen sich die Truppen zurück — der Kampf gilt als unentschieden.** Kein „halbierter Schaden“ | Spielanleitung 2009, Seite 21 (Z. 1213–1215) | **BELEGT** — bestätigt Punkt 28 aus dem Handbuch selbst | 31.10.2026 |
 | 37 | **Kampfsequenzen:** je Sequenz schießen **zuerst beide** Fernkampfseiten gleichzeitig (erst feuern, dann Verluste beider Seiten), danach stürmen die angreifenden Nahkämpfer **nacheinander** je eine **zufällige** verteidigende Nahkampfeinheit; **nach 10 Sequenzen** ohne Sieger endet die Schlacht **unentschieden**, der Angreifer zieht sich **ohne Beute** zurück | Spielanleitung 2009, Seiten 21/22 (Z. 1274–1295) | **BELEGT** — umgesetzt in `kampf.py` Z. 217–312; zusammen mit `docs/original/ORIGINAL_Kampf_und_Punkte.md` §2.2 | 31.10.2026 |
 | 38 | **Erschöpfung:** der Sieger eines Zweikampfs verliert **1 Punkt AT und PA** bis zum Schlachtende, summiert sich; deshalb kann Übermacht schwacher Einheiten starke besiegen | Spielanleitung 2009, Seite 23 (Z. 1324–1328) | **BELEGT** — im aktiven Forum-Modell als Erschöpfungsschaden/Schwelle umgesetzt (`kampf.py` `_ausgeschieden`), Bedeutung gleich, Zahlen aus dem neueren Original | 31.10.2026 |
-| 39 | **Auftragskosten:** eigene Siedlungen kosten **Gold und Nahrung** (je Einheit); fremde **zusätzlich Mana nach Entfernung**; Geschwindigkeit in **10-%-Schritten drosselbar**, langsamer = **weniger Gold, mehr Nahrung**, Anzeige im Feld „Reisedauer" | Spielanleitung 2009, Seite 20 (Z. 1185–1194) | **BELEGT** — Konstante vorhanden (`auftraege.py` Z. 57–59), aber **nicht angeschlossen** (Z. 514) und Reisekosten leer (Z. 536) | 31.10.2026 |
-| 40 | **Zwei Kampfsysteme, dokumentiert:** (a) Handbuch 2009 = LE/AT/PA/MU, Rückfallmodul `kampf_alt_handbuch_2009.py`; (b) **neueres Original-Forumssystem** (Konstitution %, Kampfwert-Spanne, Rüstung, Fernkampfchance, Erschöpfung durch Treffer) in `src/kampf.py`, aktiv über `main.py`. Die neuere Fassung ist **später** als das Handbuch und ersetzt es im Code (Projektentscheidung 29.10., „GPT-KA01…KA06, 14 Testdateien grün"). Punkte, Beute, Geräteverlust und Wall bleiben aus dem Handbuch, weil das Forum-Dokument sie nicht nennt | `docs/quellen/Das_Kampfsystem_Neu_Original.odt` gegen Spielanleitung 2009; `docs/ENTWICKLUNGSPROTOKOLL.md` Z. 133 | **BELEGT (beide Quellen)** — Konflikt offen für Daniel: Entscheidung E1 in `docs/PRUEFUNG_ENTWURF_WEGZEIT_KAMPF_20261031.md` §6 | 31.10.2026 |
+| 39 | **Auftragskosten:** eigene Siedlungen kosten **Gold und Nahrung** (je Einheit); fremde **zusätzlich Mana nach Entfernung**; Geschwindigkeit in **10-%-Schritten drosselbar**, langsamer = **weniger Gold, mehr Nahrung**, Anzeige im Feld „Reisedauer“ | Spielanleitung 2009, Seite 20 (Z. 1185–1194) | **BELEGT** — Konstante vorhanden (`auftraege.py` Z. 57–59), aber **nicht angeschlossen** (Z. 514) und Reisekosten leer (Z. 536) | 31.10.2026 |
+| 40 | **Zwei Kampfsysteme, dokumentiert:** (a) Handbuch 2009 = LE/AT/PA/MU, Rückfallmodul `kampf_alt_handbuch_2009.py`; (b) **neueres Original-Forumssystem** (Konstitution %, Kampfwert-Spanne, Rüstung, Fernkampfchance, Erschöpfung durch Treffer) in `src/kampf.py`, aktiv über `main.py`. Die neuere Fassung ist **später** als das Handbuch und ersetzt es im Code (Projektentscheidung 29.10., „GPT-KA01…KA06, 14 Testdateien grün“). Punkte, Beute, Geräteverlust und Wall bleiben aus dem Handbuch, weil das Forum-Dokument sie nicht nennt | `docs/quellen/Das_Kampfsystem_Neu_Original.odt` gegen Spielanleitung 2009; `docs/ENTWICKLUNGSPROTOKOLL.md` Z. 133 | **BELEGT (beide Quellen)** — Konflikt offen für Daniel: Entscheidung E1 in `docs/PRUEFUNG_ENTWURF_WEGZEIT_KAMPF_20261031.md` §6 | 31.10.2026 |
 
 ## Offen — hier fehlt die Quelle (nicht raten!)
 
 | # | Frage | Status | Nächster Schritt |
 |---|---|---|---|
-| A | ~~**Lagerkapazität**~~ | **erledigt 31.10.**: es gibt keine (Register 17/18) — „Lager" ist eine Übersicht, der Balken zeigt die Zeit bis zur nächsten Einheit | — |
+| A | ~~**Lagerkapazität**~~ | **erledigt 31.10.**: es gibt keine (Register 17/18) — „Lager“ ist eine Übersicht, der Balken zeigt die Zeit bis zur nächsten Einheit | — |
 | B | ~~Wirkung eines **zweiten** Gebäudes~~ | **erledigt 31.10.**: additiv, jedes Feld produziert für sich (Register 19) | — |
 | C | **Wegzeiten**: GS = Reisegeschwindigkeit, Dauer je Strecke, Rückkehr doppelt (Register 20) — **die Zahlenformel fehlt** | offen (Vorschlag nötig) | mit dem starken Modell entwerfen: Wegzeit = Felder ÷ GS, gegen gespielte Runden prüfen |
 | D | Wie wird entschieden, **wo** die 6 Siedlungen einer Partie liegen (Zufall belegt) und wie hängen Laufwege davon ab | teilweise belegt (Zufall) | Portal-/Weltseiten |
 | E | Kampfablauf im Bild: Reihenfolge, Anzeige, Beute | offen | Handbuchbilder `docs/original/handbuch_bilder/` (244 Dateien, nicht ausgewertet) |
-| F | ~~„Voraussetzungen" als eigener Menüpunkt — was zeigt er?~~ | **erledigt 30.10.**: er zeigt die Voraussetzungen der Forschungen (Handbuch Seite 12) | — |
+| F | ~~„Voraussetzungen“ als eigener Menüpunkt — was zeigt er?~~ | **erledigt 30.10.**: er zeigt die Voraussetzungen der Forschungen (Handbuch Seite 12) | — |
 
 
 ==============================================================================
@@ -134,7 +134,7 @@ Einheiten werden über den Menüpunkt **Aufträge** befehligt. Ziele: eigene Sie
 
 **Auftragskosten:** eigene Siedlungen kosten Gold und Nahrung (je nach Einheiten); fremde Siedlungen
 zusätzlich **Mana für das Portal**, abhängig von der Entfernung der Zielwelt. Geschwindigkeit ist in
-**10-%-Schritten drosselbar**: langsamer = **weniger Gold, mehr Nahrung**, angezeigt als „Reisedauer".
+**10-%-Schritten drosselbar**: langsamer = **weniger Gold, mehr Nahrung**, angezeigt als „Reisedauer“.
 
 ---
 
@@ -227,7 +227,7 @@ Kurzbogenschütze 2 · Bogenschütze 4 · Langbogenschütze 8 · Armbrustschütz
 Belagerungsturm 2 · Ramme 3 · Großer Belagerungsturm 4 · Große Ramme 5 · Balliste 6 · Katapult 7 ·
 Großes Katapult 8 · Streuner 1 · Gauner 2 · Dieb 4 · Meisterdieb 8 · Kundschafter 10 ·
 Waldläufer 16 · Handkarren 1 · Einspänner 2 · Zweispänner 3.
-(Handelskarawanen, Siedlerkarren und Sammlerkarren haben **„Punktewert: -"**, geben also **keine** Kriegspunkte.)
+(Handelskarawanen, Siedlerkarren und Sammlerkarren haben **„Punktewert: -“**, geben also **keine** Kriegspunkte.)
 
 Beispiel aus dem Handbuch: 10 Paladine + 12 Bogenschützen = 10·16 + 12·4 = **208 Kriegspunkte**.
 
@@ -274,8 +274,8 @@ B3  BELEGTE AUSWERTUNG: Gebaeude, Freischaltung, Erträge (Handbuch S. 9-14)
 Textsatz; die Datei markiert jede Seite mit `===== Seite N =====`). Wörtliche Zitate sind in
 Anführungszeichen, Seitenzahl in Klammern.
 **Zweck:** Daniel: „kannst du mal schauen, wie das mit dem Gebäudeaufbau und dem Freischalten
-nacheinander im Originalspiel aufgebaut war" … „es gibt Abschnitte die einzelne Gebäude und deren
-Funktion erklären … daraus können wir viel schließen."
+nacheinander im Originalspiel aufgebaut war“ … „es gibt Abschnitte die einzelne Gebäude und deren
+Funktion erklären … daraus können wir viel schließen.“
 
 ---
 
@@ -285,26 +285,26 @@ Der Aufbau in der Anleitung, Seite für Seite:
 
 | Seite | Inhalt |
 |---|---|
-| 9 | Die Siedlungsseite hat **Buttons, die in Bereiche führen** — „beispielsweise in die Kriegerakademie in der Einheiten ausgebildet werden können, oder in die Bibliothek in der Du neue Wissensgebiete erforschen kannst" |
+| 9 | Die Siedlungsseite hat **Buttons, die in Bereiche führen** — „beispielsweise in die Kriegerakademie in der Einheiten ausgebildet werden können, oder in die Bibliothek in der Du neue Wissensgebiete erforschen kannst“ |
 | 10 | Tabelle **Rohstoffproduktion**: jedes Gebäude, welches Gelände, wie viel Ertrag pro Stunde |
 | 11 | Regel: jedes Gebäude produziert auf **zwei** Geländearten unterschiedlich viel; **Sümpfe sind unbebaubar**; **1 neuer Siedler pro Stunde**, Grenze **10 je neuer Siedlung, +5 je Haus** |
-| 12 | **Forschung**: Bibliothek bauen → Button „Forschung" erscheint; Ausbau in Stufen; Dauer und Kosten |
+| 12 | **Forschung**: Bibliothek bauen → Button „Forschung“ erscheint; Ausbau in Stufen; Dauer und Kosten |
 | 13 | Beispiel Baukunst 2→3 = 9 Stunden; Kosten verdoppeln sich je Stufe; während der Studien ist der Forschungsbereich **der Siedlung** blockiert |
 | 14 | **Waren**: erst Waffen/Rüstungen produzieren (Schmiede, Bogenbauer, Näherei), dann Militäreinheiten |
 
 **Kern der Freischaltung (Seite 12, wörtlich):**
 1. „Um Forschung zu betreiben musst Du in Deiner Siedlung zunächst eine **Bibliothek** bauen. Dies
-   kannst Du über den Button **„Bauen"** im **Siedlungsmenü** tun."
+   kannst Du über den Button **„Bauen“** im **Siedlungsmenü** tun."
 2. „Sie kann nur auf **Grasland, Steppe oder Nebelseen** errichtet werden. **In jeder Siedlung kann
-   nur eine einzige Bibliothek gebaut werden.**"
+   nur eine einzige Bibliothek gebaut werden.**“
 3. „Verfügt Deine Siedlung über eine Bibliothek, **erscheint im Siedlungsmenü der Button
-   „Forschung"**."
+   „Forschung“**."
 4. „Mit jeder Stufe, die Deine Bibliothek ausgebaut wird, stehen Dir **weitere
-   Forschungsmöglichkeiten** in ihr offen."
-5. „Welche Voraussetzungen Du für die Forschungen benötigst, kannst Du unter **„Voraussetzungen"**
+   Forschungsmöglichkeiten** in ihr offen.“
+5. „Welche Voraussetzungen Du für die Forschungen benötigst, kannst Du unter **„Voraussetzungen“**
    im Hauptmenü erfahren."
 
-Damit ist Daniels Wunsch („Forschung erst als Menüpunkt, wenn eine Bibliothek steht") **original
+Damit ist Daniels Wunsch („Forschung erst als Menüpunkt, wenn eine Bibliothek steht“) **original
 belegt** — es ist im Original kein Sonderfall, sondern die normale Siedlungslogik. Das haben wir am
 30.10. so gebaut.
 
@@ -312,19 +312,19 @@ belegt** — es ist im Original kein Sonderfall, sondern die normale Siedlungslo
 
 „Forschungen sind wichtige Voraussetzungen, **für Einheiten, Waffen, Gebäude und weitere
 Forschungsmöglichkeiten**. Manche erhöhen die Produktivität Deiner Siedlungen, andere ermöglichen
-**den Bau neuer Gebäude und Einheiten** oder steigern die Effektivität Deiner Kampfeinheiten."
+**den Bau neuer Gebäude und Einheiten** oder steigern die Effektivität Deiner Kampfeinheiten.“
 
 → Die Freischaltung läuft also **über Forschungsstufen**, nicht über eine feste Gebäudereihenfolge.
 Für uns heißt das: `data/units.json` (`voraussetzung`) und `data/buildings.json`
 (`voraussetzung`) sind die richtige Stelle — und `research.json` (Feld `voraussetzung`, z. B.
-„Bibliothek 1") die Bedingung darüber.
+„Bibliothek 1“) die Bedingung darüber.
 
 ## 3. Harte Zahlen aus dem Abschnitt (alle wörtlich belegt)
 
 | Regel | Wert | Seite |
 |---|---|---|
-| Forschungsdauer | **neue Stufe² in Stunden** („Ein Forschungsauftrag dauert (Neue Stufe*Neue Stufe) in Stunden") | 12 |
-| Forschungsstufe steigt | **erst nach Ablauf** der Zeit („Während der gesamten Studienzeit bleibt die Stufe … auf ihrem alten Wert") | 13 |
+| Forschungsdauer | **neue Stufe² in Stunden** („Ein Forschungsauftrag dauert (Neue Stufe*Neue Stufe) in Stunden“) | 12 |
+| Forschungsstufe steigt | **erst nach Ablauf** der Zeit („Während der gesamten Studienzeit bleibt die Stufe … auf ihrem alten Wert“) | 13 |
 | Kosten je Forschungsstufe | **verdoppeln sich** (Stufe 1 = 50 Holz → 100 → 200 → 400 …) | 13 |
 | Blockade | während der Studien in **dieser Siedlung** kein Ausbau und kein zweiter Auftrag | 12/13 |
 | Abbruch | investierte Zeit **und** Rohstoffe sind verloren | 12 |
@@ -352,7 +352,7 @@ Für uns heißt das: `data/units.json` (`voraussetzung`) und `data/buildings.jso
 | Punkt | Befund |
 |---|---|
 | Forschungsdauer Stufe² | **stimmt schon**: `src/forschung.dauer_stunden()` = Stufe², über `spieldaten.forschungsdauer_stunden` |
-| Kostenverdopplung | **stimmt schon**: `src/forschung.py` Kopf nennt „Stufe 1 = 50 Holz, dann 100, 200, 400, 800 …" |
+| Kostenverdopplung | **stimmt schon**: `src/forschung.py` Kopf nennt „Stufe 1 = 50 Holz, dann 100, 200, 400, 800 …“ |
 | Bibliothek nur Grasland/Steppe/Nebelsee | **stimmt schon**: `data/buildings.json`, `nur_auf` = genau diese drei, mit Belegvermerk `_belegt_nur_auf` |
 | Eine Bibliothek je Siedlung | **stimmt schon**: `max_je_siedlung` = 1, durchgesetzt in `bauen_auf_karte` |
 | Forschung erst ab Bibliothek | **am 30.10. gebaut**: Menüpunkt erscheint nur mit Bibliothek |
@@ -361,7 +361,7 @@ Für uns heißt das: `data/units.json` (`voraussetzung`) und `data/buildings.jso
 
 ## 6. Widerspruch, den Daniel entscheiden muss
 
-Daniels Vorgabe „höchstens **zwei** Bibliotheken je Spieler, eine dritte nicht" ist **strenger als
+Daniels Vorgabe „höchstens **zwei** Bibliotheken je Spieler, eine dritte nicht“ ist **strenger als
 das Original**: das Handbuch begrenzt nur **je Siedlung** auf eine Bibliothek und setzt **keine**
 Gesamtgrenze über das Spiel. Im Code steht seine Grenze (`BIBLIOTHEK_OBERGRENZE = 2`) und ist dort
 als seine Entscheidung kommentiert. **Zu entscheiden:** Original folgen (Grenze fällt, je Siedlung
@@ -372,7 +372,7 @@ eine) oder Daniels Grenze behalten.
 1. **Siedlungsmenü führt die Bereiche** als Buttons: Dorfzentrum/Übersicht, Bauen (Produktion und
    Verteidigung), Lager, und — sobald gebaut — Kriegerakademie, Stellmacher, Diebesgilde,
    Bibliothek/Forschung. Genau das ist am 30.10. entstanden.
-2. **Der Sprung „neue Einheiten" läuft über Forschung**, nicht über Gebäudeketten: Einheit X wird
+2. **Der Sprung „neue Einheiten“ läuft über Forschung**, nicht über Gebäudeketten: Einheit X wird
    freigeschaltet, wenn ihre Forschung die Stufe erreicht (`data/units.json`, `voraussetzung`).
 3. **Waren zuerst, dann Truppen** (Seite 14): Schmiede/Bogenbauer/Näherei liefern Waffen und
    Rüstungen, die Ausbildung verbraucht sie. In unserem Code prüft `ausbildung_start` die
@@ -386,10 +386,10 @@ B4  ABWEICHUNGEN 2006 GEGEN 2009 (Balance 2009, Struktur beide)
 # Abweichungen: Original-Seiten 2006 ↔ Handbuch 2009
 
 **Warum diese Datei:** Die Projektregel lautet seit dem 04.10.2026: „Wo 2005er Fassung und 2009er
-Handbuch abweichen, ist das vermerkt — **nicht stillschweigend angeglichen**." Daniel hat am 31.10.
+Handbuch abweichen, ist das vermerkt — **nicht stillschweigend angeglichen**.“ Daniel hat am 31.10.
 die Original-Seiten des Spiels erneut geschickt; sie weichen an vielen Stellen vom Handbuch ab.
 Diese Datei hält jede Abweichung fest, damit niemand später glaubt, eine der beiden Zahlen sei
-„falsch" — es sind zwei Fassungen desselben Spiels.
+„falsch“ — es sind zwei Fassungen desselben Spiels.
 
 **Quellen:** `docs/original/Spielanleitung_2005/` (Original-Seiten, Stand 2006) und
 `docs/original/Spielanleitung_2009_Textfassung.txt` (Handbuch 2009, mit Zeilennummern).
@@ -399,7 +399,7 @@ als ältere Fassung und werden nur dort genutzt, wo das Handbuch schweigt.
 ## 0. Der Grundsatz (Daniel, 31.10.2026)
 
 Wörtlich: „ich gehe davon aus dass sich das Spiel damals natürlich auch entwickelt hat und das
-Balancing der aktuelleren Version deutlich besser war als zuvor."
+Balancing der aktuelleren Version deutlich besser war als zuvor.“
 
 Daraus folgt die Trennlinie, die für jede Zahl gilt:
 
@@ -452,10 +452,10 @@ Daraus folgt die Trennlinie, die für jede Zahl gilt:
 - **Kriegspunkte** je ausgebildeter Militär-/Spionageeinheit: Bürgerwehr 1, Kämpfer 2, Krieger 4,
   Ritter 8, Paladin 16, Kurzbogenschütze 2, Bogenschütze 4, Langbogenschütze 8, Armbrustschütze 10,
   Streuner 1, Gauner 2, Dieb 4, Meisterdieb 8, Kundschafter 10, Waldläufer 16.
-  „Solltet Ihr Einheiten verlieren, verringern sich auch Eure Kriegspunkte."
+  „Solltet Ihr Einheiten verlieren, verringern sich auch Eure Kriegspunkte.“
 - **Handelspunkte**: je **100 Gold** Handelseinnahme 1 Punkt (20 Gold = 0,2), Verfall 1 Punkt je
   24 Stunden ohne Handelseinnahme.
-- **„Alle drei Punktearten fließen zu je einem Drittel in Eure Gesamtpunktezahl ein."**
+- **„Alle drei Punktearten fließen zu je einem Drittel in Eure Gesamtpunktezahl ein.“**
 
 **Das Handbuch 2009 rechnet anders** (S. 5/6): **Gesamtpunktzahl = (Kriegspunkte + Forschungspunkte)
 / 2** — also nur zwei Punktarten, keine Handelspunkte, halbiert statt gedrittelt.
@@ -471,10 +471,10 @@ belegt). Erst danach lohnt ein Einbau.
 ## 5. Ausbildung: die Gebäudestufe macht schneller
 
 2006er Seite `einheiten.php`, wörtlich: „Diese Gebäude werden stufenweise ausgebaut. **Je höher die
-Stufe, desto schneller werden die entsprechenden Einheiten ausgebildet.**" Ebenso: „In jeder Eurer
+Stufe, desto schneller werden die entsprechenden Einheiten ausgebildet.**“ Ebenso: „In jeder Eurer
 Siedlungen kann jeweils **nur eine** Kriegerakademie, eine Diebesgilde und ein Stellmacher errichtet
-werden" und „Sobald Ihr eines dieser Gebäude errichtet habt, **erscheint im Siedlungsmenü der Button**
-Stellmacher, Diebesgilde bzw. Kriegerakademie."
+werden“ und „Sobald Ihr eines dieser Gebäude errichtet habt, **erscheint im Siedlungsmenü der Button**
+Stellmacher, Diebesgilde bzw. Kriegerakademie.“
 **Bedeutung:** Das bestätigt unabhängig, was am 30.10. gebaut wurde (Menüpunkt erst mit dem Gebäude,
 ein Hersteller je Siedlung). **Offen:** unsere Ausbildungszeit ist eine feste Pilotregel
 (`pilot_ausbildung_minuten`); die Stufenabhängigkeit fehlt.
@@ -483,12 +483,12 @@ ein Hersteller je Siedlung). **Offen:** unsere Ausbildungszeit ist eine feste Pi
 
 | Thema | 2006 | 2009 |
 |---|---|---|
-| Siedeln | über Menüpunkt **„Aufträge" → „Neue Siedlung gründen"** | eigener Menüpunkt **„Siedeln"** |
-| Siedlungsmenü | „Siedlungsübersicht, Gebäude bauen, Gebäude abreißen, Lager, Aufträge" | zusätzlich Umbenennen, Siedeln, Siedlung aufgeben |
-| Auswahl der Siedlung | „Auge hinter dem Siedlungsnamen", Auswahlfeld **unter** dem Menü | Klick auf den Namen oder Dropdown **über** dem Menü |
+| Siedeln | über Menüpunkt **„Aufträge“ → „Neue Siedlung gründen“** | eigener Menüpunkt **„Siedeln“** |
+| Siedlungsmenü | „Siedlungsübersicht, Gebäude bauen, Gebäude abreißen, Lager, Aufträge“ | zusätzlich Umbenennen, Siedeln, Siedlung aufgeben |
+| Auswahl der Siedlung | „Auge hinter dem Siedlungsnamen“, Auswahlfeld **unter** dem Menü | Klick auf den Namen oder Dropdown **über** dem Menü |
 | Weltnamen | Armageddon, Ragnarök, Utgard, Midgard, Valhalla, Limbus (als Welten) | Limbus mit **20 Dimensionen** |
 | Waren-Voraussetzungen | vollständige Tabelle (Waffentechnik 1/3/5/8, Rüstungsbau 3/5/7, Nähkunst 1/2/4/6, Magiekunde 2) | Handbuch nennt die Stufen nicht in dieser Form |
-| Produktionstakt | „4 Holz pro Stunde → alle **15 Minuten** 1 Holz" | keine Aussage zum Takt |
+| Produktionstakt | „4 Holz pro Stunde → alle **15 Minuten** 1 Holz“ | keine Aussage zum Takt |
 
 **Die Waren-Tabelle aus 2006 ist die einzige vollständige Quelle für Warenvoraussetzungen** —
 Messer (keine), Dolch (Waffentechnik 1), Kurzschwert (3), Schwert (5), Zweihänder (8),
@@ -525,7 +525,7 @@ C1  MODULE des Quellcodes (src/)
 - botkern.py (574 Zeilen): Nebelseetal Remake - Bot-Kern (Paket W5, 05.10.2026). Was ein Computergegner ueber die Zeit tut: bauen, forschen, handeln, angreifen, warten. Reine Logik - kein Fenster, keine Uhr, keine Datei. Die Zeit (`jetzt`, in Seku
 - dorfwall.py (122 Zeilen): Isolierter Wallkern fuer Nebelseetal (GPT-Zuarbeit, 28.10.2026). Das Remake-Modell (keine Behauptung ueber Originalbaukosten): - Verteidigungsanlagen: einmal erforschter, reichsweiter Technologiestand (1..10). - Jede Sie
 - einheiten.py (193 Zeilen): Nebelseetal Remake — Einheiten-Bruecke. Verbindet die Originaldaten (`data/units.json`) mit dem Spiel. Vorher gab es **zwei** widersprechende Tabellen: `main.UNITS` (36 Einheiten, nur Anzeige) und `bonus_system.UNIT_BASE
-- fehlbestand.py (140 Zeilen): Fehlbestand: welche Rohstoffe fehlen und um wieviel. Reine Standardbibliothek, keine Importe aus dem uebrigen Projekt - der Baustein laeuft damit auch in Werkzeugen, Bots und Einzelpruefungen ohne Spielkontext. Oeffentli
+- fehlbestand.py (140 Zeilen): Fehlbestand: welche Rohstoffe fehlen und um wie viel. Reine Standardbibliothek, keine Importe aus dem uebrigen Projekt - der Baustein laeuft damit auch in Werkzeugen, Bots und Einzelpruefungen ohne Spielkontext. Oeffentli
 - forschung.py (232 Zeilen): Nebelseetal Remake — zeitlicher Ablauf der Forschung (reine Rechenlogik). Diese Schicht haelt *nur* den Ablauf: welche Stufe ein Gebiet hat, welcher Auftrag laeuft, wie viel Zeit noch bleibt und wann eine Stufe steigt. S
 - forschung_wirkung.py (177 Zeilen): Nebelseetal Remake -- Wirkung der 21 Originalforschungen auf die Produktion. Dieses Modul beantwortet genau EINE Frage: Wie veraendert eine Forschung die Ausbeute der neun Rohstoffe, die Siedlerproduktion und den Verteid
 - forschungspfad.py (350 Zeilen): Forschungspfad -- die fachliche Frageschicht rund um die 21 Originalforschungen. Dieses Modul ist die reine Datenschicht fuer die Frage, die Daniel am Forschungspanel vermisst hat: **Was schaltet eine Forschung sichtbar 

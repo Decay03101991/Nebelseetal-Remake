@@ -1,7 +1,7 @@
 # Spieltest-Befund 31.10.2026 — was die Simulation wirklich zeigt
 
 **Anlass:** Zwei Läufe von `deepseek-v4-pro` sollten das Spiel bewerten (`BEFUND_SPIELTEST_GROSSES_MODELL*.md`).
-Beide kamen zum Schluss „Engstelle Gold, Spieler steckt fest". **Dieser Befund ist falsch — und zwar aus
+Beide kamen zum Schluss „Engstelle Gold, Spieler steckt fest“. **Dieser Befund ist falsch — und zwar aus
 drei Gründen, die alle in MEINEM Messwerkzeug lagen, nicht im Spiel.** Diese Datei hält den Beweis fest,
 damit niemand die Modellantworten als Fehlerbericht ins Projekt trägt.
 
@@ -20,7 +20,7 @@ Bauten: {'0': 'holzfaeller', '1': 'holzfaeller', '64': 'bibliothek', '12': 'gold
          '73': 'farm', '19': 'kriegerakademie'}
 ```
 
-Die Kette **Holzfäller → Bibliothek → Forschung „Baukunst" → Goldmine/Farm/Kriegerakademie** läuft.
+Die Kette **Holzfäller → Bibliothek → Forschung „Baukunst“ → Goldmine/Farm/Kriegerakademie** läuft.
 Ein Spieler, der auf das Gelände achtet, kommt an Gold. Die Karte hat genug passende Felder
 (11 Grasland, 18 Steppe, 13 Berg, 12 Hügel).
 
@@ -29,7 +29,7 @@ Ein Spieler, der auf das Gelände achtet, kommt an Gold. Die Karte hat genug pas
 | Nr | Fehler | Wirkung im Lauf | Behebung |
 |---|---|---|---|
 | 1 | Bauliste enthielt **keine Goldmine und keine Ausbildungsstätte** | Gold blieb 0, kein Kampf — sah wie ein Spielfehler aus | Goldmine + Kriegerakademie in die Reihenfolge |
-| 2 | Gebäude-Kennungen sind **ohne Umlaut** (`holzfaeller`), verglichen wurde mit `holzfäller` | Zähler „höchstens 2 je Gebäude" traf nie → 10× Holzfäller | Vergleich über `gelaende.finde_gebaeude` |
+| 2 | Gebäude-Kennungen sind **ohne Umlaut** (`holzfaeller`), verglichen wurde mit `holzfäller` | Zähler „höchstens 2 je Gebäude“ traf nie → 10× Holzfäller | Vergleich über `gelaende.finde_gebaeude` |
 | 3 | `gelaende.bau_moeglich` liefert ein **Tupel** `(erlaubt, Grund)`; `if bau_moeglich(...)` ist darum **immer wahr** | jedes Gebäude landete auf Feld 0 im Wald, alle Bauten scheiterten | Tupel auspacken und `ergebnis[0]` prüfen |
 
 Nach den Behebungen (8 Spieltage): **12 Gebäude**, Gold 1.131, Nahrung 1.614, Forschung 51 Punkte,
@@ -48,9 +48,9 @@ ist eine echte Spielbarkeitsfrage für Daniel (nicht für das Modell).
 
 * Beide beschreiben **die Folgen meines kaputten Verlaufs**, nicht Fehler des Spiels.
 * Ihre Vorschläge (Startgold 200, billigere Goldmine, Tutorial, Starteinheiten) sind **Design-Wünsche**,
-  keine Bugfixes. Sie bleiben diskutabel — aber die Begründung „Gold ist nicht erreichbar" trägt nicht.
+  keine Bugfixes. Sie bleiben diskutabel — aber die Begründung „Gold ist nicht erreichbar“ trägt nicht.
 * Beide haben dasselbe getan wie ein guter Prüfer: sie haben die **eine offene Frage** gestellt
-  („Fehler der Politik oder fehlende Bauoptionen?"). Die Antwort steht oben: die Politik.
+  („Fehler der Politik oder fehlende Bauoptionen?“). Die Antwort steht oben: die Politik.
 
 **Kosten der beiden Fehlläufe:** 0,0275 + 0,0289 = **0,0564 USD** — verbucht, kein Schaden am Code.
 

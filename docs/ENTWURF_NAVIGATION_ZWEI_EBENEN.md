@@ -6,8 +6,8 @@ wörtlich von den Bildern.
 
 ## Was das Original macht
 
-1. Oben links ein **Aufklappmenü** mit der aktuellen Ebene: **„Übersicht"** (Reich/Portal) oder
-   **„Siedlung"**.
+1. Oben links ein **Aufklappmenü** mit der aktuellen Ebene: **„Übersicht“** (Reich/Portal) oder
+   **„Siedlung“**.
 2. Die **linke Leiste ist in beiden Ebenen dieselbe** und enthält nur Reichs-Menüpunkte:
    Übersicht · Portal · Diplomatie · Einstellungen · Ruhmeshalle · Gildehalle · Voraussetzungen ·
    Nachrichten · Neuigkeiten · Anleitung · Schlachtsimulator · Forum · Chat · Spieler werben ·
@@ -15,8 +15,8 @@ wörtlich von den Bildern.
 3. Der **Inhalt** wechselt mit der Ebene: Portal zeigt die Dimensionskarte (20×20, farbige Punkte),
    Siedlung zeigt die Reiter **Siedlungsübersicht · Produktion · Verteidigung** mit den
    Gebäuden und ihren Baukosten.
-4. Unten links dauerhaft: „Nebelseetal unterstützen", „Neue Nachrichten", **„Eure Punkte:
-   Forschung · Krieg · Gesamt"**.
+4. Unten links dauerhaft: „Nebelseetal unterstützen“, „Neue Nachrichten“, **„Eure Punkte:
+   Forschung · Krieg · Gesamt“**.
 
 ## Was unser Spiel heute macht (Ist)
 
@@ -28,25 +28,25 @@ Diplomatie · Einstellungen · Ruhmeshalle · Anleitung · Kampfsimulator · For
 ## Vorschlag (Umbau in vier kleinen Schritten)
 
 **Schritt 1 — Ebenen-Schalter, ohne Inhalte zu ändern.** Oben links ein Aufklappmenü
-„Übersicht / Siedlung". Es setzt `self.ebene` und rendert neu. Noch keine Umbenennung, keine
+„Übersicht / Siedlung“. Es setzt `self.ebene` und rendert neu. Noch keine Umbenennung, keine
 Filterung: reine Mechanik, prüfbar über eine neue Wache (beide Ebenen rendern 17 bzw. 17 Punkte).
 
 **Schritt 2 — Leiste je Ebene.** Neue Funktion `menu_fuer_ebene(settlements, ebene)`, die auf
 `menu_sichtbar()` aufsetzt:
 
-| Ebene „Übersicht" (immer) | Ebene „Siedlung" (Gebäude nötig) |
+| Ebene „Übersicht“ (immer) | Ebene „Siedlung“ (Gebäude nötig) |
 |---|---|
 | Übersicht, Portal, Diplomatie, Einstellungen, Ruhmeshalle, Gildehalle, Voraussetzungen, Nachrichten, Neuigkeiten, Anleitung, Schlachtsimulator, Forum, Chat, Spieler werben | Dorfzentrum, Lager, Marktplatz, Siedlungskarte, Kaserne (Kriegerakademie), Stellmacher, Diebesgilde, Forschung (Bibliothek) |
 
 **Schritt 3 — Beschriftungen an das Original angleichen.** Die Screenshots schreiben
-**„Schlachtsimulator"** (wir: „Kampfsimulator"), **„Gildehalle"/„Gildenhalle"** (wir: „Gilde",
-„Gildehalle"), **„Neuigkeiten"** und **„Voraussetzungen"** (bei uns gar nicht vorhanden).
+**„Schlachtsimulator“** (wir: „Kampfsimulator“), **„Gildehalle“/„Gildenhalle“** (wir: „Gilde“,
+„Gildehalle“), **„Neuigkeiten“** und **„Voraussetzungen“** (bei uns gar nicht vorhanden).
 `MENU_ITEMS` wird dabei **nicht** überschrieben, sondern um eine Umbenennungs-Tabelle ergänzt
 (`MENU_ANZEIGE = {"Kampfsimulator": "Schlachtsimulator", ...}`) — die belegte Liste bleibt lesbar.
 **Achtung:** `tests/test_oberflaeche_original.py` vergleicht `MENU_ITEMS` mit dem Original-Muster;
 die Umbenennung muss dort als *Anzeige* geprüft werden, nicht als Liste.
 
-**Schritt 4 — Punkte in die Leiste.** „Forschung / Krieg / Gesamt" dauerhaft unten links, gespeist
+**Schritt 4 — Punkte in die Leiste.** „Forschung / Krieg / Gesamt“ dauerhaft unten links, gespeist
 aus `state.punktestand()` (eine Quelle). Heute steht das nur im Dorfzentrum.
 
 ## Prüfzusagen je Schritt
@@ -61,6 +61,6 @@ aus `state.punktestand()` (eine Quelle). Heute steht das nur im Dorfzentrum.
 ## Was NICHT in diesem Entwurf steht
 
 - Wie man zwischen **mehreren Siedlungen** umschaltet (im Screenshot nicht sichtbar) — offen.
-- Was der Menüpunkt **„Voraussetzungen"** anzeigt — offen (Register in `docs/PRUEFREGEL_ORIGINAL.md`).
+- Was der Menüpunkt **„Voraussetzungen“** anzeigt — offen (Register in `docs/PRUEFREGEL_ORIGINAL.md`).
 - Die Siedlungsansicht als **Karte** (wir haben sie schon) gegen die Reiter-Ansicht des Originals —
-  beides ist vereinbar: Reiter „Produktion/Verteidigung" können auf unsere Karte verweisen.
+  beides ist vereinbar: Reiter „Produktion/Verteidigung“ können auf unsere Karte verweisen.

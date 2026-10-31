@@ -6,7 +6,7 @@ gesetzten Passwort geschützt.
 
 ---
 
-## Was „fertig" konkret heißt
+## Was „fertig“ konkret heißt
 
 Nach dem Konformitäts-Audit (`docs/AUDIT_KONFORMITAET_astra.md`) fehlen bis zu einer spielbaren
 Partie neun Dinge. Sie sind die Schritte 1–9 dieses Wegs, in dieser Reihenfolge:
@@ -27,14 +27,14 @@ Partie neun Dinge. Sie sind die Schritte 1–9 dieses Wegs, in dieser Reihenfolg
 
 **Daniel setzt das Passwort selbst beim ersten Start.** Nicht im Chat, nicht durch mich.
 
-- Beim ersten Start: Fenster „Passwort festlegen" → er tippt es zweimal ein.
+- Beim ersten Start: Fenster „Passwort festlegen“ → er tippt es zweimal ein.
 - Gespeichert wird **nicht das Passwort**, sondern ein **gesalzener Prüfwert** (PBKDF2-HMAC-SHA256,
   Zufallssalz, viele Runden) in `~/.nebelseetal/tor.json`.
 - Jeder weitere Start verlangt das Passwort; nach drei Fehlversuchen kurze Wartezeit.
 - Änderbar über das Tor-Fenster (altes Passwort nötig) und notfalls über den Spielordner
   (Datei löschen = neues Passwort setzen, der Spielstand bleibt).
 - Ein Passwort kann als **vergessen** markiert werden? Nein — ohne Prüfwert kein Zugang; deshalb
-  steht der Hinweis „Datei löschen setzt das Tor zurück" direkt im Tor.
+  steht der Hinweis „Datei löschen setzt das Tor zurück“ direkt im Tor.
 
 **Ehrliche Grenze:** Ein Tor in einer lokalen EXE hält **Gelegenheitsspieler** und Mitbewohner ab.
 Wer die Dateien lesen kann, kann sie auch verändern. Mehr ist ohne Server nicht möglich — und
@@ -47,7 +47,7 @@ Bei der Auslieferung nenne ich getrennt:
    Start aus einem Pfad mit Leerzeichen, Angriff→Kampf→Bericht→Beute.
 2. **Was nicht geprüft ist** — alles, was ein Mensch sehen muss (Optik, Gefühl, Balance) und
    alles, was nur durch langes Spielen auffällt (Gleichgewichtsprobleme späterer Stunden).
-   „Fehlerfrei" behaupte ich nur so weit, wie die Prüfliste reicht — nicht als Gefühl.
+   „Fehlerfrei“ behaupte ich nur so weit, wie die Prüfliste reicht — nicht als Gefühl.
 3. **Der Prüflauf selbst** wird mit ausgeliefert (`run_tests.bat` bleibt im Ordner).
 
 ## Was NICHT hineinkommt

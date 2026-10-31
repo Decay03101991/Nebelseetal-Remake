@@ -2,7 +2,7 @@
 
 **Warum:** Daniel, 31.10.2026: „in den reinen Codes soll kurz beschrieben werden, was die einzelnen
 Codes für Aufgaben erfüllen — damit es auch Anfänger verstehen, und in GitHub für andere
-nachvollziehbar bleibt." Diese Datei hält die Regel fest und sagt, wie man den Fortschritt misst.
+nachvollziehbar bleibt.“ Diese Datei hält die Regel fest und sagt, wie man den Fortschritt misst.
 
 ## Die vier Regeln
 

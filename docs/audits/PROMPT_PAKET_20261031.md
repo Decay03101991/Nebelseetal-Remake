@@ -30,7 +30,7 @@ verwertbar.
 ## 2. Was in jedem Paket steckt (und was bewusst NICHT)
 
 Jedes Paket enthält:
-* **Rahmen und Vorgaben** (Rolle, „neueste Fassung ist das Original", „Mechanik alt + Zahlen neu",
+* **Rahmen und Vorgaben** (Rolle, „neueste Fassung ist das Original“, „Mechanik alt + Zahlen neu“,
   Daniels Entscheidungen, Belegpflicht, Spieluhr ×180).
 * **Nur seine Quellen** (Handbuchzeilen, Vorversion 2006, Forum-Original, Code-Auszüge, Datentabellen).
 * **Den Umsetzungsstand vom 31.10.** — was bereits gebaut und geprüft ist, damit das Modell **prüft
@@ -93,7 +93,7 @@ Kein Modell darf Code schreiben — es liefert Papiere, gebaut und geprüft wird
 | E5 kein Sieg / Bewertung | offen: `punkte.VORSCHLAG_ZIEL_PUNKTE = 300` steht noch im Code |
 | E5 Dimensionen als Ländereien | offen (Datenmodell unverändert) |
 | E3 ein Bewegungssystem | offen: Altpfad `_welt_bewegen` (main.py Z. 5690) läuft noch neben `auftraege.py` |
-| Bot-Pfad Beute | **gebaut**: der Bot-Angriff bucht jetzt `kampfbericht.beute_staffel` (main.py, Zweig „angreifen") |
+| Bot-Pfad Beute | **gebaut**: der Bot-Angriff bucht jetzt `kampfbericht.beute_staffel` (main.py, Zweig „angreifen“) |
 | Bot-Punkte | **erfunden**: `bot.punkte = rng.randint(0,300)` (`botkern.py` Z. 150) → Rangliste/Bewertung gegen Bots ist Zufall (Register 46) |
 
 **Regression nach diesen Umbauten:** 9 berührte Prüfdateien **9/9 grün, 504 Prüfungen, 0 Fehler, 52 s**;

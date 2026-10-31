@@ -1,7 +1,7 @@
 # Landkarte der zwei Bewegungssysteme (`main.py`)
 
 **Stand:** 31.10.2026, `06aabcb` · **Prüfer:** Hermes (neue Sitzung) · **Anlass:** Der Wegzeit-Entwurf
-behauptete „`movements` ist heute immer leer". Das ist falsch: es laufen **zwei** Bewegungssysteme
+behauptete „`movements` ist heute immer leer“. Das ist falsch: es laufen **zwei** Bewegungssysteme
 nebeneinander, mit **zwei Formeln, zwei Beuteregeln und zwei Kampfregeln**. Diese Karte hält jede
 Stelle mit Zeilennummer fest, damit Daniel E3 entscheiden kann, ohne den Code zu lesen.
 
@@ -23,14 +23,14 @@ Ankunft, Bericht und Kampf.
 | Ladungsgrenze | `ladung_der_mission` Z. 150 |
 | Fortschritt, Ankunft, Bericht | `main.auftraege_fortschreiben` Z. 1970–2045, je Spieltick aus `main.tick` Z. 2451 |
 | Angriff am Ziel | `main.kampf_am_ziel` Z. 2047 — Wallvorrunde über `kampfbericht.vorrunde`, Beute über `kampfbericht.beute` |
-| Anzeige „Laufende Aufträge" | `main._render_overview` Z. 3490–3500 (`auftraege.fortschritt`) |
+| Anzeige „Laufende Aufträge“ | `main._render_overview` Z. 3490–3500 (`auftraege.fortschritt`) |
 | Speichern/Laden | Z. 2492 (`"auftraege"`) / Z. 2660 |
 | Start eines Angriffs aus der Oberfläche | `self.state.auftrag_starten("angreifen", …)` Z. 5829 |
 | Prüfdateien | `tests/test_kampf_einhaengung.py`, `tests/test_gpt_zeit_auftragsketten.py`, `tests/test_auftraege.py` |
 
 **Was hier fehlt** (belegt, aber nicht angeschlossen): Auftragskosten Gold/Nahrung, Mana für fremde
 Siedlungen, Drosselung in 10-%-Schritten (`auftraege.py` Z. 57–59 vorhanden, Z. 514 „nicht
-angeschlossen", Reisekosten leer Z. 536).
+angeschlossen“, Reisekosten leer Z. 536).
 
 ---
 
@@ -42,12 +42,12 @@ Einheiten-Auswahl, **keine** GS, **keine** Karren.
 | Baustein | Stelle |
 |---|---|
 | Speicher | `main.py` Z. 798 `self.movements = []`, gespeichert Z. 2473, geladen Z. 2598 |
-| Auslöser | Klick auf ein **Nachbarfeld**, wenn „Truppen von hier bewegen" aktiv ist: `_on_map_click` Z. 5645, Aufruf Z. 5666 |
+| Auslöser | Klick auf ein **Nachbarfeld**, wenn „Truppen von hier bewegen“ aktiv ist: `_on_map_click` Z. 5645, Aufruf Z. 5666 |
 | Aktion | `_welt_bewegen` Z. 5690–5720: **alle** Einheiten mit `count > 0` werden mitgenommen (keine Auswahl) |
 | Formel | Z. 5698–5699: `abstand = |dx|+|dy|`, `dauer = max(2, abstand*5)` **Minuten** → beim Nachbarfeld **5 Spielminuten je Feld, unabhängig von GS** |
 | Ankunft | `_tick_loop` Z. 6937–6973, je Tick geprüft |
 | Beute bei Ankunft | Z. 6953–6957: **10–40 % je Rohstoff, zufällig, ohne Karren, ohne Ladungsgrenze** |
-| Kampf bei Ankunft | Z. 6958–6962: mit **40 % Wahrscheinlichkeit** ein „Kampf" gegen einen zufälligen Bot, Verlust **1–4 zufällige Einheiten** — ohne Wall, ohne Schlagkraft, ohne `kampf.fuehre_schlacht` |
+| Kampf bei Ankunft | Z. 6958–6962: mit **40 % Wahrscheinlichkeit** ein „Kampf“ gegen einen zufälligen Bot, Verlust **1–4 zufällige Einheiten** — ohne Wall, ohne Schlagkraft, ohne `kampf.fuehre_schlacht` |
 | Anzeige | Restzeit je Bewegung auf der Weltkarte, Z. 5483–5494 |
 | Rückkehr | Z. 6965–6968: Einheiten kommen **sofort** zurück (keine Rückreise-Dauer) |
 
@@ -60,11 +60,11 @@ Einheiten-Auswahl, **keine** GS, **keine** Karren.
 | 1 | Reisezeit | `d / GS` Stunden, langsamste Einheit bremst | 5 Spielminuten je Feld, GS wirkungslos |
 | 2 | Wer reist | ausgewählte Einheiten + Karren | **alle** Einheiten zuhause, ohne Karren |
 | 3 | Beute | nur mit Karren, gedeckelt durch **Ladung** (`kampfbericht.beute` Z. 202–242) | 10–40 % zufällig, **ohne** Karren |
-| 4 | Kampf | `kampf.fuehre_schlacht` + `kampfbericht.vorrunde` (Wall, Sequenzen, Verluste) | Münzwurf: 40 % „Kampf", 1–4 zufällige Einheiten weg |
+| 4 | Kampf | `kampf.fuehre_schlacht` + `kampfbericht.vorrunde` (Wall, Sequenzen, Verluste) | Münzwurf: 40 % „Kampf“, 1–4 zufällige Einheiten weg |
 | 5 | Rückweg | doppelte Reisezeit (belegt, Handbuch S. 19) | keine Rückreise, Einheiten sind sofort da |
 
 **Folge, wenn nichts entschieden wird:** eine neue Wegzeit-Formel wäre die **dritte** Wahrheit.
-Deshalb steht E3 („nur `auftraege.py` behalten, Altpfad abklemmen") im Prüfbericht **vor** jeder
+Deshalb steht E3 („nur `auftraege.py` behalten, Altpfad abklemmen“) im Prüfbericht **vor** jeder
 Umsetzung von Wegzeit oder Beute.
 
 ---

@@ -1,4 +1,4 @@
-# AUFTRAG: Externe Gegenprüfung des „Nebelseetal-Remake"
+# AUFTRAG: Externe Gegenprüfung des „Nebelseetal-Remake“
 
 **Für:** ein externes KI-Modell mit Internetzugriff (ChatGPT), das die Dateien über die unten
 stehenden GitHub-Pfade selbst öffnet. Kein lokaler Zugriff nötig, keine Dateien anzuhängen
@@ -9,7 +9,7 @@ stehenden GitHub-Pfade selbst öffnet. Kein lokaler Zugriff nötig, keine Dateie
 
 ## 0. Worum es geht
 
-Ein deutsches Browsergame von 2005/2009 („Nebelseetal Online") wird als **Einzelspieler-Spiel**
+Ein deutsches Browsergame von 2005/2009 („Nebelseetal Online“) wird als **Einzelspieler-Spiel**
 in Python/tkinter neu gebaut, spielbar gegen Bots, mit Spieluhr ×180. Deine Aufgabe ist **nicht**,
 Code zu verbessern, sondern **Originaltreue zu prüfen**: Wo weicht das Remake von den
 Originalquellen ab, wo wird eine Regel erfunden, wo fehlt eine belegte Mechanik — und wo sind die
@@ -25,16 +25,16 @@ widersprechen, wo es etwas zu widersprechen gibt.
    begründete Zusammenführung, keine Erfindung — kennzeichne sie als `ZUSAMMENFÜHRUNG` und nenne
    beide Quellen mit Stelle.
 2. **Was die Quellen nicht hergeben, ist VORSCHLAG** und muss als VORSCHLAG erkennbar sein. Es wird
-   nichts erfunden und nichts „geschätzt, bis es passt".
+   nichts erfunden und nichts „geschätzt, bis es passt“.
 3. **Daniels eigene frühere Annahmen sind verwerfbar**, wenn die Quellen etwas anderes vorgeben
    (Beispiel: ein Sieg bei 300 Gesamtpunkten ist bereits **verworfen**, weil das Handbuch ausdrücklich
-   sagt: „Jeder hat bei Nebelseetal sicher seine eigenen Ziele").
+   sagt: „Jeder hat bei Nebelseetal sicher seine eigenen Ziele“).
 4. **Einzelspieler statt Mehrspieler:** Das Original war ein Browsergame mit vielen Spielern; hier
    spielt **ein Mensch gegen wenige Bots**. Wo eine Regel nur wegen vieler Spieler existiert (z. B.
    20 Dimensionen als Platz für hunderte Welten), darf sie für den Einzelspieler **neu gedeutet**
    werden — aber so, dass sie Sinn ergibt und die Originalmechanik erkennbar bleibt.
 5. **Belegpflicht:** jede Behauptung mit Datei **und** Zeile (bzw. Seite). Kannst du etwas nicht
-   belegen, schreibst du „nicht belegbar" — das ist ein vollwertiges Ergebnis.
+   belegen, schreibst du „nicht belegbar“ — das ist ein vollwertiges Ergebnis.
 6. **Einmal prüfen, festschreiben:** Abschnitt 5 listet 41 bereits belegte Punkte. Prüfe sie nicht
    erneut, außer du findest einen echten Widerspruch — dann sag es ausdrücklich.
 
@@ -62,7 +62,7 @@ ausdrücklich, mit Quelle.
 * **Noch nicht veröffentlicht** (liegen nur lokal, Abschnitt 3.2): das Prüfregister, die
   Abweichungsdatei 2006/2009, zwei Entwürfe und zwei Prüfberichte. Das Prüfregister ist in
   Abschnitt 5 als Kurzliste enthalten; die anderen Papiere kannst du nicht lesen — bewerte sie
-  nicht, sondern nenne sie „nicht einsehbar", wenn eine Frage dorthin führt.
+  nicht, sondern nenne sie „nicht einsehbar“, wenn eine Frage dorthin führt.
 * Das Projekt selbst hat seit dem 28.10. weitergearbeitet (Menüs, Sperrmeldungen, Punkteleiste).
   Wenn du eine Stelle im Code nicht findest, liegt es daran — nicht an dir.
 
@@ -132,7 +132,7 @@ Die ersten beiden liegen im Projekt nur als `.odt` vor (ChatGPT kann das Format 
 stehen sie hier wörtlich. **Sie sind eine Originalquelle und widersprechen dem Handbuch in mehreren
 Punkten** — genau das ist eine deiner Fragen (Aufgabe A). Das dritte ist die Original-Geschichte.
 
-### 4.1 „Das Kampfsystem" (neueres Original-Forumssystem, Spielerfund)
+### 4.1 „Das Kampfsystem“ (neueres Original-Forumssystem, Spielerfund)
 
 ```text
 Das Kampfsystem
@@ -245,7 +245,7 @@ Waldläufer
  Wird eine Einheit Kampfunfähig, wird anhand ihrer Konstitution bestimmt, ob sie die Schlacht überlebt, oder stirbt. Sie nimmt aber in beiden Fällen nicht weiter an der Schlacht teil. Ein durch Zufall bestimmter Wert zwischen 1 und 100 muss kleiner, oder gleich der Konstitution der Einheit sein, damit sie überlebt.Nach den Vorrundenbeginnen sich die angreifenden Schützen zurückzuziehen. Die Verteidiger machen sich auf einen Nahkampf gefasst.Jede Kampfsequenz ziehen sich 20% der Fernkämpfer des Angreifers zurück, beginnend mit den stärksten Einheiten. Sollteder Angreifer die Schlacht verlieren (unentschiedene Schlachten gewinnen beide Seiten), werden die noch nicht geflohenen Fernkampfeinheiten überrannt. Unabhängig von der noch verbliebenen verteidigenden Armee, legen alle nicht zurückgezogenen Fernkämpfer eine Konstitutionsprobe ab um zu bestimmen, ob sie das Schlachtfeld lebend verlassen.Belagerung / MauerschadenAußerdem wird jetzt die Beschädigung der Mauer durch Katapulte etc. berechnet. Diese wirkt sich also nicht auf den aktuellen Kampf aus, da die Fernkämpfer schon geschossen haben. Beim nächsten Kampf allerdings (falls die Mauer nicht repariert wird) schießen die Fernkämpfer dementsprechend weniger und es muss auch weniger Schlagkraft aufgebracht werden.Der Mauerschaden wird wie folgt errechnet: Zuerst wird der Schaden ermittel die eine Belagerungswaffe macht. Bei einem Katapult wäre das zb. 2 - 13. Hier wird als Beispiel eine 9 ermittelt. Nehmen wir an der Angreifer hat eine Mauer Stufe 5 dann wird von den 9 Schaden noch 5 abgezogen(Mauerstufe). Somit macht das Katapult 4 Schaden und die Mauer hätte statt 100% nur noch 96%. So wird das für jede Belagerungswaffe getrennt gerechnet. Das heißt zb das eine kleine Ramme die max.4 Schaden macht einer Mauer Stufe 5 nichts anhaben kann.Also die Formel lautet: Schaden der Belagerungswaffe - Mauerstufe = Schaden an der MauerDie SchlachtIn der Schlacht suchen sich alle angreifenden Einheiten (die schwächsten zuerst) per Zufall eine verteidigende Nahkampfeinheit heraus und gehen mit dieser Einheit in den Nahkampf.ZweikampfDabei wird für jeden der Kontrahenten eine Zufallszahl, zwischen dem beim Kampfwert angegebenen Wert der Einheit, ermittelt. Dieser Ermittelte Wert wird um 10% pro Stufe der Forschung Schmiedekunst erhöht. Anschließend wird der Rüstungswert des Gegners, ebenfalls um 10% pro Schmiedekunststufe des Gegners erhöht, von dem Ergebnis abgezogen. Um den endgültigen Kampfwert zu erhalten wird nun noch die bisher in der Schlacht erlittene Erschöpfung der Einheit vom Wert subtrahiert.Die Einheit mit dem höheren Ergebnis gewinnt den Zweikampf, erleidet aber 2 Punkte Erschöpfung. Die Einheit die verliert muss, wie beim Fernkampf eine Konstitutionsprobe bestehen um die Schlacht zu überleben. Sie scheidet aber in jedem Fall aus der Schlacht aus.Haben beide am Zweikampf beteiligten Einheiten den selben ermittelten Kampfwert, gelten beide Einheiten als Verlierer, scheiden aus und müssen eine Konstitutionsprobe bestehen um zu überleben.Die Schlacht ist beendet, wenn entweder alle angreifenden Nahkampfeinheiten ausgeschieden sind, alle Einheiten des Verteidigers (Fern- und Nahkampfeinheiten) besiegt wurden, oder nach 10 Sequenzen kein Gewinner feststeht.
 ```
 
-### 4.2 „Wissenswertes" (Punktesystem, Rohstoffproduktion, Einheitenwerte)
+### 4.2 „Wissenswertes“ (Punktesystem, Rohstoffproduktion, Einheitenwerte)
 
 ```text
 Wissenswertes
@@ -727,7 +727,7 @@ Erschöpfungsschaden, Schwelle zur Kampfunfähigkeit) — letzteres nennt **wede
 Geräteverlust noch Punkte**.
 
 **Verlangt:** (1) Tabelle „Kampfschritt | gilt | Quelle | Art (belegt / Zusammenführung /
-Vorschlag)" für Wallvorrunde, Mauerschaden, Fernkampf, Nahkampf, Erschöpfung, Flucht, Ausgang,
+Vorschlag)“ für Wallvorrunde, Mauerschaden, Fernkampf, Nahkampf, Erschöpfung, Flucht, Ausgang,
 Beute, Geräteverlust, Punkte. (2) **Drei Wege**, wie man die beiden Quellen zu EINEM System
 zusammenführt — je mit Vor-/Nachteil, Aufwand und dem, was dabei verloren geht. (3) Deine
 Empfehlung mit einem Satz Begründung. (4) **Wie würdest du die Beute staffeln**, wenn der erste
@@ -752,13 +752,13 @@ ist das Portal dann noch, welche Mana-Kosten bleiben sinnvoll — zwei Varianten
 
 ### Aufgabe C — Spielbarkeit bei ×180 und was am Ende eines Laufs steht
 
-Das Handbuch nennt **keine Siegbedingung** („Jeder hat bei Nebelseetal sicher seine eigenen Ziele" —
+Das Handbuch nennt **keine Siegbedingung** („Jeder hat bei Nebelseetal sicher seine eigenen Ziele“ —
 Feldherr, Forscher, Händler). Belegt sind dagegen die Raten: Produktion je Gebäude und Gelände,
 1 Siedler/Stunde, Forschungsdauer = neue Stufe² in Stunden, Kriegspunkte je Einheit,
 Verteidigungsanlagen = Ausbaustufe³, Gesamtpunkte = (Krieg + Forschung) / 2.
 
 **Verlangt:** (1) Tabelle „Größe | belegter Wert | Wirkung bei ×180 (gerechnet) | Urteil (spielbar /
-zäh / unspielbar)". (2) **Drei Modelle für das Ende eines Laufs** (z. B. Auszeichnungen, Rangliste,
+zäh / unspielbar)“. (2) **Drei Modelle für das Ende eines Laufs** (z. B. Auszeichnungen, Rangliste,
 Auswertung nach N Spieltagen, freies Weiterspielen) mit Vor-/Nachteil und Aufwand. (3) Für dein
 Lieblingsmodell: **welche Kennzahlen** werden daraus abgeleitet, und aus welchen belegten Werten
 kommen sie? (4) Was dir an Information fehlt, um das zu entscheiden.
@@ -770,12 +770,12 @@ Hier spielt **ein Mensch gegen wenige Bots** — das Spiel muss den Antrieb **se
 will der Spieleigner eine kleine Geschichte/Legende als Lobpreisung des alten Browsergames; Material
 dafür ist die mitgelieferte Original-Hintergrundgeschichte.
 
-**Verlangt:** (1) Höchstens sechs Punkte „was im Original den Antrieb erzeugte" (mit Mechanik-Bezug).
+**Verlangt:** (1) Höchstens sechs Punkte „was im Original den Antrieb erzeugte“ (mit Mechanik-Bezug).
 (2) **Fünf Antriebs-Quellen** für den Einzelspieler, die auf **bestehenden** Mechaniken aufsetzen —
-je mit „wodurch entsteht der Vergleich/Maßstab ohne echte Mitspieler" und Aufwand S/M/L.
+je mit „wodurch entsteht der Vergleich/Maßstab ohne echte Mitspieler“ und Aufwand S/M/L.
 (3) Wo dieser Ersatz **nicht** trägt (höchstens drei Punkte). (4) Ein **Legenden-Gerüst in höchstens
-250 Wörtern**, ausschließlich aus belegten Originalbausteinen, getrennt in „belegt verwendet" und
-„neu erfunden". (5) **Die eine Frage**, die der Spieleigner zuerst beantworten muss.
+250 Wörtern**, ausschließlich aus belegten Originalbausteinen, getrennt in „belegt verwendet“ und
+„neu erfunden“. (5) **Die eine Frage**, die der Spieleigner zuerst beantworten muss.
 
 ---
 
@@ -789,8 +789,8 @@ je mit „wodurch entsteht der Vergleich/Maßstab ohne echte Mitspieler" und Auf
    |---|---|---|---|---|---|---|---|
 
    Urteile nur aus: **WIDERSPRUCH · FEHLT · ERFUNDEN · DOPPELT · UNBELEGT · IN ORDNUNG**.
-   „ERFUNDEN" heißt: im Remake steht eine Regel oder Zahl, für die es in den Quellen keinen Beleg
-   gibt und die nicht als VORSCHLAG gekennzeichnet ist. Höchstens zwei Zeilen „IN ORDNUNG".
+   „ERFUNDEN“ heißt: im Remake steht eine Regel oder Zahl, für die es in den Quellen keinen Beleg
+   gibt und die nicht als VORSCHLAG gekennzeichnet ist. Höchstens zwei Zeilen „IN ORDNUNG“.
 3. **Die drei Aufgaben A, B, C** jeweils als eigener Abschnitt mit der verlangten Tabelle/Rechnung.
 4. **Was du nicht prüfen konntest:** höchstens 5 Zeilen mit Grund.
 5. **Die drei wichtigsten Maßnahmen**, je ein Satz, nach Wirkung sortiert.
@@ -802,7 +802,7 @@ außerhalb der drei Aufgaben.
 
 ## 8. Was du NICHT tun sollst
 
-* keine Zeilennummern, Seitenzahlen oder Werte erfinden — im Zweifel „nicht belegbar",
+* keine Zeilennummern, Seitenzahlen oder Werte erfinden — im Zweifel „nicht belegbar“,
 * keine Regel aus einem anderen Spiel oder aus Browsergame-Allgemeinwissen ergänzen,
 * keine Punkte aus Abschnitt 5 erneut aufrollen,
 * keine Dateien bewerten, die du nicht öffnen kannst (Abschnitt 3.2),

@@ -22,7 +22,7 @@
 **Wozu:** Ohne diese fünf Entscheidungen darf nichts an Bewegung, Kampf, Beute oder Punkten gebaut
 werden — jede wäre sonst eine dritte Wahrheit neben zwei vorhandenen.
 
-Jede Frage hat eine **Empfehlung**. Ein „einverstanden" genügt; nichts hier ist endgültig, solange
+Jede Frage hat eine **Empfehlung**. Ein „einverstanden“ genügt; nichts hier ist endgültig, solange
 nicht gebaut ist.
 
 ---
@@ -98,7 +98,7 @@ wenn du „original“ willst, bleibt es bei der reinen Ladungsgrenze.
 * **Sieg bei 300 Gesamtpunkten:** deine frühere Wahl. Mit der Original-Punkteformel bringt allein
   **Wallstufe 10 = 1.000 Kriegspunkte = 500 Gesamtpunkte** — der Sieg wäre durch Mauerbau erreichbar.
   **Empfehlung: Ziel auf 1.000 Gesamtpunkte** und zusätzlich „Sieg nur mit Kriegspunkten aus Kämpfen,
-  nicht aus Verteidigungsanlagen" prüfen. Alternative: 300 behalten und die Wallpunkte nicht in die
+  nicht aus Verteidigungsanlagen“ prüfen. Alternative: 300 behalten und die Wallpunkte nicht in die
   Gesamtpunktzahl zählen (weicht aber vom Handbuch ab).
 
 ---
@@ -109,7 +109,7 @@ wenn du „original“ willst, bleibt es bei der reinen Ladungsgrenze.
    mit sechs Beispielreisen (Zahlen aus dem Entwurf, nachgerechnet).
 2. **E3** → Weltkarten-Zug über `auftraege.starten`, Prüfzusage: `test_weltkarte`,
    `test_auftraege`, `test_kampf_einhaengung` bleiben grün.
-3. **E4** → Deckel in `kampfbericht.beute`, Prüfzusage: neue Prüfung „Beute ≤ 50 % und ≤ Ladung".
+3. **E4** → Deckel in `kampfbericht.beute`, Prüfzusage: neue Prüfung „Beute ≤ 50 % und ≤ Ladung“.
 4. **E1** → Kampfteil des Entwurfs umschreiben (kein Code), dann Beute-/Punkte-Anzeige.
 5. **E5** → Zielzahl und Portalregel ändern, Prüfzusage: `test_punkte_einhaengung`.
 

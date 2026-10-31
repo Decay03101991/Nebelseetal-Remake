@@ -1,6 +1,6 @@
 # Lehren aus der Sitzung vom 04.10.2026
 
-Ehrliche Nachlese. Nicht „was gut klingt", sondern was tatsächlich passiert ist und was daraus
+Ehrliche Nachlese. Nicht „was gut klingt“, sondern was tatsächlich passiert ist und was daraus
 dauerhaft gilt. Geschrieben vom Hauptagenten, der die Fehler selbst gemacht hat.
 
 ---
@@ -13,14 +13,14 @@ dauerhaft gilt. Geschrieben vom Hauptagenten, der die Fehler selbst gemacht hat.
 | 2 | **Ein Schreibvorgang meldete Erfolg und kam nie an** (`run_tests.bat`, test_berater fehlte danach). Aufgefallen nur durch `grep`. | Nach jedem Schreiben **zurücklesen** und die Wirkung prüfen — nicht der Erfolgsmeldung glauben. |
 | 3 | **Unsinnigen Code in ein Modul gepatcht** (eine verkettete Zuweisung mitten in einer Funktion), sofort gesehen und behoben. | Wenn eine Ersetzung künstlich aussieht: nicht abschicken. Ein Patch ist eine Textersetzung, keine Denkaufgabe. |
 | 4 | **Funktion doppelt eingefügt** statt entfernt — der Aufräum-Patch hatte sie erneut angehängt. | Nach Umbauten `grep -c "def <name>"` laufen lassen; doppelte Definitionen gewinnt der letzte, still. |
-| 5 | **Eine Prüfung war grün, ohne das Geprüfte zu prüfen:** „Steinmetz auf Wald abgelehnt" schlug wegen der Feldbelegung an, nicht wegen des Geländes. | Bei jeder Prüfung die **Begründung** mitprüfen (Meldungstext), nicht nur den Wahrheitswert. Frei geräumte Testdaten benutzen. |
-| 6 | **Zahlen in eine Commit-Nachricht geschrieben, während der Prüflauf noch lief** („260 Prüfungen, 0 Fehler"). Selbst bemerkt, korrigiert. | Erst der Lauf, dann die Zahl. Im Zweifel in die Nachricht „Lauf läuft noch" schreiben. |
+| 5 | **Eine Prüfung war grün, ohne das Geprüfte zu prüfen:** „Steinmetz auf Wald abgelehnt“ schlug wegen der Feldbelegung an, nicht wegen des Geländes. | Bei jeder Prüfung die **Begründung** mitprüfen (Meldungstext), nicht nur den Wahrheitswert. Frei geräumte Testdaten benutzen. |
+| 6 | **Zahlen in eine Commit-Nachricht geschrieben, während der Prüflauf noch lief** („260 Prüfungen, 0 Fehler“). Selbst bemerkt, korrigiert. | Erst der Lauf, dann die Zahl. Im Zweifel in die Nachricht „Lauf läuft noch“ schreiben. |
 | 7 | **Zu seriell gearbeitet**, dann zu parallel: sechs Agenten gleichzeitig, der Rechner war ausgelastet und ein Fenstertest brauchte 40 statt 10 Sekunden. | 2–4 Kinder. Nebenläufigkeit ist ein Werkzeug, kein Wert an sich. |
-| 8 | **Den Überblick über laufende Arbeiten verloren** — Daniel musste zweimal bremsen („du hast noch laufende Prozesse"). | Vor jedem neuen Auftrag die laufenden auflisten. Ein sichtbarer Status statt Nebenbei-Start. |
+| 8 | **Den Überblick über laufende Arbeiten verloren** — Daniel musste zweimal bremsen („du hast noch laufende Prozesse“). | Vor jedem neuen Auftrag die laufenden auflisten. Ein sichtbarer Status statt Nebenbei-Start. |
 | 9 | **Zwei teure Ergebnisse lagen nur im Zwischenspeicher** (astra's Kartenanalyse, die Siedlungsvorlage) — der wird nach 24 Stunden geleert. Durch Daniels Hinweis gerettet. | Jede Modellantwort **sofort** ins Projekt kopieren (`docs/audits/`) und einchecken, samt Eingabe. |
 | 10 | **Drei Anläufe an einer Schreibsperre verbrannt**, obwohl die Datei vollständig gelesen war. | Wenn die Sperre trotz vollständigem Lesen bleibt: alte Fassung archivieren, neue daneben schreiben, verschieben. Nicht weiter versuchen. |
 | 11 | **Weltbezug verwechselt:** die sechs alten Weltnamen als Felder in ein Raster gesetzt statt als Dimensionen. Auch das starke Modell hatte diesen Denkfehler. | Die **Art** eines Fakts prüfen (ist das ein Feld, eine Dimension, ein Spieler?), nicht nur seine Zahl. Bei Unklarheit die Quelle lesen, nicht das Modell fragen. |
-| 12 | **„Erfundene" Baupreise waren in Wahrheit original.** Monatelang stand die Wahrheit im eigenen Code, während sie als Schätzung gekennzeichnet war. | Bevor etwas als falsch oder erfunden gilt: das eigene Artefakt gegen die neue Quelle halten. Zwei unabhängige Quellen, die übereinstimmen, sind ein Beweis. |
+| 12 | **„Erfundene“ Baupreise waren in Wahrheit original.** Monatelang stand die Wahrheit im eigenen Code, während sie als Schätzung gekennzeichnet war. | Bevor etwas als falsch oder erfunden gilt: das eigene Artefakt gegen die neue Quelle halten. Zwei unabhängige Quellen, die übereinstimmen, sind ein Beweis. |
 | 13 | **Pfadfallen zweimal getroffen** (`/c/...` für natives Python; falsche URL-Muster bei cgamed.de). Dazu eine Groß-/Kleinschreibung, die einen Debug-Zyklus kostete. | Natives Programm → `C:/...`. Erwartete URL-Muster **nicht raten**: die Seite selbst nach den Pfaden fragen. Bei Namensvergleichen Groß/Klein normalisieren. |
 
 ## Was gut lief — und beibehalten gehört
@@ -48,24 +48,24 @@ Nicht ein Absturz und kein verlorenes Guthaben, sondern **eine nicht geprüfte A
 Baupreistabelle erfunden sei. Sie war original. Aufgefallen ist es nur, weil ein Screenshot sie
 bestätigte und das starke Modell ein Gegenmodell lieferte.
 
-**Regel daraus:** Eine Kennzeichnung im eigenen Code („Vorschlag", „erfunden") ist eine Behauptung,
+**Regel daraus:** Eine Kennzeichnung im eigenen Code („Vorschlag“, „erfunden“) ist eine Behauptung,
 kein Beweis — sie gehört genauso geprüft wie fremde Zahlen.
 
 ## Reflexion der Sitzung 05.10.2026 (Nachmittag, Schritte 24–28)
 
 **Auftrag:** Daniels Erweiterung (feinere Karten, Ausrüstung/Forschung/Hausausbau), dann zwei
-Vorgaben aus dem Chat („intelligent auf ALLE Gebäude", „ein Gebäude hat im Sumpf nichts verloren")
+Vorgaben aus dem Chat („intelligent auf ALLE Gebäude“, „ein Gebäude hat im Sumpf nichts verloren“)
 und zuletzt ein **Spielbericht zur laufenden `.exe`** — der Vorrang hatte.
 
 **Was gut lief**
 
 1. **Erst messen, dann bauen.** Der Auftrag lautete, die Sumpfregel auf alle Gebäude anzuwenden. Die
-   Messung (`bau_regeln_ist.py`, 20 Gebäude × 7 Gelände) zeigte: die Sumpfregel galt längst für alle —
+   Messung (Einmal-Skript zur Prüfung der Sumpfregel, 20 Gebäude × 7 Gelände; nicht im Projekt abgelegt) zeigte: die Sumpfregel galt längst für alle —
    ohne Regel waren **9 andere** Gebäude (Haus im Nebelsee war möglich). Hätte ich drauflos gebaut,
    hätte ich Daniel ohne Beleg widersprochen.
 2. **Der Spielbericht wurde zur Ursachensuche, nicht zur Vermutung.** Zwei belegte Ursachen: die
    Spieluhr rechnete Echtzeit 1:1 (`dt_h = dt_seconds / 3600`) → 4 Holz je **echter** Stunde; und die
-   Rundung auf zwei Stellen machte daraus nach einer Sekunde „0,00". Beides mit Testzahlen belegt.
+   Rundung auf zwei Stellen machte daraus nach einer Sekunde „0,00“. Beides mit Testzahlen belegt.
 3. **Jeder Schritt ist einzeln zurücknehmbar:** Einzeltest → Sammellauf → Protokollzeile → Commit,
    fünf kleine Commits statt einem großen.
 4. **Prüfer erst nach dem Commit**, Kinder lesen nur und committen nicht — der Prüfer fand dennoch
@@ -73,8 +73,8 @@ und zuletzt ein **Spielbericht zur laufenden `.exe`** — der Vorrang hatte.
 
 **Meine vier Fehler dieser Sitzung (ehrlich, mit Folge)**
 
-1. **Eine Zeit geschätzt.** In der Übergabe stand „.exe 12:52" — echt war **12:38:43**
-   (Dateistempel). Das verletzt die eigene Projektregel „Zeiten nie schätzen". Es fiel nur auf, weil
+1. **Eine Zeit geschätzt.** In der Übergabe stand „.exe 12:52“ — echt war **12:38:43**
+   (Dateistempel). Das verletzt die eigene Projektregel „Zeiten nie schätzen“. Es fiel nur auf, weil
    ich die Dateizeit nachgeprüft habe; korrigiert mit sichtbarem Vermerk in 0c.
 2. **Folgen einer Datenänderung unterschätzt.** Die Geländeregeln stehen in `data/buildings.json`;
    ich hatte vier Prüfdateien im Blick — der **Sammellauf fand zwei weitere** (`test_baseline`,
@@ -98,3 +98,17 @@ und zuletzt ein **Spielbericht zur laufenden `.exe`** — der Vorrang hatte.
 21 Befunde** · drei `.exe`-Bauten (12:38, 13:29, 13:41) · sechs Kinder (vier Module, ein Nachrechner,
 ein Prüfer) · Kosten nur `deepseek-v4-flash` (Kinder/Prüfer) plus zwei astra-Bildaufrufe und ein
 v4-pro-Entwurf aus dem Vormittagsauftrag.
+
+---
+
+## Nachtrag 31.10.2026 — Zitate werden nicht „verbessert"
+
+Ein Rechtschreib-Durchgang über 48 Markdown-Dateien fand fünf „Tippfehler" — vier davon in
+**zitierten Originaltexten** der alten Website („Hier seit ihr sicher", „mit einender verbinden").
+Genau die bleiben stehen. Ein Zitat, das man stillschweigend korrigiert, ist keine Quelle mehr,
+sondern eine Behauptung. Ebenso die eingeklebten Stellen ohne Leerzeichen („Kampfablauf:Aktuell")
+— die stammen aus der PDF-Textextraktion und belegen, wo der Satz im Original steht.
+
+**Regel:** In zitierten Blöcken wird nichts geändert, auch nicht offensichtliche Fehler. Korrigiert
+wird nur die eigene Prosa. Werkzeug für die Zeichen-Vereinheitlichung (372 Stellen in 22 Dateien):
+`tools/anfuehrungszeichen.py --pruefen | --schreiben`.

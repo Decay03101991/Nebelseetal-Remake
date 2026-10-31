@@ -1,4 +1,4 @@
-# Plan für den Gesamtaudit (starkes Modell) — gezielt statt „alles auf einmal"
+# Plan für den Gesamtaudit (starkes Modell) — gezielt statt „alles auf einmal“
 
 **Stand:** 31.10.2026, 02:45 · `06aabcb` · **Auftrag Daniel:** „mindestens einmal ein großes Modell
 unser Gesamtprojekt anschauen lassen … alles mit den Spiel bekannten Infos abgleichen — aber in einem
@@ -13,7 +13,7 @@ Gemessen, nicht geschätzt (Werkzeuge liegen im Projekt):
 
 | Weg | Eingabe | Kosten | Urteil |
 |---|---|---|---|
-| **Dossier über das ganze Projekt** (`tools/gesamtaudit_dossier_bauen.py`) | **129.370 Zeichen ≈ 37.000 Prompt-Token** | 0,05–0,10 USD je Aufruf | als **Basis** gut, als Frage zu breit: ein Modell, das 40 Registerpunkte, 20 Gebäude, 28 Einheiten, 21 Forschungen und 13 Module gleichzeitig sieht, antwortet allgemein („prüft eure Quellen") statt konkret |
+| **Dossier über das ganze Projekt** (`tools/gesamtaudit_dossier_bauen.py`) | **129.370 Zeichen ≈ 37.000 Prompt-Token** | 0,05–0,10 USD je Aufruf | als **Basis** gut, als Frage zu breit: ein Modell, das 40 Registerpunkte, 20 Gebäude, 28 Einheiten, 21 Forschungen und 13 Module gleichzeitig sieht, antwortet allgemein („prüft eure Quellen“) statt konkret |
 | derselbe Lauf wurde am 31.10. um 02:36 gestartet und nach **15 s abgebrochen** | — | nur Prompt-Anteil, **kleiner einstelliger Cent-Betrag**, nicht gemessen | Daniel will keine generische Auswertung |
 
 **Erkenntnis:** das Teure an diesen Läufen ist nicht die Antwort, sondern **Kontext, den das Modell
@@ -22,7 +22,7 @@ und einen **Auftrag mit Rechenpflicht** (Zahlen nachrechnen, nicht beschreiben).
 
 Was **ich selbst** kostenlos und belegbar beantworte (dafür braucht es kein Modell):
 Zeilennummern, Fundstellen, Teststand, Widersprüche zwischen Dateien, doppelte Systeme, „ist das schon
-gebaut?". Genau das ist in `docs/PRUEFUNG_ENTWURF_WEGZEIT_KAMPF_20261031.md` und
+gebaut?“. Genau das ist in `docs/PRUEFUNG_ENTWURF_WEGZEIT_KAMPF_20261031.md` und
 `docs/audits/BEWEGUNGSSYSTEME_LANDKARTE.md` bereits erledigt.
 
 ---
@@ -41,14 +41,14 @@ Zahlen, die ich sofort in Code oder Dokument übernehmen kann.
 * **Ausschnitt:** `docs/quellen/Das_Kampfsystem_Neu_Original.odt` (Text, 6.759 Zeichen) +
   `docs/original/ORIGINAL_Kampf_und_Punkte.md` §2 (Kampf, ~4.000 Zeichen) + Handbuch
   Z. 1206–1338 (~5.000) + `kampf.py` `PROFILE` und `fuehre_schlacht`-Ablauf (~3.000) → **≈ 19.000 Zeichen**
-* **Ausgabeformat:** Tabelle „Schritt | gilt | Quelle | Begründung" (max. 14 Zeilen) + Liste
-  „unvereinbar" (max. 5) + 3 Sätze „was das für den Code bedeutet".
+* **Ausgabeformat:** Tabelle „Schritt | gilt | Quelle | Begründung“ (max. 14 Zeilen) + Liste
+  „unvereinbar“ (max. 5) + 3 Sätze „was das für den Code bedeutet“.
 * **Kosten:** ≈ 5.400 Prompt-Token + 12.000 Antwort-Token ≈ **0,03 USD**
 * **Was ich damit tue:** E1 ist entschieden belegbar; danach Kampfteil des Entwurfs umschreiben.
 
 ### Audit 2 — Wegzeit, Auftragskosten und Portal-Mana als EIN Zahlensystem (→ E2, E4, E5)
 
-* **Frage:** Baue aus den belegten Angaben (GS-Werte 5–35, „Dauer je Strecke", Rückkehr doppelt,
+* **Frage:** Baue aus den belegten Angaben (GS-Werte 5–35, „Dauer je Strecke“, Rückkehr doppelt,
   Drosselung in 10-%-Schritten, Gold/Nahrung-Kosten, Mana nach Entfernung, 5.000 Mana und 24 h für
   den Weltwechsel, Spieluhr ×180) **eine** Reiseformel und eine Kostentabelle und rechne drei
   Beispielreisen durch (nah 6 Felder, mittel 16, fern 32, je langsame und schnelle Einheit).
@@ -66,14 +66,14 @@ Zahlen, die ich sofort in Code oder Dokument übernehmen kann.
 
 * **Frage:** Prüfe die **belegten** Raten (Produktion je Gebäude und Gelände, Siedlerzuwachs 1/h,
   Forschungsdauer Stufe², Ausbildungszeiten, Punkte je Einheit, Wallstufe³) gegen die Spieluhr ×180
-  und Daniels Ziel „eine Partie in überschaubarer Zeit". Wo wird etwas trivial, wo unspielbar?
+  und Daniels Ziel „eine Partie in überschaubarer Zeit“. Wo wird etwas trivial, wo unspielbar?
   Schlage die **kleinste** Änderung vor, die keine Originalzahl verändert (z. B. Zeitfaktor,
   Zielpunktzahl, Startbedingungen) — mit Rechnung.
 * **Ausschnitt:** `data/resources.json` Erträge + `data/buildings.json` Erträge/Preise +
   `data/research.json` Kosten + `data/units.json` Punkte + Handbuch Punkte-/Schutzseiten +
   `src/punkte.py` Konstanten → **≈ 20.000 Zeichen**
 * **Ausgabeformat:** Tabelle „Größe | belegter Wert | Wirkung bei ×180 | Urteil (spielbar/trivial/
-  unspielbar)" (max. 10 Zeilen) + 3 konkrete Stellschrauben mit Zahlen + 1 Empfehlung.
+  unspielbar)“ (max. 10 Zeilen) + 3 konkrete Stellschrauben mit Zahlen + 1 Empfehlung.
 * **Kosten:** ≈ 5.700 Prompt + 12.000 Antwort ≈ **0,03 USD**
 * **Was ich damit tue:** E5 (300 Punkte) wird mit Rechnung entschieden, nicht nach Gefühl.
 

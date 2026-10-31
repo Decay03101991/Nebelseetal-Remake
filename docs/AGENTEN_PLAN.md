@@ -65,10 +65,10 @@ Die Kinder sprechen **nicht** untereinander und führen **kein eigenes Brett**. 
 trägt das Ergebnis in `docs/BOARD.md` (Tagebuch für Daniel) sowie in die Übergabe ein.
 
 Grund (belegt am 04.10.2026): Ein Brett der Kinder wird zur **zweiten Wahrheit** — ein Kind kann
-dort „fertig" melden, während seine Prüfdatei rot ist (genau so passiert: `oberflaeche_original`
+dort „fertig“ melden, während seine Prüfdatei rot ist (genau so passiert: `oberflaeche_original`
 63 grün / 1 rot, gefunden hat es der Koordinator, nicht das Brett). Verbindlich sind allein
 `run_tests.bat`, die Commits und die Übergabe. Kollisionen verhindert die Auftragsregel
-„nur neue Dateien, nichts Bestehendes anfassen" — nicht ein Brett.
+„nur neue Dateien, nichts Bestehendes anfassen“ — nicht ein Brett.
 
 ## 5. Auftragsvorlage für ein Kind (kopieren und anpassen)
 
@@ -104,10 +104,10 @@ Sechs Kinder liefen nach dieser Vorlage. Was den Unterschied machte:
    erfinden — sonst passt sie beim Einhängen nicht. Die exakten Signaturen in den Auftrag
    schreiben (`def faktor(forschungsstaende: dict, rohstoff: str) -> float`). Der Hauptagent hat
    sie vorher ausgedacht; das Kind füllt sie.
-2. **Die belegten Zahlen WÖRTLICH in den Auftrag.** Nicht „schau im Handbuch nach", sondern die
+2. **Die belegten Zahlen WÖRTLICH in den Auftrag.** Nicht „schau im Handbuch nach“, sondern die
    Zahlen und ihre Quelle hineinschreiben. Kinder, die selbst suchen, erfinden Werte.
 3. **Prüfrahmen und Stil benennen.** „Nutze `tests/harness.py`, sieh dir `tests/test_gebaeude_wirkung.py`
-   als Vorbild an, Ende mit `sys.exit(bericht())`" — ohne diesen Satz entstehen eigene
+   als Vorbild an, Ende mit `sys.exit(bericht())`“ — ohne diesen Satz entstehen eigene
    Prüfgerüste, die sich nicht in `run_tests.bat` einfügen.
 4. **Verbot von Fenstern und Git.** Kinder sollen keine tkinter-Fenster bauen (sie stören Daniel
    am Rechner) und nicht committen (der Hauptagent committet erst nach eigener Prüfung).

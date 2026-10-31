@@ -1,4 +1,4 @@
-# Prüfung des Entwurfs „Wegzeit, Kampfablauf, Weltlage" gegen Handbuch 2009, Vorversion 2006 und den Code
+# Prüfung des Entwurfs „Wegzeit, Kampfablauf, Weltlage“ gegen Handbuch 2009, Vorversion 2006 und den Code
 
 **Gegenstand:** `docs/ENTWURF_WEGZEIT_KAMPF_WELT_20261031.md` (195 Zeilen, starkes Modell, 0,039 USD)
 **Prüfer:** neue Sitzung (Hermes), 31.10.2026, 02:30 · Stand `06aabcb`, Arbeitsverzeichnis sauber
@@ -19,8 +19,8 @@ Nichts wird angeglichen, ohne dass es hier steht.
    und alle Zahlen darin sind ehrlich als VORSCHLAG gekennzeichnet.
 2. **Der Kampfteil muss neu geschrieben werden.** Er baut auf dem **älteren** Handbuch-Modell (LE/AT/PA/MU),
    das im Projekt am 28.10. durch das **neuere Original-Forumssystem** ersetzt wurde (`src/kampf.py`,
-   15 Profile, Prüfprotokoll „GPT-KA01…KA06, 14 Testdateien grün"). Außerdem nennt der Entwurf sechs Dinge
-   als „nicht belegt / Entscheidung Daniel", die im Handbuch **wörtlich belegt** sind.
+   15 Profile, Prüfprotokoll „GPT-KA01…KA06, 14 Testdateien grün“). Außerdem nennt der Entwurf sechs Dinge
+   als „nicht belegt / Entscheidung Daniel“, die im Handbuch **wörtlich belegt** sind.
 3. **Von den 11 Umsetzungsschritten sind 6 ganz oder teilweise gebaut** — Reisezeit, Auftragsliste,
    Wallvorrunde, Kampfsequenzen, Geräteverlust und Punkte existieren bereits mit Prüfdateien.
    Die Entscheidungsliste schrumpft von **10 auf 5**.
@@ -42,19 +42,19 @@ Nichts wird angeglichen, ohne dass es hier steht.
 
 Alle sechs Beispielzeilen der Tabelle §1.2 **nachgerechnet und richtig**: d 6 / GS 5 → 2,4 h → 48 s;
 d 16 / GS 5 → 6,4 h → 2:08 min; d 32 / GS 35 → 1,83 h → 36,6 s. Auch „0,5 Felder je GS-Punkt und
-Spielstunde" folgt korrekt aus `2·d/GS`.
+Spielstunde“ folgt korrekt aus `2·d/GS`.
 
 ### 2.2 Was nicht hält — drei Punkte
 
 | # | Aussage des Entwurfs | Befund |
 |---|---|---|
 | W1 | `Dauer = 2 · d / GS` | **VORSCHLAG, und im Widerspruch zum gebauten Code.** `src/auftraege.py` Z. 52/133–147 rechnet `Dauer = d / GS · 3600 s`, also **Faktor 1**: 6 Felder mit GS 5 = 1,2 h statt 2,4 h. Zwei Formeln für dieselbe Sache dürfen nicht beide im Projekt stehen → **Entscheidung E2** |
-| W2 | „Jede Dimension zählt als 20 Felder" | **VORSCHLAG.** Belegt ist nur das 20×20-Gitter und dass ein Dimensionswechsel **Mana** kostet (`portal.php.txt` Z. 11–14, 19–21) — **nicht**, dass er Zeit kostet. Die Zeitstrafe ist eine Remake-Erfindung und muss als solche im Code stehen |
-| W3 | „Faktor 2 ist nötig, damit …" | reine **Spielgefühls-Begründung**, keine Quelle. Zulässig als VORSCHLAG, aber genau so zu kennzeichnen |
+| W2 | „Jede Dimension zählt als 20 Felder“ | **VORSCHLAG.** Belegt ist nur das 20×20-Gitter und dass ein Dimensionswechsel **Mana** kostet (`portal.php.txt` Z. 11–14, 19–21) — **nicht**, dass er Zeit kostet. Die Zeitstrafe ist eine Remake-Erfindung und muss als solche im Code stehen |
+| W3 | „Faktor 2 ist nötig, damit …“ | reine **Spielgefühls-Begründung**, keine Quelle. Zulässig als VORSCHLAG, aber genau so zu kennzeichnen |
 
 **Fehlt im Entwurf:** die Auftragskosten. HB Z. 1185–1194: eigene Siedlungen kosten **Gold und Nahrung**,
 fremde **zusätzlich Mana nach Entfernung**; die Geschwindigkeit ist in **10-%-Schritten drosselbar** —
-**langsamer = weniger Gold, mehr Nahrung**, angezeigt als „Reisedauer". Diese Regel ist im Code als
+**langsamer = weniger Gold, mehr Nahrung**, angezeigt als „Reisedauer“. Diese Regel ist im Code als
 Konstante vorhanden (`auftraege.py` Z. 57–59), aber **nicht angeschlossen** (Z. 514) und die Reisekosten
 sind leer (Z. 536).
 
@@ -67,23 +67,23 @@ sind leer (Z. 536).
 | Modell | Datei | Status |
 |---|---|---|
 | **Handbuch 2009** (LE, AT, PA, MU, RS, TP; Zweikampf in Kampfrunden) | `src/kampf_alt_handbuch_2009.py` (18.772 Byte) | **Rückfallsicherung** — von `main.py` **nicht** importiert (nur `tests/test_gpt_kampf_forum_neu.py` prüft, dass sie existiert) |
-| **Neueres Original-Forumssystem** (Konstitution %, Kampfwert-Spanne, Rüstung, Fernkampfchance %, Erschöpfung durch Treffer, Schwelle zur Kampfunfähigkeit; 15 Profile) | `src/kampf.py` (14.809 Byte) | **aktiv**: `main.py` Z. 42, Z. 2048/2079/2304/5564/5902. Quelle: `docs/quellen/Das_Kampfsystem_Neu_Original.odt` („die durch mich vervollständigte Erklärung aus dem Forum", später als das Handbuch) |
+| **Neueres Original-Forumssystem** (Konstitution %, Kampfwert-Spanne, Rüstung, Fernkampfchance %, Erschöpfung durch Treffer, Schwelle zur Kampfunfähigkeit; 15 Profile) | `src/kampf.py` (14.809 Byte) | **aktiv**: `main.py` Z. 42, Z. 2048/2079/2304/5564/5902. Quelle: `docs/quellen/Das_Kampfsystem_Neu_Original.odt` („die durch mich vervollständigte Erklärung aus dem Forum“, später als das Handbuch) |
 
 Der Entwurf beschreibt das **Handbuch-Modell** und nennt als vorhandenen Code
-„`src/kampf.py` mit `_geraeteverluste`, `_verluste_zaehlen`, `_zweikampf`" — **diese drei Funktionen stehen
+„`src/kampf.py` mit `_geraeteverluste`, `_verluste_zaehlen`, `_zweikampf`“ — **diese drei Funktionen stehen
 in `kampf_alt_handbuch_2009.py`** (Z. 155, 181, 192), nicht in `kampf.py`. `kampf.py` kennt stattdessen
 `PROFILE`, `_ausgeschieden`, `_sieggeraete`, `_beute`, `fuehre_schlacht`. **Der Entwurf ist hier sachlich falsch.**
 
-### 3.2 Sechs Punkte, die im Handbuch wörtlich belegt sind und im Entwurf als „offen" stehen
+### 3.2 Sechs Punkte, die im Handbuch wörtlich belegt sind und im Entwurf als „offen“ stehen
 
 | # | Entwurf sagt | Quelle sagt (wörtlich) |
 |---|---|---|
-| K1 | „Wallstufenwerte **fehlen**" | HB Z. 1216–1252, **vollständige Tabelle**: Erdwall 10 / Steinwall 40 / Kleine Palisade 90 / Palisade 160 / Verst. Palisade 250 + 500 / Mauer 360 + 600 / Verst. Mauer 490 + 700 / Festungsmauer 640 + 800 / Verst. Festungsmauer 810 + 900 / Bollwerk 1000 + 1000. Steht zusätzlich in `data/buildings.json` (Gebäude 16, Stufen 1–10) und ist in `kampf.py` Z. 190–204 umgesetzt |
-| K2 | „sonst halbierter Schaden" | HB Z. 1213–1215: reicht die Schlagkraft nicht, **„ziehen sich die Truppen unverrichteter Dinge zurück. Der Kampf gilt dann als unentschieden."** Kein halbierter Schaden |
+| K1 | „Wallstufenwerte **fehlen**“ | HB Z. 1216–1252, **vollständige Tabelle**: Erdwall 10 / Steinwall 40 / Kleine Palisade 90 / Palisade 160 / Verst. Palisade 250 + 500 / Mauer 360 + 600 / Verst. Mauer 490 + 700 / Festungsmauer 640 + 800 / Verst. Festungsmauer 810 + 900 / Bollwerk 1000 + 1000. Steht zusätzlich in `data/buildings.json` (Gebäude 16, Stufen 1–10) und ist in `kampf.py` Z. 190–204 umgesetzt |
+| K2 | „sonst halbierter Schaden“ | HB Z. 1213–1215: reicht die Schlagkraft nicht, **„ziehen sich die Truppen unverrichteter Dinge zurück. Der Kampf gilt dann als unentschieden.“** Kein halbierter Schaden |
 | K3 | Genaue Zweikampfformel = Vorschlag | HB Z. 1296–1309: höherer **MU** beginnt (Gleichstand: Verteidiger), Wurf 1–100 **≤ AT** = Treffer, **PA** pariert (kein Schaden), sonst Schaden = TP − RS, Minimum 1. Alles wörtlich belegt — **nur für das Handbuch-Modell** |
-| K4 | Fluchtchance 40 % + 5 % als Einheitenflucht | HB Z. 1319–1323 (Einheit): LE < 1 tot, LE < 5 → **MU** entscheidet über Flucht, Geflohene stehen danach wieder zur Verfügung. HB Z. 1334–1338 (Gerät): **der Verlierer** verliert einen Teil seiner Karren und Belagerungswaffen, „jede Einheit hat eine Fluchtchance von 40 %, jede Kampfsequenz erhöht diese Chance um 5 %" — im Code ist das `_sieggeraete` (Geräte), nicht Einheitenflucht |
-| K5 | Erschöpfung „nicht belegt"; 10 Sequenzen = Vorschlag | HB Z. 1324–1328: **Erschöpfung belegt** (Sieger eines Zweikampfs verliert 1 Punkt AT **und** PA bis Schlachtende, summiert sich). HB Z. 1274–1278: **nach 10 Sequenzen** ohne Sieger geht die Schlacht unentschieden aus, Angreifer zieht sich **ohne Beute** zurück. HB Z. 1279–1295: je Sequenz **erst Fernkampf beider Seiten gleichzeitig**, dann Nahkampf **nacheinander** gegen **zufällige** Verteidiger; Ende, wenn eine Armee keine Nahkämpfer mehr hat oder 10 Sequenzen vorbei |
-| K6 | Punkteformel = Vorschlag | HB S. 5 (`ORIGINAL_Kampf_und_Punkte.md` §3): **Kriegspunkte = fester Wert je Einheit + Ausbaustufe³**, Gesamt = **(Krieg + Forschung) / 2**. So gebaut in `src/punkte.py` Z. 94–119. Der **Sieg bei 300 Punkten** ist dagegen eine **Projekt-Zielzahl** (`punkte.py` Z. 43–44, „VORSCHLAG") |
+| K4 | Fluchtchance 40 % + 5 % als Einheitenflucht | HB Z. 1319–1323 (Einheit): LE < 1 tot, LE < 5 → **MU** entscheidet über Flucht, Geflohene stehen danach wieder zur Verfügung. HB Z. 1334–1338 (Gerät): **der Verlierer** verliert einen Teil seiner Karren und Belagerungswaffen, „jede Einheit hat eine Fluchtchance von 40 %, jede Kampfsequenz erhöht diese Chance um 5 %“ — im Code ist das `_sieggeraete` (Geräte), nicht Einheitenflucht |
+| K5 | Erschöpfung „nicht belegt“; 10 Sequenzen = Vorschlag | HB Z. 1324–1328: **Erschöpfung belegt** (Sieger eines Zweikampfs verliert 1 Punkt AT **und** PA bis Schlachtende, summiert sich). HB Z. 1274–1278: **nach 10 Sequenzen** ohne Sieger geht die Schlacht unentschieden aus, Angreifer zieht sich **ohne Beute** zurück. HB Z. 1279–1295: je Sequenz **erst Fernkampf beider Seiten gleichzeitig**, dann Nahkampf **nacheinander** gegen **zufällige** Verteidiger; Ende, wenn eine Armee keine Nahkämpfer mehr hat oder 10 Sequenzen vorbei |
+| K6 | Punkteformel = Vorschlag | HB S. 5 (`ORIGINAL_Kampf_und_Punkte.md` §3): **Kriegspunkte = fester Wert je Einheit + Ausbaustufe³**, Gesamt = **(Krieg + Forschung) / 2**. So gebaut in `src/punkte.py` Z. 94–119. Der **Sieg bei 300 Punkten** ist dagegen eine **Projekt-Zielzahl** (`punkte.py` Z. 43–44, „VORSCHLAG“) |
 
 ### 3.3 Wirklich offen beim Kampf
 
@@ -108,9 +108,9 @@ es um). Ohne diese Regel greifen Bots einen neuen Spieler in der ersten Minute a
 | L1 | X-Y-Z-Koordinaten, 20 Dimensionen, 20×20, eigene Welt grün / fremde rot | **BELEGT** `portal.php.txt` Z. 16–22, 38–43; Register 3 |
 | L2 | höchstens 6 Siedlungen, Karte per Zufall, nie zweimal dieselbe | **BELEGT** HB Z. 311–315; `ORIGINAL_Kampf_und_Punkte.md` §5 |
 | L3 | 10×10-Baukarte aus **127** Originalkarten | **stimmt** — `docs/AKTUELLER_STAND.md`, `data/originalkarten/katalog.json` |
-| L4 | **„`movements` ist heute immer leer"** | **FALSCH.** `main.py` Z. 5707 legt Bewegungen an, Z. 6937–6973 wertet Ankunft aus (Altpfad). **Zusätzlich** existiert der vollständige Auftragspfad `self.auftraege` (`auftraege.py`, `main.py` Z. 855/1395/1961/1995/2451) → **es gibt zwei Bewegungssysteme nebeneinander** |
+| L4 | **„`movements` ist heute immer leer“** | **FALSCH.** `main.py` Z. 5707 legt Bewegungen an, Z. 6937–6973 wertet Ankunft aus (Altpfad). **Zusätzlich** existiert der vollständige Auftragspfad `self.auftraege` (`auftraege.py`, `main.py` Z. 855/1395/1961/1995/2451) → **es gibt zwei Bewegungssysteme nebeneinander** |
 | L5 | Portalwechsel: 5.000 Mana, einmal je 24 h | **BELEGT** `portal.php.txt` Z. 23–37 |
-| L6 | „Der Wechsel verschiebt die **ausgewählte eigene Siedlung**" | **WIDERSPRUCH zur Quelle.** Z. 23–27, 35: **die ganze Welt** wird verschoben („Eure Welt an ihren neuen Platz"), und das Mana muss **in einer einzelnen Siedlung** verfügbar sein, nicht über mehrere verteilt. Eine einzelne Siedlung umziehen ist eine Remake-Idee → **Entscheidung E5** |
+| L6 | „Der Wechsel verschiebt die **ausgewählte eigene Siedlung**“ | **WIDERSPRUCH zur Quelle.** Z. 23–27, 35: **die ganze Welt** wird verschoben („Eure Welt an ihren neuen Platz“), und das Mana muss **in einer einzelnen Siedlung** verfügbar sein, nicht über mehrere verteilt. Eine einzelne Siedlung umziehen ist eine Remake-Idee → **Entscheidung E5** |
 | L7 | Mana nur beim Dimensionswechsel | **unvollständig.** Z. 6–14: **jedes Entsenden** kostet Mana, **unabhängig von der Anzahl der Einheiten**, Höhe nach Entfernung im Limbus. Fehlt im Entwurf |
 
 ---
@@ -151,7 +151,7 @@ es um). Ohne diese Regel greifen Bots einen neuen Spieler in der ersten Minute a
 **Sobald E1 und E2 entschieden sind:** den Kampfteil des Entwurfs auf das gewählte Modell umschreiben
 (§2.1 und §2.2 ersetzen, §5 auf die wahren Lücken kürzen) und die Wegzeit-Formel im Code auf **eine**
 Fassung festlegen — erwartetes Ergebnis: `docs/ENTWURF_WEGZEIT_KAMPF_WELT_20261031.md` ohne die sechs
-falschen „nicht belegt"-Einträge, und `src/auftraege.py` mit **einer** Formel, die zu `docs/` passt.
+falschen „nicht belegt“-Einträge, und `src/auftraege.py` mit **einer** Formel, die zu `docs/` passt.
 Danach erst Umsetzung, ein Commit je Schritt, mit Prüfzusage.
 
 **Nicht nötig, weil schon gebaut:** Wallschwellen, Sequenzen, Geräteverlust, Beute über Karren,
