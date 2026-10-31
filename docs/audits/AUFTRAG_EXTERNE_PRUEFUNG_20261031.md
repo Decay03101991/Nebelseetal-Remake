@@ -137,7 +137,7 @@ Punkten** — genau das ist eine deiner Fragen (Aufgabe A). Das dritte ist die O
 ```text
 Das Kampfsystem
 Das Kampfsystem zu verstehen ist ein bedeutender Schritt um im Nebelseetal bestehen zu können. Hier findet ihr die , durch mich vervollständigte, Erklärung aus dem Forum.
-Hier ist der detaillierte neue Kampfablauf:Aktuell gelten diese Werte:
+Hier ist der detaillierte neue Kampfablauf: Aktuell gelten diese Werte:
 Bürgerwehr
 Konstitution: 5%,
 Kampfwert: 1-12
@@ -202,7 +202,7 @@ Waldläufer
 Konstitution: 55%
 Kampfwert: 2-40
 Rüstung: 4
-Der Kampfablauf:Bevor ein Kampf stattfindet wird erst überprüft ob die Nahkampfeinheiten und die Belagerungswaffen über genug Schlagkraft verfügen die Mauer des Verteidigers zu überwinden. Wenn dieses der Fall ist kann der Kampf beginnen. Wenn nicht zieht sich der Angreifer wieder zurück.Vorrunde - FernkampfEs gibt vor der Schlacht Mauerstufe+1 Vorrunden, in der die Fernkämpfer beider Seiten, die gegnerischen Nahkampfeinheiten (Wenn keine mehr übrig sind auch die Fernkampfeinheiten) beschießen.Modifizierung des FernkampfwertesDurch die Mauer ist es für die angreifenden Schützen allerdings schwieriger die gegnerischen Einheiten zu treffen. Pro Mauerstufe ist der Fernkampfwert der angreifenden Schützen um 5% gesenkt. Die Beschädigung der Mauer wird hierbei berücksichtigt.Aber die Beschädigung durch die aktuell mitgeführten Belagerungswaffen wird erst nach der Vorrunde berechnet.Außerdem werden angreifende Nahkämpfer durch Belagerungstürme geschützt. Normale Belagerungstürme können 10 Einheiten und große Belagerungstürme 30 Einheiten schützen. Wenn diese Einheiten  beschossen werden bekommt der Fernkämpfer einen Malus von 30% auf dern Fernkampfwert.In Türmen werden immer zuerst die besten Einheiten geschützt.Die Forschung Bogenbau erhöht die Trefferchance der Schützen um 2% pro Stufe.SchadenGetroffene Einheiten erleiden Erschöpfungschaden. Je Fernkampfeinheit ist dieser Erschöpfungsschaden unterschiedlich hoch. Die Verschiedenen Einheitentypen können verschieden hohen, durch Fernkampf erlittenen Erschöpfungsschaden einstecken, bevor sie kampfunfähig werden:Erschöpfungsschaden:
+Der Kampfablauf: Bevor ein Kampf stattfindet wird erst überprüft ob die Nahkampfeinheiten und die Belagerungswaffen über genug Schlagkraft verfügen die Mauer des Verteidigers zu überwinden. Wenn dieses der Fall ist kann der Kampf beginnen. Wenn nicht zieht sich der Angreifer wieder zurück. Vorrunde - FernkampfEs gibt vor der Schlacht Mauerstufe+1 Vorrunden, in der die Fernkämpfer beider Seiten, die gegnerischen Nahkampfeinheiten (Wenn keine mehr übrig sind auch die Fernkampfeinheiten) beschießen. Modifizierung des FernkampfwertesDurch die Mauer ist es für die angreifenden Schützen allerdings schwieriger die gegnerischen Einheiten zu treffen. Pro Mauerstufe ist der Fernkampfwert der angreifenden Schützen um 5% gesenkt. Die Beschädigung der Mauer wird hierbei berücksichtigt. Aber die Beschädigung durch die aktuell mitgeführten Belagerungswaffen wird erst nach der Vorrunde berechnet. Außerdem werden angreifende Nahkämpfer durch Belagerungstürme geschützt. Normale Belagerungstürme können 10 Einheiten und große Belagerungstürme 30 Einheiten schützen. Wenn diese Einheiten  beschossen werden bekommt der Fernkämpfer einen Malus von 30% auf dem Fernkampfwert. In Türmen werden immer zuerst die besten Einheiten geschützt. Die Forschung Bogenbau erhöht die Trefferchance der Schützen um 2% pro Stufe. SchadenGetroffene Einheiten erleiden Erschöpfungschaden. Je Fernkampfeinheit ist dieser Erschöpfungsschaden unterschiedlich hoch. Die Verschiedenen Einheitentypen können verschieden hohen, durch Fernkampf erlittenen Erschöpfungsschaden einstecken, bevor sie kampfunfähig werden: Erschöpfungsschaden:
 Kurzbogenschützen
 1 Erschöpfungsschaden pro Treffer
 Bogenschützen
@@ -242,7 +242,7 @@ Kundschafter
 5 Erschöpfungspunkte
 Waldläufer
 6 Erschöpfungspunkte
- Wird eine Einheit Kampfunfähig, wird anhand ihrer Konstitution bestimmt, ob sie die Schlacht überlebt, oder stirbt. Sie nimmt aber in beiden Fällen nicht weiter an der Schlacht teil. Ein durch Zufall bestimmter Wert zwischen 1 und 100 muss kleiner, oder gleich der Konstitution der Einheit sein, damit sie überlebt.Nach den Vorrundenbeginnen sich die angreifenden Schützen zurückzuziehen. Die Verteidiger machen sich auf einen Nahkampf gefasst.Jede Kampfsequenz ziehen sich 20% der Fernkämpfer des Angreifers zurück, beginnend mit den stärksten Einheiten. Sollteder Angreifer die Schlacht verlieren (unentschiedene Schlachten gewinnen beide Seiten), werden die noch nicht geflohenen Fernkampfeinheiten überrannt. Unabhängig von der noch verbliebenen verteidigenden Armee, legen alle nicht zurückgezogenen Fernkämpfer eine Konstitutionsprobe ab um zu bestimmen, ob sie das Schlachtfeld lebend verlassen.Belagerung / MauerschadenAußerdem wird jetzt die Beschädigung der Mauer durch Katapulte etc. berechnet. Diese wirkt sich also nicht auf den aktuellen Kampf aus, da die Fernkämpfer schon geschossen haben. Beim nächsten Kampf allerdings (falls die Mauer nicht repariert wird) schießen die Fernkämpfer dementsprechend weniger und es muss auch weniger Schlagkraft aufgebracht werden.Der Mauerschaden wird wie folgt errechnet: Zuerst wird der Schaden ermittel die eine Belagerungswaffe macht. Bei einem Katapult wäre das zb. 2 - 13. Hier wird als Beispiel eine 9 ermittelt. Nehmen wir an der Angreifer hat eine Mauer Stufe 5 dann wird von den 9 Schaden noch 5 abgezogen(Mauerstufe). Somit macht das Katapult 4 Schaden und die Mauer hätte statt 100% nur noch 96%. So wird das für jede Belagerungswaffe getrennt gerechnet. Das heißt zb das eine kleine Ramme die max.4 Schaden macht einer Mauer Stufe 5 nichts anhaben kann.Also die Formel lautet: Schaden der Belagerungswaffe - Mauerstufe = Schaden an der MauerDie SchlachtIn der Schlacht suchen sich alle angreifenden Einheiten (die schwächsten zuerst) per Zufall eine verteidigende Nahkampfeinheit heraus und gehen mit dieser Einheit in den Nahkampf.ZweikampfDabei wird für jeden der Kontrahenten eine Zufallszahl, zwischen dem beim Kampfwert angegebenen Wert der Einheit, ermittelt. Dieser Ermittelte Wert wird um 10% pro Stufe der Forschung Schmiedekunst erhöht. Anschließend wird der Rüstungswert des Gegners, ebenfalls um 10% pro Schmiedekunststufe des Gegners erhöht, von dem Ergebnis abgezogen. Um den endgültigen Kampfwert zu erhalten wird nun noch die bisher in der Schlacht erlittene Erschöpfung der Einheit vom Wert subtrahiert.Die Einheit mit dem höheren Ergebnis gewinnt den Zweikampf, erleidet aber 2 Punkte Erschöpfung. Die Einheit die verliert muss, wie beim Fernkampf eine Konstitutionsprobe bestehen um die Schlacht zu überleben. Sie scheidet aber in jedem Fall aus der Schlacht aus.Haben beide am Zweikampf beteiligten Einheiten den selben ermittelten Kampfwert, gelten beide Einheiten als Verlierer, scheiden aus und müssen eine Konstitutionsprobe bestehen um zu überleben.Die Schlacht ist beendet, wenn entweder alle angreifenden Nahkampfeinheiten ausgeschieden sind, alle Einheiten des Verteidigers (Fern- und Nahkampfeinheiten) besiegt wurden, oder nach 10 Sequenzen kein Gewinner feststeht.
+ Wird eine Einheit Kampfunfähig, wird anhand ihrer Konstitution bestimmt, ob sie die Schlacht überlebt, oder stirbt. Sie nimmt aber in beiden Fällen nicht weiter an der Schlacht teil. Ein durch Zufall bestimmter Wert zwischen 1 und 100 muss kleiner, oder gleich der Konstitution der Einheit sein, damit sie überlebt. Nach den Vorrundenbeginnen sich die angreifenden Schützen zurückzuziehen. Die Verteidiger machen sich auf einen Nahkampf gefasst. Jede Kampfsequenz ziehen sich 20% der Fernkämpfer des Angreifers zurück, beginnend mit den stärksten Einheiten. Sollteder Angreifer die Schlacht verlieren (unentschiedene Schlachten gewinnen beide Seiten), werden die noch nicht geflohenen Fernkampfeinheiten überrannt. Unabhängig von der noch verbliebenen verteidigenden Armee, legen alle nicht zurückgezogenen Fernkämpfer eine Konstitutionsprobe ab um zu bestimmen, ob sie das Schlachtfeld lebend verlassen. Belagerung / MauerschadenAußerdem wird jetzt die Beschädigung der Mauer durch Katapulte etc. berechnet. Diese wirkt sich also nicht auf den aktuellen Kampf aus, da die Fernkämpfer schon geschossen haben. Beim nächsten Kampf allerdings (falls die Mauer nicht repariert wird) schießen die Fernkämpfer dementsprechend weniger und es muss auch weniger Schlagkraft aufgebracht werden. Der Mauerschaden wird wie folgt errechnet: Zuerst wird der Schaden ermittelt die eine Belagerungswaffe macht. Bei einem Katapult wäre das zb. 2 - 13. Hier wird als Beispiel eine 9 ermittelt. Nehmen wir an der Angreifer hat eine Mauer Stufe 5 dann wird von den 9 Schaden noch 5 abgezogen(Mauerstufe). Somit macht das Katapult 4 Schaden und die Mauer hätte statt 100% nur noch 96%. So wird das für jede Belagerungswaffe getrennt gerechnet. Das heißt zb das eine kleine Ramme die max.4 Schaden macht einer Mauer Stufe 5 nichts anhaben kann. Also die Formel lautet: Schaden der Belagerungswaffe - Mauerstufe = Schaden an der MauerDie SchlachtIn der Schlacht suchen sich alle angreifenden Einheiten (die schwächsten zuerst) per Zufall eine verteidigende Nahkampfeinheit heraus und gehen mit dieser Einheit in den Nahkampf. ZweikampfDabei wird für jeden der Kontrahenten eine Zufallszahl, zwischen dem beim Kampfwert angegebenen Wert der Einheit, ermittelt. Dieser Ermittelte Wert wird um 10% pro Stufe der Forschung Schmiedekunst erhöht. Anschließend wird der Rüstungswert des Gegners, ebenfalls um 10% pro Schmiedekunststufe des Gegners erhöht, von dem Ergebnis abgezogen. Um den endgültigen Kampfwert zu erhalten wird nun noch die bisher in der Schlacht erlittene Erschöpfung der Einheit vom Wert subtrahiert. Die Einheit mit dem höheren Ergebnis gewinnt den Zweikampf, erleidet aber 2 Punkte Erschöpfung. Die Einheit die verliert muss, wie beim Fernkampf eine Konstitutionsprobe bestehen um die Schlacht zu überleben. Sie scheidet aber in jedem Fall aus der Schlacht aus. Haben beide am Zweikampf beteiligten Einheiten den selben ermittelten Kampfwert, gelten beide Einheiten als Verlierer, scheiden aus und müssen eine Konstitutionsprobe bestehen um zu überleben. Die Schlacht ist beendet, wenn entweder alle angreifenden Nahkampfeinheiten ausgeschieden sind, alle Einheiten des Verteidigers (Fern- und Nahkampfeinheiten) besiegt wurden, oder nach 10 Sequenzen kein Gewinner feststeht.
 ```
 
 ### 4.2 „Wissenswertes“ (Punktesystem, Rohstoffproduktion, Einheitenwerte)
@@ -250,11 +250,11 @@ Waldläufer
 ```text
 Wissenswertes
 Punktesystem         Rohstoffproduktion/Gebäude         Einheitenwerte     
-Hier werde ich einiges Aufschreiben wovon ich denke das es wichtig zu wissen ist. Diverse Auflistungen etc.Diese Dinge muss man sich dann nicht umständlich im Forum suchen oder in der veralteten Anleitung nachlesen. Hier seit ihr sicher das es auf dem aktuellen Stand ist. Außerdem könnt ihr euch hier eine Liste runterladen in der alle Werte übersichtlich draufstehen:
+Hier werde ich einiges Aufschreiben wovon ich denke das es wichtig zu wissen ist. Diverse Auflistungen etc. Diese Dinge muss man sich dann nicht umständlich im Forum suchen oder in der veralteten Anleitung nachlesen. Hier seid ihr sicher das es auf dem aktuellen Stand ist. Außerdem könnt ihr euch hier eine Liste runterladen in der alle Werte übersichtlich draufstehen:
 - Tabelle aller Gebäude, Forschungen, Einheiten etc. mit Kosten
  
 
-PunktesystemUm in der Ruhmeshalle, in der alle Spieler aufgeführt werden, weit oben zu stehen, musst Du möglichst viele Gesamtpunkte erreichen. In Nebelseetal-Online gibt es zwei verschiedene Arten von Punkten:ForschungspunkteDiese Punkte geben Deinen aktuellen Forschungsstand an. Für jede Forschung die Du erlangt hast, wird die Forschungsstufe hoch drei genommen. Die so gewonnenen Werte, werden anschließend addiert und ergeben Deine Forschungspunkteanzahl.Ein Beispiel:Felderwirtschaft Stufe 1 = 1 Punkt (1*1*1=1)Kriegskunst Stufe 4 = 64 Punkte (4*4*4=64)Minenarbeit Stufe 2 = 8 Punkte (2*2*2=8)Gesamtforschungspunkte = 73 (1+64+8=73)KriegspunkteFür jede Militär- und Spionageeinheit die Du ausbildest, bekommst Du Kriegspunkte. Wie viele Punkte hängt von der entsprechenden Einheit ab:
+PunktesystemUm in der Ruhmeshalle, in der alle Spieler aufgeführt werden, weit oben zu stehen, musst Du möglichst viele Gesamtpunkte erreichen. In Nebelseetal-Online gibt es zwei verschiedene Arten von Punkten: ForschungspunkteDiese Punkte geben Deinen aktuellen Forschungsstand an. Für jede Forschung die Du erlangt hast, wird die Forschungsstufe hoch drei genommen. Die so gewonnenen Werte, werden anschließend addiert und ergeben Deine Forschungspunkteanzahl. Ein Beispiel: Felderwirtschaft Stufe 1 = 1 Punkt (1*1*1=1)Kriegskunst Stufe 4 = 64 Punkte (4*4*4=64)Minenarbeit Stufe 2 = 8 Punkte (2*2*2=8)Gesamtforschungspunkte = 73 (1+64+8=73)KriegspunkteFür jede Militär- und Spionageeinheit die Du ausbildest, bekommst Du Kriegspunkte. Wie viele Punkte hängt von der entsprechenden Einheit ab:
 Punkte
 
 Bürgerwehr
@@ -314,7 +314,7 @@ Zweispänner
 Handelskarawane
 -
 
-gr.Handelskarawane
+gr. Handelskarawane
 -
 
 Siedlerkarren
@@ -326,10 +326,10 @@ Belagerungsturm
 Ramme
 3
 
-gr.Belagerungsturm
+gr. Belagerungsturm
 4
 
-gr.Ramme
+gr. Ramme
 5
 
 Balliste
@@ -338,12 +338,12 @@ Balliste
 Katapult
 7
 
-gr.Katapult
+gr. Katapult
 8
-Ein Beispiel:30 Bürgerwehr + 10 Paladine + 12 Bogenschützen = 30*1 + 10*16 + 12*4 = 238GesamtpunktzahlDie Gesamtpunktzahl besteht aus der Summe von den Kriegs- und Forschungspunkten. Das Ergebnis wird dann durch zwei geteilt. Die Gesamtpunktzahl kann man in der Ruhmeshalle sehen, die Kriegs- und Forschungspunkte kann man dort nicht erkennen, sie werden Dir nur für Deinen Account unter dem Hauptmenü angezeigt.Ein Beispiel:(150 Forschungspunkte + 200 Kriegspunkte) : 2 = 175 Gesamtpunkte
+Ein Beispiel:30 Bürgerwehr + 10 Paladine + 12 Bogenschützen = 30*1 + 10*16 + 12*4 = 238GesamtpunktzahlDie Gesamtpunktzahl besteht aus der Summe von den Kriegs- und Forschungspunkten. Das Ergebnis wird dann durch zwei geteilt. Die Gesamtpunktzahl kann man in der Ruhmeshalle sehen, die Kriegs- und Forschungspunkte kann man dort nicht erkennen, sie werden Dir nur für Deinen Account unter dem Hauptmenü angezeigt. Ein Beispiel:(150 Forschungspunkte + 200 Kriegspunkte) : 2 = 175 Gesamtpunkte
 Wissenswertes
 Punktesystem         Rohstoffproduktion/Gebäude         Einheitenwerte     
-Hier werde ich einiges Aufschreiben wovon ich denke das es wichtig zu wissen ist. Diverse Auflistungen etc.Diese Dinge muss man sich dann nicht umständlich im Forum suchen oder in der veralteten Anleitung nachlesen. Hier seit ihr sicher das es auf dem aktuellen Stand ist. Außerdem könnt ihr euch hier eine Liste runterladen in der alle Werte übersichtlich draufstehen:
+Hier werde ich einiges Aufschreiben wovon ich denke das es wichtig zu wissen ist. Diverse Auflistungen etc. Diese Dinge muss man sich dann nicht umständlich im Forum suchen oder in der veralteten Anleitung nachlesen. Hier seid ihr sicher das es auf dem aktuellen Stand ist. Außerdem könnt ihr euch hier eine Liste runterladen in der alle Werte übersichtlich draufstehen:
 - Tabelle aller Gebäude, Forschungen, Einheiten etc. mit Kosten
  
 
@@ -391,10 +391,10 @@ Berg (3), Hügel (1,5)
 Tempel
 Mana
 Nebelsee (8), alle außer Sumpf (2)
-Jedes Gebäude produziert auf 2 verschiedenen Geländearten unterschiedliche Mengen an Rohstoffen. Wie viele Ressourcen pro Stunde produziert werden, kannst Du aus der Tabelle oben entnehmen. Der Wert in Klammern gibt die Produktionsmenge pro Stunde an. Sümpfe sind unbebaubar und somit für Eure Siedlungen völlig wertlos. Deine Siedlung bekommt, außer den Rohstoffen, noch einen neuen Siedler pro Stunde, bis ihre Siedlergrenze erreicht ist. Diese Grenze liegt in jeder neuen Siedlung bei 5 Siedlern. Wenn Du in Deiner Siedlung Häuser errichtest, erhöht sich der Grenzwert um 5 Siedler pro Haus. Wann Du den nächsten Siedler bekommst, kannst Du in der Siedlungsübersicht, unter der Rohstoffzuwachstabelle sehen.Zu der o.g. Produktion wird dann noch der Forschungsbonus gerechnet. Beachtet das sich die Produktion eines Jägers nicht durch Forschung beeinflussen läßt! Keine Forschung erhöht die Produktion des Jägers! Er ist also nur am Anfang interessant.Genauso verhält es sich mit der Nahrungsproduktion der Rinderfarmen. Diese wird niemals durch Forschung beeinflusst. Sie sind also niemals eine Alternative zu den Farmen, falls man denkt diese nicht zu benötigen.
+Jedes Gebäude produziert auf 2 verschiedenen Geländearten unterschiedliche Mengen an Rohstoffen. Wie viele Ressourcen pro Stunde produziert werden, kannst Du aus der Tabelle oben entnehmen. Der Wert in Klammern gibt die Produktionsmenge pro Stunde an. Sümpfe sind unbebaubar und somit für Eure Siedlungen völlig wertlos. Deine Siedlung bekommt, außer den Rohstoffen, noch einen neuen Siedler pro Stunde, bis ihre Siedlergrenze erreicht ist. Diese Grenze liegt in jeder neuen Siedlung bei 5 Siedlern. Wenn Du in Deiner Siedlung Häuser errichtest, erhöht sich der Grenzwert um 5 Siedler pro Haus. Wann Du den nächsten Siedler bekommst, kannst Du in der Siedlungsübersicht, unter der Rohstoffzuwachstabelle sehen. Zu der o.g. Produktion wird dann noch der Forschungsbonus gerechnet. Beachtet das sich die Produktion eines Jägers nicht durch Forschung beeinflussen läßt! Keine Forschung erhöht die Produktion des Jägers! Er ist also nur am Anfang interessant. Genauso verhält es sich mit der Nahrungsproduktion der Rinderfarmen. Diese wird niemals durch Forschung beeinflusst. Sie sind also niemals eine Alternative zu den Farmen, falls man denkt diese nicht zu benötigen.
 Wissenswertes
 Punktesystem         Rohstoffproduktion/Gebäude         Einheitenwerte     
-Hier werde ich einiges Aufschreiben wovon ich denke das es wichtig zu wissen ist. Diverse Auflistungen etc.Diese Dinge muss man sich dann nicht umständlich im Forum suchen oder in der veralteten Anleitung nachlesen. Hier seit ihr sicher das es auf dem aktuellen Stand ist. Außerdem könnt ihr euch hier eine Liste runterladen in der alle Werte übersichtlich draufstehen:
+Hier werde ich einiges Aufschreiben wovon ich denke das es wichtig zu wissen ist. Diverse Auflistungen etc. Diese Dinge muss man sich dann nicht umständlich im Forum suchen oder in der veralteten Anleitung nachlesen. Hier seid ihr sicher das es auf dem aktuellen Stand ist. Außerdem könnt ihr euch hier eine Liste runterladen in der alle Werte übersichtlich draufstehen:
 - Tabelle aller Gebäude, Forschungen, Einheiten etc. mit Kosten
  
 
@@ -555,13 +555,13 @@ Ramme
 15
 25
 
-gr.Belagerungsturm
+gr. Belagerungsturm
 30
 0
 15
 45
 
-gr.Ramme
+gr. Ramme
 0 – 8
 15
 35
@@ -576,7 +576,7 @@ Katapult
 15
 45
 
-gr.Katapult
+gr. Katapult
 5 – 18
 15
 55
@@ -593,7 +593,7 @@ Zweispänner
 Handelskarawane
 25
 
-gr.Handelskarawane
+gr. Handelskarawane
 30
 
 Siedlerkarren
@@ -682,7 +682,7 @@ Früher war alles eine Welt gewesen, doch nun ist alles zerrissen. Viele einzeln
 
 Die magischen Ströme sind zur Ruhe gekommen, jedoch führen sie immer noch zu wunderlichen Dingen. Die Landschaft der Welten verändert sich ständig. Wo eben noch ein Bergmassiv aufragt, ist am nächsten Morgen vielleicht ein dichter Wald, oder ein stinkender Sumpf. Die neuen Völker lernten bald mit diesen magischen Gegebenheiten zu leben und diese sogar unterbewusst zu beeinflussen. Sobald sie sich an einem Ort versammeln um dort einen neuen Lebensraum für sich zu schaffen und zu siedeln, hören die Veränderungen in der unmittelbaren Nähe auf.
 
-Auf jedem einzelnen Bruchstück der alten Welt, die nun im magischen Raum, dem Limbus, verstreut liegen, entstand ein magisches Portal. Eine Öffnung, zu den mystischen Korridoren, die die neuen Welten mit einender verbinden. Durch diese Durchgänge ist es den verstreuten Völkern möglich andere Welten zu besuchen, um miteinander in Kontakt zu treten...
+Auf jedem einzelnen Bruchstück der alten Welt, die nun im magischen Raum, dem Limbus, verstreut liegen, entstand ein magisches Portal. Eine Öffnung, zu den mystischen Korridoren, die die neuen Welten mit einander verbinden. Durch diese Durchgänge ist es den verstreuten Völkern möglich andere Welten zu besuchen, um miteinander in Kontakt zu treten...
 
 Doch was ist aus den göttlichen Drachen geworden, welche einst die alte Welt erschufen?
 
@@ -785,7 +785,7 @@ je mit „wodurch entsteht der Vergleich/Maßstab ohne echte Mitspieler“ und A
    Einwand ist.
 2. **Befundtabelle, höchstens 15 Zeilen:**
 
-   | Nr | Bereich | Befund | Beleg im Remake (Datei:Zeile) | Beleg in der Quelle (Dokument + Stelle) | Urteil | Empfehlung | Aufwand |
+   | Nr | Bereich | Befund | Beleg im Remake (Datei: Zeile) | Beleg in der Quelle (Dokument + Stelle) | Urteil | Empfehlung | Aufwand |
    |---|---|---|---|---|---|---|---|
 
    Urteile nur aus: **WIDERSPRUCH · FEHLT · ERFUNDEN · DOPPELT · UNBELEGT · IN ORDNUNG**.
@@ -813,6 +813,6 @@ außerhalb der drei Aufgaben.
 ## 9. Was mit deiner Antwort passiert
 
 Daniel liest sie selbst und gibt sie an die Sitzung zurück, die das Remake baut. Befunde mit
-Datei:Zeile werden zu Prüfungen im Projekt (`tests/`), belegte Widersprüche zu Änderungen,
+Datei: Zeile werden zu Prüfungen im Projekt (`tests/`), belegte Widersprüche zu Änderungen,
 VORSCHLÄGE zu Entscheidungen, die Daniel trifft. Deine Antwort ist damit **Arbeitspapier, keine
 Freigabe**: nichts wird gebaut, was nicht durch eine Quelle oder Daniels Entscheidung gedeckt ist.
