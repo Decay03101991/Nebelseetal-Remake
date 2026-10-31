@@ -2,6 +2,15 @@
 
 **Status: Entwicklung, nicht freigegeben.** Ein Einzelspieler-Remake des historischen Browserstrategiespiels.
 
+> ### Stand 31.10.2026 — was diese Nacht geprüft und entschieden wurde
+>
+> * **Vollständiger Prüflauf** über alle Prüfdateien (`tools/sammellauf.py`): **92 Dateien, 3.463 Prüfungen, 91 grün, 0 rot, 1 dokumentiert zurückgezogen, 284 s**.
+> * **Prüfregister des Originals** auf **45 belegte Punkte** erweitert (`docs/PRUEFREGEL_ORIGINAL.md`): Wallschwellen, Sequenzablauf, Erschöpfung, Auftragskosten, Götterschutz-Lücke, keine Siegbedingung im Original, plus die Entscheidungen des Spieleigners.
+> * **Der Wegzeit-/Kampf-Entwurf war in sechs Punkten falsch** — belegt und korrigiert: `docs/PRUEFUNG_ENTWURF_WEGZEIT_KAMPF_20261031.md`.
+> * **Zwei Bewegungssysteme** im Code dokumentiert (zwei Formeln, zwei Beuteregeln): `docs/audits/BEWEGUNGSSYSTEME_LANDKARTE.md`.
+> * **Original-Geschichte gefunden**: `docs/quellen/ORIGINAL_HINTERGRUNDGESCHICHTE.md` (Website-Archiv 11.09.2007, drei Teile) — Grundlage der Legende.
+> * Besucherstand mit Zahlen: [Spielstatus](docs/BESUCHER_STATUS.md).
+
 ![Historische Originaloberflaeche](docs/nebelseetal_gamestar2.jpg)
 
 > Das Bild zeigt die **historische Vorlage** des Produktions-Baumenues, nicht den aktuellen Programmstand. Was an dieser Darstellung noch fehlt, steht unter [Baumenue-Abgleich](docs/BAUMENUE_ABGLEICH.md).
