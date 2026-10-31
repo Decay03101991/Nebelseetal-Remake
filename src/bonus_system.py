@@ -3,7 +3,7 @@ Nebelseetal Remake — Central Bonus System
 All research/building bonuses flow through these helpers so values stay consistent.
 """
 from __future__ import annotations
-from typing import Dict
+from typing import Dict, Optional
 
 
 # ---------- Base Stats (aus den Originaldaten) ----------
@@ -143,11 +143,25 @@ def get_building_cost(building_id: str, level: int, research_levels: Dict[str, i
     return {r: max(1, int(v * (level + 1) * mult)) for r, v in base.items()}
 
 
-def get_training_time(unit_id: str, research_levels: Dict[str, int], building_level: int = 0) -> float:
-    """Training time in minutes."""
-    base = UNIT_TRAIN_BASE.get(unit_id, 2.0)
+def get_training_time(unit_id: str, research_levels: Dict[str, int],
+                      building_level: int = 0) -> Optional[float]:
+    """Ausbildungsdauer in Minuten — oder **None**, wenn die Grunddauer nicht belegt ist.
+
+    UNIT_TRAIN_BASE steht bewusst auf 0.0 für alle Einheiten: KEINE Originalquelle nennt eine
+    Ausbildungsdauer je Einheit (geprüft am 31.10.2026, `docs/audits/AUSBILDUNGSDAUER_BELEGT_20261031.md`,
+    13 Quellen). Früher lieferte diese Funktion darum stillschweigend **0,5 Minuten für jede
+    Einheit** — ein erfundener Wert, der wie ein belegter aussah (Falle, gemeldet von der
+    Analyse vom 31.10.). Jetzt gilt:
+
+      * `None` = „nicht belegt, nicht raten",
+      * die tatsächlich benutzte Dauer entsteht in `spieloekonomie.ausbildung_start`
+        (Grunddauer 20 min ÷ Gebäudestufe, ausdrücklich als VORSCHLAG gekennzeichnet).
+    """
+    base = UNIT_TRAIN_BASE.get(unit_id, 0.0)
+    if base <= 0.0:
+        return None
     mult = get_training_time_multiplier(research_levels, building_level)
-    return max(0.5, base / mult)
+    return base / max(0.1, mult)
 
 
 def get_map_switch_cost(base_cost: int, switch_count: int) -> int:

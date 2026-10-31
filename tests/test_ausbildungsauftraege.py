@@ -346,4 +346,29 @@ finally:
     O.AUSBILDUNG_STUFENFAKTOR_AKTIV = _alt
 
 
+# ==========================================================================
+abschnitt("12. bonus_system.get_training_time sagt ehrlich 'nicht belegt' (keine erfundene 0,5)")
+
+import bonus_system as B
+
+check("ohne belegte Grunddauer liefert get_training_time None (kein erfundener Wert)",
+      B.get_training_time(KAEMPFER, {}) is None, str(B.get_training_time(KAEMPFER, {})))
+check("auch mit Forschung und Gebaeudestufe bleibt es None, solange die Basis fehlt",
+      B.get_training_time(KAEMPFER, {"training": 5}, 3) is None)
+_alt_basis = dict(B.UNIT_TRAIN_BASE)
+try:
+    B.UNIT_TRAIN_BASE[KAEMPFER] = 60.0
+    check("mit einer gesetzten Basis rechnet die Funktion wieder",
+          B.get_training_time(KAEMPFER, {}, 0) == 60.0,
+          str(B.get_training_time(KAEMPFER, {}, 0)))
+    check("Forschung verkuerzt die Dauer (Multiplikator wirkt)",
+          B.get_training_time(KAEMPFER, {"training": 5}, 0) < 60.0,
+          str(B.get_training_time(KAEMPFER, {"training": 5}, 0)))
+finally:
+    B.UNIT_TRAIN_BASE.clear()
+    B.UNIT_TRAIN_BASE.update(_alt_basis)
+check("die Basis ist im Datenbestand weiter 0.0 fuer alle Einheiten (nichts erfunden)",
+      all(v == 0.0 for v in B.UNIT_TRAIN_BASE.values()))
+
+
 sys.exit(bericht())
