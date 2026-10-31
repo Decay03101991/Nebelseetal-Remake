@@ -2301,6 +2301,12 @@ class GameState:
                         ws = self.wall_stufe_am_ort(zielort)
                         wz = (dorfwall.zustand(zielort)
                               if self._lokale_kasse_aktiv() else 100.0)
+                        # NICHT verdrahtet: der eingeschraenkte Goetterschutz (punkte.angreifbar).
+                        # Grund (31.10.2026 gemessen): `bot.punkte` ist ein Zufallswert
+                        # (botkern.py Z. 150: rng.randint(0,300)) und NICHT aus den Originalformeln
+                        # gerechnet. Mit einem 0-Punkte-Bot wuerde das Band 0-0 jeden Angriff
+                        # blockieren. Erst muessen die Bot-Punkte aus `punkte.kriegspunkte` kommen,
+                        # dann wird `punkte.angreifbar` hier eingetragen (offener Punkt, Register 41).
                         kampf_result = kampf.fuehre_schlacht(
                             bot_kaempfer, dict(zielort.einheiten), ws, wz,
                             angreifer_karren=bot_geraet or None,
@@ -2314,7 +2320,13 @@ class GameState:
                             zielort.einheiten[name] = max(
                                 0, int(zielort.einheiten.get(name, 0)) - int(menge))
                         if kampf_result.get("ausgang") == "angreifer":
-                            beute = dict(kampf_result.get("beute") or {})
+                            # VORGABE Daniel 31.10.2026 (Registerpunkt 45): gestaffelte Beute -
+                            # Wallzustand VOR dem Kampf und die ueberlebenden Verteidiger entscheiden
+                            # ueber den Anteil; Ladung und Vorrat begrenzen ihn zusaetzlich.
+                            _uebrig = int(sum(max(0, int(v)) for v in zielort.einheiten.values()))
+                            beute = dict(kampfbericht.beute_staffel(
+                                bot_geraet or {}, dict(zielort.vorraete),
+                                wall_zustand_vor=wz, verteidiger_uebrig=_uebrig))
                             for stoff, menge in beute.items():
                                 zielort.vorraete[stoff] = round(max(0.0, float(
                                     zielort.vorraete.get(stoff, 0.0)) - float(menge)), 2)

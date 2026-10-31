@@ -77,12 +77,21 @@ class KoordinatorRegression(unittest.TestCase):
         self.assertEqual(a.vorraete['holz'], 40)
         self.assertEqual(b.vorraete['holz'], 10)
         self.assertEqual(g.resources['holz'].amount, 50)
-        g.auftraege_fortschreiben(719)
+        # Die Ankunftszeit haengt an der Reiseformel (Vorgabe Daniel 31.10.2026: Faktor 2).
+        # Deshalb wird sie hier AUS DEM AUFTRAG gelesen statt hartkodiert - so bleibt die
+        # Pruefung richtig, wenn der Faktor bewusst angepasst wird.
+        _ankunft = float(g.auftraege[0]['ankunft'])
+        self.assertGreater(_ankunft, 720, 'Faktor 2 verdoppelt die Reisezeit')
+        g.auftraege_fortschreiben(_ankunft - 1)
         self.assertEqual(b.vorraete['holz'], 10)
-        g.auftraege_fortschreiben(720)
+        g.auftraege_fortschreiben(_ankunft)
         self.assertEqual(b.vorraete['holz'], 20)
         self.assertEqual(g.resources['holz'].amount, 60)
-        g.auftraege_fortschreiben(1440)
+        # Auch die Rueckkehr haengt an der Formel (Rueckweg = eine Strecke, zusammen doppelt).
+        _rueck = float(g.auftraege[0]['rueckkehr'])
+        g.auftraege_fortschreiben(_rueck - 1)
+        self.assertEqual(len(g.auftraege), 1, 'vor der Rueckkehr ist der Auftrag noch offen')
+        g.auftraege_fortschreiben(_rueck)
         self.assertEqual(a.einheiten.get('Handkarren'), 1)
         self.assertEqual(len(g.auftraege), 0)
 

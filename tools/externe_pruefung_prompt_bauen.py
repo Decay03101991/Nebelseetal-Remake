@@ -194,18 +194,20 @@ widersprechen, wo es etwas zu widersprechen gibt.
 6. **Einmal prüfen, festschreiben:** Abschnitt 5 listet 41 bereits belegte Punkte. Prüfe sie nicht
    erneut, außer du findest einen echten Widerspruch — dann sag es ausdrücklich.
 
-## 1a. Was Daniel am 31.10.2026 bereits entschieden hat (nicht mehr fragen)
+## 1a. Was hier ABSICHTLICH FEHLT (wichtig für deine Antwort)
 
-| Frage | Entscheidung |
-|---|---|
-| Reiseformel | **Dauer = 2 × Distanz ÷ GS** (Arbeitsformel, ausdrücklich anpassbar; Grund: bei Spieluhr ×180 wären Wege sonst zu kurz für Vorwarnzeit) |
-| Dimensionswechsel | kostet **keine Zeit**, nur Mana — und die 20 Dimensionen werden für den Einzelspieler zu **Ländereien** umgedeutet (hunderte Spieler brauchten Platz, ein Spieler nicht) |
-| Beute | **gestaffelt**: erster Angriff (Mauer steht) reißt die Mauer ein und bringt **wenig**; ist die Mauer schon eingerissen, **viel**; ohne Verteidiger darf der Bestand **komplett** mit, begrenzt durch die Karrenladung |
-| Sieg | **kein Sieg** wie im Original; stattdessen **Bewertung/Auszeichnungen** (meiste Forschungspunkte, meiste Kriegspunkte, größte Wirtschaftsmacht) und freies Weiterspielen |
-| Antrieb ohne Mitspieler | Im Mehrspieler-Spiel ist der Antrieb automatisch da (andere Spieler, Vergleich). Das Einzelspieler-Spiel muss ihn **selbst erzeugen** — gesucht sind Ideen auf **bestehenden** Mechaniken (Bots als Messlatte, Ranglisten, Bestwerte, Auszeichnungen); eine **Legende** ist ein mögliches Mittel, **kein Ersatz** |
+Dieser Auftrag ist **blind** gestellt: Wir halten absichtlich zurück,
 
-**Deine Aufgabe ist, diese Entscheidungen zu prüfen, nicht sie zu wiederholen.** Widerspricht eine
-Entscheidung den Quellen, sag es mit Stelle.
+* **welche Entscheidungen der Spieleigner schon getroffen hat** (Reiseformel, Dimensionen, Beute,
+  Siegbedingung, Geschichte) — damit du unabhängig zu eigenen Vorschlägen kommst,
+* **welche Widersprüche wir im Projekt bereits gefunden haben** und wie wir sie bewertet haben,
+* **die Liste der rund 45 Punkte, die intern schon gegen die Quellen geprüft und festgeschrieben
+  sind** (nur die Zahl steht unten, nicht der Inhalt),
+* unsere Prioritäten und unseren Zeitplan.
+
+**Konsequenz für dich:** Du sollst nicht bestätigen, sondern **eigene Wege zeigen**. Wo du auf
+etwas stößt, das wir offenbar anders gelöst haben, ist genau das der interessante Fall — sag es
+ausdrücklich, mit Quelle.
 
 ## 2. Stand der Veröffentlichung (wichtig für deine Zitate)
 
@@ -276,77 +278,82 @@ Nebelseetals, Salmurs Magiegeschenk und das daraus folgende Chaos. Wörtlich aus
 
 ---
 
-## 5. Was bereits belegt ist — bitte NICHT erneut prüfen
+## 5. Was intern schon geprüft ist
 
-Diese 45 Punkte sind gegen Handbuch 2009 bzw. die 2006er Seiten geprüft und mit Seite/Zeile
-festgeschrieben. Nenne einen Punkt nur dann erneut, wenn du einen **Widerspruch** findest.
+Rund 45 Punkte sind intern gegen Handbuch 2009 bzw. die 2006er Seiten geprüft und festgeschrieben.
+**Die inhaltliche Liste liegt bewusst NICHT in diesem Auftrag** (siehe Abschnitt 1a): du sollst
+unabhängig prüfen, nicht bestätigen. Wenn du auf einen echten Widerspruch stößt, nenne ihn mit
+Quelle — wir gleichen dann ab.
 
-""" + register_kurz() + """
+""" + "(Liste absichtlich nicht enthalten - siehe Abschnitt 1a.)" + """
 
 ---
 
-## 6. Deine vier Aufgaben
+## 6. Deine vier Aufgaben (jeweils: Optionen, nicht Bestätigung)
 
-Arbeite sie in dieser Reihenfolge. Für jede gilt: **rechnen und entscheiden, nicht beschreiben.**
+Für jede Aufgabe gilt: **rechne, und liefere OPTIONEN.** Zu jeder Option: Vor- und Nachteil,
+Aufwand (S/M/L), Wirkung auf das Spielgefühl bei Spieluhr ×180, und ob sie einer Quelle
+widerspricht. Wenn dir Information fehlt, um eine Option zu beurteilen: **sag es** — das ist ein
+Ergebnis, keine Lücke im Vortrag.
 
-### Aufgabe A — Kampf: welche Quelle gilt für welchen Schritt, und wie wird die Beute gestaffelt?
+### Aufgabe A — Kampf: zwei Quellen, eine Wirklichkeit
 
-Es gibt zwei Originalquellen für den Kampf: das **Handbuch 2009** (LE, AT, PA, MU, RS, TP; Zweikampf
-in Kampfrunden; Erschöpfung −1 AT/PA) und das **neuere Forumssystem** aus Abschnitt 4.1
-(Konstitution %, Kampfwert-Spanne, Rüstung, Fernkampfwert, Erschöpfungsschaden, Schwelle zur
-Kampfunfähigkeit). Das Forumssystem nennt **weder Beute noch Geräteverlust noch Punkte**.
+Es gibt zwei Originalquellen für den Kampf: das **Handbuch 2009** (LE, AT, PA, MU, RS, TP;
+Zweikampf in Kampfrunden; Erschöpfung −1 AT/PA; Wallschwellen; Beute; Geräteverlust; Punkte) und
+das **neuere Forumssystem** (Konstitution %, Kampfwert-Spanne, Rüstung, Fernkampfwert,
+Erschöpfungsschaden, Schwelle zur Kampfunfähigkeit) — letzteres nennt **weder Beute noch
+Geräteverlust noch Punkte**.
 
-**Verlangt:** eine Tabelle „Kampfschritt | gilt | Quelle (Dokument + Stelle) | Art (belegt /
-ZUSAMMENFÜHRUNG / VORSCHLAG)" für Wallvorrunde, Mauerschaden, Fernkampf, Nahkampf/Zweikampf,
-Erschöpfung, Flucht, Ausgang, Beute, Geräteverlust, Punkte. Danach höchstens sechs Stellen, an denen
-beide Quellen **unvereinbar** sind, je mit der kleineren Änderung. Und die **gestaffelte Beute**
-(Daniels Vorgabe): konkrete Prozentwerte für „Mauer steht noch", „Mauer schon eingerissen", „keine
-Verteidiger mehr" samt Formel und Eingaben (Wallzustand vor/nach dem Kampf, überlebende Verteidiger,
-Karrenladung, Ortslager). Sag ausdrücklich, ob die Staffelung den Originalregeln widerspricht.
+**Verlangt:** (1) Tabelle „Kampfschritt | gilt | Quelle | Art (belegt / Zusammenführung /
+Vorschlag)" für Wallvorrunde, Mauerschaden, Fernkampf, Nahkampf, Erschöpfung, Flucht, Ausgang,
+Beute, Geräteverlust, Punkte. (2) **Drei Wege**, wie man die beiden Quellen zu EINEM System
+zusammenführt — je mit Vor-/Nachteil, Aufwand und dem, was dabei verloren geht. (3) Deine
+Empfehlung mit einem Satz Begründung. (4) **Wie würdest du die Beute staffeln**, wenn der erste
+Angriff eine Mauer einreißt und erst spätere Angriffe wirklich ernten? Nenne Prozentwerte und die
+Formel, mit der sie greifen (Eingaben: Wallzustand vor dem Kampf, überlebende Verteidiger,
+Karrenladung, Ortslager).
 
-### Aufgabe B — Wegzeit, Auftragskosten und Portal: ein Zahlensystem für einen Einzelspieler
+### Aufgabe B — Wegzeit und Kosten: die fehlende Formel
 
 Belegt: GS = Reisegeschwindigkeit; Zeitangaben gelten für **eine Strecke**, Rückkehr dauert doppelt;
 Geschwindigkeit ist in 10-%-Schritten drosselbar (langsamer = weniger Gold, mehr Nahrung); Aufträge
-zu fremden Siedlungen kosten zusätzlich **Mana nach Entfernung**; ein Weltwechsel kostet 5.000 Mana
-und ist einmal je 24 h möglich; 20 Dimensionen, je 20×20 Felder. **Keine Quelle nennt eine Formel.**
+zu fremden Siedlungen kosten zusätzlich **Mana nach Entfernung**; ein Weltwechsel kostet 5.000 Mana,
+einmal je 24 h; 20 Dimensionen, je 20×20 Felder. **Eine Zahlenformel nennt keine Quelle** — die
+Einheiten bringen GS-Werte von 5 bis 35 mit.
 
-Entschieden ist die Arbeitsformel `Dauer = 2 × Distanz ÷ GS`. **Verlangt:** diese Formel
-nachrechnen (6, 16, 32 Felder × GS 5 und GS 35, Spielstunden **und** Echtzeit bei ×180, Hin- und
-Rückweg), eine Kostentabelle (Gold, Nahrung, Mana je Einheit und Strecke) und — weil ein Spieler
-keine 20 Dimensionen braucht — **zwei Varianten, wie aus den Dimensionen „Ländereien" werden** (was
-das Portal dann ist, welche Mana-Kosten bleiben sinnvoll), mit Empfehlung.
+**Verlangt:** (1) **Drei Formeln zur Auswahl** (Dauer als Funktion von Distanz und GS), je mit
+durchgerechneten Reisen über 6, 16 und 32 Felder für GS 5 und GS 35 — Spielstunden **und** Echtzeit
+bei ×180 — plus Vor-/Nachteil. (2) Welche Formel du nimmst und warum. (3) Eine Kostentabelle
+(Gold, Nahrung, Mana je Einheit und Strecke), soweit belegbar, sonst als Vorschlag. (4) Die
+**Portal-Regel für ein Einzelspieler-Spiel**: wie werden aus den 20 Dimensionen sinnvolle Orte, was
+ist das Portal dann noch, welche Mana-Kosten bleiben sinnvoll — zwei Varianten mit Empfehlung.
 
-### Aufgabe C — Spielbarkeit bei ×180 und Bewertung statt Sieg
+### Aufgabe C — Spielbarkeit bei ×180 und was am Ende eines Laufs steht
 
-Das Original hat **keine Siegbedingung** (Handbuch S. 3: „Jeder hat bei Nebelseetal sicher seine
-eigenen Ziele" — Feldherr, Forscher oder Händler). Ein Ziel bei 300 Gesamtpunkten ist **verworfen**.
-**Verlangt:** eine Tabelle „Größe | belegter Wert | Wirkung bei ×180 (gerechnet) | Urteil (spielbar /
-zäh / unspielbar)" für Produktion, Siedlerzuwachs, Forschungsdauer, Ausbildungszeiten, Kriegspunkte,
-Verteidigungsanlagen (Stufe³) — und danach ein **Auszeichnungssystem mit höchstens sechs
-Auszeichnungen**, das die drei genannten Spielziele abbildet (Kennzahl, Rechenweg aus belegten
-Punkten, Passung zum Original). Dazu: **wann endet ein Lauf dann?** Zwei Varianten mit Empfehlung.
+Das Handbuch nennt **keine Siegbedingung** („Jeder hat bei Nebelseetal sicher seine eigenen Ziele" —
+Feldherr, Forscher, Händler). Belegt sind dagegen die Raten: Produktion je Gebäude und Gelände,
+1 Siedler/Stunde, Forschungsdauer = neue Stufe² in Stunden, Kriegspunkte je Einheit,
+Verteidigungsanlagen = Ausbaustufe³, Gesamtpunkte = (Krieg + Forschung) / 2.
 
-### Aufgabe D — Antrieb ohne Mitspieler
+**Verlangt:** (1) Tabelle „Größe | belegter Wert | Wirkung bei ×180 (gerechnet) | Urteil (spielbar /
+zäh / unspielbar)". (2) **Drei Modelle für das Ende eines Laufs** (z. B. Auszeichnungen, Rangliste,
+Auswertung nach N Spieltagen, freies Weiterspielen) mit Vor-/Nachteil und Aufwand. (3) Für dein
+Lieblingsmodell: **welche Kennzahlen** werden daraus abgeleitet, und aus welchen belegten Werten
+kommen sie? (4) Was dir an Information fehlt, um das zu entscheiden.
 
-Daniel: „In einem Mehrspieler-Spiel ist der Antrieb automatisch da: andere Spieler, mit denen man sich
-messen kann. Ein Einzelspieler-Spiel muss diesen Antrieb selbst erzeugen." Dazu: „Es soll eine
-Lobpreisung an das damalige Browsergame sein und all seiner damaligen Spieler — vielleicht eine kleine
-Geschichte, eine Legende über das Spiel." Die Legende ist **ein mögliches Mittel, kein Ersatz**.
+### Aufgabe D — Antrieb ohne Mitspieler und eine Geschichte aus Originaltexten
 
-**Verlangt:** (1) höchstens sechs Punkte „was erzeugte im Original den Antrieb" mit Mechanik-Bezug
-(Ruhmeshalle/Rangfolge, Punkte, Handel, Götterschutz, Diplomatie); (2) **fünf Antriebs-Quellen** für den
-Einzelspieler, die auf **bestehenden** Mechaniken aufsetzen (keine neue Mechanik erfinden) — je mit
-„wodurch entsteht der Vergleich/Maßstab ohne echte Mitspieler" (Bots als Messlatte, Ranglisten,
-Bestwerte, Auszeichnungen) und Aufwand S/M/L; (3) ausdrücklich: **wo der Ersatz nicht trägt**
-(höchstens drei Punkte); (3) ein **Legenden-Gerüst in höchstens 250 Wörtern**, ausschließlich aus belegten Originalbausteinen —
-**Grundlage ist Material 6: die Original-Hintergrundgeschichte der Website (drei Teile, wörtlich).
-Arbeite mit ihren Figuren und Ereignissen (die drei Drachenbrüder Epheus der Weiße, Tardas der Grüne,
-Salmur der Rot, die Erschaffung des Nebelseetals, Salmurs Magiegeschenk, das Chaos, die
-Landschaftswandlung durch die magischen Ströme) — erfinde keine neuen Götter und keine neue
-Vorgeschichte. Trennung: „belegt verwendet" (Zitat/Paraphrase mit Quelle) und „neu erfunden"
-(höchstens der Erzählrahmen für den Einzelspieler, klar markiert). Kein Pathos; (5) drei Sätze zu „Dimensionen als
-Ländereien" (Anschluss an B); (6) **die eine Frage**, die Daniel zuerst beantworten muss.
+Im Mehrspieler-Spiel ist der Antrieb automatisch da: andere Spieler, mit denen man sich messen kann.
+Hier spielt **ein Mensch gegen wenige Bots** — das Spiel muss den Antrieb **selbst erzeugen**. Dazu
+will der Spieleigner eine kleine Geschichte/Legende als Lobpreisung des alten Browsergames; Material
+dafür ist die mitgelieferte Original-Hintergrundgeschichte.
+
+**Verlangt:** (1) Höchstens sechs Punkte „was im Original den Antrieb erzeugte" (mit Mechanik-Bezug).
+(2) **Fünf Antriebs-Quellen** für den Einzelspieler, die auf **bestehenden** Mechaniken aufsetzen —
+je mit „wodurch entsteht der Vergleich/Maßstab ohne echte Mitspieler" und Aufwand S/M/L.
+(3) Wo dieser Ersatz **nicht** trägt (höchstens drei Punkte). (4) Ein **Legenden-Gerüst in höchstens
+250 Wörtern**, ausschließlich aus belegten Originalbausteinen, getrennt in „belegt verwendet" und
+„neu erfunden". (5) **Die eine Frage**, die der Spieleigner zuerst beantworten muss.
 
 ---
 

@@ -214,6 +214,11 @@ STAND DER ENTSCHEIDUNGEN (Daniel, 31.10.2026):
   (`punkte.VORSCHLAG_ZIEL_PUNKTE`) und muss ersetzt werden. Der Goetterschutz-Bis-299-Punkte-Teil
   ist als reine Funktion gebaut (`punkte.angreifbar`, `punkte.goetterschutz_band`,
   `tests/test_goetterschutz_band.py` 23 Pruefungen), die Verdrahtung in die Bot-Angriffe fehlt.
+  * GEFUNDEN (31.10.2026): Die **Bot-Punkte sind erfunden** - `bot.punkte` ist `rng.randint(0,300)`
+  (`src/botkern.py` Z. 150), nicht aus Einheiten/Wall/Forschung gerechnet. Deshalb ist jede
+  Rangliste/Bewertung gegen Bots heute Zufall, und das Schutzband laesst sich nicht anwenden.
+  Sag, wie die Bot-Punkte aus den BELEGTEN Formeln abgeleitet werden muessen, damit ein Vergleich
+  (Ruhmeshalle, Auszeichnungen) fair ist.
 
 VERLANGE:
 1. Tabelle "Groesse | belegter Wert | Wirkung bei x180 (gerechnet) | Urteil (spielbar / zaeh /

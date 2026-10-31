@@ -182,10 +182,11 @@ check("Quelle und Ziel bleiben unveraendert (reine Funktion)",
       a["vorraete"]["holz"] == 100 and a["einheiten"]["Handkarren"] == 2
       and b["vorraete"]["holz"] == 100, str(a))
 
-check("Ankunft liegt eine Strecke spaeter (5/10 h = 1800 s)",
-      m["ankunft"] == jetzt + 1800.0, str(m["ankunft"]))
-check("Rueckkehr liegt zwei Strecken spaeter (3600 s)",
-      m["rueckkehr"] == jetzt + 3600.0, str(m["rueckkehr"]))
+# VORGABE Daniel 31.10.2026 (Registerpunkt 43): Reiseformel mit Faktor 2 -> doppelte Zeiten.
+check("Ankunft liegt eine Strecke spaeter (5/10 h mit Faktor 2 = 3600 s)",
+      m["ankunft"] == jetzt + 3600.0, str(m["ankunft"]))
+check("Rueckkehr liegt zwei Strecken spaeter (7200 s)",
+      m["rueckkehr"] == jetzt + 7200.0, str(m["rueckkehr"]))
 
 o1, m1 = O.transport_fortschritt(m, {"A": qa, "B": b}, m["ankunft"])
 check("Ankunft: das Ziel bekommt die Fracht genau einmal (100 -> 120)",
