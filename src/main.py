@@ -5787,7 +5787,19 @@ class NebelseetalApp:
             self._draw_map()
             return
         abstand = abs(int(start[0]) - int(ziel[0])) + abs(int(start[1]) - int(ziel[1]))
-        dauer = max(2, abstand * 5)
+        # E3 (Daniel 31.10.2026, "ein Bewegungssystem"): derselbe Weg wie im Auftrags-Pfad.
+        # Vorher stand hier `dauer = max(2, abstand * 5)` MINUTEN - ohne Geschwindigkeit, ohne
+        # Rueckweg. Jetzt gilt `auftraege.reisezeit_sekunden` (Faktor 2, GS der langsamsten
+        # Einheit); `state.movements` fuehrt Spielsekunden, deshalb keine Umrechnung noetig.
+        _gs = auftraege.tempo_der_gruppe(moving)
+        dauer_sekunden = auftraege.reisezeit_sekunden(abstand, _gs) if _gs > 0 else 0.0
+        if dauer_sekunden <= 0:
+            # Ohne bekannte Geschwindigkeit wird NICHT bewegt (vorher: erfundene 5 Minuten/Feld).
+            self._welt_start = None
+            self._log("Bewegung abgebrochen: die Geschwindigkeit der Truppe ist unbekannt.")
+            self._welt_detail_zeichnen()
+            self._draw_map()
+            return
         ziel_bot = None
         for bot in self.state.bots:
             if random.random() < 0.3:
@@ -5797,7 +5809,7 @@ class NebelseetalApp:
             "from": f"{int(start[0])}:{int(start[1])}",
             "to": f"{int(ziel[0])}:{int(ziel[1])}",
             "units": dict(moving),
-            "arrival": float(self.state.spielsekunden) + float(dauer) * 60.0,
+            "arrival": float(self.state.spielsekunden) + float(dauer_sekunden),
             "map": self.state.current_map,
             "target_bot": ziel_bot.name if ziel_bot else None,
             "tile_key": f"{int(ziel[0])}:{int(ziel[1])}",
@@ -5807,7 +5819,8 @@ class NebelseetalApp:
         self._welt_start = None
         self.welt_auswahl = (int(ziel[0]), int(ziel[1]))
         self._log(f"Truppen bewegen nach {self._welt_koordinate(*ziel)}. "
-                  f"Ankunft in {dauer} Minuten.")
+                  f"Ankunft in {dauer_sekunden / 3600.0:.1f} Spielstunden "
+                  f"(GS {_gs}, Strecke {abstand}).")
         self._welt_detail_zeichnen()
         self._draw_map()
 

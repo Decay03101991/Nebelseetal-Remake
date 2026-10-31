@@ -123,6 +123,16 @@ def _geschwindigkeit(bestand: Dict[str, int]) -> int:
     return min(werte) if werte else 0
 
 
+def tempo_der_gruppe(bestand: Dict[str, int]) -> int:
+    """Reisegeschwindigkeit einer Truppe = langsamste mitgefuehrte Einheit.
+
+    Oeffentlich, weil die WELTKARTE dieselbe Regel braucht (E3, Entscheidung Daniel 31.10.2026:
+    "ein Bewegungssystem"). Vorher rechnete der Weltkarten-Altpfad 5 Minuten je Feld, voellig
+    unabhaengig von der Einheit - zwei Formeln fuer dieselbe Sache (Register, offener Punkt H).
+    """
+    return _geschwindigkeit(_bestand(bestand))
+
+
 def _schlagkraft_fussttruppen(bestand: Dict[str, int]) -> float:
     """Schlagkraft (SK) der Fuss- und Kundschaftertruppen (VORSCHLAG: Begriff, siehe luecken).
 

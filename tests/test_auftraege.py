@@ -463,4 +463,23 @@ check("eine Bürgerwehr (SK 1) startet auch an Wallstufe 5, aber mit Warnung (Fr
       _ok3 and "WARNUNG" in _m3, f"ok={_ok3} / {_m3[:120]}")
 
 
+# ==========================================================================
+# E3: die Weltkarte rechnet mit DERSELBEN Reiseformel (ein Bewegungssystem)
+# ==========================================================================
+abschnitt("E3: tempo_der_gruppe und dieselbe Reiseformel fuer die Weltkarte")
+
+check("die langsamste Einheit bestimmt das Tempo", A.tempo_der_gruppe({"Ritter": 1, "Bürgerwehr": 2}) == 5,
+      str(A.tempo_der_gruppe({"Ritter": 1, "Bürgerwehr": 2})))
+check("nur positive Anzahlen zaehlen", A.tempo_der_gruppe({"Ritter": 0, "Waldläufer": 1}) == 35,
+      str(A.tempo_der_gruppe({"Ritter": 0, "Waldläufer": 1})))
+check("ohne Truppen gibt es kein Tempo (0 = nicht rechnen, nicht raten)",
+      A.tempo_der_gruppe({}) == 0)
+check("Unsinn ergibt 0 statt Absturz", A.tempo_der_gruppe({"Kämpfer": "kaputt"}) == 0)
+check("die Weltkarte bekommt dieselbe Dauer wie ein Auftrag ueber ein Feld",
+      A.reisezeit_sekunden(1, A.tempo_der_gruppe({"Kämpfer": 2})) == A.reisezeit_sekunden(1, 10),
+      str(A.reisezeit_sekunden(1, A.tempo_der_gruppe({"Kämpfer": 2}))))
+check("ein Feld mit GS 5 dauert 1440 Spielsekunden (2*1/5*3600)", 
+      A.reisezeit_sekunden(1, 5) == 1440.0, str(A.reisezeit_sekunden(1, 5)))
+
+
 sys.exit(bericht())
