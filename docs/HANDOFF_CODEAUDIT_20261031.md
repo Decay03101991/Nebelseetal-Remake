@@ -9,10 +9,10 @@ Funktionsstand.
 | Gegenstand | Wert |
 |---|---|
 | Arbeitsverzeichnis | `D:\Arbeiten\Nebelseetal_Remake` |
-| Letzter Commit (lokal) | `0e1c798` + die Commits dieser Runde (siehe `git log --oneline -12`) |
+| Letzter Commit | `973f733` (Branch `stand-20261031-1400`, gepusht; `main` unberuehrt bei `954097a`) |
 | GitHub | Branch `stand-20261031-1400` gepusht, `main` unberührt bei `954097a` |
-| Prüflauf | **98 Dateien, 97 grün, 0 rot, 1 ausgesetzt** (`docs/audits/sammellauf_20261031_1312.log`, 573 s) |
-| EXE | 45.959.096 Byte, SHA256 `bb97d204…`, gebaut 13:24 aus `dfead8e`, Rauchtest bestanden |
+| Prüflauf | **98 Dateien, 97 grün, 0 rot, 1 ausgesetzt** (Lauf 13:12, 573 s). **Achtung:** seither kamen zwei neue Prüfdateien dazu (`test_textqualitaet`, `test_projektpfade`) und P2 hat eine Prüfung umgedreht - vor der naechsten Arbeit einen vollen Lauf starten |
+| EXE | 45.959.096 Byte, SHA256 `bb97d204…`, gebaut 13:24 aus `dfead8e`, Rauchtest bestanden. **Stand ist aelter als der Code** (P2 danach) - nach dem naechsten gruenen Lauf neu bauen |
 | Prüfregister | 64 Punkte (`docs/PRUEFREGEL_ORIGINAL.md`) |
 | Kosten heute | Modell-Läufe ≈ 1,35 USD bis 14:00; **Budget für den Code-Audit: 3 EUR** (Daniel, 31.10.2026), Guthaben 6,43 USD |
 
@@ -120,28 +120,66 @@ Modulkarte am Ende neu bauen, GitHub-Branch stand-20261031-1400 weiterführen (m
 
 ---
 
-## 10. Nachtrag 14:35 — Stand der Läufe und Kosten
+## 10. Nachtrag 15:00 — Läufe abgeschlossen, Kosten gemessen
 
 | Paket | Datei | Zeichen | Kosten |
 |---|---|---|---|
 | P2 | `docs/audits/BEFUND_CODE_P2.md` | 6.986 | 0,0351 USD |
 | P5 | `docs/audits/BEFUND_CODE_P5.md` | 10.143 | 0,0498 USD |
-| P3 | `docs/audits/BEFUND_CODE_P3.md` | 9.218 | Log |
-| P4 | `docs/audits/BEFUND_CODE_P4.md` | 6.719 | Log |
-| P1 | `docs/audits/BEFUND_CODE_P1.md` | läuft (107 k Token Prompt) | offen |
+| P3 | `docs/audits/BEFUND_CODE_P3.md` | 9.218 | 0,0673 USD |
+| P4 | `docs/audits/BEFUND_CODE_P4.md` | 9.388 | 0,0617 USD |
+| P1 | `docs/audits/BEFUND_CODE_P1.md` | 15.097 | 0,1050 USD |
+| **Summe** | | | **0,3189 USD** (≈ 0,29 EUR von 3 EUR) |
 
-**Zusammengefasst und geprüft:** `docs/audits/AUDIT_ZUSAMMENFASSUNG_20261031.md` — dort steht auch,
-welche Modellbefunde ich nachgemessen habe (drei richtig, einer falsch, einer halb richtig) und in
-welcher Reihenfolge umgesetzt wird.
+**Wichtigster Befund (P1, `main.py`):** fünf Zuständigkeiten in einer Datei, zehn Vorschläge.
+Die drei mit dem besten Verhältnis:
+1. Spielkern (`GameState` + Datenmodelle + Baupreise + Menü) nach `spielkern/` → ~2.600 Zeilen.
+2. 27 `_render_*` über einen gemeinsamen Helfer `seite_aufbauen(titel, untertitel, content)`
+   → 150–200 Zeilen, weil alle dasselbe Gerüst wiederholen.
+3. Ansichten als Mixins nach `gui/ansichten/` → ~3.000 Zeilen.
 
-**Bereits umgesetzt:** P2 (Register 65, Commit `298510a`) — alte Schlachtfassung raus, `src/` von
-21.703 auf 21.302 Zeilen.
+**Wo das Modell rät (vor Umsetzung prüfen):** es nennt Prüfdateien, die es nicht gibt
+(`test_spieloekonomie.py`), und empfiehlt `_render_news` und `_upgrade_building` zu löschen —
+mit `grep` nachprüfen, ob wirklich niemand sie aufruft.
 
-**Offen für die nächste Sitzung (wichtig):**
-1. Umsetzung P3.1–P3.3 (gemeinsame Helfer) — klein, testbar.
-2. P4 und P1 auswerten und umsetzen (P1 zuletzt).
-3. **Skill- und Regelpflege nachziehen** (Daniel, 31.10.2026: „achte darauf das clean up cronjob und
-   deine skill und regelwerke auch immer schön mit allen veränderungen mithalten"): neue Werkzeuge
+**Erledigt und nicht mehr anzufassen:**
+* P2 umgesetzt (Register 65, `298510a`): eine Schlachtfunktion, `src/` 21.703 → 21.302 Zeilen.
+* Zwei neue Prüfungen grün: `test_textqualitaet` (169), `test_projektpfade` (101).
+* Kostenakte aktualisiert: neuer DeepSeek-Export vom 31.10. übernommen (Oktober **16,8062 USD**,
+  Gesamt **33,3243 USD**, 31.10. allein **2,1200 USD / 1.228 Requests**), ZIP hashgleich in
+  `D:\Arbeiten\Finanzen _Uebersicht\DeepSeek_Kosten\Rohdaten\`.
+
+**Offen (in dieser Reihenfolge):**
+1. Vollen Prüflauf starten (zwei neue Prüfdateien, P2-Änderung) — das ist der Startpunkt.
+2. P3.1–P3.3 umsetzen: gemeinsame Helfer (`als_zahl`, `als_int`, `aufzaehlung`), Karrenladung,
+   Reisezeit-Kette. Beweis: `test_auftraege`, `test_beute_*`, `test_kampf_einhaengung`.
+3. P4 auswerten (`karten_optik`/`welt_optik` teilen `_punkte`, `_box`, `_fuell` Zeile für Zeile).
+   **Fallstrick, selbst erlebt:** ein neues Modul in `src/` wurde von den Prüfdateien zunächst nicht
+   gefunden (Windows-Verzeichnis-Cache, `ModuleNotFoundError` trotz vorhandener Datei). Erst eine
+   Kopie in denselben Ordner frischte den Cache auf. Also: nach dem Anlegen eines Moduls **sofort
+   einen Lauf starten** und bei `ModuleNotFoundError` einmal `python -c "import sys;sys.path.insert(0,'src');import <modul>"` prüfen, bevor du den Umbau verdächtigst.
+4. P5: Ordnerstruktur. **Entscheidung gehört Daniel:** klassische Pakete mit `__init__.py`
+   (sicherer für PyInstaller) oder flach bleiben. Vor dem Umzug prüfen, welche Module wirklich
+   ungenutzt sind — P5 lag bei `originalkarten.py` falsch (wird von 4 Modulen und 6 Prüfdateien benutzt).
+5. P1: `main.py` teilen, zuletzt. Nach jedem Modul ein Commit und ein voller Prüflauf.
+6. **Skill- und Regelpflege** (ausdrückliche Anweisung Daniels): neue Werkzeuge
    (`code_mass.py`, `modulkarte_bauen.py`, `codeaudit_pakete_bauen.py`, `anfuehrungszeichen.py`,
-   `zitatkorrekturen.py`) und die zwei neuen Prüfungen in `continuous-improvement` bzw. das passende
-   Skill aufnehmen; Cleanup-Cronjob prüfen, ob er die neuen Dateien kennt.
+   `zitatkorrekturen.py`) und die zwei Prüfungen in die passenden Skills aufnehmen, Cleanup-Cronjob
+   gegenprüfen.
+7. Nach jedem Schritt: Registereintrag, `tools/modulkarte_bauen.py` neu laufen lassen,
+   `tools/sammellauf.py` grün, EXE bauen, Kosten in die Kostenakte.
+
+## 11. Startzeile (kopierfertig)
+
+```
+Lies docs/HANDOFF_CODEAUDIT_20261031.md und docs/audits/AUDIT_ZUSAMMENFASSUNG_20261031.md.
+Stand: Commit 973f733 auf Branch stand-20261031-1400 (main unberuehrt), Code-Audit fertig
+(fuenf Befunde, 0,3189 USD verbraucht, Budget 3 EUR). P2 ist umgesetzt, src/ hat jetzt 21.302 Zeilen.
+Erster Schritt: vollen Prueflauf starten (zwei neue Pruefdateien, P2-Aenderung), dann EXE neu bauen.
+Danach in dieser Reihenfolge umsetzen: P3.1-P3.3 (gemeinsame Helfer) -> P4 (Zeichenmodule) ->
+P5 (Ordnerstruktur, Entscheidung Daniel einholen) -> P1 (main.py teilen).
+Regeln: Spiel bleibt Spiel, keine Zahl aendert sich, jede Umsetzung = ein Commit + voller gruener
+Prueflauf + Registereintrag; Modulkarte danach neu bauen; Skills und Cleanup-Cronjob mitpflegen.
+Fuer die Umsetzung stehen rund 2,9 EUR des Audit-Budgets bereit - Zwischenpruefungen der Umbauten
+sind eingeplant (Diff-Paket an deepseek-v4-pro, ~0,10 USD je Runde).
+```

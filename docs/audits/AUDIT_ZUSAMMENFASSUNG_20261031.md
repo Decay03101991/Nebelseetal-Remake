@@ -1,7 +1,7 @@
 # Code-Audit 31.10.2026 — Zusammenfassung, Prüfung der Befunde und Umsetzungsplan
 
 **Auftrag (Daniel, 31.10.2026):** „lasse ein großes model den code checken … kompaktere klügere
-code lösungen … alle funktionen unbeeinträchtigt … ordnerstruktur angepasst aber sauber."
+code lösungen … alle funktionen unbeeinträchtigt … ordnerstruktur angepasst aber sauber.“
 Budget: **3 EUR** aus dem DeepSeek-Guthaben.
 
 ## 1. Was gelaufen ist (gemessen, nicht geschätzt)
@@ -23,7 +23,7 @@ Wiederholung (3 Versuche je Paket, 20 s Pause) sauber durch.
 | Behauptung des Modells | Prüfung | Ergebnis |
 |---|---|---|
 | `kampf_alt_handbuch_2009.py` wird von niemandem importiert | `grep -rn` über `src/`, `tests/`, `tools/` | **stimmt** — nur eine Prüfdatei testete ihre Existenz |
-| „`kampf.py` importiert die alte Fassung" | Quelltext gelesen | **falsch** — nur eine Zeile im Docstring erwähnt sie |
+| „`kampf.py` importiert die alte Fassung“ | Quelltext gelesen | **falsch** — nur eine Zeile im Docstring erwähnt sie |
 | `oberflaeche_original.py`, `gildenrangliste_original.py`, `originalkarten.py`, `originalkarten_grafik.py` sind stilllegbar | `grep` nach Importen | **teilweise falsch**: `originalkarten` wird von 4 Modulen + 6 Prüfdateien benutzt, `originalkarten_grafik` von `main.py`. Nur `gildenrangliste_original` (0 Importe) und `oberflaeche_original` (nur von seiner eigenen Prüfdatei) sind Kandidaten |
 | `_als_zahl`, `_als_int`, `_aufzaehlung` stehen doppelt in `auftraege.py` und `kampfbericht.py` | Stichprobe im Code | **stimmt** |
 | Zwei Zeichenmodule teilen `_punkte`, `_box`, `_fuell` Zeile für Zeile | AST-Vergleich | **stimmt** (je 3/7/10 Zeilen identisch) |
@@ -100,6 +100,6 @@ PyInstaller ist die klassische Variante sicherer. Entscheidung gehört zu Daniel
 | **Runde 1 zusammen** | **0,3189** |
 
 **Budget 3 EUR ≈ 3,20 USD.** Nach den vier Paketen bleiben rund 2,9 USD für die zweite Runde:
-Gegenprüfung der Umbauten (Diff-Pakete), ein Paket „was hast du übersehen" und die Endkontrolle der
+Gegenprüfung der Umbauten (Diff-Pakete), ein Paket „was hast du übersehen“ und die Endkontrolle der
 Ordnerstruktur. Diese Runde wird in einer **neuen Sitzung** gefahren — mit den dann aktuellen
 Zeilenzahlen, nicht mit den heutigen.
