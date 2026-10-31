@@ -665,6 +665,19 @@ EBENE_JE_PUNKT = {
 }
 
 
+# Anzeigenamen an das Original angleichen (Daniel 30.10.2026: "an das Original angleichen, nur die
+# Anzeige"). Schluessel = interner Name (wie in MENU_ITEMS), Wert = Anzeige. Die belegte Liste
+# MENU_ITEMS bleibt dadurch unveraendert lesbar.
+MENU_ANZEIGE = {
+    "Gilde": "Gildenhalle",
+    "Kampfsimulator": "Schlachtsimulator",
+}
+
+# Punkte, die im Original im Hauptmenue stehen, in MENU_ITEMS aber fehlen (Screenshots
+# web_1838856/1838857 + Handbuch Seite 12). Sie kommen als Zusatzpunkte dazu, nie in die Liste.
+MENU_ZUSATZ = {"Uebersicht": ["Voraussetzungen", "Neuigkeiten"], "Siedlung": []}
+
+
 def menu_fuer_ebene(settlements, ebene: str) -> list:
     """Die Leiste EINER Ebene — aufgebaut auf `menu_sichtbar()` (eine Quelle fuer die Freigabe).
 
@@ -673,12 +686,14 @@ def menu_fuer_ebene(settlements, ebene: str) -> list:
     """
     punkte = [punkt for punkt in menu_sichtbar(settlements)
               if EBENE_JE_PUNKT.get(punkt, "Uebersicht") == ebene]
-    # "Voraussetzungen" steht im Original im Hauptmenue und zeigt die Forschungsbedingungen
-    # (Handbuch Seite 12). Unser MENU_ITEMS (die belegte Liste) fuehrt ihn nicht, deshalb
-    # kommt er als Zusatzpunkt dazu - nicht in die belegte Liste hineingeschrieben.
-    if ebene == "Uebersicht":
-        punkte.insert(punkte.index("Ruhmeshalle") + 1 if "Ruhmeshalle" in punkte else len(punkte),
-                      "Voraussetzungen")
+    for zusatz in MENU_ZUSATZ.get(ebene, []):
+        if zusatz in punkte:
+            continue
+        # "Voraussetzungen" steht im Original hinter der Ruhmeshalle (Handbuch Seite 12).
+        if zusatz == "Voraussetzungen" and "Ruhmeshalle" in punkte:
+            punkte.insert(punkte.index("Ruhmeshalle") + 1, zusatz)
+        else:
+            punkte.append(zusatz)
     return punkte
 
 SKINS = {
@@ -3294,7 +3309,7 @@ class NebelseetalApp:
             except Exception:
                 pass
         for item in menu_fuer_ebene(getattr(self.state, "settlements", None), ebene):
-            btn = tk.Button(self.menu_liste, text=item, fg=self.skin["red"], bg=self.skin["sidebar"], activebackground=self.skin["button_active"], activeforeground=self.skin["gold"],
+            btn = tk.Button(self.menu_liste, text=MENU_ANZEIGE.get(item, item), fg=self.skin["red"], bg=self.skin["sidebar"], activebackground=self.skin["button_active"], activeforeground=self.skin["gold"],
                             relief=tk.FLAT, anchor=tk.W, padx=12, command=lambda i=item: self._switch_view(i))
             btn.pack(fill=tk.X, pady=1, ipady=2)
             self.menu_buttons[item] = btn
@@ -3373,6 +3388,7 @@ class NebelseetalApp:
             "Lager": self._render_storage,
             "Kaserne": self._render_barracks,
             "Voraussetzungen": self._render_voraussetzungen,
+            "Neuigkeiten": self._render_neuigkeiten,
             "Stellmacher": self._render_stellmacher,
             "Diebesgilde": self._render_diebesgilde,
             "Marktplatz": self._render_market,
@@ -6122,6 +6138,33 @@ class NebelseetalApp:
     def _render_referral(self):
         tk.Label(self.content, text="Spieler werben", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
         tk.Label(self.content, text="Werben folgt in einer späteren Version.", fg="#C0C0C0", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
+
+    def _render_neuigkeiten(self):
+        """Neuigkeiten — im Original ein eigener Hauptmenuepunkt (Screenshots web_1838856/57).
+
+        Inhalt bei uns: die letzten Meldungen des Spiels (dieselbe Quelle wie `state.messages`,
+        also keine zweite Wahrheit). Personalnachrichten an einzelne Spieler gibt es im
+        Einzelspieler-Remake nicht — deshalb steht hier der Spielverlauf.
+        """
+        tk.Label(self.content, text="Neuigkeiten", font=("Blackletter", 20, "bold"),
+                 fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
+        tk.Label(self.content, text="Was zuletzt im Spiel passiert ist (neueste zuerst).",
+                 fg="#C0C0C0", bg=self.skin["bg"], wraplength=780,
+                 justify=tk.LEFT).pack(anchor=tk.W, padx=10)
+        meldungen = list(getattr(self.state, "messages", None) or [])[-15:]
+        if not meldungen:
+            tk.Label(self.content, text="Noch keine Meldungen.", fg="#FDBA74",
+                     bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=8)
+            return
+        for eintrag in reversed(meldungen):
+            zeile = tk.Frame(self.content, bg=self.skin["panel"])
+            zeile.pack(fill=tk.X, padx=10, pady=1)
+            zeit = str(eintrag.get("zeit_lokal") or "")[11:19]
+            tk.Label(zeile, text=zeit, width=9, anchor=tk.W, fg=self.skin["gold"],
+                     bg=self.skin["panel"], font=("Arial", 9)).pack(side=tk.LEFT, padx=4)
+            tk.Label(zeile, text=str(eintrag.get("text") or ""), anchor=tk.W, wraplength=640,
+                     justify=tk.LEFT, fg=self.skin["text"],
+                     bg=self.skin["panel"]).pack(side=tk.LEFT, padx=4)
 
     def _render_voraussetzungen(self):
         """Zeigt, welche Forschung welche Bedingung hat (Original-Hauptmenue, Handbuch Seite 12).

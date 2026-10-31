@@ -190,6 +190,14 @@ siedlung = main.menu_fuer_ebene([Ort(["bibliothek", "kriegerakademie", "stellmac
 check("Uebersicht enthaelt Portal", "Portal" in uebersicht, str(uebersicht))
 check("Uebersicht enthaelt Voraussetzungen (Original-Menuepunkt)",
       "Voraussetzungen" in uebersicht, str(uebersicht))
+check("Uebersicht enthaelt Neuigkeiten (Original-Menuepunkt)",
+      "Neuigkeiten" in uebersicht, str(uebersicht))
+check("Anzeige: Gilde heisst Gildenhalle", main.MENU_ANZEIGE.get("Gilde") == "Gildenhalle",
+      str(main.MENU_ANZEIGE))
+check("Anzeige: Kampfsimulator heisst Schlachtsimulator",
+      main.MENU_ANZEIGE.get("Kampfsimulator") == "Schlachtsimulator", str(main.MENU_ANZEIGE))
+check("Anzeige-Tabelle erfindet keine Punkte",
+      all(k in main.MENU_ITEMS for k in main.MENU_ANZEIGE), str(main.MENU_ANZEIGE))
 check("Uebersicht enthaelt NICHT Dorfzentrum", "Dorfzentrum" not in uebersicht, str(uebersicht))
 check("Uebersicht enthaelt NICHT Forschung", "Forschung" not in uebersicht, str(uebersicht))
 check("Siedlung enthaelt Dorfzentrum", "Dorfzentrum" in siedlung, str(siedlung))
