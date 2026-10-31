@@ -57,13 +57,17 @@
 > Bonus +10 % je Stufe (Deckel Stufe 10 = Faktor 2,0), EINE Rechnung `einheiten.ladung_der_gruppe`,
 > Stufen aus `GameState.forschungs_stufen()`, Pruefdatei 44/0/1, Sammellauf 20:58 (104 Dateien,
 > 103 gruen, 3.801 Pruefungen), EXE `aa2c48c6...`.
-> **Naechster Spielcode-Schritt:** Sperre bei Nahrungsnot (Daniels Verschaerfung, Register 70) - Kern
-> `spieloekonomie.nahrungsnot`, Sperre an den fuenf gemessenen Andockstellen (`_karten_bauen` 4344,
-> `_karten_ausbauen` 4464, `_ware_herstellen` 5157, `forschung_start` 6652, `_train_unit` 6863),
-> sichtbare Warnung, Pruefdatei mit Grenzfaellen, voller Sammellauf, EXE, EIN Commit.
-> **Danach:** Sofortangriff reist -> Kampfplanungsseite -> F-03 -> F-05/F-06 -> ... ; **Bots spaeter**
-> (Register 72, Daniels Ansage). Offen fuer die Messung: `tools/balancing_messung.py` uebergibt noch
-> keine Forschungsstufen, G-2/G-6 sind mit Wagenbau neu zu messen.
+> **Fertig seit dem letzten Stand:** **Nahrungsnot-Sperre** (Register 70/74, Commit `e20b4c6`) und die
+> **Schenkungs-Botschaft** im Nachrichtenmenue samt Aufstockung von Slot 1 (Register 77, Commit `11746b5`).
+> **Daniels Spielbericht vom 31.10.2026 liegt vor** und ist der neue Fahrplan:
+> `docs/ANFORDERUNGEN_DANIEL_20261031_SPIELBERICHT.md` mit sechs Paketen **A-1 bis A-6** (Register 78).
+> **Reihenfolge: A-1 Mengeneingabe fuer Einheiten -> A-3 Dorfuebersicht -> A-6 Siedler-Vorwarnung beim
+> Bauen -> A-2 Original-Gebaeude-Icons -> A-4 Ressourcen-Icons -> A-5 Designkonzept Siedlung.**
+> **Danach (bestehend):** Sofortangriff reist -> Kampfplanungsseite -> F-03 -> F-05/F-06 -> F-07/F-13 ->
+> F-11 -> P3.4/P3.6 -> P4 -> Aufraeumen -> P5 -> P1 -> F-12. **Bots spaeter** (Register 72);
+> **Kartenziehung = C** entschieden, nicht gebaut (Register 75). Offen fuer die Messung:
+> `tools/balancing_messung.py` uebergibt keine Forschungsstufen, G-2/G-6 mit Wagenbau neu messen.
+> **Ziel:** erste spielbare DEMO als Windows-EXE auf GitHub (Kriterien in Abschnitt 4 des Spielberichts).
 > Nach JEDEM Schritt verpflichtend: Registereintrag in `docs/PRUEFREGEL_ORIGINAL.md`, Protokollzeile in
 > `docs/ENTWICKLUNGSPROTOKOLL.md`, Einzeltest **und** voller Sammellauf
 > (`python -X utf8 tools/sammellauf.py`), neue EXE mit Startpruefung, dann EIN Commit.
