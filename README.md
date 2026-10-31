@@ -1,5 +1,24 @@
 # Nebelseetal Remake – ein konsolidierter Arbeitsstand
 
+> ## ➜ Neuester Entwicklungsstand: Branch `stand-20261031`
+>
+> Dieser `main`-Zweig zeigt den Stand vom **28.10.2026**. Der **geprüfte, deutlich neuere** Stand
+> liegt im Branch **`stand-20261031`** — er hat eine eigene Wurzel und lässt sich deshalb nicht
+> mergen (kein Pull Request möglich), ist über GitHub aber direkt lesbar:
+> **https://github.com/Decay03101991/Nebelseetal-Remake/tree/stand-20261031**
+>
+> Was dort belegt ist (Stand 31.10.2026):
+> * **Vollständiger Prüflauf:** 94 Prüfdateien, **93 grün, 0 rot**, 1 dokumentiert zurückgezogen,
+>   **3.504 Prüfungen, 511 s**
+> * **Prüfregister des Originals** mit **46 belegten Punkten** (Seite/Zeile je Punkt) und den
+>   offenen Lücken — `docs/PRUEFREGEL_ORIGINAL.md`
+> * **Gebaut und geprüft:** Reisezeit-Formel (Faktor 2), **gestaffelte Beute** nach Wallzustand und
+>   Verteidigern, **Götterschutz-Band** (299 Punkte ±20 %)
+> * **Original-Hintergrundgeschichte** gefunden und wörtlich gesichert
+>   (`docs/quellen/ORIGINAL_HINTERGRUNDGESCHICHTE.md`, Website-Archiv 11.09.2007)
+> * Vier vorbereitete Audit-Pakete für starke Modelle (`docs/audits/`) und ein Prüfbericht, der
+>   sechs falsche Aussagen eines früheren Entwurfs belegt
+
 **Status: Entwicklung, nicht freigegeben.** Ein Einzelspieler-Remake des historischen Browserstrategiespiels.
 
 ![Historische Originaloberflaeche](docs/nebelseetal_gamestar2.jpg)
