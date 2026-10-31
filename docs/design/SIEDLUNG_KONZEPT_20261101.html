@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8">
+<title>Siedlungsansicht — Papier (A-5)</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin:0; background:#2a0605; color:#FFFF99;
+         font-family:"Segoe UI", Arial, sans-serif; font-size:14px; }
+  .kopf { height:64px; display:flex; align-items:center; gap:18px; padding:0 24px;
+           background:#1a0a09; border-bottom:2px solid #4a1512; }
+  .kopf h1 { margin:0; font-size:22px; color:#FFCC33; letter-spacing:.5px; }
+  .kopf .dorf { color:#FF6600; font-size:15px; }
+  .leiste { display:flex; gap:22px; margin-left:auto; font-size:14px; }
+  .leiste b { color:#FFCC33; font-weight:600; }
+  .rahmen { display:flex; align-items:flex-start; gap:16px; padding:16px 20px; }
+  /* ---------------- links: Menue, einheitlich ---------------- */
+  .menue { width:236px; flex:0 0 236px; background:#1a0a09;
+            border:1px solid #4a1512; border-radius:6px; padding:8px; }
+  .menue h2 { margin:4px 8px 10px; font-size:12px; letter-spacing:1.2px;
+               color:#9a8a6a; font-weight:600; }
+  .menu-punkt { display:flex; align-items:center; gap:10px; height:44px; padding:0 12px;
+                 margin-bottom:4px; border-radius:5px; background:#3e2723;
+                 border:1px solid transparent; cursor:pointer; }
+  .menu-punkt .mi { width:22px; text-align:center; font-size:16px; }
+  .menu-punkt .mt { font-size:14px; }
+  .menu-punkt.aktiv { background:#5D4037; border-color:#FFCC33;
+                       color:#fff; font-weight:600; }
+  /* ---------------- Mitte: Karte ---------------- */
+  .mitte { flex:1 1 auto; min-width:0; }
+  .kartenkopf { display:flex; align-items:center; gap:14px; margin-bottom:10px; }
+  .kartenkopf h2 { margin:0; font-size:18px; color:#FFCC33; }
+  .tabs { margin-left:auto; display:flex; gap:6px; }
+  .tab { height:32px; padding:0 14px; display:flex; align-items:center; border-radius:4px;
+          background:#3e2723; border:1px solid #4a1512; font-size:13px; }
+  .tab.aktiv { background:#5D4037; color:#fff; }
+  .karte { max-width:760px; margin:0 auto; background:#17212B; border:1px solid #4a1512; border-radius:6px;
+            padding:12px; }
+  .gitter { display:grid; max-width:736px; margin:0 auto; grid-template-columns:repeat(10, 1fr); gap:3px; }
+  .feld { position:relative; aspect-ratio:1/1; border-radius:4px; overflow:hidden;
+           border:1px solid rgba(0,0,0,.35); }
+  .feld .grund { position:absolute; inset:0; }
+  .grasland .grund { background:#4a6b3a; } .wald .grund { background:#2e5228; }
+  .steppe .grund { background:#7d7a4a; } .huegel .grund { background:#6b6b52; }
+  .berg .grund { background:#5a5a5a; } .wasser .grund { background:#2b5876; }
+  .nebelsee .grund { background:#3d5a6c; } .sumpf .grund { background:#3b4432; }
+  .feld.belegt { background:var(--farbe); display:flex; align-items:center;
+                  justify-content:center; }
+  .feld.belegt img { width:88%; height:88%; object-fit:contain;
+                      filter:drop-shadow(0 1px 1px rgba(0,0,0,.6)); }
+  .feld .pips { position:absolute; bottom:1px; left:50%; transform:translateX(-50%);
+                 font-size:7px; color:#FFD966; letter-spacing:1px; }
+  .legende { display:flex; gap:16px; margin-top:10px; font-size:12px; color:#bfb08c; }
+  .punkt { display:inline-block; width:10px; height:10px; border-radius:2px;
+            margin-right:5px; vertical-align:-1px; }
+  /* ---------------- rechts: Berater ---------------- */
+  .berater { width:360px; flex:0 0 360px; display:flex; flex-direction:column; gap:12px; }
+  .karte-panel { background:#3e1c1a; border:1px solid #4a1512;
+                  border-radius:6px; padding:12px 14px; }
+  .karte-panel h3 { margin:0 0 8px; font-size:13px; letter-spacing:1px; color:#FFCC33;
+                     text-transform:uppercase; }
+  .zeile { display:flex; justify-content:space-between; gap:10px; padding:5px 0;
+            border-bottom:1px dotted #5a3a30; font-size:13px; }
+  .zeile:last-child { border-bottom:0; }
+  .zeile b { color:#FFCC33; font-weight:600; }
+  .warnung { margin-top:8px; padding:8px 10px; border-radius:5px; font-size:12.5px;
+              background:#5a2a12; border:1px solid #b06a2a; color:#FFD9A8; }
+  .engpass { color:#e53935; font-weight:700; }
+  table { width:100%; border-collapse:collapse; font-size:12px; }
+  th { text-align:left; color:#9a8a6a; font-weight:600; padding:3px 2px; font-size:11px; }
+  td { padding:3px 2px; border-top:1px solid #4a2a22; }
+  td.num { text-align:right; } td.ertrag { color:#FFCC33; }
+  .hinweis { font-size:11.5px; color:#8a7a5a; margin-top:8px; line-height:1.35; }
+  /* Schmale Fenster: der Berater rutscht UNTER die Karte, statt sie zu ueberdecken.
+     Daniels Vorgabe: jedes Menue und jeder Button braucht genug Platz. */
+  @media (max-width: 1420px) {
+    .rahmen { flex-wrap: wrap; }
+    .berater { width:auto; flex:1 1 100%; flex-direction:row; align-items:flex-start; }
+    .berater .karte-panel { flex:1 1 0; }
+  }
+  @media (max-width: 900px) {
+    .menue { width:100%; flex:1 1 100%; }
+    .berater { flex-direction:column; }
+  }
+  .knopf { height:40px; display:flex; align-items:center; justify-content:center;
+            background:#3e2723; border:1px solid #FFCC33;
+            border-radius:5px; color:#FFCC33; font-size:13.5px; margin-top:10px; }
+</style></head>
+<body>
+  <div class="kopf">
+    <h1>Nebelseetal</h1><span class="dorf">Daniels Hauptdorf</span>
+    <div class="leiste">
+      <span>Spieltag <b>6</b></span>
+      <span>Siedler <b>3.5/35</b></span>
+      <span>Gebäude <b>81</b></span>
+    </div>
+  </div>
+  <div class="rahmen">
+    <nav class="menue"><h2>MENÜ</h2><div class="menu-punkt aktiv"><span class="mi">🏰</span><span class="mt">Dorfzentrum</span></div><div class="menu-punkt"><span class="mi">📦</span><span class="mt">Lager</span></div><div class="menu-punkt"><span class="mi">⚔</span><span class="mt">Kaserne</span></div><div class="menu-punkt"><span class="mi">⚖</span><span class="mt">Marktplatz</span></div><div class="menu-punkt"><span class="mi">🛡</span><span class="mt">Gilde</span></div><div class="menu-punkt"><span class="mi">📖</span><span class="mt">Forschung</span></div><div class="menu-punkt"><span class="mi">🌀</span><span class="mt">Portal</span></div><div class="menu-punkt"><span class="mi">🗺</span><span class="mt">Karten</span></div><div class="menu-punkt"><span class="mi">✉</span><span class="mt">Nachrichten</span></div><div class="menu-punkt"><span class="mi">🤝</span><span class="mt">Diplomatie</span></div><div class="menu-punkt"><span class="mi">🏆</span><span class="mt">Ruhmeshalle</span></div><div class="menu-punkt"><span class="mi">⚙</span><span class="mt">Einstellungen</span></div></nav>
+    <main class="mitte">
+      <div class="kartenkopf">
+        <h2>Siedlungskarte</h2>
+        <div class="tabs">
+          <div class="tab aktiv">Karte</div><div class="tab">Dorfübersicht</div>
+          <div class="tab">Weltkarte</div>
+        </div>
+      </div>
+      <div class="karte"><div class="gitter"><div class="feld belegt" style="--farbe:#4e7d3a" title="Holzfäller Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#4e7d3a" title="Holzfäller Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#4e7d3a" title="Holzfäller Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#4e7d3a" title="Holzfäller Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#4e7d3a" title="Holzfäller Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#2e5d34" title="Jäger Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#2e5d34" title="Jäger Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#2e5d34" title="Jäger Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#2e5d34" title="Jäger Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#2e5d34" title="Jäger Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#8e6bb5" title="Tempel Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#8e6bb5" title="Tempel Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#7d7d7d" title="Steinmetz Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#7d7d7d" title="Steinmetz Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#7d7d7d" title="Steinmetz Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#8d6e63" title="Erzmine Stufe 1"><img src="../../assets/icons/gebaeude/motiv_7.png" alt="Erzmine"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#d4af37" title="Goldmine Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#8d6e63" title="Erzmine Stufe 1"><img src="../../assets/icons/gebaeude/motiv_7.png" alt="Erzmine"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#2e5d34" title="Jäger Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#d4af37" title="Goldmine Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#8e6bb5" title="Tempel Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#8e6bb5" title="Tempel Stufe 1"><span class="pips">●</span></div><div class="feld sumpf" title="Sumpf"><span class="grund"></span></div><div class="feld belegt" style="--farbe:#7d7d7d" title="Steinmetz Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#8d6e63" title="Erzmine Stufe 1"><img src="../../assets/icons/gebaeude/motiv_7.png" alt="Erzmine"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#8d6e63" title="Erzmine Stufe 1"><img src="../../assets/icons/gebaeude/motiv_7.png" alt="Erzmine"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#8d6e63" title="Erzmine Stufe 1"><img src="../../assets/icons/gebaeude/motiv_7.png" alt="Erzmine"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#2e5d34" title="Jäger Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#d4af37" title="Goldmine Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#d4af37" title="Goldmine Stufe 1"><span class="pips">●</span></div><div class="feld sumpf" title="Sumpf"><span class="grund"></span></div><div class="feld sumpf" title="Sumpf"><span class="grund"></span></div><div class="feld sumpf" title="Sumpf"><span class="grund"></span></div><div class="feld sumpf" title="Sumpf"><span class="grund"></span></div><div class="feld belegt" style="--farbe:#8d6e63" title="Erzmine Stufe 1"><img src="../../assets/icons/gebaeude/motiv_7.png" alt="Erzmine"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#8d6e63" title="Erzmine Stufe 1"><img src="../../assets/icons/gebaeude/motiv_7.png" alt="Erzmine"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#2e5d34" title="Jäger Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#d4af37" title="Goldmine Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#d4af37" title="Goldmine Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#7a5c3a" title="Lager Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#7a5c3a" title="Lager Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#7a5c3a" title="Lager Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#3a5f8b" title="Bibliothek Stufe 3"><span class="pips">●●●</span></div><div class="feld sumpf" title="Sumpf"><span class="grund"></span></div><div class="feld belegt" style="--farbe:#d4af37" title="Goldmine Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#2e5d34" title="Jäger Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#d4af37" title="Goldmine Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#d4af37" title="Goldmine Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#d4af37" title="Goldmine Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#7a5c3a" title="Lager Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#b05a20" title="Schmiede Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#b06a8a" title="Nähstube Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#8e6bb5" title="Tempel Stufe 1"><span class="pips">●</span></div><div class="feld sumpf" title="Sumpf"><span class="grund"></span></div><div class="feld belegt" style="--farbe:#4e7d3a" title="Holzfäller Stufe 1"><span class="pips">●</span></div><div class="feld sumpf" title="Sumpf"><span class="grund"></span></div><div class="feld belegt" style="--farbe:#d4af37" title="Goldmine Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#d4af37" title="Goldmine Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#8b3a3a" title="Kriegerakademie Stufe 1"><img src="../../assets/icons/gebaeude/motiv_5.png" alt="Kriegerakademie"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#b05a20" title="Schmiede Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#b05a20" title="Schmiede Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#b05a20" title="Schmiede Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#a0522d" title="Bogenbauer Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#4e7d3a" title="Holzfäller Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#c9a227" title="Farm Stufe 1"><span class="pips">●</span></div><div class="feld sumpf" title="Sumpf"><span class="grund"></span></div><div class="feld belegt" style="--farbe:#d4af37" title="Goldmine Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#6d4c41" title="Stellmacher Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#b05a20" title="Schmiede Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#c8a165" title="Haus Stufe 1"><img src="../../assets/icons/gebaeude/motiv_1.png" alt="Haus"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#b06a8a" title="Nähstube Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#a0522d" title="Bogenbauer Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#2e5d34" title="Jäger Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#c9a227" title="Farm Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#c9a227" title="Farm Stufe 1"><span class="pips">●</span></div><div class="feld sumpf" title="Sumpf"><span class="grund"></span></div><div class="feld sumpf" title="Sumpf"><span class="grund"></span></div><div class="feld sumpf" title="Sumpf"><span class="grund"></span></div><div class="feld sumpf" title="Sumpf"><span class="grund"></span></div><div class="feld sumpf" title="Sumpf"><span class="grund"></span></div><div class="feld belegt" style="--farbe:#5d4037" title="Diebesgilde Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#2e5d34" title="Jäger Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#c9a227" title="Farm Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#8d6e63" title="Pferdezucht Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#8d6e63" title="Pferdezucht Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#a1887f" title="Rinderfarm Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#dcdcdc" title="Schafszucht Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#dcdcdc" title="Schafszucht Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#a1887f" title="Rinderfarm Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#8d6e63" title="Pferdezucht Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#2e5d34" title="Jäger Stufe 1"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#c8a165" title="Haus Stufe 1"><img src="../../assets/icons/gebaeude/motiv_1.png" alt="Haus"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#c8a165" title="Haus Stufe 1"><img src="../../assets/icons/gebaeude/motiv_1.png" alt="Haus"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#c8a165" title="Haus Stufe 1"><img src="../../assets/icons/gebaeude/motiv_1.png" alt="Haus"><span class="pips">●</span></div><div class="feld belegt" style="--farbe:#c8a165" title="Haus Stufe 1"><img src="../../assets/icons/gebaeude/motiv_1.png" alt="Haus"><span class="pips">●</span></div><div class="feld wald" title="Wald"><span class="grund"></span></div><div class="feld wald" title="Wald"><span class="grund"></span></div><div class="feld wald" title="Wald"><span class="grund"></span></div><div class="feld wald" title="Wald"><span class="grund"></span></div><div class="feld wald" title="Wald"><span class="grund"></span></div></div></div>
+      <div class="legende">
+        <span><i class="punkt" style="background:#4a6b3a"></i>Grasland</span>
+        <span><i class="punkt" style="background:#2e5228"></i>Wald</span>
+        <span><i class="punkt" style="background:#5a5a5a"></i>Berg</span>
+        <span><i class="punkt" style="background:#2b5876"></i>Wasser</span>
+        <span><i class="punkt" style="background:#3b4432"></i>Sumpf</span>
+        <span>Punkte unter einem Gebäude = Ausbaustufe</span>
+      </div>
+    </main>
+    <aside class="berater">
+      <div class="karte-panel">
+        <h3>Berater</h3>
+        <div class="zeile"><span>Engpass</span><span class="engpass">Gold 22.5/h</span></div>
+        <div class="zeile"><span>Ertrag gesamt</span><b>Holz 30.8/h, Stein 16/h, Metall 21/h, Gold 22.5/h, Nahrung 42/h, Leder 30/h, Pferde 9/h, Wolle 6/h, Mana 21/h</b></div>
+        <div class="zeile"><span>Siedlerreserve</span><b>3.5</b></div>
+        <div class="zeile"><span>Nachwuchs</span><b>1.0/h</b></div>
+        
+      </div>
+      <div class="karte-panel">
+        <h3>Offene Bedingungen</h3>
+        <div class="zeile"><span>Nahrungsnot</span><span>keine</span></div>
+        <div class="zeile"><span>Bibliothek</span><span>1 von 2</span></div>
+        <div class="zeile"><span>Ausbildungsstätten</span><span>3 vor Ort</span></div>
+        <div class="knopf">Zum Dorfzentrum</div>
+      </div>
+      <div class="karte-panel">
+        <h3>Gebäude (81)</h3>
+        <table><tr><th>Gebäude</th><th class="num">Anz.</th><th class="num">Stufe</th>
+        <th>je Stunde</th><th class="num">Anteil</th></tr><tr><td>Jäger</td><td class="num">12</td><td class="num">1</td><td class="ertrag">Nahrung 24/h, Leder 24/h</td><td class="num">24 %</td></tr><tr><td>Holzfäller</td><td class="num">7</td><td class="num">1</td><td class="ertrag">Holz 30.8/h</td><td class="num">16 %</td></tr><tr><td>Goldmine</td><td class="num">13</td><td class="num">1</td><td class="ertrag">Gold 22.5/h</td><td class="num">11 %</td></tr><tr><td>Erzmine</td><td class="num">7</td><td class="num">1</td><td class="ertrag">Metall 21/h</td><td class="num">11 %</td></tr><tr><td>Tempel</td><td class="num">5</td><td class="num">1</td><td class="ertrag">Mana 21/h</td><td class="num">11 %</td></tr><tr><td>Farm</td><td class="num">4</td><td class="num">1</td><td class="ertrag">Nahrung 16/h</td><td class="num">8 %</td></tr><tr><td>Steinmetz</td><td class="num">4</td><td class="num">1</td><td class="ertrag">Stein 16/h</td><td class="num">8 %</td></tr><tr><td>Pferdezucht</td><td class="num">3</td><td class="num">1</td><td class="ertrag">Pferde 9/h</td><td class="num">5 %</td></tr><tr><td>Rinderfarm</td><td class="num">2</td><td class="num">1</td><td class="ertrag">Nahrung 2/h, Leder 6/h</td><td class="num">4 %</td></tr><tr><td>Schafszucht</td><td class="num">2</td><td class="num">1</td><td class="ertrag">Wolle 6/h</td><td class="num">3 %</td></tr><tr><td>Bibliothek</td><td class="num">1</td><td class="num">3</td><td class="ertrag">—</td><td class="num">0 %</td></tr><tr><td>Bogenbauer</td><td class="num">2</td><td class="num">1</td><td class="ertrag">—</td><td class="num">0 %</td></tr></table>
+        <div class="hinweis">Anteil = Summe aller Rohstoffe dieses Gebäudetyps geteilt durch den
+        Gesamtertrag des Ortes. Bauten binden keine Siedler (Entscheidung 31.10.2026).</div>
+      </div>
+    </aside>
+  </div>
+</body></html>
