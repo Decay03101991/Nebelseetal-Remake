@@ -230,14 +230,19 @@ def partiedurchlauf():
         # ------------------------------------------------------------- 5. Auftrag
         abschnitt("5. Auftrag: angreifen, kaempfen, heimkehren")
         bot = gs.bots[0]
-        for u in gs.units.values():
-            if u.rolle == "karren":
-                u.count = 2
-        gs.units[krieger].count = 8
+        # F-01/F-09 (externe Spielpruefung 31.10.2026): Truppen liegen im ORTSLAGER. Die alten
+        # Zeilen setzten sie in den Reichsbestand - genau deshalb blieb unbemerkt, dass der
+        # Angriff den Ortsbestand gar nicht las. Karren gehoeren ebenfalls vor Ort (Beute braucht
+        # Transportkarren, Handbuch S. 23).
+        _ort5 = gs.aktive_siedlung()
+        _ort5.einheiten[krieger] = int(_ort5.einheiten.get(krieger, 0)) + 8
+        _karren5 = next((k for k, u in gs.units.items() if u.rolle == "karren"), None)
+        if _karren5:
+            _ort5.einheiten[_karren5] = int(_ort5.einheiten.get(_karren5, 0)) + 2
         auftrag_ok = app._auftrag_angriff(bot)
         check("der Auftrag startet", auftrag_ok is True)
-        check("die Einheiten sind unterwegs (aus dem Bestand genommen)",
-              int(gs.units[krieger].count) == 0, str(gs.units[krieger].count))
+        check("die Einheiten sind unterwegs (aus dem ORTSLAGER genommen)",
+              int(_ort5.einheiten.get(krieger, 0)) == 0, str(_ort5.einheiten))
         eintrag = gs.auftraege[0]
         eintrag["start"] = time.time() - (float(eintrag["reisezeit"]) * 2.0 + 300.0)
         vorher_berichte = len([m for m in gs.messages if m.get("type") in ("auftrag", "kampf")])
@@ -249,8 +254,8 @@ def partiedurchlauf():
         check("die Kampfmeldung nennt das Ziel (nicht nur das Log)",
               any(("Ziel " + bot.name) in t for t in kampf_meldungen),
               str(kampf_meldungen[:1])[:120])
-        check("die ueberlebenden Einheiten kommen heim",
-              int(gs.units[krieger].count) > 0, str(gs.units[krieger].count))
+        check("die ueberlebenden Einheiten kommen in DIESEN Ort heim",
+              int(_ort5.einheiten.get(krieger, 0)) > 0, str(_ort5.einheiten))
         check("der Auftrag ist aus der Liste", not gs.auftraege)
         check("die Bot-Vorrate bleiben nicht negativ",
               all(int(v) >= 0 for v in bot.vorraete.values()), str(bot.vorraete))
@@ -422,7 +427,8 @@ def partiedurchlauf():
               gs.current_map == "wald"
               and gs.resources["gold"].amount == gold_vorher - switch_kosten,
               f"{gs.current_map} / {gs.resources['gold'].amount}")
-        gs.units[krieger].count = 8
+        _ort12 = gs.aktive_siedlung()
+        _ort12.einheiten[krieger] = int(_ort12.einheiten.get(krieger, 0)) + 8
         kampf_vorher = len([m for m in gs.messages if m.get("type") == "kampf"])
         app._attack_map("wald")
         kampf_nachher = len([m for m in gs.messages if m.get("type") == "kampf"])

@@ -74,13 +74,21 @@ def pruefe_einhaengung():
     check("main.kampfbericht ist DASSELBE Modul wie src/kampfbericht.py (kein Nachbau)",
           getattr(main, "kampfbericht", None) is KB)
 
+    # ENTSCHEIDUNG Daniel 31.10.2026 (Frage 17, F-10 der externen Pruefung): Sofortangriff und
+    # Reiseauftrag teilen EINEN Kampfweg. Der Kampf selbst (Schlacht, Beute, Bericht) liegt
+    # deshalb in `kampf_am_ziel`; `_angriff_durchfuehren` darf ihn nicht mehr nachbauen.
+    # Die Zusage bleibt dieselbe ("es wird wirklich gekaempft und gebucht"), nur der Anker
+    # wandert auf die eine Stelle, die es jetzt gibt.
     quelle = inspect.getsource(main.NebelseetalApp._angriff_durchfuehren)
-    check("_angriff_durchfuehren ruft kampf.fuehre_schlacht",
-          "kampf.fuehre_schlacht" in quelle)
-    check("_angriff_durchfuehren bucht ueber kampfbericht.spieldaten_anwenden",
-          "kampfbericht.spieldaten_anwenden" in quelle)
-    check("_angriff_durchfuehren baut die Meldung ueber kampfbericht.bericht",
-          "kampfbericht.bericht" in quelle)
+    kampfweg = inspect.getsource(main.GameState.kampf_am_ziel)
+    check("_angriff_durchfuehren laeuft durch den EINEN Kampfweg (kampf_am_ziel)",
+          "kampf_am_ziel" in quelle)
+    check("der Kampf ruft kampf.fuehre_schlacht (in kampf_am_ziel)",
+          "kampf.fuehre_schlacht" in kampfweg)
+    check("die Beute kommt aus kampfbericht.beute_am_ziel (in kampf_am_ziel)",
+          "kampfbericht.beute_am_ziel" in kampfweg)
+    check("_angriff_durchfuehren bucht die Heimkehrer ueber einsatz_zurueck",
+          "einsatz_zurueck" in quelle)
     check("_angriff_durchfuehren benutzt _truppen_nach_rolle",
           "_truppen_nach_rolle" in quelle)
 
@@ -239,8 +247,11 @@ try:
     check("die letzte Meldung hat den Typ 'kampf'", meldung.get("type") == "kampf")
     # Seit 05.10.2026 nennt die Meldung ZUERST das Ziel: im Reiter „Nachrichten" war bisher nicht
     # zu sehen, wozu der Bericht gehoert (offener Punkt aus Schritt 3, dort als Verbesserung notiert).
+    # Seit der Entscheidung 17 (31.10.2026) baut `kampf_am_ziel` die Meldung - sie beginnt mit
+    # "Am Ziel <Name>" und nennt danach den Schlachtbericht. Die Zusage bleibt: das ZIEL steht
+    # zuerst im Text, sonst weiss man im Reiter "Nachrichten" nicht, wozu der Bericht gehoert.
     check("der Text nennt erst das Ziel und dann den Schlachtbericht",
-          text.startswith("Ziel ") and "Schlachtbericht" in text, text[:60])
+          text.startswith("Am Ziel ") and "Schlachtbericht" in text, text[:60])
     check("der Text enthaelt 'Ausgang:'", "Ausgang:" in text)
     check("der Text ist die Zusammenfassung aus kampfbericht.bericht (Titel + Zeilen)",
           "\n" in text and "Verluste Angreifer:" in text)

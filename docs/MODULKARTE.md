@@ -2,13 +2,13 @@
 
 **Erzeugt von `tools/modulkarte_bauen.py` — nicht von Hand ändern.** Stand: siehe Git-Historie.
 
-49 Dateien in `src/`, 21364 Zeilen, 660 Funktionen und Klassen auf oberster Ebene.
+49 Dateien in `src/`, 21537 Zeilen, 660 Funktionen und Klassen auf oberster Ebene.
 
 ## Die Karte
 
 | Datei | Zeilen | Zweck (erste Zeile des Docstrings) | wird gebraucht von |
 |---|---:|---|---|
-| `main.py` | 7375 | Nebelseetal Remake — Core Game Engine | public_start.py |
+| `main.py` | 7548 | Nebelseetal Remake — Core Game Engine | public_start.py |
 | `spieloekonomie.py` | 1072 | Nebelseetal Remake — deterministischer Kern der Spielökonomie (Ökonomie-Paket, Schritt 2). | admin_teststand.py, admin_werkzeuge.py, botkern.py, main.py |
 | `welt_optik_fein.py` | 898 | FEINERE Zeichenplaene fuer die WELTkarte des Nebelseetal-Remakes (naechste Ausbaustufe). | main.py |
 | `karten_optik_fein.py` | 863 | Feinere Zeichenplaene fuer die Siedlungskarte des Nebelseetal-Remakes | main.py |

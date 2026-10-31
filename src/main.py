@@ -1153,6 +1153,108 @@ class GameState:
                 summen[r] = round(summen.get(r, 0.0) + float(v), 2)
         return summen
 
+    # ---------------- EINE Einsatzregel: das ORTSHEER ist die Quelle (F-01/F-09/F-10) ----------
+
+    def _siedlung_zu(self, kennung) -> Optional[Settlement]:
+        """Die eigene Siedlung mit dieser Kennung - oder ``None``.
+
+        F-09 der externen Spielpruefung (31.10.2026): ein Auftrag muss seine Quelle als
+        **Kennung** tragen, nicht als Name und schon gar nicht als feste Position
+        (`settlements[0]`). Eine unbekannte Kennung liefert bewusst ``None`` und wird NICHT
+        stillschweigend durch eine andere Siedlung ersetzt.
+        """
+        if not kennung:
+            return None
+        return next((s for s in self.settlements if s.id == kennung), None)
+
+    def _ortsheer(self, siedlung) -> Dict[str, int]:
+        """Das Heer EINER Siedlung als ``{Einheit: Anzahl}`` (nur positive Eintraege)."""
+        if siedlung is None:
+            return {}
+        return {str(k): int(v) for k, v in (getattr(siedlung, "einheiten", None) or {}).items()
+                if int(v) > 0}
+
+    def einsatz_ausheben(self, siedlung, truppen: dict) -> Dict[str, int]:
+        """Nimmt ``truppen`` aus dem ORTSHEER einer Siedlung. Liefert, was wirklich mitkam.
+
+        Eine Stelle fuer jeden Einsatz (Reiseauftrag UND Sofortangriff): frueher nahm der
+        Auftragsweg die Truppen aus `self.units`, der Sofortangriff buchte gar nichts ab
+        (F-01/F-10). Gebucht wird nur, was im Ortslager liegt - kein Heer aus dem Nichts.
+
+        Ohne Siedlung (alter Spielstand) nimmt dieselbe Funktion aus dem Reichsbestand - damit
+        Abgang und Heimkehr auch dort symmetrisch bleiben.
+        """
+        mit = {}
+        for name, anzahl in (truppen or {}).items():
+            name, anzahl = str(name), max(0, int(anzahl))
+            if anzahl <= 0:
+                continue
+            if siedlung is None:
+                if name not in self.units:
+                    continue
+                weg = min(max(0, int(self.units[name].count)), anzahl)
+                if weg <= 0:
+                    continue
+                self.units[name].count = int(self.units[name].count) - weg
+                mit[name] = mit.get(name, 0) + weg
+                continue
+            haben = int((siedlung.einheiten or {}).get(name, 0))
+            weg = min(haben, anzahl)
+            if weg <= 0:
+                continue
+            rest = haben - weg
+            if rest > 0:
+                siedlung.einheiten[name] = rest
+            else:
+                siedlung.einheiten.pop(name, None)
+            mit[name] = mit.get(name, 0) + weg
+        return mit
+
+    def einsatz_zurueck(self, quelle_id, truppen: dict) -> Dict[str, int]:
+        """Bucht Heimkehrer in das Ortslager IHRER Siedlung (``quelle_id``). Liefert die Summe.
+
+        Ohne Siedlung (alter Spielstand) geht es wie bisher in den Reichsbestand - aber nur
+        dann; eine vorhandene Quelle bestimmt den Zielort allein.
+        """
+        siedlung = self._siedlung_zu(quelle_id)
+        zurueck = {}
+        for name, anzahl in (truppen or {}).items():
+            name, anzahl = str(name), int(anzahl)
+            if anzahl <= 0:
+                continue
+            if siedlung is not None:
+                siedlung.einheiten[name] = int((siedlung.einheiten or {}).get(name, 0)) + anzahl
+            elif name in self.units:
+                self.units[name].count = int(self.units[name].count) + anzahl
+            else:
+                continue
+            zurueck[name] = anzahl
+        self._reichsanzeige_aus_orten()
+        return zurueck
+
+    def beute_gutschreiben(self, siedlung, beute: dict) -> Dict[str, float]:
+        """Schreibt erbeutete Gueter in das Ortslager des HEIMKEHRENDEN Ortes.
+
+        Dieselbe Regel wie beim eigenen Transport: hereinkommende Ware landet in dem Dorf, das
+        sie geholt hat - nicht in einer abgeleiteten Reichsanzeige. Ohne Siedlung bleibt der alte
+        Weg (Reichsbestand), damit alte Spielstaende nichts verlieren.
+        """
+        gebucht: Dict[str, float] = {}
+        for stoff, menge in (beute or {}).items():
+            betrag = float(menge or 0.0)
+            if betrag <= 0:
+                continue
+            if siedlung is not None:
+                siedlung.vorraete[stoff] = round(float(siedlung.vorraete.get(stoff, 0.0)) + betrag, 2)
+            elif stoff in self.resources:
+                self.resources[stoff].amount = round(float(self.resources[stoff].amount) + betrag, 2)
+            else:
+                continue
+            gebucht[stoff] = betrag
+        if siedlung is not None:
+            self._reichsanzeige_aus_orten()
+        return gebucht
+
     def _lokale_kasse_aktiv(self) -> bool:
         """Neue Partien: Orte sind die einzigen physischen Bestandsquellen.
 
@@ -1972,14 +2074,23 @@ class GameState:
     # ---------------- W7: Auftraege (Missionen) ----------------
 
     def auftrag_starten(self, art: str, mitgenommene: dict, von: str, nach, entfernung: float,
-                        fracht: dict = None, ziel_zusatz: dict = None):
+                        fracht: dict = None, ziel_zusatz: dict = None, quelle_id: str = None):
         """Einen Auftrag starten. Rueckgabe (ok, Meldung).
 
-        Die mitgegebenen Einheiten sind ab jetzt **unterwegs**: sie werden hier aus dem Bestand
+        Quelle ist das **ORTSHEER** der Siedlung ``quelle_id`` (F-01/F-09 der externen
+        Spielpruefung 31.10.2026): die Einheiten kommen aus `Settlement.einheiten`, werden dort
+        abgebucht und kehren in DENSELBEN Ort zurueck (`einsatz_zurueck`). Der Reichsbestand ist
+        reine Anzeige; er traegt nur noch alte Spielstaende ohne Siedlung (Uebergang).
+
+        Die mitgegebenen Einheiten sind ab jetzt **unterwegs**: sie werden hier aus dem Ortslager
         genommen und bei `abgeschlossen` zurueckgegeben - ausser beim **Stationieren**, da bleiben
         sie am Ziel (Handbuch S. 19). Geprueft wird alles ueber `auftraege.starten`; ohne genug
-        Einheiten (oder bei Ueberladung) wird VOR jeder Aenderung abgelehnt.
+        Truppen im OERTLICHEN Lager (oder bei Ueberladung) wird VOR jeder Aenderung abgelehnt.
         """
+        # Ohne Kennung gilt die aktive Siedlung (Rueckwaertsvertraeglichkeit fuer Aufrufer, die
+        # noch keine Quelle nennen). Eine GENANNTE, aber unbekannte Kennung ersetzt niemand still.
+        quelle = (self._siedlung_zu(quelle_id) if quelle_id
+                  else self.aktive_siedlung())
         ziel = dict(ziel_zusatz or {})
         if isinstance(nach, dict):
             ziel.update(nach)
@@ -1989,30 +2100,57 @@ class GameState:
         bestand = {k: int(v) for k, v in (mitgenommene or {}).items() if int(v) > 0}
         if not bestand:
             return False, "Ohne Einheiten kann kein Auftrag reisen."
-        zu_wenig = [k for k, v in bestand.items() if k not in self.units or int(self.units[k].count) < v]
+        if quelle is not None:
+            vorrat = self._ortsheer(quelle)
+            zu_wenig = [k for k, v in bestand.items() if int(vorrat.get(k, 0)) < v]
+        else:
+            zu_wenig = [k for k, v in bestand.items()
+                        if k not in self.units or int(self.units[k].count) < v]
         if zu_wenig:
-            return False, f"Nicht genug Einheiten anwesend: {', '.join(sorted(zu_wenig))}."
+            wo = quelle.name if quelle is not None else "dem Reich"
+            return False, f"Nicht genug Einheiten in {wo}: {', '.join(sorted(zu_wenig))}."
+        if quelle is not None:
+            von = str(quelle.name or von)
 
         ok, meldung = auftraege.starten(self.auftraege, art, bestand, von, ziel,
                                         float(entfernung), float(self.spielsekunden), fracht)
         if not ok:
             return False, meldung
-        for k, v in bestand.items():
-            self.units[k].count = max(0, int(self.units[k].count) - v)
+        # Der Auftrag traegt seine Quelle als KENNUNG - durch ALLE Phasen (F-09). Ohne diese
+        # Zeile startete jeder Angriff aus `settlements[0]` und kehrte auch dorthin zurueck.
+        eintrag = self.auftraege[-1]
+        eintrag["quelle_id"] = quelle.id if quelle is not None else ""
+        if quelle is not None:
+            eintrag["von"] = str(quelle.name)
+            self.einsatz_ausheben(quelle, bestand)
+        else:
+            for k, v in bestand.items():
+                self.units[k].count = max(0, int(self.units[k].count) - v)
         # Reisekosten (Paket A2 vom 31.10.2026; Saetze VORSCHLAG, siehe
         # auftraege.kosten_der_mission): bezahlt wird, was da ist - der Bestand wird nie
         # negativ, und ein Auftrag wird NICHT abgelehnt, solange die Hoehe im Spieltest offen
         # ist. Die Meldung nennt den Betrag, damit die Balance sichtbar bleibt.
-        kosten = dict((self.auftraege[-1] or {}).get("kosten") or {})
+        # Gezahlt wird DA, WO GEHANDELT WIRD (Ortslager der Quelle) - dieselbe Regel wie beim
+        # Bauen, Forschen und Ausbilden; die Reichsanzeige ist keine Kasse (Entscheidung 11).
+        kosten = dict((eintrag or {}).get("kosten") or {})
         bezahlt = {}
         for stoff, betrag in kosten.items():
-            if stoff not in self.resources or not betrag:
+            if not betrag:
                 continue
-            lager = float(self.resources[stoff].amount)
-            zahlbar = min(float(betrag), lager)
-            if zahlbar > 0:
-                self.resources[stoff].amount = lager - zahlbar
-                bezahlt[stoff] = round(zahlbar, 2)
+            if quelle is not None:
+                lager = float((quelle.vorraete or {}).get(stoff, 0.0))
+                zahlbar = min(float(betrag), lager)
+                if zahlbar > 0:
+                    quelle.vorraete[stoff] = round(lager - zahlbar, 2)
+                    bezahlt[stoff] = round(zahlbar, 2)
+            elif stoff in self.resources:
+                lager = float(self.resources[stoff].amount)
+                zahlbar = min(float(betrag), lager)
+                if zahlbar > 0:
+                    self.resources[stoff].amount = lager - zahlbar
+                    bezahlt[stoff] = round(zahlbar, 2)
+        if quelle is not None:
+            self._reichsanzeige_aus_orten()
         if bezahlt:
             meldung += (" Kosten: " + ", ".join(f"{menge:g} {stoff}"
                                                 for stoff, menge in sorted(bezahlt.items()))
@@ -2050,15 +2188,16 @@ class GameState:
                 continue                  # oben gebucht, in den ORTSLAGERN statt im Reichsbestand
             if eintrag.get("art") == "angreifen":
                 self.kampf_am_ziel(eintrag)      # W7: der echte Kampf, bevor gebucht wird
-            vorher = {"ressourcen": {k: v.amount for k, v in self.resources.items()},
-                      "einheiten": {k: u.count for k, u in self.units.items()}}
+            # F-01/F-09: gebucht wird in der QUELLE des Auftrags (`quelle_id`), nicht im Reich.
+            # Alte Auftraege ohne Quelle behalten den bisherigen Weg ueber den Reichsbestand.
+            quelle = self._siedlung_zu(eintrag.get("quelle_id"))
+            if quelle is not None:
+                vorher = {"ressourcen": dict(quelle.vorraete or {}),
+                          "einheiten": dict(quelle.einheiten or {})}
+            else:
+                vorher = {"ressourcen": {k: v.amount for k, v in self.resources.items()},
+                          "einheiten": {k: u.count for k, u in self.units.items()}}
             neu = auftraege.spieldaten_anwenden(vorher, eintrag)
-            for stoff, menge in (neu.get("ressourcen") or {}).items():
-                if stoff in self.resources:
-                    self.resources[stoff].amount = float(menge)
-            for name, anzahl in (neu.get("einheiten") or {}).items():
-                if name in self.units:
-                    self.units[name].count = max(0, int(anzahl))
             # Echter Fund beim Ökonomie-Paket, Schritt 9 (Teil 2, 05.10.2026): ein STATIONIERENDER
             # Auftrag verlor seine Truppe ZWEIMAL. `auftrag_starten` nimmt die Einheiten schon beim
             # Start aus dem Bestand (Z. 836, „sie sind ab jetzt unterwegs"); der Auftragskern zieht
@@ -2066,9 +2205,19 @@ class GameState:
             # tests/test_auftraege.py belegt: Eingabe „Kämpfer 2" -> 0). Hier wird der Kern-Abzug
             # deshalb aufgehoben: die Truppe bleibt am Ziel, sie geht genau EINMAL ab.
             if eintrag.get("art") == "stationieren":
-                for name in (eintrag.get("einheiten") or {}):
-                    if name in self.units and name in vorher["einheiten"]:
-                        self.units[name].count = max(0, int(vorher["einheiten"][name]))
+                neu["einheiten"] = dict(vorher["einheiten"])
+            if quelle is not None:
+                quelle.vorraete = {k: round(float(v), 2) for k, v in (neu.get("ressourcen") or {}).items()}
+                quelle.einheiten = {k: int(v) for k, v in (neu.get("einheiten") or {}).items()
+                                    if int(v) > 0}
+                self._reichsanzeige_aus_orten()
+            else:
+                for stoff, menge in (neu.get("ressourcen") or {}).items():
+                    if stoff in self.resources:
+                        self.resources[stoff].amount = float(menge)
+                for name, anzahl in (neu.get("einheiten") or {}).items():
+                    if name in self.units:
+                        self.units[name].count = max(0, int(anzahl))
             bericht = auftraege.bericht(eintrag)
             self.messages.append({"text": bericht["titel"] + "\n" + "\n".join(bericht["zeilen"]),
                                   "type": "auftrag"})
@@ -2086,15 +2235,16 @@ class GameState:
             eintrag["heimgekehrt"] = True
             if eintrag.get("art") == "stationieren":
                 continue                      # bleibt am Ziel: kommt nicht heim
-            for name, anzahl in (eintrag.get("einheiten") or {}).items():
-                if name in self.units:
-                    self.units[name].count = int(self.units[name].count) + int(anzahl)
-                    ergebnis["heimgekehrt"][name] = ergebnis["heimgekehrt"].get(name, 0) + int(anzahl)
+            # F-01/F-09: die Ueberlebenden kehren in den ORT zurueck, aus dem sie kamen.
+            zurueck = self.einsatz_zurueck(eintrag.get("quelle_id"),
+                                           eintrag.get("einheiten") or {})
+            for name, anzahl in zurueck.items():
+                ergebnis["heimgekehrt"][name] = ergebnis["heimgekehrt"].get(name, 0) + int(anzahl)
         self.auftraege[:] = [e for e in self.auftraege
                              if not (e.get("status") == "abgeschlossen" and e.get("heimgekehrt"))]
         return ergebnis
 
-    def kampf_am_ziel(self, eintrag: dict) -> dict:
+    def kampf_am_ziel(self, eintrag: dict, bot_objekt=None) -> dict:
         """Den echten Kampf am Ziel austragen (Handbuch S. 21-23) - W7, Schritt 7 abgeschlossen.
 
         `auftraege.py` rechnet nur Reisezeit und Beute; es erwartet `vorrunde` und `beute` als
@@ -2104,7 +2254,10 @@ class GameState:
         gleich danach von `auftraege.spieldaten_anwenden` - also GENAU EINMAL.
         """
         ziel = eintrag.get("ziel") or {}
-        bot_ziel = next((b for b in self.bots if b.name == ziel.get("bot_name")), None)
+        # Ein ausdruecklich uebergebenes Bot-Objekt gilt als Ziel, auch wenn es (noch) nicht in
+        # `self.bots` steht - so bucht der Pruefstand dieselben Gueter ab wie das Spiel.
+        bot_ziel = (bot_objekt if isinstance(bot_objekt, BotPlayer) else
+                    next((b for b in self.bots if b.name == ziel.get("bot_name")), None))
         siedlung_ziel = next((ort for ort in self.settlements
                               if ort.id == ziel.get("id")), None) if ziel.get("id") else None
         wall_stufe = (int(bot_ziel.wall_stufe) if bot_ziel else
@@ -5619,19 +5772,39 @@ class NebelseetalApp:
     # Truppenpruefung -> Vorrunde/Wallschwellen -> bis zu zehn Kampfsequenzen -> Beute nach
     # Karrenladung -> Bericht in den Reiter "Nachrichten" -> Verluste und Beute in den Spielstand.
 
-    def _truppen_nach_rolle(self):
-        """Teilt die eigenen Einheiten in die Rollen des Handbuchs (einheiten.py)."""
+    def _reichsheer_legacy(self) -> Dict[str, int]:
+        """Alter Stand OHNE Siedlung: der Reichsbestand ist dann die einzige Quelle (Uebergang).
+
+        Nur fuer Spielstaende von vor der Ortswirtschaft. Sobald eine Siedlung existiert, gilt
+        ausschliesslich ihr Ortsheer - sonst gaebe es wieder zwei Wahrheiten (F-01).
+        """
+        return {k: int(v.count) for k, v in self.state.units.items() if int(v.count) > 0}
+
+    def _truppen_nach_rolle(self, ort=None):
+        """Teilt das ORTSHEER einer Siedlung in die Rollen des Handbuchs (einheiten.py).
+
+        F-01 der externen Spielpruefung (31.10.2026), am Code nachgemessen: hier stand
+        `self.state.units` - der Reichsbestand. Lokal ausgebildete Truppen liegen aber im
+        ORTSLAGER (`Settlement.einheiten`, gebucht von `spieloekonomie.ort_tick`), also griff
+        KEIN Angriff auf sie zu. Der Reichsbestand ist reine Anzeige.
+
+        `ort` ist die Siedlung, deren Heer gemeint ist (Vorgabe: die aktive Siedlung).
+        """
+        if ort is None:
+            ort = self.state.aktive_siedlung()
+        bestand = (self.state._ortsheer(ort) if ort is not None
+                   else self._reichsheer_legacy())
         kaempfer, belagerung, karren = {}, {}, {}
-        for kennung, einheit in self.state.units.items():
-            if einheit.count <= 0:
+        for kennung, anzahl in bestand.items():
+            if int(anzahl) <= 0:
                 continue
-            rolle = einheit.rolle or einheiten.rolle(kennung)
+            rolle = einheiten.rolle(kennung)
             if rolle in ("kaempfer", "kundschafter"):
-                kaempfer[kennung] = einheit.count
+                kaempfer[kennung] = int(anzahl)
             elif rolle == "belagerung":
-                belagerung[kennung] = einheit.count
+                belagerung[kennung] = int(anzahl)
             elif rolle == "karren":
-                karren[kennung] = einheit.count
+                karren[kennung] = int(anzahl)
         return kaempfer, belagerung, karren
 
     def _vorraete_des_ziels(self, ziel) -> dict:
@@ -5655,12 +5828,20 @@ class NebelseetalApp:
     def _angriff_durchfuehren(self, ziel_name: str, verteidiger: dict, wall_stufe: int = 0,
                               wall_zustand: float = 100.0, vorraete=None,
                               verteidiger_karren=None, vorrat_ziel=None) -> bool:
-        """Ein Angriff vom Klick bis zum Bericht (Umsetzungsplan, Abschnitt 2).
+        """Der SOFORTANGRIFF - ueber DIESELBE Einsatzregel wie der Reiseauftrag.
 
-        Gibt ``False`` zurueck, wenn gar nicht gekaempft wurde (keine Truppen). Der Spielstand
-        wird nur bei einem wirklich durchgefuehrten Angriff veraendert.
+        ENTSCHEIDUNG Daniel 31.10.2026 (Frage 17; F-10/F-01 der externen Spielpruefung): es gibt
+        EINEN Truppen-Eingang (das Ortsheer der aktiven Siedlung ueber `_truppen_nach_rolle`),
+        EINEN Kampf mit Beute (`kampf_am_ziel` -> `kampf.fuehre_schlacht` +
+        `kampfbericht.beute_am_ziel`) und EINE Rueckkehr (`einsatz_zurueck`). Vorher las dieser
+        Pfad den Reichsbestand, buchte keinen Abgang und keine Rueckkehr - ein zweiter, stiller
+        Weg neben dem Auftrag.
+
+        Was bleibt: er kostet keine Reisezeit (Angriff ohne Marsch). Alles andere - Quelle,
+        Verluste, Beute, Heimkehr - ist identisch mit `_auftrag_angriff`.
         """
-        kaempfer, belagerung, karren = self._truppen_nach_rolle()
+        ort = self.state.aktive_siedlung()
+        kaempfer, belagerung, karren = self._truppen_nach_rolle(ort)
         if not kaempfer and not belagerung:
             # Belegter Wortlaut (spielschicht.py:525-526): ohne Schlagkraft kein Angriff.
             meldung = "Keine Kaempfer und keine Belagerungswaffen vorhanden."
@@ -5668,58 +5849,39 @@ class NebelseetalApp:
             self._log(meldung)
             return False
 
-        # Belagerungsgeschuetze muessen als Geraet an den Kampf-Kern.
-        angreifer = dict(kaempfer)
-        geraet = dict(karren)
-        geraet.update(belagerung)
+        truppen = dict(kaempfer)
+        truppen.update(belagerung)
+        truppen.update(karren)          # Transportkarren tragen die Beute (Handbuch S. 23)
+        mit = self.state.einsatz_ausheben(ort, truppen)
+
+        ziel = {"name": ziel_name, "verteidiger": dict(verteidiger or {}),
+                "wall_stufe": int(wall_stufe), "wall_zustand_prozent": float(wall_zustand),
+                "verteidiger_karren": dict(verteidiger_karren or {})}
         if isinstance(vorrat_ziel, BotPlayer):
             # Ein echter Bot darf nur seine tatsaechlich gespeicherten Gueter verlieren;
             # keine vom Aufrufer frei vorgegebene Beutekasse akzeptieren.
-            vorraete = dict(vorrat_ziel.vorraete)
-        elif vorraete is None:
-            vorraete = self._vorraete_des_ziels(vorrat_ziel if vorrat_ziel is not None else {})
+            ziel["bot_name"] = vorrat_ziel.name
+            ziel["vorraete"] = dict(vorrat_ziel.vorraete or {})
+        elif vorraete is not None:
+            ziel["vorraete"] = dict(vorraete or {})
+        else:
+            ziel["vorraete"] = self._vorraete_des_ziels(
+                vorrat_ziel if vorrat_ziel is not None else {})
+        if isinstance(vorrat_ziel, dict) and vorrat_ziel.get("id"):
+            ziel["id"] = vorrat_ziel["id"]
 
-        ergebnis = kampf.fuehre_schlacht(
-            angreifer, dict(verteidiger or {}), int(wall_stufe), float(wall_zustand),
-            angreifer_karren=geraet or None, verteidiger_karren=verteidiger_karren or None,
-            vorraete=dict(vorraete or {}), rng=random.Random(),
-            forschung_angreifer={k: int(v.level) for k, v in self.state.research.items()})
-
-        # Zielwall und Verteidiger muessen ebenfalls die echten Verluste behalten.
-        # Beute: EINE Formel (`kampfbericht.beute_am_ziel`) - Staffelung nach Wallzustand VOR
-        # dem Kampf, Ladungsgrenze, und Abbuchung beim Ziel. Was der Spieler bekommt, ist
-        # genau das, was dem Ziel fehlt (Befund Nr. 6 der externen Gegenpruefung, 31.10.2026).
-        uebrig = int(sum(max(0, int(v)) for v in (verteidiger or {}).values()))
-        beute_gefecht, lager_danach = kampfbericht.beute_am_ziel(
-            geraet, dict(vorraete or {}), ausgang=ergebnis.get("ausgang"),
-            wall_zustand_vor=wall_zustand, verteidiger_uebrig=uebrig)
-        ergebnis["beute"] = beute_gefecht
-        if isinstance(vorrat_ziel, BotPlayer):
-            vorrat_ziel.wall_zustand = float(ergebnis.get("mauer_zustand", wall_zustand))
-            for name, anzahl in (ergebnis.get("verluste_verteidiger") or {}).items():
-                vorrat_ziel.army[name] = max(0, int(vorrat_ziel.army.get(name, 0)) - int(anzahl))
-            if beute_gefecht:
-                vorrat_ziel.vorraete.clear()
-                vorrat_ziel.vorraete.update(lager_danach)
-        # Verluste und Beute in den Spielstand buchen (kampfbericht rechnet, main.py schreibt).
-        vorher = {"ressourcen": {k: v.amount for k, v in self.state.resources.items()},
-                  "einheiten": {k: v.count for k, v in self.state.units.items()}}
-        neu = kampfbericht.spieldaten_anwenden(vorher, ergebnis)
-        for stoff, menge in neu.get("ressourcen", {}).items():
-            if stoff in self.state.resources:
-                self.state.resources[stoff].amount = float(menge)
-        for kennung, anzahl in neu.get("einheiten", {}).items():
-            if kennung in self.state.units:
-                self.state.units[kennung].count = max(0, int(anzahl))
-
-        bericht = kampfbericht.bericht(ergebnis)
-        # Kleine, belegte Verbesserung (offener Punkt aus Schritt 3): das ZIEL steht in der
-        # Meldung, nicht nur im Log — sonst weiss man im Reiter „Nachrichten" nicht, wozu der
-        # Bericht gehoert. Der Wortlaut des Berichts selbst bleibt unveraendert.
-        self.state.messages.append(
-            {"text": f"Ziel {ziel_name} — " + bericht["titel"] + "\n" + "\n".join(bericht["zeilen"]),
-             "type": "kampf"})
-        self._log(f"{bericht['titel']} — Ziel {ziel_name}, Ausgang {ergebnis.get('ausgang')}.")
+        # Ein Kampf-Eintrag in derselben Form wie ein Reiseauftrag: `kampf_am_ziel` bucht
+        # Schlacht, Verluste und Beute genau einmal - fuer beide Wege.
+        eintrag = {"art": "angreifen", "einheiten": dict(mit), "nach": ziel_name, "ziel": ziel,
+                   "von": str(getattr(ort, "name", "") or ""),
+                   "quelle_id": str(getattr(ort, "id", "") or ""),
+                   "ankunft": float(self.state.spielsekunden),
+                   "fracht": {}, "ladung": 0}
+        self.state.kampf_am_ziel(
+            eintrag, bot_objekt=(vorrat_ziel if isinstance(vorrat_ziel, BotPlayer) else None))
+        # Rueckkehr in DENSELBEN Ort und Beute in dessen Lager (nicht in eine Reichsanzeige).
+        self.state.einsatz_zurueck(eintrag.get("quelle_id"), eintrag.get("einheiten") or {})
+        self.state.beute_gutschreiben(ort, eintrag.get("beute") or {})
         return True
 
     def _attack_map(self, map_id: str):
@@ -5934,25 +6096,35 @@ class NebelseetalApp:
     # ---------- W7: Auftraege (Missionen) in der Oberflaeche ----------
 
     def _auftrag_entfernung(self, siedlung=None) -> float:
-        """Die Entfernung eines Auftrags in Feldern.
+        """Die Entfernung eines Auftrags in Feldern — vom STARTORT des Auftrags aus.
 
         Das Modul rechnet 1 Feld = 1 Stunde bei Geschwindigkeit 1 (VORSCHLAG; das Handbuch nennt
         nur Beispielstunden). Bot-Siedlungen fuehren bei uns **keine** Koordinaten — es gilt
         deshalb die Kartenmitte als Zielort. Das ist eine Annahme und steht so im Bericht.
+
+        F-09 (31.10.2026): Vorgabe ist die AKTIVE Siedlung. Vorher fiel die Funktion auf
+        `settlements[0]` zurueck - der Angriff startete damit aus dem falschen Dorf.
         """
         cfg = next((m for m in MAPS if m["id"] == self.state.current_map), None)
         mitte = int(cfg["size"]) // 2 if cfg else 10
-        start = siedlung or (self.state.settlements[0] if self.state.settlements else None)
+        start = siedlung if siedlung is not None else self.state.aktive_siedlung()
         if start is None:
             return float(max(1, mitte))
         return float(max(1, abs(int(start.x) - mitte) + abs(int(start.y) - mitte)))
 
     def _auftrag_angriff(self, bot: BotPlayer):
-        """Einen Angriff als AUFTRAG entsenden: mit Reisezeit, Rueckkehr und Bericht (W7)."""
-        if not self.state.settlements:
+        """Einen Angriff als AUFTRAG entsenden: mit Reisezeit, Rueckkehr und Bericht (W7).
+
+        Quelle ist das ORTSHEER der aktiven Siedlung (F-01/F-09 der externen Spielpruefung):
+        die Truppen kommen aus `Settlement.einheiten` dieses Dorfes, der Auftrag traegt dessen
+        Kennung (`quelle_id`), die Reisezeit rechnet von SEINEN Koordinaten, und die Ueberlebenden
+        kehren in IHN zurueck.
+        """
+        ort = self.state.aktive_siedlung()
+        if ort is None:
             self._log("Für einen Auftrag braucht es zuerst eine eigene Siedlung.")
             return False
-        kaempfer, belagerung, karren = self._truppen_nach_rolle()
+        kaempfer, belagerung, karren = self._truppen_nach_rolle(ort)
         truppen = dict(kaempfer)
         truppen.update(belagerung)
         truppen.update(karren)          # Transportkarren tragen die Beute (Handbuch S. 23)
@@ -5963,9 +6135,10 @@ class NebelseetalApp:
                 "wall_stufe": bot.wall_stufe, "wall_zustand_prozent": bot.wall_zustand,
                 "vorraete": self._vorraete_des_ziels(bot),
                 "verteidiger": dict(bot.army or {})}
-        entfernung = self._auftrag_entfernung()
+        entfernung = self._auftrag_entfernung(ort)
         ok, meldung = self.state.auftrag_starten("angreifen", truppen,
-                                                 self.state.settlements[0].name, ziel, entfernung)
+                                                 ort.name, ziel, entfernung,
+                                                 quelle_id=ort.id)
         text = meldung if ok else f"Auftrag nicht gestartet: {meldung}"
         self.state.messages.append({"text": text, "type": "auftrag"})
         if ok:
