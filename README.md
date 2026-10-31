@@ -2,13 +2,15 @@
 
 **Status: Entwicklung, nicht freigegeben.** Ein Einzelspieler-Remake des historischen Browserstrategiespiels.
 
-> ### Stand 31.10.2026 — was diese Nacht geprüft und entschieden wurde
+> ### Stand 31.10.2026, 13:20 — was heute gebaut und geprüft wurde
 >
-> * **Vollständiger Prüflauf** über alle Prüfdateien (`tools/sammellauf.py`): **92 Dateien, 3.463 Prüfungen, 91 grün, 0 rot, 1 dokumentiert zurückgezogen, 284 s**.
-> * **Prüfregister des Originals** auf **45 belegte Punkte** erweitert (`docs/PRUEFREGEL_ORIGINAL.md`): Wallschwellen, Sequenzablauf, Erschöpfung, Auftragskosten, Götterschutz-Lücke, keine Siegbedingung im Original, plus die Entscheidungen des Spieleigners.
-> * **Der Wegzeit-/Kampf-Entwurf war in sechs Punkten falsch** — belegt und korrigiert: `docs/PRUEFUNG_ENTWURF_WEGZEIT_KAMPF_20261031.md`.
-> * **Zwei Bewegungssysteme** im Code dokumentiert (zwei Formeln, zwei Beuteregeln): `docs/audits/BEWEGUNGSSYSTEME_LANDKARTE.md`.
-> * **Original-Geschichte gefunden**: `docs/quellen/ORIGINAL_HINTERGRUNDGESCHICHTE.md` (Website-Archiv 11.09.2007, drei Teile) — Grundlage der Legende.
+> * **Vollständiger Prüflauf** (`tools/sammellauf.py`): **98 Dateien, 97 grün, 0 rot, 1 dokumentiert zurückgezogen, 391 s**.
+> * **Ausbildungs-Warteschlange** (aus Daniels Spieltest): Restzeit je Auftrag, **Gesamtzeit der Schlange**, Streichen von Aufträgen — `spieloekonomie.ausbildung_uebersicht`, `main._ausbildung_warteschlange_zeichnen`.
+> * **Ein Bewegungssystem statt zwei:** Kartenfeld-Beute läuft jetzt über dieselbe Formel wie der Auftrags-Pfad (`kampfbericht.beute_am_ziel`, mit Abbuchung am Feld); der **Rückweg** kostet die gleiche Zeit wie der Hinweg (`main.rueckmarsch_eintrag`, `tests/test_rueckmarsch.py` 16/0/0).
+> * **Prüfregister des Originals** auf **63 belegte Punkte** erweitert (`docs/PRUEFREGEL_ORIGINAL.md`).
+> * **Code lesbar für Einsteiger:** jeder Abschnitt, jede Funktion kurz erklärt — Regel und Messwerkzeug in [Code-Lesbarkeit](docs/CODE_LESBARKEIT.md) und `tools/kommentar_luecken.py` (213 von 915 Funktionen noch ohne Beschreibung).
+> * **Übergabe mit allen Belegen:** [Übergabe 31.10.2026, 14:00](docs/HANDOFF_20261031_1400.md); offene Entscheidungen in [Fragen an Daniel](docs/FRAGEN_AN_DANIEL_20261031_0600.md).
+> * **EXE:** `Nebelseetal_Remake.exe`, 43,8 MB, SHA256 `975c8378…`, Rauchtest bestanden (Tor-Seite erscheint).
 > * Besucherstand mit Zahlen: [Spielstatus](docs/BESUCHER_STATUS.md).
 
 ![Historische Originaloberflaeche](docs/nebelseetal_gamestar2.jpg)
