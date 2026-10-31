@@ -33,8 +33,14 @@ import gelaende as GE              # noqa: E402
 
 SPIELTAG = 86400                    # Spielsekunden je Tag (Handbuch: 1 Tag = 24 Spielstunden)
 SCHRITT = 1200                      # 20 Spielminuten je Schritt
-GEBAEUDE_REIHENFOLGE = ("holzfäller", "farm", "steinmetz", "jaeger", "wohnhaus",
-                        "bibliothek", "kaserne", "markt")
+# Reihenfolge der Spielerpolitik. GOLDMINE und eine Ausbildungsstaette gehoeren zwingend
+# dazu: ohne Gold gibt es keine Einheit, ohne Ausbildungsstaette keinen Kampf - fehlen sie,
+# sieht der Lauf aus wie ein Spielfehler (erster Versuch 31.10.2026 baute 10x Holzfäller).
+# Reihenfolge nach der BELEGTEN Kette (nachgemessen 31.10.2026): Holzfäller -> BIBLIOTHEK
+# (sonst keine Forschung) -> Forschung Baukunst -> Goldmine/Farm/Kriegerakademie.
+# Die Bibliothek gehoert deshalb nach vorn, nicht ans Ende.
+GEBAEUDE_REIHENFOLGE = ("holzfäller", "bibliothek", "farm", "goldmine", "kriegerakademie",
+                        "steinmetz", "jaeger", "wohnhaus")
 
 
 def _feld_fuer(siedlung: dict, gebaeude: str) -> int:
@@ -50,10 +56,15 @@ def _feld_fuer(siedlung: dict, gebaeude: str) -> int:
         if i in belegt:
             continue
         try:
-            if GE.bau_moeglich(gebaeude, gel):
-                return i
+            # WICHTIG: bau_moeglich liefert ein TUPEL (erlaubt, Begruendung). Ein blosses
+            # `if GE.bau_moeglich(...)` ist deshalb IMMER wahr - dann landet jedes Gebaeude auf
+            # Feld 0 im Wald und der ganze Lauf scheitert (Fehler vom 31.10.2026).
+            ergebnis = GE.bau_moeglich(gebaeude, gel)
+            erlaubt = ergebnis[0] if isinstance(ergebnis, tuple) else bool(ergebnis)
         except Exception:                      # noqa: BLE001
             continue
+        if erlaubt:
+            return i
     return -1
 
 
@@ -99,14 +110,18 @@ def spielen(tage: float, saat: int = 7) -> dict:
         siedlung = (zustand.get("siedlungen") or [{}])[0]
         feld = _freies_feld(siedlung)
         gebaut = False
+        # WICHTIG: `bauten` speichert die Kennung OHNE Umlaut ('holzfaeller', 'jaeger').
+        # Ein Vergleich mit dem Anzeigenamen ('holzfäller') trifft nie zu - dann baut die
+        # Politik zehnmal dasselbe Gebaeude und der Lauf sieht aus wie ein Spielfehler.
+        # Genau das ist am 31.10.2026 passiert (erster Lauf: 10x Holzfäller).
         vorhanden = {}
         for was in (siedlung.get("bauten") or {}).values():
-            vorhanden[was] = vorhanden.get(was, 0) + 1
+            vorhanden[str(was)] = vorhanden.get(str(was), 0) + 1
         if feld >= 0:
             for gebaeude in GEBAEUDE_REIHENFOLGE:
                 # Ausgewogen bauen: je Gebaeude hoechstens 2, sonst baut die Politik nur
                 # Holzfäller (und die Simulation zeigt ein verzerrtes Bild).
-                if vorhanden.get(gebaeude, 0) >= 2:
+                if vorhanden.get(GE.finde_gebaeude(gebaeude), 0) >= 2:
                     continue
                 feld_geb = _feld_fuer(siedlung, gebaeude)
                 if feld_geb < 0:

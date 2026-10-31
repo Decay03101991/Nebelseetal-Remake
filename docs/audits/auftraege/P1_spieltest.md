@@ -57,7 +57,7 @@ SPIELVERLAUF (Simulation, ohne Oberflaeche)
 
 # Spieltest-Simulation — 8 Spieltage, ohne Fenster gefahren
 
-**Erzeugt:** 31.10.2026 11:25 von `tools/spieltest_simulation.py` — reine Spiellogik (`src/spielschicht.py`), keine Oberflaeche.
+**Erzeugt:** 31.10.2026 11:32 von `tools/spieltest_simulation.py` — reine Spiellogik (`src/spielschicht.py`), keine Oberflaeche.
 **Spielerpolitik (dokumentiert, nicht optimal):** alle 20 Spielminuten ein Schritt; erst produzierende Gebaeude bauen, dann ausbauen; Forschung wenn bezahlbar; Einheiten ausbilden; ab Spieltag 2 ein Angriff auf Wallstufe 1.
 
 ## Tagesbilanzen
@@ -65,22 +65,22 @@ SPIELVERLAUF (Simulation, ohne Oberflaeche)
 | Spieltag | Holz | Stein | Nahrung | Gold | Mana | Krieg | Forschung | Gesamt | Einheiten | Gebaeude |
 |---|---|---|---|---|---|---|---|---|---|---|
 | 0 | 90 | 95 | 0 | 0 | 0 | 0 | 0 | **0** | 0 | 1 |
-| 1 | 239 | 26 | 0 | 0 | 0 | 0 | 18 | **9** | 0 | 11 |
-| 2 | 575 | 18 | 0 | 0 | 0 | 0 | 74 | **37** | 0 | 11 |
-| 3 | 299 | 1 | 0 | 0 | 0 | 0 | 130 | **65** | 0 | 11 |
-| 4 | 484 | 25 | 0 | 0 | 0 | 0 | 191 | **95** | 0 | 11 |
-| 5 | 1368 | 49 | 0 | 0 | 0 | 0 | 252 | **126** | 0 | 11 |
-| 6 | 552 | 73 | 0 | 0 | 0 | 0 | 278 | **139** | 0 | 11 |
-| 7 | 1136 | 96 | 0 | 0 | 0 | 0 | 369 | **184** | 0 | 11 |
-| 8 | 521 | 120 | 0 | 0 | 0 | 0 | 406 | **203** | 0 | 11 |
+| 1 | 242 | 64 | 91 | 0 | 0 | 0 | 0 | **0** | 0 | 4 |
+| 2 | 458 | 88 | 187 | 0 | 0 | 0 | 0 | **0** | 0 | 4 |
+| 3 | 674 | 111 | 283 | 0 | 0 | 0 | 0 | **0** | 0 | 4 |
+| 4 | 890 | 135 | 378 | 0 | 0 | 0 | 0 | **0** | 0 | 4 |
+| 5 | 1106 | 159 | 474 | 0 | 0 | 0 | 0 | **0** | 0 | 4 |
+| 6 | 1322 | 183 | 570 | 0 | 0 | 0 | 0 | **0** | 0 | 4 |
+| 7 | 1538 | 206 | 666 | 0 | 0 | 0 | 0 | **0** | 0 | 4 |
+| 8 | 1754 | 230 | 761 | 0 | 0 | 0 | 0 | **0** | 0 | 4 |
 
 ## Gebaut (Spieltag, was)
 
-T0.01 holzfäller, T0.03 holzfäller, T0.04 holzfäller, T0.06 holzfäller, T0.07 holzfäller, T0.08 holzfäller, T0.1 holzfäller, T0.11 holzfäller, T0.12 holzfäller, T0.14 holzfäller, T0.15 bibliothek, T0.17 ausbau Feld 10, T0.21 ausbau Feld 10, T1.26 ausbau Feld 10, T2.96 ausbau Feld 10
+T0.01 holzfäller, T0.03 holzfäller, T0.04 jaeger, T0.06 jaeger
 
 ## Forschung
 
-T0.15 Felderwirtschaft, T0.25 Kriegskunst, T0.31 Baukunst, T0.36 Verteidigungsanlagen, T0.46 Felderwirtschaft, T0.62 Kriegskunst, T0.79 Felderwirtschaft, T1.17 Felderwirtschaft, T1.83 Kriegskunst, T2.21 Kriegskunst, T2.88 Felderwirtschaft, T3.92 Kriegskunst, T4.96 Baukunst, T5.12 Baukunst, T5.5 Felderwirtschaft, T7.0 Baukunst, T7.67 Kriegskunst
+_keine gestartet_
 
 ## Ausbildung
 
@@ -93,9 +93,9 @@ _kein Kampf zustande gekommen (keine Kaempfer oder keine Karren)._
 ## Ende
 
 * Spieltag 8.0
-* Punkte: {'forschungspunkte': 406, 'kriegspunkte': 0, 'gesamtpunkte': 203, 'ruf': 0, 'wall_stufe': 0, 'goetterschutz': False, 'lage': 'weiter', 'lage_grund': 'kein Sieg vorgesehen (E5): das Handbuch nennt keine Siegbedingung, jeder Spieler hat seine eigenen Ziele.'}
+* Punkte: {'forschungspunkte': 0, 'kriegspunkte': 0, 'gesamtpunkte': 0, 'ruf': 0, 'wall_stufe': 0, 'goetterschutz': False, 'lage': 'weiter', 'lage_grund': 'kein Sieg vorgesehen (E5): das Handbuch nennt keine Siegbedingung, jeder Spieler hat seine eigenen Ziele.'}
 * Einheiten: {}
-* Rohstoffe: {'holz': 520.55, 'stein': 120.08, 'metall': 0, 'mana': 0, 'nahrung': 0, 'gold': 0, 'wolle': 0, 'leder': 0, 'pferde': 0}
+* Rohstoffe: {'holz': 1754.0, 'stein': 230.08, 'metall': 0, 'mana': 0, 'nahrung': 761.43, 'gold': 0, 'wolle': 0, 'leder': 761.43, 'pferde': 0}
 
 ## Was ein Pruefer daraus ablesen kann
 
