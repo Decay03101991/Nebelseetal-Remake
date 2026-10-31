@@ -30,7 +30,7 @@ Folge und eine Empfehlung.
 | **B — Kapazität wächst** | Forschung „Wagenbau“ erhöht die Ladung je Karren (z. B. +50 % je Stufe) oder die Siedlerkosten der Karren sinken. Folge: Beute bleibt im ganzen Spiel ein Ziel, die Karrenflotte wird aber zur Pflichtinvestition |
 | **C — Beute ohne Karren** | Beute geht direkt ins Lager (ohne Transport). Folge: größter Eingriff, das Original belegt Karren für Beute (Handbuch S. 23) — würde eine Originalregel brechen |
 | **Empfehlung** | **B, aber sparsam** — Ladung je Karren forschungsabhängig machen; die Staffel bleibt VORSCHLAG-Wert |
-| **Frage** | A, B oder C? |
+| **Antwort Daniel (31.10.2026)** | **B — Kapazitaet waechst mit Forschung "Wagenbau"; die belegten Einheitenwerte bleiben die BASIS (Minimum)** |
 
 ## 3. Gold als Engpass bei Armeen
 
@@ -52,3 +52,27 @@ Folge und eine Empfehlung.
 | **B — Schwellen relativ** | Schwellen relativ zur möglichen Armeegröße deckeln (z. B. höchstens 60 % des Soldaten-Deckels). Folge: Originalzahlen (S. 21) werden verlassen |
 | **Empfehlung** | **A** — die Schwellen sind belegt; wer 360 Siedler in Soldaten steckt, hat keine Wirtschaft mehr, das ist die eigentliche Bremse |
 | **Frage** | A (belegte Schwellen) oder B (relativ gedeckelt)? |
+
+---
+
+## 5. Bots haben keine Wirtschaft — sollen sie eine bekommen?
+
+| | |
+|---|---|
+| **Messlage** | `docs/audits/BEFUND_SIEDLER_UND_BOTS_20261031.md`: nach **30 Spieltagen** haben die Bots **1 bis 4 Einheiten** (Haug 1 Kurzbogenschütze, Brynhild 1 Streuner, Krank 4 Streuner), keinen Wall und keine Produktion — ihre Vorräte stammen einmalig aus `botkern.VORSCHLAG_START_VORRAETE` und wachsen nie. Der Spieler steht zur selben Zeit bei ~168.000 Rohstoffen |
+| **A — volle Wirtschaft + Wall** | Bots bekommen eigene Siedlungen mit Erträgen aus `data/buildings.json`, Siedlerwachstum 1/h bis zur Grenze, Einheitenkauf zu den belegten Preisen (Siedler verbrauchend) und Wallausbau nach Punkten. Folge: die belegten Wallschwellen wirken endlich in BEIDE Richtungen, Kriege werden eine Entscheidung |
+| **B — nur Wirtschaft, kein Wall** | Bots wachsen mit, bleiben aber wehrlos. Folge: Angriffe bleiben fast verlustfrei, das Kampfsystem wird weiter kaum gefordert |
+| **C — so lassen** | Bots bleiben Kulisse. Folge: der Langzeittest bleibt sinnlos, weil niemand den Spieler fordert |
+| **Empfehlung** | **A** — ohne wirtschaftende Gegner ist jede Balancing-Zahl gegenstandslos |
+| **Frage** | A, B oder C? |
+
+## 6. Rohstoffe haben keine Senke — Lagerschwund einbauen?
+
+| | |
+|---|---|
+| **Messlage** | Der Vorrat wächst unbegrenzt: 168.000 (Tag 7) → 4,3 Mio (Tag 180). Das Original kennt **kein** Lagerlimit (Register 17) und **keine** Unterhaltsregel — `Nahrung` kommt im Handbuch nur als Preis vor (Z. 506/676/910/1148), nie als Verbrauch je Siedler. Deshalb ist „alles stehlen“ strukturell nur früh möglich (SPIELBALANCING_TEST Abschnitt 3.9) |
+| **A — so lassen** | Keine Erfindung. Folge: Beute bleibt eine Quote; die Karren-Kapazität (mit Wagenbau-Forschung) ist der einzige Hebel |
+| **B — Unterhalt erfinden** | Z. B. 1 Nahrung je Siedler und Stunde (VORSCHLAG, klar gekennzeichnet, abschaltbar). Folge: Vorräte bleiben klein, Beute wird wieder wertvoll — aber es ist eine **Remake-Regel ohne Quelle** |
+| **C — Lagerlimit** | Obergrenze je Rohstoff und Siedlung (z. B. 10.000). Folge: ebenfalls Remake-Regel; macht Lagerausbau nötig, den es im Original nicht gibt |
+| **Empfehlung** | **A zuerst**, dann im Spieltest prüfen; erst wenn Beute sich tot anfühlt, B als abschaltbare Regel |
+| **Frage** | A (so lassen), B (Unterhalt) oder C (Lagerlimit)? |
