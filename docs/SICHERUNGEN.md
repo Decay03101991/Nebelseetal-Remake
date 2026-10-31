@@ -12,3 +12,4 @@ Automatisch geführt von `tools/protokoll_sichern.py` — **gehört nicht ins En
 | 2026-10-31 20:43 | 6 | `D:\Arbeiten\Nebelseetal_Remake_Protokoll\2026-10-31_2043` | je Datei SHA256 im MANIFEST, geprüft |
 | 2026-10-31 21:12 | 6 | `D:\Arbeiten\Nebelseetal_Remake_Protokoll\2026-10-31_2112` | je Datei SHA256 im MANIFEST, geprüft |
 | 2026-10-31 21:31 | 6 | `D:\Arbeiten\Nebelseetal_Remake_Protokoll\2026-10-31_2131` | je Datei SHA256 im MANIFEST, geprüft |
+| 2026-10-31 21:36 | 6 | `D:\Arbeiten\Nebelseetal_Remake_Protokoll\2026-10-31_2136` | je Datei SHA256 im MANIFEST, geprüft |

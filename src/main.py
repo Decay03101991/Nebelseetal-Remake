@@ -465,6 +465,19 @@ def mengen_text(werte: dict, reihenfolge=None, leer: str = "leer") -> str:
     return ", ".join(f"{zahl_text(posten[k])} {k.capitalize()}" for k in vorne + hinten)
 
 
+NACHRICHTEN_FARBEN = {"kampf": "#e53935", "geschenk": "#7FD1FF"}
+
+
+def nachrichten_farbe(nachricht) -> str:
+    """Farbe einer Nachricht in der Nachrichtenansicht (EINE Stelle, pruefbar ohne Fenster).
+
+    Rot = Kampf, hellblau = Schenkung/Botschaft von aussen (Portal), sonst Gold. Die Palette ist
+    bewusst klein: eine Farbe je BEDEUTUNG, nicht je Absender.
+    """
+    art = str((nachricht or {}).get("type") or "")
+    return NACHRICHTEN_FARBEN.get(art, "#DAA520")
+
+
 def ortsbestand_text(siedlung) -> str:
     """Der sichtbare Bestand EINES Ortes — das LOKALE Lager (fuehrend seit Teil 3a).
 
@@ -6376,7 +6389,7 @@ class NebelseetalApp:
     def _render_messages(self):
         tk.Label(self.content, text="Nachrichten", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
         for msg in reversed(self.state.messages[-20:]):
-            color = "#e53935" if msg.get("type") == "kampf" else "#DAA520"
+            color = nachrichten_farbe(msg)
             tk.Label(self.content, text=zeitbasis.zeitstempel_text(msg) + msg["text"],
                      fg=color, bg=self.skin["bg"], wraplength=600,
                      justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 5))
