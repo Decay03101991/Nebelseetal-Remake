@@ -190,8 +190,11 @@ _sw = A.starten(_ab, "angreifen", {"Kämpfer": 1}, "H", _ziel_wall, 10, 0)
 check("Angriff unter der Wall-Schwelle wird abgelehnt", _sw[0] is False, _sw[1])
 check("die Ablehnung nennt die Schwelle 160 des Walls Stufe 4", "160" in _sw[1], _sw[1])
 check("der Angriff reicht gegen Wall Stufe 1 (Schwelle 10) und startet",
-      A.starten(A.neue_liste(), "angreifen", {"Kämpfer": 1}, "H",
+      A.starten(A.neue_liste(), "angreifen", {"Kämpfer": 5}, "H",
                 {"name": "Feind", "wall_stufe": 1}, 10, 0)[0] is True)
+# 5 Kaempfer = SK 10: seit die Vorrunde mit SK rechnet (Befund 2 der externen Gegenpruefung),
+# reicht genau die Schwelle. Ein einzelner Kaempfer (SK 2, AT 40) reichte nur mit dem alten
+# AT-Fehler - die Schwelle ist eine SK-Schwelle (Handbuch S. 21).
 
 # Fracht: ein voller Karren laeuft nicht ueber.
 _ueber = A.starten(_ab, "transportieren", {HK: 1}, "H", "Z", 10, 0, {"Holz": 50})
@@ -281,8 +284,11 @@ check("eine Zeile nennt die Fracht",
 abschnitt("spieldaten_anwenden - Beute, Gold, Stationieren, Genau-Einmal")
 
 # Angriff mit Karren: Beute wird berechnet (kampfbericht.beute) und genau einmal gutgeschrieben.
+# 20 Kaempfer statt 2: seit die Vorrunde mit SK rechnet (Befund 2 der externen Gegenpruefung),
+# bestehen zwei Kaempfer (SK 4) die Schwelle an Wallstufe 1 nicht mehr - der Auftrag wuerde
+# abgelehnt und der Test koennte die Buchung gar nicht mehr pruefen.
 _angriff = A.neue_liste()
-A.starten(_angriff, "angreifen", {"Kämpfer": 2, HK: 1}, "Heim",
+A.starten(_angriff, "angreifen", {"Kämpfer": 20, HK: 1}, "Heim",
           {"name": "Feind", "wall_stufe": 1, "vorraete": {"Holz": 1000}}, 10, 0)
 check("der Angriff traegt Beute eingetragen (Holz 40)", _angriff[0]["beute"] == {"Holz": 40},
       str(_angriff[0]["beute"]))
@@ -423,6 +429,29 @@ _liste2: list = []
 A.starten(_liste2, "stationieren", {"Kämpfer": 1}, "A", {"name": "A2", "fremd": False}, 16, 1000)
 check("Stationieren in eigener Siedlung kostet kein Mana", _liste2[0]["kosten"]["mana"] == 0.0,
       str(_liste2[0]["kosten"]))
+
+
+# ==========================================================================
+# Wallvorrunde rechnet mit SK, nicht mit AT (Befund 2 der externen Gegenpruefung)
+# ==========================================================================
+abschnitt("Wallvorrunde: dieselbe Kennzahl wie im Kampf (SK, nicht AT)")
+
+import einheiten as _E
+_sk_kaempfer = _E.schlagkraft("Kämpfer")
+_at_kaempfer = _E.angriff("Kämpfer")
+check("Kämpfer: SK und AT sind verschieden (sonst waere der Befund wirkungslos)",
+      _sk_kaempfer != _at_kaempfer, f"SK {_sk_kaempfer}, AT {_at_kaempfer}")
+check("die Fuss-Schlagkraft ist SK * Anzahl, nicht AT * Anzahl",
+      A._schlagkraft_fussttruppen({"Kämpfer": 2}) == 2 * _sk_kaempfer,
+      str(A._schlagkraft_fussttruppen({"Kämpfer": 2})))
+check("zwei Kämpfer bringen nicht das Vierzigfache (AT-Fehler waere hier)",
+      A._schlagkraft_fussttruppen({"Kämpfer": 2}) < 2 * _at_kaempfer,
+      str(A._schlagkraft_fussttruppen({"Kämpfer": 2})))
+_liste3: list = []
+_ok3, _m3 = A.starten(_liste3, "angreifen", {"Bürgerwehr": 1}, "A",
+                      {"name": "B", "wall_stufe": 5}, 16, 1000)
+check("eine Bürgerwehr (SK 1) besteht die Vorrunde an Wallstufe 5 NICHT mehr",
+      not _ok3, f"ok={_ok3} / {_m3}")
 
 
 sys.exit(bericht())

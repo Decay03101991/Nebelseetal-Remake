@@ -315,4 +315,35 @@ check("10 noch steht keine Kaempfer-Einheit am Ort (sie entsteht erst am Auftrag
       m3["einheiten"].get(KAEMPFER, 0) == 0, str(m3["einheiten"]))
 
 
+# ==========================================================================
+abschnitt("11. Ausbildungsdauer haengt von der Gebaeudestufe ab (Richtung belegt, Zahlen VORSCHLAG)")
+
+_ort1 = neuer_ort("s1", bauten={"0": "kriegerakademie"}, stufen={"0": 1},
+                  vorraete={"gold": 300.0}, importiert={"gold": 0.0}, bevoelkerung=5,
+                  waren={"Kurzschwert": 1, LEDERRUESTUNG: 1})
+_ort3 = neuer_ort("s3", bauten={"0": "kriegerakademie"}, stufen={"0": 3},
+                  vorraete={"gold": 300.0}, importiert={"gold": 0.0}, bevoelkerung=5,
+                  waren={"Kurzschwert": 1, LEDERRUESTUNG: 1})
+_a1 = O.ausbildung_start(_ort1, KAEMPFER, {"Kriegskunst": 1}, 0.0)["ausbildung"][0]
+_a3 = O.ausbildung_start(_ort3, KAEMPFER, {"Kriegskunst": 1}, 0.0)["ausbildung"][0]
+check("11 Stufe 1: Dauer = Grunddauer (20 min = 1200 s)",
+      _a1.get("dauer_sekunden") == 1200.0, str(_a1.get("dauer_sekunden")))
+check("11 Stufe 3: Dauer ist ein Drittel (400 s)",
+      _a3.get("dauer_sekunden") == 400.0, str(_a3.get("dauer_sekunden")))
+check("11 die Stufe steht im Auftrag", _a1.get("stufe") == 1 and _a3.get("stufe") == 3,
+      f"{_a1.get('stufe')}/{_a3.get('stufe')}")
+check("11 hoehere Stufe ist schneller (Richtung belegt: 'Je hoeher die Stufe, desto schneller')",
+      _a3["ende"] - _a3["start"] < _a1["ende"] - _a1["start"],
+      f"{_a3['ende'] - _a3['start']} gegen {_a1['ende'] - _a1['start']}")
+
+_alt = O.AUSBILDUNG_STUFENFAKTOR_AKTIV
+O.AUSBILDUNG_STUFENFAKTOR_AKTIV = False
+try:
+    _a3b = O.ausbildung_start(_ort3, KAEMPFER, {"Kriegskunst": 1}, 0.0)["ausbildung"][0]
+    check("11 der Schalter stellt die feste Dauer wieder her (kein Loeschen von Code)",
+          _a3b.get("dauer_sekunden") == 1200.0, str(_a3b.get("dauer_sekunden")))
+finally:
+    O.AUSBILDUNG_STUFENFAKTOR_AKTIV = _alt
+
+
 sys.exit(bericht())

@@ -124,8 +124,15 @@ def _geschwindigkeit(bestand: Dict[str, int]) -> int:
 
 
 def _schlagkraft_fussttruppen(bestand: Dict[str, int]) -> float:
-    """Kampf- UND Kundschaftereinheiten (VORSCHLAG, siehe offene_luecken)."""
-    return float(sum(E.angriff(n) * k for n, k in bestand.items() if E.ist_kaempfer(n)))
+    """Schlagkraft (SK) der Fuss- und Kundschaftertruppen (VORSCHLAG: Begriff, siehe luecken).
+
+    BEFUND der externen Gegenpruefung (31.10.2026, Nr. 2), selbst nachgemessen: hier stand
+    `E.angriff(n)` - das ist **AT**. Die Wallvorrunde in `kampf.fuehre_schlacht` prueft aber
+    **SK** (Handbuch S. 21: Schwellenwerte der Fuss- und Belagerungstruppen). Weil AT weit
+    hoeher liegt als SK (Kaempfer AT 40 gegen SK 2), bestand die Vorpruefung beim Auftrag
+    fast immer und der Kampf scheiterte erst am Ziel. Jetzt gilt dieselbe Kennzahl wie im Kampf.
+    """
+    return float(sum(E.schlagkraft(n) * k for n, k in bestand.items() if E.ist_kaempfer(n)))
 
 
 def _schlagkraft_belagerung(bestand: Dict[str, int]) -> float:

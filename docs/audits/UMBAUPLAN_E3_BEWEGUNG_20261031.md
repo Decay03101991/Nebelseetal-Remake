@@ -9,6 +9,10 @@ wurde am 31.10.2026 gegen `src/main.py`, `src/auftraege.py` und `src/kampfberich
 nachgeschlagen. Die Landkarte ist an mehreren Stellen **veraltet** (Reisezeitfaktor, Speicherzeilen,
 Ankunftsblock) — die abweichenden Stellen sind unten einzeln benannt.
 
+**Zeilennummern:** nachgeschlagen am Arbeitsstand `623ff1e`. `src/main.py`, `src/auftraege.py`
+und `src/kampfbericht.py` sind seit `c8f2ccc` unverändert (`git diff --stat c8f2ccc..HEAD`
+liefert für diese drei Dateien nichts) — die Nummern gelten also für beide Stände.
+
 ---
 
 ## 1. Ist-Zustand
@@ -17,7 +21,7 @@ Ankunftsblock) — die abweichenden Stellen sind unten einzeln benannt.
 |---|---|---|---|---|
 | **A — Auftrag/Mission** (Zielsystem) | `main.auftrag_starten` `main.py:1940` → `auftraege.starten` `auftraege.py:264`; Oberfläche `main.py:5888` (`_auftrag_angriff`, `5871`) | `auftraege.reisezeit_sekunden` `auftraege.py:137-151`: `entfernung / GS · SEKUNDEN_JE_FELD`, `SEKUNDEN_JE_FELD = 7200.0` (`auftraege.py:56`, Faktor 2 seit `ef6f6f5`). GS = **langsamste** Einheit (`auftraege.py:119-123`, geprüft `299-301`). Ankunft `345-347`, Rückkehr doppelt (`HIN_UND_RUECK_FAKTOR` `auftraege.py:59`, `349`, `403`). Uhr: **Spielsekunden** (`main.py:1963`) | Beute **nur** über `kampfbericht.beute_am_ziel` (`kampfbericht.py:282-312`), eingehängt in `main.kampf_am_ziel` `main.py:2138-2144`; Buchung des Ziels vor Ort (`2141-2143`), Gutschrift des Spielers über `auftraege.spieldaten_anwenden` (`auftraege.py:542-545`), **genau einmal**. Verluste aus `kampf.fuehre_schlacht` (`main.py:2098-2106`), Rückkehr der Überlebenden `main.py:2050-2058` | — (Referenz) |
 | **B — Weltkarte** (Altpfad) | `main._welt_bewegen` `main.py:5749-5782`; Auslöser `_on_map_click` `main.py:5704-5731`, Aufruf `5725`; Knopf „Truppen von hier bewegen" `main.py:5412` über `_welt_bewegung_starten` `5733` | `main.py:5759-5760`: `abstand = |dx|+|dy|` (durch `5724` immer **1**), `dauer = max(2, abstand*5)` **Minuten**; `arrival` `5770`. **GS völlig wirkungslos**, keine Rückreise | `main.py:7009-7016`: 10–40 % je Rohstoff **zufällig** aus `tile.resources`, **ohne Karren, ohne Ladungsgrenze, ohne Abbuchung**; Kampf `7017-7021`: 40 % Münzwurf gegen einen **beim Start zufällig gewürfelten** Bot (`5761-5765`), Verlust `randint(1,4)` auf **einer zufälligen Einheit** (`7019-7020`) | alles: keine Einheiten-Auswahl (`5751-5752` nimmt **alle**), keine GS, keine Karren, keine Ladung, keine Wallvorrunde, kein `kampf.fuehre_schlacht`, keine Rückreise, keine Reisekosten, kein Bericht im Auftragsformat |
-| **C — Direktangriff** (Altknopf „Angreifen") | `main._attack` `main.py:5844-5852` → `_angriff_durchfuehren` `main.py:5591-5659` | **keine** — Kampf sofort im Klick | Beute ebenfalls `beute_am_ziel` (`main.py:5626-5630`), Buchung über `kampfbericht.spieldaten_anwenden` (`5644-5652`) | reist nicht, kostet nichts, kennt keine GS/Rückkehr — **nicht Teil von E3**, aber derselbe Truppenbestand |
+| **C — Direktangriff** (Altknopf „Angreifen") | `main._attack` `main.py:5844-5852` → `_angriff_durchfuehren` `main.py:5591-5659` | **keine** — Kampf sofort im Klick | Beute ebenfalls `beute_am_ziel` (`main.py:5629-5631`), Buchung über `kampfbericht.spieldaten_anwenden` (`5641-5649`) | reist nicht, kostet nichts, kennt keine GS/Rückkehr — **nicht Teil von E3**, aber derselbe Truppenbestand |
 
 **Speicher/Anzeige (Randbedingungen für den Umbau):**
 `state.movements` wird angelegt `main.py:798`, gespeichert `2527`, geladen `2652`; die Restzeit
@@ -30,7 +34,7 @@ steht **nur** aus `movements` auf der Karte (`main.py:5537-5549`). Aufträge wer
 ## 2. Die fünf Widersprüche — aktuelle Fundstelle und Stand nach der heutigen Änderung
 
 Heute (`c8f2ccc`) wurden `kampfbericht.beute_am_ziel` eingeführt (Beute einheitlich gerechnet
-**und beim Ziel abgebucht**) und der 300-Punkte-Sieg entfernt (`main.py:987-1003`, E5: „KEIN
+**und beim Ziel abgebucht**) und der 300-Punkte-Sieg entfernt (`main.py:987-995`, E5: „KEIN
 Sieg").
 
 | # | Widerspruch | System A heute | System B heute | besteht weiter? |

@@ -18,7 +18,7 @@ existiert, aber anders als beschrieben) · **OFFEN** (Entscheidung nötig, nicht
 | Nr | Befund (GPT) | Fundstelle im Code, selbst geprüft | Urteil | Stand nach dieser Sitzung |
 |---|---|---|---|---|
 | 1 | Sieg bei 300 Gesamtpunkten noch aktiv | `punkte.VORSCHLAG_ZIEL_PUNKTE = 300`, `punkte.sieg_oder_niederlage`, Anzeige `main.py` („Ziel: x / 300") | **BESTÄTIGT** | **behoben** in `c8f2ccc`: `spielausgang()` liefert nur noch `niederlage`/`weiter`; Konstante heißt jetzt `ZIEL_PUNKTE_VERWORFEN`; Anzeige „Punkte: X · Götterschutz bis 299 · kein Sieg". `tests/test_punkte.py` 78/0 |
-| 2 | Wallprüfung summiert AT, Kampf prüft SK | `auftraege._schlagkraft_fussttruppen`/`_belagerung` (Z. 126–132) rechnen `E.schlagkraft` = **SK**; `kampf.fuehre_schlacht` prüft dieselbe SK (Z. 195–204) | **ÜBERHOLT** | nichts zu tun — GPT hat den Stand vom 28.10. gelesen |
+| 2 | Wallprüfung summiert AT, Kampf prüft SK | **Nachgemessen:** `auftraege._schlagkraft_fussttruppen` rechnete `E.angriff(n)` = **AT** (Kämpfer AT 40), `kampf.fuehre_schlacht` prüft **SK** (Kämpfer SK 2) — genau der Befund | **BESTÄTIGT (war noch da!)** | **behoben 31.10.2026:** `_schlagkraft_fussttruppen` rechnet jetzt `E.schlagkraft`; `tests/test_auftraege.py` 129/0/1. Folge, ehrlich benannt: zwei Kämpfer (SK 4) bestehen Wallstufe 1 (Schwelle 10) nicht mehr — zwei alte Prüfungen mussten auf 5 bzw. 20 Kämpfer angehoben werden |
 | 3 | Spionage fehlt als fünfte Auftragsart | `auftraege.AUFTRAGSARTEN` (Z. 49): nur stationieren/transportieren/handeln/angreifen; Handbuch S. 24 belegt Spionage | **BESTÄTIGT** | **OFFEN** — Frage 1 an Daniel |
 | 4 | Reisekosten (Gold/Nahrung/Mana) fehlen | `eintrag["kosten"] = {}` mit Kommentar „keine belegten Reisekosten" | **BESTÄTIGT** | **behoben** in `c8f2ccc`: `auftraege.kosten_der_mission` (Sätze aus A2, alle als VORSCHLAG markiert), Kosten werden bei `auftrag_starten` gebucht und in der Meldung genannt. `tests/test_auftraege.py` 125/0 |
 | 5 | Mauerprüfung bei Auftragserteilung statt bei Ankunft | `auftraege.starten` rechnet die Vorrunde sofort und **lehnt den Auftrag ab**, wenn sie nicht besteht (Z. 279–290) | **BESTÄTIGT** | **OFFEN** — Frage 2 an Daniel (Bequemlichkeit gegen Originalablauf) |
@@ -30,8 +30,12 @@ existiert, aber anders als beschrieben) · **OFFEN** (Entscheidung nötig, nicht
 | 11 | Schützenrückzug 20 % aufgerundet | `kampf.fuehre_schlacht` Z. 256: `rueckzug_je_runde = math.ceil(ursprung_fern * 0.2)` | **BESTÄTIGT** | Rundung ist VORSCHLAG (Forum nennt keine Rundung) — Doku-Punkt |
 | 12 | Beute: 50-%-Vorschlag im Auftragskern doppelt zur Kampfbeute | Auftragskern führt keine 50 % mehr; `kampfbericht.beute_staffel` ist die eine Formel; `botkern.BEUTE_ANTEIL = 0.5` gilt nur noch für **Bot-Überfälle auf den Spieler** (dokumentierter VORSCHLAG) | **ÜBERHOLT / ANDERS** | mit Nr. 6 und 12 erledigt; eine Formel im Spielerpfad |
 
-**Zählung:** 6 bestätigt (1, 3, 4, 5, 6, 7, 10, 11 → davon 4 sofort behoben), 2 überholt (2, 12),
-2 anders (8, 9).
+**Zählung:** 9 bestätigt (1, 2, 3, 4, 5, 6, 7, 10, 11 → davon 5 sofort behoben, 4 offen),
+1 überholt/anders (12), 2 anders (8, 9).
+
+**Lehre aus diesem Abgleich:** ich hatte Nr. 2 zuerst als „überholt" abgehakt, weil ich nur die
+Funktion *überflogen* hatte — nachgemessen (`E.angriff` = AT 40 gegen `E.schlagkraft` = SK 2) war der
+Fehler noch da. Ein Befund gilt erst als widerlegt, wenn die Zahl geprüft ist, nicht der Name.
 
 ---
 

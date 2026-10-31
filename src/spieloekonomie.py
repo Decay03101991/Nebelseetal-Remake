@@ -45,6 +45,12 @@ def lade(name: str) -> dict:
 
 
 REGELN = lade("spieloekonomie.json")
+
+# BELEGT ist nur die RICHTUNG ("Je hoeher die Stufe, desto schneller"); die Zahlen fehlen in
+# beiden Originalfassungen. Dieser Schalter schaltet die Stufenwirkung ab, ohne Code zu loeschen -
+# er ist die eine Stelle, an der man zurueck auf "feste Dauer" kann. Siehe
+# docs/audits/AUSBILDUNGSDAUER_BELEGT_20261031.md und docs/PRUEFREGEL_ORIGINAL.md (Register 53).
+AUSBILDUNG_STUFENFAKTOR_AKTIV = True
 G = lade("gelaende.json")
 BP = lade("baupreise.json")["preise"]
 U = lade("units.json")["einheiten"]
@@ -490,9 +496,19 @@ def ausbildung_start(ort: dict, name: str, forschung: dict, jetzt: float) -> dic
     neu["bevoelkerung"] -= siedler
     neu["waren"] = ausruestung.verbrauchen(neu["waren"], name)
     freie_zeit = max([jetzt] + [a["ende"] for a in neu["ausbildung"] if a["gebaeude"] == geb])
-    # Pilotregel: die Dauer ist kein Originalwert (das Handbuch nennt keine Ausbildungsdauer).
+    # BELEGT (beide Fassungen, woertlich): "Je hoeher die Stufe, desto schneller werden die
+    # entsprechenden Einheiten ausgebildet" — Vorversion 2006, einheiten.php Z. 15-16; Handbuch
+    # 2009, Z. 503-504. Die ZAHLEN fehlen in beiden Fassungen (geprueft 31.10.2026, siehe
+    # docs/audits/AUSBILDUNGSDAUER_BELEGT_20261031.md) - belegt ist also nur die RICHTUNG.
+    # VORSCHLAG: Dauer = Grunddauer / Stufe (Stufe 1 = Grunddauer, Stufe 5 = ein Fuenftel).
+    # Grund fuer die Division: sie erfuellt "je hoeher, desto schneller" monoton und ohne
+    # zusaetzliche erfundene Konstante; balancieren im Spieltest.
+    grunddauer = REGELN["pilot_ausbildung_minuten"] * 60
+    dauer = grunddauer / max(1, int(stufe)) if AUSBILDUNG_STUFENFAKTOR_AKTIV else grunddauer
+    # Pilotregel: die Grunddauer ist kein Originalwert (das Handbuch nennt keine Ausbildungsdauer).
     neu["ausbildung"].append({"einheit": name, "gebaeude": geb, "start": freie_zeit,
-                              "ende": freie_zeit + REGELN["pilot_ausbildung_minuten"] * 60,
+                              "ende": freie_zeit + dauer,
+                              "dauer_sekunden": dauer, "stufe": int(stufe),
                               "gebucht": False})
     return neu
 
