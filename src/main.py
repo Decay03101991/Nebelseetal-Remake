@@ -5192,14 +5192,36 @@ class NebelseetalApp:
             rahmen.pack(fill=tk.X, padx=10, pady=3)
             tk.Label(rahmen, text=f"{_name} ({_bestand_ort[kennung]} Stück vor Ort)",
                      fg=self.skin["text"], bg=self.skin["panel"], width=28, anchor=tk.W).pack(side=tk.LEFT, padx=5)
+            # A-1 (Daniels Spielbericht): EINE Stueckzahl je Werkstatt statt N Einzelklicks.
+            # Zahlfeld, -/+, Schieberegler und eine Vorschau, die je Ware dieselbe Zahl nennt,
+            # die der Kern annimmt.
+            _var = self._ware_menge_var(kennung)
+            _leiste = tk.Frame(self.content, bg=self.skin["bg"])
+            _leiste.pack(fill=tk.X, padx=18, pady=(0, 2))
+            _vorschau = tk.Label(_leiste, text="", fg="#C8A165", bg=self.skin["bg"],
+                                 font=("Arial", 9), anchor=tk.W, justify=tk.LEFT, wraplength=900)
+
+            def _neu(k=kennung, v=_var, lab=_vorschau):
+                _text, _warn = self._werkstatt_vorschau(
+                    k, self._menge_lesen(v, spieloekonomie.MENGEN_HOECHSTMENGE))
+                lab.config(text=_text, fg="#FDBA74" if _warn else "#C8A165")
+
+            tk.Label(_leiste, text="Stück:", fg="#C0C0C0", bg=self.skin["bg"],
+                     font=("Arial", 9)).pack(side=tk.LEFT)
+            self._mengen_feld(_leiste, _var, spieloekonomie.MENGEN_HOECHSTMENGE, _neu)
+            _vorschau.pack(side=tk.LEFT, padx=6)
             for ware in werkstatt.waren_der_werkstatt(kennung):
                 erfuellt, grund = self.state.ware_voraussetzung(ware)
-                knopf = tk.Button(rahmen, text=ware, command=lambda w=ware: self._ware_herstellen(w),
+                knopf = tk.Button(rahmen, text=ware,
+                                  command=lambda w=ware, k=kennung: self._ware_herstellen_menge(
+                                      w, self._menge_lesen(self._ware_menge_var(k),
+                                                           spieloekonomie.MENGEN_HOECHSTMENGE)),
                                   bg="#3e2723" if erfuellt else "#4a4a4a",
                                   fg=self.skin["gold"] if erfuellt else "#9e9e9e")
                 if not erfuellt:
                     knopf.config(state=tk.DISABLED)
                 knopf.pack(side=tk.LEFT, padx=2)
+            _neu()
             # F-04: JEDE Forschungsbedingung einzeln anzeigen (Register 68). Gezeigt werden nur
             # Waren, denen wirklich etwas fehlt — sonst waere die Ansicht eine Litanei.
             for ware in werkstatt.waren_der_werkstatt(kennung):
@@ -5216,8 +5238,87 @@ class NebelseetalApp:
                          text="   " + werkstatt.fortschritt(schlange, self.state.spielsekunden)["text"],
                          fg="#C0C0C0", bg=self.skin["bg"]).pack(anchor=tk.W, padx=12)
 
+    def _ware_menge_var(self, kennung: str):
+        """Die Stueckzahl-Variable EINER Werkstatt (A-1) - einmal angelegt, dann wiederverwendet."""
+        if not hasattr(self, "_ware_mengen"):
+            self._ware_mengen = {}
+        var = self._ware_mengen.get(kennung)
+        if var is None:
+            var = tk.StringVar(master=self.root, value="1")
+            self._ware_mengen[kennung] = var
+        return var
+
+    def _werkstatt_vorschau(self, kennung: str, menge: int) -> tuple:
+        """(Text, Warnung?) fuer die gewaehlte Stueckzahl einer Werkstatt - je Ware EINE Zahl.
+
+        Die Zahlen kommen aus `spieloekonomie.ware_grenzen`, also derselben Rechenstelle, die der
+        Start benutzt. Kein zweiter Rechenweg, keine geschaetzte Anzeige.
+        """
+        ort = self.state.aktive_siedlung()
+        if ort is None:
+            return "", False
+        try:
+            levels = self.state.forschungs_stufen()
+        except (AttributeError, KeyError, TypeError):
+            levels = {}
+        teile = []
+        warnung = False
+        for ware in werkstatt.waren_der_werkstatt(kennung):
+            try:
+                grenzen = spieloekonomie.ware_grenzen(asdict(ort), ware, levels)
+            except (ValueError, KeyError, TypeError):
+                continue
+            if grenzen.get("hindernis"):
+                teile.append(f"{ware}: gesperrt")
+                continue
+            moeglich = int(grenzen.get("moeglich") or 0)
+            teile.append(f"{ware} {moeglich}")
+            if menge > moeglich:
+                warnung = True
+        if not teile:
+            return "", False
+        return (f"{menge} Stueck je Ware · bezahlbar jetzt: " + " · ".join(teile), warnung)
+
+    def _ware_herstellen_menge(self, ware: str, menge: int) -> bool:
+        """`menge` Stueck einer Ware in der Werkstatt DIESES Ortes herstellen - EIN Vorgang (A-1).
+
+        Alles oder nichts: reicht das Lager nicht fuer die ganze Menge, bucht der Kern gar nichts
+        ab und nennt die Grenze (`spieloekonomie.ware_start_menge`).
+        """
+        try:
+            menge = int(menge)
+        except (TypeError, ValueError):
+            menge = 0
+        if menge < 1:
+            self._log("Stueckzahl 0: es wird nichts hergestellt. Bitte eine Zahl ab 1 waehlen.")
+            return False
+        ort = self.state.aktive_siedlung()
+        if ort is None:
+            self._log("Keine Siedlung — es gibt keine Werkstatt vor Ort.")
+            return False
+        _sperre = self._nahrungssperre(ort)
+        if _sperre:
+            self._log(_sperre)
+            return False
+        levels = self.state.forschungs_stufen()
+        try:
+            ergebnis = spieloekonomie.ware_start_menge(asdict(ort), ware, levels,
+                                                       self.state.spielsekunden, menge)
+        except ValueError as fehler:
+            meldung = f"{ware} nicht moeglich: {fehler}"
+            self._log(meldung)
+            self.state.messages.append({"text": meldung, "type": "werkstatt"})
+            self._render_view()
+            return False
+        self.state._ort_uebernehmen(ort.id, ergebnis["ort"])
+        meldung = f"{ergebnis['anzahl']} × {ware} in der Werkstatt von {ort.name} in Arbeit."
+        self._log(meldung)
+        self.state.messages.append({"text": meldung, "type": "werkstatt"})
+        self._render_view()
+        return True
+
     def _ware_herstellen(self, ware: str):
-        """Eine Ware in der Werkstatt DIESES Ortes herstellen lassen — ueber den Kern (`ware_start`).
+        """Ein Stueck einer Ware herstellen — die Mengenfassung mit Menge 1 (A-1).
 
         Oekonomie-Paket, Schritt 9, Teil 6c (Entwurf Z. 779: „Herstellung gegen gewaehlten Ort").
         Der Kern prueft: freigegebenes Rezept, Forschungsvoraussetzungen der Ware, **Werkstatt VOR
@@ -5229,24 +5330,7 @@ class NebelseetalApp:
         Herstellung weg: sie hatte EINE Schlange fuer alle Siedlungen und buchte die Ware in den
         GLOBALEN Bestand — die Ware konnte so in einer Stadt entstehen und in einer anderen liegen.
         """
-        ort = self.state.aktive_siedlung()
-        if ort is None:
-            self._log("Keine Siedlung — es gibt keine Werkstatt vor Ort.")
-            return False
-        _sperre = self._nahrungssperre(ort)
-        if _sperre:
-            self._log(_sperre)
-            return False
-        levels = self.state.forschungs_stufen()
-        try:
-            neu = spieloekonomie.ware_start(asdict(ort), ware, levels, self.state.spielsekunden)
-        except ValueError as fehler:
-            self._log(f"{ware} nicht möglich: {fehler}")
-            return False
-        self.state._ort_uebernehmen(ort.id, neu)
-        self._log(f"{ware} in der Werkstatt von {ort.name} in Arbeit.")
-        self._render_view()
-        return True
+        return self._ware_herstellen_menge(ware, 1)
 
     @staticmethod
     def _ware_bedingung_text(bedingung: dict) -> str:
@@ -6796,11 +6880,10 @@ class NebelseetalApp:
                 # Vorgabe Daniel 05.10.2026: ohne Forschung UND ohne Ausrüstung wird nicht
                 # ausgebildet — der Knopf ist dann gesperrt und der Grund steht daneben.
                 _frei, _grund = self._ausbildungs_hindernis(key)
-                _knopf = tk.Button(frame, text=f"Ausbilden ({gelaende.gebaeude_name(_staette)} Stufe {_stufe})",
-                                   command=lambda k=key: self._train_unit(k), bg="#3e2723",
-                                   fg=self.skin["gold"])
                 if _frei:
-                    _knopf.pack(side=tk.RIGHT, padx=5)
+                    # A-1 (Daniels Spielbericht 31.10.2026): eine MENGE statt 200 Einzelklicks.
+                    # Die Leiste steht unter der Zeile, damit jeder Knopf Platz hat.
+                    self._ausbilden_block(key, _staette, _stufe)
                     if ausruestung.bedarf(key):
                         # Teil 6c: die Ausruestung wird VOR ORT verbraucht — also wird auch die
                         # Anzeige gegen das Ortslager gerechnet (dieselbe Quelle wie die Ausbildung).
@@ -6809,7 +6892,9 @@ class NebelseetalApp:
                                                  if _ort_k else self.state.waren)),
                             fg="#C0C0C0", bg=self.skin["panel"]).pack(side=tk.RIGHT, padx=5)
                 else:
-                    _knopf.config(state=tk.DISABLED, disabledforeground="#8a8a8a")
+                    _knopf = tk.Button(frame, text="Ausbilden (gesperrt)", bg="#4a4a4a",
+                                       fg="#9e9e9e", state=tk.DISABLED,
+                                       disabledforeground="#8a8a8a")
                     _knopf.pack(side=tk.RIGHT, padx=5)
                     tk.Label(frame, text=_grund, fg="#FDBA74", bg=self.skin["panel"],
                              wraplength=380, justify=tk.LEFT).pack(side=tk.RIGHT, padx=5)
@@ -6854,20 +6939,42 @@ class NebelseetalApp:
         if not uebersicht["auftraege"]:
             tk.Label(rahmen, text="Keine Aufträge in Arbeit.", fg="#C0C0C0",
                      bg=self.skin["panel"]).pack(anchor=tk.W, padx=6, pady=2)
+        # A-1: Mengen erzeugen viele Einzelauftraege (bis 200). Gezeichnet werden GRUPPEN
+        # aufeinanderfolgender gleicher Auftraege ("1.-12. Krieger"), damit die Uebersicht bei
+        # einer Mengenausbildung nicht zur Litanei wird. Gestrichen wird weiter je Auftrag, weil
+        # der Kern je Auftrag streicht (keine Erstattung).
+        gruppen = []
         for auftrag in uebersicht["auftraege"]:
+            schluessel = (auftrag["einheit"], auftrag["gebaeude"], auftrag["stufe"],
+                          bool(auftrag["laufend"]))
+            if gruppen and gruppen[-1]["schluessel"] == schluessel:
+                gruppen[-1]["bis"] = auftrag["platz"]
+                gruppen[-1]["anzahl"] += 1
+                gruppen[-1]["rest_sekunden"] = auftrag["rest_sekunden"]
+            else:
+                gruppen.append({"schluessel": schluessel, "von": auftrag["platz"],
+                                "bis": auftrag["platz"], "anzahl": 1,
+                                "einheit": auftrag["einheit"], "gebaeude": auftrag["gebaeude"],
+                                "stufe": auftrag["stufe"], "laufend": bool(auftrag["laufend"]),
+                                "rest_sekunden": auftrag["rest_sekunden"]})
+        for gruppe in gruppen:
             zeile = tk.Frame(rahmen, bg=self.skin["panel"])
             zeile.pack(fill=tk.X, padx=6, pady=1)
+            _platz = (f"{gruppe['von']}. {gruppe['einheit']}" if gruppe["anzahl"] == 1
+                      else f"{gruppe['von']}.-{gruppe['bis']}. {gruppe['anzahl']} × {gruppe['einheit']}")
             tk.Label(zeile,
-                     text=f"{auftrag['platz']}. {auftrag['einheit']} "
-                          f"({gelaende.gebaeude_name(auftrag['gebaeude'])} Stufe {auftrag['stufe']}) "
-                          f"— {'läuft' if auftrag['laufend'] else 'wartet'}",
+                     text=f"{_platz} "
+                          f"({gelaende.gebaeude_name(gruppe['gebaeude'])} Stufe {gruppe['stufe']}) "
+                          f"— {'läuft' if gruppe['laufend'] else 'wartet'}",
                      fg=self.skin["text"], bg=self.skin["panel"]).pack(side=tk.LEFT)
-            tk.Label(zeile, text=f"fertig in {_zeit(auftrag['rest_sekunden'])}",
-                     fg=("#DAA520" if auftrag["laufend"] else "#C0C0C0"),
+            tk.Label(zeile, text=f"fertig in {_zeit(gruppe['rest_sekunden'])}",
+                     fg=("#DAA520" if gruppe["laufend"] else "#C0C0C0"),
                      bg=self.skin["panel"]).pack(side=tk.LEFT, padx=8)
-            if not auftrag["laufend"]:
-                tk.Button(zeile, text="Streichen (ohne Erstattung)",
-                          command=lambda p=auftrag["platz"]: self._ausbildung_streichen(p),
+            if not gruppe["laufend"]:
+                tk.Button(zeile,
+                          text=("Streichen (ohne Erstattung)" if gruppe["anzahl"] == 1
+                                else f"Letzten streichen (Platz {gruppe['bis']})"),
+                          command=lambda p=gruppe["bis"]: self._ausbildung_streichen(p),
                           bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=4)
         tk.Label(rahmen,
                  text="Reihenfolge: nacheinander. Streichen ist möglich, solange ein Auftrag "
@@ -6930,26 +7037,130 @@ class NebelseetalApp:
                            " (Werkstätten: Schmiede, Bogner, Nähstube)")
         return True, ""
 
-    def _train_unit(self, key: str):
-        """Eine Einheit in DIESEM Ort ausbilden lassen — ueber den Kern (`ausbildung_start`).
+    def _menge_schritt(self, var, delta: int, hoechst: int, bei_aenderung=None) -> int:
+        """Eine Menge um `delta` verschieben und in 0..hoechst halten (A-1, Schrittknoepfe)."""
+        try:
+            wert = int(float(str(var.get()).replace(",", ".") or 0))
+        except (TypeError, ValueError):
+            wert = 1
+        wert = max(0, min(max(0, int(hoechst)), wert + int(delta)))
+        var.set(str(wert))
+        if bei_aenderung is not None:
+            bei_aenderung()
+        return wert
 
-        Oekonomie-Paket, Schritt 9, Teil 6c (Entwurf Z. 781: „Ausbildung gegen gewaehlten Ort").
-        Der Kern prueft VIER Dinge: Forschungsstufe der Einheit, **Ausbildungsstaette VOR ORT**,
-        **genug freie Siedler im Ort** und die **Ausruestung im lokalen Warenlager**. Verbraucht
-        werden Kosten, Siedler und Ausruestung; die Einheit entsteht erst am Ende der
-        Ausbildungszeit in `ort_tick` — genau einmal.
+    def _menge_lesen(self, var, hoechst: int) -> int:
+        """Die Menge aus dem Zahlfeld - nie negativ, nie ueber der Grenze, nie ein Absturz."""
+        try:
+            wert = int(float(str(var.get()).replace(",", ".") or 0))
+        except (TypeError, ValueError):
+            wert = 0
+        return max(0, min(max(0, int(hoechst)), wert))
 
-        Der Altpfad ist damit weg: das fruehere **sofortige Hochzaehlen der Einheit** gibt es nicht
-        mehr. Er haette die Einheit
-        sofort und ohne Ortsbezug in den Reichsbestand gesetzt und die Ausruestung GLOBAL
-        verbraucht — zwei Wege zu derselben Einheit sind genau das, was der Entwurf verbietet
-        („Altmodus liest alte Felder; Neumodus nur einheiten", Z. 774).
+    def _mengen_feld(self, eltern, var, hoechst: int, bei_aenderung) -> None:
+        """Zahlfeld + Schrittknoepfe -/+ + Schieberegler fuer EINE Menge (A-1).
+
+        Daniel im Spielbericht: "200x klicken" ist keine Bedienung. Alle drei Wege schreiben in
+        DIESELBE Variable; `bei_aenderung` zeichnet die Vorschau neu. Der Deckel ist derselbe wie
+        im Kern (`spieloekonomie.MENGEN_HOECHSTMENGE`) - die Anzeige kann nicht mehr versprechen,
+        als der Start annimmt.
         """
+        tk.Entry(eltern, textvariable=var, width=5, bg=self.skin["panel"],
+                 fg=self.skin["text"], insertbackground="#F5F5DC",
+                 justify=tk.CENTER).pack(side=tk.LEFT, padx=(4, 2))
+        tk.Button(eltern, text="−", width=2, bg="#3e2723", fg=self.skin["gold"],
+                  command=lambda: self._menge_schritt(var, -1, hoechst, bei_aenderung)
+                  ).pack(side=tk.LEFT)
+        tk.Button(eltern, text="+", width=2, bg="#3e2723", fg=self.skin["gold"],
+                  command=lambda: self._menge_schritt(var, +1, hoechst, bei_aenderung)
+                  ).pack(side=tk.LEFT, padx=(0, 6))
+        tk.Scale(eltern, from_=0, to=max(1, int(hoechst)), orient=tk.HORIZONTAL, length=150,
+                 showvalue=0, bg=self.skin["panel"], fg=self.skin["text"],
+                 troughcolor="#2a1c14", highlightthickness=0,
+                 command=lambda wert: (var.set(str(int(float(wert)))), bei_aenderung())
+                 ).pack(side=tk.LEFT, padx=(0, 6))
+
+    @staticmethod
+    def _ausbildung_engpass(grenzen: dict) -> str:
+        """Welche Grenze zuerst greift - fuer die Vorschau (z. B. "siedler")."""
+        einzel = dict(grenzen.get("grenzen") or {})
+        if not einzel:
+            return ""
+        return min(einzel.items(), key=lambda kv: kv[1])[0]
+
+    def _ausbilden_block(self, key: str, staette: str, stufe: int) -> None:
+        """Die Mengeneingabe unter einer Einheit der Ausbildungsstaette (A-1).
+
+        Zeigt Kosten, Siedler und Ausruestung fuer die GEWAEHLTE Menge und dieselbe Zahl, die der
+        Kern annimmt ("davon bezahlbar: N") - beide kommen aus `spieloekonomie.ausbildung_grenzen`.
+        """
+        ort = self.state.aktive_siedlung()
+        if ort is None or not hasattr(self, "content"):
+            return
+        try:
+            grenzen = spieloekonomie.ausbildung_grenzen(asdict(ort), key,
+                                                        self.state.forschungs_stufen())
+        except (ValueError, KeyError, TypeError):
+            return
+        moeglich = int(grenzen.get("moeglich") or 0)
+        hoechst = max(1, min(spieloekonomie.MENGEN_HOECHSTMENGE, max(moeglich, 1)))
+        block = tk.Frame(self.content, bg=self.skin["bg"])
+        block.pack(fill=tk.X, padx=34, pady=(0, 8))
+        var = tk.StringVar(value="1")
+        vorschau = tk.Label(block, text="", fg="#C8A165", bg=self.skin["bg"],
+                            font=("Arial", 9), anchor=tk.W, justify=tk.LEFT, wraplength=840)
+        vorschau.pack(anchor=tk.W, pady=(2, 0))
+        knopf = tk.Button(block, text="Ausbilden", bg="#3e2723", fg=self.skin["gold"],
+                          command=lambda: self._train_unit_menge(
+                              key, self._menge_lesen(var, spieloekonomie.MENGEN_HOECHSTMENGE)))
+
+        def vorschau_text() -> tuple:
+            n = self._menge_lesen(var, spieloekonomie.MENGEN_HOECHSTMENGE)
+            teile = []
+            for rohstoff, je in sorted((grenzen.get("kosten_je") or {}).items()):
+                teile.append(f"{float(je) * n:g} {rohstoff}")
+            if grenzen.get("siedler_je"):
+                teile.append(f"{int(grenzen['siedler_je']) * n} Siedler")
+            for ware in sorted(grenzen.get("ausruestung_je") or {}):
+                teile.append(f"{n} {ware}")
+            kosten = " · ".join(teile) if teile else "keine Kosten"
+            text = f"{n} × {key} = {kosten} · davon bezahlbar: {moeglich}"
+            if n > moeglich:
+                engpass = self._ausbildung_engpass(grenzen)
+                text += (f" — zu viel: jetzt gehen nur {moeglich}"
+                         + (f" ({engpass})" if engpass else "") + ".")
+            return n, text
+
+        def zeichnen() -> None:
+            n, text = vorschau_text()
+            vorschau.config(text=text, fg="#FDBA74" if n > moeglich else "#C8A165")
+            knopf.config(text=f"Ausbilden ({n})",
+                         state=(tk.DISABLED if moeglich < 1 else tk.NORMAL),
+                         disabledforeground="#8a8a8a")
+
+        tk.Label(block, text=f"Menge (1-{hoechst}):", fg="#C0C0C0", bg=self.skin["bg"],
+                 font=("Arial", 9)).pack(side=tk.LEFT)
+        self._mengen_feld(block, var, hoechst, zeichnen)
+        knopf.pack(side=tk.LEFT, padx=(0, 6))
+        var.set("1" if moeglich >= 1 else "0")
+        zeichnen()
+
+    def _train_unit_menge(self, key: str, menge: int) -> bool:
+        """`menge` Einheiten in DIESEM Ort ausbilden - EIN Vorgang, ueber den Kern (A-1).
+
+        Die Pruefungen des Kerns (`ausbildung_grenzen` + `ausbildung_start_menge`) gelten
+        unveraendert; die Meldung nennt die TATSAECHLICH gestartete Menge, nicht die gewuenschte.
+        """
+        try:
+            menge = int(menge)
+        except (TypeError, ValueError):
+            menge = 0
+        if menge < 1:
+            self._log("Menge 0: es wird nichts ausgebildet. Bitte eine Zahl ab 1 waehlen.")
+            return False
         u = self.state.units[key]
         ort = self.state.aktive_siedlung()
         if ort is None:
-            # Wie beim Bauen: ohne Siedlung gibt es kein Ortslager — der Grund nennt trotzdem die
-            # fehlende Stätte (sie steht in data/units.json).
             _staette = (einheiten.alle().get(key) or {}).get("gebaeude")
             _name = gelaende.gebaeude_name(_staette) if _staette else "Ausbildungsstätte"
             self._log(f"{u.name} braucht {_name} auf einer Siedlungskarte — es gibt noch keine "
@@ -6959,9 +7170,6 @@ class NebelseetalApp:
         if _sperre:
             self._log(_sperre)
             return False
-        # Die Stätte ist die GRUNDBEDINGUNG: ohne sie gibt es keinen Ort, an dem ausgebildet wird.
-        # Sie steht deshalb VOR der Forschungs-/Ausrüstungsprüfung — und ihr Name kommt aus derselben
-        # Quelle wie beim Bauen. (Der Kern prüft sie ebenfalls; hier geht es um den genauen Grund.)
         _da, _staette, _stufe = gebaeude_wirkung.ausbildungsstaette([ort], key)
         if not _da:
             _name = gelaende.gebaeude_name(_staette) if _staette else "Ausbildungsstätte"
@@ -6970,22 +7178,12 @@ class NebelseetalApp:
             self.state.messages.append({"text": meldung, "type": "ausbildung"})
             self._render_view()
             return False
-        # Erst die BEGRUENDUNG aus derselben Quelle wie die Ansicht (Soll/Ist), dann die verbindliche
-        # Pruefung im Kern: so liest der Spieler den genauen Grund, und der Kern entscheidet.
-        frei, grund = self._ausbildungs_hindernis(key)
-        if not frei:
-            meldung = f"{u.name} {grund}."
-            self._log(meldung)
-            self.state.messages.append({"text": meldung, "type": "ausbildung"})
-            self._render_view()
-            return False
         levels = {k: int(v.level) for k, v in self.state.research.items()}
         try:
-            neu = spieloekonomie.ausbildung_start(asdict(ort), key, levels, self.state.spielsekunden)
+            ergebnis = spieloekonomie.ausbildung_start_menge(asdict(ort), key, levels,
+                                                             self.state.spielsekunden, menge)
         except ValueError as fehler:
             grund = str(fehler)
-            # Der Kern sagt knapp, WAS fehlt ("Ausbildungsstätte fehlt vor Ort."). Der Spieler
-            # braucht den Namen des Gebaeudes — er kommt aus derselben Quelle wie beim Bauen.
             if "Ausbildungsstätte fehlt vor Ort" in grund:
                 _staette = (einheiten.alle().get(key) or {}).get("gebaeude")
                 _name = gelaende.gebaeude_name(_staette) if _staette else "Ausbildungsstätte"
@@ -6995,14 +7193,24 @@ class NebelseetalApp:
             self.state.messages.append({"text": meldung, "type": "ausbildung"})
             self._render_view()
             return False
-        self.state._ort_uebernehmen(ort.id, neu)
-        _auftrag = (neu.get("ausbildung") or [{}])[-1]
-        _minuten = max(0.0, float(_auftrag.get("ende", self.state.spielsekunden))
-                       - float(self.state.spielsekunden)) / 60.0
-        self._log(f"{u.name} in Ausbildung vor Ort ({ort.name}) — fertig in {_minuten:.1f} "
-                  f"Spielminuten. Die Einheit entsteht am Ende der Zeit im Ortslager.")
+        self.state._ort_uebernehmen(ort.id, ergebnis["ort"])
+        gestartet = int(ergebnis.get("anzahl") or 0)
+        minuten = float(ergebnis.get("rest_sekunden") or 0.0) / 60.0
+        meldung = (f"{gestartet} × {u.name} in Ausbildung vor Ort ({ort.name}) — der letzte "
+                   f"Auftrag ist in {minuten:.1f} Spielminuten fertig. Die Einheiten entstehen "
+                   f"nacheinander im Ortslager.")
+        self._log(meldung)
+        self.state.messages.append({"text": meldung, "type": "ausbildung"})
         self._render_view()
         return True
+
+    def _train_unit(self, key: str):
+        """Eine Einheit in DIESEM Ort ausbilden lassen - die Mengenfassung mit Menge 1 (A-1).
+
+        Der Name bleibt, damit vorhandene Aufrufe und Pruefungen unveraendert weiterlaufen; die
+        Logik steht vollstaendig in `_train_unit_menge` (Kern: `ausbildung_start_menge`).
+        """
+        return self._train_unit_menge(key, 1)
 
     def _schild_dialog_inhalt(self, fenster):
         """FIX04i: Original-Schildmotiv hinter den Speicher-Nebenfenstern.

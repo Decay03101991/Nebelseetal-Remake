@@ -114,7 +114,11 @@ print("\n=== 4. Quelltext-Wachen: jede Zahlstelle prueft die Sperre ===")
 quelle = inspect.getsource(main)
 check("GameState hat die Not-Abfrage", "def nahrungsnot(" in quelle)
 check("App hat EINE Sperr-Abfrage", "def _nahrungssperre(" in quelle)
-for stelle in ("_karten_bauen", "_karten_ausbauen", "_ware_herstellen", "_start_research", "_train_unit"):
+# A-1 (Register 79) hat die Zahlstellen in die Mengenfassungen verschoben: die Einzelstueck-Namen
+# sind jetzt Wrapper (`_train_unit` -> `_train_unit_menge`, `_ware_herstellen` ->
+# `_ware_herstellen_menge`). Die Wache folgt der Sperre, nicht dem alten Namen.
+for stelle in ("_karten_bauen", "_karten_ausbauen", "_ware_herstellen_menge", "_start_research",
+               "_train_unit_menge"):
     baum = ast.parse(quelle)
     knoten = next((k for k in ast.walk(baum)
                    if isinstance(k, ast.FunctionDef) and k.name == stelle), None)

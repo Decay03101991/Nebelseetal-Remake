@@ -500,37 +500,159 @@ def ware_voraussetzung(ware: str, forschung: dict, rezepte: dict = None):
     return all(b["erfuellt"] for b in liste), " · ".join(teile)
 
 
-def ware_start(ort: dict, ware: str, forschung: dict, jetzt: float,
-               rezepte: dict = None) -> dict:
-    """Reiht eine Ware in die Werkstatt DIESER Siedlung ein. Liefert den neuen Ort.
+# Mengeneingabe (A-1, Daniels Spielbericht 31.10.2026: "ich musste 200x klicken").
+# Der Deckel gilt GLEICH fuer Anzeige und Kern: die Vorschau darf nie mehr versprechen, als der
+# Start wirklich annimmt (`ware_grenzen` / `ausbildung_grenzen` rechnen, `*_start_menge` prueft).
+MENGEN_HOECHSTMENGE = 200
 
-    Geprueft werden (1) ein freigegebenes Rezept, (2) die Forschungsvoraussetzungen der Ware,
-    (3) eine Werkstatt VOR ORT, (4) die Materialkosten im lokalen Lager. Die Dauer kommt aus
-    dem Rezept in die Warteschlange — die einzige belegte Dauer (Schwert) bleibt unberuehrt.
+
+def _menge_wert(menge) -> int:
+    """Eine Menge als ganze Zahl ab 0 - bool, Text und Brueche werden ehrlich abgelehnt."""
+    if isinstance(menge, bool):
+        raise ValueError("Die Menge muss eine ganze Zahl ab 0 sein.")
+    try:
+        zahl = int(menge)
+    except (TypeError, ValueError):
+        raise ValueError("Die Menge muss eine ganze Zahl ab 0 sein.")
+    if zahl < 0:
+        raise ValueError("Die Menge muss eine ganze Zahl ab 0 sein.")
+    return zahl
+
+
+def ware_grenzen(ort: dict, ware: str, forschung: dict, rezepte: dict = None) -> dict:
+    """Wie viele Stueck dieser Ware der Ort JETZT herstellen kann - die EINE Rechenstelle.
+
+    Anzeige ("davon bezahlbar: N") und Start (`ware_start_menge`) rufen beide hier hinein, damit
+    es keine zweite Wahrheit gibt. Die Grenze ist das Minimum aus Lagervorrat (Materialkosten mal
+    Menge) und dem Deckel `MENGEN_HOECHSTMENGE`; Siedler kosten Waren nicht.
+
+    Rueckgabe::
+
+        {"ware", "werkstatt", "stufe", "moeglich": int, "kosten_je": {}, "grenzen": {...},
+         "hindernis": str, "dauer_je": float|None}
+
+    `hindernis` ist leer, wenn die Ware grundsaetzlich herstellbar ist; sonst nennt es den
+    Grund in der Wortwahl des Kerns (Rezept, Forschung, Werkstatt).
     """
-    neu = copy.deepcopy(ort)
     rezepte = WARENREZEPTE if rezepte is None else rezepte
+    leer = {"ware": ware, "werkstatt": None, "stufe": 0, "moeglich": 0, "kosten_je": {},
+            "grenzen": {}, "hindernis": "", "dauer_je": None}
     if ware not in rezepte:
-        raise ValueError("Keine freigegebene Rezeptangabe.")
-    rezept = rezepte[ware]
+        leer["hindernis"] = "Keine freigegebene Rezeptangabe."
+        return leer
+    rezept = rezepte[ware] or {}
     erfuellt, begruendung = ware_voraussetzung(ware, forschung, rezepte)
     if not erfuellt:
-        raise ValueError(f"Warenvoraussetzung fehlt: {begruendung}")
+        leer["hindernis"] = f"Warenvoraussetzung fehlt: {begruendung}"
+        return leer
     typ = werkstatt.werkstatt_fuer(ware)
     if typ is None:
-        raise ValueError("Ware gehoert zu keiner Werkstatt.")
+        leer["hindernis"] = "Ware gehoert zu keiner Werkstatt."
+        return leer
+    typ_name = typ
+    try:
+        anzahl_werkstaetten = werkstatt.werkstaetten_bestand([ort])[typ_name]
+    except (KeyError, TypeError):
+        anzahl_werkstaetten = 0
+    if anzahl_werkstaetten <= 0:
+        leer["hindernis"] = "Werkstatt nicht in dieser Stadt."
+        return leer
+    kosten_je = {r: float(m) for r, m in (rezept.get("kosten") or {}).items()}
+    vorraete = ort.get("vorraete") or {}
+    grenzen = {}
+    for rohstoff, je in kosten_je.items():
+        if je <= 0:
+            continue
+        try:
+            bestand = float(vorraete.get(rohstoff, 0.0) or 0.0)
+        except (TypeError, ValueError):
+            bestand = 0.0
+        grenzen[rohstoff] = max(0, int(bestand // je))
+    moeglich = min([MENGEN_HOECHSTMENGE] + list(grenzen.values())) if grenzen else MENGEN_HOECHSTMENGE
+    werkstatt_typ = werkstatt.werkstatt_fuer(ware)
+    return {"ware": ware, "werkstatt": werkstatt_typ, "stufe": 1,
+            "moeglich": max(0, int(moeglich)), "kosten_je": kosten_je, "grenzen": grenzen,
+            "hindernis": "", "dauer_je": werkstatt.dauer_sekunden(ware, 1, rezepte)}
+
+
+def ware_start_menge(ort: dict, ware: str, forschung: dict, jetzt: float,
+                     menge: int = 1, rezepte: dict = None) -> dict:
+    """Reiht `menge` Stueck EINER Ware in die Werkstatt ein - alles oder nichts.
+
+    Eine Mengenangabe ist EIN Vorgang: entweder alle Stueck sind bezahlt und eingereiht, oder es
+    wird gar nichts abgebucht (kein Teilabbruch). Rueckgabe::
+
+        {"ort": neuer_ort, "anzahl": int, "moeglich": int, "einheit": ware,
+         "dauer_je": float|None, "meldung": str}
+    """
+    menge = _menge_wert(menge)
+    if menge < 1:
+        raise ValueError("Die Menge muss mindestens 1 sein.")
+    grenzen = ware_grenzen(ort, ware, forschung, rezepte)
+    if grenzen["hindernis"]:
+        raise ValueError(grenzen["hindernis"])
+    if menge > grenzen["moeglich"]:
+        raise ValueError(_mengen_text(ware, menge, grenzen, ort))
+    neu = copy.deepcopy(ort)
+    rezepte = WARENREZEPTE if rezepte is None else rezepte
+    rezept = rezepte[ware]
+    kosten = {r: float(m) * menge for r, m in (rezept.get("kosten") or {}).items()}
+    neu = verbrauchen(neu, kosten, jetzt)
+    typ = grenzen["werkstatt"]
     zahl = werkstatt.werkstaetten_bestand([neu])[typ]
-    if zahl <= 0:
-        raise ValueError("Werkstatt nicht in dieser Stadt.")
-    neu = verbrauchen(neu, rezept["kosten"], jetzt)
     schlange = neu["werkstaetten"].setdefault(typ, werkstatt.neue_warteschlange(typ, zahl))
     schlange["werkstaetten"] = zahl
     schlange["kapazitaet"] = werkstatt.kapazitaet(zahl)
     werkstatt.fortschritt(schlange, jetzt)
-    ok, meldung = werkstatt.einreihen(schlange, ware, 1, 1, rezepte)
+    ok, meldung = werkstatt.einreihen(schlange, ware, menge, 1, rezepte)
     if not ok:
         raise ValueError(meldung)
-    return neu
+    return {"ort": neu, "anzahl": menge, "moeglich": grenzen["moeglich"], "einheit": ware,
+            "dauer_je": grenzen["dauer_je"],
+            "meldung": f"{menge}x {ware} in der Werkstatt in Arbeit."}
+
+
+def _mengen_text(was: str, menge: int, grenzen: dict, ort: dict = None) -> str:
+    """Warum `menge` nicht geht - mit dem genauen Engpass und der wahren Grenze.
+
+    Der Engpass wird aus DENSELBEN Grenzen abgelesen, die `*_grenzen` liefert: fehlt Material,
+    steht derselbe Fehlbestand-Text wie bei `verbrauchen` (also mit "Lokales Lager reicht
+    nicht"), sonst nennt der Satz den Deckel.
+    """
+    moeglich = grenzen.get("moeglich", 0)
+    einzel = dict(grenzen.get("grenzen") or {})
+    engpass = ""
+    if einzel:
+        knappster = min(einzel.items(), key=lambda kv: kv[1])
+        if knappster[1] < moeglich or knappster[1] == moeglich:
+            engpass = knappster[0]
+    if engpass and ort is not None:
+        kosten_je = grenzen.get("kosten_je") or {}
+        kosten = {r: float(m) * menge for r, m in kosten_je.items()}
+        import fehlbestand
+        try:
+            fehlt = fehlbestand.fehlbestand(ort.get("vorraete") or {}, kosten)
+            detail = fehlbestand.text(fehlt, ort.get("vorraete") or {}, kosten)
+        except (TypeError, ValueError, KeyError):
+            detail = ""
+        if detail:
+            return (f"Lokales Lager reicht nicht fuer {menge}x {was}: {detail} "
+                    f"(bezahlbar jetzt: {moeglich}).")
+    return (f"{menge}x {was} nicht moeglich: bezahlbar sind jetzt {moeglich} "
+            f"(Deckel {MENGEN_HOECHSTMENGE} je Auftrag).")
+
+
+def ware_start(ort: dict, ware: str, forschung: dict, jetzt: float,
+               rezepte: dict = None) -> dict:
+    """Reiht EIN Stueck einer Ware in die Werkstatt DIESER Siedlung ein. Liefert den neuen Ort.
+
+    Geprueft werden (1) ein freigegebenes Rezept, (2) die Forschungsvoraussetzungen der Ware,
+    (3) eine Werkstatt VOR ORT, (4) die Materialkosten im lokalen Lager. Die Dauer kommt aus
+    dem Rezept in die Warteschlange — die einzige belegte Dauer (Schwert) bleibt unberuehrt.
+
+    Die Mengenfassung ist `ware_start_menge`; dieser Name bleibt fuer einen einzelnen Auftrag.
+    """
+    return ware_start_menge(ort, ware, forschung, jetzt, 1, rezepte)["ort"]
 
 
 def ausbildung_uebersicht(ort: dict, jetzt: float) -> dict:
@@ -616,6 +738,135 @@ def ausbildung_abbrechen(ort: dict, platz: int, jetzt: float) -> dict:
             "erstattung": {}, "hinweis": "Keine Erstattung: die Quellen regeln das nicht."}
 
 
+def ausbildung_grenzen(ort: dict, name: str, forschung: dict) -> dict:
+    """Wie viele Einheiten dieser Art der Ort JETZT ausbilden kann - die EINE Rechenstelle.
+
+    Anzeige ("davon bezahlbar: N") und Start (`ausbildung_start_menge`) rufen beide hier hinein.
+    Grenzen sind: freie Siedler (je Einheit `kosten.siedler`), Ausruestung im Ortslager (1 Stueck
+    je Einheit), Rohstoffe im Ortslager und der Deckel `MENGEN_HOECHSTMENGE`.
+
+    Rueckgabe::
+
+        {"einheit", "gebaeude", "stufe", "moeglich": int, "kosten_je": {}, "siedler_je": int,
+         "ausruestung_je": {}, "grenzen": {"siedler"/"ausruestung"/Rohstoff: int},
+         "hindernis": str, "dauer_je": float, "freie_zeit": float}
+    """
+    eintrag = U.get(name)
+    if eintrag is None:
+        raise ValueError("Unbekannte Einheit: " + str(name))
+    eintrag = eintrag or {}
+    leer = {"einheit": name, "gebaeude": None, "stufe": 0, "moeglich": 0, "kosten_je": {},
+            "siedler_je": 0, "ausruestung_je": {}, "grenzen": {}, "hindernis": "",
+            "dauer_je": 0.0, "freie_zeit": 0.0}
+    voraus = eintrag.get("voraussetzung") or {}
+    if voraus and (forschung or {}).get(voraus.get("forschung"), 0) < voraus.get("stufe", 0):
+        leer["hindernis"] = (
+            f"Einheitenforschung fehlt: {voraus.get('forschung')} Stufe {voraus.get('stufe', 0)} "
+            f"(erreicht: {(forschung or {}).get(voraus.get('forschung'), 0)}).")
+        return leer
+    geb = gelaende.finde_gebaeude(str(eintrag.get("gebaeude") or ""))
+    stufe = gebaeude_wirkung.gebaeude_stufe(ort, geb)
+    if stufe <= 0:
+        leer["gebaeude"] = geb
+        leer["hindernis"] = "Ausbildungsstätte fehlt vor Ort."
+        return leer
+    kosten = dict(eintrag.get("kosten") or {})
+    siedler_je = int(kosten.pop("siedler", 0) or 0)
+    ausruestung_je = {ware: 1 for ware in ausruestung.bedarf(name)}
+    grenzen = {}
+    if siedler_je > 0:
+        try:
+            frei = float(ort.get("bevoelkerung", 0.0) or 0.0)
+        except (TypeError, ValueError):
+            frei = 0.0
+        grenzen["siedler"] = max(0, int(frei // siedler_je))
+    waren_lager = ort.get("waren") or {}
+    for ware, je in ausruestung_je.items():
+        try:
+            bestand = float(waren_lager.get(ware, 0) or 0)
+        except (TypeError, ValueError):
+            bestand = 0.0
+        grenzen[f"ausruestung:{ware}"] = max(0, int(bestand // je))
+    vorraete = ort.get("vorraete") or {}
+    for rohstoff, je in kosten.items():
+        try:
+            betrag = float(je)
+        except (TypeError, ValueError):
+            continue
+        if betrag <= 0:
+            continue
+        try:
+            bestand = float(vorraete.get(rohstoff, 0.0) or 0.0)
+        except (TypeError, ValueError):
+            bestand = 0.0
+        grenzen[rohstoff] = max(0, int(bestand // betrag))
+    moeglich = min([MENGEN_HOECHSTMENGE] + list(grenzen.values())) if grenzen else MENGEN_HOECHSTMENGE
+    grunddauer = REGELN["pilot_ausbildung_minuten"] * 60
+    # BELEGT (beide Fassungen, woertlich): "Je hoeher die Stufe, desto schneller werden die
+    # entsprechenden Einheiten ausgebildet" — Vorversion 2006, einheiten.php Z. 15-16; Handbuch
+    # 2009, Z. 503-504. Die ZAHLEN fehlen in beiden Fassungen (geprueft 31.10.2026, siehe
+    # docs/audits/AUSBILDUNGSDAUER_BELEGT_20261031.md) - belegt ist also nur die RICHTUNG.
+    # VORSCHLAG: Dauer = Grunddauer / Stufe (Stufe 1 = Grunddauer, Stufe 5 = ein Fuenftel).
+    # Grund fuer die Division: sie erfuellt "je hoeher, desto schneller" monoton und ohne
+    # zusaetzliche erfundene Konstante; balancieren im Spieltest. Die Grunddauer ist ebenfalls
+    # kein Originalwert (das Handbuch nennt keine Ausbildungsdauer).
+    dauer = grunddauer / max(1, int(stufe)) if AUSBILDUNG_STUFENFAKTOR_AKTIV else grunddauer
+    return {"einheit": name, "gebaeude": geb, "stufe": int(stufe),
+            "moeglich": max(0, int(moeglich)), "kosten_je": kosten, "siedler_je": siedler_je,
+            "ausruestung_je": ausruestung_je, "grenzen": grenzen, "hindernis": "",
+            "dauer_je": float(dauer), "freie_zeit": 0.0}
+
+
+def ausbildung_start_menge(ort: dict, name: str, forschung: dict, jetzt: float,
+                           menge: int = 1) -> dict:
+    """Beginnt die Ausbildung von `menge` Einheiten vor Ort - alles oder nichts.
+
+    Eine Mengenangabe ist EIN Vorgang (Daniel: "eine Menge statt N Einzelklicks"): entweder es
+    werden alle Siedler, Rohstoffe und Ausruestung abgebucht und alle Auftraege eingereiht, oder
+    es passiert gar nichts. Die Auftraege laufen NACHEINANDER in derselben Staette (wie bisher
+    einzelne Auftraege). Rueckgabe::
+
+        {"ort": neuer_ort, "anzahl": int, "moeglich": int, "einheit": name,
+         "dauer_je": float, "ende": float, "rest_sekunden": float, "meldung": str}
+    """
+    menge = _menge_wert(menge)
+    if menge < 1:
+        raise ValueError("Die Menge muss mindestens 1 sein.")
+    try:
+        jetzt = float(jetzt)
+    except (TypeError, ValueError):
+        jetzt = 0.0
+    grenzen = ausbildung_grenzen(ort, name, forschung)
+    if grenzen["hindernis"]:
+        raise ValueError(grenzen["hindernis"])
+    # Die ALTEN Meldungen bleiben bei einer Einheit woertlich: manche Pruefungen und Meldungen
+    # haengen an ihnen ("Freie Siedler fehlen vor Ort.", "Ausrüstung fehlt vor Ort.").
+    if grenzen["siedler_je"] and float(ort.get("bevoelkerung", 0.0) or 0.0) < grenzen["siedler_je"]:
+        raise ValueError("Freie Siedler fehlen vor Ort.")
+    if ausruestung.fehlende(name, ort.get("waren") or {}):
+        raise ValueError("Ausrüstung fehlt vor Ort.")
+    if menge > grenzen["moeglich"]:
+        raise ValueError(_mengen_text(name, menge, grenzen, ort))
+    kosten = {r: float(m) * menge for r, m in grenzen["kosten_je"].items()}
+    neu = verbrauchen(ort, kosten, jetzt)
+    neu["bevoelkerung"] = float(neu.get("bevoelkerung", 0.0) or 0.0) - grenzen["siedler_je"] * menge
+    neu["waren"] = ausruestung.verbrauchen(neu["waren"], name, menge)
+    geb = grenzen["gebaeude"]
+    freie_zeit = max([jetzt] + [float(a["ende"]) for a in neu["ausbildung"]
+                                if a.get("gebaeude") == geb])
+    dauer = grenzen["dauer_je"]
+    for _ in range(menge):
+        neu["ausbildung"].append({"einheit": name, "gebaeude": geb, "start": freie_zeit,
+                                  "ende": freie_zeit + dauer, "dauer_sekunden": dauer,
+                                  "stufe": int(grenzen["stufe"]), "gebucht": False})
+        freie_zeit += dauer
+    return {"ort": neu, "anzahl": menge, "moeglich": grenzen["moeglich"], "einheit": name,
+            "dauer_je": dauer, "ende": freie_zeit,
+            "rest_sekunden": max(0.0, freie_zeit - jetzt),
+            "meldung": (f"{menge} × {name} in Ausbildung ({gelaende.gebaeude_name(geb)} "
+                        f"Stufe {grenzen['stufe']}).")}
+
+
 def ausbildung_start(ort: dict, name: str, forschung: dict, jetzt: float) -> dict:
     """Beginnt die Ausbildung EINER Einheit vor Ort. Liefert den neuen Ort.
 
@@ -623,47 +874,10 @@ def ausbildung_start(ort: dict, name: str, forschung: dict, jetzt: float) -> dic
     (Kriegerakademie / Diebesgilde / Stellmacher), (3) genug freie Siedler, (4) die
     Ausruestung im lokalen Warenlager. Verbraucht werden Kosten, Siedler und Ausruestung —
     die Einheit selbst entsteht erst am Ende der Ausbildungszeit (`ort_tick`, Schritt 5).
+
+    Die Mengenfassung ist `ausbildung_start_menge`; dieser Name bleibt fuer eine Einheit.
     """
-    eintrag = U.get(name)
-    if eintrag is None:
-        raise ValueError("Unbekannte Einheit: " + str(name))
-    voraus = eintrag.get("voraussetzung") or {}
-    if voraus and forschung.get(voraus.get("forschung"), 0) < voraus.get("stufe", 0):
-        # Daniel 30.10.2026: "Einheitenforschung fehlt" sagt nicht, welche - beim Siedlerkarren
-        # ist es Wagenbau. Die Meldung nennt jetzt Name, Soll- und Ist-Stufe.
-        raise ValueError(
-            f"Einheitenforschung fehlt: {voraus.get('forschung')} Stufe {voraus.get('stufe', 0)} "
-            f"(erreicht: {forschung.get(voraus.get('forschung'), 0)}).")
-    geb = gelaende.finde_gebaeude(str(eintrag.get("gebaeude") or ""))
-    stufe = gebaeude_wirkung.gebaeude_stufe(ort, geb)
-    if stufe <= 0:
-        raise ValueError("Ausbildungsstätte fehlt vor Ort.")
-    kosten = dict(eintrag.get("kosten") or {})
-    siedler = kosten.pop("siedler", 0)
-    if ort["bevoelkerung"] < siedler:
-        raise ValueError("Freie Siedler fehlen vor Ort.")
-    import ausruestung
-    if ausruestung.fehlende(name, ort["waren"]):
-        raise ValueError("Ausrüstung fehlt vor Ort.")
-    neu = verbrauchen(ort, kosten, jetzt)
-    neu["bevoelkerung"] -= siedler
-    neu["waren"] = ausruestung.verbrauchen(neu["waren"], name)
-    freie_zeit = max([jetzt] + [a["ende"] for a in neu["ausbildung"] if a["gebaeude"] == geb])
-    # BELEGT (beide Fassungen, woertlich): "Je hoeher die Stufe, desto schneller werden die
-    # entsprechenden Einheiten ausgebildet" — Vorversion 2006, einheiten.php Z. 15-16; Handbuch
-    # 2009, Z. 503-504. Die ZAHLEN fehlen in beiden Fassungen (geprueft 31.10.2026, siehe
-    # docs/audits/AUSBILDUNGSDAUER_BELEGT_20261031.md) - belegt ist also nur die RICHTUNG.
-    # VORSCHLAG: Dauer = Grunddauer / Stufe (Stufe 1 = Grunddauer, Stufe 5 = ein Fuenftel).
-    # Grund fuer die Division: sie erfuellt "je hoeher, desto schneller" monoton und ohne
-    # zusaetzliche erfundene Konstante; balancieren im Spieltest.
-    grunddauer = REGELN["pilot_ausbildung_minuten"] * 60
-    dauer = grunddauer / max(1, int(stufe)) if AUSBILDUNG_STUFENFAKTOR_AKTIV else grunddauer
-    # Pilotregel: die Grunddauer ist kein Originalwert (das Handbuch nennt keine Ausbildungsdauer).
-    neu["ausbildung"].append({"einheit": name, "gebaeude": geb, "start": freie_zeit,
-                              "ende": freie_zeit + dauer,
-                              "dauer_sekunden": dauer, "stufe": int(stufe),
-                              "gebucht": False})
-    return neu
+    return ausbildung_start_menge(ort, name, forschung, jetzt, 1)["ort"]
 
 
 # ---------------------------------------------------------------------------

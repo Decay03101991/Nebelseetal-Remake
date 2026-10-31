@@ -227,8 +227,9 @@ def main_lauf():
           and "voraussetzung_struktur" not in anzeige_code, anzeige_code[:120])
     check("die Anzeige gibt nicht mehr bei fehlender Struktur True zurueck",
           "keine Voraussetzung belegt" not in anzeige_code, anzeige_code[:120])
-    kern_code = _code(spieloekonomie.ware_start)
-    check("der Kern prueft ueber ware_voraussetzung(", "ware_voraussetzung(" in kern_code,
+    kern_code = _code(spieloekonomie.ware_start_menge)
+    check("der Kern prueft ueber ware_voraussetzung(",
+          "ware_voraussetzung(" in _code(spieloekonomie.ware_grenzen),
           kern_code[:120])
     check("der Kern prueft NICHT mehr selbst die Rezeptbedingungen",
           'rezept["voraussetzungen"]' not in kern_code, kern_code[:120])
