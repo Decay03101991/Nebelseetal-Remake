@@ -228,6 +228,12 @@ class Settlement:
     # Ausbaustufe je bebautem Feld (W4b-5). Belegt sind Stufen für den Verteidigungswall (10)
     # und die drei Ausbildungsstätten; ein Feld ohne Eintrag gilt als Stufe 1.
     stufen: Dict[str, int] = field(default_factory=dict)
+    # Schnitt S-2c-D (Daniel 01.11.2026): Das Dorfzentrum kommt kostenlos mit jeder Gruendung,
+    # den PLATZ bestimmt der Spieler ("aber das setzen lassen ist wichtig damit der spieler
+    # bestimmt welches feld seiner karte besetzt wird"). Solange `True`, wartet das Gebaeude auf
+    # ein Feld; `_dorfzentrum_setzen` traegt es dann Stufe 1 ein und loescht das Kennzeichen.
+    # Alte Spielstaende ohne das Feld laden mit `False` - kein Zwangsnachsetzen, keine Migration.
+    dorfzentrum_offen: bool = False
     # GPT extern W-02: Ortswall belegt kein Kartenfeld. Die globale Freigabe liegt
     # allein in Forschung 'Verteidigungsanlagen'; Schaden bleibt ortsgebunden.
     mauer_besetzt: bool = False
@@ -2230,6 +2236,9 @@ class GameState:
             tile.sector_name = name
         # Auch eine Kolonie bekommt die drei Startgebaeude des Siedlungskarren (Schnitt S-1).
         _start_ergebnisse = _startgebaeude_setzen(neu, karte)
+        # S-2c-D: das Dorfzentrum kommt ebenfalls mit - aber OHNE Platz. Der Spieler setzt es
+        # selbst auf ein Feld seiner Karte (`_dorfzentrum_setzen`), kostenlos.
+        neu.dorfzentrum_offen = True
         _start_text = _startgebaeude_meldung(_start_ergebnisse)
         if _start_text:
             self.messages.append({"type": "gruendung", "text": _start_text})
@@ -4122,11 +4131,25 @@ class NebelseetalApp:
                      fg=self.skin["text"], bg=self.skin["panel"], wraplength=780,
                      justify=tk.LEFT).pack(anchor=tk.W, padx=5)
             if _ohne_dz:
-                tk.Label(_dz, text=("fehlt noch in: " + ", ".join(s.name for s in _ohne_dz)
-                                    + " — auf der Siedlungskarte im Baubereich „Sonstiges“ "
-                                      "bauen (Baukunst Stufe 1 nötig)."),
-                         fg="#FDBA74", bg=self.skin["panel"], wraplength=780,
-                         justify=tk.LEFT).pack(anchor=tk.W, padx=5, pady=(0, 3))
+                # S-2c-D: zwei verschiedene Lagen, zwei verschiedene Wege. Ein Dorf mit offenem
+                # Kennzeichen HAT das Dorfzentrum schon (aus dem Gruendungspaket), es fehlt nur
+                # der Platz; ein Dorf ohne Kennzeichen muss es kaufen.
+                _offen = [s.name for s in _ohne_dz if getattr(s, "dorfzentrum_offen", False)]
+                _kaufen = [s.name for s in _ohne_dz
+                           if not getattr(s, "dorfzentrum_offen", False)]
+                if _offen:
+                    tk.Label(_dz, text=("Platz noch offen in: " + ", ".join(_offen)
+                                        + " — auf der Siedlungskarte ein freies Feld anklicken "
+                                          "und „Dorfzentrum hier setzen“ wählen (kostenlos, "
+                                          "kommt aus dem Gründungspaket)."),
+                             fg="#7FD1FF", bg=self.skin["panel"], wraplength=780,
+                             justify=tk.LEFT).pack(anchor=tk.W, padx=5, pady=(0, 3))
+                if _kaufen:
+                    tk.Label(_dz, text=("fehlt noch in: " + ", ".join(_kaufen)
+                                        + " — auf der Siedlungskarte im Baubereich „Sonstiges“ "
+                                          "bauen (Baukunst Stufe 1 nötig)."),
+                             fg="#FDBA74", bg=self.skin["panel"], wraplength=780,
+                             justify=tk.LEFT).pack(anchor=tk.W, padx=5, pady=(0, 3))
         # Die Verwaltung selbst: EINE Lageransicht (`_render_storage`), kein zweiter Lagerbegriff.
         self._render_storage(eigener_titel=False)
 
@@ -4286,6 +4309,8 @@ class NebelseetalApp:
             # geht in Nachrichten UND Log, aber NICHT ueber `self._log` — sonst wuerde sie die
             # Statuszeile ueberschreiben, die weiterhin "gegruendet" zeigen soll.
             _start_ergebnisse = _startgebaeude_setzen(sett, karte)
+            # S-2c-D: das Dorfzentrum wartet auf seinen Platz - der Spieler setzt es selbst.
+            sett.dorfzentrum_offen = True
             _start_text = _startgebaeude_meldung(_start_ergebnisse)
             if _start_text:
                 self.state.messages.append({"type": "gruendung", "text": _start_text})
@@ -4822,6 +4847,61 @@ class NebelseetalApp:
         if ok:
             self._render_view()
 
+    def _dorfzentrum_setzen(self, feld):
+        """Setzt das mitgelieferte Dorfzentrum KOSTENLOS auf ein Feld des gewaehlten Dorfes.
+
+        Schnitt S-2c-D, Daniel 01.11.2026 woertlich: "kostenlos bei jeder gruendung mitgesetzt
+        aber das setzen lassen ist wichtig damit der spieler bestimmt welches feld seiner karte
+        besetzt wird". Deshalb setzt die Gruendung nur das Kennzeichen `dorfzentrum_offen`; die
+        Platzwahl trifft der Spieler hier, ohne Kosten, ohne Siedler und ohne Baukunst (wie die
+        drei Startgebaeude aus S-1, die ebenfalls direkt in `bauten`/`stufen` schreiben).
+
+        Der bezahlte Bauweg (`_karten_bauen` -> `bauen_auf_karte`) bleibt daneben bestehen und
+        verlangt weiter Baukunst und Rohstoffe; `max_je_siedlung: 1` gilt fuer beide Wege.
+
+        Geprueft wird VOR jeder Aenderung: offenes Kennzeichen, noch kein Dorfzentrum, Feld auf
+        der Karte, Feld frei, Gelände erlaubt. Bei Ablehnung bleibt der Bestand unveraendert und
+        der Grund steht im Log.
+        """
+        siedlung = getattr(self, "karten_siedlung", None) or self.state.aktive_siedlung()
+        if siedlung is None:
+            self._log("Kein Dorf gewaehlt — ein Dorfzentrum braucht ein Dorf.")
+            return False
+        if not getattr(siedlung, "dorfzentrum_offen", False):
+            self._log(f"In {siedlung.name} ist kein Dorfzentrum zum Setzen offen.")
+            return False
+        if gebaeude_wirkung.gebaeude_stufe(siedlung, "lager") > 0:
+            siedlung.dorfzentrum_offen = False
+            self._log(f"{siedlung.name} hat bereits ein Dorfzentrum — hoechstens eines je Dorf.")
+            return False
+        try:
+            feld = int(feld)
+        except (TypeError, ValueError):
+            self._log("Ungueltiges Feld — das Dorfzentrum bleibt im Gruendungspaket.")
+            return False
+        karte = getattr(siedlung, "karte", None) or {}
+        raster = list(karte.get("raster") or [])
+        if not raster or not (0 <= feld < len(raster)):
+            self._log("Dieses Feld liegt nicht auf der Karte des Dorfes.")
+            return False
+        belegt = (siedlung.bauten or {}).get(str(feld))
+        if belegt:
+            self._log(f"Feld {feld} ist bereits belegt ({gelaende.gebaeude_name(belegt)}) — "
+                      f"ein freies Feld waehlen.")
+            return False
+        erlaubt, grund = gelaende.bau_moeglich("lager", raster[feld])
+        if not erlaubt:
+            self._log(grund)
+            return False
+        siedlung.bauten[str(feld)] = "lager"
+        siedlung.stufen[str(feld)] = 1
+        siedlung.dorfzentrum_offen = False
+        self._log(f"Dorfzentrum in {siedlung.name} auf Feld {feld} gesetzt — kostenlos aus dem "
+                  f"Gruendungspaket (das Lager dieses Dorfes ist damit eingerichtet).")
+        self._menue_auffrischen()
+        self._render_view()
+        return True
+
     def _karten_abreissen(self):
         siedlung = getattr(self, "karten_siedlung", None)
         feld = getattr(self, "karten_feld", None)
@@ -5245,6 +5325,14 @@ class NebelseetalApp:
         if feld is None:
             tk.Label(info, text="Ein Feld auf der Karte anklicken, um dort zu bauen.",
                      fg=self.skin["text"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=6, pady=6)
+            # S-2c-D: solange der Platz des Dorfzentrums offen ist, sagt die Ansicht das auch
+            # ohne gewaehltes Feld - sonst sucht der Spieler einen Knopf, den er nicht sieht.
+            if getattr(siedlung, "dorfzentrum_offen", False) and not \
+                    gebaeude_wirkung.gebaeude_stufe(siedlung, "lager"):
+                tk.Label(info, text="Dorfzentrum: das Feld ist noch offen. Ein freies Feld "
+                                    "anklicken, dann erscheint dort der Knopf zum Setzen.",
+                         fg="#7FD1FF", bg=self.skin["panel"], wraplength=280,
+                         justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(0, 6))
             return
 
         art = karte["raster"][feld]
@@ -5287,6 +5375,27 @@ class NebelseetalApp:
             tk.Button(knopfreihe, text="Abreißen", command=self._karten_abreissen, bg="#3e2723",
                       fg=self.skin["gold"]).pack(side=tk.LEFT, padx=6)
             return
+
+        # S-2c-D (Daniel 01.11.2026): Das Dorfzentrum ist mit der Gruendung schon bezahlt, nur der
+        # PLATZ fehlt noch - der Spieler bestimmt ihn hier. Bewusst ein eigener Knopf neben dem
+        # normalen Bauweg: `_karten_bauen` verlangt weiter Kosten und Baukunst, dieser Weg nicht.
+        if getattr(siedlung, "dorfzentrum_offen", False) and not gebaeude_wirkung.gebaeude_stufe(
+                siedlung, "lager"):
+            _dz_ok, _dz_grund = gelaende.bau_moeglich("lager", art)
+            if _dz_ok:
+                _dz_rahmen = tk.Frame(info, bg="#1B2A2F", highlightbackground="#7FD1FF",
+                                      highlightthickness=1)
+                _dz_rahmen.pack(fill=tk.X, padx=6, pady=(6, 2))
+                tk.Label(_dz_rahmen, text="Dorfzentrum einplanen", fg="#7FD1FF", bg="#1B2A2F",
+                         font=("TkDefaultFont", 10, "bold")).pack(anchor=tk.W, padx=6, pady=(4, 0))
+                tk.Label(_dz_rahmen, text="Es kommt kostenlos mit dem Gruendungspaket - du "
+                                          "bestimmst das Feld.", fg="#C0C0C0", bg="#1B2A2F",
+                         wraplength=280, justify=tk.LEFT).pack(anchor=tk.W, padx=6)
+                tk.Button(_dz_rahmen, text="Dorfzentrum hier setzen (kostenlos)",
+                          command=lambda f=feld: self._dorfzentrum_setzen(f),
+                          bg="#2563EB", fg="white", activebackground="#1D4ED8",
+                          activeforeground="white",
+                          font=("TkDefaultFont", 10, "bold")).pack(anchor=tk.W, padx=6, pady=(2, 6))
 
         # FIX04: Der historische Screenshot nennt eigene Bereiche fuer Produktion und
         # Verteidigung; buildings.json hat fuenf Originalrubriken. Statt 20 gleichartigen

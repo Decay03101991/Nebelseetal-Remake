@@ -1,11 +1,12 @@
-# STAND 01.11.2026, 17:00 - S-2c abgeschlossen: das Dorfzentrum ist das Lager
+# STAND 01.11.2026, 17:26 - S-2c abgeschlossen: das Dorfzentrum ist das Lager, und den Platz bestimmt der Spieler
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
 
 ## Was in dieser Sitzung gebaut wurde
 
-**S-2c ist fertig und gruen** - das Dorfzentrum ist Menuepunkt UND Gebaeude, und die Lagerverwaltung steht
-darin:
+**S-2c und S-2c-D sind fertig und gruen** - das Dorfzentrum ist Menuepunkt UND Gebaeude, die
+Lagerverwaltung steht darin, und es kommt kostenlos mit jeder Gruendung, ohne dass das Spiel den Platz
+vorgibt:
 
 | Gegenstand | Wert | Beleg |
 |---|---|---|
@@ -13,44 +14,46 @@ darin:
 | Alias-Erkennung | `finde_gebaeude` liest zusaetzlich den `alias` - ein Altstand mit "Lager" in `bauten` zaehlt als Dorfzentrum, ohne Migration | `src/gelaende.py` |
 | Menue | `MENUE_ENTFALLEN = {"Lager"}` blendet den Punkt in der ANZEIGE aus; `MENU_ITEMS` bleibt die belegte Original-Liste (16 Eintraege); Anker fuer Stellmacher/Diebesgilde ist `MENUE_ANKER = "Dorfzentrum"` | `src/main.py` |
 | EINE Lageransicht | `_render_storage(eigener_titel=False)` wird von `_render_overview` gerufen; die alte Route traegt `STILLGELEGT` | `src/main.py` |
+| Platzwahl | `Settlement.dorfzentrum_offen` (Vorgabe False) wird bei jeder Gruendung gesetzt; `_dorfzentrum_setzen(feld)` setzt das Gebaeude kostenlos auf das vom Spieler gewaehlte Feld | `src/main.py` |
 | Abriss | Das einzige Dorfzentrum ist gesperrt - auch unter dem alten Namen "Lager" | `_karten_abreissen` |
-| Pruefdatei | `tests/test_dorfzentrum_ist_lager.py` **61/0/0** | Lauf 16:55 |
-| Voller Sammellauf | **115 Dateien, 113 gruen, 0 rot, 2 ausgesetzt, 4.193 Pruefungen, 298 s** | `docs/audits/sammellauf_20261101_1655_s2c.log` |
-| Register | 89 | `docs/PRUEFREGEL_ORIGINAL.md` |
+| Pruefdatei | `tests/test_dorfzentrum_ist_lager.py` **82/0/0** | Lauf 17:23 |
+| Voller Sammellauf | **115 Dateien, 113 gruen, 0 rot, 2 ausgesetzt, 4.214 Pruefungen, 272 s** | `docs/audits/sammellauf_20261101_1723_s2cd.log` |
+| Register | 90 | `docs/PRUEFREGEL_ORIGINAL.md` |
+
+**Daniels Entscheidung, woertlich (01.11.2026):** "kostenlos bei jeder gruendung mitgesetzt aber das setzen
+lassen ist wichtig damit der spieler bestimmt welches feld seiner karte besetzt wird". Gelesen als
+MITGELIEFERT, nicht automatisch gesetzt: die Gruendung setzt nur das Kennzeichen, die Siedlungskarte zeigt
+den Kasten "Dorfzentrum einplanen" mit dem Knopf "Dorfzentrum hier setzen (kostenlos)". Die S-1-Regel bleibt
+unberuehrt - es bleiben **drei** automatische Startgebaeude, alle 35 Wachen unveraendert gruen.
 
 **Was das im Spiel bedeutet:** Im Menue steht kein eigener Punkt "Lager" mehr. Das Dorfzentrum zeigt oben die
 Uebersicht (naechster Schritt, Siedler, Siedlungen, Auftraege, Gebaeudewirkungen) und darunter die
 Lagerverwaltung des aktiven Ortes: Bestand, Waren, Einheiten und die Werkstaetten mit ihren Warteschlangen.
-Ein zweites Dorfzentrum laesst sich nicht bauen, das einzige nicht abreissen. Das Gebaeude selbst bleibt
-baubar (Baubereich "Sonstiges", Baukunst Stufe 1) - die Seite funktioniert auch ohne das Gebaeude, weil der
-Bestand in `Settlement.vorraete` fuehrt, nicht im Gebaeude.
+Nach der Gruendung wahlt der Spieler das Feld des Dorfzentrums selbst; ein zweites ist nicht baubar, das
+einzige nicht abreissbar.
 
-## Offen und ausdruecklich NICHT entschieden
+## Werkzeug wiederhergestellt: PyInstaller
 
-Ob das Dorfzentrum bei jeder Gruendung **kostenlos mitgesetzt** wird (dann vier Startgebaeude statt drei, und
-S-1 mit seinen 35 Pruefungen zieht mit) oder ob es gebaut werden muss. Daniel hat nur gesagt, es sei
-Menuepunkt **und** Gebaeude. Der Punkt steht in der Sammelliste; S-2c funktioniert in beiden Faellen.
+Das Hermes-Update am 01.11. (13:59-14:52) hat die Python-Runtime getauscht; `PyInstaller` fehlte danach. Die
+Pruefung `tools/build_exe.py --pruefen` lief noch, der Bau brach mit "No module named PyInstaller" ab und
+liess die alte EXE unangetastet. Auf Daniels Freigabe mit `uv pip install pyinstaller` (6.22.3)
+nachinstalliert; **EXE 47.972.104 Byte, SHA256 `4df48ffa...`**, Start belegt (Kind-PID 16468, Fenster
+"Nebelseetal Remake", 115 s und 128 s Responding True). **Vor** der Platzwahl-Aenderung gebaut, wird nach dem
+Commit neu gebaut.
 
 ## Der naechste Schritt
 
-**S-3: Forschungsuebernahme ueber die Bibliothek** (Verbund). Papier bereit:
-`docs/design/VERBUND_FORSCHUNG_EINHEITEN_TRANSFER_20261101.md` (46.061 Byte, 327 Zeilen) mit den acht offenen
-Entscheidungen in Abschnitt 7 - **Selbstauskunft eines externen Modells, jede Zahl vor dem Einbau
-gegenpruefen.**
+**S-5: das Weltbild als Gelaende** (Daniel hat die Ableitung entschieden: die sieben vorhandenen
+Gelaendearten mit ihren Gewichten aus `data/gelaende.json`, als 2x2-Bloecke mit stabilem Seed je Welt - siehe
+Register 91). Danach S-3 (Forschungsuebernahme, Papier liegt), S-4, S-6, S-7, S-8.
 
 **Papier eingetroffen, noch nicht eingearbeitet:** die Antworten des Chat-Modells zu S-5/S-2c/Demo
 (`archiv/eingaben/20261101_gpt_antworten/GPT_WELTBILDBERICHT_...md`) und zu den Bot-Taktikpaketen
 (`.../GPT_Taktikpaket_...md`), beide gitignoriert abgelegt.
 
-**Auftrag 7 geschrieben, noch nicht beantwortet:** `AUFTRAG_GPT_S7_S8_UND_DEMO_ANLEITUNG_20261101.md` -
-S-7 (Bots sichtbar ohne Kartenmarker, kein Angriff), S-8 (Bilanz Mana und Reisekosten) und der gefuehrte
-Start der Demo.
-
-## Desktop
-
-Geraeumt. Die Uebergabe 12:30 liegt in `D:\Arbeiten\Hermes\Uebergaben\20261101_1230\`, die drei
-GPT-Papiere hashgeprueft in `archiv/eingaben/20261101_gpt_antworten/` (gitignoriert, nicht im Bundle). Auf dem
-Desktop liegt genau EIN Auftrag fuer das Chat-Modell.
+**Auftrag 7 geschrieben, noch nicht beantwortet:** `AUFTRAG_GPT_S7_S8_UND_DEMO_ANLEITUNG_20261101.md` - S-7
+(Bots sichtbar ohne Kartenmarker, kein Angriff), S-8 (Bilanz Mana und Reisekosten) und der gefuehrte Start
+der Demo. Auf dem Desktop liegt genau diese eine Datei.
 
 # STAND 01.11.2026, 12:20 - S-2b abgeschlossen: die Portal-Uebersicht zeigt Weltkartenliste und Gelaendekaestchen
 

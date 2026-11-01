@@ -320,8 +320,100 @@ def _gui():
             pass
 
 
+
+# --------------------------------------------------------------------------------------
+def _platzwahl():
+    abschnitt("10. S-2c-D: das Dorfzentrum kommt mit, den PLATZ bestimmt der Spieler")
+    from dataclasses import asdict
+    leer = main.Settlement(name="X", map_id="k", x=0, y=0)
+    check("ein Ort traegt das Kennzeichen dorfzentrum_offen",
+          hasattr(leer, "dorfzentrum_offen"), "Feld fehlt")
+    check("der Vorgabewert ist False", leer.dorfzentrum_offen is False,
+          str(leer.dorfzentrum_offen))
+    alt = {k: v for k, v in asdict(leer).items() if k != "dorfzentrum_offen"}
+    wieder = main.Settlement(**alt)
+    check("ein Altstand OHNE das Feld laedt mit False (keine Migration)",
+          wieder.dorfzentrum_offen is False, str(wieder.dorfzentrum_offen))
+
+    rumpf = _code(main.NebelseetalApp._render_settlement_map)
+    check("die Siedlungskarte bietet das Setzen an", "_dorfzentrum_setzen" in rumpf,
+          "Aufruf fehlt in der Kartenansicht")
+    check("der kostenlose Weg verlangt keine Baukunst (kein bauen_auf_karte)",
+          "bauen_auf_karte" not in _code(main.NebelseetalApp._dorfzentrum_setzen),
+          "der freie Weg darf nicht ueber den bezahlten laufen")
+
+    import tkinter as tk
+    root = tk.Tk()
+    root.withdraw()
+    try:
+        app = main.NebelseetalApp(root)
+        app._build_main_ui()
+        app._erste_siedlung_gruenden()
+        ort = app.state.settlements[0]
+        check("die Gruendung liefert das Dorfzentrum als offenen Platz",
+              ort.dorfzentrum_offen is True, str(ort.dorfzentrum_offen))
+        check("die Gruendung setzt es NICHT selbst auf ein Feld",
+              gebaeude_wirkung.gebaeude_stufe(ort, "lager") == 0,
+              str(sorted((ort.bauten or {}).values())))
+        check("die drei Startgebaeude aus S-1 stehen unveraendert",
+              len(ort.bauten) == 3, str(len(ort.bauten)))
+
+        raster = list(ort.karte["raster"])
+        frei = next((i for i, art in enumerate(raster)
+                     if str(i) not in ort.bauten
+                     and gelaende.bau_moeglich("lager", art)[0]), None)
+        sperr = next((i for i, art in enumerate(raster)
+                      if str(i) not in ort.bauten
+                      and not gelaende.bau_moeglich("lager", art)[0]), None)
+        belegt = next(iter(sorted(ort.bauten)), None)
+        check("die Testkarte hat ein freies, erlaubtes Feld", frei is not None, str(raster))
+        vorher_vorr = dict(ort.vorraete)
+        vorher_bev = float(ort.bevoelkerung)
+        app.karten_siedlung = ort
+        app.karten_feld = frei
+
+        if belegt is not None:
+            ok_belegt = app._dorfzentrum_setzen(int(belegt))
+            check("auf einem belegten Feld wird es abgelehnt", ok_belegt is False, str(ok_belegt))
+            check("die Ablehnung aendert nichts",
+                  ort.dorfzentrum_offen is True and gebaeude_wirkung.gebaeude_stufe(
+                      ort, "lager") == 0, str(ort.bauten))
+
+        if sperr is not None:
+            ok_sperr = app._dorfzentrum_setzen(int(sperr))
+            check("auf unzulaessigem Gelaende wird es abgelehnt (Standortregel)",
+                  ok_sperr is False, str(ok_sperr))
+            check("auch dort bleibt alles offen", ort.dorfzentrum_offen is True,
+                  str(ort.dorfzentrum_offen))
+
+        ok = app._dorfzentrum_setzen(int(frei))
+        check("auf dem gewaehlten freien Feld wird es gesetzt", ok is True, str(ok))
+        check("es steht Stufe 1 auf genau diesem Feld",
+              ort.bauten.get(str(frei)) == "lager" and ort.stufen.get(str(frei)) == 1,
+              str((frei, ort.bauten.get(str(frei)), ort.stufen.get(str(frei)))))
+        check("das Kennzeichen ist danach geloescht", ort.dorfzentrum_offen is False,
+              str(ort.dorfzentrum_offen))
+        check("das Setzen kostet NICHTS (Startvorraete unveraendert)",
+              dict(ort.vorraete) == vorher_vorr, str(ort.vorraete))
+        check("es bindet keine Siedler", float(ort.bevoelkerung) == vorher_bev,
+              str(ort.bevoelkerung))
+        check("genau ein Dorfzentrum im Dorf",
+              sum(1 for g in ort.bauten.values() if gelaende.finde_gebaeude(g) == "lager") == 1,
+              str(ort.bauten))
+        ok2 = app._dorfzentrum_setzen(int(frei))
+        check("ein zweiter Aufruf wird abgelehnt", ok2 is False, str(ok2))
+        check("es bleibt bei genau einem Dorfzentrum",
+              sum(1 for g in ort.bauten.values() if gelaende.finde_gebaeude(g) == "lager") == 1,
+              str(ort.bauten))
+    finally:
+        try:
+            root.destroy()
+        except Exception:
+            pass
+
+
 def main_lauf():
-    for teil in (_daten, _menue, _bauen, _abriss, _ansicht):
+    for teil in (_daten, _menue, _bauen, _abriss, _ansicht, _platzwahl):
         try:
             teil()
         except Exception as fehler:  # noqa: BLE001
