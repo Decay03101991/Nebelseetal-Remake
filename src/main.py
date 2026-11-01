@@ -360,6 +360,99 @@ def bauen_auf_karte(siedlung: "Settlement", gebaeude_key: str, feld: int,
     return True, f"{warum} (Feld {feld})"
 
 
+# ---------- Gruendung bringt drei Startgebaeude mit (Schnitt S-1, Daniel 01.11.2026) ----------
+# Der Siedlungskarren liefert bei JEDER Gruendung (erstes Dorf UND jede Kolonie) drei Gebaeude:
+# Holzfäller (moeglichst auf Wald), Steinmetz (moeglichst auf Huegel oder Berg) und Tempel
+# (moeglichst auf Nebelsee, ohne Nebelsee auf Steppe). Sie kosten nichts, binden keine Siedler,
+# und der Tempel braucht bei der GRUENDUNG keine Baukunst (Ausnahme: „der Siedlungskarren bringt
+# diesen Tempel quasi schon mit", docs/KONZEPT_SECHS_DOERFER_20261101.md, Anhang 1). Ein spaeterer
+# Nachbau bleibt forschungspflichtig (bauen_auf_karte prueft weiter Baukunst).
+# Die Platzwahl ist EINE Funktion mit einer Vorlieben-Tabelle (keine if-Kette, kein Zufall); der
+# Tempel steht zuerst, damit ein seltenes Nebelsee-Feld nicht verloren geht (die drei
+# Wunschgelaende sind disjunkt).
+
+STARTGEBAEUDE_VORLIEBEN = (
+    # (Gebaeudekennung, Wunschgelaende in absteigender Prioritaet)
+    ("tempel", ("nebelsee", "steppe")),
+    ("holzfaeller", ("wald",)),
+    ("steinmetz", ("huegel", "berg")),
+)
+
+
+def _startgebaeude_setzen(ort, karte) -> list:
+    """Die drei Startgebaeude des Gruendungskarren auf freie Felder setzen.
+
+    EINE Funktion fuer die Platzwahl (Schnitt S-1). Je Gebaeude fuehrt
+    ``STARTGEBAEUDE_VORLIEBEN`` das Wunschgelaende; gibt es keines, nimmt die Gruendung das
+    beste freie Feld (das erste freie, auf dem das Gebaeude nach ``gelaende.bau_moeglich``
+    stehen darf) und meldet das als Ersatz. Zu kleine oder volle Karten setzen so viele Gebaeude
+    wie moeglich und nennen die fehlenden - geworfen wird nie.
+
+    Die Gebaeude werden DIREKT in ``ort.bauten``/``ort.stufen`` geschrieben (Stufe 1), nicht
+    ueber ``bauen_auf_karte``: so kosten sie nichts, binden keine Siedler, und der Tempel
+    braucht keine Baukunst (Gruendungs-Ausnahme). Rueckgabe: je Gebaeude ein dict
+    {gebaeude, gelaende, feld, x, y, wunsch, fehlend} - ``feld`` ist None, wenn kein Platz war.
+    """
+    raster = list((karte or {}).get("raster") or [])
+    spalten = int((karte or {}).get("spalten") or 0)
+    belegt = {int(k) for k in (getattr(ort, "bauten", None) or {}) if str(k).isdigit()}
+    ergebnisse = []
+    for gebaeude_key, vorlieben in STARTGEBAEUDE_VORLIEBEN:
+        feld = None
+        wunsch = False
+        for art in vorlieben:
+            # Remake-Entscheidung (Schnitt S-1): belegt wird das HOECHSTE freie Wunschfeld, damit
+            # die vorderen Felder (die der Spieler auf der Karte zuerst anklickt) frei bleiben.
+            for i in range(len(raster) - 1, -1, -1):
+                if i in belegt or raster[i] != art:
+                    continue
+                feld = i
+                wunsch = True
+                break
+            if feld is not None:
+                break
+        if feld is None:
+            # Ersatz: das hoechste freie Feld, auf dem das Gebaeude stehen darf (Gelaenderegel).
+            for i in range(len(raster) - 1, -1, -1):
+                if i in belegt:
+                    continue
+                erlaubt, _ = gelaende.bau_moeglich(gebaeude_key, raster[i])
+                if erlaubt:
+                    feld = i
+                    break
+        if feld is None:
+            ergebnisse.append({"gebaeude": gebaeude_key, "gelaende": None, "feld": None,
+                               "x": None, "y": None, "wunsch": False, "fehlend": True})
+            continue
+        belegt.add(feld)
+        ort.bauten[str(feld)] = gebaeude_key
+        ort.stufen[str(feld)] = 1
+        ergebnisse.append({"gebaeude": gebaeude_key, "gelaende": raster[feld],
+                           "feld": feld, "x": feld % spalten if spalten else 0,
+                           "y": feld // spalten if spalten else 0,
+                           "wunsch": wunsch, "fehlend": False})
+    return ergebnisse
+
+
+def _startgebaeude_meldung(ergebnisse) -> str:
+    """Die Gruendungsmeldung der Startgebaeude: ein Satz je Gebaeude mit Gelaende und Feld."""
+    saetze = []
+    for eintrag in ergebnisse:
+        name = gelaende.gebaeude_name(eintrag["gebaeude"])
+        if eintrag.get("fehlend"):
+            saetze.append(f"kein Bauplatz fuer {name}")
+            continue
+        gname = gelaende.name(eintrag["gelaende"])
+        koordinate = f"({eintrag['x']},{eintrag['y']})"
+        if eintrag["wunsch"]:
+            saetze.append(f"{name} auf {gname} {koordinate}")
+        else:
+            vorlieben = dict(STARTGEBAEUDE_VORLIEBEN)[eintrag["gebaeude"]]
+            wunsch_text = "/".join(gelaende.name(a) for a in vorlieben)
+            saetze.append(f"kein {wunsch_text} frei - Ersatz auf {gname} {koordinate}")
+    return " · ".join(saetze)
+
+
 # ---------- Config ----------
 
 # Icon-Dateien: bevorzugt die freigestellte Fassung aus assets/icons/clean/ — dort ist der
@@ -2108,6 +2201,12 @@ class GameState:
         if tile is not None:
             tile.npc_faction = "spieler"
             tile.sector_name = name
+        # Auch eine Kolonie bekommt die drei Startgebaeude des Siedlungskarren (Schnitt S-1).
+        _start_ergebnisse = _startgebaeude_setzen(neu, karte)
+        _start_text = _startgebaeude_meldung(_start_ergebnisse)
+        if _start_text:
+            self.messages.append({"type": "gruendung", "text": _start_text})
+            self._log(_start_text)
         meldung = (f"Neue Siedlung '{name}' gegründet ({karte['typ_name']}, Feld {x}/{y}) — "
                    f"{siedler} Kolonisten und das Startpaket sind angekommen; "
                    f"im Ortslager von {quelle.name} ist der Mindestbestand verbraucht.")
@@ -4123,6 +4222,14 @@ class NebelseetalApp:
             self.state.hatte_siedlung = True
             tile.npc_faction = "spieler"
             tile.sector_name = sett.name
+            # Der Gruendungskarren bringt die drei Startgebaeude mit (Schnitt S-1). Die Meldung
+            # geht in Nachrichten UND Log, aber NICHT ueber `self._log` — sonst wuerde sie die
+            # Statuszeile ueberschreiben, die weiterhin "gegruendet" zeigen soll.
+            _start_ergebnisse = _startgebaeude_setzen(sett, karte)
+            _start_text = _startgebaeude_meldung(_start_ergebnisse)
+            if _start_text:
+                self.state.messages.append({"type": "gruendung", "text": _start_text})
+                self.state._log(_start_text)
             # Die Hauptmeldung ZULETZT: die Statuszeile zeigt immer die letzte Zeile.
             self._log(f"  Karte: {karte['typ_name']} — {karte['vorteil']}")
             self._log(f"  {gelaende.karte_beschreiben(karte)}")

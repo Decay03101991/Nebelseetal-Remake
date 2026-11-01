@@ -1,3 +1,48 @@
+# STAND 01.11.2026, 09:47 - S-1 abgeschlossen: die Gruendung bringt drei Startgebaeude mit
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+## Was in dieser Sitzung gebaut wurde
+
+**S-1 ist fertig und gruen** - der Patch aus `docs/audits/S1_ENTWURF_20261101/` ist angewendet, die
+sieben roten Pruefdateien sind einzeln nachgezogen, der volle Sammellauf ist sauber:
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Code | `STARTGEBAEUDE_VORLIEBEN`, `_startgebaeude_setzen`, `_startgebaeude_meldung` in `src/main.py`, benutzt an beiden Gruendungswegen (`_erste_siedlung_gruenden`, `GruendungGameState.gruendung_ausfuehren`) | `git diff`, Register 86 |
+| Pruefdatei | `tests/test_gruendung_startgebaeude.py` **35/0/0** | Lauf 09:24 |
+| Nachgezogene Wachen | 7 Dateien, jede mit Satz und Quelle im Kommentar, keine Wache geloescht | Abschnitt unten |
+| Voller Sammellauf | **112 Dateien, 111 gruen, 0 rot, 1 ausgesetzt, 4.125 Pruefungen, 598 s** | `docs/audits/sammellauf_20261101_0931.log` |
+| EXE | **46.144.237 Byte**, SHA256 `b2194fc5…`, Start belegt (Kind-PID 11692, Fenster `Nebelseetal Remake`, 95 s stabil) | `sha256sum`, `Get-Process` 09:48 |
+| Register | 86 | `docs/PRUEFREGEL_ORIGINAL.md` |
+
+**Was das im Spiel bedeutet:** jede Gruendung - erstes Dorf UND jede Kolonie - setzt Holzfäller
+(moeglichst Wald), Steinmetz (moeglichst Huegel oder Berg) und Tempel (moeglichst Nebelsee, sonst
+Steppe) auf freie Felder, kostenlos, ohne Siedlerabzug, der Tempel ohne Baukunst. Die Meldung nennt je
+Gebaeude Gelaende und Feld und sagt ausdruecklich, wenn das Wunschgelaende fehlt und ein Ersatz
+genommen wurde. Startressourcen bleiben 10 Siedler / 100 Holz / 100 Stein.
+
+## Die sieben nachgezogenen Wachen (Beleg fuer die Ruecknahme am 04:02)
+
+Sechs der sieben haengen an EINER gemeinsamen Wache in `tools/gpt_erzeuge_startstaende.py` (sie erzeugt
+den Startzustand fuer die GPT-Pruefdateien): `assert s.bevoelkerung == 10.0 and not s.bauten` ist auf
+die neue Wahrheit gestellt - zehn Siedler, genau Holzfaeller, Steinmetz und Tempel, je Stufe 1.
+`test_produktionskette_ohne_cheats` hatte ihre eigene Zeile und ist ebenso umgestellt. Die uebrigen
+Erwartungen waren Zahlen, die auf dem leeren Aufbauzustand beruhten und offen angehoben wurden:
+Holz 101 -> 105 und Stein 101 -> 103 je Stunde (Grundertrag 1/h plus Startgebaeude 4/h bzw. 2/h),
+25 Stunden 125 -> 225 bzw. 175, Frischstart nach zwei Bauten 90/90 -> 94/92.
+
+## Der naechste Schritt
+
+**S-2: Dorfzentrum** (Menuepunkt UND Lagergebaeude), der Menuepunkt Karten entfaellt, dazu die
+**Portal-Uebersicht** mit Weltkartenliste oben und Gelaendekaestchen darunter - hier beginnt die
+Umbenennung Dimensionen -> Weltkarten und Weltensprung (Anhang 3, Abschnitt 6).
+
+**Nebenher offen, von Daniel geliefert:** das Assetpaket `Hermes_Nebelseetal_Assets_Icons.zip`
+(2 Kontaktboegen, je 1448 x 1086 px, RGBA: 6 Burgen, 10 Wappen) liegt auf dem Desktop und ist noch
+nicht im Projekt. Es gehoert zu S-5 (Weltbild) und S-7 (Bots) - der Auftrag an das starke Chat-Modell
+steht in `docs/AUFTRAG_GPT_WELTBILD_UND_ASSETS_20261101.md`.
+
 # STAND 01.11.2026, 09:17 - 35 Fragen beantwortet, Fahrplan neu
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

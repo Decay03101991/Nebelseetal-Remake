@@ -41,7 +41,14 @@ def neu_erzeugen():
     assert s.karte['spalten'] == 10 and s.karte['zeilen'] == 10
     assert len(s.karte['raster']) == 100 and s.karte.get('originalkarte_id')
     assert s.vorraete == {'holz':100.0,'stein':100.0}
-    assert s.bevoelkerung == 10.0 and not s.bauten
+    assert s.bevoelkerung == 10.0
+    # SCHNITT S-1 (Daniel 01.11.2026, docs/KONZEPT_SECHS_DOERFER_20261101.md Anhang 1): der
+    # Siedlungskarren bringt Holzfaeller, Steinmetz und Tempel mit - die Gruendung endet also
+    # NICHT mehr mit leerem Aufbauzustand. Die frueher hier stehende Wache "not s.bauten" spiegelte
+    # den Zustand ohne Startgebaeude; sie ist auf die neue Wahrheit gestellt, nicht geloescht:
+    # genau diese drei Gebaeude, je Stufe 1, sonst nichts.
+    assert sorted(s.bauten.values()) == ['holzfaeller', 'steinmetz', 'tempel'], s.bauten
+    assert {str(f): int(v) for f, v in s.stufen.items()} == {f: 1 for f in s.bauten}, s.stufen
     assert state.spielende is None and not state.admin_teststand
     return state
 

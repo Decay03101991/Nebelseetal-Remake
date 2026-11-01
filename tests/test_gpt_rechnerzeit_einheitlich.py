@@ -93,8 +93,11 @@ class TestRechnerzeit(unittest.TestCase):
         s.tick(25*3600)
         self.assertEqual(s.day,2)
         self.assertEqual(s.spielsekunden,25*3600)
-        self.assertEqual(ort.vorraete['holz'],125)
-        self.assertEqual(ort.vorraete['stein'],125)
+        # S-1 (Daniel 01.11.2026): die Startgebaeude ernten mit - Holz 100 + 25 x 5/h = 225,
+        # Stein 100 + 25 x 3/h = 175 (Grundertrag 1/h plus Holzfaeller 4/h bzw. Steinmetz 2/h).
+        # Die alten Werte 125/125 galten fuer den leeren Aufbauzustand.
+        self.assertEqual(ort.vorraete['holz'],225)
+        self.assertEqual(ort.vorraete['stein'],175)
 
     def test_nachrichtenliste_im_spielstand_gestempelt(self):
         s=vorlage.neu_erzeugen()

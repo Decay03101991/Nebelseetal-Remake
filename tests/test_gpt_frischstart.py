@@ -13,7 +13,11 @@ class Frischstart(unittest.TestCase):
         self.assertEqual((s.karte['spalten'],s.karte['zeilen'],len(s.karte['raster'])),(10,10,100))
         self.assertEqual(s.karte['originalkarte_id'], 'original-036')
         self.assertEqual(sum(g!='sumpf' for g in s.karte['raster']), s.karte['bauplaetze'])
-        self.assertFalse(s.bauten)
+        # SCHNITT S-1 (Daniel 01.11.2026, docs/KONZEPT_SECHS_DOERFER_20261101.md Anhang 1): der
+        # Siedlungskarren bringt Holzfaeller, Steinmetz und Tempel mit. Die Wache hiess frueher
+        # "kein Gebaeude am Anfang" und prueft jetzt die neue Wahrheit: genau diese drei, sonst
+        # nichts (keine erforschten Ausbaustufen, kein viertes Gebaeude).
+        self.assertEqual(sorted(s.bauten.values()), ['holzfaeller', 'steinmetz', 'tempel'])
         self.assertIsNone(state.spielende)
         self.assertFalse(state.admin_teststand)
         self.assertTrue(state.oekonomie_aktiv)
@@ -44,7 +48,10 @@ class Frischstart(unittest.TestCase):
             self.assertEqual(pathlib.Path(path).read_bytes(),stand)
     def test_regulaere_hoechstpunkte_nicht_vorweggenommen(self):
         n=vorlagen.neu_erzeugen()
-        self.assertFalse(any(s.stufen for s in n.settlements))
+        # S-1: Stufen stehen nur auf den drei Startgebaeuden (je Stufe 1) - nichts vorweggenommen.
+        # Frueher hiess die Wache "keine Stufe ueberhaupt"; die Zusage bleibt, der Anker ist neu.
+        self.assertEqual(sorted((f,int(v)) for s in n.settlements for f,v in s.stufen.items()),
+                         sorted((f,1) for s in n.settlements for f in s.bauten))
         self.assertEqual(n.day,1)
         self.assertEqual(n.spielsekunden,0)
         self.assertTrue(n.noob_protection)
@@ -61,7 +68,11 @@ class Frischstart(unittest.TestCase):
         self.assertEqual((ort.vorraete['holz'],ort.vorraete['stein']),(85.0,85.0))
         state.tick(3600)
         # Original-Tutorial: Grundproduktion 1/h je Holz/Stein plus 4/h Gebaeudeertrag.
-        self.assertEqual((ort.vorraete['holz'],ort.vorraete['stein']),(90.0,90.0))
+        # S-1 (Daniel 01.11.2026): die zwei gebauten Gebaeude kommen zu den Startgebaeuden dazu -
+        # Holz: 1/h Grund + 4/h Start-Holzfaeller (Wald) + 4/h neuer Holzfaeller (Wald) = 9/h,
+        # Stein: 1/h Grund + 2/h Start-Steinmetz (Huegel) + 4/h neuer Steinmetz (Berg) = 7/h.
+        # Der alte Wert 5/h je Stoff galt fuer den leeren Aufbauzustand.
+        self.assertEqual((ort.vorraete['holz'],ort.vorraete['stein']),(94.0,92.0))
         self.assertEqual(state.spielsekunden,3600)
         self.assertIsNone(state.spielende)
 

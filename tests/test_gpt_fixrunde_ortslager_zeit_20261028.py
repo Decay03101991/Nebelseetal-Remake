@@ -36,8 +36,13 @@ class OrtskasseUndSpieluhr(unittest.TestCase):
         self.assertEqual(ort.vorraete['holz'], 100.0)
         self.assertEqual(ort.vorraete['stein'], 100.0)
         state.tick(3600)
-        self.assertAlmostEqual(ort.vorraete['holz'], 101.0)
-        self.assertAlmostEqual(ort.vorraete['stein'], 101.0)
+        # SCHNITT S-1 (Daniel 01.11.2026, docs/KONZEPT_SECHS_DOERFER_20261101.md Anhang 1): die
+        # Gruendung bringt Startgebaeude mit, sie ernten also ab der ersten Stunde mit. Erwartung
+        # offen angehoben um genau diese Ernte: Grundertrag 1/h + Holzfaeller auf Wald 4/h = 5/h
+        # Holz, Grundertrag 1/h + Steinmetz auf Huegel 2/h = 3/h Stein (data/buildings.json).
+        # Der alte Wert 101.0 galt fuer den leeren Aufbauzustand.
+        self.assertAlmostEqual(ort.vorraete['holz'], 105.0)
+        self.assertAlmostEqual(ort.vorraete['stein'], 103.0)
         self.gegenprobe(state)
 
     def test_zeitscheiben_bewirken_keine_doppelte_ernte(self):
@@ -59,13 +64,15 @@ class OrtskasseUndSpieluhr(unittest.TestCase):
             self.assertTrue(state.save(pfad))
             neu = main.GameState()
             self.assertTrue(neu.load(pfad))
-            self.assertAlmostEqual(neu.settlements[0].vorraete['holz'], 100.5)
-            self.assertAlmostEqual(neu.settlements[0].vorraete['stein'], 100.5)
+            # S-1: Startgebaeude ernten mit - halbe Stunde = 2,5 Holz und 1,5 Stein zusaetzlich
+            # (Holz 5/h, Stein 3/h aus Grundertrag + Startgebaeude, siehe oben).
+            self.assertAlmostEqual(neu.settlements[0].vorraete['holz'], 102.5)
+            self.assertAlmostEqual(neu.settlements[0].vorraete['stein'], 101.5)
             self.assertAlmostEqual(neu.spielsekunden, 1800)
             self.gegenprobe(neu)
             neu.tick(1800)
-            self.assertAlmostEqual(neu.settlements[0].vorraete['holz'], 101.0)
-            self.assertAlmostEqual(neu.settlements[0].vorraete['stein'], 101.0)
+            self.assertAlmostEqual(neu.settlements[0].vorraete['holz'], 105.0)
+            self.assertAlmostEqual(neu.settlements[0].vorraete['stein'], 103.0)
             self.gegenprobe(neu)
 
     def test_anzeigewert_ist_keine_versteckte_kasse(self):

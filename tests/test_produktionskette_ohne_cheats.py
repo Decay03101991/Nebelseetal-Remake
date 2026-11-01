@@ -155,7 +155,13 @@ def _kette():
         check("die Siedlung hat eine echte 10x10-Originalkarte",
               bool(ort.karte) and len(ort.karte.get("raster") or []) == 100
               and bool(ort.karte.get("originalkarte_id")), ort.karte.get("originalkarte_id"))
-        check("kein Gebaeude steht am Anfang", not ort.bauten, str(ort.bauten))
+        # SCHNITT S-1 (Daniel 01.11.2026, docs/KONZEPT_SECHS_DOERFER_20261101.md Anhang 1): die
+        # Gruendung bringt Holzfaeller, Steinmetz und Tempel mit. Die frueher hier stehende Wache
+        # "kein Gebaeude steht am Anfang" spiegelte den Zustand ohne Startgebaeude und wird auf die
+        # neue Wahrheit gestellt (nicht geloescht): genau diese drei Gebaeude, sonst nichts.
+        check("die Gruendung bringt genau Holzfaeller, Steinmetz und Tempel mit (S-1)",
+              sorted(ort.bauten.values()) == ["holzfaeller", "steinmetz", "tempel"],
+              str(ort.bauten))
 
         # ---------------------------------------------------------------- 2. Rohstoff
         abschnitt("2. Rohstoff aus eigener Produktion (kein Geschenk)")
