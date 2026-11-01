@@ -57,12 +57,21 @@ def _norm(s: str) -> str:
 
 
 def finde_gebaeude(name_oder_id: str):
-    """Findet die Kennung eines Gebaeudes — akzeptiert Kennung UND Anzeigename, mit oder ohne Umlaut."""
+    """Findet die Kennung eines Gebaeudes — akzeptiert Kennung UND Anzeigename, mit oder ohne Umlaut.
+
+    Zusaetzlich werden die `alias`-Namen eines Eintrags erkannt (D-01, Schnitt S-2c): das Lager
+    heisst seit 01.11.2026 'Dorfzentrum', die Kennung bleibt `lager`. Ein alter Spielstand, der
+    den frueheren Anzeigenamen 'Lager' in `Siedlung.bauten` stehen hat, findet damit weiterhin
+    denselben Eintrag - ohne Migration und ohne zweite Wahrheit.
+    """
     if name_oder_id in _GEBAEUDE:
         return name_oder_id
     n = _norm(name_oder_id)
     for gid, geb in _GEBAEUDE.items():
         if _norm(gid) == n or _norm(geb.get("name", "")) == n:
+            return gid
+    for gid, geb in _GEBAEUDE.items():
+        if any(_norm(alt) == n for alt in (geb.get("alias") or [])):
             return gid
     return None
 

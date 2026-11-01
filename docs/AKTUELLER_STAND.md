@@ -1,3 +1,57 @@
+# STAND 01.11.2026, 17:00 - S-2c abgeschlossen: das Dorfzentrum ist das Lager
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+## Was in dieser Sitzung gebaut wurde
+
+**S-2c ist fertig und gruen** - das Dorfzentrum ist Menuepunkt UND Gebaeude, und die Lagerverwaltung steht
+darin:
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Gebaeude | Kennung bleibt `lager`, Anzeigename **Dorfzentrum**, `alias: ["Lager"]`, `max_je_siedlung: 1` | `data/buildings.json` |
+| Alias-Erkennung | `finde_gebaeude` liest zusaetzlich den `alias` - ein Altstand mit "Lager" in `bauten` zaehlt als Dorfzentrum, ohne Migration | `src/gelaende.py` |
+| Menue | `MENUE_ENTFALLEN = {"Lager"}` blendet den Punkt in der ANZEIGE aus; `MENU_ITEMS` bleibt die belegte Original-Liste (16 Eintraege); Anker fuer Stellmacher/Diebesgilde ist `MENUE_ANKER = "Dorfzentrum"` | `src/main.py` |
+| EINE Lageransicht | `_render_storage(eigener_titel=False)` wird von `_render_overview` gerufen; die alte Route traegt `STILLGELEGT` | `src/main.py` |
+| Abriss | Das einzige Dorfzentrum ist gesperrt - auch unter dem alten Namen "Lager" | `_karten_abreissen` |
+| Pruefdatei | `tests/test_dorfzentrum_ist_lager.py` **61/0/0** | Lauf 16:55 |
+| Voller Sammellauf | **115 Dateien, 113 gruen, 0 rot, 2 ausgesetzt, 4.193 Pruefungen, 298 s** | `docs/audits/sammellauf_20261101_1655_s2c.log` |
+| Register | 89 | `docs/PRUEFREGEL_ORIGINAL.md` |
+
+**Was das im Spiel bedeutet:** Im Menue steht kein eigener Punkt "Lager" mehr. Das Dorfzentrum zeigt oben die
+Uebersicht (naechster Schritt, Siedler, Siedlungen, Auftraege, Gebaeudewirkungen) und darunter die
+Lagerverwaltung des aktiven Ortes: Bestand, Waren, Einheiten und die Werkstaetten mit ihren Warteschlangen.
+Ein zweites Dorfzentrum laesst sich nicht bauen, das einzige nicht abreissen. Das Gebaeude selbst bleibt
+baubar (Baubereich "Sonstiges", Baukunst Stufe 1) - die Seite funktioniert auch ohne das Gebaeude, weil der
+Bestand in `Settlement.vorraete` fuehrt, nicht im Gebaeude.
+
+## Offen und ausdruecklich NICHT entschieden
+
+Ob das Dorfzentrum bei jeder Gruendung **kostenlos mitgesetzt** wird (dann vier Startgebaeude statt drei, und
+S-1 mit seinen 35 Pruefungen zieht mit) oder ob es gebaut werden muss. Daniel hat nur gesagt, es sei
+Menuepunkt **und** Gebaeude. Der Punkt steht in der Sammelliste; S-2c funktioniert in beiden Faellen.
+
+## Der naechste Schritt
+
+**S-3: Forschungsuebernahme ueber die Bibliothek** (Verbund). Papier bereit:
+`docs/design/VERBUND_FORSCHUNG_EINHEITEN_TRANSFER_20261101.md` (46.061 Byte, 327 Zeilen) mit den acht offenen
+Entscheidungen in Abschnitt 7 - **Selbstauskunft eines externen Modells, jede Zahl vor dem Einbau
+gegenpruefen.**
+
+**Papier eingetroffen, noch nicht eingearbeitet:** die Antworten des Chat-Modells zu S-5/S-2c/Demo
+(`archiv/eingaben/20261101_gpt_antworten/GPT_WELTBILDBERICHT_...md`) und zu den Bot-Taktikpaketen
+(`.../GPT_Taktikpaket_...md`), beide gitignoriert abgelegt.
+
+**Auftrag 7 geschrieben, noch nicht beantwortet:** `AUFTRAG_GPT_S7_S8_UND_DEMO_ANLEITUNG_20261101.md` -
+S-7 (Bots sichtbar ohne Kartenmarker, kein Angriff), S-8 (Bilanz Mana und Reisekosten) und der gefuehrte
+Start der Demo.
+
+## Desktop
+
+Geraeumt. Die Uebergabe 12:30 liegt in `D:\Arbeiten\Hermes\Uebergaben\20261101_1230\`, die drei
+GPT-Papiere hashgeprueft in `archiv/eingaben/20261101_gpt_antworten/` (gitignoriert, nicht im Bundle). Auf dem
+Desktop liegt genau EIN Auftrag fuer das Chat-Modell.
+
 # STAND 01.11.2026, 12:20 - S-2b abgeschlossen: die Portal-Uebersicht zeigt Weltkartenliste und Gelaendekaestchen
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

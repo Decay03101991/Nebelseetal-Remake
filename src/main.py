@@ -823,17 +823,35 @@ def bibliotheken_im_spiel(settlements) -> int:
     return anzahl
 
 
+# SCHNITT S-2c (Daniel, 01.11.2026): "Das Dorfzentrum IST das Lager" - Menuepunkt UND Gebaeude.
+# Der Menuepunkt "Lager" entfaellt damit in der ANZEIGE; die Lagerverwaltung steht ab jetzt im
+# Dorfzentrum (`_render_overview` ruft `_render_storage` mit). MENU_ITEMS bleibt unveraendert die
+# BELEGTE Original-Liste - `tests/test_oberflaeche_original.py` vergleicht sie mit dem
+# Original-Muster, deshalb wird nur in `menu_sichtbar` ausgeblendet und nichts aus der Liste
+# geloescht. Die Route "Lager" bleibt erreichbar (tests/test_baseline.py besucht sie) und traegt
+# den Vermerk STILLGELEGT. Quelle: docs/KONZEPT_SECHS_DOERFER_20261101.md, Anhang 1.
+MENUE_ENTFALLEN = {"Lager"}
+
+# Der Menuepunkt, hinter dem die nachgereichten Gebaeude-Menuepunkte einsortiert werden. Bis S-2c
+# war das "Lager"; da dieser Punkt jetzt im Dorfzentrum aufgeht, ist es das Dorfzentrum selbst
+# (vorher waeren Stellmacher und Diebesgilde an das ENDE der Leiste gerutscht).
+MENUE_ANKER = "Dorfzentrum"
+
+
 def menu_sichtbar(settlements) -> list:
     """Welche Menuepunkte stehen offen? Haengt nur davon ab, welche Gebaeude stehen.
     Ein Gebaeude-Menuepunkt existiert erst, wenn das Gebaeude auf irgendeiner Siedlung steht.
     Steht die Kaserne nicht, wird auch ein gebauter Stellmacher sichtbar (er wird dann direkt
-    hinter "Lager" einsortiert) - sonst waere er unerreichbar.
+    hinter dem Dorfzentrum einsortiert) - sonst waere er unerreichbar.
+    Menuepunkte aus `MENUE_ENTFALLEN` (S-2c: "Lager") werden ausgeblendet, nicht geloescht.
     """
     gebaut = set()
     for siedlung in (settlements or []):
         gebaut.update(str(v) for v in (getattr(siedlung, "bauten", None) or {}).values())
     sichtbar = []
     for item in MENU_ITEMS:
+        if item in MENUE_ENTFALLEN:
+            continue
         schluessel = MENUE_BEDINGUNG.get(item)
         if schluessel is not None and schluessel not in gebaut:
             continue
@@ -845,7 +863,8 @@ def menu_sichtbar(settlements) -> list:
                     sichtbar.append(extra)
     for extra, bedingung in (("Stellmacher", "stellmacher"), ("Diebesgilde", "diebesgilde")):
         if bedingung in gebaut and extra not in sichtbar:
-            sichtbar.insert(sichtbar.index("Lager") + 1 if "Lager" in sichtbar else len(sichtbar),
+            sichtbar.insert(sichtbar.index(MENUE_ANKER) + 1 if MENUE_ANKER in sichtbar
+                            else len(sichtbar),
                             extra)
     return sichtbar
 
@@ -4082,6 +4101,35 @@ class NebelseetalApp:
                     tk.Label(wirk, text=f"Noch offen: {_luecke}", fg="#C0C0C0", bg=self.skin["panel"],
                              wraplength=780, justify=tk.LEFT).pack(anchor=tk.W, padx=5)
 
+        # ---- S-2c: das Dorfzentrum ist Menuepunkt UND Gebaeude -------------------------------
+        # Der Menuepunkt "Lager" ist in dieser Ansicht aufgegangen (siehe `MENUE_ENTFALLEN`).
+        # Gezeigt wird zuerst, ob das GEBAEUDE Dorfzentrum steht - die Kennung bleibt `lager`
+        # (eine Lesestelle: `gebaeude_stufe`), hoechstens eines je Dorf, nicht abreissbar.
+        _dz = tk.Frame(self.content, bg=self.skin["panel"], relief=tk.FLAT, borderwidth=1)
+        _dz.pack(fill=tk.X, padx=10, pady=(2, 8))
+        tk.Label(_dz, text="Dorfzentrum als Gebäude", fg=self.skin["gold"],
+                 bg=self.skin["panel"]).pack(anchor=tk.W, padx=5, pady=(3, 0))
+        if not self.state.settlements:
+            tk.Label(_dz, text="Noch keine Siedlung — ein Dorfzentrum entsteht mit dem Dorf.",
+                     fg="#8a8a8a", bg=self.skin["panel"]).pack(anchor=tk.W, padx=5)
+        else:
+            _mit_dz = [s for s in self.state.settlements
+                       if gebaeude_wirkung.gebaeude_stufe(s, "lager") > 0]
+            _ohne_dz = [s for s in self.state.settlements
+                        if gebaeude_wirkung.gebaeude_stufe(s, "lager") <= 0]
+            tk.Label(_dz, text=(f"steht in {len(_mit_dz)} von {len(self.state.settlements)} "
+                                f"Dörfern (höchstens eines je Dorf, das einzige ist nicht abreißbar)"),
+                     fg=self.skin["text"], bg=self.skin["panel"], wraplength=780,
+                     justify=tk.LEFT).pack(anchor=tk.W, padx=5)
+            if _ohne_dz:
+                tk.Label(_dz, text=("fehlt noch in: " + ", ".join(s.name for s in _ohne_dz)
+                                    + " — auf der Siedlungskarte im Baubereich „Sonstiges“ "
+                                      "bauen (Baukunst Stufe 1 nötig)."),
+                         fg="#FDBA74", bg=self.skin["panel"], wraplength=780,
+                         justify=tk.LEFT).pack(anchor=tk.W, padx=5, pady=(0, 3))
+        # Die Verwaltung selbst: EINE Lageransicht (`_render_storage`), kein zweiter Lagerbegriff.
+        self._render_storage(eigener_titel=False)
+
     def _toggle_technik(self):
         """Entwicklerhinweise ein-/ausblenden (stehen nicht ungefragt in der Spielansicht)."""
         self._zeige_technik = not bool(getattr(self, "_zeige_technik", False))
@@ -4793,6 +4841,13 @@ class NebelseetalApp:
         # Handbuch: Abriss nach Bestaetigung, keinerlei Erstattung.
         # Daniel 30.10.2026: Die Bibliothek ist essenziell — die LETZTE darf nicht abgerissen
         # werden. Eine zweite woanders bauen und dann die erste abzureissen ist erlaubt.
+        # SCHNITT S-2c (Daniel, 01.11.2026): Das Dorfzentrum ist das Lager des Dorfes und traegt
+        # seine Lagerverwaltung - das EINE bleibt stehen (D-06). Erkannt wird ueber
+        # `gelaende.finde_gebaeude`, damit auch der alte Anzeigename 'Lager' trifft.
+        if gelaende.finde_gebaeude(str(gebaut)) == "lager":
+            self._log("Das Dorfzentrum ist das Lager dieses Dorfes und kann nicht abgerissen "
+                      "werden — es gibt genau eines je Dorf.")
+            return
         if str(gebaut) == "bibliothek":
             _bibliotheken = sum(1 for _s in self.state.settlements
                                 for _v in ((_s.bauten or {}).values()) if str(_v) == "bibliothek")
@@ -5510,10 +5565,21 @@ class NebelseetalApp:
     def _visit_bot(self, bot: BotPlayer):
         self._log("Besuche andere Spielerwelten nicht im Singleplayer-Modus.")
 
-    def _render_storage(self):
-        print("[DEBUG] _render_storage called")
-        tk.Label(self.content, text="Lager", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
-        tk.Label(self.content, text="Waren und Einheiten in dieser Siedlung.", fg=self.skin["text"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
+    def _render_storage(self, eigener_titel: bool = True):
+        """Die LAGERVERWALTUNG des aktiven Ortes — seit S-2c steht sie IM DORFZENTRUM.
+
+        Zwei Aufrufer, EINE Anzeige (F-04-Muster, keine zweite Rechen- oder Lesestelle):
+        `_render_overview` (Menuepunkt "Dorfzentrum") ruft sie mit `eigener_titel=False` auf -
+        dann kommt nur der Inhalt, die Seitenueberschrift setzt das Dorfzentrum. Die alte Route
+        "Lager" gibt es seit S-2c nicht mehr im Menue; sie bleibt technisch erreichbar
+        (tests/test_baseline.py besucht JEDE Route) und sagt hier offen, dass sie stillgelegt ist.
+        """
+        if eigener_titel:
+            tk.Label(self.content, text="Lager — stillgelegt", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
+            tk.Label(self.content, text="Dieser Menuepunkt ist am 01.11.2026 im Dorfzentrum aufgegangen (Schnitt S-2c: Das Dorfzentrum IST das Lager). Die Verwaltung steht unter „Dorfzentrum“ im Menue; hier bleiben nur die Bestaende sichtbar.", fg="#FDBA74", bg=self.skin["bg"], wraplength=780, justify=tk.LEFT).pack(anchor=tk.W, padx=10)
+        else:
+            tk.Label(self.content, text="Lagerverwaltung dieses Dorfes:", font=("TkDefaultFont", 12, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(12, 0))
+            tk.Label(self.content, text="Bestand, Waren, Einheiten und Werkstaetten des aktiven Ortes — eine Ansicht, keine zweite Kasse.", fg=self.skin["text"], bg=self.skin["bg"], wraplength=780, justify=tk.LEFT).pack(anchor=tk.W, padx=10)
         # Teil 6: das LOKALE Lager des AKTIVEN Ortes — die Felder, die seit Teil 3a führen
         # (`Settlement.vorraete/waren/einheiten/bevoelkerung`). Darunter steht weiter die
         # Gesamtsicht (Reich) aus dem Übergangsbestand. Bis Teil 6 füllen sich diese lokalen

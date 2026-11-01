@@ -391,11 +391,15 @@
     },
     {
       "id": "lager",
-      "name": "Lager",
+      "name": "Dorfzentrum",
+      "alias": [
+        "Lager"
+      ],
       "kategorie": "Sonstiges",
       "voraussetzung": "keine belegt",
-      "wirkung": "gibt einen Überblick über alle in der Siedlung befindlichen Waren und Einheiten; der Warenbestand wird hier geprüft",
-      "anmerkung": "Das Handbuch 2009 (Seite 8/9) führt 'Lager' als Siedlungsmenüpunkt unter 'Lager'; ob es ein eigenständiges Bauwerk ist, ist nicht ausdrücklich belegt.",
+      "wirkung": "Dorfzentrum und Lagerverwaltung des Dorfes: Übersicht über alle Waren, Einheiten und Werkstätten dieses Ortes; der Warenbestand wird hier geführt",
+      "anmerkung": "Schnitt S-2c (Daniel, 01.11.2026): Das Dorfzentrum IST das Lager - Menüpunkt UND Gebäude. Die Kennung 'lager' bleibt als Speicherformat, der Anzeigename ist 'Dorfzentrum'; der alte Name 'Lager' steht als Alias, damit alte Spielstände ihn weiter erkennen. Ein zweites Dorfzentrum je Dorf ist nicht erlaubt (max_je_siedlung 1), das einzige ist nicht abreißbar. Quelle der Entscheidung: docs/KONZEPT_SECHS_DOERFER_20261101.md, Anhang 1 (Dorfzentrum = Lager). Zur Beleglage: das Handbuch 2009 (Seite 8/9) führt 'Lager' als Siedlungsmenüpunkt; ob es ein eigenständiges Bauwerk ist, ist nicht ausdrücklich belegt - Daniel hat es als Gebäude entschieden.",
+      "max_je_siedlung": 1,
       "nur_auf": [
         "grasland",
         "steppe",

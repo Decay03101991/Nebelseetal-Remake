@@ -90,8 +90,15 @@ check("Stellmacher erscheint hinter der Kaserne",
 
 ohne_kaserne = main.menu_sichtbar([Ort(["stellmacher"])])
 check("Stellmacher ohne Kaserne trotzdem sichtbar", "Stellmacher" in ohne_kaserne, str(ohne_kaserne))
-check("Stellmacher ohne Kaserne steht hinter Lager",
-      ohne_kaserne.index("Stellmacher") == ohne_kaserne.index("Lager") + 1, str(ohne_kaserne))
+# UMSTELLUNG 01.11.2026 (Schnitt S-2c): Der Menuepunkt "Lager" ist in der Anzeige entfallen -
+# das Dorfzentrum IST das Lager (Daniel, docs/KONZEPT_SECHS_DOERFER_20261101.md Anhang 1). Der
+# Anker fuer die nachgereichten Gebaeude-Menuepunkte ist deshalb das Dorfzentrum
+# (`main.MENUE_ANKER`), nicht mehr "Lager". Die Zusage der Wache bleibt dieselbe: der Punkt steht
+# DIREKT hinter dem Anker. tests/test_dorfzentrum_ist_lager.py belegt den Rest des Schnitts.
+check("Stellmacher ohne Kaserne steht hinter dem Dorfzentrum",
+      ohne_kaserne.index("Stellmacher") == ohne_kaserne.index("Dorfzentrum") + 1, str(ohne_kaserne))
+check("der Menuepunkt Lager ist nicht mehr sichtbar (S-2c)", "Lager" not in ohne_kaserne,
+      str(ohne_kaserne))
 
 mit_gilde = main.menu_sichtbar([Ort(["diebesgilde"])])
 check("Diebesgilde -> eigener Menuepunkt", "Diebesgilde" in mit_gilde, str(mit_gilde))
