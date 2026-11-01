@@ -1,3 +1,87 @@
+# STAND 01.11.2026, 12:20 - S-2b abgeschlossen: die Portal-Uebersicht zeigt Weltkartenliste und Gelaendekaestchen
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+## Was in dieser Sitzung gebaut wurde
+
+**S-2b ist fertig und gruen** - die Portalansicht traegt oben die sechs belegten Weltkarten mit Namen und
+Kennzeichen, darunter das Gelaendekaestchen der aktuellen Welt mit anklickbaren Feldern:
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Weltkartenliste | `portalraum.weltkarten(eigene_nummern, unterwegs)`: sechs Zeilen mit Nummer, Kennung, Name, Status (eigene Welt / fremde Welt / noch nicht bespielbar), Bannerfarbe als Wort, `waehlbar` samt Grund | `src/portalraum.py` |
+| Gelaendekaestchen | 20 x 20 = 400 Felder (`portalraum.anzeige_raster`), ein Klick waehlt ein Feld (`_portal_feld_waehlen`), Auswahl steht als `portal_auswahl` in der Ansicht | `src/main.py` |
+| Startwelt | **Midgard (d04 = Nummer 4)** statt des alten Vorschlags Armageddon, im Aufbau und beim Laden; Daten in `data/welten.json` (`startwelt`, `weltkarten_spielbar`) | `src/welt.py` (`startwelt_nummer()`), `GameState` |
+| Sperre | Weltensprung gesperrt, solange Auftraege unterwegs sind (Hin- oder Rueckreise, auch Handel) - `auftraege.laufende()` mit der SPIELUHR, `_unterwegs_anzahl()` | Daniel, Anhang 2 („ein weltenwechsel ist fuer das dorf gar nicht moeglich solange auftraege einheiten truppen oder sonst was unterwegs ist auch handel z. b.“) |
+| Pruefdatei | `tests/test_portal_uebersicht.py` **60/0/0** | Lauf 12:05 |
+| Voller Sammellauf | **114 Dateien, 112 gruen, 0 rot, 2 ausgesetzt, 4.132 Pruefungen, 776 s** | `docs/audits/sammellauf_20261101_1205.log` |
+| Register | 88 | `docs/PRUEFREGEL_ORIGINAL.md` |
+
+**Was das im Spiel bedeutet:** Das Portal oeffnet mit der Liste Armageddon, Ragnaroek, Utgard, Midgard,
+Valhalla, Limbus. Eigene Weltkarten stehen gruen, fremde rot (belegte Bannerfarben aus portal.php 2005),
+die vier noch nicht bespielbaren sind als solche benannt und nicht anklickbar. Bespielbar sind zuerst
+Midgard (Start) und Valhalla. Unter der Liste liegt das 20 x 20-Kaestchen der aktuellen Welt; ein Klick
+waehlt ein Feld an, und die Ansicht sagt ausdruecklich, dass der Dorftransfer erst mit S-6 kommt.
+
+## Nebenbefund, behoben: Nummer und Index waren vermischt
+
+`portalraum` rechnet mit dem Index 0..19, der Spielstand fuehrt die 1-basierte Nummer aus der Kennung
+(d04 = 4). Bis S-2a standen beide unvermittelt nebeneinander: `wechsel_erlaubt(20, ...)` lehnte die
+zwanzigste Weltkarte ab („Unbekannte Ausgangswelt: 20“), waehrend `_dimensionsname(20)` sie benannte und
+der Knopf „20“ sie anbot; „01“ buchte auf Ragnaroek statt auf Armageddon. Die Umrechnung steht jetzt an
+EINER Stelle (`nummer_von`, `kennung_von`, `index_von`, `nummer_von_index`) und ist im neuen Prueftest,
+Abschnitt 4, belegt. `src/spielschicht.py` fuehrt seinen eigenen Zustand weiter absichtlich 0-basiert -
+der Hinweis steht als Docstring dort, damit es niemand „vereinheitlicht“.
+
+## Ziel nach den groben offenen Punkten: eine offizielle spielbare Demo-EXE auf GitHub
+
+**Daniel, 01.11.2026, woertlich:** „sobald die die aktuell groben offenen punkte im spiel bearbeitet
+sind möchte ich eine offiziele spielbare demo exe meines spiels auf github hochladen“.
+
+Damit ist der Meilenstein klar und gehoert ab jetzt in jede Uebergabe:
+
+* **Kein Zwischen-Release.** Erst wenn die groben offenen Punkte abgearbeitet sind, wird die Demo
+  veroeffentlicht - gemeint sind mindestens **S-2c** (Dorfzentrum ist das Lager), **S-3** (Forschung
+  ueber die Bibliothek), **S-4** (Einheitenregel), **S-5** (Weltbild 20 x 20), **S-6** (Dorftransfer),
+  **S-7** (Bots sichtbar, kein Angriff) und **S-8** (Bilanz Mana und Reisekosten).
+* **Offiziell heisst geprueft:** eine EXE, die startet, eine Partie ohne Absturz erlaubt und deren
+  Spielstand sich speichern und laden laesst - belegt mit Sammellauf, EXE-Start und einem
+  Spieltest-Verlauf, nicht behauptet.
+* **Bekannte Grenze, die in die Release-Notizen gehoert:** der Remote-Stand auf GitHub ist **nicht**
+  der Arbeitsstand (zuletzt `954097aa` vom 31.10.). Vor dem Hochladen wird die Reihenfolge
+  festgelegt: Arbeitsstand committen, `main` aktualisieren, Version setzen, Release-Notizen
+  schreiben, Demo-EXE anhaengen.
+* **Teststaende sind keine Spielstaende** (Daniel, Anhang 2: „Aktuelle spielstände sind nur teststände
+  zur entwicklung“). Fuer die Demo wird ein frischer Spielstart geprueft, kein alter Teststand.
+
+## Was bewusst NICHT gebaut wurde
+
+* **Gelaende je Feld.** Das Handbuch nennt kein Gelaende je Weltkartenfeld; das Kaestchen zeigt deshalb
+  die belegten Bannerfarben und die Auswahl, keine erfundenen Gelaendearten. Gehoert zu S-5, offener Punkt.
+* **Der Dorftransfer selbst.** Ein Klick merkt nur ein Feld; uebertragen, Kosten und Postfach kommen mit S-6.
+* **Die Limbus-Doppelbedeutung ist weiter offen** (Weltname *und* Raum). Die Anzeige vermeidet die
+  Entscheidung: die Liste heisst „Weltkarten“, der umgebende Raum wird nicht benannt.
+
+## Der naechste Schritt
+
+**S-2c: das Dorfzentrum ist das Lager.** Andockstellen: `_render_overview` (heute Dorfzentrum),
+`_render_storage` (heute Menuepunkt „Lager“), `wirtschaft.dorf_uebersicht`, `ortsbestand_text(siedlung)`,
+`data/buildings.json` -> Eintrag `lager` (`max_je_siedlung` ist heute nicht gesetzt, „ein Lager je Dorf“
+muss dort durchgesetzt werden).
+
+**Vor dem Bau zu entscheiden (steht gesammelt in der Uebergabe):** ob das Dorfzentrum als Gebaeude bei
+jeder Gruendung mitgesetzt wird (dann vier Startgebaeude statt drei - S-1 und seine 35 Pruefungen ziehen
+mit) oder ob es gebaut werden muss.
+
+**Papier bereit, nicht gebaut:** `docs/design/VERBUND_FORSCHUNG_EINHEITEN_TRANSFER_20261101.md`
+(46.061 Byte, SHA256 `9815fb27…`, 327 Zeilen) - Entscheidungsentwurf zu S-3 (Forschungsuebernahme),
+S-4 (Einheitenpruefung, stationierte Truppen) und S-6 (Dorftransfer), mit Kennzeichnung BELEGT /
+VORSCHLAG / UNBEKANNT, einem Pruefplan und acht offenen Entscheidungen in Abschnitt 7. **Selbstauskunft
+eines externen Modells:** jede Zahl vor dem Einbau selbst nachpruefen.
+
+**Desktop:** keine Kopien mehr. Die Uebergabe liegt in `docs/UEBERGABE_20261101_1105.md` und
+`D:\Arbeiten\Hermes\Uebergaben\20261101_1105\`.
+
 # STAND 01.11.2026, 09:47 - S-1 abgeschlossen: die Gruendung bringt drei Startgebaeude mit
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

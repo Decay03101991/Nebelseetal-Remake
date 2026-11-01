@@ -80,6 +80,49 @@ def _ist_dimension(z) -> bool:
     return _ist_ganz(z) and 0 <= z < dim_zahl()
 
 
+# ---------------------------------------------------------------------------
+# Zwei Zaehlweisen, EINE Umrechnung (Schnitt S-2b, 01.11.2026)
+#
+# Die Funktionen dieses Moduls rechnen mit dem INDEX 0..19 (welt.dimensionen()
+# in Dateireihenfolge). Die Anzeige und der Spielstand fuehren dagegen die
+# 1-basierte NUMMER aus der Kennung: d04 -> 4. Bis S-2a wurden beide vermischt -
+# der Knopf "20" war damit unerreichbar (Index 20 gibt es nicht) und "01" zeigte
+# Armageddon, waehrend der Wechsel auf Ragnaroek ging. Die Umrechnung steht
+# deshalb ab jetzt an EINER Stelle.
+# ---------------------------------------------------------------------------
+
+def nummer_von(kennung) -> int:
+    """1-basierte Nummer einer Weltkarte aus ihrer Kennung ('d04' -> 4). 0, wenn unbekannt."""
+    text = str(kennung or "").strip().lower()
+    if text.startswith("d"):
+        text = text[1:]
+    if not text.isdigit():
+        return 0
+    zahl = int(text)
+    return zahl if 1 <= zahl <= dim_zahl() else 0
+
+
+def kennung_von(nummer) -> str:
+    """Kennung aus einer 1-basierten Nummer (4 -> 'd04'). Leer, wenn unbekannt."""
+    if not _ist_ganz(nummer) or not (1 <= nummer <= dim_zahl()):
+        return ""
+    return str(dimensionen()[nummer - 1]["kennung"])
+
+
+def index_von(nummer) -> int:
+    """Index 0..19 aus einer 1-basierten Nummer (4 -> 3). -1, wenn unbekannt."""
+    if not _ist_ganz(nummer) or not (1 <= nummer <= dim_zahl()):
+        return -1
+    return int(nummer) - 1
+
+
+def nummer_von_index(index) -> int:
+    """1-basierte Nummer aus einem Index (3 -> 4). 0, wenn unbekannt."""
+    if not _ist_ganz(index) or not (0 <= index < dim_zahl()):
+        return 0
+    return int(index) + 1
+
+
 def koordinate(x: int, y: int, z: int):
     """
     Beschreibt das Feld (x, y) in Dimension z — oder None.
@@ -170,6 +213,77 @@ def portalfarbe(z, eigene_dimensionen=()) -> str:
     """
     eigene = set(eigene_dimensionen)
     return _BANNER["eigene_welt"] if z in eigene else _BANNER["fremde_welten"]
+
+
+def weltkarten(eigene_nummern=(), unterwegs: int = 0) -> list:
+    """
+    Die SECHS belegten Weltkarten als Zeilen fuer die Portal-Uebersicht (S-2b).
+
+    Grundlage ist Daniels Vorgabe vom 01.11.2026 (docs/KONZEPT_WELTKARTEN_UND_BOTS_20261101.md,
+    Anhang 3 Frage 26/30/31): es gibt immer die sechs Weltkarten Armageddon, Ragnaroek, Utgard,
+    Midgard, Valhalla und Limbus; bespielbar sind zuerst Midgard und Valhalla; die Anzeige listet
+    sie mit Namen, darunter steht das Gelaendekaestchen der aktuellen Welt.
+
+    Jede Zeile traegt:
+      'nummer'      1-basierte Nummer wie im Spielstand (4 = d04)
+      'kennung'     Kennung der Weltkarte ('d04')
+      'name'        belegter Weltname ('Midgard')
+      'spielbar'    True, wenn Daniel sie fuer bespielbar erklaert hat
+      'status'      'eigen' | 'fremd' | 'nicht bespielbar'
+      'status_text' deutsche Anzeige dazu
+      'farbe'       Bannerfarbe als WORT ('gruen'/'rot') oder None - Tk-Farben macht die Anzeige
+      'waehlbar'    True, wenn ein Weltensprung jetzt erlaubt waere
+      'grund'       warum nicht waehlbar ('' wenn waehlbar)
+
+    'unterwegs' ist die Zahl der laufenden Auftraege. Daniel, Anhang 2 (Umzug mit laufenden
+    Auftraegen): "ein weltenwechsel ist fuer das dorf gar nicht moeglich solange auftraege
+    einheiten truppen oder sonst was unterwegs ist auch handel z. b." Deshalb sperrt jede Zahl
+    groesser 0 ALLE Weltenspruenge - nicht nur den in die eigene Welt.
+    """
+    eigene = set()
+    for n in (eigene_nummern or ()):
+        try:
+            eigene.add(int(n))
+        except (TypeError, ValueError):
+            continue                      # unbekannte Angabe zaehlt nicht als eigene Welt
+    try:
+        laufend = int(unterwegs or 0)
+    except (TypeError, ValueError):
+        laufend = 0
+    zeilen = []
+    for index, eintrag in enumerate(dimensionen()):
+        name = eintrag.get("welt")
+        if not name:
+            continue                      # ohne belegten Weltnamen ist es keine Weltkarte
+        nummer = nummer_von_index(index)
+        moeglich = welt.spielbar(name)
+        if nummer in eigene:
+            status, farbe = "eigen", _BANNER["eigene_welt"]
+            status_text = "eigene Welt"
+        elif moeglich:
+            status, farbe = "fremd", _BANNER["fremde_welten"]
+            status_text = "fremde Welt"
+        else:
+            status, farbe = "nicht bespielbar", None
+            status_text = "noch nicht bespielbar"
+        grund = ""
+        if not moeglich:
+            grund = "folgt spaeter (Daniel 01.11.2026: zuerst Midgard und Valhalla)"
+        elif laufend > 0:
+            grund = (f"gesperrt: {laufend} Auftrag/Auftraege unterwegs "
+                     f"(Daniel 01.11.2026, Anhang 2)")
+        zeilen.append({
+            "nummer": nummer,
+            "kennung": str(eintrag.get("kennung") or ""),
+            "name": str(name),
+            "spielbar": moeglich,
+            "status": status,
+            "status_text": status_text,
+            "farbe": farbe,
+            "waehlbar": bool(moeglich and laufend == 0),
+            "grund": grund,
+        })
+    return zeilen
 
 
 def anzeige_raster(z: int, radius: int = 10, eigene_dimensionen=()) -> list:

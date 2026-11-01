@@ -336,7 +336,7 @@ def transport_start(quelle: dict, ziel: dict, bestand: dict, fracht: dict, jetzt
     if quelle["besitzer"] != ziel["besitzer"]:
         raise ValueError("Für eigene Transporte muss der Besitzer übereinstimmen.")
     if quelle["dimension"] != ziel["dimension"]:
-        raise ValueError("Dimensionswechsel braucht eigene Portalregeln.")
+        raise ValueError("Ein Weltkartenwechsel braucht eigene Portalregeln.")
     if not bestand or not all(type(n) is int and n > 0 for n in bestand.values()):
         raise ValueError("Ungültige Transporttruppe.")
     if any(quelle["einheiten"].get(n, 0) < m for n, m in bestand.items()):
@@ -1418,7 +1418,7 @@ def handel_start(kaeufer: dict, verkaeufer: dict, einheitenbestand: dict, ware: 
     if kaeufer["besitzer"] == verkaeufer["besitzer"]:
         raise ValueError("Eigener Warentransport braucht keinen Kaufvertrag.")
     if kaeufer["dimension"] != verkaeufer["dimension"]:
-        raise ValueError("Fremde Dimension benötigt noch unbelegte Missionstarife.")
+        raise ValueError("Eine fremde Weltkarte braucht noch unbelegte Missionstarife.")
     if not einheitenbestand or any(type(n) is not int or n <= 0
                                    for n in einheitenbestand.values()):
         raise ValueError("Ungültige Karawanentruppe.")

@@ -16,6 +16,9 @@
     "docs/original/recherche/screens.html (Weltnamen)"
   ],
   "welten_belegt": ["Armageddon", "Ragnaroek", "Utgard", "Midgard", "Valhalla", "Limbus"],
+  "_weltkarten_spielbar": "Daniel 01.11.2026 (docs/KONZEPT_WELTKARTEN_UND_BOTS_20261101.md, Anhang 3 Frage 21/22/26/31): alle sechs Weltkarten stehen in Daten und Anzeige, erreichbar und bespielbar sind ZUERST Midgard und Valhalla; die uebrigen vier folgen spaeter. Die Startwelt ist Midgard (Frage 22).",
+  "weltkarten_spielbar": ["Midgard", "Valhalla"],
+  "startwelt": "Midgard",
   "belegte_regeln": {
     "felder_je_dimension": 20,
     "felder_je_dimension_gesamt": 400,

@@ -1051,11 +1051,13 @@ class GameState:
         self.admin_hilfe_modus: str = "auto"  # FIX04d nur Teststand; keine Kampfwirkung
         self.admin_weltkarten: dict = {}  # Admin-only: Weltkarten jenseits der aktuellen Ansicht
         self.goods: Dict[str, int] = {key: 0 for key in GOODS}
-        # W5-2 (Portal, src/portalraum.py): die eigene Dimension im Limbus-Raster, die Dimensionen,
-        # in denen man schon Fuss gefasst hat, und der Zeitpunkt des letzten Koordinatenwechsels.
-        # Start in Dimension 1 - VORSCHLAG, das Handbuch nennt keine Startdimension.
-        self.eigene_dimension: int = 1
-        self.eigene_dimensionen: List[int] = [1]
+        # W5-2 (Portal, src/portalraum.py): die eigene Weltkarte im Limbus-Raster, die Weltkarten,
+        # in denen man schon Fuss gefasst hat, und der Zeitpunkt des letzten Weltensprungs.
+        # S-2b (Daniel 01.11.2026, Anhang 3 Frage 22): Startwelt ist MIDGARD, nicht mehr Armageddon.
+        # Die Nummer ist 1-basiert wie die Kennung (d04 -> 4) und steht so in data/welten.json.
+        _startwelt = welt.startwelt_nummer() or 1
+        self.eigene_dimension: int = _startwelt
+        self.eigene_dimensionen: List[int] = [_startwelt]
         self.letzter_wechsel: Optional[float] = None
         # W3 (Werkstatt, src/werkstatt.py): das Lager der 17 ORIGINALwaren aus data/items.json
         # (vorher stand hier die erfundene GOODS-Liste mit Emoji) und je Werkstatt eine
@@ -3093,9 +3095,12 @@ class GameState:
         # globale Anzeige nur eine abgeleitete Summe nach dem Laden.
         self._reichsanzeige_aus_orten()
         self.goods = data.get("goods", {key: 0 for key in GOODS})
-        # W5-2: Portalzustand (eigene Dimension, bekannte Dimensionen, letzter Wechsel)
-        self.eigene_dimension = int(data.get("eigene_dimension", 1) or 1)
-        self.eigene_dimensionen = list(data.get("eigene_dimensionen") or [1])
+        # W5-2: Portalzustand (eigene Weltkarte, bekannte Weltkarten, letzter Weltensprung).
+        # S-2b: fehlt der Eintrag, gilt die Startwelt aus data/welten.json (Midgard) - die alte
+        # Vorgabe "1" (Armageddon) war ein VORSCHLAG und ist durch Daniels Entscheidung ersetzt.
+        _startwelt = welt.startwelt_nummer() or 1
+        self.eigene_dimension = int(data.get("eigene_dimension") or _startwelt)
+        self.eigene_dimensionen = list(data.get("eigene_dimensionen") or [_startwelt])
         self.letzter_wechsel = data.get("letzter_wechsel")
         # W3: Warenlager (immer alle 17 Originalwaren) und die Werkstatt-Warteschlangen
         geladene_waren = data.get("waren") or {}
@@ -5310,11 +5315,33 @@ class NebelseetalApp:
         return f"noch {reste / 3600.0:.2f} h"
 
     def _portal_wechsel(self, nach_z: int):
-        """Ein Koordinatenwechsel: erst pruefen, dann GENAU EINMAL abbuchen (W5-2)."""
+        """Ein Weltensprung: erst pruefen, dann GENAU EINMAL abbuchen (W5-2, S-2b).
+
+        Zaehlweise: `nach_z` ist die NUMMER aus der Kennung (4 = d04 = Midgard), so wie sie im
+        Spielstand steht. `portalraum` rechnet mit dem INDEX 0..19; umgerechnet wird an EINER
+        Stelle (`portalraum.index_von`). Bis S-2a wurden beide Zaehlweisen vermischt - der Knopf
+        "20" war damit unerreichbar (Index 20 gibt es nicht) und "01" buchte auf die falsche Welt.
+
+        Gesperrt ist der Sprung ausserdem, solange irgendetwas unterwegs ist (Daniel 01.11.2026,
+        Anhang 2: "ein weltenwechsel ist fuer das dorf gar nicht moeglich solange auftraege
+        einheiten truppen oder sonst was unterwegs ist auch handel z. b.").
+        """
+        if self._unterwegs_anzahl() > 0:
+            meldung = ("Weltensprung gesperrt: solange Auftraege, Einheiten oder Handel unterwegs "
+                       "sind, reist das Dorf nicht (Daniel 01.11.2026, Anhang 2).")
+            self._log(meldung)
+            self.state.messages.append({"text": meldung, "type": "portal"})
+            return False
         von_z = int(self.state.eigene_dimension)
+        nach_index = portalraum.index_von(int(nach_z))
+        if nach_index < 0:
+            meldung = f"Unbekannte Weltkarte: {nach_z}"
+            self._log(meldung)
+            self.state.messages.append({"text": meldung, "type": "portal"})
+            return False
         mana = float(self.state.resources["mana"].amount)
-        erlaubt, meldung = portalraum.wechsel_erlaubt(von_z, nach_z, mana,
-                                                      self.state.letzter_wechsel, time.time())
+        erlaubt, meldung = portalraum.wechsel_erlaubt(portalraum.index_von(von_z), nach_index,
+                                                      mana, self.state.letzter_wechsel, time.time())
         if not erlaubt:
             self._log(meldung)
             self.state.messages.append({"text": meldung, "type": "portal"})
@@ -5332,89 +5359,154 @@ class NebelseetalApp:
         self.state.messages.append({"text": meldung, "type": "portal"})
         self._render_view()
         return True
+    def _unterwegs_anzahl(self) -> int:
+        """Wie viele Auftraege sind gerade unterwegs (Hinreise, am Ziel oder Rueckreise)?
+
+        Daniel 01.11.2026 (docs/KONZEPT_SECHS_DOERFER_20261101.md, Anhang 2 "Umzug mit laufenden
+        Auftraegen"): "ein weltenwechsel ist fuer das dorf gar nicht moeglich solange auftraege
+        einheiten truppen oder sonst was unterwegs ist auch handel z. b." Handel laeuft im Code
+        ebenfalls als Auftrag, deshalb genuegt EINE Liste. Die Uhr ist die SPIELUHR
+        (`state.spielsekunden`) - dieselbe, mit der `auftraege.starten` die Reisezeiten stempelt;
+        die Rechnerzeit waere hier eine zweite Zeitbasis.
+        """
+        return len(auftraege.laufende(self.state.auftraege, self.state.spielsekunden))
+
+    def _portal_feld_waehlen(self, x: int, y: int):
+        """Ein Feld im Gelaendekaestchen anwaehlen (Schnitt S-2b) - merken, nicht buchen.
+
+        Daniel 01.11.2026 (Anhang 3 Frage 23/30): der Dorftransfer beginnt mit einem Klick aufs
+        freie Feld, danach folgt die Auswahl des Dorfes. Der Transfer selbst gehoert zu S-6;
+        hier wird AUSDRUECKLICH nichts uebertragen, damit die Anzeige keine Mechanik vortaeuscht.
+        """
+        nummer = int(self.state.eigene_dimension)
+        if portalraum.koordinate(int(x), int(y), portalraum.index_von(nummer)) is None:
+            self._log(f"Feld {x}/{y} gehoert nicht zur Weltkarte {nummer:02d} "
+                      f"({portalraum._achsen()} x {portalraum._achsen()} Felder).")
+            return False
+        self.portal_auswahl = (int(x), int(y))
+        self._log(f"Feld {int(x)}/{int(y)} auf Weltkarte {nummer:02d} "
+                  f"({self._dimensionsname(nummer)}) angewaehlt - der Dorftransfer folgt mit S-6.")
+        self._render_view()
+        return True
 
     def _render_portal(self):
-        """Portalansicht aus `portalraum.py` (W5-2): das 20x20-Raster des Limbus.
+        """Portal-Uebersicht (Schnitt S-2b): Weltkartenliste oben, Gelaendekaestchen darunter.
 
-        Eigene Dimensionen sind gruen, fremde rot — wörtlich belegt (portal.php 2005: „Eure Welt
-        wird durch ein gruenes Banner markiert, fremde Welten durch rote"). `portalfarbe` liefert
-        die Farbe als WORT; hier wird sie in eine Tk-Farbe übersetzt.
+        Daniel 01.11.2026 (docs/KONZEPT_WELTKARTEN_UND_BOTS_20261101.md, Anhang 3 Frage 30):
+        "oben die Liste der Weltkarten mit Namen, darunter das Gelaendekaestchen der aktuellen
+        Welt zum Anklicken". Die Liste kommt aus `portalraum.weltkarten` (sechs belegte
+        Weltnamen, bespielbar zuerst Midgard und Valhalla), die Bannerfarben sind belegt
+        (portal.php 2005: "Eure Welt wird durch ein gruenes Banner markiert, fremde Welten durch
+        rote"). Ein Klick auf eine Weltkarte ist gesperrt, solange etwas unterwegs ist
+        (Daniel, Anhang 2).
+
+        Das Gelaende JE FELD hat keine Quelle - das Kaestchen zeigt deshalb die Bannerfarben der
+        Welt und die Anwahl, keine erfundenen Gelaendearten (offener Punkt fuer S-5).
         """
         farben = {"gruen": "#2ecc40", "rot": "#e53935"}
-        tk.Label(self.content, text="Portal", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
-        tk.Label(self.content, text=portalraum.beschreibung(), fg="#C0C0C0", bg=self.skin["bg"], wraplength=760, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 6))
+        tk.Label(self.content, text="Portal", font=("Blackletter", 20, "bold"),
+                 fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
+        tk.Label(self.content, text=portalraum.beschreibung(), fg="#C0C0C0", bg=self.skin["bg"],
+                 wraplength=760, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 6))
 
-        z = int(self.state.eigene_dimension)
+        nummer = int(self.state.eigene_dimension)
         eigene = list(self.state.eigene_dimensionen)
-        felder = portalraum.anzeige_raster(z, 10, eigene)
+        laufend = self._unterwegs_anzahl()
+
+        # --- 1. OBEN: die sechs Weltkarten mit Namen und Kennzeichen ---
+        tk.Label(self.content, text="Weltkarten", fg=self.skin["gold"], bg=self.skin["bg"],
+                 font=("TkDefaultFont", 11, "bold")).pack(anchor=tk.W, padx=10)
+        for eintrag in portalraum.weltkarten(eigene, laufend):
+            zeile = tk.Frame(self.content, bg=self.skin["panel"])
+            zeile.pack(fill=tk.X, padx=10, pady=1)
+            tk.Label(zeile, text=f"{eintrag['nummer']:02d}", width=3, anchor=tk.W, fg="#DAA520",
+                     bg=self.skin["panel"], font=("TkDefaultFont", 10, "bold")).pack(
+                         side=tk.LEFT, padx=(6, 2))
+            tk.Label(zeile, text=eintrag["name"], width=14, anchor=tk.W, fg=self.skin["text"],
+                     bg=self.skin["panel"]).pack(side=tk.LEFT)
+            tk.Label(zeile, text=eintrag["status_text"],
+                     fg=farben.get(eintrag["farbe"], "#8a8a8a"), bg=self.skin["panel"]).pack(
+                         side=tk.LEFT, padx=8)
+            if eintrag["waehlbar"]:
+                tk.Button(zeile, text="Weltensprung", bg="#3e2723", fg=self.skin["gold"],
+                          command=lambda n=eintrag["nummer"]: self._portal_wechsel(n)).pack(
+                              side=tk.RIGHT, padx=6)
+            else:
+                tk.Label(zeile, text=eintrag["grund"], fg="#8a8a8a", bg=self.skin["panel"],
+                         font=("TkDefaultFont", 8)).pack(side=tk.RIGHT, padx=6)
+
+        # --- 2. DARUNTER: das Gelaendekaestchen der aktuellen Welt, Felder anklickbar ---
         kante = portalraum._achsen()
-        tk.Label(self.content, text=f"Weltkarte {z:02d} — {self._dimensionsname(z)} "
-                                    f"({'eigene Welt (gruen)' if z in eigene else 'fremde Welt (rot)'})",
-                 fg="#DAA520", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
-        zeichenflaeche = tk.Canvas(self.content, width=400, height=400, bg=self.skin["bg"], highlightthickness=0)
-        zeichenflaeche.pack(anchor=tk.W, padx=10, pady=4)
+        tk.Label(self.content, text=(f"Gelaendekaestchen der Weltkarte {nummer:02d} - "
+                                     f"{self._dimensionsname(nummer)} "
+                                     f"({kante} x {kante} = {portalraum.feld_zahl()} Felder, "
+                                     f"ein Klick waehlt ein Feld)"),
+                 fg="#DAA520", bg=self.skin["bg"], wraplength=760, justify=tk.LEFT).pack(
+                     anchor=tk.W, padx=10, pady=(8, 0))
         zelle = max(4, 400 // max(1, kante))
+        felder = portalraum.anzeige_raster(portalraum.index_von(nummer), 10, eigene)
+        zeichenflaeche = tk.Canvas(self.content, width=kante * zelle, height=kante * zelle,
+                                   bg=self.skin["bg"], highlightthickness=0)
+        zeichenflaeche.pack(anchor=tk.W, padx=10, pady=4)
         for feld in felder:
             x1, y1 = feld["x"] * zelle, feld["y"] * zelle
             zeichenflaeche.create_rectangle(x1, y1, x1 + zelle, y1 + zelle,
-                                            fill=farben.get(feld["farbe"], "#555555"), outline="#111111")
+                                            fill=farben.get(feld["farbe"], "#555555"),
+                                            outline="#111111")
+        auswahl = getattr(self, "portal_auswahl", None)
+        if auswahl:
+            ax, ay = int(auswahl[0]), int(auswahl[1])
+            x1, y1 = ax * zelle, ay * zelle
+            zeichenflaeche.create_rectangle(x1, y1, x1 + zelle, y1 + zelle,
+                                            outline="#38BDF8", width=3)
+        zeichenflaeche.bind("<Button-1>",
+                            lambda ereignis: self._portal_feld_waehlen(ereignis.x // zelle,
+                                                                       ereignis.y // zelle))
+        if auswahl:
+            tk.Label(self.content, text=(f"Angewaehltes Feld: x={int(auswahl[0])}, "
+                                         f"y={int(auswahl[1])} auf Weltkarte {nummer:02d} "
+                                         f"({self._dimensionsname(nummer)}). Der Dorftransfer folgt "
+                                         f"mit S-6 - hier wird noch nichts uebertragen."),
+                     fg="#38BDF8", bg=self.skin["bg"], wraplength=760, justify=tk.LEFT).pack(
+                         anchor=tk.W, padx=10)
+        else:
+            tk.Label(self.content, text="Noch kein Feld gewaehlt: ein Klick ins Kaestchen waehlt es aus.",
+                     fg="#8a8a8a", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
+        tk.Label(self.content, text=("Gelaende je Feld: dazu nennt das Handbuch nichts - das Kaestchen "
+                                     "zeigt die belegten Bannerfarben (eigene Welt gruen, fremde Welt "
+                                     "rot). Gelaendefarben je Feld kommen mit dem Weltbild (S-5)."),
+                 fg="#8a8a8a", bg=self.skin["bg"], wraplength=760, justify=tk.LEFT).pack(
+                     anchor=tk.W, padx=10, pady=(2, 6))
 
+        # --- 3. Kosten, Sperre und Mannavorrat (unveraendert aus W5-2) ---
         mana = float(self.state.resources["mana"].amount)
-        erlaubt, meldung = portalraum.wechsel_erlaubt(z, z, mana, self.state.letzter_wechsel, time.time())
-        tk.Label(self.content, text=f"Mana: {int(mana)} · Wechsel kostet {portalraum.wechselkosten()} "
-                                    f"· Sperre: {self._sperre_text()}",
+        index = portalraum.index_von(nummer)
+        erlaubt, meldung = portalraum.wechsel_erlaubt(index, index, mana,
+                                                      self.state.letzter_wechsel, time.time())
+        tk.Label(self.content, text=(f"Mana: {int(mana)} · Weltensprung kostet "
+                                     f"{portalraum.wechselkosten()} · Sperre: {self._sperre_text()}"),
                  fg=self.skin["text"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(4, 2))
-        tk.Label(self.content, text=("Koordinatenwechsel möglich." if erlaubt else f"Zurzeit nicht möglich: {meldung}"),
-                 fg="#DAA520" if erlaubt else self.skin["red"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
-        tk.Label(self.content, text="(Unser Mana liegt in EINEM gemeinsamen Vorrat — das Handbuch verlangt "
-                                    "die 5.000 Mana aus einer Siedlung. Vermerkt, noch nicht je Siedlung.)",
-                 fg="#8a8a8a", bg=self.skin["bg"], wraplength=760, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 6))
+        tk.Label(self.content,
+                 text=("Weltensprung moeglich." if erlaubt else f"Zurzeit nicht moeglich: {meldung}"),
+                 fg="#DAA520" if erlaubt else self.skin["red"], bg=self.skin["bg"]).pack(
+                     anchor=tk.W, padx=10)
+        tk.Label(self.content, text=("(Unser Mana liegt in EINEM gemeinsamen Vorrat - das Handbuch "
+                                     "verlangt die 5.000 Mana aus einer Siedlung. Vermerkt, noch "
+                                     "nicht je Siedlung.)"),
+                 fg="#8a8a8a", bg=self.skin["bg"], wraplength=760, justify=tk.LEFT).pack(
+                     anchor=tk.W, padx=10, pady=(0, 6))
 
-        # W4d: die WELTKARTE des Limbus aus `src/welt.py` — die 20 Dimensionen an ihren Plaetzen
-        # (x/y aus data/welten.json), eigene gruen, fremde rot. Die sechs BELEGTEN Weltnamen sind
-        # die einzigen, die das Handbuch nennt; die Anordnung ist der VORSCHLAG der Datei.
-        meine_kennung = f"d{int(z):02d}"
-        tk.Label(self.content, text="Weltkarte des Limbus — die sechs belegten Welten: "
-                                    + ", ".join(str(d["welt"]) for d in welt.welten()),
-                 fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(6, 0))
-        tk.Label(self.content, text=welt.beschreibung(meine_kennung), fg=self.skin["text"],
-                 bg=self.skin["bg"], wraplength=760, justify=tk.LEFT).pack(anchor=tk.W, padx=10)
-        karte = tk.Canvas(self.content, width=310, height=310, bg=self.skin["bg"], highlightthickness=0)
-        karte.pack(anchor=tk.W, padx=10, pady=4)
-        kachel = max(8, 310 // 10)
-        for _d in welt.dimensionen():
-            _nr = int(str(_d["kennung"]).lstrip("d"))
-            _x1, _y1 = int(_d["x"]) * kachel, int(_d["y"]) * kachel
-            karte.create_rectangle(_x1, _y1, _x1 + kachel - 2, _y1 + kachel - 2,
-                                   fill=farben["gruen"] if _nr in eigene else farben["rot"],
-                                   outline="#111111")
-            karte.create_text(_x1 + kachel // 2 - 1, _y1 + kachel // 2 - 1,
-                              text=f"{_nr:02d}", fill="#ffffff", font=("Arial", 7))
-        _nachbarn = welt.nachbarn(meine_kennung)[:4]
-        if _nachbarn:
-            tk.Label(self.content, text="Portalpreise in die Nachbarwelten: " + " · ".join(
-                        f"{n['kennung']} ({int(n['_entfernung'])} Schritte) "
-                        f"{welt.portalkosten(meine_kennung, n['kennung'])} Mana" for n in _nachbarn),
-                     fg=self.skin["text"], bg=self.skin["bg"], wraplength=760,
-                     justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 4))
-
-        knopfreihe = tk.Frame(self.content, bg=self.skin["bg"])
-        knopfreihe.pack(anchor=tk.W, padx=10, pady=2)
-        for eintrag in portalraum.dimensionen():
-            nummer = int(str(eintrag["kennung"]).lstrip("d"))
-            eigen = nummer in eigene
-            tk.Button(knopfreihe, text=f"{nummer:02d}", width=3,
-                      bg="#1b5e20" if eigen else "#7f1d1d", fg=self.skin["gold"],
-                      command=lambda n=nummer: self._portal_wechsel(n)).pack(side=tk.LEFT, padx=1, pady=1)
-
-        tk.Label(self.content, text="Welten anderer Spieler:", fg="#C0C0C0", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 0))
+        tk.Label(self.content, text="Welten anderer Spieler:", fg="#C0C0C0",
+                 bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 0))
         for bot in self.state.bots:
             frame = tk.Frame(self.content, bg=self.skin["panel"])
             frame.pack(fill=tk.X, padx=10, pady=2)
-            tk.Label(frame, text=bot.name, fg=self.skin["text"], bg=self.skin["panel"], width=15, anchor=tk.W).pack(side=tk.LEFT, padx=5)
-            tk.Label(frame, text=f"Fraktion: {bot.faction}", fg="#DAA520", bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
-            tk.Button(frame, text="Besuchen", command=lambda b=bot: self._visit_bot(b), bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
-
+            tk.Label(frame, text=bot.name, fg=self.skin["text"], bg=self.skin["panel"], width=15,
+                     anchor=tk.W).pack(side=tk.LEFT, padx=5)
+            tk.Label(frame, text=f"Fraktion: {bot.faction}", fg="#DAA520",
+                     bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
+            tk.Button(frame, text="Besuchen", command=lambda b=bot: self._visit_bot(b),
+                      bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
     def _visit_bot(self, bot: BotPlayer):
         self._log("Besuche andere Spielerwelten nicht im Singleplayer-Modus.")
 

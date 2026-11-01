@@ -606,6 +606,12 @@ def punkte(zustand: dict, jetzt: float) -> dict:
 def portalwechsel(zustand: dict, nach_dimension, jetzt: float) -> Tuple[bool, str]:
     """Verschiebungsritual in eine andere Dimension (``portalraum``, W5).
 
+    ZAEHLWEISE-HINWEIS (Schnitt S-2b, 01.11.2026): dieser Zustand fuehrt
+    ``eigene_dimension`` als INDEX 0..19 (``neuer_zustand`` setzt 0), waehrend der
+    Spielstand in ``main.py`` die 1-basierte NUMMER aus der Kennung fuehrt (d04 -> 4).
+    ``portalraum`` rechnet ebenfalls mit dem Index, deshalb bleibt es hier beim Index -
+    nicht "vereinheitlichen", ohne den Aufrufer mitzuziehen.
+
     Belegt: 5.000 Mana aus EINER Siedlung, hoechstens einmal je 24 Stunden. Das
     Mana wird hier aus dem gemeinsamen Rohstoffvorrat genommen (der Stand fuehrt
     kein Mana je Siedlung). Bei einer Ablehnung aendert sich nichts.

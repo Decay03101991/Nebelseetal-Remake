@@ -34,6 +34,10 @@ _DATEI = _lade("welten.json")
 DIMENSIONEN: list = _DATEI["dimensionen"]
 REGEL: dict = _DATEI["portalregel"]
 WELTNAMEN: list = _DATEI["welten_belegt"]
+# Daniel 01.11.2026 (Anhang 3 Frage 21/22/31): bespielbar sind zuerst Midgard und Valhalla,
+# Startwelt ist Midgard. Beides steht in data/welten.json und wird hier nur gelesen.
+SPIELBAR: list = list(_DATEI.get("weltkarten_spielbar") or [])
+STARTWELT: str = str(_DATEI.get("startwelt") or "")
 
 _NACH_KENNUNG = {d["kennung"]: d for d in DIMENSIONEN}
 
@@ -65,6 +69,31 @@ def dimensionen() -> list:
 def welten() -> list:
     """Nur die Dimensionen, in denen eine der sechs belegten Welten liegt."""
     return [d for d in DIMENSIONEN if d.get("welt")]
+
+
+def spielbar(kennung_oder_name) -> bool:
+    """True, wenn die Weltkarte bespielbar ist (Daniel 01.11.2026: zuerst Midgard und Valhalla).
+
+    Unbekannte Namen sind NICHT bespielbar - es wird nichts angenommen.
+    """
+    eintrag = _NACH_KENNUNG.get(finde(kennung_oder_name) or "")
+    if not eintrag or not eintrag.get("welt"):
+        return False
+    return str(eintrag["welt"]) in SPIELBAR
+
+
+def startwelt() -> str:
+    """Die Kennung der Startwelt (data/welten.json: Midgard). Leer, wenn nicht eingetragen."""
+    kennung = finde(STARTWELT) if STARTWELT else None
+    return str(kennung or "")
+
+
+def startwelt_nummer() -> int:
+    """Die 1-basierte Nummer der Startwelt (d04 -> 4). 0, wenn keine Startwelt eingetragen ist."""
+    kennung = startwelt()
+    if not kennung:
+        return 0
+    return int(str(kennung).lstrip("d"))
 
 
 def entfernung(a, b):

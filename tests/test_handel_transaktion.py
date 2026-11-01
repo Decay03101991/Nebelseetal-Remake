@@ -360,8 +360,11 @@ V8_dim = copy.deepcopy(V8)
 V8_dim["dimension"] = "anderes"
 _n, _m = wirft(lambda: O.handel_start(K8, V8_dim, {KARAWANE: 1}, "holz", 10, 1.0,
                                       "vorraete", 0.0))
-check("P6g: eine fremde Dimension wird abgelehnt",
-      _n == "ValueError" and "Dimension" in _m, "%s: %s" % (_n, _m))
+check("P6g: eine fremde Weltkarte wird abgelehnt",
+      # Umgestellt in S-2b: Daniel 01.11.2026 (Anhang 3 Frage 19/35) will das Wort "Dimension"
+      # nicht mehr lesen; die Meldung sagt jetzt "Weltkarte". Die Zusage - fremder Ort wird
+      # abgelehnt - bleibt unveraendert, nur der Wortlaut wandert mit.
+      _n == "ValueError" and "Weltkarte" in _m, "%s: %s" % (_n, _m))
 
 K8_ohne = ort("K8", "kaeufer", x=0, y=0, vorraete={"gold": 1000.0}, einheiten={"Krieger": 3})
 _n, _m = wirft(lambda: O.handel_start(K8_ohne, V8, {"Krieger": 1}, "holz", 10, 1.0,

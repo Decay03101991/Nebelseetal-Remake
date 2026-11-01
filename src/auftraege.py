@@ -484,6 +484,29 @@ def fortschritt(liste: Any, jetzt: Any) -> Dict[str, Any]:
     return ergebnis
 
 
+def laufende(liste: Any, jetzt: Any) -> List[Dict[str, Any]]:
+    """Auftraege, die GERADE unterwegs sind (Hinreise, am Ziel oder Rueckreise).
+
+    Quelle der Regel (Daniel 01.11.2026, docs/KONZEPT_SECHS_DOERFER_20261101.md Anhang 2,
+    "Umzug mit laufenden Auftraegen"): "ein weltenwechsel ist fuer das dorf gar nicht
+    moeglich solange auftraege einheiten truppen oder sonst was unterwegs ist auch handel
+    z. b." - Handel laeuft ebenfalls als Auftrag (Art "handel"), deshalb genuegt EINE Liste.
+
+    Abgeschlossene Auftraege zaehlen NICHT. Rueckgabe in Dateireihenfolge, nichts wird
+    veraendert (kein `status`-Merker, anders als in `fortschritt`).
+    """
+    t = _als_zahl(jetzt)
+    out: List[Dict[str, Any]] = []
+    if not isinstance(liste, list):
+        return out
+    for e in liste:
+        if not isinstance(e, dict):
+            continue
+        if _status(e, t)[0] != "abgeschlossen":
+            out.append(e)
+    return out
+
+
 def angekommen(liste: Any, jetzt: Any) -> List[Dict[str, Any]]:
     """Auftraege, die ihr Ziel erreicht haben und noch nicht abgeliefert sind.
 
