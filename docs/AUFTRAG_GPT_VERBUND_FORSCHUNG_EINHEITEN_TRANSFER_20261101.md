@@ -17,6 +17,30 @@ Papier mit **entscheidbaren Regeln und Randfällen**; ein anderer baut sie.
 - Der Arbeitsstand liegt **lokal weiter als GitHub** (`main` dort = `954097aa` vom 31.10.). Jede
   Aussage über Code trägt Datei + Zeile **aus dem, was du wirklich gelesen hast**, sonst UNBEKANNT.
 
+## 0a. Wer dein Papier umsetzt — und was das für dein Papier bedeutet
+
+Umsetzer ist **Hermes mit dem Modell `deepseek-v4-flash`** (schnelles, kleines Modell), lokal auf
+Windows, Projekt **Nebelseetal Remake**: Python 3.14 + tkinter, JSON-Spieldaten, kein Server, keine
+Netzverbindung, kein Framework, Prüfstand mit **113 Prüfdateien** (ein voller Lauf dauert ~6 Minuten).
+Jeder Schritt wird dort als **ein** Commit mit vollem Prüflauf und neu gebauter EXE abgeschlossen.
+
+Daraus folgen für dich **harte Vorgaben** — ein Papier, das diese nicht einhält, ist für dieses Modell
+nicht umsetzbar:
+
+- **Entscheidbar statt diskutierbar:** eine Regel = ein Satz, der sich in Python ohne Auslegung prüfen
+  lässt („wenn A und B, dann C, Meldung nennt Zahl X“). Keine „man könnte auch“-Passagen in den
+  Regeln; Varianten nur dort, wo sie ausdrücklich zur Wahl stehen — mit **einer** Empfehlung.
+- **Kein Rahmenwerk, keine neuen Abhängigkeiten:** nur Standardbibliothek (und höchstens das im
+  Projekt vorhandene Pillow für Werkzeuge). Kein neues Datenbankschema, kein Migrationsplan für alte
+  Spielstände (Daniel: Teststände dürfen brechen), kein Nebenläufigkeits- oder Cache-Design.
+- **Kleine, getrennte Schritte:** jeder Teil muss in **einem** Arbeitsgang umsetzbar sein, mit eigener
+  Prüfzusage. Ist ein Teil größer, zerlege ihn selbst in nummerierte Unterschritte.
+- **Texte wörtlich liefern:** das Modell soll keine deutschen Sätze erfinden; jeder Spielertext kommt
+  fertig aus deinem Papier, Platzhalter in {geschweiften Klammern}, keine vagen Wörter.
+- **Ohne Fenster prüfbar:** jede Regel bekommt eine Zusage, die ohne Maus und Anzeige prüfbar ist
+  (Werte rein, Werte raus). Was nur im Fenster sichtbar prüfbar ist, markierst du ausdrücklich so.
+- **Knapp statt vollständig:** Tabellen, keine Wiederholungen, keine Zusammenfassung am Ende.
+
 ## 1. Die belegten Tatsachen (nichts davon raten, nichts davon ändern)
 
 | Gegenstand | Stand (belegt) |
