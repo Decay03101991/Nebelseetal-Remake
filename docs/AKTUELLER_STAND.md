@@ -8,6 +8,7 @@
 | Heilkunde-Bonus | **greift jetzt**: `siedler_zuwachs_pro_stunde` rechnet ueber `forschung_wirkung.siedlerfaktor`; gemessen **1,5 Siedler je Stunde bei Stufe 5** (vorher 1,0) | Register 118, eigener Lauf |
 | Rinderfarm | **3 Nahrung + 3 Leder** auf Grasland, **1,5 + 1,5** auf Steppe (Handbuch 2009, Seite 10, woertlich) | `data/buildings.json`, Register 118 |
 | Anzeige | die Gebaeudewirkungen zeigen den Zuwachs inklusive Heilkunde - Kern und Anzeige lesen dieselbe Stufenkarte (`self.state.forschungs_stufen()`) | `src/main.py`, Wachen A11/A12 |
+| C2-Lieferung | **15 Mini-ZIPs, 31 Nutzbilder aufgenommen und geprueft**: 20 Kartenmotive 256x256 RGBA **freigestellt** (41-54 % Deckung), 8 Symbole 96x96, Leiste 1440x140, 2 Kachelrahmen 64x64; Manifest **20 von 20 IDs deckungsgleich** mit `data/buildings.json`; Desktop geraeumt | Register 119, `archiv/eingaben/20261102_c2_designs/` |
 | Neue Pruefdatei | `tests/test_heilkunde_rinderfarm.py` **23/0/0**; `test_gpt_ne01_origwerte` **63/0/0**, `test_oekonomie_kern_10x10_nachfolger` **98/0/4** (die vier Befunde sind alt) | eigener Lauf 23:52 |
 | Register | **118 Punkte**, **119 Pruefdateien** | `grep -cE`, `ls tests/test_*.py \| wc -l` |
 | Sammellauf | **117 von 119 gruen, 0 rot, 2 ausgesetzt**, 4.424 Pruefungen, 456 s (23:55-00:04) - die zwei ausgesetzten sind `test_oekonomie_kern_unabhaengig` und `test_weltkarte` (dokumentiert zurueckgezogen) | `docs/audits/sammellauf_20261101_2355.log` |
@@ -15,12 +16,13 @@
 
 ## Der EINE naechste Schritt
 
-**Zehn Handbuchmotive in `data/gebaeude_motive.json` eintragen** (Daniels Zuordnung aus Register 113:
-1 Jaeger, 2 Schafszucht, 3 Goldmine, 4 Farm, 5 Kriegerakademie, 6 Erzmine, 7 Steinbruch, 8 Holzfaeller,
-9 Pferdezucht, 10 Rinderfarm). Heute steht Motiv 7 falsch als Erzmine, und zwei der zehn Motive fehlen
-in den Spieldaten. Danach die Karte: Motiv rund 44 px plus Gelaenderahmen je Kachel. Arbeitsweise wie
-hier: Pruefdatei ergaenzen, voller Sammellauf, ein Commit. Der Einbau aendert das sichtbare Kartenbild -
-Daniels Zuordnung liegt vor, der Einbau steht noch aus.
+**Die C2-Kartenmotive auf die Siedlungskarte bringen** - vorher entscheidet Daniel, WELCHE Fassung
+gilt: die **20 freigestellten C2-Motive** (Register 119, decken alle 20 Gebaeude ab, 256x256 RGBA) oder die
+**zehn handgeschnittenen Handbuchmotive** (Register 113, Daniels Zuordnung 1-10). Danach die Karte:
+Motiv rund 44 px plus Gelaenderahmen (`kachelrahmen_ruhe.png`/`_auswahl.png`, 64x64) je Kachel, und die
+Ressourcenleiste 1440x140 oben mit acht Zahlenfeldern (Einbauhinweise in
+`archiv/eingaben/20261102_c2_designs/LIEFERUNG.md`). Arbeitsweise wie hier: Pruefdatei ergaenzen, voller
+Sammellauf, ein Commit. Der Einbau aendert das sichtbare Kartenbild sichtbar - deshalb zuerst die Entscheidung.
 
 ## Reihenfolge danach
 
