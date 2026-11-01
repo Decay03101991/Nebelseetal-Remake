@@ -11,6 +11,9 @@ Ausführungsmechanismen (Delegation, Kanban, Cron) und eine Rangfolge bei Konfli
 Pakets beschreibt diese Ebenen mit gemessenen Zahlen — lies ihn zuerst.** Ein Vorschlag, der Ebenen
 vermischt, zerstört Pfade und funktioniert danach nicht mehr.
 
+**Teil A3 listet die Skills-Mechanik, die es bereits gibt (Curator, Nutzungsstatistik, Bundled-Manifest,
+Hub, Archiv) — prüfe zuerst, ob ein Vorschlag sie doppelt.**
+
 Anlass: In der Sitzung am 01.11.2026 fielen Reibungen auf — eine Skill-Datei war fast an der
 Größen-Grenze, Desktop-Regeln stehen in 39 Skills, 27 Beschreibungen sind länger als die erlaubten
 60 Zeichen, ein Verweis zeigte auf eine Datei in einem **anderen** Skill, und die drei Profil-Bäume
@@ -29,7 +32,7 @@ sind auseinandergelaufen (13 bzw. 19 abweichende Dateien).
 | Desktop-Regeln verstreut | **39 Skills** erwähnen den Desktop (Spitze: `dateiablage-ordnen` 24×, `uebergabe-handoff` 22×, `laptop-cleanup` 12×) |
 | Profil-Drift | `coding`: 13 von 164 Dateien weichen ab, 9 fehlen; `schulprojekt`: 19 von 105 weichen ab, 68 fehlen, 1 eigener Skill |
 
-## 2. Deine Aufgabe — dreizehn Prüffragen
+## 2. Deine Aufgabe — sechzehn Prüffragen
 
 Beantworte **jede** Frage mit Beleg (Dateiname + Zitat) und Urteil.
 
@@ -71,6 +74,17 @@ Beantworte **jede** Frage mit Beleg (Dateiname + Zitat) und Urteil.
     wörtlichen Zitaten — und schlage die fehlende Regel in einem Satz vor.
 13. **Was würdest du NICHT tun?** Nenne drei Aufräum-Vorschläge, die in diesem System Schaden
     anrichten würden, und warum. (Diese Frage prüft, ob du die Ebenen wirklich verstanden hast.)
+
+**Vorhandene Mechanik (Teil A3)**
+14. **Curator statt neuer Werkzeuge?** Der Curator archiviert unbenutzt automatisch, konsolidiert aber
+    nicht (LLM-Konsolidierung ist aus) und führt ein Protokoll. Ergänzen `regel_propagation.py` und
+    `regel-landkarte.md` ihn sinnvoll, oder gehören sie in den Curator? Sag, was **bleiben** darf.
+15. **Archivier-Regel.** Welche Skills darf der Curator künftig automatisch archivieren — und welche
+    nie (selbst gebaut? Rollen-Skill? gepinnt?)? Formuliere die Regel als Bedingung, die ein Skript
+    prüfen kann.
+16. **Konsolidierung.** Wenn Daniels Entscheidung „Zusammenlegen nur mit Beleg" gilt: welche zwei
+    Schritte braucht der Curator dafür (Vorschlag → Freigabe → `absorbed_into`), und was muss dabei mit
+    `references/`, `scripts/` und den Profil-Kopien passieren?
 
 ## 3. Formregeln für deinen Bericht
 
@@ -169,6 +183,33 @@ gilt, wenn ein Skill dem Profil-`SOUL.md` widerspricht (Punkt 3). Das ist eine d
 - **Rollen-Skills nicht „aufräumen", nur weil sie selten geladen werden** — sie sind der Regelsatz
   eines Bots, nicht Dokumentation.
 
+
+---
+
+# TEIL A3 — Was es an Skill-Mechanik SCHON GIBT (nicht doppelt bauen!)
+
+Gemessen am 01.11.2026 im Ordner `skills/`. Daniel hat ausdrücklich gewarnt: „vorsicht es gibt ja
+bereits mechaniken der skills". Wer hier etwas Neues vorschlägt, muss zuerst sagen, **warum die
+vorhandene Mechanik nicht reicht**.
+
+| Mechanik | Datei/Ort | Was sie tut (gemessen) | Lücke? |
+|---|---|---|---|
+| **Curator** | `.curator_state`, `.curator_ledger.jsonl` (631 KB, **846 Einträge**), `.curator_backups/` (2 Snapshots) | Läuft automatisch (9 Läufe, zuletzt 30.10.2026): **archiviert unbenutzte Skills** („auto: 3 archived"), führt ein vollständiges Änderungsprotokoll **mit Vorher/Nachher und Sitzungs-ID**. **LLM-Konsolidierung ist AUS** („llm: skipped (consolidation off)") | Zusammenlegen passiert **nicht** automatisch; nur Archivieren |
+| **Nutzungsstatistik** | `.usage.json` (80 KB, 175 Skills) | je Skill: `use_count`, `view_count`, `last_used_at`, `last_viewed_at`, `last_patched_at`, `pinned`, `state` | keine Auswertung nach „nie benutzt, aber Aufgabe kommt vor" |
+| **Bundled-Manifest** | `.bundled_manifest` | SHA je mitgeliefertem Skill → trennt **mitgeliefert** von **selbst gebaut** | fehlt: Regel „selbst gebaute Skills nie automatisch archivieren" |
+| **Hub** | `.hub/` (`audit.log`, `quarantine`, `taps.json`, `index-cache`) | Installation fremder Skill-Pakete mit Quarantäne | — |
+| **Archiv** | `skills/.archive/` | Quarantäne statt Löschen (7 Skills) | — |
+| **Locks** | `.locks/` (57) | verhindert parallele Schreibzugriffe | — |
+| **`skill_manage`** | Werkzeug | `create`/`patch`/`write_file`/`delete`; `delete` kennt **`absorbed_into`** (Zusammenlegung wird dokumentiert) | Werkzeug ist da — die **Entscheidung**, was zusammengehört, fehlt |
+
+**Was am 01.11.2026 NEU dazukam (und deshalb geprüft werden muss, ob es das schon gibt):**
+- `uebergabe-handoff/scripts/regel_propagation.py` — sucht ein Stichwort in **allen drei Bäumen** und
+  nennt Skill + Zeile (erste Messung: `default` 173, `coding` 164, `schulprojekt` 106 Skills; Stichwort
+  „hashgeprueft" → 2 Treffer, „desktop bleibt" → 1 Treffer).
+- `uebergabe-handoff/references/regel-landkarte.md` — Thema → zuständiger Skill → mitzuprüfende Skills.
+
+**Deine Aufgabe dazu:** sag, ob diese zwei Dinge die vorhandene Mechanik **ergänzen oder doppeln**, und
+ob sie im Curator aufgehen sollten (Frage 14–16).
 
 ---
 
