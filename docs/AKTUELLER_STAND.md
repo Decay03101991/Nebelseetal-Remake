@@ -1,3 +1,52 @@
+# STAND 02.11.2026, 00:30 - C2-Kartenmotive und Kachelrahmen stehen auf der Siedlungskarte (Register 120)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf | `d888d8f` beim Schreiben; dieser Commit bringt den Einbau | `git log --oneline -1` |
+| Kartenmotive | **20 freigestellte C2-Motive** auf der Karte, 256 px auf **44 px** verkleinert (Pillow, LANCZOS); Schalter `quelle_der_karte` in `data/gebaeude_motive.json` | Register 120, `assets/icons/gebaeude/c2/` |
+| Kachelrahmen | C2-Rahmen (64 px) auf **jedem** Feld, **Deckkraft 35 Prozent** - die Zahl steht in der Datendatei, ohne Code aenderbar; voll aufgelegt war er zu dominant | `docs/audits/kartenvergleich_c2_20261102.png` (drei Fassungen) |
+| Rueckfall | Gebaeude ohne Motiv zeichnet weiter den Baukoerper; die acht Handbuchmotive bleiben als Beleg in der Datendatei, nichts geloescht | `main._lade_gebaeude_motiv` liefert `None` |
+| Pruefdatei | `tests/test_gebaeude_motive.py` **104/0/1** - mit Begruendung neu geschrieben (die alten Wachen nagelten drei Motive fest) | eigener Lauf |
+| Sammellauf | **117 von 119 gruen, 0 rot, 2 ausgesetzt**, 4.485 Pruefungen, 274 s (00:15) | `docs/audits/sammellauf_20261102_0015.log` |
+| Register | **120 Punkte**, **119 Pruefdateien** | `grep -cE`, `ls tests/test_*.py \| wc -l` |
+| C2-Lieferung | 15 Mini-ZIPs, 31 Nutzbilder, Manifest 20/20 deckungsgleich, Desktop geraeumt | Register 119 |
+| Kosten und Guthaben | Blockplan **1,8715 von 4,00 USD**; Guthaben **8,97 USD** / 41,02 USD Gesamtverbrauch (Ablesung Daniel 00:05) | Register 117, Protokoll 00:10 |
+
+## Der EINE naechste Schritt
+
+**Die Ressourcenleiste aus der C2-Lieferung oben einhaengen** - Leiste 1440x140 als Hintergrund, acht
+Zahlenfelder mit den Werten als eigene, zentrierte Textebene (helle Zahl, dunkle Kontur). Reihenfolge und
+Zahlenfeld-Mittelpunkte stehen woertlich in `archiv/eingaben/20261102_c2_designs/LIEFERUNG.md` (Siedler,
+Nahrung, Holz, Stein, Erz, Gold, Mana, Kelch; (184,105) (342,105) (494,105) (646,105) (799,105) (957,105)
+(1110,105) (1264,105) bei 1440x140, proportional skalieren). Die Werte kommen aus `kopf_zeilen_text`
+bzw. der bestehenden Kopfzeilen-Rechenstelle, damit Anzeige und Kern dieselbe Quelle lesen (F-04).
+Danach: GPT-Icons in Menue und Baudialog, danach die acht Ressourcensymbole der Leiste. Arbeitsweise wie
+hier: Pruefdatei ergaenzen, voller Sammellauf, ein Commit.
+
+## Reihenfolge danach
+
+1. Ressourcenleiste oben (Teil B der C2-Lieferung) samt acht Symbolen.
+2. GPT-Icons (20, gerahmt) in Menue und Baudialog, Hintergruende (538x222) in die Gebaeudeansicht;
+   vorher `motiv_1..10.png` sichern.
+3. Auswahlrahmen der C2-Lieferung zeichnen (der goldene Rahmen aus `karten_optik_fein` liegt derzeit oben).
+4. Wappen den fuenf Bots zuordnen; Burgen zu Weltkarten nur als gekennzeichneter Vorschlag.
+5. S-8 Bilanz (500 Mana + 100 Gold, Register 93), danach `weltkarten_seed` fest (Register 94).
+6. Demo-Gates G-01 bis G-07 vor jedem Upload.
+
+## Fallstricke, in dieser Sitzung belegt
+
+- **Ein kraeftiger Kachelrahmen auf 100 Feldern zerstoert das Kartenbild.** Erst messen, dann einstellen:
+  drei Fassungen rendern und vergleichen (`docs/audits/kartenvergleich_c2_20261102.png`), Deckkraft als Zahl
+  in die Datendatei legen.
+- **Tk gibt Bilder frei, die niemand referenziert.** Jedes skalierte Motiv und der Rahmen MUESSEN im Cache
+  bleiben, sonst verschwinden sie still vom Canvas.
+- **Pillow nur im Ladepfad importieren, nicht oben im Modul**: ohne Pillow (nach einem Hermes-Update) faellt
+  der Code auf `tk.PhotoImage`+`subsample` zurueck, statt das Spiel unstartbar zu machen.
+- **Wachen, die eine alte Zahlenlage festnageln, werden mit Begruendung umgeschrieben**, nicht der Code
+  zurueckgebogen (`test_gebaeude_motive` hielt drei Motive fest).
+
 # STAND 01.11.2026, 23:55 - Heilkunde-Bonus und Rinderfarm behoben (Register 118)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

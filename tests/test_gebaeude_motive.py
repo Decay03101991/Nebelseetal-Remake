@@ -1,23 +1,22 @@
 # -*- coding: ascii -*-
-"""Original-Gebaeudemotive auf der Siedlungskarte (A-2, Register 82).
+"""Gebaeudemotive auf der Siedlungskarte - Stand 02.11.2026 (Register 119).
 
-Daniels Spielbericht 31.10.2026: "Platzhalter durch Originalgrafik ersetzen" - die Karte zeichnete
-nur erfundene Baukoerper. Sechs Kontaktboegen ueber alle 244 Handbuchbilder ergaben ACHT echte
-Gebaeudemotive (Handbuch 2009, Seite 1); die Sichtung steht in
-`docs/audits/BILDQUELLEN_SICHTUNG_20261101.md`.
+Geschichte in zwei Saetzen: A-2 (Register 82) brachte acht aus dem Handbuch geschnittene Motive auf
+die Karte, von denen nur drei belegt waren. Daniel hat am 02.11.2026 entschieden, dass die Karte die
+**20 freigestellten C2-Motive** zeigt (`quelle_der_karte: "c2"`), weil diese alle zwanzig Gebaeude
+abdecken und echte Transparenz haben. Die acht Handbuchmotive bleiben als Beleg und Rueckfallsatz in
+`data/gebaeude_motive.json` stehen - nichts wird geloescht.
 
 Was diese Datei beweist
 -----------------------
-1. Nur BELEGTE Zuordnungen erscheinen auf der Karte: `data/gebaeude_motive.json` fuehrt acht
-   Motive, aber nur die mit `eingebaut: true` kommen durch (`main.GEBAEUDE_MOTIVE`).
-2. Jede eingebaute Zuordnung nennt ein Gebaeude, das es in `data/buildings.json` wirklich gibt
-   (der erste Anlauf hatte "kaserne" statt "kriegerakademie" - diese Pruefung haette ihn
-   gefangen).
-3. Jede Motivdatei existiert und ist ein PNG (Tk liest kein JPEG) mit mindestens 64 px.
-4. Die vier unklaren Motive sind ausdruecklich NICHT eingebaut - sie warten auf Daniels
-   Zuordnung, statt geraten zu werden.
-5. Ein Gebaeude ohne Motiv zeichnet weiter den Baukoerper: die Funktion liefert dann None,
-   statt zu werfen.
+1. Die Karte liest die 20 C2-Motive: `main.GEBAEUDE_MOTIVE` deckt GENAU die Gebaeude aus
+   `data/buildings.json` ab (kein Motiv ohne Gebaeude, kein Gebaeude ohne Motiv).
+2. Alle Motivdateien existieren, sind PNG mit Alphakanal (Farbtyp 6), 256 x 256 px.
+3. Der Schalter `quelle_der_karte` entscheidet, welche Fassung gilt; auf "c2" stehen die
+   Handbuchmotive NICHT mehr in der Karte.
+4. Die Kachelrahmen (C2-Lieferung, 64 x 64 px) sind eingetragen, ihre Deckkraft ist eine Zahl in
+   der Datendatei (Daniel kann sie ohne Codeaenderung aendern).
+5. Ein Gebaeude ohne Motiv zeichnet weiter den Baukoerper: die Funktion liefert dann None.
 6. Die Ausbaustufe bleibt bei Motiven sichtbar (Stufenpips), wie die Legende es verspricht.
 
 Aufruf:  python -X utf8 tests/test_gebaeude_motive.py
@@ -36,84 +35,115 @@ ROOT, SRC = import_src()
 import main  # noqa: E402
 
 
-def png_groesse(pfad):
-    """(breite, hoehe) aus dem PNG-Kopf - ohne Fremdbibliothek."""
+def png_kopf(pfad):
+    """(breite, hoehe, farbtyp) aus dem PNG-Kopf - ohne Fremdbibliothek.
+
+    Farbtyp 6 = RGBA (mit Alphakanal), 2 = RGB ohne Transparenz.
+    """
     with open(pfad, "rb") as f:
-        kopf = f.read(24)
-    if kopf[:8] != b"\x89PNG\r\n\x1a\n":
-        return None
-    breite, hoehe = struct.unpack(">II", kopf[16:24])
-    return breite, hoehe
+        kopf = f.read(26)                       # Signatur (8) + IHDR (8) + Masse (8) + Tiefe/Farbtyp (2)
+    if kopf[:8] != b"\x89PNG\r\n\x1a\n":        # PNG-Signatur
+        return None                             # kein PNG
+    breite, hoehe = struct.unpack(">II", kopf[16:24])   # Masse aus dem IHDR-Block
+    return breite, hoehe, kopf[25]              # Farbtyp steht im Byte 25
 
 
 daten = json.load(open(os.path.join(ROOT, "data", "gebaeude_motive.json"), encoding="utf-8"))
-motive = daten["motive"]
+handbuch = daten["motive"]                       # acht geschnittene Handbuchmotive (Beleg, Rueckfall)
+c2 = daten.get("c2_motive") or []                # 20 freigestellte C2-Motive (gelten auf der Karte)
 ids = {e["id"] for e in json.load(
     open(os.path.join(ROOT, "data", "buildings.json"), encoding="utf-8"))["gebaeude"]}
 
 # ==========================================================================
-abschnitt("1. Acht Motive gefunden, nur belegte eingebaut")
+abschnitt("1. Die Karte liest die 20 C2-Motive (Entscheidung Daniel 02.11.2026)")
 
-check("1 die Datei fuehrt genau acht Motive", len(motive) == 8, str(len(motive)))
-eingebaut = [m for m in motive if m.get("eingebaut")]
-offen = [m for m in motive if not m.get("eingebaut")]
-check("1 drei sind eingebaut, fuenf warten", len(eingebaut) == 3 and len(offen) == 5,
-      f"{len(eingebaut)} / {len(offen)}")
-check("1 die Karte kennt genau diese drei Gebaeude",
-      set(main.GEBAEUDE_MOTIVE) == {m["gebaeude"] for m in eingebaut},
+check("1 der Schalter quelle_der_karte steht auf c2", daten.get("quelle_der_karte") == "c2",
+      str(daten.get("quelle_der_karte")))
+check("1 die Datendatei fuehrt genau 20 C2-Motive", len(c2) == 20, str(len(c2)))
+check("1 die Karte kennt genau diese 20 Gebaeude",
+      set(main.GEBAEUDE_MOTIVE) == {e["gebaeude"] for e in c2},
       str(sorted(main.GEBAEUDE_MOTIVE)))
-check("1 die vier unklaren Motive stehen NICHT in der Karte",
-      all(m["motiv"] not in (1, 5, 7) for m in offen)
-      and not any(m["motiv"] in main.GEBAEUDE_MOTIVE.values() for m in offen), "")
+check("1 jedes Gebaeude aus buildings.json hat ein Motiv", set(main.GEBAEUDE_MOTIVE) == ids,
+      "fehlend: %s / zu viel: %s" % (sorted(ids - set(main.GEBAEUDE_MOTIVE)),
+                                     sorted(set(main.GEBAEUDE_MOTIVE) - ids)))
+check("1 kein Motiv ohne Gebaeude", {e["gebaeude"] for e in c2} <= ids, "")
+check("1 die Liste nennt keine Dubletten", len({e["gebaeude"] for e in c2}) == len(c2), "")
+check("1 die Handbuchmotive sind noch da (Beleg und Rueckfallsatz, nichts geloescht)",
+      len(handbuch) == 8, str(len(handbuch)))
+check("1 die Handbuchmotive stehen NICHT mehr in der Karte",
+      not any(str(m.get("datei")) in main.GEBAEUDE_MOTIVE.values() for m in handbuch), "")
 
 
 # ==========================================================================
-abschnitt("2. Jede Zuordnung nennt ein Gebaeude, das es gibt")
-for m in eingebaut:
-    check(f"2 Motiv {m['motiv']} zeigt auf ein echtes Gebaeude ({m['gebaeude']})",
-          m["gebaeude"] in ids, m["gebaeude"])
-    check(f"2 Motiv {m['motiv']} ist als sicher gekennzeichnet", m.get("sicher") is True, "")
-    check(f"2 Motiv {m['motiv']} nennt eine Begruendung",
-          len(str(m.get("begruendung") or "")) > 20, str(m.get("begruendung"))[:40])
+abschnitt("2. Jede Motivdatei ist brauchbar und freigestellt")
 
-
-# ==========================================================================
-abschnitt("3. Jede Motivdatei existiert und ist brauchbar")
-for m in motive:
-    pfad = os.path.join(ROOT, m["datei"].replace("/", os.sep))
-    check(f"3 Motiv {m['motiv']} liegt im Projekt", os.path.exists(pfad), pfad)
+for e in c2:
+    name = e["gebaeude"]
+    pfad = os.path.join(ROOT, str(e["datei"]).replace("/", os.sep))
+    check(f"2 {name}: Datei liegt im Projekt", os.path.exists(pfad), str(e["datei"]))
     if not os.path.exists(pfad):
         continue
-    check(f"3 Motiv {m['motiv']} ist ein PNG (Tk liest kein JPEG)",
-          m["datei"].lower().endswith(".png") and png_groesse(pfad) is not None, m["datei"])
-    groesse = png_groesse(pfad) or (0, 0)
-    check(f"3 Motiv {m['motiv']} ist mindestens 64 px gross",
-          groesse[0] >= 64 and groesse[1] >= 64, str(groesse))
+    kopf = png_kopf(pfad)
+    check(f"2 {name}: ist ein PNG mit Alphakanal (Farbtyp 6)", kopf is not None and kopf[2] == 6,
+          str(kopf))
+    check(f"2 {name}: 256 x 256 px", kopf is not None and kopf[0] == 256 and kopf[1] == 256,
+          str(kopf[:2] if kopf else kopf))
+    check(f"2 {name}: als freigestellt gekennzeichnet", e.get("freigestellt") is True, "")
+
+
+# ==========================================================================
+abschnitt("3. Kachelrahmen sind eingetragen und in der Zeichnung angeschlossen")
+
+rahmen = daten.get("kachelrahmen") or {}
+for art in ("ruhe", "auswahl"):
+    datei = str(rahmen.get(art) or "")
+    pfad = os.path.join(ROOT, datei.replace("/", os.sep))
+    check(f"3 Rahmen {art}: Pfad eingetragen", bool(datei) and datei.endswith(".png"), datei)
+    check(f"3 Rahmen {art}: Datei liegt im Projekt", os.path.exists(pfad), pfad)
+    if os.path.exists(pfad):
+        kopf = png_kopf(pfad)
+        check(f"3 Rahmen {art}: 64 x 64 px mit Alphakanal",
+              kopf is not None and kopf[0] == 64 and kopf[1] == 64 and kopf[2] == 6, str(kopf))
+check("3 die Deckkraft ist eine Zahl zwischen 0 und 100",
+      isinstance(rahmen.get("deckkraft_prozent"), int) and 0 <= rahmen["deckkraft_prozent"] <= 100,
+      str(rahmen.get("deckkraft_prozent")))
+check("3 der Wert kommt wirklich aus der Datendatei (main.RAHMEN_DECKRAFT)",
+      getattr(main, "RAHMEN_DECKRAFT", None) == rahmen.get("deckkraft_prozent"),
+      str(getattr(main, "RAHMEN_DECKRAFT", None)))
+check("3 main kennt beide Rahmenarten", set(getattr(main, "KACHELRAHMEN", {})) == {"ruhe", "auswahl"},
+      str(sorted(getattr(main, "KACHELRAHMEN", {}))))
+
+import inspect  # noqa: E402
+quelle = inspect.getsource(main)
+check("3 die Karte zeichnet die Rahmen je Feld", "_lade_kachelrahmen(" in quelle
+      and "kachelrahmen" in quelle, "")
+check("3 die Karte zeichnet das Motiv statt des Baukoerpers",
+      "_lade_gebaeude_motiv(" in quelle and "create_image(" in quelle, "")
+check("3 die Stufenpips werden beim Motiv gezeichnet", "_stufenpips_zeichnen(" in quelle, "")
+check("3 der erfundene Baukoerper bleibt als Rueckfall erhalten",
+      "gebaeude_baukasten_plan(" in quelle, "")
+check("3 die Motivgroesse ist an die Kachel gebunden (nicht fest getippt)",
+      "zelle * 0.7" in quelle, "")
 
 
 # ==========================================================================
 abschnitt("4. Ohne Motiv bleibt der gezeichnete Baukoerper")
+
 app_klasse = main.NebelseetalApp
-check("4 die Motivsuche wirft nicht bei unbekanntem Gebaeude", True, "")
+
+
 class _Leer:
+    """Ein Objekt, das nur den Cache kennt - mehr braucht die Motivsuche im Fehlerfall nicht."""
     _motiv_cache = {}
+
+
 _ergebnis = app_klasse._lade_gebaeude_motiv(_Leer(), "gibtesnicht")
 check("4 ein Gebaeude ohne Motiv liefert None (kein Absturz)", _ergebnis is None, str(_ergebnis))
 check("4 die Zuordnung ist eine geschlossene Liste (kein Platzhalterpfad)",
       all(p.startswith("assets/icons/gebaeude/") for p in main.GEBAEUDE_MOTIVE.values()),
       str(list(main.GEBAEUDE_MOTIVE.values())))
 
-
-# ==========================================================================
-abschnitt("5. Die Stufenpips sind eine eigene, pruefbare Zeichnung")
-import inspect  # noqa: E402
-quelle = inspect.getsource(main)
-check("5 die Karte zeichnet das Motiv statt des Baukoerpers", "_lade_gebaeude_motiv(" in quelle
-      and "create_image(" in quelle, "")
-check("5 die Stufenpips werden beim Motiv gezeichnet", "_stufenpips_zeichnen(" in quelle, "")
-check("5 der erfundene Baukoerper bleibt als Rueckfall erhalten",
-      "gebaeude_baukasten_plan(" in quelle, "")
-befund("Die Karte selbst ist hier nicht gezeichnet - die GUI-Probe auf dem echten Spielstand "
-       "deckt sie ab", "")
+befund("Die Karte selbst wird hier nicht gezeichnet - die Vorschau "
+       "docs/audits/kartenvergleich_c2_20261102.png und die GUI decken das Aussehen ab", "")
 
 sys.exit(bericht())

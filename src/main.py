@@ -686,32 +686,49 @@ BUILDINGS: Dict[str, Building] = {}
 UNIT_ICONS: Dict[str, str] = {}
 
 
-def _lade_gebaeude_motive() -> Dict[str, str]:
-    """Gebaeudetyp -> Motivdatei, NUR fuer belegte Zuordnungen (A-2, 01.11.2026).
+def _lade_motivdaten() -> tuple:
+    """(Gebaeude -> Motivdatei, Rahmenart -> Datei, Rahmen-Deckkraft in Prozent) aus den Spieldaten.
 
-    Quelle ist `data/gebaeude_motive.json`: acht Original-Gebaeudemotive aus dem Handbuch 2009,
-    aber nur die Motive mit `eingebaut: true` erscheinen auf der Karte. Die uebrigen sind
-    gefunden und warten auf Daniels Zuordnung - geraten wird nichts. Die Sichtung aller 244
-    Handbuchbilder steht in `docs/audits/BILDQUELLEN_SICHTUNG_20261101.md`.
+    ENTSCHEIDUNG Daniel 02.11.2026 (Register 119): die Siedlungskarte zeigt die **20 freigestellten
+    C2-Motive** (256 x 256 px, RGBA) aus dem Block `c2_motive`. Der Schalter `quelle_der_karte` ist
+    die EINE Stelle, die das entscheidet: steht dort nicht "c2", gilt die aeltere Liste `motive`
+    (acht Handbuchmotive, Register 113, nur `eingebaut: true`). Beide Listen bleiben in der Datei -
+    die Handbuchmotive sind der belegte Rueckfallsatz, nichts wird geloescht.
     """
-    pfad = os.path.join(ICON_WURZEL, "data", "gebaeude_motive.json")
-    try:
-        with open(pfad, encoding="utf-8") as f:
-            daten = json.load(f)
-    except (OSError, ValueError, KeyError):
-        return {}
-    motive: Dict[str, str] = {}
-    for eintrag in daten.get("motive") or []:
-        if not isinstance(eintrag, dict) or not eintrag.get("eingebaut"):
-            continue
-        gebaeude = eintrag.get("gebaeude")
-        datei = eintrag.get("datei")
-        if gebaeude and datei:
-            motive[str(gebaeude)] = str(datei)
-    return motive
+    pfad = os.path.join(ICON_WURZEL, "data", "gebaeude_motive.json")     # Datendatei im Projekt
+    try:                                                                # Datei lesen
+        with open(pfad, encoding="utf-8") as f:                          # UTF-8 wie alle Spieldaten
+            daten = json.load(f)                                         # Inhalt als dict
+    except (OSError, ValueError, KeyError):                              # Datei fehlt oder ist kaputt
+        return {}, {}                                                    # dann zeichnet die Karte Baukoerper
+    motive: Dict[str, str] = {}                                          # Gebaeude -> Motivdatei
+    if str(daten.get("quelle_der_karte") or "") == "c2":                 # der neue Weg (C2-Motive)
+        for eintrag in daten.get("c2_motive") or []:                     # je Gebaeude ein Eintrag
+            gebaeude = (eintrag or {}).get("gebaeude")                    # Gebaeudekennung aus buildings.json
+            datei = (eintrag or {}).get("datei")                          # Bildpfad relativ zum Projekt
+            if gebaeude and datei:                                       # nur vollstaendige Eintraege
+                motive[str(gebaeude)] = str(datei)                        # Zuordnung uebernehmen
+    else:                                                                # Rueckfall: Handbuchmotive
+        for eintrag in daten.get("motive") or []:                        # acht Handbuchmotive
+            if not isinstance(eintrag, dict) or not eintrag.get("eingebaut"):   # nur belegte Zuordnungen
+                continue                                                 # unklare Motive bleiben draussen
+            gebaeude = eintrag.get("gebaeude")                            # Gebaeudekennung
+            datei = eintrag.get("datei")                                  # Bildpfad
+            if gebaeude and datei:                                        # vollstaendig?
+                motive[str(gebaeude)] = str(datei)                        # uebernehmen
+    rahmen: Dict[str, str] = {}                                           # Rahmenart -> Datei
+    for art in ("ruhe", "auswahl"):                                       # zwei Rahmen liefert C2
+        datei = (daten.get("kachelrahmen") or {}).get(art)                # Pfad aus der Datendatei
+        if datei:                                                         # nur wenn eingetragen
+            rahmen[art] = str(datei)                                      # uebernehmen
+    try:                                                                  # Deckkraft des Rahmens
+        deckkraft = int((daten.get("kachelrahmen") or {}).get("deckkraft_prozent", 100))   # Prozent aus der Datei
+    except (TypeError, ValueError):                                        # kaputter Wert
+        deckkraft = 100                                                   # dann voll deckend
+    return motive, rahmen, max(0, min(100, deckkraft))                    # nie unter 0 oder ueber 100
 
 
-GEBAEUDE_MOTIVE: Dict[str, str] = _lade_gebaeude_motive()
+GEBAEUDE_MOTIVE, KACHELRAHMEN, RAHMEN_DECKRAFT = _lade_motivdaten()
 UNITS: Dict[str, Unit] = {}
 for _name, _e in einheiten.alle().items():
     if _e["icon"]:
@@ -3578,32 +3595,65 @@ class NebelseetalApp:
         self._icon_cache[pfad] = bild
         return bild
 
-    def _lade_gebaeude_motiv(self, gebaeude_key: str, faktor: int = 2):
-        """Das Originalmotiv eines Gebaeudes als Tk-Bild - oder None, wenn keines belegt ist.
+    def _motivbild_skaliert(self, relativ: str, px: int, cache: str, deckkraft: int = 100):
+        """Ein Bild aus dem Projekt auf `px` Pixel bringen und im Cache halten (Tk-Bild oder None).
 
-        Nur Motive aus `data/gebaeude_motive.json` mit `eingebaut: true` kommen hier durch
-        (`GEBAEUDE_MOTIVE`). Die Bilder sind 100 x 100 px; `faktor=2` halbiert sie auf 50 px,
-        damit sie in eine 64-px-Kachel mit Rand passen.
+        Mit Pillow wird geglaettet skaliert (LANCZOS); fehlt Pillow, wird ganzzahlig per
+        `subsample` verkleinert - das Spiel laeuft dann weiter, nur groeber und ohne
+        Deckkraft-Absenkung. Der Cache ist Pflicht: Tk gibt Bilder frei, die niemand mehr
+        referenziert (dann waeren sie unsichtbar).
         """
-        relativ = GEBAEUDE_MOTIVE.get(str(gebaeude_key))
-        if not relativ:
-            return None
-        pfad = icon_pfad(relativ)
-        if not pfad or not os.path.exists(pfad):
-            return None
-        if not hasattr(self, "_motiv_cache"):
-            self._motiv_cache = {}
-        schluessel = (pfad, faktor)
-        if schluessel in self._motiv_cache:
-            return self._motiv_cache[schluessel]
-        try:
-            bild = tk.PhotoImage(file=pfad)
-            if faktor > 1:
-                bild = bild.subsample(faktor)
-        except Exception:                                    # noqa: BLE001
-            return None
-        self._motiv_cache[schluessel] = bild
-        return bild
+        pfad = icon_pfad(relativ)                                    # Projektpfad ueber EINE Stelle
+        if not pfad or not os.path.exists(pfad):                     # Datei fehlt
+            return None                                              # Aufrufer zeichnet den Baukoerper
+        if not hasattr(self, cache):                                 # eigener Cache je Bildart
+            setattr(self, cache, {})                                 # beim ersten Bild anlegen
+        speicher = getattr(self, cache)                              # dict: (Pfad, Groesse, Deckkraft) -> Bild
+        schluessel = (pfad, px, deckkraft)                           # Cache-Schluessel
+        if schluessel in speicher:                                   # schon geladen
+            return speicher[schluessel]                              # Bild wiederverwenden
+        bild = None                                                  # Ergebnis
+        try:                                                         # geglaetteter Weg mit Pillow
+            from PIL import Image, ImageTk                            # nur hier - das Spiel laeuft auch ohne
+            roh = Image.open(pfad).convert("RGBA")                    # PNG mit Alphakanal
+            roh = roh.resize((px, px), Image.LANCZOS)                 # auf Zielgroesse verkleinern
+            if 0 < deckkraft < 100:                                   # Deckkraft absenken (Rahmen)
+                roh.putalpha(roh.getchannel("A").point(lambda a: int(a * deckkraft / 100.0)))   # Alpha skalieren
+            bild = ImageTk.PhotoImage(roh)                            # Tk-Grafik daraus
+        except Exception:                                            # noqa: BLE001 - kein Pillow, kein Bildschirm
+            try:                                                     # Rueckfall ohne Pillow
+                bild = tk.PhotoImage(file=pfad)                       # Originalgroesse laden
+                faktor = max(1, int(round(bild.width() / float(px))))  # ganzzahliger Verkleinerungsfaktor
+                if faktor > 1:                                       # nur verkleinern, nie vergroessern
+                    bild = bild.subsample(faktor)                    # 256 px / 6 = 42 px
+            except Exception:                                        # noqa: BLE001
+                return None                                          # gar kein Bild
+        speicher[schluessel] = bild                                   # im Cache halten
+        return bild                                                  # an den Aufrufer
+
+    def _lade_gebaeude_motiv(self, gebaeude_key: str, px: int = 44):
+        """Das Kartenmotiv eines Gebaeudes als Tk-Bild - oder None, wenn keines vorliegt.
+
+        Gelesen wird `GEBAEUDE_MOTIVE` (aus `data/gebaeude_motive.json`, Schalter
+        `quelle_der_karte`): seit dem 02.11.2026 die 20 freigestellten C2-Motive mit 256 x 256 px
+        (Daniel, Register 119). `px` ist die Zielgroesse auf der 64-px-Kachel - Vorgabe 44 px.
+        """
+        relativ = GEBAEUDE_MOTIVE.get(str(gebaeude_key))              # Motivpfad zu diesem Gebaeude
+        if not relativ:                                              # kein Motiv hinterlegt
+            return None                                              # dann zeichnet der Aufrufer den Baukoerper
+        return self._motivbild_skaliert(relativ, px, "_motiv_cache")  # laden, skalieren, cachen
+
+    def _lade_kachelrahmen(self, art: str = "ruhe", px: int = 64):
+        """Der Kachelrahmen aus der C2-Lieferung als Tk-Bild (oder None).
+
+        `art` ist "ruhe" (jedes Feld) oder "auswahl" (hervorgehobenes Feld); die Pfade stehen in
+        `data/gebaeude_motive.json` unter `kachelrahmen` (`KACHELRAHMEN`).
+        """
+        relativ = KACHELRAHMEN.get(str(art))                          # Rahmenpfad zur gewuenschten Art
+        if not relativ:                                               # kein Rahmen hinterlegt
+            return None                                               # Karte bleibt ohne Rahmen
+        deckkraft = RAHMEN_DECKRAFT if str(art) == "ruhe" else 100    # Ruherahmen gedeckt, Auswahlrahmen kraeftig
+        return self._motivbild_skaliert(relativ, px, "_rahmen_cache", deckkraft)   # gleicher Weg wie die Motive
 
     def _stufenpips_zeichnen(self, canvas, x0: float, y0: float, zelle: float,
                              stufe: float, feld: int) -> None:
@@ -5202,6 +5252,17 @@ class NebelseetalApp:
                                     fill="", outline="", width=0,
                                     tags=("kartenfeld", f"feld:{i}"))
 
+        # ---- Durchgang 1b: Kachelrahmen je Feld (C2-Lieferung, Kartenoptik Variante 2) ------
+        # EIN Rahmenbild fuer ALLE Felder: einmal geladen, 100-mal gezeichnet - sonst haelt Tk
+        # 100 Kopien derselben 64-px-Grafik im Speicher. Liegt ueber der Originalkarte und unter
+        # Wegen und Gebaeuden, damit die Rahmen die Motive nicht anschneiden.
+        _rahmen = self._lade_kachelrahmen("ruhe", zelle)             # Ruherahmen, passend zur Kachel
+        if _rahmen is not None:                                      # ohne Rahmen bleibt die Karte wie bisher
+            for i in range(len(raster)):                             # jedes Feld bekommt seinen Rahmen
+                _rx, _ry = _feld_ecke(i)                             # linke obere Ecke des Feldes
+                canvas.create_image(_rx, _ry, anchor="nw", image=_rahmen,
+                                    tags=("kachelrahmen", f"feld:{i}"))
+
         # ---- Durchgang 2: Wege zwischen benachbarten bebauten Feldern ----------------------
         # Das Modul kennt weder Wasser noch Gebäude; die Auswahl der Richtungen macht deshalb
         # der Aufrufer: nur zwischen zwei bebauten Feldern, die kein Wasser sind.
@@ -5236,7 +5297,7 @@ class NebelseetalApp:
             # A-2 (Daniels Spielbericht 31.10.2026: "Platzhalter durch Originalgrafik ersetzen"):
             # fuer Gebaeude mit BELEGTEM Originalmotiv steht das Handbuchbild auf dem Feld, sonst
             # weiter der gezeichnete Baukoerper. Die Ausbaustufe bleibt in beiden Faellen sichtbar.
-            _motiv = self._lade_gebaeude_motiv(gebaut)
+            _motiv = self._lade_gebaeude_motiv(gebaut, max(28, int(zelle * 0.7)))   # 44 px auf der 64-px-Kachel
             if _motiv is not None:
                 _mx, _my = int(x0 + zelle / 2), int(y0 + zelle / 2 + 2)
                 canvas.create_image(_mx, _my, image=_motiv, tags=(f"feld:{i}", "motiv"))

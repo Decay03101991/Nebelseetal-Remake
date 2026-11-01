@@ -3,7 +3,7 @@
   "_quelle": "docs/original/handbuch_bilder/seite01_bild01,04,05,06,07,08,09,10.jpeg -> assets/icons/gebaeude/motiv_1..8.png (100x100 px, PNG, weil Tk kein JPEG liest)",
   "_sichtung": "docs/audits/BILDQUELLEN_SICHTUNG_20261101.md (alle 244 Handbuchbilder auf sechs Kontaktboegen)",
   "_regel": "Nur Motive mit 'eingebaut': true erscheinen auf der Siedlungskarte. 'eingebaut': false heisst: Motiv ist vorhanden, die Zuordnung ist aber NICHT belegt - Daniel ordnet zu, dann wird nur dieses Feld geaendert. Es wird nichts geraten.",
-  "_entscheidung_offen": "Daniel 01.11.2026 gefragt: welche Nummer ist welches Gebaeude? Die vier unklaren Motive (2, 3, 4, 6) warten auf seine Antwort.",
+  "_entscheidung_offen": "ERLEDIGT 02.11.2026: Daniel zeigt auf der Siedlungskarte die 20 freigestellten C2-Motive (Register 119), nicht die acht Handbuchmotive. Die Liste 'motive' bleibt als Beleg und Rueckfallsatz unveraendert stehen.",
   "motive": [
     {
       "motiv": 1,
@@ -77,5 +77,137 @@
       "beschreibung": "braune Holzscheune mit grossem Dach auf Stelzen",
       "begruendung": "Stall, Farm oder Jaegerhuette - nicht entscheidbar."
     }
-  ]
+  ],
+  "quelle_der_karte": "c2",
+  "_quelle_der_karte": "ENTSCHEIDUNG Daniel 02.11.2026 (Register 119): die Siedlungskarte zeigt die 20 Motive aus `c2_motive` (freigestellt, 256x256 RGBA, Quelle: C2-Lieferung, binaer identisch mit den freigegebenen Originalen). 'quelle_der_karte' ist der EINE Schalter; steht dort etwas anderes, gilt die alte Liste 'motive' mit 'eingebaut: true'.",
+  "c2_motive": [
+    {
+      "gebaeude": "holzfaeller",
+      "datei": "assets/icons/gebaeude/c2/holzfaeller.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "steinmetz",
+      "datei": "assets/icons/gebaeude/c2/steinmetz.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "erzmine",
+      "datei": "assets/icons/gebaeude/c2/erzmine.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "tempel",
+      "datei": "assets/icons/gebaeude/c2/tempel.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "farm",
+      "datei": "assets/icons/gebaeude/c2/farm.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "goldmine",
+      "datei": "assets/icons/gebaeude/c2/goldmine.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "schafszucht",
+      "datei": "assets/icons/gebaeude/c2/schafszucht.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "rinderfarm",
+      "datei": "assets/icons/gebaeude/c2/rinderfarm.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "pferdezucht",
+      "datei": "assets/icons/gebaeude/c2/pferdezucht.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "jaeger",
+      "datei": "assets/icons/gebaeude/c2/jaeger.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "schmiede",
+      "datei": "assets/icons/gebaeude/c2/schmiede.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "bogenbauer",
+      "datei": "assets/icons/gebaeude/c2/bogenbauer.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "naehstube",
+      "datei": "assets/icons/gebaeude/c2/naehstube.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "kriegerakademie",
+      "datei": "assets/icons/gebaeude/c2/kriegerakademie.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "diebesgilde",
+      "datei": "assets/icons/gebaeude/c2/diebesgilde.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "stellmacher",
+      "datei": "assets/icons/gebaeude/c2/stellmacher.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "verteidigungswall",
+      "datei": "assets/icons/gebaeude/c2/verteidigungswall.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "bibliothek",
+      "datei": "assets/icons/gebaeude/c2/bibliothek.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "haus",
+      "datei": "assets/icons/gebaeude/c2/haus.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "lager",
+      "datei": "assets/icons/gebaeude/c2/lager.png",
+      "px": 256,
+      "freigestellt": true
+    }
+  ],
+  "kachelrahmen": {
+    "_zweck": "Rahmen je Kartenkachel (C2-Lieferung, 64x64 RGBA); 'ruhe' liegt auf jedem Feld, 'auswahl' ist der hervorgehobene Rahmen",
+    "ruhe": "assets/icons/gebaeude/rahmen/kachelrahmen_ruhe.png",
+    "auswahl": "assets/icons/gebaeude/rahmen/kachelrahmen_auswahl.png",
+    "px": 64,
+    "deckkraft_prozent": 35,
+    "_warum": "Der gelieferte Rahmen ist kraeftig; voll aufgelegt erdrueckt er das Gelaende (eigene Sichtpruefung 02.11.2026, docs/audits/kartenvergleich_c2_20261102.png). 35 Prozent zeigen das Raster, ohne die Landschaft zu zerschneiden. Der Wert ist EINE Zahl in dieser Datei - Daniel kann ihn ohne Codeaenderung anheben oder senken."
+  }
 }
