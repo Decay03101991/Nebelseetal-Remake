@@ -1,3 +1,36 @@
+# STAND 01.11.2026, 21:05 - B1 des starken Modells gelaufen, zwei echte Fehler gefunden
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Blockplan:** `docs/AUFTRAG_STARKES_MODELL_BLOCKPLAN_20261101.md` (B1 bis B8, rund 4,00 USD).
+**B1 ist abgeschlossen**, B2 ist vorbereitet und startet als naechstes.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| B1 Werkzeug | `tools/mess_wirtschaft.py`, 315 Zeilen, reines ASCII, Rueckgabewert 0 | eigener Lauf |
+| B1 Bericht | `docs/audits/MESS_WIRTSCHAFT_20261101.md`, 263 Zeilen, drei Kernaussagen, jede Abweichung | Datei |
+| B1 Kosten | **0,5980 USD gemessen** (52 Aufrufe, 11,9 Mio Input / 11,7 Mio Cache, 103 k Output) | `docs/audits/usage_b1_20261101.json` + Preise aus dem Export |
+| Sammellauf | 117 Dateien, **115 gruen, 0 rot**, 2 ausgesetzt, 4.350 Pruefungen, 695 s | `docs/audits/sammellauf_20261101_2045_b1.log` |
+| Register | **108 Punkte** | `grep -cE '^\| [0-9]+ \|'` |
+| Symbolkatalog | `docs/SYMBOLKATALOG_Nebelseetal_20261101.pdf`, 8 Seiten, ueber `tools/icons_katalog_pdf.py` reproduzierbar | Datei |
+| Chat-Paket C1 | `docs/auftraege/C1_paket_20261101.md`, 18.810 Zeichen, noch nicht gelaufen | Datei |
+| B2 Paket | `docs/auftraege/B2_paket_20261101.md`, 41.868 Zeichen | Datei |
+
+**Zwei Befunde aus B1 (Register 105), nicht behoben:** der Heilkunde-Bonus greift im Spiel nie
+(`gebaeude_wirkung` liest `heilkunde` klein), und die Rinderfarm liefert 1 statt 3 Nahrung gegen
+Handbuch Seite 10. Beide brauchen Daniels Entscheidung, weil sie Spielwerte beruehren.
+
+## Der EINE naechste Schritt
+
+Block **B2** starten (Kampf messen): Paket liegt fertig, Lauf einzeln mit `--usage-file`, fertig erst
+an der `usage_*.json`. Danach Kernzahlen selbst nachrechnen, voller Sammellauf, Commit oder
+Ruecknahme, Kostenzeile im Protokoll. Parallel offen: Daniels Motivzuordnung in den Symbolkatalog
+einarbeiten (Scheune, Schafzucht, Goldmine, Farm, Kriegerakademie, Erzmine, Steinbruch, Holzfaehler),
+die zwei fehlenden Motive seite01_bild02 und bild03 schneiden und die automatische
+Hintergrund-Entfernung aus dem Katalogwerkzeug nehmen.
+
+---
+
 # STAND 01.11.2026, 20:15 - Uebergabe geschrieben, Blockplan fuer das starke Modell liegt bereit
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
