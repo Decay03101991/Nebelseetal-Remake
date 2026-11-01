@@ -248,9 +248,16 @@ check("Kopfzeile rechnet NETTO ueber spieloekonomie.verbrauch_pro_stunde",
 check("Kopfzeile baut keine eigene Verbrauchsformel",
       "je_einheit_pro_tag" not in kopf_code and "NAHRUNG_JE_EINHEIT_TAG" not in kopf_code)
 quelle_main = inspect.getsource(main)
+# Register 121: die Mengen stehen jetzt auf der C2-Ressourcenleiste, die Detailzeile zeigt fuer
+# diese Rohstoffe nur die Rate. Die EINE Hilfsfunktion heisst deshalb `kopfzeile_fuer`; sie waehlt
+# zwischen `kopf_rate_text` und `kopf_zeilen_text`. Beide Wege lesen dieselbe Verbrauchsquelle
+# (`spieloekonomie.verbrauch_pro_stunde`), was die zwei Pruefungen darunter belegen.
 check("Kopfzeilen-Hilfe wird an BEIDEN Stellen benutzt (Aufbau und Neuzeichnen)",
-      quelle_main.count("kopf_zeilen_text(self.state, r, ertrag_jetzt)") == 2,
-      "Treffer: %d" % quelle_main.count("kopf_zeilen_text(self.state, r, ertrag_jetzt)"))
+      quelle_main.count("kopfzeile_fuer(self.state, r, ertrag_jetzt)") == 2,
+      "Treffer: %d" % quelle_main.count("kopfzeile_fuer(self.state, r, ertrag_jetzt)"))
+check("kopfzeile_fuer waehlt zwischen Rate und voller Zeile",
+      "kopf_rate_text(" in _code(main.kopfzeile_fuer)
+      and "kopf_zeilen_text(" in _code(main.kopfzeile_fuer), "")
 check("Negative Rate wird sauber angezeigt (kein '+-3/h')",
       "if rate > 0 else" in kopf_code, kopf_code[:80])
 

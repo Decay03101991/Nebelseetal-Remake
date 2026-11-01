@@ -12,7 +12,7 @@ import random
 import time
 import tkinter as tk
 from dataclasses import dataclass, field, asdict
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from bonus_system import (
     # Nur noch, was main.py wirklich benutzt. Die erfundenen Kampf- und Preisformeln
@@ -658,6 +658,79 @@ def kopf_zeilen_text(state, rohstoff: str, ertrag_jetzt: dict) -> Tuple[str, boo
     # Vorher stand hier `if rate else "0"` - eine NEGATIVE Rate ergab "+-3/h". Jetzt sauber.
     text = f"+{rate:g}/h" if rate > 0 else (f"{rate:g}/h" if rate < 0 else "0")
     return f"{RESOURCE_ICONS[rohstoff]} {menge} ({text})", rate < 0
+
+
+def kopf_rate_text(state, rohstoff: str, ertrag_jetzt: dict) -> Tuple[str, bool]:
+    """Nur die RATE eines Rohstoffs fuer die Detailzeile unter der Ressourcenleiste.
+
+    Seit die Leiste die MENGEN zeigt (Register 121), steht in der Detailzeile kein Betrag mehr -
+    sonst stuende dieselbe Zahl zweimal im Kopf. Gerechnet wird mit DERSELBEN Quelle wie in
+    `kopf_zeilen_text`: `spieloekonomie.verbrauch_pro_stunde` liefert bei Nahrung den laufenden
+    Verbrauch der Garnison, den auch `ort_tick` bucht. Keine zweite Formel.
+    """
+    ernte = float(ertrag_jetzt.get(rohstoff, 0.0) or 0.0)                                 # Ernte je Stunde
+    rate = ernte                                                                          # Grundwert ist die Ernte
+    if rohstoff == "nahrung":                                                             # bei Nahrung zaehlt netto
+        rate = ernte - spieloekonomie.verbrauch_pro_stunde(getattr(state, "settlements", []) or [])   # Verbrauch abziehen
+    ohne_quelle = ernte <= 0 and rohstoff in ("holz", "stein", "nahrung") and bool(state.settlements)   # kein Erzeuger?
+    if ohne_quelle:                                                                       # dann Warnzeichen
+        return f"{RESOURCE_ICONS[rohstoff]} (\u26a0)", True                                # Menge steht auf der Leiste
+    text = f"+{rate:g}/h" if rate > 0 else (f"{rate:g}/h" if rate < 0 else "0")            # Vorzeichen sauber
+    return f"{RESOURCE_ICONS[rohstoff]} {text}", rate < 0                                  # (Rate, Warnfarbe)
+
+
+def _lade_ressourcenleiste() -> Dict[str, Any]:
+    """Die Ressourcenleiste aus `data/ressourcenleiste.json` lesen (Bild, Masse, acht Felder).
+
+    Die Datei ist die EINE Quelle fuer Bildpfad, Feldpositionen und Farben; ohne sie bleibt der
+    Kopf wie vorher (kein Absturz, keine erfundene Leiste).
+    """
+    pfad = os.path.join(ICON_WURZEL, "data", "ressourcenleiste.json")                      # Datendatei
+    try:                                                                                  # Datei lesen
+        with open(pfad, encoding="utf-8") as f:                                            # UTF-8 wie alle Spieldaten
+            daten = json.load(f)                                                           # Inhalt als dict
+    except (OSError, ValueError):                                                          # fehlt oder kaputt
+        return {}                                                                          # dann kein Leistenbild
+    if not daten.get("datei") or not daten.get("felder"):                                  # unvollstaendig
+        return {}                                                                          # lieber ohne Leiste
+    return daten                                                                           # fertige Beschreibung
+
+
+RESSOURCENLEISTE: Dict[str, Any] = _lade_ressourcenleiste()                                # einmal beim Import
+
+# Rohstoffe, deren MENGE auf der Leiste steht - ihre Detailzeile zeigt nur die Rate (Register 121).
+LEISTEN_ROHSTOFFE = tuple(sorted({str(f.get("quelle")) for f in RESSOURCENLEISTE.get("felder") or []
+                                  if str(f.get("quelle")) in ("holz", "stein", "metall", "mana",
+                                                              "nahrung", "gold")}))
+
+
+def leistenwert(state, feld: dict) -> str:
+    """Den Anzeigewert EINES Leistenfeldes rechnen - eine Stelle fuer Aufbau und Neuzeichnen.
+
+    `quelle` nennt die Rechenquelle: `bevoelkerung` (Reichssiedler), `punkte` (Gesamtpunkte aus
+    `state.punktestand()`) oder einen Rohstoff aus `state.resources`. Tausenderpunkte machen die
+    Zahl lesbar; gerechnet wird nichts weiter.
+    """
+    quelle = str(feld.get("quelle") or feld.get("schluessel") or "")                       # Quelle des Wertes
+    if quelle == "bevoelkerung":                                                           # Siedler des Reichs
+        wert = float(getattr(state, "population", 0.0) or 0.0)                              # Summe der Orte
+    elif quelle == "punkte":                                                               # Gesamtpunkte
+        wert = float((state.punktestand() or {}).get("gesamt", 0) or 0)                     # aus der Punkteformel
+    else:                                                                                  # ein Rohstoff
+        eintrag = (getattr(state, "resources", {}) or {}).get(quelle)                       # Reichsbestand
+        wert = float(getattr(eintrag, "amount", 0) or 0)                                   # Betrag als Zahl
+    return f"{wert:,.0f}".replace(",", ".")                                                # 1234 -> "1.234"
+
+
+def kopfzeile_fuer(state, rohstoff: str, ertrag_jetzt: dict) -> Tuple[str, bool]:
+    """Text der Detailzeile: Menge + Rate, oder nur die Rate, wenn die Menge auf der Leiste steht.
+
+    Diese Funktion ist die EINE Stelle fuer Aufbau UND Neuzeichnen der Kopfzeile (Register 121);
+    sie waehlt nur aus, welche der beiden Anzeigeformen gilt.
+    """
+    if rohstoff in LEISTEN_ROHSTOFFE and RESSOURCENLEISTE:                                 # Menge steht auf der Leiste
+        return kopf_rate_text(state, rohstoff, ertrag_jetzt)                                # dann nur die Rate
+    return kopf_zeilen_text(state, rohstoff, ertrag_jetzt)                                  # sonst Menge und Rate
 
 # LEER seit W4b-5 (04.10.2026) — und das ist der Punkt.
 #
@@ -3712,6 +3785,112 @@ class NebelseetalApp:
         self._build_main_ui()
         self._log(f"Skin gewechselt: {self.skin_name}")
 
+    def _leisten_bild(self, breite: int, hoehe: int):
+        """Das Leistenbild auf (breite, hoehe) bringen und im Cache halten (Tk-Bild oder None).
+
+        Pillow glaettet beim Verkleinern; fehlt es, wird ganzzahlig per `subsample` verkleinert.
+        Der Cache ist Pflicht, weil Tk Bilder ohne Referenz freigibt (dann bleibt die Leiste leer).
+        """
+        if not RESSOURCENLEISTE:                                              # keine Leiste eingetragen
+            return None                                                       # Kopf bleibt wie vorher
+        pfad = icon_pfad(RESSOURCENLEISTE.get("datei") or "")                  # Projektpfad ueber EINE Stelle
+        if not pfad or not os.path.exists(pfad):                               # Bilddatei fehlt
+            return None                                                       # lieber ohne Bild
+        if not hasattr(self, "_leisten_cache"):                                # Cache beim ersten Bild anlegen
+            self._leisten_cache = {}                                          # Groesse -> Tk-Bild
+        schluessel = (pfad, breite, hoehe)                                     # Cache-Schluessel
+        if schluessel in self._leisten_cache:                                  # schon geladen
+            return self._leisten_cache[schluessel]                             # wiederverwenden
+        bild = None                                                            # Ergebnis
+        try:                                                                  # geglaetteter Weg
+            from PIL import Image, ImageTk                                     # nur hier importiert
+            roh = Image.open(pfad).convert("RGBA")                             # PNG mit Alphakanal
+            bild = ImageTk.PhotoImage(roh.resize((breite, hoehe), Image.LANCZOS))   # auf Zielbreite bringen
+        except Exception:                                                      # noqa: BLE001 - kein Pillow
+            try:                                                              # Rueckfall ohne Pillow
+                bild = tk.PhotoImage(file=pfad)                                # Originalgroesse laden
+                faktor = max(1, int(round(bild.width() / float(breite))))      # ganzzahliger Faktor
+                if faktor > 1:                                                 # nur verkleinern
+                    bild = bild.subsample(faktor)                              # 1440 / 2 = 720 px
+            except Exception:                                                  # noqa: BLE001
+                return None                                                    # gar kein Bild
+        self._leisten_cache[schluessel] = bild                                 # im Cache halten
+        return bild                                                            # an den Aufrufer
+
+    def _leiste_bauen(self, eltern):
+        """Die Ressourcenleiste als Canvas in den Kopf haengen (Bild + acht Zahlenfelder)."""
+        if not RESSOURCENLEISTE:                                              # keine Leiste eingetragen
+            self._leisten_canvas = None                                        # dann nur die Textzeilen
+            return None                                                        # nichts zu bauen
+        canvas = tk.Canvas(eltern, height=int(RESSOURCENLEISTE.get("hoehe") or 140),   # Hoehe wie im Original
+                           bg=self.skin["topbar"], highlightthickness=0, bd=0)          # ohne Rahmen
+        canvas.pack(fill=tk.X, pady=(0, 2))                                    # volle Breite, direkt unter dem Titel
+        self._leisten_canvas = canvas                                          # Referenz fuer das Neuzeichnen
+        self._leisten_texte = {}                                               # Feld -> Canvas-Kennungen
+        canvas.bind("<Configure>", lambda _e: self._leiste_zeichnen())          # bei Breitenaenderung neu zeichnen
+        self.root.after(30, self._leiste_zeichnen)                              # nach dem ersten Layout zeichnen
+        return canvas                                                          # fuer Pruefungen
+
+    def _leiste_zeichnen(self):
+        """Die Leiste in der aktuellen Breite zeichnen: Bild plus acht Zahlen mit dunkler Kontur.
+
+        Alle Masse aus `data/ressourcenleiste.json` werden mit EINER Skala umgerechnet
+        (Breite / 1440), damit die Felder auf jeder Fensterbreite unter ihren Symbolen sitzen.
+        """
+        canvas = getattr(self, "_leisten_canvas", None)                        # Zeichenflaeche
+        if canvas is None or not RESSOURCENLEISTE:                             # nichts zu zeichnen
+            return                                                             # Abbruch
+        try:                                                                   # Fenster kann schon weg sein
+            if not canvas.winfo_exists():                                      # Flaeche zerstoert
+                return                                                         # dann nichts tun
+        except tk.TclError:                                                    # Tk kennt sie nicht mehr
+            return                                                             # Abbruch
+        breite_ist = int(canvas.winfo_width())                                 # tatsaechliche Breite
+        if breite_ist <= 1:                                                    # vor dem ersten Layout
+            breite_ist = int(RESSOURCENLEISTE.get("breite") or 1440)           # Originalbreite nehmen
+        skala = breite_ist / float(RESSOURCENLEISTE.get("breite") or 1440)     # EINE Skala fuer alles
+        hoehe = max(40, int(round(float(RESSOURCENLEISTE.get("hoehe") or 140) * skala)))   # Hoehe im Verhaeltnis
+        if getattr(self, "_leisten_masse", None) == (breite_ist, hoehe):       # nichts geaendert
+            return                                                             # kein Neuzeichnen noetig
+        bild = self._leisten_bild(breite_ist, hoehe)                           # skalierte Leiste holen
+        if bild is None:                                                       # kein Bild verfuegbar
+            return                                                             # dann bleibt der Kopf textbasiert
+        canvas.delete("leiste")                                                # alte Zeichnung weg
+        canvas.configure(height=hoehe)                                         # Flaeche an das Bild anpassen
+        canvas.create_image(0, 0, anchor="nw", image=bild, tags=("leiste",))    # das Bild selbst
+        self._leisten_bild_ref = bild                                          # Referenz gegen Garbage Collection
+        farben = RESSOURCENLEISTE.get("farben") or {}                           # Farben aus der Datendatei
+        zahl_farbe = str(farben.get("zahl") or "#F7E9C8")                      # helle Zahl
+        kontur = str(farben.get("kontur") or "#101418")                        # dunkle Kontur
+        schrift = ("Arial", max(8, int(round(11 * skala))), "bold")            # mit der Leiste skalieren
+        self._leisten_texte = {}                                               # neu aufbauen
+        for feld in RESSOURCENLEISTE.get("felder") or []:                      # acht Felder
+            x = int(round(float(feld.get("x") or 0) * skala))                  # Mittelpunkt umrechnen
+            y = int(round(float(feld.get("y") or 0) * skala))                  # Mittelpunkt umrechnen
+            kennungen = []                                                     # alle Texte dieses Feldes
+            for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):                  # Kontur vierfach versetzt
+                kennungen.append(canvas.create_text(x + dx, y + dy, text="0", fill=kontur,
+                                                    font=schrift, tags=("leiste",)))   # dunkle Kontur
+            kennungen.append(canvas.create_text(x, y, text="0", fill=zahl_farbe,
+                                                font=schrift, tags=("leiste",)))   # helle Zahl darueber
+            self._leisten_texte[str(feld.get("schluessel"))] = kennungen        # fuer das Aktualisieren merken
+        self._leisten_masse = (breite_ist, hoehe)                              # gezeichnete Masse merken
+        self._leiste_aktualisieren()                                           # Werte einsetzen
+
+    def _leiste_aktualisieren(self):
+        """Die acht Zahlen der Leiste aus dem Spielstand setzen (Rechenstelle: `leistenwert`)."""
+        canvas = getattr(self, "_leisten_canvas", None)                        # Zeichenflaeche
+        texte = getattr(self, "_leisten_texte", {}) or {}                      # Feld -> Kennungen
+        if canvas is None or not texte or not RESSOURCENLEISTE:                # nichts zu tun
+            return                                                             # Abbruch
+        for feld in RESSOURCENLEISTE.get("felder") or []:                      # acht Felder
+            wert = leistenwert(self.state, feld)                               # EINE Rechenstelle
+            for kennung in texte.get(str(feld.get("schluessel"))) or []:       # fuenf Texte je Feld
+                try:                                                           # Flaeche kann weg sein
+                    canvas.itemconfig(kennung, text=wert)                      # neuen Wert setzen
+                except tk.TclError:                                            # Flaeche zerstoert
+                    return                                                     # Abbruch
+
     def _build_main_ui(self):
         for widget in self.root.winfo_children():
             widget.destroy()
@@ -3724,6 +3903,9 @@ class NebelseetalApp:
         # Windows-DPI-Skalierung darf die Beschriftungen nicht abschneiden.
         top = tk.Frame(self.root, bg=self.skin["topbar"])
         top.pack(fill=tk.X, side=tk.TOP)
+        # C2-Ressourcenleiste (Register 121): gemaltes Bild mit acht Zahlenfeldern ueber den Textzeilen.
+        # Sie zeigt die MENGEN; die Textzeilen darunter zeigen die Raten (keine Zahl doppelt im Kopf).
+        self._leiste_bauen(top)
         ressourcen_oben = tk.Frame(top, bg=self.skin["topbar"])
         ressourcen_oben.pack(fill=tk.X)
         ressourcen_unten = tk.Frame(top, bg=self.skin["topbar"])
@@ -3742,7 +3924,7 @@ class NebelseetalApp:
         ertrag_jetzt = self.state.stundenertrag()
         for index, r in enumerate(RESOURCES):
             zeile = ressourcen_oben if index < 4 else ressourcen_unten
-            text, warnung = kopf_zeilen_text(self.state, r, ertrag_jetzt)
+            text, warnung = kopfzeile_fuer(self.state, r, ertrag_jetzt)
             lbl = tk.Label(zeile, text=text,
                            fg=("#FDBA74" if warnung else self.skin["text"]),
                            bg=self.skin["topbar"], font=("Arial", 9))
@@ -8526,9 +8708,10 @@ class NebelseetalApp:
     def _render(self):
         ertrag_jetzt = self.state.stundenertrag()
         for r, lbl in self.res_labels_top.items():
-            text, warnung = kopf_zeilen_text(self.state, r, ertrag_jetzt)
+            text, warnung = kopfzeile_fuer(self.state, r, ertrag_jetzt)
             lbl.config(text=text,
                        fg=("#FDBA74" if warnung else self.skin["text"]))
+        self._leiste_aktualisieren()                       # die acht Zahlen der Leiste nachziehen
         self.lbl_day.config(text=f"Tag {self.state.day}")
         self._spielerhilfe_anzeige_aktualisieren()
         if getattr(self, "lbl_tempo", None) is not None:

@@ -1,3 +1,51 @@
+# STAND 02.11.2026, 00:49 - C2-Ressourcenleiste steht im Kopf (Register 121)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf | `1085861` beim Schreiben; dieser Commit bringt die Leiste | `git log --oneline -1` |
+| Ressourcenleiste | **im Kopf eingebaut**: Bild 1440x140, acht Werte als eigene Textebene (hell + dunkle Kontur), Positionen aus `data/ressourcenleiste.json`, EINE Skala (Breite/1440) | Register 121 |
+| Keine Zahl doppelt | Leiste zeigt MENGEN, Detailzeile zeigt fuer sechs Rohstoffe nur die RATE; Wolle/Leder/Pferde behalten Menge und Rate | `main.kopfzeile_fuer` |
+| Messung am Fenster | **41 Canvas-Teile** (1 Bild + 8 x 5 Texte), jede Zahl deckungsgleich mit dem Spielstand, Bestandsaenderung kommt nach 1 Takt an | eigener Tk-Lauf 00:40 |
+| Pruefdateien | neu `test_ressourcenleiste` **28/0/1**; `test_nahrungsverbrauch` mit Begruendung auf den neuen Hilfsnamen umgestellt (**53/0/0**) | eigener Lauf |
+| Sammellauf | **118 von 120 gruen, 0 rot, 2 ausgesetzt**, 4.515 Pruefungen, 276 s (00:42) | `docs/audits/sammellauf_20261102_0042.log` |
+| Register | **121 Punkte**, **120 Pruefdateien** | `grep -cE`, `ls tests/test_*.py \| wc -l` |
+| Vorschau | `docs/audits/ressourcenleiste_vorschau_20261102.png` (Zahlen sitzen mittig in den Plaketten) | Sichtpruefung |
+| Kosten und Guthaben | Blockplan **1,8715 von 4,00 USD**; Guthaben **8,97 USD** (Ablesung 00:05, Protokoll 00:10) | Register 117 |
+
+## Der EINE naechste Schritt
+
+**Die Leiste im laufenden Fenster abnehmen und danach die GPT-Icons in Menue und Baudialog einhaengen.**
+Die Leiste ist rechnerisch und im Bild geprueft, aber **noch nicht von Daniel im Spiel gesehen** - vor dem
+naechsten Umbau kurz das Spiel starten, in die Uebersicht gehen und hinsehen (Zahlen mittig, Schriftgroesse
+bei kleiner Fensterbreite, Warnfarbe bei fehlender Ernte). Danach der naechste Einbau: die **20 gerahmten
+GPT-Icons** in Menue und Baudialog und die **20 Hintergruende (538x222)** in die Gebaeudeansicht, Quelle
+`archiv/eingaben/20261101_gebaeude_designs/Nebelseetal_Gebaeude_Designs_Update/`; vorher `motiv_1..10.png`
+sichern. Arbeitsweise wie hier: Pruefdatei ergaenzen, voller Sammellauf, ein Commit.
+
+## Reihenfolge danach
+
+1. Leiste im Fenster abnehmen; Schriftgroesse und Warnfarben nach Daniels Urteil nachziehen.
+2. GPT-Icons in Menue und Baudialog, Hintergruende in die Gebaeudeansicht (vorher `motiv_1..10.png` sichern).
+3. Auswahlrahmen der C2-Lieferung zeichnen (der goldene Rahmen aus `karten_optik_fein` liegt derzeit oben);
+   die acht Einzelsymbole aus `assets/icons/leiste/symbole/` sind noch ungenutzt.
+4. Wappen den fuenf Bots zuordnen; Burgen zu Weltkarten nur als gekennzeichneter Vorschlag.
+5. S-8 Bilanz (500 Mana + 100 Gold, Register 93), danach `weltkarten_seed` fest (Register 94).
+6. Demo-Gates G-01 bis G-07 vor jedem Upload; die Demo wird LEER ausgeliefert (Skill-Abschnitt).
+
+## Fallstricke, in dieser Sitzung belegt
+
+- **Mengen und Raten nicht doppelt anzeigen.** Als die Leiste die Mengen uebernahm, zeigte die alte Textzeile
+  dieselbe Zahl noch einmal; jetzt entscheidet `kopfzeile_fuer` je Rohstoff, welche Form gilt.
+- **Bildmasse aus der Datendatei, nie tippen.** Alle acht Mittelpunkte und die Hoehe kommen aus
+  `data/ressourcenleiste.json`; das Spiel rechnet mit einer Skala um, damit die Felder bei jeder Fensterbreite
+  unter ihren Symbolen sitzen.
+- **Tk-Bilder brauchen eine Referenz** (`self._leisten_bild_ref`), sonst raeumt der Garbage Collector die
+  Leiste weg und es bleibt ein leerer Streifen.
+- **Eine Wache, die einen alten Funktionsnamen woertlich prueft, wird mit Begruendung umgestellt** - sie sichert
+  eine Zusage (eine Quelle fuer Aufbau und Anzeige), nicht den Namen.
+
 # STAND 02.11.2026, 00:30 - C2-Kartenmotive und Kachelrahmen stehen auf der Siedlungskarte (Register 120)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

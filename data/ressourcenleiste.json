@@ -1,0 +1,24 @@
+{
+  "_zweck": "Die Ressourcenleiste aus der C2-Lieferung. Das Bild bringt acht gezeichnete Symbole und acht freie Zahlenplaketten mit; die WERTE schreibt das Spiel als eigene Textebene darueber (helle Zahl, dunkle Kontur).",
+  "_quelle": "archiv/eingaben/20261102_c2_designs/ressourcenleiste/ressourcenleiste.png (1440x140 RGBA) und LIEFERUNG.md der C2-Lieferung: Reihenfolge Siedler, Nahrung, Holz, Stein, Erz, Gold, Mana, Kelch; Zahlenfeld-Mittelpunkte in Pixeln bei 1440x140. Register 119/121.",
+  "_abbildung": "Der Auftrag nennt die Felder 'Erz' und 'Kelch'. Im Spiel heissen sie 'Metall' und 'Punkte' (Gesamtpunkte aus punkte.py) - die Zuordnung steht in 'quelle', damit die Anzeige nicht neu erfunden wird.",
+  "_regel": "Alle Masse sind Pixel im Originalbild (1440x140). Bei anderer Breite rechnet das Spiel ALLES proportional um (Skala = Breite / 1440); kein Feld ist fest getippt.",
+  "datei": "assets/icons/leiste/ressourcenleiste.png",
+  "breite": 1440,
+  "hoehe": 140,
+  "felder": [
+    { "schluessel": "siedler", "x": 184, "y": 105, "quelle": "bevoelkerung" },
+    { "schluessel": "nahrung", "x": 342, "y": 105, "quelle": "nahrung" },
+    { "schluessel": "holz", "x": 494, "y": 105, "quelle": "holz" },
+    { "schluessel": "stein", "x": 646, "y": 105, "quelle": "stein" },
+    { "schluessel": "erz", "x": 799, "y": 105, "quelle": "metall" },
+    { "schluessel": "gold", "x": 957, "y": 105, "quelle": "gold" },
+    { "schluessel": "mana", "x": 1110, "y": 105, "quelle": "mana" },
+    { "schluessel": "punkte", "x": 1264, "y": 105, "quelle": "punkte" }
+  ],
+  "farben": {
+    "_zweck": "Zahl hell mit dunkler Kontur, damit sie auf der gemalten Kulisse lesbar bleibt (Vorgabe LIEFERUNG.md)",
+    "zahl": "#F7E9C8",
+    "kontur": "#101418"
+  }
+}
