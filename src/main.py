@@ -44,6 +44,7 @@ import kampf       # W2: Vorrunde, Kampfsequenzen, Flucht, Beute (Handbuch S. 20
 import kampfbericht  # W2b: Vorrunden-Pruefung, Mauerschaden, Beute, Bericht
 import bot_angriffsplanung  # GPT-B01: Original-SK-Zielwahl und ehrliche Bot-Kampfberichte
 import botkern     # W5: Bot-Regeln (hier: die Vorschlagsspannen fuer die Vorraete der Bots)
+import bottaktik   # S-7: Bot-Verhalten (Zustandsautomat, Taktiken, Volksattribute, Wechsel)
 import portalraum  # W5-2: die 20 Dimensionen des Limbus, Raster, Wechselkosten und -sperre
 import werkstatt   # W3: die drei Werkstaetten, die 17 Waren und ihre Warteschlangen
 import auftraege   # W7: Auftraege (Missionen) mit Reisezeit, Rueckkehr und Bericht
@@ -209,6 +210,19 @@ class BotPlayer:
     # Nur als Zwischenstufe; spaeter je Bot-Siedlung in eine eigene Ortsstruktur.
     wall_stufe: int = 0
     wall_zustand: float = 100.0
+    # S-7 (bottaktik): der sichtbare Verhaltenszustand je Bot. Alle Felder sind ADDITIV
+    # (alte Spielstaende laden ohne sie, Vorgaben greifen). `volksattribute` sind dauerhaft
+    # (aus der Fraktion), `verhaltensbonus` befristet (mit Ablaufzeit). Kampf und Punkte
+    # bleiben beim botkern-Pfad; hier steht nur, was der Spieler am Bot ERKENNEN kann.
+    zustand: str = ""
+    gedaechtnis: Dict[str, object] = field(default_factory=dict)
+    marsch_ankunft: float = 0.0
+    flucht_ende: float = 0.0
+    letzter_abstand: Optional[int] = None
+    naechster_marsch_h: Optional[float] = None
+    wechsel_sperre_bis: float = 0.0
+    volksattribute: Dict[str, str] = field(default_factory=dict)
+    verhaltensbonus: Dict[str, object] = field(default_factory=dict)
 
 
 @dataclass
@@ -2630,7 +2644,16 @@ class GameState:
                 "naechster_angriff": float(bot.naechster_angriff), "angriffe": int(bot.angriffe),
                 "gebaut": int(bot.gebaut), "geforscht": int(bot.geforscht),
                 "gehandelt": int(bot.gehandelt), "wall_stufe": int(bot.wall_stufe),
-                "wall_zustand": float(bot.wall_zustand)}
+                "wall_zustand": float(bot.wall_zustand),
+                # S-7 (bottaktik): der Verhaltenszustand in der dict-Form des Kerns.
+                "zustand": str(bot.zustand), "gedaechtnis": dict(bot.gedaechtnis),
+                "marsch_ankunft": float(bot.marsch_ankunft),
+                "flucht_ende": float(bot.flucht_ende),
+                "letzter_abstand": bot.letzter_abstand,
+                "naechster_marsch_h": bot.naechster_marsch_h,
+                "wechsel_sperre_bis": float(bot.wechsel_sperre_bis),
+                "volksattribute": dict(bot.volksattribute),
+                "verhaltensbonus": dict(bot.verhaltensbonus)}
 
     def bot_aus_dict(self, bot: BotPlayer, daten: dict) -> None:
         """Zurueck in den Spielstand: nur die Felder, die der Bot-Kern fuehrt."""
@@ -2644,6 +2667,19 @@ class GameState:
         bot.gebaut = int(daten.get("gebaut") or 0)
         bot.geforscht = int(daten.get("geforscht") or 0)
         bot.gehandelt = int(daten.get("gehandelt") or 0)
+        # S-7 (bottaktik): der Verhaltenszustand kommt aus derselben dict-Form zurueck.
+        bot.zustand = str(daten.get("zustand") or "")
+        _ged = daten.get("gedaechtnis")
+        bot.gedaechtnis = dict(_ged) if isinstance(_ged, dict) else {}
+        bot.marsch_ankunft = float(daten.get("marsch_ankunft") or 0.0)
+        bot.flucht_ende = float(daten.get("flucht_ende") or 0.0)
+        bot.letzter_abstand = daten.get("letzter_abstand")
+        bot.naechster_marsch_h = daten.get("naechster_marsch_h")
+        bot.wechsel_sperre_bis = float(daten.get("wechsel_sperre_bis") or 0.0)
+        _volk = daten.get("volksattribute")
+        bot.volksattribute = dict(_volk) if isinstance(_volk, dict) else {}
+        _bonus = daten.get("verhaltensbonus")
+        bot.verhaltensbonus = dict(_bonus) if isinstance(_bonus, dict) else {}
 
     def bot_vorrat_anlegen(self, bot: BotPlayer) -> None:
         """Startvorräte und Wagenpark eines Bots anlegen.
@@ -2733,7 +2769,13 @@ class GameState:
             meldung = str(zug.get("meldung") or "")
             if zug.get("aktion") == "angreifen":
                 beute = {}
-                if self.noob_protection:
+                if ausgabemodus.ist_oeffentliche_testversion():
+                    # S-7 Demo-Regel (Daniel 01.11.2026): in der oeffentlichen
+                    # Testversion greifen Bots NICHT an. Das sichtbare Verhalten
+                    # (bottaktik) bleibt davon unberuehrt.
+                    meldung = f"{bot.name}: Angriff in der Demo nicht freigeschaltet."
+                    zug.setdefault("wirkung", {})["angriff_verschoben"] = "Demo"
+                elif self.noob_protection:
                     meldung = f"{bot.name}: Angriff abgebrochen (Goetterschutz)."
                 else:
                     bot_kaempfer = {n: int(v) for n, v in bot.army.items()

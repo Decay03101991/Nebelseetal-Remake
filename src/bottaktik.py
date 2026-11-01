@@ -44,6 +44,15 @@ RUHE_ZEIT_FLIEHEN = 24 * 3600      # BELEGT: 24-h-Takt (botkern)
 AGGRESSION_ZUWACHS_BEI_NIEDERLAGE = 0.1   # VORSCHLAG: nach Niederlage aggressiver
 MARSCH_GESCHWINDIGKEIT = 5         # VORSCHLAG: Bot-Tempo, Formel aus auftraege
 
+# S-7 (VORSCHLAG): Sperrzeit nach einem Zustandswechsel in Spielsekunden. Der Entwurf
+# (GPT S-09) nennt 48 h Mindestdauer fuer einen VERHALTENswechsel; hier sperrt der
+# Zustandsautomat einen Wechsel fuer einen Bot-Takt (1 h, botkern.BOT_TAKT_SEKUNDEN).
+SPERRZEIT_NACH_WECHSEL = 3600.0          # VORSCHLAG S-7: 1 h, nicht belegt
+
+# S-7 (VORSCHLAG): Ablaufzeit des befristeten Verhaltensbonus in Spielsekunden. Der
+# Entwurf (GPT S-09) nennt 48 h Mindestdauer; hier als Ablaufzeit genommen.
+VERHALTENSBONUS_DAUER = 48 * 3600        # VORSCHLAG S-7: 48 h, nicht belegt
+
 # ------------------------------------------------------------------ Taktiken
 # BELEGT (main.BOTS, botkern.BOT_NAMEN): fuenf Gegner. Daten je Taktik: naehe
 # (Naehe/Abstand), abstand_grenze, angriff_schwelle, rueckzug_schwelle,
@@ -52,37 +61,82 @@ TAKTIKEN: Dict[str, Dict[str, Any]] = {
     "Haug": {"name": "Pluenderer", "naehe": True, "abstand_grenze": 3,
              "angriff_schwelle": 0.4, "rueckzug_schwelle": 0.40,
              "zielwahl": "naechstes schwaches Dorf", "erstes_zeichen": "Spaeher am Rand",
-             "blitz": False, "startzustand": SUCHEN},
+             "blitz": False, "startzustand": SUCHEN,
+             "bonus": "Beute +5 % (nicht verdrahtet)"},
     "Brynhild": {"name": "Waechterin", "naehe": False, "abstand_grenze": 8,
                  "angriff_schwelle": 0.7, "rueckzug_schwelle": 0.25,
                  "zielwahl": "das Dorf, das ihr zu nah kam",
                  "erstes_zeichen": "sie bleibt fern, kein Spaeher",
-                 "blitz": False, "startzustand": SICHERN},
+                 "blitz": False, "startzustand": SICHERN,
+                 "bonus": "Verteidigung +5 % (nicht verdrahtet)"},
     "Grom": {"name": "Bastionier", "naehe": False, "abstand_grenze": 8,
              "angriff_schwelle": 0.85, "rueckzug_schwelle": 0.15,
              "zielwahl": "Verteidiger, nie Angreifer", "erstes_zeichen": "dauerhaft ruhig",
-             "blitz": False, "startzustand": WACHSEN},
+             "blitz": False, "startzustand": WACHSEN,
+             "bonus": "Ausbau +5 % (nicht verdrahtet)"},
     "Silra": {"name": "Spaeherin", "naehe": True, "abstand_grenze": 5,
               "angriff_schwelle": 0.5, "rueckzug_schwelle": 0.60,
               "zielwahl": "erkundet, greift nur bei Schwaeche",
               "erstes_zeichen": "Spaeher und Staubwolke mit Vorlauf",
-              "blitz": False, "startzustand": SUCHEN},
+              "blitz": False, "startzustand": SUCHEN,
+              "bonus": "Reisegeschwindigkeit +5 % (nicht verdrahtet)"},
     "Krank": {"name": "Raecher", "naehe": False, "abstand_grenze": 0,
               "angriff_schwelle": 0.0, "rueckzug_schwelle": 0.50,
               "zielwahl": "der Schlaeger", "erstes_zeichen": "Nachricht: erzuernt",
-              "blitz": True, "startzustand": RAECHEN},
+              "blitz": True, "startzustand": RAECHEN,
+              "bonus": "Angriff AT +5 % (nicht verdrahtet)"},
 }
 
 _TAKTIK_NEUTRAL: Dict[str, Any] = {"name": "Unbekannt", "naehe": True,
                                    "abstand_grenze": 5, "angriff_schwelle": 0.5,
                                    "rueckzug_schwelle": 0.40, "zielwahl": "naechstes Dorf",
                                    "erstes_zeichen": "Spaeher am Rand", "blitz": False,
-                                   "startzustand": SUCHEN}
+                                   "startzustand": SUCHEN, "bonus": ""}
+
+
+# ------------------------------------------------------------------ Voelker
+# S-7 (VORSCHLAG A-01..A-04): dauerhafte Volksattribute je Fraktion. Reine
+# Beschreibung - die WIRKUNG auf Ertrag/Kampf/Reise gehoert in den jeweiligen Kern
+# (S-7 verbietet andere src-Dateien) und ist hier NICHT verdrahtet. Quelle der
+# Fraktion: botkern.BOT_FRAKTIONEN (eine Quelle, keine zweite Wahrheit).
+VOLKSATTRIBUTE: Dict[str, Dict[str, str]] = {
+    "menschlich": {"plus": "Holzertrag +5 %", "minus": "Steinertrag -5 %"},
+    "zwergisch": {"plus": "Steinertrag +5 %", "minus": "Holzertrag -5 %"},
+    "elfisch": {"plus": "Reisegeschwindigkeit +5 %", "minus": "PA der Einheiten -5 %"},
+    "monster": {"plus": "AT der Einheiten +5 %", "minus": "Handelserloes -5 %"},
+}
 
 
 def taktik_von(bot: Optional[dict]) -> Dict[str, Any]:
     bot = bot if isinstance(bot, dict) else {}
     return TAKTIKEN.get(str(bot.get("name") or "")) or _TAKTIK_NEUTRAL
+
+
+def volksattribute(bot: Optional[dict]) -> Dict[str, str]:
+    """Die dauerhaften Volksattribute eines Bots aus seiner Fraktion (EINE Quelle).
+
+    Die Fraktion steht belegt in `botkern.BOT_FRAKTIONEN`; hier wird sie nur
+    gelesen. Unbekannte Fraktion liefert einen leeren Eintrag (kein Erfinden).
+    """
+    bot = bot if isinstance(bot, dict) else {}
+    fraktion = str(bot.get("fraktion") or "")
+    return dict(VOLKSATTRIBUTE.get(fraktion) or {"plus": "", "minus": ""})
+
+
+def verhaltensbonus_aktiv(bot: Optional[dict], jetzt: float) -> bool:
+    """True, solange der befristete Verhaltensbonus nicht abgelaufen ist."""
+    bot = bot if isinstance(bot, dict) else {}
+    bonus = bot.get("verhaltensbonus")
+    if not isinstance(bonus, dict):
+        return False
+    return _zahl(bonus.get("bis"), 0.0) > _zahl(jetzt, 0.0)
+
+
+def _wechsel_meldung(name: str, alter: Any, naechster: str) -> str:
+    """Die Ankuendigung eines Zustandswechsels (einmalig, fuer die Oberflaeche)."""
+    alt_text = ZUSTAENDE.get(alter, str(alter))
+    neu_text = ZUSTAENDE.get(naechster, str(naechster))
+    return f"{name} wechselt: {alt_text} -> {neu_text}."
 
 
 # ------------------------------------------------------------------ Gedaechtnis
@@ -328,6 +382,10 @@ def wirkung_anwenden(bot: dict, entscheidung: dict, jetzt: float) -> dict:
     tiefe Kopie): naechster Zustand, Marsch-/Flucht-Zeitstempel, letzter Abstand
     und das Gedaechtnis. Nach einer Niederlage wird der Bot aggressiver."""
     neu = copy.deepcopy(bot) if isinstance(bot, dict) else {}
+    # S-7: fluechtige Merker gehoeren nicht in den fortgeschriebenen Bot - sonst
+    # wuerde eine alte Ankuendigung bei jedem weiteren Zug mitkopiert.
+    neu.pop("wechsel_ankuendigung", None)
+    neu.pop("wechsel_blockiert", None)
     e = entscheidung if isinstance(entscheidung, dict) else {}
     w = e.get("wirkung") if isinstance(e.get("wirkung"), dict) else {}
     jetzt = _zahl(jetzt, 0.0)
@@ -336,9 +394,24 @@ def wirkung_anwenden(bot: dict, entscheidung: dict, jetzt: float) -> dict:
     for schluessel, wert in GEDAECHTNIS_DEFAULT.items():
         ged.setdefault(schluessel, wert)
 
+    alter_zustand = neu.get("zustand")
     naechster = w.get("naechster_zustand") or e.get("naechster_zustand")
     if naechster in ZUSTAENDE:
-        neu["zustand"] = naechster
+        if naechster == alter_zustand:
+            neu["zustand"] = naechster
+        elif alter_zustand not in ZUSTAENDE:
+            # Erstes Setzen des Zustands (alter Stand leer): kein Wechsel, keine Sperre.
+            neu["zustand"] = naechster
+        else:
+            sperre_bis = _zahl(neu.get("wechsel_sperre_bis"), 0.0)
+            if sperre_bis > jetzt:
+                # Sperrzeit aktiv: der Wechsel wird angehalten, der Zustand bleibt.
+                neu["wechsel_blockiert"] = True
+            else:
+                neu["zustand"] = naechster
+                neu["wechsel_sperre_bis"] = jetzt + SPERRZEIT_NACH_WECHSEL
+                neu["wechsel_ankuendigung"] = _wechsel_meldung(
+                    str(neu.get("name") or "Bot"), alter_zustand, naechster)
 
     if "marsch_ankunft" in w:
         ankunft = _zahl(w["marsch_ankunft"], 0.0)
@@ -366,6 +439,11 @@ def wirkung_anwenden(bot: dict, entscheidung: dict, jetzt: float) -> dict:
         ged["letzter_kontakt"] = jetzt
 
     neu["gedaechtnis"] = ged
+    # S-7 (VORSCHLAG): der befristete Verhaltensbonus der Taktik wird bei jedem Zug
+    # mit Ablaufzeit gesetzt. Seine WIRKUNG ist nicht verdrahtet (nur Anzeige).
+    bonus = taktik_von(neu).get("bonus")
+    if bonus:
+        neu["verhaltensbonus"] = {"text": str(bonus), "bis": jetzt + VERHALTENSBONUS_DAUER}
     return neu
 
 
@@ -446,4 +524,11 @@ def offene_luecken() -> Dict[str, str]:
         "aggression_zuwachs": f"VORSCHLAG: Niederlage +{AGGRESSION_ZUWACHS_BEI_NIEDERLAGE} Aggression; Richtung belegt, Zahl nicht.",
         "marsch_tempo": f"VORSCHLAG: Tempo = {MARSCH_GESCHWINDIGKEIT}; Formel aus auftraege, Bot-Tempo unbelegt.",
         "dorf_anzahl": "VORSCHLAG: 1-3 Doerfer je Bot, deterministisch per Seed.",
+        "wechsel_sperrzeit": f"VORSCHLAG S-7: Sperrzeit nach Zustandswechsel = {SPERRZEIT_NACH_WECHSEL:g} s "
+                              "(1 h, ein Bot-Takt); der Entwurf nennt 48 h fuer einen Verhaltenswechsel.",
+        "verhaltensbonus_dauer": f"VORSCHLAG S-7: Ablaufzeit des befristeten Verhaltensbonus = "
+                                 f"{VERHALTENSBONUS_DAUER / 3600:g} h; der Entwurf nennt 48 h Mindestdauer.",
+        "volksattribute": "VORSCHLAG S-7 (A-01..A-04): je Fraktion zwei dauerhafte Attribute; "
+                          "die WIRKUNG ist nicht verdrahtet (S-7 verbietet andere src-Dateien).",
+        "verhaltensboni": "VORSCHLAG S-7: ein befristeter Bonus je Taktik (Anzeige), nicht verdrahtet.",
     }
