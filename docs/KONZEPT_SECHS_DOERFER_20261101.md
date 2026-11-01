@@ -181,3 +181,91 @@ Startprüfung, ein Commit.
 Keine Freigabe, keine Umsetzung, keine erfundene Zahl. Die belegten Werte (Tempel 5/1 Mana je
 Stunde, 5.000 Mana je Wechsel, 1×/24 h, 10 Siedler/100 Holz/100 Stein Startwerte, 6 Siedlungen)
 stehen mit Quelle da; alles Übrige sind Vorschläge und warten auf Daniels Antworten.
+
+
+---
+
+# ANHANG: Daniels Antworten vom 01.11.2026, 01:40 (verbindlich)
+
+Diese Antworten ersetzen die Fragen aus Abschnitt 5. Sie sind hier wörtlich festgehalten, damit
+nichts umgedeutet wird.
+
+## 1. Portalplatz und Tempel
+
+**Kein eigenes Portalgebäude.** Daniels Wortlaut: „nein das stellt was portalreisen betrifft das
+Tempelgebäude dar, Sobald dieses Gebäude errichtet ist kann man auch theoretisch reisen.“
+
+**Wann darf gereist werden:** nicht sofort. „Sobald der Tempel eine gewisse Ausbaustufe hat oder
+die forschung es erlaubt das müssen wir noch überlegen wie wir das am stimmigsten ins spiel
+integrieren.“ → **offene Designfrage**, Vorschlag folgt (Frage 2 unten).
+
+**Dorfzentrum:** „Das Dorfzentrum kann von mir aus ein Lager darstellen“. Antwort auf die
+Lager-Frage: **ein Lager je Dorf, das Dorfzentrum IST das Lager** — und zwar als Menüpunkt **und**
+als Gebäude, das die Verwaltung öffnet (Werkstattübersicht, Bestände, eigene Ansichten).
+
+## 2. Weltkarte fällt weg — das Portal-Menü ersetzt sie
+
+Daniels Wortlaut: „Die Weltkarte soll weg es wird hier nur noch Platz sein für das Dorfzentrum
+Lager und dessen verwaltung und übersichten“ und „Weltkarte kommt weg dafür wird das menü für das
+Portal jetzt richtig krass übersichtlich ausgebaut und angepasst auf die koordinaten spring
+mechanik.“
+
+Das neue Portal-Menü:
+
+* **Weltenbild aus den Farbkästchen der alten Legende** — dieselben Geländefarben, aber **ohne
+  Gebäude, Ruinen oder sonstige Zeichen**. „Die farblichen Kästchen der Legende werden übernommen
+  um eine Art weltenbild von der aktuell befindlichen welt zu zeigen.“
+* **Felder sind anwählbar.** Man sieht, **wo die Gegner sitzen**, und kann sein Dorf auf ein
+  freies Feld transferieren.
+* **Kosten werden abgeholt, nicht gerechnet:** „Die kosten holt ein kleiner simulierter Trupp
+  eines Herrschers kurz vor dem transferieren ab. So hat man einen moment indem man bezahlt aber
+  es nimmt keine zeit in Anspruch“ — der Trupp löst eine **kurze Nachricht im Postfach** aus
+  („Kosten bezahlt“) und **bestätigt den Umzug auf die neue Koordinate**.
+* **Vorschau beim Überfahren:** „wenn ich mit der maus über ein quadrat drüber gehe soll mir das
+  kästchen neben dem mauszeiger nach ein paar sekunden drüber halten zeigen was die kosten wären
+  mit dem aktuell ausgewählten dorf dorthin umzuziehen.“
+
+## 3. Gebäude und Motive
+
+* **Motiv 2 ist eine Farm**, nicht die Mühle: „Dieses eine motiv das du gerade geschickt hast ...
+  ist eine farm falls du das verwenden willst“. Damit sind alle vier Motive zugeordnet:
+  **2 = Farm, 3 = Lager, 4 = Farm/Stall, 6 = Werkstatt/Schmiede.** Die Mühle entfällt als Thema.
+* **Tempel-Ausnahme bei der Gründung** gilt: „Ausnahme bei Gründungssetzung weil der
+  Siedlungskarren diesen Tempel quasi schon mitbringt“.
+* **Ein Lager je Dorf**; bestehende Dörfer mit mehreren Lagern müssen zusammengeführt werden.
+
+## 4. Forschung
+
+* **Ohne Bibliothek gilt vor Ort Stufe 0** (Antwort 5 = B).
+* **Mit Bibliothek übernimmt das Dorf den Forschungsstand des Verbunds** — und darf ihn durch
+  eigenen Ausbau übertreffen: „kann ein zweitdorf durch mehr ressourcen zum beispiel seine
+  Bibliothek schneller und weiter ausbauen als das hauptdorf und damit zum beispiel eine forschung
+  erledigen die dann auch das hauptdorf übernimmt automatisch. Ein forschungsstand.“
+
+## 5. Mana und Kosten
+
+* **Mana wird neu kalkuliert** (Antwort 4): „Originalangaben können nur noch als ganz grobe
+  richtwerte genutzt werden in diesem bereich.“
+* **Reihenfolge:** „erst die Dörfer bauen, Mana später im Spieltest einstellen“ (Antwort 8/4 = C).
+  Das heißt: die Kosten werden als **VORSCHLAG** eingebaut und im Spieltest justiert, nicht vorher
+  festgeschrieben.
+
+## 6. Sonstiges
+
+* **Stationierte Truppen verteidigen mit** (Antwort 9 = A).
+* **Startressourcen je Dorf:** belegte Startwerte (Antwort 7 = A).
+* **Reihenfolge der Umbauten:** erst Angriff reist (Entscheidung 1), dann die sechs Dörfer
+  (Antwort 10 = A).
+* **A-4** wird nach der GameStar-Leiste im Original-Stil gezeichnet (Antwort 2 = A).
+
+## 7. Was daraus für die Umsetzung folgt (geändert gegenüber Abschnitt 3)
+
+* **M-1 entfällt** in der alten Form: kein Portalgebäude, sondern **Tempel = Reiseort**.
+* **M-2** bleibt: Tempel steht ab Gründung, Ertrag nach Gelände — aber die Zahlen sind VORSCHLAG.
+* **Neu M-9 Weltbild im Portal:** 20 × 20 Felder je Welt (belegt: `welt.py`, 20 Dimensionen,
+  400 Felder), farbige Geländekästchen ohne Zeichen, Gegnerpositionen sichtbar, Dorftransfer per
+  Klick mit Kostenabholung durch den Herold und Postfach-Nachricht, Hover-Vorschau der Kosten.
+* **Neu M-10 Weltkarte entfernen:** Menüpunkt „Karten“ wird frei; der Platz geht an Dorfzentrum und
+  Lagerverwaltung. Die bisherige Weltkarte wird stillgelegt, nicht heimlich weitergeführt.
+* **Neu M-11 Ein Lager je Dorf:** mehrere Lager werden zusammengeführt, das Dorfzentrum ist das
+  Lager (Menüpunkt plus Gebäude).
