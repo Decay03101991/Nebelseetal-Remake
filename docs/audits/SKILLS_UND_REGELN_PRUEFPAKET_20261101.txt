@@ -1,79 +1,174 @@
-# AUFTRAG an das starke Chat-Modell — Gegenprüfung: Skills und Regeln
+# AUFTRAG an das starke Chat-Modell — Gegenprüfung: Skills und Regeln (mit Ebenen)
 
 **Für:** Daniels großes GPT-Chat-Modell. **Von:** Hermes (Weltenfresser), 01.11.2026.
 **Ergebnis:** EIN Prüfbericht (Markdown), den Daniel zurückgibt. Du änderst nichts, du prüfst.
 
 ## 0. Worum es geht
 
-Hermes arbeitet mit drei Schichten, die **flüssig ineinandergreifen** müssen:
+Hermes arbeitet mit fünf **Ebenen**, die hierarchisch zusammenspielen: Profile (eigene Regelsätze und
+eigene Skill-Bäume), Kategorien/Skills mit Belegpfaden, Rollen-Skills für Bots und Agenten,
+Ausführungsmechanismen (Delegation, Kanban, Cron) und eine Rangfolge bei Konflikt. **Teil A2 dieses
+Pakets beschreibt diese Ebenen mit gemessenen Zahlen — lies ihn zuerst.** Ein Vorschlag, der Ebenen
+vermischt, zerstört Pfade und funktioniert danach nicht mehr.
 
-1. **SOUL.md** — die Arbeitsregeln des Nutzers (6 Regeln, Rangfolge bei Konflikt).
-2. **Memory** (`USER.md` = wer der Nutzer ist, `MEMORY.md` = meine Notizen).
-3. **Skills** — 173 Verfahrensanleitungen (plus 7 im Archiv), die nur bei Bedarf geladen werden.
+Anlass: In der Sitzung am 01.11.2026 fielen Reibungen auf — eine Skill-Datei war fast an der
+Größen-Grenze, Desktop-Regeln stehen in 39 Skills, 27 Beschreibungen sind länger als die erlaubten
+60 Zeichen, ein Verweis zeigte auf eine Datei in einem **anderen** Skill, und die drei Profil-Bäume
+sind auseinandergelaufen (13 bzw. 19 abweichende Dateien).
 
-Der Anlass: In einer Sitzung am 01.11.2026 fielen mehrere Reibungen auf — eine Skill-Datei war fast
-an der Größen Grenze, Regeln zum Desktop stehen in 39 Skills, 27 Skill-Beschreibungen sind länger als
-die erlaubten 60 Zeichen, und ein Verweis zeigte auf eine Datei, die es im Skill nicht gibt. Deine
-Aufgabe: **finde die Reibungen systematisch**, bevor sie Zeit oder Geld kosten.
-
-## 1. Die Messbefunde, die schon vorliegen (nicht wiederholen, prüfen und ergänzen)
+## 1. Die Messbefunde, die schon vorliegen (prüfen und ergänzen, nicht wiederholen)
 
 | Befund | Messung |
 |---|---|
-| Skills insgesamt | 173 aktiv, 7 im Archiv (`.archive/`) |
-| Frontmatter | 0 Probleme (jedes Skill hat `name`, `description`, Ordnername passt) |
-| Fast an der Größen-Grenze | `nebelseetal-remake/SKILL.md` hatte **99.781 von 100.000** Zeichen — jede Ergänzung wurde abgelehnt. Repariert: 20 Abschnitte (41.551 Zeichen) nach `references/historie-entwicklung-2026-10.md`, Vorgängerfassung gesichert, jetzt 58.509 Zeichen |
-| Beschreibungen über 60 Zeichen | **27** Skills (Standard ist „max 60"), die längste mit 547 Zeichen |
-| Toter Verweis | `uebergabe-handoff` → `references/pruefstand-konventionen.md` (Datei liegt in einem **anderen** Skill). Repariert |
-| Doppelte Abschnitte | `## Icon-Stand (gemessen 04.10.2026)` zweimal in einem Skill. Repariert |
+| Skills insgesamt | 173 im Profil `default`, 164 in `coding`, 106 in `schulprojekt` (7 im Archiv) |
+| Frontmatter | 0 Probleme (jede Datei hat `name`, `description`, Ordnername passt) |
+| Fast an der Größen-Grenze | `nebelseetal-remake/SKILL.md` hatte **99.781 von 100.000** Zeichen → repariert auf 58.509 durch Auslagern von 41.551 Zeichen nach `references/historie-entwicklung-2026-10.md` |
+| Beschreibungen über 60 Zeichen | **27** Skills (Standard „max 60"), längste 547 Zeichen |
+| Toter Verweis | `uebergabe-handoff` → `references/pruefstand-konventionen.md` (Datei liegt in einem **anderen** Skill) → repariert |
+| Doppelter Abschnitt | `## Icon-Stand (gemessen 04.10.2026)` zweimal in einer Datei → repariert |
 | Desktop-Regeln verstreut | **39 Skills** erwähnen den Desktop (Spitze: `dateiablage-ordnen` 24×, `uebergabe-handoff` 22×, `laptop-cleanup` 12×) |
+| Profil-Drift | `coding`: 13 von 164 Dateien weichen ab, 9 fehlen; `schulprojekt`: 19 von 105 weichen ab, 68 fehlen, 1 eigener Skill |
 
-## 2. Deine Aufgabe — neun Prüffragen
+## 2. Deine Aufgabe — dreizehn Prüffragen
 
 Beantworte **jede** Frage mit Beleg (Dateiname + Zitat) und Urteil.
 
+**Regeln und Regelwerk**
 1. **Widersprüche zwischen SOUL und Skills.** Wo erlaubt ein Skill, was eine SOUL-Regel verbietet
    (oder umgekehrt)? Besonders: Regel 4 („Kleines selbst, Großes nur nach Rückfrage", „endgültig
-   löschen nur nach Rückfrage"), `laptop-cleanup`, `dateiablage-ordnen`, `system-backup-workflow`.
-2. **Desktop.** Welche der 39 Desktop-Aussagen widersprechen der geltenden Regel „genau EINE Übergabe
-   plus EIN Auftrag, alles andere hashgeprüft ins Projekt"? Nenne die Skills, die eine andere Ablage
-   verlangen, und schlage **eine** Formulierung vor, die überall gilt.
+   löschen nur nach Rückfrage") gegen `laptop-cleanup`, `dateiablage-ordnen`, `system-backup-workflow`.
+2. **Desktop.** Welche der 39 Desktop-Aussagen widersprechen der Regel „genau EINE Übergabe plus EIN
+   Auftrag, alles andere hashgeprüft ins Projekt"? Schlage **eine** Formulierung vor, die überall gilt.
 3. **Fragen-Politik.** SOUL sagt „offene Punkte sammeln, nicht einzeln nachfragen";
    `uebergabe-handoff` sagt „am Sitzungsende ein Auswahlformular, höchstens fünf Fragen je Aufruf".
-   Ist das eine Regel oder zwei? Formuliere die eine gültige Fassung.
-4. **Kosten.** SOUL/`kosten-schutzregel` nennen 4 EUR/Tag; Memory nennt „hart max 4 EUR/Tag über alle
-   Modelle und Profile" und zusätzlich „mindestens 2,50 USD für große Modelle". Widerspricht sich das?
-   Welche Zahl gilt wann?
+   Eine Regel oder zwei? Formuliere die gültige Fassung.
+4. **Kosten.** SOUL/`kosten-schutzregel` nennen 4 EUR/Tag; Memory nennt zusätzlich „mindestens
+   2,50 USD für große Modelle" und ein Restbudget. Welche Zahl gilt wann?
 5. **Löschen, Quarantäne, Überschreiben.** SOUL Regel 4 verbietet endgültiges Löschen ohne Rückfrage.
    Welche Skills sagen „entfernen", „löschen", „aufräumen" ohne diesen Vorbehalt? Liste sie.
-6. **Skill-Beschreibungen.** 27 sind länger als 60 Zeichen. Für welche ist das ein echtes Problem
-   (Auslösefall unklar), und wie kürzt man sie, **ohne** den Auslösefall zu verlieren? Gib für die
-   zehn schlimmsten eine neue Beschreibung (max 60 Zeichen) an.
-7. **Struktur und Überlappung.** 173 Skills sind viel. Welche überlappen sich so stark, dass eines
-   reicht? (Kandidaten: `coding-bot`, `grillme`, `coding-task-format`, `python-product-builder`,
-   `spec-driven-development`; die acht `fach-*`-Skills; `desktop-*` und `modern-local-ui`;
-   `document-retrieval`, `ocr-and-documents`, `pdf`, `nano-pdf`.) Nenne **fünf** Zusammenlegungen mit
-   Begründung und was dabei erhalten bleiben muss.
-8. **Rangfolge bei Konflikt.** SOUL nennt eine Rangfolge (Sicherheit/Kosten → diese Regeln → Skill →
-   Gewohnheit). Reicht das, wenn **zwei Skills** sich widersprechen? Formuliere die fehlende Stufe.
-9. **Blinde Flecken.** Welche Regel fehlt, obwohl Daniel sie mehrfach gesagt hat? Belege aus den
-   wörtlichen Zitaten in SOUL/USER/Skills — und schlage die fehlende Regel in einem Satz vor.
+
+**Ebenen (Teil A2)**
+6. **Rangfolge.** Reicht die SOUL-Rangfolge, wenn **zwei Skills derselben Ebene** sich widersprechen
+   oder ein Skill dem Profil-`SOUL.md`? Formuliere die fehlenden Stufen in einem Satz.
+7. **Ebenen-Trennung.** Welche Skills gehören zur Ebene *Rolle/Bot* und welche zu *Profil/global*?
+   Schlage ein **Etikett** vor (z. B. ein Frontmatter-Feld), das Hermes' Lader nicht stört, und
+   begründe, warum der Vorschlag ohne Codeänderung auskommt.
+8. **Profil-Drift.** Drei Skill-Bäume mit 13 bzw. 19 abweichenden Dateien: welche Fassung ist die
+   Wahrheit? Empfiehl **einen** Weg (ein Baum mit Verweisen, Kopien mit Prüfsumme, oder etwas
+   Drittes) und sage, was dabei kaputtgehen kann.
+9. **Zusammenführungen — nur innerhalb einer Ebene.** Nenne **fünf** sinnvolle Zusammenlegungen mit
+   Begründung und je einer Liste der **Pfade, die überleben müssen** (`references/`, `scripts/`,
+   `templates/`, Verweise aus dem Nebelseetal-Projekt). Kandidaten: `coding-bot`, `grillme`,
+   `coding-task-format`, `python-product-builder`, `spec-driven-development`; die 15 `fach-*`;
+   `desktop-*` und `modern-local-ui`; `document-retrieval`, `ocr-and-documents`, `pdf`, `nano-pdf`.
+10. **Rollen-Skills.** Was darf an einem Bot-Skill geändert werden, ohne den Bot zu brechen? Nenne
+    die Mindestbestandteile eines `fach-*`-Skills und was „nur für Agenten" bedeutet.
+
+**Inhalt und Qualität**
+11. **Beschreibungen über 60 Zeichen.** Gib für die zehn schlimmsten eine neue Beschreibung (max 60
+    Zeichen) an, **ohne** den Auslösefall zu verlieren.
+12. **Blinde Flecken.** Welche Regel fehlt, obwohl Daniel sie mehrfach gesagt hat? Belege aus den
+    wörtlichen Zitaten — und schlage die fehlende Regel in einem Satz vor.
+13. **Was würdest du NICHT tun?** Nenne drei Aufräum-Vorschläge, die in diesem System Schaden
+    anrichten würden, und warum. (Diese Frage prüft, ob du die Ebenen wirklich verstanden hast.)
 
 ## 3. Formregeln für deinen Bericht
 
-- **Deutsch**, Tabellen, keine Emojis, **höchstens 300 Zeilen**.
-- Jeder Befund: `Nr | Befund | Beleg (Datei + Zitat) | Schwere (blockierend / mittel / klein) | Empfehlung (ein Satz)`.
+- **Deutsch**, Tabellen, keine Emojis, **höchstens 320 Zeilen**.
+- Jeder Befund: `Nr | Befund | Beleg (Datei + Zitat) | Schwere (blockierend/mittel/klein) | Empfehlung`.
 - Danach **Top 10 nach Wirkung** (Rang | Maßnahme | Wirkung | Aufwand).
-- Danach **Was ich nicht beurteilen kann** (z. B. Inhalte, die nicht im Paket stehen).
+- Danach **Was ich nicht beurteilen kann**.
 - **Sei hart.** Ein Bericht, der nur bestätigt, ist wertlos. Wenn eine Regel unklar, doppelt oder
-  widersprüchlich ist, schreib es — auch wenn es der Nutzer selbst so formuliert hat.
+  widersprüchlich ist, schreib es — auch wenn der Nutzer sie selbst so formuliert hat.
 - Keine erfundenen Dateinamen; nur was in diesem Paket steht.
 
 ## 4. Was Hermes mit dem Bericht tut
 
-Jeder Befund wird gegen die echten Dateien nachgeprüft, dann als **eine** Änderung mit Beleg
-umgesetzt oder mit Grund abgelehnt; blockierende Befunde gehen vor der nächsten Bauarbeit in die
-Übergabe. Was du vorschlägst, aber nicht belegen kannst, wird nicht gebaut.
+Jeder Befund wird gegen die echten Dateien nachgeprüft, dann als **eine** Änderung mit Beleg umgesetzt
+oder mit Grund abgelehnt. Zusammenführungen werden **nur innerhalb einer Ebene** gebaut, mit
+Pfadliste, Gegenprobe (kein Verweis ins Leere) und, bei Profil-Kopien, mit Angabe, ob sie mitgezogen
+werden. Blockierende Befunde gehen der nächsten Bauarbeit vor.
+
+---
+
+# TEIL A2 — Die EBENEN des Systems (das musst du verstehen, bevor du zusammenlegst)
+
+Hermes ist **nicht** ein Baum aus Regeln und Skills, sondern **fünf Ebenen**, die hierarchisch
+arbeiten. Ein Vorschlag, der Ebenen vermischt, zerstört Pfade und funktioniert danach nicht mehr.
+Alle Zahlen sind am 01.11.2026 gemessen.
+
+## Ebene 1 — Profile (getrennte Instanzen, je eigener Regelsatz)
+
+| Profil | SOUL.md | eigene `memories/` | eigene `skills/` | eigene `cron/` | Rolle |
+|---|---|---|---|---|---|
+| `default` (hier arbeitet Hermes) | 4.887 Byte | ja | **173 Skills** | 23 Einträge | Hauptsitzung, Projektarbeit |
+| `coding` | 4.887 Byte (gleich) | ja | **164 Skills** | ja | Coding-Bot-Instanz |
+| `schulprojekt` | **1.185 Byte** (eigene, kürzere Regeln) | ja | **106 Skills** | ja | Schule/Lernprojekt |
+
+**Wichtig:** die Skill-Bäume sind **Kopien, keine Verweise.** Gemessene Drift:
+
+| Profil | Skills | gemeinsam mit global | **abweichend** (gleicher Pfad, anderer Inhalt) | nur dort | fehlt dort |
+|---|---|---|---|---|---|
+| `coding` | 164 | 164 | **13** | 0 | 9 |
+| `schulprojekt` | 106 | 105 | **19** | 1 (`life-story-retrieval`) | 68 |
+
+Beispiel: `project-management/nebelseetal-remake/SKILL.md` hat global den Hash `685531253…` und im
+Profil `coding` `9299eb3e…` — **zwei Fassungen derselben Datei.** Wer nur im globalen Baum umbaut,
+lässt zwei veraltete Kopien zurück; die nächste Sitzung im Coding-Profil liest die alte Fassung.
+
+## Ebene 2 — Kategorien und Skills (innerhalb eines Profils)
+
+`skills/<kategorie>/<skill>/SKILL.md` plus `references/`, `scripts/`, `templates/`, `assets/`.
+Skills ohne Kategorie liegen direkt unter `skills/<skill>/`. Geladen wird ein Skill **nur bei
+Bedarf** (`skill_view`); die Beschreibung (max 60 Zeichen) entscheidet, ob er geladen wird.
+Ein Skill darf `references/<thema>.md` haben — diese Pfade sind **Belegpfade**: ein Umbau, der eine
+Reference umbenennt oder verschiebt, bricht jede Wache, die darauf zeigt.
+
+## Ebene 3 — Rollen (Bots und Agenten)
+
+- **Fach-Bots (13):** `fach-bgp-ds`, `fach-bgp-pqsm`, `fach-bgp-rewe`, `fach-dbsql`,
+  `fach-google-kalender`, `fach-it-security`, `fach-it-workshop`, `fach-linux`, `fach-mukbi`,
+  `fach-netits`, `fach-python`, `fach-soziales`, `fach-windows`, `fach-wiso`,
+  `fach-ws-techn-rechnen` — je ein Themenbot mit eigenem Ton.
+- **Weitere Rollen-Skills:** `coding-bot`, `coding-task-format`, `grillme`, `life-story-bot`,
+  `medical-bot`, `schulbot-system`, `school-project-agent`, `multi-agent-coding`,
+  `stark-modell-auftraege`, `merge-reconciler`, `sdlc-review`.
+- **Diese Skills sind für Agenten-Systeme gedacht, nicht für den Nutzer im Chat.** Sie dürfen
+  **nicht** in allgemeine Skills hineingemischt werden — sie definieren, WIE ein Bot arbeitet.
+- `bot_relay/roster.json` ist derzeit **leer** (`{"agents": [], "updated_at": …}`): es laufen
+  aktuell keine Relay-Bots. Die Rollen-Skills bleiben trotzdem bestehen.
+
+## Ebene 4 — Ausführung (wer die Regeln anwendet)
+
+| Mechanismus | Einstellung (gemessen) | Folge für Regeln |
+|---|---|---|
+| `delegation` | Modell `deepseek-flash`, `max_iterations: 250` | Unteragenten erben Context, aber **nicht** das Gespräch — Aufträge müssen selbsttragend sein |
+| `kanban` | `review_dispatch: true` | Aufgaben laufen über Karten, Prüfer- und Umsetzer-Rollen sind getrennt |
+| `cron` | 23 Einträge (global) | zeitgesteuerte Läufe sind **Fallback**: ist der Auslöser früher erreicht, sofort arbeiten |
+| `platform_toolsets` | `cli` 21 Toolsets; `telegram`, `whatsapp` usw. je ein Kanal-Toolset | ein Skill, der ein Tool voraussetzt, das der Kanal nicht hat, ist dort unbrauchbar |
+| `plugins` | `kiri-engine` aktiv, `composio` aus | Plugin-Skills (`plugin:skill`) liegen auf einer eigenen Ebene |
+
+## Ebene 5 — Rangfolge (was gewinnt)
+
+1. Sicherheits- und Kostengrenzen (`strict-security-policy`, `kosten-schutzregel`)
+2. `SOUL.md` des **aktiven Profils** (das Profil-`SOUL.md` ersetzt das globale)
+3. Der zum Thema passende Skill (spezifisch vor allgemein)
+4. Gewohnheit und Tempo
+
+**Fehlt in dieser Liste:** was gilt, wenn **zwei Skills derselben Ebene** sich widersprechen, und was
+gilt, wenn ein Skill dem Profil-`SOUL.md` widerspricht (Punkt 3). Das ist eine deiner Prüffragen.
+
+## Was daraus für deine Empfehlungen folgt (verbindlich)
+
+- **Zusammenführen nur innerhalb EINER Ebene.** Ein Fach-Bot-Skill wird nicht mit einem
+  allgemeinen Skill verschmolzen; ein Profil-Skill nicht mit einem globalen.
+- **Jede Zusammenführung nennt die überlebenden Pfade:** `references/`, `scripts/`, `templates/`
+  und alle Verweise aus `docs/` im Projekt. Ein Vorschlag ohne Pfadliste ist nicht umsetzbar.
+- **Drei Bäume beachten:** ein Umbau im globalen Baum braucht die Angabe, ob die beiden
+  Profil-Kopien mitgezogen oder ausdrücklich zurückgestellt werden.
+- **Rollen-Skills nicht „aufräumen", nur weil sie selten geladen werden** — sie sind der Regelsatz
+  eines Bots, nicht Dokumentation.
+
 
 ---
 
