@@ -1,0 +1,43 @@
+diff --git a/tests/test_startspiel.py b/tests/test_startspiel.py
+index c15faae..86bf7d7 100644
+--- a/tests/test_startspiel.py
++++ b/tests/test_startspiel.py
+@@ -138,8 +138,17 @@ def main_() -> int:
+     # nicht die alte Holz-Fehlwarnung erzwingen und damit die reale Oekonomie zerstoeren.
+     abschnitt("2b. Naechster Schritt und Warnungen anhand tatsaechlicher Produktion")
+     _schritt = app.naechster_schritt()
+-    check("ohne Gebaeude fuehrt die Einstiegskarte zum Holzfaeller",
+-          "Holzfäller" in _schritt["text"], _schritt["text"][:160])
++    # SCHNITT S-1 (Daniel, 01.11.2026): der Siedlungskarran bringt Holzfaeller, Steinmetz und Tempel
++    # mit - nach der Gruendung steht die Holz- und Steinproduktion also schon. Die alte Wache
++    # ("die Einstiegskarte fuehrt zum Holzfaeller") spiegelte den Zustand ohne Startgebaeude und
++    # wird deshalb auf die neue Wahrheit gestellt: die Karte fordert keinen Holzfaeller mehr, sie
++    # nennt die NAHRUNG als naechste Luecke. Quelle: docs/KONZEPT_SECHS_DOERFER_20261101.md,
++    # Abschnitt 1 und Anhang 1.
++    check("die Gruendung bringt Holz mit - die Karte fordert keinen Holzfaeller mehr",
++          "Holzfäller" not in _schritt["text"], _schritt["text"][:160])
++    check("die naechste Luecke nach der Gruendung ist die Nahrung (Jaeger)",
++          "Jäger" in _schritt["text"] or "Nahrung" in _schritt["text"],
++          _schritt["text"][:160])
+ 
+     _sied = st.settlements[0]
+     _raster = _sied.karte["raster"]
+@@ -150,11 +159,14 @@ def main_() -> int:
+         _schritt = app.naechster_schritt()
+         # FIX04f: Nach Gruendung muss erst Holz, Stein und Nahrung wirklich
+         # produziert werden; Haus allein ueberspringt die Pflichtversorgung nicht.
+-        check("Aufgabenkarte priorisiert fehlende Holzproduktion nach Hausbau",
+-              "Holz" in _schritt["text"] and "Holzfäller" in _schritt["text"],
++        # S-1: Holz und Stein sind durch die Startgebaeude gedeckt (siehe oben); die Wache prueft
++        # jetzt, dass die Karte die NAHRUNG priorisiert und nicht mehr den Holzfaeller verlangt.
++        check("Aufgabenkarte priorisiert die NAHRUNG nach Hausbau (Holz steht seit S-1)",
++              ("Jäger" in _schritt["text"] or "Nahrung" in _schritt["text"])
++              and "Holzfäller" not in _schritt["text"],
+               _schritt["text"][:200])
+-        check("Aufgabenkarte empfiehlt Wald fuer den Holzfaeller",
+-              "Wald" in _schritt["text"] and "Steppe" in _schritt["text"],
++        check("die Empfehlung nennt Standort und Kosten des naechsten Gebaeudes",
++              "Wald" in _schritt["text"] and "Kosten" in _schritt["text"],
+               _schritt["text"][:200])
+         check("Aufgabenknopf fuehrt zum Bauen auf der Karte", "öffnen" in _schritt["knopf"],
+               _schritt["knopf"])
