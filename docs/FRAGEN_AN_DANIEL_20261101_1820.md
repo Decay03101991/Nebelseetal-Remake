@@ -150,3 +150,28 @@ angeschlossen — das ist S-7 selbst. Lesearbeit, keine Entscheidung.
 
 Die Lehren der S-2c-Sitzung liegen unter `/skills pending` mit der Kennung `64d3ed88` und warten auf
 deine Freigabe. Ohne Freigabe stehen sie nur in der Übergabe, nicht im Skill.
+
+---
+
+## Antworten — alle dreizehn Fragen beantwortet am 01.11.2026, 18:24–18:30
+
+| Frage | Antwort | Folge |
+|---|---|---|
+| F-01 S-5 freigeben | **Ja, jetzt bauen** | Arbeit beginnt; Register 92 |
+| F-02 Weltensprung-Preis | **500 Mana plus Gold**, 5.000 bleibt Originalwert | Einbau in S-8; Register 93 |
+| F-03 Goldpreis G | **100 Gold** | Formel vollständig; Register 93 |
+| F-04 `weltkarten_seed` | **Fester Wert**, aus dem Veröffentlichungsdatum | Wert beim Demo-Bau nachtragen; Register 94 |
+| F-05 „Demo“ im Titel | **Ja, überall** | Release-Texte; Register 95 |
+| F-06 Gelände-Satz | **An S-5 koppeln** | kein Handbuch-Release vor S-5; Register 96 |
+| F-07 Handbuch eigenständig | **Ja, als eigene Datei neben dem Release** | Register 97 |
+| F-08 Limbus | **Weltname bleibt, Ebene heißt „der magische Limbus“** | Register 98 |
+| F-09 Verbund-Papier (acht Entscheidungen) | noch nicht gestellt | kommt mit S-3 |
+| F-10 F-01…F-05 des S-7-Entwurfs | noch nicht gestellt | kommt mit S-7 |
+| F-11 Mana-Messung über 24 Spielstunden | keine Entscheidung nötig | Arbeit nach S-5/S-8 |
+| F-12 Bot-Ereignisquellen E-02…E-12 | keine Entscheidung nötig | Lesearbeit vor S-7 |
+| F-13 Skill-Ergänzung `64d3ed88` | **Ja, freigegeben** | angewendet 18:34, Skill 753 → 781 Zeilen; Protokollzeile geschrieben |
+
+**Zusätzliche Ansage Daniels am 01.11.2026, 18:37:** „es muss noch sehr viel umgesetzt werden bevor wir
+eine demo online stellen können … ich möchte auf jedenfall ein möglichst weit umgesetztes testspiel
+veröffentlichen als demo“ → Die Demo ist ein Testspiel mit möglichst vollständigem Umfang; Funktionen
+gehen vor Release-Texten. Festgehalten als Register 99.

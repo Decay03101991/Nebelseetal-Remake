@@ -1,3 +1,49 @@
+# STAND 01.11.2026, 18:40 - Fragenrunde beantwortet, S-5 FREIGEGEBEN
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+## Was seit 17:26 dazukam
+
+**Der GPT-Antworttext zum Demo-Paket ist geprueft, nicht uebernommen.** Pruefvermerk
+`docs/audits/PRUEFVERMERK_GPT_TEXTPAKET_20261101.md` (Commit `b91186f`): 26 Angaben stimmen mit dem Code,
+**sieben muessen raus**, vier fehlen. Der schwerste Befund **W-01**: das Textpaket behauptet an fuenf
+Stellen, die Weltkarten zeigten Gelaende - das ist heute falsch (`portalanzeige` kennt kein Gelaende,
+Register 91 steht auf NOCH NICHT GEBAUT) und wird erst mit S-5 wahr. Weitere: Spionage ist nicht
+"gar nicht da" (Diebesgilde und sechs Kundschafter-Einheiten existieren), `Ragnaroeck` statt `Ragnaroek`,
+Tempel auf Sumpf erzeugt 0 statt 1 Mana, Siedlerobergrenze ist belegt statt unbekannt, Limbus doppelt,
+Ausbildungsdauer im Code geregelt statt unbekannt.
+
+**Alle dreizehn offenen Fragen sind beantwortet** (`docs/FRAGEN_AN_DANIEL_20261101_1820.md`, Abschnitt
+Antworten). Die Entscheidungen stehen als Register 92 bis 99.
+
+| # | Entscheidung | Wirkung |
+|---|---|---|
+| 92 | **S-5 freigegeben** | Weltbild als Gelaende wird jetzt gebaut |
+| 93 | **Weltensprung 500 Mana plus 100 Gold** (5.000 bleibt Originalwert) | Einbau in S-8; heute bucht der Code noch 5.000 |
+| 94 | `weltkarten_seed` bekommt einen festen Wert | beim Demo-Bau nachtragen |
+| 95 | "Demo" im Titel | Release-Texte |
+| 96 | Handbuch erst nach S-5 | keine Veroeffentlichung vorher |
+| 97 | Handbuch als eigene Datei neben dem Release | Ablage |
+| 98 | Limbus bleibt Weltname, Ebene heisst "der magische Limbus" | Spielertexte |
+| 99 | **Die Demo ist ein moeglichst weit umgesetztes Testspiel** | Funktionen vor Release-Texten |
+
+## Der EINE naechste Schritt
+
+**S-5 - das Weltbild als Gelaende** (Register 91 Vorgabe, 92 Freigabe): sieben Gelaendearten aus
+`data/gelaende.json` (Feld `haeufigkeit`, Summe 100) als 2x2-Bloecke auf 20x20 = 400 Feldern, stabiler
+Seed je Welt aus einem neuen Konfigurationswert `weltkarten_seed` in `data/welten.json`. Andockstellen:
+`portalraum.anzeige_raster` (Feld bekommt Gelaende dazu), `main._render_portal`/`_portal_feld_waehlen`,
+Farben und Namen aus `gelaende.farbe`/`gelaende.name`. Keine Orte, Doerfer, Gegner oder dauerhaften
+Markierungen. Neue Pruefdatei, voller Sammellauf, Registereintrag an Punkt 91, Protokollzeile, ein Commit.
+
+**Danach in dieser Reihenfolge:** das Bot-Taktikpaket gegen den Code pruefen
+(`archiv/eingaben/20261101_gpt_antworten/GPT_Taktikpaket_HERMES_ENTWURF_BOTVERHALTEN_TAKTIKPAKETE_20261101.md`),
+dann S-3 (Forschungsuebernahme, acht Entscheidungen), S-4, S-6 (Dorftransfer), **S-7 (Bots erlebbar,
+`bottaktik` anschliessen)**, S-8 (Bilanz und der neue Weltensprung-Preis), dann Demo-Bau und
+Freigabepruefung.
+
+---
+
 # STAND 01.11.2026, 17:26 - S-2c abgeschlossen: das Dorfzentrum ist das Lager, und den Platz bestimmt der Spieler
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
