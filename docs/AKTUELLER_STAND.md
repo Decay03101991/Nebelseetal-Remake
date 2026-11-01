@@ -48,13 +48,19 @@ der Werkzeugbeweis und ist ueberholt.
 Gelaendearten mit ihren Gewichten aus `data/gelaende.json`, als 2x2-Bloecke mit stabilem Seed je Welt - siehe
 Register 91). Danach S-3 (Forschungsuebernahme, Papier liegt), S-4, S-6, S-7, S-8.
 
-**Papier eingetroffen, noch nicht eingearbeitet:** die Antworten des Chat-Modells zu S-5/S-2c/Demo
-(`archiv/eingaben/20261101_gpt_antworten/GPT_WELTBILDBERICHT_...md`) und zu den Bot-Taktikpaketen
-(`.../GPT_Taktikpaket_...md`), beide gitignoriert abgelegt.
+**Papier eingetroffen und geprüft:** die Antwort des Chat-Modells auf Auftrag 7 (S-7/S-8/Demo-Anleitung)
+liegt in `archiv/eingaben/20261101_gpt_antworten/HERMES_ENTWURF_S7_S8_DEMO_ANLEITUNG_20261101.md`; der
+Gegenbefund am echten Code steht in `docs/audits/PRUEFVERMERK_S7_S8_ENTWURF_20261101.md`. **Wichtigster
+Befund:** die vom Papier befürchtete "blockierende Mana-Lücke" gibt es nicht — der **Tempel** ist ein
+Mana-Produzent (5/h auf Nebelsee, sonst 1/h) und kommt seit S-1 bei jeder Gründung mit. Der Weltensprung
+kostet belegt 5.000 Mana (`data/welten.json`, aus portal.php 2005); 500 Mana wären für ein einzelnes Dorf
+auf Normalgelände in rund 21 Spieltagen erspart, 5.000 in über 200. Mana wird außerdem bei **jeder**
+Portalreise verbraucht (5 + 0,5 je Feld + 20 je Zonenstufe, `src/auftraege.py`). Der achte Bot-Zustand heißt
+`FLIEHEN`, nicht `FLEHEN`. Offen bleiben: Goldpreis `G`, echte 24-Spielstunden-Messung, Bot-Ereignisquellen.
 
-**Auftrag 7 geschrieben, noch nicht beantwortet:** `AUFTRAG_GPT_S7_S8_UND_DEMO_ANLEITUNG_20261101.md` - S-7
-(Bots sichtbar ohne Kartenmarker, kein Angriff), S-8 (Bilanz Mana und Reisekosten) und der gefuehrte Start
-der Demo. Auf dem Desktop liegt genau diese eine Datei.
+**Auftrag 7 beantwortet und abgelegt:** `AUFTRAG_GPT_S7_S8_UND_DEMO_ANLEITUNG_20261101.md` - S-7 (Bots
+sichtbar ohne Kartenmarker, kein Angriff), S-8 (Bilanz Mana und Reisekosten) und der gefuehrte Start der
+Demo. Die Antwort ist geprueft (siehe oben), **gebaut ist davon noch nichts**. Auf dem Desktop liegt genau diese eine Datei.
 
 # STAND 01.11.2026, 12:20 - S-2b abgeschlossen: die Portal-Uebersicht zeigt Weltkartenliste und Gelaendekaestchen
 
