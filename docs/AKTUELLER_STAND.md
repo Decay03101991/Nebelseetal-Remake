@@ -1,3 +1,36 @@
+# STAND 01.11.2026, 20:15 - Uebergabe geschrieben, Blockplan fuer das starke Modell liegt bereit
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Diese Sitzung ist abgeschlossen.** Uebergabe: `docs/UEBERGABE_20261101_2010.md` (Kopie auf dem
+Desktop, hashgleich), Startzeile dort Abschnitt 8.
+
+**Blockplan fuer `deepseek-v4-pro`:** `docs/AUFTRAG_STARKES_MODELL_BLOCKPLAN_20261101.md` - acht Bloecke,
+zusammen 3,55-4,50 USD, Kontostand 11,60 USD.
+
+| Block | Inhalt | Art | Kosten |
+|---|---|---|---|
+| B1 | Wirtschaft messen (Ertraege, Siedler, Gold, Mana, Nahrung) | Messwerkzeug | 0,35-0,45 USD |
+| B2 | Kampf messen (Wall, SK, Beute, 40 Laeufe je Stufe) | Messwerkzeug | 0,35-0,45 USD |
+| B3 | S-7 Bots erlebbar (`bottaktik` anbinden) | Umbau | 0,60-0,75 USD |
+| B4 | S-3 Forschungsverbund absichern | Umbau klein | 0,35-0,45 USD |
+| B5 | S-4 Einheitenverlegung | Umbau | 0,50-0,65 USD |
+| B6 | S-6 Dorftransfer (500 Mana + 100 Gold) | Umbau | 0,55-0,70 USD |
+| B7 | Balance-Abgleich und Kette ohne Cheats | Messung + Doku | 0,45-0,55 USD |
+| B8 | Demo-Reifepruefung (Gates G-01 bis G-07) | Pruefung | 0,40-0,50 USD |
+
+**Kein Block ist gestartet** - Daniel entscheidet ueber den Start. Budget-Wache: bei 3,00 USD gemessenem
+Verbrauch wird vor B7/B8 angehalten und gefragt.
+
+## Der EINE naechste Schritt
+
+Block **B1** starten: Paketdatei bauen (20.000-45.000 Zeichen), Zeichen/Token/USD **drucken** und Daniel
+vorlegen, dann `tools/mess_wirtschaft.py` und `docs/audits/MESS_WIRTSCHAFT_<datum>.md` vom starken Modell
+bauen lassen; danach Kernzahlen selbst nachrechnen, voller Sammellauf, Commit oder Ruecknahme, Kostenzeile
+im Protokoll. Arbeitsweise: ein Schritt = ein Commit = ein gruener voller Sammellauf.
+
+---
+
 # STAND 01.11.2026, 19:25 - Demo wird LEER ausgeliefert, externes GitHub-Feedback aufgenommen
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
