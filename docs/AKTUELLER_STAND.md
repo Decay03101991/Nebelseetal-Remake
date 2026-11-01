@@ -1,3 +1,28 @@
+# STAND 01.11.2026, 21:55 - B3 abgebrochen und gesichert, Sitzungsende vorbereitet
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf | **`f5351f6`**, Arbeitsbaum **leer** | `git status --porcelain` (0 Zeilen) |
+| B3 (S-7 Bot-Taktik) | **abgebrochen**, kein Bericht, kein Test, keine `usage_b3_*.json` | `ls docs/audits/BERICHT_S7_20261101.md` = nicht vorhanden |
+| B3-Reste | 112 Zeilen in `src/bottaktik.py` + `src/main.py`, syntaktisch gueltig, ungeprueft; gesichert als Patch **280 Zeilen** (`eaf258ee`) und als `stash@{0}` | `archiv/unfertig/B3_unfertig_20261101.patch` |
+| Kosten starkes Modell | B1 0,5980 + B2 0,2553 = **0,8533 USD**; von 4 USD bleiben rund **3,15 USD** | `usage_b1_*.json`, `usage_b2_*.json` |
+| Guthaben | **10,39 USD**, Gesamtverbrauch 39,60 USD (Daniel 01.11. abgelesen) | Register 111 |
+| Register | **113 Punkte**, 117 Pruefdateien | `grep -cE`, `ls tests/test_*.py` |
+| Letzter belastbarer Sammellauf | 117 Dateien, 115 gruen, 0 rot, 2 ausgesetzt, 4.350 Pruefungen, 628 s (19:14) | `docs/audits/sammellauf_20261101_1914.log` |
+| GPT-Gebaeudepaket | **nicht herunterladbar**: gespeicherte HTML enthaelt keine Dateien, Sandbox-Link tot; Daniel hat GPT angewiesen, **vier kleinere ZIPs** daraus zu machen | `C:/Users/saras/Desktop/Nebelseetal_Gebaeude_Design_Gesamtpaket_herunterladen.html` |
+
+## Offene Entscheidungen, von Daniel am 01.11. beantwortet
+
+| Thema | Entscheidung |
+|---|---|
+| Kartenoptik | **Variante 2**: Motiv rund 44 px plus Geländerahmen je Kachel, damit das Feld sichtbar bleibt |
+| Gebaeudemotive | **alle zehn** korrigierten Motive in die Spieldaten und auf die Siedlungskarte |
+| Wappen | Zuordnung zu den Bots nach Wahl von Hermes, keine Vorgabe von Daniel |
+| Burgen | Zuordnung zu den Weltkarten bleibt offen (Vorschlag erlaubt, im Katalog als Vorschlag markiert) |
+| B1-Befunde | **beide sofort beheben**: Heilkunde-Bonus auf `forschung_wirkung.siedlerfaktor` legen, Rinderfarm auf 3/1,5 |
+
 # STAND 01.11.2026, 21:35 - B2 gelaufen, Katalog vollstaendig (zehn Motive, sechs Burgen, zehn Wappen)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

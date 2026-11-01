@@ -2808,6 +2808,29 @@ class GameState:
             self.bot_aus_dict(bot, botkern.wirkung_anwenden(start, zug))
             self.bot_armee_aufstellen(bot)
 
+        # S-7 (bottaktik): das SICHTBARE Verhalten je Bot. Der Zustandsautomat liefert
+        # Zustand, Gedaechtnis, Marsch-/Fluchtzeit und den angekuendigten Wechsel. Gebucht
+        # wird hier NUR das Verhalten - Kampf und Punkte bleiben im botkern-Pfad darueber
+        # (keine zweite Entscheidungs- oder Kampfwahrheit). Zeitbasis ist `jetzt` (Spielzeit).
+        spieler_ort = self.aktive_siedlung()
+        welt_taktik = {"spielerdorf": ({"x": int(spieler_ort.x), "y": int(spieler_ort.y),
+                                        "name": str(spieler_ort.name)}
+                                       if spieler_ort is not None else None)}
+        for bot in self.bots:
+            if not bot.volksattribute:
+                # Dauerhafte Volksattribute EINMALIG aus der Fraktion setzen (eine Quelle).
+                bot.volksattribute = bottaktik.volksattribute({"fraktion": bot.faction})
+            start_taktik = self.bot_als_dict(bot)
+            zug_taktik = bottaktik.tick(start_taktik, welt_taktik, jetzt, rng)
+            neu_taktik = bottaktik.wirkung_anwenden(start_taktik, zug_taktik, jetzt)
+            ankuendigung = neu_taktik.pop("wechsel_ankuendigung", None)
+            neu_taktik.pop("wechsel_blockiert", None)
+            self.bot_aus_dict(bot, neu_taktik)
+            if ankuendigung:
+                # Der Wechsel wird genau EINMAL angekuendigt (hier, nicht je Zug).
+                self.messages.append({"text": ankuendigung, "type": "bot"})
+                self._log(ankuendigung)
+
         return ergebnis
 
     def tick(self, dt_seconds: float):
@@ -6884,6 +6907,11 @@ class NebelseetalApp:
             tk.Button(frame, text="Angriff entsenden",
                       command=lambda b=bot: self._auftrag_angriff(b),
                       bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
+            # S-7 (bottaktik): die deutsche Verhaltenszeile aus `bottaktik.anzeige`
+            # (Zustand, Taktik, Grund) - EINE Funktion fuer Kern und Anzeige.
+            zeile = bottaktik.anzeige(self.state.bot_als_dict(bot))
+            tk.Label(frame, text=zeile, fg=self.skin["text"], bg=self.skin["panel"],
+                     anchor=tk.W).pack(fill=tk.X, padx=5)
 
     def _trade(self, bot: BotPlayer):
         """Handel mit einem Bot: der BESTÄTIGTE KAUFVERTRAG (Teil 7b, Entwurf Z. 779/781).
