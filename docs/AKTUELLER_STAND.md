@@ -1,3 +1,28 @@
+# STAND 01.11.2026, 09:17 - 35 Fragen beantwortet, Fahrplan neu
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+## Was sich seit 03:32 geaendert hat
+
+**Daniel hat alle offenen Fragen beantwortet** (35 Fragen in sieben Formularen). Die Antworten stehen woertlich in `docs/KONZEPT_WELTKARTEN_UND_BOTS_20261101.md` (Anhang 3) und sind bindend. Die wichtigsten Aenderungen am Modell:
+
+| Punkt | neu |
+|---|---|
+| Transfer | **Mana**, 500 statt 5.000; Tempel 20/h Nebelsee, 5/h sonst (VORSCHLAG) |
+| Bots | **nur Koordinaten**: sechs Bots, je ein Dorf, feste Position, **kein Angriff**, keine Taktik |
+| Weltkarten | **sechs belegte Namen** (Armageddon, Ragnarok, Utgard, Midgard, Valhalla, Limbus), bespielbar zuerst Midgard und Valhalla, Start in Midgard |
+| Dorftransfer | **ein Dorf je Vorgang**, Einstieg per Klick aufs freie Feld |
+| Spionage | Kundschafter-Auftrag, Bericht exakt, gehoert zur Kampfplanungsseite |
+| Begriffe | Dimensionen heissen **Weltkarten und Weltensprung** (ab S-2 in der Anzeige) |
+
+**Gebaut wurde in dieser Runde nichts** - Daniel wollte erst alle Antworten und dann die Uebergabe.
+
+## Der naechste Schritt
+
+**S-1 abschliessen.** Der Patch liegt in `docs/audits/S1_ENTWURF_20261101/`; **sieben** Pruefdateien muessen dabei einzeln nachgezogen werden (Liste in der Uebergabe 09:17, Abschnitt 4). Danach S-2 bis S-8 nach dem Fahrplan in Anhang 3.
+
+Guthaben: **3,03 USD** (diese Sitzung hat 1,27 USD gekostet).
+
 # STAND 01.11.2026, 03:32 - Entscheidung 1 gebaut, Bot-Taktik-Modul liegt bereit
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
