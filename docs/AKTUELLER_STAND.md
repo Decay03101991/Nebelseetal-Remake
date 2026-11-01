@@ -1,3 +1,31 @@
+# STAND 01.11.2026, 21:35 - B2 gelaufen, Katalog vollstaendig (zehn Motive, sechs Burgen, zehn Wappen)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| B1 | Wirtschaft gemessen, Werkzeug + Bericht (263 Zeilen) | Commit `a3fd069` |
+| B2 | Kampf gemessen, `tools/mess_kampf.py` + Bericht (272 Zeilen), 40 Laeufe je Wallstufe 0-10 | `docs/audits/MESS_KAMPF_20261101.md` |
+| B2 Kernzahlen | Schwelle gemessen == dokumentiert auf allen zehn Stufen; Beute ladungsgedeckelt; Wall 1 braucht 4 Krieger nach SK statt 1 nach AT | Bericht Abschnitte D, E, H |
+| Kosten starkes Modell | B1 0,5980 + B2 0,2553 = **0,8533 USD**, von 4 USD bleiben rund 3,15 USD | `usage_b1_*.json`, `usage_b2_*.json` |
+| Guthaben | **10,39 USD**, Gesamtverbrauch 39,60 USD (Differenz 1,21 USD, gedeckt) | Register 111 |
+| Register | **113 Punkte** | `grep -cE` |
+| Symbolkatalog | 11 Seiten: zehn Motive zugeordnet, sechs Burgen, zehn Wappen, Zuordnungsblatt | `docs/SYMBOLKATALOG_Nebelseetal_20261101.pdf` |
+| B3 Paket | `docs/auftraege/B3_paket_20261101.md`, 41.579 Zeichen, S-7 Bots erlebbar | Datei |
+
+**Offen aus B2 (Register 110):** die Auftrags-Vorpruefung zaehlt Fernkaempfer und Kundschafter mit, die
+Schlacht fuer die Wallschwelle nur Nahkampf. **Offen aus B1 (Register 105):** Heilkunde-Bonus greift nie,
+Rinderfarm liefert 1 statt 3 Nahrung.
+
+## Der EINE naechste Schritt
+
+Block **B3** starten (S-7 Bots erlebbar): Paket liegt fertig, Lauf einzeln mit `--usage-file`, fertig erst
+an der `usage_*.json`, danach Kernzahlen nachrechnen, voller Sammellauf, Commit oder Ruecknahme,
+Kostenzeile im Protokoll. Danach der Optik-Schnitt nach Register 112: Gebaeude kleiner auf dem Feld,
+Ressourcenleiste, Motivauswahl, Burgen- und Wappenzuordnung.
+
+---
+
 # STAND 01.11.2026, 21:05 - B1 des starken Modells gelaufen, zwei echte Fehler gefunden
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

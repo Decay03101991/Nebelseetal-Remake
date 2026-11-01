@@ -90,49 +90,11 @@ def karte(zeichner, kasten, titel, zeilen, farbe=FARBE_AKZENT):
         y += 27
 
 
-def hintergrund_normalisieren(pfad, schwelle=0.55, saettigung_max=0.12):
-    """Hintergrund eines Motivs auf reines Weiss ziehen (Flutfuellung von den Raendern).
-
-    Motiv 3, 6 und 7 tragen ein hellgraues Schachbrett als Grund - auf einer weissen
-    Katalogtafel sieht das wie ein Fehler aus. Gefuellt wird nur, was von aussen
-    erreichbar und hell ist; helle Stellen INNERHALB des Gebaeudes bleiben unberuehrt.
-    """
-    from collections import deque
-    voll = os.path.join(WURZEL, pfad)
-    if not os.path.exists(voll):
-        return None
-    bild = Image.open(voll).convert("RGBA")
-    pixel = bild.load()
-    breite, hoehe = bild.size
-
-    def hell_und_grau(x, y):
-        r, g, b, a = pixel[x, y]
-        hoechster, tiefster = max(r, g, b), min(r, g, b)
-        if hoechster == 0:
-            return False
-        return hoechster / 255.0 >= schwelle and (hoechster - tiefster) / hoechster <= saettigung_max
-
-    gesehen = set()
-    schlange = deque()
-    for x in range(breite):
-        for y in (0, hoehe - 1):
-            schlange.append((x, y))
-    for y in range(hoehe):
-        for x in (0, breite - 1):
-            schlange.append((x, y))
-    while schlange:
-        x, y = schlange.popleft()
-        if (x, y) in gesehen or not (0 <= x < breite and 0 <= y < hoehe):
-            continue
-        if not hell_und_grau(x, y):
-            continue
-        gesehen.add((x, y))
-        pixel[x, y] = (255, 255, 255, 255)
-        schlange.append((x + 1, y))
-        schlange.append((x - 1, y))
-        schlange.append((x, y + 1))
-        schlange.append((x, y - 1))
-    return bild
+# LEHRE 01.11.2026 (Daniels Sichtpruefung): Eine automatische Weiss- oder Grau-Entfernung am
+# Bildrand ist bei diesen Motiven falsch. Der steinerne Eingang der Minen, der Sockel des Tempels
+# und die Stufen der Kriegerakademie sind GRAU und gehoeren zum Motiv - ein Fluetverfahren nimmt
+# sie mit und macht das Gebaeude unkenntlich. Die Originale bleiben deshalb unveraendert; sie
+# liegen auf einer hellen Katalogplatte, wie ein gedrucktes Tafelbild.
 
 
 def freistellen(pfad, weich_ab=0.86, voll_weg=0.95):
@@ -273,6 +235,74 @@ def emblem(rohstoff_id, groesse=190):
 
 # --------------------------------------------------------------- Seiten
 
+
+# Daniels Sichtpruefung am 01.11.2026 (muendlich am Telefon/Chat). Diese Namen gelten fuer den
+# KATALOG; in data/gebaeude_motive.json stehen sie erst, wenn Daniel die Spieldaten freigibt.
+DANIEL_ZUORDNUNG = {
+    1: "Jäger",
+    2: "Schafzucht",
+    3: "Goldmine",
+    4: "Farm",
+    5: "Kriegerakademie",
+    6: "Erzmine",
+    7: "Steinbruch (Steinmetz)",
+    8: "Holzfäller",
+    9: "Pferdezucht",
+    10: "Rinderfarm",
+}
+MOTIV_BESCHREIBUNG = {
+    1: "Scheune mit Gestellen, Garben und Fässern im Hof",
+    2: "runder Bau auf Holzkonstruktion mit Beeten und Pferch",
+    3: "steiniger Eingang in einen Berg, goldene Kugeln im Gestein",
+    4: "gelbes Dach mit dunklem Holzanbau, Rasenfläche",
+    5: "grauer Steinbau mit Zinnen, Treppe, roten Fahnen, steinerner Sockel",
+    6: "Schuppen mit Schienen und Lore, dunkelgraue Kugeln",
+    7: "aufgetürmte Steine, offener Steinbruch ohne Stollen",
+    8: "Holzhaus mit Gestell und Wagen",
+    9: "Handbuchbild seite01_bild02 - von Daniel als Pferdezucht benannt, Bildinhalt noch nicht beschrieben",
+    10: "Handbuchbild seite01_bild03 - von Daniel als Rinderfarm benannt, Bildinhalt noch nicht beschrieben",
+}
+
+
+def motive_liste():
+    """Zehn Motive: die acht geschnittenen plus zwei bisher fehlende Handbuchbilder.
+
+    Der Stand "im Spiel" kommt aus data/gebaeude_motive.json (Spielwahrheit), der NAME aus
+    Daniels Sichtpruefung vom 01.11.2026 - so sieht man im Katalog sofort, wo Spiel und
+    Zuordnung noch auseinanderliegen.
+    """
+    spiel = {}
+    try:
+        for e in lade("data/gebaeude_motive.json")["motive"]:
+            spiel[int(e["motiv"])] = e
+    except Exception:
+        spiel = {}
+    liste = []
+    for nr in range(1, 11):
+        pfad = "assets/icons/gebaeude/motiv_%d.png" % nr
+        if not os.path.exists(os.path.join(WURZEL, pfad)):
+            continue
+        eintrag = spiel.get(nr) or {}
+        liste.append({
+            "motiv": nr,
+            "datei": pfad,
+            "gebaeude": eintrag.get("gebaeude"),
+            "eingebaut": bool(eintrag.get("eingebaut")),
+            "name": DANIEL_ZUORDNUNG.get(nr, "noch nicht benannt"),
+            "beschreibung": MOTIV_BESCHREIBUNG.get(nr) or (eintrag.get("beschreibung") or ""),
+        })
+    return liste
+
+
+def _bilder(ordner, praefix):
+    """Alle geschnittenen Einzelbilder eines Ordners, nach Nummer sortiert."""
+    voll = os.path.join(WURZEL, ordner)
+    if not os.path.isdir(voll):
+        return []
+    namen = sorted(n for n in os.listdir(voll) if n.startswith(praefix + "_") and n.endswith(".png"))
+    return [os.path.join(ordner, n).replace("\\", "/") for n in namen]
+
+
 def seite_titel(zahlen):
     bild = hintergrund()
     z = ImageDraw.Draw(bild)
@@ -383,44 +413,40 @@ def raster_seite(titel, unter, eintraege, seite, seiten, spalten=6, karten_hoehe
 
 
 def seite_motive(motive, gebaeude_namen, seite, seiten):
-    """Die acht Original-Gebaeudemotive gross - die epischste Seite des Hefts."""
+    """Die zehn Original-Gebaeudemotive - Rohbilder auf heller Katalogplatte.
+
+    Nichts wird freigestellt oder umgerechnet: Steine, Sockel und Stufen gehoeren zum Motiv.
+    """
     bild = hintergrund()
     z = ImageDraw.Draw(bild)
-    kopf(z, "Gebäudemotive", "acht Originalmotive aus dem Handbuch 2009, Seite 1", seite, seiten)
-    spalten, zeilen = 4, 2
+    kopf(z, "Gebäudemotive", "zehn Originalmotive aus dem Handbuch 2009, Seite 1", seite, seiten)
+    spalten = 5
+    zeilen = max(1, (len(motive) + spalten - 1) // spalten)
     flaeche_x = SEITE[0] - 2 * RAND
     flaeche_y = SEITE[1] - 268 - 120
     bw, bh = flaeche_x // spalten, flaeche_y // zeilen
     for i, m in enumerate(motive):
         sx, sy = i % spalten, i // spalten
-        x0 = RAND + sx * bw + 10
-        y0 = 300 + sy * bh + 10
-        x1 = x0 + bw - 20
-        y1 = y0 + bh - 24
-        z.rounded_rectangle([x0, y0, x1, y1], radius=22, fill=FARBE_PANEL,
+        x0 = RAND + sx * bw + 8
+        y0 = 300 + sy * bh + 8
+        x1 = x0 + bw - 16
+        y1 = y0 + bh - 20
+        z.rounded_rectangle([x0, y0, x1, y1], radius=20, fill=FARBE_PANEL,
                             outline=FARBE_GOLD if m.get("eingebaut") else FARBE_RAND, width=3)
-        platte = [x0 + 16, y0 + 16, x1 - 16, y0 + 326]
-        z.rounded_rectangle(platte, radius=14, fill=(250, 248, 242))
-        motiv = hintergrund_normalisieren(m["datei"])
-        if motiv is not None:
-            grenze = int(motiv.width * 2.5)
-            kasten = (platte[0], platte[1], platte[2], platte[1] + grenze)
-            zentriert = (kasten[0], platte[1] + (platte[3] - platte[1] - grenze) // 2,
-                         kasten[2], platte[1] + (platte[3] - platte[1] + grenze) // 2)
-            bild_einsetzen(bild, motiv, zentriert, abstand=6)
-        else:
-            icon_einsetzen(bild, m["datei"], tuple(platte), rand_abstand=10)
-        z.rounded_rectangle(platte, radius=14, outline=(220, 204, 168), width=2)
-        name = gebaeude_namen.get(m.get("gebaeude") or "", "Zuordnung offen")
-        z.text((x0 + 24, y0 + 334), "Motiv %d" % m["motiv"], font=s(SCHRIFT_FETT, 34), fill=FARBE_GOLD)
-        z.text((x0 + 24, y0 + 378), kuerzen(z, name, s(SCHRIFT_HALB, 26), x1 - x0 - 48),
-               font=s(SCHRIFT_HALB, 26), fill=FARBE_TEXT)
-        y = y0 + 416
-        for stueck in _umbrechen(m.get("beschreibung") or "", 32)[:3]:
-            z.text((x0 + 24, y), stueck, font=s(SCHRIFT, 20), fill=FARBE_STILL)
-            y += 26
-        zustand = "eingebaut" if m.get("eingebaut") else "Zuordnung offen"
-        z.text((x0 + 24, y1 - 46), zustand, font=s(SCHRIFT_HALB, 20),
+        platte = [x0 + 12, y0 + 12, x1 - 12, y0 + 250]
+        z.rounded_rectangle(platte, radius=12, fill=(250, 248, 242))
+        icon_einsetzen(bild, m["datei"], tuple(platte), rand_abstand=6)
+        z.rounded_rectangle(platte, radius=12, outline=(220, 204, 168), width=2)
+        z.text((x0 + 18, y0 + 262), "Motiv %d" % m["motiv"], font=s(SCHRIFT_FETT, 30), fill=FARBE_GOLD)
+        name = m.get("name") or gebaeude_namen.get(m.get("gebaeude") or "", "noch nicht benannt")
+        z.text((x0 + 18, y0 + 300), kuerzen(z, name, s(SCHRIFT_HALB, 23), x1 - x0 - 36),
+               font=s(SCHRIFT_HALB, 23), fill=FARBE_TEXT)
+        y = y0 + 334
+        for stueck in _umbrechen(m.get("beschreibung") or "", 26)[:3]:
+            z.text((x0 + 18, y), stueck, font=s(SCHRIFT, 18), fill=FARBE_STILL)
+            y += 24
+        zustand = "im Spiel" if m.get("eingebaut") else "Katalog"
+        z.text((x0 + 18, y1 - 34), zustand, font=s(SCHRIFT_HALB, 18),
                fill=FARBE_AKZENT if m.get("eingebaut") else (168, 132, 96))
     return bild
 
@@ -457,12 +483,90 @@ def seite_gebaeude(gebaeude, seite, seiten):
     return bild
 
 
+def seite_kacheln(titel, unter, pfade, praefix, fussnote, seite, seiten, spalten=6):
+    """Grosse Kacheln fuer eigene Bilder (Burgen der Weltkarte, Wappen) - ohne Zuordnungsbehauptung."""
+    bild = hintergrund()
+    z = ImageDraw.Draw(bild)
+    kopf(z, titel, unter, seite, seiten)
+    zeilen_anzahl = max(1, (len(pfade) + spalten - 1) // spalten)
+    flaeche_x = SEITE[0] - 2 * RAND
+    flaeche_y = SEITE[1] - 268 - 150
+    bw, bh = flaeche_x // spalten, flaeche_y // zeilen_anzahl
+    for i, pfad in enumerate(pfade):
+        sx, sy = i % spalten, i // spalten
+        x0 = RAND + sx * bw + 8
+        y0 = 300 + sy * bh + 8
+        x1 = x0 + bw - 16
+        y1 = y0 + bh - 20
+        z.rounded_rectangle([x0, y0, x1, y1], radius=20, fill=FARBE_PANEL,
+                            outline=FARBE_GOLD if i < 6 else FARBE_RAND, width=3)
+        icon_einsetzen(bild, pfad, (x0 + 12, y0 + 12, x1 - 12, y1 - 70), rand_abstand=6)
+        z.text((x0 + 18, y1 - 58), "%s %d" % (praefix, i + 1), font=s(SCHRIFT_HALB, 26), fill=FARBE_GOLD)
+    if fussnote:
+        for j, stueck in enumerate(fussnote):
+            z.text((RAND, SEITE[1] - 128 + j * 30), stueck, font=s(SCHRIFT, 22), fill=FARBE_STILL)
+    return bild
+
+
+def seite_zuordnung(gebaeude, motive, seite, seiten):
+    """Zuordnungsblatt: welche Gebaeude haben ein Originalmotiv, welche nicht - und was offen ist."""
+    bild = hintergrund()
+    z = ImageDraw.Draw(bild)
+    kopf(z, "Zuordnung", "welches Gebaeude hat ein Originalmotiv - und was noch offen ist", seite, seiten)
+    je_gebaeude = {}
+    for m in motive:
+        if m.get("gebaeude"):
+            je_gebaeude[m["gebaeude"]] = "Motiv %d" % m["motiv"]
+    y = 310
+    z.rectangle([RAND, y, RAND + 1180, y + 44], fill=(32, 39, 50))
+    z.text((RAND + 16, y + 10), "Gebaeude", font=s(SCHRIFT_HALB, 24), fill=FARBE_GOLD)
+    z.text((RAND + 520, y + 10), "Kategorie", font=s(SCHRIFT_HALB, 24), fill=FARBE_GOLD)
+    z.text((RAND + 900, y + 10), "Originalmotiv", font=s(SCHRIFT_HALB, 24), fill=FARBE_GOLD)
+    y += 44
+    for i, g in enumerate(gebaeude):
+        if i % 2 == 0:
+            z.rectangle([RAND, y, RAND + 1180, y + 50], fill=(19, 24, 31))
+        z.text((RAND + 16, y + 12), g["name"], font=s(SCHRIFT, 22), fill=FARBE_TEXT)
+        z.text((RAND + 520, y + 12), g.get("kategorie") or "-", font=s(SCHRIFT, 20), fill=FARBE_STILL)
+        motiv = je_gebaeude.get(g["id"], "-")
+        z.text((RAND + 900, y + 12), motiv, font=s(SCHRIFT, 20),
+               fill=FARBE_AKZENT if motiv != "-" else (120, 128, 140))
+        y += 50
+    x0 = RAND + 1230
+    z.rounded_rectangle([x0, 310, SEITE[0] - RAND, 1210], radius=18, fill=FARBE_PANEL,
+                        outline=FARBE_GOLD, width=2)
+    z.text((x0 + 24, 330), "Offen fuer Daniel", font=s(SCHRIFT_FETT, 34), fill=FARBE_GOLD)
+    zeilen = [
+        "Alle zehn Motive sind zugeordnet:",
+        "1 Jäger, 2 Schafzucht, 3 Goldmine, 4 Farm,",
+        "5 Kriegerakademie, 6 Erzmine, 7 Steinbruch,",
+        "8 Holzfäller, 9 Pferdezucht, 10 Rinderfarm.",
+        "Quelle: Daniels Sichtpruefung am 01.11.2026.",
+        "",
+        "Offen: Sollen sie auch auf der Siedlungskarte",
+        "erscheinen? Heute sind dort nur Haus,",
+        "Kriegerakademie und Erzmine verbaut (Spalte",
+        "rechts: nur drei Zeilen haben ein Motiv).",
+        "Mit der neuen Zuordnung kaemen sechs weitere",
+        "dazu - das aendert das Kartenbild sichtbar.",
+        "",
+        "Zweiter offener Punkt: in data/gebaeude_motive.json",
+        "steht noch die alte Zuordnung. Sie wird erst",
+        "geaendert, wenn Daniel die Karte freigibt.",
+    ]
+    yy = 384
+    for zeile in zeilen:
+        z.text((x0 + 24, yy), zeile, font=s(SCHRIFT, 21), fill=FARBE_TEXT if zeile else FARBE_TEXT)
+        yy += 34
+    return bild
+
+
 def baue():
     einheiten = lade("data/units.json")["einheiten"]
     waren = lade("data/items.json")["waren"]
     rohstoffe = lade("data/resources.json")["rohstoffe"]
     gebaeude_liste = lade("data/buildings.json")["gebaeude"]
-    motive = lade("data/gebaeude_motive.json")["motive"]
+    motive = motive_liste()   # zehn Motive, Namen nach Daniels Sichtpruefung 01.11.2026
     gebaeude_namen = {g["id"]: g["name"] for g in gebaeude_liste}
 
     nah = [(k, v) for k, v in einheiten.items() if v.get("kategorie") in ("Nahkampf", "Fernkampf")]
@@ -499,16 +603,32 @@ def baue():
         (str(len(rohstoffe)), "Rohstoffe mit Ertrag je Gelaende"),
         (str(len(gebaeude_liste)), "Gebaeude, davon %d Originalmotive" % len(motive)),
     ]))
-    seiten.append(seite_rohstoffe(rohstoffe, gebaeude_liste, 2, 8))
+    seiten.append(seite_rohstoffe(rohstoffe, gebaeude_liste, 2, 11))
     seiten.append(raster_seite("Waren", "alles, was in Schmiede, Bogenbauer und Nähstube entsteht",
-                               [ware_karte(k, v) for k, v in waren.items()], 3, 8, spalten=6))
+                               [ware_karte(k, v) for k, v in waren.items()], 3, 11, spalten=6))
     seiten.append(raster_seite("Einheiten - Kampf", "Nahkampf und Fernkampf, Werte aus data/units.json",
-                               [einheit_karte(k, v) for k, v in nah], 4, 8, spalten=5))
+                               [einheit_karte(k, v) for k, v in nah], 4, 11, spalten=5))
     seiten.append(raster_seite("Einheiten - Spezial", "Diebe, Späher, Belagerung und Karren",
-                               [einheit_karte(k, v) for k, v in rest], 5, 8, spalten=5))
-    seiten.append(seite_motive(motive, gebaeude_namen, 6, 8))
-    seiten.append(seite_gebaeude(gebaeude_liste[:13], 7, 8))
-    seiten.append(seite_gebaeude(gebaeude_liste[13:], 8, 8))
+                               [einheit_karte(k, v) for k, v in rest], 5, 11, spalten=5))
+    seiten.append(seite_motive(motive, gebaeude_namen, 6, 11))
+    burgen = _bilder("assets/icons/burgen", "burg")
+    wappen = _bilder("assets/icons/wappen", "wappen")
+    seiten.append(seite_kacheln("Burgen der Weltkarte",
+                                "sechs Burgen fuer die sechs Weltkarten - eigene Grafik, keine Handbuchvorlage",
+                                burgen, "Burg",
+                                ["Die Zuordnung Burg zu Weltkarte ist noch nicht entschieden - die Namen gehoeren zu",
+                                 "Daniels Entscheidung. Quelle: archiv/eingaben/20261101_burgen_wappen (Assetpaket)."],
+                                7, 11, spalten=3))
+    seiten.append(seite_kacheln("Wappen",
+                                "zehn Wappen fuer Bots und Fraktionen - eigene Grafik",
+                                wappen, "Wappen",
+                                ["Fuenf Bots tragen Namen (Haug, Brynhild, Grom, Silra, Krank) - welche Nummer zu",
+                                 "welchem Bot gehoert, entscheidet Daniel. Keine Zuordnung wird geraten."],
+                                8, 11, spalten=5))
+    a_gebaeude = 9
+    seiten.append(seite_gebaeude(gebaeude_liste[:13], a_gebaeude, 11))
+    seiten.append(seite_gebaeude(gebaeude_liste[13:], 10, 11))
+    seiten.append(seite_zuordnung(gebaeude_liste, motive, 11, 11))
 
     erste = seiten[0].convert("RGB")
     weitere = [b.convert("RGB") for b in seiten[1:]]

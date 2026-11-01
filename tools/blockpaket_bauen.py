@@ -572,7 +572,141 @@ der Form `<Kennzahl> | <Wert> | <Quelle>`, Rueckgabewert 0.
     return "".join(t)
 
 
-PAKETE = {"b1": paket_b1, "b2": paket_b2, "c1": paket_c1}
+# ---------------------------------------------------------------- B3 (Umbau: S-7 Bots erlebbar)
+
+def paket_b3():
+    t = []
+    a = t.append
+    a("""# AUFTRAG B3 - S-7: Bots erlebbar machen (Umbau am Spiel)
+
+Du bist **Umsetzer** fuer ein laufendes Python-Spiel mit Fensteroberflaeche (Tk). Du baust eine
+vorhandene, aber **nicht angeschlossene** Bot-Taktik so ein, dass ein Spieler das Verhalten der Bots
+erkennt. Du baust **keine zweite Wahrheit** fuer Entscheidungen, Kampf oder Punkte.
+
+## 1. Rolle und Grenzen
+
+| Punkt | Regel |
+|---|---|
+| Erlaubt | `src/bottaktik.py`, `src/botkern.py`, `src/main.py` **nur** Bot-Anbindung und Bot-Anzeige, eine neue `data/bots.json` (nur additiv, siehe Ist-Zustand), neue Pruefdatei `tests/test_s7_botverhalten.py`, Bericht `docs/audits/BERICHT_S7_20261101.md` |
+| Verboten | andere `src/`-Dateien, `data/`-Zahlen bestehender Felder aendern, Kennungen umbenennen, Felder im Spielstand entfernen, `git add/commit/push`, Loeschen, `docs/PRUEFREGEL_ORIGINAL.md` / `docs/ENTWICKLUNGSPROTOKOLL.md` / `docs/AKTUELLER_STAND.md` schreiben |
+| Code-Kommentare | **hinter jeder Codezeile** ein kurzer Kommentar (zwei Leerzeichen, `#`), je Funktion eine Zeile zur Aufgabe; `.py` bleibt ASCII (`ae/oe/ue/ss`) |
+| Zeitbasis | immer `state.spielsekunden`, **nie** Rechnerzeit |
+| Punkte | `botkern.bot_punkte` bleibt `(Krieg + Forschung) // 2` - dieselbe Skala wie `punktestand()['gesamt']` (Register 57) |
+| Demo | Bots greifen in der Demo **nicht** an (Daniels Entscheidung) - das Verhalten muss also auch ohne Angriff erkennbar sein |
+| Delegation | erlaubt, hoechstens zwei Unteragenten gleichzeitig, keiner schreibt in `src/`; im Bericht nennen |
+| Maschine | der Laptop ist schwach: nie zwei schwere Laeufe, kein EXE-Bau, kein Fensterstart, kein Sammellauf parallel zu einem Unteragenten |
+| Abschluss | **voller Sammellauf** (`python -X utf8 -u tools/sammellauf.py`), Ergebnis in den Bericht, letzte Zeile `FERTIG <pfad> <zeilen>` |
+
+## 2. Blockziel (aus dem Blockplan, woertlich)
+
+> **B3 - S-7: Bots erlebbar machen (Umbau).** `bottaktik` (Zustandsautomat, acht Zustaende, fuenf
+> Taktiken, **heute nicht angeschlossen**) so anbinden, dass Bots ein erkennbares Verhalten zeigen:
+> Verhalten je Dorf, Volksattribute dauerhaft, Verhaltensboni befristet, Umschalten mit Sperrzeit und
+> Ankuendigung - im Rahmen dessen, was das Taktikpaket als umsetzbar belegt **und** was ohne neue
+> Wahrheit in `botkern` passt.
+> **Muss beachten:** keine zweite Entscheidungs- oder Kampfwahrheit; `bot_punkte` bleibt
+> `(Krieg + Forschung) // 2`; Bots greifen in der Demo **nicht** an; Spielzeit statt Rechnerzeit;
+> Speicherformat nur additiv.
+> **Abnahme:** neue Pruefdatei mindestens 40 Pruefungen gruen, Nachbarn gruen (`test_punkte`,
+> `test_gpt_wall_bot_kampf`, `test_kampf_botbeute_echte_kasse`), voller Sammellauf 0 rot,
+> Bericht `docs/audits/BERICHT_S7_<datum>.md`.
+
+## 3. Ist-Zustand (gemessen 01.11.2026, Kopf `a3fd069`)
+
+| Gegenstand | Wert |
+|---|---|
+| `src/bottaktik.py` | 449 Zeilen, reines ASCII (eigene Pruefung), `tests/test_bottaktik.py` 48/0/0. Acht Zustaende (`ZUSTAENDE`), fuenf Taktiken, `tick`, `wirkung_anwenden`, `anzeige`, `pruefe_taktik`. **Wird von `main.py` NICHT aufgerufen** |
+| `src/botkern.py` | 621 Zeilen, reines ASCII (eigene Pruefung). `BOT_NAMEN` (Haug, Brynhild, Grom, Silra, Krank), `BOT_FRAKTIONEN`, `bots_tick(daten, welt, jetzt, rng)`, `bot_punkte`, `wirkung_anwenden`, `VORSCHLAG_START_VORRAETE` |
+| `src/main.py` | Bot-Abschnitt ab Zeile 2619: `bot_als_dict`, `bot_aus_dict`, `bot_vorrat_anlegen`, `bot_armee_aufstellen`, `bots_fortschreiben` (Z. 2694, ruft `botkern.bots_tick`), Universaltakt ab Z. 2813 |
+| Daten | **es gibt KEINE `data/bots*.json`** (gemessen 01.11.2026): die Bot-Spannen stehen als VORSCHLAG-Konstanten in `botkern.py` (`VORSCHLAG_START_VORRAETE`, `VORSCHLAG_START_KARREN`, `BOT_FRAKTIONEN`). Eine neue Datei `data/bots.json` darfst du anlegen, aber nur additiv und nur wenn du sie brauchst - die alten Werte bleiben dann in `botkern` als Rueckfall stehen |
+| Pruefstand | `tests/harness.py` mit `check(name, cond, detail)`, `befund`, `abschnitt`, `ausnahme`, `bericht()` **ohne Argument**; Pruefdateien ASCII (`# -*- coding: ascii -*-`) |
+
+**Wichtig:** `tests/test_bottaktik.py` prueft das Modul heute isoliert. Deine Anbindung darf diese
+Pruefungen nicht brechen; wenn sich eine Zusage des Moduls aendert, wird die alte Wache **umbenannt
+und begruendet**, nie geloescht.
+
+## 4. Das Taktikpaket ist ein Entwurf, kein Beleg
+
+`archiv/eingaben/20261101_gpt_antworten/GPT_Taktikpaket_HERMES_ENTWURF_BOTVERHALTEN_TAKTIKPAKETE_20261101.md`
+(47.159 Byte, von einem Chat-Modell geschrieben, **vom Koordinator NICHT Zeile fuer Zeile geprueft**).
+Lies es, aber behandle jede Zahl darin als VORSCHLAG. Was du uebernimmst, muss aus dem vorhandenen Code
+oder aus `data/` ableitbar sein; sonst kennzeichnest du es im Bericht als VORSCHLAG mit Begruendung.
+
+## 5. Die vorhandene Taktik im Wortlaut
+
+""")
+    a(funktion("src/bottaktik.py", "taktik_von"))
+    a(funktion("src/bottaktik.py", "gedaechtnis"))
+    a(funktion("src/bottaktik.py", "tick"))
+    a(funktion("src/bottaktik.py", "wirkung_anwenden"))
+    a(funktion("src/bottaktik.py", "anzeige"))
+    a(funktion("src/bottaktik.py", "pruefe_taktik"))
+    a("""
+Konstanten und Tabellen aus `src/bottaktik.py` (Zeilen 18-50):
+
+```python
+""")
+    a(lese("src/bottaktik.py", 18, 50))
+    a("""
+```
+
+## 6. Die Bot-Wirtschaft im Wortlaut (die EINE Wahrheit, die bleibt)
+
+""")
+    a(funktion("src/botkern.py", "bot_punkte"))
+    a(funktion("src/botkern.py", "bots_tick"))
+    a("""
+Konstanten aus `src/botkern.py` (Zeilen 37-80):
+
+```python
+""")
+    a(lese("src/botkern.py", 37, 80))
+    a("""
+```
+
+## 7. Die Anschlussstelle in `src/main.py` (Zeilen 2619-2830)
+
+""")
+    a(block("src/main.py", 2619, 2830, "Bot-Abschnitt: bot_als_dict bis bots_fortschreiben"))
+    a("""
+## 8. Registerpunkte, die binden
+
+| Nr. | Inhalt |
+|---|---|
+| 57 | **Bot-Punkte sind Gesamtpunkte**: `(Krieg + Forschung) // 2`, Vergleich mit `punktestand()['gesamt']` |
+| 51 | Goetterschutz-Band ist verdrahtet: `punkte.angreifbar` entscheidet ueber Bot-Angriffe, ueber die Grenze 299 in keine Richtung |
+| 72 | **Bots werden SPAETER angepasst** (Daniel 31.10.): jede Aussage ueber Armeegroessen prueft zuerst, ob der Gegner mitspielt |
+| 85 | `bottaktik` ist als reines Logikmodul gebaut und geprueft (48/0/0), der Anschluss ist Schnitt S-7 |
+| 99 | Die Demo ist ein moeglichst weit umgesetztes Testspiel - S-7 gehoert dazu |
+| 108 | Code-Kommentar-Vorgabe: jede Zeile erklaert |
+
+## 9. Was du bauen MUSST (Abnahme im Einzelnen)
+
+1. **Anbindung**: `bots_fortschreiben` fragt je Bot `bottaktik.tick` und wendet die Entscheidung mit
+   `bottaktik.wirkung_anwenden` auf einer **Kopie** an; das Ergebnis geht durch dieselben Buchungen wie
+   heute. Kein zweiter Entscheidungsweg, keine zweite Punkteformel.
+2. **Erkennbarkeit**: die Bot-Ansicht zeigt je Bot eine deutsche Zeile aus `bottaktik.anzeige`
+   (Zustand, Taktik, Grund). Ohne dass der Spieler im Code nachsieht, muss erkennbar sein, was der Bot tut.
+3. **Umschalten mit Sperrzeit und Ankuendigung**: ein Wechsel des Zustands wird angekuendigt (Meldung)
+   und hat eine Sperrzeit in **Spielsekunden**.
+4. **Attribute**: dauerhafte Volksattribute je Taktik, befristete Verhaltensboni mit Ablaufzeit - beides
+   additiv im Spielstand (alte Spielstaende laden ohne Umwandlung).
+5. **Demo-Regel**: kein Bot-Angriff; das Verhalten muss auch ohne Angriff sichtbar sein.
+6. **Pruefdatei `tests/test_s7_botverhalten.py`** mit mindestens 40 Pruefungen: je Taktik eine andere
+   Entscheidung in derselben Lage, Sperrzeit greift, Ankuendigung erscheint genau einmal, alter
+   Spielstand ohne die neuen Felder laedt, Anzeige == Kern (dieselbe Funktion), Punkte unveraendert,
+   Zeitbasis Spielsekunden (kein `time.time()` im neuen Pfad).
+
+## 10. Bericht
+
+`docs/audits/BERICHT_S7_20261101.md`, hoechstens 200 Zeilen: was gebaut wurde (Datei und Funktion),
+welche Zusage aus dem Taktikpaket uebernommen und welche verworfen wurde (mit Grund), die Pruefzahlen,
+das Sammellauf-Ergebnis, und was offen bleibt. Keine Zahl ohne Quelle.
+""")
+    return "".join(t)
+
+
+PAKETE = {"b1": paket_b1, "b2": paket_b2, "b3": paket_b3, "c1": paket_c1}
 
 
 def main():
