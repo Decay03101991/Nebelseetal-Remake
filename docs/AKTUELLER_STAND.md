@@ -1,3 +1,20 @@
+# STAND 01.11.2026, 02:48 - Entscheidung 1 ist gebaut (Angriff reist)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen (nichts wird geloescht).
+
+## Was gerade gebaut wurde (Commit folgt in dieser Sitzung, Register 84)
+
+| Paket | Register | Pruefdatei | Sammellauf |
+|---|---|---|---|
+| **Entscheidung 1: jeder Angriff reist** - ein Kern `_angriff_auftrag_starten`, `_angriff_durchfuehren` entfernt, `_attack`/`_attack_map`/`_auftrag_angriff` starten Auftraege, Kampf erst bei Ankunft | 84 | `test_kampf_einhaengung` 58/0/0, `test_produktionskette_ohne_cheats` 48/0/0, `test_gpt_kampf_botbeute_echte_kasse` 7/0/0, `test_durchspiel` 65/0/2 | 02:39: 110 Dateien, 109 gruen, 0 rot, 1 ausgesetzt, 4.041 Pruefungen, 363 s |
+| **Spielspannung und Bot-Taktik als Entwurf** (starkes Modell, 189 Zeilen): Spielschleifen, sieben Spannungsquellen, Zustandsautomat mit fuenf Taktiken, Gedaechtnis, sichtbare Vorzeichen, acht Widersprueche, Top 10 nach Wirkung | - | `docs/design/SPIELSPANNUNG_UND_BOTTAKTIK_20261101.md` | - |
+
+## Der naechste Schritt
+
+**S-1 aus dem Modell sechs Doerfer**: Gruendung setzt Tempel, Holzfischer (Wald) und Steinmetz (Huegel/Berg) und die Startressourcen 10 Siedler / 100 Holz / 100 Stein; die Meldung nennt die Felder. Andockstellen: `_erste_siedlung_gruenden`, `_kolonie_gruenden` (src/main.py), `gelaende.bau_moeglich`, `data/buildings.json` (Tempel-Ausnahme bei der Gruendungssetzung). Neue Pruefdatei; betroffen: `test_startspiel`, `test_durchspiel`, `test_originalkarten_baukasse`.
+
+**Vor S-1 zu entscheiden (Fragen an Daniel, gesammelt):** Transferwaehrung (Mana empfohlen), Bot-Umfang (2-3 Taktiken, 1-3 Doerfer empfohlen), Goetterschutz-Dauer (so lassen und nur anzeigen empfohlen), Kartenziehung (nach dem Dorf-Umbau empfohlen). Bis zur Antwort gilt die Empfehlung, im Code als VORSCHLAG gekennzeichnet.
+
 # STAND 01.11.2026, 01:00 — verbindlich für den Wiedereinstieg
 
 > Dieser Block steht ÜBER den älteren Ständen. Die Angaben darunter (FIX05, FIX04j…) sind

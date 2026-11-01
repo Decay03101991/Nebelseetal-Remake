@@ -431,6 +431,15 @@ def partiedurchlauf():
         _ort12.einheiten[krieger] = int(_ort12.einheiten.get(krieger, 0)) + 8
         kampf_vorher = len([m for m in gs.messages if m.get("type") == "kampf"])
         app._attack_map("wald")
+        # ENTSCHEIDUNG 1 (01.11.2026): der Kartenangriff REIST. Der Bericht entsteht deshalb
+        # erst bei der Ankunft - der Marsch wird hier bis zur Rueckkehr gefahren. Die Zeit wird
+        # nicht geraten: der Auftrag nennt seine eigene Rueckkehr.
+        _marsch = gs.auftraege[-1] if gs.auftraege else {}
+        check("der Kartenangriff steht als AUFTRAG in der Liste (kein Sofortangriff)",
+              bool(_marsch) and _marsch.get("art") == "angreifen", str(gs.auftraege))
+        if _marsch:
+            gs.spielsekunden = float(_marsch.get("rueckkehr") or 0.0) + 1.0
+            gs.auftraege_fortschreiben(gs.spielsekunden)
         kampf_nachher = len([m for m in gs.messages if m.get("type") == "kampf"])
         check("ein Kartenangriff erzeugt einen Kampfbericht",
               kampf_nachher > kampf_vorher, f"{kampf_vorher} -> {kampf_nachher}")

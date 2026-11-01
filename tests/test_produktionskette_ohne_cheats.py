@@ -301,35 +301,49 @@ def _kette():
             check("kein Wert des Spielers ist negativ",
                   not _negative(gs, ort), str(_negative(gs, ort)))
 
-        # ---------------------------------------------------------------- 8. F-10
-        abschnitt("8. Sofortangriff laeuft ueber DIESELBE Einsatzregel (F-10, Entscheidung 17)")
-        # GEGENPROBE ZUERST - sie braucht keine Truppen und keinen Wuerfel: das Ortslager ist
-        # leer, der Reichsbestand zeigt Einheiten. Wer den Reichsbestand liest, wuerde jetzt
-        # kaempfen; der EINE Einsatzpfad darf es NICHT.
+        # ---------------------------------------------------------------- 8. Kein Sofortangriff
+        abschnitt("8. KEIN Sofortangriff mehr: der Angriff ist ein Auftrag aus dem ORTSHEER")
+        # ENTSCHEIDUNG 1 (Daniel, 01.11.2026): der Sofortpfad ist stillgelegt. Die Gegenprobe
+        # bleibt dieselbe, sie braucht keine Truppen und keinen Wuerfel: das Ortslager ist leer,
+        # der Reichsbestand zeigt Einheiten. Wer den Reichsbestand liest, wuerde jetzt kaempfen;
+        # der EINE Einsatzpfad darf es NICHT.
+        check("der Sofortpfad _angriff_durchfuehren ist fort (Entscheidung 1)",
+              not hasattr(main.NebelseetalApp, "_angriff_durchfuehren"))
         bestand_nach_angriff = dict(ort.einheiten or {})
         gs.units[EINHEIT].count = 5
         ort.einheiten = {}
-        leer = app._angriff_durchfuehren(bot.name, dict(bot.army or {}), vorrat_ziel=bot)
+        leer = app._angriff_auftrag_starten(bot.name, dict(bot.army or {}), vorrat_ziel=bot)
         check("leeres Ortsheer + voller Reichsbestand = KEIN Angriff (eine Quelle, F-01)",
               leer is False, _log_ende(gs))
         gs.units[EINHEIT].count = 0
         ort.einheiten = bestand_nach_angriff
         if int((ort.einheiten or {}).get(EINHEIT, 0)) > 0:
             vorher_ort = int((ort.einheiten or {}).get(EINHEIT, 0))
-            gekaempft = app._angriff_durchfuehren(bot.name, dict(bot.army or {}),
-                                                 wall_stufe=int(getattr(bot, "wall_stufe", 0)),
-                                                 wall_zustand=float(getattr(bot, "wall_zustand", 100.0)),
-                                                 vorrat_ziel=bot)
-            check("der Sofortangriff kaempft (er nimmt das ORTSHEER, nicht das Reich)",
-                  gekaempft is True, _log_ende(gs))
-            check("er hat das Ortsheer benutzt und die Heimkehrer dort gebucht",
-                  int((ort.einheiten or {}).get(EINHEIT, 0)) <= vorher_ort,
-                  f"{vorher_ort} -> {(ort.einheiten or {}).get(EINHEIT)}")
+            gs.auftraege.clear()
+            gestartet_8 = app._angriff_auftrag_starten(
+                bot.name, dict(bot.army or {}),
+                wall_stufe=int(getattr(bot, "wall_stufe", 0)),
+                wall_zustand=float(getattr(bot, "wall_zustand", 100.0)),
+                vorrat_ziel=bot)
+            eintrag_8 = gs.auftraege[-1] if gs.auftraege else {}
+            check("der Angriff startet als AUFTRAG der Art 'angreifen'",
+                  gestartet_8 is True and eintrag_8.get("art") == "angreifen", _log_ende(gs))
+            check("er nimmt das ORTSHEER (das Ortslager ist mitgereist)",
+                  int((ort.einheiten or {}).get(EINHEIT, 0)) == 0, str(ort.einheiten))
             check("er bucht nichts in den Reichsbestand",
                   {k: int(v.count) for k, v in gs.units.items() if int(v.count) > 0} == reich_vorher,
                   str({k: v.count for k, v in gs.units.items() if v.count}))
+            if eintrag_8:
+                gs.spielsekunden = float(eintrag_8.get("rueckkehr") or 0.0) + 1.0
+                gs.auftraege_fortschreiben(gs.spielsekunden)
+                zurueck_8 = int((ort.einheiten or {}).get(EINHEIT, 0))
+                check("der Marsch kostet Reisezeit und bringt hoechstens so viele zurueck",
+                      zurueck_8 <= vorher_ort, f"{vorher_ort} -> {zurueck_8}")
+                check("die Heimkehrer stehen im ORTSLAGER, nicht im Reich",
+                      {k: int(v.count) for k, v in gs.units.items() if int(v.count) > 0} == reich_vorher,
+                      str({k: v.count for k, v in gs.units.items() if v.count}))
         else:
-            befund("Sofortangriff mit Truppen nicht geprueft",
+            befund("Angriff mit Truppen nicht geprueft",
                    "das Gefecht hat alle Angreifer gekostet")
 
         # ---------------------------------------------------------------- 9. Quelltext
@@ -339,13 +353,13 @@ def _kette():
         quelle = _code(main.NebelseetalApp._truppen_nach_rolle)
         check("_truppen_nach_rolle liest das ORTSHEER und nicht den Reichsbestand",
               "einheiten" in quelle and "state.units" not in quelle, quelle.splitlines()[0])
-        for name in ("_auftrag_angriff", "_auftrag_entfernung", "_angriff_durchfuehren"):
+        for name in ("_auftrag_angriff", "_auftrag_entfernung", "_angriff_auftrag_starten"):
             quelle = _code(getattr(main.NebelseetalApp, name))
             check(f"{name} faellt nicht mehr auf settlements[0] zurueck",
                   "settlements[0]" not in quelle, quelle.splitlines()[0])
-        check("_angriff_durchfuehren und _auftrag_angriff teilen die Buchung (Einsatz + quelle_id)",
-              "einsatz_" in _code(main.NebelseetalApp._angriff_durchfuehren)
-              and "quelle_id" in _code(main.NebelseetalApp._auftrag_angriff), "")
+        check("EIN Angriffsweg bucht Einsatz und quelle_id (Entscheidung 1)",
+              "auftrag_starten" in _code(main.NebelseetalApp._angriff_auftrag_starten)
+              and "quelle_id" in _code(main.NebelseetalApp._angriff_auftrag_starten), "")
         check("waehrend der ganzen Kette gab es keinen stillen GUI-Fehler",
               not gesammelt, str(gesammelt[:1]))
     finally:

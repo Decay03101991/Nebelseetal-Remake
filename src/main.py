@@ -5789,7 +5789,10 @@ class NebelseetalApp:
                       command=lambda mid=map_id: self._station_on_map(mid),
                       bg=self.skin["button"], fg=self.skin["gold"]).pack(anchor=tk.W, pady=2)
             if map_id != "kontinent":
-                tk.Button(rahmen, text="Angreifen", command=lambda mid=map_id: self._attack_map(mid),
+                # Entscheidung 1 (01.11.2026): auch der Kartenangriff REIST. Der Knopf sagt das
+                # jetzt - vorher hiess er "Angreifen" und war sofort fertig.
+                tk.Button(rahmen, text="Angriff entsenden (reist)",
+                          command=lambda mid=map_id: self._attack_map(mid),
                           bg=self.skin["button"], fg=self.skin["red"]).pack(anchor=tk.W, pady=2)
                 tk.Button(rahmen, text="Karte zerstören",
                           command=lambda mid=map_id: self._destroy_map(mid),
@@ -6212,20 +6215,25 @@ class NebelseetalApp:
         return {stoff: rng.randint(lo, hi)
                 for stoff, (lo, hi) in botkern.VORSCHLAG_START_VORRAETE.items()}
 
-    def _angriff_durchfuehren(self, ziel_name: str, verteidiger: dict, wall_stufe: int = 0,
-                              wall_zustand: float = 100.0, vorraete=None,
-                              verteidiger_karren=None, vorrat_ziel=None) -> bool:
-        """Der SOFORTANGRIFF - ueber DIESELBE Einsatzregel wie der Reiseauftrag.
+    def _angriff_auftrag_starten(self, ziel_name: str, verteidiger: dict, wall_stufe: int = 0,
+                                 wall_zustand: float = 100.0, vorraete=None,
+                                 verteidiger_karren=None, vorrat_ziel=None,
+                                 entfernung: float = None) -> bool:
+        """DER EINE Angriffsweg: ein Auftrag mit Marsch (Entscheidung 1, Daniel 01.11.2026).
 
-        ENTSCHEIDUNG Daniel 31.10.2026 (Frage 17; F-10/F-01 der externen Spielpruefung): es gibt
-        EINEN Truppen-Eingang (das Ortsheer der aktiven Siedlung ueber `_truppen_nach_rolle`),
-        EINEN Kampf mit Beute (`kampf_am_ziel` -> `kampf.fuehre_schlacht` +
-        `kampfbericht.beute_am_ziel`) und EINE Rueckkehr (`einsatz_zurueck`). Vorher las dieser
-        Pfad den Reichsbestand, buchte keinen Abgang und keine Rueckkehr - ein zweiter, stiller
-        Weg neben dem Auftrag.
+        Entscheidung 1 lautet: jeder Angriff REIST. Der Sofortpfad ohne Reisezeit ist damit
+        stillgelegt - `_attack`, `_attack_map` und `_auftrag_angriff` starten alle hier einen
+        Auftrag der Art "angreifen"; gekaempft wird erst bei Ankunft in `kampf_am_ziel`, gebucht
+        wird die Heimkehr in `auftraege_fortschreiben`.
 
-        Was bleibt: er kostet keine Reisezeit (Angriff ohne Marsch). Alles andere - Quelle,
-        Verluste, Beute, Heimkehr - ist identisch mit `_auftrag_angriff`.
+        Was das fuer den Spieler aendert: die Truppen sind waehrend des Marsches abgezogen (sie
+        stehen im Auftrag, nicht mehr im Ortslager), es gibt eine Ankunft und eine Rueckkehr, und
+        die Beute kommt mit den Ueberlebenden zurueck. Vorher war ein Angriff in derselben
+        Sekunde fertig, in der man ihn befahl - ohne Marsch, ohne Gegenwehr, ohne Fenster, in dem
+        der Angegriffene reagieren koennte.
+
+        Quelle ist das ORTSHEER der aktiven Siedlung (`_truppen_nach_rolle`); ohne Siedlung
+        greift der Uebergangsweg ueber den Reichsbestand - dieselbe Regel wie vorher.
         """
         ort = self.state.aktive_siedlung()
         kaempfer, belagerung, karren = self._truppen_nach_rolle(ort)
@@ -6239,43 +6247,53 @@ class NebelseetalApp:
         truppen = dict(kaempfer)
         truppen.update(belagerung)
         truppen.update(karren)          # Transportkarren tragen die Beute (Handbuch S. 23)
-        mit = self.state.einsatz_ausheben(ort, truppen)
 
-        ziel = {"name": ziel_name, "verteidiger": dict(verteidiger or {}),
+        ziel = {"name": str(ziel_name), "verteidiger": dict(verteidiger or {}),
                 "wall_stufe": int(wall_stufe), "wall_zustand_prozent": float(wall_zustand),
-                "verteidiger_karren": dict(verteidiger_karren or {})}
+                "verteidiger_karren": dict(verteidiger_karren or {}), "fremd": True}
         if isinstance(vorrat_ziel, BotPlayer):
             # Ein echter Bot darf nur seine tatsaechlich gespeicherten Gueter verlieren;
             # keine vom Aufrufer frei vorgegebene Beutekasse akzeptieren.
             ziel["bot_name"] = vorrat_ziel.name
             ziel["vorraete"] = dict(vorrat_ziel.vorraete or {})
+            ziel["wall_stufe"] = int(vorrat_ziel.wall_stufe)
+            ziel["wall_zustand_prozent"] = float(vorrat_ziel.wall_zustand)
         elif vorraete is not None:
             ziel["vorraete"] = dict(vorraete or {})
-        else:
-            ziel["vorraete"] = self._vorraete_des_ziels(
-                vorrat_ziel if vorrat_ziel is not None else {})
-        if isinstance(vorrat_ziel, dict) and vorrat_ziel.get("id"):
+        elif isinstance(vorrat_ziel, dict) and vorrat_ziel.get("id") and isinstance(
+                vorrat_ziel.get("vorraete"), dict):
             ziel["id"] = vorrat_ziel["id"]
+            ziel["vorraete"] = dict(vorrat_ziel["vorraete"])
+        elif vorrat_ziel is not None:
+            ziel["vorraete"] = self._vorraete_des_ziels(vorrat_ziel)
+        else:
+            # Kartenangriff: die Karte fuehrt kein Lager, der Startwert haengt am Namen.
+            ziel["vorraete"] = self._vorraete_des_ziels({"name": ziel["name"]})
 
-        # Ein Kampf-Eintrag in derselben Form wie ein Reiseauftrag: `kampf_am_ziel` bucht
-        # Schlacht, Verluste und Beute genau einmal - fuer beide Wege.
-        eintrag = {"art": "angreifen", "einheiten": dict(mit), "nach": ziel_name, "ziel": ziel,
-                   "von": str(getattr(ort, "name", "") or ""),
-                   "quelle_id": str(getattr(ort, "id", "") or ""),
-                   "ankunft": float(self.state.spielsekunden),
-                   "fracht": {}, "ladung": 0}
-        self.state.kampf_am_ziel(
-            eintrag, bot_objekt=(vorrat_ziel if isinstance(vorrat_ziel, BotPlayer) else None))
-        # Rueckkehr in DENSELBEN Ort und Beute in dessen Lager (nicht in eine Reichsanzeige).
-        self.state.einsatz_zurueck(eintrag.get("quelle_id"), eintrag.get("einheiten") or {})
-        self.state.beute_gutschreiben(ort, eintrag.get("beute") or {})
-        return True
+        if entfernung is None:
+            entfernung = self._auftrag_entfernung(ort)
+        # Ohne Siedlung gilt der UEBERGANGSWEG ueber den Reichsbestand; dann muss der Start
+        # einen Namen tragen ("Reich"), sonst lehnt `auftraege.starten` den Auftrag ab.
+        von = str(getattr(ort, "name", "") or "Reich")
+        ok, meldung = self.state.auftrag_starten(
+            "angreifen", truppen, von, ziel,
+            float(entfernung), quelle_id=(str(getattr(ort, "id", "") or "") or None))
+        text = meldung if ok else f"Angriff nicht gestartet: {meldung}"
+        self.state.messages.append({"text": text, "type": "auftrag" if ok else "kampf"})
+        if hasattr(self, "content"):
+            self._render_view()
+        return ok
 
     def _attack_map(self, map_id: str):
+        """Kartenangriff als AUFTRAG (Entscheidung 1): kein Angriff ohne Marsch mehr.
+
+        Dieses Gegenstueck fehlte: `_attack_map` rief den Sofortpfad, waehrend der Bot-Angriff
+        schon einen Auftrag starten konnte. Ziel ist die Karte, Verteidiger ihre Garnison.
+        """
         ziel = next((m for m in MAPS if m["id"] == map_id), None)
         garrison = dict(self.state.map_garrison.get(map_id, {}) or {})
-        self._angriff_durchfuehren(ziel["name"] if ziel else map_id, garrison,
-                                   wall_stufe=0, wall_zustand=100.0, vorrat_ziel=ziel or map_id)
+        return self._angriff_auftrag_starten(ziel["name"] if ziel else map_id, garrison)
+
 
     def _activate_map(self, map_id: str):
         if map_id not in self.state.active_maps:
@@ -6438,9 +6456,9 @@ class NebelseetalApp:
             tk.Label(frame, text=f"Handel: {int(bot.trading*100)}%", fg="#DAA520", bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
             tk.Label(frame, text=f"Aggression: {int(bot.aggression*100)}%", fg=self.skin["red"], bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
             tk.Button(frame, text="Handeln", command=lambda b=bot: self._trade(b), bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
-            tk.Button(frame, text="Angreifen", command=lambda b=bot: self._attack(b), bg="#3e2723", fg=self.skin["red"]).pack(side=tk.RIGHT, padx=5)
-            # W7 (Auftrags-Oberflaeche): EIN Angriff als Auftrag - mit Reisezeit, Rueckkehr und
-            # Bericht in den Nachrichten. Der Name ist die Vorgabe aus der Uebergabe.
+            # Entscheidung 1 (01.11.2026): es gibt EINEN Angriffsweg, und er reist. Der zweite
+            # Knopf "Angreifen" ist entfallen - er tat dasselbe wie "Angriff entsenden" und
+            # suggerierte einen Sofortangriff, den es nicht mehr gibt.
             tk.Button(frame, text="Angriff entsenden",
                       command=lambda b=bot: self._auftrag_angriff(b),
                       bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
@@ -6470,6 +6488,12 @@ class NebelseetalApp:
         return True
 
     def _attack(self, bot: BotPlayer):
+        """Bot-Angriff: EINE Regel mit dem Reiseauftrag (Entscheidung 1, Daniel 01.11.2026).
+
+        Bis zum 01.11.2026 gab es hier zwei Wege: dieser rief den Sofortpfad ohne Marsch, der
+        Knopf daneben startete einen Auftrag. Jetzt ist beides derselbe Weg - der Angriff reist.
+        Der Götterschutz bleibt davor: unter Schutz wird nicht angegriffen.
+        """
         if self.state.noob_protection and bot.noob_protection:
             self._log(f"{bot.name} steht unter Götterschutz. Angriff nicht möglich.")
             return
@@ -6477,8 +6501,7 @@ class NebelseetalApp:
         # die Armee des Bots, seine Vorraete liefert `_vorraete_des_ziels` (bis Schritt 8 aus
         # den VORSCHLAG-Spannen in botkern, danach aus dem Bot selbst). Einen Wall hat ein Bot
         # in unseren Daten nicht - also Stufe 0, ehrlich, ohne erfundenen Wert.
-        self._angriff_durchfuehren(bot.name, dict(bot.army or {}), wall_stufe=bot.wall_stufe,
-                                   wall_zustand=bot.wall_zustand, vorrat_ziel=bot)
+        return self._auftrag_angriff(bot)
 
     # ---------- W7: Auftraege (Missionen) in der Oberflaeche ----------
 
@@ -6506,35 +6529,26 @@ class NebelseetalApp:
         die Truppen kommen aus `Settlement.einheiten` dieses Dorfes, der Auftrag traegt dessen
         Kennung (`quelle_id`), die Reisezeit rechnet von SEINEN Koordinaten, und die Ueberlebenden
         kehren in IHN zurueck.
+
+        Seit Entscheidung 1 (Daniel, 01.11.2026) ist dies der EINZIGE Angriffsweg - der frueher
+        getrennte Sofortpfad `_angriff_durchfuehren` ist stillgelegt; hier wird nur noch der
+        gemeinsame Kern `_angriff_auftrag_starten` aufgerufen.
         """
+        # Kein Siedlungszwang: ohne Siedlung greift der Uebergangsweg ueber das Reichsheer
+        # (dieselbe Regel wie in `_angriff_auftrag_starten`). Vorher lehnte dieser Pfad ab.
         ort = self.state.aktive_siedlung()
-        if ort is None:
-            self._log("Für einen Auftrag braucht es zuerst eine eigene Siedlung.")
-            return False
-        kaempfer, belagerung, karren = self._truppen_nach_rolle(ort)
-        truppen = dict(kaempfer)
-        truppen.update(belagerung)
-        truppen.update(karren)          # Transportkarren tragen die Beute (Handbuch S. 23)
-        if not truppen:
-            self._log("Keine Kaempfer und keine Belagerungswaffen vorhanden.")
-            return False
-        ziel = {"name": bot.name, "bot_name": bot.name, "fremd": True,
-                "wall_stufe": bot.wall_stufe, "wall_zustand_prozent": bot.wall_zustand,
-                "vorraete": self._vorraete_des_ziels(bot),
-                "verteidiger": dict(bot.army or {})}
         entfernung = self._auftrag_entfernung(ort)
-        ok, meldung = self.state.auftrag_starten("angreifen", truppen,
-                                                 ort.name, ziel, entfernung,
-                                                 quelle_id=ort.id)
-        text = meldung if ok else f"Auftrag nicht gestartet: {meldung}"
-        self.state.messages.append({"text": text, "type": "auftrag"})
+        ok = self._angriff_auftrag_starten(bot.name, dict(bot.army or {}),
+                                           wall_stufe=bot.wall_stufe,
+                                           wall_zustand=bot.wall_zustand,
+                                           vorrat_ziel=bot, entfernung=entfernung)
         if ok:
             self.state.messages.append(
                 {"text": f"Hinweis: die Entfernung {entfernung:.0f} Felder ist geschätzt "
                          f"(Bot-Siedlung in der Kartenmitte angenommen, {bot.name} führt keine "
                          f"Koordinaten).", "type": "auftrag"})
-        if hasattr(self, "content"):
-            self._render_view()
+            if hasattr(self, "content"):
+                self._render_view()
         return ok
 
     def _eigene_schlagkraft(self) -> float:
