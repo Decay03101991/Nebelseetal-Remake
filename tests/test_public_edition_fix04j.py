@@ -20,7 +20,11 @@ class PublicEditionTests(unittest.TestCase):
 
     def test_public_entry_separates_saves_and_password(self):
         script=(ROOT/"src"/"public_start.py").read_text(encoding="utf-8")
-        self.assertIn('Public_Test_FIX04j',script)
+        # S-5-Nachtrag 01.11.2026 (Register 101, Daniel: "in der demo exe darf es keine vorhandenen
+        # spielstaende geben sie muss leer sein"): der Demo-Ordner heisst jetzt "Demo" statt
+        # "Public_Test_FIX04j", damit die alte Testversion ihre Staende nicht in die Demo traegt.
+        self.assertIn('"Demo"',script)
+        self.assertNotIn('Public_Test_FIX04j',script)
         self.assertIn('NEBEL_OEFFENTLICHE_TESTVERSION',script)
         self.assertIn('NEBEL_SPIELDATEN_ORDNER',script)
         self.assertIn('"tor.json"', (ROOT/"src"/"main.py").read_text(encoding="utf-8"))
@@ -92,8 +96,10 @@ class PublicEditionTests(unittest.TestCase):
                 with patch.dict(sys.modules, {'main':SimpleNamespace(main=lambda:None)}):
                     runpy.run_path(str(ROOT/'src'/'public_start.py'),run_name='public_start_only')
                 self.assertEqual(os.environ['NEBEL_OEFFENTLICHE_TESTVERSION'],'1')
+                # Register 101 (01.11.2026): eigener, nie benutzter Demo-Ordner statt des alten
+                # Testordners - die Demo muss leer starten.
                 self.assertEqual(Path(os.environ['NEBEL_SPIELDATEN_ORDNER']),
-                                 Path(tmp)/'Nebelseetal_Remake'/'Public_Test_FIX04j')
+                                 Path(tmp)/'Nebelseetal_Remake'/'Demo')
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

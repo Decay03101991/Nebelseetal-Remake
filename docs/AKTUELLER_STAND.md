@@ -1,3 +1,43 @@
+# STAND 01.11.2026, 19:25 - Demo wird LEER ausgeliefert, externes GitHub-Feedback aufgenommen
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+## Was seit 19:00 dazukam
+
+**Die Demo wird leer ausgeliefert** (Register 101, Daniels Vorgabe "in der demo exe darf es keine
+vorhandenen spielstaende geben sie muss leer sein"):
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Bau prueft das Paket | bricht ab, wenn in `data/` oder `assets/` ein Spielstand, Admin-Teststand, Passworttor oder eine Sperrdatei liegt | `tools/build_public_exe.py` `spielstaende_im_paket` |
+| Demo-Speicherordner | `%LOCALAPPDATA%\Nebelseetal_Remake\Demo` - eigener, nie benutzter Ordner; der alte Testordner wird nicht mehr gelesen | `src/public_start.py` |
+| Testspielstaende | **16 Dateien geloescht** (nur Teststaende, Daniels Ansage), vorher hashgeprueft in `archiv/testspielstaende_20261101.zip` (1.116.438 Byte, testzip sauber) | ZIP + `MANIFEST_SHA256.txt` |
+| Zurueck im Profil | nur `tor.json` (Passworttor, kein Spielstand); veraltete `game.lock` entfernt | `ls ~/.nebelseetal/` |
+| Pruefdatei | `tests/test_demo_leer.py` **28/0/0** | Lauf 19:12 |
+| Nachbar | `test_public_edition_fix04j` 6 Tests OK (Wache auf den neuen Ordnernamen umgestellt) | Lauf 19:13 |
+| Voller Sammellauf | **117 Dateien, 115 gruen, 0 rot, 2 ausgesetzt, 4.350 Pruefungen, 628 s** | `docs/audits/sammellauf_20261101_1914.log` |
+| Auftrag 9 (Chat-Modell) | `docs/AUFTRAG_GPT_TRANSFER_S3_S4_S6_20261101.md`, 10.651 Byte, Kopie auf dem Desktop | `59002d91...` |
+
+**Externes GitHub-Feedback vom 01.11.2026 aufgenommen** (Register 102): der Bericht prueft ausschliesslich
+den OEFFENTLICHEN Stand (`main` = FIX04j, `v0.4.0-test.1`, PR #1 mit eigener Wurzel), nicht den lokalen HEAD.
+Einordnung, Zuordnung zu vorhandenen Stellen und die sieben Demo-Freigabe-Gates G-01 bis G-07 stehen in
+`docs/EXTERNES_FEEDBACK_GITHUB_20261101.md`; das Original liegt hashgeprueft unter
+`archiv/eingaben/20261101_github_feedback/` (31.499 Byte, `dff01476...`). Es betrifft nur das Online-Repo und
+ist reines Feedback: **nichts davon ist umgesetzt, kein Push, kein Release.** Zwei Punkte bleiben bei Daniel:
+Lizenz fuer den eigenen Code und rechtliche Einordnung der historischen Grafiken.
+
+## Der EINE naechste Schritt
+
+**Das Bot-Taktikpaket gegen den Code pruefen**
+(`archiv/eingaben/20261101_gpt_antworten/GPT_Taktikpaket_HERMES_ENTWURF_BOTVERHALTEN_TAKTIKPAKETE_20261101.md`,
+47.159 Byte) und danach S-7 vorbereiten (Bots erlebbar, `bottaktik` anschliessen). Fuer das starke Chat-Modell
+liegt das naechste Paket als `docs/AUFTRAG_GPT_TRANSFER_UND_DEMO_REST_20261101.md`. Danach S-3, S-4, S-6, S-7,
+S-8 (Bilanz und Weltensprung 500 Mana plus 100 Gold), dann Demo-Bau mit den Gates G-01 bis G-07.
+Arbeitsweise: ein Schritt = ein Commit = ein gruener voller Sammellauf.
+
+---
+
+
 # STAND 01.11.2026, 19:00 - S-5 gebaut: die Weltkarten zeigen Gelaende
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
@@ -33,6 +73,8 @@ S-7 (Bots erlebbar, `bottaktik` anschliessen) vorbereiten. Danach S-3 (Forschung
 Entscheidungen), S-4, S-6 (Dorftransfer), S-7, S-8 (Bilanz und der neue Weltensprung-Preis 500 Mana plus
 100 Gold aus Register 93), dann Demo-Bau und Freigabepruefung. Arbeitsweise: ein Schritt = ein Commit =
 ein gruener voller Sammellauf; offene Punkte sammeln statt einzeln fragen.
+
+---
 
 ---
 

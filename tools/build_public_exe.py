@@ -21,6 +21,31 @@ ICON = ROOT / "assets" / "icons" / "nebelseetal.ico"
 ENTRY = ROOT / "src" / "public_start.py"
 DOCS = ("START_HIER.txt", "SYSTEMANFORDERUNGEN.txt", "BEKANNTE_GRENZEN.txt", "FEHLER_MELDEN.txt")
 
+# Daniel 01.11.2026, woertlich: "in der demo exe darf es keine vorhandenen spielstaende geben sie muss
+# leer sein." Der Bau prueft deshalb die gebundelten Ordner (data, assets) auf Spielstaende, den
+# Admin-Teststand, das Passworttor und Sperrdateien und bricht ab, wenn er etwas findet - lieber keine
+# EXE als eine mit fremden Staenden.
+SPIELSTAND_MUSTER = ("savegame", "admin_teststand", "tor.json", "game.lock",
+                     "spielzeit_einstellung")
+
+
+def spielstaende_im_paket(wurzel=None) -> list:
+    """Spielstaende/Sperren in den gebundelten Ordnern (data, assets) - leer heisst auslieferbar."""
+    basis = Path(wurzel) if wurzel is not None else ROOT
+    treffer = []
+    for ordner in ("data", "assets"):
+        pfad = basis / ordner
+        if not pfad.is_dir():
+            continue
+        for datei in sorted(pfad.rglob("*")):
+            if not datei.is_file():
+                continue
+            name = datei.name.lower()
+            if any(stueck in name for stueck in SPIELSTAND_MUSTER):
+                treffer.append(str(datei.relative_to(basis)))
+    return treffer
+
+
 def check() -> None:
     required = [ENTRY, ICON, ROOT / "src" / "ausgabemodus.py", ROOT / "src" / "main.py"]
     required += [ROOT / folder for folder in ("data", "assets")]
@@ -29,6 +54,10 @@ def check() -> None:
     if missing: raise RuntimeError("Fehlende Dateien: " + ", ".join(missing))
     if ICON.read_bytes()[:4] != b"\0\0\1\0":
         raise RuntimeError("Ungueltige ICO-Datei")
+    staende = spielstaende_im_paket(ROOT)
+    if staende:
+        raise RuntimeError("Spielstaende im Paket - die Demo muss LEER ausgeliefert werden: "
+                           + ", ".join(staende))
 
 def pack(exe: Path) -> tuple[Path, str]:
     sha = hashlib.sha256(exe.read_bytes()).hexdigest()

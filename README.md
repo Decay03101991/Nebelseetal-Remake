@@ -23,7 +23,7 @@
 
 - **GitHub-Repository:** enthält weiterhin den vollständigen Entwicklungsstand einschließlich aller Admin-Module, Admin-Tests und ihrer Dokumentation. Kein Weglassen von Admin-Daten im Repo.
 - **Öffentliches Windows-Testpaket:** wird über `PUBLIC_TEST_EXE_BAUEN_WINDOWS.bat` bzw. `tools/build_public_exe.py` aus `src/public_start.py` erzeugt. Es führt direkt zum normalen Spielermodus mit drei Slots; Admin-Auswahl, Admin-Dialog und Admin-Werkzeuge sind in dieser Bedienoberfläche gesperrt. Die **lokale Entwicklerfassung mit Admin** bleibt unverändert vorhanden.
-- **Spielstände:** öffentliche EXE hat ihren eigenen lokalen Speicher-/Passwortordner unter `%LOCALAPPDATA%\Nebelseetal_Remake\Public_Test_FIX04j`; private Inhalte niemals in GitHub laden.
+- **Spielstände:** öffentliche EXE hat ihren eigenen lokalen Speicher-/Passwortordner unter `%LOCALAPPDATA%\Nebelseetal_Remake\Demo`; private Inhalte niemals in GitHub laden.
 - **Testerinfo:** `release_vorlage/SYSTEMANFORDERUNGEN.txt`, `START_HIER.txt`, `BEKANNTE_GRENZEN.txt` und `FEHLER_MELDEN.txt` gehören zum späteren ZIP mit der EXE.
 
 Die Admin-Sperre der EXE ist **kein sicherer Kopierschutz**: Der vollständige Open-Source-Code bleibt absichtlich öffentlich. `release_public/` ist generiert und darf nicht in Git committet werden; Veröffentlichungen gehen nur nach Windows-Praxistest und Rechte-/Geheimnisprüfung über GitHub Releases. [Releaseplan](docs/RELEASE_PUBLIC_FIX04j.md).
