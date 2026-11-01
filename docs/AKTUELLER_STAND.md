@@ -17,6 +17,8 @@
 | Pruefdatei | `tests/test_weltbild_gelaende.py` **135/0/0** | Lauf 18:53 |
 | Voller Sammellauf | **116 Dateien, 114 gruen, 0 rot, 2 ausgesetzt, 4.349 Pruefungen, 305 s** | `docs/audits/sammellauf_20261101_1853.log` |
 | Register | 91 (Status GEBAUT) und 100 (Nebenbefund) | `docs/PRUEFREGEL_ORIGINAL.md` |
+| EXE | **47.981.465 Byte**, SHA256 `e361a2b3b8f1ddf062ab82041fc14a84232b79519af98e4ee2662aeab9585683`, gebaut 19:01 zu Code-Stand `b256f3b` | `stat -c %s`, `sha256sum` |
+| EXE-Startbeleg | Kind-PID **15392**, Fenster `Nebelseetal Remake`, `MainWindowHandle` 86509210, nach **149 s** Responding True, danach beendet | `Get-Process`, Bildschirmaufnahme (Tor mit Passwortfeld) |
 
 **Nebenbefund, im selben Commit behoben:** die Portalansicht gab die Nummern des Spielstands (d04 = 4)
 ungefiltert als Index an das Raster - die eigene Weltkarte erschien als fremde (Bannerfarbe rot). Die neue
