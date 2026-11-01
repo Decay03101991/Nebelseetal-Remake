@@ -18,9 +18,13 @@ check('15 Kampfprofile vollständig',len(kampf.PROFILE)==15)
 check('Modellversion dokumentiert', 'GPT-NE01' in kampf.STAND)
 
 abschnitt('B. Originalerträge (Tempel aus Handbuch 2009 = 5/1, Entscheidung 31.10.2026; uebrige aus Wissenswertes S. 4)')
+# Rinderfarm: bis 01.11.2026 nagelte dieser Test 1/3 und 0,5/1,5 fest (Quelle WeitereWerteKampfsystem.odt,
+# S. 4). Daniel hat am 01.11.2026 entschieden, dass Handbuch 2009, Seite 10, woertlich gilt
+# ("Grasland (3 Nahrung, 3 Leder), Steppe (1,5 Nahrung, 1,5 Leder)", Register 105/106, umgesetzt in
+# Register 118). Der Test prueft jetzt die Handbuchzahlen - nicht den Code zurueckbiegen.
 for geb,art,soll in [('tempel','nebelsee',5),('tempel','wald',1),('tempel','grasland',1),
-                      ('rinderfarm','grasland',{'Nahrung':1,'Leder':3}),
-                      ('rinderfarm','steppe',{'Nahrung':0.5,'Leder':1.5})]:
+                      ('rinderfarm','grasland',{'Nahrung':3,'Leder':3}),
+                      ('rinderfarm','steppe',{'Nahrung':1.5,'Leder':1.5})]:
     check(f'{geb}/{art}: {soll}', G.ertrag_pro_stunde(geb,art)==soll)
 
 abschnitt('C. Gemischte Gebäude und Bonus-Abgrenzungen')
@@ -29,7 +33,7 @@ karte={'raster':['wald','wald','grasland','grasland','steppe','berg','nebelsee']
 class Dorf:
     def __init__(self,bauten): self.karte=karte;self.bauten=bauten
 levels={'Felderwirtschaft':3,'Tierhaltung':4,'Forstwirtschaft':2,'Götterkunde':1}
-for bau,food,leather in [('jaeger',2,2),('rinderfarm',1,3)]:
+for bau,food,leather in [('jaeger',2,2),('rinderfarm',3,3)]:
     i=0 if bau=='jaeger' else 2
     e=W.ertrag_gesamt([Dorf({str(i):bau})],levels)
     check(f'{bau}: Nahrung ohne Forschungsbonus',e.get('Nahrung')==food,str(e))
@@ -41,7 +45,7 @@ for geb,art_idx,raw,plus in [('farm',2,4,5.2),('holzfaeller',0,4,4.8)]:
     check(f'{geb} mit Forschung {plus}',e[roh]==round(plus,2),str(e))
 # Eine gemischte Siedlung enthaelt Jäger + Farm; nur Farm wird gebonust.
 e=W.ertrag_gesamt([Dorf({'0':'jaeger','2':'farm','3':'rinderfarm','6':'tempel'})],levels)
-check('gemischte Nahrung 2 + 5.2 + 1 (nicht alles auf einmal mal 1.3)',e.get('Nahrung')==8.2,str(e))
+check('gemischte Nahrung 2 + 5.2 + 3 (nicht alles auf einmal mal 1.3)',e.get('Nahrung')==10.2,str(e))
 check('gemischtes Leder 2 + 3*1.2',e.get('Leder')==5.6,str(e))
 check('Tempel 5 * 1.05 (Handbuch 2009; 8/2 war die aeltere Forum-Fassung, Entscheidung 31.10.2026)',e.get('Mana')==5.25,str(e))
 check('Aufruf ohne Forschung unverändert', W.siedlung_ertrag(Dorf({'0':'jaeger'}))['Nahrung']==2)

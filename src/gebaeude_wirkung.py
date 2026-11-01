@@ -29,6 +29,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import einheiten
+import forschung_wirkung
 import gelaende
 import spieldaten
 
@@ -172,14 +173,22 @@ def bevoelkerungsgrenze(siedlungen) -> int:
 
 
 def siedler_zuwachs_pro_stunde(siedlungen, forschung_level: Optional[Dict[str, int]] = None) -> float:
-    """Neue Siedler je Stunde: 1 je Siedlung, mit Heilkunde +10 % je Stufe."""
-    liste = list(siedlungen or [])
-    if not liste:
-        return 0.0
-    r = regeln()["bevoelkerung"]
-    stufe = int((forschung_level or {}).get("heilkunde", 0) or 0)
-    faktor = 1.0 + int(r["heilkunde_prozent_je_stufe"]) / 100.0 * stufe
-    return round(float(r["siedler_je_stunde"]) * len(liste) * faktor, 4)
+    """Neue Siedler je Stunde: 1 je Siedlung, mit Heilkunde +10 % je Stufe.
+
+    Den Heilkunde-Bonus liefert `forschung_wirkung.siedlerfaktor` - die EINE Stelle, die
+    Forschungsnamen und Prozentwert fuehrt. Bis zum 01.11.2026 las diese Funktion den Schluessel
+    selbst in Kleinschreibung ("heilkunde"), waehrend data/research.json die Forschung
+    "Heilkunde" nennt: der Bonus griff im Spiel NIE (gemessen 1,0 statt 1,5 Siedler/Stunde bei
+    Stufe 5, Register 118). Das ist dasselbe Muster wie F-04 - zwei Wahrheiten fuer denselben
+    Wert. `data/gebaeude_wirkung.json` fuehrt `heilkunde_prozent_je_stufe` nur noch als Beleg;
+    `tests/test_heilkunde_rinderfarm.py` wacht darueber, dass beide Zahlen gleich bleiben.
+    """
+    liste = list(siedlungen or [])                                                  # uebergebene Siedlungen
+    if not liste:                                                                   # ohne Siedlung
+        return 0.0                                                                  # waechst niemand
+    r = regeln()["bevoelkerung"]                                                     # belegte Grundwerte
+    faktor = forschung_wirkung.siedlerfaktor(forschung_level or {})                  # Heilkunde-Bonus
+    return round(float(r["siedler_je_stunde"]) * len(liste) * faktor, 4)             # 1 je Siedlung mal Bonus
 
 
 # --------------------------------------------------------------------------

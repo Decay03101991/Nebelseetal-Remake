@@ -537,9 +537,15 @@ check("7c nach einer Stunde waechst die Bevoelkerung von 5.0 auf 6.0",
       abs(_t1["bevoelkerung"] - 6.0) < 1e-9, str(_t1["bevoelkerung"]))
 check("7d eine halbe Stunde ergibt 5.5 Siedler (linear)",
       abs(_t_halb["bevoelkerung"] - 5.5) < 1e-9, str(_t_halb["bevoelkerung"]))
-check("7e Heilkunde Stufe 1 hebt den Zuwachs auf 1.1 je Stunde",
-      abs(O.ort_tick(_o, 0, 3600, {"heilkunde": 1})["bevoelkerung"] - 6.1) < 1e-9,
-      str(O.ort_tick(_o, 0, 3600, {"heilkunde": 1})["bevoelkerung"]))
+# 7e/7f: Der Zuwachs liest Heilkunde seit 01.11.2026 aus `forschung_wirkung.siedlerfaktor`
+# (Register 118). Die Stufenkarte fuehrt Forschungs-NAMEN, also "Heilkunde" - der alte Test rief
+# den Schluessel in Kleinschreibung auf und belegte damit genau den Fehler (Bonus griff im Spiel nie).
+check("7e Heilkunde Stufe 1 hebt den Zuwachs auf 1.1 je Stunde (Schluessel wie in data/research.json)",
+      abs(O.ort_tick(_o, 0, 3600, {"Heilkunde": 1})["bevoelkerung"] - 6.1) < 1e-9,
+      str(O.ort_tick(_o, 0, 3600, {"Heilkunde": 1})["bevoelkerung"]))
+check("7e2 der alte Kleinbuchstaben-Schluessel wirkt NICHT mehr (Wache gegen den Befund aus Register 105)",
+      abs(O.ort_tick(_o, 0, 3600, {"heilkunde": 5})["bevoelkerung"] - 6.0) < 1e-9,
+      str(O.ort_tick(_o, 0, 3600, {"heilkunde": 5})["bevoelkerung"]))
 
 _lang = O.ort_tick(_o, 0, 20 * 3600, {})
 check("7f nach 20 Stunden steht die Bevoelkerung exakt auf der Grenze 10",

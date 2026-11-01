@@ -1,3 +1,46 @@
+# STAND 01.11.2026, 23:55 - Heilkunde-Bonus und Rinderfarm behoben (Register 118)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf | `c565e59` beim Schreiben; dieser Commit bringt Fix und Doku | `git log --oneline -1` |
+| Heilkunde-Bonus | **greift jetzt**: `siedler_zuwachs_pro_stunde` rechnet ueber `forschung_wirkung.siedlerfaktor`; gemessen **1,5 Siedler je Stunde bei Stufe 5** (vorher 1,0) | Register 118, eigener Lauf |
+| Rinderfarm | **3 Nahrung + 3 Leder** auf Grasland, **1,5 + 1,5** auf Steppe (Handbuch 2009, Seite 10, woertlich) | `data/buildings.json`, Register 118 |
+| Anzeige | die Gebaeudewirkungen zeigen den Zuwachs inklusive Heilkunde - Kern und Anzeige lesen dieselbe Stufenkarte (`self.state.forschungs_stufen()`) | `src/main.py`, Wachen A11/A12 |
+| Neue Pruefdatei | `tests/test_heilkunde_rinderfarm.py` **23/0/0**; `test_gpt_ne01_origwerte` **63/0/0**, `test_oekonomie_kern_10x10_nachfolger` **98/0/4** (die vier Befunde sind alt) | eigener Lauf 23:52 |
+| Register | **118 Punkte**, **119 Pruefdateien** | `grep -cE`, `ls tests/test_*.py \| wc -l` |
+| Sammellauf | **117 von 119 gruen, 0 rot, 2 ausgesetzt**, 4.424 Pruefungen, 456 s (23:55-00:04) - die zwei ausgesetzten sind `test_oekonomie_kern_unabhaengig` und `test_weltkarte` (dokumentiert zurueckgezogen) | `docs/audits/sammellauf_20261101_2355.log` |
+| Kosten und Guthaben | unveraendert: Blockplan **1,8715 von 4,00 USD**, Guthaben **9,18 USD** (Ablesung 22:48) - heute kein starker Modelllauf mehr | Register 114, 117 |
+
+## Der EINE naechste Schritt
+
+**Zehn Handbuchmotive in `data/gebaeude_motive.json` eintragen** (Daniels Zuordnung aus Register 113:
+1 Jaeger, 2 Schafszucht, 3 Goldmine, 4 Farm, 5 Kriegerakademie, 6 Erzmine, 7 Steinbruch, 8 Holzfaeller,
+9 Pferdezucht, 10 Rinderfarm). Heute steht Motiv 7 falsch als Erzmine, und zwei der zehn Motive fehlen
+in den Spieldaten. Danach die Karte: Motiv rund 44 px plus Gelaenderahmen je Kachel. Arbeitsweise wie
+hier: Pruefdatei ergaenzen, voller Sammellauf, ein Commit. Der Einbau aendert das sichtbare Kartenbild -
+Daniels Zuordnung liegt vor, der Einbau steht noch aus.
+
+## Reihenfolge danach
+
+1. Kartenoptik Variante 2 in `src/main.py` (Motiv rund 44 px + Gelaenderahmen je Kachel).
+2. GPT-Icons in Menue und Baudialog, Hintergruende (538x222) in die Gebaeudeansicht
+   (`archiv/eingaben/20261101_gebaeude_designs/`); vorher `motiv_1..10.png` sichern.
+3. C2 pruefen, sobald Daniels ZIPs kommen (Kartenmotive, Ressourcenleiste, Kachelrahmen).
+4. Wappen den fuenf Bots zuordnen; Burgen zu Weltkarten nur als gekennzeichneter Vorschlag.
+5. S-8 Bilanz (500 Mana + 100 Gold, Register 93), danach `weltkarten_seed` fest (Register 94).
+6. Demo-Gates G-01 bis G-07 vor jedem Upload.
+
+## Fallstricke, in dieser Sitzung belegt
+
+- **Der alte Kleinbuchstaben-Schluessel `heilkunde` wirkt bewusst NICHT mehr.** Wer ihn wieder einbaut,
+  holt den Befund aus Register 105 zurueck; Wache 7e2 in `test_oekonomie_kern_10x10_nachfolger` haelt das fest.
+- **Leder haengt an Tierhaltung, nicht an Felderwirtschaft.** Eine Pruefung des Rinderfarm-Bonus mit
+  Felderwirtschaft allein misst nichts - eigener Fehlversuch in dieser Sitzung, B7 fiel zuerst rot aus.
+- **Datenaenderung heisst: Tests nach dem alten Literal greppen.** `grep -rn "rinderfarm" tests/` fand zwei
+  Stellen; beide sind mit Begruendung umgestellt, nicht der Code zurueckgebogen.
+
 # STAND 01.11.2026, 22:50 - B3 abgeschlossen und unabhaengig geprueft, vier GPT-Pakete entpackt und abgeglichen
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

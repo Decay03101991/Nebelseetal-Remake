@@ -129,16 +129,16 @@
       ],
       "ertrag_pro_stunde": {
         "Grasland": {
-          "Nahrung": 1,
+          "Nahrung": 3,
           "Leder": 3
         },
         "Steppe": {
-          "Nahrung": 0.5,
+          "Nahrung": 1.5,
           "Leder": 1.5
         }
       },
-      "abweichung": "2009-Handbuch: Nahrung und Leder 3/3 auf Grasland, 1,5/1,5 auf Steppe; neue Quelle WeitereWerteKampfsystem.odt, S.4: 1 Nahrung +3 Leder bzw. 0,5 +1,5.",
-      "anmerkung": "Neu dokumentierter Originalstand (GPT-NE01); Nahrungsanteil ist von Forschungsboni ausgenommen."
+      "abweichung": "Handbuch 2009, Seite 10, wortwoertlich: 'Rinderfarm | Leder | Grasland (3 Nahrung, 3 Leder), Steppe (1,5 Nahrung, 1,5 Leder)'. Die frueher hier eingetragenen Werte 1/3 und 0,5/1,5 stammten aus WeitereWerteKampfsystem.odt, S. 4. Entscheidung Daniel 01.11.2026 (Register 105/106, umgesetzt in Register 118): der 2009er Wert gilt, weil Balance-Zahlen aus 2009 kommen.",
+      "anmerkung": "Nahrungsanteil ist von Forschungsboni ausgenommen (Beleg: WeitereWerteKampfsystem.odt, S. 4; im Handbuch nicht geregelt - offene Frage bleibt offen)."
     },
     {
       "id": "pferdezucht",

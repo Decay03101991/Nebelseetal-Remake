@@ -4136,14 +4136,20 @@ class NebelseetalApp:
         tk.Label(wirk, text="Gebäudewirkungen (aus den Siedlungskarten)",
                  fg=self.skin["gold"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=5, pady=(3, 0))
         _haeuser = max(0, (_grenze - 10) // 5)
+        # Heilkunde wirkt auf den Zuwachs (Handbuch 2009 Abschnitt 5, +10 % je Stufe). Die Anzeige
+        # liest DIESELBE Forschungsstufen-Karte wie der Kern (F-04-Muster: eine Rechenstelle fuer
+        # Anzeige und Kern), sonst zeigt sie 1 Siedler/Stunde, waehrend der Takt 1,5 bucht.
+        _stufen = self.state.forschungs_stufen()                                                # flache Stufenkarte
+        _zuwachs = gebaeude_wirkung.siedler_zuwachs_pro_stunde(self.state.settlements, _stufen)  # inkl. Heilkunde
+        _heilkunde = int(_stufen.get("Heilkunde", 0) or 0)                                       # Heilkunde-Stufe
+        _bonus_text = (f", inkl. Heilkunde +{_heilkunde * 10} %" if _heilkunde else "")           # Zusatz nur bei Stufe
         tk.Label(wirk, text=f"Siedlergrenze {_grenze} (Grundwert 10 + {_haeuser} Haus/Häuser × 5) · "
-                            f"Zuwachs "
-                            f"{gebaeude_wirkung.siedler_zuwachs_pro_stunde(self.state.settlements):g} Siedler/Stunde "
-                            f"(1 je Siedlung, Handbuch S. 11)",
+                            f"Zuwachs {_zuwachs:g} Siedler/Stunde "
+                            f"(1 je Siedlung, Handbuch S. 11{_bonus_text})",
                  fg=self.skin["text"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=5)
         # astra-Nachprüfung: „Zuwachs 1 Siedler/Stunde" widersprach der Überbelegungs-Warnung.
         # Angezeigt wird jetzt, was WIRKLICH passiert, und was möglich wäre.
-        _moeglich = gebaeude_wirkung.siedler_zuwachs_pro_stunde(self.state.settlements)
+        _moeglich = _zuwachs
         if _bewohnt >= _grenze and _moeglich > 0:
             tk.Label(wirk, text=f"Aktuelles Wachstum: 0 Siedler/Stunde — der Wohnraum ist voll. "
                                 f"Möglich wären +{_moeglich:g}/Stunde, sobald ein Haus steht.",

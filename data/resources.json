@@ -104,7 +104,7 @@
       "ertrag_pro_stunde": { "Grasland": 3, "Steppe": 1.5 },
       "ertrag_2005": { "Grasland": 2, "Steppe": 1 },
       "abweichung": "Grasland: 2005 = 2, Handbuch 2009 = 3. Steppe: 2005 = 1, Handbuch 2009 = 1,5.",
-      "anmerkung": "Die 2009er Tabelle nennt für die Rinderfarm wörtlich 'Grasland (3 Nahrung, 3 Leder), Steppe (1,5 Nahrung, 1,5 Leder)'. Ob damit ein zweiter Ertrag (Nahrung) gemeint ist oder eine Übernahme aus der Jäger-Zeile vorliegt, ist nicht eindeutig; als Leder-Ertrag sind 3 / 1,5 übernommen. Die 2005er Tabelle führt nur einen Einzelwert (Grasland 2, Steppe 1).",
+      "anmerkung": "Die 2009er Tabelle nennt für die Rinderfarm wörtlich 'Grasland (3 Nahrung, 3 Leder), Steppe (1,5 Nahrung, 1,5 Leder)'. Ob damit ein zweiter Ertrag (Nahrung) gemeint ist oder eine Übernahme aus der Jäger-Zeile vorliegt, war nicht eindeutig; Daniel hat am 01.11.2026 entschieden, dass die 2009er Zahl wörtlich gilt - seit Register 118 stehen in `data/buildings.json` 3/3 auf Grasland und 1,5/1,5 auf Steppe, also auch der Nahrungsanteil. Die 2005er Tabelle führt nur einen Einzelwert (Grasland 2, Steppe 1). Offen bleibt allein, ob der Nahrungsanteil Forschungsboni bekommt (siehe `data/buildings.json`, Feld 'anmerkung' der Rinderfarm).",
       "weitere_erzeuger": {
         "Jäger": {
           "ertrag_pro_stunde": { "Wald": 2, "Steppe": 1 },
