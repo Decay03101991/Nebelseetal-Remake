@@ -1,3 +1,48 @@
+# STAND 01.11.2026, 22:50 - B3 abgeschlossen und unabhaengig geprueft, vier GPT-Pakete entpackt und abgeglichen
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf | **`85c0c3b`** (B3), Doku-Commit folgt | `git log --oneline -1` |
+| B3 (S-7 Bots erlebbar) | **ABGESCHLOSSEN**, nicht abgebrochen: die Sitzung `local-94abacfd` (deepseek-v4-pro) lief bis 22:45 | Register 114 |
+| B3 Abnahme | `test_s7_botverhalten` **45/0/0**, die vier zuvor roten Pruefdateien wieder gruen, Sammellauf 22:35: **116/118 gruen, 0 rot, 2 ausgesetzt, 4.400 Pruefungen, 500 s** | eigener Lauf des Koordinators, `docs/audits/sammellauf_20261101_2235.log` |
+| Kosten Blockplan | B1 0,5980 + B2 0,2553 + B3 **1,0182** = **1,8715 USD** von 4,00 USD | Register 114; Preis aus B1 kalibriert, Probe 0,6010 gegen 0,5980 |
+| Guthaben 22:48 | **9,18 USD**, Gesamtverbrauch **40,81 USD**; Differenz zur Ablesung 21:0x = 1,21 USD, gedeckt durch B3 1,0182 + Koordination 0,19 | Register 117 |
+| Tagesdeckel | rund **4,2 USD** heute – der 4-EUR-Rahmen ist praktisch erreicht | Register 117 |
+| Sammellauf dieses Stands | **116/118 gruen, 0 rot, 2 ausgesetzt, 4.400 Pruefungen, 283 s** (22:56) | `docs/audits/sammellauf_20261101_2251.log` |
+| Register | **117 Punkte**, **118 Pruefdateien** | `grep -cE`, `ls tests/test_*.py \| wc -l` |
+| GPT-Gebaeudepakete | **vier ZIPs eingegangen**, hashgeprueft, entpackt nach `archiv/eingaben/20261101_gebaeude_designs/`; **20 Icons, 20 Hintergruende, 4 Tafeln**, Manifest-IDs **20 von 20 deckungsgleich** mit `data/buildings.json` | Register 115 |
+| **Wichtigster Befund zum Einbau** | die 20 Icons sind **nicht freigestellt** (256x256, 0 % Transparenz, gemalte Szene im Goldrahmen) – sie taugen fuer **Menue und Baudialog**, **nicht** als Kartenmotive | Pillow-Messung, Sichtpruefung der Vorschau |
+| Offen aus B3 | WIRKUNG der Volksattribute und Verhaltensboni nicht verdrahtet (Hook-Stellen in `kampf.py`, `spieloekonomie.py`, `auftraege.py`), Sperrzeit 1 h statt 48 h | Bericht S-7, Abschnitt 5 |
+
+## Der EINE naechste Schritt
+
+**Die Icons in Menue und Baudialog einhaengen, die Hintergruende in die Gebaeudeansicht** – nach den
+zwei offenen Fixes (Heilkunde, Rinderfarm), die Daniel am 01.11. freigegeben hat. Kartenmotive bleiben
+die zehn Handbuchmotive aus Register 113; die GPT-Icons ersetzen sie nicht.
+
+## Reihenfolge
+
+1. Heilkunde-Bonus auf `forschung_wirkung.siedlerfaktor` legen, Rinderfarm auf 3/1,5 (Freigabe liegt vor).
+2. Zehn Handbuchmotive in `data/gebaeude_motive.json` eintragen (Daniels Zuordnung, Register 113), dann Karte.
+3. Kartenoptik Variante 2 (Motiv rund 44 px + Gelaenderahmen je Kachel).
+4. GPT-Icons in Menue und Baudialog, Hintergruende (538x222) in die Gebaeudeansicht.
+5. Wappen den fuenf Bots zuordnen; Burgen zu Welten nur als gekennzeichneter Vorschlag.
+6. S-8 Bilanz (500 Mana + 100 Gold, Register 93), `weltkarten_seed` fest (Register 94).
+7. Demo-Gates G-01 bis G-07 vor jedem Upload.
+
+## Fallstricke, in dieser Sitzung belegt
+
+- **Ein laufender Block ist nicht am Arbeitsbaum zu erkennen.** Die Uebergabe 21:55 meldete B3 als
+  abgebrochen, waehrend die Sitzung weiterlief und den Baum rot hielt. Richtig ist ein Blick auf die
+  **letzte Zeile des Aufrufprotokolls** (`AppData/Local/hermes/logs/agent.log`, Sitzungskennung).
+- **`data/gebaeude.json` gibt es nicht** – die Gebaeudeliste steht in `data/buildings.json`.
+- **`archiv/` und `*.log` sind gitignored**: Eingabepakete und Sammellauf-Protokolle liegen auf der
+  Platte, nicht in der Versionsgeschichte. Wer sie braucht, muss die Platte sichern, nicht das Repo.
+- **GPT-Icons sind Buttons, keine Kulisse**: 0 % Transparenz. Fuer die Karte braucht es die
+  Handbuchmotive oder eine neue Freistellung.
+
 # STAND 01.11.2026, 21:55 - B3 abgebrochen und gesichert, Sitzungsende vorbereitet
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
