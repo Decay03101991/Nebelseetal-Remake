@@ -34,9 +34,19 @@ Holz 101 -> 105 und Stein 101 -> 103 je Stunde (Grundertrag 1/h plus Startgebaeu
 
 ## Der naechste Schritt
 
-**S-2: Dorfzentrum** (Menuepunkt UND Lagergebaeude), der Menuepunkt Karten entfaellt, dazu die
-**Portal-Uebersicht** mit Weltkartenliste oben und Gelaendekaestchen darunter - hier beginnt die
-Umbenennung Dimensionen -> Weltkarten und Weltensprung (Anhang 3, Abschnitt 6).
+**S-2b: die Portal-Uebersicht** - oben die Liste der Weltkarten mit Namen, darunter das
+Gelaendekaestchen der aktuellen Welt (Daniel, Anhang 3 Frage 30). Danach **S-2c: Dorfzentrum ist das
+Lager** (Lagerverwaltung im Dorfzentrum, ein Lager je Dorf - Anhang 1 Abschnitt 2, M-11).
+
+**Erledigt in dieser Sitzung (S-2a, Register 87, Commit folgt):** der Menuepunkt Karten ist weg (die
+alte Weltkarte ist stillgelegt und traegt einen Vermerk), und die Anzeige sagt Weltkarte und
+Weltensprung statt Dimension - `MENU_ITEMS` hat 16 Punkte, das alte `test_weltkarte` ist als
+Zeitzeugnis ausgesetzt, die neue Wache ist `tests/test_weltkarten_anzeige.py` (27/0/0).
+
+**Vorbereitet, noch nicht gebaut:** das Papier des starken Chat-Modells zu Burgen, Wappen und
+Weltbild liegt in `docs/design/ASSETS_UND_WELTBILD_20261101.md`; es gehoert zu S-5 und S-7 und ist
+dort gegengeprueft einzubauen. Das Assetpaket selbst liegt in
+`archiv/eingaben/20261101_burgen_wappen/` (ZIP plus zwei entpackte Kontaktboegen).
 
 **Nebenher offen, von Daniel geliefert:** das Assetpaket `Hermes_Nebelseetal_Assets_Icons.zip`
 (2 Kontaktboegen, je 1448 x 1086 px, RGBA: 6 Burgen, 10 Wappen) liegt auf dem Desktop und ist noch

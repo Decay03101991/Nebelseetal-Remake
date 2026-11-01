@@ -177,7 +177,11 @@ check("ein kleinerer Radius zeigt weniger Felder",
 abschnitt("Beschreibung")
 
 _b = P.beschreibung()
-check("die Beschreibung nennt 20 Dimensionen", "20 Dimensionen" in _b, _b)
+check("die Beschreibung nennt 20 Weltkarten", "20 Weltkarten" in _b, _b)
+# Vorher "20 Dimensionen". SCHNITT S-2, Daniel 01.11.2026: das Wort Dimensionen verschwindet aus
+# der Anzeige, es heisst Weltkarten und Weltensprung (Anhang 3, Fragen 19 und 35). Der Zusatz
+# "Dimension" im Satz waere ein Rueckfall - deshalb zusaetzlich die Gegenprobe.
+check("die Beschreibung nennt keine Dimension mehr", "Dimension" not in _b, _b)
 check("die Beschreibung nennt 400 Felder", "400" in _b, _b)
 check("die Beschreibung nennt 5.000 Mana", "5.000 Mana" in _b, _b)
 check("die Beschreibung nennt 24 Stunden", "24 Stunden" in _b, _b)

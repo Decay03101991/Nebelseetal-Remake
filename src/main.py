@@ -778,9 +778,16 @@ BOT_TAKT_SEKUNDEN = 3600.0
 BOT_BESCHAFFUNGSKOSTEN = 250.0
 MENU_ITEMS = [
     "Dorfzentrum", "Lager", "Kaserne", "Marktplatz", "Gilde", "Nachrichten",
-    "Portal", "Karten", "Forschung", "Diplomatie", "Einstellungen",
+    "Portal", "Forschung", "Diplomatie", "Einstellungen",
     "Ruhmeshalle", "Anleitung", "Kampfsimulator", "Forum", "Chat", "Spieler werben"
 ]
+# ENTFERNT am 01.11.2026 (Schnitt S-2, Daniel M-10): der Menuepunkt "Karten" (die alte Weltkarte
+# "Weltkarte - Orte entdecken" mit ihren sieben Gebieten) ist weg - Daniels Wortlaut
+# ("Die Weltkarte soll weg es wird hier nur noch Platz sein fuer das Dorfzentrum Lager und dessen
+# verwaltung und uebersichten", docs/KONZEPT_SECHS_DOERFER_20261101.md, Anhang 1 Abschnitt 2).
+# Die Weltkarte kommt als Geländekaestchen ins Portal zurueck (S-5); die alte Ansicht ist
+# stillgelegt und nicht mehr verdrahtet. Die Liste hat damit 16 statt 17 Eintraege - das ist eine
+# bewusste Abweichung von der belegten Original-Liste und steht als solche im Register.
 
 # Daniel 30.10.2026: "Ab dem Moment wo man einen Stellmacher gebaut hat, sollte links im Menü
 # auch ein Stellmacher auftauchen ... genauso mit der Kriegerakademie oder dem Bogenmacher ...
@@ -858,7 +865,6 @@ EBENE_JE_PUNKT = {
     "Diebesgilde": "Siedlung",
     "Marktplatz": "Siedlung",
     "Forschung": "Siedlung",
-    "Karten": "Siedlung",
     "Gilde": "Uebersicht",
     "Nachrichten": "Uebersicht",
     "Portal": "Uebersicht",
@@ -3912,7 +3918,8 @@ class NebelseetalApp:
             "Gilde": self._render_guild,
             "Nachrichten": self._render_messages,
             "Portal": self._render_portal,
-            "Karten": self._render_maps,
+            # "Karten" ist am 01.11.2026 entfallen (S-2, Daniel M-10) - die alte Weltkarte ist
+            # stillgelegt; ihre Aufgabe uebernimmt das Portal (S-5 Geländekaestchen).
             "Forschung": self._render_research,
             "Diplomatie": self._render_diplomacy,
             "Einstellungen": self._render_settings,
@@ -5290,8 +5297,8 @@ class NebelseetalApp:
         eintraege = portalraum.dimensionen()
         nummer = int(z)
         if 1 <= nummer <= len(eintraege):
-            return str(eintraege[nummer - 1].get("name") or f"Dimension {nummer:02d}")
-        return f"unbekannte Dimension {z}"
+            return str(eintraege[nummer - 1].get("name") or f"Weltkarte {nummer:02d}")
+        return f"unbekannte Weltkarte {z}"
 
     def _sperre_text(self) -> str:
         """Restzeit bis zum naechsten Koordinatenwechsel (belegte 24-Stunden-Sperre)."""
@@ -5318,7 +5325,7 @@ class NebelseetalApp:
         self.state.eigene_dimension = int(nach_z)
         if int(nach_z) not in self.state.eigene_dimensionen:
             self.state.eigene_dimensionen.append(int(nach_z))
-        meldung = (f"Koordinatenwechsel nach Dimension {nach_z:02d} "
+        meldung = (f"Weltensprung nach Weltkarte {nach_z:02d} "
                    f"({self._dimensionsname(nach_z)}): {gebucht['kosten']} Mana abgebucht, "
                    f"24 Stunden gesperrt.")
         self._log(meldung)
@@ -5341,7 +5348,7 @@ class NebelseetalApp:
         eigene = list(self.state.eigene_dimensionen)
         felder = portalraum.anzeige_raster(z, 10, eigene)
         kante = portalraum._achsen()
-        tk.Label(self.content, text=f"Dimension {z:02d} — {self._dimensionsname(z)} "
+        tk.Label(self.content, text=f"Weltkarte {z:02d} — {self._dimensionsname(z)} "
                                     f"({'eigene Welt (gruen)' if z in eigene else 'fremde Welt (rot)'})",
                  fg="#DAA520", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
         zeichenflaeche = tk.Canvas(self.content, width=400, height=400, bg=self.skin["bg"], highlightthickness=0)
@@ -5385,7 +5392,7 @@ class NebelseetalApp:
                               text=f"{_nr:02d}", fill="#ffffff", font=("Arial", 7))
         _nachbarn = welt.nachbarn(meine_kennung)[:4]
         if _nachbarn:
-            tk.Label(self.content, text="Portalpreise in die Nachbardimensionen: " + " · ".join(
+            tk.Label(self.content, text="Portalpreise in die Nachbarwelten: " + " · ".join(
                         f"{n['kennung']} ({int(n['_entfernung'])} Schritte) "
                         f"{welt.portalkosten(meine_kennung, n['kennung'])} Mana" for n in _nachbarn),
                      fg=self.skin["text"], bg=self.skin["bg"], wraplength=760,
@@ -5910,6 +5917,17 @@ class NebelseetalApp:
                      wraplength=560, justify=tk.LEFT).pack(anchor=tk.W)
 
     def _render_maps(self):
+        """STILLGELEGT am 01.11.2026 (Schnitt S-2, Daniel M-10) - nicht mehr im Menue verdrahtet.
+
+        Das war die alte Weltkarte "Weltkarte - Orte entdecken" mit ihren sieben Gebieten aus
+        `MAPS`. Daniel: "Die Weltkarte soll weg es wird hier nur noch Platz sein fuer das
+        Dorfzentrum Lager und dessen verwaltung und uebersichten" (docs/KONZEPT_SECHS_DOERFER_20261101.md,
+        Anhang 1 Abschnitt 2). Die Aufgabe uebernimmt das Portal: dort steht ab S-5 das
+        Geländekaestchen der aktuellen Weltkarte, Felder anwaehlbar.
+
+        Der Rumpf bleibt als Beleg stehen, bis das Portal ihn vollstaendig ersetzt; die Methode ist
+        ueber keinen Menuepunkt mehr erreichbar (Wache: `tests/test_weltkarten_anzeige.py`).
+        """
         tk.Label(self.content, text="Weltkarte – Orte entdecken",
                  font=("Blackletter", 20, "bold"), fg=self.skin["gold"],
                  bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 2))

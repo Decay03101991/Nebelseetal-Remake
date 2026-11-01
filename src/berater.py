@@ -198,7 +198,7 @@ def _antwort_punkte() -> list:
 def _antwort_portal() -> list:
     """Antwort auf eine Frage nach Portal, Limbus und Dimensionen."""
     return ["Limbus und Portale (Handbuch S. 1/4/12):",
-            "  Alle Welten liegen im Limbus, der sich in 20 Dimensionen teilt.",
+            "  Alle Welten liegen im Limbus, der sich in 20 Weltkarten teilt.",
             "  Verbunden sind sie über magische Portale.",
             "  Im Portalbereich siehst du die Position deiner Welt und die der anderen.",
             "  Je weiter eine Welt entfernt liegt, desto mehr Mana kostet das Öffnen des Portals.",

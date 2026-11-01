@@ -127,9 +127,9 @@ def wechsel_erlaubt(von_z: int, nach_z: int, mana: float,
     ist die aktuelle Zeit in Sekunden.
     """
     if not _ist_dimension(von_z):
-        return (False, f"Unbekannte Ausgangs-Dimension: {von_z}")
+        return (False, f"Unbekannte Ausgangswelt: {von_z}")
     if not _ist_dimension(nach_z):
-        return (False, f"Unbekannte Ziel-Dimension: {nach_z}")
+        return (False, f"Unbekannte Zielwelt: {nach_z}")
     kosten = wechselkosten()
     if mana < kosten:
         return (False, f"Zu wenig Mana in einer Siedlung: {kosten} benoetigt, "
@@ -209,7 +209,7 @@ def beschreibung() -> str:
     """Eine lesbare Zeile ueber Limbus, Dimensionen, Raster, Kosten und Sperre."""
     kosten = wechselkosten()
     kosten_txt = f"{kosten:,}".replace(",", ".")
-    return (f"Der Limbus umfasst {dim_zahl()} Dimensionen mit je "
+    return (f"Der Limbus umfasst {dim_zahl()} Weltkarten mit je "
             f"{_FELDER_AXIS} x {_FELDER_AXIS} = {feld_zahl()} Feldern; "
-            f"ein Koordinatenwechsel kostet {kosten_txt} Mana aus einer Siedlung "
+            f"ein Weltensprung kostet {kosten_txt} Mana aus einer Siedlung "
             f"und ist hoechstens einmal je {_STUNDEN_SPERRE} Stunden moeglich.")

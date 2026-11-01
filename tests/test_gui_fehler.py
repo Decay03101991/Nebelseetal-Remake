@@ -43,7 +43,11 @@ import einheiten      # data/units.json: die Forschungs- und Waren-Voraussetzung
 # gezaehlten Liste entfernt wird (Punkt 5 der Aufgabe).
 FALEN_MARKE = "ABSICHTLICHER-FALEN-FEHLER"
 
-ANZAHL_ERWARTET = 18          # 17 MENU_ITEMS + "Spielerprofile"
+ANZAHL_ERWARTET = 17          # 16 MENU_ITEMS + "Spielerprofile"
+# Vorher 18 (17 + "Spielerprofile"). SCHNITT S-2, Daniel M-10 (01.11.2026): der Menuepunkt "Karten"
+# ist gestrichen, die alte Weltkarte ist stillgelegt - also faellt eine Ansicht aus dem Durchlauf.
+# Quelle: docs/KONZEPT_SECHS_DOERFER_20261101.md, Anhang 1 Abschnitt 2; Wache dafuer steht in
+# tests/test_weltkarten_anzeige.py.
 
 
 class RueckrufSammler:

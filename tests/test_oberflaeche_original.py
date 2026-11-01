@@ -117,7 +117,10 @@ check("aktuelles_menue() ist nicht leer", len(_akt) > 0, f"{len(_akt)}")
 _eigene = selbst_geparst()
 check("das Modul liefert genau das, was die Pruefdatei selbst aus main.py liest",
       _akt == _eigene, f"Modul {_akt} vs Pruefdatei {_eigene}")
-check("die selbst gelesene Liste hat 17 Eintraege", len(_eigene) == 17, f"{len(_eigene)}")
+check("die selbst gelesene Liste hat 16 Eintraege (17 minus Karten, S-2/Daniel M-10)",
+      len(_eigene) == 16, f"{len(_eigene)}")
+check("der am 01.11.2026 gestrichene Punkt Karten fehlt auch im Text", "Karten" not in _akt,
+      f"{_akt}")
 check("das Spiel fuehrt Dorfzentrum", "Dorfzentrum" in _akt)
 check("das Spiel fuehrt Spieler werben", "Spieler werben" in _akt)
 check("das Spiel fuehrt NICHT Uebersicht - Beweis, dass es wirklich main.py ist",

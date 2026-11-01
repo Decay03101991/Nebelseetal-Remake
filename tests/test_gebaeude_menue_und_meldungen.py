@@ -50,12 +50,19 @@ class Ort:
 
 
 print("=" * 70)
-print("1. Die belegte Original-Menueliste bleibt unveraendert")
+print("1. Die Menueliste: belegte Original-Liste ohne den am 01.11.2026 gestrichenen Punkt Karten")
 print("=" * 70)
 check("MENU_ITEMS enthaelt Kaserne", "Kaserne" in main.MENU_ITEMS, str(main.MENU_ITEMS))
 check("MENU_ITEMS enthaelt Forschung", "Forschung" in main.MENU_ITEMS, str(main.MENU_ITEMS))
-check("MENU_ITEMS hat weiterhin 17 Eintraege", len(main.MENU_ITEMS) == 17,
+# SCHNITT S-2, Daniel M-10 (01.11.2026): der Menuepunkt "Karten" ist gestrichen, weil die alte
+# Weltkarte unbrauchbar war ("Die Weltkarte soll weg ..."). Die Liste hat damit 16 statt 17
+# Eintraege; das ist eine bewusste Abweichung von der belegten Original-Liste, keine Verfaelschung
+# durch einen neu erfundenen Punkt. Quelle: docs/KONZEPT_SECHS_DOERFER_20261101.md, Anhang 1
+# Abschnitt 2 und Anhang 3, Frage 19.
+check("MENU_ITEMS hat 16 Eintraege (17 minus Karten, Daniel M-10)", len(main.MENU_ITEMS) == 16,
       f"{len(main.MENU_ITEMS)} Eintraege")
+check("der gestrichene Punkt Karten steht nicht mehr in der Liste", "Karten" not in main.MENU_ITEMS,
+      str(main.MENU_ITEMS))
 check("Stellmacher steht NICHT in der Original-Liste", "Stellmacher" not in main.MENU_ITEMS,
       "der Menuepunkt ist neu und darf die Original-Liste nicht verfaelschen")
 

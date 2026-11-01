@@ -1,6 +1,18 @@
 """Pruefung der WELTkarte im Fenster (Tkinter), ohne Hauptschleife.
 
-Was geprueft wird — die Vorgaben des astra-Bildgutachtens vom 05.10.2026, Abschnitt A3:
+HISTORISCH - NICHT MEHR IM SAMMELLAUF (01.11.2026, Schnitt S-2, Daniel M-10):
+Diese Datei prueft die Ansicht "Karten" (die alte Weltkarte "Weltkarte - Orte entdecken" mit ihren
+sieben Gebieten). Daniel hat entschieden: "Die Weltkarte soll weg es wird hier nur noch Platz sein
+fuer das Dorfzentrum Lager und dessen verwaltung und uebersichten"
+(docs/KONZEPT_SECHS_DOERFER_20261101.md, Anhang 1 Abschnitt 2; Anhang 3 Frage 19). Der Menuepunkt
+ist gestrichen, die Ansicht ist stillgelegt (`main.NebelseetalApp._render_maps` traegt den Vermerk).
+
+Die Datei bleibt als Zeitzeugnis stehen (Vorgaengerarbeit wird nicht geloescht); den Dienst im
+Sammellauf uebernimmt der fachliche Nachfolger `tests/test_weltkarten_anzeige.py` - er wacht
+darueber, dass die Ansicht NICHT mehr verdrahtet ist und dass die Anzeige Weltkarte und
+Weltensprung sagt. Die Weltkarte selbst kommt als Gelaendekaestchen ins Portal zurueck (S-5).
+
+Was hier geprueft wurde — die Vorgaben des astra-Bildgutachtens vom 05.10.2026, Abschnitt A3:
 
 * Zeichenflaeche mit 48 px je Feld in eigenen waagerechten und senkrechten Scrollbalken,
 * Zoomstufen („−  100 %  +"),
