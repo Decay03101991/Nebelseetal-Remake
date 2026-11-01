@@ -1,3 +1,39 @@
+# STAND 01.11.2026, 19:00 - S-5 gebaut: die Weltkarten zeigen Gelaende
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**S-5 ist gebaut und gruen** (Register 91, Freigabe 92). Das Gelaende der Weltkarten kommt aus
+`portalraum.weltbild`:
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Quellen | sieben Gelaendearten und ihre `haeufigkeit` NUR aus `data/gelaende.json` (Summe 100) | `portalraum.gelaendeverteilung` |
+| Raster | 10x10 Gruppen zu je 2x2 gleichartigem Gelaende = 100 Gruppen, 400 Felder | `portalraum.weltbild` |
+| Verteilung | exakt 4 x haeufigkeit Felder je Art (Grasland 80, Nebelsee 28 ...) | Pruefdatei Abschnitt 3 |
+| Seed | SHA-256 aus `kennung|seed`, Konfigurationswert `weltkarten_seed` in `data/welten.json` | `portalraum._seed_zahl` |
+| Stabilitaet | gleicher Name und Seed = bytegleiches Raster, auch in einem frischen Interpreter | Pruefdatei Abschnitt 5 |
+| Anzeige | Gelaendefarbe je Feld, Legende mit Haeufigkeiten, angewaehltes Feld mit Gelaendenamen | `main._render_portal` |
+| Wirkung | KEINE Bauplatz-, Rohstoff- oder Ertragswirkung; Ernte vor/nach Weltwechsel identisch | Pruefdatei Abschnitt 9 |
+| Pruefdatei | `tests/test_weltbild_gelaende.py` **135/0/0** | Lauf 18:53 |
+| Voller Sammellauf | **116 Dateien, 114 gruen, 0 rot, 2 ausgesetzt, 4.349 Pruefungen, 305 s** | `docs/audits/sammellauf_20261101_1853.log` |
+| Register | 91 (Status GEBAUT) und 100 (Nebenbefund) | `docs/PRUEFREGEL_ORIGINAL.md` |
+
+**Nebenbefund, im selben Commit behoben:** die Portalansicht gab die Nummern des Spielstands (d04 = 4)
+ungefiltert als Index an das Raster - die eigene Weltkarte erschien als fremde (Bannerfarbe rot). Die neue
+Pruefdatei hat es gefunden, keine bestehende Wache (Register 100).
+
+## Der EINE naechste Schritt
+
+**Das Bot-Taktikpaket gegen den Code pruefen**
+(`archiv/eingaben/20261101_gpt_antworten/GPT_Taktikpaket_HERMES_ENTWURF_BOTVERHALTEN_TAKTIKPAKETE_20261101.md`,
+47.159 Byte) - wie beim Textpaket jede Aussage am heutigen Stand messen, Widersprueche einzeln benennen, dann
+S-7 (Bots erlebbar, `bottaktik` anschliessen) vorbereiten. Danach S-3 (Forschungsuebernahme, acht
+Entscheidungen), S-4, S-6 (Dorftransfer), S-7, S-8 (Bilanz und der neue Weltensprung-Preis 500 Mana plus
+100 Gold aus Register 93), dann Demo-Bau und Freigabepruefung. Arbeitsweise: ein Schritt = ein Commit =
+ein gruener voller Sammellauf; offene Punkte sammeln statt einzeln fragen.
+
+---
+
 # STAND 01.11.2026, 18:40 - Fragenrunde beantwortet, S-5 FREIGEGEBEN
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

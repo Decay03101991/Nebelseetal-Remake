@@ -19,6 +19,8 @@
   "_weltkarten_spielbar": "Daniel 01.11.2026 (docs/KONZEPT_WELTKARTEN_UND_BOTS_20261101.md, Anhang 3 Frage 21/22/26/31): alle sechs Weltkarten stehen in Daten und Anzeige, erreichbar und bespielbar sind ZUERST Midgard und Valhalla; die uebrigen vier folgen spaeter. Die Startwelt ist Midgard (Frage 22).",
   "weltkarten_spielbar": ["Midgard", "Valhalla"],
   "startwelt": "Midgard",
+  "weltkarten_seed": "nebelsee-demo-20261101",
+  "_weltkarten_seed_hinweis": "Konfigurationswert fuer die Gelaendeverteilung der Weltkarten (Schnitt S-5, Register 91/94). Kein Spielstandsfeld und kein Datenbankschema: der Wert bestimmt nur, WIE die sieben Gelaendearten ueber die 400 Felder einer Weltkarte verteilt werden, nicht welche Welt welche Art traegt. Der Wert ist VORLAEUFIG und wird beim Demo-Bau auf das Veroeffentlichungsdatum gesetzt (Daniel 01.11.2026, Register 94); danach nicht mehr aendern, sonst passen Screenshots und Anleitungen nicht mehr zur ausgelieferten Karte.",
   "belegte_regeln": {
     "felder_je_dimension": 20,
     "felder_je_dimension_gesamt": 400,

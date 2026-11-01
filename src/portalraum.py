@@ -35,6 +35,10 @@ Nur Standardbibliothek; die Weltdaten werden ueber src/welt.py gelesen.
 """
 from __future__ import annotations
 
+import hashlib
+import random
+
+import gelaende
 import welt
 
 # Rohdaten aus src/welt.py (dort bereits aus data/welten.json geladen) —
@@ -286,6 +290,155 @@ def weltkarten(eigene_nummern=(), unterwegs: int = 0) -> list:
     return zeilen
 
 
+# ---------------------------------------------------------------------------
+# Das Weltbild als Gelaende (Schnitt S-5, Daniel 01.11.2026, Register 91 und 92)
+#
+# Vorgabe: die 20 x 20 = 400 Felder einer Weltkarte werden in 10 x 10 Gruppen von
+# je 2 x 2 gleichartigem Gelaende geteilt. Die 100 Gruppen erhalten die sieben
+# Gelaende-IDs in der Stueckzahl ihrer Haeufigkeit aus data/gelaende.json
+# (Grasland 20, Steppe 20, Wald 18, Huegel 13, Berg 12, Nebelsee 7, Sumpf 10 = 100)
+# und werden dann mit random.Random aus einem aus SHA-256 abgeleiteten Seed
+# gemischt - NIE mit hash(), das ist je Prozessstart verschieden. Der Seed haengt
+# an Weltkennung plus dem Konfigurationswert weltkarten_seed in data/welten.json,
+# nie an der Uhrzeit; gleicher Name und gleicher Seed ergeben deshalb immer
+# dasselbe Raster, auch nach einem Neustart.
+#
+# Das Gelaende auf der Weltkarte hat KEINE Bauplatz-, Rohstoff- oder
+# Ertragswirkung - gerechnet wird ausschliesslich auf der 10 x 10-Siedlungskarte.
+# Die Kartenansicht zeigt nur Gelaende, Gitterlinien, Legende und die
+# voruebergehende Feldauswahl: keine Orte, Doerfer, Gegner oder Nummern.
+# ---------------------------------------------------------------------------
+
+GELAENDE_BLOCK = 2                                    # 2 x 2 Felder je Gruppe
+_BLOCK_KANTE = _FELDER_AXIS // GELAENDE_BLOCK         # 10 Gruppen je Kante
+_GRUPPEN = _BLOCK_KANTE * _BLOCK_KANTE                # 100 Gruppen
+
+
+class WeltbildFehler(ValueError):
+    """Das Weltbild laesst sich nicht bilden - mit erklaerendem Grund, nie mit Ersatzwerten."""
+
+
+def gelaendeverteilung() -> list:
+    """Die sieben Gelaendearten mit ihrer Haeufigkeit - EINE Quelle (data/gelaende.json)."""
+    return [(aid, int(gelaende.ARTEN[aid]["haeufigkeit"])) for aid in gelaende.GELAENDEARTEN]
+
+
+def weltkarten_seed() -> str:
+    """Der Konfigurationswert `weltkarten_seed` aus data/welten.json (S-5, Register 94)."""
+    wert = str(_DATEN.get("weltkarten_seed") or "").strip()
+    if not wert:
+        raise WeltbildFehler("Kein weltkarten_seed in data/welten.json - ohne Seed wird kein "
+                             "Weltbild gebaut (kein Zufallsersatz).")
+    return wert
+
+
+def _dimension_finden(welt_arg):
+    """Findet eine Dimension ueber Kennung ('d04'), Nummer (4) oder Weltnamen ('Midgard')."""
+    text = str(welt_arg).strip().lower()
+    for d in dimensionen():
+        if text in (str(d["kennung"]).lower(), str(d["name"]).lower(),
+                    str(d.get("welt") or "").lower()):
+            return d
+    nummer = nummer_von(text)
+    if nummer:
+        return dimensionen()[nummer - 1]
+    if _ist_ganz(welt_arg) and 1 <= welt_arg <= dim_zahl():
+        return dimensionen()[welt_arg - 1]
+    return None
+
+
+def _seed_zahl(kennung: str, seed: str) -> int:
+    """Zahl aus SHA-256 von 'Kennung|Seed' - stabil ueber Prozessgrenzen hinweg."""
+    roh = hashlib.sha256(f"{kennung}|{seed}".encode("utf-8")).digest()
+    return int.from_bytes(roh[:8], "big")
+
+
+_WELTBILDER = {}
+
+
+def weltbild(welt_arg, seed=None) -> dict:
+    """
+    Das Gelaende-Raster einer Weltkarte.
+
+    Rueckgabe: dict mit 'kennung', 'welt', 'name', 'seed', 'kantenlaenge',
+    'block', 'gruppen', 'verteilung' ({art: haeufigkeit}), 'zaehlung'
+    ({art: felder}) und 'raster' (20 Zeilen mit je 20 Gelaende-IDs).
+
+    Wirft WeltbildFehler, wenn die Welt unbekannt ist, der Seed fehlt oder die
+    Haeufigkeiten in data/gelaende.json nicht genau 100 Gruppen ergeben - dann
+    wird NICHTS erfunden und kein Ersatzraster geliefert.
+    """
+    d = _dimension_finden(welt_arg)
+    if d is None:
+        raise WeltbildFehler(f"Unbekannte Weltkarte: {welt_arg!r}. Bekannt sind die Kennungen "
+                             f"d01 bis d{dim_zahl():02d} und die sechs belegten Weltnamen.")
+    seed_text = weltkarten_seed() if seed is None else str(seed).strip()
+    if not seed_text:
+        raise WeltbildFehler("Leerer Seed - ohne Seed wird kein Weltbild gebaut.")
+    schluessel = (str(d["kennung"]), seed_text)
+    if schluessel in _WELTBILDER:
+        return _WELTBILDER[schluessel]
+
+    verteilung = gelaendeverteilung()
+    ids = [aid for aid, haeufig in verteilung for _ in range(haeufig)]
+    if len(ids) != _GRUPPEN:
+        raise WeltbildFehler(f"Die Haeufigkeiten in data/gelaende.json ergeben {len(ids)} Gruppen, "
+                             f"das Raster braucht genau {_GRUPPEN} (Summe 100).")
+    mischer = random.Random(_seed_zahl(str(d["kennung"]), seed_text))
+    mischer.shuffle(ids)
+
+    raster = []
+    for gy in range(_BLOCK_KANTE):
+        zeile = []
+        for gx in range(_BLOCK_KANTE):
+            zeile.extend([ids[gy * _BLOCK_KANTE + gx]] * GELAENDE_BLOCK)
+        raster.append(list(zeile))
+        raster.append(list(zeile))                    # eine Gruppe ist 2 x 2 Felder hoch
+
+    zaehlung = {}
+    for zeile in raster:
+        for art in zeile:
+            zaehlung[art] = zaehlung.get(art, 0) + 1
+    bild = {
+        "kennung": str(d["kennung"]),
+        "welt": d.get("welt"),
+        "name": d["name"],
+        "seed": seed_text,
+        "kantenlaenge": _FELDER_AXIS,
+        "block": GELAENDE_BLOCK,
+        "gruppen": _GRUPPEN,
+        "verteilung": {aid: haeufig for aid, haeufig in verteilung},
+        "zaehlung": zaehlung,
+        "raster": raster,
+    }
+    _WELTBILDER[schluessel] = bild
+    return {**bild, "raster": [list(z) for z in raster]}
+
+
+def gelaende_von_feld(welt_arg, x, y, seed=None) -> dict:
+    """
+    Das Gelaende EINES Feldes - oder ein erklaerter Grund statt eines Ersatzwertes.
+
+    Rueckgabe: dict mit x, y, welt, gelaende (ID), name, farbe und bebaubar
+    (rein beschreibend - auf der Weltkarte wird nichts gebaut).
+    """
+    bild = weltbild(welt_arg, seed)
+    if not (_ist_ganz(x) and _ist_ganz(y)):
+        raise WeltbildFehler(f"Feldkoordinaten muessen ganze Zahlen sein, bekam x={x!r}, y={y!r}.")
+    if not (0 <= x < _FELDER_AXIS) or not (0 <= y < _FELDER_AXIS):
+        raise WeltbildFehler(f"Feld ({x}, {y}) liegt ausserhalb des Rasters 0..{_FELDER_AXIS - 1}.")
+    art = bild["raster"][y][x]
+    return {"x": int(x), "y": int(y), "welt": bild["welt"], "gelaende": art,
+            "name": gelaende.name(art), "farbe": gelaende.farbe(art),
+            "bebaubar": bool(gelaende.ist_bebaubar(art))}
+
+
+def legende() -> list:
+    """Die sieben Gelaendearten mit Name, Farbe und Haeufigkeit - fuer die Anzeige unter der Karte."""
+    return [{"gelaende": aid, "name": gelaende.name(aid), "farbe": gelaende.farbe(aid),
+             "haeufigkeit": haeufig} for aid, haeufig in gelaendeverteilung()]
+
+
 def anzeige_raster(z: int, radius: int = 10, eigene_dimensionen=()) -> list:
     """
     Die Portalanzeige fuer Dimension z als Liste ihrer Felder.
@@ -295,9 +448,26 @@ def anzeige_raster(z: int, radius: int = 10, eigene_dimensionen=()) -> list:
     Feldern. Jedes Feld traegt x, y, z, 'eigen' (bool), 'status'
     ('eigen'/'fremd') und 'farbe' (Bannerfarbe aus data/welten.json).
     Ohne Spielerwelt-Daten wird grob je Dimension gefaerbt.
+
+    Seit S-5 (01.11.2026, Register 91) kommt das Gelaende JE FELD dazu:
+    'gelaende' (ID aus data/gelaende.json), 'gelaende_name', 'gelaende_farbe'
+    und 'gelaende_bebaubar'. Die Bannerfarbe 'farbe' bleibt unveraendert, damit
+    die belegte Originalanzeige (eigene Welt gruen, fremde rot) erhalten bleibt.
+    Laesst sich kein Weltbild bilden, steht der Grund in 'gelaende_grund' und
+    'gelaende' bleibt None - es wird kein Gelaende erfunden.
     """
     farbe = portalfarbe(z, eigene_dimensionen)
     eigene = farbe == _BANNER["eigene_welt"]
+    bild = None
+    grund = ""
+    if _ist_dimension(z):
+        try:
+            bild = weltbild(dimensionen()[z]["kennung"])
+        except WeltbildFehler as fehler:
+            bild, grund = None, str(fehler)
+    else:
+        grund = (f"Unbekannte Weltkarte: {z!r} ist kein Index von 0 bis {dim_zahl() - 1} - "
+                 f"es wird kein Gelaende erfunden.")
     kante = _FELDER_AXIS
     halb = int(radius)
     if halb < 0:
@@ -308,6 +478,7 @@ def anzeige_raster(z: int, radius: int = 10, eigene_dimensionen=()) -> list:
     felder = []
     for y in range(von, bis):
         for x in range(von, bis):
+            art = bild["raster"][y][x] if bild else None
             felder.append({
                 "x": x,
                 "y": y,
@@ -315,6 +486,11 @@ def anzeige_raster(z: int, radius: int = 10, eigene_dimensionen=()) -> list:
                 "eigen": eigene,
                 "status": "eigen" if eigene else "fremd",
                 "farbe": farbe,
+                "gelaende": art,
+                "gelaende_name": gelaende.name(art) if art else None,
+                "gelaende_farbe": gelaende.farbe(art) if art else None,
+                "gelaende_bebaubar": bool(gelaende.ist_bebaubar(art)) if art else None,
+                "gelaende_grund": grund,
             })
     return felder
 

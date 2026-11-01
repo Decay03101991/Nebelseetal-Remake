@@ -5564,8 +5564,13 @@ class NebelseetalApp:
         rote"). Ein Klick auf eine Weltkarte ist gesperrt, solange etwas unterwegs ist
         (Daniel, Anhang 2).
 
-        Das Gelaende JE FELD hat keine Quelle - das Kaestchen zeigt deshalb die Bannerfarben der
-        Welt und die Anwahl, keine erfundenen Gelaendearten (offener Punkt fuer S-5).
+        Das Gelaende JE FELD ist seit S-5 gebaut (Daniel 01.11.2026, Register 91/92): sieben
+        Gelaendearten aus `data/gelaende.json` als 2x2-Bloecke mit stabilem Seed je Welt
+        (`portalraum.weltbild`). Das Handbuch 2009 nennt KEIN Gelaende je Weltkartenfeld - das
+        ist eine bewusste Remake-Entscheidung, keine Originalregel. Das Gelaende hat keine
+        Bauplatz-, Rohstoff- oder Ertragswirkung; es ist reine Anzeige. Die Bannerfarbe der Welt
+        bleibt in der Liste oben sichtbar, die Karte selbst zeigt nur Gelaende, Gitterlinien,
+        Legende und die voruebergehende Feldauswahl - keine Orte, Doerfer, Gegner oder Nummern.
         """
         farben = {"gruen": "#2ecc40", "rot": "#e53935"}
         tk.Label(self.content, text="Portal", font=("Blackletter", 20, "bold"),
@@ -5575,6 +5580,12 @@ class NebelseetalApp:
 
         nummer = int(self.state.eigene_dimension)
         eigene = list(self.state.eigene_dimensionen)
+        # Zaehlweisen nicht mischen (S-5, belegt durch die Pruefdatei): der Spielstand fuehrt die
+        # NUMMER (1..20, d04 = 4), `portalraum.anzeige_raster`/`portalfarbe` rechnen mit dem INDEX
+        # (0..19). Bis hierher wurde die Nummernliste ungefiltert weitergegeben - die eigene
+        # Weltkarte erschien dadurch als FREMDE (Bannerfarbe rot). Die Umrechnung liegt an EINER
+        # Stelle (`portalraum.index_von`), `weltkarten` bekommt weiter die Nummern.
+        eigene_index = [i for i in (portalraum.index_von(n) for n in eigene) if i >= 0]
         laufend = self._unterwegs_anzahl()
 
         # --- 1. OBEN: die sechs Weltkarten mit Namen und Kennzeichen ---
@@ -5608,15 +5619,28 @@ class NebelseetalApp:
                  fg="#DAA520", bg=self.skin["bg"], wraplength=760, justify=tk.LEFT).pack(
                      anchor=tk.W, padx=10, pady=(8, 0))
         zelle = max(4, 400 // max(1, kante))
-        felder = portalraum.anzeige_raster(portalraum.index_von(nummer), 10, eigene)
+        felder = portalraum.anzeige_raster(portalraum.index_von(nummer), 10, eigene_index)
         zeichenflaeche = tk.Canvas(self.content, width=kante * zelle, height=kante * zelle,
                                    bg=self.skin["bg"], highlightthickness=0)
         zeichenflaeche.pack(anchor=tk.W, padx=10, pady=4)
         for feld in felder:
             x1, y1 = feld["x"] * zelle, feld["y"] * zelle
+            fuellung = feld.get("gelaende_farbe") or farben.get(feld["farbe"], "#555555")
             zeichenflaeche.create_rectangle(x1, y1, x1 + zelle, y1 + zelle,
-                                            fill=farben.get(feld["farbe"], "#555555"),
-                                            outline="#111111")
+                                            fill=fuellung, outline="#111111")
+        # Legende: die sieben Gelaendearten mit Name und Haeufigkeit, direkt aus den Daten.
+        legende = tk.Frame(self.content, bg=self.skin["bg"])
+        legende.pack(anchor=tk.W, padx=10, pady=(2, 0))
+        tk.Label(legende, text="Gelaende:", fg="#DAA520", bg=self.skin["bg"]).pack(side=tk.LEFT)
+        for eintrag in portalraum.legende():
+            tk.Label(legende, text="", bg=eintrag["farbe"], width=2).pack(side=tk.LEFT, padx=(6, 2))
+            tk.Label(legende, text=f"{eintrag['name']} {eintrag['haeufigkeit']}",
+                     fg=self.skin["text"], bg=self.skin["bg"],
+                     font=("TkDefaultFont", 8)).pack(side=tk.LEFT)
+        hinweis = next((f["gelaende_grund"] for f in felder if f.get("gelaende_grund")), "")
+        if hinweis:
+            tk.Label(self.content, text=hinweis, fg="#e53935", bg=self.skin["bg"],
+                     wraplength=760, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(2, 0))
         auswahl = getattr(self, "portal_auswahl", None)
         if auswahl:
             ax, ay = int(auswahl[0]), int(auswahl[1])
@@ -5627,8 +5651,14 @@ class NebelseetalApp:
                             lambda ereignis: self._portal_feld_waehlen(ereignis.x // zelle,
                                                                        ereignis.y // zelle))
         if auswahl:
-            tk.Label(self.content, text=(f"Angewaehltes Feld: x={int(auswahl[0])}, "
-                                         f"y={int(auswahl[1])} auf Weltkarte {nummer:02d} "
+            ax, ay = int(auswahl[0]), int(auswahl[1])
+            try:
+                gel = portalraum.gelaende_von_feld(nummer, ax, ay)
+                gel_text = f" - Gelaende: {gel['name']}"
+            except portalraum.WeltbildFehler:
+                gel_text = ""
+            tk.Label(self.content, text=(f"Angewaehltes Feld: x={ax}, "
+                                         f"y={ay}{gel_text} auf Weltkarte {nummer:02d} "
                                          f"({self._dimensionsname(nummer)}). Der Dorftransfer folgt "
                                          f"mit S-6 - hier wird noch nichts uebertragen."),
                      fg="#38BDF8", bg=self.skin["bg"], wraplength=760, justify=tk.LEFT).pack(
