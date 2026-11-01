@@ -37,9 +37,10 @@ einzige nicht abreissbar.
 Das Hermes-Update am 01.11. (13:59-14:52) hat die Python-Runtime getauscht; `PyInstaller` fehlte danach. Die
 Pruefung `tools/build_exe.py --pruefen` lief noch, der Bau brach mit "No module named PyInstaller" ab und
 liess die alte EXE unangetastet. Auf Daniels Freigabe mit `uv pip install pyinstaller` (6.22.3)
-nachinstalliert; **EXE 47.972.104 Byte, SHA256 `4df48ffa...`**, Start belegt (Kind-PID 16468, Fenster
-"Nebelseetal Remake", 115 s und 128 s Responding True). **Vor** der Platzwahl-Aenderung gebaut, wird nach dem
-Commit neu gebaut.
+nachinstalliert. Nach dem Commit `4ed7fbb` neu gebaut: **EXE 47.974.724 Byte, SHA256 `595c48bf...`**
+(17:29), **Start belegt** - Kind-PID 13892, Fenster "Nebelseetal Remake", MainWindowHandle 163907294, nach
+116 s und 129 s Responding True, danach beendet. Zwischenbau 17:14 (47.972.104 Byte, `4df48ffa...`) war nur
+der Werkzeugbeweis und ist ueberholt.
 
 ## Der naechste Schritt
 
