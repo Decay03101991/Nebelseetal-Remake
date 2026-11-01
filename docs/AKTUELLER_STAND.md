@@ -1,4 +1,18 @@
-# STAND 01.11.2026, 02:48 - Entscheidung 1 ist gebaut (Angriff reist)
+# STAND 01.11.2026, 03:32 - Entscheidung 1 gebaut, Bot-Taktik-Modul liegt bereit
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+## Neu seit 02:48
+
+| Paket | Register | Pruefdatei | Sammellauf |
+|---|---|---|---|
+| **Bot-Taktik-Modul `src/bottaktik.py`** - acht Zustaende, fuenf Taktiken, Gedaechtnis, Koordinaten, Manhattan-Abstand, sichtbare Signale. **Noch nicht von main.py benutzt** (Anschluss = S-7) | 85 | `test_bottaktik` 48/0/0 | 03:22: 111 Dateien, 110 gruen, 0 rot, 1 ausgesetzt, 4.089 Pruefungen, 357 s |
+| Modulkarte neu gebaut (50 Dateien) | - | `test_projektpfade` 103/0/0 | - |
+
+## Der naechste Schritt (unveraendert S-1)
+
+Gruendung setzt Tempel, Holzfaeller und Steinmetz samt Startressourcen und nennt die Felder. Einzelheiten in der Uebergabe, Abschnitt 4.
+
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen (nichts wird geloescht).
 
