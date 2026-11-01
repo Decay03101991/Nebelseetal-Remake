@@ -269,3 +269,66 @@ Das neue Portal-Menü:
   Lagerverwaltung. Die bisherige Weltkarte wird stillgelegt, nicht heimlich weitergeführt.
 * **Neu M-11 Ein Lager je Dorf:** mehrere Lager werden zusammengeführt, das Dorfzentrum ist das
   Lager (Menüpunkt plus Gebäude).
+
+
+---
+
+# ANHANG 2: Daniels Antworten vom 01.11.2026, 01:55 (verbindlich)
+
+## Reisen erlaubt ab dem Ende des Götterschutzes
+
+Daniel wörtlich: „ich würde festlegen sobald man den götterschutz verlassen hat“. Damit ist die
+Schwelle **kein Tempel-Ausbau und keine Forschung**, sondern der Schutzstatus des Spielers. Der
+Tempel muss nur **stehen** (er steht ab Gründung).
+
+## Bots bekommen Positionen, eigene Dörfer und Taktiken
+
+Daniel wörtlich: „Bots bekommen nicht nur feste Koordinaten, damit sie im weltbild sichtbar sind
+sondern auch all ihre gegründeten dörfer und auch sie sollen wie der spieler selbst eine von ein
+paar zufälligen taktiken nutzen um durch koordinaten näherung oder entfernung sich zu schützen oder
+eben anzugreifen usw“.
+
+Damit wächst der Bot vom Gegner-Wert zu einem **Mitspieler im selben Raum**: Koordinaten, eigene
+Dörfer, eine von mehreren Taktiken (Nähe suchen, Abstand halten, gezielt angreifen). Das ist der
+größte Einzelbrocken im ganzen Umbau und gehört **ans Ende** der Umsetzung.
+
+## Menüpunkt „Karten“ entfällt
+
+Der Platz heißt **Dorfzentrum** und zeigt Lagerverwaltung und Übersichten (Werkstätten, Bestände).
+Die alte Weltkarte wird stillgelegt.
+
+## Ein Lager je Dorf — Regel fürs Spiel, Teststände müssen nicht wandern
+
+Daniel wörtlich: „Aktuelle spielstände sind nur teststände zur entwicklung und müssen nicht aktiv
+spielbar bleiben aber um es als regel fürs spiel anzulegen ja Dörfer und deren karte werden als
+Dorfzentrum und Lager verwaltet und haben auf jeder karte oder in jedem dorf nur 1 lager“.
+
+Folge: **keine Migration nötig.** Die Regel gilt für neue Spiele; vorhandene Teststände dürfen
+brechen. Das spart einen ganzen Arbeitsschritt (kein Umbau alter Spielstände).
+
+## Umzug mit laufenden Aufträgen
+
+Daniel wörtlich: „das dorf reist mit allem, laufende aufträge bekommen die neue position für den
+rück weg oder ihr weg wird neu berechnet wenn sie noch laufen, warnung falls dies wegen einem zu
+weitem koordinaten wechsel zu überlangen laufzeiten kommen würde. Wer es ignoriert nimmt
+allerdings die laufzeiten in kauf. Welche jedoch realistisch berechnet sein müssen mit dieser neuen
+spielmechanik und ein weltenwechsel ist für das dorf gar nicht möglich solange aufträge einheiten
+truppen oder sonst was unterwegs ist auch handel z.b.“
+
+Festgehalten als drei Regeln:
+
+1. **Innerhalb derselben Welt:** Das Dorf zieht um, laufende Aufträge werden auf die neue Position
+   umgerechnet (Hinweg und Rückweg). Ist die neue Laufzeit unverhältnismäßig lang, kommt eine
+   **Warnung** — wer sie ignoriert, nimmt die Laufzeit in Kauf.
+2. **Weltenwechsel (andere Dimension): gesperrt**, solange irgendetwas unterwegs ist — Aufträge,
+   Einheiten, Truppen, Handel.
+3. Die Laufzeiten müssen mit der neuen Mechanik **realistisch** gerechnet werden, nicht geschätzt.
+
+## Was jetzt noch offen ist
+
+* **Transferkosten:** Währung und Höhe (Mana? Gold? beides?) — Daniel hat entschieden, die
+  Manawerte erst im Spieltest einzustellen. Vorschlag: Kosten als VORSCHLAG einbauen, im
+  Spieltest justieren.
+* **Götterschutz:** Dauer und Endbedingung stehen im Code (`noob_protection`); muss nur gelesen
+  und in der Anzeige genannt werden.
+* **Bot-Umfang:** wie viele Dörfer je Bot, welche Taktiken genau, wie oft sie wechseln.
