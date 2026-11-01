@@ -1,0 +1,113 @@
+NEBELSEETAL REMAKE - AUFTRAG C2 (Bilder)
+Stand: 01.11.2026. Auftraggeber: Daniel.
+
+WAS ICH BRAUCHE
+Bilder fuer ein Remake des Browserspiels "Nebelseetal Online". Du lieferst Bilder,
+keine Regeln. Jede Zahl im Spiel stammt aus dem Originalhandbuch oder von Daniel -
+du erfindest keine Werte und keine Namen.
+
+VIER TEILE
+A) 20 freigestellte Kartenmotive   (das ist der wichtigste Teil)
+B) 1 Ressourcenleiste + 8 Symbole
+C) 2 Kachelrahmen 64x64
+D) 1 Manifest + 1 Lieferschein
+
+WARUM: Die zwanzig zuletzt gelieferten Icons sind gerahmte Buttons mit gemalter
+Umgebung (256x256, keine Transparenz). Sie sind gut und werden im Menue verwendet.
+Auf dem Spielfeld verdecken sie das Gelaende. Dafuer braucht es die Gebaeude allein
+auf transparentem Grund, klein und klar erkennbar.
+
+
+TEIL A - 20 KARTENMOTIVE
+Dateiname (genau so!) = Name im Spiel - bei 44x44 px noch erkennbar an:
+
+holzfaeller      = Holzfaeller       - Holzstapel, Axt oder Saege
+steinmetz        = Steinmetz         - behauene Steinbloecke, Meissel
+erzmine          = Erzmine           - Stolleneingang im Felsen, Lore
+tempel           = Tempel            - Saeulen oder Kuppel, magisches Leuchten
+farm             = Farm              - Getreidefeld, Scheunenform
+goldmine         = Goldmine          - Stollen mit goldfarbenem Erz
+schafszucht      = Schafszucht       - Schaf, Zaun, Stall
+rinderfarm       = Rinderfarm        - Rind oder Ochse, Heuhaufen
+pferdezucht      = Pferdezucht       - Pferd, Zaun
+jaeger           = Jaeger            - Bogen, Felle, Jagdhuette
+schmiede         = Schmiede          - Amboss, offenes Feuer
+bogenbauer       = Bogenbauer        - Bogen und Koecher
+naehstube        = Naehstube         - Nadel und Faden, Stoffballen
+kriegerakademie  = Kriegerakademie   - Zinnen, Fahne, Waffen
+diebesgilde      = Diebesgilde       - dunkler Umhang, Faesser, versteckte Tuer
+stellmacher      = Stellmacher       - grosses Rad, Wagen
+verteidigungswall= Verteidigungswall - Tor, Wehrgang, Palisade
+bibliothek       = Bibliothek        - Buch, Schriftrolle, Regal
+haus             = Haus              - Satteldach, Schornstein, Rauch
+lager            = Dorfzentrum       - Kisten, Faesser, Kranbalken
+                   (Dateiname bleibt "lager", Anzeigename ist "Dorfzentrum")
+
+Vorgaben: PNG, RGBA, 256x256 px, sRGB, Hintergrund vollstaendig transparent.
+Kein Rahmen, keine gemalte Umgebung, keine Wiese als Rechteck; hoechstens 6 px
+Luft an der staerksten Seite. Ein kleiner Erdhuegel unter dem Gebaeude ist erlaubt.
+Alle zwanzig in derselben Ansicht (leichte Schraegsicht von vorn), Licht von links
+oben, warme Erdoene mit Gold als Akzent. Keine Schrift, keine Zahlen, keine Logos.
+Pruefe jedes Motiv bei 44 px, bevor du lieferst.
+
+
+TEIL B - RESSOURCENLEISTE
+1 Entwurf der oberen Leiste, 1440x140 px, RGB. Die Leiste ist heute zu klein und
+unuebersichtlich; zeig, wie sie mit den acht Symbolen und Platz fuer Zahlen
+aussehen kann.
+8 Symbole, je 96x96 px, PNG mit RGBA, freigestellt, gleicher Stil wie Teil A:
+gold.png, holz.png, stein.png, erz.png, nahrung.png, mana.png, siedler.png,
+punkte.png
+
+
+TEIL C - KACHELRAHMEN
+2 Bilder, je 64x64 px, PNG mit RGBA: kachelrahmen_ruhe.png und
+kachelrahmen_auswahl.png. Der Rahmen liegt spaeter UEBER einem 44-px-Motiv, das
+Feld dahinter muss sichtbar bleiben. Rahmenbreite 6-8 px, als 9-Slice zerlegbar
+(Ecken fix, Kanten dehnbar), Ecken durchsichtig nach aussen.
+
+
+TEIL D - MANIFEST UND LIEFERSCHEIN
+asset_manifest.json, ein Eintrag je Bild:
+  [{"id":"holzfaeller","name":"Holzfaeller","icon":"kartenmotive/holzfaeller.png",
+    "px":[256,256],"zweck":"Kartenmotiv Siedlungskarte"}]
+LIEFERUNG.md: je ZIP eine Zeile mit Dateiname, Groesse in Byte, Anzahl der Bilder.
+
+
+VERPACKUNG (hart)
+- Hoechstens 8 MB je ZIP. Das ist eine Grenze, keine Empfehlung: das erste
+  Gesamtpaket war 22,6 MB und liess sich nicht herunterladen.
+- Ein ZIP je Teil, Namen:
+    Nebelseetal_C2_Kartenmotive.zip
+    Nebelseetal_C2_Ressourcenleiste.zip
+    Nebelseetal_C2_Kachelrahmen.zip
+    Nebelseetal_C2_Manifest.zip
+  Wird ein Teil zu gross: kartenmotive_teil1.zip, kartenmotive_teil2.zip usw.
+- Im ZIP je Teil ein eigener Ordner: kartenmotive/, ressourcenleiste/,
+  kachelrahmen/, previews/.
+- Dateien direkt anhaengen. Keine Download-Links, keine HTML-Seiten -
+  gespeicherte Chat-Seiten enthalten keine Bilder.
+
+
+NICHT LIEFERN
+- Keine Spielregeln, Zahlen, Tabellen oder Balancing-Vorschlaege.
+- Keine Wappen, Burgen, Einheitenbilder, Menue-Hintergruende (alles vorhanden).
+- Keine Python-Dateien und keine Zuordnungs-Skripte.
+- Keine ZIPs ueber 8 MB, keine Sammelpakete mit Startseite.
+
+
+ANTWORTFORMAT
+Kurz halten: vier bis sechs Saetze und eine Liste. Keine Einleitung.
+
+Geliefert:
+1. Nebelseetal_C2_Kartenmotive.zip - 6.481.204 Byte - 20 Bilder (256x256, RGBA)
+2. ...
+Nicht geliefert / abweichend:
+- (nur wenn zutreffend, ein Satz je Punkt)
+Offene Frage:
+- (nur wenn es eine echte gibt)
+
+Schlusszeile, wenn alles da ist:
+C2 FERTIG - 4 ZIPs, 31 Bilder, jedes ZIP unter 8 MB.
+Sonst:
+C2 TEILWEISE - geliefert: A, B, D. Nicht geliefert: C (Grund in einem Satz).
