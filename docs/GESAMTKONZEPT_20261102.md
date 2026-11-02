@@ -63,7 +63,8 @@ Lords-Mobile-Teil — er bringt keine Inhalte mit, nur den Raum, in dem die Inha
 - **Truppenbewegungen** sind auf der Karte sichtbar: von wo nach wo, die Linie und eine grobe Restlaufzeit.
   Truppenart, Anzahl und Karren bleiben verborgen (ein Handkarren sieht aus wie eine Armee), und ein
   marschierender Verband ist KEIN Spionageziel - sonst verriete die Geschwindigkeit die Einheit (Vorgabe
-  Daniel 02.11.2026, Register 140).
+  Daniel 02.11.2026, Register 140). **Ausnahme:** laeuft ein Marsch auf eine EIGENE Siedlung zu, steht die
+  Wegzeit GENAU da - ich muss wissen, wann ich verteidigen kann; Art und Anzahl bleiben auch dann verborgen.
 
 **Zwei Regeln, die nie gebrochen werden (Vorgabe Daniel 02.11.2026):**
 

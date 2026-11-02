@@ -29,9 +29,12 @@ Gelaende und die fremden Doerfer, aber keinen Marsch.
 sichtbar sind Startfeld, Zielfeld, die Linie und eine **grobe** Restlaufzeit. NICHT sichtbar sind
 Truppenart, Anzahl, Karren und Ausruestung ("Ein einzelner handkarren erzeugt das gleiche
 bewegungssymbol wie eine ganze armee"), und die genaue Geschwindigkeit bleibt verborgen, damit sie
-die Einheit nicht verraet ("sieht man nur die grobe Wegzeit"). **Ein marschierender Verband ist kein
-Spionageziel** - Spionage zielt auf ein Dorf. Eigene Auftraege bekommen auf der Karte dieselbe
-Darstellung; ihre Einzelheiten stehen im Auftragsbuch/Postfach.
+die Einheit nicht verraet ("sieht man nur die grobe Wegzeit"). **Ausnahme (Nachtrag Daniel): laeuft
+ein Marsch auf eine EIGENE Siedlung zu, wird die Wegzeit GENAU genannt** - "weil ich selbst betroffen
+bin und die zeiten einschaetzen kann als spieler"; Truppenart und Anzahl bleiben auch dann verborgen,
+die Geschwindigkeitsstufe wird nicht ausgewiesen. **Ein marschierender Verband ist kein Spionageziel**
+- Spionage zielt auf ein Dorf. Eigene Auftraege bekommen auf der Karte dieselbe Darstellung; ihre
+Einzelheiten stehen im Auftragsbuch/Postfach.
 
 Zu tun: je laufendem Auftrag eine Linie im Kaestchen (eigenes Zeichen-Tag, Muster `portalbote`),
 Anzeige aus `state.auftraege` gespeist (keine zweite Auftragsliste), Restzeit in groben Stufen,
