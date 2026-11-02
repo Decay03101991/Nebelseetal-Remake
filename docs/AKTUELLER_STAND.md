@@ -22,13 +22,28 @@ Vordergrund bleibt. Alle Zahlen stehen in `data/gebaeude_motive.json`.
 ## Der EINE naechste Schritt
 
 **Truppenbewegungen auf der Weltkarte sichtbar machen** (Vorgabe Daniel 02.11.2026, Vorbild Lords
-Mobile; in der Fragenrunde 21:25 ausdruecklich VOR die Demo gesetzt). Heute zeigt das Portal-Kaestchen
-Gelaende und die fremden Doerfer, aber keinen Marsch: wer Truppen losschickt, sieht sie nur als
-Nachricht, nicht als Weg. Zu tun: je laufendem Auftrag eine Linie vom Start- zum Zielfeld mit
-Richtung und Restzeit (eigene Marsche deutlich, fremde zurueckhaltender), Anzeige aus
-`state.auftraege`/`state.movements` gespeist (keine zweite Auftragsliste), Klick auf eine Linie zeigt
-den Auftrag; Pruefdatei mit Grenzfaellen (kein Auftrag = keine Linie, Ankunft = Linie weg), voller
-Sammellauf, Protokollzeile, ein Commit.
+Mobile; in der Fragenrunde ausdruecklich **vor** die Demo gesetzt). Heute zeigt das Portal-Kaestchen
+Gelaende und die fremden Doerfer, aber keinen Marsch.
+
+**Sichtbarkeitsregel (Vorgabe Daniel, Register 140) - sie ist der Kern des Schritts:**
+sichtbar sind Startfeld, Zielfeld, die Linie und eine **grobe** Restlaufzeit. NICHT sichtbar sind
+Truppenart, Anzahl, Karren und Ausruestung ("Ein einzelner handkarren erzeugt das gleiche
+bewegungssymbol wie eine ganze armee"), und die genaue Geschwindigkeit bleibt verborgen, damit sie
+die Einheit nicht verraet ("sieht man nur die grobe Wegzeit"). **Ein marschierender Verband ist kein
+Spionageziel** - Spionage zielt auf ein Dorf. Eigene Auftraege bekommen auf der Karte dieselbe
+Darstellung; ihre Einzelheiten stehen im Auftragsbuch/Postfach.
+
+Zu tun: je laufendem Auftrag eine Linie im Kaestchen (eigenes Zeichen-Tag, Muster `portalbote`),
+Anzeige aus `state.auftraege` gespeist (keine zweite Auftragsliste), Restzeit in groben Stufen,
+Klick auf eine Linie zeigt, was oeffentlich ist (von, nach, Restzeit) - keine Truppenliste;
+Pruefdatei mit Grenzfaellen (kein Auftrag = keine Linie, Ankunft = Linie weg, zwei Marsche
+gleichzeitig, Uhr rueckwaerts), voller Sammellauf, Protokollzeile, ein Commit.
+
+**Vorgehen (Vorgabe Daniel 02.11.2026): diesen Schritt plant und baut das GROSSE MODELL
+(deepseek-v4-pro)** - vor allem die visuelle Darstellung waehrend der Bewegung (Symbol, Linie,
+Puls/Richtung, Groesse) soll es entwerfen, nicht nur den Code schreiben. Erst ein kurzes
+Darstellungs-Papier mit zwei, drei Fassungen (Bild), dann umsetzen. Kosten im Blick behalten
+(hart 4 EUR/Tag ueber alle Modelle), Kontostand vorher nennen.
 Arbeitsweise: ein Schritt = ein Commit = ein gruener voller Sammellauf.
 
 **Demo-Umfang ist eingefroren (Daniel 02.11.2026, Fragenrunde):** Kernkreis + Spionage + Voelker- und

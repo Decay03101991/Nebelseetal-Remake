@@ -60,6 +60,10 @@ Lords-Mobile-Teil — er bringt keine Inhalte mit, nur den Raum, in dem die Inha
 - **Anklickbar** auf der Weltkarte (Portal-Kaestchen): ein Klick auf ein fremdes Dorf bietet "Angriff planen" und "Spionage" und fuehrt in die Truppenauswahl (gebaut 02.11.2026, Register 138).
 - **Nur ueber einen Spionagebericht**: Wallstufe und Wallzustand, aktive Taktik, stationierte Truppen, Items und Vorraete. Der Bericht ist die Entscheidungsgrundlage fuers Pluendern - und er zeigt nur, was die Aufklaerung der mitgeschickten Spionageeinheiten deckt (SI + HE je Einheit, Staffelung in `data/spionage.json`); reicht sie nicht fuer den Wall, prallt der Auftrag ab.
 - Berichte und Meldungen landen im Postfach; der Spieler springt per Koordinate zum Dorf.
+- **Truppenbewegungen** sind auf der Karte sichtbar: von wo nach wo, die Linie und eine grobe Restlaufzeit.
+  Truppenart, Anzahl und Karren bleiben verborgen (ein Handkarren sieht aus wie eine Armee), und ein
+  marschierender Verband ist KEIN Spionageziel - sonst verriete die Geschwindigkeit die Einheit (Vorgabe
+  Daniel 02.11.2026, Register 140).
 
 **Zwei Regeln, die nie gebrochen werden (Vorgabe Daniel 02.11.2026):**
 
