@@ -246,7 +246,7 @@ abschnitt("7. Ohne Pillow bleibt die Optik trotzdem sichtbar (gemessener Startpf
 # ==========================================================================
 # BEFUND 02.11.2026, 09:10: `START_SPIEL_WINDOWS.bat` startete mit Astral CPython 3.11.16, und dieser
 # Interpreter hat KEIN Pillow - nachgestellt mit demselben Interpreter: kein Menue-Icon, kein
-# Leistenbild, `gebaeude_optik.kachel()` liefert None. Seit 10:40 startet das Batch mit dem
+# Leistenbild, `gebaeude_optik.kachel()` liefert None. Seit 10:22 (stat) startet das Batch mit dem
 # Projekt-venv (Pillow 13.0.0, Register 129); der Tk-Rueckfall bleibt trotzdem wichtig, weil ein
 # Rechner ohne venv sonst GAR keine Gebaeude-Optik haette. Deshalb steht diese Wache hier: ohne sie
 # waere die Optik auf so einem Rechner unsichtbar, waehrend alle anderen Pruefungen gruen melden
