@@ -1,0 +1,14 @@
+# Fragen an Daniel - 02.11.2026, 20:20 (Stufe B-5: Postfach und Spionage)
+
+Gesammelt waehrend des Schritts, **nicht blockierend**: der Schritt ist mit den hier genannten
+Vorschlaegen gebaut und geprueft. Jede Zahl steht in `data/spionage.json` - eine Aenderung dort
+wirkt sofort, ohne Code.
+
+| Nr. | Frage | Messlage | Vorschlag | Folge, wenn anders |
+|---|---|---|---|---|
+| 1 | ~~**Wie lange gilt ein Spionagebericht als aktuell?**~~ **ENTSCHIEDEN von Daniel (02.11.2026): keine Frist.** Ein Bericht ist immer aktuell, bis ein NEUER Bericht ueber dasselbe Dorf kommt; das Postfach sammelt die Staende. Umgesetzt: `bericht_gueltig_stunden` = 0, der Bericht nennt seinen Stand und warnt, dass spaeter eintreffende Truppen fehlen. | `data/spionage.json`, `spionage.bericht_zeilen` | erledigt | - |
+| 2 | **Sind die Schwellen je Berichtsteil richtig dosiert?** | Truppen 25, Vorraete 50, Wall 75, Karte 100, Taktik 150. Gemessen an den belegten Werten: Streuner 60 (Truppen+Vorraete), Gauner 95 (+Wall), Dieb 135 (+Karte), Meisterdieb 150 (+Taktik), Kundschafter 175, Waldlaeufer 185. | **so lassen** - jede Stufe bringt sichtbar mehr | Hoehere Schwellen: man braucht zwei Kundschafter fuer den Wall; niedrigere: schon ein Streuner sieht fast alles |
+| 3 | **Formel SI + HE - oder nur SI?** | Handbuch: SI = "Sinnesschaerfe - Spione entdecken", HE = "Heimlichkeit - unauffaelliges Verhalten"; beide "im Moment noch ohne Einfluss". Die Formel ist also Vorschlag. | **SI + HE** (Aufklaeren und unentdeckt bleiben gehoeren zusammen) | `aufklaerung_formel` auf `"SI"` oder `"HE"` setzen - eine Zeile, kein Umbau |
+| 4 | **Wie hart soll der Wall Spione abwehren?** | Abwehr = Wallstufe x 20 x Zustand/100; Verlust beim Abprallen 50 %, abgerundet. Vorlage: die belegte Wall-Vorrunde im Kampf (Stufe, Zustand wirkt prozentual). | **20 je Stufe und 50 % Verlust** beibehalten | Mehr Abwehr heisst: ohne Kundschafter der oberen Stufen kommt niemand an ein Dorf mit Wall; weniger heisst: Spionage wird billig |
+| 5 | **Welche Flaechen bleiben vor dem Bildhintergrund deckend?** | Vorgabe: "kleinere textbloecke die nicht transparent sind und der rest so transparent das moeglichst viel vom bild durchkommt". Tk kann keine echte Transparenz je Widget - deckend heisst hier: dunkler Kasten hinter dem Text, dazwischen bleibt das Bild sichtbar. | **nur Text und Tabellenzeilen** bekommen Kaesten, Knoepfe ohnehin (die sind immer deckend); Fusszeilen und Hinweise duerfen auf dem Bild liegen | Sagt Daniel "auch die Ueberschrift", wird der Kasten groesser - Optik wird vorher als Vergleichsbild vorgelegt |
+| 6 | **Duerfen duenne Bots den abwesenden Spieler bestehlen?** (offen aus der Uebergabe vom 02.11.2026) | Derzeit greifen Bots nur im Punkteband an; ein Bericht im Postfach waere neu. | **ja, aber nur mit Bericht** (dann ist es erklaerbar) | Ohne Pluenderung fehlt den Bots eine Einnahmequelle - dann muessen sie anders wirtschaften |

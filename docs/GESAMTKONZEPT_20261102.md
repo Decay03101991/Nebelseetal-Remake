@@ -57,7 +57,8 @@ Lords-Mobile-Teil — er bringt keine Inhalte mit, nur den Raum, in dem die Inha
 - Die Welt ist ein Raster (Standard 20 x 20), die Spielerdimensionen sind durchnummeriert (`data/welten.json`: 20 Dimensionen, 6 belegte Welten).
 - Jedes Bot-Dorf hat eine feste Position, abgeleitet aus Name und Nummer — nichts wird gewuerfelt (`bottaktik.dorf_position`).
 - **Offen sichtbar** beim Ueberfahren: Position, Schild, Fraktion, Dorfname und die bekannten Volkswerte.
-- **Nur ueber einen Spionagebericht**: Wallstufe und Wallzustand, aktive Taktik, stationierte Truppen, Items und Vorraete. Der Bericht ist die Entscheidungsgrundlage fuers Pluendern.
+- **Anklickbar** auf der Weltkarte (Portal-Kaestchen): ein Klick auf ein fremdes Dorf bietet "Angriff planen" und "Spionage" und fuehrt in die Truppenauswahl (gebaut 02.11.2026, Register 138).
+- **Nur ueber einen Spionagebericht**: Wallstufe und Wallzustand, aktive Taktik, stationierte Truppen, Items und Vorraete. Der Bericht ist die Entscheidungsgrundlage fuers Pluendern - und er zeigt nur, was die Aufklaerung der mitgeschickten Spionageeinheiten deckt (SI + HE je Einheit, Staffelung in `data/spionage.json`); reicht sie nicht fuer den Wall, prallt der Auftrag ab.
 - Berichte und Meldungen landen im Postfach; der Spieler springt per Koordinate zum Dorf.
 
 **Zwei Regeln, die nie gebrochen werden (Vorgabe Daniel 02.11.2026):**
@@ -108,7 +109,7 @@ ein, wenn die eigene Existenz wegbricht — nicht durch eine Punktzahl.
 
 1. **Kartenwahl je Gruendung** — Vorgabe vom 02.11.2026, Konzept Abschnitt 11.
 2. **Voelkerwahl am Start und die Volksboni** — beschlossen, 13 Wirkungen noch nicht verdrahtet.
-3. **Spionage und Postfach** — die Schnittstelle steht (`bot_doerfer_spionagebericht`), Aufrufer und Anzeige fehlen.
+3. ~~**Spionage und Postfach**~~ — **gebaut am 02.11.2026 (B-5, Register 138):** Auftragsart `spionieren`, Aufklaerungswert aus den Einheitenwerten (SI + HE), Wall-Abwehr mit Abprallen und Verlusten, Bericht im Postfach mit Frist und eigener Anzeige.
 4. **Bots gruenden nicht nach** — sie tragen die Doerfer, die der Kartenaufbau anlegt.
 5. **Kein Mehrspieler, kein Server, kein Konto** — und das bleibt so: lokales Einzelspieler-Spiel.
 

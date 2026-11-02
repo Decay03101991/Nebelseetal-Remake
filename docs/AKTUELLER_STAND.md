@@ -1,3 +1,48 @@
+# STAND 02.11.2026, 20:20 - Stufe B-5: Postfach und Spionage, gekoppelt an die Einheitenwerte (Register 138)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Es gibt jetzt ein Postfach mit Spionageberichten - und der Bericht haengt an den Einheiten.**
+Wer ein fremdes Dorf ausspionieren will, schickt Kundschafter der Diebesgilde; ihre Werte
+SI (Sinnesschaerfe) und HE (Heimlichkeit) ergeben den Aufklaerungswert, und der entscheidet, wie
+viel der Bericht zeigt. Reicht die Aufklaerung nicht fuer den Wall, prallt der Auftrag ab: Verluste,
+kein Bericht. Auf der Weltkarte stehen die fremden Doerfer jetzt als anklickbare Zeichen - ein Klick
+bietet "Angriff planen" und "Spionage", beide fuehren in die Truppenauswahl.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `deeae88` (Arbeitsbaum leer), darauf dieser Schritt | `git log --oneline -1` |
+| Neue Auftragsart | `spionieren` (fuenfte Art); nur fremdes Ziel, nur Spionageeinheiten, KEINE gemischte Truppe | `auftraege.py` |
+| Aufklaerungswert | SI + HE je Einheit: Streuner 60, Gauner 95, Dieb 135, Meisterdieb 150, Kundschafter 175, Waldlaeufer 185; Kaempfer/Karren 0 | `spionage.aufklaerungswert`, `data/units.json` |
+| Staffelung des Berichts | Truppen 25, Vorraete 50, Wall 75, Karte 100, Taktik 150 (VORSCHLAG) | `data/spionage.json` |
+| Wall-Abwehr | Wallstufe x 20 x Zustand/100 (VORSCHLAG); abgewehrt = 50 % Verluste, kein Bericht | `spionage.abwehr_eines_dorfes`, `abwehr_pruefung` |
+| Frist | **keine** - ein Bericht bleibt aktuell, bis ein neuer ueber dasselbe Dorf kommt (Vorgabe Daniel); er nennt seinen Stand und warnt, dass spaeter eintreffende Truppen fehlen | `data/spionage.json`, `spionage.bericht_zeilen` |
+| Anzeige | Nachrichtentyp `spionage` (violett #A97BD6), Knopf "Spionagebericht oeffnen", eigener Veraltet-Hinweis | `main._render_messages`, `_spionage_bericht_anzeigen` |
+| Weg im Fenster | Weltkarte (Portal-Kaestchen): fremde Doerfer als Zeichen, Klick -> Optionen -> Truppenauswahl; zweiter Einstieg Diebesgilde | `main._portal_klick`, `_bot_dorf_optionen`, `_truppen_auswahl` |
+| Angriff auf ein Dorf | nimmt jetzt Wall und Wallzustand DIESES Dorfes | `main.kampf_am_ziel` (`ziel["dorf_name"]`) |
+| Wache | `tests/test_spionage.py` **144/0/0**; drei Gegenproben wurden rot und die Dateien hashgleich zurueckgeschrieben | eigene Laeufe |
+| Umgestellte alte Wachen | `test_auftraege` (vier -> fuenf Arten, "spionieren" war dort das Beispiel fuer eine unbekannte Art), `test_portal_uebersicht` (Klick laeuft ueber `_portal_klick`) | mit Begruendung im Kommentar |
+| Voller Sammellauf | **129 von 131 gruen, 0 rot, 2 ausgesetzt, 5.131 Pruefungen, 287 s** (20:33) | `docs/audits/sammellauf_20261102_2027.log` |
+| Pruefdateien / Register | **131** / **138** | `ls tests/test_*.py`, `grep -c` |
+
+## Der EINE naechste Schritt
+
+**Optik: die gemalten Gebaeudebilder werden der HINTERGRUND ihrer Ansicht, nicht ein Bild oben
+drueber** (Vorgabe Daniel 02.11.2026, Screenshot in `docs/eingaben/20261102_Beispielansicht_Erklaerung_Hintergrund.png`).
+Heute zeichnet `main._gebaeude_kopf` die Szene als 538 x 222 grosses Bild UEBER dem Inhalt
+(Dorfzentrum, Bibliothek, Kaserne/Stellmacher/Diebesgilde). Richtig ist: die Szene liegt hinter dem
+Inhalt und fuellt die Ansicht; die Textbloecke bleiben als kleine, DECKENDE Kaesten lesbar, dazwischen
+bleibt das Bild sichtbar (Daniels Wortlaut: "kleinere textbloecke die nicht transparent sind und der
+rest so transparent das moeglichst viel vom bild durchkommt"). Zu tun: eine Hintergrund-Ebene je
+Ansicht, drei Fassungen als Vergleichsbild vorlegen (Vorgabe Daniel: Optik erst zeigen), Pruefdatei
+fuer die Lesbarkeit der Textkaesten, voller Sammellauf, Protokollzeile, ein Commit.
+Arbeitsweise: ein Schritt = ein Commit = ein gruener voller Sammellauf.
+
+**Danach in dieser Reihenfolge:** Truppenbewegungen auf der Weltkarte sichtbar machen (Vorgabe Daniel
+02.11.2026, Vorbild Lords Mobile - eigene und fremde Marsche mit Richtung und Restzeit), Voelkerwahl am
+Start (A2, sechs Voelker), Volksboni verdrahten (A, 13 Wirkungen), Kartenwahl fuer den SPIELER beim
+Gruenden, Anschluss `botkern.oekonomie_kartenwahl`, Kopplung Punkte/Kanaele (C), Balance-Messung (D).
+
 # STAND 02.11.2026, 19:46 - Stufe B-4: die Karte bestimmt den Ertrag (Register 137)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

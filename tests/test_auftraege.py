@@ -1,8 +1,9 @@
 """
 Auftraege und Missionen im Spiel (Paket WA, 04.10.2026).
 
-Beweist, dass die vier belegten Auftragsarten (stationieren, transportieren, handeln,
-angreifen) nach den Regeln aus docs/ENTWURF_AUFTRAEGE.md laufen:
+Beweist, dass die belegten Auftragsarten (stationieren, transportieren, handeln, angreifen) und
+die am 02.11.2026 beauftragte fuenfte Art 'spionieren' (Stufe B-5) nach den Regeln aus
+docs/ENTWURF_AUFTRAEGE.md laufen:
 
   * die Reise dauert Zeit, die Rueckkehr genau so lange wie eine Strecke (S. 19),
   * die Karrenladung begrenzt die Fracht - ein voller Karren laeuft nicht ueber,
@@ -54,14 +55,18 @@ check("starten liefert immer (Wahrheitswert, Text)",
 
 
 # ==========================================================================
-# 2. Auftragsarten - vier belegte Arten, 10-%-Drosselung belegt
+# 2. Auftragsarten - fuenf Arten (vier belegte plus Spionage), 10-%-Drosselung belegt
 # ==========================================================================
+# UMGESTELLT 02.11.2026 (Stufe B-5): Daniel hat die Spionage als eigene Auftragsart beauftragt.
+# Die alte Erwartung "genau vier" nagelte den Stand vor B-5 fest; die Zusage lautet weiter
+# "jede Art nennt Text, Beleg und Vorschlag" und wird unten fuer ALLE Arten geprueft.
 
-abschnitt("Auftragsarten - vier Arten und die belegte 10-%-Drosselung")
+abschnitt("Auftragsarten - fuenf Arten und die belegte 10-%-Drosselung")
 
 _arten = A.auftragsarten()
-check("genau die vier belegten Arten sind bekannt",
-      set(_arten) == {"stationieren", "transportieren", "handeln", "angreifen"}, str(sorted(_arten)))
+check("genau die fuenf Arten sind bekannt (vier belegte plus spionieren)",
+      set(_arten) == {"stationieren", "transportieren", "handeln", "angreifen", "spionieren"},
+      str(sorted(_arten)))
 check("jede Art nennt einen Text", all(_arten[k].get("text") for k in _arten))
 check("jede Art nennt belegte Regeln", all(_arten[k].get("belegt") for k in _arten))
 check("die 10-%-Drosselung aus dem Entwurf ist woertlich genannt",
@@ -127,7 +132,7 @@ check("Ladung ist nie negativ", A.ladung_der_mission({HK: -3}) == 0)
 # 5. Starten - alle vier Arten
 # ==========================================================================
 
-abschnitt("Starten - alle vier Auftragsarten laufen an")
+abschnitt("Starten - alle vier belegten Auftragsarten laufen an")
 
 _vier = A.neue_liste()
 ok1, m1 = A.starten(_vier, "stationieren", {"Kämpfer": 1}, "Heim", "Aussen", 80, 0)
@@ -151,10 +156,15 @@ check("der Angriff hat Fracht leer (keine Karren)", _vier[3]["fracht"] == {}, st
 abschnitt("Starten - Falsches wird mit Begruendung abgelehnt")
 
 _ab = A.neue_liste()
+# UMGESTELLT 02.11.2026 (Stufe B-5): hier stand 'spionieren' als Beispiel fuer eine UNBEKANNTE
+# Art - seit B-5 ist Spionage eine echte Auftragsart. Die Zusage bleibt dieselbe: eine Art, die
+# es nicht gibt, wird abgelehnt und die Meldung nennt die erlaubten Arten.
 check("unbekannte Auftragsart wird abgelehnt",
-      A.starten(_ab, "spionieren", {"Kämpfer": 1}, "H", "Z", 10, 0)[0] is False)
+      A.starten(_ab, "pluendern", {"Kämpfer": 1}, "H", "Z", 10, 0)[0] is False)
 check("die Ablehnung nennt die erlaubten Arten",
-      "angreifen" in A.starten(_ab, "spionieren", {"Kämpfer": 1}, "H", "Z", 10, 0)[1])
+      "angreifen" in A.starten(_ab, "pluendern", {"Kämpfer": 1}, "H", "Z", 10, 0)[1])
+check("die Ablehnung nennt auch die neue Art spionieren",
+      "spionieren" in A.starten(_ab, "pluendern", {"Kämpfer": 1}, "H", "Z", 10, 0)[1])
 check("ohne Einheiten wird abgelehnt",
       A.starten(_ab, "transportieren", {}, "H", "Z", 10, 0)[0] is False)
 check("eine unbekannte Einheit wird abgelehnt",

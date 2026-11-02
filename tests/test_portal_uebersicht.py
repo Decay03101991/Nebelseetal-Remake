@@ -165,7 +165,12 @@ def _pruefungen_ansicht():
     check("die Liste steht im Quelltext VOR dem Kaestchen (Daniel: Liste oben)",
           quelle.find("weltkarten") < quelle.find("anzeige_raster"),
           str((quelle.find("weltkarten"), quelle.find("anzeige_raster"))))
-    check("ein Klick ruft _portal_feld_waehlen", "_portal_feld_waehlen" in quelle, "")
+    # UMGESTELLT 02.11.2026 (Stufe B-5): der Klick laeuft jetzt ueber EINE Weiterleitung, weil auf
+    # dem Kaestchen fremde Doerfer liegen (Klick aufs Dorf -> Optionen, sonst Feld anwaehlen). Die
+    # Zusage bleibt: ein Klick landet bei genau einer Stelle, und das Anwaehlen selbst bucht nichts.
+    check("ein Klick ruft die Weiterleitung _portal_klick", "_portal_klick" in quelle, "")
+    check("die Weiterleitung waehlt sonst das Feld an",
+          "_portal_feld_waehlen" in _code(main.NebelseetalApp._portal_klick), "")
     check("die Ansicht sagt Weltkarte und Kaestchen",
           "Weltkarte" in quelle and "Kaestchen" in quelle, "")
     for name in ("_render_portal", "_portal_wechsel", "_portal_feld_waehlen", "_unterwegs_anzahl"):

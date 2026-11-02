@@ -6,8 +6,9 @@ Ziel und (in der Regel) wieder zurueck. Dieses Modul fuehrt die Auftragsliste, d
 Reisezeiten und die Auswertung. Den Kampf selbst baut es NICHT nach: fuer den Angriff
 wird `kampfbericht.vorrunde` benutzt, fuer die Beute `kampfbericht.beute`.
 
-BELEGT (docs/ENTWURF_AUFTRAEGE.md, Handbuch 2009):
-  * vier Auftragsarten - stationieren, transportieren, handeln, angreifen,
+BELEGT (docs/ENTWURF_AUFTRAEGE.md, Handbuch 2009, Fanpage 2007):
+  * fuenf Auftragsarten - stationieren, transportieren, handeln, angreifen und (seit
+    02.11.2026, Stufe B-5) spionieren,
   * eine Reise dauert Zeit, die Rueckkehr dauert genauso lange wie eine Strecke
     (S. 19: "Wenn also 2 Stunden angegeben sind, benoetigen Deine Einheiten 2 Stunden").
     Der Faktor HIN_UND_RUECK_FAKTOR = 2 bildet das ab.
@@ -18,6 +19,11 @@ BELEGT (docs/ENTWURF_AUFTRAEGE.md, Handbuch 2009):
   * transportieren nur mit Karren, handeln nur mit Handelskarawanen (Handbuch),
   * Angriff: Vorrunde gegen den Wall (Schwellen aus gebaeude_wirkung),
     Beute nur mit Transportkarren (S. 23).
+  * Spionage (Fanpage 2007, Auftraege.html): ein Bericht nennt Karte, Ressourcen und
+    stationierte Einheiten eines fremden Dorfes; schnelle Einheiten machen Spione schneller.
+    Reisende sind die Kundschafter der Diebesgilde (data/units.json, Kategorie Kundschafter);
+    wieviel ein Bericht aufdeckt, rechnet `spionage.aufklaerungswert` aus ihren Werten
+    SI (Sinnesschaerfe) und HE (Heimlichkeit) - Vorgabe Daniel 02.11.2026.
 
 NICHT belegt und darum VORSCHLAG (jeder eigene Wert mit Grund, siehe offene_luecken):
   * die Reisezeit-Formel SEKUNDEN_JE_FELD (das Handbuch nennt keine Entfernung/-
@@ -43,11 +49,14 @@ from typing import Any, Dict, List, Optional, Tuple
 import einheiten as E
 import kampfbericht as KB
 import hilfen
+import spionage as SP   # B-5: Aufklaerungswert aus den Werten der Spionageeinheiten
 
 STAND = "2026-10-04.1"
 
-# Die vier belegten Auftragsarten (docs/ENTWURF_AUFTRAEGE.md, Tabelle).
-AUFTRAGSARTEN: Tuple[str, ...] = ("stationieren", "transportieren", "handeln", "angreifen")
+# Die belegten Auftragsarten (docs/ENTWURF_AUFTRAEGE.md, Tabelle) plus die am 02.11.2026 von Daniel
+# beauftragte fuenfte Art 'spionieren' (Stufe B-5, Postfach und Spionage).
+AUFTRAGSARTEN: Tuple[str, ...] = ("stationieren", "transportieren", "handeln", "angreifen",
+                                  "spionieren")
 
 # VORGABE DANIEL 31.10.2026 (Registerpunkt 43): Das Handbuch nennt KEINE Formel aus Entfernung und
 # Geschwindigkeit, nur Beispielstunden (S. 19). Deshalb gilt als anpassbare Arbeitsformel:
@@ -192,7 +201,7 @@ def ladung_der_mission(einheiten: Any, forschung: Any = None) -> int:
 # ------------------------------------------------------------------------------ Arten
 
 def auftragsarten() -> Dict[str, Dict[str, Any]]:
-    """Die vier Auftragsarten mit ihren belegten Regeln und ausgewiesenen Vorschlaegen."""
+    """Die fuenf Auftragsarten mit ihren belegten Regeln und ausgewiesenen Vorschlaegen."""
     return {
         "stationieren": {
             "text": "Einheiten in einer eigenen Siedlung absetzen.",
@@ -220,6 +229,22 @@ def auftragsarten() -> Dict[str, Dict[str, Any]]:
                        DROSSELUNG_ZITAT],
             "vorschlag": [f"Beute {BEUTE_ANTEIL_PROZENT} % der Lager, gedeckelt durch die "
                           "Karrenladung (Entwurf, noch zu entscheiden)."],
+        },
+        "spionieren": {
+            "text": "Ein fremdes Dorf ausspionieren und einen Bericht ins Postfach legen.",
+            "belegt": ["Fanpage 2007 (Auftraege.html): der Spionagebericht nennt Karte, "
+                       "Ressourcen und stationierte Einheiten; schnelle Einheiten machen Spione "
+                       "schneller.",
+                       "Reisende sind die Kundschafter der Diebesgilde (Streuner, Gauner, Dieb, "
+                       "Meisterdieb, Kundschafter, Waldlaeufer - data/units.json).",
+                       "VORGABE Daniel 02.11.2026: eine Spionage ist es NUR, wenn die gesamte "
+                       "Truppenauswahl aus Spionageeinheiten besteht - sonst ist es ein Angriff.",
+                       "In ein EIGENES Dorf wird nicht spioniert; Doerfer werden nie eingenommen "
+                       "(Vorgabe Daniel 02.11.2026), Spionage aendert keinen Besitz."],
+            "vorschlag": ["Wie viel der Bericht aufdeckt, rechnet spionage.aufklaerungswert aus "
+                          "den Werten SI und HE der mitgeschickten Spionageeinheiten; die "
+                          "Schwellen je Berichtsteil und die Gueltigkeitsfrist stehen in "
+                          "data/spionage.json (VORSCHLAG, Handbuch beziffert SI/HE nicht)."],
         },
     }
 
@@ -348,8 +373,8 @@ def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
         if not karawanen:
             return False, "Handeln ist nur mit Handelskarawanen moeglich."
     elif art == "angreifen":
-        fuss = _schlagkraft_fussttruppen(bestand)
-        bel = _schlagkraft_belagerung(bestand)
+        fuss = _schlagkraft_fussttruppen(bestand)                            # Angriffskraft Fusstruppen
+        bel = _schlagkraft_belagerung(bestand)                               # Angriffskraft Belagerung
         if fuss + bel <= 0:
             return False, ("Ohne Schlagkraft kann die Vorrunde gegen den Wall nicht "
                            "bestanden werden - der Angriff wird abgelehnt.")
@@ -378,6 +403,38 @@ def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
                     forschung=forschung)
                 zusatz["beute_lage"] = KB.beute_lage(
                     ziel.get("wall_zustand_prozent"), ziel.get("verteidiger_uebrig"))
+    elif art == "spionieren":
+        # B-5 (Vorgabe Daniel 02.11.2026): Spionage reist mit SPIONAGEEINHEITEN - den Kundschaftern
+        # der Diebesgilde. Kaempfer und Karren duerfen mit, klaeren aber nichts auf.
+        if not ziel.get("fremd"):
+            return False, ("Spionage gibt es nur gegen ein FREMDES Dorf - ein eigenes Dorf "
+                           "braucht keinen Bericht.")
+        kundschafter = SP.spionageeinheiten(bestand)                         # nur Spionageeinheiten
+        if not kundschafter:
+            return False, ("Spionage braucht Spionageeinheiten - die Kundschafter der "
+                           "Diebesgilde (Streuner, Gauner, Dieb, Meisterdieb, Kundschafter, "
+                           "Waldlaeufer).")
+        # VORGABE Daniel 02.11.2026: "Eine Spionage ist es nur dann, wenn die gesamte
+        # Truppenauswahl nur aus Spionageeinheiten besteht." Also ist eine GEMISCHTE Truppe keine
+        # Spionage - sie wird abgelehnt, nicht stillschweigend auf die Kundschafter gekuerzt.
+        keine_spione = sorted(n for n in bestand if not E.ist_kundschafter(n))
+        if keine_spione:
+            return False, ("Spionage geht NUR mit Spionageeinheiten - in der Auswahl stehen: "
+                           + ", ".join(keine_spione) + ". Ohne sie ist es ein Angriff, "
+                           "keine Spionage.")
+        zusatz["aufklaerung"] = SP.aufklaerungswert(kundschafter)            # SI + HE der Truppe
+        if zusatz["aufklaerung"] <= 0:
+            return False, "Die mitgeschickten Einheiten haben keinen Aufklaerungswert."
+        # ANALOG zur Wall-Vorrunde (`kampfbericht.vorrunde`) und aus demselben Grund wie die
+        # Wallpruefung (Entscheidung Daniel 31.10.2026, Frage 8): die Abwehr des Dorfes kann sich
+        # bis zur Ankunft aendern. Beim Absenden wird nur GEWARNT, entschieden wird bei Ankunft.
+        abwehr = SP.abwehr_eines_dorfes(ziel.get("wall_stufe"),
+                                        ziel.get("wall_zustand_prozent"))
+        if zusatz["aufklaerung"] < abwehr:
+            warnungen.append(
+                "WARNUNG: die Aufklaerung (%d) liegt unter der Abwehr des Dorfes (%d) - der "
+                "Spionageauftrag kann abprallen. Entschieden wird bei Ankunft."
+                % (int(zusatz["aufklaerung"]), int(round(abwehr))))
 
     ok_fracht, meld_fracht, saubere_fracht = _pruefe_fracht(fracht, ladung)
     if not ok_fracht:
@@ -411,6 +468,9 @@ def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
         "ladung": ladung,
         "kosten": dict(kosten),           # VORSCHLAG-Saetze aus A2, siehe kosten_der_mission
         "beute": dict(zusatz.get("beute") or {}),
+        # B-5: Aufklaerungswert der mitgeschickten Spionageeinheiten (SI+HE) - 0 fuer alle anderen
+        # Arten. Daran entscheidet sich bei Ankunft, ob der Wall ueberwunden wird.
+        "aufklaerung": int(zusatz.get("aufklaerung") or 0),
         "warnungen": list(warnungen),
         "vorrunde": zusatz.get("vorrunde"),
         "rueckgut": {},
@@ -553,8 +613,18 @@ def bericht(eintrag: Any) -> Dict[str, Any]:
         zeilen.append("Fracht: " + _aufzaehlung(e.get("fracht")) + ".")
     if e.get("beute"):
         zeilen.append("Beute: " + _aufzaehlung(e.get("beute")) + ".")
+    if e.get("verluste"):
+        # B-5: ein abgewehrter Spionageauftrag verliert Einheiten - die Zeile nennt sie.
+        zeilen.append("Verluste: " + _aufzaehlung(e.get("verluste")) + ".")
     if e.get("rueckgut"):
         zeilen.append("Zurueckgebracht: " + _aufzaehlung(e.get("rueckgut")) + ".")
+    if e.get("art") == "spionieren":
+        # B-5: der Bericht des AUFTRAGS nennt die Aufklaerung; der Spionagebericht selbst kommt als
+        # eigene Nachricht (spionage.bericht_nachricht) - nur bei ueberwundenem Wall.
+        zeilen.append("Aufklaerung der Spionageeinheiten: %d." % int(_als_zahl(e.get("aufklaerung"))))
+        if e.get("abgewehrt"):
+            zeilen.append("Der Wall hat den Auftrag abgewehrt - kein Bericht, die Einheiten sind "
+                          "auf dem Rueckweg (Verluste siehe Nachricht).")
     if e.get("vorrunde") and not e["vorrunde"].get("bestanden", True):
         zeilen.append("Vorrunde: " + str(e["vorrunde"].get("grund")))
     zeilen.append(f"Status: {e.get('status')}, abgeschlossen: "

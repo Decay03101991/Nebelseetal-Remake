@@ -24,6 +24,7 @@ from bonus_system import (
     get_military_multiplier, get_trade_bonus, get_defense_bonus,
 )
 import einheiten
+import hilfen     # B-5: die eine Schreibweise fuer Mengen (Aufzaehlung der Verluste)
 import spieldaten
 import gelaende
 import baumenue_info  # FIX04: historische Rubriken und begruendete Bauangebote
@@ -49,6 +50,7 @@ import bottaktik   # S-7: Bot-Verhalten (Zustandsautomat, Taktiken, Volksattribu
 import portalraum  # W5-2: die 20 Dimensionen des Limbus, Raster, Wechselkosten und -sperre
 import werkstatt   # W3: die drei Werkstaetten, die 17 Waren und ihre Warteschlangen
 import auftraege   # W7: Auftraege (Missionen) mit Reisezeit, Rueckkehr und Bericht
+import spionage    # B-5: Spionagebericht, Abwehr und Nachricht (02.11.2026)
 import forschung  # W4c: Forschung braucht Zeit - die Stufe steigt erst nach Ablauf
 import welt        # W4d: die Weltkarte des Limbus (20 Dimensionen, sechs belegte Welten)
 import zeitbasis  # GPT-Z01: lokale Datumsstempel, monotone Laufzeituhr, Nachrichten
@@ -576,6 +578,34 @@ def bot_karten_uebersicht(karte: str, einstellungen: Optional[dict] = None) -> d
             "ertrag_pro_stunde": {s: round(w / teiler, 2) for s, w in profil.items() if w > 0}}
 
 
+def bot_dorf_bericht_teil(dorf, bot: "BotPlayer",
+                          einstellungen: Optional[dict] = None) -> dict:
+    """Der verdeckte Teil EINES Bot-Dorfes fuer den Spionagebericht - die EINE Lesestelle (F-04).
+
+    Kern (Bot-Takt, Angriff) und Anzeige (Postfach) lesen dieselben Zahlen: der Ertrag kommt aus
+    `bot_dorf_ertrag` (B-3/B-4), die Vorraete aus dem Dorflager, Wall und Taktik aus dem
+    Dorf-Datensatz. Bewusst eine MODULFUNKTION und keine Methode: sie braucht keinen Spielstand,
+    und eine Pruefdatei mit einem schlanken Stellvertreter kann sie so aufrufen (B-5, 02.11.2026).
+    """
+    einstellungen = (einstellungen if einstellungen is not None
+                     else bot_wirtschaft_einstellungen())               # Schalter und Teiler lesen
+    karte = str(getattr(dorf, "karte", "") or "")                       # B-4: die Karte dieses Dorfes
+    return {"name": dorf.name, "x": int(dorf.x), "y": int(dorf.y),
+            "wall_stufe": int(dorf.wall_stufe),                         # Kampfdatum - nur hier
+            "wall_zustand": float(dorf.wall_zustand),                   # Kampfdatum - nur hier
+            "taktik": str(dorf.taktik or ""),                           # Kampfdatum - nur hier
+            "truppen": dict(bot.army or {}),                            # stationierte Truppen
+            # B-3: die Vorrate stehen je DORF (jedes Dorf hat ein eigenes Lager).
+            "vorraete": {str(k): round(float(v), 2)
+                         for k, v in (dorf.vorraete or {}).items()},
+            "ertrag_pro_stunde": bot_dorf_ertrag(dorf, einstellungen),   # eine Lesestelle (F-04)
+            # B-4: die Karte bestimmt den Ertrag - der Bericht zeigt sie mit ihren Werten.
+            "karte": karte,
+            "karte_info": (bot_karten_uebersicht(karte, einstellungen)
+                           if karte and einstellungen.get("karten_aktiv", True) else {}),
+            "ernte_seit": float(dorf.ernte_seit)}                       # Zeitpunkt der letzten Ernte
+
+
 def bot_kasse(bot: "BotPlayer") -> Dict[str, float]:
     """Die Kasse eines Bots = SUMME seiner Dorf-Vorrate (B-3, die EINE Lesestelle).
 
@@ -1043,7 +1073,7 @@ def mengen_text(werte: dict, reihenfolge=None, leer: str = "leer") -> str:
     return ", ".join(f"{zahl_text(posten[k])} {k.capitalize()}" for k in vorne + hinten)
 
 
-NACHRICHTEN_FARBEN = {"kampf": "#e53935", "geschenk": "#7FD1FF"}
+NACHRICHTEN_FARBEN = {"kampf": "#e53935", "geschenk": "#7FD1FF", "spionage": "#A97BD6"}
 
 
 def nachrichten_farbe(nachricht) -> str:
@@ -2035,31 +2065,93 @@ class GameState:
 
         VORGABE Daniel 02.11.2026 (Vorbild Lords Mobile): erst ein Spionageangriff bringt Wallstufe,
         Wallzustand, die aktive Taktik, stationierte Truppen und Vorraete ins Postfach. Diese
-        Funktion liefert die Zahlen; die Postfach-Anzeige und der Spionage-Auftrag folgen als
-        eigene Stufe. Bis dahin hat sie KEINEN Aufrufer - sie ist die Schnittstelle, keine Anzeige.
+        Funktion liefert die Zahlen fuer ALLE Doerfer eines Bots; wie viel davon in der Nachricht
+        sichtbar wird, entscheidet `spionage.bericht_zeilen` anhand des Aufklaerungswerts.
         """
-        doerfer = []
         einstellungen = bot_wirtschaft_einstellungen()                 # Schalter und Teiler EINMAL lesen
-        for d in bot_doerfer_sicherstellen(bot):                       # je Dorf ein Berichtsteil
-            karte = str(getattr(d, "karte", "") or "")                 # B-4: die Karte dieses Dorfes
-            doerfer.append({"name": d.name, "x": int(d.x), "y": int(d.y),
-                            "wall_stufe": int(d.wall_stufe),           # Kampfdatum - nur hier
-                            "wall_zustand": float(d.wall_zustand),     # Kampfdatum - nur hier
-                            "taktik": str(d.taktik or ""),             # Kampfdatum - nur hier
-                            "truppen": dict(bot.army or {}),           # stationierte Truppen
-                            # B-3: die Vorrate stehen je DORF (jedes Dorf hat ein eigenes Lager) -
-                            # und der Ertrag kommt aus DERSELBEN Funktion, mit der der Kern bucht.
-                            "vorraete": {str(k): round(float(v), 2)
-                                         for k, v in (d.vorraete or {}).items()},
-                            "ertrag_pro_stunde": bot_dorf_ertrag(d),    # eine Lesestelle (F-04)
-                            # B-4: die Karte bestimmt den Ertrag - der Bericht zeigt sie mit ihren
-                            # Werten, gerechnet von derselben Funktion wie der Kern.
-                            "karte": karte,
-                            "karte_info": (bot_karten_uebersicht(karte, einstellungen)
-                                           if karte and einstellungen.get("karten_aktiv", True) else {}),
-                            "ernte_seit": float(d.ernte_seit)})         # Zeitpunkt der letzten Ernte
+        doerfer = [bot_dorf_bericht_teil(d, bot, einstellungen)         # EINE Stelle je Dorf (F-04)
+                   for d in bot_doerfer_sicherstellen(bot)]            # je Dorf ein Berichtsteil
         return {"bot": str(bot.name), "fraktion": str(bot.faction), "doerfer": doerfer,
                 "kasse": bot_kasse(bot)}                               # Summe der Doerfer, keine zweite Kasse
+
+    def bot_dorf_spionagebericht(self, bot: BotPlayer, dorf_name: str = "",
+                                 jetzt: Optional[float] = None) -> dict:
+        """Der Spionagebericht EINES Dorfes - Eingabe fuer `spionage.bericht_nachricht`.
+
+        Ohne `dorf_name` gilt das Hauptdorf (das erste Dorf, B-1). `jetzt` ist die SPIELZEIT der
+        Ankunft; sie wandert als `zeit_spielsekunden` in den Bericht, damit `spionage.veraltet`
+        spaeter messen kann, wie alt er ist. Ein unbekannter Dorfname liefert `dorf` = {} - der
+        Aufrufer meldet das, statt einen Bericht zu erfinden.
+        """
+        teil = None                                                    # der gesuchte Dorfteil
+        for d in bot_doerfer_sicherstellen(bot):                       # je Dorf pruefen
+            if not dorf_name or str(d.name) == str(dorf_name):         # Name passt (oder Hauptdorf)
+                teil = bot_dorf_bericht_teil(d, bot)                   # diesen Teil bauen
+                break                                                  # erster Treffer gilt
+        return {"bot": str(bot.name), "fraktion": str(bot.faction),
+                "dorf": teil or {},                                    # {} = Dorf nicht gefunden
+                "kasse": bot_kasse(bot),                               # Summe der Doerfer
+                "zeit_spielsekunden": float(jetzt if jetzt is not None else self.spielsekunden)}
+
+    def spionage_starten(self, bot: BotPlayer, dorf_name: str = "",
+                         anzahl: Optional[int] = None,
+                         truppen: Optional[dict] = None) -> tuple:
+        """Einen Spionageauftrag zu EINEM Bot-Dorf entsenden (Stufe B-5, 02.11.2026).
+
+        Quelle ist das ORTSHEER der aktiven Siedlung: es reisen die KUNDSCHAFTER (Diebesgilde) -
+        Spionage ist eine Sache der Einheiten, nicht der Kaempfer (Vorgabe Daniel 02.11.2026).
+        `anzahl` ist die Zahl je Spionageart, ohne Angabe gilt `data/spionage.json`
+        (`kundschafter_anzahl`). Die Entfernung ist der Abstand der beiden Dorfpositionen im
+        Raster; Wallstufe und -zustand gehen als ZIELANGABE mit, damit der Kern beim Absenden
+        warnen und bei der Ankunft entscheiden kann (Analogie zur Wall-Vorrunde).
+        Rueckgabe (ok, Meldung) - der Bericht selbst kommt erst bei Ankunft ins Postfach.
+        """
+        e = spionage.einstellungen()                                   # Schalter aus der Datendatei
+        if not e.get("aktiv", True):                                   # Spionage abgeschaltet
+            return False, "Spionage ist in data/spionage.json abgeschaltet."
+        doerfer = bot_doerfer_sicherstellen(bot)                       # Doerfer des Bots, ggf. angelegt
+        dorf = next((d for d in doerfer if not dorf_name or str(d.name) == str(dorf_name)), None)
+        if dorf is None:                                               # Dorf gibt es nicht
+            return False, "Dieses Dorf gehoert nicht zu %s." % bot.name
+        ort = self.aktive_siedlung()                                   # Startort des Auftrags
+        if ort is None:                                                # ohne Siedlung kein Auftrag
+            return False, "Ohne eigene Siedlung kann niemand ausspioniert werden."
+        vorrat = self._ortsheer(ort) if hasattr(self, "_ortsheer") else dict(ort.einheiten or {})
+        kundschafter = {n: int(a) for n, a in vorrat.items()           # nur Spionageeinheiten
+                        if einheiten.ist_kundschafter(n) and int(a) > 0}
+        if not kundschafter:                                           # keine Kundschafter im Ort
+            return False, ("Keine Kundschafter in %s - Spionage braucht die Einheiten der "
+                           "Diebesgilde (Streuner, Gauner, Dieb, Meisterdieb, Kundschafter, "
+                           "Waldlaeufer)." % ort.name)
+        try:                                                           # Anzahl aus der Datendatei
+            je_art = max(1, int(e.get("kundschafter_anzahl") or 1))
+        except (TypeError, ValueError):                                # kaputter Wert
+            je_art = 1                                                 # dann eine Einheit
+        if anzahl is not None:                                         # Aufrufer hat eine Zahl genannt
+            try:                                                       # sie muss brauchbar sein
+                je_art = max(1, int(anzahl))
+            except (TypeError, ValueError):                            # kaputte Angabe
+                je_art = 1                                             # dann die Vorgabe
+        if truppen is not None:                                        # B-5: Auswahl aus dem Fenster
+            gewaehlt = {str(n): int(a) for n, a in dict(truppen).items() if int(a) > 0}   # nur > 0
+            if not gewaehlt:                                           # leere Auswahl
+                return False, "Keine Einheiten ausgewaehlt."
+            if any(n not in kundschafter for n in gewaehlt):           # etwas ist keine Spionageeinheit
+                return False, ("In der Auswahl steht eine Einheit, die keine Spionageeinheit ist - "
+                               "Spionage geht nur mit Kundschaftern der Diebesgilde.")
+            if any(gewaehlt[n] > kundschafter[n] for n in gewaehlt):    # mehr als im Dorf steht
+                return False, "So viele Einheiten stehen nicht im Dorf."
+            einsatz = gewaehlt                                        # die Auswahl gilt
+        else:                                                          # ohne Auswahl die Vorgabe
+            einsatz = {n: min(int(a), je_art) for n, a in kundschafter.items()}   # je Art hoechstens je_art
+        entfernung = float(max(1, abs(int(ort.x) - int(dorf.x)) + abs(int(ort.y) - int(dorf.y))))
+        ziel = {"name": str(dorf.name), "fremd": True,                 # fremdes Dorf - kein Bericht ueber eigene
+                "bot_name": str(bot.name), "dorf_name": str(dorf.name),
+                "wall_stufe": int(dorf.wall_stufe),                    # Zielangabe fuer die Warnung
+                "wall_zustand_prozent": float(dorf.wall_zustand)}
+        ok, meldung = self.auftrag_starten("spionieren", einsatz, str(ort.name), ziel, entfernung,
+                                           quelle_id=str(getattr(ort, "id", "") or ""))
+        return ok, meldung
 
     def bot_doerfer_auffrischen_alle(self, jetzt: float) -> int:
         """Alle Bots in einem Zug auffrischen (Positionen und Dorf-Taktiken)."""
@@ -3178,6 +3270,11 @@ class GameState:
                 continue                  # oben gebucht, in den ORTSLAGERN statt im Reichsbestand
             if eintrag.get("art") == "angreifen":
                 self.kampf_am_ziel(eintrag)      # W7: der echte Kampf, bevor gebucht wird
+            if eintrag.get("art") == "spionieren":
+                # B-5 (02.11.2026): Wall-Abwehr pruefen und den Bericht ins Postfach legen -
+                # ebenfalls VOR der Buchung, weil ein abgeprallter Auftrag seine Verluste selbst
+                # setzt und nur der Rest heimkehrt.
+                self.spionage_am_ziel(eintrag)
             # F-01/F-09: gebucht wird in der QUELLE des Auftrags (`quelle_id`), nicht im Reich.
             # Alte Auftraege ohne Quelle behalten den bisherigen Weg ueber den Reichsbestand.
             quelle = self._siedlung_zu(eintrag.get("quelle_id"))
@@ -3234,6 +3331,70 @@ class GameState:
                              if not (e.get("status") == "abgeschlossen" and e.get("heimgekehrt"))]
         return ergebnis
 
+    def spionage_am_ziel(self, eintrag: dict) -> dict:
+        """Spionage am Ziel: Wall-Abwehr pruefen, dann Bericht ins Postfach ODER Verluste (B-5).
+
+        VORGABE Daniel 02.11.2026: "dann benoetigt es eine gewisse schlagkraft von spionageinheiten
+        um einen wall zu ueberwinden und auszuspionieren" - dieselbe Mechanik wie die Wall-Vorrunde
+        im Kampf (`kampfbericht.vorrunde`). Entschieden wird hier, bei der ANKUNFT: der Wall kann
+        sich seit dem Absenden geaendert haben (dieselbe Begruendung wie Entscheidung 8 vom
+        31.10.2026 fuer den Angriff).
+
+        Zwei Ausgaenge:
+          * ueberwunden - `spionage.bericht_nachricht` legt den Bericht ins Postfach; wie viel er
+            zeigt, entscheidet der Aufklaerungswert der mitgeschickten Spionageeinheiten;
+          * abgeprallt - kein Bericht, die Truppe verliert den Anteil aus `data/spionage.json`,
+            und die Nachricht nennt ausdruecklich, was fehlt und wie viel Aufklaerung gefehlt hat.
+        """
+        ziel = eintrag.get("ziel") if isinstance(eintrag.get("ziel"), dict) else {}   # Zielangaben
+        bot_name = str(ziel.get("bot_name") or "")                                  # Bot des Dorfes
+        dorf_name = str(ziel.get("dorf_name") or ziel.get("name") or "")             # Name des Dorfes
+        zeit = float(eintrag.get("ankunft") or self.spielsekunden)                   # Spielzeit der Ankunft
+        bot = next((b for b in self.bots if str(b.name) == bot_name), None)          # den Bot suchen
+        if bot is None:                                                             # Bot verschwunden
+            meldung = ("Spionagebericht nicht erstellt: Bot '%s' ist nicht mehr vorhanden."
+                       % (bot_name or "unbekannt"))
+            self.messages.append({"text": meldung, "type": "spionage", "spielzeit_sekunden": zeit})
+            self._log(meldung)
+            return {"bestanden": False, "grund": meldung}
+        dorf = next((d for d in bot_doerfer_sicherstellen(bot)                       # Doerfer des Bots
+                     if str(d.name) == dorf_name), None)                            # das gesuchte Dorf
+        if dorf is None:                                                            # Dorf verschwunden
+            meldung = ("Spionagebericht nicht erstellt: Dorf '%s' gehoert nicht mehr zu %s."
+                       % (dorf_name or "unbekannt", bot.name))
+            self.messages.append({"text": meldung, "type": "spionage", "spielzeit_sekunden": zeit})
+            self._log(meldung)
+            return {"bestanden": False, "grund": meldung}
+
+        aufklaerung = int(eintrag.get("aufklaerung") or 0)                           # Wert der Truppe
+        pruefung = spionage.abwehr_pruefung(aufklaerung, dorf.wall_stufe,             # Wall-Abwehr
+                                            dorf.wall_zustand)
+        eintrag["abwehr"] = pruefung                                                # Beleg am Auftrag
+        if not pruefung.get("bestanden"):                                           # abgeprallt
+            vorher = {str(n): int(a) for n, a in (eintrag.get("einheiten") or {}).items()}
+            rest = spionage.verlust_der_truppe(vorher)                              # Anteil bleibt
+            verluste = {n: int(a) - int(rest.get(n, 0)) for n, a in vorher.items()
+                        if int(a) - int(rest.get(n, 0)) > 0}                        # was fehlt
+            eintrag["einheiten"] = rest                                             # nur der Rest kehrt heim
+            eintrag["abgewehrt"] = True                                             # Merker fuer den Bericht
+            eintrag["verluste"] = verluste                                          # Verluste am Auftrag
+            text = ("Spionage abgewehrt: %s\n%s\nVerluste: %s. Es gibt KEINEN Bericht - Wallstufe, "
+                    "Taktik, Truppen und Vorraete bleiben verdeckt. Ein staerkerer Trupp "
+                    "Spionageeinheiten (hoehere Werte SI und HE) schafft den Wall."
+                    % (dorf.name, str(pruefung.get("grund") or ""),
+                       hilfen.aufzaehlung(verluste)))
+            self.messages.append({"text": text, "type": "spionage", "spielzeit_sekunden": zeit})
+            self._log("Spionage auf %s abgewehrt (Aufklaerung %d, Abwehr %d)."
+                      % (dorf.name, aufklaerung, int(round(pruefung.get("erforderlich") or 0))))
+            return pruefung
+
+        bericht = self.bot_dorf_spionagebericht(bot, str(dorf.name), zeit)           # der Bericht
+        nachricht = spionage.bericht_nachricht(bericht, aufklaerung)                # die Nachricht
+        self.messages.append(nachricht)                                             # ab ins Postfach
+        self._log("Spionagebericht fuer %s eingegangen (Aufklaerung %d)."
+                  % (dorf.name, aufklaerung))
+        return pruefung
+
     def kampf_am_ziel(self, eintrag: dict, bot_objekt=None) -> dict:
         """Den echten Kampf am Ziel austragen (Handbuch S. 21-23) - W7, Schritt 7 abgeschlossen.
 
@@ -3248,12 +3409,22 @@ class GameState:
         # `self.bots` steht - so bucht der Pruefstand dieselben Gueter ab wie das Spiel.
         bot_ziel = (bot_objekt if isinstance(bot_objekt, BotPlayer) else
                     next((b for b in self.bots if b.name == ziel.get("bot_name")), None))
+        # B-5 (02.11.2026): wird ein DORF angegriffen, gilt dessen Wall - nicht der des ganzen Bots.
+        # Bis hierher nahm jeder Angriff `bot.wall_stufe`; mit den Dorf-Datensaetzen aus B-1 ist das
+        # die falsche Ebene (jedes Dorf hat seinen eigenen Wall und Zustand).
+        ziel_dorf = None
+        if bot_ziel is not None and ziel.get("dorf_name"):
+            ziel_dorf = next((d for d in bot_doerfer_sicherstellen(bot_ziel)
+                              if str(d.name) == str(ziel.get("dorf_name"))), None)
         siedlung_ziel = next((ort for ort in self.settlements
                               if ort.id == ziel.get("id")), None) if ziel.get("id") else None
-        wall_stufe = (int(bot_ziel.wall_stufe) if bot_ziel else
-                       self.wall_stufe_am_ort(siedlung_ziel) if siedlung_ziel
-                       else int(ziel.get("wall_stufe") or 0))
-        wall_zustand = (float(bot_ziel.wall_zustand) if bot_ziel else
+        # Reihenfolge: das ANGEGRIFFENE Dorf (B-5) vor dem Bot vor der Siedlung vor der Zielangabe.
+        wall_stufe = (int(ziel_dorf.wall_stufe) if ziel_dorf is not None else
+                      int(bot_ziel.wall_stufe) if bot_ziel else
+                      self.wall_stufe_am_ort(siedlung_ziel) if siedlung_ziel
+                      else int(ziel.get("wall_stufe") or 0))
+        wall_zustand = (float(ziel_dorf.wall_zustand) if ziel_dorf is not None else
+                        float(bot_ziel.wall_zustand) if bot_ziel else
                         dorfwall.zustand(siedlung_ziel) if siedlung_ziel
                         else float(ziel.get("wall_zustand_prozent", 100.0)))
         ziel_def = (dict(bot_ziel.army) if bot_ziel else
@@ -6619,6 +6790,19 @@ class NebelseetalApp:
         """
         return len(auftraege.laufende(self.state.auftraege, self.state.spielsekunden))
 
+    def _portal_klick(self, x: int, y: int, kante: int = 20):
+        """Ein Klick ins Gelaendekaestchen: fremdes Dorf oder freies Feld (B-5, 02.11.2026).
+
+        Steht auf dem Feld ein Bot-Dorf, oeffnen sich direkt die Optionen (Angriff planen /
+        Spionage). Sonst gilt das bisherige Verhalten: das Feld wird nur ANGEWAEHLT, nichts
+        gebucht (S-2b, Daniel 01.11.2026).
+        """
+        treffer = self._bot_dorf_an(x, y, kante)                       # steht hier ein fremdes Dorf?
+        if treffer is not None:                                        # ja: Optionen anbieten
+            self._bot_dorf_optionen(treffer[0], treffer[1])
+            return True
+        return self._portal_feld_waehlen(x, y)                         # sonst Feld anwaehlen
+
     def _portal_feld_waehlen(self, x: int, y: int):
         """Ein Feld im Gelaendekaestchen anwaehlen (Schnitt S-2b) - merken, nicht buchen.
 
@@ -6653,8 +6837,10 @@ class NebelseetalApp:
         (`portalraum.weltbild`). Das Handbuch 2009 nennt KEIN Gelaende je Weltkartenfeld - das
         ist eine bewusste Remake-Entscheidung, keine Originalregel. Das Gelaende hat keine
         Bauplatz-, Rohstoff- oder Ertragswirkung; es ist reine Anzeige. Die Bannerfarbe der Welt
-        bleibt in der Liste oben sichtbar, die Karte selbst zeigt nur Gelaende, Gitterlinien,
-        Legende und die voruebergehende Feldauswahl - keine Orte, Doerfer, Gegner oder Nummern.
+        bleibt in der Liste oben sichtbar, die Karte selbst zeigt Gelaende, Gitterlinien, Legende,
+        die voruebergehende Feldauswahl und seit B-5 (02.11.2026) die FREMDEN DOERFER als
+        anklickbare Zeichen: ein Klick oeffnet Angriff planen oder Spionage. Gezeigt wird nur, was
+        offen sichtbar ist - Wall, Taktik, Truppen und Vorraete weiterhin nicht.
         """
         farben = {"gruen": "#2ecc40", "rot": "#e53935"}
         tk.Label(self.content, text="Portal", font=("Blackletter", 20, "bold"),
@@ -6712,6 +6898,20 @@ class NebelseetalApp:
             fuellung = feld.get("gelaende_farbe") or farben.get(feld["farbe"], "#555555")
             zeichenflaeche.create_rectangle(x1, y1, x1 + zelle, y1 + zelle,
                                             fill=fuellung, outline="#111111")
+        # B-5 (Vorgabe Daniel 02.11.2026): fremde Doerfer stehen jetzt AUF der Weltkarte und sind
+        # anklickbar - der Klick oeffnet Angriff/Spionage. Gezeichnet werden nur oeffentliche
+        # Angaben; Wall, Taktik, Truppen und Vorraete kommen ausschliesslich ueber einen Bericht.
+        for bot, dorf in self._bot_doerfer_im_raster(kante):
+            x1, y1 = int(dorf.x) * zelle, int(dorf.y) * zelle          # linke obere Ecke des Feldes
+            cx, cy = x1 + zelle / 2.0, y1 + zelle / 2.0                # Feldmitte
+            halb = max(3.0, zelle * 0.24)                              # halbe Kantenlaenge des Zeichens
+            zeichenflaeche.create_rectangle(cx - halb, cy - halb, cx + halb, cy + halb,
+                                            fill="#B45309", outline="#FFE8C2", width=2,
+                                            tags=("portalbote",))      # das fremde Dorf
+            zeichenflaeche.create_line(cx - halb, cy - halb, cx + halb, cy + halb,
+                                       fill="#FFE8C2", tags=("portalbote",))
+            zeichenflaeche.create_line(cx - halb, cy + halb, cx + halb, cy - halb,
+                                       fill="#FFE8C2", tags=("portalbote",))
         # Legende: die sieben Gelaendearten mit Name und Haeufigkeit, direkt aus den Daten.
         legende = tk.Frame(self.content, bg=self.skin["bg"])
         legende.pack(anchor=tk.W, padx=10, pady=(2, 0))
@@ -6732,8 +6932,8 @@ class NebelseetalApp:
             zeichenflaeche.create_rectangle(x1, y1, x1 + zelle, y1 + zelle,
                                             outline="#38BDF8", width=3)
         zeichenflaeche.bind("<Button-1>",
-                            lambda ereignis: self._portal_feld_waehlen(ereignis.x // zelle,
-                                                                       ereignis.y // zelle))
+                            lambda ereignis: self._portal_klick(ereignis.x // zelle,
+                                                                ereignis.y // zelle, kante))
         if auswahl:
             ax, ay = int(auswahl[0]), int(auswahl[1])
             try:
@@ -7724,7 +7924,9 @@ class NebelseetalApp:
     def _angriff_auftrag_starten(self, ziel_name: str, verteidiger: dict, wall_stufe: int = 0,
                                  wall_zustand: float = 100.0, vorraete=None,
                                  verteidiger_karren=None, vorrat_ziel=None,
-                                 entfernung: float = None) -> bool:
+                                 entfernung: float = None,
+                                 truppen: Optional[dict] = None,
+                                 dorf_name: str = "") -> bool:
         """DER EINE Angriffsweg: ein Auftrag mit Marsch (Entscheidung 1, Daniel 01.11.2026).
 
         Entscheidung 1 lautet: jeder Angriff REIST. Der Sofortpfad ohne Reisezeit ist damit
@@ -7742,28 +7944,38 @@ class NebelseetalApp:
         greift der Uebergangsweg ueber den Reichsbestand - dieselbe Regel wie vorher.
         """
         ort = self.state.aktive_siedlung()
-        kaempfer, belagerung, karren = self._truppen_nach_rolle(ort)
-        if not kaempfer and not belagerung:
-            # Belegter Wortlaut (spielschicht.py:525-526): ohne Schlagkraft kein Angriff.
-            meldung = "Keine Kaempfer und keine Belagerungswaffen vorhanden."
-            self.state.messages.append({"text": meldung, "type": "kampf"})
-            self._log(meldung)
-            return False
-
-        truppen = dict(kaempfer)
-        truppen.update(belagerung)
-        truppen.update(karren)          # Transportkarren tragen die Beute (Handbuch S. 23)
+        if truppen is None:             # ohne Auswahl: das ganze Ortsheer (bisheriges Verhalten)
+            kaempfer, belagerung, karren = self._truppen_nach_rolle(ort)
+            if not kaempfer and not belagerung:
+                # Belegter Wortlaut (spielschicht.py:525-526): ohne Schlagkraft kein Angriff.
+                meldung = "Keine Kaempfer und keine Belagerungswaffen vorhanden."
+                self.state.messages.append({"text": meldung, "type": "kampf"})
+                self._log(meldung)
+                return False
+            truppen = dict(kaempfer)
+            truppen.update(belagerung)
+            truppen.update(karren)      # Transportkarren tragen die Beute (Handbuch S. 23)
+        else:                           # B-5: die Auswahl aus dem Fenster gilt genau so, wie sie ist
+            truppen = {str(n): int(a) for n, a in dict(truppen).items() if int(a) > 0}
+            if not truppen:
+                meldung = "Keine Einheiten ausgewaehlt."
+                self.state.messages.append({"text": meldung, "type": "kampf"})
+                self._log(meldung)
+                return False
 
         ziel = {"name": str(ziel_name), "verteidiger": dict(verteidiger or {}),
                 "wall_stufe": int(wall_stufe), "wall_zustand_prozent": float(wall_zustand),
                 "verteidiger_karren": dict(verteidiger_karren or {}), "fremd": True}
+        if dorf_name:                   # B-5: das ANGEGRIFFENE Dorf, nicht nur der Bot
+            ziel["dorf_name"] = str(dorf_name)
         if isinstance(vorrat_ziel, BotPlayer):
             # Ein echter Bot darf nur seine tatsaechlich gespeicherten Gueter verlieren;
             # keine vom Aufrufer frei vorgegebene Beutekasse akzeptieren.
             ziel["bot_name"] = vorrat_ziel.name
             ziel["vorraete"] = dict(vorrat_ziel.vorraete or {})
-            ziel["wall_stufe"] = int(vorrat_ziel.wall_stufe)
-            ziel["wall_zustand_prozent"] = float(vorrat_ziel.wall_zustand)
+            if not dorf_name:           # B-5: bei einem DORF gilt dessen Wall (oben schon gesetzt)
+                ziel["wall_stufe"] = int(vorrat_ziel.wall_stufe)
+                ziel["wall_zustand_prozent"] = float(vorrat_ziel.wall_zustand)
         elif vorraete is not None:
             ziel["vorraete"] = dict(vorraete or {})
         elif isinstance(vorrat_ziel, dict) and vorrat_ziel.get("id") and isinstance(
@@ -7866,6 +8078,182 @@ class NebelseetalApp:
         self.welt_auswahl = (x, y)
         self._welt_detail_zeichnen()
         self._draw_map()
+
+    def _bot_doerfer_im_raster(self, kante: int) -> list:
+        """Alle fremden Doerfer, die in ein kante x kante-Raster passen (B-5, 02.11.2026).
+
+        Die Positionen sind fest aus Name und Dorfnummer abgeleitet (`bottaktik.dorf_position`,
+        B-2b) und stehen je Dorf in `BotDorf.x/y`. Gezeichnet und anklickbar ist nur, was auch
+        offen sichtbar ist: Name, Position, Fraktion, Hauptdorf.
+        """
+        gitter = max(1, int(kante or 20))                              # Rasterweite der Karte
+        treffer = []                                                   # Ergebnis: (Bot, Dorf)
+        for bot in (getattr(self.state, "bots", None) or []):          # jeder Bot
+            for dorf in bot_doerfer_sicherstellen(bot):                # je Dorf ein Eintrag
+                if 0 <= int(dorf.x) < gitter and 0 <= int(dorf.y) < gitter:
+                    treffer.append((bot, dorf))                        # nur Doerfer auf dieser Karte
+        return treffer
+
+    def _bot_dorf_an(self, x: int, y: int, kante: int = 20):
+        """Welches fremde Dorf steht auf dem Feld (x, y)? None, wenn keines."""
+        for bot, dorf in self._bot_doerfer_im_raster(kante):           # alle Doerfer dieser Karte
+            if int(dorf.x) == int(x) and int(dorf.y) == int(y):
+                return (bot, dorf)                                     # Treffer
+        return None
+
+    def _bot_dorf_optionen(self, bot, dorf):
+        """Direkte Optionen nach dem Klick auf ein fremdes Dorf (B-5, Vorgabe Daniel 02.11.2026).
+
+        Der Klick fuehrt NICHT sofort zu einem Auftrag: erst die Wahl "Angriff planen" oder
+        "Spionage", dann die Truppenauswahl. Angezeigt wird nur, was ohne Spionage offen ist -
+        Wallstufe, Taktik, Truppen und Vorraete kommen ausschliesslich ueber einen Bericht.
+        """
+        fenster = tk.Toplevel(self.root)                               # eigenes Fenster
+        fenster.title("Fremdes Dorf: " + str(dorf.name))               # Ueberschrift
+        fenster.configure(bg=self.skin["bg"])                          # Farbe wie das Spiel
+        tk.Label(fenster, text="%s von %s" % (dorf.name, bot.name),
+                 font=("Blackletter", 16, "bold"), fg=self.skin["gold"], bg=self.skin["bg"],
+                 wraplength=520, justify=tk.LEFT).pack(anchor=tk.W, padx=12, pady=(12, 2))
+        infos = ["Position %d/%d im Raster" % (int(dorf.x), int(dorf.y)),
+                 "Fraktion: %s" % bot.faction,
+                 "Hauptdorf" if dorf.hauptdorf else "Nebendorf"]        # oeffentliche Angaben
+        volk = bottaktik.volksattribute({"fraktion": bot.faction})      # bekannte Volkswerte
+        if volk.get("plus") or volk.get("minus"):
+            infos.append("Volk: +%s / -%s" % (volk.get("plus") or "-", volk.get("minus") or "-"))
+        tk.Label(fenster, text="\n".join(infos), fg=self.skin["text"], bg=self.skin["bg"],
+                 justify=tk.LEFT, wraplength=520).pack(anchor=tk.W, padx=12)
+        tk.Label(fenster, text="Wallstufe, Taktik, Truppen und Vorraete sind verdeckt - sie kommen "
+                               "nur ueber einen Spionagebericht.",
+                 fg="#C0C0C0", bg=self.skin["bg"], wraplength=520,
+                 justify=tk.LEFT).pack(anchor=tk.W, padx=12, pady=(4, 8))
+        leiste = tk.Frame(fenster, bg=self.skin["bg"])                 # Knopfleiste
+        leiste.pack(anchor=tk.W, padx=12, pady=(0, 12))
+
+        def _wahl(art: str):
+            fenster.destroy()                                          # Optionen schliessen
+            self._truppen_auswahl(bot, dorf, art)                      # weiter zur Planung
+
+        tk.Button(leiste, text="Angriff planen", command=lambda: _wahl("angreifen"),
+                  bg=self.skin["button"], fg=self.skin["gold"], relief=tk.FLAT,
+                  padx=10, pady=3).pack(side=tk.LEFT)
+        tk.Button(leiste, text="Spionage", command=lambda: _wahl("spionieren"),
+                  bg=self.skin["button"], fg=self.skin["gold"], relief=tk.FLAT,
+                  padx=10, pady=3).pack(side=tk.LEFT, padx=8)
+        tk.Button(leiste, text="Abbrechen", command=fenster.destroy,
+                  bg=self.skin["button"], fg=self.skin["text"], relief=tk.FLAT,
+                  padx=10, pady=3).pack(side=tk.LEFT)
+
+    def _truppen_auswahl(self, bot, dorf, art: str):
+        """Die Truppenauswahl eines Auftrags (B-5) - der Weg von der Karte zum Auftrag.
+
+        VORGABE Daniel 02.11.2026: "Wenn ich Spionage waehle, komm ich zur Truppenauswahl fuer
+        Angriffe. Eine Spionage ist es nur dann, wenn die gesamte Truppenauswahl nur aus
+        Spionageeinheiten besteht." Deshalb zeigt die Spionage-Auswahl ausschliesslich die
+        Kundschafter der Diebesgilde; alles andere ist ein Angriff. Der Kern prueft dieselbe Regel
+        noch einmal (`auftraege.starten`), damit die Anzeige nicht die einzige Wache ist.
+        """
+        ort = self.state.aktive_siedlung()                             # Quelle des Auftrags
+        if ort is None:                                                # ohne Siedlung kein Auftrag
+            self._log("Ohne eigene Siedlung kein Auftrag.")
+            return
+        spion = (art == "spionieren")                                  # Spionage oder Angriff?
+        bestand = {n: int(a) for n, a in (getattr(ort, "einheiten", None) or {}).items()
+                   if int(a) > 0}                                      # was im Dorf steht
+        waehlbar = {n: a for n, a in bestand.items()
+                    if (not spion or einheiten.ist_kundschafter(n))}    # Spionage: nur Kundschafter
+        fenster = tk.Toplevel(self.root)                               # eigenes Fenster
+        fenster.title(("Spionage: " if spion else "Angriff: ") + str(dorf.name))
+        fenster.configure(bg=self.skin["bg"])
+        tk.Label(fenster, text=("%s - Truppenauswahl" % dorf.name),
+                 font=("Blackletter", 15, "bold"), fg=self.skin["gold"], bg=self.skin["bg"],
+                 wraplength=520, justify=tk.LEFT).pack(anchor=tk.W, padx=12, pady=(12, 2))
+        hinweis = tk.Label(fenster, text="", fg=self.skin["text"], bg=self.skin["bg"],
+                           wraplength=520, justify=tk.LEFT)            # zeigt die Wirkung live
+        hinweis.pack(anchor=tk.W, padx=12)
+        tk.Label(fenster,
+                 text=("Spionage: es reisen NUR Spionageeinheiten der Diebesgilde. Mit Kaempfern "
+                       "oder Karren in der Auswahl waere es ein Angriff."
+                       if spion else
+                       "Angriff: alle Einheiten des Dorfes duerfen mitreisen. Karren tragen die Beute."),
+                 fg="#C0C0C0", bg=self.skin["bg"], wraplength=520,
+                 justify=tk.LEFT).pack(anchor=tk.W, padx=12, pady=(0, 6))
+        felder = {}                                                    # Einheit -> (Variable, Bestand)
+        if not waehlbar:                                               # nichts auswaehlbar
+            tk.Label(fenster,
+                     text=("Keine Spionageeinheiten im Dorf - erst in der Diebesgilde ausbilden "
+                           "(Streuner genuegt fuer den Anfang)." if spion
+                           else "Keine Einheiten im Dorf."),
+                     fg="#E5A0A0", bg=self.skin["bg"], wraplength=520,
+                     justify=tk.LEFT).pack(anchor=tk.W, padx=12, pady=(0, 8))
+        for name, anzahl in sorted(waehlbar.items()):                  # eine Zeile je Einheit
+            zeile = tk.Frame(fenster, bg=self.skin["panel"])
+            zeile.pack(fill=tk.X, padx=12, pady=1)
+            tk.Label(zeile, text="%s (%d im Dorf)" % (name, anzahl), fg=self.skin["text"],
+                     bg=self.skin["panel"], anchor=tk.W).pack(side=tk.LEFT, padx=6)
+            var = tk.StringVar(value="0")                              # Menge je Einheit
+            tk.Spinbox(zeile, from_=0, to=anzahl, width=5, textvariable=var).pack(
+                side=tk.RIGHT, padx=6)
+            felder[name] = (var, anzahl)                               # fuer das Auslesen
+
+        def _gewaehlt() -> dict:
+            """Die aktuelle Auswahl als {Einheit: Menge} - nur brauchbare Zahlen."""
+            werte = {}
+            for einheit, (var, _a) in felder.items():
+                try:
+                    menge = int(str(var.get()).strip() or 0)
+                except ValueError:
+                    menge = 0
+                if menge > 0:
+                    werte[einheit] = menge
+            return werte
+
+        def _aktualisieren(*_args):
+            """Die Wirkung der Auswahl anzeigen: Aufklaerung oder Truppenzahl."""
+            werte = _gewaehlt()
+            if spion:
+                text = "Aufklaerung: %d (nur Auswahl aus Spionageeinheiten)" % (
+                    spionage.aufklaerungswert(werte))
+            else:
+                text = "Einheiten in der Auswahl: %d" % sum(werte.values())
+            hinweis.config(text=text)
+            return text
+
+        for var, _a in felder.values():                                # bei jeder Aenderung neu rechnen
+            var.trace_add("write", _aktualisieren)
+        _aktualisieren()
+
+        def _starten():
+            """Den Auftrag starten - der Kern prueft die Regeln noch einmal."""
+            werte = _gewaehlt()
+            if not werte:                                              # leere Auswahl
+                hinweis.config(text="Keine Einheiten gewaehlt.")
+                return
+            if spion:                                                  # Spionage: Kern entscheidet
+                ok, meldung = self.state.spionage_starten(bot, str(dorf.name), truppen=werte)
+            else:                                                      # Angriff: Marsch wie immer
+                entfernung = float(max(1, abs(int(ort.x) - int(dorf.x))
+                                       + abs(int(ort.y) - int(dorf.y))))
+                ok = self._angriff_auftrag_starten(str(dorf.name), dict(bot.army or {}),
+                                                   wall_stufe=int(dorf.wall_stufe),
+                                                   wall_zustand=float(dorf.wall_zustand),
+                                                   vorrat_ziel=bot, entfernung=entfernung,
+                                                   truppen=werte, dorf_name=str(dorf.name))
+                meldung = ("Angriff auf %s gestartet." % dorf.name if ok
+                           else "Angriff nicht gestartet.")
+            self.state.messages.append({"text": meldung, "type": "auftrag" if ok else "kampf"})
+            self._log(meldung)                                         # Statuszeile
+            if getattr(self, "content", None) is not None:             # Ansicht auffrischen
+                self._render_view()
+            fenster.destroy()                                          # Auswahl schliessen
+
+        leiste = tk.Frame(fenster, bg=self.skin["bg"])                 # Knopfleiste
+        leiste.pack(anchor=tk.W, padx=12, pady=(8, 12))
+        tk.Button(leiste, text="Auftrag starten", command=_starten,
+                  bg=self.skin["button"], fg=self.skin["gold"], relief=tk.FLAT,
+                  padx=10, pady=3).pack(side=tk.LEFT)
+        tk.Button(leiste, text="Abbrechen", command=fenster.destroy,
+                  bg=self.skin["button"], fg=self.skin["text"], relief=tk.FLAT,
+                  padx=10, pady=3).pack(side=tk.LEFT, padx=8)
 
     def _welt_bewegung_starten(self):
         if not getattr(self, "welt_auswahl", None):
@@ -8200,6 +8588,43 @@ class NebelseetalApp:
             tk.Label(self.content, text=zeitbasis.zeitstempel_text(msg) + msg["text"],
                      fg=color, bg=self.skin["bg"], wraplength=600,
                      justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 5))
+            # B-5 (02.11.2026): ein Spionagebericht bekommt eine eigene Anzeige - der Spieler
+            # oeffnet ihn, statt ihn zwischen allen anderen Nachrichten zu suchen. Ist er aelter
+            # als die Frist aus data/spionage.json, steht das ausdruecklich daneben.
+            if str(msg.get("type") or "") == "spionage":
+                hinweis = spionage.veraltet_text(msg, self.state.spielsekunden)
+                if hinweis:
+                    tk.Label(self.content, text=hinweis, fg="#C0C0C0", bg=self.skin["bg"],
+                             wraplength=600, justify=tk.LEFT).pack(anchor=tk.W, padx=10)
+                tk.Button(self.content, text="Spionagebericht oeffnen",
+                          command=lambda m=msg: self._spionage_bericht_anzeigen(m),
+                          bg=self.skin["button"], fg=self.skin["gold"], relief=tk.FLAT,
+                          padx=8, pady=2).pack(anchor=tk.W, padx=10, pady=(0, 6))
+
+    def _spionage_bericht_anzeigen(self, msg):
+        """Den Spionagebericht in einem eigenen Fenster zeigen (Postfach, B-5, 02.11.2026).
+
+        Der Text kommt unveraendert aus der Nachricht (`spionage.bericht_nachricht`) - die Anzeige
+        rechnet nichts nach. Ist der Bericht aelter als die Frist, steht der Hinweis darueber.
+        """
+        nachricht = msg if isinstance(msg, dict) else {}                       # Nachricht als dict
+        fenster = tk.Toplevel(self.root)                                       # eigenes Fenster
+        fenster.title(str(nachricht.get("titel") or "Spionagebericht"))        # Ueberschrift
+        fenster.configure(bg=self.skin["bg"])                                  # Farbe wie das Spiel
+        tk.Label(fenster, text=str(nachricht.get("titel") or "Spionagebericht"),
+                 font=("Blackletter", 16, "bold"), fg=self.skin["gold"],
+                 bg=self.skin["bg"], wraplength=640, justify=tk.LEFT).pack(
+            anchor=tk.W, padx=10, pady=(10, 4))                                # Titel
+        hinweis = spionage.veraltet_text(nachricht, self.state.spielsekunden)  # Frist pruefen
+        if hinweis:                                                            # nur wenn zu alt
+            tk.Label(fenster, text=hinweis, fg="#C0C0C0", bg=self.skin["bg"],
+                     wraplength=640, justify=tk.LEFT).pack(anchor=tk.W, padx=10)
+        tk.Label(fenster, text=str(nachricht.get("text") or ""), fg=self.skin["text"],
+                 bg=self.skin["bg"], wraplength=640, justify=tk.LEFT).pack(
+            anchor=tk.W, padx=10, pady=(2, 8))                                 # der Bericht selbst
+        tk.Button(fenster, text="Schliessen", command=fenster.destroy,
+                  bg=self.skin["button"], fg=self.skin["gold"], relief=tk.FLAT,
+                  padx=8, pady=2).pack(anchor=tk.E, padx=10, pady=(0, 10))     # schliessen
 
     def _render_settings(self):
         tk.Label(self.content, text="Einstellungen", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
@@ -8562,6 +8987,64 @@ class NebelseetalApp:
     def _render_diebesgilde(self):
         """Diebesgilde: Kundschafter. Menuepunkt erst ab gebauter Diebesgilde."""
         self._render_ausbildung("Diebesgilde", "Diebesgilde")
+        self._spionage_abschnitt()          # B-5: von hier aus fremde Doerfer ausspionieren
+
+    def _spionage_abschnitt(self):
+        """Spionage starten (B-5, 02.11.2026) - der Einstieg im Fenster.
+
+        Steht in der Diebesgilde, weil die Kundschafter von dort kommen. Gezeigt wird nur, was
+        OHNE Spionage offen ist: Name, Position, Fraktion und Hauptdorf eines fremden Dorfes.
+        Wallstufe, Taktik, Truppen und Vorraete kommen erst mit dem Bericht ins Postfach - und
+        der entsteht erst durch einen Auftrag. Der Knopf nennt vorher, wie viel Aufklaerung die
+        Truppe im Dorf hat und welche Schwelle sie schafft.
+        """
+        tk.Label(self.content, text="Spionage", font=("Blackletter", 18, "bold"),
+                 fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(16, 2))
+        ort = self.state.aktive_siedlung()                                 # Ausgangsdorf
+        if ort is None:                                                    # ohne Siedlung kein Auftrag
+            tk.Label(self.content, text="Ohne eigene Siedlung gibt es nichts zu entsenden.",
+                     fg=self.skin["text"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
+            return
+        kundschafter = {n: int(a) for n, a in (getattr(ort, "einheiten", None) or {}).items()
+                        if einheiten.ist_kundschafter(n) and int(a) > 0}   # die Spionageeinheiten
+        if kundschafter:                                                   # Truppe vorhanden
+            wert = spionage.aufklaerungswert(kundschafter)                 # ihre Aufklaerung
+            text = ("Im Dorf: " + ", ".join("%d %s" % (a, n) for n, a in sorted(kundschafter.items()))
+                    + " - Aufklaerung %d." % wert)
+        else:                                                              # keine Kundschafter
+            text = "Keine Kundschafter im Dorf - erst oben ausbilden lassen."
+        tk.Label(self.content, text=text, fg=self.skin["text"], bg=self.skin["bg"],
+                 wraplength=740, justify=tk.LEFT).pack(anchor=tk.W, padx=10)
+        grenzen = spionage.schwellen()                                     # Schwelle je Berichtsteil
+        tk.Label(self.content,
+                 text=("Ein Bericht zeigt Truppen ab %d, Vorraete ab %d, Wall ab %d, Karte ab %d "
+                       "und die Taktik ab %d Aufklaerung. Reicht sie nicht fuer den Wall, prallt "
+                       "der Auftrag ab - mit Verlusten."
+                       % (grenzen["truppen"], grenzen["vorraete"], grenzen["wall"],
+                          grenzen["karte"], grenzen["taktik"])),
+                 fg="#C0C0C0", bg=self.skin["bg"], wraplength=740,
+                 justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 6))
+        for bot in self.state.bots:                                        # je Bot seine Doerfer
+            for dorf in bot_doerfer_sicherstellen(bot):
+                zeile = tk.Frame(self.content, bg=self.skin["panel"])       # eine Zeile je Dorf
+                zeile.pack(fill=tk.X, padx=10, pady=1)
+                tk.Label(zeile, text="%s - %s (%d/%d)%s" % (
+                             bot.name, dorf.name, int(dorf.x), int(dorf.y),
+                             " Hauptdorf" if dorf.hauptdorf else ""),
+                         fg=self.skin["text"], bg=self.skin["panel"], anchor=tk.W,
+                         wraplength=560, justify=tk.LEFT).pack(side=tk.LEFT, padx=6)
+                tk.Button(zeile, text="Ausspionieren",
+                          command=lambda b=bot, d=dorf: self._spionage_klick(b, d),
+                          bg=self.skin["button"], fg=self.skin["gold"], relief=tk.FLAT,
+                          padx=6, pady=1).pack(side=tk.RIGHT, padx=6)
+
+    def _spionage_klick(self, bot, dorf):
+        """Der Knopf: einen Spionageauftrag starten und das Ergebnis als Nachricht zeigen."""
+        ok, meldung = self.state.spionage_starten(bot, str(dorf.name))      # Kern entscheidet
+        self.state.messages.append({"text": meldung, "type": "auftrag" if ok else "kampf"})
+        self._log(meldung)                                                 # Statuszeile
+        self._render_view()                                                # Ansicht neu zeichnen
+        return ok
 
     def _render_ausbildung(self, staette: str, titel: str):
         tk.Label(self.content, text=titel, font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))

@@ -101,6 +101,17 @@ def ist_belagerung(name: str) -> bool:
     return rolle(name) == "belagerung"
 
 
+def ist_kundschafter(name: str) -> bool:
+    """Ist die Einheit ein Kundschafter (Diebesgilde)?
+
+    B-5 (02.11.2026): Spionage braucht Kundschafter - sechs Stufen von Streuner bis Waldlaeufer
+    (data/units.json, Kategorie Kundschafter). Eigene Funktion statt Namensvergleich, damit
+    Umbenennungen und neue Stufen nicht still die Spionage abschalten.
+    """
+    return rolle(name) == "kundschafter"
+
+
+
 # --------------------------------------------------------------- Originalwerte
 
 def _w(name: str, feld: str) -> Any:
