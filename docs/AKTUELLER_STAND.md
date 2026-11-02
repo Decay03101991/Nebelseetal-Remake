@@ -1,4 +1,4 @@
-# STAND 02.11.2026, 21:10 - Stufe B-6: das Gebaeudemotiv ist der Hintergrund, Texte stehen davor (Register 139)
+# STAND 02.11.2026, 20:59 - Stufe B-6: das Gebaeudemotiv ist der Hintergrund, Texte stehen davor (Register 139)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
 
