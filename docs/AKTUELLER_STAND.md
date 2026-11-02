@@ -1,9 +1,10 @@
-# STAND 02.11.2026, 11:15 - SITZUNG PAUSIERT: Laptop-Neustart (WLAN, Tastatur)
+# STAND 02.11.2026, 11:35 - SITZUNGSENDE: Laptop-Neustart (WLAN, Tastatur)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
 
-**Auf Daniels Ansage gestoppt** (WLAN bricht ab, Tastatur haengt): alle Hintergrundprozesse sind
-beendet, das Spiel ist geschlossen, der Arbeitsbaum ist leer - **nichts ist ungespeichert.**
+**Sitzung beendet, nicht angehalten** (WLAN bricht ab, Tastatur haengt): alle Hintergrundprozesse
+sind beendet, das Spiel ist geschlossen, der Arbeitsbaum ist leer, die drei offenen
+Skill-Einreihungen sind verworfen - **nichts ist ungespeichert.**
 Uebergabe fuer die naechste Sitzung: `docs/UEBERGABE_20261102_1115.md` (Kopie auf dem Desktop,
 hashgleich). Der Ablaufplan bis zur Demo steht dort Abschnitt 4.
 
