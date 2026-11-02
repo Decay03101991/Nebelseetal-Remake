@@ -1,3 +1,48 @@
+# STAND 02.11.2026, 10:30 - Protokoll 291 Zeilen, Detailzeilen ausgelagert (Register 128)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `23f579f` (Verdichtung verworfen); dieser Commit loest sie strukturell | `git log --oneline -1` |
+| Ergebnis | **291 Zeilen** statt 469, Ziel unter 320 erreicht - **ohne** Umformulierung | `wc -l docs/ENTWICKLUNGSPROTOKOLL.md` |
+| Detaildokument | `docs/PROTOKOLL_DETAIL_2026-10.md`: 05.10. Tag 2 (87 Zeilen) und 31.10. UMSETZUNG-02 (97 Zeilen) wortgleich, 192 Zeilen | `wc -l` |
+| Verlustpruefung | 46 Kennungen, **0 unbekannt**, alle Pruefzahlen der 02.11.-Sicherung vorhanden (Protokoll + Detail) | `tools/pruefe_protokoll.py` |
+| Dokumentpruefungen | `test_protokoll` **16/0/1** (Zielgroessen-Befund weg), `test_textqualitaet` **307/0** (90 Dokumente), `test_projektpfade` 105/0, `test_zieluebergabe` 26/0 | eigener Lauf |
+| Register / Pruefdateien | **128 Punkte**, **123 Pruefdateien** | `grep -cE`, `ls tests/test_*.py \| wc -l` |
+
+## Der EINE naechste Schritt
+
+**Projekt-venv mit Pillow anlegen und `START_SPIEL_WINDOWS.bat` darauf umstellen** (Daniels Entscheidung
+02.11.2026, 10:2x): der Startpfad (Astral CPython 3.11.16) hat kein Pillow, deshalb fehlen
+Ressourcenleiste und alle Bilder in voller Qualitaet. Zu tun: `.venv` mit derselben Python-Version
+anlegen (`uv venv --python <3.11.16>`), `pillow` hinein, im Batch ZUERST `.venv\Scripts\pythonw.exe`
+versuchen und die bisherige Kette als Rueckfall lassen; Waage: `python -c "import PIL"` im venv,
+Startprobe aus dem Batch, `.venv` in `.gitignore` und im EXE-Bau ausgeschlossen; danach voller
+Sammellauf, Protokollzeile, ein Commit.
+Arbeitsweise: Pruefdatei ergaenzen, voller Sammellauf, Protokollzeile, ein Commit.
+
+## Offen
+
+1. **Auswahlrahmen** der C2-Lieferung zeichnen (naechster Fachschritt danach).
+2. Icons/Hintergrund im Fenster abnehmen - drei Bilder unter `docs/audits/gebaeude_icons_fenster_*`.
+3. **Python 3.15.2** in `AppData\Local\Python` entfernen (Daniel hat zugestimmt).
+4. Wappen den fuenf Bots; Burgen zu Weltkarten nur als Vorschlag.
+5. S-8 Bilanz (Register 93), `weltkarten_seed` fest (Register 94).
+6. Demo-Gates G-01..G-07; Demo wird LEER ausgeliefert. **EXE vom 01.11. 19:01** - vor einer Demo neu bauen.
+
+## Fallstricke, in diesem Schritt belegt
+
+- **Auslagern ist die ehrliche Verdichtung.** Ein Wortlaut, der in eine eigene Datei wandert, ist
+  nicht verloren; ein Wortlaut, den ein Modell zu Stichworten verkuerzt, ist es. Wenn eine Zielgroesse
+  drueckt: verschieben, nicht zusammenstreichen.
+- **Die Projektpruefung vergleicht gegen die Fassung vom 05.10., nicht gegen gestern.** Wer gegen
+  gestern pruefen will, braucht die eigene Sicherung - und muss Protokoll UND Detaildokument addieren,
+  sonst meldet er falschen Verlust (genau das faengt das Schreibskript vorher ab).
+- **Summenzeilen brauchen die Kennungen IM Text.** Wandern Zeilen in ein Detaildokument, muessen ihre
+  Kennungen und Pruefzahlen in der Summenzeile mitreisen, sonst wird `test_protokoll` rot, obwohl
+  nichts verloren ist.
+
 # STAND 02.11.2026, 10:15 - Protokoll-Verdichtung verworfen, Weg ist strukturell (Register 127)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
