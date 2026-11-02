@@ -1,3 +1,45 @@
+# STAND 02.11.2026, 22:40 - Stufe M-2: die Kastenoptik steht in Kaserne, Stellmacher und Diebesgilde (Register 142)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Die drei Ausbildungsstaetten sehen aus wie Dorfzentrum und Forschung.** Titel, Einleitung,
+Siedlerwarnung und der Spionage-Abschnitt liegen als abgerundete, weiche Felder auf dem
+Gebaeudemotiv; zwischen den Feldern ist das Bild zu sehen. Die Tabellen (Einheiten, Warteschlange)
+bleiben deckende Bloecke - genau die Trennung, die Daniel beschrieben hat.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `569fd36` plus dieser Schritt | `git log --oneline -1` |
+| Umgestellte Bloecke | 8: Titel, Einleitung, "Keine Einheit", Siedlerwarnung (2 Zeilen), Spionage-Ueberschrift, Dorfzeile, Schwellen-Erklaerung | `main._render_ausbildung`, `_siedler_warnung_zeichnen`, `_spionage_abschnitt` |
+| Zahlen | alle aus `data/gebaeude_motive.json` (Radius, Deckkraft, Farbe) | ebd. |
+| Wache | `tests/test_ansicht_hintergrund.py` **44/0/0** (neu: Abschnitt 5 fuer alle drei Ansichten) | eigener Lauf |
+| Nebengeprueft | `test_kaserne_ohne_gebaeude` 11/0/0, `test_siedler_warnung` 29/0/0, `test_gebaeude_icons` 56/0/0, `test_ausbildungsauftraege` 59/0/0 | eigene Laeufe |
+| Ansicht im Fenster | Screenshot der Diebesgilde mit Feldern und sichtbarem Motiv | `docs/design/KASTEN_DIEBESGILDE_20261102.png` |
+| Pruefdateien / Register | **133** / **142** | `ls tests/test_*.py`, `grep -c '^| [0-9]'` |
+
+**Ehrlich zur Optik:** die Felder sind abgerundet, aber sie wirken noch immer wie Balken - ein
+weicher Verlauf ist bei 8 px Radius kaum zu sehen. Der naechste Feinschliff gehoert zu den uebrigen
+Textfeldern; ein eigenes Darstellungs-Papier dafuer ist noch nicht geschrieben.
+
+## Der EINE naechste Schritt
+
+**Die uebrigen Textfelder der Ansichten, stueckweise** (Vorgabe Daniel 02.11.2026). Kandidaten in
+dieser Reihenfolge: Warteschlange der Ausbildung (Kopfzeile und die zwei Hinweiszeilen),
+Lager/Marktplatz, Diplomatie, Forschung (Restzeilen), Nachrichten und Portal.
+
+Zu tun: je Ansicht die harten `tk.Label(... bg=self.skin["bg"])`-Bloecke auf `_kasten_label`
+umstellen, Tabellen deckend lassen, Wachen nicht auf Wortlaut biegen sondern mitziehen, je Ansicht
+ein Eintrag in `tests/test_ansicht_hintergrund.py` (Hintergrund zuerst, mindestens zwei Felder,
+Text noch da), voller Sammellauf, Protokollzeile, ein Commit.
+Arbeitsweise: ein Schritt = ein Commit = ein gruener voller Sammellauf.
+
+**Demo-Umfang ist eingefroren (Daniel 02.11.2026):** Kernkreis + Spionage + Voelker- und Kartenwahl
+am Start. Alles andere kommt NACH dem ersten Demo-Upload.
+
+**Danach in dieser Reihenfolge:** Voelkerwahl am Start (A2), Kartenwahl fuer den SPIELER, Volksboni
+verdrahten (A), Anschluss `botkern.oekonomie_kartenwahl`, Kopplung Punkte/Kanaele (C),
+Balance-Messung (D), zuletzt Demo-Release (Freigabe Daniel).
+
 # STAND 02.11.2026, 21:45 - Stufe M-1: Truppenbewegungen sind auf der Weltkarte sichtbar (Register 141)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

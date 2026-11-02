@@ -156,4 +156,55 @@ check("in der Forschung ebenso",
 check("der Inhalt baut weiterhin seine Felder auf",
       _probe.get("Dorfzentrum", (0, 0, 0))[2] > 5, str(_probe.get("Dorfzentrum")))
 
+
+# ==========================================================================
+# 5. M-2: die KAESTENOPTIK gilt auch in Kaserne, Stellmacher und Diebesgilde
+# ==========================================================================
+
+abschnitt("5. Die drei Ausbildungsstaetten nutzen die weichen Textfelder (M-2)")
+for _name in ("_render_ausbildung", "_siedler_warnung_zeichnen", "_spionage_abschnitt"):
+    _namen = M.NebelseetalApp.__dict__[_name].__code__.co_names
+    check("%s baut weiche Textfelder" % _name, "_kasten_label" in _namen, str(_namen[:8]))
+check("der Titel der Ansicht steht im Kasten", "_kasten_label(titel" in TEXT_MAIN)
+check("die Spionage-Ueberschrift steht im Kasten", '_kasten_label("Spionage"' in TEXT_MAIN)
+check("die Siedlerwarnung steht im Kasten", '_kasten_label(\n            (f"Freie Siedler: '
+      in TEXT_MAIN or 'f"Freie Siedler: {reserve' in TEXT_MAIN)
+
+
+def _kastenprobe():
+    """Die drei Ansichten bauen und zaehlen, wie viele Texte als weiches Feld liegen."""
+    import tkinter as tk
+    root = tk.Tk()
+    root.withdraw()
+    try:
+        app = M.NebelseetalApp(root)
+        app._build_main_ui()
+        app._erste_siedlung_gruenden()
+        ergebnis = {}
+        for name in ("Kaserne", "Stellmacher", "Diebesgilde"):
+            app._switch_view(name)
+            app.content.update_idletasks()
+            kinder = list(app.content.winfo_children())
+            kaesten = sum(1 for k in kinder if getattr(k, "image", None) is not None)
+            texte = []
+            for k in kinder:
+                try:
+                    texte.append(str(k.cget("text")))
+                except Exception:                                  # noqa: BLE001
+                    continue
+            ergebnis[name] = (isinstance(kinder[0], tk.Canvas) if kinder else False,
+                              kaesten, " ".join(texte))
+        return ergebnis
+    finally:
+        root.destroy()
+
+
+_kasten = _kastenprobe()
+for _name in ("Kaserne", "Stellmacher", "Diebesgilde"):
+    _daten = _kasten.get(_name, (False, 0, ""))
+    check("%s legt den Hintergrund als erste Flaeche an" % _name, _daten[0] is True, str(_daten[:2]))
+    check("%s hat mindestens zwei weiche Textfelder" % _name, _daten[1] >= 2, str(_daten[:2]))
+    check("%s nennt die Ausbildungsstaette noch im Text" % _name,
+          "Ausgebildet wird auf der Siedlungskarte" in _daten[2], _daten[2][:120])
+
 bericht()

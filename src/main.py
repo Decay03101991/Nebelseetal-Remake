@@ -9395,12 +9395,12 @@ class NebelseetalApp:
         der entsteht erst durch einen Auftrag. Der Knopf nennt vorher, wie viel Aufklaerung die
         Truppe im Dorf hat und welche Schwelle sie schafft.
         """
-        tk.Label(self.content, text="Spionage", font=("Blackletter", 18, "bold"),
-                 fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(16, 2))
+        self._kasten_label("Spionage", ("Blackletter", 18, "bold"), self.skin["gold"],
+                           innen=14, pady=6)
         ort = self.state.aktive_siedlung()                                 # Ausgangsdorf
         if ort is None:                                                    # ohne Siedlung kein Auftrag
-            tk.Label(self.content, text="Ohne eigene Siedlung gibt es nichts zu entsenden.",
-                     fg=self.skin["text"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
+            self._kasten_label("Ohne eigene Siedlung gibt es nichts zu entsenden.",
+                               ("TkDefaultFont", 10), self.skin["text"], innen=14, pady=5)
             return
         kundschafter = {n: int(a) for n, a in (getattr(ort, "einheiten", None) or {}).items()
                         if einheiten.ist_kundschafter(n) and int(a) > 0}   # die Spionageeinheiten
@@ -9410,17 +9410,16 @@ class NebelseetalApp:
                     + " - Aufklaerung %d." % wert)
         else:                                                              # keine Kundschafter
             text = "Keine Kundschafter im Dorf - erst oben ausbilden lassen."
-        tk.Label(self.content, text=text, fg=self.skin["text"], bg=self.skin["bg"],
-                 wraplength=740, justify=tk.LEFT).pack(anchor=tk.W, padx=10)
+        self._kasten_label(text, ("TkDefaultFont", 10), self.skin["text"],
+                           breite=770, innen=14, pady=5, umbruch=740)
         grenzen = spionage.schwellen()                                     # Schwelle je Berichtsteil
-        tk.Label(self.content,
-                 text=("Ein Bericht zeigt Truppen ab %d, Vorraete ab %d, Wall ab %d, Karte ab %d "
-                       "und die Taktik ab %d Aufklaerung. Reicht sie nicht fuer den Wall, prallt "
-                       "der Auftrag ab - mit Verlusten."
-                       % (grenzen["truppen"], grenzen["vorraete"], grenzen["wall"],
-                          grenzen["karte"], grenzen["taktik"])),
-                 fg="#C0C0C0", bg=self.skin["bg"], wraplength=740,
-                 justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 6))
+        self._kasten_label(
+            ("Ein Bericht zeigt Truppen ab %d, Vorraete ab %d, Wall ab %d, Karte ab %d "
+             "und die Taktik ab %d Aufklaerung. Reicht sie nicht fuer den Wall, prallt "
+             "der Auftrag ab - mit Verlusten."
+             % (grenzen["truppen"], grenzen["vorraete"], grenzen["wall"],
+                grenzen["karte"], grenzen["taktik"])),
+            ("TkDefaultFont", 9), "#C0C0C0", breite=770, innen=14, pady=5, umbruch=740)
         for bot in self.state.bots:                                        # je Bot seine Doerfer
             for dorf in bot_doerfer_sicherstellen(bot):
                 zeile = tk.Frame(self.content, bg=self.skin["panel"])       # eine Zeile je Dorf
@@ -9448,14 +9447,18 @@ class NebelseetalApp:
         # (Kaserne -> Kriegerakademie, Stellmacher, Diebesgilde) - Kennung ueber `gelaende`, nie getippt.
         if self._ansicht_hintergrund(gelaende.finde_gebaeude(staette)) is None:   # kein Bild
             self._gebaeude_kopf(gelaende.finde_gebaeude(staette))                 # dann der alte Kopf
-        tk.Label(self.content, text=titel, font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
+        # M-2 (Daniel 02.11.2026, Fragenrunde): die Kastenoptik aus Dorfzentrum und Forschung gilt
+        # jetzt auch in den drei Ausbildungsstaetten - Titel und Einleitung als weiche Felder, damit
+        # das Gebaeudemotiv zwischen den Bloecken sichtbar bleibt (vorher harte Balken ueber die
+        # volle Breite). Die Zahlen kommen weiter aus `data/gebaeude_motive.json`.
+        self._kasten_label(titel, ("Blackletter", 20, "bold"), self.skin["gold"], innen=14, pady=6)
 
-        tk.Label(self.content, text=f"Ausgebildet wird auf der Siedlungskarte (W4b-5). Hier stehen "
-                                    f"ausschliesslich die Einheiten der {staette}; die Stufe des "
-                                    "Gebaeudes bestimmt das Tempo. Steht die Stätte nicht, fehlt "
-                                    "die Schaltfläche und der Grund steht daneben.",
-                 fg="#C0C0C0", bg=self.skin["bg"], wraplength=780,
-                 justify=tk.LEFT).pack(anchor=tk.W, padx=10)
+        self._kasten_label(
+            f"Ausgebildet wird auf der Siedlungskarte (W4b-5). Hier stehen "
+            f"ausschliesslich die Einheiten der {staette}; die Stufe des "
+            "Gebaeudes bestimmt das Tempo. Steht die Stätte nicht, fehlt "
+            "die Schaltfläche und der Grund steht daneben.",
+            ("TkDefaultFont", 9), "#C0C0C0", breite=810, innen=14, pady=5, umbruch=780)
         self._ausbildung_warteschlange_zeichnen(staette)
         # A-6 (Daniels Spielbericht 31.10.2026): sechs gescheiterte Ausbildungen, weil die
         # Siedlerreserve unbemerkt auf 3,5 gefallen war. Hier steht sie VOR der ersten Einheit -
@@ -9518,8 +9521,8 @@ class NebelseetalApp:
                 tk.Label(frame, text=f"braucht {_fehlt}", fg="#e53935",
                          bg=self.skin["panel"]).pack(side=tk.RIGHT, padx=5)
         if _angezeigt == 0:
-            tk.Label(self.content, text=f"Keine Einheit wird in der {staette} ausgebildet.",
-                     fg="#FDBA74", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=8)
+            self._kasten_label(f"Keine Einheit wird in der {staette} ausgebildet.",
+                               ("TkDefaultFont", 10), "#FDBA74", innen=14, pady=6)
 
     def _siedler_warnung_zeichnen(self) -> None:
         """A-6: die freie Siedlerreserve des Ortes sichtbar machen, bevor sie aufgebraucht ist.
@@ -9537,25 +9540,21 @@ class NebelseetalApp:
             reserve = spieloekonomie.siedler_reserve(asdict(ort), self.state.forschungs_stufen())
         except (AttributeError, KeyError, TypeError, ValueError):
             return
-        rahmen = tk.Frame(self.content, bg=self.skin["panel"], highlightbackground="#5D4037",
-                          highlightthickness=1)
-        rahmen.pack(fill=tk.X, padx=10, pady=(0, 4))
         _farbe = "#FDBA74" if reserve["warnung"] else "#C0C0C0"
         _einheit, _je = reserve["guenstigste"]
         _noch = reserve["moeglich"].get(_einheit, -1) if _einheit else -1
         _noch_text = (f" · es gehen noch {_noch} × {_einheit}" if _noch >= 0 and _einheit
                       else "")
-        tk.Label(rahmen,
-                 text=(f"Freie Siedler: {reserve['frei']:.1f} von {reserve['grenze']} · "
-                       f"Nachwuchs {reserve['zuwachs_stunde']:.1f} je Spielstunde"
-                       f"{_noch_text} · "
-                       f"Bauten binden keine Siedler (Entscheidung 31.10.2026)"),
-                 fg=self.skin["text"], bg=self.skin["panel"], font=("Arial", 9),
-                 anchor=tk.W, justify=tk.LEFT, wraplength=820).pack(anchor=tk.W, padx=8, pady=(3, 0))
+        # M-2: die Warnung liegt als weiches Feld auf dem Bild statt in einem harten Balken.
+        self._kasten_label(
+            (f"Freie Siedler: {reserve['frei']:.1f} von {reserve['grenze']} · "
+             f"Nachwuchs {reserve['zuwachs_stunde']:.1f} je Spielstunde"
+             f"{_noch_text} · "
+             f"Bauten binden keine Siedler (Entscheidung 31.10.2026)"),
+            ("Arial", 9), self.skin["text"], breite=830, innen=12, pady=4, umbruch=800)
         if reserve["text"]:
-            tk.Label(rahmen, text="⚠ " + reserve["text"], fg=_farbe, bg=self.skin["panel"],
-                     font=("Arial", 9, "bold"), anchor=tk.W, justify=tk.LEFT, wraplength=820
-                     ).pack(anchor=tk.W, padx=8, pady=(0, 3))
+            self._kasten_label("⚠ " + reserve["text"], ("Arial", 9, "bold"), _farbe,
+                               breite=830, innen=12, pady=4, umbruch=800)
 
     def _ausbildung_warteschlange_zeichnen(self, staette: str):
         """Die Warteschlange der Ausbildungsstätte sichtbar machen (Daniels Spieltest 31.10.2026).
