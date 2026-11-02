@@ -513,6 +513,16 @@ def _status(eintrag: Dict[str, Any], jetzt: float) -> Tuple[str, float]:
     return "abgeschlossen", 0.0
 
 
+def stand(eintrag: Any, jetzt: Any) -> Tuple[str, float]:
+    """Phase und Restzeit EINES Auftrags - die oeffentliche Fassung von `_status` (M-1).
+
+    Gebraucht von der Marsch-Anzeige auf der Weltkarte (Registerpunkt 140): dort ist die GROBE
+    Restlaufzeit sichtbar, die Phase entscheidet ueber die Richtung der Linie. Reine Rechnung auf
+    der Spieluhr (`state.spielsekunden`), keine zweite Zeitbasis.
+    """
+    return _status(eintrag if isinstance(eintrag, dict) else {}, _als_zahl(jetzt))
+
+
 def fortschritt(liste: Any, jetzt: Any) -> Dict[str, Any]:
     """Wo steht jeder Auftrag zur Zeit `jetzt`? Setzt zugleich den Merker `status`."""
     t = _als_zahl(jetzt)

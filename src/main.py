@@ -51,6 +51,7 @@ import portalraum  # W5-2: die 20 Dimensionen des Limbus, Raster, Wechselkosten 
 import werkstatt   # W3: die drei Werkstaetten, die 17 Waren und ihre Warteschlangen
 import auftraege   # W7: Auftraege (Missionen) mit Reisezeit, Rueckkehr und Bericht
 import spionage    # B-5: Spionagebericht, Abwehr und Nachricht (02.11.2026)
+import marsch_optik  # M-1: Truppenbewegungen auf der Weltkarte (02.11.2026, Register 140)
 import forschung  # W4c: Forschung braucht Zeit - die Stufe steigt erst nach Ablauf
 import welt        # W4d: die Weltkarte des Limbus (20 Dimensionen, sechs belegte Welten)
 import zeitbasis  # GPT-Z01: lokale Datumsstempel, monotone Laufzeituhr, Nachrichten
@@ -6943,6 +6944,226 @@ class NebelseetalApp:
         """
         return len(auftraege.laufende(self.state.auftraege, self.state.spielsekunden))
 
+    # ------------------------------------------------------ Maersche auf der Weltkarte (M-1)
+    @staticmethod
+    def _portal_zelle(kante: int) -> int:
+        """Kantenlaenge eines Feldes im Gelaendekaestchen in px - EINE Stelle fuer Zeichnen und Klick."""
+        return max(4, 400 // max(1, int(kante or 20)))
+
+    @staticmethod
+    def _punkt_abstand(mx: float, my: float, x1: float, y1: float, x2: float, y2: float) -> float:
+        """Abstand eines Punktes zur STRECKE (x1,y1)-(x2,y2) - die Trefferflaeche einer Marschlinie."""
+        dx, dy = x2 - x1, y2 - y1                                              # Richtung der Strecke
+        laenge2 = dx * dx + dy * dy                                            # Quadrat der Laenge
+        if laenge2 <= 1e-9:                                                    # Strecke ist ein Punkt
+            return ((mx - x1) ** 2 + (my - y1) ** 2) ** 0.5                    # Abstand zum Punkt
+        t = ((mx - x1) * dx + (my - y1) * dy) / laenge2                        # Anteil auf der Strecke
+        t = min(1.0, max(0.0, t))                                              # auf die Strecke begrenzen
+        nx, ny = x1 + t * dx, y1 + t * dy                                       # naechster Punkt darauf
+        return ((mx - nx) ** 2 + (my - ny) ** 2) ** 0.5                        # Abstand dorthin
+
+    def _siedlung_nach_namen(self, name: str):
+        """Die EIGENE Siedlung zu einem Namen - oder None. Keine Annahme, kein Ratewert."""
+        for siedlung in (self.state.settlements or []):                        # jede eigene Siedlung
+            if str(getattr(siedlung, "name", "")) == str(name or ""):           # Name stimmt
+                return siedlung                                                # gefunden
+        return None                                                            # sonst nichts
+
+    def _feld_im_raster(self, feld, kante: int):
+        """Ein Feld als (x, y), wenn es im Raster liegt - sonst None (nichts wird projiziert)."""
+        try:                                                                   # Feld lesen
+            x, y = int(feld[0]), int(feld[1])                                  # zwei Zahlen
+        except (TypeError, ValueError, IndexError, KeyError):                  # unbrauchbares Feld
+            return None                                                        # dann kein Feld
+        if 0 <= x < int(kante) and 0 <= y < int(kante):                        # innerhalb der Karte
+            return (x, y)                                                      # gueltiges Feld
+        return None                                                            # ausserhalb -> nichts
+
+    def _ort_feld(self, name: str, botname: str, kante: int):
+        """Das Feld eines Ortes auf der Weltkarte: eigene Siedlung zuerst, dann ein fremdes Dorf.
+
+        Die EIGENE Siedlung traegt ihr Weltfeld in `Settlement.x/y` (beim Gruenden aus dem vom
+        Spieler gewaehlten Feld gesetzt). VORSCHLAG, offen benannt: dass dieses Feld im Portal-
+        Raster dieselbe Bedeutung hat, ist NICHT belegt (zwei Koordinatenraeume, siehe
+        `docs/design/MARSCH_ENTWURF_20261102.md` Abschnitt F). Deshalb steht die Aufloesung hier
+        an EINER Stelle - eine spaetere Klaerung trifft nur diese Funktion.
+        """
+        siedlung = self._siedlung_nach_namen(str(name or ""))                  # eigene Siedlung?
+        if siedlung is not None:                                               # ja: ihr Weltfeld
+            return self._feld_im_raster((getattr(siedlung, "x", None),
+                                         getattr(siedlung, "y", None)), kante)
+        for bot, dorf in self._bot_doerfer_im_raster(kante):                   # sonst ein fremdes Dorf
+            if str(dorf.name) == str(name or "") and (not botname or str(bot.name) == str(botname)):
+                return self._feld_im_raster((dorf.x, dorf.y), kante)            # feste Dorfposition
+        return None                                                            # nicht aufloesbar
+
+    def _marsch_felder(self, eintrag: dict, kante: int = 20):
+        """Start- und Zielfeld EINES Auftrags auf dem Kartenraster - `(von, nach)`, je None-able."""
+        eintrag = eintrag if isinstance(eintrag, dict) else {}                 # Auftrag absichern
+        ziel = eintrag.get("ziel") if isinstance(eintrag.get("ziel"), dict) else {}
+        start = self._ort_feld(str(eintrag.get("von") or ""), "", kante)       # Startort
+        zielname = str(ziel.get("dorf_name") or eintrag.get("nach") or "")     # Name des Zielorts
+        zielfeld = self._ort_feld(zielname, str(ziel.get("bot_name") or ""), kante)
+        return start, zielfeld                                                 # beide Felder
+
+    def _marsch_gemeldet(self, eintrag: dict) -> None:
+        """Einen nicht aufloesbaren Marsch EINMAL ins Protokoll schreiben - keine Linie erfinden."""
+        merker = getattr(self, "_marsch_gemeldete", None)                      # Merker je Sitzung
+        if not isinstance(merker, set):                                        # erster Aufruf
+            merker = set()                                                     # neues Verzeichnis
+            self._marsch_gemeldete = merker                                    # am Objekt merken
+        schluessel = (str(eintrag.get("von") or ""), str(eintrag.get("nach") or ""))
+        if schluessel in merker:                                               # schon gemeldet
+            return                                                             # nicht wiederholen
+        merker.add(schluessel)                                                 # als gemeldet merken
+        self._log("Marsch %s -> %s liegt nicht im Kartenraster (Ort unbekannt) - keine Linie "
+                  "gezeichnet, damit die Richtung nicht erfunden wird." % schluessel)
+
+    def _marsch_laufend(self, kante: int = 20) -> list:
+        """Alle Maersche, die gerade unterwegs sind - mit Phase, Restzeit und beiden Feldern.
+
+        EINE Quelle: `state.auftraege` (keine zweite Auftragsliste) und die Spieluhr
+        `state.spielsekunden`. Die Phase kommt aus `auftraege.stand` (oeffentliche Fassung).
+        """
+        opt = marsch_optik.optik()                                             # Einstellungen
+        if not marsch_optik.aktiv(opt):                                        # Anzeige ausgeschaltet
+            return []                                                          # dann keine Maersche
+        jetzt = float(getattr(self.state, "spielsekunden", 0.0))               # die EINE Spieluhr
+        ergebnis = []                                                          # was gezeichnet wird
+        for eintrag in auftraege.laufende(getattr(self.state, "auftraege", None), jetzt):
+            phase, rest = auftraege.stand(eintrag, jetzt)                      # Phase und Restzeit
+            start, ziel = self._marsch_felder(eintrag, kante)                  # beide Felder
+            if start is None or ziel is None:                                  # nicht aufloesbar
+                self._marsch_gemeldet(eintrag)                                 # einmal melden
+                continue                                                       # keine Linie zeichnen
+            eigenes_ziel = self._siedlung_nach_namen(str(eintrag.get("nach") or "")) is not None
+            ergebnis.append({"eintrag": eintrag, "phase": phase, "rest": float(rest),
+                             "von": start, "nach": ziel, "eigenes_ziel": eigenes_ziel})
+        return ergebnis                                                        # fertige Liste
+
+    def _marsche_zeichnen(self, zeichenflaeche, zelle: int, kante: int) -> list:
+        """Alle laufenden Maersche ins Gelaendekaestchen zeichnen - vier Objekte je Marsch.
+
+        Sichtbar sind NUR Startfeld, Zielfeld, die Linie und die Bewegung (Vorgabe Daniel,
+        Registerpunkt 140); Truppenart, Anzahl und Karren erscheinen nicht, und die Groesse des
+        Zeichens haengt an KEINEM Auftragswert ("ein Handkarren sieht aus wie eine Armee").
+        Jedes Objekt traegt den Sammel-Tag `marsch` und den Tag `marsch_<Nummer>`; die Pruefdatei
+        zaehlt darueber. Rueckgabe: die gezeichneten Maersche (fuer die Zeile unter der Karte); die
+        Trefferflaechen fuer den Klick stehen in `self._marsch_treffer`.
+        """
+        opt = marsch_optik.optik()                                             # alle Zahlen aus der Datei
+        zeichenflaeche.delete("marsch")                                        # alte Maersche entfernen
+        treffer = []                                                           # Trefferflaechen
+        gezeichnet = []                                                        # was wirklich gezeichnet wurde
+        gezaehlt = {}                                                          # gleiche Strecke zaehlen
+        for nummer, marsch in enumerate(self._marsch_laufend(kante)):          # jeder laufende Marsch
+            start, ziel = marsch["von"], marsch["nach"]                        # beide Felder
+            farbe = str(opt["linie"]["farbe_hin"])                             # Farbe Hinreise
+            richtung_von, richtung_nach = start, ziel                          # Laufrichtung
+            if str(marsch["phase"]) == "rueckreise":                           # Rueckreise
+                farbe = str(opt["linie"]["farbe_rueck"])                       # eigene Farbe
+                richtung_von, richtung_nach = ziel, start                      # Richtung gespiegelt
+            schluessel = (start, ziel)                                         # gleiche Strecke?
+            wieviel = gezaehlt.get(schluessel, 0)                              # wie oft schon gezeichnet
+            gezaehlt[schluessel] = wieviel + 1                                 # diesen Marsch mitzaehlen
+            x1, y1 = start[0] * zelle + zelle / 2.0, start[1] * zelle + zelle / 2.0
+            x2, y2 = ziel[0] * zelle + zelle / 2.0, ziel[1] * zelle + zelle / 2.0
+            dx, dy = x2 - x1, y2 - y1                                          # Richtung der Strecke
+            laenge = max(1e-6, (dx * dx + dy * dy) ** 0.5)                     # Laenge in px
+            abstand = min(float(opt["mehrere"]["max_versatz_px"]),
+                          wieviel * float(opt["mehrere"]["versatz_px"]))       # Versatz bei Gleichheit
+            ox, oy = (-dy / laenge) * abstand, (dx / laenge) * abstand         # senkrecht zur Linie
+            tags = ("marsch", "marsch_%d" % nummer)                            # zwei Tags je Objekt
+            zeichenflaeche.create_line(x1 + ox, y1 + oy, x2 + ox, y2 + oy,     # die Linie
+                                       fill=farbe, width=int(opt["linie"]["breite_px"]),
+                                       dash=(opt["linie"]["dash"] or ()), tags=tags)
+            for marker, feld in (("start_marker", start), ("ziel_marker", ziel)):   # Start und Ziel
+                kante_px = float(opt[marker]["kante_px"]) / 2.0                # halbe Kantenlaenge
+                mx, my = feld[0] * zelle + zelle / 2.0 + ox, feld[1] * zelle + zelle / 2.0 + oy
+                zeichenflaeche.create_rectangle(mx - kante_px, my - kante_px,
+                                                mx + kante_px, my + kante_px,
+                                                outline=str(opt[marker]["farbe"]),
+                                                width=int(opt[marker]["linienbreite"]), tags=tags)
+            gesamt = max(1e-6, float(marsch["eintrag"].get("reisezeit") or 0.0))   # Dauer je Strecke
+            anteil = min(1.0, max(0.0, 1.0 - marsch["rest"] / gesamt))         # Stand der Bewegung
+            if str(marsch["phase"]) == "am_ziel":                              # steht am Ziel
+                anteil = 1.0                                                   # Punkt genau am Ziel
+            ax, ay = richtung_von[0] * zelle + zelle / 2.0 + ox, richtung_von[1] * zelle + zelle / 2.0 + oy
+            bx, by = richtung_nach[0] * zelle + zelle / 2.0 + ox, richtung_nach[1] * zelle + zelle / 2.0 + oy
+            mx, my = ax + (bx - ax) * anteil, ay + (by - ay) * anteil          # Stand des Zeichens
+            groesse = float(opt["symbol"]["durchmesser_px"])                   # Groesse aus der Datei
+            if str(opt["symbol"]["form"]) == "pfeil":                          # Fassung B: Pfeilspitze
+                px, py = -(by - ay) / max(1e-6, ((bx - ax) ** 2 + (by - ay) ** 2) ** 0.5), \
+                    (bx - ax) / max(1e-6, ((bx - ax) ** 2 + (by - ay) ** 2) ** 0.5)
+                dxe, dye = (bx - ax) / max(1e-6, laenge), (by - ay) / max(1e-6, laenge)
+                spitze = (mx + dxe * groesse, my + dye * groesse)              # vorderste Spitze
+                links = (mx - dxe * groesse * 0.6 + px * groesse * 0.7,
+                         my - dye * groesse * 0.6 + py * groesse * 0.7)        # linke Ecke
+                rechts = (mx - dxe * groesse * 0.6 - px * groesse * 0.7,
+                          my - dye * groesse * 0.6 - py * groesse * 0.7)       # rechte Ecke
+                zeichenflaeche.create_polygon(spitze, links, rechts,
+                                              fill=str(opt["symbol"]["fuellung"]),
+                                              outline=str(opt["symbol"]["rand"]), tags=tags)
+            else:                                                              # Fassung A/C: Kreis
+                r = groesse / 2.0                                              # Radius aus Durchmesser
+                zeichenflaeche.create_oval(mx - r, my - r, mx + r, my + r,
+                                           fill=str(opt["symbol"]["fuellung"]),
+                                           outline=str(opt["symbol"]["rand"]),
+                                           width=int(opt["symbol"]["linienbreite"]), tags=tags)
+            treffer.append({"seg": ((x1 + ox, y1 + oy), (x2 + ox, y2 + oy)),  # Strecke fuer den Klick
+                            "marsch": marsch, "tag": "marsch_%d" % nummer})
+            gezeichnet.append(dict(marsch, tag="marsch_%d" % nummer))       # fuer die Zeile unter der Karte
+        self._marsch_treffer = treffer                                         # fuer den Klick merken
+        return gezeichnet                                                      # die gezeichneten Maersche
+
+    def _marsch_an(self, x: int, y: int, kante: int = 20):
+        """Welcher Marsch liegt unter dem Klick? Das 6-px-Band um die Linie, naechster gewinnt."""
+        zelle = self._portal_zelle(kante)                                      # Feldgroesse wie beim Zeichnen
+        mx = int(x) * zelle + zelle / 2.0                                      # Klick in px
+        my = int(y) * zelle + zelle / 2.0
+        opt = marsch_optik.optik()                                             # Einstellungen
+        toleranz = float(opt.get("klick", {}).get("toleranz_px") or 6)         # Trefferband in px
+        bestes, kuerzeste = None, None                                         # Ergebnis und Abstand
+        for eintrag in (getattr(self, "_marsch_treffer", None) or []):         # jede gezeichnete Linie
+            (px1, py1), (px2, py2) = eintrag["seg"]                            # ihre beiden Enden
+            abstand = self._punkt_abstand(mx, my, px1, py1, px2, py2)          # Abstand zum Klick
+            if abstand <= toleranz and (kuerzeste is None or abstand < kuerzeste):
+                bestes, kuerzeste = eintrag, abstand                           # naechste Linie gewinnt
+        return bestes                                                          # None = keine Linie
+
+    def _marsch_optionen(self, treffer: dict) -> None:
+        """Ein Fenster mit dem OEFFENTLICHEN eines Marsches: von, nach, Restzeit.
+
+        KEINE Truppenliste und keine Auftragsart: was unterwegs ist, verraet nichts ueber Art,
+        Anzahl oder Geschwindigkeit (Vorgabe Daniel, Registerpunkt 140). Die Einzelheiten stehen im
+        Auftragsbuch und im Postfach.
+        """
+        marsch = (treffer or {}).get("marsch") or {}                           # der getroffene Marsch
+        eintrag = marsch.get("eintrag") or {}                                  # sein Auftrag
+        opt = marsch_optik.optik()                                             # Einstellungen
+        eigenes = bool(marsch.get("eigenes_ziel"))                             # Ziel ein eigenes Dorf?
+        rest_text = marsch_optik.restzeit_text(marsch.get("rest") or 0.0, eigenes, opt)
+        fenster = tk.Toplevel(self.root)                                       # eigenes Fenster
+        fenster.title("Marsch: %s nach %s" % (eintrag.get("von"), eintrag.get("nach")))
+        fenster.configure(bg=self.skin["bg"])                                  # Farbe wie das Spiel
+        tk.Label(fenster, text="%s nach %s" % (eintrag.get("von"), eintrag.get("nach")),
+                 font=("Blackletter", 16, "bold"), fg=self.skin["gold"], bg=self.skin["bg"],
+                 wraplength=460, justify=tk.LEFT).pack(anchor=tk.W, padx=12, pady=(12, 2))
+        zeilen = ["Restzeit: %s" % rest_text,                                  # grob oder genau
+                  "Richtung: %s" % ("Rueckweg" if str(marsch.get("phase")) == "rueckreise"
+                                    else "Hinweg")]
+        tk.Label(fenster, text="\n".join(zeilen), fg=self.skin["text"], bg=self.skin["bg"],
+                 justify=tk.LEFT, wraplength=460).pack(anchor=tk.W, padx=12)
+        tk.Label(fenster, text=("Truppenart, Anzahl und Karren bleiben verborgen - ein Handkarren "
+                                "sieht aus wie eine Armee. Einzelheiten stehen im Auftragsbuch "
+                                "und im Postfach."),
+                 fg="#C0C0C0", bg=self.skin["bg"], wraplength=460,
+                 justify=tk.LEFT).pack(anchor=tk.W, padx=12, pady=(6, 2))
+        tk.Button(fenster, text="Schliessen", bg="#3e2723", fg=self.skin["gold"],
+                  command=fenster.destroy).pack(anchor=tk.E, padx=12, pady=10)
+        self._log("Marsch %s nach %s: %s (%s)." % (eintrag.get("von"), eintrag.get("nach"),
+                                                   rest_text, marsch.get("phase")))
+
     def _portal_klick(self, x: int, y: int, kante: int = 20):
         """Ein Klick ins Gelaendekaestchen: fremdes Dorf oder freies Feld (B-5, 02.11.2026).
 
@@ -6953,6 +7174,10 @@ class NebelseetalApp:
         treffer = self._bot_dorf_an(x, y, kante)                       # steht hier ein fremdes Dorf?
         if treffer is not None:                                        # ja: Optionen anbieten
             self._bot_dorf_optionen(treffer[0], treffer[1])
+            return True
+        marsch = self._marsch_an(x, y, kante)                          # M-1: liegt hier eine Marschlinie?
+        if marsch is not None:                                         # ja: nur das Oeffentliche zeigen
+            self._marsch_optionen(marsch)
             return True
         return self._portal_feld_waehlen(x, y)                         # sonst Feld anwaehlen
 
@@ -7041,7 +7266,20 @@ class NebelseetalApp:
                                      f"ein Klick waehlt ein Feld)"),
                  fg="#DAA520", bg=self.skin["bg"], wraplength=760, justify=tk.LEFT).pack(
                      anchor=tk.W, padx=10, pady=(8, 0))
-        zelle = max(4, 400 // max(1, kante))
+        zelle = self._portal_zelle(kante)
+        # M-1 (Vorgabe Daniel 02.11.2026, Register 140): die GROBE Restzeit steht als Zeile UEBER dem
+        # Kaestchen - unter der Karte waere sie in diesem Fenster nur nach dem Scrollen zu sehen
+        # (gemessen: Leinwand 296..696 px, Fenster 744 px hoch). Truppenart und Anzahl stehen NICHT da.
+        laufende_maersche = self._marsch_laufend(kante)
+        if laufende_maersche:                                          # wenigstens ein Marsch laeuft
+            zeilen = ["%s nach %s: %s" % (marsch["eintrag"].get("von"),
+                                          marsch["eintrag"].get("nach"),
+                                          marsch_optik.restzeit_text(marsch["rest"],
+                                                                     marsch["eigenes_ziel"]))
+                      for marsch in laufende_maersche]                 # je Marsch eine kurze Zeile
+            tk.Label(self.content, text="Unterwegs: " + " | ".join(zeilen),
+                     fg="#DAA520", bg=self.skin["bg"], wraplength=760, justify=tk.LEFT,
+                     font=("TkDefaultFont", 9)).pack(anchor=tk.W, padx=10, pady=(2, 0))
         felder = portalraum.anzeige_raster(portalraum.index_von(nummer), 10, eigene_index)
         zeichenflaeche = tk.Canvas(self.content, width=kante * zelle, height=kante * zelle,
                                    bg=self.skin["bg"], highlightthickness=0)
@@ -7065,6 +7303,11 @@ class NebelseetalApp:
                                        fill="#FFE8C2", tags=("portalbote",))
             zeichenflaeche.create_line(cx - halb, cy + halb, cx + halb, cy - halb,
                                        fill="#FFE8C2", tags=("portalbote",))
+        # M-1 (Vorgabe Daniel 02.11.2026, Register 140): die LAUFENDEN Maersche als Linie mit
+        # eigenem Zeichen-Tag. Gespeist aus `state.auftraege` (keine zweite Auftragsliste), vier
+        # Objekte je Marsch, KEINE Truppenart und keine Anzahl im Bild. Der Tag `marsch` ist neu;
+        # die Dorf-Zaehlwache auf `portalbote` bleibt dadurch unberuehrt.
+        self._marsche_zeichnen(zeichenflaeche, zelle, kante)            # Linie, Start, Ziel, Zeichen
         # Legende: die sieben Gelaendearten mit Name und Haeufigkeit, direkt aus den Daten.
         legende = tk.Frame(self.content, bg=self.skin["bg"])
         legende.pack(anchor=tk.W, padx=10, pady=(2, 0))

@@ -1,3 +1,52 @@
+# STAND 02.11.2026, 21:45 - Stufe M-1: Truppenbewegungen sind auf der Weltkarte sichtbar (Register 141)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Jeder laufende Auftrag hat jetzt eine Linie im Gelaendekaestchen.** Sichtbar ist nur das
+Oeffentliche: Startfeld, Zielfeld, die Linie und die Bewegung darauf - als grobe Restzeit in einer
+Zeile ueber der Karte und im Klickfenster (Vorgabe Daniel, Register 140). Truppenart, Anzahl,
+Karren und die genaue Geschwindigkeit bleiben verborgen; laeuft ein Marsch auf eine EIGENE Siedlung
+zu, steht die Wegzeit genau da. Entworfen hat die Darstellung das starke Modell (`deepseek-v4-pro`)
+in drei Fassungen; eingebaut ist Fassung A.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `959e04a` plus dieser Schritt | `git log --oneline -1` |
+| Entwurf (starkes Modell) | 278 Zeilen, drei Fassungen mit exakten Zahlen, Empfehlung A, Umsetzungsplan | `docs/design/MARSCH_ENTWURF_20261102.md`, `docs/audits/usage_m1_20261102.json` |
+| Messung des Laufs | 10 Aufrufe, 757.216 Prompt-Token (656.640 aus dem Cache), 20.385 Antwort-Token, 12.585 Denk-Token | ebd. `usage_m1_20261102.json` |
+| Vergleichsblatt | drei Fassungen, oben doppelt gross und unten in Originalgroesse (20 px je Feld) | `docs/design/MARSCH_VERGLEICH_20261102.png`, `tools/marsch_vergleich.py` |
+| Zahlen der Anzeige | Symbol 6 px `#F59E0B`, Linie 2 px, Rueckreise `#38BDF8`, Marker hohl 8 px `#DAA520`, Takt 400 ms, Stufen 1/3/6 h, Toleranz 6 px | `data/marsch_optik.json`, `src/marsch_optik.py` |
+| Zeichnen | vier Canvas-Objekte je Marsch, Tags `marsch` und `marsch_<n>`, Alte werden beim Rendern geloescht | `main._marsche_zeichnen` |
+| Klick | erst Dorf, dann Marsch (6-px-Band um die Linie), dann Feld | `main._portal_klick`, `main._marsch_an` |
+| Wache | `tests/test_marsch_optik.py` **63/0/0** | eigener Lauf |
+| Voller Sammellauf | **131 von 133 gruen, 0 rot, 2 ausgesetzt, 5.224 Pruefungen, 357 s** (21:55) | `docs/audits/sammellauf_20261102_2155.log` |
+| Pruefdateien / Register | **133** / **141** | `ls tests/test_*.py`, `grep -c '^| [0-9]'` |
+
+**Zwei Befunde, offen benannt:** (1) `Settlement.x/y` liegt im ALTEN `MAPS`-Raster (20 nur bei
+`kontinent`), dass das Portal-Raster dieselben Felder meint, ist nicht belegt - deshalb steht die
+Aufloesung an einer einzigen Stelle (`main._marsch_felder`) und die Lesart ist VORSCHLAG.
+(2) Bot-Doerfer tragen ihre Position erst nach `bot_doerfer_auffrischen_alle`; vorher liegt jedes
+Dorf auf 0/0, und jede Wache, die ohne diesen Schritt zaehlt, prueft ein leeres Bild.
+
+## Der EINE naechste Schritt
+
+**Kastenoptik in Kaserne, Stellmacher und Diebesgilde** (Daniels Wahl aus der Fragenrunde 02.11.2026),
+danach die uebrigen Textfelder der Ansichten - Vorgabe: stueckweise. Der Vorzustand ist gebaut und
+geprueft (Register 139): das Gebaeudemotiv ist der Hintergrund, die Texte stehen in abgerundeten
+Feldern davor; die drei Ausbildungsstaetten haben die Textfelder noch NICHT.
+
+Zu tun: je Ansicht die Textbloecke auf `gebaeude_optik.kasten_bild` umstellen (wie Dorfzentrum und
+Forschung), Zahlen nur aus `data/gebaeude_motive.json`, alte Wachen auf Wortlaut und Groesse
+mitziehen, Pruefdatei erweitern, voller Sammellauf, Protokollzeile, ein Commit.
+Arbeitsweise: ein Schritt = ein Commit = ein gruener voller Sammellauf.
+
+**Demo-Umfang ist eingefroren (Daniel 02.11.2026):** Kernkreis + Spionage + Voelker- und Kartenwahl
+am Start. Alles andere kommt NACH dem ersten Demo-Upload.
+
+**Danach in dieser Reihenfolge:** uebrige Textfelder, Voelkerwahl am Start (A2), Kartenwahl fuer den
+SPIELER, Volksboni verdrahten (A), Anschluss `botkern.oekonomie_kartenwahl`, Kopplung Punkte/Kanaele
+(C), Balance-Messung (D), zuletzt Demo-Release (Freigabe Daniel).
+
 # STAND 02.11.2026, 20:59 - Stufe B-6: das Gebaeudemotiv ist der Hintergrund, Texte stehen davor (Register 139)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
