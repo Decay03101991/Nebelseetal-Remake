@@ -1,3 +1,38 @@
+# STAND 02.11.2026, 17:15 - Stufe B-1: Bots tragen Doerfer (Register 132)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Die Voraussetzung fuer Dorf-Taktiken steht.** Jeder Bot traegt jetzt je Dorf einen eigenen
+Datensatz (Taktik-Slot, Wall, Ausbauzaehler); die Doerfer entstehen aus den bisherigen
+Siedlungsnamen, das erste ist das Hauptdorf. Ein alter Spielstand laedt ohne Ausnahme und verliert
+nichts.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `74587fb` (Arbeitsbaum leer), darauf dieser Schritt | `git log --oneline -1` |
+| Neu | `main.BotDorf`, `BotPlayer.doerfer`, `bot_doerfer_sicherstellen`, `bot_aus_stand` | `src/main.py` |
+| Eingetragen | Kartenaufbau (`generate_map`) und Spielstand-Laden | beide Stellen im Quelltext |
+| Wache | `tests/test_bot_doerfer.py` **27/0/1** (Befund = bewusster Zwischenstand) | eigener Lauf |
+| Nebenbefunde | `test_s7_botverhalten` 45/0/0, `test_gpt_bot_angriffsplanung` 16/16 OK | eigene Laeufe |
+| Voller Sammellauf | **125 von 127 gruen, 0 rot, 2 ausgesetzt, 4.850 Pruefungen, 284 s** (17:14-17:22) | `docs/audits/sammellauf_20261102_1714.log` |
+| Pruefdateien / Register | **127** / **132** | `ls tests/test_*.py`, `grep -c` |
+| Offen (bewusst) | Dorf-Vorraete sind noch NICHT fuehrend; Wirtschaft je Dorf = B-3 | Befund in der Wache |
+
+## Der EINE naechste Schritt
+
+**Stufe B-2: jedem Bot-Dorf eine Position auf der Karte und einen fuellbaren Taktik-Slot geben**
+(Konzept `docs/KONZEPT_DORF_TAKTIKEN_20261102.md`, Abschnitte 2 und 4): die Wahlregel fuers Verhalten
+aus der Lage ableiten (Naehe zum Spieler, eigene Staerke, Wallzustand, letzte Niederlage), Sperrzeit
+beachten, die Wahl deterministisch aus dem Seed ziehen und die Taktik-Tabelle je Fraktion als
+Datendatei anlegen. Danach B-3 (Wirtschaft je Dorf) und erst dann die Kopplung an die Volksboni.
+Zu tun: Werte in `data/` (keine Literale im Code), Pruefdatei mit Grenzfaellen, voller Sammellauf,
+Protokollzeile, ein Commit.
+Arbeitsweise: ein Schritt = ein Commit = ein gruener voller Sammellauf.
+
+**Offen ausserdem:** das Protokoll steht mit 325 Zeilen ueber der Zielgroesse 320 - nach Daniels
+Regel wird AUSGELAGERT (nicht gestrichen); das gehoert in den Aufraeumschritt (Punkt 9). Die Anzeige
+der Doerfer im Spiel und die Voelkerwahl (Stufe A2) folgen nach B.
+
 # STAND 02.11.2026, 16:00 - Leisten-Luecken gedeckelt (Register 131)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

@@ -184,6 +184,41 @@ GOODS: Dict[str, Goods] = {
 }
 
 @dataclass
+class BotDorf:
+    """EIN Dorf eines Bots - Stufe B-1 (02.11.2026, Konzept K-1 Abschnitt 5).
+
+    Bis heute fuehrte ein Bot nur NAMEN seiner Doerfer (`BotPlayer.settlements`) und EINEN
+    gemeinsamen Vorrat. Fuer Dorf-Taktiken (jedes Dorf waehlt und wechselt seine Taktik) braucht
+    es je Dorf einen eigenen Datensatz. Diese Klasse ist der Traeger; in B-1 haelt sie nur die
+    Werte, die der Bot bisher EINMAL hatte (Wall, Ausbaustaende, Taktik-Slot). Die Wirtschaft je
+    Dorf und die Kopplung an die Volksboni folgen in den naechsten Schnitten.
+
+    Felder und ihre Herkunft:
+      name          - der bisherige Siedlungsname des Bots (nichts erfunden)
+      hauptdorf     - True fuer das erste Dorf; es traegt nach Daniels Entscheidung (02.11.2026)
+                      die Basiswerte des Volkes und gibt KEINEN Taktik-Punkt
+      taktik        - leer = noch keine Taktik gewaehlt (B-2); keine Vorgabe erfinden
+      taktik_seit   - Spielsekunden der letzten Wahl, fuer die Sperrzeit (B-2)
+      wall_stufe/zustand, gebaut, geforscht - aus dem Bot uebernommen, damit alte Spielstaende
+                      verlustfrei weiterlaufen
+      vorraete      - eigener Speicher je Dorf; in B-1 NICHT fuehrend (der Bot-Vorrat bleibt die
+                      eine Wahrheit, bis B-3 die Wirtschaft je Dorf bucht)
+    """
+    name: str
+    x: int = 0
+    y: int = 0
+    dimension: int = 1
+    hauptdorf: bool = False
+    taktik: str = ""
+    taktik_seit: float = 0.0
+    wall_stufe: int = 0
+    wall_zustand: float = 100.0
+    gebaut: int = 0
+    geforscht: int = 0
+    vorraete: Dict[str, float] = field(default_factory=dict)
+
+
+@dataclass
 class BotPlayer:
     name: str
     faction: str
@@ -224,6 +259,45 @@ class BotPlayer:
     wechsel_sperre_bis: float = 0.0
     volksattribute: Dict[str, str] = field(default_factory=dict)
     verhaltensbonus: Dict[str, object] = field(default_factory=dict)
+    # B-1 (02.11.2026): je Dorf ein eigener Datensatz (Taktik-Slot, Wall, Ausbau). ADDITIV - alte
+    # Spielstaende laden ohne das Feld; `bot_doerfer_sicherstellen` legt es beim Laden aus den
+    # bisherigen Siedlungsnamen an, damit nichts verloren geht.
+    doerfer: List["BotDorf"] = field(default_factory=list)
+
+
+def bot_doerfer_sicherstellen(bot: "BotPlayer") -> List["BotDorf"]:
+    """Legt fuer einen Bot fehlende Dorf-Datensaetze an - einmalig, verlustfrei, idempotent.
+
+    QUELLE der Dorfnamen sind die bisherigen `bot.settlements` (die der Kartenaufbau fuellt). Hat
+    ein alter Spielstand keine Namen, entsteht EIN Hauptdorf mit dem bisherigen Standardnamen.
+    Uebernommen werden Wall, Wallzustand und die Zaehler, damit ein alter Stand mit Wallstufe 3
+    danach dieselbe Wallstufe hat - nur eben an einem Dorf statt am ganzen Bot.
+    """
+    vorhanden = getattr(bot, "doerfer", None) or []                       # schon angelegte Doerfer
+    if vorhanden:                                                         # nichts doppelt anlegen
+        sauber = [d if isinstance(d, BotDorf) else BotDorf(**d) for d in vorhanden]   # dict -> Objekt
+        bot.doerfer = sauber                                              # eine Form im Speicher
+        return sauber
+    namen = [str(n) for n in (getattr(bot, "settlements", None) or []) if str(n).strip()]  # bisherige Namen
+    if not namen:                                                         # alter Stand ohne Namen
+        namen = ["%ss Siedlung 1" % bot.name]                             # derselbe Standardname wie bisher
+    doerfer: List[BotDorf] = []                                           # Ergebnisliste
+    for i, name in enumerate(namen):                                      # ein Datensatz je Name
+        doerfer.append(BotDorf(name=name, hauptdorf=(i == 0),             # das erste Dorf ist das Hauptdorf
+                               wall_stufe=int(getattr(bot, "wall_stufe", 0) or 0),        # Wall uebernehmen
+                               wall_zustand=float(getattr(bot, "wall_zustand", 100.0) or 100.0),
+                               gebaut=int(getattr(bot, "gebaut", 0) or 0),               # Zaehler uebernehmen
+                               geforscht=int(getattr(bot, "geforscht", 0) or 0)))
+    bot.doerfer = doerfer                                                 # am Bot festhalten
+    return doerfer
+
+
+def bot_aus_stand(daten: dict) -> "BotPlayer":
+    """Baut einen Bot aus einem gespeicherten dict - Doerfer wieder als Objekte (B-1)."""
+    werte = dict(daten or {})                                             # Kopie, Eingabe bleibt unberuehrt
+    roh = werte.get("doerfer") or []                                      # gespeicherte Doerfer (dicts)
+    werte["doerfer"] = [d if isinstance(d, BotDorf) else BotDorf(**d) for d in roh]   # zurueck zu Objekten
+    return BotPlayer(**werte)                                             # uebrige Felder wie bisher
 
 
 @dataclass
@@ -1522,6 +1596,7 @@ class GameState:
         self.bots = bots
         for b in self.bots:
             self.bot_vorrat_anlegen(b)
+            bot_doerfer_sicherstellen(b)          # B-1: je Bot ein Dorf-Datensatz (Hauptdorf aus den Namen)
 
     def get_tile(self, x: int, y: int, size: int) -> Optional[MapTile]:
         if 0 <= x < size and 0 <= y < size:
@@ -3427,7 +3502,11 @@ class GameState:
         else:
             self.generate_map(self.current_map)
         if saved_bots:
-            self.bots = [BotPlayer(**b) for b in saved_bots]
+            # B-1: Doerfer kommen als dicts aus dem Spielstand zurueck und werden wieder Objekte;
+            # ein Stand von vor B-1 hat kein Feld `doerfer` und bekommt es hier aus den Namen.
+            self.bots = [bot_aus_stand(b) for b in saved_bots]
+            for _b in self.bots:
+                bot_doerfer_sicherstellen(_b)
         # Teil 8b (Entwurf Z. 789: "_day_accum zusaetzlich sichern statt beim Laden auf 0 setzen"):
         # der Tagesrest kommt jetzt aus dem Spielstand. Ein Stand, der das Feld nicht kennt (alles
         # vor Teil 8b), beginnt unveraendert bei 0 — kein Absturz, keine erfundene Zahl.
