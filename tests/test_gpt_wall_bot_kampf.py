@@ -28,7 +28,7 @@ class BotWallTests(unittest.TestCase):
         self.state.settlements=[self.s]
         self.state.noob_protection=False
         self.bot=BotPlayer(name='Ulf',faction='menschlich',aggression=1,trading=0,
-                           army={'Bürgerwehr':1},lager={'Handkarren':1},vorraete={})
+                           army={'Bürgerwehr':1},lager={'Handkarren':1})
         self.state.bots=[self.bot]
 
     def test_kein_gratisangriff_mit_wall(self):

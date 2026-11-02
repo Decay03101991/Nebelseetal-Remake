@@ -1,3 +1,37 @@
+# STAND 02.11.2026, 18:10 - Stufe B-3: Wirtschaft je Bot-Dorf (Register 134)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Die Bots wirtschaften.** Jedes Bot-Dorf hat ein eigenes Lager und erwirtschaftet je Stunde drei Anlagen
+je Grundrohstoff; die Kasse eines Bots ist nur noch die SUMME seiner Doerfer. Ein Spielstand von vorher
+laedt ohne Fehler und verliert nichts.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `4741076` (Arbeitsbaum leer), darauf dieser Schritt | `git log --oneline -1` |
+| Regel | `bot_dorf_ertrag`, `bot_kasse`, `bot_kasse_setzen`, `bot_kasse_buchen`, `bot_doerfer_ernten` | `src/main.py` |
+| Datendatei | `data/bot_wirtschaft.json` (Schalter, Anlagen je Dorf, Lagerdeckel 20.000) | ebd. |
+| Ertrag | drei Anlagen je Grundrohstoff: **12 Holz / 12 Stein / 12 Nahrung / 9 Gold** je Stunde und Dorf (Daniel 02.11.2026) | `bot_dorf_ertrag` |
+| Anzeige | Spionagebericht je Dorf mit Vorrat und Ertrag aus derselben Funktion; offene Uebersicht weiter ohne Vorrate | `bot_doerfer_spionagebericht` |
+| Wache | `tests/test_bot_dorf_wirtschaft.py` **52/0/0** | eigener Lauf |
+| Voller Sammellauf | **127 von 129 gruen, 0 rot, 2 ausgesetzt, 4.933 Pruefungen, 276 s** (18:04-18:08) | `docs/audits/sammellauf_20261102_1804.log` |
+| Pruefdateien / Register | **129** / **134** | `ls tests/test_*.py`, `grep -c` |
+| Offen | Kartenprofil je Dorf (Vorgabe Daniel, Konzept Abschnitt 11), Postfach/Spionage, Voelkerwahl (A2), Boni (A), Kopplung (C), Balance (D), Protokoll 344 Zeilen auslagern | Konzept K-1 |
+
+## Der EINE naechste Schritt
+
+**Das Gesamtkonzept ausformulieren (Vorgabe Daniel 02.11.2026).** Der Absatz in
+`docs/KONZEPT_DORF_TAKTIKEN_20261102.md`, Abschnitt 10, ist der Keim: Nebelseetal liefert Einheiten,
+Kampf, Gebaeude samt ihren Funktionen, Dorfgruendung und die Karten; Lords Mobile liefert ausschliesslich
+das Springen auf Koordinaten und die Anzeige der Doerfer auf diesen Koordinaten. Daraus wird der Baustein
+fuer die spaetere GitHub-Beschreibung - erst formulieren, dann zeigen.
+Arbeitsweise: ein Schritt = ein Commit = ein gruener voller Sammellauf.
+
+**Danach in dieser Reihenfolge:** Kartenprofil je Bot-Dorf (Konzept Abschnitt 11, Vorgabe Daniel vom
+02.11.2026), Postfach und Spionage (Vorbild Lords Mobile), Voelkerwahl am Start (A2, sechs Voelker),
+Verdrahtung der Volksboni (A), Kopplung Punkte und Kanaele (C), Balance-Messung (D). **Hygiene:** das
+Protokoll steht mit 344 Zeilen ueber der Zielgroesse 320 - auslagern, nicht streichen.
+
 # STAND 02.11.2026, 16:58 - Stufe B-2: Dorf-Verhalten aus der Lage (Register 133)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

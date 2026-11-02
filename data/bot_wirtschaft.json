@@ -1,0 +1,11 @@
+{
+  "stand": "2026-11-02",
+  "aktiv": true,
+  "gebaeude_je_dorf": ["holzfaeller", "steinmetz", "farm", "goldmine"],
+  "anlagen_je_gebaeude": 3,
+  "hoechstvorrat_je_stoff": 20000,
+  "beleg": "Die ERTRAEGE stehen nicht in dieser Datei. Jede Anlage bringt ihren Stundensatz aus data/buildings.json ueber gelaende.ertrag_pro_stunde (Handbuch 2009): Holzfäller 4 auf Wald, Steinmetz 4 auf Berg, Farm 4 auf Grasland, Goldmine 3 auf Berg. 'anlagen_je_gebaeude' sagt, wie viele Anlagen je Grundrohstoff in einem Bot-Dorf stehen. Wird eine Zahl dort geaendert, aendert sich der Bot-Ertrag mit - keine zweite Zahlenliste.",
+  "entscheidung_daniel": "Daniel 02.11.2026, rund 18:00: DREI Anlagen je Grundrohstoff und Dorf sind gewollt (12 Holz / 12 Stein / 12 Nahrung / 9 Gold je Stunde und Dorf) - die Bots sollen schneller Truppen kaufen und frueher angreifen. Vorher stand hier eine Anlage (4/4/4/3) als Vorschlag.",
+  "vorschlag": "VORSCHLAG bleibt nur der Lagerdeckel 'hoechstvorrat_je_stoff' (20.000 je Stoff und Dorf); die Vorlage nennt fuer ein Bot-Lager keinen Deckel.",
+  "offen": "Ein Ausbau je Dorf (mehr Anlagen mit wachsendem 'gebaut'-Zaehler) ist eine spaetere Stufe - hier bewusst NICHT eingebaut, damit die Zahl eine Quelle hat."
+}

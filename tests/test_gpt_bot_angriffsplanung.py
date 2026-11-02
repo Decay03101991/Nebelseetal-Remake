@@ -92,7 +92,7 @@ class BotIntegrationTests(unittest.TestCase):
         self.g.settlements=[ort('Stark',1),ort('Schwach',2,besetzt=False)]
         self.g.bots=[BotPlayer(name='Pruefbot',faction='menschlich',aggression=1,
                                trading=0,army={'Bürgerwehr':10},
-                               lager={'Handkarren':1}, vorraete={})]
+                               lager={'Handkarren':1})]
 
     def _run(self):
         with patch('main.botkern.bots_tick', side_effect=bot_zug):
@@ -129,12 +129,16 @@ class BotIntegrationTests(unittest.TestCase):
     def test_sortierte_botantwort_niemals_falschem_bot_zubuchen(self):
         # Das echte botkern.bots_tick sortiert seine Ergebnisse alphabetisch.
         # Die BotPlayer-Liste darf in anderer Reihenfolge gespeichert sein.
+        # B-3 (02.11.2026): die Kasse liegt in den Doerfern; `bot.vorraete` ist ihre Summe
+        # (Eigenschaft). Der Test setzt sie ueber dieselbe Eigenschaft wie das Spiel.
         self.g.bots = [
             BotPlayer(name='Zulu', faction='menschlich', aggression=0,
-                      trading=0, vorraete={'holz':100}),
+                      trading=0),
             BotPlayer(name='Alpha', faction='menschlich', aggression=0,
-                      trading=0, vorraete={'holz':200}),
+                      trading=0),
         ]
+        self.g.bots[0].vorraete = {'holz': 100}
+        self.g.bots[1].vorraete = {'holz': 200}
         def sortiert(*_a, **_kw):
             return {'aktionen': {'warten':2}, 'nachrichten': [], 'ergebnisse': [
                 {'bot':'Alpha', 'aktion':'warten', 'meldung':'Alpha wartet',

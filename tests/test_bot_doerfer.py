@@ -18,9 +18,9 @@ Was diese Datei beweist
 7. Ein Spielstand von VOR B-1 (ohne Feld `doerfer`) laedt ohne Fehler und bekommt danach sein
    Hauptdorf.
 8. Vorraete und Siedlungsnamen bleiben unangetastet.
-9. BEFUND (Zwischenstand, bewusst): die Dorf-Vorraete sind in B-1 NICHT fuehrend - der Bot-Vorrat
-   bleibt die eine Wahrheit, bis B-3 die Wirtschaft je Dorf bucht. Diese Datei haelt den
-   Zwischenstand fest, statt ihn zu verschweigen.
+9. Die Dorf-Vorraete sind SEIT B-3 (02.11.2026) fuehrend: die Kasse des Bots ist ihre Summe.
+   Der B-1-Befund ("noch nicht fuehrend") ist damit abgeloest, nicht verschwiegen - Abschnitt 9
+   prueft die neue Zusage.
 
 Aufruf:  python -X utf8 tests/test_bot_doerfer.py
 """
@@ -31,7 +31,7 @@ import sys
 from dataclasses import asdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from harness import abschnitt, befund, bericht, check, import_src
+from harness import abschnitt, bericht, check, import_src
 
 ROOT, SRC = import_src()
 import main  # noqa: E402
@@ -131,11 +131,19 @@ check("8 die Bot-Vorraete sind unveraendert", voll.vorraete == vorher_vorraete, 
 check("8 die Siedlungsnamen sind unveraendert", voll.settlements == vorher_namen, str(voll.settlements))
 
 # ==========================================================================
-abschnitt("9. Zwischenstand, bewusst festgehalten")
+abschnitt("9. Seit B-3 fuehren die Doerfer (der B-1-Befund ist abgeloest)")
 # ==========================================================================
-befund("9 die Dorf-Vorraete sind in B-1 noch NICHT fuehrend",
-       "der Bot-Vorrat bleibt die eine Wahrheit, bis B-3 die Wirtschaft je Dorf bucht")
-check("9 das Dorf traegt dennoch ein eigenes Vorratsfeld",
+# BEFUND B-1 (02.11.2026): "die Dorf-Vorraete sind NICHT fuehrend". Stufe B-3 hat das am selben Tag
+# gedreht. Die Wache wiederholt den Zwischenstand deshalb NICHT mehr, sondern prueft die neue Zusage:
+# die Doerfer halten das Gut, die Kasse des Bots ist ihre Summe, ein eigenes Feld gibt es nicht.
+neu = main.BotPlayer("Silra", "elfisch", aggression=0.2, trading=0.9,
+                     settlements=["Silras Siedlung 1", "Silras Siedlung 2"])
+neu.vorraete = {"holz": 60}
+check("9 die Kasse ist die Summe der Doerfer",
+      main.bot_kasse(neu) == {"holz": 60.0}, str(main.bot_kasse(neu)))
+check("9 der Bot fuehrt kein eigenes Vorratsfeld mehr",
+      "vorraete" not in neu.__dict__, str(sorted(neu.__dict__)))
+check("9 das Dorf traegt sein eigenes Vorratsfeld",
       isinstance(main.BotDorf(name="x").vorraete, dict), "")
 
 sys.exit(bericht())

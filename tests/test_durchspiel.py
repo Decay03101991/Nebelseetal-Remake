@@ -321,7 +321,11 @@ def partiedurchlauf():
         # ehrlich abgelehnt und NICHTS gebucht — der alte Gratisgewinn bleibt gesperrt.
         bot.trading = 0.9
         bot.gehandelt = 0
-        bot.vorraete["holz"] = 500
+        # B-3 (02.11.2026): die Kasse des Bots liegt in seinen DOERFERN; `bot.vorraete` ist eine
+        # Eigenschaft (Summe). Ein `bot.vorraete["holz"] = 500` landet in einem Zwischenergebnis und
+        # waere still verloren - die Pruefung setzt den Stand deshalb ueber dieselbe Eigenschaft,
+        # die auch das Spiel benutzt (kein Sonderweg, keine zweite Kasse).
+        bot.vorraete = {"holz": 500}
         _vorher_roh = {k: float(v.amount) for k, v in gs.resources.items()}
         _vorher_ruf = int(gs.ruf)
         log_vorher = len(gs.log)

@@ -14,7 +14,10 @@ try:
     for u in app.state.units.values(): u.count=0
     app.state.units['Krieger'].count=100
     app.state.units['Handkarren'].count=2
-    bot=main.BotPlayer('Test-Gegner','Test',0.0,0.0,army={},vorraete={'holz':90,'stein':0},wall_stufe=0)
+    bot=main.BotPlayer('Test-Gegner','Test',0.0,0.0,army={},wall_stufe=0)
+    # B-3 (02.11.2026): die Kasse eines Bots liegt in seinen DOERFERN; `bot.vorraete` ist die
+    # Summe (Eigenschaft). Gesetzt wird sie hier ueber dieselbe Eigenschaft - kein Sonderweg.
+    bot.vorraete={'holz':90,'stein':0}
     # ENTSCHEIDUNG 1 (01.11.2026): der Kampf faellt erst am Ziel an, und dort wird der Bot
     # ueber seinen Namen in state.bots gesucht. Ein nicht eingetragener Bot haette ein
     # Kopielager - die Beute kaeme aus dem Nichts. Deshalb steht er hier wie im Spiel drin.

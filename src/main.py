@@ -201,8 +201,12 @@ class BotDorf:
       taktik_seit   - Spielsekunden der letzten Wahl, fuer die Sperrzeit (B-2)
       wall_stufe/zustand, gebaut, geforscht - aus dem Bot uebernommen, damit alte Spielstaende
                       verlustfrei weiterlaufen
-      vorraete      - eigener Speicher je Dorf; in B-1 NICHT fuehrend (der Bot-Vorrat bleibt die
-                      eine Wahrheit, bis B-3 die Wirtschaft je Dorf bucht)
+      vorraete      - SEIT B-3 (02.11.2026) der FUEHRENDE Speicher dieses Dorfes: hier liegen die
+                      Rohstoffe, die das Dorf erwirtschaftet hat und die es bezahlen kann. Die
+                      Bot-Kasse (`BotPlayer.vorraete`) ist nur noch die SUMME dieser Doerfer.
+      ernte_seit    - Spielsekunden der letzten Ernte dieses Dorfes; 0 = noch nie geerntet.
+                      Ein alter Spielstand bekommt 0 und damit beim ersten Takt KEINE
+                      nachtraegliche Gutschrift fuer die ganze Vergangenheit.
     """
     name: str
     x: int = 0
@@ -216,6 +220,7 @@ class BotDorf:
     gebaut: int = 0
     geforscht: int = 0
     vorraete: Dict[str, float] = field(default_factory=dict)
+    ernte_seit: float = 0.0
 
 
 @dataclass
@@ -233,7 +238,9 @@ class BotPlayer:
     # ein Bot Vorräte, Wagenpark und Handels-Temperament führt; `bot_als_dict`/`bot_aus_dict`
     # uebersetzen sie in die dict-Form des Kerns und wieder zurueck (keine zweite Wahrheit).
     temperament: float = 0.0
-    vorraete: Dict[str, int] = field(default_factory=dict)
+    # B-3 (02.11.2026): hier stand das Feld `vorraete`. Es ist ENTFALLEN - die Kasse eines Bots ist
+    # seit B-3 die SUMME seiner Doerfer (Eigenschaft `vorraete` am Ende dieser Klasse). Ein eigenes
+    # Feld waere die zweite Buchfuehrung, die B-1 als Befund festgehalten hat.
     lager: Dict[str, int] = field(default_factory=dict)
     naechster_angriff: float = 0.0
     letzter_angriff: Optional[float] = None
@@ -264,6 +271,24 @@ class BotPlayer:
     # bisherigen Siedlungsnamen an, damit nichts verloren geht.
     doerfer: List["BotDorf"] = field(default_factory=list)
 
+    # ---- B-3 (02.11.2026): die Kasse ist KEIN eigenes Feld, sondern die Summe der Doerfer ----
+
+    @property
+    def vorraete(self) -> Dict[str, float]:
+        """Die Bot-Kasse - gelesen als SUMME der Dorf-Vorrate (B-3, 02.11.2026).
+
+        EINE Wahrheit: Lesen rechnet ueber `bot_kasse`, Schreiben verteilt den neuen Stand ueber
+        `bot_kasse_setzen` auf die Doerfer. Ein `bot.vorraete["holz"] -= 10` aendert damit NICHTS
+        mehr still (es landet in einem Zwischenergebnis) - gebucht wird ausschliesslich ueber
+        `bot_kasse_buchen`. Genau das war der Befund aus B-1: eine zweite Kasse darf es nicht geben.
+        """
+        return bot_kasse(self)                                            # Summe der Doerfer
+
+    @vorraete.setter
+    def vorraete(self, werte) -> None:
+        """Setzt die GESAMTkasse eines Bots - gebucht wird dabei auf die Doerfer."""
+        bot_kasse_setzen(self, werte)                                     # verteilt, keine zweite Kasse
+
 
 def bot_doerfer_sicherstellen(bot: "BotPlayer") -> List["BotDorf"]:
     """Legt fuer einen Bot fehlende Dorf-Datensaetze an - einmalig, verlustfrei, idempotent.
@@ -293,11 +318,203 @@ def bot_doerfer_sicherstellen(bot: "BotPlayer") -> List["BotDorf"]:
 
 
 def bot_aus_stand(daten: dict) -> "BotPlayer":
-    """Baut einen Bot aus einem gespeicherten dict - Doerfer wieder als Objekte (B-1)."""
+    """Baut einen Bot aus einem gespeicherten dict - Doerfer als Objekte, alte Kasse migriert.
+
+    B-1: die Doerfer kommen als dicts aus dem Spielstand und werden wieder Objekte.
+    B-3 (02.11.2026): Spielstaende VOR B-3 tragen die Kasse des Bots als eigenes Feld `vorraete`.
+    Sie wird hier NICHT verworfen, sondern in die Doerfer uebernommen - ein alter Bot hatte EINE
+    Kasse, also landet sie ueber `bot_kasse_setzen` bei seinen Doerfern (Schwerpunkt Hauptdorf).
+    Danach fuehrt der Bot kein eigenes Vorratsfeld mehr: `bot.vorraete` liest die Summe.
+    """
     werte = dict(daten or {})                                             # Kopie, Eingabe bleibt unberuehrt
+    alt_kasse = werte.pop("vorraete", None)                               # die EINE Kasse von vor B-3
     roh = werte.get("doerfer") or []                                      # gespeicherte Doerfer (dicts)
     werte["doerfer"] = [d if isinstance(d, BotDorf) else BotDorf(**d) for d in roh]   # zurueck zu Objekten
-    return BotPlayer(**werte)                                             # uebrige Felder wie bisher
+    bot = BotPlayer(**werte)                                              # uebrige Felder wie bisher
+    if isinstance(alt_kasse, dict) and alt_kasse:                         # alter Stand mit einer Kasse
+        bot_kasse_setzen(bot, alt_kasse)                                  # verlustfrei auf die Doerfer
+    return bot
+
+
+# ---------------------------------------------------------------------------------------------------
+# B-3 (02.11.2026, Konzept K-1): WIRTSCHAFT JE BOT-DORF
+#
+# Bis B-2 hatte ein Bot EINE Kasse. Seit B-3 fuehren die DOERFER die Vorrate, die Kasse ist nur noch
+# ihre Summe. Diese Funktionen sind die einzigen Stellen, die Bot-Vorrate lesen oder buchen - Kern
+# (Ernte, Ausbildung, Handel) und Anzeige (Spionagebericht) gehen durch dieselbe Lesestelle
+# (F-04-Muster). Kein zweites Lager, keine zweite Ernteliste.
+# ---------------------------------------------------------------------------------------------------
+
+BOT_WIRTSCHAFT_VORGABE: Dict[str, Any] = {                                # Rueckfall ohne Datendatei
+    "aktiv": True,                                                        # Wirtschaft eingeschaltet
+    "gebaeude_je_dorf": ["holzfaeller", "steinmetz", "farm", "goldmine"],  # je Grundrohstoff eine Art
+    "anlagen_je_gebaeude": 3,                                             # Daniels Entscheidung 02.11.2026
+    "hoechstvorrat_je_stoff": 20000,                                      # Deckel je Stoff und Dorf
+}
+_BOT_ERTRAG_CACHE: Dict[tuple, Dict[str, float]] = {}                     # Erträge je Anlagen-Liste
+
+
+def bot_wirtschaft_einstellungen() -> Dict[str, Any]:
+    """Liest `data/bot_wirtschaft.json` - die EINE Stelle fuer Schalter, Anlagen und Lagerdeckel.
+
+    Fehlt die Datei oder ist sie kaputt, gilt `BOT_WIRTSCHAFT_VORGABE`; das Spiel laeuft weiter.
+    Die ERTRAEGE stehen bewusst nicht in der Datei, sondern kommen aus `data/buildings.json`
+    (Handbuch 2009) - sonst gaebe es eine zweite Zahlenliste, die auseinanderlaufen kann.
+    """
+    pfad = os.path.join(spieldaten.projektwurzel(), "data", "bot_wirtschaft.json")   # Datendatei
+    try:                                                                  # Datei lesen
+        with open(pfad, encoding="utf-8") as f:                           # UTF-8 wie alle Spieldaten
+            daten = json.load(f)                                          # Inhalt als dict
+    except (OSError, ValueError):                                         # fehlt oder ist kaputt
+        return dict(BOT_WIRTSCHAFT_VORGABE)                               # dann die Vorgabe
+    if not isinstance(daten, dict):                                       # unerwarteter Inhalt
+        return dict(BOT_WIRTSCHAFT_VORGABE)                               # dann die Vorgabe
+    einstellungen = dict(BOT_WIRTSCHAFT_VORGABE)                          # Vorgabe als Grundlage
+    einstellungen.update(daten)                                           # Datei hat Vorrang
+    if not einstellungen.get("gebaeude_je_dorf"):                         # leere Anlagenliste
+        einstellungen["gebaeude_je_dorf"] = list(BOT_WIRTSCHAFT_VORGABE["gebaeude_je_dorf"])
+    return einstellungen                                                  # fertige Einstellungen
+
+
+def bot_dorf_ertrag(dorf=None, einstellungen: Optional[dict] = None) -> Dict[str, float]:
+    """Stundenertrag EINES Bot-Dorfes - die EINE Lesestelle fuer Kern UND Anzeige (F-04).
+
+    Je Grundrohstoff stehen in einem Bot-Dorf `anlagen_je_gebaeude` Anlagen (Daniel 02.11.2026:
+    DREI) auf dem BESTEN Gelaende, auf dem sie gebaut werden duerfen; der Stundensatz JE ANLAGE
+    kommt aus `data/buildings.json` ueber `gelaende.ertrag_pro_stunde` (Handbuch 2009: Holzfaeller 4
+    auf Wald, Steinmetz 4 auf Berg, Farm 4 auf Grasland, Goldmine 3 auf Berg). Mit drei Anlagen
+    sind das 12 Holz / 12 Stein / 12 Nahrung / 9 Gold je Stunde und Dorf - die Zahl steht in der
+    Datendatei, nicht im Code.
+    `dorf` wird heute nicht ausgewertet (jedes Dorf wirtschaftet gleich) - der Parameter steht
+    trotzdem da, damit ein spaeterer Ausbau je Dorf KEINE zweite Funktion braucht.
+    Rueckgabe: {Rohstoff klein: Menge je Stunde}.
+    """
+    einstellungen = einstellungen if einstellungen is not None else bot_wirtschaft_einstellungen()
+    try:                                                                  # Zahl aus der Datendatei
+        anzahl = max(0, int(einstellungen.get("anlagen_je_gebaeude") or 1))   # Anlagen je Grundrohstoff
+    except (TypeError, ValueError):                                       # kaputter Wert
+        anzahl = 1                                                        # dann eine Anlage
+    gebaeude = tuple(str(g) for g in (einstellungen.get("gebaeude_je_dorf") or []))   # Arten je Dorf
+    anlagen = (gebaeude, anzahl)                                          # Cache-Schluessel: Arten und Anzahl
+    if anlagen in _BOT_ERTRAG_CACHE:                                      # schon einmal gerechnet
+        return dict(_BOT_ERTRAG_CACHE[anlagen])                           # Kopie, kein geteilter Speicher
+    ertrag: Dict[str, float] = {}                                         # Ergebnis: Rohstoff -> je Stunde
+    stammdaten = gelaende.alle_gebaeude()                                 # Bauwerke aus den Spieldaten
+    for geb in gebaeude:                                                  # je Grundrohstoff ein Posten
+        eintrag = stammdaten.get(geb) or {}                               # Stammdaten dieses Gebaeudes
+        rohstoff = eintrag.get("rohstoff")                                # welcher Rohstoff entsteht
+        if not isinstance(rohstoff, str) or not rohstoff:                 # unklar (mehrere Rohstoffe)
+            continue                                                      # dann keine Zahl erfinden
+        bester = 0.0                                                      # bester belegter Stundensatz
+        for art in gelaende.GELAENDEARTEN:                                # jedes Gelaende pruefen
+            erlaubt, _grund = gelaende.bau_moeglich(geb, art)             # darf die Anlage dort stehen?
+            if not erlaubt:                                               # nein
+                continue                                                  # dann zaehlt es nicht
+            wert = gelaende.ertrag_pro_stunde(geb, art)                   # Ertrag auf diesem Gelaende
+            if isinstance(wert, (int, float)) and float(wert) > bester:    # bester Wert gewinnt
+                bester = float(wert)                                      # merken
+        if bester > 0:                                                    # nur belegte Erträge
+            schluessel = rohstoff.lower()                                 # Schreibweise der Spielstaende
+            ertrag[schluessel] = round(ertrag.get(schluessel, 0.0) + bester * anzahl, 2)   # mal Anlagenzahl
+    _BOT_ERTRAG_CACHE[anlagen] = dict(ertrag)                             # fuer den naechsten Aufruf merken
+    return dict(ertrag)                                                   # frische Kopie
+
+
+def bot_kasse(bot: "BotPlayer") -> Dict[str, float]:
+    """Die Kasse eines Bots = SUMME seiner Dorf-Vorrate (B-3, die EINE Lesestelle).
+
+    Kein Bot fuehrt daneben ein eigenes Lager: wer die Kasse braucht, ruft diese Funktion (oder
+    liest `bot.vorraete`, was dasselbe ist). Leere Doerfer werden vorher ueber
+    `bot_doerfer_sicherstellen` angelegt, damit auch ein alter Spielstand sofort eine Kasse hat.
+    """
+    summe: Dict[str, float] = {}                                          # Ergebnis: Rohstoff -> Menge
+    for dorf in bot_doerfer_sicherstellen(bot):                           # je Dorf seine Vorrate
+        for stoff, menge in (getattr(dorf, "vorraete", None) or {}).items():   # ein Posten des Dorfes
+            summe[str(stoff)] = round(summe.get(str(stoff), 0.0) + float(menge), 2)   # aufsummieren
+    return summe                                                          # fertige Kasse
+
+
+def bot_kasse_setzen(bot: "BotPlayer", kasse) -> None:
+    """Setzt die GESAMTkasse eines Bots - verteilt den Stand auf die Doerfer, keine zweite Kasse.
+
+    Verteilung: nach dem ANTEIL, den ein Dorf heute von diesem Rohstoff haelt; haelt kein Dorf
+    etwas, zu gleichen Teilen. Gerundet wird auf zwei Stellen, den Rest bekommt das Hauptdorf -
+    so ist die Summe der Doerfer EXAKT die gewuenschte Kasse (kein verschwundener Rest).
+    Das Hauptdorf ist immer das ERSTE Dorf (`bot_doerfer_sicherstellen`, B-1).
+    """
+    doerfer = bot_doerfer_sicherstellen(bot)                              # Doerfer, ggf. angelegt
+    if not doerfer:                                                       # theoretisch nicht moeglich
+        return                                                            # dann nichts buchen
+    ziel = {str(k): max(0.0, float(v)) for k, v in (kasse or {}).items() if str(k)}   # Zielbestand
+    stoffe = set(ziel)                                                    # alle gewuenschten Rohstoffe
+    for dorf in doerfer:                                                  # plus alles, was noch liegt
+        stoffe.update(str(k) for k in (getattr(dorf, "vorraete", None) or {}))
+    for stoff in sorted(stoffe):                                          # je Rohstoff getrennt
+        soll = round(float(ziel.get(stoff, 0.0)), 2)                      # gewuenschte Gesamtmenge
+        heute = [float((getattr(d, "vorraete", None) or {}).get(stoff, 0.0)) for d in doerfer]   # Ist je Dorf
+        gesamt = round(sum(heute), 2)                                     # Ist gesamt
+        anteile = [h / gesamt for h in heute] if gesamt > 0 else [1.0 / len(doerfer)] * len(doerfer)  # Anteile
+        neu = [round(soll * a, 2) for a in anteile]                       # Ziel je Dorf
+        rest = round(soll - sum(neu), 2)                                  # Rundungsrest
+        neu[0] = round(neu[0] + rest, 2)                                  # Hauptdorf traegt den Rest
+        if neu[0] < 0:                                                    # Hauptdorf kann nicht negativ
+            neu[0] = 0.0                                                  # bei null deckeln
+        for dorf, menge in zip(doerfer, neu):                             # Ziel in die Doerfer schreiben
+            if not isinstance(getattr(dorf, "vorraete", None), dict):     # altes Dorf ohne Vorratsfeld
+                dorf.vorraete = {}                                        # dann anlegen
+            dorf.vorraete[stoff] = round(max(0.0, float(menge)), 2)       # Wert buchen
+
+
+def bot_kasse_buchen(bot: "BotPlayer", stoff: str, menge) -> float:
+    """Bucht EINEN Posten auf die Kasse des Bots (positiv = Zugang, negativ = Abgang).
+
+    Gebucht wird ueber `bot_kasse_setzen`, also auf die DOERFER - das ist der einzige Weg, etwas
+    abzuziehen oder gutzuschreiben. Rueckgabe: der neue Bestand dieses Rohstoffs (nie unter 0).
+    """
+    kasse = bot_kasse(bot)                                                # heutige Kasse
+    neuer = round(float(kasse.get(str(stoff), 0.0)) + float(menge), 2)    # gewuenschter neuer Stand
+    kasse[str(stoff)] = max(0.0, neuer)                                   # nie unter null
+    bot_kasse_setzen(bot, kasse)                                          # auf die Doerfer buchen
+    return float(kasse[str(stoff)])                                       # neuen Bestand melden
+
+
+def bot_doerfer_ernten(bot: "BotPlayer", jetzt: float, einstellungen: Optional[dict] = None) -> Dict[str, float]:
+    """Laesst die Doerfer eines Bots bis `jetzt` wirtschaften - der EINE Ernteweg (B-3).
+
+    Je Dorf wird die Zeit seit `dorf.ernte_seit` in Stunden umgerechnet und mit dem Stundensatz
+    aus `bot_dorf_ertrag` (derselben Funktion, die auch der Spionagebericht zeigt) gutgeschrieben.
+    Ein Dorf ohne Erntezeit (`0`, also jeder alte Spielstand und jedes neue Dorf) bekommt beim
+    ersten Aufruf nur den Zeitstempel - KEINE Gutschrift fuer die Vergangenheit.
+    Rueckgabe: {Rohstoff: tatsaechlich gebuchte Menge} (leer, wenn nichts geerntet wurde).
+    """
+    einstellungen = einstellungen if einstellungen is not None else bot_wirtschaft_einstellungen()
+    ergebnis: Dict[str, float] = {}                                       # was wirklich dazukam
+    if not einstellungen.get("aktiv", True):                              # Schalter aus
+        return ergebnis                                                    # dann keine Ernte
+    jetzt = float(jetzt)                                                  # Spielsekunden
+    deckel = float(einstellungen.get("hoechstvorrat_je_stoff") or 0.0)    # Lagerdeckel je Stoff
+    for dorf in bot_doerfer_sicherstellen(bot):                           # je Dorf wirtschaften
+        seit = float(getattr(dorf, "ernte_seit", 0.0) or 0.0)             # letzte Ernte dieses Dorfes
+        if seit <= 0:                                                     # noch nie geerntet (neues Dorf,
+            dorf.ernte_seit = jetzt                                       # alter Spielstand) -> nur den
+            continue                                                      # Zeitstempel setzen, nichts buchen
+        if jetzt <= seit:                                                 # Uhr steht oder laeuft rueckwaerts
+            continue                                                      # nichts buchen, Zeitstempel bleibt
+        stunden = (jetzt - seit) / 3600.0                                 # vergangene Spielstunden
+        if not isinstance(getattr(dorf, "vorraete", None), dict):         # altes Dorf ohne Vorratsfeld
+            dorf.vorraete = {}                                            # dann anlegen
+        for stoff, rate in bot_dorf_ertrag(dorf, einstellungen).items():   # je Rohstoff die Rate
+            vorher = float(dorf.vorraete.get(stoff, 0.0))                 # Bestand vor der Ernte
+            nachher = vorher + float(rate) * stunden                      # Zuwachs dieser Zeitspanne
+            if deckel > 0:                                                # Deckel gesetzt?
+                nachher = min(nachher, deckel)                            # dann nicht darueber hinaus
+            dorf.vorraete[stoff] = round(nachher, 2)                      # Dorf bekommt die Ernte
+            zuwachs = round(dorf.vorraete[stoff] - vorher, 2)             # tatsaechlicher Zuwachs
+            if zuwachs:                                                   # nur echte Zugaenge melden
+                ergebnis[stoff] = round(ergebnis.get(stoff, 0.0) + zuwachs, 2)
+        dorf.ernte_seit = jetzt                                           # Erntezeit fortschreiben
+    return ergebnis                                                       # was dazukam
+
 
 
 @dataclass
@@ -1671,8 +1888,14 @@ class GameState:
                             "wall_zustand": float(d.wall_zustand),     # Kampfdatum - nur hier
                             "taktik": str(d.taktik or ""),             # Kampfdatum - nur hier
                             "truppen": dict(bot.army or {}),           # stationierte Truppen
-                            "vorraete": dict(bot.vorraete or {})})     # was zu holen waere
-        return {"bot": str(bot.name), "fraktion": str(bot.faction), "doerfer": doerfer}
+                            # B-3: die Vorrate stehen je DORF (jedes Dorf hat ein eigenes Lager) -
+                            # und der Ertrag kommt aus DERSELBEN Funktion, mit der der Kern bucht.
+                            "vorraete": {str(k): round(float(v), 2)
+                                         for k, v in (d.vorraete or {}).items()},
+                            "ertrag_pro_stunde": bot_dorf_ertrag(d),    # eine Lesestelle (F-04)
+                            "ernte_seit": float(d.ernte_seit)})         # Zeitpunkt der letzten Ernte
+        return {"bot": str(bot.name), "fraktion": str(bot.faction), "doerfer": doerfer,
+                "kasse": bot_kasse(bot)}                               # Summe der Doerfer, keine zweite Kasse
 
     def bot_doerfer_auffrischen_alle(self, jetzt: float) -> int:
         """Alle Bots in einem Zug auffrischen (Positionen und Dorf-Taktiken)."""
@@ -2921,7 +3144,10 @@ class GameState:
         # Direktangriff - und sie bucht beim Ziel ab. Vorher stand hier die Beute aus
         # `kampf._beute` (nur Ladungsgrenze, ohne Staffelung) und das Ziel behielt alles.
         # Das war der Befund Nr. 6 der externen Gegenpruefung vom 31.10.2026.
-        vorraete_ziel = (bot_ziel.vorraete if bot_ziel is not None else
+        # B-3 (02.11.2026): die Kasse eines Bots ist eine Eigenschaft (Summe der Doerfer). Ein
+        # `clear()/update()` darauf wuerde in einer KOPIE landen - die Beute kaeme aus dem Nichts.
+        # Deshalb wird der Bot-Lagerstand ueber `bot_kasse_setzen` zurueckgebucht, nie direkt.
+        vorraete_ziel = (bot_kasse(bot_ziel) if bot_ziel is not None else
                          siedlung_ziel.vorraete if siedlung_ziel is not None else
                          ziel.get("vorraete") if isinstance(ziel.get("vorraete"), dict) else {})
         uebrig = int(sum(max(0, int(v)) for v in (verteidiger or {}).values()))
@@ -2930,8 +3156,11 @@ class GameState:
             wall_zustand_vor=wall_zustand, verteidiger_uebrig=uebrig,
             forschung=self.forschungs_stufen())
         if beute_gefecht and vorraete_ziel is not None:
-            vorraete_ziel.clear()
-            vorraete_ziel.update(lager_danach)
+            if bot_ziel is not None:                                      # Ziel ist ein BOT
+                bot_kasse_setzen(bot_ziel, lager_danach)                  # Abzug auf die Doerfer buchen
+            else:                                                         # Ziel ist eine Siedlung
+                vorraete_ziel.clear()                                     # eigenes Lager leeren
+                vorraete_ziel.update(lager_danach)                        # und den Rest setzen
         eintrag["beute"] = beute_gefecht
         eintrag["vorrunde"] = {"bestanden": bool(ergebnis.get("vorrunde_bestanden")),
                                "grund": ergebnis.get("bericht", "")}
@@ -3045,13 +3274,13 @@ class GameState:
         (Handbuch S. 7: 10 Siedler, 100 Holz, 100 Steine) — ohne sie koennte er keine einzige
         Einheit bezahlen, weil die belegten Preise Siedler nennen.
         """
-        if not bot.vorraete:
-            rng = random.Random(f"nebel-bot-vorrat-{bot.name}")
-            bot.vorraete = {stoff: rng.randint(lo, hi)
+        if not bot_kasse(bot):                                            # noch keine Kasse vorhanden
+            rng = random.Random(f"nebel-bot-vorrat-{bot.name}")           # fester Zufall je Bot
+            bot.vorraete = {stoff: rng.randint(lo, hi)                    # Setter verteilt auf die Doerfer
                             for stoff, (lo, hi) in botkern.VORSCHLAG_START_VORRAETE.items()}
-        for stoff, menge in (("siedler", 10), ("holz", 100), ("stein", 100)):
-            if stoff not in bot.vorraete:
-                bot.vorraete[stoff] = menge
+        for stoff, menge in (("siedler", 10), ("holz", 100), ("stein", 100)):   # belegte Startwerte
+            if stoff not in bot_kasse(bot):                               # fehlt dieser Stoff noch?
+                bot_kasse_buchen(bot, stoff, menge)                       # dann ueber die EINE Buchstelle
         if not bot.lager:
             rng = random.Random(f"nebel-bot-lager-{bot.name}")
             karren = sorted((n for n in einheiten.namen()
@@ -3078,10 +3307,11 @@ class GameState:
             if not kosten or not all(bot.vorraete.get(k, 0) >= v for k, v in kosten.items()):
                 continue
             for stoff, menge in kosten.items():
-                bot.vorraete[stoff] = bot.vorraete.get(stoff, 0) - menge
-            bot.army[name] = bot.army.get(name, 0) + 1
-            return name
-        return None
+                # B-3: gebucht wird auf die DOERFER (eine Buchstelle), nicht auf ein zweites Lager.
+                bot_kasse_buchen(bot, stoff, -menge)                      # Kosten abbuchen
+            bot.army[name] = bot.army.get(name, 0) + 1                    # Einheit dazustellen
+            return name                                                   # fertig
+        return None                                                       # nichts bezahlbar
 
     def bots_fortschreiben(self, jetzt: float) -> dict:
         """Einen Bot-Zug fahren (W5): die Entscheidung kommt aus `botkern`, gebucht wird hier.
@@ -3099,6 +3329,16 @@ class GameState:
             return ergebnis
         self._letzter_bot_takt = jetzt
         ergebnis["bots"] = len(self.bots)
+
+        # B-3 (02.11.2026): VOR dem Zug wirtschaften die Doerfer. Jedes Dorf erntet seit seiner
+        # letzten Ernte (`dorf.ernte_seit`) mit dem Stundensatz aus `bot_dorf_ertrag` - derselben
+        # Funktion, die der Spionagebericht zeigt. Ohne diesen Schritt haette ein Bot nur seine
+        # Startvorrate und koennte nach dem ersten Einkauf nie wieder etwas bezahlen.
+        ernte: Dict[str, float] = {}                                      # was alle Doerfer zusammen ernteten
+        for bot in self.bots:                                             # je Bot seine Doerfer
+            for stoff, menge in bot_doerfer_ernten(bot, jetzt).items():    # Ernte dieses Bots
+                ernte[stoff] = round(ernte.get(stoff, 0.0) + menge, 2)    # aufsummieren
+        ergebnis["ernte"] = ernte                                         # fuer Pruefung und Protokoll
 
         rng = random.Random()
         welt = {"vorraete": {k: int(v.amount) for k, v in self.resources.items()},

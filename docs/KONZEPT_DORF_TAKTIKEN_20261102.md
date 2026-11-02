@@ -194,3 +194,36 @@ und Bots passiert.
 
 Dieser Abschnitt ist der Baustein fuer die spaetere Beschreibung auf GitHub: er sagt in wenigen
 Saetzen, WAS das Spiel ist, ohne von Umsetzungsdetails abzuhaengen.
+
+
+## 11. Verfeinerung: die Kartenwahl je Gruendung bestimmt den Rohstoff (Vorgabe Daniel 02.11.2026)
+
+**Wortlaut (Daniel, 02.11.2026 gegen 18:05).** Bei jeder Gruendung hat man drei Karten zur Auswahl. Die
+Wahl der Karte bestimmt, welchen Rohstoff dieses Dorf MAXIMAL triggert und welche Rohstoffe auf der
+gewaehlten Karte eher weniger produzierbar sind. Wichtig ist vor allem, dass Gold produziert werden kann -
+richtig stark ist man nur mit den besten Karten. Diese Logik muss spaeter richtig formuliert und
+verfeinert werden, vor allem fuer die Bots: der Spieler trifft solche Entscheidungen ohnehin im Kopf, die
+Spiellogik soll aber annaehernd zur Mechanik passen.
+
+**Was heute dasteht (gemessen 02.11.2026, nicht geschaetzt).**
+- `main.bot_dorf_ertrag(dorf)` ist die EINE Lesestelle des Dorf-Ertrags (B-3, Register 134). Sie nimmt das
+  Dorf bereits als Parameter, wertet ihn aber NICHT aus: jedes Bot-Dorf erwirtschaftet gleich viel
+  (drei Anlagen je Grundrohstoff, 12 Holz / 12 Stein / 12 Nahrung / 9 Gold je Stunde).
+- `botkern.oekonomie_kartenwahl(stufe, eigene_karten, freie_karten, raten, bedarf, regeln)` - die
+  Kartenwahl der Bots nach Stufe leicht/mittel/schwer - ist VORHANDEN, hat in `src/` aber noch KEINEN
+  Aufrufer (nur `tests/test_gpt_botkarten_nullbedarf.py` ruft sie).
+- Bots gruenden heute keine Doerfer nach; sie tragen die Doerfer, die der Kartenaufbau anlegt (1 bis 3).
+
+**Was daraus zu bauen ist (noch nicht gebaut, Entscheidung bleibt bei Daniel).**
+1. **Kartenprofil je Dorf:** jede Karte traegt einen STARKEN Rohstoff (Gold mit Sonderstellung), zwei
+   mittlere und einen schwachen; die Raete stehen in `data/` - keine Literale im Code, wie bei B-3.
+2. **Ertrag aus der Karte:** `bot_dorf_ertrag` liest das Profil des Dorfes statt einer festen Rate. Die
+   Signatur ist dafuer schon richtig; es kommt KEINE zweite Funktion und keine zweite Zahlenliste.
+3. **Gruendung mit drei Karten:** der Spieler waehlt aus drei; die Bots waehlen ueber
+   `oekonomie_kartenwahl` nach ihrer Stufe (leicht gruendet nie, mittel deckt den schlechtesten Rohstoff,
+   schwer nimmt den hoechsten Portfolio-Nutzen). Damit bekommt die vorhandene Funktion ihren Aufrufer.
+4. **Gold als Voraussetzung fuer Staerke:** nur Karten mit Goldanteil tragen Einheiten in grossem Stil;
+   das gehoert gemessen in die Balance-Messung (`tools/balancing_messung.py`, Punkt D).
+
+**Reihenfolge nach Daniel (02.11.2026): spaeter.** Erst das Gesamtkonzept (Abschnitt 10), dann diese
+Verfeinerung - sie aendert die Wirtschaft, die mit B-3 gerade erst steht.
