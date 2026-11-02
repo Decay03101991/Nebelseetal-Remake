@@ -1,3 +1,49 @@
+# STAND 02.11.2026, 23:45 - Stufe M-5: Titel und Einleitung der Forschung liegen als weiche Felder auf dem Bild (Register 145)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Die Forschung war die letzte Ansicht mit Bibliotheks-Hintergrund, die noch harte Balken trug.** Titel
+("Forschung") und Einleitungssatz liegen jetzt als abgerundete Felder auf dem Motiv; die Forschungszeilen
+darunter bleiben ein deckender Block.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `9f2d300` plus dieser Schritt | `git log --oneline -1` |
+| Umgestellte Zeilen | 2 in `main._render_research` (Titel, Einleitung) | ebd. |
+| Wache | `tests/test_ansicht_hintergrund.py` **74/0/0** (vorher 67; neuer Abschnitt 8) | eigener Lauf |
+| Gegenprobe | Titel zurueckgebaut -> **71 bestanden, 3 Fehler**; Datei danach hashgleich (`7d27229a...`) | eigener Lauf |
+| Ansicht im Fenster | Forschung mit Bibliotheksmotiv | `docs/design/M5_FORSCHUNG_20261102.png` |
+| Pruefdateien / Register | **133** / **145** | `ls tests/test_*.py`, `grep -c '^| [0-9]'` |
+| Voller Sammellauf | **131 von 133 gruen, 0 rot, 2 ausgesetzt, 5.276 Pruefungen, 332 s** | `docs/audits/sammellauf_20261102_2347.log` |
+
+**BEFUND, gemessen und NICHT in diesem Schritt behoben:** die Forschungszeilen laufen ueber den rechten
+Rand. In der Ansicht Forschung brauchen 14 von 14 Zeilen mehr Platz als die 1052 px Inhaltsbreite des
+Fensters (1076 bis 1903 px; gemessen als Summe der `winfo_reqwidth` aller Kinder einer Zeile). Folge:
+die Beschreibungen werden abgeschnitten, und bei den gesperrten Forschungen liegt der Grund-Text unter
+dem "Forschen"-Knopf. Ursache ist die Pack-Reihenfolge der Zeile (die Knoepfe kommen NACH den linken
+Texten), nicht die Umstellung der Textfelder. Im Bild-Beleg ist der Zustand zu sehen.
+
+## Der EINE naechste Schritt
+
+**Die Forschungszeilen in Ordnung bringen** (BEFUND aus Register 145): die rechte Seite einer Zeile
+(Knopf, Restzeit, Sperrgrund) zuerst packen, dem Beschreibungstext eine `wraplength` geben, die sich aus
+der Inhaltsbreite ergibt, und die Zeile messbar pruefen (Summe der `winfo_reqwidth` <= Inhaltsbreite,
+wie in der Messfahrt dieser Sitzung). Danach voller Sammellauf, Protokollzeile, ein Commit.
+
+**Danach weiter mit den uebrigen Textfeldern, stueckweise** - Lager/Marktplatz, Diplomatie, Nachrichten,
+Portal. Fuer diese Ansichten gibt es noch KEINEN Gebaeudehintergrund; dort ist die Reihenfolge: erst
+`_ansicht_hintergrund` anlegen, dann die harten `tk.Label(... bg=...)`-Bloecke auf `_kasten_label`
+umstellen, Tabellen deckend lassen, je Ansicht ein Eintrag in `tests/test_ansicht_hintergrund.py`,
+voller Sammellauf, Protokollzeile, ein Commit. **Offene Frage an Daniel:** sollen diese vier Ansichten
+ueberhaupt ein Gebaeudemotiv als Hintergrund bekommen (sie sind fast nur Tabellen)?
+
+**Demo-Umfang ist eingefroren (Daniel 02.11.2026):** Kernkreis + Spionage + Voelker- und Kartenwahl
+am Start. Alles andere kommt NACH dem ersten Demo-Upload.
+
+**Danach in dieser Reihenfolge:** Voelkerwahl am Start (A2), Kartenwahl fuer den SPIELER, Volksboni
+verdrahten (A), Anschluss `botkern.oekonomie_kartenwahl`, Kopplung Punkte/Kanaele (C),
+Balance-Messung (D), zuletzt Demo-Release (Freigabe Daniel).
+
 # STAND 02.11.2026, 23:40 - Stufe M-4: die Warteschlange der Ausbildung traegt weiche Textfelder (Register 144)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

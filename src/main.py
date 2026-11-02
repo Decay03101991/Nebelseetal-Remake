@@ -9368,13 +9368,17 @@ class NebelseetalApp:
         # B-6 (02.11.2026, Vorgabe Daniel): die Bibliothek ist der HINTERGRUND dieser Ansicht.
         if self._ansicht_hintergrund("bibliothek") is None:      # kein Bild vorhanden
             self._gebaeude_kopf("bibliothek")                    # dann der alte Kopf
-        tk.Label(self.content, text="Forschung", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
+        # M-5 (Vorgabe Daniel 02.11.2026: "dann die uebrigen Textfelder", "stueck fuer stueck"):
+        # Titel und Einleitung waren in der Forschung noch harte Balken ueber die volle Breite,
+        # obwohl die Bibliothek hier schon der Hintergrund ist. Jetzt liegen sie als weiche Felder
+        # auf dem Bild; die Forschungszeilen darunter bleiben ein deckender Block (Tabelle).
+        self._kasten_label("Forschung", ("Blackletter", 20, "bold"), self.skin["gold"], innen=14, pady=6)
 
-        tk.Label(self.content, text="Forschung braucht eine Bibliothek und Zeit: die Dauer ist die "
-                                    "Stufe zum Quadrat in Stunden (Handbuch S. 12/13). Die Stufe "
-                                    "steigt erst nach Ablauf.",
-                 fg="#C0C0C0", bg=self.skin["bg"], wraplength=780,
-                 justify=tk.LEFT).pack(anchor=tk.W, padx=10)
+        self._kasten_label(
+            "Forschung braucht eine Bibliothek und Zeit: die Dauer ist die "
+            "Stufe zum Quadrat in Stunden (Handbuch S. 12/13). Die Stufe "
+            "steigt erst nach Ablauf.",
+            ("TkDefaultFont", 9), "#C0C0C0", breite=810, innen=14, pady=5, umbruch=780)
         # W4c: laufende Forschung mit Restzeit. Gezeigt wird, was `forschung.fortschritt` wirklich
         # hergibt (keine eigene Rechnung in der Oberflaeche).
         stand = self.state.forschung_stand()

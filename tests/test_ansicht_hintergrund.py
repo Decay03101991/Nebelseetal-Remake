@@ -342,4 +342,55 @@ check("der Leerfall liegt als Kasten mit Bild",
 check("ohne Auftraege entsteht kein leerer Zeilenrahmen",
       not any(z[1] == 0 for z in _leer["rahmen"]), str(_leer["rahmen"][:3]))
 
+# ==========================================================================
+# 8. M-5: Titel und Einleitung der Forschung liegen als weiches Feld auf dem Bild
+# ==========================================================================
+
+abschnitt("8. Die Forschung: Titel und Einleitung als Kasten (M-5)")
+# UMGESTELLT 02.11.2026 (M-5): die Bibliothek war hier schon Hintergrund (B-6), Titel und Einleitung
+# lagen aber weiter als harte Balken ueber die volle Breite - genau der Zustand, den Daniel an den
+# Ausbildungsstaetten bemaengelt hatte.
+_FORSCHUNG = TEXT_MAIN.split("def _render_research")[1].split("\n    def ")[0]
+check("die Forschungsansicht baut weiche Textfelder",
+      "_kasten_label" in M.NebelseetalApp.__dict__["_render_research"].__code__.co_names, "")
+check("der Titel steht im Kasten", 'self._kasten_label("Forschung"' in _FORSCHUNG)
+check("die Einleitung steht im Kasten", '"Forschung braucht eine Bibliothek und Zeit' in _FORSCHUNG)
+check("die Einleitung ist kein harter Balken mehr",
+      'bg=self.skin["bg"]' not in _FORSCHUNG, str(_FORSCHUNG.count('bg=self.skin["bg"]')))
+
+
+def _forschungsprobe():
+    """Die Forschung bauen und nachsehen, welche Texte als Kasten mit Bild vorliegen."""
+    import tkinter as tk
+    root = tk.Tk()
+    root.withdraw()
+    try:
+        app = M.NebelseetalApp(root)
+        app._build_main_ui()
+        app._erste_siedlung_gruenden()
+        app._switch_view("Forschung")
+        app.content.update_idletasks()
+        kinder = list(app.content.winfo_children())
+        kaesten = []
+        for k in kinder:
+            try:
+                text = str(k.cget("text"))
+            except Exception:                                  # noqa: BLE001
+                text = ""
+            if getattr(k, "image", None) is not None:
+                kaesten.append(text)
+        return {"erste": type(kinder[0]).__name__ if kinder else "",
+                "kasten": kaesten, "anzahl": len(kaesten)}
+    finally:
+        root.destroy()
+
+
+_f = _forschungsprobe()
+check("der Hintergrund ist die erste Flaeche", _f["erste"] == "Canvas", _f["erste"])
+check("Titel und Einleitung liegen als Kasten mit Bild",
+      any(t.strip() == "Forschung" for t in _f["kasten"])
+      and any("Stufe zum Quadrat" in t for t in _f["kasten"]), str(_f["kasten"])[:160])
+check("die Forschungszeilen bleiben deckend (hoechstens zwei Kasten mehr)",
+      _f["anzahl"] <= 3, str(_f["anzahl"]))
+
 bericht()
