@@ -209,7 +209,7 @@
     "px": 64,
     "deckkraft_prozent": 35,
     "deckkraft_auswahl_prozent": 100,
-    "_warum_auswahl": "Der AUSWAHLrahmen liegt voll deckend auf dem gewaehlten Feld (Vorgabe Daniel in der Uebergabe 02.11.2026, Abschnitt 3: gelieferten Auswahlrahmen mit voller Deckkraft legen). Eigene Sichtpruefung 02.11.2026 auf dem Kontaktblatt docs/audits/auswahlrahmen_vergleich_20261102.png: der gelieferte Rahmen ist deutlich kraeftiger als der frueher gezeichnete Goldrahmen und deckt die Feldraender ab - falls er zu wuchtig wirkt, ist DIESE Zahl der Regler (z. B. 70), ohne Codeaenderung. Der gezeichnete Rahmen aus karten_optik_fein bleibt Rueckfall, wenn das Bild fehlt.",
+    "_warum_auswahl": "Der AUSWAHLrahmen liegt voll deckend auf dem gewaehlten Feld (Vorgabe Daniel in der Uebergabe 02.11.2026, Abschnitt 3: gelieferten Auswahlrahmen mit voller Deckkraft legen). Eigene Sichtpruefung 02.11.2026 auf dem Kontaktblatt docs/audits/auswahlrahmen_vergleich_20261102.png: der gelieferte Rahmen ist deutlich kraeftiger als der frueher gezeichnete Goldrahmen und deckt die Feldraender ab - falls er zu wuchtig wirkt, ist DIESE Zahl der Regler (z. B. 70), ohne Codeaenderung. Der gezeichnete Rahmen aus karten_optik_fein bleibt Rueckfall, wenn das Bild fehlt. Daniel hat am 02.11.2026 im Auswahlformular entschieden: 100 Prozent BLEIBEN, so wie geliefert.",
     "_warum": "Der gelieferte Rahmen ist kraeftig; voll aufgelegt erdrueckt er das Gelaende (eigene Sichtpruefung 02.11.2026, docs/audits/kartenvergleich_c2_20261102.png). 35 Prozent zeigen das Raster, ohne die Landschaft zu zerschneiden. Der Wert ist EINE Zahl in dieser Datei - Daniel kann ihn ohne Codeaenderung anheben oder senken."
   }
 }

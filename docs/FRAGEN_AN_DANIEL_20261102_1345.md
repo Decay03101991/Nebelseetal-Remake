@@ -22,3 +22,5 @@ einem Bergfeld ist die unguenstigste Stelle. Wenn er im Spiel stoert, sage eine 
 ein und belege sie mit einem neuen Kontaktblatt.
 
 **Antwort braucht:** nur A oder B mit Prozentzahl.
+
+**ANTWORT Daniel 02.11.2026 (Auswahlformular um 15:00): A - es bleibt bei 100 Prozent.** Kein zweites Kontaktblatt noetig; der Regler bleibt fuer spaeter in der Datendatei.
