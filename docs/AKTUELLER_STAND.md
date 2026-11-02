@@ -1,3 +1,64 @@
+# STAND 02.11.2026, 08:59 - Gebaeude-Optik haengt in der Oberflaeche (Register 124)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `0bf5d31`; dieser Commit bringt Einbau, Pruefdatei und Register 124 | `git log --oneline -1` |
+| Eingebaut | Icons in der Menueleiste (20 px, `compound=tk.LEFT`), Icons an JEDEM Bauknopf der Kartenauswahl (28 px), Hintergrund 538 x 222 in Dorfzentrum, Forschung, Kaserne, Stellmacher, Diebesgilde | `tests/test_gebaeude_icons.py` |
+| Zuordnung Menue -> Gebaeude | `main.MENU_GEBAEUDE` ABGELEITET: `gelaende.finde_gebaeude` (Dorfzentrum -> `lager`) + `MENUE_BEDINGUNG` (Kaserne -> `kriegerakademie`, Forschung -> `bibliothek`); Weltpunkte ohne Bild | `grep -n "MENU_GEBAEUDE" src/main.py` |
+| Neue Pruefdatei | **54 von 54 gruen, 0 Fehler, 0 Befunde** | eigener Lauf |
+| Gegenprobe | mit abgeschaltetem Menue-Icon **4 Fehler** (Datei wird rot), Datei-Hash danach wieder gleich | eigener Lauf, Protokoll 08:51 |
+| Sammellauf | **120 von 122 gruen, 0 rot, 2 ausgesetzt, 4.759 Pruefungen, 424 s** (08:52-08:59) | `docs/audits/sammellauf_20261102_0852.log` |
+| Register / Pruefdateien | **124 Punkte**, **122 Pruefdateien** | `grep -cE`, `ls tests/test_*.py \| wc -l` |
+| Guthaben | letzte Ablesung **8,50 USD** Kontostand, **41,49 USD** Gesamtverbrauch (Daniel, 08:09) - seither nur dieser eine Schritt | Register 117, Uebergabe 08:09 |
+| EXE im Projektordner | **01.11.2026, 19:01** - enthaelt keinen der Commits ab `6585cd2` | `ls -la`, `git log -1` |
+| Abnahme offen | das Aussehen im Fenster hat Daniel noch NICHT gesehen (Icons, Bauknoepfe, Hintergrund) | eigene Messung |
+
+## Der EINE naechste Schritt
+
+**Die Kaserne-Ansicht darf ohne Gebaeude am aktiven Ort nicht abstuerzen** - der Fehler ist aelter als
+dieser Schritt und beim Bau der Pruefdatei aufgefallen: `_siedler_warnung_zeichnen`
+(`src/main.py`, Aufruf in `_render_ausbildung`) liest `reserve["guenstigste"]`, und
+`spieloekonomie.siedler_reserve` liefert diesen Schluessel NICHT, wenn am aktiven Ort kein Gebaeude
+steht (Fruehfall: `if not bedarf: return {...}` ohne `guenstigste`). Nachgestellt: Siedlung mit
+Kriegerakademie anlegen, aktive Siedlung ohne Gebaeude, Menuepunkt "Kaserne" oeffnen -> `KeyError`.
+Zu tun: EINE Stelle lesen (`reserve.get("guenstigste", ("", 0))` im Anzeigecode ODER den Fruehfall in
+`siedler_reserve` vollstaendig zurueckgeben - die Rueckgabe ist im Docstring beschrieben, also gehoert
+der Schluessel in die Funktion), Wache in `tests/test_gebaeude_icons.py` oder eigener Datei
+(Siedlung ohne Gebaeude -> Ansicht rendert), voller Sammellauf, ein Commit.
+Arbeitsweise: Pruefdatei ergaenzen, voller Sammellauf, Protokollzeile, ein Commit.
+
+## Reihenfolge danach
+
+1. Icons und Hintergrund im Fenster abnehmen (Daniel) - rechnerisch und in der Pruefdatei belegt,
+   im laufenden Spiel noch nicht gesehen.
+2. Auswahlrahmen der C2-Lieferung zeichnen (der goldene Rahmen aus `karten_optik_fein` liegt derzeit
+   oben); die acht Einzelsymbole aus `assets/icons/leiste/symbole/` sind weiter ungenutzt.
+3. Bei sehr breiten Fenstern wiederholt sich die Landschaft in den gedehnten Leistenluecken sichtbar.
+4. Wappen den fuenf Bots zuordnen; Burgen zu Weltkarten nur als gekennzeichneter Vorschlag.
+5. S-8 Bilanz (500 Mana + 100 Gold, Register 93), danach `weltkarten_seed` fest (Register 94).
+6. Demo-Gates G-01 bis G-07 vor jedem Upload; die Demo wird LEER ausgeliefert (Skill-Abschnitt
+   "Die oeffentliche Demo wird LEER ausgeliefert", geprueft: `tools/build_public_exe.py`,
+   `tests/test_demo_leer.py`).
+7. **EXE ist vom 01.11. 19:01** - vor einer Demo neu bauen und startgeprueft starten.
+
+## Fallstricke, in diesem Schritt belegt
+
+- **`grep` auf einen Namen, den man im Kopf hat, findet nichts, was es nicht gibt.** Ich suchte
+  `MENUE_ANZEIGE`, im Code steht `MENU_ANZEIGE` (mit E im Wort "Menue" haette es nicht existiert).
+  Zwei Messungen (grep und `str.count`) meldeten 0 Treffer, obwohl die Zeile sichtbar war - erst der
+  Zeichencode-Vergleich zeigte, dass ich den falschen Namen gesucht hatte. Bei "0 Treffer" also
+  zuerst pruefen, ob der GESUCHTE Name stimmt, nicht ob der Code fehlt.
+- **Ein Menuenpunkt kann ein Gebaeude sein, ohne so zu heissen.** "Dorfzentrum" ist die Anzeige von
+  `lager`, "Kaserne" ist `kriegerakademie`, "Forschung" ist `bibliothek`. Die Zuordnung deshalb
+  ABLEITEN (`gelaende.finde_gebaeude` + `MENUE_BEDINGUNG`), nicht als dritte Handliste tippen.
+- **`tk.Button` mit `compound=tk.LEFT` braucht eine Bildreferenz im Objekt.** Der Cache in
+  `_optik_bild` ist Pflicht, sonst gibt Tk das Bild frei und das Menue zeigt leere Felder.
+- **Eine Ansicht, die im Menue nicht steht, ist trotzdem renderbar** (`_switch_view` kennt jede
+  Route der Tabelle). Genau so kam der Kaserne-Absturz heraus: eine frische Siedlung ohne Gebaeude
+  plus `_switch_view("Kaserne")`.
+
 # STAND 02.11.2026, 01:36 - B4 gelaufen: Gebaeude-Optik als Modul (Register 123)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

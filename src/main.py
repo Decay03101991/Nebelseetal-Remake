@@ -30,6 +30,7 @@ import baumenue_info  # FIX04: historische Rubriken und begruendete Bauangebote
 import spielerhilfe  # FIX04c: eingeblendete Einstiegshilfe und jederzeit erreichbare Fragen
 import originalkarten  # GPT-OK01: verifizierbarer Kartenkatalog
 import gebaeude_wirkung
+import gebaeude_optik  # C2-Gebaeude-Optik: Menue-Icons und Menue-Hintergruende (Register 123)
 import berater
 import tor
 import wirtschaft
@@ -1019,6 +1020,16 @@ MENUE_ENTFALLEN = {"Lager"}
 # war das "Lager"; da dieser Punkt jetzt im Dorfzentrum aufgeht, ist es das Dorfzentrum selbst
 # (vorher waeren Stellmacher und Diebesgilde an das ENDE der Leiste gerutscht).
 MENUE_ANKER = "Dorfzentrum"
+
+# Menuepunkt -> Gebaeude-id, deren gerahmtes Icon im Menue steht (C2-Lieferung, Register 119/123).
+# ABGELEITET, nicht getippt: erst der Anzeigename eines Gebaeudes (`gelaende.finde_gebaeude` erkennt
+# Kennung, Anzeigename und alias - "Dorfzentrum" trifft also `lager`), dann die Freischalt-Tabelle
+# `MENUE_BEDINGUNG` fuer die Punkte, die anders heissen als ihr Gebaeude ("Kaserne" ->
+# `kriegerakademie`, "Forschung" -> `bibliothek`). Punkte ohne Gebaeude (Portal, Chat, Forum ...)
+# bekommen bewusst KEIN Icon - ein erfundenes Bild waere keine Quelle.
+MENU_GEBAEUDE = {punkt: gelaende.finde_gebaeude(punkt) for punkt in MENU_ITEMS
+                 if gelaende.finde_gebaeude(punkt)}
+MENU_GEBAEUDE.update(MENUE_BEDINGUNG)
 
 
 def menu_sichtbar(settlements) -> list:
@@ -3801,6 +3812,55 @@ class NebelseetalApp:
         deckkraft = RAHMEN_DECKRAFT if str(art) == "ruhe" else 100    # Ruherahmen gedeckt, Auswahlrahmen kraeftig
         return self._motivbild_skaliert(relativ, px, "_rahmen_cache", deckkraft)   # gleicher Weg wie die Motive
 
+    def _optik_bild(self, gebaeude_id, breite: int, hoehe=None, art: str = "kachel"):
+        """Icon ("kachel") oder Hintergrund eines Gebaeudes als Tk-Grafik - gecacht, sonst None.
+
+        Die Arbeit macht `gebaeude_optik` (liest die Projektassets, skaliert mit Pillow); hier
+        entsteht nur die Tk-Grafik. Der Cache ist Pflicht: Tk gibt Bilder frei, die niemand mehr
+        referenziert - ein Menue-Icon ohne Referenz waere unsichtbar (Lehre 02.11.2026).
+        """
+        if not gebaeude_id:                                           # Menuepunkt ohne Gebaeude
+            return None                                               # dann bleibt es beim Text
+        if not hasattr(self, "_optik_cache"):                         # Cache beim ersten Bild
+            self._optik_cache = {}                                    # Anfrage -> Tk-Bild (auch None)
+        schluessel = (str(gebaeude_id), int(breite), hoehe, str(art))  # gleiche Anfrage, gleiches Bild
+        if schluessel in self._optik_cache:                           # schon gebaut
+            return self._optik_cache[schluessel]                      # wiederverwenden
+        bild = None                                                   # Vorgabe: kein Bild
+        try:                                                          # ohne Pillow bleibt es bei None
+            if str(art) == "hintergrund":                             # Gebaeudeansicht
+                roh = gebaeude_optik.hintergrund(str(gebaeude_id), int(breite), hoehe)   # gemalte Szene
+            else:                                                     # Menue und Bauauswahl
+                roh = gebaeude_optik.kachel(str(gebaeude_id), int(breite), hoehe)        # gerahmtes Icon
+            if roh is not None:                                       # Bild wirklich vorhanden
+                from PIL import ImageTk                               # nur hier - das Spiel laeuft auch ohne
+                bild = ImageTk.PhotoImage(roh)                        # Tk-Grafik daraus
+        except Exception:                                             # noqa: BLE001 - kein Bild, kein Absturz
+            bild = None                                               # Aufrufer zeichnet nur den Text
+        self._optik_cache[schluessel] = bild                          # im Cache halten
+        return bild                                                   # an den Aufrufer
+
+    def _menue_icon(self, punkt: str, px: int = 20):
+        """Das gerahmte Gebaeude-Icon eines Menuepunkts (None fuer Weltpunkte ohne Gebaeude)."""
+        return self._optik_bild(MENU_GEBAEUDE.get(punkt), px, None, "kachel")
+
+    def _gebaeude_kopf(self, gebaeude_id, breite: int = 538):
+        """Die Gebaeudeansicht bekommt den gemalten Hintergrund (538 x 222) unter ihre Ueberschrift.
+
+        Ohne Bild (kein Pillow, Datei fehlt) wird nichts gezeichnet - die Ansicht bleibt dann genau
+        wie vorher. Die Masse kommen aus der Lieferung, nicht aus dem Fenster: der Hintergrund ist
+        ein Menuebild, kein dehnbarer Balken (Lehre 02.11.2026 zur Ressourcenleiste).
+        """
+        bild = self._optik_bild(gebaeude_id, breite, None, "hintergrund")   # Szene laden
+        if bild is None:                                                    # kein Bild vorhanden
+            return None                                                     # Ansicht unveraendert
+        leinwand = tk.Canvas(self.content, width=bild.width(), height=bild.height(),
+                             bg=self.skin["bg"], highlightthickness=0, bd=0)  # Flaeche in Bildgroesse
+        leinwand.pack(anchor=tk.W, padx=10, pady=(0, 6))                     # linksbuendig unter dem Titel
+        leinwand.create_image(0, 0, anchor=tk.NW, image=bild)                # Szene oben links einsetzen
+        leinwand.image = bild                                                # Referenz gegen Tk-Freigabe
+        return leinwand                                                      # fuer Pruefungen
+
     def _stufenpips_zeichnen(self, canvas, x0: float, y0: float, zelle: float,
                              stufe: float, feld: int) -> None:
         """Die Ausbaustufe als kleine Punkte unter einem Originalmotiv (A-2).
@@ -4205,8 +4265,13 @@ class NebelseetalApp:
             except Exception:
                 pass
         for item in menu_fuer_ebene(getattr(self.state, "settlements", None), ebene):
+            # C2-Gebaeude-Optik (02.11.2026): das gerahmte Icon links neben dem Text. Nur Punkte,
+            # hinter denen ein Gebaeude steht (`MENU_GEBAEUDE`); Weltpunkte wie Portal oder Chat
+            # bleiben ohne Bild - ein erfundenes Icon waere keine Quelle.
+            _icon = self._menue_icon(item, 20)
+            _zusatz = {"image": _icon, "compound": tk.LEFT} if _icon is not None else {}
             btn = tk.Button(self.menu_liste, text=MENU_ANZEIGE.get(item, item), fg=self.skin["red"], bg=self.skin["sidebar"], activebackground=self.skin["button_active"], activeforeground=self.skin["gold"],
-                            relief=tk.FLAT, anchor=tk.W, padx=12, command=lambda i=item: self._switch_view(i))
+                            relief=tk.FLAT, anchor=tk.W, padx=12, command=lambda i=item: self._switch_view(i), **_zusatz)
             btn.pack(fill=tk.X, pady=1, ipady=2)
             self.menu_buttons[item] = btn
 
@@ -4335,6 +4400,9 @@ class NebelseetalApp:
 
     def _render_overview(self):
         tk.Label(self.content, text="Dorfzentrum", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 2))
+        # C2-Gebaeude-Optik (02.11.2026): der gemalte Hintergrund des Dorfzentrums (Register 123).
+        self._gebaeude_kopf("lager")
+
         _grenze = gebaeude_wirkung.bevoelkerungsgrenze(self.state.settlements)
 
         # FIX04f: "Dein naechster Schritt" ist zwingend, bis die erste
@@ -5835,12 +5903,17 @@ class NebelseetalApp:
                     f"Voraussetzung: {angebot['voraussetzung']}\n"
                     f"{angebot['status']}\n"
                     f"{angebot['standort_hinweis']}")
+            # C2-Gebaeude-Optik (02.11.2026): das gerahmte Icon des Gebaeudes links am Bauknopf.
+            # Mit Icon wird der Text um dessen Breite schmaler umbrochen, sonst liefe er darunter.
+            _bau_icon = self._optik_bild(angebot["id"], 28, None, "kachel")
+            _bau_zusatz = ({"image": _bau_icon, "compound": tk.LEFT, "wraplength": 255}
+                           if _bau_icon is not None else {"wraplength": 295})
             tk.Button(knopfreihe, text=text, justify=tk.LEFT, anchor=tk.W,
                       # Gleicher Buchungsweg wie vorher: keine zweite Spiellogik.
                       command=lambda kk=angebot["id"]: self._karten_bauen(kk),
                       bg=self.skin["button"] if angebot["baubar"] else "#40352E",
                       fg=self.skin["gold"], activebackground="#5D4037",
-                      wraplength=295).grid(row=i, column=0, padx=2, pady=2, sticky=tk.EW)
+                      **_bau_zusatz).grid(row=i, column=0, padx=2, pady=2, sticky=tk.EW)
 
     def _dimensionsname(self, z: int) -> str:
         """Der Name einer Dimension aus dem Limbus-Raster (`src/portalraum.py`)."""
@@ -7729,6 +7802,9 @@ class NebelseetalApp:
 
     def _render_research(self):
         tk.Label(self.content, text="Forschung", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
+        # C2-Gebaeude-Optik (02.11.2026): Forschung gehoert zur Bibliothek - deren Hintergrund.
+        self._gebaeude_kopf("bibliothek")
+
         tk.Label(self.content, text="Forschung braucht eine Bibliothek und Zeit: die Dauer ist die "
                                     "Stufe zum Quadrat in Stunden (Handbuch S. 12/13). Die Stufe "
                                     "steigt erst nach Ablauf.",
@@ -7859,6 +7935,10 @@ class NebelseetalApp:
 
     def _render_ausbildung(self, staette: str, titel: str):
         tk.Label(self.content, text=titel, font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
+        # C2-Gebaeude-Optik (02.11.2026): der Hintergrund der Werkstatt, in der ausgebildet wird
+        # (Kaserne -> Kriegerakademie, Stellmacher, Diebesgilde) - Kennung ueber `gelaende`, nie getippt.
+        self._gebaeude_kopf(gelaende.finde_gebaeude(staette))
+
         tk.Label(self.content, text=f"Ausgebildet wird auf der Siedlungskarte (W4b-5). Hier stehen "
                                     f"ausschliesslich die Einheiten der {staette}; die Stufe des "
                                     "Gebaeudes bestimmt das Tempo. Steht die Stätte nicht, fehlt "
