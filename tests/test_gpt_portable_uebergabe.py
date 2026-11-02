@@ -53,7 +53,10 @@ class Portability(unittest.TestCase):
         self.assertTrue((R / '.gitignore').is_file())
         self.assertIn('*.exe', (R / '.gitignore').read_text(encoding='utf-8'))
     def test_protokoll_extern(self):
-        t=(R/'docs/ENTWICKLUNGSPROTOKOLL.md').read_text(encoding='utf-8')
+        # ENTSCHEIDUNG Daniel 02.11.2026: zwei Hefte. Die Zusammenarbeit mit dem externen GPT-Modell
+        # (GPT-ABS01) steht im GESCHLOSSENEN Geschichtsheft - beide Hefte zusammen sind das Protokoll.
+        teile=[R/'docs/ENTWICKLUNGSPROTOKOLL.md',R/'docs/ENTWICKLUNGSPROTOKOLL_HISTORIE_BIS_20261101.md']
+        t=''.join(p.read_text(encoding='utf-8') for p in teile)
         self.assertIn('GPT-ABS01',t)
         self.assertIn('ChatGPT',t)
 

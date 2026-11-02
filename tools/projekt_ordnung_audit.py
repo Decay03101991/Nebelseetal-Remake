@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from collections import defaultdict
 
 ACTIVE_ROOT = {"README.md", "START_SPIEL_WINDOWS.bat", "EXE_ERSTELLEN_WINDOWS.bat", "START_EXE_TEST_WINDOWS.bat", "run_tests.bat"}
-CANONICAL = {"docs/ENTWICKLUNGSPROTOKOLL.md", "docs/AKTUELLER_STAND.md", "docs/HERMES_UEBERGABE_AKTUELL.md", "README.md"}
+CANONICAL = {"docs/ENTWICKLUNGSPROTOKOLL.md", "docs/ENTWICKLUNGSPROTOKOLL_HISTORIE_BIS_20261101.md", "docs/AKTUELLER_STAND.md", "docs/HERMES_UEBERGABE_AKTUELL.md", "README.md"}
 EXCLUDES = {"archiv", "alles alte", ".git", "__pycache__", "original", ".venv", "venv", "dist", "build", ".github"}
 DOC_EXT = {".md", ".txt", ".rst"}
 OLD_ROOT = {"START_HIER.txt", "PROJEKTUEBERSICHT_WINDOWS.txt", "Nebelseetal_Remake.bat", "EXE_NEUESTEN_STAND_BAUEN.bat", "NEBELSEETAL_FIX02_FORTSCHRITT_WINDOWS.txt", "NEBELSEETAL_FIX02c_PRUEFBERICHT_WINDOWS.txt"}

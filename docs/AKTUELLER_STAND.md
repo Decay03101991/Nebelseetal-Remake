@@ -1,3 +1,38 @@
+# STAND 02.11.2026, 18:21 - Protokoll geteilt: Historie geschlossen, neues Heft ab heute (Register 135)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Vorgabe Daniel 02.11.2026: das Protokoll laeuft in einem neuen Dokument weiter.** Es gibt jetzt zwei
+Hefte - eines mit der Historie bis heute, eines ab heute. Die Historie ist WORTGLEICH uebernommen (nichts
+gekuerzt, nichts umgeschrieben), das aktive Heft beginnt mit dem 02.11.2026 und steht wieder weit unter
+der Zielgroesse.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `d05e5c4` (Arbeitsbaum leer), darauf dieser Schritt | `git log --oneline -1` |
+| Geschichtsheft | `docs/ENTWICKLUNGSPROTOKOLL_HISTORIE_BIS_20261101.md` - **300 Zeilen**, geschlossen, wortgleich | `wc -l` |
+| Aktives Heft | `docs/ENTWICKLUNGSPROTOKOLL.md` - **80 Zeilen** ab 02.11.2026 (KARTE-01/02, BOTDORF-01/02/03) | `wc -l` |
+| Werkzeug | `tools/pruefe_protokoll.py`: 46 Commit-Kennungen, 0 unbekannt, **nichts verloren** gegen die Vor-Verdichtung | eigener Lauf |
+| Wachen mitgezogen | `test_gpt_projektordnung` (ein aktives Heft + das Geschichtsheft), `test_protokoll` (Vollstaendigkeit gegen BEIDE), `test_gpt_portable_uebergabe`, `protokoll_sichern`, `projekt_ordnung_audit` | Quelltext der Wachen |
+| Wache | `test_protokoll` **22/0/1**, `test_textqualitaet` **322/0** (95 Dokumente), `test_projektpfade` **105/0** | eigene Laeufe |
+| Voller Sammellauf | **127 von 129 gruen, 0 rot, 2 ausgesetzt, 4.940 Pruefungen, 261 s** (18:16) | `docs/audits/sammellauf_20261102_1816.log` |
+| Pruefdateien / Register | **129** / **135** | `ls tests/test_*.py`, `grep -c` |
+
+## Der EINE naechste Schritt
+
+**Das Gesamtkonzept ausformulieren (Vorgabe Daniel 02.11.2026).** Der Absatz in
+`docs/KONZEPT_DORF_TAKTIKEN_20261102.md`, Abschnitt 10, ist der Keim: Nebelseetal liefert Einheiten,
+Kampf, Gebaeude samt ihren Funktionen, Dorfgruendung und die Karten; Lords Mobile liefert ausschliesslich
+das Springen auf Koordinaten und die Anzeige der Doerfer auf diesen Koordinaten. Daraus wird der Baustein
+fuer die spaetere GitHub-Beschreibung - erst formulieren, dann zeigen.
+Arbeitsweise: ein Schritt = ein Commit = ein gruener voller Sammellauf.
+
+**Danach in dieser Reihenfolge:** Kartenprofil je Bot-Dorf (Konzept Abschnitt 11, Vorgabe Daniel vom
+02.11.2026), Postfach und Spionage (Vorbild Lords Mobile), Voelkerwahl am Start (A2, sechs Voelker),
+Verdrahtung der Volksboni (A), Kopplung Punkte und Kanaele (C), Balance-Messung (D).
+**Hygiene:** erledigt - das Protokoll ist geteilt (Register 135); die alte Zeile im B-3-Block
+(Protokoll auslagern) ist damit abgeloest.
+
 # STAND 02.11.2026, 18:10 - Stufe B-3: Wirtschaft je Bot-Dorf (Register 134)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

@@ -26,6 +26,9 @@ from pathlib import Path
 
 WURZEL = Path(__file__).resolve().parent.parent
 PROTOKOLL = WURZEL / "docs" / "ENTWICKLUNGSPROTOKOLL.md"
+# ENTSCHEIDUNG Daniel 02.11.2026: das Protokoll liegt in zwei Heften. Dieses ist das AKTIVE; die
+# Historie bis 01.11.2026 steht geschlossen daneben. Vollstaendigkeit wird gegen BEIDE geprueft.
+HISTORIE = WURZEL / "docs" / "ENTWICKLUNGSPROTOKOLL_HISTORIE_BIS_20261101.md"
 VORFASSUNG = WURZEL / "archiv" / "dokumentation" / "protokoll_alte_fassungen" / "ENTWICKLUNGSPROTOKOLL_VOR_VERDICHTUNG_2026-10-05.md"
 SICHERUNGEN = WURZEL / "archiv" / "dokumentation" / "projektunterlagen_historisch" / "SICHERUNGEN.md"
 
@@ -59,6 +62,13 @@ def main() -> int:
         return 1
 
     text = ziel.read_text(encoding="utf-8")
+    # Zweites Heft nur beim KANONISCHEN Protokoll mitzaehlen (bei --nach <datei> nicht).
+    historie_text = (HISTORIE.read_text(encoding="utf-8")
+                     if (HISTORIE.exists() and ziel == PROTOKOLL) else "")
+    gesamt = (text + "\n" + historie_text) if historie_text else text
+    if historie_text:
+        melde(f"  Zweites Heft (geschlossen): {HISTORIE.name} — "
+              f"{len(historie_text.splitlines())} Zeilen; beide zusammen {len(gesamt.splitlines())}")
     zeilen = text.splitlines()
     try:
         name = ziel.relative_to(WURZEL)
@@ -100,15 +110,15 @@ def main() -> int:
     if VORFASSUNG.exists() and ziel != VORFASSUNG:
         alt_text = VORFASSUNG.read_text(encoding="utf-8")
         anfaenge = {a.strip() for a in re.findall(r"^\*\*([^*\n]{8,80})\*\*", alt_text, re.M)}
-        fehlende_anfaenge = sorted(a for a in anfaenge if a not in text)
+        fehlende_anfaenge = sorted(a for a in anfaenge if a not in gesamt)
         melde(f"  Absatz-Anfaenge der Vor-Fassung: {len(anfaenge)}, nicht mehr woertlich vorhanden: "
               f"{len(fehlende_anfaenge)}")
         if fehlende_anfaenge:
             befunde.append("Absatz-Anfaenge der Vor-Fassung fehlen woertlich (einzeln nachsehen, ob "
                            f"der Inhalt verloren ging): {' | '.join(fehlende_anfaenge[:10])}")
 
-    # 5. Belegbarkeit: jede Commit-Kennung muss es in git geben
-    kennungen = sorted(set(COMMIT.findall(text)))
+    # 5. Belegbarkeit: jede Commit-Kennung muss es in git geben (beide Hefte zusammen)
+    kennungen = sorted(set(COMMIT.findall(gesamt)))
     kennungen = [k for k in kennungen if not k.isdigit()]
     unbekannt = [k for k in kennungen if not git_kennt(k)]
     melde(f"  Commit-Kennungen im Text: {len(kennungen)}, davon unbekannt: {len(unbekannt)}")
@@ -120,7 +130,7 @@ def main() -> int:
         alt = VORFASSUNG.read_text(encoding="utf-8")
         alt_kennungen = {k for k in set(COMMIT.findall(alt)) if not k.isdigit()}
         alt_zahlen = set(PRUEFZAHL.findall(alt))
-        jetzt_zahlen = set(PRUEFZAHL.findall(text))
+        jetzt_zahlen = set(PRUEFZAHL.findall(gesamt))
         fehlende_k = sorted(alt_kennungen - set(kennungen))
         fehlende_z = sorted(alt_zahlen - jetzt_zahlen)
         melde(f"  Gegen die Vor-Fassung: {len(alt_kennungen)} Commits, {len(alt_zahlen)} Pruefzahlen")

@@ -45,6 +45,8 @@ STANDARD_ZIEL = Path(os.environ["NEBEL_PROTOKOLL_ZIEL"]).expanduser() if os.envi
 MUSTER = [
     ("docs", "PROJEKT_STAND.md"),
     ("docs", "ENTWICKLUNGSPROTOKOLL.md"),
+    # ENTSCHEIDUNG Daniel 02.11.2026: zweites, geschlossenes Heft mit der Historie bis 01.11.2026.
+    ("docs", "ENTWICKLUNGSPROTOKOLL_HISTORIE_BIS_20261101.md"),
     ("docs", "BOARD.md"),
     ("docs", "AGENTEN_PLAN.md"),
     ("docs", "LEHREN.md"),

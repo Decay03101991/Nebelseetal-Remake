@@ -29,6 +29,9 @@ sys.path.insert(0, os.path.join(ROOT, "tools"))
 import pruefe_protokoll as pz  # noqa: E402  (Werkzeug als Modul: dieselben Pruefungen)
 
 PROTOKOLL = os.path.join(ROOT, "docs", "ENTWICKLUNGSPROTOKOLL.md")
+# ENTSCHEIDUNG Daniel 02.11.2026: zwei Hefte. Das aktive Heft fuehrt ab 02.11.2026; die Historie bis
+# 01.11.2026 steht geschlossen daneben. Vollstaendigkeit und Belegbarkeit gelten fuer BEIDE zusammen.
+HISTORIE = os.path.join(ROOT, "docs", "ENTWICKLUNGSPROTOKOLL_HISTORIE_BIS_20261101.md")
 VORFASSUNG = os.path.join(ROOT, "archiv", "dokumentation", "protokoll_alte_fassungen", "ENTWICKLUNGSPROTOKOLL_VOR_VERDICHTUNG_2026-10-05.md")
 
 abschnitt("1. Das Protokoll haelt seine Zielgroesse")
@@ -36,6 +39,10 @@ abschnitt("1. Das Protokoll haelt seine Zielgroesse")
 check("die Datei existiert", os.path.exists(PROTOKOLL))
 roh = open(PROTOKOLL, encoding="utf-8").read()
 zeilen = roh.splitlines()
+check("das geschlossene Geschichtsheft liegt daneben", os.path.exists(HISTORIE),
+      os.path.basename(HISTORIE))
+historie = open(HISTORIE, encoding="utf-8").read() if os.path.exists(HISTORIE) else ""
+gesamt = roh + "\n" + historie
 check("die Vor-Fassung der Verdichtung ist aufbewahrt", os.path.exists(VORFASSUNG),
       os.path.basename(VORFASSUNG))
 if len(zeilen) > pz.ZIELZEILEN:
@@ -44,8 +51,20 @@ if len(zeilen) > pz.ZIELZEILEN:
 else:
     check(f"unter der Zielgroesse von {pz.ZIELZEILEN} Zeilen", True, f"{len(zeilen)} Zeilen")
 
-abschnitt("2. Keine Sicherungen im Protokoll, Sicherungen woanders")
+abschnitt("1b. Zwei Hefte: aktiv ab 02.11.2026, Historie davor geschlossen")
 
+check("das aktive Heft nennt sein Startdatum", "(ab 02.11.2026)" in zeilen[0], zeilen[0][:70])
+check("das Geschichtsheft nennt sich selbst HISTORIE bis 01.11.2026",
+      bool(historie) and "HISTORIE bis 01.11.2026" in historie.splitlines()[0],
+      historie.splitlines()[0][:70] if historie else "fehlt")
+check("die Historie traegt die letzte Sektion von vor dem Schnitt (HERMES-UMSETZUNG-02)",
+      "HERMES-UMSETZUNG-02" in historie, "")
+check("der Schnitt ist sauber: die B-3-Sektion steht NUR im aktiven Heft",
+      "HERMES-BOTDORF-03" in roh and "HERMES-BOTDORF-03" not in historie, "")
+check("beide Hefte zusammen ergeben das Protokoll",
+      bool(historie) and len(gesamt) > len(roh), f"{len(roh)} + {len(historie)} Zeichen")
+
+abschnitt("2. Keine Sicherungen im Protokoll, Sicherungen woanders")
 sicherungszeilen = [z for z in zeilen
                     if re.match(r"^\|\s*\d{1,2}[:.]\d{2}\s*\|\s*\*{0,2}Sicherungszeile", z)]
 check("keine Sicherungszeile im Protokoll (sie gehoeren nach archiv/dokumentation/projektunterlagen_historisch/SICHERUNGEN.md)",
@@ -54,7 +73,7 @@ check("die Sicherungsdatei selbst gibt es", os.path.exists(os.path.join(ROOT, "a
 
 abschnitt("3. Jede genannte Commit-Kennung gibt es wirklich")
 
-kennungen = sorted({k for k in set(pz.COMMIT.findall(roh)) if not k.isdigit()})
+kennungen = sorted({k for k in set(pz.COMMIT.findall(gesamt)) if not k.isdigit()})
 unbekannt = [k for k in kennungen if not pz.git_kennt(k)]
 check("keine erfundene Commit-Kennung", not unbekannt,
       f"{len(kennungen)} geprueft, unbekannt: {unbekannt if unbekannt else 'keine'}")
@@ -66,13 +85,13 @@ if os.path.exists(VORFASSUNG):
     alt_kennungen = {k for k in set(pz.COMMIT.findall(alt)) if not k.isdigit()}
     fehlende_k = sorted(alt_kennungen - set(kennungen))
     alt_zahlen = set(pz.PRUEFZAHL.findall(alt))
-    fehlende_z = sorted(alt_zahlen - set(pz.PRUEFZAHL.findall(roh)))
+    fehlende_z = sorted(alt_zahlen - set(pz.PRUEFZAHL.findall(gesamt)))
     check("keine Commit-Kennung der Vor-Fassung verloren", not fehlende_k,
           f"{len(alt_kennungen)} geprueft" + (f", fehlt {fehlende_k}" if fehlende_k else ""))
     check("keine Pruefzahl der Vor-Fassung verloren", not fehlende_z,
           f"{len(alt_zahlen)} geprueft" + (f", fehlt {fehlende_z[:6]}" if fehlende_z else ""))
     anfaenge = {a.strip() for a in re.findall(r"^\*\*([^*\n]{8,80})\*\*", alt, re.M)}
-    fehlende_a = sorted(a for a in anfaenge if a not in roh)
+    fehlende_a = sorted(a for a in anfaenge if a not in gesamt)
     if fehlende_a:
         befund("Absatz-Anfaenge", f"{len(fehlende_a)} Absatz-Anfang/Anfaenge der Vor-Fassung kommen "
                                   f"nicht mehr woertlich vor — einzeln nachsehen, ob Inhalt verloren "
