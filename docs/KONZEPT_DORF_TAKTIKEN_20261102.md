@@ -101,3 +101,48 @@ Stufe A ist unabhängig und kann sofort laufen; B ist die Voraussetzung für all
 | Wer wechselt Taktiken? | nur der Spieler entscheidet seine Dörfer, Bots nach fester Regel | auch Bots dürfen wechseln (mit Sperrzeit) | **B**, aber mit 48-Stunden-Sperre je Dorf — sonst ist nichts ablesbar |
 | Dritter Kanal | nur Stärke und Ausgleich | zusätzlich "Beute" o. Ä. als dritter Kanal | **A** zum Start; ein dritter Kanal bricht die einfache Summenregel |
 | Darf ein Punkt verfallen? | nein, immer zuweisen | ja, wenn keine passende Taktik läuft | **A** — Ruhe heißt neutral, nicht "Punkt weg" |
+
+## 8. Erweiterung (Daniel, 02.11.2026, 16:20): Völkerwahl am Start und fremde Boni
+
+### 8.1 Das Hauptdorf traegt das Volk, nicht die Punkte
+
+- Der **Spieler waehlt zu Spielbeginn sein Volk**. Das ist der Start des Spiels, nicht eine
+  Nebeneinstellung: die Wahl legt +5 % / -5 % fuer die ganze Partie fest.
+- Das **Hauptdorf** (die erste Siedlung) traegt genau diese Basiswerte und gibt **keinen Punkt**.
+- **Jedes weitere Dorf gibt einen Punkt** (also ab dem 2. Dorf). Damit ist die in Abschnitt 7
+  gestellte Frage beantwortet: die Gruendung ist geschenkt.
+- Die **Bots bekommen die uebrigen Voelker** zugewiesen - nicht mehr fest im Code.
+
+### 8.2 Dritter Kanal: fremde Boni bis 5 %
+
+Ein Dorf kann seinen Punkt in **drei** Richtungen legen:
+
+| Kanal | Wirkung | Deckel |
+|---|---|---|
+| eigene Staerke | der Plus-Wert des eigenen Volkes waechst | +5 Punkte (also hoechstens +10 %) |
+| eigener Ausgleich | der Minus-Wert des eigenen Volkes schrumpft Richtung 0 | +5 Punkte (hoechstens 0 %) |
+| **fremd** | das Dorf holt sich einen Bonus eines ANDEREN Volkes | **hoechstens +5 %**, nur EIN fremdes Volk |
+
+**Wichtig fuer die Balance:** die Punkte sind EIN Budget ueber alle drei Kanaele. Ein Volk kommt
+damit hoechstens auf **+10 Prozentpunkte Wirkung** (5 eigene plus 5 dazu, gleich in welcher
+Mischung) - nie auf 15. Fremde Boni stapeln sich nicht: zwei Doerfer beim selben fremden Volk
+ergeben zusammen hoechstens dessen 5 %.
+
+### 8.3 Was das am Code aendert (gemessen 02.11.2026)
+
+- `botkern.BOT_FRAKTIONEN` ist heute eine **feste** Tabelle mit **vier** Fraktionen fuer **fuenf**
+  Bots (menschlich doppelt: Haug und Brynhild). "Spieler waehlt, Bots bekommen den Rest" braucht
+  deshalb: eine Voelkerliste, eine Zuordnung **im Spielstand** statt als Konstante, und eine
+  Volkswahl im Startablauf (Fenster + Spielstand-Feld, alte Spielstaende laden mit Vorgabewert).
+- Die Boni gelten heute **nur fuer Bots**. Mit der Voelkerwahl bekommt auch der **Spieler** seine
+  +5 / -5 - das braucht Kern UND Anzeige aus derselben Funktion (F-04-Muster).
+- Folge fuer den Plan: zwischen Stufe A (Boni verdrahten) und Stufe B (Bot-Doerfer) schiebt sich
+  eine eigene Stufe **A2 Voelkerwahl** (Voelkerliste, Zuordnung im Spielstand, Startfenster).
+
+### 8.4 Neue offene Fragen
+
+| Frage | Moeglichkeit A | Moeglichkeit B | Empfehlung |
+|---|---|---|---|
+| Wie viele Voelker? | **6** - Spieler und fuenf Bots, jeder ein eigenes Volk, keine Doppelung | **5** - ein Volk kommt bei den Bots doppelt vor (wie heute menschlich) | **A**: sechs Voelker, damit die Wahl exklusiv ist |
+| Gilt die Dorf-Punkt-Mechanik auch fuer den Spieler? | ja, gleiche Regel fuer alle | nur Bots | **A** - sonst hat der Spieler eine Sonderregel, die niemand versteht |
+| Fremder Bonus: frei oder gebunden? | frei waehlbar (der Spieler sucht sich, was er braucht) | gebunden an ein Nachbarvolk (mehr Rollenspiel, weniger Kontrolle) | **A** zum Start; gebunden waere ein eigener Schritt |
