@@ -1,3 +1,28 @@
+# STAND 02.11.2026, 11:15 - SITZUNG PAUSIERT: Laptop-Neustart (WLAN, Tastatur)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Auf Daniels Ansage gestoppt** (WLAN bricht ab, Tastatur haengt): alle Hintergrundprozesse sind
+beendet, das Spiel ist geschlossen, der Arbeitsbaum ist leer - **nichts ist ungespeichert.**
+Uebergabe fuer die naechste Sitzung: `docs/UEBERGABE_20261102_1115.md` (Kopie auf dem Desktop,
+hashgleich). Der Ablaufplan bis zur Demo steht dort Abschnitt 4.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf | `5a2f119`, Arbeitsbaum **leer** | `git status --porcelain` |
+| Letzter Sammellauf | **122 von 124 gruen, 0 rot, 4.783 Pruefungen, 420 s** (10:25) | `docs/audits/sammellauf_20261102_1025.log` |
+| Start | `.venv` mit Pillow 13.0.0, alte py-Kette als Rueckfall | `tests/test_start_mit_pillow.py` 10/0/0 |
+| Restweg Demo | **6-8 Arbeitstakte**, davon 2 mit Daniels Freigabe | Uebergabe Abschnitt 4 |
+
+## Der EINE naechste Schritt
+
+**Den Auswahlrahmen der C2-Lieferung zeichnen** (Uebergabe Abschnitt 3): messen, wer zuletzt zeichnet
+(`_zeichne_siedlungskarte`), den gezeichneten goldenen Rahmen nur als Rueckfall benutzen, den
+gelieferten `kachelrahmen_auswahl.png` mit voller Deckkraft auf das gewaehlte Feld legen,
+Sichtvergleich als Kontaktblatt unter `docs/audits/`, Wache ergaenzen, voller Sammellauf,
+Protokollzeile, ein Commit.
+Arbeitsweise: Pruefdatei ergaenzen, voller Sammellauf, Protokollzeile, ein Commit.
+
 # STAND 02.11.2026, 10:32 - Start mit Projekt-venv: Pillow da, Bilder scharf (Register 129)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
