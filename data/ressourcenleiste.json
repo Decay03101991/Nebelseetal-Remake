@@ -7,18 +7,61 @@
   "breite": 1440,
   "hoehe": 140,
   "felder": [
-    { "schluessel": "siedler", "x": 184, "y": 105, "quelle": "bevoelkerung" },
-    { "schluessel": "nahrung", "x": 342, "y": 105, "quelle": "nahrung" },
-    { "schluessel": "holz", "x": 494, "y": 105, "quelle": "holz" },
-    { "schluessel": "stein", "x": 646, "y": 105, "quelle": "stein" },
-    { "schluessel": "erz", "x": 799, "y": 105, "quelle": "metall" },
-    { "schluessel": "gold", "x": 957, "y": 105, "quelle": "gold" },
-    { "schluessel": "mana", "x": 1110, "y": 105, "quelle": "mana" },
-    { "schluessel": "punkte", "x": 1264, "y": 105, "quelle": "punkte" }
+    {
+      "schluessel": "siedler",
+      "x": 184,
+      "y": 105,
+      "quelle": "bevoelkerung"
+    },
+    {
+      "schluessel": "nahrung",
+      "x": 342,
+      "y": 105,
+      "quelle": "nahrung"
+    },
+    {
+      "schluessel": "holz",
+      "x": 494,
+      "y": 105,
+      "quelle": "holz"
+    },
+    {
+      "schluessel": "stein",
+      "x": 646,
+      "y": 105,
+      "quelle": "stein"
+    },
+    {
+      "schluessel": "erz",
+      "x": 799,
+      "y": 105,
+      "quelle": "metall"
+    },
+    {
+      "schluessel": "gold",
+      "x": 957,
+      "y": 105,
+      "quelle": "gold"
+    },
+    {
+      "schluessel": "mana",
+      "x": 1110,
+      "y": 105,
+      "quelle": "mana"
+    },
+    {
+      "schluessel": "punkte",
+      "x": 1264,
+      "y": 105,
+      "quelle": "punkte"
+    }
   ],
   "farben": {
     "_zweck": "Zahl hell mit dunkler Kontur, damit sie auf der gemalten Kulisse lesbar bleibt (Vorgabe LIEFERUNG.md)",
     "zahl": "#F7E9C8",
     "kontur": "#101418"
-  }
+  },
+  "kachel_halbbreite": 55,
+  "skala_max": 1.5,
+  "_bauweise": "Das Bild ist nicht mehr EIN Stueck, das auf Fensterbreite gezogen wird (das machte die Symbole unscharf und links-rechts gestreckt - Daniels Befund 02.11.2026). Es wird aus Stuecken zusammengesetzt: Ecken (Zierrahmen und Banner) und die acht Symbolfelder sind FEST und werden nur gleichmaessig mit 'skala' skaliert; nur die Luecken zwischen den Feldern werden waagerecht gedehnt. Damit wird der Balken laenger, ohne dass ein Symbol verzerrt. 'kachel_halbbreite' ist die halbe Breite eines Symbolfeldes in Pixeln (Symbol plus Zahlenplakette), 'skala_max' die Obergrenze des gleichmaessigen Wachstums: darueber hinaus waechst nur noch die Laenge (Symbole bleiben scharf)."
 }

@@ -169,6 +169,68 @@ if canvas is not None:
           canvas.itemcget(kennung, "text") if kennung else "keine Kennung")
 root.destroy()
 
+# ==========================================================================
+abschnitt("6. Der Balken wird laenger, die Symbole bleiben in Form (Befund Daniel 02.11.2026)")
+
+try:
+    from PIL import Image as _Image
+    _pil = True
+except Exception:                                        # noqa: BLE001
+    _pil = False
+    befund("Pillow fehlt - die Zusammensetzung wird nicht gemessen", "")
+
+stuecke = main._leisten_stuecke(daten)
+check("6 die Schnittliste hat feste Kacheln und dehnbare Luecken",
+      any(s["art"] == "fest" for s in stuecke) and any(s["art"] == "dehnbar" for s in stuecke),
+      str([s["art"] for s in stuecke]))
+check("6 neun feste Teile (zwei Ecken und acht Felder)",
+      sum(1 for s in stuecke if s["art"] == "fest") == 10,
+      str(sum(1 for s in stuecke if s["art"] == "fest")))
+check("6 die Stuecke decken die ganze Breite lueckenlos ab",
+      stuecke[0]["von"] == 0 and stuecke[-1]["bis"] == breite
+      and all(stuecke[i]["bis"] == stuecke[i + 1]["von"] for i in range(len(stuecke) - 1)),
+      str([(s["von"], s["bis"]) for s in stuecke]))
+
+if _pil:
+    b1440, m1440, s1440 = main.leiste_zusammensetzen(daten, 1440)
+    b1920, m1920, s1920 = main.leiste_zusammensetzen(daten, 1920)
+    b2560, m2560, s2560 = main.leiste_zusammensetzen(daten, 2560)
+    b3440, m3440, s3440 = main.leiste_zusammensetzen(daten, 3440)
+    b1000, m1000, s1000 = main.leiste_zusammensetzen(daten, 1000)
+    check("6 bei 1440 px gilt Skala 1,0 und die Originalhoehe",
+          abs(s1440 - 1.0) < 1e-9 and b1440.height == 140, f"{s1440} / {b1440.height}")
+    check("6 die Zielbreite wird immer genau getroffen",
+          all(b.width == ziel for b, ziel in ((b1440, 1440), (b1920, 1920), (b2560, 2560), (b3440, 3440))),
+          str([b.width for b in (b1440, b1920, b2560, b3440)]))
+    check("6 1920 px waechst gleichmaessig (Skala 1920/1440)",
+          abs(s1920 - 1920 / 1440) < 1e-6 and b1920.height == round(140 * s1920),
+          f"{s1920:.3f} / {b1920.height}")
+    check("6 ab der Obergrenze waechst nur noch die Laenge (Skala bleibt auf skala_max)",
+          abs(s2560 - float(daten.get("skala_max"))) < 1e-9 and abs(s3440 - s2560) < 1e-9,
+          f"{s2560} / {s3440}")
+    check("6 die Hoehe bleibt bei 2560 und 3440 gleich",
+          b2560.height == b3440.height, f"{b2560.height} / {b3440.height}")
+    check("6 schmalere Fenster schrumpfen gleichmaessig (keine Dehnung)",
+          abs(s1000 - 1000 / 1440) < 1e-6, f"{s1000:.3f}")
+
+    # Verzerrungsprobe: die Kachel um Symbol 1 muss bei 2560 und 3440 IDENTISCH sein
+    halb = int(daten["kachel_halbbreite"])
+    m1a, m1b = m2560["siedler"], m3440["siedler"]
+    ka = b2560.crop((m1a[0] - int(halb * s2560), 0, m1a[0] + int(halb * s2560), b2560.height))
+    kb = b3440.crop((m1b[0] - int(halb * s3440), 0, m1b[0] + int(halb * s3440), b3440.height))
+    check("6 das Symbolfeld ist bei 2560 und 3440 pixelgleich (nichts wird weiter gestreckt)",
+          ka.size == kb.size and list(ka.getdata()) == list(kb.getdata()),
+          f"{ka.size} gegen {kb.size}")
+    # und es ist genau die gleichmaessig skalierte Originalkachel (kein Verzerren)
+    orig = _Image.open(os.path.join(ROOT, str(daten["datei"]).replace("/", os.sep))).convert("RGBA")
+    x1 = int(daten["felder"][0]["x"])
+    soll = orig.crop((x1 - halb, 0, x1 + halb, orig.height)).resize((ka.width, b2560.height), _Image.LANCZOS)
+    abweichung = sum(abs(p[0] - q[0]) + abs(p[1] - q[1]) + abs(p[2] - q[2])
+                     for p, q in zip(soll.convert("RGBA").getdata(), ka.convert("RGBA").getdata())
+                     ) / max(1, ka.width * ka.height * 3)
+    check("6 die Kachel ist die gleichmaessig skalierte Originalkachel (Abweichung < 8 von 255)",
+          abweichung < 8, f"{abweichung:.2f}")
+
 # Quelltext-Wachen: eine Stelle fuer Aufbau und Neuzeichnen
 import inspect  # noqa: E402
 quelle = inspect.getsource(main)

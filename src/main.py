@@ -704,6 +704,79 @@ LEISTEN_ROHSTOFFE = tuple(sorted({str(f.get("quelle")) for f in RESSOURCENLEISTE
                                                               "nahrung", "gold")}))
 
 
+def _leisten_stuecke(leiste: dict) -> list:
+    """Die Leiste in Stuecke zerlegen: feste Ecken und Symbolfelder, dehnbare Luecken dazwischen.
+
+    Ein festes Stueck wird NUR gleichmaessig skaliert (Symbol und Zahlenplakette bleiben in Form),
+    eine Luecke wird waagerecht gedehnt - so wird der Balken breiter, ohne dass ein Symbol verzerrt
+    (Daniels Befund 02.11.2026: das ganze Bild auf Fensterbreite zu ziehen machte die Symbole haesslich).
+    """
+    breite = int(leiste.get("breite") or 1440)                                       # Originalbreite
+    halb = int(leiste.get("kachel_halbbreite") or 55)                                 # halbe Feldbreite
+    felder = [f for f in (leiste.get("felder") or []) if f.get("x") is not None]       # acht Felder mit Position
+    if not felder:                                                                    # ohne Felder
+        return [{"art": "dehnbar", "von": 0, "bis": breite, "feld": None}]             # bleibt das ganze Bild dehnbar
+    stuecke = [{"art": "fest", "von": 0, "bis": max(0, int(felder[0]["x"]) - halb), "feld": None}]   # linke Ecke (Banner)
+    for i, feld in enumerate(felder):                                                  # je Feld eine feste Kachel
+        x = int(feld["x"])                                                             # Mittelpunkt des Feldes
+        stuecke.append({"art": "fest", "von": max(0, x - halb), "bis": min(breite, x + halb),
+                        "feld": str(feld.get("schluessel"))})                          # Symbol samt Plakette
+        if i + 1 < len(felder):                                                        # Luecke zum naechsten Feld
+            naechste = max(0, int(felder[i + 1]["x"]) - halb)                           # Anfang des naechsten Feldes
+            stuecke.append({"art": "dehnbar", "von": min(breite, x + halb), "bis": naechste, "feld": None})
+    stuecke.append({"art": "fest", "von": min(breite, int(felder[-1]["x"]) + halb), "bis": breite, "feld": None})   # rechte Ecke
+    return [s for s in stuecke if s["bis"] > s["von"]]                                   # leere Stuecke weg
+
+
+def leiste_zusammensetzen(leiste: dict, zielbreite: int):
+    """(Bild, Mittelpunkte, Skala) der Leiste fuer eine Zielbreite - ohne Tk, damit pruefbar.
+
+    Feste Stuecke wachsen gleichmaessig (Skala bis `skala_max`), die Luecken bekommen den Rest der
+    Breite. Ist das Fenster schmaler als die festen Stuecke, wird die Gesamtskala kleiner, damit
+    nichts abgeschnitten wird. Ohne Pillow kommt ``(None, {}, 0.0)`` zurueck.
+    """
+    try:                                                                              # Pillow nur hier
+        from PIL import Image                                                          # Bildverarbeitung
+    except Exception:                                                                  # noqa: BLE001
+        return None, {}, 0.0                                                           # ohne Pillow keine Leiste
+    pfad = icon_pfad(str(leiste.get("datei") or ""))                                    # Originalbild im Projekt
+    if not pfad or not os.path.exists(pfad):                                            # Datei fehlt
+        return None, {}, 0.0                                                           # dann bleibt der Kopf textbasiert
+    quelle = Image.open(pfad).convert("RGBA")                                           # Original mit Alphakanal
+    breite = int(leiste.get("breite") or quelle.width)                                  # Bezugsbreite
+    skala_max = float(leiste.get("skala_max") or 1.5)                                   # Obergrenze fuer das Wachstum
+    stuecke = _leisten_stuecke(leiste)                                                  # Schnittliste
+    fest = sum(s["bis"] - s["von"] for s in stuecke if s["art"] == "fest")              # Breite aller festen Teile
+    dehn = sum(s["bis"] - s["von"] for s in stuecke if s["art"] == "dehnbar")           # Breite aller Luecken
+    skala = min(max(1, int(zielbreite)) / float(breite), skala_max)                      # gleichmaessige Skala
+    rest = int(zielbreite) - fest * skala                                               # was die Luecken fuellen muessen
+    if rest < 0:                                                                        # Fenster schmaler als die festen Teile
+        skala = int(zielbreite) / float(fest) * 0.995                                   # kleiner skalieren, nichts abschneiden
+        rest = 0                                                                        # Luecken schrumpfen auf null
+    gap_faktor = (rest / (dehn * skala)) if dehn and skala else 1.0                     # Dehnung der Luecken
+    hoehe = max(1, int(round(quelle.height * skala)))                                   # Hoehe folgt der Skala
+    gesamt = Image.new("RGBA", (int(zielbreite), hoehe), (0, 0, 0, 0))                   # leere Flaeche
+    x = 0                                                                              # Schreibposition
+    mitten = {}                                                                        # Feld -> (x, y) im neuen Bild
+    for stueck in stuecke:                                                             # Stueck fuer Stueck
+        q = quelle.crop((stueck["von"], 0, stueck["bis"], quelle.height))               # Ausschnitt aus dem Original
+        if stueck["art"] == "fest":                                                     # feste Kachel
+            w = max(1, int(round(q.width * skala)))                                     # Breite gleichmaessig
+            teil = q.resize((w, hoehe), Image.LANCZOS)                                  # beide Achsen gleiche Skala
+        else:                                                                          # dehnbare Luecke
+            w = max(1, int(round(q.width * skala * gap_faktor)))                        # nur waagerecht gedehnt
+            teil = q.resize((w, hoehe), Image.LANCZOS)                                  # Hoehe bleibt wie die Skala
+        if x + w > gesamt.width:                                                       # letzte Luecke exakt abschliessen
+            w = max(1, gesamt.width - x)                                                # auf den Rest begrenzen
+            teil = teil.resize((w, hoehe), Image.LANCZOS)                               # neu schneiden
+        gesamt.alpha_composite(teil, (x, 0))                                            # einsetzen
+        if stueck.get("feld"):                                                          # Symbolfeld merken
+            mitten[str(stueck["feld"])] = (x + w // 2, int(round(float(
+                next((f.get("y") for f in leiste.get("felder") or [] if str(f.get("schluessel")) == stueck["feld"]), 105)) * skala)))
+        x += w                                                                          # weiterruecken
+    return gesamt, mitten, skala                                                        # Bild, Mittelpunkte, Skala
+
+
 def leistenwert(state, feld: dict) -> str:
     """Den Anzeigewert EINES Leistenfeldes rechnen - eine Stelle fuer Aufbau und Neuzeichnen.
 
@@ -3785,37 +3858,30 @@ class NebelseetalApp:
         self._build_main_ui()
         self._log(f"Skin gewechselt: {self.skin_name}")
 
-    def _leisten_bild(self, breite: int, hoehe: int):
-        """Das Leistenbild auf (breite, hoehe) bringen und im Cache halten (Tk-Bild oder None).
+    def _leisten_bild(self, breite: int):
+        """Das zusammengesetzte Leistenbild als Tk-Bild (oder None), je Zielbreite zwischengespeichert.
 
-        Pillow glaettet beim Verkleinern; fehlt es, wird ganzzahlig per `subsample` verkleinert.
-        Der Cache ist Pflicht, weil Tk Bilder ohne Referenz freigibt (dann bleibt die Leiste leer).
+        Die Arbeit macht `leiste_zusammensetzen` (ohne Tk, damit pruefbar): feste Kacheln wachsen
+        gleichmaessig, nur die Luecken werden gedehnt. Hier wird daraus nur die Tk-Grafik gebaut und
+        im Cache gehalten - Tk gibt Bilder ohne Referenz frei, dann bliebe der Streifen leer.
         """
         if not RESSOURCENLEISTE:                                              # keine Leiste eingetragen
-            return None                                                       # Kopf bleibt wie vorher
-        pfad = icon_pfad(RESSOURCENLEISTE.get("datei") or "")                  # Projektpfad ueber EINE Stelle
-        if not pfad or not os.path.exists(pfad):                               # Bilddatei fehlt
-            return None                                                       # lieber ohne Bild
-        if not hasattr(self, "_leisten_cache"):                                # Cache beim ersten Bild anlegen
-            self._leisten_cache = {}                                          # Groesse -> Tk-Bild
-        schluessel = (pfad, breite, hoehe)                                     # Cache-Schluessel
-        if schluessel in self._leisten_cache:                                  # schon geladen
-            return self._leisten_cache[schluessel]                             # wiederverwenden
-        bild = None                                                            # Ergebnis
-        try:                                                                  # geglaetteter Weg
-            from PIL import Image, ImageTk                                     # nur hier importiert
-            roh = Image.open(pfad).convert("RGBA")                             # PNG mit Alphakanal
-            bild = ImageTk.PhotoImage(roh.resize((breite, hoehe), Image.LANCZOS))   # auf Zielbreite bringen
-        except Exception:                                                      # noqa: BLE001 - kein Pillow
-            try:                                                              # Rueckfall ohne Pillow
-                bild = tk.PhotoImage(file=pfad)                                # Originalgroesse laden
-                faktor = max(1, int(round(bild.width() / float(breite))))      # ganzzahliger Faktor
-                if faktor > 1:                                                 # nur verkleinern
-                    bild = bild.subsample(faktor)                              # 1440 / 2 = 720 px
-            except Exception:                                                  # noqa: BLE001
-                return None                                                    # gar kein Bild
-        self._leisten_cache[schluessel] = bild                                 # im Cache halten
-        return bild                                                            # an den Aufrufer
+            return None, {}, 0.0                                              # Kopf bleibt wie vorher
+        if not hasattr(self, "_leisten_cache"):                               # Cache beim ersten Bild
+            self._leisten_cache = {}                                          # Breite -> (Tk-Bild, Masse)
+        schluessel = int(breite)                                              # nur die Breite zaehlt
+        if schluessel in self._leisten_cache:                                  # schon gebaut
+            return self._leisten_cache[schluessel]                            # wiederverwenden
+        bild, mitten, skala = leiste_zusammensetzen(RESSOURCENLEISTE, int(breite))   # Stuecke zusammensetzen
+        if bild is None:                                                      # kein Bild moeglich (kein Pillow?)
+            return None, {}, 0.0                                              # dann bleibt der Kopf textbasiert
+        try:                                                                  # Tk-Grafik bauen
+            from PIL import ImageTk                                           # nur hier importiert
+            tk_bild = ImageTk.PhotoImage(bild)                                # aus dem PIL-Bild
+        except Exception:                                                     # noqa: BLE001
+            return None, {}, 0.0                                              # ohne Bildschirm keine Leiste
+        self._leisten_cache[schluessel] = (tk_bild, mitten, skala)             # im Cache halten
+        return tk_bild, mitten, skala                                          # Bild, Mittelpunkte, Skala
 
     def _leiste_bauen(self, eltern):
         """Die Ressourcenleiste als Canvas in den Kopf haengen (Bild + acht Zahlenfelder)."""
@@ -3832,10 +3898,11 @@ class NebelseetalApp:
         return canvas                                                          # fuer Pruefungen
 
     def _leiste_zeichnen(self):
-        """Die Leiste in der aktuellen Breite zeichnen: Bild plus acht Zahlen mit dunkler Kontur.
+        """Die Leiste in der aktuellen Breite zeichnen: zusammengesetztes Bild plus acht Zahlen.
 
-        Alle Masse aus `data/ressourcenleiste.json` werden mit EINER Skala umgerechnet
-        (Breite / 1440), damit die Felder auf jeder Fensterbreite unter ihren Symbolen sitzen.
+        Die Positionen der Zahlen kommen aus der Zusammensetzung (`leiste_zusammensetzen`), nicht
+        aus festen Pixeln - dadurch sitzt jede Zahl auch dann mittig in ihrer Plakette, wenn die
+        Luecken gedehnt wurden.
         """
         canvas = getattr(self, "_leisten_canvas", None)                        # Zeichenflaeche
         if canvas is None or not RESSOURCENLEISTE:                             # nichts zu zeichnen
@@ -3848,15 +3915,13 @@ class NebelseetalApp:
         breite_ist = int(canvas.winfo_width())                                 # tatsaechliche Breite
         if breite_ist <= 1:                                                    # vor dem ersten Layout
             breite_ist = int(RESSOURCENLEISTE.get("breite") or 1440)           # Originalbreite nehmen
-        skala = breite_ist / float(RESSOURCENLEISTE.get("breite") or 1440)     # EINE Skala fuer alles
-        hoehe = max(40, int(round(float(RESSOURCENLEISTE.get("hoehe") or 140) * skala)))   # Hoehe im Verhaeltnis
-        if getattr(self, "_leisten_masse", None) == (breite_ist, hoehe):       # nichts geaendert
+        if getattr(self, "_leisten_breite", None) == breite_ist:               # Breite unveraendert
             return                                                             # kein Neuzeichnen noetig
-        bild = self._leisten_bild(breite_ist, hoehe)                           # skalierte Leiste holen
+        bild, mitten, skala = self._leisten_bild(breite_ist)                    # Stuecke zusammensetzen
         if bild is None:                                                       # kein Bild verfuegbar
             return                                                             # dann bleibt der Kopf textbasiert
         canvas.delete("leiste")                                                # alte Zeichnung weg
-        canvas.configure(height=hoehe)                                         # Flaeche an das Bild anpassen
+        canvas.configure(height=bild.height())                                  # Flaeche an das Bild anpassen
         canvas.create_image(0, 0, anchor="nw", image=bild, tags=("leiste",))    # das Bild selbst
         self._leisten_bild_ref = bild                                          # Referenz gegen Garbage Collection
         farben = RESSOURCENLEISTE.get("farben") or {}                           # Farben aus der Datendatei
@@ -3865,8 +3930,10 @@ class NebelseetalApp:
         schrift = ("Arial", max(8, int(round(11 * skala))), "bold")            # mit der Leiste skalieren
         self._leisten_texte = {}                                               # neu aufbauen
         for feld in RESSOURCENLEISTE.get("felder") or []:                      # acht Felder
-            x = int(round(float(feld.get("x") or 0) * skala))                  # Mittelpunkt umrechnen
-            y = int(round(float(feld.get("y") or 0) * skala))                  # Mittelpunkt umrechnen
+            mitte = mitten.get(str(feld.get("schluessel")))                    # Mittelpunkt aus der Zusammensetzung
+            if not mitte:                                                      # Feld nicht gefunden
+                continue                                                       # ueberspringen
+            x, y = int(mitte[0]), int(mitte[1])                                # Zahlenmitte in Pixeln
             kennungen = []                                                     # alle Texte dieses Feldes
             for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):                  # Kontur vierfach versetzt
                 kennungen.append(canvas.create_text(x + dx, y + dy, text="0", fill=kontur,
@@ -3874,7 +3941,7 @@ class NebelseetalApp:
             kennungen.append(canvas.create_text(x, y, text="0", fill=zahl_farbe,
                                                 font=schrift, tags=("leiste",)))   # helle Zahl darueber
             self._leisten_texte[str(feld.get("schluessel"))] = kennungen        # fuer das Aktualisieren merken
-        self._leisten_masse = (breite_ist, hoehe)                              # gezeichnete Masse merken
+        self._leisten_breite = breite_ist                                      # gezeichnete Breite merken
         self._leiste_aktualisieren()                                           # Werte einsetzen
 
     def _leiste_aktualisieren(self):

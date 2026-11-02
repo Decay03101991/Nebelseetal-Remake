@@ -5,9 +5,9 @@
 | Gegenstand | Wert | Beleg |
 |---|---|---|
 | Kopf | `1085861` beim Schreiben; dieser Commit bringt die Leiste | `git log --oneline -1` |
-| Ressourcenleiste | **im Kopf eingebaut**: Bild 1440x140, acht Werte als eigene Textebene (hell + dunkle Kontur), Positionen aus `data/ressourcenleiste.json`, EINE Skala (Breite/1440) | Register 121 |
+| Ressourcenleiste | **im Kopf eingebaut und auf Kachelbau umgestellt**: feste Ecken und acht Symbolfelder wachsen gleichmaessig (Skala bis 1,5), nur die Luecken dehnen sich - der Balken wird breiter, die Symbole bleiben in Form; Zahlen als eigene Textebene, Positionen aus der Zusammensetzung | Register 121, 122 |
 | Keine Zahl doppelt | Leiste zeigt MENGEN, Detailzeile zeigt fuer sechs Rohstoffe nur die RATE; Wolle/Leder/Pferde behalten Menge und Rate | `main.kopfzeile_fuer` |
-| Messung am Fenster | **41 Canvas-Teile** (1 Bild + 8 x 5 Texte), jede Zahl deckungsgleich mit dem Spielstand, Bestandsaenderung kommt nach 1 Takt an | eigener Tk-Lauf 00:40 |
+| Messung am Fenster | **41 Canvas-Teile** (1 Bild + 8 x 5 Texte); fuenf Fensterbreiten gemessen (1000/1440/1920/2560/3440): Symbolfeld bei 2560 und 3440 **pixelgleich**, keine Verzerrung | eigener Tk-Lauf, `test_ressourcenleiste` 39/0/1 |
 | Pruefdateien | neu `test_ressourcenleiste` **28/0/1**; `test_nahrungsverbrauch` mit Begruendung auf den neuen Hilfsnamen umgestellt (**53/0/0**) | eigener Lauf |
 | Sammellauf | **118 von 120 gruen, 0 rot, 2 ausgesetzt**, 4.515 Pruefungen, 276 s (00:42) | `docs/audits/sammellauf_20261102_0042.log` |
 | Register | **121 Punkte**, **120 Pruefdateien** | `grep -cE`, `ls tests/test_*.py \| wc -l` |
