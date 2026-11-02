@@ -241,7 +241,35 @@ for punkt in ("Kaserne", "Forschung", "Stellmacher", "Diebesgilde"):
     check(f"6 die {punkt}-Ansicht zeigt den Hintergrund 538x222", leinwand_538() is not None,
           "keine Leinwand in Originalgroesse")
 
-root.destroy()
+# ==========================================================================
+abschnitt("7. Ohne Pillow bleibt die Optik trotzdem sichtbar (gemessener Startpfad des Spiels)")
+# ==========================================================================
+# BEFUND 02.11.2026, 09:10: `START_SPIEL_WINDOWS.bat` startet mit Astral CPython 3.11.16, und dieser
+# Interpreter hat KEIN Pillow - nachgestellt mit demselben Interpreter: kein Menue-Icon, kein
+# Leistenbild, `gebaeude_optik.kachel()` liefert None. Deshalb gibt es den Tk-Rueckfall, und deshalb
+# steht diese Wache hier: ohne sie waere die Optik auf Daniels Rechner unsichtbar, waehrend alle
+# anderen Pruefungen gruen melden (der Fehler steckt im INTERPRETER, nicht im Code).
+
+print("  (Pillow wird fuer diesen Abschnitt kurz abgeschaltet)")
+gesichert = {}
+for name in ("PIL", "PIL.Image", "PIL.ImageTk"):
+    if name in sys.modules:                                   # nur vorhandene Eintraege merken
+        gesichert[name] = sys.modules[name]                   # Original merken
+        sys.modules[name] = None                              # Import mit ImportError abbrechen
+try:
+    ohne_icon = app._optik_bild("lager", 33, None, "kachel")   # 33 px ist noch nicht im Cache
+    ohne_bild = app._optik_bild("lager", 537, None, "hintergrund")
+finally:
+    for name, modul in gesichert.items():                     # Zustand wiederherstellen
+        sys.modules[name] = modul
+check("7 ohne Pillow liefert das Menue-Icon trotzdem ein Tk-Bild",
+      ohne_icon is not None and ohne_icon.width() >= 20,
+      "None" if ohne_icon is None else str(ohne_icon.width()) + " px (ganzzahlig geteilt)")
+check("7 ohne Pillow liefert der Hintergrund seine Originalbreite",
+      ohne_bild is not None and ohne_bild.width() == 538,
+      "None" if ohne_bild is None else str(ohne_bild.width()))
+
+root.destroy()                                        # Fenster erst nach allen Pruefungen schliessen
 
 # ==========================================================================
 ergebnis = bericht()

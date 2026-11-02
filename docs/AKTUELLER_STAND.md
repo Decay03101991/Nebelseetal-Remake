@@ -1,3 +1,58 @@
+# STAND 02.11.2026, 09:29 - Gebaeude-Optik sichtbar auch ohne Pillow (Register 125)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `bfed4de` (Icons eingebaut); dieser Commit bringt den Pillow-Rueckfall, Register 125 und die Fensterbilder | `git log --oneline -1` |
+| Befund | Startpfad (`START_SPIEL_WINDOWS.bat`, Astral CPython 3.11.16) hat **kein Pillow**: vorher `Menue-Knoepfe mit Bild: []`, `leiste_zusammensetzen -> None` | eigene Messung mit genau diesem Interpreter, 09:10 |
+| Nach dem Fix | mit demselben Interpreter: Menue-Icon **20 px**, Hintergrund **538 x 222** | eigene Messung, 09:20 |
+| Pruefdatei | **56 von 56 gruen** (zwei neue Wachen: Pillow fuer zwei Aufrufe abgeschaltet) | eigener Lauf |
+| Sammellauf | **120 von 122 gruen, 0 rot, 2 ausgesetzt, 4.761 Pruefungen, 401 s** (09:21-09:28) | `docs/audits/sammellauf_20261102_0921.log` |
+| Fensterbilder | Dorfzentrum, Bauauswahl, Forschung - echte Oberflaeche mit eigenem Testspielstand | `docs/audits/gebaeude_icons_fenster_*_20261102.png` |
+| Register / Pruefdateien | **125 Punkte**, **122 Pruefdateien** | `grep -cE`, `ls tests/test_*.py \| wc -l` |
+| Guthaben | Daniel 09:07: **8,25 USD** Kontostand, **41,74 USD** Gesamtverbrauch; Tagesbudget fuer das starke Modell **3 USD** | Daniel, 09:07 |
+| Offen (Freigabe) | Pillow in die Spiel-Laufzeit (Projekt-venv oder uv-Interpreter) und Loesung fuer die Ressourcenleiste ohne Pillow; das ungenutzte Python 3.15.2 unter `AppData\Local\Python` (122 MB) entfernen | eigene Messung |
+
+## Der EINE naechste Schritt
+
+**Die Kaserne-Ansicht darf ohne Gebaeude am aktiven Ort nicht abstuerzen** - der Fehler ist aelter als
+dieser Schritt und beim Bau der Pruefdatei aufgefallen: `_siedler_warnung_zeichnen`
+(aufgerufen aus `_render_ausbildung`) liest `reserve["guenstigste"]`, und
+`spieloekonomie.siedler_reserve` liefert diesen Schluessel NICHT, wenn am aktiven Ort kein Gebaeude
+steht (Fruehfall `if not bedarf: return {...}` ohne `guenstigste`). Nachgestellt: Siedlung mit
+Kriegerakademie, aktive Siedlung ohne Gebaeude, Menuepunkt "Kaserne" -> `KeyError`.
+Zu tun: den Schluessel im Fruehfall mitliefern (der Docstring der Funktion beschreibt die Rueckgabe,
+also gehoert er in die Funktion), Wache dazu (Siedlung ohne Gebaeude -> Ansicht rendert), voller
+Sammellauf, Protokollzeile, ein Commit.
+Arbeitsweise: Pruefdatei ergaenzen, voller Sammellauf, Protokollzeile, ein Commit.
+
+## Reihenfolge danach
+
+1. **Pillow-Entscheidung** (Daniel): Projekt-venv mit Pillow und Start-Batch darauf, damit Leiste und
+   Bilder scharf sind; danach die Ressourcenleiste ohne Pillow als Rueckfall.
+2. Icons und Hintergrund im Fenster abnehmen - die drei Bilder unter `docs/audits/` zeigen den Stand.
+3. Auswahlrahmen der C2-Lieferung (der goldene gezeichnete Rahmen liegt derzeit ueber dem gelieferten);
+   die acht Einzelsymbole aus `assets/icons/leiste/symbole/` sind ungenutzt.
+4. Wappen den fuenf Bots zuordnen; Burgen zu Weltkarten nur als gekennzeichneter Vorschlag.
+5. S-8 Bilanz (500 Mana + 100 Gold, Register 93), danach `weltkarten_seed` fest (Register 94).
+6. Demo-Gates G-01..G-07 vor jedem Upload; die Demo wird LEER ausgeliefert.
+7. Protokoll steht bei **466 Zeilen** (Ziel unter 320) - Verdichten mit Sicherung vorher.
+8. **EXE ist vom 01.11. 19:01** - vor einer Demo neu bauen und startgeprueft starten.
+
+## Fallstricke, in diesem Schritt belegt
+
+- **Ein gruener Sammellauf sagt nichts ueber den STARTWEG.** Alle 4.761 Pruefungen liefen mit dem
+  Hermes-Python (Pillow vorhanden) - das Spiel startet aber mit einem anderen Interpreter ohne
+  Pillow. Bei Bild-Funktionen deshalb immer einmal mit DEM Interpreter messen, den das Start-Batch
+  aufruft (`py -0p` zeigt die Laufzeiten, `python.exe -c "import PIL"` die Wahrheit).
+- **Rueckfall statt Absturz, aber sichtbar statt still.** Ein `None`-Ergebnis ohne Rueckfall heisst:
+  das Bild FEHLT, ohne Fehlermeldung. Das ist die unangenehmste Sorte Fehler - gruen und leer.
+- **`uv pip install` in die uv-Laufzeit geht nicht:** `externally managed`. Sauberer Weg ist eine
+  Projekt-venv; das Aendern des Start-Batches ist Daniels Entscheidung.
+- **WindowsApps-`python.exe` ist der Python-Manager, kein Python.** Ein Aufruf startet ungefragt einen
+  Download (hier Python 3.15.2). Fuer Messungen immer den echten Interpreterpfad nehmen.
+
 # STAND 02.11.2026, 08:59 - Gebaeude-Optik haengt in der Oberflaeche (Register 124)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

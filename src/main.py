@@ -3818,6 +3818,11 @@ class NebelseetalApp:
         Die Arbeit macht `gebaeude_optik` (liest die Projektassets, skaliert mit Pillow); hier
         entsteht nur die Tk-Grafik. Der Cache ist Pflicht: Tk gibt Bilder frei, die niemand mehr
         referenziert - ein Menue-Icon ohne Referenz waere unsichtbar (Lehre 02.11.2026).
+
+        OHNE Pillow bleibt das Bild NICHT weg: `_optik_bild_ohne_pillow` laedt die Datei mit Tk und
+        verkleinert ganzzahlig (grober, aber sichtbar). Grund (gemessen 02.11.2026, 09:10): der
+        Startpfad des Spiels (`START_SPIEL_WINDOWS.bat`, Astral CPython 3.11.16) hat KEIN Pillow -
+        ohne diesen Rueckfall waeren Menue-Icons, Bauknopf-Icons und Hintergruende unsichtbar.
         """
         if not gebaeude_id:                                           # Menuepunkt ohne Gebaeude
             return None                                               # dann bleibt es beim Text
@@ -3827,7 +3832,7 @@ class NebelseetalApp:
         if schluessel in self._optik_cache:                           # schon gebaut
             return self._optik_cache[schluessel]                      # wiederverwenden
         bild = None                                                   # Vorgabe: kein Bild
-        try:                                                          # ohne Pillow bleibt es bei None
+        try:                                                          # geglaetteter Weg mit Pillow
             if str(art) == "hintergrund":                             # Gebaeudeansicht
                 roh = gebaeude_optik.hintergrund(str(gebaeude_id), int(breite), hoehe)   # gemalte Szene
             else:                                                     # Menue und Bauauswahl
@@ -3835,10 +3840,32 @@ class NebelseetalApp:
             if roh is not None:                                       # Bild wirklich vorhanden
                 from PIL import ImageTk                               # nur hier - das Spiel laeuft auch ohne
                 bild = ImageTk.PhotoImage(roh)                        # Tk-Grafik daraus
-        except Exception:                                             # noqa: BLE001 - kein Bild, kein Absturz
-            bild = None                                               # Aufrufer zeichnet nur den Text
+        except Exception:                                             # noqa: BLE001 - kein Pillow, kein Absturz
+            bild = None                                               # dann greift der Rueckfall unten
+        if bild is None:                                              # kein Pillow oder kein Bild daraus
+            bild = self._optik_bild_ohne_pillow(gebaeude_id, int(breite), str(art))   # groeber, aber sichtbar
         self._optik_cache[schluessel] = bild                          # im Cache halten
         return bild                                                   # an den Aufrufer
+
+    def _optik_bild_ohne_pillow(self, gebaeude_id, breite: int, art: str = "kachel"):
+        """Rueckfall ohne Bildverarbeitung: die gelieferte Datei mit Tk laden und ganzzahlig teilen.
+
+        `subsample` verkleinert nur um ganze Faktoren - aus 256 px werden bei 20 px Ziel also
+        21 px (Faktor 12). Das ist groeber als LANCZOS, aber es ist da; ohne diesen Weg saehe der
+        Spieler bei fehlendem Pillow gar keine Gebaeude-Optik.
+        """
+        pfad = (gebaeude_optik.pfad_hintergrund(str(gebaeude_id)) if str(art) == "hintergrund"
+                else gebaeude_optik.pfad_icon(str(gebaeude_id)))      # passende Datei zur Art
+        if not pfad or not os.path.exists(pfad):                      # Datei fehlt
+            return None                                               # dann bleibt es beim Text
+        try:                                                          # Tk kann PNG selbst lesen
+            bild = tk.PhotoImage(file=pfad)                            # Originalgroesse laden
+            faktor = max(1, int(round(bild.width() / float(max(1, int(breite))))))   # ganzzahliger Faktor
+            if faktor > 1:                                            # nur verkleinern, nie vergroessern
+                bild = bild.subsample(faktor)                          # gleichmaessig teilen
+            return bild                                                # grobes, aber sichtbares Bild
+        except Exception:                                             # noqa: BLE001 - kein Tk-Bild moeglich
+            return None                                               # dann bleibt es beim Text
 
     def _menue_icon(self, punkt: str, px: int = 20):
         """Das gerahmte Gebaeude-Icon eines Menuepunkts (None fuer Weltpunkte ohne Gebaeude)."""
