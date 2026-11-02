@@ -188,9 +188,14 @@ ausschliesslich die Mechanik des Raums: das Springen auf Koordinaten und die Art
 diesen Koordinaten liegen und angezeigt werden.
 
 Das ist kein Kopieren, sondern eine eigene Verbindung: die Tiefe der Nebelseetal-Wirtschaft und des
-Kampfes trifft auf eine Weltkarte, auf der man sich bewegt, Dörfer findet, sie erkundet (Spionage),
-aushebt und einnimmt - mit den Koordinaten als gemeinsamer Sprache fuer alles, was zwischen Spieler
+Kampfes trifft auf eine Weltkarte, auf der man sich bewegt, Doerfer findet, sie ausspaeht, angreift und
+gegebenenfalls ausraeumt - mit den Koordinaten als gemeinsamer Sprache fuer alles, was zwischen Spieler
 und Bots passiert.
+
+**Korrektur Daniel 02.11.2026 (rund 18:55):** Doerfer werden NIE eingenommen - sie werden angegriffen,
+ausspioniert und gegebenenfalls ausgeraeumt. Und Angriffstruppen werden nie am Zielort stationiert: der
+Angriff trifft zu einem Zeitpunkt ein, dann gibt es den Angriffsbericht, und die Truppen sind auf dem
+Rueckweg (Stationieren nur ins eigene Dorf, Handbuch 2009 Seite 19).
 
 Dieser Abschnitt ist der Baustein fuer die spaetere Beschreibung auf GitHub: er sagt in wenigen
 Saetzen, WAS das Spiel ist, ohne von Umsetzungsdetails abzuhaengen.

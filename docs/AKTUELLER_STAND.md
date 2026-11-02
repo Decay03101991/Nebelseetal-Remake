@@ -1,3 +1,39 @@
+# STAND 02.11.2026, 18:42 - Gesamtkonzept formuliert, Baustein fuer GitHub (Register 136)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Das Gesamtkonzept steht als Dokument.** Der eine Absatz aus dem Konzept (K-1, Abschnitt 10) ist zu einem
+ausformulierten Papier geworden: was das Spiel ist, woraus es rechnet, was aus welchem Vorbild kommt, und
+was noch fehlt - dazu ein fertiger Text fuer die spaetere GitHub-Beschreibung. Vorgabe Daniel: erst
+formulieren, dann zeigen.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `8c38228` (Arbeitsbaum leer), darauf dieser Schritt | `git log --oneline -1` |
+| Dokument | `docs/GESAMTKONZEPT_20261102.md`, 11 Abschnitte, 9.493 Zeichen | `wc -c` |
+| Kern | Inhalt aus Nebelseetal (Handbuch 2009), Raum aus Lords Mobile - nicht mehr und nicht weniger | Abschnitt 3 |
+| Zahlen | 28 Einheiten, 17 Waren, 21 Forschungen, 127 Karten, 20 Dimensionen - jede mit Beleg abgezaehlt | Abschnitt 8 |
+| Ehrlich offen | Kartenwahl je Gruendung, Voelkerwahl und 13 Volksboni, Spionage/Postfach, Bots gruenden nicht nach | Abschnitt 9 |
+| GitHub-Text | About-Absatz plus README-Einstieg, fertig zum Einfuegen (noch NICHT veroeffentlicht) | Abschnitt 11 |
+| Korrekturen Daniel (18:55) | **Doerfer werden NIE eingenommen** (nur angreifen, ausspionieren, ausraeumen); **Angriffstruppen nie am Zielort stationiert** (Angriff zu einem Zeitpunkt, dann Bericht, dann Rueckmarsch) | Abschnitte 1, 2, 4, 11; Konzept K-1 Abschnitt 10 |
+| Voller Sammellauf | **127 von 129 gruen, 0 rot, 2 ausgesetzt, 4.940 Pruefungen, 309 s** (18:56) | `docs/audits/sammellauf_20261102_1856.log` |
+| Dokumentpruefungen | `test_textqualitaet` **325/0** (96 Dokumente), `test_projektpfade` **105/0**, `test_protokoll` 22/0/1, `test_zieluebergabe` 26/0 | eigene Laeufe |
+| Pruefdateien / Register | **129** / **136** | `ls tests/test_*.py`, `grep -c` |
+
+## Der EINE naechste Schritt
+
+**Kartenprofil je Bot-Dorf (Konzept Abschnitt 11, Vorgabe Daniel 02.11.2026): bei jeder Gruendung drei
+Karten zur Wahl, die Karte bestimmt den maximal getragenen Rohstoff und die schwaecher produzierbaren,
+Gold hat Vorrang; die Bots bilden diese Wahl ueber `botkern.oekonomie_kartenwahl` nach.** Zu tun: eine
+Datendatei mit Kartenprofilen (starker, mittlere, schwacher Rohstoff), `bot_dorf_ertrag` liest das Profil
+des Dorfes statt einer festen Rate, das Dorf haelt seine Karte, die Bot-Wahl bekommt ihren Aufrufer,
+Pruefdatei mit Grenzfaellen, voller Sammellauf, Protokollzeile, ein Commit.
+Arbeitsweise: ein Schritt = ein Commit = ein gruener voller Sammellauf.
+
+**Danach in dieser Reihenfolge:** Postfach und Spionage (die Schnittstelle steht schon), Voelkerwahl am
+Start (A2, sechs Voelker), Verdrahtung der 13 Volksboni (A), Kopplung Punkte und Kanaele (C),
+Balance-Messung (D).
+
 # STAND 02.11.2026, 18:21 - Protokoll geteilt: Historie geschlossen, neues Heft ab heute (Register 135)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
