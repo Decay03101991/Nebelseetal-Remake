@@ -259,4 +259,87 @@ check("ein neues Mass baut ein neues Bild in Zielgroesse",
       _hg.get("neu") == (1664, 960), str((_hg.get("alt"), _hg.get("neu"))))
 check("die gebaute Groesse wird gemerkt", _hg.get("gemerkt") == (1664, 960), str(_hg.get("gemerkt")))
 
+# ==========================================================================
+# 7. M-4: die Warteschlange der Ausbildung liegt als weiches Feld auf dem Bild
+# ==========================================================================
+
+abschnitt("7. Die Warteschlange: Kopf und zwei Hinweiszeilen als Kasten, Zeilen deckend (M-4)")
+# UMGESTELLT 02.11.2026 (M-4, Vorgabe Daniel: "dann die uebrigen Textfelder", "stueck fuer stueck"):
+# Kopfzeile, "Keine Auftraege in Arbeit." und die Reihenfolge-Erklaerung lagen als harte Balken im
+# Rahmen. Der Rahmen traegt jetzt NUR noch die Auftragszeilen - er ist die Tabelle und bleibt deckend.
+_QUEUE = TEXT_MAIN.split("def _ausbildung_warteschlange_zeichnen")[1].split("\n    def ")[0]
+check("die Warteschlange baut weiche Textfelder",
+      "_kasten_label" in M.NebelseetalApp.__dict__["_ausbildung_warteschlange_zeichnen"].__code__.co_names,
+      str(M.NebelseetalApp.__dict__["_ausbildung_warteschlange_zeichnen"].__code__.co_names[:8]))
+check("es sind GENAU die drei Textzeilen (Kopf, Leerfall, Reihenfolge)",
+      _QUEUE.count("self._kasten_label(") == 3, str(_QUEUE.count("self._kasten_label(")))
+check("die Kopfzeile steht im Kasten", 'f"In Arbeit: {uebersicht' in _QUEUE)
+check("der Leerfall steht im Kasten", '"Keine Auftr' in _QUEUE)
+check("die Reihenfolge-Erklaerung steht im Kasten", '"Reihenfolge: nacheinander' in _QUEUE)
+check("der fruehere harte Balken im Rahmen ist weg", _QUEUE.count("tk.Label(rahmen") == 0,
+      str(_QUEUE.count("tk.Label(rahmen")))
+check("der Rahmen fuer die Zeilen entsteht nur, wenn Zeilen da sind", "if gruppen:" in _QUEUE)
+check("der Rahmen bleibt deckend (Panel-Farbe, nicht der Inhalt)",
+      'rahmen = tk.Frame(self.content, bg=self.skin["panel"])' in _QUEUE)
+
+
+def _warteschlangenprobe(auftraege):
+    """Die Kaserne bauen, Auftraege einreihen und die Kindflaechen des Inhalts auszaehlen.
+
+    `auftraege` ist die Liste der Einheiten - VERSCHIEDENE Namen ergeben je eine Zeile
+    (gleiche Namen werden gruppiert, siehe `_ausbildung_warteschlange_zeichnen`).
+    """
+    import tkinter as tk
+    root = tk.Tk()
+    root.withdraw()
+    try:
+        app = M.NebelseetalApp(root)
+        app._build_main_ui()
+        app._erste_siedlung_gruenden()
+        ort = app.state.aktive_siedlung()
+        jetzt = float(app.state.spielsekunden)
+        ort.ausbildung = [{"einheit": name, "gebaeude": "kriegerakademie", "stufe": 1,
+                           "start": jetzt + 3600.0 * n, "ende": jetzt + 3600.0 * (n + 1),
+                           "dauer_sekunden": 3600.0} for n, name in enumerate(auftraege)]
+        app._switch_view("Kaserne")
+        app.content.update_idletasks()
+        ergebnis = {"kasten": [], "rahmen": []}
+        for k in app.content.winfo_children():
+            try:
+                text = str(k.cget("text"))
+            except Exception:                                  # noqa: BLE001
+                text = ""
+            if getattr(k, "image", None) is not None:
+                ergebnis["kasten"].append(text)
+            elif type(k).__name__ == "Frame":
+                try:
+                    bg = str(k.cget("bg"))
+                except Exception:                              # noqa: BLE001
+                    bg = ""
+                if bg != str(app.skin["bg"]):
+                    unter = list(k.winfo_children())
+                    rahmen = sum(1 for u in unter if type(u).__name__ == "Frame")
+                    ergebnis["rahmen"].append((bg, len(unter), rahmen, text))
+        return ergebnis
+    finally:
+        root.destroy()
+
+
+_voll = _warteschlangenprobe(["Kaempfer", "Krieger", "Ritter"])
+_texte = " | ".join(_voll["kasten"])
+check("der Kopf der Warteschlange liegt als Kasten mit Bild",
+      any("In Arbeit: 3 Auftrag" in t for t in _voll["kasten"]), _texte[:120])
+check("die Reihenfolge-Erklaerung liegt als Kasten mit Bild",
+      any("Reihenfolge: nacheinander" in t for t in _voll["kasten"]), _texte[:120])
+check("die drei Auftraege stehen in EINEM deckenden Rahmen (ein Zeilenrahmen je Auftrag)",
+      any(z[1] == 3 and z[2] == 3 for z in _voll["rahmen"]), str(_voll["rahmen"][:4]))
+check("die Auftragszeilen liegen NICHT in einem Kasten",
+      not any("Kaempfer" in t for t in _voll["kasten"]), _texte[:160])
+
+_leer = _warteschlangenprobe([])
+check("der Leerfall liegt als Kasten mit Bild",
+      any("Keine Auftr" in t for t in _leer["kasten"]), str(_leer["kasten"])[:160])
+check("ohne Auftraege entsteht kein leerer Zeilenrahmen",
+      not any(z[1] == 0 for z in _leer["rahmen"]), str(_leer["rahmen"][:3]))
+
 bericht()

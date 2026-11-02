@@ -9692,16 +9692,18 @@ class NebelseetalApp:
             uebersicht = spieloekonomie.ausbildung_uebersicht(asdict(ort), self.state.spielsekunden)
         except Exception:                                # noqa: BLE001
             return
-        rahmen = tk.Frame(self.content, bg=self.skin["panel"])
-        rahmen.pack(fill=tk.X, padx=10, pady=(8, 6))
-        tk.Label(rahmen,
-                 text=(f"In Arbeit: {uebersicht['anzahl']} Auftrag/Aufträge · "
-                       f"insgesamt noch {_zeit(uebersicht['gesamt_rest_sekunden'])}"),
-                 fg=self.skin["gold"], bg=self.skin["panel"],
-                 font=("Arial", 9, "bold")).pack(anchor=tk.W, padx=6, pady=(3, 2))
+        # M-4 (Vorgabe Daniel 02.11.2026: "dann die uebrigen Textfelder", "stueck fuer stueck"): der
+        # Kopf der Warteschlange und ihre zwei Hinweiszeilen liegen als weiche Felder auf dem
+        # Gebaeudemotiv. Die Auftragszeilen selbst bleiben ein DECKENDER Block - sie sind eine
+        # Tabelle, und ein Bild unter jeder Zeile macht die Zeilen unlesbar (dieselbe Trennung wie
+        # in M-2 fuer die Einheitentabelle).
+        self._kasten_label(
+            (f"In Arbeit: {uebersicht['anzahl']} Auftrag/Aufträge · "
+             f"insgesamt noch {_zeit(uebersicht['gesamt_rest_sekunden'])}"),
+            ("Arial", 9, "bold"), self.skin["gold"], innen=12, pady=3)
         if not uebersicht["auftraege"]:
-            tk.Label(rahmen, text="Keine Aufträge in Arbeit.", fg="#C0C0C0",
-                     bg=self.skin["panel"]).pack(anchor=tk.W, padx=6, pady=2)
+            self._kasten_label("Keine Aufträge in Arbeit.", ("TkDefaultFont", 10), "#C0C0C0",
+                               innen=14, pady=5)
         # A-1: Mengen erzeugen viele Einzelauftraege (bis 200). Gezeichnet werden GRUPPEN
         # aufeinanderfolgender gleicher Auftraege ("1.-12. Krieger"), damit die Uebersicht bei
         # einer Mengenausbildung nicht zur Litanei wird. Gestrichen wird weiter je Auftrag, weil
@@ -9720,6 +9722,10 @@ class NebelseetalApp:
                                 "einheit": auftrag["einheit"], "gebaeude": auftrag["gebaeude"],
                                 "stufe": auftrag["stufe"], "laufend": bool(auftrag["laufend"]),
                                 "rest_sekunden": auftrag["rest_sekunden"]})
+        rahmen = None                                    # der deckende Block fuer die Auftragszeilen
+        if gruppen:                                      # nur wenn Zeilen da sind (sonst kein leerer Balken)
+            rahmen = tk.Frame(self.content, bg=self.skin["panel"])
+            rahmen.pack(fill=tk.X, padx=10, pady=(4, 2))
         for gruppe in gruppen:
             zeile = tk.Frame(rahmen, bg=self.skin["panel"])
             zeile.pack(fill=tk.X, padx=6, pady=1)
@@ -9739,11 +9745,12 @@ class NebelseetalApp:
                                 else f"Letzten streichen (Platz {gruppe['bis']})"),
                           command=lambda p=gruppe["bis"]: self._ausbildung_streichen(p),
                           bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=4)
-        tk.Label(rahmen,
-                 text="Reihenfolge: nacheinander. Streichen ist möglich, solange ein Auftrag "
-                      "wartet — eine Erstattung gibt es nicht, weil die Originale dazu nichts regeln.",
-                 fg="#8a8a8a", bg=self.skin["panel"], wraplength=760,
-                 justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(2, 4))
+        # M-4: die Erklaerung zur Reihenfolge ist die zweite Hinweiszeile - auch sie liegt jetzt
+        # als weiches Feld auf dem Bild statt als harter Balken ueber die volle Breite.
+        self._kasten_label(
+            "Reihenfolge: nacheinander. Streichen ist möglich, solange ein Auftrag "
+            "wartet — eine Erstattung gibt es nicht, weil die Originale dazu nichts regeln.",
+            ("TkDefaultFont", 9), "#8a8a8a", breite=810, innen=12, pady=4, umbruch=780)
 
     def _ausbildung_streichen(self, platz: int) -> bool:
         """Einen wartenden Ausbildungsauftrag streichen (ohne Erstattung, siehe Kern-Docstring)."""

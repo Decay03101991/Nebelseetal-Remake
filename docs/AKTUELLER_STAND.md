@@ -1,3 +1,45 @@
+# STAND 02.11.2026, 23:40 - Stufe M-4: die Warteschlange der Ausbildung traegt weiche Textfelder (Register 144)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Der Kopf der Warteschlange und ihre zwei Hinweiszeilen liegen jetzt als abgerundete Felder auf dem
+Gebaeudemotiv.** "In Arbeit: N Auftrag/Aufträge - insgesamt noch ...", der Leerfall "Keine Aufträge in
+Arbeit." und die Reihenfolge-Erklaerung. Die Auftragszeilen selbst bleiben ein DECKENDER Block - sie
+sind die Tabelle - und dieser Block entsteht nur noch, wenn wirklich Auftraege laufen (vorher blieb bei
+leerer Schlange ein leerer Balken im Bild).
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `ee63126` plus dieser Schritt | `git log --oneline -1` |
+| Umgestellte Zeilen | 3 in `main._ausbildung_warteschlange_zeichnen` (Kopf, Leerfall, Reihenfolge) | ebd. |
+| Wache | `tests/test_ansicht_hintergrund.py` **67/0/0** (vorher 44; neuer Abschnitt 7 mit Quelltext- und GUI-Probe) | eigener Lauf |
+| Gegenprobe | Kopfzeile zurueckgebaut -> **65 bestanden, 2 Fehler**; Datei danach hashgleich (`4f1fa54e...`) | eigener Lauf |
+| Ansicht im Fenster | Kaserne mit zwei laufenden und einem wartenden Auftrag | `docs/design/M4_WARTESCHLANGE_20261102.png` |
+| Pruefdateien / Register | **133** / **144** | `ls tests/test_*.py`, `grep -c '^| [0-9]'` |
+| Voller Sammellauf | **131 von 133 gruen, 0 rot, 2 ausgesetzt, 5.264 Pruefungen, 340 s** | `docs/audits/sammellauf_20261102_2334.log` |
+
+**Ehrlich zum Beleg:** der erste Screenshot der Vorschau nannte eine von Hand gesetzte, erfundene
+Einheiten-Kennung ("Kaempfer"). Die Zeilen nennen in Wahrheit den Anzeigenamen aus `data/units.json`
+("Kämpfer"); das Bild wurde mit dem echten Namen neu aufgenommen. Kein Mangel im Spiel - ein Fehler in
+meinen Vorschau-Daten.
+
+## Der EINE naechste Schritt
+
+**Die uebrigen Textfelder der Ansichten, stueckweise - weiter mit Lager/Marktplatz** (Vorgabe Daniel
+02.11.2026). Die Warteschlange der Ausbildung ist erledigt (Register 144). Als naechstes: Lager und
+Marktplatz, danach Diplomatie, Forschung (Restzeilen), Nachrichten und Portal. Fuer diese Ansichten gibt
+es noch KEINEN Gebaeudehintergrund - dort ist die Reihenfolge: erst `_ansicht_hintergrund` anlegen (wie in
+Dorfzentrum, Forschung und den drei Ausbildungsstaetten), dann die harten `tk.Label(... bg=...)`-Bloecke
+auf `_kasten_label` umstellen, Tabellen deckend lassen, je Ansicht ein Eintrag in
+`tests/test_ansicht_hintergrund.py`, voller Sammellauf, Protokollzeile, ein Commit.
+
+**Demo-Umfang ist eingefroren (Daniel 02.11.2026):** Kernkreis + Spionage + Voelker- und Kartenwahl
+am Start. Alles andere kommt NACH dem ersten Demo-Upload.
+
+**Danach in dieser Reihenfolge:** Voelkerwahl am Start (A2), Kartenwahl fuer den SPIELER, Volksboni
+verdrahten (A), Anschluss `botkern.oekonomie_kartenwahl`, Kopplung Punkte/Kanaele (C),
+Balance-Messung (D), zuletzt Demo-Release (Freigabe Daniel).
+
 # STAND 02.11.2026, 22:55 - Stufe M-3: maximiertes Fenster in Ordnung - Leiste unverzerrt, Hintergrund bis zum Rand (Register 143)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
