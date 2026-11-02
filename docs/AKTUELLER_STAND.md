@@ -1,3 +1,53 @@
+# STAND 02.11.2026, 09:51 - Kaserne-Ansicht ohne Gebaeude abgesichert (Register 126)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `97fa2aa` (Pillow-Rueckfall); dieser Commit bringt den KeyError-Fix, Register 126 und die neue Pruefdatei | `git log --oneline -1` |
+| Befund | `Kaserne` steht im Menue, sobald die Akademie auf IRGENDEINER Siedlung steht; die Ansicht liest aber die AKTIVE Siedlung - ohne Gebaeude dort `KeyError: 'guenstigste'` | nachgestellt, Wache `test_kaserne_ohne_gebaeude` |
+| Fix | Fruehfall von `spieloekonomie.siedler_reserve` liefert dieselben Schluessel wie der Normalfall (`engste`, `guenstigste`, `teuerste`) | `grep -n "guenstigste" src/spieloekonomie.py` |
+| Neue Pruefdatei | **11 von 11 gruen**; Gegenprobe mit dem alten Stand: **6 Fehler** inkl. `KeyError('guenstigste')`, Datei-Hash danach wieder gleich | eigener Lauf |
+| Sammellauf | **121 von 123 gruen, 0 rot, 2 ausgesetzt, 4.767 Pruefungen, 407 s** (09:44-09:51) | `docs/audits/sammellauf_20261102_0944.log` |
+| Register / Pruefdateien | **126 Punkte**, **123 Pruefdateien** | `grep -cE`, `ls tests/test_*.py \| wc -l` |
+| Irrweg | die Protokoll-Sicherung lag in `docs/` - `test_gpt_projektordnung_20261028` verlangt dort GENAU EINE aktive Protokolldatei; jetzt in `archiv/dokumentation/protokoll_alte_fassungen/`, hashgleich (`9116a9ab`) | eigener Lauf, 09:43 |
+| Guthaben | Daniel 09:07: **8,25 USD** Kontostand, **41,74 USD** Gesamtverbrauch; Tagesbudget starkes Modell **3 USD** | Daniel, 09:07 |
+| Offen (Freigabe) | Pillow in die Spiel-Laufzeit / Projekt-venv; Ressourcenleiste ohne Pillow; das ungenutzte Python 3.15.2 (122 MB) entfernen | eigene Messung |
+
+## Der EINE naechste Schritt
+
+**Das Entwicklungsprotokoll verdichten** (466 Zeilen, Regel: unter 320) - die unveraenderte Fassung
+ist als `9445ad7` committed und liegt zusaetzlich in
+`archiv/dokumentation/protokoll_alte_fassungen/ENTWICKLUNGSPROTOKOLL_VOR_VERDICHTUNG_20261102.md`
+(hashgleich `9116a9ab`). Der starke Modellaufruf (deepseek-v4-pro) schreibt eine NEUE Datei
+ausserhalb des Projekts; sie wird erst uebernommen, wenn `tools/pruefe_protokoll.py --nach <datei>`
+Rueckgabe 0 liefert, alle 46 Commit-Kennungen mit `git cat-file -e` existieren und alle 205
+Pruefzahlen wieder vorkommen. Danach: neue Fassung einsetzen, Zwischendatei entfernen,
+Protokollzeile ueber die Verdichtung selbst, voller Sammellauf, ein Commit.
+Arbeitsweise: Pruefdatei ergaenzen, voller Sammellauf, Protokollzeile, ein Commit.
+
+## Reihenfolge danach
+
+1. **Pillow-Entscheidung** (Daniel): Projekt-venv mit Pillow und Start-Batch darauf; danach die
+   Ressourcenleiste ohne Pillow als Rueckfall.
+2. Icons und Hintergrund im Fenster abnehmen - drei Bilder unter `docs/audits/gebaeude_icons_fenster_*`.
+3. Auswahlrahmen der C2-Lieferung; die acht Einzelsymbole aus `assets/icons/leiste/symbole/` ungenutzt.
+4. Wappen den fuenf Bots zuordnen; Burgen zu Weltkarten nur als gekennzeichneter Vorschlag.
+5. S-8 Bilanz (500 Mana + 100 Gold, Register 93), danach `weltkarten_seed` fest (Register 94).
+6. Demo-Gates G-01..G-07 vor jedem Upload; die Demo wird LEER ausgeliefert.
+7. **EXE ist vom 01.11. 19:01** - vor einer Demo neu bauen und startgeprueft starten.
+
+## Fallstricke, in diesem Schritt belegt
+
+- **Ein Fruehfall muss ALLE Schluessel der Funktion liefern.** Der abgekuerzte `return` in
+  `siedler_reserve` sparte zwei Felder, und der Anzeigecode griff genau eines davon. Wache dafuer ist
+  der Vergleich der Schluesselmengen zweier echter Faelle - nicht das Nachbauen einer Wunschliste.
+- **Ein Test, der nach dem Namen einer DATEI sucht, bricht bei jeder zweiten Fassung.** Die
+  Protokoll-Sicherung gehoert nach `archiv/dokumentation/protokoll_alte_fassungen/`, NICHT nach
+  `docs/` (dort erlaubt `test_gpt_projektordnung_20261028` nur `ENTWICKLUNGSPROTOKOLL.md`).
+- **`git rm` vor dem Kopieren pruefen:** erst Hash der Kopie vergleichen, dann entfernen - die
+  Fassung steckt zusaetzlich im Commit `9445ad7`.
+
 # STAND 02.11.2026, 09:29 - Gebaeude-Optik sichtbar auch ohne Pillow (Register 125)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

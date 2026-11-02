@@ -791,8 +791,12 @@ def siedler_reserve(ort: dict, forschung: dict = None) -> dict:
         bedarf[name] = je
         moeglich[name] = (int(frei // je) if je > 0 else -1)
     if not bedarf:
+        # Fruehfall (am aktiven Ort steht kein Gebaeude): dieselben Schluessel wie unten, damit
+        # ANZEIGE-Code nicht mit KeyError abstuerzt. Vorher fehlten "guenstigste" und "teuerste" -
+        # die Kaserne-Ansicht brach dann ab (Befund 02.11.2026, Register 126).
         return {"frei": frei, "grenze": grenze, "zuwachs_stunde": zuwachs,
-                "bedarf_je_einheit": {}, "moeglich": {}, "engste": ("", 0),
+                "bedarf_je_einheit": {}, "moeglich": {},
+                "engste": ("", 0), "guenstigste": ("", 0), "teuerste": ("", 0),
                 "warnung": False, "text": ""}
     engste = min(((n, j) for n, j in bedarf.items() if j > 0), key=lambda p: p[1],
                  default=("", 0))
