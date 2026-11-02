@@ -1,3 +1,38 @@
+# STAND 02.11.2026, 19:46 - Stufe B-4: die Karte bestimmt den Ertrag (Register 137)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Jedes Bot-Dorf traegt jetzt eine Karte, und die Karte bestimmt seinen Ertrag.** Der Kartenwert wird aus
+den FELDERN der Karte und den belegten Ertraegen je Gebaeude und Gelaende gerechnet - der starke Rohstoff
+traegt viel, die schwaecher produzierbaren wenig oder gar nichts. Gold ist der Engpass: von 127 Karten
+traegt genau eine kein Gold.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `dd3e4ed` (Arbeitsbaum leer), darauf dieser Schritt | `git log --oneline -1` |
+| Regel | `bot_karten_katalog`, `bot_kartenprofil`, `bot_kartenwahl`, `bot_doerfer_karten_zuweisen`, `bot_karten_uebersicht` | `src/main.py` |
+| Traeger | `BotDorf.karte` (additiv; leer = alter Stand, bekommt die Karte beim ersten Bot-Takt) | ebd. |
+| Kartenwahl | drei Kandidaten reproduzierbar aus Name und Dorfnummer, **Gold zuerst** (Daniel), Gleichstand ueber Gesamtwert und Kennung | `bot_kartenwahl` |
+| Datendatei | `karten_aktiv`, `karten_teiler` 10 (VORSCHLAG), `karten_kandidaten` 3 | `data/bot_wirtschaft.json` |
+| Gemessen | goldreichste Karte Gold 90 (original-001); **genau EINE Karte ohne Gold** (original-125); Werte je Rohstoff 0 bis 200 | Katalog + Profil |
+| Wache | `tests/test_bot_kartenprofil.py` **37/0/0**; B-3-Wachen weiter gruen (52/0/0, 29/0/0, 33/0/0) | eigene Laeufe |
+| Voller Sammellauf | **128 von 130 gruen, 0 rot, 2 ausgesetzt, 4.977 Pruefungen, 294 s** (19:18) | `docs/audits/sammellauf_20261102_1918.log` |
+| Pruefdateien / Register | **130** / **137** | `ls tests/test_*.py`, `grep -c` |
+
+## Der EINE naechste Schritt
+
+**Postfach und Spionage** (Vorgabe Daniel, Vorbild Lords Mobile): der Spionageauftrag als eigene
+Auftragsart, ein Bericht im Postfach, bezahlt aus Truppen, Gold und Reisezeit, und die Anzeige, die
+Wallstufe, Taktik, Truppen, Items und Vorraete NUR dort zeigt. Die Schnittstellen stehen
+(`bot_doerfer_uebersicht` offen, `bot_doerfer_spionagebericht` mit Karten- und Ertragsdaten); zu tun
+sind der Auftrag, das Postfach und die Anzeige, eine Pruefdatei mit Grenzfaellen, ein voller
+Sammellauf, eine Protokollzeile und ein Commit.
+Arbeitsweise: ein Schritt = ein Commit = ein gruener voller Sammellauf.
+
+**Danach in dieser Reihenfolge:** Voelkerwahl am Start (A2, sechs Voelker), Anschluss von
+`botkern.oekonomie_kartenwahl` an die Bot-Wahl nach Stufe, Verdrahtung der 13 Volksboni (A), Kopplung
+Punkte und Kanaele (C), Balance-Messung (D).
+
 # STAND 02.11.2026, 18:42 - Gesamtkonzept formuliert, Baustein fuer GitHub (Register 136)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

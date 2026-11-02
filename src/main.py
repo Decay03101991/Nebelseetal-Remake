@@ -221,6 +221,10 @@ class BotDorf:
     geforscht: int = 0
     vorraete: Dict[str, float] = field(default_factory=dict)
     ernte_seit: float = 0.0
+    # B-4 (02.11.2026): die Karte dieses Dorfes. Leer = noch keine Karte vergeben (alter Spielstand) -
+    # dann rechnet der Ertrag wie vor B-4 mit der festen Rate, und `bot_doerfer_karten_zuweisen`
+    # vergibt beim naechsten Bot-Takt eine.
+    karte: str = ""
 
 
 @dataclass
@@ -390,6 +394,19 @@ def bot_dorf_ertrag(dorf=None, einstellungen: Optional[dict] = None) -> Dict[str
     Rueckgabe: {Rohstoff klein: Menge je Stunde}.
     """
     einstellungen = einstellungen if einstellungen is not None else bot_wirtschaft_einstellungen()
+    # B-4 (02.11.2026): hat das Dorf eine Karte, kommt sein Ertrag aus dem KARTENPROFIL - der starke
+    # Rohstoff traegt viel, die schwaecher produzierbaren wenig oder nichts (Vorgabe Daniel).
+    karte = str(getattr(dorf, "karte", "") or "")                         # Karte dieses Dorfes
+    if karte and einstellungen.get("karten_aktiv", True):                 # Kartenwirtschaft eingeschaltet
+        profil = bot_kartenprofil(karte)                                  # Kartenwert je Rohstoff
+        if profil:                                                        # Karte bekannt
+            try:                                                          # Teiler aus der Datendatei
+                teiler = float(einstellungen.get("karten_teiler") or 10.0)   # Kartenwert -> je Stunde
+            except (TypeError, ValueError):                               # kaputter Wert
+                teiler = 10.0                                             # dann der Vorschlag
+            if teiler > 0:                                                # nur mit sinnvollem Teiler
+                return {s: round(float(w) / teiler, 2)                    # Ertrag je Stunde
+                        for s, w in profil.items() if float(w) > 0}       # nur Rohstoffe mit Wert
     try:                                                                  # Zahl aus der Datendatei
         anzahl = max(0, int(einstellungen.get("anlagen_je_gebaeude") or 1))   # Anlagen je Grundrohstoff
     except (TypeError, ValueError):                                       # kaputter Wert
@@ -418,6 +435,145 @@ def bot_dorf_ertrag(dorf=None, einstellungen: Optional[dict] = None) -> Dict[str
             ertrag[schluessel] = round(ertrag.get(schluessel, 0.0) + bester * anzahl, 2)   # mal Anlagenzahl
     _BOT_ERTRAG_CACHE[anlagen] = dict(ertrag)                             # fuer den naechsten Aufruf merken
     return dict(ertrag)                                                   # frische Kopie
+
+
+# ----------------------------------------------------------------------------------------------
+# B-4 (02.11.2026, Konzept Abschnitt 11, Vorgabe Daniel): DIE KARTE BESTIMMT DEN ERTRAG
+#
+# Bei jeder Gruendung stehen drei Karten zur Wahl; die gewaehlte Karte bestimmt, welchen Rohstoff
+# dieses Dorf MAXIMAL traegt und welche Rohstoffe dort schwaecher produzierbar sind - Gold hat
+# Vorrang. Karten sind die 127 Originalsiedlungskarten. Ihr Profil wird aus den FELDERN der Karte
+# gerechnet (`data/originalkarten/katalog.json`: berg, huegel, grasland, wald, steppe, nebelsee,
+# sumpf) und den BELEGTEN Ertraegen je Gebaeude und Gelaende (`data/buildings.json`). Keine Zahl in
+# diesem Abschnitt ist erfunden; frei waehlbar ist nur der Teiler in der Datendatei.
+# ----------------------------------------------------------------------------------------------
+
+BOT_PROFIL_GEBAEUDE: Dict[str, str] = {                                   # Rohstoff -> Anlage
+    "holz": "holzfaeller",                                               # Holz aus dem Wald
+    "stein": "steinmetz",                                                # Stein aus Berg und Huegel
+    "nahrung": "farm",                                                    # Nahrung aus Grasland und Steppe
+    "gold": "goldmine",                                                   # Gold aus Berg und Huegel
+    "metall": "erzmine",                                                  # Metall aus Berg und Huegel
+}
+_BOT_KARTEN_CACHE: Dict[str, Dict[str, float]] = {}                       # Karten-ID -> Profil (Werte)
+
+
+def bot_karten_katalog() -> Dict[str, dict]:
+    """Die 127 Originalsiedlungskarten samt Feldern - gelesen aus den Spieldaten, nichts erfunden.
+
+    Rueckgabe: {Karten-ID: Eintrag}. Fehlt die Datei, ist die Rueckgabe leer und jedes Dorf rechnet
+    wie vor B-4 mit der festen Rate (kein Absturz, kein stiller Fehler).
+    """
+    pfad = os.path.join(spieldaten.projektwurzel(), "data", "originalkarten", "katalog.json")   # Datendatei
+    try:                                                                  # Datei lesen
+        with open(pfad, encoding="utf-8") as f:                           # UTF-8 wie alle Spieldaten
+            daten = json.load(f)                                          # Inhalt als dict
+    except (OSError, ValueError):                                         # fehlt oder ist kaputt
+        return {}                                                         # dann keine Karten
+    karten = daten.get("karten") or []                                    # Liste der Karten
+    return {str(k.get("id")): k for k in karten if isinstance(k, dict) and k.get("id")}   # nach ID
+
+
+def bot_kartenprofil(karte: str) -> Dict[str, float]:
+    """Was EINE Karte je Rohstoff hergibt - der Kartenwert, aus ihren Feldern gerechnet.
+
+    Je Rohstoff wird ueber ALLE Gelaendearten der Karte summiert: Anzahl Felder x Ertrag je Stunde,
+    aber nur auf Gelaende, auf dem die Anlage stehen DARF (`gelaende.bau_moeglich`). Ein Dorf ohne
+    Wald traegt also kein Holz, ein Dorf ohne Berg kaum Gold - genau die Eigenschaft, die Daniel
+    beschreibt. Rueckgabe: {Rohstoff klein: Kartenwert}; unbekannte Karte -> leeres dict.
+    """
+    karte = str(karte or "")                                              # Kennung als Text
+    if not karte:                                                         # keine Karte
+        return {}                                                         # dann kein Profil
+    if karte in _BOT_KARTEN_CACHE:                                        # schon einmal gerechnet
+        return dict(_BOT_KARTEN_CACHE[karte])                             # Kopie zurueckgeben
+    eintrag = bot_karten_katalog().get(karte) or {}                       # Katalog-Eintrag dieser Karte
+    felder = ((eintrag.get("original_attribute") or {}).get("felder") or {})   # Felderzahl je Gelaende
+    if not felder:                                                        # Karte ohne Felderangabe
+        return {}                                                         # dann kein Profil
+    profil: Dict[str, float] = {}                                         # Ergebnis je Rohstoff
+    for stoff, geb in BOT_PROFIL_GEBAEUDE.items():                        # je Anlage ein Posten
+        wert = 0.0                                                        # Kartenwert dieses Rohstoffs
+        for art, anzahl in felder.items():                                # je Gelaendeart der Karte
+            erlaubt, _grund = gelaende.bau_moeglich(geb, art)             # darf die Anlage dort stehen?
+            if not erlaubt:                                               # nein
+                continue                                                  # dann zaehlt das Feld nicht
+            ertrag = gelaende.ertrag_pro_stunde(geb, art)                 # BELEGTER Ertrag je Stunde
+            if isinstance(ertrag, (int, float)):                          # nur echte Zahlen
+                wert += float(anzahl) * float(ertrag)                     # Felder mal Ertrag
+        profil[stoff] = round(wert, 2)                                    # Kartenwert festhalten
+    _BOT_KARTEN_CACHE[karte] = dict(profil)                               # fuer den naechsten Aufruf merken
+    return dict(profil)                                                   # frische Kopie
+
+
+def bot_karten_staerkster(profil: dict) -> str:
+    """Der Rohstoff, den diese Karte am meisten traegt (fuer Anzeige und Pruefung)."""
+    werte = {str(k): float(v) for k, v in (profil or {}).items() if float(v) > 0}   # nur echte Werte
+    if not werte:                                                         # Karte traegt nichts
+        return ""                                                         # dann kein Staerkster
+    return max(sorted(werte), key=lambda s: werte[s])                     # hoechster Wert, Gleichstand alphabetisch
+
+
+def bot_kartenwahl(bot: "BotPlayer", index: int, anzahl: int = 3,
+                   einstellungen: Optional[dict] = None) -> str:
+    """Waehlt fuer EIN Bot-Dorf eine Karte aus drei Kandidaten - Gold hat Vorrang (Vorgabe Daniel).
+
+    Die Kandidaten sind reproduzierbar: derselbe Bot mit derselben Dorfnummer bekommt immer dieselbe
+    Auswahl (Zufall aus Name und Nummer, kein Wuerfeln zur Laufzeit). Gewaehlt wird die Karte mit dem
+    hoechsten GOLD-Wert; bei Gleichstand entscheidet der Gesamtwert, danach die Kennung. Das ist der
+    VORSCHLAG fuer den Bot; beim Spieler waehlt der Kopf, und `botkern.oekonomie_kartenwahl` (nach
+    Stufe leicht/mittel/schwer) wird in einem eigenen Schritt angeschlossen.
+    """
+    einstellungen = einstellungen if einstellungen is not None else bot_wirtschaft_einstellungen()
+    try:                                                                  # Zahl aus der Datendatei
+        anzahl = max(1, int(anzahl or einstellungen.get("karten_kandidaten") or 3))   # Karten zur Wahl
+    except (TypeError, ValueError):                                       # kaputter Wert
+        anzahl = 3                                                        # dann drei Karten
+    ids = sorted(bot_karten_katalog())                                    # alle Karten, feste Reihenfolge
+    if not ids:                                                           # kein Katalog vorhanden
+        return ""                                                         # dann keine Karte
+    zufall = random.Random("karte:%s:%d" % (getattr(bot, "name", ""), int(index)))   # reproduzierbare Wahl
+    kandidaten = zufall.sample(ids, min(anzahl, len(ids)))                # drei Karten zur Auswahl
+    def _rang(kennung: str):                                              # Rang einer Karte
+        profil = bot_kartenprofil(kennung)                                # ihr Kartenwert
+        return (float(profil.get("gold", 0.0)),                           # Gold zuerst (Daniel)
+                round(sum(float(v) for v in profil.values()), 2),         # dann der Gesamtwert
+                kennung)                                                  # dann die Kennung
+    return max(kandidaten, key=_rang)                                     # die beste der drei
+
+
+def bot_doerfer_karten_zuweisen(bot: "BotPlayer", einstellungen: Optional[dict] = None) -> int:
+    """Gibt jedem Dorf ohne Karte seine Karte - einmalig, reproduzierbar, idempotent.
+
+    Ein alter Spielstand (Doerfer ohne Feld `karte`) bekommt die Karte hier beim ersten Bot-Takt;
+    der Ertrag rechnet danach aus dem Kartenprofil. Rueckgabe: Zahl der Doerfer, die eine Karte
+    bekommen haben (0 = nichts Neues).
+    """
+    einstellungen = einstellungen if einstellungen is not None else bot_wirtschaft_einstellungen()
+    if not einstellungen.get("karten_aktiv", True):                       # Schalter aus
+        return 0                                                          # dann keine Karten
+    neu = 0                                                               # Zaehler fuer den Aufrufer
+    for i, dorf in enumerate(bot_doerfer_sicherstellen(bot)):             # je Dorf eine Karte
+        if str(getattr(dorf, "karte", "") or ""):                         # schon vergeben
+            continue                                                      # nichts tun
+        karte = bot_kartenwahl(bot, i, einstellungen=einstellungen)       # drei zur Wahl, Gold zuerst
+        if karte:                                                         # Karte gefunden
+            dorf.karte = karte                                            # am Dorf festhalten
+            neu += 1                                                      # zaehlen
+    return neu                                                            # wie viele neu sind
+
+
+def bot_karten_uebersicht(karte: str, einstellungen: Optional[dict] = None) -> dict:
+    """Was der Spieler ueber eine Karte erfahren darf - Anzeige und Kern lesen dieselben Werte."""
+    einstellungen = einstellungen if einstellungen is not None else bot_wirtschaft_einstellungen()
+    profil = bot_kartenprofil(karte)                                      # Kartenwert je Rohstoff
+    teiler = float(einstellungen.get("karten_teiler") or 10.0)            # Umrechnung in je Stunde
+    eintrag = bot_karten_katalog().get(str(karte)) or {}                  # Katalog-Eintrag (Name, Kategorie)
+    return {"karte": str(karte), "name": str(eintrag.get("name") or ""),
+            "kategorie": str(eintrag.get("kategorie") or ""),
+            "staerkster": bot_karten_staerkster(profil),                  # der maximale Rohstoff
+            "werte": dict(profil),                                        # Kartenwerte (Felder x Ertrag)
+            "ertrag_pro_stunde": {s: round(w / teiler, 2) for s, w in profil.items() if w > 0}}
 
 
 def bot_kasse(bot: "BotPlayer") -> Dict[str, float]:
@@ -1833,6 +1989,7 @@ class GameState:
         for i, dorf in enumerate(doerfer):                             # Positionen einmalig setzen
             if int(dorf.x) == 0 and int(dorf.y) == 0:                  # 0/0 = noch nicht gesetzt
                 dorf.x, dorf.y = bottaktik.dorf_position(bot.name, i)   # fest aus Name und Nummer
+        bot_doerfer_karten_zuweisen(bot)                               # B-4: je Dorf eine Karte (drei zur Wahl, Gold zuerst)
         eigene = float(sum(int(v) for v in (bot.army or {}).values()))  # Truppen des Bots
         fremde = float(sum(int(v) for s in self.settlements                 # Truppen des Spielers
                            for v in (getattr(s, "units", None) or {}).values()))
@@ -1882,7 +2039,9 @@ class GameState:
         eigene Stufe. Bis dahin hat sie KEINEN Aufrufer - sie ist die Schnittstelle, keine Anzeige.
         """
         doerfer = []
+        einstellungen = bot_wirtschaft_einstellungen()                 # Schalter und Teiler EINMAL lesen
         for d in bot_doerfer_sicherstellen(bot):                       # je Dorf ein Berichtsteil
+            karte = str(getattr(d, "karte", "") or "")                 # B-4: die Karte dieses Dorfes
             doerfer.append({"name": d.name, "x": int(d.x), "y": int(d.y),
                             "wall_stufe": int(d.wall_stufe),           # Kampfdatum - nur hier
                             "wall_zustand": float(d.wall_zustand),     # Kampfdatum - nur hier
@@ -1893,6 +2052,11 @@ class GameState:
                             "vorraete": {str(k): round(float(v), 2)
                                          for k, v in (d.vorraete or {}).items()},
                             "ertrag_pro_stunde": bot_dorf_ertrag(d),    # eine Lesestelle (F-04)
+                            # B-4: die Karte bestimmt den Ertrag - der Bericht zeigt sie mit ihren
+                            # Werten, gerechnet von derselben Funktion wie der Kern.
+                            "karte": karte,
+                            "karte_info": (bot_karten_uebersicht(karte, einstellungen)
+                                           if karte and einstellungen.get("karten_aktiv", True) else {}),
                             "ernte_seit": float(d.ernte_seit)})         # Zeitpunkt der letzten Ernte
         return {"bot": str(bot.name), "fraktion": str(bot.faction), "doerfer": doerfer,
                 "kasse": bot_kasse(bot)}                               # Summe der Doerfer, keine zweite Kasse
