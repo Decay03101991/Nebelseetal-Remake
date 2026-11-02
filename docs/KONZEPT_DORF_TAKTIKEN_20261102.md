@@ -178,3 +178,19 @@ eigene Stufe.
 
 **Vorbild fuer den ganzen Ablauf:** Daniel 02.11.2026 - Koordinaten-Sprung und Postfachsystem
 (Kampf, Spionage) duerfen sich an **Lords Mobile** orientieren.
+
+## 10. Gesamtkonzept (Vorgabe Daniel 02.11.2026) - das Spiel in einem Absatz
+
+**Wir vereinen zwei Vorbilder zu einem eigenen Spiel:** alles Inhaltliche - Einheiten, Kampfsystem,
+Gebaeude samt ihren Funktionen, Dorfgruendung und die Karten - stammt aus **Nebelseetal** (Handbuch
+2009 als Richtschnur, 2006er Seiten als Entwicklungsvergleich). Aus **Lords Mobile** kommt
+ausschliesslich die Mechanik des Raums: das Springen auf Koordinaten und die Art, wie Doerfer auf
+diesen Koordinaten liegen und angezeigt werden.
+
+Das ist kein Kopieren, sondern eine eigene Verbindung: die Tiefe der Nebelseetal-Wirtschaft und des
+Kampfes trifft auf eine Weltkarte, auf der man sich bewegt, Dörfer findet, sie erkundet (Spionage),
+aushebt und einnimmt - mit den Koordinaten als gemeinsamer Sprache fuer alles, was zwischen Spieler
+und Bots passiert.
+
+Dieser Abschnitt ist der Baustein fuer die spaetere Beschreibung auf GitHub: er sagt in wenigen
+Saetzen, WAS das Spiel ist, ohne von Umsetzungsdetails abzuhaengen.
