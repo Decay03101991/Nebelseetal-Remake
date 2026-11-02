@@ -324,3 +324,12 @@ korrigiert, nicht die Funktion — die alte Regel bleibt unveraendert.
 | 17:05 | **Wache gebaut und gruen** | `tests/test_bot_doerfer.py` **27/0/1**; zusaetzlich `test_s7_botverhalten` **45/0/0** und `test_gpt_bot_angriffsplanung` **16/16 OK** (unittest-Stil) unveraendert gruen |
 | 17:05 | **Zwischenstand offen benannt** | Die Dorf-Vorraete sind NICHT fuehrend; die Wirtschaft je Dorf (B-3) und die Taktikwahl (B-2) folgen. Der Befund steht in der Wache selbst, damit niemand den halben Weg fuer den ganzen haelt |
 | 17:22 | **Voller Sammellauf auf dem Endstand (B-1)** | `tools/sammellauf.py`: **125 von 127 gruen, 0 rot, 2 ausgesetzt, 4.850 Pruefungen, 284 s**; Log `docs/audits/sammellauf_20261102_1714.log`. Protokoll steht damit bei 326 Zeilen ueber der Zielgroesse 320 - Auslagerung (nicht Streichung) ist als Aufraeumschritt notiert |
+
+## HERMES-BOTDORF-02 - 02.11.2026 - Stufe B-2: Dorf-Verhalten aus der Lage (Register 133)
+| Zeit | Schritt | Ergebnis / Belege |
+|---|---|---|
+| 16:39 | **Regel gebaut (bottaktik)** | `dorf_position`, `TAKTIK_GEWICHTE` (acht Verhalten, vier Lagen), `dorf_taktik_bewerten`, `dorf_taktik_waehlen`, `dorf_taktik_setzen`; Sperrzeit 48 h als VORSCHLAG, alle Gewichte VORSCHLAG mit Begruendung im Code |
+| 16:50 | **Bruecke in main.GameState** | `bot_doerfer_auffrischen` (Lage aus vorhandenen Werten, Wahl je Dorf, eingehaengt im Bot-Takt), `bot_doerfer_auffrischen_alle`, `bot_doerfer_uebersicht`, `bot_doerfer_spionagebericht` |
+| 16:50 | **Eigener Fehler gefunden und korrigiert** | Die erste Fassung der offenen Uebersicht enthielt die WALLSTUFE. Daniels Vorgabe: Wallstufe ist ein Kampfdatum, sichtbar nur im Spionagebericht. Grenze verschoben, Wache prueft jetzt beide Seiten (offen: Name/Position/Fraktion/Volkswerte; Bericht: Wall, Taktik, Truppen, Vorraete) |
+| 16:51 | **Wache** | `tests/test_dorf_taktiken.py` **33/0/0**; ASCII-Pruefung 0 Nicht-ASCII-Bytes nach dem Uebersetzen zweier Umlaute |
+| 16:56 | **Voller Sammellauf auf dem Endstand (B-2)** | `tools/sammellauf.py`: **126 von 128 gruen, 0 rot, 2 ausgesetzt, 4.883 Pruefungen, 299 s**; Log `docs/audits/sammellauf_20261102_1651.log`. Die Uhrzeiten der Zeilen darueber sind aus Datei-Zeitstempeln (`stat`) nachgetragen - die zuerst geschriebenen waren geschaetzt (16:39 bottaktik, 16:50 main, 16:51 Wache) |

@@ -1598,6 +1598,87 @@ class GameState:
             self.bot_vorrat_anlegen(b)
             bot_doerfer_sicherstellen(b)          # B-1: je Bot ein Dorf-Datensatz (Hauptdorf aus den Namen)
 
+    def bot_doerfer_auffrischen(self, bot: BotPlayer, jetzt: float, spieler_ort=None) -> int:
+        """Positionen einmalig setzen und je Dorf die Taktik aus der Lage waehlen (B-2, 02.11.2026).
+
+        Die Wahl faellt NICHT durch Nachdenken: `bottaktik.dorf_taktik_setzen` rechnet aus vier
+        Lagen (Naehe zum Spieler, Staerkeverhaeltnis, Wallzustand, letzte Niederlage) einen
+        Punktwert je Verhalten und haelt die Sperrzeit ein. Rueckgabe: Zahl der Doerfer, deren
+        Verhalten sich geaendert hat (0 = nichts Neues).
+
+        Die Lage wird aus vorhandenen Werten gebildet, nichts erfunden:
+          naehe      - Abstand Mannhattan in Feldern zur aktiven Siedlung des Spielers (Karte 20x20)
+          staerke    - eigene Truppenzahl gegen die Truppen des Spielers
+          wall       - Wallzustand des Dorfes (100 = heil, 0 = gebrochen)
+          niederlage - ein Beuteverlust im Gedaechtnis (juenger als 24 h) gilt als Niederlage
+        """
+        doerfer = bot_doerfer_sicherstellen(bot)                       # alte Spielstaende nachziehen
+        for i, dorf in enumerate(doerfer):                             # Positionen einmalig setzen
+            if int(dorf.x) == 0 and int(dorf.y) == 0:                  # 0/0 = noch nicht gesetzt
+                dorf.x, dorf.y = bottaktik.dorf_position(bot.name, i)   # fest aus Name und Nummer
+        eigene = float(sum(int(v) for v in (bot.army or {}).values()))  # Truppen des Bots
+        fremde = float(sum(int(v) for s in self.settlements                 # Truppen des Spielers
+                           for v in (getattr(s, "units", None) or {}).values()))
+        gesamt = eigene + fremde                                       # Bezugsgroesse des Verhaeltnisses
+        staerke = 0.0 if gesamt <= 0 else max(-1.0, min(1.0, (eigene - fremde) / gesamt))
+        gedaechtnis = bot.gedaechtnis or {}                            # Gedaechtnis des Bots
+        verlust = gedaechtnis.get("beute_verloren") if isinstance(gedaechtnis, dict) else None
+        niederlage = 0.0
+        if isinstance(verlust, dict) and jetzt - float(verlust.get("zeit") or 0.0) < 24 * 3600:
+            niederlage = 1.0                                           # gerade verloren = raecht sich eher
+        geaendert = 0                                                  # Zaehler fuer den Aufrufer
+        for i, dorf in enumerate(doerfer):                             # je Dorf eine eigene Wahl
+            lage = {"staerke": staerke, "niederlage": niederlage,     # gleiche Lage fuer alle Doerfer
+                    "wall": max(-1.0, min(1.0, float(dorf.wall_zustand) / 50.0 - 1.0))}
+            if spieler_ort is not None:                                # Naehe nur mit bekanntem Ort
+                abstand = abs(int(dorf.x) - int(spieler_ort.x)) + abs(int(dorf.y) - int(spieler_ort.y))
+                lage["naehe"] = max(-1.0, min(1.0, 1.0 - abstand / 20.0))   # 0 Felder = +1, 20 Felder = -1
+            daten = asdict(dorf)                                       # dict-Form fuer den Kern
+            zufall = random.Random("dorf:%s:%d:wahl" % (bot.name, i))   # Gleichstand reproduzierbar aufloesen
+            if bottaktik.dorf_taktik_setzen(daten, jetzt, lage, zufall):     # Sperrzeit beachtet der Kern
+                dorf.taktik = str(daten.get("taktik") or "")           # gewaehltes Verhalten uebernehmen
+                dorf.taktik_seit = float(daten.get("taktik_seit") or 0.0)
+                geaendert += 1                                         # Wechsel zaehlen
+        return geaendert
+
+    def bot_doerfer_uebersicht(self, bot: BotPlayer) -> list:
+        """Was der Spieler ohne Spionage sieht - die Grenze steht hier, nicht in der Anzeige.
+
+        VORGABE Daniel 02.11.2026: offen sichtbar sind Position, Schild, Fraktion, Name und die
+        BEKANNTEN Standardwerte des Volkes (Kontextfenster beim Ueberfahren des Feldes). Alles an
+        KAMPFDATEN - Wallstufe, Wallzustand, aktive Taktik, stationierte Truppen, Vorraete - sieht
+        der Spieler NUR ueber einen Spionagebericht (eigene Stufe, noch nicht gebaut). Deshalb
+        stehen diese Felder hier ausdruecklich NICHT drin.
+        """
+        werte = bottaktik.volksattribute({"fraktion": bot.faction})    # die bekannten Volkswerte
+        return [{"name": d.name, "x": int(d.x), "y": int(d.y), "hauptdorf": bool(d.hauptdorf),
+                 "fraktion": str(bot.faction), "volk_plus": str(werte.get("plus") or ""),
+                 "volk_minus": str(werte.get("minus") or "")}
+                for d in bot_doerfer_sicherstellen(bot)]               # je Dorf eine Zeile
+
+    def bot_doerfer_spionagebericht(self, bot: BotPlayer) -> dict:
+        """Der INHALT eines Spionageberichts - alles, was der Spieler sonst nicht wissen darf.
+
+        VORGABE Daniel 02.11.2026 (Vorbild Lords Mobile): erst ein Spionageangriff bringt Wallstufe,
+        Wallzustand, die aktive Taktik, stationierte Truppen und Vorraete ins Postfach. Diese
+        Funktion liefert die Zahlen; die Postfach-Anzeige und der Spionage-Auftrag folgen als
+        eigene Stufe. Bis dahin hat sie KEINEN Aufrufer - sie ist die Schnittstelle, keine Anzeige.
+        """
+        doerfer = []
+        for d in bot_doerfer_sicherstellen(bot):                       # je Dorf ein Berichtsteil
+            doerfer.append({"name": d.name, "x": int(d.x), "y": int(d.y),
+                            "wall_stufe": int(d.wall_stufe),           # Kampfdatum - nur hier
+                            "wall_zustand": float(d.wall_zustand),     # Kampfdatum - nur hier
+                            "taktik": str(d.taktik or ""),             # Kampfdatum - nur hier
+                            "truppen": dict(bot.army or {}),           # stationierte Truppen
+                            "vorraete": dict(bot.vorraete or {})})     # was zu holen waere
+        return {"bot": str(bot.name), "fraktion": str(bot.faction), "doerfer": doerfer}
+
+    def bot_doerfer_auffrischen_alle(self, jetzt: float) -> int:
+        """Alle Bots in einem Zug auffrischen (Positionen und Dorf-Taktiken)."""
+        spieler_ort = self.aktive_siedlung()                          # Bezugspunkt der Naehe
+        return sum(self.bot_doerfer_auffrischen(b, jetzt, spieler_ort) for b in self.bots)
+
     def get_tile(self, x: int, y: int, size: int) -> Optional[MapTile]:
         if 0 <= x < size and 0 <= y < size:
             return self.map_tiles[y * size + x]
@@ -3137,6 +3218,8 @@ class GameState:
             if not bot.volksattribute:
                 # Dauerhafte Volksattribute EINMALIG aus der Fraktion setzen (eine Quelle).
                 bot.volksattribute = bottaktik.volksattribute({"fraktion": bot.faction})
+            # B-2 (02.11.2026): je Dorf Position und Verhalten aus der Lage - mit Sperrzeit.
+            self.bot_doerfer_auffrischen(bot, jetzt, spieler_ort)
             start_taktik = self.bot_als_dict(bot)
             zug_taktik = bottaktik.tick(start_taktik, welt_taktik, jetzt, rng)
             neu_taktik = bottaktik.wirkung_anwenden(start_taktik, zug_taktik, jetzt)

@@ -53,6 +53,114 @@ SPERRZEIT_NACH_WECHSEL = 3600.0          # VORSCHLAG S-7: 1 h, nicht belegt
 # Entwurf (GPT S-09) nennt 48 h Mindestdauer; hier als Ablaufzeit genommen.
 VERHALTENSBONUS_DAUER = 48 * 3600        # VORSCHLAG S-7: 48 h, nicht belegt
 
+# ------------------------------------------------------------------ Dorf-Verhalten (B-2)
+# Daniel 02.11.2026 (Konzept K-1): Verhalten IST die Taktik eines Dorfes, und ein Dorf darf sie
+# nur selten wechseln. Die Wahl faellt NICHT durch Nachdenken, sondern als festes Paket aus der
+# Lage des Dorfes - dieselbe Bauart wie der Zustandsautomat oben, nur je Dorf statt je Bot.
+#
+# Sperrzeit: der Entwurf (GPT S-09) nennt 48 h Mindestdauer fuer einen Verhaltenswechsel; hier
+# als Sperre je Dorf uebernommen (VORSCHLAG, nicht belegt).
+DORF_WECHSEL_SPERRE = 48 * 3600          # VORSCHLAG: 48 h je Dorf, wie der Entwurf es nennt
+
+# Die vier Lagen, die ein Dorf "spuert", jeweils auf -1 .. +1 gebracht (0 = unentschieden):
+#   naehe        +1 = direkt am Spieler, -1 = weit weg
+#   staerke      +1 = deutlich staerker als der Spieler, -1 = deutlich schwaecher
+#   wall         +1 = Wall heil, -1 = Wall gebrochen
+#   niederlage   +1 = gerade verloren, 0 = kein Gedaechtnis, -1 = gerade gewonnen
+# Gewicht je Verhalten (Basis + Beitrag je Lage). Positive Zahl = dieses Verhalten wird bei dieser
+# Lage wahrscheinlicher. Jede Zahl ist VORSCHLAG: sie ist aus Daniels Beschreibung abgeleitet
+# ("aggressives Verhalten greift frueher an, Forschung/Verteidigung spaeter oder gar nicht"),
+# nicht aus dem Handbuch. Daniel kann sie hier aendern, ohne den Code anzufassen.
+TAKTIK_GEWICHTE: Dict[str, Dict[str, float]] = {
+    "SAMMELN":    {"basis": 1.0, "naehe": -0.6, "staerke": -0.2, "wall": 0.2, "niederlage": -0.4},
+    "WACHSEN":    {"basis": 1.0, "naehe": -0.5, "staerke": -0.3, "wall": 0.3, "niederlage": -0.3},
+    "SICHERN":    {"basis": 0.6, "naehe": 0.6, "staerke": -0.5, "wall": -0.8, "niederlage": 0.2},
+    "SUCHEN":     {"basis": 0.5, "naehe": 0.5, "staerke": 0.0, "wall": 0.0, "niederlage": -0.1},
+    "MARSCHIEREN": {"basis": 0.4, "naehe": 0.3, "staerke": 0.2, "wall": 0.0, "niederlage": 0.0},
+    "RAUBERN":    {"basis": 0.3, "naehe": 0.8, "staerke": 0.9, "wall": 0.0, "niederlage": -0.2},
+    "FLIEHEN":    {"basis": 0.1, "naehe": -0.2, "staerke": -0.9, "wall": -0.5, "niederlage": 0.6},
+    "RAECHEN":    {"basis": 0.2, "naehe": 0.5, "staerke": 0.4, "wall": -0.2, "niederlage": 1.0},
+}
+
+DORF_LAGEN = ("naehe", "staerke", "wall", "niederlage")   # die vier Eingaenge der Wahl
+
+
+def dorf_position(name: str, index: int, raster: int = 20) -> tuple:
+    """Die feste Position eines Bot-Dorfs auf der Karte - aus Name und laufender Nummer.
+
+    Kein Zufall aus der Uhr: derselbe Name mit derselben Nummer ergibt IMMER dieselbe Position
+    (`random.Random` mit Textsaat streut stabil ueber Python-Versionen). `raster` ist die
+    Kantenlaenge der Karte (das Spiel rechnet 20 x 20, siehe RASTER oben).
+    """
+    raster = max(1, int(raster))                                        # nie 0 oder negativ
+    zufall = random.Random("dorf:%s:%d" % (str(name), int(index)))       # stabile Saat
+    return (zufall.randrange(raster), zufall.randrange(raster))          # x, y im Kartenbereich
+
+
+def dorf_taktik_bewerten(lage: Optional[dict] = None,
+                         gewichte: Optional[Dict[str, Dict[str, float]]] = None) -> Dict[str, float]:
+    """Der Punktwert jedes Verhaltens fuer eine Lage - die Grundlage der Wahl.
+
+    `lage` traegt die vier Werte aus DORF_LAGEN, jeweils -1 .. +1; fehlende Werte zaehlen 0
+    (unentschieden). Ergebnis: Verhalten -> Punktwert. Reine Rechnung, kein Zufall.
+    """
+    lage = lage if isinstance(lage, dict) else {}
+    tafel = gewichte if isinstance(gewichte, dict) and gewichte else TAKTIK_GEWICHTE
+    werte: Dict[str, float] = {}
+    for verhalten, teilgewichte in tafel.items():
+        punkte = _zahl(teilgewichte.get("basis"), 0.0)                   # Grundneigung
+        for feld in DORF_LAGEN:                                          # je Lage ein Beitrag
+            punkte += _zahl(teilgewichte.get(feld), 0.0) * _zahl(lage.get(feld), 0.0)
+        werte[str(verhalten)] = punkte                                   # Punktwert festhalten
+    return werte
+
+
+def dorf_taktik_waehlen(lage: Optional[dict] = None, bisher: str = "", seit: float = 0.0,
+                        jetzt: float = 0.0, zufall: Optional[random.Random] = None,
+                        gewichte: Optional[Dict[str, Dict[str, float]]] = None,
+                        sperre: float = DORF_WECHSEL_SPERRE) -> str:
+    """Das Verhalten, das dieses Dorf JETZT fuehrt - mit Sperrzeit und ohne Nachdenken.
+
+    Regeln (alle pruefbar):
+    1. Laeuft die Sperrzeit noch und ist schon ein Verhalten gesetzt, bleibt es dabei.
+    2. Sonst gewinnt das Verhalten mit dem hoechsten Punktwert aus `dorf_taktik_bewerten`.
+    3. Bei Gleichstand entscheidet der uebergebene Zufall (`zufall`), damit die Wahl bei gleicher
+       Saat reproduzierbar bleibt; ohne Zufall entscheidet die feste Reihenfolge der Tafel.
+    """
+    bisher = str(bisher or "")
+    if bisher in ZUSTAENDE and _zahl(jetzt, 0.0) < _zahl(seit, 0.0) + _zahl(sperre, 0.0):
+        return bisher                                                    # Sperrzeit laeuft noch
+    werte = dorf_taktik_bewerten(lage, gewichte)                         # Punktwerte der Lage
+    if not werte:                                                        # leere Tafel
+        return bisher                                                    # dann bleibt es, wie es ist
+    bester = max(werte.values())                                         # hoechster Punktwert
+    kandidaten = sorted(k for k, v in werte.items() if abs(v - bester) < 1e-9)   # alle Gleichauf
+    if len(kandidaten) == 1 or zufall is None:                           # eindeutig oder ohne Zufall
+        return kandidaten[0]                                             # feste Reihenfolge
+    return kandidaten[int(_zahl(zufall.random(), 0.0) * len(kandidaten)) % len(kandidaten)]
+
+
+def dorf_taktik_setzen(dorf: Any, jetzt: float = 0.0, lage: Optional[dict] = None,
+                       zufall: Optional[random.Random] = None,
+                       gewichte: Optional[Dict[str, Dict[str, float]]] = None,
+                       sperre: float = DORF_WECHSEL_SPERRE) -> bool:
+    """Setzt das gewaehlte Verhalten in ein Dorf-Dict - True, wenn sich etwas geaendert hat.
+
+    Das Dorf ist ein dict mit `taktik` und `taktik_seit` (so speichert es `main.BotDorf` ueber
+    `asdict`). Bleibt das Verhalten gleich, wird `taktik_seit` NICHT verschoben - sonst waere die
+    Sperrzeit nie erreichbar.
+    """
+    if not isinstance(dorf, dict):                                       # ohne Dorf nichts zu tun
+        return False
+    alt = str(dorf.get("taktik") or "")                                   # bisheriges Verhalten
+    neu = dorf_taktik_waehlen(lage, alt, _zahl(dorf.get("taktik_seit"), 0.0), jetzt,
+                              zufall, gewichte, sperre)                   # Wahl nach den Regeln
+    if neu == alt:                                                       # unveraendert
+        return False
+    dorf["taktik"] = neu                                                  # neues Verhalten
+    dorf["taktik_seit"] = _zahl(jetzt, 0.0)                               # Zeitpunkt der Wahl
+    return True
+
 # ------------------------------------------------------------------ Taktiken
 # BELEGT (main.BOTS, botkern.BOT_NAMEN): fuenf Gegner. Daten je Taktik: naehe
 # (Naehe/Abstand), abstand_grenze, angriff_schwelle, rueckzug_schwelle,

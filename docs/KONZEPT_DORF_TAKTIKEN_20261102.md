@@ -160,3 +160,21 @@ ergeben zusammen hoechstens dessen 5 %.
 
 Damit bleiben offen: die konkreten Zahlen der Taktik-Pakete (Abschnitt 4) und die Frage, wie stark
 ein aggressives Verhalten den Angriffsrhythmus verschiebt - beides wird gemessen, nicht geschaetzt.
+
+## 9. Sichtbarkeit, Spionage und Postfach (Vorgabe Daniel 02.11.2026)
+
+**Offen sichtbar** (kleine Uebersicht, die beim Ueberfahren eines Feldes kurz aufklappt): Position,
+Schild/Banner, Fraktion, Name des Dorfes und die BEKANNTEN Standardwerte des Volkes.
+
+**Nur ueber einen Spionagebericht sichtbar** - also nach einem Spionageangriff, der einen Bericht ins
+Postfach legt: Wallstufe und Wallzustand, die aktuell aktive Taktik des Dorfes, stationierte Truppen,
+Items und Ressourcen. Der Bericht ist die Entscheidungsgrundlage fuers Pluendern: lohnt es sich, und
+muss vorher ein Wall mit schwerem Belagerungsgeraet gebrochen werden.
+
+Umgesetzt ist davon bisher NUR die Grenze im Code: `main.bot_doerfer_uebersicht` liefert Name,
+Position, Hauptdorf-Kennzeichen, Fraktion und die Volkswerte, `main.bot_doerfer_spionagebericht`
+liefert Wall, Taktik, Truppen und Vorraete. Die Postfach-Anzeige und der Spionage-Auftrag sind eine
+eigene Stufe.
+
+**Vorbild fuer den ganzen Ablauf:** Daniel 02.11.2026 - Koordinaten-Sprung und Postfachsystem
+(Kampf, Spionage) duerfen sich an **Lords Mobile** orientieren.

@@ -1,3 +1,36 @@
+# STAND 02.11.2026, 16:58 - Stufe B-2: Dorf-Verhalten aus der Lage (Register 133)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Die Doerfer haben jetzt ein Verhalten.** Jedes Bot-Dorf bekommt eine feste Position und waehlt
+sein Verhalten aus vier Lagen (Naehe, Staerke, Wall, Niederlage) - als festes Paket, mit 48 Stunden
+Sperrzeit. Die Wahl ist deterministisch, nichts wird gewuerfelt.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `98a9988` (Arbeitsbaum leer), darauf dieser Schritt | `git log --oneline -1` |
+| Regel | `bottaktik.dorf_position`, `TAKTIK_GEWICHTE`, `dorf_taktik_bewerten/waehlen/setzen` | `src/bottaktik.py` |
+| Bruecke | `GameState.bot_doerfer_auffrischen` im Bot-Takt eingehaengt | `src/main.py` |
+| Anzeigegrenze | offen: Name, Position, Fraktion, Volkswerte - Taktik UND Wallstufe nur im Spionagebericht | `bot_doerfer_uebersicht` / `bot_doerfer_spionagebericht` |
+| Wache | `tests/test_dorf_taktiken.py` **33/0/0** | eigener Lauf |
+| Voller Sammellauf | **126 von 128 gruen, 0 rot, 2 ausgesetzt, 4.883 Pruefungen, 299 s** (16:51-16:56) | `docs/audits/sammellauf_20261102_1651.log` |
+| Pruefdateien / Register | **128** / **133** | `ls tests/test_*.py`, `grep -c` |
+| Offen | Wirtschaft je Dorf (B-3), Postfach/Spionage, Voelkerwahl (A2), Boni verdrahten (A) | Konzept K-1 |
+
+## Der EINE naechste Schritt
+
+**Stufe B-3: die Wirtschaft je Dorf.** Bisher ist der Vorrat des Bots EINE Kasse; je Dorf eigene
+Vorraete, Erträge und Wall. Zu tun: eine Lesestelle fuer den Dorf-Ertrag (Kern und Anzeige aus
+derselben Funktion), die Bot-Kasse als Summe der Doerfer (keine zweite Buchfuehrung), Migration
+alter Spielstaende ueber die Vorgabewerte von `BotDorf`, Pruefdatei mit Grenzfaellen, voller
+Sammellauf, Protokollzeile, ein Commit.
+Arbeitsweise: ein Schritt = ein Commit = ein gruener voller Sammellauf.
+
+**Danach in dieser Reihenfolge:** Postfach und Spionage (Vorbild Lords Mobile, Vorgabe Daniel),
+Voelkerwahl am Start (A2, sechs Voelker), Verdrahtung der Volksboni (A), Kopplung Punkte/Kanaele
+(C), Balance-Messung (D). **Hygiene:** das Protokoll steht mit 334 Zeilen ueber der Zielgroesse 320
+- auslagern, nicht streichen.
+
 # STAND 02.11.2026, 17:15 - Stufe B-1: Bots tragen Doerfer (Register 132)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
