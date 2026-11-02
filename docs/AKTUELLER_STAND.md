@@ -1,3 +1,64 @@
+# STAND 02.11.2026, 10:15 - Protokoll-Verdichtung verworfen, Weg ist strukturell (Register 127)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `f7be01c` (Kaserne-Fix); dieser Commit bringt nur Dokumente (Register 127) | `git log --oneline -1` |
+| Versuch | Protokoll 468 -> Ziel 320 Zeilen, `deepseek-v4-pro`, abschnittsweise | Register 127 |
+| Ergebnis | 287 Zeilen, alle 45 Kennungen echt, alle Pruefzahlen da - **aber Tabellenzeilen zu Stichwortketten zusammengezogen**; zwei echte Verluste (`954097a`, `777 / 300 / 21`), 44 von 86 Absatz-Anfaengen weg | `tools/pruefe_protokoll.py --nach` + eigener Vergleich gegen die 02.11.-Sicherung |
+| Entscheidung | **verworfen**; `docs/ENTWICKLUNGSPROTOKOLL.md` bleibt bei 468 Zeilen, Sicherung `9445ad7` ist wieder Ist-Stand | dieser Commit |
+| Verbrauch starkes Modell | 82.917 Prompt- / 77.967 Antwort-Token (rund 65.000 Denken) in drei Abschnittsaufrufen; zwei Abbrueche mit je rund 60.000 Prompt-Token; Kosten noch nicht abgelesen | `usage`-Zeilen im Lauf-Log |
+| Register / Pruefdateien | **127 Punkte**, **123 Pruefdateien** | `grep -cE`, `ls tests/test_*.py \| wc -l` |
+
+## Der EINE naechste Schritt
+
+**Auswahlrahmen der C2-Lieferung zeichnen** - der gelieferte `kachelrahmen_auswahl.png` liegt schon in
+`data/gebaeude_motive.json` und wird geladen, aber der gezeichnete goldene Rahmen aus
+`karten_optik_fein` liegt darueber, sodass die Lieferung nicht wirkt. Zu tun: messen, wer zuletzt
+zeichnet (`_zeichne_siedlungskarte`), den gezeichneten Rahmen nur als Rueckfall benutzen (ohne Pillow),
+den gelieferten Auswahlrahmen mit voller Deckkraft auf das gewaehlte Feld legen, Sichtvergleich als
+Kontaktblatt (`docs/audits/`), Wache in `tests/test_gebaeude_motive.py` oder eigener Datei, voller
+Sammellauf, Protokollzeile, ein Commit.
+Arbeitsweise: Pruefdatei ergaenzen, voller Sammellauf, Protokollzeile, ein Commit.
+
+## Offene Entscheidungen fuer Daniel (gesammelt, EINE Runde)
+
+1. **Pillow in die Spiel-Laufzeit?** Der Startpfad (Astral CPython 3.11.16) hat keines; `uv pip install`
+   ist dort gesperrt (`externally managed`). Empfehlung: Projekt-venv mit Pillow anlegen und
+   `START_SPIEL_WINDOWS.bat` darauf umstellen (dann sind Leiste, Motive und Icons scharf) - Alternative:
+   alles beim Tk-Rueckfall lassen (sichtbar, aber groeber).
+2. **Ressourcenleiste ohne Pillow** loesen (Kachelbau mit Tk-Mitteln) - nur noetig, wenn Punkt 1 nicht
+   kommt.
+3. **Protokoll-Struktur**: Detailzeilen des 05.10. und 31.10. nach `docs/PROTOKOLL_DETAIL_2026-10.md`
+   auslagern, im Protokoll Summenzeile + Verweis. Das ist der einzige Weg unter 320 Zeilen, der nichts
+   weglaesst.
+4. **Python 3.15.2** in `AppData\Local\Python` (122 MB, vom Python-Manager ungefragt geladen) entfernen.
+
+## Reihenfolge danach
+
+1. Auswahlrahmen (naechster Schritt).
+2. Icons und Hintergrund im Fenster abnehmen - drei Bilder unter `docs/audits/gebaeude_icons_fenster_*`.
+3. Wappen den fuenf Bots zuordnen; Burgen zu Weltkarten nur als gekennzeichneter Vorschlag.
+4. S-8 Bilanz (500 Mana + 100 Gold, Register 93), danach `weltkarten_seed` fest (Register 94).
+5. Demo-Gates G-01..G-07 vor jedem Upload; die Demo wird LEER ausgeliefert.
+6. **EXE ist vom 01.11. 19:01** - vor einer Demo neu bauen und startgeprueft starten.
+
+## Fallstricke, in diesem Schritt belegt
+
+- **Ein starkes Modell kuerzt dort, wo es am billigsten ist - nicht dort, wo es am wenigsten kostet.**
+  Zeilen zusammenzuziehen ist einfach, Text zu verdichten ist Arbeit. Deshalb: die Zusage "keine Zahl
+  verloren" ist NICHT die Zusage "kein Inhalt verloren". Gegenprobe muss immer der Sinn sein, nicht nur
+  der Zahlenabgleich.
+- **Ein 230.000-Zeichen-Auftrag mit 100.000 Zeichen Antwort passt in keinen einzelnen Aufruf.** Der
+  erste Versuch endete nach 300 s Socket-Timeout, der zweite mit 0 Zeichen (Denken frisst `max_tokens`).
+  Abschnittsweise arbeiten ist richtig - aber je Abschnitt mit der Regel "eine Zeile je Schritt",
+  sonst entstehen Stichwortketten.
+- **`vorher` heisst vorher sichern UND pruefen, wogegen man nachher vergleicht:** die Projektpruefung
+  vergleicht gegen die Fassung vom 05.10., nicht gegen die von heute. Fuer echte Vollstaendigkeit
+  selbst gegen die 02.11.-Sicherung vergleichen (dieser Schritt hat es getan und zwei Verluste
+  gefunden, die die Projektpruefung nicht sieht).
+
 # STAND 02.11.2026, 09:51 - Kaserne-Ansicht ohne Gebaeude abgesichert (Register 126)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
