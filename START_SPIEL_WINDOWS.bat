@@ -7,6 +7,13 @@ rem Testspielstaende lokal und getrennt vom historischen Hauptstand verwalten.
 if not defined LOCALAPPDATA set "LOCALAPPDATA=%USERPROFILE%\AppData\Local"
 set "NEBEL_SPIELDATEN_ORDNER=%LOCALAPPDATA%\Nebelseetal_Remake\KONSOLIDIERT_20261028"
 
+rem 02.11.2026: Das Projekt-venv (.venv) hat Vorrang. NUR dort liegt Pillow, und ohne Pillow
+rem fehlen Ressourcenleiste, Kartenmotive, Menue-Icons und Gebaeude-Hintergruende.
+if exist "%~dp0.venv\Scripts\python.exe" (
+    "%~dp0.venv\Scripts\python.exe" -c "import tkinter, PIL" >nul 2>&1
+    if not errorlevel 1 goto :start_venv
+)
+
 rem Der Windows-Python-Manager liegt ggf. in WindowsApps, ohne globalen PATH-Eintrag.
 rem PATH wird nur fuer dieses Batchfenster ergaenzt.
 if exist "%LOCALAPPDATA%\Microsoft\WindowsApps" set "PATH=%PATH%;%LOCALAPPDATA%\Microsoft\WindowsApps"
@@ -29,6 +36,11 @@ echo Getestet: Astral CPython 3.11.16, py -3 und python.
 echo Hermes-Python unter WSL ist fuer diesen Windows-Start nicht erforderlich.
 pause
 exit /b 1
+
+:start_venv
+echo Starte mit dem Projekt-venv (.venv, Python mit Pillow) ...
+"%~dp0.venv\Scripts\python.exe" "%~dp0src\main.py"
+goto :ende
 
 :start_astral
 echo Starte mit Windows-Python 3.11.16 ^(Astral^) ...

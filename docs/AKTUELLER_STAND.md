@@ -1,3 +1,48 @@
+# STAND 02.11.2026, 11:00 - Start mit Projekt-venv: Pillow da, Bilder scharf (Register 129)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `2f043dc` (Protokoll 291 Zeilen); dieser Commit bringt venv, Batch und die neue Wache | `git log --oneline -1` |
+| venv | `.venv` = Astral CPython 3.11.16 + **Pillow 13.0.0**, `import tkinter, PIL` geprueft | `.venv/Scripts/python.exe -c "import PIL;print(PIL.__version__)"` |
+| Start-Batch | nimmt zuerst `%~dp0.venv\Scripts\python.exe` (mit tkinter+Pillow-Pruefung), alte Kette bleibt Rueckfall | `START_SPIEL_WINDOWS.bat` |
+| Im venv gemessen | Menue-Icon vorhanden, **Leistenbild vorhanden**, Hintergrund 538 x 222 | eigener Lauf, 10:45 |
+| Neue Wache | `tests/test_start_mit_pillow.py` **10/0/0** (Reihenfolge im Batch, Rueckfall, venv-Import, gitignore) | eigener Lauf |
+| Sammellauf | **122 von 124 gruen, 0 rot, 420 s** | `docs/audits/sammellauf_20261102_1049.log` |
+| Aufgeraeumt | Python 3.15.2 unter `AppData\Local\Python` entfernt (122 MB, `py -0p` kannte es nicht) | `du -sh`, `ls` |
+| Register / Pruefdateien | **129 Punkte**, **124 Pruefdateien** | `grep -cE`, `ls tests/test_*.py \| wc -l` |
+
+## Der EINE naechste Schritt
+
+**Auswahlrahmen der C2-Lieferung zeichnen** - `kachelrahmen_auswahl.png` steht in
+`data/gebaeude_motive.json` und wird geladen, aber der gezeichnete goldene Rahmen aus
+`karten_optik_fein` liegt darueber. Zu tun: messen, wer zuletzt zeichnet (`_zeichne_siedlungskarte`),
+den gezeichneten Rahmen nur als Rueckfall benutzen, den gelieferten Auswahlrahmen mit voller Deckkraft
+auf das gewaehlte Feld legen, Sichtvergleich als Kontaktblatt unter `docs/audits/`, Wache in
+`tests/test_gebaeude_motive.py` oder eigener Datei, voller Sammellauf, Protokollzeile, ein Commit.
+Arbeitsweise: Pruefdatei ergaenzen, voller Sammellauf, Protokollzeile, ein Commit.
+
+## Reihenfolge danach
+
+1. Icons und Hintergrund im Fenster abnehmen - drei Bilder unter `docs/audits/gebaeude_icons_fenster_*`
+   (jetzt mit scharfen Bildern, weil das venv Pillow hat).
+2. Wappen den fuenf Bots zuordnen; Burgen zu Weltkarten nur als gekennzeichneter Vorschlag.
+3. S-8 Bilanz (500 Mana + 100 Gold, Register 93), danach `weltkarten_seed` fest (Register 94).
+4. Demo-Gates G-01..G-07 vor jedem Upload; die Demo wird LEER ausgeliefert.
+5. **EXE ist vom 01.11. 19:01** - vor einer Demo neu bauen und startgeprueft starten.
+
+## Fallstricke, in diesem Schritt belegt
+
+- **Ein `.bat` mit `%`-Pfaden und doppelten Marken ist empfindlich: Anker auf `\r\n:marke\r\n` setzen.**
+  Ein `replace(':start_astral\r\n', ...)` traf zuerst das `goto :start_astral` MITTEN in der
+  if-Kette und zerlegte das Batch. Erst der Anker mit fuehrendem Zeilenumbruch trifft die Marke.
+  Vor dem Schreiben sichern und die Marken danach zaehlen (hier: vier Startmarken, jede mit `goto :ende`).
+- **Ein venv ohne Pillow-Pruefung waere schlimmer als keins:** das Batch prueft `import tkinter, PIL`,
+  bevor es dem venv traut - sonst startet ein halbfertiges venv und die Bilder fehlen wieder still.
+- **`.venv` gehoert in `.gitignore` und NICHT ins Paket.** Sonst wandern 50+ MB Fremddateien ins Repo
+  oder in die Demo; `git check-ignore -q .venv` ist die Wache dafuer.
+
 # STAND 02.11.2026, 10:30 - Protokoll 291 Zeilen, Detailzeilen ausgelagert (Register 128)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

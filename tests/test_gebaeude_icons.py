@@ -244,11 +244,13 @@ for punkt in ("Kaserne", "Forschung", "Stellmacher", "Diebesgilde"):
 # ==========================================================================
 abschnitt("7. Ohne Pillow bleibt die Optik trotzdem sichtbar (gemessener Startpfad des Spiels)")
 # ==========================================================================
-# BEFUND 02.11.2026, 09:10: `START_SPIEL_WINDOWS.bat` startet mit Astral CPython 3.11.16, und dieser
+# BEFUND 02.11.2026, 09:10: `START_SPIEL_WINDOWS.bat` startete mit Astral CPython 3.11.16, und dieser
 # Interpreter hat KEIN Pillow - nachgestellt mit demselben Interpreter: kein Menue-Icon, kein
-# Leistenbild, `gebaeude_optik.kachel()` liefert None. Deshalb gibt es den Tk-Rueckfall, und deshalb
-# steht diese Wache hier: ohne sie waere die Optik auf Daniels Rechner unsichtbar, waehrend alle
-# anderen Pruefungen gruen melden (der Fehler steckt im INTERPRETER, nicht im Code).
+# Leistenbild, `gebaeude_optik.kachel()` liefert None. Seit 10:40 startet das Batch mit dem
+# Projekt-venv (Pillow 13.0.0, Register 129); der Tk-Rueckfall bleibt trotzdem wichtig, weil ein
+# Rechner ohne venv sonst GAR keine Gebaeude-Optik haette. Deshalb steht diese Wache hier: ohne sie
+# waere die Optik auf so einem Rechner unsichtbar, waehrend alle anderen Pruefungen gruen melden
+# (der Fehler steckt im INTERPRETER, nicht im Code).
 
 print("  (Pillow wird fuer diesen Abschnitt kurz abgeschaltet)")
 gesichert = {}
