@@ -64,7 +64,7 @@
   "kachel_halbbreite": 55,
   "skala_max": 1.5,
   "luecke_max": 1.35,
-  "rest_auffuellen": "gleichmaessig",
+  "rest_auffuellen": "kacheln",
   "skala_hart": 1.75,
   "_lueckendehnung": "P-3 (02.11.2026): 'luecke_max' deckelt, wie weit eine Luecke hoechstens waagerecht gedehnt wird. Vorher nahmen die Luecken die gesamte Restbreite auf - bei 2560 px Fensterbreite war das Faktor 1,86, bei 3440 px 3,75; die gemalte Landschaft zwischen den Symbolen wurde zu langgezogenen Streifen mit harten Naehten (Daniels Befund). Reicht die gedeckelte Luecke nicht, skaliert das Band stattdessen GLEICHMAESSIG groesser (treue Vergroesserung ohne Naht), hoechstens bis 'skala_hart'. 'rest_auffuellen' schaltet das um: 'gleichmaessig' oder 'leer' (dann bleibt rechts die Kopfleistenfarbe stehen).",
   "_bauweise": "Das Bild ist nicht mehr EIN Stueck, das auf Fensterbreite gezogen wird (das machte die Symbole unscharf und links-rechts gestreckt - Daniels Befund 02.11.2026). Es wird aus Stuecken zusammengesetzt: Ecken (Zierrahmen und Banner) und die acht Symbolfelder sind FEST und werden nur gleichmaessig mit 'skala' skaliert; nur die Luecken zwischen den Feldern werden waagerecht gedehnt. Damit wird der Balken laenger, ohne dass ein Symbol verzerrt. 'kachel_halbbreite' ist die halbe Breite eines Symbolfeldes in Pixeln (Symbol plus Zahlenplakette), 'skala_max' die Obergrenze des gleichmaessigen Wachstums: darueber hinaus waechst nur noch die Laenge (Symbole bleiben scharf)."

@@ -1259,24 +1259,36 @@ def leiste_zusammensetzen(leiste: dict, zielbreite: int):
     # Befund: die Landschaft wiederholt sich). Zahlen in data/ressourcenleiste.json.
     luecke_max = float(leiste.get("luecke_max") or 1.35)                                # Obergrenze der Lueckendehnung
     rest_modus = str(leiste.get("rest_auffuellen") or "gleichmaessig")                  # was mit der Restbreite geschieht
+    # M-3 (Daniels Befund 02.11.2026: "die ressourcen bilder oben [sind] verzerrt"): Modus 'kacheln'.
+    # Dann skaliert das Band NIE ueber 1,0 - die Symbole bleiben pixelgenau wie im Original - und die
+    # zusaetzliche Breite entsteht durch WIEDERHOLUNG der gemalten Luecken (Landschaft) statt durch
+    # Dehnen. Vorher wuchs bei breiten Fenstern das ganze Band bis Faktor 1,75; Daniel hat das als
+    # verzerrt gesehen, obwohl die Skalierung gleichmaessig war - die Symbolbilder sind klein und
+    # wirken vergroessert unscharf.
+    kacheln = rest_modus == "kacheln"                                                  # Wiederholung statt Dehnung
     skala_hart = float(leiste.get("skala_hart") or 1.75)                                # Obergrenze, wenn gleichmaessig gefuellt wird
     stuecke = _leisten_stuecke(leiste)                                                  # Schnittliste
     fest = sum(s["bis"] - s["von"] for s in stuecke if s["art"] == "fest")              # Breite aller festen Teile
     dehn = sum(s["bis"] - s["von"] for s in stuecke if s["art"] == "dehnbar")           # Breite aller Luecken
     ziel = max(1, int(zielbreite))                                                      # Zielbreite als Zahl
     skala = min(ziel / float(breite), skala_max)                                        # gleichmaessige Skala
+    if kacheln:                                                                         # M-3: nie vergroessern
+        skala = min(1.0, ziel / float(breite))                                          # nur schrumpfen, wenn noetig
     rest = ziel - fest * skala                                                          # was die Luecken fuellen muessen
     if rest < 0:                                                                        # Fenster schmaler als die festen Teile
         skala = ziel / float(fest) * 0.995                                              # kleiner skalieren, nichts abschneiden
         rest = 0                                                                        # Luecken schrumpfen auf null
-    gap_faktor = (rest / (dehn * skala)) if dehn and skala else 1.0                     # Dehnung der Luecken
-    if gap_faktor > luecke_max and rest_modus == "gleichmaessig" and fest + dehn * luecke_max > 0:
-        # Die Luecken reichen nicht: stattdessen das GANZE Band gleichmaessig groesser skalieren (das
-        # bleibt eine treue Vergroesserung ohne Naehte), hoechstens bis `skala_hart`.
-        skala = min(ziel / float(fest + dehn * luecke_max), skala_hart)                 # neue, groessere Skala
-        rest = ziel - fest * skala                                                      # Restbreite neu rechnen
-        gap_faktor = min((rest / (dehn * skala)) if dehn and skala else 1.0, luecke_max)  # Luecken bleiben gedeckelt
-    gap_faktor = min(gap_faktor, luecke_max)                                            # nie ueber die Grenze
+    if kacheln:                                                                         # M-3: Luecken werden WIEDERHOLT
+        gap_faktor = 1.0                                                                # keine Dehnung
+    else:
+        gap_faktor = (rest / (dehn * skala)) if dehn and skala else 1.0                 # Dehnung der Luecken
+        if gap_faktor > luecke_max and rest_modus == "gleichmaessig" and fest + dehn * luecke_max > 0:
+            # Die Luecken reichen nicht: stattdessen das GANZE Band gleichmaessig groesser skalieren
+            # (das bleibt eine treue Vergroesserung ohne Naehte), hoechstens bis `skala_hart`.
+            skala = min(ziel / float(fest + dehn * luecke_max), skala_hart)             # neue, groessere Skala
+            rest = ziel - fest * skala                                                  # Restbreite neu rechnen
+            gap_faktor = min((rest / (dehn * skala)) if dehn and skala else 1.0, luecke_max)  # gedeckelt
+        gap_faktor = min(gap_faktor, luecke_max)                                        # nie ueber die Grenze
     hoehe = max(1, int(round(quelle.height * skala)))                                   # Hoehe folgt der Skala
     # Breiten VORAB rechnen: nur so ist die Gesamtbreite bekannt, und ein Rest laesst sich SYMMETRISCH
     # verteilen. Eine linksbuendige Leiste mit Rest am rechten Rand sieht wie ein Fehler aus (eigene
@@ -1286,13 +1298,38 @@ def leiste_zusammensetzen(leiste: dict, zielbreite: int):
         roh = stueck["bis"] - stueck["von"]                                             # Breite im Original
         if stueck["art"] == "fest":                                                     # feste Kachel
             breiten_stueck.append(max(1, int(round(roh * skala))))                      # gleichmaessig skaliert
+        elif kacheln:                                                                   # M-3: Anteil der Restbreite
+            anteil = (roh / float(dehn)) if dehn else 0.0                               # Anteil dieser Luecke
+            breiten_stueck.append(max(1, int(round(max(0.0, rest) * anteil))))          # diesen Anteil bekommt sie
         else:                                                                           # dehnbare Luecke
             breiten_stueck.append(max(1, int(round(roh * skala * gap_faktor))))         # waagerecht gedehnt
+    if kacheln and breiten_stueck:                                                      # M-3: Rundungsrest ausgleichen
+        fehl = ziel - sum(breiten_stueck)                                               # was noch fehlt
+        if fehl != 0:                                                                   # ein paar Pixel
+            index = max(range(len(stuecke)), key=lambda i: (stuecke[i]["art"] == "dehnbar",
+                                                            breiten_stueck[i]))          # groesste Luecke
+            breiten_stueck[index] = max(1, breiten_stueck[index] + fehl)                 # dort dazu
     rand = max(0, (ziel - sum(breiten_stueck)) // 2) if rest_modus != "leer" else 0      # Rest mittig verteilen
     gesamt = Image.new("RGBA", (ziel, hoehe), (0, 0, 0, 0))                             # leere Flaeche
     x = rand                                                                            # Schreibposition (ggf. eingerueckt)
     mitten = {}                                                                        # Feld -> (x, y) im neuen Bild
     for stueck, w in zip(stuecke, breiten_stueck):                                      # Stueck fuer Stueck
+        if kacheln and stueck["art"] == "dehnbar":                                      # M-3: Luecke wiederholen
+            kachel = quelle.crop((stueck["von"], 0, stueck["bis"], quelle.height))      # ein Stueck Landschaft
+            if abs(skala - 1.0) > 1e-6 and kachel.width > 0:                            # nur beim Schrumpfen
+                kachel = kachel.resize((max(1, int(round(kachel.width * skala))), hoehe), Image.LANCZOS)
+            gelegt = 0                                                                  # schon gefuellte Breite
+            while gelegt < w and kachel.width > 0:                                      # so oft, bis die Breite steht
+                rest_breite = min(kachel.width, w - gelegt)                              # letztes Stueck wird beschnitten
+                teil = kachel.crop((0, 0, rest_breite, hoehe))                          # dieses Stueck
+                if x + gelegt + teil.width > gesamt.width:                              # nicht ueber den Rand
+                    teil = teil.crop((0, 0, max(1, gesamt.width - x - gelegt), hoehe))  # auf den Rest kuerzen
+                gesamt.alpha_composite(teil, (x + gelegt, 0))                           # einsetzen
+                gelegt += teil.width                                                    # weiterruecken
+                if teil.width <= 0:                                                     # nichts mehr moeglich
+                    break                                                               # Abbruch
+            x += w                                                                      # Stueck ist fertig
+            continue                                                                    # naechstes Stueck
         q = quelle.crop((stueck["von"], 0, stueck["bis"], quelle.height))               # Ausschnitt aus dem Original
         teil = q.resize((w, hoehe), Image.LANCZOS)                                      # auf die vorberechnete Breite
         if x + w > gesamt.width:                                                       # letzte Luecke exakt abschliessen
@@ -4754,10 +4791,86 @@ class NebelseetalApp:
             return None                                                    # Ansicht unveraendert
         leinwand = tk.Canvas(self.content, width=b, height=h, bg=self.skin["bg"],
                              highlightthickness=0, bd=0)                   # die Flaeche
-        leinwand.place(x=0, y=0)                                           # zuerst erzeugt = hinten
-        leinwand.create_image(0, 0, anchor=tk.NW, image=bild)              # Bild einsetzen
+        # M-3 (Daniels Befund 02.11.2026: "die hintergrundbilder werden nicht angepasst"): die
+        # Flaeche liegt jetzt mit relativer Breite und Hoehe im Inhaltsbereich und wird bei jeder
+        # Groessenaenderung nachgezogen (`_hintergrund_anpassen`). Vorher blieb sie bei 980 x 760
+        # stehen - im maximierten Fenster endete das Bild mitten in der Ansicht und rechts davon war
+        # nur die Fensterfarbe zu sehen (gemessen: Inhalt 1142 x 1120, Flaeche 980 x 760).
+        leinwand.place(x=0, y=0, relwidth=1.0, relheight=1.0)              # fuellt den Inhalt
+        leinwand.create_image(0, 0, anchor=tk.NW, image=bild,
+                              tags=("hintergrundbild",))                   # Bild einsetzen
         leinwand.image = bild                                              # Referenz gegen Tk-Freigabe
+        self._hintergrund_flaeche = leinwand                               # fuer das Nachziehen
+        self._hintergrund_kennung = gebaeude_id                            # welches Motiv
+        self._hintergrund_einstellung = e                                  # Abdunkeln und Weichzeichnen
+        self._hintergrund_groesse = (b, h)                                 # zuletzt gebaute Groesse
+        leinwand.bind("<Configure>", lambda _ereignis: self._hintergrund_anpassen())
+        self.root.after(60, self._hintergrund_anpassen)                    # nach dem ersten Layout
         return leinwand                                                    # fuer Pruefungen
+
+    def _hintergrund_anpassen(self) -> None:
+        """Die Hintergrundflaeche auf die Groesse des Inhalts nachziehen (M-3, 02.11.2026).
+
+        Daniel im maximierten Fenster: "die hintergrundbilder [werden] nicht angepasst" - das Bild
+        endete mitten in der Ansicht. Hier wird bei jeder Groessenaenderung ein NEUES Bild in der
+        Zielgroesse gebaut (cover, mittig beschnitten, abgedunkelt und weichgezeichnet wie in der
+        Datendatei) und in die Leinwand eingesetzt. Gebaut wird erst nach kurzer Ruhe und in
+        Schritten von 64 px, damit ein Fensterziehen nicht bei jedem Pixel ein Bild kostet.
+        """
+        leinwand = getattr(self, "_hintergrund_flaeche", None)              # die Flaeche dieser Ansicht
+        if leinwand is None:                                                # keine Flaeche gezeichnet
+            return                                                          # nichts zu tun
+        try:                                                                # Fenster kann schon weg sein
+            if not leinwand.winfo_exists():                                 # Flaeche zerstoert
+                return                                                      # dann nichts tun
+            breite = int(leinwand.winfo_width())                            # tatsaechliche Breite
+            hoehe = int(leinwand.winfo_height())                            # tatsaechliche Hoehe
+        except tk.TclError:                                                 # Tk kennt sie nicht mehr
+            return                                                          # Abbruch
+        if breite < 120 or hoehe < 120:                                     # vor dem ersten Layout
+            return                                                          # spaeter noch einmal
+        schritt = 64                                                        # Groesse je Bauvorgang
+        ziel = (max(schritt, (breite // schritt) * schritt),
+                max(schritt, (hoehe // schritt) * schritt))                 # auf 64 px abgerundet
+        letzte = getattr(self, "_hintergrund_groesse", None) or (0, 0)      # zuletzt gebaute Groesse
+        if abs(int(letzte[0]) - ziel[0]) < schritt and abs(int(letzte[1]) - ziel[1]) < schritt:
+            return                                                          # praktisch unveraendert
+        kennung = getattr(self, "_hintergrund_kennung", None)               # welches Motiv
+        if not kennung:                                                     # ohne Kennung kein Bild
+            return                                                          # Abbruch
+        e = getattr(self, "_hintergrund_einstellung", None) or {}           # Masse der Datendatei
+        # Kurz warten, damit ein laufendes Ziehen nicht jedes Zwischenmass baut.
+        alt_auftrag = getattr(self, "_hintergrund_auftrag", None)           # laufender Auftrag?
+        if alt_auftrag is not None:                                         # ja: verwerfen
+            try:
+                self.root.after_cancel(alt_auftrag)                         # nur der letzte zaehlt
+            except tk.TclError:
+                pass
+        self._hintergrund_auftrag = self.root.after(
+            120, lambda: self._hintergrund_bauen(kennung, ziel[0], ziel[1], e))
+
+    def _hintergrund_bauen(self, kennung, breite: int, hoehe: int, e: dict) -> None:
+        """Das Bild in der Zielgroesse bauen und einsetzen (Teil von `_hintergrund_anpassen`)."""
+        self._hintergrund_auftrag = None                                   # Auftrag ist erledigt
+        leinwand = getattr(self, "_hintergrund_flaeche", None)             # die Flaeche
+        if leinwand is None:                                               # keine Flaeche mehr
+            return                                                         # Abbruch
+        try:
+            if not leinwand.winfo_exists():                                # zerstoert
+                return                                                     # Abbruch
+        except tk.TclError:
+            return
+        bild = self._optik_flaeche(kennung, int(breite), int(hoehe),       # cover, abgedunkelt
+                                   (e or {}).get("abdunkeln_prozent") or 0.0,
+                                   (e or {}).get("weichzeichnen_px") or 0.0)
+        if bild is None:                                                   # kein Bild moeglich
+            return                                                         # dann bleibt das alte
+        try:
+            leinwand.itemconfigure("hintergrundbild", image=bild)          # Bild austauschen
+        except tk.TclError:                                                # Kennung fehlt
+            return
+        leinwand.image = bild                                              # Referenz halten
+        self._hintergrund_groesse = (int(breite), int(hoehe))              # neue Groesse merken
 
     def _optik_flaeche(self, gebaeude_id, breite: int, hoehe: int, abdunkeln: float = 0.0,
                        weich: float = 0.0):

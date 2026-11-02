@@ -1,3 +1,48 @@
+# STAND 02.11.2026, 22:55 - Stufe M-3: maximiertes Fenster in Ordnung - Leiste unverzerrt, Hintergrund bis zum Rand (Register 143)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Daniels Befund vom Desktop-Screenshot ist behoben.** Die Ressourcenleiste skaliert nicht mehr mit
+der Fensterbreite: die Symbole bleiben in Originalgroesse, die zusaetzliche Breite entsteht durch
+Wiederholung der gemalten Landschaft, die Hoehe bleibt 140 px. Der Gebaeudehintergrund liegt nicht
+mehr fest bei 980 x 760, sondern fuellt den Inhaltsbereich und wird bei jeder Groessenaenderung in
+der Zielgroesse neu gebaut.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `badba55` plus dieser Schritt | `git log --oneline -1` |
+| Leiste | `rest_auffuellen: kacheln`; Skala bleibt 1,0, Hoehe 140 px, Luecken werden wiederholt | `data/ressourcenleiste.json`, `main.leiste_zusammensetzen` |
+| Wache Leiste | Symbolkachel bei 2560/3440 px **pixelgleich** zum Original (Abweichung 0,00) | `tests/test_ressourcenleiste.py` **43/0/1** |
+| Hintergrund | `relwidth=1/relheight=1`, `<Configure>` -> `_hintergrund_anpassen` -> `_hintergrund_bauen` (64-px-Schritte, 120 ms Ruhe) | `main._ansicht_hintergrund` |
+| Wache Hintergrund | Abschnitt 6: Flaeche relativ gebunden, neues Mass 1664 x 960 baut ein Bild dieser Groesse | `tests/test_ansicht_hintergrund.py` **53/0/0** |
+| Messung im maximierten Fenster | Leistenflaeche 1536 x 140, Leistenbild 1536 x 140, Hintergrundflaeche 1142 x 868 = Inhaltsbereich | eigene Messfahrt |
+| Ansicht | Screenshot maximiert und Leiste bei 3832 px | `docs/design/M3_MAXIMIERT_20261102.png`, `docs/design/LEISTE_3832_NEU_20261102.png` |
+| Pruefdateien / Register | **133** / **143** | `ls tests/test_*.py`, `grep -c '^| [0-9]'` |
+| Voller Sammellauf | **131 von 133 gruen, 0 rot, 2 ausgesetzt, 5.250 Pruefungen, 326 s** (23:04) | `docs/audits/sammellauf_20261102_2304.log` |
+| Wache Luecken | `tests/test_leisten_luecken.py` **27/0/0** (Periode 48 px: die Luecke ist eine Wiederholung, keine Dehnung) | eigener Lauf |
+
+**Was dabei entschieden wurde:** die P-3-Regel ("oberhalb von `skala_max` waechst das ganze Band
+gleichmaessig bis `skala_hart`") ist mit Daniels Befund ueberholt. Die alten Wachen nagelten das
+Wachstum fest und wurden mit Begruendung umgestellt - nicht der Code zurueckgebogen.
+
+## Der EINE naechste Schritt
+
+**Die uebrigen Textfelder der Ansichten, stueckweise** (Vorgabe Daniel 02.11.2026). Kandidaten in
+dieser Reihenfolge: Warteschlange der Ausbildung (Kopfzeile und die zwei Hinweiszeilen),
+Lager/Marktplatz, Diplomatie, Forschung (Restzeilen), Nachrichten und Portal.
+
+Zu tun: je Ansicht die harten `tk.Label(... bg=self.skin["bg"])`-Bloecke auf `_kasten_label`
+umstellen, Tabellen deckend lassen, Wachen nicht auf Wortlaut biegen sondern mitziehen, je Ansicht
+ein Eintrag in `tests/test_ansicht_hintergrund.py`, voller Sammellauf, Protokollzeile, ein Commit.
+Arbeitsweise: ein Schritt = ein Commit = ein gruener voller Sammellauf.
+
+**Demo-Umfang ist eingefroren (Daniel 02.11.2026):** Kernkreis + Spionage + Voelker- und Kartenwahl
+am Start. Alles andere kommt NACH dem ersten Demo-Upload.
+
+**Danach in dieser Reihenfolge:** Voelkerwahl am Start (A2), Kartenwahl fuer den SPIELER, Volksboni
+verdrahten (A), Anschluss `botkern.oekonomie_kartenwahl`, Kopplung Punkte/Kanaele (C),
+Balance-Messung (D), zuletzt Demo-Release (Freigabe Daniel).
+
 # STAND 02.11.2026, 22:40 - Stufe M-2: die Kastenoptik steht in Kaserne, Stellmacher und Diebesgilde (Register 142)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

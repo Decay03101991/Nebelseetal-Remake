@@ -202,8 +202,14 @@ if _pil:
     check("6 die Zielbreite wird immer genau getroffen",
           all(b.width == ziel for b, ziel in ((b1440, 1440), (b1920, 1920), (b2560, 2560), (b3440, 3440))),
           str([b.width for b in (b1440, b1920, b2560, b3440)]))
-    check("6 1920 px waechst gleichmaessig (Skala 1920/1440)",
-          abs(s1920 - 1920 / 1440) < 1e-6 and b1920.height == round(140 * s1920),
+    # M-3 (Daniels Befund 02.11.2026: "die ressourcen bilder oben [sind] verzerrt"). ENTSCHEIDUNG
+    # GEAENDERT, mit Begruendung: seit P-3 wuchs das ganze Band gleichmaessig bis Faktor 1,75. Daniel
+    # hat die Symbole im maximierten Fenster trotzdem als verzerrt gesehen - die Symbolbilder sind
+    # klein und wirken vergroessert unscharf. Neu (Modus 'kacheln'): das Band skaliert NIE ueber 1,0,
+    # die zusaetzliche Breite entsteht durch WIEDERHOLUNG der gemalten Luecken. Die alte Wache nagelte
+    # das Wachstum fest und wird deshalb umgestellt - nicht der Code zurueckgebogen.
+    check("6 1920 px: die Symbole bleiben in Originalgroesse (Skala 1,0)",
+          abs(s1920 - 1.0) < 1e-9 and b1920.height == 140,
           f"{s1920:.3f} / {b1920.height}")
     # P-3 (02.11.2026) - ENTSCHEIDUNG GEAENDERT, mit Begruendung: bis heute galt "oberhalb von
     # `skala_max` waechst NUR die Laenge" - die Luecken nahmen die ganze Restbreite auf und wurden
@@ -212,15 +218,13 @@ if _pil:
     # skaliert GLEICHMAESSIG weiter (treue Vergroesserung ohne Naht) bis `skala_hart`, die Luecken
     # bleiben auf `luecke_max` gedeckelt. Die alte Wache nagelte genau die Ursache fest und wird
     # deshalb umgestellt - nicht der Code zurueckgebogen.
-    check("6 oberhalb von skala_max waechst das Band gleichmaessig weiter bis skala_hart",
-          abs(s3440 - float(daten["skala_hart"])) < 1e-9
-          and s2560 > float(daten["skala_max"]) - 1e-9
-          and s3440 >= s2560,
-          f"skala_max {daten['skala_max']} | 2560 {s2560:.3f} | 3440 {s3440:.3f} | "
-          f"skala_hart {daten['skala_hart']}")
-    check("6 die Hoehe folgt der Skala (140 px mal Skala)",
-          b2560.height == round(140 * s2560) and b3440.height == round(140 * s3440),
-          f"{b2560.height} / {b3440.height}")
+    check("6 oberhalb der Originalbreite waechst NICHTS mehr (Skala bleibt 1,0)",
+          abs(s2560 - 1.0) < 1e-9 and abs(s3440 - 1.0) < 1e-9,
+          f"2560 {s2560:.3f} | 3440 {s3440:.3f}")
+    check("6 die Hoehe bleibt die Originalhoehe (140 px)",
+          b2560.height == 140 and b3440.height == 140, f"{b2560.height} / {b3440.height}")
+    check("6 der Modus ist 'kacheln' (Wiederholung statt Dehnung)",
+          str(daten.get("rest_auffuellen")) == "kacheln", str(daten.get("rest_auffuellen")))
     check("6 schmalere Fenster schrumpfen gleichmaessig (keine Dehnung)",
           abs(s1000 - 1000 / 1440) < 1e-6, f"{s1000:.3f}")
 
@@ -237,6 +241,9 @@ if _pil:
     orig = _Image.open(os.path.join(ROOT, str(daten["datei"]).replace("/", os.sep))).convert("RGBA")
     x1 = int(daten["felder"][0]["x"])
     soll_seite = (2 * halb) / float(orig.height)                       # Seitenverhaeltnis der Originalkachel
+    check("6 ein breites Band ist 140 px hoch und traegt die Kachel in Originalgroesse",
+          b3440.height == 140 and abs(s3440 - 1.0) < 1e-9,
+          f"{b3440.height} / {s3440:.3f}")
     for name, kachel, hoehe in (("2560", ka, b2560.height), ("3440", kb, b3440.height)):
         verhaeltnis = kachel.width / float(kachel.height)
         check(f"6 das Symbolfeld bei {name} px ist unverzerrt (Seitenverhaeltnis wie im Original)",

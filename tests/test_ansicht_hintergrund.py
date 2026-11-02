@@ -207,4 +207,56 @@ for _name in ("Kaserne", "Stellmacher", "Diebesgilde"):
     check("%s nennt die Ausbildungsstaette noch im Text" % _name,
           "Ausgebildet wird auf der Siedlungskarte" in _daten[2], _daten[2][:120])
 
+
+# ==========================================================================
+# 6. M-3: der Hintergrund folgt der Fenstergroesse (Daniels Befund 02.11.2026)
+# ==========================================================================
+
+abschnitt("6. Der Hintergrund waechst mit dem Fenster (M-3)")
+check("die Flaeche liegt mit relativer Groesse im Inhalt",
+      "relwidth=1.0, relheight=1.0" in TEXT_MAIN)
+check("es gibt ein Nachziehen bei Groessenaenderung", "def _hintergrund_anpassen" in TEXT_MAIN)
+check("das Bild wird in der Zielgroesse neu gebaut", "def _hintergrund_bauen" in TEXT_MAIN)
+check("die Flaeche haengt am Configure-Ereignis", '"<Configure>", lambda _ereignis: self._hintergrund_anpassen()'
+      in TEXT_MAIN)
+
+
+def _hintergrundprobe():
+    """Die Ansicht bauen, die Flaeche messen und ein Nachziehen in neuer Groesse pruefen."""
+    import tkinter as tk
+    root = tk.Tk()
+    root.withdraw()
+    try:
+        app = M.NebelseetalApp(root)
+        app._build_main_ui()
+        app._erste_siedlung_gruenden()
+        app._switch_view("Diebesgilde")
+        app.content.update_idletasks()
+        leinwand = getattr(app, "_hintergrund_flaeche", None)
+        if leinwand is None:
+            return {"flaeche": False}
+        info = leinwand.place_info()
+        vorher = getattr(leinwand, "image", None)
+        alt = (vorher.width(), vorher.height()) if vorher is not None else (0, 0)
+        app._hintergrund_bauen("diebesgilde", 1664, 960, getattr(app, "_hintergrund_einstellung", {}) or {})
+        app.content.update_idletasks()
+        neu = getattr(leinwand, "image", None)
+        return {"flaeche": True, "relwidth": info.get("relwidth"), "relheight": info.get("relheight"),
+                "alt": alt, "neu": (neu.width(), neu.height()) if neu is not None else (0, 0),
+                "kennung": getattr(app, "_hintergrund_kennung", None),
+                "gemerkt": getattr(app, "_hintergrund_groesse", None)}
+    finally:
+        root.destroy()
+
+
+_hg = _hintergrundprobe()
+check("die Ansicht hat eine Hintergrundflaeche", _hg.get("flaeche") is True, str(_hg))
+check("die Flaeche ist relativ gebunden (fuellt den Inhalt)",
+      str(_hg.get("relwidth")) in ("1", "1.0") and str(_hg.get("relheight")) in ("1", "1.0"),
+      str(_hg))
+check("die Flaeche kennt ihr Motiv", _hg.get("kennung") == "diebesgilde", str(_hg.get("kennung")))
+check("ein neues Mass baut ein neues Bild in Zielgroesse",
+      _hg.get("neu") == (1664, 960), str((_hg.get("alt"), _hg.get("neu"))))
+check("die gebaute Groesse wird gemerkt", _hg.get("gemerkt") == (1664, 960), str(_hg.get("gemerkt")))
+
 bericht()
