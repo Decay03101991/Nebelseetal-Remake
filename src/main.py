@@ -9391,14 +9391,18 @@ class NebelseetalApp:
         for key, r in self.state.research.items():
             frame = tk.Frame(self.content, bg=self.skin["panel"])
             frame.pack(fill=tk.X, padx=10, pady=2)
-            tk.Label(frame, text=r.name, fg=self.skin["text"], bg=self.skin["panel"], width=15, anchor=tk.W).pack(side=tk.LEFT, padx=5)
-            tk.Label(frame, text=f"Stufe {r.level}/{r.max_level}", fg="#DAA520", bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
-            tk.Label(frame, text=r.effect, fg="#C0C0C0", bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
+            # M-6 (Befund aus Register 145, gemessen): die Zeile wurde von LINKS nach rechts gepackt -
+            # Name, Stufe, Beschreibung zuerst, Knopf und Sperrgrund danach. Bei langen Beschreibungen
+            # schob der Text die rechte Seite aus dem Fenster (14 von 14 Zeilen brauchten 1076 bis 1903
+            # px bei 1052 px Inhaltsbreite). Jetzt wird die RECHTE Seite zuerst gepackt - sie behaelt
+            # ihren Platz -, und die Beschreibung bekommt eine Umbruchbreite statt die Zeile zu sprengen.
             zustand = laufend.get(key) or {}
+            rechts = []                                    # was rechts steht, in Anzeigereihenfolge
             if zustand.get("laufend"):
                 rest = float(zustand.get("reststunden") or 0.0)
-                tk.Label(frame, text=f"läuft auf Stufe {zustand.get('zielstufe')} · noch {rest:.1f} h",
-                         fg=self.skin["gold"], bg=self.skin["panel"]).pack(side=tk.RIGHT, padx=5)
+                rechts.append(tk.Label(frame,
+                                       text=f"läuft auf Stufe {zustand.get('zielstufe')} · noch {rest:.1f} h",
+                                       fg=self.skin["gold"], bg=self.skin["panel"]))
             elif r.level < r.max_level:
                 # Vorgabe Daniel 05.10.2026: eine Forschung ist erst startbar, wenn die
                 # Voraussetzungen aus data/research.json erfuellt sind — der Knopf ist sonst
@@ -9409,8 +9413,10 @@ class NebelseetalApp:
                 _knopf = tk.Button(frame, text=f"Forschen ({int(kosten.get('holz', 0))} Holz)",
                                    command=lambda k=key: self._start_research(k), bg="#3e2723",
                                    fg=self.skin["gold"])
+                if not _frei:                              # gesperrt: Knopf bleibt, aber grau
+                    _knopf.config(state=tk.DISABLED, disabledforeground="#8a8a8a")
+                rechts.append(_knopf)                      # der Knopf steht ganz rechts
                 if _frei:
-                    _knopf.pack(side=tk.RIGHT, padx=5)
                     _was = forschungspfad.schaltet_frei(key)
                     _teile = []
                     if _was.get("waren"):
@@ -9423,13 +9429,18 @@ class NebelseetalApp:
                     if _direkt:
                         _teile.append("Einheiten: " + ", ".join(_direkt))
                     if _teile:
-                        tk.Label(frame, text="schaltet frei — " + " · ".join(_teile),
-                                 fg="#8FBF7F", bg=self.skin["panel"]).pack(side=tk.RIGHT, padx=5)
+                        rechts.append(tk.Label(frame, text="schaltet frei — " + " · ".join(_teile),
+                                               fg="#8FBF7F", bg=self.skin["panel"],
+                                               wraplength=300, justify=tk.LEFT))
                 else:
-                    _knopf.config(state=tk.DISABLED, disabledforeground="#8a8a8a")
-                    _knopf.pack(side=tk.RIGHT, padx=5)
-                    tk.Label(frame, text=f"gesperrt: {_warum}", fg="#FDBA74",
-                             bg=self.skin["panel"]).pack(side=tk.RIGHT, padx=5)
+                    rechts.append(tk.Label(frame, text=f"gesperrt: {_warum}", fg="#FDBA74",
+                                           bg=self.skin["panel"], wraplength=300, justify=tk.LEFT))
+            for _w in rechts:                              # ZUERST die rechte Seite
+                _w.pack(side=tk.RIGHT, padx=5)
+            tk.Label(frame, text=r.name, fg=self.skin["text"], bg=self.skin["panel"], width=15, anchor=tk.W).pack(side=tk.LEFT, padx=5)
+            tk.Label(frame, text=f"Stufe {r.level}/{r.max_level}", fg="#DAA520", bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
+            tk.Label(frame, text=r.effect, fg="#C0C0C0", bg=self.skin["panel"],
+                     wraplength=380, justify=tk.LEFT).pack(side=tk.LEFT, padx=5)
 
     def _start_research(self, key: str):
         """Forschung in DIESEM Ort starten — ueber den Kern (`forschung_start`).

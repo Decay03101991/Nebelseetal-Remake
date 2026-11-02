@@ -393,4 +393,74 @@ check("Titel und Einleitung liegen als Kasten mit Bild",
 check("die Forschungszeilen bleiben deckend (hoechstens zwei Kasten mehr)",
       _f["anzahl"] <= 3, str(_f["anzahl"]))
 
+# ==========================================================================
+# 9. M-6: die Forschungszeilen laufen nicht mehr ueber den Rand (Befund aus Register 145)
+# ==========================================================================
+
+abschnitt("9. Forschungszeilen: rechte Seite zuerst gepackt, Beschreibung mit Umbruch (M-6)")
+# UMGESTELLT 02.11.2026 (M-6): Die Zeile wurde von LINKS nach rechts gepackt - Name, Stufe und
+# Beschreibung zuerst. Bei langen Texten schob die Beschreibung den Knopf und den Sperrgrund aus dem
+# Fenster (gemessen: 14 von 14 Zeilen brauchten 1076 bis 1903 px bei 1052 px Inhaltsbreite). Jetzt wird
+# die rechte Seite ZUERST gepackt und die Beschreibung bekommt eine Umbruchbreite.
+check("die rechte Seite wird vor den linken Texten gepackt",
+      "for _w in rechts:" in _FORSCHUNG and "_w.pack(side=tk.RIGHT" in _FORSCHUNG)
+check("die Beschreibung bekommt eine Umbruchbreite",
+      'wraplength=380' in _FORSCHUNG, "wraplength fehlt")
+check("der Sperrgrund bekommt ebenfalls eine Umbruchbreite",
+      _FORSCHUNG.count("wraplength=300") == 2, str(_FORSCHUNG.count("wraplength=300")))
+
+
+def _zeilenprobe():
+    """Die Forschungszeilen bauen und die Pack-Reihenfolge jeder Zeile messen."""
+    import tkinter as tk
+    root = tk.Tk()
+    root.withdraw()
+    try:
+        app = M.NebelseetalApp(root)
+        app._build_main_ui()
+        app._erste_siedlung_gruenden()
+        ort = app.state.aktive_siedlung()
+        ort.bauten["0"] = "bibliothek"          # ohne Bibliothek gaebe es keine Forschen-Knoepfe
+        ort.stufen["0"] = 1
+        app._menu_auffrischen() if hasattr(app, "_menu_auffrischen") else None
+        app._switch_view("Forschung")
+        app.content.update_idletasks()
+        zeilen, ergebnis = 0, {"erste_rechts": 0, "umbruch": 0, "knoepfe": 0}
+        for k in app.content.winfo_children():
+            if type(k).__name__ != "Frame":
+                continue
+            kinder = list(k.pack_slaves())
+            if not kinder:
+                continue
+            texte = []
+            for u in kinder:
+                try:
+                    texte.append(str(u.cget("text")))
+                except Exception:                              # noqa: BLE001
+                    texte.append("")
+            if not any(t.startswith("Stufe ") for t in texte):
+                continue                                       # keine Forschungszeile
+            zeilen += 1
+            if str(kinder[0].pack_info().get("side")) == "right":
+                ergebnis["erste_rechts"] += 1
+            if any(int(u.cget("wraplength") or 0) > 0 for u in kinder
+                   if type(u).__name__ == "Label"):
+                ergebnis["umbruch"] += 1
+            if any(type(u).__name__ == "Button" and str(u.cget("text")).startswith("Forschen")
+                   for u in kinder):
+                ergebnis["knoepfe"] += 1
+        ergebnis["zeilen"] = zeilen
+        return ergebnis
+    finally:
+        root.destroy()
+
+
+_z = _zeilenprobe()
+check("die Forschungszeilen werden gefunden", _z.get("zeilen", 0) >= 5, str(_z))
+check("in JEDER Zeile steht das erste gepackte Kind rechts",
+      _z.get("erste_rechts") == _z.get("zeilen") and _z.get("zeilen", 0) > 0, str(_z))
+check("in JEDER Zeile bricht mindestens ein Text um",
+      _z.get("umbruch") == _z.get("zeilen"), str(_z))
+check("die Forschen-Knoepfe sind weiter da", _z.get("knoepfe", 0) >= 5, str(_z))
+
 bericht()

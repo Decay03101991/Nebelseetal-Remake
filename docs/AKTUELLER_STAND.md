@@ -1,3 +1,50 @@
+# STAND 03.11.2026, 00:05 - Stufe M-6: die Forschungszeilen passen ins Fenster (Register 146)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Der Befund aus Register 145 ist behoben.** Die Forschungszeile wurde von links nach rechts gepackt:
+Name, Stufe und Beschreibung zuerst, Forschen-Knopf und Sperrgrund danach. Bei langen Beschreibungen
+schob der Text die rechte Seite aus dem Fenster - im echten Fenster (1460 x 940, Inhaltsbreite 1052 px)
+brauchten 14 von 14 Zeilen zwischen 1076 und 1903 px. Jetzt wird die rechte Seite ZUERST gepackt (der
+Knopf bleibt ganz rechts) und die Beschreibung bricht mit `wraplength` um; Sperrgrund und
+Freischalt-Text ebenso.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `2326863` plus dieser Schritt | `git log --oneline -1` |
+| Messung vorher | 14 von 14 Zeilen ueber dem Platz: 1076 bis 1903 px bei 1052 px Inhaltsbreite | eigene Messfahrt (`winfo_reqwidth` je Kind) |
+| Messung nachher | 21 von 21 Zeilen ohne Ueberlauf, kein Kind liegt ausserhalb (`winfo_x + winfo_width`) | eigene Messfahrt |
+| Wache | `tests/test_ansicht_hintergrund.py` **81/0/0** (vorher 74; neuer Abschnitt 9) | eigener Lauf |
+| Gegenprobe | Knopf wieder `side=LEFT` -> **79 bestanden, 2 Fehler**; Datei danach hashgleich (`84d62944...`) | eigener Lauf |
+| Ansicht im Fenster | Forschung, Zeilen vollstaendig lesbar | `docs/design/M6_FORSCHUNG_ZEILEN_20261102.png` |
+| Pruefdateien / Register | **133** / **146** | `ls tests/test_*.py`, `grep -c '^| [0-9]'` |
+| Voller Sammellauf | **131 von 133 gruen, 0 rot, 2 ausgesetzt, 5.278 Pruefungen, 335 s** | `docs/audits/sammellauf_20261102_2356.log` |
+
+**Ehrlich zum ersten Bild-Beleg:** `docs/design/M5_FORSCHUNG_20261102.png` zeigt den Zustand VOR der
+Behebung (abgeschnittene Beschreibungen) - es ist der Beleg zum Befund. `M6_FORSCHUNG_ZEILEN_20261102.png`
+zeigt denselben Bildschirm nach der Behebung.
+
+## Der EINE naechste Schritt
+
+**Die uebrigen Textfelder der Ansichten, stueckweise - weiter mit Lager/Marktplatz** (Vorgabe Daniel
+02.11.2026: "dann die uebrigen Textfelder", "stueck fuer stueck"). Erledigt sind Dorfzentrum, Forschung
+und die drei Ausbildungsstaetten samt Warteschlange (Register 139, 142, 144, 145). Offen: Lager/
+Marktplatz, Diplomatie, Nachrichten, Portal. Fuer diese Ansichten gibt es noch KEINEN Gebaeudehintergrund;
+dort ist die Reihenfolge: erst `_ansicht_hintergrund` anlegen, dann die harten `tk.Label(... bg=...)`-
+Bloecke auf `_kasten_label` umstellen, Tabellen deckend lassen, je Ansicht ein Eintrag in
+`tests/test_ansicht_hintergrund.py`, voller Sammellauf, Protokollzeile, ein Commit.
+
+**Offene Frage an Daniel dazu:** diese vier Ansichten sind fast nur Tabellen - sollen sie ueberhaupt ein
+Gebaeudemotiv als Hintergrund bekommen (Empfehlung: Lager und Marktplatz ja, Diplomatie und Nachrichten
+nein, Portal pruefen), oder bleiben sie reine Datenansichten mit harten Bloecken?
+
+**Demo-Umfang ist eingefroren (Daniel 02.11.2026):** Kernkreis + Spionage + Voelker- und Kartenwahl
+am Start. Alles andere kommt NACH dem ersten Demo-Upload.
+
+**Danach in dieser Reihenfolge:** Voelkerwahl am Start (A2), Kartenwahl fuer den SPIELER, Volksboni
+verdrahten (A), Anschluss `botkern.oekonomie_kartenwahl`, Kopplung Punkte/Kanaele (C),
+Balance-Messung (D), zuletzt Demo-Release (Freigabe Daniel).
+
 # STAND 02.11.2026, 23:45 - Stufe M-5: Titel und Einleitung der Forschung liegen als weiche Felder auf dem Bild (Register 145)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
