@@ -1,3 +1,38 @@
+# STAND 02.11.2026, 13:50 - Auswahlrahmen der C2-Lieferung gezeichnet (Register 130)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Der Auswahlrahmen ist erledigt.** Auf dem gewaehlten Feld der Siedlungskarte liegt jetzt das
+GELIEFERTE Bild `kachelrahmen_auswahl.png` voll deckend; der gezeichnete goldene Rahmen aus
+`karten_optik_fein.auswahl_plan_fein` wird nur noch als Rueckfall gezeichnet, wenn das Bild fehlt.
+Damit ist Punkt 1 des Ablaufplans aus der Uebergabe abgeschlossen.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `fe4ed27` (Arbeitsbaum leer), darauf dieser Schritt | `git log --oneline -1`, `git status --porcelain` |
+| Neu | Auswahlrahmen = geliefertes Bild, Bildobjekt in Durchgang 4 (zuletzt) | Register 130, `src/main.py` `_zeichne_siedlungskarte` |
+| Deckkraft | Auswahl **100** Prozent (`kachelrahmen.deckkraft_auswahl_prozent`, neu), Ruhe **35** (`deckkraft_prozent`) | `data/gebaeude_motive.json`, am Bildcache gemessen |
+| Wache | `tests/test_auswahlrahmen_c2.py` **17/0/0**; Gegenprobe mit abgeschaltetem Bildzweig **12/2** | eigener Lauf |
+| Umgestellte Wache | `tests/test_startspiel.py` **62/0/1**: genau EIN Auswahlrahmen (Bild ODER gezeichnet), vorher 6 gezeichnete | eigener Lauf |
+| Sichtvergleich | `docs/audits/auswahlrahmen_vergleich_20261102.png` (1986 x 720, drei Fassungen, echte Zeichenflaeche) | `tools/auswahlrahmen_vergleich.py` |
+| Voller Sammellauf | **123 von 125 gruen, 0 rot, 2 ausgesetzt, 4.800 Pruefungen, 294 s** (13:45-13:50, auf dem ENDSTAND nach allen Dokumentzeilen) | `docs/audits/sammellauf_20261102_1345.log` |
+| Pruefdateien / Register | **125** / **130** | `ls tests/test_*.py`, `grep -c` |
+| Offen an Daniel | Auswahlrahmen wirkt auf dem Kontaktblatt wuchtiger als der gezeichnete - Deckkraft 100 oder z. B. 70? | `docs/FRAGEN_AN_DANIEL_20261102_1345.md` |
+
+## Der EINE naechste Schritt
+
+**Leisten-Luecken bei sehr breiten Fenstern schliessen** (Punkt 3 des Ablaufplans, Uebergabe
+Abschnitt 4): die Landschaft wiederholt sich in der Ressourcenleiste, wenn das Fenster breiter wird.
+Zu tun: mit zwei weiten Fensterbreiten messen (`main._leisten_stuecke` / `main.leiste_zusammensetzen`),
+die Lueckenstuecke so bauen, dass Ecken und Symbolfelder pixelgleich bleiben und nur die Luecken
+dehnen, eine Wache mit zwei Breiten ergaenzen, Sichtvergleich als Kontaktblatt unter `docs/audits/`,
+danach voller Sammellauf, Protokollzeile und ein Commit.
+Arbeitsweise: eine Pruefdatei je Bedingung, voller Sammellauf, Protokollzeile, ein Commit.
+
+**Bei Daniel liegt** Punkt 2 (Bilder im Fenster abnehmen: Icons, Bauknoepfe, Hintergrund, Leiste,
+10 Minuten) und die Zuordnung der Wappen zu den fuenf Bots (Punkt 4); Freigaben brauchen Punkt 5
+und 6. Der Restweg bis zur Demo bleibt bei etwa 6-8 Arbeitstakten.
+
 # STAND 02.11.2026, 11:31 - SITZUNGSENDE: Laptop-Neustart (WLAN, Tastatur)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

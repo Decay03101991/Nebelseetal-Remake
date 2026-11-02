@@ -872,10 +872,15 @@ def _lade_motivdaten() -> tuple:
         deckkraft = int((daten.get("kachelrahmen") or {}).get("deckkraft_prozent", 100))   # Prozent aus der Datei
     except (TypeError, ValueError):                                        # kaputter Wert
         deckkraft = 100                                                   # dann voll deckend
-    return motive, rahmen, max(0, min(100, deckkraft))                    # nie unter 0 oder ueber 100
+    try:                                                                  # Deckkraft des AUSWAHLrahmens
+        deckkraft_auswahl = int((daten.get("kachelrahmen") or {}).get("deckkraft_auswahl_prozent", 100))   # eigene Zahl
+    except (TypeError, ValueError):                                        # kaputter Wert
+        deckkraft_auswahl = 100                                            # dann voll deckend
+    return (motive, rahmen, max(0, min(100, deckkraft)),                   # Ruherahmen nie ausserhalb 0..100
+            max(0, min(100, deckkraft_auswahl)))                           # Auswahlrahmen ebenso
 
 
-GEBAEUDE_MOTIVE, KACHELRAHMEN, RAHMEN_DECKRAFT = _lade_motivdaten()
+GEBAEUDE_MOTIVE, KACHELRAHMEN, RAHMEN_DECKRAFT, AUSWAHL_DECKRAFT = _lade_motivdaten()
 UNITS: Dict[str, Unit] = {}
 for _name, _e in einheiten.alle().items():
     if _e["icon"]:
@@ -3809,7 +3814,7 @@ class NebelseetalApp:
         relativ = KACHELRAHMEN.get(str(art))                          # Rahmenpfad zur gewuenschten Art
         if not relativ:                                               # kein Rahmen hinterlegt
             return None                                               # Karte bleibt ohne Rahmen
-        deckkraft = RAHMEN_DECKRAFT if str(art) == "ruhe" else 100    # Ruherahmen gedeckt, Auswahlrahmen kraeftig
+        deckkraft = RAHMEN_DECKRAFT if str(art) == "ruhe" else AUSWAHL_DECKRAFT   # Ruhe gedaempft, Auswahl kraeftig
         return self._motivbild_skaliert(relativ, px, "_rahmen_cache", deckkraft)   # gleicher Weg wie die Motive
 
     def _optik_bild(self, gebaeude_id, breite: int, hoehe=None, art: str = "kachel"):
@@ -5511,8 +5516,10 @@ class NebelseetalApp:
         `archiv/analysen/audits/ux_astra_karten_feinheit_2026-10-05.txt`, Kinder-Arbeit, vom Koordinator
         nachgerechnet): Baukörper 44 × 46 px je Gebäudefamilie mit Dach, Sockel, Tür und
         Stufenpips (4 × 4 px), Gelände mit größeren Strukturformen, Uferband nur an echten
-        Land-Wasser-Grenzen, Wege 8 px mit 4 px Innenlinie, goldener Auswahlrahmen mit vier
-        Eckwinkeln und die Koordinaten in einer 18 px breiten äußeren Rasterleiste.
+        Land-Wasser-Grenzen, Wege 8 px mit 4 px Innenlinie, und die Koordinaten in einer 18 px breiten
+        äußeren Rasterleiste. Der Auswahlrahmen ist seit dem 02.11.2026 das GELIEFERTE Bild
+        (`kachelrahmen_auswahl.png`, volle Deckkraft, Register 130); der gezeichnete goldene Rahmen mit vier
+        Eckwinkeln aus `karten_optik_fein.auswahl_plan_fein` bleibt Rueckfall, wenn das Bild fehlt.
 
         Gezeichnet wird in vier Durchgängen: (1) Gelände, Koordinaten · (2) Wege · (3) Gebäude ·
         (4) Auswahlrahmen zuletzt. So liegen die Wege unter den Baukörpern und die Auswahl
@@ -5664,11 +5671,20 @@ class NebelseetalApp:
                                    width=teil["breite"], tags=("dorfwall",))
 
         # ---- Durchgang 4: der Auswahlrahmen ZULETZT (liegt über allem) ----------------------
+        # C2-Lieferung (02.11.2026, Register 130): auf dem gewaehlten Feld liegt der GELIEFERTE
+        # Auswahlrahmen (`kachelrahmen_auswahl.png`, 64 px, volle Deckkraft) - EIN Bildobjekt.
+        # Der gezeichnete goldene Rahmen (`auswahl_plan_fein`, astra Siedlung 3) ist nur noch
+        # Rueckfall, wenn das Bild fehlt oder nicht ladbar ist; sonst lagen zwei Rahmen uebereinander.
         if gewaehlt is not None and 0 <= int(gewaehlt) < len(raster):
-            x0, y0 = _feld_ecke(int(gewaehlt))
-            karten_optik.zeichne(canvas,
-                                 karten_optik_fein.auswahl_plan_fein(x0, y0, zelle),
-                                 tags=(f"feld:{int(gewaehlt)}", "auswahl"))
+            x0, y0 = _feld_ecke(int(gewaehlt))                       # linke obere Ecke des Feldes
+            _auswahl_bild = self._lade_kachelrahmen("auswahl", zelle)  # gelieferter Rahmen, 100 Prozent
+            if _auswahl_bild is not None:                            # Bild vorhanden und geladen
+                canvas.create_image(x0, y0, anchor="nw", image=_auswahl_bild,
+                                    tags=(f"feld:{int(gewaehlt)}", "auswahl", "kachelrahmen_auswahl"))
+            else:                                                    # Rueckfall: gezeichnete Fassung
+                karten_optik.zeichne(canvas,
+                                     karten_optik_fein.auswahl_plan_fein(x0, y0, zelle),
+                                     tags=(f"feld:{int(gewaehlt)}", "auswahl"))
 
         # ---- Die Koordinatenleiste in der 18 px breiten äußeren Leiste ----------------------
         karten_optik.zeichne(

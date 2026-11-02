@@ -224,18 +224,23 @@ def main_() -> int:
         # Nach dem Klick wird die Ansicht neu gezeichnet — die Zeichenfläche ist dann ein
         # NEUES Objekt. Deshalb frisch holen (sonst greift die Prüfung auf ein zerstörtes zu).
         frisch = app.karten_canvas
-        # astra „Siedlung 3" (05.10.2026): statt des alten Cyanrahmens der goldene Auswahlrahmen
-        # 3 px nach innen — dunkle Unterkontur #172128 mit 5 px, darueber #E4C77D mit 2 px und
-        # vier 8-px-Eckwinkel. Die Farben kommen aus dem Modul, nicht aus dem Test.
+        # Seit der C2-Lieferung (02.11.2026, Register 130) liegt auf dem gewaehlten Feld der
+        # GELIEFERTE Auswahlrahmen als BILD (kachelrahmen_auswahl.png, 64 px, volle Deckkraft) -
+        # das ist EIN Objekt vom Typ "image". Der fruehere goldene Rahmen aus astra "Siedlung 3"
+        # (6 Objekte: zwei Rechtecke #172128/#E4C77D plus vier 8-px-Eckwinkel) wird nur noch
+        # gezeichnet, wenn das Bild fehlt. Geprueft wird deshalb: genau EIN Auswahlrahmen -
+        # entweder Bild ODER gezeichnete Fassung, nie beide und nie keiner.
         _auswahl = frisch.find_withtag("auswahl")
-        check("das gewählte Feld bekommt den goldenen Auswahlrahmen (astra Siedlung 3)",
-              len(_auswahl) == 6
-              and any(frisch.itemcget(o, "outline") == karten_optik_fein.AUSWAHL_GOLD
-                      for o in _auswahl if frisch.type(o) == "rectangle")
-              and any(frisch.itemcget(o, "outline") == karten_optik_fein.AUSWAHL_UNTER_FARBE
-                      for o in _auswahl if frisch.type(o) == "rectangle"),
-              f"{len(_auswahl)} Objekte: "
-              f"{[frisch.itemcget(o, 'outline') for o in _auswahl if frisch.type(o) == 'rectangle']}")
+        _als_bild = len(_auswahl) == 1 and frisch.type(_auswahl[0]) == "image"
+        _gezeichnet = (len(_auswahl) == 6
+                       and any(frisch.itemcget(o, "outline") == karten_optik_fein.AUSWAHL_GOLD
+                               for o in _auswahl if frisch.type(o) == "rectangle")
+                       and any(frisch.itemcget(o, "outline") == karten_optik_fein.AUSWAHL_UNTER_FARBE
+                               for o in _auswahl if frisch.type(o) == "rectangle"))
+        check("das gewaehlte Feld bekommt genau EINEN Auswahlrahmen (C2-Bild oder gezeichnet)",
+              _als_bild != _gezeichnet,
+              f"{len(_auswahl)} Objekte, Bild={_als_bild}, gezeichnet={_gezeichnet}, "
+              f"Typen={[frisch.type(o) for o in _auswahl]}")
     else:
         befund("keine Zeichenfläche gefunden — Kartendarstellung nicht geprueft")
 
