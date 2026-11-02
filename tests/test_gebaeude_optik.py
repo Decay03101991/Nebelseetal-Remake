@@ -109,7 +109,7 @@ def main():  # Steuert den Testablauf.
                 spalten = 5  # Legt die Spaltenzahl fest.
                 zeilen = (len(ids) + spalten - 1) // spalten  # Berechnet die Zeilenzahl.
                 erwartete_breite = spalten * icon_breite  # Berechnet die erwartete Breite.
-                erwartete_hoehe = zeilen * icon_hoehe  # Berechnet die erwartete Hoehe.
+                erwartete_hoehe = zeilen * (icon_hoehe + gb.BESCHRIFTUNGSBAND)  # Zellhoehe plus Beschriftungsband.
                 check("vorschau_blatt hat die erwarteten Masse", blatt.size == (erwartete_breite, erwartete_hoehe))  # Prueft die Groesse.
 
     sys.exit(bericht())  # Beendet mit dem Gesamtergebnis.

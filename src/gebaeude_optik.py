@@ -21,6 +21,7 @@ import spieldaten  # Projektwurzel ueber EINE Stelle - findet die Daten auch in 
 
 PROJEKT_ROOT = spieldaten.projektwurzel()  # Projektverzeichnis (in der EXE der entpackte Ordner).
 DATEN_PFAD = Path(PROJEKT_ROOT) / "data" / "buildings.json"  # Pfad zur Gebaeudedatendatei.
+BESCHRIFTUNGSBAND = 18  # Hoehe des Beschriftungsbandes im Kontaktblatt (Pixel).
 ICON_ORDNER = Path(PROJEKT_ROOT) / "assets" / "icons" / "gebaeude" / "menue"  # gerahmte Menue-Icons.
 HINTERGRUND_ORDNER = Path(PROJEKT_ROOT) / "assets" / "icons" / "gebaeude" / "hintergrund"  # Menue-Hintergruende.
 
@@ -97,13 +98,19 @@ def hintergrund(gebaeude_id: str, breite: int, hoehe: int = None) -> Optional[ob
         return None  # Liefert None bei Verarbeitungsfehlern.
 
 
-def vorschau_blatt(zielpfad: str, spalten: int = 5) -> str:  # Erstellt ein Kontaktblatt aller Icons.
+def vorschau_blatt(zielpfad: str, spalten: int = 5) -> Optional[str]:  # Erstellt ein Kontaktblatt aller Icons.
+    """Kontaktblatt aller Menue-Icons mit Beschriftung - fuer die Sichtpruefung durch Daniel.
+
+    Jede Zelle ist um ein Beschriftungsband HOEHER als das Icon; der Text steht IM Band, nicht
+    ueber dem Bild. Vorher lag die Beschriftung auf dem unteren Iconrand und wurde in der letzten
+    Zeile abgeschnitten (Befund der eigenen Sichtpruefung 02.11.2026).
+    """
     try:  # Beginnt den optionalen Pillow-Import.
         from PIL import Image, ImageDraw  # Importiert Bild- und Zeichenfunktionen.
     except ImportError:  # Faengt fehlendes Pillow ab.
         return None  # Liefert None bei fehlendem Pillow.
     spalten = max(1, int(spalten))  # Stellt sicher, dass die Spaltenzahl positiv ist.
-    zeilen = -(-len(_IDS) // spalten)  # Berechnet die benoetigte Zeilenzahl.
+    band = BESCHRIFTUNGSBAND  # Hoehe des Beschriftungsbandes je Zelle in Pixeln.
     erstes_bild = None  # Startet ohne Referenzbild.
     for bid in _IDS:  # Durchlaeuft die Gebaeude-ids.
         dateipfad = Path(ICONS.get(bid, ""))  # Holt den Icon-Pfad.
@@ -115,9 +122,9 @@ def vorschau_blatt(zielpfad: str, spalten: int = 5) -> str:  # Erstellt ein Kont
         return None  # Liefert None, wenn keine Icons vorhanden sind.
     icon_breite, icon_hoehe = erstes_bild.size  # Uebernimmt die tatsaechliche Icon-Groesse.
     erstes_bild.close()  # Schliesst das Referenzbild.
-    blatt_breite = spalten * icon_breite  # Berechnet die Blattbreite.
-    blatt_hoehe = zeilen * icon_hoehe  # Berechnet die Blatthoehe.
-    blatt = Image.new("RGBA", (blatt_breite, blatt_hoehe), (255, 255, 255, 0))  # Erstellt eine transparente Leinwand.
+    zeilen = -(-len(_IDS) // spalten)  # Berechnet die benoetigte Zeilenzahl.
+    zelle_hoehe = icon_hoehe + band  # Zellhoehe = Icon plus Beschriftungsband.
+    blatt = Image.new("RGBA", (spalten * icon_breite, zeilen * zelle_hoehe), (28, 34, 40, 255))  # Dunkle Leinwand.
     zeichner = ImageDraw.Draw(blatt)  # Erstellt einen Zeichenstift fuer das Blatt.
     for idx, bid in enumerate(_IDS):  # Durchlaeuft die ids mit Position.
         dateipfad = Path(ICONS.get(bid, ""))  # Holt den Icon-Pfad.
@@ -127,13 +134,8 @@ def vorschau_blatt(zielpfad: str, spalten: int = 5) -> str:  # Erstellt ein Kont
         else:  # Faengt fehlende Dateien ab.
             bild = Image.new("RGBA", (icon_breite, icon_hoehe), (0, 0, 0, 0))  # Erstellt eine leere Zelle.
         x = (idx % spalten) * icon_breite  # Berechnet die x-Position.
-        y = (idx // spalten) * icon_hoehe  # Berechnet die y-Position.
-        blatt.paste(bild, (x, y), bild)  # Fuegt das Icon ein.
-        text = bid  # Nutzt die Gebaeude-id als Beschriftung.
-        bbox = zeichner.textbbox((0, 0), text)  # Ermittelt die Textgroesse.
-        text_hoehe = bbox[3] - bbox[1]  # Berechnet die Texthoehe.
-        overlay = Image.new("RGBA", (icon_breite, text_hoehe), (0, 0, 0, 180))  # Erstellt eine halbtransparente Leiste.
-        blatt.paste(overlay, (x, y + icon_hoehe - text_hoehe), overlay)  # Fuegt die Leiste unten ein.
-        zeichner.text((x, y + icon_hoehe - text_hoehe), text, fill=(255, 255, 255, 255))  # Zeichnet den Text.
+        y = (idx // spalten) * zelle_hoehe  # Berechnet die y-Position der Zelle.
+        blatt.paste(bild, (x, y), bild)  # Fuegt das Icon oben in die Zelle ein.
+        zeichner.text((x + 4, y + icon_hoehe + 3), bid, fill=(240, 240, 240, 255))  # Schreibt die id ins Band.
     blatt.save(zielpfad)  # Speichert das Kontaktblatt.
     return str(zielpfad)  # Liefert den Zielpfad als String zurueck.
