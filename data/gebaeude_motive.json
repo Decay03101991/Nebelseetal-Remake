@@ -211,5 +211,26 @@
     "deckkraft_auswahl_prozent": 100,
     "_warum_auswahl": "Der AUSWAHLrahmen liegt voll deckend auf dem gewaehlten Feld (Vorgabe Daniel in der Uebergabe 02.11.2026, Abschnitt 3: gelieferten Auswahlrahmen mit voller Deckkraft legen). Eigene Sichtpruefung 02.11.2026 auf dem Kontaktblatt docs/audits/auswahlrahmen_vergleich_20261102.png: der gelieferte Rahmen ist deutlich kraeftiger als der frueher gezeichnete Goldrahmen und deckt die Feldraender ab - falls er zu wuchtig wirkt, ist DIESE Zahl der Regler (z. B. 70), ohne Codeaenderung. Der gezeichnete Rahmen aus karten_optik_fein bleibt Rueckfall, wenn das Bild fehlt. Daniel hat am 02.11.2026 im Auswahlformular entschieden: 100 Prozent BLEIBEN, so wie geliefert.",
     "_warum": "Der gelieferte Rahmen ist kraeftig; voll aufgelegt erdrueckt er das Gelaende (eigene Sichtpruefung 02.11.2026, docs/audits/kartenvergleich_c2_20261102.png). 35 Prozent zeigen das Raster, ohne die Landschaft zu zerschneiden. Der Wert ist EINE Zahl in dieser Datei - Daniel kann ihn ohne Codeaenderung anheben oder senken."
+  },
+  "ansicht_hintergrund": {
+    "aktiv": true,
+    "breite": 980,
+    "hoehe": 760,
+    "abdunkeln_prozent": 38.0,
+    "_zweck": "B-6 (Vorgabe Daniel 02.11.2026): das gemalte Gebaeudemotiv ist der HINTERGRUND der Ansicht (Dorfzentrum, Bibliothek, Kaserne/Stellmacher/Diebesgilde) und nicht mehr ein Bild oben drueber. 'abdunkeln_prozent' legt einen schwarzen Schleier ueber das Bild - Daniel: 'die texte muessen erkennbar bleiben, kleinere textbloecke die nicht transparent sind und der rest so transparent dass moeglichst viel vom bild durchkommt'. 0 = volle Bildhelligkeit (Vergleichsfassung B), 25 = Vergleichsfassung C. 'breite'/'hoehe' ist die Flaeche, die das Bild deckt (cover, mittig beschnitten); die Textkaesten liegen als deckende Felder darueber.",
+    "_beleg": "Die Motive selbst sind belegt (C2-Lieferung, Register 119); dass sie als Hintergrund wirken sollen, ist Vorgabe Daniel 02.11.2026. Vergleichsblatt: docs/design/HINTERGRUND_VERGLEICH_20261102.png (tools/hintergrund_vergleich.py).",
+    "_entscheidung_daniel": "Daniel 02.11.2026, zwei Korrekturen nacheinander: erst \"B gefaellt mir am besten\" (Bild als Hintergrund, keine Abdunkelung), dann \"das hintergrundbild ist noch zu sehr blickfangend ... die texte muessen ... der Vordergrund sein\". Also: Bild leicht abgedunkelt (38 %) und weichgezeichnet (2 px), Textfelder nahezu deckend (oben 248, unten 205) mit warmem Braun und feinem Goldrand - alles Zahlen hier, damit Daniel sie ohne Codeaenderung stellen kann.",
+    "weichzeichnen_px": 2.0,
+    "kasten": {
+      "radius": 14,
+      "oben_deckkraft": 248,
+      "unten_deckkraft": 205,
+      "rand_deckkraft": 90,
+      "farbe": [
+        22,
+        17,
+        12
+      ]
+    }
   }
 }

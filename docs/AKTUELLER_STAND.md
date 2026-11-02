@@ -1,3 +1,40 @@
+# STAND 02.11.2026, 21:10 - Stufe B-6: das Gebaeudemotiv ist der Hintergrund, Texte stehen davor (Register 139)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Das gemalte Bild traegt jetzt die Ansicht - und zwar hinter dem Inhalt.** Dorfzentrum, Forschung
+(Bibliothek) und die drei Ausbildungsstaetten legen das Motiv als eigene Flaeche an, die ZUERST
+entsteht; die Texte liegen als abgerundete, fast deckende Felder mit warmem Braun und feinem Goldrand
+darueber. Das Bild ist zurueckgenommen (38 % Abdunkelung, 2 px Weichzeichnen), damit der Text der
+Vordergrund bleibt. Alle Zahlen stehen in `data/gebaeude_motive.json`.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `6bb6714`, darauf dieser Schritt | `git log --oneline -1` |
+| Vergleichsblatt | drei Fassungen, Daniel hat **B** gewaehlt; danach "zu blickfangend" -> Bild zurueckgenommen | `docs/design/HINTERGRUND_VERGLEICH_20261102.png`, `tools/hintergrund_vergleich.py` |
+| Flaeche | `gebaeude_optik.hintergrund_flaeche` deckt (cover, mittig beschnitten), optional weichgezeichnet/abgedunkelt | `src/gebaeude_optik.py` |
+| Textfelder | `gebaeude_optik.kasten_bild` (abgerundet, Verlauf oben 248 / unten 205, Goldrand), `main._kasten_label` | ebd., `src/main.py` |
+| Daten | `ansicht_hintergrund`: abdunkeln 38 %, weichzeichnen 2 px, Radius 14, Farbe 22/17/12 | `data/gebaeude_motive.json` |
+| Ansichten | Dorfzentrum (`lager`), Forschung (`bibliothek`), Kaserne/Stellmacher/Diebesgilde (je Gebaeude); `_gebaeude_kopf` nur Rueckfall | `src/main.py` |
+| Wache | `tests/test_ansicht_hintergrund.py` **29/0/0**; `test_gebaeude_icons` umgestellt **56/0/0** | eigene Laeufe |
+| Pruefdateien / Register | **132** / **139** | `ls tests/test_*.py`, `grep -c` |
+
+## Der EINE naechste Schritt
+
+**Die restlichen Textfelder derselben Ansichten auf die Kastenoptik umstellen - stueckweise** (Vorgabe
+Daniel 02.11.2026: "die texte muessen ... richtig in die jetzt geschaffene oberflaeche ... eingepasst
+und angepasst werden. Auch der Rest natuerlich aber alles stueck fuer stueck"). Heute stehen Tabelle
+"Siedlungen", die Einheitenlisten der Ausbildungsstaetten und die Forschungsliste noch auf harten
+`self.skin["panel"]`-Flaechen; sie sollen dieselbe Optik bekommen (weicher Kasten, warme Farbe,
+gleiche Abstaende). Zu tun: je Ansicht die Textbloecke auf `_kasten_label` bzw. eine Kasten-Variante
+fuer Tabellen umstellen, die bisherige Zahlenlage in den Wachen mit Begruendung umstellen, voller
+Sammellauf, Protokollzeile, ein Commit.
+Arbeitsweise: ein Schritt = ein Commit = ein gruener voller Sammellauf.
+
+**Danach in dieser Reihenfolge:** Truppenbewegungen auf der Weltkarte (Vorgabe Daniel, Vorbild Lords
+Mobile), Voelkerwahl am Start (A2), Volksboni verdrahten (A), Kartenwahl fuer den SPIELER, Anschluss
+`botkern.oekonomie_kartenwahl`, Kopplung Punkte/Kanaele (C), Balance-Messung (D).
+
 # STAND 02.11.2026, 20:20 - Stufe B-5: Postfach und Spionage, gekoppelt an die Einheitenwerte (Register 138)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

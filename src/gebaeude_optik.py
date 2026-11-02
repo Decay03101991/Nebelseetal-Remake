@@ -74,6 +74,94 @@ def kachel(gebaeude_id: str, breite: int, hoehe: int = None) -> Optional[object]
     except Exception:  # Faengt Bildfehler ab.
         return None  # Liefert None bei Verarbeitungsfehlern.
 
+def hintergrund_flaeche(gebaeude_id: str, breite: int, hoehe: int,
+                        abdunkeln_prozent: float = 0.0,
+                        weichzeichnen_px: float = 0.0) -> Optional[object]:
+    """Ein Menuebild als FLACHEN-Hintergrund (B-6, Vorgabe Daniel 02.11.2026).
+
+    Anders als `hintergrund()` wird hier nicht eingepasst, sondern GEDECKT: das Bild wird so weit
+    vergroessert, dass die Flaeche vollstaendig gefuellt ist, und mittig beschnitten. So kommt
+    "moeglichst viel vom Bild durch", ohne leere Raender oder Verzerrung.
+    `abdunkeln_prozent` legt einen schwarzen Schleier darueber - der Wert ist eine Zahl in der
+    Datendatei, damit Daniel die Lesbarkeit ohne Codeaenderung stellen kann.
+    """
+    try:                                                    # optionaler Pillow-Import
+        from PIL import Image                               # Bildmodul
+    except ImportError:                                     # kein Pillow
+        return None                                         # dann None (Rueckfall greift)
+    pfad = HINTERGRUENDE.get(gebaeude_id)                   # Hintergrundpfad der Kennung
+    if pfad is None:                                        # unbekannte Kennung
+        return None                                         # dann None
+    dateipfad = Path(pfad)                                  # Pfad als Path
+    if not dateipfad.is_file():                             # Datei fehlt
+        return None                                         # dann None
+    try:                                                    # Bildverarbeitung
+        with Image.open(dateipfad) as bild:                 # Datei oeffnen
+            bild = bild.convert("RGBA")                     # RGBA fuer den Schleier
+            ziel_b, ziel_h = max(1, int(breite)), max(1, int(hoehe))     # Zielflaeche
+            faktor = max(ziel_b / bild.width, ziel_h / bild.height)       # cover: groesserer Faktor
+            gross = bild.resize((max(1, int(bild.width * faktor)),
+                                 max(1, int(bild.height * faktor))), Image.LANCZOS)   # hochskaliert
+            links = max(0, (gross.width - ziel_b) // 2)     # mittig beschneiden
+            oben = max(0, (gross.height - ziel_h) // 2)     # mittig beschneiden
+            flaeche = gross.crop((links, oben, links + ziel_b, oben + ziel_h))        # die Flaeche
+            # Weichzeichnen nimmt dem Bild die harten Kontraste: es bleibt erkennbar, draengt sich
+            # aber nicht vor die Texte (Vorgabe Daniel 02.11.2026: "noch zu sehr blickfangend").
+            weich = max(0.0, float(weichzeichnen_px or 0.0))                      # Radius in Pixeln
+            if weich > 0:                                   # nur wenn eingestellt
+                from PIL import ImageFilter                 # Filtermodul nur hier
+                flaeche = flaeche.filter(ImageFilter.GaussianBlur(weich))         # weichzeichnen
+            anteil = max(0.0, min(100.0, float(abdunkeln_prozent or 0.0)))           # Prozent
+            if anteil > 0:                                  # nur wenn abgedunkelt wird
+                schleier = Image.new("RGBA", flaeche.size, (0, 0, 0, int(255 * anteil / 100)))
+                flaeche = Image.alpha_composite(flaeche, schleier)   # Schleier darueber
+            return flaeche.convert("RGB")                   # fertige Flaeche
+    except Exception:                                       # noqa: BLE001 - Bildfehler
+        return None                                         # dann None
+
+
+def kasten_bild(breite: int, hoehe: int, radius: int = 12,
+                oben_alpha: int = 245, unten_alpha: int = 200,
+                rand_alpha: int = 90, farbe=(22, 17, 12)) -> Optional[object]:
+    """Ein weiches, abgerundetes Textfeld-Bild fuer den Bildhintergrund (B-6, 02.11.2026).
+
+    Vorgabe Daniel: "Die texte muessen erkennbar bleiben also kleinere textbloecke die nicht
+    transparent sind und der rest so transparent das moeglichst viel vom bild durchkommt" und
+    danach "die texte und ihre textfelder ... weil es optisch noch keine schoenen uebergaenge sind".
+    Deshalb kein hartes Rechteck, sondern: abgerundete Ecken, ein senkrechter Verlauf von fast
+    deckend (oben) zu deutlich durchscheinend (unten) und ein feiner heller Rand. Gezeichnet wird
+    vierfach vergroessert und dann verkleinert - so sind die Kanten glatt (Antialiasing).
+    Rueckgabe: RGBA-Bild oder None (ohne Pillow, bei unsinnigen Massen).
+    """
+    try:                                                        # optionaler Pillow-Import
+        from PIL import Image, ImageDraw                        # Bildmodul
+    except ImportError:                                         # kein Pillow
+        return None                                             # dann None (Rueckfall im Aufrufer)
+    b, h = int(breite), int(hoehe)                              # Zielmasse
+    if b < 8 or h < 8:                                          # unsinnige Masse
+        return None                                             # dann None
+    faktor = 4                                                  # vierfach zeichnen = glatte Kanten
+    gross = Image.new("RGBA", (b * faktor, h * faktor), (0, 0, 0, 0))          # leere Flaeche
+    zeichner = ImageDraw.Draw(gross)                            # Zeichenwerkzeug
+    r = max(0, min(int(radius), min(b, h) // 2)) * faktor       # Radius, nie groesser als die Flaeche
+    # Verlauf: je Zeile ein Streifen mit eigenem Alpha (oben deckender als unten).
+    for y in range(h * faktor):
+        anteil = y / float(max(1, h * faktor - 1))              # 0 oben, 1 unten
+        alpha = int(round(oben_alpha + (unten_alpha - oben_alpha) * anteil))  # Alpha dieser Zeile
+        zeichner.line([(0, y), (b * faktor, y)],
+                      fill=(int(farbe[0]), int(farbe[1]), int(farbe[2]), alpha))   # warmes Dunkelbraun
+    maske = Image.new("L", (b * faktor, h * faktor), 0)          # Maske: was zum Kasten gehoert
+    ImageDraw.Draw(maske).rounded_rectangle((0, 0, b * faktor - 1, h * faktor - 1),
+                                           radius=r, fill=255)  # abgerundetes Rechteck
+    kasten = Image.new("RGBA", (b * faktor, h * faktor), (0, 0, 0, 0))         # Ergebnis
+    kasten.paste(gross, (0, 0), maske)                          # nur innerhalb der Maske einsetzen
+    rand = ImageDraw.Draw(kasten)                               # Rand zeichnen
+    rand.rounded_rectangle((0, 0, b * faktor - 1, h * faktor - 1), radius=r,
+                           outline=(196, 164, 110, int(rand_alpha)),
+                           width=max(1, faktor // 2))          # feiner Goldrand
+    return kasten.resize((b, h), Image.LANCZOS)                 # glatt verkleinert zurueckgeben
+
+
 def hintergrund(gebaeude_id: str, breite: int, hoehe: int = None) -> Optional[object]:  # Skaliert einen Menue-Hintergrund.
     try:  # Beginnt den optionalen Pillow-Import.
         from PIL import Image  # Importiert das Bildmodul.

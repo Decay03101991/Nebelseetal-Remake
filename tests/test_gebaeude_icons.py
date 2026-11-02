@@ -11,7 +11,9 @@ NICHTS davon benutzt - diese Datei belegt, dass die drei Stellen wirklich haenge
    `MENUE_BEDINGUNG`), nicht als zweite Handliste gepflegt.
 2. **Bauauswahl**: jeder Bauknopf der Kartenauswahl traegt das Icon SEINES Gebaeudes.
 3. **Gebaeudeansicht**: Dorfzentrum, Kaserne, Stellmacher, Diebesgilde und Forschung zeigen den
-   Hintergrund ihres Gebaeudes in Originalgroesse 538 x 222.
+   gemalten Hintergrund ihres Gebaeudes als ANSICHTS-FLAECHE (B-6, 02.11.2026: cover, Masse und
+   Abdunkelung aus `data/gebaeude_motive.json` -> `ansicht_hintergrund`). Die gelieferte Datei
+   bleibt 538 x 222 gross; das ist die QUELLE, nicht die Anzeigegroesse.
 
 Ausserdem: Tk gibt Bilder frei, die niemand referenziert - die Icons MUESSEN im Objektcache liegen
 (Lehre 02.11.2026). Geprueft wird deshalb auch, dass zwei Abrufe dasselbe Objekt liefern, und dass
@@ -191,12 +193,22 @@ check("4 das Bauknopf-Icon ist 28 px breit und links vom Text",
       str([str(w.cget("compound")) for w in mit_icon]))
 
 # ---- Gebaeudeansicht: der Hintergrund steht in Originalgroesse in der Ansicht ----
+# UMGESTELLT 02.11.2026 (B-6, Vorgabe Daniel): das Bild ist nicht mehr ein 538x222-Kopf UEBER dem
+# Inhalt, sondern die Hintergrund-Flaeche der Ansicht. Die Zusage bleibt dieselbe - die Ansicht
+# traegt den gemalten Hintergrund ihres Gebaeudes in der Groesse, die die Datendatei nennt.
+def _erwartete_flaeche():
+    """Die Masse der Ansichts-Flaeche aus der Datendatei (keine zweite Zahlenliste im Test)."""
+    e = main.hintergrund_einstellungen()
+    return (int(e.get("breite") or 0), int(e.get("hoehe") or 0))
+
+
 def leinwand_538():
-    """Die Leinwand mit den Massen des gelieferten Hintergrunds (538 x 222) - oder None."""
+    """Die Hintergrund-Leinwand der Ansicht (Masse aus der Datendatei) - oder None."""
+    erwartet = _erwartete_flaeche()
     for w in alle_widgets(app.content):
         if isinstance(w, tk.Canvas):                           # nur Zeichenflaechen
             try:
-                if (int(w.cget("width")), int(w.cget("height"))) == (538, 222):   # gelieferte Masse
+                if (int(w.cget("width")), int(w.cget("height"))) == erwartet:   # Masse der Flaeche
                     return w                                       # gefunden
             except Exception:                                      # noqa: BLE001
                 continue                                           # Widget ohne Masse

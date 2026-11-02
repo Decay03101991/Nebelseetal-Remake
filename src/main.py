@@ -360,6 +360,35 @@ BOT_WIRTSCHAFT_VORGABE: Dict[str, Any] = {                                # Ruec
 _BOT_ERTRAG_CACHE: Dict[tuple, Dict[str, float]] = {}                     # Erträge je Anlagen-Liste
 
 
+HINTERGRUND_VORGABE: Dict[str, Any] = {          # Rueckfall ohne Datendatei
+    "aktiv": True,                                # Bildhintergrund eingeschaltet
+    "breite": 980,                                # Flaeche in Pixeln
+    "hoehe": 760,                                 # Flaeche in Pixeln
+    "abdunkeln_prozent": 25.0,                    # Schleier ueber dem Bild (Vergleichsfassung C)
+}
+
+
+def hintergrund_einstellungen() -> Dict[str, Any]:
+    """Masse und Abdunkelung des Bildhintergrunds - die EINE Stelle (B-6, 02.11.2026).
+
+    Gelesen aus `data/gebaeude_motive.json`, Schluessel `ansicht_hintergrund`. Fehlt der Schluessel
+    oder die Datei, gilt `HINTERGRUND_VORGABE`; das Spiel laeuft weiter. Daniel stellt die
+    Abdunkelung damit ohne Codeaenderung (0 = volle Bildhelligkeit).
+    """
+    pfad = os.path.join(spieldaten.projektwurzel(), "data", "gebaeude_motive.json")   # Datendatei
+    try:                                                                 # Datei lesen
+        with open(pfad, encoding="utf-8") as f:                          # UTF-8 wie alle Spieldaten
+            daten = json.load(f)                                         # Inhalt als dict
+    except (OSError, ValueError):                                        # fehlt oder ist kaputt
+        return dict(HINTERGRUND_VORGABE)                                 # dann die Vorgabe
+    werte = daten.get("ansicht_hintergrund") if isinstance(daten, dict) else None
+    if not isinstance(werte, dict):                                      # Schluessel fehlt
+        return dict(HINTERGRUND_VORGABE)                                 # dann die Vorgabe
+    ergebnis = dict(HINTERGRUND_VORGABE)                                 # Vorgabe als Grundlage
+    ergebnis.update(werte)                                               # Datei hat Vorrang
+    return ergebnis                                                      # fertige Einstellungen
+
+
 def bot_wirtschaft_einstellungen() -> Dict[str, Any]:
     """Liest `data/bot_wirtschaft.json` - die EINE Stelle fuer Schalter, Anlagen und Lagerdeckel.
 
@@ -4634,6 +4663,125 @@ class NebelseetalApp:
         """Das gerahmte Gebaeude-Icon eines Menuepunkts (None fuer Weltpunkte ohne Gebaeude)."""
         return self._optik_bild(MENU_GEBAEUDE.get(punkt), px, None, "kachel")
 
+    def _kasten_label(self, text: str, schrift=None, farbe=None, breite: int = None,
+                      innen: int = 12, pady: int = 3, anchor: str = "w", umbruch: int = None):
+        """Ein Textfeld mit weichem, abgerundetem Kasten vor dem Bildhintergrund (B-6, 02.11.2026).
+
+        Daniel: "Die texte muessen erkennbar bleiben also kleinere textbloecke die nicht transparent
+        sind und der rest so transparent das moeglichst viel vom bild durchkommt" - und danach
+        "die texte und ihre textfelder ... weil es optisch noch keine schoenen uebergaenge sind".
+        Deshalb zeichnet `gebaeude_optik.kasten_bild` einen abgerundeten Kasten mit Verlauf (oben
+        fast deckend, unten durchscheinend) und feinem Rand; der Text liegt MITTIG darauf (`compound`).
+        Ohne Pillow entsteht ein normales Textfeld - die Ansicht bleibt lesbar.
+        """
+        schrift = schrift or ("TkDefaultFont", 10)                     # Standardschrift
+        farbe = farbe or self.skin["text"]                             # Standardfarbe
+        try:
+            import tkinter.font as tkfont                              # Schriften messen
+            fm = tkfont.Font(font=schrift)                             # Messschrift
+            textbreite = fm.measure(str(text))                         # Breite des Textes
+            texthoehe = fm.metrics("linespace")                        # Hoehe einer Zeile
+        except Exception:                                              # noqa: BLE001
+            textbreite, texthoehe = 320, 18                            # grobe Vorgabe
+        if umbruch:                                                    # mehrzeilig: feste Breite
+            textbreite = min(int(umbruch), max(textbreite, 240))
+            texthoehe = texthoehe * max(1, int(len(str(text)) / max(1, textbreite / 7.0)) + 1)
+        kaesten_b = int(breite or (textbreite + 2 * innen))            # Breite des Kastens
+        kaesten_h = int(texthoehe + 2 * innen)                         # Hoehe des Kastens
+        bild = self._kasten_bild(kaesten_b, kaesten_h)                 # der weiche Kasten
+        kwargs = {"text": text, "fg": farbe, "font": schrift, "justify": "left",
+                  "anchor": anchor, "padx": 0, "pady": 0}
+        if umbruch:                                                    # Umbruch nur mit Breite
+            kwargs["wraplength"] = int(umbruch)
+        if bild is not None:                                           # mit Bild: Text auf dem Kasten
+            kwargs.update({"image": bild, "compound": "center", "bg": self.skin["bg"]})
+        else:                                                          # ohne Bild: normales Feld
+            kwargs["bg"] = self.skin["panel"]
+        label = tk.Label(self.content, **kwargs)                       # das Textfeld
+        if bild is not None:                                           # Referenz gegen Tk-Freigabe
+            label.image = bild
+        label.pack(anchor=tk.W, padx=10, pady=(0, pady))
+        return label
+
+    def _kasten_bild(self, breite: int, hoehe: int):
+        """Der Kastenhintergrund als Tk-Grafik (gecacht nach Groesse) - None ohne Pillow."""
+        if not hasattr(self, "_kasten_cache"):                         # Cache beim ersten Kasten
+            self._kasten_cache = {}                                    # (Breite, Hoehe) -> Tk-Bild
+        schluessel = (int(breite), int(hoehe))                         # gleiche Groesse, gleiches Bild
+        if schluessel in self._kasten_cache:                           # schon gebaut
+            return self._kasten_cache[schluessel]                      # wiederverwenden
+        bild = None                                                    # Vorgabe: kein Bild
+        e = hintergrund_einstellungen()                                # Kastenwerte aus der Datendatei
+        kasten = e.get("kasten") if isinstance(e.get("kasten"), dict) else {}
+        try:                                                           # Pillow-Weg
+            roh = gebaeude_optik.kasten_bild(
+                int(breite), int(hoehe),
+                radius=int(kasten.get("radius") or 12),
+                oben_alpha=int(kasten.get("oben_deckkraft") or 245),
+                unten_alpha=int(kasten.get("unten_deckkraft") or 200),
+                rand_alpha=int(kasten.get("rand_deckkraft") or 90),
+                farbe=tuple(kasten.get("farbe") or (22, 17, 12)))
+            if roh is not None:                                        # Bild entstanden
+                from PIL import ImageTk                                 # nur hier importieren
+                bild = ImageTk.PhotoImage(roh)                          # Tk-Grafik daraus
+        except Exception:                                               # noqa: BLE001
+            bild = None                                                 # dann ohne Bild
+        self._kasten_cache[schluessel] = bild                           # im Cache halten
+        return bild                                                     # an den Aufrufer
+
+    def _ansicht_hintergrund(self, gebaeude_id, breite: int = None, hoehe: int = None):
+        """Das Gebaeudemotiv als HINTERGRUND der ganzen Ansicht (B-6, Vorgabe Daniel 02.11.2026).
+
+        Daniel: "die bilder fuer dorfzentrum oder Stellmacher oder Kriegerakademi sollen die
+        hintergruende werden von den jeweiligen fenstern und nicht einfach als bild oben drueber"
+        und "die texte muessen erkennbar bleiben also kleinere textbloecke die nicht transparent
+        sind und der rest so transparent das moeglichst viel vom bild durchkommt".
+
+        Umgesetzt als eigene Flaeche, die ZUERST in `self.content` erzeugt wird: alles, was danach
+        gepackt wird, liegt darueber. Die Texte selbst sind deckende Felder (ihre eigene
+        Hintergrundfarbe) - dazwischen bleibt das Bild sichtbar.
+        Ohne Bild (kein Pillow, Datei fehlt, Schalter aus) bleibt die Ansicht wie vorher.
+        """
+        e = hintergrund_einstellungen()                                    # Masse aus der Datendatei
+        if not e.get("aktiv", True):                                       # Schalter aus
+            return None                                                    # dann keine Ebene
+        b = int(breite or e.get("breite") or 980)                          # Breite der Flaeche
+        h = int(hoehe or e.get("hoehe") or 760)                            # Hoehe der Flaeche
+        bild = self._optik_flaeche(gebaeude_id, b, h, e.get("abdunkeln_prozent") or 0.0,
+                                   e.get("weichzeichnen_px") or 0.0)
+        if bild is None:                                                   # kein Bild vorhanden
+            return None                                                    # Ansicht unveraendert
+        leinwand = tk.Canvas(self.content, width=b, height=h, bg=self.skin["bg"],
+                             highlightthickness=0, bd=0)                   # die Flaeche
+        leinwand.place(x=0, y=0)                                           # zuerst erzeugt = hinten
+        leinwand.create_image(0, 0, anchor=tk.NW, image=bild)              # Bild einsetzen
+        leinwand.image = bild                                              # Referenz gegen Tk-Freigabe
+        return leinwand                                                    # fuer Pruefungen
+
+    def _optik_flaeche(self, gebaeude_id, breite: int, hoehe: int, abdunkeln: float = 0.0,
+                       weich: float = 0.0):
+        """Die gedeckte Bildflaeche als Tk-Grafik (gecacht) - ohne Pillow grob ueber Tk."""
+        if not gebaeude_id:                                                # ohne Kennung kein Bild
+            return None                                                    # dann nichts
+        if not hasattr(self, "_flaeche_cache"):                            # Cache beim ersten Bild
+            self._flaeche_cache = {}                                       # Anfrage -> Tk-Bild
+        schluessel = (str(gebaeude_id), int(breite), int(hoehe), float(abdunkeln), float(weich))
+        if schluessel in self._flaeche_cache:                              # schon gebaut
+            return self._flaeche_cache[schluessel]                         # wiederverwenden
+        bild = None                                                        # Vorgabe: kein Bild
+        try:                                                               # geglaetteter Weg
+            roh = gebaeude_optik.hintergrund_flaeche(str(gebaeude_id), int(breite), int(hoehe),
+                                                    float(abdunkeln), float(weich))
+            if roh is not None:                                            # Bild vorhanden
+                from PIL import ImageTk                                     # nur hier importieren
+                bild = ImageTk.PhotoImage(roh)                             # Tk-Grafik daraus
+        except Exception:                                                  # noqa: BLE001
+            bild = None                                                    # dann Rueckfall unten
+        if bild is None:                                                   # ohne Pillow: Tk selbst
+            bild = self._optik_bild_ohne_pillow(gebaeude_id, int(breite), "hintergrund")
+        self._flaeche_cache[schluessel] = bild                             # im Cache halten
+        return bild                                                        # an den Aufrufer
+
     def _gebaeude_kopf(self, gebaeude_id, breite: int = 538):
         """Die Gebaeudeansicht bekommt den gemalten Hintergrund (538 x 222) unter ihre Ueberschrift.
 
@@ -5189,9 +5337,15 @@ class NebelseetalApp:
             tk.Label(self.content, text=f"{self.current_view} kommt bald.", fg="#DAA520", bg=self.skin["bg"]).pack(padx=20, pady=20)
 
     def _render_overview(self):
-        tk.Label(self.content, text="Dorfzentrum", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 2))
-        # C2-Gebaeude-Optik (02.11.2026): der gemalte Hintergrund des Dorfzentrums (Register 123).
-        self._gebaeude_kopf("lager")
+        # B-6 (02.11.2026, Vorgabe Daniel): das gemalte Dorfzentrum ist der HINTERGRUND der ganzen
+        # Ansicht - die Texte liegen als deckende Felder darueber, dazwischen bleibt das Bild sichtbar.
+        # Die Flaeche MUSS zuerst entstehen: in Tk liegt, was frueher erzeugt wurde, weiter hinten.
+        if self._ansicht_hintergrund("lager") is None:          # kein Bild (Datei/Pillow fehlt)
+            self._gebaeude_kopf("lager")                        # dann der alte Kopf ueber dem Inhalt
+        # B-6: der Titel steht in einem weichen Kasten (abgerundet, Verlauf) statt in einem harten
+        # dunklen Balken - Daniel: "die texte und ihre textfelder ... noch keine schoenen uebergaenge".
+        self._kasten_label("Dorfzentrum", ("Blackletter", 20, "bold"), self.skin["gold"],
+                           innen=14, pady=6)
 
         _grenze = gebaeude_wirkung.bevoelkerungsgrenze(self.state.settlements)
 
@@ -5201,25 +5355,24 @@ class NebelseetalApp:
         self._aufgaben_sichtbar_zuletzt = self._spielerhilfe_aufgabenkarte_sichtbar()
         if self._aufgaben_sichtbar_zuletzt:
             _schritt = self.naechster_schritt()
-            _karte = tk.Frame(self.content, bg="#263B47", highlightbackground="#38BDF8", highlightthickness=1)
-            _karte.pack(fill=tk.X, padx=10, pady=(6, 10))
-            tk.Label(_karte, text="Dein nächster Schritt", fg="#7FD1FF", bg="#263B47",
-                     font=("TkDefaultFont", 12, "bold")).pack(anchor=tk.W, padx=10, pady=(8, 0))
-            tk.Label(_karte, text=_schritt["text"], fg="#F3F4F6", bg="#263B47",
-                     wraplength=760, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(2, 6))
-            tk.Button(_karte, text=_schritt["knopf"], command=_schritt["aktion"], bg="#2563EB",
+            # B-6: die Aufgabenkarte ist kein harter blauer Balken mehr, sondern zwei weiche
+            # Textfelder auf dem Bild - der Knopf bleibt ein Knopf (der ist immer deckend).
+            self._kasten_label("Dein nächster Schritt", ("TkDefaultFont", 12, "bold"), "#7FD1FF",
+                               innen=14, pady=2)
+            self._kasten_label(_schritt["text"], ("TkDefaultFont", 10), "#F3F4F6",
+                               breite=790, innen=14, pady=4, umbruch=760)
+            tk.Button(self.content, text=_schritt["knopf"], command=_schritt["aktion"], bg="#2563EB",
                       fg="white", activebackground="#1D4ED8", activeforeground="white",
                       font=("TkDefaultFont", 11, "bold")).pack(anchor=tk.W, padx=10, pady=(0, 10))
 
         # ---- Kennzahlen in Klartext (vorher "Bevölkerung: 60 / 15" ohne Erklärung) ----
         _bewohnt = int(self.state.population)
         _ueber = _bewohnt > _grenze
-        tk.Label(self.content,
-                 text=f"Siedler (Reich): {_bewohnt} · Wohnraum: {_grenze}"
-                      + ("  ⚠ überbelegt — es wächst kein Siedler nach, bis ein Haus steht."
-                         if _ueber else ""),
-                 fg=("#FDBA74" if _ueber else "#DAA520"),
-                 bg=self.skin["bg"], wraplength=780, justify=tk.LEFT).pack(anchor=tk.W, padx=10)
+        self._kasten_label(
+            f"Siedler (Reich): {_bewohnt} · Wohnraum: {_grenze}"
+            + ("  Überbelegt – es wächst kein Siedler nach, bis ein Haus steht." if _ueber else ""),
+            ("TkDefaultFont", 10), ("#FDBA74" if _ueber else "#DAA520"),
+            breite=790, innen=14, pady=4, umbruch=760)
         frame = tk.Frame(self.content, bg=self.skin["panel"])
         frame.pack(fill=tk.X, padx=10, pady=10)
         tk.Label(frame, text="Siedlungen:", fg=self.skin["gold"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=5)
@@ -8856,9 +9009,10 @@ class NebelseetalApp:
                      fg=self.skin["text"], bg=self.skin["panel"]).pack(side=tk.LEFT, padx=4)
 
     def _render_research(self):
+        # B-6 (02.11.2026, Vorgabe Daniel): die Bibliothek ist der HINTERGRUND dieser Ansicht.
+        if self._ansicht_hintergrund("bibliothek") is None:      # kein Bild vorhanden
+            self._gebaeude_kopf("bibliothek")                    # dann der alte Kopf
         tk.Label(self.content, text="Forschung", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
-        # C2-Gebaeude-Optik (02.11.2026): Forschung gehoert zur Bibliothek - deren Hintergrund.
-        self._gebaeude_kopf("bibliothek")
 
         tk.Label(self.content, text="Forschung braucht eine Bibliothek und Zeit: die Dauer ist die "
                                     "Stufe zum Quadrat in Stunden (Handbuch S. 12/13). Die Stufe "
@@ -9047,10 +9201,11 @@ class NebelseetalApp:
         return ok
 
     def _render_ausbildung(self, staette: str, titel: str):
-        tk.Label(self.content, text=titel, font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
-        # C2-Gebaeude-Optik (02.11.2026): der Hintergrund der Werkstatt, in der ausgebildet wird
+        # B-6 (02.11.2026, Vorgabe Daniel): das Bild der Werkstatt ist der HINTERGRUND der Ansicht
         # (Kaserne -> Kriegerakademie, Stellmacher, Diebesgilde) - Kennung ueber `gelaende`, nie getippt.
-        self._gebaeude_kopf(gelaende.finde_gebaeude(staette))
+        if self._ansicht_hintergrund(gelaende.finde_gebaeude(staette)) is None:   # kein Bild
+            self._gebaeude_kopf(gelaende.finde_gebaeude(staette))                 # dann der alte Kopf
+        tk.Label(self.content, text=titel, font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
 
         tk.Label(self.content, text=f"Ausgebildet wird auf der Siedlungskarte (W4b-5). Hier stehen "
                                     f"ausschliesslich die Einheiten der {staette}; die Stufe des "
