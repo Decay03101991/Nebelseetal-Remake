@@ -1,3 +1,49 @@
+# STAND 02.11.2026, 01:36 - B4 gelaufen: Gebaeude-Optik als Modul (Register 123)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf | `5f4763b` beim Schreiben; dieser Commit bringt Modul, Pruefdatei und Bilder | `git log --oneline -1` |
+| B4-Lauf | `deepseek-v4-pro`, 252 s, **1.878 Prompt- / 33.858 Antwort-Token (28.365 Denken)**; Kosten noch nicht abgerechnet | `docs/audits/usage_b4_20261102.json` |
+| Geliefert | `src/gebaeude_optik.py` (ICONS, HINTERGRUENDE, `kachel()`, `hintergrund()`, `fehlende_gebaeude()`, `vorschau_blatt()`) und `tests/test_gebaeude_optik.py` | `docs/audits/BERICHT_B4_20261102.md` |
+| Bilder im Projekt | **20 Menue-Icons** (256x256 RGBA) in `assets/icons/gebaeude/menue/`, **20 Hintergruende** (538x222 **RGBA**) in `.../hintergrund/`; NICHT in `archiv/` (gitignored) | eigene Kopie + Pillow-Messung |
+| Pruefdatei | **179 von 179 gruen**, echte Namen und echte Bedingungen; **23 von 24 Aufrufen waren vertauscht** (namens `True`, Bedingung der Text) und meldeten 179 gruene Pruefungen ohne Wirkung | eigener Lauf |
+| Modulkarte | **51 Dateien** (neu: `gebaeude_optik`) | `tools/modulkarte_bauen.py` |
+| Register | **123 Punkte**, **121 Pruefdateien** | `grep -cE`, `ls tests/test_*.py \| wc -l` |
+| Kosten und Guthaben | letzte Ablesung **8,97 USD** (00:05); Tagesdeckel 4 EUR heute bereits ueberschritten | Register 117, Protokoll 00:10 |
+
+## Der EINE naechste Schritt
+
+**Die Gebaeude-Optik in die Oberflaeche einhaengen** - das Modul ist nur die Zugriffsschicht. Drei Stellen,
+je mit eigener Pruefung: (1) **Baudialog und Gebaeude-Menue** zeigen je Gebaeude das gerahmte Icon
+(`gebaeude_optik.kachel(id, px)`); (2) die **Gebaeudeansicht** bekommt den Hintergrund
+(`gebaeude_optik.hintergrund(id, breite)`); (3) ein **Kontaktblatt** (`vorschau_blatt`) fuer Daniels
+Sichtpruefung vor dem Einbau. Vorher `motiv_1..10.png` sichern (die Handbuchmotive bleiben Rueckfallsatz).
+Arbeitsweise: Pruefdatei ergaenzen, voller Sammellauf, ein Commit.
+
+## Reihenfolge danach
+
+1. Icons in Menue und Baudialog, Hintergrund in der Gebaeudeansicht, Kontaktblatt fuer Daniel.
+2. Auswahlrahmen der C2-Lieferung zeichnen (der goldene Rahmen aus `karten_optik_fein` liegt derzeit oben);
+   die acht Einzelsymbole aus `assets/icons/leiste/symbole/` sind weiter ungenutzt.
+3. Wappen den fuenf Bots zuordnen; Burgen zu Weltkarten nur als gekennzeichneter Vorschlag.
+4. S-8 Bilanz (500 Mana + 100 Gold, Register 93), danach `weltkarten_seed` fest (Register 94).
+5. Demo-Gates G-01 bis G-07 vor jedem Upload; die Demo wird LEER ausgeliefert (Skill-Abschnitt
+   „Die oeffentliche Demo wird LEER ausgeliefert“, geprueft: `tools/build_public_exe.py`, `tests/test_demo_leer.py`).
+
+## Fallstricke, in dieser Sitzung belegt
+
+- **Ein starkes Modell liefert Code, der laeuft - aber nicht Code, der prueft.** 23 von 24 `check()`-Aufrufen
+  hatten Name und Bedingung vertauscht: `check(name, cond)` mit `check(cond, name)` aufgerufen meldet
+  **179 gruene Pruefungen, die nichts pruefen**, weil der Text immer wahr ist. Nach jedem Modelllauf die
+  Reihenfolge der Aufrufe pruefen, nicht nur das Ergebnis.
+- **Nie auf gitignorte Pfade bauen.** `archiv/` ist gitignored - Bilder muessen unter `assets/` liegen, sonst
+  fehlt der Demo die Grafik. Die Projektwurzel kommt aus `spieldaten.projektwurzel()`, nicht aus `__file__`.
+- **Auftragsangaben selbst nachmessen.** „Hintergruende RGB“ im Auftrag war falsch (sie sind RGBA); der
+  Modellcode folgte meiner Vorgabe und die Pruefdatei schlug mit 20 Fehlern zu Recht an.
+- **Ein einzelner starker Aufruf kostet wenig, wenn der Auftrag eng ist:** 252 s, 35.736 Token gesamt.
+
 # STAND 02.11.2026, 00:49 - C2-Ressourcenleiste steht im Kopf (Register 121)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
