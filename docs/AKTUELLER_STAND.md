@@ -21,19 +21,23 @@ Vordergrund bleibt. Alle Zahlen stehen in `data/gebaeude_motive.json`.
 
 ## Der EINE naechste Schritt
 
-**Die restlichen Textfelder derselben Ansichten auf die Kastenoptik umstellen - stueckweise** (Vorgabe
-Daniel 02.11.2026: "die texte muessen ... richtig in die jetzt geschaffene oberflaeche ... eingepasst
-und angepasst werden. Auch der Rest natuerlich aber alles stueck fuer stueck"). Heute stehen Tabelle
-"Siedlungen", die Einheitenlisten der Ausbildungsstaetten und die Forschungsliste noch auf harten
-`self.skin["panel"]`-Flaechen; sie sollen dieselbe Optik bekommen (weicher Kasten, warme Farbe,
-gleiche Abstaende). Zu tun: je Ansicht die Textbloecke auf `_kasten_label` bzw. eine Kasten-Variante
-fuer Tabellen umstellen, die bisherige Zahlenlage in den Wachen mit Begruendung umstellen, voller
+**Truppenbewegungen auf der Weltkarte sichtbar machen** (Vorgabe Daniel 02.11.2026, Vorbild Lords
+Mobile; in der Fragenrunde 21:25 ausdruecklich VOR die Demo gesetzt). Heute zeigt das Portal-Kaestchen
+Gelaende und die fremden Doerfer, aber keinen Marsch: wer Truppen losschickt, sieht sie nur als
+Nachricht, nicht als Weg. Zu tun: je laufendem Auftrag eine Linie vom Start- zum Zielfeld mit
+Richtung und Restzeit (eigene Marsche deutlich, fremde zurueckhaltender), Anzeige aus
+`state.auftraege`/`state.movements` gespeist (keine zweite Auftragsliste), Klick auf eine Linie zeigt
+den Auftrag; Pruefdatei mit Grenzfaellen (kein Auftrag = keine Linie, Ankunft = Linie weg), voller
 Sammellauf, Protokollzeile, ein Commit.
 Arbeitsweise: ein Schritt = ein Commit = ein gruener voller Sammellauf.
 
-**Danach in dieser Reihenfolge:** Truppenbewegungen auf der Weltkarte (Vorgabe Daniel, Vorbild Lords
-Mobile), Voelkerwahl am Start (A2), Volksboni verdrahten (A), Kartenwahl fuer den SPIELER, Anschluss
-`botkern.oekonomie_kartenwahl`, Kopplung Punkte/Kanaele (C), Balance-Messung (D).
+**Demo-Umfang ist eingefroren (Daniel 02.11.2026, Fragenrunde):** Kernkreis + Spionage + Voelker- und
+Kartenwahl am Start. Alles andere kommt NACH dem ersten Demo-Upload.
+
+**Danach in dieser Reihenfolge:** Kastenoptik in Kaserne/Stellmacher/Diebesgilde (Daniels Wahl), dann
+die uebrigen Textfelder der Ansichten, dann Voelkerwahl am Start (A2), Kartenwahl fuer den SPIELER,
+Volksboni verdrahten (A), Anschluss `botkern.oekonomie_kartenwahl`, Kopplung Punkte/Kanaele (C),
+Balance-Messung (D), zuletzt Demo-Release (Freigabe Daniel).
 
 # STAND 02.11.2026, 20:20 - Stufe B-5: Postfach und Spionage, gekoppelt an die Einheitenwerte (Register 138)
 
