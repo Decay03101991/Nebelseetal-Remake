@@ -746,27 +746,48 @@ def leiste_zusammensetzen(leiste: dict, zielbreite: int):
     quelle = Image.open(pfad).convert("RGBA")                                           # Original mit Alphakanal
     breite = int(leiste.get("breite") or quelle.width)                                  # Bezugsbreite
     skala_max = float(leiste.get("skala_max") or 1.5)                                   # Obergrenze fuer das Wachstum
+    # P-3 (02.11.2026): die LUECKEN werden nur noch bis zu dieser Grenze gedehnt. Vorher nahmen sie die
+    # gesamte Restbreite auf - bei 2560 px war das Faktor 1,86, bei 3440 px 3,75, und die gemalte
+    # Landschaft zwischen den Symbolen wurde zu langgezogenen Streifen mit harten Naehten (Daniels
+    # Befund: die Landschaft wiederholt sich). Zahlen in data/ressourcenleiste.json.
+    luecke_max = float(leiste.get("luecke_max") or 1.35)                                # Obergrenze der Lueckendehnung
+    rest_modus = str(leiste.get("rest_auffuellen") or "gleichmaessig")                  # was mit der Restbreite geschieht
+    skala_hart = float(leiste.get("skala_hart") or 1.75)                                # Obergrenze, wenn gleichmaessig gefuellt wird
     stuecke = _leisten_stuecke(leiste)                                                  # Schnittliste
     fest = sum(s["bis"] - s["von"] for s in stuecke if s["art"] == "fest")              # Breite aller festen Teile
     dehn = sum(s["bis"] - s["von"] for s in stuecke if s["art"] == "dehnbar")           # Breite aller Luecken
-    skala = min(max(1, int(zielbreite)) / float(breite), skala_max)                      # gleichmaessige Skala
-    rest = int(zielbreite) - fest * skala                                               # was die Luecken fuellen muessen
+    ziel = max(1, int(zielbreite))                                                      # Zielbreite als Zahl
+    skala = min(ziel / float(breite), skala_max)                                        # gleichmaessige Skala
+    rest = ziel - fest * skala                                                          # was die Luecken fuellen muessen
     if rest < 0:                                                                        # Fenster schmaler als die festen Teile
-        skala = int(zielbreite) / float(fest) * 0.995                                   # kleiner skalieren, nichts abschneiden
+        skala = ziel / float(fest) * 0.995                                              # kleiner skalieren, nichts abschneiden
         rest = 0                                                                        # Luecken schrumpfen auf null
     gap_faktor = (rest / (dehn * skala)) if dehn and skala else 1.0                     # Dehnung der Luecken
+    if gap_faktor > luecke_max and rest_modus == "gleichmaessig" and fest + dehn * luecke_max > 0:
+        # Die Luecken reichen nicht: stattdessen das GANZE Band gleichmaessig groesser skalieren (das
+        # bleibt eine treue Vergroesserung ohne Naehte), hoechstens bis `skala_hart`.
+        skala = min(ziel / float(fest + dehn * luecke_max), skala_hart)                 # neue, groessere Skala
+        rest = ziel - fest * skala                                                      # Restbreite neu rechnen
+        gap_faktor = min((rest / (dehn * skala)) if dehn and skala else 1.0, luecke_max)  # Luecken bleiben gedeckelt
+    gap_faktor = min(gap_faktor, luecke_max)                                            # nie ueber die Grenze
     hoehe = max(1, int(round(quelle.height * skala)))                                   # Hoehe folgt der Skala
-    gesamt = Image.new("RGBA", (int(zielbreite), hoehe), (0, 0, 0, 0))                   # leere Flaeche
-    x = 0                                                                              # Schreibposition
-    mitten = {}                                                                        # Feld -> (x, y) im neuen Bild
-    for stueck in stuecke:                                                             # Stueck fuer Stueck
-        q = quelle.crop((stueck["von"], 0, stueck["bis"], quelle.height))               # Ausschnitt aus dem Original
+    # Breiten VORAB rechnen: nur so ist die Gesamtbreite bekannt, und ein Rest laesst sich SYMMETRISCH
+    # verteilen. Eine linksbuendige Leiste mit Rest am rechten Rand sieht wie ein Fehler aus (eigene
+    # Sichtpruefung docs/audits/leisten_vergleich_20261102.png); mittige Raender wirken als Abschluss.
+    breiten_stueck = []                                                                 # Breite je Stueck in Pixeln
+    for stueck in stuecke:                                                              # Stueck fuer Stueck
+        roh = stueck["bis"] - stueck["von"]                                             # Breite im Original
         if stueck["art"] == "fest":                                                     # feste Kachel
-            w = max(1, int(round(q.width * skala)))                                     # Breite gleichmaessig
-            teil = q.resize((w, hoehe), Image.LANCZOS)                                  # beide Achsen gleiche Skala
-        else:                                                                          # dehnbare Luecke
-            w = max(1, int(round(q.width * skala * gap_faktor)))                        # nur waagerecht gedehnt
-            teil = q.resize((w, hoehe), Image.LANCZOS)                                  # Hoehe bleibt wie die Skala
+            breiten_stueck.append(max(1, int(round(roh * skala))))                      # gleichmaessig skaliert
+        else:                                                                           # dehnbare Luecke
+            breiten_stueck.append(max(1, int(round(roh * skala * gap_faktor))))         # waagerecht gedehnt
+    rand = max(0, (ziel - sum(breiten_stueck)) // 2) if rest_modus != "leer" else 0      # Rest mittig verteilen
+    gesamt = Image.new("RGBA", (ziel, hoehe), (0, 0, 0, 0))                             # leere Flaeche
+    x = rand                                                                            # Schreibposition (ggf. eingerueckt)
+    mitten = {}                                                                        # Feld -> (x, y) im neuen Bild
+    for stueck, w in zip(stuecke, breiten_stueck):                                      # Stueck fuer Stueck
+        q = quelle.crop((stueck["von"], 0, stueck["bis"], quelle.height))               # Ausschnitt aus dem Original
+        teil = q.resize((w, hoehe), Image.LANCZOS)                                      # auf die vorberechnete Breite
         if x + w > gesamt.width:                                                       # letzte Luecke exakt abschliessen
             w = max(1, gesamt.width - x)                                                # auf den Rest begrenzen
             teil = teil.resize((w, hoehe), Image.LANCZOS)                               # neu schneiden

@@ -205,11 +205,22 @@ if _pil:
     check("6 1920 px waechst gleichmaessig (Skala 1920/1440)",
           abs(s1920 - 1920 / 1440) < 1e-6 and b1920.height == round(140 * s1920),
           f"{s1920:.3f} / {b1920.height}")
-    check("6 ab der Obergrenze waechst nur noch die Laenge (Skala bleibt auf skala_max)",
-          abs(s2560 - float(daten.get("skala_max"))) < 1e-9 and abs(s3440 - s2560) < 1e-9,
-          f"{s2560} / {s3440}")
-    check("6 die Hoehe bleibt bei 2560 und 3440 gleich",
-          b2560.height == b3440.height, f"{b2560.height} / {b3440.height}")
+    # P-3 (02.11.2026) - ENTSCHEIDUNG GEAENDERT, mit Begruendung: bis heute galt "oberhalb von
+    # `skala_max` waechst NUR die Laenge" - die Luecken nahmen die ganze Restbreite auf und wurden
+    # dabei bei 2560 px um Faktor 1,86 und bei 3440 px um 3,75 gestreckt; die gemalte Landschaft
+    # zwischen den Symbolen wurde zu Streifen mit harten Naehten (Daniels Befund). Neu: das ganze Band
+    # skaliert GLEICHMAESSIG weiter (treue Vergroesserung ohne Naht) bis `skala_hart`, die Luecken
+    # bleiben auf `luecke_max` gedeckelt. Die alte Wache nagelte genau die Ursache fest und wird
+    # deshalb umgestellt - nicht der Code zurueckgebogen.
+    check("6 oberhalb von skala_max waechst das Band gleichmaessig weiter bis skala_hart",
+          abs(s3440 - float(daten["skala_hart"])) < 1e-9
+          and s2560 > float(daten["skala_max"]) - 1e-9
+          and s3440 >= s2560,
+          f"skala_max {daten['skala_max']} | 2560 {s2560:.3f} | 3440 {s3440:.3f} | "
+          f"skala_hart {daten['skala_hart']}")
+    check("6 die Hoehe folgt der Skala (140 px mal Skala)",
+          b2560.height == round(140 * s2560) and b3440.height == round(140 * s3440),
+          f"{b2560.height} / {b3440.height}")
     check("6 schmalere Fenster schrumpfen gleichmaessig (keine Dehnung)",
           abs(s1000 - 1000 / 1440) < 1e-6, f"{s1000:.3f}")
 
@@ -218,18 +229,25 @@ if _pil:
     m1a, m1b = m2560["siedler"], m3440["siedler"]
     ka = b2560.crop((m1a[0] - int(halb * s2560), 0, m1a[0] + int(halb * s2560), b2560.height))
     kb = b3440.crop((m1b[0] - int(halb * s3440), 0, m1b[0] + int(halb * s3440), b3440.height))
-    check("6 das Symbolfeld ist bei 2560 und 3440 pixelgleich (nichts wird weiter gestreckt)",
-          ka.size == kb.size and list(ka.getdata()) == list(kb.getdata()),
-          f"{ka.size} gegen {kb.size}")
-    # und es ist genau die gleichmaessig skalierte Originalkachel (kein Verzerren)
+    # P-3 (02.11.2026): die alte Zusage "pixelgleich bei 2560 und 3440" gilt nicht mehr - das Band
+    # waechst jetzt gleichmaessig weiter (Skala 1,65 bzw. 1,75), damit die Luecken nicht gestreckt
+    # werden muessen. Die Zusage lautet jetzt: das Symbolfeld ist bei BEIDEN Breiten eine TREUE,
+    # gleichmaessige Vergroesserung der Originalkachel - Seitenverhaeltnis unveraendert, keine
+    # waagerechte Verzerrung. Beides wird gegen die Originalkachel gemessen, nicht behauptet.
     orig = _Image.open(os.path.join(ROOT, str(daten["datei"]).replace("/", os.sep))).convert("RGBA")
     x1 = int(daten["felder"][0]["x"])
-    soll = orig.crop((x1 - halb, 0, x1 + halb, orig.height)).resize((ka.width, b2560.height), _Image.LANCZOS)
-    abweichung = sum(abs(p[0] - q[0]) + abs(p[1] - q[1]) + abs(p[2] - q[2])
-                     for p, q in zip(soll.convert("RGBA").getdata(), ka.convert("RGBA").getdata())
-                     ) / max(1, ka.width * ka.height * 3)
-    check("6 die Kachel ist die gleichmaessig skalierte Originalkachel (Abweichung < 8 von 255)",
-          abweichung < 8, f"{abweichung:.2f}")
+    soll_seite = (2 * halb) / float(orig.height)                       # Seitenverhaeltnis der Originalkachel
+    for name, kachel, hoehe in (("2560", ka, b2560.height), ("3440", kb, b3440.height)):
+        verhaeltnis = kachel.width / float(kachel.height)
+        check(f"6 das Symbolfeld bei {name} px ist unverzerrt (Seitenverhaeltnis wie im Original)",
+              abs(verhaeltnis - soll_seite) / soll_seite < 0.02,
+              f"{verhaeltnis:.3f} gegen {soll_seite:.3f}")
+        soll = orig.crop((x1 - halb, 0, x1 + halb, orig.height)).resize(kachel.size, _Image.LANCZOS)
+        abweichung = sum(abs(p[0] - q[0]) + abs(p[1] - q[1]) + abs(p[2] - q[2])
+                         for p, q in zip(soll.convert("RGBA").getdata(), kachel.convert("RGBA").getdata())
+                         ) / max(1, kachel.width * kachel.height * 3)
+        check(f"6 das Symbolfeld bei {name} px ist die gleichmaessig skalierte Originalkachel (Abweichung < 8)",
+              abweichung < 8, f"{abweichung:.2f}")
 
 # Quelltext-Wachen: eine Stelle fuer Aufbau und Neuzeichnen
 import inspect  # noqa: E402

@@ -1,3 +1,38 @@
+# STAND 02.11.2026, 16:00 - Leisten-Luecken gedeckelt (Register 131)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Punkt 3 des Ablaufplans ist erledigt.** Die Ressourcenleiste streckt ihre Luecken nicht mehr
+beliebig: die Dehnung ist auf 1,35 gedeckelt, bei Bedarf waechst das ganze Band gleichmaessig
+(treue Vergroesserung ohne Naht), ein Rest wird symmetrisch verteilt.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `f7f2a51` (Arbeitsbaum leer), darauf dieser Schritt | `git log --oneline -1` |
+| Befund vorher | Lueckendehnung **1,86** bei 2560 px, 2,81 bei 3000, **3,75** bei 3440 | eigene Messung an `leiste_zusammensetzen` |
+| Werte | `luecke_max` 1,35, `skala_hart` 1,75, `rest_auffuellen` gleichmaessig | `data/ressourcenleiste.json` |
+| Nachher | 1440-2320 px fuellen ganz, 2560 px Skala 1,653 (fuellt genau), 3440 px Raender 367/367 | eigene Messung, `tests/test_leisten_luecken.py` 22/0/0 |
+| Umgestellte Wachen | `test_ressourcenleiste.py` **41/0/1**: Skala waechst bis `skala_hart`; Symbolfeld seitengetreu statt pixelgleich | eigener Lauf, Begruendung im Test |
+| Sichtvergleich | `docs/audits/leisten_vergleich_20261102.png` (ALT/NEU, 2560 und 3440) | `tools/leisten_vergleich.py` |
+| Voller Sammellauf | **124 von 126 gruen, 0 rot, 2 ausgesetzt, 4.824 Pruefungen, 541 s** (15:13-15:22) | `docs/audits/sammellauf_20261102_1513.log` |
+| Pruefdateien / Register | **126** / **131** | `ls tests/test_*.py`, `grep -c` |
+
+## Der EINE naechste Schritt
+
+**Punkt 6: S-8-Bilanz und `weltkarten_seed` festschreiben** (Freigabe Daniels 02.11.2026, Register 93
+und 94): der Weltensprung kostet **500 Mana plus 100 Gold** statt der heute gebuchten 5.000 Mana - der
+belegte Originalwert 5.000 bleibt als Beleg und Konfigurationswert daneben stehen, nichts wird
+geloescht -, und `weltkarten_seed` bekommt fuer die Demo einen FESTEN Wert in `data/welten.json`.
+Zu tun: die eine Buchungsstelle des Sprungs umstellen (Kern UND Anzeige lesen denselben Wert), den
+Belegwert unangetastet lassen, Seed setzen, je eine Pruefdatei mit Grenzfaellen (-1 / 0 / exakt Soll /
++1), voller Sammellauf, Protokollzeile, ein Commit.
+Arbeitsweise: ein Schritt = ein Commit = ein gruener voller Sammellauf.
+
+**Bei Daniel liegt** weiterhin Punkt 2 (Bilder im Fenster abnehmen, 10 Minuten) und die
+Wappen-Zuordnung (Punkt 4). **Punkt 5** (Volksattribute und Verhaltensboni) wird seit 15:25 vom
+STARKEN MODELL (deepseek-v4-pro) entworfen und umgesetzt - das GPT-Chat-Abo ist beendet, sein
+Auftragspaket ist vom Desktop genommen und liegt weiter als Datei unter `docs/auftraege/`.
+
 # STAND 02.11.2026, 13:50 - Auswahlrahmen der C2-Lieferung gezeichnet (Register 130)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
