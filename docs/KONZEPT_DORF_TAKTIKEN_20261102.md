@@ -146,3 +146,17 @@ ergeben zusammen hoechstens dessen 5 %.
 | Wie viele Voelker? | **6** - Spieler und fuenf Bots, jeder ein eigenes Volk, keine Doppelung | **5** - ein Volk kommt bei den Bots doppelt vor (wie heute menschlich) | **A**: sechs Voelker, damit die Wahl exklusiv ist |
 | Gilt die Dorf-Punkt-Mechanik auch fuer den Spieler? | ja, gleiche Regel fuer alle | nur Bots | **A** - sonst hat der Spieler eine Sonderregel, die niemand versteht |
 | Fremder Bonus: frei oder gebunden? | frei waehlbar (der Spieler sucht sich, was er braucht) | gebunden an ein Nachbarvolk (mehr Rollenspiel, weniger Kontrolle) | **A** zum Start; gebunden waere ein eigener Schritt |
+
+### 8.5 Antworten Daniels (02.11.2026, rund 17:00) - diese Punkte sind entschieden
+
+1. **Sechs Voelker.** Spieler und fuenf Bots, jeder ein eigenes Volk, keine Doppelung.
+2. **Gleiche Regel fuer alle, aber Verhalten wirkt beim Spieler nur ueber die WERTE.** Beim Spieler
+   veraendert die Taktik ausschliesslich die Boni; er handelt selbst. Beim Bot bedeutet eine Taktik
+   auch, dass sich das Dorf entsprechend VERHAELT (aggressiv greift frueher an, Forschung/Verteidigung
+   spaeter oder gar nicht).
+3. **Fremder Bonus frei waehlbar** - das Dorf holt sich, was es braucht. Bei Bots werden Verhalten und
+   Taktik aus ihrer Lage und ihren Werten gewaehlt.
+4. **Reihenfolge:** erst Stufe B (echte Bot-Doerfer), dann alles zusammen.
+
+Damit bleiben offen: die konkreten Zahlen der Taktik-Pakete (Abschnitt 4) und die Frage, wie stark
+ein aggressives Verhalten den Angriffsrhythmus verschiebt - beides wird gemessen, nicht geschaetzt.
