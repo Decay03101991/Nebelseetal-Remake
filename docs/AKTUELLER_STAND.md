@@ -1,3 +1,31 @@
+# STAND 03.11.2026, 15:40 - W-6/W-7: Blick in fremde Welten, Doerfer je Welt (Register 166)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Der Spieler kann jetzt in fremde Welten SCHAUEN, ohne zu springen.** Ueber der Karte steht
+'Ansehen:' mit der eigenen Welt und den Nummern der fuenf anderen; ein Klick zeigt deren Karte mit den
+Burgen der dortigen Bots, die Kopfzeile sagt 'NUR ANSICHT', und unter der Karte steht, wie viele
+Doerfer jeder Bot in dieser Welt hat. Angriff oder Spionage oeffnen sich dort NICHT - ein Auftrag
+ueber die Weltgrenze ist bis zur Entscheidung W-3 gesperrt.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `c77f8dd` plus diese Aenderung | `git log --oneline -1` |
+| Wache | `tests/test_portal_fremdblick.py` **18/0/1** | eigener Lauf |
+| Gegenprobe | 'Ansehen' als echter Sprung -> **3 Fehler**, Datei hashgleich zurueckgesetzt | eigener Lauf |
+| Nebenbefund behoben | Gruendungen standen in Welt 1 statt in der Welt des Spielers - beide Gruendungswege setzen sie jetzt, Laden repariert unmoegliche Welten | `src/main.py` |
+| Nachbardateien | `test_startspiel` **62/0/1**, `test_weltbild_gelaende` **135/0/0**, `test_spionage` **146/0/0**, `test_durchspiel` **65/0/2** | eigene Laeufe |
+| Story-Regel (W-11) | aus der Nebelseetal-Geschichte nur das Noetige, den sechs Fraktionen angepasst, Story nebensaechlich - eingeordnet ans ENDE der Liste | `docs/VORGABEN_WELTEN_UND_BOTS_20261103.md` |
+
+## Der EINE naechste Schritt
+
+**S-5 Ausbildung je Ort** (Daniels Reihenfolge von 12:20): Warteschlange statt Kauf. Reihenfolge im
+Schnitt, vom Code selbst verlangt: **erst die Armee nach `dorf.einheiten` (S-5b)**, dann ausbilden
+(S-5a), dann Essen je Dorf (S-5c) - sonst isst die Armee doppelt. Danach **W-4** (Bots rauben
+untereinander), **S-6/S-7/S-9**, zuletzt **W-3** (braucht Daniels Entscheidung) und die **Story**.
+
+**Der Sammellauf gehoert zum Abschluss jedes Code-Schnitts** - nach diesem Stand laeuft er.
+
 # STAND 03.11.2026, 15:10 - W-8: Burgen und Wappen auf der Weltkarte (Register 165)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

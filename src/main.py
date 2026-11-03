@@ -4244,6 +4244,7 @@ class GameState:
         karte = self.kartenvorrat[karte_id]["karte"]
         name = f"Siedlung {len(self.settlements) + 1}"
         neu = Settlement(name=name, map_id=self.current_map, x=x, y=y, karte=karte,
+                         dimension=int(getattr(self, "eigene_dimension", 1) or 1),   # W-6: Welt des Spielers
                          id=siedlung_kennung("spieler", self.current_map, x, y),
                          volk=str(getattr(self, "spieler_fraktion", "") or ""))
         neu.vorraete = {r: float(v) for r, v in absicht["paket"].items()}
@@ -5358,6 +5359,16 @@ class GameState:
         # A2/V-5 (03.11.2026): das gewaehlte Volk wird wieder GELADEN - sonst waehlte ein geladener
         # Stand erneut, und seit V-5 fehlte ihm die Wirkung. Ein Stand ohne das Feld bleibt leer.
         self.spieler_fraktion = str(data.get("spieler_fraktion") or "")
+        # W-6 (03.11.2026): Doerfer aus ALTEREN Spielstaenden tragen die Vorgabe `dimension = 1`
+        # (Armageddon), obwohl der Spieler in einer anderen Welt sitzt - sie waeren auf seiner Karte
+        # unsichtbar. Ein eigener Ort kann nur in einer Welt liegen, die der Spieler BETRETEN hat
+        # (`eigene_dimensionen`); liegt er woanders, wird er in die aktive Welt gesetzt. Das ist eine
+        # Reparatur der Anzeige, keine Umsiedlung: er bewegt sich nur, wenn seine Welt unmoeglich ist.
+        _erlaubte_welten = set(int(d) for d in (self.eigene_dimensionen or []))
+        _erlaubte_welten.add(int(self.eigene_dimension))
+        for _ort in (self.settlements or []):
+            if int(getattr(_ort, "dimension", 1) or 1) not in _erlaubte_welten:
+                _ort.dimension = int(self.eigene_dimension)
         # V-5: der Volksbonus haengt am ORT (der Ertrag liest `siedlung.volk`). Ein alter Spielstand
         # traegt das Feld nicht - er bekommt es hier aus dem Spielstand, aber nur, wenn dort eines
         # steht (kein Erfinden, und ohne Volk bleibt es beim Faktor 1,0).
@@ -7152,6 +7163,10 @@ class NebelseetalApp:
             bevoelkerung_start = float(self.state.population)
             sett = Settlement(name="Siedlung 1", map_id=self.state.current_map, x=x, y=y,
                               karte=karte,
+                              # W-6 (03.11.2026): der Ort steht in der WELT des Spielers. Bis hier
+                              # blieb die Vorgabe `dimension = 1` stehen - der Ort lag damit auf
+                              # Armageddon, waehrend der Spieler in Midgard sass.
+                              dimension=int(getattr(self.state, "eigene_dimension", 1) or 1),
                               id=siedlung_kennung("spieler", self.state.current_map, x, y),
                               volk=str(getattr(self.state, "spieler_fraktion", "") or ""))
             sett.vorraete = dict(start)
@@ -8660,6 +8675,18 @@ class NebelseetalApp:
             return True
         return self._portal_feld_waehlen(x, y)                         # sonst Feld anwaehlen
 
+    def _portal_ansehen(self, welt_nummer: int) -> None:
+        """In eine Weltkarte SCHAUEN, ohne zu springen (W-6, Daniel 03.11.2026).
+
+        Was hinein geht: die Nummer der Welt aus der Liste. Was passiert: `_portal_blick` merkt sie,
+        die Feldauswahl wird geloescht und das Portal neu gezeichnet. Es wird NICHTS gebucht -
+        kein Mana, kein Weltensprung, keine Sperre. Der Sprung bleibt der Knopf in der Liste
+        (`_portal_wechsel`), damit "ansehen" und "reisen" nicht zwei verschiedene Wahrheiten werden.
+        """
+        self._portal_blick = int(welt_nummer or 0)                     # gezeigte Welt merken
+        self.portal_auswahl = None                                     # alte Feldauswahl gilt nicht mehr
+        self._switch_view("Portal")                                    # Portal neu zeichnen
+
     def _portal_feld_waehlen(self, x: int, y: int):
         """Ein Feld im Gelaendekaestchen anwaehlen (Schnitt S-2b) - merken, nicht buchen.
 
@@ -8707,6 +8734,14 @@ class NebelseetalApp:
 
         nummer = int(self.state.eigene_dimension)
         eigene = list(self.state.eigene_dimensionen)
+        # W-6 (Daniel 03.11.2026): "der spieler startet in der Hauptwelt und sieht bereits die bots
+        # wenn er in die Übersicht einer anderen welt schaut". `_portal_blick` ist die Welt, die das
+        # Kaestchen ZEIGT - 0 heisst "die eigene". Ansehen ist nur Lesen: es kostet kein Mana und
+        # bucht keinen Weltensprung; der Sprung bleibt der Knopf "Weltensprung" in der Liste.
+        angezeigt = int(getattr(self, "_portal_blick", 0) or nummer)
+        if not any(int(eintrag["nummer"]) == angezeigt for eintrag in portalraum.weltkarten(eigene, 0)):
+            angezeigt = nummer                                        # unbekannte Welt -> eigene zeigen
+        fremdblick = angezeigt != nummer                               # zeigen wir eine FREMDE Welt?
         # Zaehlweisen nicht mischen (S-5, belegt durch die Pruefdatei): der Spielstand fuehrt die
         # NUMMER (1..20, d04 = 4), `portalraum.anzeige_raster`/`portalfarbe` rechnen mit dem INDEX
         # (0..19). Bis hierher wurde die Nummernliste ungefiltert weitergegeben - die eigene
@@ -8737,12 +8772,26 @@ class NebelseetalApp:
                 tk.Label(zeile, text=eintrag["grund"], fg="#8a8a8a", bg=self.skin["panel"],
                          font=("TkDefaultFont", 8)).pack(side=tk.RIGHT, padx=6)
 
-        # --- 2. DARUNTER: das Gelaendekaestchen der aktuellen Welt, Felder anklickbar ---
+        # --- 1b. ANSEHEN: in eine fremde Welt schauen, ohne zu springen (W-6) ---
+        blick = tk.Frame(self.content, bg=self.skin["bg"])
+        blick.pack(anchor=tk.W, padx=10, pady=(4, 0))
+        tk.Label(blick, text="Ansehen:", fg="#DAA520", bg=self.skin["bg"],
+                 font=("TkDefaultFont", 9)).pack(side=tk.LEFT, padx=(0, 4))
+        for eintrag in portalraum.weltkarten(eigene, laufend):
+            ziel = int(eintrag["nummer"])                              # Nummer der Welt (1..20)
+            text = "eigene" if ziel == nummer else f"{ziel:02d}"       # eigene Welt heisst "eigene"
+            tk.Button(blick, text=text, bd=1,
+                      bg="#2b2118" if ziel == angezeigt else self.skin["panel"],
+                      fg=self.skin["gold"],
+                      command=lambda n=ziel: self._portal_ansehen(n)).pack(side=tk.LEFT, padx=1)
+
+        # --- 2. DARUNTER: das Gelaendekaestchen der ANGESEHENEN Welt, Felder anklickbar ---
         kante = portalraum._achsen()
-        tk.Label(self.content, text=(f"Gelaendekaestchen der Weltkarte {nummer:02d} - "
-                                     f"{self._dimensionsname(nummer)} "
+        tk.Label(self.content, text=(f"Gelaendekaestchen der Weltkarte {angezeigt:02d} - "
+                                     f"{self._dimensionsname(angezeigt)} "
                                      f"({kante} x {kante} = {portalraum.feld_zahl()} Felder, "
-                                     f"ein Klick waehlt ein Feld)"),
+                                     f"ein Klick waehlt ein Feld)"
+                                     + ("  -  NUR ANSICHT einer fremden Welt" if fremdblick else "")),
                  fg="#DAA520", bg=self.skin["bg"], wraplength=760, justify=tk.LEFT).pack(
                      anchor=tk.W, padx=10, pady=(8, 0))
         zelle = self._portal_zelle(kante)
@@ -8759,7 +8808,10 @@ class NebelseetalApp:
             tk.Label(self.content, text="Unterwegs: " + " | ".join(zeilen),
                      fg="#DAA520", bg=self.skin["bg"], wraplength=760, justify=tk.LEFT,
                      font=("TkDefaultFont", 9)).pack(anchor=tk.W, padx=10, pady=(2, 0))
-        felder = portalraum.anzeige_raster(portalraum.index_von(nummer), 10, eigene_index)
+        # Bei einer fremden Ansicht bekommt das Raster KEINE eigene Welt - dann zeichnet es die
+        # belegte fremde Bannerfarbe, und niemand haelt die fremde Karte fuer seine eigene.
+        felder = portalraum.anzeige_raster(portalraum.index_von(angezeigt), 10,
+                                           eigene_index if not fremdblick else [])
         zeichenflaeche = tk.Canvas(self.content, width=kante * zelle, height=kante * zelle,
                                    bg=self.skin["bg"], highlightthickness=0)
         zeichenflaeche.pack(anchor=tk.W, padx=10, pady=4)
@@ -8771,7 +8823,7 @@ class NebelseetalApp:
         # B-5 (Vorgabe Daniel 02.11.2026): fremde Doerfer stehen jetzt AUF der Weltkarte und sind
         # anklickbar - der Klick oeffnet Angriff/Spionage. Gezeichnet werden nur oeffentliche
         # Angaben; Wall, Taktik, Truppen und Vorraete kommen ausschliesslich ueber einen Bericht.
-        for bot, dorf in self._bot_doerfer_im_raster(kante):
+        for bot, dorf in self._bot_doerfer_im_raster(kante, angezeigt):
             x1, y1 = int(dorf.x) * zelle, int(dorf.y) * zelle          # linke obere Ecke des Feldes
             cx, cy = x1 + zelle / 2.0, y1 + zelle / 2.0                # Feldmitte
             # W-8 (Daniel 03.11.2026): Burg und Wappen der FRAKTION dieses Bots. Hauptdorf und
@@ -8780,7 +8832,7 @@ class NebelseetalApp:
                 self._dorf_kasten(zeichenflaeche, cx, cy, zelle, "#B45309", ("portalbote",))
         # W-8: auch die EIGENEN Doerfer stehen auf ihrer Welt - mit dem Wappen des Spielers.
         for _ort in (getattr(self.state, "settlements", None) or []):   # jede eigene Siedlung
-            if int(getattr(_ort, "dimension", 1) or 1) != int(nummer):  # nur die dieser Weltkarte
+            if int(getattr(_ort, "dimension", 1) or 1) != int(angezeigt):  # nur die DIESER Weltkarte
                 continue
             _cx = (int(getattr(_ort, "x", 0)) + 0.5) * zelle            # Feldmitte in x
             _cy = (int(getattr(_ort, "y", 0)) + 0.5) * zelle            # Feldmitte in y
@@ -8801,6 +8853,19 @@ class NebelseetalApp:
             tk.Label(legende, text=f"{eintrag['name']} {eintrag['haeufigkeit']}",
                      fg=self.skin["text"], bg=self.skin["bg"],
                      font=("TkDefaultFont", 8)).pack(side=tk.LEFT)
+        # W-7 (Daniel 03.11.2026): "Auch soll er sehen wenn der bot sein zweites dorf gegründet hat das
+        # in seiner welt bereits 2 dörfer von ihm stehen." Gezaehlt wird, was auf DIESER Karte steht -
+        # die Burg samt Wappen zeigt, von wem die Rede ist.
+        _je_bot = {}
+        for _bot, _dorf in self._bot_doerfer_im_raster(kante, angezeigt):
+            _eintrag = _je_bot.setdefault(str(_bot.name), [str(_bot.faction), 0])
+            _eintrag[1] += 1
+        if _je_bot:
+            _teile = ["%s (%s): %d Doerfer" % (name, wert[0], wert[1])
+                      for name, wert in sorted(_je_bot.items())]
+            tk.Label(self.content, text="Fremde Doerfer auf dieser Welt - " + ", ".join(_teile),
+                     fg="#FFE8C2", bg=self.skin["bg"], wraplength=760, justify=tk.LEFT,
+                     font=("TkDefaultFont", 9)).pack(anchor=tk.W, padx=10, pady=(2, 0))
         hinweis = next((f["gelaende_grund"] for f in felder if f.get("gelaende_grund")), "")
         if hinweis:
             tk.Label(self.content, text=hinweis, fg="#e53935", bg=self.skin["bg"],
@@ -10042,6 +10107,16 @@ class NebelseetalApp:
         "Spionage", dann die Truppenauswahl. Angezeigt wird nur, was ohne Spionage offen ist -
         Wallstufe, Taktik, Truppen und Vorraete kommen ausschliesslich ueber einen Bericht.
         """
+        # W-1/W-3 (Daniel 03.11.2026): ein Dorf in einer FREMDEN Welt ist nur zu ANSEHEN. Ein
+        # Kampfauftrag ueber die Weltgrenze ist nicht freigegeben (Kosten/Sperre ist offene
+        # Entscheidung W-3) - also gibt es hier auch keinen Knopf, der ihn starten koennte.
+        if int(getattr(dorf, "dimension", 1) or 1) != int(self.state.eigene_dimension):
+            meldung = ("%s liegt auf Weltkarte %02d - das ist NUR ANSICHT. Ein Auftrag ueber die "
+                       "Weltgrenze ist noch nicht freigegeben (offene Entscheidung W-3)."
+                       % (dorf.name, int(dorf.dimension)))
+            self._log(meldung)
+            self.state.messages.append({"text": meldung, "type": "system"})
+            return
         fenster = tk.Toplevel(self.root)                               # eigenes Fenster
         fenster.title("Fremdes Dorf: " + str(dorf.name))               # Ueberschrift
         fenster.configure(bg=self.skin["bg"])                          # Farbe wie das Spiel

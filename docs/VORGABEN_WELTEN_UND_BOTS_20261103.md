@@ -18,7 +18,7 @@ Daniels Wort) und W-4 (Bot gegen Bot).
 
 ## 2. Was Daniel dazu als Vorschlag offen laesst
 
-Er sagt ausdruecklich: "gerne offen fuer kluge umsetzungsvorschlaege". Deshalb hier die Vorschlaege
+Er sagt ausdruecklich: „gerne offen fuer kluge umsetzungsvorschlaege“. Deshalb hier die Vorschlaege
 als VORSCHLAG gekennzeichnet — gebaut wird erst nach seiner Antwort:
 
 1. **W-3 als eigene Sperre statt als Preis:** ein Kampfauftrag ueber eine Weltgrenze ist nicht
@@ -70,3 +70,27 @@ mitgebaut.
 | W-8 | 'Erkennbar sind bots oder der spieler weil bots durch ihre fraktion auch ein wappen haben und auf der weltkarte sollen hauptdorf und nebendörfer die selbe burg mit dem dazugehörigen wappen tragen' | **GEBAUT** (Register 165): je Fraktion eine Burg mit Wappen aus `data/bot_wappen.json`; Haupt- und Nebendoerfer desselben Bots tragen dasselbe Paar, der Spieler sein eigenes |
 | W-9 | 'Wenn ich als spieler eine fraktion wähle sollte ich auch in dieser welt starten' und 'nicht zwangsweise midgard als startwelt' | **GEBAUT** (Register 164): `data/welt_fraktionen.json`, der Spieler startet in der Welt seines Volkes; kein Midgard-Zwang im Code |
 | W-10 | Die Heimatwelt eines Bots bleibt fuer immer; nur Nebendoerfer duerfen umziehen (praezisiert W-1/W-2) | **teilweise**: `herkunftswelt` steht am Dorf und bleibt stehen (Register 163); der UMZUG eines Nebendorfs ist noch nicht gebaut |
+
+## W-11 — Story und Lore: eigenes Konzept, Fraktionen zuerst (Daniel 03.11.2026, 15:30)
+
+**Woertlich:**
+> „Für die Loore bzw Geschichte zum Spiel gilt ab sofort: Nur noch benötigte informationen aus der
+> Nebelseetal geschichte und die thematik Nebel See Tal zu nehmen aber die geschichte den jetzt
+> vorhandenen Fraktionen und den attributen dieser Fraktionen bzw Völker anzupassen. Das ist aber nur
+> Story und nebensächlich und wird bitte dementsprechend eingeordnet in den ablauf. Mittlerweile haben
+> wir denke ich bereits unser ganz eigenes Spielkonzept und sollten es auch als solches Entwickeln.
+> Mach mir zur story dann gerne vorschläge usw wenn es an der reihe ist.“
+
+**Was daraus gilt:**
+
+| Nr | Regel |
+|---|---|
+| S-1 | Aus der Nebelseetal-Geschichte und dem Thema „Nebelsee-Tal“ wird nur genommen, was NOETIG ist - keine Uebernahme des alten Rahmens um seiner selbst willen. |
+| S-2 | Die Geschichte wird den SECHS vorhandenen Fraktionen (menschlich, zwergisch, elfisch, Trolle, Ghule, Gnome) und ihren belegten Attributen angepasst - nicht umgekehrt. |
+| S-3 | Story ist NEBENSACHLICH: sie kommt nach Mechanik, Welten, Bots und Wirtschaft, nicht davor und nicht dazwischen. |
+| S-4 | Das Spiel ist unser EIGENES Konzept; es wird als solches entwickelt und beschrieben, nicht als Nachbau des Originals. Originaltreue gilt weiter fuer MECHANIK und ZAHLEN (Pruefregel), nicht fuer die Erzaehlung. |
+| S-5 | Beim Erzaehlen sind Vorschlaege erwuenscht (Daniel 03.11.2026) - sie werden als VORSCHLAG vorgelegt, nicht stillschweigend gesetzt. |
+
+**Einordnung im Ablauf:** Story steht am ENDE der Arbeitsliste, nach S-5 bis S-9 und W-3/W-4. Wenn
+Daniel sie aufruft, kommen zuerst Vorschlaege (Fraktionen als Traeger der Handlung, Nebelsee-Tal als
+Schauplatz, sechs Welten als Kapitel), dann erst Text.
