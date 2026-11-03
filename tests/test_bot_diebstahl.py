@@ -55,10 +55,11 @@ SCHWELLE = int(REGELN["armee_schwelle"])
 def neuer_bot(name: str = "Haug", einheiten: int = 0, vorrat=None):
     """Ein Bot mit einem Hauptdorf; `einheiten` setzt seine Armee."""
     bot = M.BotPlayer(name, BK.BOT_FRAKTIONEN.get(name, "menschlich"), 0.3, 0.5)
-    bot.army = {"Held": einheiten} if einheiten else {}
     dorf = M.BotDorf(name="Haupt", hauptdorf=True, karte="original-036",
                      vorraete=dict(vorrat or {"holz": 0.0}))
     bot.doerfer = [dorf]
+    # S-5b (03.11.2026): die Armee steht im Dorf - deshalb NACH dem Dorf setzen.
+    bot.army = {"Held": einheiten} if einheiten else {}
     return bot, dorf
 
 

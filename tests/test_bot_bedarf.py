@@ -54,10 +54,11 @@ WARE = sorted(w for w, e in REZEPTE.items() if (e.get("kosten") or {}).get("meta
 def neuer_bot(name: str = "Haug", armee=None, karte: str = "original-036"):
     """Ein Bot mit EINEM Hauptdorf; `armee` setzt die Armee (ohne: leer)."""
     bot = M.BotPlayer(name, BK.BOT_FRAKTIONEN.get(name, "menschlich"), 0.3, 0.5)
-    bot.army = dict(armee or {})
     dorf = M.BotDorf(name="Haupt", hauptdorf=True, karte=karte,
                      vorraete={"holz": 5000.0, "stein": 5000.0, "nahrung": 5000.0})
     bot.doerfer = [dorf]
+    # S-5b (03.11.2026): die Armee steht im Dorf - deshalb NACH dem Dorf setzen.
+    bot.army = dict(armee or {})
     return bot, dorf
 
 

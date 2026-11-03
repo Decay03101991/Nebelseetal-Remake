@@ -9,6 +9,7 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
 import bot_angriffsplanung as A
 from main import BotPlayer, GameState, Settlement
+import main
 
 
 def ort(name, x, stufe=0, besetzt=True, truppen=None):
@@ -96,9 +97,11 @@ class BotIntegrationTests(unittest.TestCase):
         self.g=GameState()
         self.g.noob_protection=False
         self.g.settlements=[ort('Stark',1),ort('Schwach',2,besetzt=False)]
-        self.g.bots=[BotPlayer(name='Pruefbot',faction='menschlich',aggression=1,
-                               trading=0,army={'Bürgerwehr':10},
-                               lager={'Handkarren':1})]
+        # S-5b (03.11.2026): `army` ist kein Konstruktorfeld mehr (die Armee steht in den Doerfern).
+        _bot = BotPlayer(name='Pruefbot',faction='menschlich',aggression=1,
+                         trading=0,lager={'Handkarren':1})
+        main.bot_armee_setzen(_bot, {'Bürgerwehr': 10})
+        self.g.bots=[_bot]
 
     def _run(self):
         with patch('main.botkern.bots_tick', side_effect=bot_zug):

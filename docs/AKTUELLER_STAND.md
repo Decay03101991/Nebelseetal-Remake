@@ -1,3 +1,30 @@
+# STAND 03.11.2026, 16:45 - S-5b/S-5c: die Armee steht in den Doerfern (Register 167)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Die Armee eines Bots haengt nicht mehr am Bot, sondern in seinen Doerfern — und jedes Dorf isst
+fuer seine eigene Garnison.** Das ist die Voraussetzung fuer S-5a (Ausbildung je Ort): ohne diesen
+Schritt haette eine Ausbildung im Dorf das Essen doppelt gezaehlt.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `f7e1d16` plus diese Aenderung | `git log --oneline -1` |
+| Wache | `tests/test_bot_armee_je_dorf.py` **21/0/1** | eigener Lauf |
+| Gegenprobe | Eigenschaft liefert `{}` -> **4 Fehler**, Datei hashgleich zurueckgesetzt | eigener Lauf |
+| Umgestellte Wachen | `test_bot_nahrung` **47/0/0**, `test_bot_bedarf` **25/0/1**, `test_bot_diebstahl` **46/0/1**, drei GPT-Wachen OK | eigene Laeufe |
+| Nachbardateien | `test_botkern` **101/0/0**, `test_s7_botverhalten` **46/0/0**, `test_bot_dorf_wirtschaft` **54/0/0**, `test_durchspiel` **65/0/2** | eigene Laeufe |
+
+## Der EINE naechste Schritt
+
+**S-5a: Ausbildung je Ort ueber die Warteschlange statt Kauf.** Der Kern hat sie schon
+(`spieloekonomie.ausbildung_start`, `ausbildung_grenzen`, `Settlement.ausbildung` je Ort, und
+`bot_dorf_als_ort` reicht sie durch) - der Bot umgeht sie nur. Jetzt darf er sie benutzen: die
+Einheit entsteht im Dorf mit dem Einheiten-Gebaeude und steht danach im selben Dorf (S-5b ist dafuer
+gebaut), gegessen wird dort (S-5c). Danach **W-4** (Bots rauben untereinander), **S-6/S-7/S-9**,
+zuletzt **W-3** (braucht Daniels Entscheidung) und die **Story** (W-11, nebensaechlich).
+
+**Der Sammellauf gehoert zum Abschluss jedes Code-Schnitts** - nach diesem Stand laeuft er.
+
 # STAND 03.11.2026, 15:40 - W-6/W-7: Blick in fremde Welten, Doerfer je Welt (Register 166)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

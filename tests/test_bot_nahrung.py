@@ -44,10 +44,12 @@ TEXT_MAIN = open(os.path.join(SRC, "main.py"), encoding="utf-8").read()
 def bot_mit_armee(anzahl: int = 100, nahrung: float = 0.0, doerfer: int = 1):
     """Ein Bot mit EINER Armee und wahlweise mehreren Doerfern (Hauptdorf = das erste)."""
     bot = M.BotPlayer("Pruefbot", BK.BOT_FRAKTIONEN[BK.BOT_NAMEN[0]], 0.3, 0.5)
-    bot.army = {"Krieger": int(anzahl)} if anzahl else {}
+    # S-5b (03.11.2026): die Armee steht in den DOERFERN (Summe = `bot.army`). Deshalb erst die
+    # Doerfer anlegen, dann die Armee setzen - umgekehrt haette das Setzen kein Dorf zum Buchen.
     bot.doerfer = [M.BotDorf(name="Haupt", hauptdorf=(i == 0),
                              vorraete={"nahrung": float(nahrung)})
                    for i in range(doerfer)]
+    bot.army = {"Krieger": int(anzahl)} if anzahl else {}
     return bot
 
 
@@ -109,7 +111,15 @@ alt = M.BotDorf(**{"name": "Alt", "vorraete": None})
 b_alt = bot_mit_armee(10)
 b_alt.doerfer = [alt]
 M.bot_futter_buchen(b_alt, alt, 0.0, 86400.0)
-check("2 ein altes Dorf ohne Vorratsfeld wird angelegt statt abzustuerzen",
+# S-5c (03.11.2026): gegessen wird je DORF fuer SEINE Garnison. Ein Dorf ohne Einheiten isst
+# nichts - dann wird auch kein Vorratsfeld angelegt (der Fruehfall kommt vor dem Anlegen). Geprueft
+# wird deshalb beides: kein Absturz ohne Garnison UND angelegt, sobald das Dorf Einheiten hat.
+check("2 ein altes Dorf ohne Garnison stuerzt nicht ab (kein Essen, kein Feld)",
+      M.bot_futter_buchen(b_alt, alt, 0.0, 86400.0)["verbrauch"] == 0.0, str(alt.vorraete))
+alt.einheiten = {"Krieger": 10}
+alt.vorraete = None
+M.bot_futter_buchen(b_alt, alt, 0.0, 86400.0)
+check("2 ein altes Dorf MIT Garnison legt das Vorratsfeld an statt abzustuerzen",
       isinstance(alt.vorraete, dict) and float(alt.vorraete.get("nahrung", -1)) == 0.0,
       str(alt.vorraete))
 
@@ -236,7 +246,13 @@ abschnitt("7. Quellwache: der Anschluss ist im Code, nicht nur in dieser Datei")
 # ==========================================================================
 check("7 der Ernteweg ruft bot_futter_buchen", "bot_futter_buchen(bot, dorf, seit, jetzt" in TEXT_MAIN,
       "main.bot_doerfer_ernten")
-check("7 gebucht wird nur im Hauptdorf", 'getattr(dorf, "hauptdorf", False)' in TEXT_MAIN,
+# ENTSCHEIDUNG GEAENDERT (S-5c, 03.11.2026): gebucht wird NICHT mehr nur im Hauptdorf, sondern in
+# JEDEM Dorf fuer seine eigene Garnison. Die Wache prueft jetzt genau das - der Aufruf steht ohne
+# Hauptdorf-Bedingung im Ernteweg, und die Bedingung ist aus dem Kern-Weg verschwunden.
+check("7 gebucht wird je Dorf, nicht mehr nur im Hauptdorf",
+      "bot_futter_buchen(bot, dorf, seit, jetzt" in TEXT_MAIN
+      and "if getattr(dorf, \"hauptdorf\", False):                             # die Armee isst im Hauptdorf"
+      not in TEXT_MAIN,
       "main.bot_doerfer_ernten")
 check("7 die Aufstellung fragt die Kaufbremse", "if not bot_nahrung_deckt(bot, 1):" in TEXT_MAIN,
       "main.bot_armee_aufstellen")

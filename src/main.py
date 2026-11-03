@@ -267,7 +267,9 @@ class BotPlayer:
     aggression: float
     trading: float
     settlements: List[str] = field(default_factory=list)
-    army: Dict[str, int] = field(default_factory=dict)
+    # S-5b (03.11.2026): hier stand das Feld `army`. Es ist ENTFALLEN - die Armee eines Bots
+    # ist seit S-5b die SUMME seiner Doerfer (`BotDorf.einheiten`). Ein eigenes Feld waere die
+    # zweite Buchfuehrung, die B-3 fuer die Kasse schon einmal teuer aufgedeckt hat.
     ruf: int = 0
     noob_protection: bool = True
     last_rename: float = 0.0
@@ -330,6 +332,24 @@ class BotPlayer:
         """Setzt die GESAMTkasse eines Bots - gebucht wird dabei auf die Doerfer."""
         bot_kasse_setzen(self, werte)                                     # verteilt, keine zweite Kasse
 
+    # ---- S-5b (03.11.2026): die Armee ist KEIN eigenes Feld, sondern die Summe der Doerfer ----
+
+    @property
+    def army(self) -> Dict[str, int]:
+        """Die Armee des Bots - gelesen als SUMME der Dorf-Garnisonen (S-5b, 03.11.2026).
+
+        EINE Wahrheit: Lesen rechnet ueber `bot_armee`, Schreiben verteilt ueber
+        `bot_armee_setzen` auf die Doerfer. Ein `bot.army[name] += 1` aendert damit NICHTS mehr
+        still (es landet in einem Zwischenergebnis) - gebucht wird ausschliesslich ueber
+        `bot_armee_buchen`. Genau dieser Fehler ist bei der Kasse (B-3) passiert.
+        """
+        return bot_armee(self)                                            # Summe der Doerfer
+
+    @army.setter
+    def army(self, werte) -> None:
+        """Setzt die GESAMTarmee eines Bots - verteilt auf die Doerfer (Hauptdorf)."""
+        bot_armee_setzen(self, werte)                                     # verteilt, keine zweite Armee
+
 
 def bot_doerfer_sicherstellen(bot: "BotPlayer") -> List["BotDorf"]:
     """Legt fuer einen Bot fehlende Dorf-Datensaetze an - einmalig, verlustfrei, idempotent.
@@ -370,6 +390,60 @@ def bot_doerfer_sicherstellen(bot: "BotPlayer") -> List["BotDorf"]:
     return doerfer
 
 
+def bot_armee(bot: "BotPlayer") -> Dict[str, int]:
+    """Die Armee eines Bots als SUMME seiner Dorf-Garnisonen (S-5b, 03.11.2026).
+
+    Rueckgabe: {Einheit: Anzahl}. Ein Bot ohne Doerfer hat eine leere Armee - es wird nichts
+    erfunden. Die Namen kommen woertlich aus `data/units.json` (gesetzt von dem, der bucht).
+    """
+    summe: Dict[str, int] = {}                                            # Ergebnis
+    for dorf in bot_doerfer_sicherstellen(bot):                           # je Dorf die Garnison
+        for name, menge in (getattr(dorf, "einheiten", None) or {}).items():   # Einheit -> Anzahl
+            wert = int(menge)                                              # ganze Einheiten
+            if wert > 0:                                                   # nur was wirklich da ist
+                summe[str(name)] = summe.get(str(name), 0) + wert          # aufsummieren
+    return summe                                                          # die Summe
+
+
+def bot_armee_setzen(bot: "BotPlayer", werte) -> None:
+    """Setzt die GESAMTarmee eines Bots - sie landet im HAUPTDORF (S-5b, 03.11.2026).
+
+    Das ist der Weg fuer alte Spielstaende und fuer alles, was eine ganze Armee auf einmal setzt.
+    Die Dorf-Garnisonen werden dabei ERSETZT (nicht addiert), damit zweimaliges Setzen nicht
+    doppelt aufstellt - dieselbe Regel wie bei `bot_kasse_setzen`.
+    """
+    sauber = {str(n): max(0, int(m)) for n, m in dict(werte or {}).items() if int(m) > 0}
+    doerfer = bot_doerfer_sicherstellen(bot)                              # Doerfer in einer Form
+    for dorf in doerfer:                                                  # jede alte Garnison faellt weg
+        dorf.einheiten = {}
+    if not sauber or not doerfer:                                         # leere Armee oder kein Dorf
+        return                                                            # dann bleibt alles leer
+    haupt = next((d for d in doerfer if getattr(d, "hauptdorf", False)), doerfer[0])
+    haupt.einheiten = dict(sauber)                                        # die Armee steht im Hauptdorf
+
+
+def bot_armee_buchen(bot: "BotPlayer", name: str, menge: int, dorf: "BotDorf" = None) -> int:
+    """Bucht EINE Einheit auf ein Dorf - der EINE Schreiber der Armee (S-5b, 03.11.2026).
+
+    Ohne `dorf` wird das Hauptdorf genommen. Negative Mengen buchen ab, aber nie unter 0.
+    Rueckgabe: der neue Bestand dieser Einheit im Dorf.
+    """
+    doerfer = bot_doerfer_sicherstellen(bot)                              # Doerfer in einer Form
+    ziel = dorf or next((d for d in doerfer if getattr(d, "hauptdorf", False)),
+                        doerfer[0] if doerfer else None)                   # Hauptdorf als Vorgabe
+    if ziel is None:                                                      # kein Dorf vorhanden
+        return 0                                                          # dann wird nichts gebucht
+    if not isinstance(ziel.einheiten, dict):                              # altes Dorf ohne Feld
+        ziel.einheiten = {}                                               # dann anlegen
+    alt = int(ziel.einheiten.get(str(name), 0) or 0)                      # Bestand vor der Buchung
+    neu = max(0, alt + int(menge))                                        # nie unter 0
+    if neu:                                                               # Einheit vorhanden
+        ziel.einheiten[str(name)] = neu                                   # neuen Stand schreiben
+    else:                                                                 # keine mehr
+        ziel.einheiten.pop(str(name), None)                               # dann raus aus der Garnison
+    return neu                                                            # neuer Bestand
+
+
 def bot_aus_stand(daten: dict) -> "BotPlayer":
     """Baut einen Bot aus einem gespeicherten dict - Doerfer als Objekte, alte Kasse migriert.
 
@@ -381,11 +455,16 @@ def bot_aus_stand(daten: dict) -> "BotPlayer":
     """
     werte = dict(daten or {})                                             # Kopie, Eingabe bleibt unberuehrt
     alt_kasse = werte.pop("vorraete", None)                               # die EINE Kasse von vor B-3
+    # S-5b (03.11.2026): Spielstaende VOR S-5b tragen die Armee als eigenes Feld `armee`. Sie wird
+    # hier herausgenommen und nach dem Aufbau ins Hauptdorf gelegt - verlustfrei, ohne Doppelzaehlung.
+    alt_armee = werte.pop("armee", None)                                  # die EINE Armee von vor S-5b
     roh = werte.get("doerfer") or []                                      # gespeicherte Doerfer (dicts)
     werte["doerfer"] = [d if isinstance(d, BotDorf) else BotDorf(**d) for d in roh]   # zurueck zu Objekten
     bot = BotPlayer(**werte)                                              # uebrige Felder wie bisher
     if isinstance(alt_kasse, dict) and alt_kasse:                         # alter Stand mit einer Kasse
         bot_kasse_setzen(bot, alt_kasse)                                  # verlustfrei auf die Doerfer
+    if isinstance(alt_armee, dict) and alt_armee:                         # alter Stand mit einer Armee
+        bot_armee_setzen(bot, alt_armee)                                  # ins Hauptdorf, genau einmal
     return bot
 
 
@@ -548,9 +627,9 @@ def bot_futter_buchen(bot: "BotPlayer", dorf: "BotDorf", ab: float, bis: float,
     (Daniel 03.11.2026: keine Desertion, aber Kaufstopp - den haelt `bot_nahrung_deckt` in
     `GameState.bot_armee_aufstellen`).
 
-    Gebucht wird NUR im Hauptdorf: ein Bot hat EINE Armee (`bot.army`), nicht je Dorf eine
-    Garnison. Reicht das Hauptdorf nicht, entsteht Unterdeckung - Nachschub aus den anderen
-    Doerfern ist S-7 (Karawanen), nicht dieses Schnittes.
+    Gebucht wird JE DORF fuer die Garnison DIESES Dorfes (S-5c, 03.11.2026: "Armee zieht in die
+    Doerfer und isst dort"). Reicht das Dorf nicht, entsteht Unterdeckung - Nachschub aus den
+    anderen Doerfern ist S-7 (Karawanen), nicht dieses Schnittes.
 
     Rueckgabe: ``{"ab", "bis", "verbrauch", "unterdeckung"}`` (leer, wenn kein Bedarf entstand).
     """
@@ -559,7 +638,9 @@ def bot_futter_buchen(bot: "BotPlayer", dorf: "BotDorf", ab: float, bis: float,
     leer: Dict[str, float] = {"ab": ab, "bis": bis, "verbrauch": 0.0, "unterdeckung": 0.0}
     if bis <= ab:                                                     # leere oder rueckwaerts
         return leer                                                   # laufende Spanne: kein Verbrauch
-    bedarf_tag = bot_nahrungsbedarf(bot)                              # 8 je Einheit (Datendatei)
+    # S-5c: gegessen wird, was in DIESEM Dorf steht - dieselbe Rechenstelle wie beim Spieler.
+    garnison = {str(n): int(m) for n, m in (getattr(dorf, "einheiten", None) or {}).items()}
+    bedarf_tag = spieloekonomie.tagesbedarf_nahrung(garnison)         # 8 je Einheit (Datendatei)
     if bedarf_tag <= 0:                                               # leere Armee oder Verbrauch aus
         return leer                                                   # dann isst niemand
     bedarf = bedarf_tag * (bis - ab) / 86400.0                        # Anteil der Spanne am Spieltag
@@ -1680,8 +1761,9 @@ def bot_doerfer_ernten(bot: "BotPlayer", jetzt: float, einstellungen: Optional[d
             for stoff, menge in geerntet.items():                         # Zuwachs aufsummieren
                 ergebnis[stoff] = round(ergebnis.get(stoff, 0.0) + menge, 2)
             dorf.ernte_seit = jetzt                                       # Erntezeit fortschreiben
-            if getattr(dorf, "hauptdorf", False):                         # die Armee isst im Hauptdorf
-                bot_futter_buchen(bot, dorf, seit, jetzt, geerntet)       # dieselbe Buchstelle
+            # S-5c (03.11.2026): Auf dem KERN-Weg isst die Garnison bereits in `ort_tick` (das Dorf
+            # geht MIT seinen Einheiten hinein). Ein zweiter Aufruf hier zaehlte das Essen doppelt -
+            # deshalb steht er nur noch auf dem Karten-Weg (siehe unten).
             continue                                                      # naechstes Dorf
         stunden = (jetzt - seit) / 3600.0                                 # vergangene Spielstunden
         if not isinstance(getattr(dorf, "vorraete", None), dict):         # altes Dorf ohne Vorratsfeld
@@ -1709,8 +1791,8 @@ def bot_doerfer_ernten(bot: "BotPlayer", jetzt: float, einstellungen: Optional[d
                                           float(getattr(dorf, "bevoelkerung", 0.0) or 0.0)
                                           + zuwachs_bev), 2)              # nie ueber den Deckel
         dorf.ernte_seit = jetzt                                           # Erntezeit fortschreiben
-        if getattr(dorf, "hauptdorf", False):                             # S-2: die Armee isst im Hauptdorf
-            bot_futter_buchen(bot, dorf, seit, jetzt, geerntet)           # nach der Ernte (wie beim Spieler)
+        # S-5c (03.11.2026): die Garnison isst in IHREM Dorf - nicht nur im Hauptdorf.
+        bot_futter_buchen(bot, dorf, seit, jetzt, geerntet)               # nach der Ernte (wie beim Spieler)
     return ergebnis                                                       # was dazukam
 
 
@@ -3150,7 +3232,10 @@ class GameState:
             # W5 (botkern): KEINE erfundene Armee mehr. Hier stand `random.randint(20, 120)` JE
             # EINHEIT — damit war jeder Bot-Angriff aussichtslos. Der Bot legt jetzt Vorräte und
             # Wagenpark an und stellt seine Einheiten daraus nach den BELEGTEN Preisen auf.
-            d["army"] = {}
+            # S-5b (03.11.2026): die Armee ist kein Feld des Bots mehr (sie steht in den Doerfern) -
+            # ein frischer Bot startet ohne Einheiten, ohne dass hier etwas gesetzt wird.
+            d.pop("army", None)
+            d.pop("armee", None)
             d["ruf"] = random.randint(0, 60)
             bots.append(BotPlayer(**d))
         self.bots = bots
@@ -4850,7 +4935,8 @@ class GameState:
                 bot_kasse_buchen(bot, stoff, -menge)                      # Kosten abbuchen
             if siedler:                                                   # Siedler gehen vom Hauptdorf
                 haupt.bevoelkerung = round(float(haupt.bevoelkerung) - siedler, 2)
-            bot.army[name] = bot.army.get(name, 0) + 1                    # Einheit dazustellen
+            # S-5b: die Einheit entsteht im HAUPTDORF (dort steht die Armee, dort isst sie).
+            bot_armee_buchen(bot, name, 1, haupt)                         # EIN Schreiber der Armee
             return name                                                   # fertig
         return None                                                       # nichts bezahlbar
 
@@ -4968,7 +5054,8 @@ class GameState:
                             if self._lokale_kasse_aktiv():
                                 zielort.mauer_zustand = float(kampf_result.get("mauer_zustand", wz))
                             for name, menge in (kampf_result.get("verluste_angreifer") or {}).items():
-                                bot.army[name] = max(0, int(bot.army.get(name, 0)) - int(menge))
+                                # S-5b: Verluste werden auf der Dorf-Garnison gebucht (nie unter 0).
+                                bot_armee_buchen(bot, name, -int(menge))
                             for name, menge in (kampf_result.get("verluste_verteidiger") or {}).items():
                                 zielort.einheiten[name] = max(
                                     0, int(zielort.einheiten.get(name, 0)) - int(menge))

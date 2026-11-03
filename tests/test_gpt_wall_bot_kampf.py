@@ -7,6 +7,7 @@ from pathlib import Path
 from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'src'))
 from main import GameState, BotPlayer, Settlement
+import main
 
 
 def ort():
@@ -33,8 +34,10 @@ class BotWallTests(unittest.TestCase):
         self.s=ort()
         self.state.settlements=[self.s]
         self.state.noob_protection=False
+        # S-5b (03.11.2026): `army` ist kein Konstruktorfeld mehr - die Armee steht in den Doerfern.
         self.bot=BotPlayer(name='Ulf',faction='menschlich',aggression=1,trading=0,
-                           army={'Bürgerwehr':1},lager={'Handkarren':1})
+                           lager={'Handkarren':1})
+        main.bot_armee_setzen(self.bot, {'Bürgerwehr': 1})
         self.state.bots=[self.bot]
 
     def test_kein_gratisangriff_mit_wall(self):
