@@ -81,6 +81,50 @@ def startkarte(seed, eigentuemer):
         ident = kandidaten[n % len(kandidaten)]
     return karte(ident, seed=f"{seed}:start:{eigentuemer}")
 
+def _startkarte_konfig() -> dict:
+    """Die Werte der Startkartenwahl aus `data/startkarte.json` (keine Zahl im Code)."""
+    import json
+    from pathlib import Path
+    pfad = Path(__file__).resolve().parent.parent / "data" / "startkarte.json"
+    with open(pfad, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def startkarte_kandidaten(seed) -> list:
+    """Die Karten, aus denen der Spieler beim ersten Gruenden waehlt (A2-Vorstufe, 03.11.2026).
+
+    Deterministisch je Seed und Auswahl: dieselbe Startsaat bietet immer dieselben Kandidaten.
+    Die Standardkarte (`standard_karte`) ist IMMER dabei - so ist der belegte Startbild-Fall
+    weiter eine der Moeglichkeiten und die Wahl kann nichts kaputt machen.
+    """
+    cfg = _startkarte_konfig()
+    anzahl = max(1, int(cfg.get("anzahl_kandidaten") or 1))
+    kategorien = [str(k) for k in (cfg.get("kategorien") or ["mittlere"])]
+    standard = str(cfg.get("standard_karte") or START_ID)
+    uebrige = [e["id"] for e in alle()
+               if e.get("kategorie") in kategorien and e["id"] != standard]
+    uebrige.sort(key=lambda kennung: hashlib.sha256(
+        ("%s:%s" % (seed, kennung)).encode("utf-8")).hexdigest())
+    ids = [standard] + uebrige[:max(0, anzahl - 1)]
+    return [karte(kennung, seed="%s:startkandidat:%s" % (seed, kennung)) for kennung in ids]
+
+
+def startkarte_auswahl_erforderlich(anzahl_siedlungen: int, maximum: int, gewaehlt: str) -> bool:
+    """Muss die Startkartenwahl noch gezeigt werden? (erste Siedlung, noch nichts gewaehlt)"""
+    if int(anzahl_siedlungen) >= int(maximum):
+        return False
+    if int(anzahl_siedlungen) > 0:
+        return False
+    return not str(gewaehlt or "").strip()
+
+
+def startkarte_gewaehlt(gewaehlt: str, seed):
+    """Die Karte des Spielers: die gewaehlte, sonst die belegte Standardkarte."""
+    kennung = str(gewaehlt or "").strip()
+    if kennung:
+        return karte(kennung, seed="%s:start:spieler" % seed)
+    return startkarte(seed, "spieler")
+
 def vorrat(seed):
     """Alle dokumentierten Originalkarten mit reproduzierbaren eindeutigen IDs.
 

@@ -129,6 +129,8 @@ check("3 die Menueleiste holt ein Icon (_menue_icon)",
 check("3 der Bauknopf holt das Icon seines Gebaeudes",
       'angebot["id"], 28' in quelltext or "angebot['id'], 28" in quelltext,
       "Aufruf _optik_bild(angebot[id], 28)")
+# GEPRUEFT 03.11.2026 (A2-Vorstufe, Register 147): die Startkartenwahl ist ein Block im Dorfzentrum
+# ohne eigenen Kopf - der Rueckfall-Kopf bleibt bei drei Stellen.
 check("3 die Gebaeudeansicht ruft den Hintergrund an drei Stellen",
       quelltext.count("self._gebaeude_kopf(") == 3,
       str(quelltext.count("self._gebaeude_kopf(")) + " Aufrufe")

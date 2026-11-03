@@ -1,0 +1,19 @@
+{
+ "modell": "deepseek-v4-pro",
+ "stuecke": 4124,
+ "zeichen": 13824,
+ "dauer_s": 193.5,
+ "usage": {
+  "prompt_tokens": 2899,
+  "completion_tokens": 28088,
+  "total_tokens": 30987,
+  "prompt_tokens_details": {
+   "cached_tokens": 0
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 23963
+  },
+  "prompt_cache_hit_tokens": 0,
+  "prompt_cache_miss_tokens": 2899
+ }
+}

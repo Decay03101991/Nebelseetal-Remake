@@ -1802,6 +1802,9 @@ class GameState:
         # ihn nachträglich bekommt, ohne dass sich etwas an seinen Siedlungen ändert.
         self.kartenvorrat: Dict[str, dict] = {}
         self.kartenvorrat_seed: str = ""
+        # A2-Vorstufe (03.11.2026): die beim ersten Gruenden gewaehlte Startkarte. Leer heisst
+        # "noch nicht gewaehlt" - dann gilt die belegte Standardkarte aus data/startkarte.json.
+        self.startkarte_gewaehlt: str = ""
         # Ökonomie-Paket, Schritt 9, Teil 6b — die EINE Uhr der Orte (Entwurf Z. 592-648):
         # `spielsekunden` ist SPIELZEIT, nicht Rechnerzeit. `main._tick_loop` multipliziert genau
         # einmal mit `spielzeit.faktor()`; alles Ökonomische rechnet nur mit dieser Zahl, damit
@@ -4018,6 +4021,9 @@ class GameState:
             # bleibt vergeben) — ohne ihn könnte ein geladener Stand Karten doppelt vergeben.
             "kartenvorrat": self.kartenvorrat,
             "kartenvorrat_seed": self.kartenvorrat_seed,
+            # A2-Vorstufe: die gewaehlte Startkarte gehoert in den Spielstand, sonst wuerde ein
+            # geladener Stand den Spieler erneut waehlen lassen.
+            "startkarte_gewaehlt": getattr(self, "startkarte_gewaehlt", ""),
             "aktive_siedlung_id": self.aktive_siedlung_id,
             "spielsekunden": self.spielsekunden,
             "noob_protection": self.noob_protection,
@@ -5460,6 +5466,11 @@ class NebelseetalApp:
         # dunklen Balken - Daniel: "die texte und ihre textfelder ... noch keine schoenen uebergaenge".
         self._kasten_label("Dorfzentrum", ("Blackletter", 20, "bold"), self.skin["gold"],
                            innen=14, pady=6)
+        # A2-Vorstufe (03.11.2026): solange keine Siedlung steht und nichts gewaehlt ist, steht hier
+        # die Startkartenwahl als eigener Block. Sie ERSETZT das Dorfzentrum NICHT - die Pflichtkarte
+        # "Dein naechster Schritt" und der Gruendungsknopf bleiben, wo sie waren (vier Pruefdateien
+        # haengen an ihnen).
+        self._startkarte_wahl_block()
 
         _grenze = gebaeude_wirkung.bevoelkerungsgrenze(self.state.settlements)
 
@@ -5748,6 +5759,53 @@ class NebelseetalApp:
         self._log(f"'{key}' ist kein globales Gebäude: die Wirkungen kommen aus den bebauten "
                   f"Feldern der Siedlungskarten — dort das Feld wählen und 'Ausbauen' benutzen.")
 
+    def _startkarte_wahl_block(self) -> bool:
+        """Die Startkartenwahl als Block im Dorfzentrum (A2-Vorstufe, 03.11.2026) - True, wenn gezeigt.
+
+        Daniel hat die Kartenwahl am Start in den eingefrorenen Demo-Umfang gelegt. Der Block steht
+        NUR, solange keine Siedlung existiert und noch nichts gewaehlt ist; danach nie wieder. Er
+        ERSETZT das Dorfzentrum nicht: die Pflichtkarte "Dein naechster Schritt" und der gewohnte
+        Gruendungsknopf bleiben stehen - der Knopf gruendet ohne Wahl mit der Standardkarte, ein Klick
+        auf "Diese Karte nehmen" gruendet mit genau dieser Karte.
+
+        Kandidaten sind deterministisch je Startsaat, die Standardkarte ist immer dabei, alle Zahlen
+        stehen in `data/startkarte.json` (`originalkarten.startkarte_kandidaten`). Die Zeilen sind eine
+        Tabelle und bleiben deckend; die Texte darueber liegen als weiche Felder auf dem Motiv.
+        """
+        gewaehlt = getattr(self.state, "startkarte_gewaehlt", "")
+        if not spieloekonomie.startkarte_auswahl_erforderlich(
+                len(self.state.settlements), SIEDLUNGEN_MAXIMUM, gewaehlt):
+            return False
+        self._kasten_label("Waehle deine Startkarte", ("Blackletter", 16, "bold"),
+                           self.skin["gold"], innen=12, pady=5)
+        self._kasten_label(
+            "Drei Karten stehen zur Wahl. Sie unterscheiden sich in Wald, Gestein und Ackerland - "
+            "was dein Dorf am schnellsten traegt. Die Wahl ist endgueltig und wird im Spielstand "
+            "gespeichert; ohne Wahl gruendet der Knopf unten mit der Standardkarte.",
+            ("TkDefaultFont", 9), "#C0C0C0", breite=810, innen=12, pady=4, umbruch=780)
+        seed = self.state.kartenvorrat_seed or "nebel"
+        for nummer, kandidat in enumerate(spieloekonomie.startkarte_kandidaten(seed), start=1):
+            achsen = spieloekonomie.relativ(kandidat)
+            zeile = tk.Frame(self.content, bg=self.skin["panel"])   # eine Zeile je Karte (Tabelle)
+            zeile.pack(fill=tk.X, padx=10, pady=2)
+            tk.Label(zeile, text=f"{nummer}. {kandidat.get('typ_name') or kandidat.get('originalkarte_id')}",
+                     fg=self.skin["text"], bg=self.skin["panel"], width=18,
+                     anchor=tk.W).pack(side=tk.LEFT, padx=5)
+            tk.Label(zeile, text="Holz %.2f / Stein %.2f / Agrar %.2f" % achsen,
+                     fg="#DAA520", bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
+            tk.Label(zeile, text=str(kandidat.get("vorteil") or "")[:90],
+                     fg="#C0C0C0", bg=self.skin["panel"], wraplength=360,
+                     justify=tk.LEFT).pack(side=tk.LEFT, padx=5)
+            tk.Button(zeile, text="Diese Karte nehmen",
+                      command=lambda k=kandidat.get("originalkarte_id"): self._startkarte_waehlen(k),
+                      bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
+        return True
+
+    def _startkarte_waehlen(self, kennung: str):
+        """Die gewaehlte Startkarte merken und die erste Siedlung gruenden."""
+        self.state.startkarte_gewaehlt = str(kennung or "")
+        self._erste_siedlung_gruenden()
+
     def _found_settlement(self):
         """Eine Siedlung gründen (Ökonomie-Paket, Schritt 9, Teil 5; Entwurf Z. 777).
 
@@ -5775,7 +5833,11 @@ class NebelseetalApp:
             self.state.kartenvorrat_seed = "nebel-%d" % random.randrange(1, 10 ** 9)
         if not self.state.kartenvorrat:
             self.state.kartenvorrat_anlegen(self.state.kartenvorrat_seed)
-        karte = spieloekonomie.startkarte(self.state.kartenvorrat_seed, "spieler")
+        # A2-Vorstufe (03.11.2026): hat der Spieler im Startfenster gewaehlt, gilt seine Karte;
+        # ohne Wahl bleibt es bei der belegten Standardkarte (original-036). Der Aufruf ohne
+        # Argument gruendet deshalb weiterhin sofort - 16 Pruefdateien haengen daran.
+        karte = spieloekonomie.startkarte_gewaehlt(
+            getattr(self.state, "startkarte_gewaehlt", ""), self.state.kartenvorrat_seed)
         for _ in range(200):
             x = random.randint(0, size - 1)
             y = random.randint(0, size - 1)

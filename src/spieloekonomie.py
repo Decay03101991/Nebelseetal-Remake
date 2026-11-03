@@ -103,6 +103,21 @@ def startkarte(seed, eigentuemer) -> dict:
     return originalkarten.startkarte(seed, eigentuemer)
 
 
+def startkarte_kandidaten(seed) -> list:
+    """Die Karten der Startkartenwahl des Spielers (A2-Vorstufe, 03.11.2026)."""
+    return originalkarten.startkarte_kandidaten(seed)
+
+
+def startkarte_auswahl_erforderlich(anzahl_siedlungen, maximum, gewaehlt) -> bool:
+    """Muss die Startkartenwahl gezeigt werden? (erste Siedlung, noch nichts gewaehlt)"""
+    return originalkarten.startkarte_auswahl_erforderlich(anzahl_siedlungen, maximum, gewaehlt)
+
+
+def startkarte_gewaehlt(gewaehlt, seed) -> dict:
+    """Karte des Spielers: die gewaehlte, sonst die belegte Standardkarte."""
+    return originalkarten.startkarte_gewaehlt(gewaehlt, seed)
+
+
 def kapazitaeten(karte) -> dict:
     """Theoretische Stundenerträge einer Karte, Kennungen in Kleinschreibung."""
     return {k.lower(): float(v) for k, v in wirtschaft.kapazitaet({"karte": karte}).items()}

@@ -1,3 +1,51 @@
+# STAND 03.11.2026, 00:37 - A2-Vorstufe: der Spieler waehlt seine Startkarte (Register 147)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Die Startkarte war fest verdrahtet, jetzt waehlt der Spieler.** Solange keine Siedlung steht und
+nichts gewaehlt ist, steht im Dorfzentrum ein eigener Block "Waehle deine Startkarte": drei mittlere
+Karten mit ihren drei Achsen (Holz/Stein/Agrar) und einem Knopf je Karte. Der Block ERSETZT das
+Dorfzentrum nicht - Pflichtkarte und Gruendungsknopf bleiben, und der Knopf gruendet ohne Wahl mit der
+Standardkarte `original-036`. Die Kandidaten sind je Startsaat reproduzierbar, alle Zahlen stehen in
+`data/startkarte.json`, die Wahl landet im Spielstand (`startkarte_gewaehlt`).
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `fd734ae` plus dieser Schritt | `git log --oneline -1` |
+| Entwurf (starkes Modell) | `deepseek-v4-pro`, 30.987 Token (23.963 Denk), 13.824 Zeichen in 194 s | `docs/design/STARTKARTE_ENTWURF_20261103.md`, `docs/audits/usage_startkarte_20261103.json` |
+| Eigene Korrekturen am Entwurf | Modell nahm Objekte statt Dicts an (`alle()` liefert Dicts); die Maske war als `TODO` offen und wurde selbst gebaut | `src/originalkarten.py`, `src/main.py` |
+| Wache | `tests/test_startkartenwahl.py` **28/0/0** | eigener Lauf |
+| Gegenprobe | Aufruf zurueck auf `startkarte(...)` -> **26 bestanden, 2 Fehler**, Datei danach hashgleich (`983f7df0...`) | eigener Lauf |
+| Mitgezogen | `test_gebaeude_icons` 56/0/0, `test_ansicht_hintergrund` 81/0/0, `test_baseline` 40/0/0 | eigene Laeufe |
+| Vom Sammellauf korrigiert | der erste Anlauf ersetzte das Dorfzentrum - `test_startspiel` und `test_gpt_pflicht_starthilfe_fix04f` wurden rot; jetzt ist die Wahl ein Block, die Zaehlwachen bleiben bei 3 | `tests/test_startspiel.py` 62/0/1, `test_gpt_pflicht_starthilfe_fix04f` 9 Tests OK |
+| Pruefdateien / Register | **134** / **147** | `ls tests/test_*.py`, `grep -c '^| [0-9]'` |
+| Voller Sammellauf | **132 von 134 gruen, 0 rot, 2 ausgesetzt, 5.307 Pruefungen, 295 s** | `docs/audits/sammellauf_20261103_0049.log` |
+
+**Der stehende Aufruf bleibt:** `_found_settlement()` und `_erste_siedlung_gruenden()` ohne Argument
+gruenden weiterhin sofort mit der Standardkarte - 16 Pruefdateien mit 22 Aufrufstellen haengen daran.
+
+**Ebenfalls fertig, aber NICHT eingebaut: der Voelkerwahl-Entwurf.** `deepseek-v4-pro` hat auf das Paket
+`docs/auftraege/VOELKER_paket_20261103.md` in 124 s einen Entwurf geliefert (17.421 Zeichen, 18.203
+Token) - `docs/design/VOELKER_ENTWURF_20261103.md`. Daniel hat die sechs Fraktionen vorgegeben
+(menschlich, zwergisch, elfisch, Trolle, Ghule, Gnome; die drei neuen ERSETZEN "monster"). Offen ist
+seine Entscheidung zu Plus/Minus der drei neuen Fraktionen - jede Zahl dafuer waere sonst geraten.
+
+## Der EINE naechste Schritt
+
+**Den Voelkerwahl-Entwurf pruefen und einbauen** (A2): Daniels Entscheid zu Plus/Minus von Trollen,
+Ghulen und Gnomen einholen, dann `data/voelker.json` mit Quelle je Wert anlegen, die Fraktion in den
+Spielstand bringen (heute `botkern.BOT_FRAKTIONEN` fest, 4 Fraktionen fuer 5 Bots, `menschlich` doppelt),
+die Startwahl ins Startfenster neben die Kartenwahl setzen und die fuenf Bots die uebrigen Fraktionen
+bekommen lassen - ohne Doppelung. Danach voller Sammellauf, Protokollzeile, ein Commit.
+
+**Danach:** Volksboni verdrahten (Auftrag V-5 liegt vor, wartet auf Daniels Pruefung), Kopplung
+Punkte/Kanaele (C), Balance-Messung (D), zuletzt Demo-Release (Freigabe Daniel).
+**Marktplatz:** braucht ein Motiv von Daniel (Motiv 2 "Kuppelbau" ist im Handbuch als nicht entscheidbar
+vermerkt) - ohne Zuordnung wird dort nichts gebaut.
+
+**Demo-Umfang ist eingefroren (Daniel 02.11.2026):** Kernkreis + Spionage + Voelker- und Kartenwahl
+am Start. Alles andere kommt NACH dem ersten Demo-Upload.
+
 # STAND 03.11.2026, 00:05 - Stufe M-6: die Forschungszeilen passen ins Fenster (Register 146)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
