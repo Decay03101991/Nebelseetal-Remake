@@ -465,6 +465,52 @@ def boni_fuer_bot(bot, jetzt: float = 0.0) -> Dict[str, float]:
     return boni.kampf_werte(bottaktik.modifikatoren(daten, jetzt))
 
 
+def bot_nahrungsbedarf(bot: "BotPlayer") -> float:
+    """Tagesbedarf an Nahrung fuer die Armee eines Bots - DIESELBE Rechnung wie beim Spieler.
+
+    `spieloekonomie.tagesbedarf_nahrung` ist die eine Rechenstelle (8 je Einheit und Spieltag,
+    `data/nahrungsverbrauch.json`). Ein Bot hat keine Garnison je Dorf, sondern EINE Armee
+    (`bot.army`) - sie steht im Hauptdorf und isst dort.
+    """
+    return spieloekonomie.tagesbedarf_nahrung(dict(getattr(bot, "army", None) or {}))
+
+
+def bot_reserve_nahrung(bot: "BotPlayer", zusaetzliche_einheiten: int = 0) -> float:
+    """Reserve, die ein Bot fuer seine Armee zurueckhalten muss (Kaufbremse, Daniel 03.11.2026).
+
+    Reserve = Tagesbedarf x `reserve_stunden` / `versorgung_stunden` - dieselbe Formel, mit der
+    `botkern.oekonomie_angebot` den Verkauf bremst. Die Stufe steht in `data/bot_wirtschaft.json`
+    (`bot_stufe`), die Stunden in `data/spieloekonomie.json`.
+    """
+    einstellungen = bot_wirtschaft_einstellungen()
+    stufe = str(einstellungen.get("bot_stufe") or "schwer").strip().lower()
+    regeln = spieloekonomie.REGELN
+    profil = (regeln.get("bots") or {}).get(stufe) or {}
+    anzahl = sum(max(0, int(v)) for v in (getattr(bot, "army", None) or {}).values())
+    bedarf = spieloekonomie.tagesbedarf_nahrung({"einheit": anzahl + max(0, int(zusaetzliche_einheiten))})
+    try:
+        stunden = float(profil.get("reserve_stunden") or 0)
+        versorgung = float(regeln.get("versorgung_stunden") or 0)
+    except (TypeError, ValueError):
+        return 0.0
+    if versorgung <= 0:
+        return 0.0
+    return round(bedarf + bedarf * stunden / versorgung, 2)
+
+
+def bot_nahrung_deckt(bot: "BotPlayer", zusaetzliche_einheiten: int = 0) -> bool:
+    """Deckt das Bot-Lager Tagesbedarf PLUS Reserve? (Kaufbremse und Kaufstopp)
+
+    Daniel 03.11.2026: "der Bot stellt nur auf, solange die Nahrung im Lager den Tagesbedarf der
+    Armee PLUS eine Reserve deckt"; bei Unterdeckung kein Nachkauf. Ohne Armee und ohne Vorrat
+    (frischer Bot) ist die Bremse offen, sonst koennte er nie anfangen.
+    """
+    verfuegbar = float((bot_kasse(bot) or {}).get("nahrung", 0.0) or 0.0)
+    if not getattr(bot, "army", None) and verfuegbar <= 0:
+        return True                                                    # frischer Bot, kein Futter
+    return verfuegbar >= bot_reserve_nahrung(bot, zusaetzliche_einheiten)
+
+
 def bot_doerfer_bebauen(dorf: "BotDorf", einstellungen: Optional[dict] = None) -> int:
     """Setzt die Grundanlagen eines Bot-Dorfes auf seine EIGENEN Felder (S-2, 03.11.2026).
 
