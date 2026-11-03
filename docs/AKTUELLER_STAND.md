@@ -25,7 +25,8 @@ angefasst wurde. Gemessene Ursache: `_render_view` leerte den Inhaltsbereich bei
 | 4b | **S-12 Alle Felder nutzen** (Daniel 22:2x) | der Bauplan fuellt die Karte, statt eine feste Zahl abzuarbeiten - `docs/KONZEPT_BOT_SPIELNUTZUNG_20261103.md` |
 | 4c | **S-11 Kartenwahl mit Feldverstaendnis** | der Bot waehlt die Karte nach dem, was ihre Felder fuer SEINE Taktik bringen - nicht mehr Gold pauschal |
 | 4d | **S-13 Abriss und Umbau fuer Bots** | der Spieler kann abreissen, der Bot heute nicht; Kernregeln und Sperren gelten mit |
-| 4e | **S-14 Schieflage 4 gegen 6 Doerfer** | **Entscheidung Daniel**: Bots duerfen so viele Doerfer gruenden wie der Spieler (Empfehlung) oder der Abstand wird anders ausgeglichen |
+| 4e | **S-14 entschieden: kein Gleichstand** | Bots behalten **drei Neugruendungen = vier Doerfer**; Ausgleich kommt aus besserem Spiel (S-11 bis S-13) |
+| 4f | **S-15 Dorf aufgeben und neu gruenden** (Bot UND Spieler) | Daniel: ein Dorf vernichten und auf einer besseren Karte neu gruenden - sechs Gestaltungsfragen stehen im Konzept |
 | 5 | **Die acht Kampfregeln 1 bis 8** | abgesegnet (Register 175), je Regel Wache + Sammellauf |
 | 6 | **C: Refresh-Pfad fuer die fuenf haeufigsten Ansichten** | hier wird es wirklich fluessig; braucht B und die Overlay-Basis |
 | 7 | V-1 bis V-5 (Berichte, Postfach), S-7 Karawanen, S-9 Stil, W-3, Story | wie gehabt |

@@ -55,18 +55,42 @@ Gruendung oder die Verteidigung traegt. Jeder Abriss wird als Nachricht ins Post
 Pruefzusage: ein Bot reisst nachweislich ab und baut am selben Feld etwas anderes; die Zahl der
 Gebaeude bleibt gleich oder steigt; keine Sperre des Kerns wird verletzt.
 
-### S-14 Die Schieflage 4 gegen 6 (Daniels Rechnung)
+### S-14 Schieflage 4 gegen 6 - ENTSCHIEDEN (Daniel 22:3x): kein Gleichstand
 
-Das ist die wichtigste Zeile dieser Datei: **der Spieler darf sechs Siedlungen haben, der Bot vier.**
-Bei gleicher Spielweise ist der Bot am Ende DESSELBEN Spiels immer der Unterlegene - kein noch so
-kluger Bauplan gleicht 50 Prozent mehr Doerfer aus. Zwei Wege, und das ist Daniels Entscheidung:
-1. **Gleichstand herstellen:** Bots duerfen so viele Doerfer gruenden wie der Spieler (die Zahl steht in
-   `data/bot_gruendung.json`, kein Code noetig). Dann entscheidet Spielweise, nicht Dorfzahl.
-2. **Ungleichstand lassen und kompensieren:** Bots bleiben bei vier Doerfern, bekommen aber einen
-   Vorteil (schnellere Gruendungssperre, mehr Anlagen je Feld). Das ist eine Balance-Schraube, keine
-   Spielregel - und sie muss gemessen werden.
-Empfehlung: **Weg 1** - im Original ist jeder Spieler gleich; ein Bot mit weniger Doerfern ist kein
-Gegner, sondern eine Zielscheibe. Weg 2 nur, wenn Daniel bewusst eine Kampfansage will.
+**Bots behalten hoechstens DREI Neugruendungen, also vier Doerfer** (`hoechstens_doerfer: 4` bleibt
+stehen). Der Abstand zum Spieler wird NICHT ueber die Dorfzahl ausgeglichen. Stattdessen gilt Daniels
+Satz: die Bots duerfen weiter Truppen produzieren und **sich selbst optimieren** - der Ausgleich kommt
+aus besserem Spiel, nicht aus mehr Doerfern. Damit werden S-13 (Umbau) und S-15 (Dorf aufgeben)
+wichtiger als jede Mengenregel: ein Bot mit vier optimal gespielten Doerfern muss gegen sechs
+mittelmaessig gespielte bestehen koennen.
+
+### S-15 Dorf aufgeben und neu gruenden - fuer Bots UND Spieler (Daniel 22:3x)
+
+**Daniels Vorgabe:** ein Bot darf ein gegruendetes Dorf "nochmal vernichten, um es neu zu gruenden, weil
+eine andere Karte besser waere fuer ein Botdorf". **Der Spieler soll das auch tun koennen.**
+
+Das ist eine neue Mechanik fuer BEIDE Seiten und beruehrt die Grundregeln nicht: Doerfer werden weiter
+NIE eingenommen (das waere Eroberung von aussen), hier gibt der Besitzer sein EIGENES Dorf auf.
+
+Sechs Gestaltungsfragen, gesammelt fuer die eine Runde (mit Vorschlag):
+
+| Frage | Warum sie wichtig ist | Vorschlag |
+|---|---|---|
+| Was passiert mit Vorraeten und Gebaeuden? | sonst waere Aufgeben ein kostenloser Neustart mit vollem Lager | **Gebaeude und Vorraete verfallen** - das Dorf verschwindet ganz |
+| Was passiert mit den Siedlern? | Siedler sind die harte Grenze (10 + 5 je Haus) | **sie kehren ins Hauptdorf zurueck**, hoechstens bis zu dessen Grenze; der Rest ist verloren |
+| Was passiert mit stationierten Truppen? | sie duerfen nicht im Nichts stehen | sie marschieren ins Hauptdorf zurueck, mit Wegzeit (wie ein eigener Marsch) |
+| Zaehlt das aufgegebene Dorf gegen die Hoechstzahl? | sonst waere Aufgeben ein Schluessel zu mehr Doerfern | **ja, bis zur Neugruendung** - gezaehlt wird, was lebt |
+| Sperre zwischen Aufgeben und Neugruendung? | sonst wuerfelt ein Bot im Minutentakt | **72 Spielstunden**, wie zwischen zwei Gruendungen |
+| Darf die aufgegebene Karte wieder gewaehlt werden? | sonst verliert der Bot eine gute Karte dauerhaft | nein - **eine aufgegebene Karte ist fuer diesen Bot gesperrt** |
+
+**Wann ein Bot aufgibt (VORSCHLAG):** wenn sein Dorf auf seiner Karte den Engpass-Rohstoff seiner Taktik
+nicht traegt (Feldprofil, S-11) UND eine freie Karte diesen Rohstoff deutlich besser traegt (Vergleich
+ueber `bot_kartenprofil`) UND die Neugruendung bezahlbar ist (480/300/250 plus Karren). Sonst bleibt das
+Dorf stehen - Umbau (S-13) ist immer die erste Wahl, Aufgeben die zweite.
+
+**Pruefzusage:** ein Bot gibt nachweislich ein Dorf auf, gruendet auf einer besseren Karte neu, hat
+danach weiterhin hoechstens vier Doerfer, und seine Kasse ist nicht gewachsen (kein Neustart-Bonus).
+Der Spieler findet die Aktion im Dorf-Menue mit Rueckfrage und einer Warnung, was verloren geht.
 
 ## 3. Was das fuer den Spieler bedeutet
 
@@ -91,7 +115,8 @@ Gegner, sondern eine Zielscheibe. Weg 2 nur, wenn Daniel bewusst eine Kampfansag
 | 4b | **S-12 Alle Felder nutzen** | direkt nach Stufe 3: der Bauplan fuellt die Karte, statt eine Zahl abzuarbeiten |
 | 4c | **S-11 Kartenwahl mit Feldverstandnis** | braucht Stufe 3 (Taktik-Engpass) und S-12 (was die Felder hergeben) |
 | 4d | **S-13 Abriss und Umbau** | braucht S-11 und S-12: erst wenn der Bot weiss, was er will, lohnt Umbau |
-| 4e | **S-14 Schieflage 4 gegen 6** | Daniels Entscheidung; wenn Weg 1, ist es eine Zahl in der Datendatei |
+| 4e | **S-14 entschieden: kein Gleichstand** | Bots behalten drei Neugruendungen (vier Doerfer); der Ausgleich kommt aus besserem Spiel, nicht aus mehr Doerfern |
+| 4f | **S-15 Dorf aufgeben und neu gruenden** (Bot UND Spieler) | Daniels Vorgabe; sechs Gestaltungsfragen mit Vorschlag stehen im Konzept |
 | 5 | Die acht Kampfregeln 1 bis 8 | abgesegnet (Register 175) - bleiben danach |
 | 6 | Oberflaeche: Overlay-Basis, Weltkarte, C | laeuft parallel in der Reihenfolge des Stand-Blocks |
 
