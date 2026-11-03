@@ -1,4 +1,4 @@
-# STAND 03.11.2026, 22:4x - A gebaut: kein Flackern mehr beim Ansichtswechsel (Register 176)
+# STAND 03.11.2026, 22:20 - A gebaut: kein Flackern mehr beim Ansichtswechsel (Register 176)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
 
@@ -12,7 +12,7 @@ angefasst wurde. Gemessene Ursache: `_render_view` leerte den Inhaltsbereich bei
 | Neue Wache | `tests/test_doppelpuffer.py` **15/0/0** | eigener Lauf |
 | Gegenprobe | **3 Pruefungen rot** (alter destroy-Zweig eingesetzt), Datei per SHA256 unveraendert zurueck | eigener Lauf |
 | Bestehende Wachen | `test_baseline` 40/0/0, `test_oberflaeche_original` 65/0/0, `test_startspiel` 62/0/1 | eigene Laeufe |
-| Voller Sammellauf | gestartet 22:4x, Ergebnis im Protokoll | `docs/audits/` |
+| Voller Sammellauf | **156 von 158 gruen, 0 rot, 548 s** (Start 22:20), 6.146 Pruefungen | `docs/audits/sammellauf_20261103_2220.log` |
 
 ## Der Ablauf ab jetzt (Daniels Einordnung 22:2x, mit den neuen Auftraegen)
 
