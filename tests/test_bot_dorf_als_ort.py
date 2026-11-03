@@ -136,14 +136,14 @@ check("der Rueckweg stuerzt bei leerem Ort nicht ab",
 abschnitt("6. Bebauen: Grundanlagen auf die besten erlaubten Felder")
 _bot2 = M.BotPlayer("Haug", "menschlich", 0.5, 0.5, settlements=["Haugsdorf"])
 _d2 = M.bot_doerfer_sicherstellen(_bot2)[0]
-M.bot_doerfer_karten_zuweisen(_bot2)
-_gesetzt = M.bot_doerfer_bebauen(_d2)
+M.bot_doerfer_karten_zuweisen(_bot2)                  # S-2 (03.11.2026): dieser Weg setzt den Bauplan mit
+_gesetzt = len(_d2.bauten)                            # was jetzt WIRKLICH im Dorf steht
 _einst = M.bot_wirtschaft_einstellungen()
 _je_art = int(_einst.get("anlagen_je_gebaeude") or 1)
 _erwartet_anlagen = _je_art * len([g for g in (_einst.get("gebaeude_je_dorf") or [])])
 check("der Uebergangs-Bauplan setzt die Grundanlagen", _gesetzt > 0, f"{_gesetzt} Anlagen")
-check("es sind hoechstens drei je Grundrohstoff (Daniel: drei Anlagen)",
-      _gesetzt <= _erwartet_anlagen, f"{_gesetzt} / hoechstens {_erwartet_anlagen}")
+check("es sind genau drei je Grundrohstoff (Daniel: drei Anlagen)",
+      _gesetzt == _erwartet_anlagen, f"{_gesetzt} / erwartet {_erwartet_anlagen}")
 _raster2 = list(_d2.karte_daten.get("raster") or [])
 check("jede Anlage steht auf erlaubtem Gelaende",
       all(gelaende.bau_moeglich(geb, _raster2[int(feld)])[0]
@@ -152,8 +152,12 @@ check("jede gesetzte Anlage hat eine Stufe", all(str(f) in _d2.stufen for f in _
       str(_d2.stufen))
 check("ein Dorf ohne Karte bekommt nichts gesetzt",
       M.bot_doerfer_bebauen(M.BotDorf(name="Ohne Karte")) == 0)
-check("der Bauplan kostet nichts und schreibt keine Vorraete",
-      M.bot_doerfer_bebauen(_d2) == 0 or True, "")
+check("der Bauplan ist idempotent (zweiter Aufruf setzt nichts nach)",
+      M.bot_doerfer_bebauen(_d2) == 0 and len(_d2.bauten) == _gesetzt,
+      f"{len(_d2.bauten)} Anlagen nach dem zweiten Aufruf")
+_vorher_vorrat = dict(_d2.vorraete)
+M.bot_doerfer_bebauen(_d2)
+check("der Bauplan kostet nichts und schreibt keine Vorraete", _d2.vorraete == _vorher_vorrat, "")
 _w = M.bot_dorf_ertrag(_d2, None, _bot2)
 check("das bebaute Dorf ertraegt mehr als das Grundeinkommen", sum(_w.values()) > 2.0, str(_w))
 

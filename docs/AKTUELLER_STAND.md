@@ -1,3 +1,47 @@
+# STAND 03.11.2026, 03:52 - S-2: die Bot-Armee isst, die Kaufbremse haelt (Register 154)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Aus drei fertigen Helfern ist eine Wirkung geworden.** Ein Bot-Dorf bucht seit heute den
+Nahrungsverbrauch seiner Armee (dieselbe Rechnung wie beim Spieler, 8 je Einheit und Spieltag),
+haelt die Kaufbremse ein (Tagesbedarf plus Reserve) und bekommt beim ersten Takt seinen Bauplan
+gesetzt. Gebucht wird nur im Hauptdorf - ein Bot hat EINE Armee, nicht je Dorf eine Garnison.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `80eca7a` plus diese Aenderung (Commit folgt), Arbeitsbaum vorher leer | `git log --oneline -1`, `git status --porcelain` |
+| Voller Sammellauf | **137 von 139 gruen, 0 rot, 2 ausgesetzt, 5.529 Pruefungen, 382 s** (Lauf 03:39, auf dem CODE-Stand dieser Aenderung; die Dokumentzeilen danach sind ohne Code) | `docs/audits/sammellauf_20261103_0339.log` |
+| Pruefdateien / Register / Quelldateien | **139** / **154** / **55** | `ls tests/test_*.py`, `grep -c '^| [0-9]'`, `ls src/*.py` |
+| Neue Wache | `tests/test_bot_nahrung.py` **44/0/1** (der Befund ist gewollt: kein `siedler` aus der Ernte) | eigener Lauf |
+| Wirkung, gemessen | 100 Einheiten = **800/Tag = 33,33 je Stunde**; Spieler (`ort_tick`) und Bot (`bot_futter_buchen`) auf denselben Verbrauch; Grenzfaelle **Soll deckt / Soll - 1 blockt / Soll + 1 deckt**; 200 Bot-Takte in **4,3 s** ohne eine unterdeckte Zeile | `tests/test_bot_nahrung.py`, Dauerspiel-Probe |
+
+**Eigener Befund und behoben:** `bot_doerfer_bebauen` war NICHT idempotent - jeder Bot-Takt haette
+drei weitere Anlagen je Rohstoff nachgelegt (nach 4 Takten 48 statt 12). Jetzt wird je Gebaeude nur
+der fehlende Rest gesetzt (12 Anlagen, zweiter Aufruf 0). Eine alte Wache (`test_bot_dorf_als_ort`)
+wurde rot, weil `bot_doerfer_karten_zuweisen` den Bauplan jetzt selbst setzt; sie prueft den Stand
+danach und die Idempotenz - der Code wurde nicht zurueckgebogen.
+
+**Ehrliche Grenzen (stehen auch in Register 154):** (a) der Anzeige-Weg `bot_dorf_ertrag` rechnet
+weiter mit dem Kartenprofil, der Kern mit den Feldern - die Luecke schliesst erst S-2b; (b) die
+Ernte liefert keinen Posten `siedler`, die belegten Preise verlangen ihn, also kauft ein Bot heute
+nur aus seinem Startvorrat (loest S-5, Ausbildung je Ort); (c) das Hauptdorf isst allein, waehrend
+die Kaufbremse die GANZE Kasse sieht (Nachschub ist S-7, Karawanen); (d) das
+`produktionsjournal` waechst wie beim Spieler unbegrenzt (eine Zeile je Stunde und Ort).
+
+## Der EINE naechste Schritt
+
+**S-2b: der Takt laeuft ganz auf `ort_tick`** (Ernte, Siedlerzuwachs, Journal aus dem Kern) und
+`bot_dorf_ertrag` rechnet denselben Weg wie der Kern. **Achtung, hier haengt eine Entscheidung
+dran** (Frage 8.1 der Uebergabe): mit drei Anlagen je Rohstoff liefert der Kern fuer JEDE Karte
+denselben Grundertrag - die Karte bestimmt dann nur, was gebaut werden KANN. Das ist eine
+Aenderung gegenueber **B-4** ("die Karte bestimmt den Ertrag", Daniels Vorgabe). Vorschlag: den
+Felder-Weg bauen, aber hinter einem Schalter in `data/bot_wirtschaft.json` (`ertrag_weg`), Vorgabe
+zunaechst `karte` - dann entscheidet Daniel mit EINEM Wort, ohne Codeaenderung.
+
+Danach in der Reihenfolge des Konzepts: **S-3** Bauen/Ausbauen nach Taktik, **S-4** Forschung,
+**S-5** Ausbildung, **S-6** Nachgruenden (3 je Bot), **S-7** Karawanen, **S-8** Reisekosten,
+**S-9** Stil je Taktik.
+
 # STAND 03.11.2026, 02:45 - V-6: die Bot-Kartenwahl folgt jetzt einer Regel (Register 151)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

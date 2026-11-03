@@ -511,6 +511,47 @@ def bot_nahrung_deckt(bot: "BotPlayer", zusaetzliche_einheiten: int = 0) -> bool
     return verfuegbar >= bot_reserve_nahrung(bot, zusaetzliche_einheiten)
 
 
+def bot_futter_buchen(bot: "BotPlayer", dorf: "BotDorf", ab: float, bis: float,
+                      mengen: Optional[dict] = None) -> Dict[str, float]:
+    """Bucht den Nahrungsverbrauch der Bot-Armee fuer EINE Erntespanne (S-2, 03.11.2026).
+
+    Dieselbe Rechnung wie beim Spieler (`spieloekonomie.ort_tick`, Register 69): Bedarf =
+    `bot_nahrungsbedarf` x Spanne / 86400 Sekunden. Gegessen wird NACH der Ernte, der Bestand
+    faellt hoechstens auf 0, der Rest steht als `unterdeckung` im `produktionsjournal` des
+    Dorfes - dieselbe Zeilenform wie beim Spieler
+    (``{"ab", "bis", "mengen", "verbrauch", "unterdeckung"}``). Eine Strafe gibt es nicht
+    (Daniel 03.11.2026: keine Desertion, aber Kaufstopp - den haelt `bot_nahrung_deckt` in
+    `GameState.bot_armee_aufstellen`).
+
+    Gebucht wird NUR im Hauptdorf: ein Bot hat EINE Armee (`bot.army`), nicht je Dorf eine
+    Garnison. Reicht das Hauptdorf nicht, entsteht Unterdeckung - Nachschub aus den anderen
+    Doerfern ist S-7 (Karawanen), nicht dieses Schnittes.
+
+    Rueckgabe: ``{"ab", "bis", "verbrauch", "unterdeckung"}`` (leer, wenn kein Bedarf entstand).
+    """
+    ab = float(ab)                                                    # Spanne muss vorwaerts laufen
+    bis = float(bis)                                                  # sonst wird nichts gebucht
+    leer: Dict[str, float] = {"ab": ab, "bis": bis, "verbrauch": 0.0, "unterdeckung": 0.0}
+    if bis <= ab:                                                     # leere oder rueckwaerts
+        return leer                                                   # laufende Spanne: kein Verbrauch
+    bedarf_tag = bot_nahrungsbedarf(bot)                              # 8 je Einheit (Datendatei)
+    if bedarf_tag <= 0:                                               # leere Armee oder Verbrauch aus
+        return leer                                                   # dann isst niemand
+    bedarf = bedarf_tag * (bis - ab) / 86400.0                        # Anteil der Spanne am Spieltag
+    if not isinstance(getattr(dorf, "vorraete", None), dict):          # altes Dorf ohne Vorratsfeld
+        dorf.vorraete = {}                                            # dann anlegen
+    vorher = max(0.0, float(dorf.vorraete.get("nahrung", 0.0) or 0.0))   # Bestand vor dem Essen
+    verbrauch = round(min(bedarf, vorher), 2)                         # nie mehr, als da ist
+    unterdeckung = round(max(0.0, bedarf - verbrauch), 2)             # Rest = Unterdeckung
+    dorf.vorraete["nahrung"] = round(vorher - verbrauch, 2)           # Bestand nie unter 0
+    dorf.produktionsjournal.append({"ab": ab, "bis": bis,             # Journalzeile wie beim Spieler
+                                    "mengen": dict(mengen or {}),      # reine Ernte dieser Spanne
+                                    "verbrauch": {"nahrung": verbrauch},
+                                    "unterdeckung": unterdeckung})
+    return {"ab": ab, "bis": bis, "verbrauch": verbrauch, "unterdeckung": unterdeckung}
+
+
+
 def bot_doerfer_bebauen(dorf: "BotDorf", einstellungen: Optional[dict] = None) -> int:
     """Setzt die Grundanlagen eines Bot-Dorfes auf seine EIGENEN Felder (S-2, 03.11.2026).
 
@@ -542,8 +583,12 @@ def bot_doerfer_bebauen(dorf: "BotDorf", einstellungen: Optional[dict] = None) -
         return 0
     gesetzt = 0
     for geb in gebaeude:
+        steht = sum(1 for g in dorf.bauten.values() if str(g) == geb)      # steht diese Anlage schon?
+        offen = max(0, anzahl - steht)                                    # nur der Rest wird gesetzt -
+        if not offen:                                                     # sonst legte JEDER Bot-Takt
+            continue                                                      # drei weitere Anlagen nach
         frei = [i for i in range(len(raster)) if str(i) not in dorf.bauten]
-        for _ in range(anzahl):
+        for _ in range(offen):
             if not frei:
                 break
             passend = [(gelaende.ertrag_pro_stunde(geb, raster[i]) or 0.0, i) for i in frei
@@ -858,6 +903,12 @@ def bot_doerfer_karten_zuweisen(bot: "BotPlayer", einstellungen: Optional[dict] 
             dorf.karte = karte                                            # am Dorf festhalten
             belegte.append(karte)                                         # Portfolio waechst mit
             neu += 1                                                      # zaehlen
+    # S-2 (03.11.2026): der Uebergangs-Bauplan. Mit dem Kern gilt: was nicht gebaut ist, ertraegt
+    # nichts - ein Dorf mit leerer Karte braechte nur das Grundeinkommen (1 Holz / 1 Stein) und
+    # hungerte ab dem Anschluss. Hier werden die Grundanlagen EINMAL gesetzt; die Funktion ist
+    # idempotent (setzt je Gebaeude nur den fehlenden Rest) und kostet nichts (Register 153).
+    for dorf in doerfer_liste:                                            # je Dorf (auch alte Spielstaende)
+        bot_doerfer_bebauen(dorf, einstellungen)                          # Grundanlagen auf die eigenen Felder
     return neu                                                            # wie viele neu sind
 
 
@@ -991,6 +1042,7 @@ def bot_doerfer_ernten(bot: "BotPlayer", jetzt: float, einstellungen: Optional[d
         stunden = (jetzt - seit) / 3600.0                                 # vergangene Spielstunden
         if not isinstance(getattr(dorf, "vorraete", None), dict):         # altes Dorf ohne Vorratsfeld
             dorf.vorraete = {}                                            # dann anlegen
+        geerntet: Dict[str, float] = {}                                   # was DIESES Dorf einbrachte
         for stoff, rate in bot_dorf_ertrag(dorf, einstellungen, bot).items():   # je Rohstoff die Rate
             vorher = float(dorf.vorraete.get(stoff, 0.0))                 # Bestand vor der Ernte
             nachher = vorher + float(rate) * stunden                      # Zuwachs dieser Zeitspanne
@@ -1000,7 +1052,10 @@ def bot_doerfer_ernten(bot: "BotPlayer", jetzt: float, einstellungen: Optional[d
             zuwachs = round(dorf.vorraete[stoff] - vorher, 2)             # tatsaechlicher Zuwachs
             if zuwachs:                                                   # nur echte Zugaenge melden
                 ergebnis[stoff] = round(ergebnis.get(stoff, 0.0) + zuwachs, 2)
+                geerntet[stoff] = zuwachs                                 # fuer die Journalzeile des Dorfes
         dorf.ernte_seit = jetzt                                           # Erntezeit fortschreiben
+        if getattr(dorf, "hauptdorf", False):                             # S-2: die Armee isst im Hauptdorf
+            bot_futter_buchen(bot, dorf, seit, jetzt, geerntet)           # nach der Ernte (wie beim Spieler)
     return ergebnis                                                       # was dazukam
 
 
@@ -4015,6 +4070,12 @@ class GameState:
 
         Rueckgabe: Name der aufgestellten Einheit oder ``None``.
         """
+        # Daniel 03.11.2026 (S-2): Kaufbremse - aufgestellt wird nur, solange das Lager den
+        # Tagesbedarf der Armee PLUS Reserve deckt. Steht die Armee in Unterdeckung, ist hier
+        # Schluss (Kaufstopp); der Nachschub ist S-7. Die Rechnung selbst steht in
+        # `bot_nahrung_deckt`/`bot_reserve_nahrung` - hier wird nur gefragt, nicht gerechnet.
+        if not bot_nahrung_deckt(bot, 1):
+            return None
         for name in sorted(einheiten.namen(), key=lambda n: (einheiten.rolle(n) != "kaempfer", n)):
             if einheiten.rolle(name) not in ("kaempfer", "kundschafter"):
                 continue
