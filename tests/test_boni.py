@@ -154,8 +154,14 @@ check("abgelaufen: nur noch das Volk (+5 %, nicht +10)", abs(_ohne.get("reise", 
 abschnitt("3. Bot-Ertrag (main.bot_dorf_ertrag)")
 _dorf = M.BotDorf(name="Hof")
 _ohne_bot = M.bot_dorf_ertrag(_dorf)
-check("ohne Bot bleibt der alte Ertrag 12/12/12/9",
-      _ohne_bot == {"holz": 12.0, "stein": 12.0, "nahrung": 12.0, "gold": 9.0}, f"{_ohne_bot}")
+# S-6b (03.11.2026): die drei Rinderfarmen (Bauplan fuer den Siedlerkarren) erzeugen zusaetzlich
+# Nahrung - der Rueckfall-Ertrag ist 12 Holz / 12 Stein / 21 Nahrung / 9 Gold plus die Waren.
+# S-6b (03.11.2026): nur die vier Grundrohstoffe vergleichen - die Bot-Doerfer ernten zusaetzlich
+# Leder, Wolle und Pferde (das prueft tests/test_bot_warenkette.py), und die drei Rinderfarmen
+# erzeugen 9 Nahrung mit, also 21 statt 12.
+_grund = {k: v for k, v in _ohne_bot.items() if k in ("holz", "stein", "nahrung", "gold")}
+check("ohne Bot bleibt der alte Grundertrag (12/12/21/9)",
+      _grund == {"holz": 12.0, "stein": 12.0, "nahrung": 21.0, "gold": 9.0}, f"{_grund}")
 _erwartet = {"menschlich": (12.6, 11.4), "zwergisch": (11.4, 12.6)}
 for fraktion, (holz, stein) in _erwartet.items():
     bot = M.BotPlayer(name="X", faction=fraktion, aggression=0.5, trading=0.5)
@@ -164,7 +170,8 @@ for fraktion, (holz, stein) in _erwartet.items():
           abs(werte.get("holz", 0) - holz) < 1e-9 and abs(werte.get("stein", 0) - stein) < 1e-9,
           f"{werte}")
 _g = M.BotPlayer(name="X", faction="Ghule", aggression=0.5, trading=0.5)
-check("Ghule: Nahrung 12,6", abs(M.bot_dorf_ertrag(_dorf, None, _g).get("nahrung", 0) - 12.6) < 1e-9)
+check("Ghule: Nahrung 22,05 (21 mal 1,05)",
+      abs(M.bot_dorf_ertrag(_dorf, None, _g).get("nahrung", 0) - 22.05) < 1e-9)
 _n = M.BotPlayer(name="X", faction="Gnome", aggression=0.5, trading=0.5)
 check("Gnome: kein Ertragsbonus (Ausbau wirkt beim Bauen, nicht beim Ernten)",
       M.bot_dorf_ertrag(_dorf, None, _n) == _ohne_bot, f"{M.bot_dorf_ertrag(_dorf, None, _n)}")

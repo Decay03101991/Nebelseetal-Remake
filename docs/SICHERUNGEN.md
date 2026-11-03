@@ -39,3 +39,5 @@ Automatisch geführt von `tools/protokoll_sichern.py` — **gehört nicht ins En
 | 2026-11-03 19:23 | 7 | `D:\Arbeiten\Nebelseetal_Remake_Protokoll\2026-11-03_1923` | je Datei SHA256 im MANIFEST, geprüft |
 | 2026-11-03 19:26 | 7 | `D:\Arbeiten\Nebelseetal_Remake_Protokoll\2026-11-03_1926` | je Datei SHA256 im MANIFEST, geprüft |
 | 2026-11-03 19:29 | 7 | `D:\Arbeiten\Nebelseetal_Remake_Protokoll\2026-11-03_1929` | je Datei SHA256 im MANIFEST, geprüft |
+| 2026-11-03 19:35 | 7 | `D:\Arbeiten\Nebelseetal_Remake_Protokoll\2026-11-03_1935` | je Datei SHA256 im MANIFEST, geprüft |
+| 2026-11-03 19:37 | 7 | `D:\Arbeiten\Nebelseetal_Remake_Protokoll\2026-11-03_1937` | je Datei SHA256 im MANIFEST, geprüft |

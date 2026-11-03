@@ -146,8 +146,9 @@ _d2.karte = "original-036"
 M.bot_doerfer_karten_zuweisen(_bot2)                  # S-2 (03.11.2026): dieser Weg setzt den Bauplan mit
 _gesetzt = len(_d2.bauten)                            # was jetzt WIRKLICH im Dorf steht
 _einst = M.bot_wirtschaft_einstellungen()
-_je_art = int(_einst.get("anlagen_je_gebaeude") or 1)
-_erwartet_anlagen = _je_art * len([g for g in (_einst.get("gebaeude_je_dorf") or [])])
+# S-6b (03.11.2026): die Anzahl ist je Gebaeude verschieden - die Summe der Einzelzahlen ist die
+# Erwartung, nicht "eine Zahl mal Anzahl der Gebaeude" (das brach bei einem Dict ab).
+_erwartet_anlagen = sum(M.anlagen_anzahl(g, _einst) for g in (_einst.get("gebaeude_je_dorf") or []))
 check("der Uebergangs-Bauplan setzt die Grundanlagen", _gesetzt > 0, f"{_gesetzt} Anlagen")
 check("es sind genau drei je Grundrohstoff (Daniel: drei Anlagen)",
       _gesetzt == _erwartet_anlagen, f"{_gesetzt} / erwartet {_erwartet_anlagen}")

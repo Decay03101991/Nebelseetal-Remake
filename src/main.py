@@ -674,6 +674,26 @@ def bot_futter_buchen(bot: "BotPlayer", dorf: "BotDorf", ab: float, bis: float,
 
 
 
+def anlagen_anzahl(gebaeude: str, einstellungen: Optional[dict] = None) -> int:
+    """Wie viele Anlagen eines Gebaeudes je Dorf gesetzt werden (S-6b, 03.11.2026).
+
+    Eine Lesestelle fuer Code UND Pruefdateien: `anlagen_je_gebaeude` ist entweder eine Zahl
+    (alle Anlagen gleich - alte Spielstaende und Datendateien) oder ein Dict je Gebaeude mit dem
+    Schluessel "*" als Rueckfall. Wer `int(...)` auf den Rohwert anwendet, stuerzt bei einem Dict ab
+    (belegt: `TypeError: int() argument must be ... not 'dict'` in zwei Pruefdateien).
+    """
+    einstellungen = einstellungen if einstellungen is not None else bot_wirtschaft_einstellungen()
+    roh = einstellungen.get("anlagen_je_gebaeude") or 1                   # Vorgabe: eine Anlage
+    if isinstance(roh, dict):                                             # je Gebaeude verschieden
+        wert = roh.get(gebaeude, roh.get("*", 1))                          # "*" ist der Rueckfall
+    else:
+        wert = roh                                                         # eine Zahl fuer alle
+    try:
+        return max(1, int(wert))
+    except (TypeError, ValueError):
+        return 1                                                           # unbrauchbar: eine Anlage
+
+
 def _ertragssumme(wert) -> float:
     """Summe aller Erträge einer Anlage auf einem Feld (Zahl ODER dict je Rohstoff).
 

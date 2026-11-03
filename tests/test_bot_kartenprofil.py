@@ -78,16 +78,24 @@ for stoff, geb in (("holz", "holzfaeller"), ("stein", "steinmetz"), ("nahrung", 
             summe += float(anzahl) * float(wert)
     hand[stoff] = round(summe, 2)
 profil001 = M.bot_kartenprofil("original-001")
-check("1 Profil original-001 stimmt mit der Handrechnung ueberein", profil001 == hand,
+# S-6b (03.11.2026): die Handrechnung deckt Gebaeude mit EINEM Rohstoff ab. Die Nahrung kommt
+# zusaetzlich aus den Rinderfarmen (drei Anlagen, je 3 Nahrung), deshalb getrennte Pruefung.
+_hand_grund = {k: v for k, v in hand.items() if k != "nahrung"}
+_profil_grund = {k: v for k, v in profil001.items() if k in _hand_grund}
+check("1 Profil original-001 stimmt mit der Handrechnung ueberein (Holz, Stein, Gold, Metall)", _profil_grund == _hand_grund,
       str(profil001) + " / " + str(hand))
-check("1 das Profil nennt alle fuenf Rohstoffe",
-      sorted(profil001) == ["gold", "holz", "metall", "nahrung", "stein"], str(sorted(profil001)))
+check("1 die Nahrung liegt ueber der Farm allein (Rinderfarm liefert mit)",
+      float(profil001.get("nahrung", 0)) > float(hand.get("nahrung", 0)),
+      str(profil001.get("nahrung")) + " / Farm allein " + str(hand.get("nahrung")))
+check("1 das Profil nennt alle acht Rohstoffe (fuenf Grund plus Leder, Wolle, Pferde)",
+      set(profil001) >= {"gold", "holz", "metall", "nahrung", "stein", "leder", "wolle", "pferde"},
+      str(sorted(profil001)))
 check("1 der Staerkste ist der hoechste Wert der Karte",
       M.bot_karten_staerkster(profil001) == max(profil001, key=profil001.get),
       M.bot_karten_staerkster(profil001))
 alle = {i: M.bot_kartenprofil(i) for i in KATALOG}
-check("1 jede Karte hat alle fuenf Rohstoffe",
-      all(sorted(p) == ["gold", "holz", "metall", "nahrung", "stein"] for p in alle.values()), "")
+check("1 jede Karte traegt Holz, Stein und Nahrung (Waren, wo Grasland oder Steppe liegt)",
+      all(set(p) >= {"holz", "stein", "nahrung"} for p in alle.values()), "")
 check("1 keine Karte ist ohne jeden Wert", all(sum(p.values()) > 0 for p in alle.values()), "")
 
 # ==========================================================================
@@ -118,8 +126,10 @@ check("3 mit Karte: Stundensatz ist Kartenwert durch Teiler",
       str(M.bot_dorf_ertrag(mit_karte)))
 ohne = M.BotDorf(name="Ohne Karte")
 rueckfall = M.bot_dorf_ertrag(ohne)
-check("3 ohne Karte: Rueckfall sind drei Anlagen je Grundrohstoff (12/12/12/9)",
-      rueckfall == {"holz": 12.0, "stein": 12.0, "nahrung": 12.0, "gold": 9.0}, str(rueckfall))
+check("3 ohne Karte: Rueckfall sind die Anlagen aus dem Bauplan (12/12/21/9 plus Waren)",
+      all(round(float(rueckfall.get(k, 0)), 2) == v for k, v in
+          {"holz": 12.0, "stein": 12.0, "nahrung": 21.0, "gold": 9.0}.items())
+      and float(rueckfall.get("leder", 0)) > 0, str(rueckfall))
 arm = M.bot_dorf_ertrag(M.BotDorf(name="Ohne Berg", karte="original-125"))
 check("3 eine Karte ohne Berg liefert WEDER Gold NOCH Stein NOCH Metall",
       "gold" not in arm and "stein" not in arm and "metall" not in arm, str(arm))

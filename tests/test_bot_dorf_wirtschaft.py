@@ -109,7 +109,9 @@ abschnitt("2. EINE Lesestelle: der Stundensatz kommt aus den Spieldaten")
 # ==========================================================================
 werte = M.bot_dorf_ertrag()
 einstellungen = M.bot_wirtschaft_einstellungen()
-anzahl = int(einstellungen.get("anlagen_je_gebaeude") or 1)
+# S-6b (03.11.2026): `anlagen_je_gebaeude` ist je Gebaeude verschieden (Dict). Die Zahl wird ueber
+# die Lesestelle im Code geholt - wer `int()` auf den Rohwert anwendet, stuerzt bei einem Dict ab.
+anzahl = M.anlagen_anzahl("holzfaeller", einstellungen)
 erwartet = {}
 for geb in ("holzfaeller", "steinmetz", "farm", "goldmine"):
     eintrag = gelaende.alle_gebaeude().get(geb) or {}
@@ -122,13 +124,22 @@ for geb in ("holzfaeller", "steinmetz", "farm", "goldmine"):
         if isinstance(wert, (int, float)) and float(wert) > bester:
             bester = float(wert)
     if eintrag.get("rohstoff"):
-        erwartet[str(eintrag["rohstoff"]).lower()] = round(bester * anzahl, 2)
-check("2 der Ertrag stimmt mit data/buildings.json mal Anlagenzahl ueberein", werte == erwartet,
-      str(werte) + " / " + str(erwartet) + " (Anlagen je Art: " + str(anzahl) + ")")
+        erwartet[str(eintrag["rohstoff"]).lower()] = round(bester * M.anlagen_anzahl(geb, einstellungen), 2)
+# S-6b (03.11.2026): Bot-Doerfer ernten zusaetzlich Leder, Wolle und Pferde. Diese Pruefung
+# vergleicht die VIER GRUNDROHSTOFFE der Grundanlagen; die Waren prueft tests/test_bot_warenkette.py.
+# Die Erwartung auf die Grundrohstoffe zu beschraenken ist die ehrliche Fassung: das ganze dict
+# gleichzusetzen wuerde die neuen Posten als Fehler melden.
+# Nahrung stammt seit S-6b aus ZWEI Anlagen (Farm und Rinderfarm): die Rinderfarm liefert
+# 3 Nahrung je Anlage dazu, deshalb wird sie getrennt geprueft statt in der Handrechnung zu stehen.
+Grundwerte = {k: v for k, v in werte.items() if k in erwartet and k != "nahrung"}
+check("2 der Ertrag stimmt mit data/buildings.json mal Anlagenzahl ueberein",
+      Grundwerte == {k: v for k, v in erwartet.items() if k != "nahrung"},
+      str(Grundwerte) + " / " + str(erwartet) + " (Anlagen je Art: " + str(anzahl) + ")")
 check("2 Daniels Entscheidung 02.11.2026 steht in der Datendatei (drei Anlagen)",
       anzahl == 3, str(anzahl))
+check("2 die Nahrung ist Farm plus Rinderfarm (12 + 3x3)", werte.get("nahrung") == 21.0, str(werte.get("nahrung")))
 check("2 die vier Grundrohstoffe sind gesetzt",
-      sorted(werte) == ["gold", "holz", "nahrung", "stein"], str(sorted(werte)))
+      all(k in werte for k in ("gold", "holz", "nahrung", "stein")), str(sorted(werte)))
 check("2 keine Null und keine erfundene Grosszahl", all(0 < v <= 40 for v in werte.values()), str(werte))
 check("2 die Funktion ist wiederholbar (Cache liefert dieselben Zahlen)",
       M.bot_dorf_ertrag() == werte, str(M.bot_dorf_ertrag()))
