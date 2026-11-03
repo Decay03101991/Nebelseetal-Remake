@@ -132,6 +132,10 @@ check("2 es bleibt bei vier Doerfern", len(M.bot_doerfer_sicherstellen(voll)) ==
 
 # 2e: Sperre und echte Gruendung
 frisch = _bot("Frisch", [_dorf("Dorf 1", vorraete=_reich(4.0), haupt=True, karte="original-001")])
+# S-6b (03.11.2026): `siedlerkarren_pflicht` ist jetzt EIN - ein Bot gruendet nur mit Karren.
+# Ein echter Bot hat ihn vorher gebaut (bot_karren_bauen); hier wird er gesetzt, damit der Test die
+# Gruendung prueft und nicht den Karrenbau (das macht tests/test_bot_karrenbau.py).
+frisch.doerfer[0].einheiten = {"Siedlerkarren": 3}          # drei Gruendungen geplant
 erstes = gs.bot_dorf_gruenden(frisch, 1000.0)
 check("2 eine echte Gruendung gelingt", erstes is not None, str(getattr(erstes, "name", None)))
 zweites = gs.bot_dorf_gruenden(frisch, 1060.0)
@@ -147,6 +151,8 @@ gs2 = M.GameState()
 quelle_vorher = {k: float(v) for k, v in _reich(2.0).items()}
 bot = _bot("Haug", [_dorf("Haugs Siedlung 1", vorraete=quelle_vorher, karte="original-011", haupt=True)])
 vorher_siedler = float(bot.doerfer[0].bevoelkerung)
+# S-6b (03.11.2026): Karrenpflicht - der Bot hat seinen Karren vorher gebaut (hier gesetzt).
+bot.doerfer[0].einheiten = {"Siedlerkarren": 1}
 neu = gs2.bot_dorf_gruenden(bot, 5000.0)
 
 check("3 die Gruendung liefert ein neues Dorf", neu is not None)
