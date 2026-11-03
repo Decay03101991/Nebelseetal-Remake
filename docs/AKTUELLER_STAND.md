@@ -15,13 +15,24 @@ anderen Gebaeude - die allgemeine Erhoehung kommt mit Stufe 3).
 | Metall in der Kasse | **11.435 bis 16.584** (vorher 2.494 bis 5.388) | dieselbe Messung |
 | Anlagen je Dorf | 30 (26 auf der Karte ohne freies Bergfeld - die Karte bestimmt es) | dieselbe Messung |
 | Wachen | `test_bot_warenkette` 35/0/0, `test_bot_dorf_als_ort` 32/0/0, `test_s8_ertrag_aus_anlagen` 21/0/0, `test_bot_kartenprofil` 40/0/0 | eigene Laeufe |
-| Voller Sammellauf fuer diesen Stand | **offen** - gestartet 22:2x, Ergebnis im Protokoll nachgetragen | `docs/audits/` |
+| Voller Sammellauf fuer diesen Stand | **155 von 157 gruen, 0 rot, 482 s** (Start 22:05), 6.131 Pruefungen | `docs/audits/sammellauf_20261103_2205.log` |
 
 **Die acht Kampfregeln sind abgesegnet** (Register 175, `docs/ENTSCHEIDUNGEN_KAMPFREGELN_20261103.md`):
 fusstruppen_begriff, flucht_formel, beute_verteilung, beute_reihenfolge (**Gold zuerst**),
 belagerungsturm_mauerschaden (1-4 minus Wallstufe), mauer_reparatur (aktiv, **mit Bauzeit**),
 vorrunde_wiederholung, geraetebeute (Zerstoerung, 10 Prozent je Sequenz, max. 50). Nah-/Fernkampf
 bekommt ein eigenes Kennzeichen je Einheit, weil `einheiten.ROLLEN` beide auf `kaempfer` abbildet.
+
+## Einschaetzung Oberflaeche (Daniel 22:1x) - liegt vor
+
+`docs/EINSCHAETZUNG_INGAME_FENSTER_20261103.md`: **beides ist moeglich.** (1) Ingame-Dialoge statt
+Desktop-Fenster: JA - Overlay im Hauptfenster, Abdunkelung als vorgerendertes Alpha-Bild (Pillow ist da),
+kein `Toplevel` noetig; heute stehen **10** Toplevel im Code. (2) Kein Neuaufbau je Klick: JA, in vier
+Stufen - A Doppel-Puffer (klein, wirkt ueberall gegen Flackern), B Karte ohne Neuaufbau (Canvas-Objekte
+einmal erzeugen, dann nur aendern), C Refresh-Pfad fuer die fuenf haeufigsten Ansichten (hier wird es
+wirklich fluessig), D Rest. Ursache gemessen: `_render_view` zerstoert bei **46** Aufrufstellen alle
+Widgets und baut sie neu. Weltkarte: drei Designvorschlaege im selben Dokument (Rahmen als Bildleiste,
+Felder mit Gelaendeton und Goldrand, spaeter gemalte Kacheln).
 
 ## Der EINE naechste Schritt
 
