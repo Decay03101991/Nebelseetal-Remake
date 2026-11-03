@@ -1,3 +1,41 @@
+# STAND 03.11.2026, 22:55 - Overlay-Basis gebaut: Dialoge liegen INGAME, kein Desktop-Fenster mehr (Register 177)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Die drei haeufigsten Dialoge sind keine eigenen Fenster mehr.** Daniel (22:2x): keine Desktop-Zusatzfenster,
+sondern Dialoge INGAME ueber dem Hauptfenster, Hintergrund abgedunkelt und durchscheinend. Gebaut ist die
+Basis dafuer - eine Flaeche ueber dem Inhaltsbereich, ein vorgerendertes Abdunkelbild (Bildschirmabzug des
+Inhalts plus Alpha-Schleier, weil Tk keine Transparenz je Widget kann), `grab_set` als Eingabesperre, Escape
+und Klick daneben schliessen -, und darauf umgestellt sind **Dorf-Optionen, Truppen-Auswahl und
+Spionagebericht**. Im Code stehen jetzt **7 statt 10** `Toplevel`.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Neue Wache | `tests/test_overlay_ingame.py` **42/0/1** | eigener Lauf |
+| Voller Sammellauf | **157 von 159 gruen, 0 rot, 648 s** (Start 22:54), 6.189 Pruefungen, 54 Befunde; die zwei AUSGESETZT-Dateien sind dokumentiert zurueckgezogen | `docs/audits/sammellauf_20261103_2255.log` |
+| Gegenprobe | **1 Pruefung rot** (Schliessen im Ansichtswechsel abgeschaltet), `main.py` per SHA256 unveraendert zurueck | eigener Lauf |
+| Nachbarn | `test_spionage` 146/0/0, `test_portal_fremdblick` 18/0/1, `test_marsch_optik` 63/0/0, `test_doppelpuffer` 15/0/0, `test_baseline` 40/0/0, `test_startspiel` 62/0/1, `test_oberflaeche_original` 65/0/0 | eigene Laeufe |
+| Umgestellte Dialoge | `_bot_dorf_optionen`, `_truppen_auswahl`, `_spionage_bericht_anzeigen` | `grep -n "tk.Toplevel(" src/main.py` |
+| Zahlen | Deckkraft **140**, Kastenbreite **560**, Escape und Klick daneben an | `data/overlay.json` (Daniel stellt sie ohne Code) |
+| Bild-Beleg | `C:/Users/saras/AppData/Local/hermes/cache/scratch/overlay_beleg.png` (Fenster 1280x820, Dialog offen, Inhalt scheint dunkel durch) | eigener Lauf mit `.venv`-Python |
+
+## Was das Bau-Menue betrifft (Befund, nicht Wunschdenken)
+
+Die Uebergabe nannte als ersten Dialog das **Bau-Menue**. Gemessen: es ist **kein `Toplevel`** - die
+Bauauswahl liegt als Feld direkt in der Siedlungskarte (`_render_settlement_map`, Abschnitt "angebote").
+Es gab dort also nichts umzustellen; an seiner Stelle ist der **Dorf-Optionen-Dialog** ingame gegangen
+(der bei jedem Klick auf ein fremdes Dorf aufgeht und zur Truppen-Auswahl fuehrt).
+
+## Der EINE naechste Schritt
+
+**Die Weltkarte: Rahmen als Bildleiste (`main.leiste_zusammensetzen`) UND Felder mit Gelaendeton, feiner
+Trennlinie und Goldrand fuer die Auswahl** - Groesse und Aufbau bleiben (Daniel 22:1x). Danach **S-8 Stufe 3**
+(Taktik-Bauplaene aus `D:/Arbeiten/Hermes/Notizen/S8_STUFE3_BAUPLAENE_20261103.md` nach
+`data/bot_bauplan.json`, Zahlen mit den ECHTEN Werten nachrechnen, 24 Spieltage messen). **Der volle
+Sammellauf und die Protokollzeile gehoeren zum Abschluss jedes Schnitts.**
+
+---
+
 # STAND 03.11.2026, 22:20 - A gebaut: kein Flackern mehr beim Ansichtswechsel (Register 176)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

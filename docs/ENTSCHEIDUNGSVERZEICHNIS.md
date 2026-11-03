@@ -4,9 +4,6 @@
 > Nicht von Hand ergaenzen: eine neue Entscheidung gehoert ins Register, dann neu erzeugen.
 > **Handpflege gibt es nur im Abschnitt Ersetzungen** - dort steht, welche Entscheidung eine
 > fruehere abgeloest hat. Alles andere ist Ableitung, keine zweite Wahrheit.
->
-> **Stand `unbekannt`** heisst nur, dass die Registerzeile keines der Schluesselwoerter traegt
-> (GEBAUT / ABGESEGNET / VERWORFEN / BLOCKIERT / VORSCHLAG). Der Stand steht dann im Text der Zeile.
 
 | Nr | Gegenstand | Stand | Tag |
 |---|---|---|---|
@@ -186,6 +183,7 @@
 | 174 | S-8 Stufe 1: Der Ertrag eines Bot-Dorfes kommt aus den GEBAUTEN ANLAGEN (03.11.2026). | GEBAUT | 03.11.2026 |
 | 175 | Die acht Kampfregeln sind entschieden (Daniel, 03.11.2026, 22:1x). | ABGESEGNET | 03.11.2026 |
 | 176 | A: Doppel-Puffer im Ansichtswechsel (03.11.2026, Daniels Wunsch nach Fluessigkeit). | GEBAUT | 03.11.2026 |
+| 177 | Overlay-Basis: Ingame-Dialoge statt Desktop-Fenster (03.11.2026, Daniels Wunsch 22:2x). | GEBAUT | 03.11.2026 |
 
 ## Ersetzungen (Handpflege)
 
@@ -193,6 +191,3 @@ Eine abgeloeste Entscheidung bleibt im Register stehen; hier steht, WODURCH sie 
 
 | Alt | Ersetzt durch | Was sich geaendert hat |
 |---|---|---|
-| B-4 (02.11.2026): der Ertrag eines Bot-Dorfes folgt dem Kartenprofil | **Register 174** (03.11.2026) | Der Ertrag kommt aus den GEBAUTEN Anlagen; das Kartenprofil ist nur noch Vorschau und Rueckfall fuer Doerfer ohne Anlage. |
-| Erzmine **1** im Bauplan (VORSCHLAG, Register 174) | **Daniel 22:0x, umgesetzt in Register 176-Stand** | Mehrere Erzminen wie der Spieler - heute 3, endgueltig mit S-8 Stufe 3. |
-| S-14 Weg 1: Bots gruenden so viele Doerfer wie der Spieler (Empfehlung) | **Daniel 22:3x: kein Gleichstand** | Bots bleiben bei drei Neugruendungen (vier Doerfer); der Ausgleich kommt aus besserem Spiel (S-11 bis S-15). |

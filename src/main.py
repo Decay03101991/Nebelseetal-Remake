@@ -493,6 +493,26 @@ HINTERGRUND_VORGABE: Dict[str, Any] = {          # Rueckfall ohne Datendatei
     "abdunkeln_prozent": 25.0,                    # Schleier ueber dem Bild (Vergleichsfassung C)
 }
 
+# OVERLAY-BASIS (03.11.2026, Daniels Wunsch): Dialoge liegen INGAME ueber dem Inhaltsbereich, kein
+# eigenes Fenster auf dem Desktop. Die Zahlen stehen hier und in `data/overlay.json` - nicht im Code.
+OVERLAY_VORGABE: Dict[str, Any] = {                               # Rueckfall ohne Datendatei
+    "abdunkeln": {                                                # der Schleier ueber dem Inhalt
+        "deckkraft": 140,                                         # 0 = klar, 255 = schwarz
+        "farbe": [0, 0, 0],                                       # Schwarztoenung
+        "bildschirmabzug": True,                                  # Inhalt durchscheinen lassen
+        "mindestbreite": 640,                                     # Masse fuer eine unvermessene App
+        "mindesthoehe": 480,                                      # (Pruef-Apps ohne echtes Fenster)
+    },
+    "kasten": {                                                   # der Dialogkasten selbst
+        "breite": 560,                                            # Mindestbreite in Pixeln
+        "innen": 14,                                              # Innenabstand in Pixeln
+    },
+    "schliessen": {                                               # die zwei Schliesswege
+        "escape": True,                                           # Escape-Taste schliesst
+        "klick_daneben": True,                                    # Klick neben den Kasten schliesst
+    },
+}
+
 
 def hintergrund_einstellungen() -> Dict[str, Any]:
     """Masse und Abdunkelung des Bildhintergrunds - die EINE Stelle (B-6, 02.11.2026).
@@ -512,6 +532,33 @@ def hintergrund_einstellungen() -> Dict[str, Any]:
         return dict(HINTERGRUND_VORGABE)                                 # dann die Vorgabe
     ergebnis = dict(HINTERGRUND_VORGABE)                                 # Vorgabe als Grundlage
     ergebnis.update(werte)                                               # Datei hat Vorrang
+    return ergebnis                                                      # fertige Einstellungen
+
+
+def overlay_einstellungen() -> Dict[str, Any]:
+    """Zahlen der Ingame-Dialoge - die EINE Stelle (Overlay-Basis, 03.11.2026).
+
+    Gelesen aus `data/overlay.json` (Schluessel siehe Datei). Daniel stellt Deckkraft, Kastenbreite
+    und die Schliesswege damit ohne Codeaenderung. Fehlt die Datei oder ist sie kaputt, gilt
+    `OVERLAY_VORGABE` - das Spiel laeuft weiter, die Dialoge oeffnen mit den Vorgabezahlen.
+    """
+    pfad = os.path.join(spieldaten.projektwurzel(), "data", "overlay.json")   # Datendatei
+    try:                                                                 # Datei lesen
+        with open(pfad, encoding="utf-8") as f:                          # UTF-8 wie alle Spieldaten
+            daten = json.load(f)                                         # Inhalt als dict
+    except (OSError, ValueError):                                        # fehlt oder ist kaputt
+        return dict(OVERLAY_VORGABE)                                     # dann die Vorgabe
+    if not isinstance(daten, dict):                                      # unbrauchbarer Inhalt
+        return dict(OVERLAY_VORGABE)                                     # dann die Vorgabe
+    ergebnis = {k: (dict(v) if isinstance(v, dict) else v)               # Unter-Dicts kopieren,
+                for k, v in OVERLAY_VORGABE.items()}                     # damit niemand sie teilt
+    for schluessel, wert in daten.items():                               # Datei hat Vorrang
+        if schluessel.startswith("_"):                                   # Notizfelder der Datei
+            continue                                                     # die kennt der Code nicht
+        if isinstance(wert, dict) and isinstance(ergebnis.get(schluessel), dict):  # Unter-Dict
+            ergebnis[schluessel].update(wert)                            # nur die genannten Werte ersetzen
+        else:                                                            # einfacher Wert
+            ergebnis[schluessel] = wert                                  # direkt uebernehmen
     return ergebnis                                                      # fertige Einstellungen
 
 
@@ -7065,6 +7112,7 @@ class NebelseetalApp:
         # sichtbar, die Einheiten nicht).
         inhalt_rahmen = tk.Frame(main, bg=self.skin["bg"])
         inhalt_rahmen.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=6, pady=6)
+        self.inhalt_rahmen = inhalt_rahmen                              # Overlay-Basis legt Dialoge HIERUEBER
         self.content_canvas = tk.Canvas(inhalt_rahmen, bg=self.skin["bg"], highlightthickness=0, bd=0)
         self.content_scroll = tk.Scrollbar(inhalt_rahmen, orient=tk.VERTICAL,
                                            command=self.content_canvas.yview)
@@ -7263,11 +7311,183 @@ class NebelseetalApp:
 
     def _rad_rollen(self, ereignis):
         """Mausrad im Inhaltsbereich — schuetzt sich selbst, falls noch kein Rollbereich da ist."""
+        if self._overlay_offen():                                      # Ingame-Dialog ist offen
+            return                                                     # dann rollt der Inhalt NICHT darunter weg
         try:
             if self.content_canvas.winfo_exists():
                 self.content_canvas.yview_scroll(int(-ereignis.delta / 120), "units")
         except Exception:
             pass
+
+    # ---------- Overlay-Basis: Ingame-Dialoge statt Desktop-Fenster (03.11.2026) ----------
+    # Daniels Wunsch (22:2x): keine Zusatzfenster auf dem Desktop mehr, sondern Dialoge INGAME ueber
+    # dem Hauptfenster, Hintergrund abgedunkelt und durchscheinend. Tk kann keine Transparenz je
+    # Widget - deshalb ist die Abdunkelung ein VORGERENDERTES Bild: ein Bildschirmabzug des
+    # Inhaltsbereichs mit einem dunklen Alpha-Schleier darueber. Ohne Abzug (kein Pillow, Fenster
+    # nicht sichtbar) liegt eine dunkle Flaeche darueber; der Dialog funktioniert in beiden Faellen.
+
+    def _overlay_rahmen(self):
+        """Der Bereich, ueber den ein Ingame-Dialog gelegt wird (der Inhaltsbereich)."""
+        rahmen = getattr(self, "inhalt_rahmen", None)                  # Bereich aus dem Aufbau
+        if rahmen is not None and rahmen.winfo_exists():               # er lebt noch
+            return rahmen                                              # dann diesen nehmen
+        return self.content_canvas.master                              # Rueckfall: sein Elternrahmen
+
+    def _overlay_masse(self, rahmen, werte):
+        """Breite und Hoehe der Abdunkelung - mit Mindestmassen fuer eine unvermessene App."""
+        try:                                                           # Groesse messen
+            breite, hoehe = int(rahmen.winfo_width()), int(rahmen.winfo_height())   # echte Pixel
+        except Exception:                                              # kein Fenster (Pruef-App)
+            breite, hoehe = 0, 0                                       # dann 0
+        breite = max(breite, int(werte.get("mindestbreite") or 640))    # nie kleiner als die Mindestbreite
+        hoehe = max(hoehe, int(werte.get("mindesthoehe") or 480))       # nie kleiner als die Mindesthoehe
+        return breite, hoehe                                           # fertige Masse
+
+    def _overlay_abzug(self, rahmen):
+        """Ein Bildschirmabzug des Inhaltsbereichs - der Grund, warum der Dialog durchscheinend wirkt."""
+        if not rahmen.winfo_ismapped():                                # Fenster nicht sichtbar
+            return None                                                # dann kein Abzug (Pruef-App)
+        try:                                                           # Abzug versuchen
+            from PIL import ImageGrab                                  # Bildschirm lesen
+            x, y = int(rahmen.winfo_rootx()), int(rahmen.winfo_rooty())  # linke obere Ecke auf dem Schirm
+            b, h = int(rahmen.winfo_width()), int(rahmen.winfo_height())  # Groesse des Bereichs
+            if b < 8 or h < 8:                                         # unbrauchbare Masse
+                return None                                            # dann kein Abzug
+            return ImageGrab.grab(bbox=(x, y, x + b, y + h))           # der sichtbare Inhalt als Bild
+        except Exception:                                              # kein Zugriff auf den Schirm
+            return None                                                # dann Rueckfall auf die Flaeche
+
+    def _overlay_abdunkelbild(self, rahmen, breite, hoehe, werte):
+        """Die Abdunkelung als Tk-Grafik - None ohne Pillow (dann nimmt der Aufrufer eine Flaeche)."""
+        try:                                                           # Pillow nur HIER importieren
+            from PIL import Image, ImageTk                             # Bild- und Tk-Bruecke
+        except ImportError:                                            # Start ohne Pillow
+            return None                                                # dann dunkle Flaeche statt Bild
+        deckkraft = max(0, min(255, int(werte.get("deckkraft") or 140)))  # 0..255, harte Grenzen
+        farbe = werte.get("farbe") or [0, 0, 0]                        # Toenung aus der Datendatei
+        rot, gruen, blau = (int(farbe[0]), int(farbe[1]), int(farbe[2]))  # Einzelwerte der Toenung
+        masse = (int(breite), int(hoehe))                              # Zielmasse als Tupel
+        schleier = Image.new("RGBA", masse, (rot, gruen, blau, deckkraft))  # der Schleier selbst
+        grund = None                                                   # Vorgabe: kein Abzug
+        if werte.get("bildschirmabzug", True):                         # Abzug gewuenscht
+            grund = self._overlay_abzug(rahmen)                        # sichtbaren Inhalt lesen
+        if grund is not None:                                          # Abzug gelungen
+            try:                                                       # auf Zielmasse bringen
+                grund = grund.convert("RGBA").resize(masse)            # gleiche Groesse wie der Schleier
+                schleier = Image.alpha_composite(grund, schleier)       # Inhalt + Toenung = durchscheinend
+            except Exception:                                          # Abzug unbrauchbar
+                schleier = Image.new("RGBA", masse, (rot, gruen, blau, deckkraft))  # dann nur die Toenung
+        try:                                                           # Tk-Grafik daraus bauen
+            return ImageTk.PhotoImage(schleier)                        # fertige Grafik
+        except Exception:                                              # Tk nimmt das Bild nicht
+            return None                                                # dann Rueckfall auf die Flaeche
+
+    def _overlay_kastenfarbe(self) -> str:
+        """Die Fuellfarbe des Dialogkastens - dieselbe Farbe wie die weichen Textfelder (B-6)."""
+        e = hintergrund_einstellungen()                                # Kastenwerte aus der Datendatei
+        kasten = e.get("kasten") if isinstance(e.get("kasten"), dict) else {}   # Unter-Dict
+        farbe = kasten.get("farbe") or (22, 17, 12)                    # warmes Dunkelbraun als Vorgabe
+        try:                                                           # Hex-Farbe fuer Tk bauen
+            return "#%02x%02x%02x" % (int(farbe[0]), int(farbe[1]), int(farbe[2]))  # Tk kennt kein Tupel
+        except Exception:                                              # kaputte Angabe
+            return "#16110c"                                           # dann die Vorgabefarbe
+
+    def _overlay_oeffnen(self, titel: str, bauer, breite: int = None):
+        """Oeffnet einen Dialog INGAME ueber dem Inhaltsbereich - kein eigenes Fenster.
+
+        `bauer(inhalt, schliessen)` fuellt den Kasten: `inhalt` ist der Rahmen fuer die Widgets
+        (frueher war das `fenster`), `schliessen` schliesst den Dialog (frueher `fenster.destroy`).
+        Rueckgabe: der Dialog-Rahmen, damit ein Aufrufer ihn weiterbenutzen kann.
+        """
+        self._overlay_schliessen()                                     # nur EIN Dialog gleichzeitig
+        werte = overlay_einstellungen()                                # Zahlen aus data/overlay.json
+        abdunkeln = werte.get("abdunkeln") or {}                       # Schleier-Werte
+        schliessen_werte = werte.get("schliessen") or {}               # Schliesswege
+        kasten_werte = werte.get("kasten") or {}                       # Kastenmasse
+        rahmen = self._overlay_rahmen()                                # ueber dem Inhaltsbereich
+        b, h = self._overlay_masse(rahmen, abdunkeln)                  # Breite und Hoehe des Schleiers
+        flaeche = tk.Frame(rahmen, bg=self.skin["bg"], bd=0, highlightthickness=0)  # die Overlay-Flaeche
+        flaeche.place(x=0, y=0, relwidth=1, relheight=1)               # deckt den ganzen Bereich
+        flaeche.lift()                                                 # ueber allen anderen Kindern
+        bild = self._overlay_abdunkelbild(rahmen, b, h, abdunkeln)     # die Abdunkelung
+        if bild is not None:                                           # Bild vorhanden
+            schleier = tk.Label(flaeche, image=bild, bd=0, highlightthickness=0,
+                                bg=self.skin["bg"])                    # Bild als Flaeche
+            schleier.image = bild                                      # Referenz halten (Tk raeumt sonst)
+        else:                                                          # ohne Pillow
+            schleier = tk.Frame(flaeche, bg="#0d0504", bd=0, highlightthickness=0)  # dunkle Flaeche
+        schleier.place(x=0, y=0, relwidth=1, relheight=1)              # fuellt die Flaeche
+        if schliessen_werte.get("klick_daneben", True):                # Klick daneben soll schliessen
+            schleier.bind("<Button-1>", lambda _e: self._overlay_schliessen())  # dann hier binden
+        innen = max(2, int(kasten_werte.get("innen") or 14))           # Innenabstand des Kastens
+        farbe = self._overlay_kastenfarbe()                            # Fuellfarbe des Kastens
+        dialog = tk.Frame(flaeche, bg=farbe, bd=0, highlightthickness=2,
+                          highlightbackground=self.skin["gold"])       # Kasten mit feinem Goldrand
+        kastenbreite = int(breite or kasten_werte.get("breite") or 560)  # Mindestbreite des Kastens
+        kopf_bild = self._kasten_bild(kastenbreite, 46)                # weiches Titelband (B-6-Technik)
+        if kopf_bild is not None:                                      # Titelband vorhanden
+            kopf = tk.Label(dialog, text=str(titel), image=kopf_bild, compound="center",
+                            font=("Blackletter", 15, "bold"), fg=self.skin["gold"], bg=farbe)
+            kopf.image = kopf_bild                                     # Referenz halten
+        else:                                                          # ohne Pillow
+            kopf = tk.Label(dialog, text=str(titel), font=("Blackletter", 15, "bold"),
+                            fg=self.skin["gold"], bg=farbe)            # Titel als reiner Text
+        kopf.pack(fill=tk.X)                                           # Titelzeile ganz oben
+        inhalt = tk.Frame(dialog, bg=farbe)                            # hier baut der Dialognbauer
+        inhalt.pack(fill=tk.BOTH, expand=True, padx=innen, pady=(6, innen))
+        try:                                                           # der Dialog selbst
+            bauer(inhalt, self._overlay_schliessen)                    # fuellt den Kasten
+        except Exception:                                              # Aufbau gescheitert
+            flaeche.destroy()                                          # Flaeche wieder abraeumen
+            raise                                                      # Fehler nicht verschlucken
+        dialog.place(relx=0.5, rely=0.5, anchor="center")              # Kasten mittig ueber dem Inhalt
+        self._overlay = flaeche                                        # offener Dialog gemerkt
+        self._overlay_dialog = dialog                                  # der Kasten selbst
+        self._overlay_bild = bild                                      # Bild gegen Tk-Freigabe halten
+        try:                                                           # Eingabesperre setzen
+            flaeche.grab_set()                                         # Klicks gehen nur noch hierhin
+        except tk.TclError:                                            # Fenster nicht sichtbar (Pruef-App)
+            pass                                                       # dann ohne Sperre weiter
+        if schliessen_werte.get("escape", True):                       # Escape soll schliessen
+            self._overlay_escape_alt = self.root.bind("<Escape>")      # vorherige Bindung merken
+            self.root.bind("<Escape>", self._overlay_escape)           # eigene Bindung setzen
+        return dialog                                                  # Kasten zurueckgeben
+
+    def _overlay_escape(self, _ereignis=None):
+        """Escape schliesst den offenen Ingame-Dialog (Tastenkuerzel aus der Datendatei)."""
+        self._overlay_schliessen()                                     # Dialog schliessen
+        return "break"                                                 # Ereignis nicht weiterreichen
+
+    def _overlay_offen(self) -> bool:
+        """Ist ein Ingame-Dialog offen? (Eine Stelle, damit Anzeigen nicht selbst raten.)"""
+        return getattr(self, "_overlay", None) is not None             # Flaeche existiert = offen
+
+    def _overlay_schliessen(self):
+        """Schliesst den offenen Ingame-Dialog und gibt die Eingabe wieder frei."""
+        flaeche = getattr(self, "_overlay", None)                      # die offene Flaeche
+        if flaeche is None:                                            # nichts offen
+            return False                                               # dann nichts zu tun
+        try:                                                           # Eingabesperre loesen
+            flaeche.grab_release()                                     # sonst bleibt das Spiel gesperrt
+        except Exception:                                              # Sperre war nie gesetzt
+            pass                                                       # dann nichts tun
+        try:                                                           # Flaeche abraeumen
+            flaeche.destroy()                                          # samt Kasten und Widgets
+        except Exception:                                              # schon weg
+            pass                                                       # dann nichts tun
+        self._overlay = None                                           # kein offener Dialog mehr
+        self._overlay_dialog = None                                    # Kasten vergessen
+        self._overlay_bild = None                                      # Bild freigeben
+        alt = getattr(self, "_overlay_escape_alt", None)               # gemerkte Escape-Bindung
+        try:                                                           # Bindung zuruecknehmen
+            if alt:                                                    # es gab vorher eine
+                self.root.bind("<Escape>", alt)                        # dann diese wiederherstellen
+            else:                                                      # es gab keine
+                self.root.unbind("<Escape>")                           # dann Bindung entfernen
+        except Exception:                                              # Wurzel schon weg (Ende)
+            pass                                                       # dann nichts tun
+        self._overlay_escape_alt = None                                # Merker leeren
+        return True                                                    # geschlossen
 
     def _render_view(self):
         """Zeichnet die aktuelle Ansicht - seit A (03.11.2026) mit DOPPEL-PUFFER.
@@ -7286,6 +7506,10 @@ class NebelseetalApp:
         # Dann gibt es nichts zu zeichnen — die Neuzeichnung ist trotzdem kein Fehler.
         if getattr(self, "content", None) is None:
             return
+        # Overlay-Basis (03.11.2026): ein offener Ingame-Dialog haengt ueber dem ALTEN Inhalt -
+        # beim Ansichtswechsel wird er geschlossen, sonst zeigt er ueber der neuen Ansicht alte Daten.
+        if self._overlay_offen():                                          # Dialog offen
+            self._overlay_schliessen()                                     # dann erst schliessen
         alt_inhalt = self.content                                          # bisheriger Inhalt (bleibt sichtbar)
         alt_fenster = getattr(self, "_content_fenster", None)              # sein Fensterobjekt im Canvas
         try:                                                              # sichtbare Breite fuer den Neubau
@@ -10794,40 +11018,44 @@ class NebelseetalApp:
             self._log(meldung)
             self.state.messages.append({"text": meldung, "type": "system"})
             return
-        fenster = tk.Toplevel(self.root)                               # eigenes Fenster
-        fenster.title("Fremdes Dorf: " + str(dorf.name))               # Ueberschrift
-        fenster.configure(bg=self.skin["bg"])                          # Farbe wie das Spiel
-        tk.Label(fenster, text="%s von %s" % (dorf.name, bot.name),
-                 font=("Blackletter", 16, "bold"), fg=self.skin["gold"], bg=self.skin["bg"],
-                 wraplength=520, justify=tk.LEFT).pack(anchor=tk.W, padx=12, pady=(12, 2))
-        infos = ["Position %d/%d im Raster" % (int(dorf.x), int(dorf.y)),
-                 "Fraktion: %s" % bot.faction,
-                 "Hauptdorf" if dorf.hauptdorf else "Nebendorf"]        # oeffentliche Angaben
-        volk = bottaktik.volksattribute({"fraktion": bot.faction})      # bekannte Volkswerte
-        if volk.get("plus") or volk.get("minus"):
-            infos.append("Volk: +%s / -%s" % (volk.get("plus") or "-", volk.get("minus") or "-"))
-        tk.Label(fenster, text="\n".join(infos), fg=self.skin["text"], bg=self.skin["bg"],
-                 justify=tk.LEFT, wraplength=520).pack(anchor=tk.W, padx=12)
-        tk.Label(fenster, text="Wallstufe, Taktik, Truppen und Vorräte sind verdeckt - sie kommen "
-                               "nur über einen Spionagebericht.",
-                 fg="#C0C0C0", bg=self.skin["bg"], wraplength=520,
-                 justify=tk.LEFT).pack(anchor=tk.W, padx=12, pady=(4, 8))
-        leiste = tk.Frame(fenster, bg=self.skin["bg"])                 # Knopfleiste
-        leiste.pack(anchor=tk.W, padx=12, pady=(0, 12))
+        # Overlay-Basis (03.11.2026, Daniel: keine Desktop-Zusatzfenster mehr): der Dialog liegt
+        # INGAME ueber dem Inhaltsbereich, frueher war er ein eigenes `Toplevel`-Fenster.
+        def _bauen(inhalt, schliessen):
+            """Fuellt den Ingame-Dialog: oeffentliche Angaben und die zwei Wege."""
+            farbe = str(inhalt.cget("bg"))                             # Fuellfarbe des Kastens
+            tk.Label(inhalt, text="%s von %s" % (dorf.name, bot.name),
+                     font=("Blackletter", 16, "bold"), fg=self.skin["gold"], bg=farbe,
+                     wraplength=520, justify=tk.LEFT).pack(anchor=tk.W)
+            infos = ["Position %d/%d im Raster" % (int(dorf.x), int(dorf.y)),
+                     "Fraktion: %s" % bot.faction,
+                     "Hauptdorf" if dorf.hauptdorf else "Nebendorf"]   # oeffentliche Angaben
+            volk = bottaktik.volksattribute({"fraktion": bot.faction})  # bekannte Volkswerte
+            if volk.get("plus") or volk.get("minus"):
+                infos.append("Volk: +%s / -%s" % (volk.get("plus") or "-", volk.get("minus") or "-"))
+            tk.Label(inhalt, text="\n".join(infos), fg=self.skin["text"], bg=farbe,
+                     justify=tk.LEFT, wraplength=520).pack(anchor=tk.W)
+            tk.Label(inhalt, text="Wallstufe, Taktik, Truppen und Vorräte sind verdeckt - sie kommen "
+                                  "nur über einen Spionagebericht.",
+                     fg="#C0C0C0", bg=farbe, wraplength=520,
+                     justify=tk.LEFT).pack(anchor=tk.W, pady=(4, 8))
+            leiste = tk.Frame(inhalt, bg=farbe)                        # Knopfleiste
+            leiste.pack(anchor=tk.W)
 
-        def _wahl(art: str):
-            fenster.destroy()                                          # Optionen schliessen
-            self._truppen_auswahl(bot, dorf, art)                      # weiter zur Planung
+            def _wahl(art: str):
+                schliessen()                                           # Optionen schliessen
+                self._truppen_auswahl(bot, dorf, art)                  # weiter zur Planung
 
-        tk.Button(leiste, text="Angriff planen", command=lambda: _wahl("angreifen"),
-                  bg=self.skin["button"], fg=self.skin["gold"], relief=tk.FLAT,
-                  padx=10, pady=3).pack(side=tk.LEFT)
-        tk.Button(leiste, text="Spionage", command=lambda: _wahl("spionieren"),
-                  bg=self.skin["button"], fg=self.skin["gold"], relief=tk.FLAT,
-                  padx=10, pady=3).pack(side=tk.LEFT, padx=8)
-        tk.Button(leiste, text="Abbrechen", command=fenster.destroy,
-                  bg=self.skin["button"], fg=self.skin["text"], relief=tk.FLAT,
-                  padx=10, pady=3).pack(side=tk.LEFT)
+            tk.Button(leiste, text="Angriff planen", command=lambda: _wahl("angreifen"),
+                      bg=self.skin["button"], fg=self.skin["gold"], relief=tk.FLAT,
+                      padx=10, pady=3).pack(side=tk.LEFT)
+            tk.Button(leiste, text="Spionage", command=lambda: _wahl("spionieren"),
+                      bg=self.skin["button"], fg=self.skin["gold"], relief=tk.FLAT,
+                      padx=10, pady=3).pack(side=tk.LEFT, padx=8)
+            tk.Button(leiste, text="Abbrechen", command=schliessen,
+                      bg=self.skin["button"], fg=self.skin["text"], relief=tk.FLAT,
+                      padx=10, pady=3).pack(side=tk.LEFT)
+
+        self._overlay_oeffnen("Fremdes Dorf: " + str(dorf.name), _bauen)   # Ingame statt Desktop
 
     def _truppen_auswahl(self, bot, dorf, art: str):
         """Die Truppenauswahl eines Auftrags (B-5) - der Weg von der Karte zum Auftrag.
@@ -10847,99 +11075,103 @@ class NebelseetalApp:
                    if int(a) > 0}                                      # was im Dorf steht
         waehlbar = {n: a for n, a in bestand.items()
                     if (not spion or einheiten.ist_kundschafter(n))}    # Spionage: nur Kundschafter
-        fenster = tk.Toplevel(self.root)                               # eigenes Fenster
-        fenster.title(("Spionage: " if spion else "Angriff: ") + str(dorf.name))
-        fenster.configure(bg=self.skin["bg"])
-        tk.Label(fenster, text=("%s - Truppenauswahl" % dorf.name),
-                 font=("Blackletter", 15, "bold"), fg=self.skin["gold"], bg=self.skin["bg"],
-                 wraplength=520, justify=tk.LEFT).pack(anchor=tk.W, padx=12, pady=(12, 2))
-        hinweis = tk.Label(fenster, text="", fg=self.skin["text"], bg=self.skin["bg"],
-                           wraplength=520, justify=tk.LEFT)            # zeigt die Wirkung live
-        hinweis.pack(anchor=tk.W, padx=12)
-        tk.Label(fenster,
-                 text=("Spionage: es reisen NUR Spionageeinheiten der Diebesgilde. Mit Kämpfern "
-                       "oder Karren in der Auswahl wäre es ein Angriff."
-                       if spion else
-                       "Angriff: alle Einheiten des Dorfes dürfen mitreisen. Karren tragen die Beute."),
-                 fg="#C0C0C0", bg=self.skin["bg"], wraplength=520,
-                 justify=tk.LEFT).pack(anchor=tk.W, padx=12, pady=(0, 6))
-        felder = {}                                                    # Einheit -> (Variable, Bestand)
-        if not waehlbar:                                               # nichts auswaehlbar
-            tk.Label(fenster,
-                     text=("Keine Spionageeinheiten im Dorf - erst in der Diebesgilde ausbilden "
-                           "(Streuner genügt für den Anfang)." if spion
-                           else "Keine Einheiten im Dorf."),
-                     fg="#E5A0A0", bg=self.skin["bg"], wraplength=520,
-                     justify=tk.LEFT).pack(anchor=tk.W, padx=12, pady=(0, 8))
-        for name, anzahl in sorted(waehlbar.items()):                  # eine Zeile je Einheit
-            zeile = tk.Frame(fenster, bg=self.skin["panel"])
-            zeile.pack(fill=tk.X, padx=12, pady=1)
-            tk.Label(zeile, text="%s (%d im Dorf)" % (name, anzahl), fg=self.skin["text"],
-                     bg=self.skin["panel"], anchor=tk.W).pack(side=tk.LEFT, padx=6)
-            var = tk.StringVar(value="0")                              # Menge je Einheit
-            tk.Spinbox(zeile, from_=0, to=anzahl, width=5, textvariable=var).pack(
-                side=tk.RIGHT, padx=6)
-            felder[name] = (var, anzahl)                               # fuer das Auslesen
+        # Overlay-Basis (03.11.2026, Daniel: keine Desktop-Zusatzfenster mehr): die Auswahl liegt
+        # INGAME ueber dem Inhaltsbereich, frueher war sie ein eigenes `Toplevel`-Fenster.
+        def _bauen(inhalt, schliessen):
+            """Fuellt den Ingame-Dialog der Truppenauswahl (frueher ein eigenes Fenster)."""
+            farbe = str(inhalt.cget("bg"))                             # Fuellfarbe des Kastens
+            tk.Label(inhalt, text=("%s - Truppenauswahl" % dorf.name),
+                     font=("Blackletter", 15, "bold"), fg=self.skin["gold"], bg=farbe,
+                     wraplength=520, justify=tk.LEFT).pack(anchor=tk.W)
+            hinweis = tk.Label(inhalt, text="", fg=self.skin["text"], bg=farbe,
+                               wraplength=520, justify=tk.LEFT)        # zeigt die Wirkung live
+            hinweis.pack(anchor=tk.W)
+            tk.Label(inhalt,
+                     text=("Spionage: es reisen NUR Spionageeinheiten der Diebesgilde. Mit Kämpfern "
+                           "oder Karren in der Auswahl wäre es ein Angriff."
+                           if spion else
+                           "Angriff: alle Einheiten des Dorfes dürfen mitreisen. Karren tragen die Beute."),
+                     fg="#C0C0C0", bg=farbe, wraplength=520,
+                     justify=tk.LEFT).pack(anchor=tk.W, pady=(0, 6))
+            felder = {}                                                # Einheit -> (Variable, Bestand)
+            if not waehlbar:                                           # nichts auswaehlbar
+                tk.Label(inhalt,
+                         text=("Keine Spionageeinheiten im Dorf - erst in der Diebesgilde ausbilden "
+                               "(Streuner genügt für den Anfang)." if spion
+                               else "Keine Einheiten im Dorf."),
+                         fg="#E5A0A0", bg=farbe, wraplength=520,
+                         justify=tk.LEFT).pack(anchor=tk.W, pady=(0, 8))
+            for name, anzahl in sorted(waehlbar.items()):              # eine Zeile je Einheit
+                zeile = tk.Frame(inhalt, bg=self.skin["panel"])
+                zeile.pack(fill=tk.X, pady=1)
+                tk.Label(zeile, text="%s (%d im Dorf)" % (name, anzahl), fg=self.skin["text"],
+                         bg=self.skin["panel"], anchor=tk.W).pack(side=tk.LEFT, padx=6)
+                var = tk.StringVar(value="0")                          # Menge je Einheit
+                tk.Spinbox(zeile, from_=0, to=anzahl, width=5, textvariable=var).pack(
+                    side=tk.RIGHT, padx=6)
+                felder[name] = (var, anzahl)                           # fuer das Auslesen
 
-        def _gewaehlt() -> dict:
-            """Die aktuelle Auswahl als {Einheit: Menge} - nur brauchbare Zahlen."""
-            werte = {}
-            for einheit, (var, _a) in felder.items():
-                try:
-                    menge = int(str(var.get()).strip() or 0)
-                except ValueError:
-                    menge = 0
-                if menge > 0:
-                    werte[einheit] = menge
-            return werte
+            def _gewaehlt() -> dict:
+                """Die aktuelle Auswahl als {Einheit: Menge} - nur brauchbare Zahlen."""
+                werte = {}
+                for einheit, (var, _a) in felder.items():
+                    try:
+                        menge = int(str(var.get()).strip() or 0)
+                    except ValueError:
+                        menge = 0
+                    if menge > 0:
+                        werte[einheit] = menge
+                return werte
 
-        def _aktualisieren(*_args):
-            """Die Wirkung der Auswahl anzeigen: Aufklaerung oder Truppenzahl."""
-            werte = _gewaehlt()
-            if spion:
-                text = "Aufklärung: %d (nur Auswahl aus Spionageeinheiten)" % (
-                    spionage.aufklaerungswert(werte))
-            else:
-                text = "Einheiten in der Auswahl: %d" % sum(werte.values())
-            hinweis.config(text=text)
-            return text
+            def _aktualisieren(*_args):
+                """Die Wirkung der Auswahl anzeigen: Aufklaerung oder Truppenzahl."""
+                werte = _gewaehlt()
+                if spion:
+                    text = "Aufklärung: %d (nur Auswahl aus Spionageeinheiten)" % (
+                        spionage.aufklaerungswert(werte))
+                else:
+                    text = "Einheiten in der Auswahl: %d" % sum(werte.values())
+                hinweis.config(text=text)
+                return text
 
-        for var, _a in felder.values():                                # bei jeder Aenderung neu rechnen
-            var.trace_add("write", _aktualisieren)
-        _aktualisieren()
+            for var, _a in felder.values():                            # bei jeder Aenderung neu rechnen
+                var.trace_add("write", _aktualisieren)
+            _aktualisieren()
 
-        def _starten():
-            """Den Auftrag starten - der Kern prueft die Regeln noch einmal."""
-            werte = _gewaehlt()
-            if not werte:                                              # leere Auswahl
-                hinweis.config(text="Keine Einheiten gewählt.")
-                return
-            if spion:                                                  # Spionage: Kern entscheidet
-                ok, meldung = self.state.spionage_starten(bot, str(dorf.name), truppen=werte)
-            else:                                                      # Angriff: Marsch wie immer
-                entfernung = float(max(1, abs(int(ort.x) - int(dorf.x))
-                                       + abs(int(ort.y) - int(dorf.y))))
-                ok = self._angriff_auftrag_starten(str(dorf.name), dict(bot.army or {}),
-                                                   wall_stufe=int(dorf.wall_stufe),
-                                                   wall_zustand=float(dorf.wall_zustand),
-                                                   vorrat_ziel=bot, entfernung=entfernung,
-                                                   truppen=werte, dorf_name=str(dorf.name))
-                meldung = ("Angriff auf %s gestartet." % dorf.name if ok
-                           else "Angriff nicht gestartet.")
-            self.state.messages.append({"text": meldung, "type": "auftrag" if ok else "kampf"})
-            self._log(meldung)                                         # Statuszeile
-            if getattr(self, "content", None) is not None:             # Ansicht auffrischen
-                self._render_view()
-            fenster.destroy()                                          # Auswahl schliessen
+            def _starten():
+                """Den Auftrag starten - der Kern prueft die Regeln noch einmal."""
+                werte = _gewaehlt()
+                if not werte:                                          # leere Auswahl
+                    hinweis.config(text="Keine Einheiten gewählt.")
+                    return
+                if spion:                                              # Spionage: Kern entscheidet
+                    ok, meldung = self.state.spionage_starten(bot, str(dorf.name), truppen=werte)
+                else:                                                  # Angriff: Marsch wie immer
+                    entfernung = float(max(1, abs(int(ort.x) - int(dorf.x))
+                                           + abs(int(ort.y) - int(dorf.y))))
+                    ok = self._angriff_auftrag_starten(str(dorf.name), dict(bot.army or {}),
+                                                       wall_stufe=int(dorf.wall_stufe),
+                                                       wall_zustand=float(dorf.wall_zustand),
+                                                       vorrat_ziel=bot, entfernung=entfernung,
+                                                       truppen=werte, dorf_name=str(dorf.name))
+                    meldung = ("Angriff auf %s gestartet." % dorf.name if ok
+                               else "Angriff nicht gestartet.")
+                self.state.messages.append({"text": meldung, "type": "auftrag" if ok else "kampf"})
+                self._log(meldung)                                     # Statuszeile
+                schliessen()                                           # Auswahl zuerst schliessen
+                if getattr(self, "content", None) is not None:         # Ansicht auffrischen
+                    self._render_view()
 
-        leiste = tk.Frame(fenster, bg=self.skin["bg"])                 # Knopfleiste
-        leiste.pack(anchor=tk.W, padx=12, pady=(8, 12))
-        tk.Button(leiste, text="Auftrag starten", command=_starten,
-                  bg=self.skin["button"], fg=self.skin["gold"], relief=tk.FLAT,
-                  padx=10, pady=3).pack(side=tk.LEFT)
-        tk.Button(leiste, text="Abbrechen", command=fenster.destroy,
-                  bg=self.skin["button"], fg=self.skin["text"], relief=tk.FLAT,
-                  padx=10, pady=3).pack(side=tk.LEFT, padx=8)
+            leiste = tk.Frame(inhalt, bg=farbe)                        # Knopfleiste
+            leiste.pack(anchor=tk.W, pady=(8, 0))
+            tk.Button(leiste, text="Auftrag starten", command=_starten,
+                      bg=self.skin["button"], fg=self.skin["gold"], relief=tk.FLAT,
+                      padx=10, pady=3).pack(side=tk.LEFT)
+            tk.Button(leiste, text="Abbrechen", command=schliessen,
+                      bg=self.skin["button"], fg=self.skin["text"], relief=tk.FLAT,
+                      padx=10, pady=3).pack(side=tk.LEFT, padx=8)
+
+        self._overlay_oeffnen(("Spionage: " if spion else "Angriff: ") + str(dorf.name), _bauen)
 
     def _welt_bewegung_starten(self):
         if not getattr(self, "welt_auswahl", None):
@@ -11302,23 +11534,27 @@ class NebelseetalApp:
         rechnet nichts nach. Ist der Bericht aelter als die Frist, steht der Hinweis darueber.
         """
         nachricht = msg if isinstance(msg, dict) else {}                       # Nachricht als dict
-        fenster = tk.Toplevel(self.root)                                       # eigenes Fenster
-        fenster.title(str(nachricht.get("titel") or "Spionagebericht"))        # Ueberschrift
-        fenster.configure(bg=self.skin["bg"])                                  # Farbe wie das Spiel
-        tk.Label(fenster, text=str(nachricht.get("titel") or "Spionagebericht"),
-                 font=("Blackletter", 16, "bold"), fg=self.skin["gold"],
-                 bg=self.skin["bg"], wraplength=640, justify=tk.LEFT).pack(
-            anchor=tk.W, padx=10, pady=(10, 4))                                # Titel
-        hinweis = spionage.veraltet_text(nachricht, self.state.spielsekunden)  # Frist pruefen
-        if hinweis:                                                            # nur wenn zu alt
-            tk.Label(fenster, text=hinweis, fg="#C0C0C0", bg=self.skin["bg"],
-                     wraplength=640, justify=tk.LEFT).pack(anchor=tk.W, padx=10)
-        tk.Label(fenster, text=str(nachricht.get("text") or ""), fg=self.skin["text"],
-                 bg=self.skin["bg"], wraplength=640, justify=tk.LEFT).pack(
-            anchor=tk.W, padx=10, pady=(2, 8))                                 # der Bericht selbst
-        tk.Button(fenster, text="Schließen", command=fenster.destroy,
-                  bg=self.skin["button"], fg=self.skin["gold"], relief=tk.FLAT,
-                  padx=8, pady=2).pack(anchor=tk.E, padx=10, pady=(0, 10))     # schliessen
+
+        # Overlay-Basis (03.11.2026, Daniel: keine Desktop-Zusatzfenster mehr): der Bericht liegt
+        # INGAME ueber dem Inhaltsbereich, frueher war er ein eigenes `Toplevel`-Fenster.
+        def _bauen(inhalt, schliessen):
+            """Fuellt den Ingame-Dialog des Spionageberichts."""
+            farbe = str(inhalt.cget("bg"))                                     # Fuellfarbe des Kastens
+            tk.Label(inhalt, text=str(nachricht.get("titel") or "Spionagebericht"),
+                     font=("Blackletter", 16, "bold"), fg=self.skin["gold"],
+                     bg=farbe, wraplength=640, justify=tk.LEFT).pack(anchor=tk.W)  # Titel
+            hinweis = spionage.veraltet_text(nachricht, self.state.spielsekunden)  # Frist pruefen
+            if hinweis:                                                        # nur wenn zu alt
+                tk.Label(inhalt, text=hinweis, fg="#C0C0C0", bg=farbe,
+                         wraplength=640, justify=tk.LEFT).pack(anchor=tk.W)
+            tk.Label(inhalt, text=str(nachricht.get("text") or ""), fg=self.skin["text"],
+                     bg=farbe, wraplength=640, justify=tk.LEFT).pack(
+                anchor=tk.W, pady=(2, 8))                                      # der Bericht selbst
+            tk.Button(inhalt, text="Schließen", command=schliessen,
+                      bg=self.skin["button"], fg=self.skin["gold"], relief=tk.FLAT,
+                      padx=8, pady=2).pack(anchor=tk.E)                        # schliessen
+
+        self._overlay_oeffnen(str(nachricht.get("titel") or "Spionagebericht"), _bauen)  # Ingame
 
     def _render_settings(self):
         tk.Label(self.content, text="Einstellungen", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
