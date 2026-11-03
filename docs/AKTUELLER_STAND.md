@@ -15,7 +15,8 @@ Zuege. Damit ist der Diebstahl (S-12) eingeschaltet - er war bis heute nur gebau
 | Demo-Regel | `tests/test_s7_botverhalten.py` **46/0/0** | eigener Lauf |
 | Gegenprobe | alte Bedingung zurueckgetauscht -> **5 Fehler**, Datei hashgleich zurueckgesetzt | eigener Lauf |
 | Umgestellte Wachen | `test_gpt_fixrunde_ortslager_zeit_20261028`, `test_gpt_frischstart`, `test_gpt_bot_angriffsplanung`, `test_gpt_wall_bot_kampf` je OK (Diebstahl im `setUp` aus, Begruendung im Test) | eigene Laeufe |
-| Voller Sammellauf 12:45 | **142 von 146, 2 rot** - beide rot aus demselben Grund (Diebstahl umging den Goetterschutz), behoben; Nachprobe `test_startspiel` **62/0/1**, `test_gpt_rechnerzeit_einheitlich` OK | `docs/audits/sammellauf_20261103_1245.log` |
+| Voller Sammellauf 12:54 (ENDSTAND) | **144 von 146 gruen, 0 rot, 2 ausgesetzt, 5.786 Pruefungen, 314 s** | `docs/audits/sammellauf_20261103_1254.log` |
+| Verworfen: Lauf 12:45 | **142 von 146, 2 rot** - beide rot aus EINEM Grund (der Diebstahl umging den Goetterschutz), behoben und in 12:54 gruen; nicht als roter Stand lesen | `docs/audits/sammellauf_20261103_1245.log` |
 | Neue Vorgaben Daniels | `docs/VORGABEN_WELTEN_UND_BOTS_20261103.md` (Hauptdorf bleibt in seiner Welt, nur Nebendoerfer wechseln, Kampf ueber Weltgrenzen unbezahlbar, Bots rauben auch untereinander) | Chat 12:35 bis 12:40 |
 
 ## Der EINE naechste Schritt
