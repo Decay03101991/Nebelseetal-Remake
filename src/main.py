@@ -747,27 +747,79 @@ def bot_doerfer_bebauen(dorf: "BotDorf", einstellungen: Optional[dict] = None) -
     gebaeude = [str(g) for g in (einstellungen.get("gebaeude_je_dorf") or [])]
     if not gebaeude:
         return 0
-    gesetzt = 0
-    for geb in gebaeude:
-        steht = sum(1 for g in dorf.bauten.values() if str(g) == geb)      # steht diese Anlage schon?
-        offen = max(0, _anzahl(geb) - steht)                              # nur der Rest wird gesetzt -
-        if not offen:                                                     # sonst legte JEDER Bot-Takt
-            continue                                                      # drei weitere Anlagen nach
-        frei = [i for i in range(len(raster)) if str(i) not in dorf.bauten]
-        for _ in range(offen):
-            if not frei:
-                break
-            # S-6b (03.11.2026): eine Anlage kann MEHRERE Rohstoffe liefern (Rinderfarm: Nahrung und
-            # Leder) - dann ist der Ertrag ein dict und nicht vergleichbar. Verglichen wird die SUMME.
-            passend = [(_ertragssumme(gelaende.ertrag_pro_stunde(geb, raster[i])), i) for i in frei
-                       if gelaende.bau_moeglich(geb, raster[i])[0]]
-            if not passend:
-                break
+    # S-8 Stufe 2 (03.11.2026): FELD-PRIORITAETEN je Gebaeude. Ohne sie belegten die Holzfaeller die
+    # Steppe-Felder, und Rinderfarm, Schafszucht und Pferdezucht wurden NICHT MEHR GEBAUT (gemessen).
+    # Je Gebaeude steht in `data/bot_wirtschaft.json` (`feld_prioritaeten`), welches Gelaende es
+    # bevorzugt und welches nur als Notloesung zaehlt. Fehlt der Block, gilt die alte Regel (bestes
+    # Feld nach Ertrag) - kein Absturz, keine erfundene Prioritaet.
+    prioritaeten = einstellungen.get("feld_prioritaeten") or {}
+
+    def _gelaende_vorlieben(geb: str):
+        """(bevorzugt, notfalls) als Tupel von Gelaendearten - leer heisst keine Vorgabe."""
+        eintrag = prioritaeten.get(geb) or {}
+        bevorzugt = tuple(str(a).strip().lower() for a in (eintrag.get("bevorzugt") or []))
+        notfalls = tuple(str(a).strip().lower() for a in (eintrag.get("notfalls") or []))
+        return bevorzugt, notfalls
+
+    gesetzt = 0                                                           # Zahl der neu gesetzten Anlagen
+    offen_je: Dict[str, int] = {}                                         # je Gebaeude der offene Rest
+    for geb in gebaeude:                                                  # Plan durchgehen
+        steht = sum(1 for g in dorf.bauten.values() if str(g) == geb)     # steht diese Anlage schon?
+        offen_je[geb] = max(0, _anzahl(geb) - steht)                      # nur der Rest wird gesetzt -
+    # sonst legte JEDER Bot-Takt drei weitere Anlagen nach
+
+    def _frei() -> List[int]:
+        """Alle noch unbebauten Felder dieser Karte."""
+        return [i for i in range(len(raster)) if str(i) not in dorf.bauten]
+
+    def _setzen(geb: str, feld: int) -> None:
+        """Eine Anlage auf ein Feld schreiben (Buchung an EINER Stelle)."""
+        dorf.bauten[str(feld)] = geb                                      # Anlage auf das Feld
+        dorf.stufen[str(feld)] = 1                                        # Stufe 1 (Neubau)
+    # ----------------------------------------------------------------------------------------
+    # PHASE A: jedes Gebaeude zuerst auf sein BEVORZUGTES Gelaende (und auf ungeschuetzte
+    # Notloesungen). Ein Feld, das ein ANDERES Gebaeude des Plans noch braucht, bleibt frei.
+    # ----------------------------------------------------------------------------------------
+    for geb in gebaeude:                                                  # in der Reihenfolge des Plans
+        bevorzugt, notfalls = _gelaende_vorlieben(geb)                    # seine Vorlieben
+        while offen_je.get(geb, 0) > 0:                                   # bis die Zahl steht
+            reserviert = set()                                            # Gelaende, das andere brauchen
+            for anderes in gebaeude:                                      # jedes andere Gebaeude
+                if anderes == geb or offen_je.get(anderes, 0) <= 0:       # sich selbst / nichts mehr offen
+                    continue                                              # zaehlt nicht als Reservierung
+                reserviert.update(_gelaende_vorlieben(anderes)[0])        # sein bevorzugtes Gelaende
+            kandidaten = []                                               # Felder mit Rang und Ertrag
+            for i in _frei():                                             # jedes freie Feld
+                if not gelaende.bau_moeglich(geb, raster[i])[0]:          # darf die Anlage dort stehen?
+                    continue                                              # nein
+                art = str(raster[i]).strip().lower()                      # Gelaendeart dieses Feldes
+                if art in bevorzugt:                                      # erste Wahl
+                    rang = 2
+                elif art in notfalls and art not in reserviert:            # Notloesung, niemandem weggenommen
+                    rang = 1
+                else:                                                     # fremdes Gebiet oder unbekannt
+                    continue                                              # in Phase A nicht anfassen
+                kandidaten.append((rang, _ertragssumme(gelaende.ertrag_pro_stunde(geb, art)), i))
+            if not kandidaten:                                            # nichts in ihrer Zone frei
+                break                                                     # Rest kommt in Phase B
+            _rang, _wert, feld = max(kandidaten)                          # beste Wahl gewinnt
+            _setzen(geb, feld)                                            # Anlage setzen
+            offen_je[geb] -= 1                                            # Rest kleiner
+            gesetzt += 1                                                  # zaehlen
+    # ----------------------------------------------------------------------------------------
+    # PHASE B: erst wenn nichts mehr in der eigenen Zone frei ist, wird geteilt - dann nach Ertrag.
+    # So tragen alle Anlagen ihre Mindestzahl, bevor eine einzelne sich ausbreitet.
+    # ----------------------------------------------------------------------------------------
+    for geb in gebaeude:                                                  # je Gebaeude der Rest
+        while offen_je.get(geb, 0) > 0:                                   # solange noch etwas fehlt
+            passend = [(_ertragssumme(gelaende.ertrag_pro_stunde(geb, raster[i])), i)   # Ertrag je Feld
+                       for i in _frei() if gelaende.bau_moeglich(geb, raster[i])[0]]    # nur erlaubte Felder
+            if not passend:                                               # kein Feld mehr frei
+                break                                                     # dann bleibt der Rest offen
             _wert, feld = max(passend)                                    # bestes Feld gewinnt
-            dorf.bauten[str(feld)] = geb
-            dorf.stufen[str(feld)] = 1
-            frei.remove(feld)
-            gesetzt += 1
+            _setzen(geb, feld)                                            # Anlage setzen
+            offen_je[geb] -= 1                                            # Rest kleiner
+            gesetzt += 1                                                  # zaehlen
     return gesetzt
 
 

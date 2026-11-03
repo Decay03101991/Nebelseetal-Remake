@@ -1,3 +1,37 @@
+# STAND 03.11.2026, 22:1x - S-8 Stufe 2 (Feld-Prioritaeten, Erzmine 3) und die acht Kampfregeln entschieden
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**S-8 Stufe 2 gebaut:** `bot_doerfer_bebauen` setzt jede Anlage zuerst in ihre Zone (bevorzugtes
+Gelaende) und teilt erst, wenn dort nichts mehr frei ist - so nimmt ein Holzfäller keine Steppe, die
+eine Rinderfarm braucht. Die Zonen stehen als `feld_prioritaeten` in `data/bot_wirtschaft.json`
+(wald/steppe/huegel/berg/grasland), hergeleitet aus den belegten Erträgen und aus Daniels
+Jaeger-Vorgabe. **Erzmine auf 3** (Daniel 22:0x: mehrere Erzminen wie der Spieler, dasselbe fuer die
+anderen Gebaeude - die allgemeine Erhoehung kommt mit Stufe 3).
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Dorfzahl nach 24 Spieltagen | **4/4/4/4/4** (unveraendert) | `tools/bot_wirtschaft_messung.py --tage 24` |
+| Metall in der Kasse | **11.435 bis 16.584** (vorher 2.494 bis 5.388) | dieselbe Messung |
+| Anlagen je Dorf | 30 (26 auf der Karte ohne freies Bergfeld - die Karte bestimmt es) | dieselbe Messung |
+| Wachen | `test_bot_warenkette` 35/0/0, `test_bot_dorf_als_ort` 32/0/0, `test_s8_ertrag_aus_anlagen` 21/0/0, `test_bot_kartenprofil` 40/0/0 | eigene Laeufe |
+| Voller Sammellauf fuer diesen Stand | **offen** - gestartet 22:2x, Ergebnis im Protokoll nachgetragen | `docs/audits/` |
+
+**Die acht Kampfregeln sind abgesegnet** (Register 175, `docs/ENTSCHEIDUNGEN_KAMPFREGELN_20261103.md`):
+fusstruppen_begriff, flucht_formel, beute_verteilung, beute_reihenfolge (**Gold zuerst**),
+belagerungsturm_mauerschaden (1-4 minus Wallstufe), mauer_reparatur (aktiv, **mit Bauzeit**),
+vorrunde_wiederholung, geraetebeute (Zerstoerung, 10 Prozent je Sequenz, max. 50). Nah-/Fernkampf
+bekommt ein eigenes Kennzeichen je Einheit, weil `einheiten.ROLLEN` beide auf `kaempfer` abbildet.
+
+## Der EINE naechste Schritt
+
+**Die acht Kampfregeln in der Reihenfolge 1 bis 8 bauen** - je Regel eine Wache, der Sammellauf und die
+Protokollzeile. Vorher steht nur noch **S-8 Stufe 3** (Bauplan je Taktik in `data/bot_bauplan.json`,
+Mindestzahlen plus Restfelder), weil es die Erzmine-Zahl endgueltig festlegt. **Der Sammellauf gehoert
+zum Abschluss jedes Schnitts, und die Protokollzeile dazu ebenfalls.**
+
+---
+
 # STAND 03.11.2026, 21:20 - S-8 Stufe 1: Ertrag aus den GEBAUTEN Anlagen (Register 174)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
@@ -46,9 +80,20 @@ belegen Holzfaeller die Steppe-Felder und die Zuchten werden nicht mehr gebaut (
 (Bauplan je Taktik mit Mindestzahlen). **Der Sammellauf gehoert zum Abschluss jedes Schnitts, und die
 Protokollzeile dazu ebenfalls.**
 
-**Offen und ohne Daniels Wort zu erledigen:** die acht Kampfregeln bleiben der naechste grosse Denk-Auftrag
-(Uebergabe Abschnitt 9); O-1b (echte Hintergrundbilder) wartet auf die Generatorfrage; die beiden S-8-Fragen
-(Bauplan-Datei, Obergrenze je Taktik) stehen in derselben Runde.
+## Daniels Antworten aus der Runde 21:45 (in dieser Reihenfolge abarbeiten)
+
+| Frage | Entscheidung |
+|---|---|
+| Die acht Kampfregeln | **Entwurf jetzt** vom starken Modell vorbereiten, Daniel segnet die Liste in EINEM Durchgang ab (Auftrag `docs/auftraege/AUFTRAG_KAMPFREGELN_20261103.md`, Ziel `D:/Arbeiten/Hermes/Notizen/KAMPFREGELN_20261103.md`) |
+| Erzmine im Bot-Bauplan | **mehrere Erzminen, genau wie der Spieler - dasselbe gilt fuer die anderen Gebaeude.** Also nicht die Zahl 1 festschreiben, sondern ueber Stufe 2/3 (Feld-Prioritaeten, dann Bauplan mit Mindestzahlen und Restfeldern) so viele bauen, wie die Karte traegt |
+| Obergrenze je Dorf (S-8 Stufe 3) | **alle Felder, die die Taktik sinnvoll fuellt; Restfelder mit dem besten Ertrag** (Mindestzahlen statt Obergrenzen) |
+| Ort der Taktik-Bauplaene | **dieselbe Datei erweitern** (`data/bot_bauplan.json`, dort liegt schon ein Bauplan) - EINE Quelle |
+| O-1b echte Hintergrundbilder | **ZURUECKGESTELLT**: Midjourney wurde abgebrochen (Daniel: zu teuer), er sucht eine Loesung. O-1a bleibt, bis der Generator geklaert ist - **kein Auftragspaket fuer einen kostenpflichtigen Dienst ohne sein Wort** |
+
+**Der naechste Denk-Auftrag laeuft** (acht Kampfregeln); danach **S-8 Stufe 2 und 3** (Feld-Prioritaeten,
+dann Bauplan je Taktik mit Mindestzahlen und Restfeldern - dort wird auch die Zahl der Erzminen
+festgelegt). Ausserdem offen: Silra-Diagnose ist mit S-8 Stufe 1 erledigt (Holz 471 -> 34.136), die
+Berichte V-1 bis V-5 warten auf die acht Regeln.
 
 # STAND 03.11.2026, 19:26 - Ablauf: Hintergrundbilder als O-1 vor den Postkasten
 

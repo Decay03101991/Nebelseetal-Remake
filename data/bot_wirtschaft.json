@@ -17,7 +17,7 @@
     "steinmetz": 3,
     "farm": 3,
     "goldmine": 3,
-    "erzmine": 1,
+    "erzmine": 3,
     "stellmacher": 1,
     "rinderfarm": 3,
     "schafszucht": 2,
@@ -39,5 +39,89 @@
   "gruendungen_je_bot": 3,
   "doerfer_je_bot_hoechstens": 4,
   "gruendungen_hinweis": "Daniel 03.11.2026: vorerst DREI Gruendungen je Bot, also vier Doerfer (Startdorf plus drei). Spaeter sollen mehr erlaubt und eingebaut werden koennen - dann wird NUR diese Zahl geaendert, kein Code. Gilt fuer S-6 (Bots gruenden nach wie der Spieler).",
-  "anlagen_je_gebaeude_erklaerung": "S-6b (03.11.2026): Anzahl je Gebaeude. **S-8 Stufe 1 (03.11.2026): eine ERZMINE dazu (VORSCHLAG fuer die Zahl 1)** - der Siedlerkarren kostet 80 Metall, und mit dem Ertrag aus den ANLAGEN erntet ein Bot-Dorf nur noch Metall, wenn eine Erzmine steht (3 je Stunde auf Berg). Vorher kam das Metall aus dem Kartenprofil, also aus dem Nichts - ohne Erzmine baut kein Bot einen Karren und gruendet nie (gemessen). Die vier Grundanlagen bleiben bei drei (Daniel 02.11.2026: 12/12/12/9 je Stunde und Dorf). Fuer den Siedlerkarren: 1 Stellmacher, 3 Rinderfarmen (Leder ist der Engpass: 150 Leder bei 3 Leder/h je Anlage), 2 Schafszuchten (100 Wolle), 1 Pferdezucht (4 Pferde). Rechnung in docs/MESSUNG_S6B_SIEDLERKARREN_20261103.md. **03.11.2026 (Entscheidung Daniel): Holzfäller von 3 auf 5** - ein Bot braucht fuer Karren (200 Holz) und Gruendung (480 Holz) zusammen 680 Holz; mit drei Anlagen (12 Holz/h) hielt kein Dorf das gleichzeitig (belegt: Silra 189 Holz nach 24 Tagen). Vier Grundanlagen bleiben sonst, nur Holz steigt: 20/12/21/9 je Stunde. **03.11.2026:** der Versuch, Holzfaeller auf 99 (alle passenden Felder) zu setzen, wurde GEMESSEN und ZURUECKGENOMMEN: im Rueckfall-Ertrag ohne Karte ergab das 396 Holz je Stunde statt 12, und die Holzfaeller belegten die Steppe-Felder, sodass Rinderfarm, Schafszucht und Pferdezucht NICHT MEHR GEBAUT wurden. Die Lektion: ein Bauplan ohne Feld-Prioritaeten ist falsch - gehoert in den Schnitt Bauplan je Taktik (S-8)."
+  "anlagen_je_gebaeude_erklaerung": "S-6b (03.11.2026): Anzahl je Gebaeude. **S-8 Stufe 1 (03.11.2026): eine ERZMINE dazu (VORSCHLAG fuer die Zahl 1)** - der Siedlerkarren kostet 80 Metall, und mit dem Ertrag aus den ANLAGEN erntet ein Bot-Dorf nur noch Metall, wenn eine Erzmine steht (3 je Stunde auf Berg). Vorher kam das Metall aus dem Kartenprofil, also aus dem Nichts - ohne Erzmine baut kein Bot einen Karren und gruendet nie (gemessen). Die vier Grundanlagen bleiben bei drei (Daniel 02.11.2026: 12/12/12/9 je Stunde und Dorf). Fuer den Siedlerkarren: 1 Stellmacher, 3 Rinderfarmen (Leder ist der Engpass: 150 Leder bei 3 Leder/h je Anlage), 2 Schafszuchten (100 Wolle), 1 Pferdezucht (4 Pferde). Rechnung in docs/MESSUNG_S6B_SIEDLERKARREN_20261103.md. **03.11.2026 (Entscheidung Daniel): Holzfäller von 3 auf 5** - ein Bot braucht fuer Karren (200 Holz) und Gruendung (480 Holz) zusammen 680 Holz; mit drei Anlagen (12 Holz/h) hielt kein Dorf das gleichzeitig (belegt: Silra 189 Holz nach 24 Tagen). Vier Grundanlagen bleiben sonst, nur Holz steigt: 20/12/21/9 je Stunde. **03.11.2026:** der Versuch, Holzfaeller auf 99 (alle passenden Felder) zu setzen, wurde GEMESSEN und ZURUECKGENOMMEN: im Rueckfall-Ertrag ohne Karte ergab das 396 Holz je Stunde statt 12, und die Holzfaeller belegten die Steppe-Felder, sodass Rinderfarm, Schafszucht und Pferdezucht NICHT MEHR GEBAUT wurden. Die Lektion: ein Bauplan ohne Feld-Prioritaeten ist falsch - gehoert in den Schnitt Bauplan je Taktik (S-8).",
+  "feld_prioritaeten": {
+    "holzfaeller": {
+      "bevorzugt": [
+        "wald"
+      ],
+      "notfalls": [
+        "steppe",
+        "huegel"
+      ]
+    },
+    "jaeger": {
+      "bevorzugt": [
+        "wald"
+      ],
+      "notfalls": [
+        "huegel"
+      ]
+    },
+    "farm": {
+      "bevorzugt": [
+        "grasland"
+      ],
+      "notfalls": [
+        "steppe"
+      ]
+    },
+    "rinderfarm": {
+      "bevorzugt": [
+        "grasland"
+      ],
+      "notfalls": [
+        "steppe"
+      ]
+    },
+    "schafszucht": {
+      "bevorzugt": [
+        "grasland"
+      ],
+      "notfalls": [
+        "steppe"
+      ]
+    },
+    "pferdezucht": {
+      "bevorzugt": [
+        "grasland"
+      ],
+      "notfalls": [
+        "steppe"
+      ]
+    },
+    "steinmetz": {
+      "bevorzugt": [
+        "berg"
+      ],
+      "notfalls": [
+        "huegel"
+      ]
+    },
+    "goldmine": {
+      "bevorzugt": [
+        "berg"
+      ],
+      "notfalls": [
+        "huegel"
+      ]
+    },
+    "erzmine": {
+      "bevorzugt": [
+        "berg"
+      ],
+      "notfalls": [
+        "huegel"
+      ]
+    },
+    "stellmacher": {
+      "bevorzugt": [],
+      "notfalls": [
+        "huegel",
+        "steppe"
+      ]
+    }
+  },
+  "feld_prioritaeten_hinweis": "S-8 Stufe 2 (03.11.2026, Daniels Vorgabe 'der Bot soll Jaeger auf Waldfelder stellen und seine Karte je Taktik sinnvoll nutzen'): je Gebaeude das Gelaende, das es BEVORZUGT, und das es nur als NOTLOESUNG nimmt. `bot_doerfer_bebauen` setzt erst jede Anlage in ihre Zone und teilt erst dann, wenn dort nichts mehr frei ist - so nimmt ein Holzfäller keine Steppe, die eine Rinderfarm braucht (gemessen: ohne diese Regel wurden Rinderfarm, Schafszucht und Pferdezucht nicht mehr gebaut). Fehlt der Block, gilt die alte Regel (bestes Feld nach Ertrag). Die Gelaendearten sind die Kennungen aus `gelaende.GELAENDEARTEN` (wald, steppe, huegel, berg, grasland, sumpf, nebelsee); die Ertraege selbst stehen weiter NUR in `data/buildings.json`.",
+  "feld_prioritaeten_quelle": "VORSCHLAG, hergeleitet aus dem Handbuch 2009 (Ertraege je Gebaeude und Gelaende: Holzfäller 4 auf Wald, Steinmetz 4 auf Berg, Farm 4 auf Grasland, Goldmine 3 auf Berg) und aus Daniels Vorgabe zum Jaeger (Wald). Keine Zahl, nur die Reihung der Gelaendearten."
 }
