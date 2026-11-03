@@ -4943,6 +4943,69 @@ class GameState:
                 return name                                               # fertig
         return None                                                       # nichts ausbildbar
 
+    def _bots_raubzug(self, bot: "BotPlayer", ziel_bot: "BotPlayer", ziel_dorf: "BotDorf",
+                      bot_kaempfer: Dict[str, int], bot_geraet: Dict[str, int],
+                      rng: random.Random) -> Tuple[str, Dict[str, int]]:
+        """W-4: ein starker Bot raubt ein Dorf eines ANDEREN Bots in derselben Welt aus.
+
+        Daniels Vorgabe (03.11.2026), woertlich: Bots, die stark genug sind, "beginnen Raubzuege um
+        Ressourcen - nicht nur gegen den Spieler, auch gegeneinander". Die ZIELWAHL steht in
+        `bot_angriffsplanung.raubziele`/`waehle_raubziel` (Welt-Grenze, Staerke, Wall-Vorrunde);
+        hier wird GEKAMPFT und GEBUCHT - ueber dieselben Stellen wie beim Angriff auf den Spieler:
+
+          * `kampf.fuehre_schlacht` ist der EINE Kampfweg (keine eigenen Kampfwerte),
+          * `kampfbericht.beute_am_ziel` ist die EINE Beuteformel (sie zieht beim Ziel ab),
+          * `bot_armee_buchen` bucht die Verluste auf die Dorf-Garnison (S-5b),
+          * das Postfach bekommt einen Bericht wie bei einem Angriff auf den Spieler.
+
+        Was NICHT passiert: das Dorf wird nicht eingenommen und die Truppen bleiben nicht dort
+        (die zwei Regeln aus `docs/GESAMTKONZEPT_20261102.md`, Abschnitt 4). Es gibt keinen Marsch:
+        der Bot-Angriffsweg ist heute ohne Wegzeit, und W-3 (Kampf ueber Weltgrenzen) ist offen.
+
+        Rueckgabe: (Meldung, tatsaechliche Beute). Die Beute wird vom Aufrufer ueber
+        `botkern.wirkung_anwenden` in die Kasse des Angreifers gebucht - EINE Buchstelle.
+        """
+        if not isinstance(getattr(ziel_dorf, "einheiten", None), dict):       # altes Dorf ohne Feld
+            ziel_dorf.einheiten = {}                                         # dann anlegen
+        if not isinstance(getattr(ziel_dorf, "vorraete", None), dict):        # altes Dorf ohne Lager
+            ziel_dorf.vorraete = {}                                          # dann anlegen
+        # Goetterschutz, eingeschraenkt (Handbuch 2009, S. 6; Registerpunkt 41): dieselbe Pruefung
+        # wie beim Angriff auf den Spieler, nur mit den Punkten des ZIEL-Bots.
+        _erlaubt, _grund = punkte.angreifbar(int(getattr(bot, "punkte", 0) or 0),
+                                             int(getattr(ziel_bot, "punkte", 0) or 0))
+        if not _erlaubt:                                                     # Punktband verletzt
+            return (f"{bot.name} gegen {ziel_dorf.name} verschoben - {_grund}.", {})
+        ws = max(0, int(getattr(ziel_dorf, "wall_stufe", 0) or 0))            # Wallstufe des Ziels
+        wz = max(0.0, min(100.0, float(getattr(ziel_dorf, "wall_zustand", 100.0) or 100.0)))
+        kampf_result = kampf.fuehre_schlacht(                                # der EINE Kampfweg
+            bot_kaempfer, dict(ziel_dorf.einheiten), ws, wz,
+            angreifer_karren=bot_geraet or None,                             # Wagenpark traegt Beute
+            vorraete=dict(ziel_dorf.vorraete), rng=rng,
+            forschung_verteidiger={k: int(v) for k, v in
+                                   (getattr(ziel_bot, "forschungsstaende", None) or {}).items()},
+            boni_angreifer=boni_fuer_bot(bot, float(self.spielsekunden)),
+            boni_verteidiger=boni_fuer_bot(ziel_bot, float(self.spielsekunden)))
+        ziel_dorf.wall_zustand = float(kampf_result.get("mauer_zustand", wz))  # Wall des Ziels danach
+        for name, menge in (kampf_result.get("verluste_angreifer") or {}).items():
+            bot_armee_buchen(bot, name, -int(menge))                         # Verluste beim Angreifer
+        for name, menge in (kampf_result.get("verluste_verteidiger") or {}).items():
+            ziel_dorf.einheiten[name] = max(                                   # Verluste am Zielort
+                0, int(ziel_dorf.einheiten.get(name, 0)) - int(menge))
+        beute: Dict[str, int] = {}                                            # noch nichts erbeutet
+        if kampf_result.get("ausgang") == "angreifer":                        # nur der Sieger beute
+            _uebrig = int(sum(max(0, int(v)) for v in ziel_dorf.einheiten.values()))
+            beute, _lager_danach = kampfbericht.beute_am_ziel(                # EINE Beuteformel
+                bot_geraet or {}, dict(ziel_dorf.vorraete),
+                ausgang="angreifer", wall_zustand_vor=wz, verteidiger_uebrig=_uebrig,
+                forschung=self.forschungs_stufen())
+            if beute:                                                         # nur wenn etwas uebrig ist
+                ziel_dorf.vorraete.clear()                                    # Lager auf den Rest
+                ziel_dorf.vorraete.update(_lager_danach)                      # setzen (nie negativ)
+        meldung = (f"{bot.name} gegen {ziel_bot.name} ({ziel_dorf.name}): "   # Berichtstext
+                   f"{kampf_result.get('ausgang')}; tatsaechliche Beute {beute}.")
+        self.messages.append({"text": meldung, "type": "kampf"})              # ins Postfach
+        return meldung, beute                                                 # Meldung und Beute
+
     def bots_fortschreiben(self, jetzt: float) -> dict:
         """Einen Bot-Zug fahren (W5): die Entscheidung kommt aus `botkern`, gebucht wird hier.
 
@@ -5026,9 +5089,47 @@ class GameState:
                         lambda ort: (self.wall_stufe_am_ort(ort),
                                      dorfwall.zustand(ort) if self._lokale_kasse_aktiv()
                                      else 100.0))
+                    # W-4 (03.11.2026, Daniels Vorgabe "Bots rauben auch untereinander"): Zusaetzlich
+                    # zu den Spieler-Orten sind die Doerfer ANDERER Bots in DERSELBEN Welt Ziele.
+                    # Die Wahl selbst (Welt, Staerke, Wall) steht in `bot_angriffsplanung`; hier wird
+                    # nur entschieden, WELCHES der beiden Ziele gilt: das SCHWAECHERE gewinnt
+                    # (niedrigere Wallstufe, weniger Besatzung). Bei Gleichstand bleibt der
+                    # Spieler das Ziel - so bleibt das Vorgaengerverhalten unveraendert.
+                    _raub_einst = bot_angriffsplanung.raubzug_einstellungen()          # Regeln (Datei)
+                    _raub_kandidaten = bot_angriffsplanung.raubziele(                  # Doerfer anderer Bots
+                        bot, self.bots, _raub_einst)
+                    raubziel, raubplan = bot_angriffsplanung.waehle_raubziel(          # schwaechstes davon
+                        _raub_kandidaten, bot_kaempfer, bot_geraet, _raub_einst)
+                    ziel_bot = None                                                    # Ziel ist ein Spieler-Ort
+                    if raubziel is not None:                                           # Bot-Dorf erreichbar
+                        _raub_wert = (int(raubziel["wall"][0]), int(raubziel["besatzung"]))
+                        if zielort is None:                                            # kein Spieler-Ort frei
+                            _schwaecher = True                                         # dann das Bot-Dorf
+                        else:                                                          # beide vergleichen
+                            _spieler_wert = (int(self.wall_stufe_am_ort(zielort)),
+                                             int(sum(max(0, int(v)) for v in
+                                                     (zielort.einheiten or {}).values())))
+                            _schwaecher = _raub_wert < _spieler_wert                   # echt schwaecher?
+                        if _schwaecher:                                                # Bot-Dorf ist das Ziel
+                            zielort, ziel_bot, zielplan = (raubziel["dorf"],           # das Dorf-Objekt
+                                                           raubziel["bot"],            # sein Besitzer
+                                                           raubplan)                   # die Diagnose
                     if zielort is None:
                         meldung = (f"{bot.name}: Angriff verschoben: "
                                    f"{zielplan['grund']}")
+                    elif ziel_bot is not None:
+                        # Raubzug gegen einen anderen Bot: Kampf, Beute und Bericht in EINER Stelle
+                        # (`_bots_raubzug`). Die vier Zeilen danach sind derselbe Abschluss wie beim
+                        # Spieler-Ziel weiter unten - hier nur vorgezogen, damit der Spieler-Block
+                        # unveraendert bleibt.
+                        meldung, beute = self._bots_raubzug(bot, ziel_bot, zielort,
+                                                            bot_kaempfer, bot_geraet, rng)
+                        zug.setdefault("wirkung", {})["beute"] = beute
+                        ergebnis["angriffe"].append(meldung)
+                        self._log(meldung)
+                        self.bot_aus_dict(bot, botkern.wirkung_anwenden(start, zug))
+                        self.bot_armee_aufstellen(bot, jetzt)
+                        continue
                     else:
                         ws = self.wall_stufe_am_ort(zielort)
                         wz = (dorfwall.zustand(zielort)

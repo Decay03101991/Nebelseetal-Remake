@@ -1,0 +1,17 @@
+{
+  "stand": "2026-11-03",
+  "regel": "W-4: Ein starker Bot macht Raubzuege - nicht nur gegen den Spieler, sondern auch gegen die Doerfer ANDERER Bots in DERSELBEN Welt (Daniel 03.11.2026).",
+  "aktiv": true,
+  "armee_schwelle": 6,
+  "doerfer_schwelle": 1,
+  "staerke_faktor": 1.5,
+  "nur_eigene_welt": true,
+  "warum_diese_zahlen": {
+    "armee_schwelle": "VORSCHLAG: ab sechs Kampfeinheiten gilt ein Bot als 'stark genug' fuer einen Raubzug. Darunter greift er nicht an - die Vorrunde gegen einen Wall braucht ohnehin Fusskampftruppen, aber die Schwelle haelt einen Bot mit einer Einheit ganz aus dem Angriffsweg.",
+    "doerfer_schwelle": "Daniel nennt 'Einheiten, neue Doerfer gegruendet' als Voraussetzung. S-6 (Nachgruenden) ist noch NICHT gebaut, deshalb steht die Schwelle auf 1 - kein erfundener zweiter Blocker. Wer sie auf 2 stellt, verlangt zwei eigene Doerfer, ohne den Code zu aendern.",
+    "staerke_faktor": "VORSCHLAG: die eigene Schlagkraft der Fusskampftruppen muss das 1,5-fache der feindlichen Besatzung sein ('ein starker Bot greift einen schwaecheren Bot an'). Die Wall-Vorrunde wird zusaetzlich mit den Original-Schwellen geprueft (bot_angriffsplanung.pruefe_vorrunde).",
+    "nur_eigene_welt": "W-4 woertlich: 'Ein Bot in einer anderen Welt ist kein Ziel.' True = nur Doerfer, die in der Welt des ANGREIFERS stehen."
+  },
+  "quelle": "NICHT BELEGT. Weder das Handbuch 2009 noch die Vorversion 2006 regelt Raubzuege von Bot zu Bot - die Zahlen sind ein VORSCHLAG dieser Sitzung (03.11.2026) und stehen deshalb in dieser Datei, nicht im Code. Daniel stellt sie hier, ohne Codeeingriff.",
+  "ehrliche_grenze": "Nach der Voelkerwahl traegt JEDER Bot eine eigene Fraktion und damit eine eigene Heimatwelt (W-5/W-9): es steht dann genau ein Bot je Welt. Ein Raubzug Bot gegen Bot hat damit nur dann ein Ziel, wenn zwei Bots' Doerfer in DERSELBEN Welt stehen - das ist vor der Voelkerwahl der Fall (Haug und Brynhild sind beide menschlich) und spaeter nur ueber den Umzug eines Nebendorfs (W-2) oder eine andere Weltzuordnung. Der Code kann es, die Weltaufteilung gibt ihm derzeit selten ein Ziel."
+}

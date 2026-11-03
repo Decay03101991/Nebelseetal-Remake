@@ -2,10 +2,11 @@
 
 Diese Datei haelt die Vorgaben woertlich-nah fest, die Daniel am 03.11.2026 im Chat gemacht hat.
 Sie stehen ab jetzt ueber dem Fahrplan: was hier steht, wird gebaut; was hier nicht steht, wird nicht
-erfunden. **Stand 13:50: W-1 ist GEBAUT** (Register 163, `tests/test_bot_welten.py` 19/0/1) - ein Dorf
-entsteht in der Startwelt, traegt seine Herkunftswelt, und die Karte zeigt nur die Doerfer ihrer
-Welt. **Offen:** W-2 (Umzug eines Nebendorfs), W-3 (Preis/Sperre ueber Weltgrenzen, braucht
-Daniels Wort) und W-4 (Bot gegen Bot).
+erfunden. **Stand 15:57: W-1, W-4 und der Nachtrag W-5 bis W-9 sind GEBAUT** (Register 163 bis 169) -
+ein Dorf entsteht in seiner Herkunftswelt, die Karte zeigt nur die Doerfer ihrer Welt, fuenf Bots
+tragen je eine Fraktion, der Spieler startet in der Welt seines Volkes, und ein starker Bot raubt
+jetzt auch Doerfer ANDERER Bots in derselben Welt aus. **Offen:** W-2 (Umzug eines Nebendorfs), W-3
+(Preis/Sperre ueber Weltgrenzen, braucht Daniels Wort) und W-10 (Umzug, haengt an W-2).
 
 ## 1. Die vier Vorgaben
 
@@ -14,7 +15,7 @@ Daniels Wort) und W-4 (Bot gegen Bot).
 | W-1 | **Das Hauptdorf eines Bots bleibt IMMER in seiner Ursprungs- und Herkunftswelt.** | `BotDorf.dimension` des Hauptdorfs ist ab der Geburt fest und wird von KEINEM Weg geaendert (kein Transfer, kein Weltenwechsel, keine Ausnahme). Eine Wache haelt das: nach beliebig vielen Takten und Transfers ist `hauptdorf.dimension` noch die Startwelt. |
 | W-2 | **Der Spieler darf mit seinem Hauptdorf die Welten wechseln — Bots nur mit ihren Nebendoerfern.** | Der Weltenwechsel (`_portal_wechsel`, heute `eigene_dimension` + 5.000 Mana) gilt fuer den Spieler unveraendert. Fuer Bots gilt: hoechstens die Doerfer mit `hauptdorf = False` duerfen die Welt wechseln; das Hauptdorf wird nie mitgenommen. |
 | W-3 | **Ein Kampfauftrag von einer Welt auf eine Koordinate einer ANDEREN Welt ist so gut wie unbezahlbar — auch fuer den Spieler.** Das Springen und Koordinieren muss durch das SPIEL getriggert werden. | Der Weltenunterschied ist heute fast gratis: `auftraege.MANA_JE_DIMENSION = 20.0` Mana je Stufe (VORSCHLAG aus A2) - ein Angriff ueber eine Weltgrenze kostet damit ein paar Mana mehr als ein Angriff nebenan. Neu: ein eigener, deutlich prohibitiver Satz fuer Kampfauftraege ueber Weltgrenzen (Zahl in eine Datendatei, nicht in den Code), UND der Ausloeser ist das Spiel (Angebot/Sperre in der Oberflaeche), keine freie Koordinateneingabe. |
-| W-4 | **Bots, die stark genug sind (Einheiten, neue Doerfer gegruendet), beginnen Raubzuege um Ressourcen — nicht nur gegen den Spieler, auch gegeneinander.** Voraussetzung: Bot und seine Welt sind spielaktiv. | Der Bot-Angriffsweg (`botkern` + `bot_angriffsplanung.waehle_ziel`) waehlt heute Ziele nur unter den SPIELER-Siedlungen. Neu: Ziele sind alle AKTIVEN Doerfer fremder Bots in derselben Welt - nach denselben Regeln (Goetterschutz, Punkteband, Wall, Beuteformel). Eine Welt, in der der Bot nicht aktiv ist, ist kein Ziel. |
+| W-4 | **GEBAUT (Register 169, `tests/test_bot_raubzug_bot.py` 39/0/0).** Bots, die stark genug sind (Einheiten, neue Doerfer gegruendet), beginnen Raubzuege um Ressourcen — nicht nur gegen den Spieler, auch gegeneinander. Voraussetzung: Bot und seine Welt sind spielaktiv. | Der Bot-Angriffsweg (`botkern` + `bot_angriffsplanung.waehle_ziel`) waehlt heute Ziele nur unter den SPIELER-Siedlungen. Neu: Ziele sind alle AKTIVEN Doerfer fremder Bots in derselben Welt - nach denselben Regeln (Goetterschutz, Punkteband, Wall, Beuteformel). Eine Welt, in der der Bot nicht aktiv ist, ist kein Ziel. |
 
 ## 2. Was Daniel dazu als Vorschlag offen laesst
 

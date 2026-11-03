@@ -144,8 +144,19 @@ check("5 in `src/` schreibt niemand mehr auf `bot.army[...]`", not _schreibstell
 # ENTSCHEIDUNG GEAENDERT (S-5a, 03.11.2026): der KAUF bucht nicht mehr selbst - er startet eine
 # Warteschlange (die Einheit entsteht im Dorf). Der EINE Schreiber bleibt fuer Verluste und fuer
 # alles, was eine Armee auf einmal setzt.
-check("5 der Verlust bucht ueber den EINEN Schreiber",
-      TEXT_MAIN.count("bot_armee_buchen(bot, name, -int(menge))") == 1, "")
+# ENTSCHEIDUNG GEAENDERT (W-4, 03.11.2026): es gibt jetzt ZWEI Verluststellen - der Angriff auf
+# einen Spieler-Ort und der Raubzug gegen ein Dorf eines anderen Bots (`_bots_raubzug`). Beide
+# buchen ueber `bot_armee_buchen`; die Wache zaehlt deshalb nicht mehr "genau 1", sondern
+# "genau so viele Verlustbuchungen wie Verluststellen" - und der Test darueber haelt weiter fest,
+# dass niemand direkt auf `bot.army[...]` schreibt.
+# Gezaehlt wird die BOT-Verluststelle (`kampf_result`), nicht jede Verluststelle des Spielers:
+# der Spieler-Pfad (`ergebnis.get`) bucht seine Verluste auf die Siedlung, nicht auf eine Bot-Armee.
+_verluststellen = TEXT_MAIN.count('kampf_result.get("verluste_angreifer")')
+check("5 der Verlust bucht ueber den EINEN Schreiber (je Bot-Verluststelle eine Buchung)",
+      TEXT_MAIN.count("bot_armee_buchen(bot, name, -int(menge))") == _verluststellen
+      and _verluststellen >= 1,
+      "%d Buchungen / %d Stellen" % (TEXT_MAIN.count("bot_armee_buchen(bot, name, -int(menge))"),
+                                     _verluststellen))
 check("5 der Kauf bucht NICHT mehr direkt, sondern bildet aus",
       "bot_armee_buchen(bot, name, 1" not in TEXT_MAIN
       and "ausbildung_start_menge" in TEXT_MAIN, "")

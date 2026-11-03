@@ -1,3 +1,49 @@
+# STAND 03.11.2026, 15:56 - W-4: Bots rauben auch untereinander (Register 169)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Ein starker Bot kann jetzt ein Dorf eines ANDEREN Bots ausrauben.** Daniels Vorgabe war, dass Bots
+mit Einheiten und eigenen Doerfern Raubzuege um Ressourcen machen - „nicht nur gegen den Spieler, auch
+gegeneinander“, aber nur in einer Welt, die spielaktiv ist. Der Bot greift dafuer dieselben Stellen an
+wie beim Angriff auf den Spieler: `kampf.fuehre_schlacht` kaempft, `kampfbericht.beute_am_ziel` zieht
+die Beute beim Zielort ab, `bot_armee_buchen` bucht die Verluste, und das Postfach bekommt einen
+Bericht. Das Dorf wechselt nie den Besitzer, Truppen bleiben nie am Zielort - die zwei Regeln gelten
+unveraendert.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `1a773bc` plus diese Aenderung | `git log --oneline -1` |
+| Daten (alle Zahlen VORSCHLAG) | `data/bot_raubzug.json`: `armee_schwelle` 6, `doerfer_schwelle` 1, `staerke_faktor` 1,5, `nur_eigene_welt` true | Datendatei |
+| Wache | `tests/test_bot_raubzug_bot.py` **39/0/0** | eigener Lauf, `docs/audits/raubzug_einzellauf.log` |
+| Gegenproben | Weltfilter abgeschaltet -> **2 Fehler**; Beute-Buchung uebersprungen -> **1 Fehler**; Datei beide Male hashgleich zurueck | eigener Lauf |
+| Umgestellte Wache | `test_bot_armee_je_dorf` 21/1/1 -> **22/0/1** (sie verlangte genau EINE Verlustbuchung; seit W-4 gibt es zwei Verluststellen) | eigener Lauf |
+| Nachbarproben | `test_botkern` **101/0/0**, `test_bot_diebstahl` **46/0/1**, `test_bot_welten` **44/0/1**, `test_bot_ausbildung_je_ort` **20/0/1**, `test_bot_takt_scheiben` **34/0/1**, `test_startspiel` **62/0/1**, `test_durchspiel` **65/0/2**, `test_portal_fremdblick` **18/0/1**, `test_bot_wappen` **26/0/1**, `test_gpt_frischstart` OK (6 Tests) | eigene Laeufe |
+| Voller Sammellauf | **150 von 152 gruen, 0 rot, 2 ausgesetzt, 5.960 Pruefungen, 415 s** (Start 15:58) | `docs/audits/sammellauf_20261103_1558.log` |
+| Pruefdateien / Register | **152** / **169** | `ls tests/test_*.py`, `grep -c '^| [0-9]'` |
+| Berichtigung am Vorgaengerblock | Die Uebergabe war **10.557 Byte, SHA256 `35624259…`** (15:44 nachgemessen, hashgleich archviert) - der Block vom 15:25 nennt 10.485 Byte / `c0e5fafd`; die Datei wurde nach dem Schreiben des Blocks noch ergaenzt | `sha256sum`, `stat` |
+
+**Befund, der die naechste Sitzung betrifft:** nach der Voelkerwahl traegt jeder Bot eine eigene
+Fraktion und damit eine eigene Heimatwelt (W-5/W-9) - es steht dann genau EIN Bot je Welt. Ein Raubzug
+Bot gegen Bot hat damit nur dann ein Ziel, wenn zwei Bots' Doerfer in DERSELBEN Welt stehen: vor der
+Voelkerwahl ist das bei Haug und Brynhild (beide menschlich, Welt 4) der Fall, danach erst wieder mit
+dem Nebendorf-Umzug (W-2). Der Code kann es, die Weltaufteilung gibt ihm derzeit selten ein Ziel -
+das ist eine offene Frage an Daniel, keine Luecke im Schnitt.
+
+## Der EINE naechste Schritt
+
+**S-6 Nachgruenden** (Daniels Reihenfolge): drei Gruendungen je Bot, damit ein Bot vier Doerfer hat -
+die Voraussetzung dafuer, dass die Weltkarte je Bot mehrere Doerfer zeigt (W-7) und ein Raubzug
+ueberhaupt mehrere Ziele hat. Danach **S-7** (Karawanen zwischen eigenen Doerfern), **S-9** (Stil je
+Taktik), zuletzt **W-3** (braucht Daniels Entscheidung: gesperrt oder teuer mit Deckel) und die
+**Story** (W-11, nebensaechlich).
+
+**Fuenf offene Fragen** stehen fuer die naechste Runde: W-3 (Sperre oder Preis), ein Volk ohne Bot,
+Wappen-Zuordnung, Burg-Groesse auf der Karte - und neu: ob zwei Bots eine Welt teilen sollen, damit
+Raubzuege Bot gegen Bot wirklich stattfinden.
+
+**Der Sammellauf gehoert zum Abschluss jedes Code-Schnitts** - der Lauf zu diesem Stand ist gruen
+(Zeile oben) und startete nach dem letzten Code-Eingriff.
+
 # STAND 03.11.2026, 15:25 - S-5 komplett, Sammellauf gruen, Uebergabe geschrieben
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
