@@ -170,10 +170,12 @@ _bericht = {"bot": "Haug", "fraktion": "menschlich", "dorf": _dorf,
             "kasse": {"holz": 120.0}, "zeit_spielsekunden": 1000.0}
 _zeilen_schwach = "\n".join(SP.bericht_zeilen(_bericht, 60))
 _zeilen_stark = "\n".join(SP.bericht_zeilen(_bericht, 400))
+# T-1 (03.11.2026): der Bericht traegt echte Umlaute (aufgeklaert -> aufgekl\u00e4rt).
 check("ohne genug Aufklaerung steht 'nicht aufgeklaert' im Bericht",
-      "nicht aufgeklaert" in _zeilen_schwach, _zeilen_schwach[:200])
+      "nicht aufgekl\u00e4rt" in _zeilen_schwach, _zeilen_schwach[:200])
+# T-1 (03.11.2026): echte Umlaute im Bericht (Aufklaerung -> Aufkl\u00e4rung).
 check("der schwache Bericht nennt den fehlenden Rest (Aufklaerung 60 von 150)",
-      "Aufklaerung 60 von 150" in _zeilen_schwach, _zeilen_schwach[:400])
+      "Aufkl\u00e4rung 60 von 150" in _zeilen_schwach, _zeilen_schwach[:400])
 check("der schwache Bericht nennt KEINE Taktik", "RAUBERN" not in _zeilen_schwach)
 check("der schwache Bericht nennt KEINEN Wallzustand", "Zustand 80" not in _zeilen_schwach)
 check("der starke Bericht nennt Taktik, Wall und Vorraete",
@@ -236,8 +238,9 @@ check("ein Streuner auf ein fremdes Dorf startet", _ok is True, _meld)
 check("der Eintrag traegt den Aufklaerungswert",
       _leer[0].get("aufklaerung") == SP.aufklaerungswert({STREUNER: 1}),
       str(_leer[0].get("aufklaerung")))
+# T-1 (03.11.2026): der Bericht traegt echte Umlaute ("Aufklaerung" -> "Aufkl\u00e4rung").
 check("der Startbericht nennt die Aufklaerung",
-      "Aufklaerung" in "\n".join(A.bericht(_leer[0])["zeilen"]),
+      "Aufkl\u00e4rung" in "\n".join(A.bericht(_leer[0])["zeilen"]),
       str(A.bericht(_leer[0])["zeilen"]))
 _ablehnung = A.starten(A.neue_liste(), "spionieren", {KAEMPFER: 3}, "Heim",
                        {"name": "Fremd", "fremd": True}, 10, 0)
@@ -310,8 +313,9 @@ check("der Bericht traegt einen Rechnerzeitstempel (zeitbasis.zeitmarke)",
       _nach and bool(_nach[0].get("zeit_utc")) and bool(_nach[0].get("zeit_lokal")))
 check("der Bericht nennt das Dorf und den Bot",
       _nach and dorf.name in _nach[0]["text"] and bot.name in _nach[0]["text"])
+# T-1 (03.11.2026): echte Umlaute (aufgeklaert -> aufgekl\u00e4rt).
 check("beim Streuner fehlt die Taktik im Bericht (zu wenig Aufklaerung)",
-      _nach and "nicht aufgeklaert" in _nach[0]["text"])
+      _nach and "nicht aufgekl\u00e4rt" in _nach[0]["text"])
 check("der Auftragsbericht kommt zusaetzlich als eigene Nachricht",
       any(str(m.get("type")) == "auftrag" for m in gs.messages))
 
@@ -415,7 +419,7 @@ check("Spionage hat eine eigene Farbe", M.nachrichten_farbe({"type": "spionage"}
 check("Kampf bleibt rot", M.nachrichten_farbe({"type": "kampf"}) == "#e53935")
 check("unbekannte Arten bleiben gold", M.nachrichten_farbe({"type": "forschung"}) == "#DAA520")
 check("die Nachrichtenansicht zeichnet einen Oeffnen-Knopf",
-      "Spionagebericht oeffnen" in TEXT_MAIN)
+      "Spionagebericht \u00f6ffnen" in TEXT_MAIN)
 check("es gibt eine Anzeige, die den Bericht oeffnet",
       "def _spionage_bericht_anzeigen" in TEXT_MAIN)
 check("die Anzeige rechnet den Bericht NICHT nach",

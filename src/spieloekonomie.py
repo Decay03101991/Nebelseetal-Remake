@@ -506,11 +506,11 @@ def ware_voraussetzung(ware: str, forschung: dict, rezepte: dict = None):
     teile = []
     for b in liste:
         if not b["bekannt"]:
-            teile.append(f"die Forschung '{b['gebiet']}' kennen wir nicht - nicht erfuellbar")
+            teile.append(f"die Forschung '{b['gebiet']}' kennen wir nicht - nicht erfüllbar")
         elif b["erfuellt"]:
             teile.append(f"{b['gebiet']} Stufe {b['noetig']} vorhanden")
         else:
-            teile.append(f"{b['gebiet']} Stufe {b['noetig']} noetig, vorhanden ist Stufe "
+            teile.append(f"{b['gebiet']} Stufe {b['noetig']} nötig, vorhanden ist Stufe "
                          f"{b['vorhanden']}")
     return all(b["erfuellt"] for b in liste), " · ".join(teile)
 
@@ -562,7 +562,7 @@ def ware_grenzen(ort: dict, ware: str, forschung: dict, rezepte: dict = None) ->
         return leer
     typ = werkstatt.werkstatt_fuer(ware)
     if typ is None:
-        leer["hindernis"] = "Ware gehoert zu keiner Werkstatt."
+        leer["hindernis"] = "Ware gehört zu keiner Werkstatt."
         return leer
     typ_name = typ
     try:
@@ -651,9 +651,9 @@ def _mengen_text(was: str, menge: int, grenzen: dict, ort: dict = None) -> str:
         except (TypeError, ValueError, KeyError):
             detail = ""
         if detail:
-            return (f"Lokales Lager reicht nicht fuer {menge}x {was}: {detail} "
+            return (f"Lokales Lager reicht nicht für {menge}x {was}: {detail} "
                     f"(bezahlbar jetzt: {moeglich}).")
-    return (f"{menge}x {was} nicht moeglich: bezahlbar sind jetzt {moeglich} "
+    return (f"{menge}x {was} nicht möglich: bezahlbar sind jetzt {moeglich} "
             f"(Deckel {MENGEN_HOECHSTMENGE} je Auftrag).")
 
 
@@ -737,7 +737,7 @@ def ausbildung_abbrechen(ort: dict, platz: int, jetzt: float) -> dict:
     try:
         platz = int(platz)
     except (TypeError, ValueError):
-        return {"ok": False, "grund": "Ungueltiger Platz."}
+        return {"ok": False, "grund": "Ungültiger Platz."}
     if not 1 <= platz <= len(liste):
         return {"ok": False, "grund": f"Platz {platz} gibt es nicht (1-{len(liste)})."}
     ziel = liste[platz - 1]
@@ -746,8 +746,8 @@ def ausbildung_abbrechen(ort: dict, platz: int, jetzt: float) -> dict:
     except (TypeError, ValueError):
         jetzt = 0.0
     if float(ziel.get("start") or 0.0) <= jetzt and jetzt < float(ziel.get("ende") or 0.0):
-        return {"ok": False, "grund": "Dieser Auftrag laeuft gerade und kann nicht mehr gestrichen "
-                                      "werden - nur wartende Auftraege."}
+        return {"ok": False, "grund": "Dieser Auftrag läuft gerade und kann nicht mehr gestrichen "
+                                      "werden - nur wartende Aufträge."}
     neu = [a for a in (ort.get("ausbildung") or []) if a is not ziel]
     return {"ok": True, "grund": "", "einheit": ziel.get("einheit"), "ausbildung": neu,
             "erstattung": {}, "hinweis": "Keine Erstattung: die Quellen regeln das nicht."}

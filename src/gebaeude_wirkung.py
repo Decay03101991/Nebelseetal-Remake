@@ -308,7 +308,7 @@ def wall_beschreibung(siedlungen) -> str:
     schwelle = wall_schwelle(stufe)
     bel = schwelle["belagerungswaffen"]
     teil = f"{wall_name(stufe)} (Stufe {stufe})"
-    teil += f", Schwellenwert Fusstruppen {schwelle['fusstruppen']}"
+    teil += f", Schwellenwert Fußtruppen {schwelle['fusstruppen']}"
     if bel is not None:
         teil += f", Belagerungswaffen {bel}"
     teil += f", Kriegspunkte {wall_kriegspunkte(stufe)}"

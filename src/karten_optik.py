@@ -106,7 +106,7 @@ def emblem_plan(art: str, x0: float, y0: float, zelle: float) -> list[dict]:
     """
     if art not in _EMBLEME:
         raise ValueError(
-            f"Unbekannte Gelaendeart: {art!r} — erwartet eine von "
+            f"Unbekannte Geländeart: {art!r} — erwartet eine von "
             f"{sorted(_EMBLEME)}")
     return _EMBLEME[art](x0, y0, zelle)
 
@@ -348,7 +348,7 @@ def gebaeude_plan(gebaeude_key: str, x0: float, y0: float, zelle: float,
     key = str(gebaeude_key).strip().lower()
     if key not in _FAMILIE:
         raise ValueError(
-            f"Unbekanntes Gebaeude: {gebaeude_key!r} — erwartet eine der 20 Kennungen aus "
+            f"Unbekanntes Gebäude: {gebaeude_key!r} — erwartet eine der 20 Kennungen aus "
             f"gelaende.alle_gebaeude()")
     familie = _FAMILIE[key]
     dach, koerper = _FARBEN[familie]
@@ -584,10 +584,10 @@ def _fuell(eintrag: dict) -> dict:
 def offene_luecken() -> list[str]:
     """Was dieses Modul bewusst NICHT aus den Quellen belegen kann (ehrlich gemeldet)."""
     return [
-        "Die 7 Gelaende-Embleme sind Vorschlaege: das Handbuch 2009 nennt keine Vorgabe fuer "
-        "die Kartenoptik (nur die 7 Gelaendearten selbst sind belegt).",
-        "Die Kartengroesse 8x7 = 56 Felder mit 40 bebaubaren ist Daniel-Entscheidung ",
-        "(05.10.2026); das Handbuch nennt keine Kartengroesse.",
+        "Die 7 Gelände-Embleme sind Vorschläge: das Handbuch 2009 nennt keine Vorgabe für "
+        "die Kartenoptik (nur die 7 Geländearten selbst sind belegt).",
+        "Die Kartengröße 8x7 = 56 Felder mit 40 bebaubaren ist Daniel-Entscheidung ",
+        "(05.10.2026); das Handbuch nennt keine Kartengröße.",
         "Die Kartenfarben in data/gelaende.json sind angenaehert, nicht gemessen "
         "(archiv/analysen/audits/astra_wallpaper_antwort.txt).",
         "Die Zuordnung der Gebaeude zu Familien spiegelt die Spalte 'kategorie' aus "

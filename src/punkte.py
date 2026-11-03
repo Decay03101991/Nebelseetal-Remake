@@ -256,15 +256,15 @@ def angreifbar(punkte_angreifer: Any, punkte_ziel: Any) -> Tuple[bool, str]:
     ueber_a = a > GOETTERSCHUTZ_PUNKTGRENZE
     ueber_z = z > GOETTERSCHUTZ_PUNKTGRENZE
     if ueber_a != ueber_z:
-        return False, (f"Goetterschutzgrenze {GOETTERSCHUTZ_PUNKTGRENZE}: ein Angriff ueber die "
-                       f"Grenze hinweg ist in keine Richtung moeglich "
+        return False, (f"Götterschutzgrenze {GOETTERSCHUTZ_PUNKTGRENZE}: ein Angriff über die "
+                       f"Grenze hinweg ist in keine Richtung möglich "
                        f"(Angreifer {a:.0f}, Ziel {z:.0f}).")
     if ueber_a and ueber_z:
         return True, ""
     unten, oben = goetterschutz_band(a)
     if unten <= z <= oben:
         return True, ""
-    return False, (f"Eingeschraenkter Goetterschutz: Ziel mit {z:.0f} Punkten liegt ausserhalb "
+    return False, (f"Eingeschränkter Götterschutz: Ziel mit {z:.0f} Punkten liegt ausserhalb "
                    f"von {unten}-{oben} (eigene {a:.0f} +/- 20 %).")
 
 
@@ -390,11 +390,11 @@ def belegte_formeln() -> Dict[str, str]:
     """Jede belegte Formel mit ihrem woertlichen Beleg (Formel -> Quelle)."""
     return {
         "forschungspunkte": (
-            "Summe der Forschungsstufen hoch drei — Handbuch S. 3: \u201eFuer jede Forschung die "
+            "Summe der Forschungsstufen hoch drei — Handbuch S. 3: \u201eFür jede Forschung die "
             "Du erlangt hast, wird die Forschungsstufe hoch drei genommen. Die so gewonnenen "
-            "Werte werden anschliessend addiert.\u201c"),
+            "Werte werden anschließend addiert.\u201c"),
         "kriegspunkte_einheiten": (
-            "fester Punktewert je Einheit — Handbuch S. 5: \u201eFuer jede Militaer- und "
+            "fester Punktewert je Einheit — Handbuch S. 5: \u201eFür jede Militär- und "
             "Spionageeinheit die Du ausbildest, bekommst Du Kriegspunkte.\u201c"),
         "kriegspunkte_wall": (
             "Ausbaustufe hoch drei — Handbuch S. 5: \u201ePalisade (Ausbaustufe 4) = 64 "
@@ -405,17 +405,17 @@ def belegte_formeln() -> Dict[str, str]:
             "durch zwei geteilt.\u201c"),
         "rufpunkte": (
             "Ruf geht NICHT in die Gesamtpunkte ein — Handbuch S. 6: \u201eDiese fliessen nicht "
-            "mit in die Gesamtpunktzahl ein sondern koennen gegen Boni ... eingetauscht werden.\u201c"),
+            "mit in die Gesamtpunktzahl ein sondern können gegen Boni ... eingetauscht werden.\u201c"),
         "rangfolge": (
-            "Punkte, dann hoeherer Ruf, dann frueheres Anmeldedatum — Handbuch S. 6: \u201eDer "
-            "Spieler, der den hoeheren Ruf besitzt steht dann weiter oben. Haben beide Spieler "
-            "ebenfalls die gleiche Anzahl an Rufpunkten, steht der Spieler oben, der schon laenger "
+            "Punkte, dann höherer Ruf, dann früheres Anmeldedatum — Handbuch S. 6: \u201eDer "
+            "Spieler, der den höheren Ruf besitzt steht dann weiter oben. Haben beide Spieler "
+            "ebenfalls die gleiche Anzahl an Rufpunkten, steht der Spieler oben, der schon länger "
             "auf dem Server angemeldet ist.\u201c"),
         "goetterschutz": (
             "sieben Tage — Handbuch S. 6: \u201eAlle neuen Spieler befinden sich die ersten sieben "
-            "Tage im so genannten Goetterschutz und koennen nicht angegriffen werden.\u201c"),
+            "Tage im so genannten Götterschutz und können nicht angegriffen werden.\u201c"),
         "goetterschutz_endet": (
-            "vorzeitig mit dem ersten Kriegspunkt — Handbuch S. 6: \u201eDieser Schutz haelt "
+            "vorzeitig mit dem ersten Kriegspunkt — Handbuch S. 6: \u201eDieser Schutz hält "
             "allerdings nur so lange an, bis der entsprechende Spieler seinen ersten Kriegspunkt "
             "bekommt.\u201c (in diesem Baustein NICHT abgebildet)"),
     }
@@ -425,20 +425,20 @@ def vorschlaege() -> Dict[str, Dict[str, str]]:
     """Jede selbst gesetzte Zahl mit Begruendung und Status — nichts davon ist belegt."""
     return {
         "gesamt_rundung": {
-            "wert": "abrunden (ganzzahlig; der Rest 0.5 faellt weg)",
+            "wert": "abrunden (ganzzahlig; der Rest 0.5 fällt weg)",
             "grund": "das Handbuch nennt keine Rundung, (Kriegs+Forschungs)/2 kann ungerade sein",
             "status": "VORSCHLAG",
         },
         "ziel_punkte": {
             "wert": "keines — der Vorschlag 'Sieg bei 300' ist VERWORFEN (E5 vom 31.10.2026)",
             "grund": "das Handbuch nennt keine Siegbedingung; 300 ist die belegte "
-                     "Goetterschutzgrenze (Seite 6), kein Spielziel",
+                     "Götterschutzgrenze (Seite 6), kein Spielziel",
             "status": "VERWORFEN",
         },
         "siegbedingung": {
             "wert": "es gibt keine — ein Lauf endet nicht durch Punkte",
             "grund": "das Handbuch nennt keine Siegbedingung (Seite 3: jeder Spieler hat seine "
-                     "eigenen Ziele — Feldherr, Forscher, Haendler); E5, Bewertung ueber "
+                     "eigenen Ziele — Feldherr, Forscher, Händler); E5, Bewertung über "
                      "Auszeichnungen offen (A3)",
             "status": "ENTFERNT",
         },

@@ -29,13 +29,13 @@ class SaveArchiv(unittest.TestCase):
             self.assertTrue((struktur/x).is_dir())
 
     def test_loeschen_verschiebt_mit_datum(self):
-        ok,ziel=archiv.archiviere(str(self.p),'spieler','Vom Spieler geloescht')
+        ok,ziel=archiv.archiviere(str(self.p),'spieler','Vom Spieler gel\u00f6scht')
         self.assertTrue(ok,ziel)
         self.assertFalse(self.p.exists())
         self.assertTrue(Path(ziel).exists())
         self.assertEqual(json.loads(Path(ziel).read_text(encoding='utf-8'))['day'],3)
         self.assertRegex(Path(ziel).parent.name,r'^\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}')
-        self.assertEqual(json.loads((Path(ziel).parent/'ARCHIV_INFO.json').read_text(encoding='utf-8'))['grund'],'Vom Spieler geloescht')
+        self.assertEqual(json.loads((Path(ziel).parent/'ARCHIV_INFO.json').read_text(encoding='utf-8'))['grund'],'Vom Spieler gel\u00f6scht')
 
     def test_archive_niemals_ueberschrieben(self):
         ok,z1=archiv.archiviere(str(self.p),'spieler','test')
@@ -125,7 +125,7 @@ class SpeicherGUI(unittest.TestCase):
                 erg+=buttons(x)
             return erg
         with patch('tkinter.messagebox.askyesno',return_value=True):
-            next(b for b in buttons(fenster) if b.cget('text')=='Loeschen (archivieren)' and str(b.cget('state'))=='normal').invoke()
+            next(b for b in buttons(fenster) if b.cget('text')=='L\u00f6schen (archivieren)' and str(b.cget('state'))=='normal').invoke()
         self.assertFalse(pfad.exists())
         self.assertEqual(len(archiv.archivierte_staende(self.t.name,'spieler',1)),1)
         # FIX04h: geloeschte Staende sind im normalen Spieler-Menue nicht
@@ -148,7 +148,7 @@ class SpeicherGUI(unittest.TestCase):
         self.assertIn('Slot 1',optionen[0].get(0))
         optionen[0].selection_set(0)
         with patch('tkinter.messagebox.askyesno',return_value=True):
-            next(b for b in buttons(dialog) if b.cget('text')=='Ausgewaehlten Stand wiederherstellen').invoke()
+            next(b for b in buttons(dialog) if b.cget('text')=='Ausgew\u00e4hlten Stand wiederherstellen').invoke()
         self.assertTrue(pfad.exists())
         self.assertEqual(json.loads(pfad.read_text(encoding='utf-8'))['day'],3)
         dialog.destroy()

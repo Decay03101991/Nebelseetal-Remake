@@ -12,7 +12,7 @@ Damit wandert der Anker dieser Pruefung: angreifen -> Auftrag starten -> Marsch 
 (`kampf_am_ziel`) -> Rueckkehr (`einsatz_zurueck`). Die frueheren Szenarien bleiben inhaltlich
 dieselben, laufen aber ueber den Auftragsweg:
 
-  1. ohne Kaempfer/Belagerung: Rueckgabe False, Ressourcen unveraendert, Meldung 'Keine Kaempfer'
+  1. ohne Kaempfer/Belagerung: Rueckgabe False, Ressourcen unveraendert, Meldung 'Keine K\u00e4mpfer'
   2. Kaempfer ohne Karren: Sieg gegen leeren Verteidiger, aber KEINE Beute (Beute braucht Karren)
   3. mit Karren: die Beute kommt mit den Ueberlebenden zurueck, der Bericht nennt 'Beute:'
   4. die Berichtsmeldung liegt mit type 'kampf' in state.messages und nennt das Ziel zuerst
@@ -173,8 +173,8 @@ try:
     check("der Angriffsweg gibt False zurueck (nicht gestartet)", ergebnis is False,
           repr(ergebnis))
     check("die Ressourcen bleiben unveraendert", vor == nach, f"{vor} -> {nach}")
-    check("eine Meldung mit 'Keine Kaempfer' liegt in state.messages",
-          any("Keine Kaempfer" in m.get("text", "") for m in app.state.messages),
+    check("eine Meldung mit 'Keine K\u00e4mpfer' liegt in state.messages",
+          any("Keine K\u00e4mpfer" in m.get("text", "") for m in app.state.messages),
           str([m.get("text") for m in app.state.messages]))
     check("die Meldung hat den Typ 'kampf'", letzte_nachricht(app).get("type") == "kampf",
           str(letzte_nachricht(app).get("type")))
@@ -311,8 +311,8 @@ try:
     text = letzte_nachricht(app, "kampf").get("text", "")
     check("der Bericht nennt 'Schwelle nicht erreicht'", "Schwelle nicht erreicht" in text,
           text[:80])
-    check("der Bericht nennt 'die Truppen ziehen sich zurueck'",
-          "die Truppen ziehen sich zurueck" in text,
+    check("der Bericht nennt 'die Truppen ziehen sich zur\u00fcck'",
+          "die Truppen ziehen sich zur\u00fcck" in text,
           str([z for z in text.split("\n") if "zurueck" in z.lower()]))
     check("der Ausgang ist Unentschieden (Rueckzug ohne Beute)",
           "Schlachtbericht: Unentschieden" in text, text[:60])

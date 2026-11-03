@@ -188,8 +188,8 @@ try:
 
     check("3 der Bot greift ein Dorf eines ANDEREN Bots an",
           any("gegen Brynhild" in m for m in meldungen), str(meldungen))
-    check("3 der Bericht nennt Dorf und tatsaechliche Beute",
-          any("Brynhilds Siedlung 1" in m and "tatsaechliche Beute" in m for m in meldungen),
+    check("3 der Bericht nennt Dorf und tats\u00e4chliche Beute",
+          any("Brynhilds Siedlung 1" in m and "tats\u00e4chliche Beute" in m for m in meldungen),
           str(meldungen))
     check("3 die Beute wird beim ZIELORT abgebucht (kein Rohstoff aus dem Nichts)",
           ziel_nachher < ziel_vorher, "vorher %s, nachher %s" % (ziel_vorher, ziel_nachher))

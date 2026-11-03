@@ -52,7 +52,7 @@ def archiviere(pfad: str, bereich: str, grund: str) -> tuple[bool, str]:
     """
     quelle = Path(pfad).resolve()
     if not quelle.is_file() or quelle.is_symlink():
-        return False, "Spielstandsdatei fehlt oder ist kein regulaerer Dateipfad."
+        return False, "Spielstandsdatei fehlt oder ist kein regulärer Dateipfad."
     try:
         gruppe = _zielgruppe(quelle, bereich)
         basis = ordner_anlegen(str(quelle.parent)) / gruppe
@@ -108,7 +108,7 @@ def wiederherstellen(archivdatei: str, zielpfad: str, *, ueberschreiben: bool = 
     wurzel = archivwurzel(str(ziel.parent))
     try:
         if not quelle.is_file() or quelle.is_symlink() or quelle.name != ziel.name:
-            return False, "Archivdatei ist nicht zulaessig."
+            return False, "Archivdatei ist nicht zulässig."
         if not quelle.is_relative_to(wurzel):
             return False, "Datei liegt ausserhalb des privaten Spielstandarchivs."
         if ziel.exists() and not ueberschreiben:
@@ -117,11 +117,11 @@ def wiederherstellen(archivdatei: str, zielpfad: str, *, ueberschreiben: bool = 
         with quelle.open("r", encoding="utf-8") as f:
             inhalt = json.load(f)
         if not isinstance(inhalt, dict):
-            return False, "Archiv enthaelt keinen Spielstand."
+            return False, "Archiv enthält keinen Spielstand."
         if ziel.name == "admin_teststand.json" and not inhalt.get("admin_teststand"):
             return False, "Kein Admin-Teststand."
         if ziel.name.startswith("savegame_slot") and inhalt.get("admin_teststand"):
-            return False, "Adminstand gehoert nicht in Spielerslots."
+            return False, "Adminstand gehört nicht in Spielerslots."
         # Auch Wiederherstellung ist eine absichtliche Ueberschreibung, keine Archivflut.
         fd, tmp = tempfile.mkstemp(prefix=".restore_", dir=str(ziel.parent))
         try:

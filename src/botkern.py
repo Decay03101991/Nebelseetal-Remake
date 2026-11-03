@@ -413,7 +413,7 @@ def tick(bot: dict, welt: dict, jetzt: float,
 
         # Versuch gescheitert: das Fenster weiter schieben, dann wirtschaften.
         wirkung["naechster_angriff"] = jetzt + _naechste_wartezeit(rng)
-        grund = "Angriff geprueft, aber nicht zugeschlagen"
+        grund = "Angriff geprüft, aber nicht zugeschlagen"
     else:
         grund = "Angriffsfenster noch nicht offen"
 
@@ -505,11 +505,11 @@ def offene_luecken() -> Dict[str, str]:
     """Was der Design-Entwurf NICHT regelt - jede hier gesetzte Zahl ist ein Vorschlag."""
     return {
         "angriffswahrscheinlichkeit":
-            "VORSCHLAG: Bei offenem Fenster schlaegt der Bot mit Wahrscheinlichkeit = "
-            "`aggression` zu. Der Entwurf nennt nur den Pruefrhythmus (6-24 h), keine "
+            "VORSCHLAG: Bei offenem Fenster schlägt der Bot mit Wahrscheinlichkeit = "
+            "`aggression` zu. Der Entwurf nennt nur den Prüfrhythmus (6-24 h), keine "
             "Trefferwahrscheinlichkeit.",
         "angriffsintervall":
-            "VORSCHLAG aus dem Entwurf: Pruefung alle 6 bis 24 Stunden; die genaue Wartezeit "
+            "VORSCHLAG aus dem Entwurf: Prüfung alle 6 bis 24 Stunden; die genaue Wartezeit "
             "wird je Versuch gleichverteilt gezogen. Das Handbuch beziffert sie nicht.",
         "aktionsgewichte":
             "VORSCHLAG: ohne Angriff ist P(handeln) = `trading`; der Rest verteilt sich "
@@ -522,8 +522,8 @@ def offene_luecken() -> Dict[str, str]:
             "VORSCHLAG: Temperament gleichverteilt aus [-1, 1] (+-10 %). Der Entwurf nennt "
             "nur die Spanne, nicht die Verteilung.",
         "namen_ab_sechs":
-            "VORSCHLAG: nur fuenf Gegnernamen sind belegt (main.BOTS). Ab dem sechsten Bot "
-            "wird der Name mit einer laufenden Nummer ergaenzt.",
+            "VORSCHLAG: nur fünf Gegnernamen sind belegt (main.BOTS). Ab dem sechsten Bot "
+            "wird der Name mit einer laufenden Nummer ergänzt.",
         "naechster_angriff_startwert":
             "VORSCHLAG: ein frischer Bot hat 'naechster_angriff' = 0, sein erstes Fenster ist "
             "also sofort offen. Der Entwurf nennt keinen Startzeitpunkt.",
@@ -534,8 +534,8 @@ def offene_luecken() -> Dict[str, str]:
             "Nicht geregelt: wie die 50 % auf die einzelnen Rohstoffe und in welcher "
             "Reihenfolge verladen werden. Hier: anteilig, Reihung alphabetisch.",
         "lager_erkennung":
-            "Nicht geregelt: welcher Wagenpark einem Bot gehoert. `lager` wird als "
-            "{Karrenname: Anzahl}, {'kapazitaet': Zahl} oder {'karren': {...}} gelesen.",
+            "Nicht geregelt: welcher Wagenpark einem Bot gehört. `lager` wird als "
+            "{Karrenname: Anzahl}, {'kapazität': Zahl} oder {'karren': {...}} gelesen.",
         "referenzpreis_quelle":
             "Nicht geregelt: woher der Beschaffungspreis eines Bots stammt. `tick` nutzt "
             "welt['referenzpreis'], sonst 0.",

@@ -150,8 +150,9 @@ check("2g zu wenig Fracht im Lager -> ValueError", ok and "fehlt" in t, t)
 a, b = paar()
 ok, t = value_fehler(lambda: O.transport_start(a, b, {"Handkarren": 2},
                                                {"holz": 90}, 0.0))
+# T-1 (03.11.2026): echte Umlaute im Anzeigetext ("Ueberladen" -> "\u00dcberladen").
 check("2h Ueberladung ueber die Ladung (2 x 40) -> ValueError",
-      ok and "Ueberladen" in t, t)
+      ok and "\u00dcberladen" in t, t)
 
 # eine Ablehnung bucht nichts halb
 a, b = paar()

@@ -134,7 +134,7 @@ def gelaende_plan(art: str, x0: float, y0: float, zelle: float) -> list[dict]:
     """
     if art not in _GELAENDE:
         raise ValueError(
-            f"Unbekannte Gelaendeart der Weltkarte: {art!r} — erwartet eine von "
+            f"Unbekannte Geländeart der Weltkarte: {art!r} — erwartet eine von "
             f"{sorted(_GELAENDE)}")
     return _GELAENDE[art](x0, y0, zelle)
 
@@ -590,10 +590,10 @@ def offene_luecken() -> list[str]:
         "Das Handbuch nennt KEINE Zoomstufen und keine Kachelgroessen. Die Stufen "
         "(16, 24, 32, 48, 64, 96) und der Standard 48 stammen aus main.WELT_ZOOM_STUFEN/"
         "WELT_ZOOM_STANDARD und sind ein Vorschlag.",
-        "Die sechs Gelaendezeichen der Weltkarte sind Vorschlaege: belegt sind nur die "
-        "Gelaendearten selbst (main.WELT_GELAENDEREIHENFOLGE), nicht ihre Zeichenform.",
-        "Die Gelaendefarben der Uebersichtskarte sind angenaehert, nicht gemessen (read-only "
+        "Die sechs Geländezeichen der Weltkarte sind Vorschläge: belegt sind nur die "
+        "Geländearten selbst (main.WELT_GELAENDEREIHENFOLGE), nicht ihre Zeichenform.",
+        "Die Geländefarben der Übersichtskarte sind angenähert, nicht gemessen (read-only "
         "aus main.WELT_GELAENDEFARBEN).",
-        "orte und auswahl der Uebersichtskarte spiegeln nur, was der Aufrufer uebergibt; dieses "
+        "orte und auswahl der Übersichtskarte spiegeln nur, was der Aufrufer übergibt; dieses "
         "Modul kennt weder Siedlungen noch die aktuelle Ansicht.",
     ]

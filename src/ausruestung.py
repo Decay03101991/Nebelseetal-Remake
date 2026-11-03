@@ -206,7 +206,7 @@ def kette(einheit: str) -> list[dict]:
     for w in werkstaetten:
         schritte.append(_schritt(nr, "werkstatt", w, w,
                                  f"Werkstatt {w} bauen oder ausbauen, dort wird die "
-                                 f"benoetigte Ware gefertigt."))
+                                 f"benötigte Ware gefertigt."))
         nr += 1
 
     # 2. Je Ware: erst die Forschungsvoraussetzungen, dann die Ware selbst.

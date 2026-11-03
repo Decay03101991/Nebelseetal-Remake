@@ -181,7 +181,7 @@ def siedlungskarte_erzeugen(seed, mass: dict = None, typ_id: str = None) -> dict
     """
     import originalkarten
     if mass is not None or typ_id is not None:
-        raise ValueError("8x7-Altparameter nicht erlaubt: Originalkarte per ID waehlen")
+        raise ValueError("8x7-Altparameter nicht erlaubt: Originalkarte per ID wählen")
     return originalkarten.startkarte(seed, "spieler")
 
 

@@ -95,8 +95,8 @@ def zeitstempel_text(eintrag: dict) -> str:
 def offene_luecken() -> dict:
     """Was die Zeitbasis absichtlich NICHT tut (kein Offline-Fortschritt, keine Systemzeit-Spruenge)."""
     return {
-        "offline": "Kein Offline-Fortschritt; das Spiel ist beim Schliessen pausiert.",
+        "offline": "Kein Offline-Fortschritt; das Spiel ist beim Schließen pausiert.",
         "systemzeit": "Rechnerzeit ist manipulierbar; Zeitstempel sind kein Sicherheitsnachweis.",
-        "nutzerevents": "Alte Nachrichten haben keinen rueckwirkend erfindbaren Zeitstempel.",
+        "nutzerevents": "Alte Nachrichten haben keinen rückwirkend erfindbaren Zeitstempel.",
         "kalender": "Speicherformat nutzt UTC+Offset, nicht lokale Zeit zur Fristenberechnung.",
     }

@@ -86,7 +86,7 @@ def wache_besetzen(siedlung: Any, forschungen: Mapping[str, Any],
               if k in ('holz', 'stein', 'metall', 'mana', 'nahrung', 'gold', 'wolle', 'leder', 'pferde')
               and isinstance(v, (float, int)) and v > 0}
     if not kosten:
-        return False, 'Kein gueltiger Preis hinterlegt; Errichtung gesperrt.'
+        return False, 'Kein gültiger Preis hinterlegt; Errichtung gesperrt.'
     fehlend = [f'{k}: {menge - float(ortslager.get(k, 0) or 0):g}'
                for k, menge in kosten.items() if float(ortslager.get(k, 0) or 0) < menge]
     if fehlend:
@@ -120,5 +120,5 @@ def rahmen_plan(spalten: int, zeilen: int, zelle: int, rand: int,
     kanten = [(x1, y1, x2, y1), (x1, y1, x1, y2), (x2, y1, x2, y2),
               (x1, y2, mitte - tor/2, y2), (mitte + tor/2, y2, x2, y2)]
     return [{'linie': kanten[i], 'farbe': farbe, 'breite': breite, 'teil':
-             ('nord', 'west', 'ost', 'sued-links', 'sued-rechts')[i]}
+             ('nord', 'west', 'ost', 'süd-links', 'süd-rechts')[i]}
             for i in range(len(kanten))]

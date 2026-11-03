@@ -139,13 +139,14 @@ def _wahlprobe():
         verteilung = app._volk_waehlen("Ghule")
         app.content.update_idletasks()
         nachher = _texte()
-        return {"block": any("Waehle dein Volk" in t for t in vorher),
+        # T-1 (03.11.2026): die Ueberschrift traegt jetzt echte Umlaute (Waehle -> W\u00e4hle).
+        return {"block": any("W\u00e4hle dein Volk" in t for t in vorher),
                 "knoepfe": sum(1 for t in vorher if t == "Dieses Volk nehmen"),
                 "gewaehlt": getattr(app.state, "spieler_fraktion", ""),
                 "verteilung": verteilung,
                 "bots": [b.faction for b in app.state.bots],
                 "bots_vorher": vorher_fraktionen,
-                "block_danach": any("Waehle dein Volk" in t for t in nachher),
+                "block_danach": any("W\u00e4hle dein Volk" in t for t in nachher),
                 "anzeige": any("Dein Volk:" in t for t in nachher)}
     finally:
         root.destroy()

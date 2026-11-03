@@ -26,9 +26,10 @@ import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from harness import abschnitt, befund, bericht, check, import_src
-
 ROOT, SRC = import_src()
 import speichern as SP
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import anzeigetexte_inventur as ANZEIGE  # noqa: E402  (Regel: Umlaute nur in Anzeigetexten)
 
 ORDNER = tempfile.mkdtemp(prefix="nebel_w8_")
 
@@ -64,9 +65,13 @@ SP_QUELLE = os.path.join(SRC, "speichern.py")
 with open(SP_QUELLE, "rb") as f:
     _bytes = f.read()
 check("das Modul speichern.py liegt unter src/", gibt_es(SP_QUELLE), SP_QUELLE)
-check("der Quelltext ist reines ASCII (Umlaute nur als ae/oe/ue/ss)",
-      all(b < 128 for b in _bytes))
-_quelltext = _bytes.decode("ascii")
+# T-1 (Daniel 03.11.2026): Anzeigetexte tragen echte Umlaute - die ASCII-Regel gilt fuer CODE
+# und KOMMENTARE. Statt "alles ASCII" wird deshalb geprueft: kein Nicht-ASCII ausserhalb
+# eines String-Literals. Die Umstellung dieses Checks ist die Entscheidung, nicht der Code.
+_stellen = ANZEIGE.umlaute_nur_in_texten(_bytes.decode("utf-8"))
+check("Umlaute stehen NUR in Anzeigetexten (Code und Kommentare bleiben ASCII)",
+      not _stellen, str(_stellen[:5]))
+_quelltext = _bytes.decode("utf-8")
 check("das Modul laedt main.py NICHT (keine GUI-Abhaengigkeit)",
       re.search(r"^\s*(import|from)\s+main\b", _quelltext, re.M) is None)
 check("das Modul laedt kein tkinter",
@@ -225,7 +230,8 @@ _pk = SP.pruefe_datei(P4)
 check("pruefe_datei: die kaputte Datei existiert", _pk["existiert"] is True)
 check("pruefe_datei: sie ist lesbar (nur der Inhalt ist kaputt)", _pk["lesbar"] is True)
 check("pruefe_datei: json_ok ist Unwahr", _pk["json_ok"] is False)
-check("pruefe_datei: stand nennt die Beschaedigung", "beschaedigt" in _pk["stand"],
+# T-1 (03.11.2026): der Stand-Text traegt echte Umlaute (beschaedigt -> \u00e4digt).
+check("pruefe_datei: stand nennt die Beschaedigung", "besch\u00e4digt" in _pk["stand"],
       _pk["stand"])
 
 

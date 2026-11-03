@@ -137,14 +137,14 @@ def _wahlprobe():
         app._startkarte_waehlen(ziel)
         app.content.update_idletasks()
         nachher = _texte()
-        return {"maske": any("Waehle deine Startkarte" in t for t in vorher),
+        return {"maske": any("W\u00e4hle deine Startkarte" in t for t in vorher),
                 "knoepfe": sum(1 for t in vorher if t == "Diese Karte nehmen"),
                 "gewaehlt": getattr(app.state, "startkarte_gewaehlt", ""),
                 "ziel": ziel,
                 "siedlungen": len(app.state.settlements),
                 "karte": (app.state.settlements[0].karte or {}).get("originalkarte_id")
                 if app.state.settlements else "",
-                "maske_danach": any("Waehle deine Startkarte" in t for t in nachher)}
+                "maske_danach": any("W\u00e4hle deine Startkarte" in t for t in nachher)}
     finally:
         root.destroy()
 

@@ -77,7 +77,7 @@ _ort3 = _ort([_auftrag("Handkarren", "stellmacher", 0, 1200),
 _laufend = O.ausbildung_abbrechen(_ort3, 1, 100)
 check("ein LAUFENDER Auftrag laesst sich nicht streichen", _laufend["ok"] is False,
       str(_laufend.get("grund")))
-check("der Grund nennt 'laeuft gerade'", "laeuft gerade" in _laufend.get("grund", ""),
+check("der Grund nennt 'l\u00e4uft gerade'", "l\u00e4uft gerade" in _laufend.get("grund", ""),
       _laufend.get("grund"))
 _wartend = O.ausbildung_abbrechen(_ort3, 2, 100)
 check("ein WARTENDER Auftrag laesst sich streichen", _wartend["ok"] is True, str(_wartend))

@@ -66,7 +66,7 @@ def teststand_aufbauen(state, settlement_typ, kennung_funktion):
     felder = state.freie_weltfelder(anzahl=32)
     welt_size = max((tile.x for tile in state.map_tiles), default=-1) + 1
     if len(felder) < len(KARTEN_IDS):
-        raise ValueError("Nicht genug freie Weltfelder fuer sechs Testdoerfer.")
+        raise ValueError("Nicht genug freie Weltfelder für sechs Testdörfer.")
     state.kartenvorrat_seed = TEST_SEED
     for index, (kennung, name) in enumerate(zip(KARTEN_IDS, NAMEN)):
         if kennung == "start":
@@ -120,5 +120,5 @@ def teststand_aufbauen(state, settlement_typ, kennung_funktion):
     for ort in state.settlements:
         fehlend = sorted(set(KETTENGEB) - set(ort.bauten.values()))
         if fehlend:
-            raise ValueError(f"Admin-Teststand unvollstaendig: {ort.name}, fehlt: {fehlend}")
+            raise ValueError(f"Admin-Teststand unvollständig: {ort.name}, fehlt: {fehlend}")
     return state

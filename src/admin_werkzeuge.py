@@ -24,7 +24,7 @@ def _pruefe_admin(state, freigabe):
     if not freigabe or not getattr(state, "admin_teststand", False):
         raise PermissionError("Admin-Werkzeug nur mit separater Freigabe im Admin-Teststand.")
     if not getattr(state, "oekonomie_aktiv", False):
-        raise ValueError("Admin-Testwerkzeuge erfordern die lokale Oekonomie.")
+        raise ValueError("Admin-Testwerkzeuge erfordern die lokale Ökonomie.")
 
 
 def spielerhilfe_modus_setzen(state, modus, *, freigabe=False):
@@ -32,7 +32,7 @@ def spielerhilfe_modus_setzen(state, modus, *, freigabe=False):
     _pruefe_admin(state, freigabe)
     import spielerhilfe
     if type(modus) is not str or modus not in spielerhilfe.ADMIN_HILFE_MODI:
-        raise ValueError("Ungueltiger Spielerhilfe-Anzeigemodus.")
+        raise ValueError("Ungültiger Spielerhilfe-Anzeigemodus.")
     state.admin_hilfe_modus = modus
     if hasattr(state, "_log"):
         state._log(f"ADMIN-TEST: Spielerhilfe-Sichtbarkeit auf {modus} gesetzt.")
@@ -69,7 +69,7 @@ def geben(state, siedlung_id, kategorie, name, menge, *, freigabe=False):
                ort.waren if kategorie == "Ware" else ort.einheiten)
     vorher = float(bestand.get(name, 0))
     if not math.isfinite(vorher) or vorher < 0 or vorher + menge > 100_000_000:
-        raise ValueError("Unzulaessiger oder zu hoher Lagerbestand.")
+        raise ValueError("Unzulässiger oder zu hoher Lagerbestand.")
     bestand[name] = vorher + menge if kategorie == "Rohstoff" else int(vorher) + menge
     if hasattr(state, "_reichsanzeige_aus_orten"):
         state._reichsanzeige_aus_orten()
@@ -105,7 +105,7 @@ def _bauten_uebertragen(ort, neue_karte):
         neu = next((i for i in kandidaten if str(i) not in bauten and
                     gelaende.bau_moeglich(geb, raster[i])[0]), None)
         if neu is None:
-            raise ValueError(f"Auf dieser Karte ist fuer {geb} kein geeignetes freies Feld uebrig.")
+            raise ValueError(f"Auf dieser Karte ist für {geb} kein geeignetes freies Feld übrig.")
         bauten[str(neu)] = geb
         stufen[str(neu)] = ort.stufen.get(index, 1)
     return bauten, stufen
@@ -131,7 +131,7 @@ def karte_waehlen(state, siedlung_id, karten_id, *, freigabe=False):
         state.kartenvorrat[karten_id]["besitzer"] = "spieler"
     ort.karte, ort.bauten, ort.stufen = karte, bauten, stufen
     if hasattr(state, "_log"):
-        state._log(f"ADMIN-TEST: {ort.name} erhaelt Karte {karten_id}, Bauten regelkonform umgesetzt.")
+        state._log(f"ADMIN-TEST: {ort.name} erhält Karte {karten_id}, Bauten regelkonform umgesetzt.")
     return karte
 
 
@@ -181,11 +181,11 @@ def _ziel_vorpruefen(state, ort, karten_id, x, y, groesse):
     """Keine Mutationen; vor dem Verschieben muessen alle Sperren greifen."""
     ziel = state.get_tile(x, y, groesse)
     if ziel is None or ziel.terrain == "water":
-        raise ValueError("Wasserfeld: kein gueltiger Siedlungsstandort.")
+        raise ValueError("Wasserfeld: kein gültiger Siedlungsstandort.")
     belegt = any(s.id != ort.id and s.map_id == karten_id and s.x == x and s.y == y
                  for s in state.settlements)
     if belegt or (ziel.npc_faction not in (None, "spieler")):
-        raise ValueError("Ziel bereits belegt; keine NPCs oder Siedlungen ueberschreiben.")
+        raise ValueError("Ziel bereits belegt; keine NPCs oder Siedlungen überschreiben.")
     if ziel.npc_faction == "spieler" and not (ort.map_id == karten_id and ort.x == x and ort.y == y):
         raise ValueError("Ziel besitzt bereits einen Spieler-Marker.")
 
@@ -200,7 +200,7 @@ def positionieren(state, siedlung_id, karten_id, x, y, konfiguration, *, freigab
     ort = _ort(state, siedlung_id)
     groesse = _weltgroesse(karten_id, konfiguration)
     if type(x) is not int or type(y) is not int or not (0 <= x < groesse and 0 <= y < groesse):
-        raise ValueError(f"Koordinaten fuer {karten_id}: 0 bis {groesse-1}.")
+        raise ValueError(f"Koordinaten für {karten_id}: 0 bis {groesse-1}.")
     # Reiseauftraege referenzieren die stabile Siedlungs-ID.
     # Vor dem Wechsel ein vollstaendiges Weltkarten-Checkpoint erstellen.
     # Ein unzulaessiger Zielort darf weder Karte/Bots/Marker noch

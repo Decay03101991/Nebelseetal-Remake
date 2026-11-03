@@ -109,7 +109,7 @@ def risiko_nach_ausgabe(siedlung, kosten: dict, preis_funktion: Callable,
     ort = _normalisiere(siedlung)
     for res, menge in kosten.items():
         if isinstance(menge, bool) or not isinstance(menge, (int,float)) or not math.isfinite(menge) or menge < 0:
-            raise ValueError('Unzulaessiger Baupreis: ' + str(res))
+            raise ValueError('Unzulässiger Baupreis: ' + str(res))
         if res == 'siedler':
             ort['bevoelkerung'] -= menge
         else:
@@ -122,8 +122,8 @@ def risiko_nach_ausgabe(siedlung, kosten: dict, preis_funktion: Callable,
         return []
     ertrag = _quellen(ort)
     fehlen = [roh for roh in PRODUZENT if ertrag[roh] <= 0]
-    return ["VERSORGUNGSWARNUNG: Nach dieser Ausgabe ist keine eigenstaendige "
-            "Holz- und Steinversorgung mehr gesichert. Erst Holzfaeller und "
+    return ["VERSORGUNGSWARNUNG: Nach dieser Ausgabe ist keine eigenständige "
+            "Holz- und Steinversorgung mehr gesichert. Erst Holzfäller und "
             "Steinmetz auf geeigneten Feldern bauen (oder einen Transport "
             "organisieren). Es wird nichts abgebucht."] if fehlen else []
 
@@ -131,7 +131,7 @@ def risiko_nach_ausgabe(siedlung, kosten: dict, preis_funktion: Callable,
 def offene_luecken():
     return ('Importe und unterwegs befindliche Karren werden hier bewusst nicht als '
             'garantierte Notversorgung gewertet. Bereits festgefahrene alte Saves '
-            'werden nicht still veraendert; keine Ressourcen-Schenkungen.')
+            'werden nicht still verändert; keine Ressourcen-Schenkungen.')
 
 
 def risiko_nach_abriss(siedlung, feld: int, preis_funktion: Callable) -> list[str]:

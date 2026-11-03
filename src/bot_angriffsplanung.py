@@ -78,11 +78,11 @@ def pruefe_vorrunde(truppen, geraete, stufe, zustand=100.0):
     gruende = []
     if not any(einheiten.alle().get(n, {}).get('kategorie') in ('Nahkampf', 'Fernkampf') and _anzahl(v) > 0
                for n, v in (truppen or {}).items()):
-        gruende.append('Keine Fusskampftruppen vorhanden.')
+        gruende.append('Keine Fußkampftruppen vorhanden.')
     if sk['fusstruppen'] < fuss_noetig:
-        gruende.append('Schlagkraft der Fusstruppen reicht fuer den Wall nicht.')
+        gruende.append('Schlagkraft der Fußtruppen reicht für den Wall nicht.')
     if sk['belagerungswaffen'] < bel_noetig:
-        gruende.append('Belagerungswaffen reichen fuer diese Wallstufe nicht.')
+        gruende.append('Belagerungswaffen reichen für diese Wallstufe nicht.')
     return {'moeglich': not gruende, 'grund': ' '.join(gruende),
             'sk': sk, 'schwelle': {'fusstruppen': fuss_noetig,
                                 'belagerungswaffen': bel_noetig}}
@@ -106,7 +106,7 @@ def waehle_ziel(orte, truppen, geraete, wallzustand):
             gesperrt.append((str(getattr(ort, 'name', '')), pruefung['grund']))
     if not machbare:
         return None, {'moeglich': False, 'gesperrt': gesperrt,
-                      'grund': 'Kein mit der aktuellen Armee ueberwindbarer Dorfwall.'}
+                      'grund': 'Kein mit der aktuellen Armee überwindbarer Dorfwall.'}
     machbare.sort(key=lambda entry: entry[:3])
     return machbare[0][3], {'moeglich': True, 'gesperrt': gesperrt,
                             'grund': 'Vorrunde erreichbar, Kampfausgang offen.'}
@@ -237,7 +237,7 @@ def waehle_raubziel(kandidaten, truppen, geraete,
         ihre_sk = schlagkraft(getattr(kandidat['dorf'], 'einheiten', None) or {})['fusstruppen']
         if meine_sk < faktor * ihre_sk:                                          # nicht stark genug
             gesperrt.append((kandidat['name'],                                   # Grund merken
-                             'Besatzung zu stark: eigene Schlagkraft %d gegen noetig %d.'
+                             'Besatzung zu stark: eigene Schlagkraft %d gegen nötig %d.'
                              % (int(meine_sk), int(faktor * ihre_sk))))
             continue                                                             # naechster Kandidat
         machbare.append((_stufe(stufe), _anzahl(kandidat['besatzung']),          # (Wall, Besatzung)
@@ -245,7 +245,7 @@ def waehle_raubziel(kandidaten, truppen, geraete,
     if not machbare:                                                             # nichts erreichbar
         return None, {'moeglich': False, 'gesperrt': gesperrt,                   # Diagnose
                       'geprueft': len(kandidaten),
-                      'grund': 'Kein Bot-Dorf mit der aktuellen Armee ueberwindbar.'}
+                      'grund': 'Kein Bot-Dorf mit der aktuellen Armee überwindbar.'}
     machbare.sort(key=lambda entry: entry[:3])                                   # schwaechstes zuerst
     return machbare[0][3], {'moeglich': True, 'gesperrt': gesperrt,              # Ziel und Diagnose
                             'geprueft': len(kandidaten),

@@ -54,7 +54,7 @@ def _pruefe_kauf(ort, kosten, rate):
         ertrag = float(rate.get(roh, 0))
         if roh == 'siedler':
             # Einwohnerwachstum braucht separate Beleg-/Grenzpruefung; nicht als gratis behandeln.
-            fehler.append({'rohstoff': roh, 'fehlt': mangel, 'grund': 'Siedler fehlen; Siedlerwachstum separat pruefen'})
+            fehler.append({'rohstoff': roh, 'fehlt': mangel, 'grund': 'Siedler fehlen; Siedlerwachstum separat prüfen'})
         elif ertrag <= 0:
             fehler.append({'rohstoff': roh, 'fehlt': mangel, 'grund': 'keine laufende Eigenproduktion'})
         else:
@@ -111,7 +111,7 @@ def untersuche(ort, forschung=None):
         'grundversorgung': ausgabe,
         'warnungen': [f'{roh}: keine laufende Produktion und kein aus eigener Produktion erreichbarer Neubau'
                       for roh, eintrag in ausgabe.items() if eintrag['status'] == 'ohne_import_blockiert'],
-        'hinweis': 'Diagnose ist KEIN Auto-Rettungssystem. Ortslager zuerst; Fremdversorgung nur durch echte Transporte. Baupreise ausser vier belegten Positionen sind Vorschlaege.'
+        'hinweis': 'Diagnose ist KEIN Auto-Rettungssystem. Ortslager zuerst; Fremdversorgung nur durch echte Transporte. Baupreise außer vier belegten Positionen sind Vorschläge.'
     }
 
 
@@ -120,6 +120,6 @@ def drucktext(bericht):
     for roh, d in bericht['grundversorgung'].items():
         zeilen.append(f"{roh}: {d['bestand_lokal']:g} im Ort, {d['produktion_pro_spielstunde']:g}/h, {d['status']}")
         for o in d['bauoptionen']:
-            zeilen.append('  ' + o['gebaeude'] + ': ' + o['status'] + (f", fruehestens {o['wartezeit_stunden']:g} h" if o.get('wartezeit_stunden') else ''))
+            zeilen.append('  ' + o['gebaeude'] + ': ' + o['status'] + (f", frühestens {o['wartezeit_stunden']:g} h" if o.get('wartezeit_stunden') else ''))
     zeilen.extend('WARNUNG: ' + w for w in bericht['warnungen'])
     return '\n'.join(zeilen)

@@ -250,11 +250,11 @@ def fuehre_schlacht(angreifer: Dict[str, int], verteidiger: Dict[str, int],
         siege_sk = sum(E.schlagkraft(n) * int(k) for n, k in belagerung.items())
         faktor = zustand / 100.0
         if foot_sk < float(wall["schwellenwert_fussttruppen"]) * faktor:
-            logs.append("Fußtruppen: Schwelle nicht erreicht; die Truppen ziehen sich zurueck; kein Kampf")
+            logs.append("Fußtruppen: Schwelle nicht erreicht; die Truppen ziehen sich zurück; kein Kampf")
             return fertig("unentschieden")
         schwelle_bel = wall.get("schwellenwert_belagerungswaffen")
         if schwelle_bel is not None and siege_sk < float(schwelle_bel) * faktor:
-            logs.append("Belagerungs-Schlagkraft zu gering: Schwelle nicht erreicht; die Truppen ziehen sich zurueck; kein Kampf")
+            logs.append("Belagerungs-Schlagkraft zu gering: Schwelle nicht erreicht; die Truppen ziehen sich zurück; kein Kampf")
             return fertig("unentschieden")
 
     result["vorrunde_bestanden"] = True
@@ -397,14 +397,14 @@ def vorschlaege() -> Dict[str, Dict[str, str]]:
             "stelle": "fuehre_schlacht, Zeile mit 'abzug = 0.05 * stufe'",
         },
         "turmschutz": {
-            "wert": "ein Belagerungsturm schuetzt 10, ein Grosser 30 Nahkaempfer des Angreifers",
-            "grund": "das Forum nennt 'Schutz in Tuermen' ohne Zahl und ohne Bezugsgroesse "
-                     "(Prozent oder Stueckzahl) - hier als Stueckzahl gedeutet",
+            "wert": "ein Belagerungsturm schützt 10, ein Großer 30 Nahkämpfer des Angreifers",
+            "grund": "das Forum nennt 'Schutz in Türmen' ohne Zahl und ohne Bezugsgröße "
+                     "(Prozent oder Stückzahl) - hier als Stückzahl gedeutet",
             "status": "VORSCHLAG",
-            "stelle": "fuehre_schlacht, Block 'Schutz in Tuermen'",
+            "stelle": "fuehre_schlacht, Block 'Schutz in Türmen'",
         },
         "rueckzug_rundung": {
-            "wert": "20 Prozent der URSPRUENGLICHEN angreifenden Schuetzen je Vorrunde, aufgerundet "
+            "wert": "20 Prozent der URSPRUENGLICHEN angreifenden Schützen je Vorrunde, aufgerundet "
                     "(math.ceil)",
             "grund": "das Forum nennt '20 Prozent' je Sequenz, aber keine Rundung und keine "
                      "Bezugsbasis",
@@ -412,9 +412,9 @@ def vorschlaege() -> Dict[str, Dict[str, str]]:
             "stelle": "fuehre_schlacht, 'rueckzug_je_runde = math.ceil(...)'",
         },
         "kampfwert_spannen": {
-            "wert": "PROFILE-Spannen (z. B. Kaempfer 4-22) aus 'WeitereWerteKampfsystem'",
-            "grund": "die aeltere Forumstabelle nennt 2-20; der Konflikt ist als Registerpunkt 40 "
-                     "gefuehrt, die neuere Tabelle gewinnt (E1)",
+            "wert": "PROFILE-Spannen (z. B. Kämpfer 4-22) aus 'WeitereWerteKampfsystem'",
+            "grund": "die ältere Forumstabelle nennt 2-20; der Konflikt ist als Registerpunkt 40 "
+                     "geführt, die neuere Tabelle gewinnt (E1)",
             "status": "ZUSAMMENFUEHRUNG",
             "stelle": "PROFILE (Modulkopf)",
         },

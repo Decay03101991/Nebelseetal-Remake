@@ -48,24 +48,24 @@ def standort_hinweis(kennung: str, art: str) -> str:
         if hier is None:
             return ""
         if _gesamt_ertrag(hier) >= _gesamt_ertrag(optimal_ertrag):
-            return (f"Standorttipp: {gelaende.name(art)} bringt hier den Hoechstertrag "
+            return (f"Standorttipp: {gelaende.name(art)} bringt hier den Höchstertrag "
                     f"({_rate_text(hier)} pro Stunde).")
         return (f"Standorttipp: Auf {gelaende.name(optimal_art)} sind "
-                f"{_rate_text(optimal_ertrag)} pro Stunde moeglich, "
+                f"{_rate_text(optimal_ertrag)} pro Stunde möglich, "
                 f"hier nur {_rate_text(hier)}. Ergiebigere Felder bevorzugen.")
     # Funktionsgebaeude liefern keinen direkten Gelaendeertrag. Empfehlung
     # NUR bei Gebaeuden, die auf Steppe tatsaechlich gebaut werden duerfen.
     steppe_ok, _ = gelaende.bau_moeglich(kennung, "steppe")
     if steppe_ok and art == "steppe":
-        return ("Standorttipp: Steppe ist fuer dieses Gebaeude oft sinnvoll. "
-                "So bleiben Wald, Berg, Grasland und Nebelsee fuer passende "
-                "Rohstoffgebaeude frei.")
+        return ("Standorttipp: Steppe ist für dieses Gebäude oft sinnvoll. "
+                "So bleiben Wald, Berg, Grasland und Nebelsee für passende "
+                "Rohstoffgebäude frei.")
     if steppe_ok:
         return ("Standorttipp: Wenn freie Steppe vorhanden ist, dieses "
-                "Funktionsgebaeude lieber dort errichten und ergiebige "
+                "Funktionsgebäude lieber dort errichten und ergiebige "
                 "Rohstofffelder freihalten.")
-    return ("Standorttipp: Auch Funktionsgebaeude belegen ein Feld. "
-            "Moeglichst keine knappen Produktionsstandorte verbrauchen.")
+    return ("Standorttipp: Auch Funktionsgebäude belegen ein Feld. "
+            "Möglichst keine knappen Produktionsstandorte verbrauchen.")
 
 
 SPIELERHILFE = (
@@ -87,11 +87,11 @@ def angebote(feld: int, art: str, siedlung, *,
     Die Anzeige ist read-only und aendert weder Geld noch Gebaeude noch Forschung.
     """
     if kategorie not in KATEGORIEN:
-        raise ValueError(f"Unbekannte Baumenue-Rubrik: {kategorie!r}")
+        raise ValueError(f"Unbekannte Baumenü-Rubrik: {kategorie!r}")
     if not isinstance(feld, int) or not 0 <= feld < len(siedlung.karte["raster"]):
-        raise ValueError("Ungueltiges Kartenfeld")
+        raise ValueError("Ungültiges Kartenfeld")
     if siedlung.karte["raster"][feld] != art:
-        raise ValueError("Gelaende passt nicht zum Kartenfeld")
+        raise ValueError("Gelände passt nicht zum Kartenfeld")
     ausgabe = []
     for kennung, daten in sorted(gelaende.alle_gebaeude().items(),
                                  key=lambda eintrag: eintrag[1]["name"]):

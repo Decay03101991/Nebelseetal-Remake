@@ -1,3 +1,28 @@
+# STAND 03.11.2026, 18:47 - T-1: Ingame-Texte mit echten Umlauten (Register 171)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Alles, was der Spieler liest, traegt jetzt echte deutsche Rechtschreibung** - „wählen“ statt „waehlen“, „Gebäude“, „für“, „zurück“, „Kästchen“, „Menü“. Daniels Vorgabe (17:15) ist damit erfuellt: Knoepfe, Menues, Reiter, Dialoge, Tooltips, Meldungen, Postfach, Spiel-Log und die angezeigten Datenamen. **Kennungen, JSON-Schluessel, Dateinamen, Docstrings und Kommentare bleiben ASCII** - und Code-Bezuege in einer Meldung nennen weiter den Code-Namen.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `c87efcd` | `git log --oneline -1` |
+| Messung VORHER | **521 Ersatzschreibweisen in 2.264 Anzeigetexten**, 42 Dateien | `tools/anzeigetexte_inventur.py` gegen `git show HEAD:src/...` |
+| Messung NACHHER | **0** in 2.263 Anzeigetexten | `docs/ANZEIGETEXTE_INVENTUR.md` |
+| Ersetzte Literale | **374** in 42 Dateien (Drittel 1: 90, Drittel 2: 154, `main.py`: 130) | `tools/anzeigetexte_umlaute_setzen.py` |
+| Neue Wache | `tests/test_anzeigetexte_umlaute.py` **49/0/0**, Gegenprobe erzeugt eine Fundstelle | eigener Lauf |
+| Voller Sammellauf | **152 von 154 gruen, 0 rot, 2 ausgesetzt, 6.047 Pruefungen, 467 s** (Start 18:35) | `docs/audits/sammellauf_t1_final.log` |
+| Pruefdateien / Register | **154** / **171** | `ls tests/test_*.py`, `grep -c '^| [0-9]'` |
+| Mitgezogene Wachen | zehn: auftraege, lokale_lager, warentransport, spionage (3x), baumenue_standorttipps, speichern_robust, botkern, bottaktik, voelkerwahl, spielschicht, portal_uebersicht, portal_fremdblick, startkartenwahl, dorfuebersicht, kampf_einhaengung, ausbildung_uebersicht, bot_raubzug_bot, originalkarten_baukasse, schild_nebenfenster, spielstand_gui, spielstandarchiv | je Lauf gruen |
+
+**Zwei Werkzeuge statt Massenersetzung:** `tools/anzeigetexte_inventur.py` misst nur, was wirklich in eine Anzeige geht (Klassen A/B/C), `tools/anzeigetexte_umlaute_setzen.py` ersetzt auf der exakten Quellspanne mit Wortkarte und schuetzt Code-Bezuege. Beide teilen sich EINE Messung (Muster F-04).
+
+## Der EINE naechste Schritt
+
+**S-7 Karawanen** (Daniels Reihenfolge): Transporte zwischen den EIGENEN Doerfern ueber `auftraege.starten`, Reisekosten im Startdorf. Mit vier Doerfern je Bot wird der Nachschub noetig - ein Dorf ohne Nachschub hungert. Danach **S-9** (Stil je Taktik), **W-3** (teuer mit Deckel), **S-6b** (Warenkette fuer Bots, damit der Siedlerkarren Pflicht werden kann) und zuletzt die **Story** (W-11).
+
+**Der Sammellauf gehoert zum Abschluss jedes Code-Schnitts** - nach diesem Stand ist er gruen gelaufen (467 s), und das Protokoll traegt die Zeile dazu.
+
 # STAND 03.11.2026, 17:02 - S-6: Bots gruenden nach, vier Doerfer je Bot (Register 170)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

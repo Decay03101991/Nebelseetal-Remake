@@ -13,7 +13,8 @@ import gelaende  # noqa: E402
 
 class StandorttippRegeln(unittest.TestCase):
     def test_holzfaeller_wald_statt_steppe(self):
-        self.assertIn('Hoechstertrag', baumenue_info.standort_hinweis('holzfaeller', 'wald'))
+        # T-1 (03.11.2026): der Standorttipp traegt echte Umlaute (Höchstertrag).
+        self.assertIn('Höchstertrag', baumenue_info.standort_hinweis('holzfaeller', 'wald'))
         tipp = baumenue_info.standort_hinweis('holzfaeller', 'steppe')
         self.assertIn('Wald', tipp)
         self.assertIn('4', tipp)

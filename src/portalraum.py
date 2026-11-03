@@ -179,16 +179,16 @@ def wechsel_erlaubt(von_z: int, nach_z: int, mana: float,
         return (False, f"Unbekannte Zielwelt: {nach_z}")
     kosten = wechselkosten()
     if mana < kosten:
-        return (False, f"Zu wenig Mana in einer Siedlung: {kosten} benoetigt, "
+        return (False, f"Zu wenig Mana in einer Siedlung: {kosten} benötigt, "
                        f"{mana} vorhanden.")
     if letzter_wechsel is not None:
         sperre = _STUNDEN_SPERRE * 3600
         wartete = jetzt - letzter_wechsel
         if wartete < sperre:
             rest_h = (sperre - wartete) / 3600.0
-            return (False, f"Erst nach {_STUNDEN_SPERRE} Stunden wieder moeglich; "
+            return (False, f"Erst nach {_STUNDEN_SPERRE} Stunden wieder möglich; "
                            f"noch {rest_h:.2f} h warten.")
-    return (True, f"Koordinatenwechsel moeglich: {kosten} Mana aus einer Siedlung.")
+    return (True, f"Koordinatenwechsel möglich: {kosten} Mana aus einer Siedlung.")
 
 
 def nach_wechsel(mana: float, jetzt: float) -> dict:
@@ -203,7 +203,7 @@ def nach_wechsel(mana: float, jetzt: float) -> dict:
     """
     kosten = wechselkosten()
     if mana < kosten:
-        raise ValueError(f"Zu wenig Mana in einer Siedlung: {kosten} benoetigt, "
+        raise ValueError(f"Zu wenig Mana in einer Siedlung: {kosten} benötigt, "
                          f"{mana} vorhanden.")
     return {"mana": mana - kosten, "letzter_wechsel": jetzt, "kosten": kosten}
 
@@ -272,7 +272,7 @@ def weltkarten(eigene_nummern=(), unterwegs: int = 0) -> list:
             status_text = "noch nicht bespielbar"
         grund = ""
         if not moeglich:
-            grund = "folgt spaeter (Daniel 01.11.2026: zuerst Midgard und Valhalla)"
+            grund = "folgt später (Daniel 01.11.2026: zuerst Midgard und Valhalla)"
         elif laufend > 0:
             grund = (f"gesperrt: {laufend} Auftrag/Auftraege unterwegs "
                      f"(Daniel 01.11.2026, Anhang 2)")
@@ -424,7 +424,7 @@ def gelaende_von_feld(welt_arg, x, y, seed=None) -> dict:
     """
     bild = weltbild(welt_arg, seed)
     if not (_ist_ganz(x) and _ist_ganz(y)):
-        raise WeltbildFehler(f"Feldkoordinaten muessen ganze Zahlen sein, bekam x={x!r}, y={y!r}.")
+        raise WeltbildFehler(f"Feldkoordinaten müssen ganze Zahlen sein, bekam x={x!r}, y={y!r}.")
     if not (0 <= x < _FELDER_AXIS) or not (0 <= y < _FELDER_AXIS):
         raise WeltbildFehler(f"Feld ({x}, {y}) liegt ausserhalb des Rasters 0..{_FELDER_AXIS - 1}.")
     art = bild["raster"][y][x]
@@ -467,7 +467,7 @@ def anzeige_raster(z: int, radius: int = 10, eigene_dimensionen=()) -> list:
             bild, grund = None, str(fehler)
     else:
         grund = (f"Unbekannte Weltkarte: {z!r} ist kein Index von 0 bis {dim_zahl() - 1} - "
-                 f"es wird kein Gelaende erfunden.")
+                 f"es wird kein Gelände erfunden.")
     kante = _FELDER_AXIS
     halb = int(radius)
     if halb < 0:
@@ -502,4 +502,4 @@ def beschreibung() -> str:
     return (f"Der Limbus umfasst {dim_zahl()} Weltkarten mit je "
             f"{_FELDER_AXIS} x {_FELDER_AXIS} = {feld_zahl()} Feldern; "
             f"ein Weltensprung kostet {kosten_txt} Mana aus einer Siedlung "
-            f"und ist hoechstens einmal je {_STUNDEN_SPERRE} Stunden moeglich.")
+            f"und ist höchstens einmal je {_STUNDEN_SPERRE} Stunden möglich.")

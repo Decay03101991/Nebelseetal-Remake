@@ -20,6 +20,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from harness import abschnitt, bericht, befund, check, import_src
 
 ROOT, SRC = import_src()
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import anzeigetexte_inventur as ANZEIGE  # noqa: E402  (Regel: Umlaute nur in Anzeigetexten)
 import botkern as BK
 import einheiten as E
 
@@ -394,7 +396,9 @@ check("Punkte folgen der Armee", _w2.get("punkte") == P.gesamtpunkte({}, {"Kämp
 # ============================================================ 14. Quellhygiene
 abschnitt("13. botkern.py - reine Logik, nur Standardbibliothek")
 
-check("botkern.py ist reines ASCII", all(ord(c) < 128 for c in TEXT))
+# T-1 (03.11.2026): Umlaute nur in Anzeigetexten - Code und Kommentare bleiben ASCII.
+check("botkern.py traegt Umlaute nur in Anzeigetexten",
+      not ANZEIGE.umlaute_nur_in_texten(TEXT), str(ANZEIGE.umlaute_nur_in_texten(TEXT)[:3]))
 check("kein tkinter", "tkinter" not in TEXT)
 check("kein Netzwerk", not any(w in TEXT for w in ("requests", "urllib", "socket", "http")))
 check("keine Datei wird geschrieben", "open(" not in TEXT)

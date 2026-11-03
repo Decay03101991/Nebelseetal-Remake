@@ -1,4 +1,5 @@
-# -*- coding: ascii -*-
+# -*- coding: utf-8 -*-  # ANZEIGETEXTE tragen echte Umlaute (Schnitt T-1, Daniel 03.11.2026);
+#                          Code, Kennungen und Kommentare bleiben ASCII.
 """
 Nebelseetal Remake - Optik der Truppenbewegungen auf der Weltkarte (Stufe M-1, 02.11.2026).
 
@@ -47,7 +48,7 @@ VORGABE: Dict[str, Any] = {
                  "stufen": [{"bis_sekunden": 3600, "text": "unter 1 h"},
                             {"bis_sekunden": 10800, "text": "1-3 h"},
                             {"bis_sekunden": 21600, "text": "3-6 h"},
-                            {"bis_sekunden": None, "text": "ueber 6 h"}],
+                            {"bis_sekunden": None, "text": "über 6 h"}],
                  "eigenes_ziel_genau": True,                  # eigenes Ziel: GENAU statt grob
                  "genau_format": "{h} h {m} min"},
     "rueckreise": {"farbe": "#38BDF8", "richtung_gespiegelt": True},

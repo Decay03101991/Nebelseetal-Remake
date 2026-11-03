@@ -216,7 +216,7 @@ def abbrechen(stand: Dict[str, Dict[str, Any]],
     if gebiet not in stand:
         return False, f"Unbekanntes Forschungsgebiet: {gebiet}."
     if stand[gebiet]["auftrag"] is None:
-        return False, f"Im Gebiet {gebiet} laeuft kein Auftrag."
+        return False, f"Im Gebiet {gebiet} läuft kein Auftrag."
     stand[gebiet]["auftrag"] = None
     return True, (f"Forschungsauftrag in {gebiet} abgebrochen — "
                   f"die aufgebrachten Rohstoffe sind verloren.")

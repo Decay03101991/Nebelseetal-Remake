@@ -150,7 +150,7 @@ def setze_passwort(passwort: str, wiederholung: str, pfad: str = STANDARD_PFAD) 
         "gesetzt": time.strftime("%d.%m.%Y %H:%M"),
         "fehlversuche": 0,
         "gesperrt_bis": 0.0,
-        "hinweis": ("Ohne diese Datei verlangt das Spiel beim naechsten Start ein NEUES Passwort. "
+        "hinweis": ("Ohne diese Datei verlangt das Spiel beim nächsten Start ein NEUES Passwort. "
                     "Der Spielstand bleibt dabei erhalten."),
     }
     return _schreibe(pfad, daten)
@@ -178,7 +178,7 @@ def pruefe_passwort(passwort: str, pfad: str = STANDARD_PFAD,
         daten["fehlversuche"] = 0
         daten["gesperrt_bis"] = 0.0
         _schreibe(pfad, daten)
-        return True, "Zugang gewaehrt."
+        return True, "Zugang gewährt."
 
     versuche = int(daten.get("fehlversuche", 0)) + 1
     daten["fehlversuche"] = versuche
@@ -208,12 +208,12 @@ def zuruecksetzen(pfad: str = STANDARD_PFAD) -> Tuple[bool, str]:
     Der Spielstand liegt in einer anderen Datei und bleibt erhalten.
     """
     if not os.path.exists(pfad):
-        return False, "Es gibt keine Tor-Datei zum Zuruecksetzen."
+        return False, "Es gibt keine Tor-Datei zum Zurücksetzen."
     try:
         os.remove(pfad)
     except OSError as fehler:
-        return False, f"Tor-Datei liess sich nicht loeschen: {fehler}"
-    return True, ("Tor zurueckgesetzt — beim naechsten Start wird ein neues Passwort festgelegt. "
+        return False, f"Tor-Datei liess sich nicht löschen: {fehler}"
+    return True, ("Tor zurückgesetzt — beim nächsten Start wird ein neues Passwort festgelegt. "
                   "Der Spielstand bleibt erhalten.")
 
 

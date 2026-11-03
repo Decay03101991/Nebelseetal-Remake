@@ -22,6 +22,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from harness import abschnitt, bericht, check, import_src
 
 ROOT, SRC = import_src()
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import anzeigetexte_inventur as ANZEIGE  # noqa: E402  (Regel: Umlaute nur in Anzeigetexten)
 import bottaktik as BT
 
 TEXT = open(os.path.join(SRC, "bottaktik.py"), encoding="utf-8").read()
@@ -201,7 +203,9 @@ check("pruefe_taktik meldet keine Verstoesse", verstoesse == [], str(verstoesse)
 # ============================================================ 11. Quellhygiene
 abschnitt("11. bottaktik.py - reine Logik, nur Standardbibliothek")
 
-check("bottaktik.py ist reines ASCII", all(ord(c) < 128 for c in TEXT))
+# T-1 (03.11.2026): Umlaute nur in Anzeigetexten - Code und Kommentare bleiben ASCII.
+check("bottaktik.py traegt Umlaute nur in Anzeigetexten",
+      not ANZEIGE.umlaute_nur_in_texten(TEXT), str(ANZEIGE.umlaute_nur_in_texten(TEXT)[:3]))
 check("kein tkinter", "tkinter" not in TEXT)
 check("kein main-Import", "import main" not in TEXT and "from main" not in TEXT)
 check("keine Datei wird geschrieben", "open(" not in TEXT)

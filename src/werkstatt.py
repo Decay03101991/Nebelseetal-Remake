@@ -211,21 +211,21 @@ def einreihen(schlange: Dict[str, Any], ware: str,
     ``rezepte`` wird an ``dauer_sekunden`` durchgereicht (Vorgabe None = Altmodus, unveraendert).
     """
     if not isinstance(schlange, dict) or "einheiten" not in schlange:
-        return False, "Keine gueltige Warteschlange uebergeben."
+        return False, "Keine gültige Warteschlange übergeben."
     if ware not in _waren():
         return False, f"'{ware}' ist keine bekannte Ware."
     ziel = werkstatt_fuer(ware)
     if ziel is None:
-        return False, f"'{ware}' gehoert zu keiner Werkstatt."
+        return False, f"'{ware}' gehört zu keiner Werkstatt."
     if ziel != schlange.get("typ"):
-        return False, (f"'{ware}' gehoert nicht in die Werkstatt "
+        return False, (f"'{ware}' gehört nicht in die Werkstatt "
                        f"{schlange.get('werkstatt')}.")
     try:
         menge = int(anzahl)
     except (TypeError, ValueError):
         return False, "Die Anzahl muss eine ganze Zahl sein."
     if menge <= 0:
-        return False, "Die Anzahl muss groesser als 0 sein."
+        return False, "Die Anzahl muss größer als 0 sein."
 
     s = _stufe_wert(stufe)
     dauer = dauer_sekunden(ware, s, rezepte)
@@ -240,7 +240,7 @@ def einreihen(schlange: Dict[str, Any], ware: str,
     if dauer is None:
         return True, (f"{menge}x {ware} eingereiht - Dauer nicht belegt, "
                       f"die Ware wartet im Stapel.")
-    return True, f"{menge}x {ware} eingereiht ({dauer / 60.0:.1f} Minuten je Stueck)."
+    return True, f"{menge}x {ware} eingereiht ({dauer / 60.0:.1f} Minuten je Stück)."
 
 
 def _fortschreiben(schlange: Dict[str, Any], jetzt: float) -> float:

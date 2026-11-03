@@ -285,13 +285,13 @@ def bauen(zustand: dict, siedlung_index, gebaeude: str, feld: int) -> Tuple[bool
         return False, f"Unbekannte Siedlung (Index {siedlung_index})."
     kennung = gelaende.finde_gebaeude(gebaeude)
     if not kennung:
-        return False, f"Unbekanntes Gebaeude: {gebaeude}."
+        return False, f"Unbekanntes Gebäude: {gebaeude}."
     karte = s.get("karte") or {}
     raster = karte.get("raster") or []
     try:
         feld_i = int(feld)
     except (TypeError, ValueError):
-        return False, f"Ungueltige Feldnummer: {feld}."
+        return False, f"Ungültige Feldnummer: {feld}."
     if not (0 <= feld_i < len(raster)):
         return False, f"Feld {feld} liegt nicht auf der Karte."
     if str(feld_i) in (s.get("bauten") or {}):
@@ -303,12 +303,12 @@ def bauen(zustand: dict, siedlung_index, gebaeude: str, feld: int) -> Tuple[bool
     eintrag = gelaende.alle_gebaeude().get(kennung) or {}
     grenze = eintrag.get("max_je_siedlung")
     if isinstance(grenze, int) and grenze > 0 and GW.gebaeude_stufe(s, kennung) >= grenze:
-        return False, (f"{eintrag.get('name', kennung)} gibt es hoechstens {grenze}x je "
+        return False, (f"{eintrag.get('name', kennung)} gibt es höchstens {grenze}x je "
                        f"Siedlung (belegte Originalregel).")
     kosten = _baukosten(kennung, 1)
     fehlt = _fehlbetrag(zustand, kosten)
     if fehlt:
-        return False, f"Zu wenig fuer {eintrag.get('name', kennung)}: es fehlen {_kosten_text(fehlt)}."
+        return False, f"Zu wenig für {eintrag.get('name', kennung)}: es fehlen {_kosten_text(fehlt)}."
     _bezahlen(zustand, kosten)
     s.setdefault("bauten", {})[str(feld_i)] = kennung
     s.setdefault("stufen", {})[str(feld_i)] = 1
@@ -357,26 +357,26 @@ def ausbauen(zustand: dict, siedlung_index, feld: int) -> Tuple[bool, str]:
     try:
         feld_i = int(feld)
     except (TypeError, ValueError):
-        return False, f"Ungueltige Feldnummer: {feld}."
+        return False, f"Ungültige Feldnummer: {feld}."
     bauten = s.get("bauten") or {}
     if str(feld_i) not in bauten:
-        return False, f"Auf Feld {feld_i} steht kein Gebaeude."
+        return False, f"Auf Feld {feld_i} steht kein Gebäude."
     kennung = gelaende.finde_gebaeude(bauten[str(feld_i)])
     if not kennung:
-        return False, f"Unbekanntes Gebaeude auf Feld {feld_i}."
+        return False, f"Unbekanntes Gebäude auf Feld {feld_i}."
     name = gelaende.gebaeude_name(kennung)
     hoechste = GW.max_stufe(kennung)
     if hoechste is None:
-        return False, (f"Fuer {name} ist kein Ausbau belegt -- das Handbuch nennt "
+        return False, (f"Für {name} ist kein Ausbau belegt -- das Handbuch nennt "
                        f"keine Stufen.")
     aktuelle = GW.stufe_von_feld(s, str(feld_i))
     if aktuelle >= hoechste:
-        return False, f"{name} hat die hoechste belegte Stufe {hoechste} erreicht."
+        return False, f"{name} hat die höchste belegte Stufe {hoechste} erreicht."
     neue = aktuelle + 1
     kosten = _kosten_mit_volk(_baukosten(kennung, neue), s)
     fehlt = _fehlbetrag(zustand, kosten)
     if fehlt:
-        return False, f"Zu wenig fuer den Ausbau von {name}: es fehlen {_kosten_text(fehlt)}."
+        return False, f"Zu wenig für den Ausbau von {name}: es fehlen {_kosten_text(fehlt)}."
     _bezahlen(zustand, kosten)
     s.setdefault("stufen", {})[str(feld_i)] = neue
     _melde(zustand, f"{name} auf Feld {feld_i} auf Stufe {neue} ausgebaut "
@@ -397,10 +397,10 @@ def abreissen(zustand: dict, siedlung_index, feld: int) -> Tuple[bool, str]:
     try:
         feld_i = int(feld)
     except (TypeError, ValueError):
-        return False, f"Ungueltige Feldnummer: {feld}."
+        return False, f"Ungültige Feldnummer: {feld}."
     bauten = s.get("bauten") or {}
     if str(feld_i) not in bauten:
-        return False, f"Auf Feld {feld_i} steht kein Gebaeude."
+        return False, f"Auf Feld {feld_i} steht kein Gebäude."
     kennung = gelaende.finde_gebaeude(bauten[str(feld_i)])
     name = gelaende.gebaeude_name(kennung) if kennung else bauten[str(feld_i)]
     del s["bauten"][str(feld_i)]
@@ -455,16 +455,16 @@ def ausbilden(zustand: dict, einheit: str) -> Tuple[bool, str]:
         return False, f"Unbekannte Einheit: {einheit}."
     da, kennung, stufe = GW.ausbildungsstaette(zustand.get("siedlungen") or [], einheit)
     if not da:
-        gebaeude = kennung or eintrag.get("gebaeude") or "die passende Ausbildungsstaette"
+        gebaeude = kennung or eintrag.get("gebaeude") or "die passende Ausbildungsstätte"
         return False, f"{einheit} braucht {gelaende.gebaeude_name(gebaeude)} -- nicht gebaut."
     waren = eintrag.get("waren") or []
     fehl_waren = [w for w in waren if (zustand.get("waren") or {}).get(w, 0) < 1]
     if fehl_waren:
-        return False, f"Im Lager fehlen fuer {einheit}: {', '.join(fehl_waren)}."
+        return False, f"Im Lager fehlen für {einheit}: {', '.join(fehl_waren)}."
     kosten = dict(eintrag.get("kosten") or {})
     fehlt = _fehlbetrag(zustand, kosten)
     if fehlt:
-        return False, f"Zu wenig fuer {einheit}: es fehlen {_kosten_text(fehlt)}."
+        return False, f"Zu wenig für {einheit}: es fehlen {_kosten_text(fehlt)}."
     _bezahlen(zustand, kosten)
     for w in waren:
         zustand["waren"][w] = zustand["waren"].get(w, 0) - 1
@@ -495,7 +495,7 @@ def ware_fertigen(zustand: dict, siedlung_index, ware: str, anzahl: int,
         return False, f"Unbekannte Ware: {ware}."
     kennung = werkstatt.werkstatt_fuer(ware)
     if not kennung:
-        return False, f"Fuer '{ware}' ist keine Werkstatt bekannt."
+        return False, f"Für '{ware}' ist keine Werkstatt bekannt."
     bestand = werkstatt.werkstaetten_bestand([s]).get(kennung, 0)
     if bestand < 1:
         return False, (f"Keine {gelaende.gebaeude_name(kennung)} in dieser Siedlung -- "
@@ -550,7 +550,7 @@ def angriff(zustand: dict, ziel: dict, jetzt: float,
             belagerung[name] = int(anzahl)
     if not krieger and not belagerung:
         return False, {"bestanden": False,
-                       "grund": "Keine Kaempfer und keine Belagerungswaffen vorhanden."}
+                       "grund": "Keine Kämpfer und keine Belagerungswaffen vorhanden."}
 
     fuss = sum(einheiten.kampfstaerke(n, a) for n, a in krieger.items())
     bel = sum(einheiten.kampfstaerke(n, a) for n, a in belagerung.items())
@@ -679,16 +679,16 @@ def offene_luecken() -> dict:
                       "ist darum NICHT eingebaut (nichts erfunden)."),
         "ausbildungsdauer": ("Das Handbuch nennt keine Ausbildungsdauer; ausbilden ist "
                              "darum sofort (keine erfundene Wartezeit)."),
-        "werkstatt_dauer": ("Nur fuer das Schwert ist die Fertigungsdauer belegt (20 Min). "
+        "werkstatt_dauer": ("Nur für das Schwert ist die Fertigungsdauer belegt (20 Min). "
                             "Andere Waren laufen ohne Dauer in der Warteschlange."),
-        "baukunst": ("Die Forschung 'Baukunst' als Bauvoraussetzung wird nicht geprueft: "
+        "baukunst": ("Die Forschung 'Baukunst' als Bauvoraussetzung wird nicht geprüft: "
                      "die 21 Originalforschungen sind zwar im Spiel, aber die Zuordnung "
-                     "je Gebaeude ist noch offen."),
+                     "je Gebäude ist noch offen."),
         "kampfverluste": ("Verluste einzelner Einheiten rechnet der (nicht eingebundene) "
                           "Kampfablauf; 'angriff' nutzt Vorrunde, Mauerschaden und Beute "
                           "aus kampfbericht."),
         "portal_mana_je_siedlung": ("portalwechsel nimmt das Mana aus dem gemeinsamen "
-                                    "Vorrat; der Stand fuehrt kein Mana je Siedlung."),
+                                    "Vorrat; der Stand führt kein Mana je Siedlung."),
         "gebaeude_wirkung_luecken": GW.luecken(),
         "kampfbericht_luecken": kampfbericht.offene_luecken(),
     }

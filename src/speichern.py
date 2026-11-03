@@ -62,7 +62,7 @@ def _lies_json(pfad: str):
     try:
         return json.loads(text), None
     except ValueError as e:
-        return None, f"JSON beschaedigt ({type(e).__name__}): {e}"
+        return None, f"JSON beschädigt ({type(e).__name__}): {e}"
 
 
 def _serialisiere(daten):
@@ -102,7 +102,7 @@ def speichere(daten: dict, pfad: str) -> tuple:
     Gibt (Wahrheitswert, Meldung) zurueck und laesst bei jedem Fehler die alte Datei stehen.
     """
     if not isinstance(daten, dict):
-        return False, "Die Daten muessen ein dict (Woerterbuch) sein."
+        return False, "Die Daten müssen ein dict (Wörterbuch) sein."
 
     text, fehler = _serialisiere(daten)
     if text is None:
@@ -127,7 +127,7 @@ def speichere(daten: dict, pfad: str) -> tuple:
         return False, f"Zwischendatei nicht lesbar: {fehler2}"
     if zurueck != daten:
         _entferne_quiet(tmp)
-        return False, "Zwischendatei stimmt nicht mit den Daten ueberein."
+        return False, "Zwischendatei stimmt nicht mit den Daten überein."
 
     # 3. Atomarer Umsprung auf den Endpfad
     try:
@@ -141,7 +141,7 @@ def speichere(daten: dict, pfad: str) -> tuple:
     if endgueltig is None:
         return False, f"Datei nach dem Ersetzen nicht lesbar: {fehler3}"
     if endgueltig != daten:
-        return False, "Datei stimmt nach dem Ersetzen nicht mit den Daten ueberein."
+        return False, "Datei stimmt nach dem Ersetzen nicht mit den Daten überein."
 
     return True, f"Gespeichert: {os.path.basename(pfad)} ({len(text)} Zeichen)"
 
@@ -190,7 +190,7 @@ def sichere_kopie(pfad: str) -> tuple:
         return False, f"Sicherung fehlgeschlagen ({type(e).__name__}): {e}"
     if zurueck != inhalt:
         _entferne_quiet(bak)
-        return False, "Sicherung stimmt nicht mit der Datei ueberein."
+        return False, "Sicherung stimmt nicht mit der Datei überein."
     return True, f"Sicherung angelegt: {os.path.basename(bak)} ({len(inhalt)} Byte)"
 
 
@@ -215,7 +215,7 @@ def wiederherstellen(pfad: str) -> tuple:
             zurueck = q.read()
         if zurueck != inhalt:
             _entferne_quiet(tmp)
-            return False, "Wiederherstellung nicht ueberpruefbar."
+            return False, "Wiederherstellung nicht überprüfbar."
         os.replace(tmp, pfad)
     except Exception as e:
         _entferne_quiet(tmp)
@@ -265,7 +265,7 @@ def pruefe_datei(pfad: str) -> dict:
     if ergebnis["json_ok"]:
         ergebnis["stand"] = f"in Ordnung (Stand {zeit})"
     else:
-        ergebnis["stand"] = f"JSON beschaedigt (Stand {zeit})"
+        ergebnis["stand"] = f"JSON beschädigt (Stand {zeit})"
     return ergebnis
 
 
@@ -311,27 +311,27 @@ def offene_luecken() -> dict:
     return {
         "verzeichnis_sync": (
             "Nach os.replace wird der Verzeichniseintrag nicht gesondert synchronisiert "
-            "(kein fsync auf den Ordner). Auf den meisten Systemen genuegt der Datei-fsync; "
+            "(kein fsync auf den Ordner). Auf den meisten Systemen genügt der Datei-fsync; "
             "auf wenigen Dateisystemen bleibt ein kleines Restrisiko beim Stromausfall."),
         "netzlaufwerk": (
             "os.replace ist nur INNERHALB eines Dateisystems atomar. Liegen .tmp und Ziel auf "
-            "verschiedenen Laufwerken, schlaegt das Ersetzen ehrlich fehl statt still zu kopieren."),
+            "verschiedenen Laufwerken, schlägt das Ersetzen ehrlich fehl statt still zu kopieren."),
         "sperren": (
             "Es gibt keine Dateisperre gegen zwei gleichzeitige Schreiber. Das letzte os.replace "
-            "gewinnt; fuer ein Einzelspieler-Spiel ist das ausreichend, fuer Mehrfachzugriff nicht."),
+            "gewinnt; für ein Einzelspieler-Spiel ist das ausreichend, für Mehrfachzugriff nicht."),
         "pruefsumme": (
-            "Die Rueckpruefung vergleicht die GEPARSTEN Daten, nicht eine Pruefsumme der Rohbytes. "
-            "Ein inhaltlich gleicher, aber anders formatierter Text gilt damit als gueltig."),
+            "Die Rückprüfung vergleicht die GEPARSTEN Daten, nicht eine Prüfsumme der Rohbytes. "
+            "Ein inhaltlich gleicher, aber anders formatierter Text gilt damit als gültig."),
         "verschluesselung": (
             "Die Datei wird im Klartext geschrieben. Ein Passwortschutz der Spielstandsdatei "
-            "gehoert zum Passworttor, nicht hierher."),
+            "gehört zum Passworttor, nicht hierher."),
     }
 
 
 if __name__ == "__main__":                                   # kleine Selbstprobe
     import sys
     if len(sys.argv) > 1:
-        print(f"Pruefung {sys.argv[1]}: {pruefe_datei(sys.argv[1])}")
+        print(f"Prüfung {sys.argv[1]}: {pruefe_datei(sys.argv[1])}")
     else:
         print("speichern: robustes Speichern (W8). Benutzung ueber speichere/lade/...")
-        print(f"Offene Luecken: {len(offene_luecken())}")
+        print(f"Offene Lücken: {len(offene_luecken())}")

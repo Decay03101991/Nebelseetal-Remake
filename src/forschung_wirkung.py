@@ -161,9 +161,9 @@ def offene_luecken() -> Dict[str, Any]:
         if name in RESSOURCEN_FORSCHUNGEN:
             continue
         if name == "Heilkunde":
-            grund = "erhoeht die Siedlerproduktion (belegt), aber keinen der neun Rohstoffe"
+            grund = "erhöht die Siedlerproduktion (belegt), aber keinen der neun Rohstoffe"
         elif name == "Mauerbau":
-            grund = "erhoeht den Verteidigungswert (belegt), aber keinen der neun Rohstoffe"
+            grund = "erhöht den Verteidigungswert (belegt), aber keinen der neun Rohstoffe"
         else:
             grund = "Handbuch nennt keine Rohstoffwirkung; Faktor bleibt 1,0"
         ohne[name] = grund

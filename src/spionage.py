@@ -202,12 +202,12 @@ def abwehr_pruefung(aufklaerung: Any, wall_stufe: Any, wall_zustand_prozent: Any
     erforderlich = abwehr_eines_dorfes(stufe, wall_zustand_prozent, e)           # seine Abwehr
     bestanden = vorhanden >= erforderlich                                       # ueberwunden?
     if stufe <= 0:                                                              # kein Wall
-        grund = "Kein Wall vorhanden - es gibt keine Abwehr zu ueberwinden."
+        grund = "Kein Wall vorhanden - es gibt keine Abwehr zu überwinden."
     elif bestanden:                                                             # Wall geschlagen
-        grund = ("Die Spionageeinheiten ueberwinden den Wall %d (Aufklaerung %d gegen Abwehr %d)."
+        grund = ("Die Spionageeinheiten überwinden den Wall %d (Aufklärung %d gegen Abwehr %d)."
                  % (stufe, vorhanden, int(round(erforderlich))))
     else:                                                                       # abgeprallt
-        grund = ("Die Spionageeinheiten prallen am Wall %d ab (Aufklaerung %d gegen Abwehr %d)."
+        grund = ("Die Spionageeinheiten prallen am Wall %d ab (Aufklärung %d gegen Abwehr %d)."
                  % (stufe, vorhanden, int(round(erforderlich))))
     return {"bestanden": bool(bestanden), "vorhanden": int(vorhanden),
             "erforderlich": float(erforderlich), "wall_stufe": int(stufe), "grund": grund}
@@ -250,7 +250,7 @@ def _dorf(bericht: Any) -> Dict[str, Any]:
 
 def _verdeckt(teil: str, aufklaerung: int, grenzen: Dict[str, int]) -> str:
     """Der Text eines NICHT aufgedeckten Teils - samt dem, was fehlt (nie eine leere Zeile)."""
-    return "nicht aufgeklaert (Aufklaerung %d von %d noetig)" % (aufklaerung, grenzen.get(teil, 0))
+    return "nicht aufgeklärt (Aufklärung %d von %d nötig)" % (aufklaerung, grenzen.get(teil, 0))
 
 
 def bericht_zeilen(bericht: Any, aufklaerung: Any = None,
@@ -277,7 +277,7 @@ def bericht_zeilen(bericht: Any, aufklaerung: Any = None,
     zeilen.append("Dorf %s von %s auf Position %d/%d, Fraktion %s."
                   % (str(dorf.get("name") or "unbekannt"), str(b.get("bot") or "unbekannt"),
                      x, y, str(b.get("fraktion") or "unbekannt")))
-    zeilen.append("Aufklaerung: %d (aus den Werten der Spionageeinheiten, VORSCHLAG-Formel)." % wert)
+    zeilen.append("Aufklärung: %d (aus den Werten der Spionageeinheiten, VORSCHLAG-Formel)." % wert)
     # --- Truppen ---------------------------------------------------------------
     if wert >= grenzen["truppen"]:                                              # Schwelle erreicht
         zeilen.append("Stationierte Truppen: %s." % hilfen.aufzaehlung(dorf.get("truppen")))
@@ -285,9 +285,9 @@ def bericht_zeilen(bericht: Any, aufklaerung: Any = None,
         zeilen.append("Stationierte Truppen: " + _verdeckt("truppen", wert, grenzen) + ".")
     # --- Vorraete --------------------------------------------------------------
     if wert >= grenzen["vorraete"]:                                             # Schwelle erreicht
-        zeilen.append("Vorraete im Dorflager: %s." % hilfen.aufzaehlung(dorf.get("vorraete")))
+        zeilen.append("Vorräte im Dorflager: %s." % hilfen.aufzaehlung(dorf.get("vorraete")))
     else:                                                                       # zu wenig Aufklaerung
-        zeilen.append("Vorraete im Dorflager: " + _verdeckt("vorraete", wert, grenzen) + ".")
+        zeilen.append("Vorräte im Dorflager: " + _verdeckt("vorraete", wert, grenzen) + ".")
     # --- Wall ------------------------------------------------------------------
     if wert >= grenzen["wall"]:                                                 # Schwelle erreicht
         try:                                                                    # Wallstufe als Zahl
@@ -310,7 +310,7 @@ def bericht_zeilen(bericht: Any, aufklaerung: Any = None,
         if karte:                                                               # Karte bekannt
             zeilen.append("Karte: %s%s%s." % (
                 karte, " (%s)" % kategorie if kategorie else "",
-                ", staerkster Rohstoff %s" % staerkster if staerkster else ""))
+                ", stärkster Rohstoff %s" % staerkster if staerkster else ""))
         else:                                                                   # alter Stand ohne Karte
             zeilen.append("Karte: unbekannt.")
         ertrag = dorf.get("ertrag_pro_stunde") if isinstance(dorf.get("ertrag_pro_stunde"), dict) else {}
@@ -330,11 +330,11 @@ def bericht_zeilen(bericht: Any, aufklaerung: Any = None,
     except (TypeError, ValueError):                                             # kaputter Wert
         stand = 0.0                                                             # dann ohne Zahl
     zeilen.append("Stand: Spielstunde %.1f (Ankunft der Spione)." % stand)
-    zeilen.append("Der Bericht bleibt gueltig, bis ein NEUER Bericht ueber dieses Dorf kommt - "
+    zeilen.append("Der Bericht bleibt gültig, bis ein NEUER Bericht über dieses Dorf kommt - "
                   "Truppen, die erst danach im Dorf eintreffen, sind hier NICHT enthalten.")
     frist = frist_stunden(e)                                                    # freiwillige Frist
     if frist > 0:                                                               # nur wenn eingestellt
-        zeilen.append("Zusaetzlich eingestellte Frist: %d Spielstunden." % int(frist))
+        zeilen.append("Zusätzlich eingestellte Frist: %d Spielstunden." % int(frist))
     return zeilen                                                               # fertige Zeilen
 
 
@@ -383,7 +383,7 @@ def veraltet_text(bericht: Any, jetzt: Any, einstellungen_werte: Optional[dict] 
     if not veraltet(bericht, jetzt, einstellungen_werte):                       # noch aktuell
         return ""                                                               # kein Hinweis
     e = einstellungen_werte if isinstance(einstellungen_werte, dict) else einstellungen()
-    return ("Dieser Bericht ist aelter als %d Spielstunden - die Zahlen koennen veraltet sein. "
+    return ("Dieser Bericht ist älter als %d Spielstunden - die Zahlen können veraltet sein. "
             "Ein neuer Spionageauftrag bringt den aktuellen Stand." % int(frist_stunden(e)))
 
 
@@ -398,12 +398,12 @@ def offene_luecken() -> Dict[str, str]:
                       "Taktik 150) sind VORSCHLAG, kalibriert an den belegten Werten der sechs "
                       "Kundschafter (30/30 bis 90/95). Die Quellen nennen keinen Felderumfang."),
         "frist": ("Es gibt KEINE Frist (Vorgabe Daniel 02.11.2026): ein Bericht bleibt aktuell, bis "
-                  "ein neuer Bericht ueber dasselbe Dorf kommt. Die Mechanik einer freiwilligen Frist "
+                  "ein neuer Bericht über dasselbe Dorf kommt. Die Mechanik einer freiwilligen Frist "
                   "steht bereit (`bericht_gueltig_stunden`, 0 = abgeschaltet)."),
-        "kosten": ("Es gibt KEINEN eigenen Goldpreis fuer Spionage. Bezahlt werden die Reisekosten "
-                   "aus auftraege.kosten_der_mission (VORSCHLAG-Saetze aus A2) und die entsandten "
+        "kosten": ("Es gibt KEINEN eigenen Goldpreis für Spionage. Bezahlt werden die Reisekosten "
+                   "aus auftraege.kosten_der_mission (VORSCHLAG-Sätze aus A2) und die entsandten "
                    "Spionageeinheiten selbst."),
-        "gegenwehr": ("Nicht gebaut: eine Gegenwehr des Dorfes ueber die SI des Verteidigers (die "
+        "gegenwehr": ("Nicht gebaut: eine Gegenwehr des Dorfes über die SI des Verteidigers (die "
                       "Quellen nennen keine). Der Bericht entsteht bei Ankunft; ob die Einheiten "
-                      "zurueckkommen, regelt der Auftrag wie jede andere Art."),
+                      "zurückkommen, regelt der Auftrag wie jede andere Art."),
     }

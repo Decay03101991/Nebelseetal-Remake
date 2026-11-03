@@ -23,9 +23,9 @@ MARSCHIEREN, RAUBERN, FLIEHEN, RAECHEN = "MARSCHIEREN", "RAUBERN", "FLIEHEN", "R
 
 ZUSTAENDE = {
     SAMMELN: "Rohstoffe aufbauen", WACHSEN: "Dorf ausbauen",
-    SICHERN: "Wall und Truppen aufstellen", SUCHEN: "Naehe zum Spieler aufbauen",
+    SICHERN: "Wall und Truppen aufstellen", SUCHEN: "Nähe zum Spieler aufbauen",
     MARSCHIEREN: "Truppen verschieben", RAUBERN: "Angriff",
-    FLIEHEN: "Rueckzug nach Niederlage", RAECHEN: "gezielter Gegenschlag",
+    FLIEHEN: "Rückzug nach Niederlage", RAECHEN: "gezielter Gegenschlag",
 }
 
 ZUSTANDS_AKTION = {
@@ -168,13 +168,13 @@ def dorf_taktik_setzen(dorf: Any, jetzt: float = 0.0, lage: Optional[dict] = Non
 TAKTIKEN: Dict[str, Dict[str, Any]] = {
     "Haug": {"name": "Pluenderer", "naehe": True, "abstand_grenze": 3,
              "angriff_schwelle": 0.4, "rueckzug_schwelle": 0.40,
-             "zielwahl": "naechstes schwaches Dorf", "erstes_zeichen": "Spaeher am Rand",
+             "zielwahl": "nächstes schwaches Dorf", "erstes_zeichen": "Späher am Rand",
              "blitz": False, "startzustand": SUCHEN,
              "bonus": "Beute +5 % (nicht verdrahtet)"},
     "Brynhild": {"name": "Waechterin", "naehe": False, "abstand_grenze": 8,
                  "angriff_schwelle": 0.7, "rueckzug_schwelle": 0.25,
                  "zielwahl": "das Dorf, das ihr zu nah kam",
-                 "erstes_zeichen": "sie bleibt fern, kein Spaeher",
+                 "erstes_zeichen": "sie bleibt fern, kein Späher",
                  "blitz": False, "startzustand": SICHERN,
                  "bonus": "Verteidigung +5 % (nicht verdrahtet)"},
     "Grom": {"name": "Bastionier", "naehe": False, "abstand_grenze": 8,
@@ -184,21 +184,21 @@ TAKTIKEN: Dict[str, Dict[str, Any]] = {
              "bonus": "Ausbau +5 % (nicht verdrahtet)"},
     "Silra": {"name": "Spaeherin", "naehe": True, "abstand_grenze": 5,
               "angriff_schwelle": 0.5, "rueckzug_schwelle": 0.60,
-              "zielwahl": "erkundet, greift nur bei Schwaeche",
-              "erstes_zeichen": "Spaeher und Staubwolke mit Vorlauf",
+              "zielwahl": "erkundet, greift nur bei Schwäche",
+              "erstes_zeichen": "Späher und Staubwolke mit Vorlauf",
               "blitz": False, "startzustand": SUCHEN,
               "bonus": "Reisegeschwindigkeit +5 % (nicht verdrahtet)"},
     "Krank": {"name": "Raecher", "naehe": False, "abstand_grenze": 0,
               "angriff_schwelle": 0.0, "rueckzug_schwelle": 0.50,
-              "zielwahl": "der Schlaeger", "erstes_zeichen": "Nachricht: erzuernt",
+              "zielwahl": "der Schläger", "erstes_zeichen": "Nachricht: erzürnt",
               "blitz": True, "startzustand": RAECHEN,
               "bonus": "Angriff AT +5 % (nicht verdrahtet)"},
 }
 
 _TAKTIK_NEUTRAL: Dict[str, Any] = {"name": "Unbekannt", "naehe": True,
                                    "abstand_grenze": 5, "angriff_schwelle": 0.5,
-                                   "rueckzug_schwelle": 0.40, "zielwahl": "naechstes Dorf",
-                                   "erstes_zeichen": "Spaeher am Rand", "blitz": False,
+                                   "rueckzug_schwelle": 0.40, "zielwahl": "nächstes Dorf",
+                                   "erstes_zeichen": "Späher am Rand", "blitz": False,
                                    "startzustand": SUCHEN, "bonus": ""}
 
 
@@ -211,7 +211,7 @@ _VOLKSATTRIBUTE_RUECKFALL: Dict[str, Dict[str, str]] = {
     "menschlich": {"plus": "Holzertrag +5 %", "minus": "Steinertrag -5 %"},
     "zwergisch": {"plus": "Steinertrag +5 %", "minus": "Holzertrag -5 %"},
     "elfisch": {"plus": "Reisegeschwindigkeit +5 %", "minus": "PA der Einheiten -5 %"},
-    "Trolle": {"plus": "AT der Einheiten +5 %", "minus": "Handelserloes -5 %"},
+    "Trolle": {"plus": "AT der Einheiten +5 %", "minus": "Handelserlös -5 %"},
 }
 
 
@@ -483,9 +483,9 @@ def tick(bot: dict, welt: dict, jetzt: float,
         if taktik.get("blitz") and ged["geschlagen_von"]:
             ziel = str(ged["geschlagen_von"])
             return _entscheidung(RAECHEN, taktik, "raechen", ziel, "rache",
-                                 "gemerkter Schlaeger", SICHERN,
-                                 meldung=f"{name} ist erzuernt und greift {ziel} an.")
-        return _entscheidung(RAECHEN, taktik, "warten", None, None, "kein Schlaeger gemerkt")
+                                 "gemerkter Schläger", SICHERN,
+                                 meldung=f"{name} ist erzürnt und greift {ziel} an.")
+        return _entscheidung(RAECHEN, taktik, "warten", None, None, "kein Schläger gemerkt")
 
     if spielerdorf is None:
         return _entscheidung(zustand, taktik, "warten", None, None,
@@ -500,7 +500,7 @@ def tick(bot: dict, welt: dict, jetzt: float,
         if _ganzzahl(vorraete.get("holz", 0), 0) >= SCHWELLE_SAMMELN_HOLZ:
             return _entscheidung(SAMMELN, taktik, "sammeln", None, None,
                                  "Vorrat erreicht, wachsen", WACHSEN,
-                                 meldung=f"{name} hat genug Holz und waechst.")
+                                 meldung=f"{name} hat genug Holz und wächst.")
         return _entscheidung(SAMMELN, taktik, "sammeln", None, None,
                              "Rohstoffe aufbauen", SAMMELN,
                              meldung=f"{name} sammelt Rohstoffe.")
@@ -518,7 +518,7 @@ def tick(bot: dict, welt: dict, jetzt: float,
             return _entscheidung(SICHERN, taktik, "sichern", None,
                                  taktik["erstes_zeichen"], "Armee steht, suchen",
                                  SUCHEN, abstand=abstand,
-                                 meldung=f"{name} sichert sich und sucht Naehe.")
+                                 meldung=f"{name} sichert sich und sucht Nähe.")
         return _entscheidung(SICHERN, taktik, "sichern", None, None,
                              "Wall und Truppen aufstellen", SICHERN, abstand=abstand,
                              meldung=f"{name} sichert sein Dorf.")
@@ -534,8 +534,8 @@ def tick(bot: dict, welt: dict, jetzt: float,
                                      meldung=f"{name} marschiert auf {spieler_name} zu.",
                                      wirkung={"marsch_ankunft": jetzt + reisezeit})
             return _entscheidung(SUCHEN, taktik, "suchen", spieler_name,
-                                 taktik["erstes_zeichen"], "Naehe aufbauen", SUCHEN,
-                                 abstand=abstand, meldung=f"{name} sucht die Naehe des Spielers.")
+                                 taktik["erstes_zeichen"], "Nähe aufbauen", SUCHEN,
+                                 abstand=abstand, meldung=f"{name} sucht die Nähe des Spielers.")
         ziel_zustand = taktik["startzustand"]
         if ziel_zustand == RAECHEN:
             return _entscheidung(SUCHEN, taktik, "warten", None, None,
@@ -543,7 +543,7 @@ def tick(bot: dict, welt: dict, jetzt: float,
                                  meldung=f"{name} wartet auf einen Grund.")
         return _entscheidung(SUCHEN, taktik, ZUSTANDS_AKTION.get(ziel_zustand, "warten"),
                              None, None, "Abstand halten", ziel_zustand, abstand=abstand,
-                             meldung=f"{name} haelt Abstand ({taktik['name']}).")
+                             meldung=f"{name} hält Abstand ({taktik['name']}).")
 
     if zustand == MARSCHIEREN:
         ankunft = _zahl(bot.get("marsch_ankunft"), 0.0)
@@ -570,7 +570,7 @@ def tick(bot: dict, welt: dict, jetzt: float,
                                               AGGRESSION_ZUWACHS_BEI_NIEDERLAGE})
         return _entscheidung(RAUBERN, taktik, "raeubern", spieler_name, "Kampfbericht",
                              "Beute gemacht, heimkehren", SICHERN, abstand=abstand,
-                             meldung=f"{name} pluendert und kehrt heim.")
+                             meldung=f"{name} plündert und kehrt heim.")
 
     if zustand == FLIEHEN:
         flucht_ende = _zahl(bot.get("flucht_ende"), 0.0)
@@ -579,8 +579,8 @@ def tick(bot: dict, welt: dict, jetzt: float,
                                  "Ruhe beendet, sichern", SICHERN, abstand=abstand,
                                  meldung=f"{name} erholt sich und sichert sich.")
         return _entscheidung(FLIEHEN, taktik, "fliehen", ged["geschlagen_von"], None,
-                             "Rueckzug nach Niederlage", FLIEHEN, abstand=abstand,
-                             meldung=f"{name} zieht sich zurueck.")
+                             "Rückzug nach Niederlage", FLIEHEN, abstand=abstand,
+                             meldung=f"{name} zieht sich zurück.")
 
     return _entscheidung(zustand, taktik, "warten", None, None, "unbekannter Zustand")
 
@@ -664,7 +664,7 @@ def anzeige(bot: dict) -> str:
     if bot.get("letzter_abstand") is not None:
         text += f" (Abstand {_ganzzahl(bot['letzter_abstand'])})"
     if bot.get("naechster_marsch_h") is not None:
-        text += f", naechster Marsch in {_zahl(bot['naechster_marsch_h']):g} h"
+        text += f", nächster Marsch in {_zahl(bot['naechster_marsch_h']):g} h"
     return text
 
 
@@ -697,11 +697,11 @@ def pruefe_taktik() -> List[str]:
         e = tick(bot, {"spielerdorf": {"x": 0, "y": 0, "name": "Spielerdorf"}},
                  0.0, random.Random(9))
         if e["aktion"] in ("raeubern", "raechen") and not taktik["blitz"]:
-            verstoesse.append(f"{bot_name}: Blitzangriff ohne Ankuendigung: {e['aktion']}")
+            verstoesse.append(f"{bot_name}: Blitzangriff ohne Ankündigung: {e['aktion']}")
     e = tick({"name": "Krank", "aggression": 0.9, "zustand": RAECHEN,
               "gedaechtnis": {"geschlagen_von": "MeinDorf"}}, welt_voll, 0.0, random.Random(9))
     if e["aktion"] != "raechen" or e["signal"] != "rache":
-        verstoesse.append(f"Raecher-Ausnahme fehlt: {e}")
+        verstoesse.append(f"Rächer-Ausnahme fehlt: {e}")
 
     for probe in (None, {}):
         try:
@@ -714,7 +714,7 @@ def pruefe_taktik() -> List[str]:
     wirkung_anwenden(bot, {"aktion": "fliehen", "geschlagen_von": "X",
                            "wirkung": {"aggression_delta": 0.1}}, 1.0)
     if bot != vorher:
-        verstoesse.append("wirkung_anwenden veraendert die Eingabe")
+        verstoesse.append("wirkung_anwenden verändert die Eingabe")
 
     return verstoesse
 
@@ -727,13 +727,13 @@ def offene_luecken() -> Dict[str, str]:
         "sammel_schwelle": f"VORSCHLAG: SAMMELN-Holz = {SCHWELLE_SAMMELN_HOLZ} (1,5x Startspanne 100).",
         "wachsen_schwelle": f"VORSCHLAG: WACHSEN-Punkte = {SCHWELLE_WACHSEN_PUNKTE}; Entwurf ohne Zahl.",
         "sichern_schwelle": f"VORSCHLAG: SICHERN-Armee = {SCHWELLE_SICHERN_ARMEE} (Truppensumme).",
-        "gedaechtnis": "VORSCHLAG (D.3): Rache, Beuteverlust, Staerke-Vergleich = Erfindung fuer Lesbarkeit.",
-        "signale": "VORSCHLAG (D.4): Spaeher, Staubwolke, 'erzuernt' = Mechanik der Ankuendigung.",
+        "gedaechtnis": "VORSCHLAG (D.3): Rache, Beuteverlust, Stärke-Vergleich = Erfindung für Lesbarkeit.",
+        "signale": "VORSCHLAG (D.4): Späher, Staubwolke, 'erzürnt' = Mechanik der Ankündigung.",
         "aggression_zuwachs": f"VORSCHLAG: Niederlage +{AGGRESSION_ZUWACHS_BEI_NIEDERLAGE} Aggression; Richtung belegt, Zahl nicht.",
-        "marsch_tempo": f"VORSCHLAG: Tempo = {MARSCH_GESCHWINDIGKEIT}; Formel aus auftraege, Bot-Tempo unbelegt.",
-        "dorf_anzahl": "VORSCHLAG: 1-3 Doerfer je Bot, deterministisch per Seed.",
+        "marsch_tempo": f"VORSCHLAG: Tempo = {MARSCH_GESCHWINDIGKEIT}; Formel aus aufträge, Bot-Tempo unbelegt.",
+        "dorf_anzahl": "VORSCHLAG: 1-3 Dörfer je Bot, deterministisch per Seed.",
         "wechsel_sperrzeit": f"VORSCHLAG S-7: Sperrzeit nach Zustandswechsel = {SPERRZEIT_NACH_WECHSEL:g} s "
-                              "(1 h, ein Bot-Takt); der Entwurf nennt 48 h fuer einen Verhaltenswechsel.",
+                              "(1 h, ein Bot-Takt); der Entwurf nennt 48 h für einen Verhaltenswechsel.",
         "verhaltensbonus_dauer": f"VORSCHLAG S-7: Ablaufzeit des befristeten Verhaltensbonus = "
                                  f"{VERHALTENSBONUS_DAUER / 3600:g} h; der Entwurf nennt 48 h Mindestdauer.",
         "volksattribute": "VORSCHLAG S-7 (A-01..A-04): je Fraktion zwei dauerhafte Attribute; "

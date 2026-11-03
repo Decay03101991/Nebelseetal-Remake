@@ -431,7 +431,7 @@ def gebaeude_baukasten_plan(gebaeude_key: str, x0: float, y0: float, zelle: floa
     bekannt = _G.alle_gebaeude()
     if key not in bekannt:
         raise ValueError(
-            f"Unbekanntes Gebaeude: {gebaeude_key!r} — erwartet eine der {len(bekannt)} "
+            f"Unbekanntes Gebäude: {gebaeude_key!r} — erwartet eine der {len(bekannt)} "
             f"Kennungen aus gelaende.alle_gebaeude(): {', '.join(sorted(bekannt))}")
     familie = _FAMILIE[key]
     if familie == "wall":
@@ -793,10 +793,10 @@ def koordinatenleiste_plan(spalten: int, zeilen: int, zelle: float,
     zeilen = int(zeilen)
     if spaltennamen is not None and len(list(spaltennamen)) < spalten:
         raise ValueError(
-            f"spaltennamen hat {len(list(spaltennamen))} Eintraege, erwartet {spalten}")
+            f"spaltennamen hat {len(list(spaltennamen))} Einträge, erwartet {spalten}")
     if zeilennamen is not None and len(list(zeilennamen)) < zeilen:
         raise ValueError(
-            f"zeilennamen hat {len(list(zeilennamen))} Eintraege, erwartet {zeilen}")
+            f"zeilennamen hat {len(list(zeilennamen))} Einträge, erwartet {zeilen}")
     breit = spalten * zelle
     hoch = zeilen * zelle
     x0r, y0r = rand, rand          # das Raster beginnt hinter der Leiste
@@ -846,17 +846,17 @@ def offene_luecken() -> list[str]:
         "Alle Masszahlen stammen aus der Bildmodell-Auswertung "
         "archiv/analysen/audits/ux_astra_karten_feinheit_2026-10-05.txt (Vorschlaege, keine belegten "
         "Eigenschaften des Originals); das Handbuch 2009 nennt keine Kartenoptik.",
-        "Das Bildmodell nennt die Gelaendeart 'Wasser'; im Projekt heisst sie 'nebelsee' — beide "
+        "Das Bildmodell nennt die Geländeart 'Wasser'; im Projekt heisst sie 'nebelsee' — beide "
         "Schreibweisen werden als Wasser behandelt.",
         "Die Familie eines Gebaeudes wird aus der Kennung gewaehlt (Ableitung aus der Kategorie "
         "in data/buildings.json). Ein dort neu ergaenztes Gebaeude mit unbekannter Kennung wuerde "
         "einen ValueError ausloesen.",
-        "Ufer und Innenkanten haengen an der Uebergabe von 'nachbarn'; ohne Nachbarangabe zeichnet "
+        "Ufer und Innenkanten hängen an der Übergabe von 'nachbarn'; ohne Nachbarangabe zeichnet "
         "das Feld alle vier Kanten und kein Ufer.",
         "Die Koordinatenleiste zeichnet von sich aus Ziffern; Buchstaben oder ein fester Ausschnitt "
         "sind in der Vorlage nicht genannt. Der Aufrufer kann mit 'spaltennamen'/'zeilennamen' die "
         "im Spiel ueblichen Buchstaben A-H uebergeben (main._spaltenname), damit Leiste und Panel "
         "dieselbe Koordinate nennen.",
-        "Wege und Auswahl kennen weder Wasser noch Gebaeude: der Aufrufer muss Wege aus Wasser "
-        "und Gebaeuden heraushalten (so in 'Siedlung 3' gefordert).",
+        "Wege und Auswahl kennen weder Wasser noch Gebäude: der Aufrufer muss Wege aus Wasser "
+        "und Gebäuden heraushalten (so in 'Siedlung 3' gefordert).",
     ]

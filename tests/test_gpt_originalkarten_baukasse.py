@@ -69,7 +69,7 @@ class TestOriginalkartenBaukasse(unittest.TestCase):
         vorher = (dict(self.ort.bauten), dict(self.ort.vorraete), self.ort.bevoelkerung)
         self._bau(self.wald, 'holzfaeller')
         self.assertEqual((self.ort.bauten, self.ort.vorraete, self.ort.bevoelkerung), vorher)
-        self.assertIn('Bau nicht moeglich', self.app.state.log[-1])
+        self.assertIn('Bau nicht m\u00f6glich', self.app.state.log[-1])
 
     def test_bau_ohne_rohstoffe_mutiert_keine_kasse_und_keinen_bauplatz(self):
         # Ersten Holzfaeller setzen; zweiten Waldplatz bewusst unterfinanzieren.

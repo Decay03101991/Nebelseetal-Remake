@@ -218,7 +218,8 @@ check("der Angriff reicht gegen Wall Stufe 1 (Schwelle 10) und startet ohne Warn
 # Fracht: ein voller Karren laeuft nicht ueber.
 _ueber = A.starten(_ab, "transportieren", {HK: 1}, "H", "Z", 10, 0, {"Holz": 50})
 check("ein voller Karren (40) mit 50 Fracht wird abgelehnt", _ueber[0] is False, _ueber[1])
-check("die Ablehnung nennt 'Ueberladen' und die Ladeplaetze", "Ueberladen" in _ueber[1]
+# T-1 (03.11.2026): die Meldung traegt jetzt echte Umlaute ("Ueberladen" -> "Überladen").
+check("die Ablehnung nennt 'Ueberladen' und die Ladeplaetze", "Überladen" in _ueber[1]
       and "40" in _ueber[1], _ueber[1])
 check("genau volle Fracht (40 auf 40) ist erlaubt",
       A.starten(A.neue_liste(), "transportieren", {HK: 1}, "H", "Z", 10, 0, {"Holz": 40})[0] is True)

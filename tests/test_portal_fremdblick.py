@@ -110,12 +110,12 @@ check("1 und KEIN eigenes Dorf", _leinwand is not None
 abschnitt("2. W-7: die Zeile nennt Bot, Fraktion und Zahl seiner Doerfer")
 # ==========================================================================
 _texte_alle = " | ".join(t for t in _texte(app.content) if t)
-check("2 die Zeile 'Fremde Doerfer auf dieser Welt' steht da",
-      "Fremde Doerfer auf dieser Welt" in _texte_alle, _texte_alle[:160])
+check("2 die Zeile 'Fremde D\u00f6rfer auf dieser Welt' steht da",
+      "Fremde D\u00f6rfer auf dieser Welt" in _texte_alle, _texte_alle[:160])
 _name, _ = _bot_welten[_fremd][0]
 check("2 sie nennt den Bot", _name in _texte_alle, _name)
 check("2 und die Zahl seiner Doerfer",
-      ("%d Doerfer" % _erwartet) in _texte_alle, _erwartet)
+      ("%d D\u00f6rfer" % _erwartet) in _texte_alle, _erwartet)
 
 # ==========================================================================
 abschnitt("3. Klick auf ein fremdes Dorf startet KEINEN Auftrag (W-3 offen)")

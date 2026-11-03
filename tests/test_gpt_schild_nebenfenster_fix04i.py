@@ -41,7 +41,7 @@ class SchildLayout(unittest.TestCase):
         fenster = self.erstes_fenster()
         self.assertIsInstance(getattr(fenster, '_nebelseetal_schild_bild'), tk.PhotoImage)
         self.assertEqual(len([b for b in alle(fenster) if isinstance(b, tk.Button)
-                              and b.cget('text') == 'Loeschen (archivieren)']), 3)
+                              and b.cget('text') == 'L\u00f6schen (archivieren)']), 3)
         self.assertTrue(pfad.exists())
         fenster.destroy()
 
@@ -77,8 +77,8 @@ class SchildLayout(unittest.TestCase):
         self.app._admin_sitzung_freigegeben = True
         self.app.state.admin_teststand = True
         self.app._build_main_ui()
-        self.assertIn('Admin-Spielstaende', self.app.aktionsknopfe)
-        knopf = self.app.aktionsknopfe['Admin-Spielstaende']
+        self.assertIn('Admin-Spielst\u00e4nde', self.app.aktionsknopfe)
+        knopf = self.app.aktionsknopfe['Admin-Spielst\u00e4nde']
         self.assertIs(knopf.master, self.app.aktionsleiste)
         self.root.update_idletasks()
         self.assertTrue(knopf.winfo_exists())

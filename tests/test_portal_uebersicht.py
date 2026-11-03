@@ -80,8 +80,8 @@ def _pruefungen_liste():
           len(offene) == 4 and all(z["status"] == "nicht bespielbar" and not z["waehlbar"]
                                    and z["farbe"] is None for z in offene),
           str([(z["name"], z["status"], z["waehlbar"]) for z in offene]))
-    check("ihr Grund nennt das spaetere Dazukommen",
-          all("spaeter" in z["grund"] for z in offene), str([z["grund"] for z in offene]))
+    check("ihr Grund nennt das sp\u00e4tere Dazukommen",
+          all("sp\u00e4ter" in z["grund"] for z in offene), str([z["grund"] for z in offene]))
     check("keine Zeile der Liste nennt das alte Wort",
           all("Dimension" not in z["name"] + z["status_text"] + z["grund"] for z in zeilen),
           "")
@@ -162,24 +162,24 @@ def _pruefungen_ansicht():
           "weltkarten" in quelle, "")
     check("die Ansicht baut das Gelaendekaestchen aus portalraum.anzeige_raster",
           "anzeige_raster" in quelle, "")
-    check("die Liste steht im Quelltext VOR dem Kaestchen (Daniel: Liste oben)",
+    check("die Liste steht im Quelltext VOR dem K\u00e4stchen (Daniel: Liste oben)",
           quelle.find("weltkarten") < quelle.find("anzeige_raster"),
           str((quelle.find("weltkarten"), quelle.find("anzeige_raster"))))
     # UMGESTELLT 02.11.2026 (Stufe B-5): der Klick laeuft jetzt ueber EINE Weiterleitung, weil auf
-    # dem Kaestchen fremde Doerfer liegen (Klick aufs Dorf -> Optionen, sonst Feld anwaehlen). Die
+    # dem K\u00e4stchen fremde Doerfer liegen (Klick aufs Dorf -> Optionen, sonst Feld anwaehlen). Die
     # Zusage bleibt: ein Klick landet bei genau einer Stelle, und das Anwaehlen selbst bucht nichts.
     check("ein Klick ruft die Weiterleitung _portal_klick", "_portal_klick" in quelle, "")
     check("die Weiterleitung waehlt sonst das Feld an",
           "_portal_feld_waehlen" in _code(main.NebelseetalApp._portal_klick), "")
-    check("die Ansicht sagt Weltkarte und Kaestchen",
-          "Weltkarte" in quelle and "Kaestchen" in quelle, "")
+    check("die Ansicht sagt Weltkarte und K\u00e4stchen",
+          "Weltkarte" in quelle and "K\u00e4stchen" in quelle, "")
     for name in ("_render_portal", "_portal_wechsel", "_portal_feld_waehlen", "_unterwegs_anzahl"):
         text = _code(getattr(main.NebelseetalApp, name))
         check(f"{name} nennt den alten Begriff nicht", "Dimension" not in text,
               [z for z in text.splitlines() if "Dimension" in z][:1])
     felder = portalraum.anzeige_raster(portalraum.index_von(4), 10, [4])
-    check("das Kaestchen hat 20 x 20 = 400 Felder", len(felder) == 400, str(len(felder)))
-    check("alle Felder des Kaestchens gehoeren zur aktuellen Weltkarte",
+    check("das K\u00e4stchen hat 20 x 20 = 400 Felder", len(felder) == 400, str(len(felder)))
+    check("alle Felder des K\u00e4stchens gehoeren zur aktuellen Weltkarte",
           all(f["z"] == 3 for f in felder), str(sorted({f["z"] for f in felder})))
 
     sql = portalraum.koordinate(3, 7, portalraum.index_von(4))

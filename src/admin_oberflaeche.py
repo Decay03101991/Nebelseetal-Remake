@@ -30,7 +30,7 @@ def oeffnen(parent, state, weltgebiete, *, speichern, aktualisieren):
     fenster.grab_set()
     body = ttk.Frame(fenster, padding=14)
     body.pack(fill="both", expand=True)
-    ttk.Label(body, text="Admin-Testmodus: Testdaten, nicht fuer normale Spielstaende",
+    ttk.Label(body, text="Admin-Testmodus: Testdaten, nicht für normale Spielstände",
               font=("Arial", 12, "bold")).pack(anchor="w", pady=(0, 8))
 
     siedlungen = {f"{s.name} [{s.id}]": s.id for s in state.settlements}
@@ -118,7 +118,7 @@ def oeffnen(parent, state, weltgebiete, *, speichern, aktualisieren):
 
     ttk.Button(karten, text="Karte zuweisen (Bauten erhalten)", command=karte_setzen).grid(
         row=1, column=0, columnspan=2, sticky="w", pady=8)
-    ttk.Label(karten, text="Bereits anderen Doerfern zugewiesene Karten sind gesperrt.").grid(
+    ttk.Label(karten, text="Bereits anderen Dörfern zugewiesene Karten sind gesperrt.").grid(
         row=2, column=0, columnspan=2, sticky="w", pady=4)
 
     # Weltpositionen sind 0-basiert, Grenzen stehen in der Gebiets-Konfiguration.
@@ -170,7 +170,7 @@ def oeffnen(parent, state, weltgebiete, *, speichern, aktualisieren):
 
     fuss = ttk.Frame(body)
     fuss.pack(fill="x", pady=(12, 0))
-    status = tk.StringVar(value="Aenderungen gelten nur fuer diesen Admin-Teststand.")
+    status = tk.StringVar(value="Änderungen gelten nur für diesen Admin-Teststand.")
     ttk.Label(fuss, textvariable=status, wraplength=470).pack(side="left", fill="x", expand=True)
 
     def admin_sichern():
@@ -186,5 +186,5 @@ def oeffnen(parent, state, weltgebiete, *, speichern, aktualisieren):
                                  parent=fenster)
 
     ttk.Button(fuss, text="Adminstand sichern", command=admin_sichern).pack(side="right", padx=3)
-    ttk.Button(fuss, text="Schliessen", command=fenster.destroy).pack(side="right", padx=3)
+    ttk.Button(fuss, text="Schließen", command=fenster.destroy).pack(side="right", padx=3)
     return fenster

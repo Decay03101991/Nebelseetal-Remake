@@ -51,7 +51,7 @@ def karte(kennung, seed=None):
     eintrag = _index()[kennung]
     raster = list(eintrag["spielraster"])
     if len(raster) != 100 or any(x not in gelaende.GELAENDEARTEN for x in raster):
-        raise ValueError("Originalkarte unvollstaendig: " + kennung)
+        raise ValueError("Originalkarte unvollständig: " + kennung)
     zaehlung = {a: raster.count(a) for a in gelaende.GELAENDEARTEN}
     result = {"seed": str(seed if seed is not None else kennung), "spalten": 10,
               "zeilen": 10, "felder": 100,

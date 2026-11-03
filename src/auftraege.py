@@ -214,25 +214,25 @@ def auftragsarten() -> Dict[str, Dict[str, Any]]:
             "text": "Einheiten in einer eigenen Siedlung absetzen.",
             "belegt": ["In FREMDEN Siedlungen verboten (Handbuch S. 19); Waren nur mit Karren.",
                        "Die Einheiten bleiben danach vor Ort."],
-            "vorschlag": ["Erkennung 'fremd' ueber das Feld 'fremd' am Ziel (siehe offene_luecken)."],
+            "vorschlag": ["Erkennung 'fremd' über das Feld 'fremd' am Ziel (siehe offene_luecken)."],
         },
         "transportieren": {
             "text": "Waren mit Karren zu einem Ziel bringen.",
-            "belegt": ["Nur Handkarren (40), Einspaenner (100), Zweispaenner (250) - Ladung aus "
-                       "den Einheitentabellen.", "Die Rueckkehr ist vorgesehen."],
+            "belegt": ["Nur Handkarren (40), Einspänner (100), Zweispänner (250) - Ladung aus "
+                       "den Einheitentabellen.", "Die Rückkehr ist vorgesehen."],
             "vorschlag": ["Die Handlung am Ziel dauert 0 s (AKTION_DAUER_SEKUNDEN)."],
         },
         "handeln": {
             "text": "Waren mit einer Handelskarawane anbieten.",
             "belegt": ["Nur Handelskarawanen.", "Bei Ablehnung kehrt die Karawane MIT den Waren "
-                       "zurueck, Gold wird nie uebertragen (S. 20)."],
+                       "zurück, Gold wird nie übertragen (S. 20)."],
             "vorschlag": ["Kein Goldpreis erfunden: ohne Feld 'gold_bietet' am Ziel gibt es 0 Gold."],
         },
         "angreifen": {
             "text": "Eine fremde Siedlung angreifen.",
             "belegt": ["Wall-Vorrunde, dann Kampfsequenzen (S. 21-22).",
-                       "Beute NUR mit Transportkarren (S. 23, woertlich: 'Transportkarren in "
-                       "seiner Angriffstruppe mitfuehrt, beginnen diese die Siedlung zu pluendern').",
+                       "Beute NUR mit Transportkarren (S. 23, wörtlich: 'Transportkarren in "
+                       "seiner Angriffstruppe mitführt, beginnen diese die Siedlung zu plündern').",
                        DROSSELUNG_ZITAT],
             "vorschlag": [f"Beute {BEUTE_ANTEIL_PROZENT} % der Lager, gedeckelt durch die "
                           "Karrenladung (Entwurf, noch zu entscheiden)."],
@@ -246,8 +246,8 @@ def auftragsarten() -> Dict[str, Dict[str, Any]]:
                        "Meisterdieb, Kundschafter, Waldlaeufer - data/units.json).",
                        "VORGABE Daniel 02.11.2026: eine Spionage ist es NUR, wenn die gesamte "
                        "Truppenauswahl aus Spionageeinheiten besteht - sonst ist es ein Angriff.",
-                       "In ein EIGENES Dorf wird nicht spioniert; Doerfer werden nie eingenommen "
-                       "(Vorgabe Daniel 02.11.2026), Spionage aendert keinen Besitz."],
+                       "In ein EIGENES Dorf wird nicht spioniert; Dörfer werden nie eingenommen "
+                       "(Vorgabe Daniel 02.11.2026), Spionage ändert keinen Besitz."],
             "vorschlag": ["Wie viel der Bericht aufdeckt, rechnet spionage.aufklaerungswert aus "
                           "den Werten SI und HE der mitgeschickten Spionageeinheiten; die "
                           "Schwellen je Berichtsteil und die Gueltigkeitsfrist stehen in "
@@ -272,13 +272,13 @@ def _pruefe_fracht(fracht: Any, ladung: int) -> Tuple[bool, str, Dict[str, int]]
     for ware, menge in fracht.items():
         m = _als_int(menge, -1)
         if m < 0:
-            return False, f"Die Frachtmenge fuer '{ware}' darf nicht negativ sein.", {}
+            return False, f"Die Frachtmenge für '{ware}' darf nicht negativ sein.", {}
         if m > 0:
             sauber[str(ware)] = m
     gesamt = sum(sauber.values())
     if gesamt > ladung:
         return (False,
-                f"Ueberladen: {gesamt} Einheiten Fracht passen nicht auf {ladung} Ladeplaetze.",
+                f"Überladen: {gesamt} Einheiten Fracht passen nicht auf {ladung} Ladeplätze.",
                 {})
     return True, "", sauber
 
@@ -337,20 +337,20 @@ def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
        'handel_akzeptiert': bool, 'gold_bietet': int}      # fuer handeln
     """
     if not isinstance(liste, list):
-        return False, "Keine gueltige Auftragsliste uebergeben."
+        return False, "Keine gültige Auftragsliste übergeben."
     if art not in AUFTRAGSARTEN:
         return False, f"Unbekannte Auftragsart '{art}'. Erlaubt: {', '.join(AUFTRAGSARTEN)}."
 
     ziel_name = _ziel_name(nach)
     start_name = str(von or "")
     if not start_name or not ziel_name:
-        return False, "Start und Ziel muessen benannt sein."
+        return False, "Start und Ziel müssen benannt sein."
     if start_name == ziel_name:
         return False, "Start und Ziel sind dieselbe Siedlung."
 
     entf = _als_zahl(entfernung)
     if entf <= 0.0:
-        return False, "Die Entfernung muss groesser als 0 sein."
+        return False, "Die Entfernung muss größer als 0 sein."
 
     bestand = _bestand(einheiten)
     if not bestand:
@@ -361,7 +361,7 @@ def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
 
     gs = _geschwindigkeit(bestand)
     if gs <= 0:
-        return False, "Keine mitgefuehrte Einheit hat eine Geschwindigkeit."
+        return False, "Keine mitgeführte Einheit hat eine Geschwindigkeit."
 
     ziel = _ziel_daten(nach)
     ladung = ladung_der_mission(bestand, forschung)
@@ -371,7 +371,7 @@ def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
     warnungen: List[str] = []    # Hinweise, die den Auftrag NICHT verhindern (z. B. Wallpruefung)
     if art == "stationieren":
         if ziel.get("fremd"):
-            return False, ("Stationieren ist in fremden Siedlungen nicht moeglich "
+            return False, ("Stationieren ist in fremden Siedlungen nicht möglich "
                            "(Handbuch S. 19).")
     elif art == "transportieren":
         if not any(E.ist_transport(n) for n in bestand):
@@ -379,7 +379,7 @@ def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
     elif art == "handeln":
         karawanen = [n for n in bestand if "Handelskarawane" in n]
         if not karawanen:
-            return False, "Handeln ist nur mit Handelskarawanen moeglich."
+            return False, "Handeln ist nur mit Handelskarawanen möglich."
     elif art == "angreifen":
         fuss = _schlagkraft_fussttruppen(bestand)                            # Angriffskraft Fusstruppen
         bel = _schlagkraft_belagerung(bestand)                               # Angriffskraft Belagerung
@@ -399,7 +399,7 @@ def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
                 # dieselbe Schlagkraft-Schwelle).
                 warnungen.append(
                     "WARNUNG: die Schlagkraft reicht am Ziel vermutlich nicht - "
-                    + str(vr.get("grund") or "die Vorrunde wuerde nicht bestanden.")
+                    + str(vr.get("grund") or "die Vorrunde würde nicht bestanden.")
                     + " Der Auftrag startet trotzdem; entschieden wird bei Ankunft.")
             if isinstance(ziel.get("vorraete"), dict):
                 # VORGABE Daniel 31.10.2026 (Registerpunkt 45): gestaffelte Beute nach Wallzustand
@@ -421,7 +421,7 @@ def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
         if not kundschafter:
             return False, ("Spionage braucht Spionageeinheiten - die Kundschafter der "
                            "Diebesgilde (Streuner, Gauner, Dieb, Meisterdieb, Kundschafter, "
-                           "Waldlaeufer).")
+                           "Waldläufer).")
         # VORGABE Daniel 02.11.2026: "Eine Spionage ist es nur dann, wenn die gesamte
         # Truppenauswahl nur aus Spionageeinheiten besteht." Also ist eine GEMISCHTE Truppe keine
         # Spionage - sie wird abgelehnt, nicht stillschweigend auf die Kundschafter gekuerzt.
@@ -432,7 +432,7 @@ def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
                            "keine Spionage.")
         zusatz["aufklaerung"] = SP.aufklaerungswert(kundschafter)            # SI + HE der Truppe
         if zusatz["aufklaerung"] <= 0:
-            return False, "Die mitgeschickten Einheiten haben keinen Aufklaerungswert."
+            return False, "Die mitgeschickten Einheiten haben keinen Aufklärungswert."
         # ANALOG zur Wall-Vorrunde (`kampfbericht.vorrunde`) und aus demselben Grund wie die
         # Wallpruefung (Entscheidung Daniel 31.10.2026, Frage 8): die Abwehr des Dorfes kann sich
         # bis zur Ankunft aendern. Beim Absenden wird nur GEWARNT, entschieden wird bei Ankunft.
@@ -440,7 +440,7 @@ def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
                                         ziel.get("wall_zustand_prozent"))
         if zusatz["aufklaerung"] < abwehr:
             warnungen.append(
-                "WARNUNG: die Aufklaerung (%d) liegt unter der Abwehr des Dorfes (%d) - der "
+                "WARNUNG: die Aufklärung (%d) liegt unter der Abwehr des Dorfes (%d) - der "
                 "Spionageauftrag kann abprallen. Entschieden wird bei Ankunft."
                 % (int(zusatz["aufklaerung"]), int(round(abwehr))))
 
@@ -497,7 +497,7 @@ def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
     liste.append(eintrag)
     meldung = (f"Auftrag '{art}' von {start_name} nach {ziel_name} gestartet "
                f"(Reisezeit {reisezeit / 3600.0:.2f} h je Strecke, "
-               f"Rueckkehr nach {rueckkehr / 3600.0:.2f} h).")
+               f"Rückkehr nach {rueckkehr / 3600.0:.2f} h).")
     if warnungen:
         meldung += " " + " ".join(warnungen)
     return True, meldung
@@ -623,10 +623,10 @@ def bericht(eintrag: Any) -> Dict[str, Any]:
         f"{_als_zahl(e.get('entfernung')):.0f}.",
         f"Einheiten: {_aufzaehlung(e.get('einheiten'))}.",
         f"Reisezeit je Strecke: {_als_zahl(e.get('reisezeit')) / 3600.0:.2f} h "
-        f"(Rueckkehr doppelt so lang, Handbuch S. 19).",
+        f"(Rückkehr doppelt so lang, Handbuch S. 19).",
     ]
     if e.get("ladung"):
-        zeilen.append(f"Ladeplaetze: {int(_als_zahl(e.get('ladung')))}.")
+        zeilen.append(f"Ladeplätze: {int(_als_zahl(e.get('ladung')))}.")
     if e.get("fracht"):
         zeilen.append("Fracht: " + _aufzaehlung(e.get("fracht")) + ".")
     if e.get("beute"):
@@ -635,14 +635,14 @@ def bericht(eintrag: Any) -> Dict[str, Any]:
         # B-5: ein abgewehrter Spionageauftrag verliert Einheiten - die Zeile nennt sie.
         zeilen.append("Verluste: " + _aufzaehlung(e.get("verluste")) + ".")
     if e.get("rueckgut"):
-        zeilen.append("Zurueckgebracht: " + _aufzaehlung(e.get("rueckgut")) + ".")
+        zeilen.append("Zurückgebracht: " + _aufzaehlung(e.get("rueckgut")) + ".")
     if e.get("art") == "spionieren":
         # B-5: der Bericht des AUFTRAGS nennt die Aufklaerung; der Spionagebericht selbst kommt als
         # eigene Nachricht (spionage.bericht_nachricht) - nur bei ueberwundenem Wall.
-        zeilen.append("Aufklaerung der Spionageeinheiten: %d." % int(_als_zahl(e.get("aufklaerung"))))
+        zeilen.append("Aufklärung der Spionageeinheiten: %d." % int(_als_zahl(e.get("aufklaerung"))))
         if e.get("abgewehrt"):
             zeilen.append("Der Wall hat den Auftrag abgewehrt - kein Bericht, die Einheiten sind "
-                          "auf dem Rueckweg (Verluste siehe Nachricht).")
+                          "auf dem Rückweg (Verluste siehe Nachricht).")
     if e.get("vorrunde") and not e["vorrunde"].get("bestanden", True):
         zeilen.append("Vorrunde: " + str(e["vorrunde"].get("grund")))
     zeilen.append(f"Status: {e.get('status')}, abgeschlossen: "
@@ -715,7 +715,7 @@ def offene_luecken() -> Dict[str, str]:
             "Das Handbuch (S. 19) nennt nur Beispielstunden, keine Formel.",
         "drosselung":
             f"BELEGT ist die Drosselung in {DROSSELUNG_SCHRITTE_PROZENT}-%-Schritten "
-            "(Handbuch S. 20); wie sie die Reisezeit aendert, sagt das Handbuch nicht. "
+            "(Handbuch S. 20); wie sie die Reisezeit ändert, sagt das Handbuch nicht. "
             "Sie ist hier als Konstante DROSSELUNG_SCHRITTE_PROZENT abgelegt, aber nicht "
             "auf die Formel angewandt.",
         "aktion_dauer":
@@ -725,13 +725,13 @@ def offene_luecken() -> Dict[str, str]:
             "wartet laut Entwurf auf eine Bestaetigung ohne bezifferte Dauer.",
         "beute_anteil":
             f"Der Beute-Anteil ist VORSCHLAG (BEUTE_ANTEIL_PROZENT = {BEUTE_ANTEIL_PROZENT}). "
-            "Der Entwurf selbst nennt ihn ausdruecklich offen ('Was Daniel entscheiden "
+            "Der Entwurf selbst nennt ihn ausdrücklich offen ('Was Daniel entscheiden "
             "muss', Punkt 3); das Handbuch beziffert die Beutemenge nicht.",
         "geschwindigkeit_wahl":
-            "VORSCHLAG: das Tempo des Auftrags ist die langsamste mitgefuehrte Einheit "
-            "(min GS). Das Handbuch nennt keine Regel fuer gemischte Gruppen.",
+            "VORSCHLAG: das Tempo des Auftrags ist die langsamste mitgeführte Einheit "
+            "(min GS). Das Handbuch nennt keine Regel für gemischte Gruppen.",
         "fusstruppen_begriff":
-            "VORSCHLAG: als Angreifer-Fussttruppen zaehlen Kampf- UND Kundschaftereinheiten "
+            "VORSCHLAG: als Angreifer-Fußtruppen zählen Kampf- UND Kundschaftereinheiten "
             "(einheiten.ist_kaempfer). Der Begriff ist im Handbuch nicht definiert.",
         "stationieren_fremd":
             "BELEGT ist das Verbot in fremden Siedlungen (S. 19). WIE ein Ziel als fremd "
@@ -741,13 +741,13 @@ def offene_luecken() -> Dict[str, str]:
             "VORSCHLAG (Paket A2 vom 31.10.2026): Das Handbuch nennt die RICHTUNG der "
             "Reisekosten, aber keine Zahlen ('Gold und Nahrung je nach Einheiten', "
             "Drosselung: weniger Gold und mehr Nahrung, fremdes Ziel: Mana nach Entfernung). "
-            "Die drei Saetze in kosten_der_mission (0,1 Gold je Feld und GS-Punkt; "
+            "Die drei Sätze in kosten_der_mission (0,1 Gold je Feld und GS-Punkt; "
             "0,1 Nahrung je Feld durch GS; Mana 5 + 0,5 je Feld + 20 je Dimension) sind "
-            "ausdruecklich VORSCHLAG und im Spieltest zu balancieren.",
+            "ausdrücklich VORSCHLAG und im Spieltest zu balancieren.",
         "handel_gold":
             "Beim Handeln ist kein Goldpreis erfunden. Ohne Feld 'gold_bietet' am Ziel "
-            "gibt es 0 Gold; eine Ablehnung bringt die Waren zurueck (S. 20).",
+            "gibt es 0 Gold; eine Ablehnung bringt die Waren zurück (S. 20).",
         "beute_ohne_karren":
             "BELEGT (S. 23): Beute gibt es nur mit Transportkarren. Ohne Karren bleibt die "
-            "Beute leer, auch wenn Vorraete uebergeben werden.",
+            "Beute leer, auch wenn Vorräte übergeben werden.",
     }

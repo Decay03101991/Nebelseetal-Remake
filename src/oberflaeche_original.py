@@ -159,16 +159,16 @@ def abweichungsbericht() -> str:
     punkte = punktezeile()
 
     zeilen = []
-    zeilen.append("Abweichungsbericht: Original-Menue gegen das Spiel")
+    zeilen.append("Abweichungsbericht: Original-Menü gegen das Spiel")
     zeilen.append("=" * 50)
-    zeilen.append(f"Original belegt: {len(original)} Eintraege.")
-    zeilen.append(f"Davon offline spielbar: {len(offline)} (Netz-Eintraege weggelassen: "
+    zeilen.append(f"Original belegt: {len(original)} Einträge.")
+    zeilen.append(f"Davon offline spielbar: {len(offline)} (Netz-Einträge weggelassen: "
                   + ", ".join(netz) + ").")
-    zeilen.append(f"Das Spiel fuehrt: {len(ist)} Eintraege.")
+    zeilen.append(f"Das Spiel führt: {len(ist)} Einträge.")
     zeilen.append("")
     zeilen.append(f"Fehlt dem Spiel ({len(fehlt)}): "
                   + (", ".join(fehlt) if fehlt else "nichts"))
-    zeilen.append(f"Zusaetzlich im Spiel ({len(zuviel)}): "
+    zeilen.append(f"Zusätzlich im Spiel ({len(zuviel)}): "
                   + (", ".join(zuviel) if zuviel else "nichts"))
     zeilen.append(f"Reihenfolge-Abweichungen ({len(reihenfolge)}):")
     if reihenfolge:

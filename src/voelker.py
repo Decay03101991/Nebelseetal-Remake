@@ -1,4 +1,5 @@
-# -*- coding: ascii -*-
+# -*- coding: utf-8 -*-  # ANZEIGETEXTE tragen echte Umlaute (Schnitt T-1, Daniel 03.11.2026);
+#                          Code, Kennungen und Kommentare bleiben ASCII.
 """Die sechs Fraktionen (Voelker) als eigene Datenschicht - Lesen, Pruefen, Verteilen (A2, 03.11.2026).
 
 Warum ein eigenes Modul: `bottaktik.py` ist reine Logik (eine Wache verbietet dort jedes `open(`).
@@ -19,13 +20,13 @@ import os
 # das Spiel bedienbar, und keine Pruefung stuerzt an einer fehlenden Datei ab.
 RUECKFALL = [
     {"kennung": "menschlich", "plus": "Holzertrag +5 %", "minus": "Steinertrag -5 %",
-     "beschreibung": "", "quelle": "bottaktik.py (Rueckfall)"},
+     "beschreibung": "", "quelle": "bottaktik.py (Rückfall)"},
     {"kennung": "zwergisch", "plus": "Steinertrag +5 %", "minus": "Holzertrag -5 %",
-     "beschreibung": "", "quelle": "bottaktik.py (Rueckfall)"},
+     "beschreibung": "", "quelle": "bottaktik.py (Rückfall)"},
     {"kennung": "elfisch", "plus": "Reisegeschwindigkeit +5 %", "minus": "PA der Einheiten -5 %",
-     "beschreibung": "", "quelle": "bottaktik.py (Rueckfall)"},
-    {"kennung": "Trolle", "plus": "AT der Einheiten +5 %", "minus": "Handelserloes -5 %",
-     "beschreibung": "", "quelle": "bottaktik.py (Rueckfall)"},
+     "beschreibung": "", "quelle": "bottaktik.py (Rückfall)"},
+    {"kennung": "Trolle", "plus": "AT der Einheiten +5 %", "minus": "Handelserlös -5 %",
+     "beschreibung": "", "quelle": "bottaktik.py (Rückfall)"},
 ]
 
 DATEI = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),

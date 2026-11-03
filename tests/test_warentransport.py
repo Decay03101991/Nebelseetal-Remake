@@ -219,8 +219,11 @@ _name6, _msg6 = wirft(lambda: O.transport_start(_q6, _z6, {"Handkarren": 1}, {WA
                                                 0.0, frachtkanal="waren"))
 check("P6: 41 Einheiten werden als ueberladen abgelehnt",
       _name6 == "ValueError", "%s: %s" % (_name6, _msg6))
+# T-1 (03.11.2026): echte Umlaute im Anzeigetext; geprueft wird der neue Wortlaut.
 check("P6: die Meldung nennt 'Ueberladen' und die 40 Ladeplaetze",
-      "Ueberladen" in _msg6 and "40" in _msg6, _msg6)
+      "\u00dcberladen" in _msg6 and "40" in _msg6, _msg6)
+check("P6: die Meldung nennt die Ladeplaetze mit Umlaut",
+      "Ladepl\u00e4tze" in _msg6, _msg6)
 
 
 # --------------------------------------------------------------------------

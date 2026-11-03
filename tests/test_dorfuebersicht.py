@@ -146,7 +146,7 @@ s_kaputt = siedlung({"0": JAEGER, "1": "GIBTESNICHT"},
                     raster=["sumpf"] + ["grasland"] * 63)
 u_kaputt = wirtschaft.dorf_uebersicht(s_kaputt, {})
 check("5 unbekannte Gebaeude stehen in uebersprungen",
-      any("unbekanntes Gebaeude" in t for t in u_kaputt["uebersprungen"]),
+      any("unbekanntes Geb\u00e4ude" in t for t in u_kaputt["uebersprungen"]),
       str(u_kaputt["uebersprungen"]))
 check("5 ein Jaeger auf Sumpf wird mit Begruendung uebersprungen",
       any("Sumpf" in t for t in u_kaputt["uebersprungen"]), str(u_kaputt["uebersprungen"]))

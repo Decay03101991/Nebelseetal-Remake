@@ -126,7 +126,7 @@ def _feld_ertraege(siedlung, forschung_level=None):
         try:
             feld = int(feld_text)
         except (TypeError, ValueError):
-            uebersprungen.append(f"Feld '{feld_text}': keine gueltige Feldnummer")
+            uebersprungen.append(f"Feld '{feld_text}': keine gültige Feldnummer")
             continue
         if feld < 0 or feld >= len(raster):
             uebersprungen.append(f"Feld {feld}: liegt ausserhalb der Karte")
@@ -139,7 +139,7 @@ def _feld_ertraege(siedlung, forschung_level=None):
 
         geb_id = gelaende.finde_gebaeude(geb_eintrag)
         if not geb_id:
-            uebersprungen.append(f"Feld {feld}: unbekanntes Gebaeude '{geb_eintrag}'")
+            uebersprungen.append(f"Feld {feld}: unbekanntes Gebäude '{geb_eintrag}'")
             continue
 
         ertrag = gelaende.ertrag_pro_stunde(geb_id, art)
@@ -306,7 +306,7 @@ def dorf_uebersicht(siedlung, forschung_level=None, siedler_bindend=None) -> dic
     liste.sort(key=lambda g: (-g["summe"], g["name"]))
     if not siedler_bindend:
         hinweis = ("Bauten binden keine Siedler (Daniels Entscheidung 31.10.2026). Die belegten "
-                   f"Preise nennen fuer {', '.join(sorted({g['name'] for g in liste if g['siedler_je']}))}"
+                   f"Preise nennen für {', '.join(sorted({g['name'] for g in liste if g['siedler_je']}))}"
                    " je 1 Siedler — er wird derzeit nicht abgezogen.")
         if not any(g["siedler_je"] for g in liste):
             hinweis = "Bauten binden keine Siedler (Daniels Entscheidung 31.10.2026)."

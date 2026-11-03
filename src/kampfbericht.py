@@ -102,11 +102,11 @@ def vorrunde(angreifer_fussttruppen_sk: float,
     }
 
     if stufe < 1 or fuss_nenn is None:
-        grund = ("Kein Wall vorhanden - die Vorrunde entfaellt, der Angreifer kann "
-                 "vorruecken.")
+        grund = ("Kein Wall vorhanden - die Vorrunde entfällt, der Angreifer kann "
+                 "vorrücken.")
         if stufe >= 1 and fuss_nenn is None:
-            grund = (f"Fuer Wallstufe {stufe} nennt das Handbuch keine Schwelle - "
-                     "die Vorrunde entfaellt (kein Wert erfunden).")
+            grund = (f"Für Wallstufe {stufe} nennt das Handbuch keine Schwelle - "
+                     "die Vorrunde entfällt (kein Wert erfunden).")
         return {"bestanden": True, "schwelle": schwelle, "grund": grund}
 
     fuss_erf = float(fuss_nenn) * faktor
@@ -124,16 +124,16 @@ def vorrunde(angreifer_fussttruppen_sk: float,
         schwelle["belagerungswaffen"]["erreicht"] = bel_ok
 
     if not fuss_ok:
-        grund = (f"Die Schlagkraft der Fusstruppen {fuss_sk:.0f} erreicht die Schwelle "
-                 f"{fuss_erf:.0f} nicht - Rueckzug, keine Beute.")
+        grund = (f"Die Schlagkraft der Fußtruppen {fuss_sk:.0f} erreicht die Schwelle "
+                 f"{fuss_erf:.0f} nicht - Rückzug, keine Beute.")
         bestanden = False
     elif bel_ok is False:
-        grund = (f"Fusstruppen erreichen die Schwelle {fuss_erf:.0f}, aber die Schlagkraft "
+        grund = (f"Fußtruppen erreichen die Schwelle {fuss_erf:.0f}, aber die Schlagkraft "
                  f"der Belagerungswaffen {bel_sk:.0f} erreicht {bel_erf:.0f} nicht - "
-                 "Rueckzug, keine Beute.")
+                 "Rückzug, keine Beute.")
         bestanden = False
     else:
-        teile = [f"Fusstruppen {fuss_sk:.0f} >= {fuss_erf:.0f}"]
+        teile = [f"Fußtruppen {fuss_sk:.0f} >= {fuss_erf:.0f}"]
         if bel_erf is not None:
             teile.append(f"Belagerungswaffen {bel_sk:.0f} >= {bel_erf:.0f}")
         grund = "Vorrunde bestanden (" + ", ".join(teile) + ")."
@@ -384,10 +384,10 @@ def bericht(ergebnis: Dict[str, Any]) -> Dict[str, str]:
         zeilen.append("Beute: keine.")
 
     if e.get("geraete_verloren"):
-        zeilen.append("Vom Angreifer zurueckgelassen: " +
+        zeilen.append("Vom Angreifer zurückgelassen: " +
                       ", ".join(str(x) for x in e["geraete_verloren"]) + ".")
     if e.get("geraete_verloren_verteidiger"):
-        zeilen.append("Vom Verteidiger zurueckgelassen: " +
+        zeilen.append("Vom Verteidiger zurückgelassen: " +
                       ", ".join(str(x) for x in e["geraete_verloren_verteidiger"]) + ".")
 
     if e.get("unsicher"):
@@ -448,7 +448,7 @@ def offene_luecken() -> Dict[str, str]:
     return {
         "fusstruppen_begriff":
             "Der Begriff 'Fußtruppen' der Vorrunde ist im Handbuch nicht definiert. "
-            "kampf.py zaehlt Nahkampf- UND Fernkampfeinheiten dazu; die engere Lesart "
+            "kampf.py zählt Nahkampf- UND Fernkampfeinheiten dazu; die engere Lesart "
             "(nur Nahkampf) ist nicht ausgeschlossen.",
         "flucht_formel":
             "Zum Fliehen unter LE 5 nennt das Handbuch nur 'je niedriger der MU, desto "
@@ -460,14 +460,14 @@ def offene_luecken() -> Dict[str, str]:
             "In welcher Reihenfolge Rohstoffe verladen werden, ist nicht geregelt "
             "(hier alphabetisch).",
         "belagerungsturm_mauerschaden":
-            "Belagerungsturm und Grosser Belagerungsturm haben Mauerschaden 0-0: sie brechen "
+            "Belagerungsturm und Großer Belagerungsturm haben Mauerschaden 0-0: sie brechen "
             "keine Mauer, tragen aber Schlagkraft zur Vorrunde bei.",
         "mauer_reparatur":
-            "Ob und wie sich eine beschaedigte oder eroberte Mauer erholt, sagt das Handbuch "
+            "Ob und wie sich eine beschädigte oder eroberte Mauer erholt, sagt das Handbuch "
             "nicht.",
         "vorrunde_wiederholung":
             "Wie viele Versuche ein Angreifer gegen den Wall hat, ist offen.",
         "geraetebeute":
-            "Ob erbeutete Karren und Belagerungswaffen mitgenommen werden koennen, ist nicht "
+            "Ob erbeutete Karren und Belagerungswaffen mitgenommen werden können, ist nicht "
             "geregelt.",
     }

@@ -198,7 +198,7 @@ def erfuellt(name: str, staende: Dict[str, Any], bibliothek_stufe: int
             if ist < soll:
                 fehlt.append(f"{p['was']} {ist}/{soll}")
     if not fehlt:
-        return True, f"{name} ist erforschbar: alle Voraussetzungen erfuellt."
+        return True, f"{name} ist erforschbar: alle Voraussetzungen erfüllt."
     return False, f"{name} ist gesperrt: es fehlen " + ", ".join(fehlt) + "."
 
 
@@ -333,8 +333,8 @@ def offene_luecken() -> List[str]:
     """Alles, wovon das Handbuch schweigt -- ehrlich benannt statt erfunden."""
     luecken: List[str] = [
         "VORSCHLAG: Die Reihenfolge aus empfohlene_reihenfolge() ist NICHT im Handbuch "
-        "belegt. Sie ist eine begruendete Setzung des Remakes; die Gruende fuer die ersten "
-        "fuenf stehen als Kommentar an _PRIORITAET.",
+        "belegt. Sie ist eine begründete Setzung des Remakes; die Gründe für die ersten "
+        "fünf stehen als Kommentar an _PRIORITAET.",
         "VORSCHLAG: schaltet_frei() leitet Einheiten NUR ueber die freigeschalteten Waren ab. "
         "Einheiten, die eine Forschung direkt nennen (z. B. Gauner: Heimlichkeit 1 in "
         "data/units.json), erscheinen hier nicht.",
@@ -343,7 +343,7 @@ def offene_luecken() -> List[str]:
         struktur = _forschungen()[name].get("wirkung_struktur") or {}
         if struktur.get("pro_stufe_prozent") is None:
             luecken.append(
-                f"Fuer '{name}' nennt das Handbuch keine Zahl; wirkung_text() zeigt nur den "
+                f"Für '{name}' nennt das Handbuch keine Zahl; wirkung_text() zeigt nur den "
                 "Wortlaut und erfindet keinen Prozentwert."
             )
     return luecken

@@ -67,7 +67,7 @@ class ArchivGuiFix04h(unittest.TestCase):
         self.assertIn('Slot 2', listen[0].get(0))
         self.assertNotIn('Slot 3', listen[0].get(0))
         labels = [w.cget('text') for w in widgets(fenster, tk.Label)]
-        self.assertTrue(any('Archivgroesse' in txt for txt in labels))
+        self.assertTrue(any('Archivgr\u00f6\u00dfe' in txt for txt in labels))
         fenster.destroy()
 
     def test_admin_restauriert_gezielt_slot2_nach_zweifacher_bestaetigung(self):
@@ -80,7 +80,7 @@ class ArchivGuiFix04h(unittest.TestCase):
         liste.selection_set(0)
         with patch('tkinter.messagebox.askyesno', return_value=True) as frage:
             next(w for w in widgets(fenster, tk.Button)
-                 if w.cget('text') == 'Ausgewaehlten Stand wiederherstellen').invoke()
+                 if w.cget('text') == 'Ausgew\u00e4hlten Stand wiederherstellen').invoke()
             frage.assert_called_once()
         self.assertTrue(self.slot2.is_file())
         self.assertEqual(json.loads(self.slot2.read_text(encoding='utf-8'))['day'], 1)
@@ -102,7 +102,7 @@ class ArchivGuiFix04h(unittest.TestCase):
         self.assertTrue(self.app._spielstand_verwaltung('admin'))
         fenster = next(w for w in self.root.winfo_children() if isinstance(w, tk.Toplevel))
         texte = [w.cget('text') for w in widgets(fenster, tk.Button)]
-        self.assertIn('Spielerslot-Archive pruefen (Admin)', texte)
+        self.assertIn('Spielerslot-Archive pr\u00fcfen (Admin)', texte)
         fenster.destroy()
 
 if __name__ == '__main__':

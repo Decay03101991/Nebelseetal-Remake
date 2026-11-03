@@ -282,7 +282,7 @@ def gelaende_plan_fein(art: str, x0: float, y0: float, zelle: float,
     """
     if art not in GELAENDEARTEN:
         raise ValueError(
-            f"Unbekannte Gelaendeart der Weltkarte: {art!r} — erwartet eine von "
+            f"Unbekannte Geländeart der Weltkarte: {art!r} — erwartet eine von "
             f"{', '.join(GELAENDEARTEN)}")
     stufe = zoom_detail(int(zelle))
     farben = {"forest": WELT1_WALD, "plains": WELT1_EBENE, "mountain": WELT1_GEBIRGE,
@@ -880,8 +880,8 @@ def uebersicht_plan_fein(tiles: list, kante: float, gitter: int, orte: list = ()
 def offene_luecken() -> list[str]:
     """Was dieses Modul bewusst NICHT aus den Quellen belegen kann (ehrlich gemeldet)."""
     return [
-        "astra nennt DREI Lichtfarben (#637451, #96958A, #658594) fuer VIER Gelaendearten. Die "
-        "Ebene behaelt den astra-Wert #637451; der Wald bekommt eine aus SEINER Grundfarbe "
+        "astra nennt DREI Lichtfarben (#637451, #96958A, #658594) für VIER Geländearten. Die "
+        "Ebene behält den astra-Wert #637451; der Wald bekommt eine aus SEINER Grundfarbe "
         "#405A43 GERECHNETE Lichtfarbe (Faktor 0.22 aus den beiden astra-Paaren Gebirge und "
         "Wasser) — Vorgabe Daniel 05.10.2026, kein astra-Wert.",
         "Das Handbuch 2009 nennt KEINE Regionsnamen; die neun Namen in regionen_plan_fein "
@@ -890,8 +890,8 @@ def offene_luecken() -> list[str]:
         "Standard 48 stammen aus main.WELT_ZOOM_STUFEN/WELT_ZOOM_STANDARD und sind ein "
         "Vorschlag; die Detailstufen selbst stehen in astra Welt 2.",
         "Die Rasterlinien sind 1 px breit; die Umrissbreite von Auswahl und Ufersaum kann beim "
-        "Zeichnen rechnerisch um die halbe Strichbreite ueber den Plan-Kasten hinausreichen.",
-        "orte und auswahl der Uebersichtskarte spiegeln nur, was der Aufrufer uebergibt; dieses "
+        "Zeichnen rechnerisch um die halbe Strichbreite über den Plan-Kasten hinausreichen.",
+        "orte und auswahl der Übersichtskarte spiegeln nur, was der Aufrufer übergibt; dieses "
         "Modul kennt weder Siedlungen noch die aktuelle Ansicht.",
         "Die Panelmaße (248/12/14/18) sind der astra-Vorschlag aus Welt 3, keine Messung.",
     ]

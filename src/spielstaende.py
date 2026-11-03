@@ -21,7 +21,7 @@ def ordner_vorbereiten(ordner: str) -> str:
 def slot_pfad(ordner: str, nummer: int) -> str:
     """Dateipfad eines Speicherslots (nur 1, 2 oder 3 sind zulaessig)."""
     if type(nummer) is not int or nummer not in SLOTS:
-        raise ValueError("Nur die Speicherslots 1, 2 oder 3 sind zulaessig.")
+        raise ValueError("Nur die Speicherslots 1, 2 oder 3 sind zulässig.")
     return str(Path(ordner) / f"savegame_slot{nummer}.json")
 
 

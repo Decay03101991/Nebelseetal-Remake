@@ -188,7 +188,7 @@ _g2 = feld(zmax, {"grasland", "steppe", "nebelsee"})
 _vor = eingefroren(zmax)
 ok, meldung = S.bauen(zmax, 0, "bibliothek", _g2)
 check("die zweite Bibliothek je Siedlung wird abgelehnt",
-      ok is False and "hoechstens" in meldung, meldung)
+      ok is False and "h\u00f6chstens" in meldung, meldung)
 check("abgelehnte Bibliothek aendert nichts", eingefroren(zmax) == _vor)
 
 # zwei Werkstaetten derselben Art sind erlaubt (Warteschlange parallel)
@@ -211,7 +211,7 @@ abschnitt("3. Ausbauen — nur wo belegte Stufen, n-facher Preis")
 za = S.neuer_zustand()
 _leer = leeres_feld(za)
 ok, meldung = S.ausbauen(za, 0, _leer)
-check("Ausbau auf leerem Feld wird abgelehnt", ok is False and "kein Gebaeude" in meldung, meldung)
+check("Ausbau auf leerem Feld wird abgelehnt", ok is False and "kein Geb\u00e4ude" in meldung, meldung)
 
 _wh = feld(za, {"wald"})
 S.bauen(za, 0, "holzfaeller", _wh)
@@ -243,7 +243,7 @@ zwall["ressourcen"]["stein"] = 10000
 _vor = eingefroren(zwall)
 ok, meldung = S.ausbauen(zwall, 0, _wf)
 check("Ausbau ueber die Hoechststufe (10) wird abgelehnt",
-      ok is False and "hoechste" in meldung, meldung)
+      ok is False and "h\u00f6chste" in meldung, meldung)
 check("abgelehnter Ausbau ueber Hoechststufe aendert nichts", eingefroren(zwall) == _vor)
 
 # Ausbau ohne Rohstoffe
@@ -267,7 +267,7 @@ abschnitt("4. Abreissen — Feld frei, keine Erstattung (belegte Regel)")
 zr = S.neuer_zustand()
 _leer = leeres_feld(zr)
 ok, meldung = S.abreissen(zr, 0, _leer)
-check("Abriss ohne Gebaeude wird abgelehnt", ok is False and "kein Gebaeude" in meldung, meldung)
+check("Abriss ohne Gebaeude wird abgelehnt", ok is False and "kein Geb\u00e4ude" in meldung, meldung)
 
 _wr = feld(zr, {"wald"})
 S.bauen(zr, 0, "holzfaeller", _wr)
@@ -444,7 +444,7 @@ abschnitt("8. Angriff — ueber kampfbericht (Vorrunde, Mauer, Beute)")
 zang = S.neuer_zustand()
 ok, ergebnis = S.angriff(zang, {"wall_stufe": 0}, 0.0)
 check("Angriff ohne Einheiten wird abgelehnt",
-      ok is False and "Keine Kaempfer" in ergebnis.get("grund", ""), str(ergebnis.get("grund")))
+      ok is False and "Keine K\u00e4mpfer" in ergebnis.get("grund", ""), str(ergebnis.get("grund")))
 
 # schwache Truppe gegen Wall 5 -> Vorrunde scheitert
 zang["einheiten"] = {"Bürgerwehr": 1}

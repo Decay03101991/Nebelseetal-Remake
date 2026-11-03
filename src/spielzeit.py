@@ -41,7 +41,7 @@ _VORGABE = {
     "_hinweis": (
         "Zeitfaktor: so viele Spielsekunden je Echtzeitsekunde. 1 = Originaltempo (1 Spieltag = "
         "24 echte Stunden). 180 = eine Spielstunde in 20 Sekunden. Die Handbuchformeln selbst "
-        "bleiben unveraendert, nur die Spieluhr laeuft schneller. Von Daniel aenderbar."
+        "bleiben unverändert, nur die Spieluhr läuft schneller. Von Daniel änderbar."
     ),
     "_befund": (
         "05.10.2026, Spielbericht Daniel: der Rohstoffeingang war nicht sichtbar, weil die "
