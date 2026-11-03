@@ -5118,6 +5118,81 @@ class GameState:
         self.messages.append({"text": meldung, "type": "kampf"})              # ins Postfach
         return meldung, beute                                                 # Meldung und Beute
 
+    def _bot_hat_forschung(self, bot: "BotPlayer", name: str) -> bool:
+        """Hat der Bot diese Forschung mindestens auf Stufe 1? (S-6b Teil 2, 03.11.2026)
+
+        `bot.forschungsstaende` ist ein Dict - je Dorf (`{dorfname: {forschungsname: stufe}}`) oder
+        flach (`{forschungsname: stufe}`). Beide Formen werden gelesen, damit ein alter Spielstand
+        und ein neuer Stand gleich behandelt werden. Kein Treffer heisst: nicht erforscht.
+        """
+        gesucht = str(name or "").strip().lower()                       # Vergleich ohne Gross/Klein
+        if not gesucht:                                                 # keine Forschung verlangt
+            return True                                                 # dann gilt sie als erfuellt
+        staende = getattr(bot, "forschungsstaende", None) or {}
+        if not isinstance(staende, dict):                               # unbrauchbare Form
+            return False                                                # dann nicht erforscht
+        for schluessel, wert in staende.items():                        # flach ODER je Dorf
+            if str(schluessel).lower() == gesucht:                      # die Forschung selbst
+                try:
+                    return float(wert or 0) >= 1                        # Stufe 1 genuegt
+                except (TypeError, ValueError):                         # Wert ist ein Dict
+                    pass
+            if isinstance(wert, dict):                                  # je Dorf verschachtelt
+                for innen, stufe in wert.items():
+                    if str(innen).lower() == gesucht:                   # die Forschung im Dorf
+                        try:
+                            if float(stufe or 0) >= 1:                  # Stufe 1 genuegt
+                                return True
+                        except (TypeError, ValueError):
+                            continue
+        return False                                                    # nicht gefunden = nicht da
+
+    def bot_karren_bauen(self, bot: "BotPlayer", dorf: "BotDorf") -> bool:
+        """Ein Bot baut einen Siedlerkarren GENAU WIE DER SPIELER (S-6b Teil 2, 03.11.2026).
+
+        Daniels Vorgabe (03.11.2026): "Ein bot muss genau wie der Spieler erstmal einen Siedlerkarren
+        bauen und die noetigen ressourcen haben bevor er gruenden kann genau wie der spieler mit der
+        abweichung das er ein bot ist."
+
+        Alles kommt aus dem KERN, nichts wird erfunden:
+          Kosten    - `spieloekonomie.U["Siedlerkarren"]["kosten"]`
+          Gebaeude  - `spieloekonomie.U["Siedlerkarren"]["gebaeude"]` (Stellmacher) muss im Dorf stehen
+          Forschung - `spieloekonomie.REGELN["gruendung"]["forschung"]` (Wagenbau)
+        Die SIEDLER werden hier NICHT abgezogen: sie steigen erst bei der Gruendung in den Karren
+        (`bot_dorf_gruenden` zieht sie dort ab). Sonst wuerden fuenf Siedler zweimal bezahlt.
+
+        Rueckgabe: True, wenn ein Karren gebaut wurde.
+        """
+        regel = spieloekonomie.U.get("Siedlerkarren") or {}              # Kernregel des Karrens
+        kosten = dict(regel.get("kosten") or {})                         # was er kostet
+        if not kosten:                                                   # Daten fehlen
+            return False                                                 # dann nichts tun
+        gebaeude = str(regel.get("gebaeude") or "Stellmacher").strip().lower()
+        steht = any(str(g).strip().lower() == gebaeude                   # steht der Stellmacher?
+                    for g in (getattr(dorf, "bauten", None) or {}).values())
+        if not steht:                                                    # ohne Werkstatt kein Karren
+            return False
+        gruendung = spieloekonomie.REGELN.get("gruendung") or {}         # die Gruendungsregel
+        forschung = str(gruendung.get("forschung") or "")                # Wagenbau
+        if not self._bot_hat_forschung(bot, forschung):                  # nicht erforscht
+            return False
+        vorraete = dorf.vorraete if isinstance(dorf.vorraete, dict) else {}
+        for stoff, menge in kosten.items():                              # reichen die Vorraete?
+            if str(stoff) == "siedler":                                  # Siedler erst bei der Gruendung
+                continue
+            if float(vorraete.get(str(stoff), 0.0) or 0.0) < float(menge):
+                return False                                             # zu wenig: warten
+        for stoff, menge in kosten.items():                              # erst pruefen, dann buchen
+            if str(stoff) == "siedler":                                  # Siedler bleiben im Dorf
+                continue
+            vorraete[str(stoff)] = round(max(0.0, float(vorraete.get(str(stoff), 0.0) or 0.0)
+                                            - float(menge)), 2)          # nie unter null
+        dorf.vorraete = vorraete                                         # das Dorf hat bezahlt
+        einheiten = dict(getattr(dorf, "einheiten", None) or {})         # Einheiten des Dorfes
+        einheiten["Siedlerkarren"] = int(einheiten.get("Siedlerkarren", 0) or 0) + 1
+        dorf.einheiten = einheiten                                       # der Karren steht
+        return True                                                      # gebaut
+
     def bot_dorf_gruenden(self, bot: "BotPlayer", jetzt: float) -> Optional["BotDorf"]:
         """S-6: ein Bot gruendet ein weiteres Dorf - mit den Kosten des KERNS (03.11.2026).
 
@@ -5483,6 +5558,8 @@ class GameState:
                 # Dauerhafte Volksattribute EINMALIG aus der Fraktion setzen (eine Quelle).
                 bot.volksattribute = bottaktik.volksattribute({"fraktion": bot.faction})
             # B-2 (02.11.2026): je Dorf Position und Verhalten aus der Lage - mit Sperrzeit.
+            for _dorf in (getattr(bot, "doerfer", None) or []):                 # jedes Dorf
+                self.bot_karren_bauen(bot, _dorf)                              # S-6b: Karren bauen
             self.bot_doerfer_auffrischen(bot, jetzt, spieler_ort)
             start_taktik = self.bot_als_dict(bot)
             zug_taktik = bottaktik.tick(start_taktik, welt_taktik, jetzt, rng)
