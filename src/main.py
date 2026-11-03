@@ -584,15 +584,46 @@ def bot_karten_staerkster(profil: dict) -> str:
     return max(sorted(werte), key=lambda s: werte[s])                     # hoechster Wert, Gleichstand alphabetisch
 
 
+_BOT_KARTENDATEN_CACHE: Dict[str, dict] = {}
+
+
+def _bot_karte_dict(kennung: str) -> dict:
+    """Die VOLLE Karte (Raster und Zaehlung) fuer den Kern - gemerkt, weil sie teuer zu bauen ist.
+
+    `botkern.oekonomie_kartenwahl` rechnet mit `spieloekonomie.kartennutzen`, und das braucht die
+    echte Karte (Achsen aus ihren Feldern), nicht das Kartenprofil. Unbekannte Kennung: leeres
+    Dict - nichts wird erfunden.
+    """
+    kennung = str(kennung or "")
+    if not kennung:
+        return {}
+    if kennung in _BOT_KARTENDATEN_CACHE:                                 # schon gebaut
+        return _BOT_KARTENDATEN_CACHE[kennung]                            # dieselbe Karte
+    try:
+        daten = originalkarten.karte(kennung)                             # Originalfelder
+    except (KeyError, ValueError):                                        # Kennung unbekannt
+        daten = {}
+    _BOT_KARTENDATEN_CACHE[kennung] = daten                               # merken
+    return daten
+
+
 def bot_kartenwahl(bot: "BotPlayer", index: int, anzahl: int = 3,
-                   einstellungen: Optional[dict] = None) -> str:
+                   einstellungen: Optional[dict] = None, stufe: str = "",
+                   belegte=None, raten: Optional[dict] = None) -> str:
     """Waehlt fuer EIN Bot-Dorf eine Karte aus drei Kandidaten - Gold hat Vorrang (Vorgabe Daniel).
 
     Die Kandidaten sind reproduzierbar: derselbe Bot mit derselben Dorfnummer bekommt immer dieselbe
     Auswahl (Zufall aus Name und Nummer, kein Wuerfeln zur Laufzeit). Gewaehlt wird die Karte mit dem
     hoechsten GOLD-Wert; bei Gleichstand entscheidet der Gesamtwert, danach die Kennung. Das ist der
-    VORSCHLAG fuer den Bot; beim Spieler waehlt der Kopf, und `botkern.oekonomie_kartenwahl` (nach
-    Stufe leicht/mittel/schwer) wird in einem eigenen Schritt angeschlossen.
+    VORSCHLAG fuer den Bot; beim Spieler waehlt der Kopf.
+
+    **V-6 (03.11.2026): der Anschluss an `botkern.oekonomie_kartenwahl`.** Ist `stufe` gesetzt und
+    in `data/spieloekonomie.json` bekannt, entscheidet die REGEL des Kerns unter denselben drei
+    Kandidaten - "schwer" nimmt den hoechsten Portfolio-Nutzen (`spieloekonomie.kartennutzen`),
+    "leicht" will gar nicht gruenden und liefert None, dann bleibt es bei der Gold-Regel. `belegte`
+    sind die Karten, die der Bot schon haelt (sein Portfolio), `raten` seine Stundenertraege.
+    Nur die drei Kandidaten werden bewertet, nicht alle 127 Karten: die Wahl kostet sonst Sekunden
+    je Dorf, und drei Karten sind die Spielregel (`data/bot_wirtschaft.json`: karten_kandidaten).
     """
     einstellungen = einstellungen if einstellungen is not None else bot_wirtschaft_einstellungen()
     try:                                                                  # Zahl aus der Datendatei
@@ -604,6 +635,23 @@ def bot_kartenwahl(bot: "BotPlayer", index: int, anzahl: int = 3,
         return ""                                                         # dann keine Karte
     zufall = random.Random("karte:%s:%d" % (getattr(bot, "name", ""), int(index)))   # reproduzierbare Wahl
     kandidaten = zufall.sample(ids, min(anzahl, len(ids)))                # drei Karten zur Auswahl
+    # V-6 (03.11.2026): die REGEL des Kerns entscheidet unter denselben Kandidaten. Bis heute hatte
+    # `botkern.oekonomie_kartenwahl` keinen Aufrufer; jetzt waehlt die Stufe aus der Datendatei.
+    # Liefert die Regel keine Karte (unbekannte Stufe, "leicht" ohne Gruenden, kein Kandidat mit
+    # Nutzen), gilt weiter die Gold-Regel unten - ein Dorf OHNE Karte haette keinen Ertrag.
+    if stufe:
+        freie = {k: {"besitzer": None, "karte": d}
+                 for k, d in ((k, _bot_karte_dict(k)) for k in kandidaten) if d}
+        eigene = [d for d in (_bot_karte_dict(k) for k in (belegte or [])) if d]
+        try:
+            gewaehlt = botkern.oekonomie_kartenwahl(str(stufe).strip().lower(), eigene, freie,
+                                                    dict(raten or {}), {}, spieloekonomie.REGELN)
+        except (KeyError, TypeError, ValueError):                          # Stufe unbekannt
+            gewaehlt = None                                                # dann die Gold-Regel
+        if gewaehlt:
+            return str(gewaehlt)
+
+
     def _rang(kennung: str):                                              # Rang einer Karte
         profil = bot_kartenprofil(kennung)                                # ihr Kartenwert
         return (float(profil.get("gold", 0.0)),                           # Gold zuerst (Daniel)
@@ -618,17 +666,31 @@ def bot_doerfer_karten_zuweisen(bot: "BotPlayer", einstellungen: Optional[dict] 
     Ein alter Spielstand (Doerfer ohne Feld `karte`) bekommt die Karte hier beim ersten Bot-Takt;
     der Ertrag rechnet danach aus dem Kartenprofil. Rueckgabe: Zahl der Doerfer, die eine Karte
     bekommen haben (0 = nichts Neues).
+
+    **V-6 (03.11.2026):** welche Karte, entscheidet jetzt die REGEL aus
+    `botkern.oekonomie_kartenwahl` (Stufe in `data/bot_wirtschaft.json`: `kartenwahl_stufe`); der
+    Bot geht mit seinem eigenen Portfolio (`belegte`) und seinen Stundenertraegen (`raten`) hinein.
+    Sagt die Regel nichts, gilt die alte Gold-Regel - kein Dorf bleibt ohne Karte.
     """
     einstellungen = einstellungen if einstellungen is not None else bot_wirtschaft_einstellungen()
     if not einstellungen.get("karten_aktiv", True):                       # Schalter aus
         return 0                                                          # dann keine Karten
+    stufe = str(einstellungen.get("kartenwahl_stufe") or "").strip().lower()   # V-6: Regel des Kerns
+    doerfer_liste = bot_doerfer_sicherstellen(bot)                        # je Dorf eine Karte
+    belegte = [str(getattr(d, "karte", "") or "") for d in doerfer_liste]  # das Portfolio des Bots
+    raten: Dict[str, float] = {}                                          # seine Stundenertraege
+    for dorf in doerfer_liste:                                            # je Dorf zusammenzaehlen
+        for stoff, menge in bot_dorf_ertrag(dorf, einstellungen, bot).items():
+            raten[stoff] = round(raten.get(stoff, 0.0) + float(menge), 2)
     neu = 0                                                               # Zaehler fuer den Aufrufer
-    for i, dorf in enumerate(bot_doerfer_sicherstellen(bot)):             # je Dorf eine Karte
+    for i, dorf in enumerate(doerfer_liste):                              # je Dorf eine Karte
         if str(getattr(dorf, "karte", "") or ""):                         # schon vergeben
             continue                                                      # nichts tun
-        karte = bot_kartenwahl(bot, i, einstellungen=einstellungen)       # drei zur Wahl, Gold zuerst
+        karte = bot_kartenwahl(bot, i, einstellungen=einstellungen, stufe=stufe,
+                               belegte=[k for k in belegte if k], raten=raten)
         if karte:                                                         # Karte gefunden
             dorf.karte = karte                                            # am Dorf festhalten
+            belegte.append(karte)                                         # Portfolio waechst mit
             neu += 1                                                      # zaehlen
     return neu                                                            # wie viele neu sind
 
