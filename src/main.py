@@ -4965,7 +4965,12 @@ class GameState:
         # S-7 Demo-Regel (Daniel 01.11.2026) gilt auch hier: in der oeffentlichen Testversion greifen
         # die Bots NICHT an - ein Diebstahl ist ein Angriff auf das Lager des Spielers, also bleibt er
         # dort ebenfalls aus. Sonst waere die Demo-Regel an einer zweiten Stelle still umgangen.
-        if einst_dieb.get("aktiv", False) and not ausgabemodus.ist_oeffentliche_testversion():
+        # GOETTERSCHUTZ (Handbuch 2009, S. 6; Entscheidung 3 vom 01.11.2026): die ersten sieben Tage
+        # ist der Spieler unangreifbar - das gilt fuer JEDEN Zugriff auf sein Lager, also auch fuer den
+        # Diebstahl. Ohne diese Bedingung pluenderten die Bots einen Anfaenger, der laut Handbuch
+        # geschuetzt ist (gefunden von `test_startspiel` Abschnitt 6: 10,64 Holz in 25 Zuegen).
+        if (einst_dieb.get("aktiv", False) and not self.noob_protection
+                and not ausgabemodus.ist_oeffentliche_testversion()):
             for bot_dieb in self.bots:
                 for ort_dieb in self.settlements:
                     bericht_dieb = bot_diebstahl(bot_dieb, ort_dieb, jetzt, einst_dieb)

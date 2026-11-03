@@ -189,6 +189,9 @@ _bots = [M.BotPlayer("Haug", "menschlich", 0.3, 0.5)]
 for _b0 in _bots:
     M.bot_doerfer_sicherstellen(_b0)
 gs.bots = _bots
+# Der Goetterschutz ist hier ausdruecklich AUS: dieser Abschnitt belegt, dass der Takt stiehlt; der
+# Schutz hat gleich darunter seine eigene Wache (25 Zuege im Schutz -> kein Diebstahl).
+gs.noob_protection = False
 _vorher = dict(gs.settlements[0].vorraete)
 gs._letzter_bot_takt = 0.0
 # ABGESCHALTET wird ausdruecklich geprueft: der Schalter der DATEI steht seit S-13 auf "aktiv",
@@ -222,6 +225,32 @@ check("6 der Bericht nennt Bot, Ort, Menge und Spielzeit",
 check("6 die Reichsanzeige ist danach wieder die Summe der Ortslager",
       gs.resources["holz"].amount == gs.settlements[0].vorraete.get("holz"),
       f"{gs.resources['holz'].amount} gegen {gs.settlements[0].vorraete.get('holz')}")
+
+# GOETTERSCHUTZ (Handbuch 2009, S. 6): die ersten sieben Tage ist der Spieler unangreifbar. Ein
+# Diebstahl ist ein Zugriff auf sein Lager - er muss dort ebenso ausbleiben wie ein Angriff. Ohne diese
+# Wache pluenderten die Bots einen Anfaenger, der laut Handbuch geschuetzt ist (gefunden im
+# Sammellauf 12:45 von `test_startspiel`: 10,64 Holz in 25 Zuegen).
+gs_schutz = M.GameState()
+gs_schutz.settlements = [neuer_ort({"holz": 1000.0, "stein": 500.0, "gold": 200.0})]
+_schutz_bots = [M.BotPlayer("Haug", "menschlich", 0.3, 0.5)]
+for _b1 in _schutz_bots:
+    M.bot_doerfer_sicherstellen(_b1)
+gs_schutz.bots = _schutz_bots
+gs_schutz.noob_protection = True
+gs_schutz._letzter_bot_takt = 0.0
+_vorher_schutz = dict(gs_schutz.settlements[0].vorraete)
+_erg_schutz = gs_schutz.bots_fortschreiben(10 ** 7)
+check("6 im Goetterschutz wird NICHT gestohlen (Lager unveraendert)",
+      gs_schutz.settlements[0].vorraete == _vorher_schutz,
+      f"{_vorher_schutz} -> {dict(gs_schutz.settlements[0].vorraete)}")
+check("6 im Goetterschutz steht keine Diebstahl-Nachricht im Postfach",
+      not [m for m in gs_schutz.messages if m.get("type") == "diebstahl"], "")
+check("6 der Bot-Zug selbst laeuft trotzdem (Wirtschaft steht nicht still)",
+      _erg_schutz.get("bots", 0) == len(_schutz_bots), str(_erg_schutz.get("bots")))
+gs_schutz.noob_protection = False
+gs_schutz.bots_fortschreiben(10 ** 7 + 3600)
+check("6 nach dem Goetterschutz wird wieder gestohlen (die Sperre ist keine Abschaltung)",
+      bool(gs_schutz.settlements[0].vorraete != _vorher_schutz), str(gs_schutz.settlements[0].vorraete))
 check("6 mit eingeschaltetem Regelwerk wuerde gestohlen (Mechanik ist ganz)",
       _stiehlt(M.BotPlayer("Haug", "menschlich", 0.3, 0.5),
                       neuer_ort({"holz": 1000.0}), 5000.0, REGELN) is not None, "")
