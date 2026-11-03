@@ -57,6 +57,28 @@ Karren.
 5. **Erst dann** `siedlerkarren_pflicht: true` und die Messung über 24 Spieltage (jeder Bot vier
    Dörfer, mit Karren).
 
+## Die fehlende Kette, jetzt gemessen (Gebäude → Ware)
+
+Leder, Wolle und Pferde sind **keine Rezept-Waren**, sondern **Ertrag von Anlagen** (belegt in
+`data/buildings.json`, Feld `wirkung`):
+
+| Gebäude | Kennung | erzeugt |
+|---|---|---|
+| Schafszucht | `schafszucht` | **Wolle** |
+| Rinderfarm | `rinderfarm` | Nahrung und **Leder** |
+| Pferdezucht | `pferdezucht` | **Pferde** |
+| Jäger | `jaeger` | Nahrung und **Leder** (Jagd) |
+| Stellmacher | `stellmacher` | **baut die Karren** (verlangt Baukunst) |
+
+`data/warenrezepte.json` führt dazu **nichts** - die drei Posten kommen wie Holz oder Stein aus dem
+Ertrag einer Anlage, nicht aus einem Rezept. Folge für den Bau: der Bot braucht (a) diese drei Anlagen
+im Bauplan und (b) die drei Posten in `BotDorf.vorraete` - dann rechnet `bot_dorf_ertrag` sie wie die
+fünf heutigen Rohstoffe.
+
+Damit ist die Kette vollständig: **Baukunst → Stellmacher; Schafszucht, Rinderfarm, Pferdezucht →
+Wolle, Leder, Pferde; Wagenbau 1 → Siedlerkarren** (200 Holz, 80 Metall, 150 Leder, 100 Wolle,
+4 Pferde, 5 Siedler, 300 Nahrung) **→ Gründung** mit Gebühr und Startpaket.
+
 ## Offene Messlücke (nächster Schritt vor dem Bau)
 
 Welche Gebäude Leder, Wolle und Pferde erzeugen und welche Forschung sie verlangen, steht noch nicht
