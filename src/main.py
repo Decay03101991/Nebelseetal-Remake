@@ -1264,7 +1264,29 @@ def bot_dorf_forschungsliste(bot: "BotPlayer", plan: Optional[dict] = None) -> L
         return []
     zweige = plan.get("plaene") or {}
     zweig = zweige.get(bot_taktik_name(bot)) or zweige.get("Unbekannt") or {}
-    return [e for e in (zweig.get("jetzt") or []) if isinstance(e, dict)]
+    eintraege = [e for e in (zweig.get("jetzt") or []) if isinstance(e, dict)]
+    # S-6 (03.11.2026): wer gruenden will, braucht die Forschungsstufe aus der KERNREGEL
+    # (`spieloekonomie.REGELN["gruendung"]` - Wagenbau). Sie steht nicht in jeder Taktik-Liste,
+    # deshalb wird sie hier ERGAENZT - und zwar am ENDE: die Schritte der Taktik bleiben zuerst,
+    # die belegte Reihenfolge (Baukunst zuerst) wird also nicht verschoben.
+    einstellungen = bot_gruendung_einstellungen()                       # Regeln der Gruendung
+    if einstellungen.get("aktiv", False):                               # nur wenn gruenden erlaubt ist
+        regel = spieloekonomie.REGELN.get("gruendung") or {}             # EINE Regelquelle
+        gebiet = str(regel.get("forschung") or "")                      # Gebiet aus den Daten
+        try:                                                            # noetige Stufe
+            stufe = int(regel.get("stufe") or 0)                        # Zahl aus den Daten
+        except (TypeError, ValueError):                                 # kaputter Wert
+            stufe = 0                                                   # dann keine Bedingung
+        try:                                                            # Hoechstzahl der Doerfer
+            grenze = int(einstellungen.get("hoechstens_doerfer") or 0)  # Zahl aus den Daten
+        except (TypeError, ValueError):                                 # kaputter Wert
+            grenze = 0                                                  # dann keine Gruendung
+        eigene = list(getattr(bot, "doerfer", None) or [])              # Doerfer des Bots
+        if gebiet and stufe > 0 and len(eigene) < max(1, grenze):       # er will noch gruenden
+            if not any(str(e.get("forschung") or "") == gebiet for e in eintraege):
+                eintraege = eintraege + [{"forschung": gebiet, "bis_stufe": stufe,
+                                          "warum": "S-6: Gruendungsforschung aus spieloekonomie.REGELN"}]
+    return eintraege
 
 
 def bot_dorf_forschung_abschluss(dorf: "BotDorf", bot: "BotPlayer",
@@ -1391,6 +1413,22 @@ def bot_diebstahl_einstellungen() -> Dict[str, Any]:
     except (OSError, ValueError):
         return {"aktiv": False}
     return daten if isinstance(daten, dict) else {"aktiv": False}
+
+
+def bot_gruendung_einstellungen() -> Dict[str, Any]:
+    """Die Regeln der Bot-Gruendung aus `data/bot_gruendung.json` (S-6) - EINE Quelle.
+
+    Fehlt die Datei oder ist sie kaputt, gruendet kein Bot (`aktiv: False`) - kein stiller
+    Standardwert, keine erfundene Zahl. Die KOSTEN stehen NICHT hier, sondern im Kern
+    (`spieloekonomie.gruendungskosten`), damit Bot und Spieler dieselben Zahlen zahlen.
+    """
+    pfad = os.path.join(spieldaten.projektwurzel(), "data", "bot_gruendung.json")   # feste Datendatei
+    try:                                                                  # Datei lesen
+        with open(pfad, encoding="utf-8") as f:                           # UTF-8, wie alle Daten
+            daten = json.load(f)                                          # Inhalt als dict
+    except (OSError, ValueError):                                         # fehlt oder kaputt
+        return {"aktiv": False}                                           # dann gruendet niemand
+    return daten if isinstance(daten, dict) else {"aktiv": False}         # nur ein dict gilt
 
 
 def bot_ist_duenn(bot: "BotPlayer", einstellungen: dict) -> bool:
@@ -5006,6 +5044,126 @@ class GameState:
         self.messages.append({"text": meldung, "type": "kampf"})              # ins Postfach
         return meldung, beute                                                 # Meldung und Beute
 
+    def bot_dorf_gruenden(self, bot: "BotPlayer", jetzt: float) -> Optional["BotDorf"]:
+        """S-6: ein Bot gruendet ein weiteres Dorf - mit den Kosten des KERNS (03.11.2026).
+
+        Daniels Vorgabe: drei Gruendungen je Bot, also vier Doerfer. Gebucht wird wie beim Spieler:
+        `spieloekonomie.gruendungskosten()` liefert Gebuehr, Startpaket und Mindestbestand,
+        `spieloekonomie.REGELN["gruendung"]` nennt die noetige Forschung (Wagenbau). Das neue Dorf
+        entsteht in der HEIMATWELT des Bots (W-1) und bekommt eine Karte aus dem Katalog, die der
+        Bot noch nicht haelt; Position und Grundanlagen kommen aus denselben Funktionen wie bei
+        jedem anderen Bot-Dorf.
+
+        Was der Bot NICHT kann: einen Siedlerkarren bauen (er hat keine Werkstattkette, gemessen
+        03.11.2026). Deshalb steht der Schalter `siedlerkarren_pflicht` in `data/bot_gruendung.json`;
+        ist er aus, ziehen die Siedler des Karrens direkt aus dem Ausgangsdorf ins neue Dorf -
+        Gebuehr und Startpaket werden trotzdem voll bezahlt (gleiche Zahlen wie beim Spieler).
+
+        Rueckgabe: das neue Dorf oder ``None`` (dann wurde NICHTS gebucht).
+        """
+        einstellungen = bot_gruendung_einstellungen()                       # Regeln aus der Datei
+        if not einstellungen.get("aktiv", False):                           # Gruendung aus
+            return None                                                     # dann nichts tun
+        doerfer = bot_doerfer_sicherstellen(bot)                            # Doerfer des Bots
+        try:                                                                # Hoechstzahl
+            grenze = int(einstellungen.get("hoechstens_doerfer") or 0)      # Zahl aus den Daten
+        except (TypeError, ValueError):                                     # kaputter Wert
+            grenze = 0                                                      # dann keine Gruendung
+        if grenze <= 0 or len(doerfer) >= grenze:                           # Grenze erreicht
+            return None                                                     # dann nichts tun
+        gedaechtnis = bot.gedaechtnis if isinstance(getattr(bot, "gedaechtnis", None), dict) else {}
+        try:                                                                # Sperre zwischen Gruendungen
+            sperre = max(0.0, float(einstellungen.get("sperre_stunden") or 0.0)) * 3600.0
+        except (TypeError, ValueError):                                     # kaputter Wert
+            sperre = 0.0                                                    # dann keine Sperre
+        letzte = float(gedaechtnis.get("gruendung_seit") or 0.0)            # letzte Gruendung
+        if sperre > 0 and letzte > 0 and float(jetzt) - letzte < sperre:    # noch gesperrt
+            return None                                                     # dann nichts tun
+        # Forschungsregel des KERNS (Wagenbau), nicht eine zweite Liste im Code.
+        regel = spieloekonomie.REGELN.get("gruendung") or {}                # EINE Regelquelle
+        gebiet = str(regel.get("forschung") or "")                          # Gebiet aus den Daten
+        try:                                                                # noetige Stufe
+            stufe_noetig = int(regel.get("stufe") or 0)                     # Zahl aus den Daten
+        except (TypeError, ValueError):                                     # kaputter Wert
+            stufe_noetig = 0                                                # dann keine Bedingung
+        staende = {str(k): int(v) for k, v in
+                   (getattr(bot, "forschungsstaende", None) or {}).items()}  # Wissensstand des Bots
+        if gebiet and staende.get(gebiet, 0) < stufe_noetig:                # Forschung fehlt
+            return None                                                     # dann nichts tun
+        preis, paket, minimum = spieloekonomie.gruendungskosten()           # Gebuehr + Startpaket
+        # Ausgangsdorf: das Dorf mit dem groessten Ueberschuss ueber den Mindestbestand.
+        quelle, ueberschuss = None, 0.0                                     # noch keines gefunden
+        for dorf in doerfer:                                                # jedes Dorf ansehen
+            vorraete = getattr(dorf, "vorraete", None) or {}                # sein Lager
+            rest = min([float(vorraete.get(stoff, 0.0) or 0.0) - float(soll)   # Ueberschuss je Stoff
+                        for stoff, soll in minimum.items() if float(soll) > 0] or [0.0])
+            if rest > ueberschuss:                                          # groesser als bisher
+                quelle, ueberschuss = dorf, rest                            # dann dieses Dorf
+        if quelle is None:                                                  # keines kann zahlen
+            return None                                                     # dann nichts tun
+        karren = str(regel.get("karren") or "")                             # Siedlerkarren (Kernregel)
+        siedler = int(((spieloekonomie.U.get(karren) or {}).get("kosten") or {})
+                      .get("siedler", 0) or 0)                              # Siedler je Karren
+        if siedler <= 0:                                                    # Zahl fehlt in den Daten
+            return None                                                     # dann nichts erfinden
+        if float(getattr(quelle, "bevoelkerung", 0.0) or 0.0) < float(siedler):
+            return None                                                     # zu wenige Siedler
+        if bool(einstellungen.get("siedlerkarren_pflicht", False)) and karren:
+            if int((getattr(quelle, "einheiten", None) or {}).get(karren, 0) or 0) < 1:
+                return None                                                 # kein Karren = keine Gruendung
+        # Freie Karte: Vorschlag aus dem Katalog, aber keine, die der Bot schon haelt.
+        belegte = [str(getattr(d, "karte", "") or "") for d in doerfer           # Karten des Bots
+                   if str(getattr(d, "karte", "") or "")]
+        karte = ""                                                          # noch keine gefunden
+        for versuch in range(0, 5):                                         # bis zu fuenf Vorschlaege
+            vorschlag = bot_kartenwahl(bot, len(doerfer) + versuch * 100)   # reproduzierbare Wahl
+            if vorschlag and vorschlag not in belegte:                      # neu fuer diesen Bot
+                karte = vorschlag                                           # dann nehmen
+                break
+        if not karte:                                                       # keine freie Karte
+            return None                                                     # dann keine Gruendung
+        # ---- buchen: erst pruefen, dann schreiben (eine Ablehnung aendert nichts) ----
+        vorraete = quelle.vorraete if isinstance(quelle.vorraete, dict) else {}
+        for stoff, menge in minimum.items():                                # Gebuehr + Startpaket
+            vorraete[str(stoff)] = round(max(0.0, float(vorraete.get(stoff, 0.0) or 0.0)
+                                             - float(menge)), 2)             # nie unter null
+        quelle.vorraete = vorraete                                          # Ausgangsdorf bezahlt
+        quelle.bevoelkerung = round(max(0.0, float(getattr(quelle, "bevoelkerung", 0.0) or 0.0)
+                                        - float(siedler)), 2)                # Siedler ziehen um
+        if bool(einstellungen.get("siedlerkarren_pflicht", False)) and karren:
+            rest_karren = int((quelle.einheiten or {}).get(karren, 0) or 0) - 1
+            if rest_karren > 0:                                             # noch einer uebrig
+                quelle.einheiten[karren] = rest_karren                      # dann abziehen
+            else:                                                           # der letzte
+                quelle.einheiten.pop(karren, None)                          # wird verbraucht
+        heimat = (int(getattr(quelle, "herkunftswelt", 0) or 0)             # W-1: Herkunftswelt
+                  or int(getattr(quelle, "dimension", 0) or 0))             # sonst die heutige Welt
+        neu = BotDorf(name="%ss Siedlung %d" % (bot.name, len(doerfer) + 1),
+                      hauptdorf=False,                                      # nie das Hauptdorf
+                      dimension=heimat, herkunftswelt=heimat,               # in SEINER Welt
+                      karte=karte)                                          # mit eigener Karte
+        neu.vorraete = {str(stoff): float(menge) for stoff, menge in paket.items()}
+        neu.bevoelkerung = float(siedler)                                   # die Kolonisten
+        try:                                                                # Position wie jedes Dorf
+            neu.x, neu.y = bottaktik.dorf_position(bot.name, len(doerfer))  # fest aus Name und Nummer
+        except (KeyError, TypeError, ValueError):                           # Kern ohne Antwort
+            neu.x, neu.y = 0, 0                                             # dann setzt der Takt sie
+        doerfer.append(neu)                                                 # am Bot anhaengen
+        bot.doerfer = doerfer                                               # EINE Dorfliste
+        namen = [str(n) for n in (getattr(bot, "settlements", None) or [])]  # alte Namensliste
+        if neu.name not in namen:                                           # noch nicht eingetragen
+            namen.append(neu.name)                                          # dann nachtragen
+        bot.settlements = namen                                             # Spielstand-Form pflegen
+        bot.gedaechtnis = dict(gedaechtnis)                                 # Gedaechtnis kopieren
+        bot.gedaechtnis["gruendung_seit"] = float(jetzt)                    # Sperre beginnt jetzt
+        bot_doerfer_bebauen(neu, bot_wirtschaft_einstellungen())            # Grundanlagen wie ueberall
+        meldung = (f"{bot.name} hat ein neues Dorf gegruendet: {neu.name} in Welt {heimat} "
+                   f"(Karte {karte}). Gebuehr und Startpaket sind aus {quelle.name} bezahlt, "
+                   f"{siedler} Siedler sind umgezogen.")
+        self.messages.append({"text": meldung, "type": "gruendung"})        # ins Postfach
+        self._log(meldung)                                                  # und ins Spiel-Log
+        return neu                                                          # das neue Dorf melden
+
     def bots_fortschreiben(self, jetzt: float) -> dict:
         """Einen Bot-Zug fahren (W5): die Entscheidung kommt aus `botkern`, gebucht wird hier.
 
@@ -5190,6 +5348,18 @@ class GameState:
             # durch `kampf.fuehre_schlacht` bestaetigte Menge.
             self.bot_aus_dict(bot, botkern.wirkung_anwenden(start, zug))
             self.bot_armee_aufstellen(bot, jetzt)                          # S-5a: Warteschlange statt Kauf
+
+        # S-6 (03.11.2026, Daniels Vorgabe "Nachgruenden, 3 Gruendungen je Bot = 4 Doerfer"): Jeder
+        # Bot prueft EINMAL je Takt, ob er sich ein weiteres Dorf leisten kann. Kosten und
+        # Forschungsregel kommen aus dem KERN, die Hoechstzahl und die Sperre aus
+        # `data/bot_gruendung.json`. Die Demo-Regel (S-7) betrifft ANGRIFFE - eine Gruendung ist
+        # sichtbarer Aufbau und laeuft deshalb auch in der oeffentlichen Testversion.
+        gruendungen: List[str] = []                                       # Namen der neuen Doerfer
+        for bot_gruendet in self.bots:                                    # je Bot ein Versuch
+            neues_dorf = self.bot_dorf_gruenden(bot_gruendet, jetzt)       # pruefen, buchen, melden
+            if neues_dorf is not None:                                    # wirklich gegruendet
+                gruendungen.append(str(neues_dorf.name))                  # fuer Pruefung und Protokoll
+        ergebnis["gruendungen"] = gruendungen                             # Ergebnis des Takts
 
         # S-12 (03.11.2026, Daniels Entscheidung 7): duenne Bots bestehlen einen WEHRLOSEN Ort des
         # Spielers - jeder Fall als Postfach-Nachricht (wer, wann, was, wieviel), kein stiller

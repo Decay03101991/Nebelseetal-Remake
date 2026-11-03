@@ -1,3 +1,41 @@
+# STAND 03.11.2026, 17:02 - S-6: Bots gruenden nach, vier Doerfer je Bot (Register 170)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Jeder Bot gruendet jetzt eigene Doerfer - bis zu vier, in seiner Heimatwelt, mit eigener Karte.**
+Daniels Vorgabe war „Nachgruenden, 3 Gruendungen je Bot = 4 Doerfer“. Gebucht wird mit den Zahlen des
+KERNS: `spieloekonomie.gruendungskosten()` liefert Gebuehr, Startpaket und Mindestbestand, die
+Forschungsregel (Wagenbau 1) kommt aus `spieloekonomie.REGELN`. Gemessen im echten Startstand: nach
+**24 Spieltagen hat jeder der fuenf Bots vier Doerfer** - vorher hatte ein Bot ein bis drei, und ein
+Dorf zu gruenden war ueberhaupt nicht moeglich.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `a5f0da5` plus diese Aenderung | `git log --oneline -1` |
+| Daten | `data/bot_gruendung.json`: `hoechstens_doerfer` 4, `sperre_stunden` 72, `siedlerkarren_pflicht` false | Datendatei |
+| Wache | `tests/test_bot_gruendung.py` **36/0/1** | eigener Lauf |
+| Gegenproben | Forschungspruefung aus -> **2 Fehler**; Hoechstzahl aus -> **5 Fehler** (Bots kamen auf 7-10 Doerfer); Datei beide Male hashgleich zurueck | eigener Lauf |
+| Messung im Spiel | nach 24 Spieltagen **4 Doerfer je Bot**, alle in der Heimatwelt, 4 verschiedene Karten, 11 Gruendungs-Nachrichten im Postfach | `tests/test_bot_gruendung.py` Abschnitt 4 |
+| Voller Sammellauf | **151 von 153 gruen, 0 rot, 2 ausgesetzt, 5.997 Pruefungen, 469 s** (Start 17:04) | `docs/audits/sammellauf_20261103_1704.log` |
+| Pruefdateien / Register | **153** / **170** | `ls tests/test_*.py`, `grep -c '^| [0-9]'` |
+
+**Die eine Abweichung, die Daniels Wort braucht:** der Kern verlangt fuer eine Gruendung einen
+**Siedlerkarren**, und den kann ein Bot nicht bauen - seine Doerfer fuehren kein Leder, keine Wolle,
+keine Pferde, weil die Bot-Wirtschaft keine Werkstattkette hat (gemessen). Der Schalter
+`siedlerkarren_pflicht` steht deshalb auf `false`: Gebuehr und Startpaket werden voll bezahlt, die
+fuenf Siedler des Karrens ziehen direkt aus dem Ausgangsdorf um. Sobald Bots eine Warenkette haben
+(S-6b), wird der Schalter auf `true` gestellt - dann gilt die strenge Kernregel.
+
+## Der EINE naechste Schritt
+
+**S-7 Karawanen**: Transporte zwischen den EIGENEN Doerfern (`auftraege.starten`, Reisekosten im
+Startdorf). Mit vier Doerfern je Bot wird das noetig: ein Dorf ohne Nachschub hungert, und die
+Rohstoffe liegen dort, wo die Karte sie hergibt - nicht dort, wo gebaut wird. Danach **S-9** (Stil je
+Taktik), **W-3** (teuer mit Deckel, Daniels Entscheidung), **S-6b** (Warenkette fuer Bots, damit der
+Siedlerkarren Pflicht werden kann) und zuletzt die **Story** (W-11).
+
+**Der Sammellauf gehoert zum Abschluss jedes Code-Schnitts** - nach diesem Stand laeuft er.
+
 # STAND 03.11.2026, 15:56 - W-4: Bots rauben auch untereinander (Register 169)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
