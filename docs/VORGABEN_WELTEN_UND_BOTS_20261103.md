@@ -59,3 +59,14 @@ als VORSCHLAG gekennzeichnet — gebaut wird erst nach seiner Antwort:
 
 Bis zu Daniels Antwort gilt der heutige Stand; keine dieser Vorgaben wird stillschweigend
 mitgebaut.
+
+## 5. Nachtrag 03.11.2026, 14:00 bis 14:07 (Chat)
+
+| Nr | Vorgabe (Daniel, woertlich) | Stand |
+|---|---|---|
+| W-5 | 'jeder bot hat eine Herkunftswelt bitte und startet auch in dieser ... die gleiche zahl auf der gesamt welt befindlicher nutzer (5 bots 1 spieler und für diese 6 Welten)' | **GEBAUT** (Register 164): fuenf Bots sind fest aktiv, jeder in der Welt seiner Fraktion |
+| W-6 | 'der spieler startet in der Hauptwelt und sieht bereits die bots wenn er in die Übersicht einer anderen welt schaut' | **OFFEN**: der Nur-Lese-Blick in eine fremde Weltkarte fehlt noch |
+| W-7 | 'Auch soll er sehen wenn der bot sein zweites dorf gegründet hat das in seiner welt bereits 2 dörfer von ihm stehen' | **OFFEN**: haengt an W-6 und an S-6 (Nachgruenden) |
+| W-8 | 'Erkennbar sind bots oder der spieler weil bots durch ihre fraktion auch ein wappen haben und auf der weltkarte sollen hauptdorf und nebendörfer die selbe burg mit dem dazugehörigen wappen tragen' | **OFFEN**: die sechs Burgen und zehn Wappen liegen fertig in `assets/icons/burgen` und `assets/icons/wappen`, gezeichnet wird noch der braune Kasten mit X |
+| W-9 | 'Wenn ich als spieler eine fraktion wähle sollte ich auch in dieser welt starten' und 'nicht zwangsweise midgard als startwelt' | **GEBAUT** (Register 164): `data/welt_fraktionen.json`, der Spieler startet in der Welt seines Volkes; kein Midgard-Zwang im Code |
+| W-10 | Die Heimatwelt eines Bots bleibt fuer immer; nur Nebendoerfer duerfen umziehen (praezisiert W-1/W-2) | **teilweise**: `herkunftswelt` steht am Dorf und bleibt stehen (Register 163); der UMZUG eines Nebendorfs ist noch nicht gebaut |

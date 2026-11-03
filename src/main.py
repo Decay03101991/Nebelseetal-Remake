@@ -54,6 +54,7 @@ import auftraege   # W7: Auftraege (Missionen) mit Reisezeit, Rueckkehr und Beri
 import spionage    # B-5: Spionagebericht, Abwehr und Nachricht (02.11.2026)
 import marsch_optik  # M-1: Truppenbewegungen auf der Weltkarte (02.11.2026, Register 140)
 import forschung  # W4c: Forschung braucht Zeit - die Stufe steigt erst nach Ablauf
+import voelker     # W-9: die Fraktionen und ihre Heimatwelt (EINE Lesestelle)
 import welt        # W4d: die Weltkarte des Limbus (20 Dimensionen, sechs belegte Welten)
 import zeitbasis  # GPT-Z01: lokale Datumsstempel, monotone Laufzeituhr, Nachrichten
 import spielzeit   # Spieluhr: der Zeitfaktor (Vorgabe Daniel 05.10.2026, Spielbericht)
@@ -349,7 +350,11 @@ def bot_doerfer_sicherstellen(bot: "BotPlayer") -> List["BotDorf"]:
     if not namen:                                                         # alter Stand ohne Namen
         namen = ["%ss Siedlung 1" % bot.name]                             # derselbe Standardname wie bisher
     doerfer: List[BotDorf] = []                                           # Ergebnisliste
-    _heimat = int(welt.startwelt_nummer() or 1)                           # W-1: die belegte Heimatwelt
+    # W-9 (Daniel 03.11.2026): die Heimatwelt haengt an der FRAKTION des Bots, nicht an einer
+    # festen Hauptwelt - darum gibt es hier KEINEN Midgard-Rueckfall im Code. Hat die Fraktion
+    # keine eingetragene Welt, bleibt die Startwelt aus den Daten (nicht erfunden).
+    _heimat = (int(voelker.welt_von_fraktion(getattr(bot, 'faction', '')) or 0)
+               or int(welt.startwelt_nummer() or 1))                      # Welt dieses Bots
     for i, name in enumerate(namen):                                      # ein Datensatz je Name
         doerfer.append(BotDorf(name=name, hauptdorf=(i == 0),             # das erste Dorf ist das Hauptdorf
                                # W-1/W-2 (Daniel 03.11.2026): ein Bot entsteht in der STARTWELT (Midgard)
@@ -3103,9 +3108,11 @@ class GameState:
                     tiles.append(tile)
         self.map_tiles = tiles
         # Bots bekommen echte Siedlungen + Armee, sonst laufen Bot-Angriffe ins Leere
-        active_bots = [b for b in BOTS if random.random() < 0.6]
-        if not active_bots:
-            active_bots = [BOTS[1]]
+        # W-5 (Daniel 03.11.2026): fuenf Bots und ein Spieler fuer die sechs Weltkarten. Vorher
+        # wuerfelte diese Zeile (je Bot 60 Prozent) - dann sassen mal ein, mal fuenf Bots in der
+        # Welt, und keine Herkunftswelt war verlaesslich. Jetzt stehen ALLE fuenf in der Welt ihrer
+        # Fraktion (siehe `bot_doerfer_sicherstellen`).
+        active_bots = list(BOTS)
         bots = []
         for b in active_bots:
             d = asdict(b)
@@ -6996,6 +7003,26 @@ class NebelseetalApp:
                 continue
             bot.faction = neu
             bot.volksattribute = bottaktik.volksattribute({"fraktion": neu})
+        # W-9 (Daniel 03.11.2026, woertlich: "Wenn ich als spieler eine fraktion wähle sollte ich
+        # auch in dieser welt starten" und "nicht zwangsweise midgard als startwelt"): die Heimatwelt
+        # haengt an der FRAKTION. Der Spieler startet in der Welt seines Volkes, jeder Bot in der
+        # seines - eine feste Hauptwelt gibt es in der Logik nicht mehr.
+        _w_heimat = int(voelker.welt_von_fraktion(fraktion) or 0)       # Welt des gewaehlten Volkes
+        if _w_heimat:                                                   # Volk hat eine Heimatwelt
+            self.state.eigene_dimension = _w_heimat                     # Spieler startet dort
+            if _w_heimat not in self.state.eigene_dimensionen:          # als eigene Welt eintragen
+                self.state.eigene_dimensionen.append(_w_heimat)
+            for _s in (getattr(self.state, "settlements", []) or []):   # schon gegruendete Orte
+                _s.dimension = _w_heimat                                # gehoeren in dieselbe Welt
+        for bot in self.state.bots:                                     # und die Bots in ihre Welten
+            _w = int(voelker.welt_von_fraktion(bot.faction) or 0)       # Welt dieser Bot-Fraktion
+            if not _w:
+                continue                                                # keine Heimat eingetragen
+            for dorf in bot_doerfer_sicherstellen(bot):                 # je Dorf die Welt setzen
+                _herkunft = int(getattr(dorf, "herkunftswelt", 0) or 0) or int(dorf.dimension)
+                if int(dorf.dimension) == _herkunft:                    # noch NICHT umgezogen
+                    dorf.dimension = _w                                 # dann in die Heimatwelt
+                dorf.herkunftswelt = _w                                 # Herkunft = Heimatwelt
         werte = bottaktik.volksattribute({"fraktion": fraktion})
         self._log(f"Volk der Spieler: {fraktion} - {werte.get('plus')} / {werte.get('minus')}. "
                   f"Die fuenf Gegenspieler tragen die uebrigen Voelker.")

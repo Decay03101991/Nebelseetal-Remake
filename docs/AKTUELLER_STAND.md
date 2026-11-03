@@ -1,3 +1,32 @@
+# STAND 03.11.2026, 14:40 - W-5/W-9: fuenf Bots, Heimatwelt je Fraktion (Register 164)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Jeder Nutzer hat jetzt eine Herkunftswelt, und der Spieler startet in der Welt seines Volkes.**
+Vorher wuerfelte die Zahl der Bots (1 bis 5) und die Startwelt war fuer jeden die feste Datenwelt
+`d04`. Jetzt: fuenf Bots fest, je Fraktion genau eine Heimatwelt, Wahl des Volkes setzt die
+Startwelt — ohne Midgard-Zwang im Code.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `331edd5` plus diese Aenderung | `git log --oneline -1` |
+| Neue Regeldaten | `data/welt_fraktionen.json` (Fraktion -> Welt, VORSCHLAG mit Begruendung, NICHT BELEGT) | Datei |
+| Wache | `tests/test_bot_welten.py` **44/0/1** | eigener Lauf |
+| Gegenproben | Spielerwelt-Zeile entfernt -> **5 Fehler**; Bot-Zahl wieder gewuerfelt -> **1 Fehler**; Datei beide Male hashgleich | eigene Laeufe |
+| Nachbardateien | `test_startspiel` **62/0/1**, `test_voelkerwahl` **37/0/0**, `test_botkern` **101/0/0**, `test_durchspiel` **65/0/2** | eigene Laeufe |
+| Guthaben (13:43) | **12,59 / 47,40 USD**, seit 12:24 **0,21 USD** | Protokoll |
+
+## Der EINE naechste Schritt
+
+**W-8: Burgen und Wappen auf die Weltkarte.** Die sechs Burgen (`assets/icons/burgen/burg_01..06.png`)
+und zehn Wappen (`assets/icons/wappen/wappen_01..10.png`) liegen fertig und freigestellt; heute zeichnet
+die Karte einen braunen Kasten mit X, ohne Name, ohne Nummer. Danach **W-6/W-7** (Nur-Lese-Blick in
+fremde Welten, Doerfer je Welt zaehlen), dann **S-5 Ausbildung je Ort** (S-5b Armee ins Dorf zuerst,
+sonst isst sie doppelt), dann **W-4** (Bots rauben untereinander), dann S-6/S-7/S-9. **W-3** (Kampf
+ueber Weltgrenzen) braucht Daniels Entscheidung: gesperrt oder teuer mit Deckel.
+
+**Der Sammellauf gehoert zum Abschluss jedes Code-Schnitts** - nach diesem Stand laeuft er.
+
 # STAND 03.11.2026, 13:52 - W-1: jedes Bot-Dorf steht nur auf seiner Weltkarte (Register 163)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

@@ -71,6 +71,39 @@ def attribute(kennung: str, pfad: str = None) -> dict:
     return {"plus": "", "minus": ""}
 
 
+WELT_DATEI = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                         "data", "welt_fraktionen.json")
+
+
+def welten_je_fraktion(pfad: str = None) -> dict:
+    """Die Heimatwelt je Fraktion als {Kennung: Weltnummer} - die EINE Lesestelle (W-9).
+
+    Quelle ist `data/welt_fraktionen.json`. Fehlt die Datei oder ist sie kaputt, kommt ein leeres
+    Dict zurueck: dann gibt es KEINE erfundene Zuordnung und keine Welt wird gesetzt.
+    """
+    ziel = pfad or WELT_DATEI
+    try:
+        with open(ziel, encoding="utf-8") as f:
+            daten = json.load(f)
+    except (OSError, ValueError):
+        return {}
+    roh = (daten or {}).get("zuordnung") or {}
+    ergebnis = {}
+    for kennung, nummer in roh.items():
+        try:
+            wert = int(nummer)
+        except (TypeError, ValueError):
+            continue
+        if wert > 0:
+            ergebnis[str(kennung)] = wert
+    return ergebnis
+
+
+def welt_von_fraktion(kennung: str, pfad: str = None) -> int:
+    """Die Heimatwelt EINER Fraktion (0, wenn die Fraktion keine hat oder leer ist)."""
+    return int(welten_je_fraktion(pfad).get(str(kennung or "").strip(), 0) or 0)
+
+
 def verteile_fraktionen(spieler_fraktion: str, botnamen=None, pfad: str = None) -> dict:
     """Die uebrigen Fraktionen an die Bots verteilen - ohne Doppelung, ohne Wuerfeln.
 

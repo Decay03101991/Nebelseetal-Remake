@@ -1,0 +1,22 @@
+{
+  "stand": "2026-11-03",
+  "regel": "Jede Fraktion hat GENAU EINE Heimatwelt. Wer eine Fraktion waehlt (Spieler wie Bot), startet in dieser Welt. Damit sind die sechs belegten Weltkarten mit 5 Bots und 1 Spieler besiedelt, und jeder Nutzer hat eine Herkunftswelt (Daniel 03.11.2026).",
+  "zuordnung": {
+    "menschlich": 4,
+    "zwergisch": 1,
+    "elfisch": 5,
+    "Trolle": 3,
+    "Ghule": 2,
+    "Gnome": 6
+  },
+  "warum_je_fraktion": {
+    "menschlich": "Midgard (04) ist in der Ueberlieferung die Welt der Menschen - und zugleich die Welt, die `data/welt.json` als Startwelt fuehrt.",
+    "zwergisch": "Armageddon (01) ist eine Fels- und Aschewelt; der Steinbau der Zwerge passt am ehesten dorthin.",
+    "elfisch": "Valhalla (05) ist die Halle der Gefallenen; die Elfen sind im Datenblatt die schnellsten und leichtesten Kaempfer.",
+    "Trolle": "Utgard (03) ist die Aussenwelt der Riesen und Trolle.",
+    "Ghule": "Ragnaroek (02) ist die Welt des Untergangs und der Untoten; die Ghule finden ueberall Nahrung und kaempfen ohne Furcht.",
+    "Gnome": "Limbus (06) ist die Grenz- und Vorwelt; die Gnome sind die geschaeftigsten Baumeister und arbeiten an den Raendern."
+  },
+  "quelle": "NICHT BELEGT. Weder das Handbuch 2009 noch die Vorversion 2006 nennt eine Welt je Volk - die Zuordnung ist ein VORSCHLAG dieser Sitzung (03.11.2026) und steht deshalb in dieser Datei, nicht im Code. Wer sie anders will, aendert hier eine Zahl; kein Codeeingriff noetig.",
+  "ehrliche_grenze": "Bei sechs Fraktionen und fuenf Bots bleibt genau eine Fraktion ohne Bot. Waehlt der Spieler diese Fraktion, ist seine Welt die einzige ohne Gegner - das ist die Folge der Vorgabe '5 Bots, 1 Spieler, 6 Welten' und keine Luecke. Welten ohne eingetragene Fraktion (d07 bis d20) haben keine Heimat und werden nicht als Startwelt vergeben."
+}
