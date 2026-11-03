@@ -1520,7 +1520,7 @@ BOTS = [
     BotPlayer("Brynhild", "menschlich", aggression=0.5, trading=0.6),
     BotPlayer("Grom", "zwergisch", aggression=0.7, trading=0.4),
     BotPlayer("Silra", "elfisch", aggression=0.2, trading=0.9),
-    BotPlayer("Krank", "monster", aggression=0.9, trading=0.0),
+    BotPlayer("Krank", "Trolle", aggression=0.9, trading=0.0),
 ]
 # W5 (botkern): Der Bot-Zug. Der Entwurf nennt den Pruefrhythmus "alle 6 bis 24 Stunden"
 # (VORSCHLAG, in botkern.py belegt vermerkt); `botkern.tick` wuerde bei jedem Sekundentakt eine
@@ -1805,6 +1805,9 @@ class GameState:
         # A2-Vorstufe (03.11.2026): die beim ersten Gruenden gewaehlte Startkarte. Leer heisst
         # "noch nicht gewaehlt" - dann gilt die belegte Standardkarte aus data/startkarte.json.
         self.startkarte_gewaehlt: str = ""
+        # A2 (03.11.2026): die Fraktion (das Volk) des Spielers. Leer heisst "noch nicht gewaehlt" -
+        # dann behalten die Bots ihre belegte Zuordnung aus `botkern.BOT_FRAKTIONEN`.
+        self.spieler_fraktion: str = ""
         # Ökonomie-Paket, Schritt 9, Teil 6b — die EINE Uhr der Orte (Entwurf Z. 592-648):
         # `spielsekunden` ist SPIELZEIT, nicht Rechnerzeit. `main._tick_loop` multipliziert genau
         # einmal mit `spielzeit.faktor()`; alles Ökonomische rechnet nur mit dieser Zahl, damit
@@ -4024,6 +4027,9 @@ class GameState:
             # A2-Vorstufe: die gewaehlte Startkarte gehoert in den Spielstand, sonst wuerde ein
             # geladener Stand den Spieler erneut waehlen lassen.
             "startkarte_gewaehlt": getattr(self, "startkarte_gewaehlt", ""),
+            # A2: das gewaehlte Volk gehoert in den Spielstand - sonst waehlte ein geladener Stand
+            # erneut, und die Bots traegen wieder die alte Zuordnung.
+            "spieler_fraktion": getattr(self, "spieler_fraktion", ""),
             "aktive_siedlung_id": self.aktive_siedlung_id,
             "spielsekunden": self.spielsekunden,
             "noob_protection": self.noob_protection,
@@ -5470,7 +5476,17 @@ class NebelseetalApp:
         # die Startkartenwahl als eigener Block. Sie ERSETZT das Dorfzentrum NICHT - die Pflichtkarte
         # "Dein naechster Schritt" und der Gruendungsknopf bleiben, wo sie waren (vier Pruefdateien
         # haengen an ihnen).
-        self._startkarte_wahl_block()
+        self._voelker_wahl_block()          # A2: erst das Volk
+        self._startkarte_wahl_block()       # dann das Land
+        # A2: das gewaehlte Volk bleibt sichtbar (der Spieler soll wissen, wer er ist) - eine Zeile,
+        # die Werte kommen aus `data/voelker.json`, nicht aus dem Code.
+        _volk = str(getattr(self.state, "spieler_fraktion", "") or "")
+        if _volk:
+            _werte = bottaktik.volksattribute({"fraktion": _volk})
+            self._kasten_label(
+                "Dein Volk: %s - %s / %s" % (_volk, _werte.get("plus") or "-",
+                                             _werte.get("minus") or "-"),
+                ("TkDefaultFont", 9, "bold"), self.skin["gold"], innen=12, pady=4)
 
         _grenze = gebaeude_wirkung.bevoelkerungsgrenze(self.state.settlements)
 
@@ -5758,6 +5774,64 @@ class NebelseetalApp:
         """
         self._log(f"'{key}' ist kein globales Gebäude: die Wirkungen kommen aus den bebauten "
                   f"Feldern der Siedlungskarten — dort das Feld wählen und 'Ausbauen' benutzen.")
+
+    def _voelker_wahl_block(self) -> bool:
+        """Die Voelkerwahl im Dorfzentrum (A2, 03.11.2026) - True, wenn sie gezeigt wurde.
+
+        Daniel: "Mit Voelker sind die Fraktionen gemeint, Menschlich, Zwergisch, Elfisch, Trolle,
+        Ghule, Gnome dann haben wir 6 Fraktionen." Der Spieler waehlt EINE; die fuenf Bots bekommen
+        die uebrigen ohne Doppelung (`bottaktik.verteile_fraktionen`, deterministisch). Die Werte
+        stehen in `data/voelker.json` - keine Zahl im Code. Die Wahl steht VOR der Kartenwahl
+        (Fraktion zuerst, dann das Land), ersetzt das Dorfzentrum aber nicht.
+        """
+        if self.state.settlements or str(getattr(self.state, "spieler_fraktion", "") or ""):
+            return False
+        self._kasten_label("Waehle dein Volk", ("Blackletter", 16, "bold"),
+                           self.skin["gold"], innen=12, pady=5)
+        self._kasten_label(
+            "Jedes Volk traegt ein Plus und ein Minus. Die fuenf Gegenspieler bekommen die uebrigen "
+            "Voelker - jedes genau einmal. Die Wahl ist endgueltig und wird im Spielstand gespeichert; "
+            "die Wirkung der Boni wird im naechsten Schritt verdrahtet.",
+            ("TkDefaultFont", 9), "#C0C0C0", breite=810, innen=12, pady=4, umbruch=780)
+        for eintrag in bottaktik.fraktionen():
+            zeile = tk.Frame(self.content, bg=self.skin["panel"])      # eine Zeile je Volk (Tabelle)
+            zeile.pack(fill=tk.X, padx=10, pady=2)
+            tk.Label(zeile, text=str(eintrag.get("kennung")), fg=self.skin["text"],
+                     bg=self.skin["panel"], width=14, anchor=tk.W).pack(side=tk.LEFT, padx=5)
+            tk.Label(zeile, text=str(eintrag.get("plus") or ""), fg="#8FBF7F",
+                     bg=self.skin["panel"], width=26, anchor=tk.W).pack(side=tk.LEFT, padx=5)
+            tk.Label(zeile, text=str(eintrag.get("minus") or ""), fg="#FDBA74",
+                     bg=self.skin["panel"], width=26, anchor=tk.W).pack(side=tk.LEFT, padx=5)
+            tk.Label(zeile, text=str(eintrag.get("beschreibung") or "")[:70], fg="#C0C0C0",
+                     bg=self.skin["panel"], wraplength=300, justify=tk.LEFT).pack(side=tk.LEFT, padx=5)
+            tk.Button(zeile, text="Dieses Volk nehmen",
+                      command=lambda k=str(eintrag.get("kennung")): self._volk_waehlen(k),
+                      bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
+        return True
+
+    def _volk_waehlen(self, kennung: str) -> dict:
+        """Das Volk des Spielers merken und die restlichen Voelker auf die Bots verteilen."""
+        fraktion = str(kennung or "").strip()
+        if fraktion not in [str(e.get("kennung")) for e in bottaktik.fraktionen()]:
+            self._log(f"Unbekanntes Volk: {kennung}")
+            return {}
+        self.state.spieler_fraktion = fraktion
+        verteilung = bottaktik.verteile_fraktionen(fraktion, [b.name for b in self.state.bots])
+        for bot in self.state.bots:                                    # jede Fraktion genau einmal
+            neu = verteilung.get(str(bot.name))
+            if not neu:
+                continue
+            bot.faction = neu
+            bot.volksattribute = bottaktik.volksattribute({"fraktion": neu})
+        werte = bottaktik.volksattribute({"fraktion": fraktion})
+        self._log(f"Volk der Spieler: {fraktion} - {werte.get('plus')} / {werte.get('minus')}. "
+                  f"Die fuenf Gegenspieler tragen die uebrigen Voelker.")
+        self.state.messages.append({"type": "gruendung",
+                                    "text": f"Volk gewaehlt: {fraktion} - {werte.get('plus')} / "
+                                            f"{werte.get('minus')}."})
+        if hasattr(self, "content"):
+            self._render_view()
+        return verteilung
 
     def _startkarte_wahl_block(self) -> bool:
         """Die Startkartenwahl als Block im Dorfzentrum (A2-Vorstufe, 03.11.2026) - True, wenn gezeigt.

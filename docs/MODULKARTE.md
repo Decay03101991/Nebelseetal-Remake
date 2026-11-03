@@ -2,20 +2,20 @@
 
 **Erzeugt von `tools/modulkarte_bauen.py` — nicht von Hand ändern.** Stand: siehe Git-Historie.
 
-53 Dateien in `src/`, 27090 Zeilen, 793 Funktionen und Klassen auf oberster Ebene.
+54 Dateien in `src/`, 27553 Zeilen, 808 Funktionen und Klassen auf oberster Ebene.
 
 ## Die Karte
 
 | Datei | Zeilen | Zweck (erste Zeile des Docstrings) | wird gebraucht von |
 |---|---:|---|---|
-| `main.py` | 10519 | Nebelseetal Remake — Core Game Engine | public_start.py |
-| `spieloekonomie.py` | 1540 | Nebelseetal Remake — deterministischer Kern der Spielökonomie (Ökonomie-Paket, Schritt 2). | admin_teststand.py, admin_werkzeuge.py, botkern.py, main.py |
+| `main.py` | 10789 | Nebelseetal Remake — Core Game Engine | public_start.py |
+| `spieloekonomie.py` | 1555 | Nebelseetal Remake — deterministischer Kern der Spielökonomie (Ökonomie-Paket, Schritt 2). | admin_teststand.py, admin_werkzeuge.py, botkern.py, main.py |
 | `welt_optik_fein.py` | 898 | FEINERE Zeichenplaene fuer die WELTkarte des Nebelseetal-Remakes (naechste Ausbaustufe). | main.py |
 | `karten_optik_fein.py` | 863 | Feinere Zeichenplaene fuer die Siedlungskarte des Nebelseetal-Remakes | main.py |
 | `auftraege.py` | 746 | Nebelseetal Remake - Auftraege und Missionen (Paket WA, 04.10.2026). | bottaktik.py, main.py, spieloekonomie.py |
+| `bottaktik.py` | 691 | Nebelseetal Remake - Bot-Taktik (Paket BT, 01.11.2026). | main.py |
 | `spielschicht.py` | 670 | Nebelseetal Remake - FACH-SCHICHT (Spielebene) fuer die Oberflaeche. | — (Einstieg oder ungenutzt) |
-| `bottaktik.py` | 643 | Nebelseetal Remake - Bot-Taktik (Paket BT, 01.11.2026). | main.py |
-| `botkern.py` | 622 | Nebelseetal Remake - Bot-Kern (Paket W5, 05.10.2026). | main.py |
+| `botkern.py` | 624 | Nebelseetal Remake - Bot-Kern (Paket W5, 05.10.2026). | main.py |
 | `welt_optik.py` | 600 | Zeichenplaene fuer die WELTkarte des Nebelseetal-Remakes (Paket: feinere Weltkartenoptik). | main.py |
 | `karten_optik.py` | 599 | Zeichenplaene fuer die Siedlungskarte des Nebelseetal-Remakes (Paket: feinere Kartenoptik). | main.py |
 | `portalraum.py` | 506 | Portal- und Limbus-Raum fuer das Nebelseetal-Remake (Paket W5-2). | main.py, spielschicht.py |
@@ -41,6 +41,7 @@
 | `oberflaeche_original.py` | 185 | Nebelseetal Remake - Menue-Vergleich (Paket W7, 04.10.2026). | — (Einstieg oder ungenutzt) |
 | `forschung_wirkung.py` | 177 | Nebelseetal Remake -- Wirkung der 21 Originalforschungen auf die Produktion. | bonus_system.py, gebaeude_wirkung.py |
 | `spielerhilfe.py` | 176 | FIX04c – Spielerhilfe während des Götterschutzes, jederzeit aufrufbar. | admin_werkzeuge.py, main.py |
+| `originalkarten.py` | 172 | Original-Kartenkatalog Nebelseetal, 127 archivierte Grafiken in 3 Qualitaetsgruppen. | gelaende.py, main.py, spieloekonomie.py, spielschicht.py |
 | `bonus_system.py` | 169 | Nebelseetal Remake — Central Bonus System | main.py, wirtschaft.py |
 | `spielzeit.py` | 169 | Spielzeit — der Zeitfaktor (Vorgabe Daniel 05.10.2026, Spielbericht). | main.py |
 | `welt.py` | 164 | Weltkarte des Limbus fuer das Nebelseetal-Remake. | main.py, portalraum.py |
@@ -49,12 +50,12 @@
 | `marsch_optik.py` | 149 | Nebelseetal Remake - Optik der Truppenbewegungen auf der Weltkarte (Stufe M-1, 02.11.2026). | main.py |
 | `fehlbestand.py` | 140 | Fehlbestand: welche Rohstoffe fehlen und um wieviel. | spieloekonomie.py |
 | `baumenue_info.py` | 133 | FIX04 – Datenmodell fuer das historische Baumenue der Siedlungskarte. | main.py |
-| `originalkarten.py` | 128 | Original-Kartenkatalog Nebelseetal, 127 archivierte Grafiken in 3 Qualitaetsgruppen. | gelaende.py, main.py, spieloekonomie.py, spielschicht.py |
 | `gpt_versorgungsdiagnose.py` | 126 | Nur-lesende Versorgungsdiagnose fuer Nebelseetal. | — (Einstieg oder ungenutzt) |
 | `admin_teststand.py` | 125 | Reproduzierbarer Admin-Teststand: keine Aenderung von Originalertraegen. | main.py |
 | `dorfwall.py` | 125 | Isolierter Wallkern fuer Nebelseetal (GPT-Zuarbeit, 28.10.2026). | main.py |
 | `bot_angriffsplanung.py` | 108 | GPT-B01: konservative Bot-Zielwahl nach den Wallregeln der Originalanleitung. | main.py |
 | `zeitbasis.py` | 103 | Eine einzige Trennung von Rechnerzeit, Laufzeit und Spielzeit. | main.py |
+| `voelker.py` | 84 | Die sechs Fraktionen (Voelker) als eigene Datenschicht - Lesen, Pruefen, Verteilen (A2, 03.11.2026). | bottaktik.py |
 | `hilfen.py` | 60 | Kleine, reine Helfer, die mehrere Module brauchen. | auftraege.py, einheiten.py, kampfbericht.py, main.py, spionage.py |
 | `spielstaende.py` | 52 | Drei stabile, unabhaengige Speicherslots und ein gesonderter Admin-Teststand. | main.py |
 | `gildenrangliste_original.py` | 48 | Historische Gildenwertung als reine, inaktive Datenfunktion. | — (Einstieg oder ungenutzt) |

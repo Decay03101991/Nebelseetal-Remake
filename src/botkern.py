@@ -57,7 +57,9 @@ BOT_FRAKTIONEN = {
     "Brynhild": "menschlich",
     "Grom": "zwergisch",
     "Silra": "elfisch",
-    "Krank": "monster",
+    # A2 (03.11.2026): "monster" ist durch Trolle, Ghule und Gnome ersetzt (Daniel 03.11.2026).
+    # Krank traegt weiter das alte Paar (AT +5 % / Handelserloes -5 %) - jetzt unter dem Namen Trolle.
+    "Krank": "Trolle",
 }
 
 # VORSCHLAG: Startvorraete und Wagenpark eines frischen Bots. Die Vorlage nennt fuer die

@@ -63,9 +63,18 @@ abschnitt("1. S-7-Daten - Sperrzeit, Ablaufzeit, Volksattribute, Boni")
 
 check("SPERRZEIT_NACH_WECHSEL ist positiv", BT.SPERRZEIT_NACH_WECHSEL > 0)
 check("VERHALTENSBONUS_DAUER ist positiv", BT.VERHALTENSBONUS_DAUER > 0)
-check("VOLKSATTRIBUTE kennt genau die vier Fraktionen",
-      set(BT.VOLKSATTRIBUTE) == set(BK.BOT_FRAKTIONEN.values()),
-      str(set(BT.VOLKSATTRIBUTE)))
+# UMGESTELLT 03.11.2026 (A2, Register 148): seit Daniels Entscheidung gibt es SECHS Fraktionen
+# (menschlich, zwergisch, elfisch, Trolle, Ghule, Gnome - die drei letzten ersetzen "monster"). Die
+# alte Wache nagelte "genau die vier Fraktionen der Bots" fest; geprueft wird jetzt die neue
+# Entscheidung: die Quelle `data/voelker.json` traegt sechs, und jede Fraktion, die ein Bot traegt,
+# ist darin bekannt.
+check("die Quelle kennt genau die sechs Fraktionen",
+      set(BT.VOLKSATTRIBUTE) == {str(e["kennung"]) for e in BT.fraktionen()}
+      and len(BT.fraktionen()) == 6,
+      str(sorted(BT.VOLKSATTRIBUTE)))
+check("jede Fraktion der Bots ist in der Quelle bekannt",
+      set(BK.BOT_FRAKTIONEN.values()) <= set(BT.VOLKSATTRIBUTE),
+      str(sorted(set(BK.BOT_FRAKTIONEN.values()) - set(BT.VOLKSATTRIBUTE))))
 check("jede Fraktion traegt plus und minus",
       all({"plus", "minus"} <= set(v) for v in BT.VOLKSATTRIBUTE.values()))
 check("jede Taktik traegt ein Bonusfeld",

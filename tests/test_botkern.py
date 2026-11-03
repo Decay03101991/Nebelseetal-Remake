@@ -94,9 +94,11 @@ check("temperament immer in [-1,1] (+-10 %)",
       all(-1.0 <= b["temperament"] <= 1.0 for b in bots5))
 check("die fuenf belegten Gegennamen (main.BOTS)",
       [b["name"] for b in bots5] == BK.BOT_NAMEN)
+# UMGESTELLT 03.11.2026 (A2, Register 148): Daniel hat "monster" durch Trolle, Ghule und Gnome
+# ersetzt. Krank traegt weiter dasselbe Paar (AT +5 % / Handelserloes -5 %) - unter dem Namen Trolle.
 check("die belegten Fraktionen stimmen",
       [b["fraktion"] for b in bots5] == ["menschlich", "menschlich", "zwergisch",
-                                         "elfisch", "monster"])
+                                         "elfisch", "Trolle"])
 
 check("gleicher Seed -> gleiche Bots (Wiederholbarkeit)",
       BK.neue_bots(5, random.Random(77)) == BK.neue_bots(5, random.Random(77)))

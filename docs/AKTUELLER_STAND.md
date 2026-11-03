@@ -1,3 +1,46 @@
+# STAND 03.11.2026, 01:08 - A2: sechs Voelker, der Spieler waehlt (Register 148)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Der Spieler hat jetzt ein Volk.** Sechs Fraktionen stehen in `data/voelker.json`: menschlich,
+zwergisch, elfisch, Trolle, Ghule, Gnome - Trolle, Ghule und Gnome ersetzen die fruehere Fraktion
+"monster" (Daniel 03.11.2026). Der Spieler waehlt im Dorfzentrum VOR der Kartenwahl; die fuenf Bots
+bekommen die uebrigen Voelker, jedes genau einmal. Die Wahl steht im Spielstand und bleibt als Zeile
+"Dein Volk: ..." sichtbar.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `8180140` plus dieser Schritt | `git log --oneline -1` |
+| Datenquelle | sechs Fraktionen mit Plus, Minus, Beschreibung und Quelle je Wert | `data/voelker.json` |
+| Code liest die Datei | Datenschicht `src/voelker.py` liest `data/voelker.json`; `bottaktik` fragt dort nach (es darf selbst keine Datei oeffnen); ohne Datei alter Rueckfallsatz | `src/voelker.py`, `src/bottaktik.py` |
+| Neues Modul | `src/voelker.py`, Modulkarte auf 54 Dateien nachgezogen | `docs/MODULKARTE.md` |
+| Verteilung | `verteile_fraktionen` - Bots nach Namen, Voelker in Datei-Reihenfolge, keine Doppelung | ebd. |
+| Wache | `tests/test_voelkerwahl.py` **37/0/0** | eigener Lauf |
+| Gegenprobe | Verteilung abgeschaltet -> rot (1 Fehler), Datei danach hashgleich | eigener Lauf |
+| Umgestellte Wachen | `test_s7_botverhalten` ("genau die vier Fraktionen") und `test_botkern` ("monster") tragen die neue Entscheidung im Docstring | eigene Laeufe |
+| Pruefdateien / Register | **135** / **148** | `ls tests/test_*.py`, `grep -c '^| [0-9]'` |
+| Voller Sammellauf | **133 von 135 gruen, 0 rot, 2 ausgesetzt, 5.351 Pruefungen, 415 s** | `docs/audits/sammellauf_20261103_0118.log` |
+
+**Ehrlich zur Wirkung:** die Boni sind eine ANZEIGE. Kein Ertrag, keine Reise und kein Kampfwert rechnet
+heute mit dem Volk - das ist Auftrag V-5 und braucht Daniels Pruefung des Entwurfs.
+
+**Ehrlich zur Wache:** die erste Fassung zaehlte fuenf Bots fest. Der Startzustand hat je nach Lage zwei
+bis fuenf Bots - die Wache war damit wackelig und prueft jetzt die REGEL (jeder vorhandene Bot traegt
+eine Fraktion aus der Verteilung, keine doppelt) statt einer Zahl.
+
+## Der EINE naechste Schritt
+
+**Volksboni verdrahten (Auftrag V-5)** - der Entwurf liegt vor und ist geprueft. Vorher braucht es
+Daniels Entscheid zu den Fragen aus V-5 (Ueberschneidung Silra/Krank, Hoehe der Wirkung, Sperrzeit).
+Danach: Kopplung Punkte/Kanaele (C), Balance-Messung (D), zuletzt Demo-Release (Freigabe Daniel).
+
+**Marktplatz:** braucht ein Motiv von Daniel (Motiv 2 "Kuppelbau" ist im Handbuch als nicht entscheidbar
+vermerkt).
+
+**Demo-Umfang ist eingefroren (Daniel 02.11.2026):** Kernkreis + Spionage + Voelker- und Kartenwahl
+am Start. Mit Register 148 ist die Voelkerwahl gebaut, die Kartenwahl mit Register 147 - es fehlt nur
+noch die Wirkung der Volksboni.
+
 # STAND 03.11.2026, 00:37 - A2-Vorstufe: der Spieler waehlt seine Startkarte (Register 147)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

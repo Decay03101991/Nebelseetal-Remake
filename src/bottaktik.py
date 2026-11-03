@@ -207,12 +207,60 @@ _TAKTIK_NEUTRAL: Dict[str, Any] = {"name": "Unbekannt", "naehe": True,
 # Beschreibung - die WIRKUNG auf Ertrag/Kampf/Reise gehoert in den jeweiligen Kern
 # (S-7 verbietet andere src-Dateien) und ist hier NICHT verdrahtet. Quelle der
 # Fraktion: botkern.BOT_FRAKTIONEN (eine Quelle, keine zweite Wahrheit).
-VOLKSATTRIBUTE: Dict[str, Dict[str, str]] = {
+_VOLKSATTRIBUTE_RUECKFALL: Dict[str, Dict[str, str]] = {
     "menschlich": {"plus": "Holzertrag +5 %", "minus": "Steinertrag -5 %"},
     "zwergisch": {"plus": "Steinertrag +5 %", "minus": "Holzertrag -5 %"},
     "elfisch": {"plus": "Reisegeschwindigkeit +5 %", "minus": "PA der Einheiten -5 %"},
-    "monster": {"plus": "AT der Einheiten +5 %", "minus": "Handelserloes -5 %"},
+    "Trolle": {"plus": "AT der Einheiten +5 %", "minus": "Handelserloes -5 %"},
 }
+
+
+def _voelker_daten():
+    """Die Datenschicht der Voelker (`src/voelker.py`) - hier wird nur gefragt, nicht gelesen.
+
+    `bottaktik.py` bleibt reine Logik: Dateien oeffnen ist hier verboten (eigene Wache in
+    `tests/test_bottaktik.py`). Das Lesen von `data/voelker.json` macht `voelker.py`.
+    """
+    try:
+        import voelker as _v
+        return _v
+    except Exception:                                  # noqa: BLE001 - ohne Modul alter Rueckfallsatz
+        return None
+
+
+# A2 (03.11.2026): sechs Fraktionen aus `data/voelker.json`. "monster" ist durch Trolle, Ghule und
+# Gnome ERSETZT (Daniel 03.11.2026); Trollen gehoert das alte Paar (AT +5 % / Handel -5 %).
+VOELKER: list = (lambda v: v.fraktionen() if v else
+                 [{"kennung": k, "plus": d.get("plus", ""), "minus": d.get("minus", ""),
+                   "beschreibung": "", "quelle": "bottaktik.py"}
+                  for k, d in _VOLKSATTRIBUTE_RUECKFALL.items()])(_voelker_daten())
+VOLKSATTRIBUTE: Dict[str, Dict[str, str]] = {
+    str(e["kennung"]): {"plus": str(e.get("plus") or ""), "minus": str(e.get("minus") or "")}
+    for e in VOELKER
+}
+
+
+def fraktionen() -> list:
+    """Die sechs Fraktionen in Verteilungsreihenfolge (Kopie - niemand aendert die Quelle)."""
+    v = _voelker_daten()
+    return v.fraktionen() if v else [dict(e) for e in VOELKER]
+
+
+def verteile_fraktionen(spieler_fraktion: str, botnamen=None) -> Dict[str, str]:
+    """Die uebrigen Fraktionen an die Bots verteilen - ohne Doppelung, ohne Wuerfeln.
+
+    Der Spieler hat seine Fraktion; die fuenf Bots bekommen die restlichen fuenf in der Reihenfolge
+    der Datendatei, die Bots der Reihe nach nach Namen sortiert. Damit ist dieselbe Wahl immer
+    dieselbe Verteilung (nachpruefbar), und bei sechs Fraktionen und fuenf Bots bleibt genau eine
+    uebrig - keine Doppelung, keine Luecke.
+    """
+    v = _voelker_daten()
+    if v is not None:
+        return v.verteile_fraktionen(spieler_fraktion, botnamen)
+    namen = sorted(botnamen or ["Brynhild", "Grom", "Haug", "Krank", "Silra"])
+    gewaehlt = str(spieler_fraktion or "").strip()
+    reihe = [str(e["kennung"]) for e in VOELKER if str(e["kennung"]) != gewaehlt]
+    return {name: reihe[i] for i, name in enumerate(namen) if i < len(reihe)}
 
 
 def taktik_von(bot: Optional[dict]) -> Dict[str, Any]:
