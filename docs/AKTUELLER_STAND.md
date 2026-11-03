@@ -45,13 +45,24 @@ Mindestbestand im Dorf liegt). Gemessen danach: Doerfer unveraendert 3/4/4/1/3, 
 Krank bauen 0 Karren** - die Ruecklage verhindert den Karrenbau, ohne eine einzige Gruendung zu
 ermoeglichen. Wieder zurueckgenommen; die Wachen sind gruen (23/0/0, 36/0/1).
 
-**Das ist eine Wirtschaftsfrage, keine Karrenfrage:** die Bot-Doerfer geben ihr Holz fuer Bauten aus und
-sparen nie auf die Gruendung. Drei Wege, Entscheidung Daniel:
-1. **Bot spart gezielt** - ein Anteil des Holzes wird bis zur Gruendung nicht fuer Bauten ausgegeben
-   (Vorschlag: erst die Gruendung, dann bauen; betrifft `bot_doerfer_bebauen`).
-2. **Holz-Ertrag der Bots erhoehen** - mehr Holzzaeller je Dorf (widerspricht der Zahl 12/12/12/9 vom
-   02.11.2026, also nur mit Daniels Wort).
-3. **So lassen** - Silra bleibt bei einem Dorf, die anderen gruenden mit Karren; das Spiel ist spielbar.
+**Das ist eine Wirtschaftsfrage, keine Karrenfrage** - und inzwischen gemessen:
+
+| Versuch | Ergebnis |
+|---|---|
+| mehr Holzfaeller (3 -> **5**, Daniels Entscheidung 20:2x) | **keine Aenderung**: 3/4/4/1/3 Doerfer |
+| Ruecklage im Karrenbau (danach muss die Gebuehr noch da sein) | **0 Karren** bei Haug, Silra, Krank - Dorfzahl unveraendert |
+| 5 Holzfaeller **und** Ruecklage | genauso: 0 Karren, unveraendert |
+| Holzverlauf Silra (5 Holzfaeller, 24 Tage) | Tag 3: **1** Holz, Tag 12: 53, Tag 24: 189 - nie ueber 190 |
+| Wohin das Holz geht | **5 Karren** (1.000 Holz), **5 Forschungen** (Baukunst 2, Heimlichkeit 3, Wagenbau, Felderwirtschaft, Kriegskunst), **27 Anlagen** |
+
+Der Ertrag reicht rechnerisch (20 Holz/h x 144 h = 2.880 Holz), aber Karren, Forschung und Bauten
+verbrauchen ihn laufend. **Ohne eine Prioritaetsregel kommt kein Bot zur Gruendungsgebuehr** - die
+Holzmenge allein loest es nicht.
+
+**Die verbleibende Entscheidung:** soll die **Gruendung Vorrang vor Forschung und Bauen** bekommen
+(dann pausieren Forschung und neue Anlagen, bis die 480 Holz beisammen sind)? Das ist der einzige
+Weg, der nach dieser Messung noch wirkt - er aendert aber das Verhalten der Bot-Doerfer spuerbar.
+Empfehlung: **ja, mit Deckel** - nur solange die Gruendung ansteht und die Hoechstzahl nicht erreicht ist.
 
 # STAND 03.11.2026, 19:02 - Ablauf neu geordnet: S-6b vor S-7, Berichte vor Karawanen
 
