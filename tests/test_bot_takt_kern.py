@@ -52,10 +52,11 @@ def einstellungen(weg: str) -> dict:
 def bot_mit_dorf(karte: str = "original-036", nahrung: float = 1000.0, armee: int = 100):
     """Ein Bot mit EINEM Hauptdorf, Karte und (optional) Armee."""
     bot = M.BotPlayer("Pruefbot", "zwergisch", 0.3, 0.5)
-    bot.army = {"Krieger": int(armee)} if armee else {}
     dorf = M.BotDorf(name="Haupt", hauptdorf=True, karte=karte,
                      vorraete={"nahrung": float(nahrung), "holz": 500.0, "stein": 500.0})
     bot.doerfer = [dorf]
+    # S-5b (03.11.2026): die Armee steht im DORF - deshalb erst das Dorf, dann die Armee.
+    bot.army = {"Krieger": int(armee)} if armee else {}
     return bot, dorf
 
 
@@ -108,9 +109,13 @@ M.bot_doerfer_bebauen(_d2, _einst_felder)
 _rate = sum(float(v) for v in M.bot_dorf_ertrag(_d2, _einst_felder, _bot2).values())
 M.bot_doerfer_ernten(_bot2, 1000.0, _einst_felder)                 # erster Lauf: nur Zeitstempel
 _ernte = M.bot_doerfer_ernten(_bot2, 4600.0, _einst_felder)        # eine Stunde
-check("3 die Ernte der Stunde ist die Summe der Kernraten",
-      abs(sum(float(v) for v in _ernte.values()) - _rate) < 0.05,
-      f"{sum(float(v) for v in _ernte.values()):.2f} gegen {_rate:.2f}")
+# ENTSCHEIDUNG GEAENDERT (S-5c, 03.11.2026): seit die Garnison in IHREM Dorf isst (das tut `ort_tick`
+# auf dem Kern-Weg), ist der zurueckgegebene Zuwachs der NETTO-Zuwachs - Ernte minus Essen. Vorher
+# buchte `bot_futter_buchen` das Essen neben dem Kern, deshalb war die Rueckgabe brutto.
+_verbrauch_erwartet = 8.0 * 100.0 / 24.0                    # 8 je Einheit und Tag, 100 Einheiten
+check("3 der Zuwachs der Stunde ist die Kernrate MINUS das Essen der Garnison",
+      abs(sum(float(v) for v in _ernte.values()) - (_rate - _verbrauch_erwartet)) < 0.05,
+      f"{sum(float(v) for v in _ernte.values()):.2f} gegen {_rate - _verbrauch_erwartet:.2f}")
 check("3 der Kern schreibt EINE Journalzeile (nicht zwei: Ernte und Futter getrennt)",
       len(_d2.produktionsjournal) == 1, str(len(_d2.produktionsjournal)))
 _zeile = _d2.produktionsjournal[0] if _d2.produktionsjournal else {}

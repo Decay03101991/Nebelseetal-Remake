@@ -346,7 +346,9 @@ try:
 
     setze_truppen(app, kaempfer=30)
     app.state.noob_protection = False
-    bot = main.BotPlayer("Testbot", "menschlich", 0.5, 0.5, army={"Bürgerwehr": 2})
+    # S-5b (03.11.2026): `army` ist kein Konstruktorfeld mehr - die Armee steht in den Doerfern.
+    bot = main.BotPlayer("Testbot", "menschlich", 0.5, 0.5)
+    main.bot_armee_setzen(bot, {"Bürgerwehr": 2})
     bot.noob_protection = False
     app.state.messages.clear()
     gestartet = app._attack(bot)
