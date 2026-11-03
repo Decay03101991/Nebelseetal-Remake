@@ -1,3 +1,41 @@
+# STAND 03.11.2026, 22:4x - A gebaut: kein Flackern mehr beim Ansichtswechsel (Register 176)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Der Ansichtswechsel baut nicht mehr ab und dann auf, sondern baut NEU und tauscht erst dann.**
+Damit ist das Flackern weg, das Daniel als "abgehakt" beschrieben hat - ohne dass eine der 23 Ansichten
+angefasst wurde. Gemessene Ursache: `_render_view` leerte den Inhaltsbereich bei jedem Aufruf
+(`widget.destroy()` je Kind) und fuellte ihn neu, an **46 Aufrufstellen**.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Neue Wache | `tests/test_doppelpuffer.py` **15/0/0** | eigener Lauf |
+| Gegenprobe | **3 Pruefungen rot** (alter destroy-Zweig eingesetzt), Datei per SHA256 unveraendert zurueck | eigener Lauf |
+| Bestehende Wachen | `test_baseline` 40/0/0, `test_oberflaeche_original` 65/0/0, `test_startspiel` 62/0/1 | eigene Laeufe |
+| Voller Sammellauf | gestartet 22:4x, Ergebnis im Protokoll | `docs/audits/` |
+
+## Der Ablauf ab jetzt (Daniels Einordnung 22:2x, mit den neuen Auftraegen)
+
+| # | Schritt | Warum hier |
+|---|---|---|
+| 1 | **A Doppel-Puffer** | ERLEDIGT 03.11.2026 (Register 176) - wirkt auf alle Ansichten |
+| 2 | **Overlay-Basis + die drei haeufigsten Dialoge ingame** | Daniels Frage 1: keine Desktop-Fenster mehr. Zehn `Toplevel` sind der Vorrat; Bau-Menue, Truppen-Auswahl, Nachrichten zuerst |
+| 3 | **Weltkarte: Rahmen als Bildleiste + Felder mit Gelaendeton und Goldrand** | Daniels Entscheidung; Groesse und Aufbau bleiben |
+| 4 | **S-8 Stufe 3: Taktik-Bauplaene** in `data/bot_bauplan.json` (Mindestzahlen, Restfelder nach Ertrag) | legt die Zahl der Erzminen und "mehr von jedem Gebaeude" endgueltig fest - **dafuer laeuft der starke Modell-Auftrag** |
+| 5 | **Die acht Kampfregeln 1 bis 8** | abgesegnet (Register 175), je Regel Wache + Sammellauf |
+| 6 | **C: Refresh-Pfad fuer die fuenf haeufigsten Ansichten** | hier wird es wirklich fluessig; braucht B und die Overlay-Basis |
+| 7 | V-1 bis V-5 (Berichte, Postfach), S-7 Karawanen, S-9 Stil, W-3, Story | wie gehabt |
+| 8 | O-1b echte Hintergrundbilder | wartet auf Daniels Generator-Loesung (Midjourney abgebrochen) |
+
+## Der EINE naechste Schritt
+
+**Die Overlay-Basis bauen** (danach Bau-Menue, Truppen-Auswahl und Nachrichten darauf umstellen): ein
+dunkles Alpha-Bild als Flaeche ueber dem Inhalt, darueber ein Kastenbild aus `gebaeude_optik`,
+`grab_set` fuer die Eingabesperre, Escape schliesst. Der Sammellauf und die Protokollzeile gehoeren zum
+Abschluss.
+
+---
+
 # STAND 03.11.2026, 22:1x - S-8 Stufe 2 (Feld-Prioritaeten, Erzmine 3) und die acht Kampfregeln entschieden
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
@@ -34,9 +72,33 @@ wirklich fluessig), D Rest. Ursache gemessen: `_render_view` zerstoert bei **46*
 Widgets und baut sie neu. Weltkarte: drei Designvorschlaege im selben Dokument (Rahmen als Bildleiste,
 Felder mit Gelaendeton und Goldrand, spaeter gemalte Kacheln).
 
+## Daniels Entscheidungen zur Oberflaeche (22:2x) - jetzt der naechste Schnitt
+
+| Frage | Entscheidung |
+|---|---|
+| Reihenfolge | **Oberflaeche zuerst**: A (Doppel-Puffer) **und** die Overlay-Basis mit den drei haeufigsten Dialogen - die acht Kampfregeln und S-8 Stufe 3 kommen danach |
+| Weltkarte | **Rahmen als Bildleiste UND Felder mit Gelaendeton und Goldrand** (Vorschlag 3+2 zusammen) |
+
+**Rezept fuer den naechsten Schnitt (aus `docs/EINSCHAETZUNG_INGAME_FENSTER_20261103.md`):**
+
+1. **A - Doppel-Puffer in `_render_view`:** den Inhalt in ein NEUES, noch nicht gepacktes Frame bauen
+   (die Renderer lesen `self.content`), dann altes Frame zerstoeren und das neue in einem Zug einsetzen.
+   Damit verschwindet das Flackern bei allen 46 Aufrufstellen, ohne dass eine Ansicht angefasst wird.
+   Pruefzusage: ein Ansichtswechsel hinterlaesst nie einen leeren Inhaltsbereich (Wache ueber
+   `winfo_children()` vor und nach dem Wechsel), und die Zahl der Widgets ist vor/nach gleich.
+2. **Overlay-Basis:** ein Baustein `_overlay_oeffnen(titel, bauer)` - dunkle Alpha-Flaeche als Bild
+   (Pillow, `(0,0,0,140)`) ueber den ganzen Inhaltsbereich, darueber ein Kastenbild aus
+   `gebaeude_optik`, `grab_set` fuer die Eingabesperre, Escape schliesst. Danach die drei haeufigsten
+   `Toplevel`-Dialoge darauf umstellen (Bau-Menue, Truppen-Auswahl, Nachrichten).
+3. **Weltkarte:** Rahmen mit `main.leiste_zusammensetzen` (Ecken fest, Kanten dehnbar) und Felder mit
+   Gelaendeton, feiner Trennlinie, Goldrand fuer die Auswahl.
+
+**Jeder Schritt: eigene Wache, voller Sammellauf, Registerzeile, Protokollzeile.**
+
 ## Der EINE naechste Schritt
 
-**Die acht Kampfregeln in der Reihenfolge 1 bis 8 bauen** - je Regel eine Wache, der Sammellauf und die
+**Die Oberflaeche: A (Doppel-Puffer) und die Overlay-Basis (Daniel 22:2x).** Danach die acht Kampfregeln
+in der Reihenfolge 1 bis 8 - je Regel eine Wache, der Sammellauf und die
 Protokollzeile. Vorher steht nur noch **S-8 Stufe 3** (Bauplan je Taktik in `data/bot_bauplan.json`,
 Mindestzahlen plus Restfelder), weil es die Erzmine-Zahl endgueltig festlegt. **Der Sammellauf gehoert
 zum Abschluss jedes Schnitts, und die Protokollzeile dazu ebenfalls.**

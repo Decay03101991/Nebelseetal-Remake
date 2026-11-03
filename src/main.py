@@ -7270,21 +7270,39 @@ class NebelseetalApp:
             pass
 
     def _render_view(self):
+        """Zeichnet die aktuelle Ansicht - seit A (03.11.2026) mit DOPPEL-PUFFER.
+
+        WARUM: bis heute wurde der Inhaltsbereich bei JEDEM Aufruf erst LEER GEMACHT
+        (`widget.destroy()` je Kind) und danach neu gefuellt - 46 Aufrufstellen, also praktisch jeder
+        Klick. Das Flackern und das Gefuehl "abgehakt" kamen daher, nicht aus der Rechenzeit
+        (gemessen: `docs/EINSCHAETZUNG_INGAME_FENSTER_20261103.md`).
+        JETZT wird die neue Ansicht in einen ZWEITEN Rahmen gebaut, waehrend der alte sichtbar
+        bleibt; erst wenn sie fertig ist, wird getauscht. Schlaegt der Aufbau fehl, bleibt der alte
+        Inhalt stehen und der Fehler wird weitergereicht (kein leeres Fenster).
+        Die Ansichten selbst sind unveraendert: sie schreiben weiter nach `self.content`.
+        """
         # Eine Pruefung darf eine App ohne aufgebaute Oberflaeche benutzen (z. B.
         # tests/test_gebaeude_wirkung.py baut nur den Zustand und ruft Aktionen direkt).
         # Dann gibt es nichts zu zeichnen — die Neuzeichnung ist trotzdem kein Fehler.
         if getattr(self, "content", None) is None:
             return
-        for widget in self.content.winfo_children():
-            widget.destroy()
+        alt_inhalt = self.content                                          # bisheriger Inhalt (bleibt sichtbar)
+        alt_fenster = getattr(self, "_content_fenster", None)              # sein Fensterobjekt im Canvas
+        try:                                                              # sichtbare Breite fuer den Neubau
+            breite = int(self.content_canvas.winfo_width() or 0)           # 0 = noch nicht vermessen
+        except Exception:                                                 # Canvas fehlt (Pruef-App)
+            breite = 0                                                     # dann ohne Breite arbeiten
+        neuer_inhalt = tk.Frame(self.content_canvas, bg=self.skin["bg"])   # Doppel-Puffer: neuer Rahmen
+        fenster_argumente = {"window": neuer_inhalt, "anchor": "nw"}       # Fenstereintrag im Canvas
+        if breite > 1:                                                    # Breite schon bekannt
+            fenster_argumente["width"] = breite                            # dann sofort richtig breit
+        neues_fenster = self.content_canvas.create_window((0, 0), **fenster_argumente)
+        self.content = neuer_inhalt                                        # Renderer bauen in den NEUEN Rahmen
+        self._content_fenster = neues_fenster                              # Canvas zeigt auf den neuen Rahmen
+        self.content.bind("<Configure>", lambda e: self.content_canvas.configure(
+            scrollregion=self.content_canvas.bbox("all")))                 # Rollbereich mitziehen
         # Punkte stehen im Original dauerhaft in der Leiste (GameStar-Screenshot: "Eure Punkte:
         # Forschung / Krieg / Gesamt"). Sie werden bei jedem Neuzeichnen mitgezogen.
-        self._punkte_leiste_aktualisieren()
-        # Neue Ansicht immer von oben zeigen, sonst startet sie mitten im Inhalt.
-        try:
-            self.content_canvas.yview_moveto(0)
-        except Exception:
-            pass
         mapping = {
             "Dorfzentrum": self._render_overview,
             "Siedlungskarte": self._render_settlement_map,
@@ -7311,10 +7329,33 @@ class NebelseetalApp:
             "Spieler werben": self._render_referral,
             "Spielerprofile": self._render_profiles,
         }
-        if self.current_view in mapping:
-            mapping[self.current_view]()
-        else:
-            tk.Label(self.content, text=f"{self.current_view} kommt bald.", fg="#DAA520", bg=self.skin["bg"]).pack(padx=20, pady=20)
+        try:                                                              # Aufbau der neuen Ansicht
+            self._punkte_leiste_aktualisieren()                            # Punktestand in der Leiste
+            try:                                                          # Neue Ansicht immer von oben -
+                self.content_canvas.yview_moveto(0)                        # sonst startet sie mitten im Inhalt
+            except Exception:                                             # Canvas fehlt (Pruef-App)
+                pass                                                      # dann ohne Rollen
+            if self.current_view in mapping:                               # Ansicht bekannt
+                mapping[self.current_view]()                               # dann bauen
+            else:                                                         # unbekannter Menuepunkt
+                tk.Label(self.content, text=f"{self.current_view} kommt bald.",
+                         fg="#DAA520", bg=self.skin["bg"]).pack(padx=20, pady=20)   # Platzhalter
+        except Exception:                                                  # Aufbau gescheitert
+            self.content_canvas.delete(neues_fenster)                      # neuen Rahmen verwerfen
+            neuer_inhalt.destroy()                                         # (er war nie sichtbar)
+            self.content = alt_inhalt                                      # alten Inhalt zuruecknehmen
+            self._content_fenster = alt_fenster                            # Canvas zeigt wieder dorthin
+            raise                                                          # Fehler nicht verschlucken
+        # Tausch: der alte Inhalt war bis hierher sichtbar und wird JETZT entfernt.
+        if alt_fenster is not None:                                       # es gab einen Vorgaenger
+            try:                                                          # Fenstereintrag loeschen
+                self.content_canvas.delete(alt_fenster)                    # wird nicht mehr gezeichnet
+            except Exception:                                             # schon weg
+                pass                                                      # dann nichts tun
+        try:                                                              # alten Rahmen abraeumen
+            alt_inhalt.destroy()                                          # seine Widgets verschwinden
+        except Exception:                                                 # schon zerstoert
+            pass                                                          # dann nichts tun
 
     def _render_overview(self):
         # B-6 (02.11.2026, Vorgabe Daniel): das gemalte Dorfzentrum ist der HINTERGRUND der ganzen
