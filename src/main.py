@@ -1336,6 +1336,8 @@ def bot_dorf_forschungsliste(bot: "BotPlayer", plan: Optional[dict] = None) -> L
     plan = plan if isinstance(plan, dict) else bot_forschungsplan()
     if not plan or not plan.get("aktiv", True):
         return []
+    if bot_spart_fuer_gruendung(bot):                        # Gruendung hat Vorrang (03.11.2026)
+        return []                                            # dann keine Forschung, Holz zuruecklegen
     zweige = plan.get("plaene") or {}
     zweig = zweige.get(bot_taktik_name(bot)) or zweige.get("Unbekannt") or {}
     eintraege = [e for e in (zweig.get("jetzt") or []) if isinstance(e, dict)]
@@ -1392,6 +1394,33 @@ def bot_dorf_forschung_abschluss(dorf: "BotDorf", bot: "BotPlayer",
         bot.geforscht = int(getattr(bot, "geforscht", 0) or 0) + 1
         return [gebiet]
     return []
+
+
+def bot_spart_fuer_gruendung(bot: "BotPlayer") -> bool:
+    """Spart dieser Bot gerade auf die Gruendungsgebuehr? (03.11.2026, Daniels Entscheidung)
+
+    Befund: mehr Holzfaeller allein half nicht (Dorfzahl 3/4/4/1/3 unveraendert), weil die Doerfer
+    ihr Holz laufend fuer Forschung und Bauten ausgeben - Silra hatte an Tag 3 genau 1 Holz und an
+    Tag 24 nur 189, bei 2.880 Holz Ertrag. Deshalb bekommt die Gruendung VORRANG:
+
+      * ein Dorf haelt HOECHSTENS EINEN Karren (er wird bei der Gruendung verbraucht),
+      * hat es einen Karren, aber noch nicht die Gebuehr, pausieren Forschung und neue Bauten,
+      * ist die Gebuehr beisammen, gruendet `bot_dorf_gruenden` und verbraucht den Karren.
+
+    Ist die Gruendung aus oder die Hoechstzahl erreicht, spart niemand - dann gilt der normale Takt.
+    """
+    einstellungen = bot_gruendung_einstellungen()                        # Schalter der Gruendung
+    if not bool(einstellungen.get("aktiv", False)):                      # Gruendung aus
+        return False                                                     # dann nicht sparen
+    grenze = int(einstellungen.get("hoechstens_doerfer") or 0)           # Daniels Hoechstzahl
+    doerfer = list(getattr(bot, "doerfer", None) or [])                  # seine Doerfer
+    if grenze > 0 and len(doerfer) >= grenze:                            # Grenze erreicht
+        return False                                                     # dann nicht sparen
+    karren = str((spieloekonomie.REGELN.get("gruendung") or {}).get("karren") or "Siedlerkarren")
+    for dorf in doerfer:                                                 # hat ein Dorf einen Karren?
+        if int((getattr(dorf, "einheiten", None) or {}).get(karren, 0) or 0) >= 1:
+            return True                                                  # dann fuer die Gebuehr sparen
+    return False                                                        # ohne Karren: normal wirtschaften
 
 
 def bot_dorf_forschen(dorf: "BotDorf", bot: "BotPlayer", jetzt: float = 0.0,
@@ -3392,7 +3421,14 @@ class GameState:
         # eigenen Dorflager. Ein Gebaeude je Dorf und Takt (`bauten_je_takt` in der Datendatei),
         # Reihenfolge aus dem Stil der Taktik.
         plan = bot_bauplan()                                           # einmal lesen, alle Doerfer nutzen ihn
+        # 03.11.2026 (Daniels Entscheidung): die Gruendung hat VORRANG. Hat ein Dorf seinen Karren und
+        # fehlt noch die Gebuehr, pausieren Forschung UND neue Bauten - sonst gibt das Dorf sein Holz
+        # aus, bevor die 480 Holz beisammen sind (gemessen: Silra erntete 13,6 Holz/h und verbrauchte
+        # 12,8 davon, sein Vorrat wuchs nur um 11 je Spieltag).
+        _spart = bot_spart_fuer_gruendung(bot)                         # spart dieser Bot gerade?
         for dorf in doerfer:                                           # je Dorf ein Bauplatz
+            if _spart:                                                 # Gruendung hat Vorrang
+                continue                                               # dann jetzt nicht bauen
             gebaut = bot_dorf_bauen(dorf, bot, jetzt, plan)             # EINE Kernfunktion (spielschicht.bauen)
             if gebaut:                                                 # wirklich etwas entstanden?
                 dorf.gebaut = int(getattr(dorf, "gebaut", 0) or 0) + len(gebaut)   # Zaehler am Dorf
@@ -5189,6 +5225,10 @@ class GameState:
                                             - float(menge)), 2)          # nie unter null
         dorf.vorraete = vorraete                                         # das Dorf hat bezahlt
         einheiten = dict(getattr(dorf, "einheiten", None) or {})         # Einheiten des Dorfes
+        # HOECHSTENS EIN Karren (03.11.2026): er wird bei der Gruendung verbraucht. Ohne diesen Deckel
+        # baute Silra fuenf Karren (1.000 Holz) und hatte nie die 480 Holz der Gruendungsgebuehr.
+        if int(einheiten.get("Siedlerkarren", 0) or 0) >= 1:             # schon einer da
+            return False                                                 # dann keinen zweiten bauen
         einheiten["Siedlerkarren"] = int(einheiten.get("Siedlerkarren", 0) or 0) + 1
         dorf.einheiten = einheiten                                       # der Karren steht
         return True                                                      # gebaut

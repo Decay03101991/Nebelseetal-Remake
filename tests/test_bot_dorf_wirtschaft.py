@@ -135,8 +135,13 @@ Grundwerte = {k: v for k, v in werte.items() if k in erwartet and k != "nahrung"
 check("2 der Ertrag stimmt mit data/buildings.json mal Anlagenzahl ueberein",
       Grundwerte == {k: v for k, v in erwartet.items() if k != "nahrung"},
       str(Grundwerte) + " / " + str(erwartet) + " (Anlagen je Art: " + str(anzahl) + ")")
-check("2 Daniels Entscheidung 02.11.2026 steht in der Datendatei (drei Anlagen)",
-      anzahl == 3, str(anzahl))
+# S-6b (03.11.2026, Daniels Entscheidung): Holz steht auf 5 - ein Bot braucht fuer den Karren
+# (200) und die Gruendung (480) zusammen 680 Holz. Die uebrigen Grundanlagen bleiben bei drei.
+check("2 die Anlagenzahl steht in der Datendatei (Holz fuenf, Grundanlagen drei)",
+      anzahl == 5, str(anzahl))
+check("2 Stein, Nahrung und Gold bleiben bei drei",
+      [M.anlagen_anzahl(g, einstellungen) for g in ("steinmetz", "farm", "goldmine")] == [3, 3, 3],
+      str([M.anlagen_anzahl(g, einstellungen) for g in ("steinmetz", "farm", "goldmine")]))
 check("2 die Nahrung ist Farm plus Rinderfarm (12 + 3x3)", werte.get("nahrung") == 21.0, str(werte.get("nahrung")))
 check("2 die vier Grundrohstoffe sind gesetzt",
       all(k in werte for k in ("gold", "holz", "nahrung", "stein")), str(sorted(werte)))

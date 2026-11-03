@@ -245,7 +245,13 @@ erst = M.bot_doerfer_bebauen(beb)
 zweit = M.bot_doerfer_bebauen(beb)
 # S-6b (03.11.2026): 12 Grundanlagen (4 Arten zu drei) plus die Anlagen fuer den Siedlerkarren:
 # Stellmacher 1, Rinderfarm 3, Schafszucht 2, Pferdezucht 1 = 19. Zahlen aus data/bot_wirtschaft.json.
-_soll = sum(M.anlagen_anzahl(g) for g in (M.bot_wirtschaft_einstellungen().get("gebaeude_je_dorf") or []))
+# S-6b (03.11.2026): `holzfaeller` steht auf 99 = alle passenden Felder. Erwartet wird deshalb
+# die Zahl, die WIRKLICH auf die Karte passt: je Gebaeude das Minimum aus Plan und passenden Feldern.
+_raster_soll = (beb.karte_daten or {}).get("raster") or []
+_soll = 0
+for _g in (M.bot_wirtschaft_einstellungen().get("gebaeude_je_dorf") or []):
+    _passt = sum(1 for _art in _raster_soll if M.gelaende.bau_moeglich(_g, _art)[0])
+    _soll += min(M.anlagen_anzahl(_g), _passt)
 check("6 der erste Aufruf setzt alle Anlagen aus dem Bauplan", erst == _soll, str(erst) + " / erwartet " + str(_soll))
 check("6 der zweite Aufruf setzt NICHTS nach (sonst waechst jeder Bot-Takt weiter)",
       zweit == 0, str(zweit))

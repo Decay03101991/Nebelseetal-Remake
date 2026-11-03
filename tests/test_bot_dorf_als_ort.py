@@ -148,7 +148,13 @@ _gesetzt = len(_d2.bauten)                            # was jetzt WIRKLICH im Do
 _einst = M.bot_wirtschaft_einstellungen()
 # S-6b (03.11.2026): die Anzahl ist je Gebaeude verschieden - die Summe der Einzelzahlen ist die
 # Erwartung, nicht "eine Zahl mal Anzahl der Gebaeude" (das brach bei einem Dict ab).
-_erwartet_anlagen = sum(M.anlagen_anzahl(g, _einst) for g in (_einst.get("gebaeude_je_dorf") or []))
+# S-6b (03.11.2026): je Gebaeude das Minimum aus Plan und passenden Feldern der Karte - der Plan
+# darf mehr erlauben, als die Karte hergibt (holzfaeller: 99 = alle passenden Felder).
+_raster_erw = (_d2.karte_daten or {}).get("raster") or []
+_erwartet_anlagen = 0
+for _g in (_einst.get("gebaeude_je_dorf") or []):
+    _passt = sum(1 for _art in _raster_erw if gelaende.bau_moeglich(_g, _art)[0])
+    _erwartet_anlagen += min(M.anlagen_anzahl(_g, _einst), _passt)
 check("der Uebergangs-Bauplan setzt die Grundanlagen", _gesetzt > 0, f"{_gesetzt} Anlagen")
 check("es sind genau drei je Grundrohstoff (Daniel: drei Anlagen)",
       _gesetzt == _erwartet_anlagen, f"{_gesetzt} / erwartet {_erwartet_anlagen}")
