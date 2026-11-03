@@ -35,6 +35,30 @@
 | **V-4 Postkasten** | Übersicht: Art (Angriff, Verteidigung, Spionage, Gründung, System), Zeit, Betreff, Kurzfassung; Details aufklappbar; Farbe je Art (bestehende `nachrichten_farbe`) | V-2 |
 | **V-5 Bot-Auswertung** | Bots lesen eingehende Berichte und leiten daraus ab, ob ein weiterer Angriff lohnt (eigene Schwelle, keine Zufallsentscheidung) | V-3, V-4 |
 
+## Nachtrag Daniel (" + AUF + "noch ein wichtiger hinweis" + ZU + "): Truppen in Ausbildung beim Angriff
+
+**Wortlaut:** " + AUF + "Wenn ein bot gerade truppen produziert während ich oder ein anderer bot angreifen,
+zählt der moment stand zum angriffsmoment weitere einheiten in der warteschlange werden auf den Ist-Stand
+nach dem Angriff einfach weiter aufgerechnet." + ZU + "
+
+**Regel, verbindlich:**
+
+| Punkt | Regel |
+|---|---|
+| Garnison im Kampf | Es zaehlt der **Moment-Stand zum Angriffsmoment** - also was zum Zeitpunkt des Eintreffens wirklich im Dorf steht |
+| Einheiten in der Warteschlange | Sie kaempfen **nicht** mit; sie werden auf den **Ist-Stand NACH dem Angriff** einfach weiter aufgerechnet (kein Verlust, keine Unterbrechung) |
+| Bericht | Der Bericht nennt die Garnison zum Angriffsmoment - die Warteschlange steht getrennt davon (sie ist keine Kampftruppe) |
+
+**Wo das im Ablauf hingehoert: Schnitt V-3 (vollstaendiger Kampfbericht) und V-2 (zwei Sichten).**
+Dort wird die Garnison gelesen, also muss dort auch die Zeitbasis stehen: `jetzt` des Eintreffens, nicht
+`jetzt` der Abfrage. Die Warteschlange bleibt unberuehrt und laeuft nach dem Kampf weiter - sie ist ein
+eigener Posten (`auftraege`/Ausbildung), keine stille Kampfreserve.
+
+**Konsequenz fuer die Pruefung:** eine Wache, die eine Ausbildung laufen laesst und waehrenddessen
+angreift, muss zeigen: (a) die frisch fertig gewordene Einheit steht im Bericht, (b) die noch wartende
+nicht, (c) die wartende ist nach dem Angriff weiterhin in der Warteschlange und wird nicht doppelt
+gezaehlt.
+
 ## Grenzen, die unverändert gelten
 
 - **Dörfer werden nie eingenommen**, **Angriffstruppen nie am Zielort stationiert** (`docs/GESAMTKONZEPT_20261102.md`, Abschnitt 4).
