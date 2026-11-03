@@ -22,7 +22,7 @@ angefasst wurde. Gemessene Ursache: `_render_view` leerte den Inhaltsbereich bei
 | 2 | **Overlay-Basis + die drei haeufigsten Dialoge ingame** | Daniels Frage 1: keine Desktop-Fenster mehr. Zehn `Toplevel` sind der Vorrat; Bau-Menue, Truppen-Auswahl, Nachrichten zuerst |
 | 3 | **Weltkarte: Rahmen als Bildleiste + Felder mit Gelaendeton und Goldrand** | Daniels Entscheidung; Groesse und Aufbau bleiben |
 | 4 | **S-8 Stufe 3: Taktik-Bauplaene** in `data/bot_bauplan.json` (Mindestzahlen, Restfelder nach Ertrag) | **Entwurf liegt vor** (`D:/Arbeiten/Hermes/Notizen/S8_STUFE3_BAUPLAENE_20261103.md`, drei Annahmen berichtigt: Jaeger 2/2, Zuchten 3, Farm 4/2); Bau offen |
-| 4b | **S-12 Alle Felder nutzen** (Daniel 23:1x) | der Bauplan fuellt die Karte, statt eine feste Zahl abzuarbeiten - `docs/KONZEPT_BOT_SPIELNUTZUNG_20261103.md` |
+| 4b | **S-12 Alle Felder nutzen** (Daniel 22:2x) | der Bauplan fuellt die Karte, statt eine feste Zahl abzuarbeiten - `docs/KONZEPT_BOT_SPIELNUTZUNG_20261103.md` |
 | 4c | **S-11 Kartenwahl mit Feldverstaendnis** | der Bot waehlt die Karte nach dem, was ihre Felder fuer SEINE Taktik bringen - nicht mehr Gold pauschal |
 | 4d | **S-13 Abriss und Umbau fuer Bots** | der Spieler kann abreissen, der Bot heute nicht; Kernregeln und Sperren gelten mit |
 | 4e | **S-14 Schieflage 4 gegen 6 Doerfer** | **Entscheidung Daniel**: Bots duerfen so viele Doerfer gruenden wie der Spieler (Empfehlung) oder der Abstand wird anders ausgeglichen |

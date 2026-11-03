@@ -1,6 +1,6 @@
-# Konzept: Bots nutzen das Spiel wie der Spieler (Daniel 03.11.2026, 23:1x)
+# Konzept: Bots nutzen das Spiel wie der Spieler (Daniel 03.11.2026, 22:2x)
 
-**Daniels Vorgabe, woertlich-nah:** Die Bots muessen beim Kartenwaehlen VERSTEHEN, was die Felder
+**Daniels Vorgabe (22:2x), woertlich-nah:** Die Bots muessen beim Kartenwaehlen VERSTEHEN, was die Felder
 ihnen bringen, und danach entscheiden; sie duerfen dann alle Felder dementsprechend nutzen - genau wie
 der Spieler. Sie duerfen Gebaeude ABREISSEN und ihr Dorf UMBauen, wenn sie es brauchen. Sie muessen das
 Spiel moeglichst voll nutzen wie der Spieler, weil sie nur drei weitere Doerfer gruenden duerfen: wenn
