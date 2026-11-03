@@ -299,6 +299,10 @@ class BotPlayer:
     # Spielstaende laden ohne das Feld; `bot_doerfer_sicherstellen` legt es beim Laden aus den
     # bisherigen Siedlungsnamen an, damit nichts verloren geht.
     doerfer: List["BotDorf"] = field(default_factory=list)
+    # S-4 (03.11.2026): der WISSENSSTAND des Bots {Gebiet: Stufe} - wie beim Spieler das
+    # Reichswissen, waehrend der laufende Auftrag je Dorf haengt (`BotDorf.forschungsauftrag`).
+    # ADDITIV: ein alter Spielstand laedt ohne das Feld und forscht ab 0 (kein stiller Vorsprung).
+    forschungsstaende: Dict[str, int] = field(default_factory=dict)
 
     # ---- B-3 (02.11.2026): die Kasse ist KEIN eigenes Feld, sondern die Summe der Doerfer ----
 
@@ -749,6 +753,12 @@ def bot_dorf_als_ort(dorf: "BotDorf", bot: "BotPlayer" = None) -> dict:
            "ausbildung": copy.deepcopy(getattr(dorf, "ausbildung", None) or []),
            "produktionsjournal": copy.deepcopy(getattr(dorf, "produktionsjournal", None) or []),
            "fertigjournal": copy.deepcopy(getattr(dorf, "fertigjournal", None) or []),
+           # S-4 (03.11.2026): `spieloekonomie.verbrauchen` (Kosten einer Forschung) und der
+           # Transportweg erwarten die Importherkunft. Bots fuehren sie noch nicht (Karawanen
+           # kommen mit S-7), also LEER statt erfunden - der Verbrauch wird dann voll aus dem
+           # eigenen Bestand gedeckt, und `verbrauchsjournal` bleibt ohne Importzeilen.
+           "importiert": {},
+           "verbrauchsjournal": [],
            "besitzer": "bot", "volk": str(getattr(bot, "faction", "") or "")}
     if getattr(dorf, "forschungsauftrag", None):
         ort["forschungsauftrag"] = copy.deepcopy(dorf.forschungsauftrag)
@@ -1078,6 +1088,175 @@ def bot_bauplan() -> Dict[str, Any]:
     return daten if isinstance(daten, dict) else {}
 
 
+# ===================================================================================================
+# S-4 (03.11.2026): DIE BOTS FORSCHEN
+#
+# Daniels Vorgabe, woertlich: die Bots sollen "mit ihren erwirtschafteten ressourcen auch
+# forschungsschritte durchlaufen um ihre einheiten und neue gebaeude freizuschalten". Bis hier hatten
+# Bots kein Forschungswesen (`dorf.geforscht` blieb 0), und der Kern-Tick bekam ein leeres dict als
+# Forschungsstand - jede Forschungsstufe des Bots war wirkungslos.
+#
+# Aufbau wie in S-3 (Bauen): die REIHENFOLGE steht je Taktik in `data/bot_forschung.json` mit
+# Begruendung je Schritt (Daniels Entscheidung 2), die Voraussetzungen kommen aus
+# `data/research.json` (`forschungspfad`), Dauer und Kosten aus `spieldaten` - und gestartet wird
+# durch DIESELBE Funktion wie beim Spieler (`spieloekonomie.forschung_start`). Der laufende Auftrag
+# haengt am ORT (`BotDorf.forschungsauftrag`, seit S-1 vorhanden), die erreichte Stufe am Bot.
+#
+# Warum NICHT `spielschicht.forschung_starten`: diese Funktion setzt ihren Auftrag in
+# `zustand["forschung"]` (Reichsstand) und prueft NUR Bibliothek, Kosten und "keine zweite Forschung".
+# Die Voraussetzungskette (`forschungspfad.erfuellt`: Bibliothek 3, Schmiedekunst 1 ...) kennt sie
+# nicht - ein Bot haette damit Waffentechnik ohne Schmiedekunst forschen koennen. Der Spieler geht
+# seit dem Oekonomie-Paket ueber `spieloekonomie.forschung_start` (main._start_research); die Bots
+# gehen denselben Weg.
+# ===================================================================================================
+
+def bot_forschungsplan() -> Dict[str, Any]:
+    """Der Forschungsplan der Bots aus `data/bot_forschung.json` (S-4) - EINE Quelle.
+
+    Je Taktik eine geordnete Liste von Schritten mit Zielstufe und Begruendung. Die Namen der
+    Forschungen und ihre Voraussetzungen stehen NICHT hier, sondern in `data/research.json`.
+    Fehlt die Datei oder ist sie kaputt, ist der Plan leer - dann forscht kein Bot (kein
+    erfundener Plan, kein Absturz).
+    """
+    pfad = os.path.join(spieldaten.projektwurzel(), "data", "bot_forschung.json")
+    try:
+        with open(pfad, encoding="utf-8") as f:
+            daten = json.load(f)
+    except (OSError, ValueError):
+        return {}
+    return daten if isinstance(daten, dict) else {}
+
+
+def bot_forschungsstaende(bot: "BotPlayer") -> Dict[str, int]:
+    """Der Wissensstand eines Bots als `{Gebiet: Stufe}` - leer heisst: nichts erforscht.
+
+    EINE Lesestelle: `bot_dorf_forschen` (Voraussetzungen), `bot_dorf_forschung_abschluss`
+    (Stufe steigt) und `bot_dorf_tick` (Forschungsboni des Kerns) lesen hier. Ein alter
+    Spielstand ohne das Feld liefert ein leeres dict und damit Stufe 0 ueberall.
+    """
+    roh = getattr(bot, "forschungsstaende", None) or {}
+    if not isinstance(roh, dict):
+        return {}
+    sauber: Dict[str, int] = {}
+    for name, stufe in roh.items():
+        try:
+            sauber[str(name)] = max(0, int(stufe or 0))
+        except (TypeError, ValueError):
+            continue
+    return sauber
+
+
+def bot_dorf_forschungsliste(bot: "BotPlayer", plan: Optional[dict] = None) -> List[dict]:
+    """Die geordnete Forschungsliste der Taktik dieses Bots (nur der Zweig ``jetzt``).
+
+    Gleiche Form wie `bot_dorf_bauen`: der Stil kommt aus `bot_taktik_name` (dieselbe Quelle wie
+    der Verhaltensbonus), ein unbekannter Name faellt auf ``Unbekannt`` zurueck. Der Zweig
+    ``nach_bibliothek`` enthaelt Schritte, die Bibliothek 2 oder 3 verlangen, und wird bewusst
+    NICHT gelesen (der Bot baut seine Bibliothek noch nicht aus).
+    """
+    plan = plan if isinstance(plan, dict) else bot_forschungsplan()
+    if not plan or not plan.get("aktiv", True):
+        return []
+    zweige = plan.get("plaene") or {}
+    zweig = zweige.get(bot_taktik_name(bot)) or zweige.get("Unbekannt") or {}
+    return [e for e in (zweig.get("jetzt") or []) if isinstance(e, dict)]
+
+
+def bot_dorf_forschung_abschluss(dorf: "BotDorf", bot: "BotPlayer",
+                                 jetzt: float) -> List[str]:
+    """Laesst eine FAELLIGE Forschung dieses Dorfes steigen - genau einmal (S-4).
+
+    Gerufen aus dem Bot-Takt, VOR dem Start der naechsten Forschung. Gebucht wird durch
+    `spieloekonomie.forschung_abschluss` (dieselbe Funktion wie beim Spieler): Stufe steigt nur
+    nach oben (`max`), der Auftrag verschwindet, die Fertigstellung landet im `fertigjournal` des
+    Dorfes. Ist die Zeit noch nicht um, aendert sich NICHTS - Rueckgabe dann leer.
+
+    Der Auftrag wird hier ausdruecklich auch auf ``None`` zurueckgeschrieben: `bot_dorf_aus_ort`
+    uebernimmt nur dicts, ein erledigter Auftrag bliebe sonst fuer immer am Dorf stehen.
+    """
+    if not isinstance(getattr(dorf, "forschungsauftrag", None), dict):
+        return []
+    ort = bot_dorf_als_ort(dorf, bot)
+    wissen = bot_forschungsstaende(bot)
+    neu, neues_wissen = spieloekonomie.forschung_abschluss(ort, wissen, float(jetzt))
+    if neu.get("forschungsauftrag"):                       # Zeit noch nicht um
+        return []
+    gebiet = str((dorf.forschungsauftrag or {}).get("gebiet") or "")
+    dorf.forschungsauftrag = None                          # Auftrag ist verbucht
+    bot_dorf_aus_ort(dorf, neu)                            # fertigjournal usw. uebernehmen
+    dorf.forschungsauftrag = None                          # ... aber kein alter Auftrag zurueck
+    if neues_wissen != wissen:                             # eine Stufe ist wirklich gestiegen
+        bot.forschungsstaende = dict(neues_wissen)
+        dorf.geforscht = int(getattr(dorf, "geforscht", 0) or 0) + 1
+        bot.geforscht = int(getattr(bot, "geforscht", 0) or 0) + 1
+        return [gebiet]
+    return []
+
+
+def bot_dorf_forschen(dorf: "BotDorf", bot: "BotPlayer", jetzt: float = 0.0,
+                     plan: Optional[dict] = None) -> List[str]:
+    """Startet EINE Forschung dieses Dorfes nach dem Plan seiner Taktik (S-4, 03.11.2026).
+
+    Gesucht wird der ERSTE Schritt der Liste, dessen Zielstufe noch nicht erreicht ist und dessen
+    Voraussetzungen mit dem Wissensstand des Bots und der Bibliothek DIESES Ortes erfuellt sind
+    (`forschungspfad.erfuellt`). Gestartet wird dann durch `spieloekonomie.forschung_start` -
+    dieselbe Funktion wie beim Spieler: sie prueft Voraussetzungskette, Bibliothek, "diese
+    Bibliothek forscht schon" und die Rohstoffe im DORFLAGER, und sie bucht die Kosten dort ab.
+
+    Kein Erfinden: ohne Bibliothek, ohne Plan, bei laufendem Auftrag oder wenn nichts erfuellbar
+    ist, bleibt die Rueckgabe leer und es wird nichts gebucht.
+    Rueckgabe: die gestarteten Gebiete (hoechstens `forschungen_je_takt`).
+    """
+    plan = plan if isinstance(plan, dict) else bot_forschungsplan()
+    if not plan or not plan.get("aktiv", True):
+        return []
+    if getattr(dorf, "forschungsauftrag", None):            # diese Bibliothek forscht schon
+        return []
+    liste = bot_dorf_forschungsliste(bot, plan)
+    if not liste:
+        return []
+    try:
+        je_takt = max(1, int(plan.get("forschungen_je_takt") or 1))
+    except (TypeError, ValueError):
+        je_takt = 1
+    ort = bot_dorf_als_ort(dorf, bot)
+    bibliothek = gebaeude_wirkung.bibliothek_stufe([ort])
+    if bibliothek <= 0:                                     # ohne Bibliothek kein Forschungsort
+        return []
+    weitere = None                                          # erst bei einem echten Start bauen (teuer)
+    gestartet: List[str] = []
+    for _ in range(je_takt):
+        wissen = bot_forschungsstaende(bot)
+        ziel = None                                         # naechster erforschbarer Schritt
+        for eintrag in liste:
+            name = str(eintrag.get("forschung") or "")
+            if not name:
+                continue
+            try:
+                bis = max(1, int(eintrag.get("bis_stufe") or 1))
+            except (TypeError, ValueError):
+                bis = 1
+            if wissen.get(name, 0) >= bis:                  # Zielstufe steht schon
+                continue
+            erfuellt, _grund = forschungspfad.erfuellt(name, wissen, bibliothek)
+            if not erfuellt:                                # Voraussetzung fehlt (noch)
+                continue
+            ziel = name
+            break
+        if ziel is None:                                    # nichts erfuellbar -> Takt vorbei
+            break
+        if weitere is None:                                 # erst jetzt die anderen Doerfer uebersetzen
+            weitere = [bot_dorf_als_ort(d, bot)         # Doppelforschung derselben Stufe vermeiden
+                       for d in bot_doerfer_sicherstellen(bot) if d is not dorf]
+        try:
+            ort = spieloekonomie.forschung_start(ort, ziel, wissen, float(jetzt), weitere)
+        except ValueError:                                  # zu teuer oder Regel verletzt
+            break
+        gestartet.append(ziel)
+        bot_dorf_aus_ort(dorf, ort)                         # Auftrag und Kosten ins Bot-Dorf
+    return gestartet
+
+
 def bot_taktik_name(bot: "BotPlayer") -> str:
     """Der STIL eines Bots (Pluenderer, Waechterin, Bastionier, Spaeherin, Raecher, Unbekannt).
 
@@ -1097,10 +1276,11 @@ def bot_dorf_bauen(dorf: "BotDorf", bot: "BotPlayer", jetzt: float = 0.0,
     `hoechstens` liegt, passt und bezahlbar ist; danach ist der Takt vorbei (`bauten_je_takt`).
     Kein Erfinden: passt nichts, ist die Rueckgabe leer.
 
-    **Forschung (ehrliche Grenze):** `jetzt` enthaelt nur Gebaeude, die OHNE Forschung baubar sind
-    (`data/buildings.json`, `regeln.ohne_forschung_baubar`). Alles andere verlangt "Baukunst" und
-    damit S-4; die vollen Plaene stehen als `nach_baukunst` in der Datendatei und werden hier
-    bewusst NICHT benutzt.
+    **Forschung:** seit S-4 (03.11.2026) wird der Zweig `nach_baukunst` MITGELESEN - aber nur,
+    was die gemeinsame Regel `gebaeude_forschung_erlaubt` durchlaesst (dieselbe Funktion wie im
+    Spielerweg `bauen_auf_karte`). Solange der Bot Baukunst nicht erforscht hat, sind Wall, Lager,
+    Schmiede, Akademie und Diebesgilde weiter gesperrt; sobald Baukunst 1 steht, baut er sie in der
+    Reihenfolge seiner Taktik. Die Forschungsregel wird also BENUTZT, nicht umgangen.
 
     Rueckgabe: die Namen der gesetzten Gebaeude (leer, wenn nichts gebaut wurde).
     """
@@ -1109,7 +1289,11 @@ def bot_dorf_bauen(dorf: "BotDorf", bot: "BotPlayer", jetzt: float = 0.0,
         return []
     zweige = plan.get("bauplaene") or {}                                     # je Taktik eine Liste
     zweig = zweige.get(bot_taktik_name(bot)) or zweige.get("Unbekannt") or {}
-    reihenfolge = [str(g) for g in (zweig.get("jetzt") or []) if str(g)]      # nur ohne Forschung baubar
+    staende = bot_forschungsstaende(bot)                                     # S-4: Wissensstand des Bots
+    reihenfolge = [str(g) for g in ((zweig.get("jetzt") or [])
+                                    + (zweig.get("nach_baukunst") or [])) if str(g)]
+    # Nur was der Wissensstand erlaubt - dieselbe Regel wie beim Spieler, EINE Stelle.
+    reihenfolge = [g for g in reihenfolge if gebaeude_forschung_erlaubt(g, staende)[0]]
     if not reihenfolge:
         return []
     hoechstens = plan.get("hoechstens") or {}                                # Obergrenzen je Gebaeude
@@ -1127,7 +1311,16 @@ def bot_dorf_bauen(dorf: "BotDorf", bot: "BotPlayer", jetzt: float = 0.0,
         for geb in reihenfolge:                                              # Reihenfolge der Taktik
             grenze = hoechstens.get(geb)                                     # Obergrenze der Datei
             steht = sum(1 for g in (ort.get("bauten") or {}).values() if str(g) == geb)
-            if isinstance(grenze, int) and steht >= grenze:                  # genug davon gebaut
+            # S-4 (03.11.2026): zusaetzlich die BELEGTE Obergrenze je Siedlung aus
+            # data/buildings.json (`max_je_siedlung`, z. B. Lager und Akademie je 1). Ohne diese
+            # Zeile liefe ein bereits gebautes Lager in `spielschicht.bauen` auf "hoechstens 1x"
+            # und der Takt braeche ab, statt beim naechsten Gebaeude weiterzumachen - genau der
+            # Fehler, der beim ersten Lauf mit `nach_baukunst` auftrat.
+            original = (gelaende.alle_gebaeude().get(geb) or {}).get("max_je_siedlung")
+            grenzen = [int(grenze)] if isinstance(grenze, int) and grenze > 0 else []
+            if isinstance(original, int) and original > 0:
+                grenzen.append(original)
+            if grenzen and steht >= min(grenzen):                            # genug davon gebaut
                 continue                                                     # naechstes Gebaeude
             frei = [i for i in range(len(raster)) if str(i) not in (ort.get("bauten") or {})]
             passend = [(gelaende.ertrag_pro_stunde(geb, raster[i]) or 0.0, i) for i in frei
@@ -1173,7 +1366,10 @@ def bot_dorf_tick(dorf: "BotDorf", bot: "BotPlayer", ab: float, bis: float,
     """
     ort = bot_dorf_als_ort(dorf, bot)                                     # Ort in Kern-Form
     vorher = {str(k): float(v) for k, v in (ort.get("vorraete") or {}).items()}   # Bestand vorher
-    neu = spieloekonomie.ort_tick(ort, float(ab), float(bis), {})         # EINE Kernfunktion
+    # S-4 (03.11.2026): der Kern bekommt den WISSENSSTAND des Bots - vorher ging hier ein leeres
+    # dict hinein, jede Bot-Forschung war damit fuer den Ertrag wirkungslos (Felderwirtschaft,
+    # Forstwirtschaft, Heilkunde ...). Ohne Forschung ist das dict leer, dann aendert sich nichts.
+    neu = spieloekonomie.ort_tick(ort, float(ab), float(bis), bot_forschungsstaende(bot))   # EINE Kernfunktion
     bot_dorf_aus_ort(dorf, neu)                                           # zurueck ins Bot-Dorf
     zuwachs: Dict[str, float] = {}                                        # was dazukam
     if not isinstance(getattr(dorf, "vorraete", None), dict):             # Sicherung: altes Dorf
@@ -1376,6 +1572,31 @@ def _ausbau_kosten(gebaeude_key: str, stufe: int, siedlung) -> dict:
             for stoff, wert in kosten.items()}
 
 
+OHNE_FORSCHUNG_BAUBAR = frozenset({"holzfaeller", "steinmetz", "jaeger", "bibliothek", "haus"})
+"""Die fuenf Gebaeude, die OHNE Forschung baubar sind (Handbuch, Siedlungs-Baumenue)."""
+
+
+def gebaeude_forschung_erlaubt(kennung: str,
+                               forschungsstaende: Optional[dict] = None) -> tuple:
+    """Darf dieses Gebaeude mit DIESEM Forschungsstand gebaut werden? ``(ja/nein, Begruendung)``.
+
+    EINE Stelle fuer die belegte Baumenue-Regel (Handbuch, Abschnitt Siedlungs-Baumenue; siehe
+    `data/buildings.json`, `regeln.ohne_forschung_baubar`): genau fuenf Gebaeude sind ohne
+    Forschung baubar - Holzfaeller, Steinmetz, Jaeger, Bibliothek und Haus. Alle uebrigen
+    erfordern Kenntnisse in der Forschung **Baukunst** (Stufe 1). Die Mindeststufe 1 ist eine
+    dokumentierte Remake-Entscheidung, keine behauptete Originalzahl.
+
+    Seit S-4 (03.11.2026) fragen der Spieler (`bauen_auf_karte`) und der Bot (`bot_dorf_bauen`)
+    dieselbe Funktion - vorher stand die Fuenfer-Liste im Code des Spielerwegs, und der Bot bog
+    die Regel mit einer eigenen Liste nach. Ohne nachgewiesene Forschung KEIN Freipass.
+    """
+    if str(kennung) in OHNE_FORSCHUNG_BAUBAR:
+        return True, "ohne Forschung baubar (Handbuch, Siedlungs-Baumenue)"
+    if int((forschungsstaende or {}).get("Baukunst", 0) or 0) >= 1:
+        return True, "Baukunst Stufe 1 vorhanden"
+    return False, "Baukunst Stufe 1 wird fuer dieses Gebaeude benoetigt."
+
+
 def bauen_auf_karte(siedlung: "Settlement", gebaeude_key: str, feld: int,
                    forschungsstaende: Optional[dict] = None,
                    nur_pruefen: bool = False) -> tuple:
@@ -1403,15 +1624,13 @@ def bauen_auf_karte(siedlung: "Settlement", gebaeude_key: str, feld: int,
 
     kennung = gelaende.finde_gebaeude(gebaeude_key) or gebaeude_key
     eintrag = gelaende.alle_gebaeude().get(kennung) or {}
-    # Handbuch, Abschnitt Siedlungs-Baumenue: genau fuenf Gebaeude sind ohne
-    # Forschung baubar. Alle uebrigen erfordern Kenntnisse in Baukunst.
-    # Die Mindeststufe 1 ist eine dokumentierte Remake-Entscheidung, keine
-    # behauptete Originalzahl. Ohne nachgewiesene Forschung KEIN Freipass.
-    ohne_forschung = {"holzfaeller", "steinmetz", "jaeger", "bibliothek", "haus"}
-    if kennung not in ohne_forschung:
-        staende = forschungsstaende or {}
-        if int(staende.get("Baukunst", 0) or 0) < 1:
-            return False, "Baukunst Stufe 1 wird fuer dieses Gebaeude benoetigt."
+    # Handbuch, Abschnitt Siedlungs-Baumenue: genau fuenf Gebaeude sind ohne Forschung baubar.
+    # Alle uebrigen erfordern Kenntnisse in Baukunst. S-4 (03.11.2026): dieselbe Regel steht
+    # jetzt EINMAL in `gebaeude_forschung_erlaubt` - der Spieler hier und der Bot in
+    # `bot_dorf_bauen` fragen dieselbe Funktion, statt die Liste ein zweites Mal zu fuehren.
+    frei, warum_forschung = gebaeude_forschung_erlaubt(kennung, forschungsstaende)
+    if not frei:
+        return False, warum_forschung
     grenze = eintrag.get("max_je_siedlung")
     if isinstance(grenze, int) and grenze > 0:
         schon_da = gebaeude_wirkung.gebaeude_stufe(siedlung, kennung) > 0
@@ -2634,6 +2853,14 @@ class GameState:
             if int(dorf.x) == 0 and int(dorf.y) == 0:                  # 0/0 = noch nicht gesetzt
                 dorf.x, dorf.y = bottaktik.dorf_position(bot.name, i)   # fest aus Name und Nummer
         bot_doerfer_karten_zuweisen(bot)                               # B-4: je Dorf eine Karte (drei zur Wahl, Gold zuerst)
+        # S-4 (03.11.2026): der Bot FORSCHT - zuerst faellige Auftraege verbuchen, dann den
+        # naechsten Schritt seiner Taktik starten (eine Bibliothek je Dorf, ein Auftrag je Takt).
+        # Steht VOR dem Bauen, damit ein Dorf, dessen Baukunst heute fertig wird, sie im selben
+        # Takt schon nutzen kann (Wall, Lager, Schmiede).
+        plan_forschung = bot_forschungsplan()                          # einmal lesen, alle Doerfer nutzen ihn
+        for dorf in doerfer:                                           # je Dorf eine Bibliothek
+            bot_dorf_forschung_abschluss(dorf, bot, jetzt)             # Stufe steigt genau einmal
+            bot_dorf_forschen(dorf, bot, jetzt, plan_forschung)        # EINE Kernfunktion (forschung_start)
         # S-3 (03.11.2026): der Bot BAUT - durch dieselbe Funktion wie der Spieler, aus seinem
         # eigenen Dorflager. Ein Gebaeude je Dorf und Takt (`bauten_je_takt` in der Datendatei),
         # Reihenfolge aus dem Stil der Taktik.

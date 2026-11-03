@@ -181,7 +181,9 @@ check("7 der Ertragsweg liest den Schalter", 'einstellungen.get("ertrag_weg")' i
       "main.bot_dorf_ertrag / main.bot_doerfer_ernten")
 check("7 der Kern-Weg ruft wirtschaft.ertrag_gesamt", "wirtschaft.ertrag_gesamt([bot_dorf_als_ort(dorf, bot)])"
       in TEXT_MAIN, "main.bot_dorf_ertrag")
-check("7 der Kern-Takt ruft ort_tick", "spieloekonomie.ort_tick(ort, float(ab), float(bis), {})" in TEXT_MAIN,
+check("7 der Kern-Takt ruft ort_tick - MIT dem Wissensstand des Bots (S-4: vorher ging dort ein "
+      "leeres dict hinein, jede Bot-Forschung war fuer den Ertrag wirkungslos)",
+      "spieloekonomie.ort_tick(ort, float(ab), float(bis), bot_forschungsstaende(bot))" in TEXT_MAIN,
       "main.bot_dorf_tick")
 check("7 der Takt verzweigt auf den Kern-Weg", "if kern_weg:" in TEXT_MAIN,
       "main.bot_doerfer_ernten")

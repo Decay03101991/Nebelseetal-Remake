@@ -196,8 +196,22 @@ check("9 der Takt ruft den Bauweg", "bot_dorf_bauen(dorf, bot, jetzt, plan)" in 
       "main.bot_doerfer_auffrischen")
 check("9 gebaut wird durch spielschicht.bauen (keine zweite Preisliste)",
       "spielschicht.bauen(zustand, 0, ziel[0], ziel[1])" in TEXT_MAIN, "main.bot_dorf_bauen")
-befund("9 ehrliche Grenze (S-4): 'nach_baukunst' wird noch NICHT gebaut - die Bots forschen nicht, "
-       "also duerfen sie Wall, Lager, Schmiede, Akademie und Diebesgilde nach der belegten Regel "
-       "noch nicht setzen. Bis dahin unterscheiden sich die fuenf Stile beim Bauen nicht.", "")
+befund("9 'lager' steht in data/buildings.json als 'keine belegt', die belegte Regel nennt es aber "
+       "nicht unter den fuenf kostenlosen Gebaeuden. Der Bot baut es deshalb erst hinter Baukunst - "
+       "dieselbe vorsichtige Lesart wie im Spielerweg (bauen_auf_karte).", "")
+check("9 S-4 (03.11.2026): 'nach_baukunst' wird jetzt BENUTZT - aber nur mit Baukunst Stufe 1",
+      "zweig.get(\"nach_baukunst\") or []" in TEXT_MAIN
+      and "gebaeude_forschung_erlaubt(g, staende)[0]" in TEXT_MAIN,
+      "main.bot_dorf_bauen")
+_mit_forschung, _mit_forschung_dorf = neuer_bot()
+M.bot_doerfer_bebauen(_mit_forschung_dorf)
+for _ in range(3):                                       # haus, haus, bibliothek
+    M.bot_dorf_bauen(_mit_forschung_dorf, _mit_forschung, 1000.0)
+check("9 ohne Baukunst bleibt es beim Haus-Bibliothek-Block",
+      M.bot_dorf_bauen(_mit_forschung_dorf, _mit_forschung, 1000.0) == [], "")
+_mit_forschung.forschungsstaende = {"Baukunst": 1}
+check("9 mit Baukunst 1 baut der Pluenderer aus 'nach_baukunst' (Lager zuerst)",
+      M.bot_dorf_bauen(_mit_forschung_dorf, _mit_forschung, 1000.0) == ["lager"],
+      str(sorted(_mit_forschung_dorf.bauten.values())))
 
 sys.exit(bericht())
