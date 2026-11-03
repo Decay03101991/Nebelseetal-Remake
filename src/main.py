@@ -567,6 +567,10 @@ def bot_futter_buchen(bot: "BotPlayer", dorf: "BotDorf", ab: float, bis: float,
         zeile["mengen"] = dict(mengen)
     zeile["verbrauch"] = {"nahrung": verbrauch}                       # Verbrauch als eigener Posten
     zeile["unterdeckung"] = unterdeckung                              # Rest, den das Lager nicht deckte
+    # S-11 (Daniels Entscheidung 9): auch der Bot-Weg haelt den Deckel ein. Auf dem Karten-Weg
+    # schreibt diese Funktion die Journalzeile selbst (der Kern laeuft dort nicht), deshalb steht
+    # der Deckel an BEIDEN Schreibstellen - sonst waere er fuer den Vorgabe-Weg wirkungslos.
+    spieloekonomie.journal_deckeln(dorf.produktionsjournal)
     return {"ab": ab, "bis": bis, "verbrauch": verbrauch, "unterdeckung": unterdeckung}
 
 

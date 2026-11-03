@@ -1068,6 +1068,35 @@ def nahrungsnot(ort, forschung: dict = None) -> dict:
             "ernte_tag": ernte_tag, "text": text}
 
 
+def journal_deckeln(journal: list, deckel: Optional[int] = None) -> list:
+    """Das `produktionsjournal` EINES Ortes auf die neuesten Zeilen kuerzen (S-11, Entscheidung 9).
+
+    Daniels Entscheidung 9 vom 03.11.2026, woertlich: "Deckel 500 Zeilen je Ort, aelteste fallen weg".
+    Ohne Deckel waechst das Journal unbegrenzt: eine Zeile je Ernte- und Verbrauchsspanne, bei
+    Spieler UND Bots gleich. Gekuerzt wird AN ORT UND STELLE (dieselbe Liste), damit jeder vorhandene
+    Leser - `fensterproduktion`, der Spionagebericht, die Anzeige - unveraendert weiterliest.
+
+    Die Zahl kommt aus `data/spieloekonomie.json` (`journal_max_zeilen`), NICHT aus dem Code. Fehlt
+    sie oder steht sie auf 0, wird nicht gedeckelt (kein stiller Standardwert).
+    Rueckgabe: dieselbe Liste (der Aufrufer kann sie ignorieren).
+    """
+    if not isinstance(journal, list) or not journal:
+        return journal
+    if deckel is None:
+        try:
+            deckel = int(REGELN.get("journal_max_zeilen") or 0)
+        except (TypeError, ValueError):
+            deckel = 0
+    try:
+        grenze = int(deckel)
+    except (TypeError, ValueError):
+        return journal
+    if grenze <= 0 or len(journal) <= grenze:
+        return journal
+    del journal[:len(journal) - grenze]                  # aelteste zuerst weg
+    return journal
+
+
 def ort_tick(ort: dict, ab: float, bis: float, forschung: dict) -> dict:
     """Einen Ort von Spielzeit `ab` bis `bis` fortschreiben. Liefert den neuen Ort.
 
@@ -1111,6 +1140,9 @@ def ort_tick(ort: dict, ab: float, bis: float, forschung: dict) -> dict:
             zeile["verbrauch"] = {"nahrung": verbrauch}
             zeile["unterdeckung"] = unterdeckung
         neu["produktionsjournal"].append(zeile)
+    # S-11 (Daniels Entscheidung 9): das Journal je Ort auf die neuesten Zeilen deckeln. EINE
+    # Stelle - hier schreibt der Kern jede Ernte- und Verbrauchszeile, fuer Spieler UND Bots.
+    journal_deckeln(neu["produktionsjournal"])
     for schlange in neu["werkstaetten"].values():
         for ware, n in werkstatt.fertige_waren(schlange, bis).items():
             neu["waren"][ware] = neu["waren"].get(ware, 0) + n

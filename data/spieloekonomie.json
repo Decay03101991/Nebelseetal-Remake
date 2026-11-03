@@ -15,6 +15,8 @@
   },
   "vergabe_stunden": 24,
   "versorgung_stunden": 24,
+  "journal_max_zeilen": 500,
+  "journal_max_zeilen_hinweis": "Daniels Entscheidung 9 (03.11.2026), woertlich: 'Deckel 500 Zeilen je Ort, aelteste fallen weg (empfohlen)'. Das produktionsjournal waechst sonst unbegrenzt (eine Zeile je Ernte-/Verbrauchsspanne und Ort, Spieler UND Bots gleich) - bei 24 h Versorgungsfenster und einem Takt je Stunde sind das 500 Zeilen rund 20 Spieltage Archiv. Gedeckelt wird in `spieloekonomie.journal_deckeln` (EINE Stelle), aufgerufen am Ende von `ort_tick` und nach dem Futter-Buchen der Bots; 0 oder ein fehlender Wert schaltet den Deckel ab.",
   "mindestsiedlungen": 4,
   "spezialistenfaktor": 1.4,
   "portfoliofaktor": 1.0,
