@@ -1,3 +1,41 @@
+# STAND 03.11.2026, 08:46 - S-4: die Bots FORSCHEN, ihre Taktiken trennen sich (Register 158)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Aus "gebaut bleibt 0" und "geforscht bleibt 0" sind echte Staende geworden.** Ein Bot-Dorf forscht
+jetzt mit SEINEN Rohstoffen, durch DIESELBE Funktion wie der Spieler (`spieloekonomie.forschung_start`):
+Voraussetzungskette geprueft, Preis aus dem Dorflager gebucht, Dauer aus den Spieldaten, Abschluss
+genau einmal. Die Reihenfolge kommt aus dem Stil der Taktik (`data/bot_forschung.json`, Daniels
+Entscheidung 2). Erst damit wird `nach_baukunst` nutzbar - Wall, Lager, Schmiede, Akademie und
+Diebesgilde stehen jetzt hinter Baukunst, nicht hinter einem Verbot.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `35df468` plus diese Doku | `git log --oneline -1` |
+| Voller Sammellauf | **140 von 142 gruen, 0 rot, 2 ausgesetzt, 5.653 Pruefungen, 385 s** (Start 08:38, auf dem CODE-Stand von S-4) | `docs/audits/sammellauf_20261103_0838.log` |
+| Pruefdateien / Register / Quelldateien | **142** / **158** / **55** | `ls tests/test_*.py`, `grep -c '^| [0-9]'`, `ls src/*.py` |
+| Neue Wache | `tests/test_bot_forschung.py` **57/0/1** | eigener Lauf |
+| Umgestellte Wachen | `test_bot_bauen` **35/0/2** (S-4-Befund aufgeloest), `test_bot_takt_kern` **26/0/1** (prueft den Kern-Aufruf mit Wissensstand) | eigene Laeufe |
+| Wirkung, gemessen | 120 Bot-Takte x 5 Bots (30 Spielstunden) in **2,43 s**; danach: Pluenderer Baukunst 1 / Heimlichkeit 1 / Wagenbau 1 / Felderwirtschaft 3 / Kriegskunst 2 (Lager, Schmiede, Akademie), Waechterin Baukunst 3 / Verteidigungsanlagen 3 (Wall, Bogenbauer), Bastionier Baukunst 3 / Felderwirtschaft 3 / Verteidigungsanlagen 1 (Wall, Schmiede), Spaeherin Heimlichkeit 3 (Diebesgilde, Bogenbauer), Raecher Kriegskunst 3 (Schmiede, Akademie) | Dauerspiel-Probe |
+| Kosten/Dauer belegt | Stufe 1 = **50 Holz**, je Stufe das Doppelte; Dauer = Stufe zum Quadrat in Stunden; gemessen: Baukunst Stufe 1 kostet genau 50 Holz aus dem Dorflager | `spieldaten.forschungs_kosten`, `test_bot_forschung.py` |
+
+**Ehrliche Grenzen:** (a) die Bibliothek eines Bots bleibt auf **Stufe 1** - Ausbauen ist noch nicht
+gebaut, deshalb sind alle Forschungen mit "Bibliothek 2/3/5/6" gesperrt und stehen als
+`nach_bibliothek` in der Datendatei; (b) die Forschung wirkt nur ueber den **Kern-Weg** des Takts
+(`bot_dorf_tick` bekommt jetzt den Wissensstand) - auf dem Vorgabe-Weg `ertrag_weg = karte` rechnet
+der Bot weiter mit dem Kartenprofil, dort aendert Forschung den Ertrag **nicht**; (c) die Reihenfolge
+je Taktik ist eine begruendete Setzung dieser Sitzung, keine Originalregel; (d) **Ausbilden** (S-5)
+fehlt weiter - die Bots haben jetzt Akademie und Gilde, aber noch keine Warteschlange.
+
+## Der EINE naechste Schritt
+
+**Bedarf je Rohstoff** (Daniels Entscheidung 4): den Verbrauch je Rohstoff fuehren und messen. Erst
+damit darf `kartenwahl_stufe` auf `mittel` gestellt werden - heute faellt `mittel` auf die Gold-Regel
+zurueck, weil das Spiel keinen Bedarfsbegriff kennt. Danach in dieser Reihenfolge: **Journal-Deckel**
+500 Zeilen je Ort (Entscheidung 9), **Diebstahl mit Postfach-Bericht** (Entscheidung 7), **S-5
+Ausbildung je Ort** - und damit die Voraussetzung dafuer, dass die Bot-Armee aus den Doerfern statt
+aus der Kasse kommt.
+
 # STAND 03.11.2026, 04:08 - S-3: die Bots BAUEN, ihre Siedler stehen an einem Ort (Register 156)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
