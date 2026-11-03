@@ -18,6 +18,7 @@ unveraendert.
 | Gegenproben | Weltfilter abgeschaltet -> **2 Fehler**; Beute-Buchung uebersprungen -> **1 Fehler**; Datei beide Male hashgleich zurueck | eigener Lauf |
 | Umgestellte Wache | `test_bot_armee_je_dorf` 21/1/1 -> **22/0/1** (sie verlangte genau EINE Verlustbuchung; seit W-4 gibt es zwei Verluststellen) | eigener Lauf |
 | Nachbarproben | `test_botkern` **101/0/0**, `test_bot_diebstahl` **46/0/1**, `test_bot_welten` **44/0/1**, `test_bot_ausbildung_je_ort` **20/0/1**, `test_bot_takt_scheiben` **34/0/1**, `test_startspiel` **62/0/1**, `test_durchspiel` **65/0/2**, `test_portal_fremdblick` **18/0/1**, `test_bot_wappen` **26/0/1**, `test_gpt_frischstart` OK (6 Tests) | eigene Laeufe |
+| Entscheidungen Daniel (16:08) | W-3 teuer mit Deckel; Weltaufteilung bleibt; Wappen bleiben; Karte 8 px + Name beim Darueberfahren | Nachtrag 16:08 in `docs/VORGABEN_WELTEN_UND_BOTS_20261103.md` |
 | Voller Sammellauf | **150 von 152 gruen, 0 rot, 2 ausgesetzt, 5.960 Pruefungen, 415 s** (Start 15:58) | `docs/audits/sammellauf_20261103_1558.log` |
 | Pruefdateien / Register | **152** / **169** | `ls tests/test_*.py`, `grep -c '^| [0-9]'` |
 | Berichtigung am Vorgaengerblock | Die Uebergabe war **10.557 Byte, SHA256 `35624259…`** (15:44 nachgemessen, hashgleich archviert) - der Block vom 15:25 nennt 10.485 Byte / `c0e5fafd`; die Datei wurde nach dem Schreiben des Blocks noch ergaenzt | `sha256sum`, `stat` |
@@ -37,9 +38,11 @@ ueberhaupt mehrere Ziele hat. Danach **S-7** (Karawanen zwischen eigenen Doerfer
 Taktik), zuletzt **W-3** (braucht Daniels Entscheidung: gesperrt oder teuer mit Deckel) und die
 **Story** (W-11, nebensaechlich).
 
-**Fuenf offene Fragen** stehen fuer die naechste Runde: W-3 (Sperre oder Preis), ein Volk ohne Bot,
-Wappen-Zuordnung, Burg-Groesse auf der Karte - und neu: ob zwei Bots eine Welt teilen sollen, damit
-Raubzuege Bot gegen Bot wirklich stattfinden.
+**Die Fragen der Runde sind beantwortet (Daniel, 16:08 - Nachtrag in `docs/VORGABEN_WELTEN_UND_BOTS_20261103.md`):**
+W-3 wird **teuer mit Deckel** (nicht gesperrt, eigener Schnitt spaeter), die Weltaufteilung **bleibt**
+(ein Bot je Welt, W-4 greift nur wo zwei Bots eine Welt teilen), die **Wappen bleiben** in der
+Reihenfolge der Fraktionen, und die Karte bleibt bei 8 px - der Burg-Name kommt erst beim
+Darueberfahren (kleiner Optik-Schritt, nicht Teil von W-4).
 
 **Der Sammellauf gehoert zum Abschluss jedes Code-Schnitts** - der Lauf zu diesem Stand ist gruen
 (Zeile oben) und startete nach dem letzten Code-Eingriff.

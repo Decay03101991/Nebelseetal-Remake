@@ -95,3 +95,12 @@ mitgebaut.
 **Einordnung im Ablauf:** Story steht am ENDE der Arbeitsliste, nach S-5 bis S-9 und W-3/W-4. Wenn
 Daniel sie aufruft, kommen zuerst Vorschlaege (Fraktionen als Traeger der Handlung, Nebelsee-Tal als
 Schauplatz, sechs Welten als Kapitel), dann erst Text.
+
+## Nachtrag 03.11.2026, 16:08 — Daniels Antworten (eine Runde, vier Fragen)
+
+| Nr | Frage | Antwort Daniel (woertlich-nah) | Folge |
+|---|---|---|---|
+| W-3 | Kampf ueber Weltgrenzen: gesperrt oder teuer mit Deckel? | **Teuer mit Deckel** — nicht gesperrt | Kampfauftraege ueber eine Weltgrenze bleiben moeglich und bekommen einen eigenen, prohibitiven Satz (VORSCHLAG im Dokument: Faktor 50 gegen `auftraege.MANA_JE_DIMENSION = 20.0`, Zahl in eine Datendatei, nicht in den Code). Der Ausloeser bleibt das Spiel (Angebot in der Oberflaeche), keine freie Koordinateneingabe. **Noch NICHT gebaut** — eigener Schnitt nach S-6/S-7/S-9 |
+| W-4 | Raubzuege Bot gegen Bot haben derzeit kein Ziel (ein Bot je Welt). Aendern? | **Bleibt so** — Folge der Vorgabe „5 Bots, 6 Welten“ | Keine Aenderung der Weltzuordnung. Der Mechanismus bleibt gebaut und greift, sobald zwei Bots' Doerfer in derselben Welt stehen (vor der Voelkerwahl Haug/Brynhild, spaeter ueber W-2) |
+| W-8 | Wappen-Zuordnung: soll eine bestimmte Burg zu einem bestimmten Volk? | **So lassen** (Reihenfolge der Fraktionen) | `data/bot_wappen.json` bleibt unveraendert |
+| W-8 | Burg und Wappen auf der Karte sind 8 px: groessere Felder oder Name beim Darueberfahren? | **So lassen (8 px), Name erst beim Darueberfahren** | Kein Kartenumbau. Der Name beim Darueberfahren ist ein kleiner UI-Schritt und steht als naechster Optik-Punkt offen (nicht Teil von W-4) |
