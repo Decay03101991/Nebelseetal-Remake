@@ -775,33 +775,48 @@ def bot_dorf_ertrag(dorf=None, einstellungen: Optional[dict] = None,
                     bot: Optional["BotPlayer"] = None) -> Dict[str, float]:
     """Stundenertrag EINES Bot-Dorfes - die EINE Lesestelle fuer Kern UND Anzeige (F-04).
 
-    Je Grundrohstoff stehen in einem Bot-Dorf `anlagen_je_gebaeude` Anlagen (Daniel 02.11.2026:
-    DREI) auf dem BESTEN Gelaende, auf dem sie gebaut werden duerfen; der Stundensatz JE ANLAGE
-    kommt aus `data/buildings.json` ueber `gelaende.ertrag_pro_stunde` (Handbuch 2009: Holzfaeller 4
-    auf Wald, Steinmetz 4 auf Berg, Farm 4 auf Grasland, Goldmine 3 auf Berg). Mit drei Anlagen
-    sind das 12 Holz / 12 Stein / 12 Nahrung / 9 Gold je Stunde und Dorf - die Zahl steht in der
-    Datendatei, nicht im Code.
-    `dorf` wird heute nicht ausgewertet (jedes Dorf wirtschaftet gleich) - der Parameter steht
-    trotzdem da, damit ein spaeterer Ausbau je Dorf KEINE zweite Funktion braucht.
-    **V-5 (03.11.2026):** ist `bot` uebergeben, wird jeder Rohstoff mit dem Volksfaktor seiner
-    Fraktion skaliert (`_mit_volk`; Zahlen in `data/boni.json`). Ohne `bot` bleibt der Ertrag der
-    alte - so laufen alte Aufrufe und Pruefungen unveraendert.
+    **S-8 Stufe 1 (03.11.2026): der Ertrag kommt aus den GEBAUTEN ANLAGEN.** Je belegtem Feld zaehlt
+    die Anlage und das Gelaende, auf dem sie steht (`gelaende.ertrag_pro_stunde`, Handbuch 2009:
+    Holzfaeller 4 auf Wald, Steinmetz 4 auf Berg, Farm 4 auf Grasland, Goldmine 3 auf Berg), dazu
+    das Grundeinkommen der Originalsiedlung und der Volksfaktor - gerechnet von
+    `wirtschaft.ertrag_gesamt`, derselben Funktion wie beim Spieler. Wer mehr Anlagen baut, erntet
+    mehr, bis die Karte voll ist; die Karte bestimmt, WAS gebaut werden KANN.
+    Das frueher allein gueltige KARTENPROFIL (`bot_kartenprofil`) ist nur noch VORSCHAU
+    ("was gaebe diese Karte her") und Rueckfall fuer Doerfer ganz ohne Anlagen.
+
+    **V-5 (03.11.2026):** ist `bot` uebergeben, traegt der Ertrag den Volksfaktor seiner Fraktion
+    (`_mit_volk`; Zahlen in `data/boni.json`) - AUSSER auf dem Anlagen-Weg: dort rechnet der Kern
+    den Faktor selbst, ein zweiter waere doppelt (Register 149).
     Rueckgabe: {Rohstoff klein: Menge je Stunde}.
     """
     einstellungen = einstellungen if einstellungen is not None else bot_wirtschaft_einstellungen()
-    # S-2b (03.11.2026): WOHER der Ertrag kommt - Schalter `ertrag_weg` in der Datendatei.
-    # "karte" (Vorgabe, Daniel B-4): Kartenprofil. "felder": derselbe Kern wie beim Spieler
-    # (`wirtschaft.ertrag_gesamt` aus den eigenen Feldern). KEIN `_mit_volk` auf diesem Weg -
-    # der Kern rechnet den Volksfaktor schon selbst (Register 149), sonst waere er doppelt.
-    if str(einstellungen.get("ertrag_weg") or "karte").strip().lower() == "felder" and dorf is not None:
-        try:                                                              # Kern auf dem Ort
-            werte = wirtschaft.ertrag_gesamt([bot_dorf_als_ort(dorf, bot)]) or {}
-        except (TypeError, ValueError, KeyError):                        # kaputter Datensatz
-            werte = {}                                                    # dann keine Zahl erfinden
-        return {str(roh).lower(): round(float(menge), 2)                 # Schreibweise der Spielstaende
-                for roh, menge in werte.items() if float(menge) > 0}     # nur echte Erntetraege
-    # B-4 (02.11.2026): hat das Dorf eine Karte, kommt sein Ertrag aus dem KARTENPROFIL - der starke
-    # Rohstoff traegt viel, die schwaecher produzierbaren wenig oder nichts (Vorgabe Daniel).
+    # ------------------------------------------------------------------------------------------
+    # S-8 Stufe 1 (03.11.2026): DER ERTRAG KOMMT AUS DEN GEBAUTEN ANLAGEN.
+    # Bis heute rechnete diese Funktion `bot_kartenprofil(karte)` - also die FELDER der Karte, ohne
+    # dass dort etwas stehen musste. Gemessen: ein Dorf mit 48 Holzfällern erntete genau so viel wie
+    # eines mit 5 (Silra 13,6 Holz/h in beiden Faellen); damit war jede Bauplan-Logik wirkungslos.
+    # Jetzt rechnet DIESELBE Kernfunktion wie beim Spieler (`wirtschaft.ertrag_gesamt`): je Feld die
+    # Anlage und das Gelaende, auf dem sie steht - eine Wahrheit fuer Kern UND Anzeige (F-04) und
+    # dieselbe Basis, auf der der Spieler wirtschaftet (Daniels Vorgabe zu S-8).
+    # Das Kartenprofil bleibt VORSCHAU ("was gaebe die Karte her", `bot_karten_uebersicht`), nicht
+    # Ertrag. KEIN `_mit_volk` auf diesem Weg - der Kern rechnet den Volksfaktor schon selbst
+    # (Register 149), sonst waere er doppelt.
+    # Rueckfall: hat ein Dorf KEINE gebaute Anlage (alter Spielstand vor dem Bebauen), gilt weiter
+    # das Kartenprofil - sonst stuende ein altes Dorf von einem Takt auf den anderen ohne Ernte da.
+    # ------------------------------------------------------------------------------------------
+    weg = str(einstellungen.get("ertrag_weg") or "anlagen").strip().lower()   # "anlagen" (neu), "karte", "felder"
+    bauten = getattr(dorf, "bauten", None) if dorf is not None else None     # die gebauten Anlagen je Feld
+    if weg in ("anlagen", "felder") and isinstance(bauten, dict) and bauten:  # Anlagen vorhanden -> Kern rechnet
+        try:                                                                 # Kern auf dem Ort
+            forschung = bot_forschungsstaende(bot) if bot is not None else None   # Wissensstand des Bots (S-4)
+            werte = wirtschaft.ertrag_gesamt([bot_dorf_als_ort(dorf, bot)],
+                                             forschung_level=forschung) or {}    # EINE Kernfunktion
+        except (TypeError, ValueError, KeyError):                            # kaputter Datensatz
+            werte = {}                                                       # dann keine Zahl erfinden
+        if werte:                                                            # Kern hat gerechnet
+            return {str(roh).lower(): round(float(menge), 2)                 # Schreibweise der Spielstaende
+                    for roh, menge in werte.items() if float(menge) > 0}     # nur echte Erntetraege
+    # B-4 (02.11.2026): Rueckfall Kartenprofil - fuer Doerfer OHNE Anlagen (alte Spielstaende).
     karte = str(getattr(dorf, "karte", "") or "")                         # Karte dieses Dorfes
     if karte and einstellungen.get("karten_aktiv", True):                 # Kartenwirtschaft eingeschaltet
         profil = bot_kartenprofil(karte)                                  # Kartenwert je Rohstoff
@@ -1889,7 +1904,13 @@ def bot_doerfer_ernten(bot: "BotPlayer", jetzt: float, einstellungen: Optional[d
         return ergebnis                                                    # dann keine Ernte
     jetzt = float(jetzt)                                                  # Spielsekunden
     deckel = float(einstellungen.get("hoechstvorrat_je_stoff") or 0.0)    # Lagerdeckel je Stoff
-    kern_weg = (str(einstellungen.get("ertrag_weg") or "karte").strip().lower() == "felder")
+    # S-8 Stufe 1 (03.11.2026): `ertrag_weg` "anlagen" (Vorgabe) und "felder" liefern BEIDE den Ertrag
+    # aus den gebauten Anlagen (`bot_dorf_ertrag`); unterschieden wird nur, WER bucht: "felder" laesst
+    # den Kern ticken (`bot_dorf_tick` = `ort_tick`, mit Journal und Essen im Ort), "anlagen" bucht die
+    # Stundenrate hier. Ohne gebaute Anlage faellt `bot_dorf_ertrag` auf das Kartenprofil zurueck -
+    # gebucht wird dann ebenfalls hier, damit ein alter Spielstand nicht ohne Ernte dasteht.
+    mit_kern = (str(einstellungen.get("ertrag_weg") or "anlagen").strip().lower() == "felder")
+
     for dorf in bot_doerfer_sicherstellen(bot):                           # je Dorf wirtschaften
         seit = float(getattr(dorf, "ernte_seit", 0.0) or 0.0)             # letzte Ernte dieses Dorfes
         if seit <= 0:                                                     # noch nie geerntet (neues Dorf,
@@ -1897,6 +1918,7 @@ def bot_doerfer_ernten(bot: "BotPlayer", jetzt: float, einstellungen: Optional[d
             continue                                                      # Zeitstempel setzen, nichts buchen
         if jetzt <= seit:                                                 # Uhr steht oder laeuft rueckwaerts
             continue                                                      # nichts buchen, Zeitstempel bleibt
+        kern_weg = mit_kern and bool(getattr(dorf, "bauten", None))       # Kern tickt nur MIT Anlagen
         if kern_weg:                                                      # S-2b: der KERN wirtschaftet
             geerntet = bot_dorf_tick(dorf, bot, seit, jetzt, deckel)      # ort_tick (wie beim Spieler)
             for stoff, menge in geerntet.items():                         # Zuwachs aufsummieren
@@ -5212,6 +5234,14 @@ class GameState:
         forschung = str(gruendung.get("forschung") or "")                # Wagenbau
         if not self._bot_hat_forschung(bot, forschung):                  # nicht erforscht
             return False
+        einheiten = dict(getattr(dorf, "einheiten", None) or {})         # Einheiten des Dorfes
+        # HOECHSTENS EIN Karren (03.11.2026): er wird bei der Gruendung verbraucht. Ohne diesen Deckel
+        # baute Silra fuenf Karren (1.000 Holz) und hatte nie die 480 Holz der Gruendungsgebuehr.
+        # S-8 Stufe 1 (03.11.2026): die Pruefung steht VOR der Buchung. Vorher wurde erst bezahlt und
+        # dann abgelehnt - jedes Dorf mit einem Karren verbrannte so 200 Holz je Takt. Das war der
+        # ungeklaerte Holzschwund (Silra kam nie ueber ~190 Holz).
+        if int(einheiten.get("Siedlerkarren", 0) or 0) >= 1:              # schon einer da
+            return False                                                 # dann keinen zweiten bauen
         vorraete = dorf.vorraete if isinstance(dorf.vorraete, dict) else {}
         for stoff, menge in kosten.items():                              # reichen die Vorraete?
             if str(stoff) == "siedler":                                  # Siedler erst bei der Gruendung
@@ -5224,11 +5254,6 @@ class GameState:
             vorraete[str(stoff)] = round(max(0.0, float(vorraete.get(str(stoff), 0.0) or 0.0)
                                             - float(menge)), 2)          # nie unter null
         dorf.vorraete = vorraete                                         # das Dorf hat bezahlt
-        einheiten = dict(getattr(dorf, "einheiten", None) or {})         # Einheiten des Dorfes
-        # HOECHSTENS EIN Karren (03.11.2026): er wird bei der Gruendung verbraucht. Ohne diesen Deckel
-        # baute Silra fuenf Karren (1.000 Holz) und hatte nie die 480 Holz der Gruendungsgebuehr.
-        if int(einheiten.get("Siedlerkarren", 0) or 0) >= 1:             # schon einer da
-            return False                                                 # dann keinen zweiten bauen
         einheiten["Siedlerkarren"] = int(einheiten.get("Siedlerkarren", 0) or 0) + 1
         dorf.einheiten = einheiten                                       # der Karren steht
         return True                                                      # gebaut
@@ -5280,9 +5305,21 @@ class GameState:
         if gebiet and staende.get(gebiet, 0) < stufe_noetig:                # Forschung fehlt
             return None                                                     # dann nichts tun
         preis, paket, minimum = spieloekonomie.gruendungskosten()           # Gebuehr + Startpaket
+        karren = str(regel.get("karren") or "")                             # Siedlerkarren (Kernregel)
+        siedler = int(((spieloekonomie.U.get(karren) or {}).get("kosten") or {})
+                      .get("siedler", 0) or 0)                              # Siedler je Karren
+        if siedler <= 0:                                                    # Zahl fehlt in den Daten
+            return None                                                     # dann nichts erfinden
+        karren_pflicht = bool(einstellungen.get("siedlerkarren_pflicht", False)) and bool(karren)
         # Ausgangsdorf: das Dorf mit dem groessten Ueberschuss ueber den Mindestbestand.
+        # S-8 Stufe 1 (03.11.2026): verlangt die Karrenpflicht einen Karren, kommen nur Doerfer in
+        # Frage, die AUCH einen Karren haben. Vorher wurde das reichste Dorf gewaehlt und die
+        # Gruendung danach abgelehnt, wenn dort kein Karren stand - der Bot gruendete dann NIE
+        # (gemessen: Grom blieb bei drei Doerfern, waehrend zwei andere Doerfer einen Karren hatten).
         quelle, ueberschuss = None, 0.0                                     # noch keines gefunden
         for dorf in doerfer:                                                # jedes Dorf ansehen
+            if karren_pflicht and int((getattr(dorf, "einheiten", None) or {}).get(karren, 0) or 0) < 1:
+                continue                                                    # ohne Karren keine Quelle
             vorraete = getattr(dorf, "vorraete", None) or {}                # sein Lager
             rest = min([float(vorraete.get(stoff, 0.0) or 0.0) - float(soll)   # Ueberschuss je Stoff
                         for stoff, soll in minimum.items() if float(soll) > 0] or [0.0])
@@ -5290,14 +5327,9 @@ class GameState:
                 quelle, ueberschuss = dorf, rest                            # dann dieses Dorf
         if quelle is None:                                                  # keines kann zahlen
             return None                                                     # dann nichts tun
-        karren = str(regel.get("karren") or "")                             # Siedlerkarren (Kernregel)
-        siedler = int(((spieloekonomie.U.get(karren) or {}).get("kosten") or {})
-                      .get("siedler", 0) or 0)                              # Siedler je Karren
-        if siedler <= 0:                                                    # Zahl fehlt in den Daten
-            return None                                                     # dann nichts erfinden
         if float(getattr(quelle, "bevoelkerung", 0.0) or 0.0) < float(siedler):
             return None                                                     # zu wenige Siedler
-        if bool(einstellungen.get("siedlerkarren_pflicht", False)) and karren:
+        if karren_pflicht:                                                  # letzte Sicherung
             if int((getattr(quelle, "einheiten", None) or {}).get(karren, 0) or 0) < 1:
                 return None                                                 # kein Karren = keine Gruendung
         # Freie Karte: Vorschlag aus dem Katalog, aber keine, die der Bot schon haelt.

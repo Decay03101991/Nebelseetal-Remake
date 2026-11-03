@@ -3,12 +3,15 @@
 
 Daniels Vorgabe (03.11.2026): die auswaehlbaren Karten und die dort vorhandenen Rohstoffelder
 sind eine grundlegende Mechanik - der Ertrag eines Bot-Dorfes muss also AUS SEINER KARTE folgen,
-nicht aus einer festen Rate.
+nicht aus einer festen Rate. **Seit S-8 Stufe 1 (03.11.2026) folgt er genauer: aus den GEBAUTEN
+ANLAGEN auf den Feldern dieser Karte** (Gelaende entscheidet ueber den Satz, die Karte ueber das
+Gelaende). Die Pruefungen hier bleiben unveraendert gueltig, weil die Anlagen aus dem Bauplan auf
+der Karte stehen.
 
 Was diese Datei prueft:
   1. Ein Bot-Dorf fuehrt Leder, Wolle und Pferde in `vorraete` (additiv, alte Staende laden).
-  2. Der Ertrag kommt aus der Karte: zwei Bots mit VERSCHIEDENEN Karten haben verschiedene
-     Ertraege; ein Dorf mit derselben Karte hat denselben Ertrag.
+  2. Der Ertrag kommt aus der Karte (S-8: aus den Anlagen auf ihren Gelaendearten): zwei Bots mit
+     VERSCHIEDENEN Karten haben verschiedene Ertraege; derselbe Aufruf liefert denselben Wert.
   3. Die Anlagen stehen auf den Feldern seiner Karte (`bot_doerfer_bebauen`), begrenzt durch
      `anlagen_je_gebaeude` je Anlage (Stellmacher 1, Rinderfarm 3, Schafszucht 2, Pferdezucht 1).
   4. Die Rinderfarm liefert ZWEI Rohstoffe (Nahrung und Leder) - die Platzwahl darf daran nicht
@@ -69,7 +72,7 @@ def abschnitt_1_vorrat():
 
 
 def abschnitt_2_karte():
-    """2. Der Ertrag folgt der Karte des Dorfes."""
+    """2. Der Ertrag folgt der Karte - gemessen ueber die Anlagen auf ihren Gelaendearten (S-8)."""
     abschnitt("2. Ertrag folgt der Karte - zwei Karten, zwei Werte")
     root, app = _app()
     try:

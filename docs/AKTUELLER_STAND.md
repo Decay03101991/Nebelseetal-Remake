@@ -1,3 +1,55 @@
+# STAND 03.11.2026, 21:20 - S-8 Stufe 1: Ertrag aus den GEBAUTEN Anlagen (Register 174)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Der Ertrag eines Bot-Dorfes kommt jetzt aus seinen Anlagen, nicht mehr aus dem Kartenprofil.**
+Gemessen war vorher: ein Dorf mit 48 Holzfällern erntete genau so viel wie eines mit 5 - jede
+Bauplan-Logik war damit wirkungslos, und Daniels Vorgabe (der Bot nutzt seine Karte mit Gebaeuden
+sinnvoll) konnte nicht greifen. Gerechnet wird jetzt mit DERSELBEN Kernfunktion wie beim Spieler
+(`wirtschaft.ertrag_gesamt`: je Feld die Anlage und ihr Gelaende, plus Grundeinkommen und Volksfaktor) -
+eine Wahrheit fuer Kern und Anzeige (F-04). Das Kartenprofil ist nur noch **Vorschau** und **Rueckfall**
+fuer Doerfer ohne jede Anlage (alte Spielstaende).
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf | siehe `git log -1` nach diesem Commit | `git log --oneline -1` |
+| Schalter | `data/bot_wirtschaft.json`: `ertrag_weg` **von `karte` auf `anlagen`**; `karte` und `felder` bleiben als Vergleich | Datei |
+| Dorfzahl nach 24 Spieltagen | **4/4/4/2/4 -> 4/4/4/4/4** (Silra von 2 auf 4) | `docs/MESSUNG_S8_ERTRAG_AUS_ANLAGEN_20261103.md` |
+| Holzvorrat Silra | **471 -> 34.136** (Hauptdorf Tag 24: 151 -> 7.610) | dieselbe Messung |
+| Ertrag je Dorf | statt einseitigem Profil ausgeglichen: Haug Stein 1,90 -> **12,35**, Gold 1,50 -> **6,00** | dieselbe Messung |
+| Neues Messwerkzeug | `tools/bot_wirtschaft_messung.py --tage 24 [--weg karte] [--aus datei]` | Werkzeug |
+| Neue Wache | `tests/test_s8_ertrag_aus_anlagen.py` **21/0/0**, Gegenprobe **6 Pruefungen rot** | eigener Lauf |
+| Nachgezogene Wachen | `test_bot_kartenprofil` **40/0/0**, `test_bot_takt_kern` **27/0/1**, `test_bot_warenkette` **35/0/0** | eigene Laeufe |
+| Register | **174** | `grep -c '^| [0-9]' docs/PRUEFREGEL_ORIGINAL.md` |
+
+## Drei Befunde, die der Umbau aufgedeckt hat (alle behoben)
+
+1. **Ohne Erzmine erntete kein Bot-Dorf Metall** - das Metall kam vorher aus dem Kartenprofil, also aus
+   dem Nichts. Ein Siedlerkarren kostet **80 Metall**; damit wurde kein Karren gebaut und **kein Bot
+   gruendete** (Dorfzahl fiel zuerst auf 3/3/3/2/3). Behoben: **eine Erzmine** im Bauplan
+   (`data/bot_wirtschaft.json`, VORSCHLAG fuer die Zahl 1, 3 Metall/h auf Berg).
+2. **`bot_karren_bauen` buchte vor der Pruefung.** Ein Dorf, das schon einen Karren hatte, verlor bei
+   jedem Aufruf **200 Holz** (erst bezahlen, dann ablehnen). Reihenfolge korrigiert; die Wache belegt:
+   zweiter Karren kostet jetzt nichts. **Ob dieser Fehler den frueheren Holzschwund erklaert, ist NICHT
+   belegt** - im Kartenprofil-Lauf blieb die Kasse gleich, weil dort fast nie genug Metall fuer die
+   Buchung im Lager war.
+3. **Die Gruendung nahm das REICHSTE Dorf als Quelle** und lehnte ab, wenn dort kein Karren stand - auch
+   wenn zwei andere Doerfer einen hatten (Grom blieb bei drei Doerfern). Jetzt kommen nur Doerfer MIT
+   Karren als Ausgangsdorf in Frage.
+
+## Der EINE naechste Schritt
+
+**S-8 Stufe 2: Feld-Prioritaeten je Gebaeude** (`docs/KONZEPT_BOT_BAUPLAN_20261103.md`, Stufe 2) - in
+den Daten steht je Gebaeude, welches Gelaende es bevorzugt (Holzfaeller und Jaeger Wald, Rinderfarm und
+Farm Grasland, Steinmetz und Erzmine Berg) und welches nur als Notloesung zaehlt. Ohne diese Prioritaeten
+belegen Holzfaeller die Steppe-Felder und die Zuchten werden nicht mehr gebaut (gemessen). Danach Stufe 3
+(Bauplan je Taktik mit Mindestzahlen). **Der Sammellauf gehoert zum Abschluss jedes Schnitts, und die
+Protokollzeile dazu ebenfalls.**
+
+**Offen und ohne Daniels Wort zu erledigen:** die acht Kampfregeln bleiben der naechste grosse Denk-Auftrag
+(Uebergabe Abschnitt 9); O-1b (echte Hintergrundbilder) wartet auf die Generatorfrage; die beiden S-8-Fragen
+(Bauplan-Datei, Obergrenze je Taktik) stehen in derselben Runde.
+
 # STAND 03.11.2026, 19:26 - Ablauf: Hintergrundbilder als O-1 vor den Postkasten
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
@@ -2732,9 +2784,11 @@ Truppen sind während des Marsches nicht doppelt verfügbar, kein Pfad ohne Mars
 
 ## Next actions für den temporären Coding-Agenten
 
-> **GELTENDER STAND 31.10.2026, 20:45 (Hermes).** Diese Ueberschrift ist der Wiedereinstiegspunkt, den
+> **GELTENDER STAND 03.11.2026, 21:20 (Hermes).** Diese Ueberschrift ist der Wiedereinstiegspunkt, den
 > `tools/zieluebergabe.py` liest; die Liste darunter ist **HISTORIE der GPT-Runde vom 28.10.2026** und
-> **nicht mehr** der Fahrplan. Geltend: Hermes fuehrt das Projekt seit 30.10.2026 zurueck.
+> **nicht mehr** der Fahrplan. Geltend: Hermes fuehrt das Projekt seit 30.10.2026 zurueck, und der
+> neueste Stand steht GANZ OBEN in dieser Datei (Block **S-8 Stufe 1**, Register 174: Ertrag aus den
+> gebauten Anlagen; naechster Schritt S-8 Stufe 2, Feld-Prioritaeten).
 > **Fertig und committet (31.10.):** F-04 (`52b5a51`), Spielbalancing-Test (`1cd799b`), Befund Siedler/Bots
 > (`4e68de8`), **Nahrungsverbrauch je Einheit** (`8db75a6`, Register 69, 52 Pruefungen, Sammellauf 20:13 mit
 > 103 Dateien/102 gruen/3.756 Pruefungen), **Balancing-Test Teil 2 - Karten, Doerfer und Pech** (`bca75e1`,

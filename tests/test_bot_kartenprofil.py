@@ -6,8 +6,11 @@ Rohstoff dieses Dorf MAXIMAL triggert und welche Rohstoffe auf der Karte eher we
 sind. Gold ist besonders wichtig - richtig stark ist man nur mit den besten Karten. Der Spieler
 entscheidet das im Kopf, die Spiellogik (und damit die Bots) muss die Mechanik nachbilden.
 
-Bis B-3 rechnete jedes Bot-Dorf mit derselben festen Rate. Seit B-4 traegt jedes Dorf eine Karte, und
-sein Ertrag kommt aus dem Kartenprofil.
+Bis B-3 rechnete jedes Bot-Dorf mit derselben festen Rate. Seit B-4 traegt jedes Dorf eine Karte.
+**Seit S-8 Stufe 1 (03.11.2026) ist das Kartenprofil VORSCHAU und RUECKFALL, nicht mehr der Ertrag:**
+der Ertrag kommt aus den GEBAUTEN ANLAGEN je Feld (`bot_dorf_ertrag`, dieselbe Kernrechnung wie beim
+Spieler). Die Pruefungen 1 und 2 messen das Profil selbst (Felder x Ertrag), Pruefung 3 den Rueckfall
+fuer Doerfer OHNE Anlagen, Pruefung 6 das Verhaeltnis von Vorschau und Ertrag im Bericht.
 
 Was diese Datei beweist
 -----------------------
@@ -16,14 +19,16 @@ Was diese Datei beweist
    Handrechnung daneben.
 2. Alle 127 Karten tragen alle fuenf Rohstoffe - und genau EINE Karte traegt kein Gold (original-125,
    ohne Berg und Huegel). Gold ist damit wirklich der Engpass, den Daniel beschreibt.
-3. Der Ertrag eines Dorfes MIT Karte ist der Kartenwert geteilt durch den Teiler; ein Dorf OHNE Karte
-   (alter Spielstand) rechnet wie vor B-4 mit drei Anlagen je Grundrohstoff (12/12/12/9).
+3. Ein Dorf OHNE gebaute Anlage (alter Spielstand) rechnet aus dem Kartenwert geteilt durch den
+   Teiler; ein Dorf ohne Karte und ohne Anlagen wie vor B-4 mit dem Bauplan (20/12/21/9 plus Waren).
+   Ein Dorf MIT Anlagen rechnet aus den Feldern - das prueft `tests/test_s8_ertrag_aus_anlagen.py`.
 4. Gold zuerst: der Bot waehlt aus drei Karten die mit dem hoechsten Goldwert, reproduzierbar und ohne
    Wuerfeln zur Laufzeit.
 5. Jedes Dorf bekommt genau eine Karte; der Aufruf ist idempotent, ein alter Spielstand bekommt sie
    beim ersten Auffrischen.
-6. Anzeige und Kern lesen DIESELBE Funktion (F-04): der Spionagebericht zeigt Karte und Stundensatz,
-   und der Stundensatz ist exakt der, mit dem der Kern bucht. Die offene Uebersicht bleibt ohne Karte.
+6. Anzeige und Kern lesen DIESELBE Funktion (F-04): der Spionagebericht zeigt Karte, den Ertrag aus
+   den Anlagen und daneben die VORSCHAU der Karte. Beide Zahlen kommen aus derselben Funktion, die
+   der Kern bucht. Die offene Uebersicht bleibt ohne Karte.
 7. Grenzfaelle: unbekannte Karte, Teiler 0, abgeschalteter Schalter - in jedem Fall wird gerechnet,
    nie geteilt durch null, nie still ein falscher Wert gebucht.
 
@@ -116,12 +121,13 @@ check("2 eine Karte ohne Berg traegt weder Gold noch Stein noch Metall",
       and alle["original-125"]["metall"] == 0, str(alle["original-125"]))
 
 # ==========================================================================
-abschnitt("3. Der Ertrag kommt aus der Karte; ohne Karte gilt der Rueckfall")
+abschnitt("3. Kartenprofil als RUECKFALL: Doerfer ohne Anlagen; ohne Karte gilt der Bauplan")
 # ==========================================================================
 einst = M.bot_wirtschaft_einstellungen()
 teiler = float(einst.get("karten_teiler") or 10.0)
 mit_karte = M.BotDorf(name="Mit Karte", karte="original-001")
-check("3 mit Karte: Stundensatz ist Kartenwert durch Teiler",
+# S-8 Stufe 1 (03.11.2026): das Dorf hat KEINE Anlage, deshalb gilt das Kartenprofil als Rueckfall.
+check("3 ohne Anlage: Stundensatz ist Kartenwert durch Teiler (Rueckfall)",
       M.bot_dorf_ertrag(mit_karte) == {s: round(w / teiler, 2) for s, w in alle["original-001"].items()},
       str(M.bot_dorf_ertrag(mit_karte)))
 ohne = M.BotDorf(name="Ohne Karte")
@@ -187,8 +193,22 @@ bericht_daten = gs.bot_doerfer_spionagebericht(gs.bots[0])
 zeile = bericht_daten["doerfer"][0]
 check("6 der Bericht nennt die Karte", bool(zeile.get("karte")), str(zeile.get("karte")))
 check("6 der Bericht zeigt die Kartenwerte", bool((zeile.get("karte_info") or {}).get("werte")), "")
-check("6 der gezeigte Stundensatz ist EXAKT der des Kerns",
-      (zeile.get("karte_info") or {}).get("ertrag_pro_stunde") == zeile.get("ertrag_pro_stunde"),
+# S-8 Stufe 1 (03.11.2026): Der Bericht traegt ZWEI Zahlen mit verschiedener Bedeutung. Der Ertrag
+# kommt aus den gebauten Anlagen (dieselbe Funktion, die der Kern bucht), die Kartenwerte sind die
+# VORSCHAU ("was gaebe diese Karte her"). Sie duerfen sich unterscheiden - vorher waren sie gleich,
+# weil beide aus dem Kartenprofil kamen und die Anlagen wirkungslos waren.
+_dorf6 = gs.bots[0].doerfer[0]
+_teiler6 = float(einst.get("karten_teiler") or 10.0)
+check("6 der gezeigte Stundensatz ist der Ertrag aus den Anlagen (F-04)",
+      zeile.get("ertrag_pro_stunde") == M.bot_dorf_ertrag(_dorf6, None, gs.bots[0]),
+      str(zeile.get("ertrag_pro_stunde")))
+check("6 die Kartenwerte im Bericht sind die VORSCHAU der Karte (Wert durch Teiler, mit Volksfaktor)",
+      (zeile.get("karte_info") or {}).get("ertrag_pro_stunde")
+      == M._mit_volk({s: round(w / _teiler6, 2) for s, w in alle[str(_dorf6.karte)].items() if w > 0},
+                     gs.bots[0]),
+      str((zeile.get("karte_info") or {}).get("ertrag_pro_stunde")))
+check("6 Vorschau und Ertrag sind NICHT dieselbe Zahl (die Anlagen entscheiden)",
+      (zeile.get("karte_info") or {}).get("ertrag_pro_stunde") != zeile.get("ertrag_pro_stunde"),
       str((zeile.get("karte_info") or {}).get("ertrag_pro_stunde")) + " / " + str(zeile.get("ertrag_pro_stunde")))
 offen = gs.bot_doerfer_uebersicht(gs.bots[0])
 check("6 die offene Uebersicht verraet die Karte NICHT",

@@ -44,14 +44,24 @@ Ein Bot bewirtschaftet seine 10x10-Karte **wie der Spieler**:
 
 ## 3. Die Bausteine, in dieser Reihenfolge
 
-### Stufe 1 - Ertrag aus den Anlagen (Fundament, ohne das nichts wirkt)
+### Stufe 1 - Ertrag aus den Anlagen (Fundament, ohne das nichts wirkt) - **GEBAUT 03.11.2026, Register 174**
 
-`bot_dorf_ertrag` rechnet kuenftig aus `dorf.bauten`: je Feld die Anlage und ihr Gelaende, summiert
-ueber alle Felder. Das Kartenprofil bleibt **nur** als Vorschau ("was gaebe die Karte her"), nicht als
-Ertrag. Folge: wer mehr Anlagen baut, erntet mehr - bis die Karte voll ist.
+`bot_dorf_ertrag` rechnet aus `dorf.bauten`: je Feld die Anlage und ihr Gelaende, summiert ueber alle
+Felder - ueber DIESELBE Kernfunktion wie beim Spieler (`wirtschaft.ertrag_gesamt`), also eine Wahrheit
+fuer Kern und Anzeige (F-04). Das Kartenprofil bleibt **nur** als Vorschau ("was gaebe die Karte her")
+und als Rueckfall fuer Doerfer ganz ohne Anlage (alte Spielstaende), nicht als Ertrag. Folge: wer mehr
+Anlagen baut, erntet mehr - bis die Karte voll ist.
 
 **Pruefzusage:** zwei Doerfer mit derselben Karte, eines mit 5 und eines mit 12 Holzfällern, ernten
-unterschiedlich viel; ein Dorf ohne Anlagen erntet nichts.
+unterschiedlich viel. **Erfuellt und belegt** in `tests/test_s8_ertrag_aus_anlagen.py` (5 Holzfäller
+21 Holz/h, 12 Holzfäller 49 Holz/h, Unterschied genau 7 x 4 = 28). Die zweite Zusage (ein Dorf ohne
+Anlagen erntet nichts) gilt fuer den KERN-Weg: dort bleibt nur das Grundeinkommen von 1 Holz und 1
+Stein. Ein Dorf ohne jede Anlage faellt bewusst auf das Kartenprofil zurueck, damit ein alter
+Spielstand nicht ueber Nacht ohne Ernte dasteht.
+
+**Gemessen (24 Spieltage, `docs/MESSUNG_S8_ERTRAG_AUS_ANLAGEN_20261103.md`):** Dorfzahl 4/4/4/2/4 ->
+4/4/4/4/4, Holzvorrat Silra 471 -> 34.136. Der Umbau deckte drei Fehler auf (fehlende Erzmine, Buchung
+vor der Karren-Pruefung, Gruendungsquelle ohne Karren) - alle behoben.
 
 ### Stufe 2 - Feld-Prioritaeten je Gebaeude (Daten, kein Code)
 
