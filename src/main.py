@@ -35,6 +35,7 @@ import gebaeude_optik  # C2-Gebaeude-Optik: Menue-Icons und Menue-Hintergruende 
 import berater
 import tor
 import wirtschaft
+import boni  # V-5: Volks- und Taktikboni als Zahlen (Datenschicht src/boni.py)
 import spielstaende
 import spielstand_archiv  # GPT: drei explizite Spielstands-Slots; Altdaten unveraendert
 import ausgabemodus  # FIX04j: separate oeffentliche Spielerversion ohne Admin-Einstieg
@@ -412,7 +413,23 @@ def bot_wirtschaft_einstellungen() -> Dict[str, Any]:
     return einstellungen                                                  # fertige Einstellungen
 
 
-def bot_dorf_ertrag(dorf=None, einstellungen: Optional[dict] = None) -> Dict[str, float]:
+def _mit_volk(werte: Dict[str, float], bot=None) -> Dict[str, float]:
+    """Einen Ertrag mit dem Volksfaktor des Bots skalieren (V-5, 03.11.2026).
+
+    Die Prozente stehen in `data/boni.json` (gelesen von `boni.py`), die Fraktion kommt vom Bot
+    (`BotPlayer.faction`). Ohne Bot, ohne Fraktion oder bei abgeschalteter Wirkung bleibt der Wert
+    unveraendert - keine geratene Zahl. Kern (Ernte) und Anzeige (Spionagebericht) rufen dieselbe
+    Funktion, deshalb wirkt der Bonus in beiden gleich (F-04).
+    """
+    fraktion = str(getattr(bot, "faction", "") or "")
+    if not fraktion:
+        return dict(werte)
+    return {stoff: round(float(menge) * boni.ertragsfaktor(fraktion, stoff), 2)
+            for stoff, menge in werte.items()}
+
+
+def bot_dorf_ertrag(dorf=None, einstellungen: Optional[dict] = None,
+                    bot: Optional["BotPlayer"] = None) -> Dict[str, float]:
     """Stundenertrag EINES Bot-Dorfes - die EINE Lesestelle fuer Kern UND Anzeige (F-04).
 
     Je Grundrohstoff stehen in einem Bot-Dorf `anlagen_je_gebaeude` Anlagen (Daniel 02.11.2026:
@@ -423,6 +440,9 @@ def bot_dorf_ertrag(dorf=None, einstellungen: Optional[dict] = None) -> Dict[str
     Datendatei, nicht im Code.
     `dorf` wird heute nicht ausgewertet (jedes Dorf wirtschaftet gleich) - der Parameter steht
     trotzdem da, damit ein spaeterer Ausbau je Dorf KEINE zweite Funktion braucht.
+    **V-5 (03.11.2026):** ist `bot` uebergeben, wird jeder Rohstoff mit dem Volksfaktor seiner
+    Fraktion skaliert (`_mit_volk`; Zahlen in `data/boni.json`). Ohne `bot` bleibt der Ertrag der
+    alte - so laufen alte Aufrufe und Pruefungen unveraendert.
     Rueckgabe: {Rohstoff klein: Menge je Stunde}.
     """
     einstellungen = einstellungen if einstellungen is not None else bot_wirtschaft_einstellungen()
@@ -437,8 +457,9 @@ def bot_dorf_ertrag(dorf=None, einstellungen: Optional[dict] = None) -> Dict[str
             except (TypeError, ValueError):                               # kaputter Wert
                 teiler = 10.0                                             # dann der Vorschlag
             if teiler > 0:                                                # nur mit sinnvollem Teiler
-                return {s: round(float(w) / teiler, 2)                    # Ertrag je Stunde
-                        for s, w in profil.items() if float(w) > 0}       # nur Rohstoffe mit Wert
+                return _mit_volk({s: round(float(w) / teiler, 2)          # Ertrag je Stunde
+                                  for s, w in profil.items() if float(w) > 0},   # nur Rohstoffe mit Wert
+                                 bot)                                     # V-5: Volksbonus des Bots
     try:                                                                  # Zahl aus der Datendatei
         anzahl = max(0, int(einstellungen.get("anlagen_je_gebaeude") or 1))   # Anlagen je Grundrohstoff
     except (TypeError, ValueError):                                       # kaputter Wert
@@ -446,7 +467,7 @@ def bot_dorf_ertrag(dorf=None, einstellungen: Optional[dict] = None) -> Dict[str
     gebaeude = tuple(str(g) for g in (einstellungen.get("gebaeude_je_dorf") or []))   # Arten je Dorf
     anlagen = (gebaeude, anzahl)                                          # Cache-Schluessel: Arten und Anzahl
     if anlagen in _BOT_ERTRAG_CACHE:                                      # schon einmal gerechnet
-        return dict(_BOT_ERTRAG_CACHE[anlagen])                           # Kopie, kein geteilter Speicher
+        return _mit_volk(dict(_BOT_ERTRAG_CACHE[anlagen]), bot)           # Kopie, V-5: Volksbonus
     ertrag: Dict[str, float] = {}                                         # Ergebnis: Rohstoff -> je Stunde
     stammdaten = gelaende.alle_gebaeude()                                 # Bauwerke aus den Spieldaten
     for geb in gebaeude:                                                  # je Grundrohstoff ein Posten
@@ -466,7 +487,7 @@ def bot_dorf_ertrag(dorf=None, einstellungen: Optional[dict] = None) -> Dict[str
             schluessel = rohstoff.lower()                                 # Schreibweise der Spielstaende
             ertrag[schluessel] = round(ertrag.get(schluessel, 0.0) + bester * anzahl, 2)   # mal Anlagenzahl
     _BOT_ERTRAG_CACHE[anlagen] = dict(ertrag)                             # fuer den naechsten Aufruf merken
-    return dict(ertrag)                                                   # frische Kopie
+    return _mit_volk(dict(ertrag), bot)                                   # frische Kopie, V-5: Volksbonus
 
 
 # ----------------------------------------------------------------------------------------------
@@ -628,7 +649,7 @@ def bot_dorf_bericht_teil(dorf, bot: "BotPlayer",
             # B-3: die Vorrate stehen je DORF (jedes Dorf hat ein eigenes Lager).
             "vorraete": {str(k): round(float(v), 2)
                          for k, v in (dorf.vorraete or {}).items()},
-            "ertrag_pro_stunde": bot_dorf_ertrag(dorf, einstellungen),   # eine Lesestelle (F-04)
+            "ertrag_pro_stunde": bot_dorf_ertrag(dorf, einstellungen, bot),   # eine Lesestelle (F-04)
             # B-4: die Karte bestimmt den Ertrag - der Bericht zeigt sie mit ihren Werten.
             "karte": karte,
             "karte_info": (bot_karten_uebersicht(karte, einstellungen)
@@ -719,7 +740,7 @@ def bot_doerfer_ernten(bot: "BotPlayer", jetzt: float, einstellungen: Optional[d
         stunden = (jetzt - seit) / 3600.0                                 # vergangene Spielstunden
         if not isinstance(getattr(dorf, "vorraete", None), dict):         # altes Dorf ohne Vorratsfeld
             dorf.vorraete = {}                                            # dann anlegen
-        for stoff, rate in bot_dorf_ertrag(dorf, einstellungen).items():   # je Rohstoff die Rate
+        for stoff, rate in bot_dorf_ertrag(dorf, einstellungen, bot).items():   # je Rohstoff die Rate
             vorher = float(dorf.vorraete.get(stoff, 0.0))                 # Bestand vor der Ernte
             nachher = vorher + float(rate) * stunden                      # Zuwachs dieser Zeitspanne
             if deckel > 0:                                                # Deckel gesetzt?
@@ -746,6 +767,10 @@ class Settlement:
     # Siedlungskarte (Handbuch S. 259/313): jede Siedlung hat eine eigene Geländekarte,
     # niemals zwei eigene Siedlungen dieselbe. bauten ordnet Feld-Index -> Gebäude-Kennung.
     karte: Optional[dict] = None
+    # V-5 (03.11.2026): das VOLK dieses Ortes - bei der Gruendung aus `spieler_fraktion` gesetzt.
+    # `wirtschaft._volk_faktor` liest es hier, damit der Volksbonus am Ort haengt und nicht an einer
+    # zweiten, globalen Quelle. Leer = kein Bonus (alte Spielstaende, fremde Siedlung).
+    volk: str = ""
     bauten: Dict[str, str] = field(default_factory=dict)
     # Ausbaustufe je bebautem Feld (W4b-5). Belegt sind Stufen für den Verteidigungswall (10)
     # und die drei Ausbildungsstätten; ein Feld ohne Eintrag gilt als Stufe 1.
@@ -3144,7 +3169,8 @@ class GameState:
         karte = self.kartenvorrat[karte_id]["karte"]
         name = f"Siedlung {len(self.settlements) + 1}"
         neu = Settlement(name=name, map_id=self.current_map, x=x, y=y, karte=karte,
-                         id=siedlung_kennung("spieler", self.current_map, x, y))
+                         id=siedlung_kennung("spieler", self.current_map, x, y),
+                         volk=str(getattr(self.state, "spieler_fraktion", "") or ""))
         neu.vorraete = {r: float(v) for r, v in absicht["paket"].items()}
         neu.bevoelkerung = float(siedler)
         self.settlements.append(neu)
@@ -4157,6 +4183,15 @@ class GameState:
         for s in self.settlements:
             if not s.id:
                 s.id = siedlung_kennung(s.besitzer, s.map_id, s.x, s.y)
+        # A2/V-5 (03.11.2026): das gewaehlte Volk wird wieder GELADEN - sonst waehlte ein geladener
+        # Stand erneut, und seit V-5 fehlte ihm die Wirkung. Ein Stand ohne das Feld bleibt leer.
+        self.spieler_fraktion = str(data.get("spieler_fraktion") or "")
+        # V-5: der Volksbonus haengt am ORT (der Ertrag liest `siedlung.volk`). Ein alter Spielstand
+        # traegt das Feld nicht - er bekommt es hier aus dem Spielstand, aber nur, wenn dort eines
+        # steht (kein Erfinden, und ohne Volk bleibt es beim Faktor 1,0).
+        for s in self.settlements:
+            if not getattr(s, "volk", "") and self.spieler_fraktion:
+                s.volk = self.spieler_fraktion
         # Ökonomie-Paket, Teil 5: den Kartenvorrat laden. Ein ALTER Spielstand kennt ihn nicht —
         # dann wird er nachträglich angelegt (seine bestehenden Siedlungen bleiben unverändert).
         self.kartenvorrat = {k: v for k, v in (data.get("kartenvorrat") or {}).items()
@@ -5816,6 +5851,8 @@ class NebelseetalApp:
             self._log(f"Unbekanntes Volk: {kennung}")
             return {}
         self.state.spieler_fraktion = fraktion
+        for _s in getattr(self.state, "settlements", []) or []:       # V-5: der Ort traegt sein Volk
+            _s.volk = fraktion
         verteilung = bottaktik.verteile_fraktionen(fraktion, [b.name for b in self.state.bots])
         for bot in self.state.bots:                                    # jede Fraktion genau einmal
             neu = verteilung.get(str(bot.name))
@@ -5923,7 +5960,8 @@ class NebelseetalApp:
             bevoelkerung_start = float(self.state.population)
             sett = Settlement(name="Siedlung 1", map_id=self.state.current_map, x=x, y=y,
                               karte=karte,
-                              id=siedlung_kennung("spieler", self.state.current_map, x, y))
+                              id=siedlung_kennung("spieler", self.state.current_map, x, y),
+                              volk=str(getattr(self.state, "spieler_fraktion", "") or ""))
             sett.vorraete = dict(start)
             sett.bevoelkerung = bevoelkerung_start
             self.state.settlements.append(sett)

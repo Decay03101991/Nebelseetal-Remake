@@ -2,7 +2,7 @@
 
 **Erzeugt von `tools/modulkarte_bauen.py` — nicht von Hand ändern.** Stand: siehe Git-Historie.
 
-54 Dateien in `src/`, 27553 Zeilen, 808 Funktionen und Klassen auf oberster Ebene.
+55 Dateien in `src/`, 27747 Zeilen, 824 Funktionen und Klassen auf oberster Ebene.
 
 ## Die Karte
 
@@ -13,7 +13,7 @@
 | `welt_optik_fein.py` | 898 | FEINERE Zeichenplaene fuer die WELTkarte des Nebelseetal-Remakes (naechste Ausbaustufe). | main.py |
 | `karten_optik_fein.py` | 863 | Feinere Zeichenplaene fuer die Siedlungskarte des Nebelseetal-Remakes | main.py |
 | `auftraege.py` | 746 | Nebelseetal Remake - Auftraege und Missionen (Paket WA, 04.10.2026). | bottaktik.py, main.py, spieloekonomie.py |
-| `bottaktik.py` | 691 | Nebelseetal Remake - Bot-Taktik (Paket BT, 01.11.2026). | main.py |
+| `bottaktik.py` | 736 | Nebelseetal Remake - Bot-Taktik (Paket BT, 01.11.2026). | main.py |
 | `spielschicht.py` | 670 | Nebelseetal Remake - FACH-SCHICHT (Spielebene) fuer die Oberflaeche. | — (Einstieg oder ungenutzt) |
 | `botkern.py` | 624 | Nebelseetal Remake - Bot-Kern (Paket W5, 05.10.2026). | main.py |
 | `welt_optik.py` | 600 | Zeichenplaene fuer die WELTkarte des Nebelseetal-Remakes (Paket: feinere Weltkartenoptik). | main.py |
@@ -47,6 +47,7 @@
 | `welt.py` | 164 | Weltkarte des Limbus fuer das Nebelseetal-Remake. | main.py, portalraum.py |
 | `spielstand_archiv.py` | 162 | Private Spielstandarchive: eindeutig, zeitgestempelt, ohne unbemerktes Loeschen. | main.py, speichern.py |
 | `versorgungsschutz.py` | 160 | Reine Vorabpruefung auf selbst verschuldete Rohstoff-Sackgassen. | main.py |
+| `boni.py` | 149 | Die Wirkung der Volks- und Taktikboni: Datenschicht und Rechnung (V-5, 03.11.2026). | bottaktik.py |
 | `marsch_optik.py` | 149 | Nebelseetal Remake - Optik der Truppenbewegungen auf der Weltkarte (Stufe M-1, 02.11.2026). | main.py |
 | `fehlbestand.py` | 140 | Fehlbestand: welche Rohstoffe fehlen und um wieviel. | spieloekonomie.py |
 | `baumenue_info.py` | 133 | FIX04 – Datenmodell fuer das historische Baumenue der Siedlungskarte. | main.py |

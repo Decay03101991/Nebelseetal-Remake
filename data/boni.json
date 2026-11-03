@@ -1,0 +1,166 @@
+{
+  "stand": "2026-11-03",
+  "aktiv": true,
+  "ueberschneidung": "additiv",
+  "sperrzeit_stunden": 48,
+  "_zweck": "Die WIRKUNG der Voelker- und Taktikboni als Zahlen: welche Groesse, wie viel Prozent. Die Anzeigetexte stehen weiter in data/voelker.json; hier stehen die Zahlen, mit denen gerechnet wird. tests/test_boni.py prueft, dass beide Dateien dieselben Voelker und dieselben Prozentsaetze tragen - sie koennen nicht auseinanderlaufen. Kein Code liest diese Datei direkt: die Datenschicht ist src/boni.py.",
+  "_ueberschneidung": "Daniel 03.11.2026, Fragenrunde V-5: 'Additiv: 5 % + 5 % = glatt +10 %'. Trifft ein Volk und eine Taktik dieselbe Groesse (Silra Reise, Krank AT), werden die Prozente ADDIERT und dann EINMAL angewandt - nicht nacheinander multipliziert. Das Projekt rechnet bei der Forschung multiplikativ (bonus_system: base *= 1 + bonus); diese Entscheidung gilt nur fuer die Volks- und Taktikboni und ist hier festgehalten, damit sie nicht als Versehen gilt.",
+  "_sperrzeit": "Daniel 03.11.2026: 'Bonus gilt, solange die Taktik steht; nach einem Taktikwechsel 48 h gesperrt'. Der Bonus erneuert sich, solange der Bot seine Taktik behaelt (bottaktik.verhaltensbonus, Verhalten bei jedem Zug); nach einem Wechsel gilt die neue Taktik erst nach Ablauf der Sperrzeit. Die Zahl 48 ist VORSCHLAG S-7 und nicht belegt - deshalb steht sie hier und nicht im Code.",
+  "_spieler": "Daniel 03.11.2026: der Spieler bekommt DIESELBEN Volksboni wie ein Bot. Die Taktikboni gelten nur fuer Bots (der Spieler waehlt keine Taktik).",
+  "_keine_zahl_ohne_quelle": "Alle Prozentwerte stehen in data/voelker.json (menschlich, zwergisch, elfisch und Trolle seit 30.10.2026 aus bottaktik.py; Ghule und Gnome Daniels Entscheidung 03.11.2026) und in bottaktik.TAKTIKEN (Taktikboni, ebenfalls seit 30.10.2026). Diese Datei fuehrt sie nur als Zahlen.",
+  "groessen": {
+    "ertrag_holz": {
+      "art": "ertrag",
+      "rohstoff": "holz",
+      "text": "Holzertrag"
+    },
+    "ertrag_stein": {
+      "art": "ertrag",
+      "rohstoff": "stein",
+      "text": "Steinertrag"
+    },
+    "ertrag_nahrung": {
+      "art": "ertrag",
+      "rohstoff": "nahrung",
+      "text": "Nahrungsertrag"
+    },
+    "ertrag_gold": {
+      "art": "ertrag",
+      "rohstoff": "gold",
+      "text": "Goldertrag"
+    },
+    "reise": {
+      "art": "reise",
+      "text": "Reisegeschwindigkeit",
+      "hinweis": "wirkt als Reisezeit geteilt durch (1 + Prozent)"
+    },
+    "at": {
+      "art": "kampf_at",
+      "text": "AT der Einheiten"
+    },
+    "pa": {
+      "art": "kampf_pa",
+      "text": "PA der Einheiten"
+    },
+    "verteidigung": {
+      "art": "kampf_pa",
+      "text": "Verteidigung",
+      "hinweis": "gilt fuer die Einheiten des Verteidigers - dieselbe Groesse wie PA"
+    },
+    "beute": {
+      "art": "beute",
+      "text": "Beute"
+    },
+    "handel": {
+      "art": "handel",
+      "text": "Handelserloes"
+    },
+    "baukosten": {
+      "art": "baukosten",
+      "text": "Gebaeudepreise",
+      "hinweis": "negativer Wert = guenstiger; wirkt beim Ausbau des Spielers, Bots bauen nicht"
+    },
+    "ausbau": {
+      "art": "ohne_anker",
+      "text": "Ausbau",
+      "hinweis": "KEIN Anker: die Bots haben keine Bau- oder Ausbauwirtschaft. Wird ehrlich als wirkungslos gefuehrt, nicht erfunden"
+    }
+  },
+  "voelker": {
+    "menschlich": [
+      {
+        "groesse": "ertrag_holz",
+        "prozent": 5
+      },
+      {
+        "groesse": "ertrag_stein",
+        "prozent": -5
+      }
+    ],
+    "zwergisch": [
+      {
+        "groesse": "ertrag_stein",
+        "prozent": 5
+      },
+      {
+        "groesse": "ertrag_holz",
+        "prozent": -5
+      }
+    ],
+    "elfisch": [
+      {
+        "groesse": "reise",
+        "prozent": 5
+      },
+      {
+        "groesse": "pa",
+        "prozent": -5
+      }
+    ],
+    "Trolle": [
+      {
+        "groesse": "at",
+        "prozent": 5
+      },
+      {
+        "groesse": "handel",
+        "prozent": -5
+      }
+    ],
+    "Ghule": [
+      {
+        "groesse": "ertrag_nahrung",
+        "prozent": 5
+      },
+      {
+        "groesse": "pa",
+        "prozent": -5
+      }
+    ],
+    "Gnome": [
+      {
+        "groesse": "baukosten",
+        "prozent": -5
+      },
+      {
+        "groesse": "at",
+        "prozent": -5
+      }
+    ]
+  },
+  "voelker_begruendung": {
+    "Gnome": "Text in data/voelker.json heisst 'Ausbau +5 %'. Daniel 03.11.2026: Ausbau bleibt, wirkt aber als -5 % Gebaeudepreise beim Ausbau (das Mass gibt es schon: bonus_system.get_building_cost_multiplier). Deshalb steht hier -5 auf 'baukosten', nicht +5 auf 'ausbau'. Bei den Bots ist die Wirkung wirkungslos, weil Bots nicht bauen."
+  },
+  "taktiken": {
+    "Haug": [
+      {
+        "groesse": "beute",
+        "prozent": 5
+      }
+    ],
+    "Brynhild": [
+      {
+        "groesse": "verteidigung",
+        "prozent": 5
+      }
+    ],
+    "Grom": [
+      {
+        "groesse": "ausbau",
+        "prozent": 5
+      }
+    ],
+    "Silra": [
+      {
+        "groesse": "reise",
+        "prozent": 5
+      }
+    ],
+    "Krank": [
+      {
+        "groesse": "at",
+        "prozent": 5
+      }
+    ]
+  }
+}

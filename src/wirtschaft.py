@@ -76,11 +76,30 @@ def _effektive_rate(geb_id, roh, menge, forschung_level):
     return menge * bonus_system.get_production_multiplier(forschung_level, roh.lower())
 
 
+def _volk_faktor(rohstoff: str, siedlung) -> float:
+    """Der Volksfaktor EINES Rohstoffs fuer DIESE Siedlung (V-5, 03.11.2026).
+
+    Das Volk steht am Ort (Feld `volk`, bei der Gruendung aus `spieler_fraktion` gesetzt); die
+    Prozentwerte liest `boni.py` aus `data/boni.json` (additive Ueberschneidung, Daniel 03.11.2026).
+    Ohne Volk - alte Spielstaende, fremde Siedlung - bleibt es bei 1,0: kein Bonus, der niemandem
+    gehoert.
+    """
+    fraktion = str(_feld(siedlung, "volk", "") or "")
+    if not fraktion:
+        return 1.0
+    try:
+        import boni
+    except Exception:                                  # noqa: BLE001 - ohne Modul kein Bonus
+        return 1.0
+    return boni.ertragsfaktor(fraktion, rohstoff)
+
+
 def _feld_ertraege(siedlung, forschung_level=None):
     """Alle bebauten Felder mit ihrem Ertrag: ``([(geb_id, {roh: menge})], uebersprungen)``.
 
     A-3 (Dorfuebersicht, 31.10.2026): `siedlung_ertrag` und `dorf_uebersicht` rechnen BEIDE hier
-    hinein - sonst gaebe es zwei Wahrheiten ueber denselben Ertrag.
+    hinein - sonst gaebe es zwei Wahrheiten ueber denselben Ertrag. V-5 (03.11.2026): der
+    Volksfaktor wird EBENFALLS hier angewandt, damit Kern und Anzeige ihn beide tragen.
     """
     eintraege = []
     uebersprungen = []
@@ -132,13 +151,15 @@ def _feld_ertraege(siedlung, forschung_level=None):
 
         if isinstance(ertrag, dict):
             eintraege.append((geb_id, {roh: _effektive_rate(geb_id, roh, menge, forschung_level)
+                                       * _volk_faktor(roh, siedlung)
                                        for roh, menge in ertrag.items()}))
         else:
             roh = _rohstoff_von(geb_id)
             if not roh:
                 uebersprungen.append(f"Feld {feld}: kein Rohstoff zu {geb_id} bekannt")
                 continue
-            eintraege.append((geb_id, {roh: _effektive_rate(geb_id, roh, ertrag, forschung_level)}))
+            eintraege.append((geb_id, {roh: _effektive_rate(geb_id, roh, ertrag, forschung_level)
+                                       * _volk_faktor(roh, siedlung)}))
     return eintraege, uebersprungen
 
 
@@ -339,7 +360,7 @@ def ertrag_gesamt(siedlungen, forschung_level=None) -> dict:
             gesamt[roh] = gesamt.get(roh, 0.0) + menge
         if _ist_neue_originalsiedlung(siedlung):
             for roh, grundrate in ORIGINAL_GRUNDEINKOMMEN.items():
-                gesamt[roh] = gesamt.get(roh, 0.0) + grundrate
+                gesamt[roh] = gesamt.get(roh, 0.0) + grundrate * _volk_faktor(roh, siedlung)
     return {roh: round(menge, 2) for roh, menge in gesamt.items()}
 
 

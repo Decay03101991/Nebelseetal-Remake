@@ -279,6 +279,51 @@ def volksattribute(bot: Optional[dict]) -> Dict[str, str]:
     return dict(VOLKSATTRIBUTE.get(fraktion) or {"plus": "", "minus": ""})
 
 
+def _boni_daten():
+    """Die Datenschicht der Boni (`src/boni.py`) - hier wird nur gefragt, nicht gelesen.
+
+    Wie bei `_voelker_daten`: dieses Modul bleibt reine Logik, Dateien zu oeffnen ist hier verboten
+    (eigene Wache). Die Zahlen liest `boni.py`.
+    """
+    try:
+        import boni as _b
+        return _b
+    except Exception:                                  # noqa: BLE001 - ohne Modul keine Wirkung
+        return None
+
+
+def taktik_bonus_aktiv(bot: Optional[dict], jetzt: float) -> bool:
+    """Gilt der Taktikbonus dieses Bots gerade?
+
+    Daniels Entscheidung 03.11.2026: "Bonus gilt, solange die Taktik steht; nach einem Taktikwechsel
+    48 h gesperrt". Die Taktik ist je Bot fest (`TAKTIKEN`), also gilt ihr Bonus dauerhaft;
+    `verhaltensbonus` haelt nur fest, bis wann er gebucht ist. Ein ABGELAUFENER Eintrag schaltet ihn
+    ab, bis der Bot das naechste Mal zieht (dann wird er erneuert) - ein noch nie gebuchter Bonus
+    zaehlt als stehend, denn der Bot hat seine Taktik ja.
+    """
+    bot = bot if isinstance(bot, dict) else {}
+    if not isinstance(bot.get("verhaltensbonus"), dict):
+        return True
+    return verhaltensbonus_aktiv(bot, jetzt)
+
+
+def modifikatoren(bot: Optional[dict], jetzt: float) -> Dict[str, float]:
+    """Die summierten Prozente je Groesse fuer EINEN Bot: Volk + stehende Taktik, ADDIERT.
+
+    Eine Wahrheit je Groesse: die Zahlen kommen aus `boni.modifikatoren` (`data/boni.json`), die
+    Ueberschneidungsregel (additiv, Daniel 03.11.2026) ebenfalls von dort. Rueckgabe
+    ``{Groesse: Prozent}``, z. B. ``{"ertrag_holz": 5.0, "reise": 10.0, "pa": -5.0}`` - leer, wenn
+    die Wirkung abgeschaltet ist oder die Datei fehlt (dann rechnet niemand mit einem Bonus).
+    Der Schluessel der Taktik in der Datendatei ist der NAME des Bots (`TAKTIKEN` haengt je Bot).
+    """
+    bot = bot if isinstance(bot, dict) else {}
+    b = _boni_daten()
+    if b is None:
+        return {}
+    return b.modifikatoren(str(bot.get("fraktion") or ""), str(bot.get("name") or ""),
+                           taktik_bonus_aktiv(bot, jetzt))
+
+
 def verhaltensbonus_aktiv(bot: Optional[dict], jetzt: float) -> bool:
     """True, solange der befristete Verhaltensbonus nicht abgelaufen ist."""
     bot = bot if isinstance(bot, dict) else {}
