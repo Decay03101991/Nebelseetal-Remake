@@ -1,3 +1,37 @@
+# STAND 03.11.2026, 10:26 - S-10: der BEDARF je Rohstoff, die Kartenwahl steht auf "mittel" (Register 159)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Die Bots waehlen ihre Karten jetzt nach ihrem BEDARF.** Daniels Entscheidung 4 verlangte genau das:
+erst einen Bedarf je Rohstoff bauen, dann `kartenwahl_stufe` von `schwer` auf `mittel` stellen. Bis
+heute kannte das Spiel nur EINEN laufenden Verbrauch - Nahrung der Garnison (8 je Einheit und Tag);
+alles andere wird sofort bezahlt. Jetzt rechnet `bot_rohstoffbedarf` den Bedarf je STUNDE (dieselbe
+Einheit wie die Ertraege der Karten) aus dem, was das Spiel schon fuehrt.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `0e48fce` plus diese Doku | `git log --oneline -1` |
+| Voller Sammellauf | **141 von 143 gruen, 0 rot, 2 ausgesetzt, 5.677 Pruefungen, 392 s** (Start 10:18, nach dem letzten Fix) | `docs/audits/sammellauf_20261103_1018.log` |
+| Pruefdateien / Register / Quelldateien | **143** / **159** / **55** | `ls tests/test_*.py`, `grep -c '^| [0-9]'`, `ls src/*.py` |
+| Neue Wache | `tests/test_bot_bedarf.py` **25/0/1** | eigener Lauf |
+| Umgestellte Wachen | `test_kartenwahl_bot` **22/0/0** (Nutzen-Zweig jetzt explizit `stufe="schwer"`, neuer Abschnitt 6 fuer "mittel"), `test_bot_dorf_als_ort` **32/0/0** (Karte fuer die Zaehlung fest gesetzt) | eigene Laeufe |
+| Bedarf, gemessen | 10 Einheiten = 80 Nahrung/Tag = **3,3333/h**; offener Gauner-Auftrag = **10,4167 Gold/h** + 0,0417 Siedler/h; Baukunst Stufe 1 = **2,0833 Holz/h**, Stufe 2 = 4,1667; zwei Dolche = 0,1667 Metall/h | `test_bot_bedarf.py` |
+| Wirkung auf die Karte | **3 von 5 Bots** bekommen mit "mittel" eine andere Karte als mit der reinen Gold-Regel; die Mangel-Achse entscheidet (Probe: `original-108`) | `test_kartenwahl_bot.py` |
+
+**Ehrliche Grenzen:** (a) der Bedarf ist eine **Planungsgroesse** (was das Dorf in 24 h bezahlen will),
+keine Verbrauchsmessung - verbrauchte Mengen stehen weiter im `produktionsjournal`; (b) **Bauten zaehlen
+nicht** mit (einmalige Ausgabe, eigene Entscheidung noetig); (c) die Aenderung wirkt nur auf die
+**Kartenwahl**, nicht auf die Wirtschaft; (d) das Fenster (24 h) ist eine VORSCHLAG-Zahl in
+`data/bot_bedarf.json` - das Original nennt keinen Planungshorizont.
+
+## Der EINE naechste Schritt
+
+**Journal-Deckel: `produktionsjournal` auf 500 Zeilen je Ort** (Daniels Entscheidung 9), Spieler UND
+Bots gleich, aelteste Zeilen fallen weg, mit Wache: der Deckel greift und das Versorgungsfenster rechnet
+weiter. Danach in dieser Reihenfolge: **Diebstahl mit Postfach-Bericht** (Entscheidung 7), **S-5
+Ausbildung je Ort** (Warteschlange statt Kauf - damit zieht die Armee in die Doerfer und isst dort),
+**S-6 Nachgruenden**, **S-7 Karawanen**.
+
 # STAND 03.11.2026, 08:46 - S-4: die Bots FORSCHEN, ihre Taktiken trennen sich (Register 158)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
