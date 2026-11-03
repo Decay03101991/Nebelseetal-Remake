@@ -1,3 +1,32 @@
+# STAND 03.11.2026, 15:10 - W-8: Burgen und Wappen auf der Weltkarte (Register 165)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Jedes Dorf auf der Weltkarte ist jetzt zuzuordnen.** Statt des braunen Kastens mit X traegt jedes
+Dorf die **Burg seiner Fraktion** und darunter ein kleines **Wappen-Abzeichen** - Hauptdorf und
+Nebendoerfer desselben Bots dasselbe Paar, der Spieler sein eigenes. Die Bilder sind Daniels
+Lieferung vom 01.11., die Zuordnung steht in einer Datendatei.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `88ca781` plus diese Aenderung | `git log --oneline -1` |
+| Neue Regeldaten | `data/bot_wappen.json` - je Fraktion Burg + Wappen, zwei Groessen-Regler, Urteil VORSCHLAG | Datei |
+| Wache | `tests/test_bot_wappen.py` **26/0/1** | eigener Lauf |
+| Gegenprobe | Zeichnen abgeschaltet -> **1 Fehler** (0 von 4 Bildern), Datei hashgleich | eigener Lauf |
+| Nachbardateien | `test_startspiel` **62/0/1**, `test_weltbild_gelaende` **135/0/0**, `test_spionage` **146/0/0**, `test_durchspiel` **65/0/2** | eigene Laeufe |
+| Belegbilder | `docs/audits/wappen_uebersicht_20261103.png`, `portal_wappen_heimat_20261103.png`, `portal_wappen_fremdwelt_20261103.png` | eigene Aufnahmen |
+
+## Der EINE naechste Schritt
+
+**W-6/W-7: der Blick in fremde Welten.** Seit W-5/W-9 stehen die fuenf Bots in ihren Fuenf-Welten -
+die Heimatkarte des Spielers zeigt damit nur noch seine eigenen Doerfer. Der Ueberblick ueber die
+anderen Welten („der spieler ... sieht bereits die bots wenn er in die Uebersicht einer anderen welt
+schaut“) und die Anzeige, wie viele Doerfer ein Bot in seiner Welt hat, fehlen noch. Danach **S-5
+Ausbildung je Ort** (S-5b Armee ins Dorf zuerst), **W-4** (Bots rauben untereinander), **S-6/S-7/S-9**;
+**W-3** braucht Daniels Entscheidung (gesperrt oder teuer mit Deckel).
+
+**Der Sammellauf gehoert zum Abschluss jedes Code-Schnitts** - nach diesem Stand laeuft er.
+
 # STAND 03.11.2026, 14:40 - W-5/W-9: fuenf Bots, Heimatwelt je Fraktion (Register 164)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

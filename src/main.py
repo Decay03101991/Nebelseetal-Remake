@@ -2473,6 +2473,35 @@ def _lade_motivdaten() -> tuple:
 
 
 GEBAEUDE_MOTIVE, KACHELRAHMEN, RAHMEN_DECKRAFT, AUSWAHL_DECKRAFT = _lade_motivdaten()
+
+
+def _lade_wappen() -> tuple:
+    """(Fraktion -> {burg, wappen}, Burg-Groesse, Wappen-Groesse) aus `data/bot_wappen.json`.
+
+    W-8 (Daniel 03.11.2026): "auf der weltkarte sollen hauptdorf und nebendoerfer die selbe burg mit
+    dem dazugehoerigen wappen tragen". Die Zuordnung steht in der Datendatei; fehlt sie, kommt ein
+    leeres Dict zurueck und die Karte zeichnet den alten Kasten - nichts wird erfunden.
+    """
+    pfad = os.path.join(ICON_WURZEL, "data", "bot_wappen.json")            # Datendatei im Projekt
+    try:                                                                  # Datei lesen
+        with open(pfad, encoding="utf-8") as f:                            # UTF-8 wie alle Spieldaten
+            daten = json.load(f)                                           # Inhalt als dict
+    except (OSError, ValueError):                                         # fehlt oder kaputt
+        return {}, 92, 40                                                 # dann keine Wappen
+    roh = daten.get("je_fraktion") or {}                                  # Fraktion -> Bildpaar
+    paare = {str(k): v for k, v in roh.items() if isinstance(v, dict)}    # nur vollstaendige Paare
+    try:                                                                  # Groessen als Regler lesen
+        gross = int(daten.get("groesse_prozent_der_zelle") or 92)         # Burg in Prozent der Zelle
+    except (TypeError, ValueError):
+        gross = 92
+    try:
+        klein = int(daten.get("wappen_groesse_prozent_der_zelle") or 40)  # Wappen in Prozent
+    except (TypeError, ValueError):
+        klein = 40
+    return paare, max(10, min(100, gross)), max(10, min(100, klein))
+
+
+WAPPEN, WAPPEN_GROESSE, WAPPEN_ANTEIL = _lade_wappen()
 UNITS: Dict[str, Unit] = {}
 for _name, _e in einheiten.alle().items():
     if _e["icon"]:
@@ -8745,14 +8774,19 @@ class NebelseetalApp:
         for bot, dorf in self._bot_doerfer_im_raster(kante):
             x1, y1 = int(dorf.x) * zelle, int(dorf.y) * zelle          # linke obere Ecke des Feldes
             cx, cy = x1 + zelle / 2.0, y1 + zelle / 2.0                # Feldmitte
-            halb = max(3.0, zelle * 0.24)                              # halbe Kantenlaenge des Zeichens
-            zeichenflaeche.create_rectangle(cx - halb, cy - halb, cx + halb, cy + halb,
-                                            fill="#B45309", outline="#FFE8C2", width=2,
-                                            tags=("portalbote",))      # das fremde Dorf
-            zeichenflaeche.create_line(cx - halb, cy - halb, cx + halb, cy + halb,
-                                       fill="#FFE8C2", tags=("portalbote",))
-            zeichenflaeche.create_line(cx - halb, cy + halb, cx + halb, cy - halb,
-                                       fill="#FFE8C2", tags=("portalbote",))
+            # W-8 (Daniel 03.11.2026): Burg und Wappen der FRAKTION dieses Bots. Hauptdorf und
+            # Nebendoerfer desselben Bots tragen dasselbe Bildpaar - daran ist das Dorf zuzuordnen.
+            if not self._dorf_marke(zeichenflaeche, cx, cy, zelle, bot.faction, ("portalbote",)):
+                self._dorf_kasten(zeichenflaeche, cx, cy, zelle, "#B45309", ("portalbote",))
+        # W-8: auch die EIGENEN Doerfer stehen auf ihrer Welt - mit dem Wappen des Spielers.
+        for _ort in (getattr(self.state, "settlements", None) or []):   # jede eigene Siedlung
+            if int(getattr(_ort, "dimension", 1) or 1) != int(nummer):  # nur die dieser Weltkarte
+                continue
+            _cx = (int(getattr(_ort, "x", 0)) + 0.5) * zelle            # Feldmitte in x
+            _cy = (int(getattr(_ort, "y", 0)) + 0.5) * zelle            # Feldmitte in y
+            if not self._dorf_marke(zeichenflaeche, _cx, _cy, zelle,
+                                    getattr(self.state, "spieler_fraktion", ""), ("portalspieler",)):
+                self._dorf_kasten(zeichenflaeche, _cx, _cy, zelle, "#27AE60", ("portalspieler",))
         # M-1 (Vorgabe Daniel 02.11.2026, Register 140): die LAUFENDEN Maersche als Linie mit
         # eigenem Zeichen-Tag. Gespeist aus `state.auftraege` (keine zweite Auftragsliste), vier
         # Objekte je Marsch, KEINE Truppenart und keine Anzahl im Bild. Der Tag `marsch` ist neu;
@@ -9950,6 +9984,49 @@ class NebelseetalApp:
                     continue                                           # dann gehoert es nicht hierher
                 treffer.append((bot, dorf))                            # sonst: dieses Dorf zeigen
         return treffer
+
+    def _dorf_marke(self, zeichenflaeche, cx: float, cy: float, zelle: int,
+                    fraktion: str, tags: tuple) -> bool:
+        """Burg + Wappen einer Fraktion in eine Feldmitte zeichnen (W-8, Daniel 03.11.2026).
+
+        Was hinein geht: Zeichenflaeche, Feldmitte, Feldgroesse, die FRAKTION und die Canvas-Tags.
+        Was heraus kommt: True, wenn das Bild wirklich gezeichnet wurde - False heisst "kein Bild",
+        und der Aufrufer zeichnet dann den alten Kasten mit X (kein Pillow, Datei fehlt).
+
+        Das Wappen sitzt als kleines Abzeichen unten rechts; beide Groessen sind Regler in
+        `data/bot_wappen.json`. Ein Bot traegt ueberall dasselbe Paar - daran ist sein Dorf zu erkennen.
+        """
+        paar = WAPPEN.get(str(fraktion or "")) or {}                   # Bildpaar dieser Fraktion
+        burg = str(paar.get("burg") or "")                             # Pfad der Burg
+        wappen = str(paar.get("wappen") or "")                         # Pfad des Wappens
+        if not burg:                                                   # keine Fraktion/kein Paar
+            return False                                               # dann bleibt es beim Kasten
+        px = max(8, int(round(float(zelle) * float(WAPPEN_GROESSE) / 100.0)))       # Burggroesse
+        bild = self._motivbild_skaliert(burg, px, "_wappen_cache")     # gleicher Weg wie die Motive
+        if bild is None:                                               # Datei fehlt / kein Pillow
+            return False                                               # Aufrufer zeichnet den Kasten
+        zeichenflaeche.create_image(cx, cy, image=bild, tags=tags)     # die Burg auf dem Feld
+        wp = max(6, int(round(float(zelle) * float(WAPPEN_ANTEIL) / 100.0)))        # Wappengroesse
+        klein = self._motivbild_skaliert(wappen, wp, "_wappen_cache") if wappen else None   # Abzeichen
+        if klein is not None:                                          # Wappen vorhanden
+            off = float(zelle) * 0.28                                  # Versatz nach unten rechts
+            zeichenflaeche.create_image(cx + off, cy + off, image=klein, tags=tags)  # Abzeichen
+        return True                                                    # Bild gezeichnet
+
+    def _dorf_kasten(self, zeichenflaeche, cx: float, cy: float, zelle: int,
+                     farbe: str, tags: tuple) -> None:
+        """Der gezeichnete Rueckfall: farbiger Kasten mit X (so sah die Karte bis W-8 aus).
+
+        Bleibt absichtlich stehen - ohne Pillow oder bei fehlender Bilddatei muss die Karte weiter
+        zeigen, WO ein Dorf steht, statt leer zu bleiben.
+        """
+        halb = max(3.0, zelle * 0.24)                                  # halbe Kantenlaenge
+        zeichenflaeche.create_rectangle(cx - halb, cy - halb, cx + halb, cy + halb,
+                                        fill=farbe, outline="#FFE8C2", width=2, tags=tags)
+        zeichenflaeche.create_line(cx - halb, cy - halb, cx + halb, cy + halb,
+                                   fill="#FFE8C2", tags=tags)
+        zeichenflaeche.create_line(cx - halb, cy + halb, cx + halb, cy - halb,
+                                   fill="#FFE8C2", tags=tags)
 
     def _bot_dorf_an(self, x: int, y: int, kante: int = 20):
         """Welches fremde Dorf steht auf dem Feld (x, y)? None, wenn keines."""
