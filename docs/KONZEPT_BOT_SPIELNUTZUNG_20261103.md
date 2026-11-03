@@ -72,7 +72,7 @@ eine andere Karte besser waere fuer ein Botdorf". **Der Spieler soll das auch tu
 Das ist eine neue Mechanik fuer BEIDE Seiten und beruehrt die Grundregeln nicht: Doerfer werden weiter
 NIE eingenommen (das waere Eroberung von aussen), hier gibt der Besitzer sein EIGENES Dorf auf.
 
-Sechs Gestaltungsfragen, gesammelt fuer die eine Runde (mit Vorschlag):
+Sechs Gestaltungsfragen - **ENTSCHIEDEN am 03.11.2026, 23:2x: Daniel nimmt alle sechs Vorschlaege an** (Vorraete und Gebaeude verfallen, Siedler kehren bis zur Grenze heim, stationierte Truppen marschieren mit Wegzeit heim, das aufgegebene Dorf zaehlt bis zur Neugruendung gegen die Hoechstzahl, 72 Spielstunden Sperre, die aufgegebene Karte ist fuer diesen Bot gesperrt). Die Tabelle darunter bleibt als Begruendung stehen:
 
 | Frage | Warum sie wichtig ist | Vorschlag |
 |---|---|---|

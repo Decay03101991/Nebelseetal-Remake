@@ -2824,6 +2824,11 @@ def _lade_motivdaten() -> tuple:
 
 GEBAEUDE_MOTIVE, KACHELRAHMEN, RAHMEN_DECKRAFT, AUSWAHL_DECKRAFT = _lade_motivdaten()
 
+# Kartenraster der Weltkarte (Daniel 03.11.2026, 22:1x: "Felder mit Gelaendeton, feiner Trennlinie").
+# Die Trennlinie liegt als EIGENE Zahl hier und nicht im Feld selbst - vorher war jeder Feldumriss
+# hart schwarz (#111111), jetzt traegt der Gelaendeton die Flaeche und eine feine Linie das Gitter.
+RASTER_LINIE = "#2b1a12"                                                 # warmes Dunkelbraun, 1 px
+
 
 def _lade_wappen() -> tuple:
     """(Fraktion -> {burg, wappen}, Burg-Groesse, Wappen-Groesse) aus `data/bot_wappen.json`.
@@ -9606,6 +9611,53 @@ class NebelseetalApp:
         self._render_view()
         return True
 
+    def _kartenrahmen_bauen(self, eltern, breite: int, hoehe: int):
+        """Ein gemalter Rahmen um das Gelaendekaestchen (Daniel 03.11.2026: "Rahmen als Bildleiste").
+
+        Der vorhandene Kachelrahmen der C2-Lieferung (64 x 64) wird als 9-Slice-Rahmen gelegt: die
+        vier Ecken bleiben fest, die vier Kanten werden GEKACHELT (`gebaeude_optik.rahmen_kanten`) -
+        gedehnt wuerde das geschnitzte Muster langgezogen. Ist kein Bild da (kein Pillow, Datei
+        fehlt), kommt `(None, eltern)` zurueck und das Kaestchen steht wie bisher ohne Rahmen.
+        Rueckgabe: (Rahmenrahmen, Mitte) - die Zeichenflaeche des Kaestchens gehoert in `Mitte`.
+        """
+        if not KACHELRAHMEN or not KACHELRAHMEN.get("ruhe"):            # kein Rahmenbild hinterlegt
+            return None, eltern                                         # dann ohne Rahmen zeichnen
+        schluessel = (int(breite), int(hoehe))                          # gleiche Masse, gleiches Bild
+        if not hasattr(self, "_kartenrahmen_cache"):                    # Cache beim ersten Rahmen
+            self._kartenrahmen_cache = {}                               # (Breite, Hoehe) -> Tk-Bilder
+        bilder = self._kartenrahmen_cache.get(schluessel)               # schon gebaut?
+        if bilder is None:                                              # noch nicht
+            teile = gebaeude_optik.rahmen_kanten(KACHELRAHMEN.get("ruhe"), breite, hoehe)  # vier Streifen
+            bilder = {}                                                 # Vorgabe: kein Bild
+            if teile:                                                   # Streifen entstanden
+                try:                                                    # Tk-Grafiken daraus bauen
+                    from PIL import ImageTk                             # nur hier importieren
+                    bilder = {name: ImageTk.PhotoImage(teile[name])     # je Seite eine Grafik
+                              for name in ("oben", "unten", "links", "rechts")}
+                except Exception:                                       # Tk nimmt sie nicht
+                    bilder = {}                                         # dann ohne Rahmen
+            self._kartenrahmen_cache[schluessel] = bilder               # auch das leere Ergebnis merken
+        if not bilder:                                                  # kein Bild vorhanden
+            return None, eltern                                         # dann wie bisher
+        rahmen = tk.Frame(eltern, bg=self.skin["bg"], bd=0, highlightthickness=0)  # Traeger des Rahmens
+        rahmen.pack(anchor=tk.W, padx=10, pady=4)                       # wie die nackte Flaeche vorher
+        oben = tk.Label(rahmen, image=bilder["oben"], bd=0, highlightthickness=0,
+                        bg=self.skin["bg"])                             # obere Leiste
+        oben.grid(row=0, column=0, columnspan=3)                        # ueber die ganze Breite
+        links = tk.Label(rahmen, image=bilder["links"], bd=0, highlightthickness=0,
+                         bg=self.skin["bg"])                            # linke Leiste
+        links.grid(row=1, column=0)                                     # neben der Mitte
+        mitte = tk.Frame(rahmen, bg=self.skin["bg"])                    # hier sitzt das Kaestchen
+        mitte.grid(row=1, column=1)                                     # zwischen den Seitenleisten
+        rechts = tk.Label(rahmen, image=bilder["rechts"], bd=0, highlightthickness=0,
+                          bg=self.skin["bg"])                           # rechte Leiste
+        rechts.grid(row=1, column=2)                                    # neben der Mitte
+        unten = tk.Label(rahmen, image=bilder["unten"], bd=0, highlightthickness=0,
+                         bg=self.skin["bg"])                            # untere Leiste
+        unten.grid(row=2, column=0, columnspan=3)                       # unter der Mitte
+        rahmen.bilder = bilder                                         # Referenzen am Rahmen halten
+        return rahmen, mitte                                            # Rahmen und Mitte zurueckgeben
+
     def _render_portal(self):
         """Portal-Uebersicht (Schnitt S-2b): Weltkartenliste oben, Gelaendekaestchen darunter.
 
@@ -9713,14 +9765,29 @@ class NebelseetalApp:
         # belegte fremde Bannerfarbe, und niemand haelt die fremde Karte fuer seine eigene.
         felder = portalraum.anzeige_raster(portalraum.index_von(angezeigt), 10,
                                            eigene_index if not fremdblick else [])
-        zeichenflaeche = tk.Canvas(self.content, width=kante * zelle, height=kante * zelle,
+        # Daniel 03.11.2026 ("Rahmen als Bildleiste"): der gemalte Kachelrahmen der C2-Lieferung
+        # wird als 9-Slice-Rahmen um das Kaestchen gelegt. Ohne Bild bleibt es beim nackten Kaestchen.
+        _rahmen_flaeche, _rahmen_mitte = self._kartenrahmen_bauen(self.content, kante * zelle,
+                                                                 kante * zelle)
+        zeichenflaeche = tk.Canvas(_rahmen_mitte, width=kante * zelle, height=kante * zelle,
                                    bg=self.skin["bg"], highlightthickness=0)
-        zeichenflaeche.pack(anchor=tk.W, padx=10, pady=4)
+        if _rahmen_flaeche is None:                                    # kein Bildrahmen vorhanden
+            zeichenflaeche.pack(anchor=tk.W, padx=10, pady=4)          # dann wie bisher frei im Inhalt
+        else:                                                          # mit Rahmen
+            zeichenflaeche.pack()                                      # sitzt das Kaestchen in der Mitte
+        self.portal_zeichenflaeche = zeichenflaeche                    # EINE Stelle fuer Anzeigen und Wachen
         for feld in felder:
             x1, y1 = feld["x"] * zelle, feld["y"] * zelle
             fuellung = feld.get("gelaende_farbe") or farben.get(feld["farbe"], "#555555")
             zeichenflaeche.create_rectangle(x1, y1, x1 + zelle, y1 + zelle,
-                                            fill=fuellung, outline="#111111")
+                                            fill=fuellung, outline="")   # Gelaendeton statt schwarzer Kaesten
+        # Daniel 03.11.2026, 22:1x: "Felder mit Gelaendeton, feiner Trennlinie" - die Trennlinien
+        # entstehen EINMAL ueber die ganze Flaeche (2 x kante Linien) statt als 400 harte Umrisse.
+        for i in range(kante + 1):
+            zeichenflaeche.create_line(i * zelle, 0, i * zelle, kante * zelle,
+                                       fill=RASTER_LINIE)              # senkrechte Trennlinie
+            zeichenflaeche.create_line(0, i * zelle, kante * zelle, i * zelle,
+                                       fill=RASTER_LINIE)              # waagerechte Trennlinie
         # B-5 (Vorgabe Daniel 02.11.2026): fremde Doerfer stehen jetzt AUF der Weltkarte und sind
         # anklickbar - der Klick oeffnet Angriff/Spionage. Gezeichnet werden nur oeffentliche
         # Angaben; Wall, Taktik, Truppen und Vorraete kommen ausschliesslich ueber einen Bericht.
@@ -9775,8 +9842,11 @@ class NebelseetalApp:
         if auswahl:
             ax, ay = int(auswahl[0]), int(auswahl[1])
             x1, y1 = ax * zelle, ay * zelle
+            # Daniel 03.11.2026, 22:1x: "Goldrand fuer die Auswahl" - vorher war es ein blauer Rand.
             zeichenflaeche.create_rectangle(x1, y1, x1 + zelle, y1 + zelle,
-                                            outline="#38BDF8", width=3)
+                                            outline="#1b0d06", width=4)      # dunkle Unterlage
+            zeichenflaeche.create_rectangle(x1 + 1, y1 + 1, x1 + zelle - 1, y1 + zelle - 1,
+                                            outline=self.skin["gold"], width=2)  # Goldrand
         zeichenflaeche.bind("<Button-1>",
                             lambda ereignis: self._portal_klick(ereignis.x // zelle,
                                                                 ereignis.y // zelle, kante))
@@ -9791,7 +9861,7 @@ class NebelseetalApp:
                                          f"y={ay}{gel_text} auf Weltkarte {nummer:02d} "
                                          f"({self._dimensionsname(nummer)}). Der Dorftransfer folgt "
                                          f"mit S-6 - hier wird noch nichts übertragen."),
-                     fg="#38BDF8", bg=self.skin["bg"], wraplength=760, justify=tk.LEFT).pack(
+                     fg=self.skin["gold"], bg=self.skin["bg"], wraplength=760, justify=tk.LEFT).pack(
                          anchor=tk.W, padx=10)
         else:
             tk.Label(self.content, text="Noch kein Feld gewählt: ein Klick ins Kästchen wählt es aus.",

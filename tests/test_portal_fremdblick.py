@@ -75,11 +75,21 @@ check("1 Ansehen legt keinen Weltensprung an", not [a for a in gs.auftraege], st
 
 
 def _karte():
-    """Die 400x400-Zeichenflaeche des Portals (oder None)."""
-    for w in app.content.winfo_children():
-        if w.winfo_class() == "Canvas" and w.winfo_width() == 400 and w.winfo_height() == 400:
-            return w
-    return None
+    """Die 400x400-Zeichenflaeche des Portals (oder None).
+
+    Seit dem Bildrahmen der Weltkarte (03.11.2026, Register 178) sitzt die Zeichenflaeche in einem
+    eigenen Rahmen-Rahmen (`_kartenrahmen_bauen`) - deshalb wird der Baum DURCHSUCHT statt nur die
+    direkten Kinder. Die Zusage bleibt dieselbe: es gibt genau eine Karte mit den Dorfzeichen.
+    """
+    def _suchen(widget):
+        for kind in widget.winfo_children():
+            if kind.winfo_class() == "Canvas" and kind.winfo_width() == 400 and kind.winfo_height() == 400:
+                return kind
+            treffer = _suchen(kind)
+            if treffer is not None:
+                return treffer
+        return None
+    return _suchen(app.content)
 
 
 def _texte(widget):

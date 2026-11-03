@@ -1,3 +1,44 @@
+# STAND 03.11.2026, 23:2x - Weltkarte mit gemaltem Rahmen, Gelaendeton und Goldrand (Register 178)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Die Weltkarte sieht jetzt aus wie ein Kaestchen aus dem Original, nicht wie ein Farbgitter.** Um das
+Gelaendekaestchen liegt der gemalte Kachelrahmen der C2-Lieferung als 9-Slice-Rahmen (Ecken fest, Kanten
+gekachelt), die Felder tragen ihren Gelaendeton ohne harten schwarzen Umriss, das Gitter ist eine feine
+dunkelbraune Trennlinie, und die Auswahl ist ein **Goldrand** statt eines blauen Kastens. Groesse und
+Aufbau sind unveraendert: 400 x 400 px, 20 px je Feld, 10 x 10 Felder.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Neue Wache | `tests/test_weltkarte_rahmen.py` **32/0/1** | eigener Lauf |
+| Gegenprobe | **6 Pruefungen rot** (Rahmen abgeschaltet, Goldrand zurueck auf Blau), `main.py` per SHA256 unveraendert zurueck | eigener Lauf |
+| Nachbarn | `test_marsch_optik` 63/0/0, `test_portal_fremdblick` 18/0/1, `test_spionage` 146/0/0, `test_weltbild_gelaende` 135/0/0, `test_portal_uebersicht` 61/0/0, `test_overlay_ingame` 42/0/1 | eigene Laeufe |
+| Rahmen | vier Bildleisten, Ecke **pixelgleich** mit `kachelrahmen_ruhe.png`, Rand **16 px** | `gebaeude_optik.rahmen_kanten` |
+| Gitter | **44** Linien in `#2b1a12` (vorher 400 Umrisse `#111111`) | `main.RASTER_LINIE` |
+| Auswahl | `#ffcc33` (Skin-Gold) auf `#1b0d06`; der blaue Rand `#38BDF8` ist weg | `_render_portal` |
+| Bild-Beleg | `C:/Users/saras/AppData/Local/hermes/cache/scratch/weltkarte_rahmen_beleg.png` (ganzer Schirm, Rahmen und Goldrand sichtbar) | eigener Lauf mit `.venv`-Python |
+
+## Zwei Befunde vor dem Bau (gemessen, nicht geraten)
+
+1. **Die Ressourcenleiste taugt NICHT als Rahmen.** In ihrem Band stehen acht Symbole und acht leere
+   Zahlenschilde (`data/ressourcenleiste.json`, acht Felder); als Rahmen gedehnt waeren sie verzerrt.
+   Daniel hat deshalb den **Kachelrahmen als 9-Slice-Rahmen** freigegeben. Ein breiter eigener
+   Kartenrahmen bleibt eine Bildlieferung.
+2. **Drei bestehende Wachen mussten ihren Anker verschieben**: die Zeichenflaeche sitzt jetzt in einem
+   Traeger, deshalb suchen `test_portal_fremdblick`, `test_spionage` und `test_marsch_optik` sie im Baum
+   statt nur unter den direkten Kindern. Die Zusagen selbst sind unveraendert (genau eine Karte, dieselben
+   Tags, Restzeit-Zeile UEBER der Karte).
+
+## Der EINE naechste Schritt
+
+**S-8 Stufe 3: die Taktik-Bauplaene** aus `D:/Arbeiten/Hermes/Notizen/S8_STUFE3_BAUPLAENE_20261103.md`
+nach `data/bot_bauplan.json` (Mindestzahlen je Taktik, Restfelder nach Ertrag), **die Zahlen mit den
+ECHTEN Werten nachrechnen** (Jaeger 2/2, Zuchten 3, Farm 4/2 - der Entwurf hatte drei Annahmen falsch),
+dann 24 Spieltage mit `tools/bot_wirtschaft_messung.py` messen. Danach **S-12** (alle Felder nutzen).
+**Der volle Sammellauf und die Protokollzeile gehoeren zum Abschluss jedes Schnitts.**
+
+---
+
 # STAND 03.11.2026, 22:55 - Overlay-Basis gebaut: Dialoge liegen INGAME, kein Desktop-Fenster mehr (Register 177)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

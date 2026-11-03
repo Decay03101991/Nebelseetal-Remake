@@ -175,6 +175,69 @@ def kasten_bild(breite: int, hoehe: int, radius: int = 12,
     return kasten.resize((b, h), Image.LANCZOS)                 # glatt verkleinert zurueckgeben
 
 
+def rahmen_kanten(quelle: str, breite: int, hoehe: int, rand: int = None) -> Dict[str, object]:  # Baut vier Randstreifen aus einem 9-Slice-Rahmenbild.
+    """Vier Randstreifen (oben, unten, links, rechts) fuer einen Kasten beliebiger Groesse.
+
+    Das Rahmenbild ist quadratisch (C2-Lieferung: 64 x 64, aussen geschnitzt, innen durchsichtig).
+    Fuer ein Kaestchen von 400 px werden die vier ECKEN fest uebernommen und die vier KANTEN
+    GEKACHELT - gedehnt wuerde das geschnitzte Muster langgezogen (dieselbe Lehre wie bei der
+    Bildleiste am 02.11.2026). Rueckgabe: dict mit "oben", "unten", "links", "rechts" als
+    RGBA-Bilder; ohne Pillow oder ohne Datei kommt ein leeres dict zurueck.
+    """
+    try:  # Beginnt den optionalen Pillow-Import.
+        from PIL import Image  # Importiert das Bildmodul.
+    except ImportError:  # Faengt fehlendes Pillow ab.
+        return {}  # Ohne Pillow kein Rahmen.
+    pfad = Path(str(quelle or ""))  # Pfad aus der Datendatei.
+    if not pfad.is_absolute():  # Relative Angabe wie in allen assets-Pfaden.
+        pfad = Path(PROJEKT_ROOT) / pfad  # Auf die Projektwurzel beziehen.
+    if not pfad.exists():  # Datei fehlt.
+        return {}  # Dann bleibt es beim nackten Kaestchen.
+    bild = Image.open(pfad).convert("RGBA")  # Original mit Alphakanal.
+    w, h = bild.size  # Masse des Rahmenbildes.
+    rand = int(rand or max(4, min(w, h) // 4))  # Randbreite: Vorgabe ein Viertel der Kantenlaenge.
+    rand = max(2, min(rand, min(w, h) // 2))  # Nie mehr als die halbe Kante.
+    breite, hoehe = int(breite), int(hoehe)  # Zielmasse des Kastens.
+    if breite < 2 * rand + 2 or hoehe < 2 * rand + 2:  # Zu klein fuer diesen Rand.
+        return {}  # Dann kein Rahmen (der Aufrufer zeichnet ohne).
+    ecken = {"tl": bild.crop((0, 0, rand, rand)),  # Ecke oben links.
+             "tr": bild.crop((w - rand, 0, w, rand)),  # Ecke oben rechts.
+             "bl": bild.crop((0, h - rand, rand, h)),  # Ecke unten links.
+             "br": bild.crop((w - rand, h - rand, w, h))}  # Ecke unten rechts.
+    kanten = {"oben": bild.crop((rand, 0, w - rand, rand)),  # obere Kante ohne Ecken.
+              "unten": bild.crop((rand, h - rand, w - rand, h)),  # untere Kante ohne Ecken.
+              "links": bild.crop((0, rand, rand, h - rand)),  # linke Kante ohne Ecken.
+              "rechts": bild.crop((w - rand, rand, w, h - rand))}  # rechte Kante ohne Ecken.
+
+    def _kacheln(stueck, laenge: int, waagerecht: bool):  # Wiederholt ein Kantenstueck bis zur Laenge.
+        from PIL import Image as _Image  # Bildmodul (im Import oben schon geladen).
+        if waagerecht:  # Waagerechte Kante.
+            flaeche = _Image.new("RGBA", (max(1, laenge), stueck.size[1]), (0, 0, 0, 0))  # leere Flaeche
+        else:  # Senkrechte Kante.
+            flaeche = _Image.new("RGBA", (stueck.size[0], max(1, laenge)), (0, 0, 0, 0))  # leere Flaeche
+        x = y = 0  # Startpunkt der Wiederholung.
+        while (x < laenge) if waagerecht else (y < laenge):  # Solange noch Platz ist.
+            flaeche.paste(stueck, (x, 0) if waagerecht else (0, y))  # Stueck einsetzen.
+            if waagerecht:  # Waagerecht weiterzaehlen.
+                x += stueck.size[0]  # um die Stueckbreite.
+            else:  # Senkrecht weiterzaehlen.
+                y += stueck.size[1]  # um die Stueckhoehe.
+        return flaeche  # Fertige Kante.
+
+    from PIL import Image as _Bild  # Bildmodul fuer die Zusammensetzung.
+    oben = _Bild.new("RGBA", (breite, rand), (0, 0, 0, 0))  # Leere obere Leiste.
+    oben.paste(ecken["tl"], (0, 0))  # Ecke links.
+    oben.paste(_kacheln(kanten["oben"], breite - 2 * rand, True), (rand, 0))  # Kante dazwischen.
+    oben.paste(ecken["tr"], (breite - rand, 0))  # Ecke rechts.
+    unten = _Bild.new("RGBA", (breite, rand), (0, 0, 0, 0))  # Leere untere Leiste.
+    unten.paste(ecken["bl"], (0, 0))  # Ecke links.
+    unten.paste(_kacheln(kanten["unten"], breite - 2 * rand, True), (rand, 0))  # Kante dazwischen.
+    unten.paste(ecken["br"], (breite - rand, 0))  # Ecke rechts.
+    links = _kacheln(kanten["links"], hoehe - 2 * rand, False)  # Linke Kante in Zielhoehe.
+    rechts = _kacheln(kanten["rechts"], hoehe - 2 * rand, False)  # Rechte Kante in Zielhoehe.
+    return {"oben": oben, "unten": unten, "links": links, "rechts": rechts, "rand": rand}  # Fertige Teile.
+
+
 def hintergrund(gebaeude_id: str, breite: int, hoehe: int = None) -> Optional[object]:  # Skaliert einen Menue-Hintergrund.
     try:  # Beginnt den optionalen Pillow-Import.
         from PIL import Image  # Importiert das Bildmodul.

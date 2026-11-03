@@ -124,12 +124,40 @@ check("die Feldgroesse folgt der Rasterweite",
 
 
 def _leinwand(app):
-    """Die Zeichenflaeche des Gelaendekaestchens (sie traegt die Dorfzeichen)."""
+    """Die Zeichenflaeche des Gelaendekaestchens (sie traegt die Dorfzeichen).
+
+    Seit dem Bildrahmen (03.11.2026) sitzt sie in einem eigenen Rahmen-Rahmen - der Baum wird
+    deshalb DURCHSUCHT; die Zeichenflaeche selbst und ihre Tags bleiben unveraendert.
+    """
     import tkinter as tk
-    for kind in app.content.winfo_children():
-        if isinstance(kind, tk.Canvas) and kind.find_withtag("portalbote"):
-            return kind
-    return None
+
+    def _suchen(widget):
+        for kind in widget.winfo_children():
+            if isinstance(kind, tk.Canvas) and kind.find_withtag("portalbote"):
+                return kind
+            treffer = _suchen(kind)
+            if treffer is not None:
+                return treffer
+        return None
+    return _suchen(app.content)
+
+
+def _kartenhalter(app):
+    """Das direkte Kind des Inhaltsbereichs, das die Karte enthaelt (-1, wenn keins)."""
+    import tkinter as tk
+
+    def _enthaelt(widget):
+        for kind in widget.winfo_children():
+            if isinstance(kind, tk.Canvas) and kind.find_withtag("portalbote"):
+                return True
+            if _enthaelt(kind):
+                return True
+        return False
+
+    for i, kind in enumerate(app.content.winfo_children()):
+        if _enthaelt(kind):
+            return i
+    return -1
 
 
 def _zaehlen(app):
@@ -260,8 +288,7 @@ def _reihenfolge(app):
     kinder = list(app.content.winfo_children())
     zeile = next((i for i, k in enumerate(kinder)
                   if isinstance(k, tk.Label) and str(k.cget("text")).startswith("Unterwegs:")), -1)
-    karte = next((i for i, k in enumerate(kinder)
-                  if isinstance(k, tk.Canvas) and k.find_withtag("portalbote")), -1)
+    karte = _kartenhalter(app)           # seit dem Bildrahmen ist der Traeger der Karte ein Rahmen
     return (zeile, karte)
 
 

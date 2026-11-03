@@ -536,10 +536,16 @@ def _kartenprobe():
                      if app._bot_dorf_an(x, y, kante) is None), None)
         app._switch_view("Portal")
         leinwand = None
-        for kind in app.content.winfo_children():                 # die Zeichenflaeche des Kaestchens
-            if isinstance(kind, tk.Canvas) and kind.find_withtag("portalbote"):
-                leinwand = kind
-                break
+
+        def _suchen(widget):                                      # die Karte liegt seit dem Bildrahmen
+            for kind in widget.winfo_children():                  # (03.11.2026) eine Ebene tiefer -
+                if isinstance(kind, tk.Canvas) and kind.find_withtag("portalbote"):  # deshalb suchen
+                    return kind                                   # gefunden
+                treffer = _suchen(kind)                           # tiefer weitersuchen
+                if treffer is not None:
+                    return treffer
+            return None
+        leinwand = _suchen(app.content)
         marker = len(leinwand.find_withtag("portalbote")) if leinwand is not None else 0
         gerufen = {}
         echt = app._bot_dorf_optionen

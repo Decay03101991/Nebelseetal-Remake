@@ -184,6 +184,7 @@
 | 175 | Die acht Kampfregeln sind entschieden (Daniel, 03.11.2026, 22:1x). | ABGESEGNET | 03.11.2026 |
 | 176 | A: Doppel-Puffer im Ansichtswechsel (03.11.2026, Daniels Wunsch nach Fluessigkeit). | GEBAUT | 03.11.2026 |
 | 177 | Overlay-Basis: Ingame-Dialoge statt Desktop-Fenster (03.11.2026, Daniels Wunsch 22:2x). | GEBAUT | 03.11.2026 |
+| 178 | Weltkarte mit gemaltem Rahmen, Gelaendeton und Goldrand (03.11.2026, Daniels Entscheidung 22:1x). | GEBAUT | 03.11.2026 |
 
 ## Ersetzungen (Handpflege)
 
