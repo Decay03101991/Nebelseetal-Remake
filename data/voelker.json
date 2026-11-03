@@ -1,0 +1,49 @@
+{
+  "_zweck": "Die sechs Fraktionen (Voelker) des Remakes: Plus, Minus, Beschreibung und Quelle. Der Spieler waehlt beim Start, die fuenf Bots bekommen die uebrigen ohne Doppelung.",
+  "_quelle": "menschlich, zwergisch, elfisch und Trolle stammen aus src/bottaktik.py (VOLKSATTRIBUTE, dort seit 30.10.2026 belegt); Trolle uebernehmen das Paar der frueheren Fraktion 'monster' (AT +5 % / Handelserloes -5 %). Ghule und Gnome sind Daniels Entscheidung vom 03.11.2026 (Fragenrunde) - es gibt dafuer keine Quelle im Handbuch, deshalb 'quelle': 'ENTSCHEIDUNG Daniel 03.11.2026'.",
+  "_reihenfolge": "Die Reihenfolge dieser Liste ist die Verteilungsreihenfolge an die Bots (deterministisch, keine Doppelung).",
+  "fraktionen": [
+    {
+      "kennung": "menschlich",
+      "plus": "Holzertrag +5 %",
+      "minus": "Steinertrag -5 %",
+      "beschreibung": "Anpassungsfaehig und vielseitig; im Steinbau weniger ertragreich.",
+      "quelle": "bottaktik.py"
+    },
+    {
+      "kennung": "zwergisch",
+      "plus": "Steinertrag +5 %",
+      "minus": "Holzertrag -5 %",
+      "beschreibung": "Meister des Steinbaus; im Wald weniger ertragreich.",
+      "quelle": "bottaktik.py"
+    },
+    {
+      "kennung": "elfisch",
+      "plus": "Reisegeschwindigkeit +5 %",
+      "minus": "PA der Einheiten -5 %",
+      "beschreibung": "Schnell unterwegs; weniger robust im Kampf.",
+      "quelle": "bottaktik.py"
+    },
+    {
+      "kennung": "Trolle",
+      "plus": "AT der Einheiten +5 %",
+      "minus": "Handelserloes -5 %",
+      "beschreibung": "Kampfstark, aber ungeschickt im Handel. Uebernimmt das Paar der frueheren Fraktion 'monster'.",
+      "quelle": "bottaktik.py"
+    },
+    {
+      "kennung": "Ghule",
+      "plus": "Nahrungsertrag +5 %",
+      "minus": "PA der Einheiten -5 %",
+      "beschreibung": "Finden ueberall Nahrung; im offenen Kampf weniger wehrhaft.",
+      "quelle": "ENTSCHEIDUNG Daniel 03.11.2026"
+    },
+    {
+      "kennung": "Gnome",
+      "plus": "Ausbau +5 %",
+      "minus": "AT der Einheiten -5 %",
+      "beschreibung": "Fleissige Baumeister; im Angriff schwaecher.",
+      "quelle": "ENTSCHEIDUNG Daniel 03.11.2026"
+    }
+  ]
+}
