@@ -1,3 +1,35 @@
+# STAND 03.11.2026, 15:25 - S-5 komplett, Sammellauf gruen, Uebergabe geschrieben
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Der Tag ist abgeschlossen und gruen:** 149 von 151 Pruefdateien gruen, 0 rot, 2 ausgesetzt,
+5.920 Pruefungen in 332 s. Gebaut sind heute S-13 (Bot-Takt deterministisch, Diebstahl eingeschaltet)
+und die fuenf Welten-Schnitte W-1, W-5/W-9, W-8, W-6/W-7 sowie S-5 komplett (S-5b Armee in den
+Doerfern, S-5c Essen je Dorf, S-5a Ausbildung ueber die Warteschlange).
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf | `e82ce66` plus diese Doku, Arbeitsbaum leer | `git log --oneline -1` |
+| Voller Sammellauf (Endstand) | **149 von 151 gruen, 0 rot, 2 ausgesetzt, 5.920 Pruefungen, 332 s** | `docs/audits/sammellauf_20261103_1516.log` |
+| Pruefdateien / Register | **151** / **168** | `ls tests/test_*.py`, `grep -c '^| [0-9]'` |
+| Uebergabe | `C:\Users\saras\Desktop\UEBERGABE_NEBELSEETAL_20261103_1525.md` (10.485 Byte, SHA256 `c0e5fafd…`) | Desktop |
+| Guthaben | **12,59 / 47,40 USD** (13:43 von Daniel abgelesen) | Protokoll |
+
+## Der EINE naechste Schritt
+
+**W-4: Bots rauben auch untereinander** (Daniels Vorgabe): starke Bots mit Einheiten und eigenen
+Doerfern machen Raubzuege - gegen den Spieler UND gegen andere Bots, aber nur in einer Welt, die
+spielaktiv ist. Die Voraussetzungen stehen: die Armee liegt in den Doerfern (S-5b), die Ausbildung
+laeuft ueber die Warteschlange (S-5a), die Weltzuordnung ist fest (W-5/W-9). Danach S-6
+(Nachgruenden), S-7 (Karawanen), S-9 (Stil je Taktik), zuletzt **W-3** (braucht Daniels Entscheidung:
+gesperrt oder teuer mit Deckel) und die **Story** (W-11, nebensaechlich).
+
+**Vier offene Fragen** stehen in der Uebergabe, Abschnitt 8 (W-3, ein Volk ohne Bot, Wappen-Zuordnung,
+Burg-Groesse auf der Karte).
+
+**Der Sammellauf gehoert zum Abschluss jedes Code-Schnitts** - und die naechste Sitzung faengt mit
+`git status` und `date` an, nicht mit dem Bauen.
+
 # STAND 03.11.2026, 17:40 - S-5 komplett: der Bot bildet aus statt zu kaufen (Register 168)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
