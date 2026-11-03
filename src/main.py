@@ -465,6 +465,53 @@ def boni_fuer_bot(bot, jetzt: float = 0.0) -> Dict[str, float]:
     return boni.kampf_werte(bottaktik.modifikatoren(daten, jetzt))
 
 
+def bot_doerfer_bebauen(dorf: "BotDorf", einstellungen: Optional[dict] = None) -> int:
+    """Setzt die Grundanlagen eines Bot-Dorfes auf seine EIGENEN Felder (S-2, 03.11.2026).
+
+    Bis heute rechnete ein Bot-Dorf seinen Ertrag aus dem Kartenprofil (`bot_dorf_ertrag`), ohne
+    dass auf seiner Karte etwas stand. Mit dem Kern gilt: was nicht gebaut ist, ertraegt nichts -
+    ausser dem Grundeinkommen der Originalsiedlung (1 Holz / 1 Stein). Damit ein Bot-Dorf nicht
+    ab morgen hungert, setzt diese Funktion die Grundanlagen aus `data/bot_wirtschaft.json`
+    (`gebaeude_je_dorf`, `anlagen_je_gebaeude`) auf die BESTEN freien Felder, auf denen sie stehen
+    duerfen - dieselbe Regel, mit der `bot_dorf_ertrag` vorher "bestes Gelaende" gewaehlt hat.
+    Rechnet nichts gut und kostet nichts: der Bot hat diese Anlagen bezahlt, als er das Dorf
+    gruendete (VORSCHLAG, siehe Register 153).
+    Rueckgabe: Zahl der gesetzten Anlagen (0 = es passt nichts mehr oder alles steht schon).
+    """
+    einstellungen = (einstellungen if einstellungen is not None
+                     else bot_wirtschaft_einstellungen())
+    karte = dorf.karte_daten or _bot_karte_dict(getattr(dorf, "karte", ""))
+    if not karte:
+        return 0                                                          # ohne Karte kein Feld
+    dorf.karte_daten = karte
+    raster = list(karte.get("raster") or [])
+    if not raster:
+        return 0
+    try:
+        anzahl = max(1, int(einstellungen.get("anlagen_je_gebaeude") or 1))
+    except (TypeError, ValueError):
+        anzahl = 1
+    gebaeude = [str(g) for g in (einstellungen.get("gebaeude_je_dorf") or [])]
+    if not gebaeude:
+        return 0
+    gesetzt = 0
+    for geb in gebaeude:
+        frei = [i for i in range(len(raster)) if str(i) not in dorf.bauten]
+        for _ in range(anzahl):
+            if not frei:
+                break
+            passend = [(gelaende.ertrag_pro_stunde(geb, raster[i]) or 0.0, i) for i in frei
+                       if gelaende.bau_moeglich(geb, raster[i])[0]]
+            if not passend:
+                break
+            _wert, feld = max(passend)                                    # bestes Feld gewinnt
+            dorf.bauten[str(feld)] = geb
+            dorf.stufen[str(feld)] = 1
+            frei.remove(feld)
+            gesetzt += 1
+    return gesetzt
+
+
 def bot_dorf_ertrag(dorf=None, einstellungen: Optional[dict] = None,
                     bot: Optional["BotPlayer"] = None) -> Dict[str, float]:
     """Stundenertrag EINES Bot-Dorfes - die EINE Lesestelle fuer Kern UND Anzeige (F-04).

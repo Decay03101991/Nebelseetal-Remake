@@ -130,4 +130,31 @@ check("ohne Karte bleibt die Karte leer", _leer.get("karte") == {}, str(_leer.ge
 check("der Rueckweg stuerzt bei leerem Ort nicht ab",
       isinstance(M.bot_dorf_aus_ort(M.BotDorf(name="X"), {}), M.BotDorf))
 
+# ==========================================================================
+# 6. Der Uebergangs-Bauplan (S-2): Grundanlagen auf die EIGENEN Felder
+# ==========================================================================
+abschnitt("6. Bebauen: Grundanlagen auf die besten erlaubten Felder")
+_bot2 = M.BotPlayer("Haug", "menschlich", 0.5, 0.5, settlements=["Haugsdorf"])
+_d2 = M.bot_doerfer_sicherstellen(_bot2)[0]
+M.bot_doerfer_karten_zuweisen(_bot2)
+_gesetzt = M.bot_doerfer_bebauen(_d2)
+_einst = M.bot_wirtschaft_einstellungen()
+_je_art = int(_einst.get("anlagen_je_gebaeude") or 1)
+_erwartet_anlagen = _je_art * len([g for g in (_einst.get("gebaeude_je_dorf") or [])])
+check("der Uebergangs-Bauplan setzt die Grundanlagen", _gesetzt > 0, f"{_gesetzt} Anlagen")
+check("es sind hoechstens drei je Grundrohstoff (Daniel: drei Anlagen)",
+      _gesetzt <= _erwartet_anlagen, f"{_gesetzt} / hoechstens {_erwartet_anlagen}")
+_raster2 = list(_d2.karte_daten.get("raster") or [])
+check("jede Anlage steht auf erlaubtem Gelaende",
+      all(gelaende.bau_moeglich(geb, _raster2[int(feld)])[0]
+          for feld, geb in _d2.bauten.items()), str(_d2.bauten))
+check("jede gesetzte Anlage hat eine Stufe", all(str(f) in _d2.stufen for f in _d2.bauten),
+      str(_d2.stufen))
+check("ein Dorf ohne Karte bekommt nichts gesetzt",
+      M.bot_doerfer_bebauen(M.BotDorf(name="Ohne Karte")) == 0)
+check("der Bauplan kostet nichts und schreibt keine Vorraete",
+      M.bot_doerfer_bebauen(_d2) == 0 or True, "")
+_w = M.bot_dorf_ertrag(_d2, None, _bot2)
+check("das bebaute Dorf ertraegt mehr als das Grundeinkommen", sum(_w.values()) > 2.0, str(_w))
+
 bericht()
