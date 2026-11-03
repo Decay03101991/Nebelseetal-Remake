@@ -1,7 +1,7 @@
 # S-5 Ausbildung je Ort — Konzept (03.11.2026, Entwurf vor dem Bau)
 
 **Vorgabe:** Daniel, Entscheidung 4 der Runde 12:20, woertlich: „S-5 Ausbildung je Ort
-(Warteschlange statt Kauf; Armee zieht in die Doerfer und isst dort)".
+(Warteschlange statt Kauf; Armee zieht in die Doerfer und isst dort)“.
 
 **Stand:** Entwurf. Gebaut ist noch nichts; dieser Text ist die Messlage, auf der der Schnitt steht.
 
@@ -17,7 +17,7 @@
 | Essen | `bot_futter_buchen` bucht NUR im Hauptdorf; `bot_dorf_tick` bucht Garnison-Nahrung je Dorf nur fuer `dorf.einheiten` | `src/main.py` |
 
 **Der Code sagt selbst, was zu tun ist** (`bot_dorf_tick`-Docstring): „sobald S-5 Einheiten je Ort
-ausbildet, muss die Armee dort hineinwandern (sonst isst sie zweimal)".
+ausbildet, muss die Armee dort hineinwandern (sonst isst sie zweimal)“.
 
 ## 2. Der Schnitt in dieser Reihenfolge
 
