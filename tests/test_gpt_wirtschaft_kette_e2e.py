@@ -103,8 +103,12 @@ class TestWirtschaftKette(unittest.TestCase):
         self.assertFalse(self.o.einheiten.get('Handkarren'))
         self.g.tick(1200)
         self.assertEqual(self.o.einheiten.get('Handkarren'),1)
+        # W-6 (03.11.2026, Register 166): Siedlungen tragen jetzt die WELT des Spielers (vorher stand
+        # ueberall die Vorgabe 1). Ein Transport zwischen EIGENEN Doerfern setzt dieselbe Welt voraus
+        # (`spieloekonomie.transport_start` verlangt das) - die Kolonie liegt deshalb in der Welt des
+        # Ausgangsdorfs, nicht mehr fest in Welt 1.
         ziel=main.Settlement(id='spielerdorf2', name='Kolonie', map_id='kontinent',
-                             x=self.o.x+1,y=self.o.y,besitzer='spieler',dimension=1,
+                             x=self.o.x+1,y=self.o.y,besitzer='spieler',dimension=self.o.dimension,
                              karte=spieloekonomie.startkarte('zweites', 'spieler'),
                              vorraete={'holz':0.0,'stein':0.0},bevoelkerung=10)
         # Mission ist eine echte Kernbuchung und keine globale Teleportation.
