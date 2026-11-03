@@ -1,3 +1,34 @@
+# STAND 03.11.2026, 19:26 - Ablauf: Hintergrundbilder als O-1 vor den Postkasten
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Daniels Befund (19:2x):** manche Hintergruende sind „verzerrt und unscharf“. Gemessen, nicht geraten:
+
+| Gegenstand | Wert |
+|---|---|
+| Hintergrundbilder | **538 x 222 px** (Seitenverhaeltnis 2,42 : 1) - dieselben Dateien wie die Menuebilder |
+| Zielflaeche | **980 x 760 px** (1,29 : 1) |
+| Skalierung | **3,42 x** hochgezogen, dazu 2,0 px Weichzeichnen und 38 % Abdunkeln |
+| Folge | ein flaches Band in einer fast quadratischen Flaeche: cover schneidet die Seiten weg, die Vergroesserung macht es weich |
+
+Das ist dieselbe Klasse Fehler wie die Ressourcenleiste im Oktober (ein BAND als dehnbare FLAECHE behandelt). **Der Fix ist ein eigener Schnitt O-1** und kommt an diese Stelle:
+
+| # | Schritt | Inhalt | Warum an dieser Stelle |
+|---|---|---|---|
+| 1 | **S-6b Warenkette fuer Bots** (Teil 2) | Karrenbau im Bot-Takt, dann `siedlerkarren_pflicht: true`, Messung ueber 24 Spieltage | laeuft, Teil 1 (Warenhaltung, Ertrag aus der Karte) ist gebaut |
+| 2 | **V-3 Vollstaendiger Kampfbericht** | alle Angaben des Angegriffenen; Garnison zum Angriffsmoment, Warteschlange getrennt und danach weiter | Fundament aller Berichte |
+| 3 | **V-2 Angriffs- und Verteidigungsbericht** | je Seite eine Sicht, beide Wege | baut auf V-3 |
+| 4 | **V-1 Angriffswarnung** | roter Rahmen (helles Rot) um das Hauptfenster waehrend der Wegzeit | klein, sofort sichtbar, W-4-Angriffe laufen schon |
+| 5 | **O-1 Hintergrundbilder** | echte Hintergrundbilder in 1470 x 1140 px je Gebaeude (Bildauftrag), Einbau mit Vergleichsblatt; bis zur Lieferung Uebergang: Band nicht als Flaeche skalieren | **vor V-4**, weil der Postkasten sonst auf unscharfen Flaechen sitzt - beide sind Optik und werden zusammen beurteilt. Der Bildauftrag startet frueh, weil er Lieferzeit hat |
+| 6 | **V-4 Postkasten** | Uebersicht nach Art, Zeit, Betreff, Kurzfassung, Details aufklappbar | braucht V-2/V-3 (Arten und Felder) und O-1 (Hintergrund) |
+| 7 | **V-5 Bot-Auswertung** | Bots lesen Berichte und schliessen daraus | braucht V-3 und V-4 |
+| 8 | **S-7 Karawanen** | Transporte zwischen EIGENEN Doerfern | schreibt selbst ins Postfach |
+| 9 | **S-9 Stil je Taktik** | was der Bot mit seinem Reichtum TUT | setzt S-6b und S-7 voraus |
+| 10 | **W-3 Kampf ueber Weltgrenzen** | teuer mit Deckel | Bau zuletzt von den Kaempfen |
+| 11 | **Story (W-11)** | nur das Noetige, sechs Fraktionen | nebensaechlich, zuletzt |
+
+**Der EINE naechste Schritt: S-6b Teil 2** - Karrenbau im Bot-Takt mit den Bedingungen aus `data/units.json` (Stellmacher, 200 Holz, 80 Metall, 150 Leder, 100 Wolle, 4 Pferde, 5 Siedler, 300 Nahrung, Wagenbau 1), danach `siedlerkarren_pflicht` auf `true` und die Messung ueber 24 Spieltage. Waehrend der Bildauftrag fuer O-1 laeuft, blockiert er nichts. Der Sammellauf gehoert zum Abschluss, das Protokoll traegt die Zeile dazu.
+
 # STAND 03.11.2026, 19:02 - Ablauf neu geordnet: S-6b vor S-7, Berichte vor Karawanen
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
