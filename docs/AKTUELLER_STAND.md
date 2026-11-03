@@ -1,3 +1,32 @@
+# STAND 03.11.2026, 12:25 - Sitzungsende: vier Entscheidungen, naechster Schnitt ist das Zeitmodell
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Der Stand ist gruen und die Richtung entschieden.** Voller Sammellauf 143 von 145 (0 rot), alle
+Arbeit committet, kein Prozess offen. Die vier offenen Fragen hat Daniel beantwortet; sie gelten ab
+jetzt und sind hier woertlich festgehalten.
+
+| Nr | Frage | Antwort Daniel (woertlich) | Folge |
+|---|---|---|---|
+| 1 | Altname `deepseek-v4-flash` in der Config | "Ja, umstellen (Altname raus, ueberall derselbe Name)" | `auxiliary.mcp.model` = `deepseek-flash`, ueber die CLI gesetzt, Sicherung + Protokoll |
+| 2 | Diebstahl-Zahlen (dünn ≤ 5, 3 %, 60/120, 12 h) | "So lassen (Schwelle 5, 3 %, 60/120, 12 h)" | `data/bot_diebstahl.json` bleibt wie es ist |
+| 3 | Wie wird der Bot-Takt zeitlich deterministisch? | "Ereignis-Splitting wie beim Spieler (`spieloekonomie.tick_bis`) - groesserer Umbau, aber eine Wahrheit" | **naechster Schnitt:** Bot-Takt ueber `tick_bis` statt eigener Bucket-Logik |
+| 4 | Naechster fachlicher Schnitt danach | "S-5 Ausbildung je Ort (Warteschlange statt Kauf; Armee zieht in die Doerfer und isst dort)" | nach dem Zeitmodell: S-5, dann S-6, S-7 |
+
+## Der EINE naechste Schritt
+
+**Bot-Takt auf `spieloekonomie.tick_bis` umstellen** (Daniels Entscheidung 3 von heute): die
+Bot-Aktionen laufen dann durch DIESELBE Ereignis-Zerlegung wie die Spielersiedlungen, und
+`1 × 3600 s` gegen `10 × 360 s` fuehrt zu denselben Takten. Erst danach kann `data/bot_diebstahl.json`
+auf `aktiv: true` (S-12 steht fertig, Register 161) - und danach S-5 Ausbildung je Ort.
+
+**Was dafuer zu beachten ist:** `tick_bis` arbeitet auf `orte` (dict) und `missionen` und liefert
+`(orte, missionen, wissen, zeit, ereignisse)`; der Bot-Takt heute arbeitet auf `BotPlayer`-Objekten und
+`self.settlements`. Die Umstellung braucht deshalb eine Uebersetzung in BEIDE Richtungen
+(`bot_dorf_als_ort` / `bot_dorf_aus_ort` gibt es schon) und eine Wache, die genau die Gleichheit
+`1 x 3600 == 10 x 360` fuer die Bot-Aktionen prueft - heute ist sie fuer den Spieler geprueft, nicht
+fuer die Bots.
+
 # STAND 03.11.2026, 11:45 - S-12: Diebstahl mit Bericht GEBAUT, Schalter bleibt AUS (Register 161)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
