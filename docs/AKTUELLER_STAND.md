@@ -17,7 +17,7 @@ Dorf zu gruenden war ueberhaupt nicht moeglich.
 | Gegenproben | Forschungspruefung aus -> **2 Fehler**; Hoechstzahl aus -> **5 Fehler** (Bots kamen auf 7-10 Doerfer); Datei beide Male hashgleich zurueck | eigener Lauf |
 | Messung im Spiel | nach 24 Spieltagen **4 Doerfer je Bot**, alle in der Heimatwelt, 4 verschiedene Karten, 11 Gruendungs-Nachrichten im Postfach | `tests/test_bot_gruendung.py` Abschnitt 4 |
 | Voller Sammellauf | **151 von 153 gruen, 0 rot, 2 ausgesetzt, 5.997 Pruefungen, 469 s** (Start 17:04) |
-| Neue Vorgabe Daniel (17:20) | **Ingame-Texte mit echten Umlauten** („wählen“ statt „waehlen“); Kennungen und Kommentare bleiben ASCII. Schnitt **T-1** noch offen | `docs/VORGABE_INGAME_TEXTE_20261103.md` | `docs/audits/sammellauf_20261103_1704.log` |
+| Neue Vorgabe Daniel (17:15) | **Ingame-Texte mit echten Umlauten** („wählen“ statt „waehlen“); Kennungen und Kommentare bleiben ASCII. Schnitt **T-1** noch offen | `docs/VORGABE_INGAME_TEXTE_20261103.md` | `docs/audits/sammellauf_20261103_1704.log` |
 | Pruefdateien / Register | **153** / **170** | `ls tests/test_*.py`, `grep -c '^| [0-9]'` |
 
 **Die eine Abweichung, die Daniels Wort braucht:** der Kern verlangt fuer eine Gruendung einen
@@ -29,7 +29,7 @@ fuenf Siedler des Karrens ziehen direkt aus dem Ausgangsdorf um. Sobald Bots ein
 
 ## Der EINE naechste Schritt
 
-**T-1 zuerst: Ingame-Texte mit echten Umlauten** (Daniels Vorgabe von 17:20). Erst das praezise
+**T-1 zuerst: Ingame-Texte mit echten Umlauten** (Daniels Vorgabe 17:15). Erst das praezise
 Inventurwerkzeug (`text=`, `insert(`, `_log(`, `messages.append` - nur was wirklich angezeigt wird),
 dann Datei fuer Datei ersetzen, zuletzt `main.py`, mit einer Wache gegen die Ersatzschreibweisen. Jede
 umgestellte Wache nennt die Entscheidung im Kommentar.
