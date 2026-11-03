@@ -58,6 +58,7 @@ import welt        # W4d: die Weltkarte des Limbus (20 Dimensionen, sechs belegt
 import zeitbasis  # GPT-Z01: lokale Datumsstempel, monotone Laufzeituhr, Nachrichten
 import spielzeit   # Spieluhr: der Zeitfaktor (Vorgabe Daniel 05.10.2026, Spielbericht)
 import spieloekonomie  # Oekonomie-Paket Schritt 9: Ortslager, Gruendungskosten, Verbrauch je Ort
+import spielschicht  # S-3: der Bau- und Ausbauweg des Spielers (Bots bauen durch dieselbe Funktion)
 import versorgungsschutz  # GPT extern: Softlock-Praevention fuer neue lokale Partien
 import dorfwall  # GPT extern W-02: ein Wallzustand je Ort, originaltreue Schwellen
 # Feinere Kartenoptik (Kinder-Arbeit vom 05.10.2026, vom Koordinator nachgerechnet): beide Module
@@ -330,6 +331,8 @@ def bot_doerfer_sicherstellen(bot: "BotPlayer") -> List["BotDorf"]:
     if vorhanden:                                                         # nichts doppelt anlegen
         sauber = [d if isinstance(d, BotDorf) else BotDorf(**d) for d in vorhanden]   # dict -> Objekt
         bot.doerfer = sauber                                              # eine Form im Speicher
+        for dorf in sauber:                                               # S-3: Siedler an EINEM Ort
+            bot_siedler_uebernehmen(dorf)                                 # Lagerposten -> Bevoelkerung
         return sauber
     namen = [str(n) for n in (getattr(bot, "settlements", None) or []) if str(n).strip()]  # bisherige Namen
     if not namen:                                                         # alter Stand ohne Namen
@@ -1040,6 +1043,115 @@ def bot_kasse_buchen(bot: "BotPlayer", stoff: str, menge) -> float:
     return float(kasse[str(stoff)])                                       # neuen Bestand melden
 
 
+def bot_siedler_uebernehmen(dorf: "BotDorf") -> float:
+    """Siedler eines Bot-Dorfes aus dem alten Lagerposten nach `bevoelkerung` ziehen (S-3).
+
+    Bis S-3 fuehrten die Bots Siedler als ROHSTOFF im Dorflager (`vorraete["siedler"]`, Startwert
+    10 aus `bot_vorrat_anlegen`), waehrend der Kern sie als Bevoelkerung fuehrt
+    (`Siedlung.bevoelkerung`, waechst durch `ort_tick`). Zwei Orte fuer dieselbe Groesse - und die
+    belegten Preise (Einheiten, Holzfaeller/Steinmetz/Jaeger) verlangen Siedler. Diese Funktion
+    zieht den alten Posten EINMAL in die Bevoelkerung; danach gibt es nur noch eine Stelle.
+    Idempotent: der Posten wird entfernt, ein zweiter Aufruf findet nichts mehr.
+    Rueckgabe: die Bevoelkerung des Dorfes nach der Uebernahme.
+    """
+    if not isinstance(getattr(dorf, "vorraete", None), dict):              # Dorf ohne Lager
+        return float(getattr(dorf, "bevoelkerung", 0.0) or 0.0)            # dann nur die Bevoelkerung
+    alt = float(dorf.vorraete.pop("siedler", 0.0) or 0.0)                  # alter Rohstoffposten
+    if alt > 0:                                                           # nur wenn etwas da ist
+        dorf.bevoelkerung = round(float(getattr(dorf, "bevoelkerung", 0.0) or 0.0) + alt, 2)
+    return float(getattr(dorf, "bevoelkerung", 0.0) or 0.0)
+
+
+def bot_bauplan() -> Dict[str, Any]:
+    """Der Bauplan der Bots aus `data/bot_bauplan.json` (S-3, 03.11.2026) - EINE Quelle.
+
+    Je Taktik eine REIHENFOLGE, dazu Obergrenzen je Gebaeude. Die Preise stehen NICHT hier,
+    sondern in `data/baupreise.json` und werden ueber `spielschicht.bauen` gebucht. Fehlt die
+    Datei oder ist sie kaputt, ist der Plan leer - dann baut kein Bot (kein erfundener Plan).
+    """
+    pfad = os.path.join(spieldaten.projektwurzel(), "data", "bot_bauplan.json")
+    try:
+        with open(pfad, encoding="utf-8") as f:
+            daten = json.load(f)
+    except (OSError, ValueError):
+        return {}
+    return daten if isinstance(daten, dict) else {}
+
+
+def bot_taktik_name(bot: "BotPlayer") -> str:
+    """Der STIL eines Bots (Pluenderer, Waechterin, Bastionier, Spaeherin, Raecher, Unbekannt).
+
+    Dieselbe Quelle wie der Verhaltensbonus: `bottaktik.TAKTIKEN[bot.name]["name"]`. Der Stil
+    entscheidet, WAS gebaut wird - das Verhalten (Suchen/Sichern/Wachsen) bleibt davon getrennt.
+    """
+    return str(bottaktik.taktik_von({"name": getattr(bot, "name", "")}).get("name") or "Unbekannt")
+
+
+def bot_dorf_bauen(dorf: "BotDorf", bot: "BotPlayer", jetzt: float = 0.0,
+                   plan: Optional[dict] = None) -> List[str]:
+    """Setzt Gebaeude aus dem Bauplan der Taktik - mit Preisen und Bauplaetzen wie der Spieler.
+
+    Der Bot baut durch DIESELBE Funktion wie der Spieler (`spielschicht.bauen`): freies Feld,
+    Eignung des Gelaendes, Obergrenze je Siedlung, Preis aus `data/baupreise.json`, Abbuchung aus
+    dem Dorflager. Gebaut wird immer das ERSTE Gebaeude der Taktik-Liste, das noch unter
+    `hoechstens` liegt, passt und bezahlbar ist; danach ist der Takt vorbei (`bauten_je_takt`).
+    Kein Erfinden: passt nichts, ist die Rueckgabe leer.
+
+    **Forschung (ehrliche Grenze):** `jetzt` enthaelt nur Gebaeude, die OHNE Forschung baubar sind
+    (`data/buildings.json`, `regeln.ohne_forschung_baubar`). Alles andere verlangt "Baukunst" und
+    damit S-4; die vollen Plaene stehen als `nach_baukunst` in der Datendatei und werden hier
+    bewusst NICHT benutzt.
+
+    Rueckgabe: die Namen der gesetzten Gebaeude (leer, wenn nichts gebaut wurde).
+    """
+    plan = plan if isinstance(plan, dict) else bot_bauplan()
+    if not plan or not plan.get("aktiv", True):                              # Schalter aus oder keine Datei
+        return []
+    zweige = plan.get("bauplaene") or {}                                     # je Taktik eine Liste
+    zweig = zweige.get(bot_taktik_name(bot)) or zweige.get("Unbekannt") or {}
+    reihenfolge = [str(g) for g in (zweig.get("jetzt") or []) if str(g)]      # nur ohne Forschung baubar
+    if not reihenfolge:
+        return []
+    hoechstens = plan.get("hoechstens") or {}                                # Obergrenzen je Gebaeude
+    try:
+        je_takt = max(1, int(plan.get("bauten_je_takt") or 1))               # Gebaeude je Takt
+    except (TypeError, ValueError):
+        je_takt = 1
+    ort = bot_dorf_als_ort(dorf, bot)                                        # Kern-Form des Dorfes
+    raster = list((ort.get("karte") or {}).get("raster") or [])              # Felder der Karte
+    if not raster:                                                           # ohne Karte kein Bauplatz
+        return []
+    gebaut: List[str] = []                                                   # was wirklich entstand
+    for _ in range(je_takt):                                                 # hoechstens N je Takt
+        ziel = None                                                          # Gebaeude und Feld
+        for geb in reihenfolge:                                              # Reihenfolge der Taktik
+            grenze = hoechstens.get(geb)                                     # Obergrenze der Datei
+            steht = sum(1 for g in (ort.get("bauten") or {}).values() if str(g) == geb)
+            if isinstance(grenze, int) and steht >= grenze:                  # genug davon gebaut
+                continue                                                     # naechstes Gebaeude
+            frei = [i for i in range(len(raster)) if str(i) not in (ort.get("bauten") or {})]
+            passend = [(gelaende.ertrag_pro_stunde(geb, raster[i]) or 0.0, i) for i in frei
+                       if gelaende.bau_moeglich(geb, raster[i])[0]]          # nur erlaubtes Gelaende
+            if not passend:                                                  # nirgends baubar
+                continue                                                     # naechstes Gebaeude
+            ziel = (geb, max(passend)[1])                                    # bestes Feld gewinnt
+            break
+        if ziel is None:                                                     # nichts passt oder bezahlbar
+            break
+        zustand = {"siedlungen": [ort],                                      # der Ort als Siedlung
+                   "ressourcen": ort.get("vorraete") or {},                  # SEIN Lager (eine Buchstelle)
+                   "bevoelkerung": float(ort.get("bevoelkerung") or 0.0),    # Siedler des Ortes
+                   "ereignisse": [], "zeit": float(jetzt)}                   # kein Spielstand noetig
+        ok, _meldung = spielschicht.bauen(zustand, 0, ziel[0], ziel[1])      # DIESELBE Funktion
+        if not ok:                                                           # zu teuer oder Regel
+            break                                                            # dann diesen Takt nichts mehr
+        ort["bevoelkerung"] = zustand.get("bevoelkerung", ort.get("bevoelkerung"))   # Siedler zurueck
+        gebaut.append(ziel[0])                                               # zaehlen
+    if gebaut:                                                               # nur bei Aenderung zurueck
+        bot_dorf_aus_ort(dorf, ort)                                          # ins Bot-Dorf schreiben
+    return gebaut                                                        # was entstand
+
+
 def bot_dorf_tick(dorf: "BotDorf", bot: "BotPlayer", ab: float, bis: float,
                   deckel: float = 0.0) -> Dict[str, float]:
     """Laesst EIN Bot-Dorf durch den KERN wirtschaften (S-2b, 03.11.2026) - wie der Spieler.
@@ -1122,6 +1234,17 @@ def bot_doerfer_ernten(bot: "BotPlayer", jetzt: float, einstellungen: Optional[d
             if zuwachs:                                                   # nur echte Zugaenge melden
                 ergebnis[stoff] = round(ergebnis.get(stoff, 0.0) + zuwachs, 2)
                 geerntet[stoff] = zuwachs                                 # fuer die Journalzeile des Dorfes
+        # S-3 (03.11.2026): Siedlerzuwachs auch auf dem KARTEN-Weg - dieselbe Rechnung wie
+        # `spieloekonomie.ort_tick` (1 Siedler je Ort und Stunde, Deckel aus den Gebaeuden).
+        # Ohne diesen Schritt waechst ein Bot nur im Kern-Modus, und die Haeuser aus dem Bauplan
+        # waeren wirkungslos.
+        kern_ort = bot_dorf_als_ort(dorf, bot)                            # Ort in Kern-Form
+        grenze_bev = gebaeude_wirkung.bevoelkerungsgrenze([kern_ort])     # Deckel dieses Dorfes
+        zuwachs_bev = gebaeude_wirkung.siedler_zuwachs_pro_stunde([kern_ort], {}) * stunden
+        if zuwachs_bev > 0:                                               # nur wenn etwas dazukommt
+            dorf.bevoelkerung = round(min(float(grenze_bev),
+                                          float(getattr(dorf, "bevoelkerung", 0.0) or 0.0)
+                                          + zuwachs_bev), 2)              # nie ueber den Deckel
         dorf.ernte_seit = jetzt                                           # Erntezeit fortschreiben
         if getattr(dorf, "hauptdorf", False):                             # S-2: die Armee isst im Hauptdorf
             bot_futter_buchen(bot, dorf, seit, jetzt, geerntet)           # nach der Ernte (wie beim Spieler)
@@ -2511,6 +2634,14 @@ class GameState:
             if int(dorf.x) == 0 and int(dorf.y) == 0:                  # 0/0 = noch nicht gesetzt
                 dorf.x, dorf.y = bottaktik.dorf_position(bot.name, i)   # fest aus Name und Nummer
         bot_doerfer_karten_zuweisen(bot)                               # B-4: je Dorf eine Karte (drei zur Wahl, Gold zuerst)
+        # S-3 (03.11.2026): der Bot BAUT - durch dieselbe Funktion wie der Spieler, aus seinem
+        # eigenen Dorflager. Ein Gebaeude je Dorf und Takt (`bauten_je_takt` in der Datendatei),
+        # Reihenfolge aus dem Stil der Taktik.
+        plan = bot_bauplan()                                           # einmal lesen, alle Doerfer nutzen ihn
+        for dorf in doerfer:                                           # je Dorf ein Bauplatz
+            gebaut = bot_dorf_bauen(dorf, bot, jetzt, plan)             # EINE Kernfunktion (spielschicht.bauen)
+            if gebaut:                                                 # wirklich etwas entstanden?
+                dorf.gebaut = int(getattr(dorf, "gebaut", 0) or 0) + len(gebaut)   # Zaehler am Dorf
         eigene = float(sum(int(v) for v in (bot.army or {}).values()))  # Truppen des Bots
         fremde = float(sum(int(v) for s in self.settlements                 # Truppen des Spielers
                            for v in (getattr(s, "units", None) or {}).values()))
@@ -4150,11 +4281,23 @@ class GameState:
                 continue
             rohkosten = einheiten.alle()[name].get("kosten") or {}
             kosten = {str(k): int(v) for k, v in rohkosten.items()}
-            if not kosten or not all(bot.vorraete.get(k, 0) >= v for k, v in kosten.items()):
+            if not kosten:                                                # ohne Preis keine Zahl erfinden
                 continue
+            # S-3 (03.11.2026): Siedler sind MENSCHEN, keine Ware. Sie stehen in `bevoelkerung`
+            # des Dorfes (vorher lagen sie als Rohstoff im Lager - zwei Stellen fuer dieselbe
+            # Groesse). Gekauft wird im Hauptdorf, wo die Armee steht.
+            doerfer = bot_doerfer_sicherstellen(bot)                      # Doerfer in einer Form
+            haupt = doerfer[0] if doerfer else None                       # das Hauptdorf traegt die Armee
+            siedler = int(kosten.pop("siedler", 0))                       # Siedler aus der Bevoelkerung
+            if siedler and (haupt is None or float(haupt.bevoelkerung) < siedler):
+                continue                                                  # zu wenig Siedler im Hauptdorf
+            if not all(bot.vorraete.get(k, 0) >= v for k, v in kosten.items()):
+                continue                                                  # Rohstoffe muessen reichen
             for stoff, menge in kosten.items():
                 # B-3: gebucht wird auf die DOERFER (eine Buchstelle), nicht auf ein zweites Lager.
                 bot_kasse_buchen(bot, stoff, -menge)                      # Kosten abbuchen
+            if siedler:                                                   # Siedler gehen vom Hauptdorf
+                haupt.bevoelkerung = round(float(haupt.bevoelkerung) - siedler, 2)
             bot.army[name] = bot.army.get(name, 0) + 1                    # Einheit dazustellen
             return name                                                   # fertig
         return None                                                       # nichts bezahlbar

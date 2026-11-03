@@ -205,15 +205,28 @@ b5 = M.BotPlayer("Haug", "menschlich", 0.3, 0.8, settlements=["H"])
 b5.vorraete = {"holz": 5000, "stein": 5000, "nahrung": 5000, "gold": 5000,
                "metall": 5000, "siedler": 500}
 vorher_kasse = M.bot_kasse(b5)
+# S-3 (03.11.2026, Register 156): Siedler sind MENSCHEN und stehen in `bevoelkerung` des
+# Hauptdorfes, nicht mehr als Rohstoff in der Kasse. Die Wache vergleicht deshalb jeden
+# Rohstoffposten mit der Kasse und den Siedler-Posten mit der Bevoelkerung - die Zusicherung
+# "der Bot zahlt den belegten Preis" bleibt, nur die Buchungsstelle ist die richtige.
+vorher_bev = float(M.bot_doerfer_sicherstellen(b5)[0].bevoelkerung)
 gestellt = gs.bot_armee_aufstellen(b5)
 check("5 der Bot stellt eine Einheit auf", isinstance(gestellt, str) and bool(gestellt), str(gestellt))
 gestellt = gestellt if isinstance(gestellt, str) else ""
 kosten = {str(k): float(v) for k, v in ((M.einheiten.alle().get(gestellt) or {}).get("kosten") or {}).items()}
 nachher_kasse = M.bot_kasse(b5)
-check("5 die Kasse ist genau um den Preis kleiner",
+check("5 die Kasse ist genau um den Preis kleiner (Rohstoffe)",
       all(round(nachher_kasse.get(s, 0.0), 2) == round(vorher_kasse.get(s, 0.0) - k, 2)
-          for s, k in kosten.items()),
-      str({s: (vorher_kasse.get(s), nachher_kasse.get(s), k) for s, k in kosten.items()}))
+          for s, k in kosten.items() if s != "siedler"),
+      str({s: (vorher_kasse.get(s), nachher_kasse.get(s), k) for s, k in kosten.items()
+           if s != "siedler"}))
+check("5 die Siedler gehen von der Bevoelkerung des Hauptdorfes ab",
+      abs(float(M.bot_doerfer_sicherstellen(b5)[0].bevoelkerung)
+          - (vorher_bev - float(kosten.get("siedler", 0)))) < 0.01,
+      f"vorher {vorher_bev}, nachher {M.bot_doerfer_sicherstellen(b5)[0].bevoelkerung}, "
+      f"Siedler-Preis {kosten.get('siedler')}")
+check("5 Siedler stehen NICHT mehr als Rohstoff in der Kasse",
+      "siedler" not in nachher_kasse, str(sorted(nachher_kasse)))
 check("5 die Doerfer tragen die Abbuchung (Summe bleibt die Kasse)",
       round(sum(float(d.vorraete.get("holz", 0)) for d in b5.doerfer), 2) == nachher_kasse.get("holz", 0.0),
       str([d.vorraete.get("holz") for d in b5.doerfer]))

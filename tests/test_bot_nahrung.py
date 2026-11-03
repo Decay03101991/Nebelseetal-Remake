@@ -164,13 +164,16 @@ gekauft = gs.bot_armee_aufstellen(satt)
 check("4 mit gedecktem Futter stellt der Bot auf", bool(gekauft), str(gekauft))
 check("4 und die Armee ist um genau eine Einheit gewachsen",
       sum(int(v) for v in satt.army.values()) == 101, str(satt.army))
-befund = None
-_siedler_aus_ernte = "siedler" in M.bot_dorf_ertrag(M.BotDorf(name="X", karte=""), M.bot_wirtschaft_einstellungen())
-if not _siedler_aus_ernte:
-    from harness import befund as _befund
-    _befund("4 offene Grenze (S-5): die Ernte liefert KEINEN Posten 'siedler', die belegten Preise "
-            "verlangen aber Siedler - ein Bot kann heute nur so viele Einheiten kaufen, wie sein "
-            "Startvorrat an Siedlern hergibt. Die Ausbildung je Ort (S-5) loest das.", "")
+# S-3 (03.11.2026): Siedler sind seit Register 156 Menschen in `bevoelkerung`, nicht mehr ein
+# Rohstoff im Lager. Die Ernte liefert deshalb weiterhin keinen Posten "siedler" - der Nachwuchs
+# kommt aus dem Siedlerzuwachs (1 je Ort und Stunde, gedeckelt durch die Gebaeude).
+_siedler_aus_ernte = "siedler" in M.bot_dorf_ertrag(M.BotDorf(name="X", karte=""),
+                                                   M.bot_wirtschaft_einstellungen())
+check("4 die Ernte liefert keinen Rohstoff 'siedler' (Siedler sind Bevoelkerung, keine Ware)",
+      _siedler_aus_ernte is False, str(_siedler_aus_ernte))
+check("4 der gekaufte Bot hat danach weniger Bevoelkerung im Hauptdorf (Preis bezahlt)",
+      float(M.bot_doerfer_sicherstellen(satt)[0].bevoelkerung) < 500.0,
+      str(M.bot_doerfer_sicherstellen(satt)[0].bevoelkerung))
 
 # ==========================================================================
 abschnitt("5. Anschluss im Ernteweg: nur das Hauptdorf isst, genau einmal je Spanne")

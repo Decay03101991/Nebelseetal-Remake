@@ -1,3 +1,42 @@
+# STAND 03.11.2026, 04:08 - S-3: die Bots BAUEN, ihre Siedler stehen an einem Ort (Register 156)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Aus "gebaut bleibt immer 0" sind echte Gebaeude geworden.** Ein Bot-Dorf baut jetzt durch
+DIESELBE Funktion wie der Spieler (`spielschicht.bauen`): freies Feld, Gelaende-Eignung, Preis aus
+`data/baupreise.json`, Abbuchung aus seinem eigenen Dorflager. Die Reihenfolge kommt aus dem Stil
+der Taktik (`data/bot_bauplan.json`). Dazu ein Befund, der beim Bauen sofort biss: ein Bot fuehrte
+Siedler an ZWEI Stellen (Rohstoff im Lager und Bevoelkerung) - jetzt nur noch in `bevoelkerung`,
+und die Armee bezahlt ihre Siedler von dort.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `056e693` plus diese Aenderung (Commit folgt) | `git log --oneline -1` |
+| Voller Sammellauf | **139 von 141 gruen, 0 rot, 2 ausgesetzt, 5.592 Pruefungen, 281 s** (Start 04:03, auf dem CODE-Stand dieser Aenderung) | `docs/audits/sammellauf_20261103_0403.log` |
+| Pruefdateien / Register / Quelldateien | **141** / **156** / **55** | `ls tests/test_*.py`, `grep -c '^| [0-9]'`, `ls src/*.py` |
+| Neue Wache | `tests/test_bot_bauen.py` **32/0/2** | eigener Lauf |
+| Wirkung, gemessen | 48 Bot-Takte in **1,65 s**; jeder der fuenf Bots **15 Gebaeude** (12 Grundanlagen + 2 Haeuser + 1 Bibliothek), `dorf.gebaut` = 3, Bevoelkerung **20** (10 + 2 x 5 aus den Haeusern), Armee 4-8 aus dem Siedlerzuwachs; ein Haus kostet genau **80 Holz / 50 Stein** | `test_bot_bauen.py`, Dauerspiel-Probe |
+
+**Ehrliche Grenzen:** (a) `nach_baukunst` (Wall, Lager, Schmiede, Akademie, Diebesgilde, Bogenbauer)
+wird NICHT gebaut - die belegte Regel `regeln.ohne_forschung_baubar` nennt nur Holzaeller,
+Steinmetze, Jaeger, Bibliothek und Haeuser, und Bots forschen noch nicht (S-4); (b) das **Lager**
+traegt in `data/buildings.json` "keine belegt", steht aber nicht in dieser Regel - der Plan laesst
+es vorsichtshalber hinter Baukunst, statt eine belegte Regel zu umgehen; (c) **Ausbauen** (Stufen)
+ist noch nicht gebaut, nur Bauen; (d) die fuenf Stile unterscheiden sich beim Bauen heute nicht,
+weil ihnen die Forschungsregel dieselben zwei Gebaeude laesst - das aendert S-4.
+
+## Der EINE naechste Schritt
+
+**S-4: die Bots FORSCHEN** - mit eigenen Rohstoffen, derselben Voraussetzungskette und derselben
+Dauer wie der Spieler (`spielschicht.forschung_starten`, `forschung`-Modul, `forschungsauftrag` je
+Ort). Erst damit wird `nach_baukunst` nutzbar, unterscheiden sich die Taktiken wirklich, und der
+Kern-Tick bekommt seine Forschungsboni (heute geht dort ein leeres dict hinein).
+
+Danach: **S-5** Ausbildung (Warteschlange je Ort, ersetzt den Kauf), **S-6** Nachgruenden (3 je Bot),
+**S-7** Karawanen, **S-8** Reisekosten, **S-9** Stil je Taktik. **Fuer Daniel liegt genau eine
+Entscheidung bereit:** `ertrag_weg` in `data/bot_wirtschaft.json` - `"karte"` (Vorgabe, B-4) oder
+`"felder"` (Kern wie beim Spieler, Karte bestimmt dann nur die Bauplaetze).
+
 # STAND 03.11.2026, 03:56 - S-2b: der Bot-Takt KANN auf dem Kern laufen - Vorgabe bleibt die Karte (Register 155)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

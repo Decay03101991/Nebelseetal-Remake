@@ -1,0 +1,40 @@
+{
+  "stand": "2026-11-03",
+  "aktiv": true,
+  "bauten_je_takt": 1,
+  "hoechstens": {
+    "haus": 2,
+    "bibliothek": 1
+  },
+  "bauplaene": {
+    "Pluenderer": {
+      "jetzt": ["haus", "bibliothek"],
+      "nach_baukunst": ["lager", "schmiede", "kriegerakademie"]
+    },
+    "Waechterin": {
+      "jetzt": ["haus", "bibliothek"],
+      "nach_baukunst": ["verteidigungswall", "bogenbauer", "lager"]
+    },
+    "Bastionier": {
+      "jetzt": ["haus", "bibliothek"],
+      "nach_baukunst": ["verteidigungswall", "lager", "schmiede"]
+    },
+    "Spaeherin": {
+      "jetzt": ["haus", "bibliothek"],
+      "nach_baukunst": ["diebesgilde", "lager", "bogenbauer"]
+    },
+    "Raecher": {
+      "jetzt": ["haus", "bibliothek"],
+      "nach_baukunst": ["kriegerakademie", "schmiede", "lager"]
+    },
+    "Unbekannt": {
+      "jetzt": ["haus"],
+      "nach_baukunst": []
+    }
+  },
+  "hinweis": "S-3 (03.11.2026): die REIHENFOLGE, in der ein Bot-Dorf baut - je Taktik eine Liste, kein Literal im Code. Gebaut wird immer nur das ERSTE Gebaeude der Liste, das noch unter 'hoechstens' liegt, auf ein freies Feld passt und bezahlbar ist; danach ist der Takt vorbei ('bauten_je_takt'). Die Preise stehen NICHT hier, sondern in data/baupreise.json und werden ueber spielschicht.bauen gebucht - dieselbe Funktion wie beim Spieler, dieselbe Abbuchung aus dem Dorflager.",
+  "jetzt_erklaerung": "'jetzt' enthaelt nur Gebaeude, die OHNE Forschung baubar sind (data/buildings.json, regeln.ohne_forschung_baubar: Holzaeller, Steinmetze, Jaeger, Bibliothek und Haeuser). Alles andere verlangt die Forschung 'Baukunst' - und Bots forschen noch nicht (S-4). Die vollen Plaene stehen deshalb unter 'nach_baukunst' und werden erst benutzt, wenn S-4 steht; bis dahin bleiben sie ausdruecklich ungenutzt, statt die Forschungsregel zu umgehen.",
+  "warum_haus_zuerst": "Ein Haus beherbergt Siedler (+5 je Stufe, data/buildings.json) - Siedler sind der Posten, an dem die belegten Einheiten- und Gebaeudepreise haengen (Holzfaeller, Steinmetz, Jaeger, alle Einheiten). Ohne Haeuser kann ein Bot nicht wachsen. Die Bibliothek oeffnet den Forschungszugang (5) und ist damit die Vorbereitung von S-4 - sie kostet 12 Holz / 8 Stein und ist bewusst billiger als jede Werkstatt.",
+  "ehrliche_grenze": "Solange S-4 (Forschung) fehlt, unterscheiden sich die fuenf Taktiken beim BAUEN noch NICHT - sie bauen alle Haus und Bibliothek. Der Unterschied liegt heute allein in 'nach_baukunst'. Das ist keine heimliche Gleichmacherei, sondern die Folge der Forschungsregel; sie verschwindet mit S-4.",
+  "grenze_je_gebaeude": "hoechstens.haus = 2 (10 zusaetzliche Siedlerplaetze) und hoechstens.bibliothek = 1 (eine Forschungsstaette je Dorf genuegt). Die Obergrenzen der Originalsiedlung (max_je_siedlung in data/buildings.json) prueft zusaetzlich spielschicht.bauen selbst."
+}
