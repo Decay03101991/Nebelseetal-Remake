@@ -11,6 +11,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / 'src'), str(ROOT / 'tools')]
@@ -19,6 +20,19 @@ import main
 
 
 class OrtskasseUndSpieluhr(unittest.TestCase):
+    def setUp(self):
+        """Der DIEBSTAHL wird fuer diese Datei abgeschaltet (S-13, 03.11.2026, Register 162).
+
+        Seit S-13 ist `data/bot_diebstahl.json` auf `aktiv: true` - duenne Bots nehmen dann 3 % vom
+        Lager eines Ortes ohne Garnison. Diese Datei belegt aber den GRUNDERTRAG und die
+        Reichssumme, nicht den Diebstahl (eigene Wache: `tests/test_bot_diebstahl.py`). Ohne diese
+        Zeile zoege der Bot-Takt 6,21 Holz und 6,14 Stein ab (gemessen: 98,79 statt 105,0).
+        """
+        self._diebstahl_aus = mock.patch.object(main, "bot_diebstahl_einstellungen",
+                                                lambda: {"aktiv": False})
+        self._diebstahl_aus.start()
+        self.addCleanup(self._diebstahl_aus.stop)
+
     def start(self):
         state = starter.neu_erzeugen()
         self.assertTrue(state._lokale_kasse_aktiv())

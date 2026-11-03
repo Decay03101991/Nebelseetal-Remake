@@ -28,6 +28,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+from unittest.mock import patch
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from harness import abschnitt, befund, bericht, check, import_src
@@ -78,9 +79,13 @@ def _stiehlt(bot, ziel, jetzt, regeln=None):
 # ==========================================================================
 abschnitt("1. Die Regeln stehen in der Datendatei")
 # ==========================================================================
-check("1 der Diebstahl ist in der Datei ABGESCHALTET, mit Begruendung",
-      DATEI.get("aktiv") is False and len(str(DATEI.get("warum_noch_aus") or "")) > 200,
-      f"aktiv={DATEI.get('aktiv')}, Begruendung {len(str(DATEI.get('warum_noch_aus') or ''))} Zeichen")
+check("1 der Diebstahl ist in der Datei EINGESCHALTET, mit Begruendung (S-13, Register 162)",
+      DATEI.get("aktiv") is True and len(str(DATEI.get("warum_ein") or "")) > 200,
+      f"aktiv={DATEI.get('aktiv')}, Begruendung {len(str(DATEI.get('warum_ein') or ''))} Zeichen")
+check("1 die Begruendung nennt den alten Grund (Zeitmodell) und die neue Wache",
+      "BOT_TAKT_SEKUNDEN" in str(DATEI.get("warum_ein") or "")
+      and "test_bot_takt_scheiben" in str(DATEI.get("warum_ein") or ""),
+      str(DATEI.get("warum_ein") or "")[:70])
 check("1 alle Zahlen sind gesetzt",
       all(isinstance(REGELN.get(k), (int, float)) for k in
           ("armee_schwelle", "anteil_prozent", "hoechstens_je_rohstoff",
@@ -177,7 +182,7 @@ check("5 die Nachricht hat einen eigenen Typ 'diebstahl'", _nachricht.get("type"
       str(_nachricht.get("type")))
 
 # ==========================================================================
-abschnitt("6. Im Bot-Takt: verdrahtet, aber durch den Schalter aus")
+abschnitt("6. Im Bot-Takt: verdrahtet und seit S-13 (Register 162) EINGESCHALTET")
 gs = M.GameState()
 gs.settlements = [neuer_ort({"holz": 1000.0, "stein": 500.0, "gold": 200.0})]
 _bots = [M.BotPlayer("Haug", "menschlich", 0.3, 0.5)]
@@ -186,13 +191,37 @@ for _b0 in _bots:
 gs.bots = _bots
 _vorher = dict(gs.settlements[0].vorraete)
 gs._letzter_bot_takt = 0.0
-_erg = gs.bots_fortschreiben(10 ** 7)
+# ABGESCHALTET wird ausdruecklich geprueft: der Schalter der DATEI steht seit S-13 auf "aktiv",
+# also wird fuer diesen Abschnitt ein ausgeschaltetes Regelwerk untergeschoben (derselbe Weg, den
+# der Takt selbst nimmt: `bot_diebstahl_einstellungen`).
+with patch.object(M, "bot_diebstahl_einstellungen", lambda: dict(DATEI, aktiv=False)):
+    _erg = gs.bots_fortschreiben(10 ** 7)
 check("6 der Takt fuehrt das Feld 'diebstaehle' (Schnittstelle steht)",
       "diebstaehle" in _erg, str(sorted(_erg))[:110])
 check("6 mit abgeschaltetem Schalter wird NICHT gestohlen (Lager unveraendert)",
       gs.settlements[0].vorraete == _vorher, f"{_vorher} -> {dict(gs.settlements[0].vorraete)}")
 check("6 und es steht keine Diebstahl-Nachricht im Postfach",
       not [m for m in gs.messages if m.get("type") == "diebstahl"], str(len(gs.messages)))
+
+# Derselbe Weg mit dem Schalter der DATEI (aktiv seit S-13): jetzt MUSS gestohlen werden -
+# und zwar mit Bericht. Der Takt zieht dabei die Reichsanzeige nach.
+_vorher_echt = dict(gs.settlements[0].vorraete)
+_erg_echt = gs.bots_fortschreiben(10 ** 7 + 3600)
+_dieb_nachrichten = [m for m in gs.messages if m.get("type") == "diebstahl"]
+check("6 mit dem Schalter der Datei stiehlt der duenne Bot im Takt", bool(_erg_echt.get("diebstaehle")),
+      str(_erg_echt.get("diebstaehle"))[:110])
+check("6 das Spielerlager hat dabei verloren",
+      float(gs.settlements[0].vorraete.get("holz", 0.0)) < float(_vorher_echt.get("holz", 0.0)),
+      f"{_vorher_echt.get('holz')} -> {gs.settlements[0].vorraete.get('holz')}")
+check("6 der Fall steht als Bericht im Postfach", len(_dieb_nachrichten) == 1,
+      str(len(_dieb_nachrichten)))
+check("6 der Bericht nennt Bot, Ort, Menge und Spielzeit",
+      bool(_dieb_nachrichten) and "Haug" in _dieb_nachrichten[0]["text"]
+      and "Heim" in _dieb_nachrichten[0]["text"] and "Tag 1" in _dieb_nachrichten[0]["text"],
+      _dieb_nachrichten[0]["text"][:80] if _dieb_nachrichten else "")
+check("6 die Reichsanzeige ist danach wieder die Summe der Ortslager",
+      gs.resources["holz"].amount == gs.settlements[0].vorraete.get("holz"),
+      f"{gs.resources['holz'].amount} gegen {gs.settlements[0].vorraete.get('holz')}")
 check("6 mit eingeschaltetem Regelwerk wuerde gestohlen (Mechanik ist ganz)",
       _stiehlt(M.BotPlayer("Haug", "menschlich", 0.3, 0.5),
                       neuer_ort({"holz": 1000.0}), 5000.0, REGELN) is not None, "")

@@ -1,6 +1,6 @@
 {
   "stand": "2026-11-03",
-  "aktiv": false,
+  "aktiv": true,
   "armee_schwelle": 5,
   "anteil_prozent": 3,
   "hoechstens_je_rohstoff": 60,
@@ -11,6 +11,6 @@
   "warum_bedingungen": "'duenn' heisst: die Armee des Bots hat hoechstens armee_schwelle Einheiten - ein starker Bot braucht nicht zu stehlen, er kaempft (das ist der belegte Angriffsweg). 'Abwesend' heisst: der Ort hat KEINE Garnison (nur_ohne_garnison). Wer Truppen zu Hause hat, wird nicht bestohlen, sondern angegriffen - sonst waere der Diebstahl ein Angriff ohne Risiko.",
   "warum_zahlen_vorschlag": "Das Original nennt keinen Diebstahl. Alle vier Zahlen sind VORSCHLAG und bewusst klein: 3 Prozent und 60 je Rohstoff merkt der Spieler im Lager, aber es ruiniert ihn nicht; 12 Stunden Sperre verhindern, dass ein Dorf im Minutentakt leergeraubt wird.",
   "warum_postfach": "Daniel, woertlich: 'Ja, aber nur mit Bericht im Postfach'. Ein Verlust ohne Nachricht waere im Spiel nicht unterscheidbar von einem Rechenfehler - der Bericht nennt Bot, Dorf, Spielzeit, Rohstoff und Menge.",
-  "warum_noch_aus": "GEBAUT, GEPRUEFT, ABER NICHT EINGESCHALTET (03.11.2026). Grund, gemessen: der Bot-Takt laeuft je BOT_TAKT_SEKUNDEN und feuert je nach Tick-Zuschnitt einmal oder keinmal - 1 x 3600 s und 10 x 360 s auf dieselbe Spielzeit ergeben unterschiedliche Bot-Aktionen. Solange das so ist, laufen zwei gleiche Spielzeiten auseinander, sobald der Diebstahl das Lager des Spielers beruehrt: `test_gpt_fixrunde_ortslager_zeit` meldete 98,79 gegen 105,0, `test_gpt_frischstart` ebenso. Der Diebstahl braucht zuerst ein eigenes, scheiben-unabhaengiges Zeitmodell (Bot-Takt an festen Spielzeit-Punkten statt an einer Fliesskomma-Differenz). Bis dahin bleibt der Schalter aus - die Mechanik, ihre Wache und der Postfach-Bericht stehen fertig da.",
-  "ehrliche_grenze": "Der Diebstahl ist KEIN Kampf: es gibt keine Verluste, keine Wallprobe, keine Beute-formel (kampfbericht.beute_am_ziel gilt weiter nur fuer Gefechte). Er bucht nur um, was im Ziel wirklich liegt, und laesst nie einen negativen Bestand entstehen."
+  "warum_ein": "EINGESCHALTET am 03.11.2026, nachdem S-13 das Zeitmodell geliefert hat (Register 162). Vorher stand der Schalter aus, weil der Bot-Takt je nach Tick-Zuschnitt einmal oder keinmal feuerte: `jetzt - letzter < BOT_TAKT_SEKUNDEN` haengt an der Fliesskomma-Summe, und sobald der Diebstahl das Lager des Spielers beruehrt, liefen zwei gleiche Spielzeiten auseinander (`test_gpt_fixrunde_ortslager_zeit` 98,79 gegen 105,0). Seit S-13 haengt der Takt an FESTEN Spielzeit-Punkten (`main.bot_takt_punkte`, je volle Stunde): die Orte werden bis zum Punkt gebucht, dann handelt der Bot auf genau diesem Stand - `1 x 3600 s` und `10 x 360 s` fahren dieselben Zuege (Wache `tests/test_bot_takt_scheiben.py`).",
+  "ehrliche_grenze": "Der Diebstahl ist KEIN Kampf: es gibt keine Verluste, keine Wallprobe, keine Beute-formel (kampfbericht.beute_am_ziel gilt weiter nur fuer Gefechte). Er bucht nur um, was im Ziel wirklich liegt, und laesst nie einen negativen Bestand entstehen. Die Sperre steht im Gedaechtnis des Bots und ueberlebt damit einen Spielstand, nicht aber einen Bot, den es nicht mehr gibt."
 }

@@ -1,3 +1,34 @@
+# STAND 03.11.2026, 12:43 - S-13: der Bot-Takt haengt an festen Spielzeit-Punkten (Register 162)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Die Zeit ist jetzt eine Wahrheit — auch fuer die Bots.** Der Bot-Takt feuert nicht mehr, wenn die
+Fliesskomma-Differenz reicht, sondern an FESTEN Spielstunden-Punkten: die Orte werden bis zum Punkt
+gebucht, dann handelt der Bot auf genau diesem Stand. `1 x 3600 s` und `10 x 360 s` fahren dieselben
+Zuege. Damit ist der Diebstahl (S-12) eingeschaltet - er war bis heute nur gebaut.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `55cd905` plus diese Aenderung | `git log --oneline -1` |
+| Neue Wache | `tests/test_bot_takt_scheiben.py` **34/0/1** | eigener Lauf |
+| Diebstahl-Wache | `tests/test_bot_diebstahl.py` **42/0/1** (Datei jetzt AKTIV) | eigener Lauf |
+| Demo-Regel | `tests/test_s7_botverhalten.py` **46/0/0** | eigener Lauf |
+| Gegenprobe | alte Bedingung zurueckgetauscht -> **5 Fehler**, Datei hashgleich zurueckgesetzt | eigener Lauf |
+| Umgestellte Wachen | `test_gpt_fixrunde_ortslager_zeit_20261028`, `test_gpt_frischstart`, `test_gpt_bot_angriffsplanung`, `test_gpt_wall_bot_kampf` je OK (Diebstahl im `setUp` aus, Begruendung im Test) | eigene Laeufe |
+| Neue Vorgaben Daniels | `docs/VORGABEN_WELTEN_UND_BOTS_20261103.md` (Hauptdorf bleibt in seiner Welt, nur Nebendoerfer wechseln, Kampf ueber Weltgrenzen unbezahlbar, Bots rauben auch untereinander) | Chat 12:35 bis 12:40 |
+
+## Der EINE naechste Schritt
+
+**S-5 Ausbildung je Ort** (Daniels Reihenfolge von 12:20): Warteschlange statt Kauf
+(`spielschicht.ausbilden`); damit zieht die Armee in die Doerfer und isst dort (`bot_futter_buchen`
+isst heute nur im Hauptdorf, `dorf.einheiten` ist leer). Danach S-6 Nachgruenden, S-7 Karawanen, S-9
+Stil je Taktik. **Der Sammellauf gehoert zum Abschluss jedes Code-Schnitts** - und das Protokoll
+traegt die Kennung.
+
+**Befunde, die dabei nicht untergehen duerfen** (gemessen 12:41, Belege in der Vorgaben-Datei):
+`_bot_doerfer_im_raster` filtert NICHT nach Welt, und die sechs gelieferten Burgen
+(`assets/icons/burgen/`) sind nicht auf der Karte - dort steht ein brauner Kasten mit X.
+
 # STAND 03.11.2026, 12:25 - Sitzungsende: vier Entscheidungen, naechster Schnitt ist das Zeitmodell
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

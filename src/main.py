@@ -2535,6 +2535,32 @@ BOTS = [
 # (VORSCHLAG, in botkern.py belegt vermerkt); `botkern.tick` wuerde bei jedem Sekundentakt eine
 # Meldung erzeugen, deshalb wird der Bot-Zug stundenweise gefahren.
 BOT_TAKT_SEKUNDEN = 3600.0
+
+
+def bot_takt_punkte(ab: float, bis: float, takt: float = BOT_TAKT_SEKUNDEN) -> List[float]:
+    """Die FESTEN Spielzeit-Punkte der Bot-Zuege in der Spanne (ab, bis] (S-13, 03.11.2026).
+
+    Daniels Entscheidung 3 von heute: der Bot-Takt haengt nicht mehr an der Fliesskomma-Differenz
+    `jetzt - letzter`, sondern an festen Spielzeit-Punkten (jede volle Stunde Spielzeit). Damit ist
+    `1 x 3600 s` GENAU SO VIEL wie `10 x 360 s` - die Zahl der Bot-Aktionen haengt nur an der
+    Spielzeit, nicht am Zuschnitt des Takts.
+
+    Was hinein geht: zwei Spielzeiten in Sekunden und der Takt (Vorgabe `BOT_TAKT_SEKUNDEN`).
+    Was heraus kommt: alle Vielfachen des Takts, die GROESSER als `ab` und hoechstens `bis` sind -
+    in aufsteigender Reihenfolge. Eine leere Spanne (oder ein unbrauchbarer Takt) liefert `[]`.
+    """
+    takt = float(takt)                                                    # Takt in Spielsekunden
+    if not math.isfinite(takt) or takt <= 0:                              # kein gueltiger Takt
+        return []                                                         # dann keine Punkte
+    if not math.isfinite(float(ab)) or not math.isfinite(float(bis)):     # keine gueltige Spanne
+        return []                                                         # dann keine Punkte
+    if float(bis) <= float(ab):                                           # leere Spanne
+        return []                                                         # dann keine Punkte
+    erster = int(math.floor(float(ab) / takt)) + 1                        # erster Punkt NACH ab
+    letzter = int(math.floor(float(bis) / takt))                          # letzter Punkt bis einschl. bis
+    return [float(k) * takt for k in range(erster, letzter + 1)]          # die Punkte selbst
+
+
 # W5: Grundlage des Handels-Schwellenpreises. Das Handbuch nennt keinen Warenpreis; die einzige
 # BELEGTE Preistafel im Projekt ist der Einheitenpreis (`data/units.json`). Genommen wird der
 # Kaempfer (1 Siedler + 250 Gold) -> Referenzpreis 250 x 1,2 = 300 (VORSCHLAG der Wahl).
@@ -4789,10 +4815,20 @@ class GameState:
         ergebnis = {"bots": 0, "takt": BOT_TAKT_SEKUNDEN, "aktionen": {}, "angriffe": []}
         if not self.bots:
             return ergebnis
-        letzter = float(getattr(self, "_letzter_bot_takt", 0.0) or 0.0)
-        if jetzt - letzter < BOT_TAKT_SEKUNDEN:
-            return ergebnis
-        self._letzter_bot_takt = jetzt
+        # S-13 (03.11.2026, Daniels Entscheidung 3): Der Zug haengt an einem FESTEN Spielzeit-Punkt,
+        # nicht an der Differenz `jetzt - letzter`. Frueher entschied die Fliesskomma-Summe, ob ein
+        # Takt ueberhaupt feuert: 1 x 3600 s und 10 x 360 s auf dieselbe Spielzeit fuhren
+        # unterschiedlich viele Bot-Aktionen (gemessen an `test_gpt_fixrunde_ortslager_zeit` und
+        # `test_gpt_frischstart`, sobald der Diebstahl das Spielerlager beruehrt).
+        jetzt = float(jetzt)                                              # Spielzeit in Sekunden
+        if not math.isfinite(jetzt):                                      # keine echte Spielzeit
+            return ergebnis                                               # dann kein Zug
+        letzter = float(getattr(self, "_letzter_bot_takt", 0.0) or 0.0)    # zuletzt gefahrener PUNKT
+        punkt = math.floor(jetzt / BOT_TAKT_SEKUNDEN) * BOT_TAKT_SEKUNDEN  # der faellige feste Punkt
+        if punkt <= letzter:                                              # dieser Punkt ist gefahren
+            return ergebnis                                               # dann kein zweiter Zug
+        self._letzter_bot_takt = punkt                                    # Punkt als gefahren merken
+        ergebnis["punkt"] = punkt                                         # Nachweis: WANN der Zug lief
         ergebnis["bots"] = len(self.bots)
 
         # B-3 (02.11.2026): VOR dem Zug wirtschaften die Doerfer. Jedes Dorf erntet seit seiner
@@ -4926,7 +4962,10 @@ class GameState:
         # Der Diebstahl braucht deshalb erst ein eigenes, scheiben-unabhaengiges Zeitmodell.
         einst_dieb = bot_diebstahl_einstellungen()
         diebstaehle: List[dict] = []
-        if einst_dieb.get("aktiv", False):
+        # S-7 Demo-Regel (Daniel 01.11.2026) gilt auch hier: in der oeffentlichen Testversion greifen
+        # die Bots NICHT an - ein Diebstahl ist ein Angriff auf das Lager des Spielers, also bleibt er
+        # dort ebenfalls aus. Sonst waere die Demo-Regel an einer zweiten Stelle still umgangen.
+        if einst_dieb.get("aktiv", False) and not ausgabemodus.ist_oeffentliche_testversion():
             for bot_dieb in self.bots:
                 for ort_dieb in self.settlements:
                     bericht_dieb = bot_diebstahl(bot_dieb, ort_dieb, jetzt, einst_dieb)
@@ -4968,39 +5007,18 @@ class GameState:
 
         return ergebnis
 
-    def tick(self, dt_seconds: float):
-        # Die monotone Laufzeituhr kann bei defektem Lieferanten oder einem
-        # ungueltigen Tempo keine NaN/Inf-Spielsekunden erzeugen duerfen.
-        dt_seconds = float(dt_seconds)
-        if not math.isfinite(dt_seconds) or dt_seconds < 0:
-            raise ValueError("Spielzeit muss endlich und nichtnegativ sein")
-        # Ökonomie-Paket, Schritt 9, Teil 6b: EINE Uhr JE ORT — der Kern rechnet.
-        #
-        # `spieloekonomie.ort_tick` erntet (aus DERSELBEN Quelle wie die Anzeige,
-        # `wirtschaft.ertrag_gesamt`), schreibt den Siedlerzuwachs bis zur Grenze des Ortes fort,
-        # holt fertige Werkstattwaren ins LAGER DES ORTES und bucht abgeschlossene Ausbildungen
-        # genau einmal. Vorher buchte `tick` die Ernte SELBST — und `ort_tick` tut dasselbe:
-        # nebeneinander hätte das JEDE ERNTE VERDOPPELT. Deshalb steht hier jetzt nur der Kern.
-        #
-        # Die Gesamtsicht (Reich = Übergangsbestand + Summe der Ortslager) wird um genau die
-        # Zuwächse nachgeführt, die die Orte WIRKLICH bekommen haben — berechnet aus dem
-        # Unterschied vor/nach dem Kern, nicht aus einer zweiten Ertragsformel. Eine zweite
-        # Rechnung wäre eine zweite Wahrheit.
-        _ab = float(getattr(self, "spielsekunden", 0.0))
-        _bis = _ab + dt_seconds
-        # Teil 6c: was in diesem Takt WIRKLICH fertig wurde (Ware im Ortslager, ausgebildete
-        # Einheit). Die Oberfläche braucht das, um neu zu zeichnen — sonst bliebe die fertige Ware
-        # unsichtbar, bis der Spieler die Ansicht wechselt.
-        eingetroffen: List[str] = []
-        # Teil 6 (Rest): auch die FORSCHUNG laeuft auf dieser Uhr. `forschung_abschluss` hebt die
-        # Stufe im WISSEN (global) und loescht den Auftrag im ORT — genau einmal.
-        _wissen = {k: int(v.level) for k, v in self.research.items()}
-        # Oekonomie-Paket, Schritt 10 Teil 2 (Entwurf Z. 645-648): die ORTSSEITE faehrt jetzt ueber
-        # die EREIGNISUHR. `tick_bis` zerlegt den Takt in genau die Spannen, die die Ereignisse
-        # vorgeben (Ausbildungsende, Forschungsende, fertige Werkstattware) — ein grosser Takt ist
-        # damit GENAU so viel wie viele kleine. Vorher lief EINE Spanne [ab, bis]: eine Forschung,
-        # die mitten im Takt fertig wurde, wirkte erst am Spannenende auf die Produktion (belegt in
-        # tests/test_oekonomie_uhr.py, 13i: 4.000000 statt 4.372222 Holz).
+    def _orte_abschnitt(self, ab: float, bis: float, wissen: dict,
+                        eingetroffen: List[str]) -> dict:
+        """Bucht EINEN Zeitabschnitt [ab, bis] auf die Orte und liefert den Wissensstand zurueck.
+
+        Was hinein geht: Anfang und Ende des Abschnitts in Spielsekunden, der Forschungsstand
+        `{Gebiet: Stufe}` und die Liste der fertig gewordenen Dinge (wird ergaenzt).
+        Was heraus kommt: der ggf. gestiegene Wissensstand.
+        Die Orte werden uebernommen, die Reichsanzeige nachgezogen und `self.spielsekunden` auf das
+        Abschnittsende gestellt - so steht der Zustand GENAU auf dem Punkt, an dem der Bot danach
+        handelt (S-13, Daniels Entscheidung 3 von heute). Vorher stand dieser Block einmal im Takt;
+        er ist unveraendert hierher gezogen und wird jetzt je Abschnitt gefahren.
+        """
         _vorher_orte = {}
         _schluessel33 = {}
         for _nr33, _s33 in enumerate(self.settlements):
@@ -5010,8 +5028,8 @@ class GameState:
             _k33 = _s33.id or "__ort_ohne_kennung_%d" % _nr33
             _vorher_orte[_k33] = asdict(_s33)
             _schluessel33[_k33] = _s33
-        _neu_orte, _keine_missionen, _wissen, _zeit, _ereigniszeiten = spieloekonomie.tick_bis(
-            _vorher_orte, [], _wissen, _ab, _bis)
+        _neu_orte, _keine_missionen, wissen, _zeit, _ereigniszeiten = spieloekonomie.tick_bis(
+            _vorher_orte, [], wissen, ab, bis)
         for _kennung, siedlung in _schluessel33.items():
             _neu = _neu_orte.get(_kennung)
             if _neu is None:
@@ -5047,12 +5065,51 @@ class GameState:
                 self.population = float(self.population) + zuwachs_leute
         self._reichsanzeige_aus_orten()
         # Gestiegene Forschungsstufen aus dem Kern in den Spielstand uebernehmen (Teil 6 Rest).
-        self._forschung_abschluss_buchen(_wissen)
-        # Die Uhr steht genau auf dem Ende des Takts (`tick_bis` liefert die erreichte Spielzeit).
+        self._forschung_abschluss_buchen(wissen)
+        # Die Uhr steht genau auf dem Ende des Abschnitts (`tick_bis` liefert die erreichte Zeit).
         self.spielsekunden = _zeit
-        # W5: Die Bots handeln nach `botkern` (Angriffstakt 6-24 h, Handelsschwelle, Wirtschaft).
-        # Vorher stand hier eine erfundene Schaedigung: 5 % x Aggression, fester Nahrungsabzug.
-        self.bots_fortschreiben(self.spielsekunden)
+        return wissen
+
+    def tick(self, dt_seconds: float):
+        # Die monotone Laufzeituhr kann bei defektem Lieferanten oder einem
+        # ungueltigen Tempo keine NaN/Inf-Spielsekunden erzeugen duerfen.
+        dt_seconds = float(dt_seconds)
+        if not math.isfinite(dt_seconds) or dt_seconds < 0:
+            raise ValueError("Spielzeit muss endlich und nichtnegativ sein")
+        # Ökonomie-Paket, Schritt 9, Teil 6b: EINE Uhr JE ORT — der Kern rechnet.
+        #
+        # `spieloekonomie.ort_tick` erntet (aus DERSELBEN Quelle wie die Anzeige,
+        # `wirtschaft.ertrag_gesamt`), schreibt den Siedlerzuwachs bis zur Grenze des Ortes fort,
+        # holt fertige Werkstattwaren ins LAGER DES ORTES und bucht abgeschlossene Ausbildungen
+        # genau einmal. Vorher buchte `tick` die Ernte SELBST — und `ort_tick` tut dasselbe:
+        # nebeneinander hätte das JEDE ERNTE VERDOPPELT. Deshalb steht hier jetzt nur der Kern.
+        #
+        # Die Gesamtsicht (Reich = Übergangsbestand + Summe der Ortslager) wird um genau die
+        # Zuwächse nachgeführt, die die Orte WIRKLICH bekommen haben — berechnet aus dem
+        # Unterschied vor/nach dem Kern, nicht aus einer zweiten Ertragsformel. Eine zweite
+        # Rechnung wäre eine zweite Wahrheit.
+        _ab = float(getattr(self, "spielsekunden", 0.0))
+        _bis = _ab + dt_seconds
+        # Teil 6c: was in diesem Takt WIRKLICH fertig wurde (Ware im Ortslager, ausgebildete
+        # Einheit). Die Oberfläche braucht das, um neu zu zeichnen — sonst bliebe die fertige Ware
+        # unsichtbar, bis der Spieler die Ansicht wechselt.
+        eingetroffen: List[str] = []
+        # Teil 6 (Rest): auch die FORSCHUNG laeuft auf dieser Uhr. `forschung_abschluss` hebt die
+        # Stufe im WISSEN (global) und loescht den Auftrag im ORT — genau einmal.
+        _wissen = {k: int(v.level) for k, v in self.research.items()}
+        # Oekonomie-Paket, Schritt 10 Teil 2 (Entwurf Z. 645-648): die ORTSSEITE faehrt jetzt ueber
+        # die EREIGNISUHR. `tick_bis` zerlegt den Takt in genau die Spannen, die die Ereignisse
+        # vorgeben (Ausbildungsende, Forschungsende, fertige Werkstattware) — ein grosser Takt ist
+        # damit GENAU so viel wie viele kleine. Vorher lief EINE Spanne [ab, bis]: eine Forschung,
+        # die mitten im Takt fertig wurde, wirkte erst am Spannenende auf die Produktion (belegt in
+        # tests/test_oekonomie_uhr.py, 13i: 4.000000 statt 4.372222 Holz).
+        _abschnitt = _ab                                                   # Beginn des naechsten Abschnitts
+        for _punkt in bot_takt_punkte(_ab, _bis):                          # S-13: je festem Bot-Punkt
+            _wissen = self._orte_abschnitt(_abschnitt, _punkt, _wissen, eingetroffen)  # Orte bis dorthin
+            self.bots_fortschreiben(_punkt)                                # DANN handelt der Bot - auf DIESEM Stand
+            _abschnitt = _punkt                                            # naechster Abschnitt beginnt hier
+        # Der Rest des Takts (auch ein Takt von 0 s: dann wird nur Faelliges gebucht).
+        _wissen = self._orte_abschnitt(_abschnitt, _bis, _wissen, eingetroffen)
         # FIX 2+3: Tag fortschreiben (86400s = 1 Spieltag) + Götterschutz nach sieben Tagen bzw.
         # beim ersten Kriegspunkt beenden (Handbuch S. 6, KORREKTUR 05.10.2026 — vorher Tag 3).
         # Siedlergrenze und Siedlerzuwachs kommen aus den Haeusern der Siedlungskarten (W4b-5):

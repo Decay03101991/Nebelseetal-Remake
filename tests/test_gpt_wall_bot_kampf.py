@@ -23,6 +23,12 @@ def bot_action(*args, **kwargs):
 
 class BotWallTests(unittest.TestCase):
     def setUp(self):
+        # S-13 (03.11.2026, Register 162): der DIEBSTAHL ist eingeschaltet (3 % vom Lager eines Ortes
+        # ohne Garnison). Diese Datei belegt den WALL- und Kampfweg, nicht den Diebstahl - der hat
+        # seine eigene Wache (tests/test_bot_diebstahl.py) und ist hier deshalb aus.
+        self._diebstahl_aus = patch('main.bot_diebstahl_einstellungen', lambda: {'aktiv': False})
+        self._diebstahl_aus.start()
+        self.addCleanup(self._diebstahl_aus.stop)
         self.state=GameState()
         self.s=ort()
         self.state.settlements=[self.s]

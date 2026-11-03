@@ -1,5 +1,6 @@
 """GPT extern: neue Partie statt Rettung eines nicht benoetigten Legacy-Saves."""
 import sys,os,tempfile,pathlib,unittest
+from unittest import mock
 sys.path.insert(0,os.path.join(os.path.dirname(__file__),'..','tools'))
 sys.path.insert(0,os.path.join(os.path.dirname(__file__),'..','src'))
 import main,spielstaende,wirtschaft
@@ -56,6 +57,14 @@ class Frischstart(unittest.TestCase):
         self.assertEqual(n.spielsekunden,0)
         self.assertTrue(n.noob_protection)
     def test_echter_start_baut_produzenten_und_erntet_nach_einer_stunde(self):
+        # S-13 (03.11.2026, Register 162): der Diebstahl ist EINGESCHALTET (data/bot_diebstahl.json).
+        # Diese Wache belegt die ERNTE des Startorts, nicht den Diebstahl (eigene Wache:
+        # tests/test_bot_diebstahl.py) - deshalb ist der Diebstahl hier ausdruecklich aus.
+        # Ohne diese Zeile zog der Bot-Takt 5,56 Holz und 5,44 Stein ab (gemessen 88,44 / 86,56).
+        with mock.patch.object(main, "bot_diebstahl_einstellungen", lambda: {"aktiv": False}):
+            self._start_und_ernte_pruefen()
+
+    def _start_und_ernte_pruefen(self):
         state=vorlagen.neu_erzeugen()
         ort=state.settlements[0]
         gui=main.NebelseetalApp.__new__(main.NebelseetalApp)

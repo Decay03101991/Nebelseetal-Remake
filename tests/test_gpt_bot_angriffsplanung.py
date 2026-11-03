@@ -87,6 +87,12 @@ class PlanungTests(unittest.TestCase):
 
 class BotIntegrationTests(unittest.TestCase):
     def setUp(self):
+        # S-13 (03.11.2026, Register 162): der DIEBSTAHL ist eingeschaltet und nimmt 3 % vom Lager
+        # eines Ortes ohne Garnison. Diese Datei belegt den ANGRIFFS/WALL-Weg - der Diebstahl hat
+        # seine eigene Wache (tests/test_bot_diebstahl.py) und ist hier deshalb aus.
+        self._diebstahl_aus = patch('main.bot_diebstahl_einstellungen', lambda: {'aktiv': False})
+        self._diebstahl_aus.start()
+        self.addCleanup(self._diebstahl_aus.stop)
         self.g=GameState()
         self.g.noob_protection=False
         self.g.settlements=[ort('Stark',1),ort('Schwach',2,besetzt=False)]
