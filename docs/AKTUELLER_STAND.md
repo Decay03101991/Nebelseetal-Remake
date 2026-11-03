@@ -1,3 +1,33 @@
+# STAND 03.11.2026, 02:45 - V-6: die Bot-Kartenwahl folgt jetzt einer Regel (Register 151)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**`botkern.oekonomie_kartenwahl` ist angeschlossen.** Die Funktion stand fertig im Kern und hatte
+keinen Aufrufer - die Karte eines Bot-Dorfes kam allein aus der Gold-Regel. Jetzt entscheidet die
+Stufe aus `data/bot_wirtschaft.json` (`kartenwahl_stufe`, heute `schwer` = hoechster Portfolio-Nutzen)
+unter denselben drei reproduzierbaren Kandidaten; der Bot geht mit seinem Portfolio und seinen
+Stundenertraegen hinein. Die Gold-Regel bleibt Rueckfall, damit kein Dorf ohne Karte und ohne Ertrag
+bleibt.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `d754624`, Arbeitsbaum leer | `git log --oneline -1`, `git status --porcelain` |
+| Voller Sammellauf | **135 von 137 gruen, 0 rot, 2 ausgesetzt, 5.448 Pruefungen, 415 s** | `docs/audits/sammellauf_20261103_0239.log` |
+| Pruefdateien / Register / Quelldateien | **137** / **151** / **55** | `ls tests/test_*.py`, `grep -c '^| [0-9]'`, `test_projektpfade` |
+| Neue Wache | `tests/test_kartenwahl_bot.py` **19/0/0** | eigener Lauf |
+| Wirkung, gemessen | 3 Doerfer in **0,03 s**; Abweichung zur Gold-Regel bei **2 von 5** Bots (Grom: 2. Dorf `original-096` statt `original-087`); dieselbe Karte als ZWEITE Wahl **1,5349** statt **3,3118** wert | `test_kartenwahl_bot.py` |
+
+**Ehrliche Grenze:** der Pfad "mittel" der Regel braucht einen BEDARF je Rohstoff - das Spiel fuehrt
+nirgends einen Verbrauch. Deshalb steht die Stufe auf `schwer`; **welche Stufe gelten soll, ist
+Daniels Entscheidung** (eine Zeile in der Datendatei, kein Code).
+
+## Der EINE naechste Schritt
+
+**Demo-Release vorbereiten** - der eingefrorene Umfang ist gebaut: Kernkreis, Spionage, Voelker- und
+Kartenwahl am Start, Volksboni mit Wirkung, Bot-Kartenwahl nach Regel. Vorher Daniels Freigabe.
+Danach: Kopplung Punkte/Kanaele und Balance-Messung (beide brauchen den Teiler-Entscheid),
+Marktplatz-Motiv, und Bots gruenden weiterhin NICHT nach (offener Punkt: wann und womit).
+
 # STAND 03.11.2026, 02:30 - V-5: die Volks- und Taktikboni WIRKEN (Register 149/150)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
