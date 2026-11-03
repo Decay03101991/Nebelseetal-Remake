@@ -1,3 +1,46 @@
+# STAND 03.11.2026, 02:30 - V-5: die Volks- und Taktikboni WIRKEN (Register 149/150)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Aus der Anzeige ist eine Wirkung geworden.** Sechs Voelker und fuenf Taktiken hatten Plus und
+Minus, gerechnet hat damit nichts. Seit heute rechnen Er traege (Bot und Spieler), Reisezeit, AT,
+PA, Beute, Handelserloes und Ausbaupreis mit - die Zahlen stehen in `data/boni.json`, die
+Datenschicht ist `src/boni.py`, die Anzeigetexte bleiben in `data/voelker.json` (eine Wache
+vergleicht beide, damit sie nicht auseinanderlaufen).
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `71abeba`, Arbeitsbaum leer | `git log --oneline -1`, `git status --porcelain` |
+| Voller Sammellauf | **134 von 136 gruen, 0 rot, 2 ausgesetzt, 5.429 Pruefungen, 369 s** | `docs/audits/sammellauf_20261103_0224.log` |
+| Pruefdateien / Register / Quelldateien | **136** / **150** / **55** | `ls tests/test_*.py`, `grep -c '^| [0-9]'`, `test_projektpfade` 113/0/0 |
+| Neue Wache | `tests/test_boni.py` **82/0/0**, Gegenprobe `aktiv: false` -> 7 Fehler | eigener Lauf |
+| Guthaben | von Daniel 01:44 abgelesen: **4,63 USD**, gesamt 45,36 USD. Budget der Sitzung 3 USD (21:18), davon rechnerisch 1,82 USD offen; Kontostand NICHT neu abgelesen | `docs/ENTWICKLUNGSPROTOKOLL.md` |
+
+**Daniels Entscheidungen (Fragenrunde 01:47-01:52):** Ueberschneidung **additiv** (5 % + 5 % =
++10 %, nicht 10,25 %); Hoehe bleibt **5 %**; Taktikbonus gilt, solange die Taktik steht, nach einem
+Wechsel **48 h gesperrt**; der **Spieler** bekommt dieselben Volksboni wie ein Bot; Gnome "Ausbau
++5 %" wirkt als **-5 % Gebaeudepreise**.
+
+**13 Wirkungen, ehrlich gezaehlt:** 12 wirken (Holz/Stein/Nahrung/Gold je Volk, Reise und PA
+elfisch, AT und Handel Trolle, PA Ghule, Baukosten und AT Gnome, dazu Beute Haug, Verteidigung
+Brynhild, Reise Silra, AT Krank). **Eine wirkt nicht: Groms "Ausbau +5 %"** - die Bots haben keine
+Bauwirtschaft; sie steht als `ohne_anker` in der Datei und wird nicht erfunden. AT wirkt nur im
+Nahkampf; bei kleinen Preisen frisst die Ganzzahl-Rundung den Rabatt (8 Stein bleibt 8).
+
+**Eigener Befund und behoben:** `spieler_fraktion` wurde beim LADEN nie zurueckgelesen - ein
+geladener Stand verlor sein Volk (und damit seit heute die Wirkung). **Vom Sammellauf gefunden:**
+drei Wachen (Bot-Wirtschaft, Kartenprofil, Spionage) wurden rot, weil sie Anzeige und Kern mit dem
+alten Aufruf ohne `bot` verglichen; die Zusicherung "Anzeige = Kern" bleibt, sie ist jetzt mit
+demselben Bot formuliert.
+
+## Der EINE naechste Schritt
+
+**Demo-Release vorbereiten** - der eingefrorene Demo-Umfang ist damit gebaut: Kernkreis, Spionage,
+Voelker- und Kartenwahl am Start, Volksboni mit Wirkung. Vorher Daniels Freigabe. Danach die
+offenen Punkte aus der letzten Uebergabe: Anschluss `botkern.oekonomie_kartenwahl` (hat keinen
+Aufrufer), Kopplung Punkte/Kanaele und Balance-Messung (beide brauchen den Teiler-Entscheid),
+Marktplatz-Motiv.
+
 # STAND 03.11.2026, 01:08 - A2: sechs Voelker, der Spieler waehlt (Register 148)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
