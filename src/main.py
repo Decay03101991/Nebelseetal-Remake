@@ -892,7 +892,9 @@ def bot_kartenwahl(bot: "BotPlayer", index: int, anzahl: int = 3,
         eigene = [d for d in (_bot_karte_dict(k) for k in (belegte or [])) if d]
         try:
             gewaehlt = botkern.oekonomie_kartenwahl(str(stufe).strip().lower(), eigene, freie,
-                                                    dict(raten or {}), {}, spieloekonomie.REGELN)
+                                                    dict(raten or {}),
+                                                    bot_rohstoffbedarf(bot),   # S-10: Bedarf je Rohstoff
+                                                    spieloekonomie.REGELN)
         except (KeyError, TypeError, ValueError):                          # Stufe unbekannt
             gewaehlt = None                                                # dann die Gold-Regel
         if gewaehlt:
@@ -1255,6 +1257,125 @@ def bot_dorf_forschen(dorf: "BotDorf", bot: "BotPlayer", jetzt: float = 0.0,
         gestartet.append(ziel)
         bot_dorf_aus_ort(dorf, ort)                         # Auftrag und Kosten ins Bot-Dorf
     return gestartet
+
+
+# ===================================================================================================
+# S-10 (03.11.2026, Daniels Entscheidung 4): DER BEDARF JE ROHSTOFF
+#
+# Daniels Entscheidung, woertlich: "\"mittel\" - ich baue dafuer zuerst einen Bedarf je Rohstoff".
+# Bis hier kannte das Spiel genau EINEN laufenden Verbrauch: Nahrung fuer die Garnison
+# (`spieloekonomie.tagesbedarf_nahrung`, 8 je Einheit und Spieltag). Alles andere (Forschung,
+# Ausbildung, Werkstattwaren, Bauten) wird sofort bezahlt - ein Bedarf ueber die ZEIT war nirgends
+# gefuehrt. Deshalb konnte die Bot-Kartenwahl nicht auf "mittel": `botkern.oekonomie_kartenwahl`
+# nimmt dort die am schlechtesten gedeckte Rohstoffachse, und ohne Bedarf gibt es keine Achse.
+#
+# Diese Funktion rechnet den Bedarf als PLANUNGSGROESSE je STUNDE - in derselben Einheit wie die
+# Erträge der Karten (`bot_dorf_ertrag`, Stundenraten), damit "Deckung = Rate / Bedarf" eine Zahl
+# ohne Einheit ist. Das Fenster, auf das einmalige Ausgaben umgelegt werden, steht in
+# `data/bot_bedarf.json` (VORSCHLAG-Zahl, das Original nennt keinen Planungshorizont).
+# ===================================================================================================
+
+def bot_bedarf_einstellungen() -> Dict[str, Any]:
+    """Die Rechenregeln des Bedarfs aus `data/bot_bedarf.json` - EINE Quelle.
+
+    Fehlt die Datei oder ist sie kaputt, gilt der Rueckfall `aktiv: False`: dann wird NUR der
+    belegte Nahrungsbedarf gerechnet (kein erfundener Planungshorizont, kein Absturz).
+    """
+    pfad = os.path.join(spieldaten.projektwurzel(), "data", "bot_bedarf.json")
+    try:
+        with open(pfad, encoding="utf-8") as f:
+            daten = json.load(f)
+    except (OSError, ValueError):
+        return {"aktiv": False, "fenster_stunden": 24.0}
+    if not isinstance(daten, dict):
+        return {"aktiv": False, "fenster_stunden": 24.0}
+    return daten
+
+
+def _bot_rezeptkosten(ware: str) -> Dict[str, float]:
+    """Was EINE Einheit dieser Werkstattware an Rohstoffen kostet (data/warenrezepte.json)."""
+    pfad = os.path.join(spieldaten.projektwurzel(), "data", "warenrezepte.json")
+    try:
+        with open(pfad, encoding="utf-8") as f:
+            rezepte = json.load(f)
+    except (OSError, ValueError):
+        return {}
+    eintrag = (rezepte or {}).get(str(ware)) or {}
+    kosten = eintrag.get("kosten") or {}
+    return {str(k): float(v) for k, v in kosten.items() if isinstance(v, (int, float))}
+
+
+def bot_rohstoffbedarf(bot: "BotPlayer", einstellungen: Optional[dict] = None) -> Dict[str, float]:
+    """Der Bedarf eines Bots je Rohstoff, in Mengen JE STUNDE (S-10, Daniels Entscheidung 4).
+
+    Gerechnet wird aus dem, was das Spiel schon fuehrt - nichts erfunden:
+      * **Nahrung** - `spieloekonomie.tagesbedarf_nahrung(bot.army)` / 24 (der einzige BELEGTE
+        laufende Verbrauch, 8 je Einheit und Spieltag).
+      * **Ausbildung** - Kosten der noch offenen Ausbildungsauftraege je Dorf, umgelegt auf
+        `fenster_stunden`.
+      * **Werkstatt** - Rezeptkosten der offenen Werkstattauftraege (`data/warenrezepte.json`),
+        ebenfalls umgelegt.
+      * **Forschung** - Kosten des NAECHSTEN Schritts im Forschungsplan des Bots; ein laufender
+        Auftrag ist bereits bezahlt und zaehlt nicht.
+    Bauten zaehlen bewusst NICHT mit (einmalige Ausgabe, siehe `data/bot_bedarf.json`).
+
+    Rueckgabe: `{rohstoff: menge_je_stunde}` - nur Rohstoffe mit Bedarf > 0 (leer, wenn nichts
+    laeuft und die Armee leer ist).
+    """
+    einstellungen = einstellungen if isinstance(einstellungen, dict) else bot_bedarf_einstellungen()
+    bedarf: Dict[str, float] = {}
+
+    def dazu(rohstoff: str, menge: float) -> None:
+        """Einen Posten addieren - nur endliche, positive Mengen (keine NaN in die Deckung)."""
+        if not isinstance(menge, (int, float)) or not math.isfinite(float(menge)) or float(menge) <= 0:
+            return
+        bedarf[str(rohstoff)] = round(bedarf.get(str(rohstoff), 0.0) + float(menge), 6)
+
+    # 1. Nahrung der Armee - immer, auch ohne Datendatei (belegte Zahl).
+    dazu("nahrung", float(spieloekonomie.tagesbedarf_nahrung(dict(getattr(bot, "army", None) or {}))) / 24.0)
+
+    if not einstellungen.get("aktiv", False):
+        return bedarf                                   # nur der belegte Verbrauch
+
+    try:
+        fenster = max(1.0, float(einstellungen.get("fenster_stunden") or 24.0))
+    except (TypeError, ValueError):
+        fenster = 24.0
+
+    # 2./3. offene Auftraege je Dorf (Ausbildung und Werkstatt)
+    alle_einheiten = einheiten.alle()
+    for dorf in bot_doerfer_sicherstellen(bot):
+        for auftrag in (getattr(dorf, "ausbildung", None) or []):
+            if not isinstance(auftrag, dict) or auftrag.get("gebucht"):
+                continue                                # fertige Auftraege sind bezahlt
+            name = str(auftrag.get("einheit") or "")
+            kosten = ((alle_einheiten.get(name) or {}).get("kosten") or {})
+            for stoff, menge in kosten.items():
+                dazu(stoff, float(menge) / fenster)
+        for schlange in ((getattr(dorf, "werkstaetten", None) or {}).values()):
+            for auftrag in ((schlange or {}).get("auftraege") or []):
+                ware = str((auftrag or {}).get("ware") or "")
+                try:
+                    anzahl = max(1, int((auftrag or {}).get("anzahl") or 1))
+                except (TypeError, ValueError):
+                    anzahl = 1
+                for stoff, menge in _bot_rezeptkosten(ware).items():
+                    dazu(stoff, float(menge) * anzahl / fenster)
+
+    # 4. naechster Forschungsschritt der Taktik (laufende Auftraege sind bezahlt)
+    wissen = bot_forschungsstaende(bot)
+    for eintrag in bot_dorf_forschungsliste(bot):
+        name = str(eintrag.get("forschung") or "")
+        try:
+            bis = max(1, int(eintrag.get("bis_stufe") or 1))
+        except (TypeError, ValueError):
+            bis = 1
+        if not name or wissen.get(name, 0) >= bis:
+            continue                                    # Zielstufe steht schon
+        for stoff, menge in forschung.kosten(max(1, wissen.get(name, 0) + 1)).items():
+            dazu(stoff, float(menge) / fenster)
+        break                                           # nur der naechste Schritt
+    return bedarf
 
 
 def bot_taktik_name(bot: "BotPlayer") -> str:

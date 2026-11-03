@@ -136,6 +136,13 @@ check("der Rueckweg stuerzt bei leerem Ort nicht ab",
 abschnitt("6. Bebauen: Grundanlagen auf die besten erlaubten Felder")
 _bot2 = M.BotPlayer("Haug", "menschlich", 0.5, 0.5, settlements=["Haugsdorf"])
 _d2 = M.bot_doerfer_sicherstellen(_bot2)[0]
+# 03.11.2026 (Daniels Entscheidung 4): die Kartenwahl steht auf "mittel" und richtet sich nach dem
+# BEDARF je Rohstoff (S-10) - welche der drei Kandidatenkarten ein Bot bekommt, ist damit nicht mehr
+# allein vom Portfolio abhaengig. Fuer die Zaehlung unten wird die Karte deshalb FEST gesetzt: sonst
+# haengt "genau 12 Anlagen" an einer Karte, die zufaellig jedes Gelaende hat (gemessen: eine andere
+# Karte belegt nur 11 Felder, weil ihr ein Gelaende fuer eine Anlage fehlt - das ist kein Fehler,
+# sondern die Kartenregel).
+_d2.karte = "original-036"
 M.bot_doerfer_karten_zuweisen(_bot2)                  # S-2 (03.11.2026): dieser Weg setzt den Bauplan mit
 _gesetzt = len(_d2.bauten)                            # was jetzt WIRKLICH im Dorf steht
 _einst = M.bot_wirtschaft_einstellungen()

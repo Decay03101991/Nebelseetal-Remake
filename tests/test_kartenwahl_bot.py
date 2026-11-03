@@ -58,7 +58,8 @@ check("die Begruendung steht als Feld daneben (kein Wert ohne Quelle)",
 # ==========================================================================
 # 2. Die Wahl der Stufe ist der hoechste Portfolio-Nutzen - nachgerechnet
 # ==========================================================================
-abschnitt("2. Die Regel waehlt den hoechsten Portfolio-Nutzen")
+abschnitt("2. Die Stufe 'schwer' waehlt den hoechsten Portfolio-Nutzen "
+         "(03.11.2026 EXPLIZIT gesetzt - Daniels Entscheidung 4 hat die Vorgabe auf 'mittel' gestellt)")
 IDs = sorted(M.bot_karten_katalog())
 check("der Kartenkatalog ist da (127 Originalkarten)", len(IDs) >= 100, str(len(IDs)))
 
@@ -78,7 +79,7 @@ def _bester_nutzen(kandidaten, eigene):
 _bot = M.BotPlayer("Grom", "zwergisch", 0.5, 0.5, settlements=["A", "B"])
 _kand0 = _kandidaten("Grom", 0)
 _erwartet0 = _bester_nutzen(_kand0, [])
-_gewaehlt0 = M.bot_kartenwahl(_bot, 0, einstellungen=einst, stufe=stufe)
+_gewaehlt0 = M.bot_kartenwahl(_bot, 0, einstellungen=einst, stufe="schwer")
 check("erstes Dorf: genau der Kandidat mit dem hoechsten Nutzen",
       _gewaehlt0 == _erwartet0, f"{_gewaehlt0} / {_erwartet0} aus {_kand0}")
 
@@ -86,7 +87,7 @@ check("erstes Dorf: genau der Kandidat mit dem hoechsten Nutzen",
 _eigene = [M._bot_karte_dict(_gewaehlt0)]
 _kand1 = _kandidaten("Grom", 1)
 _erwartet1 = _bester_nutzen(_kand1, _eigene)
-_gewaehlt1 = M.bot_kartenwahl(_bot, 1, einstellungen=einst, stufe=stufe,
+_gewaehlt1 = M.bot_kartenwahl(_bot, 1, einstellungen=einst, stufe="schwer",
                               belegte=[_gewaehlt0], raten={"holz": 12.0})
 check("zweites Dorf: das Portfolio des Bots fliesst ein",
       _gewaehlt1 == _erwartet1, f"{_gewaehlt1} / {_erwartet1} aus {_kand1}")
@@ -143,5 +144,22 @@ for name in ("Haug", "Brynhild", "Grom", "Silra", "Krank"):
         _anders += 1
 check("bei mindestens einem der fuenf Bots waehlt die Regel eine andere Karte",
       _anders >= 1, f"{_anders} von 5")
+
+# ==========================================================================
+# 6. Die Stufe 'mittel' (Vorgabe seit 03.11.2026, Daniels Entscheidung 4)
+# ==========================================================================
+abschnitt("6. Stufe 'mittel': die am schlechtesten gedeckte Rohstoffachse entscheidet")
+_free = {k: {"besitzer": None, "karte": M._bot_karte_dict(k)} for k in _kand0}
+# Bedarf nur fuer Holz, Ertrag fast nichts: Holz ist damit die schlechteste Deckung.
+_mittel = BK.oekonomie_kartenwahl("mittel", [], _free, {"holz": 1.0}, {"holz": 10.0}, O.REGELN)
+_erwartet_mittel = max(_kand0, key=lambda k: (O.kapazitaeten(M._bot_karte_dict(k)).get("holz", 0),
+                                              k.replace("original-", "")))
+check("'mittel' nimmt die Karte mit der meisten Kapazitaet auf der Mangel-Achse",
+      _mittel == _erwartet_mittel, f"{_mittel} / {_erwartet_mittel} aus {_kand0}")
+check("'mittel' ohne Bedarf liefert None (der Aufrufer faellt dann auf die Gold-Regel zurueck)",
+      BK.oekonomie_kartenwahl("mittel", [], _free, {"holz": 1.0}, {}, O.REGELN) is None, "")
+check("der Bedarf kommt aus main.bot_rohstoffbedarf, nicht aus einer zweiten Formel",
+      "bot_rohstoffbedarf(bot)" in TEXT_MAIN and "def bot_rohstoffbedarf(" in TEXT_MAIN,
+      "main.py")
 
 bericht()
