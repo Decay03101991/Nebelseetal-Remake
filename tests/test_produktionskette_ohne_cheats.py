@@ -135,6 +135,14 @@ def _kette():
     gesammelt = []
     root.report_callback_exception = lambda *a: gesammelt.append(a)
     app = main.NebelseetalApp(root)
+    # S-12/S-13 (03.11.2026): Der Diebstahl ist EINGESCHALTET und nimmt nach dem Goetterschutz 3 %
+    # vom Lager eines Ortes ohne Garnison. Diese Kette belegt die PRODUKTION (Rohstoff -> Forschung
+    # -> Ware -> Einheit -> Einsatz -> Rueckkehr) und laeuft ueber viele Spieltage; der Diebstahl hat
+    # seine eigene Wache (`tests/test_bot_diebstahl.py`) und ist hier aus - sonst misst die Kette
+    # den Diebstahl statt die Produktion.
+    from unittest import mock as _mock
+    _dieb_aus = _mock.patch.object(main, "bot_diebstahl_einstellungen", lambda: {"aktiv": False})
+    _dieb_aus.start()
     app._build_main_ui()
     gs = app.state
     try:
