@@ -126,9 +126,11 @@ check("3 mit Karte: Stundensatz ist Kartenwert durch Teiler",
       str(M.bot_dorf_ertrag(mit_karte)))
 ohne = M.BotDorf(name="Ohne Karte")
 rueckfall = M.bot_dorf_ertrag(ohne)
-check("3 ohne Karte: Rueckfall sind die Anlagen aus dem Bauplan (12/12/21/9 plus Waren)",
+# S-6b (03.11.2026): Holz steht seit Daniels Entscheidung auf FUENF Anlagen je Dorf statt drei
+# (680 Holz fuer Karren und Gruendung) - der Rueckfall-Ertrag ist 20/12/21/9 statt 12/12/21/9.
+check("3 ohne Karte: Rueckfall sind die Anlagen aus dem Bauplan (20/12/21/9 plus Waren)",
       all(round(float(rueckfall.get(k, 0)), 2) == v for k, v in
-          {"holz": 12.0, "stein": 12.0, "nahrung": 21.0, "gold": 9.0}.items())
+          {"holz": 20.0, "stein": 12.0, "nahrung": 21.0, "gold": 9.0}.items())
       and float(rueckfall.get("leder", 0)) > 0, str(rueckfall))
 arm = M.bot_dorf_ertrag(M.BotDorf(name="Ohne Berg", karte="original-125"))
 check("3 eine Karte ohne Berg liefert WEDER Gold NOCH Stein NOCH Metall",

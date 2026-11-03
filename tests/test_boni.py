@@ -160,9 +160,12 @@ _ohne_bot = M.bot_dorf_ertrag(_dorf)
 # Leder, Wolle und Pferde (das prueft tests/test_bot_warenkette.py), und die drei Rinderfarmen
 # erzeugen 9 Nahrung mit, also 21 statt 12.
 _grund = {k: v for k, v in _ohne_bot.items() if k in ("holz", "stein", "nahrung", "gold")}
-check("ohne Bot bleibt der alte Grundertrag (12/12/21/9)",
-      _grund == {"holz": 12.0, "stein": 12.0, "nahrung": 21.0, "gold": 9.0}, f"{_grund}")
-_erwartet = {"menschlich": (12.6, 11.4), "zwergisch": (11.4, 12.6)}
+# S-6b (03.11.2026): Holz steht seit Daniels Entscheidung auf FUENF Anlagen je Dorf statt drei
+# (680 Holz fuer Karren und Gruendung) - der Rueckfall-Ertrag ist 20/12/21/9 statt 12/12/21/9.
+check("ohne Bot bleibt der alte Grundertrag (20/12/21/9)",
+      _grund == {"holz": 20.0, "stein": 12.0, "nahrung": 21.0, "gold": 9.0}, f"{_grund}")
+# Holz 20 mal Volksfaktor: menschlich 1,05 = 21,0 / zwergisch 0,95 = 19,0; Stein bleibt 12.
+_erwartet = {"menschlich": (21.0, 11.4), "zwergisch": (19.0, 12.6)}
 for fraktion, (holz, stein) in _erwartet.items():
     bot = M.BotPlayer(name="X", faction=fraktion, aggression=0.5, trading=0.5)
     werte = M.bot_dorf_ertrag(_dorf, None, bot)
@@ -181,7 +184,7 @@ _m1 = M.bot_dorf_ertrag(_dorf, None, M.BotPlayer(name="A", faction="menschlich",
 _m2 = M.bot_dorf_ertrag(_dorf, None, M.BotPlayer(name="B", faction="Ghule",
                                                 aggression=0.5, trading=0.5))
 check("Zwischenspeicher traegt den Volksfaktor nicht mit",
-      _m1.get("holz") == 12.6 and _m2.get("holz") == 12.0, f"{_m1} / {_m2}")
+      _m1.get("holz") == 21.0 and _m2.get("holz") == 20.0, f"{_m1} / {_m2}")
 
 # ==========================================================================
 # 4. Spieler-Ertrag: Kern und Anzeige DASSELBE
