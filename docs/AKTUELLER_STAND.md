@@ -12,7 +12,7 @@ fuer Doerfer ohne jede Anlage (alte Spielstaende).
 
 | Gegenstand | Wert | Beleg |
 |---|---|---|
-| Kopf | siehe `git log -1` nach diesem Commit | `git log --oneline -1` |
+| Kopf | `052ac0a` (S-8 Stufe 1), Arbeitsbaum leer | `git log --oneline -1`, `git status --porcelain` |
 | Schalter | `data/bot_wirtschaft.json`: `ertrag_weg` **von `karte` auf `anlagen`**; `karte` und `felder` bleiben als Vergleich | Datei |
 | Dorfzahl nach 24 Spieltagen | **4/4/4/2/4 -> 4/4/4/4/4** (Silra von 2 auf 4) | `docs/MESSUNG_S8_ERTRAG_AUS_ANLAGEN_20261103.md` |
 | Holzvorrat Silra | **471 -> 34.136** (Hauptdorf Tag 24: 151 -> 7.610) | dieselbe Messung |
