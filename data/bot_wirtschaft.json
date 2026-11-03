@@ -9,6 +9,8 @@
   ],
   "anlagen_je_gebaeude": 3,
   "karten_aktiv": true,
+  "ertrag_weg": "karte",
+  "ertrag_weg_hinweis": "S-2b (03.11.2026): WOHER der Stundenertrag eines Bot-Dorfes kommt. 'karte' = Kartenprofil (Felder x Ertrag / karten_teiler, Vorgabe Daniel 02.11.2026 B-4: die Karte bestimmt den Ertrag) - das ist die VORGABE und bleibt stehen. 'felder' = derselbe Weg wie beim Spieler: wirtschaft.ertrag_gesamt aus den Feldern des Dorfes (bot_doerfer_bebauen setzt dort drei Anlagen je Grundrohstoff), inklusive Volksfaktor und Grundeinkommen. Der Unterschied ist gemessen: das Kartenprofil gibt je Karte 9,12 bis 12,92 Holz, der Felder-Weg fuer JEDE Karte denselben Grundertrag (~12/12/12/9 + Grundeinkommen + Volksfaktor) - dann unterscheidet die Karte nur noch, was gebaut werden KANN. Weil das eine Aenderung gegenueber B-4 waere, ist der Felder-Weg gebaut und geprueft, aber NICHT eingeschaltet: Daniel entscheidet mit EINEM Wort, ohne Codeaenderung.",
   "karten_teiler": 10.0,
   "karten_kandidaten": 3,
   "kartenwahl_stufe": "schwer",

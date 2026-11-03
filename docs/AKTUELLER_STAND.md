@@ -1,4 +1,44 @@
-# STAND 03.11.2026, 03:52 - S-2: die Bot-Armee isst, die Kaufbremse haelt (Register 154)
+# STAND 03.11.2026, 03:56 - S-2b: der Bot-Takt KANN auf dem Kern laufen - Vorgabe bleibt die Karte (Register 155)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Zwei Wirtschaften, ein Schalter.** Der Bot erntete weiter mit dem Kartenprofil mal Stunden, der
+Spieler mit dem Kern aus seinen Feldern. Jetzt gibt es `ertrag_weg` in `data/bot_wirtschaft.json`:
+`karte` (Vorgabe, **B-4** von Daniel) oder `felder` (derselbe Weg wie der Spieler, ueber
+`spieloekonomie.ort_tick`). Der Felder-Weg ist gebaut und geprueft - **eingeschaltet ist er nicht**,
+weil er eine Daniels-Entscheidung aendern wuerde.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `c9e698e` plus diese Aenderung (Commit folgt) | `git log --oneline -1` |
+| Voller Sammellauf | **138 von 140 gruen, 0 rot, 2 ausgesetzt, 5.555 Pruefungen, 388 s** (Start 03:49, auf dem CODE-Stand dieser Aenderung; Protokoll- und Stand-Zeilen danach sind ohne Code) | `docs/audits/sammellauf_20261103_0349.log` |
+| Pruefdateien / Register / Quelldateien | **140** / **155** / **55** | `ls tests/test_*.py`, `grep -c '^| [0-9]'`, `ls src/*.py` |
+| Neue Wache | `tests/test_bot_takt_kern.py` **26/0/1** (der Befund ist die offene Entscheidung selbst) | eigener Lauf |
+| Der gemessene Unterschied | Kartenprofil gegen Felder: `original-036` Holz **14,06** / Gold **5,7** gegen **12,35** / **9,0**; `original-096` **12,92** / **3,3** gegen **12,35** / **9,0**; `original-087` **12,16** / **3,6** gegen **12,35** / **4,5** (zwergisch) | `tests/test_bot_takt_kern.py` |
+| Kern-Modus im echten Takt | 48 Bot-Takte in **1,3 s**, 12 Anlagen je Dorf, Siedlerzuwachs **0 -> 10**, 47 Journalzeilen je Dorf, keine Ausnahme | Dauerspiel-Probe mit umgestelltem Schalter |
+
+**Warum der Schalter statt eines Umbaus:** mit drei Anlagen je Rohstoff liefert der Kern JEDER Karte
+denselben Grundertrag (12,35/13,65/12,0/9,0 zwergisch) - die Karte bestimmte dann nur noch, was
+gebaut werden KANN. Daniels Vorgabe B-4 lautet aber "die Karte bestimmt den Ertrag". Also: beide
+Wege leben, die Datendatei entscheidet, kein Code. **Ein Wort von Daniel** (`"ertrag_weg": "felder"`)
+schaltet um.
+
+**Ehrliche Grenzen:** (a) der Kern bucht Nahrung nur fuer eine eigene Garnison (`dorf.einheiten`);
+die Armee bleibt in `bot.army` und isst ueber `bot_futter_buchen` im Hauptdorf - bildet S-5
+Einheiten je Ort aus, muss die Armee dorthin wandern, sonst isst sie zweimal; (b) die Forschung geht
+als leeres dict in den Tick (S-4 fehlt), also ohne Forschungsboni; (c) Zeiten dieses Blocks aus
+`date`/`stat`, nicht geschaetzt.
+
+## Der EINE naechste Schritt
+
+**S-3: der Bot BAUT und baut AUS - wie der Spieler.** Vorher muss ein Widerspruch aufgeloest werden,
+der beim Bauen sofort beisst: ein Bot fuehrt Siedler an ZWEI Stellen - `BotDorf.bevoelkerung` (Kern,
+waechst) und `vorraete["siedler"]` (Kaufweg, feste 10 aus dem Start). Die belegten Bau- und
+Einheitenpreise verlangen Siedler. Vorschlag: Siedler nur noch in `bevoelkerung` fuehren, alte
+Staende beim Laden uebernehmen, Kauf und Bau von dort bezahlen. Danach der Bauplan je Taktik in
+`data/`.
+
+# STAND 03.11.2026, 03:46 - S-2: die Bot-Armee isst, die Kaufbremse haelt (Register 154)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
 

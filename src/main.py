@@ -544,10 +544,22 @@ def bot_futter_buchen(bot: "BotPlayer", dorf: "BotDorf", ab: float, bis: float,
     verbrauch = round(min(bedarf, vorher), 2)                         # nie mehr, als da ist
     unterdeckung = round(max(0.0, bedarf - verbrauch), 2)             # Rest = Unterdeckung
     dorf.vorraete["nahrung"] = round(vorher - verbrauch, 2)           # Bestand nie unter 0
-    dorf.produktionsjournal.append({"ab": ab, "bis": bis,             # Journalzeile wie beim Spieler
-                                    "mengen": dict(mengen or {}),      # reine Ernte dieser Spanne
-                                    "verbrauch": {"nahrung": verbrauch},
-                                    "unterdeckung": unterdeckung})
+    # EINE Zeile je Spanne: hat der Kern (S-2b, `bot_dorf_tick`) fuer DIESELBE Spanne schon eine
+    # Journalzeile geschrieben, wird sie ergaenzt statt eine zweite anzulegen - sonst stuenden
+    # Ernte und Verbrauch in zwei Zeilen, waehrend der Spieler beides in einer fuehrt.
+    zeile = None
+    for vorhandene in reversed(dorf.produktionsjournal):              # letzte Zeile zuerst
+        if (isinstance(vorhandene, dict) and float(vorhandene.get("ab", -1.0)) == ab
+                and float(vorhandene.get("bis", -1.0)) == bis):       # gleiche Spanne?
+            zeile = vorhandene                                        # dann diese ergaenzen
+            break
+    if zeile is None:                                                 # keine Zeile fuer diese Spanne
+        zeile = {"ab": ab, "bis": bis, "mengen": dict(mengen or {})}   # neue Zeile wie beim Spieler
+        dorf.produktionsjournal.append(zeile)
+    elif mengen:                                                      # Kern-Zeile: Ernte nachtragen
+        zeile["mengen"] = dict(mengen)
+    zeile["verbrauch"] = {"nahrung": verbrauch}                       # Verbrauch als eigener Posten
+    zeile["unterdeckung"] = unterdeckung                              # Rest, den das Lager nicht deckte
     return {"ab": ab, "bis": bis, "verbrauch": verbrauch, "unterdeckung": unterdeckung}
 
 
@@ -621,6 +633,17 @@ def bot_dorf_ertrag(dorf=None, einstellungen: Optional[dict] = None,
     Rueckgabe: {Rohstoff klein: Menge je Stunde}.
     """
     einstellungen = einstellungen if einstellungen is not None else bot_wirtschaft_einstellungen()
+    # S-2b (03.11.2026): WOHER der Ertrag kommt - Schalter `ertrag_weg` in der Datendatei.
+    # "karte" (Vorgabe, Daniel B-4): Kartenprofil. "felder": derselbe Kern wie beim Spieler
+    # (`wirtschaft.ertrag_gesamt` aus den eigenen Feldern). KEIN `_mit_volk` auf diesem Weg -
+    # der Kern rechnet den Volksfaktor schon selbst (Register 149), sonst waere er doppelt.
+    if str(einstellungen.get("ertrag_weg") or "karte").strip().lower() == "felder" and dorf is not None:
+        try:                                                              # Kern auf dem Ort
+            werte = wirtschaft.ertrag_gesamt([bot_dorf_als_ort(dorf, bot)]) or {}
+        except (TypeError, ValueError, KeyError):                        # kaputter Datensatz
+            werte = {}                                                    # dann keine Zahl erfinden
+        return {str(roh).lower(): round(float(menge), 2)                 # Schreibweise der Spielstaende
+                for roh, menge in werte.items() if float(menge) > 0}     # nur echte Erntetraege
     # B-4 (02.11.2026): hat das Dorf eine Karte, kommt sein Ertrag aus dem KARTENPROFIL - der starke
     # Rohstoff traegt viel, die schwaecher produzierbaren wenig oder nichts (Vorgabe Daniel).
     karte = str(getattr(dorf, "karte", "") or "")                         # Karte dieses Dorfes
@@ -1017,6 +1040,43 @@ def bot_kasse_buchen(bot: "BotPlayer", stoff: str, menge) -> float:
     return float(kasse[str(stoff)])                                       # neuen Bestand melden
 
 
+def bot_dorf_tick(dorf: "BotDorf", bot: "BotPlayer", ab: float, bis: float,
+                  deckel: float = 0.0) -> Dict[str, float]:
+    """Laesst EIN Bot-Dorf durch den KERN wirtschaften (S-2b, 03.11.2026) - wie der Spieler.
+
+    `spieloekonomie.ort_tick` ist dieselbe Funktion, die eine Spielersiedlung fortschreibt:
+    Ernte aus den Feldern, Siedlerzuwachs, Werkstattwaren, fertige Ausbildungen, Journal. Das
+    Bot-Dorf geht ueber `bot_dorf_als_ort` hinein und ueber `bot_dorf_aus_ort` zurueck; die
+    Kartenkennung bleibt dabei erhalten (Register 152).
+
+    **Nahrung:** gebucht wird hier NUR fuer eine eigene Garnison des Dorfes (`dorf.einheiten`).
+    Ein Bot fuehrt seine Armee in `bot.army`; die isst weiterhin `bot_futter_buchen` im
+    Hauptdorf. Solange `dorf.einheiten` leer ist, entsteht also kein doppelter Verbrauch - sobald
+    S-5 Einheiten je Ort ausbildet, muss die Armee dort hineinwandern (sonst isst sie zweimal).
+
+    **Deckel:** der Kern kennt keinen Lagerdeckel; `hoechstvorrat_je_stoff` aus der Datendatei
+    wird deshalb nach dem Tick gekappt (dieselbe Grenze wie im alten Weg).
+
+    Rueckgabe: {Stoff: Zuwachs} dieser Spanne - nur echte Zugaenge (leer, wenn nichts kam).
+    """
+    ort = bot_dorf_als_ort(dorf, bot)                                     # Ort in Kern-Form
+    vorher = {str(k): float(v) for k, v in (ort.get("vorraete") or {}).items()}   # Bestand vorher
+    neu = spieloekonomie.ort_tick(ort, float(ab), float(bis), {})         # EINE Kernfunktion
+    bot_dorf_aus_ort(dorf, neu)                                           # zurueck ins Bot-Dorf
+    zuwachs: Dict[str, float] = {}                                        # was dazukam
+    if not isinstance(getattr(dorf, "vorraete", None), dict):             # Sicherung: altes Dorf
+        dorf.vorraete = {}
+    for stoff in list(dorf.vorraete):                                     # je Posten nachrechnen
+        wert = float(dorf.vorraete.get(stoff, 0.0) or 0.0)
+        if deckel > 0 and wert > deckel:                                  # Lagerdeckel der Datendatei
+            wert = deckel
+            dorf.vorraete[stoff] = round(wert, 2)
+        zuwachs_jetzt = round(wert - vorher.get(str(stoff), 0.0), 2)      # Zuwachs dieser Spanne
+        if zuwachs_jetzt:                                                 # nur echte Bewegungen melden
+            zuwachs[str(stoff)] = zuwachs_jetzt
+    return zuwachs
+
+
 def bot_doerfer_ernten(bot: "BotPlayer", jetzt: float, einstellungen: Optional[dict] = None) -> Dict[str, float]:
     """Laesst die Doerfer eines Bots bis `jetzt` wirtschaften - der EINE Ernteweg (B-3).
 
@@ -1032,6 +1092,7 @@ def bot_doerfer_ernten(bot: "BotPlayer", jetzt: float, einstellungen: Optional[d
         return ergebnis                                                    # dann keine Ernte
     jetzt = float(jetzt)                                                  # Spielsekunden
     deckel = float(einstellungen.get("hoechstvorrat_je_stoff") or 0.0)    # Lagerdeckel je Stoff
+    kern_weg = (str(einstellungen.get("ertrag_weg") or "karte").strip().lower() == "felder")
     for dorf in bot_doerfer_sicherstellen(bot):                           # je Dorf wirtschaften
         seit = float(getattr(dorf, "ernte_seit", 0.0) or 0.0)             # letzte Ernte dieses Dorfes
         if seit <= 0:                                                     # noch nie geerntet (neues Dorf,
@@ -1039,6 +1100,14 @@ def bot_doerfer_ernten(bot: "BotPlayer", jetzt: float, einstellungen: Optional[d
             continue                                                      # Zeitstempel setzen, nichts buchen
         if jetzt <= seit:                                                 # Uhr steht oder laeuft rueckwaerts
             continue                                                      # nichts buchen, Zeitstempel bleibt
+        if kern_weg:                                                      # S-2b: der KERN wirtschaftet
+            geerntet = bot_dorf_tick(dorf, bot, seit, jetzt, deckel)      # ort_tick (wie beim Spieler)
+            for stoff, menge in geerntet.items():                         # Zuwachs aufsummieren
+                ergebnis[stoff] = round(ergebnis.get(stoff, 0.0) + menge, 2)
+            dorf.ernte_seit = jetzt                                       # Erntezeit fortschreiben
+            if getattr(dorf, "hauptdorf", False):                         # die Armee isst im Hauptdorf
+                bot_futter_buchen(bot, dorf, seit, jetzt, geerntet)       # dieselbe Buchstelle
+            continue                                                      # naechstes Dorf
         stunden = (jetzt - seit) / 3600.0                                 # vergangene Spielstunden
         if not isinstance(getattr(dorf, "vorraete", None), dict):         # altes Dorf ohne Vorratsfeld
             dorf.vorraete = {}                                            # dann anlegen
