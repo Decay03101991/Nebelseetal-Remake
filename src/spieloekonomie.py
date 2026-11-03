@@ -1147,13 +1147,41 @@ def ort_tick(ort: dict, ab: float, bis: float, forschung: dict) -> dict:
         for ware, n in werkstatt.fertige_waren(schlange, bis).items():
             neu["waren"][ware] = neu["waren"].get(ware, 0) + n
             neu["fertigjournal"].append({"zeit": bis, "art": "ware", "name": ware})
-    for a in neu["ausbildung"]:
-        if not a["gebucht"] and a["ende"] <= bis:
-            name = a["einheit"]
-            neu["einheiten"][name] = neu["einheiten"].get(name, 0) + 1
-            a["gebucht"] = True
-            neu["fertigjournal"].append({"zeit": a["ende"], "art": "einheit", "name": name})
+    # S-5a (03.11.2026): die Abschluss-Regel steht in EINER Funktion - derselbe Weg gilt fuer den
+    # Spieler (hier), fuer den Bot-Kern und fuer den Karten-Weg der Bots.
+    ausbildung_abschluss(neu, bis)
     return neu
+
+
+def ausbildung_abschluss(ort: dict, bis: float) -> dict:
+    """Laesst FAELLIGE Ausbildungen fertig werden - die EINE Stelle (S-5a, 03.11.2026).
+
+    Was hinein geht: der Ort (dict) und der Zeitpunkt. Was heraus kommt: DERSELBE Ort, in dem jede
+    Ausbildung mit `ende <= bis`, die noch nicht gebucht ist, genau EINMAL als Einheit im Dorf
+    steht (`einheiten`) und eine Zeile im `fertigjournal` bekommt (`gebucht = True`).
+    Der Ort wird dabei VERAENDERT (kein Kopieren) - `ort_tick` arbeitet ohnehin auf einer Kopie,
+    und der Karten-Weg der Bots ruft die Funktion direkt auf seinem Dorf-dict.
+
+    Warum eine eigene Funktion: bis S-5a stand diese Schleife nur in `ort_tick`. Der Bot bildet auf
+    dem Karten-Weg (`ertrag_weg = karte`) aber NICHT ueber `ort_tick` aus - ohne diese Stelle
+    bliebe seine Warteschlange fuer immer stehen. Jetzt gilt fuer beide Wege dieselbe Regel.
+    """
+    if not isinstance(ort, dict):                                          # kein Ort uebergeben
+        return ort                                                         # dann nichts tun
+    ort.setdefault("einheiten", {})                                        # Garnison anlegen
+    ort.setdefault("fertigjournal", [])                                    # Journal anlegen
+    for a in (ort.get("ausbildung") or []):                                # jede Ausbildung
+        if not isinstance(a, dict) or a.get("gebucht"):                    # schon gebucht
+            continue                                                       # dann ueberspringen
+        if float(a.get("ende") or 0.0) > float(bis):                       # noch nicht faellig
+            continue                                                       # spaeter pruefen
+        name = str(a.get("einheit") or "")                                 # Name der Einheit
+        if not name:                                                       # ohne Namen nichts buchen
+            continue
+        ort["einheiten"][name] = int(ort["einheiten"].get(name, 0)) + 1     # Einheit steht im Dorf
+        a["gebucht"] = True                                                # genau einmal buchen
+        ort["fertigjournal"].append({"zeit": a.get("ende"), "art": "einheit", "name": name})
+    return ort                                                             # derselbe Ort
 
 
 def fensterproduktion(orte: list, jetzt: float) -> dict:

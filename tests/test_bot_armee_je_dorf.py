@@ -141,9 +141,14 @@ check("5 `bot.army` ist eine Eigenschaft", "@property" in _code(M.BotPlayer.army
 _schreibstellen = [z for z in TEXT_MAIN.splitlines() if z.strip().startswith("bot.army[")]
 check("5 in `src/` schreibt niemand mehr auf `bot.army[...]`", not _schreibstellen,
       str(_schreibstellen[:3]))
-check("5 Kauf und Verlust buchen ueber den EINEN Schreiber",
-      TEXT_MAIN.count("bot_armee_buchen(bot, name, 1, haupt)") == 1
-      and TEXT_MAIN.count("bot_armee_buchen(bot, name, -int(menge))") == 1, "")
+# ENTSCHEIDUNG GEAENDERT (S-5a, 03.11.2026): der KAUF bucht nicht mehr selbst - er startet eine
+# Warteschlange (die Einheit entsteht im Dorf). Der EINE Schreiber bleibt fuer Verluste und fuer
+# alles, was eine Armee auf einmal setzt.
+check("5 der Verlust bucht ueber den EINEN Schreiber",
+      TEXT_MAIN.count("bot_armee_buchen(bot, name, -int(menge))") == 1, "")
+check("5 der Kauf bucht NICHT mehr direkt, sondern bildet aus",
+      "bot_armee_buchen(bot, name, 1" not in TEXT_MAIN
+      and "ausbildung_start_menge" in TEXT_MAIN, "")
 
 befund("5 ehrliche Grenze: die Armee steht im HAUPTDORF, bis S-5a die Ausbildung je Ort baut - erst "
        "dann entstehen Einheiten dort, wo die Kaserne steht. Das Essen rechnet schon jetzt je Dorf "

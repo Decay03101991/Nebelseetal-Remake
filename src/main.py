@@ -1793,6 +1793,12 @@ def bot_doerfer_ernten(bot: "BotPlayer", jetzt: float, einstellungen: Optional[d
         dorf.ernte_seit = jetzt                                           # Erntezeit fortschreiben
         # S-5c (03.11.2026): die Garnison isst in IHREM Dorf - nicht nur im Hauptdorf.
         bot_futter_buchen(bot, dorf, seit, jetzt, geerntet)               # nach der Ernte (wie beim Spieler)
+        # S-5a (03.11.2026): faellige Ausbildungen werden AUCH auf diesem Weg fertig - hier laeuft
+        # kein `ort_tick`, der es sonst buchen wuerde (`spieloekonomie.ausbildung_abschluss` ist
+        # dieselbe Regel wie im Kern).
+        _ort = bot_dorf_als_ort(dorf, bot)                                # Dorf in der Form des Kerns
+        spieloekonomie.ausbildung_abschluss(_ort, jetzt)                   # faellige Einheiten buchen
+        bot_dorf_aus_ort(dorf, _ort)                                      # zurueck ins Dorf
     return ergebnis                                                       # was dazukam
 
 
@@ -4897,48 +4903,45 @@ class GameState:
             if karren:
                 bot.lager = {karren[0]: rng.randint(0, int(botkern.VORSCHLAG_START_KARREN[1]))}
 
-    def bot_armee_aufstellen(self, bot: BotPlayer) -> Optional[str]:
-        """Der Bot stellt EINE Einheit auf, die er aus SEINEN Vorräten bezahlen kann.
+    def bot_armee_aufstellen(self, bot: BotPlayer, jetzt: float = 0.0) -> Optional[str]:
+        """Der Bot startet EINE Ausbildung ueber die Warteschlange eines Dorfes (S-5a, 03.11.2026).
 
-        Die Preise sind BELEGT (`data/units.json`, `einheiten.alle()[name]['kosten']`), bezahlt
-        wird aus `bot.vorraete`. Frueher stand hier eine erfundene Armee von **20-120 Stueck je
-        Einheit** — damit war ein Bot-Angriff aussichtslos. VORSCHLAG ist nur die Reihenfolge
-        (Kaempfer vor Kundschaftern) und dass ein Bot wie auf einem Markt kauft.
+        Daniels Entscheidung 4, woertlich: "Warteschlange statt Kauf". Bis hier kaufte der Bot die
+        Einheit SOFORT (`bot.army[name] += 1`) und zahlte aus der Bot-Kasse. Jetzt geht er denselben
+        Weg wie der Spieler: `spieloekonomie.ausbildung_start_menge` prueft Forschung, die
+        Ausbildungsstaette VOR ORT, freie Siedler, Ausruestung im Ortslager und die Kosten - und
+        reiht den Auftrag ein. Die Einheit entsteht am Ende der Ausbildungszeit im SELBEN Dorf
+        (`BotDorf.einheiten`, S-5b) und isst dort (S-5c).
 
-        Rueckgabe: Name der aufgestellten Einheit oder ``None``.
+        Was der Bot NICHT mehr tut: sofort zahlen. Was er weiter tut: nur Kaempfer und Kundschafter
+        ausbilden (VORSCHLAG dieser Sitzung, wie bisher) und vorher die Kaufbremse fragen
+        (`bot_nahrung_deckt`), damit er sich keine Armee zulegt, die er nicht ernaehren kann.
+
+        Rueckgabe: Name der begonnenen Einheit oder ``None``.
         """
         # Daniel 03.11.2026 (S-2): Kaufbremse - aufgestellt wird nur, solange das Lager den
         # Tagesbedarf der Armee PLUS Reserve deckt. Steht die Armee in Unterdeckung, ist hier
         # Schluss (Kaufstopp); der Nachschub ist S-7. Die Rechnung selbst steht in
         # `bot_nahrung_deckt`/`bot_reserve_nahrung` - hier wird nur gefragt, nicht gerechnet.
-        if not bot_nahrung_deckt(bot, 1):
-            return None
-        for name in sorted(einheiten.namen(), key=lambda n: (einheiten.rolle(n) != "kaempfer", n)):
-            if einheiten.rolle(name) not in ("kaempfer", "kundschafter"):
-                continue
-            rohkosten = einheiten.alle()[name].get("kosten") or {}
-            kosten = {str(k): int(v) for k, v in rohkosten.items()}
-            if not kosten:                                                # ohne Preis keine Zahl erfinden
-                continue
-            # S-3 (03.11.2026): Siedler sind MENSCHEN, keine Ware. Sie stehen in `bevoelkerung`
-            # des Dorfes (vorher lagen sie als Rohstoff im Lager - zwei Stellen fuer dieselbe
-            # Groesse). Gekauft wird im Hauptdorf, wo die Armee steht.
-            doerfer = bot_doerfer_sicherstellen(bot)                      # Doerfer in einer Form
-            haupt = doerfer[0] if doerfer else None                       # das Hauptdorf traegt die Armee
-            siedler = int(kosten.pop("siedler", 0))                       # Siedler aus der Bevoelkerung
-            if siedler and (haupt is None or float(haupt.bevoelkerung) < siedler):
-                continue                                                  # zu wenig Siedler im Hauptdorf
-            if not all(bot.vorraete.get(k, 0) >= v for k, v in kosten.items()):
-                continue                                                  # Rohstoffe muessen reichen
-            for stoff, menge in kosten.items():
-                # B-3: gebucht wird auf die DOERFER (eine Buchstelle), nicht auf ein zweites Lager.
-                bot_kasse_buchen(bot, stoff, -menge)                      # Kosten abbuchen
-            if siedler:                                                   # Siedler gehen vom Hauptdorf
-                haupt.bevoelkerung = round(float(haupt.bevoelkerung) - siedler, 2)
-            # S-5b: die Einheit entsteht im HAUPTDORF (dort steht die Armee, dort isst sie).
-            bot_armee_buchen(bot, name, 1, haupt)                         # EIN Schreiber der Armee
-            return name                                                   # fertig
-        return None                                                       # nichts bezahlbar
+        if not bot_nahrung_deckt(bot, 1):                                 # Kaufbremse (S-2)
+            return None                                                   # dann keine neue Einheit
+        forschung = {str(k): int(v) for k, v in
+                     (getattr(bot, "forschungsstaende", None) or {}).items()}   # Wissensstand des Bots
+        for dorf in bot_doerfer_sicherstellen(bot):                       # jedes Dorf darf ausbilden
+            ort = bot_dorf_als_ort(dorf, bot)                             # Dorf in der Form des KERNS
+            for name in sorted(einheiten.namen(),
+                               key=lambda n: (einheiten.rolle(n) != "kaempfer", n)):
+                if einheiten.rolle(name) not in ("kaempfer", "kundschafter"):
+                    continue                                              # nur Kaempfer und Kundschafter
+                try:                                                      # der Weg des Spielers
+                    ergebnis = spieloekonomie.ausbildung_start_menge(
+                        ort, name, forschung, float(jetzt), 1)
+                except (ValueError, KeyError):                            # Staette/Forschung/Kosten fehlen
+                    continue                                              # naechste Einheit versuchen
+                bot_dorf_aus_ort(dorf, ergebnis["ort"])                   # Auftrag und Kosten im Dorf buchen
+                self._log("%s bildet %s in %s aus (Warteschlange)." % (bot.name, name, dorf.name))
+                return name                                               # fertig
+        return None                                                       # nichts ausbildbar
 
     def bots_fortschreiben(self, jetzt: float) -> dict:
         """Einen Bot-Zug fahren (W5): die Entscheidung kommt aus `botkern`, gebucht wird hier.
@@ -5085,7 +5088,7 @@ class GameState:
             # Beute gefuettert werden. Auch nach einer Schlacht gilt nur die
             # durch `kampf.fuehre_schlacht` bestaetigte Menge.
             self.bot_aus_dict(bot, botkern.wirkung_anwenden(start, zug))
-            self.bot_armee_aufstellen(bot)
+            self.bot_armee_aufstellen(bot, jetzt)                          # S-5a: Warteschlange statt Kauf
 
         # S-12 (03.11.2026, Daniels Entscheidung 7): duenne Bots bestehlen einen WEHRLOSEN Ort des
         # Spielers - jeder Fall als Postfach-Nachricht (wer, wann, was, wieviel), kein stiller

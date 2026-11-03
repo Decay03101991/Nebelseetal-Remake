@@ -202,14 +202,23 @@ abschnitt("5. Ausbildung zahlt aus den Doerfern (kein zweites Lager)")
 # ==========================================================================
 gs = neuer_stand()
 b5 = M.BotPlayer("Haug", "menschlich", 0.3, 0.8, settlements=["H"])
+# S-5a (03.11.2026): die Ausbildung ueber die Warteschlange kostet die BELEGTEN Preise der Einheit -
+# fuer die erste ausbildbare Einheit sind das Nahrung, Leder und Wolle (`data/units.json`).
 b5.vorraete = {"holz": 5000, "stein": 5000, "nahrung": 5000, "gold": 5000,
-               "metall": 5000, "siedler": 500}
+               "metall": 5000, "siedler": 500, "leder": 500, "wolle": 500}
 vorher_kasse = M.bot_kasse(b5)
 # S-3 (03.11.2026, Register 156): Siedler sind MENSCHEN und stehen in `bevoelkerung` des
 # Hauptdorfes, nicht mehr als Rohstoff in der Kasse. Die Wache vergleicht deshalb jeden
 # Rohstoffposten mit der Kasse und den Siedler-Posten mit der Bevoelkerung - die Zusicherung
 # "der Bot zahlt den belegten Preis" bleibt, nur die Buchungsstelle ist die richtige.
 vorher_bev = float(M.bot_doerfer_sicherstellen(b5)[0].bevoelkerung)
+# S-5a (03.11.2026): "Warteschlange statt Kauf" - der Bot bildet ueber DENSELBEN Weg aus wie der
+# Spieler. Dafuer braucht das Dorf eine Ausbildungsstaette und die Ausruestung VOR ORT (vorher
+# genuegten Rohstoffe, weil sofort gekauft wurde).
+_h5 = M.bot_doerfer_sicherstellen(b5)[0]
+_h5.bauten["7"] = "kriegerakademie"
+_h5.stufen["7"] = 1
+_h5.waren.update(M.ausruestung.fehlende("Krieger", {}))
 gestellt = gs.bot_armee_aufstellen(b5)
 check("5 der Bot stellt eine Einheit auf", isinstance(gestellt, str) and bool(gestellt), str(gestellt))
 gestellt = gestellt if isinstance(gestellt, str) else ""

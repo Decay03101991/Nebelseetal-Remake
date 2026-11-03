@@ -1,3 +1,30 @@
+# STAND 03.11.2026, 17:40 - S-5 komplett: der Bot bildet aus statt zu kaufen (Register 168)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**S-5 ist fertig.** Die Armee steht in den Doerfern (S-5b), jedes Dorf isst fuer seine eigene
+Garnison (S-5c), und der Bot **bildet jetzt aus** statt zu kaufen (S-5a): er geht denselben Weg wie
+der Spieler - Forschung, Ausbildungsstaette vor Ort, Siedler, Ausruestung, Kosten aus dem Dorflager -
+und die Einheit entsteht nach der Ausbildungszeit in genau dem Dorf, das sie ausgebildet hat.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `fa66231` plus diese Aenderung | `git log --oneline -1` |
+| Neue Wache | `tests/test_bot_ausbildung_je_ort.py` **20/0/1** | eigener Lauf |
+| Gegenprobe | Auftrag nicht ins Dorf geschrieben -> **1 Fehler**, Datei hashgleich zurueckgesetzt | eigener Lauf |
+| Umgestellte Wachen | `test_bot_dorf_wirtschaft` **54/0/0**, `test_bot_nahrung` **48/0/0**, `test_bot_armee_je_dorf` **22/0/1** | eigene Laeufe |
+| Nachbarproben | `test_botkern` **101/0/0**, `test_oekonomie_uhr` **65/0/0**, `test_werkstatt` **118/0/1**, `test_durchspiel` **65/0/2** | eigene Laeufe |
+
+## Der EINE naechste Schritt
+
+**W-4: Bots rauben auch untereinander.** Heute waehlt `bot_angriffsplanung.waehle_ziel` Ziele nur
+unter den Siedlungen des Spielers; Daniel will, dass starke Bots mit Einheiten und eigenen Doerfern
+Raubzuege machen - gegen den Spieler UND gegen andere Bots, aber nur in einer Welt, die spielaktiv
+ist. Danach **S-6** (Nachgruenden), **S-7** (Karawanen), **S-9** (Stil je Taktik), zuletzt **W-3**
+(braucht Daniels Entscheidung: gesperrt oder teuer mit Deckel) und die **Story** (W-11).
+
+**Der Sammellauf gehoert zum Abschluss jedes Code-Schnitts** - nach diesem Stand laeuft er.
+
 # STAND 03.11.2026, 16:45 - S-5b/S-5c: die Armee steht in den Doerfern (Register 167)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

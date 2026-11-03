@@ -162,18 +162,27 @@ check("4 ein frischer Bot ohne Armee und ohne Vorrat ist offen (er muss anfangen
 gs = M.GameState()
 gs.bots = [bot_mit_armee(100, nahrung=100.0)]
 hungrig = gs.bots[0]
-hungrig.doerfer[0].vorraete.update({"holz": 5000.0, "stein": 5000.0, "gold": 5000.0, "siedler": 500.0})
+hungrig.doerfer[0].vorraete.update({"holz": 5000.0, "stein": 5000.0, "gold": 5000.0, "siedler": 500.0,
+                                    "leder": 500.0, "wolle": 500.0})
 check("4 die Aufstellung blockt bei zu wenig Futter",
       gs.bot_armee_aufstellen(hungrig) is None, str(M.bot_kasse(hungrig)))
 check("4 der blockierte Bot hat trotzdem Holz, Stein und Gold (es fehlt NUR das Futter)",
       float(hungrig.vorraete.get("holz", 0)) == 5000.0, str(hungrig.vorraete))
 
 satt = bot_mit_armee(100, nahrung=5000.0)
-satt.doerfer[0].vorraete.update({"holz": 5000.0, "stein": 5000.0, "gold": 5000.0, "siedler": 500.0})
+satt.doerfer[0].vorraete.update({"holz": 5000.0, "stein": 5000.0, "gold": 5000.0,
+                                 "nahrung": 5000.0, "siedler": 500.0,
+                                 "leder": 500.0, "wolle": 500.0})   # S-5a: Preis der Einheit
+# S-5a (03.11.2026): "Warteschlange statt Kauf" - Staette und Ausruestung muessen VOR ORT stehen.
+satt.doerfer[0].bauten["7"] = "kriegerakademie"
+satt.doerfer[0].stufen["7"] = 1
+satt.doerfer[0].waren.update(M.ausruestung.fehlende("Krieger", {}))
 gekauft = gs.bot_armee_aufstellen(satt)
-check("4 mit gedecktem Futter stellt der Bot auf", bool(gekauft), str(gekauft))
-check("4 und die Armee ist um genau eine Einheit gewachsen",
-      sum(int(v) for v in satt.army.values()) == 101, str(satt.army))
+check("4 mit gedecktem Futter beginnt der Bot eine Ausbildung", bool(gekauft), str(gekauft))
+check("4 der Auftrag steht in der Warteschlange SEINES Dorfes",
+      len(satt.doerfer[0].ausbildung) == 1, str(satt.doerfer[0].ausbildung))
+check("4 die Armee waechst erst mit der Ausbildung, nicht sofort",
+      sum(int(v) for v in satt.army.values()) == 100, str(satt.army))
 # S-3 (03.11.2026): Siedler sind seit Register 156 Menschen in `bevoelkerung`, nicht mehr ein
 # Rohstoff im Lager. Die Ernte liefert deshalb weiterhin keinen Posten "siedler" - der Nachwuchs
 # kommt aus dem Siedlerzuwachs (1 je Ort und Stunde, gedeckelt durch die Gebaeude).
