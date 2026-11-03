@@ -229,6 +229,26 @@ class BotDorf:
     # dann rechnet der Ertrag wie vor B-4 mit der festen Rate, und `bot_doerfer_karten_zuweisen`
     # vergibt beim naechsten Bot-Takt eine.
     karte: str = ""
+    # ---------------------------------------------------------------------------------------------
+    # S-1 (03.11.2026, Daniels Vorgabe "Bots als echte Gegner"): die Felder eines ORTES.
+    # Ein Bot-Dorf soll durch DIESELBEN Funktionen laufen wie eine Spielersiedlung
+    # (`wirtschaft.ertrag_gesamt`, `spieloekonomie.ort_tick`, `spielschicht.bauen`/`ausbauen`).
+    # Bis hier hatte es nur Vorraete und die Karte als KENNUNG; Bauplaetze, Stufen und
+    # Warteschlangen gab es nicht. Alle Felder haben Vorgaben, damit alte Spielstaende laden.
+    # `karte` bleibt die KENNUNG (Anzeige, Kartenprofil, Kartenwahl); das RASTER fuer den Kern
+    # steht in `karte_daten` und wird von `bot_dorf_als_ort` hineingeschrieben.
+    # ---------------------------------------------------------------------------------------------
+    karte_daten: dict = field(default_factory=dict)        # 10x10-Raster der Karte (originalkarten.karte)
+    bauten: Dict[str, str] = field(default_factory=dict)   # Feld -> Gebaeude, wie beim Spieler
+    stufen: Dict[str, int] = field(default_factory=dict)   # Ausbaustufe je Feld
+    einheiten: Dict[str, int] = field(default_factory=dict)   # Garnison DIESES Ortes
+    bevoelkerung: float = 0.0                              # Siedler des Ortes (Deckel wie beim Spieler)
+    waren: Dict[str, int] = field(default_factory=dict)    # Werkstattwaren im Lager
+    werkstaetten: Dict[str, dict] = field(default_factory=dict)   # Warteschlangen der Werkstaetten
+    ausbildung: list = field(default_factory=list)         # Ausbildungsauftraege dieses Ortes
+    forschungsauftrag: Optional[dict] = None               # laufende Forschung dieses Ortes
+    produktionsjournal: list = field(default_factory=list) # Erntezeilen (ort_tick)
+    fertigjournal: list = field(default_factory=list)      # fertige Waren und Einheiten
 
 
 @dataclass
@@ -542,6 +562,59 @@ def bot_karten_katalog() -> Dict[str, dict]:
         return {}                                                         # dann keine Karten
     karten = daten.get("karten") or []                                    # Liste der Karten
     return {str(k.get("id")): k for k in karten if isinstance(k, dict) and k.get("id")}   # nach ID
+
+
+def bot_dorf_als_ort(dorf: "BotDorf", bot: "BotPlayer" = None) -> dict:
+    """EIN Bot-Dorf in der Form, mit der der KERN rechnet (S-1, 03.11.2026).
+
+    Der Kern (`wirtschaft.ertrag_gesamt`, `spieloekonomie.ort_tick`, `spielschicht.*`) arbeitet mit
+    dicts, und dort ist `karte` das 10x10-RASTER - nicht die Kennung. Diese Funktion uebersetzt:
+    Raster aus der Kennung ueber `_bot_karte_dict` (gemerkt), Volk aus dem Bot, alles andere
+    woertlich. Sie erfindet nichts: ein Feld, das das Dorf nicht hat, bleibt leer.
+    """
+    dorf.karte_daten = dorf.karte_daten or _bot_karte_dict(getattr(dorf, "karte", ""))
+    ort = {"id": str(getattr(dorf, "name", "") or ""), "name": str(dorf.name),
+           "karte": dict(dorf.karte_daten or {}),
+           "bauten": dict(getattr(dorf, "bauten", None) or {}),
+           "stufen": dict(getattr(dorf, "stufen", None) or {}),
+           "einheiten": dict(getattr(dorf, "einheiten", None) or {}),
+           "vorraete": dict(getattr(dorf, "vorraete", None) or {}),
+           "bevoelkerung": float(getattr(dorf, "bevoelkerung", 0.0) or 0.0),
+           "waren": dict(getattr(dorf, "waren", None) or {}),
+           "werkstaetten": copy.deepcopy(getattr(dorf, "werkstaetten", None) or {}),
+           "ausbildung": copy.deepcopy(getattr(dorf, "ausbildung", None) or []),
+           "produktionsjournal": copy.deepcopy(getattr(dorf, "produktionsjournal", None) or []),
+           "fertigjournal": copy.deepcopy(getattr(dorf, "fertigjournal", None) or []),
+           "besitzer": "bot", "volk": str(getattr(bot, "faction", "") or "")}
+    if getattr(dorf, "forschungsauftrag", None):
+        ort["forschungsauftrag"] = copy.deepcopy(dorf.forschungsauftrag)
+    return ort
+
+
+def bot_dorf_aus_ort(dorf: "BotDorf", ort: dict) -> "BotDorf":
+    """Den vom Kern fortgeschriebenen Ort zurueck ins Bot-Dorf schreiben (Gegenstueck zu oben).
+
+    Uebernommen wird nur, was der Ort wirklich traegt - fehlt ein Feld, bleibt der alte Wert des
+    Dorfes stehen (kein Loeschen durch Versehen). Die KENNUNG der Karte bleibt unberuehrt, sonst
+    verloere das Dorf seine Karte beim ersten Takt.
+    """
+    ort = ort if isinstance(ort, dict) else {}
+    for feld in ("bauten", "stufen", "einheiten", "vorraete", "waren"):
+        wert = ort.get(feld)
+        if isinstance(wert, dict):
+            setattr(dorf, feld, dict(wert))
+    for feld in ("werkstaetten", "ausbildung", "produktionsjournal", "fertigjournal"):
+        wert = ort.get(feld)
+        if isinstance(wert, (dict, list)):
+            setattr(dorf, feld, copy.deepcopy(wert))
+    if "bevoelkerung" in ort:
+        try:
+            dorf.bevoelkerung = float(ort.get("bevoelkerung") or 0.0)
+        except (TypeError, ValueError):
+            pass
+    if isinstance(ort.get("forschungsauftrag"), dict):
+        dorf.forschungsauftrag = copy.deepcopy(ort["forschungsauftrag"])
+    return dorf
 
 
 def bot_kartenprofil(karte: str) -> Dict[str, float]:

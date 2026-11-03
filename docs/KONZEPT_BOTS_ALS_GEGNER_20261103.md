@@ -61,7 +61,7 @@ Reihenfolge so gewaehlt, dass nach jedem Schnitt etwas Sichtbares und Pruefbares
 | **S-3 Bauen** | Der Bot baut und baut aus: Bauplaetze aus der Karte, Preise aus `baupreise`, Stufen wie beim Spieler. Die REIHENFOLGE kommt aus der Taktik (Ausbauplan je Taktik in einer Datendatei, z. B. "Waechterin: Wall zuerst"). | M | S-1, S-2 |
 | **S-4 Forschen** | Der Bot forscht mit seinen eigenen Ressourcen, mit derselben Voraussetzungskette - und schaltet damit Einheiten und Gebaeude frei. | M | S-1, S-2 |
 | **S-5 Ausbildung** | Statt `bot_armee_aufstellen` (Kauf) eine Ausbildungs-Warteschlange wie beim Spieler; die **Kaufbremse** aus Daniels Antwort (Futterdeckung + Reserve) sitzt davor. | M | S-2 |
-| **S-6 Gruenden** | Der Bot gruendet nach: Kosten, Siedler, Karte (Kartenwahl ist fertig), hoechstens 6 Siedlungen wie beim Spieler. Entscheidung noetig: WANN (Siedler frei? Vorrat voll? Taktik "wachsen"?). | M | S-1, S-3 |
+| **S-6 Gruenden** | Der Bot gruendet nach: Kosten, Siedler, Karte (Kartenwahl ist fertig). **Daniel 03.11.2026: vorerst 3 Gruendungen je Bot = 4 Doerfer** (1 Startdorf + 3); mehr spaeter ausdruecklich erlaubt, dann nur eine Zahl in `data/bot_wirtschaft.json` (`gruendungen_je_bot`). Offen bleibt das WANN (Siedler frei? Vorrat voll? Taktik "wachsen"?). | M | S-1, S-3 |
 | **S-7 Karawanen** | Der Bot schickt Karren zwischen seinen Doerfern - mit `auftraege.starten` (dieselbe Funktion wie der Spieler), inklusive Reisezeit und Reisekosten. Regel noetig: nur bei Mangel im Zieldorf UND Ueberschuss im Quelldorf. | M | S-2, S-6 |
 | **S-8 Reisekosten** | Auch Bots zahlen Reisekosten aus dem STARTDORF (Daniel 03.11.2026). **Beim Spieler ist das bereits so** (gemessen: `auftrag_starten` bucht `kosten` von `quelle.vorraete` ab, Zeilen 3426-3440) - fuer Bots fehlt die Stelle, weil ihre Marsche keine Auftraege sind. | S | S-7 |
 | **S-9 Stil** | Was der Bot mit seinem Reichtum TUT, bleibt Taktik: "Pluenderer" baut Karren und Beutezuege, "Bastionier" Wall und Ausbau, "Waechterin" Verteidigung, "Spaeherin" Kundschafter, "Raecher" Angriff. Je Taktik eine Gewichtung in `data/` - keine Zahl im Code. | M | S-3 bis S-7 |
@@ -91,7 +91,12 @@ eine Zahl.
 3. **Kaufbremse** zusaetzlich: aufgestellt wird nur, solange die Nahrung im Lager den Tagesbedarf
    der Armee **plus Reserve** deckt (Reserve = `tagesbedarf x reserve_stunden / versorgung_stunden`).
 4. **Reisekosten auch fuer Bots**, abgebucht im Dorf, in dem die Reise beginnt - beim Spieler
-   ebenfalls pruefen, dass es das Startdorf ist.
+   ist das bereits so (`auftrag_starten` bucht von `quelle.vorraete`).
+5. **Fundament zuerst:** S-1/S-2 werden vor der Sofortmassnahme gebaut (kein Doppelbau).
+6. **Start wie der Spieler:** ein Dorf, 10 Siedler, 100 Holz/Stein, leere Armee, eine Karte.
+7. **Alle Bots gleich stark**, Unterschied nur ueber die Taktik.
+8. **Hoechstens 4 Doerfer je Bot** (1 Startdorf + 3 Gruendungen); mehr spaeter, dann nur eine
+   Zahl in der Datendatei.
 
 ## 6. Drei Entscheidungen, die S-1/S-2 blockieren
 
