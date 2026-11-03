@@ -1,3 +1,33 @@
+# STAND 03.11.2026, 11:10 - S-11: der Journal-Deckel haelt (500 Zeilen je Ort, Register 160)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Das `produktionsjournal` waechst nicht mehr ins Unendliche.** Daniels Entscheidung 9: 500 Zeilen je
+Ort, aelteste fallen weg - fuer Spieler UND Bots, denn beide schreiben durch dieselbe Stelle. Gedeckelt
+wird an Ort und Stelle, damit das Versorgungsfenster und der Spionagebericht unveraendert weiterlesen.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `6aabe37` plus diese Doku | `git log --oneline -1` |
+| Voller Sammellauf | **142 von 144 gruen, 0 rot, 2 ausgesetzt, 5.700 Pruefungen, 389 s** (Start 11:02, nach dem letzten Fix) | `docs/audits/sammellauf_20261103_1102.log` |
+| Pruefdateien / Register / Quelldateien | **144** / **160** / **55** | `ls tests/test_*.py`, `grep -c '^| [0-9]'`, `ls src/*.py` |
+| Neue Wache | `tests/test_journal_deckel.py` **23/0/1** | eigener Lauf |
+| Deckel, gemessen | 600 Zeilen -> **500** (neueste bleibt, aelteste 100 weg); 520 Stunden-Spannen durch `ort_tick` -> genau **500**, erste Zeile ab 72.000 s; unter dem Deckel aendert sich nichts | `test_journal_deckel.py` |
+| Versorgungsfenster danach | **24 von 24** Stundenzeilen vorhanden, dieselben Zahlen (Holz 327,6 / Stein 296,4 / Nahrung 288,0 / Gold 216,0) | `test_journal_deckel.py` |
+| Bot-Weg (`ertrag_weg = karte`) | 520 Spannen -> **500** Zeilen, letzte Zeile traegt ihren `verbrauch` | `test_journal_deckel.py` |
+
+**Ehrliche Grenzen:** (a) gedeckelt wird nur das Journal - Vorraete und alle anderen Buecher bleiben
+unberuehrt; (b) ein Deckel KLEINER als das Versorgungsfenster wuerde dem Fenster Zeilen nehmen (bei 500
+nicht der Fall: 500 Zeilen = rund 20 Spieltage bei stündlichem Takt); (c) alte Spielstaende mit mehr als
+500 Zeilen werden erst beim naechsten Tick gekuerzt, nicht beim Laden.
+
+## Der EINE naechste Schritt
+
+**Diebstahl mit Postfach-Bericht** (Daniels Entscheidung 7): duenne Bots duerfen den abwesenden Spieler
+bestehlen, **jeder Fall als Nachricht ins Postfach** (wer, wann, was, wieviel) - kein stiller Verlust.
+Eigener Schnitt nach S-6 im Konzept. Danach: **S-5 Ausbildung je Ort** (Warteschlange statt Kauf - damit
+zieht die Armee in die Doerfer und isst dort), **S-6 Nachgruenden** (3 je Bot), **S-7 Karawanen**.
+
 # STAND 03.11.2026, 10:26 - S-10: der BEDARF je Rohstoff, die Kartenwahl steht auf "mittel" (Register 159)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
