@@ -28,7 +28,30 @@ Das ist dieselbe Klasse Fehler wie die Ressourcenleiste im Oktober (ein BAND als
 | 10 | **W-3 Kampf ueber Weltgrenzen** | teuer mit Deckel | Bau zuletzt von den Kaempfen |
 | 11 | **Story (W-11)** | nur das Noetige, sechs Fraktionen | nebensaechlich, zuletzt |
 
-**Der EINE naechste Schritt: S-6b Teil 2** - Karrenbau im Bot-Takt mit den Bedingungen aus `data/units.json` (Stellmacher, 200 Holz, 80 Metall, 150 Leder, 100 Wolle, 4 Pferde, 5 Siedler, 300 Nahrung, Wagenbau 1), danach `siedlerkarren_pflicht` auf `true` und die Messung ueber 24 Spieltage. Waehrend der Bildauftrag fuer O-1 laeuft, blockiert er nichts. Der Sammellauf gehoert zum Abschluss, das Protokoll traegt die Zeile dazu.
+**S-6b ist ERLEDIGT** (Sammellaeufe 153/155 und 154/156, 0 rot). Der naechste Schritt im Ablauf ist
+**V-3 (vollstaendiger Kampfbericht)**; das Schema liegt beim starken Modell.
+
+## Offener Befund: Bot-Doerfer sparen nicht fuer die Gruendung (gemessen 03.11.2026)
+
+| Gegenstand | Wert |
+|---|---|
+| Gruendungs-Mindestbestand (Kern) | **480 Holz, 300 Stein, 250 Nahrung** (`spieloekonomie.gruendungskosten()`) |
+| Silra nach 24 Spieltagen | 945 Gold, 1057 Stein, 1990 Nahrung, **189 Holz** - ein Dorf, fuenf Karren |
+| Ursache | jeder Karren kostet 200 Holz; dazu Bauten und Forschung - das Dorf haelt nie 680 Holz gleichzeitig |
+| Folge | Silra kann nicht gruenden, obwohl er nach Gold, Stein und Nahrung reich ist |
+
+**Versuchte Loesung, verworfen:** eine Ruecklage in `bot_karren_bauen` (Karren nur, wenn danach noch der
+Mindestbestand im Dorf liegt). Gemessen danach: Doerfer unveraendert 3/4/4/1/3, aber **Haug, Silra und
+Krank bauen 0 Karren** - die Ruecklage verhindert den Karrenbau, ohne eine einzige Gruendung zu
+ermoeglichen. Wieder zurueckgenommen; die Wachen sind gruen (23/0/0, 36/0/1).
+
+**Das ist eine Wirtschaftsfrage, keine Karrenfrage:** die Bot-Doerfer geben ihr Holz fuer Bauten aus und
+sparen nie auf die Gruendung. Drei Wege, Entscheidung Daniel:
+1. **Bot spart gezielt** - ein Anteil des Holzes wird bis zur Gruendung nicht fuer Bauten ausgegeben
+   (Vorschlag: erst die Gruendung, dann bauen; betrifft `bot_doerfer_bebauen`).
+2. **Holz-Ertrag der Bots erhoehen** - mehr Holzzaeller je Dorf (widerspricht der Zahl 12/12/12/9 vom
+   02.11.2026, also nur mit Daniels Wort).
+3. **So lassen** - Silra bleibt bei einem Dorf, die anderen gruenden mit Karren; das Spiel ist spielbar.
 
 # STAND 03.11.2026, 19:02 - Ablauf neu geordnet: S-6b vor S-7, Berichte vor Karawanen
 
