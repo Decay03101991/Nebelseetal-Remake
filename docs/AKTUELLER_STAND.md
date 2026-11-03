@@ -1,3 +1,32 @@
+# STAND 03.11.2026, 13:52 - W-1: jedes Bot-Dorf steht nur auf seiner Weltkarte (Register 163)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Die Bots liegen jetzt in der Welt, in der sie entstanden sind — und die Karte luegt nicht mehr.**
+Vorher stand jedes Bot-Dorf auf der nackten Vorgabe `dimension = 1` (Armageddon), waehrend die Heimat
+des Spielers **Midgard (4)** ist; die Anzeige prueft die Welt gar nicht und zeigte fremde Doerfer auf
+jeder Karte. Jetzt traegt jedes Dorf seine **Herkunftswelt**, entsteht in der Startwelt, und die Karte
+zeigt nur, was auf ihr steht.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `3e9982c` plus diese Aenderung | `git log --oneline -1` |
+| Neue Wache | `tests/test_bot_welten.py` **19/0/1** | eigener Lauf |
+| Gegenprobe | Filterzweig abgeschaltet -> **4 Fehler**, Datei hashgleich zurueckgesetzt | eigener Lauf |
+| Nachbardateien | `test_startspiel` **62/0/1**, `test_weltbild_gelaende` **135/0/0**, `test_spionage` **146/0/0**, `test_durchspiel` **65/0/2**, `test_bot_diebstahl` **46/0/1** - alle unveraendert gruen | eigene Laeufe |
+| Guthaben (13:43, von Daniel abgelesen) | **12,59 / 47,40 USD** - seit 12:24 **0,21 USD** Verbrauch | `docs/ENTWICKLUNGSPROTOKOLL.md` |
+| Offen aus Daniels Vorgaben | **W-2** Umzug eines Nebendorfs, **W-3** Preis/Sperre ueber Weltgrenzen (braucht Daniels Wort), **W-4** Bot gegen Bot | `docs/VORGABEN_WELTEN_UND_BOTS_20261103.md` |
+
+## Der EINE naechste Schritt
+
+**S-5 Ausbildung je Ort** (Daniels Reihenfolge von 12:20): Warteschlange statt Kauf
+(`spieloekonomie.ausbildung_start`, die der Kern schon hat und der Bot umgeht). **Reihenfolge im
+Schnitt ist gemessen, nicht geraten:** erst die Armee nach `dorf.einheiten` (S-5b), dann ausbilden
+(S-5a) — der Docstring von `bot_dorf_tick` sagt es selbst: 'sobald S-5 Einheiten je Ort ausbildet,
+muss die Armee dort hineinwandern (sonst isst sie zweimal)'. Danach S-6 Nachgruenden, S-7 Karawanen,
+S-9 Stil je Taktik. **Der Sammellauf gehoert zum Abschluss jedes Code-Schnitts**, das Protokoll
+traegt die Kennung.
+
 # STAND 03.11.2026, 12:43 - S-13: der Bot-Takt haengt an festen Spielzeit-Punkten (Register 162)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

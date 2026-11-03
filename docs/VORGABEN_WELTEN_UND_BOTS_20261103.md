@@ -2,7 +2,10 @@
 
 Diese Datei haelt die Vorgaben woertlich-nah fest, die Daniel am 03.11.2026 im Chat gemacht hat.
 Sie stehen ab jetzt ueber dem Fahrplan: was hier steht, wird gebaut; was hier nicht steht, wird nicht
-erfunden. **Stand: nichts davon ist im Code** (Ist-Stand unten je Punkt gemessen).
+erfunden. **Stand 13:50: W-1 ist GEBAUT** (Register 163, `tests/test_bot_welten.py` 19/0/1) - ein Dorf
+entsteht in der Startwelt, traegt seine Herkunftswelt, und die Karte zeigt nur die Doerfer ihrer
+Welt. **Offen:** W-2 (Umzug eines Nebendorfs), W-3 (Preis/Sperre ueber Weltgrenzen, braucht
+Daniels Wort) und W-4 (Bot gegen Bot).
 
 ## 1. Die vier Vorgaben
 

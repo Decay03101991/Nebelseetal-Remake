@@ -216,6 +216,13 @@ class BotDorf:
     name: str
     x: int = 0
     y: int = 0
+    # W-1 (Daniel 03.11.2026, "mach es in sinnvoller reihenfolge"; docs/VORGABEN_WELTEN_UND_BOTS):
+    # `herkunftswelt` ist die Welt, in der das Dorf ENTSTANDEN ist, und wird nie geaendert. Das
+    # Hauptdorf bleibt immer dort (W-1); nur ein Nebendorf darf spaeter die Welt wechseln, und dann
+    # aendert sich `dimension`, NICHT `herkunftswelt`. 0 heisst "weiss ich nicht" - so laden alte
+    # Spielstaende ohne diese Angabe, und die Anzeige filtert dann NICHT (sonst waeren die Doerfer
+    # eines alten Standes unsichtbar).
+    herkunftswelt: int = 0
     dimension: int = 1
     hauptdorf: bool = False
     taktik: str = ""
@@ -342,8 +349,14 @@ def bot_doerfer_sicherstellen(bot: "BotPlayer") -> List["BotDorf"]:
     if not namen:                                                         # alter Stand ohne Namen
         namen = ["%ss Siedlung 1" % bot.name]                             # derselbe Standardname wie bisher
     doerfer: List[BotDorf] = []                                           # Ergebnisliste
+    _heimat = int(welt.startwelt_nummer() or 1)                           # W-1: die belegte Heimatwelt
     for i, name in enumerate(namen):                                      # ein Datensatz je Name
         doerfer.append(BotDorf(name=name, hauptdorf=(i == 0),             # das erste Dorf ist das Hauptdorf
+                               # W-1/W-2 (Daniel 03.11.2026): ein Bot entsteht in der STARTWELT (Midgard)
+                               # und traegt sie als Herkunftswelt. Vorher stand hier die Vorgabe 1
+                               # (Armageddon) - die Bots lagen damit in einer Welt, in der niemand
+                               # spielte, und die Anzeige zeigte sie trotzdem auf jeder Karte.
+                               dimension=_heimat, herkunftswelt=_heimat,
                                wall_stufe=int(getattr(bot, "wall_stufe", 0) or 0),        # Wall uebernehmen
                                wall_zustand=float(getattr(bot, "wall_zustand", 100.0) or 100.0),
                                gebaut=int(getattr(bot, "gebaut", 0) or 0),               # Zaehler uebernehmen
@@ -9885,19 +9898,30 @@ class NebelseetalApp:
         self._welt_detail_zeichnen()
         self._draw_map()
 
-    def _bot_doerfer_im_raster(self, kante: int) -> list:
-        """Alle fremden Doerfer, die in ein kante x kante-Raster passen (B-5, 02.11.2026).
+    def _bot_doerfer_im_raster(self, kante: int, welt_nummer: int = 0) -> list:
+        """Alle fremden Doerfer, die auf DIESER Weltkarte in ein kante x kante-Raster passen.
 
-        Die Positionen sind fest aus Name und Dorfnummer abgeleitet (`bottaktik.dorf_position`,
-        B-2b) und stehen je Dorf in `BotDorf.x/y`. Gezeichnet und anklickbar ist nur, was auch
-        offen sichtbar ist: Name, Position, Fraktion, Hauptdorf.
+        B-5 (02.11.2026): gezeichnet und anklickbar ist nur, was offen sichtbar ist - Name,
+        Position, Fraktion, Hauptdorf.
+
+        W-1 (Daniel 03.11.2026): **jedes Dorf steht nur auf SEINER Weltkarte.** Bis hier pruefte die
+        Funktion nur `x`/`y` - ein Bot-Dorf aus einer anderen Welt erschien damit auf JEDER Karte,
+        und ein Klick startete einen Marsch ueber die Weltgrenze, ohne dass jemand ihn bezahlt haette.
+        Gefiltert wird ueber `dorf.dimension` (die Welt, in der das Dorf JETZT steht - ein Nebendorf
+        darf spaeter wechseln). Ein Dorf mit `herkunftswelt == 0` kommt aus einem alten Spielstand
+        ohne diese Angabe; dort wird NICHT gefiltert, sonst waeren seine Doerfer unsichtbar.
         """
         gitter = max(1, int(kante or 20))                              # Rasterweite der Karte
+        welt = int(welt_nummer or 0) or int(getattr(self.state, "eigene_dimension", 0) or 0)
         treffer = []                                                   # Ergebnis: (Bot, Dorf)
         for bot in (getattr(self.state, "bots", None) or []):          # jeder Bot
             for dorf in bot_doerfer_sicherstellen(bot):                # je Dorf ein Eintrag
-                if 0 <= int(dorf.x) < gitter and 0 <= int(dorf.y) < gitter:
-                    treffer.append((bot, dorf))                        # nur Doerfer auf dieser Karte
+                if not (0 <= int(dorf.x) < gitter and 0 <= int(dorf.y) < gitter):
+                    continue                                           # nur Doerfer auf dieser Karte
+                herkunft = int(getattr(dorf, "herkunftswelt", 0) or 0)  # Welt der Entstehung (0 = alt)
+                if herkunft and welt and int(dorf.dimension) != welt:   # Dorf steht auf einer anderen Welt
+                    continue                                           # dann gehoert es nicht hierher
+                treffer.append((bot, dorf))                            # sonst: dieses Dorf zeigen
         return treffer
 
     def _bot_dorf_an(self, x: int, y: int, kante: int = 20):
