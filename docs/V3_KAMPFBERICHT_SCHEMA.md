@@ -51,13 +51,13 @@ Das Schema ist ein zentraler, strukturierter Kampfdatensatz, der alle Informatio
 
 Beide Sichten werden aus demselben Datensatz erzeugt. Der Unterschied liegt in der Perspektive und der Beschriftung, nicht in der Feldverfügbarkeit:
 
-- **Angreifersicht** zeigt `truppen_angreifer` als „Deine Truppen", `garnison_verteidiger` als „Verteidigergarnison", `vorraete_verteidiger` als „vorgefundene Vorräte" und `beute_mitgenommen` als „deine Beute".
-- **Verteidigersicht** zeigt `garnison_verteidiger` als „Deine Verteidiger", `truppen_angreifer` als „Angreifertruppen", `vorraete_verteidiger` als „deine Vorräte vor dem Angriff" und `beute_mitgenommen` als „vom Angreifer erbeutet".
+- **Angreifersicht** zeigt `truppen_angreifer` als „Deine Truppen“, `garnison_verteidiger` als „Verteidigergarnison“, `vorraete_verteidiger` als „vorgefundene Vorräte“ und `beute_mitgenommen` als „deine Beute“.
+- **Verteidigersicht** zeigt `garnison_verteidiger` als „Deine Verteidiger“, `truppen_angreifer` als „Angreifertruppen“, `vorraete_verteidiger` als „deine Vorräte vor dem Angriff“ und `beute_mitgenommen` als „vom Angreifer erbeutet“.
 
 Bewusst nicht in den Sichttext aufgenommen werden:
 
-- Keine fertige Empfehlung („Greif noch einmal an" oder „Verstärke dich").
-- Keine Interpretation der offenen Punkte – unsichere Felder werden als „unsicher" markiert, aber nicht mit erfundenen Regeln gefüllt.
+- Keine fertige Empfehlung („Greif noch einmal an“ oder „Verstärke dich“).
+- Keine Interpretation der offenen Punkte – unsichere Felder werden als „unsicher“ markiert, aber nicht mit erfundenen Regeln gefüllt.
 - Interne IDs (`bericht_id`, `kennung_angreifer`, `kennung_verteidiger`) sind im Datensatz enthalten, erscheinen aber nicht zwingend im Spielertext.
 
 ## Warteschlange und Angriffsmoment
