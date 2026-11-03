@@ -1279,6 +1279,130 @@ def bot_dorf_forschen(dorf: "BotDorf", bot: "BotPlayer", jetzt: float = 0.0,
 # `data/bot_bedarf.json` (VORSCHLAG-Zahl, das Original nennt keinen Planungshorizont).
 # ===================================================================================================
 
+def bot_diebstahl_einstellungen() -> Dict[str, Any]:
+    """Die Regeln des Bot-Diebstahls aus `data/bot_diebstahl.json` (S-12) - EINE Quelle.
+
+    Fehlt die Datei oder ist sie kaputt, ist der Diebstahl AUS (`aktiv: False`) - kein stiller
+    Standardwert, keine erfundene Zahl.
+    """
+    pfad = os.path.join(spieldaten.projektwurzel(), "data", "bot_diebstahl.json")
+    try:
+        with open(pfad, encoding="utf-8") as f:
+            daten = json.load(f)
+    except (OSError, ValueError):
+        return {"aktiv": False}
+    return daten if isinstance(daten, dict) else {"aktiv": False}
+
+
+def bot_ist_duenn(bot: "BotPlayer", einstellungen: dict) -> bool:
+    """Hat dieser Bot hoechstens `armee_schwelle` Einheiten? Nur ein duenner Bot stiehlt."""
+    try:
+        schwelle = int(einstellungen.get("armee_schwelle") or 0)
+    except (TypeError, ValueError):
+        return False
+    if schwelle <= 0:
+        return False
+    einheiten = sum(max(0, int(v)) for v in (getattr(bot, "army", None) or {}).values())
+    return einheiten <= schwelle
+
+
+def bot_diebstahl(bot: "BotPlayer", ziel, jetzt: float,
+                  einstellungen: Optional[dict] = None) -> Optional[dict]:
+    """Ein duenner Bot bestiehlt einen WEHRLOSEN Ort - nie still, immer mit Bericht (S-12).
+
+    Daniels Entscheidung 7 vom 03.11.2026, woertlich: "Ja, aber nur mit Bericht im Postfach".
+    Bedingungen (jede einzeln geprueft, alle Zahlen aus `data/bot_diebstahl.json`):
+      * der Diebstahl ist eingeschaltet,
+      * der Bot ist DUENN (`bot_ist_duenn`: hoechstens `armee_schwelle` Einheiten),
+      * das Ziel ist ABWESEND (`nur_ohne_garnison`: keine Einheiten vor Ort),
+      * die Sperre je Bot (`sperre_stunden`) ist abgelaufen,
+      * im Ziel liegt ueberhaupt etwas.
+    Gebucht wird je Rohstoff `anteil_prozent` des Zielvorrats, hoechstens
+    `hoechstens_je_rohstoff`, in der Summe hoechstens `hoechstens_je_diebstahl`; das Ziel faellt
+    nie unter 0, der Bot bekommt genau die genommene Menge in sein Hauptdorf.
+
+    Rueckgabe: der Bericht ``{"bot", "ziel", "zeit", "mengen", "summe"}`` oder ``None``.
+    Die Postfach-Nachricht schreibt der Aufrufer (`main.bots_fortschreiben`), damit hier keine
+    Anzeige-Logik steckt.
+    """
+    einstellungen = einstellungen if isinstance(einstellungen, dict) else bot_diebstahl_einstellungen()
+    if not einstellungen.get("aktiv", False):
+        return None
+    if ziel is None or not isinstance(getattr(ziel, "vorraete", None), dict) or not ziel.vorraete:
+        return None
+    if einstellungen.get("nur_ohne_garnison", True) and (getattr(ziel, "einheiten", None) or {}):
+        return None                                          # wer Truppen hat, wird angegriffen
+    if not bot_ist_duenn(bot, einstellungen):
+        return None                                          # ein starker Bot kaempft
+    try:
+        anteil = max(0.0, float(einstellungen.get("anteil_prozent") or 0.0)) / 100.0
+        je_rohstoff = max(0.0, float(einstellungen.get("hoechstens_je_rohstoff") or 0.0))
+        gesamt_deckel = max(0.0, float(einstellungen.get("hoechstens_je_diebstahl") or 0.0))
+        sperre = max(0.0, float(einstellungen.get("sperre_stunden") or 0.0)) * 3600.0
+    except (TypeError, ValueError):
+        return None
+    gedaechtnis = bot.gedaechtnis if isinstance(getattr(bot, "gedaechtnis", None), dict) else {}
+    letzter = float(gedaechtnis.get("diebstahl_seit") or 0.0)
+    if sperre > 0 and letzter > 0 and float(jetzt) - letzter < sperre:
+        return None                                          # dieser Bot ist noch gesperrt
+    if anteil <= 0 or je_rohstoff <= 0 or gesamt_deckel <= 0:
+        return None
+
+    genommen: Dict[str, float] = {}
+    summe = 0.0
+    for stoff in sorted(ziel.vorraete):
+        rest_deckel = gesamt_deckel - summe
+        if rest_deckel <= 0:
+            break
+        try:
+            bestand = float(ziel.vorraete.get(stoff) or 0.0)
+        except (TypeError, ValueError):
+            continue
+        if bestand <= 0:
+            continue
+        menge = min(bestand * anteil, je_rohstoff, rest_deckel)
+        menge = round(max(0.0, menge), 2)
+        if menge <= 0:
+            continue
+        ziel.vorraete[stoff] = round(bestand - menge, 2)      # nie unter 0 (menge <= bestand)
+        genommen[stoff] = menge
+        summe = round(summe + menge, 2)
+    if not genommen:
+        return None
+
+    hauptdorf = next((d for d in bot_doerfer_sicherstellen(bot)
+                      if getattr(d, "hauptdorf", False)), None)
+    if hauptdorf is not None:                                # Beute ins eigene Hauptdorf
+        if not isinstance(getattr(hauptdorf, "vorraete", None), dict):
+            hauptdorf.vorraete = {}
+        for stoff, menge in genommen.items():
+            hauptdorf.vorraete[stoff] = round(float(hauptdorf.vorraete.get(stoff, 0.0) or 0.0) + menge, 2)
+    bot.gedaechtnis = dict(gedaechtnis)
+    bot.gedaechtnis["diebstahl_seit"] = float(jetzt)         # Sperre beginnt jetzt
+    return {"bot": str(bot.name), "ziel": str(getattr(ziel, "name", "") or ""),
+            "zeit": float(jetzt), "mengen": dict(genommen), "summe": summe}
+
+
+def bot_diebstahl_nachricht(bericht: dict) -> dict:
+    """Die Postfach-Nachricht zu einem Diebstahl - wer, wann, was, wieviel (Entscheidung 7)."""
+    bericht = bericht if isinstance(bericht, dict) else {}
+    teile = ", ".join("%g %s" % (menge, stoff) for stoff, menge in sorted((bericht.get("mengen") or {}).items()))
+    text = ("Diebstahl in %s: %s hat %g Einheiten entwendet (%s). Der Ort hatte keine Garnison - "
+            "wer Truppen zu Hause haelt, wird nicht bestohlen. Spielzeit %s."
+            % (bericht.get("ziel") or "?", bericht.get("bot") or "?", float(bericht.get("summe") or 0.0),
+               teile or "nichts", _spielzeit_text(float(bericht.get("zeit") or 0.0))))
+    return {"text": text, "type": "diebstahl", "spielzeit_sekunden": float(bericht.get("zeit") or 0.0)}
+
+
+def _spielzeit_text(sekunden: float) -> str:
+    """Spielsekunden als 'Tag X, HH:MM' - dieselbe Form wie im Spielstand."""
+    sekunden = max(0.0, float(sekunden or 0.0))
+    tage = int(sekunden // 86400)
+    stunden = int((sekunden % 86400) // 3600)
+    minuten = int((sekunden % 3600) // 60)
+    return "Tag %d, %02d:%02d" % (tage, stunden, minuten)
+
+
 def bot_bedarf_einstellungen() -> Dict[str, Any]:
     """Die Rechenregeln des Bedarfs aus `data/bot_bedarf.json` - EINE Quelle.
 
@@ -4789,6 +4913,33 @@ class GameState:
             # durch `kampf.fuehre_schlacht` bestaetigte Menge.
             self.bot_aus_dict(bot, botkern.wirkung_anwenden(start, zug))
             self.bot_armee_aufstellen(bot)
+
+        # S-12 (03.11.2026, Daniels Entscheidung 7): duenne Bots bestehlen einen WEHRLOSEN Ort des
+        # Spielers - jeder Fall als Postfach-Nachricht (wer, wann, was, wieviel), kein stiller
+        # Verlust. Ein Ort MIT Garnison wird nicht bestohlen; dort greift der Angriffsweg.
+        # S-12 (03.11.2026): Die Verdrahtung ist VORBEREITET, aber NICHT eingeschaltet -
+        # `data/bot_diebstahl.json` steht auf "aktiv": false. Grund, gemessen: der Bot-Takt feuert
+        # je BOT_TAKT_SEKUNDEN, und ob er in einer Zeitspanne genau einmal feuert, haengt am
+        # Fliesskomma der Summierung (1 x 3600 gegen 10 x 360). Sobald der Diebstahl das Lager des
+        # Spielers beruehrt, laufen dadurch zwei gleiche Spielzeiten auseinander
+        # (`test_gpt_fixrunde_ortslager_zeit`: 98,79 gegen 105,0; `test_gpt_frischstart` ebenso).
+        # Der Diebstahl braucht deshalb erst ein eigenes, scheiben-unabhaengiges Zeitmodell.
+        einst_dieb = bot_diebstahl_einstellungen()
+        diebstaehle: List[dict] = []
+        if einst_dieb.get("aktiv", False):
+            for bot_dieb in self.bots:
+                for ort_dieb in self.settlements:
+                    bericht_dieb = bot_diebstahl(bot_dieb, ort_dieb, jetzt, einst_dieb)
+                    if bericht_dieb:
+                        _nachricht = bot_diebstahl_nachricht(bericht_dieb)
+                        self.messages.append(_nachricht)                 # ins Postfach
+                        self._log(_nachricht["text"])                    # und ins Spiel-Log
+                        diebstaehle.append(bericht_dieb)
+            if diebstaehle:
+                # Die Reichsanzeige ist eine ANZEIGE der Ortslager - ohne diese Zeile zeigten zwei
+                # Stellen verschiedene Summen fuer denselben Bestand.
+                self._reichsanzeige_aus_orten()
+        ergebnis["diebstaehle"] = diebstaehle
 
         # S-7 (bottaktik): das SICHTBARE Verhalten je Bot. Der Zustandsautomat liefert
         # Zustand, Gedaechtnis, Marsch-/Fluchtzeit und den angekuendigten Wechsel. Gebucht
