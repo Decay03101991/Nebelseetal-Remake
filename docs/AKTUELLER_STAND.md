@@ -1,3 +1,24 @@
+# STAND 03.11.2026, 19:02 - Ablauf neu geordnet: S-6b vor S-7, Berichte vor Karawanen
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Zwei Vorgaben Daniels (18:53 und 19:00) verschieben die Reihenfolge.** (a) Der Bot muss den **Siedlerkarren** bauen wie der Spieler - damit wird die Warenkette (S-6b) zur Voraussetzung jeder Bot-Gruendung, statt spaeter zu kommen. (b) **Postfach und Kampfberichte** sind ein eigener Block (V-1 bis V-5, `docs/VORGABE_POSTFACH_UND_BERICHTE_20261103.md`) und gehoeren VOR die Karawanen: S-7 und S-9 schreiben selbst Meldungen ins Postfach und sollen nicht gegen ein Format bauen, das danach umgestellt wird.
+
+| # | Schritt | Inhalt | Warum an dieser Stelle |
+|---|---|---|---|
+| 1 | **S-6b Warenkette fuer Bots** | Stellmacher, Leder, Wolle, Pferde beschaffbar machen; danach `siedlerkarren_pflicht` auf `true` | Daniels Entscheidung 18:53 - ohne Karren gruendet nach der Umstellung KEIN Bot; blockiert S-7, S-9 und die Ziele von W-4 |
+| 2 | **V-3 Vollstaendiger Kampfbericht** | Bericht traegt alle Angaben des Angegriffenen (Wall, Garnison, Taktik, Vorraete, Beute, Verluste beider Seiten) | Fundament: ohne diesen Inhalt haben die naechsten drei Schritte nichts zu zeigen |
+| 3 | **V-2 Angriffs- und Verteidigungsbericht** | je Seite eine eigene Sicht, beide Wege (Spieler->Bot, Bot->Spieler) | baut direkt auf V-3 |
+| 4 | **V-1 Angriffswarnung** | roter Rahmen in hellem Rot um das Hauptfenster, solange ein Angriff auf den Spieler unterwegs ist; danach nur der Bericht | klein und sofort sichtbar; W-4-Angriffe laufen schon, der Spieler soll sie bemerken |
+| 5 | **V-4 Postkasten** | Uebersicht nach Art, Zeit, Betreff, Kurzfassung; Details aufklappbar | braucht V-2/V-3, weil erst dann feststeht, welche Arten und Felder zu zeigen sind |
+| 6 | **V-5 Bot-Auswertung** | Bots lesen eingehende Berichte und schliessen daraus, ob ein weiterer Angriff lohnt | braucht V-3 (Inhalt) und V-4 (Ablage) |
+| 7 | **S-7 Karawanen** | Transporte zwischen EIGENEN Doerfern, Reisekosten im Startdorf | schreibt selbst ins Postfach - jetzt in ein fertiges Format |
+| 8 | **S-9 Stil je Taktik** | was der Bot mit seinem Reichtum TUT | setzt S-6b und S-7 voraus |
+| 9 | **W-3 Kampf ueber Weltgrenzen** | teuer mit Deckel (Daniel 16:08) | Preis ist Denkarbeit, der Bau kommt zuletzt von den Kaempfen |
+| 10 | **Story (W-11)** | nur das Noetige, den sechs Fraktionen angepasst | nebensaechlich, zuletzt |
+
+**Der EINE naechste Schritt: S-6b** - der Bot baut den Siedlerkarren wie der Spieler. Erst messen, welche Waren und Gebaeude der Kern fuer einen Karren verlangt (`spieloekonomie.gruendungskosten()`, `warenrezepte.json`, Werkstattkette), dann die Bot-Wirtschaft nachziehen, dann `siedlerkarren_pflicht` auf `true` und ueber 24 Spieltage pruefen, dass jeder Bot vier Doerfer hat. Der Sammellauf gehoert zum Abschluss, das Protokoll traegt die Zeile dazu.
+
 # STAND 03.11.2026, 18:47 - T-1: Ingame-Texte mit echten Umlauten (Register 171)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
