@@ -100,11 +100,24 @@ def hintergrund_flaeche(gebaeude_id: str, breite: int, hoehe: int,
             bild = bild.convert("RGBA")                     # RGBA fuer den Schleier
             ziel_b, ziel_h = max(1, int(breite)), max(1, int(hoehe))     # Zielflaeche
             faktor = max(ziel_b / bild.width, ziel_h / bild.height)       # cover: groesserer Faktor
+            # O-1 (03.11.2026, Befund Daniel "verzerrt und unscharf"): NICHT beliebig hochskalieren.
+            # Die Menuebilder sind 538x222; auf 980x760 waeren das 3,42x - das Bild wird dabei weich
+            # und wirkt auseinandergezogen. Grenze 1,25x: es bleibt scharf, der Rest der Flaeche wird
+            # mit einem dunklen Grund gefuellt (derselbe Ton wie die Kaesten, damit es nicht auffaellt).
+            HOECHSTENS = 1.25                               # harte Obergrenze der Vergroesserung
+            if faktor > HOECHSTENS:                         # droht Unschaerfe
+                faktor = HOECHSTENS                        # dann begrenzen
             gross = bild.resize((max(1, int(bild.width * faktor)),
                                  max(1, int(bild.height * faktor))), Image.LANCZOS)   # hochskaliert
-            links = max(0, (gross.width - ziel_b) // 2)     # mittig beschneiden
-            oben = max(0, (gross.height - ziel_h) // 2)     # mittig beschneiden
-            flaeche = gross.crop((links, oben, links + ziel_b, oben + ziel_h))        # die Flaeche
+            if gross.width < ziel_b or gross.height < ziel_h:                     # passt nicht mehr ganz
+                leinwand = Image.new("RGBA", (ziel_b, ziel_h), (18, 16, 13, 255))  # dunkler Grund
+                leinwand.paste(gross, (max(0, (ziel_b - gross.width) // 2),           # mittig
+                                       max(0, (ziel_h - gross.height) // 2)))         # einsetzen
+                flaeche = leinwand                                                    # die Flaeche
+            else:                                                                     # deckt weiterhin
+                links = max(0, (gross.width - ziel_b) // 2)     # mittig beschneiden
+                oben = max(0, (gross.height - ziel_h) // 2)     # mittig beschneiden
+                flaeche = gross.crop((links, oben, links + ziel_b, oben + ziel_h))    # die Flaeche
             # Weichzeichnen nimmt dem Bild die harten Kontraste: es bleibt erkennbar, draengt sich
             # aber nicht vor die Texte (Vorgabe Daniel 02.11.2026: "noch zu sehr blickfangend").
             weich = max(0.0, float(weichzeichnen_px or 0.0))                      # Radius in Pixeln
