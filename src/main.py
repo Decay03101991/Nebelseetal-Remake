@@ -674,6 +674,20 @@ def bot_futter_buchen(bot: "BotPlayer", dorf: "BotDorf", ab: float, bis: float,
 
 
 
+def _ertragssumme(wert) -> float:
+    """Summe aller Erträge einer Anlage auf einem Feld (Zahl ODER dict je Rohstoff).
+
+    S-6b (03.11.2026): Die Rinderfarm liefert Nahrung UND Leder - `max()` ueber ein dict wirft
+    `TypeError: '>' not supported between instances of 'dict' and 'dict'` (belegt). Fuer die
+    Platzwahl zaehlt die Gesamtsumme, nicht ein einzelner Rohstoff.
+    """
+    if isinstance(wert, dict):                                            # mehrere Rohstoffe
+        return sum(float(m) for m in wert.values() if isinstance(m, (int, float)))   # Summe
+    if isinstance(wert, (int, float)):                                    # ein Rohstoff
+        return float(wert)                                                # der Wert selbst
+    return 0.0                                                            # unbekannt: nichts erfinden
+
+
 def bot_doerfer_bebauen(dorf: "BotDorf", einstellungen: Optional[dict] = None) -> int:
     """Setzt die Grundanlagen eines Bot-Dorfes auf seine EIGENEN Felder (S-2, 03.11.2026).
 
@@ -696,24 +710,36 @@ def bot_doerfer_bebauen(dorf: "BotDorf", einstellungen: Optional[dict] = None) -
     raster = list(karte.get("raster") or [])
     if not raster:
         return 0
-    try:
-        anzahl = max(1, int(einstellungen.get("anlagen_je_gebaeude") or 1))
-    except (TypeError, ValueError):
-        anzahl = 1
+    # S-6b (03.11.2026): Anzahl je Gebaeude (Zahl fuer alle ODER Dict je Anlage).
+    roh_anzahl = einstellungen.get("anlagen_je_gebaeude") or 1
+    if isinstance(roh_anzahl, dict):
+        def _anzahl(geb: str) -> int:
+            try:
+                return max(1, int(roh_anzahl.get(geb, roh_anzahl.get("*", 1))))
+            except (TypeError, ValueError):
+                return 1
+    else:
+        try:
+            _feste = max(1, int(roh_anzahl))
+        except (TypeError, ValueError):
+            _feste = 1
+        _anzahl = lambda geb: _feste  # noqa: E731  (gleiche Zahl fuer alle Anlagen)
     gebaeude = [str(g) for g in (einstellungen.get("gebaeude_je_dorf") or [])]
     if not gebaeude:
         return 0
     gesetzt = 0
     for geb in gebaeude:
         steht = sum(1 for g in dorf.bauten.values() if str(g) == geb)      # steht diese Anlage schon?
-        offen = max(0, anzahl - steht)                                    # nur der Rest wird gesetzt -
+        offen = max(0, _anzahl(geb) - steht)                              # nur der Rest wird gesetzt -
         if not offen:                                                     # sonst legte JEDER Bot-Takt
             continue                                                      # drei weitere Anlagen nach
         frei = [i for i in range(len(raster)) if str(i) not in dorf.bauten]
         for _ in range(offen):
             if not frei:
                 break
-            passend = [(gelaende.ertrag_pro_stunde(geb, raster[i]) or 0.0, i) for i in frei
+            # S-6b (03.11.2026): eine Anlage kann MEHRERE Rohstoffe liefern (Rinderfarm: Nahrung und
+            # Leder) - dann ist der Ertrag ein dict und nicht vergleichbar. Verglichen wird die SUMME.
+            passend = [(_ertragssumme(gelaende.ertrag_pro_stunde(geb, raster[i])), i) for i in frei
                        if gelaende.bau_moeglich(geb, raster[i])[0]]
             if not passend:
                 break
@@ -768,32 +794,50 @@ def bot_dorf_ertrag(dorf=None, einstellungen: Optional[dict] = None,
                 return _mit_volk({s: round(float(w) / teiler, 2)          # Ertrag je Stunde
                                   for s, w in profil.items() if float(w) > 0},   # nur Rohstoffe mit Wert
                                  bot)                                     # V-5: Volksbonus des Bots
-    try:                                                                  # Zahl aus der Datendatei
-        anzahl = max(0, int(einstellungen.get("anlagen_je_gebaeude") or 1))   # Anlagen je Grundrohstoff
-    except (TypeError, ValueError):                                       # kaputter Wert
-        anzahl = 1                                                        # dann eine Anlage
+    # S-6b (03.11.2026): Anzahl je Gebaeude - entweder eine Zahl fuer ALLE (alt) oder ein Dict.
+    roh_anzahl = einstellungen.get("anlagen_je_gebaeude") or 1             # Zahl oder Dict aus der Datendatei
+    if isinstance(roh_anzahl, dict):                                      # Dict: Anzahl je Gebaeude
+        def _anzahl_je(geb: str) -> int:                                  # Hilfsfunktion je Anlage
+            try:
+                return max(0, int(roh_anzahl.get(geb, roh_anzahl.get("*", 1))))   # eigener Wert, sonst *
+            except (TypeError, ValueError):                                # kaputter Wert
+                return 1                                                  # dann eine Anlage
+        anzahl = None                                                     # je Gebaeude entschieden
+    else:                                                                 # alte Form: eine Zahl fuer alle
+        try:
+            anzahl = max(0, int(roh_anzahl))                              # Anlagen je Grundrohstoff
+        except (TypeError, ValueError):                                   # kaputter Wert
+            anzahl = 1                                                    # dann eine Anlage
+        _anzahl_je = lambda geb: anzahl                                   # pylint: disable=unnecessary-lambda
     gebaeude = tuple(str(g) for g in (einstellungen.get("gebaeude_je_dorf") or []))   # Arten je Dorf
-    anlagen = (gebaeude, anzahl)                                          # Cache-Schluessel: Arten und Anzahl
+    anlagen = (gebaeude, repr(roh_anzahl))                                # Cache-Schluessel: Arten und Anzahl
     if anlagen in _BOT_ERTRAG_CACHE:                                      # schon einmal gerechnet
         return _mit_volk(dict(_BOT_ERTRAG_CACHE[anlagen]), bot)           # Kopie, V-5: Volksbonus
     ertrag: Dict[str, float] = {}                                         # Ergebnis: Rohstoff -> je Stunde
     stammdaten = gelaende.alle_gebaeude()                                 # Bauwerke aus den Spieldaten
-    for geb in gebaeude:                                                  # je Grundrohstoff ein Posten
+    for geb in gebaeude:                                                  # je Anlage ein Posten
         eintrag = stammdaten.get(geb) or {}                               # Stammdaten dieses Gebaeudes
         rohstoff = eintrag.get("rohstoff")                                # welcher Rohstoff entsteht
-        if not isinstance(rohstoff, str) or not rohstoff:                 # unklar (mehrere Rohstoffe)
-            continue                                                      # dann keine Zahl erfinden
-        bester = 0.0                                                      # bester belegter Stundensatz
+        bester: Dict[str, float] = {}                                     # je Rohstoff der beste Satz
         for art in gelaende.GELAENDEARTEN:                                # jedes Gelaende pruefen
             erlaubt, _grund = gelaende.bau_moeglich(geb, art)             # darf die Anlage dort stehen?
             if not erlaubt:                                               # nein
                 continue                                                  # dann zaehlt es nicht
             wert = gelaende.ertrag_pro_stunde(geb, art)                   # Ertrag auf diesem Gelaende
-            if isinstance(wert, (int, float)) and float(wert) > bester:    # bester Wert gewinnt
-                bester = float(wert)                                      # merken
-        if bester > 0:                                                    # nur belegte Erträge
-            schluessel = rohstoff.lower()                                 # Schreibweise der Spielstaende
-            ertrag[schluessel] = round(ertrag.get(schluessel, 0.0) + bester * anzahl, 2)   # mal Anlagenzahl
+            if isinstance(wert, dict):                                    # S-6b: MEHRERE Rohstoffe (Rinderfarm)
+                for roh, menge in wert.items():                           # je Rohstoff einzeln
+                    schluessel = str(roh).lower()                         # Schreibweise der Spielstaende
+                    if isinstance(menge, (int, float)) and float(menge) > bester.get(schluessel, 0.0):
+                        bester[schluessel] = float(menge)                 # bester Wert gewinnt
+                continue                                                  # dieser Posten ist gebucht
+            if isinstance(wert, (int, float)) and isinstance(rohstoff, str) and rohstoff:
+                schluessel = rohstoff.lower()                             # Schreibweise der Spielstaende
+                if float(wert) > bester.get(schluessel, 0.0):             # bester Wert gewinnt
+                    bester[schluessel] = float(wert)                      # merken
+        zahl = _anzahl_je(geb)                                            # Anlagen DIESER Art im Dorf
+        for schluessel, menge in bester.items():                          # jeder Rohstoff der Anlage
+            if menge > 0 and zahl > 0:                                    # nur belegte Erträge
+                ertrag[schluessel] = round(ertrag.get(schluessel, 0.0) + menge * zahl, 2)   # mal Anlagenzahl
     _BOT_ERTRAG_CACHE[anlagen] = dict(ertrag)                             # fuer den naechsten Aufruf merken
     return _mit_volk(dict(ertrag), bot)                                   # frische Kopie, V-5: Volksbonus
 
@@ -815,6 +859,9 @@ BOT_PROFIL_GEBAEUDE: Dict[str, str] = {                                   # Rohs
     "nahrung": "farm",                                                    # Nahrung aus Grasland und Steppe
     "gold": "goldmine",                                                   # Gold aus Berg und Huegel
     "metall": "erzmine",                                                  # Metall aus Berg und Huegel
+    "leder": "rinderfarm",                                                # Leder aus der Rinderfarm (S-6b)
+    "wolle": "schafszucht",                                               # Wolle aus der Schafszucht (S-6b)
+    "pferde": "pferdezucht",                                              # Pferde aus der Pferdezucht (S-6b)
 }
 _BOT_KARTEN_CACHE: Dict[str, Dict[str, float]] = {}                       # Karten-ID -> Profil (Werte)
 
@@ -919,9 +966,16 @@ def bot_kartenprofil(karte: str) -> Dict[str, float]:
             if not erlaubt:                                               # nein
                 continue                                                  # dann zaehlt das Feld nicht
             ertrag = gelaende.ertrag_pro_stunde(geb, art)                 # BELEGTER Ertrag je Stunde
+            if isinstance(ertrag, dict):                                  # MEHRERE Rohstoffe (Rinderfarm: Nahrung + Leder)
+                for roh, menge in ertrag.items():                          # je Rohstoff einzeln
+                    if isinstance(menge, (int, float)):                     # nur echte Zahlen
+                        schluessel = str(roh).lower()                       # Schreibweise der Spielstaende
+                        profil[schluessel] = round(profil.get(schluessel, 0.0)   # addieren, nicht ersetzen
+                                                   + float(anzahl) * float(menge), 2)
+                continue                                                    # dieser Posten ist gebucht
             if isinstance(ertrag, (int, float)):                          # nur echte Zahlen
                 wert += float(anzahl) * float(ertrag)                     # Felder mal Ertrag
-        profil[stoff] = round(wert, 2)                                    # Kartenwert festhalten
+        profil[stoff] = round(profil.get(stoff, 0.0) + wert, 2)           # Kartenwert festhalten (dict-Anteil bleibt)
     _BOT_KARTEN_CACHE[karte] = dict(profil)                               # fuer den naechsten Aufruf merken
     return dict(profil)                                                   # frische Kopie
 

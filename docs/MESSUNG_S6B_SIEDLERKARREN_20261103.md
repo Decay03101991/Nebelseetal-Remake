@@ -79,6 +79,36 @@ Damit ist die Kette vollständig: **Baukunst → Stellmacher; Schafszucht, Rinde
 Wolle, Leder, Pferde; Wagenbau 1 → Siedlerkarren** (200 Holz, 80 Metall, 150 Leder, 100 Wolle,
 4 Pferde, 5 Siedler, 300 Nahrung) **→ Gründung** mit Gebühr und Startpaket.
 
+## Ertragsrechnung, selbst gemessen (statt geschaetzt)
+
+`gelaende.ertrag_pro_stunde(gebaeude, gelaende)` liefert je Grasland / Steppe:
+
+| Anlage | Grasland | Steppe |
+|---|---|---|
+| Schafszucht | 3 Wolle/h | 1,5 Wolle/h |
+| Rinderfarm | 3 Nahrung + **3 Leder**/h | 1,5 + 1,5/h |
+| Pferdezucht | 3 Pferde/h | 1,5 Pferde/h |
+
+Baubar sind alle drei nur auf **Grasland und Steppe**; der Stellmacher zusaetzlich auf Wald und Huegel.
+Eine mittlere Bot-Karte traegt **12 Grasland und 23 Steppe = 35 Felder** (Median ueber die 127
+Originalkarten, `data/originalkarten/katalog.json`), die beste 44 + 18.
+
+**Bedarf fuer EINEN Siedlerkarren:** 150 Leder, 100 Wolle, 4 Pferde. Spieltag = 6 Stunden Takt.
+
+| Anlagen (Grasland) | Ertrag/h | Zeit fuer den Karren | in Spieltagen |
+|---|---|---|---|
+| 1 Rinderfarm | 3 Leder | 50,0 h | 8,3 |
+| 2 Rinderfarm | 6 Leder | 25,0 h | 4,2 |
+| **3 Rinderfarm** | 9 Leder | 16,7 h | **2,8** |
+| 1 Schafszucht | 3 Wolle | 33,3 h | 5,6 |
+| **2 Schafszucht** | 6 Wolle | 16,7 h | **2,8** |
+| 1 Pferdezucht | 3 Pferde | 1,3 h | 0,2 |
+
+**Vorschlag mit belegter Rechnung: 3 Rinderfarm, 2 Schafszucht, 1 Pferdezucht, 1 Stellmacher** = 7
+Anlagen von 35 moeglichen Feldern. Damit steht der erste Karren nach **2,8 Spieltagen**; Leder und Wolle
+sind gleichauf der Engpass, Pferde sind keiner. Die Rinderfarm liefert nebenbei 9 Nahrung/h, was die
+Armeeversorgung stuetzt.
+
 ## Offene Messlücke (nächster Schritt vor dem Bau)
 
 Welche Gebäude Leder, Wolle und Pferde erzeugen und welche Forschung sie verlangen, steht noch nicht

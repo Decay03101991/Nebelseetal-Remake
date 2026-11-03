@@ -1,13 +1,26 @@
 {
-  "stand": "2026-11-02",
+  "stand": "2026-11-03",
   "aktiv": true,
   "gebaeude_je_dorf": [
     "holzfaeller",
     "steinmetz",
     "farm",
-    "goldmine"
+    "goldmine",
+    "stellmacher",
+    "rinderfarm",
+    "schafszucht",
+    "pferdezucht"
   ],
-  "anlagen_je_gebaeude": 3,
+  "anlagen_je_gebaeude": {
+    "holzfaeller": 3,
+    "steinmetz": 3,
+    "farm": 3,
+    "goldmine": 3,
+    "stellmacher": 1,
+    "rinderfarm": 3,
+    "schafszucht": 2,
+    "pferdezucht": 1
+  },
   "karten_aktiv": true,
   "ertrag_weg": "karte",
   "ertrag_weg_hinweis": "S-2b (03.11.2026): WOHER der Stundenertrag eines Bot-Dorfes kommt. 'karte' = Kartenprofil (Felder x Ertrag / karten_teiler, Vorgabe Daniel 02.11.2026 B-4: die Karte bestimmt den Ertrag) - das ist die VORGABE und bleibt stehen. 'felder' = derselbe Weg wie beim Spieler: wirtschaft.ertrag_gesamt aus den Feldern des Dorfes (bot_doerfer_bebauen setzt dort drei Anlagen je Grundrohstoff), inklusive Volksfaktor und Grundeinkommen. Der Unterschied ist gemessen: das Kartenprofil gibt je Karte 9,12 bis 12,92 Holz, der Felder-Weg fuer JEDE Karte denselben Grundertrag (~12/12/12/9 + Grundeinkommen + Volksfaktor) - dann unterscheidet die Karte nur noch, was gebaut werden KANN. Weil das eine Aenderung gegenueber B-4 waere, ist der Felder-Weg gebaut und geprueft, aber NICHT eingeschaltet: Daniel entscheidet mit EINEM Wort, ohne Codeaenderung.",
@@ -23,5 +36,6 @@
   "offen": "Ein Ausbau je Dorf (mehr Anlagen mit wachsendem 'gebaut'-Zaehler) ist eine spaetere Stufe - hier bewusst NICHT eingebaut, damit die Zahl eine Quelle hat.",
   "gruendungen_je_bot": 3,
   "doerfer_je_bot_hoechstens": 4,
-  "gruendungen_hinweis": "Daniel 03.11.2026: vorerst DREI Gruendungen je Bot, also vier Doerfer (Startdorf plus drei). Spaeter sollen mehr erlaubt und eingebaut werden koennen - dann wird NUR diese Zahl geaendert, kein Code. Gilt fuer S-6 (Bots gruenden nach wie der Spieler)."
+  "gruendungen_hinweis": "Daniel 03.11.2026: vorerst DREI Gruendungen je Bot, also vier Doerfer (Startdorf plus drei). Spaeter sollen mehr erlaubt und eingebaut werden koennen - dann wird NUR diese Zahl geaendert, kein Code. Gilt fuer S-6 (Bots gruenden nach wie der Spieler).",
+  "anlagen_je_gebaeude_erklaerung": "S-6b (03.11.2026): Anzahl je Gebaeude. Die vier Grundanlagen bleiben bei drei (Daniel 02.11.2026: 12/12/12/9 je Stunde und Dorf). Fuer den Siedlerkarren: 1 Stellmacher, 3 Rinderfarmen (Leder ist der Engpass: 150 Leder bei 3 Leder/h je Anlage), 2 Schafszuchten (100 Wolle), 1 Pferdezucht (4 Pferde). Rechnung in docs/MESSUNG_S6B_SIEDLERKARREN_20261103.md."
 }
