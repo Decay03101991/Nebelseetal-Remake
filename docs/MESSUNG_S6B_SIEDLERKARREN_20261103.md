@@ -68,5 +68,5 @@ ableiten - **keine Handliste tippen**, die Quelle ist die Datei.
 
 - Dörfer werden nie eingenommen, Angriffstruppen nie am Zielort stationiert.
 - Die fünf Siedler des Karrens ziehen aus dem Ausgangsdorf um - das macht S-6 schon.
-- Kein Sonderweg „Bot zahlt Gold statt Waren": Daniels Vorgabe ist die echte Kette, die Abweichung
+- Kein Sonderweg „Bot zahlt Gold statt Waren“: Daniels Vorgabe ist die echte Kette, die Abweichung
   ist nur, dass ein Bot sie selbst beschafft.
