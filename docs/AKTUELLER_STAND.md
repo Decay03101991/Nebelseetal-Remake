@@ -1,3 +1,33 @@
+# STAND 03.11.2026, 11:45 - S-12: Diebstahl mit Bericht GEBAUT, Schalter bleibt AUS (Register 161)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Die Mechanik steht, die Zeit stimmt noch nicht.** Daniels Entscheidung 7 ("Ja, aber nur mit Bericht
+im Postfach") ist gebaut: duenne Bots bestehlen wehrlose Orte, jeder Fall wird als Nachricht mit wer,
+wann, was, wieviel ins Postfach gelegt. **Eingeschaltet ist sie nicht** - und der Grund ist gemessen,
+nicht geraten.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf beim Schreiben | `9865f73` plus diese Doku | `git log --oneline -1` |
+| Voller Sammellauf | **143 von 145 gruen, 0 rot, 2 ausgesetzt, 5.742 Pruefungen, 429 s** (Start 11:43, nach dem letzten Fix) | `docs/audits/sammellauf_20261103_1143.log` |
+| Pruefdateien / Register / Quelldateien | **145** / **161** / **55** | `ls tests/test_*.py`, `grep -c '^| [0-9]'`, `ls src/*.py` |
+| Neue Wache | `tests/test_bot_diebstahl.py` **36/0/1** | eigener Lauf |
+| Mechanik, gemessen | je Rohstoff 3 Prozent (1000/500/200 -> **30/15/6**), Deckel 60 je Rohstoff und 120 gesamt halten, Ziel nie unter 0, Bot-Hauptdorf bekommt genau die Mengen | `test_bot_diebstahl.py` |
+| Bedingungen, gemessen | Garnison im Ziel -> **kein** Diebstahl; starker Bot (>5 Einheiten) -> **kein** Diebstahl; Sperre 12 h haelt, danach wieder; leerer Ort und Deckel 0 -> nichts | `test_bot_diebstahl.py` |
+| Warum aus | Bot-Takt feuert je nach Tick-Zuschnitt einmal oder keinmal: **1 x 3600 s und 10 x 360 s** fuhren unterschiedlich viele Bot-Aktionen, sobald der Diebstahl das Spielerlager beruehrt (`test_gpt_fixrunde_ortslager_zeit` 98,79 gegen 105,0) | `data/bot_diebstahl.json`, Feld `warum_noch_aus` |
+
+**Zwei Reparaturversuche, beide zurueckgenommen** (Reichsanzeige nachziehen; Takt nach ganzen
+Abschnitten feuern): sie aenderten Verhalten, ohne das Problem zu loesen. Der saubere Weg ist ein
+eigenes, scheiben-unabhaengiges Zeitmodell fuer Bot-Aktionen - **das ist die offene Entscheidung.**
+
+## Der EINE naechste Schritt
+
+**Bot-Takt auf feste Spielzeit-Punkte stellen** (statt "wenn die Fliesskomma-Differenz reicht"): jeder
+Takt hat einen festen Abschnitt, 1 x 3600 s und 10 x 360 s fahren dieselben Takte. Erst damit sind
+Bot-Aktionen scheiben-unabhaengig - und der Diebstahl kann eingeschaltet werden. Danach: **S-5
+Ausbildung je Ort**, **S-6 Nachgruenden**, **S-7 Karawanen**.
+
 # STAND 03.11.2026, 11:10 - S-11: der Journal-Deckel haelt (500 Zeilen je Ort, Register 160)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
