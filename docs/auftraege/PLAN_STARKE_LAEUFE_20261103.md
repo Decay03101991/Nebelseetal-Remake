@@ -20,19 +20,40 @@ Der Rahmen ist ein Ausgabenrahmen, kein Guthaben: aufladen kann nur Daniel im De
 - Folge: 6 USD sind etwa **40 bis 60 starke Aufrufe**. Die fuenf offenen Denk-Pakete brauchen rund
   12 - der Rahmen ist damit komfortabel, nicht knapp.
 
-## Einteilung (Reihenfolge nach Abhaengigkeit, nicht nach Geschmack)
+## Einteilung - bewusst breit (Vorgabe Daniel 19:1x: den Rahmen wirklich nutzen)
 
-| # | Paket | Warum jetzt | Aufrufe | geplant |
+Rahmen **6,00 USD**, geplant sind **etwa 4,00 USD** (rund 30 Aufrufe), Rest Puffer. Jeder Schnitt bekommt
+**drei Runden** statt einer: (1) Entwurf, (2) harte Gegenpruefung durch ein zweites Kind, das den Entwurf
+gegen die Datendateien und Register-Eintraege prueft, (3) Nachbesserung aus den Befunden. Das kostet das
+Dreifache und ist genau der Grund fuer den Rahmen: ein Entwurf ohne Gegenpruefung hat schon Fehlbefunde
+geliefert.
+
+| # | Paket | Runden | Aufrufe | geplant |
 |---|---|---|---|---|
-| 1 | **S-6b Warenkette fuer Bots** | Daniels Entscheidung 18:5x: der Bot muss den Siedlerkarren bauen wie der Spieler. Ohne Warenkette (Stellmacher, Leder, Wolle, Pferde) gruendet nach `siedlerkarren_pflicht: true` KEIN Bot - das blockiert S-7 und S-9 | 3 | 0,12 USD |
-| 2 | **S-7 Karawanen** | naechster Schnitt in Daniels Reihenfolge; vier Doerfer je Bot brauchen Nachschub | 4 | 0,16 USD |
-| 3 | **S-9 Stil je Taktik** | baut auf S-6b/S-7 auf (was der Bot mit seinem Reichtum TUT) | 2 | 0,08 USD |
-| 4 | **W-3 Kampf ueber Weltgrenzen** | Daniels Entscheidung steht (teuer mit Deckel); der Preis ist Denkarbeit, der Bau nicht | 3 | 0,12 USD |
-| 5 | **V-2/V-3 Berichts-Sicht je Seite** | neue Vorgabe Daniel 19:00: Angriffs- und Verteidigungsbericht, vollstaendig ueber alle Angaben des Angegriffenen | 3 | 0,12 USD |
-| 6 | **V-5 Bot-Auswertung** | Bots sollen aus Berichten schliessen, ob ein weiterer Angriff lohnt | 2 | 0,08 USD |
-| 7 | **Story W-11** | nebensaechlich, laesst sich zuletzt und in einem Zug machen | 2 | 0,10 USD |
-| | **Summe geplant** | | **19** | **0,78 USD** |
-| | Reserve (Nachfassen, unklare Antworten) | je Nachfassen 0,04-0,08 USD | ~15 moeglich | 5,42 USD |
+| 1 | **S-6b Warenkette fuer Bots** (Warenhaltung, Werkstattkette, Rezepte, Karrenbau) | Entwurf + Gegenpruefung + Nachbesserung | 4 | 0,45 USD |
+| 2 | **V-3 Vollstaendiger Kampfbericht** (alle Angaben des Angegriffenen) | 3 | 3 | 0,35 USD |
+| 3 | **V-2 Angriffs- und Verteidigungsbericht** (zwei Sichten) | 3 | 3 | 0,35 USD |
+| 4 | **V-1 Angriffswarnung** (roter Rahmen, Farbe, Dauer) | 2 | 2 | 0,20 USD |
+| 5 | **V-4 Postkasten** (Uebersicht, Arten, Filter, Details) | 3 | 3 | 0,35 USD |
+| 6 | **V-5 Bot-Auswertung** (Bots schliessen aus Berichten) | 3 | 3 | 0,35 USD |
+| 7 | **S-7 Karawanen** (Regeln, Reisekosten, Nachschub) | 3 | 3 | 0,35 USD |
+| 8 | **S-9 Stil je Taktik** | 2 | 2 | 0,20 USD |
+| 9 | **W-3 Kampf ueber Weltgrenzen** (Preis mit Deckel) | 3 | 3 | 0,35 USD |
+| 10 | **Story W-11** (sechs Fraktionen) | 2 | 2 | 0,20 USD |
+| 11 | **Querschnitt: Gesamtkonsistenz-Audit** (Kernkreis, Anzeige = Kern, Register gegen Code) | 2 | 3 | 0,35 USD |
+| 12 | **Querschnitt: Pruefstrategie** (welche Wachen fehlen, Testdesign fuer die V-Schnitte) | 1 | 2 | 0,20 USD |
+| | **Summe geplant** | | **33** | **3,95 USD** |
+| | Puffer fuer Nachfassen (10-15 Aufrufe) | | | 2,05 USD |
+
+**Was jetzt zusaetzlich an das starke Modell geht** (bisher als "macht die Sitzung selbst" gebucht):
+Entwuerfe fuer **Datendateien** (Schluessel und Werte, nicht nur Regeln), **Testdesign** je Schnitt,
+**Gegenpruefung** fremder Entwuerfe, **Doku-Entwuerfe** (Vorgabenseiten, Stand-Block-Text) und
+**Codereview** meiner Diffs - jeweils als Vorschlag, den die Sitzung prueft und einbaut. Code, Register,
+Protokoll, Sammellauf und Commits bleiben bei der Sitzung.
+
+**Qualitaetsregel fuer die breitere Nutzung:** jeder Entwurf wird gegen die Datendateien geprueft, bevor
+er Gesetz wird (die Uebergabe belegt: Angaben im eigenen Auftrag nachmessen, sonst folgt das Modell einer
+falschen Vorgabe). Ein gruener Entwurf ohne Gegenprobe zaehlt nicht.
 
 ## Grenzen (gelten fuer jeden Lauf)
 
