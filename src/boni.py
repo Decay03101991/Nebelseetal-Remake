@@ -161,3 +161,29 @@ def reisezeitfaktor(fraktion: str = "", taktik: str = "", taktik_bonus_aktiv: bo
     prozent = modifikatoren(fraktion, taktik, taktik_bonus_aktiv, pfad).get("reise", 0.0)
     schnell = faktor(prozent)
     return 1.0 / schnell if schnell > 0 else 1.0
+
+
+def kampf_werte(werte: Optional[dict]) -> Dict[str, float]:
+    """AT und PA als Prozente fuer den Kampf aus einem Modifikatoren-Dict.
+    Zwei Groessen, eine Rechnung: "verteidigung" (Brynhilds Taktikbonus) zaehlt zur PA des
+    Verteidigers - sie ist im Handbuch dieselbe Kennzahl, nur anders benannt. "beute" bleibt
+    daneben stehen, weil der Kampf sie getrennt braucht.
+    """
+    werte = werte or {}
+
+    def _z(schluessel: str) -> float:
+        try:
+            return float(werte.get(schluessel) or 0.0)
+        except (TypeError, ValueError):
+            return 0.0
+
+    return {"at": _z("at"), "pa": _z("pa") + _z("verteidigung"), "beute": _z("beute")}
+
+
+def preis_faktor(fraktion: str = "", pfad: str = None) -> float:
+    """Faktor auf GEBAEUDEPREISE aus dem Volk (Gnome: -5 % = 0,95). 1,0 heisst kein Rabatt.
+
+    Daniel 03.11.2026: "Ausbau +5 %" der Gnome wirkt als 5 % guenstigerer Ausbau. Bei den Bots
+    aendert das nichts - sie bauen nicht (siehe `groessen()["ausbau"]`).
+    """
+    return faktor(modifikatoren(fraktion, pfad=pfad).get("baukosten", 0.0))

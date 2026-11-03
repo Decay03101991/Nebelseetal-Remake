@@ -391,7 +391,7 @@ _b = gs4.bot_dorf_spionagebericht(bot4, dorf4.name, 500.0)
 check("der Bericht nennt genau dieses Dorf", _b["dorf"].get("name") == dorf4.name,
       str(_b["dorf"].get("name")))
 check("der Ertrag im Bericht ist der Ertrag des Kerns",
-      _b["dorf"].get("ertrag_pro_stunde") == M.bot_dorf_ertrag(dorf4),
+      _b["dorf"].get("ertrag_pro_stunde") == M.bot_dorf_ertrag(dorf4, None, bot4),
       str(_b["dorf"].get("ertrag_pro_stunde")))
 check("der Bericht traegt Wallstufe und Zustand", _b["dorf"].get("wall_stufe") == 2)
 check("der Bericht traegt den Zeitpunkt der Ankunft", _b["zeit_spielsekunden"] == 500.0)

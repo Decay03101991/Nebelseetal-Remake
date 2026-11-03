@@ -1503,6 +1503,29 @@ def handel_entscheiden(vertrag: dict, angenommen: bool) -> dict:
     return neu
 
 
+def _volk_prozent(ort, groesse: str) -> float:
+    """Volks-Prozente eines ORTES (V-5, 03.11.2026) - 0,0 ohne Volk (kein Erfinden).
+
+    Das Volk steht am Ort (`volk`), die Zahlen liefert `boni.py` aus `data/boni.json`. Diese
+    Funktion liest die Datei nicht selbst.
+    """
+    fraktion = ""
+    if isinstance(ort, dict):
+        fraktion = str(ort.get("volk") or "")
+    elif ort is not None:
+        fraktion = str(getattr(ort, "volk", "") or "")
+    if not fraktion:
+        return 0.0
+    try:
+        import boni
+    except Exception:                                  # noqa: BLE001 - ohne Modul keine Wirkung
+        return 0.0
+    try:
+        return float(boni.modifikatoren(fraktion).get(groesse, 0.0) or 0.0)
+    except (TypeError, ValueError):
+        return 0.0
+
+
 def handel_abschluss(vertrag: dict, orte: dict, jetzt: float):
     """Ankunft und Rückkehr eines Fremdvertrags buchen — **genau einmal**. ``(orte, vertrag)``.
 
@@ -1521,9 +1544,17 @@ def handel_abschluss(vertrag: dict, orte: dict, jetzt: float):
     if jetzt >= m["ankunft"] and not m["angenommen"]:
         if m.get("entscheidung") is not False and verkaeufer is not None \
                 and verkaeufer["besitzer"] == m["verkaeufer_owner"]:
-            verkaeufer["vorraete"]["gold"] = verkaeufer["vorraete"].get("gold", 0) + m["sperrgold"]
+            # V-5 (03.11.2026): der Handels erloes haengt am Volk des VERKAEUFERS (Trolle -5 %).
+            # Der Abzug ist die Handelsspanne des Volkes - das Gold verschwindet, es wird nicht
+            # einem anderen Ort gutgeschrieben.
+            erloes = float(m["sperrgold"])
+            _spanne = _volk_prozent(verkaeufer, "handel")
+            if _spanne:
+                erloes = round(erloes * max(0.0, 1.0 + _spanne / 100.0), 2)
+            verkaeufer["vorraete"]["gold"] = verkaeufer["vorraete"].get("gold", 0) + erloes
             verkaeufer["importiert"]["gold"] = (verkaeufer["importiert"].get("gold", 0)
                                                + m["sperrgold_import"])
+            m["erloes"] = erloes
             m["sperrgold"], m["sperrgold_import"] = 0.0, 0.0
             m["angenommen"] = True
 

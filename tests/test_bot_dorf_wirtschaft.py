@@ -139,7 +139,9 @@ check("2 ohne Anlagen gibt es keinen Ertrag", M.bot_dorf_ertrag(None, leer) == {
 abschnitt("3. Ernte: Grenzfaelle 0 s, 1 h, 2 h, rueckwaerts, Deckel, Schalter")
 # ==========================================================================
 b1 = M.BotPlayer("Brynhild", "menschlich", 0.5, 0.6, settlements=["A", "B"])
-rate = M.bot_dorf_ertrag()
+# V-5 (03.11.2026): der Ertrag haengt jetzt am VOLK des Bots (menschlich: Holz +5 %, Stein -5 %).
+# Die Wache bleibt dieselbe - sie fragt nur mit demselben Bot wie die Ernte (12,6 / 11,4 je Dorf).
+rate = M.bot_dorf_ertrag(None, None, b1)
 doerfer = len(M.bot_doerfer_sicherstellen(b1))
 check("3 zwei Doerfer angelegt", doerfer == 2, str(doerfer))
 leer0 = M.bot_doerfer_ernten(b1, 1000.0)
@@ -254,7 +256,8 @@ berichtsdaten = gs.bot_doerfer_spionagebericht(bericht_bot)
 check("7 je Dorf ein Berichtsteil",
       len(berichtsdaten["doerfer"]) == len(bericht_bot.doerfer), str(len(berichtsdaten["doerfer"])))
 check("7 der Bericht zeigt den Ertrag aus DERSELBEN Funktion",
-      all(d.get("ertrag_pro_stunde") == M.bot_dorf_ertrag() for d in berichtsdaten["doerfer"]), "")
+      all(d.get("ertrag_pro_stunde") == M.bot_dorf_ertrag(dorf, None, bericht_bot)
+          for d, dorf in zip(berichtsdaten["doerfer"], bericht_bot.doerfer)), "")
 check("7 der Bericht fuehrt die Kasse als Summe der Doerfer",
       berichtsdaten.get("kasse") == M.bot_kasse(bericht_bot), str(berichtsdaten.get("kasse")))
 check("7 der Bericht nennt die Vorrate JE DORF",

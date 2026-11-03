@@ -428,6 +428,23 @@ def _mit_volk(werte: Dict[str, float], bot=None) -> Dict[str, float]:
             for stoff, menge in werte.items()}
 
 
+def boni_fuer_ort(ort) -> Dict[str, float]:
+    """Die Kampfwerte des Volkes EINES Ortes (V-5) - leer, wenn der Ort kein Volk traegt."""
+    return boni.kampf_werte(boni.modifikatoren(str(getattr(ort, "volk", "") or "")))
+
+
+def boni_fuer_bot(bot, jetzt: float = 0.0) -> Dict[str, float]:
+    """Die Kampfwerte eines Bots: Volk + stehende Taktik (V-5, additiv).
+
+    Der Bot geht als dict hinein, weil `bottaktik` nur dicts kennt - Name und Fraktion kommen aus
+    `BotPlayer`, der Verhaltensbonus (falls vorhanden) entscheidet ueber die Sperrzeit.
+    """
+    daten = {"name": str(getattr(bot, "name", "") or ""),
+             "fraktion": str(getattr(bot, "faction", "") or ""),
+             "verhaltensbonus": getattr(bot, "verhaltensbonus", None)}
+    return boni.kampf_werte(bottaktik.modifikatoren(daten, jetzt))
+
+
 def bot_dorf_ertrag(dorf=None, einstellungen: Optional[dict] = None,
                     bot: Optional["BotPlayer"] = None) -> Dict[str, float]:
     """Stundenertrag EINES Bot-Dorfes - die EINE Lesestelle fuer Kern UND Anzeige (F-04).
@@ -616,8 +633,13 @@ def bot_doerfer_karten_zuweisen(bot: "BotPlayer", einstellungen: Optional[dict] 
     return neu                                                            # wie viele neu sind
 
 
-def bot_karten_uebersicht(karte: str, einstellungen: Optional[dict] = None) -> dict:
-    """Was der Spieler ueber eine Karte erfahren darf - Anzeige und Kern lesen dieselben Werte."""
+def bot_karten_uebersicht(karte: str, einstellungen: Optional[dict] = None,
+                          bot: Optional["BotPlayer"] = None) -> dict:
+    """Was der Spieler ueber eine Karte erfahren darf - Anzeige und Kern lesen dieselben Werte.
+
+    V-5 (03.11.2026): ist `bot` uebergeben, traegt der gezeigte Stundensatz denselben Volksfaktor
+    wie `bot_dorf_ertrag` (`_mit_volk`) - sonst zeigte der Bericht zwei Zahlen fuer dieselbe Sache.
+    """
     einstellungen = einstellungen if einstellungen is not None else bot_wirtschaft_einstellungen()
     profil = bot_kartenprofil(karte)                                      # Kartenwert je Rohstoff
     teiler = float(einstellungen.get("karten_teiler") or 10.0)            # Umrechnung in je Stunde
@@ -626,7 +648,8 @@ def bot_karten_uebersicht(karte: str, einstellungen: Optional[dict] = None) -> d
             "kategorie": str(eintrag.get("kategorie") or ""),
             "staerkster": bot_karten_staerkster(profil),                  # der maximale Rohstoff
             "werte": dict(profil),                                        # Kartenwerte (Felder x Ertrag)
-            "ertrag_pro_stunde": {s: round(w / teiler, 2) for s, w in profil.items() if w > 0}}
+            "ertrag_pro_stunde": _mit_volk(
+                {s: round(w / teiler, 2) for s, w in profil.items() if w > 0}, bot)}
 
 
 def bot_dorf_bericht_teil(dorf, bot: "BotPlayer",
@@ -652,7 +675,7 @@ def bot_dorf_bericht_teil(dorf, bot: "BotPlayer",
             "ertrag_pro_stunde": bot_dorf_ertrag(dorf, einstellungen, bot),   # eine Lesestelle (F-04)
             # B-4: die Karte bestimmt den Ertrag - der Bericht zeigt sie mit ihren Werten.
             "karte": karte,
-            "karte_info": (bot_karten_uebersicht(karte, einstellungen)
+            "karte_info": (bot_karten_uebersicht(karte, einstellungen, bot)
                            if karte and einstellungen.get("karten_aktiv", True) else {}),
             "ernte_seit": float(dorf.ernte_seit)}                       # Zeitpunkt der letzten Ernte
 
@@ -858,6 +881,24 @@ def neue_siedlungskarte(vorhandene: List[dict]) -> dict:
         if karten_signatur(karte) not in vergeben:
             return karte
     raise RuntimeError("Keine neue Siedlungskarte gefunden")
+
+
+def _ausbau_kosten(gebaeude_key: str, stufe: int, siedlung) -> dict:
+    """Der AUSBAUPREIS eines Gebaeudes - mit dem Volksrabatt des Ortes (V-5, 03.11.2026).
+
+    Daniel: das "Ausbau +5 %" der Gnome wirkt als 5 % guenstigerer Ausbau. Der Faktor kommt aus
+    `boni.preis_faktor` (Zahlen in `data/boni.json`), das Volk steht am Ort (`Siedlung.volk`).
+    Gerundet wird auf ganze Rohstoffe; Siedler bleiben unangetastet - sie sind Menschen, keine Ware.
+    """
+    kosten = baukosten(gebaeude_key, stufe)
+    fraktion = str(getattr(siedlung, "volk", "") or "")
+    if not fraktion:
+        return kosten
+    preis_faktor = boni.preis_faktor(fraktion)
+    if abs(preis_faktor - 1.0) < 1e-9:
+        return kosten
+    return {stoff: (wert if str(stoff) == "siedler" else max(0, int(round(float(wert) * preis_faktor))))
+            for stoff, wert in kosten.items()}
 
 
 def bauen_auf_karte(siedlung: "Settlement", gebaeude_key: str, feld: int,
@@ -3170,7 +3211,7 @@ class GameState:
         name = f"Siedlung {len(self.settlements) + 1}"
         neu = Settlement(name=name, map_id=self.current_map, x=x, y=y, karte=karte,
                          id=siedlung_kennung("spieler", self.current_map, x, y),
-                         volk=str(getattr(self.state, "spieler_fraktion", "") or ""))
+                         volk=str(getattr(self, "spieler_fraktion", "") or ""))
         neu.vorraete = {r: float(v) for r, v in absicht["paket"].items()}
         neu.bevoelkerung = float(siedler)
         self.settlements.append(neu)
@@ -3292,9 +3333,14 @@ class GameState:
         if quelle is not None:
             von = str(quelle.name or von)
 
+        # V-5 (03.11.2026): das Volk des Ortes macht die Truppe schneller (elfisch +5 %). Der
+        # Faktor gilt fuer die ZEIT (1/1,05) - dieselbe Groesse, die die Anzeige nennt.
+        _volk_reise = str(getattr(quelle, "volk", "")
+                          or getattr(self, "spieler_fraktion", "") or "")
         ok, meldung = auftraege.starten(self.auftraege, art, bestand, von, ziel,
                                         float(entfernung), float(self.spielsekunden), fracht,
-                                        forschung=self.forschungs_stufen())
+                                        forschung=self.forschungs_stufen(),
+                                        reise_faktor=boni.reisezeitfaktor(_volk_reise))
         if not ok:
             return False, meldung
         # Der Auftrag traegt seine Quelle als KENNUNG - durch ALLE Phasen (F-09). Ohne diese
@@ -3550,7 +3596,15 @@ class GameState:
             vorraete=dict(ziel.get("vorraete") or {}), rng=random.Random(),
             forschung_angreifer={k: int(v.level) for k, v in self.research.items()},
             forschung_verteidiger=({k: int(v.level) for k, v in self.research.items()}
-                                   if siedlung_ziel is not None else None))
+                                   if siedlung_ziel is not None else None),
+            # V-5 (03.11.2026): Volksboni beider Seiten. Der Spieler traegt sein Volk, der
+            # verteidigende Bot Volk + Taktik (bottaktik.modifikatoren, additiv).
+            boni_angreifer=boni.kampf_werte(boni.modifikatoren(
+                str(getattr(self, "spieler_fraktion", "") or ""))),
+            boni_verteidiger=(boni_fuer_bot(bot_ziel, float(self.spielsekunden))
+                              if bot_ziel is not None
+                              else (boni_fuer_ort(siedlung_ziel) if siedlung_ziel is not None
+                                    else None)))
 
         # Ortsbezogener Mauerschaden nach der wirklichen Belagerung, persistent.
         if siedlung_ziel is not None and self._lokale_kasse_aktiv():
@@ -3844,7 +3898,10 @@ class GameState:
                                 bot_kaempfer, dict(zielort.einheiten), ws, wz,
                                 angreifer_karren=bot_geraet or None,
                                 vorraete=dict(zielort.vorraete), rng=rng,
-                                forschung_verteidiger={k: int(v.level) for k, v in self.research.items()})
+                                forschung_verteidiger={k: int(v.level) for k, v in self.research.items()},
+                                # V-5: Angreifer = Bot (Volk + Taktik), Verteidiger = Spielerort (Volk).
+                                boni_angreifer=boni_fuer_bot(bot, float(self.spielsekunden)),
+                                boni_verteidiger=boni_fuer_ort(zielort))
                             if self._lokale_kasse_aktiv():
                                 zielort.mauer_zustand = float(kampf_result.get("mauer_zustand", wz))
                             for name, menge in (kampf_result.get("verluste_angreifer") or {}).items():
@@ -6655,7 +6712,7 @@ class NebelseetalApp:
         if stufe >= grenze:
             self._log(f"{name} ist bereits auf der höchsten Stufe ({grenze}).")
             return
-        kosten = baukosten(gebaut, stufe + 1)
+        kosten = _ausbau_kosten(gebaut, stufe + 1, siedlung)
         # Dieselbe Deckungsfrage wie beim Bauen: Ortslager zuerst, dann der Reichsbestand.
         fehlt = self.state.ortsdeckung(siedlung, kosten)
         if fehlt:
@@ -7059,7 +7116,7 @@ class NebelseetalApp:
                                           f"{gebaeude_wirkung.stufen_name(gebaut, grenze)}.",
                          fg=self.skin["text"], bg=self.skin["panel"]).pack(side=tk.LEFT)
             else:
-                kosten = baukosten(gebaut, stufe + 1)
+                kosten = _ausbau_kosten(gebaut, stufe + 1, siedlung)
                 tk.Button(knopfreihe, text=f"Ausbauen auf Stufe {stufe + 1} ({kosten_text(kosten)})",
                           command=self._karten_ausbauen, bg=self.skin["button"],
                           fg=self.skin["gold"], activebackground="#5D4037").pack(side=tk.LEFT)
@@ -8970,7 +9027,11 @@ class NebelseetalApp:
         # Rueckweg. Jetzt gilt `auftraege.reisezeit_sekunden` (Faktor 2, GS der langsamsten
         # Einheit); `state.movements` fuehrt Spielsekunden, deshalb keine Umrechnung noetig.
         _gs = auftraege.tempo_der_gruppe(moving)
-        dauer_sekunden = auftraege.reisezeit_sekunden(abstand, _gs) if _gs > 0 else 0.0
+        # V-5: das Volk des Spielers reist schneller (elfisch +5 %) - Zeitfaktor, nicht Geschwindigkeit.
+        _reise_faktor = boni.reisezeitfaktor(
+            str(getattr(self.state, "spieler_fraktion", "") or ""))
+        dauer_sekunden = (auftraege.reisezeit_sekunden(abstand, _gs, _reise_faktor)
+                          if _gs > 0 else 0.0)
         if dauer_sekunden <= 0:
             # Ohne bekannte Geschwindigkeit wird NICHT bewegt (vorher: erfundene 5 Minuten/Feld).
             self._welt_start = None
@@ -9198,7 +9259,11 @@ class NebelseetalApp:
             angreifer_karren=karren or None,
             vorraete=self._vorraete_des_ziels({"name": "Simulator-Gegner"}),
             rng=random.Random(),
-            forschung_angreifer={k: int(v.level) for k, v in self.state.research.items()})
+            forschung_angreifer={k: int(v.level) for k, v in self.state.research.items()},
+            # V-5: der Simulator rechnet mit dem Volk des Spielers - sonst zeigte der Trockenkurs
+            # andere Zahlen als der echte Angriff.
+            boni_angreifer=boni.kampf_werte(boni.modifikatoren(
+                str(getattr(self.state, "spieler_fraktion", "") or ""))))
         bericht = kampfbericht.bericht(ergebnis)
         kopf = f"Simulator (Trockenkurs) gegen Wallstufe {int(wall_stufe)} "
         self.state.messages.append({"text": kopf + "— " + bericht["titel"] + "\n" +

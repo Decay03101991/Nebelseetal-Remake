@@ -317,6 +317,32 @@ def bauen(zustand: dict, siedlung_index, gebaeude: str, feld: int) -> Tuple[bool
     return True, f"{warum} (Feld {feld_i})"
 
 
+def _volk_preis_faktor(siedlung) -> float:
+    """Faktor auf Gebaeudepreise aus dem Volk des Ortes (V-5, 03.11.2026) - 1,0 ohne Volk.
+
+    Das Volk steht am Ort (Feld `volk`); die Zahlen liest `boni.py` aus `data/boni.json`. Diese
+    Schicht liest die Datei nicht selbst - sie fragt die Datenschicht (wie `bottaktik`).
+    """
+    fraktion = str((siedlung or {}).get("volk") or "") if isinstance(siedlung, dict) else ""
+    if not fraktion:
+        return 1.0
+    try:
+        import boni
+    except Exception:                                  # noqa: BLE001 - ohne Modul kein Rabatt
+        return 1.0
+    return boni.preis_faktor(fraktion)
+
+
+def _kosten_mit_volk(kosten: Dict[str, int], siedlung) -> Dict[str, int]:
+    """Ausbaupreis mit dem Volksrabatt; Siedler bleiben unangetastet (Menschen, keine Ware)."""
+    preis_faktor = _volk_preis_faktor(siedlung)
+    if abs(preis_faktor - 1.0) < 1e-9:
+        return kosten
+    return {stoff: (wert if str(stoff) == "siedler"
+                    else max(0, int(round(float(wert) * preis_faktor))))
+            for stoff, wert in kosten.items()}
+
+
 def ausbauen(zustand: dict, siedlung_index, feld: int) -> Tuple[bool, str]:
     """Erhoeht die Ausbaustufe eines Gebaeudes auf einem Feld um 1.
 
@@ -347,7 +373,7 @@ def ausbauen(zustand: dict, siedlung_index, feld: int) -> Tuple[bool, str]:
     if aktuelle >= hoechste:
         return False, f"{name} hat die hoechste belegte Stufe {hoechste} erreicht."
     neue = aktuelle + 1
-    kosten = _baukosten(kennung, neue)
+    kosten = _kosten_mit_volk(_baukosten(kennung, neue), s)
     fehlt = _fehlbetrag(zustand, kosten)
     if fehlt:
         return False, f"Zu wenig fuer den Ausbau von {name}: es fehlen {_kosten_text(fehlt)}."

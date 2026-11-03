@@ -139,12 +139,22 @@ def _sieggeraete(geraete, sequenzen, rng):
     return entkommen, verloren
 
 
-def _beute(karren, vorraete):
+def _beute(karren, vorraete, faktor: float = 1.0):
+    """Wie viel Beute die mitgefuehrten Karren aus dem Vorrat tragen koennen (Ladeplaetze mal Anzahl).
 
-
-    """Wie viel Beute die mitgefuehrten Karren aus dem Vorrat tragen koennen (Ladeplaetze mal Anzahl)."""
+    V-5 (03.11.2026): `faktor` (Haug: Beute +5 %) erhoeht die NUTZBARE LADUNG - damit bleibt die
+    Deckelung durch die Karren bestehen und wird nicht umgangen. Ohne Angabe bleibt es bei 1,0.
+    """
+    try:
+        ladefaktor = max(0.0, float(faktor))
+    except (TypeError, ValueError):
+        ladefaktor = 1.0
+    if ladefaktor <= 0.0:
+        ladefaktor = 1.0
     kap = sum(E.ladung(name) * max(0, int(n)) for name, n in (karren or {}).items()
               if E.rolle(name) == "karren")
+    if ladefaktor != 1.0:
+        kap = int(round(kap * ladefaktor))                 # mehr Platz, gleiche Karren
     lager = {n: max(0.0, float(v)) for n, v in (vorraete or {}).items() if v is not None}
     gesamt = sum(lager.values())
     if kap <= 0 or gesamt <= 0:
@@ -166,14 +176,35 @@ def fuehre_schlacht(angreifer: Dict[str, int], verteidiger: Dict[str, int],
                     vorraete: Optional[Dict[str, float]] = None,
                     rng: Optional[random.Random] = None,
                     forschung_angreifer: Optional[dict] = None,
-                    forschung_verteidiger: Optional[dict] = None) -> Dict[str, Any]:
+                    forschung_verteidiger: Optional[dict] = None,
+                    boni_angreifer: Optional[dict] = None,
+                    boni_verteidiger: Optional[dict] = None) -> Dict[str, Any]:
     """Führt reproduzierbar eine Schlacht nach der späteren Originalbeschreibung aus.
 
     Nicht im Dokument geregelte Gerätelager- und Beutemechanik bleibt aus dem
     älteren Handbuch erhalten; siehe GPT-KA01 Quell-/Abweichungsregister.
+
+    V-5 (03.11.2026): `boni_angreifer`/`boni_verteidiger` sind Prozentwerte je Seite, wie sie
+    `bottaktik.modifikatoren` bzw. `boni.kampf_werte` liefern: ``{"at": 5.0, "pa": -5.0}`` bzw. mit
+    "beute". AT skaliert den NAHKAMPF-Wurf, PA die Ruestung, "beute" die nutzbare Karrenladung.
+    Ohne Angabe rechnet die Schlacht exakt wie bisher (Faktor 1,0) - der Zufall bleibt unberuehrt,
+    weil weiter dieselben `randint`-Grenzen gezogen werden.
     """
     if rng is None:
         rng = random.Random()
+
+    def _prozent(quelle, schluessel: str) -> float:
+        """Ein Prozentwert aus einem Boni-Dict - 0,0 bei fehlendem oder kaputtem Wert."""
+        if not isinstance(quelle, dict):
+            return 0.0
+        try:
+            return float(quelle.get(schluessel) or 0.0)
+        except (TypeError, ValueError):
+            return 0.0
+
+    at_a, pa_a = 1.0 + _prozent(boni_angreifer, "at") / 100.0, 1.0 + _prozent(boni_angreifer, "pa") / 100.0
+    at_v, pa_v = 1.0 + _prozent(boni_verteidiger, "at") / 100.0, 1.0 + _prozent(boni_verteidiger, "pa") / 100.0
+    beute_faktor = 1.0 + _prozent(boni_angreifer, "beute") / 100.0
     stufe = max(0, min(10, int(wall_stufe)))
     zustand = max(0.0, min(100.0, float(wall_zustand)))
     A, V = _einheiten(angreifer, "Angreifer"), _einheiten(verteidiger, "Verteidiger")
@@ -295,11 +326,11 @@ def fuehre_schlacht(angreifer: Dict[str, int], verteidiger: Dict[str, int],
             ziel = rng.choice(ziele)
             a_wurf = rng.randint(kaempfer["lo"], kaempfer["hi"])
             v_wurf = rng.randint(ziel["lo"], ziel["hi"])
-            a_kampf = (a_wurf * (1 + 0.10 * _forschungsstufe(a_wissen, "Schmiedekunst"))
-                       - ziel["ruestung"] * (1 + 0.10 * _forschungsstufe(v_wissen, "Schmiedekunst"))
+            a_kampf = (a_wurf * at_a * (1 + 0.10 * _forschungsstufe(a_wissen, "Schmiedekunst"))
+                       - ziel["ruestung"] * pa_v * (1 + 0.10 * _forschungsstufe(v_wissen, "Schmiedekunst"))
                        - kaempfer["erschoepfung"])
-            v_kampf = (v_wurf * (1 + 0.10 * _forschungsstufe(v_wissen, "Schmiedekunst"))
-                       - kaempfer["ruestung"] * (1 + 0.10 * _forschungsstufe(a_wissen, "Schmiedekunst"))
+            v_kampf = (v_wurf * at_v * (1 + 0.10 * _forschungsstufe(v_wissen, "Schmiedekunst"))
+                       - kaempfer["ruestung"] * pa_a * (1 + 0.10 * _forschungsstufe(a_wissen, "Schmiedekunst"))
                        - ziel["erschoepfung"])
             protokoll.append(f"{kaempfer['name']} {a_kampf:.2f} gegen {ziel['name']} {v_kampf:.2f}")
             loser = [ziel] if a_kampf > v_kampf else ([kaempfer] if a_kampf < v_kampf
@@ -335,7 +366,7 @@ def fuehre_schlacht(angreifer: Dict[str, int], verteidiger: Dict[str, int],
             logs.append(f"{u['name']} überrannt: {'gefallen' if u['tot'] else 'entkommen'}")
 
     if ausgang == "angreifer":
-        result["beute"] = _beute(geraet, vorraete)
+        result["beute"] = _beute(geraet, vorraete, beute_faktor)
         ent, verl = _sieggeraete(verteidiger_karren, nahkampf_sequenzen, rng)
         if verteidiger_karren:
             result["geraete_erhalten_verteidiger"] = ent

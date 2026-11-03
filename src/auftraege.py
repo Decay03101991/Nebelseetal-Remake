@@ -152,13 +152,17 @@ def _schlagkraft_belagerung(bestand: Dict[str, int]) -> float:
 
 # ------------------------------------------------------------------------- Reisemodell
 
-def reisezeit_sekunden(entfernung: Any, geschwindigkeit: Any) -> float:
+def reisezeit_sekunden(entfernung: Any, geschwindigkeit: Any, faktor: Any = 1.0) -> float:
     """Dauer EINER Strecke in Sekunden (Handbuch S. 19: die Dauer gilt fuer eine Strecke).
 
     Formel (VORSCHLAG, siehe offene_luecken['reisezeit_formel']):
         Sekunden = Entfernung / Geschwindigkeit * SEKUNDEN_JE_FELD
     Eine ungueltige (nicht positive) Geschwindigkeit liefert unendlich - der Auftrag
     kann so nicht starten; `starten` weist das vorher ab.
+
+    V-5 (03.11.2026): `faktor` ist der Zeitfaktor aus dem Volk/Taktikboni
+    (`boni.reisezeitfaktor`: +5 % schneller = 1/1,05). Ohne Angabe bleibt es bei 1,0 - dann rechnet
+    die Funktion genau wie vorher.
     """
     e = max(0.0, _als_zahl(entfernung))
     if e <= 0.0:
@@ -166,7 +170,10 @@ def reisezeit_sekunden(entfernung: Any, geschwindigkeit: Any) -> float:
     g = _als_zahl(geschwindigkeit)
     if g <= 0.0:
         return float("inf")
-    return e / g * SEKUNDEN_JE_FELD
+    zeitfaktor = _als_zahl(faktor)
+    if zeitfaktor <= 0.0:                                   # kaputter Faktor
+        zeitfaktor = 1.0                                   # dann keine Wirkung (kein Erfinden)
+    return e / g * SEKUNDEN_JE_FELD * zeitfaktor
 
 
 def _reise_zeiten(start: Any, reisezeit: Any,
@@ -319,7 +326,8 @@ def kosten_der_mission(einheiten: Any, entfernung: Any, geschwindigkeit: Any,
 def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
             von: Any, nach: Any, entfernung: Any, jetzt: Any,
             fracht: Any = None, drosselung_prozent: Any = 0,
-            dimensionen_unterschied: Any = 0, forschung: Any = None) -> Tuple[bool, str]:
+            dimensionen_unterschied: Any = 0, forschung: Any = None,
+            reise_faktor: Any = 1.0) -> Tuple[bool, str]:
     """Startet einen Auftrag und haengt ihn an `liste`. Liefert (ok, Meldung).
 
     `nach` ist der Zielname ODER ein Verzeichnis mit Zusatzangaben:
@@ -440,7 +448,7 @@ def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
     if not ok_fracht:
         return False, meld_fracht
 
-    reisezeit = reisezeit_sekunden(entf, gs)
+    reisezeit = reisezeit_sekunden(entf, gs, reise_faktor)
     start = _als_zahl(jetzt)
     ankunft, abreise, rueckkehr = _reise_zeiten(start, reisezeit, AKTION_DAUER_SEKUNDEN)
 

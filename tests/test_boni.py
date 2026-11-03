@@ -230,4 +230,123 @@ check("Reisezeit 100 min mit +10 % == 90,91 min (nicht 90,00)",
 check("Reisezeit 100 min mit +5 % == 95,24 min",
       round(100.0 * B.reisezeitfaktor("elfisch", "", True), 2) == 95.24)
 
+# ==========================================================================
+# 7. Reise: der Bonus verkuerzt die ZEIT (Spieler und Bot)
+# ==========================================================================
+abschnitt("7. Reisegeschwindigkeit")
+import auftraege as A  # noqa: E402
+check("ohne Faktor bleibt die Reisezeit wie bisher (100/10 = 72000 s)",
+      A.reisezeit_sekunden(100, 10) == 72000.0)
+check("Faktor 1/1,10 macht 72000 s zu 65454,55 s",
+      round(A.reisezeit_sekunden(100, 10, 1 / 1.10), 2) == 65454.55,
+      str(A.reisezeit_sekunden(100, 10, 1 / 1.10)))
+check("kaputter Faktor (0) aendert nichts",
+      A.reisezeit_sekunden(100, 10, 0) == A.reisezeit_sekunden(100, 10))
+check("negative Entfernung bleibt 0, auch mit Faktor", A.reisezeit_sekunden(-5, 10, 0.5) == 0.0)
+_silra_bot = {"name": "Silra", "fraktion": "elfisch"}
+_silra_zeit = BT._marsch_reisezeit(5, _silra_bot, 0.0)
+_haug_zeit = BT._marsch_reisezeit(5, {"name": "Haug", "fraktion": "menschlich"}, 0.0)
+check("Silra marschiert schneller als Haug (Volk + Taktik, additiv 10 %)",
+      _silra_zeit < _haug_zeit,
+      f"Silra {_silra_zeit:.1f} s / Haug {_haug_zeit:.1f} s")
+check("Silra ist genau 1/1,10 so lange unterwegs",
+      abs(_silra_zeit - _haug_zeit / 1.10) < 1e-6,
+      f"{_silra_zeit:.4f} gegen {_haug_zeit / 1.10:.4f}")
+
+# ==========================================================================
+# 8. Kampf: AT, PA und Beute
+# ==========================================================================
+abschnitt("8. Kampf (AT/PA/Beute)")
+import random  # noqa: E402
+import kampf as K  # noqa: E402
+
+
+_FUSS = [n for n in sorted(K.PROFILE) if K.PROFILE[n][4] is None]   # Nahkaempfer
+_ANG = _FUSS[-1]                                                     # z. B. Kaempfer
+# Ein Verteidiger MIT Ruestung, sonst kann PA gar nichts bewirken (Ruestung 0 mal Faktor = 0).
+_VER = next(n for n in _FUSS if K.PROFILE[n][3] > 0)
+
+
+def _schlacht(angreifer=None, verteidiger=None, **kw):
+    return K.fuehre_schlacht(angreifer or {_ANG: 5}, verteidiger or {_VER: 5},
+                             rng=random.Random(7), **kw)
+
+
+_ohne = _schlacht()
+_leer = _schlacht(boni_angreifer={"at": 0.0, "pa": 0.0}, boni_verteidiger={"at": 0.0, "pa": 0.0})
+check("ohne Boni rechnet die Schlacht wie bisher (Bericht gleich)",
+      _ohne.get("bericht") == _leer.get("bericht"))
+_mit_at = _schlacht(boni_angreifer={"at": 10.0})
+check("AT +10 % veraendert den Kampf (Bericht anders, gleicher Zufall)",
+      _mit_at.get("bericht") != _ohne.get("bericht"))
+check("AT +10 % wirkt nur, wenn es einen Bonus gibt (Gegenprobe: kein Bonus, kein Unterschied)",
+      _mit_at.get("bericht") != _leer.get("bericht"))
+_mit_pa = _schlacht(boni_verteidiger={"pa": 5.0})
+check("PA +5 % beim Verteidiger veraendert den Kampf", _mit_pa.get("bericht") != _ohne.get("bericht"))
+_beute_ohne = K._beute({"Handkarren": 2}, {"holz": 1000})
+_beute_mit = K._beute({"Handkarren": 2}, {"holz": 1000}, 1.05)
+check("Beute +5 % gibt mehr Platz (80 -> 84), die Karren bleiben dieselben",
+      sum(_beute_ohne.values()) == 80 and sum(_beute_mit.values()) == 84,
+      f"{sum(_beute_ohne.values())} / {sum(_beute_mit.values())}")
+check("Beute ohne Faktor unveraendert (Grenzfall 1,0)",
+      sum(K._beute({"Handkarren": 1}, {"holz": 1000}, 1.0).values()) == 40)
+check("Beute-Faktor 0 ist unschaedlich (kein Absturz, alter Wert)",
+      sum(K._beute({"Handkarren": 1}, {"holz": 1000}, 0).values()) == 40)
+check("Beute kann die Karrenladung nicht ueberschreiten (Deckel bleibt)",
+      sum(K._beute({"Handkarren": 1}, {"holz": 1000}, 1.05).values()) == 42)
+_leer_beute = K._beute({"Handkarren": 1}, {})
+check("ohne Vorraete gibt es keine Beute", _leer_beute == {})
+
+# ==========================================================================
+# 9. Handel: der Erloes haengt am Volk des Verkaeufers
+# ==========================================================================
+abschnitt("9. Handelserloes (Trolle -5 %)")
+import spieloekonomie as SO  # noqa: E402
+
+
+def _vertrag(volk: str):
+    return ({"kaeufer": "K", "verkaeufer": "V", "kaeufer_owner": "spieler",
+             "verkaeufer_owner": "spieler", "ankunft": 10.0, "rueckkehr": 20.0,
+             "angenommen": False, "abgerechnet": False, "entscheidung": True,
+             "sperrgold": 100.0, "sperrgold_import": 0.0, "kanal": "vorraete",
+             "ware": "holz", "menge": 10, "einheiten": {}, "verkauft_import": {}},
+            {"K": {"besitzer": "spieler", "vorraete": {}, "importiert": {}},
+             "V": {"besitzer": "spieler", "vorraete": {}, "importiert": {}, "volk": volk}})
+
+
+_ohne_volk, _o1 = _vertrag("")
+_mit_volk, _o2 = _vertrag("Trolle")
+_o1n, _m1 = SO.handel_abschluss(_ohne_volk, _o1, 10.0)
+_o2n, _m2 = SO.handel_abschluss(_mit_volk, _o2, 10.0)
+check("ohne Volk kommen 100 Gold an", abs(_o1n["V"]["vorraete"].get("gold", 0) - 100.0) < 1e-9,
+      str(_o1n["V"]["vorraete"]))
+check("Trolle bekommen 95 Gold (-5 %)",
+      abs(_o2n["V"]["vorraete"].get("gold", 0) - 95.0) < 1e-9, str(_o2n["V"]["vorraete"]))
+check("der Erloes steht auch am Vertrag (eine Zahl fuer Kern und Bericht)",
+      abs(float(_m2.get("erloes", 0)) - 95.0) < 1e-9, str(_m2.get("erloes")))
+check("der Kaufpreis bleibt unveraendert gesperrt/abgerechnet",
+      _m2.get("angenommen") is True and float(_m2.get("sperrgold", -1)) == 0.0)
+
+# ==========================================================================
+# 10. Baukosten: Gnome bauen 5 % guenstiger (nur der Spieler, Bots bauen nicht)
+# ==========================================================================
+abschnitt("10. Ausbaupreis der Gnome")
+_G = M.Settlement(name="Gnomendorf", map_id="kontinent")
+_G.volk = "Gnome"
+_M = M.Settlement(name="Menschendorf", map_id="kontinent")
+_M.volk = "menschlich"
+_gnom = M._ausbau_kosten("bibliothek", 2, _G)
+_mensch = M._ausbau_kosten("bibliothek", 2, _M)
+check("ohne Volk kostet der Ausbau wie bisher (24 Holz / 16 Stein)",
+      M._ausbau_kosten("bibliothek", 2, M.Settlement(name="X", map_id="kontinent"))
+      == {"holz": 24, "stein": 16})
+check("Gnome zahlen 23 Holz / 15 Stein statt 24 / 16",
+      _gnom == {"holz": 23, "stein": 15}, str(_gnom))
+check("andere Voelker zahlen den vollen Preis", _mensch == {"holz": 24, "stein": 16}, str(_mensch))
+_klein_base = M.baukosten("bibliothek", 1)
+_klein = M._ausbau_kosten("bibliothek", 1, _G)
+check("Grenzfall kleine Preise: Stufe 1 wird ebenfalls 5 % guenstiger",
+      _klein == {s: max(0, int(round(v * 0.95))) for s, v in _klein_base.items()},
+      f"{_klein} aus {_klein_base}")
+
 bericht()

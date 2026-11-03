@@ -431,11 +431,18 @@ def _armee_staerke(bot: dict) -> int:
     return sum(max(0, _ganzzahl(k, 0)) for k in armee.values()) if isinstance(armee, dict) else 0
 
 
-def _marsch_reisezeit(abstand: int, bot: dict) -> float:
-    """Reisezeit EINER Strecke mit derselben Formel wie der Spieler (D.5)."""
+def _marsch_reisezeit(abstand: int, bot: dict, jetzt: float = 0.0) -> float:
+    """Reisezeit EINER Strecke mit derselben Formel wie der Spieler (D.5).
+
+    V-5 (03.11.2026): der Reisebonus des Bots (Volk + Taktik, additiv) verkuerzt die ZEIT. Ohne
+    `jetzt` gilt der Taktikbonus als stehend (der Bot hat seine Taktik ja).
+    """
     import auftraege as A
     tempo = _ganzzahl(bot.get("marsch_geschwindigkeit", 0), 0)
-    return A.reisezeit_sekunden(abstand, tempo if tempo > 0 else MARSCH_GESCHWINDIGKEIT)
+    prozent = modifikatoren(bot, jetzt).get("reise", 0.0)
+    zeitfaktor = 1.0 / (1.0 + prozent / 100.0) if prozent > -100 else 1.0
+    return A.reisezeit_sekunden(abstand, tempo if tempo > 0 else MARSCH_GESCHWINDIGKEIT,
+                                zeitfaktor)
 
 
 # ------------------------------------------------------------------ Entscheidung
@@ -520,7 +527,7 @@ def tick(bot: dict, welt: dict, jetzt: float,
         if taktik["naehe"]:
             if (abstand <= taktik["abstand_grenze"]
                     and aggr >= taktik["angriff_schwelle"]):
-                reisezeit = _marsch_reisezeit(abstand, bot)
+                reisezeit = _marsch_reisezeit(abstand, bot, jetzt)
                 return _entscheidung(SUCHEN, taktik, "marschieren", spieler_name,
                                      "Staubwolke Richtung Ziel", "Schwelle erreicht, Marsch",
                                      MARSCHIEREN, abstand=abstand, reisezeit=reisezeit,
