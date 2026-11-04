@@ -1,45 +1,52 @@
-# STAND 04.11.2026, 21:05 - W-12 gebaut: sechs Welten statt 20 Limbus-Dimensionen
+# STAND 04.11.2026, 22:00 - W-12 gebaut (sechs Welten), alle sechs Welten bespielbar, fuenf Antworten eingearbeitet
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
 
-**Das Spiel fuehrt jetzt sechs Welten.** Daniels Korrektur aus der Uebergabe 19:40 ist umgesetzt:
-die 14 leeren Platzhalter-Dimensionen (d07 bis d20) sind aus `data/welten.json` entfernt, die sechs
-belegten Weltkarten (d01 Armageddon, d02 Ragnaroek, d03 Utgard, d04 Midgard, d05 Valhalla, d06 Limbus)
-tragen weiter ihre alten Kennungen - **alte Spielstaende laden unveraendert.** Alle Textstellen, die
-20 Dimensionen behaupteten, nennen jetzt sechs Weltkarten; der Original-Stand bleibt als belegter Satz
-im Code stehen, damit die Quellenlage nicht verschwindet. **Die offene Entscheidung 1 des Uebergabe-
-Stapels brauchte keine Frage:** Register 98 (Daniel 01.11.2026, 18:24) legt fest, dass "Limbus"
-Weltname bleibt und die magische Ebene "der magische Limbus" heisst - der Raum enthaelt die sechs
-Welten. **Nummernwiderspruch geradegezogen:** die Uebergabe nannte den Schnitt W-6; W-6 ist seit dem
-03.11. der Nur-Lese-Blick in fremde Welten (Register 166). Der Schnitt heisst ab jetzt **W-12**.
+**Das Spiel fuehrt sechs Welten, und alle sechs sind bespielbar.** Die 14 leeren
+Platzhalter-Dimensionen (d07 bis d20) sind entfernt; die sechs belegten Weltkarten (d01 Armageddon,
+d02 Ragnaroek, d03 Utgard, d04 Midgard, d05 Valhalla, d06 Limbus) tragen ihre alten Kennungen, **alte
+Spielstaende laden unveraendert**. Alle Textstellen, die 20 Dimensionen behaupteten, nennen jetzt sechs
+Weltkarten - der Original-Stand bleibt als belegter Satz im Code, damit die Quellenlage nicht
+verschwindet. **Die Frage "Limbus: Raum oder Welt?" brauchte keine Runde:** Register 98
+(Daniel 01.11.2026) legt fest, dass "Limbus" Weltname bleibt und die Ebene "der magische Limbus"
+heisst. **Nummernwiderspruch geradegezogen:** die Uebergabe nannte den Schnitt W-6; W-6 ist seit dem
+03.11. der Nur-Lese-Blick in fremde Welten (Register 166). Der Schnitt heisst **W-12**.
+
+**Daniel hat die fuenf offenen Fragen beantwortet** (Register 197, Wortlaut dort): Sieg ist ab jetzt
+definiert (jeder Bot und alle seine Doerfer mindestens einmal laut Kampfbericht ausgeraeumt, danach
+Endlosspiel und eine fraktionsangepasste Glueckwunsch-Nachricht); Drachen kommen zurueck, aber genau
+einer je Karte in drei Welten, als Drachenfigur statt Burg, mit grosser Beute; Hausnamen und
+Hausfarben werden uebernommen; **alle sechs Welten sind bespielbar** (sofort gebaut); die
+Skill-Freigabe gilt nur fuer die Story-Schicht.
 
 | Gegenstand | Wert | Beleg |
 |---|---|---|
-| Kopf auf `main` | `5c58170` | `git log --oneline -1` |
+| Kopf auf `main` | Code-Stand `237c8ae`, darauf der Doku-Commit dieser Sitzung | `git log --oneline` |
 | Limbus-Dimensionen | **6** (d01-d06), vorher 20 | `data/welten.json`, `portalraum.dim_zahl()` |
-| Register / Protokoll | **196** / **319 Zeilen** (Ziel 320) | `grep -c`, `wc -l` |
-| Voller Sammellauf | **162 von 164 gruen, 0 rot, 1627 s**, 6.637 Pruefungen, 55 Befunde | `docs/audits/sammellauf_20261104_2032.log` |
+| Bespielbare Welten | **6 von 6** (vorher 2) | `data/welten.json` → `weltkarten_spielbar` |
+| Register / Protokoll | **197** / **320 Zeilen** (Ziel 320 - erreicht) | `grep -c`, `wc -l` |
+| Voller Sammellauf | **161 von 164 gruen, 0 rot, 1789 s**, 6.589 Pruefungen, 55 Befunde | `docs/audits/sammellauf_20261104_2123.log` |
+| Einzeln nachgeholt | `test_produktionskette_ohne_cheats` **48/0/0 in 272 s** (im Lauf: Zeitlimit 420 s, kein Befund) | eigener Lauf |
 | Umgestellte Pruefdateien | `test_welt` 43/0/0, `test_portalraum` 70/0/0, `test_portal_uebersicht` 61/0/0, `test_weltkarten_anzeige` 27/0/0, `test_weltbild_gelaende` 94/0/0 | Sammellauf |
 | Unveraendert | 400 Felder je Weltkarte (20x20 Raster), 5.000 Mana/24 h Weltensprung, sechs Fraktionen mit Heimatwelten | `data/welten.json`, Register 164 |
 
 ## Der EINE naechste Schritt
 
-**Die drei offenen Kampfregeln bauen: 2 Fluchtformel, 4 Beute-Reihenfolge (Gold zuerst), 6
-Mauerreparatur mit Bauzeit.** So hat Daniel die Reihenfolge entschieden (Uebergabe 19:40, Entscheidung
-6: erst die Welten, dann die Kampfregeln). Betroffen sind `src/kampf.py` (Fluchtformel), die
-Beute-Staffel in `src/kampfbericht.py` und die Mauer in `src/main.py` samt den zugehoerigen Wachen;
-die belegten Werte stehen in `docs/original/ORIGINAL_Kampf_und_Punkte.md` (Flucht unter 50 Prozent
-Nahkaempfer, Wurf 1-100 gegen 40 + 5 x Sequenz). **Arbeitsweise: der volle Sammellauf, die
-Registerzeile und die Protokollzeile gehoeren zum Abschluss** - das Protokoll steht bei 319 von 320
-Zeilen, die naechste Zeile verlangt vorher eine Verdichtung (Verfahren im Skill: Vor-Fassung sichern
-und committen, dann verdichten, dann pruefen).
+**W-13: die Sieg-Auswertung bauen - der Gesamtsieg nach Daniels Definition.** Sieg heisst: **jeder Bot
+und ALLE seine Doerfer wurden mindestens einmal laut Kampfbericht ausgeraeumt** (Register 197). Zu
+bauen sind (a) eine Buchung je ausgeraeumtem Dorf im Kampfbericht-Weg (`src/kampfbericht.py`,
+`src/auftraege.py`), (b) die Auswertung "sind alle Doerfer aller fuenf Bots erledigt" in `src/punkte.py`
+neben E5, (c) die Glueckwunsch-Nachricht mit Fraktionsbezug, (d) **Endlosspiel danach**: der Sieg sperrt
+nichts und beendet nichts. Der Storytext der Siegesnachricht ist ein EIGENER Teil (Modelllauf, Daniel
+entscheidet vorher). **Arbeitsweise: der volle Sammellauf, die Registerzeile und die Protokollzeile
+gehoeren zum Abschluss** - **das Protokoll steht bei 320 von 320 Zeilen und muss VORHER verdichtet
+werden** (Verfahren im Skill: Vor-Fassung sichern und committen, dann verdichten, dann pruefen).
 
-**Offen bei Daniel (aus der Uebergabe, noch nicht beantwortet):** Sieg oder E5 (Vorschlag: E5 behalten,
-Siegtext zur Auszeichnung umbauen), Drachen zurueckholen (Vorschlag: ja), Hausnamen und Hausfarben
-uebernehmen. **Nicht angefasst, weil Daniels Entscheidung:** `weltkarten_spielbar` fuehrt weiter nur
-Midgard und Valhalla, waehrend der Spieler seit W-9 in der Welt seines Volkes startet - ein Spieler in
-Utgard sieht die vier anderen Welten als "noch nicht bespielbar". Das ist eine offene Frage, kein
-Fehler des Schnitts.
+**Danach in dieser Reihenfolge (von Daniel so entschieden):** die drei offenen Kampfregeln (2
+Fluchtformel, 4 Beute-Reihenfolge Gold zuerst, 6 Mauerreparatur mit Bauzeit), dann **W-14 Drachen**
+(eine Figur je Karte in drei Welten, Beute als VORSCHLAG 5.000 Gold, je 2.000 Holz/Stein/Nahrung und
+eine Drachenschuppe, Zahlen in einer Datendatei), dann **W-15 Hausnamen und Wappenbeschreibungen**,
+zuletzt der Story-Einbau aus `docs/CHRONIK_DER_WELT_20261104.md`.
 
 # STAND 04.11.2026, 19:40 - Pre-Release 0.5.0-pre.1 veroeffentlicht, naechster Schritt W-6
 
