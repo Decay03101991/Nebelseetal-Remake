@@ -24,7 +24,7 @@ Der Kreislauf: **gründen → produzieren → forschen → ausrüsten → ausbil
 - vollständige Anleitung im Spiel über den Berater
 
 Ausführlicher: [Die offizielle Erklärung](SPIEL_ERKLAERUNG.md) · [Die Chronik der Welt](CHRONIK_DER_WELT.md)
-· [Sechs Häuser, sechs Welten](FRAKTIONEN_WELTEN.md) · [Die Geschichte als PDF](CHRONIK_DER_WELT.pdf)
+· [Sechs Häuser, sechs Welten](FRAKTIONEN_WELTEN.md) · [Die Geschichte als PDF](CHRONIK_DER_WELT.pdf) · [Erste Eindrücke einer späteren Version](VORSCHAU.md)
 
 ## Diese Version herunterladen und starten
 
@@ -55,6 +55,7 @@ getestet hat.
 | `BESUCHER.md` | wie dieses Spiel entstanden ist — für Besucher, grob |
 | `FRAKTIONEN_WELTEN.md` | die sechs Häuser, ihre Wappen, die sechs Welten |
 | `CHRONIK_DER_WELT.md` / `.pdf` | die Geschichte der Welt, als Buch gestaltet |
+| `VORSCHAU.md` | erste Eindrücke einer späteren Version: Fraktionen, Gebäude, Burgen, Panoramen |
 
 Nicht im Repository: Prüfdateien, Werkzeuge und die Entwicklungsdokumentation. Sie bleiben im
 Arbeitsstand des Entwicklers — dieses Repository ist für Spieler gedacht, nicht als Werkstatt.
@@ -80,6 +81,12 @@ dessen Rechner. Seine Rolle im Projekt, offen gesagt:
 Wo der Agent irrt, steht der Irrtum im Protokoll — falsche Schnitte, fehlerhafte Messungen und
 widerlegte Annahmen eingeschlossen. Das ist Absicht: ein Agent, der seine Fehler aufschreibt, ist
 prüfbar; einer, der sie weglässt, nicht.
+
+**Sicherheit und Kontrolle stehen an erster Stelle** — im ganzen System und damit auch im
+Entwicklungssystem. Die Agenten arbeiten hierarchisch nach Regeln und Skills, und die Rechte sind
+geteilt: es gibt Rollen, die nur lesen dürfen, und Rollen, die schreiben dürfen. Was eine Rolle nicht
+darf, kann sie auch nicht versehentlich tun. Jede Änderung an einer Regel oder einem Skill wird mit
+Grund, Freigabe und Rückrollweg protokolliert.
 
 
 Welche KI wofür eingesetzt wurde, grob:

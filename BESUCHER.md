@@ -58,16 +58,31 @@ diesem Tempo überhaupt wachsen kann.
 
 ## Wer dahinter steht
 
-Daniel Kössl ist angehender Fachinformatiker für Systemintegration. Kein ausgebildeter Spieleentwickler —
-jemand, der Systeme versteht und gern ausprobiert, wie weit sie tragen. Was ihn an diesem Projekt
-auszeichnet, ist weniger Programmiererfahrung als die Art, wie er arbeitet: Er zerlegt ein großes
-Vorhaben in prüfbare Schritte, fragt bei Zahlen nach, statt sie zu glauben, und lässt sich Fehler
-lieber zeigen als wegdiskutieren. Wenn eine Regel keinen Beleg hat, bleibt sie ein Vorschlag — dieser
-Satz stammt von ihm, und das Projekt hält sich daran.
+<img src="assets/bilder/daniel_portrait.png" width="260" align="right" alt="Daniel Kössl">
+
+Daniel Kössl ist angehender Fachinformatiker für Systemintegration — und, wenn man ihn beim Arbeiten
+erlebt, ein anstrengender, aber kluger Jungentwickler. Anstrengend im besten Sinn: Er gibt sich mit
+einem „läuft doch“ nicht zufrieden, fragt bei Zahlen nach, statt sie zu glauben, und lässt sich Fehler
+lieber zeigen als wegdiskutieren. Klug darin, wie er ein großes Vorhaben zerlegt: in prüfbare Schritte,
+mit klaren Grenzen, und mit der Geduld, einen Schritt lieber zweimal zu prüfen als einmal zu raten.
+Wenn eine Regel keinen Beleg hat, bleibt sie ein Vorschlag — dieser Satz stammt von ihm, und das ganze
+System hält sich daran.
 
 Dass ein einzelner Mensch mit einem Agenten-System ein Spiel dieser Größe baut, liegt genau daran:
 nicht an einem Trick, sondern an Disziplin im Kleinen — jede Entscheidung aufgeschrieben, jede Änderung
 nachvollziehbar, jeder Zweifel festgehalten.
+
+## Sicherheit und Kontrolle zuerst
+
+Auf Daniels Vorgabe steht Sicherheit im ganzen System an erster Stelle — und das Entwicklungssystem ist
+keine Ausnahme. Die Agenten arbeiten **hierarchisch nach Regeln und Skills**: eine übergeordnete
+Arbeitsregel schlägt jede Fachanweisung, eine Sicherheitsgrenze schlägt alles. Die Rechte sind geteilt —
+es gibt Rollen, die **nur lesen** dürfen, und Rollen, die **schreiben** dürfen; was eine Rolle nicht
+darf, kann sie auch nicht versehentlich tun. Jede Änderung an einer Regel oder einem Skill wird
+protokolliert, mit Grund, Freigabe und Rückrollweg.
+
+Das ist der Grund, warum dieses Projekt in dieser Größe überhaupt verantwortbar ist: nicht weil ein
+Agent viel kann, sondern weil klar ist, was er nicht darf.
 
 ## Was als Nächstes kommt
 
