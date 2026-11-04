@@ -54,7 +54,9 @@ def _laufender_auftrag(start: float = 0.0, reisezeit: float = 100.0) -> dict:
 
 
 def _pruefungen_liste():
-    abschnitt("1. Die Weltkartenliste: sechs belegte Namen, Midgard und Valhalla bespielbar")
+    # ENTSCHEIDUNG GEAENDERT (Daniel 04.11.2026, 21:0x): alle sechs Welten sind bespielbar.
+    # Vorher galt die Regel vom 01.11.2026 "zuerst Midgard und Valhalla".
+    abschnitt("1. Die Weltkartenliste: sechs belegte Namen, alle sechs bespielbar")
     zeilen = portalraum.weltkarten([4], 0)
     check("die Liste hat genau sechs Zeilen", len(zeilen) == 6, str(len(zeilen)))
     check("die Namen stehen in der belegten Reihenfolge",
@@ -62,8 +64,8 @@ def _pruefungen_liste():
     check("jede Zeile nennt ihre Kennung passend zur Nummer",
           all(z["kennung"] == f"d{z['nummer']:02d}" for z in zeilen),
           str([(z["nummer"], z["kennung"]) for z in zeilen]))
-    check("nur Midgard und Valhalla sind bespielbar",
-          [z["name"] for z in zeilen if z["spielbar"]] == ["Midgard", "Valhalla"],
+    check("alle sechs Weltkarten sind bespielbar (Daniel 04.11.2026)",
+          [z["name"] for z in zeilen if z["spielbar"]] == list(WELTNAMEN),
           str([(z["name"], z["spielbar"]) for z in zeilen]))
     midgard = next(z for z in zeilen if z["name"] == "Midgard")
     check("die eigene Welt ist als eigene Welt gekennzeichnet",
@@ -75,13 +77,13 @@ def _pruefungen_liste():
     check("Valhalla ist eine fremde, aber erreichbare Welt",
           valhalla["status"] == "fremd" and valhalla["farbe"] == "rot" and valhalla["waehlbar"],
           str(valhalla))
+    # ENTSCHEIDUNG GEAENDERT (Daniel 04.11.2026, 21:0x): es gibt keine gesperrte Weltkarte mehr.
+    # Vorher zaehlte diese Wache vier offene Welten mit dem Grund "folgt spaeter".
     offene = [z for z in zeilen if not z["spielbar"]]
-    check("die vier uebrigen sind noch nicht bespielbar und nicht waehlbar",
-          len(offene) == 4 and all(z["status"] == "nicht bespielbar" and not z["waehlbar"]
-                                   and z["farbe"] is None for z in offene),
-          str([(z["name"], z["status"], z["waehlbar"]) for z in offene]))
-    check("ihr Grund nennt das sp\u00e4tere Dazukommen",
-          all("sp\u00e4ter" in z["grund"] for z in offene), str([z["grund"] for z in offene]))
+    check("keine Weltkarte ist mehr gesperrt", offene == [],
+          str([(z["name"], z["status"]) for z in offene]))
+    check("kein Grund nennt mehr ein spaeteres Dazukommen",
+          all("spaeter" not in z["grund"] for z in zeilen), str([z["grund"] for z in zeilen]))
     check("keine Zeile der Liste nennt das alte Wort",
           all("Dimension" not in z["name"] + z["status_text"] + z["grund"] for z in zeilen),
           "")
@@ -100,7 +102,7 @@ def _pruefungen_sperre():
           str([z["grund"] for z in gesperrt]))
     check("die Sperre faerbt die Zeile nicht um: eigene Welt bleibt gruen",
           next(z for z in zeilen if z["name"] == "Midgard")["farbe"] == "gruen", "")
-    check("ohne laufenden Auftrag sind Midgard und Valhalla wieder waehlbar",
+    check("ohne laufenden Auftrag sind alle sechs Welten wieder waehlbar",
           all(z["waehlbar"] for z in portalraum.weltkarten([4], 0) if z["spielbar"]), "")
 
     abschnitt("3. Die Sperre sitzt auch im Wechsel selbst, nicht nur in der Anzeige")
@@ -154,8 +156,9 @@ def _pruefungen_startwelt():
     check("die Nummer 4 wird als Midgard angezeigt",
           main.NebelseetalApp._dimensionsname(None, 4) == "Midgard",
           main.NebelseetalApp._dimensionsname(None, 4))
-    check("Armageddon ist bespielbar? Nein - nur Midgard und Valhalla",
-          welt.spielbar("Armageddon") is False and welt.spielbar("Valhalla") is True, "")
+    # ENTSCHEIDUNG GEAENDERT (04.11.2026): jede der sechs belegten Welten ist bespielbar.
+    check("Armageddon und Valhalla sind beide bespielbar",
+          welt.spielbar("Armageddon") is True and welt.spielbar("Valhalla") is True, "")
 
 
 def _pruefungen_ansicht():
