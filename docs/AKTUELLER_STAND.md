@@ -1,3 +1,50 @@
+# STAND 05.11.2026, 00:05 - W-13 gebaut (Gesamtsieg mit Endlosspiel), W-14 Teil 1 liegt bereit
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Der Gesamtsieg existiert jetzt im Spiel.** Daniel hat ihn am 04.11. definiert (Register 197): erreicht,
+wenn jeder Bot und ALLE seine Doerfer mindestens einmal laut Kampfbericht ausgeraeumt wurden. W-13 setzt
+das um: je ausgeraeumtem Dorf eine Buchung (`BotDorf.ausgeraeumt_seit`, gesetzt im EINEN Kampfweg
+`GameState.kampf_am_ziel`), eine Auswertung in `punkte.gesamtsieg` und EINE Glueckwunschnachricht mit
+fraktionsangepasster Geschichte aus `data/story.json` (sieben Texte, von `deepseek-v4-pro` geschrieben).
+**Der Sieg beendet nichts** - `spielende` bleibt leer, die Spieluhr laeuft weiter (Endlosspiel).
+
+**Echter Fehler dabei gefunden und behoben:** die Verluste des Verteidigers wurden bei einem Bot-Dorf NIE
+gebucht. Der Block las `bot_ziel.army` - eine BERECHNETE Summe - und buchte in eine Kopie; gemessen: drei
+Verluste im Bericht, Heer danach unveraendert sechs. Jetzt verteidigt die Garnison des angegriffenen
+Dorfes (zweiter Teil von B-5), gebucht wird dort; ohne Dorf bucht `bot_armee_buchen`.
+
+**W-14 Teil 1 liegt bereit, ist aber NICHT verdrahtet:** Daten, Modul und Pruefdatei fuer die Drachen
+(`test_drachen` 51/0/0). Die drei Drachenfiguren von Daniel sind freigestellt (weiss, blau, lila).
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf auf `main` | Code-Stand `9fc4138` (W-13), darauf W-14 Teil 1 und die Doku-Commits | `git log --oneline` |
+| Voller Sammellauf | **163 von 165 gruen, 0 rot, 1433 s**, 6.684 Pruefungen, 55 Befunde (die zwei uebrigen sind dokumentiert zurueckgezogen) | `docs/audits/sammellauf_20261104_2327.log` |
+| Neue Wachen | `test_gesamtsieg` **47/0/0**, `test_drachen` **51/0/0** | eigene Laeufe |
+| Register / Protokoll | **201** / **321 Zeilen** (eine ueber Ziel - Verdichtung offen, siehe unten) | `grep -c`, `wc -l` |
+| Kosten grosse Modelle (Monat) | **0,043 USD von 1,94 USD**; 5,00 USD bleiben fuer `deepseek-flash` reserviert | Register 199, Protokollzeile 23:00 |
+| Figuren | `assets/bilder/drache_weiss.png`, `drache_blau.png`, `drache_lila.png` (256 px + 64 px); Originale unter `archiv/eingaben/20261104_drachenbilder/` | Register 201 |
+
+## Der EINE naechste Schritt
+
+**W-14 Teil 2: die Drachen ins Spiel bringen.** Zu verdrahten sind (a) die Kartenanzeige - kleine
+Drachenfigur statt Burg, nach dem Sieg die **Ruine** (Daniel 04.11.2026: je Spielstand und Karte; das
+Ruinenbild modelliert Daniel selbst, bis dahin Platzhalter), (b) die Zielwahl im Angriffsweg, (c) der Kampf
+ueber `kampf.fuehre_schlacht` mit `drachen.verteidiger`/`drachen.wall`, (d) die Beute ueber die EINE
+Buchstelle `kampfbericht.beute_am_ziel` (Vorschlag: um `beute_override` erweitern), (e) der Zustand
+`drachen_besiegt` in `GameState.save/load`. Der Einbauplan mit Zeilenlagen liegt in
+`docs/ENTWURF_W14_TEIL2_20261105.md` - **vor dem Bau entscheidet Daniel zwei Dinge:** welche DREI Welten
+(Vorschlag d02, d03, d05) und welche Einheiten den Drachen verteidigen (Vorschlag 20 Krieger + 20
+Bogenschuetze = 40). **Arbeitsweise: der volle Sammellauf, die Registerzeile und die Protokollzeile gehoeren
+zum Abschluss.**
+
+**Offene Punkte, die nicht untergehen duerfen:** (1) Farben der Drachenfiguren - Daniel: erstmal unwichtig,
+spaeter anpassen; die Chronik nennt Episheus weiss / Tardas gruen / Salmur rot, geliefert sind weiss, blau,
+lila. (2) Das Protokoll steht mit **321 Zeilen** eine Zeile ueber Ziel; die Verdichtung ist ein eigener
+Schritt (Vorgaengerzeilen werden nicht nachts nebenbei zusammengelegt). (3) Zwei Skill-Abschnitte warten in
+der Freigabe-Liste (`18381d56`).
+
 # STAND 04.11.2026, 22:00 - W-12 gebaut (sechs Welten), alle sechs Welten bespielbar, fuenf Antworten eingearbeitet
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
