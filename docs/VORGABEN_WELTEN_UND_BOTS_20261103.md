@@ -72,6 +72,11 @@ mitgebaut.
 | W-9 | 'Wenn ich als spieler eine fraktion wähle sollte ich auch in dieser welt starten' und 'nicht zwangsweise midgard als startwelt' | **GEBAUT** (Register 164): `data/welt_fraktionen.json`, der Spieler startet in der Welt seines Volkes; kein Midgard-Zwang im Code |
 | W-10 | Die Heimatwelt eines Bots bleibt fuer immer; nur Nebendoerfer duerfen umziehen (praezisiert W-1/W-2) | **teilweise**: `herkunftswelt` steht am Dorf und bleibt stehen (Register 163); der UMZUG eines Nebendorfs ist noch nicht gebaut |
 
+> **Nummernwiderspruch aufgeloest (04.11.2026):** die Uebergabe 19:40 nennt den Schnitt
+> "sechs Welten statt 20 Limbus-Dimensionen" W-6. W-6 ist hier aber der Nur-Lese-Blick in eine
+> fremde Welt (oben, GEBAUT). Der Weltenschnitt heisst deshalb **W-12** und ist ebenfalls gebaut
+> (Register 196).
+
 ## W-11 — Story und Lore: eigenes Konzept, Fraktionen zuerst (Daniel 03.11.2026, 15:30)
 
 **Woertlich:**
