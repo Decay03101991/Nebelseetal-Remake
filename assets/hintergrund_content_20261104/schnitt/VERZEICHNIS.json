@@ -1,6 +1,6 @@
 {
  "quelle": "Pixella-Bildcontent, Daniel 04.11.2026 (einmalige Zahlung 0,98 EUR)",
- "roh": "roh/ (12 Uebersichten, unveraendert)",
+ "roh": "archiv/eingaben/20261104_pixella_bildcontent/ (12 Uebersichten, unveraendert)",
  "schnitt": [
   {
    "datei": "gebaeude_a/gebaeude_a_k11.png",
@@ -170,27 +170,27 @@
   {
    "datei": "gnome/gnome_panorama.png",
    "breite": 1070,
-   "hoehe": 283
+   "hoehe": 210
   },
   {
    "datei": "gnome/gnome_k1.png",
    "breite": 268,
-   "hoehe": 139
+   "hoehe": 210
   },
   {
    "datei": "gnome/gnome_k2.png",
    "breite": 267,
-   "hoehe": 139
+   "hoehe": 210
   },
   {
    "datei": "gnome/gnome_k3.png",
    "breite": 267,
-   "hoehe": 139
+   "hoehe": 210
   },
   {
    "datei": "gnome/gnome_k4.png",
    "breite": 268,
-   "hoehe": 139
+   "hoehe": 210
   },
   {
    "datei": "panorama_burg/panorama_burg_panorama.png",
@@ -230,72 +230,72 @@
   {
    "datei": "panorama_a/panorama_a_panorama.png",
    "breite": 1070,
-   "hoehe": 245
+   "hoehe": 175
   },
   {
    "datei": "panorama_a/panorama_a_k11.png",
    "breite": 357,
-   "hoehe": 88
+   "hoehe": 126
   },
   {
    "datei": "panorama_a/panorama_a_k12.png",
    "breite": 356,
-   "hoehe": 88
+   "hoehe": 126
   },
   {
    "datei": "panorama_a/panorama_a_k13.png",
    "breite": 357,
-   "hoehe": 88
+   "hoehe": 126
   },
   {
    "datei": "panorama_a/panorama_a_k21.png",
    "breite": 357,
-   "hoehe": 89
+   "hoehe": 119
   },
   {
    "datei": "panorama_a/panorama_a_k22.png",
    "breite": 356,
-   "hoehe": 89
+   "hoehe": 119
   },
   {
    "datei": "panorama_a/panorama_a_k23.png",
    "breite": 357,
-   "hoehe": 89
+   "hoehe": 119
   },
   {
    "datei": "panorama_c/panorama_c_panorama.png",
    "breite": 1070,
-   "hoehe": 245
+   "hoehe": 169
   },
   {
    "datei": "panorama_c/panorama_c_k11.png",
    "breite": 357,
-   "hoehe": 88
+   "hoehe": 132
   },
   {
    "datei": "panorama_c/panorama_c_k12.png",
    "breite": 356,
-   "hoehe": 88
+   "hoehe": 132
   },
   {
    "datei": "panorama_c/panorama_c_k13.png",
    "breite": 357,
-   "hoehe": 88
+   "hoehe": 132
   },
   {
    "datei": "panorama_c/panorama_c_k21.png",
    "breite": 357,
-   "hoehe": 89
+   "hoehe": 119
   },
   {
    "datei": "panorama_c/panorama_c_k22.png",
    "breite": 356,
-   "hoehe": 89
+   "hoehe": 119
   },
   {
    "datei": "panorama_c/panorama_c_k23.png",
    "breite": 357,
-   "hoehe": 89
+   "hoehe": 119
   },
   {
    "datei": "zwerge_a/zwerge_a_panorama.png",
@@ -350,27 +350,27 @@
   {
    "datei": "zwerge_c/zwerge_c_panorama.png",
    "breite": 1070,
-   "hoehe": 283
+   "hoehe": 213
   },
   {
    "datei": "zwerge_c/zwerge_c_k1.png",
    "breite": 268,
-   "hoehe": 139
+   "hoehe": 208
   },
   {
    "datei": "zwerge_c/zwerge_c_k2.png",
    "breite": 267,
-   "hoehe": 139
+   "hoehe": 208
   },
   {
    "datei": "zwerge_c/zwerge_c_k3.png",
    "breite": 267,
-   "hoehe": 139
+   "hoehe": 208
   },
   {
    "datei": "zwerge_c/zwerge_c_k4.png",
    "breite": 268,
-   "hoehe": 139
+   "hoehe": 208
   },
   {
    "datei": "menschen/menschen_panorama.png",

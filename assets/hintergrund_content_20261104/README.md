@@ -24,8 +24,12 @@ Einzelbilder nebeneinander liegen - "groesstenteils ungeschnitten", so Daniels e
    Geteilt wird deshalb nach gemessener Geometrie: 4x2, 6x2, oder Panorama plus 4 bzw. 3x2 Kacheln.
 3. Wo echte weisse Fugen existieren (drei der Panorama-Dateien), werden sie benutzt.
 
-**Ehrliche Grenze:** von 79 Schnitten sind etwa **10 bis 15 sichtbar unsauber** - meist die
-Panoramastreifen, deren Hoehe nicht aus den Daten hervorgeht, und einzelne Kacheln, in denen zwei
-Motive liegen. Die Kachelraster mit klarer Geometrie (4x2 und 6x2) sitzen sauber.
-Wer eine Kachel braucht, die nicht sitzt: die Rohfassung liegt im Archiv, der Schnitt ist in
-`nebel_schnitt3.py` (Scratch) in Minuten nachzuziehen.
+**Zweiter Durchgang (17:3x):** Die erste Fassung teilte die Panoramen nach einer Schaetzung und lag
+daneben (etwa 10 bis 15 von 79 Kacheln sichtbar falsch). Eine Messung ueber alle 12 Blaetter hat die
+echten weissen Fugen geliefert - bei den drei "Panorama und Stilbilder"-Blaettern liegen sie bei
+y=167/184/178 und y=292/311, bei den Gnomen bei 219, bei den Zwergen bei 222. Mit diesen Werten sitzen
+die Panoramen und die Kachelreihen darunter; die Sichtpruefung des Kontrollblatts meldet **keinen
+verbleibenden Fehler**.
+
+Wer eine Kachel anders braucht (anderer Ausschnitt, anderes Format): die Rohfassung liegt im Archiv,
+der Schnitt ist in `nebel_schnitt3.py` (Scratch) in Minuten nachzuziehen.
