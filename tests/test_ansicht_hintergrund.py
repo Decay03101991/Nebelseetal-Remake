@@ -413,6 +413,19 @@ check("der Sperrgrund bekommt ebenfalls eine Umbruchbreite",
       _FORSCHUNG.count("wraplength=300") == 2, str(_FORSCHUNG.count("wraplength=300")))
 
 
+def _wraplength(widget):
+    """Die Umbruchbreite eines Widgets als Zahl - 0, wenn keine gesetzt ist.
+
+    Was hinein geht: ein tkinter-Widget. Was heraus kommt: die Breite als int.
+    Warum der Umweg ueber str: `cget` gibt auf dieser Laufzeit ein `Tcl_Obj` zurueck, und
+    `int(Tcl_Obj)` wirft TypeError - die Messung soll aber die Breite pruefen, nicht die Tk-Fassung.
+    """
+    try:
+        return int(str(widget.cget("wraplength")) or 0)
+    except (TypeError, ValueError):                            # Widget ohne die Option
+        return 0
+
+
 def _zeilenprobe():
     """Die Forschungszeilen bauen und die Pack-Reihenfolge jeder Zeile messen."""
     import tkinter as tk
@@ -446,7 +459,10 @@ def _zeilenprobe():
             zeilen += 1
             if str(kinder[0].pack_info().get("side")) == "right":
                 ergebnis["erste_rechts"] += 1
-            if any(int(u.cget("wraplength") or 0) > 0 for u in kinder
+            # `cget` liefert auf dieser Laufzeit ein Tcl_Obj statt eines int - erst nach str
+            # wandeln, sonst bricht die Messung mit TypeError ab (Messfehler, kein Spielbefund;
+            # gefunden im Sammellauf 04.11.2026, 14:53, nach dem Wechsel der Python-Laufzeit).
+            if any(_wraplength(u) > 0 for u in kinder
                    if type(u).__name__ == "Label"):
                 ergebnis["umbruch"] += 1
             if any(type(u).__name__ == "Button" and str(u.cget("text")).startswith("Forschen")

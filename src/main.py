@@ -34,6 +34,7 @@ import gebaeude_wirkung
 import gebaeude_optik  # C2-Gebaeude-Optik: Menue-Icons und Menue-Hintergruende (Register 123)
 import berater
 import story  # Story 1 (04.11.2026): Intro, Chronik, Sieg- und Niederlagentext aus data/story.json
+import stimmen  # Story 2 (04.11.2026): die fuenf Bots sprechen - Texte aus data/bot_stimmen.json
 import tor
 import wirtschaft
 import boni  # V-5: Volks- und Taktikboni als Zahlen (Datenschicht src/boni.py)
@@ -5390,8 +5391,16 @@ class GameState:
                                "grund": ergebnis.get("bericht", "")}
 
         bericht = kampfbericht.bericht(ergebnis)
-        self.messages.append({"text": f"Am Ziel {eintrag.get('nach')} — " + bericht["titel"] +
-                                      "\n" + "\n".join(bericht["zeilen"]), "type": "kampf",
+        _text = (f"Am Ziel {eintrag.get('nach')} — " + bericht["titel"] +
+                 "\n" + "\n".join(bericht["zeilen"]))
+        # Story 2 (04.11.2026): wird ein BOT angegriffen, ist das sein Anlass "verteidigung" -
+        # seine Stimme steht als LETZTE Zeile im Bericht. Der Anfang "Am Ziel ..." bleibt der
+        # Anker der bestehenden Wachen, die Zahlen des Berichts bleiben unberuehrt.
+        if bot_ziel is not None:                                          # das Ziel war ein Bot-Dorf
+            _stimme = stimmen.zeile(bot_ziel.name, "verteidigung")         # was der Verteidiger sagt
+            if _stimme:                                                    # nur wenn es einen Satz gibt
+                _text = _text + "\n" + _stimme                             # hinten anhaengen
+        self.messages.append({"text": _text, "type": "kampf",
                               "spielzeit_sekunden": float(eintrag.get("ankunft") or self.spielsekunden)})
         self._log(f"Kampf am Ziel {eintrag.get('nach')}: {ergebnis.get('ausgang')}.")
         return ergebnis
@@ -5613,6 +5622,9 @@ class GameState:
                 ziel_dorf.vorraete.update(_lager_danach)                      # setzen (nie negativ)
         meldung = (f"{bot.name} gegen {ziel_bot.name} ({ziel_dorf.name}): "   # Berichtstext
                    f"{kampf_result.get('ausgang')}; tatsächliche Beute {beute}.")
+        # Story 2 (04.11.2026): der Raubzug ist der Anlass "beute" - die Stimme steht davor,
+        # der Bericht (Ziel, Ausgang, Beute) bleibt unveraendert der Anker der Wachen.
+        meldung = stimmen.mit_stimme(bot.name, "beute", meldung, rng)
         self.messages.append({"text": meldung, "type": "kampf"})              # ins Postfach
         return meldung, beute                                                 # Meldung und Beute
 
@@ -5822,6 +5834,9 @@ class GameState:
         meldung = (f"{bot.name} hat ein neues Dorf gegründet: {neu.name} in Welt {heimat} "
                    f"(Karte {karte}). Gebühr und Startpaket sind aus {quelle.name} bezahlt, "
                    f"{siedler} Siedler sind umgezogen.")
+        # Story 2 (04.11.2026): die Stimme des Gruenders steht VOR dem Bericht. Der sachliche
+        # Text bleibt woertlich stehen - er ist der Anker bestehender Wachen ("neues Dorf").
+        meldung = stimmen.mit_stimme(bot.name, "gruendung", meldung)
         self.messages.append({"text": meldung, "type": "gruendung"})        # ins Postfach
         self._log(meldung)                                                  # und ins Spiel-Log
         return neu                                                          # das neue Dorf melden
@@ -6001,6 +6016,9 @@ class GameState:
                             meldung = (f"{bot.name} gegen {zielort.name}: "
                                        f"{kampf_result.get('ausgang')}; "
                                        f"tatsächliche Beute {beute}.")
+                            # Story 2 (04.11.2026): der Angriff ist der Anlass "angriff" -
+                            # die Stimme steht davor, der Bericht bleibt unveraendert.
+                            meldung = stimmen.mit_stimme(bot.name, "angriff", meldung, rng)
                             self.messages.append({"text": meldung, "type": "kampf"})
                 zug.setdefault("wirkung", {})["beute"] = beute
                 ergebnis["angriffe"].append(meldung)

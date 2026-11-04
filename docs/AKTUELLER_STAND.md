@@ -1,3 +1,45 @@
+# STAND 04.11.2026, 15:40 - Story 2: die fuenf Bots sprechen (Register 184)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Die fuenf Nachbarn haben jetzt eine Stimme.** Der zweite Story-Teil ist gebaut: Haug, Brynhild, Grom,
+Silra und Krank sagen zu Angriff, Verteidigung, Gruendung und Beute je ein bis zwei Saetze - Ton wie
+Story 1 (abenteuerlich und leicht, kein Pathos). **Alle Texte stehen in `data/bot_stimmen.json`**, im
+Code steht kein einziger davon (als Wache geprueft). Vier Meldungen des Spiels tragen die Stimme jetzt:
+Angriff auf den Spieler, Verteidigung eines Bot-Dorfs (letzte Zeile des Kampfberichts), Dorfgruendung
+eines Bots und der Raubzug Bot gegen Bot. Fehlt ein Eintrag, kommt der neutrale Satz aus der Datei -
+nie ein Absturz, und der sachliche Bericht bleibt in jedem Fall stehen.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Neue Wache | `tests/test_stimmen.py` **115/0/0** | eigener Lauf |
+| Gegenprobe | Textnachschlag abgeschaltet: **43 Pruefungen rot** (115 auf 72), `src/stimmen.py` per SHA256 unveraendert zurueck | eigener Lauf |
+| Texte | 5 Bots x 4 Ereignisse x 2 Saetze = **40 Texte**, alle mit echten Umlauten | `data/bot_stimmen.json` |
+| Anschluesse | `stimmen.mit_stimme` an drei Stellen (angriff, beute, gruendung), `stimmen.zeile` in `kampf_am_ziel` (verteidigung) | `src/main.py` |
+| Rueckfall | unbekannter Bot, unbekanntes Ereignis, fehlende Datei = neutraler Satz bzw. leer, ohne Absturz | `tests/test_stimmen.py` Abschnitt 4 |
+| Voller Sammellauf | **162 von 164 gruen, 0 rot, 6677 Pruefungen, 1220 s** (2 dokumentiert zurueckgezogen) | `docs/audits/sammellauf_20261104_1516.log` |
+| Messapparat | zwei vorher rote Dateien waren Geraetefehler (lxml fehlte nach dem Laufzeitwechsel, `Tcl_Obj` in `cget`), beide repariert und einzeln gruen | Protokollzeile 16:1x |
+| Pruefdateien / Register / Protokoll | **164** / **185** / **300 Zeilen** | `ls tests/test_*.py`, `grep -c`, `wc -l` |
+| Modulkarte | **57 Dateien** (neu: `stimmen.py`) | `python tools/modulkarte_bauen.py` |
+| Stand-Bloecke | **76** | `grep -c '^# STAND'` |
+
+## Der EINE naechste Schritt
+
+**W-6: die 14 leeren Limbus-Dimensionen entfernen - das Spiel fuehrt sechs Welten.** `src/welt.py`
+(`DIMENSIONEN`), `src/portalraum.py`, `auftraege.kosten_der_mission` (Mana je Dimensionsstufe), die
+Portal-Ansicht und die Wachen `test_bot_welten`, `test_portalraum`, `test_portal_uebersicht` sind
+betroffen; die sechs Fraktionen stehen in `data/welt_fraktionen.json`. **Danach** die drei offenen
+Kampfregeln (2 Fluchtformel, 4 Beute-Reihenfolge Gold zuerst, 6 Mauerreparatur mit Bauzeit), dann **C**
+(fliessende Ansichten); `main.py` zerlegen und Skill kuerzen folgen nach der Story (Daniels Entscheidung).
+**Der volle Sammellauf, die Registerzeile und die Protokollzeile gehoeren zum Abschluss jedes Schnitts.**
+
+**Zweiter, grosser Auftrag in eigener Sitzung: der GitHub-Neuaufbau.** Daniel hat den letzten Upload
+zurueckgenommen und den Projektstand neu beurteilt; das Repository wird neu aufgebaut und als ERSTER
+Pre-Release veroeffentlicht (Akte: `docs/AUFTRAG_GITHUB_PRE_RELEASE_20261104.md`, Register 185). Die
+Inhaltsliste ist noch unvollstaendig - **bis dahin wird am Repo nichts geaendert.**
+
+---
+
 # STAND 04.11.2026, 11:15 - Story 1: das Spiel erzaehlt jetzt (Register 183)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
