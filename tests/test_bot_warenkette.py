@@ -28,7 +28,7 @@ import random
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from harness import abschnitt, bericht, check, import_src  # noqa: E402
+from harness import abschnitt, befund, bericht, check, import_src  # noqa: E402
 
 ROOT, SRC = import_src()
 sys.path.insert(0, os.path.join(ROOT, "tools"))
@@ -112,15 +112,43 @@ def abschnitt_3_anlagen():
         einstellungen = main.bot_wirtschaft_einstellungen()
         anzahl = einstellungen.get("anlagen_je_gebaeude")
         check("anlagen_je_gebaeude ist ein Dict je Anlage", isinstance(anzahl, dict), str(type(anzahl)))
-        if isinstance(anzahl, dict):
-            for geb, soll in sorted(anzahl.items()):
-                steht = sum(1 for g in dorf.bauten.values() if str(g) == geb)
-                check("%s steht hoechstens %d-mal" % (geb, int(soll)), steht <= int(soll),
-                      "steht %d-mal" % steht)
-            for geb in ("stellmacher", "rinderfarm", "schafszucht", "pferdezucht"):
-                steht = sum(1 for g in dorf.bauten.values() if str(g) == geb)
-                check("%s ist gebaut" % geb, steht >= min(1, int(anzahl.get(geb, 1))),
-                      "steht %d-mal" % steht)
+        # ENTSCHEIDUNG GEAENDERT (S-8 Stufe 3, 04.11.2026, Register 179): seit heute baut ein
+        # Bot-Dorf nach dem Bauplan SEINER TAKTIK (`data/bot_bauplan.json: anlagen_bauplaene`), und
+        # die Restfelder fuellen danach nach Ertrag. Die frueheren Obergrenzen aus
+        # `anlagen_je_gebaeude` (hier stand "steht hoechstens N-mal") gelten nur noch fuer den Aufruf
+        # OHNE Taktik - als Grenze fuer den Takt-Weg waeren sie falsch, weil der Restfeld-Teil genau
+        # MEHR Anlagen will. Die Zusage dieser Wache bleibt: die Warenkette hat ihre Anlagen
+        # (Stellmacher, Rinderfarm, Schafszucht, Pferdezucht), und jede Mindestzahl der Taktik steht,
+        # soweit die Karte das Gelaende dafuer hat.
+        import gelaende  # noqa: E402  (nur hier gebraucht)
+        taktik = main.bot_taktik_name(gs.bots[0])
+        plan = main.bot_anlagenplan(taktik)
+        mindest = plan.get("mindest") or {}
+        check("die Taktik des Bots hat einen Bauplan in der Datendatei", bool(mindest), taktik)
+        raster = list((main._bot_karte_dict(dorf.karte) or {}).get("raster") or [])
+        prios = einstellungen.get("feld_prioritaeten") or {}
+
+        def _zone(geb):
+            """Das bevorzugte Gelaende einer Anlage (aus der Datendatei, nicht getippt)."""
+            return set(str(a) for a in ((prios.get(geb) or {}).get("bevorzugt") or []))
+
+        for geb, soll in sorted(mindest.items()):
+            steht = sum(1 for g in dorf.bauten.values() if str(g) == geb)
+            # Konkurrenz um DASSELBE Gelaende: Berg traegt Erzmine, Steinmetz und Goldmine. Reicht
+            # der Berg fuer alle drei Mindestzahlen zusammen nicht, ist die Karte die Grenze - das
+            # ist ein Befund, kein Fehler des Plans (gemessen: original-118b hat 5 Bergfelder).
+            zone = _zone(geb)
+            felder = sum(1 for art in raster if art in zone)
+            bedarf = sum(int(s) for g2, s in mindest.items() if _zone(g2) & zone)
+            if steht < int(soll) and felder < bedarf:
+                befund("%s: Mindestzahl %d, Karte hat %d Felder fuer %d Anlagen derselben Zone"
+                       % (geb, int(soll), felder, bedarf), "")
+            else:
+                check("%s steht mindestens %d-mal (Plan der Taktik)" % (geb, int(soll)),
+                      steht >= int(soll), "steht %d-mal" % steht)
+        for geb in ("stellmacher", "rinderfarm", "schafszucht", "pferdezucht"):
+            steht = sum(1 for g in dorf.bauten.values() if str(g) == geb)
+            check("%s ist gebaut" % geb, steht >= 1, "steht %d-mal" % steht)
         check("die Anlagen liegen auf der 10x10-Karte", len(dorf.bauten) <= 100,
               "%d Felder belegt" % len(dorf.bauten))
     finally:

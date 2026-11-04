@@ -274,7 +274,12 @@ check("7 gebucht wird je Dorf, nicht mehr nur im Hauptdorf",
       "main.bot_doerfer_ernten")
 check("7 die Aufstellung fragt die Kaufbremse", "if not bot_nahrung_deckt(bot, 1):" in TEXT_MAIN,
       "main.bot_armee_aufstellen")
-check("7 der Kartenweg setzt den Bauplan", "bot_doerfer_bebauen(dorf, einstellungen)" in TEXT_MAIN,
+check("7 der Kartenweg setzt den Bauplan",
+      "bot_doerfer_bebauen(dorf, einstellungen, taktik=taktik)" in TEXT_MAIN,
       "main.bot_doerfer_karten_zuweisen")
+# ANKER VERSCHOBEN, ZUSAGE GLEICH (S-8 Stufe 3, 04.11.2026, Register 179): der Kartenweg setzt die
+# Anlagen weiterhin, gibt seit heute aber die TAKTIK des Bots mit (`taktik=bot_taktik_name(bot)`) -
+# ohne sie gaebe es keine Mindestzahlen je Taktik. Die Zusage dieser Wache bleibt: der Weg vom
+# Kartenvergeben zum Bebauen ist im Code vorhanden und nicht nur hier beschrieben.
 
 sys.exit(bericht())

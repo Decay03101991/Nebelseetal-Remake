@@ -1,3 +1,45 @@
+# STAND 04.11.2026, 08:46 - S-8 Stufe 3: jede Bot-Taktik baut nach eigenem Plan (Register 179)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Die fuenf Bots bauen nicht mehr alle dasselbe.** Bis heute setzte `bot_doerfer_bebauen` in jedem
+Bot-Dorf dieselbe Zahl je Gebaeude (26 bis 30 Anlagen), unabhaengig von der Taktik - die Karte blieb
+halb leer. Jetzt hat jede Taktik MINDESTZAHLEN und eine Restfeld-Regel in
+`data/bot_bauplan.json` (`anlagen_bauplaene`): erst die Mindestzahlen in ihrer Zone (Phase A, in
+Runden, damit eine Anlage nicht den ganzen Berg nimmt), dann die freien Felder nach Ertrag (Phase C).
+Zwei Sperren halten den Plan gesund: **9 Felder bleiben fuer den Gebaeude-Bauplan frei** (Haus,
+Bibliothek, Lager, Schmiede, Akademie, Diebesgilde, Bogenbauer, Wall - sonst faende `bot_dorf_bauen`
+keinen Platz und es gaebe keine Forschung, keine Kaserne, keine Truppen), und **das letzte
+Bibliotheksfeld** bleibt unangetastet, weil eine Bibliothek nur auf Grasland, Steppe oder Nebelsee
+stehen darf.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Neue Wache | `tests/test_s8_stufe3_bauplaene.py` **98/0/0** | eigener Lauf |
+| Voller Sammellauf | **159 von 161 gruen, 0 rot, 520 s**, 6.330 Pruefungen, 56 Befunde (Start 08:59; die zwei nicht gruenen sind die dauerhaft ausgesetzten Dateien) | `docs/audits/sammellauf_20261104_0900.log` |
+| Gegenprobe | **40 Pruefungen rot** (Plan-Block abgeschaltet), `data/bot_bauplan.json` per SHA256 unveraendert zurueck | eigener Lauf |
+| Messung 24 Spieltage | Dorfzahl **4/4/4/4/4**, Anlagen je Dorf **52 bis 97** (vorher 26 bis 30) | `tools/bot_wirtschaft_messung.py`, `s8s3_final.json` |
+| Taktik-Profile | Raecher **39** Erzminen / 8 Goldminen, Spaeherin **31** Pferdezuchten, Waechterin **21** Steinmetze, Bastionier 31 Goldminen | Anlagenzahl je Dorf |
+| Metall in der Kasse | **12.172 bis 55.832** (vorher 11.435 bis 16.584) | Messung |
+| Daten | `anlagen_bauplaene` mit fuenf Taktiken, Restfeld-Reihenfolge je Gelaende, Holzfaeller-Deckel 6 | `data/bot_bauplan.json` |
+| Belegte Ertraege | Jaeger **2 Nahrung + 2 Leder** auf Wald, Zuchten **3** auf Grasland, Farm **4 / 2** | `data/buildings.json` (gemessen, nicht getippt) |
+| Nachgezogene Wachen | `test_bot_nahrung` **48/0/0**, `test_bot_dorf_als_ort` **42/0/0**, `test_bot_warenkette` **36/0/1** (BEFUND: Berg-arme Karte, 5 Bergfelder fuer 8 Anlagen) | eigene Laeufe |
+| Pruefdateien / Register | **161** / **179** | `ls tests/test_*.py \| wc -l`, `grep -c '^\| [0-9]' docs/PRUEFREGEL_ORIGINAL.md` |
+| Offene Fragen an Daniel | **4** (Zuordnung der Taktiken, Erzmine zuerst, Protokoll bei 350 Zeilen, gehortetes Metall) | `docs/FRAGEN_AN_DANIEL_20261104.md` |
+| Kopf | Vorgaenger `78a6d0d`; der Commit mit diesem Block ist der neue Kopf | `git log --oneline -1` |
+
+## Der EINE naechste Schritt
+
+**S-12: alle Felder nutzen.** Der Bauplan fuellt heute die Gelaendearten Wald, Grasland, Berg und
+Steppe; Huegel bleibt fuer die ertraglosen Gebaeude frei, Sumpf und Nebelsee tragen nichts. S-12
+erweitert die Restfeld-Regel so, dass ein Bot-Dorf jedes Feld belegt, das seine Taktik sinnvoll
+fuellen kann, und belegt die Pruefzusage aus dem Konzept: die Zahl der Anlagen ist von Karte zu Karte
+VERSCHIEDEN (sie ist es seit heute schon - 52 bis 97 -, aber Huegel und Sumpf sind noch offen).
+Danach S-11 (Kartenwahl mit Feldverstaendnis). **Der volle Sammellauf, die Registerzeile und die
+Protokollzeile gehoeren zum Abschluss jedes Schnitts.**
+
+---
+
 # STAND 03.11.2026, 23:2x - Weltkarte mit gemaltem Rahmen, Gelaendeton und Goldrand (Register 178)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

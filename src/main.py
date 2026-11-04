@@ -755,8 +755,9 @@ def _ertragssumme(wert) -> float:
     return 0.0                                                            # unbekannt: nichts erfinden
 
 
-def bot_doerfer_bebauen(dorf: "BotDorf", einstellungen: Optional[dict] = None) -> int:
-    """Setzt die Grundanlagen eines Bot-Dorfes auf seine EIGENEN Felder (S-2, 03.11.2026).
+def bot_doerfer_bebauen(dorf: "BotDorf", einstellungen: Optional[dict] = None,
+                        taktik: str = "", plan: Optional[dict] = None) -> int:
+    """Setzt die Anlagen eines Bot-Dorfes auf seine EIGENEN Felder (S-2, 03.11.2026).
 
     Bis heute rechnete ein Bot-Dorf seinen Ertrag aus dem Kartenprofil (`bot_dorf_ertrag`), ohne
     dass auf seiner Karte etwas stand. Mit dem Kern gilt: was nicht gebaut ist, ertraegt nichts -
@@ -766,6 +767,13 @@ def bot_doerfer_bebauen(dorf: "BotDorf", einstellungen: Optional[dict] = None) -
     duerfen - dieselbe Regel, mit der `bot_dorf_ertrag` vorher "bestes Gelaende" gewaehlt hat.
     Rechnet nichts gut und kostet nichts: der Bot hat diese Anlagen bezahlt, als er das Dorf
     gruendete (VORSCHLAG, siehe Register 153).
+
+    **S-8 Stufe 3 (04.11.2026): mit `taktik` gilt der PLAN DIESER TAKTIK.** Ist `taktik` gesetzt
+    und steht in `data/bot_bauplan.json` (`anlagen_bauplaene`) ein Block dafuer, kommen die
+    MINDESTZAHLEN und die Gebaeudeliste aus diesem Block, und nach den Mindestzahlen fuellt
+    PHASE C die freien Felder nach der Restfeld-Regel des Plans. Ohne `taktik` (oder ohne Block)
+    gilt unveraendert der alte Weg ueber `anlagen_je_gebaeude` - so bleiben alte Spielstaende und
+    die bestehenden Pruefdateien gueltig.
     Rueckgabe: Zahl der gesetzten Anlagen (0 = es passt nichts mehr oder alles steht schon).
     """
     einstellungen = (einstellungen if einstellungen is not None
@@ -777,23 +785,38 @@ def bot_doerfer_bebauen(dorf: "BotDorf", einstellungen: Optional[dict] = None) -
     raster = list(karte.get("raster") or [])
     if not raster:
         return 0
-    # S-6b (03.11.2026): Anzahl je Gebaeude (Zahl fuer alle ODER Dict je Anlage).
-    roh_anzahl = einstellungen.get("anlagen_je_gebaeude") or 1
-    if isinstance(roh_anzahl, dict):
-        def _anzahl(geb: str) -> int:
-            try:
-                return max(1, int(roh_anzahl.get(geb, roh_anzahl.get("*", 1))))
-            except (TypeError, ValueError):
-                return 1
-    else:
-        try:
-            _feste = max(1, int(roh_anzahl))
-        except (TypeError, ValueError):
-            _feste = 1
-        _anzahl = lambda geb: _feste  # noqa: E731  (gleiche Zahl fuer alle Anlagen)
-    gebaeude = [str(g) for g in (einstellungen.get("gebaeude_je_dorf") or [])]
-    if not gebaeude:
-        return 0
+    # S-8 Stufe 3 (04.11.2026): der PLAN DER TAKTIK hat Vorrang. Steht fuer diese Taktik ein Block
+    # in `data/bot_bauplan.json` (`anlagen_bauplaene`), gelten seine MINDESTZAHLEN und seine
+    # Gebaeudeliste; `anlagen_je_gebaeude` aus `data/bot_wirtschaft.json` bleibt der Rueckfall fuer
+    # Aufrufe ohne Taktik (alte Spielstaende, Pruefdateien). Kein erfundener Plan: ohne Block
+    # verhaelt sich die Funktion wie vorher.
+    anlagenplan = bot_anlagenplan(taktik, plan)                            # Block dieser Taktik
+    mindest = anlagenplan.get("mindest") or {}                             # ihre Mindestzahlen
+    if mindest:                                                           # Plan vorhanden
+        def _anzahl(geb: str) -> int:                                     # Mindestzahl je Anlage
+            try:                                                          # Zahl aus dem Plan
+                return max(1, int(mindest.get(geb, 0)))                   # nie unter einer Anlage
+            except (TypeError, ValueError):                               # kaputter Wert
+                return 1                                                  # dann eine Anlage
+        gebaeude = [str(g) for g in mindest]                              # Reihenfolge des Plans
+    else:                                                                 # kein Plan: alte Zahlen
+        # S-6b (03.11.2026): Anzahl je Gebaeude (Zahl fuer alle ODER Dict je Anlage).
+        roh_anzahl = einstellungen.get("anlagen_je_gebaeude") or 1        # Zahl oder Dict aus der Datei
+        if isinstance(roh_anzahl, dict):                                  # je Gebaeude verschieden
+            def _anzahl(geb: str) -> int:                                 # Hilfsfunktion je Anlage
+                try:                                                      # Wert aus dem Dict
+                    return max(1, int(roh_anzahl.get(geb, roh_anzahl.get("*", 1))))   # eigener Wert, sonst *
+                except (TypeError, ValueError):                           # kaputter Wert
+                    return 1                                              # dann eine Anlage
+        else:                                                             # eine Zahl fuer alle
+            try:                                                          # Zahl lesen
+                _feste = max(1, int(roh_anzahl))                          # Anlagen je Grundrohstoff
+            except (TypeError, ValueError):                               # kaputter Wert
+                _feste = 1                                                # dann eine Anlage
+            _anzahl = lambda geb: _feste  # noqa: E731  (gleiche Zahl fuer alle Anlagen)
+        gebaeude = [str(g) for g in (einstellungen.get("gebaeude_je_dorf") or [])]   # Arten aus der Datei
+    if not gebaeude:                                                      # keine Anlagenart
+        return 0                                                          # dann nichts zu tun
     # S-8 Stufe 2 (03.11.2026): FELD-PRIORITAETEN je Gebaeude. Ohne sie belegten die Holzfaeller die
     # Steppe-Felder, und Rinderfarm, Schafszucht und Pferdezucht wurden NICHT MEHR GEBAUT (gemessen).
     # Je Gebaeude steht in `data/bot_wirtschaft.json` (`feld_prioritaeten`), welches Gelaende es
@@ -826,10 +849,17 @@ def bot_doerfer_bebauen(dorf: "BotDorf", einstellungen: Optional[dict] = None) -
     # ----------------------------------------------------------------------------------------
     # PHASE A: jedes Gebaeude zuerst auf sein BEVORZUGTES Gelaende (und auf ungeschuetzte
     # Notloesungen). Ein Feld, das ein ANDERES Gebaeude des Plans noch braucht, bleibt frei.
+    # IN RUNDEN (S-8 Stufe 3, 04.11.2026): je Runde setzt jedes Gebaeude EINE Anlage, dann ist das
+    # naechste dran. Vorher nahm ein Gebaeude seine ganze Zahl auf einmal - auf Berg-armen Karten
+    # bekam darum die zuletzt genannte Anlage gar keinen Berg (gemessen: die Goldmine erreichte
+    # ihre Mindestzahl 4 nicht, weil Erzmine und Steinmetz vorher jeden Berg belegt hatten).
     # ----------------------------------------------------------------------------------------
-    for geb in gebaeude:                                                  # in der Reihenfolge des Plans
-        bevorzugt, notfalls = _gelaende_vorlieben(geb)                    # seine Vorlieben
-        while offen_je.get(geb, 0) > 0:                                   # bis die Zahl steht
+    while True:                                                           # eine Runde je Durchgang
+        diese_runde = 0                                                   # wie viele hier gesetzt wurden
+        for geb in gebaeude:                                              # in der Reihenfolge des Plans
+            if offen_je.get(geb, 0) <= 0:                                 # Zahl steht schon
+                continue                                                  # dann diese Runde nicht
+            bevorzugt, notfalls = _gelaende_vorlieben(geb)                # seine Vorlieben
             reserviert = set()                                            # Gelaende, das andere brauchen
             for anderes in gebaeude:                                      # jedes andere Gebaeude
                 if anderes == geb or offen_je.get(anderes, 0) <= 0:       # sich selbst / nichts mehr offen
@@ -847,12 +877,15 @@ def bot_doerfer_bebauen(dorf: "BotDorf", einstellungen: Optional[dict] = None) -
                 else:                                                     # fremdes Gebiet oder unbekannt
                     continue                                              # in Phase A nicht anfassen
                 kandidaten.append((rang, _ertragssumme(gelaende.ertrag_pro_stunde(geb, art)), i))
-            if not kandidaten:                                            # nichts in ihrer Zone frei
-                break                                                     # Rest kommt in Phase B
+            if not kandidaten:                                            # nichts in seiner Zone frei
+                continue                                                  # Rest kommt in Phase B
             _rang, _wert, feld = max(kandidaten)                          # beste Wahl gewinnt
             _setzen(geb, feld)                                            # Anlage setzen
             offen_je[geb] -= 1                                            # Rest kleiner
             gesetzt += 1                                                  # zaehlen
+            diese_runde += 1                                              # diese Runde gezaehlt
+        if diese_runde == 0:                                              # niemand konnte mehr setzen
+            break                                                         # dann ist Phase A fertig
     # ----------------------------------------------------------------------------------------
     # PHASE B: erst wenn nichts mehr in der eigenen Zone frei ist, wird geteilt - dann nach Ertrag.
     # So tragen alle Anlagen ihre Mindestzahl, bevor eine einzelne sich ausbreitet.
@@ -867,6 +900,72 @@ def bot_doerfer_bebauen(dorf: "BotDorf", einstellungen: Optional[dict] = None) -
             _setzen(geb, feld)                                            # Anlage setzen
             offen_je[geb] -= 1                                            # Rest kleiner
             gesetzt += 1                                                  # zaehlen
+    # ----------------------------------------------------------------------------------------
+    # PHASE C (S-8 Stufe 3, 04.11.2026): DIE RESTFELDER nach dem Plan der Taktik.
+    # Nach den Mindestzahlen bleiben Felder frei. Der Plan sagt je Gelaende, in welcher Reihenfolge
+    # sie gefuellt werden (Wald: Holzfaeller bis zur Obergrenze, dann Jaeger; Steppe: Rinderfarm;
+    # Grasland und Berg je Taktik verschieden). Gefuellt wird nach Ertrag: je freiem Feld gewinnt
+    # die Anlage mit dem hoechsten Ertrag auf DIESEM Gelaende, die dort stehen darf und ihre
+    # Obergrenze noch nicht erreicht hat.
+    # ZWEI SPERREN, ohne die der Plan den Bot kaputt macht (gemessen 03.11.2026: Holzfaeller auf 99
+    # belegten die Steppe, und Rinderfarm, Schafszucht und Pferdezucht wurden nie mehr gebaut):
+    #   1. FELDRESERVE - so viele Felder bleiben frei, wie der Gebaeude-Bauplan des Dorfes noch
+    #      braucht (`bot_bauplan_offene_bauten`). Sonst faende `bot_dorf_bauen` keinen Platz mehr
+    #      fuer Haus, Bibliothek, Lager, Schmiede, Akademie und Wall: keine Forschung, keine
+    #      Kaserne, keine Truppen.
+    #   2. BIBLIOTHEKSFELD - eine Bibliothek darf NUR auf Grasland, Steppe oder Nebelsee stehen.
+    #      Das LETZTE solche freie Feld bleibt unangetastet, solange keine Bibliothek steht.
+    # ----------------------------------------------------------------------------------------
+    restfelder = anlagenplan.get("restfelder") or {}                       # Regel des Plans
+    if restfelder:                                                         # nur mit Plan
+        obergrenze = anlagenplan.get("restfelder_obergrenze") or {}         # Deckel je Anlage
+        reserve = bot_bauplan_offene_bauten(dorf, plan)                     # Felder fuer den Bauplan
+
+        def _zaehlt(geb: str) -> int:
+            """Wie oft diese Anlage im Dorf steht."""
+            return sum(1 for g in dorf.bauten.values() if str(g) == geb)
+
+        def _am_deckel(geb: str) -> bool:
+            """Hat diese Anlage im Restfeld-Teil ihre Obergrenze erreicht?"""
+            if geb not in obergrenze:                                      # kein Deckel genannt
+                return False                                               # dann unbegrenzt
+            try:                                                           # Deckel als Zahl
+                return _zaehlt(geb) >= int(obergrenze[geb])                 # erreicht?
+            except (TypeError, ValueError):                                # kaputter Wert
+                return False                                               # dann kein Deckel
+
+        def _ohne_bibliothek() -> bool:
+            """Steht in diesem Dorf noch keine Bibliothek?"""
+            return _zaehlt("bibliothek") == 0                              # dann braucht sie ein Feld
+
+        while True:                                                        # ein Feld je Durchgang
+            frei = _frei()                                                 # die noch freien Felder
+            if len(frei) <= reserve:                                       # Reserve erreicht
+                break                                                      # dann nichts mehr setzen
+            # Das letzte Feld, auf dem eine Bibliothek stehen duerfte, bleibt frei (Sperre 2).
+            bib_felder = [i for i in frei                                     # freie Felder ansehen
+                          if gelaende.bau_moeglich("bibliothek", raster[i])[0]]   # Bibliothek erlaubt?
+            bib_schuetzen = _ohne_bibliothek() and len(bib_felder) == 1        # genau noch eines uebrig?
+            kandidaten = []                                                # (Ertrag, Rang, Feld, Anlage)
+            for i in frei:                                                 # jedes freie Feld
+                art = str(raster[i]).strip().lower()                        # seine Gelaendeart
+                for rang, geb in enumerate(restfelder.get(art) or []):      # Reihenfolge des Plans
+                    geb = str(geb)                                          # als Text
+                    if _am_deckel(geb):                                     # Obergrenze erreicht
+                        continue                                            # naechste Anlage
+                    if not gelaende.bau_moeglich(geb, raster[i])[0]:         # darf sie dort stehen?
+                        continue                                            # nein, naechste versuchen
+                    if bib_schuetzen and i == bib_felder[0]:                # Bibliotheksfeld schuetzen
+                        break                                               # dieses Feld bleibt frei
+                    wert = _ertragssumme(gelaende.ertrag_pro_stunde(geb, art))   # Ertrag auf diesem Feld
+                    kandidaten.append((wert, -rang, i, geb))                # Kandidat mit Rang
+                    break                                                   # je Feld nur die beste Anlage
+            if not kandidaten:                                              # nichts passt mehr
+                break                                                       # dann fertig
+            kandidaten.sort(reverse=True)                                   # bester Ertrag zuerst
+            _wert, _rang, feld, geb = kandidaten[0]                         # die beste Wahl
+            _setzen(geb, feld)                                              # Anlage setzen
+            gesetzt += 1                                                    # zaehlen
     return gesetzt
 
 
@@ -1236,8 +1335,9 @@ def bot_doerfer_karten_zuweisen(bot: "BotPlayer", einstellungen: Optional[dict] 
     # nichts - ein Dorf mit leerer Karte braechte nur das Grundeinkommen (1 Holz / 1 Stein) und
     # hungerte ab dem Anschluss. Hier werden die Grundanlagen EINMAL gesetzt; die Funktion ist
     # idempotent (setzt je Gebaeude nur den fehlenden Rest) und kostet nichts (Register 153).
+    taktik = bot_taktik_name(bot)                                         # S-8 Stufe 3: sein STIL
     for dorf in doerfer_liste:                                            # je Dorf (auch alte Spielstaende)
-        bot_doerfer_bebauen(dorf, einstellungen)                          # Grundanlagen auf die eigenen Felder
+        bot_doerfer_bebauen(dorf, einstellungen, taktik=taktik)           # Anlagen nach dem Plan seiner Taktik
     return neu                                                            # wie viele neu sind
 
 
@@ -1371,6 +1471,8 @@ def bot_bauplan() -> Dict[str, Any]:
     Je Taktik eine REIHENFOLGE, dazu Obergrenzen je Gebaeude. Die Preise stehen NICHT hier,
     sondern in `data/baupreise.json` und werden ueber `spielschicht.bauen` gebucht. Fehlt die
     Datei oder ist sie kaputt, ist der Plan leer - dann baut kein Bot (kein erfundener Plan).
+    Seit S-8 Stufe 3 (04.11.2026) steht in DERSELBEN Datei der Block `anlagen_bauplaene`
+    (Mindestzahlen je Taktik und Restfeld-Regel) - gelesen ueber `bot_anlagenplan`.
     """
     pfad = os.path.join(spieldaten.projektwurzel(), "data", "bot_bauplan.json")
     try:
@@ -1379,6 +1481,69 @@ def bot_bauplan() -> Dict[str, Any]:
     except (OSError, ValueError):
         return {}
     return daten if isinstance(daten, dict) else {}
+
+
+# ===================================================================================================
+# S-8 Stufe 3 (04.11.2026): DIE BAUPLAENE JE TAKTIK - Mindestzahlen und Restfelder
+#
+# Daniels Vorgabe zu S-8: der Bot soll seine Karte "je Taktik sinnvoll" nutzen. Bis hier setzte
+# `bot_doerfer_bebauen` in JEDEM Dorf dieselbe Zahl je Gebaeude (`anlagen_je_gebaeude` in
+# `data/bot_wirtschaft.json`) - jeder Bot baute dasselbe, unabhaengig von seiner Taktik, und die
+# Karte blieb halb leer. Ab hier hat jede Taktik MINDESTZAHLEN und eine Regel fuer die RESTFELDER;
+# beides steht in `data/bot_bauplan.json` (`anlagen_bauplaene`), NICHT im Code. Die ERTRAEGE
+# stehen weiter nur in `data/buildings.json` (ueber `gelaende.ertrag_pro_stunde`).
+# ===================================================================================================
+
+# Wie viele Felder ein Bot-Dorf fuer seinen Gebaeude-Bauplan (`bauplaene`, `hoechstens`) freihaelt,
+# wenn die Datendatei fehlt oder keine Grenzen nennt. Zahl gemessen am Block `hoechstens`
+# (Haus 2 + Bibliothek 1 + Lager 1 + Schmiede 1 + Kriegerakademie 1 + Diebesgilde 1 + Bogenbauer 1
+# + Verteidigungswall 1 = 9) - kein geratener Puffer, sondern die Summe der Datei.
+BOT_FELDRESERVE_VORGABE = 9
+
+
+def bot_anlagenplan(taktik: str = "", plan: Optional[dict] = None) -> Dict[str, Any]:
+    """Mindestzahlen und Restfeld-Regel EINER Taktik (S-8 Stufe 3, 04.11.2026).
+
+    `taktik` ist der STIL des Bots aus `bottaktik.TAKTIKEN` (Pluenderer, Waechterin, Bastionier,
+    Spaeherin, Raecher) - dieselbe Quelle wie `bot_taktik_name`, NICHT das wechselnde Verhalten
+    eines Dorfes (`BotDorf.taktik` = SAMMELN/WACHSEN/...). Rueckgabe: der Block dieser Taktik
+    (`mindest`, `restfelder`, `restfelder_obergrenze`) oder `{}` - dann gilt der alte Weg ueber
+    `anlagen_je_gebaeude`. Kein erfundener Plan, wenn die Taktik fehlt.
+    """
+    plan = plan if isinstance(plan, dict) else bot_bauplan()             # EINE Quelle der Datei
+    plaene = plan.get("anlagen_bauplaene") or {}                          # je Taktik ein Block
+    if not isinstance(plaene, dict) or not plaene:                        # kein Block vorhanden
+        return {}                                                        # dann der alte Weg
+    eintrag = plaene.get(str(taktik or ""))                              # Block DIESER Taktik
+    return dict(eintrag) if isinstance(eintrag, dict) else {}            # Kopie, nie None
+
+
+def bot_bauplan_offene_bauten(dorf, plan: Optional[dict] = None) -> int:
+    """Wie viele FELDER der Gebaeude-Bauplan dieses Dorfes noch braucht (S-8 Stufe 3).
+
+    Haus, Bibliothek, Lager, Schmiede, Akademie, Diebesgilde, Bogenbauer und Wall baut der Bot
+    ueber `bot_dorf_bauen` in DIESELBEN `dorf.bauten` wie die Anlagen. Waeren alle Felder mit
+    Anlagen belegt, faende er keinen Bauplatz mehr - dann gaebe es keine Bibliothek, keine
+    Forschung, keine Kaserne und keine Truppen (genau der Fehler, der am 03.11. mit 99
+    Holzfaellern gemessen wurde). Darum zaehlt diese Funktion die noch offenen Gebaeude des
+    Plans und die Restfeld-Phase haelt so viele Felder frei.
+    """
+    plan = plan if isinstance(plan, dict) else bot_bauplan()             # Bauplan der Bots
+    hoechstens = plan.get("hoechstens") or {}                            # Obergrenzen je Gebaeude
+    if not isinstance(hoechstens, dict) or not hoechstens:               # keine Grenzen in der Datei
+        return BOT_FELDRESERVE_VORGABE                                   # dann die gemessene Summe
+    bauten = getattr(dorf, "bauten", None) or {}                         # die bebauten Felder
+    offen = 0                                                            # Zaehler der offenen Gebaeude
+    for geb, grenze in hoechstens.items():                               # je Gebaeudeart
+        try:                                                             # Grenze als Zahl
+            zahl = int(grenze)                                           # (Datei kann Text liefern)
+        except (TypeError, ValueError):                                  # kaputter Wert
+            continue                                                     # zaehlt nicht
+        if zahl <= 0:                                                    # keine Grenze
+            continue                                                     # ueberspringen
+        steht = sum(1 for g in bauten.values() if str(g) == str(geb))    # so oft steht es schon
+        offen += max(0, zahl - steht)                                    # nur der offene Rest
+    return offen                                                         # Felder, die frei bleiben
 
 
 # ===================================================================================================
@@ -5481,7 +5646,8 @@ class GameState:
         bot.settlements = namen                                             # Spielstand-Form pflegen
         bot.gedaechtnis = dict(gedaechtnis)                                 # Gedaechtnis kopieren
         bot.gedaechtnis["gruendung_seit"] = float(jetzt)                    # Sperre beginnt jetzt
-        bot_doerfer_bebauen(neu, bot_wirtschaft_einstellungen())            # Grundanlagen wie ueberall
+        bot_doerfer_bebauen(neu, bot_wirtschaft_einstellungen(),           # Anlagen wie ueberall
+                            taktik=bot_taktik_name(bot))                   # S-8 Stufe 3: nach SEINEM Plan
         meldung = (f"{bot.name} hat ein neues Dorf gegründet: {neu.name} in Welt {heimat} "
                    f"(Karte {karte}). Gebühr und Startpaket sind aus {quelle.name} bezahlt, "
                    f"{siedler} Siedler sind umgezogen.")

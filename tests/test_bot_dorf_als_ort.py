@@ -148,16 +148,22 @@ _gesetzt = len(_d2.bauten)                            # was jetzt WIRKLICH im Do
 _einst = M.bot_wirtschaft_einstellungen()
 # S-6b (03.11.2026): die Anzahl ist je Gebaeude verschieden - die Summe der Einzelzahlen ist die
 # Erwartung, nicht "eine Zahl mal Anzahl der Gebaeude" (das brach bei einem Dict ab).
-# S-6b (03.11.2026): je Gebaeude das Minimum aus Plan und passenden Feldern der Karte - der Plan
-# darf mehr erlauben, als die Karte hergibt (holzfaeller: 99 = alle passenden Felder).
-_raster_erw = (_d2.karte_daten or {}).get("raster") or []
-_erwartet_anlagen = 0
-for _g in (_einst.get("gebaeude_je_dorf") or []):
-    _passt = sum(1 for _art in _raster_erw if gelaende.bau_moeglich(_g, _art)[0])
-    _erwartet_anlagen += min(M.anlagen_anzahl(_g, _einst), _passt)
-check("der Uebergangs-Bauplan setzt die Grundanlagen", _gesetzt > 0, f"{_gesetzt} Anlagen")
-check("es sind genau drei je Grundrohstoff (Daniel: drei Anlagen)",
-      _gesetzt == _erwartet_anlagen, f"{_gesetzt} / erwartet {_erwartet_anlagen}")
+# ENTSCHEIDUNG GEAENDERT (S-8 Stufe 3, 04.11.2026, Register 179): die Anzahl je Gebaeude kommt
+# nicht mehr aus `anlagen_je_gebaeude` (Summe min(Zahl, passende Felder) = 24), sondern aus dem
+# Bauplan der TAKTIK (`data/bot_bauplan.json: anlagen_bauplaene`); danach fuellen die Restfelder
+# nach Ertrag. Die Zusage dieser Wache bleibt: der Weg setzt die MINDESTZAHLEN seiner Taktik, jede
+# Anlage steht auf erlaubtem Gelaende, und ein zweiter Aufruf setzt nichts nach. Die Zaehlung des
+# alten festen Bauplans (24) steht weiter in `tests/test_s8_stufe3_bauplaene.py` (Aufruf ohne Taktik).
+_plan = M.bot_anlagenplan(M.bot_taktik_name(_bot2))
+_mindest = _plan.get("mindest") or {}
+check("der Uebergangs-Bauplan setzt die Mindestzahlen der Taktik", bool(_mindest) and _gesetzt > 0,
+      f"{_gesetzt} Anlagen, Plan {M.bot_taktik_name(_bot2)}")
+for _g, _soll in sorted(_mindest.items()):
+    _steht = sum(1 for g in _d2.bauten.values() if str(g) == _g)
+    check(f"die Mindestzahl {_g} = {_soll} steht", _steht >= _soll, f"steht {_steht}-mal")
+check("es steht keine Anlage ausserhalb von Plan und Bauplan",
+      all(str(g) in _mindest or str(g) in (M.bot_bauplan().get("hoechstens") or {})
+          for g in _d2.bauten.values()), str(sorted(set(_d2.bauten.values()))))
 _raster2 = list(_d2.karte_daten.get("raster") or [])
 check("jede Anlage steht auf erlaubtem Gelaende",
       all(gelaende.bau_moeglich(geb, _raster2[int(feld)])[0]
@@ -167,10 +173,11 @@ check("jede gesetzte Anlage hat eine Stufe", all(str(f) in _d2.stufen for f in _
 check("ein Dorf ohne Karte bekommt nichts gesetzt",
       M.bot_doerfer_bebauen(M.BotDorf(name="Ohne Karte")) == 0)
 check("der Bauplan ist idempotent (zweiter Aufruf setzt nichts nach)",
-      M.bot_doerfer_bebauen(_d2) == 0 and len(_d2.bauten) == _gesetzt,
+      M.bot_doerfer_bebauen(_d2, taktik=M.bot_taktik_name(_bot2)) == 0
+      and len(_d2.bauten) == _gesetzt,
       f"{len(_d2.bauten)} Anlagen nach dem zweiten Aufruf")
 _vorher_vorrat = dict(_d2.vorraete)
-M.bot_doerfer_bebauen(_d2)
+M.bot_doerfer_bebauen(_d2, taktik=M.bot_taktik_name(_bot2))
 check("der Bauplan kostet nichts und schreibt keine Vorraete", _d2.vorraete == _vorher_vorrat, "")
 _w = M.bot_dorf_ertrag(_d2, None, _bot2)
 check("das bebaute Dorf ertraegt mehr als das Grundeinkommen", sum(_w.values()) > 2.0, str(_w))
