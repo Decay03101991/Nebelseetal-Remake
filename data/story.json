@@ -1,0 +1,66 @@
+{
+  "stand": "2026-11-04",
+  "ton": "abenteuerlich und leicht - Aufbruch, Entdecken, Humor (Daniels Entscheidung 04.11.2026)",
+  "hinweis": "Alle Texte dieses Spiels stehen HIER, nicht im Code. Der Ton ist leicht und abenteuerlich: kein Pathos, kein Weltschmerz, aber ein Ziel. Wer die Geschichte ändern will, ändert diese Datei – kein Codeeingriff.",
+  "intro": [
+    "Die Welt ist zersprungen, und keiner weiß mehr genau, warum. Sechs Bruchstücke treiben im Limbus: Midgard, Valhalla, Utgard, Armageddon, Ragnarök – und dazwischen der Limbus selbst.",
+    "Du hast zehn Siedler, zwei Werkzeugkisten und ein Feld, das dir niemand streitig macht. Noch nicht.",
+    "Fünf Nachbarn haben es längst versucht: Haug raubt, Brynhild wacht, Grom baut, Silra späht, Krank vergisst nichts.",
+    "Baue etwas, das bleibt – und finde heraus, was hinter dem Nebel liegt."
+  ],
+  "intro_titel": "Ankunft im Nebelseetal",
+  "chronik": [
+    {
+      "stufe": 0,
+      "titel": "Ankunft",
+      "text": "Zehn Siedler, zwei Werkzeugkisten, ein Fleck Land. Der Anfang jeder Geschichte ist eine Liste von Dingen, die fehlen."
+    },
+    {
+      "stufe": 1,
+      "titel": "Die erste Siedlung",
+      "text": "Ein Dach, ein Brunnen, ein Feuer. Zum ersten Mal riecht es hier nach Arbeit statt nach Nebel."
+    },
+    {
+      "stufe": 2,
+      "titel": "Werkstatt und Handel",
+      "text": "Aus Rohstoffen werden Waren, aus Waren wird Handel. Der erste Karren quietscht so laut, dass die Nachbarn ihn hören können."
+    },
+    {
+      "stufe": 3,
+      "titel": "Wissen",
+      "text": "Die Bibliothek ist mehr Regal als Wissen – aber das erste Kapitel ist geschrieben."
+    },
+    {
+      "stufe": 4,
+      "titel": "Der erste Kampf",
+      "text": "Es gibt Tage, an denen man Mauern baut, und Tage, an denen man sie braucht. Dieser Tag war der zweite."
+    },
+    {
+      "stufe": 5,
+      "titel": "Ein zweites Dorf",
+      "text": "Ein Dorf ist ein Zuhause. Zwei Dörfer sind der Anfang von etwas Größerem."
+    },
+    {
+      "stufe": 6,
+      "titel": "Durch das Portal",
+      "text": "Das Portal summt, als hätte es gewartet. Dahinter liegt eine zweite Welt – und in jeder Welt wohnt jemand, der schon länger hier ist."
+    }
+  ],
+  "chronik_bedingungen": {
+    "0": "immer",
+    "1": "mindestens eine Siedlung",
+    "2": "mindestens eine Ware hergestellt oder eine Werkstatt gebaut",
+    "3": "mindestens eine Forschung abgeschlossen",
+    "4": "mindestens ein Kampf gefochten",
+    "5": "mindestens zwei Siedlungen",
+    "6": "mindestens zwei eigene Welten (Portal benutzt)"
+  },
+  "sieg": {
+    "titel": "Das Nebelseetal hat einen Namen bekommen",
+    "text": "Deine Siedlungen stehen, deine Nachbarn kennen deinen Namen, und die Karten tragen deine Grenzen. Die Welt ist immer noch zersprungen – aber sie ist jetzt auch ein bisschen deine."
+  },
+  "niederlage": {
+    "titel": "Der Nebel holt sich zurueck, was er hergegeben hat",
+    "text": "Die letzten Siedler packen, was sie tragen können. Irgendwo im Limbus fängt jemand anderes mit zehn Siedlern und zwei Werkzeugkisten an – so funktioniert diese Welt."
+  }
+}

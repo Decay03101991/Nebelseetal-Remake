@@ -1,3 +1,41 @@
+# STAND 04.11.2026, 11:15 - Story 1: das Spiel erzaehlt jetzt (Register 183)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Der dritte Kernbefund der externen Pruefung ist bearbeitet: das Spiel hat eine Geschichte.**
+Nach dem Laden erscheint einmalig ein Ingame-Dialog mit vier Saetzen (Weltbruch, fuenf Nachbarn,
+Aufgabe), der Berater hat die Rubrik "Geschichte" mit einer Chronik, die mit dem Fortschritt von
+einem auf sieben Kapitel waechst, und Sieg wie Niederlage haben eigene Texte. **Alle Texte stehen in
+`data/story.json`** - im Code steht kein einziger Storytext, das ist als Wache geprueft.
+
+Daniels Entscheidungen dazu (04.11.2026): Ton **abenteuerlich und leicht** (Variante B), EIN Intro
+statt sechs Fassungen, Chronik im Berater, und in Story 2 sprechen die Bots (je ein bis zwei Saetze
+fuer Angriff, Verteidigung, Gruendung, Beute).
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Neue Wache | `tests/test_story.py` **38/0/0** | eigener Lauf |
+| Gegenprobe | Merker abgeschaltet: **2 Pruefungen rot**, `src/story.py` per SHA256 unveraendert zurueck | eigener Lauf |
+| Texte | 4 Intro-Absaetze, 7 Chronik-Kapitel, Sieg und Niederlage - alle mit echten Umlauten | `data/story.json` |
+| Chronik-Stufen | 0 Ankunft, 1 Siedlung, 2 Ware/Werkstatt, 3 Forschung, 4 Kampf, 5 zweites Dorf, 6 zweite Welt | `src/story.py: _stufe` |
+| Ort des Intros | Ingame-Overlay nach dem Aufbau der Oberflaeche (kein `Toplevel`) | `main._geschichte_intro_zeigen` |
+| Merker | `geschichte.json` neben dem Spielstand - Intro einmal je Installation | `story.intro_gesehen` |
+| Modulkarte | 56 Dateien (neu: `story.py`) | `python tools/modulkarte_bauen.py` |
+| Pruefdateien / Register | **163** / **183** | `ls tests/test_*.py`, `grep -c '^\| [0-9]'` |
+
+## Der EINE naechste Schritt
+
+**Story 2: die fuenf Bots sprechen.** Neue Datendatei `data/bot_stimmen.json` mit je ein bis zwei
+Saetzen pro Bot und Ereignis (Angriff, Verteidigung, Gruendung, Beute, Spionage); die Meldungen des
+Spiels nehmen den Text aus dieser Datei statt eines neutralen Satzes. Fertig ist der Schnitt, wenn
+jede Bot-Meldung eine Stimme traegt, ein Bot ohne Eintrag weiterhin eine neutrale Meldung erzeugt
+(kein Absturz) und eine Wache belegt, dass kein Text im Code steht. **Danach** die drei offenen
+Kampfregeln (2, 4, 6), dann **C** (fliessende Ansichten); `main.py` zerlegen und Skill kuerzen folgen
+nach der Story (Daniels Entscheidung). **Der volle Sammellauf, die Registerzeile und die
+Protokollzeile gehoeren zum Abschluss jedes Schnitts.**
+
+---
+
 # STAND 04.11.2026, 10:45 - externe Projektpruefung verarbeitet (Register 182)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

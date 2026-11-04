@@ -266,6 +266,27 @@ THEMEN = [
 # Oeffentliche Schnittstelle
 # --------------------------------------------------------------------------
 
+def _antwort_geschichte(zustand=None) -> list:
+    """Die Chronik des Spiels - erreichte Kapitel aus `data/story.json` (Story 1, 04.11.2026)."""
+    import story                                                          # die Texte stehen dort
+    lage = {"siedlungen": 0, "forschungen": 0, "waren": 0, "werkstaetten": 0,
+            "kaempfe": 0, "welten": 1}                                    # was der Berater kennt
+    try:                                                                  # Spielzustand auslesen
+        lage["siedlungen"] = len(getattr(zustand, "settlements", []) or [])
+        lage["forschungen"] = sum(1 for r in (getattr(zustand, "research", {}) or {}).values()
+                                  if int(getattr(r, "level", 0) or 0) > 0)
+        lage["welten"] = len(getattr(zustand, "eigene_dimensionen", []) or [1])
+        lage["kaempfe"] = int(getattr(zustand, "kaempfe_gesamt", 0) or 0)
+    except (TypeError, ValueError, AttributeError):                       # Zustand unbekannt
+        pass                                                              # dann nur das erste Kapitel
+    kapitel = story.chronik(lage)                                         # erreichte Kapitel
+    zeilen = ["Chronik des Nebelseetals:"]                                # Kopf der Antwort
+    for eintrag in kapitel:                                               # je Kapitel eine Zeile
+        zeilen.append("  " + eintrag["titel"] + ": " + eintrag["text"])
+    zeilen.append("  (Der Rest der Geschichte entsteht mit deinen Taten.)")
+    return zeilen
+
+
 def antwort(frage: str, zustand=None) -> str:
     """
     Beantwortet eine Frage aus den Spieldaten.
@@ -304,6 +325,10 @@ def antwort(frage: str, zustand=None) -> str:
         if art == "einheit":
             return "\n".join(_einheit_text(daten[0], daten[1]))
         return "\n".join(_ware_text(daten[0], daten[1]))
+
+    # Geschichte und Chronik (Story 1, 04.11.2026) - braucht den Spielzustand, darum vor THEMEN
+    if any(w in n for w in ("geschichte", "chronik", "story", "erzaehlung", "nebelsee")):
+        return "\n".join(_antwort_geschichte(zustand))
 
     # Thema?
     for schluesselwoerter, bauer in THEMEN:

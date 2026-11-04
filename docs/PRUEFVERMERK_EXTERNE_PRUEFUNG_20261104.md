@@ -36,10 +36,13 @@ Dokumentpruefungen (so auch heute zweimal geschehen). Fuer Code-Schnitte ist es 
 
 # 3. Was ich ablehne (mit Grund)
 
+> **Nachtrag 04.11.2026:** Ein Punkt dieser Liste war falsch - die Limbus-Dimensionen. Er ist unten
+durchgestrichen und korrigiert; alles andere gilt.
+
 | Empfehlung | Warum nicht |
 |---|---|
 | **Das Entwicklungsprotokoll abschaffen** und durch Commit-Nachrichten ersetzen | Das Protokoll ist **Daniels** Chronik (seine Vorgabe seit dem 05.10.); er liest darin die Entstehung des Spiels. Eine Empfehlung gegen seine ausdrueckliche Einrichtung wird nicht umgesetzt, sondern ihm vorgelegt. Die Pruefung konnte das nicht wissen. |
-| **Die 20 Dimensionen im Limbus auf 1-2 reduzieren** | Die 20 Dimensionen sind **Originaldaten** (Handbuch 2009: 20 Dimensionen, je 20 x 20 Felder). Eine Reduktion waere ein Bruch der Originaltreue - und die ist Projektregel. |
+| **Die 20 Dimensionen im Limbus auf 1-2 reduzieren** | ~~Die 20 Dimensionen sind Originaldaten (Handbuch 2009: 20 Dimensionen, je 20 x 20 Felder). Eine Reduktion waere ein Bruch der Originaltreue.~~ **KORREKTUR (04.11.2026, Daniel):** Das Remake hat sich vom Original geloest - es ist **unser eigenes Spiel mit SECHS Welten und sechs Fraktionen**; Nebelseetal ist nur noch Ursprung und Referenz. Gemessen: `welt.DIMENSIONEN` fuehrt 20 Eintraege, davon **6 benannte Welten** (Armageddon, Ragnaroek, Utgard, Midgard, Valhalla, Limbus) und **14 leere Platzhalter** `Dimension 07` bis `Dimension 20` ohne Welt - sie stammen aus dem Handbuch (Limbus teilt sich in 20 Dimensionen, S. 80) und sind als VORSCHLAG gekennzeichnet. Die Pruefung hatte mit ihrer Reduktionsempfehlung also **recht**, meine Ablehnung war falsch. Beschluss: die 14 Platzhalter werden entfernt, das Spiel fuehrt sechs Welten (Cut "W-6"). |
 | **"Jede Zeile kommentiert" abschaffen** | Das ist Daniels ausdrueckliche Vorgabe (01.11.2026), damit er mitlesen kann. Ein Vorschlag dagegen wird ihm vorgelegt, nicht heimlich umgesetzt. |
 | **Fragen nur an Daniel, wenn sie Designfragen sind** | Bereits gelebte Praxis (Fragen werden gesammelt, technische Fragen beantwortet der Agent selbst). Die Pruefung hat den Ablauf hier unterschaetzt. |
 | **Uebergabe maschinell aus Stand und Register erzeugen** | Richtig im Kern (die Uebergabe wiederholt den Stand-Block), aber die Uebergabe traegt auch Handwerk und Fallstricke, die in keinem Register stehen. Vorschlag: Uebergabe auf zwei Teile - maschineller Zustandsteil und kurzer Handwerksteil. |

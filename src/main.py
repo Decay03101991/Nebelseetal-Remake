@@ -33,6 +33,7 @@ import originalkarten  # GPT-OK01: verifizierbarer Kartenkatalog
 import gebaeude_wirkung
 import gebaeude_optik  # C2-Gebaeude-Optik: Menue-Icons und Menue-Hintergruende (Register 123)
 import berater
+import story  # Story 1 (04.11.2026): Intro, Chronik, Sieg- und Niederlagentext aus data/story.json
 import tor
 import wirtschaft
 import boni  # V-5: Volks- und Taktikboni als Zahlen (Datenschicht src/boni.py)
@@ -7209,12 +7210,35 @@ class NebelseetalApp:
                 self._loading_step = 0
             self._loading_step += 1
             if self._loading_step >= 5:
-                self._build_main_ui()
+                self._build_main_ui()                                # Oberflaeche steht
+                self.root.after(400, self._geschichte_intro_zeigen)   # Story 1: Intro einmalig zeigen
             else:
                 self.root.after(100, self._loading_tick)
         except Exception as e:
             print("LOADING_ERROR", e)
             self.root.after(500, self._build_main_ui)
+
+    def _geschichte_intro_zeigen(self) -> None:
+        """Zeigt das Intro EINMAL je Installation (Story 1, 04.11.2026).
+
+        Der Text steht in `data/story.json`; hier wird er nur gezeigt. Ein Merker neben dem
+        Spielstand sorgt dafuer, dass das Intro nicht bei jedem Start wiederkommt - auch nicht bei
+        einem alten Spielstand.
+        """
+        try:                                                              # die Geschichte darf nie blockieren
+            if story.intro_gesehen() or not story.intro():                 # schon gezeigt oder kein Text
+                return                                                    # dann nichts tun
+        except Exception:                                                 # Fehler beim Lesen
+            return                                                        # dann ohne Intro weiterspielen
+        def bauer(inhalt, schliessen):                                     # Inhalt des Ingame-Dialogs
+            farbe = str(inhalt.cget("bg"))                                 # Farbe des Inhaltsbereichs
+            tk.Label(inhalt, text=story.intro_titel(), font=("Blackletter", 20),   # Ueberschrift
+                     fg="#FFCC33", bg=farbe).pack(anchor="w", pady=(0, 10))
+            tk.Label(inhalt, text=story.intro(), justify="left", wraplength=520,   # die vier Saetze
+                     fg=self.skin["text"], bg=farbe).pack(anchor="w")
+            tk.Button(inhalt, text="Los geht es",                                 # ein Knopf, kein Zwang
+                      command=lambda: (story.intro_merken(), schliessen())).pack(anchor="e", pady=(14, 0))
+        self._overlay_oeffnen(story.intro_titel(), bauer)                   # als Ingame-Dialog (Overlay)
 
     def _cycle_skin(self):
         names = list(SKINS.keys())
