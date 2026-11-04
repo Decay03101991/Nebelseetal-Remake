@@ -1,35 +1,45 @@
-# Bildcontent (Pixella, 04.11.2026)
+# Bildcontent (Pixella, Daniel, 04.11.2026)
 
-Daniel hat am 04.11.2026 um 17:00 Uhr mit einer einmaligen Zahlung von 0,98 EUR Bildcontent
-organisiert. Die Lieferung besteht aus **12 Uebersichten** (je 1998x1859 px), in denen mehrere
-Einzelbilder nebeneinander liegen - "groesstenteils ungeschnitten", so Daniels eigenes Wort.
+Daniel hat am 04.11.2026 um 17:00 Uhr mit einer **einmaligen Zahlung von 0,98 EUR** Bildcontent
+organisiert. Es sind **12 Uebersichten** zu je 1998x1859 px. In jeder Uebersicht liegen **mehrere
+Einzelbilder** nebeneinander, jeweils mit einem goldenen Rahmen - "groesstenteils ungeschnitten", so
+Daniels eigenes Wort.
 
 ## Was hier liegt
 
-- `schnitt/` - **79 Einzelbilder**, aus den Uebersichten geschnitten, in zwoelf Themenordnern
-  (`gebaeude_a`, `gebaeude_b`, `burgen`, `ghule`, `gnome`, `menschen`, `panorama_a`, `panorama_b`-
-  aehnlich, `zwerge_a/b/c`). Je Ordner ein Panorama (falls vorhanden) und die Kacheln.
-- `VERZEICHNIS.json` - Datei, Breite, Hoehe je Einzelbild; Quelle und Ablage der Rohfassungen.
+`uebersichten/` - die **12 Originaldateien, unveraendert**. Kein Schnitt, keine Skalierung, kein
+Umbenennen. SHA256 je Datei in `VERZEICHNIS.json`; alle 12 sind hashgleich mit den Rohfassungen im
+Archiv und mit der Lieferung auf dem Desktop.
+
+| Datei | Thema (von Daniel benannt) | Inhalt |
+|---|---|---|
+| `Bildcontent.png` | Gebaeude, Reihe A | 8 Gebaeudebilder (4x2) |
+| `Bildcontent2.png` | Gebaeude, Reihe B | 8 Gebaeudebilder (4x2) |
+| `Burgbilder_Hintergründe.png` | Burgen | 12 Burg- und Landschaftsbilder (6x2) |
+| `Ghule_fraktion1.png` | Ghule | 1 Panorama + 4 Kacheln |
+| `Gnome_fraktion.png` | Gnome | 1 Panorama + Kacheln |
+| `menschlich_fraktion.png` | Menschen | 1 Panorama + 4 Kacheln |
+| `Zwerge_fraktion1/2/3.png` | Zwerge | je 1 Panorama + 4 Kacheln |
+| `Panorama und Stilbilder für Nebelseetal.png` | Panoramen | 1 Panorama + 6 Kacheln (3x2) |
+| `Panorama und Stilbilder für Nebelseetal2.png` | Panoramen | 1 Panorama + 6 Kacheln (3x2) |
+| `Panorama und Stilbilder BURG für Nebelseetal3.png` | Burgen-Panorama | 1 Panorama + 6 Kacheln (3x2) |
+
+## Warum hier NICHT geschnitten ist (Lehre vom 04.11.2026)
+
+Ein automatischer Schnitt wurde zweimal versucht und von Daniel **verworfen**: die Kacheln enthielten
+Teile des Nachbarbildes oder waren mitten im Motiv angeschnitten. Drei Messungen dazu, die weiter gelten:
+
+1. **Zwischen den Kacheln gibt es keine weissen Fugen.** Die goldenen Rahmen beruehren sich; weisse
+   Stellen gibt es nur an den abgerundeten Ecken. Eine Fugen-Suche findet deshalb nichts.
+2. **Die gruenen Anfasser des Auswahlwerkzeugs** (Pixella-Screenshot) liegen ausserhalb der Bilder und
+   ziehen jede Bounding-Box nach unten - wer sie mitzaehlt, schneidet einen weissen Streifen mit.
+3. **Die Hoehe eines Panoramas** ist aus den Bilddaten nicht ableitbar; geschaetzte Werte lagen
+   daneben, gemessene weisse Zeilen trafen nur zufaellig.
+
+**Folge:** die Blaetter werden als Ganzes genutzt (Titelseite, Kapitelauftakt, Bildtafel). Wer einzelne
+Kacheln braucht, schneidet sie **von Hand** - oder liefert die Einzelbilder direkt aus dem Generator.
 
 ## Wo die Rohfassungen liegen
 
-`archiv/eingaben/20261104_pixella_bildcontent/` (12 Dateien, SHA256 gegen den Desktop geprueft).
-`archiv/` ist gitignored - die Rohfassungen sind absichtlich **nicht** im Repo.
-
-## Wie geschnitten wurde (und wo es hakt)
-
-1. Weisse Raender und die gruenen Anfasser des Auswahlwerkzeugs werden erkannt und abgeschnitten.
-   Wer sie mitzaehlt, schneidet mitten in die Kacheln (erster Fehlversuch).
-2. Zwischen den Kacheln gibt es **keine** weissen Fugen - die goldenen Rahmen beruehren sich.
-   Geteilt wird deshalb nach gemessener Geometrie: 4x2, 6x2, oder Panorama plus 4 bzw. 3x2 Kacheln.
-3. Wo echte weisse Fugen existieren (drei der Panorama-Dateien), werden sie benutzt.
-
-**Zweiter Durchgang (17:3x):** Die erste Fassung teilte die Panoramen nach einer Schaetzung und lag
-daneben (etwa 10 bis 15 von 79 Kacheln sichtbar falsch). Eine Messung ueber alle 12 Blaetter hat die
-echten weissen Fugen geliefert - bei den drei "Panorama und Stilbilder"-Blaettern liegen sie bei
-y=167/184/178 und y=292/311, bei den Gnomen bei 219, bei den Zwergen bei 222. Mit diesen Werten sitzen
-die Panoramen und die Kachelreihen darunter; die Sichtpruefung des Kontrollblatts meldet **keinen
-verbleibenden Fehler**.
-
-Wer eine Kachel anders braucht (anderer Ausschnitt, anderes Format): die Rohfassung liegt im Archiv,
-der Schnitt ist in `nebel_schnitt3.py` (Scratch) in Minuten nachzuziehen.
+`archiv/eingaben/20261104_pixella_bildcontent/` - dieselben 12 Dateien, gitignored. Die Fassung hier
+ist die Projektkopie, damit das Repo die Bilder traegt.
