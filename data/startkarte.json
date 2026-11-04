@@ -1,0 +1,12 @@
+{
+  "_zweck": "Startkartenwahl des SPIELERS beim ersten Gruenden (A2-Vorstufe, Vorgabe Daniel 02.11.2026: Kartenwahl am Start). Alle Zahlen hier, keine im Code.",
+  "_quelle": "originalkarten.START_ID = original-036 (heute fest verdrahtete Spieler-Startkarte, Kategorie 'mittlere'); Kategorien und Anzahl stehen in originalkarten.alle().",
+  "anzahl_kandidaten": 3,
+  "kategorien": [
+    "mittlere"
+  ],
+  "standard_karte": "original-036",
+  "speicherfeld": "startkarte_gewaehlt",
+  "wahl_endgueltig": true,
+  "begruendung": "Drei Kandidaten sind uebersichtlich und bieten Abwechslung; nur mittlere Karten, weil die heutige Startkarte mittlere ist und 'beste' den Start zu leicht macht; original-036 bleibt garantiert dabei, damit sich am belegten Startbild nichts aendert."
+}

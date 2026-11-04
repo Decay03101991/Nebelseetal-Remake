@@ -1,0 +1,236 @@
+{
+  "_zweck": "Zuordnung der acht Original-Gebaeudemotive (Handbuch 2009, Seite 1) zu Gebaeudetypen aus data/buildings.json.",
+  "_quelle": "docs/original/handbuch_bilder/seite01_bild01,04,05,06,07,08,09,10.jpeg -> assets/icons/gebaeude/motiv_1..8.png (100x100 px, PNG, weil Tk kein JPEG liest)",
+  "_sichtung": "docs/audits/BILDQUELLEN_SICHTUNG_20261101.md (alle 244 Handbuchbilder auf sechs Kontaktboegen)",
+  "_regel": "Nur Motive mit 'eingebaut': true erscheinen auf der Siedlungskarte. 'eingebaut': false heisst: Motiv ist vorhanden, die Zuordnung ist aber NICHT belegt - Daniel ordnet zu, dann wird nur dieses Feld geaendert. Es wird nichts geraten.",
+  "_entscheidung_offen": "ERLEDIGT 02.11.2026: Daniel zeigt auf der Siedlungskarte die 20 freigestellten C2-Motive (Register 119), nicht die acht Handbuchmotive. Die Liste 'motive' bleibt als Beleg und Rueckfallsatz unveraendert stehen.",
+  "motive": [
+    {
+      "motiv": 1,
+      "datei": "assets/icons/gebaeude/motiv_1.png",
+      "gebaeude": "haus",
+      "eingebaut": true,
+      "sicher": true,
+      "beschreibung": "kleines Haus mit gelbem Satteldach, Fass und Holzstapel im Hof",
+      "begruendung": "Wohnhaus ist am Motiv eindeutig (Dach, Schornstein, Hof)."
+    },
+    {
+      "motiv": 2,
+      "datei": "assets/icons/gebaeude/motiv_2.png",
+      "gebaeude": null,
+      "eingebaut": false,
+      "sicher": false,
+      "beschreibung": "runder Kuppelbau auf Holzkonstruktion mit Zaun",
+      "begruendung": "Kann Muehle, Tempel oder Marktplatz sein - ohne Beschriftung nicht entscheidbar."
+    },
+    {
+      "motiv": 3,
+      "datei": "assets/icons/gebaeude/motiv_3.png",
+      "gebaeude": null,
+      "eingebaut": false,
+      "sicher": false,
+      "beschreibung": "offenes Holzgeruest, graues Schraegdach, Vorraete im Inneren",
+      "begruendung": "Lager oder Werkstatt - beide Lesarten sind moeglich."
+    },
+    {
+      "motiv": 4,
+      "datei": "assets/icons/gebaeude/motiv_4.png",
+      "gebaeude": null,
+      "eingebaut": false,
+      "sicher": false,
+      "beschreibung": "gelbes Dach mit dunklem Holzanbau, Rasenflaeche",
+      "begruendung": "Scheune, Farm oder Muehle - nicht entscheidbar."
+    },
+    {
+      "motiv": 5,
+      "datei": "assets/icons/gebaeude/motiv_5.png",
+      "gebaeude": "kriegerakademie",
+      "eingebaut": true,
+      "sicher": true,
+      "beschreibung": "grauer Steinbau mit Zinnen, Treppe und roten Fahnen",
+      "begruendung": "Zinnen und Fahnen sind ein Wehrbau; im Spiel ist die Kriegerakademie (Menuepunkt 'Kaserne') das einzige Gebaeude, das Truppen ausbildet und mit Fahnen dargestellt ist."
+    },
+    {
+      "motiv": 6,
+      "datei": "assets/icons/gebaeude/motiv_6.png",
+      "gebaeude": null,
+      "eingebaut": false,
+      "sicher": false,
+      "beschreibung": "zweites offenes Holzgeruest, andere Inneneinrichtung",
+      "begruendung": "Werkstatt oder Lager - nicht entscheidbar."
+    },
+    {
+      "motiv": 7,
+      "datei": "assets/icons/gebaeude/motiv_7.png",
+      "gebaeude": "erzmine",
+      "eingebaut": true,
+      "sicher": true,
+      "beschreibung": "grauer Felshuengel mit dunklem Stollen und Lore",
+      "begruendung": "Stollen und Lore sind eine Mine; von den drei Abbaugebaeuden ist die Erzmine das Metall-Gebaeude."
+    },
+    {
+      "motiv": 8,
+      "datei": "assets/icons/gebaeude/motiv_8.png",
+      "gebaeude": null,
+      "eingebaut": false,
+      "sicher": false,
+      "beschreibung": "braune Holzscheune mit grossem Dach auf Stelzen",
+      "begruendung": "Stall, Farm oder Jaegerhuette - nicht entscheidbar."
+    }
+  ],
+  "quelle_der_karte": "c2",
+  "_quelle_der_karte": "ENTSCHEIDUNG Daniel 02.11.2026 (Register 119): die Siedlungskarte zeigt die 20 Motive aus `c2_motive` (freigestellt, 256x256 RGBA, Quelle: C2-Lieferung, binaer identisch mit den freigegebenen Originalen). 'quelle_der_karte' ist der EINE Schalter; steht dort etwas anderes, gilt die alte Liste 'motive' mit 'eingebaut: true'.",
+  "c2_motive": [
+    {
+      "gebaeude": "holzfaeller",
+      "datei": "assets/icons/gebaeude/c2/holzfaeller.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "steinmetz",
+      "datei": "assets/icons/gebaeude/c2/steinmetz.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "erzmine",
+      "datei": "assets/icons/gebaeude/c2/erzmine.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "tempel",
+      "datei": "assets/icons/gebaeude/c2/tempel.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "farm",
+      "datei": "assets/icons/gebaeude/c2/farm.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "goldmine",
+      "datei": "assets/icons/gebaeude/c2/goldmine.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "schafszucht",
+      "datei": "assets/icons/gebaeude/c2/schafszucht.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "rinderfarm",
+      "datei": "assets/icons/gebaeude/c2/rinderfarm.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "pferdezucht",
+      "datei": "assets/icons/gebaeude/c2/pferdezucht.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "jaeger",
+      "datei": "assets/icons/gebaeude/c2/jaeger.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "schmiede",
+      "datei": "assets/icons/gebaeude/c2/schmiede.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "bogenbauer",
+      "datei": "assets/icons/gebaeude/c2/bogenbauer.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "naehstube",
+      "datei": "assets/icons/gebaeude/c2/naehstube.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "kriegerakademie",
+      "datei": "assets/icons/gebaeude/c2/kriegerakademie.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "diebesgilde",
+      "datei": "assets/icons/gebaeude/c2/diebesgilde.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "stellmacher",
+      "datei": "assets/icons/gebaeude/c2/stellmacher.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "verteidigungswall",
+      "datei": "assets/icons/gebaeude/c2/verteidigungswall.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "bibliothek",
+      "datei": "assets/icons/gebaeude/c2/bibliothek.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "haus",
+      "datei": "assets/icons/gebaeude/c2/haus.png",
+      "px": 256,
+      "freigestellt": true
+    },
+    {
+      "gebaeude": "lager",
+      "datei": "assets/icons/gebaeude/c2/lager.png",
+      "px": 256,
+      "freigestellt": true
+    }
+  ],
+  "kachelrahmen": {
+    "_zweck": "Rahmen je Kartenkachel (C2-Lieferung, 64x64 RGBA); 'ruhe' liegt auf jedem Feld, 'auswahl' ist der hervorgehobene Rahmen",
+    "ruhe": "assets/icons/gebaeude/rahmen/kachelrahmen_ruhe.png",
+    "auswahl": "assets/icons/gebaeude/rahmen/kachelrahmen_auswahl.png",
+    "px": 64,
+    "deckkraft_prozent": 35,
+    "deckkraft_auswahl_prozent": 100,
+    "_warum_auswahl": "Der AUSWAHLrahmen liegt voll deckend auf dem gewaehlten Feld (Vorgabe Daniel in der Uebergabe 02.11.2026, Abschnitt 3: gelieferten Auswahlrahmen mit voller Deckkraft legen). Eigene Sichtpruefung 02.11.2026 auf dem Kontaktblatt docs/audits/auswahlrahmen_vergleich_20261102.png: der gelieferte Rahmen ist deutlich kraeftiger als der frueher gezeichnete Goldrahmen und deckt die Feldraender ab - falls er zu wuchtig wirkt, ist DIESE Zahl der Regler (z. B. 70), ohne Codeaenderung. Der gezeichnete Rahmen aus karten_optik_fein bleibt Rueckfall, wenn das Bild fehlt. Daniel hat am 02.11.2026 im Auswahlformular entschieden: 100 Prozent BLEIBEN, so wie geliefert.",
+    "_warum": "Der gelieferte Rahmen ist kraeftig; voll aufgelegt erdrueckt er das Gelaende (eigene Sichtpruefung 02.11.2026, docs/audits/kartenvergleich_c2_20261102.png). 35 Prozent zeigen das Raster, ohne die Landschaft zu zerschneiden. Der Wert ist EINE Zahl in dieser Datei - Daniel kann ihn ohne Codeaenderung anheben oder senken."
+  },
+  "ansicht_hintergrund": {
+    "aktiv": true,
+    "breite": 980,
+    "hoehe": 760,
+    "abdunkeln_prozent": 38.0,
+    "_zweck": "B-6 (Vorgabe Daniel 02.11.2026): das gemalte Gebaeudemotiv ist der HINTERGRUND der Ansicht (Dorfzentrum, Bibliothek, Kaserne/Stellmacher/Diebesgilde) und nicht mehr ein Bild oben drueber. 'abdunkeln_prozent' legt einen schwarzen Schleier ueber das Bild - Daniel: 'die texte muessen erkennbar bleiben, kleinere textbloecke die nicht transparent sind und der rest so transparent dass moeglichst viel vom bild durchkommt'. 0 = volle Bildhelligkeit (Vergleichsfassung B), 25 = Vergleichsfassung C. 'breite'/'hoehe' ist die Flaeche, die das Bild deckt (cover, mittig beschnitten); die Textkaesten liegen als deckende Felder darueber.",
+    "_beleg": "Die Motive selbst sind belegt (C2-Lieferung, Register 119); dass sie als Hintergrund wirken sollen, ist Vorgabe Daniel 02.11.2026. Vergleichsblatt: docs/design/HINTERGRUND_VERGLEICH_20261102.png (tools/hintergrund_vergleich.py).",
+    "_entscheidung_daniel": "Daniel 02.11.2026, zwei Korrekturen nacheinander: erst \"B gefaellt mir am besten\" (Bild als Hintergrund, keine Abdunkelung), dann \"das hintergrundbild ist noch zu sehr blickfangend ... die texte muessen ... der Vordergrund sein\". Also: Bild leicht abgedunkelt (38 %) und weichgezeichnet (2 px), Textfelder nahezu deckend (oben 248, unten 205) mit warmem Braun und feinem Goldrand - alles Zahlen hier, damit Daniel sie ohne Codeaenderung stellen kann.",
+    "weichzeichnen_px": 2.0,
+    "kasten": {
+      "radius": 14,
+      "oben_deckkraft": 248,
+      "unten_deckkraft": 205,
+      "rand_deckkraft": 90,
+      "farbe": [
+        22,
+        17,
+        12
+      ]
+    }
+  }
+}

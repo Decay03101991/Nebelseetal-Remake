@@ -1,0 +1,71 @@
+{
+  "_zweck": "Die Ressourcenleiste aus der C2-Lieferung. Das Bild bringt acht gezeichnete Symbole und acht freie Zahlenplaketten mit; die WERTE schreibt das Spiel als eigene Textebene darueber (helle Zahl, dunkle Kontur).",
+  "_quelle": "archiv/eingaben/20261102_c2_designs/ressourcenleiste/ressourcenleiste.png (1440x140 RGBA) und LIEFERUNG.md der C2-Lieferung: Reihenfolge Siedler, Nahrung, Holz, Stein, Erz, Gold, Mana, Kelch; Zahlenfeld-Mittelpunkte in Pixeln bei 1440x140. Register 119/121.",
+  "_abbildung": "Der Auftrag nennt die Felder 'Erz' und 'Kelch'. Im Spiel heissen sie 'Metall' und 'Punkte' (Gesamtpunkte aus punkte.py) - die Zuordnung steht in 'quelle', damit die Anzeige nicht neu erfunden wird.",
+  "_regel": "Alle Masse sind Pixel im Originalbild (1440x140). Bei anderer Breite rechnet das Spiel ALLES proportional um (Skala = Breite / 1440); kein Feld ist fest getippt.",
+  "datei": "assets/icons/leiste/ressourcenleiste.png",
+  "breite": 1440,
+  "hoehe": 140,
+  "felder": [
+    {
+      "schluessel": "siedler",
+      "x": 184,
+      "y": 105,
+      "quelle": "bevoelkerung"
+    },
+    {
+      "schluessel": "nahrung",
+      "x": 342,
+      "y": 105,
+      "quelle": "nahrung"
+    },
+    {
+      "schluessel": "holz",
+      "x": 494,
+      "y": 105,
+      "quelle": "holz"
+    },
+    {
+      "schluessel": "stein",
+      "x": 646,
+      "y": 105,
+      "quelle": "stein"
+    },
+    {
+      "schluessel": "erz",
+      "x": 799,
+      "y": 105,
+      "quelle": "metall"
+    },
+    {
+      "schluessel": "gold",
+      "x": 957,
+      "y": 105,
+      "quelle": "gold"
+    },
+    {
+      "schluessel": "mana",
+      "x": 1110,
+      "y": 105,
+      "quelle": "mana"
+    },
+    {
+      "schluessel": "punkte",
+      "x": 1264,
+      "y": 105,
+      "quelle": "punkte"
+    }
+  ],
+  "farben": {
+    "_zweck": "Zahl hell mit dunkler Kontur, damit sie auf der gemalten Kulisse lesbar bleibt (Vorgabe LIEFERUNG.md)",
+    "zahl": "#F7E9C8",
+    "kontur": "#101418"
+  },
+  "kachel_halbbreite": 55,
+  "skala_max": 1.5,
+  "luecke_max": 1.35,
+  "rest_auffuellen": "kacheln",
+  "skala_hart": 1.75,
+  "_lueckendehnung": "P-3 (02.11.2026): 'luecke_max' deckelt, wie weit eine Luecke hoechstens waagerecht gedehnt wird. Vorher nahmen die Luecken die gesamte Restbreite auf - bei 2560 px Fensterbreite war das Faktor 1,86, bei 3440 px 3,75; die gemalte Landschaft zwischen den Symbolen wurde zu langgezogenen Streifen mit harten Naehten (Daniels Befund). Reicht die gedeckelte Luecke nicht, skaliert das Band stattdessen GLEICHMAESSIG groesser (treue Vergroesserung ohne Naht), hoechstens bis 'skala_hart'. 'rest_auffuellen' schaltet das um: 'gleichmaessig' oder 'leer' (dann bleibt rechts die Kopfleistenfarbe stehen).",
+  "_bauweise": "Das Bild ist nicht mehr EIN Stueck, das auf Fensterbreite gezogen wird (das machte die Symbole unscharf und links-rechts gestreckt - Daniels Befund 02.11.2026). Es wird aus Stuecken zusammengesetzt: Ecken (Zierrahmen und Banner) und die acht Symbolfelder sind FEST und werden nur gleichmaessig mit 'skala' skaliert; nur die Luecken zwischen den Feldern werden waagerecht gedehnt. Damit wird der Balken laenger, ohne dass ein Symbol verzerrt. 'kachel_halbbreite' ist die halbe Breite eines Symbolfeldes in Pixeln (Symbol plus Zahlenplakette), 'skala_max' die Obergrenze des gleichmaessigen Wachstums: darueber hinaus waechst nur noch die Laenge (Symbole bleiben scharf)."
+}

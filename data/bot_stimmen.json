@@ -1,0 +1,104 @@
+{
+  "stand": "2026-11-04",
+  "ton": "abenteuerlich und leicht - Aufbruch, Entdecken, Humor (Daniels Entscheidung 04.11.2026)",
+  "hinweis": "Story 2: die fünf Bots sprechen. Je Bot ein bis zwei Sätze für Angriff, Verteidigung, Gründung und Beute. Jeder Text steht HIER, nicht im Code – wer eine Stimme ändern will, ändert diese Datei. Fehlt ein Eintrag, sagt das Spiel den neutralen Satz; es stürzt nie ab.",
+  "neutral": "Der Nachbar sagt dazu nichts und geht weiter.",
+  "ereignisse": [
+    "angriff",
+    "verteidigung",
+    "gruendung",
+    "beute"
+  ],
+  "bots": {
+    "Haug": {
+      "angriff": [
+        "Haug kommt mit Karren, die schon leer sind. „Wir helfen nur beim Ausmisten“, ruft er.",
+        "Haug klopft nicht an. „Ich nehme nur, was ihr nicht festhaltet“, sagt er und grinst breit."
+      ],
+      "verteidigung": [
+        "Haug stellt sich breitbeinig vor sein Lager: „Da müsst ihr schon früher aufstehen.“",
+        "Haug pfeift auf zwei Fingern, und seine Leute stehen im Kreis um die Kisten."
+      ],
+      "gruendung": [
+        "Haug gründet ein Dorf und nennt es sofort „mein bestes“.",
+        "Ein neues Dorf von Haug: die Zäune stehen schon, die Vorräte kommen später."
+      ],
+      "beute": [
+        "Haug lädt auf und bedankt sich nicht. „War ja alles frei zugänglich.“",
+        "Haug zählt die Beute laut, damit auch alle anderen es hören."
+      ]
+    },
+    "Brynhild": {
+      "angriff": [
+        "Brynhild kommt leise und bleibt am Rand. „Ihr habt eine Wahl“, sagt sie, „und ich habe Zeit.“",
+        "Brynhild schickt einen Boten voraus: „Ich komme nicht zum Plündern, ich komme zum Aufräumen.“"
+      ],
+      "verteidigung": [
+        "Brynhild steht auf der Mauer und gähnt. „Ihr seid spät dran – ich stehe hier seit dem Frühstück.“",
+        "Brynhild lässt die Tore zu und wartet. Warten ist ihre Lieblingswaffe."
+      ],
+      "gruendung": [
+        "Brynhild setzt ein Dorf an die Grenze: „Wer hier hereinkommt, fragt vorher.“",
+        "Ein neues Dorf unter Brynhilds Schutz – die Mauer wird vor den Häusern gebaut."
+      ],
+      "beute": [
+        "Brynhild nimmt, was sie braucht, und lässt den Rest stehen. „Wir sind nicht Haug.“",
+        "Brynhilds Leute tragen ordentlich in zwei Reihen und zählen dabei laut mit."
+      ]
+    },
+    "Grom": {
+      "angriff": [
+        "Grom kommt mit Werkzeug statt mit Waffen. „Ich baue euch um“, knurrt er.",
+        "Grom schlägt einmal gegen die Mauer und sagt: „Die hält nicht. Ich weiß das.“"
+      ],
+      "verteidigung": [
+        "Grom steht hinter seiner Mauer und klopft zufrieden auf den Stein. „Zwei Lagen. Selbst gemacht.“",
+        "Groms Antwort auf einen Angriff: erst die Mauer, dann die Wut."
+      ],
+      "gruendung": [
+        "Grom legt einen Grundstein, dann noch einen. „Ein Dorf fängt unten an“, sagt er.",
+        "Grom gründet – mit einem Plan auf Papier, einer Kelle und viel Geduld."
+      ],
+      "beute": [
+        "Grom nimmt nur Metall und lässt das Holz liegen. „Holz ist für Anfänger.“",
+        "Groms Beute wird gewogen, nicht geschätzt."
+      ]
+    },
+    "Silra": {
+      "angriff": [
+        "Silra ist schon da, als alle noch suchen. „Ihr habt einen Späher überhört“, flüstert sie.",
+        "Silra greift aus dem Nebel an und ist danach wieder Nebel."
+      ],
+      "verteidigung": [
+        "Silra lässt den Angreifer erst laufen und zeigt ihm dann zweimal den Weg zurück.",
+        "Silra verteidigt nicht – sie verschiebt das Schlachtfeld, bis es ihr passt."
+      ],
+      "gruendung": [
+        "Silra gründet ein Dorf im Schatten und nennt keine Straßen. „Wer suchen will, soll suchen.“",
+        "Ein neues Dorf von Silra steht da, wo gestern noch kein Pfad war."
+      ],
+      "beute": [
+        "Silra nimmt ein Drittel und lässt den Rest als Andenken zurück.",
+        "Was Silra mitnimmt, wird erst Tage später vermisst."
+      ]
+    },
+    "Krank": {
+      "angriff": [
+        "Krank sagt nichts. Krank erinnert sich nur.",
+        "Krank kommt ohne Ankündigung – Ankündigungen hat er sich gemerkt, von euch."
+      ],
+      "verteidigung": [
+        "Krank stellt sich in den Weg und wartet. Das hat er lange geübt.",
+        "Krank wehrt ab und notiert jeden Namen. Die Liste ist schon lang."
+      ],
+      "gruendung": [
+        "Krank gründet ein Dorf und mauert jedes Tor doppelt zu. „Man weiß nie“, sagt er.",
+        "Krank legt ein neues Dorf an, weit hinten, mit Fluchtweg."
+      ],
+      "beute": [
+        "Krank nimmt alles, was auf der Liste steht. Die Liste ist alt.",
+        "Krank räumt das Lager leer und nickt: „Endlich ausgeglichen.“"
+      ]
+    }
+  }
+}

@@ -1,0 +1,171 @@
+{
+  "stand": "2026-11-03",
+  "aktiv": true,
+  "bauten_je_takt": 1,
+  "hoechstens": {
+    "haus": 2,
+    "bibliothek": 1,
+    "lager": 1,
+    "schmiede": 1,
+    "kriegerakademie": 1,
+    "diebesgilde": 1,
+    "bogenbauer": 1,
+    "verteidigungswall": 1
+  },
+  "anlagen_bauplaene": {
+    "Pluenderer": {
+      "entwurf": "haendlerisch",
+      "zuordnung": "S-8 Stufe 3 (04.11.2026): VORSCHLAG der Zuordnung. Der Pluenderer bekommt +5 % Beute (bottaktik.TAKTIKEN.Haug), und die Beute wird nach Daniels Entscheidung vom 03.11. zuerst in GOLD ausgezahlt - darum der goldlastige Plan des Entwurfs 'Haendlerisch' (Goldmine-Mindestzahl 4).",
+      "mindest": {
+        "holzfaeller": 3,
+        "jaeger": 1,
+        "farm": 2,
+        "rinderfarm": 3,
+        "schafszucht": 2,
+        "pferdezucht": 2,
+        "erzmine": 2,
+        "steinmetz": 2,
+        "goldmine": 4,
+        "stellmacher": 1
+      },
+      "restfelder": {
+        "wald": ["holzfaeller", "jaeger"],
+        "grasland": ["schafszucht", "rinderfarm"],
+        "huegel": ["steinmetz", "goldmine"],
+        "berg": ["goldmine", "erzmine"],
+        "steppe": ["rinderfarm"]
+      },
+      "restfelder_obergrenze": {"holzfaeller": 6}
+    },
+    "Waechterin": {
+      "entwurf": "defensiv",
+      "zuordnung": "S-8 Stufe 3 (04.11.2026): VORSCHLAG der Zuordnung. Die Waechterin sichert und bekommt +5 % Verteidigung (bottaktik.TAKTIKEN.Brynhild) - Wall und Mauer kosten STEIN, darum der steinlastige Plan des Entwurfs 'Defensiv' (Steinmetz 4).",
+      "mindest": {
+        "holzfaeller": 4,
+        "jaeger": 1,
+        "farm": 3,
+        "rinderfarm": 2,
+        "schafszucht": 1,
+        "pferdezucht": 1,
+        "erzmine": 2,
+        "steinmetz": 4,
+        "goldmine": 2,
+        "stellmacher": 1
+      },
+      "restfelder": {
+        "wald": ["holzfaeller", "jaeger"],
+        "grasland": ["farm", "rinderfarm"],
+        "huegel": ["steinmetz", "goldmine"],
+        "berg": ["steinmetz", "goldmine"],
+        "steppe": ["rinderfarm"]
+      },
+      "restfelder_obergrenze": {"holzfaeller": 6}
+    },
+    "Bastionier": {
+      "entwurf": "ausgleichend",
+      "zuordnung": "S-8 Stufe 3 (04.11.2026): VORSCHLAG der Zuordnung. Der Bastionier greift nie an, waechst dauerhaft und bekommt +5 % Ausbau (bottaktik.TAKTIKEN.Grom) - darum der gleichmaessige Plan des Entwurfs 'Ausgleichend' (ueberall 3).",
+      "mindest": {
+        "holzfaeller": 3,
+        "jaeger": 1,
+        "farm": 2,
+        "rinderfarm": 2,
+        "schafszucht": 2,
+        "pferdezucht": 2,
+        "erzmine": 3,
+        "steinmetz": 3,
+        "goldmine": 3,
+        "stellmacher": 1
+      },
+      "restfelder": {
+        "wald": ["holzfaeller", "jaeger"],
+        "grasland": ["rinderfarm", "schafszucht"],
+        "huegel": ["steinmetz", "goldmine"],
+        "berg": ["goldmine", "erzmine"],
+        "steppe": ["rinderfarm"]
+      },
+      "restfelder_obergrenze": {"holzfaeller": 6}
+    },
+    "Spaeherin": {
+      "entwurf": "geheim",
+      "zuordnung": "S-8 Stufe 3 (04.11.2026): VORSCHLAG der Zuordnung. Die Spaeherin erkundet und bekommt +5 % Reisegeschwindigkeit (bottaktik.TAKTIKEN.Silra) - Reisen laufen ueber PFERDE, darum der pferdelastige Plan des Entwurfs 'Geheim' (Pferdezucht 3).",
+      "mindest": {
+        "holzfaeller": 3,
+        "jaeger": 1,
+        "farm": 2,
+        "rinderfarm": 3,
+        "schafszucht": 1,
+        "pferdezucht": 3,
+        "erzmine": 3,
+        "steinmetz": 2,
+        "goldmine": 3,
+        "stellmacher": 1
+      },
+      "restfelder": {
+        "wald": ["holzfaeller", "jaeger"],
+        "grasland": ["pferdezucht", "rinderfarm"],
+        "huegel": ["steinmetz", "goldmine"],
+        "berg": ["goldmine", "erzmine"],
+        "steppe": ["rinderfarm"]
+      },
+      "restfelder_obergrenze": {"holzfaeller": 6}
+    },
+    "Raecher": {
+      "entwurf": "kriegerisch",
+      "zuordnung": "S-8 Stufe 3 (04.11.2026): VORSCHLAG der Zuordnung. Der Raecher greift immer an (angriff_schwelle 0.0, Blitz) und bekommt +5 % Angriff AT (bottaktik.TAKTIKEN.Krank) - Waffen und Ausruestung kosten METALL, darum der metalllastige Plan des Entwurfs 'Kriegerisch' (Erzmine 4).",
+      "mindest": {
+        "holzfaeller": 3,
+        "jaeger": 1,
+        "farm": 2,
+        "rinderfarm": 2,
+        "schafszucht": 1,
+        "pferdezucht": 2,
+        "erzmine": 4,
+        "steinmetz": 2,
+        "goldmine": 2,
+        "stellmacher": 1
+      },
+      "restfelder": {
+        "wald": ["holzfaeller", "jaeger"],
+        "grasland": ["rinderfarm", "pferdezucht"],
+        "huegel": ["steinmetz", "erzmine"],
+        "berg": ["erzmine", "goldmine"],
+        "steppe": ["rinderfarm"]
+      },
+      "restfelder_obergrenze": {"holzfaeller": 6}
+    }
+  },
+  "anlagen_bauplaene_hinweis": "S-8 Stufe 3 (04.11.2026): Mindestzahlen je WIRKLICHE Taktik des Bots (Name aus bottaktik.TAKTIKEN, gelesen ueber main.bot_taktik_name) und die Regel fuer die RESTFELDER. Ein Bot-Dorf setzt zuerst jede Mindestzahl in ihr bevorzugtes Gelaende (Phase A/B wie seit S-8 Stufe 2) und fuellt dann die freien Felder nach diesem Block (Phase C): je Gelaende die genannte Reihenfolge, hoechstens bis zur Obergrenze in `restfelder_obergrenze`. Was NICHT hier steht: die ERTRAEGE (data/buildings.json ueber gelaende.ertrag_pro_stunde) und die PREISE (data/baupreise.json). Fehlt der Block oder die Taktik, gilt weiter `anlagen_je_gebaeude` - kein erfundener Plan. **S-12 (04.11.2026): Hügel wird jetzt MITBENUTZT.** Bis heute blieb er ganz fuer Haus, Bibliothek, Lager, Schmiede, Akademie und Wall frei; damit blieben auf Huegel-reichen Karten bis zu 24 Felder unbelegt. Jetzt steht `huegel` in jeder Taktik in `restfelder` (Steinmetz 2 je Stunde ist der beste Ertrag dort, dann Goldmine/Erzmine 1,5 - beim Raecher die Erzmine, weil Metall sein Engpass ist). Die beiden Sperren halten das weiterhin: die FELDRESERVE (`bot_bauplan_offene_bauten`, 9 Felder fuer den Gebaeude-Bauplan) und das letzte Bibliotheksfeld. Sumpf traegt gar nichts, Nebelsee nur die Bibliothek - diese beiden Gelaendearten bleiben ungenutzt, das ist eine Regel des Spiels, keine Luecke.",
+  "anlagen_bauplaene_quelle": "Entwurf D:/Arbeiten/Hermes/Notizen/S8_STUFE3_BAUPLAENE_20261103.md (fuenf Plaene, starkes Modell) - die PLAENE (Gebaeude, Mindestzahlen, Reihenfolge, Gelaende) sind uebernommen, die ERTRAGSRECHNUNGEN des Entwurfs NICHT: dort standen Jaeger mit 0, Zuchten mit 1,5 und Farm nur auf Grasland. Gemessen im Code (04.11.2026): Jaeger 2 Nahrung + 2 Leder auf Wald, Schafszucht/Pferdezucht 3 auf Grasland, Farm 4 auf Grasland und 2 auf Steppe. Die Mindestzahl 'jaeger' ist neu in dieser Liste - data/bot_wirtschaft.json fuehrt fuer den Rueckfall-Pfad keinen Jaeger, der Plan schon.",
+  "hoechstens_erklaerung": "S-4 (03.11.2026): die Grenzen fuer die Gebaeude hinter Baukunst sind neu. Ohne sie wuerde ein Bot jede Schmiede und jeden Wall immer wieder bauen (data/buildings.json nennt fuer beide kein max_je_siedlung, sie sind mehrfach moeglich). Gesetzt ist je 1 - eine Ausbildungsstaette, eine Werkstatt, ein Wall je Dorf genuegen fuer den Anfang, und mehr Werkstaetten sind eine spaetere Ausbau-Entscheidung, keine stille Nebenwirkung. Wo data/buildings.json ein max_je_siedlung nennt (Lager und Akademie: 1), prueft spielschicht.bauen dieselbe Grenze zusaetzlich selbst.",
+  "bauplaene": {
+    "Pluenderer": {
+      "jetzt": ["haus", "bibliothek"],
+      "nach_baukunst": ["lager", "schmiede", "kriegerakademie"]
+    },
+    "Waechterin": {
+      "jetzt": ["haus", "bibliothek"],
+      "nach_baukunst": ["verteidigungswall", "bogenbauer", "lager"]
+    },
+    "Bastionier": {
+      "jetzt": ["haus", "bibliothek"],
+      "nach_baukunst": ["verteidigungswall", "lager", "schmiede"]
+    },
+    "Spaeherin": {
+      "jetzt": ["haus", "bibliothek"],
+      "nach_baukunst": ["diebesgilde", "lager", "bogenbauer"]
+    },
+    "Raecher": {
+      "jetzt": ["haus", "bibliothek"],
+      "nach_baukunst": ["kriegerakademie", "schmiede", "lager"]
+    },
+    "Unbekannt": {
+      "jetzt": ["haus"],
+      "nach_baukunst": []
+    }
+  },
+  "hinweis": "S-3 (03.11.2026): die REIHENFOLGE, in der ein Bot-Dorf baut - je Taktik eine Liste, kein Literal im Code. Gebaut wird immer nur das ERSTE Gebaeude der Liste, das noch unter 'hoechstens' liegt, auf ein freies Feld passt und bezahlbar ist; danach ist der Takt vorbei ('bauten_je_takt'). Die Preise stehen NICHT hier, sondern in data/baupreise.json und werden ueber spielschicht.bauen gebucht - dieselbe Funktion wie beim Spieler, dieselbe Abbuchung aus dem Dorflager.",
+  "jetzt_erklaerung": "'jetzt' enthaelt nur Gebaeude, die OHNE Forschung baubar sind (data/buildings.json, regeln.ohne_forschung_baubar: Holzaeller, Steinmetze, Jaeger, Bibliothek und Haeuser). Alles andere verlangt die Forschung 'Baukunst' und steht unter 'nach_baukunst'. SEIT S-4 (03.11.2026) forschen die Bots: sobald ein Dorf Baukunst Stufe 1 hat, liest bot_dorf_bauen auch 'nach_baukunst' - aber nur, was die gemeinsame Regel gebaeude_forschung_erlaubt durchlaesst (dieselbe Funktion wie im Spielerweg bauen_auf_karte). Die Forschungsregel wird also BENUTZT, nicht umgangen.",
+  "warum_haus_zuerst": "Ein Haus beherbergt Siedler (+5 je Stufe, data/buildings.json) - Siedler sind der Posten, an dem die belegten Einheiten- und Gebaeudepreise haengen (Holzfaeller, Steinmetz, Jaeger, alle Einheiten). Ohne Haeuser kann ein Bot nicht wachsen. Die Bibliothek oeffnet den Forschungszugang (5) und ist damit die Vorbereitung von S-4 - sie kostet 12 Holz / 8 Stein und ist bewusst billiger als jede Werkstatt.",
+  "ehrliche_grenze": "Seit S-4 unterscheiden sich die Taktiken auch beim Bauen - gemessen nach 120 Bot-Takten (30 Spielstunden): Pluenderer Lager/Schmiede/Kriegerakademie, Waechterin Wall/Bogenbauer, Bastionier Wall/Schmiede, Spaeherin Diebesgilde/Bogenbauer, Raecher Kriegerakademie/Schmiede. Die Trennung entsteht allein durch die Forschung, denn ohne Baukunst ist der Block gesperrt. Wer schneller bauen will, aendert die Forschungsreihenfolge in data/bot_forschung.json - nicht diesen Plan.",
+  "grenze_je_gebaeude": "hoechstens.haus = 2 (10 zusaetzliche Siedlerplaetze) und hoechstens.bibliothek = 1 (eine Forschungsstaette je Dorf genuegt). Die Obergrenzen der Originalsiedlung (max_je_siedlung in data/buildings.json) prueft zusaetzlich spielschicht.bauen selbst."
+}

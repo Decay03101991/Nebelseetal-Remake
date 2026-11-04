@@ -1,0 +1,1645 @@
+"""Nebelseetal Remake — deterministischer Kern der Spielökonomie (Ökonomie-Paket, Schritt 2).
+
+Quelle: `archiv/analysen/audits/entwurf_spieloekonomie_sol_2026-10-05.txt` (Abschnitt F, Schritt 2,
+Codeblock Z. 237-414). Reine Rechenlogik **ohne** Oberfläche und **ohne** main-Abhängigkeit:
+Karten aus festen Kontingenten, Kartenqualität (drei Achsen), Schattenpreise und die
+Gründungs-Transaktion.
+
+Bewusste Grenzen dieses Schritts (stehen so im Entwurf):
+  * Der historische 8x7-Generator ist stillgelegt und separat archiviert.
+    Spielkarten stammen nur aus `data/originalkarten/katalog.json`.
+  * Nichts ruft dieses Modul auf. Der Ökonomiemodus wird erst nach dem letzten
+    Integrationsschritt aktiviert; bis dahin läuft der Altmodus unverändert.
+  * Alle Schwellen, Gewichte und Gebühren sind **VORSCHLAG** (siehe `data/spieloekonomie.json`).
+
+Die Kontingente sind exakte Feldzahlen: `feste_karte` prüft selbst, dass sie zum Kartenmaß
+passen, das Sumpfkontingent einhalten und den Mindestbesatz erfüllen — ein falscher Eintrag
+fällt sofort auf, statt eine unspielbare Karte zu erzeugen.
+"""
+from __future__ import annotations
+
+import copy
+import hashlib
+import json
+import math
+import random
+from pathlib import Path
+
+import auftraege
+import ausruestung
+import einheiten  # noqa: F401  (vom Entwurf vorgesehen; hier für spätere Schritte)
+import forschung
+import forschungspfad
+import gebaeude_wirkung
+import gelaende
+import originalkarten  # GPT-OK01: neue Spielstaende verwenden Originalkarten, 10x10
+import spieldaten
+import werkstatt
+import wirtschaft
+
+DATEN = Path(spieldaten.projektwurzel()) / "data"
+
+
+def lade(name: str) -> dict:
+    return json.loads((DATEN / name).read_text(encoding="utf-8"))
+
+
+REGELN = lade("spieloekonomie.json")
+
+# BELEGT ist nur die RICHTUNG ("Je hoeher die Stufe, desto schneller"); die Zahlen fehlen in
+# beiden Originalfassungen. Dieser Schalter schaltet die Stufenwirkung ab, ohne Code zu loeschen -
+# er ist die eine Stelle, an der man zurueck auf "feste Dauer" kann. Siehe
+# docs/audits/AUSBILDUNGSDAUER_BELEGT_20261031.md und docs/PRUEFREGEL_ORIGINAL.md (Register 53).
+AUSBILDUNG_STUFENFAKTOR_AKTIV = True
+G = lade("gelaende.json")
+BP = lade("baupreise.json")["preise"]
+U = lade("units.json")["einheiten"]
+# Die freigegebenen Warenrezepte (Oekonomie-Paket, Schritt 4). Zur Laufzeit wird AUSSCHLIESSLICH
+# diese eingefrorene Datei gelesen - nicht neu abgeleitet (Entwurf Z. 588). Erzeugt von
+# `tools/warenrezepte_ableiten.py`.
+WARENREZEPTE = lade("warenrezepte.json")
+
+# Laufender Nahrungsverbrauch der Garnison (Daniels Entscheidung 7 vom 31.10.2026: "Einheiten
+# verbrauchen laufend Nahrung"). Der BETRAG ist VORSCHLAG und aus dem Reichsertrag hergeleitet
+# (Rechnung in data/nahrungsverbrauch.json und docs/SPIELBALANCING_TEST.md) - KEINE Originalstelle
+# nennt einen solchen Verbrauch. `aktiv` in der Datei ist der Schalter: false nimmt den Verbrauch
+# vollstaendig heraus, ohne Code zu loeschen (Muster wie AUSBILDUNG_STUFENFAKTOR_AKTIV).
+NAHRUNG = lade("nahrungsverbrauch.json")
+NAHRUNGSVERBRAUCH_AKTIV = bool(NAHRUNG.get("aktiv", True))
+NAHRUNG_JE_EINHEIT_TAG = float(NAHRUNG.get("je_einheit_pro_tag") or 0.0)
+
+
+
+def mengen(kosten) -> dict:
+    """Nur die echten Mengen eines Kosten-Eintrags (Kennzeichnungen wie ``_belegt`` fallen weg)."""
+    return {k: float(v) for k, v in kosten.items()
+            if isinstance(v, (int, float)) and not isinstance(v, bool)}
+
+
+def gruendungskosten():
+    """(Gebühr, Startpaket, Mindestbestand) aus den Regeldaten und den echten Preisen."""
+    r = REGELN["gruendung"]
+    haus = mengen(BP["haus"])
+    preis = {k: v * r["hausmultiplikator"] for k, v in haus.items()}
+    paket = {k: v * r["reserve_hausmultiplikator"] for k, v in haus.items()}
+    preis["nahrung"] = U[r["karren"]]["kosten"]["nahrung"] * r["nahrung_karrenanteil"]
+    paket["nahrung"] = U[r["reserve_nahrung_einheit"]]["kosten"]["nahrung"]
+    minimum = {k: preis.get(k, 0) + paket.get(k, 0) for k in preis.keys() | paket.keys()}
+    return preis, paket, minimum
+
+
+def feste_karte(seed, eintrag: dict) -> dict:
+    """Stillgelegter historischer 8x7-Generator (keine neuen Karten mehr)."""
+    raise ValueError("Historische 8x7-Karten sind archiviert; originalkarten.karte(ID) verwenden")
+
+
+def vorrat(seed) -> dict:
+    """Der feste Kartenvorrat für Neugründungen (Koloniekarten, noch ohne Besitzer)."""
+    return originalkarten.vorrat(seed)
+
+
+def startkarte(seed, eigentuemer) -> dict:
+    """Die private, ausgeglichene Startkarte eines Akteurs (nicht Teil des Vorrats)."""
+    return originalkarten.startkarte(seed, eigentuemer)
+
+
+def startkarte_kandidaten(seed) -> list:
+    """Die Karten der Startkartenwahl des Spielers (A2-Vorstufe, 03.11.2026)."""
+    return originalkarten.startkarte_kandidaten(seed)
+
+
+def startkarte_auswahl_erforderlich(anzahl_siedlungen, maximum, gewaehlt) -> bool:
+    """Muss die Startkartenwahl gezeigt werden? (erste Siedlung, noch nichts gewaehlt)"""
+    return originalkarten.startkarte_auswahl_erforderlich(anzahl_siedlungen, maximum, gewaehlt)
+
+
+def startkarte_gewaehlt(gewaehlt, seed) -> dict:
+    """Karte des Spielers: die gewaehlte, sonst die belegte Standardkarte."""
+    return originalkarten.startkarte_gewaehlt(gewaehlt, seed)
+
+
+def kapazitaeten(karte) -> dict:
+    """Theoretische Stundenerträge einer Karte, Kennungen in Kleinschreibung."""
+    return {k.lower(): float(v) for k, v in wirtschaft.kapazitaet({"karte": karte}).items()}
+
+
+def achsen(karte) -> tuple:
+    """Die drei Vergleichsachsen (Holz, Gestein, Agrar) — je die unabhängige Obergrenze."""
+    n = karte["zaehlung"]
+    return (n["wald"] * gelaende.ertrag_pro_stunde("holzfaeller", "wald")
+            + n["steppe"] * gelaende.ertrag_pro_stunde("holzfaeller", "steppe"),
+            n["berg"] * gelaende.ertrag_pro_stunde("steinmetz", "berg")
+            + n["huegel"] * gelaende.ertrag_pro_stunde("steinmetz", "huegel"),
+            n["grasland"] * gelaende.ertrag_pro_stunde("farm", "grasland")
+            + n["steppe"] * gelaende.ertrag_pro_stunde("farm", "steppe"))
+
+
+def relativ(karte) -> tuple:
+    """Die drei Achsen einer Karte im Verhältnis zur Startreferenz."""
+    basis = achsen(originalkarten.startkarte("referenz", "spieler"))
+    return tuple(a / b for a, b in zip(achsen(karte), basis))
+
+
+def _ist_originalkarten_verbund(karten: list) -> bool:
+    """Nur neue, eindeutig markierte 10x10-Originalkarten; nie Legacy still umdeuten."""
+    return bool(karten) and all(
+        isinstance(k, dict) and k.get("originalkarte_id")
+        and k.get("spalten") == 10 and k.get("zeilen") == 10
+        and len(k.get("raster") or []) == 100 for k in karten)
+
+
+def kartenqualitaet(karten: list) -> dict:
+    """Prueft die Siedlungsgrundlage des Versorgungsziels.
+
+    GPT-KZ01 (28.10.2026): Bei neuen Originalkarten muss man nicht die
+    historischen Qualitaetsgruppen bzw. die zufaellig gezogene Zusammensetzung
+    ueberlisten. Ab vier Siedlungen ist die Karten-Grundbedingung erfuellt;
+    Leistung und Spezialisierung beweist erst die TATSAECHLICHE Wirtschaft in
+    ``zielstatus`` (Produktion, Reserve, Transport, Forschung, Waren, Heer).
+    Die drei Landschaftsachsen bleiben als Diagnose abrufbar. Fuer alte 8x7-
+    Testkarten bleibt die zuvor beschlossene Portfolioregel unangetastet.
+    """
+    if not karten:
+        return {"erfuellt": False, "mittel": (0, 0, 0), "beste": (0, 0, 0),
+                "modell": "keine_karten", "siedlungen": 0}
+    werte = [relativ(k) for k in karten]
+    mittel = tuple(sum(w[i] for w in werte) / len(werte) for i in range(3))
+    beste = tuple(max(w[i] for w in werte) for i in range(3))
+    genug_orte = len(karten) >= REGELN["mindestsiedlungen"]
+    if _ist_originalkarten_verbund(karten):
+        # Achtung: keine Kategorie und kein theoretischer Gold-/Lederwert hier!
+        # Der 24h-Produktionsplan und echte Waren-/Transportketten entscheiden.
+        return {"erfuellt": genug_orte, "mittel": mittel, "beste": beste,
+                "modell": "original_10x10_versorgung", "siedlungen": len(karten)}
+    ok = (genug_orte and min(mittel) >= REGELN["portfoliofaktor"]
+          and min(beste) >= REGELN["spezialistenfaktor"])
+    return {"erfuellt": ok, "mittel": mittel, "beste": beste,
+            "modell": "alt_8x7_portfolio", "siedlungen": len(karten)}
+
+
+def kartennutzen(karten: list, kandidat) -> float:
+    """Reproduzierbare Empfehlung nach ECHTEN Geländeerträgen (nie Katalog-Güte).
+
+    Bei neuen Originalkarten steigt der Nutzen einer Rohstoffachse, wenn sie
+    in den bisherigen Siedlungen unterversorgt ist. Hohe Potentiale bleiben
+    gut, aber eine zweite Spezialkarte in derselben Achse ist weniger wertvoll
+    als die erste. Keine versteckte Gewichtung der Gruppen beste/mittlere/
+    schlechte. Bei Alt-Karten bleibt der frühere Entwurfsnutzen bestehen.
+    """
+    vorher = [relativ(k) for k in karten]
+    neu = relativ(kandidat)
+    if _ist_originalkarten_verbund([*karten, kandidat]):
+        # Die Kopplung an die bestehende Summe verhindert künstliche
+        # Spezialistenhürden bei historischen Karten. Auch für die erste Karte
+        # definiert: Nenner 1.0 (keine Division durch 0).
+        sums = [sum(w[i] for w in vorher) for i in range(3)]
+        return sum(neu[i] / (1.0 + sums[i]) for i in range(3))
+    if not vorher:
+        return sum(neu)
+    bedarf = [max(0, REGELN["portfoliofaktor"] * len(vorher) - sum(w[i] for w in vorher))
+              + max(0, REGELN["spezialistenfaktor"] - max(w[i] for w in vorher))
+              for i in range(3)]
+    return sum(neu[i] * (1 + bedarf[i]) for i in range(3))
+
+
+def _begrenzen(wert, grenzen):
+    return min(grenzen[1], max(grenzen[0], wert))
+
+
+def einzelmaximum() -> dict:
+    """Bester Einzelfeldertrag je Rohstoff über alle baubaren Geländearten."""
+    beste = {}
+    for art in gelaende.GELAENDEARTEN:
+        if not gelaende.ist_bebaubar(art):
+            continue
+        for kennung, geb in gelaende.alle_gebaeude().items():
+            e = gelaende.ertrag_pro_stunde(kennung, art)
+            if isinstance(e, (int, float)):
+                e = {geb["rohstoff"]: e}
+            for r, v in (e or {}).items():
+                beste[r.lower()] = max(beste.get(r.lower(), 0), float(v))
+    return beste
+
+
+def schattenpreis(karte, rohstoff: str, bestand: float, reserve: float) -> float:
+    """Lokaler Schattenpreis eines Rohstoffs in Gold (Gold selbst ist immer 1)."""
+    if rohstoff == "gold":
+        return 1.0
+    beste = einzelmaximum()
+    lokal = kapazitaeten(karte).get(rohstoff, 0)
+    start = kapazitaeten(originalkarten.startkarte("preis", "spieler"))[rohstoff]
+    ratio = start / lokal if lokal > 0 else math.inf
+    k = _begrenzen(ratio, REGELN["kartenpreisgrenzen"])
+    v = 1.0 if reserve <= 0 else _begrenzen(2 * reserve / (reserve + bestand), REGELN["vorratspreisgrenzen"])
+    return beste["gold"] / beste[rohstoff] * k * v
+
+
+def bezahlbar(bestand: dict, kosten: dict) -> bool:
+    return all(math.isfinite(v) and v >= 0 and bestand.get(r, 0) >= v
+               for r, v in kosten.items())
+
+
+def buchen(bestand: dict, delta: dict) -> dict:
+    """Bucht ein Delta auf einen Bestand; negative Bestände sind ein Fehler, keine Rundung."""
+    neu = dict(bestand)
+    for r, v in delta.items():
+        if not math.isfinite(v):
+            raise ValueError("Nicht endliche Buchung.")
+        neu[r] = neu.get(r, 0) + v
+        if neu[r] < -1e-9:
+            raise ValueError("Nicht genügend Bestand: " + r)
+        neu[r] = max(0.0, neu[r])
+    return neu
+
+
+def absicht(quelle: dict, karte_id: str, karten: list, freie: dict,
+            forschung: dict, runde: int) -> dict:
+    """Prüft eine Gründungsabsicht und liefert das Sperrgut (noch wird nichts gebucht)."""
+    r = REGELN["gruendung"]
+    if karte_id not in freie or freie[karte_id]["besitzer"] is not None:
+        raise ValueError("Karte nicht frei.")
+    if len(karten) >= quelle["siedlungsgrenze"]:
+        raise ValueError("Siedlungsgrenze erreicht.")
+    if forschung.get(r["forschung"], 0) < r["stufe"]:
+        raise ValueError("Gründungsforschung fehlt.")
+    if quelle["einheiten"].get(r["karren"], 0) < 1:
+        raise ValueError("Siedlerkarren fehlt.")
+    preis, paket, minimum = gruendungskosten()
+    if not bezahlbar(quelle["vorraete"], minimum):
+        raise ValueError("Lokaler Mindestbestand fehlt.")
+    return {"quelle": quelle["id"], "besitzer": quelle["besitzer"], "karte_id": karte_id,
+            "runde": runde, "sperrgut": minimum, "preis": preis, "paket": paket,
+            "nutzen": kartennutzen(karten, freie[karte_id]["karte"])}
+
+
+def vergabe(absichten: list, freie: dict, seed, runde: int) -> list:
+    """Vergibt die Karten einer Runde: höherer Nutzen gewinnt, Gleichstand über SHA-256.
+
+    Die Sortierung ist **unabhängig** von Listen- oder Klickreihenfolge; jede Kennung wird
+    höchstens einmal vergeben, veraltete Absichten werden abgelehnt.
+    """
+    def rang(a):
+        text = f"{seed}:{runde}:{a['karte_id']}:{a['besitzer']}"
+        return (-a["nutzen"], hashlib.sha256(text.encode("utf-8")).hexdigest())
+
+    ergebnis, akteure, vergeben = [], set(), set()
+    for a in sorted(absichten, key=rang):
+        if a["runde"] != runde or a["besitzer"] in akteure:
+            raise ValueError("Unzulässige doppelte oder veraltete Absicht.")
+        akteure.add(a["besitzer"])
+        ok = (a["karte_id"] in freie and freie[a["karte_id"]]["besitzer"] is None
+              and a["karte_id"] not in vergeben)
+        ergebnis.append((a, ok))
+        if ok:
+            vergeben.add(a["karte_id"])
+    return ergebnis
+
+
+# ---------------------------------------------------------------------------
+# Schritt 3 — lokale Lager und Transportbuchung (Entwurf Z. 417-505)
+# ---------------------------------------------------------------------------
+#
+# Eine lokale Wirtschaft ist Voraussetzung, nicht Kür für: Vorräte, Waren, Einheiten und
+# Werkstatt-/Bibliotheksauftrag — sie liegen JE SIEDLUNG. Gemeinsame Summen sind nur abgeleitete
+# Anzeige; kein Auftrag darf damit bezahlen. „Beute gibt es nur mit Transportkarren" ist
+# belegt (Handbuch S. 23) und wird von `auftraege.starten` für die Art „transportieren"
+# bereits erzwungen („Transportieren braucht mindestens einen Karren.").
+#
+# WICHTIG für die spätere main-Anbindung (Entwurf Z. 505): `auftraege.spieldaten_anwenden`
+# darf auf einen EIGENTRANSPORT niemals angewendet werden — eigene Transporte bucht
+# ausschließlich `transport_fortschritt`.
+
+
+def verbrauchen(ort: dict, kosten: dict, jetzt: float) -> dict:
+    """Bucht Kosten aus dem LOKALEN Lager ab und schreibt die Importherkunft mit.
+
+    Der Verbrauch wird anteilig aus dem importierten Bestand gedeckt — so belegt das
+    Verbrauchsjournal, dass wirklich eine gelieferte Fracht genutzt wurde (Siegnachweis,
+    Schritt 7). Reicht das lokale Lager nicht, ist das ein Fehler, keine stille Nullbuchung.
+    """
+    neu = copy.deepcopy(ort)
+    if not bezahlbar(neu["vorraete"], kosten):
+        # Daniel 30.10.2026: Die alte Meldung sagte nur "Lokales Lager reicht nicht." - bei
+        # 1.137 Nahrung im Ort las der Spieler das als Anzeigefehler. Jetzt steht da, WELCHER
+        # Rohstoff fehlt und um wieviel (Beispiel: "holz fehlt 62.80 (37.20 von 100)").
+        import fehlbestand
+        fehlt = fehlbestand.fehlbestand(neu["vorraete"], kosten)
+        raise ValueError("Lokales Lager reicht nicht: "
+                         + fehlbestand.text(fehlt, neu["vorraete"], kosten))
+    for r, m in kosten.items():
+        v = neu["vorraete"].get(r, 0)
+        importiert = neu["importiert"].get(r, 0)
+        genutzt = 0 if v <= 0 else m * importiert / v
+        neu["vorraete"][r] = v - m
+        neu["importiert"][r] = max(0, importiert - genutzt)
+        if genutzt > 0:
+            neu["verbrauchsjournal"].append({"zeit": jetzt, "rohstoff": r, "menge": genutzt,
+                                             "ziel": ort["id"]})
+    return neu
+
+
+def transport_start(quelle: dict, ziel: dict, bestand: dict, fracht: dict, jetzt: float,
+                    frachtkanal: str = "vorraete", forschung: dict = None):
+    """Startet einen Transport zwischen EIGENEN Siedlungen. Liefert (neue_quelle, mission).
+
+    ``frachtkanal`` ist ``"vorraete"`` (Rohstoffe) oder ``"waren"``. Importherkunft und
+    Verbrauchsjournal gelten nur für Rohstoffe — der Siegnachweis zählt keine Waren.
+    Jede Ablehnung wirft ``ValueError``; es wird nichts halb gebucht.
+    """
+    if frachtkanal not in ("vorraete", "waren"):
+        raise ValueError("Unbekannter Frachtkanal.")
+    if quelle["besitzer"] != ziel["besitzer"]:
+        raise ValueError("Für eigene Transporte muss der Besitzer übereinstimmen.")
+    if quelle["dimension"] != ziel["dimension"]:
+        raise ValueError("Ein Weltkartenwechsel braucht eigene Portalregeln.")
+    if not bestand or not all(type(n) is int and n > 0 for n in bestand.values()):
+        raise ValueError("Ungültige Transporttruppe.")
+    if any(quelle["einheiten"].get(n, 0) < m for n, m in bestand.items()):
+        raise ValueError("Einheiten sind nicht am Ausgangsort.")
+    if any(type(m) is not int or m < 0 for m in fracht.values()):
+        raise ValueError("Fracht muss aus nichtnegativen ganzen Mengen bestehen.")
+    if frachtkanal == "vorraete" and set(fracht) - set(quelle["vorraete"]):
+        raise ValueError("Unbekannter Rohstoff; Waren brauchen ausdrücklich einen Warenauftrag.")
+    if not bezahlbar(quelle[frachtkanal], fracht):
+        raise ValueError("Fracht fehlt am Ausgangsort.")
+    d = abs(quelle["x"] - ziel["x"]) + abs(quelle["y"] - ziel["y"])
+    liste = []
+    ok, meldung = auftraege.starten(liste, "transportieren", bestand, quelle["id"], ziel["id"],
+                                    d, jetzt, fracht, forschung=forschung)
+    if not ok:
+        raise ValueError(meldung)
+    neu = copy.deepcopy(quelle)
+    anteil = {}
+    for r, m in fracht.items():
+        v = neu[frachtkanal][r]
+        anteil[r] = (0 if (v <= 0 or frachtkanal != "vorraete")
+                     else m * neu["importiert"].get(r, 0) / v)
+        neu[frachtkanal][r] -= m
+        if frachtkanal == "vorraete":
+            neu["importiert"][r] = max(0, neu["importiert"].get(r, 0) - anteil[r])
+    for n, m in bestand.items():
+        neu["einheiten"][n] -= m
+    mission = liste[0]
+    mission.update({"eigentransport": True, "ziel_id": ziel["id"], "quelle_id": quelle["id"],
+                    "frachtkanal": frachtkanal, "ursprung_import": anteil,
+                    "geliefert_lokal": False, "heimgekehrt_lokal": False})
+    mission["besitzer"] = quelle["besitzer"]
+    return neu, mission
+
+
+def transport_fortschritt(mission: dict, orte: dict, jetzt: float):
+    """Bucht Ankunft und Rückkehr eines eigenen Transports **genau einmal**. (orte, mission).
+
+    Bei Ankunft wird die Fracht am Ziel gutgeschrieben; bei Rückkehr kehrt sie (samt
+    Importherkunft) zum Ausgangsort zurück. Ist der Ausgangsort verloren oder erobert, gilt
+    er wie ein nicht mehr vorhandener: dann wird eine eigene Ersatzsiedlung gesucht, sonst
+    bleibt die Fracht am Auftrag — **keine** Geistergutschrift.
+    """
+    neu = copy.deepcopy(orte)
+    m = copy.deepcopy(mission)
+    kanal = m.get("frachtkanal", "vorraete")
+    ziel = neu.get(m["ziel_id"])
+    if jetzt >= m["ankunft"] and not m["geliefert_lokal"]:
+        if ziel is not None and ziel["besitzer"] == m["besitzer"]:
+            for r, n in m["fracht"].items():
+                ziel[kanal][r] = ziel[kanal].get(r, 0) + n
+                if kanal == "vorraete":
+                    # Nicht als lokaler Verbrauch werten: erst ein späterer echter Auftrag zählt.
+                    ziel["importiert"][r] = ziel["importiert"].get(r, 0) + n
+            m["fracht"] = {}
+            if m.get("stationieren_lokal"):
+                for n, k in m["einheiten"].items():
+                    ziel["einheiten"][n] = ziel["einheiten"].get(n, 0) + k
+                m["einheiten"] = {}
+                m["heimgekehrt_lokal"] = True
+        m["geliefert_lokal"] = True
+    if jetzt >= m["rueckkehr"] and not m["heimgekehrt_lokal"]:
+        quelle = neu.get(m["quelle_id"])
+        if quelle is not None and quelle["besitzer"] != m["besitzer"]:
+            quelle = None            # eroberter Ausgangsort zählt wie ein verlorener
+        if quelle is None:
+            quelle = next((o for _, o in sorted(neu.items()) if o["besitzer"] == m["besitzer"]),
+                          None)
+            m["ersatzort"] = quelle["id"] if quelle is not None else None
+        if quelle is not None:
+            for n, k in m["einheiten"].items():
+                quelle["einheiten"][n] = quelle["einheiten"].get(n, 0) + k
+            for r, k in m["fracht"].items():
+                quelle[kanal][r] = quelle[kanal].get(r, 0) + k
+                if kanal == "vorraete":
+                    quelle["importiert"][r] = (quelle["importiert"].get(r, 0)
+                                               + m["ursprung_import"].get(r, 0))
+            m["fracht"] = {}
+            m["heimgekehrt_lokal"] = True
+        # KEINE eigene Siedlung vorhanden: Fracht und Einheiten BLEIBEN am Auftrag, und der
+        # Merker bleibt AUS (Entwurf Z. 492/500: „Fracht bleibt am Auftrag und ist nicht global
+        # verfuegbar"). So kann ein spaeter auftauchender eigener Ort die Fracht noch erhalten —
+        # es wird nichts erfunden und an Fremde nichts verteilt.
+        # Fund der unabhaengigen Abweichungspruefung (archiv/analysen/audits/pruefung_schritt3_4.md, Punkt 12).
+    return neu, m
+
+
+def station_start(quelle: dict, ziel: dict, bestand: dict, fracht: dict, jetzt: float):
+    """Ein Transport, dessen Einheiten am Ziel bleiben (Stationierung). (neue_quelle, mission)."""
+    q, m = transport_start(quelle, ziel, bestand, fracht, jetzt)
+    m["stationieren_lokal"] = True
+    return q, m
+
+
+# ---------------------------------------------------------------------------
+# Schritt 4 — Pilotrezepte, lokale Ausbildung und echte Verbrauchsbelege
+# (Entwurf Z. 507-590)
+# ---------------------------------------------------------------------------
+#
+# Die Rezepte stehen eingefroren in `data/warenrezepte.json` (erzeugt von
+# `tools/warenrezepte_ableiten.py`); zur Laufzeit wird ausschliesslich diese Datei gelesen.
+# Alle Dauerangaben ausser dem Schwert (1200 s, belegt) sind VORSCHLAG.
+
+
+def ware_voraussetzungen_liste(ware: str, forschung: dict, rezepte: dict = None) -> list:
+    """Jede Forschungsbedingung einer Ware EINZELN — die EINE Quelle fuer Kern UND Anzeige.
+
+    F-04 der externen Spielpruefung (31.10.2026, Register 68): die Anzeige las `items.json`
+    (Feld `voraussetzung_struktur`) und gab bei fehlender Struktur `True` zurueck, waehrend der
+    Kern `warenrezepte.json` prueft — zwei Wahrheiten, beide gruen geprueft. Lederrüstung und
+    Magischer Paladinharnisch haben in `items.json` GAR KEINE Struktur, im Rezept aber je ZWEI
+    Bedingungen (UND). Deshalb gibt es nur noch diese eine Lesestelle; `ware_start` und
+    `GameState.ware_voraussetzung` rufen beide hier hinein.
+
+    Rueckgabe je Bedingung, in der Reihenfolge der Datei:
+      {"gebiet": str, "noetig": int, "vorhanden": int, "bekannt": bool, "erfuellt": bool}
+    Eine unbekannte Ware liefert eine leere Liste (der Kern lehnt sie mit
+    "Keine freigegebene Rezeptangabe." ab).
+    """
+    rezepte = WARENREZEPTE if rezepte is None else rezepte
+    rezept = rezepte.get(ware) or {}
+    bedingungen = rezept.get("voraussetzungen") or {}
+    liste: list = []
+    for gebiet, stufe in bedingungen.items():
+        try:
+            noetig = int(stufe)
+        except (TypeError, ValueError):
+            noetig = 0
+        bekannt = gebiet in forschung
+        try:
+            vorhanden = int(forschung.get(gebiet) or 0)
+        except (TypeError, ValueError):
+            vorhanden = 0
+        liste.append({"gebiet": str(gebiet), "noetig": noetig, "vorhanden": vorhanden,
+                      "bekannt": bekannt, "erfuellt": bool(bekannt and vorhanden >= noetig)})
+    return liste
+
+
+def ware_voraussetzung(ware: str, forschung: dict, rezepte: dict = None):
+    """(erfuellt, Begruendung) fuer die Forschungsvoraussetzungen einer Ware — eine Wahrheit.
+
+    Eine unbekannte Ware gilt als NICHT erfuellt, weil `ware_start` sie ablehnt; eine Forschung,
+    die dieser Stand nicht kennt, ebenfalls — es wird nichts erfunden und nichts durchgelassen.
+    Die Begruendung nennt JEDE Bedingung, nicht nur die erste offene.
+    """
+    rezepte = WARENREZEPTE if rezepte is None else rezepte
+    if ware not in rezepte:
+        return False, "keine freigegebene Rezeptangabe"
+    liste = ware_voraussetzungen_liste(ware, forschung, rezepte)
+    if not liste:
+        return True, "keine Voraussetzung belegt"
+    teile = []
+    for b in liste:
+        if not b["bekannt"]:
+            teile.append(f"die Forschung '{b['gebiet']}' kennen wir nicht - nicht erfüllbar")
+        elif b["erfuellt"]:
+            teile.append(f"{b['gebiet']} Stufe {b['noetig']} vorhanden")
+        else:
+            teile.append(f"{b['gebiet']} Stufe {b['noetig']} nötig, vorhanden ist Stufe "
+                         f"{b['vorhanden']}")
+    return all(b["erfuellt"] for b in liste), " · ".join(teile)
+
+
+# Mengeneingabe (A-1, Daniels Spielbericht 31.10.2026: "ich musste 200x klicken").
+# Der Deckel gilt GLEICH fuer Anzeige und Kern: die Vorschau darf nie mehr versprechen, als der
+# Start wirklich annimmt (`ware_grenzen` / `ausbildung_grenzen` rechnen, `*_start_menge` prueft).
+MENGEN_HOECHSTMENGE = 200
+
+
+def _menge_wert(menge) -> int:
+    """Eine Menge als ganze Zahl ab 0 - bool, Text und Brueche werden ehrlich abgelehnt."""
+    if isinstance(menge, bool):
+        raise ValueError("Die Menge muss eine ganze Zahl ab 0 sein.")
+    try:
+        zahl = int(menge)
+    except (TypeError, ValueError):
+        raise ValueError("Die Menge muss eine ganze Zahl ab 0 sein.")
+    if zahl < 0:
+        raise ValueError("Die Menge muss eine ganze Zahl ab 0 sein.")
+    return zahl
+
+
+def ware_grenzen(ort: dict, ware: str, forschung: dict, rezepte: dict = None) -> dict:
+    """Wie viele Stueck dieser Ware der Ort JETZT herstellen kann - die EINE Rechenstelle.
+
+    Anzeige ("davon bezahlbar: N") und Start (`ware_start_menge`) rufen beide hier hinein, damit
+    es keine zweite Wahrheit gibt. Die Grenze ist das Minimum aus Lagervorrat (Materialkosten mal
+    Menge) und dem Deckel `MENGEN_HOECHSTMENGE`; Siedler kosten Waren nicht.
+
+    Rueckgabe::
+
+        {"ware", "werkstatt", "stufe", "moeglich": int, "kosten_je": {}, "grenzen": {...},
+         "hindernis": str, "dauer_je": float|None}
+
+    `hindernis` ist leer, wenn die Ware grundsaetzlich herstellbar ist; sonst nennt es den
+    Grund in der Wortwahl des Kerns (Rezept, Forschung, Werkstatt).
+    """
+    rezepte = WARENREZEPTE if rezepte is None else rezepte
+    leer = {"ware": ware, "werkstatt": None, "stufe": 0, "moeglich": 0, "kosten_je": {},
+            "grenzen": {}, "hindernis": "", "dauer_je": None}
+    if ware not in rezepte:
+        leer["hindernis"] = "Keine freigegebene Rezeptangabe."
+        return leer
+    rezept = rezepte[ware] or {}
+    erfuellt, begruendung = ware_voraussetzung(ware, forschung, rezepte)
+    if not erfuellt:
+        leer["hindernis"] = f"Warenvoraussetzung fehlt: {begruendung}"
+        return leer
+    typ = werkstatt.werkstatt_fuer(ware)
+    if typ is None:
+        leer["hindernis"] = "Ware gehört zu keiner Werkstatt."
+        return leer
+    typ_name = typ
+    try:
+        anzahl_werkstaetten = werkstatt.werkstaetten_bestand([ort])[typ_name]
+    except (KeyError, TypeError):
+        anzahl_werkstaetten = 0
+    if anzahl_werkstaetten <= 0:
+        leer["hindernis"] = "Werkstatt nicht in dieser Stadt."
+        return leer
+    kosten_je = {r: float(m) for r, m in (rezept.get("kosten") or {}).items()}
+    vorraete = ort.get("vorraete") or {}
+    grenzen = {}
+    for rohstoff, je in kosten_je.items():
+        if je <= 0:
+            continue
+        try:
+            bestand = float(vorraete.get(rohstoff, 0.0) or 0.0)
+        except (TypeError, ValueError):
+            bestand = 0.0
+        grenzen[rohstoff] = max(0, int(bestand // je))
+    moeglich = min([MENGEN_HOECHSTMENGE] + list(grenzen.values())) if grenzen else MENGEN_HOECHSTMENGE
+    werkstatt_typ = werkstatt.werkstatt_fuer(ware)
+    return {"ware": ware, "werkstatt": werkstatt_typ, "stufe": 1,
+            "moeglich": max(0, int(moeglich)), "kosten_je": kosten_je, "grenzen": grenzen,
+            "hindernis": "", "dauer_je": werkstatt.dauer_sekunden(ware, 1, rezepte)}
+
+
+def ware_start_menge(ort: dict, ware: str, forschung: dict, jetzt: float,
+                     menge: int = 1, rezepte: dict = None) -> dict:
+    """Reiht `menge` Stueck EINER Ware in die Werkstatt ein - alles oder nichts.
+
+    Eine Mengenangabe ist EIN Vorgang: entweder alle Stueck sind bezahlt und eingereiht, oder es
+    wird gar nichts abgebucht (kein Teilabbruch). Rueckgabe::
+
+        {"ort": neuer_ort, "anzahl": int, "moeglich": int, "einheit": ware,
+         "dauer_je": float|None, "meldung": str}
+    """
+    menge = _menge_wert(menge)
+    if menge < 1:
+        raise ValueError("Die Menge muss mindestens 1 sein.")
+    grenzen = ware_grenzen(ort, ware, forschung, rezepte)
+    if grenzen["hindernis"]:
+        raise ValueError(grenzen["hindernis"])
+    if menge > grenzen["moeglich"]:
+        raise ValueError(_mengen_text(ware, menge, grenzen, ort))
+    neu = copy.deepcopy(ort)
+    rezepte = WARENREZEPTE if rezepte is None else rezepte
+    rezept = rezepte[ware]
+    kosten = {r: float(m) * menge for r, m in (rezept.get("kosten") or {}).items()}
+    neu = verbrauchen(neu, kosten, jetzt)
+    typ = grenzen["werkstatt"]
+    zahl = werkstatt.werkstaetten_bestand([neu])[typ]
+    schlange = neu["werkstaetten"].setdefault(typ, werkstatt.neue_warteschlange(typ, zahl))
+    schlange["werkstaetten"] = zahl
+    schlange["kapazitaet"] = werkstatt.kapazitaet(zahl)
+    werkstatt.fortschritt(schlange, jetzt)
+    ok, meldung = werkstatt.einreihen(schlange, ware, menge, 1, rezepte)
+    if not ok:
+        raise ValueError(meldung)
+    return {"ort": neu, "anzahl": menge, "moeglich": grenzen["moeglich"], "einheit": ware,
+            "dauer_je": grenzen["dauer_je"],
+            "meldung": f"{menge}x {ware} in der Werkstatt in Arbeit."}
+
+
+def _mengen_text(was: str, menge: int, grenzen: dict, ort: dict = None) -> str:
+    """Warum `menge` nicht geht - mit dem genauen Engpass und der wahren Grenze.
+
+    Der Engpass wird aus DENSELBEN Grenzen abgelesen, die `*_grenzen` liefert: fehlt Material,
+    steht derselbe Fehlbestand-Text wie bei `verbrauchen` (also mit "Lokales Lager reicht
+    nicht"), sonst nennt der Satz den Deckel.
+    """
+    moeglich = grenzen.get("moeglich", 0)
+    einzel = dict(grenzen.get("grenzen") or {})
+    engpass = ""
+    if einzel:
+        knappster = min(einzel.items(), key=lambda kv: kv[1])
+        if knappster[1] < moeglich or knappster[1] == moeglich:
+            engpass = knappster[0]
+    if engpass and ort is not None:
+        kosten_je = grenzen.get("kosten_je") or {}
+        kosten = {r: float(m) * menge for r, m in kosten_je.items()}
+        import fehlbestand
+        try:
+            fehlt = fehlbestand.fehlbestand(ort.get("vorraete") or {}, kosten)
+            detail = fehlbestand.text(fehlt, ort.get("vorraete") or {}, kosten)
+        except (TypeError, ValueError, KeyError):
+            detail = ""
+        if detail:
+            return (f"Lokales Lager reicht nicht für {menge}x {was}: {detail} "
+                    f"(bezahlbar jetzt: {moeglich}).")
+    return (f"{menge}x {was} nicht möglich: bezahlbar sind jetzt {moeglich} "
+            f"(Deckel {MENGEN_HOECHSTMENGE} je Auftrag).")
+
+
+def ware_start(ort: dict, ware: str, forschung: dict, jetzt: float,
+               rezepte: dict = None) -> dict:
+    """Reiht EIN Stueck einer Ware in die Werkstatt DIESER Siedlung ein. Liefert den neuen Ort.
+
+    Geprueft werden (1) ein freigegebenes Rezept, (2) die Forschungsvoraussetzungen der Ware,
+    (3) eine Werkstatt VOR ORT, (4) die Materialkosten im lokalen Lager. Die Dauer kommt aus
+    dem Rezept in die Warteschlange — die einzige belegte Dauer (Schwert) bleibt unberuehrt.
+
+    Die Mengenfassung ist `ware_start_menge`; dieser Name bleibt fuer einen einzelnen Auftrag.
+    """
+    return ware_start_menge(ort, ware, forschung, jetzt, 1, rezepte)["ort"]
+
+
+def ausbildung_uebersicht(ort: dict, jetzt: float) -> dict:
+    """Was gerade in DIESEM Ort ausgebildet wird - mit Restzeiten und Gesamtdauer.
+
+    Warum (Daniel 31.10.2026, eigener Spieltest): "die Handkarren werden unsichtbar produziert,
+    es gibt keine Anzeige fuer den Ausbildungsstand ... eine Uebersicht, wie lange die
+    Produktionszeit gesamt dauert". Die Auftraege liefen schon immer NACHEINANDER je Gebaeude
+    (`ausbildung_start` beginnt bei `freie_zeit` = Ende des letzten Auftrags desselben Gebaeudes),
+    aber niemand konnte das sehen.
+
+    Rueckgabe::
+
+        {"auftraege": [{"einheit", "gebaeude", "stufe", "start", "ende", "rest_sekunden",
+                        "dauer_sekunden", "laufend", "platz"}],
+         "gesamt_rest_sekunden": float,      # bis der LETZTE Auftrag fertig ist
+         "anzahl": int}
+    """
+    try:
+        jetzt = float(jetzt)
+    except (TypeError, ValueError):
+        jetzt = 0.0
+    auftraege = []
+    for eintrag in (ort.get("ausbildung") or []):
+        if not isinstance(eintrag, dict):
+            continue
+        try:
+            ende = float(eintrag.get("ende") or 0.0)
+            start = float(eintrag.get("start") or 0.0)
+        except (TypeError, ValueError):
+            continue
+        if eintrag.get("gebucht"):
+            continue
+        dauer = eintrag.get("dauer_sekunden")
+        if dauer is None:
+            dauer = max(0.0, ende - start)
+        auftraege.append({
+            "einheit": eintrag.get("einheit"),
+            "gebaeude": eintrag.get("gebaeude"),
+            "stufe": eintrag.get("stufe"),
+            "start": start,
+            "ende": ende,
+            "dauer_sekunden": float(dauer),
+            "rest_sekunden": max(0.0, ende - jetzt),
+            "laufend": start <= jetzt < ende,
+        })
+    auftraege.sort(key=lambda a: (a["ende"], str(a["einheit"])))
+    for platz, auftrag in enumerate(auftraege, start=1):
+        auftrag["platz"] = platz
+    gesamt = max([a["ende"] for a in auftraege], default=jetzt)
+    return {"auftraege": auftraege,
+            "gesamt_rest_sekunden": max(0.0, gesamt - jetzt),
+            "anzahl": len(auftraege)}
+
+
+def ausbildung_abbrechen(ort: dict, platz: int, jetzt: float) -> dict:
+    """Einen Ausbildungsauftrag streichen - OHNE Erstattung, weil die Quelle nichts regelt.
+
+    Belegt ist nur das Abbrechen von FORSCHUNG (Handbuch 2009, Z. 442: "Forschung abbrechen").
+    Fuer die Einheitenausbildung nennt weder das Handbuch 2009 noch die Vorversion 2006 eine
+    Regel zu Abbruch oder Erstattung - geprueft 31.10.2026. Deshalb: Streichen ja (der Spieler
+    soll nicht in einer Warteschlange festsitzen), Erstattung nein (kein erfundener Betrag).
+    Die verbrauchten Siedler, Kosten und Waren bleiben verbraucht.
+    """
+    liste = [a for a in (ort.get("ausbildung") or []) if isinstance(a, dict) and not a.get("gebucht")]
+    liste.sort(key=lambda a: (float(a.get("ende") or 0.0), str(a.get("einheit"))))
+    try:
+        platz = int(platz)
+    except (TypeError, ValueError):
+        return {"ok": False, "grund": "Ungültiger Platz."}
+    if not 1 <= platz <= len(liste):
+        return {"ok": False, "grund": f"Platz {platz} gibt es nicht (1-{len(liste)})."}
+    ziel = liste[platz - 1]
+    try:
+        jetzt = float(jetzt)
+    except (TypeError, ValueError):
+        jetzt = 0.0
+    if float(ziel.get("start") or 0.0) <= jetzt and jetzt < float(ziel.get("ende") or 0.0):
+        return {"ok": False, "grund": "Dieser Auftrag läuft gerade und kann nicht mehr gestrichen "
+                                      "werden - nur wartende Aufträge."}
+    neu = [a for a in (ort.get("ausbildung") or []) if a is not ziel]
+    return {"ok": True, "grund": "", "einheit": ziel.get("einheit"), "ausbildung": neu,
+            "erstattung": {}, "hinweis": "Keine Erstattung: die Quellen regeln das nicht."}
+
+
+def siedler_reserve(ort: dict, forschung: dict = None) -> dict:
+    """Wie viele freie Siedler hat der Ort, und wie weit reichen sie noch? (A-6, 31.10.2026)
+
+    Daniels Spielbericht: **sechs gescheiterte Ausbildungen** ("Freie Siedler fehlen vor Ort"),
+    weil die Bevoelkerung von 10 auf 3,5 gefallen war, ohne dass ihn jemand vorher gewarnt hatte.
+    Mit seiner Entscheidung 31.10.2026 (Frage 5 = B) binden **Bauten keine Siedler** mehr; Siedler
+    gehen nur noch bei der **Ausbildung** weg (1 bis 20 je Einheit, siehe `data/units.json`).
+    Deshalb steht die Warnung hier - an der Stelle, die wirklich verbraucht.
+
+    Gerechnet wird aus DENSELBEN Quellen wie die Ausbildung: `bevoelkerung` des Ortes als Reserve,
+    `data/units.json` fuer den Siedler-Preis je Einheit, `gebaeude_wirkung.siedlergrenze_je_siedlung`
+    fuer die Obergrenze und `siedler_zuwachs_pro_stunde` fuer den Nachwuchs.
+
+    Rueckgabe::
+
+        {"frei": float, "grenze": int, "zuwachs_stunde": float,
+         "bedarf_je_einheit": {Einheit: Siedler}, "moeglich": {Einheit: Anzahl},
+         "engste": (Einheit, Siedler), "warnung": bool, "text": str}
+    """
+    try:
+        frei = float(ort.get("bevoelkerung", 0.0) or 0.0)
+    except (TypeError, ValueError):
+        frei = 0.0
+    grenze = 0
+    zuwachs = 0.0
+    try:
+        grenze = int(gebaeude_wirkung.siedlergrenze_je_siedlung(ort))
+    except (KeyError, TypeError, ValueError):
+        grenze = 0
+    try:
+        zuwachs = float(gebaeude_wirkung.siedler_zuwachs_pro_stunde([ort], forschung or {}))
+    except (KeyError, TypeError, ValueError):
+        zuwachs = 0.0
+    bedarf = {}
+    moeglich = {}
+    for name, eintrag in U.items():
+        try:
+            geb = gelaende.finde_gebaeude(str((eintrag or {}).get("gebaeude") or ""))
+        except (TypeError, ValueError):
+            continue
+        try:
+            if gebaeude_wirkung.gebaeude_stufe(ort, geb) <= 0:
+                continue
+        except (KeyError, TypeError, ValueError):
+            continue
+        kosten = (eintrag or {}).get("kosten") or {}
+        try:
+            je = int(kosten.get("siedler", 0) or 0)
+        except (TypeError, ValueError):
+            je = 0
+        bedarf[name] = je
+        moeglich[name] = (int(frei // je) if je > 0 else -1)
+    if not bedarf:
+        # Fruehfall (am aktiven Ort steht kein Gebaeude): dieselben Schluessel wie unten, damit
+        # ANZEIGE-Code nicht mit KeyError abstuerzt. Vorher fehlten "guenstigste" und "teuerste" -
+        # die Kaserne-Ansicht brach dann ab (Befund 02.11.2026, Register 126).
+        return {"frei": frei, "grenze": grenze, "zuwachs_stunde": zuwachs,
+                "bedarf_je_einheit": {}, "moeglich": {},
+                "engste": ("", 0), "guenstigste": ("", 0), "teuerste": ("", 0),
+                "warnung": False, "text": ""}
+    engste = min(((n, j) for n, j in bedarf.items() if j > 0), key=lambda p: p[1],
+                 default=("", 0))
+    guenstigste = min(((n, j) for n, j in bedarf.items() if j > 0), key=lambda p: p[1],
+                      default=("", 0))
+    teuerste = max(((n, j) for n, j in bedarf.items() if j > 0), key=lambda p: p[1],
+                   default=("", 0))
+    # Die Warnschwelle haengt an der GUENSTIGSTEN Ausbildung des Ortes: reicht die Reserve nicht
+    # einmal fuer zwei davon, ist Schluss - das ist genau Daniels Lage mit 3,5 Siedlern gewesen.
+    grenzfall = guenstigste if guenstigste[0] else teuerste
+    warnung = bool(grenzfall[0]) and frei < float(grenzfall[1] * 2)
+    if not warnung:
+        text = ""
+    elif frei < float(grenzfall[1]):
+        text = (f"Nur {frei:.1f} freie Siedler im Ort — eine {grenzfall[0]} kostet "
+                f"{grenzfall[1]}. Es geht gerade keine einzige Ausbildung mehr; nachgeliefert "
+                f"werden {zuwachs:.1f} Siedler je Spielstunde.")
+    else:
+        text = (f"Nur {frei:.1f} freie Siedler im Ort — eine {grenzfall[0]} kostet "
+                f"{grenzfall[1]}, also gehen noch {int(frei) // grenzfall[1]}. Nachgeliefert "
+                f"werden {zuwachs:.1f} Siedler je Spielstunde.")
+    return {"frei": frei, "grenze": grenze, "zuwachs_stunde": zuwachs,
+            "bedarf_je_einheit": bedarf, "moeglich": moeglich,
+            "engste": grenzfall, "guenstigste": guenstigste, "teuerste": teuerste,
+            "warnung": warnung, "text": text}
+
+
+def ausbildung_grenzen(ort: dict, name: str, forschung: dict) -> dict:
+    """Wie viele Einheiten dieser Art der Ort JETZT ausbilden kann - die EINE Rechenstelle.
+
+    Anzeige ("davon bezahlbar: N") und Start (`ausbildung_start_menge`) rufen beide hier hinein.
+    Grenzen sind: freie Siedler (je Einheit `kosten.siedler`), Ausruestung im Ortslager (1 Stueck
+    je Einheit), Rohstoffe im Ortslager und der Deckel `MENGEN_HOECHSTMENGE`.
+
+    Rueckgabe::
+
+        {"einheit", "gebaeude", "stufe", "moeglich": int, "kosten_je": {}, "siedler_je": int,
+         "ausruestung_je": {}, "grenzen": {"siedler"/"ausruestung"/Rohstoff: int},
+         "hindernis": str, "dauer_je": float, "freie_zeit": float}
+    """
+    eintrag = U.get(name)
+    if eintrag is None:
+        raise ValueError("Unbekannte Einheit: " + str(name))
+    eintrag = eintrag or {}
+    leer = {"einheit": name, "gebaeude": None, "stufe": 0, "moeglich": 0, "kosten_je": {},
+            "siedler_je": 0, "ausruestung_je": {}, "grenzen": {}, "hindernis": "",
+            "dauer_je": 0.0, "freie_zeit": 0.0}
+    voraus = eintrag.get("voraussetzung") or {}
+    if voraus and (forschung or {}).get(voraus.get("forschung"), 0) < voraus.get("stufe", 0):
+        leer["hindernis"] = (
+            f"Einheitenforschung fehlt: {voraus.get('forschung')} Stufe {voraus.get('stufe', 0)} "
+            f"(erreicht: {(forschung or {}).get(voraus.get('forschung'), 0)}).")
+        return leer
+    geb = gelaende.finde_gebaeude(str(eintrag.get("gebaeude") or ""))
+    stufe = gebaeude_wirkung.gebaeude_stufe(ort, geb)
+    if stufe <= 0:
+        leer["gebaeude"] = geb
+        leer["hindernis"] = "Ausbildungsstätte fehlt vor Ort."
+        return leer
+    kosten = dict(eintrag.get("kosten") or {})
+    siedler_je = int(kosten.pop("siedler", 0) or 0)
+    ausruestung_je = {ware: 1 for ware in ausruestung.bedarf(name)}
+    grenzen = {}
+    if siedler_je > 0:
+        try:
+            frei = float(ort.get("bevoelkerung", 0.0) or 0.0)
+        except (TypeError, ValueError):
+            frei = 0.0
+        grenzen["siedler"] = max(0, int(frei // siedler_je))
+    waren_lager = ort.get("waren") or {}
+    for ware, je in ausruestung_je.items():
+        try:
+            bestand = float(waren_lager.get(ware, 0) or 0)
+        except (TypeError, ValueError):
+            bestand = 0.0
+        grenzen[f"ausruestung:{ware}"] = max(0, int(bestand // je))
+    vorraete = ort.get("vorraete") or {}
+    for rohstoff, je in kosten.items():
+        try:
+            betrag = float(je)
+        except (TypeError, ValueError):
+            continue
+        if betrag <= 0:
+            continue
+        try:
+            bestand = float(vorraete.get(rohstoff, 0.0) or 0.0)
+        except (TypeError, ValueError):
+            bestand = 0.0
+        grenzen[rohstoff] = max(0, int(bestand // betrag))
+    moeglich = min([MENGEN_HOECHSTMENGE] + list(grenzen.values())) if grenzen else MENGEN_HOECHSTMENGE
+    grunddauer = REGELN["pilot_ausbildung_minuten"] * 60
+    # BELEGT (beide Fassungen, woertlich): "Je hoeher die Stufe, desto schneller werden die
+    # entsprechenden Einheiten ausgebildet" — Vorversion 2006, einheiten.php Z. 15-16; Handbuch
+    # 2009, Z. 503-504. Die ZAHLEN fehlen in beiden Fassungen (geprueft 31.10.2026, siehe
+    # docs/audits/AUSBILDUNGSDAUER_BELEGT_20261031.md) - belegt ist also nur die RICHTUNG.
+    # VORSCHLAG: Dauer = Grunddauer / Stufe (Stufe 1 = Grunddauer, Stufe 5 = ein Fuenftel).
+    # Grund fuer die Division: sie erfuellt "je hoeher, desto schneller" monoton und ohne
+    # zusaetzliche erfundene Konstante; balancieren im Spieltest. Die Grunddauer ist ebenfalls
+    # kein Originalwert (das Handbuch nennt keine Ausbildungsdauer).
+    dauer = grunddauer / max(1, int(stufe)) if AUSBILDUNG_STUFENFAKTOR_AKTIV else grunddauer
+    return {"einheit": name, "gebaeude": geb, "stufe": int(stufe),
+            "moeglich": max(0, int(moeglich)), "kosten_je": kosten, "siedler_je": siedler_je,
+            "ausruestung_je": ausruestung_je, "grenzen": grenzen, "hindernis": "",
+            "dauer_je": float(dauer), "freie_zeit": 0.0}
+
+
+def ausbildung_start_menge(ort: dict, name: str, forschung: dict, jetzt: float,
+                           menge: int = 1) -> dict:
+    """Beginnt die Ausbildung von `menge` Einheiten vor Ort - alles oder nichts.
+
+    Eine Mengenangabe ist EIN Vorgang (Daniel: "eine Menge statt N Einzelklicks"): entweder es
+    werden alle Siedler, Rohstoffe und Ausruestung abgebucht und alle Auftraege eingereiht, oder
+    es passiert gar nichts. Die Auftraege laufen NACHEINANDER in derselben Staette (wie bisher
+    einzelne Auftraege). Rueckgabe::
+
+        {"ort": neuer_ort, "anzahl": int, "moeglich": int, "einheit": name,
+         "dauer_je": float, "ende": float, "rest_sekunden": float, "meldung": str}
+    """
+    menge = _menge_wert(menge)
+    if menge < 1:
+        raise ValueError("Die Menge muss mindestens 1 sein.")
+    try:
+        jetzt = float(jetzt)
+    except (TypeError, ValueError):
+        jetzt = 0.0
+    grenzen = ausbildung_grenzen(ort, name, forschung)
+    if grenzen["hindernis"]:
+        raise ValueError(grenzen["hindernis"])
+    # Die ALTEN Meldungen bleiben bei einer Einheit woertlich: manche Pruefungen und Meldungen
+    # haengen an ihnen ("Freie Siedler fehlen vor Ort.", "Ausrüstung fehlt vor Ort.").
+    if grenzen["siedler_je"] and float(ort.get("bevoelkerung", 0.0) or 0.0) < grenzen["siedler_je"]:
+        raise ValueError("Freie Siedler fehlen vor Ort.")
+    if ausruestung.fehlende(name, ort.get("waren") or {}):
+        raise ValueError("Ausrüstung fehlt vor Ort.")
+    if menge > grenzen["moeglich"]:
+        raise ValueError(_mengen_text(name, menge, grenzen, ort))
+    kosten = {r: float(m) * menge for r, m in grenzen["kosten_je"].items()}
+    neu = verbrauchen(ort, kosten, jetzt)
+    neu["bevoelkerung"] = float(neu.get("bevoelkerung", 0.0) or 0.0) - grenzen["siedler_je"] * menge
+    neu["waren"] = ausruestung.verbrauchen(neu["waren"], name, menge)
+    geb = grenzen["gebaeude"]
+    freie_zeit = max([jetzt] + [float(a["ende"]) for a in neu["ausbildung"]
+                                if a.get("gebaeude") == geb])
+    dauer = grenzen["dauer_je"]
+    for _ in range(menge):
+        neu["ausbildung"].append({"einheit": name, "gebaeude": geb, "start": freie_zeit,
+                                  "ende": freie_zeit + dauer, "dauer_sekunden": dauer,
+                                  "stufe": int(grenzen["stufe"]), "gebucht": False})
+        freie_zeit += dauer
+    return {"ort": neu, "anzahl": menge, "moeglich": grenzen["moeglich"], "einheit": name,
+            "dauer_je": dauer, "ende": freie_zeit,
+            "rest_sekunden": max(0.0, freie_zeit - jetzt),
+            "meldung": (f"{menge} × {name} in Ausbildung ({gelaende.gebaeude_name(geb)} "
+                        f"Stufe {grenzen['stufe']}).")}
+
+
+def ausbildung_start(ort: dict, name: str, forschung: dict, jetzt: float) -> dict:
+    """Beginnt die Ausbildung EINER Einheit vor Ort. Liefert den neuen Ort.
+
+    Geprueft werden (1) die Forschungsstufe der Einheit, (2) die Ausbildungsstaette VOR ORT
+    (Kriegerakademie / Diebesgilde / Stellmacher), (3) genug freie Siedler, (4) die
+    Ausruestung im lokalen Warenlager. Verbraucht werden Kosten, Siedler und Ausruestung —
+    die Einheit selbst entsteht erst am Ende der Ausbildungszeit (`ort_tick`, Schritt 5).
+
+    Die Mengenfassung ist `ausbildung_start_menge`; dieser Name bleibt fuer eine Einheit.
+    """
+    return ausbildung_start_menge(ort, name, forschung, jetzt, 1)["ort"]
+
+
+# ---------------------------------------------------------------------------
+# Schritt 5 — gemeinsame Spieluhr: lokale Produktion und Fortschritt
+# (Entwurf Z. 592-648)
+# ---------------------------------------------------------------------------
+#
+# Der Ökonomiemodus hat EINE Uhr: `spielsekunden` (Spielzeit, nicht Rechnerzeit). Dieses Modul
+# rechnet nur damit; `main._tick_loop` multipliziert genau einmal mit `spielzeit.faktor()`.
+# Solange der Ökonomiemodus nicht aktiviert ist, ruft niemand diese Funktionen auf.
+
+
+def tagesbedarf_nahrung(einheiten, aktiv: bool | None = None) -> float:
+    """Nahrungsbedarf einer Einheitengruppe je SPIELTAG (VORSCHLAG, `data/nahrungsverbrauch.json`).
+
+    EINE Rechenstelle fuer Kern (``ort_tick``) und Anzeige (Kopfzeile) - sonst entstehen zwei
+    Wahrheiten. ``aktiv`` ueberschreibt den Schalter der Datendatei (fuer Pruefungen).
+    Gezaehlt wird JEDE Einheit gleich; Karren und Belagerungsgeraete fahren mit, weil sie im
+    Ortslager als Einheiten gefuehrt werden (die Datenlage kennt keinen zweiten Zaehler).
+    """
+    if aktiv is None:
+        aktiv = NAHRUNGSVERBRAUCH_AKTIV
+    if not aktiv or NAHRUNG_JE_EINHEIT_TAG <= 0:
+        return 0.0
+    anzahl = 0.0
+    for menge in (einheiten or {}).values():
+        if isinstance(menge, bool) or not isinstance(menge, (int, float)):
+            continue
+        if not math.isfinite(float(menge)) or menge <= 0:
+            continue
+        anzahl += float(menge)
+    return anzahl * NAHRUNG_JE_EINHEIT_TAG
+
+
+def _einheiten_von(ort) -> dict:
+    """Die Einheiten eines Ortes - als Dict ODER als Siedlungsobjekt (``Settlement.einheiten``)."""
+    if isinstance(ort, dict):
+        return ort.get("einheiten") or {}
+    return getattr(ort, "einheiten", None) or {}
+
+
+def verbrauch_pro_stunde(orte, aktiv: bool | None = None) -> float:
+    """Laufender Nahrungsverbrauch ALLER Siedlungen je Spielstunde (fuer die Anzeige)."""
+    bedarf = sum(tagesbedarf_nahrung(_einheiten_von(ort), aktiv) for ort in (orte or []))
+    return bedarf / 24.0
+
+
+def nahrungsnot(ort, forschung: dict = None) -> dict:
+    """Steht der Ort in NAHRUNGSNOT? (Daniels Verschaerfung zu Entscheidung 7, Register 70/74.)
+
+    Not heisst BEIDES zusammen: das Ortslager hat **keine Nahrung mehr** (Bestand <= 0) UND der Ort
+    verbraucht **mehr, als er selbst erntet**. Dann kann die Siedlung ohne Nachlieferung nie wieder
+    Nahrung ansparen - und genau dann verbietet Daniel dort jede weitere Produktion und jede Zahlung.
+
+    Bewusst NICHT Not: ein Restbestand ueber 0 (Daniel 31.10.2026, Register 74: "erst wenn das
+    Ortslager LEER ist"), ein Ort ohne Garnison, ein Ort, der genauso viel erntet, wie er isst, und
+    ein abgeschalteter Verbrauch (`aktiv=false` in `data/nahrungsverbrauch.json`).
+
+    Rueckgabe (immer ein Dict, nie None):
+      not        bool    - steht der Ort in Nahrungsnot
+      bestand    float   - Nahrung im Ortslager
+      bedarf_tag float   - Verbrauch der Garnison je Spieltag
+      ernte_tag  float   - eigener Nahrungsertrag des Ortes je Spieltag
+      text       str     - fertiger Satz fuer Oberflaeche und Meldung (leer, wenn keine Not)
+    """
+    lager = ort.get("vorraete", {}) if isinstance(ort, dict) else getattr(ort, "vorraete", {})
+    bestand = float((lager or {}).get("nahrung", 0.0) or 0.0)
+    einheiten = _einheiten_von(ort)
+    bedarf_tag = tagesbedarf_nahrung(einheiten)
+    ernte_tag = 0.0
+    if isinstance(ort, dict):
+        try:
+            ertrag = wirtschaft.ertrag_gesamt([ort], forschung or {})
+            ernte_tag = float({str(k).lower(): v for k, v in ertrag.items()}.get("nahrung", 0.0)) * 24.0
+        except (KeyError, TypeError, ValueError):
+            ernte_tag = 0.0
+    not_ = bool(bedarf_tag > 0 and bestand <= 0.0 and bedarf_tag > ernte_tag)
+    if not not_:
+        return {"not": False, "bestand": bestand, "bedarf_tag": bedarf_tag,
+                "ernte_tag": ernte_tag, "text": ""}
+    fehlt = bedarf_tag - ernte_tag
+    text = ("Nahrungsnot in diesem Ort: keine Nahrung im Lager, die Garnison braucht %.1f je Tag "
+            "und der Ort erntet nur %.1f. Es wird nichts mehr gebaut, hergestellt, geforscht oder "
+            "ausgebildet, bis Nahrung nachgeliefert wird oder der Ort wieder mehr erntet als er "
+            "verbraucht (es fehlen %.1f je Tag)." % (bedarf_tag, ernte_tag, fehlt))
+    return {"not": True, "bestand": bestand, "bedarf_tag": bedarf_tag,
+            "ernte_tag": ernte_tag, "text": text}
+
+
+def journal_deckeln(journal: list, deckel: Optional[int] = None) -> list:
+    """Das `produktionsjournal` EINES Ortes auf die neuesten Zeilen kuerzen (S-11, Entscheidung 9).
+
+    Daniels Entscheidung 9 vom 03.11.2026, woertlich: "Deckel 500 Zeilen je Ort, aelteste fallen weg".
+    Ohne Deckel waechst das Journal unbegrenzt: eine Zeile je Ernte- und Verbrauchsspanne, bei
+    Spieler UND Bots gleich. Gekuerzt wird AN ORT UND STELLE (dieselbe Liste), damit jeder vorhandene
+    Leser - `fensterproduktion`, der Spionagebericht, die Anzeige - unveraendert weiterliest.
+
+    Die Zahl kommt aus `data/spieloekonomie.json` (`journal_max_zeilen`), NICHT aus dem Code. Fehlt
+    sie oder steht sie auf 0, wird nicht gedeckelt (kein stiller Standardwert).
+    Rueckgabe: dieselbe Liste (der Aufrufer kann sie ignorieren).
+    """
+    if not isinstance(journal, list) or not journal:
+        return journal
+    if deckel is None:
+        try:
+            deckel = int(REGELN.get("journal_max_zeilen") or 0)
+        except (TypeError, ValueError):
+            deckel = 0
+    try:
+        grenze = int(deckel)
+    except (TypeError, ValueError):
+        return journal
+    if grenze <= 0 or len(journal) <= grenze:
+        return journal
+    del journal[:len(journal) - grenze]                  # aelteste zuerst weg
+    return journal
+
+
+def ort_tick(ort: dict, ab: float, bis: float, forschung: dict) -> dict:
+    """Einen Ort von Spielzeit `ab` bis `bis` fortschreiben. Liefert den neuen Ort.
+
+    Produziert über `wirtschaft.ertrag_gesamt` (dieselbe Quelle wie die Anzeige), schreibt
+    Siedlerzuwachs bis zur Grenze fort, holt fertige Werkstattwaren ins Lager und bucht
+    abgeschlossene Ausbildungen **genau einmal** (`gebucht`). Jede Produktionsspanne landet im
+    `produktionsjournal` — Grundlage des Versorgungsfensters (Schritt 7).
+
+    Seit Daniels Entscheidung 7 (31.10.2026) verbraucht die GARNISON laufend Nahrung
+    (`tagesbedarf_nahrung`, Betrag VORSCHLAG). Der Verbrauch steht als eigener Posten neben der
+    Produktion im Journal - `mengen` bleibt die reine Ernte, damit das Versorgungsfenster
+    unveraendert weiterrechnet. Reicht die Nahrung nicht, faellt der Bestand auf 0 und der Rest
+    steht als `unterdeckung` im Journal; eine Strafe dafuer gibt es bewusst nicht.
+    """
+    if bis < ab:
+        raise ValueError("Spielzeit darf nicht zurücklaufen.")
+    neu = copy.deepcopy(ort)
+    ertrag = {k.lower(): v for k, v in wirtschaft.ertrag_gesamt([neu], forschung).items()}
+    produktion = {}
+    for r, rate in ertrag.items():
+        menge = rate * (bis - ab) / 3600.0
+        neu["vorraete"][r] = neu["vorraete"].get(r, 0) + menge
+        produktion[r] = menge
+    # Nahrungsverbrauch der Garnison: NACH der Ernte gebucht (der Ort isst, was er erntet),
+    # je echte Spielspanne. KEIN Verbrauch bei leerer Spanne und bei leerem Ortslager-Heer.
+    verbrauch = 0.0
+    unterdeckung = 0.0
+    if bis > ab:
+        bedarf = tagesbedarf_nahrung(neu.get("einheiten") or {}) * (bis - ab) / 86400.0
+        if bedarf > 0:
+            vorher = float(neu["vorraete"].get("nahrung", 0.0) or 0.0)
+            verbrauch = min(bedarf, max(0.0, vorher))
+            unterdeckung = bedarf - verbrauch
+            neu["vorraete"]["nahrung"] = vorher - verbrauch
+    grenze = gebaeude_wirkung.bevoelkerungsgrenze([neu])
+    zuwachs = gebaeude_wirkung.siedler_zuwachs_pro_stunde([neu], forschung) * (bis - ab) / 3600.0
+    neu["bevoelkerung"] = min(grenze, neu["bevoelkerung"] + zuwachs)
+    if bis > ab:
+        zeile = {"ab": ab, "bis": bis, "mengen": produktion}
+        if verbrauch > 0 or unterdeckung > 0:
+            zeile["verbrauch"] = {"nahrung": verbrauch}
+            zeile["unterdeckung"] = unterdeckung
+        neu["produktionsjournal"].append(zeile)
+    # S-11 (Daniels Entscheidung 9): das Journal je Ort auf die neuesten Zeilen deckeln. EINE
+    # Stelle - hier schreibt der Kern jede Ernte- und Verbrauchszeile, fuer Spieler UND Bots.
+    journal_deckeln(neu["produktionsjournal"])
+    for schlange in neu["werkstaetten"].values():
+        for ware, n in werkstatt.fertige_waren(schlange, bis).items():
+            neu["waren"][ware] = neu["waren"].get(ware, 0) + n
+            neu["fertigjournal"].append({"zeit": bis, "art": "ware", "name": ware})
+    # S-5a (03.11.2026): die Abschluss-Regel steht in EINER Funktion - derselbe Weg gilt fuer den
+    # Spieler (hier), fuer den Bot-Kern und fuer den Karten-Weg der Bots.
+    ausbildung_abschluss(neu, bis)
+    return neu
+
+
+def ausbildung_abschluss(ort: dict, bis: float) -> dict:
+    """Laesst FAELLIGE Ausbildungen fertig werden - die EINE Stelle (S-5a, 03.11.2026).
+
+    Was hinein geht: der Ort (dict) und der Zeitpunkt. Was heraus kommt: DERSELBE Ort, in dem jede
+    Ausbildung mit `ende <= bis`, die noch nicht gebucht ist, genau EINMAL als Einheit im Dorf
+    steht (`einheiten`) und eine Zeile im `fertigjournal` bekommt (`gebucht = True`).
+    Der Ort wird dabei VERAENDERT (kein Kopieren) - `ort_tick` arbeitet ohnehin auf einer Kopie,
+    und der Karten-Weg der Bots ruft die Funktion direkt auf seinem Dorf-dict.
+
+    Warum eine eigene Funktion: bis S-5a stand diese Schleife nur in `ort_tick`. Der Bot bildet auf
+    dem Karten-Weg (`ertrag_weg = karte`) aber NICHT ueber `ort_tick` aus - ohne diese Stelle
+    bliebe seine Warteschlange fuer immer stehen. Jetzt gilt fuer beide Wege dieselbe Regel.
+    """
+    if not isinstance(ort, dict):                                          # kein Ort uebergeben
+        return ort                                                         # dann nichts tun
+    ort.setdefault("einheiten", {})                                        # Garnison anlegen
+    ort.setdefault("fertigjournal", [])                                    # Journal anlegen
+    for a in (ort.get("ausbildung") or []):                                # jede Ausbildung
+        if not isinstance(a, dict) or a.get("gebucht"):                    # schon gebucht
+            continue                                                       # dann ueberspringen
+        if float(a.get("ende") or 0.0) > float(bis):                       # noch nicht faellig
+            continue                                                       # spaeter pruefen
+        name = str(a.get("einheit") or "")                                 # Name der Einheit
+        if not name:                                                       # ohne Namen nichts buchen
+            continue
+        ort["einheiten"][name] = int(ort["einheiten"].get(name, 0)) + 1     # Einheit steht im Dorf
+        a["gebucht"] = True                                                # genau einmal buchen
+        ort["fertigjournal"].append({"zeit": a.get("ende"), "art": "einheit", "name": name})
+    return ort                                                             # derselbe Ort
+
+
+def fensterproduktion(orte: list, jetzt: float) -> dict:
+    """Tatsächlich produzierte Mengen im Versorgungsfenster (rückblickend bis `jetzt`).
+
+    Zählt aus den `produktionsjournal`-Zeilen anteilig — eine Zeile, die nur halb ins Fenster
+    reicht, zählt auch nur halb. So kann eine Momentaufnahme die Versorgung nicht vortäuschen.
+    """
+    start = jetzt - REGELN["versorgung_stunden"] * 3600
+    out: dict = {}
+    for ort in orte:
+        for zeile in ort.get("produktionsjournal") or []:
+            dauer = zeile["bis"] - zeile["ab"]
+            anteil = max(0.0, min(jetzt, zeile["bis"]) - max(start, zeile["ab"]))
+            if dauer > 0 and anteil > 0:
+                for r, n in (zeile.get("mengen") or {}).items():
+                    out[r] = out.get(r, 0) + n * anteil / dauer
+    return out
+
+
+def ereigniszeiten(orte: dict, missionen: list, jetzt: float) -> list:
+    """Die Spielzeiten der NÄCHSTEN Ereignisse (Entwurf Z. 950-960).
+
+    Ein **Ereignis** ist etwas, das den Zustand sprunghaft ändert: das Ende einer Ausbildung,
+    das Ende eines Forschungsauftrags, eine fertig gewordene Werkstattware und die Ankunft oder
+    Rückkehr einer Mission. Nur Zeiten **nach** `jetzt` kommen zurück — ein längst fälliges
+    Ereignis wird nicht wiederholt, es wird beim nächsten Schritt ohnehin nachgebucht.
+    """
+    zeiten: List[float] = []
+    for o in (orte or {}).values() if isinstance(orte, dict) else (orte or []):
+        for a in (o.get("ausbildung") or []):
+            if not a.get("gebucht") and a.get("ende") is not None:
+                zeiten.append(float(a["ende"]))
+        a = o.get("forschungsauftrag")
+        if a:
+            zeiten.append(float(a["startzeit"]) + float(a["dauer_stunden"]) * 3600.0)
+        for schlange in (o.get("werkstaetten") or {}).values():
+            for e in (schlange.get("einheiten") or []):
+                if e.get("ende") is not None and not e.get("gemeldet"):
+                    zeiten.append(float(e["ende"]))
+    for m in (missionen or []):
+        for feld in ("ankunft", "rueckkehr"):
+            if m.get(feld):
+                zeiten.append(float(m[feld]))
+    return sorted(t for t in zeiten if t > jetzt)
+
+
+def tick_bis(orte: dict, missionen: list, wissen: dict, jetzt: float, ende: float,
+             forschung_buchen: bool = True) -> tuple:
+    """Die Spieluhr in EREIGNISGRÖSSEN fortschreiben (Entwurf Z. 645-648 und Z. 961-1009).
+
+    Ein großer Sprung (etwa eine Stunde Spielzeit) wird in die Spannen zerlegt, die die
+    **Ereignisse des Zustands** vorgeben — nicht in feste Häppchen. Innerhalb jeder Spanne wird je
+    Ort `ort_tick` gebucht und danach der Abschluss je Ort sowie der Fortschritt je Mission
+    geprüft. Dadurch ist ein einziger großer Sprung **genau so viel** wie viele kleine Schritte:
+    eine Forschung, die mitten im Fenster fertig wird, wirkt **ab ihrem Zeitpunkt** auf die
+    Produktion (ohne Zerlegung wirkte sie erst am Spannenende — genau der Fehler, den der Entwurf
+    verbietet: „ein großer dt ohne Ereignissplitting ist kein gleichwertiger Ersatz").
+
+    Liefert ``(orte, missionen, wissen, zeit, ereignisse)``:
+      * ``orte`` — neuer Stand je Kennung (dict)
+      * ``missionen`` — fortgeschriebene Missionen (Ankunft/Rückkehr **genau einmal**)
+      * ``wissen`` — der (ggf. gestiegene) Forschungsstand ``{Gebiet: Stufe}``
+      * ``zeit`` — die erreichte Spielzeit (== `ende`)
+      * ``ereignisse`` — die Spielzeiten, an denen wirklich gebucht wurde (Nachweis)
+
+    **Reine Funktion:** der übergebene Zustand wird nicht verändert.
+    """
+    if not math.isfinite(ende) or not math.isfinite(jetzt) or ende < jetzt:
+        raise ValueError("Ungültiges Tickende.")
+    neu_orte = copy.deepcopy(orte) if isinstance(orte, dict) else {o["id"]: copy.deepcopy(o)
+                                                                  for o in (orte or [])}
+    neu_missionen = copy.deepcopy(missionen or [])
+    neu_wissen = dict(wissen or {})
+    ereignisse: List[float] = []
+
+    def abrechnen(ab: float, bis: float):
+        """Bucht die Spanne [ab, bis]: je Ort ernten/warten/lernen, Abschlüsse und Missionen.
+
+        Bei `ab == bis` wird **nichts geerntet** (die Spanne ist 0), aber sehr wohl **Fälliges**
+        gebucht: eine fertige Werkstattware, eine abgeschlossene Ausbildung, ein fälliger
+        Forschungsabschluss und eine fällige Ankunft. Genau das braucht ein Takt OHNE Spanne,
+        wenn die Uhr von außen gestellt wurde (die Prüfungen P27/P28 haben es gefunden).
+        """
+        nonlocal neu_orte, neu_missionen, neu_wissen
+        for kennung in sorted(neu_orte):
+            o = neu_orte[kennung]
+            neu_orte[kennung] = ort_tick(o, ab, bis, neu_wissen)
+        if forschung_buchen:
+            for kennung in sorted(neu_orte):
+                o = neu_orte[kennung]
+                o, neu_wissen = forschung_abschluss(o, neu_wissen, bis)
+                neu_orte[kennung] = o
+        for i, m in enumerate(neu_missionen):
+            if m.get("fremdvertrag"):
+                neu_orte, neu_missionen[i] = handel_abschluss(m, neu_orte, bis)
+            else:
+                neu_orte, neu_missionen[i] = transport_fortschritt(m, neu_orte, bis)
+
+    if ende == jetzt:
+        abrechnen(jetzt, jetzt)
+        return neu_orte, neu_missionen, neu_wissen, ende, ereignisse
+
+    t = jetzt
+    schritte = 0
+    while t < ende:
+        schritte += 1
+        if schritte > 5000:                      # Schutz gegen eine Ereignisschleife
+            raise ValueError("Zu viele Ereignisse in einer Spanne.")
+        bis = min([ende] + ereigniszeiten(neu_orte, neu_missionen, t))
+        abrechnen(t, bis)
+        ereignisse.append(bis)
+        t = bis
+    return neu_orte, neu_missionen, neu_wissen, t, ereignisse
+
+
+# ---------------------------------------------------------------------------
+# Schritt 6 — Forschung JE SIEDLUNG: lokaler Forschungsstart statt globaler
+# Bibliotheksabkürzung (Entwurf Z. 650-686)
+# ---------------------------------------------------------------------------
+#
+# BELEGT (Handbuch 2009): die Bibliothek ist je Siedlung (Z. 404 „In jeder Siedlung kann nur eine
+# einzige Bibliothek gebaut werden."), und die Sperre gilt „in der Siedlung, in der geforscht wird"
+# (Z. 423-424); Z. 245 spricht von den „in den Siedlungen laufenden Forschungen" (Mehrzahl) — zwei
+# Siedlungen dürfen also **verschiedene** Gebiete gleichzeitig erforschen. Der laufende Auftrag hängt
+# darum am **Ort** (`ort["forschungsauftrag"]`), nicht am Spieler.
+#
+# Die erreichte **Stufe** bleibt in `wissen` (dem übergebenen Stand) — ob dieser Stand je Siedlung
+# oder für das ganze Volk gilt, sagt das Handbuch **nicht** (Z. 104-106 „Dein Volk" gegen Z. 397
+# „Deine Siedlungen"); das ist offen und in `archiv/analysen/audits/belege_forschung_je_siedlung.md` festgehalten.
+
+
+def forschung_start(ort: dict, gebiet: str, wissen: dict, jetzt: float,
+                    weitere_orte: list = ()) -> dict:
+    """Einen Forschungsauftrag **in dieser Siedlung** erteilen. Liefert den neuen Ort.
+
+    Prüft: keine zweite Forschung in derselben Bibliothek · bekanntes Gebiet · Voraussetzungen
+    über `forschungspfad.erfuellt` (mit der Bibliotheksstufe **dieses** Ortes) · Rohstoffe.
+    Die Kosten werden beim Start verbraucht; die Stufe steigt erst am Ende (`forschung_abschluss`).
+
+    `weitere_orte` sind die übrigen **eigenen** Orte. Der Entwurf (Z. 685) verlangt ausdrücklich,
+    dass dieselbe Zielstufe nicht gleichzeitig in zwei Städten läuft — sonst zahlt man zweimal und
+    lernt einmal. Verschiedene Gebiete dürfen in verschiedenen Bibliotheken parallel laufen.
+    """
+    neu = copy.deepcopy(ort)
+    if neu.get("forschungsauftrag") is not None:
+        raise ValueError("Diese Bibliothek forscht bereits.")
+    if gebiet not in spieldaten.forschungen():
+        raise ValueError("Unbekanntes Forschungsgebiet.")
+    bibliothek = gebaeude_wirkung.bibliothek_stufe([neu])
+    ok, grund = forschungspfad.erfuellt(gebiet, wissen, bibliothek)
+    if not ok:
+        raise ValueError(grund)
+    ziel = wissen.get(gebiet, 0) + 1
+    for anderer in weitere_orte or ():
+        a = (anderer or {}).get("forschungsauftrag")
+        if a and a.get("gebiet") == gebiet and a.get("zielstufe") == ziel:
+            raise ValueError(f"{gebiet} Stufe {ziel} forscht bereits eine andere Siedlung — "
+                             f"zweimal dieselbe Stufe zahlt doppelt und bringt nichts.")
+    kosten = forschung.kosten(ziel)
+    neu = verbrauchen(neu, kosten, jetzt)
+    stand = {gebiet: {"stufe": wissen.get(gebiet, 0), "auftrag": None}}
+    # Material ist oben schon transaktional bezahlt → `forschung.starten` darf nichts abziehen.
+    ok, grund = forschung.starten(gebiet, stand, jetzt, bibliothek > 0, None)
+    if not ok:
+        raise ValueError(grund)
+    neu["forschungsauftrag"] = {"gebiet": gebiet, **stand[gebiet]["auftrag"]}
+    return neu
+
+
+def forschung_abschluss(ort: dict, wissen: dict, jetzt: float) -> tuple:
+    """Eine abgelaufene Forschung **dieser Siedlung** verbuchen. Liefert ``(ort, wissen)``.
+
+    Die Stufe steigt nur nach oben (`max`) — zweimal abschließen kann nichts doppeln —, der Auftrag
+    wird gelöscht und die Fertigstellung ins `fertigjournal` geschrieben (Grundlage der Zielprüfung,
+    Schritt 7).
+    """
+    neu, kenntnis = copy.deepcopy(ort), dict(wissen)
+    a = neu.get("forschungsauftrag")
+    if a and a["startzeit"] + a["dauer_stunden"] * 3600 <= jetzt:
+        kenntnis[a["gebiet"]] = max(kenntnis.get(a["gebiet"], 0), a["zielstufe"])
+        neu["forschungsauftrag"] = None
+        neu["fertigjournal"].append({"zeit": jetzt, "art": "forschung", "name": a["gebiet"]})
+    return neu, kenntnis
+
+
+# ---------------------------------------------------------------------------
+# Schritt 7 — Zielprüfung und Haltefenster, UNABHÄNGIG von den Originalpunkten
+# (Entwurf Z. 688-715)
+# ---------------------------------------------------------------------------
+#
+# Der Altmodus gewinnt über Punkte (`punkte.sieg_oder_niederlage`). Der Ökonomiemodus gewinnt
+# über eine **versorgte Wirtschaft**: genug Original-Siedlungen, gedeckter Plan,
+# gehaltene Reserve, echter
+# Handel, beide Rollen, Ware **und** Forschung fertig — und das alles **ein volles
+# Versorgungsfenster lang** (Haltefenster). Die Original-Punkteformeln bleiben unangetastet.
+#
+# Der Zweck ist ausdrücklich der **Ausschluss von Scheinsiegen**: wer nur Punkte farmt, Fracht
+# sinnlos hin und her schiebt oder seine notwendige Versorgung verliert, erfüllt die Bedingungen nicht
+# und verliert damit auch das Haltefenster wieder (Entwurf Z. 715).
+#
+# `reserve` (was ein Ort im Fenster zurücklegen WILL) wird je Ort erwartet — gesetzt wird es von
+# der Aufstellung/Planung (Schritt 8/9). Fehlt es, gilt „keine Reserve gefordert": dann kann der
+# Plan nicht gedeckt sein und das Ziel ist nicht erreicht (VORSCHLAG, konservativ — der Entwurf
+# verlangt genau diese Strenge, damit ein Sieg nicht zufällig geschieht).
+
+
+def zielstatus(orte: list, jetzt: float, haltestart=None) -> dict:
+    """Sind die Bedingungen des Versorgungsziels erfüllt — und wie lange schon?
+
+    Liefert ``sieg``, ``haltestart`` (None, wenn gerade nicht erfüllt — dann beginnt das
+    Haltefenster neu), ``qualitaet``, ``deckung``, ``reserve``, ``handel``, ``armee`` und ``plan``.
+
+    Gemessen wird **rückblickend**: die Deckung kommt aus dem tatsächlichen Produktionsjournal
+    (`fensterproduktion`), der Handel aus dem Verbrauchsjournal (mindestens **zwei Rohstoffe**
+    aus **zwei Orten** müssen wirklich verbraucht worden sein) — nicht aus einer Momentaufnahme.
+    """
+    orte = [o for o in (orte or []) if isinstance(o, dict)]
+    # Ohne Orte liefert `kartenqualitaet` selbst schon `{"erfuellt": False, ...}` (eigene Zeile
+    # dort) — die frühere Sonderbehandlung hier war unnötig und änderte die FORM des Feldes
+    # (ohne "mittel"/"beste"). Fund der Abweichungsprüfung zu Schritt 7.
+    q = kartenqualitaet([o["karte"] for o in orte])
+    menge = fensterproduktion(orte, jetzt)
+    plan = REGELN["plan"]
+    reserviert = {r: sum((o.get("reserve") or {}).get(r, 0) for o in orte) for r in plan}
+    plan_ok = bezahlbar(reserviert, plan)
+    deckung = min((menge.get(r, 0) / n for r, n in plan.items() if n > 0), default=0.0)
+    # VORSCHLAG (nicht belegt), bewusst vom Entwurf abweichend: der Entwurf schreibt hier
+    # `all(...)` ohne die Ortsgrenze. Die Prüfung zu Schritt 7 hat dargelegt, dass das den SIEG
+    # **nicht** ändert (ein leerer Verbund scheitert ohnehin an der Kartenqualität, die vier
+    # Siedlungen verlangt) — die frühere Begründung „ein leerer Spielstand hätte gehalten" war
+    # also falsch. Es bleibt eine **Anzeige**-Korrektur: `reserve` soll für einen Verbund ohne
+    # Siedlungen nicht „gehalten" melden. Auf `ok`/`sieg` wirkt sie nicht. Daniel kann sie
+    # streichen lassen; dann gilt wieder zeichengleich der Entwurf.
+    reserve = bool(orte) and all(bezahlbar(o.get("vorraete") or {}, o.get("reserve") or {})
+                                 for o in orte)
+    ab = jetzt - REGELN["versorgung_stunden"] * 3600
+    importe = {(o.get("id"), z["rohstoff"]) for o in orte
+               for z in (o.get("verbrauchsjournal") or [])
+               if ab < z["zeit"] <= jetzt and z["menge"] > 0}
+    handel = len({r for _, r in importe}) >= 2 and len({i for i, _ in importe}) >= 2
+    rollen = {einheiten.rolle(n) for o in orte for n, k in (o.get("einheiten") or {}).items()
+              if k > 0}
+    armee = "kaempfer" in rollen and "kundschafter" in rollen
+    fertig = {z["art"] for o in orte for z in (o.get("fertigjournal") or [])}
+    ok = (bool(q.get("erfuellt")) and plan_ok and deckung >= 1 and reserve and handel and armee
+          and {"ware", "forschung"} <= fertig)
+    start = (jetzt if haltestart is None else haltestart) if ok else None
+    sieg = bool(ok and start is not None
+                and jetzt - start >= REGELN["versorgung_stunden"] * 3600)
+    # `plan` ist über den Entwurf hinaus — er nennt die Rückgabe ohne diesen Schlüssel, verlangt
+    # aber „messbare Fehlgründe" (Z. 714). Nur eine Anzeige, keine Rechnung.
+    return {"sieg": sieg, "haltestart": start, "qualitaet": q, "deckung": deckung,
+            "reserve": reserve, "handel": handel, "armee": armee, "plan": plan_ok}
+
+
+# ---------------------------------------------------------------------------
+# Schritt 8b — bestätigter Fremdhandel: Angebot, beidseitige Sperre, Abschluss
+# (Entwurf Z. 752 sowie Z. 878-940)
+# ---------------------------------------------------------------------------
+#
+# Ein bestätigtes EINZELANGEBOT mit echter Handelskarawane — **keine** Netzfunktionen. Der alte
+# `_trade`-Pfad (Gratisrohstoffe) wird dafür **nicht** weiterverwendet, sondern ersetzt.
+#
+# BELEGT (Handbuch 2009, Z. 1120 ff. — Zitat und Zeile in
+# `archiv/analysen/audits/handbuch_abgleich_2026-10-05.txt`): Handel zwischen eigenen Siedlungen ist belegt;
+# für den Handel mit Fremden nennt das Handbuch die Handelskarawane und die Rückkehr MIT den Waren
+# bei Ablehnung (S. 20). Der Preis wird beim Angebot festgelegt und danach nicht mehr verhandelt.
+#
+# Das Wesen der Transaktion ist die **Sperre**: Kaufpreis (Gold des Käufers) und Handelsgut (Lager
+# des Verkäufers) verlassen ab dem Start ihre Lager und liegen AM VERTRAG. Erst die Ankunft der
+# Karawane macht das Angebot wahr; kehrt sie ohne Annahme zurück, erhält jede Seite das Ihre
+# vollständig zurück — samt der **Importherkunft** (dieselbe anteilige Sperrlogik wie in
+# `transport_start`). So entstehen weder Gratisgewinne noch Geistergutschriften.
+#
+# Der Vertrag ist eine Mission mit `fremdvertrag=True`; gebucht wird er **ausschließlich** von
+# `handel_abschluss` — `auftraege.spieldaten_anwenden` lässt ihn unberührt (genau wie einen
+# Eigentransport). Die Ereignisschleife (Schritt 10) unterscheidet beide Wege an diesem Merkmal.
+#
+# **Die Annahme ist eine Entscheidung, kein Zufall** (Handbuch S. 20, belegt in
+# `auftraege.auftragsarten`: „Bei Ablehnung kehrt die Karawane MIT den Waren zurück, Gold wird nie
+# uebertragen."). Der Verkäuferort hält sie im Vertragsfeld `entscheidung` fest
+# (`handel_entscheiden`): `True` nimmt an, `False` lehnt ab, `None` überlässt die Entscheidung der
+# Ankunft — dann nimmt der Ort an, sobald die Karawane bei ihm steht und er noch seiner ist.
+# Ohne dieses Feld wäre die belegte Ablehnungsregel **nicht erreichbar** (der Entwurfscode nahm
+# immer an, sobald der Verkäuferort lebte) — gefunden beim Bau dieser Prüfdatei, eigener Zusatz,
+# den Daniel streichen kann.
+#
+# WICHTIG (Entwurf Z. 939): Der **Sieg-Handelsnachweis** bleibt ausschließlich den eigenen
+# Transporten vorbehalten. Ein Fremdkauf erhöht `importiert`/`verbrauchsjournal` des Käufers
+# deshalb NICHT — sonst könnte man sich den Handelsnachweis einfach kaufen.
+
+
+def handel_start(kaeufer: dict, verkaeufer: dict, einheitenbestand: dict, ware: str,
+                 menge: int, preis: float, kanal: str, jetzt: float, forschung: dict = None):
+    """Ein bestätigtes Einzelangebot starten. Liefert ``(kaeufer_neu, verkaeufer_neu, vertrag)``.
+
+    ``kanal`` ist ``"vorraete"`` (Rohstoff) oder ``"waren"``. Geprüft wird **vor** jeder Buchung:
+    Kanal und Handelsgut, positives ganzzahliges Angebot, positiver endlicher Preis, fremder
+    Besitzer, gleiche Dimension, Karawane vor Ort, beidseitige Deckung (Lager **und** Gold) und
+    die Rückladung der Karawane. Jede Ablehnung ist ein ``ValueError`` — es wird nichts halb
+    gebucht, die übergebenen Orte bleiben unverändert.
+    """
+    if kanal not in ("vorraete", "waren"):
+        raise ValueError("Unbekannter Frachtkanal.")
+    if type(menge) is not int or menge <= 0:
+        raise ValueError("Ungültige Handelsmenge.")
+    if isinstance(preis, bool) or not isinstance(preis, (int, float)) or not math.isfinite(preis) \
+            or preis <= 0:
+        raise ValueError("Ungültiger Preis.")
+    if ware == "gold":
+        raise ValueError("Gold ist kein Handelsgut, sondern die Gegenleistung.")
+    if kaeufer["besitzer"] == verkaeufer["besitzer"]:
+        raise ValueError("Eigener Warentransport braucht keinen Kaufvertrag.")
+    if kaeufer["dimension"] != verkaeufer["dimension"]:
+        raise ValueError("Eine fremde Weltkarte braucht noch unbelegte Missionstarife.")
+    if not einheitenbestand or any(type(n) is not int or n <= 0
+                                   for n in einheitenbestand.values()):
+        raise ValueError("Ungültige Karawanentruppe.")
+    if any(kaeufer["einheiten"].get(n, 0) < m for n, m in einheitenbestand.items()):
+        raise ValueError("Karawane fehlt vor Ort.")
+    if verkaeufer[kanal].get(ware, 0) < menge:
+        raise ValueError("Angebot nicht gedeckt: dem Verkäufer fehlt die Ware.")
+    gold = menge * preis
+    if kaeufer["vorraete"].get("gold", 0) < gold:
+        raise ValueError("Angebot nicht gedeckt: dem Käufer fehlt das Gold.")
+    d = abs(kaeufer["x"] - verkaeufer["x"]) + abs(kaeufer["y"] - verkaeufer["y"])
+    liste = []
+    ok, grund = auftraege.starten(liste, "handeln", einheitenbestand, kaeufer["id"],
+                                  verkaeufer["id"], d, jetzt, {}, forschung=forschung)
+    if not ok:
+        raise ValueError(grund)
+    # Erst nach dem Auftragskern: die Karawanenpflicht steht BELEGT in `auftraege.auftragsarten`
+    # („Nur Handelskarawanen") — diese Meldung ist besser als eine selbst erfundene. Gebucht ist
+    # bis hierher nichts: `starten` füllt nur die Liste, die bei einer Ablehnung verworfen wird.
+    if menge > auftraege.ladung_der_mission(einheitenbestand, forschung):
+        raise ValueError("Kaufmenge übersteigt die Rückladung der Karawane.")
+    k, v, vertrag = copy.deepcopy(kaeufer), copy.deepcopy(verkaeufer), liste[0]
+
+    # Gegenleistung sperren: das Gold des Käufers (mit seinem Importanteil).
+    goldbestand = k["vorraete"].get("gold", 0)
+    sperrgold_import = 0.0 if goldbestand <= 0 else min(
+        k["importiert"].get("gold", 0), gold * k["importiert"].get("gold", 0) / goldbestand)
+    k["vorraete"]["gold"] = goldbestand - gold
+    k["importiert"]["gold"] = max(0.0, k["importiert"].get("gold", 0) - sperrgold_import)
+
+    # Handelsgut sperren: die Ware des Verkäufers (mit ihrem Importanteil, nur Rohstoffkanal).
+    verkauft_import = {}
+    if kanal == "vorraete":
+        lager = v["vorraete"].get(ware, 0)
+        anteil = 0.0 if lager <= 0 else menge * v["importiert"].get(ware, 0) / lager
+        verkauft_import[ware] = anteil
+        v["importiert"][ware] = max(0.0, v["importiert"].get(ware, 0) - anteil)
+    v[kanal][ware] = v[kanal].get(ware, 0) - menge
+
+    for n, z in einheitenbestand.items():
+        k["einheiten"][n] = k["einheiten"].get(n, 0) - z
+
+    vertrag.update({"fremdvertrag": True, "kaeufer": k["id"], "verkaeufer": v["id"],
+                    "kaeufer_owner": k["besitzer"], "verkaeufer_owner": v["besitzer"],
+                    "ware": ware, "menge": menge, "preis": float(preis), "kanal": kanal,
+                    "angenommen": False, "abgerechnet": False, "entscheidung": None,
+                    "sperrgold": gold, "sperrgold_import": sperrgold_import,
+                    "verkauft_import": verkauft_import})
+    vertrag["besitzer"] = k["besitzer"]
+    return k, v, vertrag
+
+
+def handel_entscheiden(vertrag: dict, angenommen: bool) -> dict:
+    """Die Entscheidung des Verkäuferorts festhalten (vor dem Abschluss). Liefert den Vertrag.
+
+    ``True`` nimmt das Angebot an, ``False`` lehnt es ab (belegt, Handbuch S. 20). Ein bereits
+    abgerechneter Vertrag lässt sich nicht mehr entscheiden.
+    """
+    neu = copy.deepcopy(vertrag)
+    if neu.get("abgerechnet"):
+        raise ValueError("Der Vertrag ist bereits abgerechnet.")
+    neu["entscheidung"] = bool(angenommen)
+    return neu
+
+
+def _volk_prozent(ort, groesse: str) -> float:
+    """Volks-Prozente eines ORTES (V-5, 03.11.2026) - 0,0 ohne Volk (kein Erfinden).
+
+    Das Volk steht am Ort (`volk`), die Zahlen liefert `boni.py` aus `data/boni.json`. Diese
+    Funktion liest die Datei nicht selbst.
+    """
+    fraktion = ""
+    if isinstance(ort, dict):
+        fraktion = str(ort.get("volk") or "")
+    elif ort is not None:
+        fraktion = str(getattr(ort, "volk", "") or "")
+    if not fraktion:
+        return 0.0
+    try:
+        import boni
+    except Exception:                                  # noqa: BLE001 - ohne Modul keine Wirkung
+        return 0.0
+    try:
+        return float(boni.modifikatoren(fraktion).get(groesse, 0.0) or 0.0)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def handel_abschluss(vertrag: dict, orte: dict, jetzt: float):
+    """Ankunft und Rückkehr eines Fremdvertrags buchen — **genau einmal**. ``(orte, vertrag)``.
+
+    * **Ankunft:** nimmt der Verkäuferort an (Feld `entscheidung`; ohne Entscheidung nimmt er an,
+      sobald die Karawane bei ihm steht und der Ort noch seiner ist), wandert das gesperrte Gold
+      zu ihm — mit der Importherkunft. Bei Ablehnung oder verlorenem Ort bleibt alles gesperrt.
+    * **Rückkehr:** bei Annahme kommt die Ware beim Käufer an, bei Ablehnung kehren Gold **und**
+      Ware vollständig zurück (belegte Regel, Handbuch S. 20); die Karawane kommt in beiden
+      Fällen heim.
+    * Ist der **Käuferort** verloren, bleibt das Gut AM VERTRAG — keine Geistergutschrift, keine
+      Schenkung an einen neuen Besitzer (Entwurf Z. 924/932).
+    """
+    neu, m = copy.deepcopy(orte), copy.deepcopy(vertrag)
+    kaeufer, verkaeufer = neu.get(m["kaeufer"]), neu.get(m["verkaeufer"])
+
+    if jetzt >= m["ankunft"] and not m["angenommen"]:
+        if m.get("entscheidung") is not False and verkaeufer is not None \
+                and verkaeufer["besitzer"] == m["verkaeufer_owner"]:
+            # V-5 (03.11.2026): der Handels erloes haengt am Volk des VERKAEUFERS (Trolle -5 %).
+            # Der Abzug ist die Handelsspanne des Volkes - das Gold verschwindet, es wird nicht
+            # einem anderen Ort gutgeschrieben.
+            erloes = float(m["sperrgold"])
+            _spanne = _volk_prozent(verkaeufer, "handel")
+            if _spanne:
+                erloes = round(erloes * max(0.0, 1.0 + _spanne / 100.0), 2)
+            verkaeufer["vorraete"]["gold"] = verkaeufer["vorraete"].get("gold", 0) + erloes
+            verkaeufer["importiert"]["gold"] = (verkaeufer["importiert"].get("gold", 0)
+                                               + m["sperrgold_import"])
+            m["erloes"] = erloes
+            m["sperrgold"], m["sperrgold_import"] = 0.0, 0.0
+            m["angenommen"] = True
+
+    if jetzt >= m["rueckkehr"] and not m["abgerechnet"]:
+        if kaeufer is None or kaeufer["besitzer"] != m["kaeufer_owner"]:
+            return neu, m          # Gut bleibt am Vertrag; ein späterer eigener Ort kann es noch erhalten.
+        if m["angenommen"]:
+            kaeufer[m["kanal"]][m["ware"]] = kaeufer[m["kanal"]].get(m["ware"], 0) + m["menge"]
+            # Bewusst KEIN Eintrag in `importiert`: ein Fremdkauf ist kein eigener Handelsnachweis.
+        else:
+            kaeufer["vorraete"]["gold"] = kaeufer["vorraete"].get("gold", 0) + m["sperrgold"]
+            kaeufer["importiert"]["gold"] = (kaeufer["importiert"].get("gold", 0)
+                                            + m["sperrgold_import"])
+            m["sperrgold"], m["sperrgold_import"] = 0.0, 0.0
+            if verkaeufer is not None and verkaeufer["besitzer"] == m["verkaeufer_owner"]:
+                verkaeufer[m["kanal"]][m["ware"]] = (verkaeufer[m["kanal"]].get(m["ware"], 0)
+                                                     + m["menge"])
+                if m["kanal"] == "vorraete":
+                    verkaeufer["importiert"][m["ware"]] = (
+                        verkaeufer["importiert"].get(m["ware"], 0)
+                        + m["verkauft_import"].get(m["ware"], 0))
+            else:
+                # Verlorenes Verkäufergut bleibt vermerkt; nicht an einen neuen Besitzer schenken.
+                m["verlorenes_sperrgut"] = {m["ware"]: m["menge"]}
+        for n, z in m["einheiten"].items():
+            kaeufer["einheiten"][n] = kaeufer["einheiten"].get(n, 0) + z
+        m["abgerechnet"] = True
+    return neu, m

@@ -1,0 +1,16 @@
+{
+  "stand": "2026-11-03",
+  "regel": "S-6: Ein Bot gruendet weitere Doerfer - hoechstens vier je Bot, in SEINER Heimatwelt, mit einer freien Karte aus dem Kartenkatalog (Daniel 03.11.2026: 'Nachgruenden, 3 Gruendungen je Bot = 4 Doerfer').",
+  "aktiv": true,
+  "hoechstens_doerfer": 4,
+  "sperre_stunden": 72,
+  "siedlerkarren_pflicht": true,
+  "warum_diese_zahlen": {
+    "hoechstens_doerfer": "Daniels Zahl: 3 Gruendungen je Bot, also 4 Doerfer. Sie steht hier und nicht im Code, damit er sie ohne Codeaenderung stellt.",
+    "sperre_stunden": "VORSCHLAG: 72 Spielstunden (drei Spieltage) zwischen zwei Gruendungen desselben Bots. Ohne Sperre wuerde ein reicher Bot seine vier Doerfer im Minutentakt setzen.",
+    "siedlerkarren_pflicht": "Der KERN verlangt fuer eine Gruendung einen Siedlerkarren im Ausgangsdorf (spieloekonomie.REGELN['gruendung']['karren']). Ein Bot kann ihn heute NICHT beschaffen: der Karren kommt aus dem Stellmacher und braucht Leder, Wolle und Pferde, und die Bot-Wirtschaft kennt keine Werkstattkette (gemessen 03.11.2026: Bot-Doerfer fuehren nur gold, holz, metall, nahrung, stein). Bei false verlangt die Bot-Gruendung deshalb KEINEN Karren; die Kosten des Karrens bleiben trotzdem bezahlt - seine Siedler (5) ziehen aus dem Ausgangsdorf in das neue, und Gebuehr plus Startpaket kommen aus dem Kern (spieloekonomie.gruendungskosten). Bei true gilt die strenge Kernregel und der Bot gruendet erst, wenn er einen Karren hat (S-6b: Warenkette fuer Bots)."
+  },
+  "quelle": "Kosten, Startpaket, Mindestbestand und die Forschungsstufe kommen aus dem KERN (`spieloekonomie.gruendungskosten()` und `spieloekonomie.REGELN['gruendung']`) - nicht aus dieser Datei. Hier stehen nur die bot-eigenen Zahlen: Hoechstzahl, Sperre und der Karren-Schalter.",
+  "ehrliche_grenze": "Ohne Werkstattkette kann ein Bot keinen Siedlerkarren bauen; deshalb steht `siedlerkarren_pflicht` auf false und die Siedler wandern direkt aus dem Ausgangsdorf. Das ist eine ABWEICHUNG von der Spielerregel und als solche im Register vermerkt - Daniel entscheidet, ob sie so bleibt oder ob Bots erst mit Karren gruenden (S-6b).",
+  "siedlerkarren_pflicht_begruendung": "S-6b Teil 2 (03.11.2026): Daniel hat entschieden, dass ein Bot den Karren genau wie der Spieler baut (Kosten und Forschung aus dem KERN). Seit `bot_karren_bauen` im Bot-Takt laeuft und der Karren nachweislich gebaut wird, ist die Pflicht EIN. Ohne Karren gruendet kein Bot."
+}

@@ -1,0 +1,13 @@
+{
+  "faktor": 180.0,
+  "stufen": [
+    1.0,
+    20.0,
+    60.0,
+    180.0,
+    600.0
+  ],
+  "belegt": false,
+  "_hinweis": "Zeitfaktor: so viele Spielsekunden je Echtzeitsekunde. 1 = Originaltempo (1 Spieltag = 24 echte Stunden). 180 = eine Spielstunde in 20 Sekunden. Die Handbuchformeln selbst bleiben unveraendert, nur die Spieluhr laeuft schneller. Von Daniel aenderbar.",
+  "_befund": "05.10.2026, Spielbericht Daniel: der Rohstoffeingang war nicht sichtbar, weil die Spieluhr im Originaltempo lief (4 Holz je ECHTER Stunde)."
+}

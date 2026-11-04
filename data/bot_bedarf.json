@@ -1,0 +1,15 @@
+{
+  "stand": "2026-11-03",
+  "aktiv": true,
+  "fenster_stunden": 24,
+  "hinweis": "S-10 (03.11.2026, Daniels Entscheidung 4): der BEDARF je Rohstoff. Bis heute kannte das Spiel nur den Nahrungsbedarf der Garnison (spieloekonomie.tagesbedarf_nahrung, 8 je Einheit und Tag). Ohne einen Bedarf konnte die Kartenwahl der Bots nicht auf 'mittel' gestellt werden - der Zweig in botkern.oekonomie_kartenwahl nimmt die am schlechtesten gedeckte Rohstoffachse, und ohne Bedarf gibt es keine Achse (Rueckfall auf die Gold-Regel). Diese Datei regelt NUR die Rechnung, nicht die Zahlen der Wirtschaft.",
+  "warum_fenster": "Der Bedarf wird auf STUNDEN umgelegt, weil die Erträge der Karten Stundenraten sind (bot_dorf_ertrag, wirtschaft.ertrag_gesamt): nur so ist 'Deckung = Rate / Bedarf' eine Zahl ohne Einheit. fenster_stunden = 24 heisst: einmalige Ausgaben (naechste Forschung, offene Ausbildungen, offene Werkstattwaren) werden auf einen Spieltag verteilt. Das Fenster ist eine VORSCHLAG-Zahl (das Original nennt keinen Planungshorizont) und steht deshalb hier, nicht im Code.",
+  "was_zaehlt": {
+    "nahrung": "tagesbedarf_nahrung(bot.army) geteilt durch 24 - der einzige BELEGTE Verbrauch (8 je Einheit und Spieltag).",
+    "ausbildung": "Kosten der noch nicht fertigen Ausbildungsauftraege je Dorf, geteilt durch fenster_stunden.",
+    "werkstatt": "Rezeptkosten der offenen Werkstattauftraege (data/warenrezepte.json), geteilt durch fenster_stunden.",
+    "forschung": "Kosten des NAECHSTEN Schritts im Forschungsplan des Bots (data/bot_forschung.json), geteilt durch fenster_stunden - laufende Auftraege sind bereits bezahlt und zaehlen nicht."
+  },
+  "was_nicht_zaehlt": "Bauten. Ein Gebaeude wird sofort bezahlt und ist kein laufender Verbrauch; ausserdem waere der naechste Bau schon im Bauplan bezahlt, sobald er steht. Wer Bauten mitrechnen will, braucht eine eigene Entscheidung - nicht stillschweigend hier hinein.",
+  "ehrliche_grenze": "Der Bedarf ist eine PLANUNGSGROESSE, keine Messung: er sagt, was das Dorf in den naechsten fenster_stunden bezahlen WILL, nicht was es verbraucht hat. Verbrauchte Mengen stehen weiterhin im produktionsjournal des Ortes (Feld 'verbrauch' bei Nahrung). Die Kartenwahl vergleicht diesen Bedarf mit dem STUNDENERTRAG der Karte - wer den Bedarf in einer Datendatei aendert, aendert damit die Kartenwahl, nicht die Wirtschaft."
+}

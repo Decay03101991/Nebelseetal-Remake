@@ -1,0 +1,7 @@
+{
+  "_zweck": "Daniels Entscheidung zur Siedler-Mechanik beim Bauen (Auswahlformular 31.10.2026, Frage 5 = B).",
+  "_entscheidung": "Gebaeude binden KEINE Siedler mehr (Remake-Abweichung).",
+  "_befund": "BELEGT ist das Gegenteil: data/baupreise.json fuehrt fuer Holzfäller, Steinmetz und Jäger je 1 Siedler, Quelle Screenshot 1838857 ('Kosten: 10 Holz, 5 Stein, 1 Siedler'). Daniels Spielstand zeigt genau diesen Schwund (10 -> 3,5 Siedler bei 7 Holzfällern, 4 Steinmetzern und 12 Jägern).",
+  "_hinweis": "Dieser Schalter nimmt NUR den Siedler-Posten aus der Zahlung. Die belegten Preise bleiben unveraendert in data/baupreise.json stehen - eine Rueckkehr zum Original ist das Umlegen von 'aktiv' auf true, ohne eine Zeile Code zu aendern.",
+  "aktiv": false
+}

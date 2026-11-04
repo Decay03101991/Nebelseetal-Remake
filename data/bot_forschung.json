@@ -1,0 +1,102 @@
+{
+  "stand": "2026-11-03",
+  "aktiv": true,
+  "forschungen_je_takt": 1,
+  "plaene": {
+    "Pluenderer": {
+      "jetzt": [
+        {"forschung": "Baukunst", "bis_stufe": 1, "warum": "data/buildings.json, regeln.baukunst: 'Fuer alle restlichen Gebaeude werden Kenntnisse in der Forschung Baukunst benoetigt.' Ohne Stufe 1 bleibt ausser Haus, Bibliothek, Holzfaeller, Steinmetz und Jaeger jedes Gebaeude gesperrt - auch Schmiede und Kriegerakademie, mit denen ein Pluenderer Beute macht."},
+        {"forschung": "Kriegskunst", "bis_stufe": 1, "warum": "data/units.json: der Kaempfer verlangt Kriegskunst Stufe 1 und ist die billigste Einheit der Kriegerakademie (1 Siedler, 250 Gold). Die Armee eines Bots stellt sich aus den belegten Preisen auf (botkern) - ohne diese Forschung gibt es keine Einheit, die sie kaufen koennte."},
+        {"forschung": "Heimlichkeit", "bis_stufe": 1, "warum": "data/units.json: der Gauner verlangt Heimlichkeit Stufe 1 (Diebesgilde). Beute ohne Schlacht ist die billigste Einnahme eines Pluenderers; die Gilde selbst braucht nur Baukunst."},
+        {"forschung": "Wagenbau", "bis_stufe": 1, "warum": "data/units.json: der Siedlerkarren verlangt Wagenbau Stufe 1 (Stellmacher). Karawanen zwischen eigenen Doerfern (S-7) und Nachgruendungen (S-6) brauchen einen Wagen; ohne diese Forschung gibt es keinen."},
+        {"forschung": "Felderwirtschaft", "bis_stufe": 3, "warum": "data/research.json: Felderwirtschaft erhoeht die Nahrung um 10 Prozent je Stufe. Die Armee isst nach Daniels Vorgabe 8 Nahrung je Einheit und Tag (spieloekonomie.tagesbedarf_nahrung); wer Beute macht, braucht die groesste Armee und damit das meiste Futter."},
+        {"forschung": "Kriegskunst", "bis_stufe": 3, "warum": "data/units.json: der Krieger verlangt Kriegskunst Stufe 3 - die erste Einheit, die im Kampf mehr als ein Bauernopfer ist."},
+        {"forschung": "Schmiedekunst", "bis_stufe": 1, "warum": "data/research.json: Schmiedekunst erhoeht Waffen und Ruestungen um 5 Prozent je Stufe (Werkstattware). Ausserdem ist sie die Voraussetzung fuer Waffentechnik und Ruestungsbau (beide Bibliothek 3)."},
+        {"forschung": "Baukunst", "bis_stufe": 3, "warum": "data/research.json, Verteidigungsanlagen: 'Baukunst 3'. Ein Pluenderer braucht den Wall nicht zuerst, aber ein Dorf ohne Wall verliert jede Beute beim ersten Gegenangriff."},
+        {"forschung": "Verteidigungsanlagen", "bis_stufe": 1, "warum": "src/dorfwall.py, wache_besetzen: 'Zuerst Verteidigungsanlagen erforschen.' Stufe 1 ist die kleinste Wallstufe, die sich errichten laesst."}
+      ],
+      "nach_bibliothek": [
+        {"forschung": "Forstwirtschaft", "bis_stufe": 3, "warum": "Bibliothek 3 (data/research.json). Holz ist der Posten, an dem jede Baupreiserhoeung haengt; heute nicht erreichbar, weil der Bot seine Bibliothek nicht ausbaut (Ausbauen fehlt noch)."},
+        {"forschung": "Minenarbeit", "bis_stufe": 3, "warum": "Bibliothek 3. Metall und Gold fuer Einheiten und Werkstattware - erst nach dem Bibliotheksausbau."}
+      ]
+    },
+    "Waechterin": {
+      "jetzt": [
+        {"forschung": "Baukunst", "bis_stufe": 3, "warum": "data/research.json: Verteidigungsanlagen verlangt 'Baukunst 3'. Baukunst Stufe 1 oeffnet zugleich Wall, Lager und Ausbildungsstaetten (data/buildings.json, regeln.baukunst) - eine Waechterin braucht zuerst den Wall, also zuerst diese Kette."},
+        {"forschung": "Verteidigungsanlagen", "bis_stufe": 5, "warum": "src/dorfwall.py verlangt Stufe 1 zum Errichten; data/research.json verlangt fuer Mauerbau 'Verteidigungsanlagen 5'. Bis 5 durchforschen, damit der Verteidigungswert ueberhaupt wachsen kann."},
+        {"forschung": "Mauerbau", "bis_stufe": 1, "warum": "data/research.json: Mauerbau erhoeht den Verteidigungswert um 10 Prozent je Stufe - die einzige Forschung, die den Wall selbst staerker macht."},
+        {"forschung": "Felderwirtschaft", "bis_stufe": 3, "warum": "Nahrung +10 Prozent je Stufe (data/research.json). Eine Garnison, die den Wall haelt, isst 8 Nahrung je Einheit und Tag - ohne Deckung greift die Kaufbremse aus S-2 und der Bot stellt nichts mehr auf."},
+        {"forschung": "Kriegskunst", "bis_stufe": 3, "warum": "data/units.json: Kaempfer (Stufe 1) und Krieger (Stufe 3) sind die Einheiten, die hinter dem Wall stehen. Ohne sie ist der Wall leer."},
+        {"forschung": "Schmiedekunst", "bis_stufe": 1, "warum": "Waffen und Ruestungen +5 Prozent je Stufe (data/research.json) - die Werkstattware, die eine Verteidigerin wirklich staerker macht."},
+        {"forschung": "Bogenbau", "bis_stufe": 1, "warum": "data/research.json: Bogenbau oeffnet die Bogenproduktion (Bogenbauer, data/buildings.json 'Baukunst'). Fernkampfmunition fuer eine Verteidigung, die nicht ausreiten will."},
+        {"forschung": "Heimlichkeit", "bis_stufe": 1, "warum": "data/units.json: Gauner (Heimlichkeit 1). Eine Waechterin will wissen, wer kommt - Kundschafter und Diebesgilde haengen an dieser Forschung."}
+      ],
+      "nach_bibliothek": [
+        {"forschung": "Steinbruch", "bis_stufe": 3, "warum": "Bibliothek 3 (data/research.json). Stein +10 Prozent je Stufe - der Rohstoff, an dem jeder Wall- und Gebaeudepreis haengt."},
+        {"forschung": "Tierhaltung", "bis_stufe": 3, "warum": "Bibliothek 2. Pferde, Wolle und Leder +5 Prozent je Stufe; Pferde braucht jede berittene Einheit."}
+      ]
+    },
+    "Bastionier": {
+      "jetzt": [
+        {"forschung": "Baukunst", "bis_stufe": 3, "warum": "data/buildings.json, regeln.baukunst: ohne Baukunst 1 kein Wall, kein Lager, keine Schmiede; data/research.json: Verteidigungsanlagen verlangt Baukunst 3. Der Bastionier lebt vom Bauen, also zuerst die Bauforschung."},
+        {"forschung": "Felderwirtschaft", "bis_stufe": 3, "warum": "Nahrung +10 Prozent je Stufe (data/research.json). Wer viel baut, hat viele Siedler - und jeder Siedler isst. Die Kaufbremse aus S-2 haengt an der Futterdeckung."},
+        {"forschung": "Verteidigungsanlagen", "bis_stufe": 3, "warum": "src/dorfwall.py: Stufe 1 errichtet den Wall; jede weitere Stufe ist der Wallstand selbst (dorfwall.forschungsstand, 1..10)."},
+        {"forschung": "Schmiedekunst", "bis_stufe": 1, "warum": "Waffen und Ruestungen +5 Prozent je Stufe (data/research.json) und Voraussetzung fuer Waffentechnik und Ruestungsbau (Bibliothek 3)."},
+        {"forschung": "Kriegskunst", "bis_stufe": 1, "warum": "data/units.json: Kaempfer (Kriegskunst 1) ist die Einheit, die eine gebaute Siedlung ueberhaupt verteidigen kann."},
+        {"forschung": "Wagenbau", "bis_stufe": 1, "warum": "data/units.json: Siedlerkarren (Wagenbau 1). Ein Bastionier gruendet und versorgt von einem Ort aus - ohne Karren kommt keine Fracht an."},
+        {"forschung": "Verteidigungsanlagen", "bis_stufe": 5, "warum": "data/research.json: Mauerbau verlangt Verteidigungsanlagen 5. Der Bastionier will den Wall hochziehen, also bis 5."},
+        {"forschung": "Mauerbau", "bis_stufe": 1, "warum": "Verteidigungswert +10 Prozent je Stufe (data/research.json) - der Abschluss der Wallkette."}
+      ],
+      "nach_bibliothek": [
+        {"forschung": "Steinbruch", "bis_stufe": 3, "warum": "Bibliothek 3. Stein +10 Prozent je Stufe - der Bastionier baut am meisten Stein."},
+        {"forschung": "Forstwirtschaft", "bis_stufe": 3, "warum": "Bibliothek 3. Holz +10 Prozent je Stufe; jedes Gebaeude kostet Holz."},
+        {"forschung": "Heilkunde", "bis_stufe": 3, "warum": "Bibliothek 3. Siedlerproduktion +10 Prozent je Stufe - mehr Siedler heisst mehr Bauplaetze und mehr Einheiten."}
+      ]
+    },
+    "Spaeherin": {
+      "jetzt": [
+        {"forschung": "Baukunst", "bis_stufe": 1, "warum": "data/buildings.json, regeln.baukunst: Diebesgilde und Stellmacher sind ohne Baukunst gesperrt. Ohne Gilde gibt es keine Kundschafter - die Spaeherin haette nichts zu tun."},
+        {"forschung": "Heimlichkeit", "bis_stufe": 3, "warum": "data/units.json: Gauner (Heimlichkeit 1), Dieb (Stufe 3), Meisterdieb (Stufe 5), Kundschafter (Stufe 8). Heimlichkeit ist die einzige Forschungsreihe, die Spionage und Diebstahl freischaltet."},
+        {"forschung": "Wagenbau", "bis_stufe": 1, "warum": "data/units.json: Siedlerkarren (Wagenbau 1). Eine Spaeherin gruendet frueh neue Doerfer (S-6), damit sie mehr Ziele hat - der Karren bringt die Starthilfe."},
+        {"forschung": "Felderwirtschaft", "bis_stufe": 1, "warum": "Nahrung +10 Prozent je Stufe (data/research.json) und die billigste Forschung ueberhaupt (50 Holz). Ein Spaeherdorf hat wenige Siedler und muss trotzdem Futter fuer seine Armee decken (Kaufbremse S-2)."},
+        {"forschung": "Kriegskunst", "bis_stufe": 1, "warum": "data/units.json: Kaempfer (Kriegskunst 1). Ein Dieb ohne Begleitung ist eine Beute fuer den naechsten Raeuber."},
+        {"forschung": "Baukunst", "bis_stufe": 3, "warum": "data/research.json: Verteidigungsanlagen verlangt Baukunst 3 - eine Spaeherin mit vier Doerfern (S-6) kann nicht ueberall Truppen stehen haben und braucht den Wall."},
+        {"forschung": "Verteidigungsanlagen", "bis_stufe": 1, "warum": "src/dorfwall.py, wache_besetzen: Stufe 1 ist die Voraussetzung, den Wall ueberhaupt zu errichten."},
+        {"forschung": "Heimlichkeit", "bis_stufe": 5, "warum": "data/units.json: Meisterdieb (Heimlichkeit 5). Die hoeheren Diebesstufen bringen mehr Beute je Zug - der eigentliche Ertrag einer Spaeherin."}
+      ],
+      "nach_bibliothek": [
+        {"forschung": "Tierhaltung", "bis_stufe": 3, "warum": "Bibliothek 2. Pferde fuer Karren und berittene Einheiten; heute nicht erreichbar, weil der Bot seine Bibliothek nicht ausbaut."},
+        {"forschung": "Minenarbeit", "bis_stufe": 3, "warum": "Bibliothek 3. Gold und Metall - Gold ist der Preis fast jeder Einheit (data/units.json)."}
+      ]
+    },
+    "Raecher": {
+      "jetzt": [
+        {"forschung": "Baukunst", "bis_stufe": 1, "warum": "data/buildings.json, regeln.baukunst: Kriegerakademie und Schmiede brauchen Baukunst Stufe 1. Ein Raechner ohne Akademie kann nicht zurueckschlagen."},
+        {"forschung": "Kriegskunst", "bis_stufe": 3, "warum": "data/units.json: Kaempfer (Stufe 1), Kurzbogenschuetze (2), Krieger (3). Kriegskunst ist die Forschungsreihe, die die Armee selbst staerker macht (data/research.json: 'Armee durch staerkere Einheiten aufwerten')."},
+        {"forschung": "Felderwirtschaft", "bis_stufe": 3, "warum": "Nahrung +10 Prozent je Stufe (data/research.json). Ein Raechner haelt die groesste Armee und isst 8 Nahrung je Einheit und Tag; ohne Deckung greift die Kaufbremse aus S-2."},
+        {"forschung": "Schmiedekunst", "bis_stufe": 1, "warum": "Waffen und Ruestungen +5 Prozent je Stufe (data/research.json) - die Schmiede ist der Ort, an dem ein Raechner seine Ausruestung herstellt."},
+        {"forschung": "Bogenbau", "bis_stufe": 1, "warum": "data/research.json: Bogenbau oeffnet die Bogenproduktion (Bogenbauer). Ohne Pfeile schiesst kein Bogenschuetze, auch kein ausgebildeter."},
+        {"forschung": "Baukunst", "bis_stufe": 3, "warum": "data/research.json: Verteidigungsanlagen verlangt Baukunst 3. Ein Raechner, der seine Armee auswärts hat, muss sein Dorf trotzdem halten koennen."},
+        {"forschung": "Verteidigungsanlagen", "bis_stufe": 1, "warum": "src/dorfwall.py, wache_besetzen: 'Zuerst Verteidigungsanlagen erforschen.' Stufe 1 erlaubt die Errichtung des Walls; ohne sie bleibt das Dorf eines Raechners offen, waehrend seine Armee auswaerts ist."},
+        {"forschung": "Kriegskunst", "bis_stufe": 4, "warum": "data/units.json: Bogenschuetze (Kriegskunst 4). Fernkampf ist die Waffe, mit der ein Raechner Verluste klein haelt."}
+      ],
+      "nach_bibliothek": [
+        {"forschung": "Waffentechnik", "bis_stufe": 1, "warum": "Bibliothek 3 und Schmiedekunst 1 (data/research.json). Neue Waffenarten - heute gesperrt, weil die Bibliothek des Bots auf Stufe 1 steht."},
+        {"forschung": "Rüstungsbau", "bis_stufe": 1, "warum": "Bibliothek 3 und Schmiedekunst 1. Neue Ruestungsarten; gleiche Grenze wie oben."}
+      ]
+    },
+    "Unbekannt": {
+      "jetzt": [
+        {"forschung": "Baukunst", "bis_stufe": 1, "warum": "Rueckfallplan ohne Taktik. Baukunst Stufe 1 oeffnet die meisten Gebaeude (data/buildings.json, regeln.baukunst) und ist damit die Forschung, die keinem Stil schadet."},
+        {"forschung": "Kriegskunst", "bis_stufe": 1, "warum": "data/units.json: Kaempfer (Kriegskunst 1) - die billigste Einheit, ohne die ein Dorf wehrlos bleibt."},
+        {"forschung": "Felderwirtschaft", "bis_stufe": 1, "warum": "Nahrung +10 Prozent je Stufe (data/research.json), billigste Forschung (50 Holz). Haelt die Kaufbremse aus S-2 offen."}
+      ],
+      "nach_bibliothek": []
+    }
+  },
+  "hinweis": "S-4 (03.11.2026): die REIHENFOLGE, in der ein Bot-Dorf forscht - je Taktik eine Liste, kein Forschungsname im Code. 'jetzt' enthaelt nur Schritte, deren Voraussetzungen mit einer Bibliothek der Stufe 1 erreichbar sind; 'nach_bibliothek' enthaelt die Schritte, die Bibliothek 2 oder 3 verlangen und deshalb warten, bis der Bot seine Bibliothek ausbaut (Ausbauen ist noch nicht gebaut). Geforscht wird immer der ERSTE Schritt der Liste, dessen Zielstufe noch nicht erreicht ist und dessen Voraussetzungen erfuellt sind; danach ist der Takt vorbei ('forschungen_je_takt'). Die Kosten stehen NICHT hier, sondern kommen aus spieldaten.forschungs_kosten (Stufe 1 = 50 Holz, dann das Doppelte) und werden ueber spieloekonomie.forschung_start aus dem Dorflager gebucht - dieselbe Funktion wie beim Spieler.",
+  "warum_baukunst_zuerst": "Baukunst steht bei JEDER Taktik zuerst. Der Grund steht in data/buildings.json (regeln.baukunst): ohne Baukunst ist ausser Haus, Bibliothek, Holzfaeller, Steinmetz und Jaeger jedes Gebaeude gesperrt - Wall, Lager, Schmiede, Kriegerakademie, Diebesgilde, Bogenbauer, Stellmacher. Ohne diese eine Forschung kann keine Taktik ihren Stil ausleben; deshalb ist sie keine Geschmacksfrage, sondern die gemeinsame Wurzel.",
+  "wie_gelesen": "Je Eintrag: 'forschung' (Name woertlich wie in data/research.json), 'bis_stufe' (Zielstufe dieser Reihe), 'warum' (Beleg: Datei und Abschnitt). Steht 'bis_stufe' auf 1, wird genau eine Stufe erforscht; steht sie hoeher, forscht der Bot Schritt fuer Schritt (Stufe 2, 3 ...) und bezahlt jede Stufe einzeln.",
+  "ehrliche_grenze": "Drei Grenzen, offen benannt: (a) Die Bibliothek eines Bots bleibt auf Stufe 1 - Ausbauen (Stufen) ist noch nicht gebaut, also sind alle Forschungen mit 'Bibliothek 2/3/5/6' unerreichbar und stehen deshalb unter 'nach_bibliothek' statt in der laufenden Liste. (b) Die Forschungen wirken heute nur ueber den Kern-Weg des Takts (spieloekonomie.ort_tick mit dem Wissensstand des Bots); auf dem Vorgabe-Weg 'karte' (ertrag_weg) rechnet der Bot weiter mit dem Kartenprofil, dort aendert Forschung den Ertrag NICHT. (c) Die Reihenfolge der Taktiken ist eine begruendete Setzung dieser Sitzung (Daniels Entscheidung 2: 'Ich lege sie je Taktik als begruendete Datendatei fest') - sie ist keine Originalregel und darf mit Begruendung geaendert werden.",
+  "warum_keine_originalreihenfolge": "Das Original nennt keine Reihenfolge, in der ein Volk forschen soll. Belegt sind nur Voraussetzungen und Wirkungen (data/research.json). Die Reihenfolge hier ist deshalb aus dem STIL der Taktik und den belegten Freischaltungen (data/units.json, data/buildings.json) hergeleitet und je Schritt begruendet."
+}

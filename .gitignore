@@ -1,0 +1,7 @@
+release_public/
+release_staging/
+*.exe
+*.zip
+__pycache__/
+*.pyc
+.venv/

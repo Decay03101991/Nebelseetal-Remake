@@ -1,0 +1,20 @@
+{
+  "_zweck": "Ingame-Dialoge ueber dem Inhaltsbereich (kein eigenes Fenster auf dem Desktop). Alle Zahlen hier stellen, nicht im Code.",
+  "_quelle": "docs/EINSCHAETZUNG_INGAME_FENSTER_20261103.md, Abschnitt 2 (Rezept der Vorgaenger-Sitzung)",
+  "_entscheidung": "Daniel 03.11.2026, 22:2x: keine Desktop-Zusatzfenster mehr - Dialoge INGAME, Hintergrund abgedunkelt und durchscheinend",
+  "abdunkeln": {
+    "deckkraft": 140,
+    "farbe": [0, 0, 0],
+    "bildschirmabzug": true,
+    "mindestbreite": 640,
+    "mindesthoehe": 480
+  },
+  "kasten": {
+    "breite": 560,
+    "innen": 14
+  },
+  "schliessen": {
+    "escape": true,
+    "klick_daneben": true
+  }
+}

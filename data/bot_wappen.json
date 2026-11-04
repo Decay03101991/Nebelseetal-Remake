@@ -1,0 +1,39 @@
+{
+  "stand": "2026-11-04",
+  "zweck": "Jedes Dorf auf der Weltkarte ist an BURG und WAPPEN seiner Fraktion erkennbar. Hauptdorf und Nebendoerfer desselben Bots tragen DASSELBE Bildpaar - so ist immer klar, welches Dorf zu welchem Nutzer gehoert (Daniel 03.11.2026).",
+  "quelle": "Assetpaket von Daniel (archiv/eingaben/20261101_burgen_wappen), geschnitten mit tools/burgen_wappen_schneiden.py zu assets/icons/burgen/burg_01..06.png und assets/icons/wappen/wappen_01..10.png (freigestellt, RGBA).",
+  "urteil": "VORSCHLAG: das Original nennt keine Wappen und keine Burgen fuer Voelker. Die ZUORDNUNG Fraktion -> Bild ist eine Setzung dieser Sitzung; die Bilder selbst sind Daniels Lieferung.",
+  "je_fraktion": {
+    "menschlich": {
+      "burg": "assets/icons/burgen/burg_01.png",
+      "wappen": "assets/icons/wappen/wappen_04.png"
+    },
+    "zwergisch": {
+      "burg": "assets/icons/burgen/burg_02.png",
+      "wappen": "assets/icons/wappen/wappen_05.png"
+    },
+    "elfisch": {
+      "burg": "assets/icons/burgen/burg_03.png",
+      "wappen": "assets/icons/wappen/wappen_03.png"
+    },
+    "Trolle": {
+      "burg": "assets/icons/burgen/burg_04.png",
+      "wappen": "assets/icons/wappen/wappen_02.png"
+    },
+    "Ghule": {
+      "burg": "assets/icons/burgen/burg_05.png",
+      "wappen": "assets/icons/wappen/wappen_01.png"
+    },
+    "Gnome": {
+      "burg": "assets/icons/burgen/burg_06.png",
+      "wappen": "assets/icons/wappen/wappen_06.png"
+    }
+  },
+  "warum_diese_zuordnung": "BURGEN: die Reihenfolge folgt der Reihenfolge der Fraktionen in data/voelker.json (menschlich, zwergisch, elfisch, Trolle, Ghule, Gnome) auf die sechs gelieferten Burgen 01 bis 06. WAPPEN: seit Daniels Anweisung vom 04.11.2026 bewusst ANDERS zugeordnet (Ringtausch, siehe `aenderung_2026_11_04`) - die Wappen sind also nicht mehr deckungsgleich mit den Burgen. Wer eines von beiden anders will, aendert hier den Dateinamen - kein Codeeingriff.",
+  "groesse_prozent_der_zelle": 92,
+  "wappen_groesse_prozent_der_zelle": 40,
+  "warum_groesse": "Das Feld misst 20 Pixel (400 px fuer 20 x 20 Felder). Die Burg nimmt 92 Prozent ein, damit sie das Feld nicht ueberdeckt; das Wappen sitzt als Abzeichen unten rechts auf 40 Prozent. Beides ist ein Regler, kein Code.",
+  "spieler": "Der Spieler traegt das Paar SEINER Fraktion - nach der Voelkerwahl hat kein Bot mehr dieselbe Fraktion (fuenf Bots, sechs Voelker), die Zuordnung bleibt also eindeutig.",
+  "ehrliche_grenze": "Fehlt eine Bilddatei oder fehlt Pillow, zeichnet die Karte den alten Kasten mit X - kein Absturz und keine leere Karte. Ohne Voelkerwahl (alter Spielstand) traegt der Spieler kein Wappen; seine Doerfer werden dann als Kasten gezeigt.",
+  "aenderung_2026_11_04": "Daniel 04.11.2026: die WAPPEN wurden getauscht (zwergisch -> Trolle, Trolle -> menschlich, menschlich -> Ghule, Ghule -> zwergisch). Die BURGEN blieben bei ihrer Fraktion; eine Anweisung fuer die Burgen gibt es nicht."
+}
