@@ -8,11 +8,9 @@
     "groesse_px": 12,
     "hinweis_farben": "Figuren von Daniel (04.11.2026): weiss, blau, lila. Die Chronik nennt Epheus den Weissen, Tardas den Gruenen, Salmur den Roten - Gruen und Rot haben noch keine Figur; Zuordnung vorlaeufig nach Farbe."
   },
-  "standard_wall_stufe": 8,
-  "standard_wall_zustand": 100.0,
   "pruefwerte": {
     "anzahl_drachen": 3,
-    "verteidiger_summe": 40,
+    "verteidiger_summe": 204,
     "beute": {
       "gold": 5000,
       "holz": 2000,
@@ -22,7 +20,9 @@
     "ware": {
       "drachenschuppe": 1
     },
-    "verschiebung": 1
+    "verschiebung": 1,
+    "schwelle_fussttruppen": 700,
+    "schwelle_belagerungswaffen": 950
   },
   "drachen": [
     {
@@ -31,8 +31,6 @@
       "name": "Epheus der Weiße",
       "x": 7,
       "y": 13,
-      "wall_stufe": 8,
-      "wall_zustand": 100.0,
       "einheiten": {
         "Krieger": 20,
         "Bogenschütze": 20
@@ -47,7 +45,25 @@
         "drachenschuppe": 1
       },
       "status": "VORSCHLAG",
-      "bild": "assets/bilder/drache_weiss.png"
+      "bild": "assets/bilder/drache_weiss.png",
+      "verteidigung": {
+        "einheiten": {
+          "Krieger": 120,
+          "Bogenschütze": 60,
+          "Paladin": 24
+        },
+        "summe": 204,
+        "schuppen": {
+          "schwelle_fussttruppen": 700,
+          "schwelle_belagerungswaffen": 950,
+          "unbrechbar": true
+        },
+        "feueratem": {
+          "prozent_der_fusstruppen": 8,
+          "mindestens": 1,
+          "hoechstens_anteil": 0.5
+        }
+      }
     },
     {
       "id": "drache_d03",
@@ -55,8 +71,6 @@
       "name": "Tardas der Grüne",
       "x": 12,
       "y": 6,
-      "wall_stufe": 8,
-      "wall_zustand": 100.0,
       "einheiten": {
         "Krieger": 20,
         "Bogenschütze": 20
@@ -71,7 +85,25 @@
         "drachenschuppe": 1
       },
       "status": "VORSCHLAG",
-      "bild": "assets/bilder/drache_blau.png"
+      "bild": "assets/bilder/drache_blau.png",
+      "verteidigung": {
+        "einheiten": {
+          "Krieger": 120,
+          "Bogenschütze": 60,
+          "Paladin": 24
+        },
+        "summe": 204,
+        "schuppen": {
+          "schwelle_fussttruppen": 700,
+          "schwelle_belagerungswaffen": 950,
+          "unbrechbar": true
+        },
+        "feueratem": {
+          "prozent_der_fusstruppen": 8,
+          "mindestens": 1,
+          "hoechstens_anteil": 0.5
+        }
+      }
     },
     {
       "id": "drache_d05",
@@ -79,8 +111,6 @@
       "name": "Salmur der Rote",
       "x": 5,
       "y": 17,
-      "wall_stufe": 8,
-      "wall_zustand": 100.0,
       "einheiten": {
         "Krieger": 20,
         "Bogenschütze": 20
@@ -95,7 +125,26 @@
         "drachenschuppe": 1
       },
       "status": "VORSCHLAG",
-      "bild": "assets/bilder/drache_lila.png"
+      "bild": "assets/bilder/drache_lila.png",
+      "verteidigung": {
+        "einheiten": {
+          "Krieger": 120,
+          "Bogenschütze": 60,
+          "Paladin": 24
+        },
+        "summe": 204,
+        "schuppen": {
+          "schwelle_fussttruppen": 700,
+          "schwelle_belagerungswaffen": 950,
+          "unbrechbar": true
+        },
+        "feueratem": {
+          "prozent_der_fusstruppen": 8,
+          "mindestens": 1,
+          "hoechstens_anteil": 0.5
+        }
+      }
     }
-  ]
+  ],
+  "verteidigung_hinweis": "Der Drache hat KEINEN Wall: statt der Wallschwelle gelten seine eigenen Werte (Schuppen). Belagerungswaffen brechen ihn nicht - er muss im Sturm bezwungen werden."
 }

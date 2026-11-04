@@ -20,15 +20,20 @@ Ziel: die Drachen aus `src/drachen.py` ins Spiel bringen. Fuenf Andockstellen, j
      Drache da, wird gegen ihn gekaempft (kein BotDorf, keine Garnison).
    - Welt und Koordinaten stehen im `ziel`; die Weltkarte kennt sie (Kartenaufbau).
 
-3) KAMPF
-   - `kampf.fuehre_schlacht(kaempfer, drachen.verteidiger(eintrag), *drachen.wall(eintrag), ...)`
-     - der Verteidiger ist ein einfaches dict, es braucht KEIN Dorf-Objekt.
-   - Beute ueber die EINE Buchstelle: `kampfbericht.beute_am_ziel(...)` liefert die Staffel-Beute; die
-     Drachenbeute (5.000 Gold usw.) ist eine FESTE Beute und kommt aus `drachen.beute(eintrag)`.
-     Zwei Moeglichkeiten: (a) `beute_am_ziel` um `beute_override` erweitern (eine Buchstelle, aber
-     Signatur der meistgenutzten Funktion aendert sich), (b) im Drachenpfad die feste Beute direkt
-     buchen und `beute_am_ziel` NICHT aufrufen (zwei Buchstellen). Empfehlung: (a) mit Vorgabe None -
-     bestehende Aufrufer bleiben unveraendert.
+3) KAMPF (geaendert 05.11.2026 nach Daniels Ansage: kein Wall, Drachenwerte)
+   - Der Drache hat KEINEN Wall. Statt `wall_stufe`/`wall_zustand` gilt sein eigener Block
+     `verteidigung.schuppen` (Datendatei): `schwelle_fussttruppen` 700, `schwelle_belagerungswaffen`
+     950, `unbrechbar` true.
+   - VORRUnde woertlich wie beim Wall, nur mit den Drachenwerten: Schlagkraft der NAHKAMPF-Einheiten
+     gegen 700, Schlagkraft der Belagerungswaffen gegen 950. Reicht beides nicht, zieht der Angreifer
+     ab ("unentschieden", kein Kampf) - genau die Aufgabe, die sonst der Wall hatte.
+   - `unbrechbar` heisst: Belagerungswaffen richten KEINEN Mauerschaden an; `mauer_schaden` entfaellt im
+     Drachenpfad, die Schwellen bleiben konstant. Ein Wall kann man klein schiessen, einen Drachen nicht.
+   - FEUERATEM vor dem Nahkampf: `drachen.feueratem_verluste(eintrag, anzahl_fusstruppen)` (8 % der
+     antretenden Fusstruppen, mindestens 1, hoechstens die Haelfte). Diese Verluste gehen von den
+     Angreifern ab, BEVOR `kampf.fuehre_schlacht` laeuft, und stehen als eigene Zeile im Bericht.
+   - Danach `kampf.fuehre_schlacht(kaempfer, drachen.verteidiger(eintrag), 0, 100.0, ...)` - Wallstufe 0,
+     weil der Drache keinen Wall hat; die Verteidiger sind 120 Krieger + 60 Bogenschuetzen + 24 Paladine.
 
 4) ANZEIGE
    - Die Kartenansicht zeichnet Bot-Doerfer als Burg (`_zeichne_siedlungskarte` / Weltkarte).
@@ -45,6 +50,6 @@ Ziel: die Drachen aus `src/drachen.py` ins Spiel bringen. Fuenf Andockstellen, j
 
 Offene Entscheidungen fuer Daniel (EINE Runde):
    A) Welche DREI Welten? Vorschlag d02, d03, d05.
-   B) Welche Einheiten verteidigen? Vorschlag 20 Krieger + 20 Bogenschuetze (= 40).
-   C) Feste Drachenbeute oder Staffel-Beute nach Wallzustand? Vorschlag: fest (Daniels Zahlen).
+   B) ENTSCHIEDEN 05.11.2026: 120 Krieger + 60 Bogenschuetzen + 24 Paladine (204), Drachenwerte statt Wall.
+   C) Feste Drachenbeute oder Staffel-Beute? Vorschlag: fest (Daniels Zahlen) - der Drache hat keinen Wall, es gibt keinen Wallzustand fuer eine Staffel
    D) Duerfen Bots den Drachen angreifen? Vorschlag: nein (er ist kein Bot-Dorf).

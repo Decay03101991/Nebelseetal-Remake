@@ -13,8 +13,12 @@ daten = drachen.daten()  # laedt die Original-Datendatei
 pruefwerte = daten.get("pruefwerte", {})  # holt die Pruefwerte aus der Datendatei
 
 for eintrag in daten["drachen"]:  # iteriert ueber alle Drachen in der Datendatei
-    check("Pflichtfelder vorhanden", all(feld in eintrag for feld in ("id", "welt", "name", "x", "y", "wall_stufe", "einheiten", "beute", "ware")), f"Eintrag {eintrag.get('id', '?')} hat alle Felder")  # prueft ob alle Pflichtfelder da sind
-    check("Einheitensumme 40", sum(eintrag["einheiten"].values()) == pruefwerte["verteidiger_summe"], f"Summe der Einheiten von {eintrag['id']} ist {pruefwerte['verteidiger_summe']}")  # prueft die Einheitensumme
+    check("Pflichtfelder vorhanden", all(feld in eintrag for feld in ("id", "welt", "name", "x", "y", "verteidigung", "beute", "ware", "bild")), f"Eintrag {eintrag.get('id', '?')} hat alle Felder")  # prueft ob alle Pflichtfelder da sind
+    # W-14 (Daniel 05.11.2026): statt 40 Einheiten eine echte Drachenwache; die Summe steht in den
+    # Pruefwerten der Datendatei und wird hier gegen den Block "verteidigung" geprueft.
+    check("Einheitensumme wie in den Pruefwerten",
+          sum(eintrag["verteidigung"]["einheiten"].values()) == pruefwerte["verteidiger_summe"],
+          "Summe der Einheiten von %s ist %d" % (eintrag["id"], sum(eintrag["verteidigung"]["einheiten"].values())))
     check("Beute Gold", eintrag["beute"]["gold"] == pruefwerte["beute"]["gold"], f"Gold von {eintrag['id']} stimmt")  # prueft Gold
     check("Beute Holz", eintrag["beute"]["holz"] == pruefwerte["beute"]["holz"], f"Holz von {eintrag['id']} stimmt")  # prueft Holz
     check("Beute Stein", eintrag["beute"]["stein"] == pruefwerte["beute"]["stein"], f"Stein von {eintrag['id']} stimmt")  # prueft Stein
@@ -49,11 +53,31 @@ check("y - 1", drachen.finde(erster["welt"], erster["x"], erster["y"] - verschie
 besiegt_ids = [erster["id"]]  # erstellt eine Liste mit der ID des ersten Drachen
 check("besiegter Drache", drachen.finde(erster["welt"], erster["x"], erster["y"], besiegt=besiegt_ids) is None, "finde() ueberspringt besiegten Drachen")  # prueft ob besiegter Drache nicht gefunden wird
 
-abschnitt("verteidiger() und wall()")  # markiert den vierten Abschnitt
+abschnitt("verteidiger() und die Drachenwerte statt Wall")  # vierter Abschnitt
+
 verteidiger_dict = drachen.verteidiger(erster)  # holt das Verteidiger-dict
-check("verteidiger() hat 40 Einheiten", sum(verteidiger_dict.values()) == pruefwerte["verteidiger_summe"], f"Summe ist {sum(verteidiger_dict.values())}")  # prueft Summe
-wall_tupel = drachen.wall(erster)  # holt das Wall-Tupel
-check("wall() liefert (8, 100.0)", wall_tupel[0] == erster["wall_stufe"] and wall_tupel[1] == erster["wall_zustand"], f"wall() = {wall_tupel}")  # prueft Tupel
+check("verteidiger() hat die Summe aus den Pruefwerten", sum(verteidiger_dict.values()) == pruefwerte["verteidiger_summe"], f"Summe ist {sum(verteidiger_dict.values())}")  # prueft Summe
+check("mehr als 40 Verteidiger (Daniel 05.11.2026)", sum(verteidiger_dict.values()) > 40, f"Summe ist {sum(verteidiger_dict.values())}")  # prueft die Vorgabe
+fuss, bel = drachen.schwellen(erster)  # holt die beiden Vorrunden-Schwellen
+check("Schwelle Fusstruppen wie in den Pruefwerten", fuss == pruefwerte["schwelle_fussttruppen"], f"Fussttruppen {fuss}")  # prueft die Schwelle
+check("Schwelle Belagerung wie in den Pruefwerten", bel == pruefwerte["schwelle_belagerungswaffen"], f"Belagerung {bel}")  # prueft die Schwelle
+check("der Drache ist UNBRECHBAR (kein Wallschaden)", drachen.unbrechbar(erster) is True, "unbrechbar")  # prueft die Eigenart
+check("kein wall_stufe mehr im Eintrag", "wall_stufe" not in erster, "kein Wallfeld")  # prueft den Schnitt
+
+abschnitt("Feueratem: Verluste vor dem Kampf")  # eigener Abschnitt
+
+atem = drachen.feueratem(erster)  # Regel des Atems
+check("der Atem ist eingetragen", bool(atem) and "prozent_der_fusstruppen" in atem, str(atem))  # prueft die Regel
+_prozent = atem.get("prozent_der_fusstruppen", 0)  # Anteil aus der Datendatei
+check("100 Fusstruppen verlieren den eingetragenen Anteil",
+      drachen.feueratem_verluste(erster, 100) == int(round(100 * _prozent / 100.0)), str(drachen.feueratem_verluste(erster, 100)))  # prueft die Rechnung
+check("0 Fusstruppen verlieren nichts", drachen.feueratem_verluste(erster, 0) == 0, "0")  # Grenzfall unten
+check("negative Angabe verliert nichts", drachen.feueratem_verluste(erster, -5) == 0, "-5")  # Grenzfall negativ
+check("Text statt Zahl verliert nichts", drachen.feueratem_verluste(erster, "viele") == 0, "Text")  # Robustheit
+check("nie mehr als die Haelfte der Truppe",
+      drachen.feueratem_verluste(erster, 10) <= 5, str(drachen.feueratem_verluste(erster, 10)))  # Obergrenze
+check("mindestens die Untergrenze, wenn Truppen da sind",
+      drachen.feueratem_verluste(erster, 100000) >= int(atem.get("mindestens", 0)), "Untergrenze")  # Untergrenze
 
 abschnitt("figur()")  # markiert den fuenften Abschnitt
 figur_drache = drachen.figur(erster)  # erzeugt Figur fuer freien Drachen

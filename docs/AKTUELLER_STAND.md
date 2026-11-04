@@ -14,8 +14,8 @@ gebucht. Der Block las `bot_ziel.army` - eine BERECHNETE Summe - und buchte in e
 Verluste im Bericht, Heer danach unveraendert sechs. Jetzt verteidigt die Garnison des angegriffenen
 Dorfes (zweiter Teil von B-5), gebucht wird dort; ohne Dorf bucht `bot_armee_buchen`.
 
-**W-14 Teil 1 liegt bereit, ist aber NICHT verdrahtet:** Daten, Modul und Pruefdatei fuer die Drachen
-(`test_drachen` 51/0/0). Die drei Drachenfiguren von Daniel sind freigestellt (weiss, blau, lila).
+**W-14 Teil 1 liegt bereit, ist aber NICHT verdrahtet:** Daten, Modul und Pruefdatei fuer die Drachen (`test_drachen` 62/0/0). **Daniel hat am 05.11. die Verteidigung neu bestimmt:** deutlich mehr Einheiten - **120 Krieger + 60 Bogenschuetzen + 24 Paladine = 204** - und **statt eines Walls eigene Drachenwerte**: Schwelle Fusstruppen 700, Schwelle Belagerung 950, **unbrechbar** (Belagerung richtet keinen Wallschaden an), dazu ein **Feueratem** mit 8 % Verlusten unter den antretenden Fusstruppen. Die drei Drachenfiguren von Daniel sind freigestellt (weiss, blau, lila).
+
 
 | Gegenstand | Wert | Beleg |
 |---|---|---|
@@ -36,10 +36,10 @@ ueber `kampf.fuehre_schlacht` mit `drachen.verteidiger`/`drachen.wall`, (d) die 
 Buchstelle `kampfbericht.beute_am_ziel` (Vorschlag: um `beute_override` erweitern), (e) der Zustand
 `drachen_besiegt` in `GameState.save/load`. Der Einbauplan mit Zeilenlagen liegt in
 `docs/ENTWURF_W14_TEIL2_20261105.md` - **vor dem Bau entscheidet Daniel zwei Dinge:** welche DREI Welten
-(Vorschlag d02, d03, d05) und welche Einheiten den Drachen verteidigen (Vorschlag 20 Krieger + 20
-Bogenschuetze = 40). **Arbeitsweise: der volle Sammellauf, die Registerzeile und die Protokollzeile gehoeren
-zum Abschluss.**
-
+`docs/ENTWURF_W14_TEIL2_20261105.md` - **vor dem Bau entscheidet Daniel nur noch EINE Sache:**
+welche DREI Welten (Vorschlag d02, d03, d05). Die **Verteidigung ist entschieden** (204 Einheiten,
+Drachenwerte statt Wall, Feueratem). **Arbeitsweise: der volle Sammellauf, die Registerzeile und die
+Protokollzeile gehoeren zum Abschluss.**
 **Offene Punkte, die nicht untergehen duerfen:** (1) Farben der Drachenfiguren - Daniel: erstmal unwichtig,
 spaeter anpassen; die Chronik nennt Episheus weiss / Tardas gruen / Salmur rot, geliefert sind weiss, blau,
 lila. (2) Das Protokoll steht mit **321 Zeilen** eine Zeile ueber Ziel; die Verdichtung ist ein eigener
