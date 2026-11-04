@@ -6,7 +6,7 @@ name: Besucherseite
 on:
   push:
     branches: [main]
-    paths: [index.html, ".github/workflows/pages.yml"]
+    paths: [index.html, "assets/bilder/**", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
 permissions:
@@ -25,9 +25,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Seite zusammenstellen
         run: |
-          mkdir -p dist
+          mkdir -p dist/assets/bilder
           cp index.html dist/index.html
-          ls -la dist
+          cp assets/bilder/*.png dist/assets/bilder/ 2>/dev/null || true
+          find dist -type f | sed 's/^/  /'
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
