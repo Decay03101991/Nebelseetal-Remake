@@ -46,19 +46,19 @@ Programme.
 | In ein paar Stunden machbar? | Nur mit einem **Mac zur Hand**: dort PyInstaller-Lauf (10 bis 20 Minuten), signieren ist optional (ohne Signatur warnt Gatekeeper), Test durch Doppelklick. Ohne Mac: nein. Eine Fassung, die auf dem Zielrechner Python und Tkinter verlangt, ist keine gleichwertige `.app`. |
 | Was jetzt gilt | Der Auftrag steht, gebaut ist nichts. Vor dem Bau braucht es die Entscheidung, **wo** gebaut und geprueft wird (fremder Mac, gemieteter Mac, oder die `.app` bleibt offen). |
 
-## 4. Offene Entscheidungen (werden in EINER Runde gestellt)
+## 4. Entscheidungen Daniels (04.11.2026, abgefragt 15:50 - beantwortet)
 
-1. **Repository:** bestehendes Repository leeren (History neu, Force-Push) oder ein neues Repository
-   anlegen und das alte loeschen? Folge im ersten Fall: die alte History ist weg, die URL bleibt.
-2. **Sichtbarkeit:** oeffentlich (wie bisher) oder privat bis zum Pre-Release?
-3. **Ordnerliste:** welche Ordner genau hoch (Vorschlag: `src/`, `data/`, `assets/`, Startdateien,
-   `release_vorlage/`, `README`, `LICENSE`, Besucher-Dokument, PDF) - und was bleibt draussen
-   (Vorschlag: `tests/`, `tools/`, `docs/` mit Ausnahme der Veroeffentlichungs-Dokumente, `archiv/`,
-   Spielstaende)?
-4. **Besucherzugang:** bleibt die Pages-Seite und wird inhaltlich neu geschrieben, oder entfaellt sie
-   und der Besucher kommt ueber README und Release?
-5. **`.app`:** wer baut und prueft sie (Mac erforderlich)?
-6. **Pre-Release-Datum:** welches Datum traegt der erste Pre-Release (heute oder der Tag des Uploads)?
+| Nr. | Frage | Entscheidung Daniels |
+|---|---|---|
+| 1 | Repository | **Bestehendes Repo loeschen und unter GLEICHEM Namen neu anlegen.** Die URL bleibt damit, die alte History ist wirklich verschwunden (ein Force-Push haette die alten Commits ueber ihre SHA abrufbar gelassen). |
+| 2 | Sichtbarkeit | **Privat** bis zum Pre-Release, danach oeffentlich schalten. Kein Zwischenstand ist waehrend des Aufbaus sichtbar. |
+| 3 | Ordnerliste | **Ins Repo:** `src/`, `data/`, `assets/`, `release_vorlage/`, die Startdateien, `README`/`LICENSE`, das Besucherdokument, die offizielle Erklaerung, der Entwicklungsstand als Repo-Einfuehrung und die Geschichte als PDF. **Draussen:** `tests/`, `tools/`, `docs/` (ausser den Veroeffentlichungs-Dokumenten), `archiv/`, `release_public/`, Spielstaende, EXE. |
+| 4 | Besucherzugang | **Bleibt** (GitHub Pages) und wird inhaltlich **neu geschrieben** (Besucherdokument). |
+| 5 | macOS-`.app` | **Bleibt offen** und wird im Pre-Release **ehrlich als fehlend** genannt (Bau und Pruefung nur auf einem Mac moeglich). |
+| 6 | Pre-Release-Datum | Noch offen - Vorschlag: das Datum des Uploads, nicht ein rueckdatiertes. |
+
+**Weiterhin offen: Daniels Inhaltsliste.** Er ergaenzt, was das Repo ausserdem enthalten soll; bis dahin
+wird am Repository nichts geaendert (kein Push, kein Loeschen, kein Release, kein Pages-Umbau).
 
 ## 5. Reihenfolge, die Daniel vorgegeben hat
 
