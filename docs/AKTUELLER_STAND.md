@@ -1,3 +1,42 @@
+# STAND 04.11.2026, 09:38 - S-12 und S-11: alle Felder, Kartenwahl nach Engpass (Register 180/181)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Zwei Schnitte in einem Zug, beide gemessen.** (1) **S-12:** der Huegel wird mitbelegt (Steinmetz,
+dann Goldmine - beim Raecher Erzmine), und die Feldreserve fuer Haus, Bibliothek, Lager, Schmiede,
+Akademie und Wall ist jetzt eine FELDLISTE statt einer Zahl. Der Unterschied ist gross: auf
+`original-001` galten 19 freie Sumpffelder als erfuellte Reserve, danach fand kein Haus mehr Platz.
+(2) **S-11:** die Kartenwahl waehlt nach dem ENGPASS der Taktik. Der Engpass wird gerechnet
+(Bedarf eines Zyklus aus Siedlerkarren und Gruendung, geteilt durch den Ertrag der Mindestanlagen),
+nicht geraten - Holz steht bei jeder Taktik vorn, Pferde sind mit vier Stueck gar kein Engpass.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Neue Wachen | `test_s8_stufe3_bauplaene` **185/0/0**, `test_s11_kartenwahl_engpass` **102/0/0** | eigene Laeufe |
+| Gegenproben | Huegel-Fuellung aus **20 Pruefungen rot**; Taktik im Engpass ignoriert **5 rot**; beide Dateien per SHA256 unveraendert zurueck | eigene Laeufe |
+| Voller Sammellauf | erster Lauf **157 von 162 gruen, 3 rot** (`sammellauf_20261104_0940.log`); nach dem Nachziehen der drei Wachen **160 von 162 gruen, 0 rot, 728 s**, 6.521 Pruefungen, 56 Befunde (`sammellauf_20261104_1000.log`) - die zwei nicht gruenen sind die ausgesetzten Dateien | `docs/audits/` |
+| Messung 24 Spieltage | Dorfzahl **4/4/4/4/4** in beiden Schnitten; Anlagen je Dorf **63 bis 98** (vorher 52 bis 97) | `tools/bot_wirtschaft_messung.py` |
+| Engpass-Paare | Pluenderer und Spaeherin holz/stein, Waechterin holz/wolle, Bastionier und Raecher holz/nahrung | `main.bot_taktik_engpass` |
+| Pruefzusage S-11 | Pluenderer waehlt `original-006`, Waechterin `original-118b` bei DERSELBEN Kandidatenliste | `tests/test_s11_kartenwahl_engpass.py` |
+| Bedarf eines Zyklus | 680 Holz, 550 Nahrung, 300 Stein, 150 Leder, 100 Wolle, 80 Metall, 4 Pferde | `spieloekonomie.gruendungskosten()` + `U["Siedlerkarren"]` |
+| Schalter | `data/bot_wirtschaft.json`: `kartenwahl_stufe` = **engpass** (mittel/schwer/leicht bleiben waehlbar) | Datendatei |
+| Pruefdateien / Register | **162** / **181** | `ls tests/test_*.py \| wc -l`, `grep -c '^\| [0-9]' docs/PRUEFREGEL_ORIGINAL.md` |
+| Kampfregeln (gemessen) | **fuenf von acht stehen schon im Code** (1, 3, 5, 7, 8); offen: **2 Flucht, 4 Beute-Reihenfolge Gold zuerst, 6 Mauerreparatur mit Bauzeit** | `docs/AUDIT_KAMPFREGELN_20261104.md` |
+| Offener Befund | Stein laeuft ueber (36.000 bis 61.000 je Bot), weil der Huegel nach Ertrag den Steinmetz traegt | `docs/MESSUNG_S12_ALLE_FELDER_20261104.md`, Abschnitt 3 |
+
+## Der EINE naechste Schritt
+
+**Das Entwicklungsprotokoll verdichten** (Daniels Antwort vom 04.11., 09:15: eigener Schritt nach
+S-12, Zielgroesse unter 320 Zeilen). Verfahren nach Skill: die unveraenderte Fassung als eigene Datei
+sichern und committen, die neue Fassung im Zwischenspeicher schreiben, mit
+`tools/pruefe_protokoll.py --nach` pruefen (Rueckgabe 0), dann einsetzen - alle Commit-Kennungen und
+Pruefzahlen bleiben erhalten. Danach die **acht Kampfregeln** in der Reihenfolge 1 bis 8
+(`docs/ENTSCHEIDUNGEN_KAMPFREGELN_20261103.md`), dann **C** (Refresh fuer fuenf Ansichten).
+**Der volle Sammellauf, die Registerzeile und die Protokollzeile gehoeren zum Abschluss jedes
+Schnitts.**
+
+---
+
 # STAND 04.11.2026, 08:46 - S-8 Stufe 3: jede Bot-Taktik baut nach eigenem Plan (Register 179)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

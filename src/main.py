@@ -919,7 +919,6 @@ def bot_doerfer_bebauen(dorf: "BotDorf", einstellungen: Optional[dict] = None,
     restfelder = anlagenplan.get("restfelder") or {}                       # Regel des Plans
     if restfelder:                                                         # nur mit Plan
         obergrenze = anlagenplan.get("restfelder_obergrenze") or {}         # Deckel je Anlage
-        reserve = bot_bauplan_offene_bauten(dorf, plan)                     # Felder fuer den Bauplan
 
         def _zaehlt(geb: str) -> int:
             """Wie oft diese Anlage im Dorf steht."""
@@ -940,14 +939,22 @@ def bot_doerfer_bebauen(dorf: "BotDorf", einstellungen: Optional[dict] = None,
 
         while True:                                                        # ein Feld je Durchgang
             frei = _frei()                                                 # die noch freien Felder
-            if len(frei) <= reserve:                                       # Reserve erreicht
-                break                                                      # dann nichts mehr setzen
+            # S-12 (04.11.2026): die Felder, die der Gebaeude-Bauplan noch braucht, werden am GELAENDE
+            # gemessen (je offenem Gebaeude ein passendes Feld). Eine blosse Zahl taugt nicht: auf
+            # einer Karte blieben 19 Sumpffelder frei und die Reserve war rechnerisch erfuellt,
+            # waehrend kein Haus mehr Platz fand.
+            reserviert = bot_bauplan_reservierte_felder(dorf, raster, plan, frei)
+            if len(frei) - len(reserviert) <= 0:                           # nichts mehr zu verteilen
+                break                                                      # dann fertig
             # Das letzte Feld, auf dem eine Bibliothek stehen duerfte, bleibt frei (Sperre 2).
             bib_felder = [i for i in frei                                     # freie Felder ansehen
-                          if gelaende.bau_moeglich("bibliothek", raster[i])[0]]   # Bibliothek erlaubt?
+                          if i not in reserviert                              # nicht schon reserviert
+                          and gelaende.bau_moeglich("bibliothek", raster[i])[0]]   # Bibliothek erlaubt?
             bib_schuetzen = _ohne_bibliothek() and len(bib_felder) == 1        # genau noch eines uebrig?
             kandidaten = []                                                # (Ertrag, Rang, Feld, Anlage)
             for i in frei:                                                 # jedes freie Feld
+                if i in reserviert:                                        # fuer den Bauplan gebraucht
+                    continue                                               # nicht anfassen
                 art = str(raster[i]).strip().lower()                        # seine Gelaendeart
                 for rang, geb in enumerate(restfelder.get(art) or []):      # Reihenfolge des Plans
                     geb = str(geb)                                          # als Text
@@ -1272,6 +1279,15 @@ def bot_kartenwahl(bot: "BotPlayer", index: int, anzahl: int = 3,
         return ""                                                         # dann keine Karte
     zufall = random.Random("karte:%s:%d" % (getattr(bot, "name", ""), int(index)))   # reproduzierbare Wahl
     kandidaten = zufall.sample(ids, min(anzahl, len(ids)))                # drei Karten zur Auswahl
+    # S-11 (04.11.2026): Stufe "engpass" - die Karte, die den Engpass DIESER Taktik am besten traegt
+    # (Feldprofil x Wartezeit, `bot_kartenwahl_nach_engpass`). Die Stufe steht in
+    # `data/bot_wirtschaft.json` (`kartenwahl_stufe`); "mittel", "schwer" und "leicht" bleiben
+    # unveraendert waehlbar, damit ein Vergleich ohne Codeaenderung moeglich ist.
+    if str(stufe).strip().lower() == "engpass":                            # Stufe des Feldverstaendnisses
+        nach_engpass = bot_kartenwahl_nach_engpass(bot, kandidaten)        # Karte nach Engpass waehlen
+        if nach_engpass:                                                   # Wahl getroffen
+            return str(nach_engpass)                                       # diese Karte zurueck
+
     # V-6 (03.11.2026): die REGEL des Kerns entscheidet unter denselben Kandidaten. Bis heute hatte
     # `botkern.oekonomie_kartenwahl` keinen Aufrufer; jetzt waehlt die Stufe aus der Datendatei.
     # Liefert die Regel keine Karte (unbekannte Stufe, "leicht" ohne Gruenden, kein Kandidat mit
@@ -1528,12 +1544,23 @@ def bot_bauplan_offene_bauten(dorf, plan: Optional[dict] = None) -> int:
     Holzfaellern gemessen wurde). Darum zaehlt diese Funktion die noch offenen Gebaeude des
     Plans und die Restfeld-Phase haelt so viele Felder frei.
     """
+    return len(bot_bauplan_offene_liste(dorf, plan))                     # nur die Zahl der offenen
+
+
+def bot_bauplan_offene_liste(dorf, plan: Optional[dict] = None) -> List[str]:
+    """Die noch OFFENEN Gebaeude des Bauplans, in der Reihenfolge der Datendatei.
+
+    S-12 (04.11.2026): die Restfeld-Phase braucht nicht nur die ZAHL, sondern die LISTE - fuer jedes
+    offene Gebaeude wird ein passendes Feld reserviert. Sonst belegt eine Huegel-Fuellung die letzten
+    nutzbaren Felder, und uebrig bleiben nur Sumpf und Nebelsee (gemessen: 19 Sumpffelder, danach
+    fand kein Haus mehr Platz).
+    """
     plan = plan if isinstance(plan, dict) else bot_bauplan()             # Bauplan der Bots
     hoechstens = plan.get("hoechstens") or {}                            # Obergrenzen je Gebaeude
     if not isinstance(hoechstens, dict) or not hoechstens:               # keine Grenzen in der Datei
-        return BOT_FELDRESERVE_VORGABE                                   # dann die gemessene Summe
+        return []                                                        # dann keine Reservierung
     bauten = getattr(dorf, "bauten", None) or {}                         # die bebauten Felder
-    offen = 0                                                            # Zaehler der offenen Gebaeude
+    offen: List[str] = []                                                # Reihenfolge der Datei
     for geb, grenze in hoechstens.items():                               # je Gebaeudeart
         try:                                                             # Grenze als Zahl
             zahl = int(grenze)                                           # (Datei kann Text liefern)
@@ -1542,8 +1569,151 @@ def bot_bauplan_offene_bauten(dorf, plan: Optional[dict] = None) -> int:
         if zahl <= 0:                                                    # keine Grenze
             continue                                                     # ueberspringen
         steht = sum(1 for g in bauten.values() if str(g) == str(geb))    # so oft steht es schon
-        offen += max(0, zahl - steht)                                    # nur der offene Rest
-    return offen                                                         # Felder, die frei bleiben
+        offen.extend([str(geb)] * max(0, zahl - steht))                  # nur der offene Rest
+    return offen                                                         # Gebaeude, die Platz brauchen
+
+
+def bot_bauplan_reservierte_felder(dorf, raster, plan: Optional[dict] = None,
+                                   frei: Optional[List[int]] = None) -> set:
+    """Die Felder, die fuer den Gebaeude-Bauplan FREI bleiben muessen (S-12, 04.11.2026).
+
+    Fuer jedes offene Gebaeude wird EIN passendes freies Feld gewaehlt (kleinste Feldnummer, damit
+    die Wahl reproduzierbar ist); die Restfeld-Phase fasst diese Felder nicht an. Damit ist die
+    Reserve nicht an einer Zahl, sondern am GELAENDE gemessen - Sumpf und Nebelsee helfen dem
+    Bauplan nicht und zaehlen darum nicht als Reserve.
+    """
+    frei = [int(i) for i in (frei if frei is not None else
+                             [i for i in range(len(raster))
+                              if str(i) not in (getattr(dorf, "bauten", None) or {})])]
+    reserviert = set()                                                   # gewaehlte Felder
+    for geb in bot_bauplan_offene_liste(dorf, plan):                     # je offenem Gebaeude
+        passend = [i for i in frei if i not in reserviert               # noch nicht reserviert
+                   and gelaende.bau_moeglich(geb, raster[i])[0]]        # und Gelaende erlaubt es
+        if passend:                                                      # Platz vorhanden
+            reserviert.add(min(passend))                                 # kleinstes Feld nehmen
+    return reserviert                                                    # Felder, die frei bleiben
+
+
+# ===================================================================================================
+# S-11 (04.11.2026): KARTENWAHL MIT FELDVERSTAENDNIS - der Engpass je Taktik
+#
+# Daniels Konzept (S-11): die Wahl nimmt die Karte, die den Nutzen fuer den ENGSTEN Rohstoff SEINER
+# TAKTIK bringt - nicht mehr Gold pauschal. Dazu braucht es zwei gerechnete Groessen, keine
+# getippten Zahlen: den Stundenertrag der Mindestanlagen einer Taktik und den Bedarf eines
+# Wachstumszyklus (ein Siedlerkarren + eine Gruendung) aus dem Kern.
+# ===================================================================================================
+
+def bot_taktik_stundenertrag(taktik: str = "", plan: Optional[dict] = None) -> Dict[str, float]:
+    """Stundenertrag der MINDESTANLAGEN einer Taktik je Rohstoff (S-11a, 04.11.2026).
+
+    Gerechnet wie beim Bot-Dorf selbst: je Anlage der beste Ertrag auf einem Gelaende, auf dem sie
+    stehen darf (`gelaende.ertrag_pro_stunde`, aus `data/buildings.json`), mal ihrer Mindestzahl -
+    dazu das Grundeinkommen der Originalsiedlung (`wirtschaft.ORIGINAL_GRUNDEINKOMMEN`, 1 Holz und
+    1 Stein). Keine Zahl in dieser Funktion ist getippt; wer die Mindestzahlen in
+    `data/bot_bauplan.json` aendert, aendert den Engpass mit.
+    """
+    anlagenplan = bot_anlagenplan(taktik, plan)                           # Plan dieser Taktik
+    mindest = anlagenplan.get("mindest") or {}                            # ihre Mindestzahlen
+    ertrag: Dict[str, float] = {}                                         # Rohstoff -> je Stunde
+    for geb, zahl in mindest.items():                                     # je Anlage
+        try:                                                              # Zahl lesen
+            anzahl = int(zahl)                                            # Mindestzahl
+        except (TypeError, ValueError):                                   # kaputter Wert
+            continue                                                      # dann nicht mitzaehlen
+        bester: Dict[str, float] = {}                                     # je Rohstoff der beste Satz
+        for art in gelaende.GELAENDEARTEN:                                # jedes Gelaende
+            if not gelaende.bau_moeglich(str(geb), art)[0]:                # darf die Anlage dort stehen?
+                continue                                                  # nein
+            wert = gelaende.ertrag_pro_stunde(str(geb), art)              # Ertrag dort
+            if isinstance(wert, dict):                                    # mehrere Rohstoffe (Rinderfarm)
+                for roh, menge in wert.items():                           # je Rohstoff einzeln
+                    if isinstance(menge, (int, float)) and float(menge) > bester.get(str(roh).lower(), 0.0):
+                        bester[str(roh).lower()] = float(menge)            # bester Wert gewinnt
+            elif isinstance(wert, (int, float)):                          # ein Rohstoff
+                stamm = (gelaende.alle_gebaeude().get(str(geb)) or {}).get("rohstoff")
+                if isinstance(stamm, str) and stamm:                      # Name des Rohstoffs
+                    if float(wert) > bester.get(stamm.lower(), 0.0):
+                        bester[stamm.lower()] = float(wert)               # bester Wert gewinnt
+        for roh, menge in bester.items():                                 # je Rohstoff der Anlage
+            ertrag[roh] = round(ertrag.get(roh, 0.0) + menge * anzahl, 2)  # mal Mindestzahl
+    for roh, grund in wirtschaft.ORIGINAL_GRUNDEINKOMMEN.items():          # Grundeinkommen der Siedlung
+        ertrag[str(roh).lower()] = round(ertrag.get(str(roh).lower(), 0.0) + float(grund), 2)
+    return ertrag                                                         # {rohstoff: je Stunde}
+
+
+def bot_gruendung_bedarf() -> Dict[str, float]:
+    """Was EIN Wachstumszyklus kostet: ein Siedlerkarren plus eine Gruendung (S-11a, 04.11.2026).
+
+    Beides kommt aus dem Kern, nichts ist getippt: die Karrenkosten stehen in
+    `spieloekonomie.U["Siedlerkarren"]["kosten"]`, die Gruendung liefert
+    `spieloekonomie.gruendungskosten()` (Gebuehr plus Startpaket = Mindestbestand). Siedler sind
+    keine Rohstoffe und bleiben draussen.
+    """
+    bedarf: Dict[str, float] = {}                                         # Rohstoff -> Menge
+    karren = (spieloekonomie.U.get("Siedlerkarren") or {}).get("kosten") or {}
+    try:                                                                  # Gruendungskosten lesen
+        _preis, _paket, minimum = spieloekonomie.gruendungskosten()       # (Gebuehr, Paket, Minimum)
+    except (KeyError, TypeError, ValueError):                             # Daten fehlen
+        minimum = {}                                                      # dann nur der Karren
+    for quelle in (karren, minimum):                                      # Karren und Gruendung
+        for roh, menge in (quelle or {}).items():                         # je Posten
+            schluessel = str(roh).lower()                                 # Schreibweise der Spielstaende
+            if schluessel in ("siedler", "siedler_anzahl"):               # Siedler sind keine Rohstoffe
+                continue                                                  # nicht mitzaehlen
+            try:                                                          # Menge lesen
+                bedarf[schluessel] = round(bedarf.get(schluessel, 0.0) + float(menge), 2)
+            except (TypeError, ValueError):                               # kaputter Wert
+                continue                                                  # ueberspringen
+    return bedarf                                                         # {rohstoff: Menge}
+
+
+def bot_taktik_engpass(taktik: str = "", plan: Optional[dict] = None) -> List[Dict[str, Any]]:
+    """Die Engpass-Rohstoffe einer Taktik, der engste zuerst (S-11a, 04.11.2026).
+
+    Engpass heisst: wie viele STUNDEN die Mindestanlagen dieser Taktik brauchen, um einen
+    Wachstumszyklus zu bezahlen (`bedarf / stundenertrag`). Die Rechnung ist bewusst bedarfsgewichtet
+    und nicht die "zwei kleinsten Ernten": gemessen ergibt die kleinste Ernte Wolle und Pferde, der
+    Karren braucht aber nur 4 Pferde (0,4 Stunden) und 100 Wolle. Rohstoffe ohne Erzeugung (Ertrrag 0)
+    bekommen `stunden = None` und stehen am Ende - dort hilft nur die Karte.
+    Rueckgabe: Liste von dicts mit `rohstoff`, `produktion`, `bedarf`, `stunden` (absteigend).
+    """
+    ertrag = bot_taktik_stundenertrag(taktik, plan)                       # Erzeugung der Taktik
+    bedarf = bot_gruendung_bedarf()                                       # Bedarf eines Zyklus
+    zeilen: List[Dict[str, Any]] = []                                     # je Rohstoff eine Zeile
+    for roh, menge in sorted(bedarf.items()):                             # jeder Rohstoff mit Bedarf
+        produktion = float(ertrag.get(roh, 0.0) or 0.0)                   # seine Erzeugung
+        stunden = round(float(menge) / produktion, 2) if produktion > 0 else None   # Wartezeit
+        zeilen.append({"rohstoff": roh, "produktion": produktion, "bedarf": float(menge),
+                       "stunden": stunden})                               # eine Zeile
+    zeilen.sort(key=lambda z: (-(z["stunden"] if z["stunden"] is not None else 1e9), z["rohstoff"]))
+    return zeilen                                                         # engster Rohstoff zuerst
+
+
+def bot_kartenwahl_nach_engpass(bot: "BotPlayer", kandidaten: List[str],
+                                plan: Optional[dict] = None) -> str:
+    """Die Karte unter den Kandidaten, die den Engpass DIESER Taktik am besten traegt (S-11c).
+
+    Bewertet werden nur die drei Kandidaten (drei Karten sind die Spielregel, 127 waeren zu teuer).
+    Je Kandidat: `botkern.taktik_kartenscore(engpass, bot_kartenprofil(karte))`. Gleichstand
+    entscheidet der groessere Wert beim ENGSTEN Rohstoff, danach der naechste, danach die Kennung -
+    damit ist die Wahl reproduzierbar.
+    """
+    if not kandidaten:                                                    # keine Kandidaten
+        return ""                                                         # dann keine Karte
+    engpass = bot_taktik_engpass(bot_taktik_name(bot), plan)              # Engpass seiner Taktik
+    bester = None                                                         # (Punkte, Profile, Kennung)
+    for kennung in kandidaten:                                            # je Kandidat
+        profil = bot_kartenprofil(kennung)                                # Feldprofil der Karte
+        punkte = botkern.taktik_kartenscore(engpass, profil)              # Nutzen fuer den Engpass
+        erste = [float(profil.get(z["rohstoff"], 0.0) or 0.0)             # Wert beim engsten Rohstoff
+                 for z in engpass[:2]]                                    # und beim zweiten
+        schluessel = (round(float(punkte), 6), erste[0] if erste else 0.0,
+                      erste[1] if len(erste) > 1 else 0.0, str(kennung))
+        if bester is None or schluessel[:3] > bester[0][:3]:              # besser als der bisherige
+            bester = (schluessel, kennung)                                # merken
+        elif schluessel[:3] == bester[0][:3] and str(kennung) < bester[1]:  # Gleichstand: kleinere Kennung
+            bester = (schluessel, kennung)                                # dann diese
+    return bester[1] if bester else ""                                    # die beste Karte
 
 
 # ===================================================================================================

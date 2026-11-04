@@ -28,6 +28,8 @@ Was diese Datei beweist
 8. Der ALTE Weg bleibt unveraendert: ohne Taktik setzt die Funktion weiter die 24 Anlagen aus
    `anlagen_je_gebaeude`, und ein zweiter Aufruf setzt nichts nach (idempotent).
 9. Quellwache: beide Aufrufstellen im Spiel geben die Taktik mit (`taktik=bot_taktik_name(bot)`).
+10. S-12 (04.11.2026): Huegel wird mitbelegt (Steinmetz zuerst), Sumpf traegt nichts, und alles
+    Nutzbare ist entweder belegt oder als FELDLISTE fuer den Gebaeude-Bauplan reserviert.
 
 Aufruf:  python -X utf8 tests/test_s8_stufe3_bauplaene.py
 """
@@ -201,15 +203,26 @@ for taktik in TAKTIKEN:
     d = _dorf(BERGKARTE, taktik)
     offen = M.bot_bauplan_offene_bauten(d)
     frei = _frei(d)
-    check("6 %s: mindestens %d freie Felder fuer den Gebaeude-Bauplan" % (taktik, offen),
-          len(frei) >= offen, "frei=%d offen=%d" % (len(frei), offen))
+    check("6 %s: %d offene Gebaeude brauchen Platz" % (taktik, offen), offen == 9, str(offen))
+    for geb in M.bot_bauplan_offene_liste(d):
+        passend = [i for i in frei if gelaende.bau_moeglich(geb, _raster(d)[i])[0]]
+        check("6 %s: %s findet noch ein freies Feld" % (taktik, geb), bool(passend), str(len(passend)))
     bib = [i for i in frei if gelaende.bau_moeglich("bibliothek", _raster(d)[i])[0]]
     check("6 %s: eine Bibliothek findet noch ein Feld" % taktik, bool(bib), str(len(bib)))
-    check("6 %s: Haus, Lager und Wall finden noch ein Feld" % taktik,
-          all(any(gelaende.bau_moeglich(geb, _raster(d)[i])[0] for i in frei)
-              for geb in ("haus", "lager", "verteidigungswall")), "")
-check("6 bot_bauplan_offene_bauten ohne Bauplan = gemessene Summe 9", M.bot_bauplan_offene_bauten(
-      M.BotDorf(name="leer"), plan={}) == 9, str(M.bot_bauplan_offene_bauten(M.BotDorf(name="leer"), plan={})))
+    # S-12 (04.11.2026): die Reserve wird am GELAENDE gemessen - Sumpf zaehlt nicht mit.
+    sumpf_frei = sum(1 for i in frei if str(_raster(d)[i]).lower() == "sumpf")
+    nutzbar = len(frei) - sumpf_frei
+    check("6 %s: mehr nutzbare freie Felder als offene Gebaeude" % taktik, nutzbar >= offen,
+          "nutzbar=%d offen=%d sumpf=%d" % (nutzbar, offen, sumpf_frei))
+    check("6 %s: die Reserve wird als FELDLISTE geliefert" % taktik,
+          len(M.bot_bauplan_reservierte_felder(d, _raster(d))) == offen,
+          str(len(M.bot_bauplan_reservierte_felder(d, _raster(d)))))
+check("6 ohne Bauplan braucht nichts reserviert zu werden (dann baut bot_dorf_bauen nichts)",
+      M.bot_bauplan_offene_bauten(M.BotDorf(name="leer"), plan={}) == 0,
+      str(M.bot_bauplan_offene_bauten(M.BotDorf(name="leer"), plan={})))
+check("6 mit der echten Datendatei sind es 9 offene Gebaeude",
+      M.bot_bauplan_offene_bauten(M.BotDorf(name="leer")) == 9,
+      str(M.bot_bauplan_offene_bauten(M.BotDorf(name="leer"))))
 gefuellt = _dorf(BERGKARTE, "Raecher")
 M.bot_doerfer_bebauen(gefuellt, EINST, taktik="Raecher")     # zweiter Aufruf
 check("6 offene Bauten sinken, sobald Gebaeude stehen",
@@ -239,5 +252,53 @@ check("8 die Signatur hat die neuen Parameter taktik und plan",
       and "taktik: str = \"\", plan: Optional[dict] = None) -> int:" in TEXT_MAIN, "")
 check("8 die Restfeld-Phase steht im Code (S-8 Stufe 3)",
       "PHASE C (S-8 Stufe 3, 04.11.2026)" in TEXT_MAIN, "")
+
+# ==========================================================================
+abschnitt("9. S-12: Huegel wird mitbelegt, alles Nutzbare ist belegt oder reserviert")
+for taktik in TAKTIKEN:
+    d = _dorf(BERGKARTE, taktik)
+    raster = _raster(d)
+    arten = _arten(d)
+    frei = _frei(d)
+    huegel_frei = [i for i in frei if str(raster[i]).lower() == "huegel"]
+    huegel_anlagen = sum(1 for i, g in d.bauten.items() if str(raster[int(i)]).lower() == "huegel")
+    check("9 %s: Huegel traegt Anlagen (S-12)" % taktik, huegel_anlagen > 0, str(huegel_anlagen))
+    check("9 %s: hoechstens die Reserve bleibt auf Huegel frei" % taktik,
+          len(huegel_frei) <= 9, "huegel frei=%d" % len(huegel_frei))
+    # Auf Huegel steht zuerst der Steinmetz (2 je Stunde ist der beste Ertrag dort).
+    huegel_steinmetz = sum(1 for i, g in d.bauten.items()
+                           if str(g) == "steinmetz" and str(raster[int(i)]).lower() == "huegel")
+    check("9 %s: der Steinmetz nutzt den Huegel" % taktik, huegel_steinmetz > 0, str(huegel_steinmetz))
+    check("9 %s: Sumpf traegt keine Anlage (Spielregel)" % taktik,
+          all(str(raster[int(i)]).lower() != "sumpf" for i in d.bauten), "")
+    # Alles, was eine Anlage tragen koennte, ist belegt ODER fuer den Bauplan reserviert.
+    reserviert = M.bot_bauplan_reservierte_felder(d, raster, frei=frei)
+    offen_nutzbar = [i for i in frei if str(raster[i]).lower() not in ("sumpf", "nebelsee")]
+    check("9 %s: nutzbare freie Felder sind genau die Reserve" % taktik,
+          len(offen_nutzbar) == len(reserviert),
+          "nutzbar frei=%d reserviert=%d" % (len(offen_nutzbar), len(reserviert)))
+check("9 die Anlagenzahl haengt an der Karte, nicht an einer festen Zahl",
+      len(_dorf(BERGKARTE, "Raecher").bauten) != len(_dorf(WALDKARTE, "Raecher").bauten),
+      "%d gegen %d" % (len(_dorf(BERGKARTE, "Raecher").bauten),
+                       len(_dorf(WALDKARTE, "Raecher").bauten)))
+
+# S-12 (04.11.2026): der Bau der Restfelder darf auf KEINER Karte abstuerzen - auch nicht, wenn
+# kein Bibliotheksfeld mehr frei ist (gemessen: genau dort brach die Messung mit `IndexError` ab,
+# weil `bib_felder` leer war und der Code trotzdem `bib_felder[0]` las).
+for karte in ("original-001", "original-006", "original-014", "original-036", "original-118b"):
+    try:
+        d = _dorf(karte, "Raecher")
+        art = M.bot_anlagenplan("Raecher")
+        check("9 %s: der Plan baut ohne Absturz, auch wenn Bibliotheksfelder knapp sind" % karte,
+              len(d.bauten) > 0, str(len(d.bauten)))
+        frei = _frei(d)
+        bib = [i for i in frei if gelaende.bau_moeglich("bibliothek", _raster(d)[i])[0]]
+        reserviert = M.bot_bauplan_reservierte_felder(d, _raster(d), frei=frei)
+        if "bibliothek" in M.bot_bauplan_offene_liste(d):
+            check("9 %s: ein Bibliotheksfeld bleibt frei oder ist reserviert" % karte,
+                  bool(bib) or any(gelaende.bau_moeglich("bibliothek", _raster(d)[i])[0]
+                                   for i in reserviert), "frei=%d" % len(bib))
+    except Exception as fehler:                                     # jeder Absturz ist ein Fehler
+        check("9 %s: Plan ohne Ausnahme" % karte, False, repr(fehler))
 
 sys.exit(bericht())

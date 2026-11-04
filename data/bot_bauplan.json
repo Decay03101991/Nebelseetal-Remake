@@ -31,6 +31,7 @@
       "restfelder": {
         "wald": ["holzfaeller", "jaeger"],
         "grasland": ["schafszucht", "rinderfarm"],
+        "huegel": ["steinmetz", "goldmine"],
         "berg": ["goldmine", "erzmine"],
         "steppe": ["rinderfarm"]
       },
@@ -54,6 +55,7 @@
       "restfelder": {
         "wald": ["holzfaeller", "jaeger"],
         "grasland": ["farm", "rinderfarm"],
+        "huegel": ["steinmetz", "goldmine"],
         "berg": ["steinmetz", "goldmine"],
         "steppe": ["rinderfarm"]
       },
@@ -77,6 +79,7 @@
       "restfelder": {
         "wald": ["holzfaeller", "jaeger"],
         "grasland": ["rinderfarm", "schafszucht"],
+        "huegel": ["steinmetz", "goldmine"],
         "berg": ["goldmine", "erzmine"],
         "steppe": ["rinderfarm"]
       },
@@ -100,6 +103,7 @@
       "restfelder": {
         "wald": ["holzfaeller", "jaeger"],
         "grasland": ["pferdezucht", "rinderfarm"],
+        "huegel": ["steinmetz", "goldmine"],
         "berg": ["goldmine", "erzmine"],
         "steppe": ["rinderfarm"]
       },
@@ -123,13 +127,14 @@
       "restfelder": {
         "wald": ["holzfaeller", "jaeger"],
         "grasland": ["rinderfarm", "pferdezucht"],
+        "huegel": ["steinmetz", "erzmine"],
         "berg": ["erzmine", "goldmine"],
         "steppe": ["rinderfarm"]
       },
       "restfelder_obergrenze": {"holzfaeller": 6}
     }
   },
-  "anlagen_bauplaene_hinweis": "S-8 Stufe 3 (04.11.2026): Mindestzahlen je WIRKLICHE Taktik des Bots (Name aus bottaktik.TAKTIKEN, gelesen ueber main.bot_taktik_name) und die Regel fuer die RESTFELDER. Ein Bot-Dorf setzt zuerst jede Mindestzahl in ihr bevorzugtes Gelaende (Phase A/B wie seit S-8 Stufe 2) und fuellt dann die freien Felder nach diesem Block (Phase C): je Gelaende die genannte Reihenfolge, hoechstens bis zur Obergrenze in `restfelder_obergrenze`. Was NICHT hier steht: die ERTRAEGE (data/buildings.json ueber gelaende.ertrag_pro_stunde) und die PREISE (data/baupreise.json). Fehlt der Block oder die Taktik, gilt weiter `anlagen_je_gebaeude` - kein erfundener Plan. Hügel bleibt bewusst frei: dort baut der Bot Haus, Bibliothek, Lager, Schmiede, Akademie und Wall nach `bauplaene`/`hoechstens` (Entwurf, Abschnitt 'Annahmen': Hügel und neutrale Felder nur mit ertraglosen Gebaeuden).",
+  "anlagen_bauplaene_hinweis": "S-8 Stufe 3 (04.11.2026): Mindestzahlen je WIRKLICHE Taktik des Bots (Name aus bottaktik.TAKTIKEN, gelesen ueber main.bot_taktik_name) und die Regel fuer die RESTFELDER. Ein Bot-Dorf setzt zuerst jede Mindestzahl in ihr bevorzugtes Gelaende (Phase A/B wie seit S-8 Stufe 2) und fuellt dann die freien Felder nach diesem Block (Phase C): je Gelaende die genannte Reihenfolge, hoechstens bis zur Obergrenze in `restfelder_obergrenze`. Was NICHT hier steht: die ERTRAEGE (data/buildings.json ueber gelaende.ertrag_pro_stunde) und die PREISE (data/baupreise.json). Fehlt der Block oder die Taktik, gilt weiter `anlagen_je_gebaeude` - kein erfundener Plan. **S-12 (04.11.2026): Hügel wird jetzt MITBENUTZT.** Bis heute blieb er ganz fuer Haus, Bibliothek, Lager, Schmiede, Akademie und Wall frei; damit blieben auf Huegel-reichen Karten bis zu 24 Felder unbelegt. Jetzt steht `huegel` in jeder Taktik in `restfelder` (Steinmetz 2 je Stunde ist der beste Ertrag dort, dann Goldmine/Erzmine 1,5 - beim Raecher die Erzmine, weil Metall sein Engpass ist). Die beiden Sperren halten das weiterhin: die FELDRESERVE (`bot_bauplan_offene_bauten`, 9 Felder fuer den Gebaeude-Bauplan) und das letzte Bibliotheksfeld. Sumpf traegt gar nichts, Nebelsee nur die Bibliothek - diese beiden Gelaendearten bleiben ungenutzt, das ist eine Regel des Spiels, keine Luecke.",
   "anlagen_bauplaene_quelle": "Entwurf D:/Arbeiten/Hermes/Notizen/S8_STUFE3_BAUPLAENE_20261103.md (fuenf Plaene, starkes Modell) - die PLAENE (Gebaeude, Mindestzahlen, Reihenfolge, Gelaende) sind uebernommen, die ERTRAGSRECHNUNGEN des Entwurfs NICHT: dort standen Jaeger mit 0, Zuchten mit 1,5 und Farm nur auf Grasland. Gemessen im Code (04.11.2026): Jaeger 2 Nahrung + 2 Leder auf Wald, Schafszucht/Pferdezucht 3 auf Grasland, Farm 4 auf Grasland und 2 auf Steppe. Die Mindestzahl 'jaeger' ist neu in dieser Liste - data/bot_wirtschaft.json fuehrt fuer den Rueckfall-Pfad keinen Jaeger, der Plan schon.",
   "hoechstens_erklaerung": "S-4 (03.11.2026): die Grenzen fuer die Gebaeude hinter Baukunst sind neu. Ohne sie wuerde ein Bot jede Schmiede und jeden Wall immer wieder bauen (data/buildings.json nennt fuer beide kein max_je_siedlung, sie sind mehrfach moeglich). Gesetzt ist je 1 - eine Ausbildungsstaette, eine Werkstatt, ein Wall je Dorf genuegen fuer den Anfang, und mehr Werkstaetten sind eine spaetere Ausbau-Entscheidung, keine stille Nebenwirkung. Wo data/buildings.json ein max_je_siedlung nennt (Lager und Akademie: 1), prueft spielschicht.bauen dieselbe Grenze zusaetzlich selbst.",
   "bauplaene": {

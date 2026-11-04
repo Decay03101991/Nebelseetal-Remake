@@ -556,6 +556,36 @@ def offene_luecken() -> Dict[str, str]:
 # nichts - das tun die bestaetigten Auftraege (`transport_start` und das Handels-Paar).
 
 
+def taktik_kartenscore(engpass: list, profil: dict) -> float:
+    """Wie gut traegt eine Karte den Engpass einer Taktik (S-11b, 04.11.2026).
+
+    Reine Rechnung, keine Datei, keine Zeit: `engpass` ist die Liste aus
+    `main.bot_taktik_engpass` (je Rohstoff `rohstoff` und `stunden` = Wartezeit eines
+    Wachstumszyklus), `profil` das Feldprofil der Karte (`main.bot_kartenprofil`: Felder x Ertrag je
+    Rohstoff). Bewertet werden die ZWEI engsten Rohstoffe, jeder mit seiner Wartezeit gewichtet:
+
+        Punkte = Summe( Profil[Rohstoff] * Stunden[Rohstoff] )
+
+    Damit gewinnt die Karte, die von dem Rohstoff am meisten traegt, auf den diese Taktik am
+    laengsten warten muss. Rohstoffe ohne `stunden` (keine Erzeugung) zaehlen nicht mit - dort hilft
+    die Karte ohnehin nicht.
+    """
+    punkte = 0.0                                                         # Grundwert
+    for zeile in list(engpass or [])[:2]:                                # die zwei engsten Rohstoffe
+        if not isinstance(zeile, dict):                                  # unerwarteter Eintrag
+            continue                                                     # ueberspringen
+        stunden = zeile.get("stunden")                                   # Wartezeit dieses Rohstoffs
+        rohstoff = str(zeile.get("rohstoff") or "").strip().lower()      # seine Kennung
+        if stunden is None or not rohstoff:                              # ohne Wartezeit kein Beitrag
+            continue                                                     # ueberspringen
+        try:                                                             # Zahl aus dem Profil
+            menge = float((profil or {}).get(rohstoff, 0.0) or 0.0)      # Kartenkapazitaet
+            punkte += menge * float(stunden)                             # gewichtet mit der Wartezeit
+        except (TypeError, ValueError):                                  # kaputter Wert
+            continue                                                     # dann nicht mitzaehlen
+    return round(punkte, 6)                                              # reproduzierbar gerundet
+
+
 def oekonomie_kartenwahl(stufe: str, eigene_karten: list, freie_karten: dict,
                          raten: dict, bedarf: dict, regeln: dict):
     """Welche freie Karte soll dieser Bot bilden? Liefert die Kennung oder ``None``.

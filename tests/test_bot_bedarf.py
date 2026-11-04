@@ -156,8 +156,15 @@ check("5 ohne Datendatei bleibt nur der belegte Nahrungsbedarf",
 # ==========================================================================
 abschnitt("6. Die Kartenwahl steht auf 'mittel' und bekommt den Bedarf")
 # ==========================================================================
-check("6 kartenwahl_stufe ist 'mittel' (Entscheidung 4 eingeloest)",
-      str(WIRTSCHAFT.get("kartenwahl_stufe")) == "mittel", str(WIRTSCHAFT.get("kartenwahl_stufe")))
+# ENTSCHEIDUNG GEAENDERT (S-11, 04.11.2026, Register 181): Daniel hat die Kartenwahl mit
+# Feldverstaendnis abgesegnet; die Stufe steht seitdem auf "engpass" (Karte nach dem Engpass der
+# Taktik). Entscheidung 4 (03.11.) bleibt die BEGRUENDUNG fuer den Bedarf je Rohstoff - der wird
+# weiter gebraucht und weiter gerechnet (`bot_rohstoffbedarf`), nur nicht mehr allein fuer die Wahl.
+check("6 kartenwahl_stufe ist eine bekannte Stufe und gesetzt",
+      str(WIRTSCHAFT.get("kartenwahl_stufe")) in ("engpass", "mittel", "schwer", "leicht"),
+      str(WIRTSCHAFT.get("kartenwahl_stufe")))
+check("6 die Stufe steht auf 'engpass' (S-11, Register 181)",
+      str(WIRTSCHAFT.get("kartenwahl_stufe")) == "engpass", str(WIRTSCHAFT.get("kartenwahl_stufe")))
 check("6 der Hinweis nennt die neue Voraussetzung (Bedarf je Rohstoff)",
       "bot_rohstoffbedarf" in str(WIRTSCHAFT.get("kartenwahl_stufe_hinweis") or ""),
       str(WIRTSCHAFT.get("kartenwahl_stufe_hinweis") or "")[:80])

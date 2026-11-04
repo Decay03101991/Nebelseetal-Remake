@@ -50,8 +50,16 @@ check("botkern.py kennt die Funktion weiterhin",
 einst = M.bot_wirtschaft_einstellungen()
 stufe = str(einst.get("kartenwahl_stufe") or "")
 check("die Stufe steht in data/bot_wirtschaft.json", bool(stufe), stufe)
-check("die Stufe ist im Regelwerk bekannt (data/spieloekonomie.json)",
-      stufe in (O.REGELN.get("bots") or {}), str(sorted(O.REGELN.get("bots") or {})))
+# ENTSCHEIDUNG GEAENDERT (S-11, 04.11.2026, Register 181): die Stufe "engpass" ist KEINE Stufe des
+# Kern-Regelwerks - sie wird in `main.bot_kartenwahl_nach_engpass` gerechnet (Feldprofil x Engpass der
+# Taktik) und laeuft VOR der Kern-Regel. Die Zusage dieser Wache bleibt: eine gesetzte Stufe ist
+# bekannt und keine Tippfehler-Falle; `leicht`, `mittel` und `schwer` stehen weiter im Regelwerk.
+BOTS_REGELN = O.REGELN.get("bots") or {}
+check("die Stufe ist bekannt: im Regelwerk oder als Engpass-Stufe in main",
+      stufe in BOTS_REGELN or (stufe == "engpass" and "bot_kartenwahl_nach_engpass" in TEXT_MAIN),
+      str(sorted(BOTS_REGELN)) + " | stufe=" + stufe)
+check("die drei Kern-Stufen stehen weiter im Regelwerk",
+      {"leicht", "mittel", "schwer"} <= set(BOTS_REGELN), str(sorted(BOTS_REGELN)))
 check("die Begruendung steht als Feld daneben (kein Wert ohne Quelle)",
       bool(einst.get("kartenwahl_stufe_hinweis")))
 
