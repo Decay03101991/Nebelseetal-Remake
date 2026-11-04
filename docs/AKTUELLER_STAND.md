@@ -25,7 +25,7 @@ groesste davon: das Spiel erzaehlt einen Sieg, den es nach E5 nicht gibt.
 | Sammellauf 15:16 | 162 von 164 gruen, 0 rot, 1220 s | `docs/audits/sammellauf_20261104_1516.log` |
 | Sammellauf 19:12 | **161 von 164, 1 rot** (`test_gpt_projektordnung`: `.gitignore` ohne `/archiv/`), 912 s | `docs/audits/sammellauf_20261104_1912.log` |
 | Reparatur | `.gitignore` mit den Schutzregeln wiederhergestellt (Secrets, Spielstaende, `/archiv/`) plus Veroeffentlichungspakete; Datei danach gruen | Commit `6c58575` |
-| Nachlauf 19:38 | Pruefung nach der Reparatur | `docs/audits/sammellauf_20261104_1938.log` |
+| Nachlauf nach der Reparatur | **162 von 164 gruen, 0 rot, 802 s** (2 dokumentiert zurueckgezogen, 6.677 Pruefungen, 55 Befunde) | `docs/audits/sammellauf_20261104_1921.log` |
 
 ## Der EINE naechste Schritt
 
