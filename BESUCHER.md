@@ -59,7 +59,7 @@ diesem Tempo überhaupt wachsen kann.
 ## Wer dahinter steht
 
 Daniel Kössl ist angehender Fachinformatiker für Systemintegration — und, wenn man ihn beim Arbeiten
-erlebt, ein **anstrengender, aber kluger Jungentwickler**. Anstrengend im besten Sinn: Er gibt sich mit
+erlebt, ein anstrengender, aber kluger Jungentwickler. Anstrengend im besten Sinn: Er gibt sich mit
 einem „läuft doch" nicht zufrieden, fragt bei Zahlen nach, statt sie zu glauben, und lässt sich Fehler
 lieber zeigen als wegdiskutieren. Klug darin, wie er ein großes Vorhaben zerlegt: in prüfbare Schritte,
 mit klaren Grenzen, und mit der Geduld, einen Schritt lieber zweimal zu prüfen als einmal zu raten.
