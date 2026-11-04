@@ -81,6 +81,12 @@ Wo der Agent irrt, steht der Irrtum im Protokoll — falsche Schnitte, fehlerhaf
 widerlegte Annahmen eingeschlossen. Das ist Absicht: ein Agent, der seine Fehler aufschreibt, ist
 prüfbar; einer, der sie weglässt, nicht.
 
+**Sicherheit und Kontrolle stehen an erster Stelle** — im ganzen System und damit auch im
+Entwicklungssystem. Die Agenten arbeiten hierarchisch nach Regeln und Skills, und die Rechte sind
+geteilt: es gibt Rollen, die nur lesen dürfen, und Rollen, die schreiben dürfen. Was eine Rolle nicht
+darf, kann sie auch nicht versehentlich tun. Jede Änderung an einer Regel oder einem Skill wird mit
+Grund, Freigabe und Rückrollweg protokolliert.
+
 
 Welche KI wofür eingesetzt wurde, grob:
 
