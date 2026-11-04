@@ -23,7 +23,8 @@ Dorfes (zweiter Teil von B-5), gebucht wird dort; ohne Dorf bucht `bot_armee_buc
 | Voller Sammellauf | **163 von 165 gruen, 0 rot, 1433 s**, 6.684 Pruefungen, 55 Befunde (die zwei uebrigen sind dokumentiert zurueckgezogen) | `docs/audits/sammellauf_20261104_2327.log` |
 | Neue Wachen | `test_gesamtsieg` **47/0/0**, `test_drachen` **51/0/0** | eigene Laeufe |
 | Register / Protokoll | **201** / **321 Zeilen** (eine ueber Ziel - Verdichtung offen, siehe unten) | `grep -c`, `wc -l` |
-| Kosten grosse Modelle (Monat) | **0,043 USD von 1,94 USD**; 5,00 USD bleiben fuer `deepseek-flash` reserviert | Register 199, Protokollzeile 23:00 |
+| Kosten grosse Modelle (Monat) | **0,42 USD von 1,94 USD** (Ablesung Daniel 23:56: 6,56 USD Stand, 53,43 USD Gesamtverbrauch); 5,00 USD Reserve fuer `deepseek-flash` unangetastet. Davon ~0,38 USD fuer ZWEI Bildpruefungen - Bilddeutung ist das Teuerste am Tag, nicht die Textlaeufe | Register 199, Protokollzeile 23:00 |
+| Veroeffentlicht | Stand von `main` als Entwicklungsschritt gepusht: `63639d5`, **ohne neue EXE** - die Testversion 0.5.0-pre.1 bleibt | `git push origin pre-release:main`, `origin/main` geprueft |
 | Figuren | `assets/bilder/drache_weiss.png`, `drache_blau.png`, `drache_lila.png` (256 px + 64 px); Originale unter `archiv/eingaben/20261104_drachenbilder/` | Register 201 |
 
 ## Der EINE naechste Schritt
@@ -42,7 +43,7 @@ zum Abschluss.**
 **Offene Punkte, die nicht untergehen duerfen:** (1) Farben der Drachenfiguren - Daniel: erstmal unwichtig,
 spaeter anpassen; die Chronik nennt Episheus weiss / Tardas gruen / Salmur rot, geliefert sind weiss, blau,
 lila. (2) Das Protokoll steht mit **321 Zeilen** eine Zeile ueber Ziel; die Verdichtung ist ein eigener
-Schritt (Vorgaengerzeilen werden nicht nachts nebenbei zusammengelegt). (3) Zwei Skill-Abschnitte warten in
+Schritt (Vorgaengerzeilen werden nicht nachts nebenbei zusammengelegt). (4) **Eigenes Mini-Repo fuer das Entwicklungsprotokoll** ist beauftragt und auf spaeter gelegt (Register 202); (3) Zwei Skill-Abschnitte warten in
 der Freigabe-Liste (`18381d56`).
 
 # STAND 04.11.2026, 22:00 - W-12 gebaut (sechs Welten), alle sechs Welten bespielbar, fuenf Antworten eingearbeitet
