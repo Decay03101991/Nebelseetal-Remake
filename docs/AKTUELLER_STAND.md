@@ -21,10 +21,10 @@ Skill-Freigabe gilt nur fuer die Story-Schicht.
 
 | Gegenstand | Wert | Beleg |
 |---|---|---|
-| Kopf auf `main` | Code-Stand `237c8ae`, darauf der Doku-Commit dieser Sitzung | `git log --oneline` |
+| Kopf auf `main` | Code-Stand `237c8ae`, darauf die Doku-Commits bis `93d104f` | `git log --oneline` |
 | Limbus-Dimensionen | **6** (d01-d06), vorher 20 | `data/welten.json`, `portalraum.dim_zahl()` |
 | Bespielbare Welten | **6 von 6** (vorher 2) | `data/welten.json` → `weltkarten_spielbar` |
-| Register / Protokoll | **197** / **320 Zeilen** (Ziel 320 - erreicht) | `grep -c`, `wc -l` |
+| Register / Protokoll | **197** / **318 Zeilen** (Ziel 320, verdichtet aus 320) | `grep -c`, `wc -l` |
 | Voller Sammellauf | **161 von 164 gruen, 0 rot, 1789 s**, 6.589 Pruefungen, 55 Befunde | `docs/audits/sammellauf_20261104_2123.log` |
 | Einzeln nachgeholt | `test_produktionskette_ohne_cheats` **48/0/0 in 272 s** (im Lauf: Zeitlimit 420 s, kein Befund) | eigener Lauf |
 | Umgestellte Pruefdateien | `test_welt` 43/0/0, `test_portalraum` 70/0/0, `test_portal_uebersicht` 61/0/0, `test_weltkarten_anzeige` 27/0/0, `test_weltbild_gelaende` 94/0/0 | Sammellauf |
@@ -39,8 +39,10 @@ bauen sind (a) eine Buchung je ausgeraeumtem Dorf im Kampfbericht-Weg (`src/kamp
 neben E5, (c) die Glueckwunsch-Nachricht mit Fraktionsbezug, (d) **Endlosspiel danach**: der Sieg sperrt
 nichts und beendet nichts. Der Storytext der Siegesnachricht ist ein EIGENER Teil (Modelllauf, Daniel
 entscheidet vorher). **Arbeitsweise: der volle Sammellauf, die Registerzeile und die Protokollzeile
-gehoeren zum Abschluss** - **das Protokoll steht bei 320 von 320 Zeilen und muss VORHER verdichtet
-werden** (Verfahren im Skill: Vor-Fassung sichern und committen, dann verdichten, dann pruefen).
+gehoeren zum Abschluss.** Das Protokoll wurde am 04.11. von 320 auf **318 Zeilen** verdichtet (drei
+Bildcontent-Zeilen zu einer, zwei GitHub-Zeilen zu einer; Vorfassung unter
+`docs/archiv/ENTWICKLUNGSPROTOKOLL_VOR_VERDICHTUNG_20261104.md`), **zwei Zeilen sind frei** - die
+naechste Protokollzeile passt ohne neue Verdichtung.
 
 **Danach in dieser Reihenfolge (von Daniel so entschieden):** die drei offenen Kampfregeln (2
 Fluchtformel, 4 Beute-Reihenfolge Gold zuerst, 6 Mauerreparatur mit Bauzeit), dann **W-14 Drachen**
