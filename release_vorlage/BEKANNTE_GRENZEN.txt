@@ -1,14 +1,35 @@
 NEBELSEETAL REMAKE - TESTGRENZEN UND DATENSCHUTZ
+Stand: 04.11.2026 | Version 0.5.0-pre.1 | ERSTE VORABVERSION
 
-- Unfertige Einzelspieler-Testversion; kein offizieller fertiger Release.
-- 127 historische Originalkarten integriert, 25 Raster grafisch noch offen.
-- Bot-Wirtschaft/Belagerungsstrategie und vollstaendige Langzeittests offen.
-- Archive geloeschter Spielstaende sind aktuell Teil der Entwicklungslogik;
-  die endgueltige Aufbewahrungs- und Groessenregel ist noch NICHT festgelegt.
+WAS SCHON GEHT
+- Siedlungen gruenden und ausbauen, Rohstoffe, Waren, Werkstaetten, Handel
+- 21 Forschungen mit Voraussetzungen, Ausruestung, 28 Einheiten ausbilden
+- Kaempfe mit Wall, Sequenzen, Beute und Kriegspunkten
+- Fuenf Nachbarn mit eigener Wirtschaft: sie forschen, bauen, gruenden, rauben
+- Portale in andere Welten mit Mana-Kosten je Entfernung
+- Vier Auszeichnungen (Feldherr, Forscher, Haendler, Gesamtherrscher)
+
+WAS NOCH FEHLT ODER UNFERTIG IST
+- Die Welt steht noch auf 20 Limbus-Dimensionen; der Umbau auf sechs Welten
+  laeuft. 14 Dimensionen sind leer und werden nicht als Startwelt vergeben.
+- Drei Kampfregeln fehlen: Fluchtformel, Beute-Reihenfolge (Gold zuerst),
+  Mauerreparatur mit Bauzeit.
+- Kein Ton, keine Musik.
+- Die Ansichten bauen sich beim Wechsel neu auf; das kann kurz stocken.
 - Nicht alle Windows-Versionen, Skalierungen und Grafikkonfigurationen getestet.
-- Die EXE enthaelt kein eingetragenes Betreiberpasswort. Beim Erststart wird
-  ein persoenliches Passwort lokal festgelegt.
-- Spielstaende und private Archive werden lokal verwaltet; bitte bei
-  Fehlermeldungen keine Passwoerter oder privaten Spielstaende posten.
-- Historische Bildmaterialien: Rechtefreigabe vor oeffentlicher
-  Weitergabe durch den Projektverantwortlichen separat zu pruefen.
+
+DATENSCHUTZ
+- Das Spiel laeuft vollstaendig offline. Keine Netzwerkverbindung, keine
+  Telemetrie, keine Konten.
+- Passwort, Spielstaende und Archive liegen lokal unter
+  %LOCALAPPDATA%\Nebelseetal_Remake\Demo. Gespeichert wird nur ein
+  Pruefwert des Passworts.
+- Die EXE enthaelt kein Betreiberpasswort; beim Erststart legst du selbst
+  eines fest.
+- Bei Fehlermeldungen bitte KEINE Passwoerter und keine privaten Spielstaende
+  veroeffentlichen.
+
+RECHTE DER BILDER
+- Die im Spiel verwendeten Bilder stammen aus eigenen Lieferungen und eigenen
+  Generierungen. Die historische Oberflaeche des Originalspiels dient als
+  Vorbild, nicht als Kopiervorlage.

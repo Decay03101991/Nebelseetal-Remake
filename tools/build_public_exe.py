@@ -15,7 +15,8 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-NAME = "Nebelseetal_Remake_Testversion"
+NAME = "Nebelseetal_Remake"   # Name der EXE (Daniel: Nebelseetal-Remake.exe)
+VERSION = "0.5.0-pre.1"     # Version des Pakets, wird mit --version ueberschrieben
 OUTPUT = ROOT / "release_public"
 ICON = ROOT / "assets" / "icons" / "nebelseetal.ico"
 ENTRY = ROOT / "src" / "public_start.py"
@@ -60,9 +61,10 @@ def check() -> None:
                            + ", ".join(staende))
 
 def pack(exe: Path) -> tuple[Path, str]:
+    """EXE plus Infopaket zu einem ZIP schnueren, SHA256 daneben und im ZIP."""
     sha = hashlib.sha256(exe.read_bytes()).hexdigest()
     (OUTPUT / "SHA256SUMS.txt").write_text(f"{sha}  {exe.name}\n", encoding="ascii")
-    bundle = OUTPUT / f"{NAME}_FIX04j.zip"
+    bundle = OUTPUT / f"{NAME}_{VERSION}.zip"
     with zipfile.ZipFile(bundle, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as z:
         z.write(exe, exe.name)
         z.write(OUTPUT / "SHA256SUMS.txt", "SHA256SUMS.txt")
@@ -74,9 +76,12 @@ def pack(exe: Path) -> tuple[Path, str]:
     return bundle, sha
 
 def main() -> int:
+    global VERSION
     ap = argparse.ArgumentParser()
     ap.add_argument("--pruefen", action="store_true")
+    ap.add_argument("--version", default=VERSION, help="Versionsbezeichnung im Dateinamen, z. B. 0.5.0-pre.1")
     args = ap.parse_args()
+    VERSION = args.version
     try: check()
     except Exception as e:
         print("FEHLER (Vorpruefung):", e, file=sys.stderr)

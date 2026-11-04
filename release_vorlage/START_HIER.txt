@@ -1,13 +1,22 @@
-NEBELSEETAL REMAKE - OEFFENTLICHE WINDOWS-TESTVERSION
+NEBELSEETAL REMAKE - OEFFENTLICHE WINDOWS-TESTVERSION 0.5.0-pre.1
+(erste Vorabversion, kein fertiges Spiel)
 
-1. Den gesamten ZIP-Inhalt in einen neuen Ordner entpacken.
-2. Nebelseetal_Remake_Testversion.exe per Doppelklick starten.
-3. Beim ersten Start ein EIGENES Passwort festlegen und sicher notieren.
-4. Im normalen Spielermodus einen Spielerslot laden oder eine Partie starten.
-5. Fehler/Probleme nach FEHLER_MELDEN.txt dokumentieren.
+1. Den gesamten ZIP-Inhalt in einen NEUEN, leeren Ordner entpacken.
+2. Nebelseetal_Remake.exe per Doppelklick starten. Python ist nicht noetig.
+3. Beim ersten Start ein EIGENES Passwort festlegen und gut notieren.
+   Gespeichert wird nur ein Pruefwert davon, nie das Passwort selbst.
+4. Danach eine neue Partie beginnen: Siedlung gruenden, Berater oeffnen.
+5. Fehler/Probleme nach FEHLER_MELDEN.txt notieren.
 
-KEINE ADMIN-FUNKTIONEN in der oeffentlichen Testoberflaeche.
-Die lokale Entwicklerfassung bleibt getrennt und enthaelt den Admin-Testbereich.
-Bitte vorab SYSTEMANFORDERUNGEN.txt und BEKANNTE_GRENZEN.txt lesen.
+WICHTIG
+- Die Testversion startet LEER: keine mitgelieferten Spielstaende.
+- Eigener Speicherordner: %LOCALAPPDATA%\Nebelseetal_Remake\Demo
+  (Passwort vergessen? Datei tor.json dort loeschen, Spielstand bleibt.)
+- KEINE ADMIN-FUNKTIONEN in dieser Fassung.
+- Bitte vorab SYSTEMANFORDERUNGEN.txt und BEKANNTE_GRENZEN.txt lesen.
+- Pruefsumme der EXE: SHA256SUMS.txt im ZIP. SmartScreen kann warnen,
+  weil die EXE nicht signiert ist - Herkunft und Pruefsumme pruefen.
+
+Spiel aus dem Quellcode starten (nur fuer Entwickler): START_SPIEL_WINDOWS.bat
 
 Testversion: keine vollstaendige Spiel- oder Kompatibilitaetsgarantie.

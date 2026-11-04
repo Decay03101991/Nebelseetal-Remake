@@ -1,73 +1,123 @@
-# Nebelseetal Remake – ein konsolidierter Arbeitsstand
+# Nebelseetal Remake — Pre-Release-Testversion
 
-**Status: Entwicklung, nicht freigegeben.** Ein Einzelspieler-Remake des historischen Browserstrategiespiels.
+**Ein Einzelspieler-Remake des historischen Browserspiels Nebelseetal.** Läuft lokal, offline,
+kostenlos. Windows-Testversion als `.exe`, kein Python nötig.
 
-> ### Stand 31.10.2026, 13:20 — was heute gebaut und geprüft wurde
->
-> * **Vollständiger Prüflauf** (`tools/sammellauf.py`): **98 Dateien, 97 grün, 0 rot, 1 dokumentiert zurückgezogen, 391 s**.
-> * **Ausbildungs-Warteschlange** (aus Daniels Spieltest): Restzeit je Auftrag, **Gesamtzeit der Schlange**, Streichen von Aufträgen — `spieloekonomie.ausbildung_uebersicht`, `main._ausbildung_warteschlange_zeichnen`.
-> * **Ein Bewegungssystem statt zwei:** Kartenfeld-Beute läuft jetzt über dieselbe Formel wie der Auftrags-Pfad (`kampfbericht.beute_am_ziel`, mit Abbuchung am Feld); der **Rückweg** kostet die gleiche Zeit wie der Hinweg (`main.rueckmarsch_eintrag`, `tests/test_rueckmarsch.py` 16/0/0).
-> * **Prüfregister des Originals** auf **63 belegte Punkte** erweitert (`docs/PRUEFREGEL_ORIGINAL.md`).
-> * **Code lesbar für Einsteiger:** jeder Abschnitt, jede Funktion kurz erklärt — Regel und Messwerkzeug in [Code-Lesbarkeit](docs/CODE_LESBARKEIT.md) und `tools/kommentar_luecken.py` (213 von 915 Funktionen noch ohne Beschreibung).
-> * **Übergabe mit allen Belegen:** [Übergabe 31.10.2026, 14:00](docs/HANDOFF_20261031_1400.md); offene Entscheidungen in [Fragen an Daniel](docs/FRAGEN_AN_DANIEL_20261031_0600.md).
-> * **EXE:** `Nebelseetal_Remake.exe`, 43,8 MB, SHA256 `bb97d204…`, Rauchtest bestanden (Tor-Seite erscheint).
-> * Besucherstand mit Zahlen: [Spielstatus](docs/BESUCHER_STATUS.md).
+> **Dies ist die erste Vorabversion** (`0.5.0-pre.1`). Sie ist zum Ausprobieren und Fehlersammeln
+> gedacht, nicht als fertiges Spiel. Was fehlt, steht ehrlich unter [Bekannte Grenzen](#bekannte-grenzen).
 
-![Historische Originaloberflaeche](docs/nebelseetal_gamestar2.jpg)
+---
 
-> Das Bild zeigt die **historische Vorlage** des Produktions-Baumenues, nicht den aktuellen Programmstand. Was an dieser Darstellung noch fehlt, steht unter [Baumenue-Abgleich](docs/BAUMENUE_ABGLEICH.md).
+## Was das Spiel ist
 
-## Windows-Testversion (FIX04j, noch nicht freigegeben)
+Du übernimmst die Rolle eines Herrschers in einer zersprungenen Welt. Sechs Bruchstücke treiben im
+magischen Raum Limbus, verbunden nur durch Portale. Du gründest Siedlungen, produzierst Rohstoffe,
+stellst Waren her, forschst, rüstest aus, bildest Einheiten aus, kämpfst und reist in andere Welten.
 
-**Zwei getrennte Fassungen aus denselben Quellen:**
+Der Kreislauf: **gründen → produzieren → forschen → ausrüsten → ausbilden → bewegen → kämpfen → punkten.**
 
-- **GitHub-Repository:** enthält weiterhin den vollständigen Entwicklungsstand einschließlich aller Admin-Module, Admin-Tests und ihrer Dokumentation. Kein Weglassen von Admin-Daten im Repo.
-- **Öffentliches Windows-Testpaket:** wird über `PUBLIC_TEST_EXE_BAUEN_WINDOWS.bat` bzw. `tools/build_public_exe.py` aus `src/public_start.py` erzeugt. Es führt direkt zum normalen Spielermodus mit drei Slots; Admin-Auswahl, Admin-Dialog und Admin-Werkzeuge sind in dieser Bedienoberfläche gesperrt. Die **lokale Entwicklerfassung mit Admin** bleibt unverändert vorhanden.
-- **Spielstände:** öffentliche EXE hat ihren eigenen lokalen Speicher-/Passwortordner unter `%LOCALAPPDATA%\Nebelseetal_Remake\Demo`; private Inhalte niemals in GitHub laden.
-- **Testerinfo:** `release_vorlage/SYSTEMANFORDERUNGEN.txt`, `START_HIER.txt`, `BEKANNTE_GRENZEN.txt` und `FEHLER_MELDEN.txt` gehören zum späteren ZIP mit der EXE.
+- bis zu **6 Siedlungen** je Reich, **10 Siedler** je Siedlung und **5 je Haus**
+- **7 Geländearten**, **9 Rohstoffe**, **17 Waren**, **28 Einheiten**, **20 Gebäude**, **21 Forschungen**
+- **fünf Nachbarn** mit eigener Wirtschaft: Haug raubt, Brynhild wacht, Grom baut, Silra späht,
+  Krank vergisst nichts
+- **kein Sieg, sondern Ruhm:** vier Auszeichnungen — Feldherr, Forscher, Händler, Gesamtherrscher
+- vollständige Anleitung im Spiel über den Berater
 
-Die Admin-Sperre der EXE ist **kein sicherer Kopierschutz**: Der vollständige Open-Source-Code bleibt absichtlich öffentlich. `release_public/` ist generiert und darf nicht in Git committet werden; Veröffentlichungen gehen nur nach Windows-Praxistest und Rechte-/Geheimnisprüfung über GitHub Releases. [Releaseplan](docs/RELEASE_PUBLIC_FIX04j.md).
+Ausführlicher: [Die offizielle Erklärung](SPIEL_ERKLAERUNG.md) · [Die Chronik der Welt](CHRONIK_DER_WELT.md)
+· [Sechs Häuser, sechs Welten](FRAKTIONEN_WELTEN.md) · [Die Geschichte als PDF](CHRONIK_DER_WELT.pdf)
 
-## Einstieg
+## Diese Version herunterladen und starten
 
-- `START_SPIEL_WINDOWS.bat` – aktuellen Python-Spielstand aus `src/main.py` starten, kein alter EXE-Build.
-- [Aktueller Entwicklungsstand](docs/AKTUELLER_STAND.md) – wichtigste Spielbereiche und offene Punkte.
-- [Roadmap / Hermes-Plan](docs/AGENTEN_PLAN.md) – bestehender Agentenplan, unveraendert bewahrt.
-- [Einziges aktives Entwicklungsprotokoll](docs/ENTWICKLUNGSPROTOKOLL.md) – **fuehrende Chronik**.
-- [Dokumenten- und Quelleninventar](docs/QUELLEN_UND_DOKUMENTE.md) / [Bildinventar](docs/BILDINVENTAR.md) – was geladen wird, was Vorlagen sind und was zu pruefen bleibt.
-- [Windows testen](docs/SPIEL_TESTEN.md) / [neue Windows-EXE erstellen](docs/WINDOWS_EXE_HERSTELLUNG.md) / [EXE-Zielmassstab](docs/WEG_ZUR_EXE.md).
-- [Auftrag an Hermes](docs/HERMES_UEBERGABE_AKTUELL.md) – nur eine aktuelle Uebergabe.
+1. Im Bereich **Releases** das Paket `Nebelseetal_Remake_0.5.0-pre.1.zip` herunterladen.
+2. ZIP-Inhalt in einen **neuen leeren Ordner** entpacken (nicht in einen Windows-geschützten Ordner).
+3. `Nebelseetal_Remake.exe` per Doppelklick starten.
+4. Beim ersten Start ein **eigenes Passwort** festlegen und notieren — es bleibt lokal auf dem Rechner.
+5. Spielen. Fehler bitte nach `FEHLER_MELDEN.txt` (liegt im ZIP) notieren.
 
-## Ordner
+Die Testversion startet **leer**: keine mitgelieferten Spielstände, kein fremdes Passwort, ein eigener
+Speicherordner unter `%LOCALAPPDATA%\Nebelseetal_Remake\`. Voraussetzungen und Grenzen stehen in
+`SYSTEMANFORDERUNGEN.txt` und `BEKANNTE_GRENZEN.txt` im ZIP.
 
-| Ordner | Bedeutung |
+**macOS:** es gibt **keine** `.app`. Eine echte Fassung müsste auf einem Mac gebaut *und geprüft*
+werden — dieser Rechner ist ein Windows-Rechner, deshalb wird hier nichts angeboten, was niemand
+getestet hat.
+
+## Was in diesem Repository liegt
+
+| Ordner / Datei | Inhalt |
 |---|---|
-| `src/` | **Einziger aktiver Spielcode** |
-| `assets/` | Spielgrafiken, Icons und unveraenderte Quellbilder |
-| `data/` | Spielwerte, Originalkarten, Regeldaten |
-| `tests/` | Aktuelle Pruefungen und isolierte Testvorlagen |
-| `tools/` | Entwicklungs-, Bild- und Buildwerkzeuge |
-| `docs/` | Aktuelle Hauptdokumente, Originalquellen und **genau ein** Entwicklungsprotokoll |
-| `archiv/` | Alte Projektfassungen, Uebergaben, Screenshots, historische Pruefberichte; kein aktiver Code |
+| `src/` | der Spielcode, jeder Block und jede Funktion am Zeilenende erklärt |
+| `data/` | alle Spieldaten als JSON — Einheiten, Waren, Gebäude, Forschungen, Welten, Texte |
+| `assets/` | Bilder: Icons, Karten, Wappen, Burgen, Gebäudehintergründe |
+| `release_vorlage/` | die Infodateien, die im Release-ZIP liegen |
+| `START_SPIEL_WINDOWS.bat` | das Spiel aus dem Quellcode starten (braucht Python) |
+| `SPIEL_ERKLAERUNG.md` | was das Spiel ist, offiziell |
+| `BESUCHER.md` | wie dieses Spiel entstanden ist — für Besucher, grob |
+| `FRAKTIONEN_WELTEN.md` | die sechs Häuser, ihre Wappen, die sechs Welten |
+| `CHRONIK_DER_WELT.md` / `.pdf` | die Geschichte der Welt, als Buch gestaltet |
 
-## Wichtig
+Nicht im Repository: Prüfdateien, Werkzeuge und die Entwicklungsdokumentation. Sie bleiben im
+Arbeitsstand des Entwicklers — dieses Repository ist für Spieler gedacht, nicht als Werkstatt.
 
-Die aktive Kopie stammt aus der isolierten GPT-Testfassung inklusive GPT-FIX02b. Sie wurde **nicht** durch Hermes ins bisherige Hauptprojekt integriert, wurde **nicht** als Windows-EXE verifiziert und ist **nicht** automatisch der Stand des oeffentlichen GitHub-Repositories. Vor einem Merge oder Push muss Hermes Baseline, tatsächlichen HEAD, Geheimnisse und Bildrechte pruefen. Das Verzeichnis `archiv/` ist bewusst von Git ausgeschlossen und bleibt lokale Sicherung.
+## Herkunft und Transparenz
 
-Das Passworttor bleibt so: Spieler erstellen beim ersten Start **ein eigenes lokales Passwort**. Keine Passwortdateien oder Hashes mitverteilen.
+Das Remake entsteht als **Arbeit von Daniel Kössl mit einem Hermes-Agent-System und dessen
+Coding-Subagenten**. Die Agenten haben Code geschrieben, geprüft und dokumentiert; die Entscheidungen
+über Inhalt, Ton, Regeln und Gestaltung liegen beim Entwickler.
+
+**Der Agent hat einen Namen: „Weltenfresser".** Er ist der Hermes-Agent von Daniel Kössl und läuft auf
+dessen Rechner. Seine Rolle im Projekt, offen gesagt:
+
+| Rolle | Was der Agent konkret tut |
+|---|---|
+| **Umsetzer** | schreibt den Spielcode und die Datendateien, Modul für Modul, jede Zeile erklärt |
+| **Prüfer** | legt Prüfdateien an, rechnet Zahlen gegen die Originalquellen nach, fährt Prüfläufe über den ganzen Code und meldet, was rot ist — auch wenn es seine eigene Arbeit war |
+| **Chronist** | führt Entwicklungsprotokoll, Prüfregister und Übergaben, damit keine Entscheidung verloren geht |
+| **Koordinator** | zerlegt große Aufgaben in Schnitte, delegiert an Subagenten, führt deren Ergebnisse zusammen |
+| **Autor mit Grenzen** | schreibt Dokumente und Entwürfe — aber die Geschichte der Welt und die Gestaltung des Buches kamen aus einem bewusst stärkeren Modell, auf Anweisung des Entwicklers |
+| **Bremse** | hält an, wenn eine Entscheidung dem Entwickler gehört: was Regeln, Geld, Daten oder Spielgefühl betrifft, wird gefragt statt entschieden |
+
+Wo der Agent irrt, steht der Irrtum im Protokoll — falsche Schnitte, fehlerhafte Messungen und
+widerlegte Annahmen eingeschlossen. Das ist Absicht: ein Agent, der seine Fehler aufschreibt, ist
+prüfbar; einer, der sie weglässt, nicht.
 
 
-### Kartenstand: nur historische Originalkarten
+Welche KI wofür eingesetzt wurde, grob:
 
-Diese Entwicklungsfassung nutzt im Siedlungsspiel **127 originale 10×10-Karten** mit direkt aufbereiteten historischen Bildhintergründen. Die ehemals generierten 8×7-Siedlungskarten und ihre grob nachgezeichneten Wald-/Gebirgssymbole sind nicht mehr aktiv. [Kartenregeln und Grenzen](docs/KARTEN_NUR_ORIGINALE.md) · [Aktueller Entwicklungsstand](docs/AKTUELLER_STAND.md).
+| KI | Auftrag (grob) | Ausgaben (grob) |
+|---|---|---|
+| Hermes-Agent mit `deepseek-v4-flash` | der Hauptteil der Arbeit: Code, Prüfungen, Dokumentation | der überwiegende Teil der Gesamtausgaben |
+| Großes DeepSeek-Modell (`deepseek-v4-pro`), einzelne Aufträge | Entwürfe für Regeln, Konzepte und die Chronik der Welt | wenige Cent je Auftrag |
+| GPT-6-Astra | einzelne Bilddeutungen und Gutachten | rund ein US-Dollar je Auftrag |
+| GPT-Chat-Abo | einzelne Text- und Gestaltungsteile | im Abo enthalten |
 
-**Wichtig:** Dies ist eine nicht freigegebene Entwicklerfassung, keine aktuelle fertige Windows-EXE; 25 Karten müssen noch manuell auf Übereinstimmung von Bild und Spielraster geprüft werden.
+**Gesamtausgaben für KI bis zu dieser Vorabversion: rund 52 US-Dollar**, überwiegend für
+`deepseek-v4-flash`. Keine Token-Zahlen, keine Prompts, keine Protokolle — nur diese grobe Zuordnung.
 
+**Zum früheren Stand:** Ein früherer Stand dieses Projekts war bereits auf GitHub veröffentlicht. Der
+Entwickler hat diesen Stand zurückgenommen und das Projekt neu bewertet. Dieses Repository ist der
+daraus hervorgegangene, offizielle Pre-Release-Stand.
 
-### Spielstaende verwalten (Entwicklungsstand FIX04h)
+## Bekannte Grenzen
 
-Im normalen Profil gibt es drei Spielerslots. Unter **Spielstaende verwalten** werden ausschliesslich die aktiven Slots angezeigt. Loeschen archiviert den ausgewaehlten Stand mit Datum und Uhrzeit **privat im Entwicklungsarchiv**, zeigt ihn aber normalen Spielern nicht wieder als Ladeangebot an. Wiederherstellen ist vorerst nur im getrennt authentifizierten **Admin-Testmodus** moeglich: Dort liegt das Entwicklerarchiv in einem eigenen Fenster mit klarer Slotzuordnung. Ein leeres Archiv erzeugt keinen Wiederherstellungs-Eintrag.
+- **Vorabversion.** Kein fertiges Spiel, keine Kompatibilitätszusage.
+- **Sechs Welten sind noch nicht fertig umgestellt.** Im Spielcode liegen derzeit 20 Limbus-Dimensionen,
+  von denen sechs mit den belegten Welten belegt sind; 14 sind leer. Der Umbau auf sechs Welten läuft.
+- **Drei Kampfregeln fehlen:** Fluchtformel, Beute-Reihenfolge (Gold zuerst), Mauerreparatur mit Bauzeit.
+- **Kein Ton, keine Musik.** Die Oberfläche ist eine Windows-Oberfläche mit Ingame-Fenstern.
+- **Nur auf Windows getestet** (Windows 11, 64 Bit). Windows 10, ARM und kleine Displays sind ungeprüft.
+- **Admin-Werkzeuge sind in dieser Fassung gesperrt.** Sie gehören zur Entwicklerfassung, nicht zur
+  Testversion.
+- SmartScreen kann bei unbekanntem Herausgeber warnen. Die Prüfsumme steht in `SHA256SUMS.txt` im ZIP.
 
-Bewusstes Ueberschreiben eines Slots ersetzt den aktiven Stand unmittelbar. Im Admin-Entwicklerarchiv werden Dateianzahl und Speicherbedarf angezeigt; es erfolgt **keine automatische Loeschung**. Ob das Archiv nach Ende der Entwicklungsphase weiter gefuehrt, begrenzt oder deaktiviert wird, ist noch offen.
+## Rechte
 
-Private Spielstaende und ihre Archive liegen im jeweiligen Schreibordner des Spiels, in der Windows-EXE normalerweise im Nutzerprofil, nicht im GitHub-Projekt. `archiv/spielstaende` im Projekt ist nur ein Ordnerplan. Die unter Windows zuvor erfolgreich getestete EXE enthaelt FIX04h noch nicht; nach dem Einspielen ist ein Neubau mit anschliessendem Windows-Test erforderlich.
+Der Quelltext ist einsehbar. Eine Nutzungslizenz ist für diese Vorabversion **noch nicht festgelegt** —
+wer den Code verwenden will, fragt bitte vorher. Die Bilder des historischen Originalspiels sind nicht
+Teil dieses Projekts; die im Spiel verwendeten Bilder stammen aus eigenen Lieferungen und eigenen
+Generierungen.
+
+## Fehler melden
+
+Bitte mit Beschreibung, was du getan hast, was du erwartet hast und was passiert ist — ohne Passwörter
+und ohne private Spielstände. Das Formular liegt als `FEHLER_MELDEN.txt` im Release-ZIP.
