@@ -35,6 +35,35 @@ Freigabe.
 | Herkunft | Nachvollziehbar als **Daniels Arbeit mit einem Hermes-Agent-System und seinen Coding-Subagenten**. |
 | Transparenz | Ueberwiegend `deepseek-v4-flash`; einzelne, kontrollierte Auftraege an das grosse DeepSeek-Modell; dazu Auftraege von GPT-6-Astra und Teile aus dem GPT-Chat-Abo - **nur grob**, ohne die Details aus den Protokollen. |
 
+**Nachtrag 15:58 - der fruehere Repo-Stand wird im README ausdruecklich erwaehnt (Daniel, 04.11.2026).**
+Fuer Besucher soll nachvollziehbar sein, dass es auf GitHub bereits einen frueheren Repo-Stand gab, dass
+der Entwickler entschieden hat, das Projekt **neu zu bewerten**, und dass **dieser** Stand der offizielle
+Pre-Release-Stand des Entwicklers ist. Das ist **kein Widerspruch** zur Loeschung: der alte Stand
+verschwindet technisch (keine Dateien, keine Commits, keine Releases, keine Reste), aber die *Geschichte
+des Projekts* wird ehrlich erzaehlt - als Satz im README und im Besucherdokument, nicht als Verweis auf
+alte Dateien.
+
+Vorschlag Wortlaut (darf ersetzt werden):
+
+> Ein frueherer Stand dieses Projekts war bereits auf GitHub veroeffentlicht. Der Entwickler hat diesen
+> Stand zurueckgenommen und das Projekt neu bewertet. Dieses Repository ist der daraus hervorgegangene,
+> offizielle Pre-Release-Stand.
+
+**Nachtrag - KI-Ausgaben im Repo (Daniel, 04.11.2026).** Die Ausgaben fuer KI duerfen im Repo **grob
+aufgelistet** werden. Bedingung: **genau zugeordnet**, welche KI es war und **was ihr Auftrag war** - der
+Auftrag dabei nur **ganz grob** beschrieben. **Keine Details:** keine Token-Zahlen, keine Prompts, keine
+Protokollauszuege, keine Sitzungslaengen.
+
+| KI | Auftrag (grob) | Ausgabe (grob, gerundet) |
+|---|---|---|
+| Hermes-Agent mit `deepseek-v4-flash` | Spiel bauen, pruefen, dokumentieren - der groesste Teil der Arbeit | grob zusammenfassen, z. B. ueber 50 USD |
+| Grosses DeepSeek-Modell, einzelne Auftraege | Entwuerfe fuer Regeln und Konzepte | grob, je Auftrag im Bereich weniger Cent |
+| GPT-6-Astra | Bilddeutung und einzelne Gutachten | grob, je Auftrag im Bereich eines Dollars |
+| GPT-Chat-Abo | einzelne Teile (Text, Gestaltung) | im Abo enthalten, kein Einzelpreis |
+
+Die Zahlen werden **vor dem Pre-Release** aus den vorhandenen Abrechnungen zusammengefasst (eine Zahl je
+Zeile, gerundet) - nicht geschaetzt, nicht je Sitzung aufgelistet.
+
 ## 3. macOS-Fassung (`.app`) - ehrliche Lage
 
 Daniel wuenscht eine `.app` fuer macOS im **gleichen Stand wie die EXE**, doppelklickbar im Ordner
