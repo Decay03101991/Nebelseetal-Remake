@@ -1,3 +1,38 @@
+# STAND 04.11.2026, 10:45 - externe Projektpruefung verarbeitet (Register 182)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Ein fremdes Modell hat zum ersten Mal von aussen auf das Projekt geschaut** - auf Auftrag von Daniel,
+mit einer Kostengrenze von 3 USD, ohne Dateizugriff (Daten nur als Text). Zwei Gutachten: Arbeitsweise
+(13.791 Zeichen) und Spiel/Story/Code (10.037 Zeichen), zusammen 33.730 Token. **Der wichtigste Befund
+ist gemessen und unangenehm:** 294 von 532 Commits (55 Prozent) aendern ausschliesslich Dokumente - die
+Buchhaltung ist groesser als der Bau. Zweiter Befund: der Sammellauf kostet 9 bis 12 Minuten je
+Code-Schnitt. Dritter: das Spiel hat kein Intro, ein Fremder findet keine Geschichte.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Gutachten | A 13.791 Zeichen, B 10.037 Zeichen, 33.730 Token, 287 s Modellzeit | `docs/PRUEFVERMERK_EXTERNE_PRUEFUNG_20261104.md` |
+| Kernbefund 1 | **294 von 532 Commits aendern nur `docs/`** | `git log --pretty --name-only`, eigene Zaehlung |
+| Kernbefund 2 | Sammellauf 162 Dateien, 9 bis 12 Minuten je Code-Schnitt | `docs/audits/` |
+| Kernbefund 3 | kein Story-Intro im Code, nur Statuszeile und Beratertexte | `grep "Willkommen"` in `src/main.py` |
+| Uebernommen | Teststufen smoke/kern/voll, Story 1 (Intro, Vorgeschichte, Siegtext), Story 2 (Bot-Stimmen, Fraktions-Kurztexte) | Pruefvermerk Abschnitt 2 |
+| Abgelehnt (mit Grund) | Protokoll abschaffen, 20 Limbus-Dimensionen reduzieren, Kommentarpflicht abschaffen | Pruefvermerk Abschnitt 3 |
+| Offen (Daniel entscheidet) | `main.py` zerlegen (13.479 Zeilen), Skill von 74.370 Zeichen kuerzen, Uebergabe zweiteilen | Pruefvermerk Abschnitt 5 |
+| Pruefdateien / Register / Protokoll | **162** / **182** / **295 Zeilen** (Zielgroesse eingehalten) | `ls tests/test_*.py`, `grep -c '^\| [0-9]'`, `wc -l` |
+
+## Der EINE naechste Schritt
+
+**Teststufen fuer den Sammellauf** (der einzige Vorschlag der Pruefung, der sofort Zeit spart): eine
+Stufe `smoke` fuer Dokument- und Daten-Aenderungen, `kern` fuer ein Modul und `voll` fuer Code-Schnitte,
+ausgewaehlt nach den geaenderten Pfaden. Die Projektregel bleibt unangetastet: **ein Code-Schnitt gilt
+nur mit vollem Lauf NACH dem letzten Fix**. Fertig ist der Schnitt, wenn es die drei Stufen gibt, eine
+Wache belegt, dass `voll` weiter alle Pruefdateien faehrt, und ein Doku-Commit nachweislich unter drei
+Minuten bleibt. Danach **Story 1** (Intro mit Weltbruch und Auftrag, Vorgeschichte, Siegtext).
+**Der volle Sammellauf, die Registerzeile und die Protokollzeile gehoeren zum Abschluss jedes
+Schnitts.**
+
+---
+
 # STAND 04.11.2026, 09:38 - S-12 und S-11: alle Felder, Kartenwahl nach Engpass (Register 180/181)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
