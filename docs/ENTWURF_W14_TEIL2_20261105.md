@@ -53,3 +53,21 @@ Offene Entscheidungen fuer Daniel (EINE Runde):
    B) ENTSCHIEDEN 05.11.2026: 120 Krieger + 60 Bogenschuetzen + 24 Paladine (204), Drachenwerte statt Wall.
    C) Feste Drachenbeute oder Staffel-Beute? Vorschlag: fest (Daniels Zahlen) - der Drache hat keinen Wall, es gibt keinen Wallzustand fuer eine Staffel
    D) Duerfen Bots den Drachen angreifen? Vorschlag: nein (er ist kein Bot-Dorf).
+
+6) BEUTE NACH LEISTUNG (Daniel 05.11.2026, Variante A)
+   - Jeder Angriff bucht den Anteil, den er an den Verteidigern zerstoert hat: `drachen.beute_anteil(...)`;
+     der letzte Schlag bekommt +10 %. KEIN "letzter Schlag nimmt alles" - sonst wartet ein schneller
+     Gegner auf zwei Resteinheiten (Daniels eigene Sorge).
+   - Der Anteil wird ueber `kampfbericht.beute_am_ziel` gebucht (EINE Buchstelle, `beute_override`).
+7) TRANSPORT VORRECHNEN
+   - `drachen.transport_bedarf(anteil, forschung)` sagt, welche Ladung noetig ist und welcher Wagenpark
+     sie traegt; `transport_text` liefert den Satz fuer den Spieler ("Fuer deinen Anteil von 5.500 Ladung
+     brauchst du 2 Grosse Handelskarawanen, 2 Zweispaenner").
+   - Was nicht getragen wird, bleibt beim Drachen liegen - der naechste Angreifer findet es vor. Die
+     Anzeige muss das VOR dem Angriff sagen, nicht danach.
+8) BERICHT UND AUSSPAEHEN
+   - `drachen.bericht(ergebnis, ueberlebende, verteidiger)`: mit Ueberlebenden ein genauer Bericht mit
+     Einheiten, ohne Ueberlebende nur eigene Verluste und die ZAHL der Verteidiger.
+   - `drachen.spionage_erlaubt()` -> (False, Grund): der Spionagepfad muss den Drachen ablehnen.
+   - `drachen.angriffs_hinweis()` zeigt der Spieler im Angriffsfenster; die Spielerhilfe erklaert den
+     Umstand (kein Ausspaehen, Bericht nur mit Ueberlebenden).

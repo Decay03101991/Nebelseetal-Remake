@@ -138,4 +138,56 @@ except Exception as e:  # falls eine Exception auftritt
 finally:  # stelle sicher, dass die Datei geloescht wird
     os.unlink(tmp_pfad2)  # loescht temporaere Datei
 
+abschnitt("Beute: Anteil nach Leistung, Bonus fuer den letzten Schlag")  # Nachtrag 05.11.2026
+
+_beute_vorrat = {"gold": 5000, "holz": 2000, "stein": 2000, "nahrung": 2000}  # Vorrat des Drachen
+_halb = drachen.beute_anteil(100, 200, _beute_vorrat)  # halbe Leistung, kein letzter Schlag
+check("halbe Leistung bringt den halben Vorrat", _halb.get("gold") == 2500, str(_halb))  # prueft den Anteil
+check("alle Stoffe werden anteilig gebucht", set(_halb) == set(_beute_vorrat), str(sorted(_halb)))  # prueft die Stoffe
+_letzter = drachen.beute_anteil(100, 200, _beute_vorrat, letzter_schlag=True)  # mit letztem Schlag
+check("der letzte Schlag bekommt mehr als ohne Bonus", _letzter.get("gold", 0) > _halb.get("gold", 0), f"{_letzter.get('gold')} gegen {_halb.get('gold')}")  # prueft den Bonus
+check("auch mit Bonus nie mehr als der Vorrat", all(_letzter[s] <= _beute_vorrat[s] for s in _beute_vorrat), str(_letzter))  # Obergrenze
+_klein = drachen.beute_anteil(2, 200, _beute_vorrat, letzter_schlag=True)  # der getimte Billigangriff
+check("zwei Resteinheiten ergeben NICHT die ganze Beute", _klein.get("gold", 0) < 5000, str(_klein))  # genau Daniels Sorge
+check("ohne Leistung keine Beute", drachen.beute_anteil(0, 200, _beute_vorrat) == {}, "0 Verteidiger")  # Grenzfall
+check("unbrauchbare Zahlen geben keine Beute", drachen.beute_anteil("viel", 200, _beute_vorrat) == {}, "Text")  # Robustheit
+check("ohne Beute keine Beute", drachen.beute_anteil(50, 100, {}) == {}, "leer")  # Robustheit
+
+abschnitt("Bericht: episch, aber ehrlich")  # Nachtrag 05.11.2026
+
+_verteidiger = drachen.verteidiger(erster)  # die Wache des Drachen
+_mit = drachen.bericht({"ausgang": "angreifer"}, 5, _verteidiger)  # mit Ueberlebenden
+check("mit Ueberlebenden nennt der Bericht die Einheiten", any("Krieger" in z for z in _mit["zeilen"]), str(_mit["zeilen"]))  # aufgeklaert
+check("der Bericht hat eine Ueberschrift aus der Datendatei", bool(_mit["titel"]), _mit["titel"])  # Titel
+check("der Bericht hat den Typ kampf", _mit.get("typ") == "kampf", str(_mit.get("typ")))  # Typ
+_ohne = drachen.bericht({"ausgang": "verteidiger"}, 0, _verteidiger)  # niemand kam zurueck
+check("ohne Ueberlebende nennt der Bericht KEINE Einheiten", not any("Krieger" in z or "Paladin" in z for z in _ohne["zeilen"]), str(_ohne["zeilen"]))  # genau Daniels Regel
+check("ohne Ueberlebende nennt der Bericht die ZAHL der Verteidiger", any(str(sum(_verteidiger.values())) in z for z in _ohne["zeilen"]), str(_ohne["zeilen"]))  # die Zahl bleibt
+check("ohne Ueberlebende gibt es einen ehrlichen Zusatz", len(_ohne["zeilen"]) >= 2, str(_ohne["zeilen"]))  # Zusatz aus den Daten
+
+abschnitt("Kein Ausspaehen, klarer Hinweis")  # Nachtrag 05.11.2026
+
+_erlaubt, _grund = drachen.spionage_erlaubt()  # Regel aus der Datendatei
+check("Drachen lassen sich NICHT ausspaehen", _erlaubt is False, str(_erlaubt))  # Daniels Regel
+check("der Grund steht in der Datendatei", bool(_grund), _grund[:60])  # kein Code-Text
+check("der Angriffshinweis fuer den Spieler ist da", bool(drachen.angriffs_hinweis()), drachen.angriffs_hinweis()[:60])  # Hinweis
+
+abschnitt("Transport: Karren fuer den Anteil (Daniel 05.11.2026)")  # Nachtrag
+
+_voll = drachen.transport_bedarf({"gold": 5000, "holz": 2000, "stein": 2000, "nahrung": 2000})  # 11.000 Ladung
+check("die noetige Ladung ist die Summe der Beute", _voll["ladung"] == 11000, str(_voll["ladung"]))  # Summe
+check("der Wagenpark traegt die ganze Ladung (kein Rest)", _voll["rest"] == 0, str(_voll["rest"]))  # kein Rest
+check("der Wagenpark nennt Karren aus dem Spiel", all(k in ("Handkarren", "Einsp\u00e4nner", "Zweisp\u00e4nner", "Handelskarawane", "Gro\u00dfe Handelskarawane") for k in _voll["karren"]), str(sorted(_voll["karren"])))  # bekannte Namen
+# Tragfaehigkeit nachrechnen: die genannten Karren MUESSEN die Ladung tragen
+import einheiten as _E  # Einheitenmodul fuer die Ladung
+_trag = _E.ladung_der_gruppe(_voll["karren"])  # Kapazitaet des Vorschlags
+check("die genannten Karren tragen mindestens die Ladung", _trag >= _voll["ladung"], f"{_trag} gegen {_voll['ladung']}")  # Nachrechnung
+_halb = drachen.transport_bedarf({"gold": 2500})  # kleine Beute
+check("kleine Beute braucht wenige Karren", sum(_halb["karren"].values()) <= 2, str(_halb))  # Verhaeltnis
+check("unbrauchbare Beute braucht keine Karren", drachen.transport_bedarf("kaputt")["ladung"] == 0, "Text")  # Robustheit
+_txt = drachen.transport_text({"gold": 2500})  # der Satz fuer den Spieler
+check("der Transportsatz nennt die Ladung", "2500" in _txt, _txt[:80])  # Klartext
+check("der Transportsatz nennt Karren", "Karren" in _txt or "Handelskarawane" in _txt or "Zweisp\u00e4nner" in _txt, _txt[-80:])  # Klartext
+check("der Transportsatz hat keinen Platzhalter mehr", "{" not in _txt, _txt)  # eingesetzt
+
 sys.exit(bericht())  # beendet den Testlauf und gibt den Bericht aus

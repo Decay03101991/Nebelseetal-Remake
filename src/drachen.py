@@ -265,3 +265,163 @@ class Zustand:
         if not alle_ids:  # keine Datendatei oder kein Eintrag
             return False  # dann ist nichts besiegt - nicht "alles erledigt"
         return all(id in self.besiegt for id in alle_ids)  # pruefe ob alle IDs besiegt sind
+
+
+def spionage_erlaubt(pfad=None) -> tuple:
+    """Laesst sich ein Drache ausspaehen? (Daniel 05.11.2026: nein)
+    Eingabe: optionaler Pfad zur Datendatei.
+    Ausgabe: (False, Grund) - der Grund kommt aus der Datendatei, nie aus dem Code."""
+    block = daten(pfad).get("spionage") or {}  # Regel aus der Datendatei
+    erlaubt = bool(block.get("erlaubt", False)) if isinstance(block, dict) else False  # Vorgabe: nicht erlaubt
+    grund = str(block.get("grund") or "") if isinstance(block, dict) else ""  # Begruendung der Daten
+    return (erlaubt, grund)  # Antwortpaar
+
+
+def angriffs_hinweis(pfad=None) -> str:
+    """Der kurze Hinweis fuer den Spieler, bevor er einen Drachen angreift.
+    Eingabe: optionaler Pfad zur Datendatei.
+    Ausgabe: der Text aus `angriffshinweis` (leer, wenn die Datei keinen nennt)."""
+    return str(daten(pfad).get("angriffshinweis") or "")  # Text wortgetreu aus den Daten
+
+
+def beute_anteil(zerstoerte_verteidiger, verteidiger_gesamt, beute, letzter_schlag=False,
+                 pfad=None) -> dict:
+    """Der Beuteanteil EINES Angriffs - nach Leistung, nicht nach dem letzten Schlag allein.
+
+    Daniels Regel (05.11.2026): "nur der der die letzte truppe beim drachen vernichtet bekommt alle
+    ressourcen", zugleich aber: kein gut getimter billiger Angriff darf alles nehmen. Beides zusammen
+    geht nicht - deshalb gilt (VORSCHLAG, in der Datendatei umschaltbar):
+      * jeder Angriff bucht sofort den Anteil, der seinen zerstoerten Verteidigern entspricht,
+      * wer den letzten Schlag setzt, bekommt einen Bonus obendrauf,
+      * niemand bekommt mehr als der Vorrat hergibt.
+    Eingabe: zerstoerte Verteidiger, Verteidiger insgesamt, Beute-dict, letzter Schlag (bool).
+    Ausgabe: dict {Rohstoff: Menge} - ganze Zahlen, nie negativ, nie mehr als die Beute.
+    """
+    regel = daten(pfad).get("beute_regel") or {}  # Regeln aus der Datendatei
+    try:  # Zahlen belastbar machen
+        zerstoert = max(0, int(zerstoerte_verteidiger))  # eigene Leistung
+        gesamt = max(0, int(verteidiger_gesamt))  # Verteidiger zu Beginn
+    except (TypeError, ValueError):  # unbrauchbare Angabe
+        return {}  # dann keine Beute
+    if gesamt <= 0 or zerstoert <= 0 or not isinstance(beute, dict):  # nichts passiert
+        return {}  # dann keine Beute
+    anteil = min(1.0, zerstoert / float(gesamt))  # Anteil an der Verteidigung
+    if isinstance(regel, dict) and regel.get("anteil_nach_verlusten") is False:  # Regel abgeschaltet
+        anteil = 1.0 if letzter_schlag else 0.0  # dann gilt der reine letzte Schlag
+    if letzter_schlag:  # Bonus fuer den, der den Drachen faellt
+        try:  # Prozentwert belastbar machen
+            bonus = float(regel.get("bonus_letzter_schlag_prozent", 0) or 0) / 100.0  # Bonus als Anteil
+        except (TypeError, ValueError):  # unbrauchbar
+            bonus = 0.0  # dann kein Bonus
+        anteil = min(1.0, anteil + max(0.0, bonus))  # Bonus obendrauf, hoechstens alles
+    ergebnis = {}  # was dieser Angriff bekommt
+    for stoff, menge in beute.items():  # jeder Rohstoff der Beute
+        try:  # Menge belastbar machen
+            vorrat = max(0, int(menge))  # ganzer Vorrat
+        except (TypeError, ValueError):  # unbrauchbar
+            continue  # diesen Stoff ueberspringen
+        teil = int(vorrat * anteil)  # anteiliger Betrag, abgerundet
+        if teil > 0:  # nur was wirklich da ist
+            ergebnis[str(stoff)] = min(teil, vorrat)  # nie mehr als der Vorrat
+    return ergebnis  # Anteil dieses Angriffs
+
+
+def bericht(ergebnis, ueberlebende_angreifer, verteidiger_einheiten=None, naechster_angriff=None,
+            pfad=None) -> dict:
+    """Der Kampfbericht eines Drachenkampfs (Daniel 05.11.2026: episch, aber ehrlich).
+
+    Regel: Ueberlebt auch nur EINE Einheit, nennt der Bericht die Verteidiger mit Einheiten - dann ist
+    der Kampf aufgeklaert. Kehrt niemand zurueck, kennt der Bericht NUR die eigenen Verluste und die
+    ZAHL der Verteidiger, nicht ihre Art: "was dort stand, weiss niemand zu sagen".
+    Eingabe: Ergebnis von `kampf.fuehre_schlacht`, Zahl der ueberlebenden Angreifer, Verteidiger-dict
+             (nur fuer den aufgeklaerten Fall), optional der naechste moegliche Angriff.
+    Ausgabe: dict {titel, zeilen, typ} - die Texte stammen aus `bericht` der Datendatei.
+    """
+    daten_dict = daten(pfad)  # Datendatei
+    texte = daten_dict.get("bericht") or {}  # Textbausteine
+    texte = texte if isinstance(texte, dict) else {}
+    e = ergebnis or {}  # Schlachtergebnis
+    ausgang = str(e.get("ausgang") or "")  # Ausgang der Schlacht
+    gewonnen = ausgang == "angreifer"  # hat der Angreifer gesiegt?
+    titel = str(texte.get("titel_sieg" if gewonnen else "titel_niederlage") or "")  # Ueberschrift
+    zeilen = []  # Zeilen des Berichts
+    try:  # Ueberlebende belastbar machen
+        ueberlebt = max(0, int(ueberlebende_angreifer))  # Zahl der Heimkehrer
+    except (TypeError, ValueError):  # unbrauchbare Angabe
+        ueberlebt = 0  # dann gilt: keiner kam zurueck
+    if ueberlebt > 0 and isinstance(verteidiger_einheiten, dict) and verteidiger_einheiten:  # aufgeklaert
+        namen = ", ".join("%d %s" % (int(v), k) for k, v in sorted(verteidiger_einheiten.items()) if int(v) > 0)
+        zeilen.append(str(texte.get("zeile_gegner_mit_namen") or "Gekaempft gegen: {einheiten}.").replace("{einheiten}", namen))
+    else:  # niemand kam zurueck: keine Auskunft ueber die Art
+        anzahl = sum(int(v) for v in (verteidiger_einheiten or {}).values() if int(v) > 0) if isinstance(verteidiger_einheiten, dict) else 0
+        zeilen.append(str(texte.get("zeile_gegner_ohne_namen") or "Gekaempft gegen {anzahl} Verteidiger.").replace("{anzahl}", str(anzahl)))
+        hinweis = str(texte.get("hinweis_ohne_ueberlebende") or "")  # der ehrliche Zusatz
+        if hinweis:  # nur wenn die Daten einen nennen
+            zeilen.append(hinweis)  # hinten anhaengen
+    if naechster_angriff is not None:  # Ausblick, wenn der Aufrufer ihn kennt
+        zeilen.append(str(naechster_angriff))  # als eigene Zeile
+    return {"titel": titel, "zeilen": zeilen, "typ": "kampf"}  # fertiger Bericht
+
+
+def transport_bedarf(menge, forschung=None, pfad=None) -> dict:
+    """Wie viel Ladung eine Beute braucht und welcher Wagenpark sie traegt (Daniel 05.11.2026).
+
+    Die Beute muss abtransportiert werden - ohne genug Karren bleibt der Rest liegen. Diese Funktion
+    rechnet den BEDARF aus: erst die noetige Ladung (Summe der Beute), dann EINEN Wagenpark, der sie
+    traegt (groesste Karren zuerst). Das ist ein VORSCHLAG, nicht das Optimum: wer es genauer
+    plant, nimmt weniger grosse Karren. Der Wagenbau-Bonus gilt, weil
+    `einheiten.ladung_der_gruppe` ihn selbst rechnet - eine Rechenstelle, keine zweite.
+    Eingabe: Beute-dict und optional der Forschungsstand {Gebiet: Stufe}.
+    Ausgabe: dict mit ladung (noetig), karren ({Name: Anzahl}), rest (Ladung, die offen bleibt).
+    """
+    import einheiten as E  # das Einheitenmodul rechnet die Ladung (auch mit Wagenbau-Bonus)
+    daten_dict = daten(pfad)  # Datendatei
+    block = daten_dict.get("transport") or {}  # Regeln des Transports
+    reihenfolge = block.get("reihenfolge") if isinstance(block, dict) else None  # gewuenschte Reihenfolge
+    if not isinstance(reihenfolge, list) or not reihenfolge:  # keine Reihenfolge in den Daten
+        reihenfolge = []  # keine feste Liste im Code: die Namen stehen in data/units.json
+    if not isinstance(menge, dict):  # unbrauchbare Beute
+        return {"ladung": 0, "karren": {}, "rest": 0}  # dann nichts zu tragen
+    summe = 0  # benoetigte Ladung
+    for wert in menge.values():  # jeder Posten der Beute
+        try:  # Zahl belastbar machen
+            summe += max(0, int(wert))  # aufaddieren
+        except (TypeError, ValueError):  # unbrauchbarer Posten
+            continue  # ueberspringen
+    if not reihenfolge:  # keine Reihenfolge in den Daten und keine im Code
+        reihenfolge = sorted(E.alle(), key=lambda n: -E.ladung_der_gruppe({n: 1}, forschung))  # groesste zuerst
+        reihenfolge = [n for n in reihenfolge if E.rolle(n) == "karren"]  # nur Karren tragen
+    karren = {}  # gewaehlter Wagenpark
+    rest = summe  # was noch zu tragen ist
+    for name in reihenfolge:  # groesste Karren zuerst
+        eins = E.ladung_der_gruppe({name: 1}, forschung)  # Ladung EINES solchen Karrens (mit Bonus)
+        if eins <= 0:  # unbekannter Karren
+            continue  # ueberspringen
+        anzahl = rest // eins  # wie viele ganze Karren noetig sind
+        if anzahl > 0:  # nur wenn noetig
+            karren[name] = int(anzahl)  # eintragen
+            rest -= int(anzahl) * eins  # Rest verkleinern
+    if rest > 0:  # ein letzter, kleiner Karren fuer den Rest
+        for name in sorted(reihenfolge, key=lambda n: E.ladung_der_gruppe({n: 1}, forschung)):
+            eins = E.ladung_der_gruppe({name: 1}, forschung)  # Ladung dieses Karrens
+            if eins >= rest:  # passt der Rest hinein?
+                karren[name] = int(karren.get(name, 0)) + 1  # einen dazunehmen
+                rest = 0  # alles getragen
+                break  # fertig
+    return {"ladung": int(summe), "karren": karren, "rest": int(rest)}  # Bedarf und Luecke
+
+
+def transport_text(menge, forschung=None, pfad=None) -> str:
+    """Der Satz fuer den Spieler: welche Ladung sein Anteil braucht und welche Karren dafuer.
+    Eingabe: Beute-dict, optional der Forschungsstand.
+    Ausgabe: Text aus `transport.hinweis` mit eingesetzter Ladung und Karrenliste."""
+    daten_dict = daten(pfad)  # Datendatei
+    block = daten_dict.get("transport") or {}  # Regel des Transports
+    vorlage = str(block.get("hinweis") or "") if isinstance(block, dict) else ""  # Satz aus den Daten
+    bedarf = transport_bedarf(menge, forschung, pfad)  # der Bedarf
+    liste = ", ".join("%d %s" % (anzahl, name) for name, anzahl in sorted(bedarf["karren"].items()))
+    if not liste:  # keine Karren noetig
+        liste = "keine Karren"  # klarer Text
+    return vorlage.replace("{ladung}", str(bedarf["ladung"])).replace("{karren}", liste)  # fertiger Satz
+
+

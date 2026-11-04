@@ -14,15 +14,22 @@ gebucht. Der Block las `bot_ziel.army` - eine BERECHNETE Summe - und buchte in e
 Verluste im Bericht, Heer danach unveraendert sechs. Jetzt verteidigt die Garnison des angegriffenen
 Dorfes (zweiter Teil von B-5), gebucht wird dort; ohne Dorf bucht `bot_armee_buchen`.
 
-**W-14 Teil 1 liegt bereit, ist aber NICHT verdrahtet:** Daten, Modul und Pruefdatei fuer die Drachen (`test_drachen` 62/0/0). **Daniel hat am 05.11. die Verteidigung neu bestimmt:** deutlich mehr Einheiten - **120 Krieger + 60 Bogenschuetzen + 24 Paladine = 204** - und **statt eines Walls eigene Drachenwerte**: Schwelle Fusstruppen 700, Schwelle Belagerung 950, **unbrechbar** (Belagerung richtet keinen Wallschaden an), dazu ein **Feueratem** mit 8 % Verlusten unter den antretenden Fusstruppen. Die drei Drachenfiguren von Daniel sind freigestellt (weiss, blau, lila).
+**W-14 Teil 1 liegt bereit, ist aber NICHT verdrahtet:** Daten, Modul und Pruefdatei fuer die Drachen (`test_drachen` 88/0/0). **Daniel hat am 05.11. die Verteidigung neu bestimmt:** deutlich mehr Einheiten - **120 Krieger + 60 Bogenschuetzen + 24 Paladine = 204** - und **statt eines Walls eigene Drachenwerte**: Schwelle Fusstruppen 700, Schwelle Belagerung 950, **unbrechbar** (Belagerung richtet keinen Wallschaden an), dazu ein **Feueratem** mit 8 % Verlusten unter den antretenden Fusstruppen. Die drei Drachenfiguren von Daniel sind freigestellt (weiss, blau, lila).
+
+**Nachtrag 05.11.2026 (Daniel) - Drachen sind NUR Verteidiger:** keine Doerfer, ein starker Gegner mit vielen
+Truppen und viel Beute. **Beuteanteil nach Leistung** (Variante A: jeder Angriff bucht seinen Anteil nach
+zerstoerten Verteidigern, letzter Schlag +10 %) statt "letzter Schlag nimmt alles". **Transport wird
+vorgerechnet** (`transport_bedarf`, `transport_text`), was nicht getragen wird bleibt liegen. **Epische Berichte,
+aber ehrlich:** mit Ueberlebenden genaue Einheiten, ohne Ueberlebende nur eigene Verluste und die ZAHL der
+Verteidiger. **Kein Ausspaehen** (`spionage_erlaubt` = False), dazu `angriffs_hinweis` und ein Satz in der Hilfe.
 
 
 | Gegenstand | Wert | Beleg |
 |---|---|---|
 | Kopf auf `main` | Code-Stand `9fc4138` (W-13), darauf W-14 Teil 1 und die Doku-Commits | `git log --oneline` |
 | Voller Sammellauf | **163 von 165 gruen, 0 rot, 1433 s**, 6.684 Pruefungen, 55 Befunde (die zwei uebrigen sind dokumentiert zurueckgezogen) | `docs/audits/sammellauf_20261104_2327.log` |
-| Neue Wachen | `test_gesamtsieg` **47/0/0**, `test_drachen` **51/0/0** | eigene Laeufe |
-| Register / Protokoll | **201** / **321 Zeilen** (eine ueber Ziel - Verdichtung offen, siehe unten) | `grep -c`, `wc -l` |
+| Neue Wachen | `test_gesamtsieg` **47/0/0**, `test_drachen` **88/0/0** | eigene Laeufe |
+| Register / Protokoll | **203** / **321 Zeilen** (eine ueber Ziel - Verdichtung offen, siehe unten) | `grep -c`, `wc -l` |
 | Kosten grosse Modelle (Monat) | **0,4342 USD von 1,94 USD am 04.11.** (Anbieter-CSV, 10 Anfragen); November 01.-04. insgesamt 18,0858 USD (flash 13,4376 / v4-pro 4,6482); 5,00 USD Reserve fuer `deepseek-flash` unangetastet (Ablesung 23:56: 6,56 / 53,43 USD). Eigene Textlaeufe 0,1746 USD - Schaetzpreise waren 3- bis 10-fach zu niedrig, es gilt nur die CSV |
 | Veroeffentlicht | Stand von `main` als Entwicklungsschritt gepusht: `63639d5`, **ohne neue EXE** - die Testversion 0.5.0-pre.1 bleibt | `git push origin pre-release:main`, `origin/main` geprueft |
 | Figuren | `assets/bilder/drache_weiss.png`, `drache_blau.png`, `drache_lila.png` (256 px + 64 px); Originale unter `archiv/eingaben/20261104_drachenbilder/` | Register 201 |
@@ -272,7 +279,7 @@ nicht geraten - Holz steht bei jeder Taktik vorn, Pferde sind mit vier Stueck ga
 
 | Gegenstand | Wert | Beleg |
 |---|---|---|
-| Neue Wachen | `test_s8_stufe3_bauplaene` **185/0/0**, `test_s11_kartenwahl_engpass` **102/0/0** | eigene Laeufe |
+| Neue Wachen | `test_gesamtsieg` **47/0/0**, `test_drachen` **88/0/0** | eigene Laeufe |
 | Gegenproben | Huegel-Fuellung aus **20 Pruefungen rot**; Taktik im Engpass ignoriert **5 rot**; beide Dateien per SHA256 unveraendert zurueck | eigene Laeufe |
 | Voller Sammellauf | erster Lauf **157 von 162 gruen, 3 rot** (`sammellauf_20261104_0940.log`); nach dem Nachziehen der drei Wachen **160 von 162 gruen, 0 rot, 728 s**, 6.521 Pruefungen, 56 Befunde (`sammellauf_20261104_1000.log`) - die zwei nicht gruenen sind die ausgesetzten Dateien | `docs/audits/` |
 | Messung 24 Spieltage | Dorfzahl **4/4/4/4/4** in beiden Schnitten; Anlagen je Dorf **63 bis 98** (vorher 52 bis 97) | `tools/bot_wirtschaft_messung.py` |

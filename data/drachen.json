@@ -146,5 +146,35 @@
       }
     }
   ],
-  "verteidigung_hinweis": "Der Drache hat KEINEN Wall: statt der Wallschwelle gelten seine eigenen Werte (Schuppen). Belagerungswaffen brechen ihn nicht - er muss im Sturm bezwungen werden."
+  "verteidigung_hinweis": "Der Drache hat KEINEN Wall: statt der Wallschwelle gelten seine eigenen Werte (Schuppen). Belagerungswaffen brechen ihn nicht - er muss im Sturm bezwungen werden.",
+  "beute_regel": {
+    "hinweis": "Nur wer den Drachen bezwingt, bekommt seine Beute. NICHT der letzte Schlag allein: jeder Angreifer bucht sofort den Anteil, der seinen zerstoerten Verteidigern entspricht; wer den letzten Schlag setzt, bekommt zusaetzlich einen Bonus. Grund: sonst wartet ein schneller Gegner auf zwei Resteinheiten und nimmt alles - VORSCHLAG zur Bestaetigung.",
+    "anteil_nach_verlusten": true,
+    "bonus_letzter_schlag_prozent": 10,
+    "status": "VORSCHLAG"
+  },
+  "bericht": {
+    "titel_sieg": "Der Drache faellt",
+    "titel_niederlage": "Der Drache hat gesiegt",
+    "zeile_gegner_mit_namen": "Gekaempft gegen: {einheiten}.",
+    "zeile_gegner_ohne_namen": "Gekaempft gegen {anzahl} Verteidiger.",
+    "hinweis_ohne_ueberlebende": "Keine Einheit kehrte zurueck - was dort stand, weiss niemand zu sagen. Nur die Verluste sind bekannt.",
+    "status": "VORSCHLAG"
+  },
+  "spionage": {
+    "erlaubt": false,
+    "grund": "Einen Drachen kann man nicht ausspaehen. Nur ein voller Angriff mit Ueberlebenden erzeugt einen klaren, genauen Kampfbericht."
+  },
+  "angriffshinweis": "Ein Drachenkampf ist ein Grosskampf: kein Ausspaehen, keine Vorab-Auskunft. Einen genauen Bericht ueber seine Truppen gibt es nur, wenn Einheiten ueberleben.",
+  "transport": {
+    "hinweis": "Beute muss mit Karren abgeholt werden. Fuer deinen Anteil von {ladung} Ladung brauchst du {karren}. Was du nicht tragen kannst, bleibt beim Drachen liegen - der naechste Angreifer findet es vor.",
+    "reihenfolge": [
+      "Große Handelskarawane",
+      "Handelskarawane",
+      "Zweispänner",
+      "Einspänner",
+      "Handkarren"
+    ],
+    "status": "VORSCHLAG"
+  }
 }
