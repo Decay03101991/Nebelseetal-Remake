@@ -6,7 +6,7 @@ Für Besucher, die wissen wollen, was hier eigentlich passiert — grob, ohne En
 
 Nebelseetal war ein deutsches Browserspiel: ein Aufbauspiel im Fantasy-Gewand, in dem man ein Reich
 führte, Siedlungen gründete, forschte, handelte und gegen andere Herrscher Krieg führte. Die Welt lag
-im „Limbus", einem magischen Raum aus 20 Dimensionen; Portale verbanden die Welten, und Reisen kostete
+im „Limbus“, einem magischen Raum aus 20 Dimensionen; Portale verbanden die Welten, und Reisen kostete
 Mana — je weiter das Ziel, desto teurer. Rund um das Spiel lagen eine Anleitung, eine Vorversion mit
 eigenen Regeln und eine kleine Gemeinde. Irgendwann wurde der Betrieb eingestellt.
 

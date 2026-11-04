@@ -91,7 +91,7 @@ Splittergrat, das Trollmal.
 ### Midgard — die Herzkammer
 <img src="assets/icons/gebaeude/hintergrund/farm.png" width="100%" alt="Farm">
 
-Weite Grasländer, helle Wälder, sanfte Hügel, klare Flüsse — die Welt, die am „normalsten" wirkt. Hier
+Weite Grasländer, helle Wälder, sanfte Hügel, klare Flüsse — die Welt, die am „normalsten“ wirkt. Hier
 liegt die größte zusammenhängende Fläche des alten Kernlands. Orte: Silberbach, die Marktfurth, das Alte
 Tor nach Valhalla.
 
