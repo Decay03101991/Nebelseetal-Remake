@@ -1,3 +1,48 @@
+# STAND 04.11.2026, 19:40 - Pre-Release 0.5.0-pre.1 veroeffentlicht, naechster Schritt W-6
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Der erste Pre-Release ist draussen.** `v0.5.0-pre.1` liegt auf GitHub: Testversion
+`Nebelseetal_Remake.exe` (81,8 MB, SHA256 `75c24cc5...`), Paket 81,6 MB mit EXE und vier Infodateien,
+Repository oeffentlich, Besucherseite unter https://decay03101991.github.io/Nebelseetal-Remake/.
+Der Start ist geprueft (Passworttor auf leerem Profil, danach Spieloberflaeche), der Anhang anonym
+nachgeladen (85.516.122 Bytes, `testzip` sauber). Das Repo traegt **nur** Spielcode, Daten, Bilder und
+die Veroeffentlichungsdokumente - keine Tests, keine Werkzeuge, keine Entwicklungsdokumente.
+**Veroeffentlichungszweig ist `pre-release`, Entwicklung bleibt `main`; in `src`, `data`, `assets` sind
+beide identisch.** Das Verfahren fuer spaetere Repo-Aenderungen steht in der Uebergabe 19:10, Abschnitt C.
+
+**Zur Geschichte:** Die Chronik der Welt ist als Entwurf fertig (11.211 Woerter, elf Teile, Register 188),
+dazu ein Gesamtbild zum Lesen mit Herkunft je Baustein und **sieben Widerspruechen** (Register 186). Der
+groesste davon: das Spiel erzaehlt einen Sieg, den es nach E5 nicht gibt.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf auf `main` | `6c58575` | `git log --oneline -1` |
+| Veroeffentlichungszweig | `pre-release`, 595 Dateien, 76,6 MB | `git ls-tree -r pre-release` |
+| Release | `v0.5.0-pre.1`, Pre-Release, Anhang 81,6 MB | GitHub-API |
+| Register / Protokoll | **195** / 315 Zeilen | `grep -c`, `wc -l` |
+| W-6 offen | 20 Dimensionen, 6 belegt, 14 leer | `data/welten.json` |
+| Sammellauf 15:16 | 162 von 164 gruen, 0 rot, 1220 s | `docs/audits/sammellauf_20261104_1516.log` |
+| Sammellauf 19:12 | **161 von 164, 1 rot** (`test_gpt_projektordnung`: `.gitignore` ohne `/archiv/`), 912 s | `docs/audits/sammellauf_20261104_1912.log` |
+| Reparatur | `.gitignore` mit den Schutzregeln wiederhergestellt (Secrets, Spielstaende, `/archiv/`) plus Veroeffentlichungspakete; Datei danach gruen | Commit `6c58575` |
+| Nachlauf 19:38 | Pruefung nach der Reparatur | `docs/audits/sammellauf_20261104_1938.log` |
+
+## Der EINE naechste Schritt
+
+**W-6: die 14 leeren Limbus-Dimensionen entfernen - das Spiel fuehrt sechs Welten.** `src/welt.py`
+(`DIMENSIONEN`), `src/portalraum.py`, `auftraege.kosten_der_mission` (Mana je Dimensionsstufe), die
+Portal-Ansicht und die Wachen `test_bot_welten`, `test_portalraum`, `test_portal_uebersicht` sind
+betroffen; die sechs Fraktionen stehen in `data/welt_fraktionen.json`. **Vorher eine Entscheidung
+klaeren:** Limbus ist im Handbuch der Raum, im Remake eine Welt mit Gnomen - Vorschlag: Limbus bleibt
+Raum, die Gnome bewohnen feste Inseln darin. **Der volle Sammellauf, die Registerzeile und die
+Protokollzeile gehoeren zum Abschluss.**
+
+**Danach** die drei offenen Kampfregeln (2 Fluchtformel, 4 Beute-Reihenfolge Gold zuerst, 6
+Mauerreparatur mit Bauzeit), dann **C** (fliessende Ansichten); `main.py` zerlegen und Skill kuerzen
+folgen nach der Story (Daniels Entscheidung).
+
+---
+
 # STAND 04.11.2026, 15:40 - Story 2: die fuenf Bots sprechen (Register 184)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
