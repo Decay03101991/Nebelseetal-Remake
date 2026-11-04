@@ -58,6 +58,8 @@ diesem Tempo überhaupt wachsen kann.
 
 ## Wer dahinter steht
 
+<img src="assets/bilder/daniel_portrait.png" width="260" align="right" alt="Daniel Kössl">
+
 Daniel Kössl ist angehender Fachinformatiker für Systemintegration — und, wenn man ihn beim Arbeiten
 erlebt, ein anstrengender, aber kluger Jungentwickler. Anstrengend im besten Sinn: Er gibt sich mit
 einem „läuft doch“ nicht zufrieden, fragt bei Zahlen nach, statt sie zu glauben, und lässt sich Fehler
