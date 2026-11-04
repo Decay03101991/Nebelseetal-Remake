@@ -66,7 +66,7 @@ Das Remake entsteht als **Arbeit von Daniel Kössl mit einem Hermes-Agent-System
 Coding-Subagenten**. Die Agenten haben Code geschrieben, geprüft und dokumentiert; die Entscheidungen
 über Inhalt, Ton, Regeln und Gestaltung liegen beim Entwickler.
 
-**Der Agent hat einen Namen: „Weltenfresser".** Er ist der Hermes-Agent von Daniel Kössl und läuft auf
+**Der Agent hat einen Namen: „Weltenfresser“.** Er ist der Hermes-Agent von Daniel Kössl und läuft auf
 dessen Rechner. Seine Rolle im Projekt, offen gesagt:
 
 | Rolle | Was der Agent konkret tut |

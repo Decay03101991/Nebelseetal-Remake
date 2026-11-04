@@ -30,7 +30,7 @@ Ihre Inseln im Limbus: Werkstätten, Zahnräder, Brücken zwischen Eilanden — 
 ### Menschen — Furt, Feld und Burg
 <img src="assets/hintergrund_content_20261104/uebersichten/menschlich_fraktion.png" width="100%" alt="Menschen">
 
-Holzbau, Flussläufe, Wege zur Burg: die Welt, die am „normalsten" wirkt.
+Holzbau, Flussläufe, Wege zur Burg: die Welt, die am „normalsten“ wirkt.
 
 ## Gebäude und Gelände
 

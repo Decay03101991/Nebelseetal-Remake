@@ -6,7 +6,7 @@ Für Besucher, die wissen wollen, was hier eigentlich passiert — grob, ohne En
 
 Nebelseetal war ein deutsches Browserspiel: ein Aufbauspiel im Fantasy-Gewand, in dem man ein Reich
 führte, Siedlungen gründete, forschte, handelte und gegen andere Herrscher Krieg führte. Die Welt lag
-im „Limbus", einem magischen Raum aus 20 Dimensionen; Portale verbanden die Welten, und Reisen kostete
+im „Limbus“, einem magischen Raum aus 20 Dimensionen; Portale verbanden die Welten, und Reisen kostete
 Mana — je weiter das Ziel, desto teurer. Rund um das Spiel lagen eine Anleitung, eine Vorversion mit
 eigenen Regeln und eine kleine Gemeinde. Irgendwann wurde der Betrieb eingestellt.
 
@@ -60,7 +60,7 @@ diesem Tempo überhaupt wachsen kann.
 
 Daniel Kössl ist angehender Fachinformatiker für Systemintegration — und, wenn man ihn beim Arbeiten
 erlebt, ein anstrengender, aber kluger Jungentwickler. Anstrengend im besten Sinn: Er gibt sich mit
-einem „läuft doch" nicht zufrieden, fragt bei Zahlen nach, statt sie zu glauben, und lässt sich Fehler
+einem „läuft doch“ nicht zufrieden, fragt bei Zahlen nach, statt sie zu glauben, und lässt sich Fehler
 lieber zeigen als wegdiskutieren. Klug darin, wie er ein großes Vorhaben zerlegt: in prüfbare Schritte,
 mit klaren Grenzen, und mit der Geduld, einen Schritt lieber zweimal zu prüfen als einmal zu raten.
 Wenn eine Regel keinen Beleg hat, bleibt sie ein Vorschlag — dieser Satz stammt von ihm, und das ganze
