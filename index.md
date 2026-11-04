@@ -29,6 +29,7 @@ entpacken, `Nebelseetal_Remake.exe` starten, eigenes Passwort festlegen. Mehr in
 | [Sechs Häuser, sechs Welten](FRAKTIONEN_WELTEN.md) | Fraktionen mit Wappen, die sechs Welten im Bild |
 | [Die Chronik der Welt](CHRONIK_DER_WELT.md) | die Geschichte des Nebelseetals zum Lesen |
 | [Die Chronik als PDF](CHRONIK_DER_WELT.pdf) | dieselbe Geschichte als gestaltetes Buch |
+| [Erste Eindrücke](VORSCHAU.md) | Bilder einer späteren Version: Fraktionen, Gebäude, Burgen, Panoramen |
 
 ## Wer dahinter steht
 
