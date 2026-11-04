@@ -8,14 +8,14 @@
 > * **Ausbildungs-Warteschlange** (aus Daniels Spieltest): Restzeit je Auftrag, **Gesamtzeit der Schlange**, Streichen von Aufträgen — `spieloekonomie.ausbildung_uebersicht`, `main._ausbildung_warteschlange_zeichnen`.
 > * **Ein Bewegungssystem statt zwei:** Kartenfeld-Beute läuft jetzt über dieselbe Formel wie der Auftrags-Pfad (`kampfbericht.beute_am_ziel`, mit Abbuchung am Feld); der **Rückweg** kostet die gleiche Zeit wie der Hinweg (`main.rueckmarsch_eintrag`, `tests/test_rueckmarsch.py` 16/0/0).
 > * **Prüfregister des Originals** auf **63 belegte Punkte** erweitert (`docs/PRUEFREGEL_ORIGINAL.md`).
-> * **Code lesbar für Einsteiger:** jeder Abschnitt, jede Funktion kurz erklärt — Regel und Messwerkzeug in [Code-Lesbarkeit](docs/CODE_LESBARKEIT.md) und `tools/kommentar_luecken.py` (213 von 915 Funktionen noch ohne Beschreibung).
-> * **Übergabe mit allen Belegen:** [Übergabe 31.10.2026, 14:00](docs/HANDOFF_20261031_1400.md); offene Entscheidungen in [Fragen an Daniel](docs/FRAGEN_AN_DANIEL_20261031_0600.md).
+> * **Code lesbar für Einsteiger:** jeder Abschnitt, jede Funktion kurz erklärt — Regel und Messwerkzeug in [Code-Lesbarkeit](CODE_LESBARKEIT.md) und `tools/kommentar_luecken.py` (213 von 915 Funktionen noch ohne Beschreibung).
+> * **Übergabe mit allen Belegen:** [Übergabe 31.10.2026, 14:00](HANDOFF_20261031_1400.md); offene Entscheidungen in [Fragen an Daniel](FRAGEN_AN_DANIEL_20261031_0600.md).
 > * **EXE:** `Nebelseetal_Remake.exe`, 43,8 MB, SHA256 `bb97d204…`, Rauchtest bestanden (Tor-Seite erscheint).
-> * Besucherstand mit Zahlen: [Spielstatus](docs/BESUCHER_STATUS.md).
+> * Besucherstand mit Zahlen: [Spielstatus](BESUCHER_STATUS.md).
 
-![Historische Originaloberflaeche](docs/nebelseetal_gamestar2.jpg)
+![Historische Originaloberflaeche](nebelseetal_gamestar2.jpg)
 
-> Das Bild zeigt die **historische Vorlage** des Produktions-Baumenues, nicht den aktuellen Programmstand. Was an dieser Darstellung noch fehlt, steht unter [Baumenue-Abgleich](docs/BAUMENUE_ABGLEICH.md).
+> Das Bild zeigt die **historische Vorlage** des Produktions-Baumenues, nicht den aktuellen Programmstand. Was an dieser Darstellung noch fehlt, steht unter [Baumenue-Abgleich](BAUMENUE_ABGLEICH.md).
 
 ## Windows-Testversion (FIX04j, noch nicht freigegeben)
 
@@ -26,17 +26,17 @@
 - **Spielstände:** öffentliche EXE hat ihren eigenen lokalen Speicher-/Passwortordner unter `%LOCALAPPDATA%\Nebelseetal_Remake\Demo`; private Inhalte niemals in GitHub laden.
 - **Testerinfo:** `release_vorlage/SYSTEMANFORDERUNGEN.txt`, `START_HIER.txt`, `BEKANNTE_GRENZEN.txt` und `FEHLER_MELDEN.txt` gehören zum späteren ZIP mit der EXE.
 
-Die Admin-Sperre der EXE ist **kein sicherer Kopierschutz**: Der vollständige Open-Source-Code bleibt absichtlich öffentlich. `release_public/` ist generiert und darf nicht in Git committet werden; Veröffentlichungen gehen nur nach Windows-Praxistest und Rechte-/Geheimnisprüfung über GitHub Releases. [Releaseplan](docs/RELEASE_PUBLIC_FIX04j.md).
+Die Admin-Sperre der EXE ist **kein sicherer Kopierschutz**: Der vollständige Open-Source-Code bleibt absichtlich öffentlich. `release_public/` ist generiert und darf nicht in Git committet werden; Veröffentlichungen gehen nur nach Windows-Praxistest und Rechte-/Geheimnisprüfung über GitHub Releases. [Releaseplan](RELEASE_PUBLIC_FIX04j.md).
 
 ## Einstieg
 
 - `START_SPIEL_WINDOWS.bat` – aktuellen Python-Spielstand aus `src/main.py` starten, kein alter EXE-Build.
-- [Aktueller Entwicklungsstand](docs/AKTUELLER_STAND.md) – wichtigste Spielbereiche und offene Punkte.
-- [Roadmap / Hermes-Plan](docs/AGENTEN_PLAN.md) – bestehender Agentenplan, unveraendert bewahrt.
-- [Einziges aktives Entwicklungsprotokoll](docs/ENTWICKLUNGSPROTOKOLL.md) – **fuehrende Chronik**.
-- [Dokumenten- und Quelleninventar](docs/QUELLEN_UND_DOKUMENTE.md) / [Bildinventar](docs/BILDINVENTAR.md) – was geladen wird, was Vorlagen sind und was zu pruefen bleibt.
-- [Windows testen](docs/SPIEL_TESTEN.md) / [neue Windows-EXE erstellen](docs/WINDOWS_EXE_HERSTELLUNG.md) / [EXE-Zielmassstab](docs/WEG_ZUR_EXE.md).
-- [Auftrag an Hermes](docs/HERMES_UEBERGABE_AKTUELL.md) – nur eine aktuelle Uebergabe.
+- [Aktueller Entwicklungsstand](AKTUELLER_STAND.md) – wichtigste Spielbereiche und offene Punkte.
+- [Roadmap / Hermes-Plan](AGENTEN_PLAN.md) – bestehender Agentenplan, unveraendert bewahrt.
+- [Einziges aktives Entwicklungsprotokoll](ENTWICKLUNGSPROTOKOLL.md) – **fuehrende Chronik**.
+- [Dokumenten- und Quelleninventar](QUELLEN_UND_DOKUMENTE.md) / [Bildinventar](BILDINVENTAR.md) – was geladen wird, was Vorlagen sind und was zu pruefen bleibt.
+- [Windows testen](SPIEL_TESTEN.md) / [neue Windows-EXE erstellen](WINDOWS_EXE_HERSTELLUNG.md) / [EXE-Zielmassstab](WEG_ZUR_EXE.md).
+- [Auftrag an Hermes](HERMES_UEBERGABE_AKTUELL.md) – nur eine aktuelle Uebergabe.
 
 ## Ordner
 
@@ -59,7 +59,7 @@ Das Passworttor bleibt so: Spieler erstellen beim ersten Start **ein eigenes lok
 
 ### Kartenstand: nur historische Originalkarten
 
-Diese Entwicklungsfassung nutzt im Siedlungsspiel **127 originale 10×10-Karten** mit direkt aufbereiteten historischen Bildhintergründen. Die ehemals generierten 8×7-Siedlungskarten und ihre grob nachgezeichneten Wald-/Gebirgssymbole sind nicht mehr aktiv. [Kartenregeln und Grenzen](docs/KARTEN_NUR_ORIGINALE.md) · [Aktueller Entwicklungsstand](docs/AKTUELLER_STAND.md).
+Diese Entwicklungsfassung nutzt im Siedlungsspiel **127 originale 10×10-Karten** mit direkt aufbereiteten historischen Bildhintergründen. Die ehemals generierten 8×7-Siedlungskarten und ihre grob nachgezeichneten Wald-/Gebirgssymbole sind nicht mehr aktiv. [Kartenregeln und Grenzen](KARTEN_NUR_ORIGINALE.md) · [Aktueller Entwicklungsstand](AKTUELLER_STAND.md).
 
 **Wichtig:** Dies ist eine nicht freigegebene Entwicklerfassung, keine aktuelle fertige Windows-EXE; 25 Karten müssen noch manuell auf Übereinstimmung von Bild und Spielraster geprüft werden.
 
