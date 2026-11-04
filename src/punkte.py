@@ -313,6 +313,75 @@ def sieg_oder_niederlage(zustand: dict) -> Tuple[str, str]:
 
 
 # --------------------------------------------------------------------------
+# 7b. Gesamtsieg — Daniels Definition (04.11.2026, Register 197)
+# --------------------------------------------------------------------------
+
+def ausgeraeumt_uebersicht(botstand: Any) -> Dict[str, Any]:
+    """Zaehlt die Doerfer eines Bot-Stands: wie viele stehen, wie viele sind ausgeraeumt.
+
+    Eingabe ist die Liste, die `GameState` aus seinen Bots baut:
+    ``[{"name": "Haug", "doerfer": [{"name": "Dorf A", "ausgeraeumt_seit": 1234.0}, ...]}, ...]``
+    ``ausgeraeumt_seit`` groesser 0 heisst: dieses Dorf steht als ausgeraeumt gebucht (die Zahl
+    sind die Spielsekunden des Ausraeumens, gebucht in `GameState.kampf_am_ziel`).
+
+    Rueckgabe: ``{"bots": n, "doerfer": n, "erledigt": m, "offen": ["Haug: Dorf B", ...]}``.
+    Ein Bot OHNE Doerfer zaehlt als erledigt — er hat nichts mehr, was sich wehren koennte.
+    """
+    liste = botstand if isinstance(botstand, list) else []                     # nur eine Liste zaehlt
+    bots = 0                                                                   # gefundene Bots
+    doerfer = 0                                                                # gefundene Doerfer
+    erledigt = 0                                                               # davon ausgeraeumt
+    offen: List[str] = []                                                      # was noch fehlt
+    for bot in liste:                                                          # jeder Bot der Partie
+        if not isinstance(bot, dict):                                          # unbrauchbarer Eintrag
+            continue                                                           # zaehlt nicht mit
+        bots += 1                                                              # ein Bot gefunden
+        for dorf in (bot.get("doerfer") or []):                                 # seine Doerfer
+            if not isinstance(dorf, dict):                                     # unbrauchbarer Eintrag
+                continue                                                       # zaehlt nicht mit
+            doerfer += 1                                                       # ein Dorf gefunden
+            if _als_zahl(dorf.get("ausgeraeumt_seit")) > 0:                    # gebucht = ausgeraeumt
+                erledigt += 1                                                  # als erledigt zaehlen
+            else:                                                              # noch nie ausgeraeumt
+                offen.append("%s: %s" % (bot.get("name") or "?",            # Bot-Name,
+                                         dorf.get("name") or "?"))              # Dorf-Name
+    return {"bots": bots, "doerfer": doerfer, "erledigt": erledigt, "offen": offen}
+
+
+def gesamtsieg(botstand: Any) -> Tuple[bool, str]:
+    """(erreicht, Begruendung) — sind ALLE Doerfer ALLER Bots ausgeraeumt?
+
+    Daniels Wortlaut (Register 197): "Geprueft erreicht ist der Gesamtsieg, wenn jeder Bot und
+    ALLE seine Doerfer mindestens einmal laut Kampfbericht ausgeraeumt wurden." Das Handbuch 2009
+    nennt keine Siegbedingung (Seite 3, E5) — diese Bedingung ist Daniels Entscheidung, kein
+    Handbuchsatz, und sie BEENDET nichts: danach laeuft das Spiel endlos weiter.
+
+    Ein einziger offener Eintrag haelt den Sieg auf. Ohne Bots oder ohne Doerfer ist nichts
+    ausgeraeumt worden — dann ist der Sieg NICHT erreicht (eine frische Partie ist nicht gewonnen).
+    """
+    u = ausgeraeumt_uebersicht(botstand)                                       # einmal zaehlen
+    if u["bots"] <= 0:                                                         # kein Gegner in der Partie
+        return False, "Kein Bot in dieser Partie — ohne Gegner gibt es keinen Gesamtsieg."
+    if u["doerfer"] <= 0:                                                      # kein Dorf zum Ausraeumen
+        return False, "Keine Bot-Dörfer vorhanden — es wurde noch nichts ausgeräumt."
+    if u["offen"]:                                                             # mindestens eines steht
+        fehlen = len(u["offen"])                                               # wie viele noch
+        erste = ", ".join(u["offen"][:3])                                      # die ersten drei nennen
+        rest = (" und %d weitere" % (fehlen - 3)) if fehlen > 3 else ""        # Rest nur als Zahl
+        return False, ("Noch nicht alle Dörfer ausgeräumt: %d von %d fehlen (%s%s)."
+                       % (fehlen, u["doerfer"], erste, rest))
+    # Satz mit richtiger Zahlform: "1 Doerfer" waere falsches Deutsch - der Text steht im Spiel.
+    if u["doerfer"] == 1 and u["bots"] == 1:                                  # ein Dorf, ein Bot
+        return True, "Das einzige Dorf des einzigen Bots ist ausgeräumt."
+    if u["doerfer"] == 1:                                                     # ein Dorf, mehrere Bots
+        return True, "Das einzige Dorf von %d Bots ist ausgeräumt." % u["bots"]
+    if u["bots"] == 1:                                                        # mehrere Doerfer, ein Bot
+        return True, "Alle %d Dörfer des Bots sind ausgeräumt." % u["doerfer"]
+    return True, ("Alle %d Dörfer von %d Bots sind ausgeräumt."
+                  % (u["doerfer"], u["bots"]))
+
+
+# --------------------------------------------------------------------------
 # 8. Auszeichnungen statt Sieg (E5) — Kennzahlen belegt, Namen VORSCHLAG
 # --------------------------------------------------------------------------
 

@@ -109,3 +109,18 @@ Schauplatz, sechs Welten als Kapitel), dann erst Text.
 | W-4 | Raubzuege Bot gegen Bot haben derzeit kein Ziel (ein Bot je Welt). Aendern? | **Bleibt so** — Folge der Vorgabe „5 Bots, 6 Welten“ | Keine Aenderung der Weltzuordnung. Der Mechanismus bleibt gebaut und greift, sobald zwei Bots' Doerfer in derselben Welt stehen (vor der Voelkerwahl Haug/Brynhild, spaeter ueber W-2) |
 | W-8 | Wappen-Zuordnung: soll eine bestimmte Burg zu einem bestimmten Volk? | **So lassen** (Reihenfolge der Fraktionen) | `data/bot_wappen.json` bleibt unveraendert |
 | W-8 | Burg und Wappen auf der Karte sind 8 px: groessere Felder oder Name beim Darueberfahren? | **So lassen (8 px), Name erst beim Darueberfahren** | Kein Kartenumbau. Der Name beim Darueberfahren ist ein kleiner UI-Schritt und steht als naechster Optik-Punkt offen (nicht Teil von W-4) |
+
+## Nachtrag 04.11.2026, 23:2x - W-14 Drachen: Ruine bleibt stehen (Daniel)
+
+**Daniels Ansage, woertlich-nah:** "wenn drachen besiegt sind bleibt fuer diesen spielstand wo der
+drache besiegt ist auf einer karte nur eine ruine stehen - auch die lasse ich noch modelieren."
+
+| Punkt | Festlegung | Folge fuer den Bau |
+|---|---|---|
+| Nach dem Sieg | Der Drachenplatz ist NICHT leer, sondern zeigt eine **Ruine** | Der Drachen-Datensatz braucht einen Zustand "besiegt" je Karte UND je Spielstand (kein globaler Schalter): Spielstand A mit besiegtem Drachen zeigt die Ruine, Spielstand B daneben zeigt den Drachen |
+| Bild | Daniel modelliert die Ruine selbst | Bis das Bild vorliegt, wird der Platz als Ruine markiert und mit einem **Platzhalter** gezeichnet; der Bildpfad steht in der Datendatei (`data/drachen.json`), nicht im Code |
+| Dauer | Ruine bleibt dauerhaft, kein Nachwachsen, kein zweiter Drache | Kein Respawn, keine Heilung, keine zweite Beute auf derselben Karte |
+| Weltkarte | Die Ruine ist auf der betroffenen Karte sichtbar, in den anderen Welten aendert sich nichts | Anzeige filtert je Welt wie bei den Bot-Doerfern |
+
+**Einordnung:** Diese Regel gehoert zu W-14 (noch nicht gebaut). Sie ersetzt die fruehere Annahme
+"nach dem Sieg ist der Platz leer"; die Zahlen der Drachenbeute bleiben der VORSCHLAG aus Register 197.

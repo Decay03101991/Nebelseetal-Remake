@@ -350,6 +350,29 @@ def beute(einheiten_des_siegers: Dict[str, int],
     return genommen
 
 
+# --------------------------------------------------- 3b. Ist das Dorf ausgeraeumt?
+
+def ausgeraeumt(ergebnis: Dict[str, Any]) -> bool:
+    """Hat DIESES Gefecht das angegriffene Dorf ausgeraeumt? (Daniel 04.11.2026, Register 197)
+
+    Daniels Definition des Gesamtsiegs, woertlich: "Geprueft erreicht ist der Gesamtsieg, wenn
+    jeder Bot und ALLE seine Doerfer mindestens einmal laut Kampfbericht ausgeraeumt wurden."
+    "Laut Kampfbericht" heisst: der Bericht, den der Spieler liest, muss den Angriff gewonnen
+    haben - der Ausgang ist das einzige, was er ueber den Ort aussagt.
+
+    Deshalb gilt: **`ausgang == "angreifer"`**. NICHT verlangt wird, dass jeder Verteidiger
+    gefallen ist: `kampf.fuehre_schlacht` zaehlt als Verlust nur die Toten, wer aus dem Gefecht
+    flieht oder erschoepft ausscheidet, steht danach noch im Ort. Eine Bedingung "Garnison muss
+    auf 0 stehen" waere damit in der Praxis unerreichbar (gemessen 04.11.2026: 400 Angreifer
+    gegen 2 Verteidiger, Ausgang "angreifer", ein Verteidiger geflohen und weiter im Dorf).
+
+    Was hier NICHT steht: wie oft ein Dorf angegriffen werden darf, ob es sich erholt und was
+    nach dem Ausraeumen passiert. Daniel: "mindestens einmal" - die Buchung ist ein Merkposten.
+    """
+    e = ergebnis or {}                                                  # fehlendes Ergebnis = kein Gefecht
+    return str(e.get("ausgang") or "") == "angreifer"                    # nur der Sieger raeumt aus
+
+
 # ---------------------------------------------------------------------------- 4. Bericht
 
 def _aufzaehlung(werte: Dict[str, int]) -> str:

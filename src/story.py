@@ -8,6 +8,7 @@ Code. Vier Aufgaben:
   intro()            - die vier Saetze, die nach dem Passworttor erscheinen (einmalig)
   chronik(zustand)   - die erreichten Kapitel, nach Fortschritt (Berater-Rubrik "Geschichte")
   ausgang_text(sieg) - der Text bei Sieg oder Niederlage
+  gesamtsieg_text(fraktion) - die Glueckwunschnachricht beim Gesamtsieg (W-13)
   intro_gesehen()    - wurde das Intro in dieser Installation schon gezeigt?
 
 Die Merkdatei liegt neben dem Spielstand (`schreibordner()/geschichte.json`), nicht im Spielstand:
@@ -90,6 +91,60 @@ def ausgang_text(sieg: bool) -> Dict[str, str]:
     daten = _datei()
     eintrag = daten.get("sieg" if sieg else "niederlage") or {}
     return {"titel": str(eintrag.get("titel") or ""), "text": str(eintrag.get("text") or "")}
+
+
+# ---------------------------------------------------------------------------------------------
+# W-13 (04.11.2026): der Gesamtsieg nach Daniels Definition (Register 197). Titel und Geschichte
+# stehen wie jeder andere Text in `data/story.json` unter dem Schluessel `gesamtsieg`; dieses
+# Modul liest sie nur. Die Geschichte ist "auf die gespielte Fraktion angepasst" (Daniel) - der
+# Platzhalter `{fraktion}` wird deshalb mit dem Volk des Spielers gefuellt, nie der Satz umgebaut.
+# ---------------------------------------------------------------------------------------------
+
+def _gesamtsieg_eintrag() -> Dict[str, Any]:
+    """Der Eintrag `gesamtsieg` aus `data/story.json` (fehlt er, ist er leer - kein Ersatzsatz)."""
+    eintrag = _datei().get("gesamtsieg") or {}                             # Eintrag aus der Datendatei
+    return eintrag if isinstance(eintrag, dict) else {}                    # nur ein dict ist brauchbar
+
+
+def gesamtsieg_teil(fraktion: str = "") -> Dict[str, str]:
+    """Titel und Text der Glueckwunschnachricht fuer EIN Volk - aus der Datendatei, sonst leer.
+
+    Zwei Formen sind erlaubt, damit die Datendatei wachsen kann, ohne alten Stand zu brechen:
+      * `texte`: je Volk ein eigener Eintrag `{titel, text}` (so steht es seit 04.11.2026); fehlt
+        das Volk, gilt `neutral`, fehlt auch das, die flache Form.
+      * flache Form `titel`/`text` mit dem Platzhalter `{fraktion}` - wird weiter unterstuetzt.
+
+    Der Platzhalter wird mit dem Anzeigenamen des Volkes gefuellt (`fraktion_namen`), sonst mit
+    `fraktion_neutral`, sonst mit dem Wort "dein Volk". Es wird KEIN Satz erfunden: fehlt der
+    Eintrag, kommen leere Zeichenketten zurueck und die Nachricht bleibt sachlich.
+    """
+    eintrag = _gesamtsieg_eintrag()                                        # der eine Eintrag
+    name = str(fraktion or "").strip()                                     # das gespielte Volk
+    teil: Any = {}                                                         # der Textteil
+    texte = eintrag.get("texte")                                           # Form mit Texten je Volk
+    if isinstance(texte, dict):                                            # liegt sie vor
+        teil = texte.get(name) or texte.get("neutral") or {}               # Volk, sonst neutral
+    if not isinstance(teil, dict) or not teil:                             # keine solche Form
+        teil = {"titel": eintrag.get("titel"), "text": eintrag.get("text")}  # flache Form
+    text = str(teil.get("text") or "")                                     # Fliesstext der Geschichte
+    titel = str(teil.get("titel") or eintrag.get("titel") or "")            # Ueberschrift
+    if "{fraktion}" in text:                                               # Platzhalter vorhanden
+        ersatz = name or str(eintrag.get("fraktion_neutral") or "").strip() or "dein Volk"
+        namen = eintrag.get("fraktion_namen")                              # Anzeigenamen der Voelker
+        if isinstance(namen, dict):                                        # gibt es sie
+            ersatz = str(namen.get(ersatz) or ersatz)                      # Anzeigename nehmen
+        text = text.replace("{fraktion}", ersatz)                          # Platzhalter fuellen
+    return {"titel": titel, "text": text}                                  # das Paar
+
+
+def gesamtsieg_titel(fraktion: str = "") -> str:
+    """Ueberschrift der Glueckwunschnachricht (leer, wenn die Datendatei keine nennt)."""
+    return gesamtsieg_teil(fraktion)["titel"]                              # Titel wortgetreu
+
+
+def gesamtsieg_text(fraktion: str = "") -> str:
+    """Der Geschichtenteil der Glueckwunschnachricht, auf die gespielte Fraktion angepasst."""
+    return gesamtsieg_teil(fraktion)["text"]                               # nur der Fliesstext
 
 
 def _merkdatei() -> str:
