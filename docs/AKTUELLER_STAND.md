@@ -25,7 +25,7 @@ stehen darf.
 | Belegte Ertraege | Jaeger **2 Nahrung + 2 Leder** auf Wald, Zuchten **3** auf Grasland, Farm **4 / 2** | `data/buildings.json` (gemessen, nicht getippt) |
 | Nachgezogene Wachen | `test_bot_nahrung` **48/0/0**, `test_bot_dorf_als_ort` **42/0/0**, `test_bot_warenkette` **36/0/1** (BEFUND: Berg-arme Karte, 5 Bergfelder fuer 8 Anlagen) | eigene Laeufe |
 | Pruefdateien / Register | **161** / **179** | `ls tests/test_*.py \| wc -l`, `grep -c '^\| [0-9]' docs/PRUEFREGEL_ORIGINAL.md` |
-| Offene Fragen an Daniel | **4** (Zuordnung der Taktiken, Erzmine zuerst, Protokoll bei 350 Zeilen, gehortetes Metall) | `docs/FRAGEN_AN_DANIEL_20261104.md` |
+| Fragen dieser Sitzung | **4 gestellt, 4 entschieden** (04.11.2026, rund 09:15) - Zuordnung der Taktiken so lassen, Erzmine bleibt vorne, Protokoll nach S-12 verdichten, Metall-Abnehmer nach S-11 | `docs/FRAGEN_AN_DANIEL_20261104.md` (Abschnitt Antworten) |
 | Kopf | Vorgaenger `78a6d0d`; der Commit mit diesem Block ist der neue Kopf | `git log --oneline -1` |
 
 ## Der EINE naechste Schritt
@@ -37,6 +37,11 @@ fuellen kann, und belegt die Pruefzusage aus dem Konzept: die Zahl der Anlagen i
 VERSCHIEDEN (sie ist es seit heute schon - 52 bis 97 -, aber Huegel und Sumpf sind noch offen).
 Danach S-11 (Kartenwahl mit Feldverstaendnis). **Der volle Sammellauf, die Registerzeile und die
 Protokollzeile gehoeren zum Abschluss jedes Schnitts.**
+
+**Reihenfolge nach Daniels Antworten vom 04.11.2026 (rund 09:15):** S-12 -> Protokoll verdichten
+(eigener Schritt, Zielgroesse unter 320 Zeilen; vorher die unveraenderte Fassung sichern und
+committen) -> S-11 -> eigener Schnitt "Metall in Truppen" (Abnehmer fuer das gehortete Metall des
+Raechers).
 
 ---
 

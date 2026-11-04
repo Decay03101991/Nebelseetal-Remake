@@ -56,3 +56,22 @@ Bots liegen bei 12.000 bis 17.000.
 staerker, ist aber ein eigener Schnitt am Kern (`ausruestung`, `spielschicht.ausbilden`).
 
 **Empfehlung:** erst S-12 und S-11 wie von dir festgelegt, danach einen Schnitt "Metall in Truppen".
+
+## Antworten (Daniel, 04.11.2026, rund 09:15) - alle vier wie empfohlen
+
+**Zu 1 - Zuordnung der Taktiken:** SO LASSEN. Es bleibt bei Raecher -> kriegerisch, Pluenderer ->
+haendlerisch, Waechterin -> defensiv, Bastionier -> ausgleichend, Spaeherin -> geheim. Folge: keine
+Codeaenderung, das Feld `zuordnung` in `data/bot_bauplan.json` bleibt die Begruendung.
+
+**Zu 2 - Erzmine vorne:** BLEIBT SO. Folge: die Mindest-Reihenfolge in `data/bot_bauplan.json`
+bleibt (Erzmine vor Steinmetz und Goldmine); die Messung im Dokument
+`docs/MESSUNG_S8_STUFE3_BAUPLAENE_20261104.md` gilt damit als abgenommen.
+
+**Zu 3 - Protokoll verdichten:** JA, als eigener Schritt NACH S-12. Folge: steht als kommender
+Schnitt im Stand-Block; Verfahren nach Skill (unveraenderte Fassung sichern und committen, neue
+Fassung im Zwischenspeicher, `tools/pruefe_protokoll.py --nach`, erst dann einsetzen).
+
+**Zu 4 - Metall-Abnehmer:** ERST S-12 und S-11, danach ein eigener Schnitt "Metall in Truppen".
+Folge: steht als kommender Schnitt im Stand-Block; das gehortete Metall bleibt bis dahin ein
+dokumentierter Befund (Lagerdeckel 20.000 je Dorf), kein Fehler.
+
