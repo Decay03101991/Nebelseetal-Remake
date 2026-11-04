@@ -50,14 +50,14 @@ import kampfbericht  # W2b: Vorrunden-Pruefung, Mauerschaden, Beute, Bericht
 import bot_angriffsplanung  # GPT-B01: Original-SK-Zielwahl und ehrliche Bot-Kampfberichte
 import botkern     # W5: Bot-Regeln (hier: die Vorschlagsspannen fuer die Vorraete der Bots)
 import bottaktik   # S-7: Bot-Verhalten (Zustandsautomat, Taktiken, Volksattribute, Wechsel)
-import portalraum  # W5-2: die 20 Dimensionen des Limbus, Raster, Wechselkosten und -sperre
+import portalraum  # W5-2: die sechs Weltkarten des Limbus (W-6), Raster, Wechselkosten und -sperre
 import werkstatt   # W3: die drei Werkstaetten, die 17 Waren und ihre Warteschlangen
 import auftraege   # W7: Auftraege (Missionen) mit Reisezeit, Rueckkehr und Bericht
 import spionage    # B-5: Spionagebericht, Abwehr und Nachricht (02.11.2026)
 import marsch_optik  # M-1: Truppenbewegungen auf der Weltkarte (02.11.2026, Register 140)
 import forschung  # W4c: Forschung braucht Zeit - die Stufe steigt erst nach Ablauf
 import voelker     # W-9: die Fraktionen und ihre Heimatwelt (EINE Lesestelle)
-import welt        # W4d: die Weltkarte des Limbus (20 Dimensionen, sechs belegte Welten)
+import welt        # W4d: die Weltkarte des Limbus (sechs belegte Welten, seit W-6 ohne Platzhalter)
 import zeitbasis  # GPT-Z01: lokale Datumsstempel, monotone Laufzeituhr, Nachrichten
 import spielzeit   # Spieluhr: der Zeitfaktor (Vorgabe Daniel 05.10.2026, Spielbericht)
 import spieloekonomie  # Oekonomie-Paket Schritt 9: Ortslager, Gruendungskosten, Verbrauch je Ort
@@ -260,6 +260,12 @@ class BotDorf:
     forschungsauftrag: Optional[dict] = None               # laufende Forschung dieses Ortes
     produktionsjournal: list = field(default_factory=list) # Erntezeilen (ort_tick)
     fertigjournal: list = field(default_factory=list)      # fertige Waren und Einheiten
+    # W-13 (Daniel 04.11.2026, Register 197): WANN dieses Dorf zum ersten Mal laut Kampfbericht
+    # ausgeraeumt wurde - in Spielsekunden. 0.0 heisst "nie" und ist die Vorgabe, damit alte
+    # Spielstaende ohne dieses Feld unveraendert laden (kein Dorf gilt stillschweigend als
+    # ausgeraeumt). Gebucht wird ausschliesslich in `GameState.kampf_am_ziel`, gelesen von
+    # `punkte.gesamtsieg`; die Buchung ist ein Merkposten, kein Zaehler ("mindestens einmal").
+    ausgeraeumt_seit: float = 0.0                          # Spielsekunden des ersten Ausraeumens
 
 
 @dataclass
@@ -2817,7 +2823,11 @@ def mengen_text(werte: dict, reihenfolge=None, leer: str = "leer") -> str:
     return ", ".join(f"{zahl_text(posten[k])} {k.capitalize()}" for k in vorne + hinten)
 
 
-NACHRICHTEN_FARBEN = {"kampf": "#e53935", "geschenk": "#7FD1FF", "spionage": "#A97BD6"}
+NACHRICHTEN_FARBEN = {"kampf": "#e53935", "geschenk": "#7FD1FF", "spionage": "#A97BD6",
+                      # W-13 (04.11.2026): der Gesamtsieg ist die einzige gute Nachricht mit
+                      # eigener Bedeutung - helles Gold, damit sie sich vom Standardgold der
+                      # uebrigen Meldungen abhebt (eine Farbe je Bedeutung, nicht je Absender).
+                      "gesamtsieg": "#FFD54F"}
 
 
 def nachrichten_farbe(nachricht) -> str:
@@ -3598,6 +3608,11 @@ class GameState:
         # `hatte_siedlung` verhindert, dass das Spiel VOR der ersten Siedlung als verloren gilt.
         self.hatte_siedlung = False
         self.spielende: Optional[str] = None
+        # W-13 (Daniel 04.11.2026, Register 197): der Gesamtsieg ist eine EIGENE Auswertung neben
+        # E5 und beendet die Partie NICHT (Endlosspiel). `gesamtsieg_seit` haelt die Spielsekunden
+        # der erreichten Bedingung fest - 0.0 heisst "noch nicht erreicht" und wird mitgespeichert,
+        # damit die Glueckwunschnachricht auch nach Laden und Neustart genau EINMAL erscheint.
+        self.gesamtsieg_seit: float = 0.0
         self.noob_protection: bool = True
         # Oekonomie-Paket, Schritt 9, Teil 8b (Entwurf Z. 789): Version und Modus des Spielstands.
         # `stand_version` ist die FORM (1 = der alte, unversionierte Stand — dort fehlt das Feld;
@@ -3780,6 +3795,76 @@ class GameState:
             "einheiten": stand["einheiten"],
             "punkte": stand["gesamt"],
         })
+
+    # ---------------------------------------------------------------------------------------
+    # W-13 (Daniel 04.11.2026, Register 197): der Gesamtsieg - eine EIGENE Auswertung neben E5.
+    # Bedingung: jeder Bot und ALLE seine Doerfer mindestens einmal laut Kampfbericht ausgeraeumt.
+    # Folge: EINE Glueckwunschnachricht mit fraktionsangepasster Geschichte, danach ENDLOSSPIEL -
+    # der Sieg sperrt nichts, beendet nichts, stoppt die Spieluhr nicht.
+    # ---------------------------------------------------------------------------------------
+
+    def botstand_fuer_sieg(self) -> List[dict]:
+        """Der Bot-Stand, den `punkte.gesamtsieg` liest — aus EINER Wahrheit gebaut.
+
+        Je Bot der Name und je Dorf der Name samt Merkposten `ausgeraeumt_seit`. Die Doerfer
+        kommen aus `bot_doerfer_sicherstellen`: ein alter Spielstand ohne Dorf-Datensaetze
+        bekommt sie dort aus den Siedlungsnamen - dieselbe Quelle wie Anzeige und Bot-Takt,
+        also keine zweite Liste, die auseinanderlaufen koennte.
+        """
+        stand: List[dict] = []                                                 # Ergebnisliste je Bot
+        for bot in (self.bots or []):                                          # jeder Bot der Partie
+            doerfer: List[dict] = []                                           # seine Doerfer
+            for dorf in bot_doerfer_sicherstellen(bot):                        # je Dorf ein Eintrag
+                doerfer.append({
+                    "name": str(getattr(dorf, "name", "") or ""),              # Dorfname
+                    "ausgeraeumt_seit": float(getattr(dorf, "ausgeraeumt_seit", 0.0) or 0.0),
+                })                                                             # Merkposten (0 = nie)
+            stand.append({"name": str(getattr(bot, "name", "") or ""),         # Botname
+                          "doerfer": doerfer})                                 # seine Doerfer
+        return stand                                                           # fertiger Stand
+
+    def gesamtsieg(self) -> Tuple[bool, str]:
+        """(erreicht, Begruendung) — sind alle Doerfer aller Bots ausgeraeumt? (punkte.gesamtsieg)"""
+        return punkte.gesamtsieg(self.botstand_fuer_sieg())                    # EINE Urteilsstelle
+
+    def gesamtsieg_text(self, grund: str = "") -> str:
+        """Die Glueckwunschnachricht bauen: sachlicher Satz + Geschichte aus `data/story.json`.
+
+        Der sachliche Satz nennt die Zahlen der Auswertung (`grund`), die Geschichte kommt aus der
+        Datendatei und wird auf das gespielte Volk angepasst - steht dort nichts, bleibt sie weg.
+        Die letzte Zeile sagt ausdruecklich, dass es weitergeht (Endlosspiel, Daniel 04.11.2026).
+        """
+        zeilen: List[str] = []                                                 # Zeilen der Nachricht
+        _volk = str(getattr(self, "spieler_fraktion", "") or "")               # das gespielte Volk
+        titel = story.gesamtsieg_titel(_volk)                                  # Ueberschrift aus den Daten
+        if titel:                                                              # nur wenn es eine gibt
+            zeilen.append(titel)                                               # Titel zuerst
+        zeilen.append("Gesamtsieg: " + str(grund or ""))                       # der sachliche Satz
+        geschichte = story.gesamtsieg_text(_volk)                              # Text des Volkes
+        if geschichte:                                                         # nur wenn Text da ist
+            zeilen.append(geschichte)                                          # Geschichte dahinter
+        zeilen.append("Das Spiel läuft weiter – der Sieg sperrt nichts.")      # Endlosspiel (Daniel)
+        return "\n".join(zeilen)                                               # EIN Text
+
+    def gesamtsieg_pruefen(self) -> bool:
+        """Den Gesamtsieg pruefen und die Glueckwunschnachricht GENAU EINMAL eintragen.
+
+        Rueckgabe True heisst "der Sieg steht" (auch wenn er schon vorher gemeldet war). Der
+        Merker `gesamtsieg_seit` gehoert in den Spielstand: sonst kaeme die Nachricht nach jedem
+        Laden erneut. `spielende` bleibt unberuehrt - die Partie laeuft weiter.
+        """
+        if float(getattr(self, "gesamtsieg_seit", 0.0) or 0.0) > 0:            # schon gemeldet
+            return True                                                        # nichts ein zweites Mal
+        erreicht, grund = self.gesamtsieg()                                    # Bedingung pruefen
+        if not erreicht:                                                       # noch ein Dorf offen
+            return False                                                       # keine Meldung
+        self.gesamtsieg_seit = float(self.spielsekunden)                       # Zeitpunkt festhalten
+        text = self.gesamtsieg_text(grund)                                     # die eine Nachricht
+        self.messages.append({"text": text, "type": "gesamtsieg",              # Typ fuer die Farbe
+                              "spielzeit_sekunden": self.gesamtsieg_seit,      # Spielzeit der Meldung
+                              **zeitbasis.zeitmarke()})                        # Zeitmarke UTC + lokal
+        self._log(text.splitlines()[0] if text else grund)                     # erste Zeile ins Log
+        return True                                                            # Sieg steht
 
     def generate_map(self, map_id: str):
         cfg = next(m for m in MAPS if m["id"] == map_id)
@@ -5309,7 +5394,12 @@ class GameState:
                         float(bot_ziel.wall_zustand) if bot_ziel else
                         dorfwall.zustand(siedlung_ziel) if siedlung_ziel
                         else float(ziel.get("wall_zustand_prozent", 100.0)))
-        ziel_def = (dict(bot_ziel.army) if bot_ziel else
+        # B-5, zweiter Teil (W-13, 04.11.2026): wird ein DORF angegriffen, verteidigt dessen
+        # GARNISON - nicht das ganze Bot-Heer. Bis hier stand hier `bot_ziel.army` (die Summe
+        # ALLER Doerfer); damit verteidigte jedes Dorf mit der Armee des ganzen Bots, und Daniels
+        # Siegbedingung ("ALLE seine Doerfer ausgeraeumt", Register 197) waere nie erreichbar.
+        ziel_def = (dict(ziel_dorf.einheiten or {}) if ziel_dorf is not None else
+                    dict(bot_ziel.army) if bot_ziel else
                     dict(siedlung_ziel.einheiten) if siedlung_ziel
                     else dict(ziel.get("verteidiger") or {}))
         truppen = {str(k): int(v) for k, v in (eintrag.get("einheiten") or {}).items()}
@@ -5348,10 +5438,21 @@ class GameState:
             siedlung_ziel.mauer_zustand = float(ergebnis.get("mauer_zustand", wall_zustand))
         if bot_ziel is not None:
             bot_ziel.wall_zustand = float(ergebnis.get("mauer_zustand", wall_zustand))
-        verteidiger = siedlung_ziel.einheiten if siedlung_ziel else (bot_ziel.army if bot_ziel else None)
-        if verteidiger is not None:
-            for name, anzahl in (ergebnis.get("verluste_verteidiger") or {}).items():
+        # W-13 (04.11.2026): die Verluste des Verteidigers werden GEBUCHT - in der Garnison des
+        # angegriffenen Dorfes (B-5), in der Siedlung des Spielers, oder ueber den EINEN Schreiber
+        # `bot_armee_buchen`, wenn nur der Bot bekannt ist. Bis hier las dieser Block
+        # `bot_ziel.army` - eine BERECHNETE Summe: die Abbuchung landete in einer Kopie, das
+        # Heer des Bots blieb unveraendert (gemessen: 3 Verluste gemeldet, 6 Krieger danach).
+        verteidiger = (ziel_dorf.einheiten if ziel_dorf is not None else        # Garnison des Dorfes
+                       siedlung_ziel.einheiten if siedlung_ziel is not None else None)  # sonst der Ort
+        if ziel_dorf is not None and not isinstance(verteidiger, dict):       # altes Dorf ohne Garnison
+            ziel_dorf.einheiten = {}                                          # dann anlegen
+            verteidiger = ziel_dorf.einheiten                                 # und dort buchen
+        for name, anzahl in (ergebnis.get("verluste_verteidiger") or {}).items():
+            if isinstance(verteidiger, dict):                                 # Dorf/Ort: direkt buchen
                 verteidiger[name] = max(0, int(verteidiger.get(name, 0)) - int(anzahl))
+            elif bot_ziel is not None:                                        # nur der Bot bekannt
+                bot_armee_buchen(bot_ziel, name, -int(anzahl))                # EIN Schreiber der Armee
         for name, anzahl in (ergebnis.get("verluste_angreifer") or {}).items():
             rest = int(truppen.get(name, 0)) - int(anzahl)
             if rest > 0:
@@ -5375,7 +5476,13 @@ class GameState:
         vorraete_ziel = (bot_kasse(bot_ziel) if bot_ziel is not None else
                          siedlung_ziel.vorraete if siedlung_ziel is not None else
                          ziel.get("vorraete") if isinstance(ziel.get("vorraete"), dict) else {})
-        uebrig = int(sum(max(0, int(v)) for v in (verteidiger or {}).values()))
+        # Was im Ort NOCH steht - nach der Buchung gelesen, aus derselben Ablage: die Garnison des
+        # Dorfes, sonst das (jetzt gebuchte) Heer des Bots. Nur so sagt die Zahl, was der Bericht
+        # sagt; `beute_am_ziel` staffelt danach (ohne Verteidiger = volle Beute).
+        if isinstance(verteidiger, dict):                                     # Dorf oder Siedlung
+            uebrig = int(sum(max(0, int(v)) for v in verteidiger.values()))    # Rest im Ort
+        else:                                                                 # nur der Bot bekannt
+            uebrig = int(sum(max(0, int(v)) for v in (bot_ziel.army if bot_ziel else {}).values()))
         beute_gefecht, lager_danach = kampfbericht.beute_am_ziel(
             geraet, dict(vorraete_ziel or {}), ausgang=ergebnis.get("ausgang"),
             wall_zustand_vor=wall_zustand, verteidiger_uebrig=uebrig,
@@ -5403,6 +5510,14 @@ class GameState:
         self.messages.append({"text": _text, "type": "kampf",
                               "spielzeit_sekunden": float(eintrag.get("ankunft") or self.spielsekunden)})
         self._log(f"Kampf am Ziel {eintrag.get('nach')}: {ergebnis.get('ausgang')}.")
+        # W-13 (Daniel 04.11.2026, Register 197): je ausgeraeumtem Dorf EINE Buchung - welches Dorf,
+        # welcher Bot, wann. Gebucht wird nur das ERSTE Ausraeumen ("mindestens einmal"); ein
+        # zweiter Angriff auf dasselbe Dorf aendert den Merkposten nicht mehr. Danach wird der
+        # Gesamtsieg geprueft - die Nachricht kommt genau einmal, das Spiel laeuft weiter.
+        if ziel_dorf is not None and kampfbericht.ausgeraeumt(ergebnis):          # Dorf leergekaempft
+            if not float(getattr(ziel_dorf, "ausgeraeumt_seit", 0.0) or 0.0):      # noch nie gebucht
+                ziel_dorf.ausgeraeumt_seit = float(self.spielsekunden)             # Zeitpunkt festhalten
+            self.gesamtsieg_pruefen()                                             # Sieg? (einmalig)
         return ergebnis
 
     def forschung_stand(self) -> Dict[str, Dict[str, object]]:
@@ -6293,6 +6408,9 @@ class GameState:
             # sonst gilt ein gewonnenes Spiel nach dem Laden wieder als offen.
             "hatte_siedlung": getattr(self, "hatte_siedlung", False),
             "spielende": getattr(self, "spielende", None),
+            # W-13 (04.11.2026): der Merker des Gesamtsiegs gehoert in den Spielstand — sonst
+            # kaeme die Glueckwunschnachricht nach jedem Laden ein zweites Mal.
+            "gesamtsieg_seit": float(getattr(self, "gesamtsieg_seit", 0.0) or 0.0),
             # Teil 8b (Entwurf Z. 789): die FORM des Spielstands (Version + Modus) und der
             # Tagesrest. Entwurf woertlich: "_day_accum zusaetzlich sichern statt beim Laden auf 0
             # setzen" — sonst beginnt der Spieltag nach jedem Laden von vorn.
@@ -6456,6 +6574,10 @@ class GameState:
             self.kartenvorrat_anlegen()
         self.hatte_siedlung = bool(data.get("hatte_siedlung", bool(self.settlements)))
         self.spielende = data.get("spielende")
+        # W-13 (04.11.2026): der Gesamtsieg-Merker kommt aus dem Spielstand. Ein Stand von vor W-13
+        # kennt das Feld nicht und beginnt bei 0.0 - dann wird die Nachricht beim naechsten
+        # Erreichen der Bedingung einmal gemeldet (keine erfundene Zahl, kein doppelter Glueckwunsch).
+        self.gesamtsieg_seit = float(data.get("gesamtsieg_seit") or 0.0)
         self.noob_protection = data.get("noob_protection", True)
         # Kein Upgrade alter Legacy-Staende. Fuer neue, lokale Staende ist die
         # globale Anzeige nur eine abgeleitete Summe nach dem Laden.
@@ -9669,7 +9791,7 @@ class NebelseetalApp:
         """Ein Weltensprung: erst pruefen, dann GENAU EINMAL abbuchen (W5-2, S-2b).
 
         Zaehlweise: `nach_z` ist die NUMMER aus der Kennung (4 = d04 = Midgard), so wie sie im
-        Spielstand steht. `portalraum` rechnet mit dem INDEX 0..19; umgerechnet wird an EINER
+        Spielstand steht. `portalraum` rechnet mit dem INDEX 0..5; umgerechnet wird an EINER
         Stelle (`portalraum.index_von`). Bis S-2a wurden beide Zaehlweisen vermischt - der Knopf
         "20" war damit unerreichbar (Index 20 gibt es nicht) und "01" buchte auf die falsche Welt.
 
@@ -10074,8 +10196,8 @@ class NebelseetalApp:
             angezeigt = nummer                                        # unbekannte Welt -> eigene zeigen
         fremdblick = angezeigt != nummer                               # zeigen wir eine FREMDE Welt?
         # Zaehlweisen nicht mischen (S-5, belegt durch die Pruefdatei): der Spielstand fuehrt die
-        # NUMMER (1..20, d04 = 4), `portalraum.anzeige_raster`/`portalfarbe` rechnen mit dem INDEX
-        # (0..19). Bis hierher wurde die Nummernliste ungefiltert weitergegeben - die eigene
+        # NUMMER (1..6, d04 = 4), `portalraum.anzeige_raster`/`portalfarbe` rechnen mit dem INDEX
+        # (0..5). Bis hierher wurde die Nummernliste ungefiltert weitergegeben - die eigene
         # Weltkarte erschien dadurch als FREMDE (Bannerfarbe rot). Die Umrechnung liegt an EINER
         # Stelle (`portalraum.index_von`), `weltkarten` bekommt weiter die Nummern.
         eigene_index = [i for i in (portalraum.index_von(n) for n in eigene) if i >= 0]
@@ -10109,7 +10231,7 @@ class NebelseetalApp:
         tk.Label(blick, text="Ansehen:", fg="#DAA520", bg=self.skin["bg"],
                  font=("TkDefaultFont", 9)).pack(side=tk.LEFT, padx=(0, 4))
         for eintrag in portalraum.weltkarten(eigene, laufend):
-            ziel = int(eintrag["nummer"])                              # Nummer der Welt (1..20)
+            ziel = int(eintrag["nummer"])                              # Nummer der Welt (1..6)
             text = "eigene" if ziel == nummer else f"{ziel:02d}"       # eigene Welt heisst "eigene"
             tk.Button(blick, text=text, bd=1,
                       bg="#2b2118" if ziel == angezeigt else self.skin["panel"],

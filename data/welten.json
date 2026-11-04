@@ -1,12 +1,13 @@
 {
-  "_hinweis": "Weltkarte des Limbus. BELEGT ist: alle Welten liegen im magischen Limbus, der sich in 20 Dimensionen aufteilt; die sechs Weltnamen stammen von der alten Website; die Portalkosten haengen von der Entfernung ab. NICHT BELEGT ist die Anordnung/Besetzung der Dimensionen in der Ebene (x/y) und die genaue Kostenformel - beides ist als VORSCHLAG gekennzeichnet und darf geaendert werden.",
+  "_schnitt_w6": "SCHNITT W-6 (Daniel 04.11.2026, aufgenommen in dieser Sitzung): Das Remake ist unser EIGENES Spiel - es fuehrt SECHS Welten und sechs Fraktionen. Die 14 leeren Platzhalter-Dimensionen (d07 bis d20) sind entfernt; im Original-Handbuch teilt sich der magische Limbus in 20 Dimensionen, im Remake sind es die sechs belegten Weltkarten. Der magische Limbus bleibt der RAUM, 'Limbus' bleibt zugleich der Weltname der sechsten Welt (Register 98, Daniel 01.11.2026) - keine Doppelbelegung, die aufgeloest werden muesste.",
+  "_hinweis": "Weltkarte des Limbus. BELEGT ist: alle Welten liegen im magischen Limbus, der sich im Original in 20 Dimensionen aufteilt; die sechs Weltnamen stammen von der alten Website; die Portalkosten haengen von der Entfernung ab. NICHT BELEGT ist die Anordnung/Besetzung der Dimensionen in der Ebene (x/y) und die genaue Kostenformel - beides ist als VORSCHLAG gekennzeichnet und darf geaendert werden.",
   "_belegt": [
     "Alle Welten in Nebelseetal liegen im magischen Limbus, der sich in 20 Dimensionen aufteilt und ueber magische Portale verbunden ist (Handbuch 2009, S. 80).",
     "Die sechs Weltnamen Armageddon, Ragnaroek, Utgard, Midgard, Valhalla, Limbus stammen von der alten Website (screens.php).",
     "Je weiter eine andere Spielwelt entfernt liegt, desto mehr Mana kostet das Portal (Handbuch 2009, S. 82; Portal-Anleitung 2005, portal.php)."
   ],
   "_nicht_belegt": [
-    "Die Anordnung der 20 Dimensionen in der Limbus-Ebene und ihre x/y-Koordinaten.",
+    "Die Anordnung der sechs Weltkarten in der Limbus-Ebene und ihre x/y-Koordinaten.",
     "Welche Dimension welche der sechs belegten Welten traegt.",
     "Die Portalkostenformel samt Grundbetrag und Kosten je Schritt."
   ],
@@ -16,8 +17,8 @@
     "docs/original/recherche/screens.html (Weltnamen)"
   ],
   "welten_belegt": ["Armageddon", "Ragnaroek", "Utgard", "Midgard", "Valhalla", "Limbus"],
-  "_weltkarten_spielbar": "Daniel 01.11.2026 (docs/KONZEPT_WELTKARTEN_UND_BOTS_20261101.md, Anhang 3 Frage 21/22/26/31): alle sechs Weltkarten stehen in Daten und Anzeige, erreichbar und bespielbar sind ZUERST Midgard und Valhalla; die uebrigen vier folgen spaeter. Die Startwelt ist Midgard (Frage 22).",
-  "weltkarten_spielbar": ["Midgard", "Valhalla"],
+  "_weltkarten_spielbar": "Daniel 04.11.2026, 21:0x (Antwort auf die Fragenrunde nach W-12): ALLE SECHS Welten sind bespielbar - damit sind die Welten der fuenf Bots und die eigene Welt erreichbar. Die fruehere Regel vom 01.11.2026 (zuerst nur Midgard und Valhalla) ist damit abgeloest; sie steht hier weiter, damit die Entwicklung nachlesbar bleibt. Die Startwelt bleibt Midgard fuer Voelker ohne eingetragene Heimatwelt.",
+  "weltkarten_spielbar": ["Armageddon", "Ragnaroek", "Utgard", "Midgard", "Valhalla", "Limbus"],
   "startwelt": "Midgard",
   "weltkarten_seed": "nebelsee-demo-20261101",
   "_weltkarten_seed_hinweis": "Konfigurationswert fuer die Gelaendeverteilung der Weltkarten (Schnitt S-5, Register 91/94). Kein Spielstandsfeld und kein Datenbankschema: der Wert bestimmt nur, WIE die sieben Gelaendearten ueber die 400 Felder einer Weltkarte verteilt werden, nicht welche Welt welche Art traegt. Der Wert ist VORLAEUFIG und wird beim Demo-Bau auf das Veroeffentlichungsdatum gesetzt (Daniel 01.11.2026, Register 94); danach nicht mehr aendern, sonst passen Screenshots und Anleitungen nicht mehr zur ausgelieferten Karte.",
@@ -38,12 +39,12 @@
     }
   },
   "ebene": {
-    "_hinweis": "VORSCHLAG: Die 20 Dimensionen werden hier als je ein Punkt in einer 10x10-Ebene (x/y von 0 bis 9) dargestellt. Im Original ist JEDE Dimension ein eigenes 20x20-Raster (belegt, portal.php); diese Uebersicht fasst jede Dimension zu einem Punkt zusammen. Die konkreten x/y-Werte sind NICHT belegt.",
+    "_hinweis": "VORSCHLAG: Die sechs Weltkarten werden hier als je ein Punkt in einer 10x10-Ebene (x/y von 0 bis 9) dargestellt. Im Original ist JEDE Dimension ein eigenes 20x20-Raster (belegt, portal.php); diese Uebersicht fasst jede Dimension zu einem Punkt zusammen. Die konkreten x/y-Werte sind NICHT belegt.",
     "x_von": 0,
     "x_bis": 9,
     "y_von": 0,
     "y_bis": 9,
-    "anzahl": 20
+    "anzahl": 6
   },
   "portalregel": {
     "art": "manhattan",
@@ -72,34 +73,6 @@
      "_vorschlag": "Lage x=4, y=4 im Limbus-Raster - VORSCHLAG."},
     {"kennung": "d06", "name": "Limbus", "x": 9, "y": 9, "welt": "Limbus",
      "_belegt": "Weltname Limbus belegt (alte Website, screens.php).",
-     "_vorschlag": "Lage x=9, y=9 im Limbus-Raster - VORSCHLAG."},
-    {"kennung": "d07", "name": "Dimension 07", "x": 2, "y": 2, "welt": null,
-     "_vorschlag": "Freie Dimension ohne eine der sechs belegten Welten - Besetzung und Lage VORSCHLAG."},
-    {"kennung": "d08", "name": "Dimension 08", "x": 3, "y": 7, "welt": null,
-     "_vorschlag": "Freie Dimension ohne eine der sechs belegten Welten - Besetzung und Lage VORSCHLAG."},
-    {"kennung": "d09", "name": "Dimension 09", "x": 7, "y": 3, "welt": null,
-     "_vorschlag": "Freie Dimension ohne eine der sechs belegten Welten - Besetzung und Lage VORSCHLAG."},
-    {"kennung": "d10", "name": "Dimension 10", "x": 7, "y": 7, "welt": null,
-     "_vorschlag": "Freie Dimension ohne eine der sechs belegten Welten - Besetzung und Lage VORSCHLAG."},
-    {"kennung": "d11", "name": "Dimension 11", "x": 1, "y": 5, "welt": null,
-     "_vorschlag": "Freie Dimension ohne eine der sechs belegten Welten - Besetzung und Lage VORSCHLAG."},
-    {"kennung": "d12", "name": "Dimension 12", "x": 5, "y": 1, "welt": null,
-     "_vorschlag": "Freie Dimension ohne eine der sechs belegten Welten - Besetzung und Lage VORSCHLAG."},
-    {"kennung": "d13", "name": "Dimension 13", "x": 5, "y": 8, "welt": null,
-     "_vorschlag": "Freie Dimension ohne eine der sechs belegten Welten - Besetzung und Lage VORSCHLAG."},
-    {"kennung": "d14", "name": "Dimension 14", "x": 8, "y": 4, "welt": null,
-     "_vorschlag": "Freie Dimension ohne eine der sechs belegten Welten - Besetzung und Lage VORSCHLAG."},
-    {"kennung": "d15", "name": "Dimension 15", "x": 2, "y": 8, "welt": null,
-     "_vorschlag": "Freie Dimension ohne eine der sechs belegten Welten - Besetzung und Lage VORSCHLAG."},
-    {"kennung": "d16", "name": "Dimension 16", "x": 4, "y": 2, "welt": null,
-     "_vorschlag": "Freie Dimension ohne eine der sechs belegten Welten - Besetzung und Lage VORSCHLAG."},
-    {"kennung": "d17", "name": "Dimension 17", "x": 6, "y": 6, "welt": null,
-     "_vorschlag": "Freie Dimension ohne eine der sechs belegten Welten - Besetzung und Lage VORSCHLAG."},
-    {"kennung": "d18", "name": "Dimension 18", "x": 8, "y": 8, "welt": null,
-     "_vorschlag": "Freie Dimension ohne eine der sechs belegten Welten - Besetzung und Lage VORSCHLAG."},
-    {"kennung": "d19", "name": "Dimension 19", "x": 3, "y": 4, "welt": null,
-     "_vorschlag": "Freie Dimension ohne eine der sechs belegten Welten - Besetzung und Lage VORSCHLAG."},
-    {"kennung": "d20", "name": "Dimension 20", "x": 1, "y": 1, "welt": null,
-     "_vorschlag": "Freie Dimension ohne eine der sechs belegten Welten - Besetzung und Lage VORSCHLAG."}
+     "_vorschlag": "Lage x=9, y=9 im Limbus-Raster - VORSCHLAG."}
   ]
 }

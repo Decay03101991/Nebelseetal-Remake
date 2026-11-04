@@ -59,6 +59,49 @@
     "titel": "Das Nebelseetal hat einen Namen bekommen",
     "text": "Deine Siedlungen stehen, deine Nachbarn kennen deinen Namen, und die Karten tragen deine Grenzen. Die Welt ist immer noch zersprungen – aber sie ist jetzt auch ein bisschen deine."
   },
+  "gesamtsieg": {
+    "titel": "Der Limbus hat einen neuen Herrn",
+    "texte": {
+      "menschlich": {
+        "titel": "Der Silberbach trägt die Siegeskunde",
+        "text": "Du hast es geschafft. Dein Haus Silberbach steht, und die Nachbarn sind leergefegt. Haugs Räuberhöhlen sind offen, Brynhilds Wachtstuben verwaist, Groms Bauplätze stillgelegt, Silras Verstecke durchwühlt, Kranks Bücherkammer ohne neuen Eintrag. Kein Gegner hält mehr vor deinen Toren die Hand auf. Am Steg hätte jemand die nassen Stiefel ausgezogen und gesagt: Holz wächst, Stein bricht. Auf der Wiese hätte jemand die Pfeile gezählt und einen in den Wind geschossen, nur so zum Spaß. Und du? Du schaust über die Furt, wo der Weg zu den Portalen frei liegt. Der Bach glitzert weiter, die Öfen rauchen, die Apfelmostfässer gären. Im Tal wird gesät, gehandelt, gebaut und gelacht. Der Sieg ist ein Morgen wie jeder andere, nur dass die Schatten der Nachbarn heute nicht über deine Felder fallen. Du kannst weitersiedeln, weiterforschen, weiterziehen. Dein Volk hat den Atem, und das Nebelseetal atmet mit."
+      },
+      "zwergisch": {
+        "titel": "Die Hallen von Hammerhall dröhnen",
+        "text": "Du hast den Meißel angesetzt, und der Stein ist gespalten. Dein Haus Hammerhall steht auf festem Grund, und die Nachbarn haben ihre Stollen verlassen. Haugs Räuberhorden haben die Fersen gezeigt, Brynhilds Warnfeuer sind kalt, Groms Kranzüge still, Silras Schleichwege zugewachsen, Kranks Tinte eingetrocknet. Kein Gegner pocht mehr an deine Tore. In der Halle hätte jemand in den Bart gegrinst, jemand hätte den Hammer beiseitegelegt und nach dem Bier gerufen. Tiefe Wurzeln, hohe Hallen. Die Schmieden brennen weiter, die Ambosse klingen, die Becher schlagen auf den Tisch. Im Berg wird geschürft, im Tal wird gefeiert. Du kannst neue Verträge schließen, neue Stollen treiben, neue Geschichten über den Stein erzählen. Dein Volk hält den Sieg wie eine gute Axt: handfest, ausgewogen und für den nächsten Morgen bereit. Das Nebelseetal mag rau sein, aber für Zwerge ist das der beste Duft der Welt."
+      },
+      "elfisch": {
+        "titel": "Ein Stern über leeren Dächern",
+        "text": "Du bist durch den Nebel gegangen, und keiner hat dich gehört. Dein Haus Sternenwacht hat gesiegt, ohne dass die Blätter raschelten. Haugs Banden tappen noch immer im Tal und finden nichts, Brynhilds Spuren verwischen sich, Groms Maße stimmen nicht mehr, Silras Ohren hören nur Wind, Kranks Feder findet keine Worte. Die Nachbarn sind ausgehöhlt, ihre Höfe still, ihre Speicher offen. Irgendwo hätte jemand ein Lied gesungen, jemand hätte seinen Umhang ausgeschüttelt und wäre zur nächsten Reise aufgebrochen. Schnell wie der Wind, still wie der Nebel. Auf den Turmspitzen von Silberlaub sitzt noch der Tau, die Gärten duften nach Kräutern, der Honigwein klärt sich. Du kannst weiterziehen, weiterlauschen, weiterbauen. Die Sterne über dem Nebelseetal sind nicht erloschen, sie funkeln neugieriger als zuvor. Dein Volk hat den Sieg so leicht genommen wie einen Schritt im Mondlicht."
+      },
+      "Trolle": {
+        "titel": "Die Faust schweigt zufrieden",
+        "text": "Du hast zugeschlagen, bis der Boden nachgab. Dein Haus Schattenfaust hat die Nachbarn ausgeräumt, wie man eine Herde vor sich hertreibt. Haug winselt irgendwo im Geröll, Brynhild hat den Bogen sinken lassen, Grom stapelt Steine ohne Plan, Silra versteckt sich hinter einem Felsen, Krank leckt seine Feder und schreibt nichts. Die Tore der Nachbarn hängen schief, ihre Feuertöpfe sind umgestoßen. Irgendwo hätte jemand gebrüllt: Wo ich schlage, wächst kein Gras. Am Tisch hätte jemand die Faust auf die Platte gehauen und gelacht. Der Met fließt, die Spieße drehen sich, die Knochen fliegen. Im Tal wird wieder gezimmert, getrieben, gewurstet. Du kannst weiterkämpfen, weiterrauben, weiterbauen. Dein Volk hat den Sieg wie einen guten Braten: blutig, heiß und viel zu schnell verschlungen. Das Nebelseetal zittert noch ein bisschen, aber es hält still und wartet auf den nächsten Streich."
+      },
+      "Ghule": {
+        "titel": "Das Moor behält sein Gedächtnis",
+        "text": "Du bist aus dem Nebel gestiegen, und die Erinnerung an die Nachbarn ist jetzt deine. Dein Haus Knochenmoor hat Haug, Brynhild, Grom, Silra und Krank ihre Vorräte genommen, ihre Kammern geöffnet, ihre Geheimnisse aufgeschlagen. Jetzt stehen ihre Dörfer leer, ihre Feuer sind nur noch Asche, ihre Türen hängen in den Angeln. Am Rand des Moors hätte jemand die Knochen der Gefallenen geschichtet und den Ahnen einen Gruß geschickt. Jemand hätte den Stimmen zugehört und genickt. Die Toten vergessen nicht. Der Sieg ist ein stilles Fest: Die Kräutersude brodeln, die Nachen schaukeln im Schilf, die Knochenperlen klirren leise. Im Moor wachsen frische Pilze, die Fische beißen, die Nebelfäden weben weiter. Du kannst weiterforschen, weiterlesen, weiterführen. Dein Volk hat den Sieg nicht erjagt, sondern geerbt. Das Nebelseetal bleibt ein offenes Buch, und du hältst die Feder."
+      },
+      "Gnome": {
+        "titel": "Flickwerk flickt den Sieg zusammen",
+        "text": "Du hast den Plan gezeichnet, das Seil gespannt, den Zirkel angesetzt – und die Nachbarn sind aus dem Weg geräumt. Haugs Kisten sind aufgebrochen, Brynhilds Signale still, Groms Baupläne im falschen Wind verstreut, Silras Verstecke nummeriert und zugestellt, Kranks Archiv ohne neuen Eintrag. Die Nachbarn stehen da wie halbfertige Maschinen: still, rostig, ohne Antrieb. Aus den Resten wäre ein Segel genäht worden, die Zahnräder wären eingesammelt und zu einem Karussell gebaut worden. Was nicht passt, wird passend gemacht. Auf Flickwerk quietschen die Winden, die Zahnräder klappern, die Basarrufe klingen. Im Limbus schweben neue Inseln an ihren Seilen, und du kannst weiterbasteln, weiterhandeln, weitererfinden. Dein Volk hat den Sieg nicht erkämpft, sondern zusammengebaut – aus Schrauben, Schnur und einer guten Portion Neugier. Das Nebelseetal ist jetzt deine Werkstatt, und der nächste Morgen bringt den nächsten Auftrag."
+      },
+      "neutral": {
+        "titel": "Das Tal atmet durch",
+        "text": "Du hast die Nachbarn leergefegt. Haug, Brynhild, Grom, Silra und Krank haben ihre Speicher geöffnet, ihre Wachen verloren, ihre Tore weit aufgestoßen. Nichts rührt sich mehr in ihren Siedlungen, kein Rauch steigt auf, kein Hammer klingt, kein Hund bellt. Die Karrenwege, die zu ihren Höfen führten, sind jetzt leise und frei. Du stehst am Rand deiner Siedlung und schaust über das Nebelseetal. Es ist still, aber nicht tot. Der Morgennebel hängt tief, die Wege sind offen, die Felder liegen blank. Irgendwo wird ein Firstbalken gerichtet, irgendwo wird ein Ofen angeheizt, irgendwo wird ein Marktstand aufgebaut. Der Sieg ist kein Ende, sondern ein freier Atemzug. Du kannst weiter siedeln, weiter forschen, weiter handeln, weiter rauben, wenn dir danach ist. Das Tal wird weiterleben, mit dir und durch dich. Die Nachbarn sind Geschichte, aber das Nebelseetal hat noch viele Seiten. Blättere weiter."
+      }
+    },
+    "fraktion_neutral": "dein Volk",
+    "fraktion_namen": {
+      "menschlich": "das menschliche Volk",
+      "zwergisch": "das zwergische Volk",
+      "elfisch": "das elfische Volk",
+      "Trolle": "die Trolle",
+      "Ghule": "die Ghule",
+      "Gnome": "die Gnome"
+    },
+    "hinweis": "Geschrieben von deepseek-v4-pro am 04.11.2026 (ein Aufruf, 19.064 Token, rund 0,01 USD). Je Volk ein eigener Text nach der Chronik der Welt; der Titel oben ist der Rueckfall, wenn ein Volk keinen eigenen hat. Die Texte werden nur angezeigt, sie steuern nichts."
+  },
   "niederlage": {
     "titel": "Der Nebel holt sich zurueck, was er hergegeben hat",
     "text": "Die letzten Siedler packen, was sie tragen können. Irgendwo im Limbus fängt jemand anderes mit zehn Siedlern und zwei Werkzeugkisten an – so funktioniert diese Welt."

@@ -1,0 +1,101 @@
+{
+  "stand": "2026-11-04",
+  "hinweis": "Daniel entscheidet die Welten; alle Zahlen und Texte sind Vorschlag.",
+  "figur": {
+    "bild": "assets/bilder/drache.png",
+    "ruine_bild": "assets/bilder/drache_ruine.png",
+    "ruine_platzhalter": true,
+    "groesse_px": 12,
+    "hinweis_farben": "Figuren von Daniel (04.11.2026): weiss, blau, lila. Die Chronik nennt Epheus den Weissen, Tardas den Gruenen, Salmur den Roten - Gruen und Rot haben noch keine Figur; Zuordnung vorlaeufig nach Farbe."
+  },
+  "standard_wall_stufe": 8,
+  "standard_wall_zustand": 100.0,
+  "pruefwerte": {
+    "anzahl_drachen": 3,
+    "verteidiger_summe": 40,
+    "beute": {
+      "gold": 5000,
+      "holz": 2000,
+      "stein": 2000,
+      "nahrung": 2000
+    },
+    "ware": {
+      "drachenschuppe": 1
+    },
+    "verschiebung": 1
+  },
+  "drachen": [
+    {
+      "id": "drache_d02",
+      "welt": "d02",
+      "name": "Epheus der Weiße",
+      "x": 7,
+      "y": 13,
+      "wall_stufe": 8,
+      "wall_zustand": 100.0,
+      "einheiten": {
+        "Krieger": 20,
+        "Bogenschütze": 20
+      },
+      "beute": {
+        "gold": 5000,
+        "holz": 2000,
+        "stein": 2000,
+        "nahrung": 2000
+      },
+      "ware": {
+        "drachenschuppe": 1
+      },
+      "status": "VORSCHLAG",
+      "bild": "assets/bilder/drache_weiss.png"
+    },
+    {
+      "id": "drache_d03",
+      "welt": "d03",
+      "name": "Tardas der Grüne",
+      "x": 12,
+      "y": 6,
+      "wall_stufe": 8,
+      "wall_zustand": 100.0,
+      "einheiten": {
+        "Krieger": 20,
+        "Bogenschütze": 20
+      },
+      "beute": {
+        "gold": 5000,
+        "holz": 2000,
+        "stein": 2000,
+        "nahrung": 2000
+      },
+      "ware": {
+        "drachenschuppe": 1
+      },
+      "status": "VORSCHLAG",
+      "bild": "assets/bilder/drache_blau.png"
+    },
+    {
+      "id": "drache_d05",
+      "welt": "d05",
+      "name": "Salmur der Rote",
+      "x": 5,
+      "y": 17,
+      "wall_stufe": 8,
+      "wall_zustand": 100.0,
+      "einheiten": {
+        "Krieger": 20,
+        "Bogenschütze": 20
+      },
+      "beute": {
+        "gold": 5000,
+        "holz": 2000,
+        "stein": 2000,
+        "nahrung": 2000
+      },
+      "ware": {
+        "drachenschuppe": 1
+      },
+      "status": "VORSCHLAG",
+      "bild": "assets/bilder/drache_lila.png"
+    }
+  ]
+}
