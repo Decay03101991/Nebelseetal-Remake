@@ -107,7 +107,8 @@ def _pruefungen_daten():
     for welt in WELTNAMEN:
         check(f"Weltname {welt} kommt in den Portal-Daten vor",
               any(welt in name for name in namen), str(namen[:6]))
-    check("die Portal-Daten fuehren 20 Eintraege (belegt)", len(namen) == 20, str(len(namen)))
+    # W-6 (Daniel 04.11.2026): sechs Weltkarten statt 20 Dimensionen - hier stand vorher 20.
+    check("die Portal-Daten fuehren 6 Eintraege (W-6)", len(namen) == 6, str(len(namen)))
 
 
 def main_() -> int:

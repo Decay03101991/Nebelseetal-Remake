@@ -103,8 +103,10 @@ def _pruefungen_raster():
         check(f"{kennung}: genau 400 Felder", len(flach) == FELDER, str(len(flach)))
         fremd = sorted({art for art in flach if art not in gueltig})
         check(f"{kennung}: jede Feld-ID stammt aus data/gelaende.json", not fremd, str(fremd))
-    check("alle 20 Weltkarten sind baubar (kein Zufallsersatz noetig)",
-          portalraum.dim_zahl() == 20, str(portalraum.dim_zahl()))
+    # W-6 (Daniel 04.11.2026): sechs Weltkarten. Vorher stand hier 20 - jede der 20
+    # Dimensionen bekam ein Gelaende, auch die 14 leeren Platzhalter.
+    check("alle sechs Weltkarten sind baubar (kein Zufallsersatz noetig)",
+          portalraum.dim_zahl() == 6, str(portalraum.dim_zahl()))
 
 
 def _pruefungen_verteilung():
@@ -236,10 +238,15 @@ def _pruefungen_ablehnung():
     text = _grund(portalraum.weltbild, "Nirgendwo")
     check("eine unbekannte Welt wird abgelehnt", bool(text) and "Unbekannte Weltkarte" in text,
           text)
+    # W-6: die letzte bekannte Kennung ist d06, nicht mehr d20.
     check("die Ablehnung nennt die bekannten Kennungen",
-          "d01" in text and "d20" in text, text)
-    check("ein Index ausserhalb 0..19 wird beim Bau abgelehnt",
-          "Unbekannte Weltkarte" in _grund(portalraum.weltbild, 21), _grund(portalraum.weltbild, 21))
+          "d01" in text and "d06" in text, text)
+    # W-6: weltbild() nimmt eine NUMMER 1..6 (nicht den Index); 7 ist die erste unbekannte
+    # Nummer, vorher war es 21. Nummer 6 ist die gueltige Grenze - beide Richtungen geprueft.
+    check("Nummer 6 ist beim Bau gueltig", not _grund(portalraum.weltbild, 6),
+          _grund(portalraum.weltbild, 6))
+    check("eine Nummer ausserhalb 1..6 wird beim Bau abgelehnt",
+          "Unbekannte Weltkarte" in _grund(portalraum.weltbild, 7), _grund(portalraum.weltbild, 7))
     check("ein Feld ausserhalb des Rasters wird abgelehnt",
           "ausserhalb" in _grund(portalraum.gelaende_von_feld, "Midgard", 20, 5),
           _grund(portalraum.gelaende_von_feld, "Midgard", 20, 5))

@@ -22,10 +22,12 @@ DIM = P.dimensionen()
 NAMEN = {d["name"] for d in DIM}
 
 # ---------------------------------------------------------------------------
-abschnitt("Limbus und die 20 Dimensionen")
+# ENTSCHEIDUNG GEAENDERT (W-6, Daniel 04.11.2026): das Remake fuehrt SECHS Welten; die 14
+# leeren Platzhalter-Dimensionen sind aus data/welten.json entfernt. Vorher stand hier 20.
+abschnitt("Limbus und die sechs Weltkarten")
 
-check("dim_zahl() liefert genau 20", P.dim_zahl() == 20, str(P.dim_zahl()))
-check("dimensionen() liefert genau 20 Eintraege", len(DIM) == 20, str(len(DIM)))
+check("dim_zahl() liefert genau 6", P.dim_zahl() == 6, str(P.dim_zahl()))
+check("dimensionen() liefert genau 6 Eintraege", len(DIM) == 6, str(len(DIM)))
 check("dimensionen() gibt eine Liste zurueck", isinstance(DIM, list))
 check("jede Dimension hat kennung und name",
       all({"kennung", "name"} <= set(d) for d in DIM))
@@ -48,7 +50,7 @@ check("20 mal 20 ergibt 400", P.dim_zahl() is not None and 20 * 20 == P.feld_zah
 _gueltige = sum(1 for x in range(20) for y in range(20) if P.ist_gueltig(x, y, 0))
 check("in Dimension 0 sind genau 400 Felder gueltig", _gueltige == 400, str(_gueltige))
 
-check("jede der 20 Dimensionen hat 400 Felder",
+check("jede der sechs Weltkarten hat 400 Felder",
       all(len(P.anzeige_raster(z)) == 400 for z in range(P.dim_zahl())))
 
 # ---------------------------------------------------------------------------
@@ -63,7 +65,8 @@ check("y = 20 ist ungueltig", P.koordinate(0, 20, 0) is None)
 check("z = -1 ist ungueltig", P.koordinate(0, 0, -1) is None)
 check("z = 20 ist ungueltig", P.koordinate(0, 0, 20) is None)
 check("z = 0 ist gueltig", P.koordinate(0, 0, 0) is not None)
-check("z = 19 ist gueltig", P.koordinate(0, 0, 19) is not None)
+# Grenzen der Zaehlweise (W-6): 0 und 5 sind gueltig, 6 ist die erste ungueltige Weltkarte.
+check("z = 5 ist gueltig", P.koordinate(0, 0, 5) is not None)
 check("alle vier Ecken sind gueltig",
       all(P.koordinate(x, y, 4) is not None for x in (0, 19) for y in (0, 19)))
 check("ist_gueltig(0, 0, 0) ist True", P.ist_gueltig(0, 0, 0) is True)
@@ -80,8 +83,10 @@ check("koordinate nennt die Dimension als Name",
       P.koordinate(0, 0, 0)["name"] == DIM[0]["name"])
 check("koordinate traegt den belegten Weltnamen",
       P.koordinate(0, 0, 0)["welt"] == "Armageddon")
-check("eine freie Dimension traegt keinen Weltnamen",
-      P.koordinate(0, 0, 6)["welt"] is None, str(P.koordinate(0, 0, 6)["welt"]))
+# ENTSCHEIDUNG GEAENDERT (W-6): es gibt keine freie Dimension mehr. Die alte Wache las den
+# Weltnamen von Index 6 (damals d07, leer); heute ist Index 6 hinter der letzten Weltkarte.
+check("Index 6 ist keine Weltkarte mehr (W-6)", P.koordinate(0, 0, 6) is None,
+      str(P.koordinate(0, 0, 6)))
 check("unbekannte Dimension hat kein Feld", P.koordinate(0, 0, 99) is None)
 
 # ---------------------------------------------------------------------------
@@ -113,8 +118,9 @@ check("deutlich nach 24 h ist der Wechsel erlaubt",
       P.wechsel_erlaubt(0, 1, 5000, LETZT, LETZT + 90000)[0] is True)
 check("unbekannte Ausgangs-Dimension wird abgelehnt",
       P.wechsel_erlaubt(-1, 1, 5000, None, 1000.0)[0] is False)
+# W-6: 6 ist jetzt die erste unbekannte Zielwelt (vorher war 20 die erste hinter 0..19).
 check("unbekannte Ziel-Dimension wird abgelehnt",
-      P.wechsel_erlaubt(0, 20, 5000, None, 1000.0)[0] is False)
+      P.wechsel_erlaubt(0, 6, 5000, None, 1000.0)[0] is False)
 check("Wechsel in dieselbe Dimension ist nicht verboten (Quelle schweigt)",
       P.wechsel_erlaubt(0, 0, 5000, None, 1000.0)[0] is True)
 
@@ -177,7 +183,8 @@ check("ein kleinerer Radius zeigt weniger Felder",
 abschnitt("Beschreibung")
 
 _b = P.beschreibung()
-check("die Beschreibung nennt 20 Weltkarten", "20 Weltkarten" in _b, _b)
+# W-6: sechs Weltkarten statt 20 Dimensionen.
+check("die Beschreibung nennt 6 Weltkarten", "6 Weltkarten" in _b, _b)
 # Vorher "20 Dimensionen". SCHNITT S-2, Daniel 01.11.2026: das Wort Dimensionen verschwindet aus
 # der Anzeige, es heisst Weltkarten und Weltensprung (Anhang 3, Fragen 19 und 35). Der Zusatz
 # "Dimension" im Satz waere ein Rueckfall - deshalb zusaetzlich die Gegenprobe.

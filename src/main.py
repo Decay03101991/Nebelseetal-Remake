@@ -50,14 +50,14 @@ import kampfbericht  # W2b: Vorrunden-Pruefung, Mauerschaden, Beute, Bericht
 import bot_angriffsplanung  # GPT-B01: Original-SK-Zielwahl und ehrliche Bot-Kampfberichte
 import botkern     # W5: Bot-Regeln (hier: die Vorschlagsspannen fuer die Vorraete der Bots)
 import bottaktik   # S-7: Bot-Verhalten (Zustandsautomat, Taktiken, Volksattribute, Wechsel)
-import portalraum  # W5-2: die 20 Dimensionen des Limbus, Raster, Wechselkosten und -sperre
+import portalraum  # W5-2: die sechs Weltkarten des Limbus (W-6), Raster, Wechselkosten und -sperre
 import werkstatt   # W3: die drei Werkstaetten, die 17 Waren und ihre Warteschlangen
 import auftraege   # W7: Auftraege (Missionen) mit Reisezeit, Rueckkehr und Bericht
 import spionage    # B-5: Spionagebericht, Abwehr und Nachricht (02.11.2026)
 import marsch_optik  # M-1: Truppenbewegungen auf der Weltkarte (02.11.2026, Register 140)
 import forschung  # W4c: Forschung braucht Zeit - die Stufe steigt erst nach Ablauf
 import voelker     # W-9: die Fraktionen und ihre Heimatwelt (EINE Lesestelle)
-import welt        # W4d: die Weltkarte des Limbus (20 Dimensionen, sechs belegte Welten)
+import welt        # W4d: die Weltkarte des Limbus (sechs belegte Welten, seit W-6 ohne Platzhalter)
 import zeitbasis  # GPT-Z01: lokale Datumsstempel, monotone Laufzeituhr, Nachrichten
 import spielzeit   # Spieluhr: der Zeitfaktor (Vorgabe Daniel 05.10.2026, Spielbericht)
 import spieloekonomie  # Oekonomie-Paket Schritt 9: Ortslager, Gruendungskosten, Verbrauch je Ort
@@ -9669,7 +9669,7 @@ class NebelseetalApp:
         """Ein Weltensprung: erst pruefen, dann GENAU EINMAL abbuchen (W5-2, S-2b).
 
         Zaehlweise: `nach_z` ist die NUMMER aus der Kennung (4 = d04 = Midgard), so wie sie im
-        Spielstand steht. `portalraum` rechnet mit dem INDEX 0..19; umgerechnet wird an EINER
+        Spielstand steht. `portalraum` rechnet mit dem INDEX 0..5; umgerechnet wird an EINER
         Stelle (`portalraum.index_von`). Bis S-2a wurden beide Zaehlweisen vermischt - der Knopf
         "20" war damit unerreichbar (Index 20 gibt es nicht) und "01" buchte auf die falsche Welt.
 
@@ -10074,8 +10074,8 @@ class NebelseetalApp:
             angezeigt = nummer                                        # unbekannte Welt -> eigene zeigen
         fremdblick = angezeigt != nummer                               # zeigen wir eine FREMDE Welt?
         # Zaehlweisen nicht mischen (S-5, belegt durch die Pruefdatei): der Spielstand fuehrt die
-        # NUMMER (1..20, d04 = 4), `portalraum.anzeige_raster`/`portalfarbe` rechnen mit dem INDEX
-        # (0..19). Bis hierher wurde die Nummernliste ungefiltert weitergegeben - die eigene
+        # NUMMER (1..6, d04 = 4), `portalraum.anzeige_raster`/`portalfarbe` rechnen mit dem INDEX
+        # (0..5). Bis hierher wurde die Nummernliste ungefiltert weitergegeben - die eigene
         # Weltkarte erschien dadurch als FREMDE (Bannerfarbe rot). Die Umrechnung liegt an EINER
         # Stelle (`portalraum.index_von`), `weltkarten` bekommt weiter die Nummern.
         eigene_index = [i for i in (portalraum.index_von(n) for n in eigene) if i >= 0]
@@ -10109,7 +10109,7 @@ class NebelseetalApp:
         tk.Label(blick, text="Ansehen:", fg="#DAA520", bg=self.skin["bg"],
                  font=("TkDefaultFont", 9)).pack(side=tk.LEFT, padx=(0, 4))
         for eintrag in portalraum.weltkarten(eigene, laufend):
-            ziel = int(eintrag["nummer"])                              # Nummer der Welt (1..20)
+            ziel = int(eintrag["nummer"])                              # Nummer der Welt (1..6)
             text = "eigene" if ziel == nummer else f"{ziel:02d}"       # eigene Welt heisst "eigene"
             tk.Button(blick, text=text, bd=1,
                       bg="#2b2118" if ziel == angezeigt else self.skin["panel"],

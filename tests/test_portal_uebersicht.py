@@ -119,18 +119,21 @@ def _pruefungen_sperre():
 
 
 def _pruefungen_zaehlweise():
-    abschnitt("4. Zwei Zaehlweisen, EINE Umrechnung (Nummer 1..20 gegen Index 0..19)")
+    # W-6 (Daniel 04.11.2026): sechs Weltkarten, also Nummer 1..6 gegen Index 0..5.
+    abschnitt("4. Zwei Zaehlweisen, EINE Umrechnung (Nummer 1..6 gegen Index 0..5)")
     check("Nummer 4 ist Index 3", portalraum.index_von(4) == 3, str(portalraum.index_von(4)))
     check("Index 3 ist Nummer 4", portalraum.nummer_von_index(3) == 4, "")
     check("Nummer 4 hat die Kennung d04", portalraum.kennung_von(4) == "d04", "")
     check("die Kennung d04 ergibt Nummer 4", portalraum.nummer_von("d04") == 4, "")
-    check("Nummer 20 ist Index 19 (erreichbar)", portalraum.index_von(20) == 19, "")
-    check("Nummer 21 und 0 sind unbekannt", portalraum.index_von(21) == -1
+    # Grenze n: die letzte Weltkarte ist Nummer 6 = Index 5 (vor W-6 war es 20 = 19).
+    check("Nummer 6 ist Index 5 (erreichbar)", portalraum.index_von(6) == 5, "")
+    # Grenze n+1 und 0: beides ist keine Weltkarte (vor W-6: 21).
+    check("Nummer 7 und 0 sind unbekannt", portalraum.index_von(7) == -1
           and portalraum.index_von(0) == -1, "")
-    check("Index 19 ist mit dem Wechselritual erreichbar (die alte Luecke bei Knopf 20)",
-          portalraum.wechsel_erlaubt(19, 1, 100000.0, None, 0.0)[0] is True, "")
-    check("Index 20 bleibt ungueltig - genau das war der alte Fehler",
-          portalraum.wechsel_erlaubt(20, 1, 100000.0, None, 0.0)[0] is False, "")
+    check("Index 5 ist mit dem Wechselritual erreichbar (die alte Luecke bei Knopf 20)",
+          portalraum.wechsel_erlaubt(5, 1, 100000.0, None, 0.0)[0] is True, "")
+    check("Index 6 bleibt ungueltig - genau das war der alte Fehler in klein",
+          portalraum.wechsel_erlaubt(6, 1, 100000.0, None, 0.0)[0] is False, "")
     check("_portal_wechsel rechnet die Nummer ueber portalraum.index_von um",
           "index_von" in _code(main.NebelseetalApp._portal_wechsel), "")
     check("_render_portal rechnet die Nummer ueber portalraum.index_von um",

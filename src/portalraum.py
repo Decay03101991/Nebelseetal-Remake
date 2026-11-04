@@ -6,7 +6,10 @@ Belegt (Portal-Anleitung 2005, portal.php; Handbuch 2009, S. 80-83):
     X und Y sind die Position im Raster der EIGENEN Dimension, Z ist die
     Dimension selbst.
   * Es gibt 20 Dimensionen; in jeder Dimension sind 20 x 20 = 400 Felder
-    frei fuer Spielerwelten.
+    frei fuer Spielerwelten. Das ist der ORIGINAL-Stand.
+  * SCHNITT W-6 (Daniel 04.11.2026): das Remake fuehrt SECHS Welten - die 14
+    leeren Platzhalter-Dimensionen sind aus data/welten.json entfernt. Die
+    Kennungen d01..d06 und die 400 Felder je Weltkarte bleiben unveraendert.
   * Einen Koordinatenwechsel (Verschiebungsritual) fuehrt EINE einzelne
     Siedlung durch; er kostet 5.000 Mana und ist hoechstens einmal je
     24 Stunden erlaubt.
@@ -55,12 +58,12 @@ _BANNER = _BELEGT["bannerfarben"]                            # gruen / rot
 
 
 def dimensionen() -> list:
-    """Die 20 Dimensionen des Limbus (unveraendert aus src/welt.py)."""
+    """Die sechs Weltkarten des Limbus (unveraendert aus src/welt.py, W-6)."""
     return welt.dimensionen()
 
 
 def dim_zahl() -> int:
-    """Anzahl der Dimensionen des Limbus (belegt: 20)."""
+    """Anzahl der Weltkarten im Limbus (seit W-6: 6; im Original 20)."""
     return len(dimensionen())
 
 
@@ -80,14 +83,14 @@ def _ist_ganz(v) -> bool:
 
 
 def _ist_dimension(z) -> bool:
-    """True, wenn z der Index einer bekannten Dimension ist (0..19)."""
+    """True, wenn z der Index einer bekannten Weltkarte ist (0..5, seit W-6)."""
     return _ist_ganz(z) and 0 <= z < dim_zahl()
 
 
 # ---------------------------------------------------------------------------
 # Zwei Zaehlweisen, EINE Umrechnung (Schnitt S-2b, 01.11.2026)
 #
-# Die Funktionen dieses Moduls rechnen mit dem INDEX 0..19 (welt.dimensionen()
+# Die Funktionen dieses Moduls rechnen mit dem INDEX 0..5 (welt.dimensionen()
 # in Dateireihenfolge). Die Anzeige und der Spielstand fuehren dagegen die
 # 1-basierte NUMMER aus der Kennung: d04 -> 4. Bis S-2a wurden beide vermischt -
 # der Knopf "20" war damit unerreichbar (Index 20 gibt es nicht) und "01" zeigte
@@ -114,7 +117,7 @@ def kennung_von(nummer) -> str:
 
 
 def index_von(nummer) -> int:
-    """Index 0..19 aus einer 1-basierten Nummer (4 -> 3). -1, wenn unbekannt."""
+    """Index 0..5 aus einer 1-basierten Nummer (4 -> 3). -1, wenn unbekannt."""
     if not _ist_ganz(nummer) or not (1 <= nummer <= dim_zahl()):
         return -1
     return int(nummer) - 1
@@ -132,7 +135,8 @@ def koordinate(x: int, y: int, z: int):
     Beschreibt das Feld (x, y) in Dimension z — oder None.
 
     None, wenn x oder y ausserhalb 0..19 liegen oder z keine bekannte
-    Dimension ist (Index 0..19 in welt.dimensionen()). Das Feld traegt
+    Weltkarte ist (Index 0..5 in welt.dimensionen(); die 0..19 betreffen das
+    Feldraster, nicht die Zahl der Weltkarten). Das Feld traegt
     x, y, z, die Dimensionskennung ('dimension'), den Anzeigenamen ('name')
     und den belegten Weltnamen der Dimension ('welt' — oder None).
     """

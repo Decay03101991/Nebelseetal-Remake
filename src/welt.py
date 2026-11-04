@@ -3,15 +3,22 @@ Weltkarte des Limbus fuer das Nebelseetal-Remake.
 
 Belegt (Handbuch 2009, S. 80-83 "Portal"; Portal-Anleitung 2005, portal.php;
 alte Website screens.php):
-  * Alle Welten in Nebelseetal liegen im magischen Limbus, der sich in 20 Dimensionen
-    aufteilt und ueber magische Portale verbunden ist.
+  * Alle Welten in Nebelseetal liegen im magischen Limbus, der sich im ORIGINAL in
+    20 Dimensionen aufteilt und ueber magische Portale verbunden ist.
   * Die sechs belegten Weltnamen: Armageddon, Ragnaroek, Utgard, Midgard, Valhalla, Limbus.
   * Die Portalkosten haengen von der Entfernung ab; in eine andere Dimension zu reisen
     kostet deutlich mehr Mana.
 
+SCHNITT W-6 (Daniel 04.11.2026): Das Remake ist unser eigenes Spiel mit SECHS Welten
+und sechs Fraktionen. Die 14 leeren Platzhalter-Dimensionen (d07 bis d20) sind deshalb
+aus data/welten.json entfernt; die sechs belegten Weltkarten und ihre Kennungen
+(d01 bis d06) bleiben unveraendert, damit alte Spielstaende weiter laden. Der magische
+Limbus bleibt der RAUM, "Limbus" zugleich der Weltname der sechsten Welt
+(Register 98, Daniel 01.11.2026) - der Raum enthaelt die sechs Welten.
+
 NICHT belegt (deshalb VORSCHLAG, in data/welten.json aenderbar):
-  * die Anordnung der 20 Dimensionen in der Limbus-Ebene (x/y) und die Besetzung der
-    Dimensionen mit den sechs Weltnamen
+  * die Anordnung der sechs Weltkarten in der Limbus-Ebene (x/y) und welche Welt
+    auf welchem Punkt liegt
   * die Portalkostenformel (Grundbetrag, Kosten je Schritt)
 """
 from __future__ import annotations
@@ -62,7 +69,7 @@ def finde(kennung_oder_name):
 
 
 def dimensionen() -> list:
-    """Die 20 Dimensionen des Limbus in Dateireihenfolge."""
+    """Die sechs Weltkarten des magischen Limbus in Dateireihenfolge (W-6: 6 statt 20)."""
     return list(DIMENSIONEN)
 
 

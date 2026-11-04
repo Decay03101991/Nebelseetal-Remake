@@ -18,7 +18,9 @@ DIM = W.dimensionen()
 WELTNAMEN = ["Armageddon", "Ragnaroek", "Utgard", "Midgard", "Valhalla", "Limbus"]
 
 abschnitt("Datei — Aufbau")
-check("genau 20 Dimensionen", len(DIM) == 20, str(len(DIM)))
+# ENTSCHEIDUNG GEAENDERT (W-6, Daniel 04.11.2026): das Remake fuehrt SECHS Welten.
+# Vorher stand hier "genau 20 Dimensionen" (Handbuch-Stand mit 14 leeren Platzhaltern).
+check("genau sechs Weltkarten", len(DIM) == 6, str(len(DIM)))
 check("jede Dimension hat kennung, name, x, y und welt",
       all({"kennung", "name", "x", "y", "welt"} <= set(d) for d in DIM))
 check("x liegt zwischen 0 und 9", all(0 <= d["x"] <= 9 for d in DIM))
@@ -92,7 +94,8 @@ check("Nachbarn sind nach Entfernung sortiert",
 check("Nachbarn enthalten die eigene Dimension nicht",
       all(d["kennung"] != "d01" for d in n))
 check("Umkreis 0 ergibt keine Nachbarn", W.nachbarn("d01", 0) == [])
-check("grosser Umkreis findet alle 19 anderen", len(W.nachbarn("d01", 99)) == 19,
+# W-6: fuenf Nachbarn statt 19, weil es nur noch sechs Weltkarten gibt.
+check("grosser Umkreis findet alle fuenf anderen", len(W.nachbarn("d01", 99)) == 5,
       str(len(W.nachbarn("d01", 99))))
 
 abschnitt("Unbekannte Kennungen — sauber gemeldet, kein Absturz")
@@ -106,7 +109,12 @@ abschnitt("Beschreibung")
 _b = W.beschreibung("d02")
 check("Beschreibung nennt den Namen", "Ragnaroek" in _b, _b)
 check("Beschreibung nennt die Koordinaten", "x=" in _b and "y=" in _b, _b)
+# ENTSCHEIDUNG GEAENDERT (W-6): es gibt keine Dimension ohne Welt mehr - d07 ist entfernt.
+# Die alte Wache pruefte den Text fuer eine leere Dimension; jetzt prueft sie, dass KEINE
+# leere Dimension mehr existiert und dass der Text sie als unbekannt meldet.
 _b2 = W.beschreibung("d07")
-check("Dimension ohne belegte Welt sagt das", "keine der sechs" in _b2, _b2)
+check("d07 gibt es nicht mehr (W-6)", "Unbekannte" in _b2, _b2)
+check("jede Weltkarte traegt einen belegten Weltnamen",
+      all(d.get("welt") for d in DIM), str([d["kennung"] for d in DIM if not d.get("welt")]))
 
 sys.exit(bericht())
