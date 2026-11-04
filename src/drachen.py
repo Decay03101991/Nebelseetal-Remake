@@ -351,10 +351,14 @@ def bericht(ergebnis, ueberlebende_angreifer, verteidiger_einheiten=None, naechs
         ueberlebt = 0  # dann gilt: keiner kam zurueck
     if ueberlebt > 0 and isinstance(verteidiger_einheiten, dict) and verteidiger_einheiten:  # aufgeklaert
         namen = ", ".join("%d %s" % (int(v), k) for k, v in sorted(verteidiger_einheiten.items()) if int(v) > 0)
-        zeilen.append(str(texte.get("zeile_gegner_mit_namen") or "Gekaempft gegen: {einheiten}.").replace("{einheiten}", namen))
+        vorlage = str(texte.get("zeile_gegner_mit_namen") or "")  # Vorlage NUR aus der Datendatei
+        if vorlage:  # ohne Vorlage keine erfundene Zeile
+            zeilen.append(vorlage.replace("{einheiten}", namen))  # Einheiten einsetzen
     else:  # niemand kam zurueck: keine Auskunft ueber die Art
         anzahl = sum(int(v) for v in (verteidiger_einheiten or {}).values() if int(v) > 0) if isinstance(verteidiger_einheiten, dict) else 0
-        zeilen.append(str(texte.get("zeile_gegner_ohne_namen") or "Gekaempft gegen {anzahl} Verteidiger.").replace("{anzahl}", str(anzahl)))
+        vorlage = str(texte.get("zeile_gegner_ohne_namen") or "")  # Vorlage NUR aus der Datendatei
+        if vorlage:  # ohne Vorlage keine erfundene Zeile
+            zeilen.append(vorlage.replace("{anzahl}", str(anzahl)))  # Zahl einsetzen
         hinweis = str(texte.get("hinweis_ohne_ueberlebende") or "")  # der ehrliche Zusatz
         if hinweis:  # nur wenn die Daten einen nennen
             zeilen.append(hinweis)  # hinten anhaengen

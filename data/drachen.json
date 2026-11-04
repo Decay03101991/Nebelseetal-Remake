@@ -6,7 +6,7 @@
     "ruine_bild": "assets/bilder/drache_ruine.png",
     "ruine_platzhalter": true,
     "groesse_px": 12,
-    "hinweis_farben": "Figuren von Daniel (04.11.2026): weiss, blau, lila. Die Chronik nennt Epheus den Weissen, Tardas den Gruenen, Salmur den Roten - Gruen und Rot haben noch keine Figur; Zuordnung vorlaeufig nach Farbe."
+    "hinweis_farben": "Figuren von Daniel (04.11.2026): weiß, blau, lila. Die Chronik nennt Epheus den Weißen, Tardas den Gruenen, Salmur den Roten - Gruen und Rot haben noch keine Figur; Zuordnung vorlaeufig nach Farbe."
   },
   "pruefwerte": {
     "anzahl_drachen": 3,
@@ -45,7 +45,7 @@
         "drachenschuppe": 1
       },
       "status": "VORSCHLAG",
-      "bild": "assets/bilder/drache_weiss.png",
+      "bild": "assets/bilder/drache_weiß.png",
       "verteidigung": {
         "einheiten": {
           "Krieger": 120,
@@ -156,18 +156,18 @@
   "bericht": {
     "titel_sieg": "Der Drache faellt",
     "titel_niederlage": "Der Drache hat gesiegt",
-    "zeile_gegner_mit_namen": "Gekaempft gegen: {einheiten}.",
-    "zeile_gegner_ohne_namen": "Gekaempft gegen {anzahl} Verteidiger.",
-    "hinweis_ohne_ueberlebende": "Keine Einheit kehrte zurueck - was dort stand, weiss niemand zu sagen. Nur die Verluste sind bekannt.",
+    "zeile_gegner_mit_namen": "Gekämpft gegen: {einheiten}.",
+    "zeile_gegner_ohne_namen": "Gekämpft gegen {anzahl} Verteidiger.",
+    "hinweis_ohne_ueberlebende": "Keine Einheit kehrte zurueck - was dort stand, weiß niemand zu sagen. Nur die Verluste sind bekannt.",
     "status": "VORSCHLAG"
   },
   "spionage": {
     "erlaubt": false,
-    "grund": "Einen Drachen kann man nicht ausspaehen. Nur ein voller Angriff mit Ueberlebenden erzeugt einen klaren, genauen Kampfbericht."
+    "grund": "Einen Drachen kann man nicht ausspähen. Nur ein voller Angriff mit Überlebenden erzeugt einen klaren, genauen Kampfbericht."
   },
-  "angriffshinweis": "Ein Drachenkampf ist ein Grosskampf: kein Ausspaehen, keine Vorab-Auskunft. Einen genauen Bericht ueber seine Truppen gibt es nur, wenn Einheiten ueberleben.",
+  "angriffshinweis": "Ein Drachenkampf ist ein Großkampf: kein Ausspähen, keine Vorab-Auskunft. Einen genauen Bericht ueber seine Truppen gibt es nur, wenn Einheiten ueberleben.",
   "transport": {
-    "hinweis": "Beute muss mit Karren abgeholt werden. Fuer deinen Anteil von {ladung} Ladung brauchst du {karren}. Was du nicht tragen kannst, bleibt beim Drachen liegen - der naechste Angreifer findet es vor.",
+    "hinweis": "Beute muss mit Karren abgeholt werden. Für deinen Anteil von {ladung} Ladung brauchst du {karren}. Was du nicht tragen kannst, bleibt beim Drachen liegen - der nächste Angreifer findet es vor.",
     "reihenfolge": [
       "Große Handelskarawane",
       "Handelskarawane",
