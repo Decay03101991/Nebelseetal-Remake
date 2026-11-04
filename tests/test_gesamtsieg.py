@@ -186,7 +186,7 @@ try:
 
     # ---- Spielstand: Merker ueberleben Speichern und Laden ----
     _pfad = os.path.join(os.environ.get("TMPDIR") or os.environ.get("TEMP") or ".",
-                         "w13_spielstand_test.json")
+                         "w13_spielstand_test_%d.json" % os.getpid())  # je Lauf eigener Name: zwei Sammellaeufe duerfen sich nicht ueberschreiben
     app.state.save(_pfad)                                        # echten Spielstand schreiben
     _neu = main.GameState()                                      # ein frischer Zustand
     _geladen = _neu.load(_pfad)                                  # den Spielstand wieder einlesen
