@@ -1487,6 +1487,11 @@ def handel_start(kaeufer: dict, verkaeufer: dict, einheitenbestand: dict, ware: 
     """
     if kanal not in ("vorraete", "waren"):
         raise ValueError("Unbekannter Frachtkanal.")
+    # W-16 (05.11.2026): gehandelt werden die 17 Originalwaren - TROPHaeEN nicht. Daniel: die
+    # Drachenschuppe "zaehlt am Ende nur als Trophae". Ohne diese Wache koennte eine Trophae, die
+    # im Lager liegt, ueber einen Handelsvertrag doch zur Ware werden.
+    if kanal == "waren" and ware not in spieldaten.waren():
+        raise ValueError("Diese Ware ist keine handelbare Ware.")
     if type(menge) is not int or menge <= 0:
         raise ValueError("Ungültige Handelsmenge.")
     if isinstance(preis, bool) or not isinstance(preis, (int, float)) or not math.isfinite(preis) \

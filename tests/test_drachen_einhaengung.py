@@ -294,8 +294,10 @@ try:
           str(len(_leinwand.find_withtag("portaldrache"))))
     check("(f) nach dem Sieg steht dort die RUINE", bool(_leinwand.find_withtag("ruine")),
           str(_leinwand.find_withtag("ruine")))
-    check("(c) die Drachenschuppe steht im Bericht (noch ohne Lagerfach)",
-          "drachenschuppe" in _text, _text[-120:])
+    # W-16 (05.11.2026): die Schuppe hat jetzt ein eigenes Lagerfach - der Bericht meldet sie als
+    # ERBEUTET, nicht mehr als "dafuer gibt es noch kein Lagerfach".
+    check("(c) die Drachenschuppe wird als erbeutet gemeldet",
+          "Drachenschuppe erbeutet" in _text, _text[-120:])
 
     _hort_vor_zwei = sum(int(v) for v in (st.drachen_vorraete.get(str(drache.get("id"))) or {}).values())
     _truppen2 = {n: int(a) for n, a in (ort.einheiten or {}).items() if int(a) > 0}

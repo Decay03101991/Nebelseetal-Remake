@@ -1,3 +1,53 @@
+# STAND 05.11.2026, 04:50 - Drachenschuppe als Trophae mit Lagerfach (Register 207)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Die Drachenschuppe kommt jetzt wirklich an.** Bis eben hat der Drachenkampf sie ins Leere
+gebucht: `data/drachen.json` fuehrte die Ware klein geschrieben (`"drachenschuppe"`), damit hatte sie
+kein Lagerfach, und der Bericht sagte ehrlich "dafuer gibt es noch kein Lagerfach". Jetzt ist sie eine
+**eigene Trophae** mit eigenem Fach, eigenem Bild und den Regeln, die Daniel genannt hat: keine Ware,
+kein Rezept, nicht handelbar, zaehlt in keiner Formel.
+
+**Wie es gebaut ist:** eigene Datendatei `data/trophaeen.json` (Regeln und Beschreibung),
+`spieldaten.trophaeen()` und `spieldaten.lager_waren()` als Lesestellen, `main.LAGER_WARE_EINTRAEGE`
+mit **18 Faechern** (17 Originalwaren + 1 Trophae). `WARE_EINTRAEGE` bleibt bei den 17 - deshalb
+kann die Schuppe nirgends zum Rezept werden. Das Icon
+`assets/icons/items/Drachenschuppe.png` ist selbst gezeichnet (Pillow, 64x82), keine fremde Datei.
+
+**Eine Wache im Kern:** `spieloekonomie.handel_start` lehnt jede Ware ab, die nicht in den 17
+Originalwaren steht. Ohne sie haette eine Trophae ueber einen Handelsvertrag doch zur Ware werden
+koennen.
+
+**Zwei alte Pruefungen mussten nachziehen** - nicht weil sie falsch waren, sondern weil sich die
+Semantik absichtlich geaendert hat: `test_drachen_einhaengung` (c) erwartete die Meldung "noch ohne
+Lagerfach" und prueft jetzt "Drachenschuppe erbeutet"; `test_drachen` las den kleinen Schluessel.
+
+**Belegt:** `tests/test_drachenschuppe.py` **32 bestanden, 0 Fehler** mit (a)-(i), darunter eine
+Gegenprobe und ein echter Handelsversuch, der scheitern MUSS. `test_drachen` 88/0/0,
+`test_drachen_einhaengung` 96/0/0, Umlaut-Wache 49/0.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf auf `main` | W-16 (dieser Commit) | `git log --oneline -1` |
+| Neue Wache | `tests/test_drachenschuppe.py` 32/0/0 | Testlauf |
+| Lagerfaecher | 18 (17 Waren + 1 Trophae) | `spieldaten.lager_waren()` |
+| Nachgezogene Wachen | `test_drachen` 88/0/0, `test_drachen_einhaengung` 96/0/0 | Testlaeufe |
+| Voller Sammellauf | laeuft fuer diesen Stand als `docs/audits/sammellauf_*.log` | Log |
+| Guthaben (Daniel 04:55) | 5,29 USD Stand / 54,70 USD Gesamtverbrauch | Ablesung |
+
+## Der EINE naechste Schritt
+
+1. **Die drei Recherche-Vorschlaege** (Erwartungswert im Bot-Urteil, zweite Kampfphase,
+   Regeneration oder erneutes Erwachen) - erst nach einer **Balancing-Messung** mit
+   `tools/balancing_messung.py`; die Zahlen gehoeren nach `docs/SPIELBALANCING_TEST.md`.
+2. Mini-Repo fuer das Protokoll (Register 202) mit der VOLLEN Historie, lueckenlos.
+3. Kampfregeln 2, 4, 6 aus `cache/scratch/w13b_kampfregeln_entwurf.md`.
+
+Arbeitsweise unveraendert: **voller Sammellauf mit dem Projekt-venv**, Registerzeile und
+Protokollzeile gehoeren zum Abschluss, Kommentarregel Variante A bei jedem neuen Code.
+
+---
+
 # STAND 05.11.2026, 03:53 - W-15 Haeuser und Wappenbeschreibungen (Register 206)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

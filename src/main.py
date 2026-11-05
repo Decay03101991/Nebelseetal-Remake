@@ -3249,8 +3249,13 @@ del _name, _eintrag
 # W3 (Werkstatt): die 17 ORIGINALwaren aus data/items.json. Jede Ware nennt ihre Werkstatt,
 # ihre Voraussetzung (Forschung + Stufe) und ihr Original-Icon aus den Icon-Blaettern.
 WARE_EINTRAEGE: Dict[str, Dict[str, object]] = spieldaten.waren()
+# W-16 (05.11.2026): Trophaeen sind KEINE Waren, haben aber ein Lagerfach. `LAGER_WARE_EINTRAEGE`
+# ist die eine Stelle, an der beide Arten zusammenkommen - das Lagerfach und die Anzeige lesen hier,
+# Herstellung, Handel und Verbrauch lesen weiter `WARE_EINTRAEGE` (17 Originalwaren).
+TROPHaeEN_EINTRAEGE: Dict[str, Dict[str, object]] = spieldaten.trophaeen()
+LAGER_WARE_EINTRAEGE: Dict[str, Dict[str, object]] = spieldaten.lager_waren()
 WARE_ICONS: Dict[str, str] = {name: str(eintrag.get("icon") or "")
-                              for name, eintrag in WARE_EINTRAEGE.items()}
+                              for name, eintrag in LAGER_WARE_EINTRAEGE.items()}
 
 MAPS = [
     {"id": "kontinent", "name": "Der Kontinent", "size": 20, "difficulty": 1, "bonus": "nahrung", "npcs": ["dorf", "händler"], "quests": ["Erstes Zuhause", "Siedlerzug"], "sectors": True},
@@ -3659,7 +3664,7 @@ class GameState:
         # (vorher stand hier die erfundene GOODS-Liste mit Emoji) und je Werkstatt eine
         # Warteschlange. Die Warteschlangen entstehen beim ersten Zugriff aus den wirklich
         # gebauten Werkstaetten der Siedlungskarten.
-        self.waren: Dict[str, int] = {name: 0 for name in WARE_EINTRAEGE}
+        self.waren: Dict[str, int] = {name: 0 for name in LAGER_WARE_EINTRAEGE}  # 17 Waren + Trophaeen
         self.werkstaetten: Dict[str, dict] = {}
         # W7 (Auftraege, src/auftraege.py): die laufenden Missionen. Jeder Eintrag kennt Art,
         # Einheiten, Start und Ziel, Reisezeit, Fracht und Status (hinreise/am_ziel/rueckreise/
@@ -7096,7 +7101,10 @@ class GameState:
         self.letzter_wechsel = data.get("letzter_wechsel")
         # W3: Warenlager (immer alle 17 Originalwaren) und die Werkstatt-Warteschlangen
         geladene_waren = data.get("waren") or {}
-        self.waren = {name: int(geladene_waren.get(name, 0) or 0) for name in WARE_EINTRAEGE}
+        # W-16: das Lagerfach kennt die Originalwaren UND die Trophaeen - sonst waere die
+        # Drachenschuppe nach einem Neuladen des Spielstands wieder weg. Unbekannte Schluessel
+        # aus alten Staenden fallen wie bisher heraus (feste Liste, keine Ueberraschungen).
+        self.waren = {name: int(geladene_waren.get(name, 0) or 0) for name in LAGER_WARE_EINTRAEGE}
         self.werkstaetten = {k: v for k, v in (data.get("werkstaetten") or {}).items()
                              if isinstance(v, dict)}
         # W7: laufende Auftraege (unterwegs befindliche Einheiten sind hier schon abgezogen)

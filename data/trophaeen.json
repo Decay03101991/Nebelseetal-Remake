@@ -1,0 +1,21 @@
+{
+  "stand": "2026-11-05",
+  "zweck": "Trophaeen sind Auszeichnungen, keine Waren: sie liegen im Lager, werden angezeigt und zaehlen in KEINER Formel, in keinem Rezept und in keinem Handel.",
+  "quelle": "Daniel 05.11.2026, woertlich-nah: die Drachenschuppe ist eine 'eigene Auszeichnung' und 'zaehlt am Ende nur als Trophae'. Die Herkunft steht in data/drachen.json (Feld 'ware' je Drache, Menge 1). Die 17 Originalwaren in data/items.json bleiben unberuehrt.",
+  "regeln": {
+    "werkstatt": "keine - Trophaeen werden nicht hergestellt",
+    "handelbar": false,
+    "zaehlt_in_formeln": false,
+    "lagerfach": true,
+    "verbrauchbar": false
+  },
+  "je_trophae": {
+    "Drachenschuppe": {
+      "art": "trophae",
+      "beschreibung": "Eine Schuppe vom Hort eines Drachen, faustgross, kalt und schwerer als Stein. Sie ist der einzige Beweis, dass jemand einen Drachen gestellt hat.",
+      "icon": "assets/icons/items/Drachenschuppe.png",
+      "herkunft": "Beute jedes besiegten Drachen (data/drachen.json, Feld 'ware')",
+      "menge_je_drache": 1
+    }
+  }
+}

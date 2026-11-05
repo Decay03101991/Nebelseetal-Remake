@@ -23,7 +23,7 @@ for eintrag in daten["drachen"]:  # iteriert ueber alle Drachen in der Datendate
     check("Beute Holz", eintrag["beute"]["holz"] == pruefwerte["beute"]["holz"], f"Holz von {eintrag['id']} stimmt")  # prueft Holz
     check("Beute Stein", eintrag["beute"]["stein"] == pruefwerte["beute"]["stein"], f"Stein von {eintrag['id']} stimmt")  # prueft Stein
     check("Beute Nahrung", eintrag["beute"]["nahrung"] == pruefwerte["beute"]["nahrung"], f"Nahrung von {eintrag['id']} stimmt")  # prueft Nahrung
-    check("Ware Drachenschuppe", eintrag["ware"]["drachenschuppe"] == pruefwerte["ware"]["drachenschuppe"], f"Drachenschuppe von {eintrag['id']} stimmt")  # prueft Drachenschuppe
+    check("Ware Drachenschuppe", eintrag["ware"]["Drachenschuppe"] == pruefwerte["ware"]["Drachenschuppe"], f"Drachenschuppe von {eintrag['id']} stimmt")  # prueft Drachenschuppe
 
 welten = []  # initialisiert Liste fuer Weltkennungen
 for eintrag in daten["drachen"]:  # iteriert erneut ueber die Drachen

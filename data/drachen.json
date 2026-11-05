@@ -18,7 +18,7 @@
       "nahrung": 2000
     },
     "ware": {
-      "drachenschuppe": 1
+      "Drachenschuppe": 1
     },
     "verschiebung": 1,
     "schwelle_fussttruppen": 700,
@@ -42,7 +42,7 @@
         "nahrung": 2000
       },
       "ware": {
-        "drachenschuppe": 1
+        "Drachenschuppe": 1
       },
       "status": "ENTSCHIEDEN 05.11.2026 (Welt bestaetigt: d02/d03/d05)",
       "bild": "assets/bilder/drache_weiss.png",
@@ -82,7 +82,7 @@
         "nahrung": 2000
       },
       "ware": {
-        "drachenschuppe": 1
+        "Drachenschuppe": 1
       },
       "status": "ENTSCHIEDEN 05.11.2026 (Welt bestaetigt: d02/d03/d05)",
       "bild": "assets/bilder/drache_blau.png",
@@ -122,7 +122,7 @@
         "nahrung": 2000
       },
       "ware": {
-        "drachenschuppe": 1
+        "Drachenschuppe": 1
       },
       "status": "ENTSCHIEDEN 05.11.2026 (Welt bestaetigt: d02/d03/d05)",
       "bild": "assets/bilder/drache_lila.png",

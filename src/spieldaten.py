@@ -143,6 +143,35 @@ def waren_icons() -> Dict[str, str]:
     return {n: e["icon"] for n, e in waren().items() if e.get("icon")}
 
 
+@lru_cache(maxsize=1)
+def trophaeen() -> Dict[str, Dict[str, Any]]:
+    """Alle Trophaeen aus data/trophaeen.json - Auszeichnungen, KEINE Waren.
+
+    Eigene Datei, nicht `items.json`: dort stehen die 17 Originalwaren, und die bleiben
+    unangetastet (Daniel 05.11.2026: die Drachenschuppe ist eine "eigene Auszeichnung" und
+    "zaehlt am Ende nur als Trophae"). Fehlt die Datei, gibt es keine Trophaeen und keinen
+    Absturz - dann bucht der Drache seine Ware nicht und meldet das ehrlich.
+    """
+    try:
+        roh = _lade("trophaeen.json").get("je_trophae") or {}
+    except (OSError, ValueError):
+        return {}
+    return {str(k): v for k, v in roh.items() if isinstance(v, dict)}
+
+
+@lru_cache(maxsize=1)
+def lager_waren() -> Dict[str, Dict[str, Any]]:
+    """Alles, was ein LAGERFACH hat: die 17 Originalwaren UND die Trophaeen.
+
+    Diese Zusammenfuehrung ist die eine Stelle, an der beide Arten zusammenkommen. Wer
+    herstellen, handeln oder verbrauchen will, liest weiter `waren()` (17) - deshalb kann eine
+    Trophae nirgends zum Rezept oder zum Handelsgut werden.
+    """
+    zusammen: Dict[str, Dict[str, Any]] = dict(waren())     # die Originalwaren zuerst
+    zusammen.update(trophaeen())                           # Trophaeen dazu, ohne Kollision
+    return zusammen
+
+
 # ---------------------------------------------------------------- Forschung, Rohstoffe, Gebaeude
 
 @lru_cache(maxsize=1)
