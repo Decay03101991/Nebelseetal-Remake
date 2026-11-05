@@ -1,0 +1,11 @@
+{
+  "stand": "2026-11-05",
+  "zweck": "Der Dateiname jedes Release. EINE Quelle: das Bauwerkzeug und die Release-Notizen lesen ihn hier.",
+  "quelle": "Daniel, 05.11.2026, woertlich-nah: 'Nebelseetal_Pre_Release_V0.0.1.exe' - und 'jede neue Version bringt den Zaehler um eins hoch', naechste also 'Nebelseetal_DemoVersion_V0.0.2.exe'.",
+  "schema": "Nebelseetal_<Label>_V0.0.<zaehler>.exe",
+  "label": "Pre_Release",
+  "zaehler": 1,
+  "dateiname": "Nebelseetal_Pre_Release_V0.0.1.exe",
+  "naechster_label": "DemoVersion",
+  "hinweis": "Je Release aendert sich GENAU EINE Zahl: zaehler. Dann dateiname neu bilden (Schema) und label bei Bedarf setzen. Die vorige EXE vorher nach %LOCALAPPDATA%/hermes/cache/scratch/nebel_backup/ sichern."
+}
