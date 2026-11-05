@@ -16,6 +16,7 @@ Aufruf:  python -X utf8 tests/test_protokoll.py
 """
 from __future__ import annotations
 
+import glob
 import os
 import re
 import subprocess
@@ -30,8 +31,13 @@ import pruefe_protokoll as pz  # noqa: E402  (Werkzeug als Modul: dieselben Prue
 
 PROTOKOLL = os.path.join(ROOT, "docs", "ENTWICKLUNGSPROTOKOLL.md")
 # ENTSCHEIDUNG Daniel 02.11.2026: zwei Hefte. Das aktive Heft fuehrt ab 02.11.2026; die Historie bis
-# 01.11.2026 steht geschlossen daneben. Vollstaendigkeit und Belegbarkeit gelten fuer BEIDE zusammen.
+# 01.11.2026 steht geschlossen daneben.
 HISTORIE = os.path.join(ROOT, "docs", "ENTWICKLUNGSPROTOKOLL_HISTORIE_BIS_20261101.md")
+# ENTSCHEIDUNG Daniel 05.11.2026 (Frage 4, Register 218): AUSLAGERN statt verdichten. Jedes
+# ausgelagerte Heft heisst ENTWICKLUNGSPROTOKOLL_HISTORIE_*.md; Vollstaendigkeit und Belegbarkeit
+# gelten fuer das aktive Heft und ALLE Historienhefte ZUSAMMEN - sonst verliert die Wache genau die
+# Zeilen aus dem Blick, die nur verschoben wurden.
+HISTORIEN = sorted(glob.glob(os.path.join(ROOT, "docs", "ENTWICKLUNGSPROTOKOLL_HISTORIE_*.md")))
 VORFASSUNG = os.path.join(ROOT, "archiv", "dokumentation", "protokoll_alte_fassungen", "ENTWICKLUNGSPROTOKOLL_VOR_VERDICHTUNG_2026-10-05.md")
 
 abschnitt("1. Das Protokoll haelt seine Zielgroesse")
@@ -42,7 +48,9 @@ zeilen = roh.splitlines()
 check("das geschlossene Geschichtsheft liegt daneben", os.path.exists(HISTORIE),
       os.path.basename(HISTORIE))
 historie = open(HISTORIE, encoding="utf-8").read() if os.path.exists(HISTORIE) else ""
-gesamt = roh + "\n" + historie
+# ALLE Historienhefte zusammen (das geschlossene von vor dem 02.11. und die ausgelagerten Sektionen).
+historie_alle = "\n".join(open(p, encoding="utf-8").read() for p in HISTORIEN)
+gesamt = roh + "\n" + historie_alle
 check("die Vor-Fassung der Verdichtung ist aufbewahrt", os.path.exists(VORFASSUNG),
       os.path.basename(VORFASSUNG))
 if len(zeilen) > pz.ZIELZEILEN:
@@ -58,11 +66,22 @@ check("das Geschichtsheft nennt sich selbst HISTORIE bis 01.11.2026",
       bool(historie) and "HISTORIE bis 01.11.2026" in historie.splitlines()[0],
       historie.splitlines()[0][:70] if historie else "fehlt")
 check("die Historie traegt die letzte Sektion von vor dem Schnitt (HERMES-UMSETZUNG-02)",
-      "HERMES-UMSETZUNG-02" in historie, "")
-check("der Schnitt ist sauber: die B-3-Sektion steht NUR im aktiven Heft",
-      "HERMES-BOTDORF-03" in roh and "HERMES-BOTDORF-03" not in historie, "")
-check("beide Hefte zusammen ergeben das Protokoll",
-      bool(historie) and len(gesamt) > len(roh), f"{len(roh)} + {len(historie)} Zeichen")
+      "HERMES-UMSETZUNG-02" in historie_alle, "")
+# Der Schnitt wandert mit jeder Auslagerung. Geprueft wird deshalb nicht ein fester Name, sondern
+# die NAHT: die letzte ausgelagerte Sektion steht NUR in den Historienheften, die aelteste Sektion
+# des aktiven Hefts NUR im aktiven Heft.
+check("jedes Historienheft nennt sich selbst HISTORIE",
+      bool(HISTORIEN) and all("HISTORIE" in open(p, encoding="utf-8").read().splitlines()[0]
+                              for p in HISTORIEN),
+      "%d Hefte" % len(HISTORIEN))
+check("der Schnitt ist sauber: die Sektion HERMES-BOTDORF-06 steht NUR im Historienheft",
+      "## HERMES-BOTDORF-06" not in roh and "## HERMES-BOTDORF-06" in historie_alle, "")
+check("der Schnitt ist sauber: die Sektion HERMES-BOTNAHRUNG-01 steht NUR im aktiven Heft",
+      "## HERMES-BOTNAHRUNG-01" in roh and "## HERMES-BOTNAHRUNG-01" not in historie_alle, "")
+check("das aktive Heft verweist auf das ausgelagerte",
+      "ENTWICKLUNGSPROTOKOLL_HISTORIE_20261102_bis_20261103.md" in roh, "")
+check("alle Hefte zusammen ergeben das Protokoll",
+      bool(historie_alle) and len(gesamt) > len(roh), f"{len(roh)} + {len(historie_alle)} Zeichen")
 
 abschnitt("2. Keine Sicherungen im Protokoll, Sicherungen woanders")
 sicherungszeilen = [z for z in zeilen

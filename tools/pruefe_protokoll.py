@@ -62,13 +62,19 @@ def main() -> int:
         return 1
 
     text = ziel.read_text(encoding="utf-8")
-    # Zweites Heft nur beim KANONISCHEN Protokoll mitzaehlen (bei --nach <datei> nicht).
-    historie_text = (HISTORIE.read_text(encoding="utf-8")
-                     if (HISTORIE.exists() and ziel == PROTOKOLL) else "")
-    gesamt = (text + "\n" + historie_text) if historie_text else text
-    if historie_text:
-        melde(f"  Zweites Heft (geschlossen): {HISTORIE.name} — "
-              f"{len(historie_text.splitlines())} Zeilen; beide zusammen {len(gesamt.splitlines())}")
+    # Historienhefte nur beim KANONISCHEN Protokoll mitzaehlen (bei --nach <datei> nicht).
+    # ENTSCHEIDUNG Daniel 05.11.2026 (Frage 4, Register 218): auslagern statt verdichten - deshalb
+    # zaehlen ALLE Hefte `ENTWICKLUNGSPROTOKOLL_HISTORIE_*.md` mit, nicht nur das geschlossene von
+    # vor dem 02.11. Sonst meldet die Vollstaendigkeitspruefung Zeilen als verloren, die nur
+    # verschoben wurden.
+    historie_texte = ([p.read_text(encoding="utf-8") for p in
+                       sorted((WURZEL / "docs").glob("ENTWICKLUNGSPROTOKOLL_HISTORIE_*.md"))]
+                      if ziel == PROTOKOLL else [])
+    gesamt = (text + "\n" + "\n".join(historie_texte)) if historie_texte else text
+    if historie_texte:
+        melde(f"  Historienhefte: {len(historie_texte)} — "
+              f"{sum(len(t.splitlines()) for t in historie_texte)} Zeilen; zusammen "
+              f"{len(gesamt.splitlines())}")
     zeilen = text.splitlines()
     try:
         name = ziel.relative_to(WURZEL)
