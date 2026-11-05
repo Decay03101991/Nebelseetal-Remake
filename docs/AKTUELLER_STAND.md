@@ -1,3 +1,47 @@
+# STAND 05.11.2026, 15:10 — Register 222 und 225 GEBAUT; offen sind voller Sammellauf, EXE V0.0.2 und Upload
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen. Der Arbeitsstand ist
+> committet (`38912d6`), die Einzellaeufe und die Dokumentwachen sind gruen, der VOLLE SAMMELLAUF
+> fuer diesen Stand fehlt noch — er ist der erste Schritt der naechsten Sitzung.
+
+**Gebaut in dieser Sitzung** (Einzelheiten Register 226 und 227, Protokollsektion HERMES-STARTSEITE-222):
+
+| Schnitt | Was gebaut ist | Register | Beleg |
+|---|---|---|---|
+| Startfenster | Kartengruendungsseite als erste Ansicht, drei Schritte: Seite -> Volk -> Karte -> Gruendung | 226 | `test_startseite` 69/0/0 |
+| Fraktion | Wahl EINMAL, danach gesperrt; `ast`-Wache auf genau EINE Zuweisung an `state.spieler_fraktion` | 226 | `test_voelkerwahl` 37/0/0 |
+| Goldkosten | 14 Militaereinheiten minus 30 Prozent (Krieger 350 statt 500), belegte Abweichung | 227 | `test_ausbildungsauftraege` 59/0/0, `test_mengeneingabe` 69/0/0 |
+| Karte | Zufallsziehung statt freier Wahl (Original `siedeln.php` Zeilen 10-13) | 227 | `test_startkartenwahl` 26/0/0 |
+| Loeschen | Siedlung aufgeben: Lager, Einheiten und Bauten verloren, Karte zurueck in den Stapel, nur mit mehr als einer Siedlung | 227 | `test_startseite` |
+| Bots | EINE gezogene Karte, Urteil gegen den Durchschnitt der Taktik VOR dem Kauf | 227 | `test_bot_gruendung` 36/0/1, `test_kartenwahl_bot` 25/0/0 |
+
+**Ehrliche Grenze des Schnitts:** beim Spieler ist die Loeschung der Karte das Aufgeben der Siedlung
+(Original). Die EINZIGE erste Siedlung laesst sich nicht aufgeben — ohne Siedlung gaebe es keine
+Produktion, der Start mit einer schlechten ersten Karte waere ohne Ausweg. Bei den Bots urteilt der
+Bot VOR dem Kauf; sein Verlust ist die verlorene Gruendungszeit, nicht der Rohstoff (Begruendung im
+Register 227: das Aufgeben nach der Gruendung warf die Bots von vier Doerfern auf eines zurueck).
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf auf `main` | `38912d6` | `git log --oneline -1` |
+| Commits | 614 | `git rev-list --count HEAD` |
+| Arbeitsbaum | sauber | `git status --porcelain` |
+| Pruefdateien / Module | 175 / 60 | `ls tests/test_*.py`, `ls src/*.py` |
+| Register / Protokoll | 267 / 266 Zeilen | Zaehlung |
+| Einzellaeufe dieser Sitzung | gruen (Tabelle oben), Dokumente 438/0 | Einzellauf-Logs |
+| Voller Sammellauf | **OFFEN** (letzter belegter Lauf 12:33: 172 von 174, 1341 s) | — |
+| Guthaben (Daniel 05.11.2026) | 13,16 USD Stand / 56,83 USD Gesamtverbrauch; **3,16 USD fuer grosse DeepSeek-Auftraege (Nebelseetal)** | Ablesung |
+| EXE | weiterhin `Nebelseetal_Pre_Release_V0.0.1.exe` — V0.0.2 offen | `data/version.json` |
+
+## Der EINE naechste Schritt
+1. Voller Sammellauf mit dem Projekt-venv (`.venv/Scripts/python.exe -X utf8 -u tools/sammellauf.py`),
+   rote Dateien einzeln nachfahren; der Lauf zaehlt nur, wenn er nach dem letzten Fix startete.
+2. Danach EXE `Nebelseetal_DemoVersion_V0.0.2.exe` bauen (`data/version.json`: zaehler 2, label
+   DemoVersion, alte EXE vorher sichern) und am Bildschirm pruefen (Fenster plus Passwortsperre).
+3. Danach Upload-Paket (`tools/build_public_exe.py --pruefen`, Bau nach `release_public/`),
+   Release-Notizen und Push ohne Force; Groesse und SHA256 nur aus der Ausgabe des Laufs.
+4. Nach jedem Schritt eine Zeile ins Entwicklungsprotokoll (Sammellauf und Protokoll gehoeren zum Fix).
+
 # STAND 05.11.2026, 11:40 — Endstand gruen, Pre-Release-EXE gebaut und am Bildschirm geprüft (Register 213 bis 221)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
