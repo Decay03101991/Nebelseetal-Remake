@@ -1,4 +1,4 @@
-# STAND 05.11.2026, 09:45 — alle neun Entscheidungen sind gebaut (Register 213 bis 217)
+# STAND 05.11.2026, 09:32 — alle neun Entscheidungen sind gebaut (Register 213 bis 217)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
 
@@ -37,7 +37,7 @@ ganzen Sektor bis zum Kartenrand). Beide sind Zeilen in Datendateien, ohne Codea
 | Pruefdateien | **174** (fuenf neue) | `ls tests/test_*.py` |
 | Module | 60 (`src/ruinendeckung.py` neu, Modulkarte nachgezogen) | `ls src/*.py`, `test_projektpfade` 123/0 |
 | Register / Protokoll | **217** / 347 Zeilen | Zaehlung in den Papieren |
-| Voller Sammellauf | **laeuft** fuer `741d0f0`, Log `docs/audits/sammellauf_20261105_0945.log` | Start 09:45 |
+| Voller Sammellauf | **laeuft** fuer `741d0f0`, Log `docs/audits/sammellauf_20261105_0945.log` (Dateiname nach der Planung, Lauf startete 09:31) | Start 09:31 |
 | Guthaben (Daniel 08:58) | 4,44 USD Stand / 55,55 USD Gesamtverbrauch | Ablesung, Protokollzeile |
 
 ## Der EINE naechste Schritt
