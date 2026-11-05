@@ -1,0 +1,11 @@
+{
+  "stand": "2026-11-05",
+  "zweck": "Beute-Vorrang bei der Verladung: Gold zuerst, der Rest wird anteilig verteilt - Kampfregel 4 in der entschaerften Fassung, die Daniel am 05.11.2026 gewaehlt hat.",
+  "quelle": "Daniel, 05.11.2026, Frage 8, Antwort b (woertlich): 'Gold bevorzugen, Rest anteilig auffuellen'. Wortlaut und Folgen in docs/ENTSCHEIDUNGEN_DANIEL_20261105_0830.md (Register 212); Messlage der drei Faelle in docs/BEFUND_BEUTE_REIHENFOLGE_20261105.md (Register 209).",
+  "urteil": "BELEGT ist nur die RICHTUNG - sie ist Daniels Entscheidung, kein Handbuchwert. Das Handbuch regelt die Aufteilung der Beute auf die Rohstoffe nicht (kampfbericht.offene_luecken); die frueheren Faelle 'einer nimmt alles' (31.10.2026, alphabetisch) und 'alle gleich' waren beide gesetzt, nicht belegt.",
+  "aktiv": true,
+  "gold": "gold",
+  "vorrang_anteil_prozent": 50,
+  "vorrang_anteil_begruendung": "VORSCHLAG, von Daniel aenderbar ohne Codeaenderung: Gold darf hoechstens die Haelfte der mitnehmbaren Menge fuellen, danach wird der Rest wie bisher anteilig verteilt. Bei 50 Prozent ist der Unterschied sichtbar (Dorf reich, Platz 120: ohne Vorrang 30 Gold, mit Vorrang 60 Gold) UND es kommt weiter Holz und Stein mit - genau das war Daniels Sorge bei der vollen Rangfolge, dass kleine Karren dann NUR Gold bringen (Befund, Fall 1). Bei 100 waere es wieder Regel 4 in voller Haerte, bei 0 das alte Modell.",
+  "hinweis": "Greift nur in kampfbericht.beute_staffel (Kampfbeute). Der Drachen-Anteil entsteht in drachen.beute_anteil nach Leistung und laeuft ueber kampfbericht._anteil_verladen - dort gilt der Vorrang NICHT, sonst wuerde eine zweite Regel dieselbe Buchung bestimmen."
+}

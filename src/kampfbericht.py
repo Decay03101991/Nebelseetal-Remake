@@ -201,6 +201,16 @@ BEUTE_STAFFEL_PROZENT: Dict[str, int] = {
     "mauer_heil": 10,           # erster erfolgreicher Angriff, Wall steht noch
 }
 
+# Beute-VORRANG (Daniels Entscheidung, Frage 8, 05.11.2026 - "Gold bevorzugen, Rest anteilig
+# auffuellen"). Die Bemessung selbst bleibt gestaffelt; hier kommt nur die Reihenfolge der
+# Verladung dazu: Gold darf zuerst bis zu einem Hoechstanteil laden, der Rest wird wie bisher
+# anteilig verteilt. Die Regeln stehen in data/beute_vorrang.json (aktiv / gold /
+# vorrang_anteil_prozent), damit eine Aenderung keine Codeaenderung ist.
+VORRANG: Dict[str, Any] = E.lade_regel("beute_vorrang.json")   # EINE Lesestelle der Regeln
+VORRANG_AKTIV = bool(VORRANG.get("aktiv", True))               # Schalter: false = altes Modell
+VORRANG_GOLD = str(VORRANG.get("gold") or "gold")              # Schluessel des Vorrangstoffs
+VORRANG_ANTEIL = float(VORRANG.get("vorrang_anteil_prozent") or 0.0)  # Hoechstanteil in Prozent
+
 
 def beute_lage(wall_zustand_vor: Any, verteidiger_uebrig: Any) -> str:
     """Welche Lage gilt fuer die Staffelung? (VORGABE Daniel, Prozentwerte VORSCHLAG)
@@ -229,13 +239,16 @@ def beute_staffel(einheiten_des_siegers: Dict[str, int],
                   wall_zustand_vor: Any = None,
                   verteidiger_uebrig: Any = None,
                   forschung: Any = None) -> Dict[str, int]:
-    """Beute nach Daniels Staffelung (Registerpunkt 45).
+    """Beute nach Daniels Staffelung (Registerpunkt 45), mit Gold-Vorrang (Register 214).
 
     Anteil = BEUTE_STAFFEL_PROZENT[beute_lage(...)], zusaetzlich begrenzt durch
       * die Gesamtladung der mitgefuehrten Karren und
       * den tatsaechlich vorhandenen Vorrat je Rohstoff.
-    Die Verteilung auf die Rohstoffe ist anteilig nach Vorratsmenge (das Handbuch
-    regelt die Aufteilung nicht).
+    Die Verteilung auf die Rohstoffe geschieht in ZWEI Schritten (Daniels Entscheidung zur
+    Frage 8, 05.11.2026): **Gold laedt zuerst** bis zu `vorrang_anteil_prozent` der
+    mitnehmbaren Menge (data/beute_vorrang.json), **der Rest wird anteilig** nach Vorratsmenge
+    verteilt. Ohne den Vorrang war es die reine anteilige Verteilung - und die ist es wieder,
+    wenn `aktiv` in der Datendatei false ist (dann nimmt dieser Code denselben Weg wie vorher).
 
     Beispiele (Vorschlagswerte): Wall heil, 1.000 je Rohstoff, Handkarren (Ladung 40)
     -> 10 Prozent = 100, aber nur 40 passen hinein. Ohne Verteidiger -> 100 Prozent,
@@ -259,10 +272,28 @@ def beute_staffel(einheiten_des_siegers: Dict[str, int],
     if ziel <= 0:
         return {}
     genommen: Dict[str, int] = {}
-    for stoff in sorted(vorhanden):
-        nimm = min(int(vorhanden[stoff] / gesamt * ziel), vorhanden[stoff])
-        if nimm > 0:
-            genommen[stoff] = nimm
+
+    # --- Schritt 1: Gold zuerst, aber nur bis zum Hoechstanteil (Frage 8, Register 214) ---
+    # Ohne diese Zeilen gilt sofort der alte Weg: `vorrang` bleibt 0, `uebrig` ist der ganze
+    # Vorrat, und Schritt 2 verteilt genau wie vorher. Deshalb bleibt `aktiv=false` der alte Stand.
+    vorrang = 0
+    if VORRANG_AKTIV and VORRANG_ANTEIL > 0 and VORRANG_GOLD in vorhanden:
+        vorrang = min(int(vorhanden[VORRANG_GOLD]), int(ziel * VORRANG_ANTEIL / 100.0))
+    if vorrang > 0:
+        genommen[VORRANG_GOLD] = vorrang                                 # Gold ist geladen
+    uebrig = ({s: m for s, m in vorhanden.items() if s != VORRANG_GOLD}
+              if vorrang > 0 else vorhanden)                             # Restvorrat zum Verteilen
+    summe_uebrig = sum(uebrig.values())
+    rest_ziel = ziel - sum(genommen.values())                            # was noch Platz hat
+    if rest_ziel > 0 and summe_uebrig > 0:
+        for stoff in sorted(uebrig):
+            nimm = min(int(uebrig[stoff] / summe_uebrig * rest_ziel), uebrig[stoff])
+            if nimm > 0:
+                genommen[stoff] = genommen.get(stoff, 0) + nimm
+    # Die alten Zeilen (anteilig ueber ALLE Rohstoffe, nach Vorratsmenge):
+    #   for stoff in sorted(vorhanden):
+    #       nimm = min(int(vorhanden[stoff] / gesamt * ziel), vorhanden[stoff])
+    # Sie stehen hier als Beleg des Vorzustands; mit `aktiv=false` rechnet der Code genauso.
     # Rest, der durch das Abrunden liegen bleibt, nach dem groessten Bestand auffuellen -
     # nie ueber den vorhandenen Vorrat hinaus. So ist die Summe exakt und die Verteilung fair.
     rest = ziel - sum(genommen.values())
@@ -522,10 +553,13 @@ def offene_luecken() -> Dict[str, str]:
             "wahrscheinlicher', aber keine Formel.",
         "beute_verteilung":
             "Die Beute ist auf die Karrenladung begrenzt, eine Aufteilung auf die Rohstoffe "
-            "ist nicht geregelt. Hier gilt: anteilig nach Vorratsmenge.",
+            "ist nicht geregelt. Hier gilt Daniels Entscheidung zur Frage 8 (05.11.2026): "
+            "Gold zuerst, der Rest anteilig nach Vorratsmenge.",
         "beute_reihenfolge":
-            "In welcher Reihenfolge Rohstoffe verladen werden, ist nicht geregelt "
-            "(hier alphabetisch).",
+            "In welcher Reihenfolge Rohstoffe verladen werden, ist nicht geregelt. Hier gilt "
+            "Daniels Entscheidung zur Frage 8 (05.11.2026, Register 214): Gold zuerst, begrenzt "
+            "auf einen Anteil der mitnehmbaren Menge, danach anteilig. Der Anteil steht in "
+            "data/beute_vorrang.json.",
         "belagerungsturm_mauerschaden":
             "Belagerungsturm und Großer Belagerungsturm haben Mauerschaden 0-0: sie brechen "
             "keine Mauer, tragen aber Schlagkraft zur Vorrunde bei.",

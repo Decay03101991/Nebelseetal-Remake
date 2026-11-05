@@ -45,8 +45,14 @@ KARREN = {"Handkarren": 10}                                   # Ladung 10 * 40 =
 _b_heil = KB.beute_staffel(KARREN, LAGER, wall_zustand_vor=100.0, verteidiger_uebrig=4)
 check("Wall heil: Anteil 10 Prozent = 300, passt in 400 Ladeplatz -> 300",
       sum(_b_heil.values()) == 300, str(_b_heil))
-check("Wall heil: je Rohstoff ein Drittel des Anteils (100)",
-      _b_heil.get("holz") == 100 and _b_heil.get("stein") == 100, str(_b_heil))
+# ENTSCHEIDUNG 8 (Daniel, Frage 8, 05.11.2026, Register 214): "Gold bevorzugen, Rest anteilig
+# auffuellen". Deshalb laedt Gold zuerst seinen Hoechstanteil (50 Prozent der mitnehmbaren
+# Menge = 150), der Rest wird anteilig verteilt (je 75 fuer Holz und Stein). Vorher stand hier
+# "je Rohstoff ein Drittel des Anteils (100)" - dieses Modell gilt nur noch mit `aktiv=false`
+# in `data/beute_vorrang.json` und wird in `tests/test_beute_vorrang.py` als alter Stand geprueft.
+check("Wall heil: Gold laedt zuerst die Haelfte (150), der Rest kommt anteilig mit (je 75)",
+      _b_heil.get("gold") == 150 and _b_heil.get("holz") == 75 and _b_heil.get("stein") == 75,
+      str(_b_heil))
 
 _b_besch = KB.beute_staffel(KARREN, LAGER, wall_zustand_vor=40.0, verteidiger_uebrig=2)
 check("Wall beschaedigt: 30 Prozent = 900, aber nur 400 Ladeplatz -> 400",
