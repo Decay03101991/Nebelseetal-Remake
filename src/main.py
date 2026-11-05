@@ -48,6 +48,7 @@ import punkte      # W6: Forschungs-, Kriegs- und Gesamtpunkte nach den Original
 import kampf       # W2: Vorrunde, Kampfsequenzen, Flucht, Beute (Handbuch S. 20-23)
 import kampfbericht  # W2b: Vorrunden-Pruefung, Mauerschaden, Beute, Bericht
 import drachen  # W-14 (05.11.2026): die Drachen des Spiels - liest nur data/drachen.json
+import haeuser  # W-15 (05.11.2026): Hausnamen und Wappen je Fraktion aus data/haeuser.json
 import bot_angriffsplanung  # GPT-B01: Original-SK-Zielwahl und ehrliche Bot-Kampfberichte
 import botkern     # W5: Bot-Regeln (hier: die Vorschlagsspannen fuer die Vorraete der Bots)
 import bottaktik   # S-7: Bot-Verhalten (Zustandsautomat, Taktiken, Volksattribute, Wechsel)
@@ -8918,21 +8919,28 @@ class NebelseetalApp:
         self._kasten_label(
             "Jedes Volk trägt ein Plus und ein Minus. Die fünf Gegenspieler bekommen die übrigen "
             "Völker - jedes genau einmal. Die Wahl ist endgültig und wird im Spielstand gespeichert; "
-            "die Wirkung der Boni wird im nächsten Schritt verdrahtet.",
+            "die Wirkung der Boni wird im nächsten Schritt verdrahtet. Jedes dieser Völker ist ein "
+            "HAUS mit eigenem Namen, eigener Burg und eigenem Wappen - das Wappen steht auf der "
+            "Weltkarte neben seinen Dörfern (W-15).",
             ("TkDefaultFont", 9), "#C0C0C0", breite=810, innen=12, pady=4, umbruch=780)
         for eintrag in bottaktik.fraktionen():
             zeile = tk.Frame(self.content, bg=self.skin["panel"])      # eine Zeile je Volk (Tabelle)
             zeile.pack(fill=tk.X, padx=10, pady=2)
-            tk.Label(zeile, text=str(eintrag.get("kennung")), fg=self.skin["text"],
+            _kennung = str(eintrag.get("kennung"))                     # Fraktionskennung (Schluessel)
+            _haus = haeuser.hausname(_kennung)                         # W-15: Hausname aus der Datei
+            tk.Label(zeile, text=_kennung, fg=self.skin["text"],
                      bg=self.skin["panel"], width=14, anchor=tk.W).pack(side=tk.LEFT, padx=5)
             tk.Label(zeile, text=str(eintrag.get("plus") or ""), fg="#8FBF7F",
                      bg=self.skin["panel"], width=26, anchor=tk.W).pack(side=tk.LEFT, padx=5)
             tk.Label(zeile, text=str(eintrag.get("minus") or ""), fg="#FDBA74",
                      bg=self.skin["panel"], width=26, anchor=tk.W).pack(side=tk.LEFT, padx=5)
-            tk.Label(zeile, text=str(eintrag.get("beschreibung") or "")[:70], fg="#C0C0C0",
+            _beschreibung = str(eintrag.get("beschreibung") or "")     # der alte Text, unveraendert
+            if _haus:                                                  # Hausname davor, sonst nichts
+                _beschreibung = f"{_haus}: {_beschreibung}"            # z. B. "Haus Silberbach: ..."
+            tk.Label(zeile, text=_beschreibung[:90], fg="#C0C0C0",     # Anzeigetext mit Umlauten
                      bg=self.skin["panel"], wraplength=300, justify=tk.LEFT).pack(side=tk.LEFT, padx=5)
             tk.Button(zeile, text="Dieses Volk nehmen",
-                      command=lambda k=str(eintrag.get("kennung")): self._volk_waehlen(k),
+                      command=lambda k=_kennung: self._volk_waehlen(k),  # Klick nimmt genau dieses Volk
                       bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
         return True
 

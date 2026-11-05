@@ -1,3 +1,48 @@
+# STAND 05.11.2026, 03:53 - W-15 Haeuser und Wappenbeschreibungen (Register 206)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Sechs Haeuser tragen jetzt ihren Namen und ein Wappen, das es wirklich gibt.** Daniels Auftrag
+war, die Wappenbeschreibungen auf die gelieferten Bilder umzuschreiben. Beim Nachsehen kam der
+eigentliche Befund: die alten Saetze beschrieben Motive, die auf **keinem** der zehn Bilder stehen
+(Wellenbalken, Hechtkamm, Widderhoerner, Schwanenfluegel, Stierhoerner, Geierfaecher, Flickenmuster)
+und behaupteten einen Helm, den die Bilder nicht zeigen. Jedes zugeordnete Wappen wurde deshalb
+einzeln angesehen und der Satz daraus neu geschrieben: Silberbach traegt eine goldene Krone auf
+Weinrot, Hammerhall einen steinernen Turm auf Nachtblau, Sternenwacht einen goldenen Hirschkopf auf
+Dunkelgruen, Schattenfaust einen schwarzen Raben vor dem Vollmond auf Violett, Knochenmoor einen
+silbernen Wolfskopf ueber drei Berggipfeln auf Blau, Flickwerk zwei gekreuzte Schwerter auf
+Karminrot. Jeder Satz sagt ausdruecklich, dass kein Helm gefuehrt wird.
+
+**Eine Quelle statt Prosa:** `data/haeuser.json` (Name, Volk, Welt, Farben, Sitz, Burg, Wappen, Satz,
+Kurzform), gelesen ueber `src/haeuser.py`. Die Voelkerwahl nennt zu jedem Volk seinen Hausnamen.
+
+**Ehrliche Grenze:** die Hausfarben der Chronik decken sich nicht mit den Tinkturen der Wappen
+(Menschen "Blau und Silber" gegen Weinrot und Gold). Beides steht offen im Text; die Angleichung ist
+**Frage 6 an Daniel** und wird nicht selbst entschieden.
+
+**Belegt:** `tests/test_haeuser_wappen.py` **61 bestanden, 0 Fehler** mit den Wachen (a)-(i) -
+darunter eine Gegenprobe (ein erfundener alter Satz MUSS auffallen), die Gleichheit von Karten- und
+Hauswappen und die Heimatwelt gegen `data/welt_fraktionen.json`. Umlaut-Wache 49/0.
+Beide Chronik-Fassungen sind hashgleich `2a1df42f...`.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf auf `main` | W-15 (dieser Commit) | `git log --oneline -1` |
+| Neue Wache | `tests/test_haeuser_wappen.py` 61/0/0 | Testlauf |
+| Hausdaten | 6 Haeuser, 12 Bildpfade, alle vorhanden | `data/haeuser.json` |
+| Chronik | beide Fassungen hashgleich `2a1df42f...` | `sha256sum` |
+| Voller Sammellauf | fuer diesen Stand noch offen - laeuft nach diesem Commit | `docs/audits/` |
+
+## Der EINE naechste Schritt
+
+1. **Drachenschuppe als eigene Ware und Trophae** (Daniel 05.11.2026: eigene Auszeichnung, zaehlt am
+   Ende nur als Trophae) - eigener Schritt mit Lagerfach und Anzeige.
+2. Danach: die drei Recherche-Vorschlaege nach einer Balancing-Messung (`tools/balancing_messung.py`).
+3. Mini-Repo fuer das Protokoll (Register 202) mit der VOLLEN Historie, lueckenlos.
+4. Kampfregeln 2, 4, 6 aus `cache/scratch/w13b_kampfregeln_entwurf.md`.
+
+---
+
 # STAND 05.11.2026, 03:06 - Drachen-Nachtraege eingebaut (Register 205)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
