@@ -83,6 +83,9 @@ def _freies_feld(siedlung: dict) -> int:
     return -1
 
 
+MAX_TICK_FEHLER_FOLGE = 200      # erst bei Dauerfehler abbrechen (Skip-Mechanik, Daniel 05.11.2026)
+
+
 def _versuch(aktion, *args):
     """Fuehrt eine Spieleraktion aus und meldet (ok, text) - nie eine Ausnahme nach aussen."""
     try:
@@ -94,17 +97,34 @@ def _versuch(aktion, *args):
 def spielen(tage: float, saat: int = 7) -> dict:
     zustand = S.neuer_zustand(saat)
     jetzt = 0.0
+    # Daniel 05.11.2026: ein gescheiterter Schritt beendet den Lauf NICHT. Jede Stelle, an der
+    # etwas uebersprungen werden musste, landet mit Tag, Stelle und Grund in `uebersprungen`.
     log = {"schritte": [], "ereignisse": [], "bauten": [], "forschungen": [],
-           "ausbildung": [], "kaempfe": [], "_letzter_tag": -1}
+           "ausbildung": [], "kaempfe": [], "uebersprungen": [], "_letzter_tag": -1,
+           "_tick_fehler_folge": 0}
     ziel_tag = tage * SPIELTAG
     angegriffen = False
     while jetzt < ziel_tag:
         jetzt += SCHRITT
-        try:
-            S.tick(zustand, jetzt, SCHRITT)
-        except Exception as fehler:                 # noqa: BLE001
-            log["ereignisse"].append(f"{jetzt / SPIELTAG:.2f} Takt-Fehler: {fehler}")
-            break
+        try:                                        # EIN Spielschritt
+            S.tick(zustand, jetzt, SCHRITT)         # Spielzeit vorruecken und buchen
+            log["_tick_fehler_folge"] = 0           # geglueckt: Zaehler zuruecksetzen
+        except Exception as fehler:                 # noqa: BLE001 - JEDER Fehler wird protokolliert
+            # Skip-Mechanik (Daniel 05.11.2026): NICHT abbrechen. Der Schritt wird uebersprungen,
+            # die Stelle steht im Bericht, das Spiel laeuft weiter - ein langer Lauf mit
+            # protokollierten Luecken ist mehr wert als ein sauberer Abbruch nach Seite 1.
+            log["uebersprungen"].append((round(jetzt / SPIELTAG, 2), "tick",
+                                         f"{type(fehler).__name__}: {fehler}"))
+            log["ereignisse"].append(f"{jetzt / SPIELTAG:.2f} Takt-Fehler uebersprungen: {fehler}")
+            log["_tick_fehler_folge"] = int(log.get("_tick_fehler_folge") or 0) + 1
+            if log["_tick_fehler_folge"] >= MAX_TICK_FEHLER_FOLGE:
+                # Abbruch NUR bei Dauerfehler: dann ist der Zustand unbrauchbar und jede weitere
+                # Zeile waere erfunden. Die Zahl der Fehler steht im Bericht.
+                log["ereignisse"].append(
+                    "Abbruch: %d Takt-Fehler in Folge - der Zustand ist nicht mehr belastbar."
+                    % log["_tick_fehler_folge"])
+                break                               # Ende der Schleife, Bericht folgt trotzdem
+            continue                                # sonst: naechster Schritt
 
         # Bauen (hoechstens ein Versuch je Schritt), sonst ausbauen.
         siedlung = (zustand.get("siedlungen") or [{}])[0]
@@ -175,7 +195,13 @@ def spielen(tage: float, saat: int = 7) -> dict:
 
         tag_rund = int(jetzt // SPIELTAG)
         if tag_rund > log["_letzter_tag"]:
-            stand = S.punkte(zustand, jetzt)
+            try:                                    # Punkte sind eine ANZEIGE - nie ein Abbruchgrund
+                stand = S.punkte(zustand, jetzt)    # Punktestand des Tages
+            except Exception as fehler:             # noqa: BLE001
+                log["uebersprungen"].append((round(jetzt / SPIELTAG, 2), "punkte",
+                                             f"{type(fehler).__name__}: {fehler}"))
+                stand = {}                          # dann ohne Zahlen weiter
+
             log["_letzter_tag"] = tag_rund
             log["schritte"].append({
                 "tag": tag_rund, "ressourcen": dict(zustand.get("ressourcen") or {}),
@@ -184,10 +210,17 @@ def spielen(tage: float, saat: int = 7) -> dict:
                 "einheiten": dict(zustand.get("einheiten") or {}),
                 "bauten": len(siedlung.get("bauten") or {})})
 
+    try:                                            # Abschlussstand - nie ein Abbruchgrund
+        _punkte = S.punkte(zustand, jetzt)          # Punktestand am Ende
+    except Exception as fehler:                     # noqa: BLE001
+        log["uebersprungen"].append((round(jetzt / SPIELTAG, 2), "punkte-ende",
+                                     f"{type(fehler).__name__}: {fehler}"))
+        _punkte = {}                                # dann ohne Zahlen weiter
     log["ende"] = {"tag": round(jetzt / SPIELTAG, 2),
                    "ressourcen": dict(zustand.get("ressourcen") or {}),
-                   "punkte": S.punkte(zustand, jetzt),
-                   "einheiten": dict(zustand.get("einheiten") or {})}
+                   "punkte": _punkte,
+                   "einheiten": dict(zustand.get("einheiten") or {}),
+                   "uebersprungen": len(log["uebersprungen"])}
     return log
 
 
@@ -243,6 +276,24 @@ def bericht(log: dict, tage: float) -> str:
     z.append(f"* Punkte: {e['punkte']}")
     z.append(f"* Einheiten: {e['einheiten'] or '{}'}")
     z.append(f"* Rohstoffe: {e['ressourcen']}")
+    z.append("")
+    z.append("## Uebersprungene Schritte (der Lauf wurde NICHT abgebrochen)")
+    z.append("")
+    uebersprungen = log.get("uebersprungen") or []
+    if uebersprungen:
+        z.append(f"**{len(uebersprungen)} Stelle(n)** konnten nicht ausgefuehrt werden und wurden "
+                 "uebersprungen - der Verlauf laeuft danach weiter (Daniel 05.11.2026: lieber ein "
+                 "langer Lauf mit Luecken als ein kurzer Abbruch).")
+        z.append("")
+        z.append("| Spieltag | Stelle | Grund |")
+        z.append("|---|---|---|")
+        for tag, stelle, grund in uebersprungen[:25]:
+            z.append(f"| {tag} | {stelle} | {str(grund)[:180]} |")
+        if len(uebersprungen) > 25:
+            z.append("")
+            z.append(f"_... und {len(uebersprungen) - 25} weitere (gleiche Form)._")
+    else:
+        z.append("_keine - jeder Schritt liess sich ausfuehren._")
     z.append("")
     z.append("## Was ein Pruefer daraus ablesen kann")
     z.append("")
