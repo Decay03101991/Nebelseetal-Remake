@@ -1,3 +1,49 @@
+# STAND 05.11.2026, 15:40 - Register 228 GEBAUT: Startkarte fest, erstes Dorf ab sechs Siedlungen, Bots geben mit Ruecklage auf
+
+> Neuester Block. Der Block darunter (15:25) haelt die ENTSCHEIDUNGEN fest; dieser Block den gebauten
+> Stand. Kopf beim Schreiben: `8e0e63f` (danach committet), Arbeitsbaum sauber. Protokollsektion
+> HERMES-STARTSEITE-228, Register 229.
+
+**Gebaut und einzeln belegt:**
+
+| Nr. | Schnitt | Was gebaut ist | Beleg |
+|---|---|---|---|
+| A | Startkarte FEST | `_startkarte_ziehen` gibt fuer die erste Siedlung die belegte Standardkarte (`original-036`), gezogen wird nur bei Neugruendungen; `startkarte_gewaehlt` leer = Standardkarte (EINE Lesestelle) | `test_startkartenwahl` **28/0/0** |
+| B | Bots Hauptdorf | `bot_doerfer_karten_zuweisen` setzt fuer das Hauptdorf `originalkarten.START_ID` - jeder Bot startet wie der Spieler | `test_bot_gruendung` 36/0/1, `test_kartenwahl_bot` **25/0/0** |
+| C | Aufgeben ab sechs | neue EINE Quelle `GameState.aufgeben_grund`: erstes Dorf (Index 0) ab sechs Siedlungen, jedes andere ab zwei, eine einzige nie; Kern, App und Siedlungsliste fragen dieselbe Funktion, die Liste nennt den Grund | `test_startseite` **68/0/0** |
+| D | Bots geben auf | `GameState.bot_siedlung_aufgeben`: Ruecklage der Gebuehr VOR dem Aufgeben, Zahlungsfaehigkeit der naechsten Gruendung aus `gruendungskosten()`, Sperre je Bot, Erinnerung an abgelehnte Karten, Abbruch nach drei Aufgaben, nie Haupt- oder letztes Dorf; der Bot-Takt ruft es nach der Gruendung | `test_bot_aufgeben` **45/0/1** (neu) |
+| E | Daten und Dokumente | `data/bot_gruendung.json` Block `aufgeben` (24 h Sperre, Erinnerung 1, hoechstens 3), `data/startkarte.json` auf die feste Startkarte umgeschrieben, Register 229, Protokollsektion | `json.load` gruen, Dateien gelesen |
+
+**Zwei alte Wachen sind mit der Entscheidung umgeschrieben, nicht der Code zurueckgebogen:** die
+Pruefungen „Urteil vor dem Kauf“ und „kein Aufgeben im Bot-Takt“ sicherten die Uebergangsloesung aus
+Register 227; sie pruefen jetzt Ruecklage, Sperre, Erinnerung und Zahlungsfaehigkeit.
+
+**Ehrlich offen:** der volle Sammellauf fuer diesen Stand fehlt noch (Einzellaeufe und Dokumentwachen
+sind gruen, das ist kein Sammellauf). Die Zahlen der Bot-Aufgabe (24 h, Erinnerung 1, hoechstens 3)
+sind ein VORSCHLAG aus `data/bot_gruendung.json` und ohne Codeaenderung stellbar.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf auf `main` | `8e0e63f` beim Schreiben, Commit dieses Schnitts danach | `git log --oneline -1` |
+| Commits | 616 vor dem Commit | `git rev-list --count HEAD` |
+| Pruefdateien / Module | 176 / 60 (eine Wache neu) | `ls tests/test_*.py`, `ls src/*.py` |
+| Register / Protokoll | 268 / 272 Zeilen | Zaehlung |
+| Voller Sammellauf | **OFFEN** (letzter belegter Lauf 12:33: 172 von 174, 1341 s) | - |
+| EXE | weiterhin `Nebelseetal_Pre_Release_V0.0.1.exe` - V0.0.2 offen | `data/version.json` |
+| Guthaben (Daniel 15:06) | 13,16 USD Stand / 56,83 USD Gesamtverbrauch; davon 3,16 USD fuer Spieltest-Laeufe freigegeben | Ablesung |
+
+## Der EINE naechste Schritt
+1. **Voller Sammellauf** mit dem Projekt-venv: `.venv/Scripts/python.exe -X utf8 -u tools/sammellauf.py
+   > docs/audits/sammellauf_20261105_<hhmm>.log 2>&1` (~22 min, nicht durch `tail` pipen). Rote
+   Dateien einzeln nachfahren. Ein Lauf zaehlt nur, wenn er NACH dem letzten Fix startete.
+2. **EXE `Nebelseetal_DemoVersion_V0.0.2.exe`** bauen (`data/version.json` auf 2), am Bildschirm
+   pruefen (Fenster und Passwortsperre), ueber die Fenster-PID beenden, `game.lock` aufraeumen.
+3. **Upload-Paket und GitHub**: `tools/build_public_exe.py --pruefen`, dann bauen und pushen (kein
+   Force, `main` unberuehrt), Release-Notizen mit gekuerzter Ankuendigung der Spieltests.
+4. **Ein bis zwei Spieltest-Laeufe** (3,16 USD freigegeben) mit verschiedenem Verhalten; Werkzeug
+   braucht eine Skip-Anweisung, damit ein gescheiterter Test den Lauf NICHT beendet.
+5. **laptop-cleanup-bot-Cronjob** zuletzt pruefen und wieder aktivieren.
+
 # STAND 05.11.2026, 15:25 — Nachtrag zu Register 228: Daniels Antworten, zwei neue Schnitte vor dem Upload
 
 > Neuester Block, Nachtrag zum Block darunter (15:10). Die Antworten sind AUFGENOMMEN, nicht gebaut.

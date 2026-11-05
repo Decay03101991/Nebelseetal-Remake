@@ -12,5 +12,18 @@
   },
   "quelle": "Kosten, Startpaket, Mindestbestand und die Forschungsstufe kommen aus dem KERN (`spieloekonomie.gruendungskosten()` und `spieloekonomie.REGELN['gruendung']`) - nicht aus dieser Datei. Hier stehen nur die bot-eigenen Zahlen: Hoechstzahl, Sperre und der Karren-Schalter.",
   "ehrliche_grenze": "Ohne Werkstattkette kann ein Bot keinen Siedlerkarren bauen; deshalb steht `siedlerkarren_pflicht` auf false und die Siedler wandern direkt aus dem Ausgangsdorf. Das ist eine ABWEICHUNG von der Spielerregel und als solche im Register vermerkt - Daniel entscheidet, ob sie so bleibt oder ob Bots erst mit Karren gruenden (S-6b).",
-  "siedlerkarren_pflicht_begruendung": "S-6b Teil 2 (03.11.2026): Daniel hat entschieden, dass ein Bot den Karren genau wie der Spieler baut (Kosten und Forschung aus dem KERN). Seit `bot_karren_bauen` im Bot-Takt laeuft und der Karren nachweislich gebaut wird, ist die Pflicht EIN. Ohne Karren gruendet kein Bot."
+  "siedlerkarren_pflicht_begruendung": "S-6b Teil 2 (03.11.2026): Daniel hat entschieden, dass ein Bot den Karren genau wie der Spieler baut (Kosten und Forschung aus dem KERN). Seit `bot_karren_bauen` im Bot-Takt laeuft und der Karren nachweislich gebaut wird, ist die Pflicht EIN. Ohne Karren gruendet kein Bot.",
+  "aufgeben": {
+    "aktiv": true,
+    "sperre_stunden": 24,
+    "erinnerung_max": 1,
+    "aufgaben_max": 3,
+    "warum_diese_zahlen": {
+      "sperre_stunden": "VORSCHLAG: hoechstens eine Aufgabe je Bot und Spieltag. Ohne Sperre gruendete und verwarf ein Bot im Minutentakt, weil jede zweite Karte unter dem Durchschnitt seiner Taktik liegt.",
+      "erinnerung_max": "EINE abgelehnte Karte wird von DIESEM Bot nie wieder gekauft (`gedaechtnis['abgelehnte_karten']`). Das ist die Erinnerung gegen die Drehschleife - mit 1 ist der Vorrat an schlechten Karten endlich.",
+      "aufgaben_max": "Hoechstens drei Aufgaben je Bot im ganzen Spiel. Die gemessene Gefahr: die erste Fassung warf die Bots von vier Doerfern auf eines zurueck (test_bot_gruendung 3 rot)."
+    },
+    "bedingungen": "Nie das Hauptdorf, nie das letzte Dorf. Die Gruendungsgebuehr wird VOR dem Aufgeben in das zahlende Dorf zurueckgelegt (Ruecklage), und aufgegeben wird nur, wenn danach ein anderes Dorf die naechste Gruendung bezahlen kann (spieloekonomie.gruendungskosten). Kann niemand zahlen, bleibt das Dorf stehen - der Bot spart weiter.",
+    "quelle": "Daniel 05.11.2026 (Register 228, Antwort 3): der Bot gruendet, beurteilt und gibt auf, wenn die Karte fuer seine Taktik zu schlecht ist, muss die Kosten aber erneut ansparen koennen. Umgesetzt in GameState.bot_siedlung_aufgeben."
+  }
 }

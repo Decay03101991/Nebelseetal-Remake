@@ -1,12 +1,13 @@
 # -*- coding: ascii -*-
-"""Startkarte des Spielers: GEZOGEN statt gewaehlt (Register 225, Daniel 05.11.2026).
+"""Startkarte des Spielers: FEST beim Start, GEZOGEN nur fuer Neugruendungen (Register 228).
 
 WAS SICH GEANDERT HAT
 ---------------------
 Bis 05.11.2026 zeigte das Dorfzentrum eine Wahl aus DREI Karten (A2-Vorstufe, Vorgabe Daniel
-02.11.2026). Daniel hat am 05.11.2026 entschieden (Register 225): "Wir sollten die Orginaltreue
-wa[h]ren. Die bots und spieler erhalten eine karte und falls sie fuer Ihren Zweck nicht gut genug
-sind, muessen sie die karte loeschen, verlieren die gruendungs ressourcen und muessen neu sparen".
+02.11.2026). Register 225 (05.11.2026) machte daraus eine ZUFALLSZIEHUNG beim Start. Daniel hat
+diese Ziehung fuer den START am 05.11.2026 wieder zurueckgenommen (Register 228, Antwort 1): "Zum
+Start gibt es fuer jeden Spieler und auch fuer die Bots immer dieselbe Startkarte" - die mittlere
+Karte `original-036` (START_ID). Gezogen wird nur noch bei NEUgruendungen (Siedlung 2 bis 6).
 
 Original (docs/original/Spielanleitung_2005/siedeln.php.txt, Zeilen 10-13): einer neuen Siedlung
 wird per Zufall eine Karte zugewiesen; niemals bekommen zwei eigene Siedlungen dieselbe; nach dem
@@ -53,9 +54,12 @@ check("das Speicherfeld ist benannt", bool(str(_cfg.get("speicherfeld") or "")),
 check("die belegte Standardkarte steht weiter in der Datei",
       _cfg.get("standard_karte") == O.START_ID,
       "%s / %s" % (_cfg.get("standard_karte"), O.START_ID))
-check("die Datei beschreibt die ZIEHUNG",
-      "Gleichverteilt" in str(_cfg.get("_ziehung") or "")
-      and "keine freie Wahl" in str(_cfg.get("_ziehung") or ""), "")
+# Register 228: die Ziehung gilt nur noch fuer NEUgruendungen, die erste Siedlung ist fest.
+check("die Datei nennt die FESTE Startkarte fuer die erste Siedlung",
+      "FESTE Standardkarte" in str(_cfg.get("_zweck") or ""), str(_cfg.get("_zweck"))[:90])
+check("die Ziehung gilt nur fuer NEUgruendungen (Register 228)",
+      "Neugruendungen" in str(_cfg.get("_ziehung") or "")
+      and "ERSTE Siedlung wird NICHT gezogen" in str(_cfg.get("_ziehung") or ""), "")
 check("die Datei beschreibt das AUFGEBEN mit Quelle",
       "siedeln.php" in str(_cfg.get("_aufgeben") or ""), "")
 check("die Datei nennt den Grund der Ein-Siedlung-Sperre",
@@ -95,11 +99,13 @@ root = tk.Tk()
 root.withdraw()
 app = M.NebelseetalApp(root)
 app._build_main_ui()
-check("ohne Wahl zieht die Startseite beim Anzeigen der Karte",
+check("ohne Wahl steht die Startkarte leer im Spielstand (Standardkarte)",
       str(app.state.startkarte_gewaehlt) == "", app.state.startkarte_gewaehlt)
 _gezogen = app._startkarte_ziehen()
-check("die gezogene Kennung steht im Spielstand", app.state.startkarte_gewaehlt == _gezogen,
-      app.state.startkarte_gewaehlt)
+# Register 228: die ERSTE Siedlung bekommt die belegte Standardkarte, nicht eine gezogene.
+check("die Startseite liefert die FESTE Standardkarte", _gezogen == O.START_ID, _gezogen)
+check("die feste Karte steht als leeres Merkfeld im Spielstand (EINE Lesestelle)",
+      app.state.startkarte_gewaehlt == "", app.state.startkarte_gewaehlt)
 check("die Kennung ist eine echte Karte", _gezogen in _ids, _gezogen)
 
 
@@ -131,7 +137,7 @@ check("die Seite bietet die Gruendung mit dieser Karte an",
 app.state.spieler_fraktion = "menschlich"
 app._erste_siedlung_gruenden()
 check("die Siedlung entsteht", len(app.state.settlements) == 1, str(len(app.state.settlements)))
-check("die Siedlung traegt die GEZOGENE Karte",
+check("die Siedlung traegt die FESTE Startkarte",
       (app.state.settlements[0].karte or {}).get("originalkarte_id") == _gezogen,
       str((app.state.settlements[0].karte or {}).get("originalkarte_id")))
 root.destroy()

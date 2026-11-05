@@ -1,27 +1,30 @@
 # -*- coding: ascii -*-
-"""Register 222 + 225: die Kartengruendungsseite als Startfenster, kein Fraktionswechsel,
+"""Register 222 + 225 + 228: die Kartengruendungsseite als Startfenster, kein Fraktionswechsel,
 und das Aufgeben einer Siedlung (Karte loeschen) nach dem Original.
 
-DIE ENTSCHEIDUNGEN (Daniel, 05.11.2026, Register 222 und 225)
--------------------------------------------------------------
+DIE ENTSCHEIDUNGEN (Daniel, 05.11.2026, Register 222, 225 und 228)
+------------------------------------------------------------------
 1. Das Startfenster des Spiels ist die Kartengruendungsseite; direkt nach "Neues Spiel" wird die
    Fraktion gefragt (sechs Voelker aus data/voelker.json), erst danach kommt die Karte.
 2. Danach ist fuer den Spielstand ein Fraktionswechsel NICHT mehr moeglich - die Wahl beim Start
    ist die EINZIGE Stelle, an der `spieler_fraktion` gesetzt wird.
-3. Die Karte wird GEZOGEN (Zufall), nicht gewaehlt. Passt sie nicht, laesst sich die Siedlung
-   aufgeben: dann sind alle Einheiten, Waren, Gebaeude und Vorraete DIESER Siedlung verloren und
-   die Karte liegt wieder im Stapel. Original: nur wenn mehr als eine Siedlung steht.
-   Quelle: docs/original/Spielanleitung_2005/siedeln.php.txt, Zeilen 10-21.
-4. Bots bekommen ebenfalls EINE Karte und beurteilen sie mit ihrem Engpass; sie geben ein Dorf nur
-   auf, wenn ein anderes Dorf die Gruendung erneut bezahlen kann.
+3. Register 228: die ERSTE Siedlung bekommt die FESTE Standardkarte (`original-036`) - fuer Spieler
+   und Bots gleich. Gezogen wird nur bei NEUgruendungen. Passt eine Karte nicht, laesst sich die
+   Siedlung aufgeben: dann sind alle Einheiten, Waren, Gebaeude und Vorraete DIESER Siedlung
+   verloren (Original, siedeln.php Zeilen 10-21).
+4. Register 228: das ERSTE Dorf (Index 0) ist erst aufgebenbar, wenn SECHS Siedlungen stehen; jedes
+   andere Dorf weiterhin, sobald mehr als eine Siedlung steht.
+5. Bots gruenden, beurteilen und geben auf, wenn die Karte ihre Taktik nicht traegt - mit Ruecklage
+   der Gebuehr (`data/bot_gruendung.json`, Block `aufgeben`).
 
 Was diese Datei beweist
 -----------------------
 1. Die Startseite ist die erste Ansicht; die drei Schritte laufen in der entschiedenen Reihenfolge.
 2. Die Fraktionswahl landet im Spielstand und laesst sich nicht wiederholen (Quelle + Laufzeit).
-3. Die Karte ist gezogen, nicht gewaehlt; die Gruendung nimmt GENAU diese Karte.
-4. Aufgeben: Sperre bei einer Siedlung, Verlust aller Werte, Karte zurueck in den Stapel.
-5. Bots: Urteil ueber die Karte, Aufgabe nur mit zahlendem zweiten Dorf.
+3. Die erste Siedlung traegt die FESTE Startkarte (Register 228).
+4. Aufgeben: Sperre bei einer Siedlung, Freischaltung des ersten Dorfes ab sechs Siedlungen,
+   Verlust aller Werte, Karte zurueck in den Stapel - Kern und Anzeige fragen DIESELBE Funktion.
+5. Bots: Aufgabe nur mit Ruecklage, Sperre und Erinnerung (Register 228).
 
 Aufruf:  python -X utf8 tests/test_startseite.py
 """
@@ -185,13 +188,13 @@ check("spieloekonomie reicht die Ziehung durch (EINE Lesestelle)",
       S.startkarte_ziehung("probe-225").get("originalkarte_id") == _k1.get("originalkarte_id"), "")
 
 _gezogene_seite = app.state.startkarte_gewaehlt
-check("die Startseite hat die Karte in den Spielstand geschrieben",
-      _gezogene_seite in _ids, _gezogene_seite)
+check("die Startseite meldet die FESTE Startkarte (Register 228, leeres Merkfeld)",
+      _gezogene_seite == "", _gezogene_seite)
 app._erste_siedlung_gruenden()
 app.content.update_idletasks()
 check("die Siedlung entsteht", len(app.state.settlements) == 1, str(len(app.state.settlements)))
-check("die Siedlung traegt GENAU die gezogene Karte",
-      (app.state.settlements[0].karte or {}).get("originalkarte_id") == _gezogene_seite,
+check("die Siedlung traegt die FESTE Startkarte original-036",
+      (app.state.settlements[0].karte or {}).get("originalkarte_id") == O.START_ID,
       str((app.state.settlements[0].karte or {}).get("originalkarte_id")))
 check("nach der Gruendung ist das Dorfzentrum die Ansicht",
       app.current_view == "Dorfzentrum", app.current_view)
@@ -199,7 +202,7 @@ check("das gewaehlte Volk steht im Dorfzentrum",
       any("Dein Volk:" in t for t in _texte(app)), "")
 
 # ==========================================================================
-abschnitt("4. Eine Siedlung aufgeben (Register 225, Originalregel)")
+abschnitt("4. Aufgeben: Originalregel und die Freischaltung ab sechs Siedlungen (Register 228)")
 # ==========================================================================
 
 _st = app.state
@@ -209,7 +212,7 @@ check("die EINZIGE Siedlung laesst sich nicht aufgeben", _ok1 is False, _meld1[:
 check("die Ablehnung nennt den Grund", "einzige Siedlung" in _meld1, _meld1[:70])
 check("nach der Ablehnung steht die Siedlung noch", len(_st.settlements) == 1, "")
 
-# Zwei Siedlungen: die ERSTE traegt die Startkarte, die ZWEITE eine Stapelkarte.
+# Zwei Siedlungen: das ERSTE Dorf ist gesperrt, ein anderes nicht (Register 228).
 _karte_id = next(k for k, e in sorted(_st.kartenvorrat.items()) if e.get("besitzer") is None)
 _zweite = _karte_anlegen(_st, "Siedlung 2", _karte_id, {"holz": 40.0, "stein": 25.0},
                          {"Krieger": 3}, {"0": "holzfaeller", "1": "steinmetz"},
@@ -219,48 +222,50 @@ _size = next(m["size"] for m in M.MAPS if m["id"] == _st.current_map)
 _st._weltkarte_sicherstellen()
 _st.get_tile(_erste.x, _erste.y, _size).npc_faction = "spieler"
 
-_ok2, _meld2 = _st.siedlung_aufgeben(_erste.id)
-check("mit zwei Siedlungen laesst sie sich aufgeben", _ok2 is True, _meld2[:70])
-check("die Siedlung ist danach weg",
-      [s.id for s in _st.settlements] == [_zweite.id], str([s.id for s in _st.settlements]))
-check("die Karte der Startseite ist wieder frei (naechster Start zieht neu)",
-      _st.startkarte_gewaehlt == "", _st.startkarte_gewaehlt)
-check("die andere Siedlung behaelt ihr Lager",
-      round(float(_st.ortslager().get("holz", 0.0)), 2) == 40.0, str(_st.ortslager()))
-check("die aktive Siedlung ist berichtigt", _st.aktive_siedlung_id == _zweite.id,
-      _st.aktive_siedlung_id)
-check("das Weltfeld ist wieder frei",
-      _st.get_tile(_erste.x, _erste.y, _size).npc_faction is None, "")
+check("mit zwei Siedlungen ist das ERSTE Dorf noch gesperrt (Register 228)",
+      _st.aufgeben_grund(_erste.id) != "", _st.aufgeben_grund(_erste.id)[:80])
+check("der Grund nennt die sechs Siedlungen",
+      "wenn 6 Siedlungen stehen" in _st.aufgeben_grund(_erste.id), _st.aufgeben_grund(_erste.id)[:90])
+_ok_gesperrt, _meld_gesperrt = _st.siedlung_aufgeben(_erste.id)
+check("der Kern gibt denselben Grund wie die Anzeige (EINE Quelle, F-04)",
+      _ok_gesperrt is False and _meld_gesperrt == _st.aufgeben_grund(_erste.id), _meld_gesperrt[:80])
+check("eine Ablehnung aendert nichts", len(_st.settlements) == 2, str(len(_st.settlements)))
+
+_ok2, _meld2 = _st.siedlung_aufgeben(_zweite.id)
+check("ein ANDERES Dorf laesst sich mit zwei Siedlungen aufgeben", _ok2 is True, _meld2[:70])
+check("die Stapelkarte liegt wieder im Stapel", _st.kartenvorrat[_karte_id]["besitzer"] is None,
+      str(_st.kartenvorrat[_karte_id]["besitzer"]))
+check("die Startkarte bleibt unberuehrt", _st.startkarte_gewaehlt == "", _st.startkarte_gewaehlt)
+check("die verbliebene Siedlung behaelt ihr Lager",
+      round(float(_st.ortslager().get("holz", 0.0)), 2) == 100.0, str(_st.ortslager()))
+check("mit NUR EINER Siedlung ist die naechste Aufgabe wieder gesperrt",
+      _st.siedlung_aufgeben(_erste.id)[0] is False, "Original: nur mit mehr als einer Siedlung")
+
+# Register 228: bis zur sechsten Siedlung bleibt das erste Dorf gesperrt - dann wird es frei.
+for _nummer in range(2, 7):                                       # Siedlung 2 bis 6 (die alte 2 ist weg)
+    _kid = next(k for k, e in sorted(_st.kartenvorrat.items()) if e.get("besitzer") is None)
+    _karte_anlegen(_st, "Siedlung %d" % _nummer, _kid, {"holz": 40.0, "stein": 25.0},
+                   {"Krieger": 3}, {"0": "holzfaeller", "1": "steinmetz"},
+                   "probe-siedlung-%d" % _nummer)
+    _st.kartenvorrat[_kid]["besitzer"] = "spieler"
+check("es stehen sechs Siedlungen", len(_st.settlements) == 6, str(len(_st.settlements)))
+check("mit sechs Siedlungen ist das ERSTE Dorf aufgebenbar",
+      _st.aufgeben_grund(_erste.id) == "", _st.aufgeben_grund(_erste.id))
+_ok3, _meld3 = _st.siedlung_aufgeben(_erste.id)
+check("das erste Dorf laesst sich mit sechs Siedlungen aufgeben", _ok3 is True, _meld3[:70])
+check("die Meldung nennt Geb\u00e4ude, Einheiten und Lager",
+      "Geb\u00e4ude" in _meld3 and "Einheiten" in _meld3 and "Lager" in _meld3, _meld3[:90])
+check("die Meldung sagt, dass die Startkarte fest bleibt",
+      "Startkarte bleibt die feste Standardkarte" in _meld3, _meld3[:150])
+check("die Siedlung ist danach weg", len(_st.settlements) == 5, str(len(_st.settlements)))
 check("die Aufgabe steht im Postfach",
       any("aufgegeben" in str(m.get("text")) for m in _st.messages[-3:]), "")
-check("mit NUR EINER Siedlung ist die naechste Aufgabe wieder gesperrt",
-      _st.siedlung_aufgeben(_zweite.id)[0] is False, "Original: nur mit mehr als einer Siedlung")
-
-# Die Stapelkarte: eine dritte Siedlung, dann die zweite aufgeben - DIE Karte muss zurueck.
-_karte_b = next(k for k, e in sorted(_st.kartenvorrat.items())
-                if e.get("besitzer") is None and k != _karte_id)
-_dritte = _karte_anlegen(_st, "Siedlung 3", _karte_b, {"holz": 40.0, "stein": 25.0},
-                         {"Krieger": 3}, {"0": "holzfaeller", "1": "steinmetz"},
-                         "probe-siedlung-3")
-_st.kartenvorrat[_karte_b]["besitzer"] = "spieler"
-_ok3, _meld3 = _st.siedlung_aufgeben(_dritte.id)
-check("die dritte Siedlung laesst sich aufgeben (es stehen zwei)", _ok3 is True, _meld3[:70])
-check("die Meldung nennt Gebaeude, Einheiten und Lager",
-      "2 Gebaeude" in _meld3 and "3 Einheiten" in _meld3, _meld3[:90])
-check("die Stapelkarte liegt wieder im Stapel",
-      _st.kartenvorrat[_karte_b]["besitzer"] is None,
-      str(_st.kartenvorrat[_karte_b]["besitzer"]))
-check("die Startkarte bleibt unberuehrt (sie war nicht ihre)",
-      _st.startkarte_gewaehlt == "", _st.startkarte_gewaehlt)
-
-# Zuletzt die letzte Siedlung: sie ist die einzige und bleibt deshalb stehen.
-check("die letzte Siedlung bleibt stehen", _st.siedlung_aufgeben(_zweite.id)[0] is False, "")
-check("es steht genau eine Siedlung", [s.id for s in _st.settlements] == [_zweite.id],
-      str([s.id for s in _st.settlements]))
-check("der Zeiger steht auf der verbliebenen Siedlung",
-      _st.aktive_siedlung_id == _zweite.id, _st.aktive_siedlung_id)
-check("das Reich traegt nur das Lager dieser Siedlung",
-      round(float(_st.ortslager().get("holz", 0.0)), 2) == 40.0, str(_st.ortslager()))
+check("die verbliebenen Doerfer behalten je ihr Lager",
+      all(round(float((s.vorraete or {}).get("holz", 0.0)), 2) == 40.0 for s in _st.settlements),
+      str([(s.vorraete or {}).get("holz") for s in _st.settlements]))
+check("mit fuenf Siedlungen ist das NAECHSTE erste Dorf wieder gesperrt",
+      _st.aufgeben_grund(_st.settlements[0].id) != "",
+      _st.aufgeben_grund(_st.settlements[0].id)[:70])
 
 # ==========================================================================
 abschnitt("5. Bots: Urteil ueber die Karte und Aufgabe nur mit zahlendem zweiten Dorf")
@@ -307,12 +312,19 @@ _b4.doerfer = [M.BotDorf(name="Haupt", hauptdorf=True, karte=_gut,
 check("der Bot bekommt in bot_dorf_gruenden eine Karte vorgeschlagen",
       bool(M.bot_kartenwahl(_b4, 0)), "")
 
-# Die Regel steht VOR dem Kauf: bot_dorf_gruenden fragt das Urteil und gruendet sonst nicht.
-check("bot_dorf_gruenden fragt das Urteil vor dem Kauf",
-      "bot_kartenurteil(bot, vorschlag)" in TEXT_MAIN, "")
-check("ein nachtraegliches Aufgeben im Bot-Takt gibt es nicht mehr",
-      "self.bot_siedlung_aufgeben" not in TEXT_MAIN,
-      "das Aufgeben nach der Gruendung warf die Bots auf ein Dorf zurueck (gemessen)")
+# Register 228 (Daniel 05.11.2026, Antwort 3): der Bot gruendet, BEURTEILT danach und gibt auf.
+# Die fruehere Wache "kein Aufgeben nach der Gruendung" ist damit ueberholt - sie sicherte die
+# Uebergangsloesung aus Register 225, in der die Bots VOR dem Kauf urteilten.
+check("der Bot-Takt ruft die Aufgabe nach der Gruendung",
+      "self.bot_siedlung_aufgeben(" in TEXT_MAIN, "")
+check("die Gruendung kauft keine bereits abgelehnte Karte wieder",
+      "abgelehnte_karten" in TEXT_MAIN and "erinnerung_max" in TEXT_MAIN, "")
+check("die Aufgabe hat Ruecklage, Sperre und Abbruchregel",
+      all(wort in TEXT_MAIN for wort in ("RUECKLAGE", "aufgabe_seit", "aufgaben_max")), "")
+check("die Bedingungen der Aufgabe stehen in der Datendatei",
+      all(schluessel in open(os.path.join(ROOT, "data", "bot_gruendung.json"),
+                             encoding="utf-8").read()
+          for schluessel in ("aufgeben", "sperre_stunden", "erinnerung_max", "aufgaben_max")), "")
 
 # Jedes Bot-Dorf muss eine Karte tragen, die seine Taktik traegt.
 _b7 = _bot("Haug")

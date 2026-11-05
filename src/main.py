@@ -1360,6 +1360,13 @@ def bot_doerfer_karten_zuweisen(bot: "BotPlayer", einstellungen: Optional[dict] 
     for i, dorf in enumerate(doerfer_liste):                              # je Dorf eine Karte
         if str(getattr(dorf, "karte", "") or ""):                         # schon vergeben
             continue                                                      # nichts tun
+        # Register 228 (Daniel 05.11.2026, Antwort 1): auch jeder Bot beginnt auf DERSELBEN
+        # festen Startkarte wie der Spieler - sein Hauptdorf nimmt `original-036`.
+        if bool(getattr(dorf, "hauptdorf", False)) or i == 0:             # das Hauptdorf
+            dorf.karte = originalkarten.START_ID                          # feste Startkarte (EINE Quelle)
+            belegte.append(dorf.karte)                                    # Portfolio waechst mit
+            neu += 1                                                      # zaehlen
+            continue                                                      # kein Zufall fuer das Hauptdorf
         karte = bot_kartenwahl(bot, i, einstellungen=einstellungen, stufe=stufe,
                                belegte=[k for k in belegte if k], raten=raten)
         if karte:                                                         # Karte gefunden
@@ -1737,7 +1744,7 @@ def bot_kartenurteil(bot, karte, plan: Optional[dict] = None) -> Dict[str, Any]:
     gut = punkte >= durchschnitt                                     # gut genug fuer die Taktik
     return {"karte": kennung, "punkte": round(punkte, 6), "durchschnitt": durchschnitt,
             "gut_genug": gut,
-            "grund": "traegt die Taktik" if gut else "liegt unter dem Durchschnitt der Taktik"}
+            "grund": "trägt die Taktik" if gut else "liegt unter dem Durchschnitt der Taktik"}
 def bot_kartenwahl_nach_engpass(bot: "BotPlayer", kandidaten: List[str],
                                 plan: Optional[dict] = None) -> str:
     """Die Karte unter den Kandidaten, die den Engpass DIESER Taktik am besten traegt (S-11c).
@@ -5130,6 +5137,31 @@ class GameState:
 
     # ------------- Register 225: eine Siedlung aufgeben (die Karte loeschen) -------------
 
+    def aufgeben_grund(self, siedlung_id: str) -> str:
+        """Warum diese Siedlung NICHT aufgebenbar ist - leer heisst: sie ist es (Register 228).
+
+        Quelle: docs/original/Spielanleitung_2005/siedeln.php.txt, Zeilen 14-21 (Aufgeben nur, wenn
+        mehr als eine Siedlung steht). Daniel 05.11.2026, Antwort 2: das ERSTE Dorf des Verbunds
+        (Index 0 der Siedlungsliste) ist erst aufgebenbar, sobald SECHS Siedlungen stehen - dann
+        gruendet man aus den anderen Doerfern heraus neu und sucht eine bessere Karte.
+
+        Diese Funktion ist die EINE Quelle fuer KERN und ANZEIGE (F-04-Muster): `siedlung_aufgeben`
+        und der Knopf in der Siedlungsliste fragen hier, damit keine Anzeige etwas anbietet, das der
+        Kern verweigert - und damit der Grund ueberall derselbe Satz ist.
+        """
+        kennung = str(siedlung_id or "").strip()                        # gesuchte Siedlung
+        ziel = next((s for s in self.settlements if str(getattr(s, "id", "")) == kennung), None)
+        if ziel is None:                                                # fremde oder alte Kennung
+            return "Diese Siedlung gehört nicht zu diesem Reich."
+        if len(self.settlements) <= 1:                                  # die einzige Siedlung
+            return ("Die einzige Siedlung lässt sich nicht aufgeben - gründe zuerst eine zweite "
+                    "(Original: Aufgeben nur, wenn mehr als eine Siedlung steht).")
+        if self.settlements[0] is ziel and len(self.settlements) < SIEDLUNGEN_MAXIMUM:
+            return ("Das erste Dorf lässt sich erst aufgeben, wenn %d Siedlungen stehen (heute %d) "
+                    "- dann gründest du aus den anderen Dörfern heraus neu."
+                    % (SIEDLUNGEN_MAXIMUM, len(self.settlements)))
+        return ""                                                       # erlaubt
+
     def siedlung_aufgeben(self, siedlung_id: str) -> Tuple[bool, str]:
         """Eine Siedlung aufgeben - Originalregel, Register 225 (Daniel 05.11.2026).
 
@@ -5148,11 +5180,9 @@ class GameState:
         """
         kennung = str(siedlung_id or "").strip()                      # gesuchte Siedlung
         ziel = next((s for s in self.settlements if str(getattr(s, "id", "")) == kennung), None)
-        if ziel is None:                                              # fremde oder alte Kennung
-            return False, "Diese Siedlung gehoert nicht zu diesem Reich."
-        if len(self.settlements) <= 1:                                # Original: nur mit >1
-            return False, ("Die einzige Siedlung laesst sich nicht aufgeben - gruende zuerst eine "
-                           "zweite (Original: Aufgeben nur, wenn mehr als eine Siedlung steht).")
+        grund = self.aufgeben_grund(kennung)                          # Sperre: EINE Quelle (Register 228)
+        if grund:                                                     # gesperrt oder fremd
+            return False, grund                                       # eine Ablehnung aendert NICHTS
         karte = dict(getattr(ziel, "karte", None) or {})              # ihre Karte, VOR dem Loeschen
         karte_id = str(karte.get("originalkarte_id") or "")           # Kennung im Kartenstapel
         name = str(getattr(ziel, "name", "") or "Siedlung")           # Name fuer die Meldung
@@ -5176,8 +5206,9 @@ class GameState:
         # "ist die Karte im Stapel" - die Startkarte kann eine beliebige Katalogkarte sein und
         # steht deshalb ebenfalls im Stapel (belegt im Prueflauf: original-030 wurde als
         # Koloniekarte freigegeben und die Startkarte blieb haengen).
-        if karte_id and karte_id == str(getattr(self, "startkarte_gewaehlt", "") or ""):
-            self.startkarte_gewaehlt = ""                         # Startkarte: beim naechsten Start neu ziehen
+        if karte_id and (karte_id == str(getattr(self, "startkarte_gewaehlt", "") or "")
+                         or karte_id == originalkarten.START_ID):      # die FESTE Startkarte (Register 228)
+            self.startkarte_gewaehlt = ""                         # Startkarte: naechster Start = Standardkarte
         elif karte_id and karte_id in self.kartenvorrat:          # Koloniekarte vorhanden
             self.kartenvorrat[karte_id]["besitzer"] = None        # zurueck in den Stapel
         if str(getattr(self, "aktive_siedlung_id", "")) == kennung:   # Zeiger stand auf ihr
@@ -5187,13 +5218,114 @@ class GameState:
             self.hatte_siedlung = False                               # Startzustand wieder her
         lager_text = (", ".join("%g %s" % (v, str(k).capitalize())
                                 for k, v in sorted(lager.items())) or "leer")
-        meldung = ("Siedlung %s aufgegeben (%s): %d Gebaeude, %d Einheiten und das ganze Lager "
-                   "(%s) sind verloren, die Karte liegt wieder im Stapel."
+        karten_text = ("die Startkarte bleibt die feste Standardkarte"
+                       if karte_id == originalkarten.START_ID
+                       else "die Karte liegt wieder im Stapel")      # Register 228: die Startkarte ist fest
+        meldung = ("Siedlung %s aufgegeben (%s): %d Gebäude, %d Einheiten und das ganze Lager "
+                   "(%s) sind verloren, %s."
                    % (name, karte.get("typ_name") or karte_id or "Karte", gebaeude,
-                      sum(einheiten.values()), lager_text))
+                      sum(einheiten.values()), lager_text, karten_text))
         self.messages.append({"type": "gruendung", "text": meldung})  # ins Postfach
         self._log(meldung)                                           # und in die Statuszeile
         return True, meldung
+    # ------------- Register 228: Bots gruenden, beurteilen und geben auf (mit Ruecklage) -------------
+
+    def bot_siedlung_aufgeben(self, bot: "BotPlayer", jetzt: float) -> Optional[dict]:
+        """Ein Bot gibt sein JUENGSTES Dorf auf, wenn dessen Karte seine Taktik nicht traegt.
+
+        Daniel 05.11.2026 (Register 228, Antwort 3): der Bot gruendet auf der Karte, beurteilt sie
+        und gibt das Dorf auf, wenn sie fuer seine Taktik zu schlecht ist - "aber er muss die Kosten
+        aus seiner Rohstoffproduktion erneut ansparen koennen". Die gemessene Gefahr (erste Fassung:
+        die Bots fielen von vier Doerfern auf eines zurueck) faengt diese Fassung mit vier Sperren
+        ab:
+
+        1. RUECKLAGE: die Gruendungsgebuehr wird VOR dem Aufgeben in das Dorf zurueckgelegt, das sie
+           bezahlt hat. Aufgegeben wird nur, wenn danach ein anderes Dorf die naechste Gruendung
+           bezahlen kann - gerechnet mit `spieloekonomie.gruendungskosten()`, derselben Quelle wie
+           beim Spieler. Kann niemand zahlen, bleibt das Dorf stehen.
+        2. SPERRE je Bot aus `data/bot_gruendung.json` (`aufgeben.sperre_stunden`).
+        3. ERINNERUNG: die abgelehnte Karte kommt in `bot.gedaechtnis["abgelehnte_karten"]`;
+           `bot_dorf_gruenden` kauft eine so oft abgelehnte Karte nicht wieder (Drehschleife).
+        4. ABBRUCH: nie das Hauptdorf, nie das letzte Dorf, hoechstens `aufgeben.aufgaben_max`.
+
+        Rueckgabe: ein Bericht-dict fuer Postfach und Takt-Ergebnis, oder ``None`` (dann wurde
+        NICHTS gebucht).
+        """
+        einstellungen = bot_gruendung_einstellungen()                    # Regeln aus der Datei
+        regeln = einstellungen.get("aufgeben") or {}                     # Register 228: der Block
+        if not regeln.get("aktiv", False):                               # Aufgabe abgeschaltet
+            return None                                                  # dann nichts tun
+        doerfer = bot_doerfer_sicherstellen(bot)                         # seine Doerfer
+        if len(doerfer) <= 1:                                            # nur das Hauptdorf
+            return None                                                  # das letzte Dorf bleibt
+        gedaechtnis = dict(getattr(bot, "gedaechtnis", None) or {})      # sein Gedaechtnis
+        try:                                                             # Sperre je Bot
+            sperre = max(0.0, float(regeln.get("sperre_stunden") or 0.0)) * 3600.0
+        except (TypeError, ValueError):                                  # kaputter Wert
+            sperre = 0.0                                                 # dann keine Sperre
+        letzte = float(gedaechtnis.get("aufgabe_seit") or 0.0)           # letzte Aufgabe
+        if sperre > 0 and letzte > 0 and float(jetzt) - letzte < sperre:  # noch gesperrt
+            return None                                                  # dann nichts tun
+        try:                                                             # Abbruchregel
+            hoechstens = int(regeln.get("aufgaben_max") or 0)             # Zahl aus den Daten
+        except (TypeError, ValueError):                                  # kaputter Wert
+            hoechstens = 0                                               # dann nie aufgeben
+        if hoechstens <= 0 or int(gedaechtnis.get("aufgabe_anzahl") or 0) >= hoechstens:
+            return None                                                  # Grenze erreicht
+        jung = doerfer[-1]                                               # das JUENGSTE Dorf
+        if bool(getattr(jung, "hauptdorf", False)):                      # das Hauptdorf bleibt immer
+            return None
+        karte = str(getattr(jung, "karte", "") or "")                    # seine Karte
+        urteil = bot_kartenurteil(bot, karte)                            # Urteil seiner Taktik
+        if urteil.get("gut_genug"):                                      # die Karte traegt
+            return None                                                  # dann bleibt das Dorf
+        preis, _paket, minimum = spieloekonomie.gruendungskosten()        # Gebuehr, Mindestbestand des KERNS
+        name_quelle = str(gedaechtnis.get("gruendung_quelle") or "")      # wer hat bezahlt
+        andere = [d for d in doerfer if d is not jung]                    # alle anderen Doerfer
+        quelle = next((d for d in andere if str(d.name) == name_quelle), None)
+        if quelle is None:                                               # Ausgangsdorf unbekannt (alter Stand)
+            quelle = max(andere, key=lambda d: sum((getattr(d, "vorraete", None) or {}).values()))
+        # Kann nach der Ruecklage jemand die naechste Gruendung bezahlen?
+        kann_zahlen = False                                              # noch niemand gefunden
+        for dorf in andere:                                              # jedes andere Dorf
+            lag = getattr(dorf, "vorraete", None) or {}                   # sein Lager
+            zuschlag = preis if dorf is quelle else {}                    # die Ruecklage liegt dort
+            if all(float(lag.get(stoff, 0.0) or 0.0) + float(zuschlag.get(stoff, 0.0) or 0.0)
+                   >= float(soll) for stoff, soll in minimum.items()):     # Gebuehr + Paket gedeckt
+                kann_zahlen = True                                       # dann ist es moeglich
+                break
+        if not kann_zahlen:                                              # niemand kann neu gruenden
+            return None                                                  # dann KEIN Aufgeben
+        # ---- buchen: erst die Ruecklage, dann das Dorf entfernen ----
+        vorraete = quelle.vorraete if isinstance(quelle.vorraete, dict) else {}
+        for stoff, menge in preis.items():                               # RUECKLAGE (Gebuehr zurueck)
+            vorraete[str(stoff)] = round(float(vorraete.get(str(stoff), 0.0) or 0.0)
+                                         + float(menge), 2)              # nie negativ, gerundet
+        quelle.vorraete = vorraete                                       # das Dorf haelt das Geld
+        bot.doerfer = [d for d in doerfer if d is not jung]              # das junge Dorf ist weg
+        bot.settlements = [str(n) for n in (getattr(bot, "settlements", None) or [])
+                           if str(n) != str(jung.name)]                  # Spielstand-Namensliste
+        abgelehnt = dict(gedaechtnis.get("abgelehnte_karten") or {})      # Erinnerung an Ablehnungen
+        abgelehnt[karte] = int(abgelehnt.get(karte) or 0) + 1            # diese Karte einmal mehr
+        gedaechtnis["abgelehnte_karten"] = abgelehnt                     # zurueck ins Gedaechtnis
+        gedaechtnis["aufgabe_seit"] = float(jetzt)                       # Sperre beginnt jetzt
+        gedaechtnis["aufgabe_anzahl"] = int(gedaechtnis.get("aufgabe_anzahl") or 0) + 1
+        gedaechtnis["gruendung_seit"] = 0.0                              # er darf neu gruenden
+        bot.gedaechtnis = dict(gedaechtnis)                              # EIN Gedaechtnis
+        bot.vorraete = {str(k): int(v) for k, v in bot_kasse(bot).items()}  # Kasse = Summe der Doerfer
+        gebuehr_text = ", ".join("%g %s" % (float(v), str(k)) for k, v in sorted(preis.items()))
+        meldung = ("%s hat %s aufgegeben: die Karte %s liegt unter dem Durchschnitt seiner Taktik "
+                   "(%.2f statt %.2f). Die Gebühr (%s) ist in %s zurückgelegt, er spart neu."
+                   % (bot.name, jung.name, karte, float(urteil.get("punkte") or 0.0),
+                      float(urteil.get("durchschnitt") or 0.0), gebuehr_text, quelle.name))
+        meldung = stimmen.mit_stimme(bot.name, "gruendung", meldung)     # Story 2: Stimme davor
+        self.messages.append({"text": meldung, "type": "gruendung"})      # ins Postfach
+        self._log(meldung)                                               # und ins Spiel-Log
+        return {"bot": str(bot.name), "dorf": str(jung.name), "karte": karte,
+                "ruecklage": {str(k): float(v) for k, v in preis.items()},
+                "punkte": float(urteil.get("punkte") or 0.0),
+                "durchschnitt": float(urteil.get("durchschnitt") or 0.0)}
+
     # ---------------- W3: Werkstaetten, Originalwaren, Warteschlangen ----------------
 
     def werkstatt_schlangen(self) -> Dict[str, dict]:
@@ -6561,6 +6693,13 @@ class GameState:
                    (getattr(bot, "forschungsstaende", None) or {}).items()}  # Wissensstand des Bots
         if gebiet and staende.get(gebiet, 0) < stufe_noetig:                # Forschung fehlt
             return None                                                     # dann nichts tun
+        aufgeben_regeln = einstellungen.get("aufgeben") or {}                # Register 228: Aufgabe
+        try:                                                                # Erinnerung an Ablehnungen
+            erinnerung_max = max(1, int(aufgeben_regeln.get("erinnerung_max") or 1))
+        except (TypeError, ValueError):                                     # kaputter Wert
+            erinnerung_max = 1                                              # dann einmal ablehnen
+        abgelehnt = (gedaechtnis.get("abgelehnte_karten")                 # Karten, die der Bot verwarf
+                     if isinstance(gedaechtnis.get("abgelehnte_karten"), dict) else {})
         preis, paket, minimum = spieloekonomie.gruendungskosten()           # Gebuehr + Startpaket
         karren = str(regel.get("karren") or "")                             # Siedlerkarren (Kernregel)
         siedler = int(((spieloekonomie.U.get(karren) or {}).get("kosten") or {})
@@ -6597,10 +6736,12 @@ class GameState:
             vorschlag = bot_kartenwahl(bot, len(doerfer) + versuch * 100)   # reproduzierbare Wahl
             if not vorschlag or vorschlag in belegte:                       # leer oder schon gehalten
                 continue                                                    # dann der naechste
-            # Register 225 (Daniel 05.11.2026): eine Karte, die die Taktik nicht traegt, wird NICHT
-            # gegruendet - sie bleibt im Stapel, der Bot spart weiter und zieht beim naechsten Mal.
-            if not bot_kartenurteil(bot, vorschlag).get("gut_genug"):       # Karte unpassend
-                continue                                                    # dann nicht nehmen
+            # Register 228 (Daniel 05.11.2026, Antwort 3): der Bot gruendet auf der Karte und
+            # BEURTEILT sie danach (`bot_siedlung_aufgeben` gibt das Dorf noetigenfalls wieder auf,
+            # mit Ruecklage der Gebuehr). Was er schon einmal verworfen hat, kauft er nicht wieder -
+            # das ist die Erinnerung gegen die Drehschleife aus der ersten Fassung.
+            if int(abgelehnt.get(vorschlag) or 0) >= erinnerung_max:        # Karte schon abgelehnt
+                continue                                                    # dann nicht wieder kaufen
             karte = vorschlag                                               # passende Karte nehmen
             break                                                           # und gruenden
         if not karte:                                                       # keine freie Karte
@@ -6641,6 +6782,8 @@ class GameState:
         bot.settlements = namen                                             # Spielstand-Form pflegen
         bot.gedaechtnis = dict(gedaechtnis)                                 # Gedaechtnis kopieren
         bot.gedaechtnis["gruendung_seit"] = float(jetzt)                    # Sperre beginnt jetzt
+        bot.gedaechtnis["gruendung_quelle"] = str(quelle.name)              # wer bezahlt hat (Ruecklage)
+        bot.gedaechtnis["gruendung_gebuehr"] = {str(k): float(v) for k, v in preis.items()}
         bot_doerfer_bebauen(neu, bot_wirtschaft_einstellungen(),           # Anlagen wie ueberall
                             taktik=bot_taktik_name(bot))                   # S-8 Stufe 3: nach SEINEM Plan
         meldung = (f"{bot.name} hat ein neues Dorf gegründet: {neu.name} in Welt {heimat} "
@@ -6885,6 +7028,15 @@ class GameState:
             if neues_dorf is not None:                                    # wirklich gegruendet
                 gruendungen.append(str(neues_dorf.name))                  # fuer Pruefung und Protokoll
         ergebnis["gruendungen"] = gruendungen                             # Ergebnis des Takts
+        # Register 228 (Daniel 05.11.2026, Antwort 3): danach BEURTEILT jeder Bot sein juengstes
+        # Dorf und gibt es auf, wenn die Karte seine Taktik nicht traegt - mit Ruecklage der
+        # Gebuehr, Sperre je Bot, Erinnerung an die Karte und Abbruchregel (`bot_siedlung_aufgeben`).
+        aufgaben: List[dict] = []                                         # Berichte der Aufgabe
+        for bot_prueft in self.bots:                                      # je Bot ein Urteil
+            bericht_aufgabe = self.bot_siedlung_aufgeben(bot_prueft, jetzt)  # pruefen, buchen, melden
+            if bericht_aufgabe is not None:                               # wirklich aufgegeben
+                aufgaben.append(bericht_aufgabe)                          # fuer Pruefung und Protokoll
+        ergebnis["aufgaben"] = aufgaben                                   # Ergebnis des Takts
 
         # S-12 (03.11.2026, Daniels Entscheidung 7): duenne Bots bestehlen einen WEHRLOSEN Ort des
         # Spielers - jeder Fall als Postfach-Nachricht (wer, wann, was, wieviel), kein stiller
@@ -8958,11 +9110,15 @@ class NebelseetalApp:
             # Register 225 (05.11.2026): eine unpassende Karte laesst sich loeschen -
             # NUR wenn mehr als eine Siedlung steht (Original). Der Knopf steht deshalb
             # nur dann da; die Folgen nennt die Sicherheitsabfrage.
-            if len(self.state.settlements) > 1:                              # Original: mehr als eine
+            _grund = self.state.aufgeben_grund(str(getattr(s, "id", "") or ""))    # EINE Quelle (Register 228)
+            if not _grund:                                                   # aufgebenbar
                 tk.Button(row, text="Aufgeben",
                           command=lambda ss=s: self._siedlung_aufgeben(ss),   # mit Rueckfrage
                           bg="#5b1a1a", fg="#FDBA74",
                           activebackground="#7f2b2b").pack(side=tk.RIGHT, padx=5)
+            else:                                                            # gesperrt: Grund nennen
+                tk.Label(row, text="Aufgeben gesperrt", fg="#8a8a8a", bg=self.skin["panel"],
+                         font=("Arial", 9)).pack(side=tk.RIGHT, padx=5)
             # Schritt 9, Teil 3b: "lokal: …" neben "Reich: …" — das Lager DIESES Ortes, das seit
             # Teil 3a fuehrt (Settlement.vorraete/bevoelkerung), nicht die Gesamtsicht.
             tk.Label(self.content, text="lokal: " + ortsbestand_text(s),
@@ -9202,13 +9358,26 @@ class NebelseetalApp:
     def _start_neues_spiel(self):
         """Der Knopf Neues Spiel fuehrt zur Fraktionsfrage (Register 222, Daniels Wortlaut)."""
         self._start_schritt = "volk"                                   # naechster Schritt: das Volk
-        self._log("Neues Spiel: zuerst das Volk waehlen, dann die Karte, dann gruenden.")
+        self._log("Neues Spiel: zuerst das Volk wählen, dann die Karte, dann gründen.")
         self._render_view()                                            # Seite neu zeichnen
 
     def _startkarte_ziehen(self) -> str:
-        """EINE Karte ziehen (Original: Zufall) und im Spielstand merken (Register 225)."""
+        """Die Startkarte festlegen: FEST beim Start, GEZOGEN nur fuer Neugruendungen (Register 228).
+
+        Daniel 05.11.2026, Antwort 1: "Zum Start gibt es fuer jeden Spieler und auch fuer die Bots
+        immer dieselbe Startkarte" - die mittlere Karte `original-036` (START_ID). Die Zufallsziehung
+        aus Register 227 gilt deshalb nur noch fuer die NEUgruendungen (Siedlung 2 bis 6); die erste
+        Siedlung nimmt die belegte Standardkarte aus `data/startkarte.json`.
+        """
         if not self.state.kartenvorrat_seed:                            # ohne Startsaat kein Zufall
             self.state.kartenvorrat_seed = "nebel-%d" % random.randrange(1, 10 ** 9)
+        if not self.state.settlements:                                  # ERSTE Siedlung: feste Karte
+            karte = spieloekonomie.startkarte_gewaehlt("", self.state.kartenvorrat_seed)  # Standardkarte
+            self.state.startkarte_gewaehlt = ""                          # leer = Standardkarte (EINE Lesestelle)
+            kennung = str(karte.get("originalkarte_id") or "")           # ihre Kennung
+            self._log("Startkarte (fest): %s - %s" % (karte.get("typ_name") or kennung,
+                                                      karte.get("vorteil") or ""))
+            return kennung                                              # die feste Karte
         belegt = [str((getattr(s, "karte", None) or {}).get("originalkarte_id") or "")
                   for s in self.state.settlements]                      # Karten des eigenen Reichs
         karte = spieloekonomie.startkarte_ziehung(self.state.kartenvorrat_seed,
@@ -9230,11 +9399,14 @@ class NebelseetalApp:
         self._kasten_label("Deine Karte: %s" % (karte.get("typ_name") or kennung),
                            ("Blackletter", 16, "bold"), self.skin["gold"], innen=12, pady=5)
         self._kasten_label(
-            "Die Karte wird GEZOGEN, nicht gewaehlt - so steht es im Original: einer neuen Siedlung "
-            "wird per Zufall eine Karte zugewiesen, und niemals bekommen zwei deiner Siedlungen "
-            "dieselbe. Passt sie nicht zu deinem Vorhaben, kannst du die Siedlung spaeter aufgeben "
-            "(dann sind ihre Gebaeude, Einheiten und Vorraete verloren, die Karte kommt zurueck in "
-            "den Stapel). Aufgeben geht erst, wenn du mehr als eine Siedlung hast.",
+            "Deine Startkarte steht FEST: jeder Spieler und jeder Gegenspieler beginnt auf derselben "
+            "mittleren Karte (original-036) - so hat Daniel es am 05.11.2026 entschieden. Erst "
+            "später kommt der Unterschied, und dafür gilt das Original (siedeln.php, Zeilen "
+            "10-21): einer NEUEN Siedlung wird die Karte per Zufall zugewiesen, und niemals bekommen "
+            "zwei deiner Siedlungen dieselbe. Passt eine Karte nicht zu deinem Vorhaben, kannst du "
+            "die Siedlung aufgeben (ihre Gebäude, Einheiten und Vorräte sind dann verloren, die "
+            "Karte kommt zurück in den Stapel). Dein ERSTES Dorf ist erst aufgebenbar, wenn sechs "
+            "Siedlungen stehen - dann gründest du aus den anderen Dörfern heraus neu.",
             ("TkDefaultFont", 9), "#C0C0C0", breite=810, innen=12, pady=4, umbruch=780)
         self._kasten_label("Holz %.2f / Stein %.2f / Agrar %.2f (1,00 = belegte Startkarte)"
                            % achsen, ("TkDefaultFont", 10, "bold"), "#DAA520",
@@ -9296,7 +9468,7 @@ class NebelseetalApp:
             self._log("Unbekanntes Volk: %s" % kennung)
             return {}
         if str(getattr(self.state, "spieler_fraktion", "") or ""):      # steht schon fest
-            self._log("Das Volk steht bereits (%s) - ein Wechsel ist nicht moeglich."
+            self._log("Das Volk steht bereits (%s) - ein Wechsel ist nicht möglich."
                       % self.state.spieler_fraktion)
             return {}
         self.state.spieler_fraktion = fraktion
@@ -9375,14 +9547,15 @@ class NebelseetalApp:
     def _siedlung_aufgeben(self, siedlung):
         """Die Siedlung aufgeben - mit Sicherheitsabfrage (Original, Register 225)."""
         from tkinter import messagebox
-        if len(self.state.settlements) <= 1:                             # Original: nur mit >1
-            self._log("Die einzige Siedlung laesst sich nicht aufgeben - gruende zuerst eine zweite.")
-            return False
+        grund = self.state.aufgeben_grund(str(getattr(siedlung, "id", "") or ""))   # EINE Quelle (Register 228)
+        if grund:                                                        # gesperrt
+            self._log(grund)                                             # den Grund nennen
+            return False                                                 # nichts tun
         lager = ", ".join("%g %s" % (float(v), k.capitalize())
                           for k, v in sorted((siedlung.vorraete or {}).items()) if float(v) > 0)
-        frage = ("Siedlung %s wirklich aufgeben? Dabei gehen ALLE Einheiten, Waren, Gebaeude und "
-                 "Vorraete dieser Siedlung verloren (%s), und die Karte kommt zurueck in den "
-                 "Stapel. Das laesst sich nicht rueckgaengig machen."
+        frage = ("Siedlung %s wirklich aufgeben? Dabei gehen ALLE Einheiten, Waren, Gebäude und "
+                 "Vorräte dieser Siedlung verloren (%s), und die Karte kommt zurück in den "
+                 "Stapel. Das lässt sich nicht rückgängig machen."
                  % (siedlung.name, lager or "Lager leer"))
         if not messagebox.askyesno("Siedlung aufgeben", frage, parent=self.root):
             return False                                                 # abgebrochen
