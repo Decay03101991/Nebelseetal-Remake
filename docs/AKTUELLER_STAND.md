@@ -1,3 +1,46 @@
+# STAND 05.11.2026, 05:20 - Drachenkampf gemessen (Register 208)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Die drei Recherche-Vorschlaege sind jetzt entscheidbar, weil gemessen ist.** Bisher gab es kein
+Werkzeug fuer den Drachen (`tools/balancing_messung.py` kennt ihn nicht). Neu:
+`tools/drachen_balancing.py` rechnet mit der ECHTEN Schlacht, 100 Laeufe je Zelle, fester
+Zufallskeim - dieselbe Zeile liefert immer dieselbe Zahl.
+
+**Der Befund, der mehr wert ist als die Tabelle:** die Schwellen 700/950 gelten fuer
+**Schlagkraft**, nicht fuer Kopfzahl. 700 SK = **234 Krieger**, 950 SK = **22 Katapulte**. Und an
+genau dieser Schwelle **gewinnt man nie**: der Feueratem (8 % = 19 Krieger) schlaegt VOR der
+Vorrunde zu, danach stehen 215 Krieger = 645 SK gegen 700 - die Truppen ziehen sich zurueck,
+0 von 100 Laeufen. **Wer die Schwelle nur knapp erfuellt, verliert durch den Atem.**
+
+**Sicherer Sieg ab 300 Kriegern und 22 Katapulten** (100 %). Belagerung ist die bindende Bedingung:
+mit 11 Katapulten gewinnt keine Zelle, egal wie viele Krieger mitkommen. Die Verluste sind
+groessenunabhaengig: rund 152-162 eigene Einheiten, ob 300 oder 1000 Krieger antreten - bei 300+22
+sind das 50 % der Truppe.
+
+**Folge fuer Vorschlag 2 (zweite Kampfphase):** mit 12 % statt 8 % Atem steigen die eigenen
+Verluste von 154 auf 155 - **etwa eine Einheit**. Eine zweite Phase mit diesen Werten waere
+Erzaehlung, keine Balance-Aenderung. Sie wuerde erst spuerbar, wenn sie die Vorrunde kippt oder
+deutlich haerter brennt. Die Entscheidung gehoert Daniel (Frage 2), die Messung nimmt sie ihm nicht ab.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf auf `main` | W-17 (dieser Commit) | `git log --oneline -1` |
+| Neues Werkzeug | `tools/drachen_balancing.py` | Rohlauf `docs/audits/drachen_balancing_20261105.log` |
+| Messung | 36 Zellen x 100 Laeufe, fester Keim | Log |
+| Sicherer Sieg | 300 Krieger + 22 Katapulte | Abschnitt 9 der Balancing-Doku |
+| Sammellauf 04:11 | 165 von 169 gruen, 2 rot - beide behoben (121/0 und 426/0) | `docs/audits/sammellauf_20261105_0411.log` |
+| Guthaben (Daniel 04:55) | 5,29 USD Stand / 54,70 USD Gesamtverbrauch | Ablesung |
+
+## Der EINE naechste Schritt
+
+1. **Frage 2 entscheiden** (zweite Kampfphase mit den gemessenen Zahlen) - oder Vorschlag 1 bauen
+   (Erwartungswert im Bot-Urteil), der braucht keine Entscheidung.
+2. Mini-Repo fuer das Protokoll (Register 202) mit der VOLLEN Historie, lueckenlos.
+3. Kampfregeln 2, 4, 6 aus `cache/scratch/w13b_kampfregeln_entwurf.md`.
+
+---
+
 # STAND 05.11.2026, 04:50 - Drachenschuppe als Trophae mit Lagerfach (Register 207)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

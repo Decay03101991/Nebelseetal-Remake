@@ -413,3 +413,56 @@ muss dieses Dokument neu gemessen werden.
   Waffentechnik/Rüstungsbau-Vorteile) — sie zeigt die Richtung, nicht den Grenzfall.
 * Handel zwischen eigenen Siedlungen, Götter schutz und Portalwechsel sind nicht eingerechnet.
 * „Spieltage“ sind Spielzeit, nicht Echtzeit: bei Faktor 180 ist ein Spieltag 8 Echtzeitminuten.
+
+## 9. Drachenkampf - Messung 05.11.2026 (W-17)
+
+**Werkzeug:** `tools/drachen_balancing.py`, roher Lauf in
+`docs/audits/drachen_balancing_20261105.log`. Gerechnet mit den echten Kernfunktionen
+(`kampf.fuehre_schlacht` mit den Drachenschwellen, `drachen.feueratem_verluste`), 100 Laeufe je
+Zelle, fester Zufallskeim - dieselbe Zeile liefert immer dieselbe Zahl.
+
+**Der Befund, der zaehlt:** die Schwellen 700/950 gelten fuer **Schlagkraft**, nicht fuer Kopfzahl.
+Ein Krieger hat Schlagkraft 3, ein Katapult 45. Also sind 700 SK = **234 Krieger** und 950 SK =
+**22 Katapulte**. Und genau dort passiert das Interessante: **234 Krieger + 22 Katapulte gewinnen
+0 von 100 Laeufen.** Der Feueratem schlaegt VOR der Vorrunde zu (8 % = 19 Krieger), danach stehen
+nur noch 215 Krieger = 645 SK gegen die Schwelle 700 - die Truppen ziehen sich zurueck, es kommt
+gar nicht zum Kampf. **Wer die Schwelle nur knapp erfuellt, verliert durch den Atem.**
+
+| Krieger | SK Fuss | Katapult | SK Belagerung | Siege | eigene Verluste (Ø) | beim Drachen (Ø) |
+|---|---|---|---|---|---|---|
+| 200 | 600 | 22 | 990 | 0/100 | - | - |
+| 234 (Schwelle) | 702 | 22 (Schwelle) | 990 | **0/100** | - | - |
+| 300 | 900 | 22 | 990 | **100/100** | 162 | 142 |
+| 400 | 1200 | 22 | 990 | 100/100 | 154 | 141 |
+| 700 | 2100 | 22 | 990 | 100/100 | 154 | 143 |
+| 1000 | 3000 | 22 | 990 | 100/100 | 154 | 142 |
+
+**Was die Tabelle sagt:**
+- **Belagerung ist die harte Bedingung:** mit 11 Katapulten (495 SK) gewinnt KEINE Zelle, egal wie
+  viele Krieger mitkommen. Ab 22 Katapulten (990 SK) gewinnt jede Zelle ab 300 Kriegern.
+- **Der sichere Sieg beginnt bei 300 Kriegern und 22 Katapulten** - das ist die kleinste
+  Zusammensetzung mit 100 % Siegquote.
+- **Verluste sind fast unabhaengig von der Groesse der Truppe:** rund 152-162 eigene Einheiten,
+  gleich ob 300 oder 1000 Krieger antreten. Mehr Truppen bringen keine geringeren Verluste, nur
+  eine groessere Reserve. Bei 300 Kriegern + 22 Katapulten ist das **50 % der Truppe**.
+- **Unter der Schwelle wird nicht gekaempft:** 12 von 36 Zellen liegen unter einer der beiden
+  Schwellen, und keine davon hat einen Sieg. Die Vorrunde haelt also zuverlaessig.
+
+**Gegenprobe fuer den Recherche-Vorschlag 2 (haerterer Feueratem):** mit 12 % statt 8 % kostet der
+Atem 28 statt 19 Krieger (bei 234) bzw. 84 statt 56 (bei 700).
+
+| Krieger | Katapult | Siege bei 12 % | eigene Verluste (Ø) |
+|---|---|---|---|
+| 234 | 22 | 0/100 | - |
+| 400 | 22 | 100/100 | 155 |
+| 700 | 22 | 100/100 | 154 |
+
+**Ehrliche Deutung:** ein Atem, der durchgehend mit 12 % brennt, aendert bei den tragfaehigen
+Zusammensetzungen **etwa eine Einheit** (154 -> 155). Die zweite Phase waere also vor allem
+**Erzaehlung und Gefuehl**, keine Balance-Aenderung - es sei denn, sie wird deutlich haerter
+angesetzt (z. B. 20 % unter halber Wache) oder sie verhindert die Vorrunde, wenn die Truppe knapp
+ist. Diese Entscheidung gehoert Daniel (Frage 2), nicht der Messung.
+
+**Grenzen dieser Messung:** nur Krieger und Katapulte (keine Paladine, keine Bogenschuetzen, keine
+Forschungsboni), ein Drache (Epheus, 204 Verteidiger - die drei Drachen sind gleich stark), keine
+Karren, kein Weltensprung. Die Zahlen zeigen die Richtung des Gefechts, nicht jeden Spielweg.
