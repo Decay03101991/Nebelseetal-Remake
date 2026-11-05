@@ -43,7 +43,8 @@ def name_mit(anfang: str) -> str:
     return treffer[0] if treffer else ""
 
 
-def kampf_probe(drache: dict, angreifer: dict, atem_prozent: float, saat: int) -> dict:
+def kampf_probe(drache: dict, angreifer: dict, atem_prozent: float, saat: int,
+                zweite_phase: dict = None) -> dict:
     """Einen Drachenkampf rechnen und die Kennzahlen zurueckgeben.
 
     Eingabe: Drachen-Eintrag, Truppen des Angreifers, Feueratem-Prozent, Zufallskeim.
@@ -72,12 +73,15 @@ def kampf_probe(drache: dict, angreifer: dict, atem_prozent: float, saat: int) -
     truppen = {n: a for n, a in truppen.items() if int(a) > 0}
 
     ergebnis = kampf.fuehre_schlacht(truppen, wachen, wall_stufe=0, wall_zustand=100.0,
-                                     rng=random.Random(saat), schwellen=schwellen)
+                                     rng=random.Random(saat), schwellen=schwellen,
+                                     zweite_phase=zweite_phase)
     eigene = sum(int(v) for v in (ergebnis.get("verluste_angreifer") or {}).values())
     fremde = sum(int(v) for v in (ergebnis.get("verluste_verteidiger") or {}).values())
+    zp = ergebnis.get("zweite_phase") or {}
     return {"ausgang": str(ergebnis.get("ausgang") or ""),
             "vorrunde": bool(ergebnis.get("vorrunde_bestanden")),
-            "eigene": eigene, "fremde": fremde, "atem": int(atem)}
+            "eigene": eigene, "fremde": fremde, "atem": int(atem),
+            "zp_aus": bool(zp.get("ausgeloest")), "zp_verluste": int(zp.get("verluste") or 0)}
 
 
 def zeile(drache: dict, fuss: int, belagerung: int, atem_prozent: float, laeufe: int,
@@ -179,6 +183,42 @@ def main() -> int:
     print("\nDie 12 % sind **keine** zweite Phase, sondern die Obergrenze: so viel kostet der Atem, "
           "wenn er im ganzen Gefecht haerter brennt. Eine echte zweite Phase (erst 8 %, unter 50 % "
           "Wache 12 %) liegt darunter und braucht eigenen Code.")
+    # ------------------------------------------------- Frage 2: zweite Atemphase messen
+    # Daniels Entscheidung (05.11.2026, Frage 2): "20 % unter halber Wache ansetzen - vorher
+    # messen". Hier wird die Phase NICHT gebaut und nicht behauptet, sondern mit der echten
+    # Schlacht (Parameter `zweite_phase`) gegen dieselben Zellen ohne Phase gerechnet.
+    zp = {"atem_prozent": 20.0, "unter_anteil": 0.5}
+    print("\n## Frage 2: zweite Atemphase - 20 % unter halber Wache\n")
+    print("Gerechnet mit `kampf.fuehre_schlacht(..., zweite_phase=...)`, dieselben Keime und "
+          "dieselbe Truppe wie ohne Phase - der Unterschied stammt also aus der Phase, nicht "
+          "aus dem Zufall.\n")
+    print("| %s | %s | SK Fuss | Siege ohne | Siege mit | eigene Verluste ohne | mit | "
+          "Phase ausgeloest | Tote durch den 2. Atem |" % (fuss_name, geraet_name))
+    print("|---|---|---|---|---|---|---|---|---|")
+    unterschiede = []
+    for fuss in (234, 300, 400, 700, 1000):
+        angreifer = {fuss_name: int(fuss)}
+        if min_geraet:
+            angreifer[geraet_name] = int(min_geraet)
+        ohne = [kampf_probe(drache, angreifer, atem_daten, 1000 + i) for i in range(args.laeufe)]
+        mit = [kampf_probe(drache, angreifer, atem_daten, 1000 + i, zp) for i in range(args.laeufe)]
+        s_ohne = sum(1 for r in ohne if r["ausgang"] == "angreifer")
+        s_mit = sum(1 for r in mit if r["ausgang"] == "angreifer")
+        v_ohne = statistics.fmean([r["eigene"] for r in ohne]) if ohne else 0.0
+        v_mit = statistics.fmean([r["eigene"] for r in mit]) if mit else 0.0
+        aus = sum(1 for r in mit if r["zp_aus"])
+        tot2 = statistics.fmean([r["zp_verluste"] for r in mit]) if mit else 0.0
+        unterschiede.append((fuss, v_mit - v_ohne, s_mit - s_ohne, aus))
+        print("| %d | %d | %d | %d/%d | %d/%d | %.0f | %.0f | %d/%d | %.0f |"
+              % (fuss, min_geraet, int(einheiten.schlagkraft(fuss_name)) * fuss, s_ohne,
+                 args.laeufe, s_mit, args.laeufe, v_ohne, v_mit, aus, args.laeufe, tot2))
+    if unterschiede:
+        print("\n**Verdikt (maschinell):** der zweite Atem kostet zwischen **%+.0f** und **%+.0f** "
+              "eigene Einheiten und aendert die Siegquote um **%+d** bis **%+d** von %d Laeufen. "
+              "Ausgeloest in %d bis %d von %d Laeufen."
+              % (min(u[1] for u in unterschiede), max(u[1] for u in unterschiede),
+                 min(u[2] for u in unterschiede), max(u[2] for u in unterschiede), args.laeufe,
+                 min(u[3] for u in unterschiede), max(u[3] for u in unterschiede), args.laeufe))
     return 0
 
 

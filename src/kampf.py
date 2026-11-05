@@ -179,7 +179,8 @@ def fuehre_schlacht(angreifer: Dict[str, int], verteidiger: Dict[str, int],
                     forschung_verteidiger: Optional[dict] = None,
                     boni_angreifer: Optional[dict] = None,
                     boni_verteidiger: Optional[dict] = None,
-                    schwellen: Optional[tuple] = None) -> Dict[str, Any]:
+                    schwellen: Optional[tuple] = None,
+                    zweite_phase: Optional[dict] = None) -> Dict[str, Any]:
     """Führt reproduzierbar eine Schlacht nach der späteren Originalbeschreibung aus.
 
     Nicht im Dokument geregelte Gerätelager- und Beutemechanik bleibt aus dem
@@ -190,6 +191,12 @@ def fuehre_schlacht(angreifer: Dict[str, int], verteidiger: Dict[str, int],
     "beute". AT skaliert den NAHKAMPF-Wurf, PA die Ruestung, "beute" die nutzbare Karrenladung.
     Ohne Angabe rechnet die Schlacht exakt wie bisher (Faktor 1,0) - der Zufall bleibt unberuehrt,
     weil weiter dieselben `randint`-Grenzen gezogen werden.
+
+    `zweite_phase` ist Daniels Entscheidung zur Frage 2 (05.11.2026): faellt die Wache des
+    Verteidigers UNTER DIE HAELFTE, schlaegt der Feueratem ein ZWEITES Mal zu - mit dem Anteil
+    aus dem Dict (`atem_prozent`, bezogen auf die angetretenen Nahkaempfer des Angreifers) und
+    nur EINMAL je Gefecht (`unter_anteil`, Vorgabe 0,5). Ohne Angabe oder mit `aktiv=False`
+    rechnet die Schlacht wortgleich wie vorher.
     """
     if rng is None:
         rng = random.Random()
@@ -325,6 +332,21 @@ def fuehre_schlacht(angreifer: Dict[str, int], verteidiger: Dict[str, int],
 
     ursprung_fern = len(_fern(A))
     rueckzug_je_runde = math.ceil(ursprung_fern * 0.2)
+    # Zweite Atemphase (Frage 2, 05.11.2026): VOR dem Nahkampf vorbereiten. Gezaehlt wird die
+    # Wache, die jetzt noch steht - faellt sie unter den Anteil, brennt der Atem ein zweites Mal.
+    zp_aktiv = bool(isinstance(zweite_phase, dict) and zweite_phase.get("aktiv", True))
+    try:
+        zp_prozent = float((zweite_phase or {}).get("atem_prozent") or 0.0)
+        zp_anteil = float((zweite_phase or {}).get("unter_anteil") or 0.5)
+    except (TypeError, ValueError):
+        zp_prozent, zp_anteil = 0.0, 0.5
+    zp_aktiv = zp_aktiv and zp_prozent > 0
+    zp_wache_start = len(_alle(V))                                        # Wache beim Antreten
+    zp_fusstruppen = len([u for u in A if u["fern"] is None])             # Nahkaempfer beim Antreten
+    zp_gefeuert = False                                                   # nur EINMAL je Gefecht
+    if zp_aktiv:                                                          # nur bei eingeschalteter Phase
+        result["zweite_phase"] = {"atem_prozent": zp_prozent, "unter_anteil": zp_anteil,
+                                  "ausgeloest": False, "verluste": 0}
     nahkampf_sequenzen = 0
     for seq in range(1, 11):
         if not _nah(A) or not _alle(V):
@@ -364,6 +386,23 @@ def fuehre_schlacht(angreifer: Dict[str, int], verteidiger: Dict[str, int],
                     _ausgeschieden(sieger, rng, protokoll)
         result["sequenzen"].append("\n".join(protokoll))
         logs.extend(protokoll)
+        # Zweite Atemphase: die Wache ist unter ihren Anteil gefallen (Frage 2, 05.11.2026).
+        if zp_aktiv and not zp_gefeuert and zp_wache_start > 0 \
+                and len(_alle(V)) * 2 < zp_wache_start:                   # UNTER der Haelfte
+            zp_gefeuert = True                                            # nur einmal je Gefecht
+            zp_verluste = max(0, int(round(zp_fusstruppen * zp_prozent / 100.0)))
+            getroffen = []                                                # wen der Atem trifft
+            for u in sorted(_nah(A), key=lambda x: (x["hi"], x["kon"])):   # die schwaechsten zuerst
+                if len(getroffen) >= zp_verluste:
+                    break
+                u["inaktiv"] = True                                       # kampfunfaehig
+                u["tot"] = True                                           # gefallen
+                getroffen.append(u["name"])
+            zeile = ("Zweiter Feueratem: die Wache steht unter %d von %d - %d Nahkaempfer fallen"
+                     % (int(zp_wache_start * zp_anteil), zp_wache_start, len(getroffen)))
+            logs.append(zeile)                                            # im Bericht sichtbar
+            result["sequenzen"].append(zeile)                             # eigene Sequenz
+            result["zweite_phase"].update({"ausgeloest": True, "verluste": len(getroffen)})
         if not _alle(V) or not _nah(A):
             break
 

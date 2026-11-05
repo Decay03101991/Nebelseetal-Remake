@@ -195,6 +195,22 @@ def feueratem(eintrag) -> dict:
     return dict(atem) if isinstance(atem, dict) else {}  # Kopie oder leer
 
 
+def zweite_phase(eintrag) -> dict:
+    """Die ZWEITE Atemphase des Drachen (Daniels Entscheidung zur Frage 2, 05.11.2026).
+
+    Eingabe: ein Drachen-Eintrag. Ausgabe: dict mit `aktiv`, `atem_prozent` und `unter_anteil`
+    - oder ein leeres dict, wenn der Eintrag keine Phase kennt (dann kaempft die Schlacht
+    wortgleich wie vorher). Die Zahlen stehen in `data/drachen.json`, nicht im Code.
+    """
+    block = eintrag.get("verteidigung") if isinstance(eintrag, dict) else None  # Block der Verteidigung
+    regeln = (block or {}).get("zweite_phase") if isinstance(block, dict) else None  # Regeln der Phase
+    if not isinstance(regeln, dict):                        # kein Block vorhanden
+        return {}                                           # dann keine zweite Phase
+    return {"aktiv": bool(regeln.get("aktiv", True)),       # Schalter (Vorgabe: an)
+            "atem_prozent": regeln.get("atem_prozent"),     # Anteil der Nahkaempfer
+            "unter_anteil": regeln.get("unter_anteil", 0.5)}  # Ausloeser: unter halber Wache
+
+
 def feueratem_verluste(eintrag, anzahl_fussttruppen) -> int:
     """Wie viele Fusstruppen der Feueratem vor dem Kampf ausfallen laesst.
     Eingabe: Drachen-Eintrag und die Zahl der antretenden Fusstruppen (Ganzzahl, nie negativ).

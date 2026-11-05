@@ -114,7 +114,10 @@ try:
     karre = einheit("Handelskarawane")                     # Name aus den Daten, ohne Umlaut getippt
     st.eigene_dimension = 2
     st.eigene_dimensionen = [1, 2]
-    ort.einheiten = {"Krieger": 300, "Katapult": 22, karre: 4}
+    # ENTSCHEIDUNG 2 (Frage 2, 05.11.2026, Register 217): seit der zweiten Atemphase (20 % unter
+    # halber Wache) braucht der sichere Sieg 400 Krieger + 22 Katapulte - mit 300 gewinnt nur noch
+    # 3 von 100 Laeufen (docs/SPIELBALANCING_TEST.md Abschnitt 10).
+    ort.einheiten = {"Krieger": 400, "Katapult": 22, karre: 4}
     ort.vorraete = {"gold": 900.0, "nahrung": 900.0}
     st.spieler_fraktion = "zwergisch"
 

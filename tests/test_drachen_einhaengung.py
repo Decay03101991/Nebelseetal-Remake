@@ -176,7 +176,12 @@ try:
     check("die eigene Wiese fuer den Angriff ist gesetzt", ort is not None)
     st.eigene_dimension = 2                               # die Weltkarte, auf der der Drache steht
     st.eigene_dimensionen = [1, 2]
-    ort.einheiten = {"Krieger": 300, "Katapult": 22, karre: 4}
+    # ENTSCHEIDUNG 2 (Daniel, Frage 2, 05.11.2026, Register 217): die zweite Atemphase schlaegt zu,
+    # sobald die Wache unter die Haelfte faellt (20 % der Nahkaempfer). Gemessen
+    # (docs/SPIELBALANCING_TEST.md Abschnitt 10) reichen seitdem **400** Krieger + 22 Katapulte
+    # fuer den sicheren Sieg; mit 300 gewinnt nur noch 3 von 100 Laeufen. Deshalb steht hier 400 -
+    # die Kette prueft den Weg, nicht die Schwelle.
+    ort.einheiten = {"Krieger": 400, "Katapult": 22, karre: 4}
     ort.vorraete = {"gold": 900.0, "nahrung": 900.0}      # Reisekosten bezahlbar machen
     st.spieler_fraktion = "zwergisch"                      # das gespielte Volk (fuer die Boni)
 
@@ -222,8 +227,12 @@ try:
     check("(b) der Feueratem steht als eigene Zeile im Bericht", "Feueratem" in _text,
           _text[:160])
     _atem_zeile = next((z for z in _text.split("\n") if z.startswith("Feueratem")), "")
-    check("(b) der Feueratem nennt die Einheit und die Zahl (8 Prozent von 300 = 24)",
-          "Krieger" in _atem_zeile and "24" in _atem_zeile, _atem_zeile)
+    # ENTSCHEIDUNG 2 (Frage 2, Register 217): die Kette rechnet seit dem 05.11.2026 mit 400 Kriegern,
+    # deshalb nennt der Atem 32 (8 %). Die Zahl wird aus der Datendatei GERECHNET, nicht getippt -
+    # eine Wache auf "24" waere mit der neuen Truppe falsch und mit einer anderen Truppe blind.
+    _atem_soll = drachen.feueratem_verluste(drache, 400)
+    check("(b) der Feueratem nennt die Einheit und die Zahl (8 Prozent von 400 = %d)" % _atem_soll,
+          "Krieger" in _atem_zeile and str(_atem_soll) in _atem_zeile, _atem_zeile)
     check("(b) der Bericht nennt die eigene Verlustzeile nicht doppelt",
           _text.count("Feueratem") == 1, str(_text.count("Feueratem")))
 

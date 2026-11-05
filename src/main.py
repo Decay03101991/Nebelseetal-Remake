@@ -6015,7 +6015,8 @@ class GameState:
             boni_angreifer=boni.kampf_werte(boni.modifikatoren(       # Volksboni des Spielers
                 str(getattr(self, "spieler_fraktion", "") or ""))),
             boni_verteidiger=None,                                    # kein Volk, keine Taktik
-            schwellen=drachen.schwellen(drache))                      # Drachenwerte statt Wall
+            schwellen=drachen.schwellen(drache),                      # Drachenwerte statt Wall
+            zweite_phase=drachen.zweite_phase(drache))                # Frage 2: 20 % unter halber Wache
         for name, anzahl in (ergebnis.get("verluste_angreifer") or {}).items():   # Gefallene
             truppen[name] = max(0, int(truppen.get(name, 0)) - int(anzahl))       # abbuchen
         for name in (ergebnis.get("geraete_verloren") or []):          # verlorenes Geraet

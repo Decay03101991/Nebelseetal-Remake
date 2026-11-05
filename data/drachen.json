@@ -62,6 +62,11 @@
           "prozent_der_fusstruppen": 8,
           "mindestens": 1,
           "hoechstens_anteil": 0.5
+        },
+        "zweite_phase": {
+          "aktiv": true,
+          "atem_prozent": 20,
+          "unter_anteil": 0.5
         }
       }
     },
@@ -102,6 +107,11 @@
           "prozent_der_fusstruppen": 8,
           "mindestens": 1,
           "hoechstens_anteil": 0.5
+        },
+        "zweite_phase": {
+          "aktiv": true,
+          "atem_prozent": 20,
+          "unter_anteil": 0.5
         }
       }
     },
@@ -142,11 +152,16 @@
           "prozent_der_fusstruppen": 8,
           "mindestens": 1,
           "hoechstens_anteil": 0.5
+        },
+        "zweite_phase": {
+          "aktiv": true,
+          "atem_prozent": 20,
+          "unter_anteil": 0.5
         }
       }
     }
   ],
-  "verteidigung_hinweis": "Der Drache hat KEINEN Wall: statt der Wallschwelle gelten seine eigenen Werte (Schuppen). Belagerungswaffen brechen ihn nicht - er muss im Sturm bezwungen werden.",
+  "verteidigung_hinweis": "Der Drache hat KEINEN Wall: statt der Wallschwelle gelten seine eigenen Werte (Schuppen). Belagerungswaffen brechen ihn nicht - er muss im Sturm bezwungen werden. ZWEITE ATEMPHASE (Daniels Entscheidung zur Frage 2, 05.11.2026): faellt die Wache unter die Haelfte, schlaegt der Feueratem ein zweites Mal zu - atem_prozent 20 bezogen auf die angetretenen Nahkaempfer, nur EINMAL je Gefecht. Gemessen (tools/drachen_balancing.py, 100 Laeufe je Zelle): bei 300 Kriegern + 22 Katapulten kippt der sichere Sieg von 100/100 auf 3/100, ab 400 + 22 bleibt er sicher; die eigenen Verluste haengen damit von der Truppengroesse ab (154 auf 228 bei 400, 338 bei 1000). Zahlen: docs/SPIELBALANCING_TEST.md Abschnitt 10.",
   "beute_regel": {
     "hinweis": "Nur wer den Drachen bezwingt, bekommt seine Beute. NICHT der letzte Schlag allein: jeder Angreifer bucht sofort den Anteil, der seinen zerstoerten Verteidigern entspricht; wer den letzten Schlag setzt, bekommt zusaetzlich einen Bonus. Grund: sonst wartet ein schneller Gegner auf zwei Resteinheiten und nimmt alles - VORSCHLAG zur Bestaetigung.",
     "anteil_nach_verlusten": true,

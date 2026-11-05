@@ -466,3 +466,38 @@ ist. Diese Entscheidung gehoert Daniel (Frage 2), nicht der Messung.
 **Grenzen dieser Messung:** nur Krieger und Katapulte (keine Paladine, keine Bogenschuetzen, keine
 Forschungsboni), ein Drache (Epheus, 204 Verteidiger - die drei Drachen sind gleich stark), keine
 Karren, kein Weltensprung. Die Zahlen zeigen die Richtung des Gefechts, nicht jeden Spielweg.
+
+## 10. Zweite Atemphase im Drachenkampf — gemessen und eingebaut (Frage 2, 05.11.2026, Register 217)
+
+**Daniels Entscheidung:** „20 % unter halber Wache ansetzen — vorher messen.“ Also erst gemessen,
+dann gebaut; die Regel steht danach in `data/drachen.json` (`verteidigung.zweite_phase`) und nicht
+im Code.
+
+**Wie gemessen wurde.** `tools/drachen_balancing.py` rechnet mit der ECHTEN Schlacht
+(`kampf.fuehre_schlacht(..., zweite_phase=...)`), 100 Läufe je Zelle, **derselbe Zufallskeim mit und
+ohne Phase** — der Unterschied stammt damit aus der Phase und nicht aus dem Würfeln. Rohlauf:
+`docs/audits/drachen_balancing_zweite_phase_20261105.log`.
+
+| Krieger | Katapulte | SK Fuß | Siege ohne | Siege mit | eigene Verluste ohne → mit | Tote durch den 2. Atem |
+|---|---|---|---|---|---|---|
+| 234 | 22 | 702 | 0/100 | 0/100 | 0 → 0 | 0 |
+| **300** | 22 | 900 | **100/100** | **3/100** | 162 → 221 | 55 |
+| 400 | 22 | 1200 | 100/100 | 100/100 | 154 → 228 | 74 |
+| 700 | 22 | 2100 | 100/100 | 100/100 | 154 → 283 | 129 |
+| 1000 | 22 | 3000 | 100/100 | 100/100 | 154 → 338 | 184 |
+
+**Der Befund, der zählt.** Die zweite Phase ist **keine Erzählung**. Genau an der bisher sicheren
+Truppe (300 Krieger + 22 Katapulte) kippt der Sieg von **100/100 auf 3/100**: der zweite Atem nimmt
+55 Krieger, und danach reicht die Schlagkraft im Nahkampf nicht mehr. **Sicherer Sieg ist jetzt ab
+400 Kriegern + 22 Katapulten** (100/100).
+
+**Zweite Folge, die man kennen muss.** Die eigenen Verluste hängen mit der Phase **von der
+Truppengröße** ab (154 → 228 bei 400, 154 → 338 bei 1000), weil 20 % der angetretenen Nahkämpfer
+getroffen werden. Der in Abschnitt 9 belegte Satz „die Verluste sind größenunabhängig“ gilt damit
+**nur noch ohne** die zweite Phase. Wer eine große Armee schickt, zahlt jetzt mehr — das ist die
+spielerische Folge der Entscheidung, keine Nebenwirkung eines Fehlers.
+
+**Grenzen dieser Messung:** nur Krieger und Katapulte (keine Paladine, keine Bogenschützen, keine
+Forschungs- oder Volksboni), ein Drache (Epheus: 204 Verteidiger — die drei Drachen sind gleich
+stark), kein Weltensprung. Die Phase greift erst, wenn die Wache **unter** die Hälfte fällt; bleibt
+sie darüber, schlägt nichts zu (eigene Wache: 12 Läufe, 0 Auslösungen).
