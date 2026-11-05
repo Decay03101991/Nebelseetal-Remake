@@ -26,6 +26,7 @@ beheben, dann die zwei Laeufe fahren.
 | N | **Daniels Antworten der Uebergaberunde 21:15** (Register 236, `docs/ENTSCHEIDUNGEN_DANIEL_20261105_2115.md`) | 1) Voraussetzungen sichtbar zuerst; 2) grosses Modell liefert **fertige Pakete** (Code/Patches mit Wache); 3) **Modell-Budget 4,00 USD**; 4) Mana erst MESSEN, dann Kosten senken und Produktion erhoehen; 5) Forschungsdauern/-kosten senken (Quellen pruefen); 6) Start-Holz bleibt Originalzahl. **Mana-Messlage belegt:** Tempel 120 Mana/Spieltag, Weltwechsel 5.000 = ~41,7 Spieltage, Drachenjagd ~250 Spieltage |
 | O | **Leitlinie Spielfluss: es muss ein Aufbauspiel bleiben** (Daniel 21:25/21:27, Register 237) | Aufbau bleibt der Kern, Springen und Kaempfen machen ihn nur erreichbar; wer Dauern/Kosten senkt, nennt in derselben Rechnung, wo die Zeit wieder gebunden wird; Messpflicht-Tabelle vorher/nachher; eine Verkuerzung des Aufbaus wird Daniel vorgelegt |
 | P | **Rangfolge der Quellen neu und Entwicklungsablauf in sieben Phasen** (Daniel 21:43, Register 238/239) | `docs/ENTWICKLUNGSABLAUF_AB_20261105.md`: 1 Gesamtbalancing, 2 Daniels Entscheidung, 3 Original als RICHTWERT, 4 Vorschlag; Phasen 0 bis 7 mit Fertig-Kriterien und sechsteiliger Entscheidungsliste; kein Code vor der schriftlichen Entscheidung, Modell liefert fertige Pakete |
+| Q | **Das Spiel als Ganzes vorgelegt: Mechanik-Landkarte, Bot-Ist-Stand, Arbeitsplan** (Daniel 22:00, Register 240) | `docs/GESAMTBILD_SPIEL_20261105.md` (15 Mechaniken, drei Spannungsboegen, Bot-Luecken mit Belegen, Zielbild, Ommage-Leitplanke) und `docs/ARBEITSPLAN_AB_20261105.md` (Stufen A bis D, 16 Stuecke mit Messzahl und Abhaengigkeit); gemessen: 74 `bot_*`-Funktionen, 69 davon in `main.py`, 29 Bot-Wachen |
 
 **Geld:** 0,0305 + 0,0333 + 0,0349 + 0,0362 = **0,1349 USD gemessen** (ein L4-Versuch lief leer und
 wiederholte sich einmal; dessen Kosten stehen nicht in der Abrechnung des Werkzeugs). Von den 3,16 USD
@@ -35,7 +36,7 @@ der Freigabe sind damit rund **3,02 USD frei**. Guthaben bei Daniel: 12,48 USD (
 |---|---|---|
 | Kopf auf `main` | `af2b272` (Code dieses Schnitts, danach die Doku-Commits) | `git log --oneline -1` |
 | Pruefdateien / Module | 178 / 60 | `ls tests/test_*.py`, `ls src/*.py` |
-| Register / Protokoll / Stand-Bloecke | 278 / 286 / 90 | Zaehlung |
+| Register / Protokoll / Stand-Bloecke | 279 / 287 / 90 | Zaehlung |
 | Einzelwachen dieses Schnitts | `test_spielschicht` 142/0/1, `test_spieltest_erreicht_kampf` 19/0/0, `test_textqualitaet` 483/0, `test_projektpfade` 123/0, `test_zieluebergabe` 26/0/0 | Laeufe dieses Schnitts |
 | Spieltest-Laeufe | 4 bezahlt (L1 bis L4); L3/L4 ohne Tick-Fehler | `docs/audits/SPIELTEST_LOG_20261105_L3_breit10.md`, `..._L4_krieg12.md` |
 | Spieltest-Kosten | 0,0638 (L1/L2) + 0,0711 (L3/L4) = **0,1349 USD**, rund 3,02 USD der Freigabe frei | `gesamtaudit.log` |
