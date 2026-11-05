@@ -23,6 +23,8 @@ beheben, dann die zwei Laeufe fahren.
 | K | **Angriff ohne Karren erlaubt, Beute dann 0** (Daniel 19:47) | Der Kern liess das immer zu (Karrenladung ist die Grenze), blockiert hatte nur die Simulation; Wache `test_spieltest_erreicht_kampf` **19/0/0**, Abschnitt 5 |
 | L | Zwei NEUE Laeufe mit dem korrigierten Geraet bezahlt | L3 breit 10 Tage: 35 Punkte, 5 Gefechte, 0,0349 USD; L4 krieg 12 Tage: 40 Punkte, 11 Gefechte, 0,0362 USD; beide Urteile nennen **Waffentechnik Stufe 3** als Engstelle |
 | M | **Version 0.0.2 gebaut, am Bildschirm geprueft, veroeffentlicht** (Daniel 19:47) | EXE 86.984.365 Byte, SHA256 `c9b45703ee12...`, ZIP 86.702.517 Byte; Release `v_0.0.2` am Commit `af2b272`, beide Assets, Passwortsperre im Bild, 0 Prozesse, `game.lock` entfernt |
+| N | **Daniels Antworten der Uebergaberunde 21:15** (Register 236, `docs/ENTSCHEIDUNGEN_DANIEL_20261105_2115.md`) | 1) Voraussetzungen sichtbar zuerst; 2) grosses Modell liefert **fertige Pakete** (Code/Patches mit Wache); 3) **Modell-Budget 4,00 USD**; 4) Mana erst MESSEN, dann Kosten senken und Produktion erhoehen; 5) Forschungsdauern/-kosten senken (Quellen pruefen); 6) Start-Holz bleibt Originalzahl. **Mana-Messlage belegt:** Tempel 120 Mana/Spieltag, Weltwechsel 5.000 = ~41,7 Spieltage, Drachenjagd ~250 Spieltage |
+| O | **Leitlinie Spielfluss: es muss ein Aufbauspiel bleiben** (Daniel 21:25/21:27, Register 237) | Aufbau bleibt der Kern, Springen und Kaempfen machen ihn nur erreichbar; wer Dauern/Kosten senkt, nennt in derselben Rechnung, wo die Zeit wieder gebunden wird; Messpflicht-Tabelle vorher/nachher; eine Verkuerzung des Aufbaus wird Daniel vorgelegt |
 
 **Geld:** 0,0305 + 0,0333 + 0,0349 + 0,0362 = **0,1349 USD gemessen** (ein L4-Versuch lief leer und
 wiederholte sich einmal; dessen Kosten stehen nicht in der Abrechnung des Werkzeugs). Von den 3,16 USD
@@ -32,8 +34,8 @@ der Freigabe sind damit rund **3,02 USD frei**. Guthaben bei Daniel: 12,48 USD (
 |---|---|---|
 | Kopf auf `main` | `af2b272` (Code dieses Schnitts, danach die Doku-Commits) | `git log --oneline -1` |
 | Pruefdateien / Module | 178 / 60 | `ls tests/test_*.py`, `ls src/*.py` |
-| Register / Protokoll / Stand-Bloecke | 274 / 283 / 90 | Zaehlung |
-| Einzelwachen dieses Schnitts | `test_spielschicht` 142/0/1, `test_spieltest_erreicht_kampf` 19/0/0, `test_textqualitaet` 480/0, `test_projektpfade` 123/0, `test_zieluebergabe` 26/0/0 | Laeufe dieses Schnitts |
+| Register / Protokoll / Stand-Bloecke | 276 / 285 / 90 | Zaehlung |
+| Einzelwachen dieses Schnitts | `test_spielschicht` 142/0/1, `test_spieltest_erreicht_kampf` 19/0/0, `test_textqualitaet` 483/0, `test_projektpfade` 123/0, `test_zieluebergabe` 26/0/0 | Laeufe dieses Schnitts |
 | Spieltest-Laeufe | 4 bezahlt (L1 bis L4); L3/L4 ohne Tick-Fehler | `docs/audits/SPIELTEST_LOG_20261105_L3_breit10.md`, `..._L4_krieg12.md` |
 | Spieltest-Kosten | 0,0638 (L1/L2) + 0,0711 (L3/L4) = **0,1349 USD**, rund 3,02 USD der Freigabe frei | `gesamtaudit.log` |
 
