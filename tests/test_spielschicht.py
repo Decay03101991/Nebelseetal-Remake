@@ -434,6 +434,25 @@ S.tick(z2, 6000, 1)
 check("nach 6000 s (=100 min) sind alle 10 Schwerter fertig",
       z2["waren"].get("Schwert") == 10, str(z2["waren"]))
 
+# Wache 05.11.2026: eine Ware OHNE belegte Handbuchdauer muss trotzdem fertig werden.
+# Vorher gab `spielschicht.ware_fertigen` die Rezepte nicht an `werkstatt.einreihen` weiter ->
+# `dauer = None` -> die Ware stand ewig in der Schlange. Belegt: die Spieltest-Simulation reihte
+# 93 Kurzschwerter ein, keine einzige Ware kam an, deshalb entstand nie eine Einheit und nie ein
+# Kampf. Die alte Wache oben prueft nur das "Schwert" - die EINZIGE Ware mit belegter Dauer.
+zk = S.neuer_zustand()
+S.bauen(zk, 0, "schmiede", feld(zk, _SCHMIEDE_FELDER))
+check("Gegenprobe: Kurzschwert hat KEINE belegte Handbuchdauer",
+      W.dauer_sekunden("Kurzschwert") is None)
+ok, meldung = S.ware_fertigen(zk, 0, "Kurzschwert", 1, 0.0)
+check("Ware ohne belegte Dauer laesst sich einreihen", ok is True, meldung)
+_zeilen = [e for s in (zk.get("werkstaetten") or {}).values()
+           for e in (s.get("einheiten") or [])]
+check("die eingereihte Ware hat eine Dauer aus data/warenrezepte.json",
+      bool(_zeilen) and all(e.get("dauer") for e in _zeilen), str(_zeilen))
+S.tick(zk, 5000, 5000)
+check("nach Ablauf der Rezeptdauer liegt das Kurzschwert im Lager",
+      zk["waren"].get("Kurzschwert") == 1, str(zk["waren"]))
+
 
 # ==========================================================================
 # 8. Angriff

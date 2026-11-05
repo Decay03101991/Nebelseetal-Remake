@@ -1,3 +1,57 @@
+# STAND 05.11.2026, 19:25 - Zwei Spieltest-Laeufe bezahlt und bewertet, Messgeraet repariert (Register 232/233)
+
+> Neuester Block. Register 232 und 233, Protokollzeilen ab 19:20. Kopf beim Schreiben: `fa8e27c`,
+> Arbeitsbaum sauber. Der Block 17:40 darunter haelt die Veroeffentlichung, der Block 15:40 die
+> Entscheidungen aus Register 228.
+
+**Der Ablauf dieser Runde, ehrlich:** der erste Simulationslauf nach der Uebergabe wurde NICHT
+bezahlt - er zeigte 0 Einheiten und 0 Kaempfe. Erst die Ursachen (drei Stueck, alle im Messgeraet)
+beheben, dann die zwei Laeufe fahren.
+
+| Nr. | Schritt | Beleg |
+|---|---|---|
+| A | Erster Lauf geprueft, bevor Geld floss: 0 Einheiten, 0 Kaempfe, kein Grund im Bericht | Sonde: die Werkstatt-Schlange stand auf `dauer: None` |
+| B | **Ursache 1:** `spielschicht.ware_fertigen` gab die Rezepte nicht weiter -> jede Ware ohne belegte Handbuchdauer wurde nie fertig (93 Kurzschwerter eingereiht, keine angekommen) | behoben, `test_spielschicht` **137/0/1** (6 neue Pruefungen, mit Kurzschwert statt Schwert) |
+| C | **Ursache 2:** Baukette baute nie ein Haus (`wohnhaus` ist keine Kennung) und hatte keine Schafszucht, keinen Stellmacher, keine Erzmine -> keine Einheit, kein Kampf | behoben, `test_spieltest_erreicht_kampf` **16/0/0** (neu) |
+| D | **Ursache 3:** Fehlversuche wurden still verschluckt; jetzt Grundbilanz im Bericht (Stelle, Anzahl, Grund) | Abschnitt im Lauf 1 |
+| E | Lauf 1 (Stil breit, 8 Tage, Saat 7) + Modellurteil | 5 Einheiten, 2 Gefechte, 19 Punkte; `SPIELTEST_BEWERTUNG_20261105_L1.md`, **0,0305 USD** |
+| F | Lauf 2 (Stil krieg, 10 Tage, Saat 23) + Modellurteil | 7 Einheiten, 5 Gefechte, 40 Punkte; `SPIELTEST_BEWERTUNG_20261105_L2.md`, **0,0333 USD** |
+| G | Befunde verwertbar formuliert (7 Befunde, 4 Grenzen, Reihenfolge der naechsten Schnitte) | `docs/SPIELTEST_BEFUNDE_20261105.md` |
+| H | Werkzeugbefund: `gesamtaudit_lauf.py --paket <pfad>` ignoriert den Pfad und sendet das volle Dossier | richtig ist `--paket --dossier <pfad> --ziel <datei>` (8.017 statt 129.371 Zeichen) |
+| I | **Voller Sammellauf ueber den ganzen Stand** | **176 von 178 gruen, 0 rot**, 7.276 bestandene Pruefungen, 1221 s (`docs/audits/sammellauf_20261105_1911.log`) |
+
+**Geld:** 0,0638 USD von 3,16 USD verbraucht, **3,10 USD bleiben frei**. Guthaben bei Daniel
+13,16 USD (Ablesung 15:06).
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf auf `main` | `fa8e27c` beim Schreiben | `git log --oneline -1` |
+| Pruefdateien / Module | 178 / 60 | `ls tests/test_*.py`, `ls src/*.py` |
+| Register / Protokoll / Stand-Bloecke | 272 / 281 / 90 | Zaehlung |
+| Einzelwachen dieses Schnitts | `test_spielschicht` 137/0/1, `test_spieltest_erreicht_kampf` 16/0/0, `test_textqualitaet` 450/0, `test_projektpfade` 123/0, `test_zieluebergabe` 26/0/0 | Laeufe dieses Schnitts |
+| Spieltest-Laeufe | 2 (breit/krieg), kein Tick-Fehler in beiden | `docs/audits/SPIELTEST_LOG_20261105_1855.md`, `..._1902.md` |
+| Spieltest-Kosten | 0,0305 + 0,0333 = **0,0638 USD**, Rest frei 3,10 USD | `gesamtaudit.log` |
+
+## Der EINE naechste Schritt
+
+1. **W1 - Waren-Kosten im Kern-Weg** (`spielschicht.ware_fertigen` bucht Kosten und prueft die
+   Forschungsvoraussetzung wie `spieloekonomie.ware_start_menge`), mit eigener Wache. Danach die
+   beiden Spieltest-Laeufe neu fahren (~0,03 USD je Lauf) - erst dann sind die Zahlen aus
+   `SPIELTEST_BEFUNDE` belastbar. Der volle Sammellauf fuer den Stand dieses Blocks ist gefahren
+   (176 von 178, 0 rot, 1.221 s), die Skip-Mechanik-Luecke der Uebergabe ist damit geschlossen.
+2. **Karren-Engpass (B2)** (236 Angriffs-Fehlversuche) und **B3/B4/B7** (Voraussetzungen und Knoepfe
+   anzeigen) nach Daniels Entscheidung.
+3. **Neue Spielversion 0.0.2 ankuendigen**, sobald W1 gebaut und der Sammellauf gruen ist - der
+   Ware-Fix ist spielrelevant. Repo dabei laufend aktuell halten (Daniel 05.11.2026).
+
+**Weiter offen:** Saat wirkungslos (feste Startkarte) - Verlaeufe unterscheiden sich nur ueber
+`--stil`; Kampfziel ist ein fixes synthetisches Dorf (Beute immer 16/10/12, 0 Verluste); Mana und
+Pferde kommen in 18 Spieltagen nie vor; Skill-Nachtrag `laptop-cleanup` wartet auf Daniels
+Freigabe (`/skills pending`); Werkzeug-Fix Wagenbau-Stufen in `tools/balancing_messung.py` und die
+Bot-Drachenregel stehen weiter offen.
+
+
+
 # STAND 05.11.2026, 17:40 - Erste veroeffentlichte Fassung `Nebelseetal_Pre_Release_V_0.0.1.exe` gebaut, geprueft, Null-Zustand vorbereitet
 
 > Neuester Block. Register 230, Protokollsektion HERMES-RELEASE-230. Kopf beim Schreiben: `a5fac01`,

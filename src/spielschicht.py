@@ -78,6 +78,20 @@ def _preise() -> Dict[str, Dict[str, Any]]:
         return json.load(f)["preise"]
 
 
+@lru_cache(maxsize=1)
+def _warenrezepte() -> Dict[str, Any]:
+    """Die Rezepte aus ``data/warenrezepte.json`` - dieselbe Datei, die ``spieloekonomie`` liest.
+
+    Warum das noetig ist: ``werkstatt.einreihen`` bekommt ohne Rezepte ``dauer = None``, und eine
+    Ware ohne Dauer wird NIE fertig. Belegt am 05.11.2026: die Spieltest-Simulation reihte 93
+    Kurzschwerter ein, keine einzige Ware kam an - im Handbuch ist nur das Schwert (20 Minuten)
+    belegt, alle anderen Dauern stehen in dieser Datei.
+    """
+    pfad = os.path.join(spieldaten.projektwurzel(), "data", "warenrezepte.json")
+    with open(pfad, encoding="utf-8") as f:
+        return json.load(f)
+
+
 def _baukosten(gebaeude: str, stufe: int = 1) -> Dict[str, int]:
     """Baupreis eines Gebaeudes fuer ``stufe``.
 
@@ -510,7 +524,7 @@ def ware_fertigen(zustand: dict, siedlung_index, ware: str, anzahl: int,
     else:
         schlange["werkstaetten"] = bestand
         schlange["kapazitaet"] = werkstatt.kapazitaet(bestand)
-    ok, meldung = werkstatt.einreihen(schlange, ware, anzahl, stufe)
+    ok, meldung = werkstatt.einreihen(schlange, ware, anzahl, stufe, _warenrezepte())
     if not ok:
         return False, meldung
     werkstatt.fortschritt(schlange, float(jetzt))       # Uhr stellen (Startzeitpunkt)
