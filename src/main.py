@@ -172,6 +172,9 @@ class Goods:
     description: str = ""
 
 
+# W-14 (05.11.2026): Gelaendearten, auf denen kein Drache stehen darf (nicht bebaubar).
+_DRACHEN_GESPERRT = {k for k, wert in gelaende.ARTEN.items() if not wert.get("bebaubar")}
+
 GOODS: Dict[str, Goods] = {
     "brot": Goods("Brot", "🍞", {"nahrung": 20}, "Grundnahrungsmittel."),
     "bier": Goods("Bier", "🍺", {"nahrung": 30}, "Getränk für die Bevölkerung."),
@@ -3619,6 +3622,14 @@ class GameState:
         # begrenzt ist: was nicht getragen wird, bleibt liegen (naechster Angreifer findet es).
         self.drachen_besiegt: List[str] = []
         self.drachen_vorraete: Dict[str, Dict[str, int]] = {}
+        # Daniel 05.11.2026: bei jedem Neubeginn stehen die Drachen ANDERS, aber auf derselben
+        # Welt. Die Lage gehoert in den Spielstand; ein alter Stand ohne sie nutzt die
+        # Koordinaten der Datendatei (kein stiller Umzug eines laufenden Spiels).
+        self.drachen_positionen: Dict[str, List[int]] = {}
+        # Daniel 05.11.2026: die Wache des Drachen bleibt BESCHAEDIGT stehen (Verluste werden
+        # gebucht) und ein Flammenzeichen merkt, dass schon jemand angegriffen hat.
+        self.drachen_wachen: Dict[str, Dict[str, int]] = {}
+        self.drachen_angegriffen: List[str] = []
         self.noob_protection: bool = True
         # Oekonomie-Paket, Schritt 9, Teil 8b (Entwurf Z. 789): Version und Modus des Spielstands.
         # `stand_version` ist die FORM (1 = der alte, unversionierte Stand — dort fehlt das Feld;
@@ -3962,6 +3973,9 @@ class GameState:
         for i, dorf in enumerate(doerfer):                             # Positionen einmalig setzen
             if int(dorf.x) == 0 and int(dorf.y) == 0:                  # 0/0 = noch nicht gesetzt
                 dorf.x, dorf.y = bottaktik.dorf_position(bot.name, i)   # fest aus Name und Nummer
+                # Daniel 05.11.2026: eine Drachen-/Ruinenkoordinate nutzt auch ein Bot nicht.
+                dorf.x, dorf.y = self.bot_dorf_platz(
+                    int(getattr(dorf, "dimension", 1) or 1), dorf.x, dorf.y)
         bot_doerfer_karten_zuweisen(bot)                               # B-4: je Dorf eine Karte (drei zur Wahl, Gold zuerst)
         # S-4 (03.11.2026): der Bot FORSCHT - zuerst faellige Auftraege verbuchen, dann den
         # naechsten Schritt seiner Taktik starten (eine Bibliothek je Dorf, ein Auftrag je Takt).
@@ -4951,6 +4965,9 @@ class GameState:
                 feld = self.get_tile(x, y, cfg["size"])
                 if feld is None or feld.terrain == "water" or feld.npc_faction:
                     continue
+                # HINWEIS (05.11.2026): die Siedlungskarte ist ein EIGENES 10x10-Raster, der Drache
+                # steht auf der WELTKARTE (20x20). Zwei Zaehlweisen duerfen nicht gemischt werden -
+                # darum sperrt hier nichts; die Sperre gilt fuer Bewegung und Bot-Doerfer (Weltkarte).
                 felder.append((x, y))
                 if len(felder) >= anzahl:
                     break
@@ -5530,7 +5547,218 @@ class GameState:
             self.gesamtsieg_pruefen()                                             # Sieg? (einmalig)
         return ergebnis
 
+    def drachen_wache(self, eintrag: dict) -> dict:
+        """Die Wache, die JETZT noch steht (Daniel 05.11.2026: der Drache wird beschädigt).
+
+        Der Startbestand kommt aus `data/drachen.json`, danach gilt der SPIELSTAND: die Verluste
+        eines Gefechts bleiben gebucht. Ein Drache wächst nicht nach - nur so hat "bereits
+        beschädigt" eine echte Bedeutung, und nur so sieht ein Angreifer die tatsächliche Stärke
+        erst im eigenen Angriff.
+        """
+        kennung = str(eintrag.get("id") or "")                        # Kennung des Drachen
+        if kennung not in self.drachen_wachen:                        # erster Kontakt in dieser Partie
+            self.drachen_wachen[kennung] = {str(k): int(v)            # Startbestand aus den Daten
+                                            for k, v in drachen.verteidiger(eintrag).items()}
+        return {str(k): int(v)                                        # Rueckgabe als Kopie
+                for k, v in (self.drachen_wachen.get(kennung) or {}).items()
+                if int(v) > 0}                                        # nur was wirklich dasteht
+
+    def _mana_belohnung_buchen(self, eintrag: dict, summe) -> None:
+        """Die Manabelohnung eines besiegten Drachen gutschreiben (Daniel 05.11.2026).
+
+        Ziel ist immer der ANGREIFER: beim Spieler das Lager der Siedlung, aus der der Zug kam
+        (sonst die Reichskasse - dieselbe Regel wie bei jeder anderen Beute), bei einem Bot dessen
+        eigene Kasse (`bot_kasse_setzen` ist der EINE Schreiber). Gebucht wird genau einmal.
+        """
+        try:                                                          # Betrag belastbar machen
+            betrag = float(summe or 0)                                # ganze Zahl als Fliesskomma
+        except (TypeError, ValueError):                               # unbrauchbare Angabe
+            return                                                    # dann nichts buchen
+        if betrag <= 0:                                               # nichts zu verteilen
+            return                                                    # fertig
+        bot_name = str(eintrag.get("bot_name") or "")                 # kam der Zug von einem Bot?
+        if bot_name:                                                  # ja: seine Kasse
+            bot = next((b for b in self.bots if str(b.name) == bot_name), None)
+            if bot is not None:                                       # Bot gefunden
+                lager = dict(bot_kasse(bot) or {})                    # seine Doerfer als Kasse
+                lager["mana"] = float(lager.get("mana", 0.0) or 0.0) + betrag   # Mana dazulegen
+                bot_kasse_setzen(bot, lager)                          # EIN Schreiber
+            return                                                    # fertig
+        quelle = self._siedlung_zu(eintrag.get("quelle_id"))          # Siedlung des Angreifers
+        if quelle is not None:                                        # Ortslager gefunden
+            vorraete = dict(quelle.vorraete or {})                    # Kopie des Lagers
+            vorraete["mana"] = round(float(vorraete.get("mana", 0.0) or 0.0) + betrag, 2)  # dazulegen
+            quelle.vorraete = vorraete                                # zurueckschreiben
+            self._reichsanzeige_aus_orten()                           # Reichsanzeige ist die Summe
+            return                                                    # fertig
+        self.resources["mana"].amount = float(self.resources["mana"].amount) + betrag   # Reichskasse
+
+    def _bots_drachenzug(self, bot, jetzt: float):
+        """Greift dieser Bot einen Drachen an? (Daniel 05.11.2026)
+
+        Der Bot kennt den Hort und die Manabelohnung, er kennt die Schwellen des Drachen - und er
+        weiss, dass ein Angriff SICHERE VERLUSTE kostet. Wie stark die Wache gerade noch ist, weiss
+        er NICHT: er sieht nur, dass schon jemand angegriffen hat. Gekaempft wird ueber DENSELBEN
+        Weg wie beim Spieler (`_drachen_kampf`), damit es keine zweite Kampfregel gibt.
+        Rueckgabe: (True, Meldung) wenn gekaempft wurde, sonst (False, "").
+        """
+        welt = 0                                                      # Welt des Bots
+        for dorf in bot_doerfer_sicherstellen(bot):                   # je Dorf die Welt
+            if int(getattr(dorf, "hauptdorf", False)):                # das Hauptdorf zaehlt
+                welt = int(getattr(dorf, "dimension", 0) or 0)        # seine Welt
+                break                                                 # fertig
+        if not welt:                                                  # keine Welt bekannt
+            return (False, "")                                        # dann kein Zug
+        siegel = drachen.welt_kennung(welt)                           # Kennung der Welt
+        offen = [e for e in drachen.alle()                      # jeder Drache seiner Welt
+                 if str(e.get("welt")) == siegel                  # richtige Welt
+                 and str(e.get("id")) not in (self.drachen_besiegt or [])]   # noch nicht besiegt
+        if not offen:                                                 # kein Drache mehr dort
+            return (False, "")                                        # nichts zu tun
+        kaempfer = {n: int(v) for n, v in (bot.army or {}).items()    # seine Kaempfer
+                    if einheiten.rolle(n) in ("kaempfer", "kundschafter") and int(v) > 0}
+        geraet = {n: int(v) for n, v in (bot.army or {}).items()      # seine Belagerung
+                  if einheiten.rolle(n) == "belagerung" and int(v) > 0}
+        karren = {n: int(v) for n, v in (getattr(bot, "lager", {}) or {}).items()   # seine Karren
+                  if einheiten.rolle(n) == "karren" and int(v) > 0}
+        if not kaempfer:                                              # ohne Truppen kein Zug
+            return (False, "")                                        # nichts zu tun
+        sk = bot_angriffsplanung.schlagkraft(kaempfer, geraet)        # dieselbe Rechnung wie am Wall
+        belohnung = drachen.belohnung_mana()                          # was der Sieg bringt
+        for drache in sorted(offen, key=lambda e: str(e.get("id"))):   # jeder Drache einmal
+            angegriffen = str(drache.get("id")) in (self.drachen_angegriffen or [])   # schon Feuer?
+            erlaubt, grund = drachen.bot_entscheidung(                # sein Urteil
+                sk.get("fusstruppen"), sk.get("belagerungswaffen"),
+                drachen.schwellen(drache), belohnung.get("summe"), angegriffen)
+            if not erlaubt:                                           # zu stark
+                self._log("%s: kein Drachenangriff - %s" % (bot.name, grund))
+                continue                                              # naechster Drache
+            truppen = dict(kaempfer)                                  # was mitreist
+            truppen.update(geraet)                                    # Belagerung dazu
+            truppen.update(karren)                                    # Karren tragen die Beute
+            eintrag = {"art": "angreifen",                            # derselbe Auftragsaufbau
+                       "nach": str(drache.get("name")),               # Name des Ziels
+                       "einheiten": dict(truppen),                    # seine Truppen
+                       "ziel": {"drache_id": str(drache.get("id"))},  # Merker: ein DRACHE
+                       "bot_name": str(bot.name),                     # wer angreift
+                       "ankunft": float(jetzt)}                       # Zeitpunkt des Gefechts
+            self._drachen_kampf(eintrag, eintrag["ziel"])             # DER Kampfweg
+            for name, anzahl in truppen.items():                      # Verluste beim Bot buchen
+                rest = int((eintrag.get("einheiten") or {}).get(name, 0))   # was heimkehrt
+                if rest < int(anzahl):                                # es fehlt etwas
+                    bot_armee_buchen(bot, name, -(int(anzahl) - int(rest)))   # EIN Schreiber
+            if eintrag.get("beute"):                                  # Beute in seine Kasse
+                lager = dict(bot_kasse(bot) or {})                    # seine Doerfer
+                for stoff, menge in (eintrag.get("beute") or {}).items():   # je Rohstoff
+                    lager[str(stoff)] = round(float(lager.get(str(stoff), 0.0) or 0.0)
+                                              + float(menge), 2)      # dazulegen
+                bot_kasse_setzen(bot, lager)                          # EIN Schreiber
+            return (True, "%s greift den Drachen an: %s" % (bot.name, grund))   # Zug verbraucht
+        return (False, "")                                            # kein Drache passte
+
+    def drachen_position(self, eintrag: dict) -> tuple:
+        """Wo ein Drache in DIESEM Spielstand steht: (x, y) aus dem Zustand, sonst aus den Daten.
+
+        Daniel 05.11.2026: jeder Neubeginn wuerfelt neue Plaetze aus, die Welt bleibt dieselbe. Ein
+        alter Spielstand hat keine Lage gespeichert - dort gilt die Koordinate der Datendatei,
+        damit ein laufendes Spiel seine Drachen nicht stillschweigend verschiebt.
+        """
+        kennung = str(eintrag.get("id") or "")                        # Kennung des Drachen
+        lage = self.drachen_positionen.get(kennung)                   # gespeicherte Lage
+        if isinstance(lage, (list, tuple)) and len(lage) >= 2:        # brauchbare Lage vorhanden
+            return (int(lage[0]), int(lage[1]))                       # aus dem Spielstand
+        return (int(eintrag.get("x") or 0), int(eintrag.get("y") or 0))   # sonst aus den Daten
+
+    def drachen_verteilen(self, seed=None) -> dict:
+        """Neue Plaetze fuer alle Drachen auswuerfeln (Daniel 05.11.2026, Neubeginn).
+
+        Belegt sind die eigenen Siedlungen und die Doerfer der Bots - kein Drache stellt sich auf
+        einen Ort. Rueckgabe: {Kennung: [x, y]} wie es im Spielstand steht.
+        """
+        belegt = []                                                   # was schon jemand nutzt
+        for ort in (self.settlements or []):                          # jede eigene Siedlung
+            belegt.append((drachen.welt_kennung(int(getattr(ort, "dimension", 1) or 1)),
+                           int(getattr(ort, "x", 0)), int(getattr(ort, "y", 0))))
+        for bot in (self.bots or []):                                 # jedes Bot-Dorf
+            for dorf in bot_doerfer_sicherstellen(bot):               # je Dorf ein Eintrag
+                belegt.append((drachen.welt_kennung(int(getattr(dorf, "dimension", 1) or 1)),
+                               int(getattr(dorf, "x", 0)), int(getattr(dorf, "y", 0))))
+        # Die freien Felder je Welt baut DIESE Stelle: das Weltbild liest nur main/portalraum.
+        felder = {}                                                   # {Weltkennung: [(x, y), ...]}
+        for drache in drachen.alle():                                 # jede Welt mit einem Drachen
+            welt = str(drache.get("welt"))                            # Kennung der Welt
+            if welt in felder:                                        # schon gebaut
+                continue                                              # nicht doppelt rechnen
+            try:                                                      # die Karte dieser Welt holen
+                bild = portalraum.weltbild(welt)                      # EINMAL je Welt
+            except Exception:                                         # keine Karte
+                felder[welt] = []                                     # dann keine Felder
+                continue                                              # naechste Welt
+            raster = bild.get("raster") or []                         # Gelaende je Feld
+            liste = []                                                # brauchbare Felder
+            for y in range(min(len(raster), int(portalraum._achsen()))):   # jede Zeile
+                for x in range(min(len(raster[y]), int(portalraum._achsen()))):   # jede Spalte
+                    if str(raster[y][x]) in _DRACHEN_GESPERRT:        # Gelaende traegt nicht
+                        continue                                      # ueberspringen
+                    liste.append((x, y))                              # brauchbares Feld
+            felder[welt] = liste                                      # je Welt merken
+        self.drachen_positionen = drachen.verteile(                   # EINE Rechenstelle
+            random.Random(seed) if seed is not None else random.Random(), felder, belegt)
+        return dict(self.drachen_positionen)                          # die neue Lage
+
+    def drache_an(self, welt_nummer, x, y):
+        """Der Drache (oder die Ruine) auf diesem Feld der genannten Welt - sonst None.
+
+        Auch ein BESIEGTER Drache wird geliefert: er steht als Ruine und sperrt das Feld
+        (Daniel 05.11.2026). Ob er noch Ziel sein kann, entscheidet der Aufrufer.
+        """
+        kennung_welt = str(welt_nummer)                               # Welt als Kennung oder Nummer
+        if not kennung_welt.startswith("d"):                          # eine Nummer kam herein
+            kennung_welt = drachen.welt_kennung(welt_nummer)          # in die Kennung umrechnen
+        try:                                                          # Koordinaten belastbar machen
+            xi, yi = int(x), int(y)                                   # ganze Zahlen
+        except (TypeError, ValueError):                               # unbrauchbare Angabe
+            return None                                               # dann kein Treffer
+        for eintrag in drachen.alle():                                # jeder gueltige Drache
+            if str(eintrag["welt"]) != kennung_welt:                  # andere Welt
+                continue                                              # ueberspringen
+            px, py = self.drachen_position(eintrag)                   # SEINE Lage in diesem Stand
+            if px == xi and py == yi:                                 # Feld passt
+                return eintrag                                        # gefunden
+        return None                                                   # nichts auf diesem Feld
+
+    def drachen_blockiert(self, welt_nummer, x, y) -> bool:
+        """Ist diese Weltkarten-Position gesperrt? (Daniel 05.11.2026)
+
+        Ein Drache und eine Ruine sperren ihr Feld: kein Bot und kein Spieler kann die Position
+        nutzen. Die gepluenderte Ruine bleibt stehen, hat aber keine weitere Funktion.
+        """
+        return self.drache_an(welt_nummer, x, y) is not None           # Drache oder Ruine = gesperrt
+
+    def bot_dorf_platz(self, welt_nummer, x, y) -> tuple:
+        """Ein freies Feld fuer ein Bot-Dorf: die gewuenschte Stelle, sonst die naechste freie.
+
+        Daniel 05.11.2026: eine Drachen- oder Ruinenkoordinate darf NIEMAND nutzen - auch kein Bot.
+        Gesucht wird in fester Reihenfolge (kein Zufall), damit dieselbe Lage immer dasselbe ergibt.
+        """
+        try:                                                           # Koordinaten belastbar machen
+            xi, yi = int(x), int(y)                                    # ganze Zahlen
+        except (TypeError, ValueError):                                # unbrauchbare Angabe
+            return (int(x or 0), int(y or 0))                          # nichts veraendern
+        if not self.drachen_blockiert(welt_nummer, xi, yi):            # Wunschfeld ist frei
+            return (xi, yi)                                            # dann bleibt es dabei
+        kante = int(portalraum._achsen())                              # Rasterweite der Weltkarte
+        for schritt in range(1, kante * kante):                        # Felder in fester Reihenfolge
+            kx = xi + schritt                                          # nach rechts wandern
+            ky = yi + (kx // kante)                                    # bei Zeilenende eine Zeile tiefer
+            kx = kx % kante                                            # im Raster halten
+            ky = ky % kante                                            # im Raster halten
+            if not self.drachen_blockiert(welt_nummer, kx, ky):        # freies Feld gefunden
+                return (int(kx), int(ky))                              # hierhin ausweichen
+        return (xi, yi)                                                # nichts gefunden: Wunsch behalten
+
     def drachen_vorrat(self, eintrag: dict) -> dict:
+
         """Was im Hort eines Drachen noch liegt (W-14 Teil 2, 05.11.2026).
 
         Der Hort ist PERSISTENT: die Beute ist durch die Karrenladung begrenzt, also bleibt der
@@ -5543,7 +5771,61 @@ class GameState:
                 str(stoff): int(menge)                                # ganze Zahlen
                 for stoff, menge in drachen.beute(eintrag).items()}   # Beute des Eintrags
         return {str(k): int(v)                                          # Rueckgabe als Kopie
-                for k, v in (self.drachen_vorraete.get(kennung) or {}).items()}   # nie die Ablage selbst
+                for k, v in (self.drachen_vorraete.get(kennung) or {}).items()
+                if int(v) > 0}                                          # nur was wirklich daliegt
+
+    def _drachen_ruine_pluendern(self, eintrag: dict, drache: dict) -> dict:
+        """Was in der Ruine liegt, mit Karren abholen (Daniel 05.11.2026).
+
+        Kein Kampf, kein Feueratem, keine Schwelle - der Drache ist gefallen. Es gilt nur die
+        Ladung der Karren: was hineinpasst, kommt mit, der Rest bleibt fuer den naechsten Zug
+        liegen. Die Texte stehen in `data/drachen.json` (Block `ruine`), nicht im Code.
+        """
+        kennung = str(drache.get("id") or "")                         # Kennung des Drachen
+        truppen = {str(k): int(v) for k, v in (eintrag.get("einheiten") or {}).items()}   # mitreisende Einheiten
+        geraet = {}                                                    # Karren und Belagerung tragen
+        for name, anzahl in truppen.items():                           # jede mitreisende Einheit
+            if einheiten.rolle(name) in ("karren", "belagerung"):      # nur diese tragen Beute
+                geraet[name] = anzahl                                  # als Geraet merken
+        vorrat = self.drachen_vorrat(drache)                           # was noch in der Ruine liegt
+        texte = drachen.ruine_texte()                                  # Texte aus der Datendatei
+        zeilen = []                                                    # Zeilen des Berichts
+        if not vorrat:                                                 # nichts mehr da
+            zeilen.append(str(texte.get("zeile_leer") or ""))          # ehrliche Zeile
+            beute = {}                                                 # keine Beute
+        else:                                                          # der Rest wird verladen
+            beute, lager_danach = kampfbericht.beute_am_ziel(
+                geraet, vorrat,                                        # Karren und Hort
+                ausgang="angreifer",                                   # die Ruine wehrt sich nicht
+                forschung=self.forschungs_stufen(),                    # Wagenbau-Bonus
+                beute_override=dict(vorrat))                           # der GANZE Rest, soweit tragbar
+            self.drachen_vorraete[kennung] = {str(k): int(v)          # Rest bleibt liegen
+                                              for k, v in (lager_danach or {}).items()}
+            if beute:                                                  # etwas kam mit
+                zeilen.append(str(texte.get("zeile_mit") or "").replace(
+                    "{beute}", hilfen.aufzaehlung(beute)))
+            else:                                                      # keine Karren dabei
+                zeilen.append("Ohne Karren bleibt alles liegen.")      # klarer Satz
+            rest = {k: int(v) for k, v in (lager_danach or {}).items() if int(v) > 0}   # was blieb
+            # Daniel 05.11.2026: ist der Hort leer, ist der Drache ausgeraeumt - das Zeichen
+            # verschwindet, die Ruine bleibt stehen und sperrt weiter ihr Feld.
+            if not rest and kennung in self.drachen_angegriffen:       # nichts mehr da
+                self.drachen_angegriffen.remove(kennung)               # Flamme loeschen
+            if rest:                                                   # es blieb etwas liegen
+                zeilen.append(str(texte.get("zeile_rest") or "").replace(
+                    "{rest}", hilfen.aufzaehlung(rest)))
+        eintrag["beute"] = beute                                       # gebucht beim Auftrag
+        text = ("Am Ziel %s - %s\n%s" % (eintrag.get("nach"),
+                                         str(texte.get("titel") or "Die Ruine"),
+                                         "\n".join(z for z in zeilen if z)))
+        self.messages.append({"text": text, "type": "kampf",            # ab ins Postfach
+                              "spielzeit_sekunden": float(eintrag.get("ankunft") or self.spielsekunden)})
+        self._log("Ruine bei %s geplündert: %d Einheiten Beute."
+                  % (drache.get("name"), sum(int(v) for v in beute.values())))
+        return {"ausgang": "angreifer", "kampf_stattgefunden": False,   # kein Gefecht
+                "vorrunde_bestanden": True, "verluste_angreifer": {},
+                "verluste_verteidiger": {}, "beute": dict(beute), "bericht": "",
+                "drache": kennung, "ruine": True}
 
     def _drachen_kampf(self, eintrag: dict, ziel: dict) -> dict:
         """Der Kampf gegen einen DRACHEN - der zweite Kampfweg neben Bot-Dorf und Siedlung.
@@ -5557,8 +5839,15 @@ class GameState:
         """
         kennung = str(ziel.get("drache_id") or "")                    # Kennung aus dem Auftrag
         drache = drachen.finde_id(kennung)                            # Eintrag aus der Datendatei
-        steht = (drache is not None and drachen.finde(                # steht er noch als Ziel?
-            drache["welt"], drache["x"], drache["y"], self.drachen_besiegt) is not None)   # besiegt = Ruine
+        # Daniel 05.11.2026: die Ruine bleibt PLUENDERBAR. Ein zweites Gefecht gibt es nicht
+        # mehr, aber der Rest des Hortes liegt dort und wird mit Karren abgeholt.
+        if drache is not None and kennung in (self.drachen_besiegt or []):   # er ist gefallen
+            return self._drachen_ruine_pluendern(eintrag, drache)     # nur noch Beute holen
+        # Steht er noch? Die LAGE kommt aus diesem Spielstand (jeder Neubeginn wuerfelt neu),
+        # und ein besiegter Drache ist keine Schlacht mehr, sondern eine Ruine (eigener Zweig).
+        steht = (drache is not None
+                 and kennung not in (self.drachen_besiegt or [])
+                 and self.drache_an(drache["welt"], *self.drachen_position(drache)) is not None)
         if not steht:                                                 # kein Drache mehr dort
             text = "Am Ziel %s steht kein Drache mehr - nur eine Ruine." % eintrag.get("nach")
             self.messages.append({"text": text, "type": "kampf",      # ehrliche Meldung
@@ -5579,7 +5868,7 @@ class GameState:
                 karren[name] = anzahl                                 # getrennt merken
         geraet = dict(karren)                                         # Karren tragen die Beute
         geraet.update(belagerung)                                     # + Belagerungswaffen
-        wachen = drachen.verteidiger(drache)                          # die Wache des Drachen
+        wachen = self.drachen_wache(drache)                            # die NOCH stehende Wache
         wachen_summe = sum(int(v) for v in wachen.values())            # Zahl der Verteidiger
         # Feueratem VOR dem Kampf: er trifft die antretenden Fusstruppen, nicht die Karren.
         fusstruppen = sum(int(v) for name, v in kaempfer.items()      # nur die Fusstruppen
@@ -5618,6 +5907,12 @@ class GameState:
             truppen[name] = max(0, int(truppen.get(name, 0)) - int(nimm))   # abbuchen
         truppen = {n: int(a) for n, a in truppen.items() if int(a) > 0}         # nur Heimkehrer
         eintrag["einheiten"] = truppen                                 # Stand des Auftrags
+        # Daniel 05.11.2026: der Drache wird BESCHAEDIGT - die Verluste seiner Wache bleiben
+        # gebucht, damit ein zweiter Angriff auf weniger Verteidiger trifft.
+        _wache_rest = {str(n): int(a) - int((ergebnis.get("verluste_verteidiger") or {}).get(n, 0))
+                       for n, a in wachen.items()}                     # was noch steht
+        self.drachen_wachen[kennung] = {str(n): int(a) for n, a in _wache_rest.items()
+                                        if int(a) > 0}                 # genau buchen
         zerstoert = sum(int(v) for v in (ergebnis.get("verluste_verteidiger") or {}).values())  # Leistung
         # "Letzter Schlag" heisst GEWONNEN - dieselbe Lesart wie bei `kampfbericht.ausgeraeumt`
         # (W-13, Register 197): fliehende Verteidiger bleiben stehen, "alle tot" waere unerreichbar.
@@ -5645,6 +5940,18 @@ class GameState:
                                        % (int(anzahl), name))
             if kennung not in self.drachen_besiegt:                    # Zustand: besiegt
                 self.drachen_besiegt.append(kennung)                   # genau einmal buchen
+            # Daniel 05.11.2026: die Trophae bringt zusaetzlich VIEL Mana - fester Betrag plus
+            # gerechneter Aufwand mehrerer Versuche. Gebucht beim Angreifer, genau einmal.
+            _belohnung = drachen.belohnung_mana()                      # Betrag aus den Daten
+            self._mana_belohnung_buchen(eintrag, _belohnung.get("summe"))   # EINE Buchstelle
+            _texte = drachen.belohnung_texte()                         # epische Texte
+            if _texte:                                                 # nur wenn die Daten welche nennen
+                ware_zeilen.append(str(_texte.get("titel") or ""))      # Ueberschrift
+                for _zeile in (_texte.get("zeilen") or []):             # jede Textzeile
+                    ware_zeilen.append(str(_zeile)
+                                       .replace("{mana}", str(int(_belohnung.get("summe") or 0)))
+                                       .replace("{grund}", str(int(_belohnung.get("grundbetrag") or 0)))
+                                       .replace("{aufwand}", str(int(_belohnung.get("aufwand") or 0))))
         ueberlebende = sum(int(v) for name, v in truppen.items()       # Kaempfer und Geraet
                            if einheiten.rolle(name) != "karren")       # Karren zaehlen nicht
         naechster = "" if letzter_schlag else drachen.angriffs_hinweis()   # kein Ausblick nach dem Sieg
@@ -5663,6 +5970,10 @@ class GameState:
                                          "\n".join(z for z in zeilen if z)))
         self.messages.append({"text": text, "type": "kampf",           # ab ins Postfach
                               "spielzeit_sekunden": float(eintrag.get("ankunft") or self.spielsekunden)})
+        # Daniel 05.11.2026: der reine Angriff genuegt - wer einen Kampfbericht bekommt, hat
+        # den Drachen angegriffen. Das Zeichen sehen danach ALLE, mehr verraet es nicht.
+        if kennung not in self.drachen_angegriffen:                     # noch kein Zeichen
+            self.drachen_angegriffen.append(kennung)                    # Flamme setzen
         eintrag["vorrunde"] = {"bestanden": bool(ergebnis.get("vorrunde_bestanden")),
                                "grund": ergebnis.get("bericht", "")}   # Vorrunde im Auftrag
         self._log("Kampf gegen %s: %s." % (drache.get("name"), ergebnis.get("ausgang")))
@@ -6086,6 +6397,8 @@ class GameState:
         neu.bevoelkerung = float(siedler)                                   # die Kolonisten
         try:                                                                # Position wie jedes Dorf
             neu.x, neu.y = bottaktik.dorf_position(bot.name, len(doerfer))  # fest aus Name und Nummer
+            # Daniel 05.11.2026: nicht auf ein Drachen- oder Ruinenfeld gruenden.
+            neu.x, neu.y = self.bot_dorf_platz(heimat, neu.x, neu.y)       # freies Feld suchen
         except (KeyError, TypeError, ValueError):                           # Kern ohne Antwort
             neu.x, neu.y = 0, 0                                             # dann setzt der Takt sie
         doerfer.append(neu)                                                 # am Bot anhaengen
@@ -6179,6 +6492,16 @@ class GameState:
                 elif self.noob_protection:
                     meldung = f"{bot.name}: Angriff abgebrochen (Götterschutz)."
                 else:
+                    # Daniel 05.11.2026: zuerst prueft der Bot den DRACHEN seiner Welt. Er kennt
+                    # den Hort und die Manabelohnung, aber nicht die tatsaechliche Staerke der
+                    # Wache - nur das Flammenzeichen. Passt die Armee deutlich, kostet der
+                    # Drachenzug seinen Zug in diesem Takt.
+                    _drache_ok, _drache_meldung = self._bots_drachenzug(bot, jetzt)
+                    if _drache_ok:
+                        ergebnis["angriffe"].append(_drache_meldung)      # im Taktbericht
+                        self._log(_drache_meldung)                        # Statuszeile
+                        self.bot_armee_aufstellen(bot, jetzt)             # Heimkehrer stellen
+                        continue                                          # kein zweiter Angriff
                     bot_kaempfer = {n: int(v) for n, v in bot.army.items()
                                      if einheiten.rolle(n) in ("kaempfer", "kundschafter")
                                      and int(v) > 0}
@@ -6567,6 +6890,13 @@ class GameState:
             "drachen_besiegt": [str(k) for k in (getattr(self, "drachen_besiegt", []) or [])],
             "drachen_vorraete": {str(k): {str(s): int(m) for s, m in (v or {}).items()}
                                  for k, v in (getattr(self, "drachen_vorraete", {}) or {}).items()},
+            "drachen_positionen": {str(k): [int(v[0]), int(v[1])]      # Lage je Drache
+                                   for k, v in (getattr(self, "drachen_positionen", {}) or {}).items()
+                                   if isinstance(v, (list, tuple)) and len(v) >= 2},
+            "drachen_wachen": {str(k): {str(s): int(m) for s, m in (v or {}).items()}
+                               for k, v in (getattr(self, "drachen_wachen", {}) or {}).items()
+                               if isinstance(v, dict)},
+            "drachen_angegriffen": [str(k) for k in (getattr(self, "drachen_angegriffen", []) or [])],
             # Teil 8b (Entwurf Z. 789): die FORM des Spielstands (Version + Modus) und der
             # Tagesrest. Entwurf woertlich: "_day_accum zusaetzlich sichern statt beim Laden auf 0
             # setzen" — sonst beginnt der Spieltag nach jedem Laden von vorn.
@@ -6740,6 +7070,17 @@ class GameState:
         self.drachen_vorraete = {str(k): {str(s): int(m) for s, m in (v or {}).items()}
                                  for k, v in (data.get("drachen_vorraete") or {}).items()
                                  if isinstance(v, dict)}
+        # Daniel 05.11.2026: die Lage der Drachen kommt aus dem Spielstand. Ein Stand von vor
+        # dieser Aenderung kennt das Feld nicht - dann gilt die Koordinate der Datendatei.
+        self.drachen_positionen = {str(k): [int(v[0]), int(v[1])]
+                                   for k, v in (data.get("drachen_positionen") or {}).items()
+                                   if isinstance(v, (list, tuple)) and len(v) >= 2}
+        # Daniel 05.11.2026: die beschaedigte Wache und das Flammenzeichen gehoeren in den
+        # Spielstand - sonst steht der Drache nach jedem Laden wieder unversehrt da.
+        self.drachen_wachen = {str(k): {str(s): int(m) for s, m in (v or {}).items()}
+                               for k, v in (data.get("drachen_wachen") or {}).items()
+                               if isinstance(v, dict)}
+        self.drachen_angegriffen = [str(k) for k in (data.get("drachen_angegriffen") or [])]
         self.noob_protection = data.get("noob_protection", True)
         # Kein Upgrade alter Legacy-Staende. Fuer neue, lokale Staende ist die
         # globale Anzeige nur eine abgeleitete Summe nach dem Laden.
@@ -8720,6 +9061,14 @@ class NebelseetalApp:
         # Argument gruendet deshalb weiterhin sofort - 16 Pruefdateien haengen daran.
         karte = spieloekonomie.startkarte_gewaehlt(
             getattr(self.state, "startkarte_gewaehlt", ""), self.state.kartenvorrat_seed)
+        # Daniel 05.11.2026: JEDER Neubeginn wuerfelt neue Drachenplaetze aus (dieselben Welten).
+        # Der Aufruf steht hier, weil `_erste_siedlung_gruenden` der Start einer neuen Partie ist.
+        if not self.state.drachen_positionen:                     # noch keine Lage in dieser Partie
+            self.state.drachen_verteilen()                        # Plaetze auswuerfeln
+            self._log("Die Drachen sind erwacht: " + ", ".join(
+                "%s auf %d/%d" % (drachen.finde_id(k).get("name"), v[0], v[1])
+                for k, v in sorted(self.state.drachen_positionen.items())
+                if drachen.finde_id(k) is not None))
         for _ in range(200):
             x = random.randint(0, size - 1)
             y = random.randint(0, size - 1)
@@ -11921,7 +12270,7 @@ class NebelseetalApp:
         er steht als Ruine auf der Karte und ist kein Ziel mehr; das entscheidet der Aufrufer.
         """
         nummer = int(getattr(self, "_portal_blick", 0) or self.state.eigene_dimension)  # gezeigte Welt
-        return drachen.finde(drachen.welt_kennung(nummer), x, y, ())   # auch besiegt: Ruine zeigen
+        return self.state.drache_an(nummer, x, y)                 # auch besiegt: Ruine zeigen
 
     def _drachen_optionen(self, drache: dict) -> None:
         """Der Klick auf einen Drachen: Zahlen, Hinweise, dann die Wahl (W-14 Teil 2).
@@ -11938,10 +12287,20 @@ class NebelseetalApp:
             self.state.messages.append({"text": meldung, "type": "system"})   # ins Postfach
             return                                                     # kein Angebot
         if str(drache.get("id")) in (self.state.drachen_besiegt or []):   # besiegt = Ruine
-            meldung = "%s ist gefallen. Dort steht nur noch eine Ruine." % drache.get("name")
+            # Daniel 05.11.2026: die Ruine bleibt PLUENDERBAR - kein zweites Gefecht, aber der
+            # Rest des Hortes wird mit Karren abgeholt (eigener Weg, eigene Meldung).
+            rest = self.state.drachen_vorrat(drache)                   # was noch daliegt
+            if not rest:                                               # Hort ist leer
+                meldung = "%s ist gefallen, und in der Ruine liegt nichts mehr." % drache.get("name")
+                self._log(meldung)                                     # Statuszeile
+                self.state.messages.append({"text": meldung, "type": "system"})   # ins Postfach
+                return                                                 # nichts zu holen
+            meldung = ("%s ist gefallen. In der Ruine liegen noch %s - ein Zug mit Karren "
+                       "holt sie heraus." % (drache.get("name"), hilfen.aufzaehlung(rest)))
             self._log(meldung)                                         # Statuszeile
             self.state.messages.append({"text": meldung, "type": "system"})   # ins Postfach
-            return                                                     # kein zweiter Angriff
+            self._drachen_truppen_waehlen(drache)                      # Karren schicken
+            return                                                     # Ende des Klicks
 
         def _bauen(inhalt, schliessen):
             """Fuellt den Ingame-Dialog des Drachen (Overlay-Basis, keine Desktop-Fenster)."""
@@ -12107,6 +12466,12 @@ class NebelseetalApp:
                                            cx + zelle * 0.28, cy + zelle * 0.28,
                                            fill="#4A0F0F", outline="#E5A0A0", width=2,
                                            tags=("portaldrache", "drache"))      # dunkler Kreis
+            # Daniel 05.11.2026: ein kleines Flammenzeichen unter den Fuessen zeigt NUR, dass
+            # dieser Drache schon einmal angegriffen wurde - fuer Spieler und Bots gleich.
+            if str(figur.get("id")) in (self.state.drachen_angegriffen or []):
+                zeichenflaeche.create_text(cx, cy + zelle * 0.40, text="\U0001F525",
+                                           font=("Segoe UI Emoji", max(8, int(zelle * 0.30))),
+                                           tags=("drachenflamme",))   # Zeichen unter dem Fuss
 
     def _welt_bewegung_starten(self):
         if not getattr(self, "welt_auswahl", None):
@@ -12134,6 +12499,13 @@ class NebelseetalApp:
             self._welt_detail_zeichnen()
             self._draw_map()
             return
+        # Daniel 05.11.2026: auf einer Drachen- oder Ruinenkoordinate steht man nicht.
+        if self.state.drachen_blockiert(int(self.state.eigene_dimension), ziel[0], ziel[1]):
+            self._welt_start = None                                # Zug aufloesen
+            self._log("Dieses Feld ist gesperrt: dort steht ein Drache oder eine Ruine.")
+            self._welt_detail_zeichnen()                           # Anzeige auffrischen
+            self._draw_map()                                       # Karte neu zeichnen
+            return                                                 # kein Marsch
         abstand = abs(int(start[0]) - int(ziel[0])) + abs(int(start[1]) - int(ziel[1]))
         # E3 (Daniel 31.10.2026, "ein Bewegungssystem"): derselbe Weg wie im Auftrags-Pfad.
         # Vorher stand hier `dauer = max(2, abstand * 5)` MINUTEN - ohne Geschwindigkeit, ohne

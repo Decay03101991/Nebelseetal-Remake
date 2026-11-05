@@ -1,3 +1,43 @@
+# STAND 05.11.2026, 03:06 - Drachen-Nachtraege eingebaut (Register 205)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Sechs Nachrichten Daniels, sechs Aenderungen - alle geprueft.** Der Sieg gegen einen Drachen
+bringt jetzt **34.000 Mana**: 4000 pauschal plus der Aufwand von drei Versuchen mit je zwei
+Weltenspruengen, gerechnet aus dem ECHTEN Preis eines Sprungs (aendert der sich, zieht die
+Belohnung mit - mit Wache belegt). Die Wache des Drachen bleibt **beschaedigt** stehen, ein
+zweiter Angriff trifft weniger Verteidiger. Ein **Flammenzeichen** unter der Figur sagt nur,
+dass schon jemand angegriffen hat, und verschwindet, wenn der Hort leer ist. **Bots** beurteilen
+den Drachen mit Sicherheitsmarge, kennen Bonus und sichere Verluste, aber nicht die Wache.
+Die **Ruine bleibt pluenderbar** (kein zweites Gefecht) und **sperrt danach ihre Koordinate**.
+Jeder **Neubeginn** wuerfelt neue Plaetze auf denselben Welten.
+
+**Belegt:** `tests/test_drachen_einhaengung.py` **96 bestanden, 0 Fehler** mit den Wachen
+(a)-(i); Anzeige- und Bot-Texte durch die Umlaut-Wache (49/0). Voller Sammellauf: **165 von 167 gruen, 0 rot, 1450 s, 6.868 Pruefungen**
+(`docs/audits/sammellauf_20261105_0310_voll.log`).
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf auf `main` | Drachen-Nachtraege (dieser Commit) | `git log --oneline -1` |
+| Neue Wache | `tests/test_drachen_einhaengung.py` 96/0/0 | Testlauf |
+| Voller Sammellauf (Projekt-venv) | 165 von 167 gruen, 0 rot, 1450 s, 6.868 Pruefungen | `docs/audits/sammellauf_20261105_0310_voll.log` |
+| Register / Protokoll | 205 Zeilen / 331 Zeilen | `grep -cE '^\| [0-9]+ \|'`, `wc -l` |
+| Guthaben (Daniel 02:48) | 5,77 USD Stand / 54,22 USD Gesamtverbrauch | Ablesung |
+| Recherche | `docs/RECHERCHE_SPIELMECHANIKEN_20261105.md` (14 Vergleiche, 3 Vorschlaege) | Dokument |
+
+## Der EINE naechste Schritt
+
+1. **W-15 Haeuser:** Hausnamen und Wappenbeschreibungen auf die gelieferten Bilder umschreiben.
+2. **Drachenschuppe als eigene Ware und Trophae** (Daniel 05.11.2026: eigene Auszeichnung,
+   zaehlt am Ende nur als Trophae) - eigener Schritt mit Lagerfach und Anzeige.
+3. **Die drei Recherche-Vorschlaege** pruefen (Erwartungswert im Bot-Urteil, zweite Kampfphase,
+   Regeneration oder erneutes Erwachen) - erst nach Balancing-Messung, Entscheidung Daniel.
+4. **Mini-Repo fuer das Protokoll** (Register 202) mit der VOLLEN Historie, lueckenlos.
+
+Arbeitsweise unveraendert: **voller Sammellauf mit dem Projekt-venv**, Registerzeile und
+Protokollzeile gehoeren zum Abschluss, Kommentarregel Variante A bei jedem neuen Code.
+
+---
 # STAND 05.11.2026, 01:52 - W-14 Teil 2 gebaut: die Drachen stehen im Spiel (Register 204)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.

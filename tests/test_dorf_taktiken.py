@@ -130,6 +130,10 @@ class _App:
     """Duck-Typ statt echter Spielstand: die Methoden brauchen nur settlements."""
     settlements = []
 
+    def bot_dorf_platz(self, welt, x, y):
+        """Stub ohne Drachen: die Sperre selbst prueft test_drachen_einhaengung (05.11.2026)."""
+        return (int(x), int(y))
+
 
 bot = main.BotPlayer("Grom", "zwergisch", aggression=0.7, trading=0.4)
 bot.settlements = ["Groms Siedlung 1", "Groms Siedlung 2"]

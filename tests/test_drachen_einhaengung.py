@@ -9,8 +9,14 @@ Bericht, Zustand und Anzeige. Die sieben Pflicht-Wachen aus der Uebergabe stehen
   (c) die Beute wird GENAU EINMAL gebucht und nur als Anteil nach Leistung,
   (d) ohne Ueberlebende nennt der Bericht keine Einheiten,
   (e) Ausspaehen wird abgelehnt,
-  (f) nach dem Sieg steht eine Ruine und es gibt keinen zweiten Angriff,
-  (g) ein alter Spielstand ohne `drachen_besiegt` laedt.
+  (f) nach dem Sieg steht eine Ruine und es gibt keine ZWEITE SCHLACHT - die Ruine bleibt aber
+      pluenderbar und gibt ihren Rest her (Daniel 05.11.2026),
+  (g) ein alter Spielstand ohne `drachen_besiegt` laedt,
+  (h) der Sieg bringt die Manabelohnung (4000 + gerechneter Aufwand), die Wache bleibt
+      beschaedigt stehen, das Flammenzeichen erscheint nach dem ersten Angriff und
+      verschwindet, wenn der Hort leer ist, und ein Bot urteilt nachvollziehbar,
+  (i) jeder Neubeginn wuerfelt andere Plaetze auf DENSELBEN Welten und kein Bot gruendet
+      auf einer Drachenkoordinate.
 
 Was Fixture ist und was nicht: das HEER des Spielers und die eigene Weltkarte werden gesetzt
 (dieselbe Abkuerzung wie in `test_gesamtsieg`), der SIEGSTAND wird NICHT gesetzt - jede Buchung
@@ -33,6 +39,7 @@ ROOT, SRC = import_src()
 import drachen
 import einheiten
 import kampf
+import portalraum
 import kampfbericht as KB
 
 main = ausnahme("main importieren", lambda: __import__("main"))
@@ -232,11 +239,47 @@ try:
     check("(c) der Anteil ist nicht der ganze Hort (nach Leistung)",
           _beute_summe <= _hort_vorher, str(_beute_summe))
 
+    # ---- (h) Belohnung, beschaedigte Wache, Flamme, Bot-Urteil (Daniel 05.11.2026) ----
+    _b = drachen.belohnung_mana()                     # die Belohnung aus den Daten
+    check("(h) die Manabelohnung ist der Grundbetrag plus gerechneter Aufwand",
+          _b["grundbetrag"] == 4000
+          and _b["summe"] == _b["grundbetrag"] + _b["sprunge"] * _b["kosten_je_sprung"], str(_b))
+    check("(h) der Aufwand nutzt den ECHTEN Preis eines Weltensprungs",
+          _b["kosten_je_sprung"] == portalraum.wechselkosten(), str(_b["kosten_je_sprung"]))
+    _alt_preis = portalraum._MANA_WECHSEL              # Preis merken
+    portalraum._MANA_WECHSEL = _alt_preis + 1000       # Preis testweise erhoehen
+    _b2 = drachen.belohnung_mana()                     # neu rechnen
+    portalraum._MANA_WECHSEL = _alt_preis               # Preis zuruecksetzen
+    check("(h) aendert sich der Spruengpreis, zieht die Belohnung mit",
+          _b2["summe"] == _b["summe"] + 6 * 1000, "%d gegen %d" % (_b["summe"], _b2["summe"]))
+    check("(h) der epische Text setzt Mana und Aufwand ein",
+          any("{mana}" in z for z in drachen.belohnung_texte().get("zeilen") or []),
+          str(drachen.belohnung_texte().get("titel")))
+    _mana_lager = float((ort.vorraete or {}).get("mana", 0) or 0)
+    check("(h) der Sieg hat die Manabelohnung ins Lager gebucht",
+          _mana_lager >= _b["summe"], str(_mana_lager))
+    _wache_rest = sum(int(v) for v in (st.drachen_wachen.get(str(drache.get("id"))) or {}).values())
+    check("(h) die Wache steht BESCHAEDIGT (weniger als 204 Verteidiger)",
+          0 <= _wache_rest < 204, str(_wache_rest))
+    check("(h) der Drache traegt das Flammenzeichen nach dem Angriff",
+          str(drache.get("id")) in (st.drachen_angegriffen or []), str(st.drachen_angegriffen))
+    _urteil_schwach = drachen.bot_entscheidung(100, 0, (700, 950), _b["summe"])
+    check("(h) ein schwacher Bot greift NICHT an", _urteil_schwach[0] is False, _urteil_schwach[1])
+    _urteil_stark = drachen.bot_entscheidung(2000, 2000, (700, 950), _b["summe"], True)
+    check("(h) ein starker Bot greift an und nennt Bonus und Verluste",
+          _urteil_stark[0] is True and "Mana" in _urteil_stark[1] and "Verluste" in _urteil_stark[1],
+          _urteil_stark[1])
+    check("(h) der Bot weiss nur, DASS angegriffen wurde",
+          "bereits angegriffen" in _urteil_stark[1], _urteil_stark[1])
+
     # ---- (f) Sieg: Ruine, Zustand, kein zweiter Angriff ----
     _besiegt = str(drache.get("id")) in (st.drachen_besiegt or [])
     check("(f) der besiegte Drache steht im Zustand", _besiegt, str(st.drachen_besiegt))
-    check("(f) er ist kein Ziel mehr",
-          drachen.finde(drache["welt"], drache["x"], drache["y"], st.drachen_besiegt) is None)
+    _lage = st.drachen_position(drache)          # die Lage in DIESEM Spielstand
+    check("(f) die Ruine steht weiter auf ihrem Feld",
+          st.drache_an(drache["welt"], _lage[0], _lage[1]) is not None, str(_lage))
+    check("(f) das Feld der Ruine ist gesperrt",
+          st.drachen_blockiert(drache["welt"], _lage[0], _lage[1]) is True)
     check("(f) auf der Karte steht eine Ruine",
           drachen.figur(drache, st.drachen_besiegt).get("art") == "ruine")
     check("(f) die Anzeigeliste fuehrt die Ruine",
@@ -259,13 +302,31 @@ try:
     if not _truppen2:                                  # nach dem Sieg kann das Heer dezimiert sein
         ort.einheiten = {"Krieger": 50}
         _truppen2 = dict(ort.einheiten)
-    angriff(_truppen2)                                 # zweiter Versuch auf die Ruine
+    # Daniel 05.11.2026: die Ruine bleibt PLUENDERBAR - der zweite Zug holt den Rest, kaempft aber
+    # nicht mehr. Die alte Wache hiess "kein zweiter Angriff" und ist damit UEBERHOLT (Entscheidung
+    # im Testnamen genannt, nicht stillschweigend geloescht).
+    check("die Ruine haelt nach dem Sieg noch einen Rest", _hort_vor_zwei > 0, str(_hort_vor_zwei))
+    _eintrag2 = angriff(_truppen2)                     # zweiter Zug auf die RUINE
     _hort_nach_zwei = sum(int(v) for v in (st.drachen_vorraete.get(str(drache.get("id"))) or {}).values())
     _letzte = [m.get("text") or "" for m in st.messages if m.get("type") == TYP][-1]
-    check("(f) der zweite Angriff meldet die Ruine", "Ruine" in _letzte or "kein Drache" in _letzte.lower(),
-          _letzte[:120])
-    check("(f) der zweite Angriff bucht KEINE zweite Beute", _hort_nach_zwei == _hort_vor_zwei,
+    check("(f) der zweite Zug auf die Ruine kaempft NICHT",
+          "Die Ruine gibt ihren Rest her" in _letzte, _letzte[:120])
+    check("(f) der zweite Zug holt den Rest heraus (Hort danach leer)",
+          _hort_nach_zwei == 0 and _hort_vor_zwei > 0,
           "%d gegen %d" % (_hort_vor_zwei, _hort_nach_zwei))
+    check("(f) gebucht ist GENAU der Rest",
+          sum(int(v) for v in ((_eintrag2 or {}).get("beute") or {}).values()) == _hort_vor_zwei,
+          str((_eintrag2 or {}).get("beute")))
+    check("(h) nach dem Ausraeumen ist das Flammenzeichen weg",
+          str(drache.get("id")) not in (st.drachen_angegriffen or []),
+          str(st.drachen_angegriffen))
+    _truppen3 = {n: int(a) for n, a in (ort.einheiten or {}).items() if int(a) > 0} or {"Krieger": 5}
+    _eintrag3 = angriff(_truppen3)                     # dritter Zug auf die leere Ruine
+    _letzte3 = [m.get("text") or "" for m in st.messages if m.get("type") == TYP][-1]
+    check("(f) der dritte Zug meldet: die Ruine ist leer",
+          "nichts mehr" in _letzte3, _letzte3[:120])
+    check("(f) der dritte Zug bucht keine Beute", not (_eintrag3 or {}).get("beute"),
+          str((_eintrag3 or {}).get("beute")))
 
     # ---- Feueratem unter der Schwelle: der Angriff kaempft nicht ----
     st.drachen_besiegt = []                            # denselben Drachen wieder aufstellen (Fixture)
@@ -274,8 +335,9 @@ try:
     check("vor dem Sieg zeichnet die Anzeige den DRACHEN",
           bool(_leinwand2.find_withtag("drache")), str(_leinwand2.find_withtag("drache")))
     # ---- Klickweg: Feld treffen, fremde Welt abweisen, Ruine abweisen ----
+    _lage2 = st.drachen_position(drache)         # die Lage im Spielstand
     check("der Klick findet den Drachen auf seinem Feld",
-          app._drache_an(int(drache["x"]), int(drache["y"])) is not None)
+          app._drache_an(int(_lage2[0]), int(_lage2[1])) is not None, str(_lage2))
     check("auf einem freien Feld steht kein Drache", app._drache_an(0, 0) is None)
 
     def _dialog():
@@ -312,6 +374,21 @@ try:
     _text2 = _berichte2[-1].get("text") if _berichte2 else ""
     check("(a) der schwache Angriff kaempft NICHT", "Der Drache hat gesiegt" in _text2 or
           "kein Kampf" in _text2 or "Schwelle" in _text2, _text2[:160])
+
+    # ---- (i) Neubeginn: andere Plaetze, gleiche Welten (Daniel 05.11.2026) ----
+    _eins = st.drachen_verteilen(seed=1)               # erster Neubeginn
+    _zwei = st.drachen_verteilen(seed=2)               # zweiter Neubeginn
+    check("(i) jeder Drache steht auf einem Feld seiner Welt (0..19)",
+          all(0 <= v[0] < 20 and 0 <= v[1] < 20 for v in _eins.values()), str(_eins))
+    check("(i) zwei Neubeginne wuerfeln UNTERSCHIEDLICHE Plaetze",
+          any(_eins[k] != _zwei.get(k) for k in _eins), "%s gegen %s" % (_eins, _zwei))
+    check("(i) kein Drache steht auf gesperrtem Gelaende",
+          all(portalraum.gelaende_von_feld(drachen.finde_id(k)["welt"], v[0], v[1])["bebaubar"]
+              for k, v in _eins.items()), str(_eins))
+    _p3 = list(_zwei.values())[0]                      # ein Feld aus der JETZIGEN Lage
+    _ausw = st.bot_dorf_platz(2, _p3[0], _p3[1])       # ein Bot will genau dorthin
+    check("(i) ein Bot weicht der Drachenkoordinate aus",
+          (_ausw[0], _ausw[1]) != (_p3[0], _p3[1]), "%s bei %s" % (_ausw, _p3))
 
     # ---- (g) alter Spielstand ohne Drachenfelder laedt ----
     _pfad = os.path.join(os.environ.get("TMPDIR") or os.environ.get("TEMP") or ".",

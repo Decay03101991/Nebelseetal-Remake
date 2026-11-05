@@ -17,6 +17,7 @@ import os  # importiert os fuer Pfadoperationen
 import spieldaten  # importiert spieldaten fuer den Projektwurzelpfad
 
 STAND = "2026-11-04.1"  # definiert die Versionskennung des Moduls
+_CACHE = {}  # Pfad -> (Aenderungszeit, Inhalt): die Datendatei wird EINMAL gelesen
 
 def daten(pfad=None) -> dict:
     """Liest die Drachen-Datendatei und gibt sie als dict zurueck.
@@ -24,11 +25,20 @@ def daten(pfad=None) -> dict:
     Ausgabe: dict mit den geladenen Daten oder leeres dict bei Fehler."""
     if pfad is None:  # wenn kein Pfad angegeben ist
         pfad = os.path.join(spieldaten.projektwurzel(), "data", "drachen.json")  # baue den Standardpfad
+    try:  # Zeitstempel der Datei holen
+        stand = os.path.getmtime(pfad)  # Aenderungszeit als Schluessel
+    except OSError:  # Datei fehlt
+        return {}  # gebe ein leeres dict zurueck
+    gemerkt = _CACHE.get(pfad)  # schon geladene Fassung
+    if gemerkt is not None and gemerkt[0] == stand:  # unveraendert seit dem letzten Lesen
+        return gemerkt[1]  # aus dem Cache - sonst liest die Bot-Schleife die Datei tausendfach
     try:  # versuche die Datei zu lesen
         with open(pfad, encoding="utf-8") as datei:  # oeffne die Datei
-            return json.load(datei)  # lade die JSON-Daten und gebe sie zurueck
+            inhalt = json.load(datei)  # lade die JSON-Daten
     except (OSError, ValueError):  # Datei fehlt oder ist kein JSON
         return {}  # gebe ein leeres dict zurueck
+    _CACHE[pfad] = (stand, inhalt)  # merken (Pfad -> Zeitstempel, Inhalt)
+    return inhalt  # an den Aufrufer
 
 def _gueltig(eintrag) -> bool:
     """Prueft, ob ein Drachen-Eintrag alle Pflichtfelder mit korrekten Typen besitzt.
@@ -220,6 +230,149 @@ def ware(eintrag) -> dict:
     Ausgabe: dict {Warenname: Anzahl}."""
     return dict(eintrag.get("ware", {}))  # gebe eine Kopie der Ware zurueck
 
+def verteile(zufall, felder, belegt_felder=(), pfad=None) -> dict:
+    """Neue Koordinaten fuer alle Drachen - gleiche Welt, anderer Platz (Daniel 05.11.2026).
+
+    Daniels Vorgabe: bei jedem Neubeginn sollen die Drachen woanders stehen, aber auf DENSELBEN
+    Welten bleiben. Gewuerfelt wird nur auf Feldern, die das Gelaende zulaesst (nicht auf Sumpf),
+    und nie zweimal auf demselben Feld; `belegt` nennt Felder, die schon jemand nutzt.
+    Eingabe: ein random.Random, eine Menge belegter (welt, x, y)-Tupel, optionaler Pfad.
+    Ausgabe: dict {Kennung: [x, y]}; findet ein Drache kein freies Feld, fehlt er im dict -
+    der Aufrufer nimmt dann die Koordinate der Datendatei (nichts erfunden).
+    """
+    # Die freien Felder kommen UEBERGEBEN (Feldabbildung je Welt): das Weltbild liest nur
+    # `portalraum`/`main`, und die Wache `test_weltbild_gelaende` haelt das fest.
+    belegte = set()  # Kopie der belegten Felder
+    for welt, x, y in (belegt_felder or ()):  # jedes uebergebene Feld
+        belegte.add((str(welt), int(x), int(y)))  # vereinheitlicht merken
+    ergebnis = {}  # {Kennung: [x, y]}
+    for eintrag in alle(pfad):  # jeder gueltige Drache
+        welt = str(eintrag["welt"])  # SEINE Welt bleibt (Daniel: gleiche Welten)
+        frei = []  # alle brauchbaren Felder dieser Welt
+        for x, y in (felder.get(welt) or []):  # die uebergebenen Felder dieser Welt
+            if (welt, int(x), int(y)) in belegte:  # schon vergeben
+                continue  # ueberspringen
+            frei.append((int(x), int(y)))  # brauchbares Feld
+        if not frei:  # kein Platz auf dieser Welt
+            continue  # Datendatei behalten
+        x, y = zufall.choice(frei)  # EIN freies Feld ziehen
+        ergebnis[str(eintrag["id"])] = [int(x), int(y)]  # merken
+        belegte.add((welt, int(x), int(y)))  # Feld ist jetzt vergeben
+    return ergebnis  # {Kennung: [x, y]}
+
+
+def belohnung_mana(pfad=None) -> dict:
+    """Die Manabelohnung eines besiegten Drachen (Daniel 05.11.2026).
+
+    Daniels Vorgabe, woertlich-nah: ein fester Betrag von 4000 Mana PLUS das, was ein ausgewogenes
+    Aufwands-Szenario an Mana kostet (mehrere Angriffe, Rueckzug, neuer Versuch, Weltspruenge).
+    Damit sich das mitentwickelt, wird der Aufwand aus dem ECHTEN Preis eines Weltensprungs
+    gerechnet (`portalraum.wechselkosten`) und nicht im Code festgeschrieben: aendert sich dort ein
+    Wert oder die Zahl der Versuche in der Datendatei, zieht die Belohnung mit.
+    Eingabe: optionaler Pfad zur Datendatei.
+    Ausgabe: dict mit grundbetrag, versuche, sprunge, kosten_je_sprung, aufwand, summe.
+    """
+    import portalraum  # nur hier: der Weltensprung-Preis steht beim Portal
+    block = daten(pfad).get("belohnung") or {}  # Block aus der Datendatei
+    if not isinstance(block, dict):  # unbrauchbare Angabe
+        block = {}  # dann gelten die Vorgaben unten
+    szenario = block.get("aufwandsszenario") if isinstance(block.get("aufwandsszenario"), dict) else {}  # Szenario
+    try:  # fester Betrag belastbar machen
+        grund = int(block.get("mana_grundbetrag", 4000))  # Daniels Pauschale
+    except (TypeError, ValueError):  # unbrauchbare Angabe
+        grund = 4000  # Vorgabe
+    try:  # Versuche belastbar machen
+        versuche = max(1, int(szenario.get("versuche", 3)))  # drei Anlaeufe
+    except (TypeError, ValueError):  # unbrauchbare Angabe
+        versuche = 3  # Vorgabe
+    try:  # Spruenge je Versuch belastbar machen
+        je_versuch = max(1, int(szenario.get("sprunge_je_versuch", 2)))  # hin und zurueck
+    except (TypeError, ValueError):  # unbrauchbare Angabe
+        je_versuch = 2  # Vorgabe
+    try:  # den ECHTEN Preis des Sprungs holen
+        je_sprung = int(portalraum.wechselkosten())  # harte Kostenzahl des Spiels
+    except (AttributeError, TypeError, ValueError):  # Preis nicht lesbar
+        je_sprung = 0  # dann zaehlt nur der feste Betrag, nichts erfunden
+    sprunge = int(versuche) * int(je_versuch)  # alle Weltspruenge des Szenarios
+    aufwand = int(sprunge) * int(je_sprung)  # was diese Spruenge kosten
+    return {"grundbetrag": grund, "versuche": versuche, "sprunge": sprunge,
+            "kosten_je_sprung": je_sprung, "aufwand": aufwand,
+            "summe": int(grund) + int(aufwand)}  # die ganze Belohnung
+
+
+def belohnung_texte(pfad=None) -> dict:
+    """Die epischen Texte zur Manabelohnung (Daniel 05.11.2026: dem Spiel entsprechend natuerlich).
+    Eingabe: optionaler Pfad zur Datendatei.
+    Ausgabe: dict mit titel und zeilen (Liste); leere Angaben werden nicht erfunden."""
+    block = daten(pfad).get("belohnung") or {}  # Block aus der Datendatei
+    if not isinstance(block, dict):  # unbrauchbare Angabe
+        return {}  # dann keine Texte
+    zeilen = block.get("text_zeilen") if isinstance(block.get("text_zeilen"), list) else []  # Zeilen
+    return {"titel": str(block.get("text_titel") or ""),
+            "zeilen": [str(z) for z in zeilen if str(z).strip()]}  # nur echte Texte
+
+
+def bot_regeln(pfad=None) -> dict:
+    """Wie ein Bot einen Drachen beurteilt (Daniel 05.11.2026).
+    Eingabe: optionaler Pfad zur Datendatei.
+    Ausgabe: dict mit schlagkraft_faktor und verluste_erwartet_prozent."""
+    block = daten(pfad).get("bots") or {}  # Regeln aus der Datendatei
+    if not isinstance(block, dict):  # unbrauchbare Angabe
+        block = {}  # dann gelten die Vorgaben
+    try:  # Sicherheitsmarge belastbar machen
+        faktor = float(block.get("schlagkraft_faktor", 1.6))  # Armee muss deutlich ueber der Schwelle liegen
+    except (TypeError, ValueError):  # unbrauchbare Angabe
+        faktor = 1.6  # Vorgabe
+    try:  # erwartete Verluste belastbar machen
+        verluste = int(block.get("verluste_erwartet_prozent", 35))  # sichere Verluste in Prozent
+    except (TypeError, ValueError):  # unbrauchbare Angabe
+        verluste = 35  # Vorgabe
+    return {"schlagkraft_faktor": faktor, "verluste_erwartet_prozent": verluste,
+            # Anzeigetexte stehen in der Datendatei (diese Datei ist ASCII-only). Fehlt ein
+            # Text, gilt ein kurzer neutraler Satz - nie eine Ersatzschreibweise im Code.
+            "text_zu_schwach_fuss": str(block.get("text_zu_schwach_fuss") or "Drache zu stark."),
+            "text_zu_schwach_belagerung": str(block.get("text_zu_schwach_belagerung")
+                                              or "Drache zu stark."),
+            "text_lohnt": str(block.get("text_lohnt") or "Drache lohnt."),
+            "text_angegriffen": str(block.get("text_angegriffen") or "Bereits angegriffen.")}
+
+
+def bot_entscheidung(schlag_fuss, schlag_belagerung, schwellen, belohnung=0,
+                     angegriffen=False, pfad=None) -> tuple:
+    """Soll ein BOT einen Drachen angreifen? (Daniel 05.11.2026)
+
+    Daniels Vorgabe: die Bots sollen verstehen, dass ein Drache Bonus (Mana und Hort) UND sichere
+    Verluste bedeutet - und dass sie die TATSAECHLICHE Staerke erst sehen, wenn sie selbst
+    angreifen. Bekannt ist ihnen nur, DASS schon jemand angegriffen hat (`angegriffen`).
+    Eingabe: Schlagkraft der Fusstruppen, Schlagkraft der Belagerung, die beiden Schwellen,
+             die Manabelohnung, ob der Drache schon einmal angegriffen wurde.
+    Ausgabe: (True/False, Begruendung als Anzeigetext).
+    """
+    regeln = bot_regeln(pfad)  # Marge und erwartete Verluste aus der Datendatei
+    faktor = float(regeln.get("schlagkraft_faktor") or 1.0)  # Sicherheitsmarge
+    verluste = int(regeln.get("verluste_erwartet_prozent") or 0)  # erwartete Verluste
+    try:  # Zahlen belastbar machen
+        fuss = max(0, int(schlag_fuss))  # eigene Fussschlagkraft
+        bel = max(0, int(schlag_belagerung))  # eigene Belagerungskraft
+        s_fuss, s_bel = int(schwellen[0]), int(schwellen[1])  # Schwellen des Drachen
+    except (TypeError, ValueError, IndexError):  # unbrauchbare Angabe
+        return (False, "Der Drache ist unbekannt - kein Angriff.")  # nichts erfinden
+    noetig_fuss = int(round(s_fuss * faktor))  # mit Marge
+    noetig_bel = int(round(s_bel * faktor))  # mit Marge
+    if fuss < noetig_fuss:  # zu wenig Fusstruppen
+        return (False, str(regeln["text_zu_schwach_fuss"])  # Text aus der Datendatei
+                .replace("{eigene}", str(fuss)).replace("{schwelle}", str(noetig_fuss)))
+    if bel < noetig_bel:  # zu wenig Belagerung
+        return (False, str(regeln["text_zu_schwach_belagerung"])  # Text aus der Datendatei
+                .replace("{eigene}", str(bel)).replace("{schwelle}", str(noetig_bel)))
+    grund = (str(regeln["text_lohnt"])  # der Satz kommt aus der Datendatei
+             .replace("{mana}", str(int(belohnung or 0)))
+             .replace("{verluste}", str(verluste)))
+    if angegriffen:  # er weiss nur, DASS jemand angegriffen hat
+        grund = grund + " " + str(regeln["text_angegriffen"])  # zweiter Satz aus den Daten
+    return (True, grund)
+
+
 def figur(eintrag, besiegt=(), pfad=None) -> dict:
     """Erzeugt das Anzeige-dict fuer einen Drachen oder eine Ruine.
     Eingabe: Drachen-Eintrag, optionale Menge besiegter IDs, optionaler Pfad.
@@ -305,6 +458,16 @@ class Zustand:
         if not alle_ids:  # keine Datendatei oder kein Eintrag
             return False  # dann ist nichts besiegt - nicht "alles erledigt"
         return all(id in self.besiegt for id in alle_ids)  # pruefe ob alle IDs besiegt sind
+
+
+def ruine_texte(pfad=None) -> dict:
+    """Die Texte fuer die gepluenderte Ruine (Daniel 05.11.2026: die Ruine bleibt pluenderbar).
+    Eingabe: optionaler Pfad zur Datendatei.
+    Ausgabe: dict mit titel, zeile_mit, zeile_rest, zeile_leer - leer, wenn die Datei nichts nennt."""
+    block = daten(pfad).get("ruine") or {}  # Block aus der Datendatei
+    if not isinstance(block, dict):  # unbrauchbare Angabe
+        return {}  # dann keine erfundenen Texte
+    return {str(k): str(v) for k, v in block.items() if isinstance(v, str)}  # nur Texte
 
 
 def spionage_erlaubt(pfad=None) -> tuple:

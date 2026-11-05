@@ -1,6 +1,6 @@
 {
   "stand": "2026-11-04",
-  "hinweis": "Daniel entscheidet die Welten; alle Zahlen und Texte sind Vorschlag.",
+  "hinweis": "Daniel hat die Welten am 05.11.2026 bestaetigt (d02, d03, d05); alle Zahlen sind belegt bzw. von Daniel vorgegeben.",
   "figur": {
     "bild": "assets/bilder/drache_weiss.png",
     "ruine_bild": "",
@@ -44,7 +44,7 @@
       "ware": {
         "drachenschuppe": 1
       },
-      "status": "VORSCHLAG",
+      "status": "ENTSCHIEDEN 05.11.2026 (Welt bestaetigt: d02/d03/d05)",
       "bild": "assets/bilder/drache_weiss.png",
       "verteidigung": {
         "einheiten": {
@@ -84,7 +84,7 @@
       "ware": {
         "drachenschuppe": 1
       },
-      "status": "VORSCHLAG",
+      "status": "ENTSCHIEDEN 05.11.2026 (Welt bestaetigt: d02/d03/d05)",
       "bild": "assets/bilder/drache_blau.png",
       "verteidigung": {
         "einheiten": {
@@ -124,7 +124,7 @@
       "ware": {
         "drachenschuppe": 1
       },
-      "status": "VORSCHLAG",
+      "status": "ENTSCHIEDEN 05.11.2026 (Welt bestaetigt: d02/d03/d05)",
       "bild": "assets/bilder/drache_lila.png",
       "verteidigung": {
         "einheiten": {
@@ -176,5 +176,36 @@
       "Handkarren"
     ],
     "status": "VORSCHLAG"
+  },
+  "ruine": {
+    "titel": "Die Ruine gibt ihren Rest her",
+    "zeile_mit": "Mitgenommen: {beute}.",
+    "zeile_rest": "Liegen geblieben: {rest} - ein weiterer Zug holt es.",
+    "zeile_leer": "In der Ruine liegt nichts mehr - der Hort ist leer.",
+    "status": "ENTSCHIEDEN 05.11.2026 - Daniel: die Ruine bleibt pluenderbar"
+  },
+  "belohnung": {
+    "mana_grundbetrag": 4000,
+    "aufwandsszenario": {
+      "versuche": 3,
+      "sprunge_je_versuch": 2
+    },
+    "aufwand_hinweis": "Der Aufwand wird NICHT hier eingetragen, sondern gerechnet: Versuche mal Spruenge je Versuch mal dem echten Preis eines Weltensprungs (data/belegte_regeln.json ueber portalraum.wechselkosten). Aendert sich dort ein Wert, zieht die Belohnung mit (Daniel 05.11.2026).",
+    "text_titel": "Der Schatz des Drachen",
+    "text_zeilen": [
+      "Der Drache sinkt. Was er über Jahrhunderte unter seinen Schuppen geborgen hat, liegt nun offen.",
+      "Mana: {mana} Einheiten - {grund} als Trophäe, dazu {aufwand} für den Aufwand, den ein Sterblicher für diese Jagd braucht: drei Anläufe, zwei Weltensprünge je Anlauf.",
+      "Es ist genug, um den Verbrauch bis zum Sieg wieder hereinzuholen."
+    ],
+    "status": "VORGEGEBEN Daniel 05.11.2026 (4000 Mana pauschal + gerechneter Aufwand)"
+  },
+  "bots": {
+    "schlagkraft_faktor": 1.6,
+    "verluste_erwartet_prozent": 35,
+    "status": "VORSCHLAG 05.11.2026 - Daniel: Bots sollen Bonus und sichere Verluste verstehen und die tatsaechliche Staerke erst im eigenen Angriff sehen.",
+    "text_zu_schwach_fuss": "Drache zu stark: Fußtruppen {eigene} von {schwelle} nötig.",
+    "text_zu_schwach_belagerung": "Drache zu stark: Belagerung {eigene} von {schwelle} nötig.",
+    "text_lohnt": "Drache lohnt: {mana} Mana und sein Hort – aber sichere Verluste von rund {verluste} Prozent.",
+    "text_angegriffen": "Der Drache wurde bereits angegriffen; wie stark er noch ist, zeigt erst ein eigener Angriff."
   }
 }
