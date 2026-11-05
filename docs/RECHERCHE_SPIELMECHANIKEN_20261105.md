@@ -55,6 +55,18 @@ Dokument ergaenzt nur Remake-Entscheidungen und Mechanik-Ideen.
    wenn Nutzen/Kosten ueber einem Faktor aus der Datendatei liegt. Damit versteht ein Bot einen
    BESCHAEDIGTEN Drachen besser (weniger Wache = weniger erwartete Verluste), ohne die Wache zu
    kennen - er kennt nur das Flammenzeichen. **Risiko:** niedrig, weil nur Bot-Entscheidung.
+   **NACHTRAG 05.11.2026 (gemessen, W-17): die Rechnung traegt so nicht.** Die Messung
+   (`tools/drachen_balancing.py`, 100 Laeufe je Zelle) zeigt zwei Dinge, die den Vorschlag
+   entkraeften: (a) die **eigenen Verluste sind groessenunabhaengig** - rund 152 bis 162 Einheiten,
+   gleich ob 300 oder 1000 Krieger antreten. Ein Erwartungswert, der "weniger Truppen = weniger
+   Verluste" annimmt, rechnet also gegen die Daten. (b) Ein **beschaedigter** Drache laesst sich
+   ohne die Wache nicht beziffern; der Bot kennt nur das Flammenzeichen, also kann er seinen
+   Erwartungswert gar nicht verbessern. Was von dem Vorschlag bleibt: der Bot soll den Bonus NENNEN
+   (Mana und Hort) und die sicheren Verluste (35 Prozent, aus der Datendatei) - das tut er seit
+   Register 205 bereits (`text_lohnt`). **Empfehlung nach der Messung:** nicht als Erwartungswert
+   bauen, sondern die vorhandene Schwelle mit Sicherheitsmarge lassen und die Zahl der erwarteten
+   Verluste aus der Messung nachziehen (152 bis 162 Einheiten je Gefecht). Die Entscheidung gehoert
+   Daniel.
 2. **Zweite Phase im Drachenkampf (Nr. 5).** Unter 50 Prozent Wache wird der Feueratem staerker
    (8 auf 12 Prozent) und der Bericht nennt den Umschwung. **Risiko:** mittel, weil es die
    Kampfregel beruehrt; braucht eine eigene Wache und eine Balancing-Messung (wie viele Truppen
