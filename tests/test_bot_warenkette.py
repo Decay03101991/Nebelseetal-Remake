@@ -88,10 +88,15 @@ def abschnitt_2_karte():
                   str(getattr(dorf, "karte", "")))
             check("%s erntet Leder" % bot.name, float(ertrag.get("leder", 0)) > 0, str(ertrag))
         karten = [k for _n, k, _e in werte]
-        check("die Bots haben VERSCHIEDENE Karten", len(set(karten)) > 1, str(karten))
+        # Register 228 (Daniel 05.11.2026, Antwort 1): ALLE Bots starten wie der Spieler auf DERSELBEN
+        # festen Startkarte (original-036). Die fruehere Wache "die Bots haben VERSCHIEDENE Karten"
+        # sicherte die Zufallsziehung aus Register 225 und ist damit ueberholt.
+        _startkarte = "original-036"                      # originalkarten.START_ID, belegte Startkarte
+        check("alle Hauptdoerfer tragen die FESTE Startkarte original-036 (Register 228)",
+              set(karten) == {_startkarte}, str(karten))
         leder = [round(float(e.get("leder", 0)), 2) for _n, _k, e in werte]
-        check("verschiedene Karten ergeben verschiedene Leder-Ertraege",
-              len(set(leder)) > 1, str(leder))
+        check("jedes Hauptdorf erntet Leder (die Karte wird gerechnet, nicht behauptet)",
+              all(w > 0 for w in leder), str(leder))
         # Dieselbe Karte muss denselben Ertrag geben (keine Zufallszahl im Ertrag)
         a = main.bot_dorf_ertrag(gs.bots[0].doerfer[0], bot=gs.bots[0])
         b = main.bot_dorf_ertrag(gs.bots[0].doerfer[0], bot=gs.bots[0])

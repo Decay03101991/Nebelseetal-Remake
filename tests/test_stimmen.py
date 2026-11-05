@@ -142,8 +142,11 @@ check("5 main.py fragt die Gruendung ab", 'stimmen.mit_stimme(bot.name, "gruendu
 check("5 main.py fragt die Verteidigung ab (das Ziel ist ein Bot)",
       'stimmen.zeile(bot_ziel.name, "verteidigung")' in TEXT_MAIN, "")
 check("5 main.py importiert das Modul", "import stimmen" in TEXT_MAIN, "")
-check("5 die vier Abfragen stehen an vier verschiedenen Stellen",
-      TEXT_MAIN.count("stimmen.mit_stimme(") == 3 and TEXT_MAIN.count("stimmen.zeile(") == 1,
+# Register 228 (05.11.2026): die Bot-Aufgabe meldet sich mit der GRUENDUNGS-Stimme
+# (`bot_siedlung_aufgeben`) - sie ist ein Siedlungs-Ereignis wie die Gruendung. Damit stehen VIER
+# Abfragen mit Stimme und EINE Verteidigungsabfrage im Code, jede an genau einer Stelle.
+check("5 die fuenf Abfragen stehen an je einer Stelle (Aufgabe teilt die Gruendungs-Stimme)",
+      TEXT_MAIN.count("stimmen.mit_stimme(") == 4 and TEXT_MAIN.count("stimmen.zeile(") == 1,
       "%d / %d" % (TEXT_MAIN.count("stimmen.mit_stimme("), TEXT_MAIN.count("stimmen.zeile(")))
 im_code = [s for s in alle if s[:30] in TEXT_MAIN]
 check("5 kein einziger Bot-Text steht im Code (kein zweites Gedaechtnis)", im_code == [],

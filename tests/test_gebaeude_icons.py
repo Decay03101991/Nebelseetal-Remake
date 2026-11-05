@@ -130,9 +130,10 @@ check("3 der Bauknopf holt das Icon seines Gebaeudes",
       'angebot["id"], 28' in quelltext or "angebot['id'], 28" in quelltext,
       "Aufruf _optik_bild(angebot[id], 28)")
 # GEPRUEFT 03.11.2026 (A2-Vorstufe, Register 147): die Startkartenwahl ist ein Block im Dorfzentrum
-# ohne eigenen Kopf - der Rueckfall-Kopf bleibt bei drei Stellen.
-check("3 die Gebaeudeansicht ruft den Hintergrund an drei Stellen",
-      quelltext.count("self._gebaeude_kopf(") == 3,
+# ohne eigenen Kopf. Register 222 (05.11.2026) hat die Kartengruendungsseite mit eigenem Kopf
+# dazugestellt (`self._gebaeude_kopf("lager")` als Rueckfall) - deshalb VIER Stellen.
+check("3 die Gebaeudeansicht ruft den Hintergrund an vier Stellen",
+      quelltext.count("self._gebaeude_kopf(") == 4,
       str(quelltext.count("self._gebaeude_kopf(")) + " Aufrufe")
 check("3 die Ansichten nennen ihre Gebaeude-kennung aus der Quelle",
       'self._gebaeude_kopf("lager")' in quelltext

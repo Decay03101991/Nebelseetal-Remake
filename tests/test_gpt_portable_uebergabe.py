@@ -3,6 +3,7 @@ import importlib.util
 import os
 from pathlib import Path
 import subprocess
+import json
 import sys
 import tempfile
 import unittest
@@ -47,9 +48,14 @@ class Portability(unittest.TestCase):
     def test_exe_ist_keine_quellcode_testfreigabe(self):
         # FIX04j: Die Entwickler-EXE darf inzwischen im Hauptordner stehen.
         # Weder ihre Anwesenheit noch ihr Alter beweisen aktuelle Codegleichheit.
+        # Register 221 (05.11.2026): das Release heisst seit Daniel nach dem Schema in
+        # `data/version.json` (Nebelseetal_<Label>_V0.0.<zaehler>.exe). Der Name kommt aus DIESER
+        # Datei - keine zweite Liste im Test. Der alte Name bleibt als Erlaubnis stehen.
+        _v = json.loads((R / 'data' / 'version.json').read_text(encoding='utf-8'))
+        erlaubt = {'Nebelseetal_Remake.exe', str(_v.get('dateiname') or '')} - {''}
         exe_namen = {f.name for f in R.glob('*.exe')}
-        self.assertFalse(exe_namen - {'Nebelseetal_Remake.exe'},
-                         f'Unbekannte EXE im Projekt-Hauptordner: {exe_namen}')
+        self.assertFalse(exe_namen - erlaubt,
+                         f'Unbekannte EXE im Projekt-Hauptordner: {exe_namen - erlaubt}')
         self.assertTrue((R / '.gitignore').is_file())
         self.assertIn('*.exe', (R / '.gitignore').read_text(encoding='utf-8'))
     def test_protokoll_extern(self):

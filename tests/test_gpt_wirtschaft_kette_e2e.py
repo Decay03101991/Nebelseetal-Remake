@@ -63,7 +63,11 @@ class TestWirtschaftKette(unittest.TestCase):
         before_people=self.o.bevoelkerung
         self.uebernehmen(spieloekonomie.ausbildung_start(asdict(self.o),'Kämpfer',
                                                         self.technik,self.g.spielsekunden))
-        self.assertEqual(self.o.vorraete['gold'],before_gold-250)
+        # Register 227 (Daniel 05.11.2026): die Goldkosten der Militaereinheiten sind 30 Prozent
+        # guenstiger. Der Test rechnet den Preis deshalb aus DEN DATEN statt mit einer getippten Zahl.
+        _gold = float((spieloekonomie.U.get('K\u00e4mpfer') or {}).get('kosten', {}).get('gold', 0) or 0)
+        self.assertGreater(_gold, 0)
+        self.assertEqual(self.o.vorraete['gold'],before_gold-_gold)
         self.assertEqual(self.o.bevoelkerung,before_people-1)
         self.assertEqual(self.o.waren['Kurzschwert'],0)
         self.assertEqual(self.o.waren['Lederrüstung'],0)

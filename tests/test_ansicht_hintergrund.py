@@ -119,10 +119,12 @@ for _name in ("_render_overview", "_render_research", "_render_ausbildung"):
     _namen = M.NebelseetalApp.__dict__[_name].__code__.co_names
     check("%s ruft die Hintergrund-Ebene" % _name, "_ansicht_hintergrund" in _namen, str(_namen[:6]))
 # GEPRUEFT 03.11.2026 (A2-Vorstufe, Register 147): die Startkartenwahl ist ein BLOCK im Dorfzentrum
-# und legt keinen eigenen Hintergrund an - es bleiben drei Ansichten mit eigenem Motiv, und alle drei
-# rufen den alten Kopf nur im Rueckfall.
+# und legt keinen eigenen Hintergrund an. Register 222 (05.11.2026) hat daraus die eigene
+# Kartengruendungsseite gemacht - sie ist die VIERTE Ansicht mit eigenem Motiv ("lager"), ihre
+# drei Schritte stehen in `_render_kartengruendung`. Der alte Kopf bleibt in allen vier Ansichten
+# nur der Rueckfall, wenn kein Bild da ist.
 check("der alte Kopf ist nur noch Rueckfall",
-      TEXT_MAIN.count("if self._ansicht_hintergrund(") == 3, str(TEXT_MAIN.count("if self._ansicht_hintergrund(")))
+      TEXT_MAIN.count("if self._ansicht_hintergrund(") == 4, str(TEXT_MAIN.count("if self._ansicht_hintergrund(")))
 check("das Dorfzentrum nimmt das Motiv 'lager'", 'self._ansicht_hintergrund("lager")' in TEXT_MAIN)
 check("die Forschung nimmt das Motiv 'bibliothek'", 'self._ansicht_hintergrund("bibliothek")' in TEXT_MAIN)
 check("die Ausbildungsstaetten nehmen ihr Gebaeude",
