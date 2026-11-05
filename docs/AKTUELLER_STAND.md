@@ -28,7 +28,7 @@ beheben, dann die zwei Laeufe fahren.
 | Kopf auf `main` | `fa8e27c` beim Schreiben | `git log --oneline -1` |
 | Pruefdateien / Module | 178 / 60 | `ls tests/test_*.py`, `ls src/*.py` |
 | Register / Protokoll / Stand-Bloecke | 272 / 281 / 90 | Zaehlung |
-| Einzelwachen dieses Schnitts | `test_spielschicht` 137/0/1, `test_spieltest_erreicht_kampf` 16/0/0, `test_textqualitaet` 450/0, `test_projektpfade` 123/0, `test_zieluebergabe` 26/0/0 | Laeufe dieses Schnitts |
+| Einzelwachen dieses Schnitts | `test_spielschicht` 137/0/1, `test_spieltest_erreicht_kampf` 16/0/0, `test_textqualitaet` 459/0, `test_projektpfade` 123/0, `test_zieluebergabe` 26/0/0 | Laeufe dieses Schnitts |
 | Spieltest-Laeufe | 2 (breit/krieg), kein Tick-Fehler in beiden | `docs/audits/SPIELTEST_LOG_20261105_1855.md`, `..._1902.md` |
 | Spieltest-Kosten | 0,0305 + 0,0333 = **0,0638 USD**, Rest frei 3,10 USD | `gesamtaudit.log` |
 
