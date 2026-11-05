@@ -1,4 +1,4 @@
-# STAND 05.11.2026, 09:32 — alle neun Entscheidungen sind gebaut (Register 213 bis 217)
+# STAND 05.11.2026, 11:25 — alle Entscheidungen gebaut und nachgeschärft, Endstand gruen (Register 213 bis 220)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
 
@@ -25,33 +25,37 @@ gilt nur noch ohne die Phase. Zahlen: `docs/SPIELBALANCING_TEST.md` Abschnitt 10
 Einghaengungs-Kette rechnen mit 400 Kriegern; die Atem-Zeile rechnet 8 % aus der Datendatei statt
 eine getippte Zahl zu pruefen). Der Code wurde dafuer **nicht** zurueckgebogen.
 
+**Nachgeschärft am 05.11.2026, 10:52 (Register 219):** der Beute-Vorrang steht auf **25 Prozent**
+(Daniels Wahl, nicht die vorgeschlagenen 50) — der Vorrang ist damit leise: bei vier Rohstoffen
+ist 25 Prozent genau der alte Anteil. Und die Ruine deckt **nur ihre eigene Koordinate**
+(`DECKWEITE_FELDER = 0`) — eine Siedlung daneben ist nicht geschützt. Beides sind Zeilen in
+Datendateien bzw. eine Konstante, keine Codeänderung nötig.
+
 **Was ausdruecklich offen bleibt und Daniel gehoert:** der Hoechstanteil 50 % bei der Beute (Frage 8)
 und die **Reichweite** der Ruinendeckung (Frage 9 — das Original nennt keine; die Ruine deckt ihren
 ganzen Sektor bis zum Kartenrand). Beide sind Zeilen in Datendateien, ohne Codeaenderung aenderbar.
 
 | Gegenstand | Wert | Beleg |
 |---|---|---|
-| Kopf auf `main` | `51a514d` | `git log --oneline -1` |
-| Commits | 598 | `git rev-list --count HEAD` |
+| Kopf auf `main` | `d91ff17` (Code) + Doku-Commits | `git log --oneline -1` |
+| Commits | 605 | `git rev-list --count HEAD` |
 | Arbeitsbaum | sauber | `git status --porcelain` |
 | Pruefdateien | **174** (fuenf neue) | `ls tests/test_*.py` |
 | Module | 60 (`src/ruinendeckung.py` neu, Modulkarte nachgezogen) | `ls src/*.py`, `test_projektpfade` 123/0 |
-| Register / Protokoll | **218** / **248** Zeilen aktiv + 113 Zeilen Historie | Zaehlung; die 02./03.11.-Sektionen sind ausgelagert |
-| Voller Sammellauf | **172 von 174 gruen, 0 rot, 866 s** (die zwei uebrigen sind die seit 30.10. ausgesetzten Dateien) | `docs/audits/sammellauf_20261105_1000_nachfix.log`, Laufkopf 09:48 |
-| Guthaben (Daniel 08:58) | 4,44 USD Stand / 55,55 USD Gesamtverbrauch | Ablesung, Protokollzeile |
+| Register / Protokoll | **220** / **252** Zeilen aktiv + 113 Zeilen Historie | Zaehlung; die 02./03.11.-Sektionen sind ausgelagert |
+| Voller Sammellauf | **172 von 174 gruen, 0 rot, 1341 s** (die zwei uebrigen sind die seit 30.10. ausgesetzten Dateien) | `docs/audits/sammellauf_20261105_1120_nachordnung.log` |
+| Guthaben (Daniel 11:23) | 13,68 USD Stand / 56,31 USD Gesamtverbrauch | Ablesung, Protokollzeile |
 
 ## Der EINE naechste Schritt
 
-1. **Sammellauf gelesen** (erledigt): `docs/audits/sammellauf_20261105_1000_nachfix.log` — **172 von
-   174 gruen, 0 rot, 866 s**; die zwei uebrigen sind die dokumentiert ausgesetzten Dateien.
-2. **Protokoll auslagern — ERLEDIGT am 05.11.2026 (Register 218).** Die Sektionen HERMES-KARTE-01 bis
-   HERMES-BOTDORF-06 stehen unveraendert in
-   `docs/ENTWICKLUNGSPROTOKOLL_HISTORIE_20261102_bis_20261103.md`; das aktive Heft fuehrt ab
-   HERMES-BOTNAHRUNG-01 weiter und hat **247 statt 350 Zeilen**. Test und Werkzeug zaehlen jetzt ALLE
-   Historienhefte mit — die naechste Auslagerung ist damit Routine.
-3. **Danach erst** die naechste EXE und die Veroeffentlichung — kein Push von Zwischenstaenden.
-   Offen und Daniels Sache: der Hoechstanteil 50 % bei der Beute (Frage 8) und die Reichweite der
-   Ruinendeckung (Frage 9).
+1. **Sammellauf gelesen** (erledigt, zweimal): `sammellauf_20261105_1055_endstand.log` war **171/174 mit einer
+   roten** Datei (Projektordnungs-Wache verlangte genau EIN Historienheft) — nachgezogen in Register 220.
+   Der Lauf danach (`sammellauf_20261105_1120_nachordnung.log`) meldet **172 von 174 gruen, 0 rot, 1341 s**.
+2. **Protokoll auslagern — ERLEDIGT (Register 218).** Sektionen HERMES-KARTE-01 bis HERMES-BOTDORF-06 stehen
+   unveraendert in `docs/ENTWICKLUNGSPROTOKOLL_HISTORIE_20261102_bis_20261103.md`; aktives Heft 252 Zeilen.
+3. **Als Naechstes: neue EXE bauen und veroeffentlichen** (Daniels Wahl, Uebergabe 11:15). Danach die
+   **Bot-Drachenregel** als eigener Schnitt (sie ist auf die alte Schwelle 300 geeicht) und das
+   **Protokoll-Mini-Repo privat** zu GitHub.
 
 ---
 
