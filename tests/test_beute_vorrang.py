@@ -55,7 +55,7 @@ def haupt() -> int:
     check("Schalter aktiv ist true", roh.get("aktiv") is True, str(roh.get("aktiv")))
     check("Vorrangstoff ist 'gold' (Schluessel wie in den Vorraeten)", roh.get("gold") == "gold",
           str(roh.get("gold")))
-    check("Hoechstanteil ist eine Zahl zwischen 1 und 99",
+    check("Hoechstanteil ist 25 Prozent (Daniels Wahl) und liegt zwischen 1 und 99",
           isinstance(roh.get("vorrang_anteil_prozent"), (int, float))
           and 1 <= roh["vorrang_anteil_prozent"] <= 99, str(roh.get("vorrang_anteil_prozent")))
     check("kampfbericht liest dieselben Werte",
@@ -71,10 +71,14 @@ def haupt() -> int:
     reich = {"gold": 2000, "holz": 2000, "stein": 2000, "nahrung": 2000}
     b1 = KB.beute_staffel(KARREN_3, reich, wall_zustand_vor=100.0, verteidiger_uebrig=4)
     alt1 = _ohne_vorrang(lambda: KB.beute_staffel(KARREN_3, reich, 100.0, 4))
-    check("Fall 1 (reich, Platz 120): Gold 60 statt 30", b1.get("gold") == 60 and alt1.get("gold") == 30,
+    # ENTSCHEIDUNG Daniel 05.11.2026: 25 Prozent (nicht die vorgeschlagenen 50). Bei VIER Rohstoffen
+    # ist 25 Prozent genau der gleiche Anteil wie die alte anteilige Verteilung - der Vorrang ist
+    # hier also LEISE und aendert in diesem Fall nichts. Das ist gewollt und keine Luecke.
+    check("Fall 1 (reich, Platz 120): 25 Prozent sind hier derselbe Anteil wie bisher (30 Gold)",
+          b1.get("gold") == 30 and alt1.get("gold") == 30,
           "neu %s / alt %s" % (b1.get("gold"), alt1.get("gold")))
-    check("Fall 1: Holz, Stein und Nahrung kommen weiter mit (je 20)",
-          b1.get("holz") == 20 and b1.get("stein") == 20 and b1.get("nahrung") == 20, str(b1))
+    check("Fall 1: Holz, Stein und Nahrung kommen weiter mit (je 30)",
+          b1.get("holz") == 30 and b1.get("stein") == 30 and b1.get("nahrung") == 30, str(b1))
     check("Fall 1: alte Verteilung war 30/30/30/30 (Befund-Tabelle)",
           alt1 == {"nahrung": 30, "holz": 30, "stein": 30, "gold": 30}, str(alt1))
 
@@ -115,7 +119,7 @@ def haupt() -> int:
     gold_allein = KB.beute_staffel(KARREN_3, {"gold": 2000}, 100.0, 4)
     check("liegt NUR Gold im Dorf, darf es die ganze Ladung fuellen", gold_allein == {"gold": 120},
           str(gold_allein))
-    check("der Hoechstanteil deckelt Gold (60 von 120)", b1.get("gold") == 60, str(b1))
+    check("der Hoechstanteil deckelt Gold (30 von 120)", b1.get("gold") == 30, str(b1))
 
     # ------------------------------------------------------------------ (e) Gegenprobe alt
     abschnitt("(e) GEGENPROBE: aktiv=false stellt das alte Modell Zeile fuer Zeile wieder her")

@@ -6705,7 +6705,7 @@ class GameState:
                                       int(getattr(_heimat, "y", 0) or 0))) if _heimat else {}
                         if _deckung:
                             _erlaubt = False
-                            _grund = ("Die Ruine %s deckt %s aus %s - kein Angriff aus dieser Richtung."
+                            _grund = ("Die Ruine %s deckt genau dieses Feld - der Angriff kommt von dort, also kein Angriff."
                                       % (_deckung.get("ruine") or "", getattr(zielort, "name", ""),
                                          _deckung.get("richtung_text") or _deckung.get("richtung") or ""))
                         if not _erlaubt:
