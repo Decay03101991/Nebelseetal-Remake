@@ -36,7 +36,7 @@ ganzen Sektor bis zum Kartenrand). Beide sind Zeilen in Datendateien, ohne Codea
 | Arbeitsbaum | sauber | `git status --porcelain` |
 | Pruefdateien | **174** (fuenf neue) | `ls tests/test_*.py` |
 | Module | 60 (`src/ruinendeckung.py` neu, Modulkarte nachgezogen) | `ls src/*.py`, `test_projektpfade` 123/0 |
-| Register / Protokoll | **217** / 349 Zeilen | Zaehlung in den Papieren |
+| Register / Protokoll | **217** / 350 Zeilen | Zaehlung in den Papieren |
 | Voller Sammellauf | **172 von 174 gruen, 0 rot, 866 s** (die zwei uebrigen sind die seit 30.10. ausgesetzten Dateien) | `docs/audits/sammellauf_20261105_1000_nachfix.log`, Laufkopf 09:48 |
 | Guthaben (Daniel 08:58) | 4,44 USD Stand / 55,55 USD Gesamtverbrauch | Ablesung, Protokollzeile |
 
