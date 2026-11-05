@@ -1,3 +1,56 @@
+# STAND 05.11.2026, 09:45 — alle neun Entscheidungen sind gebaut (Register 213 bis 217)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Die Runde ist abgearbeitet.** Alle fuenf Streitpunkte aus Daniels Entscheidungsblatt sind gebaut
+und einzeln belegt; zwei davon haben das Spiel messbar veraendert, und das steht hier, nicht nur im
+Code.
+
+| Frage | Was gebaut ist | Register | Beleg |
+|---|---|---|---|
+| 6 | Die sechs **Hausfarben folgen den Wappentinkturen** (Chronik und `data/haeuser.json` gleich) | 213 | `test_hausfarben` 33/0/1 mit Gegenprobe |
+| 8 | **Gold laedt zuerst** (Hoechstanteil), der Rest anteilig; Schalter `aktiv` stellt das alte Modell wieder her | 214 | `test_beute_vorrang` 29/0/1 |
+| 1 | **Bots raeumen Ruinen** mit Karren und ohne Kampf; sie rechnen dabei mit IHRER Forschung | 215 | `test_bot_ruinenzug` 25/0/1 |
+| 9 | **Die besiegte Ruine deckt ihren Sektor** — kein Angriff aus dieser Richtung, Anzeige in der Uebersicht | 216 | `test_ruinendeckung` 43/0/1 |
+| 2 | **Zweite Atemphase**: 20 % unter halber Wache, vorher gemessen | 217 | `test_drachen_zweite_phase` 22/0/1 |
+
+**Der wichtigste Befund des Tages (Frage 2, gemessen vor dem Bau):** die zweite Atemphase kippt den
+sicheren Sieg am Drachen. Mit **300 Kriegern + 22 Katapulten** gewinnt man neu nur noch **3 von 100
+Laeufen** (vorher 100/100, der zweite Atem nimmt 55 Mann). **Sicher ist der Sieg ab 400 Kriegern +
+22 Katapulten.** Zweite Folge: die eigenen Verluste haengen jetzt **von der Truppengroesse** ab
+(154 → 228 bei 400, → 338 bei 1000) — der frueher belegte Satz "Verluste sind groessenunabhaengig"
+gilt nur noch ohne die Phase. Zahlen: `docs/SPIELBALANCING_TEST.md` Abschnitt 10.
+
+**Zwei alte Wachen mussten mit der Entscheidung nachgezogen werden** (Schuppe-Kette und
+Einghaengungs-Kette rechnen mit 400 Kriegern; die Atem-Zeile rechnet 8 % aus der Datendatei statt
+eine getippte Zahl zu pruefen). Der Code wurde dafuer **nicht** zurueckgebogen.
+
+**Was ausdruecklich offen bleibt und Daniel gehoert:** der Hoechstanteil 50 % bei der Beute (Frage 8)
+und die **Reichweite** der Ruinendeckung (Frage 9 — das Original nennt keine; die Ruine deckt ihren
+ganzen Sektor bis zum Kartenrand). Beide sind Zeilen in Datendateien, ohne Codeaenderung aenderbar.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf auf `main` | `741d0f0` | `git log --oneline -1` |
+| Commits | 594 | `git rev-list --count HEAD` |
+| Arbeitsbaum | sauber | `git status --porcelain` |
+| Pruefdateien | **174** (fuenf neue) | `ls tests/test_*.py` |
+| Module | 60 (`src/ruinendeckung.py` neu, Modulkarte nachgezogen) | `ls src/*.py`, `test_projektpfade` 123/0 |
+| Register / Protokoll | **217** / 347 Zeilen | Zaehlung in den Papieren |
+| Voller Sammellauf | **laeuft** fuer `741d0f0`, Log `docs/audits/sammellauf_20261105_0945.log` | Start 09:45 |
+| Guthaben (Daniel 08:58) | 4,44 USD Stand / 55,55 USD Gesamtverbrauch | Ablesung, Protokollzeile |
+
+## Der EINE naechste Schritt
+
+1. **Sammellauf lesen**, nicht vermuten: das Log `docs/audits/sammellauf_20261105_0945.log` nennt
+   die roten Dateien am Ende. Rote Dateien einzeln nachfahren, erst dann die Zahlen oben ersetzen.
+2. **Protokoll auslagern, nicht verdichten** (Daniels Entscheidung 4, Register 212): das Protokoll
+   steht bei 347 Zeilen, die Zielgroesse ist 320. Ein Teil wandert als Historie in eine eigene
+   Datei — lueckenlos, nichts loeschen, Muster `ENTWICKLUNGSPROTOKOLL_HISTORIE_BIS_20261101.md`.
+3. **Danach erst** die naechste EXE und die Veroeffentlichung — kein Push von Zwischenstaenden.
+
+---
+
 # STAND 05.11.2026, 05:20 - Drachenkampf gemessen (Register 208)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
