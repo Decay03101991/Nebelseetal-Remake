@@ -51,13 +51,18 @@ ganzen Sektor bis zum Kartenrand). Beide sind Zeilen in Datendateien, ohne Codea
 
 ## Der EINE naechste Schritt
 
-1. **Sammellauf gelesen:** `sammellauf_20261105_1120_nachordnung.log` = **172 von 174 grün, 0 rot, 1341 s**
-   (die zwei übrigen sind die dokumentiert ausgesetzten Dateien). Rote Dateien davor sind in Register 220 erklärt.
-2. **EXE gebaut und geprüft — ERLEDIGT (Register 221).** `Nebelseetal_Pre_Release_V0.0.1.exe`, 86.963.273 Byte,
-   SHA256 `4d1d0e5f…`; Start am Bildschirm belegt (Fenster + Passwortsperre). Der Namenszähler steht in `data/version.json`.
-3. **Als Nächstes: das Upload-Paket für GitHub.** `tools/build_public_exe.py --pruefen` (belegt das LEERE Paket), dann
-   der Bau nach `release_public/`, Release-Notizen, Größe und SHA256 **nur aus der Ausgabe des Laufs**, dann der Push
-   (kein Force, `main` unberührt). Danach die **Bot-Drachenregel** als eigener Schnitt und das **Protokoll-Mini-Repo privat**.
+1. **Sammellauf gelesen:** `sammellauf_20261105_1120_nachordnung.log` = **172 von 174 grün, 0 rot, 1341 s**.
+2. **EXE `V0.0.1` gebaut und geprüft — erledigt (Register 221).** 86.963.273 Byte, SHA256 `4d1d0e5f…`, Start am Bildschirm belegt.
+3. **Schnitt Register 222 bauen:** Startfenster = Kartengründungsseite, Fraktionsfrage direkt nach
+   Spielneubeginn, danach **kein Fraktionswechsel** mehr (eigene Wache).
+4. **Schnitt Register 225 bauen (Daniels Entscheidungen vom 12:40):**
+   (a) **Goldkosten der Militäreinheiten −30 %** (Krieger 500→350, Bogenschütze 1.000→700, Paladin 2.000→1.400,
+   Kundschafter 250→175, Belagerung 750→525) — als bewusste Abweichung dokumentieren;
+   (b) **Karten nach Original:** Zufallsziehung für Spieler UND Bots, eine unpassende Karte wird **gelöscht**,
+   die **Gründungsressourcen sind verloren**, neu sparen — „es soll sich lohnen“.
+   **Nicht gebaut:** die Beute-Quote (Register 225 Punkt 2) — sie würde die belegte Karrengrenze abschaffen.
+5. **Danach** EXE `Nebelseetal_DemoVersion_V0.0.2.exe` bauen und prüfen, dann Upload-Paket und GitHub;
+   anschließend Werkzeug-Fix (Wagenbau in `tools/balancing_messung.py`), Bot-Drachenregel, Protokoll-Repo privat.
 
 ---
 
