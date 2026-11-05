@@ -19,9 +19,13 @@ beheben, dann die zwei Laeufe fahren.
 | G | Befunde verwertbar formuliert (7 Befunde, 4 Grenzen, Reihenfolge der naechsten Schnitte) | `docs/SPIELTEST_BEFUNDE_20261105.md` |
 | H | Werkzeugbefund: `gesamtaudit_lauf.py --paket <pfad>` ignoriert den Pfad und sendet das volle Dossier | richtig ist `--paket --dossier <pfad> --ziel <datei>` (8.017 statt 129.371 Zeichen) |
 | I | **Voller Sammellauf ueber den ganzen Stand** | **176 von 178 gruen, 0 rot**, 7.276 bestandene Pruefungen, 1221 s (`docs/audits/sammellauf_20261105_1911.log`) |
+| J | **W1 gebaut (Daniel 19:47): Waren kosten im Kern-Weg Geld UND Forschung** | `ware_fertigen` prueft ueber `spieloekonomie.ware_voraussetzung`, bucht Rezeptkosten atomar, Rueckbuchung bei Ablehnung; `test_spielschicht` **142/0/1** |
+| K | **Angriff ohne Karren erlaubt, Beute dann 0** (Daniel 19:47) | Der Kern liess das immer zu (Karrenladung ist die Grenze), blockiert hatte nur die Simulation; Wache `test_spieltest_erreicht_kampf` **19/0/0**, Abschnitt 5 |
+| L | Zwei NEUE Laeufe mit dem korrigierten Geraet bezahlt | L3 breit 10 Tage: 35 Punkte, 5 Gefechte, 0,0349 USD; L4 krieg 12 Tage: 40 Punkte, 11 Gefechte, 0,0362 USD; beide Urteile nennen **Waffentechnik Stufe 3** als Engstelle |
 
-**Geld:** 0,0638 USD von 3,16 USD verbraucht, **3,10 USD bleiben frei**. Guthaben bei Daniel
-13,16 USD (Ablesung 15:06).
+**Geld:** 0,0305 + 0,0333 + 0,0349 + 0,0362 = **0,1349 USD gemessen** (ein L4-Versuch lief leer und
+wiederholte sich einmal; dessen Kosten stehen nicht in der Abrechnung des Werkzeugs). Von den 3,16 USD
+der Freigabe sind damit rund **3,02 USD frei**. Guthaben bei Daniel: 12,48 USD (Ablesung 19:48).
 
 | Gegenstand | Wert | Beleg |
 |---|---|---|
@@ -34,19 +38,23 @@ beheben, dann die zwei Laeufe fahren.
 
 ## Der EINE naechste Schritt
 
-1. **W1 - Waren-Kosten im Kern-Weg** (`spielschicht.ware_fertigen` bucht Kosten und prueft die
-   Forschungsvoraussetzung wie `spieloekonomie.ware_start_menge`), mit eigener Wache. Danach die
-   beiden Spieltest-Laeufe neu fahren (~0,03 USD je Lauf) - erst dann sind die Zahlen aus
-   `SPIELTEST_BEFUNDE` belastbar. Der volle Sammellauf fuer den Stand dieses Blocks ist gefahren
-   (176 von 178, 0 rot, 1.221 s), die Skip-Mechanik-Luecke der Uebergabe ist damit geschlossen.
-2. **Karren-Engpass (B2)** (236 Angriffs-Fehlversuche) und **B3/B4/B7** (Voraussetzungen und Knoepfe
-   anzeigen) nach Daniels Entscheidung.
-3. **Neue Spielversion 0.0.2 ankuendigen**, sobald W1 gebaut und der Sammellauf gruen ist - der
-   Ware-Fix ist spielrelevant. Repo dabei laufend aktuell halten (Daniel 05.11.2026).
+1. **Voraussetzungen sichtbar machen (B3/B4/B7)** — der einzige Punkt, den BEIDE Urteile unabhaengig
+   nennen: 283+156+82 Kurzschwert- und 488 Kaempfer-Fehlversuche in L3, 516/491 in L4. Dazu gehoert
+   die Anzeige Waffentechnik 3 (aktuell 2), Schmiede bauen, Lederrüstung produzieren und das
+   Sperren wirkungsloser Knoepfe. Reine Anzeige, kein Balancing - und die Wache dazu ist
+   `test_anzeigetexte_umlaute`.
+2. **Kampfziel aus einem echten Bot-Dorf (B5)** — sonst bleibt der Kampf nicht beurteilbar (jedes
+   Gefecht 16/10/12 Beute, 0 Verluste in allen Laeufen).
+3. **Mana-Kette (B6)** — Mana ist in 12 Spieltagen 0. Kein Wert erfinden: offene Frage an Daniel, ob
+   Tempel/Paladin im Messzeitraum vorkommen sollen.
+4. **Version 0.0.2 veroeffentlichen** (Daniel 19:47): nach dem gruenen Sammellauf bauen, am Bildschirm
+   pruefen, Release mit Notizen, Repo aktuell halten.
+   Zum Abschluss eines jeden Schnitts: Registerzeile, Protokollzeile, Stand-Block, dann Sammellauf.
 
 **Weiter offen:** Saat wirkungslos (feste Startkarte) - Verlaeufe unterscheiden sich nur ueber
-`--stil`; Kampfziel ist ein fixes synthetisches Dorf (Beute immer 16/10/12, 0 Verluste); Mana und
-Pferde kommen in 18 Spieltagen nie vor; Skill-Nachtrag `laptop-cleanup` wartet auf Daniels
+`--stil`; Kampfziel ist ein fixes synthetisches Dorf; Mana und Pferde kommen in keinem Lauf vor;
+Forschungsdauer je Stufe (Waffentechnik 3 braucht ~6 Spieltage) ist eine offene Balancing-Frage;
+Skill-Nachtrag `laptop-cleanup` und der Nachtrag zu den Spieltest-Laeufen warten auf Daniels
 Freigabe (`/skills pending`); Werkzeug-Fix Wagenbau-Stufen in `tools/balancing_messung.py` und die
 Bot-Drachenregel stehen weiter offen.
 

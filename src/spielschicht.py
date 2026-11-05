@@ -45,6 +45,7 @@ import kampfbericht
 import portalraum
 import punkte as PUNKTE
 import spieldaten
+import spieloekonomie  # EINE Quelle fuer die Warenvoraussetzung (ware_voraussetzung)
 import werkstatt
 import wirtschaft
 
@@ -501,12 +502,25 @@ def ware_fertigen(zustand: dict, siedlung_index, ware: str, anzahl: int,
     Handbuchbeispiel: 10 Schwerter a 20 Minuten mit zwei Schmieden = 100 min).
     Die Fertigung selbst laeuft ueber ``tick``. Bei einer Ablehnung aendert sich
     nichts.
+
+    Seit 05.11.2026 werden VORAUSSETZUNG und MATERIAL wie im GUI-Weg geprueft und bezahlt
+    (Befund Register 233: vorher entstanden Waren hier umsonst und ohne Forschung, weil nur
+    `spieloekonomie.ware_start_menge` die Rezeptkosten bucht). Die Voraussetzung liest dieselbe
+    Funktion wie der GUI-Weg (`spieloekonomie.ware_voraussetzung`), damit es EINE Wahrheit bleibt.
     """
     s = _siedlung(zustand, siedlung_index)
     if s is None:
         return False, f"Unbekannte Siedlung (Index {siedlung_index})."
     if ware not in (spieldaten.waren() or {}):
         return False, f"Unbekannte Ware: {ware}."
+    try:
+        menge = int(anzahl)
+    except (TypeError, ValueError):
+        return False, "Die Anzahl muss eine ganze Zahl sein."
+    if menge <= 0:
+        return False, "Die Anzahl muss größer als 0 sein."
+    rezepte = _warenrezepte()
+    rezept = rezepte.get(ware) or {}
     kennung = werkstatt.werkstatt_fuer(ware)
     if not kennung:
         return False, f"Für '{ware}' ist keine Werkstatt bekannt."
@@ -514,6 +528,18 @@ def ware_fertigen(zustand: dict, siedlung_index, ware: str, anzahl: int,
     if bestand < 1:
         return False, (f"Keine {gelaende.gebaeude_name(kennung)} in dieser Siedlung -- "
                        f"erst bauen.")
+    # Materialkosten je Stueck aus dem Rezept, mal Menge; atomar (alles oder nichts).
+    # Die Forschungsvoraussetzung steht bewusst NACH der Werkstatt: dem Spieler zuerst das
+    # fehlende Gebaeude nennen, dann die fehlende Forschung (dieselbe Lesestelle wie der GUI-Weg).
+    erfuellt, begruendung = spieloekonomie.ware_voraussetzung(ware, _forschungsstaende(zustand),
+                                                              rezepte)
+    if not erfuellt:
+        return False, f"Warenvoraussetzung fehlt: {begruendung}"
+    kosten = {roh: int(wert) * menge for roh, wert in (rezept.get("kosten") or {}).items()}
+    fehlt = _fehlbetrag(zustand, kosten)
+    if fehlt:
+        return False, (f"Lokales Lager reicht nicht. Für {menge}x {ware} fehlen "
+                       f"{_kosten_text(fehlt)}.")
     stufe = werkstatt.werkstatt_stufe(s, kennung) or 1
     schluessel = f"{int(siedlung_index)}:{kennung}"
     zustand.setdefault("werkstaetten", {})
@@ -524,8 +550,12 @@ def ware_fertigen(zustand: dict, siedlung_index, ware: str, anzahl: int,
     else:
         schlange["werkstaetten"] = bestand
         schlange["kapazitaet"] = werkstatt.kapazitaet(bestand)
-    ok, meldung = werkstatt.einreihen(schlange, ware, anzahl, stufe, _warenrezepte())
+    _bezahlen(zustand, kosten)                          # abbuchen, dann einreihen
+    ok, meldung = werkstatt.einreihen(schlange, ware, menge, stufe, rezepte)
     if not ok:
+        # Rueckbuchung: ein abgelehnter Auftrag darf nichts kosten (keine Teilabbuchung).
+        for roh, wert in kosten.items():
+            zustand["ressourcen"][roh] = zustand["ressourcen"].get(roh, 0) + wert
         return False, meldung
     werkstatt.fortschritt(schlange, float(jetzt))       # Uhr stellen (Startzeitpunkt)
     _melde(zustand, meldung, "werkstatt", jetzt)

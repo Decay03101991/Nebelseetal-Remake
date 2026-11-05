@@ -411,8 +411,15 @@ check("die belegte Schwerdauer ist 1200 s (20 min)", W.dauer_sekunden("Schwert")
 
 _ws = feld(zws, _SCHMIEDE_FELDER)
 S.bauen(zws, 0, "schmiede", _ws)
+# Wache seit 05.11.2026: `spielschicht.ware_fertigen` prueft und bucht wie der GUI-Weg
+# (Rezept "Schwert": Waffentechnik 5, 1 Metall). Die Probe setzt darum den Zustand, den das
+# Spiel verlangt - vorher entstand die Ware hier umsonst und ohne Forschung (Register 233).
+zws["forschung"]["Waffentechnik"]["stufe"] = 5
+zws["ressourcen"]["metall"] = 100
 ok, meldung = S.ware_fertigen(zws, 0, "Schwert", 1, 0.0)
 check("Schwert wird in die Warteschlange gestellt", ok is True, meldung)
+check("die Rezeptkosten sind abgebucht (1 Metall)", zws["ressourcen"]["metall"] == 99,
+      str(zws["ressourcen"].get("metall")))
 S.tick(zws, 600, 600)
 check("vor der belegten Zeit ist noch nichts fertig", zws["waren"].get("Schwert", 0) == 0)
 _neu = S.tick(zws, 1200, 600)
@@ -425,6 +432,8 @@ check("das fertige Schwert steht in den Nachrichten",
 z2 = S.neuer_zustand()
 S.bauen(z2, 0, "schmiede", feld(z2, _SCHMIEDE_FELDER))
 S.bauen(z2, 0, "schmiede", feld(z2, _SCHMIEDE_FELDER))
+z2["forschung"]["Waffentechnik"]["stufe"] = 5      # Rezeptvoraussetzung (Register 233)
+z2["ressourcen"]["metall"] = 100                  # 10 Schwerter a 1 Metall
 ok, meldung = S.ware_fertigen(z2, 0, "Schwert", 10, 0.0)
 check("10 Schwerter bei 2 Schmieden werden eingereiht", ok is True, meldung)
 S.tick(z2, 5999, 5999)
@@ -443,8 +452,21 @@ zk = S.neuer_zustand()
 S.bauen(zk, 0, "schmiede", feld(zk, _SCHMIEDE_FELDER))
 check("Gegenprobe: Kurzschwert hat KEINE belegte Handbuchdauer",
       W.dauer_sekunden("Kurzschwert") is None)
+# Ohne Forschung und ohne Metall muss der Weg ablehnen - und zwar mit Grund, ohne Abbuchung.
+_vor_zk = eingefroren(zk)
+ok, meldung = S.ware_fertigen(zk, 0, "Kurzschwert", 1, 0.0)
+check("ohne Forschungsvoraussetzung wird die Ware abgelehnt",
+      ok is False and "Warenvoraussetzung fehlt" in meldung, meldung)
+check("die Ablehnung aendert den Zustand nicht", eingefroren(zk) == _vor_zk)
+zk["forschung"]["Waffentechnik"]["stufe"] = 3      # Rezept: Waffentechnik 3
+ok, meldung = S.ware_fertigen(zk, 0, "Kurzschwert", 1, 0.0)
+check("ohne Material wird die Ware abgelehnt",
+      ok is False and "Lager reicht nicht" in meldung, meldung)
+zk["ressourcen"]["metall"] = 10                   # Kurzschwert kostet 4 Metall
 ok, meldung = S.ware_fertigen(zk, 0, "Kurzschwert", 1, 0.0)
 check("Ware ohne belegte Dauer laesst sich einreihen", ok is True, meldung)
+check("die Kosten sind abgebucht (4 Metall)", zk["ressourcen"]["metall"] == 6,
+      str(zk["ressourcen"].get("metall")))
 _zeilen = [e for s in (zk.get("werkstaetten") or {}).values()
            for e in (s.get("einheiten") or [])]
 check("die eingereihte Ware hat eine Dauer aus data/warenrezepte.json",

@@ -91,3 +91,51 @@ Pferde werden in 18 Spieltagen **nie** berührt.
    die Beute-Regel ist belegt, die Karren-Kosten sind es auch; der Engpass gehört ins Balancing.
 4. **Neue Spielversion 0.0.2 veröffentlichen**, sobald der volle Sammellauf grün ist (die
    Ware-Wache und der Instrument-Fix sind spielrelevant)? *Empfehlung: ja, mit Ankündigung.*
+
+## Nachtrag 20:10 — Daniels Entscheidungen umgesetzt, zwei NEUE Läufe (L3/L4)
+
+Daniel hat um 19:47 vier Entscheidungen getroffen: **W1 jetzt bauen**, **Start-Holz lassen**,
+**Angriff ohne Karren erlauben (Beute 0)** und **Version 0.0.2 veröffentlichen**. Damit sind drei
+der vier Grenzen aus Abschnitt 4 erledigt oder bewusst entschieden:
+
+| Was | Vorher | Jetzt | Beleg |
+|---|---|---|---|
+| Waren-Kosten im Kern-Weg (W1) | `ware_fertigen` buchte nichts, prüfte keine Forschung | Kosten und Forschungsvoraussetzung aus DIESER Quelle wie im GUI-Weg (`spieloekonomie.ware_voraussetzung`), atomar mit Rückbuchung bei Ablehnung | `test_spielschicht` **142/0/1** (5 neue Prüfungen), `test_spieltest_erreicht_kampf` **19/0/0** |
+| Angriff ohne Karren | Simulation verlangte Karren, sonst kein Angriff | erlaubt, Beute dann leer (Kern war schon so: Karrenladung ist die Grenze) | Wache Abschnitt 5: Angriff läuft, Beute `{}` |
+| Start-Holz | Vorschlag 150/180 | **bleibt bei der Originalzahl** | Daniels Antwort |
+| Forschung | 4 Gebiete, Warenvoraussetzungen nie erreicht | Ziele: Schmiedekunst 1 → Waffentechnik 3, Nähen 1 → Nähkunst 1, Rüstungsbau 2, dann Wirtschaft | Lauf L3: Waffentechnik 3 bei T7,4 |
+
+**Die neuen Läufe (bezahlt, mit dem korrigierten Gerät):**
+
+| Lauf | Stil | Tage | Einheiten am Ende | Kämpfe | Erster Kämpfer | Punkte | Kosten |
+|---|---|---|---|---|---|---|---|
+| L3 | breit | 10 | 2 Bürgerwehr, 2 Kämpfer, 1 Handkarren | 5 (davon 1 ohne Beute) | T8,38 | 35 | 0,0349 USD |
+| L4 | krieg | 12 | 2 Bürgerwehr, 4 Kämpfer, 1 Handkarren | 11 (davon 2 ohne Beute) | T8,28 | 40 | 0,0362 USD |
+
+Urteile: `docs/audits/SPIELTEST_BEWERTUNG_20261105_L3.md` und `..._L4.md`.
+
+**Was die zwei neuen Urteile übereinstimmend sagen (die belastbare Kernaussage):**
+
+| Befund | Zahl | Wo |
+|---|---|---|
+| **Waffentechnik Stufe 3 ist die neue Engstelle** — sie sperrt Kurzschwert, damit den Kämpfer | 283 + 156 + 82 Kurzschwert-Fehlversuche, 488 blockierte Kämpfer-Ausbildungen (L3); 516 in L4 | L3 Tabelle Engstelle, L4 Punkt 2 |
+| Holz bleibt die zweite Engstelle | Tag 1: 6 Holz, Tag 4: 4, Tag 8: 3 | L3/L4 Tagesbilanzen |
+| Voraussetzungen sind im Spiel nicht sichtbar | 491 (L4) bzw. 488 (L3) Klicks ohne Wirkung | L3 Punkt 3, L4 Punkt 4 |
+| Beute ohne Karren ist erklärungsbedürftig | Angriffe T2/T3 mit Beute `{}` | L4 Punkt 4 |
+| **Mana bleibt über 12 Spieltage 0** | 0 Mana bei 1.000+ Metall und 700+ Gold | L4 Punkt 5 (neu gegenüber L1/L2) |
+| Beute weiterhin konstant | jedes Gefecht mit Karren 16/10/12, 0 Verluste | L3/L4 Kampfliste |
+
+**Vorschläge aus den Urteilen, die ich für falsch halte (nicht übernommen):**
+
+- *Kurzschwert-Voraussetzung auf Waffentechnik 2 senken* (L3): das ist eine belegte Rezeptangabe aus
+  `data/warenrezepte.json`; sie zu senken, um eine Wartezeit zu verkürzen, dreht die Ursache um.
+  Richtig ist, die Wartezeit sichtbar zu machen (Voraussetzungsanzeige) und die Forschungskette
+  früh zu beginnen.
+- *Start-Holz 150* (beide): Daniel hat um 19:47 entschieden, die Originalzahl bleibt.
+- *Mana 288/Tag erfinden* (L4): es gibt keine Quelle für einen Mana-Ertrag; **nichts erfinden** —
+  offener Punkt für Daniel, kein Code.
+
+**Der eine neue offene Punkt aus den Läufen:** die Forschungsdauer je Stufe (Waffentechnik 3 braucht
+drei hintereinander abgeschlossene Forschungen, ~6 Spieltage). Ob das gewollt ist oder ob die
+Forschungskosten/Dauern aus `data/research.json` zu hoch sind, ist eine Balancing-Entscheidung mit
+Quellenlage — nicht im Schnellschuss zu ändern.

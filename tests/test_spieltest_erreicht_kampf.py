@@ -90,8 +90,14 @@ abschnitt("4. Gegenprobe: ohne Rezepte bleibt die Ware liegen (der alte Fehler)"
 
 zk = S.neuer_zustand()
 S.bauen(zk, 0, "schmiede", SIM._feld_fuer(zk["siedlungen"][0], "schmiede"))
+# Seit 05.11.2026 prueft und bucht `spielschicht.ware_fertigen` wie der GUI-Weg: Kurzschwert
+# braucht Waffentechnik 3 und 4 Metall. Die Probe stellt beides her, weil das SPIEL es verlangt.
+zk["forschung"]["Waffentechnik"]["stufe"] = 3
+zk["ressourcen"]["metall"] = 10
 ok, meldung = S.ware_fertigen(zk, 0, "Kurzschwert", 1, 0.0)
 check("4 Kurzschwert laesst sich einreihen", ok is True, meldung)
+check("4 die Rezeptkosten sind abgebucht (4 Metall)", zk["ressourcen"]["metall"] == 6,
+      str(zk["ressourcen"].get("metall")))
 S.tick(zk, 6000, 6000)
 check("4 mit Rezepten ist das Kurzschwert nach 6000 s fertig",
       zk["waren"].get("Kurzschwert") == 1, str(zk["waren"]))
@@ -109,5 +115,22 @@ check("4 Gegenprobe ohne Rezepte: keine Ware im Lager (dauer = None)",
 check("4 Gegenprobe: die Warteschlange selbst kennt keine Dauer",
       all(e.get("dauer") is None for e in (schlange.get("einheiten") or [])),
       str(schlange.get("einheiten")))
+
+# ==========================================================================
+abschnitt("5. Angriff ohne Karren ist erlaubt, Beute dann leer (Daniel 05.11.2026)")
+# ==========================================================================
+
+# Die Regel steht im KERN (spielschicht.angriff + kampfbericht): Kaempfer allein duerfen angreifen,
+# die Beute ist durch die Karrenladung begrenzt - ohne Karren also 0. Die Wache sichert beides.
+zo = S.neuer_zustand()
+# Fixture: zwei Buergerwehr direkt ins Heer (die Entstehung selbst prueft Abschnitt 2 am Lauf).
+zo["einheiten"]["Bürgerwehr"] = 2
+ziel = {"name": "Bot-Siedlung", "wall_stufe": 0, "wall_zustand_prozent": 100.0,
+        "vorraete": {"holz": 400.0, "stein": 300.0}}
+ok_o, ergebnis_o = S.angriff(zo, ziel, 3600.0)
+check("5 ein Angriff ohne Karren wird ausgefuehrt", ok_o is True,
+      str((ergebnis_o or {}).get("grund") or (ergebnis_o or {}).get("ergebnis")))
+beute = ((ergebnis_o or {}).get("beute") or {})
+check("5 ohne Karren ist die Beute leer (Karrenladung ist die Grenze)", not beute, str(beute))
 
 sys.exit(bericht())

@@ -135,6 +135,11 @@ def _notiere_fehler(log: dict, art: str, grund: str) -> None:
     eintrag[schluessel] = eintrag.get(schluessel, 0) + 1
 
 
+FORSCHUNGSZIELE = (("Schmiedekunst", 1), ("Waffentechnik", 3), ("Nähen", 1), ("Nähkunst", 1),
+                   ("Rüstungsbau", 2), ("Felderwirtschaft", 2), ("Kriegskunst", 2),
+                   ("Baukunst", 2), ("Verteidigungsanlagen", 2))
+
+
 def _erzeuger_je_rohstoff() -> dict:
     """{Rohstoff klein: Gebaeudekennung} aus ``data/buildings.json`` - EINE Quelle, keine Handliste.
 
@@ -281,15 +286,21 @@ def spielen(tage: float, saat: int = 7, stil: str = "breit") -> dict:
                     ohne_ausbau.add(art)
                 _notiere_fehler(log, "ausbauen", text)
 
-        # Forschung
-        for gebiet in ("Felderwirtschaft", "Kriegskunst", "Baukunst", "Verteidigungsanlagen"):
-            stand = S.forschung_stand(zustand, jetzt)
-            if stand.get("laeuft"):
-                break
-            ok, text = _versuch(S.forschung_starten, zustand, gebiet, jetzt)
-            if ok:
-                log["forschungen"].append((round(jetzt / SPIELTAG, 2), gebiet))
-                break
+        # Forschung - Ziele statt Reihenfolge: erst die Stufen, die eine Einheit freischalten
+        # (Schmiedekunst 1 -> Waffentechnik 3, Nähen 1 -> Nähkunst 1, Rüstungsbau 2), dann Wirtschaft.
+        # So entsteht der Kämpfer früh statt am Rand der Messzeit. Fehlversuche mit Grund.
+        if not S.forschung_stand(zustand, jetzt).get("laeuft"):
+            stand_f = {n: int((e or {}).get("stufe", 0))
+                       for n, e in (zustand.get("forschung") or {}).items()}
+            for gebiet, ziel in FORSCHUNGSZIELE:
+                if stand_f.get(gebiet, 0) >= ziel:
+                    continue                    # Zielstufe dieser Forschung steht schon
+                ok, text = _versuch(S.forschung_starten, zustand, gebiet, jetzt)
+                if ok:
+                    log["forschungen"].append((round(jetzt / SPIELTAG, 2), gebiet))
+                    break
+                _notiere_fehler(log, "forschung", f"{gebiet}: {text}")
+                break                           # ein Forschungsversuch je Spielschritt
 
         # Ausbildung - Zielzahlen klein und dokumentiert, damit der Lauf KAEMPFE erreicht: ohne
         # Kaempfer und ohne Karren gibt es keinen Angriff (erster Lauf 05.11.2026 endete 0/0).
@@ -318,14 +329,15 @@ def spielen(tage: float, saat: int = 7, stil: str = "breit") -> dict:
                         _notiere_fehler(log, "ware", f"{ware}: {text_w}")
                     break                       # eine Ware je Einheit und Schritt
 
-        # Angriffe: der erste ab Spieltag 2, sobald Kaempfer UND Karren dastehen; danach hoechstens
-        # alle 2 Spieltage ein weiterer (eine Partie soll mehr als ein Gefecht zeigen).
+        # Angriffe: der erste ab Spieltag 2, sobald Kaempfer dastehen; danach hoechstens alle
+        # `angriff_abstand` Spieltage ein weiterer. Daniel 05.11.2026: ein Angriff OHNE Karren ist
+        # erlaubt - die Beute ist dann 0 (Karrenladung ist die Grenze, belegt im Handbuch).
         if jetzt >= angriff_ab * SPIELTAG and (jetzt / SPIELTAG - letzter_angriff) >= angriff_abstand:
             krieger = {n: int(v) for n, v in (zustand.get("einheiten") or {}).items()
                        if int(v or 0) > 0 and E.rolle(n) in ("kaempfer", "kundschafter")}
             karren = {n: int(v) for n, v in (zustand.get("einheiten") or {}).items()
                       if int(v or 0) > 0 and E.rolle(n) == "karren"}
-            if krieger and karren:
+            if krieger:
                 ziel = {"name": "Bot-Siedlung", "wall_stufe": 1, "wall_zustand_prozent": 100.0,
                         "vorraete": {"holz": 400.0, "stein": 300.0, "nahrung": 250.0}}
                 ok, ergebnis = _versuch(S.angriff, zustand, ziel, jetzt)
