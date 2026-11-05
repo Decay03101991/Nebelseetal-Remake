@@ -121,3 +121,44 @@ Fellumhang (Nähkunst 4), Fellrüstung (Nähkunst 6).
 2. **Handelspunkte und die Drittel-Regel** prüfen und Daniel vorlegen (verändert die Siegbedingung).
 3. **Warenvoraussetzungen** aus der 2006er Tabelle gegen `data/warenrezepte.json` halten.
 4. **Ausbildungszeit** an die Gebäudestufe koppeln (2006 belegt die Richtung, nicht die Zahl).
+
+---
+
+## 7. Bewusste Abweichung (Daniel, 05.11.2026, Register 225): Goldkosten der Militaereinheiten um 30 Prozent gesenkt
+
+Das Handbuch 2009 und die 2006er Fassung nennen fuer die Militaereinheiten dieselben Goldpreise.
+Auf Daniels Entscheidung vom 05.11.2026 (Vorlage: Balancing-Gutachten, Vorschlag 1, nachgeprueft in
+`docs/BALANCING_GUTACHTEN_20261105.md`) sind ALLE Militaereinheiten mit Goldkosten um 30 Prozent
+guenstiger geworden: Nahkampf, Fernkampf und Kundschafter. Belagerungswaffen und Karren sind
+unberuehrt, weil ihre Kosten kein Gold enthalten; Handelskarawanen sind keine Militaereinheiten
+und bleiben ebenfalls unveraendert.
+
+| Einheit | Kategorie | Handbuch (Gold) | neu (Gold) |
+|---|---|---|---|
+| Kämpfer | Nahkampf | 250 | 175 |
+| Krieger | Nahkampf | 500 | 350 |
+| Ritter | Nahkampf | 1.000 | 700 |
+| Paladin | Nahkampf | 2.000 | 1.400 |
+| Kurzbogenschütze | Fernkampf | 250 | 175 |
+| Bogenschütze | Fernkampf | 500 | 350 |
+| Langbogenschütze | Fernkampf | 1.000 | 700 |
+| Armbrustschütze | Fernkampf | 2.000 | 1.400 |
+| Streuner | Kundschafter | 50 | 35 |
+| Gauner | Kundschafter | 250 | 175 |
+| Dieb | Kundschafter | 500 | 350 |
+| Meisterdieb | Kundschafter | 750 | 525 |
+| Kundschafter | Kundschafter | 1.000 | 700 |
+| Waldläufer | Kundschafter | 2.000 | 1.400 |
+
+**Grund (gemessen, nicht geschaetzt):** das Balancing-Gate G-1 verlangt, dass 100 Krieger in
+hoechstens 30 Spieltagen bezahlbar sind. Mit 500 Gold je Krieger waren es 50.000 Gold und bei
+1.224 Gold Reichsertrag je Spieltag **41 Spieltage** (Gate verfehlt). Mit 350 Gold sind es
+35.000 Gold und **28,6 Spieltage** (Gate erfuellt, Gold bleibt Engpass).
+
+**Grenzen dieser Abweichung:** alle uebrigen Kosten (Siedler, Pferde, Mana, Waren) sind
+unveraendert; die Goldkosten der Waren und Gebaeude ebenfalls. Die Zahl steht in
+`data/units.json` (Feld `kosten.gold`), es gibt keine zweite Tabelle im Code. Wer die Werte
+zurueckdrehen will, aendert genau diese vierzehn Zeilen.
+
+**Nicht uebernommen (Vorschlag 2 der Vorlage, von Daniel abgelehnt):** die Beute-Quote. Die
+belegte Karrengrenze (Handbuch S. 23) bleibt die Grenze der Beute.

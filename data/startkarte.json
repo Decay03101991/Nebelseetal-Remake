@@ -1,6 +1,6 @@
 {
-  "_zweck": "Startkartenwahl des SPIELERS beim ersten Gruenden (A2-Vorstufe, Vorgabe Daniel 02.11.2026: Kartenwahl am Start). Alle Zahlen hier, keine im Code.",
-  "_quelle": "originalkarten.START_ID = original-036 (heute fest verdrahtete Spieler-Startkarte, Kategorie 'mittlere'); Kategorien und Anzahl stehen in originalkarten.alle().",
+  "_zweck": "Die Startkarte des SPIELERS. Register 225 (Daniel 05.11.2026): die Karte wird GEZOGEN (Zufall), nicht gewaehlt - so steht es im Original (docs/original/Spielanleitung_2005/siedeln.php.txt, Zeilen 10-13). Gezogen wird in originalkarten.startkarte_ziehung(seed, vergeben), gelesen ueber spieloekonomie.startkarte_ziehung.",
+  "_quelle": "originalkarten.START_ID = original-036 ist die frueher fest verdrahtete Spieler-Startkarte (Kategorie 'mittlere'); sie bleibt als belegtes Startbild im Katalog und kann gezogen werden. Ziehung: Handbuch 2005, siedeln.php Zeilen 10-13 (Zufall, niemals zwei eigene Siedlungen dieselbe Karte, nach dem Aufgeben darf dieselbe Karte wieder auftauchen).",
   "anzahl_kandidaten": 3,
   "kategorien": [
     "mittlere"
@@ -8,5 +8,8 @@
   "standard_karte": "original-036",
   "speicherfeld": "startkarte_gewaehlt",
   "wahl_endgueltig": true,
-  "begruendung": "Drei Kandidaten sind uebersichtlich und bieten Abwechslung; nur mittlere Karten, weil die heutige Startkarte mittlere ist und 'beste' den Start zu leicht macht; original-036 bleibt garantiert dabei, damit sich am belegten Startbild nichts aendert."
+  "begruendung": "Die drei Kandidaten und die Kategorie 'mittlere' gehoeren zum ALTEN Weg (A2-Vorstufe, freie Wahl aus drei Karten). Register 225 hat ihn ersetzt: die Karte wird gezogen. Die Felder bleiben stehen, weil originalkarten.startkarte_kandidaten sie liest (die Pruefdatei test_startkartenwahl zaehlt sie mit); der Startbild-Weg benutzt sie nicht mehr. BELEGTE Startwerte unveraendert: 10 Siedler, 100 Holz, 100 Stein (Handbuch S. 7).",
+  "_ziehung": "Gleichverteilt ueber den ganzen Originalkatalog (127 Karten), ohne die Karten, die das eigene Reich schon haelt. Keine Gewichte, keine Bevorzugung, keine freie Wahl - Daniel 05.11.2026: Originaltreue. Reproduzierbar aus der Startsaat (state.kartenvorrat_seed).",
+  "_aufgeben": "Eine Siedlung aufgeben ist die Loeschung der Karte (Register 225). ORIGINAL (siedeln.php, Zeilen 14-21): nur moeglich, wenn mehr als EINE Siedlung steht; dabei gehen ALLE Einheiten, Waren, Gebaeude und Vorraete DIESER Siedlung verloren; danach kann dieselbe Karte bei einer Neugruendung wieder auftauchen. Umgesetzt in GameState.siedlung_aufgeben (Spieler) und GameState.bot_siedlung_aufgeben (Bots: nur wenn ein anderes Dorf die Gruendung erneut bezahlen kann - Daniels Wortlaut).",
+  "_warum_die_einsiedlungssperre": "Ohne Siedlung gibt es keine Produktion. Koennte man die EINZIGE Siedlung aufgeben, waere ein Start mit schlechter erster Karte ohne Ausweg - genau das verhindert das Original mit derselben Sperre. Ist die erste Karte unpassend, hilft frueh eine zweite Siedlung."
 }

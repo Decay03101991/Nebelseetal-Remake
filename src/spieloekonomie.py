@@ -108,6 +108,11 @@ def startkarte_kandidaten(seed) -> list:
     return originalkarten.startkarte_kandidaten(seed)
 
 
+def startkarte_ziehung(seed, vergeben=()):
+    """EINE gezogene Karte (Register 225) - EINE Lesestelle wie die uebrigen Kartenfunktionen."""
+    return originalkarten.startkarte_ziehung(seed, vergeben)
+
+
 def startkarte_auswahl_erforderlich(anzahl_siedlungen, maximum, gewaehlt) -> bool:
     """Muss die Startkartenwahl gezeigt werden? (erste Siedlung, noch nichts gewaehlt)"""
     return originalkarten.startkarte_auswahl_erforderlich(anzahl_siedlungen, maximum, gewaehlt)

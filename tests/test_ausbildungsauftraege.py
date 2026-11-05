@@ -221,9 +221,13 @@ abschnitt("7. ausbildung_start: Kaempfer (Kriegskunst 1) in der Kriegerakademie"
 
 jetzt7 = 100.0
 o7 = akademie_ort()
+# Register 225 (Daniel 05.11.2026): die Goldkosten der Militaereinheiten sind um 30 Prozent
+# gesenkt (Kaempfer 250 -> 175). Die Wache rechnet deshalb mit dem PREIS AUS DEN DATEN statt mit
+# einer getippten Zahl - sonst faellt sie bei jeder Balancing-Entscheidung erneut um.
+_KP_GOLD = int(((O.U.get(KAEMPFER) or {}).get("kosten") or {}).get("gold", 0))
 n7 = O.ausbildung_start(o7, KAEMPFER, {"Kriegskunst": 1}, jetzt7)
-check("7 Gold sinkt genau um 250 (300 -> 50)",
-      n7["vorraete"]["gold"] == 50, str(n7["vorraete"]["gold"]))
+check("7 Gold sinkt genau um den Preis aus der Datendatei (%d von 300)" % _KP_GOLD,
+      n7["vorraete"]["gold"] == 300 - _KP_GOLD, str(n7["vorraete"]["gold"]))
 check("7 Bevoelkerung sinkt um genau einen Siedler (5 -> 4)",
       n7["bevoelkerung"] == 4, str(n7["bevoelkerung"]))
 check("7 BEIDE Waren sind danach auf 0",
@@ -294,8 +298,8 @@ check("9 der erste Auftrag laeuft 0..1200", b1["start"] == 0 and b1["ende"] == 1
 check("9 der zweite Auftrag laeuft 1200..2400", b2["start"] == 1200 and b2["ende"] == 2400, str(b2))
 check("9 der dritte Auftrag wartet auf das Ende des zweiten (freie_zeit=2400)",
       b3["start"] == 2400 and b3["ende"] == 3600, str(b3))
-check("9 Gold wurde fuer alle drei Auftraege abgebucht (900 -> 150)",
-      m3["vorraete"]["gold"] == 150, str(m3["vorraete"]["gold"]))
+check("9 Gold wurde fuer alle drei Auftraege abgebucht (900 minus drei Preise)",
+      m3["vorraete"]["gold"] == 900 - 3 * _KP_GOLD, str(m3["vorraete"]["gold"]))
 check("9 die Siedler sanken fuer alle drei (5 -> 2)",
       m3["bevoelkerung"] == 2, str(m3["bevoelkerung"]))
 check("9 das Warenlager ist nach drei Auftraegen leer (3 -> 0)",

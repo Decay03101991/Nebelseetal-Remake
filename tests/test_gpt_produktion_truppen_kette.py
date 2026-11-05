@@ -27,7 +27,10 @@ for name,u in units.items():
 abschnitt('Handbuchbeispiele: Paladin und Handkarren')
 p=units['Paladin']; k=units['Handkarren']
 check('Paladin benoetigt drei exakt benannte Originalwaren',p['waren']==['Zweihänder','Schwert','Magischer Paladinharnisch'])
-check('Paladin kostet 2000 Gold, 10 Mana, 1 Pferd, 1 Siedler',all(p['kosten'].get(r)==v for r,v in {'gold':2000,'mana':10,'pferde':1,'siedler':1}.items()))
+# Register 225 (Daniel 05.11.2026): Goldkosten der Militaereinheiten um 30 Prozent gesenkt
+# (Paladin 2.000 -> 1.400). Bewusste Abweichung vom Handbuch, dokumentiert in
+# docs/quellen/ABWEICHUNGEN_2006_zu_2009.md Abschnitt 7. Mana, Pferd und Siedler bleiben belegt.
+check('Paladin kostet 1400 Gold (Handbuch 2000 minus 30 Prozent), 10 Mana, 1 Pferd, 1 Siedler',all(p['kosten'].get(r)==v for r,v in {'gold':1400,'mana':10,'pferde':1,'siedler':1}.items()))
 check('Paladin Forschung Kriegskunst 10',p['voraussetzung']=={'forschung':'Kriegskunst','stufe':10})
 check('Handkarren Originalkosten und Ladung',all(k['kosten'].get(r)==v for r,v in {'holz':100,'metall':15,'leder':15,'wolle':15,'siedler':1}.items()) and k['ladung']==40)
 check('Handkarren wird im Stellmacher gebaut',k['gebaeude']=='Stellmacher')

@@ -110,7 +110,12 @@ check("ohne Botnamen werden die fuenf belegten genommen",
       sorted(BT.verteile_fraktionen("Gnome")) == sorted(_fuenf), str(BT.verteile_fraktionen("Gnome")))
 
 # ==========================================================================
-# 4. Im Fenster: Wahl, Spielstand, Bots
+# 4. Im Fenster: Wahl auf der Kartengruendungsseite, Spielstand, Bots
+#
+# UMGEHAENGT am 05.11.2026 (Register 222), nicht geloescht: die Voelkerwahl steht nicht mehr im
+# Dorfzentrum, sondern auf der Kartengruendungsseite (Startfenster), Schritt 2 nach "Neues Spiel".
+# Der geprueft ZUSAGE bleibt dieselbe - sechs Voelker, ein Knopf je Volk, Wahl im Spielstand,
+# Bots tragen die uebrigen - nur der Ort und der Weg dorthin sind neu.
 # ==========================================================================
 
 
@@ -121,7 +126,8 @@ def _wahlprobe():
     try:
         app = M.NebelseetalApp(root)
         app._build_main_ui()
-        app._switch_view("Dorfzentrum")
+        app._switch_view(M.KARTENGRUENDUNG_ANSICHT)      # Register 222: die Startseite
+        app._start_neues_spiel()                         # erst "Neues Spiel", dann die Frage
         app.content.update_idletasks()
 
         def _texte():
@@ -139,7 +145,7 @@ def _wahlprobe():
         verteilung = app._volk_waehlen("Ghule")
         app.content.update_idletasks()
         nachher = _texte()
-        # T-1 (03.11.2026): die Ueberschrift traegt jetzt echte Umlaute (Waehle -> W\u00e4hle).
+        # T-1 (03.11.2026): die Ueberschrift traegt echte Umlaute (Waehle -> W\u00e4hle).
         return {"block": any("W\u00e4hle dein Volk" in t for t in vorher),
                 "knoepfe": sum(1 for t in vorher if t == "Dieses Volk nehmen"),
                 "gewaehlt": getattr(app.state, "spieler_fraktion", ""),
@@ -147,13 +153,14 @@ def _wahlprobe():
                 "bots": [b.faction for b in app.state.bots],
                 "bots_vorher": vorher_fraktionen,
                 "block_danach": any("W\u00e4hle dein Volk" in t for t in nachher),
-                "anzeige": any("Dein Volk:" in t for t in nachher)}
+                "karte_danach": any("Deine Karte" in t for t in nachher)}
     finally:
         root.destroy()
 
 
 _w = _wahlprobe()
-check("der Wahlblock erscheint im Dorfzentrum", _w["block"] is True, str(_w)[:120])
+check("die Voelkerwahl erscheint auf der Kartengruendungsseite", _w["block"] is True,
+      str(_w)[:120])
 check("je Volk ein Knopf", _w["knoepfe"] == 6, str(_w["knoepfe"]))
 check("die Wahl steht im Spielstand", _w["gewaehlt"] == "Ghule", str(_w["gewaehlt"]))
 # Die Zahl der Bots haengt davon ab, wie weit der Startzustand aufgebaut ist (im Pruefstand koennen
@@ -171,8 +178,12 @@ check("die Wahl des Spielers ist bei den Bots nicht dabei",
 # Bots im Startzustand ist nicht stabil (mal zwei, mal fuenf), eine feste Zahl waere eine wackelige Wache.
 check("jeder vorhandene Bot hat genau eine Fraktion aus der Verteilung",
       len(_rest) == len(_w["bots"]) and len(set(_rest)) == len(_rest), str(sorted(_rest)))
-check("nach der Wahl erscheint der Block nicht mehr", _w["block_danach"] is False, str(_w["block_danach"]))
-check("das gewaehlte Volk wird angezeigt", _w["anzeige"] is True, str(_w["anzeige"])[:120])
+check("nach der Wahl erscheint die Voelkerliste nicht mehr", _w["block_danach"] is False,
+      str(_w["block_danach"]))
+# Register 222: nach der Wahl ist der naechste Schritt die Karte - vorher stand hier die Zeile
+# "Dein Volk:" im Dorfzentrum. Sie kommt erst nach der Gruendung; die Seite zeigt jetzt die Karte.
+check("nach der Wahl zeigt die Seite die Karte", _w["karte_danach"] is True,
+      str(_w["karte_danach"]))
 check("das Feld steht im Spielstand",
       '"spieler_fraktion"' in TEXT_MAIN, str(TEXT_MAIN.count("spieler_fraktion")))
 check("ohne Wahl bleibt die belegte Bot-Zuordnung",

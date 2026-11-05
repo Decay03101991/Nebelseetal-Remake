@@ -374,9 +374,13 @@ def main():
 
     # 10 ------------------------------------------------------------- Verdikt
     print("\n## 10. Verdikt aus den Messwerten (maschinell, ohne Deutung)")
+    # Gold fuer 100 Einheiten kommt aus den DATEN, nicht aus einer getippten Zahl: Register 225
+    # (05.11.2026) hat die Goldkosten der Militaereinheiten gesenkt - eine feste 500 im Werkzeug
+    # haette danach eine falsche Spieltagszahl gemeldet (Werkzeugbefund, kein Spielbefund).
     print("\n- Soldaten-Deckel: %d im Reich (Siedler)." % (grenze * MAX_SIEDLUNGEN))
+    _krieger_gold = wert(kosten_der_einheit(krieger)[0], "gold") if krieger else 0   # Gold je Einheit
     print("- Gold fuer 100 %s: %d = %.0f Spieltage des vollen Goldertrags." % (
-        krieger, 100 * 500, 100 * 500 / max(1.0, wert(reich, "gold") * 24)))
+        krieger, 100 * _krieger_gold, 100 * _krieger_gold / max(1.0, wert(reich, "gold") * 24)))
     print("- Alle 21 Forschungen auf Stufe 10: %d Holz = %.0f Spieltage des vollen Holzertrags." % (
         k10 * 21, k10 * 21 / max(1.0, holz_tag)))
     return 0

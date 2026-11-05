@@ -72,8 +72,15 @@ IDs = sorted(M.bot_karten_katalog())
 check("der Kartenkatalog ist da (127 Originalkarten)", len(IDs) >= 100, str(len(IDs)))
 
 
-def _kandidaten(name: str, index: int, anzahl: int = 3):
-    """Dieselben drei Kandidaten, die `bot_kartenwahl` zieht (gleicher Zufall, gleicher Seed)."""
+def _kandidaten(name: str, index: int, anzahl: int = 0):
+    """Dieselben Kandidaten, die `bot_kartenwahl` zieht (gleicher Zufall, gleicher Seed).
+
+    Register 225 (Daniel 05.11.2026): die Zahl der gezogenen Karten steht in
+    `data/bot_wirtschaft.json` (`karten_kandidaten`, jetzt 1). Die alte feste 3 haette hier
+    weiter drei Kandidaten erwartet, waehrend der Code eine Karte zieht.
+    """
+    if not anzahl:
+        anzahl = int(einst.get("karten_kandidaten") or 3)
     zufall = random.Random("karte:%s:%d" % (name, int(index)))
     return zufall.sample(IDs, min(anzahl, len(IDs)))
 
@@ -142,16 +149,24 @@ check("drei Doerfer in unter zwei Sekunden (kein Warten im Bot-Takt)",
 # ==========================================================================
 # 5. Die Regel aendert wirklich etwas (Gegenprobe gegen die reine Gold-Regel)
 # ==========================================================================
-abschnitt("5. Gegenprobe: ohne Regel waere die Wahl eine andere")
-_anders = 0
-for name in ("Haug", "Brynhild", "Grom", "Silra", "Krank"):
-    bot = M.BotPlayer(name, "menschlich", 0.5, 0.5, settlements=["A"])
-    mit = M.bot_kartenwahl(bot, 0, einstellungen=einst, stufe=stufe)
-    ohne = M.bot_kartenwahl(bot, 0, einstellungen=einst, stufe="")
-    if mit != ohne:
-        _anders += 1
-check("bei mindestens einem der fuenf Bots waehlt die Regel eine andere Karte",
-      _anders >= 1, f"{_anders} von 5")
+abschnitt("5. Gegenprobe: mit EINER Karte URTEILT die Regel, statt zu waehlen (Register 225)")
+# Register 225 (Daniel 05.11.2026): die Bots ziehen EINE Karte. Eine Wahl unter Kandidaten gibt es
+# damit nicht mehr - die Regel wirkt als URTEIL (`main.bot_kartenurteil`: Punktzahl der Karte gegen
+# den Durchschnitt aller Karten derselben Taktik). Die frueher hier stehende Gegenprobe "die Regel
+# waehlt bei mindestens einem der fuenf Bots eine andere Karte" konnte mit einer Karte nicht mehr
+# greifen (0 von 5) - sie ist umgehaengt, nicht geloescht: geprueft wird jetzt das Urteil.
+_bot5 = M.BotPlayer("Haug", "menschlich", 0.5, 0.5, settlements=["A"])
+_regel = M.bot_kartenwahl(_bot5, 0, einstellungen=einst, stufe=stufe)
+_gold = M.bot_kartenwahl(_bot5, 0, einstellungen=einst, stufe="")
+check("mit einer Karte liefern Regel und Gold-Weg dieselbe Karte", _regel == _gold,
+      f"{_regel} / {_gold}")
+_urteil = M.bot_kartenurteil(_bot5, _regel)
+check("das Urteil rechnet gegen den Durchschnitt der Taktik",
+      _urteil["durchschnitt"] > 0 and _urteil["karte"] == _regel,
+      f"{_urteil['karte']} / Durchschnitt {_urteil['durchschnitt']:.3f}")
+check("gut_genug folgt aus Punktzahl und Durchschnitt",
+      _urteil["gut_genug"] == (_urteil["punkte"] >= _urteil["durchschnitt"]),
+      f"{_urteil['punkte']:.3f} gegen {_urteil['durchschnitt']:.3f}")
 
 # ==========================================================================
 # 6. Die Stufe 'mittel' (Vorgabe seit 03.11.2026, Daniels Entscheidung 4)

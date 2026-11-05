@@ -44,8 +44,11 @@ with open(os.path.join(ROOT, "data", "bot_wirtschaft.json"), encoding="utf-8") a
     WIRTSCHAFT = json.load(_f)
 
 # Einheiten- und Warennamen mit Umlaut kommen aus den DATEN, nie getippt (ASCII-Pruefdatei).
-GOLD_EINHEIT = sorted(k for k, v in einheiten.alle().items()
-                      if (v.get("kosten") or {}).get("gold") == 250)[0]
+# Register 225 (05.11.2026): die Goldkosten sind um 30 Prozent gesenkt (aus 250 wurde 175) - die
+# Wache sucht deshalb die BILLIGSTE Militaereinheit mit Goldkosten statt einer festen Zahl.
+GOLD_EINHEIT = sorted((k for k, v in einheiten.alle().items()
+                       if (v.get("kosten") or {}).get("gold")),
+                      key=lambda k: (einheiten.alle()[k]["kosten"]["gold"], k))[0]
 with open(os.path.join(ROOT, "data", "warenrezepte.json"), encoding="utf-8") as _f:
     REZEPTE = json.load(_f)
 WARE = sorted(w for w, e in REZEPTE.items() if (e.get("kosten") or {}).get("metall"))[0]

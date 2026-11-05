@@ -109,6 +109,24 @@ def startkarte_kandidaten(seed) -> list:
     return [karte(kennung, seed="%s:startkandidat:%s" % (seed, kennung)) for kennung in ids]
 
 
+def startkarte_ziehung(seed, vergeben=()):
+    """EINE gezogene Karte fuer eine neue Siedlung - Zufall statt freier Wahl (Register 225).
+
+    Quelle: docs/original/Spielanleitung_2005/siedeln.php.txt, Zeilen 10-13 - einer neuen Siedlung
+    wird per Zufall eine Karte zugewiesen, niemals zwei eigene Siedlungen dieselbe; nach dem
+    Aufgeben kann dieselbe Karte bei einer Neugruendung wieder auftauchen. Gezogen wird
+    gleichverteilt und reproduzierbar (fester Keim aus `seed`), ohne die Karten, die dieses Reich
+    schon haelt (`vergeben`). Kein Gewicht, keine Bevorzugung - Daniel 05.11.2026: Originaltreue.
+    """
+    belegt = {str(k) for k in (vergeben or ()) if str(k)}          # Karten, die das Reich haelt
+    kandidaten = [kennung for kennung in kennungen() if kennung not in belegt]   # freie Karten
+    if not kandidaten:                                             # alles schon vergeben
+        kandidaten = list(kennungen())                             # dann aus dem ganzen Stapel
+    rng = random.Random("nebelseetal-ziehung:" + str(seed))         # reproduzierbarer Zufall
+    gewaehlt = kandidaten[rng.randrange(len(kandidaten))]          # gleichverteilte Ziehung
+    return karte(gewaehlt, seed="%s:ziehung:%s" % (seed, gewaehlt))  # Karte samt Feldern
+
+
 def startkarte_auswahl_erforderlich(anzahl_siedlungen: int, maximum: int, gewaehlt: str) -> bool:
     """Muss die Startkartenwahl noch gezeigt werden? (erste Siedlung, noch nichts gewaehlt)"""
     if int(anzahl_siedlungen) >= int(maximum):

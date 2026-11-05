@@ -156,13 +156,17 @@ w2 = M.bot_kartenwahl(bot, 0)
 check("4 dieselbe Wahl bei gleichem Bot und gleicher Nummer", w1 == w2, w1 + " / " + w2)
 check("4 die gewaehlte Karte stammt aus dem Katalog", w1 in KATALOG, w1)
 zufall = random.Random("karte:Haug:0")
-kandidaten = zufall.sample(sorted(KATALOG), int(einst.get("karten_kandidaten") or 3))
-check("4 es sind drei Kandidaten zur Wahl", len(kandidaten) == 3, str(kandidaten))
-check("4 gewaehlt wird der hoechste GOLDWERT der drei",
+_anzahl = int(einst.get("karten_kandidaten") or 3)
+kandidaten = zufall.sample(sorted(KATALOG), _anzahl)
+# Register 225 (Daniel 05.11.2026): die Bots erhalten EINE Karte (Zufall) statt drei zur Wahl -
+# die Zahl kommt aus der Datendatei, die Wache prueft die REGEL (so viele Kandidaten wie dort).
+check("4 so viele Kandidaten wie in der Datendatei", len(kandidaten) == _anzahl,
+      "%d Kandidaten (Datei: %d)" % (len(kandidaten), _anzahl))
+check("4 gewaehlt wird der hoechste GOLDWERT der Kandidaten",
       w1 == max(kandidaten, key=lambda i: (alle[i]["gold"], round(sum(alle[i].values()), 2), i)),
       w1 + " aus " + str(kandidaten))
 check("4 eine andere Dorfnummer wuerfelt eine andere Auswahl",
-      sorted(random.Random("karte:Haug:1").sample(sorted(KATALOG), 3)) != sorted(kandidaten), "")
+      random.Random("karte:Haug:1").sample(sorted(KATALOG), _anzahl) != kandidaten, "")
 
 # ==========================================================================
 abschnitt("5. Zuweisung: jedes Dorf genau eine Karte, idempotent, altstandsfest")

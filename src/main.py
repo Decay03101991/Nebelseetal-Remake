@@ -1265,10 +1265,15 @@ def _bot_karte_dict(kennung: str) -> dict:
     return daten
 
 
-def bot_kartenwahl(bot: "BotPlayer", index: int, anzahl: int = 3,
+def bot_kartenwahl(bot: "BotPlayer", index: int, anzahl: int = 0,
                    einstellungen: Optional[dict] = None, stufe: str = "",
                    belegte=None, raten: Optional[dict] = None) -> str:
-    """Waehlt fuer EIN Bot-Dorf eine Karte aus drei Kandidaten - Gold hat Vorrang (Vorgabe Daniel).
+    """Waehlt fuer EIN Bot-Dorf eine Karte - Zufall, dann Urteil (Register 225, 05.11.2026).
+
+    Register 225 (Daniel 05.11.2026): die Bots erhalten EINE Karte, nicht drei zur Wahl. Die Zahl
+    steht in `data/bot_wirtschaft.json` (`karten_kandidaten`); der frueher hier fest eingebaute
+    Vorgabewert 3 haette die Datendatei still uebergangen (belegt: `bot_kartenwahl(bot, 0)` zog
+    weiter drei Karten, obwohl die Datei 1 sagt).
 
     Die Kandidaten sind reproduzierbar: derselbe Bot mit derselben Dorfnummer bekommt immer dieselbe
     Auswahl (Zufall aus Name und Nummer, kein Wuerfeln zur Laufzeit). Gewaehlt wird die Karte mit dem
@@ -1703,6 +1708,36 @@ def bot_taktik_engpass(taktik: str = "", plan: Optional[dict] = None) -> List[Di
     return zeilen                                                         # engster Rohstoff zuerst
 
 
+# ------------- Register 225: Bots ziehen EINE Karte und beurteilen sie -------------
+
+_BOT_KARTENDURCHSCHNITT: Dict[str, float] = {}   # Taktik -> Durchschnitt aller Karten (gemerkt)
+
+
+def bot_kartenurteil(bot, karte, plan: Optional[dict] = None) -> Dict[str, Any]:
+    """Ist die GEZOGENE Karte fuer die Taktik dieses Bots gut genug? (Register 225)
+
+    Daniel 05.11.2026: auch die Bots erhalten EINE Karte (Zufall) und pruefen mit ihren
+    vorhandenen Werkzeugen (`bot_kartenprofil`, `bot_taktik_engpass`), ob sie zu ihrem Zweck
+    passt. Vergleichswert ist der Durchschnitt ALLER Karten des Katalogs fuer DIESELBE Taktik -
+    keine getippte Schwelle. Liegt die Karte darunter, ist sie fuer diesen Zweck nicht gut genug;
+    dann wird auf ihr NICHT gegruendet (`bot_dorf_gruenden` fragt dieses Urteil vor dem Kauf).
+    """
+    kennung = str(karte or "")
+    if not kennung:                                                   # keine Karte im Dorf
+        return {"karte": "", "punkte": 0.0, "durchschnitt": 0.0, "gut_genug": False,
+                "grund": "keine Karte"}
+    taktik = bot_taktik_name(bot)                                     # Taktik aus EINER Quelle
+    engpass = bot_taktik_engpass(taktik, plan)                        # ihr Engpass
+    punkte = float(botkern.taktik_kartenscore(engpass, bot_kartenprofil(kennung)))
+    if taktik not in _BOT_KARTENDURCHSCHNITT:                         # noch nie gerechnet
+        werte = [float(botkern.taktik_kartenscore(engpass, bot_kartenprofil(k)))
+                 for k in originalkarten.kennungen()]                 # alle Karten des Katalogs
+        _BOT_KARTENDURCHSCHNITT[taktik] = round(sum(werte) / len(werte), 6) if werte else 0.0
+    durchschnitt = float(_BOT_KARTENDURCHSCHNITT[taktik])             # der Vergleichswert
+    gut = punkte >= durchschnitt                                     # gut genug fuer die Taktik
+    return {"karte": kennung, "punkte": round(punkte, 6), "durchschnitt": durchschnitt,
+            "gut_genug": gut,
+            "grund": "traegt die Taktik" if gut else "liegt unter dem Durchschnitt der Taktik"}
 def bot_kartenwahl_nach_engpass(bot: "BotPlayer", kandidaten: List[str],
                                 plan: Optional[dict] = None) -> str:
     """Die Karte unter den Kandidaten, die den Engpass DIESER Taktik am besten traegt (S-11c).
@@ -3385,6 +3420,9 @@ MENUE_ENTFALLEN = {"Lager"}
 # war das "Lager"; da dieser Punkt jetzt im Dorfzentrum aufgeht, ist es das Dorfzentrum selbst
 # (vorher waeren Stellmacher und Diebesgilde an das ENDE der Leiste gerutscht).
 MENUE_ANKER = "Dorfzentrum"
+# Register 222 (05.11.2026): der Ansichtsname der Kartengruendungsseite steht EINMAL hier
+# und wird ueberall gelesen - ein zweiter Wortlaut waere eine zweite Wahrheit.
+KARTENGRUENDUNG_ANSICHT = "Kartengründung"
 
 # Menuepunkt -> Gebaeude-id, deren gerahmtes Icon im Menue steht (C2-Lieferung, Register 119/123).
 # ABGELEITET, nicht getippt: erst der Anzeigename eines Gebaeudes (`gelaende.finde_gebaeude` erkennt
@@ -5090,6 +5128,72 @@ class GameState:
         self._log(meldung)
         return True, meldung
 
+    # ------------- Register 225: eine Siedlung aufgeben (die Karte loeschen) -------------
+
+    def siedlung_aufgeben(self, siedlung_id: str) -> Tuple[bool, str]:
+        """Eine Siedlung aufgeben - Originalregel, Register 225 (Daniel 05.11.2026).
+
+        Quelle: docs/original/Spielanleitung_2005/siedeln.php.txt. Zeilen 10-13: einer neuen
+        Siedlung wird die Karte PER ZUFALL zugewiesen, niemals zwei eigene Siedlungen dieselbe,
+        und nach dem Aufgeben kann dieselbe Karte wieder auftauchen. Zeilen 14-21: aufgegeben
+        werden kann nur, wenn mehr als EINE Siedlung steht, und dabei gehen ALLE Einheiten, Waren,
+        Gebaeude und Vorraete DIESER Siedlung verloren - sinnvoll gerade dann, wenn die Karte
+        besonders schlecht ist (Daniel: "es soll sich lohnen").
+
+        Warum die Ein-Siedlung-Sperre bleibt: ohne Siedlung gibt es keine Produktion, der Start
+        mit einer schlechten ersten Karte waere also ohne Ausweg. Das Original loest das genauso;
+        die Sperre ist die Entscheidung, keine Luecke.
+
+        Rueckgabe: (ok, Meldung). Eine abgelehnte Aufgabe aendert NICHTS.
+        """
+        kennung = str(siedlung_id or "").strip()                      # gesuchte Siedlung
+        ziel = next((s for s in self.settlements if str(getattr(s, "id", "")) == kennung), None)
+        if ziel is None:                                              # fremde oder alte Kennung
+            return False, "Diese Siedlung gehoert nicht zu diesem Reich."
+        if len(self.settlements) <= 1:                                # Original: nur mit >1
+            return False, ("Die einzige Siedlung laesst sich nicht aufgeben - gruende zuerst eine "
+                           "zweite (Original: Aufgeben nur, wenn mehr als eine Siedlung steht).")
+        karte = dict(getattr(ziel, "karte", None) or {})              # ihre Karte, VOR dem Loeschen
+        karte_id = str(karte.get("originalkarte_id") or "")           # Kennung im Kartenstapel
+        name = str(getattr(ziel, "name", "") or "Siedlung")           # Name fuer die Meldung
+        # Was verloren geht, wird VOR dem Loeschen gezaehlt - sonst weiss es niemand mehr.
+        lager = {str(k): round(float(v), 2) for k, v in (ziel.vorraete or {}).items()
+                 if isinstance(v, (int, float)) and float(v) > 0}     # das Ortslager
+        einheiten = {str(k): int(v) for k, v in (ziel.einheiten or {}).items()
+                     if isinstance(v, int) and int(v) > 0}            # das Ortsheer
+        gebaeude = len(getattr(ziel, "bauten", None) or {})           # bebaute Felder
+        size = next(m["size"] for m in MAPS if m["id"] == self.current_map)
+        x, y = int(getattr(ziel, "x", 0) or 0), int(getattr(ziel, "y", 0) or 0)
+        # ---- buchen: erst alles pruefen, dann schreiben ----
+        self.settlements = [s for s in self.settlements if s is not ziel]   # die Siedlung weg
+        self._weltkarte_sicherstellen()                               # die Weltkarte muss stehen
+        tile = self.get_tile(x, y, size)                              # ihr Weltfeld
+        if tile is not None:                                          # Feld wieder frei
+            tile.npc_faction = None                                   # kein Besitzer mehr
+            tile.sector_name = ""                                     # und kein Name
+        # Register 225: die STARTKARTE wird frei (naechster Start zieht neu), eine Karte aus dem
+        # Stapel geht zurueck in den Stapel. Unterschieden wird ueber das Merkfeld, NICHT ueber
+        # "ist die Karte im Stapel" - die Startkarte kann eine beliebige Katalogkarte sein und
+        # steht deshalb ebenfalls im Stapel (belegt im Prueflauf: original-030 wurde als
+        # Koloniekarte freigegeben und die Startkarte blieb haengen).
+        if karte_id and karte_id == str(getattr(self, "startkarte_gewaehlt", "") or ""):
+            self.startkarte_gewaehlt = ""                         # Startkarte: beim naechsten Start neu ziehen
+        elif karte_id and karte_id in self.kartenvorrat:          # Koloniekarte vorhanden
+            self.kartenvorrat[karte_id]["besitzer"] = None        # zurueck in den Stapel
+        if str(getattr(self, "aktive_siedlung_id", "")) == kennung:   # Zeiger stand auf ihr
+            self.aktive_siedlung_id = self.settlements[0].id if self.settlements else ""
+        self._reichsanzeige_aus_orten()                               # Reichswerte = Summe der Orte
+        if not self.settlements:                                      # keine Siedlung mehr
+            self.hatte_siedlung = False                               # Startzustand wieder her
+        lager_text = (", ".join("%g %s" % (v, str(k).capitalize())
+                                for k, v in sorted(lager.items())) or "leer")
+        meldung = ("Siedlung %s aufgegeben (%s): %d Gebaeude, %d Einheiten und das ganze Lager "
+                   "(%s) sind verloren, die Karte liegt wieder im Stapel."
+                   % (name, karte.get("typ_name") or karte_id or "Karte", gebaeude,
+                      sum(einheiten.values()), lager_text))
+        self.messages.append({"type": "gruendung", "text": meldung})  # ins Postfach
+        self._log(meldung)                                           # und in die Statuszeile
+        return True, meldung
     # ---------------- W3: Werkstaetten, Originalwaren, Warteschlangen ----------------
 
     def werkstatt_schlangen(self) -> Dict[str, dict]:
@@ -6426,6 +6530,11 @@ class GameState:
         einstellungen = bot_gruendung_einstellungen()                       # Regeln aus der Datei
         if not einstellungen.get("aktiv", False):                           # Gruendung aus
             return None                                                     # dann nichts tun
+        # Register 225 (05.11.2026): die gezogene Karte wird BEURTEILT, bevor gruendet
+        # wird. Traegt sie die Taktik nicht, wird sie nicht genommen - die Karte bleibt im
+        # Stapel, der Bot spart weiter (Daniel: loeschen und neu sparen). Gemessen: ein
+        # Aufgeben NACH der Gruendung warf die Bots von vier Doerfern auf eines zurueck
+        # (jede zweite Karte liegt unter dem Durchschnitt) - darum vorher urteilen.
         doerfer = bot_doerfer_sicherstellen(bot)                            # Doerfer des Bots
         try:                                                                # Hoechstzahl
             grenze = int(einstellungen.get("hoechstens_doerfer") or 0)      # Zahl aus den Daten
@@ -6486,9 +6595,14 @@ class GameState:
         karte = ""                                                          # noch keine gefunden
         for versuch in range(0, 5):                                         # bis zu fuenf Vorschlaege
             vorschlag = bot_kartenwahl(bot, len(doerfer) + versuch * 100)   # reproduzierbare Wahl
-            if vorschlag and vorschlag not in belegte:                      # neu fuer diesen Bot
-                karte = vorschlag                                           # dann nehmen
-                break
+            if not vorschlag or vorschlag in belegte:                       # leer oder schon gehalten
+                continue                                                    # dann der naechste
+            # Register 225 (Daniel 05.11.2026): eine Karte, die die Taktik nicht traegt, wird NICHT
+            # gegruendet - sie bleibt im Stapel, der Bot spart weiter und zieht beim naechsten Mal.
+            if not bot_kartenurteil(bot, vorschlag).get("gut_genug"):       # Karte unpassend
+                continue                                                    # dann nicht nehmen
+            karte = vorschlag                                               # passende Karte nehmen
+            break                                                           # und gruenden
         if not karte:                                                       # keine freie Karte
             return None                                                     # dann keine Gruendung
         # ---- buchen: erst pruefen, dann schreiben (eine Ablehnung aendert nichts) ----
@@ -7344,6 +7458,8 @@ class NebelseetalApp:
         self._tor_geoeffnet = False
         self._profil = None  # None bis zur Wahl; "spieler" oder "admin"
         self.current_view = "Dorfzentrum"
+        # Register 222: Schritt der Kartengruendungsseite (neu -> volk -> karte).
+        self._start_schritt = "neu"                  # frischer Zustand: Seite Schritt 1
         self.skin_name = "standard"
         self.skin = SKINS[self.skin_name]
         self._icon_cache: Dict[str, object] = {}   # haelt Tk-Bilder am Leben (sonst raeumt Tk sie weg)
@@ -7562,6 +7678,13 @@ class NebelseetalApp:
             return False
         self.state = zustand
         self._profil = profil
+        # Register 222 (05.11.2026): ohne Siedlung ist die Kartengruendungsseite das ERSTE
+        # Fenster; ein geladener Spielstand startet wie bisher im Dorfzentrum.
+        self._start_schritt = "neu"                              # erster Schritt der Seite
+        if not zustand.settlements:                              # noch nichts gegruendet
+            self.current_view = KARTENGRUENDUNG_ANSICHT           # Startseite zeigen
+        else:                                                    # geladene Partie
+            self.current_view = "Dorfzentrum"                     # gewohnte Ansicht
         self._build_loading_screen()
         return True
 
@@ -8681,6 +8804,7 @@ class NebelseetalApp:
         # Forschung / Krieg / Gesamt"). Sie werden bei jedem Neuzeichnen mitgezogen.
         mapping = {
             "Dorfzentrum": self._render_overview,
+            KARTENGRUENDUNG_ANSICHT: self._render_kartengruendung,   # Register 222: Startseite
             "Siedlungskarte": self._render_settlement_map,
             "Lager": self._render_storage,
             "Kaserne": self._render_barracks,
@@ -8743,12 +8867,10 @@ class NebelseetalApp:
         # dunklen Balken - Daniel: "die texte und ihre textfelder ... noch keine schoenen uebergaenge".
         self._kasten_label("Dorfzentrum", ("Blackletter", 20, "bold"), self.skin["gold"],
                            innen=14, pady=6)
-        # A2-Vorstufe (03.11.2026): solange keine Siedlung steht und nichts gewaehlt ist, steht hier
-        # die Startkartenwahl als eigener Block. Sie ERSETZT das Dorfzentrum NICHT - die Pflichtkarte
-        # "Dein naechster Schritt" und der Gruendungsknopf bleiben, wo sie waren (vier Pruefdateien
-        # haengen an ihnen).
-        self._voelker_wahl_block()          # A2: erst das Volk
-        self._startkarte_wahl_block()       # dann das Land
+        # Register 222 (05.11.2026): Volk und Karte werden NICHT mehr im Dorfzentrum
+        # gewaehlt - dafuer gibt es die Kartengruendungsseite (Startfenster). Die
+        # Darstellung ist mit dem Schnitt umgezogen (`_volk_wahl_zeilen`,
+        # `_startkarte_zeigen`); die Pruefdateien wurden umgehaengt, nicht geloescht.
         # A2: das gewaehlte Volk bleibt sichtbar (der Spieler soll wissen, wer er ist) - eine Zeile,
         # die Werte kommen aus `data/voelker.json`, nicht aus dem Code.
         _volk = str(getattr(self.state, "spieler_fraktion", "") or "")
@@ -8833,6 +8955,14 @@ class NebelseetalApp:
             entry.pack(side=tk.LEFT, padx=5)
             tk.Button(row, text="Umbenennen", command=lambda ss=s, e=entry: self._rename_settlement(ss, e.get()), bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
             tk.Button(row, text="Transport", command=lambda ss=s: self._transport_to_settlement(ss), bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
+            # Register 225 (05.11.2026): eine unpassende Karte laesst sich loeschen -
+            # NUR wenn mehr als eine Siedlung steht (Original). Der Knopf steht deshalb
+            # nur dann da; die Folgen nennt die Sicherheitsabfrage.
+            if len(self.state.settlements) > 1:                              # Original: mehr als eine
+                tk.Button(row, text="Aufgeben",
+                          command=lambda ss=s: self._siedlung_aufgeben(ss),   # mit Rueckfrage
+                          bg="#5b1a1a", fg="#FDBA74",
+                          activebackground="#7f2b2b").pack(side=tk.RIGHT, padx=5)
             # Schritt 9, Teil 3b: "lokal: …" neben "Reich: …" — das Lager DIESES Ortes, das seit
             # Teil 3a fuehrt (Settlement.vorraete/bevoelkerung), nicht die Gesamtsicht.
             tk.Label(self.content, text="lokal: " + ortsbestand_text(s),
@@ -9055,52 +9185,119 @@ class NebelseetalApp:
         self._log(f"'{key}' ist kein globales Gebäude: die Wirkungen kommen aus den bebauten "
                   f"Feldern der Siedlungskarten — dort das Feld wählen und 'Ausbauen' benutzen.")
 
-    def _voelker_wahl_block(self) -> bool:
-        """Die Voelkerwahl im Dorfzentrum (A2, 03.11.2026) - True, wenn sie gezeigt wurde.
+    # ------------- Register 222/225: die Kartengruendungsseite als Startfenster -------------
 
-        Daniel: "Mit Voelker sind die Fraktionen gemeint, Menschlich, Zwergisch, Elfisch, Trolle,
-        Ghule, Gnome dann haben wir 6 Fraktionen." Der Spieler waehlt EINE; die fuenf Bots bekommen
-        die uebrigen ohne Doppelung (`bottaktik.verteile_fraktionen`, deterministisch). Die Werte
-        stehen in `data/voelker.json` - keine Zahl im Code. Die Wahl steht VOR der Kartenwahl
-        (Fraktion zuerst, dann das Land), ersetzt das Dorfzentrum aber nicht.
-        """
-        if self.state.settlements or str(getattr(self.state, "spieler_fraktion", "") or ""):
-            return False
+    def _startseite_offen(self) -> bool:
+        """Steht der Spieler noch VOR seiner ersten Siedlung? (Register 222)"""
+        return not bool(self.state.settlements)                        # ohne Siedlung: Startseite
+
+    def _start_schritt_aktuell(self) -> str:
+        """Welcher Schritt der Gruendungsseite gilt: neu, volk oder karte (Register 222)."""
+        if self.state.settlements:                                     # Siedlung steht
+            return "fertig"                                            # Seite ist erledigt
+        if str(getattr(self.state, "spieler_fraktion", "") or ""):      # Volk ist gewaehlt
+            return "karte"                                             # dann fehlt nur die Karte
+        return str(getattr(self, "_start_schritt", "neu") or "neu")     # sonst: neu oder volk
+
+    def _start_neues_spiel(self):
+        """Der Knopf Neues Spiel fuehrt zur Fraktionsfrage (Register 222, Daniels Wortlaut)."""
+        self._start_schritt = "volk"                                   # naechster Schritt: das Volk
+        self._log("Neues Spiel: zuerst das Volk waehlen, dann die Karte, dann gruenden.")
+        self._render_view()                                            # Seite neu zeichnen
+
+    def _startkarte_ziehen(self) -> str:
+        """EINE Karte ziehen (Original: Zufall) und im Spielstand merken (Register 225)."""
+        if not self.state.kartenvorrat_seed:                            # ohne Startsaat kein Zufall
+            self.state.kartenvorrat_seed = "nebel-%d" % random.randrange(1, 10 ** 9)
+        belegt = [str((getattr(s, "karte", None) or {}).get("originalkarte_id") or "")
+                  for s in self.state.settlements]                      # Karten des eigenen Reichs
+        karte = spieloekonomie.startkarte_ziehung(self.state.kartenvorrat_seed,
+                                                  [k for k in belegt if k])   # ziehen
+        kennung = str(karte.get("originalkarte_id") or "")              # Kennung im Spielstand
+        self.state.startkarte_gewaehlt = kennung                        # merken (EINE Stelle)
+        self._log("Karte gezogen: %s - %s" % (karte.get("typ_name") or kennung,
+                                              karte.get("vorteil") or ""))
+        return kennung
+
+    def _startkarte_zeigen(self):
+        """Die gezogene Karte zeigen und die Gruendung anbieten (Register 225: keine freie Wahl)."""
+        kennung = str(getattr(self.state, "startkarte_gewaehlt", "") or "")
+        if not kennung:                                                 # noch nichts gezogen
+            kennung = self._startkarte_ziehen()                         # jetzt ziehen
+        karte = spieloekonomie.startkarte_gewaehlt(kennung, self.state.kartenvorrat_seed)
+        achsen = spieloekonomie.relativ(karte)                          # Holz / Stein / Agrar
+        _felder = karte.get("zaehlung") or {}                           # Felder je Gelaende
+        self._kasten_label("Deine Karte: %s" % (karte.get("typ_name") or kennung),
+                           ("Blackletter", 16, "bold"), self.skin["gold"], innen=12, pady=5)
+        self._kasten_label(
+            "Die Karte wird GEZOGEN, nicht gewaehlt - so steht es im Original: einer neuen Siedlung "
+            "wird per Zufall eine Karte zugewiesen, und niemals bekommen zwei deiner Siedlungen "
+            "dieselbe. Passt sie nicht zu deinem Vorhaben, kannst du die Siedlung spaeter aufgeben "
+            "(dann sind ihre Gebaeude, Einheiten und Vorraete verloren, die Karte kommt zurueck in "
+            "den Stapel). Aufgeben geht erst, wenn du mehr als eine Siedlung hast.",
+            ("TkDefaultFont", 9), "#C0C0C0", breite=810, innen=12, pady=4, umbruch=780)
+        self._kasten_label("Holz %.2f / Stein %.2f / Agrar %.2f (1,00 = belegte Startkarte)"
+                           % achsen, ("TkDefaultFont", 10, "bold"), "#DAA520",
+                           innen=12, pady=3)
+        _zeile = tk.Frame(self.content, bg=self.skin["panel"])          # eine Zeile je Gelaende
+        _zeile.pack(fill=tk.X, padx=10, pady=2)
+        for gelaende_name, anzahl in sorted(_felder.items()):
+            tk.Label(_zeile, text="%s: %d" % (str(gelaende_name).capitalize(), int(anzahl)),
+                     fg=self.skin["text"], bg=self.skin["panel"]).pack(side=tk.LEFT, padx=6)
+        self._kasten_label(str(karte.get("vorteil") or ""), ("TkDefaultFont", 9), "#7FD1FF",
+                           breite=810, innen=12, pady=3, umbruch=780)
+        tk.Button(self.content, text="Auf dieser Karte gründen",
+                  command=self._erste_siedlung_gruenden,        # gruendet mit GENAU dieser Karte
+                  bg="#2563EB", fg="white", activebackground="#1D4ED8", activeforeground="white",
+                  font=("TkDefaultFont", 11, "bold")).pack(anchor=tk.W, padx=10, pady=(6, 10))
+
+    def _volk_wahl_zeilen(self):
+        """Die sechs Voelker als Tabelle mit einem Knopf je Volk (A2, Register 148/222)."""
         self._kasten_label("Wähle dein Volk", ("Blackletter", 16, "bold"),
                            self.skin["gold"], innen=12, pady=5)
         self._kasten_label(
             "Jedes Volk trägt ein Plus und ein Minus. Die fünf Gegenspieler bekommen die übrigen "
-            "Völker - jedes genau einmal. Die Wahl ist endgültig und wird im Spielstand gespeichert; "
-            "die Wirkung der Boni wird im nächsten Schritt verdrahtet. Jedes dieser Völker ist ein "
-            "HAUS mit eigenem Namen, eigener Burg und eigenem Wappen - das Wappen steht auf der "
-            "Weltkarte neben seinen Dörfern (W-15).",
+            "Völker - jedes genau einmal. Die Wahl ist endgültig: sie wird im Spielstand "
+            "gespeichert, und ein Wechsel ist danach nicht mehr möglich. Jedes dieser Völker ist "
+            "ein HAUS mit eigenem Namen, eigener Burg und eigenem Wappen - das Wappen steht auf "
+            "der Weltkarte neben seinen Dörfern (W-15).",
             ("TkDefaultFont", 9), "#C0C0C0", breite=810, innen=12, pady=4, umbruch=780)
-        for eintrag in bottaktik.fraktionen():
-            zeile = tk.Frame(self.content, bg=self.skin["panel"])      # eine Zeile je Volk (Tabelle)
+        for eintrag in bottaktik.fraktionen():                          # jedes Volk eine Zeile
+            zeile = tk.Frame(self.content, bg=self.skin["panel"])
             zeile.pack(fill=tk.X, padx=10, pady=2)
-            _kennung = str(eintrag.get("kennung"))                     # Fraktionskennung (Schluessel)
-            _haus = haeuser.hausname(_kennung)                         # W-15: Hausname aus der Datei
+            _kennung = str(eintrag.get("kennung"))                      # Fraktionskennung
+            _haus = haeuser.hausname(_kennung)                          # W-15: Hausname
             tk.Label(zeile, text=_kennung, fg=self.skin["text"],
                      bg=self.skin["panel"], width=14, anchor=tk.W).pack(side=tk.LEFT, padx=5)
             tk.Label(zeile, text=str(eintrag.get("plus") or ""), fg="#8FBF7F",
                      bg=self.skin["panel"], width=26, anchor=tk.W).pack(side=tk.LEFT, padx=5)
             tk.Label(zeile, text=str(eintrag.get("minus") or ""), fg="#FDBA74",
                      bg=self.skin["panel"], width=26, anchor=tk.W).pack(side=tk.LEFT, padx=5)
-            _beschreibung = str(eintrag.get("beschreibung") or "")     # der alte Text, unveraendert
-            if _haus:                                                  # Hausname davor, sonst nichts
-                _beschreibung = f"{_haus}: {_beschreibung}"            # z. B. "Haus Silberbach: ..."
-            tk.Label(zeile, text=_beschreibung[:90], fg="#C0C0C0",     # Anzeigetext mit Umlauten
-                     bg=self.skin["panel"], wraplength=300, justify=tk.LEFT).pack(side=tk.LEFT, padx=5)
+            _beschreibung = str(eintrag.get("beschreibung") or "")      # der alte Text
+            if _haus:                                                   # Hausname davor
+                _beschreibung = "%s: %s" % (_haus, _beschreibung)
+            tk.Label(zeile, text=_beschreibung[:90], fg="#C0C0C0",       # Anzeigetext
+                     bg=self.skin["panel"], wraplength=300,
+                     justify=tk.LEFT).pack(side=tk.LEFT, padx=5)
             tk.Button(zeile, text="Dieses Volk nehmen",
-                      command=lambda k=_kennung: self._volk_waehlen(k),  # Klick nimmt genau dieses Volk
+                      command=lambda k=_kennung: self._volk_waehlen(k),  # Klick nimmt dieses Volk
                       bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
-        return True
 
     def _volk_waehlen(self, kennung: str) -> dict:
-        """Das Volk des Spielers merken und die restlichen Voelker auf die Bots verteilen."""
+        """Das Volk des Spielers festlegen - EINMAL. Danach ist kein Wechsel mehr moeglich.
+
+        Register 222 (Daniel 05.11.2026): "Danach ist fuer den Spielstand ein Fraktionswechsel
+        nicht mehr moeglich." Die Wahl auf der Kartengruendungsseite ist damit die EINZIGE Stelle,
+        an der `spieler_fraktion` gesetzt wird - ein zweiter Aufruf wird abgewiesen, und weil auch
+        der Admin-Weg durch diese Methode geht, ist er mitgesperrt.
+        """
         fraktion = str(kennung or "").strip()
         if fraktion not in [str(e.get("kennung")) for e in bottaktik.fraktionen()]:
-            self._log(f"Unbekanntes Volk: {kennung}")
+            self._log("Unbekanntes Volk: %s" % kennung)
+            return {}
+        if str(getattr(self.state, "spieler_fraktion", "") or ""):      # steht schon fest
+            self._log("Das Volk steht bereits (%s) - ein Wechsel ist nicht moeglich."
+                      % self.state.spieler_fraktion)
             return {}
         self.state.spieler_fraktion = fraktion
         for _s in getattr(self.state, "settlements", []) or []:       # V-5: der Ort traegt sein Volk
@@ -9133,61 +9330,69 @@ class NebelseetalApp:
                     dorf.dimension = _w                                 # dann in die Heimatwelt
                 dorf.herkunftswelt = _w                                 # Herkunft = Heimatwelt
         werte = bottaktik.volksattribute({"fraktion": fraktion})
-        self._log(f"Volk der Spieler: {fraktion} - {werte.get('plus')} / {werte.get('minus')}. "
-                  f"Die fünf Gegenspieler tragen die übrigen Völker.")
+        self._log("Volk der Spieler: %s - %s / %s. Die fünf Gegenspieler tragen die übrigen Völker."
+                  % (fraktion, werte.get("plus"), werte.get("minus")))
         self.state.messages.append({"type": "gruendung",
-                                    "text": f"Volk gewählt: {fraktion} - {werte.get('plus')} / "
-                                            f"{werte.get('minus')}."})
+                                    "text": "Volk gewählt: %s - %s / %s."
+                                            % (fraktion, werte.get("plus"), werte.get("minus"))})
+        self._start_schritt = "karte"                                  # naechster Schritt: die Karte
         if hasattr(self, "content"):
-            self._render_view()
+            self._render_view()                                        # Seite auf Schritt 3 ziehen
         return verteilung
 
-    def _startkarte_wahl_block(self) -> bool:
-        """Die Startkartenwahl als Block im Dorfzentrum (A2-Vorstufe, 03.11.2026) - True, wenn gezeigt.
+    def _render_kartengruendung(self):
+        """Die Kartengruendungsseite - das erste Fenster nach dem Tor (Register 222).
 
-        Daniel hat die Kartenwahl am Start in den eingefrorenen Demo-Umfang gelegt. Der Block steht
-        NUR, solange keine Siedlung existiert und noch nichts gewaehlt ist; danach nie wieder. Er
-        ERSETZT das Dorfzentrum nicht: die Pflichtkarte "Dein naechster Schritt" und der gewohnte
-        Gruendungsknopf bleiben stehen - der Knopf gruendet ohne Wahl mit der Standardkarte, ein Klick
-        auf "Diese Karte nehmen" gruendet mit genau dieser Karte.
-
-        Kandidaten sind deterministisch je Startsaat, die Standardkarte ist immer dabei, alle Zahlen
-        stehen in `data/startkarte.json` (`originalkarten.startkarte_kandidaten`). Die Zeilen sind eine
-        Tabelle und bleiben deckend; die Texte darueber liegen als weiche Felder auf dem Motiv.
+        Drei Schritte in dieser Reihenfolge, so hat Daniel es entschieden: Neues Spiel (diese
+        Seite), dann die Fraktionsfrage (sechs Voelker aus `data/voelker.json`), dann die Karte
+        (gezogen, Register 225), dann die Gruendung. Erst danach ist das Dorfzentrum dran.
         """
-        gewaehlt = getattr(self.state, "startkarte_gewaehlt", "")
-        if not spieloekonomie.startkarte_auswahl_erforderlich(
-                len(self.state.settlements), SIEDLUNGEN_MAXIMUM, gewaehlt):
-            return False
-        self._kasten_label("Wähle deine Startkarte", ("Blackletter", 16, "bold"),
-                           self.skin["gold"], innen=12, pady=5)
-        self._kasten_label(
-            "Drei Karten stehen zur Wahl. Sie unterscheiden sich in Wald, Gestein und Ackerland - "
-            "was dein Dorf am schnellsten trägt. Die Wahl ist endgültig und wird im Spielstand "
-            "gespeichert; ohne Wahl gründet der Knopf unten mit der Standardkarte.",
-            ("TkDefaultFont", 9), "#C0C0C0", breite=810, innen=12, pady=4, umbruch=780)
-        seed = self.state.kartenvorrat_seed or "nebel"
-        for nummer, kandidat in enumerate(spieloekonomie.startkarte_kandidaten(seed), start=1):
-            achsen = spieloekonomie.relativ(kandidat)
-            zeile = tk.Frame(self.content, bg=self.skin["panel"])   # eine Zeile je Karte (Tabelle)
-            zeile.pack(fill=tk.X, padx=10, pady=2)
-            tk.Label(zeile, text=f"{nummer}. {kandidat.get('typ_name') or kandidat.get('originalkarte_id')}",
-                     fg=self.skin["text"], bg=self.skin["panel"], width=18,
-                     anchor=tk.W).pack(side=tk.LEFT, padx=5)
-            tk.Label(zeile, text="Holz %.2f / Stein %.2f / Agrar %.2f" % achsen,
-                     fg="#DAA520", bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
-            tk.Label(zeile, text=str(kandidat.get("vorteil") or "")[:90],
-                     fg="#C0C0C0", bg=self.skin["panel"], wraplength=360,
-                     justify=tk.LEFT).pack(side=tk.LEFT, padx=5)
-            tk.Button(zeile, text="Diese Karte nehmen",
-                      command=lambda k=kandidat.get("originalkarte_id"): self._startkarte_waehlen(k),
-                      bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
-        return True
+        if self._ansicht_hintergrund("lager") is None:                  # kein Bild (Datei/Pillow)
+            self._gebaeude_kopf("lager")                                # dann der alte Kopf
+        self._kasten_label("Kartengründung", ("Blackletter", 20, "bold"), self.skin["gold"],
+                           innen=14, pady=6)
+        schritt = self._start_schritt_aktuell()                          # wo steht der Spieler?
+        _nr = {"neu": "1", "volk": "2", "karte": "3"}.get(schritt, "1")  # Schrittnummer
+        _titel = {"neu": "Neues Spiel", "volk": "Dein Volk", "karte": "Deine Karte"}
+        self._kasten_label("Schritt %s von 3 — %s" % (_nr, _titel.get(schritt, "")),
+                           ("TkDefaultFont", 9, "bold"), "#7FD1FF", innen=12, pady=3)
+        if schritt == "volk":                                            # Schritt 2
+            self._volk_wahl_zeilen()                                     # die sechs Voelker
+            return
+        if schritt == "karte":                                           # Schritt 3
+            self._startkarte_zeigen()                                    # die gezogene Karte
+            return
+        self._kasten_label(                                              # Schritt 1
+            "Hier beginnt dein Reich. Ein Neues Spiel braucht drei Dinge: dein Volk (es bestimmt "
+            "Boni, Haus und Wappen), die Karte, auf der deine erste Siedlung steht, und den Ort, "
+            "an dem sie entsteht. Deine erste Siedlung bekommt 10 Siedler, 100 Holz und 100 Stein "
+            "(Handbuch S. 7) - sie liegt auf einem freien Feld der Weltkarte, das du selbst wählst.",
+            ("TkDefaultFont", 10), "#F3F4F6", breite=810, innen=12, pady=4, umbruch=780)
+        tk.Button(self.content, text="Neues Spiel", command=self._start_neues_spiel,
+                  bg="#2563EB", fg="white", activebackground="#1D4ED8", activeforeground="white",
+                  font=("TkDefaultFont", 11, "bold")).pack(anchor=tk.W, padx=10, pady=(6, 10))
 
-    def _startkarte_waehlen(self, kennung: str):
-        """Die gewaehlte Startkarte merken und die erste Siedlung gruenden."""
-        self.state.startkarte_gewaehlt = str(kennung or "")
-        self._erste_siedlung_gruenden()
+    def _siedlung_aufgeben(self, siedlung):
+        """Die Siedlung aufgeben - mit Sicherheitsabfrage (Original, Register 225)."""
+        from tkinter import messagebox
+        if len(self.state.settlements) <= 1:                             # Original: nur mit >1
+            self._log("Die einzige Siedlung laesst sich nicht aufgeben - gruende zuerst eine zweite.")
+            return False
+        lager = ", ".join("%g %s" % (float(v), k.capitalize())
+                          for k, v in sorted((siedlung.vorraete or {}).items()) if float(v) > 0)
+        frage = ("Siedlung %s wirklich aufgeben? Dabei gehen ALLE Einheiten, Waren, Gebaeude und "
+                 "Vorraete dieser Siedlung verloren (%s), und die Karte kommt zurueck in den "
+                 "Stapel. Das laesst sich nicht rueckgaengig machen."
+                 % (siedlung.name, lager or "Lager leer"))
+        if not messagebox.askyesno("Siedlung aufgeben", frage, parent=self.root):
+            return False                                                 # abgebrochen
+        ok, meldung = self.state.siedlung_aufgeben(str(getattr(siedlung, "id", "") or ""))
+        if ok:                                                           # gebucht
+            self._menue_auffrischen()                                    # Menue nachziehen
+            self._render_view()                                          # Ansicht neu zeichnen
+        else:
+            self._log(meldung)                                           # Ablehnung nennen
+        return ok
 
     def _found_settlement(self):
         """Eine Siedlung gründen (Ökonomie-Paket, Schritt 9, Teil 5; Entwurf Z. 777).
@@ -9273,6 +9478,12 @@ class NebelseetalApp:
             self._log(f"  {gelaende.karte_beschreiben(karte)}")
             self._log(f"Neue Siedlung '{sett.name}' gegründet — im Dorfzentrum steht jetzt "
                       f"„Karte öffnen\": dort Felder bebauen und Rohstoffe fördern.")
+            # Register 222 (05.11.2026): die Kartengruendungsseite ist mit der Gruendung
+            # erledigt - ab jetzt ist das Dorfzentrum die Ansicht. Das Menue wird mitgezogen,
+            # sonst fehlten die Punkte, die eine Siedlung voraussetzen.
+            if getattr(self, "current_view", "") == KARTENGRUENDUNG_ANSICHT:   # Startseite offen
+                self.current_view = "Dorfzentrum"                             # Dorfzentrum zeigen
+                self._menue_auffrischen()                                     # Menue nachziehen
             # Ohne Neuzeichnen sieht der Spieler NICHTS: die Siedlungsliste bliebe leer.
             self._render_view()
             return

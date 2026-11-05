@@ -37,7 +37,7 @@
       "gebaeude": "Kriegerakademie",
       "kosten": {
         "siedler": 1,
-        "gold": 250
+        "gold": 175
       },
       "waren": [
         "Kurzschwert",
@@ -70,7 +70,7 @@
       "gebaeude": "Kriegerakademie",
       "kosten": {
         "siedler": 1,
-        "gold": 500,
+        "gold": 350,
         "pferde": 1
       },
       "waren": [
@@ -104,7 +104,7 @@
       "gebaeude": "Kriegerakademie",
       "kosten": {
         "siedler": 1,
-        "gold": 1000,
+        "gold": 700,
         "pferde": 1
       },
       "waren": [
@@ -138,7 +138,7 @@
       "gebaeude": "Kriegerakademie",
       "kosten": {
         "siedler": 1,
-        "gold": 2000,
+        "gold": 1400,
         "mana": 10,
         "pferde": 1
       },
@@ -174,7 +174,7 @@
       "gebaeude": "Kriegerakademie",
       "kosten": {
         "siedler": 1,
-        "gold": 250
+        "gold": 175
       },
       "waren": [
         "Kurzbogen"
@@ -206,7 +206,7 @@
       "gebaeude": "Kriegerakademie",
       "kosten": {
         "siedler": 1,
-        "gold": 500
+        "gold": 350
       },
       "waren": [
         "Bogen"
@@ -238,7 +238,7 @@
       "gebaeude": "Kriegerakademie",
       "kosten": {
         "siedler": 1,
-        "gold": 1000
+        "gold": 700
       },
       "waren": [
         "Langbogen"
@@ -270,7 +270,7 @@
       "gebaeude": "Kriegerakademie",
       "kosten": {
         "siedler": 1,
-        "gold": 2000
+        "gold": 1400
       },
       "waren": [
         "Armbrust",
@@ -304,7 +304,7 @@
       "kosten": {
         "siedler": 1,
         "nahrung": 100,
-        "gold": 50
+        "gold": 35
       },
       "waren": [
         "Wollumhang"
@@ -333,7 +333,7 @@
       "gebaeude": "Diebesgilde",
       "kosten": {
         "siedler": 1,
-        "gold": 250
+        "gold": 175
       },
       "waren": [
         "Messer",
@@ -366,7 +366,7 @@
       "gebaeude": "Diebesgilde",
       "kosten": {
         "siedler": 1,
-        "gold": 500
+        "gold": 350
       },
       "waren": [
         "Dolch",
@@ -399,7 +399,7 @@
       "gebaeude": "Diebesgilde",
       "kosten": {
         "siedler": 1,
-        "gold": 750
+        "gold": 525
       },
       "waren": [
         "Kurzschwert",
@@ -432,7 +432,7 @@
       "gebaeude": "Diebesgilde",
       "kosten": {
         "siedler": 1,
-        "gold": 1000
+        "gold": 700
       },
       "waren": [
         "Schwert",
@@ -465,7 +465,7 @@
       "gebaeude": "Diebesgilde",
       "kosten": {
         "siedler": 1,
-        "gold": 2000
+        "gold": 1400
       },
       "waren": [
         "Schwert",

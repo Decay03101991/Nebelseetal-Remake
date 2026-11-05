@@ -45,6 +45,10 @@ KURZSCHWERT = "Kurzschwert"
 # Alle Forschungsgebiete, die data/units.json als Voraussetzung nennt - belegt, nicht geraten.
 FORSCH = {"Kriegskunst": 10, "Waffentechnik": 10, "Heimlichkeit": 10, "Wagenbau": 10}
 LEDERRUESTUNG = "Lederr\u00fcstung"      # Lederrustung
+# Register 225 (Daniel 05.11.2026): Goldkosten der Militaereinheiten um 30 Prozent gesenkt
+# (Kaempfer 250 -> 175). Alle Wachen unten rechnen mit DIESEM Preis aus der Datendatei statt mit
+# einer getippten Zahl - sonst faellt die Datei bei der naechsten Balancing-Entscheidung erneut um.
+_KP = int(((O.U.get(KAEMPFER) or {}).get("kosten") or {}).get("gold", 0))
 
 
 def neuer_ort(bauten=None, stufen=None, vorraete=None, waren=None, bevoelkerung=5.0,
@@ -102,7 +106,9 @@ check("1 die Grenze meldet kein Hindernis", g["hindernis"] == "", g["hindernis"]
 check("1 Kaempfer kostet 1 Siedler je Einheit",
       g["siedler_je"] == 1, str(g["siedler_je"]))
 moeglich = g["moeglich"]
-check("1 bei 7 Siedlern, 3000 Gold (250 je Kaempfer) sind 7 bezahlbar",
+# Register 225 (05.11.2026): der Kaempfer kostet jetzt 175 statt 250 Gold - die Grenze selbst
+# (Siedler) bleibt, der Text nennt den Preis aus der Datendatei (`_KP`, oben gelesen).
+check("1 bei 7 Siedlern, 3000 Gold (%d je Einheit) sind 7 bezahlbar" % _KP,
       moeglich == 7, str(moeglich))
 start_ok = O.ausbildung_start_menge(o, KAEMPFER, FORSCH, 0.0, moeglich)
 check("1 genau `moeglich` Einheiten werden angenommen",
@@ -134,8 +140,8 @@ for menge in (True, "viele", 2.7):
 eins = O.ausbildung_start_menge(o, KAEMPFER, FORSCH, 0.0, 1)
 check("2 Menge 1 erzeugt genau einen Auftrag",
       len(eins["ort"]["ausbildung"]) == 1, str(len(eins["ort"]["ausbildung"])))
-check("2 Menge 1 kostet genau 250 Gold",
-      eins["ort"]["vorraete"]["gold"] == o["vorraete"]["gold"] - 250,
+check("2 Menge 1 kostet genau den Preis aus der Datendatei (%d Gold)" % _KP,
+      eins["ort"]["vorraete"]["gold"] == o["vorraete"]["gold"] - _KP,
       str(eins["ort"]["vorraete"]["gold"]))
 check("2 Menge 1 verbraucht genau 1 Siedler",
       eins["ort"]["bevoelkerung"] == o["bevoelkerung"] - 1,
@@ -144,8 +150,8 @@ check("2 Menge 1 verbraucht genau 1 Siedler",
 zwei = O.ausbildung_start_menge(o, KAEMPFER, FORSCH, 0.0, 2)
 check("2 Menge 2 erzeugt genau zwei Auftraege",
       len(zwei["ort"]["ausbildung"]) == 2, str(len(zwei["ort"]["ausbildung"])))
-check("2 Menge 2 kostet genau 500 Gold",
-      zwei["ort"]["vorraete"]["gold"] == o["vorraete"]["gold"] - 500,
+check("2 Menge 2 kostet genau zwei Preise aus der Datendatei (%d Gold)" % (2 * _KP),
+      zwei["ort"]["vorraete"]["gold"] == o["vorraete"]["gold"] - 2 * _KP,
       str(zwei["ort"]["vorraete"]["gold"]))
 a1, a2 = zwei["ort"]["ausbildung"]
 check("2 die beiden Auftraege laufen NACHEINANDER (kein Parallelstart)",
@@ -192,13 +198,16 @@ war_fehler, text = fehler_von(
 check("3b 5 Kaempfer bei 4 Rustungen werden abgelehnt", war_fehler, text)
 check("3b die Meldung nennt die bezahlbare Zahl", "4" in text, text)
 
-# 3c Rohstoffe
-o_gold = akademie(bevoelkerung=50.0, gold=1000.0)          # 250 je Kaempfer -> 4
+# 3c Rohstoffe. Register 225 (05.11.2026): der Kaempfer kostet 175 statt 250 Gold - die Zahl der
+# bezahlbaren Einheiten kommt deshalb aus dem Preis in der Datendatei, nicht aus einer getippten 4.
+o_gold = akademie(bevoelkerung=50.0, gold=1000.0)
+_gold_moeglich = int(1000.0 // _KP) if _KP else 0
 gz = O.ausbildung_grenzen(o_gold, KAEMPFER, FORSCH)
-check("3c 1000 Gold erlauben genau 4 Kaempfer", gz["moeglich"] == 4, str(gz["moeglich"]))
+check("3c 1000 Gold erlauben genau %d Kaempfer" % _gold_moeglich,
+      gz["moeglich"] == _gold_moeglich, str(gz["moeglich"]))
 war_fehler, text = fehler_von(
-    lambda: O.ausbildung_start_menge(o_gold, KAEMPFER, FORSCH, 0.0, 5))
-check("3c 5 Kaempfer bei 1000 Gold werden abgelehnt", war_fehler, text)
+    lambda: O.ausbildung_start_menge(o_gold, KAEMPFER, FORSCH, 0.0, _gold_moeglich + 1))
+check("3c eine Einheit mehr als das Gold traegt wird abgelehnt", war_fehler, text)
 check("3c die Meldung heisst 'Lokales Lager reicht nicht'", "Lager" in text, text)
 
 # 3d Deckel ist die kleinste Grenze
