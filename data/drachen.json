@@ -2,8 +2,8 @@
   "stand": "2026-11-04",
   "hinweis": "Daniel entscheidet die Welten; alle Zahlen und Texte sind Vorschlag.",
   "figur": {
-    "bild": "assets/bilder/drache.png",
-    "ruine_bild": "assets/bilder/drache_ruine.png",
+    "bild": "assets/bilder/drache_weiss.png",
+    "ruine_bild": "",
     "ruine_platzhalter": true,
     "groesse_px": 12,
     "hinweis_farben": "Figuren von Daniel (04.11.2026): weiß, blau, lila. Die Chronik nennt Epheus den Weißen, Tardas den Gruenen, Salmur den Roten - Gruen und Rot haben noch keine Figur; Zuordnung vorlaeufig nach Farbe."
@@ -45,7 +45,7 @@
         "drachenschuppe": 1
       },
       "status": "VORSCHLAG",
-      "bild": "assets/bilder/drache_weiß.png",
+      "bild": "assets/bilder/drache_weiss.png",
       "verteidigung": {
         "einheiten": {
           "Krieger": 120,

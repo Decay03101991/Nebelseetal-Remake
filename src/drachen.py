@@ -97,6 +97,46 @@ def finde(welt, x, y, besiegt=(), pfad=None) -> dict | None:
                 return eintrag  # gebe den Eintrag zurueck
     return None  # wenn nichts gefunden, None
 
+def finde_id(kennung, pfad=None):
+    """Findet einen Drachen ueber seine Kennung (W-14 Teil 2).
+    Eingabe: Kennung aus der Datendatei (z.B. 'drache_d02'), optionaler Pfad.
+    Ausgabe: der Eintrag oder None - ein BESIEGTER Drache wird ebenfalls geliefert."""
+    for eintrag in alle(pfad):  # jeder gueltige Eintrag der Datendatei
+        if eintrag["id"] == str(kennung):  # die Kennung passt genau
+            return eintrag  # gefunden
+    return None  # nichts gefunden
+
+
+def welt_kennung(nummer):
+    """Die Kennung einer Weltkarte aus ihrer Nummer (1 ergibt 'd01').
+    Eingabe: die Nummer der Weltkarte als Zahl (oder Text).
+    Ausgabe: die Kennung als Text; bei unbrauchbarer Eingabe der leere Text."""
+    try:  # Nummer belastbar machen
+        return "d%02d" % int(nummer)  # zweistellige Kennung wie in welten.json
+    except (TypeError, ValueError):  # unbrauchbare Angabe
+        return ""  # dann keine Kennung - der Aufrufer findet nichts
+
+
+def finde_id(kennung, pfad=None):
+    """Findet einen Drachen ueber seine Kennung (W-14 Teil 2).
+    Eingabe: Kennung aus der Datendatei (z.B. 'drache_d02'), optionaler Pfad.
+    Ausgabe: der Eintrag oder None - ein BESIEGTER Drache wird ebenfalls geliefert."""
+    for eintrag in alle(pfad):  # jeder gueltige Eintrag der Datendatei
+        if eintrag["id"] == str(kennung):  # die Kennung passt genau
+            return eintrag  # gefunden
+    return None  # nichts gefunden
+
+
+def welt_kennung(nummer):
+    """Die Kennung einer Weltkarte aus ihrer Nummer (1 ergibt 'd01').
+    Eingabe: die Nummer der Weltkarte als Zahl (oder Text).
+    Ausgabe: die Kennung als Text; bei unbrauchbarer Eingabe der leere Text."""
+    try:  # Nummer belastbar machen
+        return "d%02d" % int(nummer)  # zweistellige Kennung wie in welten.json
+    except (TypeError, ValueError):  # unbrauchbare Angabe
+        return ""  # dann keine Kennung - der Aufrufer findet nichts
+
+
 def verteidiger(eintrag) -> dict:
     """Gibt die Verteidiger-Einheiten eines Drachen zurueck (Wache, nicht der Drache selbst).
     Eingabe: ein Drachen-Eintrag.
@@ -193,7 +233,7 @@ def figur(eintrag, besiegt=(), pfad=None) -> dict:
         platzhalter = figur_config.get("ruine_platzhalter", False) or (bild == "")  # bestimme platzhalter
     else:  # sonst
         art = "drache"  # setze art auf drache
-        bild = figur_config.get("bild", "")  # hole den Drachenbildpfad
+        bild = str(eintrag.get("bild") or figur_config.get("bild") or "")  # eigenes Bild des Drachen, sonst das allgemeine
         platzhalter = (bild == "")  # platzhalter nur wenn kein Bild vorhanden ist
     return {"art": art, "bild": bild, "platzhalter": platzhalter, "name": eintrag["name"], "welt": eintrag["welt"], "x": eintrag["x"], "y": eintrag["y"]}  # gebe das Figuren-dict zurueck
 

@@ -178,7 +178,8 @@ def fuehre_schlacht(angreifer: Dict[str, int], verteidiger: Dict[str, int],
                     forschung_angreifer: Optional[dict] = None,
                     forschung_verteidiger: Optional[dict] = None,
                     boni_angreifer: Optional[dict] = None,
-                    boni_verteidiger: Optional[dict] = None) -> Dict[str, Any]:
+                    boni_verteidiger: Optional[dict] = None,
+                    schwellen: Optional[tuple] = None) -> Dict[str, Any]:
     """Führt reproduzierbar eine Schlacht nach der späteren Originalbeschreibung aus.
 
     Nicht im Dokument geregelte Gerätelager- und Beutemechanik bleibt aus dem
@@ -254,6 +255,24 @@ def fuehre_schlacht(angreifer: Dict[str, int], verteidiger: Dict[str, int],
             return fertig("unentschieden")
         schwelle_bel = wall.get("schwellenwert_belagerungswaffen")
         if schwelle_bel is not None and siege_sk < float(schwelle_bel) * faktor:
+            logs.append("Belagerungs-Schlagkraft zu gering: Schwelle nicht erreicht; die Truppen ziehen sich zurück; kein Kampf")
+            return fertig("unentschieden")
+    # W-14 Teil 2 (05.11.2026): der Drache hat KEINEN Wall. Statt der Wallstufe gelten seine
+    # beiden eigenen Schwellen (Schuppen). Die Rechnung ist wortgleich die der Wallvorrunde -
+    # dieselbe Schlagkraft, dieselbe Reihenfolge, dieselbe Folge (Rückzug, kein Kampf).
+    elif schwellen:
+        foot_sk = sum(E.schlagkraft(u["name"]) for u in _nah(A))
+        siege_sk = sum(E.schlagkraft(n) * int(k) for n, k in belagerung.items())
+        try:
+            grenze_fuss, grenze_bel = int(schwellen[0]), int(schwellen[1])
+        except (TypeError, ValueError, IndexError):
+            grenze_fuss, grenze_bel = 0, 0
+        logs.append("Drachenschuppen: Fußtruppen %d gegen %d, Belagerung %d gegen %d"
+                    % (foot_sk, grenze_fuss, siege_sk, grenze_bel))
+        if foot_sk < grenze_fuss:
+            logs.append("Fußtruppen: Schwelle nicht erreicht; die Truppen ziehen sich zurück; kein Kampf")
+            return fertig("unentschieden")
+        if siege_sk < grenze_bel:
             logs.append("Belagerungs-Schlagkraft zu gering: Schwelle nicht erreicht; die Truppen ziehen sich zurück; kein Kampf")
             return fertig("unentschieden")
 

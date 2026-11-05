@@ -277,12 +277,50 @@ def beute_staffel(einheiten_des_siegers: Dict[str, int],
     return genommen
 
 
+def _anteil_verladen(anteil: Dict[str, int], lager: Dict[str, float],
+                     karren: Dict[str, int], forschung: Any = None) -> Dict[str, int]:
+    """Einen bereits berechneten Beuteanteil auf die Karren laden (W-14 Teil 2).
+
+    Warum es diese Funktion gibt: der Drachen-Anteil entsteht in `drachen.beute_anteil` (nach
+    Leistung), die TRANSPORTGRENZE gilt aber ueberall gleich. Deshalb wird hier nur noch
+    begrenzt: erst die Gesamtladung der Karren, dann je Stoff der vorhandene Vorrat.
+    Was nicht hineinpasst, bleibt liegen und steht danach noch im Hort.
+    """
+    kapazitaet = E.ladung_der_gruppe(karren or {}, forschung)
+    if kapazitaet <= 0:
+        return {}
+    gewuenscht: Dict[str, int] = hilfen.positive_ganze_werte(anteil or {})
+    gesamt = sum(gewuenscht.values())
+    if gesamt <= 0:
+        return {}
+    vorhanden: Dict[str, int] = hilfen.positive_ganze_werte(lager or {})
+    ziel = min(int(kapazitaet), int(gesamt))
+    genommen: Dict[str, int] = {}
+    for stoff in sorted(gewuenscht):
+        nimm = min(int(gewuenscht[stoff] / float(gesamt) * ziel), gewuenscht[stoff],
+                   int(vorhanden.get(stoff, 0)))
+        if nimm > 0:
+            genommen[stoff] = nimm
+    rest = ziel - sum(genommen.values())
+    for stoff in sorted(gewuenscht, key=lambda s: (-gewuenscht[s], s)):
+        if rest <= 0:
+            break
+        platz = min(gewuenscht[stoff], int(vorhanden.get(stoff, 0))) - genommen.get(stoff, 0)
+        nimm = min(rest, platz)
+        if nimm > 0:
+            genommen[stoff] = genommen.get(stoff, 0) + nimm
+            rest -= nimm
+    return genommen
+
+
 def beute_am_ziel(einheiten_des_siegers: Dict[str, int],
                   vorraete: Dict[str, float],
                   ausgang: Any = "angreifer",
                   wall_zustand_vor: Any = None,
                   verteidiger_uebrig: Any = None,
-                  forschung: Any = None) -> Tuple[Dict[str, int], Dict[str, float]]:
+                  forschung: Any = None,
+                  beute_override: Optional[Dict[str, int]] = None
+                  ) -> Tuple[Dict[str, int], Dict[str, float]]:
     """Beute berechnen UND beim Ziel abbuchen - Rueckgabe (beute, vorraete_danach).
 
     Warum es diese Funktion gibt (Befund der externen Gegenpruefung, 31.10.2026, Nr. 6):
@@ -303,10 +341,16 @@ def beute_am_ziel(einheiten_des_siegers: Dict[str, int],
     if str(ausgang or "") != "angreifer":
         return {}, lager
 
-    beute_werte = dict(beute_staffel(einheiten_des_siegers, lager,
-                                    wall_zustand_vor=wall_zustand_vor,
-                                    verteidiger_uebrig=verteidiger_uebrig,
-                                    forschung=forschung))
+    if beute_override is not None:
+        # W-14 Teil 2 (05.11.2026): der Drache hat eine EIGENE Beute-Regel (Anteil nach
+        # Leistung, `drachen.beute_anteil`). Sie kommt als fertiger Anteil herein und wird hier
+        # nur noch auf die Karren geladen und beim Ziel abgebucht - EINE Buchstelle bleibt.
+        beute_werte = _anteil_verladen(beute_override, lager, einheiten_des_siegers, forschung)
+    else:
+        beute_werte = dict(beute_staffel(einheiten_des_siegers, lager,
+                                        wall_zustand_vor=wall_zustand_vor,
+                                        verteidiger_uebrig=verteidiger_uebrig,
+                                        forschung=forschung))
     for stoff, menge in beute_werte.items():
         lager[stoff] = round(max(0.0, lager.get(stoff, 0.0) - float(menge)), 2)
     return beute_werte, lager

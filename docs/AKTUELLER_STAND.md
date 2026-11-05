@@ -1,3 +1,54 @@
+# STAND 05.11.2026, 01:52 - W-14 Teil 2 gebaut: die Drachen stehen im Spiel (Register 204)
+
+> Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
+
+**Die Drachen sind verdrahtet.** W-14 Teil 1 hatte nur das Modul gebaut; jetzt haengen acht
+Andockstellen daran: der Zustand (besiegte Drachen und ihre Horte im Spielstand), die Zielwahl
+ueber den EINEN Angriffsweg, die Vorrunde gegen **Drachenwerte statt eines Walls** (Fusstruppen
+700, Belagerung 950, unbrechbar), der **Feueratem** (8 Prozent der antretenden Fusstruppen,
+eigene Berichtszeile), der Kampf gegen 204 Verteidiger, der **Beuteanteil nach Leistung** (letzter
+Schlag +10 Prozent, ueber die EINE Buchstelle und begrenzt durch die Karrenladung), der eigene
+**Bericht** (ohne Ueberlebende nur eigene Verluste und die Zahl der Verteidiger, kein Ausspaehen)
+und die **Anzeige** als Figur je Drache, nach dem Sieg als Ruine.
+
+**Belegt:** `tests/test_drachen_einhaengung.py` **76 bestanden, 0 Fehler** - mit allen sieben
+Pflicht-Wachen der Uebergabe (Angriff unter der Schwelle kaempft nicht, Feueratem gebucht und im
+Bericht, Beute genau einmal und nur der Anteil, ohne Ueberlebende keine Einheiten, kein
+Ausspaehen, nach dem Sieg Ruine ohne zweiten Angriff, alter Spielstand laedt) und einer ECHTEN
+Zeichnung der Portal-Ansicht. **Voller Sammellauf: 165 von 167 gruen, 0 rot, 1226 s**, 6.848 Pruefungen,
+56 Befunde, kein Fehler.
+
+**Zwei ehrliche Befunde:** der erste Entwurf liess den Drachen stehen, obwohl das Gefecht
+gewonnen war - Massstab ist jetzt `kampfbericht.ausgeraeumt` (dieselbe Lesart wie W-13, weil
+fliehende Verteidiger im Ort bleiben). Und der erste Sammellauf lief mit dem Hermes-Python und
+meldete eine rote Datei (`test_gpt_originalkarten_historische_info`), weil dort `lxml` fehlt -
+ein Geraetefehler, kein Spielfehler. Der Sammellauf gehoert mit `.venv/Scripts/python.exe`
+gefahren, dann ist er gruen und rund 3 Minuten schneller.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf auf `main` | W-14 Teil 2 (dieser Commit) | `git log --oneline -1` |
+| Neue Wache | `tests/test_drachen_einhaengung.py` 76/0/0 | Testlauf |
+| Voller Sammellauf | 165 von 167 gruen, 0 rot, 1226 s, 6.848 Pruefungen | `docs/audits/sammellauf_20261105_0132_voll.log` |
+| Pruefdateien / Module | 167 / 58 | `ls tests/test_*.py \| wc -l`, `ls src/*.py` |
+| Register / Protokoll | 204 Zeilen / 324 Zeilen | `grep -cE '^\| [0-9]+ \|'`, `wc -l` |
+| Guthaben (Daniel 01:25) | 6,13 USD Stand / 53,86 USD Gesamtverbrauch | Ablesung |
+
+## Der EINE naechste Schritt
+
+1. **W-15 Haeuser:** Hausnamen und Wappenbeschreibungen auf die gelieferten Bilder umschreiben.
+2. **Kampfregeln 2, 4, 6** aus `cache/scratch/w13b_kampfregeln_entwurf.md` (Flucht unter 50
+   Prozent, Wurf gegen 40 + 5 x Sequenz, Beute-Reihenfolge Gold zuerst, Mauerreparatur).
+3. **Story-Einbau:** Chronik-Kapitel in `data/story.json` (Entwurf liegt im Scratch).
+
+Arbeitsweise unveraendert: **voller Sammellauf mit dem Projekt-venv**, Registerzeile und
+Protokollzeile gehoeren zum Abschluss, Kommentarregel Variante A bei jedem neuen Code.
+
+**Offen bei Daniel (eine Runde am Abschluss):** welche DREI Welten die Drachen bekommen
+(Vorschlag d02/d03/d05), ob die Drachenschuppe ein Lagerfach bekommt, ob der Rest des Hortes mit
+dem Drachen verfallen soll (so ist es jetzt) und die Verdichtung des Protokolls.
+
+---
 # STAND 05.11.2026, 00:05 - W-13 gebaut (Gesamtsieg mit Endlosspiel), W-14 Teil 1 liegt bereit
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
