@@ -48,6 +48,7 @@ import punkte      # W6: Forschungs-, Kriegs- und Gesamtpunkte nach den Original
 import kampf       # W2: Vorrunde, Kampfsequenzen, Flucht, Beute (Handbuch S. 20-23)
 import kampfbericht  # W2b: Vorrunden-Pruefung, Mauerschaden, Beute, Bericht
 import drachen  # W-14 (05.11.2026): die Drachen des Spiels - liest nur data/drachen.json
+import ruinendeckung  # Frage 9 (05.11.2026): eine besiegte Ruine deckt ihre Himmelsrichtung
 import haeuser  # W-15 (05.11.2026): Hausnamen und Wappen je Fraktion aus data/haeuser.json
 import bot_angriffsplanung  # GPT-B01: Original-SK-Zielwahl und ehrliche Bot-Kampfberichte
 import botkern     # W5: Bot-Regeln (hier: die Vorschlagsspannen fuer die Vorraete der Bots)
@@ -5794,6 +5795,53 @@ class GameState:
         """
         return self.drache_an(welt_nummer, x, y) is not None           # Drache oder Ruine = gesperrt
 
+    def ruinen_der_welt(self, welt_nummer) -> list:
+        """Alle BESIEGTEN Drachen (Ruinen) einer Welt mit Name und Lage - die Quelle der Deckung.
+
+        Frage 9 (Daniel 05.11.2026): eine besiegte Ruine ist ein taktischer Punkt. Was hinein
+        geht: die Weltnummer. Was heraus kommt: eine Liste `{"name", "position"}`; die Lage kommt
+        aus DIESEM Spielstand (`drachen_position`), damit die Deckung zur gezeichneten Karte passt.
+        """
+        kennung_welt = drachen.welt_kennung(welt_nummer)                # Kennung der Welt
+        if not kennung_welt:                                            # unbrauchbare Weltnummer
+            return []                                                   # dann keine Ruine
+        ergebnis = []                                                   # je Ruine ein Eintrag
+        for eintrag in drachen.alle():                                  # jeder gueltige Drache
+            if str(eintrag.get("welt")) != kennung_welt:                # andere Welt
+                continue                                                # ueberspringen
+            if str(eintrag.get("id")) not in (self.drachen_besiegt or []):   # steht noch
+                continue                                                # keine Ruine
+            x, y = self.drachen_position(eintrag)                       # SEINE Lage hier
+            ergebnis.append({"name": str(eintrag.get("name") or ""),     # Name fuer die Anzeige
+                             "position": (int(x), int(y))})             # Lage auf der Weltkarte
+        return ergebnis                                                 # fertige Liste
+
+    def ruinendeckungen(self, ort=None) -> list:
+        """Welche Richtungen dieses Ortes decken Ruinen? (Frage 9, Register 216)
+
+        Ohne Angabe gilt die aktive Siedlung. Rueckgabe wie `ruinendeckung.deckungen` - leer,
+        wenn keine Ruine auf derselben Welt besiegt ist.
+        """
+        ort = ort or self.aktive_siedlung()                             # Ort bestimmen
+        if ort is None:                                                 # kein Ort vorhanden
+            return []                                                   # dann keine Deckung
+        return ruinendeckung.deckungen(
+            (int(getattr(ort, "x", 0) or 0), int(getattr(ort, "y", 0) or 0)),
+            self.ruinen_der_welt(int(getattr(ort, "dimension", 1) or 1)))
+
+    def ruine_deckt_angriff(self, ort, angreifer_position) -> dict:
+        """Deckt eine Ruine den Angriff aus `angreifer_position` auf `ort`? {} heisst: nein.
+
+        Das ist die EINE Stelle, die der Kampfweg fragt - die Anzeige liest dieselbe Rechnung
+        ueber `ruinendeckungen`.
+        """
+        if ort is None:                                                 # kein Ziel
+            return {}                                                   # dann keine Deckung
+        return ruinendeckung.deckung(
+            (int(getattr(ort, "x", 0) or 0), int(getattr(ort, "y", 0) or 0)),
+            angreifer_position,
+            self.ruinen_der_welt(int(getattr(ort, "dimension", 1) or 1)))
+
     def bot_dorf_platz(self, welt_nummer, x, y) -> tuple:
         """Ein freies Feld fuer ein Bot-Dorf: die gewuenschte Stelle, sonst die naechste freie.
 
@@ -6645,6 +6693,20 @@ class GameState:
                         # moeglich - auch nicht von einem Bot aus.
                         _erlaubt, _grund = punkte.angreifbar(
                             int(bot.punkte), int(self.punktestand()["gesamt"]))
+                        # Frage 9 (Daniel 05.11.2026): eine BESIEGTE RUINE deckt ihre Seite. Liegt
+                        # sie im selben Sektor wie der Angreifer, kommt aus dieser Richtung kein
+                        # Angriff - weder vom Spieler noch von einem Bot. Die Pruefung sitzt hier,
+                        # weil JEDER Angriff auf einen Spieler-Ort durch diese Stelle geht.
+                        _heimat = next((d for d in bot_doerfer_sicherstellen(bot)
+                                        if int(getattr(d, "hauptdorf", False))), None)
+                        _deckung = self.ruine_deckt_angriff(
+                            zielort, (int(getattr(_heimat, "x", 0) or 0),
+                                      int(getattr(_heimat, "y", 0) or 0))) if _heimat else {}
+                        if _deckung:
+                            _erlaubt = False
+                            _grund = ("Die Ruine %s deckt %s aus %s - kein Angriff aus dieser Richtung."
+                                      % (_deckung.get("ruine") or "", getattr(zielort, "name", ""),
+                                         _deckung.get("richtung_text") or _deckung.get("richtung") or ""))
                         if not _erlaubt:
                             meldung = (f"{bot.name}: Angriff auf {zielort.name} verschoben - "
                                        f"{_grund}")
@@ -8695,6 +8757,15 @@ class NebelseetalApp:
                 "Dein Volk: %s - %s / %s" % (_volk, _werte.get("plus") or "-",
                                              _werte.get("minus") or "-"),
                 ("TkDefaultFont", 9, "bold"), self.skin["gold"], innen=12, pady=4)
+
+        # Frage 9 (Daniel 05.11.2026): welche Seiten decken die Ruinen dieser Siedlung? Die Zeile
+        # erscheint NUR, wenn es eine Deckung gibt - die Rechnung liefert `ruinendeckung`, dieselbe
+        # Stelle, die auch der Kampfweg fragt (keine zweite Wahrheit).
+        _deckungen = self.state.ruinendeckungen()                        # Deckungen dieses Ortes
+        _deckung_text = ruinendeckung.deckung_text(
+            str(getattr(self.state.aktive_siedlung(), "name", "") or "Der Ort"), _deckungen)
+        if _deckung_text:                                                # nur bei echter Deckung
+            self._kasten_label(_deckung_text, ("TkDefaultFont", 9), "#8FE388", innen=12, pady=4)
 
         _grenze = gebaeude_wirkung.bevoelkerungsgrenze(self.state.settlements)
 

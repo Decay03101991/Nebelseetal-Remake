@@ -2,13 +2,13 @@
 
 **Erzeugt von `tools/modulkarte_bauen.py` — nicht von Hand ändern.** Stand: siehe Git-Historie.
 
-59 Dateien in `src/`, 33075 Zeilen, 956 Funktionen und Klassen auf oberster Ebene.
+60 Dateien in `src/`, 33420 Zeilen, 962 Funktionen und Klassen auf oberster Ebene.
 
 ## Die Karte
 
 | Datei | Zeilen | Zweck (erste Zeile des Docstrings) | wird gebraucht von |
 |---|---:|---|---|
-| `main.py` | 14405 | Nebelseetal Remake — Core Game Engine | public_start.py |
+| `main.py` | 14548 | Nebelseetal Remake — Core Game Engine | public_start.py |
 | `spieloekonomie.py` | 1651 | Nebelseetal Remake — deterministischer Kern der Spielökonomie (Ökonomie-Paket, Schritt 2). | admin_teststand.py, admin_werkzeuge.py, botkern.py, main.py |
 | `welt_optik_fein.py` | 898 | FEINERE Zeichenplaene fuer die WELTkarte des Nebelseetal-Remakes (naechste Ausbaustufe). | main.py |
 | `karten_optik_fein.py` | 863 | Feinere Zeichenplaene fuer die Siedlungskarte des Nebelseetal-Remakes | main.py |
@@ -19,10 +19,10 @@
 | `drachen.py` | 635 | Drachen des Spiels - Daten lesen, Figur oder Ruine bestimmen, Siege merken (W-14 Teil 1). | main.py |
 | `welt_optik.py` | 600 | Zeichenplaene fuer die WELTkarte des Nebelseetal-Remakes (Paket: feinere Weltkartenoptik). | main.py |
 | `karten_optik.py` | 599 | Zeichenplaene fuer die Siedlungskarte des Nebelseetal-Remakes (Paket: feinere Kartenoptik). | main.py |
-| `kampfbericht.py` | 541 | Nebelseetal Remake - Kampfbericht (Paket W2b, 04.10.2026). | auftraege.py, main.py, spielschicht.py |
+| `kampfbericht.py` | 575 | Nebelseetal Remake - Kampfbericht (Paket W2b, 04.10.2026). | auftraege.py, main.py, spielschicht.py |
 | `punkte.py` | 525 | Nebelseetal Remake — Punkte, Rangliste, Goetterschutz und Sieg/Niederlage (Paket W6, 04.10.2026). | botkern.py, main.py, spielschicht.py |
 | `portalraum.py` | 510 | Portal- und Limbus-Raum fuer das Nebelseetal-Remake (Paket W5-2). | drachen.py, main.py, spielschicht.py |
-| `kampf.py` | 448 | Nebelseetal – Kampfsystem des späteren Original-Forumstexts. | main.py |
+| `kampf.py` | 487 | Nebelseetal – Kampfsystem des späteren Original-Forumstexts. | main.py |
 | `wirtschaft.py` | 423 | Wirtschaft — stuendlicher Rohstoffertrag der Siedlungen (Remake Nebelseetal). | gpt_versorgungsdiagnose.py, main.py, spielerhilfe.py, spieloekonomie.py, spielschicht.py, versorgungsschutz.py |
 | `werkstatt.py` | 422 | Nebelseetal Remake - Waren und Werkstaetten (Paket W3, 04.10.2026). | main.py, spieloekonomie.py, spielschicht.py |
 | `spionage.py` | 410 | Spionage: Schalter, Aufklaerungswert, Bericht und Nachricht (Stufe B-5, 02.11.2026). | auftraege.py, main.py |
@@ -54,6 +54,7 @@
 | `marsch_optik.py` | 150 | Nebelseetal Remake - Optik der Truppenbewegungen auf der Weltkarte (Stufe M-1, 02.11.2026). | main.py |
 | `fehlbestand.py` | 140 | Fehlbestand: welche Rohstoffe fehlen und um wieviel. | spieloekonomie.py |
 | `baumenue_info.py` | 133 | FIX04 – Datenmodell fuer das historische Baumenue der Siedlungskarte. | main.py |
+| `ruinendeckung.py` | 129 | Ruinendeckung: eine besiegte Ruine deckt die Richtung, in der sie liegt (Frage 9, Register 216). | main.py |
 | `gpt_versorgungsdiagnose.py` | 126 | Nur-lesende Versorgungsdiagnose fuer Nebelseetal. | — (Einstieg oder ungenutzt) |
 | `admin_teststand.py` | 125 | Reproduzierbarer Admin-Teststand: keine Aenderung von Originalertraegen. | main.py |
 | `dorfwall.py` | 125 | Isolierter Wallkern fuer Nebelseetal (GPT-Zuarbeit, 28.10.2026). | main.py |
