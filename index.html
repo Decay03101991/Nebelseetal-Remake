@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nebelseetal Remake — Pre-Release 0.5.0-pre.1</title>
+<meta name="description" content="Einzelspieler-Remake des historischen Browserspiels Nebelseetal. Windows-Testversion, lokal und offline.">
+<style>
+  :root{
+    --papier:#12161c; --papier2:#0b0e12; --gold:#edce87; --kupfer:#945c2b;
+    --stahl:#2a4556; --text:#ece1cb; --leise:#9fb0ba;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:
+      radial-gradient(140% 60% at 50% -10%, rgba(58,92,112,.55) 0%, rgba(22,26,32,.95) 45%, var(--papier2) 100%);
+    color:var(--text); font-family:Georgia,"Palatino Linotype",serif; line-height:1.65;
+  }
+  .leiste{height:64px;background:linear-gradient(90deg,#5a3a1c,#8a5a28 30%,#c9a227 50%,#8a5a28 70%,#5a3a1c);
+    border-bottom:2px solid var(--kupfer);box-shadow:0 6px 18px rgba(0,0,0,.6)}
+  main{max-width:900px;margin:0 auto;padding:56px 24px 80px}
+  h1{font-size:44px;font-weight:normal;margin:0 0 6px;letter-spacing:.5px;
+     background:linear-gradient(#f7e6ad,#edce87 45%,#b07f2e);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .unter{color:var(--leise);margin:0 0 36px}
+  h2{font-size:22px;font-weight:normal;color:var(--gold);margin:44px 0 14px;padding-bottom:6px;border-bottom:1px solid rgba(148,92,43,.6)}
+  p{margin:0 0 14px}
+  a{color:var(--gold);text-decoration:none;border-bottom:1px solid rgba(237,206,135,.35)}
+  a:hover{border-bottom-color:var(--gold)}
+  .kasten{border:1px solid rgba(148,92,43,.65);background:rgba(9,13,18,.62);padding:22px 26px;margin:0 0 22px;
+    box-shadow:0 8px 24px rgba(0,0,0,.45)}
+  .knopf{display:inline-block;margin:6px 12px 6px 0;padding:13px 26px;border:1px solid var(--gold);
+    background:linear-gradient(#2a2118,#151a20);color:var(--gold);font-size:17px;border-radius:3px}
+  .knopf:hover{background:linear-gradient(#3a2c1e,#1c232b);border-bottom-color:var(--gold)}
+  ul{padding-left:22px} li{margin:6px 0}
+  .leise{color:var(--leise);font-size:15px}
+  table{width:100%;border-collapse:collapse;margin:0 0 20px}
+  td,th{text-align:left;padding:9px 12px;border-bottom:1px solid rgba(148,92,43,.3);vertical-align:top}
+  th{color:var(--gold);font-weight:normal}
+  footer{margin-top:56px;padding-top:18px;border-top:1px solid rgba(148,92,43,.4);color:#7b8b95;font-size:14px}
+</style>
+</head>
+<body>
+<div class="leiste"></div>
+<main>
+  <h1>Nebelseetal Remake</h1>
+  <p class="unter">Einzelspieler-Remake des historischen Browserspiels Nebelseetal &middot;
+     Pre-Release <strong>0.5.0-pre.1</strong> &middot; Windows, lokal, offline, kostenlos</p>
+
+  <div class="kasten">
+    <p><strong>Du bist ein Herrscher in einer zersprungenen Welt.</strong> Sechs Bruchst&uuml;cke treiben im
+    Limbus, verbunden nur durch Portale. Du gr&uuml;ndest Siedlungen, produzierst Rohstoffe, stellst Waren her,
+    forschst, r&uuml;stest aus, bildest Einheiten aus und k&auml;mpfst &mdash; gegen dich spielen f&uuml;nf
+    Nachbarn mit eigener Wirtschaft. Einen Sieg gibt es nicht, sondern Ruhm: vier Auszeichnungen f&uuml;r Krieg,
+    Wissen, Handel und alles zusammen.</p>
+    <p><a class="knopf" href="https://github.com/Decay03101991/Nebelseetal-Remake/releases/latest">Testversion herunterladen</a>
+       <a class="knopf" href="https://github.com/Decay03101991/Nebelseetal-Remake">Quellcode ansehen</a></p>
+    <p class="leise">Windows 11 getestet, 64 Bit. ZIP entpacken, <em>Nebelseetal_Remake.exe</em> starten,
+    eigenes Passwort festlegen. Kein Python n&ouml;tig, kein Internet. Eine macOS-Fassung gibt es nicht &mdash;
+    sie m&uuml;sste auf einem Mac gebaut und gepr&uuml;ft werden.</p>
+  </div>
+
+  <h2>Was in dieser Vorabversion steckt</h2>
+  <ul>
+    <li>Siedlungen gr&uuml;nden und ausbauen, Rohstoffe, Waren, Werkst&auml;tten, Handel</li>
+    <li>21 Forschungen mit Voraussetzungen, Ausr&uuml;stung herstellen, 28 Einheiten ausbilden</li>
+    <li>K&auml;mpfe mit Wall, Schlachten in Sequenzen, Beute und Kriegspunkten</li>
+    <li>f&uuml;nf Nachbarn mit eigener Wirtschaft: sie forschen, bauen, gr&uuml;nden, rauben</li>
+    <li>Portale in andere Welten mit Mana-Kosten je Entfernung</li>
+    <li>die Geschichte der Welt: Intro, sieben Chronikkapitel, sprechende Nachbarn</li>
+  </ul>
+
+  <h2>Was noch fehlt &mdash; ehrlich</h2>
+  <ul>
+    <li>Die Welt steht noch auf 20 Limbus-Dimensionen; der Umbau auf sechs Welten l&auml;uft.</li>
+    <li>Drei Kampfregeln fehlen: Fluchtformel, Beute-Reihenfolge, Mauerreparatur mit Bauzeit.</li>
+    <li>Kein Ton, keine Musik. Ansichten bauen sich beim Wechsel neu auf.</li>
+    <li>Nur Windows, nur 64 Bit, nur auf einem Rechner getestet.</li>
+  </ul>
+
+  <h2>Weiterlesen</h2>
+  <table>
+    <tr><td><a href="https://github.com/Decay03101991/Nebelseetal-Remake/blob/main/SPIEL_ERKLAERUNG.md">Die offizielle Erkl&auml;rung</a></td>
+        <td class="leise">was das Spiel genau ist &mdash; und was es nicht ist</td></tr>
+    <tr><td><a href="https://github.com/Decay03101991/Nebelseetal-Remake/blob/main/BESUCHER.md">Wie dieses Spiel entstanden ist</a></td>
+        <td class="leise">f&uuml;r Besucher: Entwicklung, Arbeitsweise, Sicherheit</td></tr>
+    <tr><td><a href="https://github.com/Decay03101991/Nebelseetal-Remake/blob/main/FRAKTIONEN_WELTEN.md">Sechs H&auml;user, sechs Welten</a></td>
+        <td class="leise">Fraktionen mit Wappen, die Welten im Bild</td></tr>
+    <tr><td><a href="https://github.com/Decay03101991/Nebelseetal-Remake/blob/main/CHRONIK_DER_WELT.pdf">Die Chronik der Welt</a></td>
+        <td class="leise">die Geschichte als gestaltetes Buch (PDF)</td></tr>
+    <tr><td><a href="https://github.com/Decay03101991/Nebelseetal-Remake/blob/main/VORSCHAU.md">Erste Eindr&uuml;cke einer sp&auml;teren Version</a></td>
+        <td class="leise">Bilder von Fraktionen, Geb&auml;uden, Burgen und Panoramen</td></tr>
+  </table>
+
+  <h2>Wer dahinter steht</h2>
+  <div class="kasten" style="display:flex;gap:26px;align-items:flex-start;flex-wrap:wrap">
+    <img src="assets/bilder/daniel_portrait_klein.png" alt="Daniel K&ouml;ssl"
+         style="width:190px;border:1px solid rgba(148,92,43,.7);box-shadow:0 6px 18px rgba(0,0,0,.55);flex:none">
+    <div style="flex:1;min-width:260px">
+      <p><strong>Daniel K&ouml;ssl</strong>, angehender Fachinformatiker f&uuml;r Systemintegration &mdash; und der
+      Hermes-Agent <strong>Weltenfresser</strong>, der Code, Pr&uuml;fungen und Dokumentation beisteuert.</p>
+      <p>Sicherheit und Kontrolle stehen im ganzen System an erster Stelle: hierarchische Regeln, getrennte Lese-
+      und Schreibrechte, protokollierte &Auml;nderungen. Mehr im
+      <a href="https://github.com/Decay03101991/Nebelseetal-Remake/blob/main/BESUCHER.md">Besucherdokument</a>.</p>
+    </div>
+  </div>
+
+  <footer>
+    Nebelseetal Remake &middot; Pre-Release 0.5.0-pre.1 &middot; 04.11.2026 &middot;
+    <a href="https://github.com/Decay03101991/Nebelseetal-Remake">Repository</a> &middot;
+    <a href="https://github.com/Decay03101991/Nebelseetal-Remake/issues">Fehler melden</a>
+  </footer>
+</main>
+</body>
+</html>

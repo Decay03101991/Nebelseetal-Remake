@@ -21,6 +21,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import os
+import json
 import shutil
 import struct
 import subprocess
@@ -28,7 +29,30 @@ import sys
 from pathlib import Path
 
 WURZEL = Path(__file__).resolve().parent.parent
-NAME = "Nebelseetal_Remake"
+
+
+def release_name() -> str:
+    """Der Dateiname der EXE kommt aus `data/version.json` - EINE Quelle (Register 221).
+
+    Daniel 05.11.2026: je Release zaehlt der Name mit (`Nebelseetal_<Label>_V0.0.<zaehler>.exe`).
+    Bis heute stand hier fest `Nebelseetal_Remake`; der Name aus der Datendatei wurde ignoriert.
+    Fehlt die Datei oder ist sie kaputt, gilt der alte Name - der Bau bricht NICHT ab.
+    """
+    pfad = WURZEL / "data" / "version.json"                  # feste Datendatei
+    try:                                                     # Datei lesen
+        with open(pfad, encoding="utf-8") as f:               # UTF-8, wie alle Daten
+            daten = json.load(f)                              # Inhalt als dict
+    except (OSError, ValueError):                             # fehlt oder kaputt
+        return "Nebelseetal_Remake"                           # dann der alte Name
+    if not isinstance(daten, dict):                           # kein dict = unbrauchbar
+        return "Nebelseetal_Remake"                           # dann der alte Name
+    name = str(daten.get("dateiname") or "").strip()          # der eingetragene Dateiname
+    if name.lower().endswith(".exe"):                         # PyInstaller will ihn ohne Endung
+        name = name[:-4]                                      # Endung abschneiden
+    return name or "Nebelseetal_Remake"                       # nie leer
+
+
+NAME = release_name()
 ICON = WURZEL / "assets" / "icons" / "nebelseetal.ico"
 BAUORDNER = WURZEL / "build"          # Arbeitsordner von PyInstaller (danach weg)
 VERTEILORDNER = WURZEL / "dist"       # Zwischenablage der fertigen EXE (danach weg)

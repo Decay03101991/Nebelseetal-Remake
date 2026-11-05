@@ -1,3 +1,42 @@
+# STAND 05.11.2026, 17:40 - Erste veroeffentlichte Fassung `Nebelseetal_Pre_Release_V_0.0.1.exe` gebaut, geprueft, Null-Zustand vorbereitet
+
+> Neuester Block. Register 230, Protokollsektion HERMES-RELEASE-230. Kopf beim Schreiben: `a5fac01`,
+> Commit dieses Schnitts danach.
+
+**Was seit dem letzten Block passiert ist:**
+
+| Nr. | Schritt | Beleg |
+|---|---|---|
+| A | Voller Sammellauf fuer den Stand nach Register 228 | **174 von 176 gruen, 0 rot**, 7.239 Pruefungen, 1257 s (`docs/audits/sammellauf_20261105_1630.log`) |
+| B | **Befund:** das Bauwerkzeug las den Namen nie aus `data/version.json` | `tools/build_exe.py` neu mit `release_name()`; `tools/build_public_exe.py` zieht Name UND Version aus derselben Datei |
+| C | Entwickler-EXE gebaut | `Nebelseetal_Pre_Release_V_0.0.1.exe`, 86.978.803 Byte, SHA256 `efaf403b9446...` |
+| D | Veroeffentlichungs-EXE gebaut, Paket LEER | 86.983.205 Byte, SHA256 `f9ef7aaa14b0...`, `--pruefen` gruen, Demo-Speicherordner ohne Spielstand |
+| E | Start am Bildschirm geprueft | Fenster + **Passwortsperre** im Bild belegt; beendet ueber die Fenster-PID, 0 Prozesse, verwaiste `game.lock` gesichert und entfernt |
+| F | GitHub-Null-Zustand vorbereitet | kein gemeinsamer Vorfahre (lokal 619 / Remote 10 Commits); Remote-Stand als Tag `vor-nullzustand-20261105`, `index.html` unveraendert uebernommen |
+
+**Ehrlich offen:** der Push selbst ist in diesem Block noch nicht belegt (Auth und Force wegen
+wurzelloser Historien); die Spieltest-Laeufe mit 3,16 USD sind nicht gestartet; die Session-Wache fuer
+Cron-Jobs ist gebaut und der Cleanup-Bot wieder aktiv, der Skill-Nachtrag wartet auf Daniels Freigabe.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf auf `main` | `a5fac01` beim Schreiben | `git log --oneline -1` |
+| Pruefdateien / Module | 176 / 60 | `ls tests/test_*.py`, `ls src/*.py` |
+| Register / Protokoll | 269 / 278 Zeilen | Zaehlung |
+| Voller Sammellauf | **gruen** (174/176, 0 rot, 1257 s) | `docs/audits/sammellauf_20261105_1630.log` |
+| Entwickler-EXE | `Nebelseetal_Pre_Release_V_0.0.1.exe`, 86.978.803 Byte, SHA256 `efaf403b9446...` | `docs/audits/exe_bau_20261105_1705.log` |
+| Veroeffentlichung | `release_public/Nebelseetal_Pre_Release_V_0.0.1.exe` + `.zip`, SHA256 `f9ef7aaa14b0...` | `docs/audits/public_bau_20261105_1725.log` |
+| Guthaben (Daniel 15:06) | 13,16 USD Stand; 3,16 USD fuer Spieltests freigegeben, **nicht verbraucht** | Ablesung |
+
+## Der EINE naechste Schritt
+1. **GitHub-Push des Null-Zustands** (Tag `vor-nullzustand-20261105` zuerst, dann `main`; kein normaler
+   Push moeglich, weil die Historien keinen gemeinsamen Vorfahren haben) und Release-Notizen als
+   Pre-Release veroeffentlichen.
+2. **Ein bis zwei Spieltest-Laeufe** (3,16 USD freigegeben) mit verschiedenem Verhalten; das Paket
+   braucht die Skip-Anweisung, damit ein gescheiterter Test den Lauf NICHT beendet.
+3. Danach das Repo **laufend aktuell halten** (Daniel 05.11.2026) und jede neue Spielversion
+   ankuendigen.
+
 # STAND 05.11.2026, 15:40 - Register 228 GEBAUT: Startkarte fest, erstes Dorf ab sechs Siedlungen, Bots geben mit Ruecklage auf
 
 > Neuester Block. Der Block darunter (15:25) haelt die ENTSCHEIDUNGEN fest; dieser Block den gebauten

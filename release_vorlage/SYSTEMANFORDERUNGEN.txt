@@ -1,5 +1,5 @@
 NEBELSEETAL REMAKE - SYSTEMANFORDERUNGEN (vorlaeufig)
-Stand: 04.11.2026 | Version 0.5.0-pre.1 | Oeffentliche Windows-Testversion
+Stand: 04.11.2026 | Version V_0.0.1 | Oeffentliche Windows-Testversion
 
 NACHGEWIESENE TESTUMGEBUNG
 - Windows 11 Home, 64 Bit (Build 26300)

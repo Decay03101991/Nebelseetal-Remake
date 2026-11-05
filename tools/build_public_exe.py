@@ -6,6 +6,7 @@ public_start.py sperrt den Zugriff auf die Admin-Oberflaeche.
 from __future__ import annotations
 import argparse
 import hashlib
+import json
 import os
 import shutil
 import struct
@@ -15,8 +16,32 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-NAME = "Nebelseetal_Remake"   # Name der EXE (Daniel: Nebelseetal-Remake.exe)
-VERSION = "0.5.0-pre.1"     # Version des Pakets, wird mit --version ueberschrieben
+def _version() -> dict:
+    """Der Name des Pakets kommt aus `data/version.json` - dieselbe Quelle wie der Entwickler-Bau.
+
+    Daniel 05.11.2026, buchstabengenau: die erste veroeffentlichte Spielversion heisst
+    `Nebelseetal_Pre_Release_V_0.0.1.exe`. Bis heute stand hier ein fester Name und eine feste
+    Version ("0.5.0-pre.1") - beides war eine zweite Wahrheit neben der Datendatei.
+    """
+    try:                                                     # Datei lesen
+        with open(ROOT / "data" / "version.json", encoding="utf-8") as f:   # feste Datendatei
+            daten = json.load(f)                              # Inhalt als dict
+    except (OSError, ValueError):                             # fehlt oder kaputt
+        return {"dateiname": "Nebelseetal_Remake.exe", "version": "0.0.0"}   # alter Name, alte Zahl
+    if not isinstance(daten, dict):                           # kein dict = unbrauchbar
+        return {"dateiname": "Nebelseetal_Remake.exe", "version": "0.0.0"}   # alter Name
+    dateiname = str(daten.get("dateiname") or "Nebelseetal_Remake.exe").strip()   # Name der EXE
+    try:                                                      # Zaehler als Zahl
+        nummer = int(daten.get("zaehler") or 0)               # Zahl aus den Daten
+    except (TypeError, ValueError):                           # kaputter Wert
+        nummer = 0                                            # dann 0
+    version = "0.0.%d" % nummer if nummer > 0 else "0.0.0"    # Versionsbezeichnung des Pakets
+    return {"dateiname": dateiname, "version": version}       # beide Werte zurueck
+
+
+_AUS_VERSION = _version()                                     # einmal lesen
+NAME = _AUS_VERSION["dateiname"].rsplit(".exe", 1)[0]         # Name ohne Endung
+VERSION = _AUS_VERSION["version"]                             # z. B. 0.0.1
 OUTPUT = ROOT / "release_public"
 ICON = ROOT / "assets" / "icons" / "nebelseetal.ico"
 ENTRY = ROOT / "src" / "public_start.py"
@@ -64,7 +89,7 @@ def pack(exe: Path) -> tuple[Path, str]:
     """EXE plus Infopaket zu einem ZIP schnueren, SHA256 daneben und im ZIP."""
     sha = hashlib.sha256(exe.read_bytes()).hexdigest()
     (OUTPUT / "SHA256SUMS.txt").write_text(f"{sha}  {exe.name}\n", encoding="ascii")
-    bundle = OUTPUT / f"{NAME}_{VERSION}.zip"
+    bundle = OUTPUT / f"{NAME}.zip"      # der Name traegt die Version schon (data/version.json)
     with zipfile.ZipFile(bundle, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as z:
         z.write(exe, exe.name)
         z.write(OUTPUT / "SHA256SUMS.txt", "SHA256SUMS.txt")

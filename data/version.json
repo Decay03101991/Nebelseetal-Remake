@@ -1,11 +1,12 @@
 {
   "stand": "2026-11-05",
-  "zweck": "Der Dateiname jedes Release. EINE Quelle: das Bauwerkzeug und die Release-Notizen lesen ihn hier.",
-  "quelle": "Daniel, 05.11.2026, woertlich-nah: 'Nebelseetal_Pre_Release_V0.0.1.exe' - und 'jede neue Version bringt den Zaehler um eins hoch', naechste also 'Nebelseetal_DemoVersion_V0.0.2.exe'.",
-  "schema": "Nebelseetal_<Label>_V0.0.<zaehler>.exe",
+  "zweck": "Der Dateiname jedes Release. EINE Quelle: das Bauwerkzeug (`tools/build_exe.py`) und die Release-Notizen lesen ihn hier.",
+  "quelle": "Daniel, 05.11.2026, buchstabengenau: 'Nebelseetal_Pre_Release_V_0.0.1.exe'. Diese Fassung ist die ERSTE VEROEFFENTLICHTE Spielversion; alles davor sind Entwicklungszustaende und Historie und steht nur noch in den Entwicklungsdaten.",
+  "schema": "Nebelseetal_<Label>_V_0.0.<zaehler>.exe",
   "label": "Pre_Release",
   "zaehler": 1,
-  "dateiname": "Nebelseetal_Pre_Release_V0.0.1.exe",
-  "naechster_label": "DemoVersion",
-  "hinweis": "Je Release aendert sich GENAU EINE Zahl: zaehler. Dann dateiname neu bilden (Schema) und label bei Bedarf setzen. Die vorige EXE vorher nach %LOCALAPPDATA%/hermes/cache/scratch/nebel_backup/ sichern."
+  "dateiname": "Nebelseetal_Pre_Release_V_0.0.1.exe",
+  "naechster_label": "Pre_Release",
+  "hinweis": "Je Release aendert sich GENAU EINE Zahl: zaehler. Dann dateiname neu bilden (Schema) und label bei Bedarf setzen. Die vorige EXE vorher nach %LOCALAPPDATA%/hermes/cache/scratch/nebel_backup/ sichern. Das Bauwerkzeug liest `dateiname` und benennt die Datei damit - eine zweite Namensliste gibt es nicht.",
+  "_entwicklung": "Die am 05.11.2026 um 11:27 gebaute Datei Nebelseetal_Pre_Release_V0.0.1.exe (ohne Unterstrich nach dem V, SHA256 4d1d0e5f37ee...) war ein ENTWICKLUNGSSTAND und liegt hashgleich in cache/scratch/nebel_backup/20261105_1530/. Sie ist NICHT die veroeffentlichte V0.0.1 - der gleiche Zaehler, aber ein anderer Stand."
 }
