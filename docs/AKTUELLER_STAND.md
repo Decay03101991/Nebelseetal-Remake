@@ -1,3 +1,27 @@
+# STAND 05.11.2026, 15:25 — Nachtrag zu Register 228: Daniels Antworten, zwei neue Schnitte vor dem Upload
+
+> Neuester Block, Nachtrag zum Block darunter (15:10). Die Antworten sind AUFGENOMMEN, nicht gebaut.
+
+**Vier Antworten auf die Fragenrunde vor der Uebergabe (Register 228):**
+
+1. **Startkarte wieder FEST:** Spieler UND alle Bots starten mit derselben mittleren Karte
+   (`original-036`). Die Zufallsziehung aus Register 227 gilt nur noch fuer NEUGruendungen.
+2. **Aufgeben erst mit sechs Siedlungen:** das erste Dorf ist aufgebenbar, sobald sechs Siedlungen
+   stehen - dann kann man aus den anderen Doerfern heraus neu gruenden und eine bessere Karte suchen.
+   Solange gesperrt, nennt die Anzeige den Grund.
+3. **Bots nach Original:** gruenden, beurteilen, aufgeben - aber sie muessen die Kosten erneut
+   ansparen koennen. Gefordert ist eine geeignete Loesung gegen den gemessenen Rueckfall von vier auf
+   ein Dorf (Ruecklage, Sperre, Erinnerung an abgelehnte Karten).
+4. **3,16 USD** fuer ein bis zwei Spieltest-Laeufe mit verschiedenem Verhalten; die Daten muessen
+   verwertbar formuliert sein. Ankuendigung im Pre-Release erlaubt, Spieltests NICHT Teil der EXE.
+
+## Der EINE naechste Schritt
+1. **Schnitt Register 228 bauen** (Startkarte fest, Freischaltung ab sechs Siedlungen, Bot-Aufgeben mit
+   Ruecklage) - das aendert den Startablauf und die Kartenregel aus Register 227, also VOR dem
+   Sammellauf und VOR der EXE.
+2. Danach voller Sammellauf, dann EXE `Nebelseetal_DemoVersion_V0.0.2.exe`, dann Upload.
+
+
 # STAND 05.11.2026, 15:10 — Register 222 und 225 GEBAUT; offen sind voller Sammellauf, EXE V0.0.2 und Upload
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen. Der Arbeitsstand ist
