@@ -18,10 +18,11 @@ beheben, dann die zwei Laeufe fahren.
 | F | Lauf 2 (Stil krieg, 10 Tage, Saat 23) + Modellurteil | 7 Einheiten, 5 Gefechte, 40 Punkte; `SPIELTEST_BEWERTUNG_20261105_L2.md`, **0,0333 USD** |
 | G | Befunde verwertbar formuliert (7 Befunde, 4 Grenzen, Reihenfolge der naechsten Schnitte) | `docs/SPIELTEST_BEFUNDE_20261105.md` |
 | H | Werkzeugbefund: `gesamtaudit_lauf.py --paket <pfad>` ignoriert den Pfad und sendet das volle Dossier | richtig ist `--paket --dossier <pfad> --ziel <datei>` (8.017 statt 129.371 Zeichen) |
-| I | **Voller Sammellauf ueber den ganzen Stand** | **176 von 178 gruen, 0 rot**, 7.276 bestandene Pruefungen, 1221 s (`docs/audits/sammellauf_20261105_1911.log`) |
+| I | **Voller Sammellauf ueber den ganzen Stand** | 1.221 s: 176/178, 0 rot, 7.276 Pruefungen — und nach W1 nochmals **176/178, 0 rot, 7.284 Pruefungen, 1.353 s** (`docs/audits/sammellauf_20261105_1958.log`) |
 | J | **W1 gebaut (Daniel 19:47): Waren kosten im Kern-Weg Geld UND Forschung** | `ware_fertigen` prueft ueber `spieloekonomie.ware_voraussetzung`, bucht Rezeptkosten atomar, Rueckbuchung bei Ablehnung; `test_spielschicht` **142/0/1** |
 | K | **Angriff ohne Karren erlaubt, Beute dann 0** (Daniel 19:47) | Der Kern liess das immer zu (Karrenladung ist die Grenze), blockiert hatte nur die Simulation; Wache `test_spieltest_erreicht_kampf` **19/0/0**, Abschnitt 5 |
 | L | Zwei NEUE Laeufe mit dem korrigierten Geraet bezahlt | L3 breit 10 Tage: 35 Punkte, 5 Gefechte, 0,0349 USD; L4 krieg 12 Tage: 40 Punkte, 11 Gefechte, 0,0362 USD; beide Urteile nennen **Waffentechnik Stufe 3** als Engstelle |
+| M | **Version 0.0.2 gebaut, am Bildschirm geprueft, veroeffentlicht** (Daniel 19:47) | EXE 86.984.365 Byte, SHA256 `c9b45703ee12...`, ZIP 86.702.517 Byte; Release `v_0.0.2` am Commit `af2b272`, beide Assets, Passwortsperre im Bild, 0 Prozesse, `game.lock` entfernt |
 
 **Geld:** 0,0305 + 0,0333 + 0,0349 + 0,0362 = **0,1349 USD gemessen** (ein L4-Versuch lief leer und
 wiederholte sich einmal; dessen Kosten stehen nicht in der Abrechnung des Werkzeugs). Von den 3,16 USD
@@ -29,12 +30,12 @@ der Freigabe sind damit rund **3,02 USD frei**. Guthaben bei Daniel: 12,48 USD (
 
 | Gegenstand | Wert | Beleg |
 |---|---|---|
-| Kopf auf `main` | `fa8e27c` beim Schreiben | `git log --oneline -1` |
+| Kopf auf `main` | `af2b272` (Code dieses Schnitts, danach die Doku-Commits) | `git log --oneline -1` |
 | Pruefdateien / Module | 178 / 60 | `ls tests/test_*.py`, `ls src/*.py` |
-| Register / Protokoll / Stand-Bloecke | 272 / 281 / 90 | Zaehlung |
-| Einzelwachen dieses Schnitts | `test_spielschicht` 137/0/1, `test_spieltest_erreicht_kampf` 16/0/0, `test_textqualitaet` 459/0, `test_projektpfade` 123/0, `test_zieluebergabe` 26/0/0 | Laeufe dieses Schnitts |
-| Spieltest-Laeufe | 2 (breit/krieg), kein Tick-Fehler in beiden | `docs/audits/SPIELTEST_LOG_20261105_1855.md`, `..._1902.md` |
-| Spieltest-Kosten | 0,0305 + 0,0333 = **0,0638 USD**, Rest frei 3,10 USD | `gesamtaudit.log` |
+| Register / Protokoll / Stand-Bloecke | 274 / 283 / 90 | Zaehlung |
+| Einzelwachen dieses Schnitts | `test_spielschicht` 142/0/1, `test_spieltest_erreicht_kampf` 19/0/0, `test_textqualitaet` 480/0, `test_projektpfade` 123/0, `test_zieluebergabe` 26/0/0 | Laeufe dieses Schnitts |
+| Spieltest-Laeufe | 4 bezahlt (L1 bis L4); L3/L4 ohne Tick-Fehler | `docs/audits/SPIELTEST_LOG_20261105_L3_breit10.md`, `..._L4_krieg12.md` |
+| Spieltest-Kosten | 0,0638 (L1/L2) + 0,0711 (L3/L4) = **0,1349 USD**, rund 3,02 USD der Freigabe frei | `gesamtaudit.log` |
 
 ## Der EINE naechste Schritt
 
