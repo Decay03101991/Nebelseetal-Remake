@@ -1,4 +1,4 @@
-# STAND 05.11.2026, 11:25 — alle Entscheidungen gebaut und nachgeschärft, Endstand gruen (Register 213 bis 220)
+# STAND 05.11.2026, 11:40 — Endstand gruen, Pre-Release-EXE gebaut und am Bildschirm geprüft (Register 213 bis 221)
 
 > Neuester Block. Die Bloecke darunter sind aeltere Staende und bleiben stehen.
 
@@ -45,17 +45,19 @@ ganzen Sektor bis zum Kartenrand). Beide sind Zeilen in Datendateien, ohne Codea
 | Register / Protokoll | **220** / **252** Zeilen aktiv + 113 Zeilen Historie | Zaehlung; die 02./03.11.-Sektionen sind ausgelagert |
 | Voller Sammellauf | **172 von 174 gruen, 0 rot, 1341 s** (die zwei uebrigen sind die seit 30.10. ausgesetzten Dateien) | `docs/audits/sammellauf_20261105_1120_nachordnung.log` |
 | Guthaben (Daniel 11:23) | 13,68 USD Stand / 56,31 USD Gesamtverbrauch | Ablesung, Protokollzeile |
+| Pre-Release-EXE | **`Nebelseetal_Pre_Release_V0.0.1.exe`**, 86.963.273 Byte (82,9 MB), SHA256 `4d1d0e5f…` | Bau `docs/audits/exe_bau_20261105_1130.log` |
+| Start der EXE geprüft | Fenster (PID 7208, „Nebelseetal Remake“) und **Passwortsperre im Bild** | `computer_use`, Aufnahme `computer_use_150e1697f4…png` |
+| Release-Namen | Schema `Nebelseetal_<Label>_V0.0.<Zähler>.exe` in `data/version.json` (nächste: `…_DemoVersion_V0.0.2.exe`) | Register 221 |
 
 ## Der EINE naechste Schritt
 
-1. **Sammellauf gelesen** (erledigt, zweimal): `sammellauf_20261105_1055_endstand.log` war **171/174 mit einer
-   roten** Datei (Projektordnungs-Wache verlangte genau EIN Historienheft) — nachgezogen in Register 220.
-   Der Lauf danach (`sammellauf_20261105_1120_nachordnung.log`) meldet **172 von 174 gruen, 0 rot, 1341 s**.
-2. **Protokoll auslagern — ERLEDIGT (Register 218).** Sektionen HERMES-KARTE-01 bis HERMES-BOTDORF-06 stehen
-   unveraendert in `docs/ENTWICKLUNGSPROTOKOLL_HISTORIE_20261102_bis_20261103.md`; aktives Heft 252 Zeilen.
-3. **Als Naechstes: neue EXE bauen und veroeffentlichen** (Daniels Wahl, Uebergabe 11:15). Danach die
-   **Bot-Drachenregel** als eigener Schnitt (sie ist auf die alte Schwelle 300 geeicht) und das
-   **Protokoll-Mini-Repo privat** zu GitHub.
+1. **Sammellauf gelesen:** `sammellauf_20261105_1120_nachordnung.log` = **172 von 174 grün, 0 rot, 1341 s**
+   (die zwei übrigen sind die dokumentiert ausgesetzten Dateien). Rote Dateien davor sind in Register 220 erklärt.
+2. **EXE gebaut und geprüft — ERLEDIGT (Register 221).** `Nebelseetal_Pre_Release_V0.0.1.exe`, 86.963.273 Byte,
+   SHA256 `4d1d0e5f…`; Start am Bildschirm belegt (Fenster + Passwortsperre). Der Namenszähler steht in `data/version.json`.
+3. **Als Nächstes: das Upload-Paket für GitHub.** `tools/build_public_exe.py --pruefen` (belegt das LEERE Paket), dann
+   der Bau nach `release_public/`, Release-Notizen, Größe und SHA256 **nur aus der Ausgabe des Laufs**, dann der Push
+   (kein Force, `main` unberührt). Danach die **Bot-Drachenregel** als eigener Schnitt und das **Protokoll-Mini-Repo privat**.
 
 ---
 
