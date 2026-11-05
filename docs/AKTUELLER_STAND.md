@@ -1,3 +1,48 @@
+# STAND 06.11.2026, 00:57 - Gemini-Input ausgewertet: gefiltert, geprueft, 16 Rohdateien archiviert, Projekt-Dokumente liegen (Register 242)
+
+> Neuester Block. Register 242, Protokollzeile 00:57. Kopf beim Schreiben: `3c5189a` (gepusht, Remote
+> gelesen); der Commit dieses Schnitts folgt danach. Der Block 23:28 darunter haelt A1, der Block 19:25
+> die Spieltests und W1.
+
+**Was dieser Schnitt geaendert hat (nur Dokumente und Ablage, kein Code):** Daniels Auftrag aus
+Abschnitt 3a der Uebergabe ist abgearbeitet - der Gemini-Input ist gegen den Code geprueft, das
+Unbrauchbare liegt im Archiv, und im Projekt liegt eine Fassung, aus der gearbeitet werden kann.
+**Aus dem Gemini-Input ist NICHTS uebernommen.**
+
+| Nr. | Schritt | Beleg |
+|---|---|---|
+| A | Jede Aussage der Sammlung gegen Code und Daten gemessen (Datei und Zeile, oder Zahl mit Befehl) | Messungen dieser Sitzung, in den Dokumenten je Zeile als Beleg |
+| B | **Vier Urteile der Vorsitzung widerlegt** - Dimensionen (6 statt 20, `_schnitt_w6`), Bots greifen die Spielersiedlung an (`main.py:6896`), Weltensprung gesperrt (`main.py:10857`), Rache-Gedaechtnis vorhanden (`bottaktik.py:345/483/566`) | `04_LUECKEN.md` Abschnitt 1 |
+| C | **16 von 29 Rohdateien** nach `02_ARCHIV` verschoben, Hashes vor und nach dem Verschieben gleich; 13 Bloecke bleiben in `00_ROH` | `02_ARCHIV/README_ARCHIV.md`, Ausgabe des Verschiebeskripts |
+| D | Projekt-Fassung geschrieben: `00_README`, `01_BRAUCHBAR` (B-1 bis B-10), `02_TEILWEISE` (T-1 bis T-7), `03_ABGELEHNT`, `04_LUECKEN`, `05_BEWERTUNG` | `docs/eingaenge/GEMINI_INPUT_20261106/` |
+| E | Bewertung: sechs Stuecke zum Uebernehmen, fuenf teilweise, drei fallen weg, weil der Code die Frage beantwortet | `05_BEWERTUNG.md` Abschnitte A bis C |
+| F | Neun Entscheidungen fuer Daniel gesammelt (eine Runde, nicht verstreut) | `docs/FRAGEN_AN_DANIEL_20261106_GEMINI.md` |
+| G | Sammlung im Eingangsordner nachgezogen (Nachtrag in `VERWERTUNG.md` und `SAMMLUNG_UEBERSICHT.md`, drei Zeilen als KORREKTUR/WIDERLEGT/ERLEDIGT markiert) | Eingangsordner `20261105_GoogleKI_Ideensammlung` |
+| H | Dokumentwachen gefahren, weil nur Dokumente geaendert wurden - **kein** Sammellauf noetig | `test_textqualitaet`, `test_protokoll`, `test_projektpfade`, `test_zieluebergabe` |
+
+## Der EINE naechste Schritt
+
+1. **Die Entscheidungsrunde aus `docs/FRAGEN_AN_DANIEL_20261106_GEMINI.md`** (neun Punkte, ein
+   Formular). Ohne Antwort wird aus dem Gemini-Input nichts gebaut - Rangfolge Register 238.
+2. **Spielseitig danach A1b:** `tools/spieltest_simulation.py` prueft vor dem Versuch (Lesestellen
+   `einheit_bedingungen`/`ware_bedingungen` mit `schritt`), Zielzahl Fehlversuche < 50. Danach **A2**
+   Messpflicht-Tabelle.
+3. **Unabhaengig davon weiterlaufend:** nach jedem Schnitt Registerzeile, Protokollzeile, Stand-Block,
+   voller Sammellauf, commit und push.
+
+**Geld (von Daniel abgelesen, nicht geschaetzt):** 11,86 USD Guthaben, Gesamtverbrauch 58,13 USD
+(Ablesung 06.11.2026 00:33). In diesem Schnitt **kein bezahlter Modellauf** - die 4,00 USD fuer das
+grosse Modell sind unangetastet und werden erst nach der Filterung sinnvoll eingesetzt.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf auf `main` | `3c5189a` (danach der Commit dieses Schnitts) | `git log --oneline -1` |
+| Pruefdateien / Module | 179 / 60 | `ls tests/test_*.py`, `ls src/*.py` |
+| Register / Protokoll / Stand-Bloecke | 242 / 288 (`wc -l`) / 92 | Zaehlung |
+| Sammlung | 29 Rohbloecke eingegangen, **13 in `00_ROH`**, 16 in `02_ARCHIV`, 8 Auszuege, 80 Urteilszeilen | Eingangsordner |
+| Projekt-Fassung | sechs Dokumente, sechs zum Uebernehmen, fuenf teilweise, neun Entscheidungen | `docs/eingaenge/GEMINI_INPUT_20261106/` |
+| Wachen dieses Schnitts | Dokumentpruefungen gruen (kein Code angefasst) | Laeufe dieser Sitzung |
+
 # STAND 05.11.2026, 23:28 - A1 gebaut: Voraussetzungen stehen im Spiel, jede einzeln mit naechstem Schritt (Register 241)
 
 > Neuester Block. Register 241, Protokollzeile 23:28. Kopf beim Schreiben: `33426b6`; der Commit
