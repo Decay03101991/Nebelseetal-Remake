@@ -340,7 +340,22 @@ try:
     _lage2 = st.drachen_position(drache)         # die Lage im Spielstand
     check("der Klick findet den Drachen auf seinem Feld",
           app._drache_an(int(_lage2[0]), int(_lage2[1])) is not None, str(_lage2))
-    check("auf einem freien Feld steht kein Drache", app._drache_an(0, 0) is None)
+    # W-17-Nachbesserung (05.11.2026): die Drachenplaetze werden seit W-14 bei jedem Neubeginn
+    # AUSGEWUERFELT (`drachen.verteile`). Eine feste Koordinate wie (0,0) ist deshalb NICHT
+    # zuverlaessig frei - die Wache flatterte, sobald ein Drache dort landete. Geprueft wird jetzt
+    # ein Feld, das nachweislich frei ist: das erste Rasterfeld, auf dem kein Drache steht.
+    _drachen_felder = {tuple(int(v) for v in st.drachen_position(d))       # alle belegten Felder
+                       for d in (drache,)}                                 # dieser Drache zuerst
+    for _d in drachen.alle():                                              # und alle anderen
+        if str(_d.get("id")) not in st.drachen_besiegt:                     # nur lebende Drachen
+            _pos = st.drachen_position(_d)                                  # ihre Lage im Stand
+            if _pos:
+                _drachen_felder.add((int(_pos[0]), int(_pos[1])))           # Feld merken
+    _frei = next(((x, y) for x in range(20) for y in range(20)              # erstes freies Feld
+                  if (x, y) not in _drachen_felder), None)
+    check("auf einem freien Feld steht kein Drache",
+          _frei is not None and app._drache_an(_frei[0], _frei[1]) is None,
+          f"geprueftes Feld {_frei} gegen Drachenfelder {sorted(_drachen_felder)}")
 
     def _dialog():
         """Den echten Drachen-Dialog oeffnen (Ingame-Overlay) - Rueckgabe True bei Erfolg."""
