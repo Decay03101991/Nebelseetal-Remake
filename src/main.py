@@ -5599,6 +5599,59 @@ class GameState:
             return                                                    # fertig
         self.resources["mana"].amount = float(self.resources["mana"].amount) + betrag   # Reichskasse
 
+    def _bots_ruinenzug(self, bot, jetzt: float):
+        """Räumt dieser Bot eine geplünderte Ruine? (Daniel 05.11.2026, Frage 1)
+
+        Daniels Entscheidung, wörtlich-nah: die Bots räumen geplünderte Ruinen **mit Karren und
+        ohne Kampf**. Was hinein geht: der Bot und der Zeitpunkt. Was heraus kommt: (True,
+        Meldung), wenn er gefahren ist - sonst (False, "").
+
+        Kein Kampf: der Drache ist gefallen, es gibt keine Wache und keinen Feueratem. Es zählt
+        nur die Ladung der KARREN; ohne Karren bleibt alles liegen. Gebucht wird über DENSELBEN
+        Weg wie beim Spieler (`_drachen_kampf` -> `_drachen_ruine_pluendern`), damit es keine
+        zweite Beuteregel gibt. Der Bot rechnet dabei mit SEINER Forschung, nicht mit der des
+        Spielers.
+        """
+        welt = 0                                                      # Welt des Bots
+        for dorf in bot_doerfer_sicherstellen(bot):                   # je Dorf die Welt
+            if int(getattr(dorf, "hauptdorf", False)):                # das Hauptdorf zählt
+                welt = int(getattr(dorf, "dimension", 0) or 0)        # seine Welt
+                break                                                 # fertig
+        if not welt:                                                  # keine Welt bekannt
+            return (False, "")                                        # dann kein Zug
+        siegel = drachen.welt_kennung(welt)                           # Kennung der Welt
+        ruinen = [e for e in drachen.alle()                           # jeder gefallene Drache
+                  if str(e.get("welt")) == siegel                     # auf seiner Welt
+                  and str(e.get("id")) in (self.drachen_besiegt or [])]   # besiegt = Ruine
+        if not ruinen:                                                # keine Ruine dort
+            return (False, "")                                        # nichts zu tun
+        karren = {n: int(v) for n, v in (getattr(bot, "lager", {}) or {}).items()   # seine Karren
+                  if einheiten.rolle(n) == "karren" and int(v) > 0}
+        if not karren:                                                # ohne Karren kein Zug
+            return (False, "")                                        # bleibt liegen
+        for drache in sorted(ruinen, key=lambda e: str(e.get("id"))):  # jede Ruine einmal
+            if not self.drachen_vorrat(drache):                       # schon ausgeräumt
+                continue                                              # nächste Ruine
+            eintrag = {"art": "angreifen",                            # derselbe Auftragsaufbau
+                       "nach": str(drache.get("name")),               # Name des Ziels
+                       "einheiten": dict(karren),                     # NUR Karren - kein Kampf
+                       "ziel": {"drache_id": str(drache.get("id"))},  # Merker: eine RUINE
+                       "bot_name": str(bot.name),                     # wer fährt
+                       "ankunft": float(jetzt)}                       # Zeitpunkt des Räumens
+            self._drachen_kampf(eintrag, eintrag["ziel"],             # DER Buchungsweg
+                                bot_forschungsstaende(bot))           # mit SEINER Forschung
+            beute = dict(eintrag.get("beute") or {})                  # was er mitgebracht hat
+            if beute:                                                 # Beute in seine Kasse
+                lager = dict(bot_kasse(bot) or {})                    # seine Dörfer
+                for stoff, menge in beute.items():                    # je Rohstoff
+                    lager[str(stoff)] = round(float(lager.get(str(stoff), 0.0) or 0.0)
+                                              + float(menge), 2)      # dazulegen
+                bot_kasse_setzen(bot, lager)                          # EIN Schreiber
+            meldung = ("%s räumt die Ruine %s: %d Einheiten Beute, kein Kampf."
+                       % (bot.name, drache.get("name"), sum(int(v) for v in beute.values())))
+            return (True, meldung)                                    # Zug verbraucht
+        return (False, "")                                            # keine Ruine hatte Beute
+
     def _bots_drachenzug(self, bot, jetzt: float):
         """Greift dieser Bot einen Drachen an? (Daniel 05.11.2026)
 
@@ -5780,13 +5833,20 @@ class GameState:
                 for k, v in (self.drachen_vorraete.get(kennung) or {}).items()
                 if int(v) > 0}                                          # nur was wirklich daliegt
 
-    def _drachen_ruine_pluendern(self, eintrag: dict, drache: dict) -> dict:
+    def _drachen_ruine_pluendern(self, eintrag: dict, drache: dict,
+                                 forschung: Any = None) -> dict:
         """Was in der Ruine liegt, mit Karren abholen (Daniel 05.11.2026).
 
         Kein Kampf, kein Feueratem, keine Schwelle - der Drache ist gefallen. Es gilt nur die
         Ladung der Karren: was hineinpasst, kommt mit, der Rest bleibt fuer den naechsten Zug
         liegen. Die Texte stehen in `data/drachen.json` (Block `ruine`), nicht im Code.
+
+        `forschung` ist die flache Stufenkarte `{Gebiet: Stufe}` fuer den Wagenbau-Bonus. Ohne
+        Angabe gilt die Forschung des SPIELERS; ein Bot gibt hier seinen EIGENEN Stand mit
+        (Daniel 05.11.2026, Frage 1), damit ein Bot nicht mit fremder Forschung laedt.
         """
+        if forschung is None:                                          # keine Angabe von aussen
+            forschung = self.forschungs_stufen()                       # dann die Spielerforschung
         kennung = str(drache.get("id") or "")                         # Kennung des Drachen
         truppen = {str(k): int(v) for k, v in (eintrag.get("einheiten") or {}).items()}   # mitreisende Einheiten
         geraet = {}                                                    # Karren und Belagerung tragen
@@ -5803,7 +5863,7 @@ class GameState:
             beute, lager_danach = kampfbericht.beute_am_ziel(
                 geraet, vorrat,                                        # Karren und Hort
                 ausgang="angreifer",                                   # die Ruine wehrt sich nicht
-                forschung=self.forschungs_stufen(),                    # Wagenbau-Bonus
+                forschung=forschung,                                   # Wagenbau-Bonus des Angreifers
                 beute_override=dict(vorrat))                           # der GANZE Rest, soweit tragbar
             self.drachen_vorraete[kennung] = {str(k): int(v)          # Rest bleibt liegen
                                               for k, v in (lager_danach or {}).items()}
@@ -5833,11 +5893,14 @@ class GameState:
                 "verluste_verteidiger": {}, "beute": dict(beute), "bericht": "",
                 "drache": kennung, "ruine": True}
 
-    def _drachen_kampf(self, eintrag: dict, ziel: dict) -> dict:
+    def _drachen_kampf(self, eintrag: dict, ziel: dict, forschung: Any = None) -> dict:
         """Der Kampf gegen einen DRACHEN - der zweite Kampfweg neben Bot-Dorf und Siedlung.
 
         Was hinein geht: der Auftrag (`eintrag`) mit seinen Einheiten und die Drachen-Kennung im
         Ziel. Was heraus kommt: das Ergebnis der Schlacht; gebucht sind Verluste, Beute und Zustand.
+
+        `forschung` ist die Stufenkarte des ANGREIFERS fuer den Wagenbau-Bonus (ohne Angabe die
+        des Spielers) - ein Bot rechnet mit seinem eigenen Stand (05.11.2026, Frage 1).
 
         Die Reihenfolge ist Daniels Vorgabe (Register 203): Feueratem vor dem Nahkampf, Vorrunde
         ueber die EIGENEN Schwellen statt ueber einen Wall, dann die Schlacht, dann der Beuteanteil
@@ -5848,7 +5911,7 @@ class GameState:
         # Daniel 05.11.2026: die Ruine bleibt PLUENDERBAR. Ein zweites Gefecht gibt es nicht
         # mehr, aber der Rest des Hortes liegt dort und wird mit Karren abgeholt.
         if drache is not None and kennung in (self.drachen_besiegt or []):   # er ist gefallen
-            return self._drachen_ruine_pluendern(eintrag, drache)     # nur noch Beute holen
+            return self._drachen_ruine_pluendern(eintrag, drache, forschung)   # nur noch Beute holen
         # Steht er noch? Die LAGE kommt aus diesem Spielstand (jeder Neubeginn wuerfelt neu),
         # und ein besiegter Drache ist keine Schlacht mehr, sondern eine Ruine (eigener Zweig).
         steht = (drache is not None
@@ -5930,7 +5993,7 @@ class GameState:
         beute_gefecht, lager_danach = kampfbericht.beute_am_ziel(
             geraet, vorrat,                                            # Karren und Hort
             ausgang=ergebnis.get("ausgang"),                           # nur bei Sieg
-            forschung=self.forschungs_stufen(),                        # Wagenbau-Bonus
+            forschung=(forschung if forschung is not None else self.forschungs_stufen()),   # Wagenbau-Bonus des Angreifers
             beute_override=anteil)                                     # EINE Buchstelle
         self.drachen_vorraete[kennung] = {str(k): int(v)               # Rest bleibt im Hort
                                           for k, v in (lager_danach or {}).items()}
@@ -6502,6 +6565,15 @@ class GameState:
                     # den Hort und die Manabelohnung, aber nicht die tatsaechliche Staerke der
                     # Wache - nur das Flammenzeichen. Passt die Armee deutlich, kostet der
                     # Drachenzug seinen Zug in diesem Takt.
+                    # Daniel 05.11.2026 (Frage 1): zuerst sieht der Bot nach einer GEPLÜNDERTEN
+                    # RUINE - die räumt er mit Karren und ohne Kampf. Erst danach prüft er den
+                    # stehenden Drachen und zuletzt einen Raubzug.
+                    _ruine_ok, _ruine_meldung = self._bots_ruinenzug(bot, jetzt)
+                    if _ruine_ok:
+                        ergebnis["angriffe"].append(_ruine_meldung)       # im Taktbericht
+                        self._log(_ruine_meldung)                        # Statuszeile
+                        self.bot_armee_aufstellen(bot, jetzt)            # Heimkehrer stellen
+                        continue                                         # kein zweiter Zug
                     _drache_ok, _drache_meldung = self._bots_drachenzug(bot, jetzt)
                     if _drache_ok:
                         ergebnis["angriffe"].append(_drache_meldung)      # im Taktbericht
