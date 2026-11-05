@@ -398,7 +398,7 @@ def fuehre_schlacht(angreifer: Dict[str, int], verteidiger: Dict[str, int],
                 u["inaktiv"] = True                                       # kampfunfaehig
                 u["tot"] = True                                           # gefallen
                 getroffen.append(u["name"])
-            zeile = ("Zweiter Feueratem: die Wache steht unter %d von %d - %d Nahkaempfer fallen"
+            zeile = ("Zweiter Feueratem: die Wache steht unter %d von %d - %d Nahkämpfer fallen"
                      % (int(zp_wache_start * zp_anteil), zp_wache_start, len(getroffen)))
             logs.append(zeile)                                            # im Bericht sichtbar
             result["sequenzen"].append(zeile)                             # eigene Sequenz
