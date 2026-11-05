@@ -11555,6 +11555,7 @@ class NebelseetalApp:
         if not _bestand_ort:
             tk.Label(self.content, text="Noch keine Werkstatt gebaut — auf der Siedlungskarte bauen.",
                      fg="#8a8a8a", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
+        levels = self.state.forschungs_stufen()          # A1: Stufen fuer die Knopf-Begruendung
         for kennung in sorted(_bestand_ort):
             schlange = ((_ort.werkstaetten or {}) if _ort is not None else {}).get(kennung)
             _name = (schlange or werkstatt.neue_warteschlange(kennung, _bestand_ort[kennung])
@@ -11583,7 +11584,14 @@ class NebelseetalApp:
             _vorschau.pack(side=tk.LEFT, padx=6)
             for ware in werkstatt.waren_der_werkstatt(kennung):
                 erfuellt, grund = self.state.ware_voraussetzung(ware)
-                knopf = tk.Button(rahmen, text=ware,
+                # A1 (05.11.2026): der gesperrte Knopf traegt seinen Grund IM TEXT - bisher war er
+                # nur grau, und die Begruendung stand erst im Sammelblock unter der Werkstatt.
+                # A1 (05.11.2026): der Bestand ist hier schon gezaehlt (`_bestand_ort`) - er wird
+                # mitgegeben, statt je Ware neu ueber die Siedlungskarte zu laufen.
+                _offen_w = [b for b in spieloekonomie.ware_bedingungen(
+                    _ort, ware, levels, _bestand_ort) if not b["erfuellt"]]
+                _text_w = ware if not _offen_w else f"{ware}: {_offen_w[0]['text']}"
+                knopf = tk.Button(rahmen, text=_text_w,
                                   command=lambda w=ware, k=kennung: self._ware_herstellen_menge(
                                       w, self._menge_lesen(self._ware_menge_var(k),
                                                            spieloekonomie.MENGEN_HOECHSTMENGE)),
@@ -11599,11 +11607,21 @@ class NebelseetalApp:
                 bedingungen = self.state.ware_voraussetzungen(ware)
                 if not bedingungen or all(b["erfuellt"] for b in bedingungen):
                     continue
-                tk.Label(self.content,
-                         text="    " + ware + ": " + " · ".join(
-                             self._ware_bedingung_text(b) for b in bedingungen),
+                # A1 (05.11.2026): hinter die Bedingungen tritt der NAECHSTE SCHRITT der ersten
+                # offenen - Forschung mit Kosten und Dauer, aus derselben Rechnung wie der Kern.
+                _offen = [b for b in bedingungen if not b["erfuellt"]]
+                _zeile = ("    " + ware + ": "
+                          + " · ".join(self._ware_bedingung_text(b) for b in bedingungen))
+                if _offen:
+                    try:
+                        _zeile += " - dann: " + spieloekonomie.forschung_schritt(
+                            _offen[0]["gebiet"], int(_offen[0]["noetig"]), _ort)
+                    except (KeyError, TypeError, ValueError):
+                        pass
+                tk.Label(self.content, text=_zeile,
                          fg="#C8A165", bg=self.skin["bg"], font=("Arial", 9),
-                         anchor=tk.W).pack(anchor=tk.W, padx=24)
+                         anchor=tk.W, justify=tk.LEFT, wraplength=900
+                         ).pack(anchor=tk.W, padx=24)
             if schlange:
                 tk.Label(self.content,
                          text="   " + werkstatt.fortschritt(schlange, self.state.spielsekunden)["text"],
@@ -13924,6 +13942,7 @@ class NebelseetalApp:
                     _knopf.pack(side=tk.RIGHT, padx=5)
                     tk.Label(frame, text=_grund, fg="#FDBA74", bg=self.skin["panel"],
                              wraplength=380, justify=tk.LEFT).pack(side=tk.RIGHT, padx=5)
+
             else:
                 _fehlt = gelaende.gebaeude_name(_staette) if _staette else "Ausbildungsstätte unbekannt"
                 tk.Label(frame, text=f"braucht {_fehlt}", fg="#e53935",
@@ -14067,40 +14086,49 @@ class NebelseetalApp:
         self._render_view()
         return True
 
-    def _ausbildungs_hindernis(self, key: str) -> tuple:
-        """Was der Ausbildung im Weg steht — Forschung oder Ausrüstung (Vorgabe Daniel 05.10.2026).
+    def _ausbildungs_bedingungen(self, key: str) -> list:
+        """ALLE Bedingungen einer Einheit einzeln - die Anzeige-Lesestelle (A1, 05.11.2026).
 
-        Rückgabe ``(True, "")``, wenn nichts fehlt, sonst ``(False, Grund)``. Die Begründung nennt
-        das Fehlende mit Soll/Ist. EINE Quelle für Ansicht und Ausbildung: die Forschungsstufe aus
-        ``data/units.json`` ('voraussetzung') und die Waren aus ``ausruestung``.
+        Die Zahlen und die Begruendung stehen in `spieloekonomie.einheit_bedingungen` (eine
+        Lesestelle fuer Anzeige und Sperre); hier wird nur der Ort uebergeben, den
+        `gebaeude_wirkung` als Objekt braucht. Ohne Siedlung gibt es keine Bedingungen - dann
+        meldet `_ausbildungs_hindernis` den fehlenden Ort.
         """
-        rohdaten = einheiten.alle().get(key) or {}
-        vor = rohdaten.get("voraussetzung") or {}
-        if vor.get("forschung"):
-            f_name = str(vor["forschung"])
-            f_stufe = int(vor.get("stufe") or 0)
-            eintrag = self.state.research.get(f_name)
-            erreicht = int(eintrag.level) if eintrag is not None else 0
-            if erreicht < f_stufe:
-                return False, f"braucht {f_name} Stufe {f_stufe} (erreicht: {erreicht})"
-        # Teil 6c: die Ausruestung liegt VOR ORT (`Settlement.waren`) — dieselbe Quelle, aus der
-        # `ausbildung_start` sie verbraucht. Oben, ueber dem Siedlungslager, zaehlt der
-        # Reichsbestaand als Uebergang (solange es keine Siedlung gibt, gibt es kein Ortslager).
-        _ort_lager = self.state.aktive_siedlung()
-        lager = (dict(getattr(_ort_lager, "waren", None) or {}) if _ort_lager is not None
-                 else dict(self.state.waren or {}))
-        fehlt = ausruestung.fehlende(key, lager)
-        if fehlt:
-            # Soll/Ist je Ware — so verlangt es das astra-Gutachten. `ausruestung.fehlende`
-            # liefert nur die Fehlmenge; Soll = Ist + Fehlmenge (Befund des Kinder-Moduls vom
-            # 05.10.2026: `bestand_text` zeigt bei reinen Zahlen nur die Fehlmenge).
-            teile = []
-            for ware, menge in sorted(fehlt.items()):
-                ist = int(lager.get(ware, 0))
-                teile.append(f"{ware} {ist}/{ist + int(menge)}")
-            return False, ("braucht Ausrüstung — " + " · ".join(teile) +
-                           " (Werkstätten: Schmiede, Bogner, Nähstube)")
-        return True, ""
+        ort = self.state.aktive_siedlung()
+        if ort is None:
+            return []
+        try:
+            return spieloekonomie.einheit_bedingungen(ort, key, self.state.forschungs_stufen())
+        except (ValueError, KeyError, TypeError):
+            return []
+
+    def _ausbildungs_hindernis(self, key: str) -> tuple:
+        """Was der Ausbildung im Weg steht - ALLE offenen Bedingungen, nicht nur die ERSTE (A1).
+
+        Rueckgabe ``(True, "")``, wenn nichts fehlt, sonst ``(False, Grund)``. Der Grund nennt
+        jede offene Bedingung mit Soll/Ist; die Ansicht schreibt zusaetzlich je Bedingung den
+        naechsten Schritt darunter (`_render_ausbildung`).
+
+        WARUM DIESE AENDERUNG (05.11.2026): bis heute stand hier nur die erste offene Bedingung.
+        Bei einem Kaempfer ist das die Forschung (Kriegskunst 1) - die Ausruestung (Kurzschwert,
+        Lederrüstung) blieb unsichtbar, bis die Forschung lief. Im Spieltest-Lauf L3/L4 kostete
+        genau diese Reihenfolge 283+156+82 Fehlversuche an Kurzschwertern und 488 blockierte
+        Ausbildungen (`docs/SPIELTEST_BEFUNDE_20261105.md`).
+        """
+        ort = self.state.aktive_siedlung()
+        if ort is None:
+            return False, "keine Siedlung - Ausbildung braucht eine Siedlungskarte"
+        offen = [b for b in self._ausbildungs_bedingungen(key) if not b["erfuellt"]]
+        if not offen:
+            return True, ""
+        # Zeile 1 nennt JEDE offene Bedingung, danach je Bedingung der naechste Schritt. Alles in
+        # EINEM Text: eigene Labels je Bedingung machten das Zeichnen 3,3x langsamer.
+        zeilen = ["fehlt: " + " · ".join(b["text"] for b in offen)]
+        for b in offen:
+            if b["schritt"]:
+                zeilen.append(f"→ {b['text'].split(' (')[0]}: {b['schritt']}")
+        return False, "\n".join(zeilen)
+
 
     def _menge_schritt(self, var, delta: int, hoechst: int, bei_aenderung=None) -> int:
         """Eine Menge um `delta` verschieben und in 0..hoechst halten (A-1, Schrittknoepfe)."""

@@ -923,6 +923,187 @@ def ausbildung_grenzen(ort: dict, name: str, forschung: dict) -> dict:
             "dauer_je": float(dauer), "freie_zeit": 0.0}
 
 
+def forschung_schritt(gebiet: str, stufe: int, ort: dict) -> str:
+    """Der naechste Schritt zu einer Forschungsstufe - Kosten und Dauer aus den Daten (A1).
+
+    Kosten und Dauer kommen aus `forschung.kosten` und `forschung.dauer_stunden`, also aus
+    derselben Regel, mit der `forschung_start` rechnet (Handbuch: Stufe zum Quadrat in Stunden).
+    Fehlt die Bibliothek, steht das dabei - ohne sie laeuft keine Forschung.
+    """
+    try:
+        kosten = forschung.kosten(int(stufe)) or {}
+    except (TypeError, ValueError):
+        kosten = {}
+    teile = []
+    for rohstoff, menge in sorted(kosten.items()):
+        try:
+            betrag = float(menge)
+        except (TypeError, ValueError):
+            continue
+        if betrag > 0:
+            teile.append(f"{betrag:g} {str(rohstoff).capitalize()}")
+    text = "in der Bibliothek erforschen"
+    if teile:
+        text += " (" + " · ".join(teile) + ")"
+    try:
+        stunden = float(forschung.dauer_stunden(int(stufe)))
+    except (TypeError, ValueError):
+        stunden = 0.0
+    if stunden > 0:
+        text += f", {stunden:g} Spielstunde" + ("" if stunden == 1 else "n")
+    try:
+        bib = gebaeude_wirkung.gebaeude_stufe(ort, gelaende.finde_gebaeude("bibliothek"))
+    except (TypeError, ValueError):
+        bib = 0
+    if bib <= 0:
+        text += " - die Bibliothek fehlt noch"
+    return text
+
+
+def _ort_wert(ort, feld: str, vorgabe):
+    """Ein Feld eines Ortes - gleich ob `Settlement`-Objekt oder `asdict`-Woerterbuch (A1).
+
+    `einheit_bedingungen` und `ware_bedingungen` werden aus der Anzeige mit dem Settlement
+    aufgerufen (dort braucht `gebaeude_wirkung` das Objekt), aus Pruefungen auch mit einem
+    Woerterbuch. Statt zwei Fassungen der Funktion gibt es diesen einen Zugriff.
+    """
+    if isinstance(ort, dict):
+        return ort.get(feld, vorgabe)
+    return getattr(ort, feld, vorgabe)
+
+
+def einheit_bedingungen(ort: dict, name: str, stufen: dict) -> list:
+    """JEDE Bedingung einer Einheit EINZELN - eine Lesestelle fuer Anzeige und Sperre (A1).
+
+    WARUM (gemessen 05.11.2026): die Kaserne nannte nur die ERSTE offene Bedingung, also die
+    Forschung. Die Ausruestung blieb unsichtbar, solange die Forschung fehlte; der Spieler erfuhr
+    sie erst NACH der Forschung. Im Spieltest-Lauf L3/L4 kostete genau diese Reihenfolge
+    283+156+82 Fehlversuche an Kurzschwertern und 488 blockierte Ausbildungen
+    (`docs/SPIELTEST_BEFUNDE_20261105.md`). Deshalb nennt diese Funktion alle Bedingungen in EINER
+    Reihenfolge - Forschung, Ausbildungsstaette, Ausruestung, Siedler -, jede mit einem naechsten
+    Schritt.
+
+    Gelesen wird ausschliesslich Vorhandenes: `data/units.json` ueber `ausbildung_grenzen`,
+    `data/warenrezepte.json` ueber `ware_voraussetzung` und `data/gebaeude*.json` ueber `gelaende`.
+    Es wird keine Zahl geschaetzt und keine Bedingung erfunden.
+
+    Rueckgabe je Bedingung::
+
+        {"art": "forschung"|"staette"|"ausruestung"|"siedler",
+         "text": str, "erfuellt": bool, "schritt": str}
+    """
+    eintrag = U.get(name) or {}
+    if not eintrag:
+        return []
+    liste: list = []
+    # 1. Die Forschung, die die Einheit verlangt (data/units.json, Feld voraussetzung).
+    voraus = eintrag.get("voraussetzung") or {}
+    if voraus.get("forschung"):
+        gebiet = str(voraus["forschung"])
+        try:
+            noetig = int(voraus.get("stufe") or 0)
+        except (TypeError, ValueError):
+            noetig = 0
+        try:
+            vorhanden = int((stufen or {}).get(gebiet) or 0)
+        except (TypeError, ValueError):
+            vorhanden = 0
+        erfuellt = vorhanden >= noetig
+        liste.append({"art": "forschung", "erfuellt": erfuellt,
+                      "text": f"{gebiet} Stufe {noetig} (erreicht: {vorhanden})",
+                      "schritt": "" if erfuellt
+                      else forschung_schritt(gebiet, noetig, ort)})
+    # 2. Die Ausbildungsstaette DIESES Ortes (je Einheit in data/units.json benannt).
+    geb = gelaende.finde_gebaeude(str(eintrag.get("gebaeude") or ""))
+    try:
+        staette_stufe = gebaeude_wirkung.gebaeude_stufe(ort, geb)
+    except (TypeError, ValueError):
+        staette_stufe = 0
+    if staette_stufe <= 0:
+        name_der_staette = gelaende.gebaeude_name(geb) if geb else "Ausbildungsstätte"
+        liste.append({"art": "staette", "erfuellt": False,
+                      "text": f"{name_der_staette} fehlt vor Ort",
+                      "schritt": "auf der Siedlungskarte bauen"})
+    # 3. Die Ausruestung im ORTSLAGER - mit dem Grund, warum die Ware nicht entsteht (W1/F-04).
+    lager = _ort_wert(ort, "waren", {}) or {}
+    for ware in ausruestung.bedarf(name):
+        try:
+            ist = int(float(lager.get(ware, 0) or 0))
+        except (TypeError, ValueError):
+            ist = 0
+        erfuellt = ist >= 1
+        schritt = ""
+        if not erfuellt:
+            typ = werkstatt.werkstatt_fuer(ware)
+            ort_der_ware = gelaende.gebaeude_name(typ) if typ else "Werkstatt"
+            schritt = f"in der Werkstatt herstellen ({ort_der_ware})"
+            try:
+                frei, begruendung = ware_voraussetzung(ware, stufen)
+            except (TypeError, ValueError):
+                frei, begruendung = False, "Voraussetzung unbekannt"
+            if not frei:
+                schritt += f" - dafür fehlt: {begruendung}"
+        liste.append({"art": "ausruestung", "erfuellt": erfuellt,
+                      "text": f"{ware} {ist} von 1 im Ortslager", "schritt": schritt})
+    # 4. Die Siedler - jede Einheit kostet welche (Handbuch: Siedler sind die harte Grenze).
+    try:
+        siedler_je = int(eintrag.get("kosten", {}).get("siedler") or 0)
+    except (TypeError, ValueError):
+        siedler_je = 0
+    if siedler_je > 0:
+        try:
+            frei_an_siedlern = float(_ort_wert(ort, "bevoelkerung", 0.0) or 0.0)
+        except (TypeError, ValueError):
+            frei_an_siedlern = 0.0
+        erfuellt = frei_an_siedlern >= siedler_je
+        liste.append({"art": "siedler", "erfuellt": erfuellt,
+                      "text": f"Siedler {frei_an_siedlern:.1f} frei, {siedler_je} nötig",
+                      "schritt": "" if erfuellt
+                      else "Haus bauen - jedes Haus bringt 5 Siedler"})
+    return liste
+
+
+def ware_bedingungen(ort: dict, ware: str, stufen: dict, bestand: dict = None) -> list:
+    """JEDE Bedingung einer Ware EINZELN - Forschung, Werkstatt und ihre Folgen (A1).
+
+    Die Forschungsbedingungen kommen aus `ware_voraussetzungen_liste` (F-04: EINE Lesestelle fuer
+    Kern und Anzeige), die Werkstatt aus `werkstatt.werkstaetten_bestand`. Damit nennt die
+    Werkstattansicht an der Ware selbst, was fehlt - bisher stand dort nur "gesperrt", der Grund
+    erst im Sammelblock darunter.
+
+    Rueckgabe je Bedingung::
+
+        {"art": "forschung"|"werkstatt", "text": str, "erfuellt": bool, "schritt": str}
+    """
+    liste: list = []
+    for bedingung in ware_voraussetzungen_liste(ware, stufen):
+        gebiet = bedingung["gebiet"]
+        if not bedingung["bekannt"]:
+            liste.append({"art": "forschung", "erfuellt": False,
+                          "text": f"{gebiet} Stufe {bedingung['noetig']}: Forschung unbekannt",
+                          "schritt": "diese Forschung gibt es in diesem Stand nicht"})
+            continue
+        liste.append({"art": "forschung", "erfuellt": bool(bedingung["erfuellt"]),
+                      "text": f"{gebiet} Stufe {bedingung['noetig']} "
+                              f"(erreicht: {bedingung['vorhanden']})",
+                      "schritt": "" if bedingung["erfuellt"]
+                      else forschung_schritt(gebiet, int(bedingung["noetig"]), ort)})
+    typ = werkstatt.werkstatt_fuer(ware)
+    try:
+        # `bestand` kommt von der Ansicht, die die Werkstaetten je Ort ohnehin schon zaehlt
+        # (`werkstatt.werkstaetten_bestand([ort])`) - so wird je Ware nicht neu gezaehlt.
+        gezaehlt = bestand if bestand is not None else werkstatt.werkstaetten_bestand([ort])
+        anzahl = int(gezaehlt.get(typ, 0)) if typ else 0
+    except (TypeError, ValueError):
+        anzahl = 0
+    if anzahl <= 0:
+        name_der_werkstatt = gelaende.gebaeude_name(typ) if typ else "Werkstatt"
+        liste.append({"art": "werkstatt", "erfuellt": False,
+                      "text": f"{name_der_werkstatt} fehlt vor Ort",
+                      "schritt": "auf der Siedlungskarte bauen"})
+    return liste
+
+
 def ausbildung_start_menge(ort: dict, name: str, forschung: dict, jetzt: float,
                            menge: int = 1) -> dict:
     """Beginnt die Ausbildung von `menge` Einheiten vor Ort - alles oder nichts.

@@ -1,3 +1,54 @@
+# STAND 05.11.2026, 23:28 - A1 gebaut: Voraussetzungen stehen im Spiel, jede einzeln mit naechstem Schritt (Register 241)
+
+> Neuester Block. Register 241, Protokollzeile 23:28. Kopf beim Schreiben: `33426b6`; der Commit
+> dieses Schnitts folgt. Der Block 19:25 darunter haelt Spieltests und W1, der Block 17:40 die
+> Veroeffentlichung 0.0.1.
+
+**Was dieser Schnitt geaendert hat (reine Anzeige, kein Balancing):** der Spieler sieht an einer
+gesperrten Aktion JEDE offene Bedingung einzeln und darunter, was zu tun ist. Vorher nannte die
+Kaserne nur die erste Bedingung (die Forschung); die Ausruestung kam erst nach der Forschung ans
+Licht - genau diese Reihenfolge kostete in L3/L4 283+156+82 Fehlversuche an Kurzschwertern und 488
+blockierte Ausbildungen.
+
+| Nr. | Schritt | Beleg |
+|---|---|---|
+| A | Messlage vorher: Kaserne nennt je Einheit EINE Bedingung, Werkstatt-Knopf nur grau | Sonde `cache/scratch/sonde_voraussetzungen2.py`, Log `sonde_voraus2.log` |
+| B | Neue Lesestellen `spieloekonomie.einheit_bedingungen`, `ware_bedingungen` (mit mitgegebenem Bestand), `forschung_schritt`, `_ort_wert` | `test_voraussetzungsanzeige` 24/0/0 |
+| C | Kaserne: Grund nennt jede Bedingung, darunter je Bedingung der Schritt - Forschung mit Holz und Spielstunden, Ware mit Werkstatt und Grund, Siedler mit Haus | Ansicht gerendert im Test, Abschnitt 6 |
+| D | Werkstatt: der gesperrte Knopf traegt seinen Grund, die Begruendungszeile nennt den naechsten Schritt | ebd. (Knopftext „Kurzschwert: Waffentechnik Stufe 3 (erreicht: 2)“) |
+| E | Kein zweiter Rechenweg: `ausruestung.fehlende` ist aus dem Hindernis verschwunden, alles laeuft ueber die eine Lesestelle (F-04) | Quelltext-Wache, Abschnitt 5 |
+| F | Zeichnen nicht langsamer: 20 x Kaserne 4,9 s, 20 x Lager 7,6 s | eigene Messung nach dem Zusammenfassen der Zeilen |
+| G | Voller Sammellauf nach dem Schnitt | `docs/audits/sammellauf_20261105_2315.log`: **176 von 179 gruen, 1 rot**, 7307 Pruefungen, 1319 s |
+| H | Flatternder Rotfall: `test_gesamtsieg` 46/1/0 (Gefecht wuerfelt, zwei Verteidiger flohen ohne Verlust), sonst 10 von 11 Einzellaeufen gruen | Pruefdatei wuerfelt jetzt mit festem Startwert 4711 - danach 8 von 8 gruen (47/0/0) |
+| I | Zwei Irrwege, beide behoben: alte `Nebelseetal_Pre_Release_V_0.0.1.exe` im Projektordner (Wache rot, nicht der Code) und eine eigene Messung WAEHREND des Laufs davor (Zeitlimit) | EXE hashgleich `efaf403b9446...` nach `archiv/altstaende/`; der dritte Lauf lief ohne Nebenarbeit |
+
+## Der EINE naechste Schritt
+
+1. **A1b: die Spieltest-Simulation prueft VOR dem Versuch.** Sie ist der Spieler im Messlauf und
+   drueckt heute Knoepfe, die im Spiel gesperrt sind. Mit denselben zwei Lesestellen
+   (`einheit_bedingungen`, `ware_bedingungen`) kann sie stattdessen den naechsten Schritt gehen
+   (Forschung starten, Ware herstellen) und nur zaehlen, was WIRKLICH scheitert. Erst dann bewegt
+   sich die Zielzahl des Arbeitsplans (Fehlversuche < 50). Danach **A2** Messpflicht-Tabelle
+   (Spieltage bis Gebaeude n / Forschung n / erste Einheit / erster Weltwechsel / voll ausgebaut).
+2. Offene Knoepfe: Ausbau am Stufenlimit und belegte Bauplaetze sperren (874 Fehlversuche waren der
+   Anlass) - eigener kleiner Schnitt, sobald A1b gemessen ist.
+   Zum Abschluss eines jeden Schnitts: Registerzeile, Protokollzeile, Stand-Block, voller
+   Sammellauf, commit und push.
+
+**Geld (von Daniel abgelesen, nicht geschaetzt):** 12,09 USD Guthaben, Gesamtverbrauch 57,90 USD
+(Ablesung 05.11.2026 22:10). In diesem Schnitt wurde KEIN bezahlter Modellauf gefahren - die 4,00 USD
+fuer das grosse Modell sind unangetastet. Sie sind fuer A1b/B1 vorgesehen; bei Anzeigetexten ist ein
+blinder Modell-Patch teurer als die direkte Aenderung (Begruendung: der Patch haette gegen die
+15.000-Zeilen-Datei geraten werden muessen).
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf auf `main` | `33426b6` (danach der Commit dieses Schnitts) | `git log --oneline -1` |
+| Pruefdateien / Module | 179 / 60 | `ls tests/test_*.py`, `ls src/*.py` |
+| Register / Protokoll / Stand-Bloecke | 241 / 288 / 91 | Zaehlung |
+| Wachen dieses Schnitts | `test_voraussetzungsanzeige` 24/0/0, `test_anzeigetexte_umlaute` 49/0/0, `test_textqualitaet` 492/0, `test_projektpfade` 123/0, `test_durchspiel` 65/0/2, `test_ware_voraussetzung_eine_quelle` gruen | Laeufe dieser Sitzung |
+
+
 # STAND 05.11.2026, 19:25 - Zwei Spieltest-Laeufe bezahlt und bewertet, Messgeraet repariert (Register 232/233)
 
 > Neuester Block. Register 232 und 233, Protokollzeilen ab 19:20. Kopf beim Schreiben: `fa8e27c`,

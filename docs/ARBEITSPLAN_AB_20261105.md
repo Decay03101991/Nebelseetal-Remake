@@ -12,7 +12,7 @@ Stand-Block stehen und - bei sichtbarer Aenderung - eine Version angekuendigt is
 
 | Stueck | Ziel | Messzahl / Fertig-Kriterium | Abhaengig von | Aufwand | Modellpaket |
 |---|---|---|---|---|---|
-| **A1** Voraussetzungen sichtbar (B3/B4/B7) | der Spieler sieht am Knopf, was fehlt (Waffentechnik 3, Schmiede, Ware) | Fehlversuche in einem Spieltest-Lauf sinken von 283+156+82 auf < 50; `test_anzeigetexte_umlaute` gruen | - | M | ja (fertige Patches fuer `src/main.py:11653`, `:14213`) |
+| **A1** Voraussetzungen sichtbar (B3/B4/B7) - **GEBAUT 05.11.2026, Register 241; offen bleibt A1b (die Simulation prueft vor dem Versuch)** | der Spieler sieht am Knopf, was fehlt (Waffentechnik 3, Schmiede, Ware) | Fehlversuche in einem Spieltest-Lauf sinken von 283+156+82 auf < 50; `test_anzeigetexte_umlaute` gruen | - | M | ja (fertige Patches fuer `src/main.py:11653`, `:14213`) |
 | **A2** Messpflicht-Tabelle im Werkzeug | jede Balancing-Aenderung messbar machen | `tools/spieltest_simulation.py` gibt "Spieltage bis Gebaeude n / Forschung n / erste Einheit / erster Weltwechsel / voll ausgebaut" aus | - | S | nein (Sitzung baut selbst) |
 | **A3** Kampf gegen ein echtes Bot-Dorf | Kampf, Wall und Verluste werden beurteilbar | ein Lauf enthaelt ein Gefecht gegen einen Bot mit variabler Beute/Verlusten (nicht immer 16/10/12) | A2 | M | ja |
 

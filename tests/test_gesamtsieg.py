@@ -37,6 +37,16 @@ if main is None or tk is None:
 
 TYP = "gesamtsieg"                                        # Nachrichtentyp der Glueckwuensche
 
+# Flatternder Rotfall, behoben am 05.11.2026: das Gefecht wuerfelt (`kampf.fuehre_schlacht` baut
+# ohne `rng` ein `random.Random()`), und die Pruefung "von 2 Kriegern faellt mindestens einer" fiel
+# in 1 von 8 Laeufen aus - die zwei Verteidiger flohen, ohne zu sterben, und die Buchung des Dorfes
+# war trotzdem richtig. Gemessen: 10 von 11 Laeufen gruen, der Fehler trat nur in diesem einen Satz
+# auf. Deshalb wuerfelt diese Pruefdatei ab jetzt mit FESTEM Startwert - der Ablauf wird dadurch
+# reproduzierbar, und die Erwartung bleibt dieselbe (ein Krieger faellt).
+import random as _random                                # Zufall der Gefechte
+_echter_zufall = _random.Random                        # die echte Klasse (fuer den festen Startwert)
+_random.Random = lambda *a, **k: _echter_zufall(4711)  # jede neue Zufallsquelle startet gleich
+
 
 # ==========================================================================
 abschnitt("1. Reine Urteilsfunktion: nur ALLE Doerfer aller Bots ergeben den Sieg")
