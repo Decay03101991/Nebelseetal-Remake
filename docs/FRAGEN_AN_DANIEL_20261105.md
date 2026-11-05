@@ -75,3 +75,17 @@ kein Wirtschaftsloch.
 **b) Eigenes Lagerfach, handelbar** — dann bekommt sie einen Preis und wird zur Ware.
 **c) Nur im Auszeichnungsverzeichnis, kein Lagerfach** — kleinster Eingriff, aber man sieht sie
 nirgends im Lager.
+
+## 8. Beute-Reihenfolge (Kampfregel 4): Gold zuerst - auch wenn dann nichts anderes mehr mitkommt? (neu)
+
+**Messlage (05.11.2026, `docs/BEFUND_BEUTE_REIHENFOLGE_20261105.md`):** Heute wird die Beute
+**anteilig** verteilt. Regel 4 lädt **nach Rang**, Gold zuerst. Gerechnet an echten Größen:
+
+- Dorf reich, Platz für 120: heute 30 Gold + je 30 Holz/Stein/Nahrung → nach Regel 4 **120 Gold, sonst nichts**
+- Dorf arm, Platz für 400: heute 8 Gold + 132/130/130 → nach Regel 4 **30 Gold + 370 Holz**
+
+**a) Regel 4 genau so bauen** — Gold zuerst, kleine Karren bringen nur Gold. Klar und
+spielerisch scharf, aber Holz und Stein kommen dann fast nur noch aus eigener Förderung.
+**b) Gold zuerst, aber anteilig auffüllen (Empfehlung)** — Gold bekommt den Vorrang, der Rest wird
+wie heute fair verteilt. Man sieht den Unterschied, verliert aber nicht die Baumaterialien.
+**c) Beim heutigen anteiligen Modell bleiben** — dann wird Regel 4 verworfen.
