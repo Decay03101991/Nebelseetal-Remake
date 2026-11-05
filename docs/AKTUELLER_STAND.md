@@ -3867,3 +3867,13 @@ Der von Daniel wieder zusammengesetzte Stand ist bytegenau identisch mit dem FIX
 ### 28.10.2026 – Vorlaeufige Entwicklung FIX04d (noch nicht Windows-veroeffentlicht)
 
 FIX04 ergaenzt das Baumenue der 127 Originalkarten um Rubriken und regelbasierte Statusanzeige. FIX04b/c enthalten Standorttipps und eine begleitende Spielerhilfe mit zehn Fragen. FIX04d ergaenzt einen nur im Admin-Teststand zulaessigen Anzeige-Override (`auto`, `anzeigen`, `ausblenden`) ohne Eingriff in den Goetterschutz. 7/7 neue Admin-Tests erfolgreich; benachbarte GUI-, Start-, Save- und Durchspieltests erfolgreich. Vollsuite, Windows-FIX04d-EXE, Botwirtschaft und 25 visuell offene Kartenraster bleiben offen. Auf GitHub ist dieser Stand noch **nicht** veroeffentlicht; bisherige FIX03-EXE ist nicht FIX04d.
+
+**Nachtrag 18:30 - Skip-Mechanik gebaut, Uebergabe 1828 abgelegt:** ein gescheiterter Spielschritt
+beendet den Spieltest nicht mehr. `tools/spieltest_simulation.py` sammelt Fehler mit Tag, Stelle und
+Grund in `log["uebersprungen"]`, laeuft weiter und bricht erst bei 200 Fehlern in Folge ab
+(`MAX_TICK_FEHLER_FOLGE`); der Bericht hat einen eigenen Abschnitt dafuer. Wache
+`tests/test_spieltest_skip.py` **17/0/0** (Durchhalten, Liste, Bericht, Gegenprobe ohne Fehler,
+Dauerfehler-Abbruch). Probelauf ueber 2 Spieltage geschrieben, Paket P1 5.386 Zeichen (~0,0248 USD je
+Lauf). **Uebergabe** `UEBERGABE_NEBELSEETAL_20261105_1828.md` liegt auf dem Desktop und hashgleich in
+`D:\Arbeiten\Hermes\Uebergaben\20261105_1828\` (`14581d4e...`). Offen bleibt der volle Sammellauf
+nach dieser Werkzeug-Aenderung und die bezahlten Spieltest-Laeufe.
