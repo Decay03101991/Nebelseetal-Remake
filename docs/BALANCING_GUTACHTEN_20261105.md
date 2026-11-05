@@ -1,0 +1,33 @@
+# Balancing-Gutachten (deepseek-v4-pro, 05.11.2026)
+
+> Automatisch erzeugt aus dem Projekt-Dossier; Zahlen stammen aus den Datendateien.
+
+## 1. Kurzurteil
+Das Spiel ist originalnah belegt, aber an zwei Stellen klar verfehlt: Armeeaufbau ist zu langsam (100 Krieger brauchen 41 statt ≤30 Spieltage), und Beutezüge kippen ab Spieltag 30 ins Wirkungslose, weil die Transportkapazität durch 360 Siedler gedeckelt ist, während Vorräte linear wachsen. Der größte Engpass ist Gold (1.224/Tag), nicht Metall oder Forschung. Dazu kommen zwei präzise Einzelfallen: die Drachen-Schwelle 700 SK wird durch den Atem vor der Schwellenprüfung praktisch 761 SK, und die Kartenvergabe erlaubt freie Wahl statt des belegten Original-Zufalls.
+
+## 2. Die fuenf Vorschlaege (Tabelle)
+| Nr | Befund (mit Dossier-Zahl) | Aenderung (exakte Werte) | Erwartete Wirkung | Risiko | Wie pruefen |
+|---|---|---|---|---|---|
+| 1 | G-1 verfehlt: 100 Krieger kosten 50.000 Gold; bei 1.224 Gold/Tag = 41 Spieltage (Limit 30). | Goldkosten aller Militäreinheiten mit Goldkosten > 0 um 30 % senken: 500→350, 1000→700, 2000→1400, 250→175, 750→525. | 100 Krieger kosten 35.000 Gold = 28,6 Spieltage; Armee in ≤30 Tagen erreichbar, Gold bleibt Engpass, aber nicht übermäßig. | Schnellere Aufrüstung; Siedlerdeckel und Nahrung werden relativ wichtiger. | `tools/balancing_messung.py` nach Änderung erneut fahren; G-1, G-7, Kampfsimulation beobachten. |
+| 2 | G-2/G-6 verfehlt: 60 Zweispänner tragen 15.000; Tag 7 Vorrat 168.158 → 14 Wellen; Tag 30 720.676 → Frachtanteil nur 2,1 %. Vorrat wächst linear, Ladung ist durch Siedler gedeckelt. | Beute pro erfolgreichem Angriff als Quote: 25 % des Ziel-Vorrats, unabhängig von der Karrenladung; Karren nur noch Reisevoraussetzung. | Eine Welle holt Tag 7 42.040 (25 %), Tag 30 180.169; G-2 mit ≤5 Wellen sofort erfüllt, G-6 mit 1–2 Aufträgen statt 14/20. | Vollständiges Ausrauben entfällt; ist aber ab Tag 30 bereits heute unerreichbar. | Simulation mit Vorräten 168.158 und 720.676; Gates G-2, G-6, B-3 neu bewerten. |
+| 3 | Wagenbau-Forschung (+10 % je Stufe, Faktor 2,0) ist beschlossen, aber noch nicht in `tools/balancing_messung.py` aktiv; G-2/G-6 deshalb offen (Abschnitt 3.11b). | Wagenbau in `ladung_der_gruppe`/Beuteberechnung aufnehmen: Ladung = Basis × (1 + 0,1 × Stufe). | 60 Zweispänner: 15.000 → 30.000; 5 Wellen = 150.000 = 89 % des Tag-7-Vorrats (168.158) → G-2/G-6 früh erfüllt. An Tag 30 bleibt Quote nötig. | Minimal; Mechanik bereits entschieden, nur nicht umgesetzt. | Tools mit Wagenbau-Stufe 0/5/10 erweitern, G-2/G-6 messen. |
+| 4 | Drachen: 234 Krieger = 702 SK erfüllen scheinbar Schwelle 700; Atem 8 % vor Vorrunde reduziert auf 645 SK → 0/100 Siege. Sicherer Sieg erst ab 300 Krieger = 900 SK. | Schwellenprüfung nach Feueratem durchführen oder Mindest-Vor-Atem-Schwelle 761 SK (= 254 Krieger) ausweisen. | 254 Krieger bestehen die Vorrunde; kein frustrierender 0-Lauf bei Schwellen-Erfüllung. | Minimal; nur Reihenfolge/Anzeige. | Drachen-Simulation mit 254 Kriegern + 22 Katapulten (fehlt bisher); erwartete Vorrunden-Freigabe messen. |
+| 5 | `originalkarten.vorrat()` gibt alle 126 Karten frei, Gründungsmaske freie Wahl; Original per Zufall (Handbuch 2009 Z.313). Pech nicht ruinös: G-9 erfüllt. | Zufallsziehung (oder 3er-Auswahl) statt freier Wahl einführen, abschaltbar. | Originaltreue und Langzeitmotivation; Pech/Glück spürbar, aber nach Messung nicht ruinös. | Spieler könnten freie Wahl vermissen; Option beibehalten. | Akzeptanz prüfen; G-9 nach Zufallsziehung erneut messen. |
+
+## 3. Rechnungen
+- **Zu 1:** Goldertrag Reich: 51/h × 24 = 1.224/Tag (Abschnitt 3.2). 50.000 Gold ÷ 1.224 = 40,85 Tage (Dossier: 41). Nach Senkung: Krieger 500 × 0,70 = 350; 100 × 350 = 35.000; 35.000 ÷ 1.224 = 28,59 Tage ≤ 30. G-1 erfüllt.
+- **Zu 2:** Tag 7 Bestand 168.158; 25 % = 168.158 × 0,25 = 42.039,5 ≈ 42.040. Tag 30 Bestand 720.676; 25 % = 180.169. Heute: 60 Zweispänner Ladung 15.000; Anteil am Tag-30-Vorrat = 15.000 / 720.676 = 2,08 %. Deshalb G-2/G-6 verfehlt. Mit Quote reicht 1 Welle für ≥25 %.
+- **Zu 3:** 60 Zweispänner Basis 15.000 (Abschnitt 3.9). Wagenbau 10: +10 % je Stufe, Faktor 1 + 0,1×10 = 2,0; 15.000 × 2,0 = 30.000 (Abschnitt 3.11b). 5 Wellen = 5 × 30.000 = 150.000. Anteil an Tag-7-Vorrat: 150.000 / 168.158 = 89,2 %. Anteil an Tag-30-Vorrat: 150.000 / 720.676 = 20,8 % → zeigt Grenze; Quote (Vorschlag 2) deckt Langzeitproblem ab.
+- **Zu 4:** Nötige SK nach Atem: 700. Atem 8 % (Drachendaten). Vor-Atem-Bedarf: 700 / (1 − 0,08) = 700 / 0,92 = 760,87 ≈ 761 SK. 761 SK ÷ 3 SK/Krieger (Krieger SK 3) = 253,67 → 254 Krieger. Heute: 234 Krieger × 3 = 702 SK; nach 8 % Atem verbleiben 234 × 0,92 ≈ 215 Krieger × 3 = 645 SK < 700 → Vorrunde scheitert.
+- **Zu 5:** Pech-Szenario: nur 5 schlechteste Karten → Reichsertrag 20.525/Tag, Gold 648/Tag (Abschnitt 3.12). Bei 2.000 Partien 5 % schlechteste: Gold 886/Tag, Median 1.318/Tag, beste 1.685/Tag. G-9 bestätigt: schlechteste Kartenlage trägt 6. Siedlung in ≤120 Spieltagen. Daher ist Zufallsziehung tragbar, nicht ruinös.
+
+## 4. Was du NICHT empfiehlst
+- **Goldertrag global erhöhen**, z. B. Goldmine Berg 3/h → 4/h, statt die Einheitenkosten zu senken. Es ändert belegte Handbuchwerte und verbilligt alle Goldausgaben, nicht nur den Armeeaufbau.
+- **Siedlerdeckel anheben**, um mehr Armee/Transport zu erlauben. Der 360-Deckel ist die harte Grenze für B-1/B-4; eine Erhöhung verschiebt das strukturelle Problem nur nach hinten und macht die Balance unkontrollierbarer.
+- **Beute-Vorrang auf 100 % Gold** setzen (volle Regel 4). Der Befund zeigt: kleine Karren holen dann ausschließlich Gold, kein Holz/Stein – Bauen würde blockiert, obwohl Holz/Stein dringend gebraucht werden.
+- **Drachen-Schwellen senken**, z. B. Fuss 700 → 500, um den Drachen schneller besiegen zu lassen. Der sichere Sieg existiert bereits bei 300 Kriegern + 22 Katapulten; eine Absenkung nimmt dem Endboss die Spannung, ohne ein echtes Problem zu lösen.
+
+## 5. Offene Messungen
+1. **Wagenbau-Stufen 0/5/10 in der echten Beuteberechnung** fehlen laut Abschnitt 3.11b – die Werte sind gerechnet, aber noch nicht durch `tools/balancing_messung.py` gefahren. Ohne diese Messung bleiben G-2/G-6 mit Wagenbau unbewiesen.
+2. **Bot-Wirtschaft und Bot-Armeen fehlen** (Abschnitt 8 Grenzen). Die Beutequote-Vorschläge sind nur gegen statische Bestände validiert; echte Ziele mit eigener Produktion und Verteidigung können die Wirkung verschieben.
+3. **Drachen-Simulation bei 254 Kriegern + 22 Katapulten** fehlt. Gemessen wurden nur 234 (Totalverlust) und 300 (sicherer Sieg). Ob 254/761 SK die Vorrunde besteht und welche Siegquote folgt, muss gemessen werden, bevor die Änderung als wirksam gilt.
