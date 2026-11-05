@@ -89,3 +89,11 @@ spielerisch scharf, aber Holz und Stein kommen dann fast nur noch aus eigener F�
 **b) Gold zuerst, aber anteilig auffüllen (Empfehlung)** — Gold bekommt den Vorrang, der Rest wird
 wie heute fair verteilt. Man sieht den Unterschied, verliert aber nicht die Baumaterialien.
 **c) Beim heutigen anteiligen Modell bleiben** — dann wird Regel 4 verworfen.
+
+---
+
+## Diese Runde ist beantwortet (05.11.2026, 08:40)
+
+Alle neun Fragen - die acht oben und die daraus entstandene Frage 9 - hat Daniel in EINER Runde
+entschieden. Vollstaendig mit Wortlaut und Folgen: `docs/ENTSCHEIDUNGEN_DANIEL_20261105_0830.md`,
+Register 212. **Nichts hier ist mehr offen**; neue Fragen kommen in eine neue Datei.
