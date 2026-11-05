@@ -14,8 +14,14 @@
 | E | Start am Bildschirm geprueft | Fenster + **Passwortsperre** im Bild belegt; beendet ueber die Fenster-PID, 0 Prozesse, verwaiste `game.lock` gesichert und entfernt |
 | F | GitHub-Null-Zustand vorbereitet | kein gemeinsamer Vorfahre (lokal 619 / Remote 10 Commits); Remote-Stand als Tag `vor-nullzustand-20261105`, `index.html` unveraendert uebernommen |
 
-**Ehrlich offen:** der Push selbst ist in diesem Block noch nicht belegt (Auth und Force wegen
-wurzelloser Historien); die Spieltest-Laeufe mit 3,16 USD sind nicht gestartet; die Session-Wache fuer
+**Nachtrag 18:05 - Push und Veroeffentlichung sind belegt:** der Token war gueltig (`ghp_`, push und
+admin), der Haenger kam vom Credential-Helper - mit `GIT_ASKPASS` (Token aus der Credential-Datei,
+nie auf der Kommandozeile) ging es sofort. `main` steht auf `2048ec6` (forced update von `63639d5`),
+die alte Remote-Historie liegt als Tag `vor-nullzustand-20261105` auf GitHub, das Pre-Release
+`v_0.0.1` ist **oeffentlich** (draft false, prerelease true) mit dem ZIP **86.701.024 Byte**
+(Download-HEAD 200, Groesse stimmt) und den Release-Notizen (3.043 Zeichen).
+
+**Weiter offen:** die Spieltest-Laeufe mit 3,16 USD sind nicht gestartet; die Session-Wache fuer
 Cron-Jobs ist gebaut und der Cleanup-Bot wieder aktiv, der Skill-Nachtrag wartet auf Daniels Freigabe.
 
 | Gegenstand | Wert | Beleg |
