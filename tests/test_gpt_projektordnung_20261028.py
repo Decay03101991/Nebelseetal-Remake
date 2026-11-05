@@ -5,13 +5,17 @@ ROOT=Path(__file__).resolve().parents[1]
 class ProjektOrdnung(unittest.TestCase):
  def test_nur_ein_aktives_protokoll(self):
   # ENTSCHEIDUNG Daniel 02.11.2026: das Protokoll liegt in ZWEI Heften - ein AKTIVES Heft und ein
-  # GESCHLOSSENES Geschichtsheft. Die Wache nagelt deshalb nicht mehr "genau eine Datei" fest
-  # (das war der Stand bis 01.11.2026), sondern: genau ein aktives Heft, genau ein Geschichtsheft,
-  # und sonst nichts, was wie ein Protokoll heisst.
+  # GESCHLOSSENES Geschichtsheft.
+  # ENTSCHEIDUNG Daniel 05.11.2026 (Frage 4, Register 218): AUSLAGERN statt verdichten - es duerfen
+  # deshalb MEHRERE Historienhefte (`..._HISTORIE*.md`) daneben liegen. Die Wache haelt weiter fest,
+  # was sie soll: genau EIN aktives Heft, und alles andere, was wie ein Protokoll heisst, ist ein
+  # Historienheft. Eine feste Zahl waere hier falsch - sie wuerde jede Auslagerung rot machen.
   namen = sorted(p.name for p in (ROOT/'docs').glob('*ENTWICKLUNGSPROTOKOLL*.md'))
   self.assertIn('ENTWICKLUNGSPROTOKOLL.md', namen)
   andere = [n for n in namen if n != 'ENTWICKLUNGSPROTOKOLL.md']
-  self.assertEqual(andere, ['ENTWICKLUNGSPROTOKOLL_HISTORIE_BIS_20261101.md'], namen)
+  self.assertTrue(andere, 'kein Historienheft gefunden')
+  for n in andere:
+   self.assertIn('_HISTORIE', n, n)
  def test_aktives_spiel(self):
   for p in ['src/main.py','data/gelaende.json','assets/loadingpage/Nebelseetal_Loadingpage.png','docs/AGENTEN_PLAN.md','docs/ENTWICKLUNGSPROTOKOLL.md','docs/HERMES_UEBERGABE_AKTUELL.md']:
    self.assertTrue((ROOT/p).is_file(),p)
