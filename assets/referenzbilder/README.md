@@ -12,7 +12,15 @@ zum Entfernen freigegeben ("dürfen komplett aus dem System und aus den Nebelsee
 dem Github entfernt werden"). Sie sind mit `git rm` entfernt; die letzte Fassung steht weiter in der
 Git-Historie (Commit vor `11d41ab`), ist also wiederholbar, ohne dass sie im Baum liegt.
 
-**15 Dateien, 3,3 MB:** 6 Fraktionsbilder (Elfen, Gnome ×2, Ghule ×2, Menschen ×3, Zwerge ×3 als
+## Das Logo ist FERTIG (06.11.2026)
+
+`Logo_Nebelseetal_20261106.png` ist kein Referenzbild, sondern das **fertige Logo des Spiels**:
+3500 x 3500, freigestellt (73 % transparent), Banner mit dem Schriftzug NEBELSEETAL.
+**Entworfen hat es Herr Chris Fred Däubner für Daniel Kössl.** Es steht unter seinem Urheberrecht:
+keine Weiterverwendung ohne seine Erlaubnis. Für die Besucherseite liegen web-optimierte Fassungen
+unter `assets/bilder/logo_nebelseetal_klein.png` (1.294 KB) und `.webp` (309 KB, 1600 x 754).
+
+**15 Referenzbilder, 3,3 MB** (dazu das fertige Logo, 6,6 MB): 6 Fraktionsbilder (Elfen, Gnome ×2, Ghule ×2, Menschen ×3, Zwerge ×3 als
 Panoramen und Hintergründe), Burgen auf der Weltkarte, Gebäude- und Ressourcen-Icons,
 Ressourcenbalken und drei Stilbilder Nebelseetal.
 

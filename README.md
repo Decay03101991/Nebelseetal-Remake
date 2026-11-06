@@ -1,9 +1,13 @@
 # Nebelseetal Remake — Pre-Release-Testversion
 
+<img src="assets/bilder/logo_nebelseetal_klein.png" alt="Nebelseetal Remake" width="720">
+
+*Logo: Chris Fred Däubner, für Daniel Kössl entworfen.*
+
 **Ein Einzelspieler-Remake des historischen Browserspiels Nebelseetal.** Läuft lokal, offline,
 kostenlos. Windows-Testversion als `.exe`, kein Python nötig.
 
-> **Dies ist die erste Vorabversion** (`0.5.0-pre.1`). Sie ist zum Ausprobieren und Fehlersammeln
+> **Dies ist eine Vorabversion** (`V_0.0.3`). Sie ist zum Ausprobieren und Fehlersammeln
 > gedacht, nicht als fertiges Spiel. Was fehlt, steht ehrlich unter [Bekannte Grenzen](#bekannte-grenzen).
 
 ---
@@ -123,6 +127,12 @@ Der Quelltext ist einsehbar. Eine Nutzungslizenz ist für diese Vorabversion **n
 wer den Code verwenden will, fragt bitte vorher. Die Bilder des historischen Originalspiels sind nicht
 Teil dieses Projekts; die im Spiel verwendeten Bilder stammen aus eigenen Lieferungen und eigenen
 Generierungen.
+
+**Logo:** das Banner mit dem Schriftzug NEBELSEETAL hat **Chris Fred Däubner** für Daniel Kössl
+entworfen. Es ist ein fertiges Werk und steht unter seinem Urheberrecht — es wird hier mit seiner
+Zustimmung gezeigt und darf nicht ohne seine Erlaubnis weiterverwendet werden. Die Datei liegt als
+`assets/referenzbilder/Logo_Nebelseetal_20261106.png` (Original, 3500 × 3500, freigestellt) und als
+web-optimierte Fassung `assets/bilder/logo_nebelseetal_klein.png` bzw. `.webp`.
 
 ## Fehler melden
 
