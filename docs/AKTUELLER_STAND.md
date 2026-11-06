@@ -11,11 +11,12 @@ entlang arbeitet. **Gebaut ist weiterhin nichts.**
 | Nr. | Schritt | Beleg |
 |---|---|---|
 | A | Sieben Antworten woertlich festgehalten | `docs/ENTSCHEIDUNGEN_DANIEL_20261106_GEMINI_ANTWORTEN.md`, Abschnitt Runde 3 |
-| B | Fester Ablauf in acht Bloecken (0 Sitzung aufsetzen, 1 S0 Tabellen, 2 S1, 3 S1b, 4 S2, 5 S3, 6 S4 Teil 1, 7 Morgenbericht) | Uebergabe `UEBERGABE_NEBELSEETAL_20261106_0230.md`, Abschnitt 3 |
+| B | Fester Ablauf in neun Bloecken (0 Sitzung aufsetzen, 1 S0 Tabellen, 2 S1, 3 S1b, 4 S2, 5 S3, 6 S4 Teil 1, 7 Morgenbericht) | Uebergabe `UEBERGABE_NEBELSEETAL_20261106_0230.md`, Abschnitt 3 |
 | C | Betriebsgrenzen festgeschrieben: ein Sammellauf je 20 bis 25 Minuten, nichts parallel, Push mit `GIT_ASKPASS` und drei Versuchen, kein Force-Push, keine EXE-Bauten | ebd. Abschnitt 5 |
 | D | Drei erlaubte Abbruchgruende definiert (roter Lauf nach zwei Versuchen, echter Widerspruch, Budget oder 07:40) | ebd. Abschnitt 6 |
 | E | **Modellbudget 4,00 USD** (0,25 USD je Aufruf), Skill-Freigabe pauschal erteilt | ebd. Abschnitte 4 und 10 |
 | F | Dokumentwachen | `test_textqualitaet`, `test_protokoll`, `test_projektpfade`, `test_zieluebergabe` |
+| G | **Externen-Info als Block 7 aufgenommen:** `Nebelseetal_Infos_ExterneKI.txt` auf dem Desktop, von einem grossen Modell erstellt, erst wenn alle Schritte geplant sind, bleibt dauerhaft liegen | Uebergabe 02:30, Block 7; Register 247 und 248 (Links zum Repo, aber ohne Zugriffsannahme) |
 
 ## Der EINE naechste Schritt
 
@@ -35,7 +36,7 @@ Stand-Block, Commit und Push.
 |---|---|---|
 | Kopf auf `main` | `6e565c0` (danach der Commit dieses Schnitts) | `git log --oneline -1` |
 | Pruefdateien / Module | 179 / 60 | `ls tests/test_*.py`, `ls src/*.py` |
-| Register / Protokoll / Stand-Bloecke | 246 (hoechste Nummer) / 294 (`wc -l`) / 94 | Zaehlung |
+| Register / Protokoll / Stand-Bloecke | 248 (hoechste Nummer) / 296 (`wc -l`) / 94 | Zaehlung |
 | Entscheidungen Daniels | 25 in drei Runden | drei `ENTSCHEIDUNGEN_DANIEL_20261106_*.md` |
 | Nachtziel | S1, S1b, S2 mindestens; S3 und S4 Teil 1 bei Zeit; S5 gesperrt | Uebergabe 02:30, Abschnitt 3 |
 | Wachen dieses Schnitts | Dokumentpruefungen gruen, kein Sammellauf noetig | Laeufe dieser Sitzung |
