@@ -1,3 +1,28 @@
+# STAND 06.11.2026, 05:19 - S2 gebaut: Mauerreparatur (Register 252)
+
+> Neuester Block. Register 252, Protokollzeile 05:19. Nachtlauf. Darunter S1b (03:47), S1 (03:22), S0 (03:02).
+
+**Was dieser Schnitt geaendert hat:** die Dorfmauer laesst sich reparieren - nachgerechnet, nicht geschaetzt.
+
+| Stueck | Beleg |
+|---|---|
+| Rechenkern | `src/dorfwall.py`: `reparatur_preis`, `reparatur_sekunden`, `reparatur_pruefen`, `reparatur_starten`, `reparatur_tick`, `reparatur_abbrechen` |
+| Felder am Ort | `Settlement.mauer_reparatur_start_zustand/start_zeit/ziel/ende/stufe` (5 Felder, save/load belegt) |
+| Kern | `GameState.mauer_reparatur_starten`, `mauer_reparatur_weiter` im Tick |
+| Abbruch | nach der Kampf-Buchung: ein Angriff bricht die Reparatur ab |
+| Anzeige | `_mauer_reparatur_block` in der Verteidigungs-Rubrik: jede Bedingung EINZELN + naechster Schritt |
+| Wache | `tests/test_mauerreparatur.py` - 46 bestanden, 0 Fehler, 0 Befunde |
+
+**Zahlen (V-1):** je Prozentpunkt 16 * Stufe / 100 in Holz und Stein; 0 auf 100 kostet genau den Wallpreis mal
+Stufe (Stufe 1: 16/16, Stufe 10: 160/160) und dauert 36000 Spielsekunden = 200 Sekunden echt.
+
+**Ein Fehler beim Bauen, ehrlich benannt:** ein Schreibversuch mit `encoding=ascii` hat `dorfwall.py` geleert
+(die Datei traegt echte Umlaute); aus der Sicherung vollstaendig wiederhergestellt.
+
+**Naechster Schritt:** voller Sammellauf 3, danach S3 Verwundetenheilung (Zahlen aus V-2).
+
+---
+
 # STAND 06.11.2026, 03:47 - S1b gebaut: vier Menue-Teilgeschichten (Register 251)
 
 > Neuester Block. Register 251, Protokollzeile 03:47. Nachtlauf. Darunter S1 (03:22) und S0 (03:02).

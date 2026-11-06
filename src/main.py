@@ -2488,6 +2488,13 @@ class Settlement:
     # allein in Forschung 'Verteidigungsanlagen'; Schaden bleibt ortsgebunden.
     mauer_besetzt: bool = False
     mauer_zustand: float = 100.0
+    # S2 (06.11.2026): laufende Mauerreparatur. Ziel 0 heisst "keine Reparatur"; die Stufe
+    # wird mitgemerkt, damit ein Ausbau waehrend der Reparatur sie abbrechen kann.
+    mauer_reparatur_start_zustand: float = 0.0
+    mauer_reparatur_start_zeit: float = 0.0
+    mauer_reparatur_ziel: float = 0.0
+    mauer_reparatur_ende: float = 0.0
+    mauer_reparatur_stufe: int = 0
     # --- Ökonomie-Paket, Entwurf Schritt 9 (Z. 757-772): die Felder einer LOKALEN Wirtschaft. ---
     # Sie sind bis zur Aktivierung (Schritt 10) leer bzw. auf ihren Vorgabewerten: das Spiel rechnet
     # weiterhin mit den GLOBALEN Beständen (`GameState.resources`, `.waren`, `.population`).
@@ -3835,6 +3842,30 @@ class GameState:
         siedlung.mauer_zustand = 100.0
         return True, (f"Wall in {siedlung.name} errichtet. "
                       f"Stufe {self.wall_stufe_am_ort(siedlung)}; kein Feld belegt.")
+
+    def mauer_reparatur_starten(self, siedlung: Settlement):
+        """Startet die Reparatur der Dorfmauer (S2, 06.11.2026) - Kosten aus V-1, atomar gebucht.
+
+        Preis und Bedingungen stehen in `dorfwall.reparatur_pruefen`; hier wird nur gebucht und
+        gemeldet. Die Meldung nennt bei einem Fehlschlag ALLE fehlenden Bedingungen einzeln.
+        """
+        if siedlung not in self.settlements:                            # fremde Siedlung: nichts buchen
+            return False, "Siedlung gehört nicht zum Reich."
+        stufe = self.wall_stufe_am_ort(siedlung)                        # Wallstufe dieses Ortes
+        if stufe <= 0:                                                  # ohne Wall keine Reparatur
+            return False, "Es steht noch kein Wall in diesem Dorf."
+        ok, meldung = dorfwall.reparatur_starten(siedlung, self.research, siedlung.vorraete,
+                                                self.spielsekunden, self.forschungsauftraege)
+        if ok:                                                          # Erfolg ins Postfach
+            self.messages.append({"text": meldung, "type": "system"})
+        return ok, meldung
+
+    def mauer_reparatur_weiter(self, jetzt: float):
+        """Laesst laufende Mauerreparaturen fortschreiten (S2) - EINE Stelle fuer alle Orte."""
+        for ort in self.settlements:                                    # jeder Ort hat seinen Zustand
+            if dorfwall.reparatur_tick(ort, jetzt, self.research):       # fertig?
+                self.messages.append({"text": "Die Mauer in %s ist wieder vollständig repariert."
+                                              % ort.name, "type": "system"})
 
     def punktestand(self) -> dict:
         """Forschungs-, Kriegs- und Gesamtpunkte nach den Originalformeln (Handbuch S. 3/5/6).
@@ -5718,6 +5749,11 @@ class GameState:
         # Ortsbezogener Mauerschaden nach der wirklichen Belagerung, persistent.
         if siedlung_ziel is not None and self._lokale_kasse_aktiv():
             siedlung_ziel.mauer_zustand = float(ergebnis.get("mauer_zustand", wall_zustand))
+            # S2 (06.11.2026): ein Angriff bricht eine laufende Reparatur ab - der erlittene
+            # Schaden bleibt, die bezahlten Rohstoffe sind verbraucht (keine Rueckerstattung).
+            if dorfwall.reparatur_abbrechen(siedlung_ziel):
+                self.messages.append({"text": "Die Mauerreparatur in %s wurde durch den Angriff abgebrochen."
+                                              % siedlung_ziel.name, "type": "system"})
         if bot_ziel is not None:
             bot_ziel.wall_zustand = float(ergebnis.get("mauer_zustand", wall_zustand))
         # W-13 (04.11.2026): die Verluste des Verteidigers werden GEBUCHT - in der Garnison des
@@ -7251,6 +7287,8 @@ class GameState:
         # Verlustberichte verschieben ihre Frist, Militaerberichte laufen nie ab
         # (Daniel, Entscheidung 4). Fristen und Typen stehen in data/nachrichten.json.
         postfach.ablauf_buchen(self.messages, self.spielsekunden)
+        # S2 (06.11.2026): laufende Mauerreparaturen steigen stueckweise (Zustand folgt der Uhr).
+        self.mauer_reparatur_weiter(self.spielsekunden)
         self.last_tick = time.time()
         # Teil 6c: was in diesem Takt fertig wurde, geht an den Aufrufer ZURÜCK — die Oberfläche
         # zeichnet daraufhin neu (`NebelseetalApp._tick_loop`). `GameState` kennt keine Ansicht.
@@ -10804,6 +10842,8 @@ class NebelseetalApp:
                      fg=self.skin["text"], bg=self.skin["panel"], wraplength=310,
                      justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=6)
             return
+            self._mauer_reparatur_block(info, siedlung)             # S2: Reparatur anzeigen
+            return
 
         staende = {k: int(v.level) for k, v in self.state.research.items()}
         angebote = baumenue_info.angebote(
@@ -13429,6 +13469,56 @@ class NebelseetalApp:
                                       fill=str(daten.get("farbe_fuellung") or "#DAA520"), outline="")
         tk.Label(zeile, text=postfach.rang_text(punkte_wert), fg=self.skin["text"],
                  bg=self.skin["bg"], font=("Arial", 9)).pack(side=tk.LEFT, padx=(8, 0))  # Name und Abstand
+
+    def _mauer_reparatur_block(self, eltern, siedlung):
+        """Anzeige der Mauerreparatur (S2, 06.11.2026): Zustand, Preis und JEDE offene Bedingung.
+
+        Die Pruefung kommt aus `dorfwall.reparatur_pruefen` - dieselbe Funktion, die der Kern beim
+        Start benutzt (F-04: Anzeige und Kern lesen eine Wahrheit).
+        """
+        stufe = self.state.wall_stufe_am_ort(siedlung)                  # Wallstufe dieses Ortes
+        zustand = dorfwall.zustand(siedlung)                            # Zustand in Prozent
+        pruefung = dorfwall.reparatur_pruefen(siedlung, self.state.research, siedlung.vorraete,
+                                             self.state.forschungsauftraege, self.state.spielsekunden)
+        if dorfwall.reparatur_laeuft(siedlung):                         # laufende Reparatur zuerst
+            rest = max(0.0, float(getattr(siedlung, "mauer_reparatur_ende", 0.0) or 0.0)
+                       - float(self.state.spielsekunden))
+            tk.Label(eltern, text=("Mauer: Stufe %d, Zustand %d Prozent. Reparatur läuft auf 100 Prozent, "
+                                   "noch %d Spielsekunden." % (stufe, int(zustand), int(rest))),
+                     fg=self.skin["text"], bg=self.skin["panel"], wraplength=310,
+                     justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(2, 2))
+            return
+        tk.Label(eltern, text=("Mauer: Stufe %d, Zustand %d Prozent." % (stufe, int(zustand))),
+                 fg=self.skin["text"], bg=self.skin["panel"], wraplength=310,
+                 justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(2, 2))
+        if pruefung["moeglich"]:                                        # Reparatur ist bezahlbar
+            preis = pruefung["preis"]
+            tk.Label(eltern, text=("Reparatur auf 100 Prozent kostet %s Holz und %s Stein "
+                                   "(%d Spielsekunden)." % (dorfwall._zahl(preis["holz"]),
+                                                             dorfwall._zahl(preis["stein"]),
+                                                             int(pruefung["sekunden"]))),
+                     fg=self.skin["text"], bg=self.skin["panel"], wraplength=310,
+                     justify=tk.LEFT).pack(anchor=tk.W, padx=6)
+            tk.Button(eltern, text="Mauer reparieren",
+                      command=lambda o=siedlung: self._mauer_reparatur_anklicken(o),
+                      bg=self.skin["button"], fg=self.skin["gold"], relief=tk.FLAT,
+                      padx=8, pady=2).pack(anchor=tk.W, padx=6, pady=(4, 6))
+            return
+        for grund in pruefung["gruende"]:                               # jede Bedingung EINZELN
+            tk.Label(eltern, text="- " + grund, fg="#C0C0C0", bg=self.skin["panel"],
+                     wraplength=310, justify=tk.LEFT).pack(anchor=tk.W, padx=6)
+        if pruefung.get("naechster_schritt"):                           # und der naechste Schritt
+            tk.Label(eltern, text="Nächster Schritt: " + str(pruefung["naechster_schritt"]),
+                     fg=self.skin["text"], bg=self.skin["panel"], wraplength=310,
+                     justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(2, 6))
+
+    def _mauer_reparatur_anklicken(self, siedlung):
+        """Knopf hinter der Anzeige: startet die Reparatur und zeichnet neu."""
+        ok, meldung = self.state.mauer_reparatur_starten(siedlung)
+        self._log(meldung)                                              # Meldung ins Protokoll
+        if not ok:                                                      # Fehlschlag ehrlich zeigen
+            messagebox.showinfo("Mauerreparatur", meldung)
+        self._render_view()                                             # Ansicht neu aufbauen
 
     def _render_messages(self):
         """Postfach mit Filterzeile, Blaettern und Archiv (S1, 06.11.2026).

@@ -122,3 +122,173 @@ def rahmen_plan(spalten: int, zeilen: int, zelle: int, rand: int,
     return [{'linie': kanten[i], 'farbe': farbe, 'breite': breite, 'teil':
              ('nord', 'west', 'ost', 'süd-links', 'süd-rechts')[i]}
             for i in range(len(kanten))]
+
+
+# ---------------------------------------------------------------------------
+# S2 (06.11.2026): Mauerreparatur - Preis, Dauer und Ablauf an EINER Stelle.
+#
+# Vorgabe Daniel (Runde 2, Frage 2): der Preis je Prozentpunkt wird aus dem EINEN belegten
+# Wallpreis (16 Holz / 16 Stein fuer Stufe 1) und der Stufe gerechnet, nicht erfunden.
+# Ergebnis (docs/S0_TABELLEN_20261107.md, V-1): je Prozentpunkt 16 * Stufe / 100 in Holz UND
+# Stein; 0 auf 100 Prozent kostet damit genau den Wallpreis mal Stufe und dauert 10 Spielstunden.
+# ---------------------------------------------------------------------------
+
+WALLPREIS_HOLZ = 16.0          # belegter Wallpreis fuer Stufe 1 in Holz (data/baupreise.json)
+WALLPREIS_STEIN = 16.0         # belegter Wallpreis fuer Stufe 1 in Stein
+SEKUNDEN_JE_PROZENT = 360.0    # 0,1 Spielstunde je Prozentpunkt (1 Spielstunde = 3600 Spielsekunden)
+
+
+def reparatur_preis(stufe: int, von_prozent: float, bis_prozent: float = 100.0) -> dict:
+    """Holz und Stein fuer eine Reparatur von `von_prozent` auf `bis_prozent` (V-1).
+
+    Der Preis waechst linear mit der Wallstufe, weil der Ausbau selbst linear ist
+    (`data/baupreise.json` -> regeln.ausbau_linear).
+    """
+    stufe = max(1, min(10, int(stufe or 0)))                       # Wallstufen gibt es nur 1 bis 10
+    fehlt = max(0.0, float(bis_prozent) - float(von_prozent))       # wie viele Prozentpunkte fehlen
+    je = WALLPREIS_HOLZ * stufe / 100.0                            # Holz je Prozentpunkt (Stein gleich)
+    stein_je = WALLPREIS_STEIN * stufe / 100.0                     # Stein je Prozentpunkt
+    return {"holz": je * fehlt, "stein": stein_je * fehlt}
+
+
+def reparatur_sekunden(von_prozent: float, bis_prozent: float = 100.0) -> float:
+    """Dauer einer Reparatur in SPIELSEKUNDEN (1 Prozentpunkt = 360 Spielsekunden)."""
+    return max(0.0, float(bis_prozent) - float(von_prozent)) * SEKUNDEN_JE_PROZENT
+
+
+def reparatur_laeuft(siedlung: Any) -> bool:
+    """Laeuft an diesem Ort gerade eine Mauerreparatur?"""
+    return float(_feld(siedlung, 'mauer_reparatur_ziel', 0.0) or 0.0) > 0.0
+
+
+def reparatur_abbrechen(siedlung: Any) -> bool:
+    """Bricht eine laufende Reparatur ab (bei einem Angriff) - der Zustand bleibt, wie er ist."""
+    if not reparatur_laeuft(siedlung):
+        return False
+    _setzen(siedlung, 'mauer_reparatur_ziel', 0.0)                 # kein Ziel mehr
+    _setzen(siedlung, 'mauer_reparatur_ende', 0.0)                 # kein Endzeitpunkt mehr
+    _setzen(siedlung, 'mauer_reparatur_stufe', 0)                  # keine gemerkte Stufe mehr
+    return True
+
+
+def reparatur_pruefen(siedlung: Any, forschungen: Mapping[str, Any], ortslager: dict,
+                      forschungsauftraege: Any = None, jetzt: float = 0.0) -> dict:
+    """Alle Bedingungen der Reparatur EINZELN - die eine Rechenstelle fuer Kern und Anzeige.
+
+    Rueckgabe:: {"moeglich", "gruende" (Liste), "preis", "ziel", "sekunden", "zustand", "stufe",
+                 "naechster_schritt"}
+    Ein Grund ist ein fertiger Satz; die Anzeige zeigt sie einzeln, nie als Sammel-Meldung.
+    """
+    wallstufe = stufe(siedlung, forschungen)                       # Stufe dieses Ortes (0 = kein Wall)
+    zust = zustand(siedlung)                                       # Zustand in Prozent, nie negativ
+    ergebnis = {"moeglich": False, "gruende": [], "preis": {}, "ziel": 100.0, "sekunden": 0.0,
+                "zustand": zust, "stufe": int(wallstufe), "naechster_schritt": ""}
+    if not bool(_feld(siedlung, 'mauer_besetzt', False)):
+        ergebnis["gruende"].append("Es steht noch kein Wall in diesem Dorf.")
+        ergebnis["naechster_schritt"] = "Zuerst Verteidigungsanlagen erforschen und den Wall errichten."
+        return ergebnis
+    if wallstufe <= 0:
+        ergebnis["gruende"].append("Die Wallstufe ist 0.")
+        ergebnis["naechster_schritt"] = "Zuerst die Forschung Verteidigungsanlagen auf Stufe 1 bringen."
+        return ergebnis
+    if reparatur_laeuft(siedlung):
+        ergebnis["gruende"].append("Es l\u00e4uft bereits eine Reparatur an dieser Mauer.")
+        ergebnis["naechster_schritt"] = "Die laufende Reparatur abwarten."
+        return ergebnis
+    if zust >= 100.0:
+        ergebnis["gruende"].append("Die Mauer ist unbesch\u00e4digt (100 Prozent).")
+        ergebnis["naechster_schritt"] = "Nichts zu tun."
+        return ergebnis
+    if _ausbau_laeuft(forschungsauftraege):
+        ergebnis["gruende"].append("Die Mauer wird gerade ausgebaut (Forschung Verteidigungsanlagen l\u00e4uft).")
+        ergebnis["naechster_schritt"] = "Den Ausbau abwarten, danach reparieren."
+        return ergebnis
+    preis = reparatur_preis(wallstufe, zust)                       # Holz und Stein aus V-1
+    ergebnis["preis"] = preis
+    ergebnis["sekunden"] = reparatur_sekunden(zust)
+    for rohstoff, betrag in preis.items():                         # jede fehlende Menge EINZELN
+        haben = float((ortslager or {}).get(rohstoff, 0) or 0)
+        if haben < betrag:
+            ergebnis["gruende"].append("Im Dorflager fehlen %s %s."
+                                       % (_zahl(betrag - haben), rohstoff.capitalize()))
+    if ergebnis["gruende"]:
+        ergebnis["naechster_schritt"] = "Zuerst die fehlenden Rohstoffe im Dorflager auffuellen."
+        return ergebnis
+    ergebnis["moeglich"] = True
+    ergebnis["naechster_schritt"] = "Mauer reparieren (Ziel 100 Prozent)."
+    return ergebnis
+
+
+def reparatur_starten(siedlung: Any, forschungen: Mapping[str, Any], ortslager: dict,
+                      jetzt: float, forschungsauftraege: Any = None) -> tuple:
+    """Bucht die Reparatur ATOMAR und setzt Start, Ziel und Endzeitpunkt.
+
+    Entweder alle Posten werden gebucht oder keiner - deshalb erst pruefen, dann buchen.
+    Rueckgabe:: (bool, Meldung)
+    """
+    pruefung = reparatur_pruefen(siedlung, forschungen, ortslager, forschungsauftraege, jetzt)
+    if not pruefung["moeglich"]:
+        return False, " ".join(pruefung["gruende"])
+    preis = pruefung["preis"]
+    for rohstoff, betrag in preis.items():                         # atomar: geprueft ist schon
+        ortslager[rohstoff] = float(ortslager.get(rohstoff, 0) or 0) - float(betrag)
+    _setzen(siedlung, 'mauer_reparatur_start_zustand', float(pruefung["zustand"]))
+    _setzen(siedlung, 'mauer_reparatur_start_zeit', float(jetzt))
+    _setzen(siedlung, 'mauer_reparatur_ziel', float(pruefung["ziel"]))      # Ziel: volle Mauer
+    _setzen(siedlung, 'mauer_reparatur_ende', float(jetzt) + float(pruefung["sekunden"]))
+    _setzen(siedlung, 'mauer_reparatur_stufe', int(pruefung["stufe"]))      # Stufe merken
+    return True, ("Reparatur gestartet: Ziel 100 Prozent in %d Spielsekunden (%s Holz, %s Stein)."
+                  % (int(pruefung["sekunden"]), _zahl(preis["holz"]), _zahl(preis["stein"])))
+
+
+def reparatur_tick(siedlung: Any, jetzt: float, forschungen: Mapping[str, Any]) -> bool:
+    """Laesst den Zustand stueckweise steigen; gibt True zurueck, wenn sie fertig wurde.
+
+    Der Zustand folgt der Uhr: Anteil der verstrichenen Zeit an der Gesamtdauer. Aendert sich die
+    Wallstufe waehrend der Reparatur (Forschung), bricht sie ab - der bezahlte Preis passt dann
+    nicht mehr zur Stufe.
+    """
+    if not reparatur_laeuft(siedlung):
+        return False
+    gemerkte_stufe = int(_feld(siedlung, 'mauer_reparatur_stufe', 0) or 0)
+    if stufe(siedlung, forschungen) != gemerkte_stufe:              # Stufe hat sich geaendert: abbrechen
+        reparatur_abbrechen(siedlung)
+        return False
+    ziel = float(_feld(siedlung, 'mauer_reparatur_ziel', 0.0) or 0.0)
+    start_zustand = float(_feld(siedlung, 'mauer_reparatur_start_zustand', 0.0) or 0.0)
+    start_zeit = float(_feld(siedlung, 'mauer_reparatur_start_zeit', 0.0) or 0.0)
+    ende = float(_feld(siedlung, 'mauer_reparatur_ende', 0.0) or 0.0)
+    dauer = reparatur_sekunden(start_zustand, ziel)
+    anteil = 1.0 if dauer <= 0 else (float(jetzt) - start_zeit) / dauer
+    anteil = max(0.0, min(1.0, anteil))
+    neu = start_zustand + (ziel - start_zustand) * anteil
+    _setzen(siedlung, 'mauer_zustand', min(100.0, max(0.0, neu)))
+    if dauer <= 0 or float(jetzt) >= ende:                          # Zeit ist um: fertig
+        _setzen(siedlung, 'mauer_zustand', ziel)
+        reparatur_abbrechen(siedlung)
+        return True
+    return False
+
+
+def _ausbau_laeuft(forschungsauftraege: Any) -> bool:
+    """Laeuft irgendwo ein Forschungsauftrag Verteidigungsanlagen? (Sperre Reparatur/Ausbau.)"""
+    if not forschungsauftraege:
+        return False
+    eintraege = forschungsauftraege.values() if isinstance(forschungsauftraege, dict) else forschungsauftraege
+    for eintrag in eintraege or []:
+        if not isinstance(eintrag, dict):
+            continue
+        if str(eintrag.get('gebiet') or eintrag.get('forschung') or '') == 'Verteidigungsanlagen':
+            return True
+    return False
+
+
+def _zahl(wert: Any) -> str:
+    """Eine Menge lesbar machen: ganze Zahlen ohne Nachkommastellen, sonst eine Stelle."""
+    try:
+        zahl = float(wert)
+    except (TypeError, ValueError):
+        return str(wert)
+    if abs(zahl - round(zahl)) < 1e-9:
+        return "%d" % int(round(zahl))
+    return ("%.1f" % zahl).replace(".", ",")
