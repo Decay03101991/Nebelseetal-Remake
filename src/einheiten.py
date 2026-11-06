@@ -190,6 +190,21 @@ def kampfstaerke(name: str, anzahl: int = 1) -> float:
     return 0.0
 
 
+def armee_schlagkraft(bestand) -> float:
+    """Summe der Schlagkraft (SK) eines Bestands - die EINE Rechenstelle dafuer.
+
+    Eingabe: dict {Einheitenname: Anzahl} (Armee eines Bots oder Ortslager).
+    Ausgabe: float. Benutzt `schlagkraft` aus den Einheitsdaten; Unbrauchbares zaehlt 0.
+    Gebraucht wird der Wert fuer die Rache-Schwelle (S4-4, 99 SK) - nicht fuer den Kampf.
+    """
+    summe = 0.0  # laufende Summe
+    for name, anzahl in dict(bestand or {}).items():  # jede Einheit einzeln
+        if isinstance(anzahl, bool) or not isinstance(anzahl, (int, float)):  # keine Zahl
+            continue  # dann zaehlt sie nicht
+        summe += schlagkraft(str(name)) * max(0.0, float(anzahl))  # SK x Anzahl
+    return summe  # Gesamt-Schlagkraft
+
+
 def kapazitaet(name: str, anzahl: int = 1) -> int:
     """Tragfaehigkeit fuer Beute (nur Karren) - BASISWERT ohne Forschungsbonus."""
     return ladung(name) * anzahl if ist_transport(name) else 0

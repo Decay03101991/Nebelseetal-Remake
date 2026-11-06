@@ -55,5 +55,36 @@
       "quelle": "ENTSCHEIDUNG Daniel 06.11.2026, 13:50 (Register 284): der Pakt schuetzt den Spieler vor Bot-Angriffen; ein Angriff des Spielers auf den Pakt-Bot ist ERLAUBT, bricht aber den Pakt (Gunst-Abzug, Rachetopf +1)."
     },
     "regel": "Ein Vertrag ist ein Eintrag am Bot: Art -> {seit, bis}. Er wird NICHT abgeleitet, sondern bei Ablauf geloescht; der Status der Gunst steht weiterhin nur im Feld gunst."
+  },
+  "rache": {
+    "aktiv": true,
+    "_schnitt": "S4-4 (06.11.2026), Ablauf Schritt 4. Jede Zahl traegt ihre Quelle. Entscheidungen Daniels: Topf steigt AUCH unter einem Pakt (13:50), Angriff fruehestens 28.800 s nach Paktende (13:50), nach einem Bot-Sieg Topf 0 (11:25, F-3).",
+    "je_niederlage": 1,
+    "hoechstwert": 5,
+    "schwelle": 3,
+    "armee_sk": 99,
+    "spieltag_sekunden": 28800,
+    "vorlauf_sekunden": 28800,
+    "nach_paktende_sekunden": 28800,
+    "nach_bot_sieg": 0,
+    "ruht_unter_goetterschutz": true,
+    "ruht_unter_vertrag": false,
+    "ankuendigung": [
+      "Ein Bote bringt eine Drohung: \"Wir haben lange zugesehen. Rechne mit uns.\"",
+      "Ein zweiter Bote kommt: \"Unsere Reihen stehen. Bald ist es so weit.\"",
+      "Ein dritter Bote nennt kein Wort mehr - nur eine Klinge, die auf dein Dorf zeigt."
+    ],
+    "quellen": {
+      "je_niederlage": "VORSCHLAG: Auftragsdokument docs/extern/Nebelseetal_LLM_Auftrag_20261106.md Abschnitt 7.2 - eine Niederlage fuellt den Topf um 1.",
+      "schwelle": "VORSCHLAG: Auftragsdokument 7.2 - ab Topf 3 folgt eine Ankuendigung.",
+      "armee_sk": "V-5, UEBERNEHMEN (Befund G-2): 99 SK ist die Rache-Schwelle; die 90 SK aus docs/ABLAUF_LLM_20261107.md sind die WALL-Schwelle und NICHT gemeint.",
+      "vorlauf_sekunden": "VORSCHLAG: ein Spieltag Vorlauf zwischen Ankuendigung und Angriff.",
+      "nach_paktende_sekunden": "ENTSCHEIDUNG Daniel 06.11.2026, 13:50 (Register 284): der Angriff darf fruehestens 28.800 s nach dem Paktende feuern.",
+      "nach_bot_sieg": "ENTSCHEIDUNG Daniel 06.11.2026, 11:25 (F-3): nach einem Bot-Sieg faellt der Topf auf 0.",
+      "ruht_unter_goetterschutz": "VORSCHLAG (Befund G-1): `noob_protection` sperrt heute schon jeden Angriff - ein Topf, der trotzdem steigt, feuerte am ersten Tag nach dem Schutz.",
+      "ruht_unter_vertrag": "ENTSCHEIDUNG Daniel 06.11.2026, 13:50: der Topf steigt auch unter einem Pakt weiter - der Pakt kauft Zeit, nicht Ruhe.",
+      "ankuendigung": "VORSCHLAG: Texte fuer die drei Drohstufen; sie stehen hier, damit kein Spieltext im Code liegt."
+    }
   }
+
 }

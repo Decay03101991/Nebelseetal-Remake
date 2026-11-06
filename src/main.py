@@ -296,6 +296,12 @@ class BotPlayer:
     # EIN Speicher: der Vertrag steht hier am Bot, es gibt keine zweite Vertragstabelle im Spiel.
     # ADDITIV: ein Spielstand von vor S4-3 laedt ohne das Feld und hat damit keinen Pakt.
     vertraege: Dict[str, dict] = field(default_factory=dict)
+    # S4-4 (06.11.2026): wann eine Vertragsart geendet hat - Art -> Spielzeit. Gebraucht fuer den
+    # Vorlauf nach dem Paktende (Daniel 13:50: fruehestens 28.800 s danach). ADDITIV.
+    vertrag_ende: Dict[str, float] = field(default_factory=dict)
+    # S4-4 (06.11.2026): der Rachetopf dieses Bots (0 bis `hoechstwert` aus data/diplomatie.json).
+    # ADDITIV: ein alter Spielstand laedt mit 0 - kein Bot ist ohne Grund zornig.
+    rache: int = 0
     noob_protection: bool = True
     last_rename: float = 0.0
     # W5 (botkern): die Felder, mit denen `src/botkern.py` rechnet. Sie sind der EINE Ort, an dem
@@ -494,6 +500,10 @@ def bot_aus_stand(daten: dict) -> "BotPlayer":
     # die leere Tabelle aus dem Klassen-Standard - kein Pakt, den es nie gab.
     if not isinstance(getattr(bot, "vertraege", None), dict):             # kaputter Wert im Spielstand
         bot.vertraege = {}                                                # dann keine Vertraege
+    # S4-4 (06.11.2026): Rachetopf und Vertragsenden genauso absichern - ein alter Stand hat sie nicht.
+    if not isinstance(getattr(bot, "vertrag_ende", None), dict):          # kaputter Wert
+        bot.vertrag_ende = {}                                             # dann kein Ende gemerkt
+    bot.rache = diplomatie.rache_von({"rache": getattr(bot, "rache", 0)})  # Topf klemmen
     if isinstance(alt_kasse, dict) and alt_kasse:                         # alter Stand mit einer Kasse
         bot_kasse_setzen(bot, alt_kasse)                                  # verlustfrei auf die Doerfer
     if isinstance(alt_armee, dict) and alt_armee:                         # alter Stand mit einer Armee
@@ -5014,6 +5024,12 @@ class GameState:
                                   "spielzeit_sekunden": float(m.get("ankunft", jetzt))})
             self._log(text)
         abgerechnet_jetzt = bool(m.get("abgerechnet")) and not abgerechnet_vorher
+        # S4-4 (06.11.2026): ein abgeschlossener Handel ist Kontakt - der Rachetopf des Bots
+        # waechst dann an diesem Spieltag nicht (Daniel 13:50: Kontakt = jede Interaktion).
+        if abgerechnet_jetzt and der_bot is not None:
+            _handel_daten = self.bot_als_dict(der_bot)                  # dict-Form des Kerns
+            diplomatie.kontakt_buchen(_handel_daten, float(m.get("ankunft") or jetzt))
+            self.bot_aus_dict(der_bot, _handel_daten)                   # zurueckschreiben
         if abgerechnet_jetzt:
             if m.get("angenommen"):
                 text = ("Handel abgeschlossen: %d %s sind im Ortslager von %s angekommen."
@@ -6516,6 +6532,10 @@ class GameState:
                 # S4-3: die Vertraege gehen denselben Weg (Kopie, damit der Kern nicht am Bot schreibt).
                 "vertraege": {str(k): dict(v) for k, v in dict(bot.vertraege or {}).items()
                               if isinstance(v, dict)},
+                # S4-4: Vertragsenden und Rachetopf gehen denselben Weg wie alle anderen Felder.
+                "vertrag_ende": {str(k): float(v) for k, v in dict(bot.vertrag_ende or {}).items()
+                                 if not isinstance(v, bool) and isinstance(v, (int, float))},
+                "rache": int(bot.rache),
                 "armee": dict(bot.army), "letzter_angriff": bot.letzter_angriff,
                 "naechster_angriff": float(bot.naechster_angriff), "angriffe": int(bot.angriffe),
                 "gebaut": int(bot.gebaut), "geforscht": int(bot.geforscht),
@@ -6553,6 +6573,14 @@ class GameState:
             _ver = daten.get("vertraege")
             bot.vertraege = ({str(k): dict(v) for k, v in _ver.items() if isinstance(v, dict)}
                              if isinstance(_ver, dict) else {})
+        # S4-4: Vertragsenden und Rachetopf - dieselbe Regel (nur schreiben, wenn mitgegeben).
+        if "vertrag_ende" in daten:
+            _ende = daten.get("vertrag_ende")
+            bot.vertrag_ende = ({str(k): float(v) for k, v in _ende.items()
+                                 if not isinstance(v, bool) and isinstance(v, (int, float))}
+                                if isinstance(_ende, dict) else {})
+        if "rache" in daten:
+            bot.rache = diplomatie.rache_von({"rache": daten.get("rache")})  # Topf geklemmt uebernehmen
         # S-7 (bottaktik): der Verhaltenszustand kommt aus derselben dict-Form zurueck.
         bot.zustand = str(daten.get("zustand") or "")
         _ged = daten.get("gedaechtnis")
@@ -6958,6 +6986,35 @@ class GameState:
         self._letzter_bot_takt = punkt                                    # Punkt als gefahren merken
         ergebnis["punkt"] = punkt                                         # Nachweis: WANN der Zug lief
         ergebnis["bots"] = len(self.bots)
+        # S4-4 (06.11.2026): der Rachetopf. Ein Spieltag ohne Kontakt fuellt ihn, unter dem
+        # Goetterschutz ruht er, unter einem Pakt steigt er weiter (Daniel 13:50, Register 284).
+        # Ab `schwelle` folgt GENAU EINE Ankuendigung; der Angriff darf erst nach dem Vorlauf
+        # feuern - freigegeben ueber `naechster_angriff = 0`, also ueber den VORHANDENEN Weg.
+        rache_meldungen: List[str] = []                                # was dieser Takt bucht
+        for bot_rache in self.bots:                                    # je Bot einmal
+            _daten_rache = self.bot_als_dict(bot_rache)                 # dict-Form des Kerns
+            diplomatie.rache_tag(_daten_rache, jetzt, bool(self.noob_protection))
+            _ged_rache = _daten_rache.get("gedaechtnis")                # Gedaechtnis des Bots
+            if not isinstance(_ged_rache, dict):                        # altes Feld oder keins
+                _ged_rache = {}                                        # dann leer anfangen
+                _daten_rache["gedaechtnis"] = _ged_rache                # und zurueckschreiben
+            _ank = float(_ged_rache.get("rache_ankuendigung") or 0.0)   # laufende Ankuendigung
+            _sk = einheiten.armee_schlagkraft(bot_rache.army)           # Schlagkraft der Bot-Armee
+            _feuern = bool(_ank and jetzt >= _ank + diplomatie.vorlauf_sekunden())
+            if _feuern:                                                # Vorlauf ist um
+                _ged_rache.pop("rache_ankuendigung", None)              # Merker weg (kein zweiter)
+            elif not _ank and diplomatie.rache_bereit(_daten_rache, _sk, jetzt):  # Topf ist reif
+                _ged_rache["rache_ankuendigung"] = float(jetzt)         # Frist beginnt jetzt
+                _text_rache = diplomatie.ankuendigung_text(_daten_rache)  # Text aus der Datei
+                if _text_rache:                                        # nur mit Text melden
+                    _meldung_rache = "%s: %s" % (bot_rache.name, _text_rache)
+                    self.messages.append({"text": _meldung_rache, "type": "rache"})
+                    self._log(_meldung_rache)                           # Statuszeile
+                    rache_meldungen.append(_meldung_rache)              # fuer den Taktbericht
+            self.bot_aus_dict(bot_rache, _daten_rache)                 # Topf und Merker zurueck
+            if _feuern:                                                # jetzt darf er angreifen
+                bot_rache.naechster_angriff = 0.0                       # kein zweiter Angriffsweg
+        ergebnis["rache"] = rache_meldungen                             # Nachweis im Taktbericht
 
         # B-3 (02.11.2026): VOR dem Zug wirtschaften die Doerfer. Jedes Dorf erntet seit seiner
         # letzten Ernte (`dorf.ernte_seit`) mit dem Stundensatz aus `bot_dorf_ertrag` - derselben
@@ -7155,6 +7212,12 @@ class GameState:
                             # die Stimme steht davor, der Bericht bleibt unveraendert.
                             meldung = stimmen.mit_stimme(bot.name, "angriff", meldung, rng)
                             self.messages.append({"text": meldung, "type": "kampf"})
+                            # S4-4 (06.11.2026): den Ausgang fuer den Rachetopf merken -
+                            # ein Sieg leert ihn (Daniel F-3), eine Niederlage fuellt ihn.
+                            if kampf_result.get("ausgang") == "angreifer":
+                                zug["rache_sieg"] = True                  # Bot hat gewonnen
+                            else:
+                                zug["rache_niederlage"] = True           # Bot hat verloren
                 zug.setdefault("wirkung", {})["beute"] = beute
                 ergebnis["angriffe"].append(meldung)
             self._log(meldung)
@@ -7162,6 +7225,16 @@ class GameState:
             # Beute gefuettert werden. Auch nach einer Schlacht gilt nur die
             # durch `kampf.fuehre_schlacht` bestaetigte Menge.
             self.bot_aus_dict(bot, botkern.wirkung_anwenden(start, zug))
+            # S4-4 (06.11.2026): der Topf folgt dem Ausgang; ein Kampf ist Kontakt, darum wird
+            # die Funkstille neu gezaehlt. Gebucht wird NACH dem Rueckschreiben des Kerns.
+            if zug.get("rache_sieg") or zug.get("rache_niederlage"):
+                _rache_daten = self.bot_als_dict(bot)                   # dict-Form des Kerns
+                if zug.get("rache_sieg"):                               # Bot hat gewonnen
+                    diplomatie.rache_nach_sieg(_rache_daten)            # Topf auf 0 (F-3)
+                else:                                                   # Bot hat verloren
+                    diplomatie.rache_buchen(_rache_daten, "niederlage")  # Topf +1
+                diplomatie.kontakt_buchen(_rache_daten, jetzt)          # Kampf = Kontakt
+                self.bot_aus_dict(bot, _rache_daten)                    # zurueckschreiben
             self.bot_armee_aufstellen(bot, jetzt)                          # S-5a: Warteschlange statt Kauf
 
         # S-6 (03.11.2026, Daniels Vorgabe "Nachgruenden, 3 Gruendungen je Bot = 4 Doerfer"): Jeder
@@ -12657,10 +12730,12 @@ class NebelseetalApp:
         # Rachetopf. Der Pakt selbst ist EINSEITIG - er schuetzt nur den Spieler.
         if isinstance(vorrat_ziel, BotPlayer):                     # das Ziel ist ein echter Bot
             _ziel_daten = self.state.bot_als_dict(vorrat_ziel)     # dict-Form: der Weg des Kerns
+            # S4-4 (06.11.2026): ein Angriff ist Kontakt - die Funkstille wird neu gezaehlt.
+            diplomatie.kontakt_buchen(_ziel_daten, float(self.state.spielsekunden))
             _bruch = diplomatie.pakt_brechen(_ziel_daten,
                                                        float(self.state.spielsekunden))
+            self.state.bot_aus_dict(vorrat_ziel, _ziel_daten)      # Kontakt, Gunst, Tabelle zurueck
             if _bruch.get("gebrochen"):                            # es lief ein Pakt
-                self.state.bot_aus_dict(vorrat_ziel, _ziel_daten)  # Gunst und Tabelle zurueckschreiben
                 _bruch_text = ("Pakt mit %s gebrochen (Angriff abgesendet): Gunst %+d, Rache %+d."
                                % (vorrat_ziel.name, int(_bruch.get("gunst_delta") or 0),
                                   int(_bruch.get("rache_delta") or 0)))

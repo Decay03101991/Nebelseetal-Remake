@@ -1,3 +1,42 @@
+# STAND 06.11.2026, 16:30 - Ablauf Schritt 4 fertig: Rachetopf, Ankuendigung, Racheangriff (Register 286)
+
+> Neuester Block. Register 286. Darunter 285 (S4-3 verdrahtet), 281 bis 283 (Runde 2, Spielkonzept,
+> Repo geordnet), 280 (Kennzahlenblatt), 267 bis 279 (Abgleich, fixer Ablauf, S4 Teil 1, F-1 bis F-9).
+
+**Schritt 4 des Ablaufs steht: Bots reagieren jetzt auf den Spieler.** Ein Topf je Bot waechst durch
+Niederlagen und Funkstille, ab 3 folgt GENAU EINE Ankuendigung, und angegriffen wird erst, wenn die
+eigene Armee 99 SK erreicht - freigegeben ueber den VORHANDENEN Weg (`naechster_angriff = 0`), also
+ohne zweiten Angriffspfad. Die vier Entscheidungen Daniels sind eingebaut: Topf faellt nach einem
+Bot-Sieg auf 0 (F-3), der Topf steigt AUCH unter einem Pakt, der Angriff feuert fruehestens
+28.800 s nach dem Paktende, und Kontakt ist jede Interaktion (Handel, Angriff, Kampf, Geschenk) -
+sie setzt den Zaehler neu.
+
+**Zahlen (Urteil je Wert in Register 286):** Armee-Schwelle **99 SK** (V-5, nicht die 90 der
+Wall-Schwelle), Topf-Schwelle **3**, **+1 je Niederlage**, **+1 je Spieltag ohne Kontakt**, Deckel
+**5**, Vorlauf **28.800 s**: die letzten vier sind VORSCHLAG. Unter dem Goetterschutz ruht der Topf
+(VORSCHLAG, G-1). Alle Texte liegen in `data/diplomatie.json` (`rache.ankuendigung`), nicht im Code.
+
+**EINE neue Rechenstelle:** `einheiten.armee_schlagkraft` summiert SK x Anzahl - dieselbe Funktion
+fuer Kern und Anzeige, keine zweite Armeestaerke im Code.
+
+**Wache:** `tests/test_diplomatie_rache.py` **53 Pruefungen, 0 Fehler** - elf Abschnitte, darunter der
+echte Verlauf: App gebaut, Bot mit 40 Kriegern (120 SK), Takt gefahren, Topf gefuellt, Ankuendigung
+im Postfach, Vorlauf abgelaufen, Angriff freigegeben, KEINE zweite Ankuendigung.
+
+**Sammellauf:** 15:52 bis 16:26, **185 von 187 gruen, 0 rot, 7.681 bestandene Pruefungen**
+(`docs/audits/sammellauf_20261106_1552.log`). **Die Dauer (2.017 s) ist NICHT belastbar** - der Lauf
+stand unter Nebenlast; einzeln gemessen kostet die Aenderung in `test_startspiel` 37 s gegen 31 s
+ohne sie (20 Prozent), nicht das Zehnfache. Fuer A-6 gilt weiter die Grenze 1.800 s aus F-2.
+
+**Geld:** Daniel 16:07 - Guthaben **8,76 USD**, Gesamtverbrauch **61,23 USD** (14:31: 8,87 / 61,12;
+also 0,11 USD in diesem Abschnitt).
+
+**Naechster Schritt:** Ablauf Schritt 5 - Ereignisse Haug (990 Holz oder 64 Gold), Silra (12 Gold),
+Grom (5 Messer gegen 20 Erz), Frist 57.600 s, Annahme +5 / Ablehnung -5 Gunst, atomare Buchung am
+Ort. Danach Schritt 6 (Handelspunkte, Befund G-8). Offen aus den Antworten 14:00: die
+Dokumentauftraege (Referenzbilder-Vermerk im Repo, Buendelung nach `BESUCHER.md`).
+
+---
 # STAND 06.11.2026, 15:06 - Ablauf Schritt 3 fertig: Vertraege wirken, der Pakt bricht beim Absenden (Register 285)
 
 > Neuester Block. Register 285. Darunter 281 bis 283 (Runde 2, Spielkonzept, Repo geordnet), 280

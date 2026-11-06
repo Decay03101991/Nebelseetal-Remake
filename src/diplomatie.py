@@ -224,6 +224,9 @@ def vertrag_aktiv(bot_daten, art, jetzt, einst=None) -> bool:
     bis = _zahl(eintrag.get("bis"), 0.0)  # Ende des Vertrags
     if float(jetzt) >= bis:  # Zeit ist um
         tabelle.pop(str(art), None)  # Eintrag entfernen (Ablauf ohne Buchung)
+        # S4-4 (06.11.2026): das ENDE bleibt gemerkt - der Rachetopf darf fruehestens
+        # `nach_paktende_sekunden` nach dem Paktende feuern (Daniel 13:50).
+        _ende_setzen(bot_daten, str(art), bis)  # Ende festhalten
         return False  # dann ist er nicht mehr aktiv
     return True  # er laeuft
 
@@ -274,6 +277,7 @@ def vertraege_tick(bot_daten, jetzt, einst=None) -> list:
             abzug = int(_zahl(zahlen.get("bruch_gunst"), 0))  # Gunst-Abzug aus der Datei
             rache = int(_zahl(zahlen.get("bruch_rache"), 0))  # Rache-Buchung aus der Datei
             tabelle.pop(art, None)  # Vertrag ist beendet
+            _ende_setzen(bot_daten, art, float(jetzt))  # S4-4: Ende fuer die Rache merken
             gunst_aendern(bot_daten, abzug, "vertragsbruch", einst)  # EINMAL abziehen
             vorgaenge.append({"art": art, "grund": "vertragsbruch",  # Vorgang melden
                               "gunst_delta": abzug, "rache_delta": rache})
@@ -313,6 +317,7 @@ def pakt_brechen(bot_daten, jetzt, einst=None) -> dict:
     abzug = int(_zahl(zahlen.get("bruch_gunst"), 0))  # Gunst-Abzug
     rache = int(_zahl(zahlen.get("bruch_rache"), 0))  # Rache-Buchung
     _bot_vertraege(bot_daten).pop("nichtangriff", None)  # Pakt ist beendet
+    _ende_setzen(bot_daten, "nichtangriff", float(jetzt))  # S4-4: Ende fuer die Rache merken
     gunst_aendern(bot_daten, abzug, "paktbruch_durch_spieler", einst)  # EINMAL abziehen
     return {"gebrochen": True, "gunst_delta": abzug, "rache_delta": rache}  # Buchung melden
 
@@ -328,3 +333,181 @@ def durchmarsch_text(bot_daten, jetzt, einst=None) -> str:
     # Der Text steht in der Datendatei (Regel: kein Spieltext im Code). Fehlt er, wird nichts
     # erfunden - dann bleibt die Zeile leer.
     return str(art_daten("durchmarsch", einst).get("text") or "")  # Text aus data/diplomatie.json
+
+# ---------------------------------------------------------------------------
+# S4-4 Rachetopf (06.11.2026, Ablauf Schritt 4)
+# ---------------------------------------------------------------------------
+# EIN Topf je Bot. Niederlagen und Funkstille fuellen ihn; ab `schwelle` folgt GENAU EINE
+# Ankuendigung, angegriffen wird erst ab `armee_sk` Schlagkraft - und nie waehrend eines Pakts.
+# Ablage: der Topf steht als Feld `rache` am Bot; `letzter_kontakt`, `rache_tag_nr` und
+# `rache_ankuendigung` liegen im GEDaeCHTNIS des Bots (dieselbe Tabelle wie seine Taktik-Erinnerung,
+# damit kein drittes Feld entsteht). Alle Zahlen stehen in `data/diplomatie.json` unter "rache".
+
+
+def _rache_block(einst=None) -> dict:
+    """Der Block "rache" der Datendatei (leeres dict, wenn er fehlt)."""
+    quelle = einst if isinstance(einst, dict) else daten()  # uebergebene Daten oder die Datei lesen
+    block = (quelle or {}).get("rache")  # den Rache-Block heraussuchen
+    return block if isinstance(block, dict) else {}  # nur ein dict ist brauchbar
+
+
+def _block_zahl(block: dict, name: str, standard: float) -> float:
+    """Eine Zahl aus dem Rache-Block; Unbrauchbares ergibt den Standardwert."""
+    return _zahl((block or {}).get(name), standard)  # ueber `_zahl` (bool zaehlt nicht als Zahl)
+
+
+def rache_aktiv(einst=None) -> bool:
+    """Ist der Rachetopf eingeschaltet? Ein Wort in der Datendatei entscheidet (A-7)."""
+    return bool(_rache_block(einst).get("aktiv", False))  # ohne ausdrueckliches true ist er aus
+
+
+def rache_von(bot_daten, einst=None) -> int:
+    """Der aktuelle Topf eines Bots, geklemmt auf 0..hoechstwert.
+
+    Eingabe: dict (Form aus `bot_als_dict`) oder ein Bot-Objekt. Ausgabe: ganze Zahl.
+    """
+    block = _rache_block(einst)  # Zahlen holen
+    oben = int(_block_zahl(block, "hoechstwert", 5))  # Obergrenze des Topfs
+    roh = bot_daten.get("rache", 0) if isinstance(bot_daten, dict) else getattr(bot_daten, "rache", 0)
+    return max(0, min(oben, int(_zahl(roh, 0))))  # in 0..hoechstwert einschliessen
+
+
+def rache_setzen(bot_daten, wert, einst=None) -> int:
+    """Setzt den Topf (geklemmt) und gibt den tatsaechlichen Wert zurueck."""
+    oben = int(_block_zahl(_rache_block(einst), "hoechstwert", 5))  # Obergrenze lesen
+    neu = max(0, min(oben, int(_zahl(wert, 0))))  # Wert in die Grenzen bringen
+    if isinstance(bot_daten, dict):  # nur ein dict kann beschrieben werden
+        bot_daten["rache"] = neu  # EIN Speicher: das Feld am Bot
+    return neu  # Aufrufer bekommt den echten Wert
+
+
+def rache_buchen(bot_daten, grund="niederlage", einst=None) -> int:
+    """Erhoeht den Topf um `je_niederlage` (eine Niederlage oder ein Tag Funkstille).
+
+    Eingabe: dict des Bots, Grund als Text (nur fuer den Aufrufer - er wird NICHT gespeichert).
+    Ausgabe: der neue Topf.
+    """
+    schritt = int(_block_zahl(_rache_block(einst), "je_niederlage", 1))  # Zuwachs aus der Datei
+    return rache_setzen(bot_daten, rache_von(bot_daten, einst) + schritt, einst)  # addieren, klemmen
+
+
+def rache_nach_sieg(bot_daten, einst=None) -> int:
+    """Nach einem gewonnenen Bot-Angriff faellt der Topf auf `nach_bot_sieg` (Daniel, F-3)."""
+    wert = int(_block_zahl(_rache_block(einst), "nach_bot_sieg", 0))  # Zielwert aus der Datei
+    return rache_setzen(bot_daten, wert, einst)  # setzen (meist 0)
+
+
+def _gedaechtnis(bot_daten) -> dict:
+    """Das Gedaechtnis des Bots als dict - wird bei Bedarf angelegt (kein Absturz)."""
+    if not isinstance(bot_daten, dict):  # ohne dict gibt es kein Gedaechtnis
+        return {}  # dann eine leere Tabelle
+    ged = bot_daten.get("gedaechtnis")  # Feld ansehen
+    if not isinstance(ged, dict):  # altes Feld oder gar keins
+        ged = {}  # dann eine leere Tabelle
+        bot_daten["gedaechtnis"] = ged  # und anlegen, damit der Aufrufer schreiben kann
+    return ged  # die Tabelle selbst (veraenderbar)
+
+
+def kontakt_buchen(bot_daten, jetzt, einst=None) -> float:
+    """Merkt eine Interaktion mit dem Bot (Handel, Geschenk, Kampf, Ereignis).
+
+    Daniels Entscheidung 06.11.2026, 13:50 (Register 284): Kontakt ist JEDE Interaktion. Wer den Bot
+    beschenkt oder mit ihm handelt, haelt den Topf ruhig - darum setzt jeder Kontakt den Zaehler neu.
+    """
+    ged = _gedaechtnis(bot_daten)  # Gedaechtnis holen
+    ged["letzter_kontakt"] = float(jetzt)  # Zeitpunkt der Interaktion
+    return float(jetzt)  # Aufrufer bekommt den Wert zurueck
+
+
+def letzter_kontakt(bot_daten, einst=None) -> float:
+    """Spielzeit der letzten Interaktion; 0.0 heisst: noch keine."""
+    if not isinstance(bot_daten, dict):  # ohne dict nichts zu lesen
+        return 0.0  # dann keine Interaktion
+    ged = bot_daten.get("gedaechtnis")  # Gedaechtnis ansehen
+    if not isinstance(ged, dict):  # kein brauchbares Gedaechtnis
+        return 0.0  # dann keine Interaktion
+    return float(_zahl(ged.get("letzter_kontakt"), 0.0))  # Zeitpunkt zurueckgeben
+
+
+def rache_tag(bot_daten, jetzt, goetterschutz=False, einst=None) -> int:
+    """Ein Spieltag ohne Kontakt fuellt den Topf um 1 - hoechstens EINMAL je Spieltag.
+
+    Eingabe: dict des Bots, Spielzeit, ob der Goetterschutz laeuft.
+    Ausgabe: der Topf danach. Unter Goetterschutz ruht der Topf (VORSCHLAG, Befund G-1); unter
+    einem Pakt steigt er WEITER (Daniel 13:50: der Pakt kauft Zeit, nicht Ruhe).
+    """
+    if not rache_aktiv(einst):  # Schalter aus
+        return rache_von(bot_daten, einst)  # dann nichts buchen
+    block = _rache_block(einst)  # Zahlen holen
+    if goetterschutz and bool(block.get("ruht_unter_goetterschutz", True)):  # Schutz laeuft
+        return rache_von(bot_daten, einst)  # dann ruht der Topf
+    tag_sekunden = max(1.0, _block_zahl(block, "spieltag_sekunden", 28800.0))  # Laenge eines Spieltags
+    tag = int(float(jetzt) // tag_sekunden)  # laufende Spieltag-Nummer
+    ged = _gedaechtnis(bot_daten)  # Gedaechtnis holen
+    if int(_zahl(ged.get("rache_tag_nr"), -1)) == tag:  # dieser Tag ist schon gebucht
+        return rache_von(bot_daten, einst)  # dann kein zweiter Punkt am selben Tag
+    ged["rache_tag_nr"] = tag  # Tag als gebucht merken
+    letzter = letzter_kontakt(bot_daten, einst)  # letzte Interaktion
+    if letzter > 0 and float(jetzt) - letzter < tag_sekunden:  # Kontakt innerhalb des Tages
+        return rache_von(bot_daten, einst)  # dann keine Funkstille
+    return rache_buchen(bot_daten, "funkstille", einst)  # sonst einen Punkt buchen
+
+
+def _ende_setzen(bot_daten, art, wert) -> None:
+    """Merkt, WANN ein Vertrag geendet hat (fuer den Vorlauf nach dem Paktende)."""
+    if not isinstance(bot_daten, dict):  # ohne dict nichts zu merken
+        return  # dann fertig
+    tabelle = bot_daten.get("vertrag_ende")  # Feld ansehen
+    if not isinstance(tabelle, dict):  # altes Feld oder gar keins
+        tabelle = {}  # dann eine leere Tabelle
+        bot_daten["vertrag_ende"] = tabelle  # und anlegen
+    tabelle[str(art)] = float(_zahl(wert, 0.0))  # Ende dieser Art festhalten
+
+
+def vertrag_ende(bot_daten, art, einst=None):
+    """Spielzeit, zu der diese Vertragsart geendet hat - `None`, wenn sie nie lief."""
+    if not isinstance(bot_daten, dict):  # ohne dict nichts zu lesen
+        return None  # dann unbekannt
+    tabelle = bot_daten.get("vertrag_ende")  # Feld ansehen
+    if not isinstance(tabelle, dict) or str(art) not in tabelle:  # kein Ende vermerkt
+        return None  # dann unbekannt
+    return float(_zahl(tabelle.get(str(art)), 0.0))  # Zeitpunkt zurueckgeben
+
+
+def rache_bereit(bot_daten, armee_sk, jetzt, einst=None) -> bool:
+    """Darf dieser Bot jetzt aus Rache angreifen? Rueckgabe: True/False.
+
+    Vier Bedingungen, jede aus der Datendatei: Topf mindestens `schwelle`, Armee mindestens
+    `armee_sk` Schlagkraft, KEIN laufender Nichtangriffspakt und mindestens `nach_paktende_sekunden`
+    seit dem Ende des letzten Pakts.
+    """
+    if not rache_aktiv(einst):  # Schalter aus
+        return False  # dann kein Racheangriff
+    block = _rache_block(einst)  # Zahlen holen
+    if rache_von(bot_daten, einst) < int(_block_zahl(block, "schwelle", 3)):  # Topf zu klein
+        return False  # dann noch nicht
+    if float(_zahl(armee_sk, 0.0)) < _block_zahl(block, "armee_sk", 99.0):  # Armee zu schwach
+        return False  # dann kein Angriff (die Armee kommt zuerst)
+    if vertrag_aktiv(bot_daten, "nichtangriff", jetzt, einst):  # Pakt laeuft noch
+        return False  # dann kein Angriff (Daniel 13:50)
+    ende = vertrag_ende(bot_daten, "nichtangriff", einst)  # wann endete der letzte Pakt?
+    if ende is not None:  # es gab einen Pakt
+        if float(jetzt) < ende + _block_zahl(block, "nach_paktende_sekunden", 28800.0):  # zu frueh
+            return False  # dann erst nach dem Vorlauf
+    return True  # alle Bedingungen erfuellt
+
+
+def vorlauf_sekunden(einst=None) -> float:
+    """Wartezeit zwischen Ankuendigung und Angriff (aus der Datendatei, Vorgabe 1 Spieltag)."""
+    return _block_zahl(_rache_block(einst), "vorlauf_sekunden", 28800.0)  # Zahl aus data/diplomatie.json
+
+
+def ankuendigung_text(bot_daten, einst=None) -> str:
+    """Der Drohbrief-Text zur jetzigen Topfstufe - oder "", wenn die Datei keinen nennt."""
+    block = _rache_block(einst)  # Zahlen holen
+    texte = block.get("ankuendigung")  # Textliste ansehen
+    if not isinstance(texte, list) or not texte:  # keine Texte hinterlegt
+        return ""  # dann nichts erfinden
+    topf = rache_von(bot_daten, einst)  # jetzige Stufe
+    stufe = max(1, min(len(texte), topf))  # Stufe 1 bis Anzahl der Texte
+    return str(texte[stufe - 1])  # Text dieser Stufe
