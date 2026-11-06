@@ -1,3 +1,37 @@
+# STAND 06.11.2026, 17:10 - Startbilder: Panorama hinter Anmeldung und Ladebild, Logo statt Schriftzug (Register 287)
+
+> Neuester Block. Register 287. Darunter 286 (Rachetopf), 285 (S4-3 verdrahtet), 281 bis 283
+> (Runde 2, Spielkonzept, Repo geordnet), 280 (Kennzahlenblatt), 267 bis 279 (Abgleich, Ablauf, S4 Teil 1).
+
+**Der Start sieht jetzt nach Spiel aus.** Daniels Auftrag von 16:37 ist gebaut: hinter dem
+Anmeldebildschirm liegt ein Panorama aus SEINEN Referenzbildern (Elfen-Waldlandreich, 38 Prozent
+Schleier fuer die Lesbarkeit), den Schriftzug "Nebelseetal" ersetzt unser Logo
+(`assets/bilder/logo_nebelseetal_klein.png`, Urheber Chris Fred Daebner) - der ORIGINALE Schriftzug
+bleibt unangetastet als Datei in `assets/original/logo.gif` liegen, als Referenz zum Original. Das
+Ladebild behaelt sein Schild und bekommt ein Panorama dahinter (Menschen mit Ritter).
+
+**Zwei echte Fehler dabei gefunden und behoben:** (1) Die Ladeansicht lief in einem **200x200** Fenster -
+`zeige_loadingpage` wird VOR der App aufgerufen, und die Groesse wurde erst dort gesetzt; jetzt
+1024x720, mittig. (2) Das **Schild verschwand**, sobald die Funktion zurueckkehrte: Tk raeumt ein
+Bild weg, wenn keine Python-Referenz mehr darauf zeigt (jetzt `root._ladeschild`) - ohne den
+Screenshot haette das niemand gesehen, die Pruefdatei war gruen.
+
+**Wache:** `tests/test_startbilder.py` **24 Pruefungen, 0 Fehler** - Motive und Logo vorhanden, cover
+ohne leeren Rand, abgedunkelt, Anmeldung mit Panorama + Logo im eigenen Kasten, Ladebild mit
+Panorama + Schild, Rueckfall auf den Schriftzug wenn ein Bild fehlt, originaler Schriftzug erhalten.
+**Belegt am laufenden Fenster** (Screenshots `%LOCALAPPDATA%\Temp\startbild_anmeldung.png` und
+`startbild_laden.png`, per `computer_use` aufgenommen).
+
+**Sammellauf:** **186 von 188 gruen, 0 rot, 7.705 Pruefungen** (`docs/audits/sammellauf_20261106_1640.log`, 1155 s).
+
+**Geld:** Daniel 16:07 - Guthaben **8,76 USD**, Gesamtverbrauch **61,23 USD**.
+
+**Naechster Schritt:** Ablauf Schritt 5 (Ereignisse Haug 990 Holz oder 64 Gold, Silra 12 Gold, Grom
+5 Messer gegen 20 Erz, Frist 57.600 s, Annahme +5 / Ablehnung -5 Gunst, atomare Buchung am Ort), dann
+Schritt 6 (Handelspunkte, Befund G-8). Offen: die Dokumentauftraege der Antworten 14:00
+(Referenzbilder-Vermerk ist mit dem README erledigt, die Buendelung nach `BESUCHER.md` NICHT).
+
+---
 # STAND 06.11.2026, 16:30 - Ablauf Schritt 4 fertig: Rachetopf, Ankuendigung, Racheangriff (Register 286)
 
 > Neuester Block. Register 286. Darunter 285 (S4-3 verdrahtet), 281 bis 283 (Runde 2, Spielkonzept,

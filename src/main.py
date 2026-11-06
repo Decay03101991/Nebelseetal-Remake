@@ -7861,11 +7861,25 @@ class NebelseetalApp:
         for widget in self.root.winfo_children():
             widget.destroy()
         self.root.configure(bg="#2a0605")
-        rahmen = tk.Frame(self.root, bg="#2a0605")
+        # Startbild (Daniel 06.11.2026): ein Panorama liegt HINTER dem Formular, abgedunkelt,
+        # damit jede Zeile lesbar bleibt. Fehlt das Bild, bleibt der ruhige Farbton stehen.
+        self._tor_bild = startbild_photo("anmelden", 1024, 720, 38.0)
+        if self._tor_bild is not None:                                  # Bild vorhanden
+            tk.Label(self.root, image=self._tor_bild, bd=0,
+                     bg="#2a0605").place(x=0, y=0, relwidth=1, relheight=1)  # ganz hinten
+        # Das Formular bekommt einen eigenen dunklen Kasten und einen Rahmen - darauf bleibt
+        # der Text auch ueber einem bunten Bild ruhig und gut lesbar.
+        rahmen = tk.Frame(self.root, bg="#2a0605", bd=2, relief=tk.GROOVE, padx=30, pady=20)
         rahmen.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
         self.tor_rahmen = rahmen
-        tk.Label(rahmen, text="Nebelseetal", font=("Blackletter", 44, "bold"),
-                 fg="#FFCC33", bg="#2a0605").pack(pady=(0, 2))
+        # Unser Logo ersetzt den Schriftzug (Daniel 06.11.2026). Der ORIGINALE Schriftzug bleibt
+        # als Datei in `assets/original/` liegen; ohne Logo faellt die Ansicht auf ihn zurueck.
+        self._tor_logo = logo_photo(460)
+        if self._tor_logo is not None:                                  # Logo vorhanden
+            tk.Label(rahmen, image=self._tor_logo, bg="#2a0605").pack(pady=(0, 2))
+        else:                                                          # Rueckfall: Schriftzug
+            tk.Label(rahmen, text="Nebelseetal", font=("Blackletter", 44, "bold"),
+                     fg="#FFCC33", bg="#2a0605").pack(pady=(0, 2))
         tk.Label(rahmen, text="Remake", font=("Blackletter", 20), fg="#FF6600",
                  bg="#2a0605").pack(pady=(0, 16))
         if tor.hat_passwort(self.tor_pfad):
@@ -15420,6 +15434,88 @@ def ladebild_pfad() -> str:
     return os.path.join(spieldaten.projektwurzel(), *LADEBILD_PNG)
 
 
+# --- Startbilder (06.11.2026, Daniels Wunsch): Panorama hinter Anmeldung und Ladebild ---------
+# Daniels Wortlaut: ein "schoenes panorama bild" in jede der ersten Benutzeroberflaechen, das
+# "Nebelseetal"-Wort im Bild durch UNSER Logo ersetzt, und im Ladebild bleibt das Schild sichtbar.
+# Die Motive sind SEINE Referenzbilder (sie wachsen mit der Designentwicklung, siehe
+# `assets/referenzbilder/README.md`) - es wird kein Bild erfunden und nichts umbenannt.
+LOGO_PNG = ("assets", "bilder", "logo_nebelseetal_klein.png")
+STARTBILD_MOTIVE = {
+    "anmelden": ("assets", "referenzbilder",
+                 "ReferenzBild_Fraktionen_Elfen_Waldlandreich_im_Nebelseetal_Hintergrundbild.jpg"),
+    "laden": ("assets", "referenzbilder",
+              "ReferenzBild_Fraktionen_Menschen_arbeiten_im_Nebelseetal_mit_Ritter_Hintergrundbild.jpg"),
+}
+
+
+def startbild_teile(motiv) -> tuple:
+    """Die Dateiteile eines Startmotivs; ein unbekanntes Motiv faellt auf die Anmeldung zurueck."""
+    return STARTBILD_MOTIVE.get(str(motiv)) or STARTBILD_MOTIVE["anmelden"]  # immer ein Motiv
+
+
+def _bild_pfad(teile) -> str:
+    """Der volle Pfad eines Bildes ueber die Projektwurzel (nie geraten)."""
+    return os.path.join(spieldaten.projektwurzel(), *teile)  # Projektwurzel + Teile
+
+
+def _cover(bild, breite, hoehe, abdunkeln_prozent=0.0):
+    """Ein Bild auf Zielgroesse bringen: cover, mittig beschnitten, optional abgedunkelt.
+
+    Eingabe: PIL-Bild, Zielmasse, Abdunklung in Prozent. Ausgabe: PIL-Bild in genau der Zielgroesse.
+    Cover heisst: das Bild deckt die Flaeche ganz ab; was uebersteht, wird mittig abgeschnitten -
+    so entstehen keine leeren Raender hinter dem Formular.
+    """
+    from PIL import Image, ImageEnhance                                # nur hier laden
+    ziel = (max(1, int(breite)), max(1, int(hoehe)))                    # Zielmasse als ganze Zahlen
+    faktor = max(ziel[0] / float(bild.width), ziel[1] / float(bild.height))   # cover-Faktor
+    neu = (max(1, int(bild.width * faktor + 0.5)), max(1, int(bild.height * faktor + 0.5)))
+    bild = bild.resize(neu, Image.LANCZOS)                              # hochrechnen/verkleinern
+    links = max(0, (bild.width - ziel[0]) // 2)                         # mittig beschneiden
+    oben = max(0, (bild.height - ziel[1]) // 2)                         # mittig beschneiden
+    bild = bild.crop((links, oben, links + ziel[0], oben + ziel[1]))    # genau die Zielgroesse
+    if abdunkeln_prozent and float(abdunkeln_prozent) > 0:              # Schleier fuer Lesbarkeit
+        helligkeit = max(0.25, 1.0 - float(abdunkeln_prozent) / 100.0)  # nie ganz schwarz
+        bild = ImageEnhance.Brightness(bild).enhance(helligkeit)        # abdunkeln
+    return bild                                                         # fertiges Bild
+
+
+def startbild_photo(motiv, breite, hoehe, abdunkeln_prozent=0.0):
+    """Ein Startmotiv als Tk-Bild in Zielgroesse - oder None, wenn es nicht geht.
+
+    Ohne Pillow, ohne Datei oder bei kaputtem Bild kommt None zurueck; der Aufrufer zeigt dann
+    seinen Text. Der Start wird NIE durch ein Bild blockiert.
+    """
+    try:
+        from PIL import Image, ImageTk                                  # nur hier laden
+        pfad = _bild_pfad(startbild_teile(motiv))                       # Pfad ueber die Projektwurzel
+        if not os.path.exists(pfad):                                    # Datei fehlt
+            return None                                                 # dann kein Bild
+        roh = Image.open(pfad).convert("RGB")                           # JPEG/Bild oeffnen
+        return ImageTk.PhotoImage(_cover(roh, breite, hoehe, abdunkeln_prozent))  # als Tk-Bild
+    except Exception:                                                   # kein Pillow, kaputte Datei
+        return None                                                     # dann lieber kein Bild
+
+
+def logo_photo(breite: int = 460):
+    """Unser Logo als Tk-Bild in der gewuenschten Breite - oder None.
+
+    Das Logo ersetzt den Schriftzug im Bild. Der ORIGINALE Schriftzug bleibt unangetastet als
+    Datei liegen (`assets/original/logo.gif` und `assets/original/forumlogo.gif`) - Referenz zum
+    Original, nichts geloescht, nichts umbenannt.
+    """
+    try:
+        from PIL import Image, ImageTk                                  # nur hier laden
+        pfad = _bild_pfad(LOGO_PNG)                                     # Pfad unseres Logos
+        if not os.path.exists(pfad):                                    # Datei fehlt
+            return None                                                 # dann Text zeigen
+        roh = Image.open(pfad).convert("RGBA")                           # Logo mit Transparenz
+        hoehe = max(1, int(round(roh.height * (float(breite) / float(roh.width)))))  # Seitenverhaeltnis
+        roh = roh.resize((int(breite), hoehe), Image.LANCZOS)            # auf Zielbreite
+        return ImageTk.PhotoImage(roh)                                  # als Tk-Bild
+    except Exception:                                                   # kein Pillow, kaputte Datei
+        return None                                                     # dann Text zeigen
+
+
 def zeige_loadingpage(root):
     """Die Ladeansicht zeigen: Titelbild + Hinweis, waehrend der Start rechnet.
 
@@ -15435,7 +15531,24 @@ def zeige_loadingpage(root):
             widget.destroy()
         root.title("Nebelseetal Remake — einen Augenblick")
         root.configure(bg="#1b1109")
-        rahmen = tk.Frame(root, bg="#1b1109")
+        # Die Ladeansicht laeuft VOR der App - ohne Groesse waere das Fenster 200x200 und das
+        # Panorama nicht zu sehen. Darum hier dieselbe Groesse wie die App, mittig gesetzt.
+        try:
+            _breit, _hoch = 1024, 720                                  # Groesse der App-Ansicht
+            _x = max(0, (int(root.winfo_screenwidth()) - _breit) // 2)   # mittig waagerecht
+            _y = max(0, (int(root.winfo_screenheight()) - _hoch) // 3)   # etwas ueber der Mitte
+            root.geometry("%dx%d+%d+%d" % (_breit, _hoch, _x, _y))       # Groesse und Platz
+            root.update_idletasks()                                    # Masse uebernehmen
+        except tk.TclError:                                            # kein Bildschirm messbar
+            pass                                                       # dann bleibt die Vorgabe
+        # Startbild (Daniel 06.11.2026): das Panorama liegt hinter dem Schild. Das Schild
+        # (LADEBILD_PNG) bleibt sichtbar - es sitzt in einem eigenen Kasten darueber.
+        hintergrund = startbild_photo("laden", 1024, 720, 30.0)
+        if hintergrund is not None:                                    # Bild vorhanden
+            tk.Label(root, image=hintergrund, bd=0,
+                     bg="#1b1109").place(x=0, y=0, relwidth=1, relheight=1)  # ganz hinten
+            root._startbild = hintergrund                               # Referenz halten
+        rahmen = tk.Frame(root, bg="#1b1109", bd=2, relief=tk.GROOVE, padx=18, pady=12)
         rahmen.place(relx=0.5, rely=0.45, anchor=tk.CENTER)
         bild = None
         pfad = ladebild_pfad()
@@ -15445,6 +15558,9 @@ def zeige_loadingpage(root):
             except Exception:
                 bild = None
         if bild is not None:
+            # Das Schild muss AM FENSTER haengen: Tk raeumt ein Bild weg, sobald die einzige
+            # Python-Referenz verschwindet - dann bliebe der Kasten leer (belegt 06.11.2026).
+            root._ladeschild = bild                                    # Referenz halten
             tk.Label(rahmen, image=bild, bg="#1b1109").pack()
         else:
             tk.Label(rahmen, text="Nebelseetal", font=("Blackletter", 44, "bold"),
