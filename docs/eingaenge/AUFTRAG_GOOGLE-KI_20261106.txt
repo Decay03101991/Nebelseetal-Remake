@@ -1,0 +1,118 @@
+AUFTRAG AN DIE GOOGLE-KI (Gemini) - Nebelseetal Remake - Stand 06.11.2026, 03:55
+================================================================================
+
+WAS DU BIST
+Du bist Text- und Pruefzulieferer fuer ein Einzelspieler-Aufbauspiel (Python/tkinter, offline,
+kostenlos), das ein einzelner Entwickler mit einem KI-Agenten baut. Du schreibst KEINEN Code, den
+wir blind uebernehmen, und du erfindest KEINE Zahl. Du lieferst drei Teile, jeder in einer eigenen
+Datei, jeder sofort pruefbar.
+
+WAS DU UEBER DAS SPIEL WISSEN MUSST (alles, was du brauchst, steht hier)
+- Sechs Welten (Dimensionen), sechs Voelker, fuenf Nachbarn ("Bots") mit eigener Wirtschaft, ein
+  Drache, Ruinen. Der Spieler gruendet Siedlungen, produziert, forscht, stellt Waren her, bildet
+  Einheiten aus, bewegt sie, kaempft, sammelt Punkte.
+- Zeitbasis: 1 Spielstunde = 20 Sekunden Rechenzeit. Ein Spieltag = 24 Spielstunden = 480 Sekunden.
+- Punkte: Kriegspunkte (je Einheit ein fester Wert, Wallstufe hoch drei), Forschungspunkte (Summe
+  der Forschungsstufen hoch drei), Gesamtpunkte = (Krieg + Forschung) / 2.
+- Gueter: 9 Rohstoffe (Holz, Stein, Metall, Mana, Nahrung, Gold, Wolle, Leder, Pferde), 17 Waren,
+  28 Einheiten. Jede Einheit kostet Rohstoffe UND Ausruestung (Werkzeuge, Waffen) und bindet Siedler.
+- Wall: 10 Stufen (Erdwall, Steinwall, Kleine Palisade, Palisade, Verstaerkte Palisade, Mauer ...).
+  In der Vorrunde einer Schlacht muss die Schlagkraft der Fusstruppen den Schwellenwert der Stufe
+  erreichen, sonst zieht der Angreifer ohne Beute ab. Belegte Schwellen: Stufe 1 = 10, Stufe 2 = 40,
+  Stufe 3 = 90, Stufe 4 = 160, Stufe 5 = 250 (dazu 500 Belagerung).
+- Ausbildungsdauer: 20 Minuten bei Gebaeudestufe 1, geteilt durch die Stufe des Gebaeudes.
+- Ton der Spieltexte (Vorgabe des Eigentuemers): leicht, abenteuerlich, kein Pathos, hoechstens
+  drei Saetze. Beispiel aus dem Spiel: "Der Bogen aus Nebelstein flimmert, als wuerde jemand
+  dahinter atmen. Ein Schritt, und der Wind riecht nach Salz statt nach Wald. Hinter dir schliesst
+  sich nichts - das ist das Unheimliche daran."
+
+DREI HARTE REGELN
+1. Keine erfundene Zahl. Jede Zahl, die du nennst, steht entweder oben in diesem Auftrag oder du
+   laesst sie weg.
+2. Kein neues Bauteil fuer eine geloeste Aufgabe. Du lieferst Texte, Listen, Testfaelle - keine
+   Architektur.
+3. Ausgabe als reiner Text (.txt), Deutsch, keine Tabellen mit Sonderzeichen, keine Emojis.
+   Jeder Teil beginnt mit einer Zeile "TEIL <A/B/C> - <Titel>" und endet mit "ENDE TEIL <X>".
+
+
+TEIL A - Randfall- und Testfall-Liste fuer die Verwundetenheilung
+=================================================================
+WAS GEBUT WIRD (schon entschieden, nicht diskutieren):
+- Nach einer Schlacht sind 30 Prozent der Verluste je Einheitentyp VERWUNDET statt tot (abgerundet).
+- Verwundete stehen als eigene Zahl an der Siedlung.
+- Heilung laeuft in der vorhandenen Ausbildungs-Warteschlange mit einem Kennzeichen.
+- Heilung kostet 75 Prozent aller Kostenposten der Einheit (Gold, Nahrung, Leder, Wolle, Pferde),
+  KEINE Ausruestung und KEINE Siedler - der Siedler ist schon gebunden, eine zweite Bindung waere
+  eine Doppelbuchung.
+- Heilungsdauer = 50 Prozent der Ausbildungsdauer (bei Stufe 1 also 600 Sekunden).
+
+DEINE AUFGABE: eine Liste von 25 bis 35 Testfaellen, je eine Zeile im Format
+  "Fall N: <Zustand vorher> -> <erwartetes Ergebnis> (<warum das ein Randfall ist>)"
+Denke an: 0 Verluste, 1 Verlust, 2 Verluste (Rundung!), Verluste bei mehreren Einheitentypen
+gleichzeitig, Einheit mit Kosten in vier verschiedenen Rohstoffen, Einheit mit 0 Siedlerkosten,
+Kosten knapp unter und knapp ueber dem Bestand, zwei Heilungen derselben Einheit gleichzeitig,
+Abbruch durch einen neuen Angriff, alter Spielstand ohne Verwundeten-Feld, Spielstand mit
+Verwundeten ohne Warteschlange, Negative Werte, sehr grosse Zahlen.
+KEIN Code, nur die Liste. Sie wird bei uns eins zu eins zur Pruefdatei.
+
+
+TEIL B - Spieltexte fuer die Diplomatie (S4)
+============================================
+Es gibt fuenf Nachbarn mit eigener Wirtschaft; sie greifen an, rauben, bestehlen und merken sich
+Rache. Neu gebaut wird: Gunst (0 bis 100), drei Statusstufen (0-39 feindlich, 40-59 neutral,
+60-100 freundlich), ein Nichtangriffspakt (3 Spieltage, bricht automatisch unter Gunst 40, Bruch
+kostet 20 Gunst), ein Durchmarschrecht (nur Anzeige, keine Mechanik), ein Handelsabkommen
+(Rabatt) und drei Ereignisse mit zwei Spieltagen Frist.
+
+Vorgegebene Zahlen (nicht aendern): Tribut eines Nachbarn = 990 Holz ODER 64 Gold. Tausch:
+5 Werkzeuge gegen 20 Eisen. Auskunft: 12 Gold.
+
+DEINE AUFGABE: Texte, je 1 bis 3 Saetze, im oben genannten Ton:
+  B1 Ankuendigung eines Tributs (der Nachbar fordert)
+  B2 Dank nach gezahltem Tribut
+  B3 Drohung nach verweigerter Zahlung
+  B4 Angebot eines Nichtangriffspakts
+  B5 Bruch des Pakts (der Nachbar erklaert, warum)
+  B6 Angebot eines Handelsabkommens
+  B7 drei kurze Ereignisse mit Frist (je Titel und Text), die zur Welt passen (Nebel, Ruinen, Drache)
+  B8 drei Zeilen fuer die Anzeige der Gunst: freundlich, neutral, feindlich - je ein Satz, der die
+     Folge nennt (was der Spieler dadurch hat oder nicht hat)
+Jeder Text bekommt eine Kennung (B1, B2 ...) in der ersten Zeile.
+
+
+TEIL C - Anzeigetexte fuer die Mauerreparatur (S2)
+==================================================
+Der Wall hat eine Stufe (1-10) und einen Zustand in Prozent. Reparatur wird neu gebaut:
+- Preis je Prozentpunkt = 16 * Stufe / 100, in Holz UND Stein (Stufe 1: 0,16 je Prozentpunkt,
+  0 auf 100 Prozent kostet 16 Holz und 16 Stein; Stufe 10: 1,60 je Punkt, 160 und 160 fuer alles).
+- Dauer: 1 Prozentpunkt = 360 Spielsekunden, 0 auf 100 = 10 Spielstunden = 200 Sekunden echt.
+- Ein Angriff bricht eine laufende Reparatur ab.
+- Reparatur und Ausbau schliessen sich gegenseitig aus.
+
+DEINE AUFGABE: je ein kurzer Text (hoechstens zwei Saetze) fuer:
+  C1 Reparatur angeboten (Zustand unter 100, alles bezahlbar)
+  C2 gesperrt, weil die Mauer noch ausgebaut wird
+  C3 gesperrt, weil zu wenig Holz (nennt die fehlende Menge)
+  C4 gesperrt, weil zu wenig Stein (nennt die fehlende Menge)
+  C5 Reparatur laeuft (nennt Ziel-Zustand und Restzeit)
+  C6 Reparatur fertig
+  C7 Reparatur durch einen Angriff abgebrochen
+  C8 Mauer bei 100 Prozent (nichts zu reparieren)
+Wichtig: jeder gesperrte Text nennt ALLE fehlenden Bedingungen einzeln und den naechsten Schritt -
+kein Sammel-Satz wie "geht nicht".
+
+
+WIE DU LIEFERST
+Drei .txt-Dateien, Namen:
+  TEIL_A_TESTFAELLE_VERWUNDETE.txt
+  TEIL_B_TEXTE_DIPLOMATIE.txt
+  TEIL_C_TEXTE_MAUERREPARATUR.txt
+Wenn du nur eine Datei liefern kannst: eine Datei mit allen drei Teilen, klar getrennt.
+
+WAS DU NICHT TUN SOLLST
+- Keine Zahlen erfinden, keine Balance-Vorschlaege ("man koennte die Kosten auf X setzen").
+- Keine Zusammenfassung des Auftrags, keine Entschuldigungen, keine Fragen - liefere die drei Teile.
+- Keine Links als Voraussetzung; wenn du etwas nachlesen willst, ist das deine Sache, die Lieferung
+  muss ohne Netz vollstaendig sein.
+
+ENDE DES AUFTRAGS

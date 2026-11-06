@@ -1,3 +1,18 @@
+# STAND 06.11.2026, 05:59 - Design Content Nr. 3 abgelegt, Google-Antwort ausgewertet (Register 255)
+
+> Neuester Block. Register 255. Darunter S2-Lauf (05:56), S2-Bau (05:19), S1b (03:47), S1 (03:22), S0 (03:02).
+
+**Abgelegt, nichts gebaut:** fuenf Fraktionspanoramen (1637x640, hashgleich) in
+`assets/hintergrund_content_20261106_fraktionen/`, der Google-Auftrag in `docs/eingaenge/`, die Antwort war
+schon dort. Auswertung in `docs/eingaenge/EINORDNUNG_GEMINI_ANTWORT_AUFTRAG_20261106.md`: **Teil A brauchbar
+als Testfall-Vorlage fuer S3** (ein Zahlenfehler: Fall 17 nennt 60 statt 50 Prozent), **Teil B brauchbar fuer
+S4** (Kennungen laufen B1-B12 statt B1-B8), **Teil C unbrauchbar fuer die Anzeige** (C3/C4 nennen keine
+fehlende Menge, C5 keine Restzeit).
+
+**Desktop:** nur noch `Nebelseetal_Infos_ExterneKI.txt` (bleibt laut Daniel) und die Uebergabe.
+
+---
+
 # STAND 06.11.2026, 05:56 - S2 im Sammellauf geprueft, Gemini-Material abgelegt (Register 253/254)
 
 > Neuester Block. Register 253/254, Protokollzeile 05:56. Darunter S2-Bau (05:19), S1b (03:47), S1 (03:22), S0 (03:02).
