@@ -116,3 +116,21 @@ Datei in 0,6 s ein Geraetebefund waere.
 | F-8 | Wann geht der KI-Auftrag Runde 2 an die externen Modelle? | **Erst nach S4 komplett** (Schritte 1 bis 5 gebaut). | Der Auftrag liegt fertig auf dem Desktop; er wird erst mit dem dann neueren Stand verschickt. Bis dahin bleibt er liegen, nichts wird daran geaendert. |
 | F-9 | Wann neue EXE und Release? | **Erst nach S4 komplett** (Gunst, Vertraege, Rachetopf, Ereignisse, Handelspunkte). | Kein Release nach S4 Teil 1. Die veroeffentlichte `V_0.0.3` bleibt die aktuelle Fassung; die naechste Version bekommt den naechsten Zaehler. |
 | F-10 | Grom-Detail: welche Werkzeug-Ware? | **5 Messer gegen 20 Erz** (= Rohstoff `metall`), Messer ist die guenstigste Werkzeug-Ware. | Damit ist das Ereignis vollstaendig bestimmt: Ware `Messer`, Menge 5, Gegenleistung Rohstoff `metall`, Menge 20. |
+
+## Nachtrag 13:50 - fuenf Antworten (Runde 2 des Ablaufs)
+
+Daniel hat die fuenf Fragen aus `docs/SPIELKONZEPT.md` Abschnitt 12 in EINER Runde beantwortet.
+Jede Antwort mit ihrer Folge:
+
+1. **Kontakt** = jede Interaktion (Handel, Ereignis, Kampf, Geschenk). Folge: der Rachetopf waechst
+   nur bei echter Funkstille; wer den Bot beschenkt oder mit ihm handelt, haelt ihn ruhig.
+2. **Rachetopf unter Pakt** steigt weiter, Angriff fruehestens 28.800 s nach Paktende. Folge: ein
+   Pakt kauft Zeit, nicht Ruhe; die Ankuendigung darf waehrend des Pakts nicht feuern.
+3. **Durchmarsch** bleibt reine Anzeige. Folge: keine Wegfindung, keine Kollisionsregeln.
+4. **Paktwirkung einseitig:** der Bot greift nicht an, der Spieler darf pluendern - bezahlt aber mit
+   schnellerer Vergeltung (Gunst sinkt, Rachetopf steigt bei Angriff auf einen Pakt-Bot). Folge fuer
+   Schritt 3: der Angriffspfad braucht eine Pakt-Pruefung, die den Pakt BRICHT (Gunst-Abzug, Topf +1),
+   nicht eine Sperre. Neue Wache: Angriff auf Pakt-Bot -> kein Verbot, aber Pakt gebrochen und Topf +1.
+5. **Prioritaet:** Diplomatie zuerst fertig (Schritte 3 bis 7), Wirtschaft und Forschung danach.
+
+Register 284.

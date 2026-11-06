@@ -103,9 +103,8 @@ nötig). Jede Zahl in diesem Dokument trägt eines davon. Die Belege stehen im R
 - **VORSCHLAG (Schritt 4):** +1 je Niederlage und +1 je Spieltag ohne Kontakt; Schwelle 3; Ruhen
   unter Götterschutz und während eines Vertrags; Ankündigung genau einmal, Angriff frühestens einen
   Spieltag (28.800 s) später; nach einem Bot-Sieg Topf auf 0 (Daniel, F-3).
-- **OFFEN - die wichtigste offene Definition:** was "Kontakt" heißt. Der Ablauf nennt das Wort,
-  definiert es aber nirgends (gemessen 06.11.2026). Die Definition gehört VOR den Einbau:
-  Vorschlag siehe Abschnitt 12, Frage 1.
+- **ENTSCHEIDUNG Daniel 06.11.2026:** "Kontakt" ist JEDE Interaktion - Handel, Ereignis-Entscheidung,
+  Kampf, Geschenk. Der Topf waechst nur bei echter Funkstille; ein Pakt haelt den Zaehler NICHT an.
 - **OFFEN:** die Reihenfolge im Tageswechsel (Ereignisse, Gunst, Vertragsbruch, Rachetopf,
   Bot-Aktionen). Vier unabhängige Gegenprüfungen haben diese Lücke gefunden; der Vorschlag steht in
   `docs/ABGLEICH_LLM_20261106_runde2.md`, Abschnitt 5.
@@ -168,18 +167,18 @@ nötig). Jede Zahl in diesem Dokument trägt eines davon. Die Belege stehen im R
 3. **Nach jedem Kennzahlenblatt-Lauf wandern die gemessenen Werte mit Datum in Abschnitt 2.** Der
    Startende trägt sie ein; ohne Eintrag gilt die Messung als nicht geschehen.
 
-**Offene Punkte (Fragen an Daniel, in einer Runde):**
-1. **Kontakt** im Rachetopf: jede Interaktion (Handel, Ereignis, Kampf) setzt den Zähler zurück, oder
-   nur diplomatische Austausche? (Empfehlung: jede Interaktion.)
-2. **Rachetopf unter Pakt:** steigt er weiter und feuert nach Paktende, oder friert er ein?
-   (Empfehlung: steigt weiter, feuert frühestens 28.800 s nach Paktende.)
-3. **Durchmarsch:** reine Anzeige bleiben, oder echte Mechanik (Bot-Truppen dürfen durchziehen)?
-   (Empfehlung: Anzeige - Originalbeleg fehlt, und neue Wegfindung ist ein eigener Schnitt.)
-4. **Paktwirkung:** schützt er nur den Spieler, oder sperrt er auch dessen Plünderungen?
-   (Empfehlung: beidseitig - ein Pakt ist ein Pakt, und die Aufbauzeit-Zahl wird dadurch ehrlich.)
-5. **Priorität:** Diplomatie zuerst fertig (Leerlauf senken) oder Wirtschaft und Forschung
-   vervollständigen? (Empfehlung: Diplomatie zuerst, weil der Ablauf steht und der Leerlauf die
-   größte gemessene Zahl ist.)
+**Beantwortet von Daniel am 06.11.2026, 13:50 - diese fuenf Entscheidungen gelten:**
+
+1. **Kontakt** = JEDE Interaktion: Handel, Ereignis-Entscheidung, Kampf, Geschenk. Der Rachetopf
+   waechst nur bei echter Funkstille. (Damit ist die Definition aus Runde 2 uebernommen.)
+2. **Rachetopf unter Pakt:** er steigt WEITER; der Angriff feuert fruehestens 28.800 s nach
+   Paktende. Ein Pakt schuetzt vor dem Angriff, nicht vor dem Zaehler.
+3. **Durchmarsch:** bleibt reine ANZEIGE. Kein Originalbeleg, keine neue Wegfindung.
+4. **Paktwirkung: EINSEITIG.** Der Bot greift nicht an; der Spieler DARF pluendern, bezahlt es aber -
+   ein Angriff auf einen Bot mit aktivem Pakt laesst ihn schneller wieder angreifen (Gunst sinkt,
+   Rachetopf steigt). Der Pakt ist damit ein Angebot, keine Mauer.
+5. **Prioritaet:** Diplomatie zuerst fertigmachen (Leerlauf 92 % und 5,3 Spieltage Luecke sind die
+   groessten gemessenen Zahlen), Wirtschaft und Forschung danach.
 
 **Verweise (Details, nicht wiederholen):** `docs/PLAN_Einzelspieler.md` (Bauplan),
 `docs/ABLAUF_LLM_20261106.md` (Arbeitsreihenfolge), `docs/ENTSCHEIDUNGSVERZEICHNIS.md` (Daniels
