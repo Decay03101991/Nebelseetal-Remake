@@ -134,3 +134,25 @@ Jede Antwort mit ihrer Folge:
 5. **Prioritaet:** Diplomatie zuerst fertig (Schritte 3 bis 7), Wirtschaft und Forschung danach.
 
 Register 284.
+
+
+## Nachtrag 14:00 - fuenf weitere Antworten (Vertraege, Bilder, Besucherdokumente, Push)
+
+1. **Paktbruch beim ABSENDEN eines Angriffs, nicht bei Ankunft.** Daniel woertlich-nah: die Absicht
+   zaehlt, und ein angegriffenes Ziel kann waehrend des Marsches nicht weglaufen. Gilt fuer Bots wie
+   fuer den Spieler, soweit mechanisch machbar und in alle verknuepften Bereiche integriert.
+   Folge: `_angriff_auftrag_starten` bricht den Pakt VOR dem Start; der Bot-Angriff bleibt gesperrt,
+   solange der Pakt steht (dann gibt es nichts zu brechen).
+2. **Ein laufendes Handelsabkommen bricht NICHT mit** - es endet still bei Ablauf.
+3. **Die Referenzbilder kommen MIT in die EXE** (3,3 MB sind egal). Im Repo ist zu vermerken: der
+   Ordner `assets/referenzbilder/` waechst mit der Designentwicklung deutlich, die Bilder werden
+   teils ingame genutzt, teils dienen sie nur als Stilreferenz - darum tragen sie meist
+   "ReferenzBild" im Namen.
+4. **Besucherdokumente buendeln:** SPIEL_ERKLAERUNG, FRAKTIONEN_WELTEN und VORSCHAU wandern in
+   BESUCHER.md, die alten Fassungen nach `docs/archiv/`.
+5. **Push:** in dieser Sitzung erlaubt (erledigt, `ddea42d..dedd524`); fuer die NAECHSTE Sitzung im
+   Voraus freigegeben, ohne Rueckfrage (Daniel 14:05). Ergebnis trotzdem pruefen, nicht durch eine
+   Pipe messen.
+
+Arbeit aus 1 bis 4 ist in der Uebergabe 14:05 als naechste Aufgabe vermerkt; erledigt ist bisher nur
+die Vertragslogik im Modul (Commit `dedd524`).
