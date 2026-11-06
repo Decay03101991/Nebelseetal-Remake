@@ -14295,10 +14295,10 @@ class NebelseetalApp:
                 asdict(ort), key, self.state.forschungs_stufen())
         except (ValueError, KeyError, TypeError):                      # unbrauchbare Daten
             return                                                     # dann nichts zeichnen
-        kosten_text = " · ".join("%g %s" % (float(betrag), rohstoff)   # Preis je Rohstoff
+        kosten_text = " · ".join("%s %s" % (hilfen.zahl_de(betrag), rohstoff)   # Preis je Rohstoff
                                  for rohstoff, betrag in sorted(grenzen["kosten_je"].items()))
         zeile = (f"Verwundet: {int(grenzen['verwundet'])} · Heilung je Stück: "
-                 f"{kosten_text or 'keine Kosten'} · Dauer {grenzen['dauer_je']:g} s "
+                 f"{kosten_text or 'keine Kosten'} · Dauer {hilfen.zahl_de(grenzen['dauer_je'])} s "
                  f"· jetzt bezahlbar: {int(grenzen['moeglich'])}")     # die Anzeige-Zeile
         block = tk.Frame(self.content, bg=self.skin["bg"])             # eigene Zeile unter der Einheit
         block.pack(fill=tk.X, padx=34, pady=(0, 8))                    # einruecken wie die Menge

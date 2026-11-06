@@ -33,6 +33,7 @@ sys.path.insert(0, os.path.join(WURZEL, "src"))
 sys.path.insert(0, os.path.join(WURZEL, "tests"))
 
 from harness import abschnitt, bericht, check                      # noqa: E402
+import hilfen                                                      # noqa: E402
 import main                                                        # noqa: E402
 import spieloekonomie                                              # noqa: E402
 import verwundete                                                  # noqa: E402
@@ -176,6 +177,19 @@ def main_lauf():
           and "30 *" not in buchung_code and "/ 100" not in buchung_code)
     check("kein zweiter Prozentsatz in der Anzeige",
           "0.75" not in anzeige and "0.5" not in anzeige)
+
+    abschnitt("11. Die Anzeige schreibt deutsche Zahlen mit Komma (Daniel 06.11.2026)")
+    # Daniels Antwort zur Fragenrunde: der KERN bleibt ungerundet, die ANZEIGE rundet auf zwei
+    # Stellen und schreibt ein Komma ("0,75 Pferde"). Die Formatierung sitzt in hilfen.zahl_de,
+    # damit Kern und Anzeige nicht zwei Schreibweisen pflegen (F-04-Muster).
+    check("0,75 Pferde", hilfen.zahl_de(0.75) == "0,75", hilfen.zahl_de(0.75))
+    check("262,5 Gold", hilfen.zahl_de(262.5) == "262,5", hilfen.zahl_de(262.5))
+    check("11,25 ohne Abschneiden", hilfen.zahl_de(11.25) == "11,25", hilfen.zahl_de(11.25))
+    check("ganze Zahl ohne Komma", hilfen.zahl_de(600) == "600", hilfen.zahl_de(600))
+    check("Rundung auf zwei Stellen", hilfen.zahl_de(0.3333) == "0,33", hilfen.zahl_de(0.3333))
+    check("kein Punkt in der Ausgabe", "." not in hilfen.zahl_de(262.5))
+    # Die Kaserne benutzt die Funktion wirklich - kein zweiter Formatierer in der Anzeige.
+    check("Anzeige ruft hilfen.zahl_de", "hilfen.zahl_de(" in anzeige)
 
 
 def _wirft(funktion, *argumente) -> bool:

@@ -1,3 +1,29 @@
+# STAND 06.11.2026, 08:05 - LLM-Auftragsdatei fertig, Anzeige in deutscher Schreibweise (Register 260/261)
+
+> Neuester Block. Register 260 und 261. Darunter 259 (Verlustbericht, Flakiness-Wache), 258 (Sammellauf
+> 181/183), 257 (S3 Verwundetenheilung).
+
+**Neu:** Die fuenf offenen Fragen sind in EINER Runde beantwortet (`docs/FRAGEN_AN_DANIEL_20261107.md`):
+EXE als **neuer Zaehler V_0.0.3** statt Ueberschreiben der veroeffentlichten 0.0.2, Heilungskosten im Kern
+ungerundet aber in der Anzeige mit Komma, zwei bis drei Modelle fuer den LLM-Auftrag, Abloesen alter
+Ablaeufe nur als eigener Schnitt mit Beleg, **S5 bleibt gesperrt**. Gebaut: `hilfen.zahl_de` als EINE
+Schreibweise deutscher Zahlen, `_heilung_zeile_zeichnen` benutzt sie (vorher `%g`, also 0.75 statt 0,75);
+Wache `test_verwundete` **52/0/0**. Dazu die **LLM-Auftragsdatei** `docs/extern/Nebelseetal_LLM_Auftrag_20261106.md`
+(37.297 Byte): Spiel, Mechaniken, Codeaufbau, gebauter und geplanter Stand, sieben Abschlussbedingungen,
+Balancing-Werkzeug-Bestand mit fuenf Luecken, Auftrag, Lieferformat, Ablagehinweise und die Warnung vor
+ungepruefter Uebernahme. Der Vorgaenger `Nebelseetal_Infos_ExterneKI.txt` liegt hashgleich in
+`docs/extern/archiv/` (nichts geloescht). `docs/ABLAUF_20261107.md` fuehrt B, C, H und I als gebaut.
+
+**Geld:** Daniel hat um **07:38** abgelesen: Guthaben **10,68 USD**, Gesamtverbrauch **59,31 USD** -
+gegen die Ablesung 05:44 (10,99 / 59,00) sind das **0,31 USD** in 1 h 54 min, im Rahmen der Erwartung.
+
+**Naechster Schritt:** Schritt J des Ablaufs - voller Sammellauf ueber den neuen Stand, dann
+Pre-Release `V_0.0.3` bauen (`tools/build_exe.py`, Name aus `data/version.json`), Startprobe mit
+Fensterbeleg, Release mit Notizen und Assets, Repo pushen. Danach ist diese Sitzung die LETZTE: die
+naechste Sitzung bekommt die Antworten der LLM und setzt sie nach Abgleich in Schnitte um; S4 Teil 1
+(Gunst und Status) ist der erste fachliche Schritt danach.
+
+---
 # STAND 06.11.2026, 07:24 - S3 fertig, Verlustbericht als eigener Typ (Register 259)
 
 > Neuester Block. Register 258 und 259. Darunter 257 (S3 gebaut), 256 (Gemini-Buendelung), S2-Lauf.

@@ -42,6 +42,20 @@ def aufzaehlung(werte: Any) -> str:
     return ", ".join(f"{k} {int(als_zahl(v))}" for k, v in sorted(werte.items()))
 
 
+def zahl_de(betrag: Any, stellen: int = 2) -> str:
+    """Deutsche Anzeige einer Menge: hoechstens `stellen` Nachkommastellen, Komma statt Punkt.
+
+    Daniel 06.11.2026 (Frage 2 der Runde): der KERN bleibt ungerundet - die ANZEIGE rundet auf
+    zwei Stellen und schreibt ein Komma. So steht in der Kaserne "0,75 Pferde" statt "0.75
+    Pferde" und "262,5 Gold" statt "262.5 Gold". Ganze Zahlen erscheinen ohne Nachkommastellen
+    ("16"), damit die Zeile nicht mit Nuellen vollsteht.
+    """
+    text = ("%." + str(int(stellen)) + "f") % als_zahl(betrag)   # erst auf die Stellen runden
+    if "." in text:                                              # nur wenn es Bruchteile gibt
+        text = text.rstrip("0").rstrip(".")                      # abschneidende Nullen weg
+    return text.replace(".", ",")                                # Punkt wird Komma
+
+
 def positive_ganze_werte(werte: Any) -> Dict[str, int]:
     """`{name: menge}` ohne alles Unbrauchbare: nur ganze Zahlen groesser 0.
 
