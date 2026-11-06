@@ -156,3 +156,24 @@ Register 284.
 
 Arbeit aus 1 bis 4 ist in der Uebergabe 14:05 als naechste Aufgabe vermerkt; erledigt ist bisher nur
 die Vertragslogik im Modul (Commit `dedd524`).
+
+
+## Offene Frage F-11 (06.11.2026, 17:41) - Motive der SPIELANSICHTEN
+
+**Messlage:** Gebaut sind seit Register 287 zwei Startbilder (Panorama hinter der Anmeldung aus dem
+Elfen-Waldlandreich, Ladebild mit Menschen und Ritter) - beide aus Daniels eigenen Referenzbildern.
+Die Spielansichten selbst haben seit 03.11.2026 EIN Hintergrundbild (`_hintergrund_bauen`,
+`data/hintergrund.json`), also ein und dasselbe Motiv fuer alle Ansichten.
+
+**Frage:** Sollen die Spielansichten andere, waermere Motive aus `assets/referenzbilder/` bekommen
+(je Ansicht oder je Fraktion eines), oder bleibt es beim jetzigen einen Hintergrund?
+
+**Auswirkung:** Ein Wechsel ist reine Optik ohne Spielwirkung; er kostet die Auswahl und das
+Einpassen je Bild (Zuschnitt, Abdunkelung fuer die Lesbarkeit) und macht die EXE groesser (die
+Referenzbilder sind ohnehin schon im Paket, Register 285 Punkt 3). Bleibt es beim jetzigen Bild,
+ist nichts zu tun.
+
+**Empfehlung:** beim jetzigen einen Hintergrund bleiben, bis die Startbilder eine Runde im Betrieb
+waren - dann entscheidet das Auge, welches Motiv wo stoert. Kein Umbau auf Vorrat.
+
+**Antwort Daniels:** offen.

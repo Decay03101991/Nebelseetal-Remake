@@ -85,6 +85,76 @@
       "ruht_unter_vertrag": "ENTSCHEIDUNG Daniel 06.11.2026, 13:50: der Topf steigt auch unter einem Pakt weiter - der Pakt kauft Zeit, nicht Ruhe.",
       "ankuendigung": "VORSCHLAG: Texte fuer die drei Drohstufen; sie stehen hier, damit kein Spieltext im Code liegt."
     }
+  },
+  "ereignisse": {
+    "aktiv": true,
+    "_schnitt": "S4-5 (06.11.2026), Ablauf Schritt 5. Frist, Haeufigkeit, Gunstwirkung und die Tauschzuordnung sind VORSCHLAG; die Preise stehen belegt in V-4 (docs/S0_TABELLEN_20261107.md). Jeder Preis traegt seine Quelle. Die sichtbaren Saetze stehen NICHT hier, sondern in data/story.json unter \"ereignisse\".",
+    "frist_sekunden": 57600,
+    "haeufigkeit_sekunden": 86400,
+    "gunst_annahme": 5,
+    "gunst_ablehnung": -5,
+    "ertrag_zeitraum_stunden": 24,
+    "trenner": " oder ",
+    "trenner_position": " + ",
+    "arten": {
+      "haug": {
+        "name": "Haug",
+        "zahlungen": [
+          {
+            "rohstoffe": {
+              "holz": 990
+            }
+          },
+          {
+            "rohstoffe": {
+              "gold": 64
+            }
+          }
+        ],
+        "gegenleistung": {},
+        "quelle": "V-4, UEBERNEHMEN: ein halber Tagesertrag des mittleren Dorfes. Holz 1.978 / 2 = 989, aufgerundet 990; Gold 128 / 2 = 64. Zwei Zahlungswege, der Spieler waehlt."
+      },
+      "grom": {
+        "name": "Grom",
+        "zahlungen": [
+          {
+            "waren": {
+              "Messer": 5
+            }
+          }
+        ],
+        "gegenleistung": {
+          "rohstoffe": {
+            "metall": 20
+          }
+        },
+        "quelle": "ENTSCHEIDUNG Daniel 06.11.2026 (F-1, Register 281): 5 Werkzeug-Waren gegen 20 Erz = Rohstoff metall. V-4 nennt 5 Werkzeuge gegen 20 Eisen; eine Ware Werkzeug gibt es nicht und Eisen ist kein Rohstoff (Befund G-4). Messer ist die naechstliegende vorhandene Waffe - VORSCHLAG mit Begruendung, keine neue Ware."
+      },
+      "silra": {
+        "name": "Silra",
+        "zahlungen": [
+          {
+            "rohstoffe": {
+              "gold": {
+                "anteil_vom_ertrag": 0.1,
+                "mindest": 1
+              }
+            }
+          }
+        ],
+        "gegenleistung": {},
+        "quelle": "V-4, UEBERNEHMEN: Informationspreis = ein Zehntel des Gold-Tagesertrags des ZAHLENDEN Ortes, abgerundet, mindestens 1 (bei 128 Gold am Tag also 12, bei duerftigen 5 also 1). Der Ertrag kommt aus wirtschaft.siedlung_ertrag - keine zweite Ertragsrechnung."
+      }
+    },
+    "quellen": {
+      "frist_sekunden": "VORSCHLAG: zwei Spieltage = 57.600 s (Auftragsdokument Abschnitt 7.3, Modellantwort C). Kein Originalbeleg - Handbuch 2009 und die 2006er Seiten schweigen zu Fristen.",
+      "haeufigkeit_sekunden": "VORSCHLAG: ein Ereignis je Bot und drei Spieltage = 86.400 s (Auftragsdokument 7.3).",
+      "gunst_annahme": "VORSCHLAG: +5 Gunst bei Annahme (Auftragsdokument 7.3).",
+      "gunst_ablehnung": "VORSCHLAG: -5 Gunst bei Ablehnung UND bei Ablauf (Auftragsdokument 7.3).",
+      "ertrag_zeitraum_stunden": "24 Spielstunden = ein Spieltag; dieselbe Laenge wie in V-4 gerechnet.",
+      "trenner": "Anzeige-Trenner zwischen zwei Zahlungswegen - steht hier, damit kein Spieltext im Code liegt.",
+      "trenner_position": "Anzeige-Trenner zwischen zwei Positionen EINER Zahlung - ebenfalls Datendatei, nicht Code."
+    }
   }
 
 }

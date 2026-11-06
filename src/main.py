@@ -3740,6 +3740,11 @@ class GameState:
         # gebucht) und ein Flammenzeichen merkt, dass schon jemand angegriffen hat.
         self.drachen_wachen: Dict[str, Dict[str, int]] = {}
         self.drachen_angegriffen: List[str] = []
+        # S4-5 (06.11.2026): die OFFENEN Bot-Ereignisse (Haug, Grom, Silra) als Liste
+        # [{id, art, bot, erzeugt, frist}]. EIN Speicher - der Preis steht nicht im Eintrag,
+        # sondern wird bei jeder Frage aus `data/diplomatie.json` und dem zahlenden Ort gerechnet.
+        # ADDITIV: ein Spielstand von vor S4-5 laedt ohne das Feld und hat keine offenen Ereignisse.
+        self.ereignisse: List[dict] = []
         self.noob_protection: bool = True
         # Oekonomie-Paket, Schritt 9, Teil 8b (Entwurf Z. 789): Version und Modus des Spielstands.
         # `stand_version` ist die FORM (1 = der alte, unversionierte Stand — dort fehlt das Feld;
@@ -7016,6 +7021,37 @@ class GameState:
                 bot_rache.naechster_angriff = 0.0                       # kein zweiter Angriffsweg
         ergebnis["rache"] = rache_meldungen                             # Nachweis im Taktbericht
 
+        # S4-5 (06.11.2026): Ereignisse. Erst verfallen lassen (Frist um, Gunst -5), dann
+        # hoechstens EINES je Bot anlegen. Die Art rotiert ueber die Reihenfolge der Datendatei -
+        # so entscheidet kein Wuerfel, und derselbe Startwert ergibt denselben Verlauf.
+        ereignis_meldungen: List[str] = []                               # was dieser Takt meldet
+        _ereignis_bots = [self.bot_als_dict(b) for b in self.bots]        # dict-Formen des Kerns
+        for _verfall in diplomatie.ereignisse_tick(getattr(self, "ereignisse", []), jetzt,
+                                                   bots=_ereignis_bots):  # Ablauf buchen
+            _text_verfall = story.ereignis_grund_text("abgelaufen")       # Satz aus der Datendatei
+            if _text_verfall:                                            # nur mit Text melden
+                _meldung_verfall = "%s: %s" % (_verfall.get("bot"), _text_verfall)
+                self.messages.append({"text": _meldung_verfall, "type": "ereignis"})
+                self._log(_meldung_verfall)                              # Statuszeile
+                ereignis_meldungen.append(_meldung_verfall)              # fuer den Taktbericht
+        _arten = diplomatie.ereignis_arten()                             # Arten in Dateireihenfolge
+        for _index, _bot_ereignis in enumerate(self.bots):               # je Bot einmal
+            if not _arten:                                               # keine Arten hinterlegt
+                break                                                    # dann nichts anlegen
+            _art = _arten[_index % len(_arten)]                          # feste Rotation je Bot
+            _neu = diplomatie.ereignis_erzeugen(getattr(self, "ereignisse", []),
+                                                _ereignis_bots[_index], _art, jetzt)
+            if _neu:                                                     # wirklich entstanden
+                _titel_ereignis = story.ereignis_text(_art, "titel")      # Ueberschrift aus Datei
+                if _titel_ereignis:                                       # nur mit Text melden
+                    _meldung_neu = "%s: %s" % (_bot_ereignis.name, _titel_ereignis)
+                    self.messages.append({"text": _meldung_neu, "type": "ereignis"})
+                    self._log(_meldung_neu)                              # Statuszeile
+                    ereignis_meldungen.append(_meldung_neu)              # fuer den Taktbericht
+        for _bot_ereignis, _daten_ereignis in zip(self.bots, _ereignis_bots):  # Gunst zurueck
+            self.bot_aus_dict(_bot_ereignis, _daten_ereignis)            # EIN Speicher am Bot
+        ergebnis["ereignisse"] = ereignis_meldungen                      # Nachweis im Taktbericht
+
         # B-3 (02.11.2026): VOR dem Zug wirtschaften die Doerfer. Jedes Dorf erntet seit seiner
         # letzten Ernte (`dorf.ernte_seit`) mit dem Stundensatz aus `bot_dorf_ertrag` - derselben
         # Funktion, die der Spionagebericht zeigt. Ohne diesen Schritt haette ein Bot nur seine
@@ -7532,6 +7568,10 @@ class GameState:
                                for k, v in (getattr(self, "drachen_wachen", {}) or {}).items()
                                if isinstance(v, dict)},
             "drachen_angegriffen": [str(k) for k in (getattr(self, "drachen_angegriffen", []) or [])],
+            # S4-5 (06.11.2026): die offenen Ereignisse samt ihrer Frist gehoeren in den
+            # Spielstand - sonst verfiele ein Ereignis beim Laden nie und waere ewig annehmbar.
+            "ereignisse": [dict(e) for e in (getattr(self, "ereignisse", []) or [])
+                           if isinstance(e, dict)],
             # Teil 8b (Entwurf Z. 789): die FORM des Spielstands (Version + Modus) und der
             # Tagesrest. Entwurf woertlich: "_day_accum zusaetzlich sichern statt beim Laden auf 0
             # setzen" — sonst beginnt der Spieltag nach jedem Laden von vorn.
@@ -7718,6 +7758,9 @@ class GameState:
                                for k, v in (data.get("drachen_wachen") or {}).items()
                                if isinstance(v, dict)}
         self.drachen_angegriffen = [str(k) for k in (data.get("drachen_angegriffen") or [])]
+        # S4-5 (06.11.2026): die offenen Ereignisse kommen aus dem Spielstand. Ein Stand von vor
+        # S4-5 kennt das Feld nicht und laedt mit einer LEEREN Liste - kein Fehler, kein Ereignis.
+        self.ereignisse = [dict(e) for e in (data.get("ereignisse") or []) if isinstance(e, dict)]
         self.noob_protection = data.get("noob_protection", True)
         # Kein Upgrade alter Legacy-Staende. Fuer neue, lokale Staende ist die
         # globale Anzeige nur eine abgeleitete Summe nach dem Laden.
@@ -13421,6 +13464,152 @@ class NebelseetalApp:
             zeile = bottaktik.anzeige(self.state.bot_als_dict(bot))
             tk.Label(frame, text=zeile, fg=self.skin["text"], bg=self.skin["panel"],
                      anchor=tk.W).pack(fill=tk.X, padx=5)
+        # S4-5 (06.11.2026): die OFFENEN Ereignisse. Der Text kommt aus `data/story.json`, der
+        # Preis aus `diplomatie.ereignis_preis` - derselben Funktion, die der Kern beim Buchen
+        # fragt (Muster F-04: eine Rechenstelle fuer Anzeige und Buchung).
+        self._ereignisse_anzeigen()
+
+    def _ereignisse_anzeigen(self) -> None:
+        """Zeigt die offenen Ereignisse mit ihren Zahlungswegen (Knopf je Weg) und Ablehnen."""
+        offen = [e for e in (getattr(self.state, "ereignisse", []) or []) if isinstance(e, dict)]
+        if not offen:                                                   # nichts offen
+            return                                                      # dann keine Rubrik
+        ort = self.state.aktive_siedlung()                              # der zahlende Ort
+        tk.Label(self.content, text="Offene Ereignisse", font=("Blackletter", 14, "bold"),
+                 fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(14, 2))
+        for eintrag in offen:                                           # jedes Ereignis einmal
+            art = str(eintrag.get("art") or "")                         # Art des Ereignisses
+            rahmen = tk.Frame(self.content, bg=self.skin["panel"])      # eigener Kasten
+            rahmen.pack(fill=tk.X, padx=10, pady=2)                     # untereinander
+            tk.Label(rahmen, text=story.ereignis_text(art, "titel"),
+                     fg=self.skin["gold"], bg=self.skin["panel"],
+                     anchor=tk.W).pack(fill=tk.X, padx=5, pady=(4, 0))   # Ueberschrift
+            tk.Label(rahmen, text=story.ereignis_text(art, "text"),
+                     fg=self.skin["text"], bg=self.skin["panel"], anchor=tk.W,
+                     wraplength=760, justify=tk.LEFT).pack(fill=tk.X, padx=5)  # der Sachtext
+            tk.Label(rahmen, text=diplomatie.ereignis_preis_text(art, ort),
+                     fg="#DAA520", bg=self.skin["panel"],
+                     anchor=tk.W).pack(fill=tk.X, padx=5, pady=(2, 4))   # der Preis am Ort
+            tk.Button(rahmen, text="Ablehnen",
+                      command=lambda e=eintrag: self._ereignis_ablehnen(e),
+                      bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)  # Nein
+            for index in range(len(diplomatie.ereignis_preis(art, ort))):  # ein Knopf je Weg
+                tk.Button(rahmen, text=diplomatie.ereignis_weg_text(art, index, ort),
+                          command=lambda e=eintrag, i=index: self._ereignis_annehmen(e, i),
+                          bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
+
+    # ---------- S4-5 (06.11.2026): Ereignisse als Ingame-Dialog ----------
+
+    def _ereignis_bot(self, eintrag: dict):
+        """Der Bot eines Ereignisses als (Bot, dict-Form) - (None, {}) wenn es ihn nicht gibt."""
+        name = str((eintrag or {}).get("bot") or "")                    # Name aus dem Ereignis
+        bot = next((b for b in self.state.bots if str(b.name) == name), None)  # Bot suchen
+        if bot is None:                                                 # Bot gibt es nicht (mehr)
+            return None, {}                                             # dann kein Gunstkonto
+        return bot, self.state.bot_als_dict(bot)                        # Bot und seine dict-Form
+
+    def _ereignis_annehmen(self, eintrag: dict, weg: int = None) -> bool:
+        """Nimmt ein Ereignis an - gebucht wird AUSSCHLIESSLICH im Kern (`ereignis_annehmen`).
+
+        Der Knopf uebergibt nur, WELCHER Zahlungsweg gemeint ist; die Buchung, die Pruefung am Ort
+        und die Gunst macht `diplomatie.ereignis_annehmen` (atomar, keine Teilbuchung).
+        """
+        bot, daten = self._ereignis_bot(eintrag)                        # Bot und dict-Form
+        if bot is None:                                                 # ohne Bot keine Buchung
+            self._ereignis_melden(story.ereignis_grund_text("unbekannt"))  # Satz aus der Datei
+            return False                                                # nichts gebucht
+        ort = self.state.aktive_siedlung()                              # der zahlende Ort
+        ok, grund = diplomatie.ereignis_annehmen(self.state.ereignisse, ort,
+                                                 (eintrag or {}).get("id"), daten,
+                                                 jetzt=self.state.spielsekunden, zahlung=weg)
+        self.state.bot_aus_dict(bot, daten)                             # Gunst zurueckschreiben
+        _art = str((eintrag or {}).get("art") or "")                    # Art des Ereignisses
+        if ok:                                                          # gebucht
+            self._ereignis_melden(story.ereignis_text(_art, "annahme"))  # Satz aus der Datei
+        else:                                                           # nicht gebucht
+            self._ereignis_melden(story.ereignis_grund_text(grund))      # Grund aus der Datei
+        self._overlay_schliessen()                                      # Dialog schliessen
+        if getattr(self, "content", None) is not None:                  # Ansicht vorhanden
+            self._render_view()                                         # sofort nachziehen
+        return bool(ok)                                                 # Ergebnis melden
+
+    def _ereignis_ablehnen(self, eintrag: dict) -> bool:
+        """Lehnt ein Ereignis ab (Gunst -5) - auch das bucht der Kern, nicht die Oberflaeche."""
+        bot, daten = self._ereignis_bot(eintrag)                        # Bot und dict-Form
+        if bot is None:                                                 # ohne Bot keine Buchung
+            self._ereignis_melden(story.ereignis_grund_text("unbekannt"))  # Satz aus der Datei
+            return False                                                # nichts gebucht
+        ok, grund = diplomatie.ereignis_ablehnen(self.state.ereignisse,
+                                                 (eintrag or {}).get("id"), daten,
+                                                 jetzt=self.state.spielsekunden)
+        self.state.bot_aus_dict(bot, daten)                             # Gunst zurueckschreiben
+        _art = str((eintrag or {}).get("art") or "")                    # Art des Ereignisses
+        if ok:                                                          # gebucht
+            self._ereignis_melden(story.ereignis_text(_art, "ablehnung"))  # Satz aus der Datei
+        else:                                                           # nicht gebucht
+            self._ereignis_melden(story.ereignis_grund_text(grund))      # Grund aus der Datei
+        self._overlay_schliessen()                                      # Dialog schliessen
+        if getattr(self, "content", None) is not None:                  # Ansicht vorhanden
+            self._render_view()                                         # sofort nachziehen
+        return bool(ok)                                                 # Ergebnis melden
+
+    def _ereignis_melden(self, satz: str) -> None:
+        """Schreibt einen Satz aus der Datendatei ins Postfach und ins Spiel-Log (leer = nichts)."""
+        if not satz:                                                    # kein Text hinterlegt
+            return                                                      # dann nichts erfinden
+        self.state.messages.append({"text": satz, "type": "ereignis"})  # ins Postfach
+        self._log(satz)                                                 # Statuszeile
+
+    def _ereignis_overlay_pruefen(self) -> None:
+        """Zeigt das aelteste noch nicht gezeigte Ereignis als Ingame-Dialog (hoechstens EINES)."""
+        if getattr(self, "root", None) is None:                         # ohne Fenster kein Dialog
+            return                                                      # dann nichts zeigen
+        if self._overlay_offen():                                       # schon ein Dialog offen
+            return                                                      # dann nicht darueber legen
+        offen = [e for e in (getattr(self.state, "ereignisse", []) or []) if isinstance(e, dict)]
+        if not offen:                                                   # nichts offen
+            return                                                      # dann nichts zu zeigen
+        gesehen = getattr(self, "_ereignis_gezeigt", None)              # schon gezeigte Kennungen
+        if gesehen is None:                                             # beim ersten Mal
+            gesehen = set()                                             # leere Menge anlegen
+            self._ereignis_gezeigt = gesehen                            # am Fenster merken
+        neu = [e for e in offen if str(e.get("id")) not in gesehen]      # noch nicht gezeigte
+        if not neu:                                                     # alles schon gezeigt
+            return                                                      # dann nichts tun
+        eintrag = neu[0]                                                # das aelteste zuerst
+        gesehen.add(str(eintrag.get("id")))                             # als gezeigt merken
+        self._ereignis_overlay(eintrag)                                 # Dialog oeffnen
+
+    def _ereignis_overlay(self, eintrag: dict) -> None:
+        """Der Ingame-Dialog zu einem Ereignis: Text aus `data/story.json`, Preis aus dem Kern."""
+        art = str((eintrag or {}).get("art") or "")                     # Art des Ereignisses
+        titel = story.ereignis_text(art, "titel") or art                # Ueberschrift (Rueckfall Art)
+        text = story.ereignis_text(art, "text")                         # der Sachtext
+        ort = self.state.aktive_siedlung()                              # der zahlende Ort
+        wege = len(diplomatie.ereignis_preis(art, ort))                 # wie viele Wege es gibt
+
+        def bauer(inhalt, schliessen):                                  # Inhalt des Dialogs
+            """Fuellt den Kasten: Ueberschrift, Text, Preis und je Weg ein Knopf plus Ablehnen."""
+            farbe = str(inhalt.cget("bg"))                              # Farbe des Inhaltsbereichs
+            tk.Label(inhalt, text=titel, font=("Blackletter", 20),      # Ueberschrift
+                     fg="#FFCC33", bg=farbe).pack(anchor="w", pady=(0, 10))
+            if text:                                                    # nur mit Text
+                tk.Label(inhalt, text=text, justify="left", wraplength=520,   # der Sachtext
+                         fg=self.skin["text"], bg=farbe).pack(anchor="w")
+            preis = diplomatie.ereignis_preis_text(art, ort)            # Preis aus dem Kern
+            if preis:                                                   # nur mit Preis
+                tk.Label(inhalt, text=preis, fg="#DAA520", bg=farbe,    # Preiszeile
+                         wraplength=520, justify="left").pack(anchor="w", pady=(10, 0))
+            knoepfe = tk.Frame(inhalt, bg=farbe)                        # Knopfleiste
+            knoepfe.pack(anchor="e", pady=(14, 0))                      # rechts unten
+            for index in range(wege):                                   # ein Knopf je Zahlungsweg
+                tk.Button(knoepfe, text=diplomatie.ereignis_weg_text(art, index, ort),
+                          command=lambda i=index: self._ereignis_annehmen(eintrag, i)
+                          ).pack(side="left", padx=(0, 6))               # Annehmen dieses Weges
+            tk.Button(knoepfe, text="Ablehnen",                         # der Absageknopf
+                      command=lambda: self._ereignis_ablehnen(eintrag)).pack(side="left")
+
+        self._overlay_oeffnen(titel, bauer)                             # Ingame statt Fenster
 
     def _trade(self, bot: BotPlayer):
         """Handel mit einem Bot: der BESTÄTIGTE KAUFVERTRAG (Teil 7b, Entwurf Z. 779/781).
@@ -15340,6 +15529,7 @@ class NebelseetalApp:
                                    f"{_dauer_hin / 3600.0:.1f} Spielstunden.")
                 self.state.messages.append({"text": report, "type": "bewegung"})
                 self.state.movements.remove(m)
+        self._ereignis_overlay_pruefen()                       # S4-5: offenes Ereignis als Dialog
         self._render()
         if getattr(self, "current_view", "") == "Karten" and hasattr(self, "map_canvas"):
             try:

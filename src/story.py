@@ -184,3 +184,29 @@ def intro_merken() -> None:
             json.dump({"intro_gesehen": True}, f)
     except OSError:
         pass
+
+
+def ereignis_text(art: str, feld: str = "titel") -> str:
+    """Ein Satz zu einer Ereignisart aus `data/story.json` (S4-5, 06.11.2026).
+
+    Eingabe: Art ("haug", "grom", "silra") und Feld ("titel", "text", "annahme", "ablehnung").
+    Ausgabe: der Text; "" wenn die Datei ihn nicht fuehrt - es wird nichts erfunden.
+    """
+    bereich = _datei().get("ereignisse") or {}  # den Ereignis-Block lesen
+    eintrag = bereich.get(str(art)) if isinstance(bereich, dict) else None  # Eintrag dieser Art
+    if not isinstance(eintrag, dict):  # keine Angaben zu dieser Art
+        return ""  # dann kein Text
+    return str(eintrag.get(str(feld)) or "")  # den gewuenschten Satz zurueckgeben
+
+
+def ereignis_grund_text(grund: str) -> str:
+    """Der Satz zu einem Ablehnungsgrund aus `data/story.json` (leer, wenn unbekannt).
+
+    Gruende sind Kennungen aus dem Kern ("bestand_fehlt", "abgelaufen", ...) - der Satz dazu steht
+    in der Datendatei, damit keine Spielermeldung im Code liegt.
+    """
+    bereich = _datei().get("ereignisse") or {}  # den Ereignis-Block lesen
+    texte = bereich.get("_gruende") if isinstance(bereich, dict) else None  # die Grund-Texte
+    if not isinstance(texte, dict):  # keine Texte hinterlegt
+        return ""  # dann kein Satz
+    return str(texte.get(str(grund)) or "")  # den Satz zum Grund zurueckgeben

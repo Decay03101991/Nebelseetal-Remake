@@ -1,3 +1,59 @@
+# STAND 06.11.2026, 17:55 - Ablauf Schritt 5 fertig: Ereignisse Haug, Grom, Silra (Register 288)
+
+> Neuester Block. Register 288. Darunter 287 (Startbilder), 286 (Rachetopf), 285 (S4-3 verdrahtet),
+> 281 bis 283 (Runde 2, Spielkonzept, Repo geordnet), 280 (Kennzahlenblatt), 267 bis 279 (Abgleich,
+> fixer Ablauf, S4 Teil 1, F-1 bis F-9).
+
+**Die Nachbarn melden sich jetzt.** Drei Ereignisse mit Frist: Haug verlangt Tribut (990 Holz ODER
+64 Gold), Grom tauscht (5 Messer gegen 20 Erz), Silra verkauft eine Auskunft (ein Zehntel des
+Gold-Tagesertrags, mindestens 1 Gold). Annahme gibt 5 Gunst, Ablehnung oder Ablauf nimmt 5.
+
+**Preise mit Quelle, Frist ohne.** Haug 990 Holz oder 64 Gold und der Rechenweg fuer Silra sind V-4
+(990 ist der aufgerundete halbe Holz-Tagesertrag 989, 64 der halbe Gold-Tagesertrag 128/2); Groms
+Tausch 5 Messer gegen 20 Erz ist Daniels Entscheidung F-1, die Zuordnung auf die vorhandene Ware
+Messer ein VORSCHLAG mit Begruendung (eine Ware Werkzeug und den Rohstoff Eisen gibt es nicht, G-4).
+Frist 57.600 s, Haeufigkeit 86.400 s und die Gunstwirkung sind VORSCHLAG - Handbuch 2009 und die
+2006er Seiten nennen keine Frist.
+
+**Was der Schnitt technisch festlegt:**
+
+- **EINE Preisfunktion** (`diplomatie.ereignis_preis`): Ingame-Dialog, Diplomatie-Ansicht und Buchung
+  fragen dieselbe Funktion, es gibt keine zweite Preisrechnung im Code (Wache G).
+- **Buchung atomar am Ort** ueber beide Lager: mit 989 Holz wird NICHTS gebucht und der Bestand bleibt
+  stehen (Wache C), mit 990 wird genau 990 abgebucht, die Gunst steht auf 55 und der Kontakt ist
+  gebucht (Wache D).
+- **Hoechstens EIN offenes Ereignis je Bot**, die Art rotiert ueber die Reihenfolge der Datendatei -
+  kein Wuerfel im Takt, damit ein Lauf reproduzierbar bleibt. Auch das ERSTE Ereignis wartet die
+  Haeufigkeit ab (drei Spieltage), sonst staenden am ersten Takt fuenf Dialoge auf einmal.
+- **Alle Saetze stehen in der Datendatei** (`data/story.json`: Titel, Text, Satz bei Annahme, Satz bei
+  Ablehnung, Grund-Saetze), alle Zahlen in `data/diplomatie.json`; `src/diplomatie.py` bleibt ASCII.
+
+**Wache:** `tests/test_diplomatie_ereignisse.py` **74 Pruefungen, 0 Fehler, 0 Befunde** - Ablauf bei
+57.599 s offen und bei 57.600 s verfallen, Ablehnung bei 989 Holz, genaue Buchung bei 990, Silra-Preis
+1 bei 5 Gold am Tag und 12 bei 128, Grom-Tausch mit und ohne Messer, Quellwache Anzeige = Kern,
+Haeufigkeit, alter Spielstand ohne Feld, echter Verlauf in der App.
+
+**Am laufenden Fenster belegt:** der Takt oeffnet den Dialog von selbst (Screenshot `s45_overlay.png`:
+Titel, Text, Preis, Knoepfe 990 Holz / 64 Gold / Ablehnen), die Diplomatie-Ansicht zeigt die Rubrik
+Offene Ereignisse mit denselben Angaben (`s45_diplomatie2.png`).
+
+**Sammellauf:** **187 von 189 gruen, 0 rot, 7.779 Pruefungen, 60 Befunde, 838 s**
+(`docs/audits/sammellauf_20261106_1743.log`, allein gelaufen; 189 Dateien statt 188, weil die neue
+Wache dazukommt, und 74 Pruefungen mehr als der Lauf um 16:59).
+
+**Geld:** Daniel 17:35 - Guthaben **8,59 USD**, Gesamtverbrauch **61,40 USD** (16:07: 8,76 / 61,23).
+
+**Naechster Schritt:** Ablauf Schritt 6 (Handelspunkte, Befund G-8) - eine Buchstelle beim Abschluss
+eines Handelsvertrags (`spieloekonomie.handel_abschluss` liefert `vertrag["erloes"]`), Zaehler
+`handels_erloes` und `letzter_handel`, Feld `abgerechnet` gegen Doppelbuchung ueber Speichern und
+Laden, Anzeige uebergibt beide Werte an `punkte.auszeichnungen`; danach Schritt 7 (Bot-Luecken) und
+8 bis 13 (Balancing, A-1, A-2, A-6, A-7, A-5). Arbeitsweise unveraendert: je Schnitt Register,
+Protokollzeile, Stand-Block, Commit, Push und ein VOLLER Sammellauf.
+
+Offen ausserdem: die Buendelung der Besucherdokumente nach `BESUCHER.md` (Daniels Entscheidung 14:00,
+Punkt 4) und die neue Frage F-11 (Motive der Spielansichten, `docs/FRAGEN_AN_DANIEL_20261107.md`).
+
+---
 # STAND 06.11.2026, 17:10 - Startbilder: Panorama hinter Anmeldung und Ladebild, Logo statt Schriftzug (Register 287)
 
 > Neuester Block. Register 287. Darunter 286 (Rachetopf), 285 (S4-3 verdrahtet), 281 bis 283

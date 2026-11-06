@@ -18,6 +18,35 @@
       "text": "Vier leere Sockel, vier Namen in Gold. Der Staub auf dem ersten ist dünner als auf den anderen. Hier war also schon jemand."
     }
   },
+  "ereignisse": {
+    "_hinweis": "S4-5 (06.11.2026): Texte der drei Bot-Ereignisse. Jede Art hat Titel, Ankuendigung, den Satz bei Annahme und den Satz bei Ablehnung. Die Zahlen (Preise, Frist, Gunst) stehen NICHT hier, sondern in data/diplomatie.json - Texte hier, Zahlen dort, keine zweite Wahrheit.",
+    "haug": {
+      "titel": "Haug verlangt Tribut",
+      "text": "Haug steht mit drei Mann am Tor und tut, als wäre das eine Verhandlung. Die Straße gehört ihm, sagt er, und du benutzt sie. Dann nennt er seinen Preis und wartet.",
+      "annahme": "Haug nimmt, was er genannt hat, und grinst dabei. Immerhin zieht er ab, und sein Grinsen gilt ab heute dir.",
+      "ablehnung": "Du schickst ihn weg. Haug dreht sich nicht einmal um – aber er merkt sich dein Gesicht."
+    },
+    "grom": {
+      "titel": "Grom braucht Messer",
+      "text": "Groms Leute haben Erz gefunden und keine Klinge dafür. Er bietet zwanzig Fuhren Erz für fünf Messer – ein schlechtes Geschäft für ihn, sagt er, aber er braucht sie heute.",
+      "annahme": "Die Messer wechseln den Besitzer, das Erz liegt bald in deinem Lager. Grom nickt dir zu, als hätte er mehr bekommen als bezahlt.",
+      "ablehnung": "Grom packt sein Erz wieder ein. Dann eben nicht, sagt er – ohne Groll, aber auch ohne Wiederkommen."
+    },
+    "silra": {
+      "titel": "Silra verkauft eine Auskunft",
+      "text": "Silra will Gold für eine Auskunft, die sie nicht nennt, bevor sie bezahlt wird. Wenn sie nichts wert ist, war es billig, sagt sie.",
+      "annahme": "Silra beugt sich vor und spricht leise. Was sie sagt, klingt nach einem Umweg, den du ab jetzt kennst.",
+      "ablehnung": "Du lehnst ab. Silra zuckt mit den Schultern und ist schon halb im Nebel, als sie noch etwas murmelt."
+    },
+    "_gruende": {
+      "bestand_fehlt": "Es fehlt am Ort, was verlangt wird. Gebucht wurde nichts.",
+      "abgelaufen": "Die Frist ist um. Der Bote ist längst weitergezogen.",
+      "unbekannt": "Dieses Ereignis gibt es nicht mehr.",
+      "kein_preis": "Für dieses Ereignis ist kein Preis hinterlegt.",
+      "ereignisse_aus": "Ereignisse sind abgeschaltet.",
+      "kein_ort": "Ohne eigene Siedlung lässt sich nichts bezahlen."
+    }
+  },
   "stand": "2026-11-04",
   "ton": "abenteuerlich und leicht - Aufbruch, Entdecken, Humor (Daniels Entscheidung 04.11.2026)",
   "hinweis": "Alle Texte dieses Spiels stehen HIER, nicht im Code. Der Ton ist leicht und abenteuerlich: kein Pathos, kein Weltschmerz, aber ein Ziel. Wer die Geschichte ändern will, ändert diese Datei – kein Codeeingriff.",

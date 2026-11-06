@@ -16,8 +16,9 @@ Schnitt gebaut.
 import json  # importiert json zum Lesen der Datendatei
 import os  # importiert os fuer Pfadoperationen
 import spieldaten  # importiert spieldaten fuer den Projektwurzelpfad
+import wirtschaft  # S4-5: liest den Goldertrag eines Ortes (EINE Ertragsquelle)
 
-STAND = "2026-11-06.1"  # Kennung dieses Modulstands (erscheint in keinem Spielstand)
+STAND = "2026-11-06.2"  # Kennung dieses Modulstands (erscheint in keinem Spielstand)
 _CACHE = {}  # Pfad -> (Aenderungszeit, Inhalt): die Datendatei wird EINMAL gelesen
 
 
@@ -511,3 +512,372 @@ def ankuendigung_text(bot_daten, einst=None) -> str:
     topf = rache_von(bot_daten, einst)  # jetzige Stufe
     stufe = max(1, min(len(texte), topf))  # Stufe 1 bis Anzahl der Texte
     return str(texte[stufe - 1])  # Text dieser Stufe
+
+# ---------------------------------------------------------------------------
+# S4-5 Ereignisse: Haug, Grom, Silra (06.11.2026, Ablauf Schritt 5)
+# ---------------------------------------------------------------------------
+# Drei Bot-Ereignisse mit Frist. Die Zahlen (Preise, Frist, Haeufigkeit, Gunstwirkung) stehen in
+# `data/diplomatie.json` unter "ereignisse"; jeder sichtbare Satz steht in `data/story.json` unter
+# "ereignisse". Dieses Modul rechnet und bucht - es entscheidet nichts und zeigt nichts an.
+#
+# EIN Speicher: die offenen Ereignisse liegen als Liste [{id, art, bot, erzeugt, frist}] im
+# Spielstand (GameState.ereignisse). Der Preis steht NICHT im Eintrag, sondern wird bei jeder Frage
+# neu aus der Datendatei und dem ZAHLENDEN ORT gerechnet - eine Rechenstelle fuer Anzeige und
+# Buchung (Muster F-04): `ereignis_preis`.
+
+
+def _ereignisse_block(einst=None) -> dict:
+    """Der Block "ereignisse" der Datendatei (leeres dict, wenn er fehlt)."""
+    quelle = einst if isinstance(einst, dict) else daten()  # uebergebene Daten oder die Datei lesen
+    block = (quelle or {}).get("ereignisse")  # den Ereignis-Block heraussuchen
+    return block if isinstance(block, dict) else {}  # nur ein dict ist brauchbar
+
+
+def ereignisse_aktiv(einst=None) -> bool:
+    """Sind Ereignisse eingeschaltet? Ein Wort in der Datendatei entscheidet (A-7)."""
+    return bool(_ereignisse_block(einst).get("aktiv", False))  # ohne ausdrueckliches true sind sie aus
+
+
+def ereignis_arten(einst=None) -> list:
+    """Die Ereignisarten der Datei in ihrer Reihenfolge (diese Reihenfolge ist die Rotation).
+
+    Ausgabe: Liste von Kennungen, z. B. ["haug", "grom", "silra"]; leer, wenn die Datei keine nennt.
+    Die Reihenfolge ist Absicht: der Aufrufer rotiert darueber, damit kein Wuerfel im Takt sitzt.
+    """
+    arten = _ereignisse_block(einst).get("arten")  # Arten-Block ansehen
+    if not isinstance(arten, dict):  # keine Arten hinterlegt
+        return []  # dann gibt es nichts zu erzeugen
+    return [str(k) for k, v in arten.items() if isinstance(v, dict)]  # nur Arten MIT Angaben
+
+
+def ereignis_daten(art, einst=None) -> dict:
+    """Die Angaben EINER Ereignisart (Zahlungen, Gegenleistung); leer, wenn die Datei sie nicht fuehrt."""
+    arten = _ereignisse_block(einst).get("arten")  # Arten-Block ansehen
+    eintrag = arten.get(str(art)) if isinstance(arten, dict) else None  # Eintrag dieser Art
+    return eintrag if isinstance(eintrag, dict) else {}  # nur ein dict ist brauchbar
+
+
+def ereignis_frist(einst=None) -> float:
+    """Frist eines Ereignisses in Spielsekunden (Vorgabe zwei Spieltage = 57.600 s)."""
+    return _block_zahl(_ereignisse_block(einst), "frist_sekunden", 57600.0)  # Zahl aus der Datei
+
+
+def ereignis_haeufigkeit(einst=None) -> float:
+    """Mindestabstand zweier Ereignisse desselben Bots in Spielsekunden (Vorgabe drei Spieltage)."""
+    return _block_zahl(_ereignisse_block(einst), "haeufigkeit_sekunden", 86400.0)  # Zahl aus der Datei
+
+
+def ereignis_gunst_annahme(einst=None) -> int:
+    """Gunstwirkung einer Annahme (Vorgabe +5)."""
+    return int(_block_zahl(_ereignisse_block(einst), "gunst_annahme", 5.0))  # ganze Zahl aus der Datei
+
+
+def ereignis_gunst_ablehnung(einst=None) -> int:
+    """Gunstwirkung einer Ablehnung ODER eines Ablaufs (Vorgabe -5)."""
+    return int(_block_zahl(_ereignisse_block(einst), "gunst_ablehnung", -5.0))  # Zahl aus der Datei
+
+
+def _ort_lager(ort, name) -> dict:
+    """Liest ein Lager eines Ortes (`vorraete` oder `waren`) - Objekt ODER dict, nie None.
+
+    Ohne dieses Lesen muesste jede Buchstelle selbst zwischen Settlement-Objekt und dict
+    unterscheiden; genau daraus entstehen zwei Wahrheiten ueber denselben Bestand.
+    """
+    if isinstance(ort, dict):  # dict-Form (Pruefungen, Kern)
+        lager = ort.get(name)  # Lager aus dem dict holen
+    else:  # Settlement-Objekt des Spiels
+        lager = getattr(ort, name, None)  # Lager als Feld lesen
+    return lager if isinstance(lager, dict) else {}  # nur ein dict ist brauchbar
+
+
+def _lager_setzen(ort, name, bestand) -> None:
+    """Schreibt ein Lager zurueck - in ein Objekt oder ein dict; ohne Ziel passiert nichts."""
+    if isinstance(ort, dict):  # dict-Form
+        ort[name] = dict(bestand)  # Lager als Schluessel setzen
+    elif ort is not None:  # Settlement-Objekt
+        setattr(ort, name, dict(bestand))  # Lager als Feld setzen
+
+
+def _rohstoff_name(kennung) -> str:
+    """Anzeigename eines Rohstoffs aus `data/resources.json`; ohne Eintrag die Kennung selbst."""
+    for eintrag in (spieldaten.rohstoffe() or []):  # die EINE Lesestelle der neun Rohstoffe
+        if str(eintrag.get("id")) == str(kennung):  # passende Kennung gefunden
+            return str(eintrag.get("name") or kennung)  # Anzeigename zurueckgeben
+    return str(kennung)  # sonst die Kennung selbst - nichts erfinden
+
+
+def _zahl_lesbar(menge) -> str:
+    """Eine Menge lesbar machen: 990.0 -> "990", 1.5 -> "1.5" (keine erfundene Rundung)."""
+    zahl = float(_zahl(menge, 0.0))  # Zahl werden lassen (Unbrauchbares wird 0)
+    if zahl.is_integer():  # ganze Menge
+        return str(int(zahl))  # ohne Nachkommastellen
+    return ("%.2f" % zahl).rstrip("0").rstrip(".")  # sonst hoechstens zwei Stellen, ohne Nullen
+
+
+def gold_tagesertrag(ort, einst=None) -> float:
+    """Der Goldertrag eines Ortes an EINEM Spieltag (Stundenertrag x Zeitraum aus der Datei).
+
+    Der Ertrag kommt aus `wirtschaft.siedlung_ertrag` - derselben Funktion, die Dorfuebersicht und
+    Kopfzeile lesen. Kein zweiter Rechenweg fuer denselben Ertrag (Befund G-3: die Zahl muss
+    nachrechenbar bleiben).
+    """
+    stunden = _block_zahl(_ereignisse_block(einst), "ertrag_zeitraum_stunden", 24.0)  # Zeitraum
+    ertrag = wirtschaft.siedlung_ertrag(ort) if ort is not None else {}  # Stundenertrag des Ortes
+    return float(_zahl((ertrag or {}).get("gold"), 0.0)) * stunden  # Gold je Stunde mal Zeitraum
+
+
+def _menge(wert, tagesertrag) -> float:
+    """Loest einen Betrag aus der Datei auf: feste Zahl ODER Anteil vom Tagesertrag.
+
+    Eingabe: Zahl oder dict {"anteil_vom_ertrag": 0.1, "mindest": 1}.
+    Ausgabe: Menge als float. Ein Anteil wird ABGERUNDET (V-4: 128 Gold am Tag ergeben 12, nicht
+    13) und danach auf `mindest` angehoben - so steht es in der Quelle.
+    """
+    if isinstance(wert, dict):  # Anteil statt fester Zahl
+        anteil = _zahl(wert.get("anteil_vom_ertrag"), 0.0)  # Anteil des Tagesertrags
+        mindest = _zahl(wert.get("mindest"), 0.0)  # Untergrenze aus der Datei
+        return max(mindest, float(int(anteil * float(tagesertrag))))  # abrunden, dann anheben
+    return float(_zahl(wert, 0.0))  # feste Menge aus der Datei
+
+
+def ereignis_preis(art, ort=None, einst=None) -> list:
+    """Die moeglichen Zahlungen einer Ereignisart, aufgeloest fuer DIESEN Ort.
+
+    Eingabe: Art, Ort (Settlement-Objekt oder dict) und optionale Daten.
+    Ausgabe: Liste von Zahlungen; jede ist ein dict {"rohstoffe": {...}, "waren": {...}}.
+    Das ist die EINE Preisfunktion - Anzeige und Buchung fragen BEIDE hier (Muster F-04).
+    """
+    angaben = ereignis_daten(art, einst)  # Angaben dieser Art
+    tagesertrag = gold_tagesertrag(ort, einst)  # Gold-Tagesertrag des zahlenden Ortes
+    ergebnis = []  # die aufgeloesten Zahlungswege
+    for eintrag in (angaben.get("zahlungen") or []):  # jeden angebotenen Weg einmal
+        if not isinstance(eintrag, dict):  # unbrauchbarer Eintrag
+            continue  # dann ueberspringen statt raten
+        zahlung = {"rohstoffe": {}, "waren": {}}  # eine Zahlung kann beide Lager treffen
+        for lager in ("rohstoffe", "waren"):  # beide Lager durchgehen
+            betraege = eintrag.get(lager)  # Betraege dieses Lagers
+            if not isinstance(betraege, dict):  # nichts in diesem Lager
+                continue  # dann weiter mit dem anderen Lager
+            for kennung, wert in betraege.items():  # jede Position einzeln
+                zahlung[lager][str(kennung)] = _menge(wert, tagesertrag)  # Betrag aufloesen
+        if zahlung["rohstoffe"] or zahlung["waren"]:  # nur eine ECHTE Zahlung aufnehmen
+            ergebnis.append(zahlung)  # Weg an die Liste
+    return ergebnis  # alle Wege, die die Datei anbietet
+
+
+def ereignis_gegenleistung(art, einst=None) -> dict:
+    """Was der Spieler bei einer Annahme bekommt (dict mit "rohstoffe"/"waren"; leer = nichts)."""
+    roh = ereignis_daten(art, einst).get("gegenleistung")  # Angaben der Gegenleistung
+    ergebnis = {"rohstoffe": {}, "waren": {}}  # beide Lager, damit keine Stelle raten muss
+    if not isinstance(roh, dict):  # keine Gegenleistung vereinbart
+        return ergebnis  # dann bleibt beides leer
+    for lager in ("rohstoffe", "waren"):  # beide Lager durchgehen
+        betraege = roh.get(lager)  # Betraege dieses Lagers
+        if isinstance(betraege, dict):  # brauchbare Angaben
+            ergebnis[lager] = {str(k): float(_zahl(v, 0.0)) for k, v in betraege.items()}  # fest
+    return ergebnis  # die Gegenleistung in beiden Lagern
+
+
+def ereignis_weg_text(art, index, ort=None, einst=None) -> str:
+    """Der Text EINES Zahlungswegs, z. B. "990 Holz" oder "5 Messer" ("" wenn es ihn nicht gibt).
+
+    Zahlen kommen aus `_zahl_lesbar`, Rohstoffnamen aus `data/resources.json`, Warennamen sind die
+    Kennungen aus `data/items.json`. Kein Spieltext im Code.
+    """
+    block = _ereignisse_block(einst)  # fuer den Positions-Trenner
+    trenner_pos = str(block.get("trenner_position") or " + ")  # Trenner zwischen zwei Positionen
+    optionen = ereignis_preis(art, ort, einst)  # alle Wege, EINE Rechenstelle
+    if not isinstance(index, int) or isinstance(index, bool):  # kein brauchbarer Index
+        return ""  # dann kein Text
+    if index < 0 or index >= len(optionen):  # Weg gibt es nicht
+        return ""  # dann kein Text
+    zahlung = optionen[index]  # der gewuenschte Weg
+    stuecke = []  # je Position ein Stueck
+    for kennung, menge in list(zahlung["rohstoffe"].items()):  # Rohstoffe zuerst
+        stuecke.append("%s %s" % (_zahl_lesbar(menge), _rohstoff_name(kennung)))  # "990 Holz"
+    for kennung, menge in list(zahlung["waren"].items()):  # dann die Werkstattwaren
+        stuecke.append("%s %s" % (_zahl_lesbar(menge), str(kennung)))  # "5 Messer"
+    return trenner_pos.join(stuecke)  # Positionen dieses Weges verbinden
+
+
+def ereignis_preis_text(art, ort=None, einst=None) -> str:
+    """Die Zahlungen als lesbarer Satz, z. B. "990 Holz oder 64 Gold".
+
+    Der Trenner zwischen zwei Wegen kommt aus der Datendatei ("trenner") - kein Anzeigetext im
+    Code. Die einzelnen Wege baut `ereignis_weg_text` (dieselbe Zeichenregel wie die Knoepfe).
+    """
+    trenner = str(_ereignisse_block(einst).get("trenner") or " / ")  # Trenner zwischen zwei Wegen
+    anzahl = len(ereignis_preis(art, ort, einst))  # wie viele Wege die Datei anbietet
+    teile = []  # je Weg ein Teil
+    for index in range(anzahl):  # jeden Weg einmal
+        stueck = ereignis_weg_text(art, index, ort, einst)  # Text dieses Weges
+        if stueck:  # nur einen echten Weg zeigen
+            teile.append(stueck)  # Weg an die Liste
+    return trenner.join(teile)  # die Wege mit dem Trenner verbinden
+
+
+def _bezahlbar(zahlung, ort) -> bool:
+    """Sind ALLE Positionen einer Zahlung am Ort vorhanden (beide Lager, atomar geprueft)?"""
+    for lager in ("rohstoffe", "waren"):  # beide Lager durchgehen
+        feld = "vorraete" if lager == "rohstoffe" else "waren"  # Feldname am Ort
+        bestand = _ort_lager(ort, feld)  # Lager des Ortes lesen
+        for kennung, menge in (zahlung.get(lager) or {}).items():  # jede Position einzeln
+            if float(_zahl(bestand.get(kennung), 0.0)) < float(menge):  # zu wenig am Ort
+                return False  # dann ist die Zahlung nicht moeglich
+    return True  # alle Positionen sind gedeckt
+
+
+def ereignis_finden(daten, kennung) -> dict:
+    """Das Ereignis mit dieser Kennung - {} wenn es keines gibt (kein Absturz)."""
+    for eintrag in (daten or []):  # die offene Liste durchgehen
+        if isinstance(eintrag, dict) and str(eintrag.get("id")) == str(kennung):  # Kennung passt
+            return eintrag  # gefunden
+    return {}  # keines mit dieser Kennung
+
+
+def ereignis_offen_fuer(daten, bot_name, einst=None) -> dict:
+    """Das offene Ereignis EINES Bots - {} wenn keines laeuft (hoechstens EINES je Bot)."""
+    for eintrag in (daten or []):  # die offene Liste durchgehen
+        if isinstance(eintrag, dict) and str(eintrag.get("bot")) == str(bot_name):  # dieser Bot
+            return eintrag  # das erste offene Ereignis dieses Bots
+    return {}  # nichts offen
+
+
+def ereignis_erzeugen(daten, bot, art, jetzt, einst=None) -> dict:
+    """Legt EIN Ereignis fuer EINEN Bot an. Rueckgabe: der Eintrag oder {} (nichts angelegt).
+
+    Geprueft wird in dieser Reihenfolge: Schalter, bekannte Art, kein zweites offenes Ereignis,
+    Haeufigkeit (Abstand seit dem letzten Ereignis dieses Bots). Fehlt eine Bedingung, wird NICHTS
+    angelegt - der Aufrufer meldet nur, was wirklich entstanden ist.
+    """
+    leer = {}  # der ruhige Fall
+    if not ereignisse_aktiv(einst):  # Schalter aus
+        return leer  # dann kein Ereignis
+    if not isinstance(daten, list) or not isinstance(bot, dict):  # ohne Liste und Bot kein Ereignis
+        return leer  # dann nichts anlegen
+    art = str(art)  # Art als Text
+    if not ereignis_daten(art, einst):  # Art steht nicht in der Datei
+        return leer  # dann nichts erfinden
+    name = str(bot.get("name") or "")  # Name des Bots
+    if not name:  # ohne Namen laesst sich das Ereignis nicht zuordnen
+        return leer  # dann kein Ereignis
+    if ereignis_offen_fuer(daten, name, einst):  # schon eines offen
+        return leer  # dann kein zweites
+    ged = _gedaechtnis(bot)  # Gedaechtnis des Bots (legt es bei Bedarf an)
+    letzte = _zahl(ged.get("ereignis_seit"), 0.0)  # Spielzeit des letzten Ereignisses (0 = keins)
+    if float(jetzt) - letzte < ereignis_haeufigkeit(einst):  # Abstand noch nicht erreicht
+        return leer  # dann erst nach der Haeufigkeitsfrist (auch das ERSTE wartet sie ab)
+    eintrag = {"id": "%s-%d-%d" % (art, int(float(jetzt)), len(daten)),  # eindeutige Kennung
+               "art": art, "bot": name,  # Art und Besitzer
+               "erzeugt": float(jetzt),  # Spielzeit der Entstehung
+               "frist": float(jetzt) + ereignis_frist(einst)}  # Spielzeit des Ablaufs
+    daten.append(eintrag)  # EIN Speicher: die Liste im Spielstand
+    ged["ereignis_seit"] = float(jetzt)  # Haeufigkeit ab jetzt rechnen
+    return eintrag  # der neue Eintrag
+
+
+def _zahlung_waehlen(optionen, ort, zahlung) -> int:
+    """Waehlt den Zahlungsweg: den verlangten (Index oder dict) oder den ERSTEN bezahlbaren.
+
+    Ausgabe: Index in `optionen`; -1, wenn es keinen Weg gibt. Ohne Wunsch wird der erste
+    bezahlbare genommen (der Spieler waehlt in der Anzeige, das Kern-Urteil bleibt dasselbe).
+    """
+    if not optionen:  # keine Zahlungswege
+        return -1  # dann nichts zu waehlen
+    if isinstance(zahlung, bool):  # ein Wahrheitswert ist kein Index
+        zahlung = None  # dann wie "kein Wunsch" behandeln
+    if isinstance(zahlung, int) and 0 <= zahlung < len(optionen):  # Index aus der Anzeige
+        return zahlung  # genau dieser Weg
+    if isinstance(zahlung, dict):  # ein Weg als dict
+        for i, option in enumerate(optionen):  # die Wege vergleichen
+            if option == zahlung:  # identischer Weg
+                return i  # gefunden
+        return -1  # so einen Weg gibt es nicht
+    for i, option in enumerate(optionen):  # ohne Wunsch: der erste bezahlbare Weg
+        if _bezahlbar(option, ort):  # dieser Weg ist gedeckt
+            return i  # dann diesen nehmen
+    return 0  # nichts gedeckt: der erste Weg wird versucht (die Buchung sagt dann ehrlich ab)
+
+
+def ereignis_annehmen(daten, ort, kennung, bot, jetzt=None, zahlung=None, einst=None):
+    """Nimmt ein Ereignis an und bucht ATOMAR am Ort. Rueckgabe: (ok, grund).
+
+    Reihenfolge: Schalter, Ereignis vorhanden, nicht abgelaufen, Zahlungsweg, Bestand am ORT.
+    Fehlt etwas, wird NICHTS gebucht und das Ereignis bleibt offen (keine Teilbuchung).
+    Bei Erfolg: Zahlung abziehen, Gegenleistung gutschreiben, Ereignis entfernen, Gunst +5 und
+    Kontakt buchen (Daniel 13:50: Kontakt = jede Interaktion).
+    """
+    if not ereignisse_aktiv(einst):  # Schalter aus
+        return False, "ereignisse_aus"  # dann keine Annahme
+    eintrag = ereignis_finden(daten, kennung)  # Ereignis suchen
+    if not eintrag:  # gibt es nicht (mehr)
+        return False, "unbekannt"  # dann ablehnen
+    if jetzt is not None and float(jetzt) >= float(_zahl(eintrag.get("frist"), 0.0)):  # Frist um
+        return False, "abgelaufen"  # dann nicht mehr annehmen
+    if ort is None:  # ohne Ort gibt es kein Lager
+        return False, "kein_ort"  # dann nicht buchen
+    art = str(eintrag.get("art") or "")  # Art des Ereignisses
+    optionen = ereignis_preis(art, ort, einst)  # die EINE Preisfunktion
+    index = _zahlung_waehlen(optionen, ort, zahlung)  # Weg waehlen
+    if index < 0:  # kein Weg vorhanden
+        return False, "kein_preis"  # dann nicht buchen
+    gewaehlt = optionen[index]  # der gewaehlte Weg
+    if not _bezahlbar(gewaehlt, ort):  # Bestand am Ort reicht nicht
+        return False, "bestand_fehlt"  # dann NICHTS buchen (atomar)
+    gegen = ereignis_gegenleistung(art, einst)  # was zurueckkommt
+    neu = {}  # die neuen Lager, erst rechnen, dann einsetzen
+    for lager, feld in (("rohstoffe", "vorraete"), ("waren", "waren")):  # beide Lager
+        bestand = dict(_ort_lager(ort, feld))  # Kopie des Lagers
+        for kennung_x, menge in (gewaehlt.get(lager) or {}).items():  # die Zahlung abbuchen
+            bestand[kennung_x] = float(_zahl(bestand.get(kennung_x), 0.0)) - float(menge)  # minus
+        for kennung_x, menge in (gegen.get(lager) or {}).items():  # die Gegenleistung gutschreiben
+            bestand[kennung_x] = float(_zahl(bestand.get(kennung_x), 0.0)) + float(menge)  # plus
+        neu[feld] = bestand  # neues Lager merken
+    _lager_setzen(ort, "vorraete", neu["vorraete"])  # Rohstofflager einsetzen
+    _lager_setzen(ort, "waren", neu["waren"])  # Warenlager einsetzen
+    daten.remove(eintrag)  # Ereignis ist erledigt
+    gunst_aendern(bot, ereignis_gunst_annahme(einst), "ereignis_annahme", einst)  # Gunst +5
+    kontakt_buchen(bot, float(jetzt) if jetzt is not None else 0.0, einst)  # Interaktion zaehlt
+    return True, "angenommen"  # gebucht
+
+
+def ereignis_ablehnen(daten, kennung, bot, jetzt=None, einst=None):
+    """Lehnt ein Ereignis ab: Gunst -5, Ereignis weg, Kontakt gebucht. Rueckgabe: (ok, grund)."""
+    if not ereignisse_aktiv(einst):  # Schalter aus
+        return False, "ereignisse_aus"  # dann nichts tun
+    eintrag = ereignis_finden(daten, kennung)  # Ereignis suchen
+    if not eintrag:  # gibt es nicht (mehr)
+        return False, "unbekannt"  # dann ablehnen
+    daten.remove(eintrag)  # Ereignis ist erledigt
+    gunst_aendern(bot, ereignis_gunst_ablehnung(einst), "ereignis_ablehnung", einst)  # Gunst -5
+    kontakt_buchen(bot, float(jetzt) if jetzt is not None else 0.0, einst)  # Interaktion zaehlt
+    return True, "abgelehnt"  # gebucht
+
+
+def ereignisse_tick(daten, jetzt, bots=None, einst=None) -> list:
+    """Laesst abgelaufene Ereignisse verfallen (Frist um, Gunst -5). Rueckgabe: die Vorgaenge.
+
+    Eingabe: die Ereignisliste des Spielstands, die Spielzeit, optional die Bot-dicts (dann wird
+    die Gunst HIER gebucht) und optionale Daten.
+    Ausgabe: Liste [{"id", "art", "bot", "gunst_delta"}]; leer, wenn nichts abgelaufen ist.
+    Ein abgelaufenes Ereignis kann nicht mehr angenommen werden - es verschwindet in diesem Tick.
+    """
+    vorgaenge = []  # was dieser Tick verfallen laesst
+    if not ereignisse_aktiv(einst):  # Schalter aus
+        return vorgaenge  # dann verfaellt nichts
+    grenze = ereignis_gunst_ablehnung(einst)  # Ablauf kostet dasselbe wie eine Ablehnung
+    tabelle = {str(b.get("name")): b for b in (bots or []) if isinstance(b, dict)}  # Bot-Nachschlag
+    for eintrag in list(daten or []):  # jedes offene Ereignis ansehen
+        if not isinstance(eintrag, dict):  # unbrauchbarer Eintrag
+            continue  # dann ueberspringen
+        if float(jetzt) < float(_zahl(eintrag.get("frist"), 0.0)):  # Frist noch nicht um
+            continue  # dann bleibt es offen
+        daten.remove(eintrag)  # Ereignis verfaellt
+        bot = tabelle.get(str(eintrag.get("bot")))  # der Bot dazu
+        if bot is not None:  # Bot bekannt
+            gunst_aendern(bot, grenze, "ereignis_ablauf", einst)  # Gunst -5 buchen
+        vorgaenge.append({"id": str(eintrag.get("id")),  # Kennung des Ereignisses
+                          "art": str(eintrag.get("art")),  # Art
+                          "bot": str(eintrag.get("bot")),  # Bot
+                          "gunst_delta": grenze})  # was er kostet
+    return vorgaenge  # die Verfaelle dieses Ticks
