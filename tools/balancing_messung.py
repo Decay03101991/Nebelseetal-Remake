@@ -197,6 +197,35 @@ def kampf_probe(angreifer, verteidiger, wall, zustand, vorraete, laeufe=40):
     return vorrunden, siege, verluste, beute, laeufe
 
 
+def kennzahlen_bezug():
+    """Die JUNGSTE gemessene Partie aus `docs/balancing/kennzahlen.jsonl` - oder None.
+
+    Warum hier: diese Messung rechnet aus den Daten (Ertraege, Kosten, Schlachten), nicht aus
+    einer gespielten Partie. Damit ihre Zahlen nicht neben einer unbekannten Wirklichkeit
+    stehen, nennt sie die letzte gemessene Partie und WARNT, wenn deren `daten_hash` nicht
+    mehr zu den heutigen Datendateien passt (dann ist das Blatt veraltet). Es wird NICHTS
+    nachgerechnet - die Zeile ist die EINE Quelle (Ablauf Schritt 2).
+    """
+    pfad = os.path.join(ROOT, "docs", "balancing", "kennzahlen.jsonl")
+    if not os.path.isfile(pfad):
+        return None                                     # noch keine Partie gemessen
+    letzte = None
+    with open(pfad, encoding="utf-8") as f:
+        for zeile in f:
+            zeile = zeile.strip()
+            if zeile:
+                letzte = json.loads(zeile)              # die LETZTE Zeile ist die juengste
+    if letzte is None:
+        return None
+    try:
+        sys.path.insert(0, os.path.join(ROOT, "tools"))
+        import spieltest_simulation as SIM               # EINE Hash-Implementierung
+        letzte["_hash_aktuell"] = (letzte.get("daten_hash") == SIM.daten_hash())
+    except Exception:                                   # noqa: BLE001 - Bezug ist eine Zugabe
+        letzte["_hash_aktuell"] = None
+    return letzte
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--tage", default="7,30,90,180")
@@ -210,6 +239,36 @@ def main():
     karawane = name_von("Handelskarawane")
     print("# Balancing-Messung — Nebelseetal Remake (Spieluhr-Faktor %s)"
           % SPIELZEIT.get("faktor"))
+
+    # 0 --------------------------------------------------------------- Bezug
+    # Die Kennzahlen sind eine ZUGABE: fehlt das Blatt, laeuft die Messung unveraendert.
+    bezug = kennzahlen_bezug()
+    if bezug:
+        sw = bezug.get("startwert") or {}               # Saat, Stil, Laenge der Partie
+        st = bezug.get("stand") or {}
+        print("\n## 0. Bezug: die juengste gemessene Partie (docs/balancing/kennzahlen.jsonl)")
+        print("\n| Groesse | Wert |")
+        print("|---|---|")
+        print("| Startwert | Saat %s, Stil %s, %s Spieltage |"
+              % (sw.get("saat"), sw.get("stil"), sw.get("tage")))
+        print("| Stand | %s%s |" % (st.get("kopf") or "?",
+                                     "" if st.get("sauber") is not False else " (Arbeitsbaum schmutzig)"))
+        print("| Haus / Bibliothek / Ware / Krieger / Gefecht | %s / %s / %s / %s / %s |"
+              % tuple("-" if bezug.get(k) is None else bezug.get(k) for k in
+                      ("tag_erstes_haus", "tag_erste_bibliothek", "tag_erste_ware",
+                       "tag_erster_krieger", "tag_erstes_gefecht")))
+        print("| Ruhm-Stufe / Leerlauf | %s / %s s |"
+              % (bezug.get("ruhm_stufe"), bezug.get("leerlauf_sek")))
+        print("| Handelspunkte | %s |"
+              % ("nicht gemessen (kein Zaehler, G-8)" if bezug.get("handelspunkte") is None
+                 else bezug.get("handelspunkte")))
+        print("| groesste Luecke ohne Meilenstein | %s Spieltage |"
+              % bezug.get("abstand_meilensteine_max"))
+        if bezug.get("_hash_aktuell") is False:
+            print("\n**WARNUNG: das Kennzahlenblatt ist aelter als die Datendateien** "
+                  "(daten_hash stimmt nicht). Neue Partie messen mit "
+                  "`python -X utf8 tools/spieltest_simulation.py --tage 12 --kennzahlen`, "
+                  "sonst stehen diese Zahlen neben einem anderen Datenstand.")
 
     # 1 ------------------------------------------------------------------- Karte
     stat, n_karten = feld_statistik()

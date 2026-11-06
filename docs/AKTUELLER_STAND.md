@@ -1,3 +1,49 @@
+# STAND 06.11.2026, 12:06 - Ablauf Schritt 2 gebaut: Kennzahlenblatt (Register 280)
+
+> Neuester Block. Register 280. Darunter 267 bis 279 (Abgleich, fixer Ablauf, S4 Teil 1 Gunst,
+> Entscheidungen F-1 bis F-8), 264 (LLM-Antworten, Ziel), 263 (V_0.0.3), 262 (Sammellauf).
+
+**Neu (Ablauf Schritt 2):** Jede Partie hinterlaesst jetzt eine Zeile, gegen die jede weitere
+Aenderung messbar ist. `tools/spieltest_simulation.py --kennzahlen` schreibt 16 Pflichtschluessel
+nach `docs/balancing/kennzahlen.jsonl` (eine Zeile je Partie, angehaengt, nichts ueberschrieben) und
+die lesbare Tabelle `docs/balancing/KENNZAHLEN_<datum>.md`; die Rechenwege je Schluessel stehen in
+`docs/balancing/README_KENNZAHLEN.md`. **`null` heisst nicht 0** - ein nie erreichter Meilenstein
+bleibt `null`, und `handelspunkte` ist `null`, solange der Zaehler fehlt (Befund G-8, Schritt 6).
+Meilensteine werden aus dem ZUSTAND gelesen (Haus steht, Ware liegt im Lager, Einheit im Heer),
+nicht aus dem Auftrag - sonst misst man einen Wunsch.
+
+**Determinismus ist hergestellt:** der Lauf bildet EINEN `random.Random(saat)` und gibt ihn an
+jedes Gefecht weiter (`spielschicht.angriff(..., rng=)`). Vorher zog `kampf.fuehre_schlacht` je
+Gefecht ein neues `random.Random()` - derselbe Startwert ergab andere Zahlen, und eine Vorher-Zahl
+waere nichts wert gewesen. Gemessen: zwei Laeufe ueber 12 Spieltage sind Zeichen fuer Zeichen gleich
+(2.596 Zeichen, Zeile 2.628 Byte).
+
+**Erste Vorher-Zahl** (Saat 7, Stil breit, 12 Spieltage): erstes Haus **T2,486**, erste Bibliothek
+**T0,042**, erste Ware **T7,833**, erster Krieger **T1,167**, erstes Gefecht **T2,0**, Ruhm **2**,
+Beute **190** Rohstoffe in 6 Gefechten, eigene Verluste **0**, **Leerlauf 956.400 s von 1.036.800 s
+(92 % der Partie ohne eine einzige erfolgreiche Aktion)**, laengste Strecke ohne neuen Meilenstein
+**5,347 Spieltage**. Der Leerlauf ist die eigentliche Zahl dieser Messung: die Spielerpolitik steht
+die meiste Zeit still ("alle Gebaeude der Kette stehen (je 2)", Ausbau zu teuer, Kurzschwert braucht
+Waffentechnik 3). Das ist ein Befund ueber den AUTOMATEN, kein Spielfehler - und die Vorher-Zahl,
+gegen die Schritt 8 (Sollkurve) und Schritt 9 (Regelkreis) antreten.
+
+**Wache:** `tests/test_kennzahlenblatt.py` **21/0/0** (Pflichtschluessel vollstaendig, zwei Laeufe
+identisch, `null` gegen `0`, `daten_hash` folgt dem Datenstand, Schreiben ausschliesslich unter
+`docs/balancing/` - `data/` und `src/` bleiben Byte fuer Byte unberuehrt, halbe Zeile wird
+abgelehnt). `tools/balancing_messung.py` nennt als Abschnitt 0 die juengste gemessene Partie und
+warnt, wenn ihr `daten_hash` nicht mehr zu `data/` passt; es rechnet nichts nach.
+
+**Naechster Schritt:** Ablauf Schritt 3 (S4-3 Vertraege: NAP sperrt Bot-Angriff UND Diebstahl an den
+ZWEI echten Gates `main.py:7051` und `:6624` ueber `diplomatie.angriff_gesperrt`, Handelsabkommen
+ueber den vorhandenen `spieloekonomie.handel_start`, Durchmarsch als reine Anzeige), dann 4
+(Rachetopf, Schwelle 99 SK, nach Bot-Sieg 0 = F-3), 5 (Ereignisse, Grom 5 Messer gegen 20 Erz =
+`metall` = F-1), 6 (Handelspunkte: Erloes aus `handel_abschluss` auf `handels_erloes` buchen, damit
+das Kennzahlenblatt `handelspunkte` nicht mehr `null` zeigt). Je Schnitt Register, Protokollzeile,
+Stand-Block, Commit und voller Sammellauf (`--parallel` zuerst messen, Grenze vorlaeufig 1.800 s =
+F-2). Kein Release vor S4 komplett (F-9), KI-Auftrag Runde 2 erst nach S4 (F-8).
+
+---
+
 # STAND 06.11.2026, 11:10 - Abgleich und fixer Ablauf stehen, S4 Teil 1 Gunst gebaut (Register 267 bis 274)
 
 > Neuester Block. Register 267 bis 274. Darunter 264 (LLM-Antworten, Ziel), 263 (V_0.0.3),

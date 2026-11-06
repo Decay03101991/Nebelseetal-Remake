@@ -21,9 +21,12 @@ from __future__ import annotations
 
 import argparse
 import datetime
+import hashlib
 import json
 import os
+import random
 import re
+import subprocess
 import sys
 
 HIER = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -32,6 +35,7 @@ sys.path.insert(0, os.path.join(HIER, "src"))
 import spielschicht as S            # noqa: E402
 import einheiten as E               # noqa: E402
 import gelaende as GE              # noqa: E402
+import postfach as PF              # noqa: E402  (Ruhm-Stufen: EINE Lesestelle, kein zweiter Leser)
 
 SPIELTAG = 86400                    # Spielsekunden je Tag (Handbuch: 1 Tag = 24 Spielstunden)
 SCHRITT = 1200                      # 20 Spielminuten je Schritt
@@ -172,6 +176,47 @@ def _ware_in_arbeit(zustand: dict, ware: str) -> bool:
     return False
 
 
+def _meilensteine_aus_zustand(log: dict, zustand: dict, jetzt: float) -> None:
+    """Ersten Zeitpunkt je Meilenstein aus dem ZUSTAND lesen - nicht aus dem Aktionsprotokoll.
+
+    Der Zustand ist die Wahrheit: ein Gebaeude steht dort, sobald es gebaut ist, eine Ware
+    liegt dort, sobald sie FERTIG ist. Wer stattdessen den Auftrag zaehlt, misst einen Wunsch
+    und nicht ein Ergebnis (die Ware wird erst nach ihrer Fertigungsdauer geliefert).
+    Einmal gesetzt, bleibt der Wert stehen (`setdefault`) - der ERSTE Zeitpunkt zaehlt.
+    """
+    tag = round(float(jetzt) / SPIELTAG, 3)
+    ist = log["meilensteine"]
+    siedlung = (zustand.get("siedlungen") or [{}])[0]
+    bauten = {str(v) for v in (siedlung.get("bauten") or {}).values()}
+    haus, bibliothek = GE.finde_gebaeude("haus"), GE.finde_gebaeude("bibliothek")
+    if haus and haus in bauten:                     # erstes Haus der Siedlung
+        ist.setdefault("tag_erstes_haus", tag)
+    if bibliothek and bibliothek in bauten:         # erste Bibliothek (Voraussetzung Forschung)
+        ist.setdefault("tag_erste_bibliothek", tag)
+    if any(int(v or 0) > 0 for v in (zustand.get("waren") or {}).values()):
+        ist.setdefault("tag_erste_ware", tag)       # erste WARE IM LAGER, nicht im Auftrag
+    if any(int(v or 0) > 0 and E.rolle(n) in ("kaempfer", "kundschafter")
+           for n, v in (zustand.get("einheiten") or {}).items()):
+        ist.setdefault("tag_erster_krieger", tag)   # erste Kampfeinheit im Heer
+
+
+def _handelspunkte(zustand: dict, jetzt: float):
+    """Handelspunkte der Partie - oder `None`, solange es keinen Zaehler gibt.
+
+    Befund G-8: `gold_erloes` wird im Spiel nirgends geschrieben, die Kennzahl hat also keine
+    Quelle. Schritt 6 des Ablaufs baut den Zaehler `handels_erloes` ein; hier wird er dann
+    ohne Aenderung gelesen. Bis dahin steht `null` im Blatt - eine 0 waere eine Behauptung.
+    """
+    if "handels_erloes" not in (zustand or {}):
+        return None                                 # Zaehler existiert noch nicht: NICHT GEMESSEN
+    try:
+        import punkte as P                          # dieselbe Rechenstelle wie die Anzeige
+        return float(P.handelspunkte(zustand.get("handels_erloes"),
+                                     zustand.get("letzter_handel"), jetzt))
+    except Exception:                               # noqa: BLE001 - eine Kennzahl bricht nie den Lauf
+        return None
+
+
 def spielen(tage: float, saat: int = 7, stil: str = "breit") -> dict:
     # Stil bestimmt Baukette, Ausbildungsziele und Angriffstakt - derselbe Lauf, anderes Verhalten.
     stil_daten = STILE.get(stil) or STILE["breit"]
@@ -181,10 +226,16 @@ def spielen(tage: float, saat: int = 7, stil: str = "breit") -> dict:
     angriff_abstand = float(stil_daten["angriff_abstand"])   # Spieltage zwischen zwei Gefechten
     zustand = S.neuer_zustand(saat)
     jetzt = 0.0
+    # Fester Zufall fuer den GANZEN Lauf (Schritt 2 des Ablaufs): ohne ihn wuerfelt jedes
+    # Gefecht neu und zwei Laeufe mit demselben Startwert sind nicht vergleichbar - dann ist
+    # keine Vorher-Zahl etwas wert. `S.angriff` nimmt den Generator als `rng` entgegen.
+    zufall = random.Random(saat)
+    random.seed(saat)                               # auch globale Zufallswege festlegen
     # Daniel 05.11.2026: ein gescheiterter Schritt beendet den Lauf NICHT. Jede Stelle, an der
     # etwas uebersprungen werden musste, landet mit Tag, Stelle und Grund in `uebersprungen`.
     log = {"schritte": [], "ereignisse": [], "bauten": [], "forschungen": [],
            "ausbildung": [], "kaempfe": [], "uebersprungen": [], "fehlschlaege": {},
+           "meilensteine": {}, "ausgaben": {}, "leerlauf_schritte": 0,
            "_letzter_tag": -1, "_tick_fehler_folge": 0}
     ziel_tag = tage * SPIELTAG
     angegriffen = False
@@ -215,6 +266,12 @@ def spielen(tage: float, saat: int = 7, stil: str = "breit") -> dict:
                 break                               # Ende der Schleife, Bericht folgt trotzdem
             continue                                # sonst: naechster Schritt
 
+        # Kennzahlen (Ablauf Schritt 2): Stand der Reichskasse VOR den Aktionen dieses Schritts.
+        # Der Takt hat eben produziert; was danach abgeht, ist eine Ausgabe - damit braucht das
+        # Kennzahlenblatt keine zweite Buchfuehrung und keine geratenen Preise.
+        _kasse_vor_aktionen = dict(zustand.get("ressourcen") or {})
+        erfolg = False                              # hat dieser Schritt etwas bewirkt?
+
         # Bauen (hoechstens ein Versuch je Schritt), sonst ausbauen.
         siedlung = (zustand.get("siedlungen") or [{}])[0]
         feld = _freies_feld(siedlung)
@@ -242,6 +299,7 @@ def spielen(tage: float, saat: int = 7, stil: str = "breit") -> dict:
                                                   f"{GE.gebaeude_name(kennung_erz)} "
                                                   f"(Engpass {engpass})"))
                             gebaut = True
+                            erfolg = True               # dieser Schritt hat gebaut
                             engpass = None
             for gebaeude in kette:
                 if gebaut:                          # Engpass-Bau hat schon gegriffen
@@ -260,6 +318,7 @@ def spielen(tage: float, saat: int = 7, stil: str = "breit") -> dict:
                 if ok:
                     log["bauten"].append((round(jetzt / SPIELTAG, 2), gebaeude))
                     gebaut = True
+                    erfolg = True                   # dieser Schritt hat gebaut
                     break
                 if "höchstens" in str(text):
                     gesperrt.add(gebaeude)          # Obergrenze erreicht - dauerhaft auslassen
@@ -281,6 +340,7 @@ def spielen(tage: float, saat: int = 7, stil: str = "breit") -> dict:
                 ok, text = _versuch(S.ausbauen, zustand, 0, feld_nr)
                 if ok:
                     log["bauten"].append((round(jetzt / SPIELTAG, 2), f"ausbau Feld {feld_nr}"))
+                    erfolg = True                   # dieser Schritt hat ausgebaut
                     break
                 if "kein Ausbau belegt" in str(text):
                     ohne_ausbau.add(art)
@@ -298,6 +358,7 @@ def spielen(tage: float, saat: int = 7, stil: str = "breit") -> dict:
                 ok, text = _versuch(S.forschung_starten, zustand, gebiet, jetzt)
                 if ok:
                     log["forschungen"].append((round(jetzt / SPIELTAG, 2), gebiet))
+                    erfolg = True                   # dieser Schritt hat geforscht
                     break
                 _notiere_fehler(log, "forschung", f"{gebiet}: {text}")
                 break                           # ein Forschungsversuch je Spielschritt
@@ -313,6 +374,7 @@ def spielen(tage: float, saat: int = 7, stil: str = "breit") -> dict:
             ok, text = _versuch(S.ausbilden, zustand, einheit)
             if ok:
                 log["ausbildung"].append((round(jetzt / SPIELTAG, 2), einheit))
+                erfolg = True                       # dieser Schritt hat ausgebildet
                 break                           # hoechstens EINE Ausbildung je Spielschritt
             _notiere_fehler(log, "ausbildung", f"{einheit}: {text}")
             # Fehlt die Ware, wird sie in der Werkstatt in Auftrag gegeben (der echte Spielweg
@@ -325,6 +387,7 @@ def spielen(tage: float, saat: int = 7, stil: str = "breit") -> dict:
                     ok_w, text_w = _versuch(S.ware_fertigen, zustand, 0, ware, 1, jetzt)
                     if ok_w:
                         log["ereignisse"].append(f"{jetzt / SPIELTAG:.2f} Ware in Auftrag: {ware}")
+                        erfolg = True               # dieser Schritt hat eine Ware bestellt
                     else:
                         _notiere_fehler(log, "ware", f"{ware}: {text_w}")
                     break                       # eine Ware je Einheit und Schritt
@@ -340,13 +403,22 @@ def spielen(tage: float, saat: int = 7, stil: str = "breit") -> dict:
             if krieger:
                 ziel = {"name": "Bot-Siedlung", "wall_stufe": 1, "wall_zustand_prozent": 100.0,
                         "vorraete": {"holz": 400.0, "stein": 300.0, "nahrung": 250.0}}
-                ok, ergebnis = _versuch(S.angriff, zustand, ziel, jetzt)
+                # Der feste Generator geht als `rng` mit: sonst wuerfelt der Kern bei jedem
+                # Gefecht neu und derselbe Startwert ergibt zwei verschiedene Kennzahlen.
+                ok, ergebnis = _versuch(S.angriff, zustand, ziel, jetzt, zufall)
+                _ergebnis = (ergebnis or {}).get("ergebnis") or {}
                 log["kaempfe"].append({
                     "tag": round(jetzt / SPIELTAG, 2), "ok": ok,
-                    "ausgang": (ergebnis or {}).get("ergebnis", {}).get("ausgang"),
+                    "ausgang": _ergebnis.get("ausgang"),
                     "beute": (ergebnis or {}).get("beute"),
+                    # Verluste kommen aus dem Gefechtsergebnis (EINE Quelle, kein Nachrechnen).
+                    "verluste": _ergebnis.get("verluste_angreifer") or {},
                     "vorrunde": (ergebnis or {}).get("bestanden"),
                     "truppen": dict(krieger, **karren)})
+                if ok:                                  # nur ein GEFOCHTENES Gefecht zaehlt
+                    log["meilensteine"].setdefault("tag_erstes_gefecht",
+                                                   round(jetzt / SPIELTAG, 3))
+                    erfolg = True                       # dieser Schritt hat gekaempft
                 angegriffen = True
                 letzter_angriff = jetzt / SPIELTAG     # Abstand zum naechsten Gefecht
             else:
@@ -355,6 +427,20 @@ def spielen(tage: float, saat: int = 7, stil: str = "breit") -> dict:
                 _notiere_fehler(log, "angriff",
                                 f"keine Kaempfer ({sum(krieger.values())}) / "
                                 f"keine Karren ({sum(karren.values())})")
+
+        # Kennzahlen (Ablauf Schritt 2) - Ausgaben, Leerlauf, Meilensteine ----------------
+        # Ausgaben: der Unterschied der Reichskasse zu Beginn des Schritts. Gezaehlt wird nur
+        # der ABGANG (> 0) - Beute und Ernte sind kein Negativ-Ausgang und wuerden die Summe
+        # sonst kleiner machen, als sie ist.
+        _kasse_nach_aktionen = dict(zustand.get("ressourcen") or {})
+        for rohstoff, vorher in _kasse_vor_aktionen.items():
+            abgang = float(vorher or 0) - float(_kasse_nach_aktionen.get(rohstoff, 0) or 0)
+            if abgang > 0:
+                log["ausgaben"][rohstoff] = round(
+                    float(log["ausgaben"].get(rohstoff, 0.0)) + abgang, 2)
+        if not erfolg:                              # nichts gebaut, geforscht, gelernt, gekaempft
+            log["leerlauf_schritte"] = int(log["leerlauf_schritte"]) + 1
+        _meilensteine_aus_zustand(log, zustand, jetzt)
 
         tag_rund = int(jetzt // SPIELTAG)
         if tag_rund > log["_letzter_tag"]:
@@ -383,6 +469,7 @@ def spielen(tage: float, saat: int = 7, stil: str = "breit") -> dict:
                    "ressourcen": dict(zustand.get("ressourcen") or {}),
                    "punkte": _punkte,
                    "einheiten": dict(zustand.get("einheiten") or {}),
+                   "handelspunkte": _handelspunkte(zustand, jetzt),
                    "uebersprungen": len(log["uebersprungen"])}
     return log
 
@@ -494,6 +581,239 @@ def bericht(log: dict, tage: float, stil: str = "breit") -> str:
     return "\n".join(z) + "\n"
 
 
+# ---------------------------------------------------------------------------
+# Kennzahlenblatt (Ablauf Schritt 2, 06.11.2026)
+# ---------------------------------------------------------------------------
+# Warum: ab dem Rachetopf (Schritt 4) veraendert jeder Umbau das Spielgefuehl, und ohne eine
+# Vorher-Zahl ist "besser" nur ein Gefuehl. Das Blatt ist GENAU EINE Zeile je Partie mit
+# immer denselben Pflichtschluesseln; ein nicht erreichter Meilenstein steht als `null`,
+# nicht als 0 - sonst ist "nicht erreicht" von "bei Tag 0 erreicht" nicht zu unterscheiden.
+
+KENNZAHLEN_PFLICHT = (
+    "startwert", "stand", "daten_hash",
+    "tag_erstes_haus", "tag_erste_bibliothek", "tag_erste_ware",
+    "tag_erster_krieger", "tag_erstes_gefecht", "ruhm_stufe",
+    "ausgaben", "leerlauf_sek", "fehlschlaege", "handelspunkte",
+    "beute_je_feldzug", "verluste_je_gefecht",
+    "abstand_meilensteine_max",
+)
+
+KENNZAHLEN_ORDNER = ("docs", "balancing")            # der EINE Ablageort des Blattes
+
+
+def startwert(saat: int, stil: str, tage: float) -> dict:
+    """Der Startwert ist die VOLLE Eingabe des Laufs - Saat, Stil UND Laenge.
+
+    Ohne Laenge und Stil waere "gleicher Startwert" eine halbe Wahrheit: zwei Laeufe ueber
+    6 und 12 Spieltage haben verschiedene Zahlen, obwohl die Saat gleich ist.
+    """
+    return {"saat": int(saat), "stil": str(stil), "tage": float(tage)}
+
+
+def daten_hash(wurzel: str = HIER) -> str:
+    """Ein Fingerabdruck ueber ALLE Datendateien in `data/` (Name und Inhalt, sortiert).
+
+    Damit ist belegt, ob zwei Zeilen denselben Datenstand messen: aendert sich eine Zahl in
+    `data/`, aendert sich der Hash - auch wenn niemand daran denkt, ihn zu erneuern.
+    """
+    ordner = os.path.join(wurzel, "data")           # alle Spieldaten liegen hier
+    teile = []                                      # je Datei eine Zeile "Name:Pruffsumme"
+    for name in sorted(os.listdir(ordner)):         # sortiert = gleicher Hash bei gleichem Inhalt
+        pfad = os.path.join(ordner, name)
+        if not (name.endswith(".json") and os.path.isfile(pfad)):
+            continue                                # nur Datendateien, keine Unterordner
+        with open(pfad, "rb") as f:
+            teile.append(name + ":" + hashlib.sha256(f.read()).hexdigest())
+    gesamt = hashlib.sha256("\n".join(teile).encode("utf-8")).hexdigest()
+    return "sha256:" + gesamt[:32]                  # 128 Bit reichen fuer einen Vergleich
+
+
+def _git(wurzel: str, *args: str):
+    """Ein lesender git-Aufruf - gibt None zurueck, wenn git fehlt oder meckert.
+
+    Lesend heisst: `rev-parse` und `status` aendern nichts. Fehlt git (oder ist es kein
+    Repository), bleibt der Wert `None` - das Blatt behauptet dann keinen Stand.
+    """
+    try:
+        aus = subprocess.run(["git", "-C", wurzel, *args], capture_output=True,
+                             text=True, timeout=30)
+        return aus.stdout.strip() if aus.returncode == 0 else None
+    except Exception:                               # noqa: BLE001 - ohne git bleibt der Stand leer
+        return None
+
+
+def stand(wurzel: str = HIER) -> dict:
+    """Der Code-Stand der Messung: Kopf-Commit und ob der Arbeitsbaum sauber war.
+
+    Zwei Zeilen sind nur vergleichbar, wenn beide denselben Code messen. Ein schmutziger
+    Baum (ungespeicherte Aenderung) ist ausdruecklich KEIN sauberer Stand.
+    """
+    kopf = _git(wurzel, "rev-parse", "--short", "HEAD")
+    schmutz = _git(wurzel, "status", "--porcelain")
+    return {"kopf": kopf, "sauber": None if schmutz is None else (schmutz == "")}
+
+
+def _abstand_meilensteine(meilensteine: dict, tage: float) -> float:
+    """Laengste Strecke ohne neuen Meilenstein in Spieltagen - das Spielgefuehl-Mass.
+
+    Ohne diese Zahl sieht ein Lauf, in dem nach Tag 3 nichts mehr passiert, genauso aus wie
+    einer mit gleichmaessigem Fortschritt (die Meilensteine sind dann alle gesetzt).
+    """
+    punkte = sorted(float(w) for w in (meilensteine or {}).values()
+                    if isinstance(w, (int, float)))
+    grenzen = [0.0] + punkte + [float(tage)]        # Anfang und Ende gehoeren dazu
+    return round(max(b - a for a, b in zip(grenzen, grenzen[1:])), 3)
+
+
+def _fehlschlag_gruppen(fehl: dict, grenze: int = 20) -> list:
+    """Die Fehlversuche nach BEDEUTUNG gruppiert: Zahlen im Grund werden zu `#`.
+
+    Warum: derselbe Grund taucht mit hunderten Nachkommastellen auf ("es fehlen 78.4 holz",
+    "es fehlen 79 holz") und macht aus dem Blatt eine Zahlenwand (gemessen 06.11.2026: eine
+    Zeile ueber 100 KB). Gruppiert bleibt sichtbar, WORAN der Lauf haengt; die genaue Menge
+    steht im Spieltest-Log. Sortiert nach Anzahl, dann alphabetisch - also deterministisch.
+    """
+    summen = {}                                     # (Aktion, gruppierter Grund) -> Anzahl
+    for art, gruende in (fehl or {}).items():
+        for grund, anzahl in (gruende or {}).items():
+            schluessel = (str(art), re.sub(r"\d+(?:[.,]\d+)?", "#", str(grund)))
+            summen[schluessel] = summen.get(schluessel, 0) + int(anzahl)
+    liste = [[art, grund, anzahl] for (art, grund), anzahl in summen.items()]
+    return sorted(liste, key=lambda z: (-z[2], z[0], z[1]))[:grenze]
+
+
+def kennzahlen(log: dict, tage: float, saat: int, stil: str,
+               wurzel: str = HIER) -> dict:
+    """Die Kennzahlenzeile aus EINEM Lauf - reine Ableitung, keine zweite Messung.
+
+    Alles kommt aus dem Laufprotokoll (`log`) und dem Zustand am Ende; nur `stand` und
+    `daten_hash` beschreiben die Umgebung. Der Zeitstempel gehoert NICHT in die Zeile,
+    sonst waeren zwei Laeufe mit demselben Startwert nie identisch (Wache 2).
+    """
+    m = log.get("meilensteine") or {}               # erste Zeitpunkte je Meilenstein
+    kaempfe = log.get("kaempfe") or []
+    ende = log.get("ende") or {}
+    punkte = ende.get("punkte") or {}
+    # Ruhm-Stufe aus DERSELBEN Lesestelle wie die Anzeige (`postfach.rang`), nicht nachgebaut.
+    ruhm = None
+    if punkte.get("gesamtpunkte") is not None:
+        try:
+            ruhm = int(PF.rang(punkte.get("gesamtpunkte")).get("stufe") or 0)
+        except Exception:                           # noqa: BLE001 - Kennzahl bricht nie den Lauf
+            ruhm = None
+    fehl = log.get("fehlschlaege") or {}
+    return {
+        "startwert": startwert(saat, stil, tage),
+        "stand": stand(wurzel),
+        "daten_hash": daten_hash(wurzel),
+        "tag_erstes_haus": m.get("tag_erstes_haus"),
+        "tag_erste_bibliothek": m.get("tag_erste_bibliothek"),
+        "tag_erste_ware": m.get("tag_erste_ware"),
+        "tag_erster_krieger": m.get("tag_erster_krieger"),
+        "tag_erstes_gefecht": m.get("tag_erstes_gefecht"),
+        "ruhm_stufe": ruhm,
+        "ausgaben": dict(log.get("ausgaben") or {}),
+        "leerlauf_sek": int(log.get("leerlauf_schritte") or 0) * SCHRITT,
+        "fehlschlaege": _fehlschlag_gruppen(fehl),
+        "handelspunkte": ende.get("handelspunkte"),
+        "beute_je_feldzug": [dict(k.get("beute") or {}) for k in kaempfe if k.get("ok")],
+        "verluste_je_gefecht": [dict(k.get("verluste") or {}) for k in kaempfe if k.get("ok")],
+        "abstand_meilensteine_max": _abstand_meilensteine(m, tage),
+    }
+
+
+def _kennzahlen_markdown(zeilen: list, wann: datetime.datetime) -> str:
+    """Die lesbare Fassung des Blattes: eine Tabelle, eine Zeile je Partie.
+
+    Die Legende steht darunter, weil eine Zahl ohne Bedeutung im Blatt niemand liest.
+    """
+    z = [f"# Kennzahlenblatt - {wann:%d.%m.%Y %H:%M}", ""]
+    z.append("Erzeugt von `tools/spieltest_simulation.py --kennzahlen`. Eine Zeile je Partie, "
+             "dieselben Schluessel bei jedem Lauf. `-` heisst **nicht erreicht oder nicht "
+             "gemessen** (im JSONL steht dort `null`), nicht `0`. Die Rechenwege stehen in "
+             "`docs/balancing/README_KENNZAHLEN.md`.")
+    z.append("")
+    z.append("| # | Stand | Saat/Stil/Tage | Haus | Bibliothek | Ware | Krieger | Gefecht | "
+             "Ruhm | Leerlauf s | Handelspunkte | Beute (Feldzuege) | Verluste (Gefechte) | "
+             "groesste Luecke |")
+    z.append("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
+
+    def _t(wert):
+        """Ein Meilenstein als Tageszahl oder als Strich (nicht erreicht = nicht 0)."""
+        return "-" if wert is None else f"{float(wert):g}"
+
+    for i, zeile in enumerate(zeilen, start=1):
+        sw = zeile.get("startwert") or {}
+        st = zeile.get("stand") or {}
+        kopf = st.get("kopf") or "?"
+        schmutz = "" if st.get("sauber") in (True, None) else "*"
+        beute = sum(sum(v for v in (b or {}).values() if isinstance(v, (int, float)))
+                    for b in (zeile.get("beute_je_feldzug") or []))
+        verluste = sum(sum(v for v in (b or {}).values() if isinstance(v, (int, float)))
+                       for b in (zeile.get("verluste_je_gefecht") or []))
+        hp = zeile.get("handelspunkte")
+        z.append(f"| {i} | {kopf}{schmutz} | {sw.get('saat')}/{sw.get('stil')}/"
+                 f"{sw.get('tage'):g} | {_t(zeile.get('tag_erstes_haus'))} | "
+                 f"{_t(zeile.get('tag_erste_bibliothek'))} | {_t(zeile.get('tag_erste_ware'))} | "
+                 f"{_t(zeile.get('tag_erster_krieger'))} | {_t(zeile.get('tag_erstes_gefecht'))} | "
+                 f"{'-' if zeile.get('ruhm_stufe') is None else zeile.get('ruhm_stufe')} | "
+                 f"{zeile.get('leerlauf_sek')} | {'-' if hp is None else f'{float(hp):.2f}'} | "
+                 f"{beute:g} in {len(zeile.get('beute_je_feldzug') or [])} | "
+                 f"{verluste:g} in {len(zeile.get('verluste_je_gefecht') or [])} | "
+                 f"{zeile.get('abstand_meilensteine_max'):g} |")
+    z.append("")
+    z.append("## Legende")
+    z.append("")
+    z.append("| Schluessel | Bedeutung | Quelle im Werkzeug |")
+    z.append("|---|---|---|")
+    z.append("| `startwert` | Saat, Stil und Laenge des Laufs - die volle Eingabe | `startwert()` |")
+    z.append("| `stand` | Kopf-Commit und ob der Arbeitsbaum sauber war (`*` = schmutzig) | `git rev-parse`/`status` |")
+    z.append("| `daten_hash` | Pruefsumme ueber alle `data/*.json` - belegt den Datenstand | `daten_hash()` |")
+    z.append("| `tag_*` | Spieltag des ERSTEN Ereignisses; `null` = nie erreicht | `_meilensteine_aus_zustand` |")
+    z.append("| `ruhm_stufe` | Ruhm-Stufe zum Endpunktestand | `postfach.rang` (EINE Lesestelle) |")
+    z.append("| `ausgaben` | je Rohstoff die Summe der Abbuchungen in Spielschritten | Reichskasse vor/nach den Aktionen |")
+    z.append("| `leerlauf_sek` | Spielsekunden ohne eine einzige erfolgreiche Aktion | `leerlauf_schritte x 1200` |")
+    z.append("| `fehlschlaege` | Aktion, Grund, Anzahl - die haeufigsten Gruende; Zahlen im Grund sind `#` (gruppiert) | `_fehlschlag_gruppen` |")
+    z.append("| `handelspunkte` | Handelspunkte am Ende; `null`, solange der Zaehler fehlt (G-8) | `_handelspunkte` |")
+    z.append("| `beute_je_feldzug` | Beute je GEFOCHTENEM Gefecht | `log['kaempfe']` |")
+    z.append("| `verluste_je_gefecht` | eigene Verluste je Gefecht | Gefechtsergebnis |")
+    z.append("| `abstand_meilensteine_max` | laengste Strecke ohne neuen Meilenstein (Spieltage) | `_abstand_meilensteine` |")
+    z.append("")
+    z.append("**Determinismus:** der Lauf bekommt EINEN festen Zufallsgenerator (`random.Random(saat)`) "
+             "und gibt ihn an jedes Gefecht weiter. Zwei Laeufe mit demselben `startwert` und "
+             "demselben `stand` ergeben darum dieselbe Zeile.")
+    return "\n".join(z) + "\n"
+
+
+def kennzahlen_schreiben(zeile: dict, wurzel: str = HIER, wann=None) -> dict:
+    """Eine Partie ins Kennzahlenblatt schreiben: JSONL (eine Zeile je Partie) + Markdown.
+
+    Geschrieben wird AUSSCHLIESSLICH unter `docs/balancing/` - das Werkzeug fasst `data/` und
+    `src/` nicht an (Wache 5 in `tests/test_kennzahlenblatt.py`). Eine Zeile ohne
+    Pflichtschluessel wird abgelehnt, nicht ergaenzt: eine halbe Zeile im Blatt ist schlimmer
+    als keine.
+    """
+    ordner = os.path.join(wurzel, *KENNZAHLEN_ORDNER)   # der EINE Ablageort
+    os.makedirs(ordner, exist_ok=True)                  # Ordner darf fehlen (erster Lauf)
+    fehlend = [k for k in KENNZAHLEN_PFLICHT if k not in zeile]
+    if fehlend:                                         # Pflicht erfuellt oder gar nicht
+        raise ValueError("Kennzahlenzeile ohne Pflichtschluessel: " + ", ".join(fehlend))
+    jetzt = wann or datetime.datetime.now()             # Zeitstempel NUR fuer Dateinamen/Kopf
+    pfad = os.path.join(ordner, "kennzahlen.jsonl")     # eine Zeile je Partie, angehaengt
+    with open(pfad, "a", encoding="utf-8", newline="\n") as f:
+        f.write(json.dumps(zeile, ensure_ascii=False, sort_keys=True) + "\n")
+    zeilen = []                                         # alles wieder einlesen: die Tabelle
+    with open(pfad, encoding="utf-8") as f:             # zeigt IMMER den ganzen Bestand
+        for linie in f:
+            linie = linie.strip()
+            if linie:
+                zeilen.append(json.loads(linie))
+    md_pfad = os.path.join(ordner, f"KENNZAHLEN_{jetzt:%Y-%m-%d}.md")
+    with open(md_pfad, "w", encoding="utf-8", newline="\n") as f:
+        f.write(_kennzahlen_markdown(zeilen, jetzt))
+    return {"jsonl": pfad, "markdown": md_pfad, "zeilen": len(zeilen)}
+
+
 def main() -> int:
     tage = 6.0
     if "--tage" in sys.argv:
@@ -512,6 +832,19 @@ def main() -> int:
         f.write(text)
     print(text)
     print(f"\nGESCHRIEBEN: {ziel}")
+    # Kennzahlenblatt (Ablauf Schritt 2): nur auf Anforderung, damit ein normaler Lauf das
+    # Blatt nicht mit Zeilen fuellt, die niemand auswertet.
+    if "--kennzahlen" in sys.argv:
+        zeile = kennzahlen(log, tage, saat, stil)
+        ablage = kennzahlen_schreiben(zeile)
+        # Kurzfassung auf der Konsole: die VOLLE Zeile steht im JSONL, hier nur die Eckwerte.
+        kurz = {k: zeile.get(k) for k in ("startwert", "stand", "daten_hash", "tag_erstes_haus",
+                                          "tag_erster_krieger", "tag_erstes_gefecht",
+                                          "ruhm_stufe", "leerlauf_sek", "handelspunkte",
+                                          "abstand_meilensteine_max")}
+        print("KENNZAHLEN: " + json.dumps(kurz, ensure_ascii=False, sort_keys=True))
+        print(f"KENNZAHLENBLATT: {ablage['jsonl']} ({ablage['zeilen']} Zeile(n) gesamt), "
+              f"{ablage['markdown']}")
     return 0
 
 
