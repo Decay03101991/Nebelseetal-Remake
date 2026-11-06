@@ -2,21 +2,21 @@
 
 **Erzeugt von `tools/modulkarte_bauen.py` — nicht von Hand ändern.** Stand: siehe Git-Historie.
 
-60 Dateien in `src/`, 33420 Zeilen, 962 Funktionen und Klassen auf oberster Ebene.
+61 Dateien in `src/`, 34515 Zeilen, 992 Funktionen und Klassen auf oberster Ebene.
 
 ## Die Karte
 
 | Datei | Zeilen | Zweck (erste Zeile des Docstrings) | wird gebraucht von |
 |---|---:|---|---|
-| `main.py` | 14548 | Nebelseetal Remake — Core Game Engine | public_start.py |
-| `spieloekonomie.py` | 1651 | Nebelseetal Remake — deterministischer Kern der Spielökonomie (Ökonomie-Paket, Schritt 2). | admin_teststand.py, admin_werkzeuge.py, botkern.py, main.py |
+| `main.py` | 15085 | Nebelseetal Remake — Core Game Engine | public_start.py |
+| `spieloekonomie.py` | 1837 | Nebelseetal Remake — deterministischer Kern der Spielökonomie (Ökonomie-Paket, Schritt 2). | admin_teststand.py, admin_werkzeuge.py, botkern.py, main.py, spielschicht.py |
 | `welt_optik_fein.py` | 898 | FEINERE Zeichenplaene fuer die WELTkarte des Nebelseetal-Remakes (naechste Ausbaustufe). | main.py |
 | `karten_optik_fein.py` | 863 | Feinere Zeichenplaene fuer die Siedlungskarte des Nebelseetal-Remakes | main.py |
 | `auftraege.py` | 754 | Nebelseetal Remake - Auftraege und Missionen (Paket WA, 04.10.2026). | bottaktik.py, main.py, spieloekonomie.py |
 | `bottaktik.py` | 743 | Nebelseetal Remake - Bot-Taktik (Paket BT, 01.11.2026). | main.py |
-| `spielschicht.py` | 696 | Nebelseetal Remake - FACH-SCHICHT (Spielebene) fuer die Oberflaeche. | main.py |
+| `spielschicht.py` | 740 | Nebelseetal Remake - FACH-SCHICHT (Spielebene) fuer die Oberflaeche. | main.py |
 | `botkern.py` | 654 | Nebelseetal Remake - Bot-Kern (Paket W5, 05.10.2026). | main.py |
-| `drachen.py` | 635 | Drachen des Spiels - Daten lesen, Figur oder Ruine bestimmen, Siege merken (W-14 Teil 1). | main.py |
+| `drachen.py` | 651 | Drachen des Spiels - Daten lesen, Figur oder Ruine bestimmen, Siege merken (W-14 Teil 1). | main.py |
 | `welt_optik.py` | 600 | Zeichenplaene fuer die WELTkarte des Nebelseetal-Remakes (Paket: feinere Weltkartenoptik). | main.py |
 | `karten_optik.py` | 599 | Zeichenplaene fuer die Siedlungskarte des Nebelseetal-Remakes (Paket: feinere Kartenoptik). | main.py |
 | `kampfbericht.py` | 575 | Nebelseetal Remake - Kampfbericht (Paket W2b, 04.10.2026). | auftraege.py, main.py, spielschicht.py |
@@ -33,6 +33,7 @@
 | `gebaeude_optik.py` | 306 | Gebaeude-Optik: Menue-Icons und Menue-Hintergruende der 20 Originalgebaeude. | main.py |
 | `einheiten.py` | 301 | Nebelseetal Remake — Einheiten-Bruecke. | admin_teststand.py, admin_werkzeuge.py, auftraege.py, bonus_system.py, bot_angriffsplanung.py, botkern.py, drachen.py, gebaeude_wirkung.py, kampf.py, kampfbericht.py, main.py, punkte.py, spieloekonomie.py, spielschicht.py, spionage.py |
 | `ausruestung.py` | 273 | Nebelseetal Remake — Ausruestung: welche Waren eine Einheit zur Ausbildung braucht. | main.py, spieloekonomie.py |
+| `postfach.py` | 260 | Postfach: Fristen, Archiv, Blaettern und Ruhm-Rang - die EINE Rechenstelle (S1, 06.11.2026). | main.py |
 | `spieldaten.py` | 258 | Nebelseetal Remake — Datenschicht. | admin_werkzeuge.py, ausruestung.py, berater.py, bot_angriffsplanung.py, drachen.py, einheiten.py, forschung.py, forschung_wirkung.py, gebaeude_optik.py, gebaeude_wirkung.py, gelaende.py, gpt_versorgungsdiagnose.py, kampf.py, main.py, marsch_optik.py, originalkarten.py, originalkarten_grafik.py, spieloekonomie.py, spielschicht.py, spielzeit.py, spionage.py, stimmen.py, story.py, welt.py, werkstatt.py, wirtschaft.py |
 | `bot_angriffsplanung.py` | 254 | GPT-B01: konservative Bot-Zielwahl nach den Wallregeln der Originalanleitung. | main.py |
 | `admin_werkzeuge.py` | 246 | Isolierte Admin-Testwerkzeuge (keine Aenderung der normalen Spielregeln). | admin_oberflaeche.py |
@@ -41,20 +42,20 @@
 | `tor.py` | 231 | Passworttor fuer das Nebelseetal-Remake (Schritt 8 in `docs/WEG_ZUR_EXE.md`). | main.py |
 | `admin_oberflaeche.py` | 191 | Nur die Bedienoberflaeche fuer Admin-Testwerkzeuge. | main.py |
 | `boni.py` | 190 | Die Wirkung der Volks- und Taktikboni: Datenschicht und Rechnung (V-5, 03.11.2026). | bottaktik.py, main.py, spieloekonomie.py, spielschicht.py, wirtschaft.py |
+| `originalkarten.py` | 190 | Original-Kartenkatalog Nebelseetal, 127 archivierte Grafiken in 3 Qualitaetsgruppen. | gelaende.py, main.py, spieloekonomie.py, spielschicht.py |
 | `oberflaeche_original.py` | 185 | Nebelseetal Remake - Menue-Vergleich (Paket W7, 04.10.2026). | — (Einstieg oder ungenutzt) |
 | `forschung_wirkung.py` | 177 | Nebelseetal Remake -- Wirkung der 21 Originalforschungen auf die Produktion. | bonus_system.py, gebaeude_wirkung.py |
 | `spielerhilfe.py` | 176 | FIX04c – Spielerhilfe während des Götterschutzes, jederzeit aufrufbar. | admin_werkzeuge.py, main.py |
-| `originalkarten.py` | 172 | Original-Kartenkatalog Nebelseetal, 127 archivierte Grafiken in 3 Qualitaetsgruppen. | gelaende.py, main.py, spieloekonomie.py, spielschicht.py |
 | `story.py` | 172 | Geschichte des Spiels (Story 1, 04.11.2026). | berater.py, main.py |
 | `welt.py` | 171 | Weltkarte des Limbus fuer das Nebelseetal-Remake. | main.py, portalraum.py |
 | `bonus_system.py` | 169 | Nebelseetal Remake — Central Bonus System | main.py, wirtschaft.py |
 | `spielzeit.py` | 169 | Spielzeit — der Zeitfaktor (Vorgabe Daniel 05.10.2026, Spielbericht). | main.py |
+| `ruinendeckung.py` | 163 | Ruinendeckung: eine besiegte Ruine deckt die Richtung, in der sie liegt (Frage 9, Register 216). | main.py |
 | `spielstand_archiv.py` | 162 | Private Spielstandarchive: eindeutig, zeitgestempelt, ohne unbemerktes Loeschen. | main.py, speichern.py |
 | `versorgungsschutz.py` | 160 | Reine Vorabpruefung auf selbst verschuldete Rohstoff-Sackgassen. | main.py |
 | `marsch_optik.py` | 150 | Nebelseetal Remake - Optik der Truppenbewegungen auf der Weltkarte (Stufe M-1, 02.11.2026). | main.py |
 | `fehlbestand.py` | 140 | Fehlbestand: welche Rohstoffe fehlen und um wieviel. | spieloekonomie.py |
 | `baumenue_info.py` | 133 | FIX04 – Datenmodell fuer das historische Baumenue der Siedlungskarte. | main.py |
-| `ruinendeckung.py` | 129 | Ruinendeckung: eine besiegte Ruine deckt die Richtung, in der sie liegt (Frage 9, Register 216). | main.py |
 | `gpt_versorgungsdiagnose.py` | 126 | Nur-lesende Versorgungsdiagnose fuer Nebelseetal. | — (Einstieg oder ungenutzt) |
 | `admin_teststand.py` | 125 | Reproduzierbarer Admin-Teststand: keine Aenderung von Originalertraegen. | main.py |
 | `dorfwall.py` | 125 | Isolierter Wallkern fuer Nebelseetal (GPT-Zuarbeit, 28.10.2026). | main.py |

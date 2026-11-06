@@ -1,0 +1,104 @@
+{
+  "_hinweis": "SHA256 je gelieferter Datei (Stand 06.11.2026). Die Dateien sind hashgleich mit der Lieferung auf dem Desktop; der Desktop-Ordner ist nach der Ablage geraeumt.",
+  "quelle": "C:/Users/saras/Desktop/Bildcontent geschnitten und fertig (14 Dateien, 11 MB, 06.11.2026 02:38 bis 03:04)",
+  "dateien": [
+    {
+      "datei": "Elfenwalddorf_Hintergrund_Nebelseetal.jpg",
+      "ordner": "fraktionen",
+      "bytes": 1523602,
+      "sha256": "1395c50e72ddf053be1a863a1e651d823b64ec987c846852167400401cfea0ef",
+      "hash_gleich": true
+    },
+    {
+      "datei": "Ghule1_Hintergrund_Nebelseetal.jpg",
+      "ordner": "fraktionen",
+      "bytes": 526124,
+      "sha256": "fa2f37b93c36543e7ae4b6af29e65983cd3ea6bdc858ff12d284afd96461d5e0",
+      "hash_gleich": true
+    },
+    {
+      "datei": "Ghule2_Hintergrund_Nebelseetal.jpg",
+      "ordner": "fraktionen",
+      "bytes": 480487,
+      "sha256": "430f6178e41d37cfbb06a5109429dd83cbcfab06beba1e121fdde828c7567690",
+      "hash_gleich": true
+    },
+    {
+      "datei": "Ghule3_Hintergrund_Nebelseetal.jpg",
+      "ordner": "fraktionen",
+      "bytes": 481328,
+      "sha256": "cbdb1ea0d9a5910f4e272df91e331373d0a6bc6d49187cc7d4e26e7d00107835",
+      "hash_gleich": true
+    },
+    {
+      "datei": "Ghule4_Hintergrund_Minen_Nebelseetal.jpg",
+      "ordner": "fraktionen",
+      "bytes": 476983,
+      "sha256": "fdaf380f5d02050a73afc7b042e5f5dac0159210cbea2cf020543751cb7811b6",
+      "hash_gleich": true
+    },
+    {
+      "datei": "Ghule4_Hintergrund_Nebelseetal.jpg",
+      "ordner": "fraktionen",
+      "bytes": 451186,
+      "sha256": "3842f9fa6862dcf3f0fef7faaf8cf46237db8c4132bfba4c92619a39fcf3a9c7",
+      "hash_gleich": true
+    },
+    {
+      "datei": "Ghule5_Hintergrund_Stadt_Nebelseetal.jpg",
+      "ordner": "fraktionen",
+      "bytes": 451745,
+      "sha256": "656c5bc22ce23ea3c8a087a103072b57646c275726f874576834bd080d36a4c8",
+      "hash_gleich": true
+    },
+    {
+      "datei": "Gnome1_Hintergrund_Minen_Nebelseetal.jpg",
+      "ordner": "fraktionen",
+      "bytes": 375229,
+      "sha256": "bda617830e7a9f6168e55f8efaac04abe1750ca2881a7697d1a8b5e7f17ba591",
+      "hash_gleich": true
+    },
+    {
+      "datei": "Gnome1_Hintergrund_Stadt_Nebelseetal.jpg",
+      "ordner": "fraktionen",
+      "bytes": 473668,
+      "sha256": "63385e3cf77b1cb76f3e6dda34fabdd5596ba43e16cc13f82e2f3a231f700aa6",
+      "hash_gleich": true
+    },
+    {
+      "datei": "Hintergrundcontent_Nebelseetal.jpg",
+      "ordner": "vorlagen",
+      "bytes": 319806,
+      "sha256": "8143ce6a441a44c9fdcab089164291eee4372e9138b38e02283c186f1b32959b",
+      "hash_gleich": true
+    },
+    {
+      "datei": "Hintergrundcontent_Nebelseetal1.jpg",
+      "ordner": "vorlagen",
+      "bytes": 175761,
+      "sha256": "da45394324ed7405a0fb73a5e728e63dd4081ba3d77a729f71303ba4296d9aa3",
+      "hash_gleich": true
+    },
+    {
+      "datei": "Häuservorlagen_Nebelseetal.jpg",
+      "ordner": "vorlagen",
+      "bytes": 882977,
+      "sha256": "3c69d69ab91b89d5429d1c6cc952f5f0e0ed7e36018d64be733b0d309655a9ec",
+      "hash_gleich": true
+    },
+    {
+      "datei": "Stilvorlagen_BurgumgebungsVorschläge_Nebelseetal.jpg",
+      "ordner": "vorlagen",
+      "bytes": 1030106,
+      "sha256": "00ae733e69997ebdd27609d2f9b0b8649c7fb95311b2540d2a3bfcd35c267e3b",
+      "hash_gleich": true
+    },
+    {
+      "datei": "Zwerge_im_Nebelseetal_Hintergründe.png",
+      "ordner": "fraktionen",
+      "bytes": 3115931,
+      "sha256": "5986e7656121013ed423df836dc4cf45e7991d4566156ae305d99ae62d86b02e",
+      "hash_gleich": true
+    }
+  ]
+}

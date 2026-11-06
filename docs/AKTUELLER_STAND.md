@@ -1,3 +1,26 @@
+# STAND 06.11.2026, 03:22 - S1 gebaut: Postfach mit Archiv, Filter, Blaettern, Ruhm-Balken (Register 250)
+
+> Neuester Block. Register 250, Protokollzeile 03:22. Nachtlauf. Der Block 03:02 darunter haelt S0.
+
+**Was dieser Schnitt geaendert hat:** das Postfach zeigt nicht mehr nur die letzten 20 Nachrichten.
+
+| Stueck | Beleg |
+|---|---|
+| Fachmodul mit Fristen, Kategorien, Seiten, Rang | `src/postfach.py` (neu) |
+| Fristen und Kategorien als Daten | `data/nachrichten.json` (Frist 1 Spieltag = 28800 Spielsekunden) |
+| Ruhm-Stufen | `data/ruhm.json` (0 / 10 / 40 / 160, Daniels Freigabe 03:1x) |
+| Ansicht | `_render_messages` + `_ruhm_balken_zeichnen` in `src/main.py` (Filterzeile, 20 je Seite, Archiv, Balken als Canvas) |
+| Ablauf | `postfach.ablauf_buchen` im `GameState.tick` |
+| Wache | `tests/test_nachrichten_archiv.py` - 51 bestanden, 0 Fehler, 0 Befunde |
+
+**Zwei Befunde beim Bauen:** eine Frist als Konstante im Code waere eine zweite Wahrheit (jetzt nur in der
+Datendatei, Rueckfall 0 = laeuft nie ab); `kampf` steht in `ohne_ablauf` und kann darum nie verschoben werden -
+die Verschiebe-Regel gilt fuer den Typ `verlust`, Kampfberichte bleiben fuer immer.
+
+**Naechster Schritt:** voller Sammellauf 1, danach S1b (vier Menue-Teilgeschichten).
+
+---
+
 # STAND 06.11.2026, 03:02 - S0 gerechnet: fuenf Tabellen mit Rechenweg (Register 249)
 
 > Neuester Block. Register 249, Protokollzeile 03:00. Kopf beim Schreiben: `14b6cb9`; der Commit dieses

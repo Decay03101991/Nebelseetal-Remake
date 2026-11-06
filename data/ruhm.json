@@ -1,0 +1,17 @@
+{
+  "_hinweis": "Ruhm-Raenge fuer den Balken im Postfach (S1, 06.11.2026). Schwellen sind ein VORSCHLAG aus unserer eigenen Messung, keine Originalzahl und keine Modellzahl.",
+  "_quelle": "S0 Tabelle V-3 (docs/S0_TABELLEN_20261107.md): Spieltest-Laeufe endeten nach 8 bis 12 Spieltagen bei 19 bis 40 Gesamtpunkten; die Staffel setzt 25 / 100 / 400 Prozent der 40-Punkte-Messung. Daniel, Runde 3 Frage 3: sofort nutzbar, Namen aenderbar.",
+  "kennzahl": "gesamtpunkte",
+  "stufen": [
+    {"stufe": 1, "name": "Ansiedler", "ab": 0},
+    {"stufe": 2, "name": "Freisiedler", "ab": 10},
+    {"stufe": 3, "name": "Fuerst", "ab": 40},
+    {"stufe": 4, "name": "Herrscher", "ab": 160}
+  ],
+  "balken": {
+    "breite": 260,
+    "hoehe": 14,
+    "farbe_fuellung": "#DAA520",
+    "farbe_leer": "#3A3A3A"
+  }
+}

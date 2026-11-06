@@ -45,6 +45,7 @@ import admin_teststand  # GPT: nur hinter gesonderter Admin-Pruefung
 import admin_oberflaeche  # GPT: separate Bedienoberflaeche, Regelkern in admin_werkzeuge
 import speichern   # W8: robustes Speichern/Laden (atomar, geprueft, mit Sicherung)
 import punkte      # W6: Forschungs-, Kriegs- und Gesamtpunkte nach den Originalformeln
+import postfach    # S1 (06.11.2026): Fristen, Archiv, Blaettern, Ruhm-Rang
 import kampf       # W2: Vorrunde, Kampfsequenzen, Flucht, Beute (Handbuch S. 20-23)
 import kampfbericht  # W2b: Vorrunden-Pruefung, Mauerschaden, Beute, Bericht
 import drachen  # W-14 (05.11.2026): die Drachen des Spiels - liest nur data/drachen.json
@@ -7235,6 +7236,10 @@ class GameState:
         self.werkstatt_fortschreiben(self.spielsekunden)
         # W7: Auftraege weiterlaufen lassen (Ankunft buchen, Heimkehrer gutschreiben).
         self.auftraege_fortschreiben(self.spielsekunden)
+        # S1 (06.11.2026): abgelaufene Nachrichten aus dem Postfach nehmen; ungelesene
+        # Verlustberichte verschieben ihre Frist, Militaerberichte laufen nie ab
+        # (Daniel, Entscheidung 4). Fristen und Typen stehen in data/nachrichten.json.
+        postfach.ablauf_buchen(self.messages, self.spielsekunden)
         self.last_tick = time.time()
         # Teil 6c: was in diesem Takt fertig wurde, geht an den Aufrufer ZURÜCK — die Oberfläche
         # zeichnet daraufhin neu (`NebelseetalApp._tick_loop`). `GameState` kennt keine Ansicht.
@@ -13376,25 +13381,144 @@ class NebelseetalApp:
             tk.Label(row, text=g[3], fg=self.skin["text"], bg=self.skin["panel"], width=12).pack(side=tk.LEFT, padx=5)
         tk.Label(self.content, text="Gildenprofil folgt in einer späteren Version.", fg="#C0C0C0", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=10)
 
+    def _ruhm_balken_zeichnen(self):
+        """Ruhm-Balken: Rang, Punkte und der Weg zur naechsten Stufe (S1, 06.11.2026).
+
+        Die Stufen stehen in `data/ruhm.json` (VORSCHLAG aus unserer Messung), gerechnet wird in
+        `postfach.rang` - die Anzeige rechnet NICHTS selbst und liest den Punktestand aus der
+        vorhandenen einen Quelle (`punktestand`). Ohne Stufen in der Datei bleibt der Balken leer,
+        es wird keine Schwelle erfunden.
+        """
+        punkte_wert = 0                                                # Punktestand aus der einen Quelle
+        try:
+            punkte_wert = int((self.state.punktestand() or {}).get("gesamt", 0) or 0)
+        except (AttributeError, TypeError, ValueError):
+            punkte_wert = 0                                            # ohne Zustand leer zeichnen
+        info = postfach.rang(punkte_wert)                              # Rang und Fortschritt
+        daten = postfach.ruhm_daten().get("balken") or {}              # Masse und Farben aus den Daten
+        breite = int(daten.get("breite") or 260)                       # Balkenbreite in Pixeln
+        hoehe = int(daten.get("hoehe") or 14)                          # Balkenhoehe in Pixeln
+        zeile = tk.Frame(self.content, bg=self.skin["bg"])             # eine Zeile fuer Balken und Text
+        zeile.pack(anchor=tk.W, padx=10, pady=(0, 8))                  # unter der Ueberschrift
+        tk.Label(zeile, text="Ruhm:", fg=self.skin["gold"], bg=self.skin["bg"],
+                 font=("Arial", 9, "bold")).pack(side=tk.LEFT, padx=(0, 6))  # Beschriftung
+        leinwand = tk.Canvas(zeile, width=breite, height=hoehe, bg=self.skin["bg"],
+                             highlightthickness=0)                     # der Balken selbst
+        leinwand.pack(side=tk.LEFT)                                    # links in der Zeile
+        leinwand.create_rectangle(0, 0, breite, hoehe,                 # leerer Balken
+                                  fill=str(daten.get("farbe_leer") or "#3A3A3A"), outline="")
+        gefuellt = int(round(breite * float(info.get("fortschritt") or 0.0)))  # Anteil bis zur naechsten Stufe
+        if gefuellt > 0:                                               # nur zeichnen, wenn es etwas gibt
+            leinwand.create_rectangle(0, 0, gefuellt, hoehe,
+                                      fill=str(daten.get("farbe_fuellung") or "#DAA520"), outline="")
+        tk.Label(zeile, text=postfach.rang_text(punkte_wert), fg=self.skin["text"],
+                 bg=self.skin["bg"], font=("Arial", 9)).pack(side=tk.LEFT, padx=(8, 0))  # Name und Abstand
+
     def _render_messages(self):
-        tk.Label(self.content, text="Nachrichten", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
-        for msg in reversed(self.state.messages[-20:]):
-            color = nachrichten_farbe(msg)
-            tk.Label(self.content, text=zeitbasis.zeitstempel_text(msg) + msg["text"],
-                     fg=color, bg=self.skin["bg"], wraplength=600,
-                     justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 5))
+        """Postfach mit Filterzeile, Blaettern und Archiv (S1, 06.11.2026).
+
+        Vorher zeigte diese Ansicht nur `messages[-20:]` - aeltere Nachrichten waren im Spielstand
+        vorhanden, aber unerreichbar; Filter, Archiv und Ablauf gab es nicht. Die Rechnung steht
+        vollstaendig in `postfach.py` (Fristen und Kategorien aus `data/nachrichten.json`), diese
+        Methode zeigt nur an.
+        """
+        tk.Label(self.content, text="Nachrichten", font=("Blackletter", 20, "bold"),
+                 fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
+        self._ruhm_balken_zeichnen()                                   # Balken ueber der Filterzeile
+        regeln = postfach.einstellungen()                              # Kategorien aus den Daten
+        kategorien = regeln.get("kategorien") or {"alle": "Alle"}      # Name -> Beschriftung
+        filter_key = str(getattr(self, "_postfach_filter", "alle"))    # gewaehlter Filter
+        if filter_key not in kategorien:                               # unbekannter Filter: zurueck auf alle
+            filter_key = "alle"
+        zeile = tk.Frame(self.content, bg=self.skin["bg"])             # die Filterzeile
+        zeile.pack(anchor=tk.W, padx=10, pady=(0, 6))                  # unter dem Balken
+        for schluessel, beschriftung in kategorien.items():            # ein Knopf je Kategorie
+            gewaehlt = (schluessel == filter_key)                      # ist dieser Filter aktiv?
+            tk.Button(zeile, text=str(beschriftung),
+                      command=lambda k=schluessel: self._postfach_filter_setzen(k),
+                      bg=(self.skin["gold"] if gewaehlt else self.skin["button"]),
+                      fg=(self.skin["bg"] if gewaehlt else self.skin["gold"]),
+                      relief=tk.FLAT, padx=6, pady=2,
+                      font=("Arial", 8)).pack(side=tk.LEFT, padx=2)     # Knopf in der Zeile
+        liste = postfach.sichtbar(self.state.messages, filter_key)      # Auswahl der Nachrichten
+        seite_nr = int(getattr(self, "_postfach_seite", 1) or 1)        # gewaehlte Seite
+        gesamt = postfach.seiten_anzahl(liste)                          # Anzahl der Seiten
+        seite_nr = min(max(1, seite_nr), gesamt)                        # Seite im gueltigen Bereich
+        self._postfach_seite = seite_nr                                 # gemerkte Seite fortschreiben
+        blatt = postfach.seite(liste, seite_nr)                         # die Nachrichten dieser Seite
+        kopf = tk.Frame(self.content, bg=self.skin["bg"])               # Zeile mit Zaehler und Blaettern
+        kopf.pack(anchor=tk.W, padx=10, pady=(0, 4))                    # ueber den Nachrichten
+        tk.Label(kopf, text="%d Nachricht(en), davon %d ungelesen - Seite %d von %d"
+                 % (len(liste), postfach.ungelesen_anzahl(liste), seite_nr, gesamt),
+                 fg=self.skin["text"], bg=self.skin["bg"], font=("Arial", 9)).pack(side=tk.LEFT)
+        tk.Button(kopf, text="Zurück", command=lambda: self._postfach_seite_setzen(seite_nr - 1),
+                  bg=self.skin["button"], fg=self.skin["gold"], relief=tk.FLAT,
+                  padx=6, pady=1).pack(side=tk.LEFT, padx=(10, 2))      # eine Seite zurueck
+        tk.Button(kopf, text="Weiter", command=lambda: self._postfach_seite_setzen(seite_nr + 1),
+                  bg=self.skin["button"], fg=self.skin["gold"], relief=tk.FLAT,
+                  padx=6, pady=1).pack(side=tk.LEFT, padx=2)            # eine Seite vor
+        if not blatt:                                                   # leere Auswahl ehrlich benennen
+            tk.Label(self.content, text="Keine Nachricht in dieser Auswahl.",
+                     fg="#C0C0C0", bg=self.skin["bg"], font=("Arial", 9)).pack(anchor=tk.W, padx=10)
+        for msg in blatt:                                               # eine Zeile je Nachricht
+            color = nachrichten_farbe(msg)                              # Farbe je Bedeutung
+            rahmen = tk.Frame(self.content, bg=self.skin["bg"])         # Rahmen fuer Text und Knoepfe
+            rahmen.pack(anchor=tk.W, fill=tk.X, padx=10, pady=(0, 5))   # untereinander
+            tk.Label(rahmen, text=zeitbasis.zeitstempel_text(msg) + msg["text"],
+                     fg=color, bg=self.skin["bg"], wraplength=560,
+                     justify=tk.LEFT).pack(anchor=tk.W)                 # der Text selbst
+            knoepfe = tk.Frame(rahmen, bg=self.skin["bg"])              # Zeile der kleinen Knoepfe
+            knoepfe.pack(anchor=tk.W)                                   # unter dem Text
+            if postfach.ist_archiviert(msg):                            # Nachricht liegt im Archiv
+                tk.Button(knoepfe, text="Aus dem Archiv holen",
+                          command=lambda m=msg: self._postfach_archiv_umschalten(m, False),
+                          bg=self.skin["button"], fg=self.skin["gold"], relief=tk.FLAT,
+                          padx=6, pady=1, font=("Arial", 8)).pack(side=tk.LEFT, padx=(0, 4))
+            else:                                                       # Nachricht liegt im Postfach
+                tk.Button(knoepfe, text="Ins Archiv",
+                          command=lambda m=msg: self._postfach_archiv_umschalten(m, True),
+                          bg=self.skin["button"], fg=self.skin["gold"], relief=tk.FLAT,
+                          padx=6, pady=1, font=("Arial", 8)).pack(side=tk.LEFT, padx=(0, 4))
+            if not postfach.ist_gelesen(msg):                           # ungelesen: als gelesen anbieten
+                tk.Button(knoepfe, text="Gelesen",
+                          command=lambda m=msg: self._postfach_gelesen(m),
+                          bg=self.skin["button"], fg=self.skin["gold"], relief=tk.FLAT,
+                          padx=6, pady=1, font=("Arial", 8)).pack(side=tk.LEFT, padx=(0, 4))
+            postfach.als_gelesen(msg)                                   # Sichtbar heisst gelesen
             # B-5 (02.11.2026): ein Spionagebericht bekommt eine eigene Anzeige - der Spieler
             # oeffnet ihn, statt ihn zwischen allen anderen Nachrichten zu suchen. Ist er aelter
             # als die Frist aus data/spionage.json, steht das ausdruecklich daneben.
             if str(msg.get("type") or "") == "spionage":
                 hinweis = spionage.veraltet_text(msg, self.state.spielsekunden)
                 if hinweis:
-                    tk.Label(self.content, text=hinweis, fg="#C0C0C0", bg=self.skin["bg"],
-                             wraplength=600, justify=tk.LEFT).pack(anchor=tk.W, padx=10)
-                tk.Button(self.content, text="Spionagebericht öffnen",
+                    tk.Label(rahmen, text=hinweis, fg="#C0C0C0", bg=self.skin["bg"],
+                             wraplength=560, justify=tk.LEFT).pack(anchor=tk.W)
+                tk.Button(knoepfe, text="Spionagebericht öffnen",
                           command=lambda m=msg: self._spionage_bericht_anzeigen(m),
                           bg=self.skin["button"], fg=self.skin["gold"], relief=tk.FLAT,
-                          padx=8, pady=2).pack(anchor=tk.W, padx=10, pady=(0, 6))
+                          padx=8, pady=2).pack(side=tk.LEFT, padx=(0, 4))
+
+    def _postfach_filter_setzen(self, schluessel):
+        """Filter wechseln und die Ansicht neu zeichnen (Seite faellt auf 1 zurueck)."""
+        self._postfach_filter = str(schluessel or "alle")               # gewaehlte Kategorie
+        self._postfach_seite = 1                                        # neue Auswahl beginnt vorn
+        self._render_messages()                                         # Ansicht neu aufbauen
+
+    def _postfach_seite_setzen(self, nummer):
+        """Auf eine andere Seite blaettern (Grenzen zieht `postfach.seite`)."""
+        self._postfach_seite = max(1, int(nummer or 1))                 # nie unter Seite 1
+        self._render_messages()                                         # Ansicht neu aufbauen
+
+    def _postfach_archiv_umschalten(self, msg, ins_archiv):
+        """Eine Nachricht ins Archiv legen oder zurueckholen und neu zeichnen."""
+        postfach.archivieren(msg, bool(ins_archiv))                     # Feld im Spielstand setzen
+        self._log("Nachricht ins Archiv gelegt." if ins_archiv else "Nachricht aus dem Archiv geholt.")
+        self._render_messages()                                         # Ansicht neu aufbauen
+
+    def _postfach_gelesen(self, msg):
+        """Eine Nachricht als gelesen markieren und neu zeichnen."""
+        postfach.als_gelesen(msg)                                       # Feld im Spielstand setzen
+        self._render_messages()                                         # Ansicht neu aufbauen
 
     def _spionage_bericht_anzeigen(self, msg):
         """Den Spionagebericht in einem eigenen Fenster zeigen (Postfach, B-5, 02.11.2026).
