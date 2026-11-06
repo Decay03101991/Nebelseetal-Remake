@@ -107,3 +107,12 @@ Datei in 0,6 s ein Geraetebefund waere.
 | F-3 | Rachetopf nach einem Bot-Sieg | **Topf auf 0 setzen.** | `data/diplomatie.json` bekommt `nach_bot_sieg: 0`; eine Wache prueft, dass der Topf nach einem Sieg genau 0 ist. |
 | F-4 | Startwert der Gunst ohne Originalbeleg | **50 als VORSCHLAG eintragen und so lassen.** | Bleibt `start: 50` mit eigener `start_quelle` in `data/diplomatie.json` (VORSCHLAG, Mitte des mittleren Bereichs). |
 | F-5 | Kennzahlenblatt direkt nach Schritt 1 (Gunst)? | **Ja, als Schritt 2.** | Der Ablauf bleibt in seiner Reihenfolge; das Kennzahlenblatt liefert die Vorher-Zahlen fuer Rachetopf, Vertraege und Ereignisse. |
+
+## Nachtrag 06.11.2026, 11:32 - Zweite Runde (Skill-Freigaben, Runde 2, Release, Grom-Detail)
+
+| Nr | Frage | Antwort Daniels | Folge |
+|---|---|---|---|
+| F-7 | Zwei Skill-Vormerkungen (`6cd198de`, `262966e1`) | **Beide freigegeben.** | Die fuenf Lehren der Sitzung 6 stehen bereits als Abschnitt im Skill und als `references/lehren-2026-11-06.md` (5 Abschnitte, 2.585 Byte) - nichts nachzutragen. Die **acht Lehren der Nacht S3** (`6cd198de`) existieren dagegen in KEINER Datei: die Vorgaengeruebergabe nennt sie, geschrieben wurden sie nie. Sie sind nur aus den Protokollzeilen der Nacht zu rekonstruieren - das ist Arbeit der naechsten Sitzung, nicht zu erfinden. |
+| F-8 | Wann geht der KI-Auftrag Runde 2 an die externen Modelle? | **Erst nach S4 komplett** (Schritte 1 bis 5 gebaut). | Der Auftrag liegt fertig auf dem Desktop; er wird erst mit dem dann neueren Stand verschickt. Bis dahin bleibt er liegen, nichts wird daran geaendert. |
+| F-9 | Wann neue EXE und Release? | **Erst nach S4 komplett** (Gunst, Vertraege, Rachetopf, Ereignisse, Handelspunkte). | Kein Release nach S4 Teil 1. Die veroeffentlichte `V_0.0.3` bleibt die aktuelle Fassung; die naechste Version bekommt den naechsten Zaehler. |
+| F-10 | Grom-Detail: welche Werkzeug-Ware? | **5 Messer gegen 20 Erz** (= Rohstoff `metall`), Messer ist die guenstigste Werkzeug-Ware. | Damit ist das Ereignis vollstaendig bestimmt: Ware `Messer`, Menge 5, Gegenleistung Rohstoff `metall`, Menge 20. |
