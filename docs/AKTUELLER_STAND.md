@@ -1,3 +1,23 @@
+# STAND 06.11.2026, 09:10 - Planung mit deepseek-v4-pro, geschuetzte Auftragsdatei (Register 264)
+
+> Neuester Block. Register 264, Protokollzeile 09:04. Darunter 263 (V_0.0.3), 262 (Sammellauf),
+> 261/260 (LLM-Auftrag, Zahlenanzeige).
+
+**Neu (Daniel 09:04):** Die naechste Sitzung fuehrt das Zusammenfuehren der vier Modellantworten und das
+Entwerfen des fixen Ablaufs mit **`deepseek-v4-pro`** aus - kostenbewusst in EINEM vorbereiteten Aufruf
+(Dossier 20 bis 30 KB, `max_tokens` 48.000, Streaming, Zwischenschreiben; rund 0,039 USD je Aufruf,
+Deckel 4,00 USD/Tag), mit Ruecksicht auf die schwache Laptop-Hardware und das schwankende WLAN. Zuerst
+wird lokal und kostenlos verglichen, nie werden die vier Antworten roh geschickt. Die Desktop-Datei
+`Nebelseetal_LLM_Auftrag_20261106.md` ist **geschuetzt**: sie wird erst nach dem stehenden Ablauf mit dem
+neuesten Stand als neuer KI-Auftrag umgearbeitet, und Daniel ist dann ausdruecklich zu melden. Beides
+steht als Abschnitt K und L in `docs/ABLAUF_20261107.md`.
+
+**Geld:** Ablesung 09:04 - Guthaben **10,31 USD**, Gesamtverbrauch **59,68 USD** (0,37 USD seit 07:38).
+
+**Naechster Schritt:** Protokoll verdichten (319 Zeilen), dann Abgleich der Antworten mit
+`deepseek-v4-pro`, dann `docs/ABLAUF_LLM_20261106.md`, dann Umsetzung ab S4 Teil 1.
+
+---
 # STAND 06.11.2026, 08:53 - Vier LLM-Antworten liegen vor, neues Ziel (Register 264)
 
 > Neuester Block. Register 264. Darunter 263 (Pre-Release V_0.0.3), 262 (Sammellauf), 261/260
