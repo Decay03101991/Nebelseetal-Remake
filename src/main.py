@@ -46,6 +46,7 @@ import admin_oberflaeche  # GPT: separate Bedienoberflaeche, Regelkern in admin_
 import speichern   # W8: robustes Speichern/Laden (atomar, geprueft, mit Sicherung)
 import punkte      # W6: Forschungs-, Kriegs- und Gesamtpunkte nach den Originalformeln
 import postfach    # S1 (06.11.2026): Fristen, Archiv, Blaettern, Ruhm-Rang
+import verwundete as verwundetenheilung  # S3 (06.11.2026): Verwundete, Heilpreis, Heildauer
 import kampf       # W2: Vorrunde, Kampfsequenzen, Flucht, Beute (Handbuch S. 20-23)
 import kampfbericht  # W2b: Vorrunden-Pruefung, Mauerschaden, Beute, Bericht
 import drachen  # W-14 (05.11.2026): die Drachen des Spiels - liest nur data/drachen.json
@@ -2495,6 +2496,11 @@ class Settlement:
     mauer_reparatur_ziel: float = 0.0
     mauer_reparatur_ende: float = 0.0
     mauer_reparatur_stufe: int = 0
+    # S3 (06.11.2026): Verwundete dieses Ortes je Einheitentyp. Sie entstehen bei Verlusten
+    # (30 Prozent, abgerundet) VOR der Verlustbuchung und werden in der Kaserne geheilt
+    # (75 Prozent der Kosten ohne Siedler und ohne Ausruestung, halbe Ausbildungsdauer).
+    # Alte Spielstaende ohne das Feld laden mit `{}` - keine Migration, kein Nachsetzen.
+    verwundete: Dict[str, int] = field(default_factory=dict)
     # --- Ökonomie-Paket, Entwurf Schritt 9 (Z. 757-772): die Felder einer LOKALEN Wirtschaft. ---
     # Sie sind bis zur Aktivierung (Schritt 10) leer bzw. auf ihren Vorgabewerten: das Spiel rechnet
     # weiterhin mit den GLOBALEN Beständen (`GameState.resources`, `.waren`, `.population`).
@@ -4537,6 +4543,28 @@ class GameState:
         self._reichsanzeige_aus_orten()
         return min(menge, verfuegbar) if self._lokale_kasse_aktiv() else menge
 
+    def _verwundete_buchen(self, ort, verluste: dict) -> Dict[str, int]:
+        """S3 (06.11.2026): aus den Verlusten eines Ortes entstehen Verwundete (30 %, abgerundet).
+
+        Wird VOR der Verlustbuchung aufgerufen - so steht die Zahl fest, bevor die Einheiten aus
+        dem Ortsheer verschwinden. Gebucht wird nur, was der Kern ausrechnet
+        (`verwundete.anteil_verwundete`); ist der Schalter aus, passiert nichts.
+        """
+        if ort is None:                                              # kein Ort uebergeben
+            return {}                                                # dann nichts buchen
+        if not verwundetenheilung.aktiv():                           # Mechanik abgeschaltet
+            return {}                                                # dann keine Verwundeten
+        neu = verwundetenheilung.anteil_verwundete(verluste or {})   # 30 Prozent je Typ, abgerundet
+        if not neu:                                                  # keine Verwundeten entstanden
+            return {}                                                # dann nichts eintragen
+        feld = getattr(ort, "verwundete", None)                      # Feld des Ortes
+        if not isinstance(feld, dict):                               # alter Spielstand ohne Feld
+            feld = {}                                                # dann neu anlegen
+            ort.verwundete = feld                                    # und am Ort fuehren
+        for name, anzahl in neu.items():                             # je Einheitentyp
+            feld[name] = int(feld.get(name, 0) or 0) + int(anzahl)   # Verwundete dazuschreiben
+        return neu                                                   # Beleg fuer Meldung und Pruefung
+
     # ---------------- Ökonomie-Paket, Schritt 9, Teil 4: der EIGENE Transport ----------------
     # Entwurf Z. 779: „_transport_to_settlement: Herkunft separat wählen; Rohstoff/Menge/Karren
     # abfragen; transport_start(asdict(Quelle),asdict(Ziel),…) ausführen, Ergebnis mit
@@ -5771,6 +5799,11 @@ class GameState:
                 verteidiger[name] = max(0, int(verteidiger.get(name, 0)) - int(anzahl))
             elif bot_ziel is not None:                                        # nur der Bot bekannt
                 bot_armee_buchen(bot_ziel, name, -int(anzahl))                # EIN Schreiber der Armee
+        # S3 (06.11.2026): die eigenen Verluste dieses Auftrags erzeugen Verwundete - sie kehren mit
+        # den Heimkehrern in die QUELL-Siedlung zurueck (30 Prozent, abgerundet; Schalter in data).
+        _quelle_s3 = (self._siedlung_zu(eintrag.get("quelle_id"))
+                      if eintrag.get("quelle_id") else None)
+        self._verwundete_buchen(_quelle_s3, ergebnis.get("verluste_angreifer"))
         for name, anzahl in (ergebnis.get("verluste_angreifer") or {}).items():
             rest = int(truppen.get(name, 0)) - int(anzahl)
             if rest > 0:
@@ -6301,6 +6334,11 @@ class GameState:
             boni_verteidiger=None,                                    # kein Volk, keine Taktik
             schwellen=drachen.schwellen(drache),                      # Drachenwerte statt Wall
             zweite_phase=drachen.zweite_phase(drache))                # Frage 2: 20 % unter halber Wache
+        # S3 (06.11.2026): auch der Drachenkampf ist ein Auftrag - die eigenen Verluste erzeugen
+        # Verwundete in der Quell-Siedlung (30 Prozent, abgerundet).
+        _quelle_drache = (self._siedlung_zu(eintrag.get("quelle_id"))
+                          if eintrag.get("quelle_id") else None)
+        self._verwundete_buchen(_quelle_drache, ergebnis.get("verluste_angreifer"))
         for name, anzahl in (ergebnis.get("verluste_angreifer") or {}).items():   # Gefallene
             truppen[name] = max(0, int(truppen.get(name, 0)) - int(anzahl))       # abbuchen
         for name in (ergebnis.get("geraete_verloren") or []):          # verlorenes Geraet
@@ -7031,6 +7069,9 @@ class GameState:
                             for name, menge in (kampf_result.get("verluste_angreifer") or {}).items():
                                 # S-5b: Verluste werden auf der Dorf-Garnison gebucht (nie unter 0).
                                 bot_armee_buchen(bot, name, -int(menge))
+                            # S3 (06.11.2026): die Verwundeten entstehen VOR der Verlustbuchung -
+                            # 30 Prozent je Einheitentyp, abgerundet (Daniel, Entscheidung 6).
+                            self._verwundete_buchen(zielort, kampf_result.get("verluste_verteidiger"))
                             for name, menge in (kampf_result.get("verluste_verteidiger") or {}).items():
                                 zielort.einheiten[name] = max(
                                     0, int(zielort.einheiten.get(name, 0)) - int(menge))
@@ -14211,6 +14252,10 @@ class NebelseetalApp:
                     tk.Label(frame, text=_grund, fg="#FDBA74", bg=self.skin["panel"],
                              wraplength=380, justify=tk.LEFT).pack(side=tk.RIGHT, padx=5)
 
+                # S3 (06.11.2026): Verwundete dieser Einheit und ihre Heilung - eigene Zeile unter
+                # der Ausbildung, damit Kosten, Dauer und Sperrgruende einzeln dastehen.
+                self._heilung_zeile_zeichnen(key, _staette)
+
             else:
                 _fehlt = gelaende.gebaeude_name(_staette) if _staette else "Ausbildungsstätte unbekannt"
                 tk.Label(frame, text=f"braucht {_fehlt}", fg="#e53935",
@@ -14218,6 +14263,70 @@ class NebelseetalApp:
         if _angezeigt == 0:
             self._kasten_label(f"Keine Einheit wird in der {staette} ausgebildet.",
                                ("TkDefaultFont", 10), "#FDBA74", innen=14, pady=6)
+
+    def _heilung_zeile_zeichnen(self, key: str, staette: str) -> None:
+        """S3 (06.11.2026): Verwundete einer Einheit und ihre Heilung - jede Bedingung EINZELN.
+
+        Gezeigt wird nur, was es wirklich gibt: ohne Verwundete erscheint keine Zeile. Alle Zahlen
+        kommen aus `verwundete.heilung_grenzen` - dieselbe Stelle, die der Kern beim Start prueft.
+        """
+        ort = self.state.aktive_siedlung()                             # Ort, in dem die Kaserne steht
+        if ort is None or not hasattr(self, "content"):                # kein Ort oder keine Ansicht
+            return                                                     # dann nichts zeichnen
+        feld = getattr(ort, "verwundete", None) or {}                  # Verwundete des Ortes
+        if int(feld.get(key, 0) or 0) <= 0:                            # niemand verwundet
+            return                                                     # dann keine Zeile
+        try:                                                           # Grenzen aus dem Kern
+            grenzen = verwundetenheilung.heilung_grenzen(
+                asdict(ort), key, self.state.forschungs_stufen())
+        except (ValueError, KeyError, TypeError):                      # unbrauchbare Daten
+            return                                                     # dann nichts zeichnen
+        kosten_text = " · ".join("%g %s" % (float(betrag), rohstoff)   # Preis je Rohstoff
+                                 for rohstoff, betrag in sorted(grenzen["kosten_je"].items()))
+        zeile = (f"Verwundet: {int(grenzen['verwundet'])} · Heilung je Stück: "
+                 f"{kosten_text or 'keine Kosten'} · Dauer {grenzen['dauer_je']:g} s "
+                 f"· jetzt bezahlbar: {int(grenzen['moeglich'])}")     # die Anzeige-Zeile
+        block = tk.Frame(self.content, bg=self.skin["bg"])             # eigene Zeile unter der Einheit
+        block.pack(fill=tk.X, padx=34, pady=(0, 8))                    # einruecken wie die Menge
+        tk.Label(block, text=zeile, fg="#FDBA74", bg=self.skin["bg"],  # Heilungszeile in Warnfarbe
+                 font=("Arial", 9), anchor=tk.W, justify=tk.LEFT,
+                 wraplength=840).pack(anchor=tk.W, pady=(2, 0))        # linksbuendig, umbruchfaehig
+        if grenzen["hindernisse"]:                                     # irgendeine Bedingung offen
+            tk.Label(block, text=" ".join(grenzen["hindernisse"]),     # alle Gruende einzeln nennen
+                     fg="#e53935", bg=self.skin["bg"], font=("Arial", 9),
+                     anchor=tk.W, justify=tk.LEFT, wraplength=840).pack(anchor=tk.W)   # rote Zeile
+        var = tk.StringVar(value=str(max(1, min(int(grenzen["moeglich"]) or 1,
+                                                int(grenzen["verwundet"])))))   # Menge vorschlagen
+        tk.Label(block, text="Menge:", fg=self.skin["text"],             # Beschriftung der Menge
+                 bg=self.skin["bg"]).pack(side=tk.LEFT, padx=(0, 4))     # direkt neben das Feld
+        tk.Entry(block, textvariable=var, width=5).pack(side=tk.LEFT, padx=(0, 6))   # Menge eingeben
+        tk.Button(block, text="Heilen", bg="#3e2723", fg=self.skin["gold"],   # der eine Knopf
+                  state=(tk.NORMAL if int(grenzen["moeglich"]) > 0 else tk.DISABLED),   # nur wenn moeglich
+                  command=lambda: self._heile_verwundete(
+                      key, self._menge_lesen(var, spieloekonomie.MENGEN_HOECHSTMENGE))   # Menge lesen
+                  ).pack(side=tk.LEFT)                                  # Knopf in dieselbe Zeile
+
+    def _heile_verwundete(self, key: str, menge: int) -> None:
+        """S3: startet die Heilung von `menge` Verwundeten vor Ort (Kosten aus dem ORTSLAGER)."""
+        ort = self.state.aktive_siedlung()                             # aktive Siedlung
+        if ort is None:                                                # keine Siedlung offen
+            return                                                     # dann nichts tun
+        try:                                                           # der Kern prueft alles
+            ergebnis = verwundetenheilung.heilung_start_menge(
+                asdict(ort), key, self.state.forschungs_stufen(),
+                float(self.state.spielsekunden), int(menge))           # Menge, Ort, Spielzeit
+        except (ValueError, KeyError, TypeError) as fehler:            # Bedingung nicht erfuellt
+            meldung = str(fehler)                                      # Grund woertlich uebernehmen
+            self.state.messages.append({"text": "Heilung: " + meldung, "type": "system"})   # ins Postfach
+            self._log("Heilung gescheitert: " + meldung)               # ins Spielprotokoll
+            self._render_view()                                        # Ansicht neu zeichnen
+            return                                                     # nichts gebucht
+        self.state._ort_uebernehmen(ort.id, ergebnis["ort"])           # Ort aus dem Kern uebernehmen
+        meldung = ("%d × %s in Heilung - fertig in %d Spielsekunden."   # Klartext-Meldung
+                   % (int(ergebnis["anzahl"]), key, int(ergebnis["rest_sekunden"])))
+        self.state.messages.append({"text": meldung, "type": "system"})   # Meldung ins Postfach
+        self._log(meldung)                                             # Zeile im Spielprotokoll
+        self._render_view()                                            # Ansicht zeigt die Schlange
 
     def _siedler_warnung_zeichnen(self) -> None:
         """A-6: die freie Siedlerreserve des Ortes sichtbar machen, bevor sie aufgebraucht ist.

@@ -1,0 +1,8 @@
+{
+  "_schnitt_s3": "S3 Verwundetenheilung, 06.11.2026 - Zahlen aus Daniels Entscheidungen 6 und 6a (docs/S0_TABELLEN_20261107.md, V-2)",
+  "aktiv": true,
+  "verwundeten_anteil_prozent": 30,
+  "heilungskosten_prozent": 75,
+  "heilungsdauer_prozent": 50,
+  "_hinweis": "anteil = Anteil der Verluste je Einheitentyp, der verwundet wird (abgerundet). kosten = Anteil der Kostenposten aus units.json ohne siedler und ohne waren. dauer = Anteil der Ausbildungsdauer der Stufe."
+}

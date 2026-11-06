@@ -1366,7 +1366,11 @@ def ausbildung_abschluss(ort: dict, bis: float) -> dict:
             continue
         ort["einheiten"][name] = int(ort["einheiten"].get(name, 0)) + 1     # Einheit steht im Dorf
         a["gebucht"] = True                                                # genau einmal buchen
-        ort["fertigjournal"].append({"zeit": a.get("ende"), "art": "einheit", "name": name})
+        # S3 (06.11.2026): eine Heilung ist keine Ausbildung - sie steht als eigene Art im Journal,
+        # damit niemand die geheilten Einheiten fuer frisch ausgebildete haelt.
+        ort["fertigjournal"].append({"zeit": a.get("ende"),
+                                     "art": "heilung" if a.get("heilung") else "einheit",
+                                     "name": name})
     return ort                                                             # derselbe Ort
 
 

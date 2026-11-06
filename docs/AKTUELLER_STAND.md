@@ -1,3 +1,19 @@
+# STAND 06.11.2026, 07:44 - S3 Verwundetenheilung gebaut (Register 257)
+
+> Neuester Block. Register 257. Darunter 256 (Gemini-Buendelung, 06:03), S2-Lauf (05:56), S2-Bau (05:19).
+
+**Neu:** S3 ist gebaut - 30 Prozent der Verluste je Einheitentyp werden verwundet (abgerundet), die
+Heilung kostet 75 Prozent der Kostenposten ohne Siedler und ohne Ausruestung und dauert die Haelfte der
+Ausbildungsdauer. Die Zahlen stehen in `data/verwundete.json`, die Rechnung in `src/verwundete.py`, das
+Feld `verwundete` an `Settlement`; die Anzeige sitzt in der Kaserne und nennt jede Bedingung einzeln.
+Wache `tests/test_verwundete.py`: 41 bestanden, 0 Fehler.
+
+**Naechster Schritt:** der volle Sammellauf ueber den S3-Stand (182 Dateien, 35 bis 50 Minuten, mit
+`.venv/Scripts/python.exe -X utf8 -u tools/sammellauf.py`), danach Block 5 (Verlustbericht als eigener
+Typ `verlust`, Flakiness-Wache `test_kartenwahl_bot`) und S4 Teil 1. Jeder Schritt endet mit Register,
+Protokoll, Stand-Block, Commit und Push.
+
+---
 # STAND 06.11.2026, 06:03 - Gemini-Unterlagen gebuendelt (Register 256)
 
 > Neuester Block. Register 256. Darunter Design Content Nr. 3 (05:5x), S2-Lauf (05:56), S2-Bau (05:19).
