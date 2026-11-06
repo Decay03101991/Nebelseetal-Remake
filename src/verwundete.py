@@ -1,4 +1,4 @@
-# -*- coding: ascii -*-
+# -*- coding: utf-8 -*-
 """S3 Verwundetenheilung (06.11.2026) - die EINE Rechenstelle fuer Verwundete.
 
 Was hinein geht: die Verluste eines Ortes, der Einheitenname, der Forschungsstand, die Spielzeit.
@@ -119,7 +119,7 @@ def heilung_grenzen(ort: dict, name: str, forschung) -> dict:
     leer = {"einheit": name, "moeglich": 0, "kosten_je": {}, "dauer_je": 0.0,
             "gebaeude": None, "stufe": 0, "verwundet": 0, "hindernisse": []}   # Grundform
     if not isinstance(ort, dict):                    # kein Ort uebergeben
-        leer["hindernisse"].append("Kein Ort ausgewaehlt.")   # ehrlicher Grund
+        leer["hindernisse"].append("Kein Ort ausgewählt.")   # ehrlicher Grund
         return leer                                  # dann nichts moeglich
     feld = ort.get("verwundete") or {}               # Verwundete dieses Ortes
     verwundet = int(feld.get(name, 0) or 0) if isinstance(feld, dict) else 0   # Zahl je Einheit
