@@ -1,6 +1,6 @@
 # LLM_20261106 - der Auftrag an externe Modelle und die vier Antworten
 
-**Angelegt:** 06.11.2026, 09:00. **Grund:** Daniel hat den Auftrag aus
+**Angelegt:** 06.11.2026, 08:52. **Grund:** Daniel hat den Auftrag aus
 `docs/extern/Nebelseetal_LLM_Auftrag_20261106.md` an vier Modelle gegeben und die Antworten am
 06.11.2026 auf dem Desktop abgelegt (Ordner `Antworten_Nebelseetal_LLM_Auftraege`). Hier liegen sie
 vollstaendig, hashgeprueft und mit Index - so wie die Gemini-Unterlagen in
