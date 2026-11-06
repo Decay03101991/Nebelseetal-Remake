@@ -70,7 +70,19 @@ def main() -> int:
     historie_texte = ([p.read_text(encoding="utf-8") for p in
                        sorted((WURZEL / "docs").glob("ENTWICKLUNGSPROTOKOLL_HISTORIE_*.md"))]
                       if ziel == PROTOKOLL else [])
-    gesamt = (text + "\n" + "\n".join(historie_texte)) if historie_texte else text
+    # ENTSCHEIDUNG Daniel 06.11.2026: HEFTWECHSEL statt Verdichtung. Das abgeschlossene Heft
+    # wandert vollstaendig ins Archiv; Vollstaendigkeit und Belegbarkeit gelten deshalb fuer
+    # aktives Heft + Historienhefte + Archivhefte ZUSAMMEN. Ohne das meldet die Pruefung Zeilen
+    # als verloren, die nur in ein anderes Heft umgezogen sind.
+    archiv_texte = ([p.read_text(encoding="utf-8") for p in
+                     sorted((WURZEL / "archiv" / "dokumentation" / "protokoll_alte_fassungen")
+                            .glob("ENTWICKLUNGSPROTOKOLL_BIS_*.md"))]
+                    if ziel == PROTOKOLL else [])
+    teile = ([text] + historie_texte + archiv_texte)
+    gesamt = "\n".join(teile)
+    if archiv_texte:
+        melde(f"  Archivhefte: {len(archiv_texte)} — "
+              f"{sum(len(t.splitlines()) for t in archiv_texte)} Zeilen")
     if historie_texte:
         melde(f"  Historienhefte: {len(historie_texte)} — "
               f"{sum(len(t.splitlines()) for t in historie_texte)} Zeilen; zusammen "

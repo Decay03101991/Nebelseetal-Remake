@@ -13,6 +13,12 @@ und wird hier eingetragen.
 | `docs/ABLAUF_LLM_20261106.md` | die Arbeitsreihenfolge (13 Schritte plus Dokumentenschritt) | vor jedem Schritt |
 | `docs/ENTWICKLUNGSPROTOKOLL.md` | die Entstehungsgeschichte, eine Zeile je grobem Schritt | beim Einordnen eines Befunds |
 
+**Protokoll-Hefte:** das laufende Heft ist `docs/ENTWICKLUNGSPROTOKOLL.md`; das vorige Heft
+(02.11. bis 06.11.2026, 319 Zeilen) steht vollstaendig in
+`archiv/dokumentation/protokoll_alte_fassungen/ENTWICKLUNGSPROTOKOLL_BIS_20261106.md`, die
+Historie in `docs/ENTWICKLUNGSPROTOKOLL_HISTORIE_*.md`. Ein Heft wird nie gekuerzt - bei
+320 Zeilen beginnt ein neues, und der erste Eintrag ist der letzte des alten.
+
 Dazu das Register `docs/PRUEFREGEL_ORIGINAL.md`: **jede** geprüfte Zahl mit Quelle und Urteil
 (BELEGT / WIDERSPRUCH / NICHT BELEGT / VORSCHLAG). Was dort steht, wird nicht erneut geprüft.
 

@@ -39,6 +39,11 @@ HISTORIE = os.path.join(ROOT, "docs", "ENTWICKLUNGSPROTOKOLL_HISTORIE_BIS_202611
 # Zeilen aus dem Blick, die nur verschoben wurden.
 HISTORIEN = sorted(glob.glob(os.path.join(ROOT, "docs", "ENTWICKLUNGSPROTOKOLL_HISTORIE_*.md")))
 VORFASSUNG = os.path.join(ROOT, "archiv", "dokumentation", "protokoll_alte_fassungen", "ENTWICKLUNGSPROTOKOLL_VOR_VERDICHTUNG_2026-10-05.md")
+# ENTSCHEIDUNG Daniel 06.11.2026: HEFTWECHSEL statt Verdichtung. Das abgeschlossene Heft liegt
+# vollstaendig im Archiv und zaehlt zur Gesamtsumme; geprueft wird zusaetzlich die Naht (der
+# erste Eintrag des neuen Hefts ist der letzte Eintrag des Archivhefts).
+ARCHIV = os.path.join(ROOT, "archiv", "dokumentation", "protokoll_alte_fassungen",
+                      "ENTWICKLUNGSPROTOKOLL_BIS_20261106.md")
 
 abschnitt("1. Das Protokoll haelt seine Zielgroesse")
 
@@ -50,7 +55,8 @@ check("das geschlossene Geschichtsheft liegt daneben", os.path.exists(HISTORIE),
 historie = open(HISTORIE, encoding="utf-8").read() if os.path.exists(HISTORIE) else ""
 # ALLE Historienhefte zusammen (das geschlossene von vor dem 02.11. und die ausgelagerten Sektionen).
 historie_alle = "\n".join(open(p, encoding="utf-8").read() for p in HISTORIEN)
-gesamt = roh + "\n" + historie_alle
+archiv_text = open(ARCHIV, encoding="utf-8").read() if os.path.exists(ARCHIV) else ""
+gesamt = roh + "\n" + historie_alle + "\n" + archiv_text
 check("die Vor-Fassung der Verdichtung ist aufbewahrt", os.path.exists(VORFASSUNG),
       os.path.basename(VORFASSUNG))
 if len(zeilen) > pz.ZIELZEILEN:
@@ -76,8 +82,19 @@ check("jedes Historienheft nennt sich selbst HISTORIE",
       "%d Hefte" % len(HISTORIEN))
 check("der Schnitt ist sauber: die Sektion HERMES-BOTDORF-06 steht NUR im Historienheft",
       "## HERMES-BOTDORF-06" not in roh and "## HERMES-BOTDORF-06" in historie_alle, "")
-check("der Schnitt ist sauber: die Sektion HERMES-BOTNAHRUNG-01 steht NUR im aktiven Heft",
-      "## HERMES-BOTNAHRUNG-01" in roh and "## HERMES-BOTNAHRUNG-01" not in historie_alle, "")
+check("der Schnitt ist sauber: die Sektion HERMES-BOTNAHRUNG-01 steht NUR im Archivheft",
+      "## HERMES-BOTNAHRUNG-01" not in roh and "## HERMES-BOTNAHRUNG-01" in archiv_text, "")
+check("das abgeschlossene Heft liegt im Archiv", os.path.exists(ARCHIV),
+      os.path.basename(ARCHIV))
+_zeit = re.compile(r"^\|\s*\d{1,2}[:.]\d{2}")
+_archiv_zeilen = [z for z in archiv_text.splitlines() if _zeit.match(z)]
+_neue_zeilen = [z for z in zeilen if _zeit.match(z)]
+check("die Naht stimmt: erster Eintrag des neuen Hefts = letzter Eintrag des Archivhefts",
+      bool(_archiv_zeilen) and bool(_neue_zeilen)
+      and _neue_zeilen[0].strip() == _archiv_zeilen[-1].strip(),
+      (_neue_zeilen[0][:60] if _neue_zeilen else "kein Eintrag"))
+check("das neue Heft verweist auf das Archivheft",
+      os.path.basename(ARCHIV) in roh, "")
 check("das aktive Heft verweist auf das ausgelagerte",
       "ENTWICKLUNGSPROTOKOLL_HISTORIE_20261102_bis_20261103.md" in roh, "")
 check("alle Hefte zusammen ergeben das Protokoll",
