@@ -1,3 +1,20 @@
+# STAND 06.11.2026, 05:56 - S2 im Sammellauf geprueft, Gemini-Material abgelegt (Register 253/254)
+
+> Neuester Block. Register 253/254, Protokollzeile 05:56. Darunter S2-Bau (05:19), S1b (03:47), S1 (03:22), S0 (03:02).
+
+**Sammellauf 3 (S2):** 182 Dateien, 7448 Pruefungen, 1 Fehler, 60 Befunde, 2072 s. Die eine rote Datei
+`test_kartenwahl_bot.py` ist im Einzellauf dreimal gruen - Flakiness (Zufall ohne festen Startwert), kein
+Fehler des Schnitts. **Der Punkt bleibt offen und ist in der Uebergabe benannt.**
+
+**Neu abgelegt (nichts davon gebaut):** `docs/eingaenge/GEMINI_WEITERE_VORSCHLAEGE_20261106.txt`,
+`GEMINI_ANTWORT_AUFTRAG_20261106.txt`, `GEMINI_ALTERNATIVEN_20261106.md` und
+`EINORDNUNG_GEMINI_VORSCHLAEGE_20261106.md`. Befund: der Vorschlag rechnet die Mauerreparatur mit
+`16 * Stufe / 10` je Prozentpunkt - belegt und gebaut ist `/ 100`.
+
+**Naechster Schritt:** S3 Verwundetenheilung nach V-2 (Block 5 des Nachtauftrags).
+
+---
+
 # STAND 06.11.2026, 05:19 - S2 gebaut: Mauerreparatur (Register 252)
 
 > Neuester Block. Register 252, Protokollzeile 05:19. Nachtlauf. Darunter S1b (03:47), S1 (03:22), S0 (03:02).

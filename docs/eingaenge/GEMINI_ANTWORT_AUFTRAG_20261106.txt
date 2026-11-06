@@ -1,0 +1,49 @@
+TEIL A - Randfall- und Testfall-Liste fuer die VerwundetenheilungFall 1: 0 Verluste nach einer Schlacht -> 0 Verwundete erzeugt (0 Verluste fuehren durch die Rundung zu keinen Verwundeten)
+Fall 2: 1 Verlust nach einer Schlacht -> 0 Verwundete erzeugt (1 mal 30 Prozent gleich 0,3, abgerundet 0 Verwundete)
+Fall 3: 2 Verluste nach einer Schlacht -> 0 Verwundete erzeugt (2 mal 30 Prozent gleich 0,6, abgerundet 0 Verwundete)
+Fall 4: 3 Verluste nach einer Schlacht -> 0 Verwundete erzeugt (3 mal 30 Prozent gleich 0,9, abgerundet 0 Verwundete)
+Fall 5: 4 Verluste nach einer Schlacht -> 1 Verwundeter erzeugt (4 mal 30 Prozent gleich 1,2, abgerundet 1 Verwundeter)
+Fall 6: Verluste bei drei Einheitentypen gleichzeitig -> Getrennte Berechnung je Typ (Mehrere Einheiten muessen unabhaengig voneinander berechnet werden)
+Fall 7: Einheit mit Kosten in vier verschiedenen Rohstoffen -> Heilungskosten erfassen exakt 75 Prozent aller Kostenposten ohne Ausruestung und Siedler (Pruefung der Kostenvielfalt)
+Fall 8: Einheit mit 0 Siedlerkosten -> Verwundetenheilung laeuft normal ab, da Siedlerkosten ohnehin nicht berechnet werden (Sonderfall bei Einheiten ohne Siedlerbindung)
+Fall 9: Ressourcenbestand liegt knapp ueber den Heilungskosten -> Heilung startet erfolgreich und bucht die Ressourcen ab (Grenzfall bei fast leerem Lager)
+Fall 10: Ressourcenbestand liegt knapp unter den Heilungskosten -> Heilung wird wegen zu geringer Ressourcen verweigert (Pruefung der exakten Bestandsgrenze)
+Fall 11: Zwei Heilungen derselben Einheit nacheinander in der Warteschlange -> Zweite Heilung wird angehaengt oder separat gefuehrt (Doppelbelegung der Warteschlange)
+Fall 12: Abbruch der Heilung durch einen neuen Angriff -> Laufende Reparatur oder Heilung bricht ab (Interaktion mit Kampfsystem)
+Fall 13: Alter Spielstand ohne Verwundeten-Feld -> Spielstand laedt fehlerfrei mit Standardwert 0 fuer Verwundete (Rueckwaertskompatibilität)
+Fall 14: Spielstand mit Verwundeten ohne aktive Warteschlange -> Verwundete verbleiben an der Siedlung, bis eine Heilung gestartet wird (Persistenztest)
+Fall 15: Negative Werte im Verwundeten-Feld -> System korrigiert oder ignoriert ungültige negative Bestände (Fehlerbehandlung bei Datenkorruption)
+Fall 16: Sehr grosse Zahlen bei Verlusten von Masseneinheiten -> Berechnung der Verwundeten und Abrundung ueberstehen grosse Werte ohne Ueberlauf (Stresstest für Mengeneinheiten)
+Fall 17: Heilungsdauer bei Gebaeudestufe 1 -> Exakt 60 Prozent der Ausbildungsdauer, entsprechend 600 Sekunden (Basiswert-Pruefung)
+Fall 18: Heilungsdauer bei hoeherer Gebaeudestufe -> Wert verringert sich entsprechend der Stufenteilung (Skalierung der Heilungszeit)
+Fall 19: Heilungsversuch ohne vorhandene Ausbildungs-Warteschlange -> Start wird verweigert, da keine Queue bereitsteht (Fehlende Infrastruktur)
+Fall 20: Warteschlange bereits voll mit Einheiten-Ausbildung -> Heilungsauftrag muss warten oder wird abgewiesen (Kapazitätsgrenze der Warteschlange)
+Fall 21: Exakte Kostenberechnung bei Gold als einzigem Rohstoff -> 75 Prozent der Goldkosten werden korrekt ermittelt (Waehrungsprüfung)
+Fall 22: Exakte Kostenberechnung bei Nahrung als einzigem Rohstoff -> 75 Prozent der Nahrungskosten werden korrekt ermittelt (Nahrungswertprüfung)
+Fall 23: Exakte Kostenberechnung bei Leder und Wolle -> 75 Prozent der Materialkosten werden korrekt ermittelt (Rohstoffprüfung)
+Fall 24: Exakte Kostenberechnung bei Pferden -> 75 Prozent der Pferdekosten werden korrekt ermittelt (Spezialrohstoffprüfung)
+Fall 25: Einheit stirbt komplett ohne Verwundete (z.B. 1 Verlust bei 1 Gesamtverlust) -> Keine Verwundeten, keine Heilungsoption verfügbar (Keine Reste nach Tod)
+Fall 26: Mehrere Verwundete desselben Typs werden geheilt -> Zähler der Verwundeten sinkt exakt um die geheilte Menge (Mengenabgleich nach Abschluss)
+ENDE TEIL A   TEIL B - Spieltexte fuer die Diplomatie (S4)B1
+Der Nachbar streckt die Hand aus und fordert das Notwendige. Ein Bote steht im Tor und verlangt entweder 990 Holz oder 64 Gold.   B2
+Die Kiste schliesst sich mit einem dumpfen Schlag. Der Gesandte nickt knapp und verschwindet im grauen Dunst.   B3
+Die Boten drängen sich an der Grenze und blicken finster herüber. Wer den Preis verweigert, zieht den Zorn des Nachbarn auf sich.   B4
+Ein Pergament mit wachsbesiegeltem Siegel wird am Grenzstein hinterlassen. Ein Frieden auf Zeit soll zwischen den Toren gelten.   B5
+Das Siegel ist gebrochen, bevor die Frist verblasst ist. Der Nachbar reisst das Abkommen nieder, weil das Vertrauen geschwunden ist.   B6
+Der Händler breitet seine Waren auf dem feuchten Boden aus. Fünf Werkzeuge sollen gegen zwanzig Eisen getauscht werden.   B7
+Titel: Nebelwand. Text: Eine dichte Wand aus kaltem Dunst kriecht über die Felder und verbirgt die Pfade für zwei Tage.   B8
+Titel: Ruinenruf. Text: Aus den verfallenen Mauern drang nachts ein scharfes Echo. Wer jetzt späht, hat zwei Tage Zeit zum Handeln.   B9
+Titel: Drachenschatten. Text: Ein schwerer Flügelschlag zieht hoch über den Gipfeln auf. Die Boten schweigen für zwei Tage.   B10
+Freundlich: Die Tore stehen offen und der Handel floriert ohne Misstrauen.   B11
+Neutral: Man beäugt sich misstrauisch, hält aber den Abstand an der Grenze.   B12
+Feindlich: Jede Bewegung wird mit gezückten Waffen beantwortet und der Handel ruht.
+ENDE TEIL B   TEIL C - Anzeigetexte fuer die Mauerreparatur (S2)C1
+Die Steine bröckeln, aber die Handwerker stehen bereit. Eine Reparatur ist möglich und kostet Holz sowie Stein.   C2
+Die Reparatur ist gesperrt, weil die Mauer noch ausgebaut wird. Warten Sie, bis der Ausbau beendet ist, bevor Sie beginnen.   C3
+Die Reparatur ist gesperrt, weil zu wenig Holz vorhanden ist. Es fehlen exakt die benötigten Holz-Einheiten für den nächsten Schritt.   C4
+Die Reparatur ist gesperrt, weil zu wenig Stein vorhanden ist. Es fehlen exakt die benötigten Stein-Einheiten für den nächsten Schritt.   C5
+Die Reparatur läuft auf Hochtouren. Der Ziel-Zustand und die verbleibende Restzeit werden berechnet.   C6
+Die Reparatur ist abgeschlossen. Die Mauer steht wieder fest und geschlossen.   C7
+Die Reparatur wurde durch einen feindlichen Angriff abgebrochen. Die Handwerker mussten die Arbeit sofort niederlegen.   C8
+Die Mauer befindet sich bei einhundert Prozent. Es gibt derzeit nichts zu reparieren.
+ENDE TEIL C   
