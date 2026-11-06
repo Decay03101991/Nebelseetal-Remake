@@ -1,0 +1,18 @@
+{
+  "sekunden": 193.9,
+  "stuecke": 4522,
+  "zeichen": 15367,
+  "nutzung": {
+    "prompt_tokens": 5275,
+    "completion_tokens": 15952,
+    "total_tokens": 21227,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 11429
+    },
+    "prompt_cache_hit_tokens": 0,
+    "prompt_cache_miss_tokens": 5275
+  }
+}

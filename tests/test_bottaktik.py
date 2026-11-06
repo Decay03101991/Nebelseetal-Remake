@@ -1,6 +1,6 @@
 """Pruefung der Bot-Taktik (Paket BT) - Koordinaten, Taktiken, Gedaechtnis, Signale.
 
-Belegt gegen `docs/AUFTRAG_BOTTAKTIK_MODUL.md` und den Entwurf
+Belegt gegen `docs/auftraege/AUFTRAG_BOTTAKTIK_MODUL.md` und den Entwurf
 `docs/design/SPIELSPANNUNG_UND_BOTTAKTIK_20261101.md` (Abschnitt D/G).
 Geprueft werden: vier Taktiken entscheiden in derselben Lage unterschiedlich,
 Koordinaten sind deterministisch, Entfernung ist Manhattan, kein Angriff ohne

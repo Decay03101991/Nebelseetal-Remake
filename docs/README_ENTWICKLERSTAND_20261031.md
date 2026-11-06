@@ -9,7 +9,7 @@
 > * **Ein Bewegungssystem statt zwei:** Kartenfeld-Beute läuft jetzt über dieselbe Formel wie der Auftrags-Pfad (`kampfbericht.beute_am_ziel`, mit Abbuchung am Feld); der **Rückweg** kostet die gleiche Zeit wie der Hinweg (`main.rueckmarsch_eintrag`, `tests/test_rueckmarsch.py` 16/0/0).
 > * **Prüfregister des Originals** auf **63 belegte Punkte** erweitert (`docs/PRUEFREGEL_ORIGINAL.md`).
 > * **Code lesbar für Einsteiger:** jeder Abschnitt, jede Funktion kurz erklärt — Regel und Messwerkzeug in [Code-Lesbarkeit](CODE_LESBARKEIT.md) und `tools/kommentar_luecken.py` (213 von 915 Funktionen noch ohne Beschreibung).
-> * **Übergabe mit allen Belegen:** [Übergabe 31.10.2026, 14:00](HANDOFF_20261031_1400.md); offene Entscheidungen in [Fragen an Daniel](FRAGEN_AN_DANIEL_20261031_0600.md).
+> * **Übergabe mit allen Belegen:** [Übergabe 31.10.2026, 14:00](HANDOFF_20261031_1400.md); offene Entscheidungen in [Fragen an Daniel](archiv/fragen/FRAGEN_AN_DANIEL_20261031_0600.md).
 > * **EXE:** `Nebelseetal_Remake.exe`, 43,8 MB, SHA256 `bb97d204…`, Rauchtest bestanden (Tor-Seite erscheint).
 > * Besucherstand mit Zahlen: [Spielstatus](BESUCHER_STATUS.md).
 
