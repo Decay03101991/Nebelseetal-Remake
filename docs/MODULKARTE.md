@@ -2,13 +2,13 @@
 
 **Erzeugt von `tools/modulkarte_bauen.py` — nicht von Hand ändern.** Stand: siehe Git-Historie.
 
-62 Dateien in `src/`, 35153 Zeilen, 1009 Funktionen und Klassen auf oberster Ebene.
+63 Dateien in `src/`, 35369 Zeilen, 1022 Funktionen und Klassen auf oberster Ebene.
 
 ## Die Karte
 
 | Datei | Zeilen | Zweck (erste Zeile des Docstrings) | wird gebraucht von |
 |---|---:|---|---|
-| `main.py` | 15338 | Nebelseetal Remake — Core Game Engine | public_start.py |
+| `main.py` | 15371 | Nebelseetal Remake — Core Game Engine | public_start.py |
 | `spieloekonomie.py` | 1841 | Nebelseetal Remake — deterministischer Kern der Spielökonomie (Ökonomie-Paket, Schritt 2). | admin_teststand.py, admin_werkzeuge.py, botkern.py, main.py, spielschicht.py, verwundete.py |
 | `welt_optik_fein.py` | 898 | FEINERE Zeichenplaene fuer die WELTkarte des Nebelseetal-Remakes (naechste Ausbaustufe). | main.py |
 | `karten_optik_fein.py` | 863 | Feinere Zeichenplaene fuer die Siedlungskarte des Nebelseetal-Remakes | main.py |
@@ -35,7 +35,7 @@
 | `dorfwall.py` | 295 | Isolierter Wallkern fuer Nebelseetal (GPT-Zuarbeit, 28.10.2026). | main.py |
 | `ausruestung.py` | 273 | Nebelseetal Remake — Ausruestung: welche Waren eine Einheit zur Ausbildung braucht. | main.py, spieloekonomie.py |
 | `postfach.py` | 261 | Postfach: Fristen, Archiv, Blaettern und Ruhm-Rang - die EINE Rechenstelle (S1, 06.11.2026). | main.py |
-| `spieldaten.py` | 258 | Nebelseetal Remake — Datenschicht. | admin_werkzeuge.py, ausruestung.py, berater.py, bot_angriffsplanung.py, drachen.py, einheiten.py, forschung.py, forschung_wirkung.py, gebaeude_optik.py, gebaeude_wirkung.py, gelaende.py, gpt_versorgungsdiagnose.py, kampf.py, main.py, marsch_optik.py, originalkarten.py, originalkarten_grafik.py, spieloekonomie.py, spielschicht.py, spielzeit.py, spionage.py, stimmen.py, story.py, welt.py, werkstatt.py, wirtschaft.py |
+| `spieldaten.py` | 258 | Nebelseetal Remake — Datenschicht. | admin_werkzeuge.py, ausruestung.py, berater.py, bot_angriffsplanung.py, diplomatie.py, drachen.py, einheiten.py, forschung.py, forschung_wirkung.py, gebaeude_optik.py, gebaeude_wirkung.py, gelaende.py, gpt_versorgungsdiagnose.py, kampf.py, main.py, marsch_optik.py, originalkarten.py, originalkarten_grafik.py, spieloekonomie.py, spielschicht.py, spielzeit.py, spionage.py, stimmen.py, story.py, welt.py, werkstatt.py, wirtschaft.py |
 | `bot_angriffsplanung.py` | 254 | GPT-B01: konservative Bot-Zielwahl nach den Wallregeln der Originalanleitung. | main.py |
 | `admin_werkzeuge.py` | 246 | Isolierte Admin-Testwerkzeuge (keine Aenderung der normalen Spielregeln). | admin_oberflaeche.py |
 | `gelaende.py` | 242 | Gelaende und Siedlungskarte fuer das Nebelseetal-Remake. | admin_teststand.py, admin_werkzeuge.py, baumenue_info.py, berater.py, gebaeude_wirkung.py, gpt_versorgungsdiagnose.py, karten_optik_fein.py, main.py, originalkarten.py, portalraum.py, spieloekonomie.py, spielschicht.py, versorgungsschutz.py, werkstatt.py, wirtschaft.py |
@@ -51,6 +51,7 @@
 | `spielerhilfe.py` | 176 | FIX04c – Spielerhilfe während des Götterschutzes, jederzeit aufrufbar. | admin_werkzeuge.py, main.py |
 | `welt.py` | 171 | Weltkarte des Limbus fuer das Nebelseetal-Remake. | main.py, portalraum.py |
 | `bonus_system.py` | 169 | Nebelseetal Remake — Central Bonus System | main.py, wirtschaft.py |
+| `diplomatie.py` | 169 | Diplomatie der Bots - Gunst, Status (S4 Teil 1, 06.11.2026). | main.py |
 | `spielzeit.py` | 169 | Spielzeit — der Zeitfaktor (Vorgabe Daniel 05.10.2026, Spielbericht). | main.py |
 | `ruinendeckung.py` | 163 | Ruinendeckung: eine besiegte Ruine deckt die Richtung, in der sie liegt (Frage 9, Register 216). | main.py |
 | `spielstand_archiv.py` | 162 | Private Spielstandarchive: eindeutig, zeitgestempelt, ohne unbemerktes Loeschen. | main.py, speichern.py |
@@ -63,8 +64,8 @@
 | `voelker.py` | 118 | Die sechs Fraktionen (Voelker) als eigene Datenschicht - Lesen, Pruefen, Verteilen (A2, 03.11.2026). | bottaktik.py, main.py |
 | `stimmen.py` | 107 | Stimmen der fuenf Bots (Story 2, 04.11.2026). | main.py |
 | `zeitbasis.py` | 103 | Eine einzige Trennung von Rechnerzeit, Laufzeit und Spielzeit. | main.py |
+| `hilfen.py` | 74 | Kleine, reine Helfer, die mehrere Module brauchen. | auftraege.py, einheiten.py, kampfbericht.py, main.py, spionage.py |
 | `haeuser.py` | 61 | Die sechs Haeuser der Welt als eigene Datenschicht - Name, Sitz, Farben, Burg und Wappen (W-15). | main.py |
-| `hilfen.py` | 60 | Kleine, reine Helfer, die mehrere Module brauchen. | auftraege.py, einheiten.py, kampfbericht.py, main.py, spionage.py |
 | `spielstaende.py` | 52 | Drei stabile, unabhaengige Speicherslots und ein gesonderter Admin-Teststand. | main.py |
 | `gildenrangliste_original.py` | 48 | Historische Gildenwertung als reine, inaktive Datenfunktion. | — (Einstieg oder ungenutzt) |
 | `originalkarten_grafik.py` | 36 | Authentische Rasterbilder der 127 Originalkarten, keine Legacy-Symbole. | main.py |

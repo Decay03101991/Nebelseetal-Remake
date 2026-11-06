@@ -1,0 +1,30 @@
+{
+  "_schnitt": "S4 Teil 1 (06.11.2026): Gunst und Status. Gebaut nach docs/ABLAUF_LLM_20261106.md Schritt 1. Spaetere Teile (Vertraege, Rachetopf, Ereignisse) kommen in DIESELBE Datei und werden mit ihrem eigenen Schnitt angelegt - hier steht nur, was gebaut ist.",
+  "stand": "2026-11-06",
+  "regel": "Die Gunst eines Bots liegt zwischen min und max. Der Status wird NICHT gespeichert, sondern bei jeder Anzeige aus der Gunst gerechnet (diplomatie.status) - zwei Speicher fuer eine Groesse waeren der F-04-Fehler.",
+  "aktiv": true,
+  "gunst": {
+    "min": 0,
+    "max": 100,
+    "start": 50,
+    "start_quelle": "VORSCHLAG: Mitte des mittleren Bereichs (40 bis 59). Weder Handbuch 2009 noch die 2006er Seiten nennen einen Startwert; alle vier Modellantworten schlagen 50 vor, belegen ihn aber nicht.",
+    "grenzen_quelle": "Auftragsdokument docs/extern/Nebelseetal_LLM_Auftrag_20261106.md Abschnitt 7.1: 0-39 feindselig, 40-59 wachsam, 60-100 freundlich. Der Originalbeleg im Handbuch 2009 ist noch nachzuziehen (offener Punkt A-5).",
+    "status": [
+      {
+        "bis": 39,
+        "schluessel": "feindselig",
+        "text": "feindselig"
+      },
+      {
+        "bis": 59,
+        "schluessel": "wachsam",
+        "text": "wachsam"
+      },
+      {
+        "bis": 100,
+        "schluessel": "freundlich",
+        "text": "freundlich"
+      }
+    ]
+  }
+}

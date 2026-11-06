@@ -52,6 +52,7 @@ import kampfbericht  # W2b: Vorrunden-Pruefung, Mauerschaden, Beute, Bericht
 import drachen  # W-14 (05.11.2026): die Drachen des Spiels - liest nur data/drachen.json
 import ruinendeckung  # Frage 9 (05.11.2026): eine besiegte Ruine deckt ihre Himmelsrichtung
 import haeuser  # W-15 (05.11.2026): Hausnamen und Wappen je Fraktion aus data/haeuser.json
+import diplomatie  # S4-1 (06.11.2026): Gunst und Status - liest nur data/diplomatie.json
 import bot_angriffsplanung  # GPT-B01: Original-SK-Zielwahl und ehrliche Bot-Kampfberichte
 import botkern     # W5: Bot-Regeln (hier: die Vorschlagsspannen fuer die Vorraete der Bots)
 import bottaktik   # S-7: Bot-Verhalten (Zustandsautomat, Taktiken, Volksattribute, Wechsel)
@@ -287,6 +288,10 @@ class BotPlayer:
     # ist seit S-5b die SUMME seiner Doerfer (`BotDorf.einheiten`). Ein eigenes Feld waere die
     # zweite Buchfuehrung, die B-3 fuer die Kasse schon einmal teuer aufgedeckt hat.
     ruf: int = 0
+    # S4-1 (06.11.2026): die Gunst des Spielers bei diesem Bot, 0 bis 100 (`diplomatie`).
+    # Der STATUS wird NICHT gespeichert - er wird bei jeder Anzeige aus der Gunst gerechnet.
+    # Fehlt das Feld in einem alten Spielstand, gilt der Startwert aus data/diplomatie.json.
+    gunst: int = 50
     noob_protection: bool = True
     last_rename: float = 0.0
     # W5 (botkern): die Felder, mit denen `src/botkern.py` rechnet. Sie sind der EINE Ort, an dem
@@ -477,6 +482,10 @@ def bot_aus_stand(daten: dict) -> "BotPlayer":
     roh = werte.get("doerfer") or []                                      # gespeicherte Doerfer (dicts)
     werte["doerfer"] = [d if isinstance(d, BotDorf) else BotDorf(**d) for d in roh]   # zurueck zu Objekten
     bot = BotPlayer(**werte)                                              # uebrige Felder wie bisher
+    # S4-1 (06.11.2026): die Gunst kommt aus dem Spielstand; fehlt sie (Stand vor S4-1), gilt der
+    # Startwert aus data/diplomatie.json. Ein Wert ausserhalb der Grenzen wird geklemmt - die Datei
+    # ist die eine Wahrheit, auch beim Laden.
+    bot.gunst = diplomatie.klemmen(werte.get("gunst", bot.gunst))         # Gunst laden und begrenzen
     if isinstance(alt_kasse, dict) and alt_kasse:                         # alter Stand mit einer Kasse
         bot_kasse_setzen(bot, alt_kasse)                                  # verlustfrei auf die Doerfer
     if isinstance(alt_armee, dict) and alt_armee:                         # alter Stand mit einer Armee
@@ -6489,6 +6498,7 @@ class GameState:
                 "aggression": float(bot.aggression), "trading": float(bot.trading),
                 "temperament": float(bot.temperament), "punkte": int(bot.punkte),
                 "ruf": int(bot.ruf), "vorraete": dict(bot.vorraete), "lager": dict(bot.lager),
+                "gunst": int(bot.gunst),  # S4-1: die Gunst geht denselben Weg wie alle anderen Felder
                 "armee": dict(bot.army), "letzter_angriff": bot.letzter_angriff,
                 "naechster_angriff": float(bot.naechster_angriff), "angriffe": int(bot.angriffe),
                 "gebaut": int(bot.gebaut), "geforscht": int(bot.geforscht),
@@ -6516,6 +6526,10 @@ class GameState:
         bot.gebaut = int(daten.get("gebaut") or 0)
         bot.geforscht = int(daten.get("geforscht") or 0)
         bot.gehandelt = int(daten.get("gehandelt") or 0)
+        # S4-1: die Gunst nur zurueckschreiben, wenn sie mitgegeben wurde - sonst wuerde ein Aufruf
+        # ohne das Feld einen laufenden Wert auf den Startwert zuruecksetzen (zweite Wahrheit).
+        if "gunst" in daten:
+            bot.gunst = diplomatie.klemmen(daten.get("gunst"))
         # S-7 (bottaktik): der Verhaltenszustand kommt aus derselben dict-Form zurueck.
         bot.zustand = str(daten.get("zustand") or "")
         _ged = daten.get("gedaechtnis")
@@ -13256,6 +13270,11 @@ class NebelseetalApp:
             tk.Label(frame, text=bot.name, fg=self.skin["text"], bg=self.skin["panel"], width=15, anchor=tk.W).pack(side=tk.LEFT, padx=5)
             tk.Label(frame, text=f"Handel: {int(bot.trading*100)}%", fg="#DAA520", bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
             tk.Label(frame, text=f"Aggression: {int(bot.aggression*100)}%", fg=self.skin["red"], bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
+            # S4-1 (06.11.2026): Gunst und Status. Die Zahl kommt aus dem Feld, das WORT aus
+            # `diplomatie.status` - dieselbe Funktion, die der Kern benutzt (Regel F-04). In dieser
+            # Zeile steht keine Grenze und kein Vergleich, damit es keine zweite Rechenstelle gibt.
+            tk.Label(frame, text=f"Gunst {int(bot.gunst)} ({diplomatie.status(bot.gunst)})",
+                     fg=self.skin["gold"], bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
             tk.Button(frame, text="Handeln", command=lambda b=bot: self._trade(b), bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
             # Entscheidung 1 (01.11.2026): es gibt EINEN Angriffsweg, und er reist. Der zweite
             # Knopf "Angreifen" ist entfallen - er tat dasselbe wie "Angriff entsenden" und

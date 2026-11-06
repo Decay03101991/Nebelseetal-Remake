@@ -1,3 +1,44 @@
+# STAND 06.11.2026, 11:10 - Abgleich und fixer Ablauf stehen, S4 Teil 1 Gunst gebaut (Register 267 bis 274)
+
+> Neuester Block. Register 267 bis 274. Darunter 264 (LLM-Antworten, Ziel), 263 (V_0.0.3),
+> 262 (Sammellauf), 261/260 (LLM-Auftrag, deutsche Zahlenanzeige).
+
+**Neu:** Die vier Modellantworten sind abgeglichen (Claude Opus 5.5 vollstaendig, die drei anderen als
+Extrakte mit Zeilenfundstelle) - `docs/ABGLEICH_LLM_20261106.md` mit **acht gemessenen Gegenbefunden
+G-1 bis G-8**. Vier davon sind Befunde gegen unsere eigenen Dokumente oder gegen die Modelle: die
+Angriffssperre ist `punkte.angreifbar` an `main.py:7051` und `:6624` (`versorgungsschutz.py` ist KEIN
+Gate, zwei Modelle irrten gleich), die Rache-Schwelle ist **99 SK** (nicht 90, berichtigt), V-4 ist
+ueber `tools/s0_tabellen.py:110-111` nachrechenbar (Rechenweg ins Dokument nachgetragen), Werkzeuge und
+Eisen gibt es im Spiel nicht (Grom-Ereignis offen, F-1), **A-6 ist nicht erfuellt** (1552 s gegen
+1.400 s), und die **Handelspunkte koennen nie steigen, weil `gold_erloes` nirgends geschrieben wird**
+(der Handelsweg selbst ist fertig gebaut - die Behauptung dreier Modelle, er sei eine Sackgasse, ist
+widerlegt).
+
+**Der fixe Ablauf steht:** `docs/ABLAUF_LLM_20261106.md` - 13 Schritte plus Dokumentenschritt, je Ziel,
+Dateien, Aenderung, Daten mit Herkunft, Wache mit Faellen, Fertig-Kriterium, Aufbauzeit-Effekt,
+Abloesung, Risiko; dazu die Entscheidungen F-1 bis F-6 und drei Widerlegungspruefungen. Entworfen mit
+**EINEM** vorbereiteten `deepseek-v4-pro`-Aufruf (28,7 KB Dossier, `max_tokens` 48.000, Streaming):
+**0,11 USD gemessen** (9,85 auf 9,74). Der Entwurf wurde geprueft und an vier Stellen korrigiert.
+
+**Schritt 1 ist gebaut:** `src/diplomatie.py` (EINE Lesestelle fuer Gunst und Status, Status wird
+gerechnet und nie gespeichert), `data/diplomatie.json` (jede Zahl mit Quelle), Feld `gunst` am
+`BotPlayer` ueber `bot_als_dict`/`bot_aus_dict`, geklemmt beim Laden; Anzeigezeile in
+`_render_diplomacy`. Wache `tests/test_diplomatie.py` **33/0/0**. Protokoll von 320 auf 311 Zeilen
+verdichtet, alle Kennungen und Pruefzahlen erhalten.
+
+**Sammellauf:** zweiter voller Lauf nach dem Fix der Projektordnung **182 von 184 gruen, 0 rot, 1552 s,
+7.536 Pruefungen, 60 Befunde** (`docs/audits/sammellauf_20261106_1040.log`). Der erste Lauf war rot, weil
+die Vor-Fassung des Protokolls in `docs/` lag - sie gehoert nach
+`archiv/dokumentation/protokoll_alte_fassungen/`.
+
+**Geld:** Daniel 10:43 - Guthaben **9,44 USD**, Gesamtverbrauch **60,55 USD**; starkes Modell 0,11 USD
+verbraucht. **Neu freigegeben: 3,00 USD** fuer `deepseek-v4-pro` (Register 274).
+
+**Naechster Schritt:** den Ablauf abarbeiten - Schritt 2 Kennzahlenblatt, dann Vertraege (3), Rachetopf
+(4), Ereignisse (5), Handelspunkte (6), Bot-Luecken (7), Balancing (8, 9), Abschluss (10 bis 13). Je
+Schnitt Register, Protokollzeile, Stand-Block, Commit und voller Sammellauf.
+
+---
 # STAND 06.11.2026, 09:10 - Planung mit deepseek-v4-pro, geschuetzte Auftragsdatei (Register 264)
 
 > Neuester Block. Register 264, Protokollzeile 09:04. Darunter 263 (V_0.0.3), 262 (Sammellauf),
