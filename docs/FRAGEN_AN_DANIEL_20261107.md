@@ -91,4 +91,19 @@ Einbau bleibt gesperrt, bis Daniel Preis und Freigabe gibt.
 
 ## Nachtraege
 
-- Keine. Alle Antworten sind am 06.11.2026 in der Sitzung 06.11.26_V_0.0.2_Session_6 eingegangen.
+- Alle Antworten der Runde 1 sind am 06.11.2026 in der Sitzung 06.11.26_V_0.0.2_Session_6 eingegangen; die Antworten der Runde 2 (F-1 bis F-5 des Ablaufs) stehen unten.
+
+## Nachtrag 06.11.2026, 11:25 - Antworten der Runde aus Sitzung `06.11.26_V_0.0.3_Session_7`
+
+Fuenf Fragen aus `docs/ABLAUF_LLM_20261106.md` Abschnitt 6, in EINER Runde gestellt und beantwortet.
+Die sechste Frage (Sammellauf mit dem Projekt-venv) war keine Entscheidung, sondern eine belegte
+Betriebsregel: `.venv/Scripts/python.exe` ist Pflicht, weil dem Hermes-Python `lxml` fehlt und eine rote
+Datei in 0,6 s ein Geraetebefund waere.
+
+| Nr | Frage | Antwort Daniels | Folge |
+|---|---|---|---|
+| F-1 | Grom-Ereignis: Werkzeuge und Eisen gibt es im Spiel nicht | **Eisen meint Erz, mit Werkzeugen sind Messer und dergleichen gemeint.** | Grom tauscht **5 Werkzeug-Waren (Messer und Gleichwertiges) gegen 20 Erz = unser Rohstoff `metall`**. Damit ist V-4 baubar, ohne neue Ware: die Warenliste hat Messer, Dolch, Kurzschwert; Erz ist `metall`. Die Zuordnung wird in `data/diplomatie.json` als Vorschlag mit Begruendung eingetragen. |
+| F-2 | A-6-Dauer: gemessen 1.330 s und 1.552 s gegen die Grenze 1.400 s | **Erst beschleunigen (`--parallel`), Grenze vorlaeufig 1.800 s.** | Schritt 12 des Ablaufs: Parallelbetrieb bauen und nachweisen (gleiche Ergebnisliste bei `--parallel 1` und `4`), A-6 nennt bis dahin 1.800 s als VORSCHLAG. Kein stilles Senken der Erwartung. |
+| F-3 | Rachetopf nach einem Bot-Sieg | **Topf auf 0 setzen.** | `data/diplomatie.json` bekommt `nach_bot_sieg: 0`; eine Wache prueft, dass der Topf nach einem Sieg genau 0 ist. |
+| F-4 | Startwert der Gunst ohne Originalbeleg | **50 als VORSCHLAG eintragen und so lassen.** | Bleibt `start: 50` mit eigener `start_quelle` in `data/diplomatie.json` (VORSCHLAG, Mitte des mittleren Bereichs). |
+| F-5 | Kennzahlenblatt direkt nach Schritt 1 (Gunst)? | **Ja, als Schritt 2.** | Der Ablauf bleibt in seiner Reihenfolge; das Kennzahlenblatt liefert die Vorher-Zahlen fuer Rachetopf, Vertraege und Ereignisse. |

@@ -146,7 +146,7 @@ der nur mit einem spaeteren zusammen funktioniert.
 | Ziel | Drei Bot-Ereignisse mit Frist ueber die vorhandene Overlay-Technik, mit Gunstwirkung und Ablehnung. |
 | Dateien | geaendert: `src/diplomatie.py`, `data/diplomatie.json` (Ereignisse mit `quelle`), `src/main.py` (Tageswechsel, Overlay-Aufruf), `data/story.json` (Texte); neu: `tests/test_diplomatie_ereignisse.py` |
 | Aenderung | `ereignis_erzeugen(daten, bot, art, jetzt)`, `ereignis_annehmen(daten, ort, id) -> (ok, grund)` (atomar: fehlt der Bestand **am Ort**, wird nichts gebucht), `ereignisse_tick(daten, orte, jetzt)` (Ablauf nach Frist). Annehmen Gunst +5, Ablehnen oder Ablauf -5. Texte in der Datendatei, nicht im Code. |
-| Daten | Haug 990 Holz ODER 64 Gold, Silra 12 Gold (mindestens 1): **V-4, UEBERNEHMEN**; Rechenweg zusaetzlich in `docs/S0_TABELLEN_20261107.md` nachtragen (G-3). Grom 5 Waren gegen 20 Metall: VORSCHLAG, wartet auf F-1 (G-4: Werkzeuge und Eisen gibt es nicht). Frist 2 Spieltage = 57.600 s, Haeufigkeit 1 je Bot und 3 Spieltage, Gunst +5/-5: VORSCHLAG. Schalter `ereignisse_aktiv`. |
+| Daten | Haug 990 Holz ODER 64 Gold, Silra 12 Gold (mindestens 1): **V-4, UEBERNEHMEN**; Rechenweg zusaetzlich in `docs/S0_TABELLEN_20261107.md` nachtragen (G-3). Grom 5 Werkzeug-Waren gegen 20 Erz = Rohstoff `metall`: **entschieden am 06.11.2026** (F-1, Daniel: Eisen meint Erz, Werkzeuge sind Messer und dergleichen). V-4 nennt 5 Werkzeuge zu 20 Eisen; die Zuordnung auf die vorhandenen Gueter ist ein VORSCHLAG mit Begruendung, keine neue Ware (G-4). Frist 2 Spieltage = 57.600 s, Haeufigkeit 1 je Bot und 3 Spieltage, Gunst +5/-5: VORSCHLAG. Schalter `ereignisse_aktiv`. |
 | Wache | `tests/test_diplomatie_ereignisse.py`: (1) Ablauf nach 57.600 s mit Gunst -5, bei 57.599 s noch offen; (2) Annahme mit 989 Holz abgelehnt, Bestand unveraendert; (3) Annahme Holz: genau 990 abgebucht, Gunst +5; (4) Silra bei Goldertrag 5: Preis faellt auf den Mindestwert 1; (5) Overlay und Kern lesen dieselbe Preisfunktion (Quellwache); (6) alter Spielstand ohne `ereignisse` laedt. |
 | Fertig-Kriterium | 6 von 6 gruen, voller Sammellauf 0 rot, F-1 entschieden. |
 | Aufbauzeit-Effekt | neutral - Ablehnen ist immer moeglich. |
@@ -288,7 +288,9 @@ der nur mit einem spaeteren zusammen funktioniert.
   Vertraege kommen als Vorbedingung davor, nicht als zweite Rechnung.
 - **Kein Nachkommentieren von `src/` auf Vorrat** - Kommentare wandern beim naechsten Anfassen mit.
 
-## 6. Entscheidungen fuer Daniel (in EINER Runde vorzulegen)
+## 6. Entscheidungen fuer Daniel - am 06.11.2026, 11:25 in EINER Runde beantwortet
+
+**Alle fuenf Antworten liegen vor** (Wortlaut und Folge: `docs/FRAGEN_AN_DANIEL_20261107.md`, Nachtrag 11:25): F-1 Grom tauscht 5 Werkzeug-Waren gegen 20 Erz (= Rohstoff `metall`), F-2 erst beschleunigen und die Grenze bis dahin 1.800 s, F-3 Rachetopf nach Bot-Sieg auf 0, F-4 Startwert 50 bleibt als VORSCHLAG, F-5 Kennzahlenblatt als Schritt 2. Die Tabelle darunter ist der Stand VOR der Antwort und bleibt als Beleg stehen.
 
 | Nr | Frage | Messlage | Empfehlung zuerst |
 |---|---|---|---|
