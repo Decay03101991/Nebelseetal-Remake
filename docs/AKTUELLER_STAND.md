@@ -1,3 +1,38 @@
+# STAND 07.11.2026, 01:35 - Verkauf steht in der Oberflaeche, Kennzahl fehlt noch (Register 291)
+
+> Neuester Block. Register 291. Darunter 290 (Verkaufsrichtung im Kern), 289 (Befund G-8),
+> 288 (Ereignisse), 287 (Startbilder), 286 (Rachetopf), 285 (S4-3), 280 (Kennzahlenblatt).
+
+**Der Verkauf ist jetzt bedienbar.** In der Handelsmaske (Doppelklick auf einen Bot) steht unter
+`Kaufvertrag schicken` der Knopf `Verkauf anbieten (eigene Ware)`. Er oeffnet die Verkaufsmaske:
+Ware aus dem ORTSLAGER, Gold des Bots, Schwellenpreis (bis dahin nimmt der Bot an), eigene
+Handelskarawane, Ladeplaetze. Ohne Ware oder ohne Karawane ist der Knopf gesperrt - gesperrt heisst
+hier: es gibt nichts anzubieten, nicht: es fehlt eine Pruefung.
+
+**Gemessen (Abschnitt G der Wache):** `_verkauf_ausfuehren` startet den Vertrag ohne Fenster,
+`richtung` steht auf `verkauf`, und der Erloes wird bei der Rueckkehr gebucht (10 Holz zu 1 Gold ->
+Erloes 10, Zaehler 250 -> 260). Wache insgesamt **37 Pruefungen, 0 Fehler**.
+
+**Sammellauf:** 188 von 190 gruen, 0 rot, 7.816 Pruefungen, 953 s (`docs/audits/sammellauf_20261107_0017.log`).
+
+**Was noch fehlt - 6c, und das ist eine echte Luecke:** `src/spielschicht.py` (die Schicht, die das
+Kennzahlenblatt faehrt) hat keinen Handel und keine Bots. `handelspunkte` bleibt dort `null`, damit ist
+das Fertig-Kriterium des Ablaufs (groesser 0 in einem von zehn Laeufen) NICHT erfuellt. Vorschlag fuer
+den naechsten Schnitt, ohne neue Preisfunktion: die Spielschicht verkauft einen Ueberschuss an einen
+fremden Haendler ueber DENSELBEN Kern (`spieloekonomie.handel_start` mit `karawane_seite="verkaeufer"`
+und `handel_abschluss`), der Preis kommt aus `botkern.handelspreis` - also die Schwelle, die das Spiel
+schon benutzt. Dann schreibt die Spielschicht `handels_erloes` und `letzter_handel` in ihren Zustand,
+und das Kennzahlenblatt zeigt eine echte Zahl statt `null`.
+
+**Naechster Schritt:** 6c bauen (Spielschicht-Handel), danach Schritt 7 (Bot-Luecken) und 8 bis 13.
+Arbeitsweise unveraendert: je Schnitt Register, Protokollzeile, Stand-Block, Commit, Push und ein
+VOLLER Sammellauf.
+
+Offen ausserdem: die Buendelung der Besucherdokumente nach `BESUCHER.md` (Daniels Entscheidung 14:00,
+Punkt 4) und die Frage F-11 (Motive der Spielansichten).
+
+---
+
 # STAND 07.11.2026, 00:35 - Verkaufsrichtung gebaut: der Spieler verkauft an Bots, der Erloes wird gebucht (Register 290)
 
 > Neuester Block. Register 290. Darunter 289 (Befund G-8), 288 (Ereignisse), 287 (Startbilder),

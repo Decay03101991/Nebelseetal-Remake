@@ -10406,6 +10406,11 @@ class NebelseetalApp:
         if not karawanen or not angebot:
             knopf.config(state=tk.DISABLED)
         knopf.grid(row=11, column=0, columnspan=2, sticky=tk.W, padx=10, pady=10)
+        # S4-6 (07.11.2026): die GEGENRICHTUNG steht direkt daneben - verkaufen statt kaufen.
+        _verkauf = tk.Button(fenster, text="Verkauf anbieten (eigene Ware)",
+                             command=lambda: self._verkauf_maske(bot), bg="#2b3a2b",
+                             fg=self.skin["gold"], activebackground="#3d4f3d")
+        _verkauf.grid(row=12, column=0, columnspan=2, sticky=tk.W, padx=10, pady=(0, 10))
 
     def _handel_ausfuehren(self, bot, quelle, ware, menge, preis, karawanen_name, karawanen_anzahl):
         """Die Eingaben der Handelsmaske ausführen — die EINE Stelle, die bucht (Teil 7b).
@@ -10426,6 +10431,119 @@ class NebelseetalApp:
             return False, meldung
         self._render_view()
         return True, meldung
+
+    def _verkauf_ausfuehren(self, bot, quelle, ware, menge, preis, karawanen_name, karawanen_anzahl):
+        """Die Eingaben der VERKAUFSmaske ausführen - der Weg der Oberflaeche (S4-6, 07.11.2026).
+
+        Getrennt von der Maske, damit die Pruefung den ganzen Weg ohne Fenster gehen kann (Muster
+        `_handel_ausfuehren`). Die Pruefungen selbst stehen im KERN (`GameState.verkauf_an_bot`);
+        hier wird nur die Karawanen-Angabe uebersetzt. Liefert ``(ok, Meldung)``.
+        """
+        try:                                                          # Anzahl als ganze Zahl
+            anzahl = int(karawanen_anzahl)
+        except (TypeError, ValueError):                               # Text ist keine Zahl
+            meldung = "Die Karawanen-Anzahl muss eine ganze Zahl sein."
+            self._log(meldung)
+            return False, meldung
+        karawane = {str(karawanen_name): anzahl} if karawanen_name else {}   # leer heisst: keine Karre
+        ok, meldung = self.state.verkauf_an_bot(bot, quelle, ware, menge, preis, karawane)
+        if not ok:                                                    # abgelehnt: nichts gebucht
+            self._log(f"Verkauf nicht gestartet: {meldung}")
+            return False, meldung
+        self._render_view()                                           # Ansichten nachziehen
+        return True, meldung
+
+    def _verkauf_maske(self, bot: BotPlayer):
+        """Die Maske des VERKAUFS: eigene Ware, Menge und Preis wählen (S4-6, 07.11.2026).
+
+        Sie steht NEBEN der Kaufmaske, weil sie die Gegenrichtung ist: die Ware kommt aus dem
+        ORTSLAGER des Spielers, das Gold aus dem Lager des Bots, und die EIGENE Handelskarawane
+        faehrt. Der Schwellenpreis steht sichtbar da - der Bot nimmt an, solange der Preis NICHT
+        ueber seiner Schwelle liegt (dieselbe Preisfunktion wie beim Kauf).
+        """
+        quelle = self.state.aktive_siedlung()                         # der Ort, der verkauft
+        if quelle is None:                                           # ohne Ort kein Verkauf
+            self._log("Für einen Verkauf braucht es zuerst eine eigene Siedlung.")
+            return
+        eigenes = sorted(k for k, v in (getattr(quelle, "vorraete", None) or {}).items()
+                         if k in RESOURCES and k != "gold" and float(v) > 0)   # verkaufbare Rohstoffe
+        karawanen = self.state.handelskarawanen_bestand(quelle)       # eigene Karren im Ort/Reich
+        referenz = botkern.referenzpreis_aus_beschaffung(BOT_BESCHAFFUNGSKOSTEN)
+        schwelle = float(botkern.handelspreis(referenz, float(bot.temperament)))   # EINE Preisfunktion
+
+        fenster = tk.Toplevel(self.root)                              # eigenes Fenster
+        fenster.title(f"Verkauf an {bot.name}")                       # Titel
+        fenster.configure(bg=self.skin["bg"])                         # Farbe des Skins
+
+        def _zeile(text):                                             # Hilfszeile im Skin
+            return tk.Label(fenster, text=text, fg=self.skin["text"], bg=self.skin["bg"],
+                            anchor=tk.W, justify=tk.LEFT, wraplength=560)
+
+        tk.Label(fenster, text=f"Verkauf an {bot.name}", fg=self.skin["gold"],
+                 bg=self.skin["bg"], font=("TkDefaultFont", 11, "bold")).grid(
+            row=0, column=0, columnspan=2, sticky=tk.W, padx=10, pady=(10, 4))
+        _zeile("Verkäufer (aktive Siedlung): " + quelle.name + " — " + ortsbestand_text(quelle)).grid(
+            row=1, column=0, columnspan=2, sticky=tk.W, padx=10)
+        _zeile("Gold des Bots: %g — mehr kann er nicht zahlen." % float(
+            (bot.vorraete or {}).get("gold", 0) or 0.0)).grid(
+            row=2, column=0, columnspan=2, sticky=tk.W, padx=10, pady=(0, 4))
+
+        var_ware = tk.StringVar(value=eigenes[0] if eigenes else "")   # Vorwahl: erster Rohstoff
+        _zeile("Ware aus dem Ortslager:").grid(row=3, column=0, sticky=tk.W, padx=10)
+        if eigenes:                                                    # Auswahl nur, wenn es Ware gibt
+            tk.OptionMenu(fenster, var_ware, *eigenes).grid(row=3, column=1, sticky=tk.W, padx=10)
+        else:                                                          # ehrlicher Hinweis statt leerer Liste
+            tk.Label(fenster, text="nichts zu verkaufen", fg="#FDBA74",
+                     bg=self.skin["bg"]).grid(row=3, column=1, sticky=tk.W, padx=10)
+        _zeile("Ortslager: " + (", ".join("%s %g" % (k, float(v))
+                                         for k, v in sorted((quelle.vorraete or {}).items()))
+                                or "nichts")).grid(
+            row=4, column=0, columnspan=2, sticky=tk.W, padx=10)
+
+        _zeile("Menge:").grid(row=5, column=0, sticky=tk.W, padx=10)
+        e_menge = tk.Entry(fenster, width=10)                          # Menge als Text
+        e_menge.insert(0, "10")                                        # Vorschlag
+        e_menge.grid(row=5, column=1, sticky=tk.W, padx=10)
+
+        _zeile("Preis je Stück (Gold):").grid(row=6, column=0, sticky=tk.W, padx=10)
+        e_preis = tk.Entry(fenster, width=10)                          # Preis als Text
+        e_preis.insert(0, ("%.2f" % schwelle).rstrip("0").rstrip("."))  # Vorschlag: Schwelle
+        e_preis.grid(row=6, column=1, sticky=tk.W, padx=10)
+        _zeile("Schwellenpreis dieses Bots: %g Gold — bis dahin nimmt er an, darüber lehnt er bei "
+               "der Ankunft ab (Handbuch S. 20: dann kehrt die Karawane MIT den Waren zurück, Gold "
+               "wird nie übertragen)." % schwelle).grid(
+            row=7, column=0, columnspan=2, sticky=tk.W, padx=10)
+
+        var_karawane = tk.StringVar(value=next(iter(sorted(karawanen)), ""))   # erste Karre
+        _zeile("Handelskarawane (Ortslager + Reichsheer):").grid(row=8, column=0, sticky=tk.W, padx=10)
+        if karawanen:                                                  # Auswahl der eigenen Karren
+            tk.OptionMenu(fenster, var_karawane, *sorted(karawanen)).grid(
+                row=8, column=1, sticky=tk.W, padx=10)
+        else:                                                          # ohne Karre kein Transport
+            tk.Label(fenster, text="keine — sie entsteht im Stellmacher", fg="#FDBA74",
+                     bg=self.skin["bg"]).grid(row=8, column=1, sticky=tk.W, padx=10)
+        _zeile("Karawanen-Anzahl:").grid(row=9, column=0, sticky=tk.W, padx=10)
+        e_karawane = tk.Entry(fenster, width=10)                       # Anzahl als Text
+        e_karawane.insert(0, "1")                                      # Vorschlag
+        e_karawane.grid(row=9, column=1, sticky=tk.W, padx=10)
+        _stufen_karren = self.state.forschungs_stufen()                # Wagenbau-Bonus
+        _zeile("Ladeplätze: " + (", ".join("%s x%d (%d Plätze)" % (n, a, einheiten.kapazitaet_mit_bonus(n, a, _stufen_karren))
+                                          for n, a in sorted(karawanen.items()))
+                                or "ohne Handelskarawane kein Handel (Handbuch S. 20)")).grid(
+            row=10, column=0, columnspan=2, sticky=tk.W, padx=10, pady=(0, 6))
+
+        def _starten():                                                # Knopf-Aktion
+            ok, _meldung = self._verkauf_ausfuehren(bot, quelle, var_ware.get(), e_menge.get(),
+                                                    e_preis.get(), var_karawane.get(),
+                                                    e_karawane.get())
+            if ok:                                                     # nur bei Erfolg schliessen
+                fenster.destroy()
+
+        knopf = tk.Button(fenster, text="Verkaufsangebot schicken", command=_starten, bg="#3e2723",
+                          fg=self.skin["gold"], activebackground="#5D4037")
+        if not karawanen or not eigenes:                               # ohne Ware oder Karre nicht klickbar
+            knopf.config(state=tk.DISABLED)
+        knopf.grid(row=11, column=0, columnspan=2, sticky=tk.W, padx=10, pady=10)
 
     # ---------- Siedlungskarte (Handbuch S. 259/283/292/313) ----------
 

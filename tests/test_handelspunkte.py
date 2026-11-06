@@ -201,6 +201,27 @@ if st is not None:
     check("die Buchstelle steht NICHT im Verkaufspfad (sie gehoert in _fremdvertrag_buchen)",
           "handels_erloes =" not in _anfrage, "Buchstelle nur an einer Stelle")
 
+abschnitt("G. Der Verkauf ist ueber die Oberflaeche erreichbar (Maske und App-Weg)")
+if app is not None and st is not None:
+    check("die Verkaufsmaske existiert", hasattr(app, "_verkauf_maske"), "gefunden"
+          if hasattr(app, "_verkauf_maske") else "fehlt")
+    check("der Verkaufspfad der App existiert", hasattr(app, "_verkauf_ausfuehren"), "gefunden"
+          if hasattr(app, "_verkauf_ausfuehren") else "fehlt")
+    _quelle_app = inspect.getsource(main.NebelseetalApp)
+    check("die Kaufmaske traegt den Knopf zum Verkauf",
+          'Verkauf anbieten (eigene Ware)' in _quelle_app, "Knopf im Quelltext")
+    _vorher_app = float(st.handels_erloes)
+    ok_app, meldung_app = app._verkauf_ausfuehren(haug, ort, "holz", 10, 1.0,
+                                                 "Handelskarawane", "1")
+    check("die App startet den Verkauf ohne Fenster", ok_app is True, str(meldung_app))
+    _neu_app = st.auftraege[-1] if st.auftraege else {}
+    check("der Vertrag der App traegt die Richtung verkauf",
+          _neu_app.get("richtung") == "verkauf", str(_neu_app.get("richtung")))
+    st.tick(float(_neu_app.get("rueckkehr") or 0.0) + 60.0)
+    check("der Erloes der App wird gebucht",
+          float(st.handels_erloes) > _vorher_app, "%s nachher, %s vorher"
+          % (st.handels_erloes, _vorher_app))
+
 if root is not None:
     try:
         root.destroy()
