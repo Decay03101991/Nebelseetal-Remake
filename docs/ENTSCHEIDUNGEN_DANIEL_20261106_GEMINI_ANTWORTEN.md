@@ -19,3 +19,21 @@ Antworten **woertlich**, je mit Folge. Runde 1 (zum Gemini-Input) steht in
 **Was daraus fuer den Einbau folgt (noch vor dem Bau vorzulegen):** drei gerechnete Tabellen -
 Reparaturpreis je Wallstufe, Heilungspreis je Einheit, Event-Zahlen - und zwei abgeleitete Schwellen
 (Ruhm-Raenge, Rache-Angriff). **Ohne diese Vorlage wird keines der fuenf Stuecke gebaut.**
+
+## Runde 3 - der Nachtauftrag (06.11.2026, 02:16 bis 02:25)
+
+Gefragt wurde sieben Punkte; Daniel geht schlafen und ist ab **07:55** wieder am Laptop.
+
+| Nr. | Frage | Antwort (woertlich) | Folge |
+|---|---|---|---|
+| 1 | Portal-Geschichte: Wirkung der zwei Antworten? | "A (Empfehlung): keine Wirkung - reiner Text, keine Knoepfe, damit sofort in S1b baubar" | Story erscheint als Text ohne Antwortknoepfe. |
+| 2 | Durchmarschrecht: Mechanik? | "A (Empfehlung): reine Anzeige - das Recht steht im Vertrag, hat aber keine Mechanik (ehrlich dokumentiert)" | Vertrag wird gefuehrt und angezeigt; in `kampfbericht`/Doku als "ohne Mechanik" ausgewiesen. Keine erfundene Wirkung. |
+| 3 | Ruhm-Raenge ohne Daniel | "A (Empfehlung): aus unseren Spieltest-Zahlen ableiten (12 Tage ≈ 40 Punkte) und als VORSCHLAG sofort nutzen, Namen aenderbar" | Vier Stufen aus der Messung, im Register als VORSCHLAG. |
+| 4 | Modellbudget der Nacht | **"B: hoechstens 4,00 USD - mehr Modellhilfe, mehr Risiko"** | Obergrenze 4,00 USD, je Aufruf hoechstens 0,25 USD, Kontostand vor und nach jeder Runde messen. |
+| 5 | Wie weit in der Nacht? | "A (Empfehlung): so weit wie moeglich, Mindestziel S1 + S1b + S2; wenn Zeit bleibt weiter bis S3/S4; S5 nur wenn alles gruen ist" | Mindestziel **S1, S1b, S2**; danach S3, dann S4; S5 gesperrt (siehe 7). |
+| 6 | Behaelt eine geheilte Einheit ihre Ausruestung? | "A (Empfehlung): ja, sie behaelt ihre Ausruestung - sonst waere Heilung fast wertlos, und die Waffe bleibt am Soldaten" | Heilung kostet 75 Prozent der `kosten`, NICHT die `waren`. |
+| 7 | S5 (Siedlungsumzug) in der Nacht? | "A (Empfehlung): S5 heute Nacht NICHT bauen ... erst nach deinem Aufwachen" | S5 bleibt liegen; wird nach dem Aufwachen vorgelegt. |
+
+**Zusaetzlich pauschal freigegeben (Daniel, 02:16):** die Skill-Freigabe fuer die naechste Sitzung gilt
+**pauschal** - die vier vorgemerkten Ergaenzungen duerfen ohne Rueckfrage gespeichert werden
+(`9a7f3335`, `5797a0fc`, `9120cc35`, `36452699`), jede mit Zeile im `SKILL_UND_REGEL_PROTOKOLL.md`.

@@ -1,3 +1,45 @@
+# STAND 06.11.2026, 02:30 - Nachtauftrag festgelegt: fester Ablauf S0 bis S4, selbststaendig, Budget 4,00 USD (Register 246)
+
+> Neuester Block. Register 246, Protokollzeile 02:20. Kopf beim Schreiben: `6e565c0` (gepusht, Remote
+> gelesen); der Commit dieses Schnitts folgt. Der Block 02:00 darunter haelt die Auswertung der
+> Gemini-Antworten. **Diese Sitzung endet hier; die naechste arbeitet die Nacht durch.**
+
+**Was dieser Schnitt geaendert hat (nur Dokumente):** Daniel hat den Nachtauftrag freigegeben und sieben
+Fragen beantwortet; die Uebergabe 02:30 enthaelt den festen Ablauf, an dem sich die naechste Sitzung
+entlang arbeitet. **Gebaut ist weiterhin nichts.**
+
+| Nr. | Schritt | Beleg |
+|---|---|---|
+| A | Sieben Antworten woertlich festgehalten | `docs/ENTSCHEIDUNGEN_DANIEL_20261106_GEMINI_ANTWORTEN.md`, Abschnitt Runde 3 |
+| B | Fester Ablauf in acht Bloecken (0 Sitzung aufsetzen, 1 S0 Tabellen, 2 S1, 3 S1b, 4 S2, 5 S3, 6 S4 Teil 1, 7 Morgenbericht) | Uebergabe `UEBERGABE_NEBELSEETAL_20261106_0230.md`, Abschnitt 3 |
+| C | Betriebsgrenzen festgeschrieben: ein Sammellauf je 20 bis 25 Minuten, nichts parallel, Push mit `GIT_ASKPASS` und drei Versuchen, kein Force-Push, keine EXE-Bauten | ebd. Abschnitt 5 |
+| D | Drei erlaubte Abbruchgruende definiert (roter Lauf nach zwei Versuchen, echter Widerspruch, Budget oder 07:40) | ebd. Abschnitt 6 |
+| E | **Modellbudget 4,00 USD** (0,25 USD je Aufruf), Skill-Freigabe pauschal erteilt | ebd. Abschnitte 4 und 10 |
+| F | Dokumentwachen | `test_textqualitaet`, `test_protokoll`, `test_projektpfade`, `test_zieluebergabe` |
+
+## Der EINE naechste Schritt
+
+**Block 0 der Uebergabe: Sitzung aufsetzen** (Zieluebergabe pruefen, die vier Skill-Vormerkungen
+`9a7f3335`, `5797a0fc`, `9120cc35`, `36452699` speichern und protokollieren), **dann Block 1: S0, die
+fuenf gerechneten Tabellen** (Reparaturpreis je Wallstufe, Heilungspreis je Einheit, Ruhm-Raenge,
+Ereigniszahlen, Rache-Schwelle) in `docs/S0_TABELLEN_20261107.md`. Danach ohne Rueckfrage weiter mit
+**S1 Postfach und Ruhm-Balken**, **S1b vier Menue-Teilgeschichten**, **S2 Mauerreparatur**; S3 und S4
+Teil 1 nur, wenn die Zeit reicht. Jeder Block endet mit Wache, vollem Sammellauf, Register, Protokoll,
+Stand-Block, Commit und Push.
+
+**Geld (von Daniel abgelesen, nicht geschaetzt):** 11,61 USD Guthaben, Gesamtverbrauch 58,38 USD
+(Ablesung 06.11.2026, 02:12). Fuer die Nacht sind **hoechstens 4,00 USD** Modellaufrufe freigegeben
+(Daniels Entscheidung 4); danach wird lokal weitergearbeitet.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf auf `main` | `6e565c0` (danach der Commit dieses Schnitts) | `git log --oneline -1` |
+| Pruefdateien / Module | 179 / 60 | `ls tests/test_*.py`, `ls src/*.py` |
+| Register / Protokoll / Stand-Bloecke | 246 (hoechste Nummer) / 294 (`wc -l`) / 94 | Zaehlung |
+| Entscheidungen Daniels | 25 in drei Runden | drei `ENTSCHEIDUNGEN_DANIEL_20261106_*.md` |
+| Nachtziel | S1, S1b, S2 mindestens; S3 und S4 Teil 1 bei Zeit; S5 gesperrt | Uebergabe 02:30, Abschnitt 3 |
+| Wachen dieses Schnitts | Dokumentpruefungen gruen, kein Sammellauf noetig | Laeufe dieser Sitzung |
+
 # STAND 06.11.2026, 02:00 - Gemini-Antworten geprueft, Plan S0 bis S5 steht, nichts gebaut (Register 244)
 
 > Neuester Block. Register 244, Protokollzeile 01:59. Kopf beim Schreiben: `e86a0ee`; der Commit
