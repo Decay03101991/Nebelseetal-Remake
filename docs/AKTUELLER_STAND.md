@@ -1,3 +1,21 @@
+# STAND 06.11.2026, 07:24 - S3 fertig, Verlustbericht als eigener Typ (Register 259)
+
+> Neuester Block. Register 258 und 259. Darunter 257 (S3 gebaut), 256 (Gemini-Buendelung), S2-Lauf.
+
+**Neu:** S3 (Verwundetenheilung) ist gebaut, geprueft und im vollen Sammellauf: 181 von 183 Dateien
+gruen, 7495 Pruefungen, 0 Fehler, 60 Befunde. Block 5 ist ebenfalls fertig - Verluste erzeugen jetzt
+eine Nachricht vom Typ `verlust` (der Typ stand seit S1 in `data/nachrichten.json`, der Erzeuger
+fehlte), und die flatternde Wache `test_kartenwahl_bot` hat einen festen Startwert in der Pruefdatei.
+Dazu liegen zwei neue Arbeitsblaetter: `docs/eingaenge/GEMINI_20261106/FILTER_20261107.md` (26
+Gemini-Unterlagen in drei Koerben) und `docs/ABLAUF_20261107.md` (S3 bis S5 mit Wache,
+Fertig-Kriterium und Aufbauzeit-Effekt).
+
+**Naechster Schritt:** S4 Teil 1 (Gunst und Status) nach `docs/ABLAUF_20261107.md` Abschnitt D -
+Felder ueber `bot_als_dict`/`bot_aus_dict`, Statusgrenzen 0-39/40-59/60-100, Anzeigezeile in
+`_render_diplomacy`, Wache `tests/test_diplomatie.py`. Danach voller Sammellauf, Register, Protokoll,
+Stand, Commit und Push. S5 bleibt gesperrt bis Daniels Freigabe.
+
+---
 # STAND 06.11.2026, 06:28 - S3 Verwundetenheilung gebaut (Register 257)
 
 > Neuester Block. Register 257. Darunter 256 (Gemini-Buendelung, 06:03), S2-Lauf (05:56), S2-Bau (05:19).
