@@ -1,0 +1,271 @@
+NEBELSEETAL REMAKE - Spielbeschreibung fuer externe KI-Modelle
+=============================================================
+Stand: 06.11.2026 | Kopf-Commit: d80c815 | Quellen: docs/GESAMTBILD_SPIEL_20261105.md,
+docs/PLAN_GEMINI_UMSETZUNG_20261106.md, die drei Entscheidungsdateien des 06.11.2026,
+data/ (Kennzahlen), docs/PRUEFREGEL_ORIGINAL.md.
+Erstellt von einem externen Modell (deepseek-v4-pro), geprueft von der Sitzung am 06.11.2026:
+Erträge, Baupreise, Einheiten- und Modulzahlen gegen die Datendateien nachgezogen.
+Dieses Dokument ist selbsterklaerend - wer es liest, braucht KEINEN Zugriff auf Code oder Netz.
+
+## 1. Was das Spiel ist
+
+Einzelspieler-Aufbauspiel mit sechs Welten, sechs Voelkern, fuenf Nachbarn mit eigener Wirtschaft,
+einem Drachen und Ruinen. Es ist offline und kostenlos, geschrieben in Python/tkinter. Es ist eine
+Ommage an das Nebelseetal, kein reines Kampfspiel und kein Idle-Spiel. Aufbau steht vor Kampf. Es
+gibt keinen Sieg, sondern Auszeichnungen. Bots sind Mitspieler und Gegenspieler. Story und Stimmen
+sind als Erzaehlschicht vorhanden. Spielstaende, Passworttor und Demo-Leere sind gebaut.
+
+Gemessene Grundlage: 61 Python-Dateien in src/, 181 Pruefdateien, 641 Commits, 127 Originalkarten,
+28 Einheiten, 21 Forschungsgebiete.
+
+## 2. Spielschleife, Kernkreis und Zeitbasis
+
+Zeitbasis: Spieluhr mit Faktor x180. 1 Spielstunde = 20 echte Sekunden. 1 Spieltag = 8 echte
+Minuten = 28800 Spielsekunden.
+
+Kernkreis in Reihenfolge: gruenden, produzieren, forschen, ausruesten, ausbilden, bewegen, kaempfen,
+punkten. Alles Langsame laeuft ueber Auftraege und Reisezeit. Rueckweg ist doppelt so teuer wie der
+Hinweg. Forschung kostet Spieltage. Weltwechsel kostet Mana. Der Tick bucht unter anderem
+Nachrichtenablauf und Versorgung.
+
+## 3. Menueaufbau, Ansichten, Freischaltungen, Anzeigeleisten
+
+Navigation: zwei Ebenen, Uebersicht und Siedlung. Die Leiste ist immer gleich sichtbar.
+Siedlungsreiter: Siedlungsuebersicht, Produktion, Verteidigung.
+
+Ansichten und Anzeigen:
+
+- Punkte- und Ressourcenleiste fuer Rohstoffe und Kriegs-, Forschungs-, Handels- und Gesamtpunkte.
+- Ruhm-Balken als tk.Canvas, Stufen aus data/ruhm.json: 0 / 10 / 40 / 160 (VORSCHLAG).
+- Postfach mit Filter, Archiv und Blaettern, 20 Nachrichten je Seite.
+- Ansichten fuer Forschung, Portal, Kaserne und Ruhmeshalle.
+- Ingame-Overlays fuer Menuegeschichten und spaeter Diplomatie.
+
+Freischaltungen:
+
+- Forschung schaltet Gebaeude, Waren und Einheiten frei.
+- Menuegeschichten erscheinen beim ersten Oeffnen ihrer Ansicht: Forschung (erste Bibliothek),
+  Portal (erster Weltwechsel), Kaserne (Kriegerakademie fertig), Ruhmeshalle (erstes Oeffnen).
+  Die Portalgeschichte ist reiner Text mit genau einem Schliessen-Knopf, keine Antwortknoepfe.
+- Postfach: Frist 1 Spieltag fuer Berichte; kampf und gesamtsieg laufen nie ab; ungelesene
+  Verlustberichte verschieben sich automatisch.
+
+## 4. Mechaniken mit Werten
+
+### 4.1 Gelaende, Rohstoffe, Bauen
+
+Rohstoffe und Ertrag pro Stunde, getrennt nach Gelaende:
+
+| Rohstoff | Ertrag je Stunde | Gebaeude |
+|---|---|---|
+| Holz | Wald 4, Steppe 2 | Holzfäller |
+| Stein | Berg 4, Huegel 2 | Steinmetz |
+| Metall | Berg 3, Huegel 1.5 | Erzmine |
+| Mana | Nebelsee 5, alle Gelaende ausser Sumpf 1 | Tempel |
+| Nahrung | Grasland 4, Steppe 2 | Farm, Jäger, Rinderfarm |
+| Gold | Berg 3, Huegel 1.5 | Goldmine |
+| Wolle | Grasland 3, Steppe 1.5 | Schafszucht |
+| Leder | Grasland 3, Steppe 1.5 | Rinderfarm, Jäger |
+| Pferde | Grasland 3, Steppe 1.5 | Pferdezucht |
+
+Wichtige Baupreise:
+
+- Holzfäller: 10 Holz, 5 Stein, 1 Siedler.
+- Steinmetz: 5 Holz, 10 Stein, 1 Siedler.
+- Jäger: 25 Holz, 25 Stein, 1 Siedler.
+- Haus: 80 Holz, 50 Stein, kein Siedler.
+- Bibliothek: 12 Holz, 8 Stein.
+- Verteidigungswall: 16 Holz, 16 Stein.
+- Kriegerakademie, Diebesgilde, Stellmacher: 32 Holz, 24 Stein (VORSCHLAG).
+- Schmiede, Bogenbauer, Naehstube: 24 Holz, 16 Stein (VORSCHLAG).
+
+Weitere Baupreise liegen in data/baupreise.json. Es gibt keine zentralen Kapazitaetslager;
+Lagerung ist ortsgebunden.
+
+### 4.2 Siedler, Haeuser, Nahrung
+
+Siedlergrenze: 10 je Siedlung plus 5 je Haus, Deckel 360. Siedler wachsen um 1 je Stunde bis zur
+Grenze. Siedler, die in einem Gebaeude arbeiten, belegen keinen Hausplatz. Heilkunde erhoeht die
+Siedlerproduktion um 10 Prozent je Stufe.
+
+Nahrung ist zweiter Engpass: 8 Nahrung je Einheit und Spieltag. Der Bedarf liegt in
+data/nahrungsverbrauch.json.
+
+### 4.3 Forschung
+
+Es gibt 21 Forschungsgebiete. Zugang ueber die Bibliothek. Pfade schalten Gebaeude, Waren und
+Einheiten frei. Bots forschen nach eigenem Plan, Baukunst zuerst.
+
+### 4.4 Waren, Ausruestung, Einheiten, Ausbildung
+
+Es gibt 28 Einheiten in data/units.json, aufgeteilt in:
+
+- Nahkampf: Buergerwehr, Kaempfer, Krieger, Ritter, Paladin.
+- Fernkampf: Kurzbogenschuetze, Bogenschuetze, Langbogenschuetze, Armbrustschuetze.
+- Kundschafter: Streuner, Gauner, Dieb, Meisterdieb, Kundschafter, Waldlaeufer.
+- Karren: Handkarren, Einspaenner, Zweispanner, Handelskarawane, Grosse Handelskarawane, Siedlerkarren.
+- Belagerung: Belagerungsturm, Ramme, Grosser Belagerungsturm, Grosse Ramme, Balliste, Katapult,
+  Grosses Katapult.
+
+Beispielkosten:
+
+- Buergerwehr: 1 Siedler, 100 Nahrung, 50 Leder, 50 Wolle.
+- Kaempfer: 1 Siedler, 175 Gold.
+- Krieger: 1 Siedler, 350 Gold, 1 Pferd.
+- Ritter: 1 Siedler, 700 Gold, 1 Pferd.
+- Paladin: 1 Siedler, 1400 Gold, 10 Mana, 1 Pferd.
+
+Karren und Belagerungsmaschinen kosten Holz, Metall, Leder, Wolle, Pferde und Siedler. Warenrezepte
+liegen in data/warenrezepte.json. Ausbildungsstaetten sind Kriegerakademie, Diebesgilde und
+Stellmacher. Ausbildung laeuft als Warteschlange mit einheit, gebaeude, start, ende,
+dauer_sekunden, stufe und gebucht.
+
+### 4.5 Bewegen und Zeit
+
+Bewegung hat Marschzeit und Wegzeit. Rueckweg kostet doppelt. Transport und Auftraege laufen ueber
+die Warteschlangen. Ein Weltensprung ist gesperrt, solange Auftraege unterwegs sind.
+
+### 4.6 Kampf, Wall, Goetterschutz
+
+Kampf laeuft in Vorrunde, Wallstufen, weiteren Phasen, Beute und Flucht. Beute haengt an der
+Karrenladung. Testziel gegen ein fixes Dorf: Beute 16/10/12, 0 Verluste.
+
+Wall: Stufe 1 bis 10, Zustand in Prozent. Basiskosten Verteidigungswall 16 Holz und 16 Stein.
+Mauerreparatur ist geplant: je Prozentpunkt 16 * Stufe / 10 (Holz und Stein) plus Spielzeit.
+Details aus der S0-Tabelle, Einbau erfolgt in S2.
+
+Goetterschutz ist als Punkteband angelegt und schuetzt vor Rueckstand. Die Umsetzung liegt in
+versorgungsschutz.py und punkte.py.
+
+### 4.7 Punkte, Auszeichnungen, Ruhm
+
+Es gibt Kriegs-, Forschungs-, Handels- und Gesamtpunkte. Kein Sieg, nur Auszeichnungen. In den
+bisherigen Laeufen lagen die Handelspunkte bei 0. Es sind vier Auszeichnungen vorhanden.
+Ruhm-Stufen: 0 / 10 / 40 / 160 (data/ruhm.json, VORSCHLAG). Der Balken zeigt den Abstand zur
+naechsten Stufe.
+
+### 4.8 Portale, Weltwechsel, Drachen, Ruinen
+
+Weltwechsel kostet 5.000 Mana. Ein Tempel erzeugt 120 Mana je Spieltag, damit dauert ein Wechsel
+rechnerisch etwa 41,7 Spieltage. Portal: Koordinaten X-Y-Z, Gitter 20 x 20. Eigene Dimension als
+gruener Punkt, fremde als rote Punkte.
+
+Drachen geben Weltpunkte und Trophaeen. Ruinen bieten Deckung. Bots haben aktuell keine Drachenregel
+und meiden oder greifen den Drachen nicht.
+
+### 4.9 Bots
+
+Fuenf Nachbarn mit eigener Wirtschaft. Gebaute Faehigkeiten:
+
+- Wirtschaft aufbauen, Gebaeude je Dorf, Kartenprofil.
+- Forschen, Plan mit Baukunst zuerst.
+- Nahrung und Vorraete planen, Reserve anlegen.
+- Ausbilden je Ort.
+- Karren bauen.
+- Warenkette aus Werkstatt und Warenrezepten.
+- Gruenden, Karte beurteilen und kaufen.
+- Dorf aufgeben.
+- Wall bauen.
+- Raubzug auf Doerfer.
+- Diebstahl.
+- Spionagebericht lesen.
+- Ruinen raeumen.
+- Takte, Punkte, Stimmen, Welten, Wappen.
+
+Bot-Datendateien: bot_wirtschaft.json, bot_bauplan.json, bot_bedarf.json, bot_forschung.json,
+bot_gruendung.json, bot_raubzug.json, bot_diebstahl.json, bot_stimmen.json, bot_wappen.json.
+
+Bekannte Luecken: Keine Drachenregel, kein belegter Handel gegen den Spieler, kein belegter Angriff
+auf Spielersiedlungen, keine aktive Spionage, keine Reaktion auf Spielerfortschritt, keine
+durchgehenden Persoenlichkeitsprofile. Struktur: 69 von 74 bot_*-Funktionen stehen in src/main.py.
+
+Geplante Diplomatie fuer S4: Gunst 0 bis 100. Status: 0-39 feindselig, 40-59 wachsam, 60-100
+freundlich. Handelsabkommen ab Gunst 30, Nichtangriffspakt ab Gunst 40 fuer 3 Spieltage, Durchmarsch
+ab Gunst 60. Vertragsbruch kostet 20 Gunst und speist den Rachetopf. Rachetopf: +1 je erlittener
+Niederlage, +1 je Spieltag ohne Kontakt, ab 3 angekuendigter Angriff; Bot-Sieg senkt Rache. Noch
+nicht gebaut.
+
+## 5. Was gerade gebaut wird und was offen ist (S0 bis S5)
+
+Aktueller Stand 06.11.2026: S0, S1 und S1b sind gebaut. Naechster Schritt ist ein voller
+Sammellauf, danach S2 Mauerreparatur.
+
+- S0: fertig. tools/s0_tabellen.py schreibt docs/S0_TABELLEN_20261107.md mit fuenf gerechneten
+  Tabellen: V-1 Reparatur je Prozentpunkt 16 * Stufe / 10, V-2 Heilung 75 Prozent aller Kostenposten
+  ohne Waren und 50 Prozent dauer_je, V-3 Ruhm-Stufen 0/10/40/160, V-4 Ereigniszahlen aus
+  Tagesproduktion eines mittleren Dorfes, V-5 Rache-Schwelle aus Schlagkraft gegen mittlere
+  Verteidigung. Jede Zahl hat Rechenweg.
+
+- S1: fertig. Postfach mit Feldern read, archived, ablauf_am. Fristen und Kategorien in
+  data/nachrichten.json, Frist 1 Spieltag = 28800 Spielsekunden. Filter, Archiv, Blaettern mit 20
+  je Seite. Ruhm-Balken als Canvas. Ungelesene Verlustberichte verschieben sich, kampf und
+  gesamtsieg laufen nie ab.
+
+- S1b: fertig. Vier Menuegeschichten in data/story.json unter menue_geschichten. Lesestelle
+  story.menue_geschichte. Einmal-Kennzeichen im Spielstand: GameState.menue_geschichten_gesehen.
+  Overlay mit einem Schliessen-Knopf.
+
+- S2: offen. Mauerreparatur. Zwei Felder an Settlement: Reparaturziel in Prozent und
+  Fertig-Zeitpunkt. Rohstoffe werden beim Start atomar gebucht, Zustand steigt im Tick, Kampf bricht
+  laufende Reparatur ab, Sperre zwischen Reparatur und Ausbau.
+
+- S3: offen. Verwundetenheilung. 30 Prozent der Gefallenen je Einheitentyp werden verwundet. Heilung
+  in der vorhandenen Warteschlange. Kosten 75 Prozent aller Kostenposten der Einheit, keine Waren.
+  Dauer 50 Prozent von dauer_je. Anzeige in der Kaserne.
+
+- S4: offen. Diplomatie mit Gunst, Status, Vertraegen, Rachetopf und Ereignissen. Events mit
+  2 Spieltagen Frist: Haugs Tribut, Groms Handelsangebot, Silras Informationsverkauf.
+  Durchmarschrecht wird vorerst nur angezeigt und hat keine Mechanik.
+
+- S5: offen und zurueckgestellt. Siedlungsumzug. Gebaeude und Ausbaustufen ziehen mit, Kosten in
+  Siedlern und Portalkosten, Zielkarte zufaellig, alte Karte zurueck in den Vorrat.
+
+## 6. Harte Regeln fuer Zuarbeit
+
+- Keine erfundenen Zahlen. Nur Werte aus Datendateien oder aus bereits gerechneten Tabellen
+  verwenden. Fehlt ein Wert, weglassen.
+- Kein Wissen ueber andere Spiele einmischen.
+- Kein neues Modul fuer eine geloeste Aufgabe. Waechst eine Datei, wird reine Rechnung in die
+  vorhandene Fachdatei gezogen.
+- Anzeige und Kern lesen dieselbe Funktion, besonders bei Kosten, Sperren und Gunst.
+- ASCII-Code. Texte nur in Datendateien, kein Text im Code.
+- Alte Spielstaende laden ohne Migration. Fehlende Schluessel hoechstens melden, nie still
+  schreiben. .get mit Standardwert ist Pflicht.
+- Rundung und Deckel: Ressourcen- und Einheitenwerte mit int() oder math.floor() deckeln, nie
+  negativ.
+- Ein Schnitt, ein Commit, ein voller Sammellauf.
+- Modell-Auftraege bekommen nur noetige Signaturen und landen als Artefakte in tools/ oder Scratch,
+  nicht als src/-Modul.
+- Jede Zahl, die einen neuen Mechanikwert betrifft, wird vor dem Einbau als VORSCHLAG vorgelegt.
+
+## 7. Glossar der Datendateien
+
+- data/baupreise.json: Baupreise mit Hinweisen, ob BELEGT oder VORSCHLAG.
+- data/buildings.json: Gebaeude, Stufen, Wirkungen.
+- data/resources.json: Rohstoffe und Ertraege je Gelaende.
+- data/units.json: 28 Einheiten mit Kosten und Kampfwerten.
+- data/warenrezepte.json: Rezepte fuer Waren und Werkstaetten.
+- data/research.json: Forschungsgebiete und Freischaltungen.
+- data/nahrungsverbrauch.json: Nahrungsbedarf je Einheit.
+- data/startkarte.json: Startkarte.
+- data/originalkarten/katalog.json: 127 Originalkarten.
+- data/story.json: Storytexte, darunter menue_geschichten.
+- data/nachrichten.json: Nachrichtenkategorien und Fristen.
+- data/ruhm.json: Ruhm-Stufen.
+- data/drachen.json: Drachenwerte.
+- data/bot_wirtschaft.json, bot_bauplan.json, bot_bedarf.json, bot_forschung.json,
+  bot_gruendung.json, bot_raubzug.json, bot_diebstahl.json, bot_stimmen.json, bot_wappen.json:
+  Bot-Verhalten und Bot-Anzeige.
+- data/*punkte*: Daten fuer Auszeichnungen und Punkte.
+- data/spieloekonomie.json: unter anderem Block bots fuer Stufen.
+
+## Anhang: Online-Quellen (nur Beiwerk)
+
+Diese drei Adressen sind fuer Menschen gedacht, die nachsehen wollen. **Sie sind NICHT Voraussetzung**:
+jede Erklaerung, jede Zahl und jede Regel steht im Text dieses Dokuments. Ein Modell ohne Netz, ohne
+Login und ohne Dateizugriff kann allein mit diesem Text zuarbeiten.
+
+1. Repository: https://github.com/Decay03101991/Nebelseetal-Remake
+2. Release-Uebersicht: https://github.com/Decay03101991/Nebelseetal-Remake/releases
+3. Juengste Veroeffentlichung: https://github.com/Decay03101991/Nebelseetal-Remake/releases/tag/v_0.0.2
+   (Pre-Release, auf der Uebersicht ausgeblendet - nur ueber diesen direkten Link erreichbar)
