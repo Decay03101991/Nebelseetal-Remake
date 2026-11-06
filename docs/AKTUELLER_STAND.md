@@ -1,3 +1,24 @@
+# STAND 06.11.2026, 08:35 - V_0.0.3 gebaut, gestartet, Sammellauf gruen (Register 262/263)
+
+> Neuester Block. Register 262 und 263. Darunter 261/260 (LLM-Auftrag, deutsche Zahlenanzeige),
+> 259 (Verlustbericht), 258 (Sammellauf 181/183), 257 (S3).
+
+**Neu:** Der Stand mit deutscher Zahlenanzeige ist im vollen Sammellauf: **181 von 183 Dateien gruen,
+0 rot**, 7.502 Pruefungen, 1.612 s (`docs/audits/sammellauf_20261106_0755.log`) - sieben Pruefungen mehr
+als im Lauf 06:59, das ist genau die neue Wache. Die **Pre-Release `V_0.0.3`** ist gebaut
+(`tools/build_public_exe.py`, 409 s): EXE **102.098.672 Byte**, SHA256 `915fe8144eda...`, ZIP
+**101.818.049 Byte**, SHA256 `4d1dad2cf4f2...`. Startprobe belegt: Fenster `Nebelseetal Remake`,
+PID 15080, **Passwortsperre im Bild**, danach 0 Prozesse, verwaiste `game.lock` gesichert und entfernt,
+Demo-Ordner ohne Spielstand. Die veroeffentlichte 0.0.2 bleibt unangetastet (Daniels Entscheidung).
+Notizen: `docs/RELEASE_NOTES_PRE_RELEASE_V_0_0_3.md`.
+
+**Naechster Schritt:** die naechste Sitzung sammelt die Antworten der externen Modelle ein (Daniel
+postet sie im Lauf der Uebergabe), legt sie hashgleich nach `docs/eingaenge/LLM_<JJJJMMTT>/antworten/`
+ab, gleicht sie gegeneinander ab und setzt den Gewinner in Schnitte um - beginnend mit **S4 Teil 1
+(Gunst und Status)** nach `docs/ABLAUF_20261107.md` Abschnitt D. Der LLM-Auftrag selbst steht in
+`docs/extern/Nebelseetal_LLM_Auftrag_20261106.md`. S5 bleibt gesperrt.
+
+---
 # STAND 06.11.2026, 08:05 - LLM-Auftragsdatei fertig, Anzeige in deutscher Schreibweise (Register 260/261)
 
 > Neuester Block. Register 260 und 261. Darunter 259 (Verlustbericht, Flakiness-Wache), 258 (Sammellauf
