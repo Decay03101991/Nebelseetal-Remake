@@ -1,0 +1,88 @@
+AUFTRAG 02 von 05 - MAUERREPARATUR (Wall in Stufe und Zustand, nicht in Trefferpunkten)
+Stand: 06.11.2026. Auftraggeber: Daniel (Projekt Nebelseetal Remake), uebermittelt durch seinen Agenten.
+
+WICHTIG ZUERST - DEINE LAGE
+Du hast KEINEN Zugriff auf unser Repository, unsere Datendateien oder Messwerte. Alles Noetige steht
+hier. Fehlt eine Angabe, erfinde nichts, sondern schreibe "UNGEKLAERT: <Frage>". Deine Antwort ist ein
+VORSCHLAG; gebaut wird sie erst nach Pruefung jeder Kernzahl. Diese Datei ist zum Einfuegen in den
+Gemini-Chat gedacht - antworte als Chat-Text.
+
+1. SPIELKONTEXT IN KURZFORM
+- Nebelseetal Remake, lokales Einzelspieler-Aufbauspiel, Python 3.14 + tkinter, Spielstand als JSON,
+  kein Server. Sechs Welten, sechs Fraktionen, Bots mit eigener Wirtschaft.
+- Zeit: eine Spielstunde = 20 Sekunden Rechenzeit (Spieluhrfaktor 180); gerechnet wird in
+  Spielsekunden (state.spielsekunden), nicht in Rechnerzeit.
+- Jede Siedlung hat ein eigenes Lager (Settlement.vorraete); der Reichsbestand ist die Summe der
+  Orte, niemals eine zweite Kasse.
+- Kampf laeuft ueber EINE Funktion: kampf.fuehre_schlacht(...) - Vorrunde am Wall, dann Gefecht, dann
+  Beute. Es gibt keinen zweiten Kampfweg und es darf keinen geben.
+
+2. DER AUFTRAG IN EINEM SATZ
+Entwirf eine Mauerreparatur fuer unsere Prozent-Mauer: eine beschaedigte Mauer erholt sich gegen
+Rohstoffe UND Spielzeit, nur in der eigenen Siedlung - ohne Trefferpunkte, ohne zweites Wall-Modell.
+
+3. IST-STAND, GEMESSEN (die Wahrheit, nicht die Vermutung)
+- Die Mauer hat ZWEI Werte: Stufe (0 bis 10, Ausbau auf dem Feld) und ZUSTAND in Prozent
+  (dorfwall.zustand(siedlung), 0 bis 100). Der Wall rechnet NIRGENDS in Trefferpunkten.
+- In der Schlacht geht der Zustand in die Vorrunde ein (kampf.fuehre_schlacht, Parameter wall_stufe
+  und wall_zustand; Prozent wird auf 0..100 geklemmt). Mauerschaden je Belagerungsgeraet ist belegt
+  (einheiten.mauer_schaden: Belagerungsturm, Ramme, Katapult mit eigenen Werten; zwei Tuerme haben
+  Mauerschaden 0).
+- Eine Reparatur gibt es NICHT. Die Luecke ist bei uns ehrlich dokumentiert:
+  "mauer_reparatur: Ob und wie sich eine beschaedigte oder eroberte Mauer erholt, sagt das Handbuch
+  nicht" (src/kampfbericht.py:566). Das Handbuch 2009 ist unsere Richtschnur und schweigt dazu.
+- Gemessen in den letzten Spieltest-Laeufen: 0 Wallschaden, weil die Testgegner feste Doerfer ohne
+  echten Wallangriff waren. Beurteilbar wird die Reparatur erst mit einem Kampf gegen ein echtes
+  Bot-Dorf - der Vorschlag muss also auch ohne Messdaten sauber definiert sein.
+- Baukosten und Bauzeiten der Mauer stehen in Datendateien (data/baupreise.json,
+  data/buildings.json); Stufen und Zustand liegen im Spielstand je Siedlung.
+
+4. DANIELS ENTSCHEIDUNG (bereits getroffen, nicht mehr zur Diskussion)
+Woertlich: "Reparatur kostet Holz und Stein UND Spielzeit (Wall steht still), nur in der eigenen
+Siedlung."
+Also drei harte Vorgaben: (a) zwei Rohstoffe, (b) Zeitbindung, (c) ausschliesslich eigene Siedlung.
+
+5. WAS WIR VON DIR BRAUCHEN (achte Punkte)
+1) KOSTENMODELL: wie rechnet man Holz und Stein je Prozentpunkt Zustand? Nenne die Formel und die
+   Ableitung aus vorhandenen Werten (Baukosten der Mauer je Stufe, Ausbaustufen 0-10). Keine
+   willkuerliche Zahl ohne Ableitung; wo die Quelle fehlt, kennzeichne VORSCHLAG.
+2) ZEITMODELL: wie lange dauert die Reparatur je Prozentpunkt, in Spielstunden? Was heisst "Wall
+   steht still" konkret - kein Schutz waehrend der Reparatur, oder nur keine weitere Reparatur?
+   Wie verhaelt es sich, wenn mitten in der Reparatur ein Angriff kommt?
+3) ZUSTAND UND BUCHUNG: wo wird der laufende Reparaturvorgang gespeichert (je Siedlung im
+   Spielstand, keine neue Datei)? Wie wird gebucht (Rohstoffe sofort weg, Zustand erst am Ende, oder
+   stueckweise)? Was passiert bei Abbruch (Siedlung wird angegriffen, Rohstoffe reichen nicht mehr)?
+4) WECHSELWIRKUNG MIT AUSBAU: die Mauer hat eine Stufe. Darf man waehrend einer Reparatur ausbauen,
+   und was passiert mit dem Zustand, wenn die Stufe steigt (bleibt der Prozentwert, waechst der
+   absolute Schutz)?
+5) ANZEIGE: wo steht der Reparaturknopf (Verteidigungsansicht der Siedlung), welcher Text, welche
+   Rueckmeldung bei zu wenig Rohstoffen (unser Grundsatz: der Knopf nennt ALLE fehlenden
+   Bedingungen einzeln und darunter den naechsten Schritt)?
+6) WACHE: welche pruefbaren Zusagen (ohne Fenster) soll eine Testdatei belegen? Nenne je Zusage den
+   erwarteten Wert, inklusive Gegenprobe (ohne Schaden darf nichts passieren).
+7) RANDFAELLE: Zustand 100 Prozent, Zustand 0 Prozent, Reparatur bei laufendem Angriff, zwei
+   Siedlungen gleichzeitig, Siedlung ohne Mauer, Rundung der Kosten (nicht negativ werden).
+8) AUFBAUZEIT-EFFEKT: begruende in ein bis zwei Saetzen, dass die Reparatur den Aufbau nicht
+   verkuerzt, sondern Zeit und Rohstoffe bindet (Leitlinie: "es muss ein Aufbauspiel bleiben").
+
+6. HARTE RANDKONDITIONEN
+- KEINE Trefferpunkte, KEINE Absorption in Prozent im Sinne eines zweiten Modells: der Wall bleibt
+  Stufe + Zustand in Prozent.
+- KEIN neues Modul und KEINE neue Datendatei: nenne die BESTEHENDE Datei (Modul oder Datendatei),
+  die erweitert wird, und was dort alt -> neu aussieht.
+- KEIN zweiter Kampfweg: Schaden entsteht weiter ausschliesslich in kampf.fuehre_schlacht.
+- Python-Code ASCII-only (ae/oe/ue/ss); nur sichtbare Anzeigetexte tragen echte Umlaute. Keine
+  Emojis.
+- Jede Codezeile mit kurzem Kommentar, jeder Block mit einer Zeile zur Aufgabe.
+- Zahlen, die du nicht belegen kannst, sind als VORSCHLAG zu kennzeichnen und zu begruenden.
+
+7. WAS HIER SCHON ABGELEHNT WURDE (nicht wieder vorschlagen)
+- "Mauer mit 5000 Trefferpunkten, 75 Prozent Absorption, 2 Holz je TP, 0,5 Zeit je TP" - erfunden,
+  und ein TP-Modell widerspricht unserem Wall.
+- Ein Modul src/wall_belagerung.py als zweiter Kampfweg.
+- Eine dritte Gebaeudedatei data/gebaeude.json.
+- Emoji-Kampflogs (gemalte Symbole statt Text).
+
+8. ANTWORTFORMAT
+Reiner Chat-Text, Abschnitte 1 bis 8 wie oben, hoechstens 700 Woerter. Zu jedem Punkt: Datei,
+Funktion, alt -> neu (stichwortartig), erwarteter Messwert. Unbekanntes als "UNGEKLAERT: <Frage>".

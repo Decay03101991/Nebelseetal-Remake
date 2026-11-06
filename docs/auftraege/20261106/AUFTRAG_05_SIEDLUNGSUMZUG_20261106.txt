@@ -1,0 +1,89 @@
+AUFTRAG 05 von 05 - SIEDLUNGSUMZUG (Siedlung versetzen, Zielkarte zufaellig)
+Stand: 06.11.2026. Auftraggeber: Daniel (Projekt Nebelseetal Remake), uebermittelt durch seinen Agenten.
+
+WICHTIG ZUERST - DEINE LAGE
+Du hast keinen Zugriff auf unseren Code, unsere Daten oder Tests. Alles Noetige steht hier. Fehlt eine
+Angabe: "UNGEKLAERT: <Frage>" schreiben, nichts erfinden. Deine Antwort ist ein VORSCHLAG; gebaut
+wird erst nach Pruefung. Diese Datei ist zum Einfuegen in den Gemini-Chat gedacht - antworte als
+Chat-Text.
+
+1. SPIELKONTEXT IN KURZFORM
+- Nebelseetal Remake, lokales Einzelspieler-Aufbauspiel, Python 3.14 + tkinter, Spielstand als JSON.
+- Zeit: eine Spielstunde = 20 Sekunden Rechenzeit; gerechnet wird in Spielsekunden.
+- Der Spieler gruendet Siedlungen auf ORIGINAL-KARTEN: 127 gescannte Siedlungskarten (10x10 Felder),
+  in Kategorien beste/mittlere/schlechte. Jede Karte hat Gelände je Feld (Grasland, Wald, Steppe,
+  Nebelsee, Gebirge ...); Gebaeude stehen auf FELDERN der Karte.
+- Siedler sind die harte Grenze: 10 je Siedlung, +5 je Haus, hoechstens 6 Siedlungen.
+- Sechs Welten ("Dimensionen") sind ueber Portale verbunden; ein Weltensprung kostet Mana und ist
+  24 Spielstunden gesperrt.
+- Waehrend Auftraege, Einheiten oder Handel UNTERWEGS sind, ist ein Weltensprung gesperrt (Daniels
+  Regel; im Code geprueft ueber eine einzige Zaehlfunktion fuer laufende Auftraege).
+
+2. DER AUFTRAG IN EINEM SATZ
+Entwirf einen Siedlungsumzug: eine bestehende Siedlung wird gegen Siedler und Portalkosten an einen
+neuen Platz versetzt, die Zielkarte wird zufaellig gezogen - ohne die Kartenarchitektur umzubauen.
+
+3. IST-STAND, GEMESSEN
+- Es gibt: Gruenden (erste Siedlung ueber den echten Startpfad, weitere ueber die Siedeln-Ansicht),
+  Kartenziehen (originalkarten.zufalls_originalkarte(seed, vergeben) und
+  originalkarten.startkarte_ziehung; die Startkarte des Spielers ist seit Register 228 FEST),
+  Aufgeben eines Dorfes (mit Verlust der Gruendungsressourcen und Rueckgabe der Karte) - Aufgeben
+  geht aber erst ab sechs Siedlungen, weil Daniel das so entschieden hat.
+- Eine Siedlung haelt: Name, Kartenkennung, Koordinaten im Portalgitter, Gebaeude je Feld
+  (bauten), Ausbaustufen je Feld (stufen), Einheiten, Garnison, Vorraete und den Wallzustand. Eine
+  Siedlung ist also mehr als ein Punkt auf der Karte.
+- Einen UMZUG gibt es NICHT: man kann eine bestehende Siedlung weder versetzen noch in eine andere
+  Welt tragen. Das Wort "Umzug" steht im Code nur in der Sperrbedingung fuer den Weltensprung.
+- Portalkosten rechnet das Spiel aus den Koordinaten (welt.entfernung / welt.portalkosten); es gibt
+  keine feste Ticket-Tabelle.
+
+4. DANIELS ENTSCHEIDUNG (bereits getroffen)
+Woertlich: "B: Umzug gegen Siedler und Portalkosten, Zielkarte zufaellig."
+Also: Kosten in SIEDLERN und PORTALKOSTEN, Zielkarte ZUFAELLIG. Diese Entscheidung ging bewusst
+gegen unsere Empfehlung ("nicht bauen") - sie ist gesetzt.
+
+5. WAS WIR VON DIR BRAUCHEN (acht Punkte)
+1) WAS ZIEHT MIT UM: Gebaeude, Ausbaustufen, Vorraete, Einheiten, Garnison, Verwundete (falls es sie
+   gibt), laufende Ausbildung, Name? Entscheide je Posten und begruende es aus dem Spielgefuehl - und
+   sage ausdruecklich, was NICHT mitzieht.
+2) KARTENWAHL: wie wird die Zielkarte gezogen (gleiche Verteilung wie bei der Gruendung, aber ohne
+   bereits vergebene Karten)? Was passiert, wenn die neue Karte kleiner/schlechter ist - darf der
+   Spieler sie verwerfen, und zu welchem Preis?
+3) KOSTEN: wie rechnet man die Portalkosten (aus Entfernung, wie beim Weltensprung) und die
+   Siedlerkosten (wie viele Siedler kostet ein Umzug, bezogen auf 10 je Siedlung)? Ableitung, kein
+   Bauchgefuehl; sonst VORSCHLAG.
+4) SPERREN: gilt die vorhandene Sperre "kein Umzug, solange Auftraege unterwegs sind" (dieselbe
+   Zaehlfunktion wie beim Weltensprung)? Was ist mit laufender Ausbildung und mit einem Angriff, der
+   gerade auf diese Siedlung zulaeuft?
+5) WECHSELWIRKUNG MIT AUFGEBEN: Aufgeben geht erst ab sechs Siedlungen. Darf ein Umzug frueher? Was
+   passiert mit der alten Karte (zurueck in den Vorrat oder verloren) und mit dem alten Platz?
+6) ANZEIGE: wo steht der Umzug (Siedlungsansicht), welcher Wortlaut, welche Rueckfrage vor dem
+   endgueltigen Schritt ("das kostet X Siedler und Y Mana, Zielkarte wird gezogen"), und wie sieht
+   der Spieler die neue Karte VOR dem Umzug?
+7) WACHE: welche pruefbaren Zusagen soll eine Testdatei belegen, je mit erwartetem Wert und
+   Gegenprobe (ohne Siedler kein Umzug; alter Platz frei; Vorraete genau einmal gebucht, nie
+   verdoppelt)?
+8) AUFBAUZEIT-EFFEKT: begruende ausdruecklich, ob der Umzug den Aufbau verkuerzt (dann muss er teuer
+   genug sein) oder nicht - Leitlinie des Auftraggebers: "es muss ein Aufbauspiel bleiben".
+
+6. HARTE RANDKONDITIONEN
+- KEINE neue Kartenarchitektur und KEINE neuen Kartendateien: die 127 Originalkarten sind die Quelle.
+- KEIN Schreiben von Laufzeitdaten in data/ (Regel: die oeffentliche Demo wird LEER ausgeliefert).
+- KEIN neues Modul fuer eine geloeste Aufgabe: nenne die BESTEHENDE Datei (Siedlung/Spiellogik/
+  Ansicht), die erweitert wird, alt -> neu.
+- EINE Groesse, EIN Speicher: die Siedlung bleibt EIN Objekt im Spielstand; keine zweite Ablage fuer
+  "unterwegs befindliche Siedlungen".
+- Anzeige und Kern lesen dieselbe Funktion (Kosten, Sperren, Bedingungen).
+- Python-Code ASCII-only (ae/oe/ue/ss), nur sichtbare Texte mit echten Umlauten, keine Emojis.
+- Jede Codezeile kurzer Kommentar, jeder Block eine Zeile zur Aufgabe.
+- Zahlen ohne Quelle: VORSCHLAG nennen und begruenden.
+
+7. WAS HIER SCHON ABGELEHNT WURDE
+- Ein Siedlungsumzug "gratis" oder als reine Anzeige-Umschaltung.
+- Ein zweites Kartensystem (512x512-Canvas, eigene weltkarte.json) - wir haben ein 20x20-Portalgitter
+  und 127 Originalkarten.
+- Laufzeitdaten im Programmordner.
+
+8. ANTWORTFORMAT
+Reiner Chat-Text, Abschnitte 1 bis 8, hoechstens 700 Woerter. Je Punkt: Datei, Funktion, alt -> neu,
+erwarteter Messwert. Unbekanntes als "UNGEKLAERT: <Frage>".

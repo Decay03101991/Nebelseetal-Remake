@@ -1,0 +1,116 @@
+AUFTRAG 01 von 05 - POSTFACH MIT ARCHIV UND FILTER + RUHMFORTSCHRITTSBALKEN
+Stand: 06.11.2026. Auftraggeber: Daniel (Projekt Nebelseetal Remake), Uebermittlung durch seinen Agenten "Weltenfresser".
+
+SO WIRD DIESER AUFTRAG BENUTZT
+Diese .txt ist zum Einfuegen in den Gemini-Chat gedacht - der ganze Text, ohne Aenderung. Gemini
+antwortet im Chat; diese Antwort wird hier zurueckgegeben (Hinweis "Antwort von Gemini"). Es sind
+fuenf Auftraege, einzeln numeriert (01 Postfach/Ruhm, 02 Mauerreparatur, 03 Verwundetenheilung,
+04 Diplomatie/Rache, 05 Siedlungsumzug) - bitte einzeln stellen, nicht alle zusammen in einem Chat.
+
+WICHTIG ZUERST - DEINE LAGE
+Du hast KEINEN Zugriff auf unser Repository, unsere Datendateien, unsere Tests oder Messwerte und
+siehst auch das Spiel nicht laufen. Alles, was du wissen musst, steht in diesem Auftrag. Wenn eine
+Angabe hier fehlt, erfinde sie NICHT, sondern schreibe "UNGEKLAERT" und nenne die Frage. Deine
+Antwort ist ein VORSCHLAG - gebaut wird sie erst nach Pruefung jeder Kernzahl durch uns.
+
+1. DAS SPIEL IN KURZFORM
+- Nebelseetal Remake: lokales Einzelspieler-Aufbauspiel, Python 3.14 + tkinter, Spielstand als JSON.
+  Kein Server, kein Netz, kein Mehrspieler. Kostenlos, offline, portabel.
+- Kernkreis: gruenden -> produzieren -> forschen -> ausruesten -> ausbilden -> bewegen -> kaempfen ->
+  punkten. Sechs Welten ("Dimensionen") ueber Portale verbunden, sechs Fraktionen, Bots mit eigener
+  Wirtschaft, Drachen, Ruinen.
+- Zeit: eine Spielstunde = 20 Sekunden Rechenzeit (Spieluhrfaktor 180); ein Spieltag = 8 Minuten.
+  Auftraege, Ausbildung, Forschung und Nachrichten rechnen in SPIELSEKUNDEN (state.spielsekunden),
+  nicht in Rechnerzeit.
+- Wirtschaft: jede Siedlung hat ein EIGENES Lager (Settlement.vorraete); der Reichsbestand ist nur
+  die Summe der Orte, niemals eine zweite Kasse.
+- Umfang heute: 60 Module in src/, 179 Pruefdateien, main.py hat 14.960 Zeilen mit ZWEI grossen
+  Klassen: GameState (Spiellogik, ab Zeile ~824) und NebelseetalApp (Oberflaeche, ab Zeile ~2997).
+- Oberflaeche: klassisches tkinter (kein ttk-Notebook), eigene Skin-Farben, Canvas-Balken statt
+  ttk.Progressbar (0 Treffer im ganzen Projekt), Dialoge als eigene Overlays.
+
+2. DER AUFTRAG IN EINEM SATZ
+Entwirf zwei kleine, in sich abgeschlossene Stuecke: (A) ein Postfach mit Kategorie-Filter, Archiv
+und Ablauf und (B) einen Ruhm-Fortschrittsbalken ("noch X Punkte bis Rang Y"). Beide sind reine
+Anzeige- und Ordnungsarbeit, sie duerfen das Balancing NICHT anfassen.
+
+3. IST-STAND, GEMESSEN (das ist die Wahrheit, nicht die Vermutung)
+Postfach:
+- Nachrichten liegen im Spielstand als Liste von dicts in state.messages. Jeder Eintrag hat
+  mindestens "text" und "type"; je Typ kommen Felder dazu (z. B. Kampfbericht, Spionagebericht,
+  Diebstahl mit Bot, Ort, Mengen und Spielzeit, Portal, Gesamtsieg).
+- Es gibt eine Farbtabelle je Typ: NACHRICHTEN_FARBEN in src/main.py:2874 mit "kampf", "geschenk",
+  "spionage", "gesamtsieg"; alles andere faellt auf Gold zurueck (nachrichten_farbe()).
+- Die Ansicht src/main.py:13379 _render_messages zeigt GENAU DIE LETZTEN 20 EINTRAEGE
+  (self.state.messages[-20:], neueste zuerst). Aeltere Nachrichten sind im Spielstand vorhanden,
+  aber im Spiel NICHT erreichbar - es gibt kein Blaettern, keinen Filter, kein Archiv, keinen Ablauf.
+- Gefuellt wird die Liste an 29 Stellen in src/main.py. Es gibt KEIN Limit und keine Loeschung.
+- Ein Sonderfall ist schon geloest: der Spionagebericht hat in der Ansicht einen eigenen Knopf
+  ("Spionagebericht oeffnen") und einen Verfalls-Hinweis aus data/spionage.json.
+Ruhm:
+- Die Punktrechnung existiert vollstaendig: src/punkte.py:417 auszeichnungen(zustand) liefert eine
+  Liste mit vier Eintraegen, je {name, kennzahl, wert, rechenweg, status}. Die vier sind Feldherr
+  (Kriegspunkte), Forscher (Forschungspunkte), Haendler (Handelspunkte, nur Vorversion 2006 belegt)
+  und Gesamtherrscher ((Krieg + Forschung) / 2). Die Rechenwege sind belegt (Handbuch 2009, S. 4-6).
+- Es gibt KEINEN Rang, keine Schwelle und keinen Balken. "Rang" waere neu und braucht eine Quelle
+  oder eine ausdrueckliche Kennzeichnung als VORSCHLAG.
+- Balken im Spiel werden mit tk.Canvas gezeichnet (kein ttk.Progressbar), Farbe aus dem Skin.
+
+4. DANIELS ENTSCHEIDUNGEN (bereits getroffen, nicht mehr zur Diskussion)
+- Postfach: "Filter, Archiv und Ablauf (Militaerberichte bleiben)" - also: Militaerberichte duerfen
+  NICHT verschwinden, alles andere darf archiviert oder nach Frist entfernt werden.
+- Der Balken soll auf der VORHANDENEN Rechnung sitzen ("reine Anzeige auf punkte.auszeichnungen").
+- Reihenfolge: diese beiden Stuecke kommen VOR allen anderen (Mauerreparatur, Heilung, Diplomatie).
+- Kein Preis, keine Kosten, keine Spielzahl darf neu erfunden werden. Wenn eine Zahl noetig ist,
+  kennzeichne sie als VORSCHLAG und begruende sie aus vorhandenen Werten.
+
+5. WAS WIR VON DIR BRAUCHEN (achte Punkte, in dieser Reihenfolge, je Abschnitt)
+1) DATENMODELL: welche Felder braucht eine Nachricht zusaetzlich (z. B. gelesen, archiviert,
+   ablauf_am), wo genau liegen sie (im vorhandenen dict, NICHT in einer zweiten Datei), und wie
+   verhaelt sich ein ALTER Spielstand ohne diese Felder (muss ohne Migration laden).
+2) REGELN: welche Kategorien gibt es (Vorschlag: Kampf, Spionage, Diebstahl, Portal, Diplomatie,
+   System), welche davon sind "Militaer" und damit unloeschbar, welche Frist gilt je Kategorie und
+   wer entscheidet sie (Datendatei oder Code)?
+3) ABLAUF: was passiert beim Tick - nach welcher Spielzeit wird was archiviert oder entfernt, und
+   wie verhindert man, dass ein Bericht ueber einen Verlust verschwindet, bevor der Spieler ihn
+   gesehen hat?
+4) ANZEIGE: Aufbau der Ansicht (Filterzeile, Blaettern, "Archiv" als zweiter Reiter oder Knopf),
+   Wortlaut der Knoepfe auf Deutsch, Verhalten bei 0 Nachrichten. Bedenke: die Ansicht wird bei
+   jedem Wechsel komplett neu aufgebaut (_render), also sag, wie man 500 Nachrichten ohne
+   Sekundenhaenger darstellt.
+5) RUHMBALKEN: wie rechnet man "noch X Punkte bis Rang Y" aus den vier Kennzahlen, ohne eine zweite
+   Punktrechnung zu erfinden? Welche Rangschwellen (VORSCHLAG, wenn keine Quelle), wie sieht der
+   Balken aus (Breite, Farbe, Text) und was zeigt er, wenn zwei Auszeichnungen gleichzeitig
+   steigen?
+6) WACHE: welche pruefbaren Zusagen soll eine Testdatei belegen (ohne Fenster pruefbar)? Nenne je
+   Zusage den erwarteten Wert.
+7) RANDFAELLE: leerer Spielstand, 0 Nachrichten, 200 Nachrichten, Nachricht mit fehlendem "type",
+   alter Spielstand ohne die neuen Felder, Archivieren der letzten sichtbaren Nachricht.
+8) AUFBAUZEIT-EFFEKT: begruende in einem Satz, dass beide Stuecke den Aufbau NICHT verkuerzen
+   (Leitlinie des Auftraggebers: "es muss ein Aufbauspiel bleiben").
+
+6. HARTE RANDKONDITIONEN (Verstoesse machen den Vorschlag unbrauchbar)
+- KEIN neues Modul fuer eine geloeste Aufgabe. Nenne zu jedem Vorschlag die BESTEHENDE Datei, die
+  erweitert wird, und was dort alt -> neu aussieht.
+- EINE Groesse, EIN Speicher: Nachrichten gehoeren in state.messages, nicht in eine eigene
+  postfach.json. Punkte gehoeren in punkte.py, nicht in die Oberflaeche.
+- ANZEIGE UND KERN lesen dieselbe Funktion. Keine zweite Rechnung nur fuer die Anzeige.
+- Python-Code im Projekt ist ASCII-only (ae/oe/ue/ss); NUR sichtbare Anzeigetexte tragen echte
+  Umlaute. Keine Emojis, keine Sonderzeichen in Texten.
+- Jede Codezeile bekommt einen kurzen Kommentar, jeder Block eine Zeile zur Aufgabe (Projektregel).
+- Oberflaeche: tkinter-Klassen des Projekts, kein ttk.Progressbar, keine ungueltigen Tk-Farben
+  (#gold und #green gibt es nicht; Farben kommen aus dem Skin).
+- Keine Tabs, keine Notebooks, keine "neue UI-Architektur" - die Struktur der Oberflaeche
+  entscheidet der Auftraggeber.
+
+7. WAS HIER SCHON ABGELEHNT WURDE (nicht wieder vorschlagen)
+- Ein eigenes Postfach-Modul mit eigener JSON-Datei.
+- Ein neues Punkte-/Ruhm-Modul neben punkte.py.
+- Emoji-Kampflogs, ttk-Notebook mit fuenf gui_*.py-Dateien, Statusleiste mit "#gold".
+- Erfundene Zahlen ohne Kennzeichnung (Beispiel aus einer frueheren Sammlung: "Truppenlimit 100 je
+  Dorf", "5000 Wall-Trefferpunkte" - beides ohne Quelle und bei uns falsch).
+
+8. ANTWORTFORMAT
+Reiner Text oder Markdown, Abschnitte 1 bis 8 wie oben, hoechstens 900 Woerter. Zu jedem Vorschlag:
+Datei, Funktion, alt -> neu (stichwortartig), erwarteter Messwert. Wenn du eine Angabe nicht hast:
+"UNGEKLAERT: <Frage>". Keine Einleitung, keine Zusammenfassung am Ende.

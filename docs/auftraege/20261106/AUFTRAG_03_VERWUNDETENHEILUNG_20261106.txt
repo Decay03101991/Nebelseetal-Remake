@@ -1,0 +1,83 @@
+AUFTRAG 03 von 05 - VERWUNDETENHEILUNG (Verluste teilweise heilbar)
+Stand: 06.11.2026. Auftraggeber: Daniel (Projekt Nebelseetal Remake), uebermittelt durch seinen Agenten.
+
+WICHTIG ZUERST - DEINE LAGE
+Du hast keinen Zugriff auf unser Repository, unsere Daten oder Tests. Alles Noetige steht hier. Fehlt
+eine Angabe: "UNGEKLAERT: <Frage>" schreiben, nichts erfinden. Deine Antwort ist ein VORSCHLAG;
+gebaut wird erst nach Pruefung. Diese Datei ist zum Einfuegen in den Gemini-Chat gedacht - antworte
+als Chat-Text.
+
+1. SPIELKONTEXT IN KURZFORM
+- Nebelseetal Remake, lokales Einzelspieler-Aufbauspiel, Python 3.14 + tkinter, Spielstand als JSON.
+- Zeit: eine Spielstunde = 20 Sekunden Rechenzeit; gerechnet wird in Spielsekunden.
+- Kernkreis: gruenden -> produzieren -> forschen -> ausruesten -> ausbilden -> bewegen -> kaempfen.
+- Einheiten entstehen in einer Ausbildungsstaette (Kaserne/Kriegerakademie) ueber eine
+  Warteschlange; die Ausruestung (Waffe, Ruestung) wird bei der Ausbildung VERBRAUCHT.
+- Es gibt genau EINEN Kampfweg: kampf.fuehre_schlacht(...) mit Vorrunde am Wall, Gefecht, Beute.
+  Verluste entstehen nur dort.
+
+2. DER AUFTRAG IN EINEM SATZ
+Entwirf eine Verwundetenheilung: ein Teil der Gefallenen eines Gefechts ist verwundet statt tot und
+kann in der Kaserne gegen Gold und Spielzeit geheilt werden - ohne den Aufbau zu verkuerzen.
+
+3. IST-STAND, GEMESSEN
+- Heilung existiert NICHT. Das Wort "verwundet" kommt im Code nicht vor; Verluste sind endgueltig.
+- Was es gibt und was NICHT Heilung ist: die Forschung "Heilkunde" gibt +10 Prozent
+  SIEDLERPRODUKTION je Stufe (forschung_wirkung.py:15/57) - sie heilt keine Einheiten.
+- Verluste werden nach dem Gefecht ueber die Armeebuchung des Ortes bzw. des Bots gebucht; Beute
+  laeuft ueber eine einzige Buchstelle (kampfbericht.beute_am_ziel), die Karrenladung ist die Grenze.
+- Ausbildung: spieloekonomie.ausbildung_start_menge(ort, name, forschung, jetzt, ...) reiht Einheiten
+  ein; fertig werden sie im Tick. Wird die Ausruestung knapp, nennt die Anzeige JEDE fehlende
+  Bedingung einzeln und darunter den naechsten Schritt (das ist unsere Hausregel fuer gesperrte
+  Knoepfe).
+- Siedler sind die harte Grenze: 10 je Siedlung, +5 je Haus, hoechstens 6 Siedlungen.
+- Ein Kampfbericht ist eine strukturierte Nachricht im Postfach (kein Fliesstext), mit Verlusten je
+  Seite.
+
+4. DANIELS ENTSCHEIDUNG (bereits getroffen)
+Woertlich: "30 % der Gefallenen verwundet, heilbar gegen Gold und Spielzeit in der Kaserne."
+Damit stehen fest: Quote 30 Prozent, Waehrung Gold, Dauer Spielzeit, Ort Kaserne. Alles andere
+(Kosten je Einheit, Dauer, Deckel, Anzeige) ist offen.
+
+5. WAS WIR VON DIR BRAUCHEN (achte Punkte)
+1) DATENMODELL: wo werden Verwundete gespeichert - je Siedlung im Spielstand (Settlement-Feld) oder
+   reichsweit? Begruende die Wahl aus unserer Struktur (jede Siedlung hat eigenes Lager, eigene
+   Einheiten). Wie verhaelt sich ein alter Spielstand ohne das Feld (muss ohne Migration laden)?
+2) ENTSTEHUNG: an welcher Stelle im Kampfweg entstehen Verwundete - VOR der Verlustbuchung, aus der
+   Verlustliste je Einheitentyp? Wie wird gerundet (30 Prozent von 3 Verlusten = 0 oder 1)? Was
+   passiert mit Verwundeten der ANGREIFER-Seite, wenn der Angriff scheitert?
+3) HEILUNG: wie laeuft die Heilung - sofort gegen Gold oder als Warteschlange wie die Ausbildung?
+   Wie skaliert die Dauer (je Einheit, je Einheitentyp, nach Stufe der Kaserne)? Welche Kaserne gilt,
+   wenn die Siedlung keine hat?
+4) KOSTEN: wie leitet man die Goldkosten je Heilung aus vorhandenen Werten ab (Ausbildungskosten der
+   Einheit, Ausruestungswert)? Keine willkuerliche Zahl ohne Ableitung; sonst VORSCHLAG.
+5) RANDFAELLE: Niederlage (Siedlung erobert), Flucht, Verwundete in einer Siedlung, die es nicht
+   mehr gibt, 0 Verwundete, 100 Verwundete, Heilung waehrend eines neuen Gefechts, Spielstand laden
+   mitten in der Heilung.
+6) ANZEIGE: wo steht die Verwundeten-Zahl (Kaserne, Kopfzeile, Kampfbericht), welcher Wortlaut, und
+   wie zeigt der gesperrte Heilknopf seinen Grund (unsere Regel: jede Bedingung einzeln, darunter der
+   naechste Schritt)?
+7) WACHE: welche pruefbaren Zusagen soll eine Testdatei belegen, je mit erwartetem Wert, inklusive
+   Gegenprobe (ohne Verluste keine Verwundeten; ohne Gold keine Heilung, und dann wird NICHTS
+   gebucht)?
+8) AUFBAUZEIT-EFFEKT: begruende, dass Heilung Zeit und Gold bindet und den Aufbau NICHT verkuerzt
+   (Leitlinie: "es muss ein Aufbauspiel bleiben"). Was waere die Gefahr, wenn Heilung zu billig ist?
+
+6. HARTE RANDKONDITIONEN
+- KEIN neues Modul fuer eine geloeste Aufgabe: nenne die BESTEHENDE Datei (Kampf, Siedlung,
+   Ausbildung, Anzeige), die erweitert wird, mit alt -> neu.
+- EINE Groesse, EIN Speicher: Verwundete liegen im Spielstand, nicht in einer eigenen Datei; die
+  Verlustrechnung bleibt in kampf.fuehre_schlacht.
+- Anzeige und Kern lesen DIESELBE Funktion; keine zweite Rechnung fuer die Anzeige.
+- Python-Code ASCII-only (ae/oe/ue/ss), nur sichtbare Texte mit echten Umlauten, keine Emojis.
+- Jede Codezeile kurzer Kommentar, jeder Block eine Zeile zur Aufgabe.
+- tkinter wie im Projekt (kein ttk, keine ungueltigen Farben wie "#gold").
+
+7. WAS HIER SCHON ABGELEHNT WURDE
+- "50 Prozent heilbar, nur Gold, sofort" sowie "Heilung ohne Kosten".
+- Ein Heilungssystem, das Verluste komplett rueckgaengig macht (dann ist der Kampf kostenlos).
+- Ein zweites Punkte-/Kampfmodul neben dem bestehenden.
+
+8. ANTWORTFORMAT
+Reiner Chat-Text, Abschnitte 1 bis 8, hoechstens 700 Woerter, je Punkt Datei/Funktion/alt -> neu und
+erwarteter Messwert. Unbekanntes als "UNGEKLAERT: <Frage>".

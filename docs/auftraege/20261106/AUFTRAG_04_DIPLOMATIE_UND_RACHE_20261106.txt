@@ -1,0 +1,98 @@
+AUFTRAG 04 von 05 - DIPLOMATIE MIT GUNST, VERTRAEGEN, RACHETOPF UND EVENTS
+Stand: 06.11.2026. Auftraggeber: Daniel (Projekt Nebelseetal Remake), uebermittelt durch seinen Agenten.
+
+WICHTIG ZUERST - DEINE LAGE
+Du hast keinen Zugriff auf unseren Code, unsere Daten oder Messwerte. Alles Noetige steht hier. Fehlt
+eine Angabe: "UNGEKLAERT: <Frage>" schreiben, nichts erfinden. Deine Antwort ist ein VORSCHLAG;
+gebaut wird erst nach Pruefung jeder Kernzahl. Diese Datei ist zum Einfuegen in den Gemini-Chat
+gedacht - antworte als Chat-Text.
+
+1. SPIELKONTEXT IN KURZFORM
+- Nebelseetal Remake, lokales Einzelspieler-Aufbauspiel, Python 3.14 + tkinter, Spielstand als JSON,
+  kein Server, kein Mehrspieler. Der Spieler fuehrt bis zu sechs Siedlungen, um ihn herum FUENF
+  Nachbarn mit eigener Wirtschaft: Haug, Brynhild, Grom, Silra, Krank.
+- Zeit: eine Spielstunde = 20 Sekunden Rechenzeit; gerechnet wird in Spielsekunden.
+- Bots sind KEINE Attrappen: sie bauen, forschen, bilden aus, gruenden und geben Doerfer auf, machen
+  Raubzuege, bestehlen das Lager eines abwesenden Spielers (mit Postfach-Bericht) und greifen die
+  Siedlungen des Spielers mit eigenen Truppen an. Ihre Armeen entstehen aus ihrer Wirtschaft, NICHT
+  aus einer im Code festgeschriebenen Zahl.
+- Goetterschutz: die ersten sieben Spieltage ist der Spieler unangreifbar (belegte Originalregel).
+
+2. DER AUFTRAG IN EINEM SATZ
+Entwirf aus dem heutigen Zwei-Knopf-Bildschirm ein Verhandlungsfeld: Gunst je Nachbar, Status,
+drei Vertragsarten, ein Rachetopf mit Ankuendigung und drei proaktive Ereignisse mit Antworten.
+
+3. IST-STAND, GEMESSEN
+- Die Ansicht (src/main.py:13135 _render_diplomacy) zeigt je Nachbar: Name, "Handel: x %",
+  "Aggression: y %", eine Verhaltenszeile aus der Bot-Taktik und zwei Knoepfe: "Handeln" (echter
+  Kaufvertrag mit Maske und Gegenleistung) und "Angriff entsenden" (reist, keine Sofortschlacht).
+- Es gibt KEINE Gunst, keinen Status, keine Vertraege, keine Diplomatie-Historie. Das Wort "Vertrag"
+  im Code bedeutet immer Handelskaufvertrag oder Transportvertrag - nicht Diplomatie.
+- Es gibt ein Bot-GEDaeCHTNIS: bottaktik.py:345 mit den Feldern geschlagen_von, beute_verloren,
+  staerke_zuletzt, letzter_kontakt. "geschlagen_von" wird nach einer Flucht mit dem Namen des
+  Schaedigers gefuellt (:566) - im Spiel ist das der Spieler. Der Bot-Zustand RAECHEN (:483) greift
+  den gemerkten Schaediger an, aber nur bei der Taktik "blitz"; Rache ist heute ein SCHALTER, keine
+  MENGE. Unser eigener Kommentar dort sagt: "Rache, Beuteverlust, Staerke-Vergleich = Erfindung fuer
+  Lesbarkeit" (also VORSCHLAG, keine belegte Regel).
+- Dialoge: die Oberflaeche baut Overlays selbst (_overlay_oeffnen und Verwandte, 35 Stellen in
+  main.py) - ein blockierender Kasten mit Titel, Text und Knoepfen ist vorhanden und erprobt.
+- Nachrichten: jede Meldung ist ein dict im Spielstand (Feld "text" und "type"); die Ansicht zeigt die
+  letzten 20 Eintraege, farbig je Typ.
+
+4. DANIELS ENTSCHEIDUNGEN (bereits getroffen, nicht mehr zur Diskussion)
+- Gunst 0 bis 100, drei Statusstufen (feindselig, wachsam, freundlich).
+- Drei Vertraege mit Mindestgunst: Nichtangriffspakt ab 40, Durchmarschrecht ab 60,
+  Handelsabkommen ab 30.
+- Vertragsbruch senkt die Gunst um 20 und fuellt Kranks Rachekonto.
+- Rachetopf: +1 je erlittener Niederlage, +1 je Spieltag ohne Kontakt, ab 3 ein ANGEKUENDIGTER
+  Angriff; die Rache faellt, wenn der Bot einen Sieg erringt.
+- Drei Ereignisse: Haugs Tribut (Holz oder Gold, Frist 2 Spieltage), Groms Handelsangebot, Silras
+  Informationsverkauf. Eine Ablehnung senkt die Gunst. Ein Angriff folgt nur, wenn die Bot-Armee es
+  hergibt - KEINE feste Armee im Code.
+
+5. WAS WIR VON DIR BRAUCHEN (acht Punkte)
+1) DATENMODELL: welche Felder kommen wohin - Gunst und Status je Nachbar in den Bot (Spielstand),
+   Vertraege als Liste im Spielstand, Rachetopf in das vorhandene Bot-Gedaechtnis (EINE
+   Speicherstelle, keine zweite)? Wie laedt ein alter Spielstand ohne diese Felder?
+2) GUNST-MECHANIK: welche Aktionen erhoehen oder senken die Gunst und um wie viel (Vorschlag mit
+   Ableitung: Handel, Geschenk, Vertragstreue, Angriff, Vertragsbruch, Untaetigkeit)? Gibt es einen
+   Verfall ueber die Zeit, und ab wann ist welcher Status erreicht?
+3) VERTRAEGE: Aufbau eines Vertrags (Art, Nachbar, Beginn, Laufzeit, Kuendigung), was er MECHANISCH
+   bewirkt (Nichtangriffspakt: der Bot greift nicht an - wo genau wird das geprueft? Durchmarschrecht:
+   was wird billiger oder erlaubt? Handelsabkommen: bessere Konditionen im vorhandenen Kaufvertrag?),
+   und wie ein Bruch erkannt wird, ohne dass der Spieler es "aus Versehen" tut.
+4) RACHETOPF: wie waechst und faellt er genau, wo steht die Ankuendigung (Nachricht, Typ, Wortlaut),
+   und wie verhindert man, dass ein angekuendigter Angriff mit 0 Truppen startet?
+5) EVENTS: Ausloeser, Frist, zwei Antworten je Ereignis, Folge beider Antworten, Wortlaut der Texte
+   (Deutsch, ohne Emojis, ohne Zahlen ohne Ableitung), und wie der Dialog blockiert, ohne das Spiel
+   einzufrieren (die Oberflaeche laeuft in einem Thread).
+6) ANZEIGE: Aufbau der Diplomatie-Ansicht mit Gunst, Status, laufenden Vertraegen, Restlaufzeit und
+   den zwei Knopfen. Was zeigt sie, wenn ein Vertrag gebrochen ist?
+7) WACHE: welche pruefbaren Zusagen soll eine Testdatei belegen, je mit erwartetem Wert und
+   Gegenprobe (ohne Gunst kein Vertrag; Bruch senkt genau 20; Rache faellt nach einem Sieg)?
+8) AUFBAUZEIT-EFFEKT: begruende, dass Diplomatie den Aufbau nicht verkuerzt (Leitlinie: "es muss ein
+   Aufbauspiel bleiben") - oder nenne ausdruecklich, wo sie ihn verkuerzt und warum das vertretbar
+   ist.
+
+6. HARTE RANDKONDITIONEN
+- KEIN neues Modul src/nachbar_ki.py und keine data/nachbarn.json: die Nachbarn sind bestehende Bot-
+  Objekte mit eigenem Spielstand. Nenne die BESTEHENDE Datei, die erweitert wird, alt -> neu.
+- KEINE zweite Bot-Entscheidung und keine feste Armee im Code: Armeen entstehen aus der
+  Bot-Wirtschaft; die Diplomatie darf nur die BEREITS vorhandenen Wege sperren oder erlauben.
+- EINE Groesse, EIN Speicher: Gunst und Rache gehoeren zum Bot, Vertraege in den Spielstand.
+- Anzeige und Kern lesen dieselbe Funktion.
+- Python-Code ASCII-only (ae/oe/ue/ss), nur sichtbare Texte mit echten Umlauten, keine Emojis.
+- Jede Codezeile kurzer Kommentar, jeder Block eine Zeile zur Aufgabe.
+- Zahlen ohne Quelle sind als VORSCHLAG zu kennzeichnen und zu begruenden.
+
+7. WAS HIER SCHON ABGELEHNT WURDE
+- "Ablehnung -> sofortiger KI-Angriff mit fester Armee" (z. B. 150 leichte Infanterie + 50
+  Pluenderer im Code) - widerspricht der Bot-Wirtschaft.
+- Ein zweites Zustandsautomaten-Modul fuer Nachbarn.
+- Stein-Schere-Papier-Kampfregeln oder waehlbare Formationen (widerspricht der belegten
+  Original-Kampfregel).
+- Transporte abfangen (vom Auftraggeber ausdruecklich abgelehnt).
+
+8. ANTWORTFORMAT
+Reiner Chat-Text, Abschnitte 1 bis 8, hoechstens 900 Woerter. Je Punkt: Datei, Funktion, alt -> neu,
+erwarteter Messwert. Unbekanntes als "UNGEKLAERT: <Frage>".
