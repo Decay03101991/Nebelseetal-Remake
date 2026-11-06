@@ -1,3 +1,25 @@
+# STAND 06.11.2026, 09:05 - Vier LLM-Antworten liegen vor, neues Ziel (Register 264)
+
+> Neuester Block. Register 264. Darunter 263 (Pre-Release V_0.0.3), 262 (Sammellauf), 261/260
+> (LLM-Auftrag, deutsche Zahlenanzeige), 259 (Verlustbericht).
+
+**Neu:** Der Auftrag `docs/extern/Nebelseetal_LLM_Auftrag_20261106.md` ist von **vier Modellen**
+beantwortet und die Antworten liegen hashgeprueft im Projekt:
+`docs/eingaenge/LLM_20261106/` - Claude Opus 5.5 (**46.259 Byte, 11 Schnitte, Teil 7a mit Z-1 bis Z-5
+= von Daniel genehmigter Zusatz-Content**), UseAI Instant (86.957 Byte, 9 Schnitte, 11 Einwaende),
+Grok 4.5 (25.066 Byte, OpenDocument, Schnitte als Tabellen) und Gemini (8.673 Byte, S4 in einem
+Schnitt). `README.md` dort traegt Index, SHA256 je Datei, Rangfolge (Claude zuerst) und die vier
+Prueffragen. Der Desktop-Ordner ist geraeumt, nichts geloescht.
+
+**Neues Ziel (Daniel 06.11.2026):** aus den Antworten **schnellstens EINEN vorerst fixen Ablauf**
+bauen, der das Spiel in den Zustand bringt, in dem **nur noch Balancing und Bugfixing** noetig sind -
+damit das Spiel immer besser, fluessiger und stimmiger wird.
+
+**Naechster Schritt:** die Antworten abgleichen (Claude vollstaendig, die anderen drei als Gegenprobe),
+daraus den fixen Ablauf als eigenes Dokument schreiben und den ersten Schnitt (S4 Teil 1 Gunst und
+Status) umsetzen. Je Schnitt Register, Protokollzeile, Stand-Block, Commit und Push.
+
+---
 # STAND 06.11.2026, 08:35 - V_0.0.3 gebaut, gestartet, Sammellauf gruen (Register 262/263)
 
 > Neuester Block. Register 262 und 263. Darunter 261/260 (LLM-Auftrag, deutsche Zahlenanzeige),
