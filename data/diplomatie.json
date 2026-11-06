@@ -26,5 +26,33 @@
         "text": "freundlich"
       }
     ]
+  },
+  "vertraege": {
+    "aktiv": true,
+    "_schnitt": "S4-3 (06.11.2026), Ablauf Schritt 3. Jede Zahl traegt ihre Quelle. Der Pakt ist EINSEITIG - Daniels Entscheidung vom 06.11.2026, 13:50 (Register 284): der Bot greift nicht an, der Spieler darf pluendern, bezahlt es aber mit einem Paktbruch.",
+    "nichtangriff": {
+      "min_gunst": 40,
+      "dauer_sekunden": 86400,
+      "bruch_gunst": -20,
+      "bruch_rache": 1,
+      "quelle": "Auftragsdokument 7.2 (VORSCHLAG): Pakt ab Gunst 40, Dauer 3 Spieltage = 86.400 Spielsekunden (3 x 28.800), Bruch unter 40 kostet 20 Gunst und +1 Rachetopf. Kein Originalbeleg im Handbuch 2009 nachgezogen (offener Punkt A-5)."
+    },
+    "handel": {
+      "min_gunst": 40,
+      "dauer_sekunden": 86400,
+      "quelle": "VORSCHLAG: Handelsabkommen ab Gunst 40, gleiche Dauer wie der Pakt. Kein Originalbeleg; das Abkommen nutzt den vorhandenen Handelsweg (spieloekonomie.handel_start), es entsteht kein zweiter Weg."
+    },
+    "durchmarsch": {
+      "min_gunst": 60,
+      "dauer_sekunden": 86400,
+      "nur_anzeige": true,
+      "quelle": "Auftragsdokument 7.2 (VORSCHLAG) und Daniels Entscheidung 06.11.2026, 13:50 (Register 284): reine Anzeige, KEINE Mechanikwirkung - kein Originalbeleg, keine neue Wegfindung."
+    },
+    "bruch_unter_gunst": 40,
+    "einseitig": {
+      "wert": true,
+      "quelle": "ENTSCHEIDUNG Daniel 06.11.2026, 13:50 (Register 284): der Pakt schuetzt den Spieler vor Bot-Angriffen; ein Angriff des Spielers auf den Pakt-Bot ist ERLAUBT, bricht aber den Pakt (Gunst-Abzug, Rachetopf +1)."
+    },
+    "regel": "Ein Vertrag ist ein Eintrag am Bot: Art -> {seit, bis}. Er wird NICHT abgeleitet, sondern bei Ablauf geloescht; der Status der Gunst steht weiterhin nur im Feld gunst."
   }
 }

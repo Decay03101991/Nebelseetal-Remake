@@ -166,3 +166,163 @@ def status(gunst, einst=None) -> str:
         if wert <= eintrag["bis"]:  # erste passende Stufe gewinnt
             return eintrag["schluessel"]  # ihre Kennung zurueckgeben
     return liste[-1]["schluessel"] if liste else ""  # ueber allen Grenzen: die oberste Stufe
+
+
+# ---------------------------------------------------------------------------
+# S4-3 Vertraege (06.11.2026, Ablauf Schritt 3)
+# ---------------------------------------------------------------------------
+# Ein Vertrag ist ein EINTRAG AM BOT (`vertraege`: Art -> {seit, bis}), kein eigenes Objekt und
+# keine zweite Rechnung. Die Zahlen stehen in `data/diplomatie.json` unter "vertraege".
+# ENTSCHEIDUNG Daniel 06.11.2026, 13:50 (Register 284): der Nichtangriffspakt ist EINSEITIG -
+# er sperrt Angriffe des BOTS, nicht die des Spielers; ein Spielerangriff BRIcht den Pakt.
+
+VERTRAGSARTEN = ("nichtangriff", "handel", "durchmarsch")  # die drei Arten, die die Datei fuehrt
+
+
+def _vertraege_block(einst=None) -> dict:
+    """Der Block "vertraege" der Datendatei (leeres dict, wenn er fehlt)."""
+    quelle = einst if isinstance(einst, dict) else daten()  # uebergebene Daten oder die Datei
+    block = (quelle or {}).get("vertraege")  # den Vertragsblock heraussuchen
+    return block if isinstance(block, dict) else {}  # nur ein dict ist brauchbar
+
+
+def vertraege_aktiv(einst=None) -> bool:
+    """Sind Vertraege eingeschaltet? Ein Wort in der Datendatei entscheidet (A-7)."""
+    block = _vertraege_block(einst)  # Block holen
+    return bool(block.get("aktiv", False))  # ohne ausdrueckliches true sind sie aus
+
+
+def art_daten(art, einst=None) -> dict:
+    """Die Zahlen EINER Vertragsart (min_gunst, dauer_sekunden, ...); leer, wenn unbekannt."""
+    block = _vertraege_block(einst)  # Block holen
+    eintrag = block.get(str(art))  # Eintrag dieser Art
+    return eintrag if isinstance(eintrag, dict) else {}  # nur ein dict ist brauchbar
+
+
+def _bot_vertraege(bot_daten) -> dict:
+    """Die Vertragstabelle eines Bots - EIN Speicher am Bot (dict-Form)."""
+    if not isinstance(bot_daten, dict):  # ohne dict gibt es nichts zu lesen
+        return {}  # dann eine leere Tabelle (kein Absturz)
+    tabelle = bot_daten.get("vertraege")  # Feld am Bot
+    if not isinstance(tabelle, dict):  # altes Feld oder gar keins
+        tabelle = {}  # dann eine leere Tabelle
+        bot_daten["vertraege"] = tabelle  # und anlegen, damit der Aufrufer schreiben kann
+    return tabelle  # die Tabelle selbst (veraenderbar)
+
+
+def vertrag_aktiv(bot_daten, art, jetzt, einst=None) -> bool:
+    """Laeuft diese Vertragsart gerade? Abgelaufene Eintraege werden dabei entfernt.
+
+    Eingabe: dict des Bots, Art, Spielzeit in Sekunden. Ausgabe: True, wenn `jetzt` vor `bis` liegt.
+    Ein abgelaufener Eintrag wird geloescht - so gibt es keinen zweiten Zeitbegriff und keinen
+    Zustand, der still weiterlaeuft.
+    """
+    tabelle = _bot_vertraege(bot_daten)  # Tabelle des Bots
+    eintrag = tabelle.get(str(art))  # Eintrag dieser Art
+    if not isinstance(eintrag, dict):  # nichts vereinbart
+        return False  # dann laeuft auch nichts
+    bis = _zahl(eintrag.get("bis"), 0.0)  # Ende des Vertrags
+    if float(jetzt) >= bis:  # Zeit ist um
+        tabelle.pop(str(art), None)  # Eintrag entfernen (Ablauf ohne Buchung)
+        return False  # dann ist er nicht mehr aktiv
+    return True  # er laeuft
+
+
+def vertrag_anbieten(bot_daten, art, jetzt, einst=None):
+    """Bietet einem Bot eine Vertragsart an. Rueckgabe: (ok, grund).
+
+    Geprueft wird in dieser Reihenfolge: Schalter, bekannte Art, Durchmarsch (nur Anzeige),
+    Gunst gegen `min_gunst`, kein doppelter laufender Vertrag. Es wird NICHTS gebucht, wenn eine
+    Bedingung fehlt - der Aufrufer bucht nur bei `True`.
+    """
+    if not vertraege_aktiv(einst):  # Schalter aus
+        return False, "vertraege_aus"  # dann kein Angebot
+    art = str(art)  # Art als Text
+    if art not in VERTRAGSARTEN:  # unbekannte Art
+        return False, "unbekannte_art"  # dann ablehnen
+    zahlen = art_daten(art, einst)  # Zahlen dieser Art
+    if not zahlen:  # Art steht nicht in der Datei
+        return False, "art_ohne_daten"  # dann ablehnen statt raten
+    noetig = int(_zahl(zahlen.get("min_gunst"), 100))  # noetige Gunst (Vorgabe: alles)
+    gunst = gunst_von(bot_daten, einst)  # jetzige Gunst
+    if gunst < noetig:  # zu wenig Gunst
+        return False, "gunst_zu_niedrig"  # dann ablehnen
+    if vertrag_aktiv(bot_daten, art, jetzt, einst):  # schon vereinbart
+        return False, "laeuft_bereits"  # dann nicht doppelt anbieten
+    dauer = _zahl(zahlen.get("dauer_sekunden"), 0.0)  # Dauer in Spielsekunden
+    _bot_vertraege(bot_daten)[art] = {"seit": float(jetzt), "bis": float(jetzt) + dauer,
+                                      "nur_anzeige": bool(zahlen.get("nur_anzeige", False))}
+    return True, "vereinbart"  # Angebot angenommen und eingetragen
+
+
+def vertraege_tick(bot_daten, jetzt, einst=None) -> list:
+    """Prueft EINEN Bot: gebrochene Vertraege buchen, abgelaufene entfernen.
+
+    Rueckgabe: Liste der Vorgaenge `[{"art", "grund", "gunst_delta", "rache_delta"}]` - der
+    Aufrufer bucht die Rache, weil es den Rachetopf erst mit Schritt 4 gibt (noch kein Feld).
+    Regeln: faellt die Gunst unter `bruch_unter_gunst`, bricht der Pakt (Gunst-Abzug + Rache);
+    ein abgelaufener Vertrag bricht NICHT, er endet einfach.
+    """
+    tabelle = _bot_vertraege(bot_daten)  # Tabelle des Bots
+    vorgaenge = []  # was in diesem Tick passiert ist
+    grenze = int(_zahl(_vertraege_block(einst).get("bruch_unter_gunst"), 0))  # Bruchgrenze
+    for art in list(tabelle):  # jede laufende Art einmal ansehen
+        if not vertrag_aktiv(bot_daten, art, jetzt, einst):  # schon abgelaufen
+            continue  # dann ist nichts zu tun
+        zahlen = art_daten(art, einst)  # Zahlen dieser Art
+        if gunst_von(bot_daten, einst) < grenze and art == "nichtangriff":  # Pakt gebrochen
+            abzug = int(_zahl(zahlen.get("bruch_gunst"), 0))  # Gunst-Abzug aus der Datei
+            rache = int(_zahl(zahlen.get("bruch_rache"), 0))  # Rache-Buchung aus der Datei
+            tabelle.pop(art, None)  # Vertrag ist beendet
+            gunst_aendern(bot_daten, abzug, "vertragsbruch", einst)  # EINMAL abziehen
+            vorgaenge.append({"art": art, "grund": "vertragsbruch",  # Vorgang melden
+                              "gunst_delta": abzug, "rache_delta": rache})
+    return vorgaenge  # der Aufrufer bucht die Rache (Schritt 4)
+
+
+def angriff_gesperrt(bot_daten, jetzt, einst=None) -> tuple:
+    """Darf dieser BOT den Spieler angreifen? Rueckgabe: (gesperrt, grund).
+
+    Das ist die EINE Stelle fuer die Vertragssperre; `punkte.angreifbar` bleibt die einzige
+    Rechenstelle der Punktgrenzen (Befund G-1). Die Sperre ist eine VORBEDINGUNG, keine zweite
+    Rechnung - der Aufrufer fragt beides und sperrt, wenn eine der beiden Antworten sperrt.
+    """
+    if not vertraege_aktiv(einst):  # Schalter aus
+        return False, ""  # dann sperrt der Vertrag nichts
+    if not isinstance(bot_daten, dict):  # ohne dict pruefen wir an der dict-Form des Bots
+        bot_daten = {"gunst": getattr(bot_daten, "gunst", startwert(einst)),
+                     "vertraege": dict(getattr(bot_daten, "vertraege", {}) or {})}
+    if vertrag_aktiv(bot_daten, "nichtangriff", jetzt, einst):  # laufender Pakt
+        return True, "nichtangriffspakt"  # dann kein Angriff dieses Bots
+    return False, ""  # sonst frei
+
+
+def pakt_brechen(bot_daten, jetzt, einst=None) -> dict:
+    """Der SPIELER greift einen Bot mit Pakt an: der Pakt bricht. Rueckgabe: Buchung.
+
+    ENTSCHEIDUNG Daniel 06.11.2026, 13:50 (Register 284): kein Verbot, sondern ein Bruch - Gunst
+    sinkt um `bruch_gunst`, die Rache steigt um `bruch_rache` (gebucht vom Aufrufer, Schritt 4).
+    Ohne laufenden Pakt passiert nichts (dann `{"gebrochen": False}`).
+    """
+    leer = {"gebrochen": False, "gunst_delta": 0, "rache_delta": 0}  # der ruhige Fall
+    if not vertraege_aktiv(einst):  # Schalter aus
+        return leer  # dann bricht auch nichts
+    if not vertrag_aktiv(bot_daten, "nichtangriff", jetzt, einst):  # kein Pakt
+        return leer  # dann nichts zu brechen
+    zahlen = art_daten("nichtangriff", einst)  # Zahlen des Pakts
+    abzug = int(_zahl(zahlen.get("bruch_gunst"), 0))  # Gunst-Abzug
+    rache = int(_zahl(zahlen.get("bruch_rache"), 0))  # Rache-Buchung
+    _bot_vertraege(bot_daten).pop("nichtangriff", None)  # Pakt ist beendet
+    gunst_aendern(bot_daten, abzug, "paktbruch_durch_spieler", einst)  # EINMAL abziehen
+    return {"gebrochen": True, "gunst_delta": abzug, "rache_delta": rache}  # Buchung melden
+
+
+def durchmarsch_text(bot_daten, jetzt, einst=None) -> str:
+    """Der Anzeigetext fuer das Durchmarschrecht - reine Anzeige, KEINE Mechanik.
+
+    Daniels Entscheidung 06.11.2026 (Register 284): das Recht hat keine Wirkung; der Text nennt es
+    darum ausdruecklich als reine Anzeige, damit niemand eine Mechanik dahinter vermutet.
+    """
+    if vertrag_aktiv(bot_daten, "durchmarsch", jetzt, einst):  # Recht vereinbart
+        return "Durchmarsch gewaehrt (nur Anzeige - keine Mechanik)"  # Text fuer die Ansicht
+    return ""  # sonst nichts anzeigen
