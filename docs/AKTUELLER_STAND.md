@@ -1,6 +1,6 @@
-# STAND 06.11.2026, 03:56 - S1b gebaut: vier Menue-Teilgeschichten (Register 251)
+# STAND 06.11.2026, 03:47 - S1b gebaut: vier Menue-Teilgeschichten (Register 251)
 
-> Neuester Block. Register 251, Protokollzeile 03:56. Nachtlauf. Darunter S1 (03:22) und S0 (03:02).
+> Neuester Block. Register 251, Protokollzeile 03:47. Nachtlauf. Darunter S1 (03:22) und S0 (03:02).
 
 **Was dieser Schnitt geaendert hat:** vier kurze Geschichten erscheinen beim ersten Oeffnen ihrer Ansicht.
 
