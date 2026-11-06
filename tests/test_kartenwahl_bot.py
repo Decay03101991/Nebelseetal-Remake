@@ -36,6 +36,19 @@ import main as M  # noqa: E402
 import originalkarten as OK  # noqa: E402
 import spieloekonomie as O  # noqa: E402
 
+# Block 5 (06.11.2026): der Sammellauf 05:20 hatte diese Datei EINMAL rot (Einzellauf dreimal
+# gruen) - ein Wuerfel ohne festen Startwert. Reparatur in der PRUEFDATEI, nicht im Kern
+# (Muster 05.11.2026): ein `random.Random()` OHNE Argument liefert jetzt immer denselben Startwert;
+# Aufrufe MIT Argument (z.B. `random.Random("karte:...")`) bleiben unveraendert.
+_echter_zufall = random.Random
+def _fester_zufall(*argumente, **schluessel):
+    """Gibt ohne Argument einen Zufallsgenerator mit festem Startwert zurueck."""
+    if argumente or schluessel:                              # Aufruf MIT Startwert bleibt echt
+        return _echter_zufall(*argumente, **schluessel)      # unveraendert durchreichen
+    return _echter_zufall(4711)                              # ohne Angabe: fester Startwert
+random.Random = _fester_zufall
+
+
 TEXT_MAIN = open(os.path.join(SRC, "main.py"), encoding="utf-8").read()
 TEXT_BOTKERN = open(os.path.join(SRC, "botkern.py"), encoding="utf-8").read()
 

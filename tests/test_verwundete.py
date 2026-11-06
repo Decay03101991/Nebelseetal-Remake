@@ -119,12 +119,20 @@ def main_lauf():
 
     abschnitt("8. Der Kernweg schreibt Verwundete an die Siedlung")
     siedlung = main.Settlement(name="Ort", map_id="m1")
-    neu = main.GameState._verwundete_buchen(None, siedlung, {EINHEIT: 10, "Kaempfer": 9})
+    # Der Kernweg schreibt jetzt auch den VERLUSTBERICHT (Block 5, Typ `verlust`) - dafuer braucht
+    # der Aufruf ein Postfach. Ein leerer Stellvertreter genuegt, weil die Methode nur `messages` liest.
+    app = type("Stellvertreter", (), {"messages": []})()
+    neu = main.GameState._verwundete_buchen(app, siedlung, {EINHEIT: 10, "Kaempfer": 9}, "Testort")
     check("drei Verwundete gebucht", siedlung.verwundete.get(EINHEIT) == 3, str(siedlung.verwundete))
     check("zwei Verwundete beim zweiten Typ", siedlung.verwundete.get("Kaempfer") == 2)
     check("Rueckgabe nennt die Zahl", neu == {EINHEIT: 3, "Kaempfer": 2}, str(neu))
     check("keine Verluste -> keine Buecherung",
-          main.GameState._verwundete_buchen(None, siedlung, {}) == {})
+          main.GameState._verwundete_buchen(app, siedlung, {}) == {})
+    check("genau EIN Verlustbericht", len(app.messages) == 1, str(len(app.messages)))
+    check("Verlustbericht traegt den Typ verlust",
+          (app.messages[0].get("type") if app.messages else "") == "verlust",
+          str(app.messages[:1]))
+    check("Verlustbericht nennt den Anlass", "Testort" in str(app.messages[0].get("text", "")))
 
     abschnitt("9. Der Schalter in der Datendatei schaltet die Mechanik ab")
     alt_pfad = verwundete.DATENDATEI
@@ -136,8 +144,11 @@ def main_lauf():
         try:
             check("aktiv ist aus", verwundete.aktiv() is False)
             still = main.Settlement(name="Still", map_id="m1")
+            still_app = type("Stellvertreter", (), {"messages": []})()
             check("Kernweg bucht nichts",
-                  main.GameState._verwundete_buchen(None, still, {EINHEIT: 10}) == {})
+                  main.GameState._verwundete_buchen(still_app, still, {EINHEIT: 10}) == {})
+            check("Verlustbericht kommt TROTZdem (haengt nicht am Schalter)",
+                  len(still_app.messages) == 1)
             check("Siedlung bleibt leer", still.verwundete == {})
         finally:
             verwundete.DATENDATEI = alt_pfad
@@ -158,8 +169,11 @@ def main_lauf():
     buchung_code = buchung.split('"""')[2] if buchung.count('"""') >= 2 else buchung
     # Auch Kommentare zaehlen nicht - sie nennen die 30 Prozent absichtlich. Nur Code pruefen.
     buchung_code = "\n".join(zeile.split("#")[0] for zeile in buchung_code.splitlines())
+    # Geprueft wird nur die RECHNUNG, nicht das Prozentzeichen der Textformatierung
+    # ("Verlustbericht%s: %s" % ...) - sonst schlaegt die Wache auf die Meldung an, nicht auf Zahlen.
     check("kein zweiter Prozentsatz im Kernweg",
-          "0.3" not in buchung_code and "%" not in buchung_code and "30" not in buchung_code)
+          "0.3" not in buchung_code and "* 30" not in buchung_code
+          and "30 *" not in buchung_code and "/ 100" not in buchung_code)
     check("kein zweiter Prozentsatz in der Anzeige",
           "0.75" not in anzeige and "0.5" not in anzeige)
 

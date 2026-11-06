@@ -4543,15 +4543,26 @@ class GameState:
         self._reichsanzeige_aus_orten()
         return min(menge, verfuegbar) if self._lokale_kasse_aktiv() else menge
 
-    def _verwundete_buchen(self, ort, verluste: dict) -> Dict[str, int]:
+    def _verwundete_buchen(self, ort, verluste: dict, anlass: str = "") -> Dict[str, int]:
         """S3 (06.11.2026): aus den Verlusten eines Ortes entstehen Verwundete (30 %, abgerundet).
 
         Wird VOR der Verlustbuchung aufgerufen - so steht die Zahl fest, bevor die Einheiten aus
         dem Ortsheer verschwinden. Gebucht wird nur, was der Kern ausrechnet
         (`verwundete.anteil_verwundete`); ist der Schalter aus, passiert nichts.
+
+        Block 5 (06.11.2026): hier entsteht auch der VERLUSTBERICHT (`type: "verlust"`), den
+        `data/nachrichten.json` seit S1 kennt, der aber keinen Erzeuger hatte. Er haengt NICHT am
+        Schalter der Verwundeten - ein Verlustbericht gehoert auch dann ins Postfach, wenn keine
+        Verwundeten entstehen.
         """
         if ort is None:                                              # kein Ort uebergeben
             return {}                                                # dann nichts buchen
+        if isinstance(verluste, dict) and verluste:                   # es gab wirklich Verluste
+            self.messages.append({                                   # Verlustbericht ins Postfach
+                "text": "Verlustbericht%s: %s" % (
+                    (" " + str(anlass)) if anlass else "",           # Ort oder Anlass nennen
+                    hilfen.aufzaehlung(verluste)),                   # EINE Schreibweise der Mengen
+                "type": "verlust"})                                  # eigener Typ (Block 5)
         if not verwundetenheilung.aktiv():                           # Mechanik abgeschaltet
             return {}                                                # dann keine Verwundeten
         neu = verwundetenheilung.anteil_verwundete(verluste or {})   # 30 Prozent je Typ, abgerundet
@@ -5803,7 +5814,8 @@ class GameState:
         # den Heimkehrern in die QUELL-Siedlung zurueck (30 Prozent, abgerundet; Schalter in data).
         _quelle_s3 = (self._siedlung_zu(eintrag.get("quelle_id"))
                       if eintrag.get("quelle_id") else None)
-        self._verwundete_buchen(_quelle_s3, ergebnis.get("verluste_angreifer"))
+        self._verwundete_buchen(_quelle_s3, ergebnis.get("verluste_angreifer"),
+                                _quelle_s3.name if _quelle_s3 is not None else "")
         for name, anzahl in (ergebnis.get("verluste_angreifer") or {}).items():
             rest = int(truppen.get(name, 0)) - int(anzahl)
             if rest > 0:
@@ -6338,7 +6350,8 @@ class GameState:
         # Verwundete in der Quell-Siedlung (30 Prozent, abgerundet).
         _quelle_drache = (self._siedlung_zu(eintrag.get("quelle_id"))
                           if eintrag.get("quelle_id") else None)
-        self._verwundete_buchen(_quelle_drache, ergebnis.get("verluste_angreifer"))
+        self._verwundete_buchen(_quelle_drache, ergebnis.get("verluste_angreifer"),
+                                  _quelle_drache.name if _quelle_drache is not None else "")
         for name, anzahl in (ergebnis.get("verluste_angreifer") or {}).items():   # Gefallene
             truppen[name] = max(0, int(truppen.get(name, 0)) - int(anzahl))       # abbuchen
         for name in (ergebnis.get("geraete_verloren") or []):          # verlorenes Geraet
@@ -7071,7 +7084,8 @@ class GameState:
                                 bot_armee_buchen(bot, name, -int(menge))
                             # S3 (06.11.2026): die Verwundeten entstehen VOR der Verlustbuchung -
                             # 30 Prozent je Einheitentyp, abgerundet (Daniel, Entscheidung 6).
-                            self._verwundete_buchen(zielort, kampf_result.get("verluste_verteidiger"))
+                            self._verwundete_buchen(zielort, kampf_result.get("verluste_verteidiger"),
+                                                     zielort.name)
                             for name, menge in (kampf_result.get("verluste_verteidiger") or {}).items():
                                 zielort.einheiten[name] = max(
                                     0, int(zielort.einheiten.get(name, 0)) - int(menge))
