@@ -28,3 +28,17 @@ Ressourcenbalken und drei Stilbilder Nebelseetal.
 PyInstaller (`--add-data assets;assets`). Mit diesem Ordner wächst die EXE um 3,3 MB, obwohl die
 Bilder reine Vorlagen sind. Vorschlag: beim nächsten EXE-Bau eine Ausnahmeliste für
 `assets/referenzbilder` einführen - eigener kleiner Schnitt, kein Release vor S4 (F-9).
+
+## Dieser Ordner WÄCHST - und die Bilder sind teils Spiel, teils Stil
+
+**Entscheidung Daniel 06.11.2026 (Register 285, Punkt 3):** der Ordner wächst mit der
+Designentwicklung deutlich; es kommen laufend neue Bilder dazu. Die Bilder werden **teils ingame
+genutzt** (Hintergründe, Panoramen, Menübilder), **teils dienen sie nur als Stilreferenz** - deshalb
+tragen sie meist `ReferenzBild` im Namen und nicht den Namen einer Ansicht. Wer ein Bild ingame
+einsetzt, trägt es an der Stelle ein, wo es gebraucht wird, und lässt die Datei hier liegen; es wird
+nichts umbenannt, verschoben oder umsortiert (Namen sind die Wahrheit).
+
+**Die Bilder kommen mit in die EXE** (Daniel 06.11.2026, dieselbe Entscheidung: 3,3 MB sind egal) -
+es gibt KEINE Ausnahmeliste beim Bauen. Beim ersten Startbild-Schnitt genutzt:
+`ReferenzBild_Fraktionen_Elfen_Waldlandreich_im_Nebelseetal_Hintergrundbild.jpg` (Anmeldung) und
+`ReferenzBild_Fraktionen_Menschen_arbeiten_im_Nebelseetal_mit_Ritter_Hintergrundbild.jpg` (Ladebild).
