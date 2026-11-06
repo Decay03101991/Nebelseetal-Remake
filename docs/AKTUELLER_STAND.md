@@ -1,6 +1,6 @@
 # STAND 06.11.2026, 00:57 - Gemini-Input ausgewertet: gefiltert, geprueft, 16 Rohdateien archiviert, Projekt-Dokumente liegen (Register 242)
 
-> Neuester Block. Register 242, Protokollzeile 00:57. Kopf beim Schreiben: `3c5189a` (gepusht, Remote
+> Neuester Block. Register 242 und 243, Protokollzeilen 00:57 und 01:31. Kopf beim Schreiben: `3c5189a` (gepusht, Remote
 > gelesen); der Commit dieses Schnitts folgt danach. Der Block 23:28 darunter haelt A1, der Block 19:25
 > die Spieltests und W1.
 
@@ -38,7 +38,7 @@ grosse Modell sind unangetastet und werden erst nach der Filterung sinnvoll eing
 |---|---|---|
 | Kopf auf `main` | `3c5189a` (danach der Commit dieses Schnitts) | `git log --oneline -1` |
 | Pruefdateien / Module | 179 / 60 | `ls tests/test_*.py`, `ls src/*.py` |
-| Register / Protokoll / Stand-Bloecke | 242 / 288 (`wc -l`) / 92 | Zaehlung |
+| Register / Protokoll / Stand-Bloecke | 243 / 289 (`wc -l`) / 92 | Zaehlung |
 | Sammlung | 29 Rohbloecke eingegangen, **13 in `00_ROH`**, 16 in `02_ARCHIV`, 8 Auszuege, 80 Urteilszeilen | Eingangsordner |
 | Projekt-Fassung | sechs Dokumente, sechs zum Uebernehmen, fuenf teilweise, neun Entscheidungen | `docs/eingaenge/GEMINI_INPUT_20261106/` |
 | Wachen dieses Schnitts | Dokumentpruefungen gruen (kein Code angefasst) | Laeufe dieser Sitzung |
