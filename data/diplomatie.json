@@ -46,6 +46,7 @@
       "min_gunst": 60,
       "dauer_sekunden": 86400,
       "nur_anzeige": true,
+      "text": "Durchmarsch gewährt (nur Anzeige - keine Mechanik)",
       "quelle": "Auftragsdokument 7.2 (VORSCHLAG) und Daniels Entscheidung 06.11.2026, 13:50 (Register 284): reine Anzeige, KEINE Mechanikwirkung - kein Originalbeleg, keine neue Wegfindung."
     },
     "bruch_unter_gunst": 40,

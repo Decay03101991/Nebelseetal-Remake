@@ -1,3 +1,45 @@
+# STAND 06.11.2026, 15:06 - Ablauf Schritt 3 fertig: Vertraege wirken, der Pakt bricht beim Absenden (Register 285)
+
+> Neuester Block. Register 285. Darunter 281 bis 283 (Runde 2, Spielkonzept, Repo geordnet), 280
+> (Kennzahlenblatt), 267 bis 279 (Abgleich Runde 1, fixer Ablauf, S4 Teil 1, Entscheidungen F-1 bis F-9).
+
+**Schritt 3 des Ablaufs ist verdrahtet - die Vertragslogik wirkt jetzt im Spiel.** Bis heute Mittag
+stand nur das Modul; jetzt fuehrt der Bot das Feld `vertraege` (additiv: ein alter Spielstand laedt
+ohne es und hat damit keinen Pakt), `bot_als_dict`/`bot_aus_dict`/`bot_aus_stand` tragen es hin und
+zurueck, und drei Stellen fragen die Diplomatie:
+
+- **Der Spieler bricht den Pakt beim ABSENDEN eines Angriffs** (`_angriff_auftrag_starten`, vor
+  `auftrag_starten`): Gunst -20, Rache +1 (gebucht ab Schritt 4), Meldung im Postfach. Kein Verbot -
+  Daniels Entscheidung vom 14:00, die Absicht zaehlt, nicht die Ankunft.
+- **Der Bot greift nicht an, solange der Pakt steht** (`main.py`, direkt neben `punkte.angreifbar`):
+  `diplomatie.angriff_gesperrt` ist eine VORBEDINGUNG, die Punktrechnung bleibt unangetastet (G-1).
+- **Auch der Diebstahl respektiert den Pakt** (`main.bot_diebstahl`) - die Mechanik ist heute aus,
+  das Gate steht trotzdem da, damit sie beim Einschalten nicht ohne Schutz anlaeuft.
+
+**Zwei Fehler auf dem Weg, beide behoben und benannt:** (1) `bot_als_dict` liegt in `GameState`,
+nicht in `NebelseetalApp` - der erste Sammellauf lief mit `AttributeError` rot (`test_gesamtsieg`,
+`test_gpt_kampf_botbeute_echte_kasse`); ich habe den Lauf verworfen, statt ihn zu erklaeren.
+(2) Der Durchmarsch-Text trug die Ersatzschreibweise "gewaehrt"; er steht jetzt mit echtem Umlaut in
+`data/diplomatie.json` (Regel: kein Spieltext im Code) - die Umlaut-Wache war gruen, sobald er dort lag.
+
+**Wache:** `tests/test_diplomatie_vertraege.py` **68 Pruefungen, 0 Fehler** - acht Faelle des Ablaufs,
+die zwei Entscheidungen von 14:00 (Bruch beim Absenden, Handelsabkommen bricht nicht mit), die
+Quellwache fuer beide Aufrufstellen und ein ECHTER Verlauf (App gebaut, Siedlung gegruendet, Pakt-Bot
+angegriffen, Postfach und Gunst geprueft).
+
+**Sammellauf:** 14:44 bis 15:06, **184 von 186 gruen, 0 rot, 1325 s, 7.628 bestandene Pruefungen**
+(`docs/audits/sammellauf_20261106_1449.log`). Die zwei Dateien ohne Ergebniszeile sind die bekannten zwei.
+
+**Geld:** Daniel 14:31 - Guthaben **8,87 USD**, Gesamtverbrauch **61,12 USD** (13:49: 9,06 / 60,93;
+also 0,19 USD seit dem letzten Ablesen).
+
+**Naechster Schritt:** Ablauf Schritt 4 - Rachetopf (Entwurf mit allen Zahlen liegt im Scratch,
+Register 284/285 sind die Vorgabe: Kontakt = jede Interaktion, Topf steigt auch unter Pakt, Angriff
+fruehestens 28.800 s nach Paktende, nach Bot-Sieg 0). Danach Schritt 5 (Ereignisse Haug, Grom, Silra)
+und Schritt 6 (Handelspunkte, G-8). Offen aus den Antworten 14:00: die Dokumentauftraege
+(Referenzbilder-Vermerk im Repo, Buendelung nach `BESUCHER.md`).
+
+---
 # STAND 06.11.2026, 13:36 - Runde 2 gemessen, Spielkonzept steht, Repo geordnet (Register 281 bis 283)
 
 > Neuester Block. Register 281 bis 283. Darunter 280 (Kennzahlenblatt), 267 bis 279 (Abgleich Runde 1,

@@ -292,6 +292,10 @@ class BotPlayer:
     # Der STATUS wird NICHT gespeichert - er wird bei jeder Anzeige aus der Gunst gerechnet.
     # Fehlt das Feld in einem alten Spielstand, gilt der Startwert aus data/diplomatie.json.
     gunst: int = 50
+    # S4-3 (06.11.2026): die laufenden Vertraege dieses Bots - Art -> {seit, bis, nur_anzeige}.
+    # EIN Speicher: der Vertrag steht hier am Bot, es gibt keine zweite Vertragstabelle im Spiel.
+    # ADDITIV: ein Spielstand von vor S4-3 laedt ohne das Feld und hat damit keinen Pakt.
+    vertraege: Dict[str, dict] = field(default_factory=dict)
     noob_protection: bool = True
     last_rename: float = 0.0
     # W5 (botkern): die Felder, mit denen `src/botkern.py` rechnet. Sie sind der EINE Ort, an dem
@@ -486,6 +490,10 @@ def bot_aus_stand(daten: dict) -> "BotPlayer":
     # Startwert aus data/diplomatie.json. Ein Wert ausserhalb der Grenzen wird geklemmt - die Datei
     # ist die eine Wahrheit, auch beim Laden.
     bot.gunst = diplomatie.klemmen(werte.get("gunst", bot.gunst))         # Gunst laden und begrenzen
+    # S4-3 (06.11.2026): gespeicherte Vertraege uebernehmen. Fehlt das Feld (Stand vor S4-3), bleibt
+    # die leere Tabelle aus dem Klassen-Standard - kein Pakt, den es nie gab.
+    if not isinstance(getattr(bot, "vertraege", None), dict):             # kaputter Wert im Spielstand
+        bot.vertraege = {}                                                # dann keine Vertraege
     if isinstance(alt_kasse, dict) and alt_kasse:                         # alter Stand mit einer Kasse
         bot_kasse_setzen(bot, alt_kasse)                                  # verlustfrei auf die Doerfer
     if isinstance(alt_armee, dict) and alt_armee:                         # alter Stand mit einer Armee
@@ -2084,6 +2092,12 @@ def bot_diebstahl(bot: "BotPlayer", ziel, jetzt: float,
     einstellungen = einstellungen if isinstance(einstellungen, dict) else bot_diebstahl_einstellungen()
     if not einstellungen.get("aktiv", False):
         return None
+    # S4-3 (06.11.2026): ein laufender Nichtangriffspakt sperrt AUCH den Diebstahl - dieselbe
+    # Vorbedingung wie beim Angriff (`diplomatie.angriff_gesperrt`), keine zweite Rechnung. Der
+    # Diebstahl ist heute aus (`data/bot_diebstahl.json`); das Gate steht trotzdem hier, damit die
+    # Mechanik beim Einschalten nicht ohne Pakt-Schutz anlaeuft.
+    if diplomatie.angriff_gesperrt(bot, float(jetzt))[0]:
+        return None                                          # Pakt steht: kein Diebstahl
     if ziel is None or not isinstance(getattr(ziel, "vorraete", None), dict) or not ziel.vorraete:
         return None
     if einstellungen.get("nur_ohne_garnison", True) and (getattr(ziel, "einheiten", None) or {}):
@@ -6499,6 +6513,9 @@ class GameState:
                 "temperament": float(bot.temperament), "punkte": int(bot.punkte),
                 "ruf": int(bot.ruf), "vorraete": dict(bot.vorraete), "lager": dict(bot.lager),
                 "gunst": int(bot.gunst),  # S4-1: die Gunst geht denselben Weg wie alle anderen Felder
+                # S4-3: die Vertraege gehen denselben Weg (Kopie, damit der Kern nicht am Bot schreibt).
+                "vertraege": {str(k): dict(v) for k, v in dict(bot.vertraege or {}).items()
+                              if isinstance(v, dict)},
                 "armee": dict(bot.army), "letzter_angriff": bot.letzter_angriff,
                 "naechster_angriff": float(bot.naechster_angriff), "angriffe": int(bot.angriffe),
                 "gebaut": int(bot.gebaut), "geforscht": int(bot.geforscht),
@@ -6530,6 +6547,12 @@ class GameState:
         # ohne das Feld einen laufenden Wert auf den Startwert zuruecksetzen (zweite Wahrheit).
         if "gunst" in daten:
             bot.gunst = diplomatie.klemmen(daten.get("gunst"))
+        # S4-3: die Vertraege nur zurueckschreiben, wenn sie mitgegeben wurden - sonst wuerde ein
+        # Aufruf ohne das Feld einen laufenden Pakt loeschen (dieselbe Regel wie bei der Gunst).
+        if "vertraege" in daten:
+            _ver = daten.get("vertraege")
+            bot.vertraege = ({str(k): dict(v) for k, v in _ver.items() if isinstance(v, dict)}
+                             if isinstance(_ver, dict) else {})
         # S-7 (bottaktik): der Verhaltenszustand kommt aus derselben dict-Form zurueck.
         bot.zustand = str(daten.get("zustand") or "")
         _ged = daten.get("gedaechtnis")
@@ -7062,8 +7085,15 @@ class GameState:
                         # `self.noob_protection`; hier geht es um die Grenze 299 und das Band
                         # +/- 20 Prozent. Ein Angriff ueber die Grenze ist in KEINE Richtung
                         # moeglich - auch nicht von einem Bot aus.
+                        # S4-3 (06.11.2026): der Nichtangriffspakt ist eine VORBEDINGUNG vor der
+                        # Punktgrenze. Die Punktrechnung bleibt `punkte.angreifbar` (Befund G-1); hier
+                        # kommt nur die Vertragsfrage davor (EINE Urteilsstelle: `diplomatie`).
+                        _pakt, _pakt_grund = diplomatie.angriff_gesperrt(bot, float(jetzt))
                         _erlaubt, _grund = punkte.angreifbar(
                             int(bot.punkte), int(self.punktestand()["gesamt"]))
+                        if _pakt:                          # laufender Pakt mit dem Spieler
+                            _erlaubt = False               # dann greift dieser Bot nicht an
+                            _grund = ("%s (Gunst %d)" % (_pakt_grund, int(bot.gunst)))
                         # Frage 9 (Daniel 05.11.2026): eine BESIEGTE RUINE deckt ihre Seite. Liegt
                         # sie im selben Sektor wie der Angreifer, kommt aus dieser Richtung kein
                         # Angriff - weder vom Spieler noch von einem Bot. Die Pruefung sitzt hier,
@@ -12621,6 +12651,21 @@ class NebelseetalApp:
         # Ohne Siedlung gilt der UEBERGANGSWEG ueber den Reichsbestand; dann muss der Start
         # einen Namen tragen ("Reich"), sonst lehnt `auftraege.starten` den Auftrag ab.
         von = str(getattr(ort, "name", "") or "Reich")
+        # S4-3 (06.11.2026, Entscheidung Daniel 14:00): ein Angriff des SPIELERS auf einen Pakt-Bot
+        # bricht den Pakt BEIM ABSENDEN - die Absicht zaehlt, nicht die Ankunft. Kein Verbot: der
+        # Spieler darf angreifen, zahlt aber mit Gunst-Abzug und (ab Schritt 4) einem Punkt im
+        # Rachetopf. Der Pakt selbst ist EINSEITIG - er schuetzt nur den Spieler.
+        if isinstance(vorrat_ziel, BotPlayer):                     # das Ziel ist ein echter Bot
+            _ziel_daten = self.state.bot_als_dict(vorrat_ziel)     # dict-Form: der Weg des Kerns
+            _bruch = diplomatie.pakt_brechen(_ziel_daten,
+                                                       float(self.state.spielsekunden))
+            if _bruch.get("gebrochen"):                            # es lief ein Pakt
+                self.state.bot_aus_dict(vorrat_ziel, _ziel_daten)  # Gunst und Tabelle zurueckschreiben
+                _bruch_text = ("Pakt mit %s gebrochen (Angriff abgesendet): Gunst %+d, Rache %+d."
+                               % (vorrat_ziel.name, int(_bruch.get("gunst_delta") or 0),
+                                  int(_bruch.get("rache_delta") or 0)))
+                self.state.messages.append({"text": _bruch_text, "type": "diplomatie"})
+                self._log(_bruch_text)                             # Statuszeile
         ok, meldung = self.state.auftrag_starten(
             "angreifen", truppen, von, ziel,
             float(entfernung), quelle_id=(str(getattr(ort, "id", "") or "") or None))

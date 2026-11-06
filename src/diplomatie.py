@@ -323,6 +323,8 @@ def durchmarsch_text(bot_daten, jetzt, einst=None) -> str:
     Daniels Entscheidung 06.11.2026 (Register 284): das Recht hat keine Wirkung; der Text nennt es
     darum ausdruecklich als reine Anzeige, damit niemand eine Mechanik dahinter vermutet.
     """
-    if vertrag_aktiv(bot_daten, "durchmarsch", jetzt, einst):  # Recht vereinbart
-        return "Durchmarsch gewaehrt (nur Anzeige - keine Mechanik)"  # Text fuer die Ansicht
-    return ""  # sonst nichts anzeigen
+    if not vertrag_aktiv(bot_daten, "durchmarsch", jetzt, einst):  # kein Recht vereinbart
+        return ""  # dann nichts anzeigen
+    # Der Text steht in der Datendatei (Regel: kein Spieltext im Code). Fehlt er, wird nichts
+    # erfunden - dann bleibt die Zeile leer.
+    return str(art_daten("durchmarsch", einst).get("text") or "")  # Text aus data/diplomatie.json
