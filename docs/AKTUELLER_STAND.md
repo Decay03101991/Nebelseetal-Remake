@@ -1,3 +1,29 @@
+# STAND 06.11.2026, 03:02 - S0 gerechnet: fuenf Tabellen mit Rechenweg (Register 249)
+
+> Neuester Block. Register 249, Protokollzeile 03:00. Kopf beim Schreiben: `14b6cb9`; der Commit dieses
+> Schnitts folgt. Der Block 02:30 darunter haelt den Nachtauftrag. **Nachtlauf laeuft.**
+
+**Was dieser Schnitt geaendert hat:** S0 ist gerechnet, nicht geschaetzt. `tools/s0_tabellen.py` liest
+`data/baupreise.json`, `data/buildings.json`, `data/units.json`, `data/resources.json` und
+`data/originalkarten/katalog.json` und schreibt `docs/S0_TABELLEN_20261107.md` (139 Zeilen, fuenf
+Tabellen mit Rechenweg und Urteil).
+
+| Tabelle | Kernzahl | Urteil |
+|---|---|---|
+| V-1 Reparatur | je Prozentpunkt 16*Stufe/100 Holz und Stein; 0 auf 100 = Wallpreis mal Stufe; 200 s echt | ABGELEITET |
+| V-2 Heilung | 75 Prozent der `kosten` ohne `siedler` und ohne `waren`; Dauer 600 s bei Stufe 1 | ABGELEITET |
+| V-3 Ruhm | Ansiedler 0 / Freisiedler 10 / Fuerst 40 / Herrscher 160 Punkte | VORSCHLAG |
+| V-4 Ereignisse | mittleres Dorf je Spieltag: 1980 Holz, 1027 Stein, 1720 Nahrung, 128 Gold | ABGELEITET |
+| V-5 Rache | 90 SK (Wallstufe 3), mit Reserve 99 SK | ABGELEITET |
+
+**Befund beim Rechnen (wichtig fuer S3):** der Wortlaut "75 Prozent aller Kostenposten" haette auch
+`siedler` getroffen - eine geheilte Einheit bindet ihren Siedler aber weiter, das waere eine
+Doppelbindung. Siedler sind darum ausgenommen; die Regel steht in der Tabelle.
+
+**Naechster Schritt:** S1 Postfach-Archiv und Ruhm-Balken (Block 2 des Nachtauftrags), danach S1b, S2.
+
+---
+
 # STAND 06.11.2026, 02:30 - Nachtauftrag festgelegt: fester Ablauf S0 bis S4, selbststaendig, Budget 4,00 USD (Register 246)
 
 > Neuester Block. Register 246, Protokollzeile 02:20. Kopf beim Schreiben: `6e565c0` (gepusht, Remote
