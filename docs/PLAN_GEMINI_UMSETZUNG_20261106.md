@@ -2,7 +2,10 @@
 
 **Grundlage:** Daniels Reihenfolge (Frage 1 der Runde 1), seine Antworten der Runde 2
 (`docs/ENTSCHEIDUNGEN_DANIEL_20261106_GEMINI_ANTWORTEN.md`) und der Pruefvermerk
-(`docs/PRUEFVERMERK_GEMINI_ANTWORTEN_20261106.md`).
+(`docs/eingaenge/GEMINI_20261106/auswertungen/PRUEFVERMERK_GEMINI_ANTWORTEN_20261106.md`).
+**Alle Gemini-Unterlagen liegen seit 06.11.2026 an EINEM Ort:** `docs/eingaenge/GEMINI_20261106/`
+mit `README.md` (Index, Urteile je Quelle, die vier Prueffragen vor jeder Uebernahme).
+
 **Regel fuer JEDEN Schritt:** die sieben Phasen aus `docs/ENTWICKLUNGSABLAUF_AB_20261105.md` -
 aufnehmen, messen, Zielbild, entscheiden, Paket (Datei und alt -> neu), einbauen, pruefen, ausliefern.
 Kein Schritt gilt als fertig ohne Registerzeile, Protokollzeile, Stand-Block, vollen Sammellauf,
@@ -48,8 +51,8 @@ gerendert (nicht nur Logik), Register/Protokoll/Stand/Commit/Push.
 
 ## S1b - Menue-Teilgeschichten (vier Texte, reine Anzeige)
 
-**Quelle:** Geminis Vorschlaege in `docs/eingaenge/GEMINI_ANTWORTEN_20261106/Antwort_Gemini_MENUESTORIES_20261106.txt`,
-geprueft in `docs/PRUEFVERMERK_GEMINI_MENUESTORIES_20261106.md`.
+**Quelle:** Geminis Vorschlaege in `docs/eingaenge/GEMINI_20261106/antworten/Antwort_Gemini_MENUESTORIES_20261106.txt`,
+geprueft in `docs/eingaenge/GEMINI_20261106/auswertungen/PRUEFVERMERK_GEMINI_MENUESTORIES_20261106.md`.
 
 **Was gebaut wird:** vier kurze Texte, die an einen Menuepunkt gebunden sind - Forschung (erste
 Bibliothek), Portal (erster Weltwechsel, als Overlay), Kaserne (Kriegerakademie fertig), Ruhmeshalle

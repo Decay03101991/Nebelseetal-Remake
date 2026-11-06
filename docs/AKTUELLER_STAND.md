@@ -1,3 +1,15 @@
+# STAND 06.11.2026, 06:03 - Gemini-Unterlagen gebuendelt (Register 256)
+
+> Neuester Block. Register 256. Darunter Design Content Nr. 3 (05:5x), S2-Lauf (05:56), S2-Bau (05:19).
+
+**Neu:** `docs/eingaenge/GEMINI_20261106/` mit `eingang/` (6), `auftraege/` (6), `antworten/` (8) und
+`auswertungen/` (6) sowie einem `README.md`, das jede Quelle beurteilt und die vier Prueffragen vor jeder
+Uebernahme festhaelt. Der Plan zeigt auf die neuen Pfade.
+
+**Naechster Schritt:** der neue Ablauf der Uebergabe 06:3x (Info-Filter, S3, kleine Auftraege, S4).
+
+---
+
 # STAND 06.11.2026, 05:59 - Design Content Nr. 3 abgelegt, Google-Antwort ausgewertet (Register 255)
 
 > Neuester Block. Register 255. Darunter S2-Lauf (05:56), S2-Bau (05:19), S1b (03:47), S1 (03:22), S0 (03:02).
