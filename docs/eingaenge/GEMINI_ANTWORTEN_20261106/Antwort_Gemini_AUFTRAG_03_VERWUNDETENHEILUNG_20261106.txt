@@ -1,0 +1,46 @@
+Antwort Gemini Auftrag 3:
+
+
+### 1) DATENMODELL
+*   **Speicherort:** Je Siedlung im vorhandenen Siedlungs-Dict des Spielstands, konkret als neues Unter-Dict `Settlement.wounded` (z. B. `{"leichte_infanterie": 3}`). 
+    *   *Begründung:* Da jede Siedlung ein eigenes Lager und eigene Einheiten besitzt, müssen Verwundete lokal an die Kaserne des jeweiligen Ortes gebunden sein.
+*   **Abwärtskompatibilität:** Ältere Spielstände besitzen dieses Feld nicht. Die Funktionen nutzen beim Auslesen die sichere Python-Methode `siedlung.get("wounded", {})`. Ein leerer Rückgabewert wird als "keine Verwundeten" interpretiert. Das Spiel lädt ohne jegliche Migration.
+
+### 2) ENTSTEHUNG
+*   **Stelle im Kampfweg:** In `src/kampf.py` innerhalb der Funktion `fuehre_schlacht(...)`, exakt *vor* der finalen Reduzierung der Armeebestände.
+*   **Rundung:** Die 30%-Quote wird pro Einheitentyp angewendet und über `math.floor(verluste * 0.3)` abgerundet. Bei 3 Verlusten ergibt dies `0` Verwundete. Verbleiben Reste, sterben diese Einheiten permanent.
+*   **Angreifer-Seite:** Verwundete der Angreifer-Armee entstehen ebenfalls. Wenn der Angriff scheitert, zieht die Armee ab. Die Angreifer-Verwundeten werden dem Rückmarsch-Vektor hinzugefügt und landen nach der Marschzeit in der *Heimatsiedlung* des Angreifers im dortigen Verwundeten-Pool.
+
+### 3) HEILUNG
+*   **Ablauf:** Keine Sofort-Heilung. Heilungsaufträge werden in dieselbe bestehende Warteschlange der Kaserne eingereiht wie reguläre Ausbildungen (`siedlung["ausbildungs_queue"]`), jedoch mit einem Flag `"is_healing": True`.
+*   **Skalierung der Dauer:** Die Dauer wird pro Einheit berechnet. 
+    *   *Formel (VORSCHLAG):* `Heilzeit = Basis_Ausbildungszeit * 0.5`. Sie wird durch die bestehende Kasernenstufe verkürzt (schnellere Ticks).
+*   **Fehlende Kaserne:** Besitzt die Siedlung keine Kaserne (Stufe 0), ist die Heilung blockiert. Die Verwundeten verbleiben inaktiv im Pool, bis eine Kaserne errichtet wird.
+
+### 4) KOSTEN
+*   **Ableitung:** Die Goldkosten basieren direkt auf den Ausbildungskosten der Einheit laut `data/kaserne.json`. Da die Ausrüstung (Waffen/Rüstung) bei der Verwundung *nicht* verloren ging (sie bleibt am Soldaten), entfallen die Warenkosten komplett.
+*   **Formel (VORSCHLAG):** `Heilungskosten_Gold = Basis_Gold_Kosten * 0.75`.
+    *   *Begründung:* Die Heilung ist in Gold teurer als die Rekrutierung (Arzt/Medizin), spart aber die wertvollen, zeitaufwendig produzierten 17 Warenketten-Ausrüstungen ein.
+
+### 5) RANDFAELLE
+*   **Niederlage (Siedlung erholt/erobert):** Wird eine Siedlung vernichtet, verfallen die lokalen Verwundeten (`"wounded"` wird geleert).
+*   **Flucht:** Geflohene Einheiten erleiden keine Verluste; folglich entstehen aus ihnen keine Verwundeten.
+*   **Gefecht während Heilung:** Ein neues Gefecht stoppt den Fortschritt im Tick nicht, aber Verwundete im Pool nehmen *nicht* an der Verteidigung teil.
+*   **Spielstand laden:** Da die Warteschlange im JSON gespeichert ist (`siedlung["ausbildungs_queue"]`), läuft die Heilung nach dem Laden nahtlos im nächsten Tick weiter.
+
+### 6) ANZEIGE
+*   **Datei:** `src/main.py`, Klasse `NebelseetalApp` (Kasernen-Ansicht).
+*   **Position:** Ein neues Textfeld in der Kaserne zeigt den Pool: `Verwundete: X Einheiten`.
+*   **Gesperrter Button:** Der Button `[ Verwundete heilen ]` prüft alle Bedingungen einzeln. Bei Mangel zeigt er untereinander:
+    *   `* Gold fehlt: X`
+    *   `* Kaserne beschaeftigt oder nicht vorhanden`
+    *   `-> Naechster Schritt: Gold produzieren oder Bau abwarten.`
+
+### 7) WACHE (TESTS)
+*   **Datei:** `tests/test_healing.py` (Reiner Logiktest).
+*   **Zusage 1 (Gegenprobe):** Aufruf der Heilungsfunktion ohne Verwundete im Pool. Erwarteter Messwert: Keine Änderung am Gold, Queue bleibt leer.
+*   **Zusage 2 (Geldmangel):** Heilung gestartet mit 0 Gold im Lager. Erwarteter Messwert: Keine Buchung, keine Einheiten in der Queue, Funktion liefert `False`.
+
+### 8) AUFBAUZEIT-EFFEKT
+Die Heilung bindet erhebliche Mengen an Gold und blockiert den Ausbildungs-Slot der Kaserne für reguläre neue Truppen, wodurch der Aufbau militärischer Expansionen verlangsamt wird. 
+*   *Gefahr bei zu billiger Heilung:* Der Verlust von Einheiten verlöre an strategischem Gewicht. Spieler könnten unbesorgt endlose Schlachten schlagen, da Armeen ohne wirtschaftlichen Gegenaufwand (Ausrüstungsproduktion) sofort regenerierten – das strategische Aufbauspiel verkäme zum reinen Klick-Militärspiel.

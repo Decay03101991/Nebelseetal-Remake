@@ -1,0 +1,49 @@
+Antwort zu Gemini Auftrag 2:
+
+### 1) KOSTENMODELL
+*   **Datei:** `data/baupreise.json` (bzw. die Logik in `src/main.py` im `GameState`)
+*   **Ableitung:** Die Reparaturkosten basieren direkt auf den Baukosten der aktuellen Mauerstufe S laut `data/baupreise.json`. Ein Prozentpunkt Zustand entspricht im Wert genau einem Hundertstel der vollen Baukosten dieser Stufe.
+*   **Formel (VORSCHLAG):** 
+    \[\text{Holz pro \%} = \frac{\text{Baukosten\_Holz}(S)}{100} \times 0.5\]
+    \[\text{Stein pro \%} = \frac{\text{Baukosten\_Stein}(S)}{100} \times 0.5\]
+    *Begründung:* Der Faktor 0.5 stellt sicher, dass die Reparatur günstiger ist als ein kompletter Neubau, bindet aber substanzielle Ressourcen der Siedlung. Bei Stufe 0 (keine Mauer) sind die Kosten 0.
+
+### 2) ZEITMODELL
+*   **Dauer (VORSCHLAG):** 1 Prozentpunkt Reparatur dauert genau 120 Spielsekunden (6 Spielstunden). Eine vollständige Reparatur von 0% auf 100% benötigt somit 12.000 Spielsekunden (10 Spielstunden / ca. 66 Echtzeitsekunden).
+*   **Bedeutung „Wall steht still“:** Während der Reparatur ist der Wall *teilaktiv*. Er bietet Schutz basierend auf seinem *aktuellen* Zustand zu Beginn des Ticks, aber es kann währenddessen kein Ausbau der Mauerstufe gestartet werden.
+*   **Angriff während Reparatur:** Trifft ein gegnerischer Marsch ein, stoppt die Reparatur sofort hart. Der Wall verteidigt mit dem bis zu diesem Zeitpunkt erreichten Prozentwert.
+
+### 3) ZUSTAND UND BUCHUNG
+*   **Speicherort:** Direkt im vorhandenen Siedlungs-Dict innerhalb des Spielstands (`Settlement.vorraete` und neue Keys im selben Dict: `"repair_target"`, `"repair_next_tick"`).
+*   **Buchung:** Rohstoffe werden bei Klick auf „Reparatur starten“ für die gewählten Prozentpunkte *sofort komplett abgezogen*. Der Zustand steigt *stückweise* (prozentpunktweise) bei jedem Inkrement der Spielsekunden im Tick.
+*   **Abbruch:** Bei einem Angriff wird der Vorgang abgebrochen; bereits verbrauchte Rohstoffe sind verloren. Reichen die Rohstoffe im Lager nicht mehr (z.B. durch Bot-Diebstahl während des Ticks), bricht die Schleife ab und stellt die Reparatur ein.
+
+### 4) WECHSELWIRKUNG MIT AUSBAU
+*   **Ausbau-Sperre:** Während die Reparatur läuft, ist der Button für den Stufenausbau gesperrt. Während die Mauerstufe ausgebaut wird, ist keine Reparatur möglich.
+*   **Zustand bei Stufenaufstieg:** Steigt die Mauerstufe (0 bis 10) durch regulären Ausbau, *bleibt der Prozentwert des Zustands exakt gleich*. Da der absolute Schutzwert in `kampf.fuehre_schlacht` aus `Stufe * Zustand` berechnet wird, wächst der absolute Schutz automatisch mit der neuen Stufe, selbst wenn die Mauer beschädigt ist.
+
+### 5) ANZEIGE
+*   **Datei:** `src/main.py`, Klasse `NebelseetalApp` innerhalb des Overlays der Siedlungsansicht.
+*   **Text:** `Mauerreparatur: [ 10% reparieren ]` (oder Schieberegler). Knopftext dynamisch bei Bedingungen: `"Holz fehlt: X, Stein fehlt: Y - Bitte Lager auffuellen"`.
+*   **Rückmeldung:** Ist der Zustand bei 100%, ist der Knopf ausgegraut: `"Mauer vollstaendig intakt"`. Bei zu wenig Ressourcen listet das Label darunter alle fehlenden Einheiten präzise auf.
+
+### 6) WACHE (TESTS)
+*   **Datei:** `tests/test_wall.py` (Reiner Logiktest ohne UI).
+*   **Zusage 1 (Gegenprobe):** Aufruf der Reparatur bei Zustand 100%. Erwarteter Messwert: Rohstoffbestand unverändert, Zustand bleibt 100.
+*   **Zusage 2 (Ressourcenabzug):** Reparatur von 10% auf einer Mauerstufe mit Basispreis 1000 Holz. Erwarteter Messwert im Lager: `-50 Holz` sofort nach Aktivierung.
+
+### 7) RANDFAELLE
+*   **Zustand 100%:** Funktion blockiert sofort, keine Buchung.
+*   **Zustand 0%:** Erlaubt, der Wall bietet in `kampf.fuehre_schlacht` rechnerisch Schutzwert 0.
+*   **Laufender Angriff:** `kampf.fuehre_schlacht` setzt vor der Vorrunde `"repair_target"` hart auf 0 und bricht den Vorgang ab.
+*   **Siedlung ohne Mauer (Stufe 0):** Kostenberechnung liefert 0, Reparaturfunktion bricht mit der Meldung `"Keine Mauer vorhanden"` ab.
+*   **Rundung:** Kosten werden via `math.ceil()` auf ganze Einheiten gerundet; negative Rohstoffwerte werden durch ein `max(0, ...)` abgefangen.
+
+### 8) AUFBAUZEIT-EFFEKT
+Die Reparatur verkürzt den Aufbau zu keinem Zeitpunkt, sondern bindet aktiv Holz und Stein, die andernfalls in den Ausbau von Gebäuden fließen würden. Da der Wall während der Reparatur für weitere Konstruktionen blockiert ist, verlängert das System die strategische Planungszeit des Spielers im Limbus.
+
+---
+
+### 💡 WICHTIGER ENTWICKLUNGS-HINWEIS FÜR „WELTENFRESSER“
+
+*   **ANZEIGE-INTEGRATION:** Der Agent muss den Reparaturfortschritt auf dem bereits im Projekt vorhandenen `tk.Canvas`-Balken der Siedlung visualisieren. Da `ttk.Progressbar` verboten ist, wird der vorhandene Canvas-Fortschrittsbalken über `canvas.coords(balken_id, ...)` im Takt der ansteigenden Prozentpunkte stückweise im UI aktualisiert.

@@ -1,3 +1,46 @@
+# STAND 06.11.2026, 02:00 - Gemini-Antworten geprueft, Plan S0 bis S5 steht, nichts gebaut (Register 244)
+
+> Neuester Block. Register 244, Protokollzeile 01:59. Kopf beim Schreiben: `e86a0ee`; der Commit
+> dieses Schnitts folgt. Der Block 00:57 darunter haelt die Auswertung des Gemini-Inputs, der Block
+> 23:28 A1.
+
+**Was dieser Schnitt geaendert hat (nur Dokumente, kein Code):** fuenf Antworten von Gemini und sein
+Arbeitsweise-Feedback liegen hashgeprueft im Projekt und sind Zeile fuer Zeile gegen den Code geprueft;
+Daniels neun Entscheidungen dazu sind festgehalten; der Abarbeitungsplan S0 bis S5 steht; die Uebergabe
+fuer die naechste Sitzung ist geschrieben. **Gebaut ist nichts.**
+
+| Nr. | Schritt | Beleg |
+|---|---|---|
+| A | Fuenf Antworten + Feedback abgelegt (hashgeprueft), fuenf Auftraege aus dem Desktop geraeumt | `docs/eingaenge/GEMINI_ANTWORTEN_20261106/`, `docs/auftraege/20261106/` |
+| B | Neun Antworten Daniels woertlich mit Folge | `docs/ENTSCHEIDUNGEN_DANIEL_20261106_GEMINI_ANTWORTEN.md` |
+| C | Jede Antwort gegen den Code geprueft: vier Codefehler und ein Rechenfehler belegt | `docs/PRUEFVERMERK_GEMINI_ANTWORTEN_20261106.md` |
+| D | Abarbeitungsplan: S0 fuenf Tabellen, dann S1 bis S5, Etappen gesperrt bis A2 | `docs/PLAN_GEMINI_UMSETZUNG_20261106.md` |
+| E | Uebergabe 02:00 geschrieben und abgelegt | Desktop + `D:\Arbeiten\Hermes\Uebergaben\20261106_0200\` |
+| F | Dokumentwachen (kein Code angefasst, daher kein Sammellauf) | `test_textqualitaet`, `test_protokoll`, `test_projektpfade`, `test_zieluebergabe` |
+
+## Der EINE naechste Schritt
+
+1. **S0: fuenf gerechnete Tabellen** (Reparaturpreis je Wallstufe, Heilungspreis je Einheit,
+   Ruhm-Schwellen, Ereigniszahlen, Rache-Schwelle), jede mit Rechenweg und Urteil - Daniel vorlegen,
+   erst nach seinem Abnicken bauen.
+2. **Dann S1: Postfach-Archiv (Filter, Archiv, Ablauf) und Ruhm-Balken.** Messlage: `_render_messages`
+   (`src/main.py:13379`) zeigt nur die letzten 20 Eintraege; `punkte.auszeichnungen`
+   (`src/punkte.py:417`) rechnet vier Auszeichnungen, ein Balken fehlt.
+3. **Nach jedem Schnitt:** Registerzeile, Protokollzeile, Stand-Block, voller Sammellauf, commit und push.
+
+**Geld (von Daniel abgelesen, nicht geschaetzt):** 11,86 USD Guthaben, Gesamtverbrauch 58,13 USD
+(Ablesung 06.11.2026, 00:33). In diesem Schnitt **kein bezahlter Modellauf**; die 4,00 USD fuer das
+grosse Modell sind unangetastet und fuer S0/S1 nicht noetig.
+
+| Gegenstand | Wert | Beleg |
+|---|---|---|
+| Kopf auf `main` | `e86a0ee` (danach der Commit dieses Schnitts) | `git log --oneline -1` |
+| Pruefdateien / Module | 179 / 60 | `ls tests/test_*.py`, `ls src/*.py` |
+| Register / Protokoll / Stand-Bloecke | 244 / 290 (`wc -l`) / 93 | Zaehlung |
+| Gemini-Unterlagen | 5 Antworten + 1 Feedback, 5 Auftraege | Projektordner `docs/eingaenge/GEMINI_ANTWORTEN_20261106/`, `docs/auftraege/20261106/` |
+| Offene Vorarbeit | 5 Tabellen (S0), 1 Mechanikfrage (Durchmarschrecht) | `docs/PLAN_GEMINI_UMSETZUNG_20261106.md` |
+| Wachen dieses Schnitts | Dokumentpruefungen gruen, kein Sammellauf noetig | Laeufe dieser Sitzung |
+
 # STAND 06.11.2026, 00:57 - Gemini-Input ausgewertet: gefiltert, geprueft, 16 Rohdateien archiviert, Projekt-Dokumente liegen (Register 242)
 
 > Neuester Block. Register 242 und 243, Protokollzeilen 00:57 und 01:31. Kopf beim Schreiben: `3c5189a` (gepusht, Remote

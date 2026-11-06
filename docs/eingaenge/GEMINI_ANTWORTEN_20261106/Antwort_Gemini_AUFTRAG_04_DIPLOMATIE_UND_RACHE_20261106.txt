@@ -1,0 +1,69 @@
+Antwort Gemini Auftrag 4:
+
+### 1) DATENMODELL
+*   **Speicherort:** Die neuen Variablen werden direkt in den existierenden Strukturen des Spielstands verankert. Keine neuen Dateien.
+    *   `Gunst` und `Status` kommen in das Bot-Objekt: `state.bots[bot_name]["favor"]` und `state.bots[bot_name]["diplomacy_status"]`.
+    *   `Rachetopf` wird in das bestehende Bot-Gedächtnis integriert: `state.bots[bot_name]["memory"]["revenge_pool"]`.
+    *   `Vertraege` werden als Liste von Dicts zentral im globalen Spielstand abgelegt: `state.active_contracts`.
+*   **Abwärtskompatibilität:** Ältere Spielstände ohne diese Felder laden fehlerfrei. Die Kernfunktionen nutzen `.get(key, default)` beim Zugriff: `bot.get("favor", 20)` (Standardwert 20 entspricht "Wachsam"), `bot["memory"].get("revenge_pool", 0)` und `state.get("active_contracts", [])`. Es ist keine Datenmigration erforderlich.
+
+### 2) GUNST-MECHANIK
+*   **Datei/Funktion:** `src/bottaktik.py` -> `def aktualisiere_nachbar_gunst(bot, aktion, wert=0)`
+*   **Statusstufen (Festgelegt):**
+    *   `0 bis 39`: Feindselig
+    *   `40 bis 59`: Wachsam
+    *   `60 bis 100`: Freundlich
+*   **Gunst-Änderungen (VORSCHLAG):**
+    *   *Erfolgreicher Kaufvertrag (Handel):* +5 Gunst (Limitiert auf max. einmal pro Spieltag, um Spamming zu verhindern).
+    *   *Militärischer Angriff durch Spieler:* Setzt Gunst sofort hart auf `0`.
+    *   *Vertragsbruch:* -20 Gunst sofort (Daniels Entscheidung).
+    *   *Geschenk (Rohstoffe/Gold senden):* +1 Gunst je 1.000 Einheiten Wert (VORSCHLAG basierend auf data/baupreise.json).
+*   **Verfall:** Am Ende jedes Spieltags (28.800 Spielsekunden) nähert sich die Gunst ohne Kontakt um 2 Punkte dem Basiswert 20 an.
+
+### 3) VERTRAEGE
+*   **Struktur:** Ein Vertrag in `state.active_contracts` ist ein Dict: `{"type": str, "bot": str, "start_time": int, "duration": int}`. Laufzeit generell 3 Spieltage (86.400 Spielsekunden, VORSCHLAG für feste Planbarkeit). Keine manuelle Kündigung, Verträge laufen aus.
+*   **Mechanische Wirkung:**
+    *   *Nichtangriffspakt (NAP):* Wird in der bestehenden Marsch- und Angriffsroutine der Bots vor dem Absenden geprüft. Ist ein NAP aktiv, wird der Zustand RAECHEN oder ANGRIFF für diesen Bot blockiert.
+    *   *Durchmarschrecht:* Ermöglicht Truppenbewegungen durch die Dimension dieses Bots. Ohne dieses Recht gilt jede Portalpassage durch sein Gebiet als Vertragsbruch (triggert -20 Gunst).
+    *   *Handelsabkommen:* Gewährt einen festen Rabatt von 15% auf die Gegenleistung im vorhandenen Kaufvertrag (`_render_diplomacy` Handel).
+*   **Bruch-Erkennung:** Wenn der Spieler manuell einen Angriffsbefehl auf ein Bot-Dorf erteilt, erscheint eine unmissverständliche tk.Messagebox: `"Achtung: Dies bricht den bestehenden Vertrag mit X. Fortfahren?"`. Klickt der Spieler auf Ja, wird der Bruch verbucht. Ein versehentlicher Bruch ist ausgeschlossen.
+
+### 4) RACHETOPF
+*   **Datei/Funktion:** `src/bottaktik.py` -> `def verarbeite_bot_rache_tick(bot)`
+*   **Wachstum:** +1 je erlittener Niederlage (aus `kampf.fuehre_schlacht` übergeben), +1 je Spieltag ohne jeglichen Kontakt.
+*   **Ankündigung & Absicherung:** Erreicht der `revenge_pool` den Wert 3, sendet der Bot eine strukturierte Nachricht ans Postfach.
+    *   *Typ:* `"system"` (fällt auf Gold zurück).
+    *   *Wortlaut:* `"Meldung von Nachbar X: Die Schmach der Vergangenheit ist nicht vergessen. Unsere Heere ruesten sich zum Gegenschlag."`
+*   **Truppen-Prüfung:** Der Racheangriff wird *nicht* als feste Armee gespawned. Die Bot-KI prüft beim Stunden-Tick, ob ihre durch die Bot-Wirtschaft real produzierten Einheiten in ihren Dörfern eine Angriffsstärke von mindestens 50 standardisierten Kampfwerten aufweisen (VORSCHLAG zur Absicherung). Ist die Bot-Armee zu schwach (0 Truppen), wird der Angriff aufgeschoben, bis die Wirtschaft Einheiten produziert hat.
+*   **Abbau:** Erzielt der Bot in `kampf.fuehre_schlacht` einen Gesamtsieg gegen eine Siedlung des Spielers, sinkt der `revenge_pool` sofort wieder hart auf 0.
+
+### 5) EVENTS
+*   **Datei/Funktion:** `src/main.py` -> `def _pruefe_diplomatie_events(self)`
+*   **Auslöser & Frist:** Zufallstrigger beim Stunden-Tick (5% Chance, wenn kein anderes Event aktiv). Frist zur Reaktion: Genau 2 Spieltage (57.600 Spielsekunden). Ein blockierendes Overlay öffnet sich im UI (stoppt die Spieluhr, friert aber den tkinter-Thread nicht ein).
+*   **Ereignis 1: Haugs Tribut**
+    *   *Text:* `"Haug fordert Tribut: Sendet 2000 Goldstuecke oder 5000 Einheiten Holz in meine Heimatdimension, um Eure Treue zu beweisen."`
+    *   *Antwort A (Zahlen):* Ressourcen werden sofort aus der aktuellen Siedlung gebucht. Gunst steigt um +5.
+    *   *Antwort B (Ablehnen):* Gunst sinkt um 15. Haug markiert die Siedlung für den nächsten regulären Wirtschafts-Angriffszug.
+*   **Ereignis 2: Groms Handelsangebot**
+    *   *Text:* `"Grom bietet Geschaeft: Ich liefere 200 Werkzeuge, wenn Ihr mir 1000 Einheiten Eisen aus Euren Minen ueberlasst."`
+    *   *Antwort A (Tauschen):* Sofortige Verrechnung im Lager, falls Eisen vorhanden. Gunst +10.
+    *   *Antwort B (Ablehnen):* Keine Auswirkung auf Gunst, Event schließt.
+*   **Ereignis 3: Silras Informationsverkauf**
+    *   *Text:* `"Silra bietet Spionage: Fuer 500 Goldstuecke liefere ich die exakten Truppenstaerken von Krank."`
+    *   *Antwort A (Kaufen):* Gold wird abgezogen. Ein detaillierter Spionagebericht wird in `state.messages` generiert.
+    *   *Antwort B (Ablehnen):* Event schließt ohne Malus.
+
+### 6) ANZEIGE
+*   **Datei/Funktion:** `src/main.py` -> Modifikation von `_render_diplomacy`
+*   **Aufbau:** Unterhalb der Bot-Taktikzeile wird ein neues `tk.Frame` eingefügt. Es zeigt im Textformat: `"Status: Freundlich (Gunst: 65) | Aktiver Vertrag: Nichtangriffspakt (Noch X Ticks)"`.
+*   **Knöpfe:** Die beiden Knöpfe `"Handeln"` und `"Angriff entsenden"` bleiben. Daneben kommt ein dritter, dynamischer Knopf: `"Vertrag verhandeln"`. Ist die Mindestgunst nicht erreicht, ist er gesperrt und zeigt im Tooltip/Label den exakten Grund: `"Bedingung fehlt: Benoetigt mindestens 40 Gunst (Aktuell: X)"`.
+*   **Nach Vertragsbruch:** Der Status wechselt sofort auf `"Feindselig"`. Das Log zeigt im Text: `"VERTRAGSBRUCH: Vor X Spielsekunden wurde das Abkommen gebrochen."` (Dieser Text wird rot eingefärbt über die vorhandene Farbtabelle).
+
+### 7) WACHE (TESTS)
+*   **Datei:** `tests/test_diplomacy.py` (Reiner Logiktest ohne GUI-Instanz)
+*   **Zusage 1 (Gunst-Sperre):** Aufruf der Vertragsfunktion mit `bot["favor"] = 20` für einen NAP. Erwarteter Rückgabewert: `False`.
+*   **Zusage 2 (Bruch-Malus):** Auslösen eines harten Vertragsbruchs im Code. Erwarteter Messwert: `bot["favor"]` sinkt um exakt 20 Punkte; `state.bots["krank"]["memory"]["revenge_pool"]` erhöht sich um +1 (Kranks Rachekonto füllt sich bei jedem Bruch weltweit).
+*   **Zusage 3 (Rache-Abbau):** Verbuche einen Bot-Sieg in der Kampfmatrix. Erwarteter Messwert für `bot["memory"]["revenge_pool"]` ist `0`.
+
+### 8) AUFBAUZEIT-EFFEKT
+Die Diplomatie verkürzt den Aufbau an keiner Stelle, da Verträge erhebliche Ressourcen (Gold/Mana) binden und proaktive Forderungen den Spieler zwingen, Rohstoffe abzugeben, die andernfalls direkt in Gebäude investiert worden wären. Sie verlängert das Aufbauspiel strategisch, da der Schutz durch NAPs dem Spieler die nötige Zeit verschafft, seine Warenketten und Forschungen ohne die ständige Angst vor der wirtschaftlichen Vernichtung durch die Bots zu optimieren.

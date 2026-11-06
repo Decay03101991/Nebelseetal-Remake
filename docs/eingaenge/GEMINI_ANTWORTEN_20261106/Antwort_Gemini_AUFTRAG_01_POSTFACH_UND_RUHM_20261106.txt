@@ -1,0 +1,66 @@
+Gemini antwort zu auftrag 1:
+
+### 1) DATENMODELL
+*   **Speicherort:** Direkt innerhalb der bestehenden Dicts in der Liste `state.messages`. Keine externe Datei.
+*   **Neue Felder (VORSCHLAG):**
+    *   `"read"`: Boolean (`True`/`False`), steuert die Kennzeichnung.
+    *   `"archived"`: Boolean (`True`/`False`), isoliert Nachrichten aus dem Posteingang.
+    *   `"expiry_ts"`: Integer (Spielsekunden), Zeitpunkt der automatischen Löschung.
+*   **Abwärtskompatibilität:** Ältere Spielstände besitzen diese Felder nicht. Die Logik nutzt bei der Abfrage sichere `.get()`-Methoden mit Standardwerten: `msg.get("read", True)` (alte werden als gelesen betrachtet), `msg.get("archived", False)` und `msg.get("expiry_ts", 0)` (0 bedeutet: unbegrenzt haltbar/kein Ablauf). Eine Migration beim Laden entfällt vollständig.
+
+### 2) REGELN
+*   **Kategorien:** Basierend auf `type`: `"kampf"`, `"spionage"`, `"diebstahl"`, `"portal"`, `"diplomatie"`, `"system"`.
+*   **Militär-Einstufung:** Die Typen `"kampf"` und `"gesamtsieg"` gelten als Militärberichte.
+*   **Löschschutz:** Militärberichte erhalten *niemals* ein Ablaufdatum (`"expiry_ts": 0`) und sind unlöschbar. Sie dürfen vom System nicht entfernt werden.
+*   **Ablauffristen (VORSCHLAG):**
+    *   `"spionage"`, `"diebstahl"`, `"portal"`, `"diplomatie"`: Ablauf nach 28.800 Spielsekunden (entspricht genau 1 Spieltag / 8 Minuten Echtzeit).
+    *   `"system"`: Ablauf nach 14.400 Spielsekunden (0.5 Spieltage).
+*   **Steuerung:** Die Fristen werden hart im Code als Konstanten in `GameState` hinterlegt, um zusätzliche JSON-Lesezugriffe während des Ticks zu vermeiden.
+
+### 3) ABLAUF
+*   **Datei:** `src/main.py` -> Erweiterung der zentralen Tick-Methode der Klasse `GameState`.
+*   **Tick-Mechanik:** Bei jedem Inkrement von `state.spielsekunden` prüft eine Schleife die Liste `state.messages`.
+*   **Ablauf-Logik:** Wenn `msg.get("expiry_ts", 0) > 0` und `state.spielsekunden >= msg["expiry_ts"]`:
+    *   *Bedingung:* Die Nachricht darf nur gelöscht werden, wenn `msg.get("read", False) == True` oder wenn es sich nicht um einen Verlustbericht handelt.
+    *   *Verlust-Schutz:* Enthält die Nachricht das Feld `"verlust"` (z.B. Rohstoffdiebstahl durch Bot) und ist ungelesen (`"read": False`), wird der Ablauf aufgeschoben (`msg["expiry_ts"] += 7200`), bis der Spieler sie sichtet.
+
+### 4) ANZEIGE
+*   **Datei:** `src/main.py`, Modifikation der bestehenden Ansichtsfunktion `_render_messages`.
+*   **Struktur:** Einbau einer horizontalen Filterzeile (`tk.Frame`) ganz oben. Buttons auf Deutsch: `[ Alle ]`, `[ Militaer ]`, `[ Wirtschaft ]`, `[ System ]`, `[ Archiv ]`.
+*   **Performance (500+ Nachrichten):** Da `_render_messages` das UI bei jedem Wechsel komplett neu aufbaut, führt ein direktes Rendern von 500 Text-Widgets zu spürbaren Rucklern.
+    *   *Lösung:* Implementierung einer Paginierung (Blättern). Es werden immer nur maximal 20 Einträge gleichzeitig gezeichnet. Buttons ganz unten: `[ Vorherige 20 ]` und `[ Naechste 20 ]`. Das Rendern von 20 Widgets via ASCII-only Text läuft verzögerungsfrei unter 1 Millisekunde.
+*   **Verhalten bei 0 Nachrichten:** Es wird ein zentriertes `tk.Label` mit dem Text `"Keine Nachrichten in dieser Kategorie vorhanden."` in der Skin-Farbe ausgegeben.
+
+### 5) RUHMBALKEN
+*   **Datei:** `src/punkte.py` (Kernrechnung) und `src/main.py` (Anzeige-Widget).
+*   **Rangschwellen (VORSCHLAG):** Da keine Originalquelle vorliegt, definieren wir basierend auf den typischen Endpunktzahlen der Vorversion drei mathematische Schwellen für die drei Hauptkategorien:
+    *   *Rang 1 (Siedler):* 0 Punkte
+    *   *Rang 2 (Fuerst):* 2.500 Punkte
+    *   *Rang 3 (Herrscher):* 10.000 Punkte
+*   **Logik (`src/punkte.py`):** Eine neue Hilfsfunktion berechnet basierend auf dem Rückgabewert von `auszeichnungen()` den Abstand: `naechster_schwellenwert - aktueller_wert`.
+*   **UI-Balken (`src/main.py`):** Zeichnung via `tk.Canvas`.
+    *   *Breite/Farbe:* 300 Pixel Breite, Höhe 15 Pixel. Hintergrund: Dunkelgrau des Skins, Füllung: Weiches Allianz-Grün des Skins.
+    *   *Text:* Ein Overlay-Text im Canvas zeigt: `"Feldherr: Noch X Punkte bis Rang 'Fuerst'"`.
+*   **Verhalten bei Gleichzeitigkeit:** Steigen zwei Werte gleichzeitig, rendert die UI zwei separate, schmale Canvas-Balken untereinander, um Verfälschungen der Datenbasis zu verhindern.
+
+### 6) WACHE (TESTS)
+*   **Datei:** `tests/test_messages.py` (Neu anzulegende reine Logik-Testdatei).
+*   **Zusage 1 (Abwärtskompatibilität):** Ein Dict ohne neue Felder wird geladen. Erwarteter Messwert für `msg.get("archived", False)` ist `False`.
+*   **Zusage 2 (Löschschutz):** Ein Eintrag mit `type: "kampf"` wird dem Ablauf-Tick unterzogen. Erwarteter Messwert: Die Nachricht verbleibt in `state.messages`.
+*   **Zusage 3 (Punkte-Abstand):** Übergabe von 1.500 Punkten in `src/punkte.py`. Erwarteter Messwert für den Abstand zu Rang 2: `1000`.
+
+### 7) RANDFAELLE
+*   **Leerer Spielstand / 0 Nachrichten:** Das System initialisiert `state.messages = []`. Die UI fängt dies ab und zeigt sauber den Text für 0 Nachrichten.
+*   **200+ Nachrichten:** Paginierung greift. Die ersten 20 werden gezeigt, Ticks löschen im Hintergrund gelesene, abgelaufene Nachrichten.
+*   **Fehlendes "type"-Feld:** Fällt in `nachrichten_farbe()` automatisch auf den Standardwert (Gold des Skins) zurück und wird in der UI unter `"System"` gelistet.
+*   **Archivieren der letzten sichtbaren Nachricht:** Die Nachricht wird auf `"archived": True` gesetzt. `_render_messages` wird aufgerufen, stellt fest, dass die aktuelle Seite des Posteingangs leer ist, und springt automatisch auf die vorherige Seite oder zeigt das leere Label.
+
+### 8) AUFBAUZEIT-EFFEKT
+Beide Stücke dienen ausschließlich der visuellen Aufbereitung im Benutzerinterface sowie der Datenordnung im lokalen Speicherstand und greifen zu keinem Zeitpunkt in die mathematischen Produktionszyklen, Ressourcenerträge oder Bauzeitverkürzungen des Reiches ein.
+
+---
+
+### 💡 WICHTIGE ZUSATZHINWEISE FÜR "WELTENFRESSER"
+
+*   **HINWEIS ZUR PERFORMANCE:** Da `_render_messages` zyklisch aufgerufen werden könnte, darf innerhalb der UI-Schleife niemals `punkte.auszeichnungen()` aufgerufen werden. Die Punkteberechnung darf nur einmalig beim echten Stunden-Tick in `GameState` ausgeführt und das Ergebnis in `state.aktuelle_punkte` zwischengespeichert werden. Die UI liest rein passiv aus diesem Cache.
+*   **HINWEIS ZUR ASCII-REGEL:** Stelle sicher, dass der Agent bei den Titeln im Code `"Fuerst"` statt `"Fürst"` verwendet, um die Projektregel (ASCII-only im Code, Umlaute nur in der Anzeige) strikt einzuhalten.

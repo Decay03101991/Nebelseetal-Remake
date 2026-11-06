@@ -1,0 +1,42 @@
+Antwort Gemini Auftrag 5:
+
+
+### 1) WAS ZIEHT MIT UM
+*   **Datei/Funktion:** `src/main.py` -> `GameState.umzug_siedlung_ausfuehren(siedlung_index)`
+*   **Was zieht mit um:** Name, Vorraete, Einheiten, Garnison, Verwundete und der Wallzustand in Prozent ziehen vollständig mit um. Sie sind an das logische Herrschaftsrecht der Siedlung gekoppelt.
+*   **Was zieht NICHT mit um:** Alle Bauten und Ausbaustufen auf den Feldern (`bauten`, `stufen`) sowie die laufende Ausbildung in der Queue werden *nicht* mitgenommen.
+    *   *Begründung:* Ein physisches Versetzen von 20 Gebäuden durch den Limbus widerspricht dem Aufbauspiel-Gefühl radikal. Die Infrastruktur wird am Zielort auf der neuen 10x10-Karte von Grund auf neu errichtet. Ressourcen im Lager erlauben jedoch einen schnellen Wiederaufbau.
+
+### 2) KARTENWAHL
+*   **Zielkarte:** Wird über die bestehende Funktion `originalkarten.zufalls_originalkarte(seed, vergeben)` gezogen. Es wird die gleiche Verteilung genutzt wie bei einer regulären Gründung, wobei bereits vom Spieler oder den Bots besetzte Karten-IDs über die `vergeben`-Liste ausgeschlossen werden.
+*   **Verwerfen:** Da Daniels Vorgabe „Zielkarte zufaellig“ lautet, darf der Spieler die gezogene Karte *nicht* kostenlos verwerfen.
+*   **VORSCHLAG zum Schutz:** Der Spieler darf die Karte für einen hohen Preis (erneute Portalkosten in Mana + Verlust von 2 weiteren Siedlern) einmalig neu auswürfeln lassen, bevor er den Umzug final bestätigt.
+
+### 3) KOSTEN
+*   **Portalkosten:** Werden über die vorhandene Berechnungsfunktion `welt.entfernung / welt.portalkosten` ermittelt. Als Distanz gilt der Weg von den alten Koordinaten im 20x20-Portalgitter zu den neu ausgewürfelten Zielkoordinaten. Da es sich um den Transport eines gesamten Herrschaftssitzes handelt, wird der berechnete Basis-Manawert mit dem Faktor 5 multipliziert (VORSCHLAG zur wirtschaftlichen Bindung).
+*   **Siedlerkosten (VORSCHLAG):** Der Umzug kostet genau 5 Siedler (hart abgezogen von `siedlung.vorraete["siedler"]`).
+    *   *Begründung:* Bei maximal 10 Siedlern pro Siedlung (ohne Häuser) bedeutet dies den Verlust der halben produktiven Bevölkerung. Die verbleibenden 5 Siedler stellen das logistische Mindestmaß dar, um am Zielort den Neubau zu beginnen.
+
+### 4) SPERREN
+*   **Bestehende Sperre:** Die Zaehlfunktion fuer laufende Auftraege blockiert den Umzug vollständig, solange Transporte, Angriffe oder Handelsfahrten von dieser Siedlung im Limbus unterwegs sind.
+*   **Laufende Ausbildung:** Ist eine Ausbildung aktiv, wird der Umzug blockiert. Der Spieler muss die Kaserne leerlaufen lassen oder die Queue manuell abbrechen (Ressourcenverlust).
+*   **Eingehender Angriff:** Läuft ein gegnerischer Marsch eines Bots (Haug/Krank) auf die Koordinaten dieser Siedlung zu, ist der Umzug *strikt gesperrt*. Eine Flucht vor anrollenden Heeren durch den Limbus ist unzulässig.
+
+### 5) WECHSELWIRKUNG MIT AUFGEBEN
+*   **Umzugs-Freigabe:** Ein Umzug ist *früher* erlaubt als das Aufgeben (also auch bei weniger als sechs Siedlungen). Er verringert die Anzahl der Reiche nicht, sondern verschiebt nur eines.
+*   **Alte Karte:** Die bisherige Kartenkennung wird sofort freigegeben und wandert über die `vergeben`-Liste zurück in den Pool für Neugründungen oder Bot-Züge.
+*   **Alter Platz:** Die Koordinaten im 20x20-Portalgitter werden im `GameState` gelöscht und als `"frei"` markiert.
+
+### 6) ANZEIGE
+*   **Datei/Funktion:** `src/main.py` -> `NebelseetalApp._render_settlement_move`
+*   **Wortlaut & Rückfrage:** Im Dialog-Overlay der Siedlung steht: `"Siedlungsumzug vorbereiten. Dies kostet 5 Siedler und X Mana. Alle bestehenden Gebaude auf dieser Karte gehen verloren! Seid Ihr sicher?"`
+*   **Karten-Vorschau:** Nach Klick auf `"Zielkarte bestimmen"` zieht der Kern die Zufallskarte. Das UI rendert eine statische ASCII-Vorschau der neuen Geländearten auf einem kleinen tk.Canvas *vor* der finalen Bestätigung. Buttons: `[ Umzug vollziehen ]` oder `[ Abbrechen (Ressourcen verloren) ]`.
+
+### 7) WACHE (TESTS)
+*   **Datei:** `tests/test_settlement_move.py` (Reiner Logiktest).
+*   **Zusage 1 (Gegenprobe):** Aufruf des Umzugs mit 4 Siedlern im Lager. Erwarteter Messwert: Funktion liefert `False`, keine Buchung, keine Positionsänderung.
+*   **Zusage 2 (Integrität):** Prüfung der Koordinaten nach dem Umzug. Erwartete Messwerte: Die alten Koordinaten im Gitter geben im `GameState` den Wert `None` oder `0` zurück (Platz frei).
+*   **Zusage 3 (Lager-Check):** Erwarteter Messwert: `siedlung.vorraete` vor und nach dem Umzug identisch (abzüglich der 5 Siedler), keine Verdopplung der Rohstoffe.
+
+### 8) AUFBAUZEIT-EFFEKT
+Der Umzug verkürzt den Aufbau zu keinem Zeitpunkt, da der vollständige Verlust aller errichteten Gebäude und Ausbaustufen den wirtschaftlichen Fortschritt dieser Siedlung um Stunden zurückwirft. Er bindet beträchtliche Mengen an Mana und zwingt den Spieler durch den Verlust von 5 Siedlern in eine langsame, strategische Wiederaufbauphase auf der neu gezogenen Originalkarte.
