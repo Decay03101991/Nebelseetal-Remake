@@ -1,4 +1,23 @@
 {
+  "menue_geschichten": {
+    "hinweis": "S1b (06.11.2026): vier kurze Teilgeschichten, je an einen Menuepunkt gebunden und je Spielstand genau EINMAL. Von uns neu geschrieben im Ton dieser Datei (leicht, abenteuerlich, kein Pathos, hoechstens drei Saetze). Das Einmal-Kennzeichen liegt im SPIELSTAND (menue_geschichten_gesehen), nicht in der Merkdatei - sonst saehe ein zweiter Spielstand die Geschichten nie.",
+    "forschung": {
+      "titel": "Die erste Bibliothek",
+      "text": "Die Bibliothek riecht nach Staub und Lampenöl. Auf dem ersten Tisch liegt eine Karte mit einem Rand, den niemand hier kennt. Wer sie liest, hat mit der Forschung schon angefangen."
+    },
+    "portal": {
+      "titel": "Der erste Schritt durch das Portal",
+      "text": "Der Bogen aus Nebelstein flimmert, als würde jemand dahinter atmen. Ein Schritt, und der Wind riecht nach Salz statt nach Wald. Hinter dir schließt sich nichts – das ist das Unheimliche daran."
+    },
+    "kaserne": {
+      "titel": "Die Kriegerakademie steht",
+      "text": "Im Hof schlägt jemand zum ersten Mal im Takt, und der Ausbilder mustert dich von den Stiefeln aufwärts. Ab jetzt lernen hier Leute, die du bezahlst. Sieh zu, dass es die richtigen sind."
+    },
+    "ruhmeshalle": {
+      "titel": "Die Ruhmeshalle",
+      "text": "Vier leere Sockel, vier Namen in Gold. Der Staub auf dem ersten ist dünner als auf den anderen. Hier war also schon jemand."
+    }
+  },
   "stand": "2026-11-04",
   "ton": "abenteuerlich und leicht - Aufbruch, Entdecken, Humor (Daniels Entscheidung 04.11.2026)",
   "hinweis": "Alle Texte dieses Spiels stehen HIER, nicht im Code. Der Ton ist leicht und abenteuerlich: kein Pathos, kein Weltschmerz, aber ein Ziel. Wer die Geschichte ändern will, ändert diese Datei – kein Codeeingriff.",

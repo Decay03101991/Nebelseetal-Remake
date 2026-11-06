@@ -2879,6 +2879,13 @@ NACHRICHTEN_FARBEN = {"kampf": "#e53935", "geschenk": "#7FD1FF", "spionage": "#A
                       "gesamtsieg": "#FFD54F"}
 
 
+# S1b (06.11.2026): je Ansicht die Teilgeschichte aus `data/story.json`. Die Zuordnung ist Code,
+# die TEXTE sind Daten (Regel: kein Spieltext im Code). Wer eine fuenfte Geschichte will, traegt sie
+# in die Datendatei ein und ergaenzt hier eine Zeile.
+MENUE_GESCHICHTEN = {"Forschung": "forschung", "Portal": "portal",
+                     "Kaserne": "kaserne", "Ruhmeshalle": "ruhmeshalle"}
+
+
 def nachrichten_farbe(nachricht) -> str:
     """Farbe einer Nachricht in der Nachrichtenansicht (EINE Stelle, pruefbar ohne Fenster).
 
@@ -3635,6 +3642,10 @@ class GameState:
         self.map_garrison: Dict[str, Dict[str, int]] = {}
         self.movements: List[dict] = []
         self.messages: List[dict] = zeitbasis.NachrichtenMitZeit(spieluhr=lambda: self.spielsekunden)
+        # S1b (06.11.2026): welche Menue-Teilgeschichte dieser Spielstand schon erzaehlt hat.
+        # Das Kennzeichen gehoert in den SPIELSTAND - in einer Merkdatei saehe ein zweiter
+        # Spielstand dieselbe Geschichte nie (Vorgabe des Plans S1b).
+        self.menue_geschichten_gesehen: Dict[str, bool] = {}
         self.settlements: List[Settlement] = []
         # Ökonomie-Paket, Schritt 9, Teil 5 (Entwurf Z. 777): der feste KARTENVORRAT für
         # Neugründungen (Startkarte + zehn Koloniekarten, data/gelaende.json). Der Vorrat ist
@@ -7263,6 +7274,8 @@ class GameState:
             "map_garrison": self.map_garrison,
             "movements": self.movements,
             "messages": self.messages,
+            # S1b: die Kennzeichen der Menue-Teilgeschichten gehoeren in den Spielstand.
+            "menue_geschichten_gesehen": dict(getattr(self, "menue_geschichten_gesehen", {}) or {}),
             "settlements": [asdict(s) for s in self.settlements],
             # Ökonomie-Paket, Teil 5: der Kartenvorrat ist Spielzustand (eine vergebene Karte
             # bleibt vergeben) — ohne ihn könnte ein geladener Stand Karten doppelt vergeben.
@@ -7408,6 +7421,8 @@ class GameState:
         self.map_garrison = data.get("map_garrison", {})
         self.movements = data.get("movements", [])
         self.messages = zeitbasis.NachrichtenMitZeit(data.get("messages", []), spieluhr=lambda: self.spielsekunden)
+        # S1b: alte Spielstaende haben das Feld nicht - `.get` mit leerem Dict, keine Migration.
+        self.menue_geschichten_gesehen = dict(data.get("menue_geschichten_gesehen") or {})
         self.settlements = [Settlement(**s) for s in data.get("settlements", [])]
         # Ökonomie-Paket Schritt 9: Altspielstände kennen die Ort-Kennung nicht. Sie bekommen sie
         # hier EINMALIG deterministisch aus Besitzer und Weltfeld — nicht aus dem Namen, damit ein
@@ -8994,6 +9009,7 @@ class NebelseetalApp:
                 pass                                                      # dann ohne Rollen
             if self.current_view in mapping:                               # Ansicht bekannt
                 mapping[self.current_view]()                               # dann bauen
+                self._menue_geschichte_pruefen(self.current_view)        # S1b: Teilgeschichte genau einmal
             else:                                                         # unbekannter Menuepunkt
                 tk.Label(self.content, text=f"{self.current_view} kommt bald.",
                          fg="#DAA520", bg=self.skin["bg"]).pack(padx=20, pady=20)   # Platzhalter
@@ -13497,6 +13513,44 @@ class NebelseetalApp:
                           command=lambda m=msg: self._spionage_bericht_anzeigen(m),
                           bg=self.skin["button"], fg=self.skin["gold"], relief=tk.FLAT,
                           padx=8, pady=2).pack(side=tk.LEFT, padx=(0, 4))
+
+    def _menue_geschichte_pruefen(self, ansicht):
+        """Zeigt die Teilgeschichte einer Ansicht genau EINMAL je Spielstand (S1b, 06.11.2026).
+
+        Der Text kommt aus `data/story.json` (ueber `story.menue_geschichte`), das Kennzeichen steht
+        im SPIELSTAND (`menue_geschichten_gesehen`) - eine Merkdatei wuerde dazu fuehren, dass ein
+        zweiter Spielstand die Geschichte nie sieht. Ohne Text in den Daten passiert nichts: es wird
+        kein Satz erfunden. Das Portal-Overlay hat KEINE Antwortknoepfe (Daniel, Runde 3 Frage 1) -
+        der eine Knopf schliesst nur.
+        """
+        schluessel = MENUE_GESCHICHTEN.get(str(ansicht))                 # gehoert diese Ansicht zu einer Geschichte?
+        if not schluessel:                                               # nein: nichts zu tun
+            return
+        gesehen = getattr(self.state, "menue_geschichten_gesehen", None)
+        if not isinstance(gesehen, dict):                                # sehr alter Stand ohne Feld
+            self.state.menue_geschichten_gesehen = {}
+            gesehen = self.state.menue_geschichten_gesehen
+        if gesehen.get(schluessel):                                      # schon erzaehlt
+            return
+        geschichte = story.menue_geschichte(schluessel)                   # Text aus der Datendatei
+        text = str(geschichte.get("text") or "").strip()                  # ohne Text keine Anzeige
+        if not text:                                                     # nichts erfinden
+            return
+        gesehen[schluessel] = True                                       # Kennzeichen im Spielstand
+
+        def _bauen(inhalt, schliessen):
+            """Fuellt den Ingame-Dialog der Teilgeschichte (nur Text und ein Schliessen-Knopf)."""
+            farbe = str(inhalt.cget("bg"))                                # Fuellfarbe des Kastens
+            tk.Label(inhalt, text=str(geschichte.get("titel") or ""),
+                     font=("Blackletter", 16, "bold"), fg=self.skin["gold"],
+                     bg=farbe, wraplength=640, justify=tk.LEFT).pack(anchor=tk.W)   # Titel
+            tk.Label(inhalt, text=text, fg=self.skin["text"], bg=farbe,
+                     wraplength=640, justify=tk.LEFT).pack(anchor=tk.W, pady=(2, 8))  # der Text
+            tk.Button(inhalt, text="Weiter", command=schliessen,           # kein Antwortknopf, nur schliessen
+                      bg=self.skin["button"], fg=self.skin["gold"], relief=tk.FLAT,
+                      padx=8, pady=2).pack(anchor=tk.E)
+
+        self._overlay_oeffnen(str(geschichte.get("titel") or "Geschichte"), _bauen)   # Ingame statt Fenster
 
     def _postfach_filter_setzen(self, schluessel):
         """Filter wechseln und die Ansicht neu zeichnen (Seite faellt auf 1 zurueck)."""

@@ -5,7 +5,7 @@
   "stufen": [
     {"stufe": 1, "name": "Ansiedler", "ab": 0},
     {"stufe": 2, "name": "Freisiedler", "ab": 10},
-    {"stufe": 3, "name": "Fuerst", "ab": 40},
+    {"stufe": 3, "name": "Fürst", "ab": 40},
     {"stufe": 4, "name": "Herrscher", "ab": 160}
   ],
   "balken": {

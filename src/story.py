@@ -46,6 +46,21 @@ def intro_titel() -> str:
     return str(_datei().get("intro_titel") or "Ankunft im Nebelseetal")
 
 
+def menue_geschichte(schluessel: str) -> Dict[str, str]:
+    """Die Teilgeschichte eines Menuepunkts (S1b, 06.11.2026) - Text NUR aus `data/story.json`.
+
+    Vier Ansichten haben je eine kurze Geschichte (Forschung, Portal, Kaserne, Ruhmeshalle). Sie
+    erscheint je Spielstand genau EINMAL; das Kennzeichen fuehrt der Spielstand
+    (`GameState.menue_geschichten_gesehen`), nicht die Merkdatei. Fehlt der Bereich oder der Text,
+    kommt ein leeres Dict zurueck - die Ansicht zeigt dann einfach nichts, statt zu werfen.
+    """
+    bereich = _datei().get("menue_geschichten") or {}
+    eintrag = bereich.get(str(schluessel)) if isinstance(bereich, dict) else None
+    if not isinstance(eintrag, dict):
+        return {"titel": "", "text": ""}
+    return {"titel": str(eintrag.get("titel") or ""), "text": str(eintrag.get("text") or "")}
+
+
 def _stufe(zustand: Dict[str, Any]) -> int:
     """Bis zu welcher Chronik-Stufe der Spielstand gekommen ist (0 bis 6)."""
     z = zustand if isinstance(zustand, dict) else {}

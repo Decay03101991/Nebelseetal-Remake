@@ -253,7 +253,8 @@ def rang_text(punkte_wert: Any) -> str:
     if not info["name"]:
         return ""                                            # keine Stufen in den Daten: nichts behaupten
     if info["naechste_ab"] is None:
-        return "%s - hoechste Stufe erreicht (%d Punkte)." % (info["name"], int(info["punkte"]))
+        # Anzeigetext mit ECHTEM Umlaut (Escape, damit die Datei ASCII bleibt - Wache test_anzeigetexte_umlaute)
+        return "%s - h\u00f6chste Stufe erreicht (%d Punkte)." % (info["name"], int(info["punkte"]))
     fehlt = max(0, int(round(info["naechste_ab"] - info["punkte"])))
     return "%s - %d Punkte, noch %d bis %s." % (info["name"], int(info["punkte"]), fehlt,
                                                 info["naechster_name"])

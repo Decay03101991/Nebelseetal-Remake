@@ -1,3 +1,23 @@
+# STAND 06.11.2026, 03:56 - S1b gebaut: vier Menue-Teilgeschichten (Register 251)
+
+> Neuester Block. Register 251, Protokollzeile 03:56. Nachtlauf. Darunter S1 (03:22) und S0 (03:02).
+
+**Was dieser Schnitt geaendert hat:** vier kurze Geschichten erscheinen beim ersten Oeffnen ihrer Ansicht.
+
+| Stueck | Beleg |
+|---|---|
+| Texte | `data/story.json` -> `menue_geschichten` (Forschung, Portal, Kaserne, Ruhmeshalle), neu geschrieben von uns |
+| Lesestelle | `story.menue_geschichte(schluessel)` - Text nur aus der Datendatei |
+| Einmal-Kennzeichen | `GameState.menue_geschichten_gesehen` (init, save, load mit `.get`-Fallback) |
+| Anzeige | `_menue_geschichte_pruefen` in `_switch_view`, Ingame-Overlay mit einem Schliessen-Knopf |
+| Wache | `tests/test_story_menue.py` - 42 bestanden, 0 Fehler, 0 Befunde |
+
+**Portal ohne Antwortknoepfe** (Daniel, Runde 3 Frage 1): das Overlay hat genau einen Knopf, und der schliesst nur.
+
+**Naechster Schritt:** voller Sammellauf 2 (deckt S1-Fix und S1b zusammen), danach S2 Mauerreparatur.
+
+---
+
 # STAND 06.11.2026, 03:22 - S1 gebaut: Postfach mit Archiv, Filter, Blaettern, Ruhm-Balken (Register 250)
 
 > Neuester Block. Register 250, Protokollzeile 03:22. Nachtlauf. Der Block 03:02 darunter haelt S0.
