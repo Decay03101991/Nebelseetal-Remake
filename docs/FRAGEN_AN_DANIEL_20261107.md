@@ -222,3 +222,8 @@ bekaeme den Haendler-Titel fuer Einkaufen.
 **Empfehlung:** A, in der Reihenfolge 6a, dann 6b, dann 6c.
 
 **Antwort Daniels:** offen.
+## Nachtrag 07.11.2026, 00:05 - Antwort auf F-12 (Handelspunkte)
+
+| Frage | Antwort Daniels | Folge |
+|---|---|---|
+| F-12 | **A - Verkaufsrichtung bauen** (6a Felder/Anzeige, 6b Verkauf im Kern, 6c Handel in der Spielschicht). | Der Spieler verkauft eigene Ware an einen Bot; der Bot zahlt aus seinem Gold, die eigene Karawane faehrt (`karawane_seite="verkaeufer"` im Kern). Gebucht wird `erloes` (echtes Einkommen) genau einmal in `_fremdvertrag_buchen`. **Kein** Punkt fuer gekaufte Ware - das waere die Abweichung B gewesen und ist damit abgelehnt. 6a und 6b sind gebaut (Register 290), 6c (Handel in der Spielschicht, damit das Kennzahlenblatt die Zahl zeigt) steht noch offen, ebenso der Knopf in der Handelsmaske. |

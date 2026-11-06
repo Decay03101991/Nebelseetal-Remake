@@ -1666,8 +1666,13 @@ def zielstatus(orte: list, jetzt: float, haltestart=None) -> dict:
 
 
 def handel_start(kaeufer: dict, verkaeufer: dict, einheitenbestand: dict, ware: str,
-                 menge: int, preis: float, kanal: str, jetzt: float, forschung: dict = None):
+                 menge: int, preis: float, kanal: str, jetzt: float, forschung: dict = None,
+                 karawane_seite: str = "kaeufer"):
     """Ein bestätigtes Einzelangebot starten. Liefert ``(kaeufer_neu, verkaeufer_neu, vertrag)``.
+
+    ``karawane_seite`` sagt, WESSEN Karren fahren: ``"kaeufer"`` (Standard, so ist der Kaufweg
+    gebaut) oder ``"verkaeufer"`` (S4-6: der Spieler verkauft und schickt die eigene Karawane).
+    Die Karawane muss dann beim Verkaeufer stehen und kommt auch dorthin zurueck.
 
     ``kanal`` ist ``"vorraete"`` (Rohstoff) oder ``"waren"``. Geprüft wird **vor** jeder Buchung:
     Kanal und Handelsgut, positives ganzzahliges Angebot, positiver endlicher Preis, fremder
@@ -1696,7 +1701,9 @@ def handel_start(kaeufer: dict, verkaeufer: dict, einheitenbestand: dict, ware: 
     if not einheitenbestand or any(type(n) is not int or n <= 0
                                    for n in einheitenbestand.values()):
         raise ValueError("Ungültige Karawanentruppe.")
-    if any(kaeufer["einheiten"].get(n, 0) < m for n, m in einheitenbestand.items()):
+    _seite = "verkaeufer" if str(karawane_seite or "kaeufer") == "verkaeufer" else "kaeufer"
+    _fahrer = verkaeufer if _seite == "verkaeufer" else kaeufer     # wessen Karren fahren
+    if any(_fahrer["einheiten"].get(n, 0) < m for n, m in einheitenbestand.items()):
         raise ValueError("Karawane fehlt vor Ort.")
     if verkaeufer[kanal].get(ware, 0) < menge:
         raise ValueError("Angebot nicht gedeckt: dem Verkäufer fehlt die Ware.")
@@ -1705,8 +1712,11 @@ def handel_start(kaeufer: dict, verkaeufer: dict, einheitenbestand: dict, ware: 
         raise ValueError("Angebot nicht gedeckt: dem Käufer fehlt das Gold.")
     d = abs(kaeufer["x"] - verkaeufer["x"]) + abs(kaeufer["y"] - verkaeufer["y"])
     liste = []
-    ok, grund = auftraege.starten(liste, "handeln", einheitenbestand, kaeufer["id"],
-                                  verkaeufer["id"], d, jetzt, {}, forschung=forschung)
+    # Die Mission startet dort, wo die Karre steht: beim Kauf beim Kaeufer, beim Verkauf beim
+    # Verkaeufer - sonst rechnete die Reisezeit ab dem falschen Ort.
+    ok, grund = auftraege.starten(liste, "handeln", einheitenbestand, _fahrer["id"],
+                                  kaeufer["id"] if _seite == "verkaeufer" else verkaeufer["id"],
+                                  d, jetzt, {}, forschung=forschung)
     if not ok:
         raise ValueError(grund)
     # Erst nach dem Auftragskern: die Karawanenpflicht steht BELEGT in `auftraege.auftragsarten`
@@ -1732,15 +1742,16 @@ def handel_start(kaeufer: dict, verkaeufer: dict, einheitenbestand: dict, ware: 
         v["importiert"][ware] = max(0.0, v["importiert"].get(ware, 0) - anteil)
     v[kanal][ware] = v[kanal].get(ware, 0) - menge
 
+    _fahrer_neu = v if _seite == "verkaeufer" else k                  # Karren abziehen
     for n, z in einheitenbestand.items():
-        k["einheiten"][n] = k["einheiten"].get(n, 0) - z
+        _fahrer_neu["einheiten"][n] = _fahrer_neu["einheiten"].get(n, 0) - z
 
     vertrag.update({"fremdvertrag": True, "kaeufer": k["id"], "verkaeufer": v["id"],
                     "kaeufer_owner": k["besitzer"], "verkaeufer_owner": v["besitzer"],
                     "ware": ware, "menge": menge, "preis": float(preis), "kanal": kanal,
                     "angenommen": False, "abgerechnet": False, "entscheidung": None,
                     "sperrgold": gold, "sperrgold_import": sperrgold_import,
-                    "verkauft_import": verkauft_import})
+                    "verkauft_import": verkauft_import, "karawane_seite": _seite})
     vertrag["besitzer"] = k["besitzer"]
     return k, v, vertrag
 
@@ -1834,7 +1845,12 @@ def handel_abschluss(vertrag: dict, orte: dict, jetzt: float):
             else:
                 # Verlorenes Verkäufergut bleibt vermerkt; nicht an einen neuen Besitzer schenken.
                 m["verlorenes_sperrgut"] = {m["ware"]: m["menge"]}
-        for n, z in m["einheiten"].items():
-            kaeufer["einheiten"][n] = kaeufer["einheiten"].get(n, 0) + z
+        # Die Karren kommen dorthin zurueck, wo sie hergekommen sind - beim Verkauf also zum
+        # Verkaeufer (dem Spieler). Fehlt der Ort, bleibt die Karawane am Vertrag (keine
+        # Geistergutschrift).
+        _heim = verkaeufer if str(m.get("karawane_seite") or "kaeufer") == "verkaeufer" else kaeufer
+        if _heim is not None:
+            for n, z in m["einheiten"].items():
+                _heim["einheiten"][n] = _heim["einheiten"].get(n, 0) + z
         m["abgerechnet"] = True
     return neu, m

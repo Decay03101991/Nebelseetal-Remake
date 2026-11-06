@@ -3745,6 +3745,13 @@ class GameState:
         # sondern wird bei jeder Frage aus `data/diplomatie.json` und dem zahlenden Ort gerechnet.
         # ADDITIV: ein Spielstand von vor S4-5 laedt ohne das Feld und hat keine offenen Ereignisse.
         self.ereignisse: List[dict] = []
+        # S4-6 (06.11.2026): Handels-Erloes und Zeitpunkt des LETZTEN Handels - die zwei
+        # Eingaben von `punkte.handelspunkte` (1 Punkt je 100 Gold, Verfall 1 je 24 Spielstunden).
+        # ADDITIV: ein Spielstand von vor S4-6 laedt ohne die Felder und steht auf 0.0 (= nie
+        # gehandelt). `letzter_handel = 0.0` darf NICHT als Zeitpunkt gelesen werden, sonst
+        # verfaellt der Punkt ab Spielzeit 0 - die Anzeige uebergibt dann None.
+        self.handels_erloes: float = 0.0
+        self.letzter_handel: float = 0.0
         self.noob_protection: bool = True
         # Oekonomie-Paket, Schritt 9, Teil 8b (Entwurf Z. 789): Version und Modus des Spielstands.
         # `stand_version` ist die FORM (1 = der alte, unversionierte Stand — dort fehlt das Feld;
@@ -4834,12 +4841,16 @@ class GameState:
         `spieloekonomie.handel_start` fehlen genau diese Felder, deshalb hier die zweite, klar
         benannte Übersetzung: Besitzer `bot:<Name>`, Lager `bot.vorraete`, Wagenpark `bot.lager`.
         `waren` und `importiert` führt ein Bot nicht (keine Warenrezepte, keinen Siegnachweis) —
-        sie sind leer und werden nicht zurückgelesen.
+        sie sind leer und werden nicht zurückgelesen. Seit S4-6 (06.11.2026) steht sein
+        WAGENPARK (`bot.lager`) in `einheiten`: verkauft der Spieler, ist der Bot der Käufer und
+        muss die Karawane stellen. Zurückgelesen wird davon nichts - `bot_vorraete_uebernehmen`
+        nimmt nur `vorraete`, der Wagenpark des Bots bleibt unverändert.
         """
         return {"id": "bot:%s" % bot.name, "name": bot.name, "besitzer": "bot:%s" % bot.name,
                 "dimension": int(dimension), "x": int(x), "y": int(y), "bevoelkerung": 0.0,
                 "vorraete": {str(k): float(v) for k, v in (bot.vorraete or {}).items()},
-                "waren": {}, "einheiten": {}, "importiert": {}}
+                "waren": {}, "importiert": {},
+                "einheiten": {str(n): int(k) for n, k in (bot.lager or {}).items() if int(k) > 0}}
 
     def bot_vorraete_uebernehmen(self, bot: BotPlayer, ort: dict) -> None:
         """Die VORRÄTE aus einem Bot-Ortsdict zurück in den Spielstand (eine Quelle bleibt botkern).
@@ -4980,6 +4991,108 @@ class GameState:
         self.messages.append({"text": meldung, "type": "handel"})
         return True, meldung
 
+    def verkauf_an_bot(self, bot: BotPlayer, quelle: Settlement, ware: str, menge, preis,
+                       karawane: dict, jetzt: float = None) -> Tuple[bool, str]:
+        """EIGENE Ware an einen fremden Bot verkaufen - der umgekehrte Kaufweg (S4-6, 06.11.2026).
+
+        Der KERN ist DERSELBE (`spieloekonomie.handel_start`, nur mit `karawane_seite="verkaeufer"`):
+        Kaeufer ist der Bot, Verkaeufer der eigene Ort, und die KARAWANE DES SPIELERS faehrt - so
+        steht es auch in der Vorversion 2006 (dort verkauft der Spieler seine Ware). Geprueft wird
+        alles im Kern: Ware, Menge, Preis, Deckung beim Bot (Gold) und beim Spieler (Ware),
+        Karawanenpflicht und Rueckladung. Abgelehnt wird VOR jeder Aenderung.
+
+        Der ERLOES wird hier NICHT gebucht: das Gold fliesst erst bei der Annahme, und gebucht wird
+        genau einmal in `_fremdvertrag_buchen` (`handels_erloes`, `letzter_handel`).
+        """
+        jetzt = float(self.spielsekunden) if jetzt is None else float(jetzt)   # Spielzeit, nicht Rechnerzeit
+        if bot is None:                                                        # ohne Partner kein Vertrag
+            return False, "Kein Handelspartner gewählt."
+        if quelle is None:                                                     # ohne Ort keine Ware
+            return False, "Für einen Verkauf braucht es zuerst eine eigene Siedlung."
+        if float(bot.trading) <= 0.3:                                          # handelt dieser Bot ueberhaupt
+            return False, ("%s handelt nicht (Handelsneigung %d %%)."
+                           % (bot.name, int(float(bot.trading) * 100)))
+        try:                                                                   # ganze Stueckzahl erzwingen
+            if isinstance(menge, bool):
+                raise ValueError
+            roh_menge = menge
+            menge = int(menge)
+            if isinstance(roh_menge, float) and float(roh_menge) != float(menge):
+                raise ValueError
+        except (TypeError, ValueError):
+            return False, "Die Menge muss eine ganze Zahl sein."
+        if menge <= 0:                                                         # nichts verschenken
+            return False, "Die Menge muss größer als 0 sein."
+        try:                                                                   # Preis als Zahl
+            if isinstance(preis, bool):
+                raise ValueError
+            preis = float(preis)
+        except (TypeError, ValueError):
+            return False, "Der Preis muss eine Zahl sein."
+        if not math.isfinite(preis) or preis <= 0:                             # kein NaN, kein 0-Preis
+            return False, "Der Preis muss eine positive Zahl sein."
+        stoff = str(ware or "").lower()                                        # Rohstoffname klein
+        if stoff == "gold":                                                    # Gold ist Zahlung
+            return False, "Gold ist die Gegenleistung und kein Handelsgut."
+        if stoff not in RESOURCES:                                             # nur die belegten Rohstoffe
+            return False, "Diese Ware lässt sich nicht verkaufen."
+        im_ort = float((getattr(quelle, "vorraete", None) or {}).get(stoff, 0) or 0.0)
+        if im_ort < menge:                                                     # Bestand AM ORT zaehlt
+            return False, ("Im Ortslager von %s liegen %g %s — verkauft werden sollen %d."
+                           % (quelle.name, im_ort, stoff, menge))
+        bot_gold = float((bot.vorraete or {}).get("gold", 0) or 0.0)           # Gold des Kaeufers
+        if bot_gold + 1e-9 < menge * preis:                                    # er muss zahlen koennen
+            return False, ("%s hat zu wenig Gold: %g vorhanden, %g nötig (%d x %g)."
+                           % (bot.name, bot_gold, menge * preis, menge, preis))
+        try:                                                                   # Karawanen-Angabe saeubern
+            karawane = {str(n): int(k) for n, k in (karawane or {}).items() if int(k) > 0}
+        except (TypeError, ValueError):
+            return False, "Die Karawanen-Anzahl muss eine ganze Zahl sein."
+        if not karawane:                                                       # ohne Karre kein Transport
+            return False, ("Für einen Verkauf wird eine HANDELSKARAWANE gebraucht (Handbuch S. 20) "
+                           "— Handkarren und Einspänner tragen Fracht, handeln aber nicht.")
+        kein_handel = [n for n in karawane if "Handelskarawane" not in str(n)]
+        if kein_handel:                                                        # nur Handelskarawanen
+            return False, ("Handeln ist nur mit Handelskarawanen möglich (Handbuch S. 20): "
+                           + ", ".join(sorted(kein_handel)) + " kann nicht handeln.")
+        ladung = int(auftraege.ladung_der_mission(karawane, self.forschungs_stufen()))
+        if menge > ladung:                                                     # Rueckladung pruefen
+            return False, ("Überladen: %d passen nicht auf %d Ladeplätze (%s)."
+                           % (menge, ladung, ", ".join("%s x%d" % (n, a)
+                                                       for n, a in sorted(karawane.items()))))
+
+        x, y = self.bot_standort(quelle)                                       # wo der Bot steht
+        dimension = int(getattr(quelle, "dimension", 1))                       # gleiche Weltkarte
+        kaeufer = self.bot_als_ort(bot, x, y, dimension)                       # der Bot als Ort
+        verkaeufer = asdict(quelle)                                            # der eigene Ort
+        try:                                                                   # der Kern entscheidet
+            kaeufer_neu, verkaeufer_neu, vertrag = spieloekonomie.handel_start(
+                kaeufer, verkaeufer, karawane, stoff, menge, preis, "vorraete", jetzt,
+                forschung=self.forschungs_stufen(), karawane_seite="verkaeufer")
+        except ValueError as fehler:                                           # Grund aus dem Kern
+            return False, str(fehler)
+
+        # Ab hier ist alles geprueft — erst jetzt wird gebucht (keine halbe Buchung).
+        self._ort_uebernehmen(quelle.id, verkaeufer_neu)                       # Ware verlaesst den Ort
+        self.bot_vorraete_uebernehmen(bot, kaeufer_neu)                        # Gold des Bots gesperrt
+        vertrag["richtung"] = "verkauf"                                        # Buchstelle erkennt es
+        vertrag["von"] = quelle.name                                           # Absender
+        vertrag["nach"] = bot.name                                             # Empfaenger
+        vertrag["bot"] = bot.name                                              # Bot-Name im Vertrag
+        vertrag["ziel"] = {"name": bot.name, "fremd": True}                    # Zielort fuer die Karte
+        vertrag["bot_x"], vertrag["bot_y"] = int(x), int(y)                    # Lage des Bots
+        vertrag["dimension"] = dimension                                       # Weltkarte
+        vertrag.update(zeitbasis.zeitmarke())                                  # Zeitmarke
+        self.auftraege.append(vertrag)                                         # EIN Vertrag in der Liste
+        meldung = ("Verkaufsangebot an %s: %d %s für %g Gold (%g je Stück, Karawane %s); Ankunft in "
+                   "%.2f h — ob der Handel zustande kommt, entscheidet %s bei der Ankunft."
+                   % (bot.name, menge, stoff.capitalize(), menge * preis, preis,
+                      ", ".join("%s x%d" % (n, a) for n, a in sorted(karawane.items())),
+                      float(vertrag.get("reisezeit") or 0.0) / 3600.0, bot.name))
+        self._log(meldung)                                                     # Zeile ins Log
+        self.messages.append({"text": meldung, "type": "handel"})              # Meldung ins Postfach
+        return True, meldung
+
     def _fremdvertrag_buchen(self, eintrag: dict, jetzt: float) -> dict:
         """Einen FREMDVERTRAG über den KERN buchen — die ANKUNFT entscheidet (Auditteil 8b).
 
@@ -4993,15 +5106,27 @@ class GameState:
         unberührt; gebucht wird ausschließlich hier.
         """
         vertrag = dict(eintrag)
+        # S4-6 (06.11.2026): der Bot steht beim KAUF auf der Verkaeuferseite, beim VERKAUF auf
+        # der Kaeuferseite. Beide Stellen (Bot-Suche und Ortsdict) muessen dieselbe Seite lesen -
+        # sonst ueberschriebe der Bot-Ort das Lager des Spielerorts.
+        _bot_seite = "kaeufer" if str(vertrag.get("richtung") or "kauf") == "verkauf" \
+            else "verkaeufer"
         der_bot = next((b for b in self.bots
-                        if ("bot:%s" % b.name) == str(vertrag.get("verkaeufer"))), None)
+                        if ("bot:%s" % b.name) == str(vertrag.get(_bot_seite))), None)
         if jetzt >= float(vertrag.get("ankunft") or 0.0) and vertrag.get("entscheidung") is None \
                 and not vertrag.get("abgerechnet") and der_bot is not None:
             referenz = botkern.referenzpreis_aus_beschaffung(BOT_BESCHAFFUNGSKOSTEN)
             schwelle = float(botkern.handelspreis(referenz, float(der_bot.temperament)))
+            # S4-6 (06.11.2026): DIESELBE Preisfunktion, zwei Richtungen. Beim KAUF ist der Bot
+            # Verkaeufer und nimmt an, sobald der Preis seine Schwelle erreicht; beim VERKAUF ist
+            # er Kaeufer und nimmt an, solange der Preis nicht ueber seiner Schwelle liegt.
+            _preis = float(vertrag.get("preis") or 0.0)
+            if str(vertrag.get("richtung") or "kauf") == "verkauf":
+                _nimmt_an = _preis <= schwelle + 1e-9
+            else:
+                _nimmt_an = _preis + 1e-9 >= schwelle
             try:
-                vertrag = spieloekonomie.handel_entscheiden(
-                    vertrag, float(vertrag.get("preis") or 0.0) + 1e-9 >= schwelle)
+                vertrag = spieloekonomie.handel_entscheiden(vertrag, _nimmt_an)
             except ValueError:
                 pass
         angenommen_vorher = bool(vertrag.get("angenommen"))
@@ -5009,7 +5134,7 @@ class GameState:
 
         orte = {s.id: asdict(s) for s in self.settlements if s.id}
         if der_bot is not None:
-            orte[str(vertrag.get("verkaeufer"))] = self.bot_als_ort(
+            orte[str(vertrag.get(_bot_seite))] = self.bot_als_ort(
                 der_bot, int(vertrag.get("bot_x") or 0), int(vertrag.get("bot_y") or 0),
                 int(vertrag.get("dimension") or 1))
         neu, m = spieloekonomie.handel_abschluss(vertrag, orte, jetzt)
@@ -5035,6 +5160,15 @@ class GameState:
             _handel_daten = self.bot_als_dict(der_bot)                  # dict-Form des Kerns
             diplomatie.kontakt_buchen(_handel_daten, float(m.get("ankunft") or jetzt))
             self.bot_aus_dict(der_bot, _handel_daten)                   # zurueckschreiben
+        # S4-6 (06.11.2026): EINE Buchstelle fuer den Handels-Erloes. `erloes` ist die Einnahme
+        # des VERKAEUFERS - beim Verkauf ist das der Spieler, beim Kauf der Bot (dann wird hier
+        # NICHTS gebucht: Punkte gibt es laut der Vorversion 2006 nur fuer eingenommenes Gold).
+        # `abgerechnet_jetzt` garantiert genau eine Buchung je Vertrag, auch ueber Speichern und
+        # Laden; `letzter_handel` ist der Zeitpunkt der ANNAHME, denn dort fliesst das Gold.
+        if abgerechnet_jetzt and str(m.get("richtung") or "kauf") == "verkauf" \
+                and m.get("angenommen") and float(m.get("erloes") or 0.0) > 0.0:
+            self.handels_erloes = float(self.handels_erloes) + float(m.get("erloes"))
+            self.letzter_handel = float(m.get("ankunft") or jetzt)
         if abgerechnet_jetzt:
             if m.get("angenommen"):
                 text = ("Handel abgeschlossen: %d %s sind im Ortslager von %s angekommen."
@@ -7572,6 +7706,10 @@ class GameState:
             # Spielstand - sonst verfiele ein Ereignis beim Laden nie und waere ewig annehmbar.
             "ereignisse": [dict(e) for e in (getattr(self, "ereignisse", []) or [])
                            if isinstance(e, dict)],
+            # S4-6 (06.11.2026): Erloes und letzter Handel gehoeren in den Spielstand - sonst
+            # faengt der Haendler-Titel nach jedem Laden wieder bei 0 an.
+            "handels_erloes": float(getattr(self, "handels_erloes", 0.0) or 0.0),
+            "letzter_handel": float(getattr(self, "letzter_handel", 0.0) or 0.0),
             # Teil 8b (Entwurf Z. 789): die FORM des Spielstands (Version + Modus) und der
             # Tagesrest. Entwurf woertlich: "_day_accum zusaetzlich sichern statt beim Laden auf 0
             # setzen" — sonst beginnt der Spieltag nach jedem Laden von vorn.
@@ -7761,6 +7899,16 @@ class GameState:
         # S4-5 (06.11.2026): die offenen Ereignisse kommen aus dem Spielstand. Ein Stand von vor
         # S4-5 kennt das Feld nicht und laedt mit einer LEEREN Liste - kein Fehler, kein Ereignis.
         self.ereignisse = [dict(e) for e in (data.get("ereignisse") or []) if isinstance(e, dict)]
+        # S4-6 (06.11.2026): fehlen die Felder (Stand vor diesem Schnitt), gilt 0.0 = nie
+        # gehandelt. Kein Fehler, keine Umrechnung - additiv wie `ereignisse`.
+        try:
+            self.handels_erloes = float(data.get("handels_erloes") or 0.0)
+        except (TypeError, ValueError):
+            self.handels_erloes = 0.0
+        try:
+            self.letzter_handel = float(data.get("letzter_handel") or 0.0)
+        except (TypeError, ValueError):
+            self.letzter_handel = 0.0
         self.noob_protection = data.get("noob_protection", True)
         # Kein Upgrade alter Legacy-Staende. Fuer neue, lokale Staende ist die
         # globale Anzeige nur eine abgeleitete Summe nach dem Laden.
@@ -8989,12 +9137,24 @@ class NebelseetalApp:
                 "einheiten": {k: int(v.count) for k, v in self.state.units.items()},
                 "wall_stufe": max([0] + [int(self.wall_stufe_am_ort(o))
                                          for o in self.state.settlements]),
+                # S4-6 (06.11.2026): der Haendler-Titel liest DENSELBEN Zaehler wie der Kern.
+                # `letzter_handel` 0.0 heisst "noch nie gehandelt" - dann MUSS None kommen,
+                # sonst rechnet `punkte.handelspunkte` den Verfall ab Spielzeit 0 und der
+                # erste Punkt ist sofort weg.
+                "gold_erloes": float(getattr(self.state, "handels_erloes", 0.0) or 0.0),
+                "letzter_handel": (float(self.state.letzter_handel)
+                                   if float(getattr(self.state, "letzter_handel", 0.0) or 0.0) > 0.0
+                                   else None),
+                "jetzt": float(getattr(self.state, "spielsekunden", 0.0) or 0.0),
             })}
         except Exception:
             return
         try:
             zwei.config(text=f"Feldherr {werte.get('Feldherr', 0)} · Forscher {werte.get('Forscher', 0)}")
-            vier.config(text=f"Händler {werte.get('Händler', 0):g} · Gesamt {werte.get('Gesamtherrscher', 0)}")
+            # S4-6 (06.11.2026): der SCHLUESSEL heisst 'Haendler' (ASCII - so liefert ihn
+            # punkte.auszeichnungen); die ANZEIGE schreibt Händler. Vorher stand hier der
+            # Umlaut als Schluessel - damit war der Haendler-Wert IMMER der Standard 0.
+            vier.config(text=f"Händler {werte.get('Haendler', 0):g} · Gesamt {werte.get('Gesamtherrscher', 0)}")
         except Exception:
             pass
 

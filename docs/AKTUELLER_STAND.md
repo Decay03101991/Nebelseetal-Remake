@@ -1,3 +1,60 @@
+# STAND 07.11.2026, 00:35 - Verkaufsrichtung gebaut: der Spieler verkauft an Bots, der Erloes wird gebucht (Register 290)
+
+> Neuester Block. Register 290. Darunter 289 (Befund G-8), 288 (Ereignisse), 287 (Startbilder),
+> 286 (Rachetopf), 285 (S4-3 verdrahtet), 281 bis 283 (Runde 2, Spielkonzept, Repo geordnet),
+> 280 (Kennzahlenblatt), 267 bis 279 (Abgleich, fixer Ablauf, S4 Teil 1).
+
+**Daniel hat F-12 mit A beantwortet (00:05): Verkaufsrichtung bauen.** Damit ist der Handelsweg
+erstmals EINNAHMESEITIG: der Spieler verkauft eigene Ware an einen Bot, der Bot zahlt aus seinem Gold,
+und die Karre des SPIELERS faehrt - so steht es in der Vorversion 2006.
+
+**Was gebaut ist:**
+
+- **Kern (`spieloekonomie.handel_start`) bekommt `karawane_seite`** (Standard `kaeufer` = der
+  bisherige Kaufweg, unveraendert). Beim Verkauf steht die Karawane beim Verkaeufer, die Mission
+  startet dort und die Karre kehrt dorthin zurueck; die Seite steht im Vertrag und damit im Spielstand.
+- **`GameState.verkauf_an_bot`** spiegelt `handel_mit_bot`: Ware aus dem ORTSLAGER, Deckung beim Bot
+  (Gold), Handelskarawanen-Pflicht, Rueckladung - abgelehnt wird VOR jeder Buchung.
+- **EINE Buchstelle** in `_fremdvertrag_buchen`: bei `abgerechnet_jetzt` und Richtung `verkauf` wird
+  `handels_erloes += erloes` gebucht und `letzter_handel` auf den Zeitpunkt der Annahme gesetzt. Der
+  KAUF bucht nichts - laut Quelle gibt es Punkte nur fuer eingenommenes Gold.
+- **Felder additiv** in Speichern und Laden; ein alter Stand laedt mit 0.0.
+- **Anzeige** uebergibt `gold_erloes`, `letzter_handel` (bei 0.0 als `None`, sonst verfaellt der Punkt
+  ab Spielzeit 0) und `jetzt` an `punkte.auszeichnungen`.
+
+**Zwei Fehler, die der Verlauf gefunden hat (beide behoben):**
+
+1. `_fremdvertrag_buchen` suchte den Bot immer auf der VERKAEUFERSEITE und legte seinen Ort unter
+   diesem Schluessel ab. Beim Verkauf ist der Bot der Kaeufer - sein Ortsdict ueberschrieb damit das
+   Lager des Spielerorts, und der Vertrag wurde nie abgerechnet. Jetzt entscheidet die Vertragsrichtung
+   ueber die Seite (Bot-Suche UND Ortsdict).
+2. Die Anzeige las `werte.get('Händler')`, `punkte.auszeichnungen` liefert aber `Haendler` (ASCII):
+   der Haendler-Wert war IMMER 0, auch mit gefuelltem Zaehler. Gefunden von der neuen Wache.
+
+**Wache:** `tests/test_handelspunkte.py` **31 Pruefungen, 0 Fehler, 0 Befunde** - 100 Gold = 1.0 Punkt,
+20 Gold = 0.2, Verfall 1 je 24 Spielstunden und nicht unter 0, echter Verkauf mit Erloes 100 und
+1.0 Punkten, Karre kehrt zurueck, kein Nachbuchen bei weiterem Takt oder nach Speichern/Laden, alter
+Stand ohne Feld laedt mit 0.0, Anzeige = Kern, Kauf bucht nichts.
+
+**Sammellauf:** 188 von 190 gruen, 0 rot, 7.810 Pruefungen, 865 s (`docs/audits/sammellauf_20261106_2348.log`).
+
+**Offen aus Schritt 6 (bewusst nicht in diesem Takt):**
+
+1. **Der Knopf in der Handelsmaske** - der Verkauf ist bisher nur ueber `GameState.verkauf_an_bot`
+   erreichbar, nicht ueber die Oberflaeche. Ohne ihn kann Daniel nicht verkaufen.
+2. **6c: Handel in der Spielschicht** - `src/spielschicht.py` hat weder Handel noch Bots, das
+   Kennzahlenblatt zeigt `handelspunkte` deshalb weiter `null`. Das Fertig-Kriterium des Ablaufs
+   (groesser 0 in einem von zehn Laeufen) ist damit noch NICHT erfuellt.
+
+**Naechster Schritt:** 6b abschliessen (Maske) und 6c bauen, dann Schritt 7 (Bot-Luecken) und 8 bis 13.
+Arbeitsweise unveraendert: je Schnitt Register, Protokollzeile, Stand-Block, Commit, Push und ein
+VOLLER Sammellauf.
+
+Offen ausserdem: die Buendelung der Besucherdokumente nach `BESUCHER.md` (Daniels Entscheidung 14:00,
+Punkt 4) und die Frage F-11 (Motive der Spielansichten).
+
+---
+
 # STAND 06.11.2026, 23:50 - Schritt 6 gemessen: der Erloes gehoert dem Verkaeufer, der Spieler kauft (Register 289, Frage F-12)
 
 > Neuester Block. Register 289 (Befund, kein Code). Darunter 288 (Ereignisse Haug/Grom/Silra),
