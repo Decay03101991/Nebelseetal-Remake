@@ -1,3 +1,48 @@
+# STAND 06.11.2026, 13:36 - Runde 2 gemessen, Spielkonzept steht, Repo geordnet (Register 281 bis 283)
+
+> Neuester Block. Register 281 bis 283. Darunter 280 (Kennzahlenblatt), 267 bis 279 (Abgleich Runde 1,
+> fixer Ablauf, S4 Teil 1, Entscheidungen F-1 bis F-9), 264 (Ziel).
+
+**Runde 2 ist verarbeitet - und zwar gemessen, nicht geglaubt.** Die vier Antworten liegen in
+`docs/eingaenge/LLM_20261106_runde2/` (Hashes beidseitig gleich, Desktop geraeumt, nichts geloescht),
+die Auswertung in `docs/ABGLEICH_LLM_20261106_runde2.md`. Vier Befunde sind gegen UNSERE Dokumente:
+die Abhaengigkeitstabelle nennt fuer Schritt 10 `3 bis 10` (Selbstabhaengigkeit, richtig `3 bis 9`)
+und fuer Schritt 7 nur `5` - die Rache aus Schritt 4 fehlt; `durchmarsch` kommt in `src/` und `data/`
+nirgends vor, die geplante Wache waere vor dem Einbau wertlos; `handel_abschluss` setzt `erloes` genau
+einmal, aber ein Feld `abgerechnet` fehlt (Doppelbuchung ueber Speichern/Laden moeglich); `Kontakt`
+wird im Ablauf benutzt, aber nirgends definiert. Elf Wachen werden verschaerft (dynamisch statt
+Quelltextsuche), drei Aufbauzeit-Texte korrigiert, Schritt 9 bekommt die Regel, dass ein zusaetzlicher
+Startwert mitspielen muss.
+
+**EIN starker Aufruf** (`deepseek-v4-pro`, Dossier 14,3 KB, Streaming): 15.367 Zeichen Antwort,
+193,9 s, 5.275 Prompt- und 15.952 Antwort-Token (11.429 Denk-Token), rund **0,07 USD**. Die Antwort
+liegt hashgleich als `docs/SPIELKONZEPT_ENTWURF_V4PRO_20261106.md`.
+
+**Das zentrale Spielkonzept steht:** `docs/SPIELKONZEPT.md` (13.002 Byte, 12 Kapitel) ist ab jetzt das
+EINE fuehrende Dokument fuer Spielziel, Mechaniken, Zahlenmassstab und Belegpflicht - mit richtigem
+Urteil je Aussage (das Modell hatte VORSCHLAEGE als BELEGT bezeichnet, das ist korrigiert), drei
+Regeln zur Aktualitaet und fuenf offenen Fragen an Daniel. Dazu `docs/INDEX.md` als Wegweiser.
+
+**Repo geordnet** (Daniel 13:20): 14 Auftraege nach `docs/auftraege/`, 14 Uebergaben und 8 Fragenakten
+nach `docs/archiv/`, `index.html` auf **V_0.0.3** mit einem Abschnitt "Was dieses Spiel will" und dem
+richtigen Download-Link (der alte `/releases/latest` zeigt bei reinen Pre-Releases ins Leere).
+Bildcontent: drei Sammlungen (32 MB) auf Daniels Freigabe entfernt, seine 15 Referenzbilder unter
+`assets/referenzbilder/` (Commit `f09b672`).
+
+**Sammellauf:** sauberer Lauf 12:48 bis 13:11 **183 von 185 gruen, 0 rot, 1290 s, 7.557 Pruefungen**
+(der Lauf davor war unter meiner Nebenlast 2.363 s mit zwei roten Dateien und ist nicht belastbar).
+G-5 damit zum vierten Mal belegt: 1.800 s traegt, 1.400 s nicht.
+
+**Geld:** Daniel 13:31 - Guthaben **9,13 USD**, Gesamtverbrauch **60,86 USD** (10:15: 9,50 / 60,49;
+also 0,37 USD in dieser Sitzung, davon rund 0,07 USD der starke Aufruf).
+
+**Naechster Schritt:** Ablauf Schritt 3 (Vertraege) - mit den verschaerften Wachen aus Runde 2, der
+Definition von `Kontakt` vor dem Rachetopf und dem korrigierten Abhaengigkeitstext. Vorher sind fuenf
+Fragen an Daniel offen (Abschnitt 12 des Spielkonzepts): Kontakt, Topf unter Pakt, Durchmarsch,
+Paktwirkung, Prioritaet. Kein Release vor S4 komplett (F-9), KI-Auftrag Runde 3 erst nach S4 (F-8).
+
+---
+
 # STAND 06.11.2026, 12:06 - Ablauf Schritt 2 gebaut: Kennzahlenblatt (Register 280)
 
 > Neuester Block. Register 280. Darunter 267 bis 279 (Abgleich, fixer Ablauf, S4 Teil 1 Gunst,

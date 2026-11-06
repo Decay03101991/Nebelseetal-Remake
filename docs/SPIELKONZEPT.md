@@ -1,6 +1,6 @@
 # SPIELKONZEPT - Nebelseetal Remake (das EINE aktuelle Konzept)
 
-**Stand:** 06.11.2026, 13:40 · **Version** V_0.0.3 · **Kopf** `f09b672` · **Register** 280 bis 282
+**Stand:** 06.11.2026, 13:36 · **Version** V_0.0.3 · **Kopf** `37cfb9b` · **Register** 280 bis 283
 **Führend für:** Spielziel, Mechaniken, Zahlen-Maßstab, Belegpflicht. **Nicht führend für:** die
 Reihenfolge der Arbeit (das ist `docs/ABLAUF_LLM_20261106.md`) und den Tagesstand (das ist
 `docs/AKTUELLER_STAND.md`).
