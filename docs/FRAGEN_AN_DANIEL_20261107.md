@@ -177,3 +177,48 @@ ist nichts zu tun.
 waren - dann entscheidet das Auge, welches Motiv wo stoert. Kein Umbau auf Vorrat.
 
 **Antwort Daniels:** offen.
+## Offene Frage F-12 (06.11.2026, 23:50) - Handelspunkte: WESSEN Gold zaehlt?
+
+**Messlage** (selbst gemessen am 06.11.2026 zwischen 23:35 und 23:45 mit dem Projekt-venv; Messkripte
+`messung_handelspunkte.py` und `messung_handelspunkte2.py` im Hermes-Scratch):
+
+1. **Quelle 2006** (`docs/original/Spielanleitung_2005/punktesystem.php.txt`, Zeilen 34 bis 47):
+   Handelspunkte gibt es fuer Gold, das man **durch Verkauf erwirtschaftet** (Beispiel der Quelle:
+   100 Schwerter fuer 300 Gold = 3 Punkte). Fuer gekaufte Ware nennt die Quelle nichts.
+2. **Der einzige Handelsweg macht den Spieler zum KAEUFER.** `GameState.handel_mit_bot` uebergibt
+   `asdict(quelle)` als Kaeufer an `spieloekonomie.handel_start`. Gemessen: Kauf von 1 Holz zu 301 Gold
+   ergibt am Ort **minus 301 Gold**, beim Bot **plus 301 Gold**, `vertrag erloes = 301.0`.
+3. `erloes` ist damit die Einnahme des **Verkaeufers**, also des Bots. Die im Ablauf fuer Schritt 6
+   vorgesehene Buchung `handels_erloes += erloes` gaebe dem Spieler Punkte fuer **ausgegebenes** Gold -
+   das Gegenteil der Quelle.
+4. **Die Gegenrichtung nimmt der Kern heute nicht an:** `bot_als_ort` setzt `einheiten: {}`, und
+   `handel_start` verlangt die Karawane beim Kaeufer - gemessen: `ValueError: Karawane fehlt vor Ort`.
+   Gibt man dem Bot seinen Wagenpark (Feld `lager`, ein bis zwei Karren je Bot) als `einheiten`, nimmt
+   der Kern die Gegenrichtung an (gemessen) - es fehlen nur die Datenfuellung und eine Kauf-Entscheidung
+   des Bots.
+5. **Die Kennzahl kann sich auch mit richtiger Buchung nicht bewegen:** `tools/spieltest_simulation.py`
+   faehrt `spielschicht.neuer_zustand`, und `src/spielschicht.py` (739 Zeilen) hat **weder Handel noch
+   Bots** (kein Treffer fuer handel, kauf, karawane oder bots in der Datei).
+
+**Frage:** Woraus sollen die Handelspunkte entstehen?
+
+- **A (Empfehlung) - Verkaufsrichtung bauen, die Quelle ernst nehmen.** Der Spieler verkauft Ware an
+  einen Bot, der Bot zahlt aus seinem Gold (er hat welches, gemessen), gefahren wird mit der eigenen
+  Karawane. Gebucht wird dann `erloes` als echtes Einkommen. Drei Teile: **6a** Felder, Speichern/Laden
+  und Anzeige (klein); **6b** Verkaufsrichtung im Kern (Richtungsparameter fuer die Karawane,
+  `bot_als_ort` fuellt `einheiten` aus `bot.lager`, Kauf-Entscheidung des Bots mit DERSELBEN Preisfunktion
+  `botkern.handelspreis` - keine zweite Preisrechnung); **6c** ein Handels-Schritt in der Spielschicht,
+  damit das Kennzahlenblatt die Zahl wirklich zeigt.
+- **B - Umsatz statt Erloes buchen.** Der Zaehler summiert das beim Kauf ausgegebene Gold. Eine Stunde
+  Arbeit, widerspricht aber der Quelle: Punkte fuer Ausgaben. Muesste als bewusste Abweichung im Register
+  stehen (VORSCHLAG), und der Haendler-Titel waere dann kein Handelserfolg mehr.
+- **C - Schritt 6 zurueckstellen.** Nichts Falsches bauen, mit Schritt 7 (Bot-Luecken) weitermachen und
+  die Handelspunkte nach der Verkaufsrichtung nachziehen.
+
+**Auswirkung:** A kostet Schaetzung zwei Arbeitstakte (6b ist die meiste Arbeit, 6c ein halber), C kostet
+nichts und verschiebt nur die Reihenfolge. B ist billig, aber falsch im Kern der Mechanik - der Spieler
+bekaeme den Haendler-Titel fuer Einkaufen.
+
+**Empfehlung:** A, in der Reihenfolge 6a, dann 6b, dann 6c.
+
+**Antwort Daniels:** offen.

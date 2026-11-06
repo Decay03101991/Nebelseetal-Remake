@@ -1,3 +1,58 @@
+# STAND 06.11.2026, 23:50 - Schritt 6 gemessen: der Erloes gehoert dem Verkaeufer, der Spieler kauft (Register 289, Frage F-12)
+
+> Neuester Block. Register 289 (Befund, kein Code). Darunter 288 (Ereignisse Haug/Grom/Silra),
+> 287 (Startbilder), 286 (Rachetopf), 285 (S4-3 verdrahtet), 281 bis 283 (Runde 2, Spielkonzept,
+> Repo geordnet), 280 (Kennzahlenblatt), 267 bis 279 (Abgleich, fixer Ablauf, S4 Teil 1).
+
+**Der Ablauf fuer Schritt 6 traegt nicht.** Er sieht vor, beim Abschluss eines Handelsvertrags
+`vertrag erloes` auf einen Zaehler `handels_erloes` zu addieren. Am heutigen Code gemessen ist
+`erloes` aber die Einnahme des **Verkaeufers**, und Verkaeufer ist der BOT: `GameState.handel_mit_bot`
+uebergibt `asdict(quelle)` als Kaeufer an `spieloekonomie.handel_start`. Ein Kauf von 1 Holz zu
+301 Gold bucht am Ort **minus 301 Gold** und beim Bot **plus 301 Gold**, `erloes` steht auf 301.0.
+Die vorgesehene Buchung haette dem Spieler also Punkte fuer **ausgegebenes** Gold gegeben.
+
+**Die Quelle verlangt das Gegenteil.** `docs/original/Spielanleitung_2005/punktesystem.php.txt`
+Zeilen 34 bis 47: Handelspunkte gibt es fuer Gold, das man **durch Verkauf erwirtschaftet**
+(100 Schwerter fuer 300 Gold = 3 Punkte). Fuer gekaufte Ware nennt sie nichts.
+
+**Drei Messungen, alle am 06.11.2026 zwischen 23:35 und 23:45 mit dem Projekt-venv:**
+
+- **Der Kauf bucht wie beschrieben:** Ort minus 301 Gold, Bot plus 301 Gold, `erloes` 301.0,
+  `angenommen` und `abgerechnet` je genau einmal.
+- **Die Gegenrichtung lehnt der Kern ab:** `ValueError: Karawane fehlt vor Ort`, weil `bot_als_ort`
+  `einheiten: {}` setzt und `handel_start` die Karawane beim Kaeufer verlangt. Gibt man dem Bot
+  seinen Wagenpark (`bot.lager`, ein bis zwei Karren je Bot) als `einheiten`, nimmt der Kern die
+  Gegenrichtung an - es fehlen nur die Datenfuellung und eine Kauf-Entscheidung des Bots.
+- **Das Kennzahlenblatt kann die Zahl nicht zeigen:** `tools/spieltest_simulation.py` faehrt
+  `spielschicht.neuer_zustand`, und `src/spielschicht.py` (739 Zeilen) hat weder Handel noch Bots.
+  `handelspunkte` bliebe dort `null`, auch mit richtiger Buchung.
+
+**Nicht gebaut, bewusst:** keine Zeile Code fuer Schritt 6. Die Richtung ist eine Mechanik-Entscheidung
+und liegt bei Daniel (Frage **F-12** in `docs/FRAGEN_AN_DANIEL_20261107.md`, drei Wege mit Folge und
+Empfehlung: A Verkaufsrichtung bauen, B Umsatz bepunkten als bewusste Abweichung, C zurueckstellen
+und mit Schritt 7 weitermachen).
+
+**Belege:** Register 289 in `docs/PRUEFREGEL_ORIGINAL.md`; Protokollzeile 23:45 in
+`docs/ENTWICKLUNGSPROTOKOLL.md`; Messkripte `messung_handelspunkte.py` und
+`messung_handelspunkte2.py` im Hermes-Scratch (`%LOCALAPPDATA%\hermes\cache\scratch\`).
+
+**Dokumentpruefungen vor dem Commit:** `test_textqualitaet` 441/0 (133 Dokumente), `test_protokoll`
+28/0/1, `test_projektpfade` 129/0, `test_zieluebergabe` 26/0/0, `test_gpt_projektordnung_20261028`
+5 OK, `test_anzeigetexte_umlaute` 49/0/0. Kein Sammellauf: es wurde kein Code geaendert - der
+gehoert zum naechsten echten Schnitt.
+
+**Naechster Schritt:** die Antwort auf F-12 abwarten (eine Runde, sofort gestellt, weil die Arbeit
+dort blockiert). Bei A: 6a Felder `handels_erloes`/`letzter_handel` samt Speichern/Laden und Anzeige
+(`punkte.auszeichnungen` mit `gold_erloes`, `letzter_handel` - bei 0.0 als `None`, sonst verfaellt
+der Punkt ab Spielzeit 0), 6b Verkaufsrichtung im Kern, 6c Handels-Schritt in der Spielschicht.
+Danach Schritt 7 (Bot-Luecken) und 8 bis 13. Arbeitsweise unveraendert: je Schnitt Register,
+Protokollzeile, Stand-Block, Commit, Push und ein VOLLER Sammellauf.
+
+Offen ausserdem: die Buendelung der Besucherdokumente nach `BESUCHER.md` (Daniels Entscheidung 14:00,
+Punkt 4) und die Frage F-11 (Motive der Spielansichten).
+
+---
+
 # STAND 06.11.2026, 17:55 - Ablauf Schritt 5 fertig: Ereignisse Haug, Grom, Silra (Register 288)
 
 > Neuester Block. Register 288. Darunter 287 (Startbilder), 286 (Rachetopf), 285 (S4-3 verdrahtet),
