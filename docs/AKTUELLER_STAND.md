@@ -4,7 +4,7 @@
 > dieses Schnitts folgt. Der Block 00:57 darunter haelt die Auswertung des Gemini-Inputs, der Block
 > 23:28 A1.
 
-**Was dieser Schnitt geaendert hat (nur Dokumente, kein Code):** fuenf Antworten von Gemini und sein
+**Was dieser Schnitt geaendert hat (nur Dokumente, kein Code):** fuenf Antworten und die Menue-Teilgeschichten von Gemini und sein
 Arbeitsweise-Feedback liegen hashgeprueft im Projekt und sind Zeile fuer Zeile gegen den Code geprueft;
 Daniels neun Entscheidungen dazu sind festgehalten; der Abarbeitungsplan S0 bis S5 steht; die Uebergabe
 fuer die naechste Sitzung ist geschrieben. **Gebaut ist nichts.**
@@ -17,6 +17,7 @@ fuer die naechste Sitzung ist geschrieben. **Gebaut ist nichts.**
 | D | Abarbeitungsplan: S0 fuenf Tabellen, dann S1 bis S5, Etappen gesperrt bis A2 | `docs/PLAN_GEMINI_UMSETZUNG_20261106.md` |
 | E | Uebergabe 02:00 geschrieben und abgelegt | Desktop + `D:\Arbeiten\Hermes\Uebergaben\20261106_0200\` |
 | F | Dokumentwachen (kein Code angefasst, daher kein Sammellauf) | `test_textqualitaet`, `test_protokoll`, `test_projektpfade`, `test_zieluebergabe` |
+| G | **Geminis Menue-Teilgeschichten geprueft (Register 245):** vier brauchbar, der Ton passt bei keinem (story.json: leicht, kein Pathos), zwei Antworten sind Mechaniken | `docs/PRUEFVERMERK_GEMINI_MENUESTORIES_20261106.md`, Plan-Abschnitt **S1b** |
 
 ## Der EINE naechste Schritt
 
@@ -28,15 +29,15 @@ fuer die naechste Sitzung ist geschrieben. **Gebaut ist nichts.**
    (`src/punkte.py:417`) rechnet vier Auszeichnungen, ein Balken fehlt.
 3. **Nach jedem Schnitt:** Registerzeile, Protokollzeile, Stand-Block, voller Sammellauf, commit und push.
 
-**Geld (von Daniel abgelesen, nicht geschaetzt):** 11,86 USD Guthaben, Gesamtverbrauch 58,13 USD
-(Ablesung 06.11.2026, 00:33). In diesem Schnitt **kein bezahlter Modellauf**; die 4,00 USD fuer das
+**Geld (von Daniel abgelesen, nicht geschaetzt):** 11,61 USD Guthaben, Gesamtverbrauch 58,38 USD
+(Ablesung 06.11.2026, 02:12; vorige Ablesung 11,86 / 58,13 - Differenz 0,25 USD, beide Quellen stimmen). In diesem Schnitt **kein bezahlter Modellauf**; die 4,00 USD fuer das
 grosse Modell sind unangetastet und fuer S0/S1 nicht noetig.
 
 | Gegenstand | Wert | Beleg |
 |---|---|---|
 | Kopf auf `main` | `e86a0ee` (danach der Commit dieses Schnitts) | `git log --oneline -1` |
 | Pruefdateien / Module | 179 / 60 | `ls tests/test_*.py`, `ls src/*.py` |
-| Register / Protokoll / Stand-Bloecke | 244 / 290 (`wc -l`) / 93 | Zaehlung |
+| Register / Protokoll / Stand-Bloecke | 245 / 291 (`wc -l`) / 93 | Zaehlung |
 | Gemini-Unterlagen | 5 Antworten + 1 Feedback, 5 Auftraege | Projektordner `docs/eingaenge/GEMINI_ANTWORTEN_20261106/`, `docs/auftraege/20261106/` |
 | Offene Vorarbeit | 5 Tabellen (S0), 1 Mechanikfrage (Durchmarschrecht) | `docs/PLAN_GEMINI_UMSETZUNG_20261106.md` |
 | Wachen dieses Schnitts | Dokumentpruefungen gruen, kein Sammellauf noetig | Laeufe dieser Sitzung |

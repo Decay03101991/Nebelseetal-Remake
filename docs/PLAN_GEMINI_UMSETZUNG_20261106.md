@@ -46,6 +46,30 @@ Paginierung liefert 20 von 45, Balken rechnet ohne Punkte im Render.
 gerendert (nicht nur Logik), Register/Protokoll/Stand/Commit/Push.
 **Aufbauzeit-Effekt:** keiner - reine Anzeige und Ordnung.
 
+## S1b - Menue-Teilgeschichten (vier Texte, reine Anzeige)
+
+**Quelle:** Geminis Vorschlaege in `docs/eingaenge/GEMINI_ANTWORTEN_20261106/Antwort_Gemini_MENUESTORIES_20261106.txt`,
+geprueft in `docs/PRUEFVERMERK_GEMINI_MENUESTORIES_20261106.md`.
+
+**Was gebaut wird:** vier kurze Texte, die an einen Menuepunkt gebunden sind - Forschung (erste
+Bibliothek), Portal (erster Weltwechsel, als Overlay), Kaserne (Kriegerakademie fertig), Ruhmeshalle
+(erstes Oeffnen). **Alle Texte werden von uns neu geschrieben**, weil Geminis Ton dem in
+`data/story.json` festgelegten Ton widerspricht (dort woertlich: abenteuerlich und leicht, kein Pathos).
+
+**Paket:** neuer Bereich in `data/story.json` plus eine Lesestelle in `src/story.py` (kein Text im
+Code); je Story ein Einmal-Kennzeichen IM SPIELSTAND (nicht in der Merkdatei, sonst sieht ein zweiter
+Spielstand die Geschichte nie) mit `.get`-Fallback; Anzeige in der jeweiligen Rendering-Funktion, das
+Portal-Overlay ueber die vorhandene Overlay-Technik.
+
+**Nicht dabei:** die Diplomatie-Geschichte (Haust unter Gunst 40) - sie braucht Gunst, also S4, und
+wird dort zu einer reinen Bot-Stimme ohne Antwortknoepfe. Antwortknoepfe ohne Mechanik gibt es nicht.
+
+**Wache:** `tests/test_story_menue.py` - jede Story erscheint genau einmal je Spielstand, alter
+Spielstand ohne Kennzeichen laedt und zeigt die Story nach, kein Text steht im Code (Quellwache wie
+bei `test_story`), leerer Text faellt auf nichts zurueck statt zu werfen.
+
+**Fertig-Kriterium:** wie S1; Aufbauzeit-Effekt: keiner.
+
 ## S2 - Mauerreparatur
 
 **Vorbedingung:** V-1 abgenickt.

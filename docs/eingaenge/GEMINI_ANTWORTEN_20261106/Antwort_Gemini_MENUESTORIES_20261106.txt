@@ -1,0 +1,23 @@
+### TEILGESCHICHTEN FUER DIE SPIELMENUES (VORSCHLAG)
+
+Alle vorgeschlagenen Texte erweitern ausschließlich `data/story.json` und werden über das bestehende System `src/story.py` rein passiv ausgelesen.
+
+| Menuepunkt | Ausloeser | Text (Deutsch, Ton der Chronik) | Erscheinungsort / Typ | Antworten (Option A / Option B) & Wirkung | Benoetigte Felder im Spielstand |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Forschung** | Erste Bibliothek wird fertiggestellt (Menüpunkt wird sichtbar). | "Ein alter Gelehrter betritt die Hallen und ordnet die vergilbten Pergamente der Vorzeit. Er spricht vom Nebelseetal vor dem grossen Bruch und sucht nach den Splittern des verlorenen Wissens im Limbus." | Hinweis-Label oben in der Forschungsansicht. / Kein Typ (reine Anzeige). | Keine Optionen. Schaltet lediglich den passiven Text frei. | `state.forschungen_entdeckt = True` |
+| **Portal** | Der erste Weltwechsel über ein Portal wird vollzogen. | "Die Bruecke in das Ungewisse ist geschlagen. Der magische Raum des Limbus zerrt an den Sinnen Eurer Krieger, waehrend die Energie der Bruchstuecke in den Portalen pulsiert. Reist mit Bedacht, denn die Leere vergisst nicht." | Einmaliges blockierendes Overlay (Dialogkarte). / Typ: `"portal"` | **A:** "Wir trotzen der Leere." (Keine Auswirkung)<br>**B:** "Achtsam vorruecken." (Generiert einen permanenten Archiv-Hinweis im Portalmenü). | `state.erster_portalwechsel = True` |
+| **Kaserne** | Kriegerakademie wird fertiggestellt (Menüpunkt wird sichtbar). | "Die Trommeln des Krieges rufen die Siedler zu den Waffen. Aus einfachen Handwerkern werden standhafte Verteidiger geschmiedet, bereit, das zersprungene Reich gegen den Neid der Nachbarn zu schuetzen." | Kleiner Flavour-Textblock unter der Ausbildungs-Warteschlange. / Kein Typ. | Keine Optionen. Reiner atmosphärischer Text. | `state.kaserne_errichtet = True` |
+| **Diplomatie** | Gunstwert zu Nachbar Haug faellt erstmals unter 40. | "Haugs Pluenderer schaerfen ihre Aexte im Schatten Eurer Grenzen. Er laesst ausrichten, dass die Bruchstuecke des Limbus zu klein fuer zwei Herrscher sind, die kein Gold teilen wollen." | Angehängte Bot-Stimme im Diplomatie-Menü. / Typ: `"bot"` | **A:** "Tribut vorbereiten." (Erhöht Gunst im nächsten Tick um 5, falls Gold gesendet wird)<br>**B:** "Die Klingen schaerfen." (Senkt Gunst sofort um weitere 10). | `state.bots["haug"]["favor_warnung"] = True` |
+| **Ruhmeshalle** | Erstmaliges Oeffnen der Ruhmeshalle (Punkte vorhanden). | "Die Chronik der Welt oeffnet ihre Seiten, um die Taten der Vergänglichkeit einzufangen. Kein Herrscher wird dieses Reich je ganz besitzen, doch Euer Name wird in Stein gemeisselt, solange die Gelehrten zaehlen." | Einmaliges Overlay beim ersten Betreten. / Typ: `"system"` | Keine Optionen. Schließt das Overlay und gibt den Blick auf die Ranglisten frei. | `state.ruhmeshalle_besucht = True` |
+
+---
+
+### Das staerkste Puzzle-Stueck
+
+Die Geschichte zum **Portalwechsel** ist die stärkste, weil sie die Zersplitterung der Welt im magischen Raum des Limbus am intensivsten spürbar macht. Sie verbindet die historische Lore der Weltchronik direkt mit der mechanischen Hürde und den Manakosten der Portalreise, wodurch die logistische Distanz zwischen den sechs Bruchstücken eine atmosphärische Tiefe erhält.
+
+---
+
+### 💡 WICHTIGER ENTWICKLUNGS-HINWEIS FÜR „WELTENFRESSER“
+
+*   **IMPLEMENTIERUNGS-REGEL:** Der Agent darf diese Texte *niemals* als Strings in `src/gui_berater.py` oder `src/main.py` hineinschreiben. In `data/story.json` wird ein neuer Knoten `"menu_stories"` angelegt. Die jeweiligen Rendering-Funktionen der Menüpunkte rufen beim Neuaufbau (`_render`) ausschließlich `src/story.py` mit der entsprechenden `Story_ID` auf, um die Text-Widgets dynamisch zu befüllen.
