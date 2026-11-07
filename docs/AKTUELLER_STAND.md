@@ -18,6 +18,8 @@ nichts - das ist als Wache im Quelltext festgehalten.
 Nachbarwachen gruen (`test_drachen` 88/0/0, `test_drachen_einhaengung` 96/0/0,
 `test_drachen_zweite_phase` 22/0/1, `test_drachenschuppe` 32/0/0, `test_bottaktik` 48/0/0).
 
+**Sammellauf:** 190 von 192 gruen, 0 rot, **7.919 bestandene Pruefungen, 60 Befunde, 954 s** (`docs/audits/sammellauf_20261107_1747.log`); die zwei nicht gruenen Dateien sind `AUSGESETZT`.
+
 **Guthaben (Daniel 17:40):** 7,51 USD, Gesamtverbrauch 62,48 USD - 0,75 USD fuer S4-6c, S4-7 und die
 zwei Sammellaeufe dieser Sitzung.
 
