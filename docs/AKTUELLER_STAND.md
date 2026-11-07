@@ -32,6 +32,8 @@ Schritt 12 (Sammellauf messen und beschleunigen), Schritt 13 (Schlusspruefung
 Arbeitsweise unveraendert: Register, Protokollzeile, Stand-Block, Commit, Push und nach jedem Schnitt
 ein VOLLER SAMMELLAUF mit dem Projekt-venv.
 
+**Sammellauf nach R3-2 (21:31 bis 21:47): 194 von 196 gruen, 0 rot**, 8.062 Pruefungen, 60 Befunde, 929 s (`docs/audits/sammellauf_20261107_2133.log`); die zwei nicht gruenen Dateien sind AUSGESETZT wie zuvor. Commit `251e609`, gepusht, Kopf = Remote, Arbeitsbaum leer.
+
 # STAND 07.11.2026, 21:05 - R3-1 gebaut: EINE Spieltag-Laenge (86.400 s), Befund A-1 behoben
 
 > Neuester Block. Darunter 20:48 (Modellrunde 3 geprueft, F-21 = A), 20:15 (B-2 Regelkreis,
