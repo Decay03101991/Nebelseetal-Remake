@@ -18,7 +18,7 @@ import os  # importiert os fuer Pfadoperationen
 import spieldaten  # importiert spieldaten fuer den Projektwurzelpfad
 import wirtschaft  # S4-5: liest den Goldertrag eines Ortes (EINE Ertragsquelle)
 
-STAND = "2026-11-06.2"  # Kennung dieses Modulstands (erscheint in keinem Spielstand)
+STAND = "2026-11-07.1"  # Kennung dieses Modulstands (erscheint in keinem Spielstand)
 _CACHE = {}  # Pfad -> (Aenderungszeit, Inhalt): die Datendatei wird EINMAL gelesen
 
 
@@ -881,3 +881,41 @@ def ereignisse_tick(daten, jetzt, bots=None, einst=None) -> list:
                           "bot": str(eintrag.get("bot")),  # Bot
                           "gunst_delta": grenze})  # was er kostet
     return vorgaenge  # die Verfaelle dieses Ticks
+
+# ------------------------------------------------------------------ Bot-Diplomatie (S4-7)
+# Zwei Themen, zwei Dateien: `data/diplomatie.json` traegt Gunst, Vertraege, Rache und Ereignisse,
+# `data/bot_diplomatie.json` traegt seit S4-7 Spionage und Reaktion der Bots. Der Drache bleibt in
+# `data/drachen.json` (W-14) - hier steht keine zweite Drachenzahl.
+def botdaten(pfad=None) -> dict:
+    """Liest `data/bot_diplomatie.json` (S4-7) - EINE Lesestelle fuer die Bot-Regeln.
+
+    Eingabe: optionaler Pfad (fuer Pruefungen mit eigener Datei).
+    Ausgabe: dict mit den Daten; leeres dict, wenn die Datei fehlt oder kein JSON ist.
+    """
+    if pfad is None:  # ohne Pfad gilt die Projektdatei
+        pfad = os.path.join(spieldaten.projektwurzel(), "data", "bot_diplomatie.json")  # Standardpfad
+    try:  # Aenderungszeit der Datei holen
+        stand = os.path.getmtime(pfad)  # Zeitstempel als Cache-Schluessel
+    except OSError:  # Datei fehlt oder ist nicht lesbar
+        return {}  # dann gibt es keine Daten (kein Absturz)
+    gemerkt = _CACHE.get(pfad)  # schon geladene Fassung ansehen
+    if gemerkt is not None and gemerkt[0] == stand:  # unveraendert seit dem letzten Lesen
+        return gemerkt[1]  # aus dem Cache - die Bot-Schleife liest sonst tausendfach
+    try:  # Datei oeffnen und lesen
+        with open(pfad, encoding="utf-8") as datei:  # UTF-8, wie alle Datendateien
+            inhalt = json.load(datei)  # JSON in ein dict wandeln
+    except (OSError, ValueError):  # Lesefehler oder kaputtes JSON
+        return {}  # dann keine Daten statt einer Ausnahme
+    _CACHE[pfad] = (stand, inhalt)  # Ergebnis merken
+    return inhalt  # an den Aufrufer geben
+
+
+def bot_spionage_regeln(pfad=None) -> dict:
+    """Der Spionage-Block der Bot-Diplomatie; ein ausgeschalteter oder fehlender Block sperrt sie.
+
+    Eingabe: optionaler Pfad zur Datendatei.
+    Ausgabe: dict mit `aktiv` und den Anzeigetexten; leeres dict heisst: keine Spaehung.
+    """
+    block = botdaten(pfad).get("spionage") or {}  # der Themenblock
+    return block if isinstance(block, dict) else {}  # nur ein dict gilt
+

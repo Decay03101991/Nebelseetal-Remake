@@ -739,4 +739,76 @@ def offene_luecken() -> Dict[str, str]:
         "volksattribute": "VORSCHLAG S-7 (A-01..A-04): je Fraktion zwei dauerhafte Attribute; "
                           "die WIRKUNG ist nicht verdrahtet (S-7 verbietet andere src-Dateien).",
         "verhaltensboni": "VORSCHLAG S-7: ein befristeter Bonus je Taktik (Anzeige), nicht verdrahtet.",
+        "reaktion": f"VORSCHLAG S4-7: Bereitschaft 1,0 Standard, Spanne 0,5 bis 2,0; Stufen und "
+                    f"Vorsprung stehen in data/bot_diplomatie.json, nicht hier.",
     }
+
+# ------------------------------------------------------------------ Reaktion (S4-7, 07.11.2026)
+# Daniel 07.11.2026 (Ablauf Schritt 7): jeder Bot hat eine Reaktionsstufe; sie verschiebt die
+# VORHANDENEN Schwellen des Raubzugs, sie erfindet keine neue Regel. Die Stufen stehen in
+# `data/bot_diplomatie.json` (Schluessel = Taktik-NAME aus TAKTIKEN), der Faktor ist eine
+# BEREITSCHAFT: 1,0 = unveraendert, 1,2 = raubt frueher, 0,8 = spaeter. Dieses Modul oeffnet
+# weiterhin KEINE Datei - die Daten kommen als dict herein (eigene Wache).
+REAKTION_STANDARD = 1.0      # VORSCHLAG S4-7: 1,0 heisst "unveraendert" (kein Bot wird grundlos anders)
+REAKTION_GRENZEN = (0.5, 2.0)  # VORSCHLAG S4-7: eine Bereitschaft ausserhalb waere keine Feinjustierung
+
+
+def reaktionsstufe(bot: Optional[dict], daten: Optional[dict] = None) -> float:
+    """Die Bereitschaft eines Bots aus seiner Taktik (1,0 = Standard).
+
+    Eingabe: Bot (dict), die geladenen Daten aus `data/bot_diplomatie.json` (optional).
+    Ausgabe: float; unbekannte Taktik oder fehlende Datei ergibt `REAKTION_STANDARD`.
+    """
+    block = daten.get("reaktion") if isinstance(daten, dict) else None  # der Themenblock
+    block = block if isinstance(block, dict) else {}                    # nur ein dict gilt
+    stufen = block.get("stufen") if isinstance(block.get("stufen"), dict) else {}  # je Taktik
+    name = str(taktik_von(bot).get("name") or "")                       # Taktik-Name (EINE Quelle)
+    wert = stufen.get(name, block.get("standard", REAKTION_STANDARD))    # Stufe oder Standard
+    return _zahl(wert, REAKTION_STANDARD)                               # immer eine Zahl
+
+
+def reaktionsfaktor(bot: Optional[dict], daten: Optional[dict] = None,
+                    eigene_punkte: int = 0, fremde_punkte: int = 0) -> float:
+    """Die Bereitschaft inklusive Spielerfortschritt - gedeckelt auf 0,5 bis 2,0.
+
+    Liegt der Spieler deutlich vorn (`vorsprung_prozent` aus den Daten), wird der Bot vorsichtiger:
+    der Faktor wird mit `vorsprung_faktor` malgenommen. Das ist die einzige Reaktion auf den
+    Spielerfortschritt - die Punktgrenzen selbst (`punkte.angreifbar`) bleiben unberuehrt.
+    Eingabe: Bot, Daten, Punkte beider Seiten.
+    Ausgabe: float.
+    """
+    block = daten.get("reaktion") if isinstance(daten, dict) else None  # der Themenblock
+    block = block if isinstance(block, dict) else {}                    # nur ein dict gilt
+    faktor = reaktionsstufe(bot, daten)                                 # Grundbereitschaft
+    vorsprung = max(0.0, _zahl(block.get("vorsprung_prozent"), 0.0))     # Schwelle in Prozent
+    if vorsprung > 0.0:                                                 # Reaktion eingeschaltet
+        eigene = max(0, _ganzzahl(eigene_punkte, 0))                     # Punkte des Bots
+        fremde = max(0, _ganzzahl(fremde_punkte, 0))                     # Punkte des Spielers
+        if fremde > 0 and fremde >= eigene * (1.0 + vorsprung / 100.0):  # Spieler deutlich vorn
+            faktor = faktor * _zahl(block.get("vorsprung_faktor"), 1.0)  # dann vorsichtiger
+    lo, hi = REAKTION_GRENZEN                                           # Deckel
+    return round(max(lo, min(hi, faktor)), 3)                           # nie ausserhalb der Spanne
+
+
+def reaktions_schwellen(einst: Optional[dict], faktor: float) -> Dict[str, Any]:
+    """Die Raubzug-Regeln mit der Reaktionsstufe - die vorhandenen Schwellen werden GETEILT.
+
+    1,2 (gierig) senkt `armee_schwelle` und `staerke_faktor`, 0,8 hebt sie. Die Eingabe bleibt
+    unveraendert (es wird eine Kopie zurueckgegeben), und ohne Schalter `aktiv` oder bei 1,0
+    kommt die Datei unveraendert zurueck - dann verhaelt sich der Bot wie bisher.
+    Eingabe: Regeln aus `bot_angriffsplanung.raubzug_einstellungen()`, Faktor.
+    Ausgabe: neue Regeln; `reaktionsfaktor` steht als Beleg darin.
+    """
+    regeln = dict(einst) if isinstance(einst, dict) else {}              # Kopie, nie die Quelle
+    f = _zahl(faktor, REAKTION_STANDARD)                                # Faktor als Zahl
+    if not regeln.get("aktiv") or f <= 0.0 or abs(f - 1.0) < 1e-9:       # aus oder unveraendert
+        return regeln                                                    # dann wie bisher
+    schwelle = _ganzzahl(regeln.get("armee_schwelle"), 0)                # vorhandene Schwelle
+    if schwelle > 0:                                                     # nur wenn sie da ist
+        regeln["armee_schwelle"] = max(1, int(round(schwelle / f)))      # gierig senkt, vorsichtig hebt
+    staerke = _zahl(regeln.get("staerke_faktor"), 0.0)                   # vorhandener Faktor
+    if staerke > 0.0:                                                    # nur wenn er da ist
+        regeln["staerke_faktor"] = round(staerke / f, 3)                 # dieselbe Richtung
+    regeln["reaktionsfaktor"] = f                                        # Beleg im Ergebnis
+    return regeln                                                        # fertige Regeln
+

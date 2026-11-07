@@ -1,0 +1,29 @@
+{
+  "stand": "2026-11-07",
+  "aktiv": true,
+  "regel": "S4-7 (07.11.2026, Ablauf Schritt 7): Bot-Luecken Drache, Spionage, Reaktion. Der Drache steht NICHT hier - seine Regel (schlagkraft_faktor, verluste_erwartet_prozent) liegt seit W-14 in data/drachen.json, Block 'bots', und wird von drachen.bot_entscheidung gelesen. Eine zweite Zahl waere der F-04-Fehler.",
+  "spionage": {
+    "aktiv": true,
+    "ein_bericht_je_ziel": true,
+    "kundschafter_pflicht": true,
+    "text_gesichtet": "{bot} schickt Späher nach {dorf}: Aufklärung {wert}, Wall {wall} - der Bericht liegt vor.",
+    "text_abgewehrt": "{bot}: Späher bei {dorf} am Wall {wall} abgeprallt (Aufklärung {wert} gegen Abwehr {abwehr}).",
+    "mehrfach": "Daniel 02.11.2026: ein Spionagebericht wird NICHT alt, er gilt bis zum naechsten Bericht ueber dasselbe Dorf. Deshalb genau EINE Spaehung je Ziel: hat der Bot einen Bericht, greift er an - hat er keinen, kostet die Spaehung seinen Zug in diesem Takt.",
+    "quelle": "NICHT BELEGT als Bot-Regel: weder Handbuch 2009 noch die Vorversion 2006 sagen, ob Bots spaehen. Die Mechanik selbst ist die des Spielers (src/spionage.py, Vorgabe Daniel 02.11.2026), es gibt also keinen zweiten Weg."
+  },
+  "reaktion": {
+    "standard": 1.0,
+    "stufen": {
+      "Pluenderer": 1.2,
+      "Waechterin": 0.8,
+      "Bastionier": 0.8,
+      "Spaeherin": 1.0
+    },
+    "vorsprung_prozent": 50,
+    "vorsprung_faktor": 0.9,
+    "deutung": "Der Faktor ist eine BEREITSCHAFT: 1,2 raubt frueher, 0,8 spaeter. Er teilt die vorhandenen Schwellen (armee_schwelle, staerke_faktor in data/bot_raubzug.json) - er ersetzt keine Regel und bringt keine neue Zahl in den Raubzug.",
+    "taktik_schluessel": "Der Schluessel ist der NAME der Taktik aus bottaktik.TAKTIKEN (Pluenderer, Waechterin, Bastionier, Spaeherin), nicht der Bot-Name: ein neuer Bot mit bekannter Taktik hat sofort eine Stufe.",
+    "quelle": "VORSCHLAG (kein Originalbeleg): die Zuordnung Taktik -> Stufe und die Spanne 0,8 bis 1,2 stammen aus dem Ablauf vom 07.11.2026, nicht aus einer Quelle. Der Spieler-Vorsprung (50 Prozent, Faktor 0,9) ist ebenfalls VORSCHLAG."
+  },
+  "offen": "drachen.bedrohung(ort) ist NICHT gebaut: das Drachen-Urteil der Bots existiert seit W-14 (05.11.2026, drachen.bot_entscheidung, Aufruf in main.py _bots_drachenzug) mit eigener Wache; eine zweite Funktion waere die zweite Wahrheit fuer dieselbe Frage. Frage F-14 an Daniel."
+}

@@ -1,3 +1,44 @@
+# STAND 07.11.2026, 15:07 - Bot-Luecken: Spaehung vor dem Raubzug, Reaktionsstufe der Bots (Register 293)
+
+> Neuester Block. Register 293. Darunter 292 (Handel in der Spielschicht), 291 (Verkaufsmaske),
+> 290 (Verkaufsrichtung im Kern), 289 (Befund G-8), 288 (Ereignisse).
+
+**Schritt 7 des Ablaufs ist gebaut.** Zwei der drei Luecken waren offen, eine war es nicht:
+
+1. **Spionage (neu):** `GameState._bots_spaehung` schickt die Kundschafter eines Bots gegen das
+   geplante Ziel. Der Wall wird mit DERSELBEN Vorpruefung gemessen wie beim Spieler
+   (`spionage.abwehr_pruefung`), die Aufklaerung kommt aus `spionage.aufklaerungswert` (SI+HE), eine
+   abgewehrte Truppe verliert Einheiten ueber `spionage.verlust_der_truppe`. Gebucht wird GENAU EINE
+   Spaehung je Dorf: Daniel hat am 02.11.2026 entschieden, dass ein Bericht NICHT alt wird - er gilt,
+   bis ein neuer Bericht ueber dasselbe Dorf kommt. Ohne Bericht kostet die Spaehung den Zug; im
+   naechsten Takt greift der Bot an. Die drei Gates (Demo-Regel, Goetterschutz, Pakt) sind an der
+   Aufrufstelle bereits geprueft und gelten damit auch fuer die Spaehung.
+2. **Reaktion (neu):** jeder Bot hat eine Bereitschaft aus seiner Taktik
+   (`data/bot_diplomatie.json`: Pluenderer 1,2 / Waechterin 0,8 / Bastionier 0,8 / Spaeherin 1,0).
+   Sie TEILT die vorhandenen Raubzug-Schwellen (`armee_schwelle`, `staerke_faktor` aus
+   `data/bot_raubzug.json`) - gierig raubt frueher, vorsichtig spaeter. Liegt der Spieler um
+   mindestens 50 Prozent vorn, wird jeder Bot vorsichtiger (Faktor x 0,9). Keine neue Regel, keine
+   zweite Punkteformel (die Wache von S-7 prueft das).
+3. **Drache (nicht neu):** das Drachen-Urteil der Bots gibt es seit W-14 (`drachen.bot_entscheidung`,
+   `main._bots_drachenzug`, `data/drachen.json` Block `bots`, eigene Wache). Eine zweite Funktion
+   `drachen.bedrohung(ort)` waere die zweite Wahrheit fuer dieselbe Frage und wurde deshalb NICHT
+   gebaut - Frage F-14 an Daniel.
+
+**Gemessen:** Wache `tests/test_bot_diplomatie.py` **51 Pruefungen, 0 Fehler**; echter Verlauf in der
+App (Siedlung gruenden, Bot mit 40 Kriegern und 3 Kundschaftern, sechs Takte): Takt 1 spaeht genau
+einmal, der Bericht steht danach in `bot.aufklaerung` UND im Kern-Stand, der naechste Angriff folgt,
+eine zweite Spaehung findet nicht statt. Ein Fehler auf dem Weg: der Bericht wurde zuerst nur am Bot
+geschrieben und im selben Takt von `bot_aus_dict` ueberschrieben - der Bot spaehte in JEDEM Takt
+erneut. Behoben ueber den Kern-Stand (`start["aufklaerung"]`).
+
+**Offene Fragen (F-14, F-15 in `docs/FRAGEN_AN_DANIEL_20261107.md`):** soll zusaetzlich ein
+Meidungs-Urteil gegen den Drachen gebaut werden (F-14), und sind die Reaktionsstufen 0,8/1,0/1,2 als
+VORSCHLAG richtig (F-15)?
+
+**Naechster Schritt:** Schritt 8 des Ablaufs (B-1 Sollkurve aus den Daten), danach 9 bis 13.
+Arbeitsweise unveraendert: je Schnitt Register, Protokollzeile, Stand-Block, Commit, Push und ein
+voller Sammellauf.
+
 # STAND 07.11.2026, 12:10 - Handel in der Spielschicht gebaut, Kennzahlenblatt zeigt eine Zahl (Register 292)
 
 > Neuester Block. Register 292. Darunter 291 (Verkaufsmaske), 290 (Verkaufsrichtung im Kern),

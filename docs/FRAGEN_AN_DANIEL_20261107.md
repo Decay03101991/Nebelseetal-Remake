@@ -256,3 +256,45 @@ Einheitenpreisen mitgehen?
 den Bot-Kauf), braucht einen Sammellauf und ist eine Balancing-Entscheidung. C ist der saubere Weg,
 aber ein eigener Schnitt.
 
+
+## F-14 - Drache: zusaetzlich ein Meidungs-Urteil der Bots bauen?
+
+**Messlage:** der Ablauf (Schritt 7) nennt `drachen.bedrohung(ort)` als neue Funktion. Am Code
+nachgemessen: das Urteil der Bots gibt es seit W-14 (05.11.2026) als `drachen.bot_entscheidung` mit
+eigener Wache (`tests/test_drachen_einhaengung.py`), aufgerufen in `main._bots_drachenzug`. Ein Bot
+greift nur an, wenn seine Schlagkraft die Drachenschwelle mal Sicherheitsfaktor 1,6 erreicht; sonst
+meldet er "Drache zu stark". Eine zweite Funktion fuer dieselbe Frage waere die zweite Wahrheit
+(F-04) und ohne Aufrufer toter Code.
+
+**Frage:** soll zusaetzlich eine Meidung gebaut werden - Bots weichen Drachenfeldern aus, gruenden
+nicht daneben, marschieren nicht durch?
+
+- **A (Empfehlung) - nichts bauen.** Das Urteil ist da und geprueft; die Meidung waere eine neue
+  Mechanik ohne Quelle (weder Handbuch 2009 noch 2006 sagen etwas dazu). Kosten: null.
+- **B - Meidung als reine Anzeige.** `drachen.bedrohung(ort)` liefert nur einen Text ("ein Drache
+  steht zwei Felder entfernt"), den die Bot-Meldung zeigt. Kosten: eine Stunde, keine Mechanik.
+- **C - echte Meidung (eigener Schnitt).** Weltfelder mit Drachen werden bei Gruendung und Marsch
+  gemieden. Kosten: mehrere Stunden, beruehrt Karten-, Gruendungs- und Marschpfad, ohne Originalbeleg.
+
+**Auswirkung:** A aendert nichts. B macht die Karte lesbarer. C aendert das Spielgefuehl deutlich und
+braucht einen eigenen Sammellauf.
+
+## F-15 - Reaktionsstufen der Bots: 0,8 / 1,0 / 1,2 richtig?
+
+**Messlage:** der Ablauf nennt "Reaktionsfaktoren 0,8 bis 1,2" und "Meidungsstufen 3" - beides ohne
+Originalbeleg. Umgesetzt: Bereitschaft aus der Taktik (Pluenderer 1,2, Waechterin 0,8, Bastionier
+0,8, Spaeherin 1,0, unbekannt 1,0); sie teilt `armee_schwelle` (6) und `staerke_faktor` (1,5) aus
+`data/bot_raubzug.json`. Gemessen: gierig 6 -> 5 und 1,5 -> 1,25; vorsichtig 6 -> 8 und 1,5 -> 1,875.
+Zusaetzlich macht ein Spieler-Vorsprung von 50 Prozent jeden Bot vorsichtiger (x 0,9).
+
+**Frage:** bleiben diese Zahlen und die Zuordnung Taktik -> Stufe so?
+
+- **A (Empfehlung) - bleibt.** Alle Werte sind VORSCHLAG und stehen in `data/bot_diplomatie.json`;
+  Daniel kann sie dort ohne Codeaenderung stellen.
+- **B - Spanne kleiner (0,9 bis 1,1).** Wirkung: die Bots verhalten sich aehnlicher, der Unterschied
+  zwischen gierig und vorsichtig verschwindet fast.
+- **C - Zuordnung nach Fraktion statt nach Taktik.** Wirkung: Voelker statt Charaktere; braucht eine
+  zweite Tabelle und ist ohne Quelle ebenso willkuerlich.
+
+**Auswirkung:** A kostet nichts. B und C sind Balancing-Entscheidungen mit eigenem Sammellauf.
+

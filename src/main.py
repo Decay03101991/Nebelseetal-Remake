@@ -302,6 +302,12 @@ class BotPlayer:
     # S4-4 (06.11.2026): der Rachetopf dieses Bots (0 bis `hoechstwert` aus data/diplomatie.json).
     # ADDITIV: ein alter Spielstand laedt mit 0 - kein Bot ist ohne Grund zornig.
     rache: int = 0
+    # S4-7 (07.11.2026): je Dorf der Zeitpunkt der letzten Spaehung - Name -> Spielsekunden.
+    # ADDITIV: ein Spielstand von vor S4-7 laedt ohne das Feld, dann hat der Bot keinen Bericht und
+    # spaeht beim naechsten Raubzug genau einmal. Daniel 02.11.2026: ein Bericht wird NICHT alt - er
+    # gilt, bis ein neuer Bericht ueber dasselbe Dorf kommt. Deshalb steht hier ein Zeitpunkt und
+    # keine Frist.
+    aufklaerung: Dict[str, float] = field(default_factory=dict)
     noob_protection: bool = True
     last_rename: float = 0.0
     # W5 (botkern): die Felder, mit denen `src/botkern.py` rechnet. Sie sind der EINE Ort, an dem
@@ -2922,7 +2928,10 @@ NACHRICHTEN_FARBEN = {"kampf": "#e53935", "geschenk": "#7FD1FF", "spionage": "#A
                       # W-13 (04.11.2026): der Gesamtsieg ist die einzige gute Nachricht mit
                       # eigener Bedeutung - helles Gold, damit sie sich vom Standardgold der
                       # uebrigen Meldungen abhebt (eine Farbe je Bedeutung, nicht je Absender).
-                      "gesamtsieg": "#FFD54F"}
+                      "gesamtsieg": "#FFD54F",
+                      # S4-7 (07.11.2026): ein gesichteter Spaeher ist keine Schlacht und kein
+                      # Bericht - eigene Art, damit das Postfach keinen falschen Knopf anbietet.
+                      "spaehung": "#A97BD6"}
 
 
 # S1b (06.11.2026): je Ansicht die Teilgeschichte aus `data/story.json`. Die Zuordnung ist Code,
@@ -6225,6 +6234,61 @@ class GameState:
             return (True, "%s greift den Drachen an: %s" % (bot.name, grund))   # Zug verbraucht
         return (False, "")                                            # kein Drache passte
 
+    def _bots_spaehung(self, bot, zielort, jetzt: float, berichte=None):
+        """S4-7 (07.11.2026): Spaeht dieser Bot das Ziel aus, statt es anzugreifen?
+
+        Daniels Vorgabe vom 02.11.2026: ein Spionagebericht wird NICHT alt - er gilt, bis ein neuer
+        Bericht ueber dasselbe Dorf kommt. Daraus folgt GENAU EINE Spaehung je Ziel: hat der Bot
+        einen Bericht, greift er an; hat er keinen, kostet die Spaehung seinen Zug in diesem Takt.
+        Der Wall wird mit DERSELBEN Vorpruefung gemessen wie beim Spieler
+        (`spionage.abwehr_pruefung`, Aufklaerung aus SI+HE), die Truppe sind seine Kundschafter.
+        Die drei Gates (Demo-Regel, Goetterschutz, Pakt) sind an der Aufrufstelle bereits geprueft -
+        hier kommt keine zweite Pruefung dazu.
+        `berichte` ist der dict aus dem Kern-Stand (`start["aufklaerung"]`): NUR er ueberlebt den
+        Takt, weil `bot_aus_dict` am Ende den Kern-Stand zurueckschreibt - wer nur am Bot schreibt,
+        verliert den Bericht und der Bot spaeht in jedem Takt erneut (gemessen 07.11.2026).
+        Rueckgabe: (True, Meldung) wenn gespaeht wurde, sonst (False, "").
+        """
+        regeln = diplomatie.bot_spionage_regeln()                       # Block aus der Datendatei
+        if not regeln.get("aktiv"):                                     # Schalter aus
+            return (False, "")                                          # dann kein Zug
+        name = str(getattr(zielort, "name", "") or "")                   # Name des Ziels
+        if not name:                                                    # Ziel ohne Namen
+            return (False, "")                                          # dann wird nicht gespaeht
+        bekannt = {str(k): float(v) for k, v in (getattr(bot, "aufklaerung", None) or {}).items()
+                   if not isinstance(v, bool) and isinstance(v, (int, float))}   # seine Berichte
+        if name in bekannt:                                             # ein Bericht liegt vor
+            return (False, "")                                          # dann wird angegriffen
+        truppe = spionage.spionageeinheiten(dict(bot.army or {}))        # nur seine Kundschafter
+        if not truppe and regeln.get("kundschafter_pflicht", True):      # ohne Spaeher kein Bericht
+            return (False, "")                                          # dann greift er ohne Bericht an
+        wert = spionage.aufklaerungswert(truppe)                        # EINE Rechenstelle (SI+HE)
+        wall = int(self.wall_stufe_am_ort(zielort))                     # Wallstufe des Ziels
+        zustand = (dorfwall.zustand(zielort)                            # Zustand seiner Mauer
+                   if self._lokale_kasse_aktiv() else 100.0)            # sonst die volle Mauer
+        pruefung = spionage.abwehr_pruefung(wert, wall, zustand)         # dieselbe Vorpruefung
+        neu = dict(bekannt, **{name: float(jetzt)})                      # Bericht steht ab jetzt
+        bot.aufklaerung = neu                                            # am Bot sichtbar
+        if isinstance(berichte, dict):                                   # und im Kern-Stand, denn
+            berichte.clear()                                             # `bot_aus_dict` schreibt
+            berichte.update(neu)                                         # diesen dict zurueck
+        werte = {"bot": str(getattr(bot, "name", "") or ""), "dorf": name,   # Platzhalter
+                 "wert": int(wert), "wall": int(wall),                   # Aufklaerung und Wall
+                 "abwehr": int(round(float(pruefung.get("erforderlich") or 0)))}  # was er abwehrt
+        if pruefung.get("bestanden"):                                    # Wall ueberwunden
+            text = str(regeln.get("text_gesichtet") or "")               # Anzeigetext aus den Daten
+        else:                                                           # am Wall abgeprallt
+            rest = spionage.verlust_der_truppe(truppe)                   # was heimkommt
+            for einheit, anzahl in truppe.items():                       # je entsandte Einheit
+                bot_armee_buchen(bot, einheit,                           # Verluste buchen
+                                 -max(0, int(anzahl) - int(rest.get(einheit, 0))))
+            text = str(regeln.get("text_abgewehrt") or "")               # Anzeigetext aus den Daten
+        for schluessel, wert_text in werte.items():                      # Platzhalter einsetzen
+            text = text.replace("{%s}" % schluessel, str(wert_text))     # einer nach dem anderen
+        self.messages.append({"text": text, "type": "spaehung",          # ins Postfach
+                              "spielzeit_sekunden": float(jetzt)})       # mit Spielzeit gestempelt
+        return (True, text)                                             # Zug verbraucht
+
     def drachen_position(self, eintrag: dict) -> tuple:
         """Wo ein Drache in DIESEM Spielstand steht: (x, y) aus dem Zustand, sonst aus den Daten.
 
@@ -6677,6 +6741,9 @@ class GameState:
                 "vertrag_ende": {str(k): float(v) for k, v in dict(bot.vertrag_ende or {}).items()
                                  if not isinstance(v, bool) and isinstance(v, (int, float))},
                 "rache": int(bot.rache),
+                # S4-7: die Spaehberichte gehen denselben Weg wie alle anderen Felder (Kopie).
+                "aufklaerung": {str(k): float(v) for k, v in dict(bot.aufklaerung or {}).items()
+                                if not isinstance(v, bool) and isinstance(v, (int, float))},
                 "armee": dict(bot.army), "letzter_angriff": bot.letzter_angriff,
                 "naechster_angriff": float(bot.naechster_angriff), "angriffe": int(bot.angriffe),
                 "gebaut": int(bot.gebaut), "geforscht": int(bot.geforscht),
@@ -6722,6 +6789,13 @@ class GameState:
                                 if isinstance(_ende, dict) else {})
         if "rache" in daten:
             bot.rache = diplomatie.rache_von({"rache": daten.get("rache")})  # Topf geklemmt uebernehmen
+        # S4-7: die Spaehberichte nur zurueckschreiben, wenn sie mitgegeben wurden (dieselbe Regel wie
+        # bei der Gunst) - sonst wuerde ein Aufruf ohne das Feld die Berichte loeschen.
+        if "aufklaerung" in daten:
+            _auf = daten.get("aufklaerung")
+            bot.aufklaerung = ({str(k): float(v) for k, v in _auf.items()
+                                if not isinstance(v, bool) and isinstance(v, (int, float))}
+                               if isinstance(_auf, dict) else {})
         # S-7 (bottaktik): der Verhaltenszustand kommt aus derselben dict-Form zurueck.
         bot.zustand = str(daten.get("zustand") or "")
         _ged = daten.get("gedaechtnis")
@@ -7270,6 +7344,13 @@ class GameState:
                     # (niedrigere Wallstufe, weniger Besatzung). Bei Gleichstand bleibt der
                     # Spieler das Ziel - so bleibt das Vorgaengerverhalten unveraendert.
                     _raub_einst = bot_angriffsplanung.raubzug_einstellungen()          # Regeln (Datei)
+                    # S4-7 (07.11.2026): die Reaktionsstufe verschiebt die VORHANDENEN Schwellen des
+                    # Raubzugs (keine neue Regel): gierig raubt frueher, vorsichtig spaeter, und ein
+                    # deutlich ueberlegener Spieler macht jeden Bot vorsichtiger.
+                    _reaktion = bottaktik.reaktionsfaktor(
+                        bot, diplomatie.botdaten(), int(bot.punkte),
+                        int(self.punktestand().get("gesamt", 0)))
+                    _raub_einst = bottaktik.reaktions_schwellen(_raub_einst, _reaktion)
                     _raub_kandidaten = bot_angriffsplanung.raubziele(                  # Doerfer anderer Bots
                         bot, self.bots, _raub_einst)
                     raubziel, raubplan = bot_angriffsplanung.waehle_raubziel(          # schwaechstes davon
@@ -7337,10 +7418,26 @@ class GameState:
                             _grund = ("Die Ruine %s deckt genau dieses Feld - der Angriff kommt von dort, also kein Angriff."
                                       % (_deckung.get("ruine") or "", getattr(zielort, "name", ""),
                                          _deckung.get("richtung_text") or _deckung.get("richtung") or ""))
+                        # S4-7 (07.11.2026): vor einem Raubzug genau EINE Spaehung je Ziel. Der
+                        # Bericht des Bots ist die Bedingung fuer den Angriff - ohne ihn kostet die
+                        # Spaehung seinen Zug. Die Gates oben (Demo, Schutz, Pakt, Punkteband) sind
+                        # fuer den Angriff schon geprueft und gelten damit auch fuer die Spaehung.
+                        _spaeh_ok, _spaeh_meldung = (False, "")          # kein Zug ohne Spaehung
+                        if _erlaubt:                                     # nur wenn der Angriff frei ist
+                            _berichte = start.get("aufklaerung")         # der Stand, den der Kern fuehrt
+                            if not isinstance(_berichte, dict):          # alter Stand ohne das Feld
+                                _berichte = {}                           # dann leer anlegen
+                                start["aufklaerung"] = _berichte         # und im Kern-Stand verankern
+                            _spaeh_ok, _spaeh_meldung = self._bots_spaehung(
+                                bot, zielort, jetzt, _berichte)
                         if not _erlaubt:
                             meldung = (f"{bot.name}: Angriff auf {zielort.name} verschoben - "
                                        f"{_grund}")
                             zug.setdefault("wirkung", {})["angriff_verschoben"] = _grund
+                        elif _spaeh_ok:                                  # gespaeht statt angegriffen
+                            meldung = _spaeh_meldung                      # Meldung aus den Daten
+                            # Kein zweiter Eintrag: der Bericht des Takts wird weiter unten EINMAL
+                            # gefuellt (ergebnis["angriffe"]) - zwei Stellen zaehlten ihn doppelt.
                         else:
                             kampf_result = kampf.fuehre_schlacht(
                                 bot_kaempfer, dict(zielort.einheiten), ws, wz,
