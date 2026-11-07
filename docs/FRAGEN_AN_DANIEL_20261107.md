@@ -390,3 +390,20 @@ laufen nach dem Ablauf.
 Ereignis-Zuordnung) laufen VOR Schritt 10, danach der Ablauf (10 bis 13), danach R3-3 (C-6, I-10, C-4)
 und R3-4 (I-2). Jeder dieser Schnitte bekommt seine eigene Wache, einen Registereintrag, eine
 Protokollzeile und einen vollen Sammellauf.
+
+## Nachtrag 22:12 - zwei Antworten Daniels (F-22, F-23)
+
+**F-22 Skill-Ergaenzung: FREIGEGEBEN (Daniel 22:07).** Teil 8 (acht Lehren aus Sitzung 14, B-2
+Regelkreis) und Teil 9 (sieben Lehren aus Sitzung 15, R3-1/R3-2) sind in den Skill
+`nebelseetal-remake` aufgenommen - Teil 8 **wortgleich** aus der freigegebenen Vormerkung
+`ce4981df`, Teil 9 neu geschrieben. Folge: die Vormerkung ist damit erledigt und aus der Warteschlange
+in `pending/skills/skills_archiv_20261107_2212/` gelegt (nichts geloescht). Der Skill steht jetzt bei
+**98.356 Zeichen** - die naechste Ergaenzung muss zuerst einen Block nach `references/` auslagern
+(Grenze 100.000).
+
+**F-23 Diplomatiefristen in Echtzeit: SO LASSEN (Daniel 22:07).** Frist zwei Spieltage, Haeufigkeit
+drei Spieltage, Pakt drei Spieltage und der eine Spieltag Vorlauf bleiben, wie sie sind; ein Spieltag
+ist ein Spieltag. Folge: bei Spieluhrfaktor 180 wirken diese Fristen dreimal so lange wie vor dem
+R3-1-Schnitt (Ereignisfrist 16 statt 5,3 Echtminuten, Pakt und Haeufigkeit 24 statt 8) - das ist
+gewollt und **kein Fehler**. Wer die Echtzeit spaeter kuerzen will, aendert die Zahl in SPIELTAGEN
+(1 statt 2, 1 statt 3), nie in Sekunden - sonst entsteht wieder eine zweite Tageslaenge.

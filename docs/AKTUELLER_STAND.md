@@ -34,6 +34,8 @@ ein VOLLER SAMMELLAUF mit dem Projekt-venv.
 
 **Sammellauf nach R3-2 (21:31 bis 21:47): 194 von 196 gruen, 0 rot**, 8.062 Pruefungen, 60 Befunde, 929 s (`docs/audits/sammellauf_20261107_2133.log`); die zwei nicht gruenen Dateien sind AUSGESETZT wie zuvor. Commit `251e609`, gepusht, Kopf = Remote, Arbeitsbaum leer.
 
+**Zwei Antworten Daniels (22:07, F-22 und F-23):** die Skill-Ergaenzung ist freigegeben und eingetragen (Teil 8 woertlich aus der Vormerkung, Teil 9 neu); die Diplomatiefristen bleiben in Spieltagen - die dreifache Echtzeit seit R3-1 ist gewollt. **Guthaben (Daniel 22:07): 7,00 USD / 62,99 USD** (0,23 USD fuer diese Sitzung). Nachtrag in `docs/FRAGEN_AN_DANIEL_20261107.md`.
+
 # STAND 07.11.2026, 21:05 - R3-1 gebaut: EINE Spieltag-Laenge (86.400 s), Befund A-1 behoben
 
 > Neuester Block. Darunter 20:48 (Modellrunde 3 geprueft, F-21 = A), 20:15 (B-2 Regelkreis,
