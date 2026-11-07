@@ -310,3 +310,33 @@ Zusaetzlich macht ein Spieler-Vorsprung von 50 Prozent jeden Bot vorsichtiger (x
 **Was aus den Antworten NICHT folgt:** kein neuer Schnitt ausser der Anzeige (F-14 = B). F-13 und F-15
 sind reine Bestaetigungen des dokumentierten Stands - sie aendern keine Datei.
 
+
+## F-16 - Sollkurve: Obergrenze oder gedrosselter Erfahrungswert?
+
+**Messlage:** `data/sollkurve.json` zeigt am Spieltag 5 Holz 2.449, Stein 2.537, Nahrung 2.880, Gold
+1.836. Das ist eine OBERGRENZE: der Idealplan baut jedes Gebäude, sobald er es bezahlen kann (kein
+Bauzwang, keine Wegzeiten, keine Kämpfe). Eine echte Partie liegt weit darunter - das Kennzahlenblatt
+nennt für Spieltag 6 rund 841 Gold und 35 Holz. Der Korridor 0,7 bis 1,1 um diese Obergrenze wird
+deshalb von echten Läufen NIE erreicht; für den Regelkreis (B-2) taugt er nur als VERGLEICH zwischen
+zwei Versionen, nicht als Erwartungswert.
+
+**Frage:** Soll die Sollkurve gedrosselt werden?
+
+- **A (Empfehlung, kleinster Schnitt) - bleibt Obergrenze, aber so benannt.** Kein Code. In B-2 wird
+  nur die VERAENDERUNG zwischen zwei Versionen verglichen (A/B mit demselben Idealplan). Die
+  Kennzahlen aus echten Läufen bleiben die zweite, ehrlichere Messung.
+- **B - Bauzwang einbauen (ein Gebäude je Spieltag).** Wirkung: die Kurve kommt in die Nähe echter
+  Partien; die Zahl "ein Gebäude je Spieltag" ist aber ohne Quelle (VORSCHLAG) und müsste in
+  `data/sollkurve.json` als Annahme stehen.
+- **C - Kurve aus echten Läufen kalibrieren (Kennzahlenblatt).** Wirkung: Korridor = gemessene Partien
+  x 0,7/1,1; braucht 10 Läufe je Neurechnung (rund 4 Minuten) und macht die Kurve von der Messschicht
+  abhängig, nicht von den Daten.
+
+**Auswirkung:** A kostet nichts. B ändert nur das Werkzeug. C koppelt Balancing an die Messschicht
+und ist ein eigener Schnitt.
+
+**Nebenbefund (kein Beschluss noetig):** V-4 rechnet Gold mit 0,5 je Bergfeld und Stunde, die
+Datendatei `data/resources.json` nennt 3. Beide Zahlen stehen im Projekt; welche fuer den Korridor
+gilt, entscheidet die Datendatei (dort steht die Quelle) - der Unterschied ist notiert, nicht
+geglaettet.
+

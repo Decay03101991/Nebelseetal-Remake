@@ -1,3 +1,36 @@
+# STAND 07.11.2026, 18:20 - B-1 Sollkurve aus den Daten gebaut (Register 295)
+
+> Neuester Block. Register 295. Darunter 294 (Drachen-Anzeige F-14 = B), 293 (Bot-Luecken S4-7),
+> 292 (Handel in der Spielschicht), 291 (Verkaufsmaske).
+
+**Schritt 8 des Ablaufs steht.** `tools/balance_kreis.py --sollkurve` spielt die BELEGTE Kette
+(Holzfäller, Steinmetz, Bibliothek, danach im Kreis Farm/Goldmine, Haus bei Siedlernot) auf den
+Geländefeldern der belegten Startkarte `original-036` Tag für Tag nach und schreibt daraus
+`data/sollkurve.json`: je Spieltag Holz, Stein, Nahrung, Gold, Siedler und Gebäude als
+`{ideal, unten, oben}` mit unten = Ideal × 0,7 und oben = Ideal × 1,1 (VORSCHLAG). Der Kopf trägt
+`erzeugt_aus` mit sechs SHA256 - eine veraltete Kurve fällt damit sofort auf. Das Punkte-Ziel 3,3 je
+Spieltag steht mit Quelle (V-3) in der Datei.
+
+**Gemessen:** zwei Läufe sind zeichengleich; Holz +10 Prozent in einer Kopie der Datendatei hebt den
+Holzkorridor (Tag 10) und lässt Stein unberührt; das Werkzeug schreibt nur `data/sollkurve.json`.
+Wache `tests/test_balance_kreis.py` **29 Prüfungen, 0 Fehler**.
+
+**Ein Fehler auf dem Weg:** die Gebäudenamen tragen in den Daten Umlaute (`Holzfäller`, `Jäger`), der
+Plan rechnete mit `holzfaeller` - der Ertrag wurde nicht gefunden und Holz wuchs einen ganzen Spieltag
+um 0 (stille Null, keine Meldung). Behoben über `_normal()` (Umlaute umschreiben, beide Seiten).
+
+**Zwei benannte Lücken statt erfundener Zahlen:** die FORSCHUNGSKOSTEN stehen nicht in
+`data/research.json` (nur Voraussetzungen) - Baukunst gilt deshalb ab dem Tag nach der Bibliothek als
+erforscht, ausdrücklich als Annahme; und auf Berg/Hügel sind die Felder früh belegt, weitere Minen
+finden keinen Platz (steht als Lücke in der Datei).
+
+**Grenze der Kurve:** sie ist eine OBERGRENZE aus den Daten (jedes Gebäude sofort baubar), kein
+Erfahrungswert aus echten Partien. Ob sie gedrosselt werden soll (z. B. ein Gebäude je Spieltag), ist
+**Frage F-16**.
+
+**Nächster Schritt:** Schritt 9 des Ablaufs (B-2 Regelkreis: messen, vorschlagen, A/B, Urteil,
+Feedback-Bundel), danach 10 bis 13.
+
 # STAND 07.11.2026, 17:45 - Drachen-Bedrohung als Anzeige (F-14 = B), Antworten der Fragenrunde (Register 294)
 
 > Neuester Block. Register 294. Darunter 293 (Bot-Luecken S4-7), 292 (Handel in der Spielschicht),

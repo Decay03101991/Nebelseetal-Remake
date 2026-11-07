@@ -1,0 +1,560 @@
+{
+  "stand": "2026-11-07",
+  "zweck": "B-1 Sollkurve: Zielkorridor je Spieltag aus dem Idealplan der belegten Kette (Ablauf Schritt 8). Erzeugt von tools/balance_kreis.py --sollkurve - nicht von Hand aendern, neu rechnen.",
+  "erzeugt_aus": {
+    "data/resources.json": "f67c34976acf1c89a0bf3116a243b7975faac9656dc156f2f041d9e2fbda0cd8",
+    "data/baupreise.json": "96b4d992029ac9634e1e4d2a68e6ea7c5f433f9cb442b841b57f2f13f6f850aa",
+    "data/research.json": "b95f0129055bbb27bc97443293c28a5c9fb6899559187ae8e64cb7a516edb28a",
+    "data/units.json": "9548fdd4f39b28af50d83ca1c492e4270efcf1bf85110e8659a8af6d113d1d72",
+    "data/startkarte.json": "d786f5769f323ca209230d4a8df1e12e8ced26eb2d70732a1d15f2d6a8054ae4",
+    "data/originalkarten/katalog.json": "d6795feffeef85965cb43e91c6e0467b6631619d69de0be683b8759661dc27c5"
+  },
+  "startkarte": "original-036",
+  "baender": {
+    "unten": 0.7,
+    "oben": 1.1,
+    "quelle": "VORSCHLAG (Ablauf Schritt 8): untere Grenze Ideal x 0,7, obere x 1,1."
+  },
+  "punkte_ziel_je_spieltag": {
+    "wert": 3.3,
+    "quelle": "V-3 (docs/S0_TABELLEN_20261107.md): Punkte-Ziel je Spieltag."
+  },
+  "annahmen": [
+    "Ein Spieltag sind 24 Spielstunden; die Ertraege aus data/resources.json gelten je Stunde.",
+    "Der Plan baut zuerst holzfaeller, holzfaeller, steinmetz, steinmetz, bibliothek, goldmine, farm, danach im Kreis holzfaeller, steinmetz, farm, goldmine - jeweils auf dem besten freien Gelaende der Startkarte; ein Haus entsteht nur, wenn die Siedler ausgehen.",
+    "Kein Kampf, keine Beute, keine Karren, keine Einheiten: der Plan misst den AUFBAU.",
+    "Forschungskosten stehen NICHT in data/research.json - Baukunst gilt als erforscht, sobald die Bibliothek steht (Luecke, keine erfundene Zahl)."
+  ],
+  "luecken": [
+    "Forschungskosten fehlen in data/research.json - Baukunst gilt ab dem Tag nach der Bibliothek als erforscht (Annahme)",
+    "kein freies Gelaende fuer goldmine am Tag 3",
+    "kein freies Gelaende fuer steinmetz am Tag 3"
+  ],
+  "tage": [
+    {
+      "tag": 0,
+      "siedler": 10,
+      "gebaeude": 0,
+      "holz": {
+        "ideal": 100.0,
+        "unten": 70.0,
+        "oben": 110.0
+      },
+      "stein": {
+        "ideal": 100.0,
+        "unten": 70.0,
+        "oben": 110.0
+      },
+      "nahrung": {
+        "ideal": 0.0,
+        "unten": 0.0,
+        "oben": 0.0
+      },
+      "gold": {
+        "ideal": 0.0,
+        "unten": 0.0,
+        "oben": 0.0
+      }
+    },
+    {
+      "tag": 1,
+      "siedler": 4,
+      "gebaeude": 10,
+      "holz": {
+        "ideal": 11.0,
+        "unten": 7.7,
+        "oben": 12.1
+      },
+      "stein": {
+        "ideal": 31.0,
+        "unten": 21.7,
+        "oben": 34.1
+      },
+      "nahrung": {
+        "ideal": 0.0,
+        "unten": 0.0,
+        "oben": 0.0
+      },
+      "gold": {
+        "ideal": 0.0,
+        "unten": 0.0,
+        "oben": 0.0
+      }
+    },
+    {
+      "tag": 2,
+      "siedler": 0,
+      "gebaeude": 31,
+      "holz": {
+        "ideal": 18.0,
+        "unten": 12.6,
+        "oben": 19.8
+      },
+      "stein": {
+        "ideal": 131.0,
+        "unten": 91.7,
+        "oben": 144.1
+      },
+      "nahrung": {
+        "ideal": 192.0,
+        "unten": 134.4,
+        "oben": 211.2
+      },
+      "gold": {
+        "ideal": 72.0,
+        "unten": 50.4,
+        "oben": 79.2
+      }
+    },
+    {
+      "tag": 3,
+      "siedler": 1,
+      "gebaeude": 53,
+      "holz": {
+        "ideal": 337.0,
+        "unten": 235.9,
+        "oben": 370.7
+      },
+      "stein": {
+        "ideal": 617.0,
+        "unten": 431.9,
+        "oben": 678.7
+      },
+      "nahrung": {
+        "ideal": 864.0,
+        "unten": 604.8,
+        "oben": 950.4
+      },
+      "gold": {
+        "ideal": 540.0,
+        "unten": 378.0,
+        "oben": 594.0
+      }
+    },
+    {
+      "tag": 4,
+      "siedler": 1,
+      "gebaeude": 53,
+      "holz": {
+        "ideal": 1393.0,
+        "unten": 975.1,
+        "oben": 1532.3
+      },
+      "stein": {
+        "ideal": 1577.0,
+        "unten": 1103.9,
+        "oben": 1734.7
+      },
+      "nahrung": {
+        "ideal": 1872.0,
+        "unten": 1310.4,
+        "oben": 2059.2
+      },
+      "gold": {
+        "ideal": 1188.0,
+        "unten": 831.6,
+        "oben": 1306.8
+      }
+    },
+    {
+      "tag": 5,
+      "siedler": 1,
+      "gebaeude": 53,
+      "holz": {
+        "ideal": 2449.0,
+        "unten": 1714.3,
+        "oben": 2693.9
+      },
+      "stein": {
+        "ideal": 2537.0,
+        "unten": 1775.9,
+        "oben": 2790.7
+      },
+      "nahrung": {
+        "ideal": 2880.0,
+        "unten": 2016.0,
+        "oben": 3168.0
+      },
+      "gold": {
+        "ideal": 1836.0,
+        "unten": 1285.2,
+        "oben": 2019.6
+      }
+    },
+    {
+      "tag": 6,
+      "siedler": 1,
+      "gebaeude": 53,
+      "holz": {
+        "ideal": 3505.0,
+        "unten": 2453.5,
+        "oben": 3855.5
+      },
+      "stein": {
+        "ideal": 3497.0,
+        "unten": 2447.9,
+        "oben": 3846.7
+      },
+      "nahrung": {
+        "ideal": 3888.0,
+        "unten": 2721.6,
+        "oben": 4276.8
+      },
+      "gold": {
+        "ideal": 2484.0,
+        "unten": 1738.8,
+        "oben": 2732.4
+      }
+    },
+    {
+      "tag": 7,
+      "siedler": 1,
+      "gebaeude": 53,
+      "holz": {
+        "ideal": 4561.0,
+        "unten": 3192.7,
+        "oben": 5017.1
+      },
+      "stein": {
+        "ideal": 4457.0,
+        "unten": 3119.9,
+        "oben": 4902.7
+      },
+      "nahrung": {
+        "ideal": 4896.0,
+        "unten": 3427.2,
+        "oben": 5385.6
+      },
+      "gold": {
+        "ideal": 3132.0,
+        "unten": 2192.4,
+        "oben": 3445.2
+      }
+    },
+    {
+      "tag": 8,
+      "siedler": 1,
+      "gebaeude": 53,
+      "holz": {
+        "ideal": 5617.0,
+        "unten": 3931.9,
+        "oben": 6178.7
+      },
+      "stein": {
+        "ideal": 5417.0,
+        "unten": 3791.9,
+        "oben": 5958.7
+      },
+      "nahrung": {
+        "ideal": 5904.0,
+        "unten": 4132.8,
+        "oben": 6494.4
+      },
+      "gold": {
+        "ideal": 3780.0,
+        "unten": 2646.0,
+        "oben": 4158.0
+      }
+    },
+    {
+      "tag": 9,
+      "siedler": 1,
+      "gebaeude": 53,
+      "holz": {
+        "ideal": 6673.0,
+        "unten": 4671.1,
+        "oben": 7340.3
+      },
+      "stein": {
+        "ideal": 6377.0,
+        "unten": 4463.9,
+        "oben": 7014.7
+      },
+      "nahrung": {
+        "ideal": 6912.0,
+        "unten": 4838.4,
+        "oben": 7603.2
+      },
+      "gold": {
+        "ideal": 4428.0,
+        "unten": 3099.6,
+        "oben": 4870.8
+      }
+    },
+    {
+      "tag": 10,
+      "siedler": 1,
+      "gebaeude": 53,
+      "holz": {
+        "ideal": 7729.0,
+        "unten": 5410.3,
+        "oben": 8501.9
+      },
+      "stein": {
+        "ideal": 7337.0,
+        "unten": 5135.9,
+        "oben": 8070.7
+      },
+      "nahrung": {
+        "ideal": 7920.0,
+        "unten": 5544.0,
+        "oben": 8712.0
+      },
+      "gold": {
+        "ideal": 5076.0,
+        "unten": 3553.2,
+        "oben": 5583.6
+      }
+    },
+    {
+      "tag": 11,
+      "siedler": 1,
+      "gebaeude": 53,
+      "holz": {
+        "ideal": 8785.0,
+        "unten": 6149.5,
+        "oben": 9663.5
+      },
+      "stein": {
+        "ideal": 8297.0,
+        "unten": 5807.9,
+        "oben": 9126.7
+      },
+      "nahrung": {
+        "ideal": 8928.0,
+        "unten": 6249.6,
+        "oben": 9820.8
+      },
+      "gold": {
+        "ideal": 5724.0,
+        "unten": 4006.8,
+        "oben": 6296.4
+      }
+    },
+    {
+      "tag": 12,
+      "siedler": 1,
+      "gebaeude": 53,
+      "holz": {
+        "ideal": 9841.0,
+        "unten": 6888.7,
+        "oben": 10825.1
+      },
+      "stein": {
+        "ideal": 9257.0,
+        "unten": 6479.9,
+        "oben": 10182.7
+      },
+      "nahrung": {
+        "ideal": 9936.0,
+        "unten": 6955.2,
+        "oben": 10929.6
+      },
+      "gold": {
+        "ideal": 6372.0,
+        "unten": 4460.4,
+        "oben": 7009.2
+      }
+    },
+    {
+      "tag": 13,
+      "siedler": 1,
+      "gebaeude": 53,
+      "holz": {
+        "ideal": 10897.0,
+        "unten": 7627.9,
+        "oben": 11986.7
+      },
+      "stein": {
+        "ideal": 10217.0,
+        "unten": 7151.9,
+        "oben": 11238.7
+      },
+      "nahrung": {
+        "ideal": 10944.0,
+        "unten": 7660.8,
+        "oben": 12038.4
+      },
+      "gold": {
+        "ideal": 7020.0,
+        "unten": 4914.0,
+        "oben": 7722.0
+      }
+    },
+    {
+      "tag": 14,
+      "siedler": 1,
+      "gebaeude": 53,
+      "holz": {
+        "ideal": 11953.0,
+        "unten": 8367.1,
+        "oben": 13148.3
+      },
+      "stein": {
+        "ideal": 11177.0,
+        "unten": 7823.9,
+        "oben": 12294.7
+      },
+      "nahrung": {
+        "ideal": 11952.0,
+        "unten": 8366.4,
+        "oben": 13147.2
+      },
+      "gold": {
+        "ideal": 7668.0,
+        "unten": 5367.6,
+        "oben": 8434.8
+      }
+    },
+    {
+      "tag": 15,
+      "siedler": 1,
+      "gebaeude": 53,
+      "holz": {
+        "ideal": 13009.0,
+        "unten": 9106.3,
+        "oben": 14309.9
+      },
+      "stein": {
+        "ideal": 12137.0,
+        "unten": 8495.9,
+        "oben": 13350.7
+      },
+      "nahrung": {
+        "ideal": 12960.0,
+        "unten": 9072.0,
+        "oben": 14256.0
+      },
+      "gold": {
+        "ideal": 8316.0,
+        "unten": 5821.2,
+        "oben": 9147.6
+      }
+    },
+    {
+      "tag": 16,
+      "siedler": 1,
+      "gebaeude": 53,
+      "holz": {
+        "ideal": 14065.0,
+        "unten": 9845.5,
+        "oben": 15471.5
+      },
+      "stein": {
+        "ideal": 13097.0,
+        "unten": 9167.9,
+        "oben": 14406.7
+      },
+      "nahrung": {
+        "ideal": 13968.0,
+        "unten": 9777.6,
+        "oben": 15364.8
+      },
+      "gold": {
+        "ideal": 8964.0,
+        "unten": 6274.8,
+        "oben": 9860.4
+      }
+    },
+    {
+      "tag": 17,
+      "siedler": 1,
+      "gebaeude": 53,
+      "holz": {
+        "ideal": 15121.0,
+        "unten": 10584.7,
+        "oben": 16633.1
+      },
+      "stein": {
+        "ideal": 14057.0,
+        "unten": 9839.9,
+        "oben": 15462.7
+      },
+      "nahrung": {
+        "ideal": 14976.0,
+        "unten": 10483.2,
+        "oben": 16473.6
+      },
+      "gold": {
+        "ideal": 9612.0,
+        "unten": 6728.4,
+        "oben": 10573.2
+      }
+    },
+    {
+      "tag": 18,
+      "siedler": 1,
+      "gebaeude": 53,
+      "holz": {
+        "ideal": 16177.0,
+        "unten": 11323.9,
+        "oben": 17794.7
+      },
+      "stein": {
+        "ideal": 15017.0,
+        "unten": 10511.9,
+        "oben": 16518.7
+      },
+      "nahrung": {
+        "ideal": 15984.0,
+        "unten": 11188.8,
+        "oben": 17582.4
+      },
+      "gold": {
+        "ideal": 10260.0,
+        "unten": 7182.0,
+        "oben": 11286.0
+      }
+    },
+    {
+      "tag": 19,
+      "siedler": 1,
+      "gebaeude": 53,
+      "holz": {
+        "ideal": 17233.0,
+        "unten": 12063.1,
+        "oben": 18956.3
+      },
+      "stein": {
+        "ideal": 15977.0,
+        "unten": 11183.9,
+        "oben": 17574.7
+      },
+      "nahrung": {
+        "ideal": 16992.0,
+        "unten": 11894.4,
+        "oben": 18691.2
+      },
+      "gold": {
+        "ideal": 10908.0,
+        "unten": 7635.6,
+        "oben": 11998.8
+      }
+    },
+    {
+      "tag": 20,
+      "siedler": 1,
+      "gebaeude": 53,
+      "holz": {
+        "ideal": 18289.0,
+        "unten": 12802.3,
+        "oben": 20117.9
+      },
+      "stein": {
+        "ideal": 16937.0,
+        "unten": 11855.9,
+        "oben": 18630.7
+      },
+      "nahrung": {
+        "ideal": 18000.0,
+        "unten": 12600.0,
+        "oben": 19800.0
+      },
+      "gold": {
+        "ideal": 11556.0,
+        "unten": 8089.2,
+        "oben": 12711.6
+      }
+    }
+  ]
+}
