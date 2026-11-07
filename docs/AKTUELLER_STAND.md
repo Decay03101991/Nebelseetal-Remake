@@ -1,4 +1,4 @@
-# STAND 07.11.2026, 21:10 - Modellrunde 3 geprueft, sieben Befunde bestaetigt, F-21 = A
+# STAND 07.11.2026, 20:48 - Modellrunde 3 geprueft, sieben Befunde bestaetigt, F-21 = A
 
 > Neuester Block. Darunter 20:15 (B-2 Regelkreis, Register 296), 19:45 (KI-Auftrag Runde 3),
 > 18:20 (B-1 Sollkurve, Register 295).
@@ -23,7 +23,7 @@ Abweichung der 2009er Fassung begruendet.
 (`91a6525`), und ihr \"spielbar UNBEKANNT\" beschreibt die Sandbox ohne tkinter, nicht das Projekt (der
 Sammellauf lief hier 20:18 mit 192/194 gruen).
 
-**F-21 = A (Daniel 21:05):** R3-1 (A-1 Spieltag-Definition, 60 min) und R3-2 (I-1
+**F-21 = A (Daniel 20:50):** R3-1 (A-1 Spieltag-Definition, 60 min) und R3-2 (I-1
 Ereignis-Zuordnung, 30 min) laufen VOR Schritt 10, danach der Ablauf, danach R3-3 (C-6, I-10, C-4)
 und R3-4 (I-2).
 

@@ -363,7 +363,7 @@ echtes Ergebnis). Die Erweiterung ist ein eigener Schnitt nach den Schritten 10 
 gebaut, wenn die Politik in `data/` steht - sonst hätte der Vorschlag wieder eine zweite Wahrheit
 im Code (F-04-Muster).
 
-## Frage F-21 (07.11.2026, 21:05) - Reihenfolge nach der dritten Modellrunde
+## Frage F-21 (07.11.2026, 20:48) - Reihenfolge nach der dritten Modellrunde
 
 **Messlage:** Die Antwort von Claude Sonnet 5.5 ist als Lieferung unvollständig (keine Dateien, E/F/H
 unter Mindestumfang), als Befundsammlung brauchbar. Selbst nachgemessen und **bestätigt** sind sieben
@@ -386,7 +386,7 @@ Belege: `docs/audits/PRUEFVERMERK_CLAUDE_RUNDE3_20261107.md`.
 Regelkreis), und I-1 ist der sichtbarste Fehler im Spiel. R3-3 und R3-4 kosten zusammen 150 min und
 laufen nach dem Ablauf.
 
-**Antwort Daniel 07.11.2026, 21:05: A.** R3-1 (A-1 Spieltag-Definition) und R3-2 (I-1
+**Antwort Daniel 07.11.2026, 20:50: A.** R3-1 (A-1 Spieltag-Definition) und R3-2 (I-1
 Ereignis-Zuordnung) laufen VOR Schritt 10, danach der Ablauf (10 bis 13), danach R3-3 (C-6, I-10, C-4)
 und R3-4 (I-2). Jeder dieser Schnitte bekommt seine eigene Wache, einen Registereintrag, eine
 Protokollzeile und einen vollen Sammellauf.
