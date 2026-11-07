@@ -251,6 +251,19 @@ def bot_uebersicht(bot: dict) -> dict:
 
 # ------------------------------------------------------------------ 3. Handelspreis
 
+# W5: Grundlage des Handels-Schwellenpreises. Der BELEGTE Preis ist der des Kaempfers im Handbuch
+# (1 Siedler + 250 Gold, docs/original/ORIGINAL_Einheiten_Waren_Rohstoffe.md Zeile 32); daraus wird
+# der Referenzpreis 250 x 1,2 = 300 (VORSCHLAG der Wahl). Der Wert steht seit dem 07.11.2026 HIER,
+# weil ihn zwei Schichten brauchen: die App (`src/main.py`, `BOT_BESCHAFFUNGSKOSTEN`) und die
+# Messschicht (`src/spielschicht.py`) - vorher stand die Zahl nur in `main.py`, und die Messschicht
+# haette eine zweite abschreiben muessen (F-04).
+# HINWEIS (offen, Frage F-13): Daniels Entscheidung vom 05.11.2026 senkt die Goldkosten der
+# Militaereinheiten um 30 % (Register 225), die Daten fuehren den Kaempfer deshalb mit 175 Gold.
+# Hier bleibt der Handbuchwert 250 stehen, damit sich der Schwellenpreis im Spiel nicht still
+# aendert - ob er mitgeht, entscheidet Daniel.
+BESCHAFFUNGSKOSTEN = 250.0
+
+
 def referenzpreis_aus_beschaffung(beschaffungskosten: float) -> float:
     """Der belegte Referenzpreis: Beschaffungskosten x 1,2 (ENTWURF_AUFTRAEGE.md)."""
     return round(_zahl(beschaffungskosten, 0.0) * HANDEL_AUFSCHLAG, 2)

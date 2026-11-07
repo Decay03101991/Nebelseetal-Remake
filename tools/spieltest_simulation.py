@@ -46,7 +46,7 @@ SCHRITT = 1200                      # 20 Spielminuten je Schritt
 # (sonst keine Forschung) -> Forschung Baukunst -> Goldmine/Farm/Kriegerakademie.
 # Die Bibliothek gehoert deshalb nach vorn, nicht ans Ende.
 GEBAEUDE_REIHENFOLGE = ("holzfäller", "bibliothek", "farm", "goldmine", "kriegerakademie",
-                        "schafszucht", "stellmacher", "steinmetz", "erzmine", "jaeger",
+                        "schafszucht", "pferdezucht", "stellmacher", "steinmetz", "erzmine", "jaeger",
                         "schmiede", "naehstube", "haus")
 # Befund 05.11.2026: der frueher letzte Eintrag hiess "wohnhaus" - `gelaende.finde_gebaeude`
 # kennt nur "haus" und gab None zurueck, das Haus wurde also NIE gebaut (stiller Fehler).
@@ -61,15 +61,15 @@ GEBAEUDE_REIHENFOLGE = ("holzfäller", "bibliothek", "farm", "goldmine", "kriege
 STILE = {
     "breit": {
         "kette": GEBAEUDE_REIHENFOLGE,
-        "ziele": (("Bürgerwehr", 2), ("Kämpfer", 2), ("Handkarren", 1)),
+        "ziele": (("Bürgerwehr", 2), ("Kämpfer", 2), ("Handkarren", 1), ("Handelskarawane", 1)),
         "angriff_ab": 2.0,
         "angriff_abstand": 2.0,
     },
     "krieg": {
         "kette": ("holzfäller", "bibliothek", "goldmine", "schmiede", "naehstube",
                   "kriegerakademie", "stellmacher", "farm", "erzmine", "schafszucht",
-                  "steinmetz", "jaeger", "haus"),
-        "ziele": (("Kämpfer", 4), ("Bürgerwehr", 2), ("Handkarren", 1)),
+                  "pferdezucht", "steinmetz", "jaeger", "haus"),
+        "ziele": (("Kämpfer", 4), ("Bürgerwehr", 2), ("Handkarren", 1), ("Handelskarawane", 1)),
         "angriff_ab": 2.0,
         "angriff_abstand": 1.0,
     },
@@ -139,8 +139,11 @@ def _notiere_fehler(log: dict, art: str, grund: str) -> None:
     eintrag[schluessel] = eintrag.get(schluessel, 0) + 1
 
 
+# S4-6c (07.11.2026): `Wagenbau` steht VOR den Wirtschaftsgebieten, weil die Handelskarawane
+# Wagenbau Stufe 2 verlangt - ohne diese Forschung entsteht nie ein Handel und das Kennzahlenblatt
+# kann die Handelspunkte nicht zeigen.
 FORSCHUNGSZIELE = (("Schmiedekunst", 1), ("Waffentechnik", 3), ("Nähen", 1), ("Nähkunst", 1),
-                   ("Rüstungsbau", 2), ("Felderwirtschaft", 2), ("Kriegskunst", 2),
+                   ("Rüstungsbau", 2), ("Wagenbau", 2), ("Felderwirtschaft", 2), ("Kriegskunst", 2),
                    ("Baukunst", 2), ("Verteidigungsanlagen", 2))
 
 
@@ -234,7 +237,7 @@ def spielen(tage: float, saat: int = 7, stil: str = "breit") -> dict:
     # Daniel 05.11.2026: ein gescheiterter Schritt beendet den Lauf NICHT. Jede Stelle, an der
     # etwas uebersprungen werden musste, landet mit Tag, Stelle und Grund in `uebersprungen`.
     log = {"schritte": [], "ereignisse": [], "bauten": [], "forschungen": [],
-           "ausbildung": [], "kaempfe": [], "uebersprungen": [], "fehlschlaege": {},
+           "ausbildung": [], "kaempfe": [], "handel": [], "uebersprungen": [], "fehlschlaege": {},
            "meilensteine": {}, "ausgaben": {}, "leerlauf_schritte": 0,
            "_letzter_tag": -1, "_tick_fehler_folge": 0}
     ziel_tag = tage * SPIELTAG
@@ -391,6 +394,29 @@ def spielen(tage: float, saat: int = 7, stil: str = "breit") -> dict:
                     else:
                         _notiere_fehler(log, "ware", f"{ware}: {text_w}")
                     break                       # eine Ware je Einheit und Schritt
+
+        # Handel (Ablauf Schritt 6c, 07.11.2026): einen Ueberschuss an einen fremden Haendler
+        # verkaufen, sobald eine HANDELSKARAWANE im Reichsheer steht und der Partner noch Gold hat.
+        # Der Verkauf laeuft ueber die Messschicht (`spielschicht.verkauf_an_haendler`) und damit
+        # ueber DENSELBEN Kern wie das Spiel; Preis, Sperre und Buchung werden hier nicht
+        # nachgerechnet. Ohne Karawane oder ohne Gold des Partners wird gar nicht erst gefragt -
+        # sonst fuellte sich `fehlschlaege` mit 1.200 gleichen Zeilen.
+        if (any("Handelskarawane" in str(n) and int(a or 0) > 0
+                for n, a in (zustand.get("einheiten") or {}).items())
+                and float(zustand.get("haendler_gold") or 0.0) > 0.0):
+            ok_h, ergebnis_h = _versuch(S.verkauf_an_haendler, zustand, jetzt)
+            if ok_h and isinstance(ergebnis_h, dict):
+                log["handel"].append({"tag": round(jetzt / SPIELTAG, 2),
+                                      "ware": ergebnis_h.get("ware"),
+                                      "menge": ergebnis_h.get("menge"),
+                                      "preis": ergebnis_h.get("preis"),
+                                      "erloes": ergebnis_h.get("erloes")})
+                log["ereignisse"].append(
+                    f"{jetzt / SPIELTAG:.2f} Handel: {ergebnis_h.get('meldung')}")
+                erfolg = True                   # dieser Schritt hat gehandelt
+            else:
+                _notiere_fehler(log, "handel", str((ergebnis_h or {}).get("grund")
+                                                   if isinstance(ergebnis_h, dict) else ergebnis_h))
 
         # Angriffe: der erste ab Spieltag 2, sobald Kaempfer dastehen; danach hoechstens alle
         # `angriff_abstand` Spieltage ein weiterer. Daniel 05.11.2026: ein Angriff OHNE Karren ist

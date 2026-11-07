@@ -36,6 +36,8 @@ import os
 from functools import lru_cache
 from typing import Any, Dict, List, Optional, Tuple
 
+import auftraege  # S4-6c: Handelskarawanen und Karrenladung (Kern-Auftraege)
+import botkern   # S4-6c: die EINE Preisfunktion (Handelspreis, Beschaffungskosten)
 import einheiten
 import forschung
 import gebaeude_wirkung as GW
@@ -202,6 +204,9 @@ def neuer_zustand(saat: int = START_SAAT) -> dict:
         "eigene_dimension": 0,
         "letzter_wechsel": None,
         "ereignisse": [],
+        "handels_erloes": 0.0,   # S4-6c: Summe des Handels-Erloeses (0.0 = nie gehandelt)
+        "letzter_handel": 0.0,   # S4-6c: Spielzeit der letzten Annahme (0.0 = nie)
+        "haendler_gold": float(_handelsregel("haendler_gold", 10000.0)),  # S4-6c: Gold des Handelspartners
     }
 
 
@@ -635,6 +640,180 @@ def angriff(zustand: dict, ziel: dict, jetzt: float,
     _melde(zustand, f"{ber['titel']} -- Beute: {beute_text}.", "kampf", jetzt)
     return True, {"bestanden": True, "vorrunde": vor, "mauer_schaden": schaden,
                   "beute": beute, "bericht": ber, "ergebnis": ergebnis}
+
+
+# --------------------------------------------------------------------------
+# Handel mit einem fremden Haendler (S4-6c, 07.11.2026, Register 292)
+# --------------------------------------------------------------------------
+# Die Messschicht hatte BISHER weder Handel noch Bots: das Kennzahlenblatt zeigte `handelspunkte`
+# als `null`, weil der Zaehler `handels_erloes` im Spielstand nie entstand. Diese Funktion
+# schliesst die Luecke - sie benutzt DEN KERN (`spieloekonomie.handel_start` mit
+# `karawane_seite="verkaeufer"` und `spieloekonomie.handel_abschluss`) und baut KEINE zweite
+# Preisrechnung: der Preis kommt aus `botkern.handelspreis`, also derselben Funktion wie im Spiel.
+# Der Spieler VERKAUFT, der fremde Haendler KAUFT und zahlt - die Richtung hat Daniel am
+# 07.11.2026 mit Antwort A auf Frage F-12 entschieden (der Erloes gehoert dem Verkaeufer).
+#
+# VEREINFACHUNG der Messschicht (bewusst, nicht im Spiel): es gibt keinen Bot mit eigener
+# Wirtschaft. Der Haendler ist darum ein Handelspartner mit einem festen Goldvorrat
+# (`data/handelsmessung.json`) und einem festen Abstand; er nimmt an, weil der Kern beim Verkauf
+# den Verkaeufer (den Spieler) annehmen laesst. Ankunft und Rueckkehr werden SOFORT abgerechnet -
+# die Reisezeit steht im Vertrag und im Zeitstempel, aber der Lauf wartet nicht auf sie. Das ist
+# der einzige Unterschied zum App-Weg; gebucht wird nach DENSELBEN Regeln (`abgerechnet` genau
+# einmal, `erloes` auf den Verkaeufer).
+
+@lru_cache(maxsize=1)
+def _handelsregeln() -> Dict[str, Any]:
+    """Die Regeln der Messschicht aus ``data/handelsmessung.json`` (fehlt die Datei: leeres dict)."""
+    pfad = os.path.join(spieldaten.projektwurzel(), "data", "handelsmessung.json")
+    try:
+        with open(pfad, encoding="utf-8") as f:
+            daten = json.load(f)
+    except (OSError, ValueError):
+        return {}
+    return daten if isinstance(daten, dict) else {}
+
+
+def _handelsregel(name: str, vorgabe):
+    """EIN Regelwert - fehlt er in der Datei, gilt die Vorgabe aus dem Code (nie raten)."""
+    wert = _handelsregeln().get(name, vorgabe)
+    return vorgabe if wert is None else wert
+
+
+def _schwellenpreis() -> float:
+    """Der Handels-Schwellenpreis JE EINHEIT - ``botkern.handelspreis``, Temperament 0,0.
+
+    Kein zweiter Preisweg und keine abgeschriebene Zahl: die Beschaffungskosten stehen als
+    ``botkern.BESCHAFFUNGSKOSTEN`` an EINER Stelle (dieselbe, die das Spiel liest), und
+    `referenzpreis_aus_beschaffung`/`handelspreis` sind die belegten Funktionen dazu.
+    """
+    referenz = botkern.referenzpreis_aus_beschaffung(botkern.BESCHAFFUNGSKOSTEN)
+    return float(botkern.handelspreis(referenz, 0.0))
+
+
+def _handels_felder(zustand: dict) -> None:
+    """Zieht die Handelsfelder in einen ALTEN Stand nach (Ladewache, idempotent).
+
+    Ein Spielstand von vor dem 07.11.2026 traegt die Felder nicht; ohne sie muesste jede
+    Lesestelle `get` mit Vorgabe rufen. `letzter_handel = 0.0` heisst NIE gehandelt (dieselbe
+    Lesart wie im App-Spielstand).
+    """
+    if not isinstance(zustand, dict):
+        return
+    zustand.setdefault("handels_erloes", 0.0)
+    zustand.setdefault("letzter_handel", 0.0)
+    if "haendler_gold" not in zustand:                          # alter Stand: frischer Partner
+        zustand["haendler_gold"] = float(_handelsregel("haendler_gold", 10000.0))
+
+
+def _karawanen(zustand: dict) -> Dict[str, int]:
+    """Die Handelskarawanen im Reichsheer als ``{Name: Anzahl}`` (nur diese duerfen handeln)."""
+    return {str(n): int(a) for n, a in (zustand.get("einheiten") or {}).items()
+            if int(a or 0) > 0 and "Handelskarawane" in str(n)}
+
+
+def _spieler_ort(zustand: dict) -> dict:
+    """Der eigene Ort als dict, wie ihn ``spieloekonomie.handel_start`` erwartet.
+
+    Die Messschicht kennt keine Ortslager: das Reichslager IST das Lager des Ortes. `importiert`
+    bleibt leer - die Messschicht fuehrt keine Importherkunft, und der Kern liest sie mit `get`.
+    """
+    return {
+        "id": "spieler",                                       # Kennung in den `orte` des Kerns
+        "besitzer": "spieler",                                  # eigener Besitz
+        "dimension": int(zustand.get("eigene_dimension", 0) or 0),   # gleiche Weltkarte
+        "x": 0,                                                 # Messschicht ohne Koordinaten
+        "y": 0,                                                 # Messschicht ohne Koordinaten
+        "vorraete": dict(zustand.get("ressourcen") or {}),      # das Reichslager
+        "waren": dict(zustand.get("waren") or {}),              # Fertigwaren
+        "importiert": {},                                       # keine Importherkunft
+        "einheiten": dict(zustand.get("einheiten") or {}),      # das Reichsheer
+    }
+
+
+def _haendler_ort(zustand: dict, gold: float) -> dict:
+    """Der fremde Haendler als dict - festes Gold, keine Einheiten, kein Lager."""
+    return {
+        "id": "haendler",                                       # Kennung in den `orte` des Kerns
+        "besitzer": "fremd",                                    # fremder Besitz (Kern verlangt das)
+        "dimension": int(zustand.get("eigene_dimension", 0) or 0),   # gleiche Weltkarte
+        "x": int(_handelsregel("abstand_felder", 6)),           # Abstand -> Reisezeit
+        "y": 0,                                                 # Messschicht ohne Koordinaten
+        "vorraete": {"gold": float(gold)},                      # sein Gold ist die Gegenleistung
+        "waren": {},                                            # er verkauft nichts
+        "importiert": {},                                       # keine Importherkunft
+        "einheiten": {},                                        # er faehrt nicht selbst
+    }
+
+
+def verkauf_an_haendler(zustand: dict, jetzt: float) -> Tuple[bool, dict]:
+    """Einen UEBERSCHUSS an einen fremden Haendler verkaufen - der Handels-Schritt der Messschicht.
+
+    Ablauf (alles ueber den Kern, nichts nachgebaut):
+
+    1. Ohne Handelskarawane gibt es keinen Handel (belegte Regel: nur Handelskarawanen handeln).
+    2. Verkauft wird der Rohstoff mit dem groessten Ueberschuss ueber dem Mindestvorrat; Gold
+       selbst nie (es ist die Gegenleistung).
+    3. Die Menge ist begrenzt durch Ueberschuss, Karrenladung und das Gold des Haendlers.
+    4. ``spieloekonomie.handel_start`` sperrt Ware und Gold; ``handel_abschluss`` bucht Ankunft
+       (Gold fliesst) und Rueckkehr (Karre heim) - hier sofort, siehe Vereinfachung oben.
+    5. Gebucht wird ``handels_erloes`` und ``letzter_handel`` GENAU EINMAL je Vertrag, nach
+       denselben Regeln wie im App-Weg (`_fremdvertrag_buchen`).
+
+    Rueckgabe ``(ok, {ware, menge, preis, erloes, karawane, ankunft, meldung})``. Bei ``ok=False``
+    bleibt der Zustand unveraendert und ``grund`` nennt den Grund.
+    """
+    _handels_felder(zustand)                                   # alte Staende nachziehen
+    karawanen = _karawanen(zustand)                             # nur Handelskarawanen handeln
+    if not karawanen:
+        return False, {"grund": "Keine Handelskarawane im Reichsheer."}
+    bestand = zustand.get("ressourcen") or {}                   # das Reichslager
+    mindest = float(_handelsregel("mindestvorrat", 200))         # was im Lager bleiben soll
+    ueber = {str(r): float(m) - mindest for r, m in bestand.items()
+             if str(r) in _rohstoff_ids() and str(r) != "gold" and float(m) - mindest >= 1.0}
+    if not ueber:                                               # nichts ueber dem Mindestvorrat
+        return False, {"grund": "Kein Rohstoff über dem Mindestvorrat."}
+    ware = max(ueber, key=lambda r: ueber[r])                    # groesster Ueberschuss zuerst
+    preis = _schwellenpreis()                                    # EINE Preisfunktion
+    if preis <= 0:                                               # ohne Preis kein Handel
+        return False, {"grund": "Kein Schwellenpreis verfügbar."}
+    gold = float(zustand.get("haendler_gold") or 0.0)             # Gold des Handelspartners
+    if gold <= 0.0:                                               # er ist leergekauft
+        return False, {"grund": "Der Handelshaushalt ist leer."}
+    ladung = int(auftraege.ladung_der_mission(karawanen, _forschungsstaende(zustand)))
+    menge = int(min(ueber[ware], float(ladung), gold // preis))
+    if menge < 1:                                                # Ueberschuss oder Gold zu klein
+        return False, {"grund": "Menge unter 1: Überschuss oder Gold des Händlers zu klein."}
+    verkaeufer = _spieler_ort(zustand)                            # der Spieler verkauft
+    kaeufer = _haendler_ort(zustand, gold)                        # der Haendler kauft
+    try:                                                          # der KERN entscheidet und sperrt
+        kaeufer_neu, verkaeufer_neu, vertrag = spieloekonomie.handel_start(
+            kaeufer, verkaeufer, karawanen, ware, menge, preis, "vorraete", float(jetzt),
+            forschung=_forschungsstaende(zustand), karawane_seite="verkaeufer")
+    except ValueError as fehler:                                  # Grund aus dem Kern, nichts gebucht
+        return False, {"grund": str(fehler)}
+    vertrag["richtung"] = "verkauf"                               # Buchstelle erkennt die Richtung
+    vertrag["von"] = "Heimsiedlung"                               # Absender (Meldung)
+    vertrag["nach"] = "Fremder Händler"                           # Empfaenger (Meldung)
+    orte = {"spieler": verkaeufer_neu, "haendler": kaeufer_neu}   # beide Seiten fuer den Abschluss
+    neu, m = spieloekonomie.handel_abschluss(vertrag, orte, float(vertrag["ankunft"]))
+    neu, m = spieloekonomie.handel_abschluss(m, neu, float(m["rueckkehr"]))
+    spieler_neu = (neu or {}).get("spieler") or verkaeufer_neu    # Ergebnis des Spielerorts
+    zustand["ressourcen"] = dict(spieler_neu.get("vorraete") or {})   # Lager zurueckschreiben
+    zustand["waren"] = dict(spieler_neu.get("waren") or {})           # Waren zurueckschreiben
+    zustand["einheiten"] = dict(spieler_neu.get("einheiten") or {})   # Karre ist heim
+    zustand["haendler_gold"] = float((kaeufer_neu.get("vorraete") or {}).get("gold") or 0.0)
+    erloes = float(m.get("erloes") or 0.0)                        # Einnahme des Verkaeufers
+    gebucht = False                                               # wurde der Zaehler erhoeht
+    if m.get("abgerechnet") and m.get("angenommen") and erloes > 0.0:
+        zustand["handels_erloes"] = float(zustand.get("handels_erloes") or 0.0) + erloes
+        zustand["letzter_handel"] = float(m.get("ankunft") or jetzt)
+        gebucht = True
+    meldung = (f"{menge}x {str(ware).capitalize()} an einen fremden Händler verkauft: "
+               f"{erloes:g} Gold eingenommen ({preis:g} je Stück).")
+    _melde(zustand, meldung, "handel", jetzt)                     # Ereignis fuer die Nachrichten
+    return True, {"ware": ware, "menge": menge, "preis": preis, "erloes": erloes,
+                  "karawane": dict(karawanen), "ankunft": float(m.get("ankunft") or jetzt),
+                  "gebucht": gebucht, "meldung": meldung}
 
 
 # --------------------------------------------------------------------------

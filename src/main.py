@@ -3420,7 +3420,9 @@ def bot_takt_punkte(ab: float, bis: float, takt: float = BOT_TAKT_SEKUNDEN) -> L
 # W5: Grundlage des Handels-Schwellenpreises. Das Handbuch nennt keinen Warenpreis; die einzige
 # BELEGTE Preistafel im Projekt ist der Einheitenpreis (`data/units.json`). Genommen wird der
 # Kaempfer (1 Siedler + 250 Gold) -> Referenzpreis 250 x 1,2 = 300 (VORSCHLAG der Wahl).
-BOT_BESCHAFFUNGSKOSTEN = 250.0
+# Seit 07.11.2026 steht der Wert in `src/botkern.py`, weil ihn auch die Messschicht braucht
+# (`src/spielschicht.py`); hier bleibt der Name fuer die vorhandenen Aufrufer und Wachen.
+BOT_BESCHAFFUNGSKOSTEN = botkern.BESCHAFFUNGSKOSTEN
 MENU_ITEMS = [
     "Dorfzentrum", "Lager", "Kaserne", "Marktplatz", "Gilde", "Nachrichten",
     "Portal", "Forschung", "Diplomatie", "Einstellungen",
@@ -9154,7 +9156,8 @@ class NebelseetalApp:
             # S4-6 (06.11.2026): der SCHLUESSEL heisst 'Haendler' (ASCII - so liefert ihn
             # punkte.auszeichnungen); die ANZEIGE schreibt Händler. Vorher stand hier der
             # Umlaut als Schluessel - damit war der Haendler-Wert IMMER der Standard 0.
-            vier.config(text=f"Händler {werte.get('Haendler', 0):g} · Gesamt {werte.get('Gesamtherrscher', 0)}")
+            vier.config(text=f"Händler {werte.get('Haendler', 0):g} · Gesamt {werte.get('Gesamtherrscher', 0)}")
+
         except Exception:
             pass
 

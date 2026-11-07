@@ -1,0 +1,8 @@
+{
+  "_hinweis": "Regeln der MESSSCHICHT fuer den Handel (Ablauf Schritt 6c, 07.11.2026, Register 292). Diese Datei liest ausschliesslich src/spielschicht.py - das Spiel selbst (src/main.py) benutzt sie NICHT und braucht sie auch nicht.",
+  "_herkunft": "VORSCHLAG, jede Zahl mit ihrer Herleitung: haendler_gold 10000 ist aus der GEMESSENEN Spanne echter Bots an Spieltag 10 gewaehlt (3.002 bis 18.052 Gold, gemessen 07.11.2026 in der App); mindestvorrat 200 und abstand_felder 6 sind VORSCHLAG ohne Quelle - das Handbuch nennt weder Mindestbestand noch Entfernung fuer den Handel. Die Preisfunktion steht NICHT hier: sie kommt aus botkern.handelspreis (EINE Preisfunktion, keine zweite Preistafel).",
+  "stand": "2026-11-07",
+  "haendler_gold": 10000.0,
+  "mindestvorrat": 200,
+  "abstand_felder": 6
+}

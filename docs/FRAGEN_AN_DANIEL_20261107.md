@@ -227,3 +227,32 @@ bekaeme den Haendler-Titel fuer Einkaufen.
 | Frage | Antwort Daniels | Folge |
 |---|---|---|
 | F-12 | **A - Verkaufsrichtung bauen** (6a Felder/Anzeige, 6b Verkauf im Kern, 6c Handel in der Spielschicht). | Der Spieler verkauft eigene Ware an einen Bot; der Bot zahlt aus seinem Gold, die eigene Karawane faehrt (`karawane_seite="verkaeufer"` im Kern). Gebucht wird `erloes` (echtes Einkommen) genau einmal in `_fremdvertrag_buchen`. **Kein** Punkt fuer gekaufte Ware - das waere die Abweichung B gewesen und ist damit abgelehnt. 6a und 6b sind gebaut (Register 290), 6c (Handel in der Spielschicht, damit das Kennzahlenblatt die Zahl zeigt) steht noch offen, ebenso der Knopf in der Handelsmaske. |
+
+## Frage F-13 (07.11.2026, 12:10) - Preisfunktion des Handels gegen das Punktesystem
+
+**Messlage:** Der Handels-Schwellenpreis ist `botkern.referenzpreis_aus_beschaffung(250) x 1,0` =
+**300 Gold je Einheit** (Temperament 0,0). Die 250 sind der Handbuchpreis des Kaempfers
+(`docs/original/ORIGINAL_Einheiten_Waren_Rohstoffe.md` Zeile 32: 1 Siedler, 250 Gold). Die Daten
+fuehren den Kaempfer seit Daniels Entscheidung vom 05.11.2026 (Goldkosten der Militaereinheiten
+30 Prozent runter, Register 225) mit **175 Gold**. Gemessen im echten Spiel am 07.11.2026: ein Bot
+hat an Spieltag 1 zwischen 357 und 1.027 Gold, an Spieltag 10 zwischen 3.002 und 18.052.
+`punkte.handelspunkte` gibt 1 Punkt je 100 Gold. Ein einziger Verkauf von 33 Einheiten Holz bringt
+deshalb 9.900 Gold und **95 Handelspunkte** - der ganze uebrige Lauf kommt auf 42 Gesamtpunkte.
+
+**Frage:** Soll der Schwellenpreis bei 300 Gold je Einheit bleiben, oder mit den gesenkten
+Einheitenpreisen mitgehen?
+
+- **A (Empfehlung, kleinster Schnitt) - bleibt 300, der Handel ist bewusst stark.** Kein Code, kein
+  neuer Sammellauf; der Befund steht im Register. Folge: der Haendler-Titel ist mit einem Handel
+  erreichbar, das Kennzahlenblatt zeigt grosse Handelspunkte neben kleinen Gesamtpunkten.
+- **B - Schwellenpreis auf den Datenpreis umstellen (175 -> 210 Gold).** Eine Zeile in
+  `botkern.BESCHAFFUNGSKOSTEN`, danach Sammellauf. Folge: 33 Einheiten bringen 6.930 Gold und
+  69 Punkte; der Handel bleibt dominant, aber weniger.
+- **C - Preise je Rohstoff trennen (eigener Schnitt, mehrere Stunden).** Der Handel bekommt eine
+  Preistafel je Rohstoff statt eines Einheitspreises. Folge: echte Knappheitspreise, aber eine neue
+  Datendatei, eine neue Wache und ein eigener Sammellauf; ohne Quelle sind alle Zahlen VORSCHLAG.
+
+**Auswirkung:** A kostet nichts und aendert kein Verhalten. B aendert den Preis IM SPIEL (auch fuer
+den Bot-Kauf), braucht einen Sammellauf und ist eine Balancing-Entscheidung. C ist der saubere Weg,
+aber ein eigener Schnitt.
+

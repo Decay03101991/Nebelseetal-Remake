@@ -1,3 +1,35 @@
+# STAND 07.11.2026, 12:10 - Handel in der Spielschicht gebaut, Kennzahlenblatt zeigt eine Zahl (Register 292)
+
+> Neuester Block. Register 292. Darunter 291 (Verkaufsmaske), 290 (Verkaufsrichtung im Kern),
+> 289 (Befund G-8), 288 (Ereignisse), 287 (Startbilder), 286 (Rachetopf), 285 (S4-3).
+
+**Schritt 6 ist komplett.** Die Messschicht (`src/spielschicht.py`) hat jetzt einen Handelsweg:
+`verkauf_an_haendler` verkauft den Ueberschuss eines Rohstoffs an einen fremden Haendler. Alles ueber
+den Kern - `spieloekonomie.handel_start` mit `karawane_seite="verkaeufer"`, danach
+`spieloekonomie.handel_abschluss` fuer Ankunft und Rueckkehr -, der Preis aus `botkern.handelspreis`.
+Gebucht werden `handels_erloes` und `letzter_handel` genau einmal je Vertrag.
+
+**Gemessen, nicht behauptet:** eine Wache mit 34 Pruefungen (`tests/test_handel_spielschicht.py`,
+**34/0/0**) belegt Buchung, Ladewache fuer alte Staende, Ablehnungen, fehlende Doppelbuchung und dass
+die Schwelle der Messschicht die Schwelle des Spiels ist. Zehn Laeufe (5 Startwerte x 2 Stile) ueber
+20 Spieltage: **10 von 10 zeigen `handelspunkte` 95,0** - das Fertig-Kriterium des Ablaufs ist damit
+erfuellt. Ueber 12 Spieltage sind es **0 von 10**: die Handelskarawane kostet 500 Holz und 15 Pferde
+und entsteht erst um Spieltag 17. Das ist kein Fehler, sondern die Dauer der Kette.
+
+**Zwei Sachen, die dabei sauber geworden sind:** der Beschaffungswert des Handelspreises steht jetzt
+in `botkern.BESCHAFFUNGSKOSTEN`, `main.py` liest ihn von dort - App und Messschicht fuehren keine
+zwei Zahlen mehr. Und die Regeln der Messschicht (Gold des Partners, Mindestvorrat, Abstand) stehen
+in `data/handelsmessung.json` statt im Code.
+
+**Offene Frage an Daniel (F-13, `docs/FRAGEN_AN_DANIEL_20261107.md`):** die Preisfunktion belegt jede
+Einheit Rohstoff mit 300 Gold. Ein einziger Handel bringt damit 95 Handelspunkte - mehr als der ganze
+uebrige Lauf (42 Gesamtpunkte). Das ist eine Balance-Frage, keine Rechenfrage; der Wert bleibt
+zunaechst, wie er ist.
+
+**Naechster Schritt:** Schritt 7 des Ablaufs (Bot-Luecken: Drache, Spionage, Reaktion), danach 8 bis
+13. Arbeitsweise unveraendert: je Schnitt Register, Protokollzeile, Stand-Block, Commit, Push und ein
+voller Sammellauf.
+
 # STAND 07.11.2026, 01:35 - Verkauf steht in der Oberflaeche, Kennzahl fehlt noch (Register 291)
 
 > Neuester Block. Register 291. Darunter 290 (Verkaufsrichtung im Kern), 289 (Befund G-8),
