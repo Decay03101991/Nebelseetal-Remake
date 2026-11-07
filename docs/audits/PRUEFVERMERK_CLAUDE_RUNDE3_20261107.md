@@ -1,7 +1,8 @@
 # Prüfvermerk: Claude Sonnet 5.5, Runde 3 (07.11.2026)
 
-Quelle: `C:\Users\saras\Desktop\Claude_Sonnet_Antwort_Runde3.txt` (Daniel hat sie am 07.11.2026
-abends zugestellt; Ablage unter `docs/extern/`). Auftrag war
+Quelle: `C:\Users\saras\Desktop\Claude_Sonnet_Antwort_Runde3.txt` **die Datei hat Daniel selbst angelegt**, weil das Modell die Sitzung beendet
+und nur Text im Chat hinterlassen hat (bestaetigt 07.11.2026, 21:15; Ablage unter
+`docs/extern/`). Auftrag war
 `docs/extern/Nebelseetal_LLM_Auftrag_Runde3_20261107.md`.
 
 **Was geliefert wurde:** keine Dateien. Die Antwort sagt selbst, das Werkzeuglimit sei vor dem
@@ -54,6 +55,14 @@ Sie nennt selbst, was sie nicht gelesen hat (Story-Bibel, Gesamtkonzept, Vorgabe
 `FRAGEN_AN_DANIEL`, die `ORIGINAL_*`-Dokumente, `tools/`, den Großteil von `src/` und `tests/`) und
 markiert geschätzte Zeilennummern mit „ca.“. Zehn Punkte stehen unter „wo ich unsicher bin“. Das ist
 die Form, die der Auftrag verlangt hat — nur der Lieferumfang fehlt.
+
+
+
+**Lehre fuer Runde 4 (von Daniel bestaetigt):** der Auftrag muss verlangen, dass die Antwort
+auch dann als DATEI entsteht, wenn die Sitzung frueher endet - also in mehreren kleineren
+Antworten mit Zwischenablage, statt alles am Ende schreiben zu wollen. Sonst legt der
+Empfaenger die Datei selbst an, und die Abgabe ist nicht mehr maschinell pruefbar. Kosten
+dieses Laufs: **0 USD** (Daniels kostenloses Versuchsguthaben bei Claude).
 
 ## 4. Vorschlag für die Reihenfolge (Frage F-21 an Daniel)
 
