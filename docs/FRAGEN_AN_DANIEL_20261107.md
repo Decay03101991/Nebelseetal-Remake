@@ -340,3 +340,15 @@ Datendatei `data/resources.json` nennt 3. Beide Zahlen stehen im Projekt; welche
 gilt, entscheidet die Datendatei (dort steht die Quelle) - der Unterschied ist notiert, nicht
 geglaettet.
 
+
+## Nachtrag 07.11.2026, 19:00 - Antworten der zweiten Runde (Daniel, im Chat)
+
+| Nr | Frage | Antwort | Folge |
+|---|---|---|---|
+| F-16 | Sollkurve: Obergrenze oder gedrosselt? | **A - Obergrenze bleibt, so benannt.** | Kein Code. B-2 vergleicht nur die VERAENDERUNG zwischen zwei Versionen (gleicher Idealplan, A/B); die Kennzahlen aus echten Laeufen bleiben die zweite, ehrlichere Messung. `data/sollkurve.json` traegt den Satz schon im Feld `zweck`. |
+| F-17 | Ab welcher Verbesserung gilt eine Balance-Aenderung als angenommen? | **A - 20 Prozent Verbesserung, hoechstens 10 Prozent Schrittweite, 3 gleiche Meldungen.** | Wird in Schritt 9 (B-2) so gebaut: die drei Zahlen stehen in einer Datendatei (`data/regelkreis.json`, VORSCHLAG) und nicht im Code. |
+| F-19 | Womit laeuft der neue KI-Auftrag (Schritt L, Runde 3)? | **Paket fuer Claude Sonnet 5.5, deutlich umfangreicher als Runde 2 - "richtig viel erarbeiten".** Der Lauf kostet nichts (frisch angemeldet, Testlauf frei). | Der Auftrag wird als eigene Datei mit Datum gebaut (die geschuetzte `Nebelseetal_LLM_Auftrag_20261106.md` bleibt unberuehrt), mit Dossier, Ablauf, Stand des Codes, Prueffragen und Ablagehinweisen; hoechstens 8 MB je ZIP, Dateien direkt angehaengt. **Erste Aufgabe der Sitzung 14** (Abhaengigkeit ist Schritt 3, der steht). |
+
+**Was aus diesen Antworten folgt:** F-16 und F-17 sind Vorgaben fuer Schritt 9; F-19 ist eine eigene
+Aufgabe (Schritt L), die VOR den Schritten 9 bis 13 laufen kann, weil sie nur vom Ablauf selbst abhaengt.
+

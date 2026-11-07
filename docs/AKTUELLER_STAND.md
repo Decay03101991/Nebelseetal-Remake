@@ -1,3 +1,31 @@
+# STAND 07.11.2026, 19:45 - KI-Auftrag Runde 3 fuer Claude Sonnet 5.5 fertig (Schritt L)
+
+> Neuester Block. Darunter 18:20 (B-1 Sollkurve, Register 295), 17:45 (F-14 = B, Register 294),
+> 15:07 (Bot-Luecken S4-7, Register 293).
+
+**Schritt L ist erledigt, vor den Schritten 9 bis 13** (seine Abhaengigkeit ist Schritt 3, der steht).
+Der Auftrag fuer **Claude Sonnet 5.5** ist geschrieben: `docs/extern/Nebelseetal_LLM_Auftrag_Runde3_20261107.md`
+(23.365 Byte, SHA256 `1d60b87cca014f8f`), Entwurf von `deepseek-v4-pro` (zwei Aufrufe), von mir geprueft
+und um zwei Stuecke ergaenzt, die Daniel ausdruecklich verlangt hat:
+
+- **Abschnitt 2a "Kritik-Auftrag":** der Lauf dient der Kritik, nicht der Bestaetigung; jeder Befund
+  braucht einen Beleg, Vermutungen werden als solche gekennzeichnet, unbequeme Punkte sind erwuenscht.
+- **Teil I "Geschichte, Logik und innere Stimmigkeit"** mit zehn Unterfragen - Chronik gegen
+  Spielmechanik, Motive der vier Bots, Rolle der drei Drachen, Belohnungen ohne Begruendung,
+  Zahlenlogik, schwache Texte, echte Entscheidungen mit Gewicht, Leerlauf und Sackgassen, Ton der
+  Textsorten. Dazu Teil B (Mechanik gegen das Original) und C (Code) unveraendert im Lieferumfang.
+
+**Paket auf dem Desktop:** `D:\Desktop\Nebelseetal_Paket_Runde3_20261107\` - sechs ZIPs
+(01 Auftrag/Stand/Ablauf, 02 Code, 03 Daten, 04 Tests und Werkzeuge, 05 Konzept und Story,
+06 Original-Handbuch), zusammen 2,80 MB, jedes unter der 8-MB-Grenze und mit `testzip` geprueft.
+
+**Meldepflicht erfuellt:** Daniel ist auf den Entwurf und den Ordner ausdruecklich hingewiesen
+(Absprache aus dem Ablauf, Abschnitt L).
+
+**Naechster Schritt:** Schritt 9 des Ablaufs (B-2 Regelkreis) mit F-17 = A (20 Prozent Verbesserung,
+10 Prozent Schrittweite, 3 gleiche Meldungen). F-16 = A: die Sollkurve bleibt Obergrenze, B-2
+vergleicht nur Veraenderungen.
+
 # STAND 07.11.2026, 18:20 - B-1 Sollkurve aus den Daten gebaut (Register 295)
 
 > Neuester Block. Register 295. Darunter 294 (Drachen-Anzeige F-14 = B), 293 (Bot-Luecken S4-7),
