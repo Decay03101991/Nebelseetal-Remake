@@ -540,15 +540,44 @@ def ereignisse_aktiv(einst=None) -> bool:
 
 
 def ereignis_arten(einst=None) -> list:
-    """Die Ereignisarten der Datei in ihrer Reihenfolge (diese Reihenfolge ist die Rotation).
+    """Die Ereignisarten der Datei in ihrer Reihenfolge (Liste der Kennungen).
 
     Ausgabe: Liste von Kennungen, z. B. ["haug", "grom", "silra"]; leer, wenn die Datei keine nennt.
-    Die Reihenfolge ist Absicht: der Aufrufer rotiert darueber, damit kein Wuerfel im Takt sitzt.
+    Die Reihenfolge ist nur noch die ANZEIGE-Reihenfolge - zugeordnet wird ueber den Botnamen
+    (`ereignis_art_fuer_bot`), nicht ueber den Index (R3-2, Befund I-1).
     """
     arten = _ereignisse_block(einst).get("arten")  # Arten-Block ansehen
     if not isinstance(arten, dict):  # keine Arten hinterlegt
         return []  # dann gibt es nichts zu erzeugen
     return [str(k) for k, v in arten.items() if isinstance(v, dict)]  # nur Arten MIT Angaben
+
+
+def _normal(text) -> str:
+    """Ein Name fuer den Vergleich: ohne Leerraum an den Raendern, in Kleinschreibung."""
+    return str(text or "").strip().casefold()  # " Haug " und "haug" sind derselbe Bot
+
+
+def ereignis_art_fuer_bot(bot, einst=None) -> str:
+    """Die Ereignisart, die zu DIESEM Bot gehoert - oder "" (dieser Bot hat kein Ereignis).
+
+    Befund I-1 (dritte Modellrunde, geprueft 07.11.2026): der Takt waehlte die Art ueber den
+    Bot-INDEX (`_index % len(_arten)`). Damit bekam der zweite Bot die zweite Art, egal wie er
+    heisst - die Meldung las dann "Brynhild: Grom braucht Messer". Die Art haengt jetzt am NAMEN:
+    gesucht wird die Art, deren Feld `name` dem Botnamen entspricht (fehlt `name`, gilt der
+    Schluessel selbst). Ein Bot ohne passende Art bekommt KEIN Ereignis - nichts erfinden.
+    """
+    name = _normal(bot.get("name") if isinstance(bot, dict) else getattr(bot, "name", ""))  # Botname
+    if not name:  # ohne Namen nicht zuordenbar
+        return ""  # dann kein Ereignis
+    arten = _ereignisse_block(einst).get("arten")  # Arten-Block der Datei
+    if not isinstance(arten, dict):  # keine Arten hinterlegt
+        return ""  # dann kein Ereignis
+    for art, angaben in arten.items():  # jede Art ansehen
+        if not isinstance(angaben, dict):  # unbrauchbarer Eintrag
+            continue  # dann weiter
+        if _normal(angaben.get("name") or art) == name:  # Name passt (Rueckfall: Schluessel)
+            return str(art)  # diese Art gehoert dem Bot
+    return ""  # kein Treffer: dieser Bot hat kein Ereignis
 
 
 def ereignis_daten(art, einst=None) -> dict:

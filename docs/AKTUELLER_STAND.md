@@ -1,3 +1,37 @@
+# STAND 07.11.2026, 21:30 - R3-2 gebaut: Ereignisart am Botnamen (Befund I-1), VOR Schritt 10
+
+> Neuester Block. Darunter 21:05 (R3-1 Spieltag-Laenge, Register 297), 20:48 (Modellrunde 3
+> geprueft, F-21 = A), 20:15 (B-2 Regelkreis, Register 296).
+
+**R3-2 steht (Register 298).** Der sichtbarste Fehler der dritten Modellrunde ist weg: die
+Ereignisart hing an der POSITION des Bots im Takt (`_arten[_index % len(_arten)]`), nicht an seinem
+Namen. Mit der Dateireihenfolge haug/grom/silra und der Bot-Reihenfolge Haug, Brynhild, Grom, Silra,
+Krank bekam Brynhild die Art `grom` - daher die Meldung "Brynhild: Grom braucht Messer"; Grom bekam
+`silra`, Silra bekam `haug`, Krank bekam `grom`.
+
+**Jetzt gilt:** `diplomatie.ereignis_art_fuer_bot(bot)` ist die EINE Zuordnungsstelle. Sie sucht die
+Art, deren Feld `name` dem Botnamen entspricht (Rueckfall: der Schluessel selbst; Vergleich ohne
+Gross-/Kleinschreibung und Leerraum). **Ein Bot ohne passende Art bekommt KEIN Ereignis** - Brynhild
+und Krank haben keine, und es wird keine fremde erfunden.
+
+**GEMESSEN (echter Verlauf, fuenf Bots, ein Takt nach drei Spieltagen):** genau drei Ereignisse
+(Haug/Grom/Silra), Postfach: "Haug: Haug verlangt Tribut", "Grom: Grom braucht Messer",
+"Silra: Silra verkauft eine Auskunft" - keine Meldung nennt einen fremden Bot.
+
+**Wachen:** neu `tests/test_ereignis_zuordnung.py` (**36/0/0**), darunter die Gegenprobe (Brynhild an
+Position 1 bekommt keine Art, obwohl die alte Rotation dort die dritte Art gewaehlt haette) und drei
+Titelpruefungen gegen `data/story.json`. Die alte Wache "die Art rotiert ueber die Dateireihenfolge"
+ist **umgedreht**: `tests/test_diplomatie_ereignisse.py` verlangt jetzt, dass die Index-Rotation NICHT
+mehr vorkommt (**74/0/0**).
+
+**Damit sind R3-1 und R3-2 erledigt.** Der naechste Schritt ist wieder der Ablauf: **Schritt 10**
+(E2E-Ketten auf zwoelf Wegen, `tests/test_e2e_wege.py`, 12 Wachen), danach Schritt 11 (AST-Quellwache),
+Schritt 12 (Sammellauf messen und beschleunigen), Schritt 13 (Schlusspruefung
+`tests/test_daten_und_quellen.py`), danach R3-3 (C-6, I-10, C-4) und R3-4 (I-2).
+
+Arbeitsweise unveraendert: Register, Protokollzeile, Stand-Block, Commit, Push und nach jedem Schnitt
+ein VOLLER SAMMELLAUF mit dem Projekt-venv.
+
 # STAND 07.11.2026, 21:05 - R3-1 gebaut: EINE Spieltag-Laenge (86.400 s), Befund A-1 behoben
 
 > Neuester Block. Darunter 20:48 (Modellrunde 3 geprueft, F-21 = A), 20:15 (B-2 Regelkreis,

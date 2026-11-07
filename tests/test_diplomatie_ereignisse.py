@@ -261,9 +261,13 @@ check("der Bot-Takt legt Ereignisse an", "diplomatie.ereignis_erzeugen(" in quel
       "Aufruf vorhanden")
 check("der Bot-Takt laesst sie verfallen", "diplomatie.ereignisse_tick(" in quelle_takt,
       "Aufruf vorhanden")
-check("die Art rotiert ueber die Dateireihenfolge (kein Wuerfel)",
-      "% len(_arten)" in quelle_takt and "_arten[_index % len(_arten)]" in quelle_takt,
-      "Rotation statt Zufall")
+# R3-2 (07.11.2026, Befund I-1): die alte Zusage "die Art rotiert ueber die Dateireihenfolge" ist
+# UMGEDREHT - die Rotation ueber den BOT-INDEX war der Fehler ("Bryndhild: Grom braucht Messer").
+# Die Art haengt jetzt am NAMEN; die vollstaendige Pruefung steht in tests/test_ereignis_zuordnung.py.
+check("die Art kommt NICHT mehr aus der Index-Rotation (I-1)",
+      "% len(_arten)" not in quelle_takt
+      and "diplomatie.ereignis_art_fuer_bot(" in quelle_takt,
+      "Zuordnung ueber den Botnamen")
 check("der Takt meldet neue Ereignisse ins Postfach", "'type': 'ereignis'" in quelle_takt,
       "Meldung vorhanden")
 check("der Dialog oeffnet hoechstens einen und nie ueber einem offenen",

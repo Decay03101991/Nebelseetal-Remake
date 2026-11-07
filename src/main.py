@@ -7252,7 +7252,12 @@ class GameState:
         for _index, _bot_ereignis in enumerate(self.bots):               # je Bot einmal
             if not _arten:                                               # keine Arten hinterlegt
                 break                                                    # dann nichts anlegen
-            _art = _arten[_index % len(_arten)]                          # feste Rotation je Bot
+            # R3-2 (Befund I-1): die Art haengt am NAMEN des Bots, nicht an seiner Position.
+            # Vorher rotierte sie ueber `_index % len(_arten)` - dann las die Meldung
+            # "Brynhild: Grom braucht Messer".
+            _art = diplomatie.ereignis_art_fuer_bot(_ereignis_bots[_index])  # passende Art oder ""
+            if not _art:                                                 # dieser Bot hat kein Ereignis
+                continue                                                 # dann ihn ueberspringen
             _neu = diplomatie.ereignis_erzeugen(getattr(self, "ereignisse", []),
                                                 _ereignis_bots[_index], _art, jetzt)
             if _neu:                                                     # wirklich entstanden
