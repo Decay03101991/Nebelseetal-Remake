@@ -6,6 +6,14 @@ Ordner"). Ablage wie Runde 1 (`docs/eingaenge/LLM_20261106/`), nur als eigener O
 Nichts gelöscht: die Desktopfassung liegt zusätzlich im gitignorierten
 `archiv/eingaben/LLM_Antworten_Runde2_20261106/`.
 
+**Nachtrag 07.11.2026, 11:50:** Daniel hat die Desktopfassung des Auftragsdokuments
+(`Nebelseetal_LLM_Auftrag_Runde2_20261106.md`) am 07.11. ausdrücklich zum Löschen freigegeben, weil
+der Auftrag längst draußen ist und die Antworten verarbeitet sind. **Vorher geprüft:** drei Kopien im
+Repo sind hashgleich zur Desktopfassung (`e5f52377115113cfe1e9b6e862f5281da69d3360a183f1bd215ba5fbcf46298b`,
+34.065 Byte) — hier in `docs/eingaenge/LLM_20261106_runde2/`, in `docs/extern/` und in
+`archiv/eingaben/LLM_Antworten_Runde2_20261106/`. Gelöscht wurde nur die Desktop-Datei, keine
+Projektdatei.
+
 ## Inhalt und Prüfsummen (beidseitig gleich geprüft)
 
 | Datei | SHA256 | Byte | Modell |
