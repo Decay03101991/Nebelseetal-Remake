@@ -352,3 +352,13 @@ geglaettet.
 **Was aus diesen Antworten folgt:** F-16 und F-17 sind Vorgaben fuer Schritt 9; F-19 ist eine eigene
 Aufgabe (Schritt L), die VOR den Schritten 9 bis 13 laufen kann, weil sie nur vom Ablauf selbst abhaengt.
 
+## Nachtrag 07.11.2026, 20:45 - Antwort F-20 (Daniel, im Chat)
+
+| Nr | Frage | Antwort | Folge |
+|---|---|---|---|
+| F-20 | Der erste A/B-Lauf zeigt: eine Preisänderung von 10 Prozent bewegt die Kennzahl nicht (Zielabweichung bleibt 6,06 Prozent). Der Abstand zur Sollkurve kommt aus der SPIELERPOLITIK - der Automat gibt Gold und Holz für Armee und Forschung aus, der Idealplan der Kurve gibt nichts aus. Was soll der Regelkreis daraus machen? | **B - Vorschlagsquelle erweitern: auch Schwellen der Spielerpolitik dürfen vorgeschlagen werden (erst prüfen, was davon in `data/` steht).** | Eigener kommender Schnitt, NICHT nebenbei gebaut. Erste Messung dazu (in dieser Sitzung gelesen): die Politik steht heute im CODE von `tools/spieltest_simulation.py` (`GEBAEUDE_REIHENFOLGE`, `STILE`, `FORSCHUNGSZIELE`, Schrittweite `SCHRITT = 1200`) - in `data/` liegt NICHTS davon. Der Schnitt braucht deshalb zwei Teile: (1) die Politik-Schwellen als Datendatei (Vorschlag `data/spieltest_politik.json`) mit Quelle je Wert, (2) `_preis_kandidaten` zu `_kandidaten` erweitern, damit der Vorschlag auch einen Politik-Wert nennen darf - weiterhin höchstens EIN Wert je Runde und Schrittweite ≤ 10 Prozent. Die Sollkurve bleibt Obergrenze (F-16 = A), das Urteil vergleicht weiter nur die Veränderung. |
+
+**Was aus dieser Antwort folgt:** B-2 bleibt als Werkzeug unverändert richtig (die Ablehnung war ein
+echtes Ergebnis). Die Erweiterung ist ein eigener Schnitt nach den Schritten 10 bis 13 und wird erst
+gebaut, wenn die Politik in `data/` steht - sonst hätte der Vorschlag wieder eine zweite Wahrheit
+im Code (F-04-Muster).

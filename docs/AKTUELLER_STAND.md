@@ -45,6 +45,13 @@ genannt): B-2 LIEST `src/` jetzt, verlangt ist deshalb "keine Schreibstelle unte
 Pruefungen, 0 Fehler, 60 Befunde, 1.003 s** (`docs/audits/sammellauf_20261107_2018.log`); die neuen
 Wachen stehen mit 44/0/0 und 30/0/0 darin. Gepusht: `91a6525`, Remote gleich.
 
+**Antworten 20:45:** Guthaben **7,23 USD / 62,76 USD** (Ablesung Daniel). **F-20 = B** - die
+Vorschlagsquelle des Regelkreises wird erweitert, damit auch Schwellen der Spielerpolitik vorgeschlagen
+werden duerfen; das ist ein EIGENER kommender Schnitt und nicht nebenbei gebaut, weil die Politik heute
+im Code von `tools/spieltest_simulation.py` steht (`GEBAEUDE_REIHENFOLGE`, `STILE`,
+`FORSCHUNGSZIELE`, `SCHRITT`) und erst als Datendatei (`data/spieltest_politik.json`) existieren muss.
+B-2 bleibt bis dahin unveraendert - die Ablehnung war ein echtes Ergebnis.
+
 **Naechster Schritt:** Schritt 10 des Ablaufs (A-1 E2E-Ketten auf zwoelf Wege erweitern, Vorlage
 `tests/test_produktionskette_ohne_cheats.py`), danach 11 bis 13. Arbeitsweise unveraendert:
 Register, Protokollzeile, Stand-Block, Commit, Push und nach jedem Schnitt ein VOLLER SAMMELLAUF
