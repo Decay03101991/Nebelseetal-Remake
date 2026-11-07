@@ -123,7 +123,7 @@ Die vier Fragen aus Runde 2 werden in Runde 3 mit NEUEN Messungen beantwortet. J
 
 ## 6. Der Lieferumfang in Teilen
 
-Du lieferst mindestens NEUN Teile mit den Kennungen A bis I. Teil I ist der wichtigste: er verlangt harte Kritik an Geschichte, Logik und Mechanik. Jeder Teil hat eine eigene Fragestellung, liefert Befunde im vorgeschriebenen Format und eine Rangliste der wichtigsten Punkte.
+Du lieferst ZEHN Teile mit den Kennungen A bis J. Teil I ist der wichtigste: er verlangt harte Kritik an Geschichte, Logik und Mechanik. Jeder Teil hat eine eigene Fragestellung, liefert Befunde im vorgeschriebenen Format und eine Rangliste der wichtigsten Punkte.
 
 **Format für jeden Befund in allen Teilen:**
 
@@ -175,6 +175,34 @@ Du lieferst mindestens NEUN Teile mit den Kennungen A bis I. Teil I ist der wich
 
 **Hinweis zu Teil D:** Die Sollkurve (B-1) ist eine OBERGRENZE aus den Daten (jedes Gebäude sofort baubar), kein Erfahrungswert. Ob sie gedrosselt werden soll (z.B. ein Gebäude je Spieltag), ist Frage F-16. Du prüfst diese Frage mit Messungen, nicht mit Meinung.
 
+- **J – Spielgefühl, Langzeitmotivation und Wiederspielwert:** Fragestellung: Macht das Spiel Spaß, und
+  würde man es ein zweites Mal beginnen? Liefern: je Unterfrage ein Befund mit Beleg -
+  1. Was passiert in den ersten 30 Spielminuten, und ist das genug, um zu bleiben?
+  2. Wie steil ist die Lernkurve, und wo bricht sie (Überforderung, Unterforderung, Leerlauf)?
+  3. Wo entsteht Grind - welche Tätigkeit wiederholt sich ohne neue Entscheidung, und wie lange?
+  4. Ist der Belohnungsrhythmus richtig getaktet (Punkte, Ruf, Freischaltungen), oder kommen Erfolge
+     zu spät bzw. zu früh?
+  5. Fühlt sich ein Sieg nach Sieg und eine Niederlage nach Niederlage an - oder ist beides beliebig?
+  6. Was macht den Wiederspielwert aus (andere Startkarte, andere Taktik, andere Bots), und reicht das?
+  7. Wie nah ist das Erlebnis am Original 2005/2009 - und wo ist es BESSER, wo SCHLECHTER, mit Beleg?
+  8. Was unterscheidet eine Partie gegen die Bots von einer gegen einen Menschen, und was fehlt dadurch?
+  9. Welche drei Punkte würden einen Spieler am ehesten aufhören lassen? Nenne sie mit Beleg.
+  10. Wenn nur vier Stunden Arbeitszeit zur Verfügung stünden: welche fünf Änderungen bringen dem
+      Spielgefühl am meisten? Mit Begründung und Aufwand.
+  Am Ende eine Rangliste der fünf größten Spaßbremsen.
+
+**Mindestumfang (verbindlich):**
+
+- Je Teil mindestens **acht** befundete Punkte, zusammen mindestens **sechzig**. Ein Teil mit drei
+  Punkten gilt als nicht geliefert.
+- Jeder Punkt hat Beleg (Datei und Zeile, Befehl oder Register-Nummer) und Urteil.
+- Jeder Teil endet mit einer Rangliste; Teil J zusätzlich mit den fünf Änderungen für vier Stunden.
+- **Selbstprüfung am Ende des Laufs:** eine Liste der Befunde, bei denen du dir selbst unsicher bist
+  (Urteil UNBEKANNT oder Vermutung), mit dem Grund. Diese Liste ist Pflicht - sie zeigt Daniel, was
+  nachgeprüft werden muss.
+- **Nichts wiederholen:** was in Register 284 bis 295 oder in den Sammellauf-Logs steht, gilt als
+  bekannt und wird nur bei einem MESSBAREN Widerspruch erneut aufgegriffen.
+
 ## 7. Was das Modell NICHT tun soll
 
 - Kein Code schreiben, der das Repository verändern würde.
@@ -187,7 +215,7 @@ Du lieferst mindestens NEUN Teile mit den Kennungen A bis I. Teil I ist der wich
 
 ## 8. Paket und Ablage
 
-- Jeder Teil (A bis I) wird als **eine Datei** geliefert, bevorzugt Markdown (`.md`) oder CSV/JSON für strukturierte Befundlisten.
+- Jeder Teil (A bis J) wird als **eine Datei** geliefert, bevorzugt Markdown (`.md`) oder CSV/JSON für strukturierte Befundlisten.
 - Alle Dateien werden **direkt angehängt**, kein Link, keine gespeicherte Chat-Seite, kein Git-Repository.
 - Ein ZIP-Paket pro Teil ist erlaubt, wenn ein Teil mehrere Dateien umfasst; Paketgröße **höchstens 8 MB je ZIP**.
 - Dateinamen enthalten das Datum im Format `JJJJMMTT`, z.B. `20261107_Teil_A_Gesamtbild.md` oder `20261107_Teil_C_Code_Fehler.zip`.

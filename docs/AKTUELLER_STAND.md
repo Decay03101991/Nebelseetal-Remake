@@ -19,6 +19,12 @@ und um zwei Stuecke ergaenzt, die Daniel ausdruecklich verlangt hat:
 (01 Auftrag/Stand/Ablauf, 02 Code, 03 Daten, 04 Tests und Werkzeuge, 05 Konzept und Story,
 06 Original-Handbuch), zusammen 2,80 MB, jedes unter der 8-MB-Grenze und mit `testzip` geprueft.
 
+**Erweitert um 19:52:** das Dokument war kuerzer als die Fassung aus Runde 2 (23.365 gegen 34.065
+Byte). Deshalb sind **Teil J (Spielgefuehl, Langzeitmotivation, Wiederspielwert, zehn Unterfragen)**
+und ein **verbindlicher Mindestumfang** dazugekommen: je Teil mindestens acht befundete Punkte,
+zusammen sechzig, je Punkt Beleg und Urteil, Rangliste je Teil, Selbstpruefung mit Liste der
+unsicheren Befunde. Dokument jetzt **25.450 Byte**, SHA256 `558e66250e9eb5ca`; Paket 01 neu gebaut.
+
 **Meldepflicht erfuellt:** Daniel ist auf den Entwurf und den Ordner ausdruecklich hingewiesen
 (Absprache aus dem Ablauf, Abschnitt L).
 
