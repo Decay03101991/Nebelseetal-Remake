@@ -36,6 +36,8 @@ ein VOLLER SAMMELLAUF mit dem Projekt-venv.
 
 **Zwei Antworten Daniels (22:07, F-22 und F-23):** die Skill-Ergaenzung ist freigegeben und eingetragen (Teil 8 woertlich aus der Vormerkung, Teil 9 neu); die Diplomatiefristen bleiben in Spieltagen - die dreifache Echtzeit seit R3-1 ist gewollt. **Guthaben (Daniel 22:07): 7,00 USD / 62,99 USD** (0,23 USD fuer diese Sitzung). Nachtrag in `docs/FRAGEN_AN_DANIEL_20261107.md`.
 
+**Dauerregel Uebergabe (Daniel 22:38):** das Archiv ist der Arbeitsort, der Desktop bekommt die fertige Fassung als LETZTEN Schritt; wird eine aufgelegte Fassung noch geaendert, verschwindet die Desktop-Kopie sofort. Anhang-Cache geraeumt (55 alte Kopien, 53 hashgleich verschoben, 2 abgelegt). **Guthaben (Daniel 22:38): 6,94 USD / 63,05 USD.** Wortlaut in `docs/FRAGEN_AN_DANIEL_20261107.md` (Nachtrag 22:40).
+
 # STAND 07.11.2026, 21:05 - R3-1 gebaut: EINE Spieltag-Laenge (86.400 s), Befund A-1 behoben
 
 > Neuester Block. Darunter 20:48 (Modellrunde 3 geprueft, F-21 = A), 20:15 (B-2 Regelkreis,

@@ -407,3 +407,28 @@ ist ein Spieltag. Folge: bei Spieluhrfaktor 180 wirken diese Fristen dreimal so 
 R3-1-Schnitt (Ereignisfrist 16 statt 5,3 Echtminuten, Pakt und Haeufigkeit 24 statt 8) - das ist
 gewollt und **kein Fehler**. Wer die Echtzeit spaeter kuerzen will, aendert die Zahl in SPIELTAGEN
 (1 statt 2, 1 statt 3), nie in Sekunden - sonst entsteht wieder eine zweite Tageslaenge.
+
+## Nachtrag 22:40 - Dauerregel fuer die Uebergabe (Daniel, mündlich im Chat)
+
+**Daniels Wortlaut (07.11.2026, 22:38):** "ich mag es nicht wenn einfach dauerhaft eine uebergabe auf
+dem desktop liegt. Ich mag es lieber wenn es da erst erscheint wenn es wirklich fertig und auf
+neuestem stand ist."
+
+**Regel ab jetzt (gilt fuer jede Sitzung, keine Rueckfrage mehr noetig):**
+
+1. **Das Archiv ist der Arbeitsort.** Die Uebergabe wird in `D:\Arbeiten\Hermes\Uebergaben\<JJJJMMTT_HHMM>\`
+   geschrieben, gelesen, gegengeprueft und nachgebessert. Fuer jede Zwischenfassung gilt: nur dort.
+2. **Der Desktop bekommt GENAU EINE Handlung:** die fertige, geprueft Fassung wird als **letzter
+   Schritt** aufgelegt - nach `sha256sum` beider Kopien und einer Gegenlesung auf Kopf-Commit,
+   Commit-Zahl und Zahlen.
+3. **Wird die Fassung danach noch geaendert, verschwindet die Desktop-Kopie SOFORT** (Hash vorher
+   gegen das Archiv pruefen), die Aenderung passiert im Archiv, und erst die fertige Fassung wird
+   wieder aufgelegt. Keine halbfertige Datei auf dem Desktop, auch nicht fuer Minuten.
+4. **Die Vorgaengerfassung** wird beim Auflegen in derselben Aktion vom Desktop entfernt (Archiv
+   bleibt unveraendert).
+5. **Der frueher hier notierte Ablauf "schreibende Sitzung laesst die Desktop-Kopie stehen" ist damit
+   ueberholt** - er hat am 07.11.2026 zu einer Datei gefuehrt, die nach dem Auflegen noch zweimal
+   geaendert wurde (14.698 -> 15.984 Byte) und im Chat als alte Fassung erschien.
+
+**Fundstelle der Regel im Skill:** `nebelseetal-remake` → `references/uebergabe-ablage.md`
+(Vormerkung, Freigabe offen).
