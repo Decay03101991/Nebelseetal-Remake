@@ -24,6 +24,8 @@ um 0 (stille Null, keine Meldung). Behoben über `_normal()` (Umlaute umschreibe
 erforscht, ausdrücklich als Annahme; und auf Berg/Hügel sind die Felder früh belegt, weitere Minen
 finden keinen Platz (steht als Lücke in der Datei).
 
+**Sammellauf:** 191 von 193 gruen, 0 rot, **7.949 bestandene Pruefungen, 60 Befunde, 955 s** (`docs/audits/sammellauf_20261107_1837.log`). Der Lauf davor war rot (66/1 in `test_bot_diplomatie.py`): der Verlauf wuerfelte ohne Saat, der Angriff blieb aus - behoben in der Pruefdatei (feste Saat, zehn Takte), drei Einzellaeufe danach 67/0/0 (Commit `5232137`).
+
 **Grenze der Kurve:** sie ist eine OBERGRENZE aus den Daten (jedes Gebäude sofort baubar), kein
 Erfahrungswert aus echten Partien. Ob sie gedrosselt werden soll (z. B. ein Gebäude je Spieltag), ist
 **Frage F-16**.
