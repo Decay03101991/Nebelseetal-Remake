@@ -16,6 +16,8 @@ die Schwelle der Messschicht die Schwelle des Spiels ist. Zehn Laeufe (5 Startwe
 erfuellt. Ueber 12 Spieltage sind es **0 von 10**: die Handelskarawane kostet 500 Holz und 15 Pferde
 und entsteht erst um Spieltag 17. Das ist kein Fehler, sondern die Dauer der Kette.
 
+**Sammellauf:** 189 von 191 gruen, 0 rot, 7.851 bestandene Pruefungen, 60 Befunde, 1.214 s (`docs/audits/sammellauf_20261107_1216.log`).
+
 **Zwei Sachen, die dabei sauber geworden sind:** der Beschaffungswert des Handelspreises steht jetzt
 in `botkern.BESCHAFFUNGSKOSTEN`, `main.py` liest ihn von dort - App und Messschicht fuehren keine
 zwei Zahlen mehr. Und die Regeln der Messschicht (Gold des Partners, Mindestvorrat, Abstand) stehen
