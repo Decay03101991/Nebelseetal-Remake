@@ -1,0 +1,337 @@
+Runde 3, Zwischenstand: nicht vollständig geliefert
+
+Der Auftrag ist in dieser Antwort nicht erfüllt. Mein Werkzeuglimit war erreicht, bevor ich die Teile als Dateien schreiben konnte. Es gibt daher keine zehn Dateien und kein 20261107_Runde3_Dokument.md. Unten stehen die belegten Befunde direkt im Text. Die Mindestzahl von acht Punkten je Teil erreichen die Teile A, B, C, D, G, I und J. Die Teile E, F und H gelten nach deiner eigenen Regel als nicht geliefert. Nichts im Repository wurde verändert, committet oder gepusht; ich habe nur in der Sandbox gearbeitet.
+
+Gelesen habe ich: den Auftrag, story.json, bot_stimmen.json, Chronik, Story-Gesamtbild, Spielkonzept, S0-Tabellen, Kennzahlenblätter, diplomatie.json, drachen.json, boni.json, sollkurve.json, das Register und den Kopf von AKTUELLER_STAND. Dazu kommen das Handbuch-PDF (per pdftotext extrahiert) und gezielte Stellen in main.py, diplomatie.py, punkte.py, story.py, botkern.py und voelker.py.
+
+Nicht gelesen habe ich: Story-Bibel, Gesamtkonzept, Vorgaben, FRAGEN_AN_DANIEL, ABWEICHUNGEN_2006_zu_2009, die ORIGINAL_*-Dokumente, die 2005er HTML-Seiten, die Werkzeuge in tools/, den Großteil von src/ und tests/ sowie units.json, research.json und buildings.json.
+
+Zeilenangaben, die ich nur aus Grep-Treffern kenne, sind mit „ca.“ markiert.
+
+Teil I – Geschichte, Logik, innere Stimmigkeit
+
+I-1 Ereignisse werden dem falschen Bot zugeordnet.
+
+Befund: Die Ereignisart wird nach dem Index des Bots rotiert, nicht nach seinem Namen. Die Arten sind [haug, grom, silra], die Bots [Haug, Brynhild, Grom, Silra, Krank]. Die Meldungen lauten dadurch „Brynhild: Grom braucht Messer“, „Grom: Silra verkauft eine Auskunft“, „Silra: Haug verlangt Tribut“ und „Krank: Grom braucht Messer“. Der Gunst-Effekt trifft den ausstellenden Bot, nicht den im Text genannten.
+Beleg: src/main.py:7254-7259 (_arten[_index % len(_arten)]), src/botkern.py:54, src/diplomatie.py:541-550 und 802-841. Reproduziert mit einem Python-Skript, das diplomatie, story und botkern importiert; es braucht kein tkinter.
+Urteil: BESTAETIGT. Schwere hoch.
+VORSCHLAG Aufwand: 30 min (Art am Botnamen festmachen, Wache ergänzen).
+
+I-2 Die ersten Ereignisse sind am Start unbezahlbar und senken die Gunst.
+
+Befund: Das erste Ereignis kommt nach 86.400 s, das sind 8 Echtminuten. Haug verlangt 990 Holz oder 64 Gold, das Startlager hat 100 Holz, 100 Stein und 0 Gold.
+Simulation mit den echten Funktionen, ohne Zahlung: Gunst 45 bei 1,67 Spieltagen, 40 bei 2,67, feindselig (35) bei 3,67 Spieltagen. Das sind rund 29 Echtminuten bei Faktor 180. Danach sinkt die Gunst weiter, bis 15 bei 7,67 Spieltagen.
+Beleg: data/diplomatie.json:92-115, data/sollkurve.json (Tag 0: Gold 0, Holz 100), data/spielzeit.json:2, src/diplomatie.py:857-886.
+Urteil: BESTAETIGT für einen Spieler, der nicht zahlen kann. Nur ein einzelner Ereignisstrom wurde simuliert, mein Skript spielt keinen echten Spieler nach.
+VORSCHLAG Aufwand: 60 min (Ereignisse erst ab einer Wirtschaftsschwelle, Preise relativ zum Ort).
+
+I-3 Belohnungen ohne Wirkung.
+
+Befund: Haug und Silra haben "gegenleistung": {}. Annahme bedeutet nur: Zahlung, +5 Gunst, Kontakt. Silras Text verspricht aber „einen Umweg, den du ab jetzt kennst“.
+Beleg: data/diplomatie.json:114 und 145, data/story.json:38, src/diplomatie.py:802-841.
+Urteil: TEILWEISE. Ob main.py nach der Annahme anderswo eine Wirkung auslöst (um Zeile 13900), habe ich nicht gelesen. UNBEKANNT - vom Modell zu messen.
+VORSCHLAG Aufwand: 60 min (z. B. Spionagebericht als Gegenleistung).
+
+I-4 Bot-Herkunft: Chronik gegen Code.
+
+Befund: Die Chronik macht Haug zum Trollsohn (geboren in Utgard), Krank zum Ghul (erwacht in Ragnarök) und Grom zum Gnom (geboren auf Flickwerk). Der Code setzt Haug auf menschlich, Krank auf Trolle und Grom auf zwergisch. Das Gesamtbild führt Krank ebenfalls als „Trolle“.
+Dazu verteilt verteile_fraktionen die Völker neu, sobald der Spieler wählt. Bei „menschlich“ werden Brynhild zwergisch, Grom elfisch und Silra Gnome.
+Beleg: docs/CHRONIK_DER_WELT_20261104.md:366, 390, 414; src/botkern.py:55ff; docs/STORY_GESAMTBILD_20261104.md:63-67; src/voelker.py (verteile_fraktionen, ca. Z. 127-140). Ausgabe je Spielervolk per Skript erzeugt.
+Urteil: BESTAETIGT.
+VORSCHLAG Aufwand: 120 min (Botnamen an Völker binden oder die Chronik anpassen).
+
+I-5 Bot-Charakter gegen Kennwerte.
+
+Befund: „Haug raubt“ hat Aggression 0,3 und Handel 0,8. „Grom baut“ hat Aggression 0,7, die zweithöchste. Krank hat 0,9 und Handel 0,0.
+Die Taktikprofile in bottaktik.py passen teils besser (Haug „Plünderer“, Grom „Bastionier“). Wie stark aggression im Spiel wirkt, habe ich nicht verfolgt.
+Beleg: src/main.py:3392-3397, src/bottaktik.py (TAKTIKEN, ca. Z. 166-200).
+Urteil: TEILWEISE. Die Wirkung von aggression ist UNBEKANNT - vom Modell zu messen.
+VORSCHLAG Aufwand: 30 min (Werte angleichen oder Rolle umbenennen).
+
+I-6 Motive stehen nur in der Chronik, nicht im Spiel.
+
+Befund: Die Chronik gibt jedem Bot Motiv und Wendepunkt: Haug sucht Anerkennung, Brynhilds Vater fiel durch Haug, Krank erinnert. Die Chronik sagt selbst „Nichts davon ist eingebaut“. In bot_stimmen.json hat jeder Bot je Ereignis genau zwei Sätze (5 × 4 × 2 = 40). Sie sind situativ gut geschrieben (Krank: „Die Liste ist alt“), erwähnen aber nie die Vorgeschichte. Bei 19 Gefechten in 20 Tagen wiederholen sie sich schnell.
+Beleg: docs/CHRONIK_DER_WELT_20261104.md:11, 370, 380; data/bot_stimmen.json:13-103; docs/BALANCING/KENNZAHLEN_2026-11-07.md.
+Urteil: BESTAETIGT.
+VORSCHLAG Aufwand: 120 min (je Bot 3 bis 4 Sätze mit Bezug zum Motiv).
+
+I-7 Die drei Drachen sind austauschbar und nicht erzählt.
+
+Befund: Alle drei haben dieselben Verteidiger (120 Krieger, 60 Bogenschützen, 24 Paladine), dieselbe Beute (5000 Gold, je 2000 Holz, Stein, Nahrung) und dieselbe Schuppe. Es unterscheiden sich nur Name, Bild und Welt.
+Tardas „der Grüne“ nutzt drache_blau.png, Salmur „der Rote“ drache_lila.png; die Datei gibt das selbst zu. story.json erwähnt keinen Drachen.
+Die Chronik platziert eine Drachenlegende unter Armageddon, im Spiel stehen die Drachen aber in d02, d03 und d05.
+Beleg: data/drachen.json (Schlüssel drachen, figur.hinweis_farben), docs/CHRONIK_DER_WELT_20261104.md:434, data/story.json (vollständig gelesen).
+Urteil: BESTAETIGT.
+VORSCHLAG Aufwand: 1 Tag (je Drache eigene Beute und Verteidiger nach Chronik, ein Satz im Intro).
+
+I-8 Epheus und das Mana: die Logik kippt.
+
+Befund: Epheus ist laut Chronik „kein kämpferisches Wesen“. Seine Tränen sind die Nebelseen und die Manaquelle. Im Spiel wird er von Heer und Paladinen verteidigt, und sein Tod gibt 4000 Mana.
+Der Belohnungstext sagt außerdem „bis zum Sieg“, obwohl das Konzept keinen Sieg vorsieht.
+Beleg: docs/CHRONIK_DER_WELT_20261104.md:122, 166; data/drachen.json (belohnung.mana_grundbetrag, belohnung.text_zeilen[2]).
+Urteil: BESTAETIGT.
+VORSCHLAG Aufwand: 45 min (Text), Rollenfrage an Daniel.
+
+I-9 Die Chronik widerspricht sich selbst.
+
+Jahr 0 gilt als „letzter Tag des zusammenhängenden Landes“, der Bruch dauert aber von 500 v. B. bis 0 (Z. 20 und 26).
+Silra erkennt 1195 Tardas’ Rückkehr als Neuigkeit, obwohl er seit 800 n. B. zurück ist (Z. 404 gegen 112 und 146).
+Karl ist „Fischer“ (Z. 206) und „Fährmann“ (Z. 214).
+Der „Tag der Saat“ liegt im Sommermonat Sonnenwende (Z. 44 und 34).
+Namensnähe: Brunnhild (Zwergin, Z. 220) und Brynhild (Z. 376); Gorm (Troll, Z. 248) und Grom.
+Das Intro behauptet „keiner weiß mehr, warum“ (story.json:54), die Chronik erklärt es.
+Urteil: BESTAETIGT. VORSCHLAG Aufwand: 90 min.
+
+I-10 Sieg- und Niederlagetexte sind tot oder technisch.
+
+Befund: story.ausgang_text wird nur in tests/test_story.py:95-96 aufgerufen. Bei der Niederlage sieht der Spieler punkte.spielausgang mit dem Wort „VORSCHLAG:“ im Text. Danach stoppt die Spieluhr. Der erzählte Neustart („Irgendwo im Limbus fängt jemand anderes an“) erscheint nie.
+Beleg: src/story.py:104-108, src/punkte.py:299-302, src/main.py:15819-15838, 15843, 15949.
+Urteil: BESTAETIGT. Ob es einen Neustart-Knopf gibt, ist UNBEKANNT - vom Modell zu messen.
+VORSCHLAG Aufwand: 45 min.
+
+I-11 Gesamtsieg: Konzept, Code, Ratgeber und Anzeige widersprechen sich.
+
+Das Spielkonzept sagt „einen Sieg gibt es bewusst NICHT“. Der Code hat punkte.gesamtsieg, das „alle Dörfer aller Bots ausgeräumt“ verlangt, mit Meldung und Endlosspiel.
+Der Ratgeber sagt weiter „offener Punkt“, die Zielzeile zeigt „kein Sieg“, und die Gesamtbild-Befunde 1 und 2 sind veraltet.
+Die Gesamtsieg-Texte widersprechen sich selbst: Elfisch „Haugs Banden tappen noch immer im Tal“ trotz Sieg, Ghule „geerbt, nicht erjagt“ nach „Vorräte genommen“, Zwerge „Kranzüge“ (Tippfehler).
+Beleg: docs/SPIELKONZEPT.md:24, src/punkte.py:351-381, src/main.py:4000-4038 und 15949-15956, src/berater.py:230-235, data/story.json:119, 123, 131.
+Urteil: BESTAETIGT. VORSCHLAG Aufwand: 60 min (Konzept, Ratgeber, Texte).
+
+I-12 Ton und Perspektive wechseln.
+
+story.json:3 und 51-52 verlangen „kein Pathos, höchstens drei Sätze“. Die Gesamtsieg-Texte sind rund 200 Wörter lang und pathetisch; story.json:151 nennt deepseek als Autor.
+Die Perspektive springt von „Du“ im Intro über unpersönliche Chronik und Dritte Person in den Ereignissen zum Konjunktiv „hätte jemand“ im Gesamtsieg.
+Der Niederlagentitel hat ASCII-Umlaute („zurueck“, story.json:154), das Gesamtbild zitiert „zurück“.
+Schwache Stellen (Wertung): Chronikstufe 0 ist ein Kalenderspruch (story.json:64); das Kasernen-Menü rät „Sieh zu, dass es die richtigen sind“ ohne Entscheidung (Z. 14).
+Urteil: TEILWEISE (Ton ist Wertung, die Perspektivbrüche sind belegt). VORSCHLAG Aufwand: 90 min.
+
+I-13 Entscheidungen ohne Gewicht.
+
+Annahme und Ablehnung ändern die Gunst um ±5 und sind umkehrbar. Der Rachetopf fällt nach einem Bot-Sieg auf 0. Der Ablehnungstext „ohne Groll“ bei Grom steht neben −5 Gunst. Verzweigungen in der Geschichte habe ich nicht gefunden; Kapitel schalten sich nur über Meilensteine frei.
+Beleg: data/diplomatie.json:69, 94-95, data/story.json:33, 60-105.
+Urteil: BESTAETIGT (nach dem, was ich gelesen habe). VORSCHLAG Aufwand: 1 Tag (zwei Ereignisse mit dauerhaften Folgen).
+
+Rangliste I:
+
+I-1: falsche Absender zerstören die Figuren.
+I-2: unbezahlbare Ereignisse bestrafen den Anfänger.
+I-10: das Spielende ist stumm und technisch.
+I-7: die Drachen sind Palettentausch.
+I-4: Bot-Herkunft widerspricht der Chronik.
+I-3: Belohnungen ohne Wirkung.
+I-11: Konzept und Code widersprechen sich beim Sieg.
+I-6: Motive fehlen im Spiel.
+I-8: der Epheus-Mana-Widerspruch.
+I-9: Zeitrechnungsfehler.
+Teil J – Spielgefühl, Langzeitmotivation, Wiederspielwert
+
+Alle Zeiten sind Echtzeit bei Faktor 180. Dabei gilt 1 Spieltag = 480 s (docs/S0_TABELLEN_20261107.md:5). Die Kennzahlen stammen vom Automatenspieler, nicht von einem Menschen.
+
+J-1 Die ersten 30 Minuten.
+
+Messwerte: erster Krieger nach 9,3 min (1,167 Tage), erstes Gefecht nach 16 min (Tag 2), erstes Haus nach 19,9 min (2,486 Tage), erste Ware erst nach 62,7 min (7,833 Tage). Dazu kommt das erste Ereignis nach 8 min (I-2). Die Wirtschaftskette Ware beginnt also erst nach einer Stunde.
+Beleg: docs/BALANCING/KENNZAHLEN_2026-11-07.md Zeile 1. Urteil: TEILWEISE.
+
+J-2 Lernkurve.
+
+Überforderung ist belegt: ein 990-Holz-Preis nach 8 min bei 100 Holz Vorrat. Ob es ein Tutorial gibt, habe ich nicht geprüft. auftraege.py ist ein Truppenmissions-Modul, kein Tutorial.
+Urteil: UNBEKANNT - vom Modell zu messen (Tutorial, Berater-Einstieg).
+
+J-3 Grind und Leerlauf.
+
+Leerlauf: 956.400 s von 1.036.800 s sind 92,2 % im 12-Tage-Lauf. In den 20-Tage-Läufen sind es 94,5 % (breit) und 93,6 % (krieg). Die größte Lücke ohne Meilenstein beträgt 12,0 bis 12,1 Tage, das sind rund 96 min. Das Ziel im Konzept liegt unter 1,5 Tagen; die Lücke ist 8-mal so groß.
+Die Sollkurve bleibt ab Tag 3 bei 53 Gebäuden und 1 freiem Siedler, während die Rohstoffe linear wachsen, ohne Senke.
+Beleg: docs/SPIELKONZEPT.md:29-30 und 38, Kennzahlenblätter, data/sollkurve.json (tage, annahmen). Urteil: BESTAETIGT (Automat).
+
+J-4 Belohnungsrhythmus.
+
+Die Ruhmstufen liegen bei 10, 40 und 160 Punkten und kommen bei 3,3 Punkten pro Tag nach Tag 3, 12 und 48, also nach 24 min, 96 min und 6,4 h.
+Die Ruhmkennzahl ist gesamtpunkte. Handelspunkte fließen laut Code nicht in gesamtpunkte ein. Ein Händler-Stil (95 Handelspunkte in den 20-Tage-Läufen) bringt damit keinen Rang.
+Beleg: data/ruhm.json:7-10, docs/S0_TABELLEN_20261107.md:80-85, src/punkte.py:388-395. Urteil: BESTAETIGT.
+
+J-5 Sieg und Niederlage.
+
+Die Niederlage ist eine technische Zeile und ein eingefrorenes Spiel (I-10).
+Der Gesamtsieg ist eine einmalige Nachricht. Wann er erreichbar ist, ist UNBEKANNT, denn die Zahl der Bot-Dörfer habe ich nicht gemessen.
+Gefechte kosten nichts: „Verluste 0 in 6“, „0 in 10“, „0 in 19“ Gefechten.
+Beleg: docs/BALANCING/KENNZAHLEN_2026-11-07.md. Urteil: BESTAETIGT.
+
+J-6 Wiederspielwert.
+
+Die Saaten 7, 11, 23, 42 und 99 liefern je Stil zeichengleiche Zeilen (Haus 2,583, Ware 7,986 und so weiter). Die Saat verändert die Messung also nicht.
+Zufall steckt trotzdem im App-Bot-Zug (rng = random.Random(), main.py ca. Z. 7283, ungeseedet).
+Die Völkerboni sind ±5 %. Der Wiederspielwert der 127 Originalkarten ist UNBEKANNT.
+Urteil: TEILWEISE.
+
+J-7 Nähe zum Original.
+
+Besser: Faktor 180 macht Fortschritt sichtbar; im Originaltempo gab es 4 Holz je Echtstunde (data/spielzeit.json:12).
+Schlechter: Der Wettbewerb gegen echte Spieler fehlt. Gilden und Buddyliste im Original (Handbuch Diplomatie, pdftotext Z. 115-125) fehlen komplett, ebenso der Tausch von Rufpunkten gegen Boni (Z. 230-233). Die Remake-Diplomatie hat keinen Originalbeleg.
+Urteil: TEILWEISE.
+
+J-8 Bot gegen Mensch.
+
+Bots ziehen alle 3600 Spielsekunden, das sind 20 Echtsekunden (BOT_TAKT_SEKUNDEN, main.py:3402). Sie haben zwei Sätze je Lage, keine Verhandlung, keinen Bluff und keine Absprachen.
+Urteil: BESTAETIGT.
+
+J-9 Drei Abbruchgründe.
+
+96 min ohne Meilenstein (J-3).
+Unbezahlbare Ereignisse mit Gunstverfall nach rund 29 min und falschen Absendern (I-1, I-2).
+Siege ohne Risiko plus eine Niederlage ohne Ausgang (J-5, I-10).
+
+J-10 Vier Stunden Arbeit, fünf Änderungen (alles VORSCHLAG).
+
+Ereignis-Zuordnung am Botnamen festmachen: 30 min (I-1).
+Spieltag-Definition vereinheitlichen, 24 Spielstunden gegen 28.800 s: 60 min (A-1).
+Ereignisse mit Wirtschaftsschwelle und ortsrelativen Preisen: 60 min (I-2, D-3).
+ausgang_text an Sieg und Niederlage hängen und „VORSCHLAG:“ aus Spielertexten entfernen: 45 min (I-10).
+Silras Gegenleistung festlegen, Verluste und Beute je Drache unterscheiden: 45 min (I-3, I-7).
+
+Summe: 240 min.
+
+Rangliste der fünf größten Spaßbremsen:
+
+Leerlauf und Lücken (J-3).
+Ereignis-Spirale (I-2).
+Risikolose Gefechte (J-5).
+Stummes Spielende (I-10).
+Identische Drachen (I-7).
+Teil A – Gesamtbild und Widersprüche
+
+A-1 Zwei Spieltage.
+
+Die Diplomatie rechnet mit 28.800 s als Spieltag. Rachetopf (28.800 s), Ereignisfrist (57.600 s) und „3 Spieltage = 86.400 s“ stehen so in der Datei. Dieselbe Datei sagt aber „24 Spielstunden = ein Spieltag“. botkern.py und punkte.py rechnen mit 86.400 s.
+Folge bei Faktor 180: Der Rachetopf steigt alle 160 Echtsekunden, die Ereignisfrist beträgt 320 s, und der Pakt „3 Spieltage“ dauert 8 min.
+Beleg: data/diplomatie.json:35-38, 66-68, 154, src/diplomatie.py:445, src/botkern.py:38, src/punkte.py:42, docs/S0_TABELLEN_20261107.md:5.
+Urteil: BESTAETIGT. VORSCHLAG Aufwand: 60 min.
+
+A-2 Der Auftrag widerspricht sich bei A-6. Abschnitt 3.3 nennt A-6 „rot: 1.612 s, 7.502 Prüfungen“. Abschnitt 3.5 nennt 955 s und 7.949 Prüfungen. Die Tabelle ist veraltet.
+
+Beleg: Auftrag 3.3 und 3.5, docs/AKTUELLER_STAND.md:55.
+Urteil: BESTAETIGT.
+
+A-3 Die Laufzeitgrenze ist unklar.
+
+Der Auftrag nennt unter 1.400 s. SPIELKONZEPT.md:41-42 sagt, 1.800 s trage und 1.400 s nicht. ABLAUF_LLM_20261106.md:298 setzt 1.800 s bis zur Beschleunigung.
+Urteil: BESTAETIGT (Dokumentenwiderspruch). Das Log sammellauf_20261107_1837.log fehlt im Paket, die 955 s sind UNBEKANNT - vom Modell zu messen.
+
+A-4 Spielkonzept gegen Code beim Sieg. Siehe I-11. Beleg: docs/SPIELKONZEPT.md:24, src/punkte.py:351. Urteil: BESTAETIGT.
+
+A-5 F-16 ist im Auftrag offen, im Stand entschieden. AKTUELLER_STAND.md:25-27 sagt „F-16 = A: die Sollkurve bleibt Obergrenze“. Auftrag Teil D und Abschnitt 4 behandeln F-16 als offen. Urteil: BESTAETIGT.
+
+A-6 Schritt L. Der Auftrag führt L als offen (3.2). AKTUELLER_STAND.md:6 meldet L als erledigt. Urteil: BESTAETIGT.
+
+A-7 Annahme V-4 gegen Siedlergrenze.
+
+V-4 rechnet mit „je Feld ein produzierendes Gebäude“ und kommt auf 1.978 Holz pro Tag. Das Konzept nennt Siedler als harten Engpass (10 plus 5 je Haus).
+Die Sollkurve des Idealspielers liefert rund 1.056 Holz pro Tag (Tag 5 auf 6: 2449 auf 3505). Der Tribut von 990 entspricht damit etwa 94 % eines Idealtages.
+Beleg: docs/S0_TABELLEN_20261107.md:94 und 114, docs/SPIELKONZEPT.md:66, data/sollkurve.json. Urteil: BESTAETIGT (Rechnung).
+
+A-8 Kennzahlen stammen von älteren Ständen. Die Zeilen tragen ddea42d* und 3f3799c* (das * heißt „Arbeitsbaum schmutzig“), der Auftrag nennt b51afc3. Urteil: BESTAETIGT.
+
+A-9 Die Saat wirkt nicht in der Messung. Das betrifft A-3 im Ziel-Zustand: „10 Läufe“ sind effektiv zwei verschiedene (breit und krieg). Urteil: BESTAETIGT (J-6).
+
+Rangliste A: 1. A-1, 2. A-7, 3. A-4, 4. A-3, 5. A-9, 6. A-5, 7. A-2, 8. A-6, 9. A-8.
+
+Teil B – Mechanik gegen das Original
+
+Das Handbuch-PDF trägt „Spielanleitung (01.09.2006)“ und das Erstellungsdatum 1. September 2006. Die Handbuchstellen unten stammen aus meiner pdftotext-Extraktion. Die Zeilen der 2005er HTML-Seiten habe ich nicht gegengelesen.
+
+B-1 Gunst und Status: Das Original kennt nur Gilde, Buddyliste und Profil. Die Datei nennt Schwellen und Startwert selbst „VORSCHLAG“ (data/diplomatie.json:10-11). Urteil: WIDERLEGT als Originalmechanik, bewusste Erfindung.
+B-2 Verträge (Pakt, Handelsabkommen, Durchmarsch): „Kein Originalbeleg“ (diplomatie.json:38, 43, 50). Urteil: WIDERLEGT als Originaltreue.
+B-3 Rachetopf und Ankündigung: kein Originalbeleg. Das Original beendet den Götterschutz schon beim ersten Kriegspunkt (Handbuch Z. 239-244). Ob noob_protection das so umsetzt, habe ich nicht geprüft. UNBEKANNT - vom Modell zu messen.
+B-4 Ereignisse Haug, Grom, Silra: Frist, Häufigkeit und Gunst haben laut Dokument keine Quelle (docs/S0_TABELLEN_20261107.md:132-134). Urteil: WIDERLEGT als Originaltreue.
+B-5 Handelspunkte: Die 2006er Seite zählt Handel zu einem Drittel in die Gesamtpunkte; das Remake macht sie zur reinen Kennzahl (src/punkte.py:388-395). Die Abweichung ist im Code benannt. Das Zitat aus punktesystem.php.txt habe ich nur über den Code-Kommentar gesehen. Urteil: TEILWEISE.
+B-6 Bot-Spionage (S4-7): Das Handbuch nennt das Spionagesystem „in Überarbeitung“ (Z. 832-837 und 1124-1126). Urteil: UNBEKANNT - vom Modell zu messen, die Spionage-Regeln habe ich nicht gelesen.
+B-7 Drachen: Das Handbuch enthält keinen Treffer für „Drache“. Die Drachen stammen aus der Hintergrundgeschichte der Website (laut Gesamtbild Z. 116-146, nicht selbst gelesen). Die Kampfmechanik ist Erfindung, von Daniel bestätigt (data/drachen.json, hinweis). Urteil: TEILWEISE.
+B-8 Sollkurve (B-1) und Zeit: Das Original läuft in Echtzeit (4 Holz je Stunde). Das Remake nutzt Faktor 180 und markiert das als „belegt: false“ (data/spielzeit.json:10). Urteil: TEILWEISE.
+
+Rangliste B: 1. B-3, 2. B-2, 3. B-1, 4. B-4, 5. B-6, 6. B-8, 7. B-5, 8. B-7.
+
+Teil C – Code und Fehler
+C-1 Ereignis-Rotation nach Index (I-1). Reproduktion: Python mit import diplomatie, story, botkern und der Schleife über BOT_NAMEN. Erwartet: Botname gleich Ereignisart; tatsächlich: Index-Modulo. Schwere hoch.
+C-2 Zwei Spieltag-Konstanten (A-1): src/diplomatie.py:445 gegen src/botkern.py:38 und src/punkte.py:42. Schwere hoch.
+C-3 Der App-Bot-Zug nutzt random.Random() ohne Saat (src/main.py ca. Z. 7283). Das widerspricht dem Determinismus-Anspruch des Kennzahlenblatts. Schwere mittel. VORSCHLAG Aufwand: 20 min.
+C-4 drachen.json führt je Drache zwei widersprüchliche Einheitenangaben: einheiten mit 20 und 20, verteidigung.einheiten mit 120, 60 und 24 (Summe 204). Welche wirkt, ist UNBEKANNT - vom Modell zu messen. Schwere mittel.
+C-5 story.ausgang_text ist ein toter Pfad (nur Test). Schwere niedrig.
+C-6 Das Wort „VORSCHLAG:“ steht in einer Spielermeldung (src/punkte.py:299-302). Schwere niedrig, sichtbar.
+C-7 Der Kommentar „(nicht verdrahtet)“ an den Taktikboni in bottaktik.py (ca. Z. 166-200) widerspricht der Verdrahtung über boni.json und main.py:665. Dagegen ist der Grom-Taktikbonus „Ausbau“ laut boni.json (groessen.ausbau) wirkungslos. Urteil: TEILWEISE.
+C-8 Der ASCII-Titel „zurueck“ in story.json:154 widerspricht der Regel „Anzeigetexte tragen echte Umlaute“ (src/voelker.py:1). Ob test_anzeigetexte_umlaute.py ihn ausnimmt, habe ich nicht geprüft. UNBEKANNT - vom Modell zu messen.
+C-9 main.py hat 16.178 Zeilen, 359 Methoden mit vier Leerzeichen Einrückung und 53 except Exception. Viele Wachen importieren main und brauchen tkinter. Schwere mittel (Wartbarkeit).
+
+Rangliste C: 1. C-1, 2. C-2, 3. C-4, 4. C-3, 5. C-9, 6. C-6, 7. C-7, 8. C-8, 9. C-5.
+
+Teil D – Balance und Zahlen
+D-1 Der Korridor 0,7 bis 1,1 ist ausdrücklich VORSCHLAG (data/sollkurve.json, baender.quelle).
+D-2 Die Sollkurve hat keine Senken: kein Kampf, keine Einheiten, keine Forschungskosten (annahmen, luecken). Ab Tag 3 sind es 53 Gebäude und 1 Siedler, danach nur noch lineares Wachstum. Der Korridor misst damit nur eine Steigung.
+D-3 Der Haug-Tribut von 990 Holz entspricht rund 0,94 Idealtagen (A-7).
+D-4 Haugs 64 Gold hängen an Gold 0,5 je Stunde, was S0_TABELLEN:117 als VORSCHLAG führt. diplomatie.json:115 nennt die Quelle „UEBERNEHMEN“. Der Belegstatus ist überhöht.
+D-5 Gunst ±5, Frist und Häufigkeit haben keine Quelle (S0_TABELLEN:132-134). Die Grenzen 40 und 60 sind „Originalbeleg nachzuziehen“ (diplomatie.json:11).
+D-6 Die Ruhmstufen 10, 40 und 160 beruhen auf einer Messung von 19 bis 40 Punkten in 8 bis 12 Tagen (data/ruhm.json:3).
+D-7 Die Rache-Schwelle von 99 SK ergibt sich aus 90 SK Wall plus 10 %. Der Rechenschritt mit 20 Verteidigern und Schlagkraft 20 geht nicht in das Ergebnis ein (S0_TABELLEN:138-149). Urteil: TEILWEISE.
+D-8 F-16-Empfehlung (VORSCHLAG): nicht drosseln, sondern Senken in die Kurve aufnehmen. Eine Drosselung auf 1 Gebäude je Tag brächte die Kurve auf 53 Tage statt 3. Das ist eine Rechenfolge, keine Messung am Spiel.
+
+Rangliste D: 1. D-3, 2. D-2, 3. D-4, 4. D-5, 5. D-8, 6. D-6, 7. D-7, 8. D-1.
+
+Teil E, F, H (unter Mindestumfang)
+
+E – Oberfläche. Nur drei Befunde, alle aus dem Quelltext:
+
+E-1: Der Ereignisdialog liest Titel und Text über die Art, nicht über den Bot (main.py:13866-13969).
+E-2: Die Zielzeile zeigt statisch „kein Sieg“ (main.py:15949-15956).
+E-3: Die Niederlage wird technisch angezeigt (I-10).
+
+Verkaufsmasken, Kennzahlenblatt, Drachen-Anzeige und A-2-Doppelungen sind UNBEKANNT - vom Modell zu messen, denn ohne tkinter ließ sich keine Ansicht starten.
+
+F – Spielbarkeit. Nur drei Befunde:
+
+F-1: import tkinter schlägt in der Sandbox fehl (Python 3.12.3).
+F-2: Mein Hintergrundlauf lief auf 1 CPU. Zum letzten Blick waren 34 Dateien fertig, 9 grün und 25 mit RC 1; 29 Logs enthielten den tkinter-Fehler. Reproduziert grün: test_balance_kreis 29/0/0, test_ausruestung 68/0/1, test_auftraege 138/0/1, test_ausbildungsauftraege 59/0/0. test_gesamtsieg scheitert am Import.
+F-3: Ein Vergleich mit G-5 (1.400 s und 7.495 Prüfungen) ist nicht möglich. Meine Zeiten sind unter Parallellast gemessen und nicht vergleichbar.
+
+H – Offene Entscheidungen. FRAGEN_AN_DANIEL_20261107.md habe ich nicht gelesen. Aus meinen Befunden folgen vier Entscheidungen vor Schritt 9, nach Dringlichkeit geordnet:
+
+Spieltag-Definition (A-1; Aufwand 60 min). Empfehlung: einheitlich 86.400 s, Diplomatiezahlen umrechnen.
+Ereignis-Zuordnung (I-1; 30 min). Empfehlung: nach Botname.
+Gesamtsieg gegen E5 (I-11; 60 min). Empfehlung: Konzept und Ratgeber an den Code anpassen, wenn Daniel den Gesamtsieg behalten will.
+F-16 (D-8): im Stand schon als „A“ entschieden, Empfehlung wie in D-8.
+Teil G – Dokumente, Register, Quellen
+G-1 Das Register hat 293 Einträge bei Maximalnummer 295. 272 und 273 fehlen. Gemessen per Skript über die Tabellenzeilen von docs/PRUEFREGEL_ORIGINAL.md. Urteil: BESTAETIGT.
+G-2 AKTUELLER_STAND.md:7-8 nennt für den Auftrag 23.365 Byte und 1d60b87cca014f8f. Die vorliegende Datei hat 25.450 Byte. Der Auftrag wurde nach dem Eintrag geändert. Meine SHA1 war 558e66…; den SHA256-Abgleich habe ich nicht gerechnet, er ist UNBEKANNT - vom Modell zu messen.
+G-3 Das PDF heißt „Handbuch 2009“, trägt aber „(01.09.2006)“ und das Erstellungsdatum 2006-09-01. Daneben liegt ein Ordner Spielanleitung_2005. Die Trennung „2009 gegen 2006er Seiten“ im Code (z. B. src/punkte.py:388-395) hängt an dieser Benennung. Ob es eine zweite, echte 2009er Fassung gibt, ist UNBEKANNT.
+G-4 docs/audits/ fehlt im Paket, die Sammellauf-Logs sind nicht nachprüfbar.
+G-5 Das Story-Gesamtbild (Befunde 1 und 2, Z. 186-194) ist durch gesamtsieg überholt.
+G-6 Die Chronik sagt „Nichts davon ist eingebaut“ (Z. 11), story.json übernimmt aber Hausnamen aus ihr (Silberbach, Hammerhall).
+G-7 Widerspruch Auftrag und Stand bei Schritt L (A-6).
+
+Rangliste G: 1. G-1, 2. G-3, 3. G-2, 4. G-4, 5. G-5, 6. G-7, 7. G-6.
+
+Die vier Prüffragen
+Gesamtkonzept tragfähig? TEILWEISE. Daten und Schalter tragen, aber die Zeitbasis widerspricht sich (A-1), und das Ereignissystem verknüpft Text und Bot falsch (I-1).
+Kernkreis ohne Sackgasse? TEILWEISE. In den Kennzahlenblättern ist tag_erstes_gefecht in 11 von 11 Zeilen gleich 2, bei nur zwei verschiedenen Läufen. Eigene Läufe habe ich nicht gemacht. Die Niederlage ist eine Sackgasse (I-10).
+Originaltreu? TEILWEISE. Gunst, Verträge, Rache und Ereignisse haben keinen Originalbeleg. Handelspunkte und Drachen sind teilweise belegt oder bewusst abweichend.
+Spielbar? UNBEKANNT. Der Sammellauf war ohne tkinter nicht ausführbar, E2E-Ketten und Ansichten habe ich nicht geprüft, A-4 (alte Spielstände) und A-2 nicht gemessen.
+Selbstprüfung: wo ich unsicher bin
+I-2: Die Simulation deckt nur einen Ereignisstrom ab. Hat ein Spieler früh Gold, sieht der Verlauf anders aus.
+I-3: Eine Wirkung der Ereignisannahme in main.py um Zeile 13900 habe ich nicht gelesen.
+I-5: Wie stark aggression das Verhalten steuert, habe ich nicht gemessen.
+C-3: Die Zeilennummer 7283 ist geschätzt.
+C-4: Ich weiß nicht, welche der beiden Einheitenangaben im Drachenkampf zählt.
+C-8: Ob der Umlaut-Test den Titel ausnimmt, ist offen.
+B-3: Ob der Götterschutz beim ersten Kriegspunkt endet, habe ich nicht geprüft.
+B-5: Das Original-Zitat zu Handelspunkten kenne ich nur aus einem Code-Kommentar.
+B-6, B-7: Spionage-Regeln und Hintergrundseiten der Website habe ich nicht selbst gelesen.
+G-2: Der SHA256-Abgleich fehlt.
+G-3: Es ist offen, ob es zwei Handbuchfassungen gibt.
+J-1 bis J-9: Alle Kennzahlen stammen vom Automaten, nicht von einem Menschen.
+J-2: Tutorial und Berater-Einstieg habe ich nicht geprüft.
+J-5: Wann der Gesamtsieg erreichbar ist, habe ich nicht gemessen.
+F, E, H: nicht erfüllt.
+Tonurteile in I-12 und der Spaßfaktor: Wertungen, keine Messungen.
+Zusammenfassung in fünf Sätzen
+Die wichtigste Erkenntnis ist, dass das Ereignissystem seine Erzählung selbst bricht: Texte werden falschen Bots zugeordnet (main.py:7254-7259), und die Preise sind am Start unbezahlbar, sodass die Gunst nach rund 29 Echtminuten feindselig wird.
+Dahinter steht ein Zahlenfehler: Die Diplomatie rechnet mit 28.800 s pro Spieltag, der Rest des Spiels mit 86.400 s.
+Entscheiden muss Daniel als Erstes die Spieltag-Definition vor Schritt 9, dann den Gesamtsieg gegen E5.
+Der Sammellauf und alle GUI-Prüfungen ließen sich in dieser Sandbox nicht ausführen, daher bleibt „spielbar“ UNBEKANNT.
+Nichts wurde committet oder gepusht; die Ergebnisse stehen nur in dieser Antwort.

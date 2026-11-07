@@ -362,3 +362,31 @@ Aufgabe (Schritt L), die VOR den Schritten 9 bis 13 laufen kann, weil sie nur vo
 echtes Ergebnis). Die Erweiterung ist ein eigener Schnitt nach den Schritten 10 bis 13 und wird erst
 gebaut, wenn die Politik in `data/` steht - sonst hätte der Vorschlag wieder eine zweite Wahrheit
 im Code (F-04-Muster).
+
+## Frage F-21 (07.11.2026, 21:05) - Reihenfolge nach der dritten Modellrunde
+
+**Messlage:** Die Antwort von Claude Sonnet 5.5 ist als Lieferung unvollständig (keine Dateien, E/F/H
+unter Mindestumfang), als Befundsammlung brauchbar. Selbst nachgemessen und **bestätigt** sind sieben
+Punkte: I-1 (Ereignisart nach Bot-Index), A-1 (zwei Spieltag-Längen: 28.800 s gegen 86.400 s), I-3
+(Haug und Silra ohne Gegenleistung), C-4 (zwei widersprüchliche Einheitenangaben je Drache), I-10
+(`ausgang_text` nur im Test), C-6 („VORSCHLAG:“ in einer Spielermeldung), G-1 (Register 272/273
+fehlen). Der Rest ist ungemessen und gilt nach Projektregel noch nicht als bestätigt.
+Belege: `docs/audits/PRUEFVERMERK_CLAUDE_RUNDE3_20261107.md`.
+
+**Was zur Entscheidung steht:** ob die drei kleinen Fehlerpakete VOR Schritt 10 des Ablaufs laufen
+(zusammen 90 bis 150 min) oder erst danach.
+
+| | Weg | Folge |
+|---|---|---|
+| A | **R3-1 (A-1 Spieltag, 60 min) und R3-2 (I-1 Ereignis-Zuordnung, 30 min) vor Schritt 10**, danach R3-3 und R3-4 | zwei sichtbare bzw. zahlenverfälschende Fehler raus, bevor weitere Messungen entstehen; Schritt 10 verschiebt sich um rund 1,5 h |
+| B | erst den Ablauf zu Ende (Schritte 10 bis 13), danach alle R3-Pakete in einem Zug | der Ablauf bleibt wie geplant; A-1 verfälscht bis dahin jede Zeitmessung |
+| C | nur I-1 (30 min) sofort, alles andere nach dem Ablauf | kleinster Eingriff; A-1 bleibt offen |
+
+**Empfehlung: A.** A-1 verändert Zahlen, die in jede spätere Messung eingehen (auch in den neuen
+Regelkreis), und I-1 ist der sichtbarste Fehler im Spiel. R3-3 und R3-4 kosten zusammen 150 min und
+laufen nach dem Ablauf.
+
+**Antwort Daniel 07.11.2026, 21:05: A.** R3-1 (A-1 Spieltag-Definition) und R3-2 (I-1
+Ereignis-Zuordnung) laufen VOR Schritt 10, danach der Ablauf (10 bis 13), danach R3-3 (C-6, I-10, C-4)
+und R3-4 (I-2). Jeder dieser Schnitte bekommt seine eigene Wache, einen Registereintrag, eine
+Protokollzeile und einen vollen Sammellauf.

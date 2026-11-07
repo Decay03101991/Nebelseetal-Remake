@@ -1,3 +1,38 @@
+# STAND 07.11.2026, 21:10 - Modellrunde 3 geprueft, sieben Befunde bestaetigt, F-21 = A
+
+> Neuester Block. Darunter 20:15 (B-2 Regelkreis, Register 296), 19:45 (KI-Auftrag Runde 3),
+> 18:20 (B-1 Sollkurve, Register 295).
+
+**Die Antwort von Claude Sonnet 5.5 ist da - als Text, ohne Dateien.** Ihr Werkzeuglimit war vor dem
+Schreiben erreicht; die Teile E, F und H bleiben unter dem Mindestumfang. Als Lieferung ist Runde 3
+damit **nicht erfuellt**, als Befundsammlung brauchbar: sie sagt selbst, was sie nicht gelesen hat, und
+markiert geschaetzte Zeilen mit \"ca.\". Ablage: `docs/extern/Claude_Sonnet_Antwort_Runde3_20261107.txt`
+(SHA256 `2bff4e92d85b51ae`), Bewertung: `docs/audits/PRUEFVERMERK_CLAUDE_RUNDE3_20261107.md`.
+
+**Selbst am Code nachgemessen und bestaetigt (sieben):** I-1 Ereignisart nach dem Bot-INDEX
+(`src/main.py:7251`, Meldung nennt den Bot, Titel kommt aus der Art → \"Brynhild: Grom braucht
+Messer\"); A-1 zwei Spieltag-Laengen (`data/diplomatie.json:66-68` nennt 28.800 s, `botkern` und
+`punkte` rechnen 86.400 s - die \"Frist von zwei Spieltagen\" 57.600 s ist in Wahrheit 0,67 Tage);
+I-3 Haug und Silra ohne Gegenleistung (Grom hat eine); C-4 je Drache zwei Einheitenangaben (20/20 gegen
+120/60/24, welche zaehlt ist UNGEMESSEN); I-10 `story.ausgang_text` nur im Test; C-6 \"VORSCHLAG:\" in
+einer Spielermeldung (`src/punkte.py:301`); G-1 Register 272/273 fehlen.
+**Widerlegt als Fehler:** B-5 (Handelspunkte nicht in `gesamtpunkte`) - im Code ausdruecklich als
+Abweichung der 2009er Fassung begruendet.
+
+**Zwei Aussagen der Antwort sind zu berichtigen:** Schritt 9 war beim Schreiben laengst gebaut
+(`91a6525`), und ihr \"spielbar UNBEKANNT\" beschreibt die Sandbox ohne tkinter, nicht das Projekt (der
+Sammellauf lief hier 20:18 mit 192/194 gruen).
+
+**F-21 = A (Daniel 21:05):** R3-1 (A-1 Spieltag-Definition, 60 min) und R3-2 (I-1
+Ereignis-Zuordnung, 30 min) laufen VOR Schritt 10, danach der Ablauf, danach R3-3 (C-6, I-10, C-4)
+und R3-4 (I-2).
+
+**Naechster Schritt:** **R3-1** - die Spieltag-Definition vereinheitlichen (86.400 s), die
+Diplomatie-Zahlen in `data/diplomatie.json` umrechnen (Frist, Vorlauf, Pakt, Rachetopf) und eine Wache
+bauen, die keine zweite Tageslaenge mehr zulaesst. Danach R3-2, dann Schritt 10 bis 13 des Ablaufs.
+Arbeitsweise unveraendert: Register, Protokollzeile, Stand-Block, Commit, Push und nach jedem Schnitt
+ein VOLLER SAMMELLAUF mit dem Projekt-venv.
+
 # STAND 07.11.2026, 20:15 - B-2 Regelkreis gebaut (Register 296), erster A/B-Lauf abgelehnt
 
 > Neuester Block. Darunter 19:45 (KI-Auftrag Runde 3, Schritt L), 18:20 (B-1 Sollkurve,
