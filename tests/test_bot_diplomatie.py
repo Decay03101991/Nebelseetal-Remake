@@ -253,4 +253,65 @@ check("der Verlust wird aus der Datendatei gerechnet (keine Zahl im Code)",
       spionage.verlust_der_truppe({"Kundschafter": 10}) != {"Kundschafter": 10},
       str(spionage.verlust_der_truppe({"Kundschafter": 10})))
 
+# ------------------------------------------------------------------ I. Drachen-Anzeige (F-14 = B)
+abschnitt("I. F-14 = B: drachen.bedrohung ist eine ANZEIGE, keine Meidung")
+import drachen as DR  # noqa: E402  - erst hier, damit der Aufbau oben schlank bleibt
+
+_drache = None
+for _eintrag in DR.alle():  # der erste offene Drache der Datendatei
+    _drache = _eintrag  # merken
+    break
+check("die Datendatei nennt einen Drachen", _drache is not None, str(_drache))
+_block = (DR.daten().get("bots") or {})
+check("Reichweite steht in der Datei (nicht im Code)", int(_block.get("bedrohung_reichweite", 0)) > 0,
+      str(_block.get("bedrohung_reichweite")))
+check("der Anzeigetext steht in der Datei", "{abstand}" in str(_block.get("text_bedrohung", "")),
+      str(_block.get("text_bedrohung"))[:40])
+_welt = str(_drache.get("welt") or "")
+_dimension = int(_welt[1:]) if _welt[1:].isdigit() else 0  # "d02" -> 2
+_lage = {"x": int(_drache.get("x")), "y": int(_drache.get("y")), "dimension": _dimension}
+_direkt = DR.bedrohung(_lage)
+check("steht der Drache am Dorf, nennt die Meldung ihn", str(_drache.get("name")) in _direkt.get("text", ""),
+      _direkt.get("text"))
+check("auf demselben Feld gilt der Direkt-Satz", _direkt.get("text") == str(
+    _block.get("text_bedrohung_direkt")).replace("{name}", str(_drache.get("name")))
+    .replace("{abstand}", str(_direkt.get("abstand"))), _direkt.get("text"))
+# Zwei Felder daneben: der Abstand wird gerechnet, der Erwartungswert kommt aus derselben Formel.
+_lage2 = {"x": int(_drache.get("x")), "y": int(_drache.get("y")) + 2, "dimension": _dimension}
+_erwartet_abstand = abs(_lage2["x"] - int(_drache.get("x"))) + abs(_lage2["y"] - int(_drache.get("y")))
+_zwei = DR.bedrohung(_lage2)
+check("der Abstand ist der Manhattan-Abstand", _zwei.get("abstand") == _erwartet_abstand,
+      "erwartet %s, ist %s" % (_erwartet_abstand, _zwei.get("abstand")))
+check("der Satz nennt den Abstand", str(_erwartet_abstand) in str(_zwei.get("text")), _zwei.get("text"))
+_reichweite = int(_block.get("bedrohung_reichweite"))
+_farne = {"x": int(_drache.get("x")) + _reichweite + 5, "y": int(_drache.get("y")), "dimension": _dimension}
+_weit = DR.bedrohung(_farne)
+check("ausserhalb der Reichweite schweigt die Meldung", _weit.get("text") == "",
+      "Abstand %s, Reichweite %s" % (_weit.get("abstand"), _reichweite))
+check("die Lage wird trotzdem genannt (fuer die Anzeige)", _weit.get("name") == str(_drache.get("name")),
+      str(_weit.get("name")))
+check("in einer anderen Welt gibt es keine Meldung",
+      DR.bedrohung({"x": 0, "y": 0, "dimension": 99}) == {}, "Welt 99")
+check("ein besiegter Drache zaehlt nicht",
+      DR.bedrohung(_lage, (str(_drache.get("id")),)).get("text", "") in ("", None)
+      or "Epheus" not in str(DR.bedrohung(_lage, (str(_drache.get("id")),)).get("text")),
+      str(DR.bedrohung(_lage, (str(_drache.get("id")),))))
+check("ein Ort ohne Lage ergibt keine Meldung", DR.bedrohung({"name": "nirgends"}) == {}, "ohne x/y")
+_bedrohung_code = _code(DR.bedrohung)
+check("die Meldung bucht nichts (keine Buchstelle im Code)",
+      "buchen" not in _bedrohung_code and "vorraete" not in _bedrohung_code,
+      "keine Buchung, keine Vorraete")
+_drache_code2 = _code(main.GameState._bots_drachenzug)
+check("der Drachenzug ruft die Meldung im Zweig 'zu stark'",
+      "_drohung = drachen.bedrohung(" in _drache_code2, "Aufruf vorhanden")
+check("die Entscheidung selbst bleibt drachen.bot_entscheidung",
+      "drachen.bot_entscheidung" in _drache_code2, "kein zweites Urteil")
+# Nur der Abschnitt ZWISCHEN Aufruf und continue darf nichts buchen - der Rest der Methode
+# bucht Absichten des Kerns und enthaelt deshalb das Wort "buchen".
+_stelle = _drache_code2.find("_drohung = drachen.bedrohung(")
+_abschnitt = _drache_code2[_stelle:_drache_code2.find("continue", _stelle)]
+check("die Meldung wird nur angehaengt, nicht gebucht",
+      "_zusatz" in _abschnitt and "buchen" not in _abschnitt and "vorraete" not in _abschnitt,
+      "Abschnitt zwischen Aufruf und continue: %d Zeichen" % len(_abschnitt))
+
 bericht()

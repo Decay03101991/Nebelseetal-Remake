@@ -389,6 +389,65 @@ def bot_entscheidung(schlag_fuss, schlag_belagerung, schwellen, belohnung=0,
     return (True, grund)
 
 
+def bedrohung(ort, besiegt=(), pfad=None) -> dict:
+    """Wie nah steht der NAECHSTE offene Drache an einem Ort? NUR Anzeige (F-14 = B, 07.11.2026).
+
+    Daniel hat am 07.11.2026 entschieden: die Meidung wird NICHT gebaut, die Meldung schon. Diese
+    Funktion rechnet deshalb nichts und bucht nichts - sie nennt nur Name und Abstand.
+    Eingabe: Ort (Objekt oder dict mit x, y, dimension), Menge besiegter Drachen-IDs, optionaler Pfad.
+    Ausgabe: dict mit 'text' (leer, wenn keiner in Reichweite steht), 'name', 'abstand', 'x', 'y'.
+    Abstand ist der Manhattan-Abstand aus |dx| + |dy| - dieselbe Rechnung wie bottaktik.entfernung.
+    """
+    block = daten(pfad).get("bots") or {}  # der Bot-Block der Datendatei
+    if not isinstance(block, dict):  # unbrauchbare Angabe
+        return {}  # dann keine Meldung
+    vorlage = str(block.get("text_bedrohung") or "")  # Anzeigetext aus den Daten
+    try:  # Reichweite belastbar machen
+        reichweite = int(block.get("bedrohung_reichweite", 0) or 0)  # ab wann geschwiegen wird
+    except (TypeError, ValueError):  # kaputte Angabe
+        reichweite = 0  # dann schweigt die Meldung
+    if not vorlage:  # kein Text in der Datei
+        return {}  # dann wird nichts erfunden
+    def _wert(name):  # liest ein Feld aus Objekt ODER dict
+        if isinstance(ort, dict):  # dict-Form
+            return ort.get(name)  # direkt lesen
+        return getattr(ort, name, None)  # sonst vom Objekt
+    try:  # Lage des Ortes
+        x = int(_wert("x"))  # Spalte
+        y = int(_wert("y"))  # Zeile
+        nummer = int(_wert("dimension"))  # Weltnummer
+    except (TypeError, ValueError):  # Ort ohne brauchbare Lage
+        return {}  # dann keine Meldung
+    siegel = welt_kennung(nummer)  # Kennung seiner Welt
+    if not siegel:  # keine Welt bekannt
+        return {}  # dann keine Meldung
+    offen = [e for e in alle(pfad)  # jeder gueltige Drache
+             if str(e.get("welt")) == siegel  # in DIESER Welt
+             and str(e.get("id")) not in (besiegt or ())]  # und noch nicht besiegt
+    if not offen:  # kein Drache in seiner Welt
+        return {}  # dann keine Meldung
+    naechster = None  # bester Kandidat
+    for eintrag in offen:  # jeder Drache einmal
+        try:  # seine Lage
+            abstand = abs(x - int(eintrag.get("x"))) + abs(y - int(eintrag.get("y")))  # Manhattan
+        except (TypeError, ValueError):  # Eintrag ohne Lage
+            continue  # dann zaehlt er nicht
+        if naechster is None or abstand < naechster[0]:  # naeher als der bisherige
+            naechster = (abstand, eintrag)  # dann merken
+    if naechster is None:  # keiner hatte eine Lage
+        return {}  # dann keine Meldung
+    abstand, eintrag = naechster  # bester Kandidat
+    text = ""  # ohne Reichweite kein Satz
+    if reichweite <= 0 or abstand <= reichweite:  # in Reichweite
+        satz = vorlage  # der Satz aus der Datendatei
+        if abstand <= 1 and str(block.get("text_bedrohung_direkt") or ""):  # direkt am Dorf
+            satz = str(block.get("text_bedrohung_direkt"))  # eigener Satz statt "0 Felder"
+        text = (satz.replace("{name}", str(eintrag.get("name") or ""))  # Name des Drachen
+                .replace("{abstand}", str(int(abstand))))  # und der Abstand
+    return {"text": text, "name": str(eintrag.get("name") or ""), "abstand": int(abstand),
+            "x": int(eintrag.get("x") or 0), "y": int(eintrag.get("y") or 0)}  # alles als dict
+
+
 def figur(eintrag, besiegt=(), pfad=None) -> dict:
     """Erzeugt das Anzeige-dict fuer einen Drachen oder eine Ruine.
     Eingabe: Drachen-Eintrag, optionale Menge besiegter IDs, optionaler Pfad.

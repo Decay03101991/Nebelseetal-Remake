@@ -298,3 +298,15 @@ Zusaetzlich macht ein Spieler-Vorsprung von 50 Prozent jeden Bot vorsichtiger (x
 
 **Auswirkung:** A kostet nichts. B und C sind Balancing-Entscheidungen mit eigenem Sammellauf.
 
+
+## Nachtrag 07.11.2026, 17:40 - die drei Fragen sind beantwortet (Daniel, im Chat)
+
+| Nr | Frage | Antwort | Folge |
+|---|---|---|---|
+| F-13 | Schwellenpreis 300 Gold je Einheit? | **A - bleibt bei 300 Gold.** | Kein Code, kein neuer Sammellauf. Der Handel bleibt bewusst stark; der Befund (95 Handelspunkte aus einem Verkauf) steht weiter im Register 292 und in `docs/balancing/kennzahlen.jsonl`. |
+| F-14 | Drache: zusaetzlich eine Meidung bauen? | **B - nur Anzeige.** `drachen.bedrohung(ort)` liefert einen Text. | Gebaut in dieser Sitzung (Register 294): `drachen.bedrohung` nennt Name und Manhattan-Abstand des naechsten offenen Drachen, Reichweite 5 Felder; die Bot-Meldung im Zweig "zu stark" haengt den Satz an. **Keine** Meidung, weder Gruendung noch Marsch weichen Drachenfeldern aus, und nichts wird gebucht. |
+| F-15 | Reaktionsstufen 0,8 / 1,0 / 1,2 und Zuordnung nach Taktik? | **A - bleibt so.** | Kein Code. Die Werte stehen in `data/bot_diplomatie.json` (Block `reaktion`) und sind dort ohne Codeaenderung zu stellen. |
+
+**Was aus den Antworten NICHT folgt:** kein neuer Schnitt ausser der Anzeige (F-14 = B). F-13 und F-15
+sind reine Bestaetigungen des dokumentierten Stands - sie aendern keine Datei.
+

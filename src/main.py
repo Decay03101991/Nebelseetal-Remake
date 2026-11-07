@@ -6209,7 +6209,11 @@ class GameState:
                 sk.get("fusstruppen"), sk.get("belagerungswaffen"),
                 drachen.schwellen(drache), belohnung.get("summe"), angegriffen)
             if not erlaubt:                                           # zu stark
-                self._log("%s: kein Drachenangriff - %s" % (bot.name, grund))
+                # F-14 = B (Daniel 07.11.2026): die Meldung nennt den naechsten Drachen - NUR als
+                # Anzeige. Es wird nicht ausgewichen, und der Entschluss oben bleibt unveraendert.
+                _drohung = drachen.bedrohung(dorf, self.drachen_besiegt or ())   # Lage, kein Buchen
+                _zusatz = (" " + _drohung["text"]) if _drohung.get("text") else ""   # Satz aus den Daten
+                self._log("%s: kein Drachenangriff - %s%s" % (bot.name, grund, _zusatz))
                 continue                                              # naechster Drache
             truppen = dict(kaempfer)                                  # was mitreist
             truppen.update(geraet)                                    # Belagerung dazu

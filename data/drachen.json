@@ -221,6 +221,10 @@
     "text_zu_schwach_fuss": "Drache zu stark: Fußtruppen {eigene} von {schwelle} nötig.",
     "text_zu_schwach_belagerung": "Drache zu stark: Belagerung {eigene} von {schwelle} nötig.",
     "text_lohnt": "Drache lohnt: {mana} Mana und sein Hort – aber sichere Verluste von rund {verluste} Prozent.",
-    "text_angegriffen": "Der Drache wurde bereits angegriffen; wie stark er noch ist, zeigt erst ein eigener Angriff."
+    "text_angegriffen": "Der Drache wurde bereits angegriffen; wie stark er noch ist, zeigt erst ein eigener Angriff.",
+    "bedrohung_reichweite": 5,
+    "text_bedrohung": "Ein Drache ({name}) steht {abstand} Felder entfernt.",
+    "text_bedrohung_direkt": "Ein Drache ({name}) steht direkt am Dorf.",
+    "bedrohung_status": "VORSCHLAG 07.11.2026 (Daniel, F-14 = B): die Meldung ist NUR eine Anzeige. Es gibt keine Meidung - weder Gruendung noch Marsch weichen Drachenfeldern aus, und nichts wird dafuer gebucht. Reichweite 5 Felder (Manhattan wie bottaktik.entfernung): darueber hinaus schweigt die Meldung."
   }
 }

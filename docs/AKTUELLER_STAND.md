@@ -1,3 +1,30 @@
+# STAND 07.11.2026, 17:45 - Drachen-Bedrohung als Anzeige (F-14 = B), Antworten der Fragenrunde (Register 294)
+
+> Neuester Block. Register 294. Darunter 293 (Bot-Luecken S4-7), 292 (Handel in der Spielschicht),
+> 291 (Verkaufsmaske), 290 (Verkaufsrichtung im Kern).
+
+**Daniels Antworten vom 07.11.2026, 17:40 sind eingearbeitet.** F-13 = A (Schwellenpreis bleibt
+300 Gold), F-14 = B (Drachen nur melden, nicht meiden), F-15 = A (Reaktionsstufen bleiben). Zwei der
+drei Antworten bestaetigen den dokumentierten Stand und aendern keine Datei; F-14 = B ist gebaut.
+
+**Was F-14 = B geworden ist:** `drachen.bedrohung(ort, besiegt, pfad)` nennt den NAECHSTEN offenen
+Drachen seiner Welt mit Manhattan-Abstand und einem Satz aus `data/drachen.json`. Reichweite 5 Felder
+(aus der Datei), darueber hinaus schweigt die Meldung; auf dem eigenen Feld gilt ein eigener Satz
+statt "0 Felder". Der Bot haengt den Satz an seine Meldung "kein Drachenangriff - ..." an. **Es gibt
+KEINE Meidung:** weder Gruendung noch Marsch weichen Drachenfeldern aus, und die Funktion bucht
+nichts - das ist als Wache im Quelltext festgehalten.
+
+**Gemessen:** `tests/test_bot_diplomatie.py` jetzt **67 Pruefungen, 0 Fehler** (Abschnitt I neu);
+Nachbarwachen gruen (`test_drachen` 88/0/0, `test_drachen_einhaengung` 96/0/0,
+`test_drachen_zweite_phase` 22/0/1, `test_drachenschuppe` 32/0/0, `test_bottaktik` 48/0/0).
+
+**Guthaben (Daniel 17:40):** 7,51 USD, Gesamtverbrauch 62,48 USD - 0,75 USD fuer S4-6c, S4-7 und die
+zwei Sammellaeufe dieser Sitzung.
+
+**Naechster Schritt:** Schritt 8 des Ablaufs (B-1 Sollkurve aus den Daten), danach 9 bis 13.
+Arbeitsweise unveraendert: je Schnitt Register, Protokollzeile, Stand-Block, Commit, Push und ein
+voller Sammellauf.
+
 # STAND 07.11.2026, 15:07 - Bot-Luecken: Spaehung vor dem Raubzug, Reaktionsstufe der Bots (Register 293)
 
 > Neuester Block. Register 293. Darunter 292 (Handel in der Spielschicht), 291 (Verkaufsmaske),
