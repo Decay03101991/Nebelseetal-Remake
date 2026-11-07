@@ -46,7 +46,8 @@ Ereignisfrist und Rachevorlauf wirken damit dreimal so lange in Echtzeit wie vor
 kuerzen, ohne dass wieder eine zweite Tageslaenge entsteht.
 
 **Guthaben (Daniel abgelesen, 21:04):** 7,23 USD / 62,76 USD - unveraendert seit 20:45, diese Sitzung
-arbeitet rein lokal.
+arbeitet rein lokal.**Sammellauf nach R3-1 (21:09 bis 21:24): 193 von 195 gruen, 0 rot**, 8.026 Pruefungen, 60 Befunde, 939 s (`docs/audits/sammellauf_20261107_2108.log`); die zwei nicht gruenen Dateien sind AUSGESETZT wie zuvor, die neue Wache `test_spieltag_eine_quelle` lief mit 31/0/0 mit. Commit `12d22b1`, gepusht, Kopf = Remote, Arbeitsbaum leer.
+
 
 **Naechster Schritt:** **R3-2** - die Ereignisart am Botnamen festmachen (`src/main.py:7251` rotiert
 ueber `_index % len(_arten)`, Folge: "Brynhild: Grom braucht Messer"), Wache ergaenzen. Danach
