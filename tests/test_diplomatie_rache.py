@@ -8,7 +8,7 @@ Geprueft wird, was der Schnitt zusagt, mit den Entscheidungen Daniels vom 06.11.
   E. Es gibt GENAU EINE Ankuendigung je Ausloesung, und der Angriff kommt erst nach dem Vorlauf.
   F. Nach einem Bot-Sieg faellt der Topf auf 0 (F-3).
   G. Ein laufender Pakt blockiert den Angriff; der Topf steigt aber WEITER (Daniel 13:50).
-  H. Nach dem Paktende gilt der Vorlauf von 28.800 s.
+  H. Nach dem Paktende gilt der Vorlauf von 86.400 s (ein Spieltag, R3-1).
   I. Ein alter Spielstand ohne `rache` laedt mit 0 (additiv, kein Zwangsfeld).
   J. Quellwache: der Racheangriff laeuft ueber den VORHANDENEN Weg (`naechster_angriff`),
      kein zweiter Angriffspfad, kein Text im Code.
@@ -31,8 +31,9 @@ from harness import abschnitt, befund, bericht, check, import_src
 import_src()
 import diplomatie as D
 import main
+import zeitbasis
 
-TAG = 28800.0  # ein Spieltag in Spielsekunden (aus data/diplomatie.json)
+TAG = float(zeitbasis.SEKUNDEN_JE_TAG)  # ein Spieltag (R3-1: die EINE Quelle)
 
 
 def _code(funktion) -> str:
@@ -66,7 +67,7 @@ check("drei Ankuendigungstexte liegen in der Datei",
       isinstance(rache_block.get("ankuendigung"), list) and len(rache_block["ankuendigung"]) == 3,
       str(len(rache_block.get("ankuendigung") or [])))
 eigene = {"rache": {"aktiv": True, "schwelle": 1, "armee_sk": 1, "hoechstwert": 2, "je_niederlage": 1,
-                    "spieltag_sekunden": 100, "vorlauf_sekunden": 50, "nach_paktende_sekunden": 50,
+                    "vorlauf_sekunden": 50, "nach_paktende_sekunden": 50,
                     "nach_bot_sieg": 0, "ankuendigung": ["a"]}}
 b_eigen = _bot()
 check("geaenderte Schwelle in den Daten aendert das Urteil",
@@ -142,21 +143,21 @@ vorher = D.rache_von(bot_g)
 D.rache_tag(bot_g, TAG * 2, goetterschutz=False)              # Topf steigt trotz Pakt
 check("der Topf steigt unter dem Pakt weiter", D.rache_von(bot_g) >= vorher, str(D.rache_von(bot_g)))
 
-abschnitt("H. Nach dem Paktende gilt der Vorlauf von 28.800 s")
+abschnitt("H. Nach dem Paktende gilt der Vorlauf von 86.400 s")
 bot_h = _bot(rache=4)
-D.vertrag_anbieten(bot_h, "nichtangriff", 0.0)               # Pakt bis 86.400 s
+D.vertrag_anbieten(bot_h, "nichtangriff", 0.0)               # Pakt bis 259.200 s (drei Spieltage)
 D.pakt_brechen(bot_h, 1000.0)                                # der Spieler bricht ihn bei 1.000 s
 check("das Ende des Pakts ist gemerkt", D.vertrag_ende(bot_h, "nichtangriff") == 1000.0,
       str(D.vertrag_ende(bot_h, "nichtangriff")))
 check("1 s nach dem Bruch kein Angriff", D.rache_bereit(bot_h, 99, 1001.0) is False, "zu frueh")
-check("28.799 s nach dem Bruch kein Angriff", D.rache_bereit(bot_h, 99, 1000.0 + TAG - 1) is False,
+check("86.399 s nach dem Bruch kein Angriff", D.rache_bereit(bot_h, 99, 1000.0 + TAG - 1) is False,
       "noch zu frueh")
-check("28.800 s nach dem Bruch ist der Weg frei", D.rache_bereit(bot_h, 99, 1000.0 + TAG) is True,
+check("86.400 s nach dem Bruch ist der Weg frei", D.rache_bereit(bot_h, 99, 1000.0 + TAG) is True,
       "Vorlauf um")
 bot_h2 = _bot(rache=4)                                       # zweite Probe: Ablauf statt Bruch
 D.vertrag_anbieten(bot_h2, "nichtangriff", 0.0)
-D.vertrag_aktiv(bot_h2, "nichtangriff", 86400.0)             # Pakt laeuft ab
-check("auch der Ablauf wird als Ende gemerkt", D.vertrag_ende(bot_h2, "nichtangriff") == 86400.0,
+D.vertrag_aktiv(bot_h2, "nichtangriff", 3 * TAG)             # Pakt laeuft ab
+check("auch der Ablauf wird als Ende gemerkt", D.vertrag_ende(bot_h2, "nichtangriff") == 3 * TAG,
       str(D.vertrag_ende(bot_h2, "nichtangriff")))
 
 abschnitt("I. Alter Spielstand ohne rache")

@@ -2,7 +2,7 @@
   "_hinweis": "Fristen und Kategorien des Postfachs (S1, 06.11.2026). Der Code liest AUSSCHLIESSLICH hier - keine Frist als Konstante in src/.",
   "_quelle": "Daniel, Entscheidung 4 der Runde 2 (06.11.2026): Frist 1 Spieltag fuer Berichte, Militaerberichte (Kampf, Gesamtsieg) nie loeschen, ungelesene Verlustberichte verschieben sich automatisch.",
   "je_seite": 20,
-  "frist_spielsekunden": 28800,
+  "frist_spielsekunden": 86400,
   "ohne_ablauf": ["kampf", "gesamtsieg"],
   "verschieben_wenn_ungelesen": ["verlust"],
   "kategorien": {

@@ -1,6 +1,7 @@
 {
   "_schnitt": "S4 Teil 1 (06.11.2026): Gunst und Status. Gebaut nach docs/ABLAUF_LLM_20261106.md Schritt 1. Spaetere Teile (Vertraege, Rachetopf, Ereignisse) kommen in DIESELBE Datei und werden mit ihrem eigenen Schnitt angelegt - hier steht nur, was gebaut ist.",
-  "stand": "2026-11-06",
+  "stand": "2026-11-07",
+  "_tageslaenge": "Ein Spieltag sind 86.400 Spielsekunden; die EINE Quelle ist src/zeitbasis.py (SEKUNDEN_JE_TAG, R3-1 am 07.11.2026). Diese Datei fuehrt keine eigene Tageslaenge - jede Zeit hier ist ein Vielfaches von 86.400.",
   "regel": "Die Gunst eines Bots liegt zwischen min und max. Der Status wird NICHT gespeichert, sondern bei jeder Anzeige aus der Gunst gerechnet (diplomatie.status) - zwei Speicher fuer eine Groesse waeren der F-04-Fehler.",
   "aktiv": true,
   "gunst": {
@@ -32,22 +33,22 @@
     "_schnitt": "S4-3 (06.11.2026), Ablauf Schritt 3. Jede Zahl traegt ihre Quelle. Der Pakt ist EINSEITIG - Daniels Entscheidung vom 06.11.2026, 13:50 (Register 284): der Bot greift nicht an, der Spieler darf pluendern, bezahlt es aber mit einem Paktbruch.",
     "nichtangriff": {
       "min_gunst": 40,
-      "dauer_sekunden": 86400,
+      "dauer_sekunden": 259200,
       "bruch_gunst": -20,
       "bruch_rache": 1,
-      "quelle": "Auftragsdokument 7.2 (VORSCHLAG): Pakt ab Gunst 40, Dauer 3 Spieltage = 86.400 Spielsekunden (3 x 28.800), Bruch unter 40 kostet 20 Gunst und +1 Rachetopf. Kein Originalbeleg im Handbuch 2009 nachgezogen (offener Punkt A-5)."
+      "quelle": "Auftragsdokument 7.2 (VORSCHLAG): Pakt ab Gunst 40, Dauer 3 Spieltage = 259.200 Spielsekunden (3 x 86.400; R3-1: ein Spieltag sind 86.400 s), Bruch unter 40 kostet 20 Gunst und +1 Rachetopf. Kein Originalbeleg im Handbuch 2009 nachgezogen (offener Punkt A-5)."
     },
     "handel": {
       "min_gunst": 40,
-      "dauer_sekunden": 86400,
-      "quelle": "VORSCHLAG: Handelsabkommen ab Gunst 40, gleiche Dauer wie der Pakt. Kein Originalbeleg; das Abkommen nutzt den vorhandenen Handelsweg (spieloekonomie.handel_start), es entsteht kein zweiter Weg."
+      "dauer_sekunden": 259200,
+      "quelle": "VORSCHLAG: Handelsabkommen ab Gunst 40, gleiche Dauer wie der Pakt (drei Spieltage = 259.200 s, R3-1). Kein Originalbeleg; das Abkommen nutzt den vorhandenen Handelsweg (spieloekonomie.handel_start), es entsteht kein zweiter Weg."
     },
     "durchmarsch": {
       "min_gunst": 60,
-      "dauer_sekunden": 86400,
+      "dauer_sekunden": 259200,
       "nur_anzeige": true,
       "text": "Durchmarsch gewährt (nur Anzeige - keine Mechanik)",
-      "quelle": "Auftragsdokument 7.2 (VORSCHLAG) und Daniels Entscheidung 06.11.2026, 13:50 (Register 284): reine Anzeige, KEINE Mechanikwirkung - kein Originalbeleg, keine neue Wegfindung."
+      "quelle": "Auftragsdokument 7.2 (VORSCHLAG) und Daniels Entscheidung 06.11.2026, 13:50 (Register 284): reine Anzeige, KEINE Mechanikwirkung - kein Originalbeleg, keine neue Wegfindung. Dauer wie die anderen Vertraege, drei Spieltage = 259.200 s (R3-1)."
     },
     "bruch_unter_gunst": 40,
     "einseitig": {
@@ -58,14 +59,13 @@
   },
   "rache": {
     "aktiv": true,
-    "_schnitt": "S4-4 (06.11.2026), Ablauf Schritt 4. Jede Zahl traegt ihre Quelle. Entscheidungen Daniels: Topf steigt AUCH unter einem Pakt (13:50), Angriff fruehestens 28.800 s nach Paktende (13:50), nach einem Bot-Sieg Topf 0 (11:25, F-3).",
+    "_schnitt": "S4-4 (06.11.2026), Ablauf Schritt 4. Jede Zahl traegt ihre Quelle. Entscheidungen Daniels: Topf steigt AUCH unter einem Pakt (13:50), Angriff fruehestens ein Spieltag nach Paktende (13:50), nach einem Bot-Sieg Topf 0 (11:25, F-3). R3-1: die Tageslaenge kommt aus src/zeitbasis.py (86.400 s), diese Datei fuehrt sie NICHT mehr.",
     "je_niederlage": 1,
     "hoechstwert": 5,
     "schwelle": 3,
     "armee_sk": 99,
-    "spieltag_sekunden": 28800,
-    "vorlauf_sekunden": 28800,
-    "nach_paktende_sekunden": 28800,
+    "vorlauf_sekunden": 86400,
+    "nach_paktende_sekunden": 86400,
     "nach_bot_sieg": 0,
     "ruht_unter_goetterschutz": true,
     "ruht_unter_vertrag": false,
@@ -78,8 +78,8 @@
       "je_niederlage": "VORSCHLAG: Auftragsdokument docs/extern/Nebelseetal_LLM_Auftrag_20261106.md Abschnitt 7.2 - eine Niederlage fuellt den Topf um 1.",
       "schwelle": "VORSCHLAG: Auftragsdokument 7.2 - ab Topf 3 folgt eine Ankuendigung.",
       "armee_sk": "V-5, UEBERNEHMEN (Befund G-2): 99 SK ist die Rache-Schwelle; die 90 SK aus docs/ABLAUF_LLM_20261107.md sind die WALL-Schwelle und NICHT gemeint.",
-      "vorlauf_sekunden": "VORSCHLAG: ein Spieltag Vorlauf zwischen Ankuendigung und Angriff.",
-      "nach_paktende_sekunden": "ENTSCHEIDUNG Daniel 06.11.2026, 13:50 (Register 284): der Angriff darf fruehestens 28.800 s nach dem Paktende feuern.",
+      "vorlauf_sekunden": "VORSCHLAG: ein Spieltag Vorlauf zwischen Ankuendigung und Angriff (= 86.400 s, R3-1).",
+      "nach_paktende_sekunden": "ENTSCHEIDUNG Daniel 06.11.2026, 13:50 (Register 284): der Angriff darf fruehestens EINEN Spieltag nach dem Paktende feuern. Sie nannte 28.800 s, weil damals 28.800 s als ein Spieltag galt; seit R3-1 sind es 86.400 s - derselbe eine Spieltag.",
       "nach_bot_sieg": "ENTSCHEIDUNG Daniel 06.11.2026, 11:25 (F-3): nach einem Bot-Sieg faellt der Topf auf 0.",
       "ruht_unter_goetterschutz": "VORSCHLAG (Befund G-1): `noob_protection` sperrt heute schon jeden Angriff - ein Topf, der trotzdem steigt, feuerte am ersten Tag nach dem Schutz.",
       "ruht_unter_vertrag": "ENTSCHEIDUNG Daniel 06.11.2026, 13:50: der Topf steigt auch unter einem Pakt weiter - der Pakt kauft Zeit, nicht Ruhe.",
@@ -89,8 +89,8 @@
   "ereignisse": {
     "aktiv": true,
     "_schnitt": "S4-5 (06.11.2026), Ablauf Schritt 5. Frist, Haeufigkeit, Gunstwirkung und die Tauschzuordnung sind VORSCHLAG; die Preise stehen belegt in V-4 (docs/S0_TABELLEN_20261107.md). Jeder Preis traegt seine Quelle. Die sichtbaren Saetze stehen NICHT hier, sondern in data/story.json unter \"ereignisse\".",
-    "frist_sekunden": 57600,
-    "haeufigkeit_sekunden": 86400,
+    "frist_sekunden": 172800,
+    "haeufigkeit_sekunden": 259200,
     "gunst_annahme": 5,
     "gunst_ablehnung": -5,
     "ertrag_zeitraum_stunden": 24,
@@ -147,8 +147,8 @@
       }
     },
     "quellen": {
-      "frist_sekunden": "VORSCHLAG: zwei Spieltage = 57.600 s (Auftragsdokument Abschnitt 7.3, Modellantwort C). Kein Originalbeleg - Handbuch 2009 und die 2006er Seiten schweigen zu Fristen.",
-      "haeufigkeit_sekunden": "VORSCHLAG: ein Ereignis je Bot und drei Spieltage = 86.400 s (Auftragsdokument 7.3).",
+      "frist_sekunden": "VORSCHLAG: zwei Spieltage = 172.800 s (Auftragsdokument Abschnitt 7.3, Modellantwort C; R3-1: 2 x 86.400). Kein Originalbeleg - Handbuch 2009 und die 2006er Seiten schweigen zu Fristen.",
+      "haeufigkeit_sekunden": "VORSCHLAG: ein Ereignis je Bot und drei Spieltage = 259.200 s (Auftragsdokument 7.3; R3-1: 3 x 86.400).",
       "gunst_annahme": "VORSCHLAG: +5 Gunst bei Annahme (Auftragsdokument 7.3).",
       "gunst_ablehnung": "VORSCHLAG: -5 Gunst bei Ablehnung UND bei Ablauf (Auftragsdokument 7.3).",
       "ertrag_zeitraum_stunden": "24 Spielstunden = ein Spieltag; dieselbe Laenge wie in V-4 gerechnet.",

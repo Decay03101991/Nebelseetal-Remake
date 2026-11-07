@@ -17,6 +17,7 @@ import json  # importiert json zum Lesen der Datendatei
 import os  # importiert os fuer Pfadoperationen
 import spieldaten  # importiert spieldaten fuer den Projektwurzelpfad
 import wirtschaft  # S4-5: liest den Goldertrag eines Ortes (EINE Ertragsquelle)
+import zeitbasis  # R3-1: die EINE Tageslaenge des Projekts (86.400 Spielsekunden)
 
 STAND = "2026-11-07.1"  # Kennung dieses Modulstands (erscheint in keinem Spielstand)
 _CACHE = {}  # Pfad -> (Aenderungszeit, Inhalt): die Datendatei wird EINMAL gelesen
@@ -442,7 +443,7 @@ def rache_tag(bot_daten, jetzt, goetterschutz=False, einst=None) -> int:
     block = _rache_block(einst)  # Zahlen holen
     if goetterschutz and bool(block.get("ruht_unter_goetterschutz", True)):  # Schutz laeuft
         return rache_von(bot_daten, einst)  # dann ruht der Topf
-    tag_sekunden = max(1.0, _block_zahl(block, "spieltag_sekunden", 28800.0))  # Laenge eines Spieltags
+    tag_sekunden = max(1.0, float(zeitbasis.SEKUNDEN_JE_TAG))  # Laenge eines Spieltags (EINE Quelle, R3-1)
     tag = int(float(jetzt) // tag_sekunden)  # laufende Spieltag-Nummer
     ged = _gedaechtnis(bot_daten)  # Gedaechtnis holen
     if int(_zahl(ged.get("rache_tag_nr"), -1)) == tag:  # dieser Tag ist schon gebucht
@@ -493,14 +494,14 @@ def rache_bereit(bot_daten, armee_sk, jetzt, einst=None) -> bool:
         return False  # dann kein Angriff (Daniel 13:50)
     ende = vertrag_ende(bot_daten, "nichtangriff", einst)  # wann endete der letzte Pakt?
     if ende is not None:  # es gab einen Pakt
-        if float(jetzt) < ende + _block_zahl(block, "nach_paktende_sekunden", 28800.0):  # zu frueh
+        if float(jetzt) < ende + _block_zahl(block, "nach_paktende_sekunden", float(zeitbasis.SEKUNDEN_JE_TAG)):  # zu frueh
             return False  # dann erst nach dem Vorlauf
     return True  # alle Bedingungen erfuellt
 
 
 def vorlauf_sekunden(einst=None) -> float:
     """Wartezeit zwischen Ankuendigung und Angriff (aus der Datendatei, Vorgabe 1 Spieltag)."""
-    return _block_zahl(_rache_block(einst), "vorlauf_sekunden", 28800.0)  # Zahl aus data/diplomatie.json
+    return _block_zahl(_rache_block(einst), "vorlauf_sekunden", float(zeitbasis.SEKUNDEN_JE_TAG))  # Zahl aus data/diplomatie.json
 
 
 def ankuendigung_text(bot_daten, einst=None) -> str:
@@ -558,13 +559,13 @@ def ereignis_daten(art, einst=None) -> dict:
 
 
 def ereignis_frist(einst=None) -> float:
-    """Frist eines Ereignisses in Spielsekunden (Vorgabe zwei Spieltage = 57.600 s)."""
-    return _block_zahl(_ereignisse_block(einst), "frist_sekunden", 57600.0)  # Zahl aus der Datei
+    """Frist eines Ereignisses in Spielsekunden (Vorgabe zwei Spieltage = 2 x 86.400 s, R3-1)."""
+    return _block_zahl(_ereignisse_block(einst), "frist_sekunden", 2 * float(zeitbasis.SEKUNDEN_JE_TAG))  # Zahl aus der Datei
 
 
 def ereignis_haeufigkeit(einst=None) -> float:
     """Mindestabstand zweier Ereignisse desselben Bots in Spielsekunden (Vorgabe drei Spieltage)."""
-    return _block_zahl(_ereignisse_block(einst), "haeufigkeit_sekunden", 86400.0)  # Zahl aus der Datei
+    return _block_zahl(_ereignisse_block(einst), "haeufigkeit_sekunden", 3 * float(zeitbasis.SEKUNDEN_JE_TAG))  # Zahl aus der Datei
 
 
 def ereignis_gunst_annahme(einst=None) -> int:

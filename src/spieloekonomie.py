@@ -36,6 +36,7 @@ import originalkarten  # GPT-OK01: neue Spielstaende verwenden Originalkarten, 1
 import spieldaten
 import werkstatt
 import wirtschaft
+import zeitbasis  # R3-1: die EINE Tageslaenge (86.400 Spielsekunden)
 
 DATEN = Path(spieldaten.projektwurzel()) / "data"
 
@@ -1311,7 +1312,7 @@ def ort_tick(ort: dict, ab: float, bis: float, forschung: dict) -> dict:
     verbrauch = 0.0
     unterdeckung = 0.0
     if bis > ab:
-        bedarf = tagesbedarf_nahrung(neu.get("einheiten") or {}) * (bis - ab) / 86400.0
+        bedarf = tagesbedarf_nahrung(neu.get("einheiten") or {}) * (bis - ab) / zeitbasis.SEKUNDEN_JE_TAG  # Anteil am Spieltag (R3-1)
         if bedarf > 0:
             vorher = float(neu["vorraete"].get("nahrung", 0.0) or 0.0)
             verbrauch = min(bedarf, max(0.0, vorher))

@@ -30,12 +30,13 @@ from typing import Any, Dict, List, Optional
 
 import einheiten as E
 import punkte
+import zeitbasis
 
 STAND = "2026-10-05.1"
 
 # ------------------------------------------------------------------ Konstanten
-SEKUNDEN_JE_STUNDE = 3600
-SEKUNDEN_JE_TAG = 86400
+SEKUNDEN_JE_STUNDE = 3600  # Sekunden je Spielstunde (Handbuch rechnet Er traege je Stunde)
+SEKUNDEN_JE_TAG = zeitbasis.SEKUNDEN_JE_TAG  # EINE Tageslaenge (R3-1): 86.400 Spielsekunden
 
 # ENTWURF_AUFTRAEGE.md "Bot-KI", VORSCHLAG: "Angriffstakt: Pruefung alle 6 bis 24 Stunden."
 ANGRIFF_MIN_STUNDEN = 6.0

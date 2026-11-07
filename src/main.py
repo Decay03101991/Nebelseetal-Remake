@@ -739,7 +739,7 @@ def bot_futter_buchen(bot: "BotPlayer", dorf: "BotDorf", ab: float, bis: float,
     bedarf_tag = spieloekonomie.tagesbedarf_nahrung(garnison)         # 8 je Einheit (Datendatei)
     if bedarf_tag <= 0:                                               # leere Armee oder Verbrauch aus
         return leer                                                   # dann isst niemand
-    bedarf = bedarf_tag * (bis - ab) / 86400.0                        # Anteil der Spanne am Spieltag
+    bedarf = bedarf_tag * (bis - ab) / zeitbasis.SEKUNDEN_JE_TAG  # Anteil der Spanne am Spieltag (EINE Tageslaenge, R3-1)
     if not isinstance(getattr(dorf, "vorraete", None), dict):          # altes Dorf ohne Vorratsfeld
         dorf.vorraete = {}                                            # dann anlegen
     vorher = max(0.0, float(dorf.vorraete.get("nahrung", 0.0) or 0.0))   # Bestand vor dem Essen
@@ -2183,9 +2183,9 @@ def bot_diebstahl_nachricht(bericht: dict) -> dict:
 def _spielzeit_text(sekunden: float) -> str:
     """Spielsekunden als 'Tag X, HH:MM' - dieselbe Form wie im Spielstand."""
     sekunden = max(0.0, float(sekunden or 0.0))
-    tage = int(sekunden // 86400)
-    stunden = int((sekunden % 86400) // 3600)
-    minuten = int((sekunden % 3600) // 60)
+    tage = int(sekunden // zeitbasis.SEKUNDEN_JE_TAG)                  # volle Spieltage (EINE Tageslaenge, R3-1)
+    stunden = int((sekunden % zeitbasis.SEKUNDEN_JE_TAG) // 3600)      # Rest als Spielstunden
+    minuten = int((sekunden % 3600) // 60)                             # Rest als Spielminuten
     return "Tag %d, %02d:%02d" % (tage, stunden, minuten)
 
 
@@ -7708,7 +7708,7 @@ class GameState:
         # Hier bleibt nur die GESAMTGRENZE für die Anzeige, damit keine zweite Zuwachsformel läuft.
         self.max_population = gebaeude_wirkung.bevoelkerungsgrenze(self.settlements)
         self._day_accum = getattr(self, "_day_accum", 0.0) + dt_seconds
-        tage, self._day_accum = divmod(self._day_accum, 86400.0)
+        tage, self._day_accum = divmod(self._day_accum, zeitbasis.SEKUNDEN_JE_TAG)  # EINE Tageslaenge (R3-1)
         self.day += int(tage)
         if self.noob_protection:
             # Götterschutz (Handbuch S. 6, Z. 215-217; KORREKTUR 05.10.2026): neue Spieler sind die
@@ -10296,7 +10296,7 @@ class NebelseetalApp:
 
     def _rename_settlement(self, settlement: Settlement, new_name: str):
         now = time.time()
-        if now - settlement.last_rename < 86400:
+        if now - settlement.last_rename < 24 * 3600:                  # 24 ECHTE Stunden (Rechnerzeit, KEIN Spieltag)
             self._log("Siedlung kann nur alle 24 Stunden umbenannt werden.")
             return
         if not new_name or not new_name.strip():

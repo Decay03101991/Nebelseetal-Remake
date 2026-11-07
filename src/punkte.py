@@ -32,6 +32,7 @@ import math
 from typing import Any, Dict, List, Optional, Tuple
 
 import einheiten as _einheiten
+import zeitbasis
 
 # --------------------------------------------------------------------------
 # Belegte Konstanten
@@ -39,7 +40,7 @@ import einheiten as _einheiten
 
 # Handbuch S. 6: "die ersten sieben Tage".
 GOETTERSCHUTZ_TAGE = 7
-SEKUNDEN_JE_TAG = 86400
+SEKUNDEN_JE_TAG = zeitbasis.SEKUNDEN_JE_TAG  # EINE Tageslaenge (R3-1): kein zweiter Wert im Projekt
 
 # E5 (Daniel, 31.10.2026): Das Original kennt KEINEN SIEG. Handbuch 2009, Seite 3: "Jeder hat
 # bei Nebelseetal sicher seine eigenen Ziele" (Feldherr, Forscher, Haendler). Der frueher hier

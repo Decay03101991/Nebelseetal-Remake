@@ -32,8 +32,9 @@ import bottaktik as B
 import diplomatie as D
 import main
 import spionage
+import zeitbasis
 
-TAG = 28800.0  # ein Spieltag in Spielsekunden (aus data/diplomatie.json)
+TAG = float(zeitbasis.SEKUNDEN_JE_TAG)  # ein Spieltag (R3-1: die EINE Quelle, src/zeitbasis.py)
 # Der Anzeigetext selbst steht in der Datendatei; hier wird nur nach ihm gesucht. Damit diese
 # Pruefdatei ASCII bleibt, entsteht der Umlaut aus seinem Zeichencode.
 SPAEHER = "Sp" + chr(0xE4) + "her"  # "Spaeher" mit echtem Umlaut, wie in data/bot_diplomatie.json

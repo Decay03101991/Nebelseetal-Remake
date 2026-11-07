@@ -13,6 +13,13 @@ import math
 import time
 from datetime import datetime, timezone
 
+# Die EINE Tageslaenge des Projekts (Befund A-1, R3-1 am 07.11.2026, Register 297).
+# Ein Spieltag sind 24 Spielstunden zu je 3.600 Spielsekunden = 86.400 Spielsekunden. Das Handbuch
+# 2009 rechnet den Goetterschutz in Tagen (S. 6) und Er traege je Stunde - beide Einheiten haengen
+# an dieser Zahl. Wer eine Tagesdauer braucht, liest SIE; Vorlauf, Fristen, Pakt- und Rachedauer
+# rechnen nicht mehr mit einer zweiten Zahl (vorher standen 28.800 s in data/diplomatie.json).
+SEKUNDEN_JE_TAG = 86400
+
 
 def zeitmarke(jetzt: datetime | None = None) -> dict[str, str]:
     """Den einen Augenblick als UTC und als lokale Rechnerzeit beschriften."""

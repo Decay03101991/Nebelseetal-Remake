@@ -3,7 +3,7 @@
 
 Geprueft wird, was der Schnitt zusagt:
   A. Alle Zahlen kommen aus `data/diplomatie.json` (A-7), alle Texte aus `data/story.json`.
-  B. Ablauf nach 57.600 s kostet 5 Gunst; bei 57.599 s ist das Ereignis noch offen.
+  B. Ablauf nach 172.800 s kostet 5 Gunst; bei 172.799 s ist das Ereignis noch offen.
   C. Annahme mit 989 Holz wird abgelehnt - Bestand, Gunst und Ereignis bleiben unveraendert.
   D. Annahme mit 990 Holz bucht GENAU 990 am Ort, Gunst +5, Ereignis weg, Kontakt gebucht.
   E. Silra: der Preis ist ein Zehntel des Gold-Tagesertrags, mindestens 1 (5 -> 1, 128 -> 12).
@@ -33,10 +33,11 @@ import diplomatie as D
 import main
 import story
 import wirtschaft
+import zeitbasis
 
-TAG = 28800.0        # ein Spieltag in Spielsekunden
-FRIST = 57600.0      # zwei Spieltage - Frist eines Ereignisses
-HAEUFIG = 86400.0    # drei Spieltage - Abstand zweier Ereignisse desselben Bots
+TAG = float(zeitbasis.SEKUNDEN_JE_TAG)   # ein Spieltag in Spielsekunden (R3-1: die EINE Quelle)
+FRIST = 2 * TAG      # zwei Spieltage - Frist eines Ereignisses
+HAEUFIG = 3 * TAG    # drei Spieltage - Abstand zweier Ereignisse desselben Bots
 
 
 def _code(funktion) -> str:
@@ -72,9 +73,9 @@ datei = D.daten()
 block = datei.get("ereignisse") or {}
 check("Schalter ereignisse_aktiv ist gesetzt", D.ereignisse_aktiv(datei) is True,
       str(block.get("aktiv")))
-check("Frist ist 57.600 s (zwei Spieltage)", D.ereignis_frist(datei) == FRIST,
+check("Frist ist 172.800 s (zwei Spieltage)", D.ereignis_frist(datei) == FRIST,
       str(D.ereignis_frist(datei)))
-check("Haeufigkeit ist 86.400 s (drei Spieltage)", D.ereignis_haeufigkeit(datei) == HAEUFIG,
+check("Haeufigkeit ist 259.200 s (drei Spieltage)", D.ereignis_haeufigkeit(datei) == HAEUFIG,
       str(D.ereignis_haeufigkeit(datei)))
 check("Annahme kostet +5 Gunst", D.ereignis_gunst_annahme(datei) == 5,
       str(D.ereignis_gunst_annahme(datei)))
@@ -109,7 +110,7 @@ check("ein Grund-Satz kommt aus der Datei", bool(story.ereignis_grund_text("best
 check("unbekannte Art liefert keinen erfundenen Text", story.ereignis_text("gibtsnicht") == "",
       repr(story.ereignis_text("gibtsnicht")))
 
-abschnitt("B. Ablauf: bei 57.599 s offen, bei 57.600 s verfallen (Gunst -5)")
+abschnitt("B. Ablauf: bei 172.799 s offen, bei 172.800 s verfallen (Gunst -5)")
 bot_b = _bot()
 daten_b = []
 neu_b = D.ereignis_erzeugen(daten_b, bot_b, "haug", HAEUFIG)  # Abstand ist erfuellt
@@ -121,7 +122,7 @@ check("bei 57.599 s ist es noch offen", verfall_b1 == [] and len(daten_b) == 1,
       str(verfall_b1))
 check("die Gunst ist bis dahin unveraendert", bot_b["gunst"] == 50, str(bot_b["gunst"]))
 verfall_b2 = D.ereignisse_tick(daten_b, HAEUFIG + FRIST, bots=[bot_b])
-check("bei 57.600 s verfaellt es", len(verfall_b2) == 1, str(verfall_b2))
+check("bei 172.800 s verfaellt es", len(verfall_b2) == 1, str(verfall_b2))
 check("der Verfall kostet 5 Gunst", bot_b["gunst"] == 45, str(bot_b["gunst"]))
 check("die Liste ist danach leer", daten_b == [], str(daten_b))
 check("ein zweiter Tick bucht nichts nach",

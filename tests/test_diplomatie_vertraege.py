@@ -5,7 +5,7 @@ Entscheidungen Daniels vom 06.11.2026, 13:50 und 14:00):
 
   A. Die Zahlen kommen aus `data/diplomatie.json` (A-7), nicht aus dem Code.
   B. Ein laufender Pakt sperrt den Bot-Angriff UND den Diebstahl (EINE Urteilsstelle).
-  C. Der Pakt laeuft bei 86.399 s noch und ist bei 86.400 s abgelaufen (Grenze je Seite).
+  C. Der Pakt laeuft bei 259.199 s noch und ist bei 259.200 s abgelaufen (drei Spieltage, R3-1).
   D. Faellt die Gunst unter 40, bricht der Pakt: Gunst genau -20, Rache genau +1.
   E. Ein Angebot unter der noetigen Gunst wird abgelehnt.
   F. Quellwache: die Angriffswege rufen `diplomatie.angriff_gesperrt`, `punkte.angreifbar`
@@ -31,6 +31,9 @@ from harness import abschnitt, befund, bericht, check, import_src
 import_src()
 import diplomatie as D
 import main
+import zeitbasis
+
+TAG = float(zeitbasis.SEKUNDEN_JE_TAG)  # ein Spieltag (R3-1: die EINE Quelle)
 
 
 def _code(funktion) -> str:
@@ -78,7 +81,7 @@ check("Schalter vertraege_aktiv ist gesetzt", D.vertraege_aktiv(datei) is True,
       str(datei.get("vertraege", {}).get("aktiv")))
 pakt = D.art_daten("nichtangriff", datei)  # Zahlen des Pakts
 check("Pakt ab Gunst 40", int(pakt.get("min_gunst")) == 40, str(pakt.get("min_gunst")))
-check("Pakt dauert 86.400 Spielsekunden", int(pakt.get("dauer_sekunden")) == 86400,
+check("Pakt dauert 259.200 Spielsekunden (drei Spieltage)", int(pakt.get("dauer_sekunden")) == 3 * TAG,
       str(pakt.get("dauer_sekunden")))
 check("Bruch kostet 20 Gunst", int(pakt.get("bruch_gunst")) == -20, str(pakt.get("bruch_gunst")))
 check("Bruch bucht 1 Rache", int(pakt.get("bruch_rache")) == 1, str(pakt.get("bruch_rache")))
@@ -109,11 +112,11 @@ bericht_dieb = main.bot_diebstahl(bot, _ziel(), 100.0, DIEBSTAHL)
 check("ohne Pakt stiehlt derselbe Bot (das Gate ist der Pakt, nicht die Mechanik)",
       isinstance(bericht_dieb, dict) and bericht_dieb.get("summe", 0) > 0, str(bericht_dieb))
 
-abschnitt("C. Der Pakt laeuft genau 86.400 Sekunden")
+abschnitt("C. Der Pakt laeuft genau 259.200 Sekunden (drei Spieltage)")
 bot_c = _bot(gunst=50)                    # frischer Bot
 daten_c = _pakt(bot_c, 0.0)               # Pakt ab Spielzeit 0
-check("bei 86.399 s noch aktiv", D.vertrag_aktiv(daten_c, "nichtangriff", 86399.0) is True)
-check("bei 86.400 s abgelaufen", D.vertrag_aktiv(daten_c, "nichtangriff", 86400.0) is False)
+check("bei 259.199 s noch aktiv", D.vertrag_aktiv(daten_c, "nichtangriff", 3 * TAG - 1) is True)
+check("bei 259.200 s abgelaufen", D.vertrag_aktiv(daten_c, "nichtangriff", 3 * TAG) is False)
 check("der abgelaufene Eintrag ist entfernt", "nichtangriff" not in daten_c.get("vertraege", {}),
       str(sorted(daten_c.get("vertraege", {}))))
 
@@ -191,7 +194,7 @@ bot_h = main.bot_aus_stand(dict(alt))
 check("ohne Feld laedt eine leere Tabelle", bot_h.vertraege == {}, str(bot_h.vertraege))
 check("ohne Feld gibt es keinen Pakt", D.angriff_gesperrt(bot_h, 0.0) == (False, ""),
       str(D.angriff_gesperrt(bot_h, 0.0)))
-bot_h2 = main.bot_aus_stand(dict(alt, vertraege={"nichtangriff": {"seit": 0, "bis": 86400}}))
+bot_h2 = main.bot_aus_stand(dict(alt, vertraege={"nichtangriff": {"seit": 0, "bis": int(3 * TAG)}}))
 check("gespeicherter Pakt kommt zurueck",
       "nichtangriff" in bot_h2.vertraege
       and D.vertrag_aktiv(_daten(bot_h2), "nichtangriff", 10.0) is True,
@@ -230,12 +233,12 @@ check("das Handelsabkommen bleibt bestehen", "handel" in daten_j.get("vertraege"
       str(sorted(daten_j.get("vertraege", {}))))
 check("es laeuft weiter", D.vertrag_aktiv(daten_j, "handel", 100.0) is True, "aktiv")
 gunst_vorher = D.gunst_von(daten_j)                # Gunst vor dem Ablauf
-check("bei 86.400 s ist es still zu Ende", D.vertrag_aktiv(daten_j, "handel", 86400.0) is False,
+check("bei 259.200 s ist es still zu Ende", D.vertrag_aktiv(daten_j, "handel", 3 * TAG) is False,
       "abgelaufen")
 check("der Ablauf kostet KEINE Gunst", D.gunst_von(daten_j) == gunst_vorher,
       "%d -> %d" % (gunst_vorher, D.gunst_von(daten_j)))
 check("der Tick meldet keinen Bruch fuer das Handelsabkommen",
-      not any(v.get("art") == "handel" for v in D.vertraege_tick(daten_j, 86400.0)),
+      not any(v.get("art") == "handel" for v in D.vertraege_tick(daten_j, 3 * TAG)),
       "kein Vorgang")
 
 abschnitt("K. Echter Verlauf: der Spieler greift einen Pakt-Bot an")
@@ -261,7 +264,7 @@ try:
         _d.wall_zustand = 100.0
     st.bots = [haug]                                          # diese Partie hat einen Bot
     haug.gunst = 50                                           # Gunst fuer den Pakt
-    haug.vertraege = {"nichtangriff": {"seit": 0.0, "bis": 86400.0}}   # laufender Pakt
+    haug.vertraege = {"nichtangriff": {"seit": 0.0, "bis": 3 * TAG}}   # laufender Pakt (drei Spieltage)
     dorf = haug.doerfer[0]
 
     def _angreifen() -> bool:

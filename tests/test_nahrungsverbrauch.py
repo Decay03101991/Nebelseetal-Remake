@@ -235,7 +235,9 @@ print("\n=== 7. EINE Rechnung fuer Kern UND Anzeige ===")
 kern = _code(O.ort_tick)
 check("ort_tick bucht ueber tagesbedarf_nahrung", "tagesbedarf_nahrung(" in kern)
 check("ort_tick rechnet den Bedarf NICHT selbst (keine zweite Formel)",
-      "86400" in kern and kern.count("tagesbedarf_nahrung(") == 1,
+      # R3-1 (07.11.2026): der Divisor ist seit dem Einbau von `SEKUNDEN_JE_TAG` die EINE
+      # Tageslaenge aus `zeitbasis` - der Anker wandert, die Zusage bleibt dieselbe.
+      "zeitbasis.SEKUNDEN_JE_TAG" in kern and kern.count("tagesbedarf_nahrung(") == 1,
       "Aufrufe: %d" % kern.count("tagesbedarf_nahrung("))
 bedarf_code = _code(O.tagesbedarf_nahrung)
 check("tagesbedarf_nahrung liest den Betrag aus der Konstante",

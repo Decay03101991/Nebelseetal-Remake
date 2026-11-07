@@ -1,3 +1,59 @@
+# STAND 07.11.2026, 21:05 - R3-1 gebaut: EINE Spieltag-Laenge (86.400 s), Befund A-1 behoben
+
+> Neuester Block. Darunter 20:48 (Modellrunde 3 geprueft, F-21 = A), 20:15 (B-2 Regelkreis,
+> Register 296), 19:45 (KI-Auftrag Runde 3).
+
+**R3-1 steht (Register 297).** Der Befund der dritten Modellrunde war echt: `data/diplomatie.json`
+fuehrte **28.800 s** je Spieltag, `src/botkern.py` und `src/punkte.py` rechneten **86.400 s** - die als
+"zwei Spieltage" dokumentierte Frist von 57.600 s waren in Wahrheit **0,67 Tage**.
+
+**Jetzt gibt es die Zahl EINMAL:** `src/zeitbasis.py` → `SEKUNDEN_JE_TAG = 86400` (24 Spielstunden zu
+3.600 s; das Handbuch 2009 rechnet den Goetterschutz in Tagen und Er traege je Stunde). `botkern` und
+`punkte` lesen sie, `diplomatie` liest sie, `main.py` und `spieloekonomie.py` rechnen ihre
+Tagesanteile damit. `data/diplomatie.json` fuehrt **keine** eigene Tageslaenge mehr (Schluessel
+`spieltag_sekunden` entfernt, neuer Erklaerschluessel `_tageslaenge`).
+
+**Umrechnung erhaelt die TAGESZAHL, nicht die Sekundenzahl:**
+
+| Groesse | vorher | jetzt |
+|---|---|---|
+| Frist eines Ereignisses (2 Tage) | 57.600 | **172.800** |
+| Haeufigkeit (3 Tage) | 86.400 | **259.200** |
+| Vorlauf Rache (1 Tag) | 28.800 | **86.400** |
+| Zwangspause nach Paktende (1 Tag) | 28.800 | **86.400** |
+| Vertragsdauer (3 Tage, alle drei Arten) | 86.400 | **259.200** |
+| Postfach-Frist (1 Tag, `data/nachrichten.json`) | 28.800 | **86.400** |
+
+**Die Wache ist neu und strenger als der Befund:** `tests/test_spieltag_eine_quelle.py` (**31
+Pruefungen, 0 Fehler**) geht per `ast` ueber alle **63 Module** in `src/` und verlangt: keine eigene
+Tageslaenge (erlaubt ist nur `= zeitbasis.SEKUNDEN_JE_TAG`), kein Literal **28.800** und kein Literal
+**86.400** ausserhalb von `zeitbasis.py`; keine Datendatei fuehrt 28.800; jede Zeit in
+`data/diplomatie.json` ist ein Vielfaches von 86.400; die Grenze ist gemessen (86.399 s = Tag 0,
+86.400 s = Tag 1). **Gegenprobe gemacht:** eine absichtlich eingesetzte zweite Tageslaenge wird als
+Fehler gemeldet. Beim ersten Lauf hat die Wache **drei weitere Stellen** gefunden, die eine eigene
+Zahl trugen (`bot_futter_buchen`, `_spielzeit_text`, `_day_accum` in `main.py`, der
+Nahrungsverbrauch in `spieloekonomie.py`) - alle umgestellt. `_rename_settlement` rechnet jetzt
+ausdruecklich `24 * 3600` **ECHTE** Stunden: das ist Rechnerzeit, kein Spieltag.
+
+**Vier Bestandswachen umgestellt und gruen:** `test_diplomatie_rache` 53/0/0,
+`test_diplomatie_ereignisse` 74/0/0, `test_diplomatie_vertraege` 68/0/0, `test_bot_diplomatie`
+67/0/0. Die Zeitkonstanten der Pruefdateien kommen jetzt aus `zeitbasis`, nicht aus einer
+abgeschriebenen Zahl.
+
+**Folge, die Daniel kennen muss:** bei Spieluhrfaktor 180 ist ein Spieltag **8 Echtminuten**. Pakt,
+Ereignisfrist und Rachevorlauf wirken damit dreimal so lange in Echtzeit wie vorher (Frist 16 statt
+5,3 Echtminuten, Haeufigkeit 24 statt 8). Die Werte bleiben VORSCHLAG - jede Zeile laesst sich einzeln
+kuerzen, ohne dass wieder eine zweite Tageslaenge entsteht.
+
+**Guthaben (Daniel abgelesen, 21:04):** 7,23 USD / 62,76 USD - unveraendert seit 20:45, diese Sitzung
+arbeitet rein lokal.
+
+**Naechster Schritt:** **R3-2** - die Ereignisart am Botnamen festmachen (`src/main.py:7251` rotiert
+ueber `_index % len(_arten)`, Folge: "Brynhild: Grom braucht Messer"), Wache ergaenzen. Danach
+Schritt 10 bis 13 des Ablaufs (E2E-Ketten, AST-Quellwache, Sammellauf messen, Schlusspruefung).
+Arbeitsweise unveraendert: Register, Protokollzeile, Stand-Block, Commit, Push und nach jedem Schnitt
+ein VOLLER SAMMELLAUF mit dem Projekt-venv.
+
 # STAND 07.11.2026, 20:48 - Modellrunde 3 geprueft, sieben Befunde bestaetigt, F-21 = A
 
 > Neuester Block. Darunter 20:15 (B-2 Regelkreis, Register 296), 19:45 (KI-Auftrag Runde 3),
