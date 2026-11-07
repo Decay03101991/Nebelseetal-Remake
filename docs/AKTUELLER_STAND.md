@@ -31,6 +31,8 @@ eine zweite Spaehung findet nicht statt. Ein Fehler auf dem Weg: der Bericht wur
 geschrieben und im selben Takt von `bot_aus_dict` ueberschrieben - der Bot spaehte in JEDEM Takt
 erneut. Behoben ueber den Kern-Stand (`start["aufklaerung"]`).
 
+**Sammellauf:** 190 von 192 gruen, 0 rot, **7.903 bestandene Pruefungen, 60 Befunde, 938 s** (`docs/audits/sammellauf_20261107_1510.log`); die zwei nicht gruenen Dateien sind `AUSGESETZT` (dokumentiert zurueckgezogen). Der Lauf lief allein.
+
 **Offene Fragen (F-14, F-15 in `docs/FRAGEN_AN_DANIEL_20261107.md`):** soll zusaetzlich ein
 Meidungs-Urteil gegen den Drachen gebaut werden (F-14), und sind die Reaktionsstufen 0,8/1,0/1,2 als
 VORSCHLAG richtig (F-15)?
