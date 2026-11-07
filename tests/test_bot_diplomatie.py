@@ -194,6 +194,13 @@ check("kein Spieltext im Code: die Meldung kommt aus der Datendatei",
 abschnitt("G. Echter Verlauf: eine Spaehung, dann ein Angriff - keine Dauerspaehung")
 root = None
 app = None
+# Ein Wuerfel im Prueffall macht den Sammellauf unzuverlaessig (Regel aus 05.11.2026):
+# `bots_fortschreiben` baut ohne Saat ein `random.Random()` - der Angriff kann ausbleiben.
+# Fuer die Dauer dieses Abschnitts bekommt jeder Generator denselben festen Startwert.
+import random as _random  # noqa: E402
+
+_echter_zufall = _random.Random
+_random.Random = lambda *a, **k: _echter_zufall(4711)  # feste Saat fuer den Verlauf
 try:
     import tkinter as tk
     root = tk.Tk()
@@ -208,7 +215,7 @@ try:
     st._letzter_bot_takt = 0.0
     _spaehungen = []
     _angriffe = []
-    for _tag in range(1, 7):
+    for _tag in range(1, 11):  # zehn Takte: der Angriff kommt nicht in jedem Lauf beim sechsten
         _erg = st.bots_fortschreiben(TAG * _tag)
         for _meldung in _erg.get("angriffe") or []:
             if SPAEHER in _meldung:
@@ -236,6 +243,7 @@ try:
           len([m for m in st.messages if m.get("type") == "spaehung"]) == 1,
           str(len([m for m in st.messages if m.get("type") == "spaehung"])))
 finally:
+    _random.Random = _echter_zufall  # Saat wieder ausbauen
     if root is not None:
         try:
             root.destroy()
