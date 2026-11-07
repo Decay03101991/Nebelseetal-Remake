@@ -74,12 +74,37 @@ finally:
     shutil.rmtree(_tmp, ignore_errors=True)
 
 # ------------------------------------------------------------------ C. Kein Schreiben unter src/
-abschnitt("C. Das Werkzeug schreibt nur data/sollkurve.json, nie unter src/")
+# ENTSCHEIDUNG 07.11.2026 (Ablauf Schritt 9, B-2): das Werkzeug LIEST src/ jetzt - der A/B-Lauf
+# kopiert src/ und data/ in einen tempoeraeren Ordner, damit die Aenderung das Projekt nicht
+# beruehrt. Die Wache dreht sich deshalb um: sie verlangt, dass JEDE Schreibstelle des Werkzeugs
+# ausserhalb des Projekt-src/ liegt (statt "das Wort src kommt nicht vor").
+abschnitt("C. Das Werkzeug schreibt nie in das Projekt-src/ (B-2 kopiert src nur lesend)")
+import ast  # noqa: E402
 with io.open(os.path.join(HIER, "tools", "balance_kreis.py"), encoding="utf-8") as f:
     _quelle = f.read()
-check("kein Schreibpfad mit 'src' im Werkzeug", '"src"' not in _quelle and "'src'" not in _quelle,
-      "kein src-Pfad")
-check("der Schreibpfad ist data/sollkurve.json", '"sollkurve.json"' in _quelle, "Pfad vorhanden")
+check("der Schreibpfad data/sollkurve.json ist vorhanden", '"sollkurve.json"' in _quelle, "Pfad vorhanden")
+_schreibstellen = []
+for _knoten in ast.walk(ast.parse(_quelle)):
+    if isinstance(_knoten, ast.Call) and _knoten.args:
+        _name = ""
+        if isinstance(_knoten.func, ast.Name):
+            _name = _knoten.func.id
+        elif isinstance(_knoten.func, ast.Attribute):
+            _name = _knoten.func.attr
+        if _name != "open":
+            continue
+        _modus = ""
+        if len(_knoten.args) > 1 and isinstance(_knoten.args[1], ast.Constant):
+            _modus = str(_knoten.args[1].value)
+        for _kw in _knoten.keywords:
+            if _kw.arg == "mode" and isinstance(_kw.value, ast.Constant):
+                _modus = str(_kw.value.value)
+        if "w" in _modus or "a" in _modus or "+" in _modus:
+            _schreibstellen.append(ast.unparse(_knoten.args[0]))
+check("es gibt Schreibstellen im Werkzeug", len(_schreibstellen) >= 3, str(len(_schreibstellen)))
+check("keine Schreibstelle liegt unter src/",
+      all('"src"' not in _stelle and "'src'" not in _stelle for _stelle in _schreibstellen),
+      str([s for s in _schreibstellen if "src" in s]))
 _tmp2 = _kopie_der_daten()
 try:
     import subprocess  # frischer Prozess, damit die Ausgabe wirklich getrennt ist

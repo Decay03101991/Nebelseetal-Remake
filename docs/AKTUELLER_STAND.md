@@ -1,3 +1,51 @@
+# STAND 07.11.2026, 20:15 - B-2 Regelkreis gebaut (Register 296), erster A/B-Lauf abgelehnt
+
+> Neuester Block. Darunter 19:45 (KI-Auftrag Runde 3, Schritt L), 18:20 (B-1 Sollkurve,
+> Register 295), 17:45 (F-14 = B, Register 294).
+
+**Schritt 9 des Ablaufs steht.** `tools/balance_kreis.py` hat jetzt vier Schritte, jeden einzeln:
+
+- `--messung` - zehn Laeufe mit den Startwerten 1..10, zwoelf Spieltage, Stil breit. Laeuft in einem
+  EIGENEN Prozess: `spieldaten` bindet die Projektwurzel beim Import, und `gelaende`,
+  `gebaeude_wirkung` und `berater` halten sie als Modulkonstante - ein Umbiegen im laufenden Prozess
+  waere eine halbe Sache.
+- `--vorschlag` - HOECHSTENS ein Datenwert. Die Groesse mit dem groessten Fehlbetrag, dort das
+  Gebaeude mit dem groessten Baugewicht, Schrittweite aus der Datei. BELEGT-Werte (Holzfaeller,
+  Steinmetz, Jaeger, Haus) sind nie Kandidat.
+- `--ab` - dieselben Startwerte mit und ohne Aenderung. Die Aenderung lebt nur in einer Kopie von
+  `src/` und `data/`; `data/` des Projekts bleibt hashgleich (im Test belegt).
+- `--urteil` - 20 Prozent Verbesserung der Zielabweichung, keine andere Groesse schlechter, erstes
+  Gefecht nicht spaeter; schreibt `docs/balancing/URTEIL_<n>.md` fortlaufend.
+
+Die drei Schwellen stehen in `data/regelkreis.json` (F-17 = A), nicht im Code - belegt: mit 5 statt
+20 Prozent wird dasselbe A/B angenommen. Der Feedback-Eingang ist da (`docs/feedback/VORLAGE.md` mit
+Was/Wann/Stand/Zahl/Gefuehl 1-5, `MELDUNGEN.json`, `--feedback` schreibt `BUENDEL.md`); ab drei
+gleichen Schluesseln wird daraus ein Messauftrag.
+
+**Erster vollstaendiger Durchlauf (26 s, protokolliert):** 3,500 Punkte je Spieltag gegen das Ziel
+3,3 = 6,06 Prozent Abweichung. Alle vier Korridorgroessen liegen UNTER dem Band (Holz 0,8368,
+Stein 0,7432, Nahrung 0,5216, Gold 0,5827). Vorschlag: kriegerakademie/holz 32 -> 29 (9,38 Prozent).
+Im A/B bleibt die Zielabweichung bei 6,06 Prozent, Holz und Stein werden minimal schlechter
+(0,8379 und 0,7438), das erste Gefecht liegt auf Tag 2,0 - **Urteil ABGELEHNT**, drei Gruende
+benannt, `docs/balancing/URTEIL_1.md`.
+
+**Befund fuer Daniel (kein Fehler des Schnitts):** eine einzelne Preisveraenderung von 10 Prozent
+bewegt die Kennzahl nicht. Der Abstand zur Sollkurve kommt aus der SPIELERPOLITIK - der Automat
+gibt Gold und Holz fuer Armee und Forschung aus, der Idealplan der Kurve gibt nichts aus und haeuft
+deshalb das Vielfache an. Nach F-16 = A bleibt die Kurve Obergrenze, und das Urteil vergleicht nur
+die VERAENDERUNG; genau so ist es gebaut. Die Frage, ob der Korridor absolut etwas aussagen soll,
+ist damit nicht neu gestellt, sondern beantwortet.
+
+**Wachen:** `tests/test_balance_urteil.py` 44/0/0 (die fuenf geforderten Faelle A bis E plus
+Schwellen aus der Datei, BELEGT-Schutz, kein Schreiben in `data/`, Nummerierung der Urteilsdatei),
+`tests/test_balance_kreis.py` 30/0/0 - dort ist Wache C umgedreht (Entscheidung im Docstring
+genannt): B-2 LIEST `src/` jetzt, verlangt ist deshalb "keine Schreibstelle unter `src/`" per `ast`.
+
+**Naechster Schritt:** Schritt 10 des Ablaufs (A-1 E2E-Ketten auf zwoelf Wege erweitern, Vorlage
+`tests/test_produktionskette_ohne_cheats.py`), danach 11 bis 13. Arbeitsweise unveraendert:
+Register, Protokollzeile, Stand-Block, Commit, Push und nach jedem Schnitt ein VOLLER SAMMELLAUF
+mit dem Projekt-venv. Kein Release vor S4 komplett (F-9); S5 gesperrt.
+
 # STAND 07.11.2026, 19:45 - KI-Auftrag Runde 3 fuer Claude Sonnet 5.5 fertig (Schritt L)
 
 > Neuester Block. Darunter 18:20 (B-1 Sollkurve, Register 295), 17:45 (F-14 = B, Register 294),

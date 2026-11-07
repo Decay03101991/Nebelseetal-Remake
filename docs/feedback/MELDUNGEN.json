@@ -1,0 +1,5 @@
+{
+  "_zweck": "Hier kommen Daniels Meldungen hinein, eine Zeile je Beobachtung. Felder und Bedeutung stehen in docs/feedback/VORLAGE.md. Erzeugt wird daraus docs/feedback/BUENDEL.md (tools/balance_kreis.py --feedback).",
+  "_regel": "Gleicher Schluessel in 'was' = dasselbe Thema. Ab 3 Meldungen mit demselben Schluessel wird ein Messauftrag daraus; darunter bleibt es eine Einzelbeobachtung.",
+  "meldungen": []
+}

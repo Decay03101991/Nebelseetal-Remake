@@ -1,0 +1,29 @@
+{
+  "_zweck": "B-2 Regelkreis (Ablauf Schritt 9, 07.11.2026): Schwellen und Messumfang als DATEN, nicht im Code. Gelesen von tools/balance_kreis.py (lade_regelkreis). Wer eine Zahl aendert, aendert den Regelkreis - nicht das Werkzeug.",
+  "_quelle": "F-17 (Daniel, 07.11.2026): A - 20 Prozent Verbesserung, hoechstens 10 Prozent Schrittweite, 3 gleiche Meldungen. Die drei Zahlen standen bis dahin nur im Ablauf (docs/ABLAUF_LLM_20261106.md, Abschnitt 9).",
+  "_urteil": "F-16 (Daniel, 07.11.2026): A - die Sollkurve (data/sollkurve.json) bleibt OBERGRENZE. B-2 vergleicht deshalb nur die VERAENDERUNG zwischen zwei Versionen (gleicher Idealplan, A/B): keine absolute Ist-Zahl wird gegen das Band gerechnet, sondern vorher gegen nachher.",
+  "_kein_schreibrecht": "Dieses Werkzeug schreibt NICHT in data/. Der A/B-Lauf legt seine Aenderung in einer tempoeraeren Kopie von src/ und data/ ab. Eine angenommene Aenderung setzt Daniel, nicht der Agent.",
+  "schwellen": {
+    "verbesserung_prozent": 20,
+    "schrittweite_prozent": 10,
+    "meldungen_je_buendel": 3,
+    "quelle": "VORGABE F-17 (Daniel 07.11.2026). Bis zu seiner Antwort war 20/10/3 ein VORSCHLAG aus docs/ABLAUF_LLM_20261106.md."
+  },
+  "messung": {
+    "saaten": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    "tage": 12,
+    "stil": "breit",
+    "quelle": "VORSCHLAG (Ablauf Schritt 9): zehn Laeufe mit den Startwerten 1 bis 10, zwoelf Spieltage - dieselbe Laenge wie das Kennzahlenblatt vom 07.11.2026. Ein laengerer Lauf aendert die Aussage nicht (gemessen: 20 Tage ergeben dieselben Eckwerte), kostet aber das Doppelte."
+  },
+  "zielgroesse": {
+    "name": "punkte_je_spieltag",
+    "zielwert": 3.3,
+    "quelle": "V-3 (docs/S0_TABELLEN_20261107.md): Punkte-Ziel je Spieltag. Derselbe Wert steht in data/sollkurve.json (punkte_ziel_je_spieltag) - diese Datei nennt nur, WELCHE Groesse das Ziel ist."
+  },
+  "korridorgroessen": ["holz", "stein", "nahrung", "gold"],
+  "feedback": {
+    "felder": ["was", "wann", "stand", "zahl", "gefuehl"],
+    "gefuehl_skala": [1, 5],
+    "quelle": "VORGABE (Ablauf Schritt 9): Vorlage mit Was, Wann, Stand, Zahl, Gefuehl 1-5; ab 3 Meldungen mit demselben Schluessel wird daraus ein Messauftrag."
+  }
+}
