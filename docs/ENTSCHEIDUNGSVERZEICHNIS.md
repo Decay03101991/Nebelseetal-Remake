@@ -313,6 +313,22 @@
 | 306 | Handelspreis je Rohstoff statt pauschal 300 Gold je Stueck (Daniel, 08.11.2026, 17:52). | ABGESEGNET | 08.11.2026 |
 | 307 | Wall und Ausbau beenden den Goetterschutz - kriegerische Vorbereitung (Daniel, 08.11.2026, 17:52). | ABGESEGNET | 08.11.2026 |
 | 308 | Die Portal-Sperre rechnet in SPIELZEIT (Daniel, 08.11.2026, 17:52). | ABGESEGNET | 08.11.2026 |
+| 309 | Schritt 11: die AST-Quellwache - Ansichten zeigen, sie rechnen nicht | GEBAUT | 08.11.2026 |
+| 310 | Schritt 13: Daten und Quellen - jede Balance-Konstante hat ein Quellenwort, jede Mechanik einen Schalter | GEBAUT | 08.11.2026 |
+| 311 | R3-3, Befund C-6: kein VORSCHLAG-Vermerk mehr in einem Spielertext | GEBAUT | 08.11.2026 |
+| 312 | Spieltest 3 ausgewertet: 10 von 14 Schritten Note 1 | GEBAUT | 08.11.2026 |
+| 313 | Starker Partner angebunden: Claude Pro, Claude Code CLI, Arbeitsteilung Opus entwirft und Weltenfresser prueft | GEBAUT | 08.11.2026 |
+| 314 | Opus-Lieferung abgelegt und gegen den Code geprueft: 17 von 19 Angaben zeichengenau | unbekannt | 08.11.2026 |
+| 315 | Daniels drei Entscheidungen vom 17:52 | unbekannt | 08.11.2026 |
+| 316 | Voller Sammellauf 18:01: 203 von 204 gruen, 1 rot | unbekannt | 08.11.2026 |
+| 317 | Drei Befunde aus der Opus-Pruefung gebaut | GEBAUT | 08.11.2026 |
+| 318 | Voller Sammellauf 18:29: 205 von 205 gruen, 0 rot | unbekannt | 08.11.2026 |
+| 319 | Opus wird zum Werkzeug: `tools/frage_opus.py` | GEBAUT | 08.11.2026 |
+| 320 | Opus-Review des eigenen Umbaus: fuenf Punkte berechtigt und behoben | unbekannt | 08.11.2026 |
+| 321 | Spieltest 3 Note 3: der Dorfwall steht in der Siedlungskarte unter Verteidigung, ohne Feldklick | GEBAUT | 08.11.2026 |
+| 322 | Spieltest 3 Note 5: der Marktplatz sagt, dass hier verkauft wird, nennt die Handelskarawane mit Zustand und zeigt JEDEN Bot | GEBAUT | 08.11.2026 |
+| 323 | E1: der Handelspreis haengt am ROHSTOFF | GEBAUT | 08.11.2026 |
+| 324 | Portal S-2 und S-1: die Portalposition steht in eigenen Feldern, die Belegungskarte fragt ohne Spielstand | GEBAUT | 08.11.2026 |
 
 ## Ersetzungen (Handpflege)
 

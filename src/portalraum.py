@@ -162,6 +162,104 @@ def ist_gueltig(x, y, z) -> bool:
     return koordinate(x, y, z) is not None
 
 
+# ---------------------------------------------------------------------------
+# Belegungskarte der Welt (Schnitt S-1, Daniel 08.11.2026, F-26 = A)
+#
+# Frage: darf ein Dorf auf ein Feld springen, auf dem schon etwas steht? Daniel hat als
+# Spielleiter entschieden: NEIN - ein belegtes Feld wird abgelehnt, und die Meldung nennt
+# den Grund (F-26 = A, docs/design/PORTAL_MODELL_20261108.md Abschnitt 6). Damit Anzeige,
+# Buchstelle und Wache dieselbe Antwort geben, steht die Pruefung hier an EINER Stelle -
+# und zwar OHNE den Spielstand zu lesen: hereingereicht werden nur die BELEGTEN FELDER.
+# Eigene Siedlungen liefern ihre Portalposition (`Settlement.welt_x`/`welt_y`, Schnitt S-2),
+# fremde Doerfer ihre feste Position aus `bottaktik.dorf_position`. Was nicht hereinkommt,
+# ist nicht belegt - es wird nichts angenommen.
+#
+# Gezaehlt wird je (Welt-Index, x, y). Zwei Welten mit demselben Feld kollidieren NICHT:
+# der Limbus ist ein Raster JE Weltkarte, nicht ein gemeinsames.
+# ---------------------------------------------------------------------------
+
+FELD_FREI = "frei"                # das Feld ist frei - ein Sprung waere erlaubt
+FELD_BELEGT = "belegt"            # dort steht bereits ein Ort
+FELD_AUSSERHALB = "ausserhalb"    # keine Position im Raster dieser Welt
+
+
+def feld_eintrag(art: str, name: str, welt, x, y) -> dict:
+    """Ein belegter Ort als Eintrag der Belegungskarte.
+
+    `welt` ist der INDEX 0..5 (dieselbe Zaehlweise wie `koordinate`), `art` eine freie
+    Kennung ('siedlung', 'botdorf'), `name` der Anzeigename des Ortes.
+
+    Wirft ValueError, wenn Welt oder Feld nicht im Raster liegen. Ein Eintrag, der nirgends
+    liegt, wird NICHT stillschweigend fallen gelassen - sonst verschwaende ein belegtes
+    Feld aus der Karte und die Pruefung sagte "frei", ohne es zu wissen.
+    """
+    if koordinate(x, y, welt) is None:
+        raise ValueError(f"Kein Feld im Raster: Welt {welt!r}, x={x!r}, y={y!r} "
+                         f"(erlaubt sind ganze Zahlen 0..{_FELDER_AXIS - 1}).")
+    return {"art": str(art or ""), "name": str(name or ""),
+            "welt": int(welt), "x": int(x), "y": int(y)}
+
+
+def belegungs_karte(eintraege=()) -> dict:
+    """Die belegten Felder als Karte: (Welt-Index, x, y) -> Liste der Eintraege.
+
+    Mehrere Eintraege auf demselben Schluessel bleiben erhalten - sie sind ein Befund
+    (zwei Orte auf einem Feld) und kein Grund, einen davon zu verschweigen.
+    """
+    karte = {}
+    for eintrag in (eintraege or ()):
+        schluessel = (int(eintrag["welt"]), int(eintrag["x"]), int(eintrag["y"]))
+        karte.setdefault(schluessel, []).append(eintrag)
+    return karte
+
+
+def feld_status(welt, x, y, eintraege=(), ausschluss=None) -> dict:
+    """Darf ein Dorf auf dieses Feld? Antwort mit Grund - nie ein geratenes Ja.
+
+    Rueckgabe: dict mit 'welt' (Index), 'x', 'y', 'status' ('frei' / 'belegt' /
+    'ausserhalb'), 'frei' (bool), 'grund' (deutscher Satz fuer die Anzeige), 'belegt_von'
+    (Liste der Eintraege auf diesem Feld) und 'weltname' (Name der Weltkarte oder None).
+
+    `ausschluss` ist der NAME des Dorfes, das selbst springen will: steht auf dem Feld nur
+    dieses Dorf, gilt das Feld als frei - sonst waere jeder Umzug auf das eigene Feld
+    verboten. Jeder andere Eintrag blockiert, auch der eines Bot-Dorfes (F-26 = A).
+    """
+    if not _ist_dimension(welt):
+        return {"welt": welt, "x": x, "y": y, "status": FELD_AUSSERHALB, "frei": False,
+                "grund": f"Unbekannte Weltkarte: {welt!r} - es gibt keine Belegung dazu.",
+                "belegt_von": [], "weltname": None}
+    feld = koordinate(x, y, welt)
+    if feld is None:
+        return {"welt": int(welt), "x": x, "y": y, "status": FELD_AUSSERHALB, "frei": False,
+                "grund": (f"Feld {x}/{y} liegt außerhalb der Weltkarte "
+                          f"{feld_name(welt)}: belegt sind nur {_FELDER_AXIS} x "
+                          f"{_FELDER_AXIS} Felder."),
+                "belegt_von": [], "weltname": feld_name(welt)}
+    hier = [e for e in (eintraege or ())
+            if (int(e["welt"]) == int(welt) and int(e["x"]) == int(x) and int(e["y"]) == int(y))]
+    fremd = [e for e in hier if not (ausschluss and str(e.get("name") or "") == str(ausschluss))]
+    if not fremd:
+        grund = f"Feld {x}/{y} auf {feld['name']} ist frei."
+        if hier:
+            grund = (f"Feld {x}/{y} auf {feld['name']} ist frei: hier steht nur das Dorf "
+                     f"{ausschluss} selbst.")
+        return {"welt": int(welt), "x": int(x), "y": int(y), "status": FELD_FREI, "frei": True,
+                "grund": grund, "belegt_von": [], "weltname": feld["name"]}
+    namen = ", ".join(str(e.get("name") or "ohne Namen") for e in fremd)
+    grund = f"Feld {x}/{y} auf {feld['name']} ist belegt: {namen}."
+    if len(fremd) > 1:
+        grund += f" Auf diesem Feld stehen {len(fremd)} Orte - das darf nicht sein."
+    return {"welt": int(welt), "x": int(x), "y": int(y), "status": FELD_BELEGT, "frei": False,
+            "grund": grund, "belegt_von": fremd, "weltname": feld["name"]}
+
+
+def feld_name(welt) -> str:
+    """Der Anzeigename einer Weltkarte nach ihrem INDEX - oder 'unbekannte Weltkarte'."""
+    if not _ist_dimension(welt):
+        return "unbekannte Weltkarte"
+    return str(dimensionen()[welt]["name"])
+
+
 def wechselkosten() -> int:
     """Belegter Festpreis eines Koordinatenwechsels (data/welten.json: 5000 Mana)."""
     return _MANA_WECHSEL

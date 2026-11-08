@@ -2602,6 +2602,14 @@ class Settlement:
     id: str = ""
     besitzer: str = "spieler"
     dimension: int = 1
+    # S-2 (08.11.2026, Portal-Modell Abschnitt 7): die Position im PORTALRAUM (20 x 20 Felder
+    # je Weltkarte). `x`/`y` bleiben die SIEDLUNGSKARTE - das sind zwei Koordinatenraeume, und
+    # sie werden nie miteinander verrechnet (Widerspruch W-3). `None` heisst "noch nicht im
+    # Portal verortet": alte Spielstaende laden damit unveraendert, und `siedlung_kennung`
+    # bleibt stabil, weil die Kennung weiter nur an Besitzer, Karte und x/y haengt (W-1).
+    # Geschrieben wird das Feld vom Umzug (`dorf_versetzen`, Schnitt S-3) - hier nur die Felder.
+    welt_x: Optional[int] = None
+    welt_y: Optional[int] = None
     vorraete: Dict[str, float] = field(default_factory=dict)
     waren: Dict[str, int] = field(default_factory=dict)
     einheiten: Dict[str, int] = field(default_factory=dict)
@@ -11934,15 +11942,20 @@ class NebelseetalApp:
     def _ort_feld(self, name: str, botname: str, kante: int):
         """Das Feld eines Ortes auf der Weltkarte: eigene Siedlung zuerst, dann ein fremdes Dorf.
 
-        Die EIGENE Siedlung traegt ihr Weltfeld in `Settlement.x/y` (beim Gruenden aus dem vom
-        Spieler gewaehlten Feld gesetzt). VORSCHLAG, offen benannt: dass dieses Feld im Portal-
-        Raster dieselbe Bedeutung hat, ist NICHT belegt (zwei Koordinatenraeume, siehe
-        `docs/design/MARSCH_ENTWURF_20261102.md` Abschnitt F). Deshalb steht die Aufloesung hier
-        an EINER Stelle - eine spaetere Klaerung trifft nur diese Funktion.
+        Die EIGENE Siedlung wird seit S-2 (08.11.2026) aus ihrer PORTALPOSITION gelesen -
+        `Settlement.welt_x`/`welt_y`, geschrieben vom Umzug (Schnitt S-3). Ist sie noch nicht
+        verortet (`None`), gilt wie bisher `Settlement.x/y`; das ist die Siedlungskarte und
+        damit nur ein Notbehelf fuer alte Spielstaende. Die beiden Raeume sind NICHT belegt
+        derselbe (Widerspruch W-3, `docs/design/PORTAL_MODELL_20261108.md`) - deshalb steht die
+        Aufloesung "Ort -> Feld" weiterhin an EINER Stelle: hier.
         """
         siedlung = self._siedlung_nach_namen(str(name or ""))                  # eigene Siedlung?
         if siedlung is not None:                                               # ja: ihr Weltfeld
-            return self._feld_im_raster((getattr(siedlung, "x", None),
+            welt_x = getattr(siedlung, "welt_x", None)                          # Portalposition (S-2)
+            welt_y = getattr(siedlung, "welt_y", None)
+            if welt_x is not None and welt_y is not None:                       # im Portal verortet
+                return self._feld_im_raster((welt_x, welt_y), kante)            # DIESES Feld gilt
+            return self._feld_im_raster((getattr(siedlung, "x", None),          # alter Stand: x/y
                                          getattr(siedlung, "y", None)), kante)
         for bot, dorf in self._bot_doerfer_im_raster(kante):                   # sonst ein fremdes Dorf
             if str(dorf.name) == str(name or "") and (not botname or str(bot.name) == str(botname)):

@@ -1,6 +1,51 @@
+# STAND 08.11.2026, 22:50 - Portal S-2 und S-1 gebaut: die Portalposition steht am Ort, die Belegungskarte fragt ohne Spielstand (Register 324)
+
+> Neuester Block. Darunter 21:52 (E1 Handelspreis; Register 323), 20:52 (Wall und Marktplatz;
+> Register 321-322), 20:28 (Wall in der Rubrik Verteidigung), 18:50 (Opus als Werkzeug, drei Befunde;
+> Register 314-320), 15:50 (Schritt 11, AST-Quellwache; Register 309), 14:55 (Spieltest 2;
+> Register 307), 14:00 (Spieltest 1, Soft Lock, V-3; Register 306).
+
+**Der Portal-Umzug hat jetzt seinen Unterbau - aber noch keinen Sprung.** Daniel hat die vier
+Portal-Fragen F-25 bis F-28 beantwortet (F-26 = A: ein belegtes Feld wird abgelehnt), und die ersten
+zwei der sechs Schnitte aus `docs/design/PORTAL_MODELL_20261108.md` sind gebaut.
+
+1. **S-2 - der Koordinatenraum ist entschieden:** `Settlement` traegt zwei eigene Felder `welt_x`/
+   `welt_y` fuer den Portalraum (0..19). `x`/`y` bleibt die Siedlungskarte, die beiden Raeume werden
+   nie verrechnet (Widerspruch W-3). `_ort_feld` liest zuerst `welt_x`/`welt_y` und faellt nur bei
+   alten Staenden auf `x`/`y` zurueck. **Abweichung vom Modell, ausdruecklich:** dort stand als
+   Vorgabe 0/0 - das ist im 20 x 20-Raster ein GUELTIGES Feld. Der Vorgabewert ist deshalb `None`
+   (noch nicht im Portal verortet), sonst waere ein Dorf auf Feld 0/0 von einem unverorteten nicht zu
+   unterscheiden. Die Kennung `siedlung_kennung` bleibt unberuehrt (W-1 entschaerft).
+2. **S-1 - die Belegungskarte im Kern:** `portalraum.feld_eintrag`, `belegungs_karte` und
+   `feld_status` beantworten frei / belegt / ausserhalb mit deutschem Grund, gezaehlt je
+   (Welt-Index, x, y) - zwei Welten mit demselben Feld kollidieren NICHT. Die Funktion liest keinen
+   Spielstand; hereingereicht werden nur die belegten Felder (eigene Siedlungen, Bot-Doerfer aus
+   `bottaktik.dorf_position`). Ein Eintrag ausserhalb des Rasters wirft `ValueError`, statt still zu
+   verschwinden. Der Parameter `ausschluss` haelt fest, dass ein Dorf sich nicht selbst blockiert.
+
+**Gemessen:** neue Wache `tests/test_portal_feld_belegung.py` **40 von 40 gruen** (mehr als die im
+Modell veranschlagten 12 bis 16, weil auch die S-2-Felder und der Rueckfall fuer Altstaende mitgeprueft
+werden). **Zwei Gegenproben:** auf dem Altstand bricht die Datei mit `AttributeError: module
+portalraum has no attribute feld_status` ab; mit den Feldern, aber OHNE die neue Aufloesung in
+`_ort_feld`, stehen **38 bestanden, 2 FEHLER** - genau die zwei S-2-Zusagen. **Sammellauf 22:30 bis
+22:44: 209 von 209 gruen, 0 rot, 2 ausgesetzt, 9.075 Pruefungen, 784 s**
+(`docs/audits/sammellauf_20261108_2230.log`); die 40 neuen Pruefungen sind genau der Zuwachs gegen
+9.035. Nachbarn einzeln gruen: `test_portalraum` 70/0/0, `test_portal_uebersicht` 61/0/0,
+`test_portal_fremdblick` 18/0/1, `test_speichern_robust` 95/0/5, `test_marsch_optik` 63/0/0.
+
+**Naechster Schritt ist S-3 (`dorf_versetzen`)**, dann S-4 (Karte statt Auswahlliste), S-5 (Sperre in
+Spielzeit, deckt sich mit E3/Entscheidung 308) und S-6 (Wachen, voller Lauf, EXE). **Nicht gebaut:**
+ein Umzug selbst - `_portal_wechsel` setzt weiterhin nur `state.eigene_dimension`, und die
+Belegungskarte wird von keiner Anzeige benutzt.
+
+**Registerluecke gefunden und geschlossen:** die Nummern 309 bis 323 standen nur in den
+Protokollzeilen, im Register fehlten sie (hoechste Nummer war 308). Sie sind als Kurzfassung mit
+Verweis auf die jeweilige Protokollzeile nachgetragen; offen bleiben die Nummern 272 und 273
+(aeltere Luecke).
+
 # STAND 08.11.2026, 21:52 - E1 gebaut: der Handelspreis haengt am Rohstoff (Register 323)
 
-> Neuester Block. Darunter 20:52 (Wall und Marktplatz; Register 321-322), 20:28 (Wall in der Rubrik
+> Aelterer Block (durch 22:50 abgeloest). Darunter 20:52 (Wall und Marktplatz; Register 321-322), 20:28 (Wall in der Rubrik
 > Verteidigung), 18:50 (Opus als Werkzeug, drei Befunde; Register 314-320), 15:50 (Schritt 11,
 > AST-Quellwache; Register 309), 14:55 (Spieltest 2; Register 307), 14:00 (Spieltest 1, Soft Lock,
 > V-3; Register 306).

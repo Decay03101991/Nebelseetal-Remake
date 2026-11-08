@@ -4,6 +4,10 @@
 Vorarbeit, damit nicht geraten wird. Daniels Entscheidung F-21 lautet: erst ein Modell mit vier
 Fragen, kein geratener `dorf_versetzen`.
 
+**Nachtrag 08.11.2026, 22:35:** S-2 und S-1 sind gebaut und geprueft (Abschnitt 9). Der Satz
+„kein Code geaendert“ beschreibt weiterhin den Stand 21:58 und bleibt als Beleg stehen - die
+Schnitte S-3 bis S-6 sind noch offen.
+
 ## 1. Der Auftrag im Wortlaut
 
 Daniel (Spieltest 3, Register 312): "ich kann nicht genau auswaehlen im portal welches Dorf genau wo
@@ -148,3 +152,46 @@ Positionen, und die Anzeige muss klar sagen, welche sie zeigt.
 
 **Reihenfolge:** F-25 bis F-28 beantworten, dann S-2 (Klaerung) und S-1 (Kern), dann S-3 bis S-6.
 S-3 ohne S-2 waere geraten - genau das will F-21 verhindern.
+
+## 9. Gebaut am 08.11.2026, 22:15 bis 22:35: S-2 (Klaerung) und S-1 (Kern)
+
+### 9.1 S-2 - der Koordinatenraum ist entschieden
+
+`Settlement` traegt zwei EIGENE Felder `welt_x`/`welt_y` fuer den PORTALRAUM (0..19 je Weltkarte).
+`x`/`y` bleiben unveraendert die Siedlungskarte. Ein Ort hat damit zwei Positionen, und welche
+gilt, sagt die eine Aufloesestelle `_ort_feld` (`src/main.py`): zuerst `welt_x`/`welt_y`, sonst
+`x`/`y`.
+
+**Abweichung vom Vorschlag in Abschnitt 7, ausdruecklich festgehalten:** dort stand „fehlende
+Felder = 0/0“. Das ist falsch gedacht - `0/0` ist im 20 x 20-Raster ein GUELTIGES Feld, ein Dorf
+dort waere von einem nicht verorteten Dorf nicht zu unterscheiden. Der Vorgabewert ist deshalb
+`None` („noch nicht im Portal verortet“). Folgen:
+
+- alte Spielstaende laden unveraendert (fehlende Felder werden `None`, keine Migration);
+- `siedlung_kennung(besitzer, map_id, x, y)` bleibt unberuehrt - die Kennung haengt weiter an
+  Besitzer, Karte und `x`/`y`, also entschaerft S-2 den Widerspruch W-1;
+- eine Portalposition AUSSERHALB des Rasters wird nicht durch `x`/`y` ersetzt (kein Mischen der
+  beiden Raeume, W-3);
+- geschrieben wird das Feld erst vom Umzug (`dorf_versetzen`, Schnitt S-3). Bis dahin ist jedes
+  Dorf „noch nicht im Portal verortet“, und die Anzeige verhaelt sich wie bisher.
+
+### 9.2 S-1 - die Belegungskarte im Kern
+
+`src/portalraum.py` fragt jetzt „ist dieses Feld frei?“ und liest dabei KEINEN Spielstand;
+hereingereicht werden nur die belegten Felder:
+
+| Funktion | Aufgabe |
+|---|---|
+| `feld_eintrag(art, name, welt, x, y)` | ein belegter Ort als Eintrag; wirft `ValueError`, wenn Welt oder Feld nicht im Raster liegen (kein stilles Fallenlassen) |
+| `belegungs_karte(eintraege)` | `(Welt-Index, x, y) -> Liste der Eintraege`; zwei Orte auf einem Feld bleiben BEIDE erhalten |
+| `feld_status(welt, x, y, eintraege, ausschluss=None)` | Antwort `frei` / `belegt` / `ausserhalb` mit deutschem Grund, `belegt_von` und Weltnamen |
+| `feld_name(welt)` | Anzeigename einer Weltkarte nach Index (fuer die Meldung) |
+
+Drei Zusagen, die darin stecken: gezaehlt wird je (Welt, x, y) - **zwei Welten mit demselben Feld
+kollidieren nicht**; `ausschluss` ist der Name des Dorfes, das selbst springen will, damit es sich
+nicht selbst blockiert (ein zweiter Ort auf dem Feld blockiert trotzdem); Bot-Doerfer belegen ihr
+Feld ueber ihre feste Position aus `bottaktik.dorf_position`, ohne Zufall aus der Uhr.
+
+**Noch NICHT gebaut:** `dorf_versetzen` (S-3), die Karte in der Portalansicht (S-4), die Sperre in
+Spielzeit (S-5) und die Verdrahtung in `main.py` - die Belegungskarte wird heute von keiner
+Anzeige und keiner Buchstelle benutzt. Sie ist der Kern, auf den S-3 und S-4 aufsetzen.
