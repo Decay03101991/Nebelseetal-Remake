@@ -2696,9 +2696,12 @@ def bauen_auf_karte(siedlung: "Settlement", gebaeude_key: str, feld: int,
     if isinstance(grenze, int) and grenze > 0:
         schon_da = gebaeude_wirkung.gebaeude_stufe(siedlung, kennung) > 0
         if schon_da and grenze <= 1:
+            _zusatz = (" Eine zweite Bibliothek ist auf einer anderen Siedlung erlaubt "
+                       "(höchstens zwei je Spieler, eine je Karte)."
+                       if str(kennung) == "bibliothek" else "")
             return False, (f"{eintrag.get('name', kennung)} gibt es höchstens {grenze}× "
                            f"je Siedlung (belegte Originalregel) — hier steht schon "
-                           f"eines. Stattdessen ausbauen.")
+                           f"eines. Stattdessen ausbauen." + _zusatz)
 
     # Das Feld merkt sich die Ausbaustufe 1 (W4b-5); gespeichert wird der uebergebene
     # Gebaeudeschluessel wie bisher — alle Leser (gelaende, wirtschaft, gebaeude_wirkung)
@@ -9700,6 +9703,40 @@ class NebelseetalApp:
             + ("  Überbelegt – es wächst kein Siedler nach, bis ein Haus steht." if _ueber else ""),
             ("TkDefaultFont", 10), ("#FDBA74" if _ueber else "#DAA520"),
             breite=790, innen=14, pady=4, umbruch=760)
+        # ---- Dorfwall im Dorfzentrum (Daniels Spieltest 2, 08.11.2026, Schritte 3 und 4, Note 5) ----
+        # Daniels Wortlaut: "kann ich egal wo keine Uebersicht finden von einem Wall oder wo ich ihn
+        # ausbauen koennte" und "nicht auffindbar WO das ist". Bis hier stand der Wall NUR auf der
+        # Siedlungskarte; wer im Dorfzentrum landet, hat ihn nie gesehen. Die Zahlen kommen aus
+        # `dorfwall.kennwerte`, die Reparatur aus `_mauer_reparatur_block` - dieselbe Stelle wie dort,
+        # keine zweite Rechnung und kein zweiter Buchungsweg.
+        _wall_ort = self.state.aktive_siedlung()
+        if _wall_ort is not None and self.state._lokale_kasse_aktiv():
+            _wall = dorfwall.kennwerte(_wall_ort, self.state.research)
+            _wall_rahmen = tk.Frame(self.content, bg=self.skin["panel"],
+                                    highlightbackground=self.skin["gold"], highlightthickness=1)
+            _wall_rahmen.pack(fill=tk.X, padx=10, pady=(4, 6))
+            tk.Label(_wall_rahmen, text="Dorfwall", fg=self.skin["gold"], bg=self.skin["panel"],
+                     font=("TkDefaultFont", 11, "bold")).pack(anchor=tk.W, padx=8, pady=(4, 0))
+            if _wall["stufe"]:
+                tk.Label(_wall_rahmen,
+                         text=("Stufe %d (%s) · Zustand %.0f Prozent. Die Stufe kommt aus der "
+                               "Forschung 'Verteidigungsanlagen' - jede weitere Stufe hebt den Wall."
+                               % (_wall["stufe"], _wall["name"], _wall["zustand_prozent"])),
+                         fg="#F3F4F6", bg=self.skin["panel"], wraplength=780, justify=tk.LEFT,
+                         font=("Arial", 9)).pack(anchor=tk.W, padx=8)
+                self._mauer_reparatur_block(_wall_rahmen, _wall_ort)
+            else:
+                tk.Label(_wall_rahmen,
+                         text=("Noch nicht errichtet. Wall und Wache werden auf der Siedlungskarte "
+                               "errichtet (dort oben rechts 'Wall errichten'); jede Stufe der "
+                               "Forschung 'Verteidigungsanlagen' hebt ihn danach."),
+                         fg="#FDBA74", bg=self.skin["panel"], wraplength=780, justify=tk.LEFT,
+                         font=("Arial", 9)).pack(anchor=tk.W, padx=8)
+                tk.Button(_wall_rahmen, text="Zur Siedlungskarte",
+                          command=lambda o=_wall_ort: self._oeffne_siedlungskarte(o),
+                          bg=self.skin["button"], fg=self.skin["gold"]).pack(anchor=tk.W, padx=8,
+                                                                      pady=(4, 8))
+
         frame = tk.Frame(self.content, bg=self.skin["panel"])
         frame.pack(fill=tk.X, padx=10, pady=10)
         tk.Label(frame, text="Siedlungen:", fg=self.skin["gold"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=5)
@@ -11338,6 +11375,34 @@ class NebelseetalApp:
         canvas.bind("<Button-1>", _klick)
         self.karten_canvas = canvas
 
+    def _gelaende_hinweis(self, siedlung, art) -> str:
+        """Der Satz, wenn auf DIESEM Feld nichts baubar ist - mit dem Weg daneben.
+
+        Spieltest 2 (Daniel 08.11.2026): "Ich konnte nicht ein einziges Gebaeude bauen obwohl die
+        Rohstoffe da waren" - er stand auf einem Nebelsee-Feld, wo in der Rubrik "Produktion" kein
+        Gebaeude stehen darf. Die Ansicht sagte nur "keine passenden Gebaeude" und nicht, dass es am
+        GELAENDE liegt, nicht an den Rohstoffen. Der Satz nennt das Gelaende und bis zu drei freie
+        Felder anderer Art aus der EIGENEN Karte - Namen und Koordinaten, keine Rechnung.
+        """
+        karte = (siedlung.karte or {}) if siedlung is not None else {}
+        spalten = int(karte.get("spalten") or 10)
+        raster = list(karte.get("raster") or [])
+        belegt = set(str(k) for k in (getattr(siedlung, "bauten", None) or {}))
+        andere_felder = []
+        for andere in ("wald", "grasland", "steppe", "huegel", "berg"):
+            if andere == art:
+                continue
+            for i, a in enumerate(raster):
+                if a == andere and str(i) not in belegt:
+                    andere_felder.append((andere, i))
+                    break
+        wege = ", ".join("%s (%s%d)" % (gelaende.name(a), self._spaltenname(i % spalten),
+                                        i // spalten + 1) for a, i in andere_felder[:3])
+        return ("Auf diesem Feld (%s) ist nichts baubar - das liegt am GELÄNDE, nicht an den "
+                "Rohstoffen.%s Ein anderes Feld anklicken, um dort zu bauen."
+                % (gelaende.name(art),
+                   (" Freie Felder anderer Art: " + wege + ".") if wege else ""))
+
     def _render_settlement_map(self):
         tk.Label(self.content, text="Siedlungskarte", font=("Blackletter", 20, "bold"),
                  fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 2))
@@ -11570,8 +11635,48 @@ class NebelseetalApp:
         if not angebote:
             tk.Label(info, text="Keine passenden Gebäude in dieser Rubrik auf diesem Feld.",
                      fg=self.skin["text"], bg=self.skin["panel"], wraplength=310,
-                     justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=6)
+                     justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(6, 0))
+            # Spieltest 2 (Daniel 08.11.2026): "Ich konnte nicht ein einziges Gebaeude bauen
+            # obwohl die Rohstoffe da waren" - auf einem Nebelsee gibt es in der Rubrik
+            # "Produktion" gar kein Gebaeude; die Ansicht sagte nur, dass keines passt, und
+            # nicht, dass es am GELAENDE liegt. Derselbe Hinweis wie unten, eine Stelle.
+            _hinweis = self._gelaende_hinweis(siedlung, art)
+            if _hinweis:
+                tk.Label(info, text=_hinweis, fg="#FDBA74", bg=self.skin["panel"], wraplength=310,
+                         justify=tk.LEFT, font=("Arial", 9, "bold")).pack(anchor=tk.W, padx=6,
+                                                                         pady=(2, 6))
             return
+        # Spieltest 2 (Daniel 08.11.2026): in dieser Rubrik gibt es Gebaeude, aber keines ist auf
+        # DIESEM Feld baubar (z. B. Nebelsee mit schon stehender Bibliothek). Der Grund gehoert
+        # dazu, sonst sucht der Spieler bei den Rohstoffen.
+        if not verfuegbar:
+            _hinweis = self._gelaende_hinweis(siedlung, art)
+            if _hinweis:
+                tk.Label(info, text=_hinweis, fg="#FDBA74", bg=self.skin["panel"], wraplength=310,
+                         justify=tk.LEFT, font=("Arial", 9, "bold")).pack(anchor=tk.W, padx=6,
+                                                                         pady=(2, 4))
+            # ... und wenn ANDERE Rubriken auf genau diesem Feld etwas anbieten, steht das dabei:
+            # sonst sucht der Spieler den Fehler bei den Rohstoffen, statt die Rubrik zu wechseln.
+            _andere_rubriken = []
+            for _rubrik in baumenue_info.KATEGORIEN:
+                if _rubrik == kategorie:
+                    continue
+                _weitere = baumenue_info.angebote(
+                    feld, art, siedlung,
+                    regelpruefung=lambda kennung: self._bauanzeige_pruefung(siedlung, kennung, feld, staende),
+                    kostenfunktion=baukosten,
+                    deckungspruefung=lambda preis: self.state.ortsdeckung(siedlung, preis),
+                    ertragsfunktion=self._ertrag_kurz, kategorie=_rubrik,
+                    wall_ohne_feld=self.state._lokale_kasse_aktiv())
+                _frei = [a["name"] for a in _weitere if a["baubar"]]
+                if _frei:
+                    _andere_rubriken.append("%s: %s" % (_rubrik, ", ".join(_frei[:3])))
+            if _andere_rubriken:
+                tk.Label(info, text="In anderen Rubriken auf diesem Feld baubar — "
+                                    + "; ".join(_andere_rubriken) + ".",
+                         fg="#8FE388", bg=self.skin["panel"], wraplength=310,
+                         justify=tk.LEFT, font=("Arial", 9, "bold")).pack(anchor=tk.W, padx=6,
+                                                                         pady=(0, 4))
 
         knopfreihe = tk.Frame(info, bg=self.skin["panel"])
         knopfreihe.pack(anchor=tk.W, fill=tk.X, padx=6, pady=6)

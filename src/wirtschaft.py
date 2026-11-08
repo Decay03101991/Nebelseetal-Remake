@@ -144,9 +144,20 @@ def _feld_ertraege(siedlung, forschung_level=None):
 
         ertrag = gelaende.ertrag_pro_stunde(geb_id, art)
         if ertrag is None:
-            uebersprungen.append(
-                f"Feld {feld}: {gelaende.gebaeude_name(geb_id)} liefert auf "
-                f"{gelaende.name(art)} nichts")
+            # Spieltest 2 (Daniel 08.11.2026): "die Bibliothek war komplett sinnlos auf einem
+            # Nebelsee" - die Dorfuebersicht meldete "Bibliothek liefert auf Nebelsee nichts" und
+            # meinte damit den ROHSTOFFERTRAG. Eine Bibliothek erzeugt aber keine Rohstoffe, sie
+            # traegt die Forschung; ein Haus wohnt, ein Lager lagert. Der Satz unterscheidet jetzt
+            # "Gebaeude ohne Rohstoffertrag" von "Gebaeude, das hier wirklich nichts bringt".
+            _wirkung = str((gelaende.alle_gebaeude().get(geb_id) or {}).get("wirkung") or "")
+            if _wirkung:
+                uebersprungen.append(
+                    f"Feld {feld}: {gelaende.gebaeude_name(geb_id)} erzeugt keine Rohstoffe "
+                    f"(Aufgabe: {_wirkung})")
+            else:
+                uebersprungen.append(
+                    f"Feld {feld}: {gelaende.gebaeude_name(geb_id)} liefert auf "
+                    f"{gelaende.name(art)} nichts")
             continue
 
         if isinstance(ertrag, dict):

@@ -1,3 +1,40 @@
+# STAND 08.11.2026, 14:55 - Spieltest 2: Wall im Dorfzentrum, Gelaende-Hinweis, Bibliothek-Auskunft (Register 307)
+
+> Neuester Block. Darunter 14:00 (Spieltest 1: Soft Lock gemessen, V-3, Register 306), 12:32
+> (Schritt 12, Sammellauf parallel; Register 303, 304), 11:25 (Stand unveraendert, Guthaben).
+
+**Daniel hat Test 2 mit der neuen EXE `b50d6f05` gespielt (Hash der gelieferten Datei geprueft) und
+nach Schritt 5 abgebrochen.** Vier Schritte beantwortet: Schritt 1 Note 1, Schritt 2 Note 1 mit
+Vorbehalt ("Los geht es" wirkte zunaechst wirkungslos, der Sprung kam nach Warten - die Maschine war
+ueberlastet), **Schritte 3 und 4 Note 5**, Schritt 5 ohne Note mit Abbruch.
+
+**Der Wall war nicht auffindbar.** Daniel: "kann ich egal wo keine Uebersicht finden von einem Wall
+oder wo ich ihn ausbauen koennte". Er stand bis heute NUR auf der Siedlungskarte. Jetzt zeigt das
+Dorfzentrum - die Ansicht, in der der Spieler landet - einen Wall-Kasten mit Stufe, Zustand und
+**demselben** Reparaturblock wie die Karte (Preis, Dauer, Knopf), dazu die Herkunft der Stufen
+(Forschung "Verteidigungsanlagen") und, wenn kein Wall steht, den Weg dorthin.
+
+**"Kein Gebaeude baubar" war eine Auskunftsluecke.** Am Teststand nachgestellt: auf einem
+Nebelsee-Feld gibt es in der Rubrik "Produktion" kein Gebaeude, und die Ansicht sagte nur "Keine
+passenden Gebaeude in dieser Rubrik". Neu nennt sie das Gelaende, freie Felder anderer Art mit
+Koordinaten ("Wald (A1), Grasland (E7)") und - wenn eine andere Rubrik auf demselben Feld baut -
+diese Rubrik. **Was sich NICHT nachstellen liess, offen:** mit 242 Holz und 418 Stein waren Haus und
+Tempel im echten Klickpfad sofort baubar; die einzige gemessene Sperre war die Bibliothek
+(hoechstens 1 je Siedlung, im Teststand steht schon eine).
+
+**"Die Bibliothek war komplett sinnlos auf einem Nebelsee" war eine falsche Auskunft der Anzeige.**
+Die Dorfuebersicht meldete "Bibliothek liefert auf Nebelsee nichts" und meinte den ROHSTOFFERTRAG.
+Eine Bibliothek erzeugt keine Rohstoffe, sie traegt die Forschung. Der Satz lautet jetzt "erzeugt
+keine Rohstoffe (Aufgabe: ermoeglicht Forschung ...)", und die Obergrenze sagt, dass eine zweite
+Bibliothek auf einer anderen Siedlung erlaubt ist.
+
+**Ereignis-Flut gemessen, nicht geaendert:** 10 Spieltage ab Tag 5 ergeben **33 Nachrichten**
+(21 Diplomatie-Ereignisse, 9 Gruendungen, 3 Kaempfe) - rund 3,3 je Spieltag, jede zusaetzlich in der
+Statuszeile. Weniger Ereignisse oder ein Filter waeren eine Regel-Entscheidung Daniels.
+
+Wache `tests/test_spieltest2_befunde.py` **14/0/2**. Offen aus Test 2: die Schritte 5 bis 11
+(Handel, Pakt, Portal, Weltkarte, Punkte, Speichern, Beenden) sind UNGETESTET.
+
 # STAND 08.11.2026, 14:00 - Spieltest 1: die Ursache des Soft Locks ist gemessen und die Anzeige sagt die Wahrheit (Register 306)
 
 > Neuester Block. Darunter 12:32 (Schritt 12, Sammellauf parallel; Register 303, 304), 11:25 (Stand
