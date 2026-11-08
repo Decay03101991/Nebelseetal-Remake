@@ -70,14 +70,36 @@ check("die Ansicht nutzt die Funktion (keine zweite Farbregel im Code)",
       "color = nachrichten_farbe(msg)" in quelle)
 
 # ------------------------------------------------- 2. Die Botschaft im Spielstand
-print("\n=== 2. Die Botschaft in Daniels Spielstand (Slot 1) ===")
-if not SLOT.exists():
-    befund("Spielstand %s fehlt auf diesem Rechner - Botschaft kann nicht geprueft werden" % SLOT, "")
+print("\n=== 2. Die Botschaft in einem lokalen Spielstand ===")
+# WARUM ALLE SLOTS UND NICHT NUR SLOT 1 (geaendert 08.11.2026): diese Pruefung hing an EINEM Slot,
+# den Daniel beim Spielen ueberschreibt. Beim Spieltest 1 passierte genau das - Slot 1 bekam um
+# 12:56 einen Stand ohne die Botschaft, und die Pruefung wurde ROT, obwohl am Code nichts kaputt
+# war (die Schenkung wurde am 31.10.2026 einmalig eingespielt; nichts im Code erzeugt sie neu).
+# Ein Nachweis darf nicht rot werden, weil jemand spielt.
+SPEICHER = pathlib.Path.home() / ".nebelseetal"
+KANDIDATEN = sorted(SPEICHER.glob("savegame_slot*.json")) + [SLOT]
+daten, botschaften, quelle_datei = {}, [], ""
+for pfad in KANDIDATEN:
+    if not pfad.exists() or botschaften:
+        continue
+    try:
+        roh = json.loads(pfad.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        continue
+    treffer = [m for m in (roh.get("messages") or []) if m.get("type") == "geschenk"]
+    if treffer:
+        daten, botschaften, quelle_datei = roh, treffer, pfad.name
+
+if not botschaften:
+    befund("KEIN lokaler Spielstand traegt die Schenkungs-Botschaft mehr - der Nachweis am echten "
+           "Stand fehlt (der Code ist davon unberuehrt, die Farb- und Regelpruefungen oben laufen). "
+           "Ursache, belegt: Daniel hat beim Spieltest 1 am 08.11.2026 um 12:56 Slot 1 mit einem "
+           "Stand ohne diese Botschaft ueberschrieben; die Schenkung wurde am 31.10.2026 EINMALIG "
+           "eingespielt, und kein Code erzeugt sie neu. Fuer den vollen Nachweis braucht es einen "
+           "Stand mit der Botschaft (Archivkopie oder neue Einspielung).", "")
     sys.exit(bericht())
 
-daten = json.loads(SLOT.read_text(encoding="utf-8"))
-botschaften = [m for m in (daten.get("messages") or []) if m.get("type") == "geschenk"]
-check("mindestens eine Botschaft der Art 'geschenk' liegt im Spielstand", bool(botschaften),
+check("die Botschaft liegt in einem lokalen Spielstand (%s)" % quelle_datei, bool(botschaften),
       "Arten: %s" % sorted({m.get("type") for m in (daten.get("messages") or [])}))
 
 if botschaften:

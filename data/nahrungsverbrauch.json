@@ -4,6 +4,12 @@
   "version": "nahrung-1",
   "aktiv": true,
   "je_einheit_pro_tag": 8,
+  "rollen_ohne_verbrauch": [
+    "karren",
+    "belagerung"
+  ],
+  "ausweg": "Ausweg: ein Nahrungsgebaeude bauen oder ausbauen (Jaeger auf Wald, Farm auf Grasland oder Steppe, Rinderfarm auf Grasland) - das ist in der Not als einziges noch erlaubt.",
+  "_rollen_hinweis": "Daniels Entscheidung 08.11.2026 (V-3, Register 306): Karren und Belagerungs-geraete fahren mit, sie essen nicht. Grund (gemessen): EINE Handelskarawane erzeugte 8,0 Nahrung Bedarf je Tag und setzte eine Siedlung ohne Nahrungsgebaeude dauerhaft in die Nahrungsnot-Sperre (Lager 0,0, Ernte 0,0). Die Rolle steht in data/units.json, gelesen ueber einheiten.rolle().",
   "_geltungsbereich": "Nur Einheiten im ORTSLAGER (Settlement.einheiten), also die Garnison einer Siedlung. Einheiten auf einem Auftrag zahlen ihre Reisekosten ueber auftraege.kosten_der_mission (NAHRUNG_JE_FELD_DURCH_GS) und werden hier NICHT doppelt belastet. Siedler (Bevoelkerung) essen in diesem Schritt nicht mit - das waere eine eigene Entscheidung.",
   "_unterdeckung": "Reicht die Nahrung im Ortslager nicht, faellt der Bestand auf 0 und der Rest wird als Unterdeckung im produktionsjournal gebucht. Es gibt KEINE Strafe (keine Toten, kein Aufstand, keine Flucht) - eine Strafe waere eine eigene Entscheidung Daniels und ist hier bewusst nicht erfunden.",
   "_abschaltbar": "aktiv=false schaltet den Verbrauch vollstaendig ab, ohne Code zu loeschen (Muster wie AUSBILDUNG_STUFENFAKTOR_AKTIV in src/spieloekonomie.py)."

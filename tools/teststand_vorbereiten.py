@@ -184,6 +184,21 @@ def main_lauf(ziel: str) -> int:
     # 6) Ein paar Takte, damit der Stand "gelebt" ist (Vorratsstaende, keine Sonderbuecher).
     _tick(gs, 24)
 
+    # 6b) NAHRUNGSNOT MELDEN, NICHT VERSCHWEIGEN (Befund Spieltest 1, Register 305): dieser Stand
+    # bringt eine Handelskarawane mit, die Siedlung hat aber kein Nahrungsgebaeude und ein leeres
+    # Nahrungslager. Dann stand der TESTSTAND STILL IN NAHRUNGSNOT: Bauen, Ausbauen, Ware,
+    # Forschung und Ausbildung sind gesperrt (Register 70/74), und der Spieler sucht den Grund.
+    # Es wird KEINE Nahrung erfunden - der Stand sagt selbst, dass er gesperrt ist.
+    _not = gs.nahrungsnot(ort)
+    if _not.get("not"):
+        _warnung = ("WARNUNG: dieser Stand steht in NAHRUNGSNOT (Lager %.1f, Bedarf %.1f je Tag, "
+                    "eigene Ernte %.1f). Bauen, Ausbauen, Ware, Forschung und Ausbildung sind "
+                    "gesperrt - die Anzeige nennt den Grund." %
+                    (float(_not.get("bestand") or 0.0), float(_not.get("bedarf_tag") or 0.0),
+                     float(_not.get("ernte_tag") or 0.0)))
+        print(_warnung)
+        gs.messages.append({"text": _warnung, "type": "warnung"})
+
     # 7) Der Stand sagt selbst, dass er vorbereitet ist (Postfach, nicht nur Dateiname).
     gs.messages.append({"text": ("VORBEREITETER TESTSTAND vom 08.11.2026: Wall und Verteidigungs-"
                                  "anlagen stehen, eine Handelskarawane und 5000 Mana liegen bereit, "

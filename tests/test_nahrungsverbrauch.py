@@ -118,9 +118,21 @@ check("0 Einheiten in der Gruppe = 0", O.tagesbedarf_nahrung({"Krieger": 0}) == 
 check("+1 Einheit = 8 je Tag", O.tagesbedarf_nahrung({"Krieger": 1}) == RATE,
       str(O.tagesbedarf_nahrung({"Krieger": 1})))
 check("100 Krieger = 800 je Tag", O.tagesbedarf_nahrung({"Krieger": 100}) == 100 * RATE)
-check("Karren zaehlen mit (2 Handkarren = 16)", O.tagesbedarf_nahrung({"Handkarren": 2}) == 2 * RATE)
-check("Summe ueber Arten (3 + 5 = 8 Einheiten)",
-      O.tagesbedarf_nahrung({"Krieger": 3, "Handkarren": 5}) == 8 * RATE)
+# V-3 (Daniel 08.11.2026, Register 306): Karren und Belagerungsgeraete FAHREN MIT, SIE ESSEN NICHT.
+# Diese zwei Pruefungen sind absichtlich UMGEDREHT: vorher belegten sie "jede Einheit zaehlt gleich"
+# - genau das hat eine Siedlung ohne Nahrungsgebaeude in die Sperre gesetzt (eine Handelskarawane
+# allein = 8,0 Bedarf je Tag). Die Garnison zaehlt weiter, die Fahrzeuge nicht.
+check("Karren essen NICHT mit (2 Handkarren = 0)", O.tagesbedarf_nahrung({"Handkarren": 2}) == 0.0,
+      str(O.tagesbedarf_nahrung({"Handkarren": 2})))
+check("Summe ueber Arten: nur die 3 Krieger zaehlen (3 + 5 Fahrzeuge = 3 Einheiten)",
+      O.tagesbedarf_nahrung({"Krieger": 3, "Handkarren": 5}) == 3 * RATE,
+      str(O.tagesbedarf_nahrung({"Krieger": 3, "Handkarren": 5})))
+check("Belagerungsgeraet isst nicht mit (2 Katapulte = 0)",
+      O.tagesbedarf_nahrung({"Katapult": 2}) == 0.0,
+      str(O.tagesbedarf_nahrung({"Katapult": 2})))
+check("Kundschafter essen mit (Garnison, keine Fahrzeuge)",
+      O.tagesbedarf_nahrung({"Kundschafter": 1}) == RATE,
+      str(O.tagesbedarf_nahrung({"Kundschafter": 1})))
 check("True (bool) zaehlt NICHT als Einheit", O.tagesbedarf_nahrung({"Krieger": True}) == 0.0)
 check("Text zaehlt NICHT als Einheit", O.tagesbedarf_nahrung({"Krieger": "3"}) == 0.0)
 check("None als Gruppe = 0 Bedarf", O.tagesbedarf_nahrung(None) == 0.0)

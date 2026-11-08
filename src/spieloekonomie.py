@@ -68,7 +68,26 @@ WARENREZEPTE = lade("warenrezepte.json")
 NAHRUNG = lade("nahrungsverbrauch.json")
 NAHRUNGSVERBRAUCH_AKTIV = bool(NAHRUNG.get("aktiv", True))
 NAHRUNG_JE_EINHEIT_TAG = float(NAHRUNG.get("je_einheit_pro_tag") or 0.0)
+# V-3 (Daniel 08.11.2026, Register 306): Karren und Belagerungsgeraete FAHREN MIT, SIE ESSEN NICHT.
+# Die Liste steht in der Datendatei (`rollen_ohne_verbrauch`), die Rolle je Einheit kommt aus
+# `data/units.json` ueber `einheiten.rolle`. Anlass war eine Messung: EINE Handelskarawane machte
+# 8,0 Nahrung Bedarf je Tag und sperrte eine Siedlung ohne Nahrungsgebaeude dauerhaft.
+_ROLLEN_OHNE_VERBRAUCH = frozenset(str(r) for r in (NAHRUNG.get("rollen_ohne_verbrauch") or []))
+NAHRUNG_AUSWEG_TEXT = str(NAHRUNG.get("ausweg") or "")
 
+
+def isst_nicht_mit(name: str) -> bool:
+    """Isst diese Einheit nicht mit? Karren und Belagerungsgeraete: ja (V-3, Register 306).
+
+    Die Rolle kommt aus `einheiten.rolle` (`data/units.json`); eine unbekannte Einheit gilt als
+    Garnison und isst mit - im Zweifel lieber zu viel Verbrauch als eine stille Ausnahme.
+    """
+    if not _ROLLEN_OHNE_VERBRAUCH:
+        return False
+    try:
+        return str(einheiten.rolle(name) or "") in _ROLLEN_OHNE_VERBRAUCH
+    except (KeyError, TypeError, ValueError, AttributeError):
+        return False
 
 
 def mengen(kosten) -> dict:
@@ -1183,18 +1202,24 @@ def tagesbedarf_nahrung(einheiten, aktiv: bool | None = None) -> float:
 
     EINE Rechenstelle fuer Kern (``ort_tick``) und Anzeige (Kopfzeile) - sonst entstehen zwei
     Wahrheiten. ``aktiv`` ueberschreibt den Schalter der Datendatei (fuer Pruefungen).
-    Gezaehlt wird JEDE Einheit gleich; Karren und Belagerungsgeraete fahren mit, weil sie im
-    Ortslager als Einheiten gefuehrt werden (die Datenlage kennt keinen zweiten Zaehler).
+
+    Gezaehlt wird die GARNISON. Karren und Belagerungsgeraete fahren mit und essen NICHT mit
+    (V-3, Daniel 08.11.2026, Register 306): sie stehen zwar im Ortslager als Einheiten, sind aber
+    keine Truppen. Die Rollen stehen in `rollen_ohne_verbrauch` der Datendatei; vorher zaehlte
+    JEDE Einheit gleich, und eine einzelne Handelskarawane setzte eine Siedlung ohne
+    Nahrungsgebaeude dauerhaft in die Nahrungsnot-Sperre (gemessen: 8,0 Bedarf je Tag bei 0,0 Ernte).
     """
     if aktiv is None:
         aktiv = NAHRUNGSVERBRAUCH_AKTIV
     if not aktiv or NAHRUNG_JE_EINHEIT_TAG <= 0:
         return 0.0
     anzahl = 0.0
-    for menge in (einheiten or {}).values():
+    for name, menge in (einheiten or {}).items():
         if isinstance(menge, bool) or not isinstance(menge, (int, float)):
             continue
         if not math.isfinite(float(menge)) or menge <= 0:
+            continue
+        if isst_nicht_mit(str(name)):                    # Karren/Belagerung: fahren nur mit
             continue
         anzahl += float(menge)
     return anzahl * NAHRUNG_JE_EINHEIT_TAG
@@ -1251,6 +1276,11 @@ def nahrungsnot(ort, forschung: dict = None) -> dict:
             "und der Ort erntet nur %.1f. Es wird nichts mehr gebaut, hergestellt, geforscht oder "
             "ausgebildet, bis Nahrung nachgeliefert wird oder der Ort wieder mehr erntet als er "
             "verbraucht (es fehlen %.1f je Tag)." % (bedarf_tag, ernte_tag, fehlt))
+    # V-3 (Daniel 08.11.2026, Register 306): der Ausweg steht IM Text. Daniel im Spieltest 1:
+    # "Kein Hinweis darauf was ich tun koennte oder woran es liegt." Der Satz kommt aus der
+    # Datendatei (`ausweg`), nicht aus dem Code.
+    if NAHRUNG_AUSWEG_TEXT:
+        text = text + " " + NAHRUNG_AUSWEG_TEXT
     return {"not": True, "bestand": bestand, "bedarf_tag": bedarf_tag,
             "ernte_tag": ernte_tag, "text": text}
 

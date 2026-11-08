@@ -123,6 +123,39 @@ def ertrag_pro_stunde(gebaeude_id: str, gelaende: str):
     return None
 
 
+def erzeugt_nahrung(gebaeude_id: str) -> bool:
+    """Traegt dieses Gebaeude auf IRGENDEINEM Gelaende Nahrung ein? (Ausweg aus der Nahrungsnot)
+
+    V-3 (Daniel 08.11.2026, Register 306): in einem Ort mit Nahrungsnot bleiben Bau und Ausbau
+    eines NAHRUNGSGEBAEUDES erlaubt und zahlbar - sonst haette der Ort keinen Ausweg, und
+    Entscheidung 70 nennt "eigene Erzeugung ueber den Verbrauch" ausdruecklich als Ende der Sperre.
+
+    Quelle ist die Ertragstabelle in `data/buildings.json` - KEINE zweite Liste im Code:
+      * Skalarwert (z. B. `farm`: Grasland 4) mit `rohstoff` = "Nahrung",
+      * dict (z. B. `jaeger`: {"Nahrung": 2, "Leder": 2}) mit dem Schluessel "Nahrung".
+    """
+    geb = _GEBAEUDE.get(finde_gebaeude(gebaeude_id))
+    if geb is None:
+        return False
+    tabelle = geb.get("ertrag_pro_stunde") or {}
+    rohstoff = geb.get("rohstoff")
+    namen = [rohstoff] if isinstance(rohstoff, str) else list(rohstoff or [])
+    for wert in tabelle.values():
+        if isinstance(wert, dict):
+            try:
+                if float(wert.get("Nahrung", 0) or 0) > 0:
+                    return True
+            except (TypeError, ValueError):
+                continue
+            continue
+        try:
+            if "Nahrung" in namen and float(wert or 0) > 0:
+                return True
+        except (TypeError, ValueError):
+            continue
+    return False
+
+
 def bau_moeglich(gebaeude_id: str, gelaende: str) -> tuple:
     """
     Darf dieses Gebaeude auf diesem Gelaende stehen?

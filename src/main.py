@@ -2709,6 +2709,38 @@ def bauen_auf_karte(siedlung: "Settlement", gebaeude_key: str, feld: int,
     return True, f"{warum} (Feld {feld})"
 
 
+def bauanzeige_pruefung(state, siedlung, kennung: str, feld: int,
+                        staende: Optional[dict] = None) -> tuple:
+    """Darf das Baumenue dieses Gebaeude als "baubar" anbieten? ``(ja/nein, Grund)``.
+
+    Befund aus Spieltest 1 (08.11.2026, Register 305): in einer Siedlung mit **Nahrungsnot** stand
+    im Baumenue bei jedem Gebaeude "Baubar - Rohstoffe vorhanden" (heller Knopf), der Klick brach
+    aber sofort mit der Sperre ab - "gruen angezeigt, Wirkung null", ohne Hinweis. Ursache war eine
+    ZWEITE Rechenstelle: `baumenue_info.angebote` fragte nur die Bauregel (`bauen_auf_karte`),
+    nicht die Sperre aus `_karten_bauen`.
+
+    Diese Funktion stellt die Reihenfolge des Klicks her und ist ohne Fenster pruefbar:
+
+    1. **Nahrungsnot** - dieselbe Quelle wie `NebelseetalApp._nahrungssperre`
+       (`state.nahrungsnot`, Register 70/74). Der Satz nennt Bedarf, Ernte und Fehlbetrag.
+    2. **Bauregel** - `bauen_auf_karte(... nur_pruefen=True)` wie im Klick (Gelaende, Forschung,
+       Obergrenze je Siedlung).
+
+    Sie aendert NICHTS (kein Bau, keine Zahlung); die Anzeige bleibt read-only.
+    """
+    if siedlung is None:
+        return False, "Kein Dorf gewählt — ein Bau braucht ein Dorf."
+    sperre = str((state.nahrungsnot(siedlung) or {}).get("text") or "")   # dieselbe Quelle wie der Klick
+    # V-3 (Daniel 08.11.2026, Register 306): ein NAHRUNGSGEBAEUDE bleibt in der Not erlaubt -
+    # das ist der Ausweg, den Entscheidung 70 selbst nennt. Alles andere bleibt gesperrt.
+    if sperre and not gelaende.erzeugt_nahrung(kennung):
+        return False, sperre                                              # Grund erscheint im Menue
+    if staende is None:
+        staende = state.forschungs_stufen()                               # EINE Lesestelle (Forschungsstand)
+    return bauen_auf_karte(siedlung, kennung, feld,
+                           forschungsstaende=staende, nur_pruefen=True)
+
+
 # ---------- Gruendung bringt drei Startgebaeude mit (Schnitt S-1, Daniel 01.11.2026) ----------
 # Der Siedlungskarren liefert bei JEDER Gruendung (erstes Dorf UND jede Kolonie) drei Gebaeude:
 # Holzfäller (moeglichst auf Wald), Steinmetz (moeglichst auf Huegel oder Berg) und Tempel
@@ -8104,6 +8136,28 @@ class GameState:
 
 # ---------- GUI ----------
 
+def intro_ziel(state) -> tuple:
+    """Wohin der Knopf "Los geht es" im Ankunftsfenster fuehrt: ``(Ansicht, Gruendungsschritt)``.
+
+    Daniels Befund aus Spieltest 1 (08.11.2026, Register 305), woertlich: "Der 'Los geht es' Button
+    im Ankunftsfenster fuehrt nirgendwo hin ... Er sollte direkt zu ersten Fraktionswahl fuehren."
+    Bis hier schloss der Knopf nur den Dialog - danach stand der Spieler in der Ansicht, in der er
+    vorher war (bei einem frischen Start: die leere Startseite).
+
+    EINE Entscheidung, damit Anzeige und Klick nicht auseinanderlaufen und die Pruefdatei sie ohne
+    Fenster pruefen kann:
+
+    * kein Dorf und kein Volk  -> Gruendungsseite, Schritt 2 "Dein Volk" (die Fraktionswahl)
+    * kein Dorf, Volk gewaehlt  -> Gruendungsseite, Schritt 3 "Deine Karte"
+    * Dorf steht                -> Dorfzentrum (dort geht das Spiel weiter)
+    """
+    if not getattr(state, "settlements", None):
+        if not str(getattr(state, "spieler_fraktion", "") or ""):
+            return KARTENGRUENDUNG_ANSICHT, "volk"
+        return KARTENGRUENDUNG_ANSICHT, "karte"
+    return "Dorfzentrum", ""
+
+
 class NebelseetalApp:
     def __init__(self, root: tk.Tk, tor_pfad: Optional[str] = None):
         self.root = root
@@ -8178,9 +8232,7 @@ class NebelseetalApp:
             tk.Label(rahmen, image=self._tor_logo, bg="#2a0605").pack(pady=(0, 2))
         else:                                                          # Rueckfall: Schriftzug
             tk.Label(rahmen, text="Nebelseetal", font=("Blackletter", 44, "bold"),
-                     fg="#FFCC33", bg="#2a0605").pack(pady=(0, 2))
-        tk.Label(rahmen, text="Remake", font=("Blackletter", 20), fg="#FF6600",
-                 bg="#2a0605").pack(pady=(0, 16))
+                     fg="#FFCC33", bg="#2a0605").pack(pady=(0, 18))
         if tor.hat_passwort(self.tor_pfad):
             self._tor_anmelden()
         else:
@@ -8803,8 +8855,7 @@ class NebelseetalApp:
         self.root.configure(bg="#2a0605")
         frame = tk.Frame(self.root, bg="#2a0605")
         frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
-        tk.Label(frame, text="Nebelseetal", font=("Blackletter", 48, "bold"), fg="#FFCC33", bg="#2a0605").pack(pady=(0, 10))
-        tk.Label(frame, text="Remake", font=("Blackletter", 24), fg="#FF6600", bg="#2a0605").pack(pady=(0, 20))
+        tk.Label(frame, text="Nebelseetal", font=("Blackletter", 48, "bold"), fg="#FFCC33", bg="#2a0605").pack(pady=(0, 26))
         self.lbl_loading = tk.Label(frame, text="Lade Spielwelt...", font=("Arial", 12), fg="#FFFF99", bg="#2a0605")
         self.lbl_loading.pack()
         self.root.after(100, self._loading_tick)
@@ -8842,8 +8893,32 @@ class NebelseetalApp:
             tk.Label(inhalt, text=story.intro(), justify="left", wraplength=520,   # die vier Saetze
                      fg=self.skin["text"], bg=farbe).pack(anchor="w")
             tk.Button(inhalt, text="Los geht es",                                 # ein Knopf, kein Zwang
-                      command=lambda: (story.intro_merken(), schliessen())).pack(anchor="e", pady=(14, 0))
+                      # Daniel (Spieltest 1, Register 305): der Knopf soll zur Fraktionswahl fuehren,
+                      # nicht nur den Dialog schliessen. Das Ziel steht in `intro_ziel` (EINE Stelle).
+                      command=lambda: self._intro_weiter(schliessen)).pack(anchor="e", pady=(14, 0))
         self._overlay_oeffnen(story.intro_titel(), bauer)                   # als Ingame-Dialog (Overlay)
+
+    def _intro_weiter(self, schliessen) -> None:
+        """Ankunftsfenster schliessen UND an die Stelle fuehren, an der es weitergeht.
+
+        Daniels Befund aus Spieltest 1 (08.11.2026, Register 305): "Der 'Los geht es' Button im
+        Ankunftsfenster fuehrt nirgendwo hin. Er sollte direkt zu ersten Fraktionswahl fuehren."
+        Ausgefuehrt wird, was `intro_ziel` entscheidet (frischer Start: Schritt "Dein Volk",
+        geladener Stand: Dorfzentrum). Merken und Schliessen stehen in eigenen try-Bloecken:
+        ein Fehler dort darf den Spielweg nicht verhindern.
+        """
+        try:
+            story.intro_merken()                                   # Intro nicht wieder zeigen
+        except Exception:                                          # Merken darf nie blockieren
+            pass
+        try:
+            schliessen()                                           # den Dialog schliessen
+        except Exception:                                          # falls er schon zu ist
+            self._overlay_schliessen()                             # dann ueber die eine Stelle
+        ansicht, schritt = intro_ziel(self.state)                  # wohin es geht (eine Entscheidung)
+        if schritt:                                                # Gruendungsseite: welcher Schritt
+            self._start_schritt = schritt
+        self._switch_view(ansicht)                                 # dorthin wechseln
 
     def _cycle_skin(self):
         names = list(SKINS.keys())
@@ -10675,6 +10750,16 @@ class NebelseetalApp:
             return ""
         return str((self.state.nahrungsnot(siedlung) or {}).get("text") or "")
 
+    def _bauanzeige_pruefung(self, siedlung, kennung, feld, staende=None) -> tuple:
+        """Die Anzeige-Pruefung des Baumenues - delegiert an die EINE Stelle im Modul.
+
+        Befund aus Spieltest 1 (08.11.2026, Register 305): in einer Siedlung mit Nahrungsnot stand
+        im Baumenue bei jedem Gebaeude "Baubar - Rohstoffe vorhanden", der Klick brach aber sofort
+        mit der Sperre ab. Die Rechnung steht in `bauanzeige_pruefung` (Modul), damit sie ohne
+        Fenster pruefbar ist; hier wird nur der Zustand durchgereicht.
+        """
+        return bauanzeige_pruefung(self.state, siedlung, kennung, feld, staende)
+
     def _oeffne_siedlungskarte(self, siedlung):
         self.karten_siedlung = siedlung
         # Teil 6: wer eine Siedlungskarte öffnet, meint DIESEN Ort — Lager, Kaserne und Forschung
@@ -10782,7 +10867,10 @@ class NebelseetalApp:
         if siedlung is None or feld is None:
             return
         _sperre = self._nahrungssperre(siedlung)
-        if _sperre:
+        # V-3 (Daniel 08.11.2026): in der Not bleibt der Bau eines NAHRUNGSGEBAEUDES erlaubt und
+        # zahlbar - der Ausweg, den Entscheidung 70 selbst nennt ("eigene Erzeugung ueber den
+        # Verbrauch"). Alles andere bleibt gesperrt, die Zahlung inklusive.
+        if _sperre and not gelaende.erzeugt_nahrung(gebaeude_key):
             self._log(_sperre)
             return
         name = gelaende.gebaeude_name(gebaeude_key)
@@ -10974,10 +11062,12 @@ class NebelseetalApp:
         if siedlung is None or feld is None:
             return
         _sperre = self._nahrungssperre(siedlung)
-        if _sperre:
+        gebaut = siedlung.bauten.get(str(feld))
+        # V-3 (Daniel 08.11.2026): der AUSBAU eines Nahrungsgebaeudes bleibt in der Not erlaubt -
+        # eine Stufe mehr Jäger erntet mehr und ist damit derselbe Ausweg wie ein Neubau.
+        if _sperre and not gelaende.erzeugt_nahrung(gebaut or ""):
             self._log(_sperre)
             return
-        gebaut = siedlung.bauten.get(str(feld))
         if not gebaut:
             return
         name = gelaende.gebaeude_name(gebaut)
@@ -11464,8 +11554,9 @@ class NebelseetalApp:
         staende = {k: int(v.level) for k, v in self.state.research.items()}
         angebote = baumenue_info.angebote(
             feld, art, siedlung,
-            regelpruefung=lambda kennung: bauen_auf_karte(
-                siedlung, kennung, feld, forschungsstaende=staende, nur_pruefen=True),
+            # Anzeige und Klick fragen dieselbe Stelle (Nahrungsnot zuerst, dann die Bauregel):
+            # vorher zeigte das Menue bei Nahrungsnot "Baubar - Rohstoffe vorhanden" (Test 1, 305).
+            regelpruefung=lambda kennung: self._bauanzeige_pruefung(siedlung, kennung, feld, staende),
             kostenfunktion=baukosten,
             deckungspruefung=lambda preis: self.state.ortsdeckung(siedlung, preis),
             ertragsfunktion=self._ertrag_kurz,
@@ -12267,6 +12358,13 @@ class NebelseetalApp:
                 # mitgegeben, statt je Ware neu ueber die Siedlungskarte zu laufen.
                 _offen_w = [b for b in spieloekonomie.ware_bedingungen(
                     _ort, ware, levels, _bestand_ort) if not b["erfuellt"]]
+                # Nahrungsnot sperrt auch die ANZEIGE (Spieltest 1, Register 305): dieselbe Stelle
+                # wie `_ware_herstellen_menge` - vorher blieb der Knopf hell und der Klick brach
+                # mit der Sperre ab. Der Grund steht dann IM Knopftext.
+                _sperre_w = self._nahrungssperre(_ort)
+                if _sperre_w:
+                    erfuellt = False
+                    _offen_w = [{"text": _sperre_w}]
                 _text_w = ware if not _offen_w else f"{ware}: {_offen_w[0]['text']}"
                 knopf = tk.Button(rahmen, text=_text_w,
                                   command=lambda w=ware, k=kennung: self._ware_herstellen_menge(
@@ -14790,6 +14888,12 @@ class NebelseetalApp:
                 # gesperrt, der Grund steht mit Soll/Ist daneben, und was die Forschung
                 # freischaltet, steht gleich mit dabei (Quelle: `forschungspfad`).
                 _frei, _warum = forschungspfad.erfuellt(key, _stufen, _bib)
+                # Nahrungsnot gilt auch fuer die ANZEIGE (Spieltest 1, Register 305): der Knopf war
+                # hell, der Klick brach aber mit der Sperre ab. Gefragt wird DIESELBE Stelle wie in
+                # `_start_research` (`_nahrungssperre` -> `state.nahrungsnot`), keine eigene Regel.
+                _sperre_f = self._nahrungssperre(self.state.aktive_siedlung())
+                if _frei and _sperre_f:
+                    _frei, _warum = False, _sperre_f
                 kosten = forschung.naechste_kosten(stand, key)
                 _knopf = tk.Button(frame, text=f"Forschen ({int(kosten.get('holz', 0))} Holz)",
                                    command=lambda k=key: self._start_research(k), bg="#3e2723",
@@ -15269,6 +15373,11 @@ class NebelseetalApp:
         ort = self.state.aktive_siedlung()
         if ort is None:
             return False, "keine Siedlung - Ausbildung braucht eine Siedlungskarte"
+        # Nahrungsnot sperrt auch die ANZEIGE (Spieltest 1, Register 305): dieselbe Stelle wie
+        # `_train_unit_menge`, damit der Knopf nicht "frei" meldet, waehrend der Klick sperrt.
+        _sperre_a = self._nahrungssperre(ort)
+        if _sperre_a:
+            return False, _sperre_a
         offen = [b for b in self._ausbildungs_bedingungen(key) if not b["erfuellt"]]
         if not offen:
             return True, ""

@@ -1,3 +1,45 @@
+# STAND 08.11.2026, 14:00 - Spieltest 1: die Ursache des Soft Locks ist gemessen und die Anzeige sagt die Wahrheit (Register 306)
+
+> Neuester Block. Darunter 12:32 (Schritt 12, Sammellauf parallel; Register 303, 304), 11:25 (Stand
+> unveraendert, Guthaben), 01:40 (Spieltest-Paket, Register 301; Messwerte-Ablage, Register 302),
+> 01:05 (Schritt 10, Register 299; Pakt-Knopf, Register 300).
+
+**Der Soft Lock war nicht die Bibliothek - es war die Nahrungsnot.** Daniels Spielstand
+(`~/.nebelseetal/savegame_slot1.json`, gespeichert 12:56) und der vorbereitete Teststand (Slot 2)
+laden sauber, stehen aber BEIDE in Nahrungsnot: Ortslager Nahrung **0,0**, Bedarf **8,0 je Tag**,
+eigene Ernte **0,0**. Der Bedarf kommt allein von EINER Handelskarawane, weil
+`spieloekonomie.tagesbedarf_nahrung` JEDE Einheit im Ortslager zaehlt (Karren und Belagerungsgeraete
+ausdruecklich mit). Die Sperre aus Entscheidung 70/74 blockt dann Bauen, Ausbauen, Ware, Forschung und
+Ausbildung. Die Bibliothek auf dem Nebelsee war eine ERLAUBTE Standortregel (`data/buildings.json`,
+`nur_auf` = Grasland/Steppe/Nebelsee) - sie war nur der Ort, an dem Daniel es bemerkt hat. **Damit ist
+auch klar, warum Test 1 sofort stillstand: der Teststand ist gesperrt, bevor der Spieler etwas tut.**
+
+**"Gruener Text, Wirkung null" war eine zweite Rechenstelle.** Die Sperre fragten die fuenf
+Zahlstellen, die ANZEIGE nicht: das Baumenue schrieb in diesem Stand bei **14 von 14** Zeilen
+"Baubar - Rohstoffe vorhanden" (heller Knopf), die Knoepfe fuer Forschung, Ware und Ausbildung waren
+frei - der Klick brach dann ab, der Grund stand nur in der Statuszeile. Neu fragt die Anzeige dieselbe
+Stelle wie der Klick: `main.bauanzeige_pruefung` (Modul, ohne Fenster pruefbar) fuer das Baumenue,
+`_nahrungssperre` fuer Forschung, Werkstatt und Ausbildung. Ergebnis im nachgebauten Not-Stand: **0 von
+14 baubar, jede Zeile mit dem Sperrtext**; Gegenprobe mit 5 Nahrung im Lager: wieder 2 von 14 baubar.
+Wache `tests/test_spieltest1_befunde.py` **21/0/2**.
+
+**Die zwei kleinen Befunde sind gebaut.** "Los geht es" fuehrt jetzt ueber `main.intro_ziel` zur
+Fraktionswahl (frischer Start: Schritt 2 "Dein Volk"; geladener Stand: Dorfzentrum) statt nur den
+Dialog zu schliessen. Die orange Wortmarke "Remake" unter dem Logo ist weg (Passworttor und
+Ladebildschirm); Logo und gelbe Hinweiszahlen bleiben. `tools/teststand_vorbereiten.py` meldet einen
+Stand, der in Nahrungsnot steht, in der Ausgabe UND im Postfach des Standes - es wird keine Nahrung
+erfunden.
+
+**Daniel hat entschieden (V-3, 14:02): beides.** Karren und Belagerungsgeraete essen nicht mehr mit - die Rolle steht in `data/units.json`, die Liste `rollen_ohne_verbrauch` in `data/nahrungsverbrauch.json`, gelesen in `spieloekonomie.isst_nicht_mit`. Gemessen: eine Handelskarawane allein ergibt jetzt Bedarf **0,0** statt 8,0; ein Krieger ergibt weiter 8,0 und Not. **Und** ein Nahrungsgebaeude bleibt in der Not baubar und zahlbar (`gelaende.erzeugt_nahrung` aus der Ertragstabelle in `data/buildings.json`; `_karten_bauen`, `_karten_ausbauen` und `bauanzeige_pruefung` lassen genau diese Gebaeude durch). Auf Wald ist in der Not nur der Jaeger baubar - er braucht keine Forschung und ist damit der Ausweg, den Entscheidung 70 nennt. Der Sperrtext nennt ihn jetzt auch (Satz aus der Datendatei). Wachen umgedreht: `test_nahrungsverbrauch` belegte vorher "Karren zaehlen mit" und belegt jetzt das Gegenteil, mit Grund im Docstring.
+
+**Sammellauf 14:09 (nach dem Fix, mit -j 2): 198 von 199 gruen, 1 rot, 2 ausgesetzt, 8.900 Pruefungen, 63 Befunde, 708 s.** Der eine Rote war `test_geschenk_nachricht` - sie verlangte die Schenkungs-Botschaft in `savegame_slot1.json`, und genau den Slot hat Daniel beim Test 1 um 12:56 ueberschrieben. Am Code war nichts; die Pruefung sucht jetzt alle lokalen Slots und meldet bei fehlendem Nachweis einen BEFUND mit Ursache. **Sammellauf 14:23 (nach dem Fix, ohne Spielprozess): 199 von 199 gruen, 0 rot, 2 ausgesetzt, 8.900 Pruefungen, 64 Befunde, 561 s** (`docs/audits/sammellauf_20261108_1423.log`). Der Vergleich mit dem Lauf 14:09 (708 s, gleiche 201 Dateien, gleiche Urteile) misst den Lastunterschied: 147 s, Faktor 1,26 - kein Codeunterschied.
+
+**NICHT behoben:** die Design-Note 4 ("zu wenig farbe und Zuviel braune hintergruende"). Eine Palette
+zu erfinden waere geraten; sie braucht Daniels Richtung. Ebenfalls offen: die drei Punkte aus der
+Vorgaengeruebergabe (Schritt 11 AST-Quellwache, Schritt 13 Daten-und-Quellen-Pruefung, R3-3/R3-4,
+Besucherdokumente, F-20 = B), 43 Pruefdateien ohne `bericht()`, die zwei Skill-Vormerkungen und der
+Projekt-Skill an der Groessengrenze.
+
 # STAND 08.11.2026, 12:32 - Schritt 12 fertig: Sammellauf parallel und vollstaendig ausgewertet (Register 303, 304)
 
 > Neuester Block. Darunter 11:25 (Stand unveraendert, Guthaben), 01:40 (Spieltest-Paket, Register 301;
