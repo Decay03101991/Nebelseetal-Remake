@@ -614,3 +614,24 @@ E1 (Frage 19), Portal (Note 4), Bibliothek (Note 8) und E3 (Portal-Sperre in Spi
 **Ohne Frage mitgenommen (Fehlerbehebung ohne Regelwirkung):** `berater.py` zeigt beim Baupreis noch
 den internen Zusatz (R3-3 C-4/I-10, R3-4 I-2) - wird im naechsten Bauabschnitt still mitbehoben und im
 Register genannt.
+
+# Nachtrag 08.11.2026, 22:35 - Antworten der Runde (Daniel, im Chat, Frage fuer Frage)
+
+Jede Frage einzeln gestellt und einzeln beantwortet. Die Antworten binden die naechsten Schnitte.
+
+| Nummer | Frage | **Antwort** | Folge |
+|---|---|---|---|
+| F-19 | E1 fertig bauen oder zuruecknehmen? | **A - fertig bauen.** | Verkaufsmaske, Wache mit Gegenprobe, voller Sammellauf, Register 323. Der Arbeitsbaum wird dabei wieder leer. |
+| F-20 | Preishoehe bei E1? | **A - so bauen wie gemessen**, kein Faktor. | Holz 0,46 Gold je Stueck, Stein/Nahrung 0,92, Gold 1,22; knapper Bot verkauft nichts und zahlt beim Verkauf 1,80. Die Hoehe beurteilt Daniel in Spieltest 4; nachjustiert wird ueber EINEN Wert in der Datendatei, nicht ueber Code. |
+| F-17 | Bibliothek versetzen? | **A - Versetzen als EINE Buchung.** | Knopf am Gebaeude, abreissen und im selben Zug neu setzen, Neubau auf Stufe 1; die Originalregel eine Bibliothek je Siedlung bleibt eingehalten. |
+| F-18 | Pakt annehmen oder ablehnen? | **A - feste Schwelle.** | Keine Wahrscheinlichkeit; der Knopf ist immer da, der Bot nimmt ab `min_gunst 40` an, die Ablehnung nennt die fehlende Gunst im Postfach. |
+| F-15 | Neun Balance-Werte ohne Quelle? | **A - Werte bleiben, WAHRE Quellenwort in die Zeile.** | Kein Umzug nach `data/`; je Wert der Satz VORSCHLAG, eigene Messung. Keine Zahl aendert sich. |
+| F-16 | Sechs Datendateien ohne Herkunft? | **A - ehrlicher `_quelle`-Satz in den fuenf VORSCHLAG-Dateien.** | `marsch_optik.json` bleibt ohne, weil sie keinen Spielwert traegt. |
+| F-21 | Portal per Klick auf ein freies Weltfeld? | **A - erst ein Modell mit vier Fragen.** | Vor dem Bau: Kosten ausser den 5.000 Mana, Bot-Feld erlaubt, Bauten/Garnison/Karawanen, Sperre danach. Kein geratener Kern. |
+| F-22 | Postfach ohne Obergrenze? | **B - echte Obergrenze in der DATEI.** | Die aeltesten Berichte fliegen raus. **Grenze, die dabei gilt:** ungelesene Diebstahl- und Verlustberichte sind ausgenommen, sonst waere die Zusage aus S4 (ungelesen verschwindet nicht) wieder aufgehoben. Daniel hat der Ausnahme nicht widersprochen. |
+| F-23 | Zwei Skill-Ergaenzungen und Groessengrenze? | **A - beide freigeben, danach einen Block nach `references/` auslagern.** | Die Freigabe selbst macht Daniel in der App (der Schreibschutz greift fuer den Agenten). |
+| F-24 | Wann EXE und Spieltest 4? | **B - EXE erst nach allen vier Punkten.** | Reihenfolge: E1, Portal (Note 4), Bibliothek (Note 8), E3 (Portal-Sperre in Spielzeit) - dann voller Sammellauf, EINE EXE, Spieltest 4. |
+
+**Reihenfolge der naechsten Schnitte (aus diesen Antworten):** E1 (F-19/F-20) - Portal-Modell
+(F-21) - Bibliothek versetzen (F-17) - Pakt-Schwelle (F-18) - Quellenwoerter (F-15/F-16) -
+Postfach-Obergrenze (F-22) - dann Sammellauf und EXE (F-24).
