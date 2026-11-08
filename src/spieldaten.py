@@ -19,6 +19,24 @@ from typing import Any, Dict, Optional
 STAND = "2026-10-04"
 
 
+def schreibordner() -> str:
+    """Wohin Spielstand, Sperrdatei und Merkdateien gehoeren - NIE in den Programmordner.
+
+    EINE Stelle fuer alle Schreiber (Daniels Befund 08.11.2026): `story._merkdatei` rief
+    `spieldaten.schreibordner()` auf, und die Funktion gab es hier NICHT - der AttributeError wurde
+    beim Lesen verschluckt (das Intro kam bei JEDEM Start wieder) und beim Schreiben ebenfalls (der
+    Merker wurde nie gesetzt). Die Aufloesung steht jetzt hier, `main.schreibordner` reicht nur
+    durch, und `NEBEL_SPIELDATEN_ORDNER` (isolierte Testwelt, GPT-ABS05) gilt ueberall gleich.
+    """
+    testpfad = os.environ.get("NEBEL_SPIELDATEN_ORDNER", "").strip()   # isolierte Testwelt
+    if testpfad:
+        os.makedirs(testpfad, exist_ok=True)                          # Ordner darf fehlen
+        return os.path.abspath(testpfad)
+    ziel = os.path.join(os.path.expanduser("~"), ".nebelseetal")      # Standard: Benutzerordner
+    os.makedirs(ziel, exist_ok=True)
+    return ziel
+
+
 def projektwurzel() -> str:
     """Wo liegen die Datendateien? Es wird **gesucht**, nicht geraten.
 

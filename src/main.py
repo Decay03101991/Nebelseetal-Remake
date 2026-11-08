@@ -2858,14 +2858,14 @@ def schreibordner() -> str:
     In der fertigen EXE ist der Programmordner oft schreibgeschuetzt, und die Einzeldatei entpackt
     sich in einen Zwischenordner, der beim Beenden verschwindet. Deshalb liegt alles Schreibbare
     unter ``~/.nebelseetal`` — dort liegt auch das Passworttor (`tor.ORDNER`).
+
+    Die Aufloesung steht seit 08.11.2026 in `spieldaten.schreibordner` (EINE Stelle): `story` und
+    andere Module brauchen denselben Ordner und duerfen `main` nicht importieren (Zirkel). Hier wird
+    nur durchgereicht; das Verhalten ist unveraendert.
     """
     # GPT-ABS05: optionale isolierte Testwelt. Grundpassworttor bleibt GLOBAL
     # bei tor.STANDARD_PFAD; nur Adminfreigabe und Spielstaende werden getrennt.
-    testpfad = os.environ.get("NEBEL_SPIELDATEN_ORDNER", "").strip()
-    if testpfad:
-        os.makedirs(testpfad, exist_ok=True)
-        return os.path.abspath(testpfad)
-    return tor.ORDNER
+    return spieldaten.schreibordner()
 
 
 def icon_pfad(relativ: str) -> str:

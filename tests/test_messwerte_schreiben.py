@@ -108,8 +108,11 @@ if datei_g:
 check("der Zeitstempel steht darin (Datum und Uhrzeit)",
       isinstance(daten_g.get("zeit"), str) and "T" in str(daten_g.get("zeit")),
       str(daten_g.get("zeit")))
-check("die Dauer des Laufs steht darin", float(daten_g.get("dauer_s") or -1) >= 0.0,
-      str(daten_g.get("dauer_s")))
+_dauer_g = daten_g.get("dauer_s")                       # 0.0 ist ein GUELTIGER Wert (schneller Lauf)
+check("die Dauer des Laufs steht darin",
+      isinstance(_dauer_g, (int, float)) and not isinstance(_dauer_g, bool)
+      and float(_dauer_g) >= 0.0,
+      str(_dauer_g))
 check("Rechner und Python-Fassung stehen darin",
       bool(daten_g.get("rechner")) and bool(daten_g.get("python")),
       "%s / %s" % (daten_g.get("rechner"), daten_g.get("python")))
