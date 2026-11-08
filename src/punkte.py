@@ -298,9 +298,12 @@ def spielausgang(zustand: dict) -> Tuple[str, str]:
         anzahl_einheiten += _anzahl(wert)
 
     if not siedlungen and anzahl_einheiten == 0:
+        # C-6 (externe Pruefung, Register 311): der Spielertext begann mit "VORSCHLAG:" - eine
+        # interne Kennzeichnung. Sie gehoert in den Kommentar, nicht auf den Bildschirm: die
+        # Niederlage ist eine Remake-Setzung, weil das Handbuch keine Niederlagebedingung nennt.
         return ("niederlage",
-                "VORSCHLAG: keine Siedlung und keine Einheit mehr — das Handbuch nennt keine "
-                "Niederlagebedingung.")
+                "Keine Siedlung und keine Einheit mehr — das Handbuch nennt keine "
+                "Niederlagebedingung, das Spiel wertet es als Ende des Versuchs.")
     return ("weiter",
             "kein Sieg vorgesehen (E5): das Handbuch nennt keine Siegbedingung, jeder Spieler "
             "hat seine eigenen Ziele.")
