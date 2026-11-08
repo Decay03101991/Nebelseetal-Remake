@@ -26,6 +26,8 @@ Ergebnis-Auswertung verlangt kein Befunde-Feld mehr: `test_projektpfade` (129), 
 **589 Pruefungen zaehlen jetzt mit**, und ein Fehler darin macht weiterhin rot. A-6 im Auftragsdokument
 nennt die gemessene Grenze (8.874 Pruefungen, unter 1.200 s seriell) als VORSCHLAG.
 
+**Messumstand, wichtig fuer die naechste Sitzung:** Daniel hat um 11:28:20 die EXE gestartet und gespielt (Kind-PID 14668, ); alle Laeufe dieser Sitzung liefen unter dieser Last. Die URTEILE sind belegt (gleiche Datei-Liste in beiden Modi, 0 Abweichungen), die ZEITEN sind Lastzeiten. Ein sauberer Lauf ohne Spiel steht noch aus und wird nicht durch Schaetzen ersetzt.
+
 **Offen und als naechstes:** Schritt 11 (AST-Quellwache `tests/test_quelle_ast.py` - Ziel: keine
 Ansicht rechnet selbst, Docstrings und Kommentare zaehlen nicht), Schritt 13
 (`tests/test_daten_und_quellen.py`), R3-3 (C-6, I-10, C-4), R3-4 (I-2), Besucherdokumente, eigener
