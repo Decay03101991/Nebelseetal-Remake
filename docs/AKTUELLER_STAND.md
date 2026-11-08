@@ -5,7 +5,8 @@
 
 **Die Uebergabe 16:20 ist abgearbeitet, soweit sie ohne Daniel geht:** der ausstehende volle
 Sammellauf ist gefahren (18:01: 203 von 204 gruen, 1 rot - die rote Wache widersprach Register 311 und
-ist berichtigt), die Opus-Lieferung liegt im Repo und ist gegen den Code gemessen.
+ist berichtigt; **18:55 nach allen Aenderungen: 205 von 205 gruen, 0 rot, 8.971 Pruefungen, 789 s**),
+die Opus-Lieferung liegt im Repo und ist gegen den Code gemessen.
 
 **Was NEU im Repo liegt (nur lesen, nichts davon ist Spielcode):**
 `docs/extern/ANTWORT_OPUS_20261108.md` (5 Teile, SHA256 `09fd7992...`),
