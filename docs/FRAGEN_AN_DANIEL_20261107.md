@@ -432,3 +432,24 @@ neuestem stand ist."
 
 **Fundstelle der Regel im Skill:** `nebelseetal-remake` → `references/uebergabe-ablage.md`
 (Vormerkung, Freigabe offen).
+
+# Nachtrag 08.11.2026, 16:10 - Schritt 13: Zahlen ohne Quelle (VORSCHLAG, keine Aenderung vorgenommen)
+
+`tests/test_daten_und_quellen.py` (Register 310) hat den Bestand gemessen. Nichts davon ist
+umgerechnet oder geglaettet - die Zahlen stehen, wie sie stehen, und warten auf Daniels Wort.
+
+**Frage 15 - neun Balance-Werte im Code ohne belegte Quelle.** Sollen sie so bleiben (dann bekommen
+sie einen Satz "VORSCHLAG bleibt" in die Zeile) oder sollen sie in `data/` wandern?
+`auftraege.py`: HIN_UND_RUECK_FAKTOR 2.0, DROSSELUNG_SCHRITTE_PROZENT 10, BEUTE_ANTEIL_PROZENT 50;
+`botkern.py`: BESCHAFFUNGSKOSTEN 250.0 (Herleitung im Kommentar: Kaempferpreis x 1,2);
+`dorfwall.py`: SEKUNDEN_JE_PROZENT 360.0; `spieldaten.py`: FORSCHUNG_GRUNDKOSTEN_HOLZ 50;
+`spieloekonomie.py`: MENGEN_HOECHSTMENGE 200 (Schutz gegen Tippfehler);
+`spielzeit.py`: STANDARD_FAKTOR 180.0 (dein Tempo); `werkstatt.py`: STUFE_TEMPO_PROZENT 10.
+
+**Frage 16 - sechs Datendateien ohne Quellenangabe.** `bot_bedarf.json`, `bot_diebstahl.json`,
+`bot_forschung.json`, `bot_stimmen.json`, `spionage.json` (VORSCHLAG) und `marsch_optik.json`
+(Anzeige, kein Spielwert). Sollen die fuenf VORSCHLAG-Dateien eine Herkunftszeile bekommen, sobald
+du sagst, woraus sie stammen?
+
+**Sofort erledigt, ohne Frage:** jede Datendatei mit Schalter `aktiv` wird im Quelltext gelesen -
+17 von 17, keine Attrappe. Und eine NEUE Zahl ohne Quelle oder Bestandseintrag macht die Wache rot.

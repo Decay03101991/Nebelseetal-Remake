@@ -1,0 +1,122 @@
+{
+  "_hinweis": "Bestand der Datendateien und Code-Zahlen OHNE Quellenangabe (Ablauf Schritt 13, Register 310). Die Liste ist der Stand vom 08.11.2026: was hier steht, ist BEKANNT und wird als VORSCHLAG an Daniel gemeldet. Was NICHT hier steht und ohne Quellenwort auftaucht, macht die Wache rot - so wird keine neue Zahl stillschweigend eingefuehrt.",
+  "stand": "2026-11-08",
+  "dateien_ohne_quelle": [
+    {
+      "datei": "bot_bedarf.json",
+      "grund": "VORSCHLAG: Werte fuer den Bot-Bedarf, ohne belegte Originalstelle im Kopf der Datei - Daniel vorlegen."
+    },
+    {
+      "datei": "bot_diebstahl.json",
+      "grund": "VORSCHLAG: Regeln des Bot-Diebstahls, ohne Quellenangabe - Daniel vorlegen."
+    },
+    {
+      "datei": "bot_forschung.json",
+      "grund": "VORSCHLAG: Forschungsreihenfolge je Taktik, ohne Quellenangabe - Daniel vorlegen."
+    },
+    {
+      "datei": "bot_stimmen.json",
+      "grund": "VORSCHLAG: Anzeigetexte der Bots, ohne Quellenangabe (kein Balance-Wert, aber ohne Herkunft)."
+    },
+    {
+      "datei": "marsch_optik.json",
+      "grund": "ANZEIGE: Farben und Masse der Marsch-Darstellung, kein Spielwert."
+    },
+    {
+      "datei": "spionage.json",
+      "grund": "VORSCHLAG: Schwellen und Texte der Spionage, ohne Quellenangabe - Daniel vorlegen."
+    }
+  ],
+  "balance_konstanten": [
+    {
+      "datei": "auftraege.py",
+      "name": "HIN_UND_RUECK_FAKTOR",
+      "art": "balance",
+      "grund": "VORSCHLAG: Reisefaktor Hin- und Rueckweg, ohne belegte Originalstelle."
+    },
+    {
+      "datei": "auftraege.py",
+      "name": "DROSSELUNG_SCHRITTE_PROZENT",
+      "art": "balance",
+      "grund": "VORSCHLAG: Drosselung je Schritt, ohne belegte Originalstelle."
+    },
+    {
+      "datei": "auftraege.py",
+      "name": "BEUTE_ANTEIL_PROZENT",
+      "art": "balance",
+      "grund": "VORSCHLAG: Beuteanteil, ohne belegte Originalstelle."
+    },
+    {
+      "datei": "auftraege.py",
+      "name": "AKTION_DAUER_SEKUNDEN",
+      "art": "technisch",
+      "grund": "0,0 bedeutet AUS (Sofortaktion) - kein Balance-Wert."
+    },
+    {
+      "datei": "botkern.py",
+      "name": "BESCHAFFUNGSKOSTEN",
+      "art": "balance",
+      "grund": "VORSCHLAG: Beschaffungspreis der Bots (Herleitung im Kommentar: Kaempferpreis x 1,2), aber ohne Quellenwort auf der Zeile."
+    },
+    {
+      "datei": "dorfwall.py",
+      "name": "SEKUNDEN_JE_PROZENT",
+      "art": "balance",
+      "grund": "VORSCHLAG: Reparaturdauer je Prozentpunkt; der Kommentar erklaert die Rechnung, nicht die Herkunft."
+    },
+    {
+      "datei": "spieldaten.py",
+      "name": "FORSCHUNG_GRUNDKOSTEN_HOLZ",
+      "art": "balance",
+      "grund": "VORSCHLAG: Grundkosten der Forschung in Holz."
+    },
+    {
+      "datei": "spieloekonomie.py",
+      "name": "MENGEN_HOECHSTMENGE",
+      "art": "balance",
+      "grund": "VORSCHLAG: Obergrenze einer Mengeneingabe (Schutz gegen Tippfehler, kein Originalwert)."
+    },
+    {
+      "datei": "spielzeit.py",
+      "name": "STANDARD_FAKTOR",
+      "art": "balance",
+      "grund": "VORSCHLAG: Zeitraffer-Faktor 180 (Daniels Tempo-Einstellung, kein Originalwert)."
+    },
+    {
+      "datei": "einheiten.py",
+      "name": "KARREN_BONUS_AKTIV",
+      "art": "technisch",
+      "grund": "Schalter, kein Wert."
+    },
+    {
+      "datei": "main.py",
+      "name": "BAUPREISE_DATEI",
+      "art": "technisch",
+      "grund": "Pfad zur Datendatei."
+    },
+    {
+      "datei": "main.py",
+      "name": "BOT_BESCHAFFUNGSKOSTEN",
+      "art": "technisch",
+      "grund": "Weiterleitung auf botkern.BESCHAFFUNGSKOSTEN (dort begruendet)."
+    },
+    {
+      "datei": "spieloekonomie.py",
+      "name": "AUSBILDUNG_STUFENFAKTOR_AKTIV",
+      "art": "technisch",
+      "grund": "Schalter, kein Wert."
+    },
+    {
+      "datei": "welt_optik_fein.py",
+      "name": "LICHT_ABLEITUNG_FAKTOR",
+      "art": "technisch",
+      "grund": "Zeichenoptik (Lichtableitung), kein Spielwert."
+    },
+    {
+      "datei": "werkstatt.py",
+      "name": "STUFE_TEMPO_PROZENT",
+      "art": "balance",
+      "grund": "VORSCHLAG: Tempo je Werkstattstufe."
+    }
+  ]
+}
