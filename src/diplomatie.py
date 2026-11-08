@@ -212,12 +212,14 @@ def _bot_vertraege(bot_daten) -> dict:
     return tabelle  # die Tabelle selbst (veraenderbar)
 
 
-def vertrag_aktiv(bot_daten, art, jetzt, einst=None) -> bool:
+def vertrag_aktiv(bot_daten, art, jetzt, einst=None, raeumen: bool = True) -> bool:
     """Laeuft diese Vertragsart gerade? Abgelaufene Eintraege werden dabei entfernt.
 
     Eingabe: dict des Bots, Art, Spielzeit in Sekunden. Ausgabe: True, wenn `jetzt` vor `bis` liegt.
     Ein abgelaufener Eintrag wird geloescht - so gibt es keinen zweiten Zeitbegriff und keinen
-    Zustand, der still weiterlaeuft.
+    Zustand, der still weiterlaeuft. Mit `raeumen=False` antwortet die Funktion nur, ohne den
+    abgelaufenen Eintrag zu entfernen: so fragt die ANZEIGE (S4-3-Nachtrag, 08.11.2026), die beim
+    Rendern nichts in den Spielstand schreiben darf.
     """
     tabelle = _bot_vertraege(bot_daten)  # Tabelle des Bots
     eintrag = tabelle.get(str(art))  # Eintrag dieser Art
@@ -225,20 +227,25 @@ def vertrag_aktiv(bot_daten, art, jetzt, einst=None) -> bool:
         return False  # dann laeuft auch nichts
     bis = _zahl(eintrag.get("bis"), 0.0)  # Ende des Vertrags
     if float(jetzt) >= bis:  # Zeit ist um
-        tabelle.pop(str(art), None)  # Eintrag entfernen (Ablauf ohne Buchung)
-        # S4-4 (06.11.2026): das ENDE bleibt gemerkt - der Rachetopf darf fruehestens
-        # `nach_paktende_sekunden` nach dem Paktende feuern (Daniel 13:50).
-        _ende_setzen(bot_daten, str(art), bis)  # Ende festhalten
+        if raeumen:  # nur der Kern raeumt auf
+            tabelle.pop(str(art), None)  # Eintrag entfernen (Ablauf ohne Buchung)
+            # S4-4 (06.11.2026): das ENDE bleibt gemerkt - der Rachetopf darf fruehestens
+            # `nach_paktende_sekunden` nach dem Paktende feuern (Daniel 13:50).
+            _ende_setzen(bot_daten, str(art), bis)  # Ende festhalten
         return False  # dann ist er nicht mehr aktiv
     return True  # er laeuft
 
 
-def vertrag_anbieten(bot_daten, art, jetzt, einst=None):
-    """Bietet einem Bot eine Vertragsart an. Rueckgabe: (ok, grund).
+def _vertrag_bedingungen(bot_daten, art, jetzt, einst=None) -> tuple:
+    """Prueft ein Vertragsangebot, OHNE etwas zu buchen - EINE Pruefstelle fuer Kern und Anzeige.
 
-    Geprueft wird in dieser Reihenfolge: Schalter, bekannte Art, Durchmarsch (nur Anzeige),
-    Gunst gegen `min_gunst`, kein doppelter laufender Vertrag. Es wird NICHTS gebucht, wenn eine
-    Bedingung fehlt - der Aufrufer bucht nur bei `True`.
+    Rueckgabe: (ok, grund). Geprueft wird in dieser Reihenfolge: Schalter, bekannte Art, Zahlen der
+    Art, Gunst gegen `min_gunst`, kein laufender Vertrag derselben Art. Die Gruende sind Kennungen;
+    der Satz dazu steht in `data/diplomatie.json` unter `vertraege._gruende`
+    (`vertrag_grund_text`). `vertrag_anbieten` bucht nur bei `True`, der Knopf in der Ansicht fragt
+    dieselbe Funktion ueber `pakt_anbietbar` (Muster F-04: eine Rechenstelle, keine zweite Grenze
+    in der Anzeige). Der Vertrag wird hier NICHT aufgeraeumt (`raeumen=False`), damit das Rendern
+    den Spielstand nicht veraendert.
     """
     if not vertraege_aktiv(einst):  # Schalter aus
         return False, "vertraege_aus"  # dann kein Angebot
@@ -249,15 +256,50 @@ def vertrag_anbieten(bot_daten, art, jetzt, einst=None):
     if not zahlen:  # Art steht nicht in der Datei
         return False, "art_ohne_daten"  # dann ablehnen statt raten
     noetig = int(_zahl(zahlen.get("min_gunst"), 100))  # noetige Gunst (Vorgabe: alles)
-    gunst = gunst_von(bot_daten, einst)  # jetzige Gunst
-    if gunst < noetig:  # zu wenig Gunst
+    if gunst_von(bot_daten, einst) < noetig:  # zu wenig Gunst
         return False, "gunst_zu_niedrig"  # dann ablehnen
-    if vertrag_aktiv(bot_daten, art, jetzt, einst):  # schon vereinbart
+    if vertrag_aktiv(bot_daten, art, jetzt, einst, raeumen=False):  # schon vereinbart
         return False, "laeuft_bereits"  # dann nicht doppelt anbieten
+    return True, "anbietbar"  # Angebot waere moeglich
+
+
+def vertrag_anbieten(bot_daten, art, jetzt, einst=None):
+    """Bietet einem Bot eine Vertragsart an. Rueckgabe: (ok, grund).
+
+    Geprueft wird in `_vertrag_bedingungen` (Schalter, bekannte Art, Durchmarsch als reine Anzeige,
+    noetige Gunst aus der Datendatei, kein doppelter laufender Vertrag). Es wird NICHTS gebucht,
+    wenn eine Bedingung fehlt - der Aufrufer bucht nur bei `True`.
+    """
+    ok, grund = _vertrag_bedingungen(bot_daten, art, jetzt, einst)  # die EINE Pruefstelle
+    if not ok:  # eine Bedingung fehlt
+        return False, grund  # dann nichts buchen
+    zahlen = art_daten(art, einst)  # Zahlen dieser Art (oben schon geprueft)
     dauer = _zahl(zahlen.get("dauer_sekunden"), 0.0)  # Dauer in Spielsekunden
-    _bot_vertraege(bot_daten)[art] = {"seit": float(jetzt), "bis": float(jetzt) + dauer,
-                                      "nur_anzeige": bool(zahlen.get("nur_anzeige", False))}
+    _bot_vertraege(bot_daten)[str(art)] = {"seit": float(jetzt), "bis": float(jetzt) + dauer,
+                                           "nur_anzeige": bool(zahlen.get("nur_anzeige", False))}
     return True, "vereinbart"  # Angebot angenommen und eingetragen
+
+
+def pakt_anbietbar(bot_daten, jetzt, einst=None) -> tuple:
+    """Darf der Spieler diesem Bot den Nichtangriffspakt anbieten? (ok, grund) fuer den Knopf.
+
+    S4-3-Nachtrag (08.11.2026, Daniels Entscheidung 1): der Pakt hatte keinen Spielweg. Der Knopf
+    in der Ansicht fragt hier - dieselbe Pruefung, die `vertrag_anbieten` beim Buchen macht, also
+    keine zweite Grenze in der Oberflaeche. Nichts wird dabei gebucht.
+    """
+    return _vertrag_bedingungen(bot_daten, "nichtangriff", jetzt, einst)
+
+
+def vertrag_grund_text(grund: str) -> str:
+    """Der Satz zu einem Vertragsgrund aus `data/diplomatie.json` (leer, wenn unbekannt).
+
+    Die Saetze stehen in der Datendatei (`vertraege._gruende`), damit keine Spielermeldung im Code
+    liegt. Ein unbekannter Grund ergibt einen leeren Text - der Aufrufer erfindet dann nichts.
+    """
+    texte = _vertraege_block().get("_gruende")  # der Textblock der Datendatei
+    if not isinstance(texte, dict):  # keine Texte hinterlegt
+        return ""  # dann kein Satz
+    return str(texte.get(str(grund)) or "")  # den Satz zum Grund zurueckgeben
 
 
 def vertraege_tick(bot_daten, jetzt, einst=None) -> list:

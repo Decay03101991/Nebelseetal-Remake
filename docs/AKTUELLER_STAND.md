@@ -1,3 +1,34 @@
+# STAND 08.11.2026, 01:05 - Schritt 10 abgeschlossen (E2E-Wege, Register 299), Pakt-Knopf gebaut (Register 300)
+
+> Neuester Block. Darunter 21:30 (R3-2, Register 298), 21:05 (R3-1, Register 297), 20:48 (Modellrunde 3
+> geprueft, F-21 = A), 20:15 (B-2 Regelkreis, Register 296).
+>
+> Diese Sitzung laeuft auf Daniels Wortlaut vom 08.11.2026, 00:25 OHNE Rueckfragen, bis der Kontext voll
+> ist; jede eigene Entscheidung steht mit Begruendung im Protokoll und in der Uebergabe.
+
+**Schritt 10 steht (Register 299).** `tests/test_e2e_wege.py` fuehrt die zwoelf End-zu-End-Ketten auf den
+ECHTEN Spielwegen (Rohstoff, Forschung, Ware, Ausbildung, Einsatz, Rueckkehr, Speichern/Laden in einer
+zweiten App, Handel ueber die echte Maske, Heilung, Mauerreparatur, Vertrag, Portal) und prueft sich selbst
+per `ast`: ausser der Spieluhr darf nur in vier Startwertfunktionen etwas am Spielstand geschrieben werden,
+jede mit GRUND im Docstring. **GEMESSEN:** 130 bestanden, 0 Fehler, 0 Befunde in 153 s.
+
+**Der Befund der Kette 11 ist erledigt (Register 300, Daniels Entscheidung 1).** `diplomatie.vertrag_anbieten`
+hatte in `src/main.py` keinen Aufrufer - der Pakt war nur ueber den Kern erreichbar. Jetzt gibt es je Bot
+einen Knopf **"Pakt anbieten"** in der Diplomatie-Ansicht. Ob er erscheint, entscheidet
+`diplomatie.pakt_anbietbar` mit derselben Pruefstelle, die der Kern beim Buchen nimmt (`_vertrag_bedingungen`);
+in der Ansicht steht keine Grenze und keine Rechnung. Gebucht wird ausschliesslich im Kern, die Saetze
+stehen in `data/diplomatie.json` (`vertraege._gruende`). Wache `tests/test_pakt_knopf.py` **43/0/0**.
+
+**Sammellauf (00:41 bis 01:01): 196 von 198 gruen, 0 rot**, 8.235 Pruefungen, 60 Befunde, 1.168 s
+(`docs/audits/sammellauf_20261108_0042.log`); die zwei nicht gruenen Dateien sind AUSGESETZT wie zuvor.
+Der Baum wird mit diesem Block committet und gepusht.
+
+**Als Naechstes in dieser Sitzung (Reihenfolge Daniels):** eine `.exe` aus diesem Stand bauen, eine
+`.txt`-Spieltestanleitung mit Soll/Beobachtung/Note je Schritt auf den Desktop legen und einen vorbereiteten
+Spielstand fuer die spaeten Wege (Wall, Handel, Portal, Vertrag) bereitstellen; danach Pruefungen haerter und
+messbarer machen (Messwerte als JSON mit Zeitstempel), Schritt 12 (Sammellauf messen/parallelisieren),
+Schritt 11 (AST-Quellwache), Schritt 13 (Daten-und-Quellen-Pruefung), R3-3, R3-4.
+
 # STAND 07.11.2026, 21:30 - R3-2 gebaut: Ereignisart am Botnamen (Befund I-1), VOR Schritt 10
 
 > Neuester Block. Darunter 21:05 (R3-1 Spieltag-Laenge, Register 297), 20:48 (Modellrunde 3

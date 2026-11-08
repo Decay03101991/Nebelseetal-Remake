@@ -13839,6 +13839,16 @@ class NebelseetalApp:
             # Zeile steht keine Grenze und kein Vergleich, damit es keine zweite Rechenstelle gibt.
             tk.Label(frame, text=f"Gunst {int(bot.gunst)} ({diplomatie.status(bot.gunst)})",
                      fg=self.skin["gold"], bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
+            # S4-3-Nachtrag (08.11.2026, Daniels Entscheidung 1): der Nichtangriffspakt bekommt
+            # seinen Spielweg. Ob der Knopf erscheint, entscheidet `diplomatie.pakt_anbietbar` -
+            # dieselbe Pruefung, die der Kern beim Buchen macht (Muster F-04). In dieser Ansicht
+            # steht deshalb keine Grenze und keine Rechnung.
+            _pakt_ok, _pakt_grund = diplomatie.pakt_anbietbar(self.state.bot_als_dict(bot),
+                                                              self.state.spielsekunden)
+            if _pakt_ok:                                                # Angebot ist moeglich
+                tk.Button(frame, text="Pakt anbieten",                   # der neue Spielweg
+                          command=lambda b=bot: self._pakt_anbieten(b),
+                          bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
             tk.Button(frame, text="Handeln", command=lambda b=bot: self._trade(b), bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
             # Entscheidung 1 (01.11.2026): es gibt EINEN Angriffsweg, und er reist. Der zweite
             # Knopf "Angreifen" ist entfallen - er tat dasselbe wie "Angriff entsenden" und
@@ -13936,6 +13946,27 @@ class NebelseetalApp:
         else:                                                           # nicht gebucht
             self._ereignis_melden(story.ereignis_grund_text(grund))      # Grund aus der Datei
         self._overlay_schliessen()                                      # Dialog schliessen
+        if getattr(self, "content", None) is not None:                  # Ansicht vorhanden
+            self._render_view()                                         # sofort nachziehen
+        return bool(ok)                                                 # Ergebnis melden
+
+    def _pakt_anbieten(self, bot: BotPlayer) -> bool:
+        """Bietet einem Bot den Nichtangriffspakt an - gebucht wird AUSSCHLIESSLICH im Kern.
+
+        S4-3-Nachtrag (08.11.2026, Daniels Entscheidung 1): der Knopf uebergibt nur Bot und
+        Spielzeit; die Pruefung (Gunst, laufender Pakt) und den Eintrag am Bot macht
+        `diplomatie.vertrag_anbieten`. Ein Doppelklick bucht nicht doppelt - der zweite Aufruf
+        findet den laufenden Pakt und wird mit `laeuft_bereits` abgelehnt, ohne Gunst zu aendern.
+        Der Satz zur Rueckgabe kommt aus `data/diplomatie.json`, nicht aus dem Code.
+        """
+        daten = self.state.bot_als_dict(bot)                            # Bot in dict-Form
+        ok, grund = diplomatie.vertrag_anbieten(daten, "nichtangriff",
+                                                self.state.spielsekunden)
+        self.state.bot_aus_dict(bot, daten)                             # Pakt zurueckschreiben
+        satz = diplomatie.vertrag_grund_text(grund)                     # Satz aus der Datei
+        if satz:                                                        # nur mit Text
+            self.state.messages.append({"text": satz, "type": "diplomatie"})  # ins Postfach
+            self._log(satz)                                             # Statuszeile
         if getattr(self, "content", None) is not None:                  # Ansicht vorhanden
             self._render_view()                                         # sofort nachziehen
         return bool(ok)                                                 # Ergebnis melden

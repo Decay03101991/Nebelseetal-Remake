@@ -51,6 +51,16 @@
       "quelle": "Auftragsdokument 7.2 (VORSCHLAG) und Daniels Entscheidung 06.11.2026, 13:50 (Register 284): reine Anzeige, KEINE Mechanikwirkung - kein Originalbeleg, keine neue Wegfindung. Dauer wie die anderen Vertraege, drei Spieltage = 259.200 s (R3-1)."
     },
     "bruch_unter_gunst": 40,
+    "_gruende": {
+    "_schnitt": "S4-3-Nachtrag (08.11.2026, Daniels Entscheidung 1): die Sätze zu den Rückgaben von `diplomatie.vertrag_anbieten`. Im Code steht keine Spielermeldung; `diplomatie.vertrag_grund_text` liest sie hier.",
+    "vereinbart": "Pakt geschlossen: Dieser Bot greift nicht mehr an, solange der Pakt läuft.",
+    "laeuft_bereits": "Mit diesem Bot läuft der Pakt bereits. Gebucht wurde nichts.",
+    "gunst_zu_niedrig": "Die Gunst dieses Bots reicht für einen Pakt nicht. Gebucht wurde nichts.",
+    "vertraege_aus": "Verträge sind abgeschaltet. Gebucht wurde nichts.",
+    "art_ohne_daten": "Für diese Vertragsart fehlen die Zahlen in der Datendatei. Gebucht wurde nichts.",
+    "unbekannte_art": "Diese Vertragsart gibt es nicht. Gebucht wurde nichts.",
+    "anbietbar": "Der Pakt kann angeboten werden."
+    },
     "einseitig": {
       "wert": true,
       "quelle": "ENTSCHEIDUNG Daniel 06.11.2026, 13:50 (Register 284): der Pakt schuetzt den Spieler vor Bot-Angriffen; ein Angriff des Spielers auf den Pakt-Bot ist ERLAUBT, bricht aber den Pakt (Gunst-Abzug, Rachetopf +1)."
