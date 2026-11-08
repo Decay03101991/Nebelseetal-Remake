@@ -106,11 +106,35 @@ genau der Punkt E3 (Entscheidung 308), vier Stellen im Portal und eine beim Lade
 - B: 24 Stunden fuer den ganzen Spieler (wie heute global), aber in Spielzeit.
 - C: keine Sperre mehr, nur die Mana-Kosten.
 
-## 6. Schnitte, wenn die vier Antworten da sind
+## 6. Antworten (Daniel, 08.11.2026, 22:05 bis 22:10, einzeln im Chat)
+
+| Nummer | Frage | Antwort | Folge fuer den Bau |
+|---|---|---|---|
+| F-25 | Kosten ausser den 5.000 Mana | **A - nur die 5.000 Mana (und die Sperre)** | keine zweite Preistafel; Gold, Waren und Bauanteil kommen nicht vor. Der Sperr-Teil ist durch F-28 = C ueberholt. |
+| F-26 | Bot-Feld als Ziel | **A - nein, belegtes Feld wird abgelehnt** | die Belegungskarte (S-1) muss eigene Doerfer UND Bot-Doerfer kennen; die Meldung nennt den Grund |
+| F-27 | Was reist mit | **A - alles** | Bauten, Stufen, Garnison, Waren, Karawanen bleiben am Ort; der Umzug aendert nur die Koordinaten |
+| F-28 | Sperre danach | **C - keine Sperre mehr, nur die Mana-Kosten** | `portalraum.wechsel_erlaubt` verliert die 24-Stunden-Pruefung; die Kosten bleiben die Bremse |
+
+**Abweichung von der Quelle, ausdruecklich notiert:** die 24-Stunden-Sperre steht BELEGT in
+`src/portalraum.py` (Kopf, Z. 19-27: "hoechstens einmal je 24 Stunden"). Mit F-28 = C faellt sie weg -
+das ist Daniels Entscheidung als Spielleiter, keine stille Aenderung. Folge: der Spieler kann mit
+genug Mana mehrfach am Tag springen; die Reichskasse ist damit die einzige Bremse.
+
+## 7. Damit bleibt EINE technische Frage offen (nicht an Daniel, sondern an den Code)
+
+W-3 (zwei Koordinatenraeume) ist mit den vier Antworten NICHT entschieden. Vorschlag fuer den Bau,
+weil er den Bestand nicht anfasst: **`Settlement` bekommt `welt_x`/`welt_y` (Portalraum, 20 x 20) als
+EIGENE Felder**, `x`/`y` bleiben die Siedlungskarte. Der Umzug schreibt nur `welt_x`/`welt_y` und
+`dimension`. Vorteil: die Kennung `besitzer:map_id:x:y` bleibt stabil (W-1 entschaerft), alte
+Spielstaende laden unveraendert (fehlende Felder = 0/0, sichtbar als "noch nicht im Portal
+verortet"), und `_ort_feld` bleibt die EINE Aufloesestelle. Nachteil: ein Dorf hat dann zwei
+Positionen, und die Anzeige muss klar sagen, welche sie zeigt.
+
+## 8. Schnitte, wenn die vier Antworten da sind
 
 - **S-1 Belegungskarte (Kern).** Eine Funktion im Kern, die je Welt die belegten Felder liefert
-  (eigene Siedlungen aus `x/y`, Bot-Doerfer aus `dorf_position`) und "frei" beantwortet. Wache: zwei
-  Doerfer auf einem Feld werden erkannt, ein freies Feld wird als frei gemeldet.
+  (eigene Siedlungen aus `welt_x`/`welt_y`, Bot-Doerfer aus `dorf_position`) und "frei" beantwortet.
+  Wache: zwei Doerfer auf einem Feld werden erkannt, ein freies Feld wird als frei gemeldet.
 - **S-2 Koordinatenraum klaeren (VOR dem Umbau).** Eine Entscheidung, welcher Raum gilt, und die
   Aufloesung an EINER Stelle (`_ort_feld`), damit W-3 nicht in den Umzug einwandert.
 - **S-3 `dorf_versetzen` im Kern.** Eine Buchstelle: pruefen (Ziel frei, Mana, Sperre, nichts

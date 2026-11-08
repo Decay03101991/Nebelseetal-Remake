@@ -635,3 +635,19 @@ Jede Frage einzeln gestellt und einzeln beantwortet. Die Antworten binden die na
 **Reihenfolge der naechsten Schnitte (aus diesen Antworten):** E1 (F-19/F-20) - Portal-Modell
 (F-21) - Bibliothek versetzen (F-17) - Pakt-Schwelle (F-18) - Quellenwoerter (F-15/F-16) -
 Postfach-Obergrenze (F-22) - dann Sammellauf und EXE (F-24).
+
+# Nachtrag 08.11.2026, 22:11 - die vier Portal-Fragen (F-21) sind beantwortet
+
+Das Modell steht in `docs/design/PORTAL_MODELL_20261108.md` (Ist-Stand mit Belegzeilen, sechs
+Widersprueche W-1 bis W-6, was NICHT belegt ist). Jede Frage einzeln gestellt und einzeln beantwortet.
+
+| Nummer | Frage | **Antwort** | Folge |
+|---|---|---|---|
+| F-25 | Was kostet der Umzug ausser den 5.000 Mana? | **A - nur die 5.000 Mana und die Sperre**, kein Gold, keine Waren. | Keine zweite Preistafel; der belegte Festpreis aus `data/welten.json` bleibt die einzige Zahl. **Der Teil "und die Sperre" ist durch F-28 = C ueberholt** - die Sperre faellt weg, es bleiben die 5.000 Mana. |
+| F-26 | Darf das Ziel auf einem Bot-Feld liegen? | **A - nein.** Belegtes Feld wird abgelehnt, mit klarer Meldung. | Die Belegungskarte muss eigene Doerfer UND Bot-Doerfer kennen; ohne sie ist "frei" nicht beantwortbar. |
+| F-27 | Was reist mit? | **A - alles:** Bauten, Stufen, Garnison, Waren, Karawanen. | Das Dorf bleibt dasselbe, es aendert nur seine Koordinaten - die kleinste Aenderung am Spielstand. |
+| F-28 | Wie lange gilt die Sperre danach? | **C - keine Sperre mehr**, nur die Mana-Kosten. | Die 24-Stunden-Pruefung faellt aus `portalraum.wechsel_erlaubt` weg. **Abweichung von der Quelle, ausdruecklich:** die Sperre steht belegt in `src/portalraum.py` (Kopf Z. 19-27). Daniels Entscheidung als Spielleiter; die Reichskasse ist danach die einzige Bremse. |
+
+**Technisch noch offen (nicht an Daniel):** die zwei Koordinatenraeume (W-3). Vorschlag im Modell:
+`Settlement` bekommt eigene Felder `welt_x`/`welt_y`; `x`/`y` bleibt die Siedlungskarte, damit die
+Kennung stabil bleibt. Der Bau beginnt mit S-2 (Klaerung) und S-1 (Belegungskarte).
