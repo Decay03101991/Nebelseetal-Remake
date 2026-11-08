@@ -1,3 +1,34 @@
+# STAND 08.11.2026, 12:10 - Schritt 12 fertig: Sammellauf parallel, 1.132 s -> 896 s (Register 303)
+
+> Neuester Block. Darunter 11:25 (Stand unveraendert, Guthaben), 01:40 (Spieltest-Paket, Register 301;
+> Messwerte-Ablage, Register 302), 01:05 (Schritt 10, Register 299; Pakt-Knopf, Register 300).
+
+**Der Sammellauf faehrt jetzt parallel, und das Ergebnis ist dasselbe.** Aufruf
+`tools/sammellauf.py -j 2` (Vorgabe bleibt 1 = wie bisher). Gemessen mit demselben Code und denselben
+200 Dateien: **seriell 198 von 198 gruen, 0 rot, 2 ausgesetzt, 8.283 Pruefungen, 62 Befunde, 1.132 s**
+(`docs/audits/sammellauf_20261108_1148.log`) gegen **parallel 198 von 198 gruen, dieselben Zahlen,
+896 s** (`docs/audits/sammellauf_20261108_1133.log`) - **236 s weniger, Faktor 1,26**. Mehr geht auf
+diesem Rechner nicht: 2 Kerne, und die Pruefdateien sind CPU-gebunden (die Einzeldauern steigen unter
+Last von 1.132 s auf 1.775 s). Die Zeile `x1,98` im parallelen Log ist Auslastung, kein Modi-Vergleich.
+
+**Der eigentliche Befund war die Vorbedingung.** `test_baseline` und `test_gui_fehler` schreiben beide
+nach `src/savegame.json` und raeumen einander die Datei weg, sobald sie gleichzeitig laufen - nacheinander
+war das nie zu sehen. Statt 199 Pruefdateien umzubauen, bekommt jede Datei ihren eigenen Spielordner
+ueber `NEBEL_SPIELDATEN_ORDNER` (der offizielle Hebel aus `main.schreibordner`, den schon acht
+Pruefdateien nutzen). Rauchtest mit genau den beiden Konfliktdateien: 3 von 3 gruen, 22 s statt 42 s,
+und `src/savegame.json` entsteht nicht mehr.
+
+**Der Messwerte-Index hat eine Sperre bekommen** (sonst haette der Parallelbetrieb die Ablage aus
+Register 302 beschädigt): ohne Sperre gingen in der Gegenprobe **7 von 40** Eintraegen verloren, mit
+Sperre keiner. Wache `tests/test_sammellauf_parallel.py` **26/0/1**, `test_messwerte_schreiben` weiter
+22/0/1.
+
+**Offen und als naechstes:** Schritt 11 (AST-Quellwache `tests/test_quelle_ast.py`), Schritt 13
+(`tests/test_daten_und_quellen.py`), R3-3 (C-6, I-10, C-4), R3-4 (I-2), Besucherdokumente, eigener
+Schnitt aus F-20 = B; dazu Daniels Noten aus dem Spieltest, sobald sie vorliegen (die EXE und die
+Anleitung von 01:16 liegen unveraendert auf dem Desktop). Weiter offen: 43 Pruefdateien ohne
+`bericht()` (BEFUND), die zwei Skill-Vormerkungen und der Projekt-Skill bei 98.356 Zeichen.
+
 # STAND 08.11.2026, 11:25 - Stand unveraendert, Guthaben abgelesen, Uebergabe Fassung 2
 
 > Neuester Block. Darunter 01:40 (Spieltest-Paket, Register 301; Messwerte-Ablage, Register 302),

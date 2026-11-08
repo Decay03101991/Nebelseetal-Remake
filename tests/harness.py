@@ -150,29 +150,72 @@ def _atomar_schreiben(ziel: str, text: str) -> None:
     os.replace(temp, ziel)                                     # letzter Versuch: Fehler sichtbar
 
 
+def _index_sperre(wartezeit: float = 15.0):
+    """Sperrdatei fuer den Index (O_EXCL), damit parallele Laeufe keinen Eintrag verlieren.
+
+    Grund (gemessen 08.11.2026, Schritt 12): der Index wird gelesen, ergaenzt und neu geschrieben.
+    Ohne Sperre lesen zwei gleichzeitige Laeufe denselben alten Stand und der zweite Schreibvorgang
+    loescht den Eintrag des ersten - beim parallelen Sammellauf gingen so die meisten Eintraege
+    verloren. Die Sperre ist eine eigene Datei neben dem Index; sie wird im `finally` immer
+    freigegeben, und eine liegengebliebene Sperre eines abgestuerzten Laufs wird nach `wartezeit`
+    Sekunden uebernommen (das Schreiben selbst dauert Millisekunden).
+    """
+    import contextlib
+
+    @contextlib.contextmanager
+    def _halter():
+        sperre = os.path.join(MESSWERTE_ORDNER, "index.sperre")
+        ende = time.time() + wartezeit
+        while True:
+            try:
+                griff = os.open(sperre, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+                os.close(griff)
+                break
+            except FileExistsError:                            # ein anderer Lauf schreibt gerade
+                if time.time() > ende:                         # alte Sperre: uebernehmen
+                    try:
+                        os.remove(sperre)
+                    except OSError:
+                        pass
+                    continue
+                time.sleep(0.02)
+            except OSError:                                    # Ordner fehlt o. ae.: ohne Sperre
+                break
+        try:
+            yield
+        finally:
+            try:
+                os.remove(sperre)
+            except OSError:
+                pass
+
+    return _halter()
+
+
 def _index_fortschreiben(name: str, daten: dict) -> None:
     """Traegt den Lauf in `docs/audits/messwerte/index.json` ein (neuester Stand je Pruefdatei)."""
     pfad = os.path.join(MESSWERTE_ORDNER, "index.json")
     eintrag = {k: daten.get(k) for k in ("datei", "zeit", "bestanden", "fehler", "befunde",
                                         "dauer_s")}
     eintrag["datei_im_ordner"] = name                          # welche Datei die Zahlen traegt
-    for versuch in range(5):                                   # gleichzeitige Laeufe: kurz warten
-        try:
-            index = {}
-            if os.path.isfile(pfad):                           # Index schon da
-                with open(pfad, "r", encoding="utf-8") as datei:
-                    index = json.load(datei) or {}
-            dateien = index.get("dateien") if isinstance(index, dict) else None
-            dateien = dateien if isinstance(dateien, dict) else {}
-            dateien[str(daten.get("datei"))] = eintrag          # neuester Stand dieser Datei
-            neu = {"stand": time.strftime("%Y-%m-%dT%H:%M:%S"),
-                   "wozu": ("Messwerte je Pruefdatei, neuester Lauf. Geschrieben von "
-                            "tests/harness.bericht() (Daniel 08.11.2026, 00:25)."),
-                   "dateien": dateien}
-            _atomar_schreiben(pfad, json.dumps(neu, ensure_ascii=False, indent=1))
-            return
-        except Exception:                                       # naechster Versuch
-            time.sleep(0.05 * (versuch + 1))
+    with _index_sperre():                                      # parallele Laeufe: einer nach dem anderen
+        for versuch in range(5):                               # kurze Schreibfehler: nochmal
+            try:
+                index = {}
+                if os.path.isfile(pfad):                       # Index schon da
+                    with open(pfad, "r", encoding="utf-8") as datei:
+                        index = json.load(datei) or {}
+                dateien = index.get("dateien") if isinstance(index, dict) else None
+                dateien = dateien if isinstance(dateien, dict) else {}
+                dateien[str(daten.get("datei"))] = eintrag      # neuester Stand dieser Datei
+                neu = {"stand": time.strftime("%Y-%m-%dT%H:%M:%S"),
+                       "wozu": ("Messwerte je Pruefdatei, neuester Lauf. Geschrieben von "
+                                "tests/harness.bericht() (Daniel 08.11.2026, 00:25)."),
+                       "dateien": dateien}
+                _atomar_schreiben(pfad, json.dumps(neu, ensure_ascii=False, indent=1))
+                return
+            except Exception:                                   # naechster Versuch
+                time.sleep(0.05 * (versuch + 1))
 
 
 def bericht() -> int:
