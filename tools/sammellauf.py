@@ -52,7 +52,11 @@ import time
 
 HIER = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TESTS = os.path.join(HIER, "tests")
-ERGEBNIS = re.compile(r"ERGEBNIS:\s*(\d+)\s*bestanden,\s*(\d+)\s*Fehler,\s*(\d+)\s*Befunde", re.I)
+# Das Befunde-Feld ist FREIWILLIG: zwei Pruefdateien (test_projektpfade, test_textqualitaet)
+# schreiben "N bestanden, M Fehler (X Dokumente)" ohne Befunde. Ohne diese Toleranz wertete der
+# Sammellauf sie als "ohne ERGEBNIS-Zeile" und zaehlte 573 bestandene Pruefungen gar nicht mit -
+# gruen war dann nur der Rueckgabewert, nicht die Zusage. (Schritt 12, 08.11.2026)
+ERGEBNIS = re.compile(r"ERGEBNIS:\s*(\d+)\s*bestanden,\s*(\d+)\s*Fehler(?:,\s*(\d+)\s*Befunde)?", re.I)
 UNITTEST = re.compile(r"Ran\s+(\d+)\s*tests?", re.I)
 UNITTEST_FAIL = re.compile(r"^FAILED\s*\(", re.M)
 JE_DATEI_SEKUNDEN = 420
@@ -73,7 +77,7 @@ def deute(ausgabe: str, rc: int):
     """(gruen, bestanden, fehler, befunde, kurztext)"""
     treffer = list(ERGEBNIS.finditer(ausgabe))
     if treffer:
-        bestanden, fehler, befunde = (int(x) for x in treffer[-1].groups())
+        bestanden, fehler, befunde = (int(x or 0) for x in treffer[-1].groups())
         return (rc == 0 and fehler == 0), bestanden, fehler, befunde, \
                f"{bestanden}/{fehler}/{befunde}"
     u = list(UNITTEST.finditer(ausgabe))

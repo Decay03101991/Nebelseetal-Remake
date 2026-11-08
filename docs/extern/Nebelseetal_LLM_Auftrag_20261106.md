@@ -390,7 +390,7 @@ Zahl, Befehl oder Prueffall gilt als nicht geliefert.
 | A-3 | Kein Spielweg endet in einer Sackgasse | Automatenspiel `tools/spieltest_simulation.py` erreicht in 12 Spieltagen Kriegspunkt, Ware, Einheit und ein Gefecht; Abbruchgruende mit Grund im Bericht |
 | A-4 | Alte Spielstaende laden | je neuer Feldgruppe ein alter Spielstand ohne Migration, Ladeprobe gruen |
 | A-5 | Alle Zahlen sind belegt oder als VORSCHLAG markiert | jede neue Zahl mit Quelle (Handbuch 2009, Seite; 2006er Seite; Datendatei; gerechnete Tabelle) |
-| A-6 | Der volle Sammellauf ist gruen | 183 Dateien, 7.495 Pruefungen, 0 rot, Dauer unter 1.400 Sekunden |
+| A-6 | Der volle Sammellauf ist gruen | 200 Dateien, 8.874 Pruefungen, 0 rot, Dauer unter 1.200 Sekunden seriell (gemessen 08.11.2026: 1.132 s) - **VORSCHLAG**, Daniel bestaetigt die Grenze (F-2). Mit `tools/sammellauf.py -j 2` gemessen 820 s; das ist der empfohlene Alltagsaufruf, die Vorgabe bleibt 1. |
 | A-7 | Balancing ist ohne Codeaenderung steuerbar | jede Balance-Zahl steht in `data/`, ein Schalter je Mechanik, Neustart genuegt |
 
 **Deine Abschlusserklaerung** muss zu jeder Bedingung sagen: erfuellt, mit welchem Beleg (Datei,

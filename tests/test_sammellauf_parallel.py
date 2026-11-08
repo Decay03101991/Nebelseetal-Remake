@@ -129,6 +129,14 @@ check("eine Ausgabe ohne ERGEBNIS-Zeile zaehlt nach dem Rueckgabewert",
 check("die letzte ERGEBNIS-Zeile gilt",
       sammellauf.deute("ERGEBNIS: 1 bestanden, 1 Fehler, 0 Befunde\n"
                        "ERGEBNIS: 9 bestanden, 0 Fehler, 0 Befunde", 0)[0] is True)
+# Zwei Pruefdateien (test_projektpfade, test_textqualitaet) schreiben kein Befunde-Feld.
+# Ohne Toleranz wertete der Sammellauf sie als "ohne ERGEBNIS-Zeile" und zaehlte ihre 573
+# bestandenen Pruefungen nicht mit - gruen war dann nur der Rueckgabewert.
+_ohne = sammellauf.deute("ERGEBNIS: 129 bestanden, 0 Fehler (63 Quelldateien)", 0)
+check("eine Zeile ohne Befunde-Feld wird ausgewertet", _ohne[0] is True and _ohne[1] == 129,
+      str(_ohne))
+check("und ein Fehler darin ist trotzdem ROT",
+      sammellauf.deute("ERGEBNIS: 444 bestanden, 3 Fehler (134 Dokumente)", 0)[0] is False)
 
 # ---------------------------------------------------------------- 6. Index-Sperre haelt
 abschnitt("6. Acht gleichzeitige Schreiber verlieren keinen Index-Eintrag")
