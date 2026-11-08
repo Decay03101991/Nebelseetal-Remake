@@ -453,3 +453,22 @@ du sagst, woraus sie stammen?
 
 **Sofort erledigt, ohne Frage:** jede Datendatei mit Schalter `aktiv` wird im Quelltext gelesen -
 17 von 17, keine Attrappe. Und eine NEUE Zahl ohne Quelle oder Bestandseintrag macht die Wache rot.
+
+# Nachtrag 08.11.2026, 16:35 - aus Spieltest 3
+
+**Frage 17 - Bibliothek versetzen.** Du schreibst: "ich kann die falsch positionierte Bibliothek
+nicht wo anders neu bauen und vom falschen Feld abreißen". Nachgemessen: der Abriss der LETZTEN
+Bibliothek ist gesperrt (deine Regel vom 30.10.2026: "Die Bibliothek ist essenziell - die LETZTE darf
+nicht abgerissen werden"), und eine zweite Bibliothek je Siedlung verbietet die Datenregel
+`max_je_siedlung: 1`. Bis eine zweite SIEDLUNG steht, ist die erste Bibliothek damit unversetzbar.
+Drei Wege: (a) Abriss der letzten Bibliothek mit Rueckfrage erlauben (Forschung steht dann still),
+(b) ein Knopf "Bibliothek versetzen" (abreissen und im selben Zug neu setzen), (c) so lassen.
+
+**Frage 18 - Pakt annehmen oder ablehnen.** Dein Wunsch aus Test 3: "ein bot soll einen pakt auch
+annehmen oder ablehnen koennen aufgrund seiner Einstellung zu mir". Heute bucht der Knopf den Pakt
+immer. Soll der Bot nach seiner Gunst und Taktik entscheiden (dann braucht es eine Regel: Schwelle,
+Wahrscheinlichkeit, Begruendung im Postfach)?
+
+**Sofort notiert, ohne Frage:** der Wall wandert in die Siedlungskarte unter "Verteidigung" (deine
+Anweisung), die Marktplatz-Ansicht wird klar als Handelsplatz erkennbar (Karawane, Zustand, Hinweis),
+und die Portal-Auswahl soll per Klick auf ein freies Weltfeld gehen statt per Auswahlliste.
