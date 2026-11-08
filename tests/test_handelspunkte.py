@@ -104,7 +104,12 @@ try:
 
     _gold_vor = float(ort.vorraete.get("gold") or 0.0)
     _karre_vor = int(ort.einheiten.get("Handelskarawane") or 0)
-    ok, meldung = st.verkauf_an_bot(haug, ort, "holz", 100, 1.0, {"Handelskarawane": 1})
+    # E1 (Register 323): der Preis kommt aus der EINEN Preisfunktion je Rohstoff - vorher stand hier
+    # die getippte 1,0, die seit dem Rohstoffpreis UEBER der Kaufschwelle des Bots lag.
+    _preis = float(main.bot_handelpreis(haug, "holz", getattr(ort, "karte", None),
+                                        "verkauf").get("preis") or 0.0)
+    check("die Preisfunktion liefert einen Preis", _preis > 0.0, str(_preis))
+    ok, meldung = st.verkauf_an_bot(haug, ort, "holz", 100, _preis, {"Handelskarawane": 1})
     check("der Verkauf wird angenommen", ok is True, str(meldung))
     check("die Karre faehrt los (nicht mehr im Ort)",
           int(ort.einheiten.get("Handelskarawane") or 0) == _karre_vor - 1,
@@ -120,13 +125,14 @@ try:
     st.tick(float(vertrag.get("rueckkehr") or 0.0) + 60.0)
     check("der Handel ist abgerechnet", vertrag.get("abgerechnet") is True,
           str(vertrag.get("abgerechnet")))
-    check("der Erloes ist 100 Gold (100 x 1.0)", float(vertrag.get("erloes") or 0.0) == 100.0,
+    check("der Erloes ist 100 x Preis", abs(float(vertrag.get("erloes") or 0.0) - 100.0 * _preis) < 1e-6,
           str(vertrag.get("erloes")))
-    check("der Zaehler steht auf 100", float(st.handels_erloes) == 100.0, str(st.handels_erloes))
+    check("der Zaehler steht auf 100 x Preis",
+          abs(float(st.handels_erloes) - 100.0 * _preis) < 1e-6, str(st.handels_erloes))
     check("letzter_handel ist der Zeitpunkt der Annahme",
           float(st.letzter_handel) > 0.0, str(st.letzter_handel))
     check("das Gold ist beim Spieler angekommen",
-          float(ort.vorraete.get("gold") or 0.0) >= _gold_vor + 100.0,
+          float(ort.vorraete.get("gold") or 0.0) >= _gold_vor + 100.0 * _preis,
           "%g nachher, %g vorher" % (float(ort.vorraete.get("gold") or 0.0), _gold_vor))
     check("die Karre ist zum Ort zurueckgekehrt",
           int(ort.einheiten.get("Handelskarawane") or 0) == _karre_vor,
@@ -211,7 +217,7 @@ if app is not None and st is not None:
     check("die Kaufmaske traegt den Knopf zum Verkauf",
           'Verkauf anbieten (eigene Ware)' in _quelle_app, "Knopf im Quelltext")
     _vorher_app = float(st.handels_erloes)
-    ok_app, meldung_app = app._verkauf_ausfuehren(haug, ort, "holz", 10, 1.0,
+    ok_app, meldung_app = app._verkauf_ausfuehren(haug, ort, "holz", 10, _preis,
                                                  "Handelskarawane", "1")
     check("die App startet den Verkauf ohne Fenster", ok_app is True, str(meldung_app))
     _neu_app = st.auftraege[-1] if st.auftraege else {}

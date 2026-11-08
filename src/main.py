@@ -666,6 +666,57 @@ def boni_fuer_bot(bot, jetzt: float = 0.0) -> Dict[str, float]:
     return boni.kampf_werte(bottaktik.modifikatoren(daten, jetzt))
 
 
+def bot_handelpreis(bot: "BotPlayer", rohstoff: str, karte=None,
+                    richtung: str = "kauf") -> Dict[str, object]:
+    """Der Preis, den ein Bot fuer EINE Einheit dieses Rohstoffs bietet - EINE Rechenstelle (E1).
+
+    Daniels Entscheidung 306 (08.11.2026): "Handelspreis je Rohstoff statt pauschal". Bis dahin
+    kostete JEDES Rohstoff-Stueck dasselbe - der Preis EINER Kampfeinheit (Referenz aus den
+    Beschaffungskosten: 250 x 1,2 = 300 Gold), obwohl die Preisfunktion je Rohstoff gebaut und von
+    KEINER Stelle aufgerufen war.
+
+    Gelesen wird ausschliesslich Vorhandenes (nichts erfunden):
+      * `botkern.oekonomie_angebot` - Reserve, Schattenpreis und Temperament in EINER Funktion;
+      * `bot_rohstoffbedarf(bot)` - der Bedarf JE STUNDE, auf den Spieltag umgerechnet mit
+        `regeln["versorgung_stunden"]` (dieselbe Formel wie `bot_reserve_nahrung`);
+      * die Stufe (`bot_stufe`) und die Reserve-Stunden aus `data/bot_wirtschaft.json` bzw.
+        `data/spieloekonomie.json`;
+      * die Karte des HANDELSORTS (der Ort, an dem die Karawane steht). Bots fuehren keine Karte;
+        fehlt sie, gilt die neutrale Referenzkarte (`originalkarten.startkarte`), deren Faktor
+        genau 1 ist - kein geratener Kartenbonus.
+
+    ``richtung``: "kauf" = der SPIELER kauft (der Bot verkauft) - liegt der Bestand nicht ueber der
+    Reserve, ist ``preis`` None (kein Verkauf auf Kosten der Versorgung). "verkauf" = der SPIELER
+    verkauft (der Bot kauft) - hier gibt es IMMER einen Preis, und ein knapper Bot zahlt mehr
+    (Faktor bis 2,0), denn gerade dann braucht er die Ware.
+
+    Rueckgabe: ``{"verkaufbar": int, "preis": float|None, "reserve": float}``.
+    """
+    regeln = spieloekonomie.REGELN                                  # eine Regelquelle fuer Kern und Anzeige
+    profile = regeln.get("bots") or {}
+    stufe = str(bot_wirtschaft_einstellungen().get("bot_stufe") or "schwer").strip().lower()
+    if stufe not in profile:                                        # unbekannte Stufe: belegter Standard
+        stufe = "schwer"
+    if not isinstance(karte, dict) or not karte.get("zaehlung"):    # Bots fuehren KEINE Karte
+        karte = originalkarten.startkarte("preis", "spieler")       # neutrale Referenz (Faktor 1)
+    rohstoff = str(rohstoff)
+    bestand = float((getattr(bot, "vorraete", None) or {}).get(rohstoff, 0.0) or 0.0)
+    versorgung = float(regeln.get("versorgung_stunden") or 24.0)
+    je_stunde = float(bot_rohstoffbedarf(bot).get(rohstoff, 0.0) or 0.0)
+    tagesbedarf = je_stunde * versorgung                            # Bedarf je STUNDE -> je Spieltag
+    temperament = float(getattr(bot, "temperament", 0.0) or 0.0)
+    if str(richtung) != "verkauf":                                  # der Spieler KAUFT
+        return botkern.oekonomie_angebot(stufe, karte, rohstoff, bestand, tagesbedarf,
+                                         temperament, regeln)
+    stunden = float((profile.get(stufe) or {}).get("reserve_stunden") or 0.0)
+    reserve = tagesbedarf * stunden / versorgung                    # dieselbe Reserve wie im Kern
+    schatten = spieloekonomie.schattenpreis(karte, rohstoff, max(bestand, 0.0), reserve)
+    return {"verkaufbar": int(max(0.0, bestand)),
+            "preis": botkern.handelspreis(botkern.referenzpreis_aus_beschaffung(schatten),
+                                          temperament),
+            "reserve": reserve}
+
+
 def bot_nahrungsbedarf(bot: "BotPlayer") -> float:
     """Tagesbedarf an Nahrung fuer die Armee eines Bots - DIESELBE Rechnung wie beim Spieler.
 
@@ -5205,16 +5256,27 @@ class GameState:
                         if ("bot:%s" % b.name) == str(vertrag.get(_bot_seite))), None)
         if jetzt >= float(vertrag.get("ankunft") or 0.0) and vertrag.get("entscheidung") is None \
                 and not vertrag.get("abgerechnet") and der_bot is not None:
-            referenz = botkern.referenzpreis_aus_beschaffung(BOT_BESCHAFFUNGSKOSTEN)
-            schwelle = float(botkern.handelspreis(referenz, float(der_bot.temperament)))
+            # E1 (Daniels Entscheidung 306, Register 323): der Preis haengt an der WARE. Die Karte
+            # kommt vom Ort des Spielers auf der richtigen Vertragsseite - dort steht die Karawane.
+            _spieler_seite = "verkaeufer" if _bot_seite == "kaeufer" else "kaeufer"
+            _karte = None
+            for _s in self.settlements:
+                if str(_s.id) == str(vertrag.get(_spieler_seite) or ""):
+                    _karte = getattr(_s, "karte", None)
+                    break
+            _angebot = bot_handelpreis(der_bot, str(vertrag.get("ware") or ""), _karte,
+                                       str(vertrag.get("richtung") or "kauf"))
+            schwelle = _angebot.get("preis")
             # S4-6 (06.11.2026): DIESELBE Preisfunktion, zwei Richtungen. Beim KAUF ist der Bot
             # Verkaeufer und nimmt an, sobald der Preis seine Schwelle erreicht; beim VERKAUF ist
             # er Kaeufer und nimmt an, solange der Preis nicht ueber seiner Schwelle liegt.
             _preis = float(vertrag.get("preis") or 0.0)
-            if str(vertrag.get("richtung") or "kauf") == "verkauf":
-                _nimmt_an = _preis <= schwelle + 1e-9
+            if schwelle is None:                                   # Ware unter der Reserve
+                _nimmt_an = False
+            elif str(vertrag.get("richtung") or "kauf") == "verkauf":
+                _nimmt_an = _preis <= float(schwelle) + 1e-9
             else:
-                _nimmt_an = _preis + 1e-9 >= schwelle
+                _nimmt_an = _preis + 1e-9 >= float(schwelle)
             try:
                 vertrag = spieloekonomie.handel_entscheiden(vertrag, _nimmt_an)
             except ValueError:
@@ -10580,8 +10642,11 @@ class NebelseetalApp:
         angebot = sorted(k for k, v in (bot.vorraete or {}).items()
                          if k in RESOURCES and k != "gold" and float(v) > 0)
         karawanen = self.state.handelskarawanen_bestand(quelle)
-        referenz = botkern.referenzpreis_aus_beschaffung(BOT_BESCHAFFUNGSKOSTEN)
-        schwelle = float(botkern.handelspreis(referenz, float(bot.temperament)))
+        # E1 (Daniels Entscheidung 306, Register 323): der Preis haengt an der WARE - die Vorwahl
+        # ist die erste angebotene Ware, die Zeile darunter rechnet beim Wechsel neu.
+        _karte_ort = getattr(quelle, "karte", None)
+        schwelle = float(bot_handelpreis(bot, angebot[0] if angebot else "", _karte_ort,
+                                         "kauf").get("preis") or 0.0)
         x, y = self.state.bot_standort(quelle)
 
         fenster = tk.Toplevel(self.root)
@@ -10621,10 +10686,29 @@ class NebelseetalApp:
         e_preis = tk.Entry(fenster, width=10)
         e_preis.insert(0, ("%.2f" % schwelle).rstrip("0").rstrip("."))
         e_preis.grid(row=6, column=1, sticky=tk.W, padx=10)
-        _zeile("Schwellenpreis dieses Bots: %g Gold — darunter lehnt er bei der Ankunft ab "
-               "(Handbuch S. 20: bei Ablehnung kehrt die Karawane MIT den Waren zurück, Gold wird "
-               "nie übertragen)." % schwelle).grid(
-            row=7, column=0, columnspan=2, sticky=tk.W, padx=10)
+        lbl_schwelle = _zeile("")
+        lbl_schwelle.grid(row=7, column=0, columnspan=2, sticky=tk.W, padx=10)
+
+        def _schwelle_neu(*_arg):
+            """Die Schwelle der GEWAEHLTEN Ware - E1: je Rohstoff ein eigener Preis (Richtwert)."""
+            rohstoff = var_ware.get()
+            daten = bot_handelpreis(bot, rohstoff, _karte_ort, "kauf")
+            preis = daten.get("preis")
+            if preis is None:                       # nichts ueber der Reserve: kein Verkauf
+                lbl_schwelle.config(text=("%s hat von %s nichts über der Reserve — davon verkauft er "
+                                          "nichts (kein Verkauf auf Kosten der Versorgung)."
+                                          % (bot.name, str(rohstoff).capitalize())))
+                return
+            lbl_schwelle.config(text=("Richtwert für %s: %g Gold je Stück — darunter lehnt %s bei der "
+                                      "Ankunft ab (Handbuch S. 20: bei Ablehnung kehrt die Karawane "
+                                      "MIT den Waren zurück, Gold wird nie übertragen). Der Preis wird "
+                                      "bei der Ankunft neu gerechnet, weil sich das Lager bis dahin ändert."
+                                      % (str(rohstoff).capitalize(), float(preis), bot.name)))
+            e_preis.delete(0, tk.END)               # Vorschlag nachziehen
+            e_preis.insert(0, ("%.2f" % float(preis)).rstrip("0").rstrip("."))
+
+        var_ware.trace_add("write", _schwelle_neu)
+        _schwelle_neu()
 
         var_karawane = tk.StringVar(value=next(iter(sorted(karawanen)), ""))
         _zeile("Handelskarawane (Ortslager + Reichsheer):").grid(row=8, column=0, sticky=tk.W, padx=10)
@@ -10718,8 +10802,11 @@ class NebelseetalApp:
         eigenes = sorted(k for k, v in (getattr(quelle, "vorraete", None) or {}).items()
                          if k in RESOURCES and k != "gold" and float(v) > 0)   # verkaufbare Rohstoffe
         karawanen = self.state.handelskarawanen_bestand(quelle)       # eigene Karren im Ort/Reich
-        referenz = botkern.referenzpreis_aus_beschaffung(BOT_BESCHAFFUNGSKOSTEN)
-        schwelle = float(botkern.handelspreis(referenz, float(bot.temperament)))   # EINE Preisfunktion
+        # E1 (Daniels Entscheidung 306, Register 323): auch hier JE ROHSTOFF ein Preis - die Vorwahl
+        # ist der erste eigene Rohstoff, die Zeile darunter rechnet beim Wechsel neu.
+        _karte_ort = getattr(quelle, "karte", None)
+        schwelle = float(bot_handelpreis(bot, eigenes[0] if eigenes else "", _karte_ort,
+                                         "verkauf").get("preis") or 0.0)   # EINE Preisfunktion
 
         fenster = tk.Toplevel(self.root)                              # eigenes Fenster
         fenster.title(f"Verkauf an {bot.name}")                       # Titel
@@ -10759,10 +10846,27 @@ class NebelseetalApp:
         e_preis = tk.Entry(fenster, width=10)                          # Preis als Text
         e_preis.insert(0, ("%.2f" % schwelle).rstrip("0").rstrip("."))  # Vorschlag: Schwelle
         e_preis.grid(row=6, column=1, sticky=tk.W, padx=10)
-        _zeile("Schwellenpreis dieses Bots: %g Gold — bis dahin nimmt er an, darüber lehnt er bei "
-               "der Ankunft ab (Handbuch S. 20: dann kehrt die Karawane MIT den Waren zurück, Gold "
-               "wird nie übertragen)." % schwelle).grid(
-            row=7, column=0, columnspan=2, sticky=tk.W, padx=10)
+        lbl_schwelle = _zeile("")                                      # E1: je Ware eine eigene Zeile
+        lbl_schwelle.grid(row=7, column=0, columnspan=2, sticky=tk.W, padx=10)
+
+        def _schwelle_neu(*_arg):
+            """Die Schwelle der GEWAEHLTEN Ware - E1: je Rohstoff ein eigener Preis (Richtwert)."""
+            rohstoff = var_ware.get()
+            preis = bot_handelpreis(bot, rohstoff, _karte_ort, "verkauf").get("preis")
+            if preis is None:                                          # darf beim Verkauf nicht passieren
+                lbl_schwelle.config(text="Für %s gibt es gerade keinen Preis." % bot.name)
+                return
+            lbl_schwelle.config(text=("Richtwert für %s: %g Gold je Stück — bis dahin nimmt %s an, "
+                                      "darüber lehnt er bei der Ankunft ab (Handbuch S. 20: dann "
+                                      "kehrt die Karawane MIT den Waren zurück, Gold wird nie "
+                                      "übertragen). Der Preis wird bei der Ankunft neu gerechnet, "
+                                      "weil sich das Lager bis dahin ändert."
+                                      % (str(rohstoff).capitalize(), float(preis), bot.name)))
+            e_preis.delete(0, tk.END)                                  # Vorschlag nachziehen
+            e_preis.insert(0, ("%.2f" % float(preis)).rstrip("0").rstrip("."))
+
+        var_ware.trace_add("write", _schwelle_neu)
+        _schwelle_neu()
 
         var_karawane = tk.StringVar(value=next(iter(sorted(karawanen)), ""))   # erste Karre
         _zeile("Handelskarawane (Ortslager + Reichsheer):").grid(row=8, column=0, sticky=tk.W, padx=10)

@@ -1,6 +1,38 @@
+# STAND 08.11.2026, 21:52 - E1 gebaut: der Handelspreis haengt am Rohstoff (Register 323)
+
+> Neuester Block. Darunter 20:52 (Wall und Marktplatz; Register 321-322), 20:28 (Wall in der Rubrik
+> Verteidigung), 18:50 (Opus als Werkzeug, drei Befunde; Register 314-320), 15:50 (Schritt 11,
+> AST-Quellwache; Register 309), 14:55 (Spieltest 2; Register 307), 14:00 (Spieltest 1, Soft Lock,
+> V-3; Register 306).
+
+**E1 ist fertig: jedes Rohstoff-Stueck hat seinen eigenen Preis.** Bis heute kostete JEDES Stueck
+dasselbe - 300 Gold, der Preis einer Kampfeinheit. Jetzt rechnet `bot_handelpreis` aus dem, was das
+Spiel schon fuehrt: Reserve und Schattenpreis des Bots (`botkern.oekonomie_angebot`), seinen Bedarf je
+Stunde, seine Stufe und die Karte des Handelsorts. Ankunft, Kaufmaske und Verkaufsmaske fragen
+DIESELBE Funktion; die Zeile ueber dem Preisfeld rechnet beim Warewechsel neu und zieht den Vorschlag
+nach.
+
+**Gemessen (Bot mit 400 Holz und 900 Gold):** Holz **0,45** Gold je Stueck, Stein 0,90, Gold 1,20.
+Ein knapper Bot zahlt beim Einkauf **1,69** statt 0,45. Die Vorsitzung hatte mit demselben Code
+0,46 / 0,92 / 1,22 abgelesen (Rundung, anderer Botzustand) - die Pauschale 300 ist in jedem Fall weg,
+und 100 Holz bringen jetzt rund 45 Gold statt 30.000.
+
+**Belegt:** neue Wache `tests/test_handelspreis_je_rohstoff.py` **22/0/0**; **Gegenprobe ohne
+Verdrahtung 17 bestanden, 5 FEHLER**; Gegenprobe auf dem Altstand `1fd8d0c` rot. Eine alte Wache hielt
+die Pauschale fest (`test_handelspunkte` tippte den Preis 1,0) - sie liest ihn jetzt aus derselben
+Funktion und steht bei **38/0/0**. **Sammellauf 21:38 bis 21:51: 208 von 208 gruen, 0 rot,
+9.035 Pruefungen, 758 s** (`docs/audits/sammellauf_20261108_2138.log`).
+
+**Reihenfolge ab jetzt** (Daniels Antworten F-15 bis F-24, Akte
+`docs/FRAGEN_AN_DANIEL_20261107.md`, Nachtrag 22:35): Portal-Modell mit vier Fragen (F-21) ->
+Bibliothek versetzen (F-17) -> Pakt ueber die Gunst-Schwelle 40 (F-18) -> Quellenwoerter (F-15/F-16)
+-> Postfach-Obergrenze (F-22) -> voller Sammellauf, EINE EXE, Spieltest 4 (F-24). Dazu offen wie
+bisher: E3 Portal-Sperre in Spielzeit (Entscheidung 308) und zwei Skill-Ergaenzungen, die Daniels
+Freigabe in der App brauchen (F-23).
+
 # STAND 08.11.2026, 20:52 - Spieltest 3, Noten 3 und 5 gebaut: Wall in Verteidigung, Marktplatz auffindbar (Register 321-322)
 
-> Neuester Block. Darunter 20:28 (Wall in der Rubrik Verteidigung; Register 321), 18:50 (Opus als
+> Aelterer Block (durch 21:52 abgeloest). Darunter 20:28 (Wall in der Rubrik Verteidigung; Register 321), 18:50 (Opus als
 > Werkzeug, drei Befunde; Register 314-320), 15:50 (Schritt 11, AST-Quellwache; Register 309), 14:55
 > (Spieltest 2; Register 307), 14:00 (Spieltest 1, Soft Lock, V-3; Register 306).
 
