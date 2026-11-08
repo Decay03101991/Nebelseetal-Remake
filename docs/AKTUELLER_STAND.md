@@ -1,11 +1,11 @@
-# STAND 08.11.2026, 18:45 - Opus-Lieferung abgelegt und geprueft; drei Befunde gebaut (Register 314-317)
+# STAND 08.11.2026, 18:50 - Opus-Lieferung abgelegt und geprueft; drei Befunde gebaut (Register 314-317)
 
 > Neuester Block. Darunter 15:50 (Schritt 11, AST-Quellwache; Register 309), 14:55 (Spieltest 2;
 > Register 307), 14:00 (Spieltest 1, Soft Lock, V-3; Register 306).
 
 **Die Uebergabe 16:20 ist abgearbeitet, soweit sie ohne Daniel geht:** der ausstehende volle
 Sammellauf ist gefahren (18:01: 203 von 204 gruen, 1 rot - die rote Wache widersprach Register 311 und
-ist berichtigt; **18:55 nach allen Aenderungen: 205 von 205 gruen, 0 rot, 8.971 Pruefungen, 789 s**),
+ist berichtigt; **18:42 nach allen Aenderungen: 205 von 205 gruen, 0 rot, 8.971 Pruefungen, 789 s**),
 die Opus-Lieferung liegt im Repo und ist gegen den Code gemessen.
 
 **Was NEU im Repo liegt (nur lesen, nichts davon ist Spielcode):**
@@ -14,6 +14,14 @@ die Opus-Lieferung liegt im Repo und ist gegen den Code gemessen.
 `docs/extern/PRUEFUNG_OPUS_20261108.md` (Gegenprobe: **17 von 19 Angaben zeichengenau bestaetigt**,
 zwei Zaehlabweichungen ohne Folge). Daniels Desktop ist geraeumt; die Herkunft steht mit `MANIFEST.md`
 unter `D:\Arbeiten\Hermes\Eingaenge61108_Opus_Spieltest\`.
+
+**Opus ist ab jetzt ein Werkzeug (Daniel im Chat):** `tools/frage_opus.py` fragt Claude Opus 5.5
+ueber das Abo, **nur lesend**, und legt jede Antwort unter `docs/extern/antworten/` ab - keine
+Auftragsdatei mehr auf dem Desktop. Grenzen in `docs/OPUS_DELEGATION.md` (kein Schreiben, keine
+Abbuchung, keine parallelen Laeufe, eine Frage je Lauf). **Erster Review mit Wert:** Opus hat den
+eigenen Umbau `2f12471` geprueft - fuenf Punkte waren berechtigt und sind behoben (echter
+Diebstahl-Erzeuger jetzt belegt, Docstring repariert, Pruefung 8d verschaerft), zwei sind als Grenze
+notiert, zwei nach Messung zurueckgewiesen. **Nebenertrag:** der Patch-Plan fuer E1 liegt mit Ankern vor.
 
 **Was GEBAUT ist (drei kleine Befunde, jede mit Gegenprobe):**
 1. **S4** - ein ungelesener Diebstahlbericht verschwindet nicht mehr nach einem Spieltag

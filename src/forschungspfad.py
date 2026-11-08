@@ -21,8 +21,8 @@ Schreibweise der Voraussetzungs-Begruendungen (S6, 08.11.2026): Gebaeude und For
   nennen Soll und Ist in WORTEN und in derselben Reihenfolge,
   z. B. ``"Bibliothek Stufe 3 (hast 1)"`` und ``"Schmiedekunst Stufe 1 (hast 0)"``.
   Vorher stand im selben Satz einmal Bedarf/Bestand und einmal Bestand/Bedarf - niemand
-  konnte die Reihenfolge erraten.
-  * :func:`blockiert` nennt dagegen nur den Bedarf, z. B. ``"Verteidigungsanlagen 5"``.
+  konnte die Reihenfolge erraten. :func:`blockiert` nennt dagegen nur den Bedarf,
+  z. B. ``"Verteidigungsanlagen 5"``.
 """
 from __future__ import annotations
 

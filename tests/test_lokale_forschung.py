@@ -219,7 +219,8 @@ check("8a Vorbedingung: erfuellt meldet das Gebiet als NICHT erfuellt", not frei
 ok, t = value_fehler(lambda: O.forschung_start(o, GEBIET_GESPERRT, {}, START))
 check("8b forschung_start lehnt es ab", ok, t)
 check("8c die Meldung nennt Soll und Ist in Worten (Bibliothek Stufe 3)", "Bibliothek Stufe 3 (hast 1)" in t, t)
-check("8d die Meldung nennt Soll und Ist (Schmiedekunst Stufe 1, hast 0)", "Schmiedekunst" in t, t)
+check("8d die Meldung nennt Soll und Ist (Schmiedekunst Stufe 1, hast 0)",
+      "Schmiedekunst Stufe 1 (hast 0)" in t, t)
 check("8e die Meldung ist die Begruendung von forschungspfad.erfuellt", t == grund,
       "Ist " + repr(t) + " Soll " + repr(grund))
 

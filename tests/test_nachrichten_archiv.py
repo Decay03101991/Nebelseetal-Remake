@@ -130,6 +130,32 @@ def test_diebstahlbericht_verschiebt():
           str(postfach.einstellungen().get("verschieben_wenn_ungelesen")))
 
 
+def test_echter_diebstahlbericht_verschiebt():
+    """4c. Der ECHTE Erzeuger liefert einen Typ, der in den Daten steht (Opus-Hinweis 08.11.2026).
+
+    Der Test 4b baut seine Nachricht selbst - damit belegt er nur die Liste, nicht den Ablauf.
+    Hier kommt die Nachricht aus `main.bot_diebstahl_nachricht`, also aus dem Code, der sie im
+    Spiel schreibt; erst danach laeuft die Frist.
+    """
+    abschnitt("4c. Der echte Diebstahlbericht ueberlebt die Frist")
+    try:
+        import main as M                                                   # braucht tkinter, nur hier
+    except Exception as fehler:                                            # noqa: BLE001
+        befund("main.py nicht importierbar - Erzeuger nicht pruefbar: %s" % fehler)
+        return
+    echt = M.bot_diebstahl_nachricht({"bot": "Grom", "ziel": "Siedlung 1", "zeit": 0.0,
+                                      "mengen": {"holz": 3.0}, "summe": 3.0})
+    typ = str(echt.get("type") or "")
+    check("der Erzeuger schreibt den Typ 'diebstahl'", typ == "diebstahl", typ)
+    check("dieser Typ steht in den Daten unter verschieben_wenn_ungelesen",
+          typ in (postfach.einstellungen().get("verschieben_wenn_ungelesen") or []), typ)
+    liste = [echt]
+    postfach.ablauf_buchen(liste, FRIST + 1)                               # eine Frist ist um
+    check("der echte Bericht steht noch im Postfach", echt in liste, str(len(liste)))
+    postfach.ablauf_buchen(liste, 2 * FRIST + 2)                            # zweite Frist
+    check("er ueberlebt auch die zweite Frist", echt in liste, str(len(liste)))
+
+
 def test_blaettern():
     """5. Blaettern liefert 20 von 45, die letzte Seite 5."""
     abschnitt("5. Blaettern 20 von 45")
@@ -261,6 +287,7 @@ def main_test():
     test_frist_genau_einmal()
     test_verlustbericht_verschiebt()
     test_diebstahlbericht_verschiebt()
+    test_echter_diebstahlbericht_verschiebt()
     test_blaettern()
     test_filter()
     test_rang_aus_daten()
