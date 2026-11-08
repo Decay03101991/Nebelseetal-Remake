@@ -195,3 +195,34 @@ Feld ueber ihre feste Position aus `bottaktik.dorf_position`, ohne Zufall aus de
 **Noch NICHT gebaut:** `dorf_versetzen` (S-3), die Karte in der Portalansicht (S-4), die Sperre in
 Spielzeit (S-5) und die Verdrahtung in `main.py` - die Belegungskarte wird heute von keiner
 Anzeige und keiner Buchstelle benutzt. Sie ist der Kern, auf den S-3 und S-4 aufsetzen.
+
+### 9.3 S-3 - die Buchstelle (`_dorf_versetzen`), gebaut 23:15
+
+`NebelseetalApp._dorf_versetzen(name, x, y, welt_nummer=0)` in `src/main.py` ist die EINE
+Buchstelle; `_portal_belegte_felder()` uebersetzt den Spielstand in Felder (eigene Siedlungen aus
+`welt_x`/`welt_y`, Bot-Doerfer aus ihrer festen Position). Geprueft wird in dieser Ordnung, und
+jede Ablehnung nennt ihren Grund im Postfach:
+
+1. die Siedlung gibt es;
+2. nichts ist unterwegs (Daniel 01.11.2026, Anhang 2);
+3. die Weltkarte ist bekannt;
+4. das Dorf steht noch nicht auf diesem Feld (sonst waere es eine Buchung fuer nichts);
+5. das Feld ist frei - auch ein Bot-Dorf blockiert (F-26 = A);
+6. die Reichskasse traegt die 5.000 Mana (F-25 = A: keine zweite Preistafel);
+7. die Sperre (bis S-5 die belegten 24 Stunden, F-28 = C).
+
+Gebucht wird genau einmal: Mana minus Festpreis, `welt_x`/`welt_y`, `dimension` des Dorfes und die
+gezeigte Welt (`eigene_dimension`, `eigene_dimensionen`). Bauten, Stufen, Garnison, Waren und
+Karawanen werden NICHT angefasst und reisen damit mit (F-27 = A).
+
+**W-1 ist damit erledigt, nicht nur entschaerft.** Abschnitt 8 verlangte fuer S-3 noch, die Kennung
+neu zu bilden und alle Fundstellen nachzuziehen. Das ist mit S-2 ueberholt: `Settlement.id` haengt
+an `besitzer:map_id:x:y`, und der Umzug setzt nur `welt_x`/`welt_y` und `dimension`. Kennung,
+`aktive_siedlung_id`, Vertragsschluessel und Ortsdicts bleiben deshalb gueltig; es wird nichts
+nachgezogen. Der teuerste Punkt des Schnitts faellt weg.
+
+**Offen und benannt:** (a) S-4 muss den Knopf der Ansicht auf `_dorf_versetzen` legen; solange
+daneben `_portal_wechsel` steht, gibt es ZWEI Buchstellen mit je 5.000 Mana, und ein Klick darf
+nicht beide ausloesen. (b) S-5 nimmt die 24-Stunden-Pruefung aus `wechsel_erlaubt` (F-28 = C) -
+vorher wird gemessen, welche Wachen daran haengen (`test_portalraum`, `test_durchspiel`,
+`test_e2e_wege`, `test_weltkarten_anzeige`, `spielschicht`).

@@ -1,4 +1,4 @@
-# STAND 08.11.2026, 22:50 - Portal S-2 und S-1 gebaut: die Portalposition steht am Ort, die Belegungskarte fragt ohne Spielstand (Register 324)
+# STAND 08.11.2026, 23:15 - Portal S-1 bis S-3 gebaut: Portalposition am Ort, Belegungskarte im Kern, Umzug gebucht (Register 324 und 325)
 
 > Neuester Block. Darunter 21:52 (E1 Handelspreis; Register 323), 20:52 (Wall und Marktplatz;
 > Register 321-322), 20:28 (Wall in der Rubrik Verteidigung), 18:50 (Opus als Werkzeug, drei Befunde;
@@ -33,10 +33,24 @@ portalraum has no attribute feld_status` ab; mit den Feldern, aber OHNE die neue
 9.035. Nachbarn einzeln gruen: `test_portalraum` 70/0/0, `test_portal_uebersicht` 61/0/0,
 `test_portal_fremdblick` 18/0/1, `test_speichern_robust` 95/0/5, `test_marsch_optik` 63/0/0.
 
-**Naechster Schritt ist S-3 (`dorf_versetzen`)**, dann S-4 (Karte statt Auswahlliste), S-5 (Sperre in
-Spielzeit, deckt sich mit E3/Entscheidung 308) und S-6 (Wachen, voller Lauf, EXE). **Nicht gebaut:**
-ein Umzug selbst - `_portal_wechsel` setzt weiterhin nur `state.eigene_dimension`, und die
-Belegungskarte wird von keiner Anzeige benutzt.
+3. **S-3 - der Umzug wird gebucht:** `_dorf_versetzen(name, x, y, welt)` prüft in fester
+   Reihenfolge (Dorf da, nichts unterwegs, Welt bekannt, steht noch nicht dort, Feld frei, Mana,
+   Sperre) und bucht dann GENAU EINMAL: Mana minus 5.000, `welt_x`/`welt_y`, die Welt des Dorfes
+   und die gezeigte Welt. Bauten, Garnison, Waren und Karawanen werden nicht angefasst und reisen
+   damit mit (F-27 = A). `_portal_belegte_felder()` übersetzt den Spielstand in Felder.
+   **W-1 ist damit erledigt:** die Kennung bleibt gültig, weil der Umzug `x`/`y` nicht anfasst —
+   kein Neu-Bilden, kein Nachziehen. Wache `tests/test_dorf_versetzen.py` **38/0/0**; Gegenprobe
+   auf dem Altstand rot (Abbruch), Gegenprobe mit abgeschalteter Feldprüfung **32 bestanden,
+   6 FEHLER** (genau die Feld- und Belegungszusagen).
+
+**Offen an S-3:** S-4 muss den Knopf der Ansicht auf `_dorf_versetzen` legen — solange daneben
+`_portal_wechsel` steht, gibt es zwei Buchstellen mit je 5.000 Mana, und ein Klick darf nicht beide
+auslösen. S-5 nimmt die 24-Stunden-Prüfung aus `wechsel_erlaubt` (F-28 = C); vorher wird gemessen,
+welche Wachen daran hängen.
+
+**Nächster Schritt ist S-4 (Karte statt Auswahlliste)**, dann S-5 (Sperre weg) und S-6 (Wachen,
+voller Lauf, EXE). **Nicht gebaut:** die Auswahl in der Oberfläche selbst — heute ist nur der Kern
+buchbar.
 
 **Registerluecke gefunden und geschlossen:** die Nummern 309 bis 323 standen nur in den
 Protokollzeilen, im Register fehlten sie (hoechste Nummer war 308). Sie sind als Kurzfassung mit

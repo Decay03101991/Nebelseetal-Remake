@@ -11892,6 +11892,129 @@ class NebelseetalApp:
         self.state.messages.append({"text": meldung, "type": "portal"})
         self._render_view()
         return True
+
+    def _portal_belegte_felder(self) -> list:
+        """Alle BELEGTEN Felder des Portalraums - eigene Siedlungen und fremde Bot-Dörfer.
+
+        Schnitt S-3 (08.11.2026): die eine Stelle, die den Spielstand in Felder übersetzt; die
+        Prüfung selbst macht `portalraum.feld_status` und liest dabei KEINEN Spielstand (S-1).
+        Gezählt wird je (Welt-Index, x, y) - `Settlement.dimension` und `dorf.dimension` sind
+        1-basierte Nummern wie im Spielstand, umgerechnet wird an EINER Stelle
+        (`portalraum.index_von`).
+
+        Eine Siedlung ohne `welt_x`/`welt_y` ist noch nicht im Portal verortet (S-2) und belegt
+        dort nichts. Ein Feld außerhalb des 20 x 20-Rasters kann nur aus einem beschädigten
+        Spielstand kommen; es wird NICHT als Eintrag genommen (sonst würde `feld_eintrag`
+        werfen und die Anzeige stürbe) - der Umzug prüft sein Zielfeld ohnehin selbst.
+        """
+        eintraege = []
+        for siedlung in (getattr(self.state, "settlements", None) or []):
+            x = getattr(siedlung, "welt_x", None)                         # Portalposition (S-2)
+            y = getattr(siedlung, "welt_y", None)
+            if x is None or y is None:                                    # noch nicht verortet
+                continue
+            index = portalraum.index_von(getattr(siedlung, "dimension", 0))
+            if index < 0 or not portalraum.ist_gueltig(int(x), int(y), index):
+                continue                                                  # Welt oder Feld unbrauchbar
+            eintraege.append(portalraum.feld_eintrag("siedlung", str(getattr(siedlung, "name", "")),
+                                                    index, int(x), int(y)))
+        for bot in (getattr(self.state, "bots", None) or []):             # jedes Bot-Dorf
+            for dorf in bot_doerfer_sicherstellen(bot):
+                index = portalraum.index_von(getattr(dorf, "dimension", 0))
+                if index < 0:                                             # unbekannte Welt
+                    continue
+                if not portalraum.ist_gueltig(int(dorf.x), int(dorf.y), index):
+                    continue                                              # Feld ausserhalb
+                eintraege.append(portalraum.feld_eintrag("botdorf", str(getattr(dorf, "name", "")),
+                                                        index, int(dorf.x), int(dorf.y)))
+        return eintraege
+
+    def _dorf_versetzen(self, name: str, x: int, y: int, welt_nummer: int = 0) -> bool:
+        """Ein Dorf auf ein FREIES Feld des Portalraums setzen - die EINE Buchstelle (Schnitt S-3).
+
+        Reihenfolge: erst prüfen, dann GENAU EINMAL abbuchen. Geprüft wird in dieser Ordnung:
+        (1) die Siedlung gibt es, (2) nichts ist unterwegs (Daniel 01.11.2026, Anhang 2),
+        (3) die Weltkarte ist bekannt, (4) das Feld ist frei - auch ein Bot-Dorf blockiert
+        (F-26 = A), (5) die Reichskasse trägt die 5.000 Mana (F-25 = A: keine zweite Preistafel,
+        kein Gold, keine Waren), (6) die Sperre (bis S-5 die belegten 24 Stunden, F-28 = C).
+
+        Gebucht wird: Mana minus Festpreis, `welt_x`/`welt_y`, die Welt des Dorfes und die
+        gezeigte Welt. Bauten, Stufen, Garnison, Waren und Karawanen reisen mit, weil sie AM ORT
+        hängen und niemand sie anfasst (F-27 = A).
+
+        Die Kennung `Settlement.id` bleibt UNVERÄNDERT und muss nicht neu gebildet werden: sie
+        hängt an Besitzer, Karte und `x`/`y`, und `x`/`y` ist die SIEDLUNGSKARTE, die der Umzug
+        nicht anfasst. Genau das ist der Gewinn von S-2 (`welt_x`/`welt_y` als eigene Felder) -
+        der teuerste Punkt des Schnitts (W-1) fällt damit weg.
+        """
+        siedlung = self._siedlung_nach_namen(str(name or ""))              # (1) der Ort
+        if siedlung is None:
+            meldung = f"Kein Dorf mit dem Namen {name!r} - es wird nichts versetzt."
+            self._log(meldung)
+            self.state.messages.append({"text": meldung, "type": "portal"})
+            return False
+        if self._unterwegs_anzahl() > 0:                                  # (2) nichts unterwegs
+            meldung = ("Umzug gesperrt: solange Aufträge, Einheiten oder Handel unterwegs sind, "
+                       "reist das Dorf nicht (Daniel 01.11.2026, Anhang 2).")
+            self._log(meldung)
+            self.state.messages.append({"text": meldung, "type": "portal"})
+            return False
+        nummer = int(welt_nummer or 0) or int(self.state.eigene_dimension)
+        index = portalraum.index_von(nummer)                              # (3) bekannte Welt
+        if index < 0:
+            meldung = f"Unbekannte Weltkarte: {nummer}"
+            self._log(meldung)
+            self.state.messages.append({"text": meldung, "type": "portal"})
+            return False
+        if (getattr(siedlung, "welt_x", None) == int(x)                   # steht schon dort?
+                and getattr(siedlung, "welt_y", None) == int(y)
+                and int(getattr(siedlung, "dimension", 0) or 0) == nummer):
+            meldung = (f"{siedlung.name} steht bereits auf Feld {int(x)}/{int(y)} der "
+                       f"Weltkarte {nummer:02d} - es wird nichts abgebucht.")
+            self._log(meldung)
+            self.state.messages.append({"text": meldung, "type": "portal"})
+            return False
+        ziel = portalraum.feld_status(index, int(x), int(y),             # (4) freies Feld
+                                      self._portal_belegte_felder(),
+                                      ausschluss=str(getattr(siedlung, "name", "")))
+        if not ziel.get("frei"):
+            meldung = str(ziel.get("grund") or "Das Feld ist nicht frei.")
+            self._log(meldung)
+            self.state.messages.append({"text": meldung, "type": "portal"})
+            return False
+        kosten = portalraum.wechselkosten()                               # (5) Mana
+        mana = float(self.state.resources["mana"].amount)
+        _von_index = portalraum.index_von(getattr(siedlung, "dimension", 0))
+        if mana < kosten:
+            meldung = (f"Zu wenig Mana in der Reichskasse: {kosten} benötigt, "
+                       f"{mana} vorhanden.")
+            self._log(meldung)
+            self.state.messages.append({"text": meldung, "type": "portal"})
+            return False
+        erlaubt, meldung = portalraum.wechsel_erlaubt(                    # (6) Sperre
+            _von_index if _von_index >= 0 else index, index, mana,
+            self.state.letzter_wechsel, time.time())
+        if not erlaubt:
+            self._log(meldung)
+            self.state.messages.append({"text": meldung, "type": "portal"})
+            return False
+        gebucht = portalraum.nach_wechsel(mana, time.time())              # GENAU EINMAL abbuchen
+        self.state.resources["mana"].amount = float(gebucht["mana"])
+        self.state.letzter_wechsel = gebucht["letzter_wechsel"]
+        siedlung.welt_x = int(x)                                          # die neue Portalposition
+        siedlung.welt_y = int(y)
+        siedlung.dimension = int(nummer)                                  # das Dorf steht jetzt dort
+        self.state.eigene_dimension = int(nummer)                         # die Ansicht folgt dem Dorf
+        if int(nummer) not in self.state.eigene_dimensionen:
+            self.state.eigene_dimensionen.append(int(nummer))
+        meldung = (f"{siedlung.name} steht jetzt auf Feld {int(x)}/{int(y)} der Weltkarte "
+                   f"{nummer:02d} ({portalraum.feld_name(index)}): {gebucht['kosten']} Mana aus "
+                   f"der Reichskasse abgebucht, alles andere reist mit.")
+        self._log(meldung)
+        self.state.messages.append({"text": meldung, "type": "portal"})
+        self._render_view()
+        return True
+
     def _unterwegs_anzahl(self) -> int:
         """Wie viele Auftraege sind gerade unterwegs (Hinreise, am Ziel oder Rueckreise)?
 

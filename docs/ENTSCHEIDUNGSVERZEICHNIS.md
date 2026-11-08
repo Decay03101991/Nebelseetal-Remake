@@ -329,6 +329,7 @@
 | 322 | Spieltest 3 Note 5: der Marktplatz sagt, dass hier verkauft wird, nennt die Handelskarawane mit Zustand und zeigt JEDEN Bot | GEBAUT | 08.11.2026 |
 | 323 | E1: der Handelspreis haengt am ROHSTOFF | GEBAUT | 08.11.2026 |
 | 324 | Portal S-2 und S-1: die Portalposition steht in eigenen Feldern, die Belegungskarte fragt ohne Spielstand | GEBAUT | 08.11.2026 |
+| 325 | Portal S-3: der Dorfumzug wird gebucht - freies Feld, 5.000 Mana, GENAU EINMAL | GEBAUT | 08.11.2026 |
 
 ## Ersetzungen (Handpflege)
 
