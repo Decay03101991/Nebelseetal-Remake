@@ -1,0 +1,15 @@
+{
+  "_hinweis": "Begruendete Ausnahmen fuer tests/test_quelle_ast.py (Ablauf Schritt 11, Register 309). Jede Ausnahme nennt die Methode, die hoechste erlaubte Zahl von Rechen-/Vergleichsstellen und den GRUND. Ohne Eintrag gilt: keine Rechnung und kein Vergleich gegen eine Ganzzahl groesser 1 in einer Ansicht - Ansichten zeigen, sie rechnen nicht. Weniger Stellen als erlaubt sind kein Fehler (dann ist die Ausnahme nur zu weit gefasst und wird als BEFUND gemeldet); mehr Stellen machen die Wache rot.",
+  "ausnahmen": [
+    {
+      "methode": "_render_portal",
+      "erlaubt": 20,
+      "grund": "Pixel- und Spaltenrechnung fuer das Canvas (kante * zelle, Abstaende, Rasterpositionen). Das ist Geometrie der Anzeige, kein Spielwert: keine Zahl dieser Rechnung landet in einem Vorrat, einer Stufe oder einer Punktezahl."
+    },
+    {
+      "methode": "_zeichne_siedlungskarte",
+      "erlaubt": 9,
+      "grund": "Dieselbe Pixelrechnung fuer das Kartenraster (spalten * zelle, Feldkante, Rand). Reine Zeichengeometrie, kein Spielwert."
+    }
+  ]
+}

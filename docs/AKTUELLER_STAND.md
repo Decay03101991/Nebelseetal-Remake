@@ -1,3 +1,26 @@
+# STAND 08.11.2026, 15:50 - Schritt 11 fertig: die AST-Quellwache steht (Register 309)
+
+> Neuester Block. Darunter 14:55 (Spieltest 2: Wall, Gelaende-Hinweis, Bibliothek; Register 307),
+> 14:00 (Spieltest 1: Soft Lock gemessen, V-3; Register 306), 12:32 (Schritt 12; Register 303/304).
+
+**Schritt 11 ist gebaut und belegt.** `tests/test_quelle_ast.py` prueft ueber `ast` alle 29
+Ansichts-Methoden von `NebelseetalApp` (`_zeige*`, `_zeichne*`, `_render*`) auf Multiplikationen,
+Divisionen und Vergleiche gegen eine Ganzzahl groesser 1. Docstrings und Kommentare zaehlen nicht.
+**Vorher gemessen: 33 Stellen in 4 Methoden. Nachher: 29 Stellen in 2 Methoden** - die beiden
+Pixelmethoden (`_render_portal`, `_zeichne_siedlungskarte`) stehen mit Grund in
+`tests/quelle_ast_ausnahmen.json`; alles andere ist aus den Ansichten verschwunden.
+
+**Was die Wache sofort gefunden hat:** `_heilkunde * 10` in der Dorfuebersicht (die Handbuchzahl
+stand ein zweites Mal in der Anzeige - jetzt `forschung_wirkung.siedler_bonus_prozent`),
+`rest / 60.0` (jetzt `main.minuten_text`) und fuenf Stellen mit `int(bot.trading * 100)` (jetzt
+`main.prozent_text`). Beim Einbau fiel auf, dass `forschung_wirkung` in `main.py` gar nicht
+importiert war - der GUI-Test meldete es sofort als NameError, nicht still.
+
+**Die Wache hat eine Gegenprobe im eigenen Lauf:** auf erfundenem Quelltext werden `stufe * 2` und
+`if stufe >= 3` erkannt, ein Vergleich gegen 1 nicht - sie kann also rot werden. Ergebnis **15/0/2**.
+Eine veraltete Ausnahme (Methode ohne Treffer oder zu weit gefasst) wird als BEFUND gemeldet, damit
+die Liste kein Freibrief wird.
+
 # STAND 08.11.2026, 14:55 - Spieltest 2: Wall im Dorfzentrum, Gelaende-Hinweis, Bibliothek-Auskunft (Register 307)
 
 > Neuester Block. Darunter 14:00 (Spieltest 1: Soft Lock gemessen, V-3, Register 306), 12:32

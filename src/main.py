@@ -62,6 +62,7 @@ import auftraege   # W7: Auftraege (Missionen) mit Reisezeit, Rueckkehr und Beri
 import spionage    # B-5: Spionagebericht, Abwehr und Nachricht (02.11.2026)
 import marsch_optik  # M-1: Truppenbewegungen auf der Weltkarte (02.11.2026, Register 140)
 import forschung  # W4c: Forschung braucht Zeit - die Stufe steigt erst nach Ablauf
+import forschung_wirkung  # Schritt 11 (Register 309): Prozentzahlen der Forschung aus EINER Stelle
 import voelker     # W-9: die Fraktionen und ihre Heimatwelt (EINE Lesestelle)
 import welt        # W4d: die Weltkarte des Limbus (sechs belegte Welten, seit W-6 ohne Platzhalter)
 import zeitbasis  # GPT-Z01: lokale Datumsstempel, monotone Laufzeituhr, Nachrichten
@@ -2923,6 +2924,31 @@ def baukosten(gebaeude_key: str, stufe: int = 0) -> dict:
     return kosten
 
 
+def minuten_text(sekunden) -> str:
+    """Sekunden als Minutenangabe fuer die Anzeige ("12,5 min") - EINE Stelle.
+
+    Schritt 11 (AST-Quellwache, Register 309): `_render_overview` rechnete `rest / 60.0` selbst.
+    Die Umrechnung gehoert nicht in eine _render-Methode, sondern hierher.
+    """
+    try:
+        return ("%.1f min" % (float(sekunden) / 60.0))
+    except (TypeError, ValueError):
+        return "?"
+
+
+def prozent_text(anteil) -> str:
+    """Einen Anteil 0..1 als deutschen Prozenttext ("80 %") - EINE Stelle fuer die Ansichten.
+
+    Schritt 11 (AST-Quellwache, Register 309): die drei Handelsneigungs-Saetze rechneten in der
+    Ansicht selbst (`int(float(bot.trading) * 100)`). Die Umrechnung gehoert nicht in eine
+    _render-Methode; hier steht sie einmal, und die Ansichten rufen nur noch diesen Text ab.
+    """
+    try:
+        return ("%.0f %%" % (float(anteil) * 100.0))
+    except (TypeError, ValueError):
+        return "?"
+
+
 def kosten_text(kosten: dict) -> str:
     """Kosten als lesbarer Text, z. B. '8 Holz, 4 Stein'."""
     if not kosten:
@@ -4930,7 +4956,7 @@ class GameState:
             return False, "Für einen Handel braucht es zuerst eine eigene Siedlung."
         if float(bot.trading) <= 0.3:
             return False, (f"{bot.name} handelt nicht (Handelsneigung "
-                           f"{int(float(bot.trading) * 100)} %).")
+                           f"{prozent_text(bot.trading)}).")
         try:
             if isinstance(menge, bool):
                 raise ValueError
@@ -5056,8 +5082,8 @@ class GameState:
         if quelle is None:                                                     # ohne Ort keine Ware
             return False, "Für einen Verkauf braucht es zuerst eine eigene Siedlung."
         if float(bot.trading) <= 0.3:                                          # handelt dieser Bot ueberhaupt
-            return False, ("%s handelt nicht (Handelsneigung %d %%)."
-                           % (bot.name, int(float(bot.trading) * 100)))
+            return False, ("%s handelt nicht (Handelsneigung %s)."
+                           % (bot.name, prozent_text(bot.trading)))
         try:                                                                   # ganze Stueckzahl erzwingen
             if isinstance(menge, bool):
                 raise ValueError
@@ -9811,7 +9837,7 @@ class NebelseetalApp:
                 tk.Label(self.content,
                          text=f"{str(eintrag.get('art')).capitalize()}: {eintrag.get('von')} → "
                               f"{eintrag.get('nach')} · {eintrag.get('status')} · "
-                              f"noch {rest / 60.0:.1f} min",
+                              f"noch {minuten_text(rest)}",
                          fg=self.skin["text"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=20)
 
         # Wirkungen der 20 Originalgebaeude (W4b-5). Sie kommen AUSSCHLIESSLICH aus den bebauten
@@ -9828,7 +9854,10 @@ class NebelseetalApp:
         _stufen = self.state.forschungs_stufen()                                                # flache Stufenkarte
         _zuwachs = gebaeude_wirkung.siedler_zuwachs_pro_stunde(self.state.settlements, _stufen)  # inkl. Heilkunde
         _heilkunde = int(_stufen.get("Heilkunde", 0) or 0)                                       # Heilkunde-Stufe
-        _bonus_text = (f", inkl. Heilkunde +{_heilkunde * 10} %" if _heilkunde else "")           # Zusatz nur bei Stufe
+        # Schritt 11 (Register 309): die Prozentzahl kommt aus `forschung_wirkung` - vorher rechnete
+        # die Ansicht `_heilkunde * 10` selbst und trug die Handbuchzahl damit ein zweites Mal.
+        _bonus_prozent = forschung_wirkung.siedler_bonus_prozent(_stufen)
+        _bonus_text = (f", inkl. Heilkunde +{_bonus_prozent:g} %" if _heilkunde else "")
         tk.Label(wirk, text=f"Siedlergrenze {_grenze} (Grundwert 10 + {_haeuser} Haus/Häuser × 5) · "
                             f"Zuwachs {_zuwachs:g} Siedler/Stunde "
                             f"(1 je Siedlung, Handbuch S. 11{_bonus_text})",
@@ -14035,8 +14064,8 @@ class NebelseetalApp:
             frame = tk.Frame(self.content, bg=self.skin["panel"])
             frame.pack(fill=tk.X, padx=10, pady=2)
             tk.Label(frame, text=bot.name, fg=self.skin["text"], bg=self.skin["panel"], width=15, anchor=tk.W).pack(side=tk.LEFT, padx=5)
-            tk.Label(frame, text=f"Handel: {int(bot.trading*100)}%", fg="#DAA520", bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
-            tk.Label(frame, text=f"Aggression: {int(bot.aggression*100)}%", fg=self.skin["red"], bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
+            tk.Label(frame, text=f"Handel: {prozent_text(bot.trading)}", fg="#DAA520", bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
+            tk.Label(frame, text=f"Aggression: {prozent_text(bot.aggression)}", fg=self.skin["red"], bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
             # S4-1 (06.11.2026): Gunst und Status. Die Zahl kommt aus dem Feld, das WORT aus
             # `diplomatie.status` - dieselbe Funktion, die der Kern benutzt (Regel F-04). In dieser
             # Zeile steht keine Grenze und kein Vergleich, damit es keine zweite Rechenstelle gibt.
@@ -14247,7 +14276,7 @@ class NebelseetalApp:
             return False
         if float(bot.trading) <= 0.3:
             self._log(f"{bot.name} handelt nicht (Handelsneigung "
-                      f"{int(float(bot.trading) * 100)} %).")
+                      f"{prozent_text(bot.trading)}).")
             return False
         if getattr(self, "root", None) is None:
             self._log("Handel braucht das Spielfenster (Maske für Ware, Menge und Preis) — "

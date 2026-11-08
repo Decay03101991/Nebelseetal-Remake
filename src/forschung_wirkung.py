@@ -108,10 +108,21 @@ def faktor_alle(forschungsstaende: Dict[str, Any]) -> Dict[str, float]:
     return {r: faktor(forschungsstaende, r) for r in ROHSTOFFE}
 
 
+def siedler_bonus_prozent(forschungsstaende: Dict[str, Any]) -> float:
+    """Der Heilkunde-Bonus der Siedlerproduktion in PROZENT (Stufe x Prozent je Stufe).
+
+    Schritt 11 (AST-Quellwache, Register 309): die Dorfuebersicht rechnete `_heilkunde * 10` selbst -
+    die Zahl 10 ist aber die belegte Handbuchregel und stand damit ein ZWEITES Mal in der Anzeige.
+    EINE Stelle fuer Kern und Anzeige: der Faktor (`siedlerfaktor`) und dieser Prozentwert lesen
+    denselben Eintrag aus `_BELEGT`.
+    """
+    name, prozent = _BELEGT[SIEDLER][0], _BELEGT[SIEDLER][1]
+    return float(prozent) * float(_stufe(forschungsstaende, name))
+
+
 def siedlerfaktor(forschungsstaende: Dict[str, Any]) -> float:
     """Faktor der Siedlerproduktion aus Heilkunde (+10 % je Stufe)."""
-    name, prozent = _BELEGT[SIEDLER][0], _BELEGT[SIEDLER][1]
-    return _faktor(prozent, _stufe(forschungsstaende, name))
+    return _faktor(_BELEGT[SIEDLER][1], _stufe(forschungsstaende, _BELEGT[SIEDLER][0]))
 
 
 def verteidigungsfaktor(forschungsstaende: Dict[str, Any]) -> float:
