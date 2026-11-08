@@ -1,6 +1,45 @@
+# STAND 08.11.2026, 20:52 - Spieltest 3, Noten 3 und 5 gebaut: Wall in Verteidigung, Marktplatz auffindbar (Register 321-322)
+
+> Neuester Block. Darunter 20:28 (Wall in der Rubrik Verteidigung; Register 321), 18:50 (Opus als
+> Werkzeug, drei Befunde; Register 314-320), 15:50 (Schritt 11, AST-Quellwache; Register 309), 14:55
+> (Spieltest 2; Register 307), 14:00 (Spieltest 1, Soft Lock, V-3; Register 306).
+
+**Zwei der vier Test-3-Punkte sind gebaut, jeder mit eigener Wache und Gegenprobe.**
+
+1. **Wall (Note 3, Register 321):** der Dorfwall steht an EINER Stelle - auf der Siedlungskarte in der
+   Rubrik Verteidigung, ohne gewaehltes Feld. Das Dorfzentrum zeigt eine Zeile mit Zustand und dem Knopf
+   „Wall verwalten“. Wache `tests/test_wall_verteidigung.py` **13/0/0**, Gegenprobe auf dem Altstand
+   **8 bestanden, 5 FEHLER**.
+2. **Marktplatz (Note 5, Register 322):** die Ansicht sagt, dass der Spieler hier verkauft, nennt die
+   Handelskarawane im Ortslager mit Anzahl (oder dass ohne sie jeder Handel abgelehnt wird) und zeigt
+   JEDEN Bot - wer nicht handelt, steht mit Handelsneigung und Grund da statt zu fehlen. Die Grenze 0,3
+   stand vorher an vier Stellen getippt; sie ist jetzt `HANDELSNEIGUNG_MIN` mit `handelt_bot` /
+   `handelt_grund` fuer Kern, Maske und Anzeige. Wache `tests/test_marktplatz_ansicht.py` **19/0/0**,
+   Gegenprobe **10 bestanden, 9 FEHLER**.
+
+**Sammellauf 20:38 bis 20:51: 207 von 207 gruen, 0 rot, 2 ausgesetzt, 9.015 Pruefungen, 763 s**
+(`docs/audits/sammellauf_20261108_2038.log`). Der Lauf davor (20:13) war 206/206 bei 8.996 Pruefungen;
+die 19 neuen Pruefungen sind genau die neue Wache.
+
+**Was NICHT fertig ist (Test 3, Noten 4 und 8):**
+1. **Portal per Klick auf ein freies Weltfeld** (Note 4): der Kern fehlt komplett - `_portal_wechsel`
+   versetzt kein Dorf (gemessen, Z. 11747-11791 setzt nur `eigene_dimension`), ein `dorf_versetzen` gibt es nicht.
+2. **Bibliothek versetzen** (Note 8): „eine Bibliothek je Siedlung“ ist ORIGINALREGEL; ein Versetzen als
+   EINE Buchung haelt sie ein. **Frage 17 ist Daniels Entscheid** (Empfehlung: Versetzen als eine Buchung,
+   Neubau auf Stufe 1) - ohne seine Bestaetigung wird nicht gebaut.
+3. **E1 Handelspreis je Rohstoff** (Entscheidung 306): Patch-Plan in
+   `docs/extern/antworten/20261108_1847_...md`; drei Stellen sind dort als UNGELESEN markiert (Herkunft von
+   `stufe`, `karte`, `tagesbedarf`; Schluessel `ware` im Handelsvertrag; wo die Schwelle in der Maske steht).
+4. **E3 Portal-Sperre in Spielzeit** (Entscheidung 308): vier `time.time()`-Stellen (Z. 11742, 11774,
+   11779, 12343) plus Altstand-Reparatur beim Laden (Z. 8092).
+5. Danach der volle Sammellauf und EINE EXE, dann Spieltest 4.
+
+**Bei Daniel offen:** Frage 15 (neun Balance-Werte ohne Quelle), Frage 16 (sechs Datendateien ohne
+Quellenangabe), Frage 17 (Bibliothek), Frage 18 (Pakt) - zu allen liegt eine Empfehlung vor, bestaetigt ist keine.
+
 # STAND 08.11.2026, 20:28 - Spieltest 3, Note 3 gebaut: der Wall steht in der Rubrik Verteidigung (Register 321)
 
-> Neuester Block. Darunter 18:50 (Opus als Werkzeug, drei Befunde; Register 314-320), 15:50 (Schritt 11,
+> Aelterer Block (durch 20:52 abgeloest). Darunter 18:50 (Opus als Werkzeug, drei Befunde; Register 314-320), 15:50 (Schritt 11,
 > AST-Quellwache; Register 309), 14:55 (Spieltest 2; Register 307), 14:00 (Spieltest 1, Soft Lock, V-3;
 > Register 306).
 

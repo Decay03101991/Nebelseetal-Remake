@@ -2949,6 +2949,26 @@ def prozent_text(anteil) -> str:
         return "?"
 
 
+# Mindest-Handelsneigung eines Bots. Die Grenze 0,3 stand bis Register 322 an VIER Stellen
+# getippt (zwei Pruefungen im Kern, `_trade`, `_render_market`); seit die Marktplatz-Ansicht
+# jedem Bot seinen Grund zeigt, braucht sie EINE Quelle (F-04: Anzeige und Kern, eine Wahrheit).
+HANDELSNEIGUNG_MIN = 0.3
+
+
+def handelt_bot(bot) -> bool:
+    """Urteil, ob ein Bot ueberhaupt handelt - dieselbe Schwelle fuer Kern, Maske und Marktplatz."""
+    try:
+        return float(getattr(bot, "trading", 0.0)) > HANDELSNEIGUNG_MIN
+    except (TypeError, ValueError):
+        return False
+
+
+def handelt_grund(bot) -> str:
+    """Der EINE Satz, den Kern und Anzeige nennen, wenn ein Bot nicht handelt."""
+    return "%s handelt nicht (Handelsneigung %s)." % (
+        getattr(bot, "name", "Der Bot"), prozent_text(getattr(bot, "trading", 0.0)))
+
+
 def kosten_text(kosten: dict) -> str:
     """Kosten als lesbarer Text, z. B. '8 Holz, 4 Stein'."""
     if not kosten:
@@ -4954,9 +4974,8 @@ class GameState:
             return False, "Kein Handelspartner gewählt."
         if quelle is None:
             return False, "Für einen Handel braucht es zuerst eine eigene Siedlung."
-        if float(bot.trading) <= 0.3:
-            return False, (f"{bot.name} handelt nicht (Handelsneigung "
-                           f"{prozent_text(bot.trading)}).")
+        if not handelt_bot(bot):                                       # EINE Schwelle (Register 322)
+            return False, handelt_grund(bot)
         try:
             if isinstance(menge, bool):
                 raise ValueError
@@ -5081,9 +5100,8 @@ class GameState:
             return False, "Kein Handelspartner gewählt."
         if quelle is None:                                                     # ohne Ort keine Ware
             return False, "Für einen Verkauf braucht es zuerst eine eigene Siedlung."
-        if float(bot.trading) <= 0.3:                                          # handelt dieser Bot ueberhaupt
-            return False, ("%s handelt nicht (Handelsneigung %s)."
-                           % (bot.name, prozent_text(bot.trading)))
+        if not handelt_bot(bot):                                               # handelt dieser Bot ueberhaupt
+            return False, handelt_grund(bot)
         try:                                                                   # ganze Stueckzahl erzwingen
             if isinstance(menge, bool):
                 raise ValueError
@@ -14247,9 +14265,8 @@ class NebelseetalApp:
         if not self.state.settlements:
             self._log("Für einen Handel braucht es zuerst eine eigene Siedlung.")
             return False
-        if float(bot.trading) <= 0.3:
-            self._log(f"{bot.name} handelt nicht (Handelsneigung "
-                      f"{prozent_text(bot.trading)}).")
+        if not handelt_bot(bot):                                       # EINE Schwelle (Register 322)
+            self._log(handelt_grund(bot))
             return False
         if getattr(self, "root", None) is None:
             self._log("Handel braucht das Spielfenster (Maske für Ware, Menge und Preis) — "
@@ -14424,15 +14441,51 @@ class NebelseetalApp:
         tk.Label(self.content, text="20.07.2007 — Einheiten Löschen: Über die Kaserne können überflüssige Einheiten entlassen werden. ACHTUNG: Entlassene Einheiten sind unwiederbringlich gelöscht!", fg=self.skin["red"], bg=self.skin["bg"], wraplength=600, justify=tk.LEFT).pack(anchor=tk.W, padx=10)
 
     def _render_market(self):
-        tk.Label(self.content, text="Marktplatz", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
-        tk.Label(self.content, text="Handle mit anderen Spielern oder Bots.", fg="#C0C0C0", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
-        for bot in self.state.bots:
-            if bot.trading <= 0.3:
-                continue
+        """Marktplatz: hier VERKAUFT der Spieler Rohstoffe an die Bots (Spieltest 3, Note 5).
+
+        Daniels Befund: "Davon sehe ich als spieler nichts im ersten Eindruck. Ich suche danach
+        zuerst in Diplomatie". Die Ansicht sagt deshalb (a) was hier passiert, (b) dass eine
+        Handelskarawane Bedingung ist, und zwar mit ihrem ZUSTAND aus
+        `handelskarawanen_bestand`, und (c) zeigt JEDEN Bot - wer nicht handelt, steht mit
+        Handelsneigung und Grund da, statt zu fehlen. Das Urteil kommt aus `handelt_bot`, also
+        aus derselben Schwelle wie der Kern (F-04).
+        """
+        tk.Label(self.content, text="Marktplatz", font=("Blackletter", 20, "bold"),
+                 fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
+        tk.Label(self.content, text=("Hier verkaufst du Rohstoffe aus deinem Ortslager an die Bots - "
+                                     "du bekommst Gold, sie bekommen die Ware. Gehandelt wird über "
+                                     "den Knopf hinter jedem Namen."),
+                 fg="#C0C0C0", bg=self.skin["bg"], wraplength=780,
+                 justify=tk.LEFT).pack(anchor=tk.W, padx=10)
+        quelle = self.state.aktive_siedlung()                    # Karawanen haengen am ORT, nicht am Reich
+        if quelle is None:
+            tk.Label(self.content, text="Für den Handel braucht es zuerst eine eigene Siedlung.",
+                     fg="#FDBA74", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(8, 0))
+            return
+        karawanen = self.state.handelskarawanen_bestand(quelle)  # Zustand aus der EINEN Quelle
+        if karawanen:
+            zustand = ", ".join("%s: %d" % (name, anzahl) for name, anzahl in karawanen.items())
+            tk.Label(self.content, text="Handelskarawane im Ortslager von %s: %s" % (quelle.name, zustand),
+                     fg="#7FD1FF", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(8, 0))
+        else:
+            tk.Label(self.content, text=("Keine Handelskarawane im Ortslager von %s - ohne sie lehnt "
+                                         "jeder Handel ab (Handbuch S. 20). Eine Handelskarawane wird "
+                                         "in der Ausbildung gebaut." % quelle.name),
+                     fg="#FDBA74", bg=self.skin["bg"], wraplength=780,
+                     justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(8, 0))
+        for bot in self.state.bots:                              # JEDER Bot, keiner wird versteckt
             frame = tk.Frame(self.content, bg=self.skin["panel"])
             frame.pack(fill=tk.X, padx=10, pady=2)
-            tk.Label(frame, text=bot.name, fg=self.skin["text"], bg=self.skin["panel"], width=15, anchor=tk.W).pack(side=tk.LEFT, padx=5)
-            tk.Button(frame, text="Handeln", command=lambda b=bot: self._trade(b), bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
+            tk.Label(frame, text=bot.name, fg=self.skin["text"], bg=self.skin["panel"],
+                     width=15, anchor=tk.W).pack(side=tk.LEFT, padx=5)
+            if handelt_bot(bot):
+                tk.Label(frame, text="Handelsneigung " + prozent_text(bot.trading),
+                         fg="#C0C0C0", bg=self.skin["panel"], anchor=tk.W).pack(side=tk.LEFT, padx=5)
+                tk.Button(frame, text="Handeln", command=lambda b=bot: self._trade(b),
+                          bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
+            else:
+                tk.Label(frame, text=handelt_grund(bot), fg="#FDBA74", bg=self.skin["panel"],
+                         anchor=tk.W, wraplength=560, justify=tk.LEFT).pack(side=tk.LEFT, padx=5)
 
     def _render_guild(self):
         tk.Label(self.content, text="Gilde", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
