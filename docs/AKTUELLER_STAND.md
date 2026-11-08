@@ -1,3 +1,21 @@
+# STAND 08.11.2026, 11:25 - Stand unveraendert, Guthaben abgelesen, Uebergabe Fassung 2
+
+> Neuester Block. Darunter 01:40 (Spieltest-Paket, Register 301; Messwerte-Ablage, Register 302),
+> 01:05 (Schritt 10, Register 299; Pakt-Knopf, Register 300), 21:30 (R3-2, Register 298).
+
+**Am Stand hat sich seit 01:40 nichts geaendert:** Kopf `84d63f7`, gepusht, Arbeitsbaum leer, beide
+Sammellaeufe 0 rot. Die EXE, die Anleitung und der vorbereitete Spielstand liegen unveraendert auf dem
+Desktop bzw. in Spielerslot 2; die Desktop-Kopie der EXE wurde um 01:43 zusaetzlich gestartet
+(Fenster "Nebelseetal Remake", Passworttor) und wieder beendet, `game.lock` entfernt.
+
+**Guthaben (Daniel 11:23): 6,58 USD / 63,41 USD** - gegenueber 00:27 (6,74 / 63,25) also 0,16 USD fuer
+die zweite Haelfte der Sitzung; kein bezahlter Fremdaufruf. Das Guthaben bleibt der knappste Posten.
+
+**Offen und als naechstes unveraendert:** Schritt 12 (Sammellauf messen/parallelisieren, Ausgangswert
+1.176 s bei 199 Dateien), Schritt 11 (AST-Quellwache), Schritt 13 (Daten-und-Quellen-Pruefung), R3-3,
+R3-4, Besucherdokumente, eigener Schnitt aus F-20 = B; dazu Daniels Noten aus dem Spieltest, sobald
+sie vorliegen.
+
 # STAND 08.11.2026, 01:40 - Spieltest-Paket geliefert (Register 301), Messwerte-Ablage gebaut (Register 302)
 
 > Neuester Block. Darunter 01:05 (Schritt 10, Register 299, und Pakt-Knopf, Register 300), 21:30
