@@ -1,10 +1,10 @@
 {
   "_hinweis": "Fristen und Kategorien des Postfachs (S1, 06.11.2026). Der Code liest AUSSCHLIESSLICH hier - keine Frist als Konstante in src/.",
-  "_quelle": "Daniel, Entscheidung 4 der Runde 2 (06.11.2026): Frist 1 Spieltag fuer Berichte, Militaerberichte (Kampf, Gesamtsieg) nie loeschen, ungelesene Verlustberichte verschieben sich automatisch.",
+  "_quelle": "Daniel, Entscheidung 4 der Runde 2 (06.11.2026): Frist 1 Spieltag fuer Berichte, Militaerberichte (Kampf, Gesamtsieg) nie loeschen, ungelesene Verlustberichte verschieben sich automatisch. Ergaenzt 08.11.2026 (Befund S4 der Opus-Pruefung): ein Diebstahlbericht IST ein Verlustbericht - ungelesen verschiebt er sich, statt nach einem Spieltag zu verschwinden (Daniels Zusage 'nur mit Bericht im Postfach' bleibt so wahr).",
   "je_seite": 20,
   "frist_spielsekunden": 86400,
   "ohne_ablauf": ["kampf", "gesamtsieg"],
-  "verschieben_wenn_ungelesen": ["verlust"],
+  "verschieben_wenn_ungelesen": ["verlust", "diebstahl"],
   "kategorien": {
     "alle": "Alle",
     "ungelesen": "Ungelesen",

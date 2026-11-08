@@ -111,6 +111,25 @@ def test_verlustbericht_verschiebt():
     check("der Text bleibt unangetastet", unklar["text"] == "Verluste im Gefecht")
 
 
+def test_diebstahlbericht_verschiebt():
+    """4b. Ein ungelesener Diebstahlbericht verschiebt sich (Befund S4, 08.11.2026)."""
+    abschnitt("4b. Ungelesener Diebstahlbericht verschiebt sich")
+    # Ein Diebstahl ist ein Verlustbericht: Daniel hat zugesagt, dass jeder Diebstahl einen Bericht
+    # im Postfach hinterlaesst. Bis 08.11.2026 verschwand ein ungelesener Bericht nach EINEM Spieltag.
+    unklar = nachricht("diebstahl", spielzeit=0.0, ablauf_am=100.0, text="Diebstahl in Siedlung 1")
+    gelesen = nachricht("diebstahl", spielzeit=0.0, ablauf_am=100.0, read=True, text="Diebstahl")
+    liste = [unklar, gelesen]
+    ergebnis = postfach.ablauf_buchen(liste, 200.0)
+    check("ein Diebstahlbericht verschoben", ergebnis["verschoben"] == 1, str(ergebnis))
+    check("der gelesene ist abgelaufen", ergebnis["entfernt"] == 1, str(ergebnis))
+    check("der ungelesene steht noch drin", unklar in liste, str(liste))
+    check("er ueberlebt auch die zweite Frist", postfach.ablauf_buchen(liste, 200.0 + FRIST)["verschoben"] == 1,
+          str(liste))
+    check("der Typ steht in den Daten, nicht nur im Rueckfall",
+          "diebstahl" in (postfach.einstellungen().get("verschieben_wenn_ungelesen") or []),
+          str(postfach.einstellungen().get("verschieben_wenn_ungelesen")))
+
+
 def test_blaettern():
     """5. Blaettern liefert 20 von 45, die letzte Seite 5."""
     abschnitt("5. Blaettern 20 von 45")
@@ -241,6 +260,7 @@ def main_test():
     test_militaer_ohne_ablauf()
     test_frist_genau_einmal()
     test_verlustbericht_verschiebt()
+    test_diebstahlbericht_verschiebt()
     test_blaettern()
     test_filter()
     test_rang_aus_daten()

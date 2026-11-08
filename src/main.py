@@ -15629,7 +15629,10 @@ class NebelseetalApp:
                  font=("Arial", 9)).pack(side=tk.LEFT)
         self._mengen_feld(block, var, hoechst, zeichnen)
         knopf.pack(side=tk.LEFT, padx=(0, 6))
-        var.set("1" if moeglich >= 1 else "0")
+        # Befund S5 (Opus-Pruefung 08.11.2026): die Vorschau rechnete mit Menge 0, wenn nichts
+        # bezahlbar war - dann fehlte der Preis genau in dem Moment, in dem der Spieler ihn braucht.
+        # Jetzt steht immer die Menge 1 als Beispiel da; der Knopf bleibt gesperrt (siehe `zeichnen`).
+        var.set("1")
         zeichnen()
 
     def _train_unit_menge(self, key: str, menge: int) -> bool:

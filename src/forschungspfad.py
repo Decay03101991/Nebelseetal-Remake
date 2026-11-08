@@ -17,9 +17,11 @@ Standardbibliothek. Alle Werte kommen aus den vorhandenen Datendateien:
 Was das Handbuch 2009 NICHT sagt (die empfohlene Reihenfolge, die Zahl fuer zwoelf der 21
 Forschungen), steht ehrlich in :func:`offene_luecken` und wird nirgends erfunden.
 
-Schreibweisen der Voraussetzungs-Begruendungen (beide wortgetreu aus dem Auftrag):
-  * Gebaeude-Voraussetzung als ``Bedarf/Bestand``, z. B. ``"Bibliothek 3/1"``.
-  * Forschungs-Voraussetzung als ``Bestand/Bedarf``, z. B. ``"Schmiedekunst 0/1"``.
+Schreibweise der Voraussetzungs-Begruendungen (S6, 08.11.2026): Gebaeude und Forschung
+  nennen Soll und Ist in WORTEN und in derselben Reihenfolge,
+  z. B. ``"Bibliothek Stufe 3 (hast 1)"`` und ``"Schmiedekunst Stufe 1 (hast 0)"``.
+  Vorher stand im selben Satz einmal Bedarf/Bestand und einmal Bestand/Bedarf - niemand
+  konnte die Reihenfolge erraten.
   * :func:`blockiert` nennt dagegen nur den Bedarf, z. B. ``"Verteidigungsanlagen 5"``.
 """
 from __future__ import annotations
@@ -181,8 +183,10 @@ def erfuellt(name: str, staende: Dict[str, Any], bibliothek_stufe: int
     """Sind die Voraussetzungen erfuellt? ``(ja/nein, Begruendung)``.
 
     ``staende`` ist ``{Forschungsname: Stufe}``. Bei ``False`` nennt die Begruendung **jede**
-    unerfuellte Bedingung mit Soll und Ist -- Gebaeude als ``Bedarf/Bestand``
-    (z. B. ``"Bibliothek 3/1"``), Forschung als ``Bestand/Bedarf`` (z. B. ``"Schmiedekunst 0/1"``).
+    unerfuellte Bedingung mit Soll und Ist in WORTEN -- bei Gebaeuden UND Forschungen gleicher
+    Aufbau, damit niemand die Reihenfolge raten muss (z. B. ``"Bibliothek Stufe 3 (hast 1)"``,
+    ``"Schmiedekunst Stufe 1 (hast 0)"``). Befund S6 der Opus-Pruefung 08.11.2026: vorher stand im
+    SELBEN Satz einmal Soll/Ist und einmal Ist/Soll.
     """
     _pruefe_name(name)
     bib = int(bibliothek_stufe or 0)
@@ -192,11 +196,11 @@ def erfuellt(name: str, staende: Dict[str, Any], bibliothek_stufe: int
         if p["art"] == "bibliothek":
             ist = bib
             if ist < soll:
-                fehlt.append(f"Bibliothek {soll}/{ist}")
+                fehlt.append(f"Bibliothek Stufe {soll} (hast {ist})")
         else:
             ist = _stufe(staende, p["was"])
             if ist < soll:
-                fehlt.append(f"{p['was']} {ist}/{soll}")
+                fehlt.append(f"{p['was']} Stufe {soll} (hast {ist})")
     if not fehlt:
         return True, f"{name} ist erforschbar: alle Voraussetzungen erfüllt."
     return False, f"{name} ist gesperrt: es fehlen " + ", ".join(fehlt) + "."

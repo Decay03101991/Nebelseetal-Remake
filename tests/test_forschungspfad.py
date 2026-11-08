@@ -92,12 +92,17 @@ abschnitt("3. erfuellt(): gesperrt mit Begruendung, erfuellt wenn alles passt")
 
 ok, grund = FP.erfuellt("Waffentechnik", {}, 1)
 check("Waffentechnik mit Bibliothek 1 ist gesperrt", ok is False, grund)
-check("die Begruendung nennt Bibliothek 3/1", "Bibliothek 3/1" in grund, grund)
-check("die Begruendung nennt Schmiedekunst 0/1", "Schmiedekunst 0/1" in grund, grund)
+check("die Begruendung nennt Bibliothek-Stufe in Worten",
+      "Bibliothek Stufe 3 (hast 1)" in grund, grund)
+check("die Begruendung nennt Schmiedekunst-Stufe in Worten",
+      "Schmiedekunst Stufe 1 (hast 0)" in grund, grund)
+# S6 (08.11.2026): im SELBEN Satz stand vorher einmal Soll/Ist und einmal Ist/Soll.
+check("kein Schraegstrich-Paar mehr im Sperrtext",
+      "3/1" not in grund and "0/1" not in grund, grund)
 
 ok2, grund2 = FP.erfuellt("Waffentechnik", {}, 3)
 check("ohne Schmiedekunst bleibt Waffentechnik auch bei Bibliothek 3 gesperrt",
-      ok2 is False and "Schmiedekunst 0/1" in grund2, grund2)
+      ok2 is False and "Schmiedekunst Stufe 1 (hast 0)" in grund2, grund2)
 
 ok3, grund3 = FP.erfuellt("Waffentechnik", {"Schmiedekunst": 1}, 3)
 check("Bibliothek 3 + Schmiedekunst 1 erfuellt Waffentechnik", ok3 is True, grund3)
@@ -108,18 +113,18 @@ check("hoehere Stufen zaehlen ebenfalls als erfuellt", ok4 is True)
 ok5, _ = FP.erfuellt("Baukunst", {}, 1)
 check("Baukunst ist ab Bibliothek 1 erforschbar", ok5 is True)
 ok6, grund6 = FP.erfuellt("Baukunst", {}, 0)
-check("ohne Bibliothek ist Baukunst gesperrt (Bibliothek 1/0)",
-      ok6 is False and "Bibliothek 1/0" in grund6, grund6)
+check("ohne Bibliothek ist Baukunst gesperrt (Bibliothek Stufe 1, hast 0)",
+      ok6 is False and "Bibliothek Stufe 1 (hast 0)" in grund6, grund6)
 
 ok7, grund7 = FP.erfuellt("Mauerbau", {}, 10)
 check("Mauerbau ohne Verteidigungsanlagen bleibt gesperrt",
-      ok7 is False and "Verteidigungsanlagen 0/5" in grund7, grund7)
+      ok7 is False and "Verteidigungsanlagen Stufe 5 (hast 0)" in grund7, grund7)
 ok8, _ = FP.erfuellt("Mauerbau", {"Verteidigungsanlagen": 5}, 1)
 check("Mauerbau erfuellt mit Verteidigungsanlagen 5 (keine Bibliothek noetig)", ok8 is True)
 
 ok9, grund9 = FP.erfuellt("Magiekunde", {}, 5)
-check("Magiekunde bei Bibliothek 5 gesperrt (Bibliothek 6/5)",
-      ok9 is False and "Bibliothek 6/5" in grund9, grund9)
+check("Magiekunde bei Bibliothek 5 gesperrt (Bibliothek Stufe 6, hast 5)",
+      ok9 is False and "Bibliothek Stufe 6 (hast 5)" in grund9, grund9)
 ok10, _ = FP.erfuellt("Magiekunde", {}, 6)
 check("Magiekunde bei Bibliothek 6 erfuellt", ok10 is True)
 

@@ -28,7 +28,7 @@ PFAD_RUHM = os.path.join(WURZEL, "data", "ruhm.json")
 # nicht an der Nachrichtenansicht scheitern laesst.
 _LEER_NACHRICHTEN: Dict[str, Any] = {
     "je_seite": 20, "frist_spielsekunden": 0, "ohne_ablauf": ["kampf", "gesamtsieg"],
-    "verschieben_wenn_ungelesen": ["verlust"], "kategorien": {"alle": "Alle"},
+    "verschieben_wenn_ungelesen": ["verlust", "diebstahl"], "kategorien": {"alle": "Alle"},
     "kategorie_je_typ": {},
 }
 _LEER_RUHM: Dict[str, Any] = {"kennzahl": "gesamtpunkte", "stufen": [], "balken": {}}
