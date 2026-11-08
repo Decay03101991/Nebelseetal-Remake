@@ -473,88 +473,144 @@ Wahrscheinlichkeit, Begruendung im Postfach)?
 Anweisung), die Marktplatz-Ansicht wird klar als Handelsplatz erkennbar (Karawane, Zustand, Hinweis),
 und die Portal-Auswahl soll per Klick auf ein freies Weltfeld gehen statt per Auswahlliste.
 
-# Fragenrunde 08.11.2026, 21:05 - nach Register 321/322 (Sitzung 21)
+
+# Fragenrunde 08.11.2026, 22:10 - nach Register 321/322 (Sitzung 21)
 
 Wall und Marktplatz sind gebaut, gepusht und belegt (`98fe179`, `be0cb7f`; Sammellauf 207/207 gruen,
-9.015 Pruefungen, 763 s). Offen sind die Fragen unten. **Zu jeder steht die Messlage, die Wirkung und
-ein Vorschlag zuerst** - entschieden wird von Daniel, nicht von der Sitzung.
+9.015 Pruefungen, 763 s). Zu jeder offenen Frage stehen hier **die Messlage, die Wirkung und DREI
+Vorschlaege A/B/C** - der empfohlene ist als erster genannt und mit **(Empfehlung)** markiert.
 
-**Frage 19 - E1 (Handelspreis je Rohstoff): fertig bauen oder zuruecknehmen?**
-Messlage: `main.bot_handelspreis(bot, rohstoff, karte, richtung)` ist gebaut und einzeln gemessen;
+## Frage 19 - E1 (Handelspreis je Rohstoff): fertig bauen oder zuruecknehmen?
+
+**Messlage:** `main.bot_handelspreis(bot, rohstoff, karte, richtung)` ist gebaut und einzeln gemessen;
 Ankunftsentscheidung und Kaufmaske haengen schon daran. Es fehlen Verkaufsmaske, Pruefdatei,
-Sammellauf und Registerzeile. Der Arbeitsbaum ist deshalb gerade NICHT leer.
-Wirkung: Zuruecknehmen kostet einen Befehl und der Stand ist sauber; fertig bauen kostet etwa eine
-Stunde samt vollem Lauf, danach ist die Entscheidung 306 wirklich im Spiel.
-**Vorschlag: fertig bauen** (Verkaufsmaske, Wache mit Gegenprobe, voller Sammellauf, Register 323).
+Sammellauf und Registerzeile - der Arbeitsbaum ist deshalb gerade NICHT leer.
+**Wirkung:** Zuruecknehmen kostet einen Befehl; fertig bauen etwa eine Stunde samt vollem Lauf,
+danach ist deine Entscheidung 306 wirklich im Spiel.
 
-**Frage 20 - E1: welche Preishoehe?**
-Messlage (gemessen 08.11.2026, Bot mit 400 Holz, 900 Gold, Reserve 50): Holz **0,46 Gold je Stueck**,
-Stein und Nahrung **0,92**, Gold **1,22**; ein KNAPPER Bot (1 Holz) verkauft nichts (`preis = None`)
-und zahlt beim Verkauf **1,80**. Bisher galt pauschal **300** je Stueck (der Preis einer Kampfeinheit).
-Wirkung: 100 Holz bringen statt 30.000 Gold noch etwa 46 Gold; Handel wird ein Nebeneinkommen statt
-einer Goldquelle. Die Zahlen kommen aus `spieloekonomie.schattenpreis` - ich habe keinen Faktor
-erfunden.
-**Vorschlag: so bauen und die Hoehe im Spieltest 4 beurteilen.** Wenn es zu billig ist: EIN benannter
-Faktor in `data/spieloekonomie.json` (`handelsfaktor`), den du spaeter drehen kannst, statt vier
-getippter Zahlen im Code.
+- **A) Fertig bauen (Empfehlung):** Verkaufsmaske, Wache mit Gegenprobe, voller Sammellauf, Register 323.
+- **B) Zuruecknehmen:** `git checkout -- src/main.py`, E1 faengt in der naechsten Sitzung sauber von
+  vorn an (der Patch-Plan liegt vor, die drei offenen Stellen sind jetzt gemessen).
+- **C) Nur die Kaufseite bauen:** Ankunft und Kaufmaske bleiben, die Verkaufsmaske zeigt weiter die
+  Pauschale - zwei Preise nebeneinander, deshalb nur als Zwischenstand.
 
-**Frage 17 (erneut, mit Vorschlag) - Bibliothek versetzen (Spieltest 3, Note 8).**
-Messlage: Abriss der LETZTEN Bibliothek ist gesperrt (deine Regel 30.10.2026), eine zweite je Siedlung
-verbietet `max_je_siedlung: 1` in `data/buildings.json` (`_belegt_nur_auf`). Bis eine zweite Siedlung
-steht, ist die erste Bibliothek unversetzbar - genau dein Befund.
-Optionen: (a) Abriss der letzten mit Rueckfrage erlauben, (b) Knopf „Bibliothek versetzen“ (abreissen
-und im selben Zug neu setzen), (c) so lassen.
-**Vorschlag: (b)** - ein Versetzen als EINE Buchung haelt die Originalregel ein, die Forschung steht
-nur fuer die eine Buchung still, und der Neubau startet auf Stufe 1.
+## Frage 20 - E1: welche Preishoehe?
 
-**Frage 18 (erneut, mit Vorschlag) - Pakt annehmen oder ablehnen.**
-Messlage: heute bucht der Knopf den Pakt immer. `min_gunst: 40` steht schon in `data/diplomatie.json`.
-Optionen: (a) Wahrscheinlichkeit wuerfeln, (b) feste Schwelle mit Begruendung im Postfach, (c) so lassen.
-**Vorschlag: (b)** - keine Wahrscheinlichkeit: der Knopf ist immer da, der Bot nimmt an, wenn die Gunst
-die Schwelle erreicht, und die Ablehnung nennt die fehlende Gunst.
+**Messlage** (gemessen 08.11.2026, Bot mit 400 Holz und 900 Gold, Reserve 50): Holz **0,46 Gold je
+Stueck**, Stein und Nahrung **0,92**, Gold **1,22**; ein knapper Bot (1 Holz) verkauft nichts und zahlt
+beim Verkauf **1,80**. Bisher galt pauschal **300** (der Preis einer Kampfeinheit).
+**Wirkung:** 100 Holz bringen statt 30.000 Gold noch etwa 46 Gold - Handel wird Nebeneinkommen statt
+Goldquelle. Die Zahl kommt aus `spieloekonomie.schattenpreis`, ich habe keinen Faktor erfunden.
 
-**Frage 15 (erneut, mit Vorschlag) - neun Balance-Werte im Code ohne belegte Quelle.**
-Messlage: `auftraege.py` (HIN_UND_RUECK_FAKTOR 2.0, DROSSELUNG_SCHRITTE_PROZENT 10, BEUTE_ANTEIL 50),
-`botkern.py` (BESCHAFFUNGSKOSTEN 250), `dorfwall.py` (SEKUNDEN_JE_PROZENT 360), `spieldaten.py`
+- **A) So bauen, 1:1 wie gemessen (Empfehlung):** die vorhandene Funktion, kein Faktor; die Hoehe
+  beurteilst du in Spieltest 4, nachjustiert wird dann ueber EINEN Wert in der Datendatei.
+- **B) Faktor 5 (`handelsfaktor` in `data/spieloekonomie.json`):** Holz 2,30, Stein/Nahrung 4,60 -
+  Handel bleibt spuerbar, ist aber nicht mehr die halbe Wirtschaft.
+- **C) Faktor 20:** Holz 9,20 - naeher am alten Gefuehl, laeuft aber Gefahr, dass ein Bot mit 900 Gold
+  nur noch 97 Holz kauft und der Handel wieder zur Nebensache wird.
+
+## Frage 17 (erneut) - Bibliothek versetzen (Spieltest 3, Note 8)
+
+**Messlage:** Abriss der LETZTEN Bibliothek ist gesperrt (deine Regel 30.10.2026), eine zweite je
+Siedlung verbietet `max_je_siedlung: 1`; bis eine zweite Siedlung steht, ist die erste unversetzbar.
+**Wirkung:** betrifft nur den Weg, nicht die Regel „eine Bibliothek je Siedlung“.
+
+- **A) Versetzen als EINE Buchung (Empfehlung):** Knopf „Bibliothek versetzen“ am Gebaeude, abreissen
+  und im selben Zug neu setzen, Neubau auf Stufe 1, Forschung steht nur fuer diese eine Buchung still.
+- **B) Abriss der letzten mit Rueckfrage erlauben:** zwei Schritte, du setzt selbst neu - die
+  Originalregel bleibt, aber du kannst dich zwischenzeitlich aussperren (keine Forschung).
+- **C) So lassen:** die Bibliothek bleibt bis zur zweiten Siedlung unversetzbar.
+
+## Frage 18 (erneut) - Pakt annehmen oder ablehnen
+
+**Messlage:** heute bucht der Knopf den Pakt immer; `min_gunst: 40` steht schon in `data/diplomatie.json`.
+**Wirkung:** der Pakt wird eine Entscheidung des Bots, nicht ein Knopf ohne Widerstand.
+
+- **A) Feste Schwelle mit Begruendung (Empfehlung):** keine Wahrscheinlichkeit, der Knopf ist immer da,
+  der Bot nimmt ab Gunst 40 an, die Ablehnung nennt die fehlende Gunst im Postfach.
+- **B) Wahrscheinlichkeit wuerfeln:** Annahme mit steigender Chance je Gunst - lebendiger, aber ein
+  Nein waere nicht erklaerbar und im Test nicht nachvollziehbar.
+- **C) So lassen:** der Pakt gelingt immer.
+
+## Frage 15 (erneut) - neun Balance-Werte im Code ohne belegte Quelle
+
+**Messlage:** `auftraege.py` (HIN_UND_RUECK_FAKTOR 2.0, DROSSELUNG_SCHRITTE_PROZENT 10, BEUTE_ANTEIL
+50), `botkern.py` (BESCHAFFUNGSKOSTEN 250), `dorfwall.py` (SEKUNDEN_JE_PROZENT 360), `spieldaten.py`
 (FORSCHUNG_GRUNDKOSTEN_HOLZ 50), `spieloekonomie.py` (MENGEN_HOECHSTMENGE 200), `spielzeit.py`
 (STANDARD_FAKTOR 180), `werkstatt.py` (STUFE_TEMPO_PROZENT 10).
-**Vorschlag: Werte lassen, wo sie sind, und in die Zeile das WAHRE Quellenwort schreiben** („VORSCHLAG,
-eigene Messung“) - kein Umzug nach `data/`, solange niemand eine Quelle hat.
+**Wirkung:** keine Zahl aendert sich - es geht nur darum, was als Herkunft dasteht.
 
-**Frage 16 (erneut, mit Vorschlag) - sechs Datendateien ohne Quellenangabe.**
-Messlage: `bot_bedarf.json`, `bot_diebstahl.json`, `bot_forschung.json`, `bot_stimmen.json`,
-`spionage.json` (VORSCHLAG) und `marsch_optik.json` (nur Anzeige).
-**Vorschlag: jede der fuenf VORSCHLAG-Dateien bekommt einen ehrlichen `_quelle`-Satz**
-(„eigene Messung/Vorschlag, kein Originalbeleg“); `marsch_optik.json` bleibt ohne, weil sie keinen
-Spielwert traegt.
+- **A) Werte lassen, WAHRE Quellenwort in die Zeile (Empfehlung):** „VORSCHLAG, eigene Messung“ -
+  kein Umzug, keine neue Datei, die Wache bleibt gruen.
+- **B) Nach `data/` umziehen:** alle neun in eine Datendatei, damit du sie ohne Codeaenderung drehen
+  kannst - mehr Arbeit, dafuer spaeter bequemer.
+- **C) So lassen ohne Kommentar:** billigste Variante, aber die Wache `test_daten_und_quellen` bleibt
+  bei diesen neun Stellen blind.
 
-**Frage 21 - Portal per Klick auf ein freies Weltfeld (Note 4).**
-Messlage: `_portal_wechsel` versetzt KEIN Dorf (Z. 11747-11791 setzt nur `eigene_dimension`), ein
-`dorf_versetzen` gibt es nicht. Das ist neue Grundsatzmechanik, nicht Bedienung.
-Wirkung: ohne Modell wuerde ich Kosten, Grenzen und Folgen raten - genau das soll nicht passieren.
-**Vorschlag: erst ein Modell mit Fragen vorlegen** (Was kostet das Versetzen ausser den 5.000 Mana?
-Darf ein Dorf auf ein Feld, auf dem ein Bot sitzt? Was geschieht mit Bauten, Garnison und Karawanen?
-Gilt die 24-Stunden-Sperre danach weiter?) und danach bauen.
+## Frage 16 (erneut) - sechs Datendateien ohne Quellenangabe
 
-**Frage 22 - Postfach ohne Obergrenze.**
-Messlage: ungelesene Verlust- und Diebstahlberichte laufen nie ab (deine Entscheidung 4), das Postfach
-kann unbegrenzt wachsen.
-**Vorschlag: Obergrenze in der ANZEIGE** (die letzten 200 Berichte), die Datei bleibt vollstaendig -
-kein Bericht geht verloren, die Ansicht bleibt schnell.
+**Messlage:** `bot_bedarf.json`, `bot_diebstahl.json`, `bot_forschung.json`, `bot_stimmen.json`,
+`spionage.json` (VORSCHLAG) und `marsch_optik.json` (nur Anzeige, kein Spielwert).
+**Wirkung:** nur Ehrlichkeit der Angabe, kein Spielwert aendert sich.
 
-**Frage 23 - zwei Skill-Ergaenzungen und die Groessengrenze des Projekt-Skills.**
-Messlage: zwei Ergaenzungen sind gestagt und warten auf Freigabe in der App (Push-Weg ueber Askpass;
-Opus-Aufruf nur ueber die `.exe` im `node_modules`). Der Projekt-Skill steht bei 99.070 von 100.000
-Zeichen.
-**Vorschlag: beide freigeben** (der Askpass-Weg hat heute beide Pushes gerettet) und danach **einen
-Block nach `references/` auslagern**, damit wieder Platz ist.
+- **A) Ehrlicher `_quelle`-Satz in den fuenf (Empfehlung):** „eigene Messung/Vorschlag, kein
+  Originalbeleg“, `marsch_optik.json` bleibt ohne.
+- **B) Nur dort, wo du die Herkunft nennst:** die uebrigen bleiben ohne Angabe - dann bleibt die Luecke
+  sichtbar offen.
+- **C) So lassen:** keine Aenderung.
 
-**Frage 24 - wann kommt die naechste EXE und Spieltest 4?**
-Messlage: nach dem Ablauf kommt „voller Sammellauf und EINE EXE, dann Spieltest 4“; offen sind noch
-Portal (Note 4), Bibliothek (Note 8) und E3 (Portal-Sperre in Spielzeit).
-**Vorschlag: EXE und Spieltest 4 NACH E1** - die Preishoehe ist nur im Spiel zu beurteilen, und dein
-Urteil darueber entscheidet, ob E1 so bleibt. Portal und Bibliothek kommen danach in die naechste EXE.
+## Frage 21 - Portal per Klick auf ein freies Weltfeld (Note 4)
+
+**Messlage:** `_portal_wechsel` versetzt KEIN Dorf (Z. 11747-11791 setzt nur `eigene_dimension`), ein
+`dorf_versetzen` gibt es nicht - das ist neue Grundsatzmechanik, nicht Bedienung.
+**Wirkung:** ohne Modell muesste ich Kosten, Grenzen und Folgen raten.
+
+- **A) Erst ein Modell mit Fragen (Empfehlung):** ich lege Messlage und vier Fragen vor (Kosten ausser
+  den 5.000 Mana? Bot-Feld erlaubt? Was geschieht mit Bauten, Garnison, Karawanen? Sperre danach?),
+  danach wird gebaut.
+- **B) Direkt bauen mit drei Annahmen:** 5.000 Mana wie heute, kein Versetzen auf ein Bot-Feld, Sperre
+  bleibt - schnell, aber die Annahmen waeren geraten und muessten spaeter verteidigt werden.
+- **C) Nur die Auswahlliste aufwerten:** Weltkarte mit freien Feldern anzeigen, Versetzen bleibt Liste -
+  die Note 4 waere dann nur halb beantwortet.
+
+## Frage 22 - Postfach ohne Obergrenze
+
+**Messlage:** ungelesene Verlust- und Diebstahlberichte laufen nie ab (deine Entscheidung 4), das
+Postfach kann unbegrenzt wachsen.
+**Wirkung:** betrifft Ladezeit und Uebersicht, nicht die Berichte selbst.
+
+- **A) Obergrenze in der ANZEIGE (Empfehlung):** die letzten 200, die Datei bleibt vollstaendig - kein
+  Bericht geht verloren, die Ansicht bleibt schnell.
+- **B) Echte Obergrenze in der Datei:** aelteste fliegen raus - schlank, aber ein alter Bericht kann
+  verschwinden, und genau das wolltest du bei Diebstahl nicht.
+- **C) So lassen.**
+
+## Frage 23 - zwei Skill-Ergaenzungen und die Groessengrenze des Projekt-Skills
+
+**Messlage:** zwei Ergaenzungen sind gestagt und warten auf Freigabe in der App (Push-Weg ueber
+Askpass; Opus-Aufruf nur ueber die `.exe` im `node_modules`). Der Projekt-Skill steht bei 99.070 von
+100.000 Zeichen.
+**Wirkung:** ohne Freigabe wiederholt die naechste Sitzung dieselben Fehlversuche (heute hat der
+Askpass-Weg beide Pushes gerettet).
+
+- **A) Beide freigeben, danach einen Block nach `references/` auslagern (Empfehlung):** volle Lehre,
+  wieder Platz im Skill.
+- **B) Nur den Push-Weg freigeben:** die Opus-Lehre wartet weiter - dann bleibt sie eine Sitzungsnotiz.
+- **C) Beides gestagt lassen und die Auslagerung trotzdem machen:** Platz ja, Lehre nein.
+
+## Frage 24 - wann kommt die naechste EXE und Spieltest 4?
+
+**Messlage:** der Ablauf verlangt „voller Sammellauf und EINE EXE, dann Spieltest 4“; offen sind noch
+E1 (Frage 19), Portal (Note 4), Bibliothek (Note 8) und E3 (Portal-Sperre in Spielzeit).
+**Wirkung:** entscheidet, ob du frueh testen kannst oder auf alles wartest.
+
+- **A) EXE und Spieltest 4 nach E1 (Empfehlung):** die Preishoehe ist nur im Spiel zu beurteilen, und
+  dein Urteil entscheidet, ob E1 so bleibt; Portal und Bibliothek kommen in die naechste EXE.
+- **B) EXE erst nach allen vier Punkten:** eine Fassung, ein Test - dafuer siehst du den neuen Preis
+  erst spaeter.
+- **C) EXE jetzt sofort (Stand Register 322, ohne E1):** testet Wall und Marktplatz im Spiel, die
+  Preisfrage bleibt offen - kostet einen zusaetzlichen Bau von 4-5 Minuten.
 
 **Ohne Frage mitgenommen (Fehlerbehebung ohne Regelwirkung):** `berater.py` zeigt beim Baupreis noch
-den internen Zusatz (R3-3 C-4/I-10, R3-4 I-2). Das wird im naechsten Bauabschnitt still mitbehoben und
-im Register genannt.
+den internen Zusatz (R3-3 C-4/I-10, R3-4 I-2) - wird im naechsten Bauabschnitt still mitbehoben und im
+Register genannt.
