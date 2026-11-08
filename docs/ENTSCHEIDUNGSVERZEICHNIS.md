@@ -185,6 +185,134 @@
 | 176 | A: Doppel-Puffer im Ansichtswechsel (03.11.2026, Daniels Wunsch nach Fluessigkeit). | GEBAUT | 03.11.2026 |
 | 177 | Overlay-Basis: Ingame-Dialoge statt Desktop-Fenster (03.11.2026, Daniels Wunsch 22:2x). | GEBAUT | 03.11.2026 |
 | 178 | Weltkarte mit gemaltem Rahmen, Gelaendeton und Goldrand (03.11.2026, Daniels Entscheidung 22:1x). | GEBAUT | 03.11.2026 |
+| 179 | S-8 Stufe 3: Bauplaene je Taktik - Mindestzahlen und Restfelder (04.11.2026, Daniels Vorgabe zu S-8: der Bot soll seine Karte je Taktik sinnvoll nutzen). | GEBAUT | 04.11.2026 |
+| 180 | S-12: alle Felder nutzen - Huegel wird mitbelegt, Reserve am Gelaende gemessen (04.11.2026, Daniels Konzept S-12). | GEBAUT | 04.11.2026 |
+| 181 | S-11: Kartenwahl mit Feldverstaendnis - die Karte nach dem Engpass der Taktik (04.11.2026, Daniels Konzept S-11). | GEBAUT | 04.11.2026 |
+| 182 | Externe Projektpruefung durch das starke Modell (04.11.2026, Daniels Auftrag, Grenze 3 USD). | GEBAUT | 04.11.2026 |
+| 183 | Story 1: Intro, Chronik, Sieg- und Niederlagentext (04.11.2026, Daniels Entscheidungen 10:5x). | GEBAUT | 04.11.2026 |
+| 184 | Story 2: die fuenf Bots sprechen (04.11.2026, Daniels Entscheidungen 10:5x). | GEBAUT | 04.11.2026 |
+| 185 | GitHub-Neuaufbau: letzter Upload zurueckgenommen, erster Pre-Release geplant (Daniel, 04.11.2026). | GEBAUT | 04.11.2026 |
+| 186 | Geschichts-Audit: Herkunft jedes Story-Bausteins und sieben Widersprueche (04.11.2026). | GEBAUT | 04.11.2026 |
+| 187 | Wappen je Fraktion neu zugeordnet (Daniel, 04.11.2026). | GEBAUT | 04.11.2026 |
+| 188 | Geschichte ausgebaut: elf Teile, 11.211 Woerter, Entwurf des grossen Modells (Daniel, 04.11.2026). | GEBAUT | 04.11.2026 |
+| 189 | Bildcontent von Daniel aufgenommen und geschnitten (04.11.2026, 17:00 Uhr). | GEBAUT | 04.11.2026 |
+| 190 | Bildcontent-Schnitt korrigiert: gemessene Fugen statt Schaetzung (04.11.2026). | GEBAUT | 04.11.2026 |
+| 191 | KORREKTUR zu Register 189 und 190: der automatische Bildschnitt war unbrauchbar (Daniel, 04.11.2026, 17:3x). | GEBAUT | 04.11.2026 |
+| 192 | Altes GitHub-Repository geloescht, unter gleichem Namen neu und privat angelegt (Daniel, 04.11.2026, 18:0x). | GEBAUT | 04.11.2026 |
+| 193 | Altbestand des alten GitHub-Stands auch lokal entfernt (Daniel, 04.11.2026, 18:1x). | GEBAUT | 04.11.2026 |
+| 194 | Erster Pre-Release 0.5.0-pre.1 veroeffentlicht (Daniel, 04.11.2026, 18:3x). | GEBAUT | 04.11.2026 |
+| 195 | Portrait von Daniel in die Veroeffentlichung aufgenommen (Daniel, 04.11.2026, 18:5x). | unbekannt | 04.11.2026 |
+| 196 | W-12 (in der Uebergabe 19:40 als "W-6" gefuehrt): die 14 leeren Limbus-Dimensionen sind entfernt - das Spiel fuehrt SECHS Welten. | GEBAUT | 04.11.2026 |
+| 197 | Daniels Antworten auf die fuenf offenen Fragen der Uebergabe 19:40 (04.11.2026, 21:0x). | GEBAUT | 04.11.2026 |
+| 198 | W-13 gebaut: der Gesamtsieg nach Daniels Definition (Register 197), Endlosspiel danach. | GEBAUT | 04.11.2026 |
+| 199 | Kostenregel fuer grosse Modelle (Daniel, 04.11.2026, 23:0x bis 23:2x). | unbekannt | 04.11.2026 |
+| 200 | GitHub-Freigabe erweitert (Daniel, 04.11.2026, 23:3x). | BLOCKIERT | 04.11.2026 |
+| 201 | W-14 Teil 1 gebaut: das Drachen-Modul (Daten, Figur/Ruine, Siegzustand) - NICHT verdrahtet. | GEBAUT | 05.11.2026 |
+| 202 | Eigenes Mini-Repo fuer das Entwicklungsprotokoll (Daniel, 05.11.2026) - Auftrag, noch nicht gebaut. | GEBAUT | 05.11.2026 |
+| 203 | Drachen-Nachtrag (Daniel, 05.11.2026): nur Verteidiger, Beuteanteil nach Leistung, epische Berichte, kein Ausspaehen. | GEBAUT | 05.11.2026 |
+| 204 | W-14 Teil 2 gebaut: die Drachen stehen im Spiel (die Registerpunkte 201 und 203 sind damit verdrahtet). | GEBAUT | 05.11.2026 |
+| 205 | Drachen-Nachtraege (Daniel, 05.11.2026, 02:0x bis 02:4x): Mana-Belohnung, beschaedigte Wache, Flammenzeichen, Bot-Urteil, pluenderbare Ruine, gesperrte Koordina | GEBAUT | 05.11.2026 |
+| 206 | W-15 gebaut: die sechs Haeuser mit Namen und die Wappenbeschreibungen nach den gelieferten Bildern. | GEBAUT | 05.11.2026 |
+| 207 | W-16 gebaut: die Drachenschuppe ist eine Trophae mit eigenem Lagerfach. | GEBAUT | 05.11.2026 |
+| 208 | W-17 gebaut: der Drachenkampf ist gemessen (Balancing), nicht geschaetzt. | GEBAUT | 05.11.2026 |
+| 209 | Kampfregel 4 (Beute-Reihenfolge) NICHT gebaut - erst gemessen, weil die Folge groesser ist als die Regel. | ABGESEGNET | 05.11.2026 |
+| 210 | Register 202 erfuellt: das Protokoll hat sein eigenes Repository mit der VOLLEN Historie. | GEBAUT | 05.11.2026 |
+| 211 | Kosten 01.-05.11.2026 aus der Anbieter-Abrechnung nachgerechnet und ins Protokoll uebernommen. | unbekannt | 05.11.2026 |
+| 212 | Neun Entscheidungen Daniels (05.11.2026, 08:40) - Regeneration und Erwachen sind ABGELEHNT, die Ruine wird ein taktischer Punkt. | VERWORFEN | 05.11.2026 |
+| 213 | Frage 6 gebaut: die sechs Hausfarben folgen den Wappentinkturen | GEBAUT | 05.11.2026 |
+| 214 | Frage 8 gebaut: Gold lädt zuerst, der Rest wird anteilig verteilt (Kampfregel 4 in der entschärften Fassung) | GEBAUT | 05.11.2026 |
+| 215 | Frage 1 gebaut: Bots räumen geplünderte Ruinen mit Karren und ohne Kampf | GEBAUT | 05.11.2026 |
+| 216 | Frage 9 gebaut: die besiegte Ruine deckt ihre Seite — kein Angriff aus dieser Richtung | GEBAUT | 05.11.2026 |
+| 217 | Frage 2 gebaut: die zweite Atemphase im Drachenkampf — 20 % unter halber Wache, vorher gemessen | GEBAUT | 05.11.2026 |
+| 218 | Frage 4 umgesetzt: das Protokoll wird AUSGELAGERT statt verdichtet — 350 auf 247 Zeilen, nichts verloren | unbekannt | 05.11.2026 |
+| 219 | Daniels Nachschärfungen: Gold-Vorrang auf 25 Prozent, die Ruine deckt NUR ihre eigene Koordinate | unbekannt | 05.11.2026 |
+| 220 | Wache der Projektordnung an Frage 4 angepasst - und der Endstand ist gruen | unbekannt | 05.11.2026 |
+| 221 | Release-Namen nach Daniels Schema: `Nebelseetal_<Label>_V0.0.<Zaehler>.exe` — und die erste so benannte EXE ist gebaut und geprueft | GEBAUT | 05.11.2026 |
+| 222 | Neue Anforderung Daniel: das Startfenster ist die Kartengruendungsseite, die Fraktion wird direkt nach Spielneubeginn gefragt | GEBAUT | 05.11.2026 |
+| 223 | Balancing-Gutachten mit dem grossen Modell eingeholt und JEDEN Vorschlag nachgeprueft | GEBAUT | 05.11.2026 |
+| 224 | Befund: die EXE laesst nach einem harten Beenden ihre `game.lock` stehen — und `--onefile` laeuft in ZWEI Prozessen | BLOCKIERT | 05.11.2026 |
+| 225 | Daniel entscheidet die drei Balancing-Vorschlaege: Goldkosten JA, Beute-Quote NEIN, Karten nach Original mit LOESCHEN und Verlust der Gruendungsressourcen | GEBAUT | 05.11.2026 |
+| 226 | Register 222 gebaut: die Kartengruendungsseite ist das Startfenster, die Fraktion wird EINMAL gefragt | GEBAUT | 05.11.2026 |
+| 227 | Register 225 gebaut: Goldkosten der Militaereinheiten minus 30 Prozent und die Karte wird GEZOGEN - Loeschen heisst Siedlung aufgeben | GEBAUT | 05.11.2026 |
+| 228 | Daniels Antworten zur Uebergabe (15:20): Startkarte wieder FEST fuer Spieler und Bots, Aufgeben des ersten Dorfes erst ab sechs Siedlungen, Bots geben nach der  | VERWORFEN | 05.11.2026 |
+| 229 | Register 228 GEBAUT: Startkarte wieder FEST, erstes Dorf erst ab sechs Siedlungen aufgebenbar, Bots geben mit Ruecklage auf | GEBAUT | 05.11.2026 |
+| 230 | Erste VEROEFFENTLICHTE Fassung: `Nebelseetal_Pre_Release_V_0.0.1.exe` - Name aus EINER Quelle, Public-Bau mit demselben Namen, Null-Zustand fuer GitHub | GEBAUT | 05.11.2026 |
+| 231 | Null-Zustand auf GitHub: `main` ersetzt, Pre-Release `v_0.0.1` mit dem ZIP veroeffentlicht | unbekannt | 05.11.2026 |
+| 232 | Spieltest-Geraet repariert: Baukette vollstaendig, Fehlversuche mit Grund, Stil-Schalter - und der Befund, warum nie eine Ware fertig wurde | GEBAUT | 05.11.2026 |
+| 233 | Zwei bezahlte Spieltest-Laeufe und zwei Modell-Bewertungen: Holz ist die Engstelle, der Handkarren blockiert den Angriff, der Kampf ist so nicht beurteilbar | GEBAUT | 05.11.2026 |
+| 234 | W1 GEBAUT: Waren kosten im Kern-Weg Geld und Forschung; Angriff ohne Karren erlaubt; zwei neue Spieltest-Laeufe L3/L4 | GEBAUT | 05.11.2026 |
+| 235 | Version 0.0.2 gebaut, am Bildschirm geprueft und als Pre-Release veroeffentlicht | GEBAUT | 05.11.2026 |
+| 236 | Daniels Antworten der Uebergaberunde 21:15: Voraussetzungen sichtbar zuerst, Modell liefert fertige Pakete, 4,00 USD neues Modell-Budget, Mana erst MESSEN dann  | VORSCHLAG | 05.11.2026 |
+| 237 | Leitlinie Spielfluss: es muss ein Aufbauspiel bleiben | GEBAUT | 05.11.2026 |
+| 238 | Neue Rangfolge der Quellen: Gesamtbalancing vor Originalwerten | VORSCHLAG | 05.11.2026 |
+| 239 | Entwicklungsablauf in sieben Phasen: vorab klaeren, dann bauen | unbekannt | 05.11.2026 |
+| 240 | Gesamtbild des Spiels und Arbeitsplan Stueck fuer Stueck: Mechanik-Landkarte und Bot-Faehigkeiten gemessen | unbekannt | 05.11.2026 |
+| 241 | A1: Voraussetzungen im Spiel sichtbar - JEDE offene Bedingung einzeln, mit ihrem naechsten Schritt | GEBAUT | 05.11.2026 |
+| 242 | Gemini-Input ausgewertet und ins Projekt uebernommen: gefiltert, gegen den Code geprueft, 16 Rohdateien archiviert, sechs uebernehmbare Stuecke und vier Korrekt | GEBAUT | 06.11.2026 |
+| 243 | Entscheidungsrunde zum Gemini-Input in EINER Runde beantwortet - neun Fragen, acht wie empfohlen, eine gegen die Empfehlung | GEBAUT | 06.11.2026 |
+| 244 | Fuenf Gemini-Antworten geprueft und in einen Abarbeitungsplan gelegt: als Denkmodell brauchbar, als Code an vier Stellen falsch | GEBAUT | 06.11.2026 |
+| 245 | Geminis Menue-Teilgeschichten geprueft: vier von fuenf brauchbar, der Ton passt bei keinem, zwei Antworten sind versteckte Mechaniken | GEBAUT | 06.11.2026 |
+| 246 | Nachtauftrag festgelegt: fester Ablauf S0 bis S4, selbststaendig, mit Modellbudget 4,00 USD und pauschaler Skill-Freigabe | GEBAUT | 06.11.2026 |
+| 247 | Nachtauftrag um die Externen-Info erweitert: kompakte Spielbeschreibung fuer fremde Modelle, die auf dem Desktop bleibt | GEBAUT | 06.11.2026 |
+| 248 | Externen-Info nennt kuenftig die Online-Quellen, bleibt aber ohne Zugriffsannahme | GEBAUT | 06.11.2026 |
+| 249 | S0 gerechnet: fuenf Tabellen mit Rechenweg (V-1 bis V-5) | VORSCHLAG | 06.11.2026 |
+| 250 | S1 gebaut: Postfach mit Archiv, Filter, Fristen, Blaettern und Ruhm-Balken | GEBAUT | 06.11.2026 |
+| 251 | S1b gebaut: vier Menue-Teilgeschichten, je Spielstand genau einmal | GEBAUT | 06.11.2026 |
+| 252 | S2 gebaut: Mauerreparatur mit Preis je Stufe und stueckweisem Zustand | GEBAUT | 06.11.2026 |
+| 253 | S2 im vollen Sammellauf: 179 von 182 gruen, 1 Flakiness-Befund | BLOCKIERT | 06.11.2026 |
+| 254 | Gemini-Vorschlaege aufgenommen: zwei Dateien abgelegt, drei Alternativen eingeordnet, EINE falsche Formel belegt | GEBAUT | 06.11.2026 |
+| 255 | Design Content Nr. 3 (5 Fraktionspanoramen) und der Google-Auftrag samt Antwort abgelegt und ausgewertet | GEBAUT | 06.11.2026 |
+| 256 | Alle Gemini-Unterlagen an EINEM Ort: `docs/eingaenge/GEMINI_20261106/` mit Index und vier Prueffragen | VORSCHLAG | 06.11.2026 |
+| 257 | S3 gebaut: Verwundetenheilung - 30 Prozent verwundet, 75 Prozent Kosten, halbe Dauer | GEBAUT | 06.11.2026 |
+| 258 | S3 im vollen Sammellauf: 181 von 183 gruen, 0 rot (1346 s) | unbekannt | 06.11.2026 |
+| 259 | Block 5: Verlustbericht als eigener Typ `verlust` und Flakiness-Wache geheilt | GEBAUT | 06.11.2026 |
+| 260 | Deutsche Zahlenanzeige fuer Heilungskosten; fuenf Entscheidungen Daniels in EINER Runde | unbekannt | 06.11.2026 |
+| 261 | LLM-Auftragsdokument: Spiel, Code, geplanter Stand, Abschlussbedingungen, Balancing-Auftrag | GEBAUT | 06.11.2026 |
+| 262 | Voller Sammellauf ueber den Stand mit deutscher Zahlenanzeige: 181 von 183 gruen, 0 rot | unbekannt | 06.11.2026 |
+| 263 | Pre-Release V_0.0.3 gebaut, gestartet und veroeffentlicht | GEBAUT | 06.11.2026 |
+| 264 | Vier Antworten externer Modelle auf den LLM-Auftrag abgelegt, hashgeprueft und indexiert | unbekannt | 06.11.2026 |
+| 265 | Budget fuer das grosse Modell: 3,00 USD ab sofort; dazu der urspruengliche Sitzungsauftrag abgelegt | unbekannt | 06.11.2026 |
+| 266 | Fremdkosten: 1,00 EUR fuer die Claude-Opus-Antwort (PayPal), die anderen drei Antworten kostenlos | unbekannt | 06.11.2026 |
+| 267 | Vier Modellantworten abgeglichen, mit acht gemessenen Gegenbefunden (G-1 bis G-8) | GEBAUT | 06.11.2026 |
+| 268 | Der fixe Ablauf `docs/ABLAUF_LLM_20261106.md` steht - entworfen mit EINEM vorbereiteten `deepseek-v4-pro`-Aufruf, Kosten gemessen 0,11 USD | GEBAUT | 06.11.2026 |
+| 269 | Berichtigung: Rache-Schwelle ist 99 SK, nicht 90 SK | unbekannt | 06.11.2026 |
+| 270 | A-6 ist heute NICHT erfuellt - die Grenze im Auftragsdokument ist aelter als der Pruefstand | unbekannt | 06.11.2026 |
+| 271 | Handelsweg ist nicht tot - es fehlt die Kennzahl: `gold_erloes` wird nirgends geschrieben | GEBAUT | 06.11.2026 |
+| 274 | Neues Guthaben fuer das grosse Modell: 3,00 USD fuer die naechste Sitzung (Daniel 10:35) | BLOCKIERT | 06.11.2026 |
+| 275 | KI-Auftrag Runde 2 entworfen und auf den Desktop gelegt - Daniel ausdruecklich hingewiesen | unbekannt | 06.11.2026 |
+| 276 | Fuenf Entscheidungen des fixen Ablaufs beantwortet (F-1 bis F-5), Wortlaut in der Fragenakte | VORSCHLAG | 06.11.2026 |
+| 277 | Zweite Entscheidungsrunde: Skill-Freigaben, Zeitpunkt fuer Runde 2 und Release, Grom im Detail | unbekannt | 06.11.2026 |
+| 278 | Werkzeugbefund: `pruefe_protokoll.py` vergleicht gegen die Fassung vom 05.10., nicht gegen die Sicherung dieser Sitzung | BLOCKIERT | 05.10.2026 |
+| 279 | Pauschale Skill-Freigabe fuer die naechste Sitzung (Daniel 11:50) | unbekannt | 06.11.2026 |
+| 280 | S4-2 Kennzahlenblatt gebaut: jede Partie hinterlaesst eine vergleichbare Zeile | GEBAUT | 06.11.2026 |
+| 281 | Runde 2 der fremden Modelle abgeglichen (vier Antworten, jede Behauptung nachgemessen) | BLOCKIERT | 06.11.2026 |
+| 282 | Zentrales Spielkonzept angelegt - EIN fuehrendes Dokument statt vieler Einzelpapiere | BLOCKIERT | 06.11.2026 |
+| 283 | Bildcontent aufgeraeumt: drei Sammlungen entfernt, Daniels Referenzbilder abgelegt | BLOCKIERT | 06.11.2026 |
+| 284 | Fuenf Konzeptentscheidungen Daniels (Runde um 13:50) - Kontakt, Topf unter Pakt, Durchmarsch, Paktwirkung, Prioritaet | unbekannt | 06.11.2026 |
+| 285 | Fuenf weitere Entscheidungen Daniels (Runde um 14:00) - Paktbruch beim Absenden, Handelsabkommen, Referenzbilder in der EXE, Besucherdokumente, Push | BLOCKIERT | 06.11.2026 |
+| 286 | S4-4 Rachetopf - jede Zahl mit Urteil, drei Entscheidungen Daniels umgesetzt | VORSCHLAG | 06.11.2026 |
+| 287 | Startbilder: Panorama hinter Anmeldung und Ladebild, Logo statt Schriftzug | unbekannt | 06.11.2026 |
+| 288 | S4-5 Ereignisse Haug, Grom, Silra - Preise aus V-4, Frist und Gunst als Vorschlag | VORSCHLAG | 06.11.2026 |
+| 289 | Handelspunkte: die Quelle verlangt Verkaufs-Erloes, der einzige Handelsweg laesst den Spieler KAUFEN - Befund statt Buchung | GEBAUT | 06.11.2026 |
+| 290 | S4-6 Handelspunkte: Verkaufsrichtung im Kern, EINE Erloes-Buchstelle, Anzeige am selben Zaehler - und ein Anzeigefehler behoben | BLOCKIERT | 07.11.2026 |
+| 291 | S4-6 Verkaufsmaske: der Verkauf ist jetzt auch ueber die Oberflaeche erreichbar | BLOCKIERT | 07.11.2026 |
+| 292 | S4-6c Handel in der Spielschicht: Verkauf ueber den Kern, Kennzahl im Kennzahlenblatt, EINE Preisfunktion fuer App und Messschicht | BLOCKIERT | 07.11.2026 |
+| 293 | S4-7 Bot-Luecken: Bots spaehen vor dem Raubzug, eine Reaktionsstufe verschiebt die vorhandenen Raubzug-Schwellen, der Drache bleibt beim vorhandenen Urteil | GEBAUT | 02.11.2026 |
+| 294 | F-14 = B: der naechste Drache wird GEMELDET, nicht gemieden - reine Anzeige | VORSCHLAG | 07.11.2026 |
+| 295 | B-1 Sollkurve: Idealplan aus den Daten, Zielkorridor je Spieltag (0,7 bis 1,1) | unbekannt | 07.11.2026 |
+| 296 | B-2 Regelkreis: zehn Laeufe messen, EINEN Datenwert vorschlagen, A/B in einer Kopie, Urteil nach drei Schwellen; Feedback-Buendel ab drei Meldungen | VERWORFEN | 07.11.2026 |
+| 297 | R3-1: EINE Spieltag-Laenge im ganzen Projekt (Befund A-1 der dritten Modellrunde behoben) | VORSCHLAG | 07.11.2026 |
+| 298 | R3-2: Die Ereignisart haengt am BOTNAMEN, nicht an der Position (Befund I-1 der dritten Modellrunde behoben) | unbekannt | 07.11.2026 |
+| 299 | Schritt 10: die zwoelf End-zu-End-Ketten auf den ECHTEN Spielwegen (`tests/test_e2e_wege.py`) | GEBAUT | 08.11.2026 |
+| 300 | S4-3-Nachtrag: der Nichtangriffspakt hat einen Spielweg (Knopf "Pakt anbieten" je Bot) | GEBAUT | 08.11.2026 |
+| 301 | Spieltest-Paket fuer Daniel: EXE, Anleitung mit Soll/Beobachtung/Note, vorbereiteter Spielstand | GEBAUT | 08.11.2026 |
+| 302 | Messwerte als Daten: jede Pruefdatei schreibt ihre Zahlen mit Zeitstempel (`docs/audits/messwerte/`) plus Index | unbekannt | 08.11.2026 |
+| 303 | Schritt 12: der Sammellauf faehrt parallel, jede Pruefdatei mit eigenem Spielstand (1.132 s -> 896 s) | GEBAUT | 08.11.2026 |
+| 304 | Schritt 12, Nachtrag: drei Pruefdateien ohne Befunde-Feld werden ausgewertet (589 Pruefungen mehr), A-6 auf die gemessene Grenze | VORSCHLAG | 08.11.2026 |
+| 305 | Spieltest 1 ausgewertet: Design zu dunkel (Note 4), Soft Lock nach Bau auf dem Nebelsee, "Los geht es" ohne Wirkung - Test 2 mit EINEM Stand vorbereitet | GEBAUT | 08.11.2026 |
+| 306 | Handelspreis je Rohstoff statt pauschal 300 Gold je Stueck (Daniel, 08.11.2026, 17:52). | ABGESEGNET | 08.11.2026 |
+| 307 | Wall und Ausbau beenden den Goetterschutz - kriegerische Vorbereitung (Daniel, 08.11.2026, 17:52). | ABGESEGNET | 08.11.2026 |
+| 308 | Die Portal-Sperre rechnet in SPIELZEIT (Daniel, 08.11.2026, 17:52). | ABGESEGNET | 08.11.2026 |
 
 ## Ersetzungen (Handpflege)
 

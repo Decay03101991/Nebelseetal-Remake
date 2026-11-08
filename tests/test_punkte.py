@@ -9,7 +9,8 @@ Prueft `src/punkte.py` gegen das Handbuch 2009 (Seiten 3-6) und die Datendateien
   * Ruf geht nicht in die Gesamtpunkte ein
   * Goetterschutz = sieben Tage, laeuft ab
   * Rangliste: Punkte, dann Ruf, dann frueheres Anmeldedatum
-  * Sieg/Niederlage ist ausdruecklich ein VORSCHLAG (das Handbuch nennt keine Bedingung)
+  * Sieg/Niederlage ist ausdruecklich ein VORSCHLAG (das Handbuch nennt keine Bedingung);
+    seit Register 311 (C-6) steht das Kennwort NICHT mehr im Spielertext - der Grund steht im Code
 
 Aufruf:  python -X utf8 tests/test_punkte.py
 """
@@ -233,8 +234,8 @@ check("ohne Siedlung und ohne Einheit ergibt sich Niederlage",
       _ergebnis[0] == "niederlage", str(_ergebnis))
 check("die Niederlagebegruendung nennt 'das Handbuch nennt keine Niederlagebedingung'",
       "das Handbuch nennt keine Niederlagebedingung" in _ergebnis[1], _ergebnis[1])
-check("die Niederlage ist als VORSCHLAG gekennzeichnet",
-      "VORSCHLAG" in _ergebnis[1], _ergebnis[1][:60])
+check("die Niederlage traegt KEIN 'VORSCHLAG' mehr im Spielertext (C-6, Register 311)",
+      "VORSCHLAG" not in _ergebnis[1], _ergebnis[1][:60])
 
 _z_viel = {"siedlungen": [{"name": "S"}], "einheiten": {"Kämpfer": 1}, "punkte": 300}
 _viel = P.spielausgang(_z_viel)

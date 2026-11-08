@@ -1,3 +1,44 @@
+# STAND 08.11.2026, 18:45 - Opus-Lieferung abgelegt und geprueft; drei Befunde gebaut (Register 314-317)
+
+> Neuester Block. Darunter 15:50 (Schritt 11, AST-Quellwache; Register 309), 14:55 (Spieltest 2;
+> Register 307), 14:00 (Spieltest 1, Soft Lock, V-3; Register 306).
+
+**Die Uebergabe 16:20 ist abgearbeitet, soweit sie ohne Daniel geht:** der ausstehende volle
+Sammellauf ist gefahren (18:01: 203 von 204 gruen, 1 rot - die rote Wache widersprach Register 311 und
+ist berichtigt), die Opus-Lieferung liegt im Repo und ist gegen den Code gemessen.
+
+**Was NEU im Repo liegt (nur lesen, nichts davon ist Spielcode):**
+`docs/extern/ANTWORT_OPUS_20261108.md` (5 Teile, SHA256 `09fd7992...`),
+`docs/extern/SPIELTEST_OPUS_WEITERER_20261108.md` (8 Teile, SHA256 `7290c7f3...`) und
+`docs/extern/PRUEFUNG_OPUS_20261108.md` (Gegenprobe: **17 von 19 Angaben zeichengenau bestaetigt**,
+zwei Zaehlabweichungen ohne Folge). Daniels Desktop ist geraeumt; die Herkunft steht mit `MANIFEST.md`
+unter `D:\Arbeiten\Hermes\Eingaenge61108_Opus_Spieltest\`.
+
+**Was GEBAUT ist (drei kleine Befunde, jede mit Gegenprobe):**
+1. **S4** - ein ungelesener Diebstahlbericht verschwindet nicht mehr nach einem Spieltag
+   (`data/nachrichten.json` + Rueckfall `postfach.py`), Wache `test_nachrichten_archiv` 56/0/0.
+2. **S5** - die Ausbildungs-Vorschau rechnet immer mit Menge 1, der Preis steht also auch dann da, wenn
+   nichts bezahlbar ist; der Knopf bleibt gesperrt (`tests/test_ausbildung_vorschau.py`, 9/0/0).
+3. **S6** - Forschungs-Sperrtext nennt Soll und Ist in Worten und in derselben Reihenfolge
+   ("Bibliothek Stufe 3 (hast 1)"); `test_forschungspfad` 124/0/0, `test_lokale_forschung` 47/0/0.
+
+**Daniels Entscheidungen 17:52 sind als 306, 307, 308 im Register** (Handelspreis je Rohstoff,
+Wall/Ausbau beenden den Goetterschutz, Portal-Sperre in Spielzeit). **Alle drei sind noch NICHT
+gebaut** - sie sind der naechste Bauabschnitt.
+
+**Der naechste Schritt (verbindlich, in dieser Reihenfolge):**
+1. **E1 Handelspreis je Rohstoff** - `botkern.oekonomie_angebot` ist fertig und wird von KEINER
+   Stelle aufgerufen (gemessen); der Spielerhandel nimmt pauschal 300 Gold (main.py Z. 5190/10583).
+2. **Wall in die Siedlungskarte unter Verteidigung** (Daniels Wortlaut 16:35) - der tote Code
+   `main.py` Z. 11644/11645 zeigt, warum die Reparatur nie auf der Karte stand.
+3. **Portal per Klick auf ein freies Weltfeld** - `_portal_wechsel` versetzt heute KEIN Dorf
+   (gemessen, Z. 11747-11791); Daniels Note 4 ist damit nicht Bedienung, sondern ein Fehler.
+4. **Bibliothek versetzen** - "eine Bibliothek je Siedlung" ist ORIGINALREGEL
+   (`data/buildings.json`, `_belegt_nur_auf`); ein Versetzen als EINE Buchung haelt sie ein.
+5. **Marktplatz auffindbar** (Kasten "So handelst du", Karawanen-Zustand, alle Bots zeigen).
+6. **E3 Portal-Sperre in Spielzeit** samt Altstand-Reparatur fuer `letzter_wechsel`.
+7. Danach der volle Sammellauf und EINE EXE, dann Spieltest 4.
+
 # STAND 08.11.2026, 15:50 - Schritt 11 fertig: die AST-Quellwache steht (Register 309)
 
 > Neuester Block. Darunter 14:55 (Spieltest 2: Wall, Gelaende-Hinweis, Bibliothek; Register 307),
