@@ -1,6 +1,56 @@
+# STAND 08.11.2026, 20:28 - Spieltest 3, Note 3 gebaut: der Wall steht in der Rubrik Verteidigung (Register 321)
+
+> Neuester Block. Darunter 18:50 (Opus als Werkzeug, drei Befunde; Register 314-320), 15:50 (Schritt 11,
+> AST-Quellwache; Register 309), 14:55 (Spieltest 2; Register 307), 14:00 (Spieltest 1, Soft Lock, V-3;
+> Register 306).
+
+**Der Wall-Umzug aus dem Stash ist fertig** (`stash@{0}` aufgeloest, kein Zwischenstand mehr offen).
+Der Dorfwall steht jetzt an EINER Stelle: auf der Siedlungskarte in der Rubrik Verteidigung, ohne
+gewaehltes Feld. Das Dorfzentrum zeigt nur noch eine Zeile mit Zustand und dem Knopf „Wall verwalten“,
+der die Karte direkt in der Rubrik Verteidigung oeffnet.
+
+**VORHER GEMESSEN (Altstand `ca3efa4`):** der Mauerblock wurde zweimal gebaut (`_render_overview` im
+Dorfzentrum UND die Wallzeile ueber der Karte); die Rubrikwahl stand HINTER der Feldpruefung, „Verteidigung“
+war also nur nach einem Feldklick erreichbar, obwohl der Wall kein Kartenfeld belegt; hinter einem `return`
+lag ein unerreichbarer Aufruf von `_mauer_reparatur_block` samt dem Spielersatz „Der Dorfwall belegt kein
+Kartenfeld“ (der tote Code aus der Opus-Pruefung).
+
+**GEMESSEN:** neue Wache `tests/test_wall_verteidigung.py` **13/0/0** - sie prueft die Quellstruktur per
+`ast` (genau EINE Methode ruft `_mauer_reparatur_block`, die Wallzeile steht in der Spalte mit der
+Baubereich-Auswahl) UND die sichtbare Folge in einem echten Fenster (Stufe, Zustand, Reparaturpreis ohne
+Feld; in der Rubrik Produktion erscheint keine Wallzeile). **Gegenprobe gegen den Altstand: 8 bestanden,
+5 FEHLER.** Der erste Anlauf der Wache war selbst zu schwach und ist verschaerft worden: „Stufe“ steht
+auch in „Ausbaustufe“, und die Fensterpruefung setzte `karten_siedlung` nicht (Rueckfall „Noch keine
+Siedlung gewaehlt“).
+
+**Zwei alte Wachen hielten den Umzug fest und wurden am ANKER umgestellt, nicht gelockert:**
+`test_gpt_baumenue_kategorien_fix04` verlangt den Satz „belegt kein Kartenfeld“ - er steht jetzt in
+`_wall_block`, wo er hingehoert; `test_anzeigetexte_umlaute` fand „ueberwinden“ in einem neuen Anzeigetext
+(jetzt „überwinden“).
+
+**Sammellauf 20:13 bis 20:26: 206 von 206 gruen, 0 rot, 2 ausgesetzt, 8.996 Pruefungen, 773 s**
+(`docs/audits/sammellauf_20261108_2013.log`). Der Lauf davor (20:14) war 2 rot - genau diese zwei Anker.
+
+**Was NICHT fertig ist (Test 3, Noten 4, 5, 8):**
+1. **Marktplatz auffindbar** (Note 5): Karawane als Voraussetzung nennen, den Zustand zeigen, ALLE Bots
+   zeigen statt sie bei Neigung <= 0,3 zu verstecken.
+2. **Portal per Klick auf ein freies Weltfeld** (Note 4): der Kern fehlt komplett - `_portal_wechsel`
+   versetzt kein Dorf (gemessen, Z. 11747-11791 setzt nur `eigene_dimension`), ein `dorf_versetzen` gibt es nicht.
+3. **Bibliothek versetzen** (Note 8): „eine Bibliothek je Siedlung“ ist ORIGINALREGEL; ein Versetzen als
+   EINE Buchung haelt sie ein. **Frage 17 ist Daniels Entscheid, nicht meine** (Empfehlung liegt vor).
+4. **E1 Handelspreis je Rohstoff** (Entscheidung 306, Patch-Plan in `docs/extern/antworten/20261108_1847_...md`);
+   drei Stellen sind dort als UNGELESEN markiert (Herkunft von `stufe`, `karte`, `tagesbedarf`; Schluessel
+   `ware` im Handelsvertrag; wo die Schwelle in der Maske steht).
+5. **E3 Portal-Sperre in Spielzeit** (Entscheidung 308): vier `time.time()`-Stellen (Z. 11742, 11774, 11779,
+   12343) plus Altstand-Reparatur beim Laden (Z. 8092).
+6. Danach der volle Sammellauf und EINE EXE, dann Spieltest 4.
+
+**Bei Daniel offen:** Frage 15 (neun Balance-Werte ohne Quelle), Frage 16 (sechs Datendateien ohne
+Quellenangabe), Frage 17 (Bibliothek), Frage 18 (Pakt) - zu allen liegt eine Empfehlung vor, bestaetigt ist keine.
+
 # STAND 08.11.2026, 18:50 - Opus-Lieferung abgelegt und geprueft; drei Befunde gebaut (Register 314-317)
 
-> Neuester Block. Darunter 15:50 (Schritt 11, AST-Quellwache; Register 309), 14:55 (Spieltest 2;
+> Aelterer Block (durch 20:28 abgeloest). Darunter 15:50 (Schritt 11, AST-Quellwache; Register 309), 14:55 (Spieltest 2;
 > Register 307), 14:00 (Spieltest 1, Soft Lock, V-3; Register 306).
 
 **Die Uebergabe 16:20 ist abgearbeitet, soweit sie ohne Daniel geht:** der ausstehende volle

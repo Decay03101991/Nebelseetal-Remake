@@ -53,6 +53,10 @@ class GUIWall(unittest.TestCase):
         wald = self.karte['raster'].index('wald')
         berg = self.karte['raster'].index('berg')
         self.ort.bauten={str(wald):'holzfaeller',str(berg):'steinmetz'}
+        # Seit Register 321 steht der Wall in der Rubrik Verteidigung und braucht KEIN
+        # gewaehltes Feld - genau das prueft dieser Aufruf mit.
+        self.app._karten_baukategorie='Verteidigung'
+        self.app.karten_feld=None
         self.app._render_settlement_map()
         def buttons(w):
             for child in w.winfo_children():

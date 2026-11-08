@@ -9729,39 +9729,21 @@ class NebelseetalApp:
             + ("  Überbelegt – es wächst kein Siedler nach, bis ein Haus steht." if _ueber else ""),
             ("TkDefaultFont", 10), ("#FDBA74" if _ueber else "#DAA520"),
             breite=790, innen=14, pady=4, umbruch=760)
-        # ---- Dorfwall im Dorfzentrum (Daniels Spieltest 2, 08.11.2026, Schritte 3 und 4, Note 5) ----
-        # Daniels Wortlaut: "kann ich egal wo keine Uebersicht finden von einem Wall oder wo ich ihn
-        # ausbauen koennte" und "nicht auffindbar WO das ist". Bis hier stand der Wall NUR auf der
-        # Siedlungskarte; wer im Dorfzentrum landet, hat ihn nie gesehen. Die Zahlen kommen aus
-        # `dorfwall.kennwerte`, die Reparatur aus `_mauer_reparatur_block` - dieselbe Stelle wie dort,
-        # keine zweite Rechnung und kein zweiter Buchungsweg.
+        # ---- Dorfwall: Verweis in die Siedlungskarte (Daniels Spieltest 3, 08.11.2026, Note 3) ----
+        # Wortlaut: der Wall gehoert "in die geoeffnete karte in das dortige menue, wo man auch
+        # Gebaeude baut, bei Verteidigung". Bis Register 307 stand hier der GANZE Kasten (Stufe,
+        # Zustand, Preis, Reparatur). Jetzt steht der Wall an EINER Stelle - auf der Karte in der
+        # Rubrik Verteidigung. Hier bleibt eine Zeile mit Zustand und dem Weg dorthin.
         _wall_ort = self.state.aktive_siedlung()
         if _wall_ort is not None and self.state._lokale_kasse_aktiv():
-            _wall = dorfwall.kennwerte(_wall_ort, self.state.research)
-            _wall_rahmen = tk.Frame(self.content, bg=self.skin["panel"],
-                                    highlightbackground=self.skin["gold"], highlightthickness=1)
-            _wall_rahmen.pack(fill=tk.X, padx=10, pady=(4, 6))
-            tk.Label(_wall_rahmen, text="Dorfwall", fg=self.skin["gold"], bg=self.skin["panel"],
-                     font=("TkDefaultFont", 11, "bold")).pack(anchor=tk.W, padx=8, pady=(4, 0))
-            if _wall["stufe"]:
-                tk.Label(_wall_rahmen,
-                         text=("Stufe %d (%s) · Zustand %.0f Prozent. Die Stufe kommt aus der "
-                               "Forschung 'Verteidigungsanlagen' - jede weitere Stufe hebt den Wall."
-                               % (_wall["stufe"], _wall["name"], _wall["zustand_prozent"])),
-                         fg="#F3F4F6", bg=self.skin["panel"], wraplength=780, justify=tk.LEFT,
-                         font=("Arial", 9)).pack(anchor=tk.W, padx=8)
-                self._mauer_reparatur_block(_wall_rahmen, _wall_ort)
-            else:
-                tk.Label(_wall_rahmen,
-                         text=("Noch nicht errichtet. Wall und Wache werden auf der Siedlungskarte "
-                               "errichtet (dort oben rechts 'Wall errichten'); jede Stufe der "
-                               "Forschung 'Verteidigungsanlagen' hebt ihn danach."),
-                         fg="#FDBA74", bg=self.skin["panel"], wraplength=780, justify=tk.LEFT,
-                         font=("Arial", 9)).pack(anchor=tk.W, padx=8)
-                tk.Button(_wall_rahmen, text="Zur Siedlungskarte",
-                          command=lambda o=_wall_ort: self._oeffne_siedlungskarte(o),
-                          bg=self.skin["button"], fg=self.skin["gold"]).pack(anchor=tk.W, padx=8,
-                                                                      pady=(4, 8))
+            _wall_zeile = tk.Frame(self.content, bg=self.skin["panel"])
+            _wall_zeile.pack(fill=tk.X, padx=10, pady=(4, 6))
+            tk.Label(_wall_zeile, text=self._wall_kurztext(_wall_ort),
+                     fg=self.skin["gold"], bg=self.skin["panel"],
+                     font=("Arial", 9)).pack(side=tk.LEFT, padx=8)
+            tk.Button(_wall_zeile, text="Wall verwalten",
+                      command=lambda o=_wall_ort: self._oeffne_verteidigung(o),
+                      bg=self.skin["button"], fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=8, pady=3)
 
         frame = tk.Frame(self.content, bg=self.skin["panel"])
         frame.pack(fill=tk.X, padx=10, pady=10)
@@ -10835,6 +10817,11 @@ class NebelseetalApp:
         self.karten_feld = None
         self._switch_view("Siedlungskarte")
 
+    def _oeffne_verteidigung(self, siedlung):
+        """Siedlungskarte direkt in der Rubrik Verteidigung oeffnen (Weg vom Dorfzentrum zum Wall)."""
+        self._karten_baukategorie = "Verteidigung"
+        self._oeffne_siedlungskarte(siedlung)
+
     def _dorf_uebersicht_zeichnen(self, eltern, siedlung) -> None:
         """A-3: Dorfuebersicht rechts neben der Siedlungskarte.
 
@@ -10950,7 +10937,7 @@ class NebelseetalApp:
                           "eine je Karte, eine dritte nicht. Reisse zuerst eine ab.")
                 return
         if gebaeude_key == "verteidigungswall" and self.state._lokale_kasse_aktiv():
-            self._log("Wall belegt kein Baufeld: im Dorfzentrum 'Wall errichten' wählen.")
+            self._log("Wall belegt kein Baufeld: Siedlungskarte, Baubereich 'Verteidigung', 'Wall errichten'.")
             return
         kosten = baukosten(gebaeude_key)
         if not kosten:
@@ -11502,21 +11489,8 @@ class NebelseetalApp:
         # Vorher: ein Raster kleiner Knöpfe mit abgeschnittenen Namen („Steinm", „Holzfä").
         self._zeichne_siedlungskarte(siedlung, karte, eltern=kartenblock)
 
-        # Dorfmauer ist Zustand der Siedlung, kein Baukoerper im 8x7-Raster.
-        if self.state._lokale_kasse_aktiv():
-            wall = dorfwall.kennwerte(siedlung, self.state.research)
-            wallzeile = tk.Frame(self.content, bg=self.skin["panel"])
-            wallzeile.pack(fill=tk.X, padx=10, pady=(4, 4))
-            tk.Label(wallzeile,
-                     text=(f"Dorfwall: {wall['name']} · Stufe {wall['stufe']} · "
-                           f"Zustand {wall['zustand_prozent']:.0f}%"
-                           if wall['stufe'] else "Dorfwall: noch nicht errichtet"),
-                     fg=self.skin["gold"], bg=self.skin["panel"]).pack(side=tk.LEFT, padx=8)
-            if not siedlung.mauer_besetzt:
-                preis = kosten_text(baukosten("verteidigungswall"))
-                tk.Button(wallzeile, text=f"Wall errichten / Wache besetzen ({preis})",
-                          command=self._karten_wall_errichten, bg=self.skin["button"],
-                          fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=8, pady=3)
+        # Der Dorfwall steht NICHT mehr als eigene Zeile ueber der Karte: er hat seinen
+        # Platz in der Rubrik Verteidigung (siehe `_wall_block`).
 
         legende = tk.Frame(self.content, bg=self.skin["bg"])
         legende.pack(anchor=tk.W, padx=10, pady=(4, 2))
@@ -11539,6 +11513,33 @@ class NebelseetalApp:
         # Stunde, welchen Anteil sie am Ortsertrag haben, und die Summenzeile. Sie steht VOR der
         # Feldauswahl, damit sie auch ohne gewaehltes Feld sichtbar ist.
         self._dorf_uebersicht_zeichnen(kartenblock, siedlung)
+        # FIX04: Der historische Screenshot nennt eigene Bereiche fuer Produktion und
+        # Verteidigung; buildings.json hat fuenf Originalrubriken. Statt 20 gleichartigen
+        # Knopfzeilen wird jeweils nur eine Rubrik angezeigt. Status, Forschung, Kosten
+        # und Ortsdeckung werden aus DENSELBEN Funktionen wie beim wirklichen Bau gelesen.
+        kategorien = baumenue_info.KATEGORIEN
+        kategorie = getattr(self, "_karten_baukategorie", "Produktion")
+        if kategorie not in kategorien:
+            kategorie = "Produktion"
+        self._karten_baukategorie = kategorie
+        tk.Label(info, text=baumenue_info.SPIELERHILFE,
+                 fg="#F5D18B", bg=self.skin["panel"], wraplength=310,
+                 justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(4, 2))
+        zeile = tk.Frame(info, bg=self.skin["panel"])
+        zeile.pack(anchor=tk.W, fill=tk.X, padx=6, pady=(5, 3))
+        tk.Label(zeile, text="Baubereich:", fg=self.skin["text"],
+                 bg=self.skin["panel"]).pack(side=tk.LEFT)
+        auswahl = tk.StringVar(value=kategorie)
+        tk.OptionMenu(zeile, auswahl, *kategorien,
+                      command=lambda wert: (setattr(self, "_karten_baukategorie", wert),
+                                            self._render_view())).pack(side=tk.LEFT, padx=5)
+        # Der Wall belegt kein Kartenfeld - die Rubrik Verteidigung zeigt ihn deshalb OHNE
+        # Feldwahl (Daniels Spieltest 3, Note 3). Vorher stand diese Wahl hinter der
+        # Feldpruefung, "Verteidigung" war also nur nach einem Feldklick erreichbar.
+        if kategorie == "Verteidigung" and self.state._lokale_kasse_aktiv():
+            self._wall_block(info, siedlung)                        # EINE Wall-Anzeige
+            return
+
         feld = getattr(self, "karten_feld", None)
         if feld is None:
             tk.Label(info, text="Ein Feld auf der Karte anklicken, um dort zu bauen.",
@@ -11615,35 +11616,7 @@ class NebelseetalApp:
                           activeforeground="white",
                           font=("TkDefaultFont", 10, "bold")).pack(anchor=tk.W, padx=6, pady=(2, 6))
 
-        # FIX04: Der historische Screenshot nennt eigene Bereiche fuer Produktion und
-        # Verteidigung; buildings.json hat fuenf Originalrubriken. Statt 20 gleichartigen
-        # Knopfzeilen wird jeweils nur eine Rubrik angezeigt. Status, Forschung, Kosten
-        # und Ortsdeckung werden aus DENSELBEN Funktionen wie beim wirklichen Bau gelesen.
-        kategorien = baumenue_info.KATEGORIEN
-        kategorie = getattr(self, "_karten_baukategorie", "Produktion")
-        if kategorie not in kategorien:
-            kategorie = "Produktion"
-        self._karten_baukategorie = kategorie
-        tk.Label(info, text=baumenue_info.SPIELERHILFE,
-                 fg="#F5D18B", bg=self.skin["panel"], wraplength=310,
-                 justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(4, 2))
-        zeile = tk.Frame(info, bg=self.skin["panel"])
-        zeile.pack(anchor=tk.W, fill=tk.X, padx=6, pady=(5, 3))
-        tk.Label(zeile, text="Baubereich:", fg=self.skin["text"],
-                 bg=self.skin["panel"]).pack(side=tk.LEFT)
-        auswahl = tk.StringVar(value=kategorie)
-        tk.OptionMenu(zeile, auswahl, *kategorien,
-                      command=lambda wert: (setattr(self, "_karten_baukategorie", wert),
-                                            self._render_view())).pack(side=tk.LEFT, padx=5)
 
-        if kategorie == "Verteidigung" and self.state._lokale_kasse_aktiv():
-            tk.Label(info, text="Der Dorfwall belegt kein Kartenfeld. "
-                         "Er wird oberhalb der Karte im Verteidigungsbereich errichtet.",
-                     fg=self.skin["text"], bg=self.skin["panel"], wraplength=310,
-                     justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=6)
-            return
-            self._mauer_reparatur_block(info, siedlung)             # S2: Reparatur anzeigen
-            return
 
         staende = {k: int(v.level) for k, v in self.state.research.items()}
         angebote = baumenue_info.angebote(
@@ -14516,6 +14489,45 @@ class NebelseetalApp:
                                       fill=str(daten.get("farbe_fuellung") or "#DAA520"), outline="")
         tk.Label(zeile, text=postfach.rang_text(punkte_wert), fg=self.skin["text"],
                  bg=self.skin["bg"], font=("Arial", 9)).pack(side=tk.LEFT, padx=(8, 0))  # Name und Abstand
+
+    def _wall_kurztext(self, siedlung) -> str:
+        """Zustand des Dorfwalls in EINER Zeile - dieselbe Quelle wie der ganze Block.
+
+        Reine Formatierung: die Zahlen kommen aus `dorfwall.kennwerte`, es wird nichts gerechnet
+        (die AST-Quellwache verbietet Rechenstellen in Ansichten).
+        """
+        werte = dorfwall.kennwerte(siedlung, self.state.research)      # Stufe, Name, Zustand
+        if not werte["stufe"]:
+            return "Dorfwall: noch nicht errichtet"
+        return "Dorfwall: %s \u00b7 Stufe %d \u00b7 Zustand %.0f %%" % (
+            werte["name"], werte["stufe"], werte["zustand_prozent"])
+
+    def _wall_block(self, eltern, siedlung):
+        """Der EINE Wall-Block: Stufe, Zustand, Preis, Reparatur - in der Rubrik Verteidigung.
+
+        Er steht auf der Siedlungskarte und braucht KEIN gewaehltes Feld: der Wall belegt kein
+        Kartenfeld. Preis und Dauer kommen aus `baukosten`, die Reparatur aus
+        `_mauer_reparatur_block` - keine zweite Rechnung, kein zweiter Buchungsweg.
+        """
+        tk.Label(eltern, text=self._wall_kurztext(siedlung), fg=self.skin["gold"],
+                 bg=self.skin["panel"], font=("TkDefaultFont", 11, "bold")).pack(
+                     anchor=tk.W, padx=6, pady=(4, 0))
+        # Der Satz "belegt kein Kartenfeld" gehoert zum Ort: er erklaert, warum der Wall hier
+        # steht und nicht auf einem Feld (Daniels Spieltest 3, Note 3). Er stand bis Register 321
+        # in der toten Zeile unter dem Dorfzentrum und ist mit ihr nicht verschwunden.
+        tk.Label(eltern, text=("Die Stufe kommt aus der Forschung 'Verteidigungsanlagen' - jede "
+                               "weitere Stufe hebt den Wall. Wer angreift, muss ihn zuerst "
+                               "überwinden. Der Dorfwall belegt kein Kartenfeld: deshalb steht "
+                               "er hier in der Rubrik Verteidigung."),
+                 fg=self.skin["text"], bg=self.skin["panel"], wraplength=310,
+                 justify=tk.LEFT).pack(anchor=tk.W, padx=6)
+        if not siedlung.mauer_besetzt:
+            preis = kosten_text(baukosten("verteidigungswall"))        # Preis aus der Baukasse
+            tk.Button(eltern, text="Wall errichten / Wache besetzen (%s)" % preis,
+                      command=self._karten_wall_errichten, bg=self.skin["button"],
+                      fg=self.skin["gold"]).pack(anchor=tk.W, padx=6, pady=(2, 4))
+        if dorfwall.kennwerte(siedlung, self.state.research)["stufe"]:
+            self._mauer_reparatur_block(eltern, siedlung)              # S2: Reparatur anzeigen
 
     def _mauer_reparatur_block(self, eltern, siedlung):
         """Anzeige der Mauerreparatur (S2, 06.11.2026): Zustand, Preis und JEDE offene Bedingung.

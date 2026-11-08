@@ -63,19 +63,28 @@ def _funk(name):
     return ast.unparse(knoten) if knoten else ""
 
 
-# ---------------------------------------------- 1. Wall im Dorfzentrum
-abschnitt("1. Der Wall ist im Dorfzentrum sichtbar (Schritte 3 und 4, Note 5)")
+# ---------------------------------------------- 1. Wall in der Rubrik Verteidigung
+# Register 307 zeigte den Wall im Dorfzentrum; Daniels Spieltest 3 (Note 3) hat ihn in die
+# Siedlungskarte unter "Verteidigung" verwiesen. Diese Pruefung haelt den NEUEN Ort fest:
+# das Dorfzentrum nennt nur den Zustand und den Weg, die ganze Anzeige steht auf der Karte.
+abschnitt("1. Der Wall steht in der Siedlungskarte unter Verteidigung (Test 3, Note 3)")
 
 _uebersicht = _funk("_render_overview")
-check("die Dorfzentrum-Ansicht nennt den Dorfwall", "Dorfwall" in _uebersicht)
-check("sie zeigt Stufe und Zustand aus `dorfwall.kennwerte`",
-      "dorfwall.kennwerte(" in _uebersicht and "zustand_prozent" in _uebersicht)
-check("die Reparatur ist DERSELBE Block wie auf der Siedlungskarte",
-      "_mauer_reparatur_block(" in _uebersicht)
-check("die Wallstufe kommt aus der Forschung (Daniels Frage 'wo ausbauen')",
-      "Verteidigungsanlagen" in _uebersicht)
-check("ohne Wall nennt die Ansicht den Weg ('Wall errichten' auf der Siedlungskarte)",
-      "Wall errichten" in _uebersicht)
+_wallblock = _funk("_wall_block")
+_karte = _funk("_render_settlement_map")
+check("das Dorfzentrum nennt den Dorfwall weiter", "Dorfwall" in _uebersicht or "_wall_kurztext(" in _uebersicht)
+check("das Dorfzentrum zeigt NICHT mehr den Reparaturblock (EINE Anzeige)",
+      "_mauer_reparatur_block(" not in _uebersicht)
+check("das Dorfzentrum rechnet die Wallwerte nicht selbst", "dorfwall.kennwerte(" not in _uebersicht)
+check("der Weg in die Karte steht als Knopf bereit", "_oeffne_verteidigung(" in _uebersicht)
+check("die Karte ruft den Wall-Block in der Rubrik Verteidigung",
+      "Verteidigung" in _karte and "_wall_block(" in _karte)
+check("der Wall-Block zeigt Stufe und Zustand aus `dorfwall.kennwerte`",
+      "_wall_kurztext(" in _wallblock and "dorfwall.kennwerte(" in _wallblock)
+check("die Reparatur steht im Wall-Block", "_mauer_reparatur_block(" in _wallblock)
+check("der Wall-Block nennt die Herkunft der Stufe", "Verteidigungsanlagen" in _wallblock)
+check("ohne Wall nennt der Block den Knopf zum Errichten", "Wall errichten" in _wallblock)
+check("der Wall-Block braucht KEIN gewaehltes Feld", "karten_feld" not in _wallblock)
 
 # ---------------------------------------------- 2. "Nichts baubar" nennt das Gelaende
 abschnitt("2. Kein Gebaeude baubar: die Ansicht nennt den Grund (Schritt 5)")
