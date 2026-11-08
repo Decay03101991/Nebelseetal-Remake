@@ -1,3 +1,31 @@
+# STAND 08.11.2026, 01:40 - Spieltest-Paket geliefert (Register 301), Messwerte-Ablage gebaut (Register 302)
+
+> Neuester Block. Darunter 01:05 (Schritt 10, Register 299, und Pakt-Knopf, Register 300), 21:30
+> (R3-2, Register 298), 21:05 (R3-1, Register 297).
+
+**Daniel kann jetzt testen.** Auf dem Desktop liegen `Nebelseetal_Pre_Release_V_0.0.3.exe`
+(82.684.749 Bytes, SHA256 `1ebbdf93...`, Start geprueft: das Passworttor erscheint) und
+`SPIELTEST_ANLEITUNG_20261108.txt` (21 Schritte, je Soll / Beobachtung / Note 1-5). Der vorbereitete
+Stand fuer die spaeten Wege liegt in Spielerslot 2 (`~/.nebelseetal/savegame_slot2.json`, geladen in
+einer frischen `GameState`: Tag 5, Wall Stufe 1 bei 60 Prozent, Handelskarawane, 5.120 Mana); gebaut
+mit `tools/teststand_vorbereiten.py` ueber echte Wege, nur drei Startwerte mit GRUND.
+
+**Messwerte sind jetzt Daten (Register 302).** `tests/harness.bericht()` schreibt bei jedem Lauf
+`docs/audits/messwerte/<datei>_<JJJJMMTT_HHMM>.json` (Zeitstempel, Dauer, Rechner, Python-Fassung,
+Zaehler, Namen der Pruefungen, gemessene Zahlen) und fuehrt `index.json` fort. Zahlen werden ueber
+`harness.messwert(name, wert, einheit, quelle)` festgehalten. Der Ordner ist gitignoriert (199 Dateien
+je Lauf gehoeren nicht ins Repo). **Gemessene Luecke (BEFUND):** 43 von 199 Pruefdateien haben einen
+eigenen Bericht ohne Rahmen und schreiben keine Messwerte - beim naechsten Anfassen umstellen.
+
+**Sammellauf nach dem Umbau (01:19 bis 01:39): 197 von 199 gruen, 0 rot**, 8.257 Pruefungen,
+61 Befunde, 1.176 s (`docs/audits/sammellauf_20261108_0119.log`); die zwei nicht gruenen Dateien sind
+AUSGESETZT wie zuvor.
+
+**Offen und als naechstes:** Schritt 12 (Sammellauf messen/parallelisieren - Ausgangswert 1.176 s bei
+199 Dateien; die Vorbedingung "keine Pruefdatei schreibt in einen gemeinsamen Pfad" gilt jetzt auch
+fuer die Messwerte-Ablage), Schritt 11 (AST-Quellwache), Schritt 13 (Daten-und-Quellen-Pruefung), R3-3
+(C-6, I-10, C-4), R3-4 (I-2), Besucherdokumente, eigener Schnitt aus F-20 = B.
+
 # STAND 08.11.2026, 01:05 - Schritt 10 abgeschlossen (E2E-Wege, Register 299), Pakt-Knopf gebaut (Register 300)
 
 > Neuester Block. Darunter 21:30 (R3-2, Register 298), 21:05 (R3-1, Register 297), 20:48 (Modellrunde 3

@@ -62,3 +62,7 @@ NEBELSEETAL_FIX*_FORTSCHRITT_WINDOWS.txt
 # Veroeffentlichungspakete (gehoeren in die Releases, nicht ins Repo)
 /release_public/
 /release_staging/
+
+# Messwerte je Pruefdatei (Daniel 08.11.2026, 00:25): lokale Messdaten mit Zeitstempel,
+# kein Quelltext - sie wuerden den Baum bei jedem Sammellauf mit 198 Dateien fuellen.
+docs/audits/messwerte/

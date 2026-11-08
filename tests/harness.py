@@ -7,8 +7,19 @@ Damit ein gruener Lauf nicht faelschlich "alles fertig" bedeutet.
 """
 from __future__ import annotations
 
+import json
+import os
+import platform
 import sys
+import time
 import traceback
+
+_START = time.time()                          # Beginn des Laufs (fuer die Dauer im Messwert)
+_MESSWERTE: "dict[str, dict]" = {}            # gemessene Zahlen dieser Pruefdatei
+# Daniel 08.11.2026, 00:25: Messwerte sind Daten, nicht Prosa - jede Pruefdatei legt ihre Zahlen
+# mit Zeitstempel ab, damit spaetere, detailliertere Pruefungen sie wiederfinden und verwerten.
+MESSWERTE_ORDNER = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                "docs", "audits", "messwerte")
 
 _fehler: list[str] = []
 _befunde: list[str] = []
@@ -72,9 +83,104 @@ def angriff_mit_marsch(app, ziel_name: str, verteidiger, wall_stufe: int = 0,
     return ok
 
 
+def messwert(name: str, wert, einheit: str = "", quelle: str = "") -> None:
+    """Eine GEMESSENE Zahl unter einem Namen festhalten (Daniel 08.11.2026, 00:25).
+
+    Was hier landet, geht mit Zeitstempel in `docs/audits/messwerte/<datei>_<JJJJMMTT_HHMM>.json`
+    und in den Index daneben. Regel: keine Zahl erfinden - gemessen, aus einer Datendatei gelesen
+    oder ausdruecklich als VORSCHLAG benannt (dann `quelle="VORSCHLAG"`).
+    """
+    _MESSWERTE[str(name)] = {"wert": wert, "einheit": str(einheit), "quelle": str(quelle)}
+
+
+def messwerte() -> "dict[str, dict]":
+    """Die bisher festgehaltenen Messwerte dieser Pruefdatei (Kopie)."""
+    return {k: dict(v) for k, v in _MESSWERTE.items()}
+
+
+def _messwert_dateiname() -> str:
+    """Der Name der laufenden Pruefdatei ohne Endung (fuer die Messwerte-Datei)."""
+    pfad = os.path.basename(sys.argv[0] or "") or "pruefung"   # z. B. test_baseline.py
+    return pfad[:-3] if pfad.endswith(".py") else pfad          # ohne .py
+
+
+def _messwerte_schreiben() -> str:
+    """Schreibt die Messwerte als JSON mit Zeitstempel und traegt sie in den Index ein.
+
+    Rueckgabe: der Pfad der geschriebenen Datei oder "" wenn es nicht ging. Ein Fehler beim
+    Schreiben macht NIE eine Pruefung rot - die Zahlen sind ein Nebenprodukt, kein Pruefgegenstand.
+    Geschrieben wird atomar (temporaere Datei, dann `os.replace`); der Index wird nach demselben
+    Muster fortgeschrieben, damit zwei gleichzeitige Laeufe keine halbe Datei hinterlassen.
+    """
+    try:
+        os.makedirs(MESSWERTE_ORDNER, exist_ok=True)           # Ordner darf fehlen
+        stempel = time.strftime("%Y%m%d_%H%M")                 # Zeitstempel im Dateinamen
+        name = "%s_%s.json" % (_messwert_dateiname(), stempel)  # eine Datei je Lauf
+        ziel = os.path.join(MESSWERTE_ORDNER, name)            # voller Pfad
+        daten = {"datei": _messwert_dateiname(),               # welche Pruefdatei
+                 "zeit": time.strftime("%Y-%m-%dT%H:%M:%S"),   # wann (Ortszeit)
+                 "zeit_unix": round(time.time(), 3),           # wann (maschinenlesbar)
+                 "dauer_s": round(time.time() - _START, 3),    # wie lange der Lauf dauerte
+                 "python": platform.python_version(),          # womit gerechnet wurde
+                 "rechner": platform.node(),                   # auf welchem Rechner
+                 "bestanden": len(_ok), "fehler": len(_fehler), "befunde": len(_befunde),
+                 "pruefungen": list(_ok),                      # die Namen der gruenen Pruefungen
+                 "fehlernamen": list(_fehler),                 # die Namen der roten
+                 "befundnamen": list(_befunde),                # die Namen der Befunde
+                 "messwerte": messwerte()}                     # die gemessenen Zahlen selbst
+        _atomar_schreiben(ziel, json.dumps(daten, ensure_ascii=False, indent=1))
+        _index_fortschreiben(name, daten)                      # Index daneben
+        return ziel
+    except Exception as fehler:                                # Schreiben ist Nebenprodukt
+        print("  HINWEIS Messwerte nicht geschrieben: %r" % (fehler,))
+        return ""
+
+
+def _atomar_schreiben(ziel: str, text: str) -> None:
+    """Schreibt eine Textdatei ueber eine temporaere Datei (kein halber Inhalt)."""
+    temp = ziel + ".tmp"
+    with open(temp, "w", encoding="utf-8") as datei:
+        datei.write(text)
+    for versuch in range(5):                                   # Windows: Umbenennen kann kurz haengen
+        try:
+            os.replace(temp, ziel)
+            return
+        except OSError:
+            time.sleep(0.05 * (versuch + 1))
+    os.replace(temp, ziel)                                     # letzter Versuch: Fehler sichtbar
+
+
+def _index_fortschreiben(name: str, daten: dict) -> None:
+    """Traegt den Lauf in `docs/audits/messwerte/index.json` ein (neuester Stand je Pruefdatei)."""
+    pfad = os.path.join(MESSWERTE_ORDNER, "index.json")
+    eintrag = {k: daten.get(k) for k in ("datei", "zeit", "bestanden", "fehler", "befunde",
+                                        "dauer_s")}
+    eintrag["datei_im_ordner"] = name                          # welche Datei die Zahlen traegt
+    for versuch in range(5):                                   # gleichzeitige Laeufe: kurz warten
+        try:
+            index = {}
+            if os.path.isfile(pfad):                           # Index schon da
+                with open(pfad, "r", encoding="utf-8") as datei:
+                    index = json.load(datei) or {}
+            dateien = index.get("dateien") if isinstance(index, dict) else None
+            dateien = dateien if isinstance(dateien, dict) else {}
+            dateien[str(daten.get("datei"))] = eintrag          # neuester Stand dieser Datei
+            neu = {"stand": time.strftime("%Y-%m-%dT%H:%M:%S"),
+                   "wozu": ("Messwerte je Pruefdatei, neuester Lauf. Geschrieben von "
+                            "tests/harness.bericht() (Daniel 08.11.2026, 00:25)."),
+                   "dateien": dateien}
+            _atomar_schreiben(pfad, json.dumps(neu, ensure_ascii=False, indent=1))
+            return
+        except Exception:                                       # naechster Versuch
+            time.sleep(0.05 * (versuch + 1))
+
+
 def bericht() -> int:
     print("\n" + "=" * 58)
     print(f"ERGEBNIS: {len(_ok)} bestanden, {len(_fehler)} Fehler, {len(_befunde)} Befunde")
+    _messwert_pfad = _messwerte_schreiben()                      # Zahlen mit Zeitstempel ablegen
+    if _messwert_pfad:                                           # sichtbar machen, wo sie liegen
+        print(f"Messwerte: {_messwert_pfad}")
     if _befunde:
         print("\nBefunde (bekannte Luecken, kein Fehler):")
         for b in _befunde:
