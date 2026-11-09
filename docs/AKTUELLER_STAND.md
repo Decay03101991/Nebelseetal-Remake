@@ -1,3 +1,27 @@
+# STAND 09.11.2026, 19:40 - neue EXE gebaut: D-5 und der Layout-Schnitt sind drin (Register 353)
+
+> Neuester Block. Darunter 19:08 (Layout-Schnitt; 351/352), 18:15 (D-5 nachgebessert; 348), 17:44
+> (D-5 gebaut; 347) und 16:38 (Bildplan; 346).
+
+**Kette nach Daniels Plan (18:4x):** Layout-Schnitt klein -> **neue EXE** -> Spieltest 4 (Daniel) ->
+D-5a und D-5b.
+
+**Altbau vorher archiviert:** `archiv/builds/20261109_vor_layoutschnitt/` mit `SHA256.txt`
+(82.727.384 Byte, SHA256 `486ce93e...`; enthielt D-4, NICHT D-5).
+
+**Bau (`tools/build_exe.py`, PyInstaller 6.22.3, Python 3.11.16):** Groesse **82.987.046 Byte (79,1
+MB)**, SHA256 `b90ae5e6eb88a94bb060b5b007a786392c12d53e0305dc570a6dcd2533705333` - Masse und Hash NUR
+aus der Bauausgabe. Genau eine EXE im Projektordner, `build/`, `dist/`, `.spec` und `__pycache__`
+sind weg.
+
+**Start geprueft (nicht nur Prozess):** die EXE zeigt das **Passworttor**, Fenstertitel „Nebelseetal
+Remake“, PID 7812, `MainWindowHandle` 608371726, `Responding` True; Screenshot als Beleg.
+Danach beide Prozesse beendet und die aus 15:19 liegen gebliebene `game.lock` (vorher gesichert)
+entfernt - sonst blockiert sie einen spaeteren Start still.
+
+**Jetzt ist Daniel dran:** Spieltest 4 mit dieser EXE. Danach D-5a (Weltkarte auf Chris' Farben und
+Tannen, F-36) und D-5b (Icons und Goldrahmen, F-39).
+
 # STAND 09.11.2026, 19:08 - Layout-Schnitt klein: die Portaltexte folgen der Spalte (Register 351)
 
 > Neuester Block. Darunter 18:15 (D-5 nachgebessert; 348), 17:44 (D-5 gebaut; 347), 16:38 (Bildplan; 346)
