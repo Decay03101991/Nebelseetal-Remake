@@ -861,14 +861,16 @@ def portalwechsel(zustand: dict, nach_dimension, jetzt: float) -> Tuple[bool, st
     ``portalraum`` rechnet ebenfalls mit dem Index, deshalb bleibt es hier beim Index -
     nicht "vereinheitlichen", ohne den Aufrufer mitzuziehen.
 
-    Belegt: 5.000 Mana aus EINER Siedlung, hoechstens einmal je 24 Stunden. Das
-    Mana wird hier aus dem gemeinsamen Rohstoffvorrat genommen (der Stand fuehrt
-    kein Mana je Siedlung). Bei einer Ablehnung aendert sich nichts.
+    Belegt: 5.000 Mana aus EINER Siedlung; eine Wartezeit gibt es seit S-5 NICHT mehr
+    (Daniel 08.11.2026, F-28 = C - der Zeitstempel `letzter_wechsel` wird fortgeschrieben,
+    sperrt aber nichts, Register 332). Das Mana wird hier aus dem gemeinsamen Rohstoffvorrat
+    genommen (der Stand fuehrt kein Mana je Siedlung). Bei einer Ablehnung aendert sich nichts.
     """
     von = int(zustand.get("eigene_dimension", 0) or 0)
     mana = (zustand.get("ressourcen") or {}).get("mana", 0) or 0
-    erlaubt, meldung = portalraum.wechsel_erlaubt(
-        von, nach_dimension, mana, zustand.get("letzter_wechsel"), float(jetzt))
+    # S-5 (09.11.2026, Register 332): keine Wartezeit mehr - F-28 = C. Der Zeitstempel wird
+    # weiter geschrieben (Aufzeichnung), aber nicht mehr abgefragt.
+    erlaubt, meldung = portalraum.wechsel_erlaubt(von, nach_dimension, mana)
     if not erlaubt:
         return False, meldung
     try:

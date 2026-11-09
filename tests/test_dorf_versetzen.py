@@ -3,8 +3,8 @@
 
 Daniels Entscheidungen: F-25 = A (nur die 5.000 Mana, kein Gold, keine Waren), F-26 = A (ein
 belegtes Feld wird abgelehnt, auch ein Bot-Dorf), F-27 = A (alles reist mit - Bauten, Stufen,
-Garnison, Waren, Karawanen), F-28 = C (keine Sperre mehr; bis S-5 gilt noch die belegte
-24-Stunden-Regel). Belege: docs/design/PORTAL_MODELL_20261108.md Abschnitte 6 und 9.
+Garnison, Waren, Karawanen), F-28 = C (keine Sperre mehr - S-5 hat die belegte
+24-Stunden-Regel ersetzt). Belege: docs/design/PORTAL_MODELL_20261108.md Abschnitte 6 und 9.
 
 Geprueft wird die EINE Buchstelle `NebelseetalApp._dorf_versetzen` samt der Uebersetzung
 Spielstand -> Felder (`_portal_belegte_felder`): erst pruefen, dann genau einmal abbuchen.
@@ -112,7 +112,8 @@ def main_() -> int:
     check("GENAU der Festpreis ist abgebucht",
           abs(float(gs.resources["mana"].amount) - (vorher - kosten)) < 1e-6,
           "%g -> %g" % (vorher, gs.resources["mana"].amount))
-    check("die Sperre ist gesetzt", gs.letzter_wechsel is not None, str(gs.letzter_wechsel))
+    check("der Zeitstempel des Wechsels ist geschrieben (Aufzeichnung, keine Sperre)",
+          gs.letzter_wechsel is not None, str(gs.letzter_wechsel))
     check("die Kennung bleibt unveraendert (W-1 entschaerft durch S-2)",
           dorf.id == "spieler:kontinent:3:3", dorf.id)
     check("die Siedlungskarte bleibt unberuehrt (x/y unveraendert)",
@@ -131,16 +132,21 @@ def main_() -> int:
               for e in app._portal_belegte_felder()))
 
     # -----------------------------------------------------------------------
-    abschnitt("Die Sperre haelt den zweiten Sprung auf (bis S-5)")
-    mana_nach = float(gs.resources["mana"].amount)
+    # S-5 (09.11.2026, Register 332): Daniel hat F-28 = C entschieden - keine Wartezeit mehr.
+    # Derselbe zweite Umzug, der bis Register 331 abgelehnt wurde, gelingt jetzt sofort.
+    # UMGEDREHT, nicht geloescht: wieder GENAU ein Festpreis, die Position ist neu.
+    abschnitt("Keine Wartezeit: der zweite Umzug gelingt sofort (S-5, F-28 = C)")
+    mana_vor_zweitem = float(gs.resources["mana"].amount)
     zweiter = app._dorf_versetzen("Eschenhain", 8, 12, START)
-    check("ein zweiter Umzug sofort wird abgelehnt", zweiter is False, app.letzte_meldung())
-    check("die Meldung nennt die 24-Stunden-Regel", "Stunden" in app.letzte_meldung(),
+    check("ein zweiter Umzug sofort gelingt (keine Wartezeit mehr)", zweiter is True,
           app.letzte_meldung())
-    check("und es wurde nichts abgebucht",
-          abs(float(gs.resources["mana"].amount) - mana_nach) < 1e-6,
-          str(gs.resources["mana"].amount))
-    check("und die Position ist unveraendert", (dorf.welt_x, dorf.welt_y) == (7, 12))
+    check("und es wurde GENAU ein Festpreis abgebucht",
+          abs(float(gs.resources["mana"].amount) - (mana_vor_zweitem - kosten)) < 1e-6,
+          "%g -> %g" % (mana_vor_zweitem, gs.resources["mana"].amount))
+    check("und die Position ist die neue", (dorf.welt_x, dorf.welt_y) == (8, 12),
+          str((dorf.welt_x, dorf.welt_y)))
+    check("der Zeitstempel wird weiter geschrieben, sperrt aber nicht",
+          gs.letzter_wechsel is not None, str(gs.letzter_wechsel))
 
     # -----------------------------------------------------------------------
     abschnitt("Belegte Felder werden abgelehnt (F-26 = A)")
@@ -155,7 +161,7 @@ def main_() -> int:
           app.letzte_meldung())
     check("der Grund nennt das andere Dorf", "Zweithauch" in app.letzte_meldung(),
           app.letzte_meldung())
-    gleich = app._dorf_versetzen("Eschenhain", 7, 12, START)
+    gleich = app._dorf_versetzen("Eschenhain", 8, 12, START)
     check("das eigene Feld gilt nicht als belegt, wird aber als 'steht schon dort' abgelehnt",
           gleich is False and "steht bereits" in app.letzte_meldung(), app.letzte_meldung())
 
@@ -183,10 +189,10 @@ def main_() -> int:
     check("die Meldung nennt den Grund (Anhang 2)", "unterwegs" in app.letzte_meldung(),
           app.letzte_meldung())
     check("die Position ist nach allen Ablehnungen unveraendert",
-          (dorf.welt_x, dorf.welt_y) == (7, 12), str((dorf.welt_x, dorf.welt_y)))
+          (dorf.welt_x, dorf.welt_y) == (8, 12), str((dorf.welt_x, dorf.welt_y)))
 
     # -----------------------------------------------------------------------
-    abschnitt("Nach der Sperre: ein zweiter Umzug in eine ANDERE Welt")
+    abschnitt("Danach: ein weiterer Umzug in eine ANDERE Welt")
     gs.letzter_wechsel = None
     ziel = next((int(P.nummer_von(d.get("kennung"))) for d in P.dimensionen()
                  if int(P.nummer_von(d.get("kennung"))) != START), 0)

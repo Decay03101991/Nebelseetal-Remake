@@ -1,3 +1,45 @@
+# STAND 09.11.2026, 08:25 - Portal S-5: keine Wartezeit mehr, sechs Wachen umgedreht (Register 332)
+
+> Neuester Block. Darunter 03:35 (S-4b: `_portal_wechsel` entfernt; Register 331), 02:58 (D-3, die
+> gemalte Testkarte; Register 330), 01:50 (Portal S-1 bis S-4; Register 324 bis 326), 02:04 (D-1,
+> D-2, W-D6; Register 327 bis 329).
+
+**Der Weltensprung hat keine Wartezeit mehr - der Preis ist die einzige Bremse.** Daniels Entscheid
+F-28 = C vom 08.11.2026 ist gebaut: `portalraum.wechsel_erlaubt(von_z, nach_z, mana)` prueft nur noch
+bekannte Weltkarte und Mana. Die 24-Stunden-Pruefung samt Restzeit-Meldung ist entfernt, die
+Konstante `_STUNDEN_SPERRE` ist GELOESCHT; der Wert `hoechstens_je_stunden` bleibt als Quelle und
+Zeitzeugnis in `data/welten.json` stehen und wird nicht mehr gelesen. `beschreibung()` sagt jetzt
+„und hat keine Wartezeit (Entscheidung F-28 = C)“.
+
+**Der Zeitstempel bleibt, er sperrt nur nicht.** `state.letzter_wechsel` wird von `nach_wechsel`
+weiter fortgeschrieben; die Portalzeile sagt statt „Sperre:“ jetzt „zuletzt gewechselt:“ und nennt
+„noch nie gewechselt“ / „vor wenigen Minuten“ / „vor X h“ (auch ein Zeitstempel aus der Zukunft wird
+benannt). Die Methode heisst dafuer `_letzter_wechsel_text` statt `_sperre_text`.
+
+**Sechs Wachen sind UMGEDREHT, nicht geloescht** - jede prueft mit DEMSELBEN Aufruf das Gegenteil:
+test_portalraum **72/0/0** (Signatur genau drei Werte, Altaufruf mit Zeitstempel MUSS `TypeError`
+werfen, kein `_STUNDEN_SPERRE`, „keine Wartezeit“ in der Beschreibung), test_dorf_versetzen
+**38/0/0** (zweiter Umzug gelingt sofort, wieder GENAU ein Festpreis, neue Position),
+test_e2e_wege **132/0/1** (Kette 12: derselbe Wechsel von gerade eben ist mit genug Mana erlaubt,
+der zweite Umzug im Spiel scheitert am Mana), test_spielschicht **145/0/1**, test_portal_uebersicht
+**62/0/0**, test_weltkarten_anzeige **27/0/0**.
+
+**Sammellauf 08:08 bis 08:25: 212 von 212 gruen, 0 rot, 2 ausgesetzt, 9.219 Pruefungen, 0 Fehler,
+76 Befunde, 1.037 s** (`docs/audits/sammellauf_20261109_0808.log`) - der Zuwachs gegen 9.213 sind
+genau die sechs neuen Pruefungen. Der Lauf war langsamer als der vorige (771 s), weil die Summe der
+Einzeldauern von 1.524 auf 2.054 s stieg: die MASCHINE war langsamer, nicht die Parallelitaet
+(x1,98 wie zuvor).
+
+**Drei Funde beim Bau, offen benannt:** die Uebergabe 07:35 nannte drei rote Dateien - rot war auch
+`tests/test_spielschicht.py` (eigener 24-h-Block); vier der fuenf Pruefdateien sind CRLF, das
+vorbereitete LF-Hilfsskript haette lautlos nichts ersetzt (neu geschrieben, jeder Anker auf
+Eindeutigkeit geprueft); `test_dorf_versetzen` prueft nach dem neuen zweiten Umzug auf `8/12`
+zweimal die alte Position `7/12` und musste nachziehen.
+
+**Naechster Schritt: S-6** - Wachen, voller Lauf, EINE EXE, Spieltest 4. Offen bleiben D-4 bis D-8
+(Einbau der gemalten Karte, Burgen, Banner, Drachen, Fraktionsbilder, Logo) und die Fragen 1 bis 5
+an Daniel (`docs/design/PORTAL_MODELL_20261108.md`, Uebergabe 07:35 Abschnitt 5).
+
 # STAND 09.11.2026, 03:35 - Portal S-4b: die alte Buchstelle ist entfernt, ihre Wachen wachen an der neuen (Register 331)
 
 > Neuester Block. Darunter 02:59 (D-3, die gemalte Testkarte; Register 330), 01:50 (Portal S-1 bis

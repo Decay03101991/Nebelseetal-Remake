@@ -52,7 +52,10 @@ _KOORD = _BELEGT["koordinatenwechsel"]
 
 _FELDER_AXIS = int(_BELEGT["felder_je_dimension"])           # 20
 _FELDER_GESAMT = int(_BELEGT["felder_je_dimension_gesamt"])  # 400
-_STUNDEN_SPERRE = int(_KOORD["hoechstens_je_stunden"])       # 24
+# Die belegte Wartezeit (`koordinatenwechsel.hoechstens_je_stunden` = 24) ist seit S-5
+# (09.11.2026, Register 332) KEINE Regel mehr: Daniel hat F-28 = C entschieden ("keine Sperre
+# mehr"). Der Wert bleibt in data/welten.json stehen - er ist Quelle und Zeitzeugnis, aber das
+# Modul liest ihn nicht mehr, damit es keine zweite Wahrheit gibt.
 _MANA_WECHSEL = int(_KOORD["kosten_mana"])                   # 5000
 _BANNER = _BELEGT["bannerfarben"]                            # gruen / rot
 
@@ -265,15 +268,19 @@ def wechselkosten() -> int:
     return _MANA_WECHSEL
 
 
-def wechsel_erlaubt(von_z: int, nach_z: int, mana: float,
-                    letzter_wechsel, jetzt: float):
+def wechsel_erlaubt(von_z: int, nach_z: int, mana: float):
     """
     Prueft ein Verschiebungsritual. Rueckgabe: (erlaubt: bool, meldung: str).
 
-    Verlangt: beide Dimensionen bekannt, genug Mana in EINER Siedlung und
-    seit dem letzten Wechsel mindestens 24 Stunden Abstand. 'letzter_wechsel'
-    ist ein Zeitstempel in Sekunden oder None (noch nie gewechselt); 'jetzt'
-    ist die aktuelle Zeit in Sekunden.
+    Verlangt: beide Dimensionen bekannt und genug Mana in EINER Siedlung.
+
+    **KEINE WARTEZEIT MEHR (S-5, 09.11.2026, Register 332):** Die belegte 24-Stunden-
+    Sperre aus `welten.json` (`hoechstens_je_stunden`) faellt auf Daniels Entscheidung
+    F-28 = C weg - "keine Sperre mehr" (08.11.2026, im Portal-Modell Abschnitt 6
+    belegt und dort als Abweichung von der Quelle benannt). Der Zeitstempel
+    `letzter_wechsel` bleibt im Spielstand, weil `nach_wechsel` ihn fortschreibt und
+    die Ansicht ihn zeigt - er sperrt aber nichts. Wer die Sperre wieder einfuehren
+    will, braucht eine neue Entscheidung, keine zweite Wahrheit.
     """
     if not _ist_dimension(von_z):
         return (False, f"Unbekannte Ausgangswelt: {von_z}")
@@ -283,25 +290,22 @@ def wechsel_erlaubt(von_z: int, nach_z: int, mana: float,
     if mana < kosten:
         return (False, f"Zu wenig Mana in einer Siedlung: {kosten} benötigt, "
                        f"{mana} vorhanden.")
-    if letzter_wechsel is not None:
-        sperre = _STUNDEN_SPERRE * 3600
-        wartete = jetzt - letzter_wechsel
-        if wartete < sperre:
-            rest_h = (sperre - wartete) / 3600.0
-            return (False, f"Erst nach {_STUNDEN_SPERRE} Stunden wieder möglich; "
-                           f"noch {rest_h:.2f} h warten.")
     return (True, f"Koordinatenwechsel möglich: {kosten} Mana aus einer Siedlung.")
 
 
 def nach_wechsel(mana: float, jetzt: float) -> dict:
     """
-    Bucht den Wechsel ab: neues Mana und neuer Sperr-Zeitstempel.
+    Bucht den Wechsel ab: neues Mana und der Zeitstempel des Wechsels.
 
     Der Festpreis wird GENAU EINMAL abgezogen. Rueckgabe:
     {'mana': alter Wert minus Festpreis, 'letzter_wechsel': jetzt,
      'kosten': der abgezogene Festpreis}.
     Wirft ValueError, wenn in der Siedlung zu wenig Mana liegt — dann wurde
     nichts abgebucht.
+
+    **Der Stempel sperrt seit S-5 nichts mehr** (F-28 = C, Register 332): er wird
+    weiter geschrieben, damit der Spielstand und die Anzeige sagen koennen, wann
+    zuletzt gewechselt wurde.
     """
     kosten = wechselkosten()
     if mana < kosten:
@@ -598,10 +602,10 @@ def anzeige_raster(z: int, radius: int = 10, eigene_dimensionen=()) -> list:
 
 
 def beschreibung() -> str:
-    """Eine lesbare Zeile ueber Limbus, Dimensionen, Raster, Kosten und Sperre."""
+    """Eine lesbare Zeile ueber Limbus, Dimensionen, Raster und Kosten."""
     kosten = wechselkosten()
     kosten_txt = f"{kosten:,}".replace(",", ".")
     return (f"Der Limbus umfasst {dim_zahl()} Weltkarten mit je "
             f"{_FELDER_AXIS} x {_FELDER_AXIS} = {feld_zahl()} Feldern; "
             f"ein Weltensprung kostet {kosten_txt} Mana aus einer Siedlung "
-            f"und ist höchstens einmal je {_STUNDEN_SPERRE} Stunden möglich.")
+            f"und hat keine Wartezeit (Entscheidung F-28 = C).")

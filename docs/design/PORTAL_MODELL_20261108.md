@@ -31,7 +31,7 @@ Vier Dinge stehen darin, und alle vier fehlen heute:
 | Feldauswahl | `_portal_feld_waehlen(x, y)` merkt das Feld in `self.portal_auswahl` und schreibt ins Protokoll "der Dorftransfer folgt mit S-6". Gebucht wird nichts. | `src/main.py:12152-12168` |
 | Klickreihenfolge | `_portal_klick` fragt in dieser Reihenfolge: Drache, fremdes Bot-Dorf, Marschlinie, sonst Feldwahl. Ein Klick aufs freie Feld landet also in der Feldwahl. | `src/main.py:12119-12138` |
 | Versetzfunktion | **Es gibt kein `dorf_versetzen`.** Die Suche nach `def versetzen` und `dorf_versetzen` in `src/` ist leer. | Suche 21:57 |
-| Kosten | 5.000 Mana, hoechstens einmal je 24 Stunden. Der Wert steht in `data/welten.json` (`belegte_regeln.koordinatenwechsel.kosten_mana`) und wird nur gelesen. | `src/portalraum.py:19-27`, `:165-212` |
+| Kosten | 5.000 Mana, hoechstens einmal je 24 Stunden. Der Wert steht in `data/welten.json` (`belegte_regeln.koordinatenwechsel.kosten_mana`) und wird nur gelesen. **Seit S-5 (09.11.2026, Register 332) gilt die Wartezeit NICHT mehr** (F-28 = C); der Stundenwert bleibt als Quelle und Zeitzeugnis in `welten.json` stehen, `portalraum` liest ihn nicht mehr. | `src/portalraum.py:19-27`, `:268-300` |
 | Mana-Herkunft | Abgebucht wird aus `state.resources["mana"]` - im Code die **Reichskasse** (so benannt in `src/main.py:6260`), nicht aus einer Siedlung. Die Quelle sagt aber "aus einer Siedlung". | `src/main.py:11867-11875` |
 | Ort und Welt | Jede Siedlung traegt `dimension` (Vorgabe 1) und `x`/`y`. Der Sprung aendert NUR `state.eigene_dimension`; die Siedlung behaelt ihre Welt. | `src/main.py:2552-2604` (Settlement), `:11877` |
 | Kennung | `Settlement.id` ist `besitzer:map_id:x:y` (`siedlung_kennung`). **Aendern sich x/y, aendert sich die Kennung** - und die Kennung ist der Schluessel in Vertraegen (`kaeufer`/`verkaeufer`), in `aktive_siedlung_id` und in den Ortsdicts des Handels. | `src/main.py:2639`, gesetzt in `:8069` |
@@ -146,7 +146,9 @@ Positionen, und die Anzeige muss klar sagen, welche sie zeigt.
   alle Fundstellen ziehen nach (W-1).
 - **S-4 Portal-Ansicht: Karte statt Auswahlliste.** Klick aufs Feld, freie Felder sichtbar, belegte
   gesperrt mit Grund; der Sprung-Knopf nennt Dorf, Zielfeld und Preis.
-- **S-5 Sperre in Spielzeit** (deckt sich mit E3) und je Dorf statt global.
+- **S-5 Sperre weg (F-28 = C).** `wechsel_erlaubt` prueft nur noch Weltkarte und Mana; der
+  Zeitstempel `letzter_wechsel` bleibt als Aufzeichnung. Die Schnittbeschreibung "Sperre in
+  Spielzeit und je Dorf" ist mit Daniels Antwort F-28 = C ueberholt.
 - **S-6 Wachen und Sammellauf.** Neue Wache fuer Kern und Fenster, Gegenprobe auf dem Altstand, voller
   Sammellauf, Registerzeile.
 
@@ -209,7 +211,7 @@ jede Ablehnung nennt ihren Grund im Postfach:
 4. das Dorf steht noch nicht auf diesem Feld (sonst waere es eine Buchung fuer nichts);
 5. das Feld ist frei - auch ein Bot-Dorf blockiert (F-26 = A);
 6. die Reichskasse traegt die 5.000 Mana (F-25 = A: keine zweite Preistafel);
-7. die Sperre (bis S-5 die belegten 24 Stunden, F-28 = C).
+7. die Sperre (bis S-5 die belegten 24 Stunden, F-28 = C). **Seit S-5 entfallen** - siehe 9.5.
 
 Gebucht wird genau einmal: Mana minus Festpreis, `welt_x`/`welt_y`, `dimension` des Dorfes und die
 gezeigte Welt (`eigene_dimension`, `eigene_dimensionen`). Bauten, Stufen, Garnison, Waren und
@@ -255,4 +257,32 @@ die vier Wachen sind auf die Buchstelle `_dorf_versetzen` umgestellt, nicht gelo
 dazu `test_portal_ansicht_umzug` und `test_portal_fremdblick`, die vorher nur den fehlenden Aufruf
 prueften. Keine Funktion aus `portalraum` faellt mit der Methode weg (`wechsel_erlaubt` und
 `nach_wechsel` werden von `_dorf_versetzen` und `spielschicht` weiter gebraucht).
-**Noch offen:** S-5 (Sperre weg, F-28 = C) und S-6 (Wachen, voller Lauf, EXE).
+**Noch offen:** S-6 (Wachen, voller Lauf, EXE).
+
+### 9.5 S-5 - keine Wartezeit mehr (gebaut 09.11.2026, 08:07, Register 332)
+
+Daniels Antwort **F-28 = C** vom 08.11.2026 („keine Sperre mehr, nur die Mana-Kosten“): die belegte
+24-Stunden-Regel faellt weg. Der Stundenwert `hoechstens_je_stunden` steht weiterhin in
+`data/welten.json` - er ist Quelle und Zeitzeugnis - aber `portalraum` liest ihn nicht mehr
+(`_STUNDEN_SPERRE` geloescht, damit es keine zweite Wahrheit gibt).
+
+| Stelle | vorher | jetzt |
+|---|---|---|
+| `portalraum.wechsel_erlaubt` | `(von_z, nach_z, mana, letzter_wechsel, jetzt)`, prueft die Restzeit | `(von_z, nach_z, mana)`, prueft nur bekannte Weltkarte und Mana |
+| `portalraum.beschreibung()` | „hoechstens einmal je 24 Stunden moeglich“ | „hat keine Wartezeit (Entscheidung F-28 = C)“ |
+| `portalraum.nach_wechsel` | „neuer Sperr-Zeitstempel“ | „der Zeitstempel des Wechsels“ - Aufzeichnung, sperrt nicht |
+| `main._sperre_text` (Restzeit) | „noch X h“ / „abgelaufen“ | heisst `_letzter_wechsel_text`: „noch nie gewechselt“ / „vor wenigen Minuten“ / „vor X h“ (auch ein Zeitstempel aus der Zukunft wird benannt) |
+| Portalzeile der Ansicht | „Sperre: …“ | „zuletzt gewechselt: …“ |
+| `spielschicht.portalwechsel` | reichte Zeitstempel und Uhr durch | ruft `wechsel_erlaubt` mit drei Werten; `jetzt` bleibt fuer `nach_wechsel` und die Meldung |
+
+**Die Wachen sind umgedreht, nicht geloescht.** Sechs Dateien forderten die Sperre; jede prueft jetzt
+das Gegenteil mit demselben Aufruf: `test_portalraum` (72/0/0: `inspect.signature` = genau drei Werte,
+ein Altaufruf mit Zeitstempel muss `TypeError` werfen, `_STUNDEN_SPERRE` darf nicht mehr existieren,
+die Beschreibung nennt „keine Wartezeit“), `test_dorf_versetzen` (38/0/0: der zweite Umzug gelingt
+sofort, wieder GENAU ein Festpreis, die Position ist neu), `test_e2e_wege` (132/0/1, Kette 12:
+derselbe Wechsel von gerade eben ist mit genug Mana erlaubt; der zweite Umzug im Spiel scheitert am
+Mana, nicht an einer Wartezeit), `test_spielschicht` (145/0/1), `test_portal_uebersicht` (62/0/0),
+`test_weltkarten_anzeige` (27/0/0).
+
+**Der Zeitstempel bleibt im Spielstand** (`state.letzter_wechsel`, geschrieben von `nach_wechsel`),
+weil die Ansicht damit sagen kann, wann zuletzt gereist wurde - er sperrt nichts.

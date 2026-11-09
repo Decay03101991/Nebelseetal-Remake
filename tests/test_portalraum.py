@@ -2,11 +2,13 @@
 
 Deckt ab: 20 Dimensionen mit je 20x20 = 400 Feldern, Koordinaten (X, Y, Z)
 samt Randwerten, den belegten Festpreis von 5.000 Mana aus einer Siedlung,
-die 24-Stunden-Sperre, die Portalanzeige mit 400 Feldern und Bannerfarben
+das Ende der 24-Stunden-Sperre (F-28 = C, S-5), die Portalanzeige mit 400 Feldern
+und Bannerfarben
 sowie die sechs belegten Weltnamen als Dimensionen.
 """
 from __future__ import annotations
 
+import inspect
 import os
 import sys
 
@@ -90,39 +92,51 @@ check("Index 6 ist keine Weltkarte mehr (W-6)", P.koordinate(0, 0, 6) is None,
 check("unbekannte Dimension hat kein Feld", P.koordinate(0, 0, 99) is None)
 
 # ---------------------------------------------------------------------------
-abschnitt("Koordinatenwechsel: 5.000 Mana aus EINER Siedlung")
+abschnitt("Koordinatenwechsel: 5.000 Mana aus EINER Siedlung (ohne Wartezeit, S-5)")
 
 check("ein Wechsel kostet genau 5000 Mana", P.wechselkosten() == 5000,
       str(P.wechselkosten()))
-check("genau 5000 Mana reichen", P.wechsel_erlaubt(0, 1, 5000, None, 1000.0)[0] is True)
-check("ohne letzten Wechsel ist ein Wechsel erlaubt",
-      P.wechsel_erlaubt(0, 1, 9999, None, 1000.0)[0] is True)
-_ab, _grund = P.wechsel_erlaubt(0, 1, 4999, None, 1000.0)
+check("genau 5000 Mana reichen", P.wechsel_erlaubt(0, 1, 5000)[0] is True)
+check("mehr als der Festpreis ist erlaubt", P.wechsel_erlaubt(0, 1, 9999)[0] is True)
+_ab, _grund = P.wechsel_erlaubt(0, 1, 4999)
 check("zu wenig Mana wird abgelehnt", _ab is False)
 check("die Ablehnung nennt Mana als Grund", "Mana" in _grund, _grund)
 check("die Ablehnung nennt den fehlenden Betrag", "5000" in _grund, _grund)
 
 # ---------------------------------------------------------------------------
-abschnitt("Koordinatenwechsel: hoechstens einmal in 24 Stunden")
+# S-5 (09.11.2026, Register 332): Daniel hat F-28 = C entschieden - KEINE Wartezeit mehr.
+# Die frueheren Wachen forderten die belegte 24-Stunden-Sperre; sie sind umgedreht, nicht
+# geloescht: derselbe Aufruf mit demselben alten Zeitstempel muss jetzt ERLAUBT sein.
+abschnitt("Koordinatenwechsel: KEINE Wartezeit mehr (F-28 = C, S-5)")
 
 LETZT = 100000.0
-check("zweiter Wechsel nach 1 h wird abgelehnt",
-      P.wechsel_erlaubt(0, 1, 5000, LETZT, LETZT + 3600)[0] is False)
-_ab2, _grund2 = P.wechsel_erlaubt(0, 1, 5000, LETZT, LETZT + 3600)
-check("die Ablehnung nennt die 24-Stunden-Sperre", "24" in _grund2, _grund2)
-check("einen Moment vor 24 h noch abgelehnt",
-      P.wechsel_erlaubt(0, 1, 5000, LETZT, LETZT + 86399)[0] is False)
-check("nach genau 24 h ist der Wechsel erlaubt",
-      P.wechsel_erlaubt(0, 1, 5000, LETZT, LETZT + 86400)[0] is True)
-check("deutlich nach 24 h ist der Wechsel erlaubt",
-      P.wechsel_erlaubt(0, 1, 5000, LETZT, LETZT + 90000)[0] is True)
+_werte = list(inspect.signature(P.wechsel_erlaubt).parameters)
+check("der Aufruf nimmt nur noch drei Werte (kein Zeitstempel mehr)",
+      _werte == ["von_z", "nach_z", "mana"], str(_werte))
+try:                                                  # ein Altaufruf mit Zeitstempel MUSS brechen
+    P.wechsel_erlaubt(0, 1, 5000, None, 0.0)
+except TypeError:
+    check("ein Altaufruf mit Zeitstempel ist ein Fehler, kein stilles Ignorieren", True)
+except Exception as _f:
+    check("ein Altaufruf mit Zeitstempel ist ein Fehler, kein stilles Ignorieren", False, repr(_f))
+else:
+    check("ein Altaufruf mit Zeitstempel ist ein Fehler, kein stilles Ignorieren", False,
+          "der vierte Wert wurde angenommen")
+check("ein Wechsel kurz nach dem letzten ist erlaubt", P.wechsel_erlaubt(0, 1, 5000)[0] is True)
+check("die Entscheidung steht im Docstring (F-28 = C)",
+      "F-28 = C" in (P.wechsel_erlaubt.__doc__ or ""), (P.wechsel_erlaubt.__doc__ or "")[:80])
+check("die alte Sperrkonstante liest das Modul nicht mehr",
+      not hasattr(P, "_STUNDEN_SPERRE"), "STUNDEN_SPERRE existiert wieder")
+check("die Beschreibung nennt keine Wartezeit mehr",
+      "keine Wartezeit" in P.beschreibung() and "24 Stunden" not in P.beschreibung(),
+      P.beschreibung())
 check("unbekannte Ausgangs-Dimension wird abgelehnt",
-      P.wechsel_erlaubt(-1, 1, 5000, None, 1000.0)[0] is False)
+      P.wechsel_erlaubt(-1, 1, 5000)[0] is False)
 # W-6: 6 ist jetzt die erste unbekannte Zielwelt (vorher war 20 die erste hinter 0..19).
 check("unbekannte Ziel-Dimension wird abgelehnt",
-      P.wechsel_erlaubt(0, 6, 5000, None, 1000.0)[0] is False)
+      P.wechsel_erlaubt(0, 6, 5000)[0] is False)
 check("Wechsel in dieselbe Dimension ist nicht verboten (Quelle schweigt)",
-      P.wechsel_erlaubt(0, 0, 5000, None, 1000.0)[0] is True)
+      P.wechsel_erlaubt(0, 0, 5000)[0] is True)
 
 # ---------------------------------------------------------------------------
 abschnitt("Abbuchung: das Mana wird genau einmal abgezogen")
@@ -131,7 +145,7 @@ _d = P.nach_wechsel(10000.0, LETZT)
 check("nach_wechsel zieht genau 5000 ab", _d["mana"] == 5000.0, str(_d["mana"]))
 check("die Differenz betraegt genau einen Festpreis",
       10000.0 - _d["mana"] == P.wechselkosten())
-check("nach_wechsel setzt den Sperr-Zeitstempel auf jetzt",
+check("nach_wechsel schreibt den Zeitstempel des Wechsels (Aufzeichnung, sperrt nicht)",
       _d["letzter_wechsel"] == LETZT)
 check("nach_wechsel meldet die abgezogenen Kosten",
       _d["kosten"] == P.wechselkosten())
@@ -191,7 +205,9 @@ check("die Beschreibung nennt 6 Weltkarten", "6 Weltkarten" in _b, _b)
 check("die Beschreibung nennt keine Dimension mehr", "Dimension" not in _b, _b)
 check("die Beschreibung nennt 400 Felder", "400" in _b, _b)
 check("die Beschreibung nennt 5.000 Mana", "5.000 Mana" in _b, _b)
-check("die Beschreibung nennt 24 Stunden", "24 Stunden" in _b, _b)
+# S-5 (09.11.2026, Register 332): die 24 Stunden sind auf Daniels Entscheid F-28 = C entfallen.
+check("die Beschreibung nennt KEINE 24 Stunden mehr", "24 Stunden" not in _b, _b)
+check("die Beschreibung nennt die Entscheidung", "keine Wartezeit" in _b, _b)
 check("die Beschreibung ist eine nicht leere Zeile",
       isinstance(_b, str) and len(_b) > 20)
 

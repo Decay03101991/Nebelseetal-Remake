@@ -591,8 +591,15 @@ check("der Wechsel kostet 5000 Mana", zpo["ressourcen"]["mana"] == 1000,
 check("die eigene Dimension ist jetzt 3", zpo["eigene_dimension"] == 3)
 zpo["ressourcen"]["mana"] = 6000
 ok, meldung = S.portalwechsel(zpo, 4, 1000.0)
-check("ein zweiter Wechsel innerhalb von 24 h wird abgelehnt",
-      ok is False and "24" in meldung, meldung)
+# S-5 (09.11.2026, Register 332): Daniel hat F-28 = C entschieden - KEINE Wartezeit mehr.
+# Die frueher hier geforderte 24-Stunden-Sperre ist UMGEDREHT, nicht geloescht: derselbe
+# Aufruf mit demselben Zeitunterschied gelingt jetzt sofort.
+check("ein zweiter Wechsel ohne Wartezeit gelingt (F-28 = C, S-5)", ok is True, meldung)
+check("und der zweite Wechsel kostet wieder genau 5000 Mana",
+      zpo["ressourcen"]["mana"] == 1000, str(zpo["ressourcen"]["mana"]))
+check("die eigene Dimension ist jetzt 4", zpo["eigene_dimension"] == 4)
+check("der Zeitstempel wird geschrieben, sperrt aber nicht",
+      float(zpo.get("letzter_wechsel") or 0.0) == 1000.0, str(zpo.get("letzter_wechsel")))
 
 zcopy = S.neuer_zustand()
 _liste = S.ereignisse(zcopy)

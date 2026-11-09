@@ -866,8 +866,8 @@ def _kette_12_portal():
         check("die Tempel tragen Mana ein (Zuwachs in sechs Spielstunden)",
               zuwachs >= 5.0 * 6.0, "%g Mana je 6 h" % zuwachs)
         check("unter dem Festpreis ist KEIN Weltensprung moeglich (die Kernpruefung)",
-              portalraum.wechsel_erlaubt(0, 1, kosten - 1.0, None, 0.0)[0] is False,
-              portalraum.wechsel_erlaubt(0, 1, kosten - 1.0, None, 0.0)[1])
+              portalraum.wechsel_erlaubt(0, 1, kosten - 1.0)[0] is False,
+              portalraum.wechsel_erlaubt(0, 1, kosten - 1.0)[1])
         # STARTWERT: das ueber viele Spieltage ersparte Mana (Begruendung in der Funktion).
         gespart = _startwert_mana(gs, ort, kosten - 100.0)
         check("das Ersparte liegt knapp unter dem Preis", gespart < kosten, str(gespart))
@@ -919,13 +919,14 @@ def _kette_12_portal():
               "%g -> %g" % (mana_vor_sprung, gs.resources["mana"].amount))
         check("die neue Welt steht in der Liste der eigenen Dimensionen",
               ziel in [int(z) for z in gs.eigene_dimensionen], str(gs.eigene_dimensionen))
-        check("die 24-Stunden-Sperre ist gesetzt", float(gs.letzter_wechsel or 0.0) > 0.0,
-              str(gs.letzter_wechsel))
+        # S-5 (09.11.2026, Register 332): der Stempel ist Aufzeichnung, keine Sperre (F-28 = C).
+        check("der Zeitstempel des Wechsels ist geschrieben (Aufzeichnung, keine Sperre)",
+              float(gs.letzter_wechsel or 0.0) > 0.0, str(gs.letzter_wechsel))
         check("die Meldung steht im Postfach", len(_nachrichten(gs, "portal")) > 0,
               "%d Portalmeldungen" % len(_nachrichten(gs, "portal")))
         mana_nach_sprung = float(gs.resources["mana"].amount)
         # Fuer den zweiten Versuch ein ANDERES freies Feld nehmen - sonst blockt "steht schon
-        # dort" und nicht die Sperre, und die Wache bewiese das Falsche.
+        # dort" und nicht das Mana, und die Wache bewiese das Falsche.
         belegt2 = app._portal_belegte_felder()
         anderer = None
         for fy in range(20):
@@ -938,22 +939,27 @@ def _kette_12_portal():
                     break
             if anderer:
                 break
-        check("ein zweites freies Feld fuer die Sperrprobe ist da", anderer is not None,
+        check("ein zweites freies Feld fuer die Manaprothese ist da", anderer is not None,
               str(anderer))
         zweiter = app._dorf_versetzen(ort_name, anderer[0], anderer[1], ziel)
-        check("ein ZWEITER Umzug sofort ist gesperrt", zweiter is False, _log_ende(gs))
+        check("ein ZWEITER Umzug sofort scheitert am Mana, nicht an einer Wartezeit",
+              zweiter is False, _log_ende(gs))
         check("der Grund ist das Mana (20 von 5.000 nach dem Umzug)",
               "Mana" in str((gs.messages[-1] or {}).get("text", "")),
               str((gs.messages[-1] or {}).get("text")))
         # Diese Kette darf den Spielstand nicht von Hand setzen (Quellwache Abschnitt 13) -
-        # die SPERRE selbst wird deshalb an der Kernfunktion geprueft, nicht mit geschenktem Mana.
-        # Die Sperre selbst pruefen - unabhaengig davon, ob gerade Mana da ist: mit genug Mana
-        # und einem Wechsel vor einer Sekunde muss die 24-Stunden-Regel greifen.
-        _sperre, _grund_sperre = portalraum.wechsel_erlaubt(
+        # die Entscheidung selbst wird deshalb an der Kernfunktion geprueft.
+        # S-5 (09.11.2026, Register 332): die 24-Stunden-Sperre ist auf Daniels Entscheid F-28 = C
+        # entfallen. Derselbe Aufruf mit genug Mana und einem Wechsel von gerade eben ist jetzt
+        # ERLAUBT - die alte Wache ist umgedreht, nicht geloescht.
+        _erlaubt5, _grund5 = portalraum.wechsel_erlaubt(
             portalraum.index_von(int(gs.eigene_dimension)), portalraum.index_von(von),
-            kosten * 2.0, float(gs.letzter_wechsel), float(gs.letzter_wechsel) + 1.0)
-        check("und die Sperre ist die 24-Stunden-Regel (Kernpruefung mit genug Mana)",
-              _sperre is False and "24" in str(_grund_sperre), str(_grund_sperre))
+            kosten * 2.0)
+        check("kein Warten mehr: mit genug Mana ist ein Wechsel von gerade eben erlaubt (F-28 = C)",
+              _erlaubt5 is True, str(_grund5))
+        _werte5 = list(_inspect.signature(portalraum.wechsel_erlaubt).parameters)
+        check("die Kernfunktion nimmt keinen Zeitstempel mehr (genau drei Werte)",
+              _werte5 == ["von_z", "nach_z", "mana"], str(_werte5))
         check("und es wurde dabei nichts zweites abgebucht",
               abs(float(gs.resources["mana"].amount) - mana_nach_sprung) < 1e-6,
               str(gs.resources["mana"].amount))

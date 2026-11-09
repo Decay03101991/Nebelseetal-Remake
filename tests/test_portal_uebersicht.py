@@ -136,9 +136,9 @@ def _pruefungen_zaehlweise():
     check("Nummer 7 und 0 sind unbekannt", portalraum.index_von(7) == -1
           and portalraum.index_von(0) == -1, "")
     check("Index 5 ist mit dem Wechselritual erreichbar (die alte Luecke bei Knopf 20)",
-          portalraum.wechsel_erlaubt(5, 1, 100000.0, None, 0.0)[0] is True, "")
+          portalraum.wechsel_erlaubt(5, 1, 100000.0)[0] is True, "")
     check("Index 6 bleibt ungueltig - genau das war der alte Fehler in klein",
-          portalraum.wechsel_erlaubt(6, 1, 100000.0, None, 0.0)[0] is False, "")
+          portalraum.wechsel_erlaubt(6, 1, 100000.0)[0] is False, "")
     # S-4b: die Umrechnung steht in der Buchstelle `_dorf_versetzen` (Nummer 1..6 -> Index 0..5).
     check("_dorf_versetzen rechnet die Nummer ueber portalraum.index_von um",
           "index_von" in _code(main.NebelseetalApp._dorf_versetzen), "")

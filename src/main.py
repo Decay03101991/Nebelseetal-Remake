@@ -11838,14 +11838,21 @@ class NebelseetalApp:
             return str(eintraege[nummer - 1].get("name") or f"Weltkarte {nummer:02d}")
         return f"unbekannte Weltkarte {z}"
 
-    def _sperre_text(self) -> str:
-        """Restzeit bis zum naechsten Koordinatenwechsel (belegte 24-Stunden-Sperre)."""
+    def _letzter_wechsel_text(self) -> str:
+        """Wann zuletzt gewechselt wurde - eine Auskunft, KEINE Sperre mehr (S-5, F-28 = C).
+
+        Bis Register 332 stand hier die Restzeit einer 24-Stunden-Sperre. Die Sperre ist auf
+        Daniels Entscheidung entfallen (`portalraum.wechsel_erlaubt` fragt sie nicht mehr ab);
+        der Zeitstempel bleibt im Spielstand, damit der Spieler sieht, wann er zuletzt gereist ist.
+        """
         if self.state.letzter_wechsel is None:
             return "noch nie gewechselt"
-        reste = 24 * 3600 - (time.time() - float(self.state.letzter_wechsel))
-        if reste <= 0:
-            return "abgelaufen"
-        return f"noch {reste / 3600.0:.2f} h"
+        stunden = (time.time() - float(self.state.letzter_wechsel)) / 3600.0
+        if stunden < 0:                                          # Zeitstempel aus der Zukunft
+            return "Zeitstempel unklar (aus der Zukunft)"
+        if stunden < 1.0:
+            return "vor wenigen Minuten"
+        return f"vor {stunden:.1f} h"
 
     def _portal_belegte_felder(self) -> list:
         """Alle BELEGTEN Felder des Portalraums - eigene Siedlungen und fremde Bot-Dörfer.
@@ -11890,7 +11897,8 @@ class NebelseetalApp:
         (1) die Siedlung gibt es, (2) nichts ist unterwegs (Daniel 01.11.2026, Anhang 2),
         (3) die Weltkarte ist bekannt, (4) das Feld ist frei - auch ein Bot-Dorf blockiert
         (F-26 = A), (5) die Reichskasse trägt die 5.000 Mana (F-25 = A: keine zweite Preistafel,
-        kein Gold, keine Waren), (6) die Sperre (bis S-5 die belegten 24 Stunden, F-28 = C).
+        kein Gold, keine Waren). Eine Wartezeit gibt es seit S-5 NICHT mehr (F-28 = C,
+        Register 332): `letzter_wechsel` wird fortgeschrieben, sperrt aber nichts.
 
         Gebucht wird: Mana minus Festpreis, `welt_x`/`welt_y`, die Welt des Dorfes und die
         gezeigte Welt. Bauten, Stufen, Garnison, Waren und Karawanen reisen mit, weil sie AM ORT
@@ -11945,9 +11953,11 @@ class NebelseetalApp:
             self._log(meldung)
             self.state.messages.append({"text": meldung, "type": "portal"})
             return False
-        erlaubt, meldung = portalraum.wechsel_erlaubt(                    # (6) Sperre
-            _von_index if _von_index >= 0 else index, index, mana,
-            self.state.letzter_wechsel, time.time())
+        # S-5 (09.11.2026, Register 332): keine Wartezeit mehr (F-28 = C). Die letzte gemeinsame
+        # Pruefung fragt nur noch nach bekannter Welt und Mana - die Sperre, die hier bis Register
+        # 331 stand, ist auf Daniels Entscheid entfallen.
+        erlaubt, meldung = portalraum.wechsel_erlaubt(
+            _von_index if _von_index >= 0 else index, index, mana)
         if not erlaubt:
             self._log(meldung)
             self.state.messages.append({"text": meldung, "type": "portal"})
@@ -12611,12 +12621,15 @@ class NebelseetalApp:
                  fg="#8a8a8a", bg=self.skin["bg"], wraplength=760, justify=tk.LEFT).pack(
                      anchor=tk.W, padx=10, pady=(2, 6))
 
-        # --- 3. Kosten, Sperre und Mannavorrat (W5-2, auf den Umzug umgestellt in S-4) ---
+        # --- 3. Kosten und Mannavorrat (W5-2, auf den Umzug umgestellt in S-4) ---
+        # S-5 (09.11.2026, Register 332): die 24-Stunden-Sperre ist auf Daniels Entscheid F-28 = C
+        # entfallen. `wechsel_erlaubt` prueft nur noch Weltkarte und Mana; der Zeitstempel des
+        # letzten Wechsels steht als Auskunft daneben.
         index = portalraum.index_von(nummer)
-        erlaubt, meldung = portalraum.wechsel_erlaubt(index, index, float(mana),
-                                                      self.state.letzter_wechsel, time.time())
+        erlaubt, meldung = portalraum.wechsel_erlaubt(index, index, float(mana))
         tk.Label(self.content, text=(f"Mana: {int(mana)} · ein Umzug kostet "
-                                     f"{portalraum.wechselkosten()} · Sperre: {self._sperre_text()}"),
+                                     f"{portalraum.wechselkosten()} · zuletzt gewechselt: "
+                                     f"{self._letzter_wechsel_text()}"),
                  fg=self.skin["text"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(4, 2))
         tk.Label(self.content,
                  text=("Umzug möglich." if erlaubt else f"Zurzeit nicht möglich: {meldung}"),

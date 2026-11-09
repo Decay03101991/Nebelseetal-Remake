@@ -334,6 +334,9 @@
 | 327 | Design D-1: das Paket gegen die Projektdokumente gehalten - die eigene Fruehpruefung war an einem Punkt falsch, fuenf Widersprueche sind belegt (kein Code, kein | GEBAUT | 09.11.2026 |
 | 328 | D-2 entschieden: die Weltkarte bleibt vorerst FLACH - erst eine Testkarte mit gemalten Kacheln (D-3), isometrisch nur, wenn der Stil flach nicht traegt | ABGESEGNET | 09.11.2026 |
 | 329 | W-D6 entschieden: KEINE Gelaendesperre auf der Weltkarte - das Gelaende bleibt reine Anzeige | ABGESEGNET | 09.11.2026 |
+| 330 | Design D-3: die Testkarte ist gemalt - 20 x 20, sieben Gelaendearten mit TANNEN, EIN Bild je Karte, Belastungstest im Fenster belegt | GEBAUT | 09.11.2026 |
+| 331 | Portal S-4b: `_portal_wechsel` ist entfernt - ihre Wachen sind auf die Buchstelle `_dorf_versetzen` UMGESTELLT, nicht geloescht | GEBAUT | 09.11.2026 |
+| 332 | Portal S-5: die 24-Stunden-Wartezeit ist WEG - sechs Wachen UMGEDREHT, nicht geloescht | GEBAUT | 09.11.2026 |
 
 ## Ersetzungen (Handpflege)
 
