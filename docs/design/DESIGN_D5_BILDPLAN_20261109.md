@@ -135,3 +135,24 @@ angehoben); die Tannen sind unveraendert. Geaendert ist NUR `data/gelaende.json`
 der Portalraum und die Legende lesen dieselbe Quelle. Farbwerte: Grasland `#64794A`, Steppe
 `#A98A5C`, Wald `#2E4527`, Huegel `#6B563E`, Berg `#8E93A6`, Nebelsee `#41597A`, Sumpf `#474A34`
 (Rand je Art 22 % dunkler). Belege: Wache `tests/test_d5a_chris_farben.py`, `docs/audits/bilder/`.
+
+## 10. D-5b gebaut (09.11.2026, 23:52 - Register 361)
+
+Daniel hat in einer Runde entschieden: die neun Menue-Icons ersetzen (die Gebaeude auf der Karte
+bleiben), Chris' Goldrahmen einbauen, `markt_handel` wird das Kennzeichen der Marktplatz-Ansicht.
+
+**Platz S3 ist damit belegt:** `assets/icons/gebaeude/rahmen/kachelrahmen_chris.png`, 400 x 400
+RGBA, aus der Schmiede-Kachel geschnitten. Band **14 px**, Eckenradius **14 px** - gemessen ist
+das Band am Original 3,35 Prozent der Breite; der Radius musste auf die Bandbreite, weil der
+bewaehrte 4-Leisten-Rahmen (`gebaeude_optik.rahmen_kanten`) Eckblock = Band verlangt. Chris'
+30 px Radius braeuchten ein 3x3-Leisten-Layout (eigener Schnitt). Quelle der Zahlen:
+`data/gebaeude_motive.json` -> `kachelrahmen.weltkarte` und `weltkarte_rand`.
+
+**Icons:** neun der elf Kacheln sind Menue-Icons geworden (`farm_bauernhof` -> `farm`);
+`farm_windmuehle` bleibt ungenutzt, `markt_handel` ist das Marktplatz-Kennzeichen (96 x 96).
+`Nachtrag Abschnitt 8, Frage 1` ist damit beantwortet: es sind NEUE Fassungen, keine
+Verkleinerungen der Projektbilder (Vergleichsblatt `docs/audits/bilder/d5b_icons_alt_neu_20261109.png`).
+
+Weiter ohne Bild: Bibliothek, Bogenbauer, Diebesgilde, Erzmine, Goldmine, Haus, Kriegerakademie,
+Lager, Naehstube, Pferdezucht, Stellmacher (elf Gebaeude, C2 bleibt) und die sechs Ghul-Kacheln
+(kein Platz im Code - Fraktionsvarianten sind ein eigener Schnitt).

@@ -1,3 +1,35 @@
+# STAND 09.11.2026, 23:52 - D-5b gebaut: Chris' Menue-Icons, Goldrahmen, Marktplatz-Kennzeichen (Register 361)
+
+> Neuester Block. Darunter 20:24 (D-5a; 356), 19:40 (neue EXE; 353), 19:08 (Layout-Schnitt;
+> 351/352), 18:15 (D-5 nachgebessert; 348) und 17:44 (D-5 gebaut; 347).
+
+**Daniels Wort (eine Runde, 23:1x):** die neun Menue-Icons ersetzen - „Gebaeude auf der Karte
+bleiben, wie sie sind“; Chris' Goldrahmen einbauen; `markt_handel` wird das Kennzeichen der
+Marktplatz-Ansicht. farm_bauernhof wird die Farm, farm_windmuehle bleibt ungenutzt.
+
+**Gebaut:** neun Menue-Icons 256 x 256 RGBA aus den gelieferten Kacheln (Altbestand hashgleich in
+`archiv/design/20261109_c2_menue_icons_alt/`); `kachelrahmen_chris.png` 400 x 400 RGBA aus der
+Schmiede-Kachel, Band **14 px** (am Original gemessen 3,35 Prozent), Mitte und Eck durchsichtig;
+Eintrag `kachelrahmen.weltkarte` in `data/gebaeude_motive.json`, gelesen von
+`main._lade_weltkarte_rahmen`, verbraucht in `_kartenrahmen_bauen` (C2-Rahmen = Rueckfall,
+`ruhe` bleibt fuer den Rasterweg); `assets/bilder/marktplatz_kennzeichen_96.png` neben dem Titel.
+
+**Ehrliche Grenze:** Eckenradius **14 px statt Chris' 30 px** - der bewaehrte 4-Leisten-Rahmen
+braucht Eckblock = Bandbreite. 30 px braeuchten einen eigenen Schnitt (3x3-Leisten) und wuerden
+`test_weltkarte_rahmen` brechen; das ist eine offene Entscheidung, keine Nachlaessigkeit.
+
+**Wachen:** neu `tests/test_d5b_icons_und_rahmen.py` **33/0/1**. Gruen geblieben:
+`test_weltkarte_rahmen` 34/0/1, `test_gebaeude_optik` 179/0/0, `test_gebaeude_icons` 56/0/0,
+`test_gebaeude_motive` 104/0/1, `test_marktplatz_ansicht` 19/0/0, `test_portal_kopfleiste`
+72/0/1, `test_portal_fremdblick` 18/0/1, `test_startspiel` 62/0/1, `test_auswahlrahmen_c2` 17/0/0.
+
+**Belege:** `docs/audits/bilder/d5b_goldrahmen_karte_20261109.png` (Bildschirmfoto der
+Portalansicht, DPI-korrekt abgenommen), `d5b_marktplatz_kennzeichen_20261109.png`,
+`d5b_icons_alt_neu_20261109.png`.
+
+**Offen:** Sammellauf nach diesem Eingriff, neue EXE (Daniel spielt ab der naechsten EXE -
+Spieltest 4 wurde von 22:59 auf diese Fassung verschoben).
+
 # STAND 09.11.2026, 20:24 - D-5a gebaut: die Weltkarte steht auf Chris' Farben (Register 356)
 
 > Neuester Block. Darunter 19:40 (neue EXE; 353), 19:08 (Layout-Schnitt; 351/352), 18:15 (D-5

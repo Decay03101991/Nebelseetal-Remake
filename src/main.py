@@ -3421,7 +3421,30 @@ def _lade_motivdaten() -> tuple:
             max(0, min(100, deckkraft_auswahl)))                           # Auswahlrahmen ebenso
 
 
+def _lade_weltkarte_rahmen() -> tuple:
+    """(Pfad, Bandbreite in px, Bezugsbreite) des Goldrahmens um das Gelaendekaestchen - D-5b.
+
+    Quelle ist derselbe Block `kachelrahmen` in `data/gebaeude_motive.json` wie beim Rasterweg.
+    `weltkarte` ist der aus Chris' Lieferung geschnittene Rahmen (400 x 400 RGBA), `weltkarte_rand`
+    seine Bandbreite in px bei 400 px Bezugsbreite. Fehlt der Eintrag, kommt ("", 0, 400) zurueck -
+    dann nimmt `_kartenrahmen_bauen` wie bisher den C2-Rahmen (kein erfundener Rahmen).
+    """
+    pfad = os.path.join(ICON_WURZEL, "data", "gebaeude_motive.json")   # dieselbe Datendatei
+    try:                                                              # Datei lesen
+        with open(pfad, encoding="utf-8") as f:                       # UTF-8 wie alle Spieldaten
+            block = (json.load(f) or {}).get("kachelrahmen") or {}     # nur der Rahmenblock
+    except (OSError, ValueError):                                      # Datei fehlt oder ist kaputt
+        return "", 0, 400                                              # dann bleibt der C2-Rahmen
+    datei = str(block.get("weltkarte") or "")                          # Pfad des neuen Rahmens
+    try:                                                              # Bandbreite lesen
+        rand = int(block.get("weltkarte_rand") or 0)                   # px bei 400 px Bezug
+    except (TypeError, ValueError):                                    # kaputter Wert
+        rand = 0                                                       # dann kein neuer Rahmen
+    return (datei, max(0, rand), 400)                                  # (Pfad, Band, Bezug)
+
+
 GEBAEUDE_MOTIVE, KACHELRAHMEN, RAHMEN_DECKRAFT, AUSWAHL_DECKRAFT = _lade_motivdaten()
+WELTKARTE_RAHMEN = _lade_weltkarte_rahmen()   # (Pfad, Band in px, Bezugsbreite) fuer D-5b
 
 # Kartenraster der Weltkarte (Daniel 03.11.2026, 22:1x: "Felder mit Gelaendeton, feiner Trennlinie").
 # Die Trennlinie liegt als EIGENE Zahl hier und nicht im Feld selbst - vorher war jeder Feldumriss
@@ -3437,6 +3460,9 @@ PORTAL_BANNER_FARBEN = {"gruen": "#2ecc40", "rot": "#e53935"}
 # Die Masse stehen hier EINMAL, damit Anzeige und Wache dieselbe Zahl lesen; die Trennlinie traegt
 # das GEMESSENE Rahmengold #C68B42 (Median, nicht der Richtwert des Nachtrags).
 PORTAL_KOPFBAND = ("assets", "bilder", "portal_kopfband_schmiede_dorf_ghule_780x150.png")
+# D-5b (Daniel 09.11.2026): Chris' Marktstand als Kennzeichen der Marktplatz-Ansicht.
+# In ANZEIGEGROESSE geschnitten (96 x 96), damit Tk die Datei ohne Pillow laden kann.
+MARKTPLATZ_KENNZEICHEN = ("assets", "bilder", "marktplatz_kennzeichen_96.png")
 PORTAL_KOPFBAND_MASSE = (780, 150)                                       # Platz S1 im Bildplan
 PORTAL_TRENNLINIE = "#C68B42"                                            # Median des Rahmengolds (D-5)
 # Layout-Schnitt (Daniel 09.11.2026, 18:4x): "kleiner halten und gut anpassen". Die Inhaltsspalte
@@ -8691,6 +8717,25 @@ class NebelseetalApp:
         deckkraft = RAHMEN_DECKRAFT if str(art) == "ruhe" else AUSWAHL_DECKRAFT   # Ruhe gedaempft, Auswahl kraeftig
         return self._motivbild_skaliert(relativ, px, "_rahmen_cache", deckkraft)   # gleicher Weg wie die Motive
 
+    def _kennzeichen_bild(self):
+        """Chris' Marktstand als Kennzeichen der Marktplatz-Ansicht (D-5b) - oder None.
+
+        Geladen mit `tk.PhotoImage` (kein Pillow noetig, wie beim Kopfband); die Datei liegt in
+        ANZEIGEGROESSE unter `assets/bilder/`, damit Tk nichts skalieren muss. Fehlt sie, bleibt
+        die Ansicht wie vorher - es wird kein Bild erfunden und nichts stuerzt ab.
+        """
+        if hasattr(self, "_kennzeichen_cache"):                         # schon geladen
+            return self._kennzeichen_cache                              # dasselbe Bild wiederverwenden
+        pfad = _bild_pfad(MARKTPLATZ_KENNZEICHEN)                       # Pfad ueber die Projektwurzel
+        bild = None                                                     # Vorgabe: kein Bild
+        if os.path.exists(pfad):                                        # Datei vorhanden?
+            try:
+                bild = tk.PhotoImage(file=pfad)                         # Tk liest PNG direkt
+            except Exception:                                            # Datei unlesbar
+                bild = None                                             # dann bleibt es beim Text
+        self._kennzeichen_cache = bild                                  # auch None merken
+        return bild
+
     def _optik_bild(self, gebaeude_id, breite: int, hoehe=None, art: str = "kachel"):
         """Icon ("kachel") oder Hintergrund eines Gebaeudes als Tk-Grafik - gecacht, sonst None.
 
@@ -12433,14 +12478,24 @@ class NebelseetalApp:
         fehlt), kommt `(None, eltern)` zurueck und das Kaestchen steht wie bisher ohne Rahmen.
         Rueckgabe: (Rahmenrahmen, Mitte) - die Zeichenflaeche des Kaestchens gehoert in `Mitte`.
         """
-        if not KACHELRAHMEN or not KACHELRAHMEN.get("ruhe"):            # kein Rahmenbild hinterlegt
+        # D-5b (Daniel 09.11.2026): zuerst Chris' Goldrahmen aus der Lieferung. Fehlt er, gilt
+        # unveraendert der C2-Rahmen des Rasterwegs - Rueckfall, keine zweite Zeichenart.
+        rahmenbild = ""                                                 # Vorgabe: kein Bild
+        rahmenrand = None                                               # Bandbreite aus dem Bild
+        _wpfad, _wrand, _wbezug = WELTKARTE_RAHMEN                      # (Pfad, Band, Bezug)
+        if _wpfad and _wrand:                                           # Goldrahmen eingetragen
+            rahmenbild = _wpfad                                         # Pfad relativ zur Projektwurzel
+            rahmenrand = max(4, int(round(_wrand * float(breite) / float(_wbezug or 400))))  # mitskaliert
+        elif KACHELRAHMEN and KACHELRAHMEN.get("ruhe"):                 # Rueckfall: C2-Rahmen
+            rahmenbild = KACHELRAHMEN.get("ruhe")                       # wie vor D-5b
+        if not rahmenbild:                                              # kein Rahmenbild hinterlegt
             return None, eltern                                         # dann ohne Rahmen zeichnen
         schluessel = (int(breite), int(hoehe))                          # gleiche Masse, gleiches Bild
         if not hasattr(self, "_kartenrahmen_cache"):                    # Cache beim ersten Rahmen
             self._kartenrahmen_cache = {}                               # (Breite, Hoehe) -> Tk-Bilder
         bilder = self._kartenrahmen_cache.get(schluessel)               # schon gebaut?
         if bilder is None:                                              # noch nicht
-            teile = gebaeude_optik.rahmen_kanten(KACHELRAHMEN.get("ruhe"), breite, hoehe)  # vier Streifen
+            teile = gebaeude_optik.rahmen_kanten(rahmenbild, breite, hoehe, rahmenrand)   # vier Streifen
             bilder = {}                                                 # Vorgabe: kein Bild
             if teile:                                                   # Streifen entstanden
                 try:                                                    # Tk-Grafiken daraus bauen
@@ -14955,8 +15010,15 @@ class NebelseetalApp:
         Handelsneigung und Grund da, statt zu fehlen. Das Urteil kommt aus `handelt_bot`, also
         aus derselben Schwelle wie der Kern (F-04).
         """
-        tk.Label(self.content, text="Marktplatz", font=("Blackletter", 20, "bold"),
-                 fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
+        kopf = tk.Frame(self.content, bg=self.skin["bg"])               # Titel und Kennzeichen in EINER Zeile
+        kopf.pack(anchor=tk.W, padx=10, pady=(10, 5))
+        kennzeichen = self._kennzeichen_bild()                          # Chris' Marktstand (D-5b)
+        if kennzeichen is not None:                                     # Bild vorhanden
+            tk.Label(kopf, image=kennzeichen, bd=0, highlightthickness=0,
+                     bg=self.skin["bg"]).pack(side=tk.LEFT, padx=(0, 8))
+            kopf.bild = kennzeichen                                     # Referenz halten (Tk raeumt sonst)
+        tk.Label(kopf, text="Marktplatz", font=("Blackletter", 20, "bold"),
+                 fg=self.skin["gold"], bg=self.skin["bg"]).pack(side=tk.LEFT)
         tk.Label(self.content, text=("Hier verkaufst du Rohstoffe aus deinem Ortslager an die Bots - "
                                      "du bekommst Gold, sie bekommen die Ware. Gehandelt wird über "
                                      "den Knopf hinter jedem Namen."),
