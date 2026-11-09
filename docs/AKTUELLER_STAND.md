@@ -1,3 +1,28 @@
+# STAND 09.11.2026, 15:35 - D-5 Detail steht: der Bildplan fuer das Portal (Masse, Schnitte, Massblatt; Register 346)
+
+> Neuester Block. Darunter 14:58 (Bildwelt Chris, Register 341-344, EXE-Bau) und 11:25 (D-4; 340).
+
+**Was „Detail“ heisst (Daniel 15:29):** nicht eine Detailansicht im Fenster, sondern **alle Angaben beisammen** -
+welches Bild, wohin, wie gross, mit welchem Zuschnitt.
+
+**Am Code gemessen** (nicht geschaetzt): Fenster 1024 x 720, Inhaltsbreite **780 px**, Karte 400 x 400 (20 px je
+Feld), Burg auf dem Feld **18 px**, Wappen **8 px**, Weltkartenliste 6 Zeilen, Bannerfarben `#2ecc40` / `#e53935`.
+
+**Geschnitten und belegt:** Kopfband `band_schmiede_dorf_ghule` **780 x 150 mit 0 % Beschnitt** (Empfehlung),
+Alternative `band_ghule_lager` 780 x 152; Panoramen auf 780 x 200 kosten **33-45 % Hoehe**; Ladeseite
+`ladeseite_haemmer` **780 x 287 mit 0 % Beschnitt**. Jedes Bild 230-390 KB. Massblatt
+`archiv/design/20261109_chris_bildpaket/geschnitten/d5_massblatt_20261109.png` (840 x 2047) zeigt jedes Bild in
+seiner Zielgroesse; die acht Schnitte liegen im selben Ordner (gitignoriert).
+
+**Fehlendes, offen:** kein freistehendes Bannerbild (die Banner stecken IN den Kacheln), keine Bilder fuer zehn
+Gebaeude, keine Fraktionsvarianten ausser Ghulen, kein Kartenbild - das ist **D-5a** (F-36).
+
+**Drei Punkte warten auf Daniels Wort** (Empfehlung zuerst): Band oder Panorama als Kopfleiste; Banner in der
+Weltliste als farbige Form oder als Kachelausschnitt; Goldrahmen jetzt in D-5 oder erst in D-5b. Danach: Bau,
+Wache, Sammellauf.
+
+**Kostenablesung 15:29:** 13,41 USD Guthaben / 66,58 USD Gesamtverbrauch - **+0,05 USD** seit 15:06 (Register 345).
+
 # STAND 09.11.2026, 14:58 - Die Bildwelt von Chris Fred Däubner ist protokolliert, abgelegt und zugeordnet (Register 341)
 
 > Neuester Block. Darunter 11:25 (D-4: gemalte Karte; Register 340), 10:33 (F-35; 338), 10:04 (F-34; 337),
