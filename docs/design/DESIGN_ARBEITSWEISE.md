@@ -55,8 +55,7 @@ Jede Lieferung läuft gleich, egal von wem sie kommt:
 - **Die 125 Siedlungskarten** für den Dörferausbau bleiben, wie sie sind.
 - **Keine Ausbaustufen designen** - weder für Burgen noch für Gebäude oder Felder.
 - **Malstil** ist der der Stilreferenzen: gemalt, warmes Licht vorn, kühler Nebel hinten.
-- **Nebelsee:** auf der Siedlungskarte bebaubar (Tempel liefert Mana), auf der Weltkarte
-  unbesetzbar.
+- **Nebelsee:** auf der Siedlungskarte bebaubar (Tempel liefert Mana). **Auf der Weltkarte KEINE Sperre:** das Gelaende ist dort reine Anzeige, ein Dorf darf auch auf Nebelsee und Sumpf landen (Daniel 09.11.2026, Register 329; bestaetigt die Entscheidung vom 01.11.2026). Nebelsee und Sumpf duerfen im Design als Deko gemalt werden, ohne eine Regel zu tragen.
 
 ## 4. Was am 09.11.2026 eingeplant wurde
 
@@ -79,6 +78,14 @@ Schnitt geplant (`D-2` im Prüfdokument), nicht nebenbei gemacht.
 | D-7 | Fehlende Fraktionsbilder (Trolle zuerst) | jede Fraktion hat Panorama, Szene und Medaillon |
 | D-8 | Logo in Ladeseite, Portal und Startmenü | überall auf dunklem Grund, Freigabe Daniel |
 
-D-1 und D-2 sind Vorarbeit ohne Code. **D-1 ist am 09.11.2026 gelaufen** (Nachtrag im Pruefdokument: Selbstkorrektur an W-D1, W-D6 bis W-D9, Bildersumme); **D-2 wartet auf Daniels Entscheidung.** **Kein Designschritt ändert Spielregeln**; wo ein Design eine
-Regel berührt (etwa ob der Sumpf auf der Weltkarte besetzbar ist), entscheidet Daniel, nicht das
-Paket.
+D-1 und D-2 sind Vorarbeit ohne Code und **beide erledigt**:
+
+- **D-1 (09.11.2026):** Nachtrag im Prüfdokument — Selbstkorrektur an W-D1, W-D6 bis W-D9, Bildersumme
+  (24 von 35 Bilddateien des Pakets sind pixelgleich mit vorhandenem Material).
+- **D-2 (09.11.2026, Daniel):** erst eine **flache** Testkarte mit gemalten Kacheln (D-3);
+  isometrisch nur, wenn der Stil flach nicht trägt (Register 328). Die isometrische Stilprobe ist
+  damit zurückgestellt, nicht abgelehnt.
+
+**Kein Designschritt ändert Spielregeln.** Wo ein Design eine Regel berührt (etwa ob ein Gelände auf
+der Weltkarte sperrt), entscheidet Daniel, nicht das Paket — so am 09.11.2026 geschehen: **keine
+Geländesperre**, das Gelände bleibt reine Anzeige (Register 329).

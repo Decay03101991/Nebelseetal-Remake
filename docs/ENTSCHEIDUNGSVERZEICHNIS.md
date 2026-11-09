@@ -332,6 +332,8 @@
 | 325 | Portal S-3: der Dorfumzug wird gebucht - freies Feld, 5.000 Mana, GENAU EINMAL | GEBAUT | 08.11.2026 |
 | 326 | Portal S-4: die Ansicht bucht den Umzug - der Knopf „Weltensprung“ ist weg, das Zielfeld wird geklickt | GEBAUT | 09.11.2026 |
 | 327 | Design D-1: das Paket gegen die Projektdokumente gehalten - die eigene Fruehpruefung war an einem Punkt falsch, fuenf Widersprueche sind belegt (kein Code, kein | GEBAUT | 09.11.2026 |
+| 328 | D-2 entschieden: die Weltkarte bleibt vorerst FLACH - erst eine Testkarte mit gemalten Kacheln (D-3), isometrisch nur, wenn der Stil flach nicht traegt | ABGESEGNET | 09.11.2026 |
+| 329 | W-D6 entschieden: KEINE Gelaendesperre auf der Weltkarte - das Gelaende bleibt reine Anzeige | ABGESEGNET | 09.11.2026 |
 
 ## Ersetzungen (Handpflege)
 

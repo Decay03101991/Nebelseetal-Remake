@@ -133,8 +133,7 @@ Projektdateien (6 Burgen, 3 Drachen, 14 Stilreferenzen, 1 Logo), 4 sind Ableitun
 `src/portalraum.py` Z. 408-411 "Das Gelaende auf der Weltkarte hat KEINE Bauplatz-, Rohstoff- oder
 Ertragswirkung" (Daniel 01.11.2026, Register 91/92), und `_dorf_versetzen` (S-3/S-4) prueft Dorf,
 Auftraege, Welt, Position, Feld frei, Mana, Sperre - **kein Gelaende**. Auf einer Nebelsee-Kachel
-kann heute ein Dorf landen. Zwei Aussagen Daniels stehen damit gegeneinander; das ist eine
-Entscheidung, keine Reparatur.
+kann heute ein Dorf landen. Zwei Aussagen Daniels stehen damit gegeneinander. **ENTSCHIEDEN 09.11.2026, 02:03 (Daniel): keine Gelaendesperre** - die Entscheidung vom 01.11.2026 gilt weiter, Gelaende auf der Weltkarte bleibt reine Anzeige, `_dorf_versetzen` bleibt unveraendert (Register 329).
 
 **W-D7 - Sumpf: der Paketvorschlag ist eine NEUE Regel.** `data/gelaende.json` fuehrt `sumpf` mit
 `bebaubar: false` - das gilt fuer die SIEDLUNGSkarte. Fuer die Weltkarte gibt es keine Regel;
