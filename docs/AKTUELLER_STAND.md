@@ -53,7 +53,13 @@ Sitzung bis 15:06 (gemessen, Abrechnung bis 5 Minuten verzoegert).
   Chris umgestellt, in der Reihenfolge nach D-5. Das sind eigene Schnitte mit Wachen, kein Nebenaustausch.
 - **F-40 EXE:** Bau erst **nach Daniels Formatierung**, dann Spieltest 4.
 
-**Reihenfolge ab jetzt:** Formatierung abwarten -> EXE-Bau aus `6e343b5` -> Spieltest 4 -> **D-5** (Portal mit
+**EXE gebaut (15:19, aus `39a3f32`):** `Nebelseetal_Pre_Release_V_0.0.3.exe`, **82.727.384 Byte (78,9 MB)**, SHA256
+`486ce93eb769ae115f43c594e6ff628e514dcb259eb4589503b291f41614a4c5`, Bau 1 min 23 s. Der Altbau (82.706.188 Byte,
+`cae20ebd…`) liegt in `archiv/builds/20261109_vor_d4/` mit `SHA256.txt` - archiviert, nicht ersetzt. **Nur
+Prozessprobe:** zwei Prozesse (Bootloader und Kind), nach 12 s beendet, kein `game.lock`, kein Spielstand, in AppData
+kein frischer Schreibvorgang. **Die EXE enthaelt D-4** - Spieltest 4 kann kommen.
+
+**Reihenfolge ab jetzt:** Formatierung erledigt -> EXE-Bau erledigt -> **Spieltest 4 (Daniel)** -> **D-5** (Portal mit
 den Panoramen und Bannern aus dieser Lieferung) -> **D-5a** Weltkarte (F-36) -> **D-5b** Icons und Rahmen (F-39).
 
 # STAND 09.11.2026, 11:25 - D-4 gebaut: die gemalte Karte steht im Portal, 20 px je Feld, gerade (Register 340)
