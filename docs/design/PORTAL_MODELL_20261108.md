@@ -286,3 +286,21 @@ Mana, nicht an einer Wartezeit), `test_spielschicht` (145/0/1), `test_portal_ueb
 
 **Der Zeitstempel bleibt im Spielstand** (`state.letzter_wechsel`, geschrieben von `nach_wechsel`),
 weil die Ansicht damit sagen kann, wann zuletzt gereist wurde - er sperrt nichts.
+
+## 10. Daniels Antworten zur Gestaltung (09.11.2026, 09:07, fuenf Fragen in EINER Runde)
+
+S-5 und S-6 waren gebaut, dann standen fuenf Fragen aus der Uebergabe 07:35 offen. Sie wurden
+zusammen gestellt (fuenf Blaetter einer Runde, je drei Vorschlaege, Empfehlung zuerst; freie Antwort
+moeglich). Wortlaut der Antworten:
+
+| Nummer | Frage | Antwort (Wortlaut) | Folge |
+|---|---|---|---|
+| F-29 | Stil: flach gemalt bleiben, oder isometrisch umbauen? | **„Beide Fassungen als Bild sehen, dann entscheiden“** | Ein Vergleichsblatt liegt vor: `archiv/design/20261109_vergleich_stil/vergleich_flach_vs_isometrisch_20261109.png` (2000 x 1160, flach 20 px, flach 48 px und der Kartenausschnitt der Stilprobe A nebeneinander). **D-4 wartet auf seine Wahl** - kein Einbau vorher. |
+| F-30 | Kantenlaenge der Portalkarte | **„20 px je Feld belassen“** | Keine Aenderung: `_portal_zelle` rechnet heute 20 px je Feld, 400 x 400 px. D-4 malt mit `kante=20` (gemessen 0,462 s kalt, 0,00013 s warm). Kein Rollbalken. |
+| F-31 | Tannen oder runde Laubbaeume | **„Tannen“** | Keine Aenderung: `weltkarte_malerei` malt Tannen (D-3, Register 330). Das Designpaket beschreibt runde Laubbaeume - dieser Punkt ist damit abgelehnt. |
+| F-32 | `spielschicht.portalwechsel` ohne Aufrufer in `src/` | **„Behalten und ausdruecklich als Spielschicht-Funktion dokumentieren“** | Bleibt. Offen ist die ausdrueckliche Dokumentation (ein Satz im Docstring plus ein Absatz in der Modulkarte); sie geht mit der naechsten `src/`-Aenderung in EINEN Commit, damit kein Sammellauf fuer eine Textzeile allein laeuft. |
+| F-33 | `letzter_wechsel` im Spielstand | **„Bleibt als reine Aufzeichnung im Spielstand“** | So ist S-5 gebaut (Register 332): `nach_wechsel` schreibt den Stempel, die Portalzeile zeigt „zuletzt gewechselt“, nichts sperrt. Keine Aenderung. |
+
+**Damit ist nur noch F-29 offen** - und F-29 ist keine Code-Frage, sondern ein Blick auf das
+Vergleichsblatt. Alles andere aus dieser Runde ist entweder schon gebaut (F-30, F-31, F-33) oder als
+kleine Dokumentationsaufgabe benannt (F-32).

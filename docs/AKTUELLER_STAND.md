@@ -1,3 +1,22 @@
+# STAND 09.11.2026, 09:10 - Fuenf Gestaltungs-Antworten: nur der Stil-Entscheid ist noch offen (Register 335)
+
+> Neuester Block. Darunter 09:00 (EINE EXE gebaut; Register 334), 08:55 (Portal S-6; Register 333),
+> 08:25 (Portal S-5; Register 332).
+
+**Daniel hat alle fuenf Fragen beantwortet** (09.11.2026, 09:07, eine Runde): Kante bleibt **20 px je
+Feld**, der Wald traegt **Tannen**, `spielschicht.portalwechsel` **bleibt** (und wird ausdruecklich als
+Spielschicht-Funktion dokumentiert - offen, geht mit der naechsten `src/`-Aenderung), `letzter_wechsel`
+**bleibt** als reine Aufzeichnung.
+
+**Offen ist nur der Stil (F-29): „Beide Fassungen als Bild sehen, dann entscheiden.“** Dafuer liegt ein
+Vergleichsblatt vor:
+`archiv/design/20261109_vergleich_stil/vergleich_flach_vs_isometrisch_20261109.png` (2000 x 1160, drei
+Felder: flach 20 px, flach 48 px, isometrische Stilprobe A, dazu Messwerte). **D-4 (Einbau der gemalten
+Karte in `_render_portal`) wartet auf seine Wahl.**
+
+Antworten wortgleich mit Folge-Spalte in `docs/design/PORTAL_MODELL_20261108.md` Abschnitt 10.
+Kein Code geaendert, kein Sammellauf noetig.
+
 # STAND 09.11.2026, 09:00 - EINE EXE gebaut (Stand a1ea781, S-5 und S-6 enthalten; Register 334)
 
 > Neuester Block. Darunter 08:55 (Portal S-6, Wache am Fenster; Register 333), 08:25 (Portal S-5,
