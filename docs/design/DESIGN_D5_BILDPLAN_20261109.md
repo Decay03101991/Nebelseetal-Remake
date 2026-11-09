@@ -111,3 +111,13 @@ nicht überschrieben.
    Kachel? *(Empfehlung: farbige Form, kein Kachelausschnitt.)*
 3. **Goldrahmen:** in D-5 lassen (C2-Rahmen bleibt) und erst in D-5b mit den Icons zusammen umstellen —
    oder schon in D-5? *(Empfehlung: D-5b, wie F-39 es reiht.)*
+## 8. Entschieden (09.11.2026, 16:58 - Register 347)
+
+Die drei Punkte aus Abschnitt 7 sind beantwortet, alle drei wie empfohlen:
+
+1. **Kopfleiste:** Band `band_schmiede_dorf_ghule`, **780 x 150 px, 0 % Beschnitt** - gebaut in D-5.
+2. **Banner in der Weltliste:** farbige Form, **kein** Kachelausschnitt - gebaut als 6 x 18 px Farbstreifen je Zeile.
+3. **Goldrahmen:** bleibt in D-5 beim C2-Rahmen, Umstellung erst in **D-5b** mit den Icons (F-39).
+
+Damit ist D-5 am Code fertig; die Kette geht mit **D-5a** (Weltkarte auf Chris' Farben und Tannen) und **D-5b**
+(Icons und Rahmen) weiter.

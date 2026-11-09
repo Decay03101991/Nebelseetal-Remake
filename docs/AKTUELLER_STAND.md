@@ -1,4 +1,28 @@
-# STAND 09.11.2026, 16:38 - D-5 Detail steht: der Bildplan fuer das Portal (Masse, Schnitte, Massblatt; Register 346)
+# STAND 09.11.2026, 17:44 - D-5 steht: das Kopfband von Chris im Portal, farbige Form in der Weltliste (Register 347)
+
+> Neuester Block. Darunter 16:38 (D-5 Detail: Bildplan; 346), 14:58 (Bildwelt Chris, 341-344, EXE-Bau) und
+> 11:25 (D-4: gemalte Karte; 340).
+
+**Daniels drei Woerter (16:58, eine Runde, Empfehlung zuerst - alle drei angenommen):** Kopfleiste = **Band**
+`band_schmiede_dorf_ghule` **780 x 150 px, 0 % Beschnitt**; Banner der Weltliste = **farbige Form wie heute**,
+kein Kachelausschnitt; Goldrahmen = **erst D-5b** mit den Icons (F-39), der C2-Rahmen bleibt in D-5.
+
+**Gebaut (nur `src/main.py`, S3 bis S6 unveraendert):** Band ueber dem Titel, darunter EINE Trennlinie 2 px in
+`#C68B42` (gemessener Median; die Farbe steht als Zeichenkette genau einmal im Code), je Weltzeile ein 6 x 18 px
+Farbstreifen in der Bannerfarbe. Ohne Bilddatei bleibt ein **leerer Platz 780 x 150** stehen - kein Absturz, kein
+erfundenes Bild. Karte, Portalraum und Spielregeln sind nicht angefasst.
+
+**Belegt:** neue Wache `tests/test_portal_kopfleiste.py` **45/0/1**; Sammellauf `sammellauf_20261109_1712.log`
+**215 von 215 gruen, 0 rot, 2 ausgesetzt, 1280 s** (9332 Pruefungen, 0 Fehler, 79 Befunde); Dokumentpruefungen
+447/0 (135) - 28/0 (1 alter Befund) - 131/0 (64) - 26/0 - 49/0; `docs/MODULKARTE.md` neu erzeugt.
+
+**Assets:** `assets/bilder/portal_kopfband_schmiede_dorf_ghule_780x150.png`, 254.385 Byte, SHA256 `3f5a0c69...`,
+byte-gleich mit dem Schnitt im Archiv; Eintrag in `assets/bilder/README.md`.
+
+**Offen bei Daniel:** Spieltest 4 mit `Nebelseetal_Pre_Release_V_0.0.3.exe` (D-4 enthalten; D-5 ist NICHT in dieser
+EXE). Danach die Kette aus F-36/F-39: **D-5a** (Weltkarte auf Chris' Farben und Tannen), **D-5b** (Icons und
+Goldrahmen).
+
 
 > Neuester Block. Darunter 14:58 (Bildwelt Chris, Register 341-344, EXE-Bau) und 11:25 (D-4; 340).
 

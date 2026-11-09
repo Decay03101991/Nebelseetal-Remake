@@ -3431,6 +3431,14 @@ RASTER_LINIE = "#2b1a12"                                                 # warme
 # gruen, fremde rot) stehen EINMAL hier - die Weltkartenliste und der flache Rueckfall der Karte
 # lesen dieselbe Zuordnung, statt sie zweimal zu fuehren.
 PORTAL_BANNER_FARBEN = {"gruen": "#2ecc40", "rot": "#e53935"}
+# D-5 (Daniel 09.11.2026, Register 347): das Kopfband der Portal-Uebersicht ist die GESCHNITTENE
+# Kopie aus Chris' Lieferung: "Band `band_schmiede_dorf_ghule`, 780 x 150 px, 0 % Beschnitt".
+# Ein Panorama haette 33 bis 45 % seiner Hoehe verloren (Bildplan Abschnitt 3) - deshalb das Band.
+# Die Masse stehen hier EINMAL, damit Anzeige und Wache dieselbe Zahl lesen; die Trennlinie traegt
+# das GEMESSENE Rahmengold #C68B42 (Median, nicht der Richtwert des Nachtrags).
+PORTAL_KOPFBAND = ("assets", "bilder", "portal_kopfband_schmiede_dorf_ghule_780x150.png")
+PORTAL_KOPFBAND_MASSE = (780, 150)                                       # Platz S1 im Bildplan
+PORTAL_TRENNLINIE = "#C68B42"                                            # Median des Rahmengolds (D-5)
 
 
 def _lade_wappen() -> tuple:
@@ -12308,6 +12316,45 @@ class NebelseetalApp:
         self._switch_view("Portal")                                    # Anzeige neu zeichnen
         return bool(gesprungen)
 
+    def _portal_kopfleiste(self, eltern):
+        """Das Kopfband ueber dem Portal-Titel (D-5, Platz S1 im Bildplan).
+
+        Daniel 09.11.2026 (Register 347): Band `band_schmiede_dorf_ghule`, 780 x 150 px, kein
+        Beschnitt. Gezeigt wird die GESCHNITTENE Kopie aus `assets/bilder/`, nie das Rohbild aus
+        dem Archiv (`docs/design/DESIGN_ARBEITSWEISE.md`: nur gebrauchte, geschnittene Dateien
+        gehoeren nach `assets/`).
+
+        Ohne Datei bleibt ein LEERER PLATZ in derselben Groesse stehen: das Fenster springt nicht,
+        es wird kein Bild erfunden, die Ansicht stuerzt nicht ab. Kein zweiter Rahmenstil - das
+        Band sitzt ohne Randleisten im Inhalt; der C2-Rahmen am Kaestchen bleibt bis D-5b (F-39).
+        Rueckgabe: das Tk-Bild oder None. Der Bildverweis bleibt an Traeger UND Fenster, sonst
+        gibt Tk die Grafik frei (Lehre 02.11.2026).
+        """
+        breite, hoehe = PORTAL_KOPFBAND_MASSE                            # 780 x 150 aus EINER Quelle
+        pfad = _bild_pfad(PORTAL_KOPFBAND)                               # Pfad ueber die Projektwurzel
+        bild = None                                                      # Vorgabe: kein Bild
+        if os.path.exists(pfad):                                         # Datei vorhanden?
+            try:
+                bild = tk.PhotoImage(file=pfad)                          # Tk liest PNG direkt
+            except Exception:                                            # kaputte oder unlesbare Datei
+                bild = None                                              # dann bleibt der leere Platz
+        traeger = tk.Frame(eltern, bg=self.skin["bg"], bd=0, highlightthickness=0)  # randlos
+        traeger.pack(anchor=tk.W, padx=10, pady=(6, 0))                  # ueber dem Titel
+        if bild is not None:                                            # Bild da
+            flaeche = tk.Label(traeger, image=bild, bd=0, highlightthickness=0,
+                               bg=self.skin["bg"])                       # ohne Rahmenleisten
+            flaeche.pack()
+            traeger.bild = bild                                          # Referenz am Traeger
+            self.portal_kopfband = bild                                  # und am Fenster
+        else:                                                            # kein Bild
+            flaeche = tk.Frame(traeger, width=breite, height=hoehe,      # leerer Platz, gleiche Masse
+                               bd=0, highlightthickness=0, bg=self.skin["bg"])
+            flaeche.pack()
+            flaeche.pack_propagate(False)                                # Groesse behalten
+            self.portal_kopfband = None
+        self.portal_kopfleiste = flaeche                                 # EINE Stelle fuer die Wache
+        return bild
+
     def _kartenrahmen_bauen(self, eltern, breite: int, hoehe: int):
         """Ein gemalter Rahmen um das Gelaendekaestchen (Daniel 03.11.2026: "Rahmen als Bildleiste").
 
@@ -12451,8 +12498,15 @@ class NebelseetalApp:
         offen sichtbar ist - Wall, Taktik, Truppen und Vorraete weiterhin nicht.
         """
         farben = PORTAL_BANNER_FARBEN                                  # eine Quelle (D-4)
+        # D-5 (Daniel 09.11.2026, Register 347): Platz S1 - das Kopfband steht UEBER dem Titel,
+        # darunter laeuft die Trennlinie im gemessenen Rahmengold. S3 bis S6 bleiben unveraendert
+        # (C2-Rahmen und Icons kommen erst in D-5b, F-39); Karte, Portalraum und Spielregeln
+        # werden nicht angefasst.
+        self._portal_kopfleiste(self.content)                          # Bild oder leerer Platz
         tk.Label(self.content, text="Portal", font=("Blackletter", 20, "bold"),
                  fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
+        tk.Frame(self.content, height=2, bg=PORTAL_TRENNLINIE, bd=0,
+                 highlightthickness=0).pack(fill=tk.X, padx=10, pady=(0, 4))  # Trennlinie (D-5)
         tk.Label(self.content, text=portalraum.beschreibung(), fg="#C0C0C0", bg=self.skin["bg"],
                  wraplength=760, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 6))
 
@@ -12481,6 +12535,12 @@ class NebelseetalApp:
         for eintrag in portalraum.weltkarten(eigene, laufend):
             zeile = tk.Frame(self.content, bg=self.skin["panel"])
             zeile.pack(fill=tk.X, padx=10, pady=1)
+            # D-5 (Daniel 09.11.2026, Register 347: "farbige Form mit Symbol wie heute"): die
+            # Bannerfarbe steht zusaetzlich als schmaler Streifen links in der Zeile. Ein Ausschnitt
+            # aus einer Kachel waere ein Notbehelf mit sichtbarem Rand - es gibt kein freistehendes
+            # Bannerbild (Bildplan Abschnitt 5). Der farbige Status-Text bleibt wie bisher.
+            tk.Frame(zeile, width=6, height=18, bg=farben.get(eintrag["farbe"], "#8a8a8a"),
+                     bd=0, highlightthickness=0).pack(side=tk.LEFT, padx=(0, 4))
             tk.Label(zeile, text=f"{eintrag['nummer']:02d}", width=3, anchor=tk.W, fg="#DAA520",
                      bg=self.skin["panel"], font=("TkDefaultFont", 10, "bold")).pack(
                          side=tk.LEFT, padx=(6, 2))

@@ -2,13 +2,13 @@
 
 **Erzeugt von `tools/modulkarte_bauen.py` — nicht von Hand ändern.** Stand: siehe Git-Historie.
 
-64 Dateien in `src/`, 38892 Zeilen, 1145 Funktionen und Klassen auf oberster Ebene.
+64 Dateien in `src/`, 38952 Zeilen, 1145 Funktionen und Klassen auf oberster Ebene.
 
 ## Die Karte
 
 | Datei | Zeilen | Zweck (erste Zeile des Docstrings) | wird gebraucht von |
 |---|---:|---|---|
-| `main.py` | 16896 | Nebelseetal Remake — Core Game Engine | public_start.py |
+| `main.py` | 16956 | Nebelseetal Remake — Core Game Engine | public_start.py |
 | `spieloekonomie.py` | 1888 | Nebelseetal Remake — deterministischer Kern der Spielökonomie (Ökonomie-Paket, Schritt 2). | admin_teststand.py, admin_werkzeuge.py, botkern.py, main.py, spielschicht.py, verwundete.py |
 | `diplomatie.py` | 994 | Diplomatie der Bots - Gunst, Status (S4 Teil 1, 06.11.2026). | main.py |
 | `spielschicht.py` | 926 | Nebelseetal Remake - FACH-SCHICHT (Spielebene) fuer die Oberflaeche. | main.py |
