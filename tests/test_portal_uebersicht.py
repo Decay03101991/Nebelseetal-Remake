@@ -111,8 +111,11 @@ def _pruefungen_sperre():
           len(auftraege.laufende(liste, 0.0)) == 1, str(auftraege.laufende(liste, 0.0)))
     check("ein abgeschlossener Auftrag zaehlt nicht mehr",
           len(auftraege.laufende(liste, 10000.0)) == 0, "")
-    check("_portal_wechsel fragt die Zahl der laufenden Auftraege ab",
-          "_unterwegs_anzahl" in _code(main.NebelseetalApp._portal_wechsel),
+    # S-4b (09.11.2026): die Sperre sitzt jetzt in `_dorf_versetzen` (der EINEN Buchstelle) -
+    # `_portal_wechsel` ist entfernt. Die Zusage bleibt dieselbe: der Umzug fragt die Zahl der
+    # laufenden Auftraege ab, bevor er etwas bucht.
+    check("_dorf_versetzen fragt die Zahl der laufenden Auftraege ab",
+          "_unterwegs_anzahl" in _code(main.NebelseetalApp._dorf_versetzen),
           "Aufruf fehlt")
     check("_unterwegs_anzahl liest auftraege.laufende mit der SPIELUHR",
           "auftraege.laufende" in _code(main.NebelseetalApp._unterwegs_anzahl)
@@ -136,8 +139,9 @@ def _pruefungen_zaehlweise():
           portalraum.wechsel_erlaubt(5, 1, 100000.0, None, 0.0)[0] is True, "")
     check("Index 6 bleibt ungueltig - genau das war der alte Fehler in klein",
           portalraum.wechsel_erlaubt(6, 1, 100000.0, None, 0.0)[0] is False, "")
-    check("_portal_wechsel rechnet die Nummer ueber portalraum.index_von um",
-          "index_von" in _code(main.NebelseetalApp._portal_wechsel), "")
+    # S-4b: die Umrechnung steht in der Buchstelle `_dorf_versetzen` (Nummer 1..6 -> Index 0..5).
+    check("_dorf_versetzen rechnet die Nummer ueber portalraum.index_von um",
+          "index_von" in _code(main.NebelseetalApp._dorf_versetzen), "")
     check("_render_portal rechnet die Nummer ueber portalraum.index_von um",
           "index_von" in _code(main.NebelseetalApp._render_portal), "")
 
@@ -179,7 +183,7 @@ def _pruefungen_ansicht():
           "_portal_feld_waehlen" in _code(main.NebelseetalApp._portal_klick), "")
     check("die Ansicht sagt Weltkarte und K\u00e4stchen",
           "Weltkarte" in quelle and "K\u00e4stchen" in quelle, "")
-    for name in ("_render_portal", "_portal_wechsel", "_portal_feld_waehlen", "_unterwegs_anzahl"):
+    for name in ("_render_portal", "_dorf_versetzen", "_portal_feld_waehlen", "_unterwegs_anzahl"):
         text = _code(getattr(main.NebelseetalApp, name))
         check(f"{name} nennt den alten Begriff nicht", "Dimension" not in text,
               [z for z in text.splitlines() if "Dimension" in z][:1])
@@ -232,8 +236,15 @@ def _pruefungen_fenster():
         app.state.spielsekunden = 0.0
         check("mit einem laufenden Auftrag meldet die Ansicht die Sperre",
               app._unterwegs_anzahl() == 1, str(app._unterwegs_anzahl()))
-        gesperrt = main.NebelseetalApp._portal_wechsel(app, 5)
-        check("der Weltensprung wird abgelehnt", gesperrt is False, str(gesperrt))
+        # S-4b (09.11.2026): `_portal_wechsel` ist entfernt - die Sperre wird an der EINEN
+        # Buchstelle `_dorf_versetzen` gemessen (S-3/S-4). Dafuer bekommt der Zustand kurz ein
+        # Dorf; der Auftrag oben ist der Grund, aus dem der Umzug abgelehnt werden MUSS.
+        dorf = main.Settlement(name="Eschenhain", map_id="kontinent", x=3, y=3,
+                               id=main.siedlung_kennung("spieler", "kontinent", 3, 3),
+                               dimension=int(app.state.eigene_dimension))
+        app.state.settlements.append(dorf)
+        gesperrt = app._dorf_versetzen("Eschenhain", 0, 0, 5)
+        check("der Umzug wird abgelehnt", gesperrt is False, str(gesperrt))
         check("die Ablehnung nennt den Grund in der letzten Meldung",
               any("gesperrt" in str(n.get("text", "")) for n in app.state.messages[-2:]),
               str([str(n.get("text"))[:60] for n in app.state.messages[-2:]]))
@@ -241,6 +252,9 @@ def _pruefungen_fenster():
               float(app.state.resources["mana"].amount) == vorher_mana
               and int(app.state.eigene_dimension) == 4,
               str((app.state.resources["mana"].amount, app.state.eigene_dimension)))
+        check("die alte Buchstelle _portal_wechsel gibt es nicht mehr",
+              not hasattr(main.NebelseetalApp, "_portal_wechsel"), "Methode existiert wieder")
+        app.state.settlements.remove(dorf)
         app.state.auftraege.clear()
     finally:
         try:

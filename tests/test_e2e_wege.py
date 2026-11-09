@@ -834,7 +834,7 @@ def _kette_11_vertrag():
 
 # --------------------------------------------------------------------------- 12 Portal
 def _kette_12_portal():
-    abschnitt("12. PORTAL - Mana aus Tempeln, Weltensprung bucht genau einmal ab")
+    abschnitt("12. PORTAL - Mana aus Tempeln, der Umzug bucht genau einmal ab (S-4b: _dorf_versetzen)")
     root, app, gs, ort, gesammelt = _neu()
     try:
         if ort is None:
@@ -880,19 +880,40 @@ def _kette_12_portal():
               "%g von %g nach %d Takten" % (gs.resources["mana"].amount, kosten, takte))
         if float(gs.resources["mana"].amount) < kosten:
             return
+        # S-4b (09.11.2026): der Weltensprung ueber `_portal_wechsel` ist ENTFERNT - seit S-4
+        # versetzt ausschliesslich `_dorf_versetzen` (die EINE Buchstelle aus S-3), und zwar auf
+        # ein FREIES Feld der Zielwelt. Diese Kette prueft weiter denselben Weg (Mana aus eigener
+        # Produktion -> genau ein Festpreis), nur ueber die Buchstelle.
         von = int(gs.eigene_dimension)
         ziel = next(int(z) for z in (portalraum.nummer_von(d.get("kennung"))
                                      for d in portalraum.dimensionen()) if int(z) != von)
         check("eine andere Weltkarte ist waehlbar", ziel != von, "%s statt %s" % (ziel, von))
-        check("vor dem Sprung ist nichts unterwegs (sonst sperrt das Portal)",
+        check("vor dem Umzug ist nichts unterwegs (sonst sperrt das Portal)",
               app._unterwegs_anzahl() == 0, str(app._unterwegs_anzahl()))
+        belegt = app._portal_belegte_felder()                  # Belegungskarte aus S-3/S-4
+        frei = None
+        for fy in range(20):
+            for fx in range(20):
+                status = portalraum.feld_status(portalraum.index_von(ziel), fx, fy, belegt)
+                if status.get("status") == portalraum.FELD_FREI:
+                    frei = (fx, fy)
+                    break
+            if frei:
+                break
+        check("auf der Zielwelt gibt es ein freies Feld", frei is not None, str(frei))
+        if frei is None:
+            return
         mana_vor_sprung = float(gs.resources["mana"].amount)
-        gesprungen = app._portal_wechsel(ziel)
-        check("der Weltensprung wird ausgefuehrt", gesprungen is True, _log_ende(gs))
+        ort_name = str(getattr(ort, "name", ""))
+        gesprungen = app._dorf_versetzen(ort_name, frei[0], frei[1], ziel)
+        check("der Umzug wird ausgefuehrt", gesprungen is True, _log_ende(gs))
         if not gesprungen:
             return
-        check("die eigene Dimension ist die neue", int(gs.eigene_dimension) == ziel,
-              str(gs.eigene_dimension))
+        check("die Welt des Dorfes ist die neue", int(getattr(ort, "dimension", 0)) == ziel,
+              str(getattr(ort, "dimension", 0)))
+        check("die Portalposition steht auf dem gewaehlten Feld",
+              (getattr(ort, "welt_x", None), getattr(ort, "welt_y", None)) == (frei[0], frei[1]),
+              str((getattr(ort, "welt_x", None), getattr(ort, "welt_y", None))))
         check("GENAU der Festpreis ist abgebucht",
               abs(float(gs.resources["mana"].amount) - (mana_vor_sprung - kosten)) < 1e-6,
               "%g -> %g" % (mana_vor_sprung, gs.resources["mana"].amount))
@@ -903,8 +924,29 @@ def _kette_12_portal():
         check("die Meldung steht im Postfach", len(_nachrichten(gs, "portal")) > 0,
               "%d Portalmeldungen" % len(_nachrichten(gs, "portal")))
         mana_nach_sprung = float(gs.resources["mana"].amount)
-        zweiter = app._portal_wechsel(von)
-        check("ein ZWEITER Sprung sofort ist gesperrt", zweiter is False, _log_ende(gs))
+        # Fuer den zweiten Versuch ein ANDERES freies Feld nehmen - sonst blockt "steht schon
+        # dort" und nicht die Sperre, und die Wache bewiese das Falsche.
+        belegt2 = app._portal_belegte_felder()
+        anderer = None
+        for fy in range(20):
+            for fx in range(20):
+                if (fx, fy) == (frei[0], frei[1]):
+                    continue
+                status = portalraum.feld_status(portalraum.index_von(ziel), fx, fy, belegt2)
+                if status.get("status") == portalraum.FELD_FREI:
+                    anderer = (fx, fy)
+                    break
+            if anderer:
+                break
+        check("ein zweites freies Feld fuer die Sperrprobe ist da", anderer is not None,
+              str(anderer))
+        zweiter = app._dorf_versetzen(ort_name, anderer[0], anderer[1], ziel)
+        check("ein ZWEITER Umzug sofort ist gesperrt", zweiter is False, _log_ende(gs))
+        check("der Grund ist das Mana (20 von 5.000 nach dem Umzug)",
+              "Mana" in str((gs.messages[-1] or {}).get("text", "")),
+              str((gs.messages[-1] or {}).get("text")))
+        # Diese Kette darf den Spielstand nicht von Hand setzen (Quellwache Abschnitt 13) -
+        # die SPERRE selbst wird deshalb an der Kernfunktion geprueft, nicht mit geschenktem Mana.
         # Die Sperre selbst pruefen - unabhaengig davon, ob gerade Mana da ist: mit genug Mana
         # und einem Wechsel vor einer Sekunde muss die 24-Stunden-Regel greifen.
         _sperre, _grund_sperre = portalraum.wechsel_erlaubt(

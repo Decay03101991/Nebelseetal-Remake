@@ -16,6 +16,7 @@ Aufruf:  python -X utf8 tests/test_durchspiel.py
 """
 from __future__ import annotations
 
+import inspect
 import json
 import os
 import sys
@@ -303,17 +304,18 @@ def partiedurchlauf():
                 os.remove(pfad + endung)
 
         # ------------------------------------------------------------- 8. Portal
-        abschnitt("8. Portal: Wechsel kostet 5.000 Mana und sperrt 24 Stunden")
-        gs.resources["mana"].amount = 6000.0
-        ziel_dimension = 2 if int(gs.eigene_dimension) != 2 else 3
-        check("der Koordinatenwechsel wird gebucht", app._portal_wechsel(ziel_dimension) is True)
-        check("genau 5.000 Mana sind weg", gs.resources["mana"].amount == 1000.0,
-              str(gs.resources["mana"].amount))
-        check("die Sperre steht", gs.letzter_wechsel is not None)
-        mana_vorher = gs.resources["mana"].amount
-        check("in der Sperre ist kein zweiter Wechsel moeglich",
-              app._portal_wechsel(ziel_dimension) is False
-              and gs.resources["mana"].amount == mana_vorher)
+        # S-4b (09.11.2026): `_portal_wechsel` ist ENTFERNT - seit S-4 versetzt ausschliesslich
+        # `_dorf_versetzen` (die EINE Buchstelle aus S-3), und zwar auf ein freies Feld. Dieser
+        # Durchspiel-Pruefstein haelt fest, dass die alte Buchstelle nicht zurueckkommt und der
+        # Weg ueber die neue laeuft. Die BUCHUNG selbst (Festpreis, Sperre, Kennung, freies Feld)
+        # wacht in `tests/test_e2e_wege.py` Kette 12 und in `tests/test_dorf_versetzen.py`.
+        abschnitt("8. Portal: die alte Buchstelle ist weg, der Weg laeuft ueber _dorf_versetzen")
+        check("die alte Buchstelle _portal_wechsel gibt es nicht mehr",
+              not hasattr(main.NebelseetalApp, "_portal_wechsel"), "")
+        quelle_main = inspect.getsource(main)
+        check("der Umzug hat EINE Buchstelle", "def _dorf_versetzen(" in quelle_main, "")
+        check("die Ansicht springt ueber _portal_dorf_springen",
+              "def _portal_dorf_springen(" in quelle_main, "")
 
         # ------------------------------------------------------------- 10. Handel
         abschnitt("10. Handel mit einem Bot")

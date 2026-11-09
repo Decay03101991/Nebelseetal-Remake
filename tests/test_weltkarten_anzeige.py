@@ -73,15 +73,19 @@ def _pruefungen_ansicht():
 
 def _pruefungen_anzeige():
     abschnitt("3. Die Anzeige sagt Weltkarte und Weltensprung, nicht Dimension")
-    for name in ("_dimensionsname", "_portal_wechsel", "_render_portal"):
+    # S-4b (09.11.2026): `_portal_wechsel` ist entfernt - die Liste fuehrt nur noch die beiden
+    # Methoden, die es gibt. Dass die alte Buchstelle nicht zurueckkommt, prueft die naechste Wache.
+    for name in ("_dimensionsname", "_render_portal"):
         funktion = getattr(main.NebelseetalApp, name)
         text = _code(funktion)
         check(f"{name} nennt den alten Begriff nicht mehr", "Dimension" not in text,
               [z for z in text.splitlines() if "Dimension" in z][:2])
     check("_render_portal nennt die Weltkarte", "Weltkarte" in _code(
         main.NebelseetalApp._render_portal), "Portalansicht")
-    check("_portal_wechsel spricht vom Weltensprung", "Weltensprung" in _code(
-        main.NebelseetalApp._portal_wechsel), "Wechselmeldung")
+    check("die alte Buchstelle _portal_wechsel ist entfernt (S-4b)",
+          not hasattr(main.NebelseetalApp, "_portal_wechsel"), "")
+    check("der Weltensprung heisst weiter so (in der Beschreibung des Portals)",
+          "Weltensprung" in portalraum.beschreibung(), "")
 
     text_portal = portalraum.beschreibung()
     check("portalraum.beschreibung nennt Weltkarten", "Weltkarten" in text_portal, text_portal)

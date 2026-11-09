@@ -69,8 +69,12 @@ def _knoepfe(widget):
 class Quellstruktur(unittest.TestCase):
     def test_alter_knopf_ist_weg(self):
         rumpf = _methode("_render_portal")
-        check("die Ansicht ruft _portal_wechsel nicht mehr auf",
-              "_portal_wechsel(" not in rumpf, "Aufruf steht noch drin")
+        check("die Ansicht nennt _portal_wechsel nicht mehr",
+              "_portal_wechsel" not in rumpf, "Name steht noch drin")
+        # S-4b (09.11.2026): die Methode selbst ist entfernt, nicht nur ihr Aufruf - ein
+        # Wiederauftauchen als Methode macht die Wache genauso rot.
+        check("die alte Buchstelle _portal_wechsel gibt es nicht mehr",
+              not hasattr(M.NebelseetalApp, "_portal_wechsel"), "Methode existiert wieder")
         check("der Umzug laeuft ueber die Buchstelle",
               "_portal_dorf_springen(" in rumpf, rumpf[:200])
 

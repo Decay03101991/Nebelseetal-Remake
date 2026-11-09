@@ -159,9 +159,12 @@ check("4 und keine fremden Doerfer (die stehen in ihren Welten)",
 # ==========================================================================
 abschnitt("5. Quellwachen")
 # ==========================================================================
-check("5 Ansehen bucht nichts (kein _portal_wechsel im Ansehen)",
+# S-4b (09.11.2026): `_portal_wechsel` ist entfernt. Die Zusage bleibt, ist jetzt aber schaerfer:
+# weder im Ansehen noch ueberhaupt als Methode gibt es die alte Buchstelle.
+check("5 Ansehen bucht nichts (kein _portal_wechsel, weder dort noch sonst)",
       "def _portal_ansehen" in TEXT_MAIN
-      and "_portal_wechsel(" not in TEXT_MAIN.split("def _portal_ansehen")[1].split("def ")[0],
+      and "_portal_wechsel" not in TEXT_MAIN.split("def _portal_ansehen")[1].split("def ")[0]
+      and not hasattr(M.NebelseetalApp, "_portal_wechsel"),
       "main._portal_ansehen")
 check("5 die Karte zeichnet die ANGESEHENE Welt",
       "self._bot_doerfer_im_raster(kante, angezeigt)" in TEXT_MAIN, "main._render_portal")

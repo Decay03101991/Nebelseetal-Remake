@@ -249,7 +249,10 @@ auf der SIEDLUNGSKARTE. Ein versetztes Dorf waere an seinem alten Platz gezeichn
 geht es ueber `_ort_feld`, die eine Aufloesestelle (Portalposition `welt_x`/`welt_y`, Altstand
 `x`/`y`).
 
-**Noch offen:** `_portal_wechsel` hat keinen Aufrufer mehr, steht aber noch im Code - es faellt in
-**S-4b** samt seinen Wachen (`test_durchspiel`, `test_e2e_wege`, `test_portal_uebersicht`,
-`test_weltkarten_anzeige`), die dabei auf die Buchstelle umgestellt werden. Danach S-5 (Sperre weg,
-F-28 = C) und S-6 (Wachen, voller Lauf, EXE).
+**S-4b ist erledigt (09.11.2026, 03:35, Register 331):** `_portal_wechsel` ist ENTFERNT, und
+die vier Wachen sind auf die Buchstelle `_dorf_versetzen` umgestellt, nicht geloescht
+(`test_durchspiel`, `test_e2e_wege` Kette 12, `test_portal_uebersicht`, `test_weltkarten_anzeige`);
+dazu `test_portal_ansicht_umzug` und `test_portal_fremdblick`, die vorher nur den fehlenden Aufruf
+prueften. Keine Funktion aus `portalraum` faellt mit der Methode weg (`wechsel_erlaubt` und
+`nach_wechsel` werden von `_dorf_versetzen` und `spielschicht` weiter gebraucht).
+**Noch offen:** S-5 (Sperre weg, F-28 = C) und S-6 (Wachen, voller Lauf, EXE).

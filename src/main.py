@@ -11847,58 +11847,6 @@ class NebelseetalApp:
             return "abgelaufen"
         return f"noch {reste / 3600.0:.2f} h"
 
-    def _portal_wechsel(self, nach_z: int):
-        """Ein Weltensprung: erst pruefen, dann GENAU EINMAL abbuchen (W5-2, S-2b).
-
-        KEIN Aufrufer mehr in der Ansicht: seit S-4 (Daniel 08.11.2026, Antwort A) gibt es den
-        Knopf "Weltensprung" nicht mehr - versetzt wird ausschliesslich ueber `_dorf_versetzen`
-        (S-3). Diese Funktion bleibt vorerst als Beleg stehen; sie faellt in S-4b samt ihren
-        Wachen (`test_durchspiel`, `test_e2e_wege`, `test_portal_uebersicht`,
-        `test_weltkarten_anzeige`), die dabei auf die Buchstelle umgestellt werden.
-
-        Zaehlweise: `nach_z` ist die NUMMER aus der Kennung (4 = d04 = Midgard), so wie sie im
-        Spielstand steht. `portalraum` rechnet mit dem INDEX 0..5; umgerechnet wird an EINER
-        Stelle (`portalraum.index_von`). Bis S-2a wurden beide Zaehlweisen vermischt - der Knopf
-        "20" war damit unerreichbar (Index 20 gibt es nicht) und "01" buchte auf die falsche Welt.
-
-        Gesperrt ist der Sprung ausserdem, solange irgendetwas unterwegs ist (Daniel 01.11.2026,
-        Anhang 2: "ein weltenwechsel ist fuer das dorf gar nicht moeglich solange auftraege
-        einheiten truppen oder sonst was unterwegs ist auch handel z. b.").
-        """
-        if self._unterwegs_anzahl() > 0:
-            meldung = ("Weltensprung gesperrt: solange Aufträge, Einheiten oder Handel unterwegs "
-                       "sind, reist das Dorf nicht (Daniel 01.11.2026, Anhang 2).")
-            self._log(meldung)
-            self.state.messages.append({"text": meldung, "type": "portal"})
-            return False
-        von_z = int(self.state.eigene_dimension)
-        nach_index = portalraum.index_von(int(nach_z))
-        if nach_index < 0:
-            meldung = f"Unbekannte Weltkarte: {nach_z}"
-            self._log(meldung)
-            self.state.messages.append({"text": meldung, "type": "portal"})
-            return False
-        mana = float(self.state.resources["mana"].amount)
-        erlaubt, meldung = portalraum.wechsel_erlaubt(portalraum.index_von(von_z), nach_index,
-                                                      mana, self.state.letzter_wechsel, time.time())
-        if not erlaubt:
-            self._log(meldung)
-            self.state.messages.append({"text": meldung, "type": "portal"})
-            return False
-        gebucht = portalraum.nach_wechsel(mana, time.time())   # Festpreis, genau einmal
-        self.state.resources["mana"].amount = float(gebucht["mana"])
-        self.state.letzter_wechsel = gebucht["letzter_wechsel"]
-        self.state.eigene_dimension = int(nach_z)
-        if int(nach_z) not in self.state.eigene_dimensionen:
-            self.state.eigene_dimensionen.append(int(nach_z))
-        meldung = (f"Weltensprung nach Weltkarte {nach_z:02d} "
-                   f"({self._dimensionsname(nach_z)}): {gebucht['kosten']} Mana abgebucht, "
-                   f"24 Stunden gesperrt.")
-        self._log(meldung)
-        self.state.messages.append({"text": meldung, "type": "portal"})
-        self._render_view()
-        return True
-
     def _portal_belegte_felder(self) -> list:
         """Alle BELEGTEN Felder des Portalraums - eigene Siedlungen und fremde Bot-Dörfer.
 

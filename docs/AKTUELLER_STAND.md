@@ -1,3 +1,34 @@
+# STAND 09.11.2026, 03:35 - Portal S-4b: die alte Buchstelle ist entfernt, ihre Wachen wachen an der neuen (Register 331)
+
+> Neuester Block. Darunter 02:59 (D-3, die gemalte Testkarte; Register 330), 01:50 (Portal S-1 bis
+> S-4; Register 324 bis 326), 02:04 (D-1, D-2, W-D6; Register 327 bis 329).
+
+**`_portal_wechsel` ist weg - und mit ihr keine einzige Zusage.** Die Methode hatte seit S-4 keinen
+Aufrufer mehr; sie ist samt Docstring aus `src/main.py` entfernt. Keine Funktion aus `portalraum`
+faellt mit ihr weg: `wechsel_erlaubt` und `nach_wechsel` werden von `_dorf_versetzen` (S-3) und
+`spielschicht.portalwechsel` weiter gebraucht.
+
+**Die Wachen sind UMGESTELLT, nicht geloescht:** `test_durchspiel` Abschnitt 8 prueft jetzt, dass
+die alte Buchstelle nicht zurueckkommt und der Weg ueber `_dorf_versetzen` laeuft; `test_e2e_wege`
+Kette 12 spielt den ganzen Weg weiter (Mana aus eigenen Tempeln, GENAU ein Festpreis, Sperre) - nur
+ueber die Buchstelle und auf ein FREIES Feld; `test_portal_uebersicht` misst die Sperre an
+`_dorf_versetzen`; `test_weltkarten_anzeige`, `test_portal_ansicht_umzug` und
+`test_portal_fremdblick` pruefen zusaetzlich, dass der Name in `main.py` nicht mehr vorkommt.
+
+**Gegenprobe in der Kette:** der zweite Umzug scheitert erst am Mana (20 von 5.000), die Sperre
+selbst wird an der Kernfunktion `wechsel_erlaubt` gemessen - nicht mit geschenktem Mana, weil die
+Quellwache dieser Datei das Setzen von Spielzustand verbietet.
+
+**Sammellauf 03:22 bis 03:35: 212 von 212 gruen, 0 rot, 2 ausgesetzt, 9.213 Pruefungen, 76 Befunde,
+771 s** (`docs/audits/sammellauf_20261109_0322.log`) - die fuenf neuen Pruefungen sind der Zuwachs
+gegen 9.208. Einzeln gruen: test_weltkarten_anzeige 27/0/0, test_portal_uebersicht 62/0/0,
+test_portal_ansicht_umzug 27/0/0, test_portal_fremdblick 18/0/1, test_durchspiel 64/0/2,
+test_e2e_wege 131/0/1, test_dorf_versetzen 38/0/0, test_portalraum 70/0/0,
+test_portal_feld_belegung 40/0/0.
+
+**Nebenbefund, nicht angefasst:** `spielschicht.portalwechsel` hat in `src/` keinen Aufrufer mehr,
+nur die Pruefungen rufen sie - ein eigener Strang, der mit S-4b nichts zu tun hat.
+
 # STAND 09.11.2026, 02:58 - D-3 gebaut: die Testkarte ist gemalt, der Stil-Entscheid liegt bei Daniel (Register 330)
 
 > Neuester Block. Darunter 01:50 (Portal S-1 bis S-4; Register 324 bis 326), 02:04 (D-1 und die zwei
