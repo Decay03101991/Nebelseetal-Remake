@@ -1,6 +1,46 @@
+# STAND 09.11.2026, 14:58 - Die Bildwelt von Chris Fred Däubner ist protokolliert, abgelegt und zugeordnet (Register 341)
+
+> Neuester Block. Darunter 11:25 (D-4: gemalte Karte; Register 340), 10:33 (F-35; 338), 10:04 (F-34; 337),
+> 09:36 (fuenf Antworten; 335), 09:03 (EINE EXE; 334).
+
+**Eingang:** die Lieferung „NEBELSEETAL png's“ (25 PNG, je 3500 x 3500, **420.166.487 Byte** = 420,2 MB) kam am
+06.11.2026, 14:21 per TransferNow; am 09.11.2026 kam der Nachtrag 1 dazu (ZIP 69.147.227 Byte, SHA256
+`34c6d68e…`, 31 Eintraege: 25 zugeordnete WebP, vier Uebersichten, `zuordnung.json`, das Dokument).
+
+**Urheber, im Projekt benannt:** **Chris Fred Däubner** hat die Bilder mit KI fuer das Nebelseetal erzeugt,
+danach selbst bearbeitet und aufgewertet und an Daniel geliefert (10 EUR fuer alle Bilder und das Logo).
+Stilbestimmend fuer Malstil, Farbgebung, Seiten und Menues. Der Text des Nachtrags ist eine Auswertung von
+Claude Opus 5.5 - die BILDER sind Chris' Arbeit.
+
+**Ablage:** `archiv/design/20261109_chris_bildpaket/` (gitignoriert, nicht in der EXE) - `originale_transfernow/`
+(25 PNG, Originalnamen), `Nachtrag_1_Design_Chris.zip`, `nachtrag1_entpackt/`, `SHA256SUMS.txt` (26 Zeilen)
+und `SHA256SUMS_nachtrag1_entpackt.txt` (31 Zeilen). **25 von 25 Hashes Quelle gegen Kopie gleich**, erst
+danach wurde der Desktop-Ordner geraeumt (verschoben, nicht vernichtet).
+
+**Neu gemessen - und besser als im Nachtrag:** die Originalnummern lassen sich doch zuordnen. Ein
+Graustufenvergleich nach Randabschnitt findet fuer jedes der 25 Bilder den Zwilling (**jeder Treffer
+r >= 0,946**, zweitbester hoechstens 0,589); die Nummern 9 bis 33 sind ohne Luecke und ohne Doppelbelegung
+verteilt, die drei Lieferteile sind die Bloecke 9-16, 17-24 und 25-33. Die Tabelle steht in
+`docs/design/DESIGN_LIEFERUNG_CHRIS_20261109.md`, Abschnitt 4.
+
+**Die offene Frage des Nachtrags ist beantwortet:** die Kacheln von Chris sind NICHT die verkleinerten
+Projektbilder in `assets/icons/gebaeude/c2/` - bester Treffer ueber alle 11 Kacheln und 20 Projektbilder
+**r = 0,318**, waeren es dieselben Bilder, laege der Wert bei 0,9. **Es wird nichts ersetzt.**
+Farben nachgemessen (Median): Rahmengold #C68B42 (Richtwert #C9993F), Banner-Rot #7E301E (#8B2A22),
+Ghule-Leuchten #7AAC4D (#7CFF4A) - die Richtwerte taugen als Naeherung, nicht als Pixelwert.
+
+**Offen und bei Daniel (eine Runde):** (1) Karte nach Chris (satte Gruent oene, kein Kontur) gegen F-35
+„Stil wie Stilprobe A“, das D-4 gebaut hat; (2) Bannerfarben rot/hell statt Fraktionsfarben in
+`PORTAL_BANNER_FARBEN`; (3) zwei Rahmenstile (Projektbild 256 px gegen Goldrahmen im Bild); (4) ob der
+Satz des Pakets „wo fruehere Vorschlaege abweichen, gelten die Bilder von Chris“ bindend sein soll.
+Ausserdem: kurze schriftliche Nutzungsbestaetigung von Chris einholen.
+
+**Naechster Schritt bleibt der EXE-Bau** (die EXE von 09:03 enthaelt D-4 nicht), danach D-5 - mit den
+Panoramen aus dieser Lieferung.
+
 # STAND 09.11.2026, 11:25 - D-4 gebaut: die gemalte Karte steht im Portal, 20 px je Feld, gerade (Register 340)
 
-> Neuester Block. Darunter 10:33 (F-35: +28 % hell, 20 px; Register 338), 10:04 (F-34; 337),
+> Darunter 10:33 (F-35: +28 % hell, 20 px; Register 338), 10:04 (F-34; 337),
 > 09:36 (fuenf Antworten; 335), 09:03 (EINE EXE; 334).
 
 **Gebaut:** `_render_portal` zeichnet die Weltkarte nicht mehr Feld fuer Feld. **Die 400

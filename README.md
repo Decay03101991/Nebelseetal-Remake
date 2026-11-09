@@ -134,6 +134,12 @@ Zustimmung gezeigt und darf nicht ohne seine Erlaubnis weiterverwendet werden. D
 `assets/referenzbilder/Logo_Nebelseetal_20261106.png` (Original, 3500 × 3500, freigestellt) und als
 web-optimierte Fassung `assets/bilder/logo_nebelseetal_klein.png` bzw. `.webp`.
 
+**Bildwelt:** die gemalten Panoramen, Gebäudekacheln und Banner des Nebelseetals stammen von
+**Chris Fred Däubner**. Er hat sie mit KI eigens für dieses Spiel erzeugt, danach selbst bearbeitet
+und an Daniel Kössl geliefert; sie stehen unter seinem Urheberrecht und dürfen nicht ohne seine
+Erlaubnis weiterverwendet werden. Ablage, Zuordnung und Messungen stehen in
+`docs/design/DESIGN_LIEFERUNG_CHRIS_20261109.md`.
+
 ## Fehler melden
 
 Bitte mit Beschreibung, was du getan hast, was du erwartet hast und was passiert ist — ohne Passwörter
