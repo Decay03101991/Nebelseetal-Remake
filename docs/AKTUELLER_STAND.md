@@ -1,3 +1,27 @@
+# STAND 09.11.2026, 10:04 - F-34 gebaut: flach, 48 px je Feld, heller wie die Stilprobe A (Register 337)
+
+> Neuester Block. Darunter 09:36 (fuenf Antworten; Register 335), 09:03 (EINE EXE; Register 334),
+> 08:55 (Portal S-6; Register 333).
+
+**Daniel hat das Vergleichsblatt gesehen und entschieden** (09:44): „Nummer 2 Flach und 48 px je Feld
+gefällt mir am besten nur etwas heller bitte wie bei Nummer 3“.
+
+**Gebaut:** die Kante ist **48 px je Feld** (960 x 960 px) - die fruehere Antwort F-30 (20 px) ist damit
+ueberholt, und die Ansicht braucht dafuer einen **Rollbalken** (offen, D-4). Der Ton ist heller: in
+`src/weltkarte_malerei.py` steht jetzt `HELLIGKEIT = 1.20` und `SCHATTEN_ALPHA = 20` statt 42, beides in
+`_einheitslicht` - EINE Stelle fuer Kacheln und ganze Karten.
+
+**Gemessen:** mittlere Helligkeit der Karte d01 **85 -> 102 von 255** (Stufe „+20 %“ des Stufenblatts),
+Malzeit 48 px kalt 0,865 s, warm 0,00000 s. **Die Wache ist nicht gelockert**: die zwei
+Farbtreue-Pruefungen rechnen den Sollwert mit dem Faktor, Schwellen bleiben 26 und 60 - **67/0/1**.
+
+**Sammellauf 09:49 bis 10:04: 213 von 213 gruen, 0 rot, 2 ausgesetzt, 9.246 Pruefungen, 0 Fehler,
+76 Befunde, 879 s** (`docs/audits/sammellauf_20261109_0949.log`).
+
+**Naechster Schritt: D-4** - `_render_portal` (`src/main.py:12353`) malt die Karte als EIN Bild mit 48 px
+je Feld in einem Rollbalken; Klick, Marschlinien und Statuszeile muessen auf dasselbe Feld zeigen.
+Dazu die offene F-32-Dokuzeile im selben Commit.
+
 # STAND 09.11.2026, 09:36 - Fuenf Gestaltungs-Antworten: nur der Stil-Entscheid ist noch offen (Register 335)
 
 > Neuester Block. Darunter 09:00 (EINE EXE gebaut; Register 334), 08:55 (Portal S-6; Register 333),

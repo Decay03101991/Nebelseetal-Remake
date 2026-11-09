@@ -340,6 +340,7 @@
 | 333 | Portal S-6: die neue Wache haengt am FENSTER, nicht nur am Kern - zwei Umzuege hintereinander sind im echten Fenster belegt, der Altstand ist rot | GEBAUT | 09.11.2026 |
 | 334 | EINE EXE gebaut: `Nebelseetal_Pre_Release_V_0.0.3.exe` aus dem Stand `a1ea781` (S-5 und S-6 enthalten) | GEBAUT | 09.11.2026 |
 | 335 | Daniels fuenf Gestaltungs-Antworten (F-29 bis F-33): Stil-Entscheid offen, Kante 20 px, Tannen, `portalwechsel` bleibt, `letzter_wechsel` bleibt Aufzeichnung | GEBAUT | 09.11.2026 |
+| 337 | F-34 gebaut: die gemalte Karte traegt Daniels Ton - flach bleibt, 48 px je Feld, HELLER wie die Stilprobe A | GEBAUT | 09.11.2026 |
 
 ## Ersetzungen (Handpflege)
 

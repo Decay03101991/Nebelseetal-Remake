@@ -301,7 +301,8 @@ Antworten:
 | F-31 | Tannen oder runde Laubbaeume | **„Tannen“** | Keine Aenderung: `weltkarte_malerei` malt Tannen (D-3, Register 330). Das Designpaket beschreibt runde Laubbaeume - dieser Punkt ist damit abgelehnt. |
 | F-32 | `spielschicht.portalwechsel` ohne Aufrufer in `src/` | **„Behalten und ausdruecklich als Spielschicht-Funktion dokumentieren“** | Bleibt. Offen ist die ausdrueckliche Dokumentation (ein Satz im Docstring plus ein Absatz in der Modulkarte); sie geht mit der naechsten `src/`-Aenderung in EINEN Commit, damit kein Sammellauf fuer eine Textzeile allein laeuft. |
 | F-33 | `letzter_wechsel` im Spielstand | **„Bleibt als reine Aufzeichnung im Spielstand“** | So ist S-5 gebaut (Register 332): `nach_wechsel` schreibt den Stempel, die Portalzeile zeigt „zuletzt gewechselt“, nichts sperrt. Keine Aenderung. |
+| F-34 | Stil und Kante, nachdem er das Vergleichsblatt gesehen hat (09.11.2026, 09:44) | **„Nummer 2 Flach und 48 px je Feld gefällt mir am besten nur etwas heller bitte wie bei Nummer 3“** | **F-29 und F-30 sind damit beantwortet und F-30 ist ueberholt:** flach gemalt bleibt, die Kante ist **48 px je Feld** (960 x 960 px - die Ansicht braucht einen Rollbalken, das ist D-4), und der Ton wird heller wie die isometrische Probe A. Gebaut in `weltkarte_malerei`: `HELLIGKEIT = 1.20` und `SCHATTEN_ALPHA = 20` statt 42, EINE Stelle (`_einheitslicht`) fuer Kacheln und ganze Karten; gemessene mittlere Helligkeit 85 -> 102 von 255. |
 
-**Damit ist nur noch F-29 offen** - und F-29 ist keine Code-Frage, sondern ein Blick auf das
-Vergleichsblatt. Alles andere aus dieser Runde ist entweder schon gebaut (F-30, F-31, F-33) oder als
-kleine Dokumentationsaufgabe benannt (F-32).
+**F-29 hat Daniel am 09.11.2026 um 09:44 mit F-34 beantwortet** (flach, 48 px, heller wie Probe A) -
+siehe die Zeile darueber. Damit ist aus dieser Runde nichts mehr offen ausser der kleinen
+Dokumentationsaufgabe zu F-32.

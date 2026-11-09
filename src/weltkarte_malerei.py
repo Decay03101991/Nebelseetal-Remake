@@ -54,6 +54,18 @@ KARTENSPEICHER = 3
 # Hoechste Arbeitsbreite beim Malen (siehe karte_malen): begrenzt Malzeit und Speicher.
 ARBEITSBREITE = 2048
 
+# HELLIGKEIT (Daniel, 09.11.2026, 09:44 - F-34): "Nummer 2 flach und 48 px je Feld gefaellt mir am
+# besten nur etwas heller bitte wie bei Nummer 3". Nummer 3 war die isometrische Stilprobe A aus dem
+# Paket (heller Grund, warme Farben, weiche Schatten). Gemessen an der Karte d01 lag die gemalte Karte
+# vorher bei mittlerer Helligkeit 85 von 255; die Stufe +20 % liegt bei 102. Der Faktor wird EINMAL
+# angewendet (in `_einheitslicht`, also fuer Kacheln UND ganze Karten gleich) und in der Wache
+# mitgerechnet - so bleibt die Farbtreue-Pruefung eng, statt sie zu lockern.
+HELLIGKEIT = 1.20
+
+# Schatten unten rechts im Einheitslicht: 42 Alpha wirkte zu schwer gegen den hellen Grund der
+# Stilprobe; 20 laesst die Karte hell, ohne die Tiefe zu verlieren.
+SCHATTEN_ALPHA = 20
+
 _KACHE: dict = {}
 _KARTEN: dict = {}
 
@@ -297,19 +309,28 @@ def _pinselstriche(draw, kasten, basis, rnd, dichte: float = 1.0) -> None:
 
 
 def _einheitslicht(bild, Image) -> None:
-    """EIN Licht ueber der ganzen Karte plus ein leises Korn - kein Feld leuchtet fuer sich."""
-    from PIL import ImageDraw, ImageFilter
+    """EIN Licht ueber der ganzen Karte plus ein leises Korn - kein Feld leuchtet fuer sich.
+
+    Seit F-34 (Daniel, 09.11.2026: „nur etwas heller wie bei Nummer 3“) wird der Schatten unten
+    rechts leiser aufgetragen (SCHATTEN_ALPHA statt 42) und das fertige Bild EINMAL mit
+    `HELLIGKEIT` aufgehellt. EINE Stelle fuer Kacheln und ganze Karten, damit Legende und Karte
+    denselben Ton tragen.
+    """
+    from PIL import ImageDraw, ImageEnhance, ImageFilter
     breite, hoehe = bild.size
     schleier = Image.new("RGB", bild.size, (0, 0, 0))
     zeichner = ImageDraw.Draw(schleier, "RGBA")
     zeichner.ellipse((-breite * 0.20, -hoehe * 0.30, breite * 0.80, hoehe * 0.70),
                      fill=(255, 240, 205, 46))                  # warmes Licht oben links
-    zeichner.rectangle((breite * 0.40, hoehe * 0.50, breite, hoehe), fill=(0, 0, 0, 42))
+    zeichner.rectangle((breite * 0.40, hoehe * 0.50, breite, hoehe),
+                       fill=(0, 0, 0, SCHATTEN_ALPHA))
     schleier = schleier.filter(ImageFilter.GaussianBlur(max(4, breite // 8)))
     bild.paste(Image.blend(bild, schleier, 0.15))
     # Korn: leises Rauschen, damit die Flaechen nicht wie Vektorgrafik wirken
     korn = Image.effect_noise(bild.size, 22).convert("RGB")
     bild.paste(Image.blend(bild, korn, 0.05))
+    # Helligkeit (F-34) - EINE Stelle, nach Licht und Korn
+    bild.paste(ImageEnhance.Brightness(bild).enhance(HELLIGKEIT))
 
 
 # --------------------------------------------------------------------------

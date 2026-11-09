@@ -106,10 +106,13 @@ def main() -> int:
         check("%s: RGB" % art, bild.mode == "RGB", bild.mode)
         check("%s: mehr als 200 Farben (gemalt, nicht gefuellt)" % art, len(farben) > 200,
               "%d Farben" % len(farben))
-        soll = M._rgb(gelaende.farbe(art))
+        # F-34 (Daniel, 09.11.2026, 09:44): die gemalte Karte wird mit `M.HELLIGKEIT` aufgehellt
+        # ("nur etwas heller wie bei Nummer 3"). Der Sollwert wird MITGERECHNET - so bleibt diese
+        # Pruefung genauso eng wie vorher, statt sie zu lockern.
+        soll = tuple(min(255, int(round(k * M.HELLIGKEIT))) for k in M._rgb(gelaende.farbe(art)))
         ist = _mittel(bild)
         abweichung = _abstand(ist, soll)
-        check("%s: Mittelton liegt an der Gelaendefarbe (Abweichung < 26)" % art,
+        check("%s: Mittelton liegt an der hell gerechneten Gelaendefarbe (Abweichung < 26)" % art,
               abweichung < 26, "%.1f (%s gegen %s)" % (abweichung, ist, soll))
 
     abschnitt("4. Der Wald traegt Tannen, das Grasland nicht")
@@ -172,11 +175,14 @@ def main() -> int:
         farben = _farben(karte)
         check("Karte bei %d px hat mehr als 1000 Farben (gemalt)" % kante_probe,
               len(farben) > 1000, "%d Farben" % len(farben))
-        # Feldmitte muss die Gelaendefarbe treffen - sonst zeigt der Klick ein anderes Feld
+        # Feldmitte muss die Gelaendefarbe treffen - sonst zeigt der Klick ein anderes Feld.
+        # F-34 (Daniel, 09.11.2026): die Karte wird mit `M.HELLIGKEIT` aufgehellt; der Sollwert wird
+        # mitgerechnet, die Schwelle bleibt bei 60.
         abweichungen = []
         for y in (0, 7, 13, 19):
             for x in (0, 5, 12, 19):
-                soll = M._rgb(gelaende.farbe(raster[y][x]))
+                soll = tuple(min(255, int(round(k * M.HELLIGKEIT)))
+                             for k in M._rgb(gelaende.farbe(raster[y][x])))
                 ist = karte.getpixel((x * kante_probe + kante_probe // 2,
                                       y * kante_probe + kante_probe // 2))
                 abweichungen.append(_abstand(ist, soll))
