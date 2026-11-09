@@ -287,11 +287,12 @@ Mana, nicht an einer Wartezeit), `test_spielschicht` (145/0/1), `test_portal_ueb
 **Der Zeitstempel bleibt im Spielstand** (`state.letzter_wechsel`, geschrieben von `nach_wechsel`),
 weil die Ansicht damit sagen kann, wann zuletzt gereist wurde - er sperrt nichts.
 
-## 10. Daniels Antworten zur Gestaltung (09.11.2026, 09:07, fuenf Fragen in EINER Runde)
+## 10. Daniels Antworten zur Gestaltung (09.11.2026, 09:33, fuenf Fragen in EINER Runde)
 
 S-5 und S-6 waren gebaut, dann standen fuenf Fragen aus der Uebergabe 07:35 offen. Sie wurden
 zusammen gestellt (fuenf Blaetter einer Runde, je drei Vorschlaege, Empfehlung zuerst; freie Antwort
-moeglich). Wortlaut der Antworten:
+moeglich) und um **09:33** beantwortet (gemessen am Werkzeug-Protokoll, nicht geschaetzt). Wortlaut der
+Antworten:
 
 | Nummer | Frage | Antwort (Wortlaut) | Folge |
 |---|---|---|---|

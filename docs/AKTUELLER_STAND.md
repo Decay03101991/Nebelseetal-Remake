@@ -1,9 +1,9 @@
-# STAND 09.11.2026, 09:10 - Fuenf Gestaltungs-Antworten: nur der Stil-Entscheid ist noch offen (Register 335)
+# STAND 09.11.2026, 09:36 - Fuenf Gestaltungs-Antworten: nur der Stil-Entscheid ist noch offen (Register 335)
 
 > Neuester Block. Darunter 09:00 (EINE EXE gebaut; Register 334), 08:55 (Portal S-6; Register 333),
 > 08:25 (Portal S-5; Register 332).
 
-**Daniel hat alle fuenf Fragen beantwortet** (09.11.2026, 09:07, eine Runde): Kante bleibt **20 px je
+**Daniel hat alle fuenf Fragen beantwortet** (09.11.2026, 09:33, eine Runde): Kante bleibt **20 px je
 Feld**, der Wald traegt **Tannen**, `spielschicht.portalwechsel` **bleibt** (und wird ausdruecklich als
 Spielschicht-Funktion dokumentiert - offen, geht mit der naechsten `src/`-Aenderung), `letzter_wechsel`
 **bleibt** als reine Aufzeichnung.
