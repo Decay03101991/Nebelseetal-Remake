@@ -1,4 +1,4 @@
-# STAND 08.11.2026, 23:15 - Portal S-1 bis S-3 gebaut: Portalposition am Ort, Belegungskarte im Kern, Umzug gebucht (Register 324 und 325)
+# STAND 09.11.2026, 01:50 - Portal S-1 bis S-4 gebaut UND belegt: Belegungskarte, Umzug gebucht, Feldklick in der Ansicht (Register 324 bis 326)
 
 > Neuester Block. Darunter 21:52 (E1 Handelspreis; Register 323), 20:52 (Wall und Marktplatz;
 > Register 321-322), 20:28 (Wall in der Rubrik Verteidigung), 18:50 (Opus als Werkzeug, drei Befunde;
@@ -43,14 +43,25 @@ portalraum has no attribute feld_status` ab; mit den Feldern, aber OHNE die neue
    auf dem Altstand rot (Abbruch), Gegenprobe mit abgeschalteter Feldprüfung **32 bestanden,
    6 FEHLER** (genau die Feld- und Belegungszusagen).
 
-**Offen an S-3:** S-4 muss den Knopf der Ansicht auf `_dorf_versetzen` legen — solange daneben
-`_portal_wechsel` steht, gibt es zwei Buchstellen mit je 5.000 Mana, und ein Klick darf nicht beide
-auslösen. S-5 nimmt die 24-Stunden-Prüfung aus `wechsel_erlaubt` (F-28 = C); vorher wird gemessen,
-welche Wachen daran hängen.
+4. **S-4 - die Ansicht (Daniels Antwort A):** der Knopf „Weltensprung“ in der Weltkartenliste ist
+   WEG. Unter der Karte steht jetzt „Dorf versetzen“: ein Knopf je eigener Siedlung, ein Klick ins
+   Feld, eine Zeile mit Feld, Gelände und STATUS samt Grund, und der Knopf „<Dorf> hierher versetzen
+   (5.000 Mana)“ — gesperrt mit Grund (kein Feld, Feld nicht frei, Mana, Aufträge). Gebucht wird
+   ausschließlich über `_dorf_versetzen` (S-3). **Fund dabei, behoben:** die Karte zeichnete eigene
+   Dörfer auf `x`/`y` (Siedlungskarte) statt auf ihrer Portalposition — jetzt über `_ort_feld`.
+   Wache `tests/test_portal_ansicht_umzug.py` **26/0/0**; Gegenprobe auf dem Altstand rot,
+   Gegenprobe mit der alten Zeichnung **24 bestanden, 2 FEHLER**.
 
-**Nächster Schritt ist S-4 (Karte statt Auswahlliste)**, dann S-5 (Sperre weg) und S-6 (Wachen,
-voller Lauf, EXE). **Nicht gebaut:** die Auswahl in der Oberfläche selbst — heute ist nur der Kern
-buchbar.
+**Sammellauf Sitzung 24 (01:36 bis 01:49): 213 Dateien, 211 von 211 grün, 0 rot, 2 dokumentiert
+zurückgezogen, 9.139 Prüfungen, 0 Fehler, 75 Befunde, 729 s**
+(`docs/audits/sammellauf_20261109_0136.log`) — genau die erwarteten 9.139 (9.113 des Laufs 23:03
+plus die 26 der S-4-Wache). Probe vor dem Start: die erste kleine Wache brauchte 7,5 s (kalter
+erster Zugriff), die zweite 1,35 s; erst danach gestartet.
+
+**Offen:** `_portal_wechsel` hat keinen Aufrufer mehr und fällt in **S-4b** samt seinen Wachen
+(`test_durchspiel`, `test_e2e_wege`, `test_portal_uebersicht`, `test_weltkarten_anzeige`), die dabei
+auf die Buchstelle umgestellt werden. Danach S-5 (24-Stunden-Prüfung aus `wechsel_erlaubt`, F-28 = C)
+und S-6 (Wachen, voller Lauf, EXE).
 
 **Registerluecke gefunden und geschlossen:** die Nummern 309 bis 323 standen nur in den
 Protokollzeilen, im Register fehlten sie (hoechste Nummer war 308). Sie sind als Kurzfassung mit

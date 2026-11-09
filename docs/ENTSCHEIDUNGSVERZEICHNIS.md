@@ -330,6 +330,7 @@
 | 323 | E1: der Handelspreis haengt am ROHSTOFF | GEBAUT | 08.11.2026 |
 | 324 | Portal S-2 und S-1: die Portalposition steht in eigenen Feldern, die Belegungskarte fragt ohne Spielstand | GEBAUT | 08.11.2026 |
 | 325 | Portal S-3: der Dorfumzug wird gebucht - freies Feld, 5.000 Mana, GENAU EINMAL | GEBAUT | 08.11.2026 |
+| 326 | Portal S-4: die Ansicht bucht den Umzug - der Knopf „Weltensprung“ ist weg, das Zielfeld wird geklickt | GEBAUT | 09.11.2026 |
 
 ## Ersetzungen (Handpflege)
 

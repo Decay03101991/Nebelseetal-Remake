@@ -11850,6 +11850,12 @@ class NebelseetalApp:
     def _portal_wechsel(self, nach_z: int):
         """Ein Weltensprung: erst pruefen, dann GENAU EINMAL abbuchen (W5-2, S-2b).
 
+        KEIN Aufrufer mehr in der Ansicht: seit S-4 (Daniel 08.11.2026, Antwort A) gibt es den
+        Knopf "Weltensprung" nicht mehr - versetzt wird ausschliesslich ueber `_dorf_versetzen`
+        (S-3). Diese Funktion bleibt vorerst als Beleg stehen; sie faellt in S-4b samt ihren
+        Wachen (`test_durchspiel`, `test_e2e_wege`, `test_portal_uebersicht`,
+        `test_weltkarten_anzeige`), die dabei auf die Buchstelle umgestellt werden.
+
         Zaehlweise: `nach_z` ist die NUMMER aus der Kennung (4 = d04 = Midgard), so wie sie im
         Spielstand steht. `portalraum` rechnet mit dem INDEX 0..5; umgerechnet wird an EINER
         Stelle (`portalraum.index_von`). Bis S-2a wurden beide Zaehlweisen vermischt - der Knopf
@@ -12278,30 +12284,66 @@ class NebelseetalApp:
 
         Was hinein geht: die Nummer der Welt aus der Liste. Was passiert: `_portal_blick` merkt sie,
         die Feldauswahl wird geloescht und das Portal neu gezeichnet. Es wird NICHTS gebucht -
-        kein Mana, kein Weltensprung, keine Sperre. Der Sprung bleibt der Knopf in der Liste
-        (`_portal_wechsel`), damit "ansehen" und "reisen" nicht zwei verschiedene Wahrheiten werden.
+        kein Mana, kein Weltensprung, keine Sperre. Gebucht wird ausschliesslich ueber den
+        Umzug-Knopf unter der Karte (`_dorf_versetzen`, S-4), damit "ansehen" und "reisen" nicht
+        zwei verschiedene Wahrheiten werden.
         """
         self._portal_blick = int(welt_nummer or 0)                     # gezeigte Welt merken
         self.portal_auswahl = None                                     # alte Feldauswahl gilt nicht mehr
         self._switch_view("Portal")                                    # Portal neu zeichnen
 
     def _portal_feld_waehlen(self, x: int, y: int):
-        """Ein Feld im Gelaendekaestchen anwaehlen (Schnitt S-2b) - merken, nicht buchen.
+        """Ein Feld im Gelaendekaestchen anwaehlen (Schnitte S-2b und S-4) - merken, nicht buchen.
 
         Daniel 01.11.2026 (Anhang 3 Frage 23/30): der Dorftransfer beginnt mit einem Klick aufs
-        freie Feld, danach folgt die Auswahl des Dorfes. Der Transfer selbst gehoert zu S-6;
-        hier wird AUSDRUECKLICH nichts uebertragen, damit die Anzeige keine Mechanik vortaeuscht.
+        freie Feld, danach folgt die Auswahl des Dorfes. Gebucht wird ausschliesslich ueber
+        `_dorf_versetzen` (Schnitt S-3) - hier wird NUR gemerkt, damit ein Klick keine Mechanik
+        vortaeuscht. Geprueft wird gegen die ANGESEHENE Weltkarte (`_portal_blick`), nicht gegen
+        die eigene: sonst stuende im Protokoll die falsche Welt, sobald man in eine fremde sieht.
         """
-        nummer = int(self.state.eigene_dimension)
+        nummer = int(getattr(self, "_portal_blick", 0) or self.state.eigene_dimension)
         if portalraum.koordinate(int(x), int(y), portalraum.index_von(nummer)) is None:
             self._log(f"Feld {x}/{y} gehört nicht zur Weltkarte {nummer:02d} "
                       f"({portalraum._achsen()} x {portalraum._achsen()} Felder).")
             return False
         self.portal_auswahl = (int(x), int(y))
         self._log(f"Feld {int(x)}/{int(y)} auf Weltkarte {nummer:02d} "
-                  f"({self._dimensionsname(nummer)}) angewählt - der Dorftransfer folgt mit S-6.")
+                  f"({self._dimensionsname(nummer)}) angewählt - der Umzug wird mit dem Knopf "
+                  f"darunter gebucht.")
         self._render_view()
         return True
+
+    def _portal_dorf_waehlen(self, name: str) -> None:
+        """Das Dorf merken, das versetzt werden soll (Schnitt S-4) - gebucht wird NICHTS.
+
+        Daniel 01.11.2026 (Anhang 3 Frage 23): erst das Feld, dann das Dorf. Ein Knopf je eigener
+        Siedlung; die Wahl ist nur eine Merkung, damit die Anzeige sagen kann, WAS sie versetzen
+        wuerde.
+        """
+        self.portal_dorf = str(name or "")
+        self._switch_view("Portal")                                    # Anzeige neu zeichnen
+
+    def _portal_dorf_springen(self, welt_nummer: int = 0) -> bool:
+        """Den Umzug aus der Ansicht ausloesen (Schnitt S-4).
+
+        Bucht NICHTS selbst: die EINE Buchstelle ist `_dorf_versetzen` (Schnitt S-3). Gewaehlt
+        sind das gemerkte Dorf (`portal_dorf`) und das angeklickte Feld (`portal_auswahl`).
+        Nach einer erfolgreichen Buchung ist die Feldauswahl leer - das Feld ist jetzt belegt,
+        und der Goldrand darf nicht an einem fremden Feld haengen bleiben.
+        """
+        name = str(getattr(self, "portal_dorf", "") or "")
+        auswahl = getattr(self, "portal_auswahl", None)
+        if not name or not auswahl:
+            meldung = "Umzug: erst ein Dorf und ein Feld wählen."
+            self._log(meldung)
+            self.state.messages.append({"text": meldung, "type": "portal"})
+            return False
+        gesprungen = self._dorf_versetzen(name, int(auswahl[0]), int(auswahl[1]),
+                                          int(welt_nummer or 0))
+        if gesprungen:                                                 # gebucht: Auswahl erledigt
+            self.portal_auswahl = None
+        self._switch_view("Portal")                                    # Anzeige neu zeichnen
+        return bool(gesprungen)
 
     def _kartenrahmen_bauen(self, eltern, breite: int, hoehe: int):
         """Ein gemalter Rahmen um das Gelaendekaestchen (Daniel 03.11.2026: "Rahmen als Bildleiste").
@@ -12382,7 +12424,8 @@ class NebelseetalApp:
         # W-6 (Daniel 03.11.2026): "der spieler startet in der Hauptwelt und sieht bereits die bots
         # wenn er in die Übersicht einer anderen welt schaut". `_portal_blick` ist die Welt, die das
         # Kaestchen ZEIGT - 0 heisst "die eigene". Ansehen ist nur Lesen: es kostet kein Mana und
-        # bucht keinen Weltensprung; der Sprung bleibt der Knopf "Weltensprung" in der Liste.
+        # bucht keinen Weltensprung. Seit S-4 (Daniel 08.11.2026, Antwort A) gibt es in der Liste
+        # KEINEN Sprung-Knopf mehr - versetzt wird nur der Umzug unter der Karte.
         angezeigt = int(getattr(self, "_portal_blick", 0) or nummer)
         if not any(int(eintrag["nummer"]) == angezeigt for eintrag in portalraum.weltkarten(eigene, 0)):
             angezeigt = nummer                                        # unbekannte Welt -> eigene zeigen
@@ -12409,13 +12452,12 @@ class NebelseetalApp:
             tk.Label(zeile, text=eintrag["status_text"],
                      fg=farben.get(eintrag["farbe"], "#8a8a8a"), bg=self.skin["panel"]).pack(
                          side=tk.LEFT, padx=8)
-            if eintrag["waehlbar"]:
-                tk.Button(zeile, text="Weltensprung", bg="#3e2723", fg=self.skin["gold"],
-                          command=lambda n=eintrag["nummer"]: self._portal_wechsel(n)).pack(
-                              side=tk.RIGHT, padx=6)
-            else:
-                tk.Label(zeile, text=eintrag["grund"], fg="#8a8a8a", bg=self.skin["panel"],
-                         font=("TkDefaultFont", 8)).pack(side=tk.RIGHT, padx=6)
+            # S-4 (Daniel 08.11.2026, Antwort A): der Knopf "Weltensprung" ist WEG - er hat
+            # dieselben 5.000 Mana abgebucht, ohne ein Dorf zu versetzen. Der Umzug ist jetzt der
+            # EINZIGE Weg (Knopf unter der Karte, `_dorf_versetzen`); die Zeile nennt weiter, was
+            # gerade sperrt.
+            tk.Label(zeile, text=eintrag["grund"], fg="#8a8a8a", bg=self.skin["panel"],
+                     font=("TkDefaultFont", 8)).pack(side=tk.RIGHT, padx=6)
 
         # --- 1b. ANSEHEN: in eine fremde Welt schauen, ohne zu springen (W-6) ---
         blick = tk.Frame(self.content, bg=self.skin["bg"])
@@ -12497,8 +12539,14 @@ class NebelseetalApp:
         for _ort in (getattr(self.state, "settlements", None) or []):   # jede eigene Siedlung
             if int(getattr(_ort, "dimension", 1) or 1) != int(angezeigt):  # nur die DIESER Weltkarte
                 continue
-            _cx = (int(getattr(_ort, "x", 0)) + 0.5) * zelle            # Feldmitte in x
-            _cy = (int(getattr(_ort, "y", 0)) + 0.5) * zelle            # Feldmitte in y
+            # S-2/S-4: das Feld kommt aus `_ort_feld` - der EINEN Aufloesestelle (Portalposition
+            # `welt_x`/`welt_y`, fuer Altstaende `x`/`y`). Vorher stand hier `_ort.x`/`_ort.y`, also
+            # die SIEDLUNGSKARTE: ein versetztes Dorf waere weiter an seinem alten Platz gezeichnet.
+            _feld = self._ort_feld(str(getattr(_ort, "name", "")), "", kante)
+            if _feld is None:                                          # nicht verortet oder ausserhalb
+                continue
+            _cx = (int(_feld[0]) + 0.5) * zelle                        # Feldmitte in x
+            _cy = (int(_feld[1]) + 0.5) * zelle                        # Feldmitte in y
             if not self._dorf_marke(zeichenflaeche, _cx, _cy, zelle,
                                     getattr(self.state, "spieler_fraktion", ""), ("portalspieler",)):
                 self._dorf_kasten(zeichenflaeche, _cx, _cy, zelle, "#27AE60", ("portalspieler",))
@@ -12545,38 +12593,85 @@ class NebelseetalApp:
         zeichenflaeche.bind("<Button-1>",
                             lambda ereignis: self._portal_klick(ereignis.x // zelle,
                                                                 ereignis.y // zelle, kante))
+        # --- 2b. DORF VERSETZEN: Dorf wählen, Feld anklicken, springen (Schnitt S-4) ----------
+        # Daniel 08.11.2026 (Antwort A): der Umzug ist der EINZIGE Weg; der Knopf "Weltensprung"
+        # in der Liste ist weg. Geprüft und gebucht wird ausschließlich in `_dorf_versetzen`
+        # (Schnitt S-3); hier steht nur, was er TUN WÜRDE - damit niemand auf gut Glück klickt.
+        mana = float(self.state.resources["mana"].amount)
+        eigene_orte = list(getattr(self.state, "settlements", None) or [])
+        gewaehlt = str(getattr(self, "portal_dorf", "") or "")
+        if gewaehlt not in [str(o.name) for o in eigene_orte]:
+            gewaehlt = str(eigene_orte[0].name) if eigene_orte else ""
+        wahl = tk.Frame(self.content, bg=self.skin["bg"])
+        wahl.pack(anchor=tk.W, padx=10, pady=(6, 0))
+        tk.Label(wahl, text="Dorf:", fg="#DAA520", bg=self.skin["bg"],
+                 font=("TkDefaultFont", 9)).pack(side=tk.LEFT, padx=(0, 4))
+        for ort in eigene_orte:
+            ort_name = str(ort.name)
+            tk.Button(wahl, text=f"{ort_name} ({int(getattr(ort, 'dimension', 0) or 0):02d})",
+                      bd=1, bg="#2b2118" if ort_name == gewaehlt else self.skin["panel"],
+                      fg=self.skin["gold"],
+                      command=lambda n=ort_name: self._portal_dorf_waehlen(n)).pack(
+                          side=tk.LEFT, padx=1)
+        if not eigene_orte:
+            tk.Label(wahl, text="keine eigene Siedlung", fg="#8a8a8a", bg=self.skin["bg"],
+                     font=("TkDefaultFont", 9)).pack(side=tk.LEFT)
+        ziel_status = None
         if auswahl:
             ax, ay = int(auswahl[0]), int(auswahl[1])
             try:
-                gel = portalraum.gelaende_von_feld(nummer, ax, ay)
+                gel = portalraum.gelaende_von_feld(angezeigt, ax, ay)
                 gel_text = f" - Gelände: {gel['name']}"
             except portalraum.WeltbildFehler:
                 gel_text = ""
-            tk.Label(self.content, text=(f"Angewähltes Feld: x={ax}, "
-                                         f"y={ay}{gel_text} auf Weltkarte {nummer:02d} "
-                                         f"({self._dimensionsname(nummer)}). Der Dorftransfer folgt "
-                                         f"mit S-6 - hier wird noch nichts übertragen."),
-                     fg=self.skin["gold"], bg=self.skin["bg"], wraplength=760, justify=tk.LEFT).pack(
-                         anchor=tk.W, padx=10)
+            ziel_status = portalraum.feld_status(portalraum.index_von(angezeigt), ax, ay,
+                                                 self._portal_belegte_felder(),
+                                                 ausschluss=gewaehlt)
+            ziel_text = (f"Feld x={ax}, y={ay}{gel_text} auf Weltkarte {angezeigt:02d} "
+                         f"({self._dimensionsname(angezeigt)}): {ziel_status.get('grund')}")
+            ziel_farbe = self.skin["gold"] if ziel_status.get("frei") else self.skin["red"]
         else:
-            tk.Label(self.content, text="Noch kein Feld gewählt: ein Klick ins Kästchen wählt es aus.",
-                     fg="#8a8a8a", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
+            ziel_text = ("Noch kein Feld gewählt: ein Klick ins Kästchen wählt es aus "
+                         "- belegte Felder sind danach gesperrt, mit Grund.")
+            ziel_farbe = "#8a8a8a"
+        tk.Label(self.content, text=ziel_text, fg=ziel_farbe, bg=self.skin["bg"],
+                 wraplength=760, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(4, 0))
+        kosten = portalraum.wechselkosten()
+        gruende = []
+        if not eigene_orte:                                            # ohne Dorf kein Umzug
+            gruende.append("keine eigene Siedlung")
+        if not auswahl:                                                # ohne Feld kein Ziel
+            gruende.append("kein Feld gewählt")
+        elif not (ziel_status or {}).get("frei"):                      # F-26 = A
+            gruende.append("Feld nicht frei")
+        if mana < kosten:                                              # F-25 = A
+            gruende.append(f"{int(kosten)} Mana nötig")
+        if laufend:                                                    # Daniel 01.11.2026, Anhang 2
+            gruende.append(f"{laufend} Aufträge unterwegs")
+        knopf_zeile = tk.Frame(self.content, bg=self.skin["bg"])
+        knopf_zeile.pack(anchor=tk.W, padx=10, pady=(2, 0))
+        tk.Button(knopf_zeile, text=f"{gewaehlt or 'Dorf'} hierher versetzen ({int(kosten)} Mana)",
+                  bg="#3e2723", fg=self.skin["gold"],
+                  state=(tk.NORMAL if not gruende else tk.DISABLED),
+                  command=lambda: self._portal_dorf_springen(angezeigt)).pack(side=tk.LEFT)
+        if gruende:
+            tk.Label(knopf_zeile, text="gesperrt: " + ", ".join(gruende), fg=self.skin["red"],
+                     bg=self.skin["bg"], font=("TkDefaultFont", 9)).pack(side=tk.LEFT, padx=8)
         tk.Label(self.content, text=("Gelände je Feld: dazu nennt das Handbuch nichts - das Kästchen "
                                      "zeigt die belegten Bannerfarben (eigene Welt grün, fremde Welt "
                                      "rot). Geländefarben je Feld kommen mit dem Weltbild (S-5)."),
                  fg="#8a8a8a", bg=self.skin["bg"], wraplength=760, justify=tk.LEFT).pack(
                      anchor=tk.W, padx=10, pady=(2, 6))
 
-        # --- 3. Kosten, Sperre und Mannavorrat (unveraendert aus W5-2) ---
-        mana = float(self.state.resources["mana"].amount)
+        # --- 3. Kosten, Sperre und Mannavorrat (W5-2, auf den Umzug umgestellt in S-4) ---
         index = portalraum.index_von(nummer)
-        erlaubt, meldung = portalraum.wechsel_erlaubt(index, index, mana,
+        erlaubt, meldung = portalraum.wechsel_erlaubt(index, index, float(mana),
                                                       self.state.letzter_wechsel, time.time())
-        tk.Label(self.content, text=(f"Mana: {int(mana)} · Weltensprung kostet "
+        tk.Label(self.content, text=(f"Mana: {int(mana)} · ein Umzug kostet "
                                      f"{portalraum.wechselkosten()} · Sperre: {self._sperre_text()}"),
                  fg=self.skin["text"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(4, 2))
         tk.Label(self.content,
-                 text=("Weltensprung möglich." if erlaubt else f"Zurzeit nicht möglich: {meldung}"),
+                 text=("Umzug möglich." if erlaubt else f"Zurzeit nicht möglich: {meldung}"),
                  fg="#DAA520" if erlaubt else self.skin["red"], bg=self.skin["bg"]).pack(
                      anchor=tk.W, padx=10)
         tk.Label(self.content, text=("(Unser Mana liegt in EINEM gemeinsamen Vorrat - das Handbuch "

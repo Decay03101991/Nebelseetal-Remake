@@ -226,3 +226,30 @@ daneben `_portal_wechsel` steht, gibt es ZWEI Buchstellen mit je 5.000 Mana, und
 nicht beide ausloesen. (b) S-5 nimmt die 24-Stunden-Pruefung aus `wechsel_erlaubt` (F-28 = C) -
 vorher wird gemessen, welche Wachen daran haengen (`test_portalraum`, `test_durchspiel`,
 `test_e2e_wege`, `test_weltkarten_anzeige`, `spielschicht`).
+
+### 9.4 S-4 - die Ansicht: Feld anklicken, Dorf waehlen, springen (gebaut 23:33)
+
+Daniels Antwort **A** vom 08.11.2026: der Knopf „Weltensprung“ in der Weltkartenliste ist WEG - er
+hat dieselben 5.000 Mana abgebucht, ohne ein Dorf zu versetzen. Der Umzug ist der EINZIGE Weg.
+
+Die Ansicht hat jetzt unter der Karte einen Block **Dorf versetzen**:
+
+| Teil | Was er tut |
+|---|---|
+| Dorf-Wahl | ein Knopf je eigener Siedlung (Name + Weltkarte), merkt `portal_dorf` - bucht nichts |
+| Feldklick | merkt `portal_auswahl`; geprueft wird jetzt gegen die ANGESEHENE Weltkarte (`_portal_blick`), vorher gegen die eigene |
+| Zeile | nennt Feld, Gelaende, Weltkarte und den STATUS mit Grund („ist frei“ / „ist belegt: X“ / „liegt ausserhalb“) |
+| Knopf | „<Dorf> hierher versetzen (5.000 Mana)“; gesperrt mit Grund (kein Feld, Feld nicht frei, Mana zu knapp, Auftraege unterwegs) |
+
+`_portal_dorf_springen` bucht NICHT selbst - es ruft `_dorf_versetzen` (S-3) und leert danach die
+Feldauswahl (sonst haengt der Goldrand an einem inzwischen belegten Feld).
+
+**Fund beim Bau, behoben:** die Karte zeichnete die EIGENEN Doerfer auf `Settlement.x`/`y` - also
+auf der SIEDLUNGSKARTE. Ein versetztes Dorf waere an seinem alten Platz gezeichnet worden. Jetzt
+geht es ueber `_ort_feld`, die eine Aufloesestelle (Portalposition `welt_x`/`welt_y`, Altstand
+`x`/`y`).
+
+**Noch offen:** `_portal_wechsel` hat keinen Aufrufer mehr, steht aber noch im Code - es faellt in
+**S-4b** samt seinen Wachen (`test_durchspiel`, `test_e2e_wege`, `test_portal_uebersicht`,
+`test_weltkarten_anzeige`), die dabei auf die Buchstelle umgestellt werden. Danach S-5 (Sperre weg,
+F-28 = C) und S-6 (Wachen, voller Lauf, EXE).

@@ -168,8 +168,12 @@ try:
     check("4 es gibt einen Goldrand", app.skin["gold"].lower() in umrisse, str(sorted(set(umrisse))))
     check("4 der alte blaue Rand ist verschwunden", "#38bdf8" not in umrisse, "")
     check("4 der Goldrand liegt auf einer dunklen Unterlage", "#1b0d06" in umrisse, "")
+    # S-4 (08.11.2026): die Zeile heisst nicht mehr "Angewaehltes Feld", sondern nennt Feld,
+    # Gelaende, Weltkarte UND den Status mit Grund ("ist frei" / "ist belegt: X"). Die Zusage
+    # bleibt dieselbe - es gibt eine Zeile unter der Karte, die DIESES Feld nennt.
     texte = [str(w.cget("text")) for w in app.content.winfo_children()
-             if isinstance(w, tk.Label) and "Angew\u00e4hltes Feld" in str(w.cget("text"))]
+             if isinstance(w, tk.Label) and "x=3" in str(w.cget("text"))
+             and "y=4" in str(w.cget("text"))]
     check("4 die Zeile unter der Karte nennt das Feld", bool(texte), str(texte)[:80])
 finally:
     root.destroy()
