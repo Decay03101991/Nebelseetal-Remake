@@ -3439,6 +3439,13 @@ PORTAL_BANNER_FARBEN = {"gruen": "#2ecc40", "rot": "#e53935"}
 PORTAL_KOPFBAND = ("assets", "bilder", "portal_kopfband_schmiede_dorf_ghule_780x150.png")
 PORTAL_KOPFBAND_MASSE = (780, 150)                                       # Platz S1 im Bildplan
 PORTAL_TRENNLINIE = "#C68B42"                                            # Median des Rahmengolds (D-5)
+# Layout-Schnitt (Daniel 09.11.2026, 18:4x): "kleiner halten und gut anpassen". Die Inhaltsspalte
+# des Standardfensters ist 630 px breit (gemessen), die Texte forderten 760 px - rechts wurde
+# abgeschnitten, eine waagerechte Bildlaufleiste gibt es nicht. Darum EINE Umrechnung von Spalte
+# auf Textbreite: Rand abziehen, unten halten, oben bei der Entwurfsbreite deckeln.
+PORTAL_TEXT_BREITE = 780                                              # Entwurfsbreite (Bildplan D-5)
+PORTAL_TEXT_MINIMUM = 320                                            # Untergrenze im schmalen Fenster
+PORTAL_SPALTEN_RAND = 20                                             # padx=10 links und rechts
 
 
 def _lade_wappen() -> tuple:
@@ -12335,6 +12342,36 @@ class NebelseetalApp:
         neu = int(verfuegbar)                                            # schmalere Spalte
         return neu, max(1, int(round(int(hoehe) * neu / float(breite))))  # gleiches Verhaeltnis
 
+    @staticmethod
+    def _textbreite(spalte: int) -> int:
+        """Die nutzbare TEXTBREITE fuer eine gemessene Spaltenbreite (Layout-Schnitt).
+
+        Daniel 09.11.2026 (18:4x): Layout-Schnitt klein halten und gut anpassen. Gemessen war die
+        Inhaltsspalte im Standardfenster 630 px breit, die Portaltexte forderten 760 px (mit
+        `padx=10` also 780) - der Text wurde rechts abgeschnitten. Hier steht die EINE Umrechnung
+        von Spalte auf Textbreite: den Rand abziehen, unten 320 px halten (sonst steht ein Wort je
+        Zeile) und oben bei der Entwurfsbreite 780 px deckeln (so breite Zeilen liest niemand
+        gern, und das Kopfband bleibt 780 x 150).
+        Eine unvermessene Spalte (< 120 px, z. B. `withdrawn`-Fenster) faellt auf die
+        Entwurfsbreite zurueck - dann gilt der dokumentierte Entwurf, keine geratene Zahl.
+        """
+        if int(spalte) < 120:                                            # nicht vermessen
+            return int(PORTAL_TEXT_BREITE)                               # dann der Entwurf
+        breite = int(spalte) - int(PORTAL_SPALTEN_RAND)                  # Rand links und rechts
+        return max(int(PORTAL_TEXT_MINIMUM), min(int(PORTAL_TEXT_BREITE), breite))
+
+    def _spaltenbreite(self) -> int:
+        """Die Textbreite der Inhaltsspalte - GEMESSEN am Canvas, nie aus `wraplength` gerechnet.
+
+        EINE Quelle fuer alle Textzeilen des Portals UND das Kopfband: die 630-px-Spalte des
+        Standardfensters ergibt 610 px, eine 1526-px-Spalte bleibt bei den 780 px des Entwurfs.
+        """
+        try:
+            spalte = int(self.content_canvas.winfo_width())               # gemessene Spaltenbreite
+        except Exception:                                                # kein Canvas (Pruef-App)
+            spalte = 0                                                   # dann der Entwurf
+        return self._textbreite(spalte)
+
     def _portal_kopfleiste(self, eltern):
         """Das Kopfband ueber dem Portal-Titel (D-5, Platz S1 im Bildplan).
 
@@ -12351,14 +12388,9 @@ class NebelseetalApp:
         """
         breite, hoehe = PORTAL_KOPFBAND_MASSE                            # 780 x 150 aus EINER Quelle
         pfad = _bild_pfad(PORTAL_KOPFBAND)                               # Pfad ueber die Projektwurzel
-        # D-5: die Spalte wird GEMESSEN, nicht geraten - 20 px Rand links und rechts wie bei den
-        # Textzeilen (`padx=10`). Ist die Spalte noch nicht vermessen (Breite 1), gilt das Original.
-        spalte = 0                                                       # Vorgabe: nicht gemessen
-        try:
-            spalte = int(self.content_canvas.winfo_width())              # gemessene Spaltenbreite
-        except Exception:                                                # kein Canvas (Test, Umbau)
-            spalte = 0                                                   # dann das Original nehmen
-        ziel = self._kopfband_masse(spalte - 20 if spalte > 100 else 0)  # (Breite, Hoehe) des Bandes
+        # Layout-Schnitt: die Spalte wird GEMESSEN, nicht geraten - und Band und Textzeilen lesen
+        # DIESELBE Zahl (`_spaltenbreite`); ohne Messung gilt die Entwurfsbreite 780 = Original.
+        ziel = self._kopfband_masse(self._spaltenbreite())               # (Breite, Hoehe) des Bandes
         bild = None                                                      # Vorgabe: kein Bild
         if os.path.exists(pfad):                                         # Datei vorhanden?
             try:
@@ -12535,6 +12567,7 @@ class NebelseetalApp:
         offen sichtbar ist - Wall, Taktik, Truppen und Vorraete weiterhin nicht.
         """
         farben = PORTAL_BANNER_FARBEN                                  # eine Quelle (D-4)
+        breite = self._spaltenbreite()                                 # Textbreite (EINE Quelle)
         # D-5 (Daniel 09.11.2026, Register 347): Platz S1 - das Kopfband steht UEBER dem Titel,
         # darunter laeuft die Trennlinie im gemessenen Rahmengold. S3 bis S6 bleiben unveraendert
         # (C2-Rahmen und Icons kommen erst in D-5b, F-39); Karte, Portalraum und Spielregeln
@@ -12545,7 +12578,7 @@ class NebelseetalApp:
         tk.Frame(self.content, height=2, bg=PORTAL_TRENNLINIE, bd=0,
                  highlightthickness=0).pack(fill=tk.X, padx=10, pady=(0, 4))  # Trennlinie (D-5)
         tk.Label(self.content, text=portalraum.beschreibung(), fg="#C0C0C0", bg=self.skin["bg"],
-                 wraplength=760, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 6))
+                 wraplength=breite, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 6))
 
         nummer = int(self.state.eigene_dimension)
         eigene = list(self.state.eigene_dimensionen)
@@ -12613,7 +12646,7 @@ class NebelseetalApp:
                                      f"({kante} x {kante} = {portalraum.feld_zahl()} Felder, "
                                      f"ein Klick wählt ein Feld)"
                                      + ("  -  NUR ANSICHT einer fremden Welt" if fremdblick else "")),
-                 fg="#DAA520", bg=self.skin["bg"], wraplength=760, justify=tk.LEFT).pack(
+                 fg="#DAA520", bg=self.skin["bg"], wraplength=breite, justify=tk.LEFT).pack(
                      anchor=tk.W, padx=10, pady=(8, 0))
         zelle = self._portal_zelle(kante)
         # M-1 (Vorgabe Daniel 02.11.2026, Register 140): die GROBE Restzeit steht als Zeile UEBER dem
@@ -12627,7 +12660,7 @@ class NebelseetalApp:
                                                                      marsch["eigenes_ziel"]))
                       for marsch in laufende_maersche]                 # je Marsch eine kurze Zeile
             tk.Label(self.content, text="Unterwegs: " + " | ".join(zeilen),
-                     fg="#DAA520", bg=self.skin["bg"], wraplength=760, justify=tk.LEFT,
+                     fg="#DAA520", bg=self.skin["bg"], wraplength=breite, justify=tk.LEFT,
                      font=("TkDefaultFont", 9)).pack(anchor=tk.W, padx=10, pady=(2, 0))
         # Bei einer fremden Ansicht bekommt das Raster KEINE eigene Welt - dann zeichnet es die
         # belegte fremde Bannerfarbe, und niemand haelt die fremde Karte fuer seine eigene.
@@ -12685,11 +12718,16 @@ class NebelseetalApp:
         # die Dorf-Zaehlwache auf `portalbote` bleibt dadurch unberuehrt.
         self._marsche_zeichnen(zeichenflaeche, zelle, kante)            # Linie, Start, Ziel, Zeichen
         # Legende: die sieben Gelaendearten mit Name und Haeufigkeit, direkt aus den Daten.
+        # Layout-Schnitt (09.11.2026): die Zeile sass mit 637 px um 7 px breiter als die
+        # 630-px-Spalte des Standardfensters - der letzte Eintrag wurde rechts angeschnitten.
+        # Der Farbkasten traegt darum 4 statt 6 px Abstand (7 x 2 px = 14 px): 623 von 630.
+        # Schmalere Fenster als 1024 px brauchen einen eigenen Schnitt (Legende umbrechen).
         legende = tk.Frame(self.content, bg=self.skin["bg"])
         legende.pack(anchor=tk.W, padx=10, pady=(2, 0))
         tk.Label(legende, text="Gelände:", fg="#DAA520", bg=self.skin["bg"]).pack(side=tk.LEFT)
         for eintrag in portalraum.legende():
-            tk.Label(legende, text="", bg=eintrag["farbe"], width=2).pack(side=tk.LEFT, padx=(6, 2))
+            tk.Label(legende, text="", bg=eintrag["farbe"], width=2).pack(side=tk.LEFT,
+                                                                     padx=(4, 2))
             tk.Label(legende, text=f"{eintrag['name']} {eintrag['haeufigkeit']}",
                      fg=self.skin["text"], bg=self.skin["bg"],
                      font=("TkDefaultFont", 8)).pack(side=tk.LEFT)
@@ -12704,12 +12742,12 @@ class NebelseetalApp:
             _teile = ["%s (%s): %d Dörfer" % (name, wert[0], wert[1])
                       for name, wert in sorted(_je_bot.items())]
             tk.Label(self.content, text="Fremde Dörfer auf dieser Welt - " + ", ".join(_teile),
-                     fg="#FFE8C2", bg=self.skin["bg"], wraplength=760, justify=tk.LEFT,
+                     fg="#FFE8C2", bg=self.skin["bg"], wraplength=breite, justify=tk.LEFT,
                      font=("TkDefaultFont", 9)).pack(anchor=tk.W, padx=10, pady=(2, 0))
         hinweis = next((f["gelaende_grund"] for f in felder if f.get("gelaende_grund")), "")
         if hinweis:
             tk.Label(self.content, text=hinweis, fg="#e53935", bg=self.skin["bg"],
-                     wraplength=760, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(2, 0))
+                     wraplength=breite, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(2, 0))
         auswahl = getattr(self, "portal_auswahl", None)
         if auswahl:
             ax, ay = int(auswahl[0]), int(auswahl[1])
@@ -12764,7 +12802,7 @@ class NebelseetalApp:
                          "- belegte Felder sind danach gesperrt, mit Grund.")
             ziel_farbe = "#8a8a8a"
         tk.Label(self.content, text=ziel_text, fg=ziel_farbe, bg=self.skin["bg"],
-                 wraplength=760, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(4, 0))
+                 wraplength=breite, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(4, 0))
         kosten = portalraum.wechselkosten()
         gruende = []
         if not eigene_orte:                                            # ohne Dorf kein Umzug
@@ -12789,7 +12827,7 @@ class NebelseetalApp:
         tk.Label(self.content, text=("Gelände je Feld: dazu nennt das Handbuch nichts - das Kästchen "
                                      "zeigt die belegten Bannerfarben (eigene Welt grün, fremde Welt "
                                      "rot). Geländefarben je Feld kommen mit dem Weltbild (S-5)."),
-                 fg="#8a8a8a", bg=self.skin["bg"], wraplength=760, justify=tk.LEFT).pack(
+                 fg="#8a8a8a", bg=self.skin["bg"], wraplength=breite, justify=tk.LEFT).pack(
                      anchor=tk.W, padx=10, pady=(2, 6))
 
         # --- 3. Kosten und Mannavorrat (W5-2, auf den Umzug umgestellt in S-4) ---
@@ -12809,7 +12847,7 @@ class NebelseetalApp:
         tk.Label(self.content, text=("(Unser Mana liegt in EINEM gemeinsamen Vorrat - das Handbuch "
                                      "verlangt die 5.000 Mana aus einer Siedlung. Vermerkt, noch "
                                      "nicht je Siedlung.)"),
-                 fg="#8a8a8a", bg=self.skin["bg"], wraplength=760, justify=tk.LEFT).pack(
+                 fg="#8a8a8a", bg=self.skin["bg"], wraplength=breite, justify=tk.LEFT).pack(
                      anchor=tk.W, padx=10, pady=(0, 6))
 
         tk.Label(self.content, text="Welten anderer Spieler:", fg="#C0C0C0",

@@ -105,6 +105,14 @@ def _text(widget) -> str:
         return ""
 
 
+def _wraplength(widget) -> int:
+    """Die Umbruchbreite eines Widgets in px (0, wenn es keine hat)."""
+    try:
+        return int(str(widget.cget("wraplength")) or 0)
+    except Exception:                                                # Widget ohne wraplength
+        return 0
+
+
 def _hoehe(widget) -> int:
     """Die angeforderte Hoehe eines Widgets in px."""
     try:
@@ -304,7 +312,13 @@ hilfe = _rumpf(M.NebelseetalApp._portal_kopfleiste)
 check("6 die Methode liest den Pfad aus der Konstante", "PORTAL_KOPFBAND" in hilfe, "")
 check("6 die Methode liest die Masse aus der Konstante", "PORTAL_KOPFBAND_MASSE" in hilfe, "")
 check("6 das Bild wird mit tk.PhotoImage geladen (kein Pillow noetig)", "PhotoImage" in hilfe, "")
-check("6 die Spaltenbreite wird GEMESSEN, nicht geraten", "winfo_width" in hilfe, "")
+# Layout-Schnitt (09.11.2026): die Messung liegt jetzt in `_spaltenbreite` - EINE Quelle fuer
+# die acht Textzeilen UND das Kopfband. Die Kopfleiste misst nicht mehr selbst, sie liest die
+# Zahl; die Wache auf `winfo_width` wandert mit (Entscheidung, nicht Code zurueckgebogen).
+check("6 die Kopfleiste nimmt die Textbreite aus EINER Quelle", "_spaltenbreite" in hilfe, "")
+spalte_code = _rumpf(M.NebelseetalApp._spaltenbreite)
+check("6 die Spaltenbreite wird GEMESSEN, nicht geraten", "winfo_width" in spalte_code, "")
+check("6 die Messung geht durch die eine Umrechnung", "_textbreite" in spalte_code, "")
 check("6 die Zielmasse kommt aus der einen Hilfsfunktion", "_kopfband_masse" in hilfe, "")
 check("6 verkleinert wird mit Pillow und LANCZOS (ohne Beschnitt)",
       "LANCZOS" in hilfe and "resize" in hilfe, "")
@@ -317,5 +331,73 @@ check("6 das Band bekommt keine Randleisten", "highlightthickness=0" in hilfe, "
 check("6 die gezeigte Masse wird fuer die Wache gemerkt", "portal_kopfband_masse" in hilfe, "")
 check("6 die Weltkartenliste behaelt die farbige Form (kein Kachelausschnitt)",
       "Ausschnitt" not in quelle, "")
+
+# ==========================================================================
+abschnitt("7. Die Textbreite folgt der Spalte (Layout-Schnitt, Daniel 18:4x)")
+# ==========================================================================
+# Daniel 09.11.2026: "Layout schnitt ist ein eigenes thema aber kleiner halten und gut anpassen".
+# Gemessen (docs/audits, Probe 09.11.2026): das Standardfenster ist 1024 x 720, die Inhaltsspalte
+# darin 630 px - die acht Textzeilen des Portals forderten mit `wraplength=760` bis 763 px, der
+# Inhalt insgesamt 783 px. Rechts wird abgeschnitten (eine waagerechte Bildlaufleiste gibt es
+# nicht). Seit dem Layout-Schnitt liest alles EINE Zahl: `_spaltenbreite()`.
+_tb = M.NebelseetalApp._textbreite
+check("7 die Standardspalte 630 px ergibt 610 px Textbreite", _tb(630) == 610, str(_tb(630)))
+check("7 eine unvermessene Spalte (0) faellt auf die Entwurfsbreite 780 zurueck",
+      _tb(0) == 780, str(_tb(0)))
+check("7 eine breite Spalte bleibt bei der Entwurfsbreite 780", _tb(1526) == 780, str(_tb(1526)))
+check("7 eine sehr schmale Spalte haelt die Untergrenze 320", _tb(200) == 320, str(_tb(200)))
+check("7 die Textbreite ist nie breiter als die Spalte",
+      all(_tb(n) <= max(n, 320) for n in (400, 630, 700, 780)), "")
+check("7 die Textbreite waechst mit der Spalte bis zum Deckel 780",
+      _tb(500) < _tb(630) < _tb(700) < _tb(800) == 780,
+      str((_tb(500), _tb(630), _tb(700), _tb(800))))
+
+# Fenster wirklich zeigen und messen - nur so ist die Spaltenbreite echt (im `withdrawn`-Fenster
+# ist sie 1). Ist kein Schirm da, bleibt es bei einem BEFUND statt bei einem falschen Rot.
+random.seed(11)
+root = tk.Tk()
+app = M.NebelseetalApp(root)
+app._build_main_ui()
+app._erste_siedlung_gruenden()
+# Der Konstruktor setzt seine EIGENE Groesse (waechst mit dem Schirm, hier 1446 x 744).
+# Erst danach auf das Standardfenster stellen - sonst misst die Wache den grossen Schirm.
+root.geometry("1024x720+30+30")
+root.deiconify()
+root.update()
+app._switch_view("Portal")
+root.update()
+try:
+    spalte = int(app.content_canvas.winfo_width())                   # gemessene Spalte
+    if spalte < 120:                                                 # kein Schirm/kein Fenster
+        befund("7 das Fenster ist hier nicht vermessen - die Spaltenmessung bleibt offen",
+               str(spalte))
+    else:
+        text = app._spaltenbreite()
+        check("7 die gemessene Spalte ergibt die Textbreite (Spalte - 20, Deckel 780)",
+              text == max(320, min(780, spalte - 20)), str((spalte, text)))
+        check("7 das Kopfband nimmt DIESELBE Zahl",
+              tuple(app.portal_kopfband_masse) == M.NebelseetalApp._kopfband_masse(text),
+              "%s zu %s" % (str(app.portal_kopfband_masse), str(text)))
+        breiten = [(_breite(k), _text(k)[:28]) for k in _kinder(app.content)]
+        zu_breit = [paar for paar in breiten if paar[0] > spalte]
+        check("7 kein Inhalt ist breiter als die Spalte (kein Beschnitt)",
+              not zu_breit, str(zu_breit[:3]))
+        check("7 der Inhalt fordert hoechstens die Spalte",
+              app.content.winfo_reqwidth() <= spalte,
+              "%d von %d" % (app.content.winfo_reqwidth(), spalte))
+        zeilen = [k for k in _kinder(app.content)
+                  if int(str(_wraplength(k)) or 0) > 0]
+        check("7 alle Textzeilen tragen die gemessene Breite, nicht 760",
+              zeilen and all(int(str(_wraplength(k))) == text for k in zeilen),
+              str(sorted(set(int(str(_wraplength(k))) for k in zeilen))))
+        check("7 keine Textzeile fordert mehr als die Textbreite",
+              all(_breite(k) <= text for k in zeilen),
+              str(max([_breite(k) for k in zeilen] or [0])))
+        flaeche = getattr(app, "portal_kopfleiste", None)
+        check("7 das Band bleibt in der Spalte",
+              flaeche is not None and _breite(flaeche) <= spalte,
+              "-" if flaeche is None else str((_breite(flaeche), spalte)))
+finally:
+    root.destroy()
 
 sys.exit(bericht())

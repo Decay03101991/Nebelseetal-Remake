@@ -1,3 +1,37 @@
+# STAND 09.11.2026, 19:08 - Layout-Schnitt klein: die Portaltexte folgen der Spalte (Register 351)
+
+> Neuester Block. Darunter 18:15 (D-5 nachgebessert; 348), 17:44 (D-5 gebaut; 347), 16:38 (Bildplan; 346)
+> und 14:58 (Bildwelt Chris; 341-344).
+
+**Daniel 18:4x:** „Layout schnitt ist ein eigenes thema aber kleiner halten und gut anpassen“
+- **klein heisst: nur das Portal, nur der Text.** Kein Umbau der anderen Ansichten, keine waagerechte
+Bildlaufleiste.
+
+**Messlage (Probe im gemappten Fenster, nicht geschaetzt):** Standardfenster 1024 x 720, die
+Inhaltsspalte ist **630 px** breit. Der Inhalt forderte **783 px** - die acht Textzeilen des Portals
+liefen mit `wraplength=760` bis 763 px, dazu sass die Legendenzeile mit 637 px um 7 px zu breit. Rechts
+wurde abgeschnitten.
+
+**Gebaut (nur `src/main.py`):** EINE Quelle fuer die Textbreite. `PORTAL_TEXT_BREITE` (780, die
+Entwurfsbreite), `PORTAL_TEXT_MINIMUM` (320) und `PORTAL_SPALTEN_RAND` (20) stehen als Konstanten;
+`_textbreite(spalte)` rechnet ohne Fenster (testbar), `_spaltenbreite()` misst
+`content_canvas.winfo_width()` und ist die EINZIGE Messstelle. Die acht `wraplength=760` der
+Portal-Ansicht und das Kopfband lesen dieselbe Zahl. Der Farbkasten der Gelaende-Legende traegt 4
+statt 6 px Abstand (7 x 2 px = 14 px Reserve).
+
+**Nachgemessen:** 1024er Fenster -> Textbreite **610 px**, Band **610 x 117**, Inhalt fordert **630 von
+630** (vorher 783). 900er Fenster -> Inhalt **623** statt 783. **Ehrliche Grenze:** unter 1024 px
+Fensterbreite bleibt die Legendenzeile (603 px) und die Knopfzeile (493 px) breiter als die Spalte -
+das ist ein eigener Schnitt (Legende umbrechen), nicht dieser.
+
+**Belegt:** Wache `tests/test_portal_kopfleiste.py` **72 bestanden / 0 Fehler / 1 Befund** (neuer
+Abschnitt 7: 630 -> 610, Deckel 780, Untergrenze 320, im gemappten Fenster kein Inhalt breiter als die
+Spalte). Screenshots im Standardfenster: das Band ist vollstaendig, die sieben Legenden-Eintraege
+stehen bis „Sumpf 10“ da. Sammellauf folgt nach diesem Commit.
+
+**Nicht angefasst:** alle anderen Ansichten behalten `wraplength=760`; kein neues Modul, die
+MODULKARTE bleibt gueltig.
+
 # STAND 09.11.2026, 18:15 - D-5 nachgebessert: das Band wird verkleinert statt beschnitten (Register 348)
 
 > Neuester Block. Darunter 17:44 (D-5 gebaut; 347), 16:38 (Bildplan; 346), 14:58 (Bildwelt Chris; 341-344)
