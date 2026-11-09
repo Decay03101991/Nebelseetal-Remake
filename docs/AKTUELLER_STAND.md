@@ -27,7 +27,8 @@ das ist ein eigener Schnitt (Legende umbrechen), nicht dieser.
 **Belegt:** Wache `tests/test_portal_kopfleiste.py` **72 bestanden / 0 Fehler / 1 Befund** (neuer
 Abschnitt 7: 630 -> 610, Deckel 780, Untergrenze 320, im gemappten Fenster kein Inhalt breiter als die
 Spalte). Screenshots im Standardfenster: das Band ist vollstaendig, die sieben Legenden-Eintraege
-stehen bis „Sumpf 10“ da. Sammellauf folgt nach diesem Commit.
+stehen bis „Sumpf 10“ da. Sammellauf nach dem Commit (`docs/audits/sammellauf_20261109_1910.log`): **215 von 215 gruen,
+0 rot, 2 ausgesetzt, 1124 s**, 9359 bestandene Pruefungen (+15 gegen 18:18), 0 Fehler, 79 Befunde.
 
 **Nicht angefasst:** alle anderen Ansichten behalten `wraplength=760`; kein neues Modul, die
 MODULKARTE bleibt gueltig.
