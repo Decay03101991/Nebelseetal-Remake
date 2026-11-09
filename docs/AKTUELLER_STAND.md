@@ -35,6 +35,12 @@ Ghule-Leuchten #7AAC4D (#7CFF4A) - die Richtwerte taugen als Naeherung, nicht al
 Satz des Pakets „wo fruehere Vorschlaege abweichen, gelten die Bilder von Chris“ bindend sein soll.
 Ausserdem: kurze schriftliche Nutzungsbestaetigung von Chris einholen.
 
+**Nachtrag 15:06:** Chris ist **im Repo verlinkt** - Instagram `three_ghosts.mp4` auf seinen Wunsch, im
+Abschnitt Rechte der `README.md` und in der Urhebertabelle des Belegdokuments; die Anhaengsel der Chat-Adresse
+(`psln`, `utm_source=qr`) wurden nicht uebernommen. **Kostenablesung Daniels 15:06: 13,46 USD Guthaben /
+66,53 USD Gesamtverbrauch** - gegen 13,80 / 66,19 um 10:41 also **+0,34 USD** fuer Sitzung 27 (D-4) und diese
+Sitzung bis 15:06 (gemessen, Abrechnung bis 5 Minuten verzoegert).
+
 **Naechster Schritt bleibt der EXE-Bau** (die EXE von 09:03 enthaelt D-4 nicht), danach D-5 - mit den
 Panoramen aus dieser Lieferung.
 

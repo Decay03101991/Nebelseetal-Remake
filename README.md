@@ -140,6 +140,10 @@ und an Daniel Kössl geliefert; sie stehen unter seinem Urheberrecht und dürfen
 Erlaubnis weiterverwendet werden. Ablage, Zuordnung und Messungen stehen in
 `docs/design/DESIGN_LIEFERUNG_CHRIS_20261109.md`.
 
+**Chris im Netz:** Chris Fred Däubner zeigt seine Arbeiten auf Instagram unter
+[three_ghosts.mp4](https://www.instagram.com/three_ghosts.mp4). Der Link steht hier **auf seinen Wunsch** und ist die einzige
+Stelle im Projekt, die auf seine Seite führt.
+
 ## Fehler melden
 
 Bitte mit Beschreibung, was du getan hast, was du erwartet hast und was passiert ist — ohne Passwörter

@@ -30,6 +30,7 @@ schwarzer Rand bereits entfernt.
 | Vergütung | **10 EUR**, von Daniel bezahlt — für alle Bilder **und** das Logo | dito |
 | Bedeutung | stilbestimmend für Malstil, Farbgebung, Seiten und Menüs | dito, Abschnitt 1 |
 | Logo | schon seit 06.11.2026 im Projekt genannt (`README.md` Abschnitt Rechte, `assets/referenzbilder/README.md`, Register 287) | Register 287 |
+| Im Netz | Instagram: [three_ghosts.mp4](https://www.instagram.com/three_ghosts.mp4) — verlinkt **auf seinen Wunsch** | Daniel 09.11.2026, 15:0x |
 
 **Die Originale sind gesichert** (Abschnitt 3). Der TransferNow-Link lief am 13.11.2026, 13:54 ab —
 das ist damit erledigt und keine Frist mehr im Projekt.
