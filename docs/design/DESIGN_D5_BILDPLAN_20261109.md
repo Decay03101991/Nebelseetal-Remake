@@ -121,3 +121,9 @@ Die drei Punkte aus Abschnitt 7 sind beantwortet, alle drei wie empfohlen:
 
 Damit ist D-5 am Code fertig; die Kette geht mit **D-5a** (Weltkarte auf Chris' Farben und Tannen) und **D-5b**
 (Icons und Rahmen) weiter.
+
+**Nachtrag 18:15 (Register 348): die Breite 780 px gilt als OBERE Grenze, nicht als feste Groesse.** Gemessen ist
+die Inhaltsspalte im Standardfenster (1024 x 720) nur **630 px** breit; ein festes 780-px-Band wurde dort rechts
+abgeschnitten (kein waagerechter Rollbalken). Daniel hat entschieden: bei schmaler Spalte wird das Band
+**verkleinert** (Seitenverhaeltnis bleibt, kein Beschnitt, Original 780 x 150 bleibt die Quelle) - im
+Standardfenster sind das 610 x 117 px, ab etwa 1280 px Fensterbreite wieder 780 x 150.

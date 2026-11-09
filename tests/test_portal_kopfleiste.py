@@ -161,9 +161,12 @@ try:
     if flaeche is not None:
         check("2 das Widget zeigt genau dieses Bild",
               _bild_name(flaeche) == str(bild), _bild_name(flaeche))
-        check("2 das Widget ist 780 x 150 px gross",
-              (_breite(flaeche), _hoehe(flaeche)) == MASSE,
+        masse = tuple(getattr(app, "portal_kopfband_masse", MASSE))      # gezeigte Masse
+        check("2 das Widget hat die gemeldete Masse",
+              (_breite(flaeche), _hoehe(flaeche)) == masse,
               str((_breite(flaeche), _hoehe(flaeche))))
+        check("2 die gemeldete Masse ist nie breiter als das Original 780 x 150",
+              masse[0] <= MASSE[0] and masse[1] <= MASSE[1], str(masse))
         check("2 das Widget sitzt im Inhaltsbereich", flaeche.winfo_toplevel() is root, "")
     # Lage: Band oben, dann der Titel, darunter die Trennlinie
     kinder = _kinder(app.content)
@@ -178,6 +181,29 @@ try:
           getattr(app, "portal_kopfband", None) is not None, "")
 finally:
     root.destroy()
+
+# ==========================================================================
+abschnitt("2b. Schmale Spalte: das Band wird VERKLEINERT, nie beschnitten (Daniel 17:5x)")
+# ==========================================================================
+# Gemessen: das Standardfenster ist 1024 x 720, die INHALTSSPALTE darin nur 630 px breit
+# (vor D-5 wollten die Inhalte 783 px - der Text war dort schon beschnitten). Daniel hat am
+# 09.11.2026 entschieden: "Band bei schmalem Fenster auf die Spaltenbreite VERKLEINERN,
+# Original 780 x 150 bleibt die Quelle, kein Beschnitt".
+_masse = M.NebelseetalApp._kopfband_masse
+check("2b 610 px Spalte ergeben 610 x 117 px (proportional)", _masse(610) == (610, 117),
+      str(_masse(610)))
+check("2b 630 px Spalte (Standardfenster) bleiben unter dem Original",
+      _masse(630)[0] < MASSE[0], str(_masse(630)))
+check("2b ab 780 px Spalte gilt das Original", _masse(780) == MASSE and _masse(1600) == MASSE,
+      str((_masse(780), _masse(1600))))
+check("2b eine unvermessene Spalte (0) faellt aufs Original zurueck", _masse(0) == MASSE,
+      str(_masse(0)))
+_b, _h = _masse(500)
+check("2b das Seitenverhaeltnis bleibt erhalten (kein Verzerren)",
+      abs((_b / float(_h)) - (MASSE[0] / float(MASSE[1]))) < 0.02,
+      str((_b, _h, round(_b / float(_h), 3))))
+check("2b verkleinert wird nie groesser als die Spalte", all(_masse(n)[0] <= n
+      for n in (200, 400, 610, 779)), "")
 
 # ==========================================================================
 abschnitt("3. Ohne Bild: leerer Platz in derselben Groesse, kein Absturz")
@@ -278,11 +304,17 @@ hilfe = _rumpf(M.NebelseetalApp._portal_kopfleiste)
 check("6 die Methode liest den Pfad aus der Konstante", "PORTAL_KOPFBAND" in hilfe, "")
 check("6 die Methode liest die Masse aus der Konstante", "PORTAL_KOPFBAND_MASSE" in hilfe, "")
 check("6 das Bild wird mit tk.PhotoImage geladen (kein Pillow noetig)", "PhotoImage" in hilfe, "")
+check("6 die Spaltenbreite wird GEMESSEN, nicht geraten", "winfo_width" in hilfe, "")
+check("6 die Zielmasse kommt aus der einen Hilfsfunktion", "_kopfband_masse" in hilfe, "")
+check("6 verkleinert wird mit Pillow und LANCZOS (ohne Beschnitt)",
+      "LANCZOS" in hilfe and "resize" in hilfe, "")
+check("6 ohne Pillow bleibt das Original als Rueckfall", "except Exception" in hilfe, "")
 check("6 fehlende Datei wird geprueft, statt zu raten", "os.path.exists" in hilfe, "")
 check("6 ohne Bild entsteht ein Platz mit fester Groesse", "pack_propagate" in hilfe, "")
 check("6 der Bildverweis wird am Fenster gehalten", "self.portal_kopfband" in hilfe, "")
 check("6 die Methode zeigt nicht ins Archiv", "archiv" not in hilfe.lower(), "")
 check("6 das Band bekommt keine Randleisten", "highlightthickness=0" in hilfe, "")
+check("6 die gezeigte Masse wird fuer die Wache gemerkt", "portal_kopfband_masse" in hilfe, "")
 check("6 die Weltkartenliste behaelt die farbige Form (kein Kachelausschnitt)",
       "Ausschnitt" not in quelle, "")
 

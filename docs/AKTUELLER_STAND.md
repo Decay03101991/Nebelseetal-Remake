@@ -1,3 +1,30 @@
+# STAND 09.11.2026, 18:15 - D-5 nachgebessert: das Band wird verkleinert statt beschnitten (Register 348)
+
+> Neuester Block. Darunter 17:44 (D-5 gebaut; 347), 16:38 (Bildplan; 346), 14:58 (Bildwelt Chris; 341-344)
+> und 11:25 (D-4; 340).
+
+**Befund beim Hinsehen (gemessen):** das Standardfenster ist 1024 x 720, die INHALTSSPALTE darin nur **630 px**
+breit, die Inhalte wollen **800 px** (vor D-5 schon 783 - der Text war dort ebenfalls beschnitten); eine
+waagerechte Bildlaufleiste gibt es nicht. Das 780 px breite Band wurde deshalb auf 610 px abgeschnitten.
+Ab etwa 1280 px Fensterbreite war alles vollstaendig.
+
+**Daniel 18:05:** "Band bei schmalem Fenster auf die Spaltenbreite VERKLEINERN, Original 780 x 150 bleibt die
+Quelle, kein Beschnitt". Gebaut: `_kopfband_masse` + gemessene Spaltenbreite (`content_canvas.winfo_width()`) +
+Pillow/`LANCZOS`; ohne Pillow bleibt das Original. **Nachgemessen:** 1024er Fenster -> Band **610 x 117**,
+1500er Fenster -> **780 x 150**; die rechte Randspalte des verkleinerten Bildes ist pixelgleich mit der des
+Originals - **nichts abgeschnitten**.
+
+**Belegt:** Wache `tests/test_portal_kopfleiste.py` **57/0/1** (neuer Abschnitt 2b fuer die Verkleinerung).
+Sammellauf nach dem Fix (`sammellauf_20261109_1818.log`): **215 von 215 gruen, 0 rot, 2 ausgesetzt,
+1085 s**, 9344 Pruefungen, 0 Fehler, 79 Befunde. Last beim Start: ein fremder `shred`-Prozess haelt
+~38-42 % einer CPU (dieselbe Last lag schon beim Lauf 17:12 an).
+
+**Offen (eigener Schnitt, NICHT D-5):** die Inhaltsspalte selbst beschneidet im Standardfenster auch den Text -
+das Layout (Spalte folgt dem Fenster oder waagerechte Bildlaufleiste) braucht Daniels Wort.
+
+**Kostenablesung 18:15:** 13,21 USD Guthaben / 66,78 USD Gesamtverbrauch - **+0,20 USD** seit der Ablesung
+zwischen 15:21 und 16:38 (Register 349, Buchhaltung).
+
 # STAND 09.11.2026, 17:44 - D-5 steht: das Kopfband von Chris im Portal, farbige Form in der Weltliste (Register 347)
 
 > Neuester Block. Darunter 16:38 (D-5 Detail: Bildplan; 346), 14:58 (Bildwelt Chris, 341-344, EXE-Bau) und

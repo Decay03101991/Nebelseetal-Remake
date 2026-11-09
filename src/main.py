@@ -12316,6 +12316,25 @@ class NebelseetalApp:
         self._switch_view("Portal")                                    # Anzeige neu zeichnen
         return bool(gesprungen)
 
+    @staticmethod
+    def _kopfband_masse(verfuegbar: int) -> tuple:
+        """Die Groesse des Kopfbands fuer eine Spaltenbreite - verkleinert, nie beschnitten.
+
+        D-5 (Daniel 09.11.2026, 17:5x): das Band ist 780 x 150 px gross, die INHALTSSPALTE des
+        Standardfensters aber nur 630 px breit (gemessen) - 780 px wuerden rechts abgeschnitten.
+        Daniel hat entschieden: "Band bei schmalem Fenster auf die Spaltenbreite VERKLEINERN,
+        Original 780 x 150 bleibt die Quelle, kein Beschnitt". Das Seitenverhaeltnis bleibt
+        erhalten (DESIGN_ARBEITSWEISE 6: im Spiel stehen nur skalierte Kopien).
+        Rueckgabe: (Breite, Hoehe) - nie breiter als das Original, nie verzerrt.
+        """
+        breite, hoehe = PORTAL_KOPFBAND_MASSE                            # 780 x 150 (EINE Quelle)
+        if int(verfuegbar) < 120:                                        # Spalte nicht gemessen
+            return int(breite), int(hoehe)                               # dann das Original
+        if int(verfuegbar) >= int(breite):                               # Spalte breit genug
+            return int(breite), int(hoehe)                               # dann das Original
+        neu = int(verfuegbar)                                            # schmalere Spalte
+        return neu, max(1, int(round(int(hoehe) * neu / float(breite))))  # gleiches Verhaeltnis
+
     def _portal_kopfleiste(self, eltern):
         """Das Kopfband ueber dem Portal-Titel (D-5, Platz S1 im Bildplan).
 
@@ -12332,12 +12351,29 @@ class NebelseetalApp:
         """
         breite, hoehe = PORTAL_KOPFBAND_MASSE                            # 780 x 150 aus EINER Quelle
         pfad = _bild_pfad(PORTAL_KOPFBAND)                               # Pfad ueber die Projektwurzel
+        # D-5: die Spalte wird GEMESSEN, nicht geraten - 20 px Rand links und rechts wie bei den
+        # Textzeilen (`padx=10`). Ist die Spalte noch nicht vermessen (Breite 1), gilt das Original.
+        spalte = 0                                                       # Vorgabe: nicht gemessen
+        try:
+            spalte = int(self.content_canvas.winfo_width())              # gemessene Spaltenbreite
+        except Exception:                                                # kein Canvas (Test, Umbau)
+            spalte = 0                                                   # dann das Original nehmen
+        ziel = self._kopfband_masse(spalte - 20 if spalte > 100 else 0)  # (Breite, Hoehe) des Bandes
         bild = None                                                      # Vorgabe: kein Bild
         if os.path.exists(pfad):                                         # Datei vorhanden?
             try:
-                bild = tk.PhotoImage(file=pfad)                          # Tk liest PNG direkt
-            except Exception:                                            # kaputte oder unlesbare Datei
-                bild = None                                              # dann bleibt der leere Platz
+                if (int(ziel[0]), int(ziel[1])) != (int(breite), int(hoehe)):   # schmale Spalte
+                    from PIL import Image, ImageTk                        # nur hier importieren
+                    roh = Image.open(pfad).convert("RGB")                 # PNG oeffnen
+                    bild = ImageTk.PhotoImage(roh.resize((int(ziel[0]), int(ziel[1])),
+                                                         Image.LANCZOS))     # verkleinert
+                else:                                                     # Spalte breit genug
+                    bild = tk.PhotoImage(file=pfad)                       # Tk liest PNG direkt
+            except Exception:                                            # kein Pillow / kaputte Datei
+                try:
+                    bild = tk.PhotoImage(file=pfad)                       # dann in Originalgroesse
+                except Exception:                                        # Datei unlesbar
+                    bild = None                                           # dann bleibt der leere Platz
         traeger = tk.Frame(eltern, bg=self.skin["bg"], bd=0, highlightthickness=0)  # randlos
         traeger.pack(anchor=tk.W, padx=10, pady=(6, 0))                  # ueber dem Titel
         if bild is not None:                                            # Bild da
@@ -12347,12 +12383,13 @@ class NebelseetalApp:
             traeger.bild = bild                                          # Referenz am Traeger
             self.portal_kopfband = bild                                  # und am Fenster
         else:                                                            # kein Bild
-            flaeche = tk.Frame(traeger, width=breite, height=hoehe,      # leerer Platz, gleiche Masse
-                               bd=0, highlightthickness=0, bg=self.skin["bg"])
+            flaeche = tk.Frame(traeger, width=int(ziel[0]), height=int(ziel[1]),  # leerer Platz
+                               bd=0, highlightthickness=0, bg=self.skin["bg"])     # gleiche Masse
             flaeche.pack()
             flaeche.pack_propagate(False)                                # Groesse behalten
             self.portal_kopfband = None
         self.portal_kopfleiste = flaeche                                 # EINE Stelle fuer die Wache
+        self.portal_kopfband_masse = (int(ziel[0]), int(ziel[1]))        # gezeigte Masse (Wache)
         return bild
 
     def _kartenrahmen_bauen(self, eltern, breite: int, hoehe: int):
