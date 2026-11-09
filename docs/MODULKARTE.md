@@ -10,6 +10,7 @@
 |---|---:|---|---|
 | `main.py` | 15371 | Nebelseetal Remake — Core Game Engine | public_start.py |
 | `spieloekonomie.py` | 1841 | Nebelseetal Remake — deterministischer Kern der Spielökonomie (Ökonomie-Paket, Schritt 2). | admin_teststand.py, admin_werkzeuge.py, botkern.py, main.py, spielschicht.py, verwundete.py |
+| `weltkarte_malerei.py` | 532 | Gemalte Weltkarte (D-3): sieben Gelaendearten mit Tannen, Farbfeld plus Motive, ein Bild je Karte. | main.py (geplant, D-4), tools/testkarte_fenster.py |
 | `welt_optik_fein.py` | 898 | FEINERE Zeichenplaene fuer die WELTkarte des Nebelseetal-Remakes (naechste Ausbaustufe). | main.py |
 | `karten_optik_fein.py` | 863 | Feinere Zeichenplaene fuer die Siedlungskarte des Nebelseetal-Remakes | main.py |
 | `auftraege.py` | 754 | Nebelseetal Remake - Auftraege und Missionen (Paket WA, 04.10.2026). | bottaktik.py, main.py, spieloekonomie.py |

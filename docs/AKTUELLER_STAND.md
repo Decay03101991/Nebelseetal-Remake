@@ -1,3 +1,32 @@
+# STAND 09.11.2026, 02:58 - D-3 gebaut: die Testkarte ist gemalt, der Stil-Entscheid liegt bei Daniel (Register 330)
+
+> Neuester Block. Darunter 01:50 (Portal S-1 bis S-4; Register 324 bis 326), 02:04 (D-1 und die zwei
+> Entscheidungen D-2/W-D6; Register 327 bis 329), 22:48 (Portal S-2/S-1), 23:20 (S-3).
+
+**Eine gemalte Weltkarte liegt vor - im Spiel ist sie noch NICHT eingebaut.** Der malende Teil
+steht in `src/weltkarte_malerei.py` (Pillow, kein tkinter): die 20 x 20-Gelaendematrix wird als
+Farbfeld bikubisch hochgerechnet, darueber werden die Motive je Feld gemalt (zwei bis drei Tannen,
+Gipfel, Duenen, Wellen, Schilf - je Feld mit eigener Saat aus seiner Lage), darueber EIN Licht und
+ein leises Korn. Daniel hatte am 09.11.2026, 02:03 das flache Raster mit gemalten Kacheln
+entschieden (Register 328).
+
+**Gemessen (Belastungstest im echten Fenster, `tools/testkarte_fenster.py`, Weltkarte d01):**
+48 px je Feld - kalt 0,742 s, aus dem Zwischenspeicher 0,00014 s, Tk-Grafik bauen 0,235 s (erste),
+danach fuenf Zeichnungen 0,032 / 0,089 / 0,235 s (min/mittel/max). Bei den heutigen 20 px je Feld:
+kalt 0,462 s, warm 0,00013 s. Die Karte ist EIN Bild - die Anzeige zeichnet heute 400 Rechtecke und
+42 Rasterlinien je Ansicht.
+
+**Wache:** `tests/test_weltkarte_malerei.py` **67 Pruefungen, 0 Fehler, 1 Befund** (sieben Arten aus
+`data/gelaende.json` statt einer zweiten Farbtabelle; jede Kachel ueber 600 Farben mit Mittelton an
+der Gelaendefarbe; Wald 1.361 dunkle Nadelgruen-Pixel gegen 112 im Grasland; ohne Pillow
+`MalereiFehler` statt Ersatzbild; Zwischenspeicher und Determinismus; ganze Karte in Rastermassen).
+
+**Ein Anlauf wurde verworfen, offen benannt:** Kachel fuer Kachel gemalt und die Raender
+weichgezeichnet ergab ein Waffelmuster (angesehen). Der zweite Anlauf malt die Karte als EIN Bild.
+
+**Offen:** der Einbau ins Spiel (D-4) wartet auf Daniels Urteil; die Testkarte liegt als PNG in
+`archiv/design/20261109_d3_testkarte/`.
+
 # STAND 09.11.2026, 01:50 - Portal S-1 bis S-4 gebaut UND belegt: Belegungskarte, Umzug gebucht, Feldklick in der Ansicht (Register 324 bis 326)
 
 > Neuester Block. Darunter 21:52 (E1 Handelspreis; Register 323), 20:52 (Wall und Marktplatz;

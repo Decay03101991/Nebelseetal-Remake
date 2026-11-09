@@ -85,6 +85,12 @@ D-1 und D-2 sind Vorarbeit ohne Code und **beide erledigt**:
 - **D-2 (09.11.2026, Daniel):** erst eine **flache** Testkarte mit gemalten Kacheln (D-3);
   isometrisch nur, wenn der Stil flach nicht trägt (Register 328). Die isometrische Stilprobe ist
   damit zurückgestellt, nicht abgelehnt.
+- **D-3 (09.11.2026, gebaut):** Testkarte 20 x 20 mit den sieben Geländearten und Tannen,
+  gemalt (`src/weltkarte_malerei.py`, Werkzeug `tools/testkarte_fenster.py`, Wache
+  `tests/test_weltkarte_malerei.py` 67/0/1, Belastungstest im Fenster: 48 px je Feld kalt 0,74 s,
+  zwischengespeichert 0,00014 s, Zeichnen im Mittel 0,089 s). Beleg:
+  `docs/design/DESIGN_D3_TESTKARTE_20261109.md`. **Das Urteil ist Daniels:** der Einbau ins Spiel
+  (`_render_portal`) ist D-4 und bleibt bis dahin unverändert.
 
 **Kein Designschritt ändert Spielregeln.** Wo ein Design eine Regel berührt (etwa ob ein Gelände auf
 der Weltkarte sperrt), entscheidet Daniel, nicht das Paket — so am 09.11.2026 geschehen: **keine
