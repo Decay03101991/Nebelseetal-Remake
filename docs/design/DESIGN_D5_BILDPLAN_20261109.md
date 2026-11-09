@@ -1,9 +1,9 @@
 # D-5 Bildplan — welches Bild, wohin, wie groß
 
-**Stand:** 09.11.2026, 15:35. Das ist der „Detail“-Teil von D-5: **alle Angaben beisammen** — welches
+**Stand:** 09.11.2026, 16:38. Das ist der „Detail“-Teil von D-5: **alle Angaben beisammen** — welches
 Bild, an welcher Stelle, in welcher Größe, mit welchem Zuschnitt, und was fehlt.
 
-**Was „Detail“ hier heißt (Daniel, 09.11.2026, 15:29):** nicht eine Detailansicht im Fenster, sondern
+**Was „Detail“ hier heißt (Daniel, 09.11.2026, zwischen 15:21 und 16:38):** nicht eine Detailansicht im Fenster, sondern
 die vollständige Festlegung — „wenn genau klar fest steht wo ein bild hin soll wie groß es sein muss und
 welches usw wenn einfach alle benötigten informationen beisammen sind dafür“.
 

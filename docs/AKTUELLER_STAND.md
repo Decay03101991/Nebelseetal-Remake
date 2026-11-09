@@ -1,8 +1,8 @@
-# STAND 09.11.2026, 15:35 - D-5 Detail steht: der Bildplan fuer das Portal (Masse, Schnitte, Massblatt; Register 346)
+# STAND 09.11.2026, 16:38 - D-5 Detail steht: der Bildplan fuer das Portal (Masse, Schnitte, Massblatt; Register 346)
 
 > Neuester Block. Darunter 14:58 (Bildwelt Chris, Register 341-344, EXE-Bau) und 11:25 (D-4; 340).
 
-**Was „Detail“ heisst (Daniel 15:29):** nicht eine Detailansicht im Fenster, sondern **alle Angaben beisammen** -
+**Was „Detail“ heisst (Daniel, zwischen 15:21 und 16:38):** nicht eine Detailansicht im Fenster, sondern **alle Angaben beisammen** -
 welches Bild, wohin, wie gross, mit welchem Zuschnitt.
 
 **Am Code gemessen** (nicht geschaetzt): Fenster 1024 x 720, Inhaltsbreite **780 px**, Karte 400 x 400 (20 px je
@@ -21,7 +21,7 @@ Gebaeude, keine Fraktionsvarianten ausser Ghulen, kein Kartenbild - das ist **D-
 Weltliste als farbige Form oder als Kachelausschnitt; Goldrahmen jetzt in D-5 oder erst in D-5b. Danach: Bau,
 Wache, Sammellauf.
 
-**Kostenablesung 15:29:** 13,41 USD Guthaben / 66,58 USD Gesamtverbrauch - **+0,05 USD** seit 15:06 (Register 345).
+**Kostenablesung dazwischen:** 13,41 USD Guthaben / 66,58 USD Gesamtverbrauch - **+0,05 USD** seit 15:06 (Register 345).
 
 # STAND 09.11.2026, 14:58 - Die Bildwelt von Chris Fred Däubner ist protokolliert, abgelegt und zugeordnet (Register 341)
 
