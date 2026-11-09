@@ -79,6 +79,6 @@ Schnitt geplant (`D-2` im Prüfdokument), nicht nebenbei gemacht.
 | D-7 | Fehlende Fraktionsbilder (Trolle zuerst) | jede Fraktion hat Panorama, Szene und Medaillon |
 | D-8 | Logo in Ladeseite, Portal und Startmenü | überall auf dunklem Grund, Freigabe Daniel |
 
-D-1 und D-2 sind Vorarbeit ohne Code. **Kein Designschritt ändert Spielregeln**; wo ein Design eine
+D-1 und D-2 sind Vorarbeit ohne Code. **D-1 ist am 09.11.2026 gelaufen** (Nachtrag im Pruefdokument: Selbstkorrektur an W-D1, W-D6 bis W-D9, Bildersumme); **D-2 wartet auf Daniels Entscheidung.** **Kein Designschritt ändert Spielregeln**; wo ein Design eine
 Regel berührt (etwa ob der Sumpf auf der Weltkarte besetzbar ist), entscheidet Daniel, nicht das
 Paket.
