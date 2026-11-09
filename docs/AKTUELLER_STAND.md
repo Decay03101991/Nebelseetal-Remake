@@ -1,3 +1,31 @@
+# STAND 09.11.2026, 08:55 - Portal S-6: die Wache haengt am Fenster, zwei Umzuege hintereinander belegt (Register 333)
+
+> Neuester Block. Darunter 08:25 (Portal S-5: keine Wartezeit; Register 332), 03:35 (S-4b; Register
+> 331), 02:58 (D-3, die gemalte Testkarte; Register 330).
+
+**Was an S-5 noch fehlte, war die Wache an der ANZEIGE.** Die alten Wachen pruefen den Kern; neu ist
+`tests/test_portal_s5_keine_wartezeit.py` (**27/0/0**) mit drei Abschnitten: Quelle (kein
+`_sperre_text`, `_render_portal` nennt `_letzter_wechsel_text` und „zuletzt gewechselt“, die
+Buchstelle ruft `wechsel_erlaubt` per AST mit genau drei Werten), Kern (Signatur, kein
+`_STUNDEN_SPERRE`, Wechsel von gerade eben erlaubt, Altaufruf `TypeError`) und echtes Tk-Fenster.
+
+**Der eigentliche Punkt steht im Fenster:** ZWEI Umzuege hintereinander gelingen, jeder mit GENAU
+einem Festpreis (25.000 -> 20.000 Mana, Dorf von 7/12 auf 9/12). Die Zeile sagt „zuletzt gewechselt:“
+statt „Sperre:“, ohne Wechsel „noch nie gewechselt“, danach „vor wenigen Minuten“, ein Stempel von vor
+drei Stunden „vor 3.0 h“, ein Zukunftsstempel wird benannt.
+
+**Gegenprobe auf dem Altstand `649f080`: 7 bestanden, 18 FEHLER** - das alte Fenster zeigte
+„Sperre: noch 24.00 h“, schrieb „Zurzeit nicht möglich: Erst nach 24 Stunden wieder möglich“ und liess
+den zweiten Umzug nicht zu. Die drei alten src-Dateien wurden dafuer aus dem Commit geholt und danach
+per `git checkout` zurueckgestellt.
+
+**Sammellauf 08:36 bis 08:55: 213 von 213 gruen, 0 rot, 2 ausgesetzt, 9.246 Pruefungen, 0 Fehler,
+76 Befunde, 1.023 s** (`docs/audits/sammellauf_20261109_0836.log`); 215 Dateien gefunden, die 27
+neuen Pruefungen sind genau der Zuwachs gegen 9.219.
+
+**Offen aus S-6: EINE EXE und Spieltest 4** - beides braucht Daniel (der Spieltest ist seine Hand).
+Weiter offen: D-4 bis D-8 und die fuenf Fragen aus der Uebergabe 07:35.
+
 # STAND 09.11.2026, 08:25 - Portal S-5: keine Wartezeit mehr, sechs Wachen umgedreht (Register 332)
 
 > Neuester Block. Darunter 03:35 (S-4b: `_portal_wechsel` entfernt; Register 331), 02:58 (D-3, die
