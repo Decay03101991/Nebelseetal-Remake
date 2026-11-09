@@ -41,8 +41,20 @@ Abschnitt Rechte der `README.md` und in der Urhebertabelle des Belegdokuments; d
 66,53 USD Gesamtverbrauch** - gegen 13,80 / 66,19 um 10:41 also **+0,34 USD** fuer Sitzung 27 (D-4) und diese
 Sitzung bis 15:06 (gemessen, Abrechnung bis 5 Minuten verzoegert).
 
-**Naechster Schritt bleibt der EXE-Bau** (die EXE von 09:03 enthaelt D-4 nicht), danach D-5 - mit den
-Panoramen aus dieser Lieferung.
+**Daniels fuenf Antworten (15:13, Register 344, F-36 bis F-40):**
+
+- **F-36 Karte:** Umbau auf Chris' Farben und Tannen als **eigener Schnitt NACH D-5**; die Karte bleibt
+  vorerst so, wie D-4 sie gebaut hat.
+- **F-37 Banner:** **rot mit hellem Symbol wird die neue Quelle** in `PORTAL_BANNER_FARBEN`; die
+  Fraktionsfarben bleiben nur, wo eine Fraktion sie wirklich braucht.
+- **F-38 Besucherseite:** `index.html` bekommt **keinen** Instagram-Link - der Link steht in `README.md`
+  und im Designdokument.
+- **F-39 Massstab:** der Satz des Pakets gilt **vollstaendig** - auch Bestehendes (Icons, Rahmen) wird auf
+  Chris umgestellt, in der Reihenfolge nach D-5. Das sind eigene Schnitte mit Wachen, kein Nebenaustausch.
+- **F-40 EXE:** Bau erst **nach Daniels Formatierung**, dann Spieltest 4.
+
+**Reihenfolge ab jetzt:** Formatierung abwarten -> EXE-Bau aus `6e343b5` -> Spieltest 4 -> **D-5** (Portal mit
+den Panoramen und Bannern aus dieser Lieferung) -> **D-5a** Weltkarte (F-36) -> **D-5b** Icons und Rahmen (F-39).
 
 # STAND 09.11.2026, 11:25 - D-4 gebaut: die gemalte Karte steht im Portal, 20 px je Feld, gerade (Register 340)
 

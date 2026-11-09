@@ -55,6 +55,8 @@ Jede Lieferung läuft gleich, egal von wem sie kommt:
 - **Die 125 Siedlungskarten** für den Dörferausbau bleiben, wie sie sind.
 - **Keine Ausbaustufen designen** - weder für Burgen noch für Gebäude oder Felder.
 - **Malstil** ist der der Stilreferenzen: gemalt, warmes Licht vorn, kühler Nebel hinten.
+  **Ab 09.11.2026 sind die Bilder von Chris Fred Däubner der Maßstab** (Register 344, F-39: gilt vollständig,
+  auch für Bestehendes) - Karte, Icons und Rahmen werden nach D-5 darauf umgestellt (F-36).
 - **Nebelsee:** auf der Siedlungskarte bebaubar (Tempel liefert Mana). **Auf der Weltkarte KEINE Sperre:** das Gelaende ist dort reine Anzeige, ein Dorf darf auch auf Nebelsee und Sumpf landen (Daniel 09.11.2026, Register 329; bestaetigt die Entscheidung vom 01.11.2026). Nebelsee und Sumpf duerfen im Design als Deko gemalt werden, ohne eine Regel zu tragen.
 
 ## 4. Was am 09.11.2026 eingeplant wurde
@@ -74,6 +76,8 @@ Schnitt geplant (`D-2` im Prüfdokument), nicht nebenbei gemacht.
 | D-3 | Testkarte 20 x 20 mit den sieben Geländearten und Tannen | sieht aus wie die Stilprobe, Belastungstest im Fenster |
 | D-4 | Burgen auf der Weltkarte je Fraktion (skalierte Kopien) | drei blaue Fraktionen sind im kleinsten Zoom unterscheidbar, Freigabe Daniel |
 | D-5 | Portal mit Burgen und den belegten Bannern (grün/rot) | Übersicht und Detail stehen, Freigabe Daniel |
+| D-5a | Weltkarte auf die Farben und Tannen von Chris umstellen (F-36) | sieht aus wie die Bilder von Chris, Freigabe Daniel |
+| D-5b | Icons und Rahmen auf Chris' Goldrahmen umstellen (F-39) | kein zweiter Rahmenstil mehr im Fenster, Freigabe Daniel |
 | D-6 | Drachen auf der Weltkarte, Ruine für den Sieg | drei Drachen an ihren Feldern, Ruinenbild beauftragt |
 | D-7 | Fehlende Fraktionsbilder (Trolle zuerst) | jede Fraktion hat Panorama, Szene und Medaillon |
 | D-8 | Logo in Ladeseite, Portal und Startmenü | überall auf dunklem Grund, Freigabe Daniel |

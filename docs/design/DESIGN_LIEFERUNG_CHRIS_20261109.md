@@ -180,7 +180,17 @@ wirklich eingesetzt wird. Für die nächsten Schritte heißt das:
    Daniels Wort; bis dahin gilt er als das, was er ist: Chris' Stil ist der Maßstab für **Neues**,
    Bestehendes wird nicht still überschrieben.
 
-**Diese vier Punkte gehen als eine Runde an Daniel** (Empfehlung zuerst, freie Antwort).
+**Beantwortet von Daniel am 09.11.2026, 15:13 (Register 344, F-36 bis F-40):**
+
+| Punkt | Daniels Wort | Folge |
+|---|---|---|
+| 1 Karte | **Umbau als eigener Schnitt NACH D-5** (F-36) | die Karte bleibt vorerst wie D-4 gebaut; danach der Umbau auf Chris' Farben und Tannen |
+| 2 Bannerfarben | **Rot mit hellem Symbol wird die neue Quelle in `PORTAL_BANNER_FARBEN`**, Fraktionsfarben nur wo es sie wirklich braucht (F-37) | ab D-5; keine zweite Farbtabelle daneben |
+| 3 Rahmen | **Chris gilt vollstaendig, auch fuer Bestehendes** (F-39) | die zwei Rahmenstile werden zusammengefuehrt, aber als eigener Schnitt mit Wachen - nicht beim naechsten Bildwechsel |
+| 4 Massstab | **der Satz des Pakets ist bindend** (F-39) | Chris' Bilder sind der Massstab fuer alles; Bestehendes wird umgestellt, in der Reihenfolge nach D-5 |
+
+**Die Besucherseite `index.html` bekommt keinen Instagram-Link** (F-38) - dort bleibt die Logo-Urheberzeile.
+**Der EXE-Bau wartet, bis Daniels Formatierung durch ist** (F-40).
 
 ## 10. Belege dieses Schritts
 
