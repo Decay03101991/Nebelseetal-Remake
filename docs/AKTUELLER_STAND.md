@@ -5,7 +5,7 @@
 
 **EXE:** `Nebelseetal_Pre_Release_V_0.0.3.exe`, **83.341.753 Byte**, SHA256
 `a70351017ddc839925df95dd00ae3861dfcde519a4949f71d08be4428d8c0c5c` - am Dateisystem gemessen
-(die Bauausgabe lief im Hintergrund und wurde nicht mitgelesen; kein abgeschriebener Wert).
+und 00:31 von der Bauausgabe mit **denselben** Werten bestaetigt (kein abgeschriebener Wert).
 Drin: D-5, Layout-Schnitt, D-5a und D-5b. Altbau in `archiv/builds/20261110_vor_d5b/`
 (82.986.594 Byte, 4808fc7e...).
 
