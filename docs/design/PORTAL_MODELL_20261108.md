@@ -307,3 +307,9 @@ Antworten:
 **F-29 hat Daniel am 09.11.2026 um 09:44 mit F-34 beantwortet** (flach, 48 px, heller wie Probe A) -
 siehe die Zeile darueber. Damit ist aus dieser Runde nichts mehr offen ausser der kleinen
 Dokumentationsaufgabe zu F-32.
+
+**D-4 ist am 09.11.2026 gebaut (Register 340):** die gemalte Karte steht im Gelaendekaestchen -
+**20 px je Feld, gerade Draufsicht, kein Rollbalken**; Klick, Marschlinien, Anker und Statuszeile
+treffen dasselbe Feld (Feldmitte `(x + 0,5) * 20`). Die Dokumentationsaufgabe zu **F-32** ist im
+selben Commit erledigt (Satz im Docstring von `spielschicht.portalwechsel`), und
+`docs/MODULKARTE.md` nennt `weltkarte_malerei.py` jetzt als von `main.py` gebraucht.

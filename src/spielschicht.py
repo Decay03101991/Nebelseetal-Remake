@@ -865,6 +865,11 @@ def portalwechsel(zustand: dict, nach_dimension, jetzt: float) -> Tuple[bool, st
     (Daniel 08.11.2026, F-28 = C - der Zeitstempel `letzter_wechsel` wird fortgeschrieben,
     sperrt aber nichts, Register 332). Das Mana wird hier aus dem gemeinsamen Rohstoffvorrat
     genommen (der Stand fuehrt kein Mana je Siedlung). Bei einer Ablehnung aendert sich nichts.
+
+    F-32 (Daniel 09.11.2026: "Behalten und ausdruecklich als Spielschicht-Funktion
+    dokumentieren"): diese Funktion gehoert zur SPIELSCHICHT und hat in `src/` keinen Aufrufer -
+    `main.py` fuehrt den Weltwechsel ueber `portalraum` und `_dorf_versetzen`. Sie bleibt als
+    belegter Rechenweg stehen; wer sie benutzt, rechnet mit dem INDEX 0..19 (siehe oben).
     """
     von = int(zustand.get("eigene_dimension", 0) or 0)
     mana = (zustand.get("ressourcen") or {}).get("mana", 0) or 0

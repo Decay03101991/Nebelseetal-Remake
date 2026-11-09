@@ -292,8 +292,10 @@ def _pruefungen_fenster():
     abschnitt("8. Fenster: der Feldklick bucht nichts, die Ansicht zeigt Gelaende")
     import inspect
     quelle = inspect.getsource(main.NebelseetalApp._render_portal)
-    check("die Ansicht faerbt jedes Feld mit seiner Gelaendefarbe",
-          "gelaende_farbe" in quelle, "")
+    check("die Ansicht laesst die Karte aus dem Gelaende MALEN (D-4, F-35)",
+          "_portal_karte_zeichnen" in quelle, "")
+    check("der flache Rueckfall ohne Pillow faerbt jedes Feld mit seiner Gelaendefarbe",
+          "gelaende_farbe" in inspect.getsource(main.NebelseetalApp._portal_karte_flach), "")
     check("die Ansicht baut die Legende aus portalraum.legende",
           "portalraum.legende()" in quelle, "")
     check("die Ansicht nennt einen Ablehnungsgrund, statt Gelaende zu erfinden",

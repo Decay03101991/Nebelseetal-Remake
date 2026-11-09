@@ -13,12 +13,13 @@ WAS DIESE DATEI PRUEFT
    kein Bild da ist (dann bleibt die Karte ohne Rahmen, statt abzustuerzen).
 2. Das Gelaendekaestchen sitzt IN einem Bildrahmen: vier Bildleisten (oben, unten, links, rechts),
    die Zeichenflaeche bleibt 400 x 400 - Groesse und Aufbau unveraendert.
-3. Die Felder tragen Gelaendeton OHNE harte schwarze Umrisse, das Gitter kommt als feine
-   Trennlinie (`RASTER_LINIE`).
+3. D-4 (09.11.2026, F-35): das Gelaende ist EIN gemaltes Bild (400 x 400 px, 20 px je Feld) -
+   die 400 Gelaenderechtecke und die 42 Trennlinien sind WEG. Ohne Pillow zeichnet der Rueckfall
+   (`_portal_karte_flach`) sie weiter - dieselbe Zusage an anderer Stelle, Wache dort.
 4. Die Auswahl ist GOLD (vorher blau #38BDF8) und liegt als Goldrand ueber einer dunklen Unterlage.
 5. Die Klickwege bleiben: ein Feldklick waehlt dasselbe Feld wie vorher (20 px je Feld).
-6. Quellwachen: `_render_portal` baut den Rahmen und benutzt die Trennlinie; ohne Pillow faellt
-   die Karte auf die nackte Flaeche zurueck.
+6. Quellwachen: `_render_portal` baut den Rahmen und laesst die Karte malen; der Rueckfall
+   `_portal_karte_flach` traegt die eine Trennlinien-Farbe `RASTER_LINIE`.
 
 Aufruf:  python -X utf8 tests/test_weltkarte_rahmen.py
 """
@@ -131,24 +132,28 @@ finally:
     root.destroy()
 
 # ==========================================================================
-abschnitt("3. Gelaendeton und feine Trennlinie statt harter schwarzer Kaesten")
+abschnitt("3. D-4: EIN gemaltes Bild statt 400 Feldern und Gitter")
 # ==========================================================================
 root, app = _app()
 try:
     app._switch_view("Portal")
     root.update_idletasks()
     karte = _karte(app)
-    rechtecke = [o for o in karte.find_all() if karte.type(o) == "rectangle"]
-    umrisse = {str(karte.itemcget(o, "outline")).lower() for o in rechtecke}
-    check("3 kein Feld traegt einen schwarzen Umriss mehr", "#111111" not in umrisse, str(sorted(umrisse)))
-    linien = [o for o in karte.find_all() if karte.type(o) == "line"]
-    check("3 das Gitter besteht aus feinen Linien", len(linien) >= 20, "%d Linien" % len(linien))
-    gitter = [o for o in linien if str(karte.itemcget(o, "fill")) == M.RASTER_LINIE]
-    check("3 die Trennlinien tragen die eine Farbe aus dem Code",
-          len(gitter) == 2 * (20 + 1), "%d von %d Linien" % (len(gitter), len(linien)))
-    fuellungen = {str(karte.itemcget(o, "fill")).lower() for o in rechtecke}
-    check("3 die Felder tragen Gelaendefarben (mehr als zwei)",
-          len(fuellungen) >= 3, str(sorted(fuellungen))[:120])
+    check("3 die Ansicht meldet den gemalten Weg", getattr(app, "_portal_karte_art", "") == "gemalt",
+          str(getattr(app, "_portal_karte_art", "-")))
+    check("3 es liegt EIN Bild von 400 x 400 px auf der Karte",
+          len(karte.find_withtag("kartenbild")) == 1
+          and tuple(karte.bbox("kartenbild") or ()) == (0, 0, 400, 400),
+          "%d Bilder, bbox %s" % (len(karte.find_withtag("kartenbild")), karte.bbox("kartenbild")))
+    felder_ohne_tag = [o for o in karte.find_all()
+                       if karte.type(o) == "rectangle" and not karte.gettags(o)]
+    check("3 die 400 Gelaenderechtecke sind weg", felder_ohne_tag == [], str(len(felder_ohne_tag)))
+    gitter = [o for o in karte.find_all() if karte.type(o) == "line"
+              and str(karte.itemcget(o, "fill")) == M.RASTER_LINIE]
+    check("3 die 42 Trennlinien sind weg", gitter == [], str(len(gitter)))
+    check("3 kein alter schwarzer Feldumriss mehr",
+          "#111111" not in {str(karte.itemcget(o, "outline")).lower()
+                            for o in karte.find_all() if karte.type(o) == "rectangle"}, "")
 finally:
     root.destroy()
 
@@ -203,7 +208,9 @@ abschnitt("6. Quellwachen")
 # ==========================================================================
 quelle = _code(M.NebelseetalApp._render_portal)                     # echter Code ohne Docstring
 check("6 die Ansicht baut den Bildrahmen", "_kartenrahmen_bauen" in quelle, "")
-check("6 sie benutzt die eine Trennlinien-Farbe", "RASTER_LINIE" in quelle, "")
+check("6 sie laesst die Karte malen (D-4)", "_portal_karte_zeichnen" in quelle, "")
+check("6 der Rueckfall ohne Pillow traegt die eine Trennlinien-Farbe",
+      "RASTER_LINIE" in _code(M.NebelseetalApp._portal_karte_flach), "")
 check("6 die Auswahl nimmt die Goldfarbe des Skins", "['gold']" in quelle, "")  # ast.unparse schreibt einfache Anfuehrungszeichen
 check("6 kein alter schwarzer Feldumriss mehr", "outline=\\\"#111111\\\"" not in quelle, "")
 check("6 kein alter blauer Auswahlrand mehr", "#38BDF8" not in quelle, "")

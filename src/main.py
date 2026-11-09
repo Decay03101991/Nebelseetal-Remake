@@ -27,6 +27,7 @@ import einheiten
 import hilfen     # B-5: die eine Schreibweise fuer Mengen (Aufzaehlung der Verluste)
 import spieldaten
 import gelaende
+import weltkarte_malerei  # D-4 (09.11.2026): die gemalte Weltkarte als EIN Bild
 import baumenue_info  # FIX04: historische Rubriken und begruendete Bauangebote
 import spielerhilfe  # FIX04c: eingeblendete Einstiegshilfe und jederzeit erreichbare Fragen
 import originalkarten  # GPT-OK01: verifizierbarer Kartenkatalog
@@ -3426,6 +3427,10 @@ GEBAEUDE_MOTIVE, KACHELRAHMEN, RAHMEN_DECKRAFT, AUSWAHL_DECKRAFT = _lade_motivda
 # Die Trennlinie liegt als EIGENE Zahl hier und nicht im Feld selbst - vorher war jeder Feldumriss
 # hart schwarz (#111111), jetzt traegt der Gelaendeton die Flaeche und eine feine Linie das Gitter.
 RASTER_LINIE = "#2b1a12"                                                 # warmes Dunkelbraun, 1 px
+# D-4 (09.11.2026): die belegten Bannerfarben der Portalanzeige (Originalanzeige: eigene Welt
+# gruen, fremde rot) stehen EINMAL hier - die Weltkartenliste und der flache Rueckfall der Karte
+# lesen dieselbe Zuordnung, statt sie zweimal zu fuehren.
+PORTAL_BANNER_FARBEN = {"gruen": "#2ecc40", "rot": "#e53935"}
 
 
 def _lade_wappen() -> tuple:
@@ -12350,6 +12355,80 @@ class NebelseetalApp:
         rahmen.bilder = bilder                                         # Referenzen am Rahmen halten
         return rahmen, mitte                                            # Rahmen und Mitte zurueckgeben
 
+    # ------------------------------------------------- gemalte Weltkarte (D-4, 09.11.2026)
+    @staticmethod
+    def _portal_raster(felder, kante: int):
+        """Das Gelaende des gezeigten Ausschnitts als Zeilen - None, wenn es nicht belegt ist.
+
+        Kein zweites Farbband: die Kennungen kommen aus den Feldern, die
+        `portalraum.anzeige_raster` aus dem Weltbild liefert. Fehlt eine Kennung (kein Weltbild
+        oder eine unbekannte Art), gibt es KEIN Bild - die Ansicht faellt auf die flachen Felder
+        zurueck, statt ein Gelaende zu erfinden (D-4, Vorgabe Daniel 09.11.2026, F-35).
+        """
+        raster = [[None] * int(kante) for _ in range(int(kante))]       # Zeilen von oben nach unten
+        for feld in felder:
+            x, y = int(feld["x"]), int(feld["y"])                       # Feldlage im Raster
+            if 0 <= x < kante and 0 <= y < kante:
+                raster[y][x] = feld.get("gelaende")                     # Kennung aus dem Weltbild
+        if any(art not in gelaende.ARTEN for zeile in raster for art in zeile):
+            return None                                                 # nicht belegt -> kein Bild
+        return raster
+
+    def _portal_karte_bild(self, zeichenflaeche, felder, kante: int, zelle: int) -> bool:
+        """Die Karte als EIN gemaltes Bild auf die Zeichenflaeche legen (D-4, F-35).
+
+        True heisst: gemalt und aufgelegt. False heisst: kein Pillow, kein belegtes Gelaende oder
+        ein Malereifehler - dann zeichnet `_portal_karte_flach` wie vor D-4. Der Bildverweis
+        bleibt am Fenster (`portal_kartenbild`), sonst gibt Tk das Bild frei (Lehre 02.11.2026).
+        Das Bild liegt bei (0, 0) mit Anker NW und ist `kante * zelle` gross - die Feldmitte
+        eines Feldes liegt damit bei `(x + 0,5) * zelle`, genau wie fuer Klick und Marschlinien.
+        """
+        raster = self._portal_raster(felder, kante)
+        if raster is None:
+            return False
+        try:
+            from PIL import ImageTk                                      # nur hier - laeuft auch ohne
+            roh = weltkarte_malerei.karte_malen(raster, zelle)            # EIN Bild, 20 px je Feld
+            tk_bild = ImageTk.PhotoImage(roh)                             # Tk-Grafik daraus
+        except Exception:                                                 # kein Pillow / Malerei weg
+            return False                                                  # dann der flache Rueckfall
+        self.portal_kartenbild = tk_bild                                  # Referenz halten
+        zeichenflaeche.create_image(0, 0, image=tk_bild, anchor=tk.NW,
+                                    tags=("kartenbild",))                 # eigener Tag zum Zaehlen
+        return True
+
+    def _portal_karte_flach(self, zeichenflaeche, felder, kante: int, zelle: int) -> None:
+        """Rueckfall ohne Malerei: Gelaendeton je Feld und EINE feine Trennlinie je Kante.
+
+        Wortlaut der Vorgaenge davor (Daniel 03.11.2026, 22:1x: "Felder mit Gelaendeton, feine
+        Trennlinie") - unveraendert als Rueckfall, damit die Ansicht ohne Pillow nicht schlechter
+        ist als vor D-4. Die Trennlinien entstehen EINMAL ueber die ganze Flaeche
+        (`2 x (kante + 1)` Linien), nicht als 400 harte Umrisse.
+        """
+        for feld in felder:
+            x1, y1 = feld["x"] * zelle, feld["y"] * zelle                 # linke obere Ecke
+            fuellung = feld.get("gelaende_farbe") or PORTAL_BANNER_FARBEN.get(feld["farbe"],
+                                                                            "#555555")
+            zeichenflaeche.create_rectangle(x1, y1, x1 + zelle, y1 + zelle,
+                                            fill=fuellung, outline="")    # Gelaendeton
+        for i in range(kante + 1):
+            zeichenflaeche.create_line(i * zelle, 0, i * zelle, kante * zelle,
+                                       fill=RASTER_LINIE)                 # senkrechte Trennlinie
+            zeichenflaeche.create_line(0, i * zelle, kante * zelle, i * zelle,
+                                       fill=RASTER_LINIE)                 # waagerechte Trennlinie
+
+    def _portal_karte_zeichnen(self, zeichenflaeche, felder, kante: int, zelle: int) -> str:
+        """Die Karte zeichnen: gemaltes Bild, sonst flacher Rueckfall (D-4).
+
+        Rueckgabe ist der Weg, der genommen wurde ("gemalt" oder "flach"). Er steht in
+        `self._portal_karte_art`, damit eine Wache den Rueckfall pruefen kann, ohne Pillow aus dem
+        Lauf zu entfernen.
+        """
+        if self._portal_karte_bild(zeichenflaeche, felder, kante, zelle):
+            return "gemalt"
+        self._portal_karte_flach(zeichenflaeche, felder, kante, zelle)
+        return "flach"
+
     def _render_portal(self):
         """Portal-Uebersicht (Schnitt S-2b): Weltkartenliste oben, Gelaendekaestchen darunter.
 
@@ -12371,7 +12450,7 @@ class NebelseetalApp:
         anklickbare Zeichen: ein Klick oeffnet Angriff planen oder Spionage. Gezeigt wird nur, was
         offen sichtbar ist - Wall, Taktik, Truppen und Vorraete weiterhin nicht.
         """
-        farben = {"gruen": "#2ecc40", "rot": "#e53935"}
+        farben = PORTAL_BANNER_FARBEN                                  # eine Quelle (D-4)
         tk.Label(self.content, text="Portal", font=("Blackletter", 20, "bold"),
                  fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
         tk.Label(self.content, text=portalraum.beschreibung(), fg="#C0C0C0", bg=self.skin["bg"],
@@ -12468,18 +12547,13 @@ class NebelseetalApp:
         else:                                                          # mit Rahmen
             zeichenflaeche.pack()                                      # sitzt das Kaestchen in der Mitte
         self.portal_zeichenflaeche = zeichenflaeche                    # EINE Stelle fuer Anzeigen und Wachen
-        for feld in felder:
-            x1, y1 = feld["x"] * zelle, feld["y"] * zelle
-            fuellung = feld.get("gelaende_farbe") or farben.get(feld["farbe"], "#555555")
-            zeichenflaeche.create_rectangle(x1, y1, x1 + zelle, y1 + zelle,
-                                            fill=fuellung, outline="")   # Gelaendeton statt schwarzer Kaesten
-        # Daniel 03.11.2026, 22:1x: "Felder mit Gelaendeton, feiner Trennlinie" - die Trennlinien
-        # entstehen EINMAL ueber die ganze Flaeche (2 x kante Linien) statt als 400 harte Umrisse.
-        for i in range(kante + 1):
-            zeichenflaeche.create_line(i * zelle, 0, i * zelle, kante * zelle,
-                                       fill=RASTER_LINIE)              # senkrechte Trennlinie
-            zeichenflaeche.create_line(0, i * zelle, kante * zelle, i * zelle,
-                                       fill=RASTER_LINIE)              # waagerechte Trennlinie
+        # D-4 (Daniel 09.11.2026, F-35): die 400 Gelaendefelder und das Gitter sind WEG - die Karte
+        # kommt als EIN gemaltes Bild (`weltkarte_malerei.karte_malen`) mit 20 px je Feld in
+        # GERADER Draufsicht, kein isometrischer Umbau, kein Rollbalken. Die Bildmitte eines Feldes
+        # liegt weiter bei `(x + 0,5) * zelle`, damit Klick, Marschlinien, Anker und Statuszeile
+        # dasselbe Feld treffen. Ohne Pillow oder ohne belegtes Gelaende zeichnet
+        # `_portal_karte_flach` die flachen Felder samt Trennlinien wie vor D-4.
+        self._portal_karte_art = self._portal_karte_zeichnen(zeichenflaeche, felder, kante, zelle)
         # B-5 (Vorgabe Daniel 02.11.2026): fremde Doerfer stehen jetzt AUF der Weltkarte und sind
         # anklickbar - der Klick oeffnet Angriff/Spionage. Gezeichnet werden nur oeffentliche
         # Angaben; Wall, Taktik, Truppen und Vorraete kommen ausschliesslich ueber einen Bericht.

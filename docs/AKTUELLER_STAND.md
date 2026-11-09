@@ -1,3 +1,34 @@
+# STAND 09.11.2026, 11:25 - D-4 gebaut: die gemalte Karte steht im Portal, 20 px je Feld, gerade (Register 340)
+
+> Neuester Block. Darunter 10:33 (F-35: +28 % hell, 20 px; Register 338), 10:04 (F-34; 337),
+> 09:36 (fuenf Antworten; 335), 09:03 (EINE EXE; 334).
+
+**Gebaut:** `_render_portal` zeichnet die Weltkarte nicht mehr Feld fuer Feld. **Die 400
+Gelaenderechtecke und die 42 Gitterlinien sind weg** - die Karte kommt als EIN gemaltes Bild aus
+`weltkarte_malerei.karte_malen(raster, 20)`: **400 x 400 px, 20 px je Feld, GERADE Draufsicht,
+kein Rollbalken**. Das Bild liegt bei (0, 0) mit Anker NW und traegt den eigenen Tag `kartenbild`.
+
+**Klick und Bild stimmen ueberein:** die Feldmitte liegt weiter bei `(x + 0,5) * 20`, damit Klick,
+Marschlinien, Anker und Statuszeile dasselbe Feld treffen. Die Wache prueft beides: die Feldmitte
+in px, den Klickweg (`_portal_klick`) und dass eine abweichende Gelaendeart im Bild an der Stelle
+IHRES Feldes sitzt - in der Zeile UND in der Spalte.
+
+**Rueckfall bleibt:** ohne Pillow (oder ohne belegtes Gelaende) zeichnet `_portal_karte_flach` die
+flachen Felder samt Trennlinien wie vor D-4; es wird kein Gelaende erfunden. F-32 ist im selben
+Commit dokumentiert (Satz im Docstring von `spielschicht.portalwechsel`).
+
+**Wachen:** neu `tests/test_portal_gemalte_karte.py` **38/0/1**; `test_weltkarte_rahmen` **34/0/1**
+(Abschnitt 3 auf die neue Wahrheit gestellt, Rueckfall-Zusage umgezogen); `test_weltbild_gelaende`
+**95/0/0** (Quellwache: die Ansicht MALt, der Rueckfall faerbt). `docs/MODULKARTE.md` neu erzeugt
+(war auf 63 Dateien/35369 Zeilen veraltet).
+
+**Sammellauf 11:03 bis 11:25: 214 von 214 gruen, 0 rot, 2 ausgesetzt, 9.287 Pruefungen, 0 Fehler,
+78 Befunde, 1.232 s** (`docs/audits/sammellauf_20261109_1103.log`), Summe der Einzeldauern 2.440 s,
+x1,98.
+
+**Offen:** Spieltest 4 (Daniel), neuer EXE-Bau (die EXE von 09:03 enthaelt D-4 nicht), D-5 bis D-8,
+Register 272/273 (alte Luecke), zwei alte und eine neue Skill-Ergaenzung (`/skills pending`).
+
 # STAND 09.11.2026, 10:33 - F-35 gebaut: +28 % hell, warmer Grund wie Stilprobe A, Karte gerade, 20 px (Register 338)
 
 > Neuester Block. Darunter 10:04 (F-34: 48 px und heller; Register 337), 09:36 (fuenf Antworten; 335),
