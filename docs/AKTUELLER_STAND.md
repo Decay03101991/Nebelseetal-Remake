@@ -1,3 +1,22 @@
+# STAND 09.11.2026, 09:00 - EINE EXE gebaut (Stand a1ea781, S-5 und S-6 enthalten; Register 334)
+
+> Neuester Block. Darunter 08:55 (Portal S-6, Wache am Fenster; Register 333), 08:25 (Portal S-5,
+> keine Wartezeit; Register 332), 03:35 (S-4b; Register 331).
+
+**`Nebelseetal_Pre_Release_V_0.0.3.exe` ist neu gebaut** (82.706.188 Byte, SHA256 `cae20ebd34fb…`),
+aus dem Arbeitsbaum `a1ea781`, den der Sammellauf 08:36 bis 08:55 mit 213 von 213 gruen belegt hat.
+PyInstaller 6.22.3 aus dem Projekt-venv, `--onefile --noconsole`, Symbol mit sechs Groessen.
+
+**Der Vorgaengerbau ist ARCHIVIERT, nicht geloescht:** `archiv/builds/20261109_vor_s6/` (08.11.2026,
+15:58, 82.693.324 Byte, SHA256 `4df7cc03…`, mit `SHA256.txt`). Damit haelt die Regel „genau eine EXE
+im Projektordner“ und der alte Stand bleibt nachpruefbar.
+
+**Nicht gestartet:** kein Spielprozess, kein `game.lock`, kein Schreiben in einen Spielstand - ein
+Start haette Daniels Spieltest-Stand anfassen koennen. Eine Textprobe im Binaerstand beweist nichts
+(das PYZ ist zlib-gepackt: 0 Treffer fuer alte UND neue Zeichenketten).
+
+**Offen: Spieltest 4** (Daniel) sowie D-4 bis D-8 und die fuenf Fragen aus der Uebergabe 07:35.
+
 # STAND 09.11.2026, 08:55 - Portal S-6: die Wache haengt am Fenster, zwei Umzuege hintereinander belegt (Register 333)
 
 > Neuester Block. Darunter 08:25 (Portal S-5: keine Wartezeit; Register 332), 03:35 (S-4b; Register

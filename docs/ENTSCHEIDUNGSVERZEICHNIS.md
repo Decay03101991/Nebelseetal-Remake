@@ -338,6 +338,7 @@
 | 331 | Portal S-4b: `_portal_wechsel` ist entfernt - ihre Wachen sind auf die Buchstelle `_dorf_versetzen` UMGESTELLT, nicht geloescht | GEBAUT | 09.11.2026 |
 | 332 | Portal S-5: die 24-Stunden-Wartezeit ist WEG - sechs Wachen UMGEDREHT, nicht geloescht | GEBAUT | 09.11.2026 |
 | 333 | Portal S-6: die neue Wache haengt am FENSTER, nicht nur am Kern - zwei Umzuege hintereinander sind im echten Fenster belegt, der Altstand ist rot | GEBAUT | 09.11.2026 |
+| 334 | EINE EXE gebaut: `Nebelseetal_Pre_Release_V_0.0.3.exe` aus dem Stand `a1ea781` (S-5 und S-6 enthalten) | GEBAUT | 09.11.2026 |
 
 ## Ersetzungen (Handpflege)
 
