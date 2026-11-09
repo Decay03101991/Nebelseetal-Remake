@@ -42,3 +42,20 @@ nichts umbenannt, verschoben oder umsortiert (Namen sind die Wahrheit).
 es gibt KEINE Ausnahmeliste beim Bauen. Beim ersten Startbild-Schnitt genutzt:
 `ReferenzBild_Fraktionen_Elfen_Waldlandreich_im_Nebelseetal_Hintergrundbild.jpg` (Anmeldung) und
 `ReferenzBild_Fraktionen_Menschen_arbeiten_im_Nebelseetal_mit_Ritter_Hintergrundbild.jpg` (Ladebild).
+
+## Zwerge-Referenzen liegen im ARCHIV, nicht hier (Daniel 09.11.2026)
+
+Daniel hat am 09.11.2026 einen Desktopordner `Beispielbilder_RefernezBilder` (15 Dateien,
+5,2 MB: neun Zwergen-Motive und sechs Beispielbilder als PNG, JPG und WebP) zur Ablage
+gegeben.
+
+**Sie liegen NICHT in diesem Ordner, sondern in `archiv/design/referenzbilder_20261109/`**
+(mit `SHA256SUMS.txt`). Daniels Regel vom 09.11.2026: *Bilder kommen nur dann in einen
+spielrelevanten Ordner, wenn sie im Spiel genutzt werden.* Eine Stilvorlage ist damit noch
+kein Bestandteil des Spiels.
+
+**Damit ist der vorige Absatz berichtigt** (Entscheidung 06.11.2026: der Ordner wächst mit der
+Designentwicklung): der Ordner wächst nur noch mit Bildern, die WIRKLICH eingesetzt werden -
+dann steht hier ein Satz, wo das Bild verwendet wird.
+
+Der Ordner bleibt damit bei 17 Dateien und 9,6 MB.
