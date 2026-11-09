@@ -1,3 +1,29 @@
+# STAND 09.11.2026, 10:33 - F-35 gebaut: +28 % hell, warmer Grund wie Stilprobe A, Karte gerade, 20 px (Register 338)
+
+> Neuester Block. Darunter 10:04 (F-34: 48 px und heller; Register 337), 09:36 (fuenf Antworten; 335),
+> 09:03 (EINE EXE; 334), 08:55 (S-6; 333).
+
+**Daniel hat F-34 nachgeschaerft** (10:07): „Die Vorschau + 28 % ist ok aber halte fest das ich es vom
+stil wie bei der Stilprobe A will aber das die karte gerade angezeigt wird wie bei vorschau + 28%“.
+
+**Gebaut:** `HELLIGKEIT = 1.28` (die Vorschau-Stufe), neu `LICHT_ALPHA = 58` statt 46 fuer den warmen
+Grund der Stilprobe A, `SCHATTEN_ALPHA` bleibt 20 - alle drei in `_einheitslicht`, also fuer Kacheln und
+ganze Karten gleich. **Die Karte bleibt gerade (flache Draufsicht) und 20 px je Feld**; F-34s 48 px sind
+damit ueberholt.
+
+**Gemessen:** mittlere Helligkeit der Karte d01 **85 -> 110 von 255**; Malzeit 48 px kalt 1,023 s, 20 px
+kalt 0,556 s. Wache **67/0/1** (Sollwert wird mit dem Faktor gerechnet, Schwellen unveraendert).
+
+**Widerspruch, offen notiert:** Daniel sagte „eine weltkarte bleibt 10 x 10 groß bitte also 20 px“ - eine
+Weltkarte ist aber **20 x 20 = 400 Felder** (`data/welten.json`, `portalraum.py:53`, Wache „400 Felder“).
+Das Raster wurde NICHT geaendert; umgesetzt ist die Anzeige-Absicht (klein, 20 px, gerade).
+
+**Sammellauf 10:10 bis 10:33: 213 von 213 gruen, 0 rot, 2 ausgesetzt, 9.246 Pruefungen, 0 Fehler,
+76 Befunde, 1.355 s** (`docs/audits/sammellauf_20261109_1010.log`).
+
+**Naechster Schritt: D-4** - `_render_portal` malt die Karte als EIN Bild mit **20 px je Feld**
+(400 x 400 px, kein Rollbalken); Klick muss dasselbe Feld treffen. Dazu die F-32-Dokuzeile im selben Commit.
+
 # STAND 09.11.2026, 10:04 - F-34 gebaut: flach, 48 px je Feld, heller wie die Stilprobe A (Register 337)
 
 > Neuester Block. Darunter 09:36 (fuenf Antworten; Register 335), 09:03 (EINE EXE; Register 334),

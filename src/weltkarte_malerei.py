@@ -54,17 +54,23 @@ KARTENSPEICHER = 3
 # Hoechste Arbeitsbreite beim Malen (siehe karte_malen): begrenzt Malzeit und Speicher.
 ARBEITSBREITE = 2048
 
-# HELLIGKEIT (Daniel, 09.11.2026, 09:44 - F-34): "Nummer 2 flach und 48 px je Feld gefaellt mir am
-# besten nur etwas heller bitte wie bei Nummer 3". Nummer 3 war die isometrische Stilprobe A aus dem
-# Paket (heller Grund, warme Farben, weiche Schatten). Gemessen an der Karte d01 lag die gemalte Karte
-# vorher bei mittlerer Helligkeit 85 von 255; die Stufe +20 % liegt bei 102. Der Faktor wird EINMAL
-# angewendet (in `_einheitslicht`, also fuer Kacheln UND ganze Karten gleich) und in der Wache
-# mitgerechnet - so bleibt die Farbtreue-Pruefung eng, statt sie zu lockern.
-HELLIGKEIT = 1.20
+# HELLIGKEIT (Daniel, 09.11.2026 - F-34 und F-35): "Nummer 2 Flach und 48 px je Feld gefaellt mir am
+# besten nur etwas heller bitte wie bei Nummer 3" (F-34), nachgelegt am selben Tag: "Die Vorschau +28 %
+# ist ok ... ich will es vom Stil wie bei der Stilprobe A, aber dass die Karte GERADE angezeigt wird"
+# (F-35). Also: flache Draufsicht bleibt, Ton und Stil wie die Stilprobe A (heller Grund, warme Farben,
+# weiche Schatten). Gemessen an der Karte d01: vorher mittlere Helligkeit 85 von 255, mit 1,20 waren es
+# 102, mit 1,28 sind es 108 - das ist die Stufe, die Daniel im Blatt "Vorschau +28 %" gewaehlt hat.
+# Der Faktor wirkt in `_einheitslicht`, also EINE Stelle fuer Kacheln UND ganze Karten, und die Wache
+# rechnet ihn mit - so bleibt die Farbtreue-Pruefung eng, statt sie zu lockern.
+HELLIGKEIT = 1.28
 
 # Schatten unten rechts im Einheitslicht: 42 Alpha wirkte zu schwer gegen den hellen Grund der
 # Stilprobe; 20 laesst die Karte hell, ohne die Tiefe zu verlieren.
 SCHATTEN_ALPHA = 20
+
+# Warmes Licht oben links - der "warme Grund" der Stilprobe A. 46 war etwas fahl; 58 traegt den warmen
+# Ton, ohne die Farben zu verschieben (Wirkung rund 3 % auf das Bild, Rest bleibt Gelaendefarbe).
+LICHT_ALPHA = 58
 
 _KACHE: dict = {}
 _KARTEN: dict = {}
@@ -311,17 +317,18 @@ def _pinselstriche(draw, kasten, basis, rnd, dichte: float = 1.0) -> None:
 def _einheitslicht(bild, Image) -> None:
     """EIN Licht ueber der ganzen Karte plus ein leises Korn - kein Feld leuchtet fuer sich.
 
-    Seit F-34 (Daniel, 09.11.2026: „nur etwas heller wie bei Nummer 3“) wird der Schatten unten
-    rechts leiser aufgetragen (SCHATTEN_ALPHA statt 42) und das fertige Bild EINMAL mit
-    `HELLIGKEIT` aufgehellt. EINE Stelle fuer Kacheln und ganze Karten, damit Legende und Karte
-    denselben Ton tragen.
+    Seit F-34/F-35 (Daniel, 09.11.2026: „nur etwas heller wie bei Nummer 3“, dann „Vorschau +28 % ist
+    ok ... Stil wie bei der Stilprobe A, aber die Karte GERADE angezeigt“) wird der Schatten unten
+    rechts leiser aufgetragen (SCHATTEN_ALPHA statt 42), das warme Licht oben links etwas kraeftiger
+    (LICHT_ALPHA) und das fertige Bild EINMAL mit `HELLIGKEIT` aufgehellt. EINE Stelle fuer Kacheln und
+    ganze Karten, damit Legende und Karte denselben Ton tragen.
     """
     from PIL import ImageDraw, ImageEnhance, ImageFilter
     breite, hoehe = bild.size
     schleier = Image.new("RGB", bild.size, (0, 0, 0))
     zeichner = ImageDraw.Draw(schleier, "RGBA")
     zeichner.ellipse((-breite * 0.20, -hoehe * 0.30, breite * 0.80, hoehe * 0.70),
-                     fill=(255, 240, 205, 46))                  # warmes Licht oben links
+                     fill=(255, 240, 205, LICHT_ALPHA))          # warmes Licht oben links
     zeichner.rectangle((breite * 0.40, hoehe * 0.50, breite, hoehe),
                        fill=(0, 0, 0, SCHATTEN_ALPHA))
     schleier = schleier.filter(ImageFilter.GaussianBlur(max(4, breite // 8)))
