@@ -1,3 +1,23 @@
+# STAND 10.11.2026, 00:28 - neue EXE mit D-5b: bereit fuer Spieltest 4 (Register 364)
+
+> Neuester Block. Darunter 23:52 (D-5b gebaut; 361), 20:24 (D-5a; 356), 19:40 (neue EXE;
+> 353), 19:08 (Layout-Schnitt; 351/352) und 18:15 (D-5 nachgebessert; 348).
+
+**EXE:** `Nebelseetal_Pre_Release_V_0.0.3.exe`, **83.341.753 Byte**, SHA256
+`a70351017ddc839925df95dd00ae3861dfcde519a4949f71d08be4428d8c0c5c` - am Dateisystem gemessen
+(die Bauausgabe lief im Hintergrund und wurde nicht mitgelesen; kein abgeschriebener Wert).
+Drin: D-5, Layout-Schnitt, D-5a und D-5b. Altbau in `archiv/builds/20261110_vor_d5b/`
+(82.986.594 Byte, 4808fc7e...).
+
+**Start geprueft:** Passworttor erscheint (PID 16320, `MainWindowHandle` 204801842, Responding
+True), Screenshot `docs/audits/bilder/exe_d5b_start_20261110.png`; danach beide Prozesse
+beendet, `game.lock` nach Sicherung entfernt.
+
+**Sammellauf vor dem Bau:** **217 von 217 gruen**, 0 rot, 2 ausgesetzt, 1200 s, 9409 Pruefungen,
+81 Befunde (`docs/audits/sammellauf_20261109_2356.log`, Register 362).
+
+**Naechster Schritt:** **Spieltest 4 (Daniel)** auf dieser EXE - Befunde zeilenweise ins
+Register, je Befund eine Zeile mit Fundstelle.
 # STAND 09.11.2026, 23:52 - D-5b gebaut: Chris' Menue-Icons, Goldrahmen, Marktplatz-Kennzeichen (Register 361)
 
 > Neuester Block. Darunter 20:24 (D-5a; 356), 19:40 (neue EXE; 353), 19:08 (Layout-Schnitt;
