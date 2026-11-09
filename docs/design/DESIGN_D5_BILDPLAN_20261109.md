@@ -127,3 +127,11 @@ die Inhaltsspalte im Standardfenster (1024 x 720) nur **630 px** breit; ein fest
 abgeschnitten (kein waagerechter Rollbalken). Daniel hat entschieden: bei schmaler Spalte wird das Band
 **verkleinert** (Seitenverhaeltnis bleibt, kein Beschnitt, Original 780 x 150 bleibt die Quelle) - im
 Standardfenster sind das 610 x 117 px, ab etwa 1280 px Fensterbreite wieder 780 x 150.
+
+## 9. D-5a gebaut (09.11.2026, 20:24 - Register 356)
+
+Die Weltkarte steht auf **Chris' Farben, Fassung B** (Ton gemessen, Helligkeit fuer 20-px-Felder
+angehoben); die Tannen sind unveraendert. Geaendert ist NUR `data/gelaende.json` - der Maler,
+der Portalraum und die Legende lesen dieselbe Quelle. Farbwerte: Grasland `#64794A`, Steppe
+`#A98A5C`, Wald `#2E4527`, Huegel `#6B563E`, Berg `#8E93A6`, Nebelsee `#41597A`, Sumpf `#474A34`
+(Rand je Art 22 % dunkler). Belege: Wache `tests/test_d5a_chris_farben.py`, `docs/audits/bilder/`.

@@ -7,63 +7,63 @@
       "name": "Grasland",
       "bebaubar": true,
       "haeufigkeit": 20,
-      "farbe": "#5C7A3C",
-      "farbe_rand": "#48602F",
-      "_belegt": "Name und Ertraege belegt (Handbuch S. 10). Haeufigkeit VORSCHLAG."
+      "farbe": "#64794A",
+      "farbe_rand": "#4E5F3A",
+      "_belegt": "Name und Ertraege belegt (Handbuch S. 10). Haeufigkeit VORSCHLAG. Farbe seit D-5a (09.11.2026, Register 356): Chris' Farbton aus den gelieferten Bildern gemessen, Helligkeit fuer 20-px-Felder angehoben (Fassung B, Daniel 20:0x)."
     },
     {
       "id": "steppe",
       "name": "Steppe",
       "bebaubar": true,
       "haeufigkeit": 20,
-      "farbe": "#8C7A4A",
-      "farbe_rand": "#6E5F38",
-      "_belegt": "Name und Ertraege belegt. Haeufigkeit VORSCHLAG."
+      "farbe": "#A98A5C",
+      "farbe_rand": "#87704A",
+      "_belegt": "Name und Ertraege belegt. Haeufigkeit VORSCHLAG. Farbe seit D-5a (09.11.2026, Register 356): Chris' Farbton aus den gelieferten Bildern gemessen, Helligkeit fuer 20-px-Felder angehoben (Fassung B, Daniel 20:0x)."
     },
     {
       "id": "wald",
       "name": "Wald",
       "bebaubar": true,
       "haeufigkeit": 18,
-      "farbe": "#3F6B24",
-      "farbe_rand": "#2E4E1A",
-      "_belegt": "Name und Ertraege belegt (Holzfäller Wald 4). Farbe im Rahmen der Original-Farbwelt (Forumslogo-Gruen #5C9E31, dunkel abgesenkt fuer die dunkle Oberflaeche). Haeufigkeit VORSCHLAG."
+      "farbe": "#2E4527",
+      "farbe_rand": "#22351D",
+      "_belegt": "Name und Ertraege belegt (Holzfäller Wald 4). Haeufigkeit VORSCHLAG. Farbe seit D-5a (09.11.2026, Register 356): Chris' Farbton aus den gelieferten Bildern gemessen, Helligkeit fuer 20-px-Felder angehoben (Fassung B, Daniel 20:0x)."
     },
     {
       "id": "huegel",
       "name": "Hügel",
       "bebaubar": true,
       "haeufigkeit": 13,
-      "farbe": "#6E5A3C",
-      "farbe_rand": "#54452E",
-      "_belegt": "Name und Ertraege belegt (Steinmetz Hügel 2). Haeufigkeit VORSCHLAG."
+      "farbe": "#6B563E",
+      "farbe_rand": "#54422F",
+      "_belegt": "Name und Ertraege belegt (Steinmetz Hügel 2). Haeufigkeit VORSCHLAG. Farbe seit D-5a (09.11.2026, Register 356): Chris' Farbton aus den gelieferten Bildern gemessen, Helligkeit fuer 20-px-Felder angehoben (Fassung B, Daniel 20:0x)."
     },
     {
       "id": "berg",
       "name": "Berg",
       "bebaubar": true,
       "haeufigkeit": 12,
-      "farbe": "#5A5A62",
-      "farbe_rand": "#44444A",
-      "_belegt": "Name und Ertraege belegt (Steinmetz Berg 4, Erzmine 3). Haeufigkeit VORSCHLAG."
+      "farbe": "#8E93A6",
+      "farbe_rand": "#6F7486",
+      "_belegt": "Name und Ertraege belegt (Steinmetz Berg 4, Erzmine 3). Haeufigkeit VORSCHLAG. Farbe seit D-5a (09.11.2026, Register 356): Chris' Farbton aus den gelieferten Bildern gemessen, Helligkeit fuer 20-px-Felder angehoben (Fassung B, Daniel 20:0x)."
     },
     {
       "id": "nebelsee",
       "name": "Nebelsee",
       "bebaubar": true,
       "haeufigkeit": 7,
-      "farbe": "#2F4A5A",
-      "farbe_rand": "#243946",
-      "_belegt": "Tempel auf Nebelsee: 8 Mana/h laut neuer Quelle WeitereWerteKampfsystem.odt S. 4; Handbuch 2009: 5 Mana/h."
+      "farbe": "#41597A",
+      "farbe_rand": "#334760",
+      "_belegt": "Tempel auf Nebelsee: 8 Mana/h laut neuer Quelle WeitereWerteKampfsystem.odt S. 4; Handbuch 2009: 5 Mana/h. Farbe seit D-5a (09.11.2026, Register 356): Chris' Farbton aus den gelieferten Bildern gemessen, Helligkeit fuer 20-px-Felder angehoben (Fassung B, Daniel 20:0x)."
     },
     {
       "id": "sumpf",
       "name": "Sumpf",
       "bebaubar": false,
       "haeufigkeit": 10,
-      "farbe": "#3A3A2A",
-      "farbe_rand": "#2C2C20",
-      "_belegt": "BEWIESEN: 'Sümpfe können nicht bebaut werden' (Handbuch S. 11). Haeufigkeit VORSCHLAG."
+      "farbe": "#474A34",
+      "farbe_rand": "#363827",
+      "_belegt": "BEWIESEN: 'Sümpfe können nicht bebaut werden' (Handbuch S. 11). Haeufigkeit VORSCHLAG. Farbe seit D-5a (09.11.2026, Register 356): Chris' Farbton aus den gelieferten Bildern gemessen, Helligkeit fuer 20-px-Felder angehoben (Fassung B, Daniel 20:0x)."
     }
   ],
   "_farbwelt_original": {

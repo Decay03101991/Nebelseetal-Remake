@@ -1,3 +1,36 @@
+# STAND 09.11.2026, 20:24 - D-5a gebaut: die Weltkarte steht auf Chris' Farben (Register 356)
+
+> Neuester Block. Darunter 19:40 (neue EXE; 353), 19:08 (Layout-Schnitt; 351/352), 18:15 (D-5
+> nachgebessert; 348) und 17:44 (D-5 gebaut; 347).
+
+**Daniel 20:0x (eine Runde mit Bildvergleich, beide wie empfohlen):** Farbwelt **B - Chris' Farbton,
+Helligkeit fuer 20-px-Felder angehoben**; **Tannen bleiben** („nur die Farben in
+data/gelaende.json, Zeichner unangetastet“).
+
+**Messlage (aus den gelieferten Bildern, nicht abgeschrieben):** Median je Gelaendeart nach
+Farbton-Regel. Woertlich (A) waere die Karte auf 20 px unlesbar - Wald Helligkeit 30, Berg 182.
+Fassung B hebt die Helligkeit an und haelt den Ton: Grasland #64794A, Steppe #A98A5C, Wald #2E4527,
+Huegel #6B563E, Berg #8E93A6, Nebelsee #41597A, Sumpf #474A34.
+
+**Gebaut:** NUR `data/gelaende.json` (je Art `farbe` und `farbe_rand`, Herkunft im `_belegt`).
+`weltkarte_malerei.py`, `portalraum.py` und die Legende sind unangetastet - sie lesen dieselbe
+Quelle, darum faerbt sich die Legende mit.
+
+**Nachgemessen:** Helligkeit 110,1 -> **118,9**, Streuung 28,6 -> **40,7** (genau das „lesbar“),
+ausgefressene Lichter 0,00 -> **0,02 %**, fast schwarze Felder 0,00 %. **Lesbarkeit:** 64 % (heute),
+63 % (A), **64 %** (B) der Feldmitten liegen naeher an ihrer eigenen Gelaendefarbe als an jeder
+anderen - die Palette nimmt der Karte nichts.
+
+**Wachen:** neu `tests/test_d5a_chris_farben.py` **17/0/1** (Helligkeitsband 50-185, Ordnung Wald
+dunkelster / Berg hellster / Nebelsee blau, Paarabstand >= 20, Rand dunkler als die Flaeche, eine
+Quelle). `test_weltkarte_malerei` **67/0/1** (vorher 63/4/1): zwei Pruefungen standen auf der alten
+Palette und wurden auf die neue Wahrheit gestellt, mit Begruendung im Docstring - nicht der Code
+zurueckgebogen.
+
+**Sammellauf nach diesem Schritt** (`docs/audits/sammellauf_20261109_2025.log`): **216 von 216 gruen,
+0 rot, 2 ausgesetzt, 1093 s**, 9376 Pruefungen (+17), 0 Fehler, 80 Befunde. **Offen: D-5b**
+(Icons und Goldrahmen, F-39).
+
 # STAND 09.11.2026, 19:40 - neue EXE gebaut: D-5 und der Layout-Schnitt sind drin (Register 353)
 
 > Neuester Block. Darunter 19:08 (Layout-Schnitt; 351/352), 18:15 (D-5 nachgebessert; 348), 17:44
