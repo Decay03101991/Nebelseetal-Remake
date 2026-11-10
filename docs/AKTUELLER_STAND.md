@@ -1,3 +1,26 @@
+# STAND 10.11.2026, 17:05 - Desktop geraumt, Guthaben eingetragen; naechster Schritt ist das Frischstart-Paket (Register 379/380)
+
+> Neuester Block. Darunter 11:52 (Opus-Lauf und Abgleich; 372 bis 378), 11:02 (Repo-Weg; 369), 10:28
+> (Testbogen und Paket; 367/368), 09:56 (die zwei Entscheidungen; 366).
+
+**Daniels Auftrag (17:0x):** »ich brauche die zu testende exe auf dem desktop und die Tests die ich fuer dich
+machen muss/soll plus raum fuer eigene tests. Bitte lass mich einen komplett frischen spielstand erstellen und
+komplett von beginn an testen. Alles bitte in der neuen session.« Dazu: »dort soll nur noch die exe und die
+anleitung sein«.
+
+**Erledigt (Register 380):** die lose `LIESMICH.txt` und der Ordner `Nebelseetal_Spieltest_4\` sind nach
+`D:\Arbeiten\Hermes\Desktop_Ablage\20261110_Spieltest4\` **verschoben** (nicht geloescht, Hashsummen davor
+gesichert); `ls ~/Desktop` zeigt keinen Nebelseetal-Rest.
+
+**Guthaben (Register 379, von Daniel abgelesen):** **12,04 USD** Guthaben, **67,95 USD** Gesamtverbrauch -
+**-0,59 / +0,59** seit 09:35. Der Opus-Lauf ist darin **nicht** enthalten (Abo, kein USD gebucht).
+
+**Die naechste Aufgabe ist das Frischstart-Paket** (Uebergabe 1704, Abschnitt 4a): Spielstaende aus
+`C:\Users\saras\.nebelseetal\` sichern (`savegame_slot1..3.json`, `geschichte.json`; `tor.json` bleibt), die
+vorhandene EXE (`a7035101…`, kein Neubau) auf den Desktop legen und **EINE** Anleitung schreiben, die den
+Testbogen fuer den Weg von null enthaelt - mit einem **leeren Block fuer Daniels eigene Tests**. Danach
+Startpruefung (Passworttor), `game.lock` entfernen, und Daniel in EINER Runde melden.
+
 # STAND 10.11.2026, 11:52 - Opus-Prueflauf gefahren und abgeglichen: fuenf alte Befunde erledigt, sechs neue (Register 372 bis 378)
 
 > Neuester Block. Darunter 11:02 (Repo-Weg; 369), 10:28 (Testbogen und Paket; 367/368), 09:56 (die zwei
