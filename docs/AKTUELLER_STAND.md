@@ -1,6 +1,28 @@
+# STAND 10.11.2026, 10:28 - Spieltest 4 vorbereitet: EXE, Testbogen und Pruefpaket liegen bereit (Register 367)
+
+> Neuester Block. Darunter 09:56 (die zwei Entscheidungen; 366), 00:28 (neue EXE mit D-5b; 364) und
+> 23:52 (D-5b gebaut; 361).
+
+**Was heute Abend passiert:** Daniel macht **Spieltest 4** auf `Nebelseetal_Pre_Release_V_0.0.3.exe`
+(83341753 Byte, SHA256 `a7035101...`) und fuellt dabei den **Testbogen** aus. Beides liegt auf dem Desktop in
+`Nebelseetal_Spieltest_4\` - die EXE hashgleich, der Bogen hashgleich zur Projektfassung, dazu ein Ordner
+`Belege` fuer Bildschirmfotos und ein `LIESMICH.txt`.
+
+**Der Bogen** hat 40 nummerierte Punkte in sieben Bloecken (Geraet, Start und Tor, Gestaltung D-5/D-5a/D-5b,
+bekannte Grenzen, Spielablauf, freie Beobachtung, Fehler woertlich). Jeder Punkt wird beim Auswerten EINE
+Registerzeile mit Fundstelle (z. B. „Bogen B07“).
+
+**Fuer ein starkes Modell vorbereitet, NICHT gelaufen:** `docs/audits/OPUS_PRUEFPAKET_20261110.md`
+(38.935 Zeichen, 743 Zeilen, rund 10.815 Prompt-Token) mit den zwoelf Behauptungen des Gesamtaudits vom
+31.10.2026, einer Sichtung von heute und der Rechenpflicht zur Spieluhr x180. Gebaut von
+`tools/opus_paket_bauen.py`, gefahren wuerde es mit `tools/opus_lauf.py --scharf`. **Der bezahlte Aufruf
+wartet auf Daniels Zustimmung.**
+
+**Naechster Schritt:** Testbogen auswerten (eine Registerzeile je Befund), dann die Befunde abarbeiten -
+**nicht** vorab nachbessern, was auffallen koennte.
 # STAND 10.11.2026, 09:56 - beide offenen Entscheidungen beantwortet (Register 366); Spieltest 4 liegt bei Daniel
 
-> Neuester Block. Darunter 00:28 (neue EXE mit D-5b; 364), 23:52 (D-5b gebaut; 361) und 20:24 (D-5a; 356).
+> Block vom 10.11.2026, 09:56. Darunter 00:28 (neue EXE mit D-5b; 364), 23:52 (D-5b gebaut; 361) und 20:24 (D-5a; 356).
 
 **Daniels Wort (10.11.2026, 09:56):** "ok nach Empfehlung" - damit sind beide Fragen aus der Uebergabe 0937 entschieden.
 
