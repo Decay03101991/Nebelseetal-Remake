@@ -1,6 +1,24 @@
+# STAND 10.11.2026, 09:56 - beide offenen Entscheidungen beantwortet (Register 366); Spieltest 4 liegt bei Daniel
+
+> Neuester Block. Darunter 00:28 (neue EXE mit D-5b; 364), 23:52 (D-5b gebaut; 361) und 20:24 (D-5a; 356).
+
+**Daniels Wort (10.11.2026, 09:56):** "ok nach Empfehlung" - damit sind beide Fragen aus der Uebergabe 0937 entschieden.
+
+**Entschieden:** (1) Der Eckenradius des Goldrahmens bleibt **14 px**; Chris' gemessene 30 px braeuchten ein
+3x3-Leisten-Layout (8 Bildlabels) und eine Anpassung von `test_weltkarte_rahmen`, das vier Bildleisten
+fordert - ein eigener Schnitt, nicht der Weg zu Spieltest 4. (2) `docs/audits/GESAMTAUDIT_BEFUNDE_20261031.md`
+wird als **Beleg aufgehoben**: die zwoelf Befundzeilen sind vollstaendig, abgebrochen ist nur der dritte Punkt
+unter "Nicht beurteilbar". Herkunft und Grenze im neuen `docs/audits/PRUEFVERMERK_GESAMTAUDIT_HERKUNFT_20261110.md`;
+die Datei ist damit versioniert.
+
+**Repariert:** die D-5b-Zeile im Entwicklungsprotokoll trug den Platzhalter `%s` statt der Uhrzeit - jetzt 23:52.
+
+**Naechster Schritt unveraendert:** **Spieltest 4 (Daniel)** auf `Nebelseetal_Pre_Release_V_0.0.3.exe`
+(83.341.753 Byte, SHA256 `a7035101...`). Befunde zeilenweise ins Register, je Befund eine Zeile mit Fundstelle.
+
 # STAND 10.11.2026, 00:28 - neue EXE mit D-5b: bereit fuer Spieltest 4 (Register 364)
 
-> Neuester Block. Darunter 23:52 (D-5b gebaut; 361), 20:24 (D-5a; 356), 19:40 (neue EXE;
+> Block vom 10.11.2026, 00:28. Darunter 23:52 (D-5b gebaut; 361), 20:24 (D-5a; 356), 19:40 (neue EXE;
 > 353), 19:08 (Layout-Schnitt; 351/352) und 18:15 (D-5 nachgebessert; 348).
 
 **EXE:** `Nebelseetal_Pre_Release_V_0.0.3.exe`, **83.341.753 Byte**, SHA256

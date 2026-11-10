@@ -156,3 +156,8 @@ Verkleinerungen der Projektbilder (Vergleichsblatt `docs/audits/bilder/d5b_icons
 Weiter ohne Bild: Bibliothek, Bogenbauer, Diebesgilde, Erzmine, Goldmine, Haus, Kriegerakademie,
 Lager, Naehstube, Pferdezucht, Stellmacher (elf Gebaeude, C2 bleibt) und die sechs Ghul-Kacheln
 (kein Platz im Code - Fraktionsvarianten sind ein eigener Schnitt).
+
+**Entschieden 10.11.2026, 09:56 (Register 366):** Der Eckenradius bleibt **14 px**. Chris' gemessene
+30 px wurden gegen den Aufwand gestellt - ein echter 30-px-Radius braucht ein 3x3-Leisten-Layout (8
+Bildlabels) und eine Anpassung von `test_weltkarte_rahmen`, das vier Bildleisten fordert. Das ist ein
+eigener Schnitt und liegt nicht auf dem Weg zu Spieltest 4; der Rahmen bleibt damit, wie er gebaut ist.

@@ -1,0 +1,21 @@
+## Befunde
+
+| Nr | Mechanik | CODE-BELEG | QUELL-BELEG | Urteil | Empfehlung | Aufwand |
+|---|---|---|---|---|---|---|
+| 1 | Ressourcenbestand (Reich/Ortskasse) | main.py `GameState.tick`, `ortsdeckung`, `verbrauche_am_ort`, `reichsdeckung`, `verbrauche_reichsweit` | D2 F01 (bestätigter Fehler, reproduziert) | DOPPELT | Eine einzige führende Bestandsquelle je Spielmodus einführen; Reichsbestand als berechnete Anzeige, nicht zweite Kasse. | L |
+| 2 | Kampfsystem | `src/kampf.py`, `src/kampf_alt_handbuch_2009.py`, `main.py` (aktiv) | B1 #40 (zwei Kampfsysteme dokumentiert, Entscheidung E1 offen) | DOPPELT | Genau ein aktives Kampfsystem festlegen; das andere als inaktiv kennzeichnen oder entfernen, Wall-/Punkteregeln aus Handbuch beibehalten. | L |
+| 3 | Bauvoraussetzungen (Baukunst) | main.py `bauen_auf_karte`, `_karten_bauen` | B1 #15 (sechs Gebäude ohne Forschung, Rest Baukunst), B3 Abschnitt 1 | WIDERSPRUCH | Zentrale `bau_zulassen`-Prüfung vor Feldmutation und Abbuchung einführen, die Forschungsstufe für Farm etc. erzwingt. | M |
+| 4 | Tageswechsel/Götterschutz | main.py `GameState.tick`, `_day_accum` | B2 Abschnitt 4 (7 Tage Schutz), D2 F04 (reproduziert) | WIDERSPRUCH | Tageszählung mit `divmod` statt `if` realisieren, damit große Ticks den Schutz korrekt beenden. | S |
+| 5 | Auftragskosten und Drosselung | auftraege.py `SEKUNDEN_JE_FELD`, `DROSSELUNG_SCHRITTE_PROZENT`, `AKTION_DAUER_SEKUNDEN` | B1 #39 (Konstante vorhanden, aber nicht angeschlossen), B2 Abschnitt 1 | FEHLT | Belegte Kosten (Gold/Nahrung je Einheit, Mana nach Entfernung) und Drosselung auf Reisezeit anwenden; keine willkürlichen Werte. | M |
+| 6 | Ausbildungsgeschwindigkeit | Ausbildung `pilot_ausbildung_minuten` (B4 Abschnitt 5) | B1 #33 (Stufe macht schneller), B4 Abschnitt 5 (2006) | FEHLT | Ausbildungszeit an Gebäudestufe koppeln; konkrete Werte als Vorschlag kennzeichnen oder belegen. | M |
+| 7 | Menüpunkt „Voraussetzungen“ | main.py `MENU_ANZEIGE = {"Uebersicht": ["Voraussetzungen", "Neuigkeiten"]}` | B1 #25 (zeigt ALLE Bedingungen) | FEHLT | Ansicht erweitern, sodass Einheiten-, Gebäude-, Waren- und Forschungsbedingungen sowie Erfüllungsstatus sichtbar sind. | M |
+| 8 | Bibliotheks-Obergrenze | main.py `BIBLIOTHEK_OBERGRENZE = 2` | B3 Abschnitt 6 (Original nur je Siedlung max 1), B1 #7 (Vorgabe Daniel) | WIDERSPRUCH | Entscheidung Daniel herbeiführen: Original folgen (Grenze entfällt) oder bewusste strengere Grenze beibehalten. | S |
+| 9 | Spieluhr x180: Zeitskalen | spielzeit.py `STANDARD_FAKTOR = 180.0`, forschung.py `dauer_stunden` (Stufe²), auftraege.py `SEKUNDEN_JE_FELD = 3600.0` | B1 #10 (Forschungsdauer Stufe²), B3 Abschnitt 3, B2 (Reisezeit qualitativ) | UNBELEGT | Faktor 180 macht z.B. Forschung Stufe 10 (100 h) zu 33 min Echtzeit, Siedlerzuwachs 1/20 s, Reise 1 Feld 20 s; belegte Dauern werden so extrem verkürzt – Faktor oder Zeiten überdenken. | L |
+| 10 | Siegbedingung 300 Punkte vs Wallpunkte | main.py `VORSCHLAG_ZIEL_PUNKTE = 300`, punkte.py `kriegspunkte` (Wallstufe³) | B2 Punktesystem (Wallstufe³), D2 A03 | WIDERSPRUCH | Sieggrenze anhand echtem Spieldurchlauf festlegen; Wallstufe 8 (512 Kriegspunkte) erreicht mit wenig Forschung bereits 300 Gesamtpunkte. | M |
+| 11 | Beuteanteil | auftraege.py `BEUTE_ANTEIL_PROZENT = 50` | D1 `offene_luecken` beute_anteil (Vorschlag, Handbuch beziffert nicht) | UNBELEGT | Wert als Vorschlag kennzeichnen und anhand Kampf-/Transportentscheidung kalibrieren oder belegen. | S |
+| 12 | Siedlergrenze/Siedlungsmax/Startwerte | gebaeude_wirkung.json (`grund_je_siedlung` 10, `je_haus` 5), main.py `SIEDLUNGEN_MAXIMUM = 6`, resources.json `startwerte` | B1 #11 (Siedlergrenze 10+5), B4 Abschnitt 2/3 (Code folgt 2009), B2 Startwerte (10 Siedler, 100 Holz, 100 Stein) | IN ORDNUNG | Keine Änderung nötig; belegte 2009-Werte korrekt übernommen. | S |
+
+## Nicht beurteilbar
+- Bot-Ökonomie ist im Dossier nur als offener Punkt (D3) benannt; es fehlen belegte Regeln für Bot-Bauen, -Handel und -Angriffswirtschaft.
+- Windows-EXE-Abnahme ist offen (D2 A05, D3); alle Aussagen zu Release-Tauglichkeit sind ohne aktuellen Windows-Test nicht belegbar.
+- End-to-End-Balance (alle Kartentypen, Seeds,
