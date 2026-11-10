@@ -820,6 +820,23 @@ def verkauf_an_haendler(zustand: dict, jetzt: float) -> Tuple[bool, dict]:
 # Punkte
 # --------------------------------------------------------------------------
 
+def _goetterschutz_gilt(zustand: dict, jetzt: float) -> bool:
+    """EINE Regel fuer den Goetterschutz in der Anzeige (Daniel, 10.11.2026, Register 381).
+
+    Die Spielschleife beendet den Schutz nach sieben Tagen ODER beim ersten Kriegspunkt
+    (`main.py:7920`), und `GameState.to_dict` legt das Ergebnis als `noob_protection` in den
+    Spielstand (`main.py:7975`). Bis zum 10.11.2026 rechnete diese Anzeige mit
+    `punkte.goetterschutz_aktiv` nur das reine Zeitfenster - nach dem ersten Kriegspunkt meldete
+    sie weiter »geschuetzt«, obwohl die Mechanik den Schutz schon beendet hatte (Befund G2).
+
+    Fuehrt der Zustand das Kennzeichen, gilt ES. Nur Altstaende ohne das Kennzeichen fallen auf
+    das Zeitfenster zurueck - dann ist die Anzeige so ehrlich wie die Datenlage.
+    """
+    if "noob_protection" in (zustand or {}):
+        return bool(zustand.get("noob_protection"))
+    return PUNKTE.goetterschutz_aktiv(zustand.get("seit", 0.0), jetzt)
+
+
 def punkte(zustand: dict, jetzt: float) -> dict:
     """Alle Punktarten aus ``src/punkte.py``.
 
@@ -842,7 +859,7 @@ def punkte(zustand: dict, jetzt: float) -> dict:
         "gesamtpunkte": gesamt,
         "ruf": PUNKTE.rufpunkte(zustand.get("ruf", 0)),
         "wall_stufe": wall,
-        "goetterschutz": PUNKTE.goetterschutz_aktiv(zustand.get("seit", 0.0), float(jetzt)),
+        "goetterschutz": _goetterschutz_gilt(zustand, float(jetzt)),
         "lage": lage,
         "lage_grund": grund,
     }

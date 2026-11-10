@@ -17,7 +17,10 @@ Belegte Originalregeln (Handbuch 2009, Seiten 3-6, nachgeprueft in
     Punktgleichheit (hoeherer Ruf zuerst, danach frueheres Anmeldedatum — Handbuch S. 6).
   * Goetterschutz: neue Spieler sind die **ersten sieben Tage** geschuetzt und nicht
     angreifbar (Handbuch S. 6). Der Schutz endet frueher mit dem ersten Kriegspunkt — das
-    bildet dieser Baustein NICHT ab (Vorschlag, siehe unten).
+    bildet dieser Baustein NICHT ab. Die Spielschleife beendet ihn (`main.py:7920`), legt das
+    Ergebnis als `noob_protection` in den Spielstand, und die Anzeige fragt genau dieses
+    Kennzeichen ab (G2, Daniel 10.11.2026, Register 381) — `goetterschutz_aktiv` bleibt der
+    Rueckfall fuer Altstaende ohne Kennzeichen.
 
 NICHT belegt — als VORSCHLAG gekennzeichnet (siehe ``vorschlaege()``):
   * die Rundung der Gesamtpunktzahl bei ungerader Summe,

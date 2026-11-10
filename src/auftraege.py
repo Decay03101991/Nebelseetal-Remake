@@ -152,17 +152,25 @@ def _schlagkraft_belagerung(bestand: Dict[str, int]) -> float:
 
 # ------------------------------------------------------------------------- Reisemodell
 
-def reisezeit_sekunden(entfernung: Any, geschwindigkeit: Any, faktor: Any = 1.0) -> float:
+def reisezeit_sekunden(entfernung: Any, geschwindigkeit: Any, faktor: Any = 1.0,
+                       drosselung_prozent: Any = 0.0) -> float:
     """Dauer EINER Strecke in Sekunden (Handbuch S. 19: die Dauer gilt fuer eine Strecke).
 
     Formel (VORSCHLAG, siehe offene_luecken['reisezeit_formel']):
-        Sekunden = Entfernung / Geschwindigkeit * SEKUNDEN_JE_FELD
+        Sekunden = Entfernung / Geschwindigkeit * SEKUNDEN_JE_FELD * Zeitfaktor / Tempo
     Eine ungueltige (nicht positive) Geschwindigkeit liefert unendlich - der Auftrag
     kann so nicht starten; `starten` weist das vorher ab.
 
     V-5 (03.11.2026): `faktor` ist der Zeitfaktor aus dem Volk/Taktikboni
     (`boni.reisezeitfaktor`: +5 % schneller = 1/1,05). Ohne Angabe bleibt es bei 1,0 - dann rechnet
     die Funktion genau wie vorher.
+
+    **G3 (Daniel, 10.11.2026, Register 382): Drosseln verzoegert auch die Ankunft.** Bis dahin wirkte
+    die Drosselung nur auf die Missionskosten; ein gedrosselter Zug war billiger, aber genauso schnell
+    da. Jetzt gilt `Tempo = 1 - Drosselung/100` (Deckel 90 Prozent wie in der Kostenrechnung), und die
+    Dauer wird durch dieses Tempo geteilt: halbes Tempo = doppelte Reisezeit. Ohne Drosselung (0)
+    bleibt alles wie vorher; `tempo <= 0` kann durch den Deckel nicht eintreten und wird zur Sicherheit
+    wie 1,0 behandelt (nie durch null teilen).
     """
     e = max(0.0, _als_zahl(entfernung))
     if e <= 0.0:
@@ -173,7 +181,11 @@ def reisezeit_sekunden(entfernung: Any, geschwindigkeit: Any, faktor: Any = 1.0)
     zeitfaktor = _als_zahl(faktor)
     if zeitfaktor <= 0.0:                                   # kaputter Faktor
         zeitfaktor = 1.0                                   # dann keine Wirkung (kein Erfinden)
-    return e / g * SEKUNDEN_JE_FELD * zeitfaktor
+    drosselung = min(90.0, max(0.0, _als_zahl(drosselung_prozent)))
+    tempo = 1.0 - drosselung / 100.0                        # 1,0 = ungedrosselt, 0,1 = 90 Prozent
+    if tempo <= 0.0:                                        # kann nur bei kaputtem Eingabewert passieren
+        tempo = 1.0
+    return e / g * SEKUNDEN_JE_FELD * zeitfaktor / tempo
 
 
 def _reise_zeiten(start: Any, reisezeit: Any,
@@ -448,7 +460,9 @@ def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
     if not ok_fracht:
         return False, meld_fracht
 
-    reisezeit = reisezeit_sekunden(entf, gs, reise_faktor)
+    # G3 (Daniel, 10.11.2026): die Drosselung verzoegert auch die Reise - EINE Stelle rechnet sie
+    # (reisezeit_sekunden), damit Anzeige und Auftrag nie zwei verschiedene Zeiten fuehren.
+    reisezeit = reisezeit_sekunden(entf, gs, reise_faktor, drosselung_prozent)
     start = _als_zahl(jetzt)
     ankunft, abreise, rueckkehr = _reise_zeiten(start, reisezeit, AKTION_DAUER_SEKUNDEN)
 
@@ -716,8 +730,10 @@ def offene_luecken() -> Dict[str, str]:
         "drosselung":
             f"BELEGT ist die Drosselung in {DROSSELUNG_SCHRITTE_PROZENT}-%-Schritten "
             "(Handbuch S. 20); wie sie die Reisezeit ändert, sagt das Handbuch nicht. "
-            "Sie ist hier als Konstante DROSSELUNG_SCHRITTE_PROZENT abgelegt, aber nicht "
-            "auf die Formel angewandt.",
+            "G3 (Daniel, 10.11.2026, Register 382): sie wirkt jetzt auf BEIDES - langsamer heißt "
+            "teurer oder billiger je Rohstoff (Gold fällt, Nahrung steigt) UND später da: "
+            "Tempo = 1 - Drosselung/100, die Reisezeit wird durch dieses Tempo geteilt. "
+            "Der Deckel liegt bei 90 Prozent.",
         "aktion_dauer":
             f"Die Dauer der Handlung am Ziel ist VORSCHLAG "
             f"(AKTION_DAUER_SEKUNDEN = {AKTION_DAUER_SEKUNDEN:.0f}). Fuer stationieren/"

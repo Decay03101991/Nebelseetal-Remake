@@ -101,6 +101,22 @@ check("doppelte Geschwindigkeit = halbe Reisezeit",
 check("1 Feld bei Geschwindigkeit 1 dauert SEKUNDEN_JE_FELD",
       A.reisezeit_sekunden(1, 1) == A.SEKUNDEN_JE_FELD)
 
+# G3 (Daniel, 10.11.2026, Register 382): Drosseln verzoegert AUCH die Ankunft.
+# Grundlage: Tempo = 1 - Drosselung/100, die Dauer wird durch dieses Tempo geteilt.
+check("ohne Drosselung bleibt die Reisezeit unveraendert",
+      A.reisezeit_sekunden(100, 10, 1.0, 0) == A.reisezeit_sekunden(100, 10))
+check("50 Prozent Drosselung = doppelte Reisezeit",
+      abs(A.reisezeit_sekunden(100, 10, 1.0, 50) - 2 * A.reisezeit_sekunden(100, 10)) < 1e-6,
+      str(A.reisezeit_sekunden(100, 10, 1.0, 50)))
+# Gleitkomma: /0.1 ergibt 720000.0000000001 - darum mit Toleranz pruefen, nicht auf Gleichheit.
+check("90 Prozent Drosselung = zehnfache Reisezeit",
+      abs(A.reisezeit_sekunden(100, 10, 1.0, 90) - 10 * A.reisezeit_sekunden(100, 10)) < 1e-6,
+      str(A.reisezeit_sekunden(100, 10, 1.0, 90)))
+check("der Deckel greift: 100 Prozent wirkt wie 90 Prozent",
+      A.reisezeit_sekunden(100, 10, 1.0, 100) == A.reisezeit_sekunden(100, 10, 1.0, 90))
+check("eine negative Drosselung beschleunigt nicht",
+      A.reisezeit_sekunden(100, 10, 1.0, -20) == A.reisezeit_sekunden(100, 10))
+
 _sym = A.neue_liste()
 A.starten(_sym, "transportieren", {HK: 1}, "Heim", "Ziel", 100, 0, {"Holz": 10})
 _e = _sym[0]

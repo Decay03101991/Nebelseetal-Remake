@@ -569,6 +569,18 @@ check("Goetterschutz ist zu Beginn aktiv", S.punkte(zp, 0.0)["goetterschutz"] is
 check("Goetterschutz ist nach sieben Tagen vorbei",
       S.punkte(zp, 7 * TAG)["goetterschutz"] is False)
 
+# G2 (Daniel, 10.11.2026, Register 381): EINE Regel. Die Spielschleife beendet den Schutz nach
+# sieben Tagen ODER beim ersten Kriegspunkt und legt das als `noob_protection` in den Spielstand.
+# Die Anzeige muss diesem Kennzeichen folgen - vorher rechnete sie nur das Zeitfenster und meldete
+# nach dem ersten Kriegspunkt weiter "geschuetzt".
+check("G2: frisches Zeitfenster, aber Kriegspunkt gesetzt = KEIN Schutz mehr",
+      S.punkte({"noob_protection": False, "seit": 0.0}, 0.0)["goetterschutz"] is False)
+check("G2: Kennzeichen True gilt auch nach acht Tagen",
+      S.punkte({"noob_protection": True, "seit": 0.0}, 9 * TAG)["goetterschutz"] is True)
+check("G2: Altstand ohne Kennzeichen faellt auf das Zeitfenster zurueck",
+      S.punkte({"seit": 0.0}, 0.0)["goetterschutz"] is True
+      and S.punkte({"seit": 0.0}, 9 * TAG)["goetterschutz"] is False)
+
 
 # ==========================================================================
 # 10. Portal, Nachrichten, offene Luecken

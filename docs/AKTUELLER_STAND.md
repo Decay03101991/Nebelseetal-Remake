@@ -1,3 +1,40 @@
+# STAND 10.11.2026, 21:50 - G2 und G3 gebaut, 218/218 gruen, neue EXE liegt mit der Anleitung auf dem Desktop (Register 381 bis 386)
+
+> Neuester Block. Darunter 17:05 (Desktop geraumt, Guthaben; 379/380), 11:52 (Opus-Lauf und Abgleich;
+> 372 bis 378), 11:02 (Repo-Weg; 369), 10:28 (Testbogen und Paket; 367/368), 09:56 (Entscheidungen; 366).
+
+**Daniels Entscheidungen (21:2x):** (1) Goetterschutz **eine Quelle** - 7 Tage ODER erster Kriegspunkt,
+die Anzeige zieht nach. (2) **Drosseln verzoegert auch die Reise**. (3) **Beides vorher einbauen**, Test
+beginnt spaeter - gesagt, getan.
+
+**Gebaut (Register 381/382):** `spielschicht._goetterschutz_gilt` fragt das Kennzeichen `noob_protection`
+aus dem Spielstand, nur Altstaende ohne Kennzeichen rechnen das Zeitfenster (`test_spielschicht`
+**148/0**, drei neue Pruefungen). `auftraege.reisezeit_sekunden` bekommt `drosselung_prozent` und teilt
+durch `Tempo = 1 - Drosselung/100` (Deckel 90), `starten` reicht durch, `offene_luecken` sagt die Wahrheit
+(`test_auftraege` **143/0**, fuenf neue Pruefungen).
+
+**Ehrlicher Nebenbefund (Register 383):** die Drosselung ist im Spiel **nicht bedienbar** - kein Aufrufer
+ausserhalb `auftraege.py` setzt den Wert, auch kein Bot. Die Regel laeuft, ist aber im Test nicht
+ausloesbar. Ein Bedienelement ist ein eigener Schnitt und braucht Daniels Entscheidung, wo es sitzt.
+
+**Sammellauf (Register 384):** **218 von 218 gruen**, 0 rot, 2 ausgesetzt, **999 s**, 220 Dateien,
+**9.448 Pruefungen**, 81 Befunde - gestartet NACH dem letzten Fix. Log
+`docs/audits/sammellauf_20261110_2126.log`.
+
+**Neue EXE (Register 385):** **83.342.035 Byte, SHA256 `4124b335065366fbcf8e1696edf3c3f1fa8045090b7a7791641b9e0214c67df8`**;
+Altbau `a7035101…` in `archiv/builds/20261110_vor_g2_g3/`. Startpruefung: Passworttor sichtbar (PID 5768,
+Responding True, Screenshot `docs/audits/exe_g2g3_start_20261110.png`), danach beendet, `game.lock`
+entfernt, Schreibordner enthaelt nur `tor.json`.
+
+**Desktop-Paket (Register 386):** **genau zwei Dateien** - die neue EXE und
+`ANLEITUNG_UND_TESTBOGEN_FRISCHSTART.md` (7.209 Byte, `976b9aac…`) mit Block 0 bis G und einem **leeren
+Block E fuer Daniels eigene Tests**. Frischstart vorbereitet: die drei alten Spielstaende und der
+Geschichts-Merker liegen in `C:\Users\saras\.nebelseetal\archiv\vor_frischstart_20261110_2117\`.
+
+**Der naechste Schritt:** Daniels Frischstart-Test abwarten; danach jeden beantworteten Punkt als eigene
+Registerzeile mit Fundstelle (»Bogen B05«), leere Punkte benennen. **Danach gehoert die EXE wieder vom
+Desktop entfernt** (Daniels Wort: »die nach dem test wieder vom desktop weg soll«).
+
 # STAND 10.11.2026, 17:05 - Desktop geraumt, Guthaben eingetragen; naechster Schritt ist das Frischstart-Paket (Register 379/380)
 
 > Neuester Block. Darunter 11:52 (Opus-Lauf und Abgleich; 372 bis 378), 11:02 (Repo-Weg; 369), 10:28
