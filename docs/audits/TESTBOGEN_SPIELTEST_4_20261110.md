@@ -2,7 +2,7 @@
 
 **Diese EXE wird geprueft:** `Nebelseetal_Pre_Release_V_0.0.3.exe`, **83341753 Byte**,
 SHA256 `a70351017ddc839925df95dd00ae3861dfcde519a4949f71d08be4428d8c0c5c`
-(Stand `4b66b50`, Register 368 — die EXE traegt D-5, den Layout-Schnitt, D-5a und D-5b).
+(Quellstand unveraendert seit `0c462dd` - Register 368; die EXE traegt D-5, den Layout-Schnitt, D-5a und D-5b).
 **Fassung 2** (10.11.2026, 10:5x): Nummerierung eindeutig (die erste Fassung vergab `G1` bis `G4`
 zweimal), neu die Pruefzeile `A0` fuer den Hash der EXE.
 
