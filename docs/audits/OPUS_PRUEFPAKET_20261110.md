@@ -15,9 +15,9 @@ Die zwoelf Behauptungen eines frueheren Gutachtens (31.10.2026), eine Sichtung d
 ## 2a. Woher dieser Code kommt: aus dem VEROEFFENTLICHTEN Repo, nicht von einer Platte
 
 Du arbeitest **gegen das oeffentliche Repository**, nicht gegen den Arbeitsordner des Auftraggebers.
-Alle Stellen in Abschnitt 10 sind der veroeffentlichte Blob am **gepinnten Commit `42b646c548205274a726b0fd5e7906cacfac7b94`**:
+Alle Stellen in Abschnitt 10 sind der veroeffentlichte Blob am **gepinnten Commit `b341d93a10c4ee07ef8016d020b74ec1a3bdb47d`**:
 
-    https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/42b646c548205274a726b0fd5e7906cacfac7b94/<pfad>
+    https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/b341d93a10c4ee07ef8016d020b74ec1a3bdb47d/<pfad>
 
 Willst du eine Stelle nachlesen, lade genau diese URL (der Commit steht im Pfad - damit ist der Stand
 fest und aendert sich nicht, auch wenn spaeter weitergearbeitet wird). Nenne am Anfang deiner Antwort
@@ -28,12 +28,12 @@ suchen, Dateien schreiben.
 
 | Datei | Abruf-URL (gepinnter Commit) | SHA256 (Repo = Arbeitskopie) | bytegleich |
 |---|---|---|---|
-| `src/auftraege.py` | https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/42b646c548205274a726b0fd5e7906cacfac7b94/src/auftraege.py | `c53a21b81dfced3e...` | nur Zeilenenden (inhaltlich gleich) |
-| `src/forschung.py` | https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/42b646c548205274a726b0fd5e7906cacfac7b94/src/forschung.py | `2216acb93ae28593...` | ja |
-| `src/kampf.py` | https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/42b646c548205274a726b0fd5e7906cacfac7b94/src/kampf.py | `c74bbac70c4bf40f...` | ja |
-| `src/main.py` | https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/42b646c548205274a726b0fd5e7906cacfac7b94/src/main.py | `7aefce30d2de9769...` | ja |
-| `src/punkte.py` | https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/42b646c548205274a726b0fd5e7906cacfac7b94/src/punkte.py | `834aec887ece1e85...` | ja |
-| `src/spielzeit.py` | https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/42b646c548205274a726b0fd5e7906cacfac7b94/src/spielzeit.py | `2c8af3c2e9aed204...` | ja |
+| `src/auftraege.py` | https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/b341d93a10c4ee07ef8016d020b74ec1a3bdb47d/src/auftraege.py | `c53a21b81dfced3e...` | nur Zeilenenden (inhaltlich gleich) |
+| `src/forschung.py` | https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/b341d93a10c4ee07ef8016d020b74ec1a3bdb47d/src/forschung.py | `2216acb93ae28593...` | ja |
+| `src/kampf.py` | https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/b341d93a10c4ee07ef8016d020b74ec1a3bdb47d/src/kampf.py | `c74bbac70c4bf40f...` | ja |
+| `src/main.py` | https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/b341d93a10c4ee07ef8016d020b74ec1a3bdb47d/src/main.py | `7aefce30d2de9769...` | ja |
+| `src/punkte.py` | https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/b341d93a10c4ee07ef8016d020b74ec1a3bdb47d/src/punkte.py | `834aec887ece1e85...` | ja |
+| `src/spielzeit.py` | https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/b341d93a10c4ee07ef8016d020b74ec1a3bdb47d/src/spielzeit.py | `2c8af3c2e9aed204...` | ja |
 
 
 ## 3. Was du NICHT beurteilen sollst
@@ -73,8 +73,8 @@ Urteile nur aus diesem Vokabular:
 
 | Groesse | Wert |
 |---|---|
-| Stand (Commit, Datum) | `42b646c 2026-11-10` |
-| Register belegt bis | 368 |
+| Stand (Commit, Datum) | `b341d93 2026-11-10` |
+| Register belegt bis | 369 |
 | Module in `src/` | 64 |
 | Zeilen in `src/` | 39025 |
 | Letzter Sammellauf | 217 von 217 gruen, 0 rot, 2 ausgesetzt, 9409 Pruefungen |

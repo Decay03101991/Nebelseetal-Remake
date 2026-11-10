@@ -50,6 +50,60 @@ def _messen(paket: str) -> int:
     return len(text)
 
 
+def _im_projekt(pfad: str) -> bool:
+    """Liegt `pfad` im Projektordner? Zwei verschiedene Laufwerke liegen nie ineinander.
+
+    `os.path.commonpath` wirft `ValueError: Paths don't have the same drive`, sobald die Pfade auf
+    verschiedenen Laufwerken liegen - und genau das ist hier der erwuenschte Normalfall (Temp auf C:,
+    Projekt auf D:). Belegt am 10.11.2026: der scharfe Lauf starb an dieser Zeile per Traceback, BEVOR
+    irgendein Modell aufgerufen wurde. Deshalb hier eine reine Zeichenketten-Pruefung mit Trenner,
+    damit `D:\\Arbeiten\\Nebelseetal_Remake_alt` nicht als "im Projekt" gilt.
+    """
+    hier = os.path.normcase(os.path.abspath(HIER))
+    kandidat = os.path.normcase(os.path.abspath(pfad))
+    return kandidat == hier or kandidat.startswith(hier + os.sep)
+
+
+def _claude_exe() -> "str | None":
+    """Findet die wirklich STARTBARE Claude-Code-Datei.
+
+    Zwei belegte Fehlschlaege am 10.11.2026: `shutil.which("claude")` liefert unter Windows die
+    POSIX-Huelle OHNE Endung (npm legt `claude`, `claude.cmd` und `claude.ps1` nebeneinander ab), und
+    `subprocess.run(["claude", ...])` scheitert dann mit `FileNotFoundError [WinError 2]`, weil
+    CreateProcess keine endungslose Datei startet. Die `.cmd`-Huelle wiederum ruft nur
+    `node_modules\\@anthropic-ai\\claude-code\\bin\\claude.exe` auf - genau diese Datei wird hier gesucht,
+    weil sie ohne Zwischenschale laeuft und stdin sauber durchreicht.
+    """
+    kandidaten: list[str] = []
+    for name in ("claude.exe", "claude.cmd", "claude.bat"):
+        treffer = shutil.which(name)
+        if treffer:
+            kandidaten.append(treffer)
+    huelle = shutil.which("claude")
+    if huelle:
+        ordner = os.path.dirname(huelle)
+        kandidaten.append(os.path.join(ordner, "node_modules", "@anthropic-ai",
+                                       "claude-code", "bin", "claude.exe"))
+        kandidaten.append(os.path.join(ordner, "claude.exe"))
+    for pfad in kandidaten:                    # erst die echte EXE
+        if pfad.lower().endswith(".exe") and os.path.isfile(pfad):
+            return pfad
+    for pfad in kandidaten:                    # dann die Huelle (laeuft ueber cmd.exe /c)
+        if os.path.isfile(pfad):
+            return pfad
+    return None
+
+
+def _claude_befehl(argumente: "list[str]") -> "list[str] | None":
+    """Baut die startbare Kommandozeile. `.cmd`/`.bat` brauchen `cmd.exe /c`, eine EXE nicht."""
+    exe = _claude_exe()
+    if exe is None:
+        return None
+    if exe.lower().endswith((".cmd", ".bat")):
+        return ["cmd.exe", "/c", exe, *argumente]
+    return [exe, *argumente]
+
+
 def main() -> int:
     zerleger = argparse.ArgumentParser(description="Einen Pruefaufruf an ein starkes Modell fahren")
     zerleger.add_argument("--scharf", action="store_true", help="wirklich aufrufen (kostet!)")
@@ -66,10 +120,14 @@ def main() -> int:
         print(f"FEHLER: Paketgroesse ausserhalb der Grenzen - erst das Paket pruefen.")
         return 2
 
+    zusatz = ("Du pruefst gegen das oeffentliche Repository unter der im Paket genannten, gepinnten "
+              "Commit-Adresse. Lies keine lokalen Dateien, fuehre keine Befehle aus, schreibe nichts. "
+              "Wenn du etwas nachsehen willst, lade die im Paket genannte raw.githubusercontent-URL.")
     ziel, usage = _neue_pfade()
     print(f"Ziel:        {ziel}")
     print(f"Messdatei:   {usage}")
     print(f"Modell:      {args.modell}")
+    print(f"Aufruf:      {_claude_exe() or '(nicht gefunden)'}")
     print(f"Kommando:    claude -p --output-format json --model {args.modell} "
           f"--allowedTools WebFetch --disallowedTools Read,Grep,Glob,Bash,Write,Edit,MultiEdit "
           f"< {os.path.basename(PAKET)}")
@@ -82,8 +140,13 @@ def main() -> int:
         print("Scharf erst nach Daniels Zustimmung: --scharf")
         return 0
 
-    if shutil.which("claude") is None:
-        print("FEHLER: claude (Claude Code) nicht im PATH - Weg A nicht verfuegbar.")
+    argumente = ["-p", "--output-format", "json", "--model", args.modell,
+                 "--allowedTools", "WebFetch",
+                 "--disallowedTools", "Read,Grep,Glob,Bash,Write,Edit,MultiEdit",
+                 "--append-system-prompt", zusatz]
+    befehl = _claude_befehl(argumente)
+    if befehl is None:
+        print("FEHLER: Claude Code (claude.exe) nicht gefunden - Weg A nicht verfuegbar.")
         return 5
 
     if os.path.exists(ziel):
@@ -93,22 +156,20 @@ def main() -> int:
     # Arbeitsordner AUSSERHALB des Projekts: das Modell soll nicht auf der Platte lesen.
     arbeitsordner = os.path.join(tempfile.gettempdir(), "opus_pruefung_" + time.strftime("%Y%m%d_%H%M"))
     os.makedirs(arbeitsordner, exist_ok=True)
-    if os.path.commonpath([os.path.abspath(arbeitsordner), HIER]) == os.path.abspath(HIER):
+    if _im_projekt(arbeitsordner):
         print("FEHLER: Arbeitsordner liegt im Projekt - Abbruch.")
         return 4
     print(f"Arbeitsordner: {arbeitsordner} (ausserhalb des Projekts)")
 
-    zusatz = ("Du pruefst gegen das oeffentliche Repository unter der im Paket genannten, gepinnten "
-              "Commit-Adresse. Lies keine lokalen Dateien, fuehre keine Befehle aus, schreibe nichts. "
-              "Wenn du etwas nachsehen willst, lade die im Paket genannte raw.githubusercontent-URL.")
     beginn = time.time()
-    with open(PAKET, "rb") as eingabe:
-        lauf = subprocess.run(["claude", "-p", "--output-format", "json", "--model", args.modell,
-                               "--allowedTools", "WebFetch",
-                               "--disallowedTools", "Read,Grep,Glob,Bash,Write,Edit,MultiEdit",
-                               "--append-system-prompt", zusatz],
-                              cwd=arbeitsordner, stdin=eingabe, capture_output=True,
-                              timeout=args.zeitlimit)
+    try:
+        with open(PAKET, "rb") as eingabe:
+            lauf = subprocess.run(befehl, cwd=arbeitsordner, stdin=eingabe, capture_output=True,
+                                  timeout=args.zeitlimit)
+    except FileNotFoundError as fehler:
+        print(f"FEHLER: Aufruf nicht startbar ({befehl[0]}): {fehler}")
+        print("Nichts geschrieben, nichts bezahlt.")
+        return 5
     dauer = round(time.time() - beginn, 1)
     roh = lauf.stdout.decode("utf-8", "replace")
     fehlertext = lauf.stderr.decode("utf-8", "replace")
@@ -131,7 +192,8 @@ def main() -> int:
         griff.write(antwort if antwort.strip() else "(LEER)\n")
     with open(usage, "w", encoding="utf-8", newline="\n") as griff:
         json.dump({"dauer_s": dauer, "rueckgabe": lauf.returncode, "nutzung": nutzung,
-                   "arbeitsordner": arbeitsordner, "paket_sha256": hashlib.sha256(open(PAKET, "rb").read()).hexdigest(),
+                   "arbeitsordner": arbeitsordner, "aufruf": befehl[0],
+                   "paket_sha256": hashlib.sha256(open(PAKET, "rb").read()).hexdigest(),
                    "stderr": fehlertext[-2000:], "paket": PAKET, "ziel": ziel},
                   griff, ensure_ascii=False, indent=2)
     print(f"EXIT={lauf.returncode} dauer={dauer}s Antwortzeichen={len(antwort)}")
