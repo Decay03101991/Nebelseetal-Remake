@@ -22,11 +22,11 @@ bestaetigen oder widerlegen.
 
 ## 2. Was im Paket steht
 
-`docs/audits/OPUS_PRUEFPAKET_20261110.md` — **38.935 Zeichen, 743 Zeilen, rund 10.815 Prompt-Token**
-(3,6 Zeichen je Token, gemessen am Dateisystem):
+`docs/audits/OPUS_PRUEFPAKET_20261110.md` — **41.026 Zeichen, 768 Zeilen, rund 11.400 Prompt-Token**
+(3,6 Zeichen je Token; die Schnitte stammen aus dem Repo-Blob am gepinnten Commit):
 
 1. Rolle, Verbote und Pflicht-Ausgabeformat (vier Urteile: `BESTAETIGT`, `UEBERHOLT`, `TEILWEISE`, `UNBEKANNT`)
-2. Messlage: Commit `1097350` (Stand vor diesem Dokument), Register 367, 64 Module, 39.025 Zeilen in `src/`, Sammellauf 217/217, EXE-Hash
+2. Messlage und Herkunftstabelle (Repo, gepinnter Commit, SHA256 je Datei)
 3. Die zwoelf Behauptungen im Wortlaut (Tabelle)
 4. Die Sichtung von heute, acht Zeilen mit Fundstelle
 5. Rechenpflicht zur Spieluhr x180 (Forschung Stufe^2, Reise, Ausbildung, Siedlerzuwachs, Punkte/ Wallstufe 8)
@@ -39,29 +39,35 @@ Bewusst **nicht** im Paket: die Handbuchauszuege. Der Handbuchabgleich war der A
 hier geht es um die Frage „tut der Code heute noch, was damals behauptet wurde“ — das ist am Code entscheidbar
 und braucht keine Quelle.
 
-## 3. Wie es gefahren wird — zwei Wege, beide mit Kostenbremse
+## 3. Wie es gefahren wird — Weg A, über das Repository (Daniels Entscheidung 10.11.2026)
 
-**Weg A: Claude Code (Abo).** Der Rechner hat Claude Code 2.1.319 installiert und angemeldet
-(`~/.claude/.credentials.json` vorhanden, Stand 10.11.2026). Damit laeuft der Aufruf **ohne Token-Abrechnung**
-ueber das Abo-Kontingent. Kein USD-Wert behauptet — es gibt keinen Messwert dafuer, nur eine Quote.
+Daniel hat **Weg A** gewählt: Claude Code über das Abo (kein Token-Preis, nur Kontingent) — und
+ausdrücklich verlangt, dass **das Modell über die Repo arbeitet, nicht lokal**.
+
+Das ist in Werkzeug und Paket so gebaut:
+
+| Was | Wie es erzwungen wird | Beleg |
+|---|---|---|
+| Prüfstand ist das **öffentliche Repo** | Das Paket nennt je Datei die `raw.githubusercontent.com`-URL mit **gepinntem Commit**; Abschnitt 2a sagt „nicht gegen den Arbeitsordner“ | `tools/opus_paket_bauen.py` (`_pin`, `_herkunft`) |
+| Der **Code im Paket** ist der Repo-Blob | Die Schnitte werden per HTTP aus dem Repo geholt, nicht von der Platte; jede Datei wird gegen die Arbeitskopie gehasht und das Ergebnis im Paket gedruckt | Tabelle „Herkunft der Dateien“ im Paket |
+| **Kein Zugriff auf lokale Dateien** | Der Aufruf läuft in einem **leeren Ordner außerhalb des Projekts**; `Read`, `Grep`, `Glob`, `Bash`, `Write`, `Edit` sind verboten, nur `WebFetch` ist erlaubt | `tools/opus_lauf.py` |
+| Antwort landet als Datei | Das Modell schreibt nichts; die Standardausgabe schreibt das Werkzeug nach `docs/audits/OPUS_PRUEFUNG_<stempel>.md` und die Messung nach `opus_usage_<stempel>.json` | `tools/opus_lauf.py` |
+
+**Herkunftsprüfung, gemessen (10.11.2026, Commit `42b646c`):** Repo ist öffentlich (API 200), alle sechs
+benutzten Dateien sind abrufbar; **fünf bytegleich**, `src/auftraege.py` **nur in den Zeilenenden**
+verschieden (Arbeitskopie CRLF, Blob LF — inhaltlich gleich, per Normalisierung geprüft).
 
 ```
 cd D:\Arbeiten\Nebelseetal_Remake
-.venv\Scripts\python.exe -X utf8 tools\opus_lauf.py --trocken      # messen, nichts aufrufen
-.venv\Scripts\python.exe -X utf8 tools\opus_lauf.py --scharf       # der EINE Aufruf
+.venv\Scripts\python.exe -X utf8 tools\opus_paket_bauen.py     # Paket aus dem Repo bauen (kostenlos)
+.venv\Scripts\python.exe -X utf8 tools\opus_lauf.py --trocken   # messen, nichts aufrufen
+.venv\Scripts\python.exe -X utf8 tools\opus_lauf.py --scharf    # der EINE Aufruf
 ```
-Das Werkzeug ruft `claude -p --output-format json --model opus` mit dem Paket als Standardeingabe auf, schreibt
-die Antwort nach `docs/audits/OPUS_PRUEFUNG_<stempel>.md` und die Messung nach `opus_usage_<stempel>.json`
-(Dauer, Rueckgabe, `usage`, `total_cost_usd` falls der Anbieter ihn liefert). Es schreibt die Datei selbst —
-das Modell darf lesen, aber nichts anlegen. Ohne `--scharf` passiert nichts.
 
-**Weg B: Anthropic-API.** Braucht einen API-Schluessel, den es auf diesem Rechner **nicht** gibt
-(`config.yaml` kennt nur `deepseek`). Der Preis je Token waere beim Anbieter abzulesen — hier steht **keine
-Zahl**, weil sie nicht gemessen ist.
-
-**Freigabe:** Der scharfe Lauf ist ein bezahlter bzw. Kontingent-verbrauchender Aufruf. Er startet nur mit
-Daniels ausdruecklichem Ja, mit dem Paketmass (Zeichen, Token, Zielpfad) vorher im Chat. Lauf im Hintergrund,
-gemessen an der `usage_*-Datei`, nicht an der Antwortdatei.
+**Freigabe liegt vor:** Daniel hat Weg A am 10.11.2026 ausdrücklich gewählt („Weg A bitte“). Der Aufruf
+verbraucht **Abo-Kontingent**, keine Token-Abrechnung — es wird deshalb **kein USD-Wert behauptet**.
+Trotzdem vorher nennen: Paketgröße (41.026 Zeichen / ~11.400 Prompt-Token), Zielpfad, Modell.
+Lauf im Hintergrund; fertig ist er an `opus_usage_*.json`, nicht an der Antwortdatei.
 
 ## 4. Was danach passiert (der eigentliche Wert)
 

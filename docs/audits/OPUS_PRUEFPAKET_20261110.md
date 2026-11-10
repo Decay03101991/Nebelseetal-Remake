@@ -12,6 +12,30 @@ Die zwoelf Behauptungen eines frueheren Gutachtens (31.10.2026), eine Sichtung d
 10.11.2026 und den **heutigen Quellcode** der betroffenen Stellen im Wortlaut - jede Stelle mit
 `Datei:Zeile`.
 
+## 2a. Woher dieser Code kommt: aus dem VEROEFFENTLICHTEN Repo, nicht von einer Platte
+
+Du arbeitest **gegen das oeffentliche Repository**, nicht gegen den Arbeitsordner des Auftraggebers.
+Alle Stellen in Abschnitt 10 sind der veroeffentlichte Blob am **gepinnten Commit `42b646c548205274a726b0fd5e7906cacfac7b94`**:
+
+    https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/42b646c548205274a726b0fd5e7906cacfac7b94/<pfad>
+
+Willst du eine Stelle nachlesen, lade genau diese URL (der Commit steht im Pfad - damit ist der Stand
+fest und aendert sich nicht, auch wenn spaeter weitergearbeitet wird). Nenne am Anfang deiner Antwort
+den Commit, den du gelesen hast. Was du **nicht** tun sollst: lokale Pfade oeffnen, im Arbeitsordner
+suchen, Dateien schreiben.
+
+**Herkunft der Dateien in diesem Paket (Abruf und Vergleich am 10.11.2026):**
+
+| Datei | Abruf-URL (gepinnter Commit) | SHA256 (Repo = Arbeitskopie) | bytegleich |
+|---|---|---|---|
+| `src/auftraege.py` | https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/42b646c548205274a726b0fd5e7906cacfac7b94/src/auftraege.py | `c53a21b81dfced3e...` | nur Zeilenenden (inhaltlich gleich) |
+| `src/forschung.py` | https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/42b646c548205274a726b0fd5e7906cacfac7b94/src/forschung.py | `2216acb93ae28593...` | ja |
+| `src/kampf.py` | https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/42b646c548205274a726b0fd5e7906cacfac7b94/src/kampf.py | `c74bbac70c4bf40f...` | ja |
+| `src/main.py` | https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/42b646c548205274a726b0fd5e7906cacfac7b94/src/main.py | `7aefce30d2de9769...` | ja |
+| `src/punkte.py` | https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/42b646c548205274a726b0fd5e7906cacfac7b94/src/punkte.py | `834aec887ece1e85...` | ja |
+| `src/spielzeit.py` | https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/42b646c548205274a726b0fd5e7906cacfac7b94/src/spielzeit.py | `2c8af3c2e9aed204...` | ja |
+
+
 ## 3. Was du NICHT beurteilen sollst
 
 - Keinen Abgleich gegen das Original-Handbuch (das war der Auftrag des alten Gutachtens, die
@@ -49,8 +73,8 @@ Urteile nur aus diesem Vokabular:
 
 | Groesse | Wert |
 |---|---|
-| Stand (Commit, Datum) | `6a9f091 2026-11-10` |
-| Register belegt bis | 366 |
+| Stand (Commit, Datum) | `42b646c 2026-11-10` |
+| Register belegt bis | 368 |
 | Module in `src/` | 64 |
 | Zeilen in `src/` | 39025 |
 | Letzter Sammellauf | 217 von 217 gruen, 0 rot, 2 ausgesetzt, 9409 Pruefungen |
@@ -102,7 +126,8 @@ Rechne mit den Zahlen, die im Code stehen (nicht aus dem Kopf), und zeige je Zei
 6. **Urteil je Zeile:** Ist die Dauer bei x180 fuer einen Einzelspieler spielbar, trivial oder
    unspielbar? Nenne die Zahl, die dein Urteil traegt.
 
-## 10. Der heutige Code im Wortlaut
+## 10. Der heutige Code im Wortlaut (geschnitten aus dem Repo-Blob am gepinnten Commit)
+
 
 
 ### src/main.py:4656-4674 - `ortsdeckung`

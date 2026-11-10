@@ -1,6 +1,25 @@
+# STAND 10.11.2026, 11:02 - Opus-Prueflauf auf den Repo-Weg umgestellt; der Test laeuft in der naechsten Sitzung (Register 369)
+
+> Neuester Block. Darunter 10:28 (Testbogen und Paket vorbereitet; 367/368), 09:56 (die zwei
+> Entscheidungen; 366), 00:28 (neue EXE mit D-5b; 364) und 23:52 (D-5b gebaut; 361).
+
+**Daniels Entscheidung (11:0x):** **Weg A** - Claude Code ueber das Abo, kein Token-Preis - und
+ausdruecklich: **das Modell arbeitet ueber die Repo, nicht lokal**.
+
+**Umgesetzt:** `tools/opus_paket_bauen.py` holt jede benutzte Datei per HTTP aus dem veroeffentlichten Repo am
+gepinnten Commit und schneidet die Funktionen aus dem BLOB; eine Herkunftstabelle im Paket nennt Abruf-URL und
+SHA256 je Datei (**fuenf bytegleich**, `src/auftraege.py` nur in den Zeilenenden - Arbeitskopie CRLF, Blob LF,
+inhaltlich gleich). `tools/opus_lauf.py` faehrt in einem **leeren Arbeitsordner ausserhalb des Projekts**, erlaubt
+nur `WebFetch` und verbietet `Read`, `Grep`, `Glob`, `Bash`, `Write`, `Edit`.
+
+**Paket:** `docs/audits/OPUS_PRUEFPAKET_20261110.md`, **41.026 Zeichen, 768 Zeilen, rund 11.400 Prompt-Token**.
+**Der scharfe Lauf ist NICHT gelaufen** - keine `OPUS_PRUEFUNG_*.md` vorhanden. Er ist die erste Aufgabe der
+naechsten Sitzung.
+
+**Offen ausserdem:** Spieltest 4 (Daniel heute Abend, Bogen Fassung 2 im Ordner `Nebelseetal_Spieltest_4\`).
 # STAND 10.11.2026, 10:28 - Spieltest 4 vorbereitet: EXE, Testbogen und Pruefpaket liegen bereit (Register 367)
 
-> Neuester Block. Darunter 09:56 (die zwei Entscheidungen; 366), 00:28 (neue EXE mit D-5b; 364) und
+> Block vom 10.11.2026, 10:28. Darunter 09:56 (die zwei Entscheidungen; 366), 00:28 (neue EXE mit D-5b; 364) und
 > 23:52 (D-5b gebaut; 361).
 
 **Was heute Abend passiert:** Daniel macht **Spieltest 4** auf `Nebelseetal_Pre_Release_V_0.0.3.exe`

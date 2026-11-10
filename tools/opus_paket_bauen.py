@@ -13,9 +13,55 @@ from __future__ import annotations
 
 import argparse
 import ast
+import hashlib
 import os
 import subprocess
 import sys
+import urllib.request
+
+REPO = "Decay03101991/Nebelseetal-Remake"
+RAW = "https://raw.githubusercontent.com/" + REPO + "/{pin}/{pfad}"
+
+
+def _pin() -> str:
+    """Der Commit, gegen den geprueft wird: der veroeffentlichte Kopf (nicht der Arbeitsbaum)."""
+    lauf = subprocess.run(["git", "rev-parse", "HEAD"], cwd=HIER, capture_output=True, text=True)
+    kandidat = lauf.stdout.strip()
+    fernsicht = subprocess.run(["git", "ls-remote", "origin", "main"], cwd=HIER,
+                               capture_output=True, text=True, timeout=60).stdout.split()
+    if fernsicht and fernsicht[0] != kandidat:
+        print(f"WARNUNG: lokal {kandidat[:8]}, Remote {fernsicht[0][:8]} - das Paket pinnt den REMOTE-Stand")
+        return fernsicht[0]
+    return kandidat
+
+
+def _herkunft(pin: str) -> str:
+    """Holt den Blob JEDER benutzten Datei aus dem Repo und vergleicht ihn mit der Arbeitskopie.
+
+    Das ist der Beleg, dass im Paket wirklich der veroeffentlichte Code steht - nicht eine
+    handkopierte Fassung. Der Vergleich laeuft ueber SHA256 der Bytes.
+    """
+    zeilen = ["| Datei | Abruf-URL (gepinnter Commit) | SHA256 (Repo = Arbeitskopie) | bytegleich |",
+              "|---|---|---|---|"]
+    for datei in sorted({d for d, _, _ in SCHNITTE}):
+        url = RAW.format(pin=pin, pfad=datei)
+        try:
+            with urllib.request.urlopen(url, timeout=60) as antwort:
+                fern = antwort.read()
+        except Exception as fehler:  # noqa: BLE001
+            print(f"  ABRUF FEHLGESCHLAGEN {datei}: {fehler}")
+            zeilen.append(f"| `{datei}` | {url} | (Abruf fehlgeschlagen) | nein |")
+            continue
+        lokal = open(os.path.join(HIER, datei), "rb").read()
+        h_fern = hashlib.sha256(fern).hexdigest()
+        gleich = h_fern == hashlib.sha256(lokal).hexdigest()
+        # Zeilenenden: git normalisiert beim Commit, die Arbeitskopie kann CRLF fuehren.
+        inhaltlich = fern.replace(b"\r\n", b"\n") == lokal.replace(b"\r\n", b"\n")
+        urteil = ("ja" if gleich else
+                  ("nur Zeilenenden (inhaltlich gleich)" if inhaltlich else "NEIN - Inhalt weicht ab"))
+        print(f"  {datei:26} Repo {len(fern):7} Byte, bytegleich {gleich}, inhaltlich {inhaltlich}")
+        zeilen.append(f"| `{datei}` | {url} | `{h_fern[:16]}...` | {urteil} |")
+    return "**Herkunft der Dateien in diesem Paket (Abruf und Vergleich am 10.11.2026):**\n\n" + "\n".join(zeilen) + "\n"
 
 HIER = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ZIEL = os.path.join(HIER, "docs", "audits", "OPUS_PRUEFPAKET_20261110.md")
@@ -100,6 +146,20 @@ Die zwoelf Behauptungen eines frueheren Gutachtens (31.10.2026), eine Sichtung d
 10.11.2026 und den **heutigen Quellcode** der betroffenen Stellen im Wortlaut - jede Stelle mit
 `Datei:Zeile`.
 
+## 2a. Woher dieser Code kommt: aus dem VEROEFFENTLICHTEN Repo, nicht von einer Platte
+
+Du arbeitest **gegen das oeffentliche Repository**, nicht gegen den Arbeitsordner des Auftraggebers.
+Alle Stellen in Abschnitt 10 sind der veroeffentlichte Blob am **gepinnten Commit `{pin}`**:
+
+    https://raw.githubusercontent.com/Decay03101991/Nebelseetal-Remake/{pin}/<pfad>
+
+Willst du eine Stelle nachlesen, lade genau diese URL (der Commit steht im Pfad - damit ist der Stand
+fest und aendert sich nicht, auch wenn spaeter weitergearbeitet wird). Nenne am Anfang deiner Antwort
+den Commit, den du gelesen hast. Was du **nicht** tun sollst: lokale Pfade oeffnen, im Arbeitsordner
+suchen, Dateien schreiben.
+
+{herkunft}
+
 ## 3. Was du NICHT beurteilen sollst
 
 - Keinen Abgleich gegen das Original-Handbuch (das war der Auftrag des alten Gutachtens, die
@@ -149,14 +209,31 @@ Urteile nur aus diesem Vokabular:
 
 {rechenpflicht}
 
-## 10. Der heutige Code im Wortlaut
+## 10. Der heutige Code im Wortlaut (geschnitten aus dem Repo-Blob am gepinnten Commit)
+
 
 """
 
 
-def _schnitt(datei: str, symbol: str, art: str) -> tuple[str, int]:
-    pfad = os.path.join(HIER, datei)
-    quelle = open(pfad, encoding="utf-8", newline="").read()
+_FERNE_DATEIEN: dict[str, bytes] = {}
+
+
+def _datei_bytes(datei: str, pin: str) -> bytes:
+    """Der Blob aus dem Repo (gecacht). Faellt nur dann auf die Arbeitskopie zurueck, wenn der Abruf
+    scheitert - und sagt das dann laut, damit ein Paket nie stillschweigend aus der Platte entsteht."""
+    if datei not in _FERNE_DATEIEN:
+        url = RAW.format(pin=pin, pfad=datei)
+        try:
+            with urllib.request.urlopen(url, timeout=60) as antwort:
+                _FERNE_DATEIEN[datei] = antwort.read()
+        except Exception as fehler:  # noqa: BLE001
+            print(f"  WARNUNG: {datei} nicht aus dem Repo geladen ({fehler}) - nehme die Arbeitskopie")
+            _FERNE_DATEIEN[datei] = open(os.path.join(HIER, datei), "rb").read()
+    return _FERNE_DATEIEN[datei]
+
+
+def _schnitt(datei: str, symbol: str, art: str, pin: str) -> tuple[str, int]:
+    quelle = _datei_bytes(datei, pin).decode("utf-8")
     zeilen = quelle.splitlines()
     baum = ast.parse(quelle)
     treffer = None
@@ -215,14 +292,19 @@ def main() -> int:
     zerleger.add_argument("--ziel", default=ZIEL)
     zerleger.add_argument("--trocken", action="store_true",
                           help="nur messen und die Zieldatei drucken, nichts schreiben")
+    zerleger.add_argument("--pin", default="", help="Commit, gegen den geprueft wird (Vorgabe: Remote-Kopf)")
     args = zerleger.parse_args()
+    pin = args.pin or _pin()
+    print(f"Gepinnter Commit: {pin}")
+    herkunft = _herkunft(pin)
     kopf = KOPF.format(messtabelle=messlage(), behauptungen=BEHAUPTUNGEN,
-                       vorbefund=VORBEFUND, rechenpflicht=RECHENPFLICHT)
+                       vorbefund=VORBEFUND, rechenpflicht=RECHENPFLICHT,
+                       pin=pin, herkunft=herkunft)
     teile = [kopf]
     summe_zeilen = 0
     print(f"Ziel: {args.ziel}")
     for datei, symbol, art in SCHNITTE:
-        text, zeilen = _schnitt(datei, symbol, art)
+        text, zeilen = _schnitt(datei, symbol, art, pin)
         if zeilen == 0:
             print(f"  FEHLT  {datei}:{symbol}")
         summe_zeilen += zeilen
