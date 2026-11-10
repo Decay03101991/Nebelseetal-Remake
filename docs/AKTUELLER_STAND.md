@@ -15,6 +15,8 @@ die Datei ist damit versioniert.
 
 **Naechster Schritt unveraendert:** **Spieltest 4 (Daniel)** auf `Nebelseetal_Pre_Release_V_0.0.3.exe`
 (83.341.753 Byte, SHA256 `a7035101...`). Befunde zeilenweise ins Register, je Befund eine Zeile mit Fundstelle.
+**Termin (Daniel, 10.11.2026):** er macht Spieltest 4 **heute Abend persoenlich** - bis dahin bleibt
+`src/` und `data/` unangetastet, damit die Befunde zu genau dieser EXE gehoeren.
 
 # STAND 10.11.2026, 00:28 - neue EXE mit D-5b: bereit fuer Spieltest 4 (Register 364)
 
