@@ -8,6 +8,11 @@
 `Nebelseetal_Spieltest_4\` - die EXE hashgleich, der Bogen hashgleich zur Projektfassung, dazu ein Ordner
 `Belege` fuer Bildschirmfotos und ein `LIESMICH.txt`.
 
+**Der Bogen ist inzwischen Fassung 2** (Register 368): Daniel hat eine Ueberarbeitung von Claude
+Opus 5.5 zurueckgegeben - **ohne Antworten**, aber mit zwei echten Verbesserungen: eindeutige Nummerierung
+(`0.1` bis `0.4` fuer das Geraet statt `G1` bis `G4`, das `G` war doppelt vergeben) und eine Pruefzeile `A0`
+fuer den Hash der EXE. SHA256 `4e368cf1142e789c...`.
+
 **Der Bogen** hat 40 nummerierte Punkte in sieben Bloecken (Geraet, Start und Tor, Gestaltung D-5/D-5a/D-5b,
 bekannte Grenzen, Spielablauf, freie Beobachtung, Fehler woertlich). Jeder Punkt wird beim Auswerten EINE
 Registerzeile mit Fundstelle (z. B. „Bogen B07“).

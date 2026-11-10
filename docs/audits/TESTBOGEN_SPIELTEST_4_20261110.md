@@ -2,7 +2,9 @@
 
 **Diese EXE wird geprueft:** `Nebelseetal_Pre_Release_V_0.0.3.exe`, **83341753 Byte**,
 SHA256 `a70351017ddc839925df95dd00ae3861dfcde519a4949f71d08be4428d8c0c5c`
-(Stand `6a9f091`, Register 366 — die EXE traegt D-5, den Layout-Schnitt, D-5a und D-5b).
+(Stand `4b66b50`, Register 368 — die EXE traegt D-5, den Layout-Schnitt, D-5a und D-5b).
+**Fassung 2** (10.11.2026, 10:5x): Nummerierung eindeutig (die erste Fassung vergab `G1` bis `G4`
+zweimal), neu die Pruefzeile `A0` fuer den Hash der EXE.
 
 **So fuellst du den Bogen:** hinter jeder Frage steht ein Feld. Trage **eine Zahl** oder **ja/nein**
 ein; wo du etwas siehst, das nicht passt, schreib es in die Spalte „Bemerkung“ mit **Ort im Spiel**
@@ -10,7 +12,7 @@ ein; wo du etwas siehst, das nicht passt, schreib es in die Spalte „Bemerkung�
 das ist ein gueltiges Ergebnis und besser als eine Vermutung.
 
 **Belege (Bilder):** Screenshots in den Ordner `Belege\` neben dieser Datei legen, Dateiname =
-Nummer des Punktes, z. B. `B07_goldrahmen.png`. Windows: `Win + Shift + S`, dann im Ordner `Belege`
+Nummer des Punktes, z. B. `B01_goldrahmen.png`. Windows: `Win + Shift + S`, dann im Ordner `Belege`
 einfuegen. Zu jedem Bild gehoert der Punkt, bei dem es steht.
 
 **Wenn das Spiel abstuerzt oder eine Fehlermeldung zeigt:** Text **woertlich** in Block F
@@ -22,10 +24,10 @@ abschreiben (oder abfotografieren) — nicht zusammenfassen.
 
 | Nr | Frage | Deine Antwort |
 |---|---|---|
-| G1 | Bildschirmaufloesung (Windows: Einstellungen > System > Anzeige) | |
-| G2 | Skalierung in Prozent (z. B. 100 %, 125 %, 150 %) | |
-| G3 | Fenstergroesse des Spiels beim Start (falls ablesbar: Breite x Hoehe in px) | |
-| G4 | Uhrzeit Beginn / Ende des Tests | |
+| 0.1 | Bildschirmaufloesung (Windows: Einstellungen > System > Anzeige) | |
+| 0.2 | Skalierung in Prozent (z. B. 100 %, 125 %, 150 %) | |
+| 0.3 | Fenstergroesse des Spiels beim Start (falls ablesbar: Breite x Hoehe in px) | |
+| 0.4 | Uhrzeit Beginn / Ende des Tests | |
 
 ---
 
@@ -33,6 +35,7 @@ abschreiben (oder abfotografieren) — nicht zusammenfassen.
 
 | Nr | Frage | Antwort (Zahl / ja / nein) | Bemerkung |
 |---|---|---|---|
+| A0 | Hash der EXE geprueft (certutil, siehe LIESMICH): stimmt er? (ja / nein / nicht geprueft) | | |
 | A1 | Erscheint das Passworttor? | | |
 | A2 | Wie viele Sekunden von Doppelklick bis das Tor steht? (grob zaehlen) | | |
 | A3 | Kommst du mit deinem Passwort ins Spiel? | | |
