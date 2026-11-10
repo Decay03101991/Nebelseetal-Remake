@@ -1,0 +1,51 @@
+{
+  "dauer_s": 432.4,
+  "rueckgabe": 0,
+  "nutzung": {
+    "model": null,
+    "usage": {
+      "input_tokens": 4,
+      "cache_creation_input_tokens": 58022,
+      "cache_read_input_tokens": 41785,
+      "output_tokens": 15874,
+      "output_tokens_details": {
+        "thinking_tokens": 9076
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 58022,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "global",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 14580,
+          "cache_read_input_tokens": 41785,
+          "cache_creation_input_tokens": 16237,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 16237
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard",
+      "fallback_credit": null
+    },
+    "total_cost_usd": 1.8719676000000003,
+    "num_turns": 2,
+    "duration_ms": 423944,
+    "session_id": "da318a91-ee24-4d5c-962b-62009e8cb19d"
+  },
+  "arbeitsordner": "C:\\Users\\saras\\AppData\\Local\\Temp\\opus_pruefung_20261110_1115",
+  "aufruf": "C:\\Users\\saras\\AppData\\Local\\hermes\\node\\node_modules\\@anthropic-ai\\claude-code\\bin\\claude.exe",
+  "paket_sha256": "df0de7ecd931a433e79c1133933843ac9d323c132fd7d20d02b5f8236ca10a51",
+  "stderr": "",
+  "paket": "D:\\Arbeiten\\Nebelseetal_Remake\\docs\\audits\\OPUS_PRUEFPAKET_20261110.md",
+  "ziel": "D:\\Arbeiten\\Nebelseetal_Remake\\docs\\audits\\OPUS_PRUEFUNG_20261110_1115.md"
+}

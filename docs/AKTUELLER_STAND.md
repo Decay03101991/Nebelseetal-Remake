@@ -1,3 +1,41 @@
+# STAND 10.11.2026, 11:52 - Opus-Prueflauf gefahren und abgeglichen: fuenf alte Befunde erledigt, sechs neue (Register 372 bis 378)
+
+> Neuester Block. Darunter 11:02 (Repo-Weg; 369), 10:28 (Testbogen und Paket; 367/368), 09:56 (die zwei
+> Entscheidungen; 366), 00:28 (neue EXE mit D-5b; 364) und 23:52 (D-5b gebaut; 361).
+
+**Der Lauf ist durch.** Ein Aufruf, ausserhalb des Projekts, nur `WebFetch`, gegen das Repo am gepinnten
+`b341d93`: **EXIT 0, 432,4 s, 10.894 Antwortzeichen**, 58.022 Cache-Neu- und 15.874 Ausgabe-Token (9.076
+Denken). Abo-Lauf - das Werkzeug meldet 1,872 USD als API-Gegenwert, **abgebucht ist nichts**. Antwort:
+`docs/audits/OPUS_PRUEFUNG_20261110_1115.md`, Messung `opus_usage_20261110_1115.json`.
+
+**Zwei Werkzeugfehler kamen davor (Register 370), beide behoben:** `os.path.commonpath` warf
+laufwerksuebergreifend `ValueError` (Temp C: gegen Projekt D:), und `shutil.which('claude')` liefert die
+endungslose npm-Huelle, die `subprocess` nicht startet. Neue Wache `tests/test_opus_lauf_arbeitsordner.py`
+**13/0**.
+
+**Abgleich `docs/audits/ABGLEICH_OPUS_20261110.md`:** von den zwoelf alten Behauptungen sind **fuenf
+erledigt** (2 zwei Kampfsysteme, 3 Gebaeude ohne Forschungspruefung, 4 Tageszaehlung, 6 Ausbildungskopplung,
+10 Siegbedingung), **sechs bestaetigt** (1, 5, 8, 9, 11, 12), **eine offen** (7 Ansicht »Voraussetzungen«).
+Alle sechs Rechenaufgaben nachgerechnet (`tools/opus_nachrechnen.py`); **ein Modellfehler:** die
+»kleinste Loesung« ist 90, nicht 91 - 3^3+3^3+3^3+2^3+1^3 = 90, Gesamt 301, Forschungszeit 880 s.
+
+**Sechs neue Befunde (373 bis 378), keiner ein Absturz:** G1 `kampf.py:5` verspricht eine
+Rueckfallsicherung, die eine Wache verbietet · G2 zwei Goetterschutz-Regeln mit verschiedener Grundlage
+(`main.py:7920` gegen `punkte.py:210`, in Betrieb ueber `spielschicht.py:845`) · G3 Drosselung wirkt auf die
+Kosten, nicht auf die Reisezeit · G4 `ZIEL_PUNKTE_VERWORFEN` wird nirgends gelesen · G5
+`BEUTE_ANTEIL_PROZENT` steht nur in Texten · G6 `dauer_sekunden` bricht ab, wenn kein Regeltext »Quadrat«
+enthaelt (heute enthalten).
+
+**Eingang abgelegt (Register 371):** Daniels Rueckgabe von Claude Opus 5.5 zum Testbogen liegt hashgeprueft
+unter `docs/eingaenge/LLM_20261110_TESTBOGEN/` (5.571 Byte, `550ca2f6…`); sie enthaelt **keine Antworten**
+(46 Punktzeilen, 46 leere Antwortspalten).
+
+**Der naechste Schritt:** Spieltest 4 auswerten, sobald Daniels Bogen gefuellt ist
+(`Nebelseetal_Spieltest_4\TESTBOGEN_Spieltest_4.md`, heute 11:2x noch hashgleich zur leeren Fassung
+`6301d9e0…`, `Belege\` leer). **Zwei Entscheidungen liegen bei Daniel:** die Semantik des Goetterschutzes (G2)
+und ob die Drosselung auf die Reisezeit wirken soll (G3). **Offen ausserdem:** vollstaendiger Gesamtaudit,
+Vormerkungen `0e5b3c84`/`9ce5a020`, Ghul-Kacheln, elf C2-Gebaeude, Register 272/273, DeepSeek-Export 09.11.
+
 # STAND 10.11.2026, 11:02 - Opus-Prueflauf auf den Repo-Weg umgestellt; der Test laeuft in der naechsten Sitzung (Register 369)
 
 > Neuester Block. Darunter 10:28 (Testbogen und Paket vorbereitet; 367/368), 09:56 (die zwei
