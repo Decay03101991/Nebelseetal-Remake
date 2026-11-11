@@ -25,9 +25,13 @@ if main is None or bs is None:
 
 check("main.py vorhanden", os.path.exists(os.path.join(SRC, "main.py")))
 check("bonus_system.py vorhanden", os.path.exists(os.path.join(SRC, "bonus_system.py")))
-check("Originalhandbuch vorhanden",
-      os.path.exists(os.path.join(ROOT, "docs", "original",
-                                  "Nebelseetal_Spielanleitung_2009.pdf")))
+# Register 407 (11.11.2026): das Originalhandbuch ist aus dem oeffentlichen Stand genommen und liegt
+# lokal unter archiv/originalquellen_20261111/. Beide Orte werden geprueft - die Wache bleibt ehrlich.
+_HANDBUCH_REPO = os.path.join(ROOT, "docs", "original", "Nebelseetal_Spielanleitung_2009.pdf")
+_HANDBUCH_ABLAGE = os.path.join(ROOT, "archiv", "originalquellen_20261111",
+                                "Nebelseetal_Spielanleitung_2009.pdf")
+check("Originalhandbuch vorhanden (Repo oder lokale Ablage)",
+      os.path.exists(_HANDBUCH_REPO) or os.path.exists(_HANDBUCH_ABLAGE))
 check("Icon-Zuordnungsdatei vorhanden",
       os.path.exists(os.path.join(ROOT, "data", "icon_map.json")))
 check("Icon-Index vorhanden", os.path.exists(os.path.join(ROOT, "data", "icons_index.json")))

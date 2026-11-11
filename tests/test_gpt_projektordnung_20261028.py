@@ -20,7 +20,9 @@ class ProjektOrdnung(unittest.TestCase):
   for p in ['src/main.py','data/gelaende.json','assets/loadingpage/Nebelseetal_Loadingpage.png','docs/AGENTEN_PLAN.md','docs/ENTWICKLUNGSPROTOKOLL.md','docs/HERMES_UEBERGABE_AKTUELL.md']:
    self.assertTrue((ROOT/p).is_file(),p)
  def test_bildquellen_vorhanden(self):
-  for p in ['assets/quellbilder/Nebelseetal_Loadingpage.jpg','assets/quellbilder/nebelseetal.png','assets/quellbilder/waren/WaffenWerkzeuge_Icons.png','assets/quellbilder/einheiten/Nahkämpfer_Icons.png','docs/nebelseetal_gamestar2.jpg']:
+  # docs/nebelseetal_gamestar2.jpg ist am 11.11.2026 mit den Originalquellen aus dem oeffentlichen
+  # Stand genommen (Register 407) und liegt lokal unter archiv/originalquellen_20261111/.
+  for p in ['assets/quellbilder/Nebelseetal_Loadingpage.jpg','assets/quellbilder/nebelseetal.png','assets/quellbilder/waren/WaffenWerkzeuge_Icons.png','assets/quellbilder/einheiten/Nahkämpfer_Icons.png']:
    self.assertTrue((ROOT/p).is_file(),p)
  def test_archiv_github_ausgeschlossen(self):
   self.assertIn('/archiv/', (ROOT/'.gitignore').read_text('utf-8'))

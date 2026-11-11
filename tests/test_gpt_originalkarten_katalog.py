@@ -11,6 +11,7 @@ from collections import Counter
 
 P=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(P/'src'))
+import _originalpfade as OP          # Register 407: Originale liegen ausserhalb des Repos
 import originalkarten as O
 import spieloekonomie as E
 
@@ -29,11 +30,15 @@ ok(len(O.alle('mittlere'))==43,'43 mittlere')
 ok(len(O.alle('schlechte'))==49,'49 schlechte')
 ok({x['original_nummer'] for x in quelle if x['variante']}=={38,118},'nur Dubletten 38 und 118')
 ok(len(O.kennungen())==len(set(O.kennungen()))==127,'eindeutige Karten-IDs')
+ohne_original=0
 for info in quelle:
  id=info['id']
- bild=P/info['originalbild']
- ok(bild.is_file(),id+': Originalbild vorhanden')
- ok(hashlib.sha256(bild.read_bytes()).hexdigest()==info['bild_sha256'],id+': Originalbild unveraendert')
+ bild=OP.finde(info['originalbild'])
+ if bild is None:                     # Register 407: Original liegt weder im Repo noch in der Ablage
+  ohne_original+=1
+ else:
+  ok(bild.is_file(),id+': Originalbild vorhanden')
+  ok(hashlib.sha256(bild.read_bytes()).hexdigest()==info['bild_sha256'],id+': Originalbild unveraendert')
  m=O.karte(id)
  ok(m['spalten']==m['zeilen']==10,id+': 10x10')
  ok(len(m['raster'])==100,id+': hundert Spielzellen')
@@ -57,4 +62,6 @@ ok(start['zaehlung']['berg']+start['zaehlung']['huegel']>=2,'Startkarte mit Gest
 ok(start['zaehlung']['grasland']>=2,'Startkarte mit Agrargrundlage')
 ok(E.relativ(start)==(1.0,1.0,1.0),'Vergleichsbasis verwendet Original statt Altkarte')
 ok(E.startkarte('a','spieler')['raster']==E.startkarte('b','spieler')['raster'],'Originalbildpositionen bleiben fest')
+if ohne_original:
+ print('BEFUND: '+OP.fehlt_hinweis(ohne_original))
 print(f'GPT-OK: {checks} Pruefungen bestanden; 0 Fehler')

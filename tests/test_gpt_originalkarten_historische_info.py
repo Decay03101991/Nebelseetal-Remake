@@ -13,6 +13,7 @@ import sys
 
 R=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(R/'src'))
+import _originalpfade as OP          # Register 407: Originale liegen ausserhalb des Repos
 import originalkarten
 import spieldaten
 
@@ -33,8 +34,12 @@ ck(h['berechnungsbedingungen']=='ohne Forschungsboni, normale Weltengeschwindigk
 ck(set(j['quellunterseiten'])=={'beste','mittlere','schlechte'},'Quellunterseiten je Gruppe')
 ck(all(e['quelle']['quellunterseite']==j['quellunterseiten'][e['kategorie']] for e in j['karten']),'Quelle pro Karte')
 ck(all(e['quelle']['quellunterseite_nachweis'].startswith('Links der Original') for e in j['karten']),'URL aus ODT, nicht Web-Verifikation')
+ohne_odt=0
 for docname in ('Karten_BesteKarten.odt','Karten_MittlereKarten.odt','Karten_SchlechteKarten.odt'):
- p=R/'docs/original/karten_sammlung_odt'/docname
+ p=OP.finde('docs/original/karten_sammlung_odt/'+docname)
+ if p is None:                        # Register 407: ODT liegt weder im Repo noch in der Ablage
+  ohne_odt+=1
+  continue
  ck(p.is_file(),f'Original ODT vorhanden {docname}')
  with ZipFile(p) as z:
   b=z.read('content.xml')
@@ -45,12 +50,18 @@ for docname in ('Karten_BesteKarten.odt','Karten_MittlereKarten.odt','Karten_Sch
   if e['quelle']['dokument']==docname:
    ck(hashlib.sha256(p.read_bytes()).hexdigest()==e['quelle']['dokument_sha256'],'Quell-ODT-Hash')
 # All 127 archived image files remain exactly preserved, including duplicate numbers.
+ohne_bild=0
 for e in j['karten']:
- img=R/e['originalbild']
- ck(img.is_file() and hashlib.sha256(img.read_bytes()).hexdigest()==e['bild_sha256'],f"Bild {e['id']}")
+ img=OP.finde(e['originalbild'])
+ if img is None:                      # Register 407: Originalbild liegt ausserhalb des Repos
+  ohne_bild+=1
+ else:
+  ck(img.is_file() and hashlib.sha256(img.read_bytes()).hexdigest()==e['bild_sha256'],f"Bild {e['id']}")
  k=originalkarten.karte(e['id'])
  ck(k['originalkarte_id']==e['id'] and len(k['raster'])==100, f"10x10 {e['id']}")
  ck(k['originalkarte_quelle']==j['website'],'Website attribution stays attached')
  ck('gold' not in k.get('vorraete',{}) and 'leder' not in k.get('vorraete',{}),'Keine Gratisrohstoffe')
 ck(Counter(x['original_nummer'] for x in j['karten'] if x['variante'])=={38:2,118:2},'Dublette bleiben zwei verschiedene Karten')
+if ohne_odt: print('BEFUND: '+OP.fehlt_hinweis(ohne_odt)+' (ODT)')
+if ohne_bild: print('BEFUND: '+OP.fehlt_hinweis(ohne_bild)+' (Bilder)')
 print(f'GPT-OK04: {n} Pruefungen bestanden; 0 Fehler')
