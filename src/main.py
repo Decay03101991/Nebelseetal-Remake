@@ -8985,6 +8985,11 @@ class NebelseetalApp:
         self._hintergrund_einstellung = e                                  # Abdunkeln und Weichzeichnen
         self._hintergrund_groesse = (b, h)                                 # zuletzt gebaute Groesse
         leinwand.bind("<Configure>", lambda _ereignis: self._hintergrund_anpassen())
+        # T6-Nachbesserung 11.11.2026: das Portal-Kopfband haengt an derselben Breite. Ohne diese
+        # Zeile blieb es beim Verkleinern des Fensters auf der alten Breite stehen (gemessen: Band
+        # 1037 px im 691 px breiten Inhalt). `_kopfband_nachziehen` prueft selbst, ob sich mehr als
+        # 40 px geaendert haben, und tut sonst nichts.
+        leinwand.bind("<Configure>", lambda _ereignis: self._kopfband_nachziehen(), add="+")
         self.root.after(60, self._hintergrund_anpassen)                    # nach dem ersten Layout
         return leinwand                                                    # fuer Pruefungen
 
@@ -9986,10 +9991,10 @@ class NebelseetalApp:
         if bool(getattr(self.state, "noob_protection", False)):
             tage = int(getattr(self.state, "day", 1) or 1)
             uebrig = max(0, punkte.goetterschutz_tage() - tage + 1)
-            zeilen.append(("Goetterschutz", "noch %d Tag%s (endet beim ersten Kriegspunkt)" % (
+            zeilen.append(("Götterschutz", "noch %d Tag%s (endet beim ersten Kriegspunkt)" % (
                 uebrig, "" if uebrig == 1 else "e")))
         else:
-            zeilen.append(("Goetterschutz", "beendet — die Welt ist gefährlich"))
+            zeilen.append(("Götterschutz", "beendet — die Welt ist gefährlich"))
         # 3 Wall
         stufe = int(self.state.wall_stufe_am_ort(ort)) if ort is not None else 0   # Spielstand rechnet
         if stufe > 0:
@@ -10009,8 +10014,13 @@ class NebelseetalApp:
             rahmen.grid_columnconfigure(spalte, weight=1)
             tk.Label(feld, text=kopf.upper(), fg=self.skin["gold"], bg=self.skin["panel"],
                      font=("Arial", 9, "bold"), anchor=tk.W).pack(fill=tk.X)
+            # NACHBESSERUNG 11.11.2026 (Daniels Befund B7: "der balken geht rechts ueber den
+            # Hintergrund"): die Umbruchbreite war mit 300 px je Feld fest und breiter als die
+            # Spalte, die das Raster vergibt - der Inhalt drueckte den Rahmen nach rechts hinaus.
+            # Jetzt bricht der Text in seiner Spalte um, und das Feld darf mitschrumpfen.
             tk.Label(feld, text=text, fg=self.skin["text"], bg=self.skin["panel"],
-                     font=("Arial", 11), anchor=tk.W, justify=tk.LEFT, wraplength=300).pack(fill=tk.X)
+                     font=("Arial", 10), anchor=tk.W, justify=tk.LEFT,
+                     wraplength=230).pack(fill=tk.X)
         return rahmen
 
     def _render_overview(self):
@@ -12654,27 +12664,23 @@ class NebelseetalApp:
         # T6 (11.11.2026): Breite bis zum Rand (gemessene Inhaltsbreite), Hoehe gedeckelt und bei
         # Bedarf mittig beschnitten - die frueher benutzte `_kopfband_masse` bleibt fuer schmale
         # Fenster erhalten, entscheidet hier aber nicht mehr allein.
-        ziel_b, ziel_h, beschneiden = self._kopfband_ziele(self._spaltenbreite())
+        # NACHBESSERUNG 11.11.2026 (Daniels Befund B6 in V_0.0.4: "Nein ... geht nicht bis zum
+        # rechten Rand"): ich hatte hier `self._spaltenbreite()` uebergeben - das ist die
+        # TEXTSPALTE und sie ist in `_textbreite` auf 780 px GEDECKELT. Damit blieb das Band bei
+        # genau 780 stehen, egal wie breit das Fenster war (gemessen: Gemessene Spalte 1037,
+        # Textbreite 780, Band 780). Gefragt ist die gemessene Inhaltsbreite.
+        _breite_ist = 0
+        try:
+            _breite_ist = int(self.content_canvas.winfo_width())        # gemessene Inhaltsbreite
+        except Exception:                                               # kein Canvas (Pruef-App)
+            _breite_ist = 0
+        # NACHBESSERUNG 11.11.2026: beim ERSTEN Aufbau ist das Inhaltsfenster noch nicht vermessen
+        # (Breite 1). Dann bleibt das Band zunaechst in Originalgroesse stehen, und
+        # `_kopfband_nachziehen` baut es kurz danach in der echten Breite - sonst bliebe es fuer
+        # immer bei 780 px, wie Daniel es in V_0.0.4 gesehen hat.
+        ziel_b, ziel_h, beschneiden = self._kopfband_ziele(_breite_ist or self._spaltenbreite())
         ziel = (int(ziel_b), int(ziel_h))                                # (Breite, Hoehe) des Bandes
-        bild = None                                                      # Vorgabe: kein Bild
-        if os.path.exists(pfad):                                         # Datei vorhanden?
-            try:
-                if (int(ziel[0]), int(ziel[1])) != (int(breite), int(hoehe)):   # andere Groesse
-                    from PIL import Image, ImageTk                        # nur hier importieren
-                    roh = Image.open(pfad).convert("RGB")                 # PNG oeffnen
-                    natur_h = max(1, int(round(roh.height * ziel[0] / float(roh.width))))  # Verhaeltnis
-                    roh = roh.resize((int(ziel[0]), natur_h), Image.LANCZOS)   # auf die Zielbreite
-                    if beschneiden and natur_h > int(ziel[1]):            # Hoehe gedeckelt
-                        oben = (natur_h - int(ziel[1])) // 2              # mittig zuschneiden
-                        roh = roh.crop((0, oben, int(ziel[0]), oben + int(ziel[1])))
-                    bild = ImageTk.PhotoImage(roh)                        # Tk-Grafik daraus
-                else:                                                     # Spalte breit genug
-                    bild = tk.PhotoImage(file=pfad)                       # Tk liest PNG direkt
-            except Exception:                                            # kein Pillow / kaputte Datei
-                try:
-                    bild = tk.PhotoImage(file=pfad)                       # dann in Originalgroesse
-                except Exception:                                        # Datei unlesbar
-                    bild = None                                           # dann bleibt der leere Platz
+        bild = self._kopfband_bild(int(ziel[0]), int(ziel[1]), bool(beschneiden))
         traeger = tk.Frame(eltern, bg=self.skin["bg"], bd=0, highlightthickness=0)  # randlos
         traeger.pack(anchor=tk.W, padx=10, pady=(6, 0))                  # ueber dem Titel
         if bild is not None:                                            # Bild da
@@ -12691,7 +12697,90 @@ class NebelseetalApp:
             self.portal_kopfband = None
         self.portal_kopfleiste = flaeche                                 # EINE Stelle fuer die Wache
         self.portal_kopfband_masse = (int(ziel[0]), int(ziel[1]))        # gezeigte Masse (Wache)
+        self._kopfband_breite = int(_breite_ist or 0)                    # zuletzt gebaute Breite
+        self.root.after(80, self._kopfband_nachziehen)                   # nach dem Layout nachziehen
+        try:                                                              # und bei jeder Breitenaenderung
+            self.content_canvas.bind("<Configure>", lambda _e: self._kopfband_nachziehen(), add="+")
+        except Exception:                                                 # noqa: BLE001
+            pass
         return bild
+
+    def _kopfband_bild(self, ziel_b: int, ziel_h: int, beschneiden: bool):
+        """Das Kopfband in Zielgroesse bauen (T6, Nachbesserung 11.11.2026).
+
+        Eigene Methode, weil das Band ZWEIMAL gebaut wird: beim ersten Aufbau der Ansicht und kurz
+        danach noch einmal, wenn das Inhaltsfenster wirklich vermessen ist (`_kopfband_nachziehen`).
+        Ohne Pillow oder ohne Datei kommt None zurueck - dann bleibt der leere Platz.
+        """
+        breite, hoehe = PORTAL_KOPFBAND_MASSE                            # 780 x 150 (EINE Quelle)
+        pfad = _bild_pfad(PORTAL_KOPFBAND)                               # Pfad ueber die Projektwurzel
+        if not os.path.exists(pfad):                                     # Datei fehlt
+            return None
+        if (int(ziel_b), int(ziel_h)) == (int(breite), int(hoehe)):      # Originalgroesse
+            try:
+                return tk.PhotoImage(file=pfad)                          # Tk liest PNG direkt
+            except Exception:                                            # noqa: BLE001
+                return None
+        try:
+            from PIL import Image, ImageTk                                # nur hier importieren
+            roh = Image.open(pfad).convert("RGB")                         # PNG oeffnen
+            natur_h = max(1, int(round(roh.height * int(ziel_b) / float(roh.width))))  # Verhaeltnis
+            roh = roh.resize((int(ziel_b), natur_h), Image.LANCZOS)        # auf die Zielbreite
+            if beschneiden and natur_h > int(ziel_h):                     # Hoehe gedeckelt
+                oben = (natur_h - int(ziel_h)) // 2                       # mittig zuschneiden
+                roh = roh.crop((0, oben, int(ziel_b), oben + int(ziel_h)))
+            return ImageTk.PhotoImage(roh)                                # Tk-Grafik daraus
+        except Exception:                                                 # noqa: BLE001
+            try:
+                return tk.PhotoImage(file=pfad)                           # Rueckfall Originalgroesse
+            except Exception:                                             # noqa: BLE001
+                return None
+
+    def _kopfband_nachziehen(self):
+        """Das Kopfband auf die ECHTE Fensterbreite bringen (Befund B6 in V_0.0.4).
+
+        Beim Aufbau der Portal-Ansicht ist `content_canvas` oft noch nicht vermessen; das Band
+        stand dann fest bei 780 px, obwohl rechts noch Platz war (gemessen: Inhaltsbreite 1037,
+        Band 780). Hier wird es nach dem Layout einmal neu gebaut - und bei jeder deutlichen
+        Breitenaenderung wieder (Schwelle 40 px, damit ein Fensterziehen nicht bei jedem Pixel
+        ein Bild kostet).
+        """
+        flaeche = getattr(self, "portal_kopfleiste", None)                # die Bildflaeche
+        if flaeche is None or not hasattr(flaeche, "configure"):          # kein Bild (leerer Platz)
+            return
+        try:
+            if not flaeche.winfo_exists():                                # Ansicht schon gewechselt
+                return
+            breite_ist = int(self.content_canvas.winfo_width())           # gemessene Inhaltsbreite
+        except Exception:                                                 # noqa: BLE001
+            return
+        if breite_ist < 120:                                              # noch nicht vermessen
+            # Beim ersten Aufbau ist das Fenster noch nicht vermessen (Breite 1) - dann NICHT
+            # aufgeben, sondern kurz warten. Ohne diesen Nachlauf blieb das Band fuer immer bei
+            # 780 px (V_0.0.4, Daniels Befund B6): der erste Versuch lief ins Leere, und niemand
+            # kam wieder. Hoechstens 20 Versuche, damit kein Dauerlauf entsteht.
+            versuche = int(getattr(self, "_kopfband_versuche", 0) or 0)
+            if versuche < 20 and self.root is not None:
+                self._kopfband_versuche = versuche + 1
+                self.root.after(100, self._kopfband_nachziehen)
+            return
+        self._kopfband_versuche = 0                                       # vermessen: Zaehler zurueck
+        gemerkt = int(getattr(self, "_kopfband_breite", 0) or 0)          # zuletzt gebaute Breite
+        if abs(breite_ist - gemerkt) < 40:                                # praktisch unveraendert
+            return
+        ziel_b, ziel_h, beschneiden = self._kopfband_ziele(breite_ist)    # dasselbe Rechenwerk
+        bild = self._kopfband_bild(int(ziel_b), int(ziel_h), bool(beschneiden))
+        if bild is None:                                                  # kein Bild moeglich
+            return
+        try:
+            flaeche.configure(image=bild)                                 # neues Bild einsetzen
+        except tk.TclError:                                               # Flaeche weg
+            return
+        flaeche.image = bild                                              # Referenz halten
+        flaeche.bild = bild
+        self.portal_kopfband = bild                                       # und am Fenster
+        self.portal_kopfband_masse = (int(ziel_b), int(ziel_h))           # Masse fuer die Wache
+        self._kopfband_breite = breite_ist                                # gebaute Breite merken
 
     def _kartenrahmen_bauen(self, eltern, breite: int, hoehe: int):
         """Ein gemalter Rahmen um das Gelaendekaestchen (Daniel 03.11.2026: "Rahmen als Bildleiste").

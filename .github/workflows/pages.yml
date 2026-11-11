@@ -1,0 +1,69 @@
+name: Besucherseite
+
+# Die Startseite (index.html) auf GitHub Pages bringen - ohne Jekyll.
+#
+# WARUM DIESER WORKFLOW (11.11.2026, Register 452): Pages stand auf "Deploy from a branch"
+# (legacy). Der Build lief zweimal mit "Page build failed" auf (20:28 und 20:29 UTC, direkt nach
+# dem Commit der neuen index.html), danach stand er stundenlang auf "building" und die Adresse
+# lieferte weiter die alte Fassung (9.972 Byte, Last-Modified 17:46 UTC), obwohl die Datei im Repo
+# lag (10.226 Byte). `.nojekyll` allein half nicht. Dieser Workflow kopiert nur die vier Dinge, die
+# die Seite wirklich braucht, und laedt sie als Pages-Artefakt hoch - kein Ruby, kein Jekyll.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "CHRONIK_DER_WELT.md"
+      - "assets/bilder/logo_nebelseetal_klein.webp"
+      - "assets/icons/wappen/wappen_0*.png"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  bauen:
+    name: Seite zusammenstellen
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repo holen
+        uses: actions/checkout@v4
+
+      - name: Nur die Seitendateien nach _site kopieren
+        run: |
+          set -e
+          mkdir -p _site/assets/bilder _site/assets/icons/wappen
+          cp index.html _site/
+          cp .nojekyll _site/ 2>/dev/null || true
+          cp CHRONIK_DER_WELT.md _site/
+          cp assets/bilder/logo_nebelseetal_klein.webp _site/assets/bilder/
+          cp assets/icons/wappen/wappen_0*.png _site/assets/icons/wappen/
+          echo "--- Inhalte von _site ---"
+          find _site -type f | sort
+          echo "--- Groesse gesamt ---"
+          du -sh _site
+
+      - name: Pages-Artefakt hochladen
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  ausliefern:
+    name: Ausliefern
+    needs: bauen
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.ausliefern.outputs.page_url }}
+    steps:
+      - name: Auf Pages stellen
+        id: ausliefern
+        uses: actions/deploy-pages@v4
