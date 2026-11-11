@@ -424,7 +424,23 @@ def fuehre_schlacht(angreifer: Dict[str, int], verteidiger: Dict[str, int],
             logs.append(f"{u['name']} überrannt: {'gefallen' if u['tot'] else 'entkommen'}")
 
     if ausgang == "angreifer":
-        result["beute"] = _beute(geraet, vorraete, beute_faktor)
+        # K1 (Gesamtaudit 11.11.2026, Register 399): hier stand `result["beute"] = _beute(...)`.
+        # Das war eine ZWEITE Beutezahl neben der gebuchten: `_beute` kennt nur die Ladungsgrenze,
+        # die Buchung (`kampfbericht.beute_am_ziel`) staffelt zusaetzlich nach Wallzustand,
+        # ueberlebenden Verteidigern und Vorrat. Gemessen (Handkarren, 100/100): hier 40/40,
+        # gebucht 10/10 - der Bericht nannte Gut, das nie im Lager lag.
+        # Neu: der Kampf rechnet mit DERSELBEN Formel (`kampfbericht.beute_staffel`) und denselben
+        # Eingaben, die der Aufrufer zum Buchen nimmt (Karren, Vorrat, Wallzustand VOR dem Kampf,
+        # Staerke des Verteidigers, Forschung). Damit sagen Bericht und Buchung dieselbe Zahl.
+        # `_beute` bleibt als reine Kapazitaetsrechnung stehen (eigene Wache in `test_boni`).
+        import kampfbericht as _KB                                    # kein Zyklus: kampfbericht kennt kampf nicht
+        beute_jetzt = _KB.beute_staffel(
+            dict(geraet or {}), dict(vorraete or {}),
+            wall_zustand_vor=wall_zustand,
+            verteidiger_uebrig=sum(max(0, int(v)) for v in (verteidiger or {}).values()),
+            forschung=forschung_angreifer)
+        if beute_jetzt:
+            result["beute"] = dict(beute_jetzt)
         ent, verl = _sieggeraete(verteidiger_karren, nahkampf_sequenzen, rng)
         if verteidiger_karren:
             result["geraete_erhalten_verteidiger"] = ent

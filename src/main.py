@@ -5915,7 +5915,8 @@ class GameState:
     # ---------------- W7: Auftraege (Missionen) ----------------
 
     def auftrag_starten(self, art: str, mitgenommene: dict, von: str, nach, entfernung: float,
-                        fracht: dict = None, ziel_zusatz: dict = None, quelle_id: str = None):
+                        fracht: dict = None, ziel_zusatz: dict = None, quelle_id: str = None,
+                        drosselung_prozent: float = 0.0):
         """Einen Auftrag starten. Rueckgabe (ok, Meldung).
 
         Quelle ist das **ORTSHEER** der Siedlung ``quelle_id`` (F-01/F-09 der externen
@@ -5957,8 +5958,14 @@ class GameState:
         # Faktor gilt fuer die ZEIT (1/1,05) - dieselbe Groesse, die die Anzeige nennt.
         _volk_reise = str(getattr(quelle, "volk", "")
                           or getattr(self, "spieler_fraktion", "") or "")
+        # G8 (Daniel 11.11.2026, Register 392: "Im Dialog Auftrag anlegen als Prozentwahl neben dem
+        # Ziel"): die Drosselung reist bis hier durch und geht an DIESELBE Stelle, die Reisezeit und
+        # Missionskosten rechnet (`auftraege.starten` -> `reisezeit_sekunden`,
+        # `kosten_der_mission`). Belegt (Handbuch S. 20): in 10-Prozent-Schritten; langsamer ist
+        # billiger. Ohne Angabe bleibt es bei 0 - kein Auftrag aendert sich still.
         ok, meldung = auftraege.starten(self.auftraege, art, bestand, von, ziel,
                                         float(entfernung), float(self.spielsekunden), fracht,
+                                        drosselung_prozent=float(drosselung_prozent or 0.0),
                                         forschung=self.forschungs_stufen(),
                                         reise_faktor=boni.reisezeitfaktor(_volk_reise))
         if not ok:
@@ -9945,6 +9952,59 @@ class NebelseetalApp:
         except Exception:                                                 # schon zerstoert
             pass                                                          # dann nichts tun
 
+    def lage_band_texte(self) -> list:
+        """Die drei Zeilen des Lage-Bands - EINE Stelle fuer Text und Anzeige (T7, 11.11.2026).
+
+        Daniels Befund (Bogen B07/B11, Register 421-424): Forschung ist »total unscheinbar und
+        klein, obwohl es ABSOLUT WICHTIG ist«, der Goetterschutz »nicht auffaellig genug« und der
+        Wallbau »noch viel zu unscheinbar designed«. Hier werden die drei Zustaende gesammelt -
+        gerechnet wird NICHTS neu: Forschung aus `ort.forschungsauftrag`, Schutz aus
+        `state.noob_protection` und der Tageslaenge, Wall aus `wall_stufe_am_ort`.
+        Rueckgabe: [(Ueberschrift, Text)] in fester Reihenfolge.
+        """
+        zeilen = []
+        ort = self.state.aktive_siedlung()
+        # 1 Forschung
+        auftrag = dict((getattr(ort, "forschungsauftrag", None) or {})) if ort is not None else {}
+        if auftrag:
+            rest = float(auftrag.get("startzeit", 0.0)) + float(auftrag.get("dauer_stunden", 0)) * 3600.0 \
+                - float(self.state.spielsekunden)
+            stunden, minuten = divmod(max(0, int(rest // 60)), 60)
+            zeilen.append(("Forschung", "%s auf Stufe %s - noch %d:%02d h" % (
+                auftrag.get("gebiet") or "?", auftrag.get("zielstufe") or "?", stunden, minuten)))
+        else:
+            zeilen.append(("Forschung", "keine laeuft - die Bibliothek wartet (Menue »Forschung«)"))
+        # 2 Goetterschutz
+        if bool(getattr(self.state, "noob_protection", False)):
+            tage = int(getattr(self.state, "day", 1) or 1)
+            uebrig = max(0, punkte.goetterschutz_tage() - tage + 1)
+            zeilen.append(("Goetterschutz", "noch %d Tag%s (endet beim ersten Kriegspunkt)" % (
+                uebrig, "" if uebrig == 1 else "e")))
+        else:
+            zeilen.append(("Goetterschutz", "beendet - die Welt ist gefaehrlich"))
+        # 3 Wall
+        stufe = int(self.state.wall_stufe_am_ort(ort)) if ort is not None else 0   # Spielstand rechnet
+        if stufe > 0:
+            zeilen.append(("Wallbau", "Stufe %d steht - hoeher bauen: Siedlungskarte, Verteidigungswall" % stufe))
+        else:
+            zeilen.append(("Wallbau", "noch keine Mauer - Siedlungskarte, Verteidigungswall"))
+        return zeilen
+
+    def _lage_band(self):
+        """Das Lage-Band im Dorfzentrum: drei grosse Felder fuer Forschung, Schutz und Wall (T7)."""
+        rahmen = tk.Frame(self.content, bg=self.skin["panel"],
+                          highlightbackground=self.skin["gold"], highlightthickness=1)
+        rahmen.pack(fill=tk.X, padx=10, pady=(2, 4))
+        for spalte, (kopf, text) in enumerate(self.lage_band_texte()):
+            feld = tk.Frame(rahmen, bg=self.skin["panel"])
+            feld.grid(row=0, column=spalte, sticky="nsew", padx=6, pady=4)
+            rahmen.grid_columnconfigure(spalte, weight=1)
+            tk.Label(feld, text=kopf.upper(), fg=self.skin["gold"], bg=self.skin["panel"],
+                     font=("Arial", 9, "bold"), anchor=tk.W).pack(fill=tk.X)
+            tk.Label(feld, text=text, fg=self.skin["text"], bg=self.skin["panel"],
+                     font=("Arial", 11), anchor=tk.W, justify=tk.LEFT, wraplength=300).pack(fill=tk.X)
+        return rahmen
+
     def _render_overview(self):
         # B-6 (02.11.2026, Vorgabe Daniel): das gemalte Dorfzentrum ist der HINTERGRUND der ganzen
         # Ansicht - die Texte liegen als deckende Felder darueber, dazwischen bleibt das Bild sichtbar.
@@ -9955,6 +10015,9 @@ class NebelseetalApp:
         # dunklen Balken - Daniel: "die texte und ihre textfelder ... noch keine schoenen uebergaenge".
         self._kasten_label("Dorfzentrum", ("Blackletter", 20, "bold"), self.skin["gold"],
                            innen=14, pady=6)
+        # T7 (Daniel 11.11.2026, Bogen B07/B11): Forschung, Goetterschutz und Wallbau stehen ab
+        # jetzt als eigene, grosse Zeile unter dem Titel - vorher waren sie in Fliesstext versteckt.
+        self._lage_band()
         # Register 222 (05.11.2026): Volk und Karte werden NICHT mehr im Dorfzentrum
         # gewaehlt - dafuer gibt es die Kartengruendungsseite (Startfenster). Die
         # Darstellung ist mit dem Schnitt umgezogen (`_volk_wahl_zeilen`,
@@ -14036,7 +14099,8 @@ class NebelseetalApp:
                                  verteidiger_karren=None, vorrat_ziel=None,
                                  entfernung: float = None,
                                  truppen: Optional[dict] = None,
-                                 dorf_name: str = "", drache_id: str = "") -> bool:
+                                 dorf_name: str = "", drache_id: str = "",
+                                 drosselung_prozent: float = 0.0) -> bool:
         """DER EINE Angriffsweg: ein Auftrag mit Marsch (Entscheidung 1, Daniel 01.11.2026).
 
         Entscheidung 1 lautet: jeder Angriff REIST. Der Sofortpfad ohne Reisezeit ist damit
@@ -14124,7 +14188,8 @@ class NebelseetalApp:
                 self._log(_bruch_text)                             # Statuszeile
         ok, meldung = self.state.auftrag_starten(
             "angreifen", truppen, von, ziel,
-            float(entfernung), quelle_id=(str(getattr(ort, "id", "") or "") or None))
+            float(entfernung), quelle_id=(str(getattr(ort, "id", "") or "") or None),
+            drosselung_prozent=float(drosselung_prozent or 0.0))     # G8: Prozentwahl aus dem Dialog
         text = meldung if ok else f"Angriff nicht gestartet: {meldung}"
         self.state.messages.append({"text": text, "type": "auftrag" if ok else "kampf"})
         if hasattr(self, "content"):
@@ -14376,6 +14441,17 @@ class NebelseetalApp:
                            "Angriff: alle Einheiten des Dorfes dürfen mitreisen. Karren tragen die Beute."),
                      fg="#C0C0C0", bg=farbe, wraplength=520,
                      justify=tk.LEFT).pack(anchor=tk.W, pady=(0, 6))
+            # G8 (Daniel 11.11.2026, Register 392): die Drosselung steht als Prozentwahl NEBEN dem
+            # Ziel - hier oben im Dialog, nicht im Kern versteckt. Belegt (Handbuch S. 20): die
+            # Geschwindigkeit ist in 10-Prozent-Schritten drosselbar; langsamer reisen ist billiger.
+            drossel_var = tk.StringVar(value="0 %")                    # Vorgabe: ungedrosselt
+            if not spion:                                              # Spionage kennt keine Drosselung
+                drossel_zeile = tk.Frame(inhalt, bg=farbe)
+                drossel_zeile.pack(anchor=tk.W, pady=(0, 6))
+                tk.Label(drossel_zeile, text="Drosselung (langsamer reisen ist billiger):",
+                         fg=self.skin["gold"], bg=farbe).pack(side=tk.LEFT, padx=(0, 8))
+                tk.OptionMenu(drossel_zeile, drossel_var,
+                              *[f"{p} %" for p in range(0, 100, 10)]).pack(side=tk.LEFT)
             felder = {}                                                # Einheit -> (Variable, Bestand)
             if not waehlbar:                                           # nichts auswaehlbar
                 tk.Label(inhalt,
@@ -14414,6 +14490,9 @@ class NebelseetalApp:
                         spionage.aufklaerungswert(werte))
                 else:
                     text = "Einheiten in der Auswahl: %d" % sum(werte.values())
+                    if drossel_var.get() != "0 %":                     # gewaehlte Drosselung nennen
+                        text += " · gedrosselt auf %s (Reise dauert länger, kostet weniger Gold)" % (
+                            drossel_var.get())
                 hinweis.config(text=text)
                 return text
 
@@ -14432,11 +14511,16 @@ class NebelseetalApp:
                 else:                                                  # Angriff: Marsch wie immer
                     entfernung = float(max(1, abs(int(ort.x) - int(dorf.x))
                                            + abs(int(ort.y) - int(dorf.y))))
+                    try:                                       # "40 %" -> 40.0
+                        _drossel = float(str(drossel_var.get()).replace("%", "").strip() or 0)
+                    except ValueError:
+                        _drossel = 0.0
                     ok = self._angriff_auftrag_starten(str(dorf.name), dict(bot.army or {}),
                                                        wall_stufe=int(dorf.wall_stufe),
                                                        wall_zustand=float(dorf.wall_zustand),
                                                        vorrat_ziel=bot, entfernung=entfernung,
-                                                       truppen=werte, dorf_name=str(dorf.name))
+                                                       truppen=werte, dorf_name=str(dorf.name),
+                                                       drosselung_prozent=_drossel)
                     meldung = ("Angriff auf %s gestartet." % dorf.name if ok
                                else "Angriff nicht gestartet.")
                 self.state.messages.append({"text": meldung, "type": "auftrag" if ok else "kampf"})
@@ -14560,6 +14644,17 @@ class NebelseetalApp:
                                    "tragen die Beute - ohne sie bleibt sie beim Drachen liegen."),
                      fg="#C0C0C0", bg=farbe, wraplength=520,
                      justify=tk.LEFT).pack(anchor=tk.W, pady=(0, 6))   # der Hinweis
+            # G8 (Daniel 11.11.2026, Register 392): die Drosselung steht als Prozentwahl NEBEN dem
+            # Ziel - hier oben im Dialog, nicht im Kern versteckt. Belegt (Handbuch S. 20): die
+            # Geschwindigkeit ist in 10-Prozent-Schritten drosselbar; langsamer reisen ist billiger.
+            drossel_var = tk.StringVar(value="0 %")                    # Vorgabe: ungedrosselt
+            if not spion:                                              # Spionage kennt keine Drosselung
+                drossel_zeile = tk.Frame(inhalt, bg=farbe)
+                drossel_zeile.pack(anchor=tk.W, pady=(0, 6))
+                tk.Label(drossel_zeile, text="Drosselung (langsamer reisen ist billiger):",
+                         fg=self.skin["gold"], bg=farbe).pack(side=tk.LEFT, padx=(0, 8))
+                tk.OptionMenu(drossel_zeile, drossel_var,
+                              *[f"{p} %" for p in range(0, 100, 10)]).pack(side=tk.LEFT)
             felder = {}                                                # Einheit -> (Variable, Bestand)
             if not bestand:                                            # nichts auswaehlbar
                 tk.Label(inhalt, text="Keine Einheiten im Dorf.", fg="#E5A0A0", bg=farbe,
@@ -15140,7 +15235,7 @@ class NebelseetalApp:
         # gebaut und NIE benutzt, und "Truppen" zaehlte nur diesen Reichsbestand - Einheiten in
         # den Siedlungen und unterwegs fehlten, die Ruhmeshalle zaehlte also zu wenig. Jetzt
         # kommt die Zahl aus DERSELBEN Quelle wie der Punktestand: `alle_einheiten()`.
-        einheiten = self.alle_einheiten()
+        einheiten = self.state.alle_einheiten()      # der Spielstand fuehrt die Summe, nicht die App
         wall_stufe = self.state.punktestand()["wall_stufe"]
         total_units = sum(int(v) for v in einheiten.values())
         tk.Label(self.content, text="Ruhmeshalle", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
@@ -15301,9 +15396,21 @@ class NebelseetalApp:
                  justify=tk.LEFT).pack(anchor=tk.W, padx=6)
         if not siedlung.mauer_besetzt:
             preis = kosten_text(baukosten("verteidigungswall"))        # Preis aus der Baukasse
-            tk.Button(eltern, text="Wall errichten / Wache besetzen (%s)" % preis,
-                      command=self._karten_wall_errichten, bg=self.skin["button"],
-                      fg=self.skin["gold"]).pack(anchor=tk.W, padx=6, pady=(2, 4))
+            # U3 (Gesamtaudit 11.11.2026, Register 399): der Knopf war hell, der Klick brach aber
+            # mit "Zuerst Verteidigungsanlagen erforschen." ab. Gefragt wird jetzt DIESELBE Stelle
+            # wie im Kern (`dorfwall.forschungsstand`), und der Grund steht als Zeile daneben -
+            # ein Knopf, der nicht kann, sieht auch so aus.
+            _forschungsstand = dorfwall.forschungsstand(self.state.research)
+            _wall_knopf = tk.Button(eltern, text="Wall errichten / Wache besetzen (%s)" % preis,
+                                    command=self._karten_wall_errichten, bg=self.skin["button"],
+                                    fg=self.skin["gold"])
+            if _forschungsstand < 1:                                # Bedingung fehlt
+                _wall_knopf.config(state=tk.DISABLED, disabledforeground="#8a8a8a")
+            _wall_knopf.pack(anchor=tk.W, padx=6, pady=(2, 4))
+            if _forschungsstand < 1:                                # Grund daneben nennen
+                tk.Label(eltern, text="Gesperrt: zuerst »Verteidigungsanlagen« erforschen.",
+                         fg="#FDBA74", bg=self.skin["panel"], justify=tk.LEFT,
+                         wraplength=310).pack(anchor=tk.W, padx=6, pady=(0, 4))
         if dorfwall.kennwerte(siedlung, self.state.research)["stufe"]:
             self._mauer_reparatur_block(eltern, siedlung)              # S2: Reparatur anzeigen
 
@@ -15789,7 +15896,12 @@ class NebelseetalApp:
         # Spielsekunden (`spieloekonomie.forschung_start`/`forschung_abschluss`).
         laufend = forschung.fortschritt(stand, self.state.spielsekunden)
         # Eine Quelle fuer Sperren, Begruendungen und Freischaltungen (forschungspfad).
-        _bib = gebaeude_wirkung.bibliothek_stufe(self.state.settlements)
+        # U2 (Gesamtaudit 11.11.2026, Register 399): hier wurden die Bibliotheken ALLER Doerfer
+        # gezaehlt, waehrend der Klick in `_start_research` nur die Bibliothek VOR ORT prueft -
+        # die Ansicht versprach also eine Forschung, die der Kern dann ablehnte. Gefragt wird jetzt
+        # dieselbe Stelle mit derselben Eingabe: die aktive Siedlung.
+        _ort_forschung = self.state.aktive_siedlung()
+        _bib = gebaeude_wirkung.bibliothek_stufe([_ort_forschung] if _ort_forschung is not None else [])
         _stufen = {k: v.level for k, v in self.state.research.items()}
         for key, r in self.state.research.items():
             frame = tk.Frame(self.content, bg=self.skin["panel"])

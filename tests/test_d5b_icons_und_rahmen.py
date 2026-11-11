@@ -134,11 +134,21 @@ if teile:
     check("2 der Rand ist das uebergebene Band, nicht ein Viertel der Kante",
           teile["rand"] == 14, str(teile["rand"]))
     if kopf:
+        # ENTSCHEIDUNG GEAENDERT (11.11.2026, T5 - dieselbe Umstellung wie in
+        # tests/test_weltkarte_rahmen.py): die Originalecke traegt einen Bogen von rund 30 px, der
+        # in das Kachelraster hineinlief (Daniels Befund C10). Die Ecke kommt jetzt aus dem GERADEN
+        # Kantenstueck und ist rechtwinklig - sie ist damit absichtlich nicht mehr pixelgleich mit
+        # der Bogen-Ecke der Datei. Geprueft wird stattdessen, dass die Ecke so deckend ist wie das
+        # Band (kein Bogen) und dass das Fenster ein Rechteck bleibt.
         from PIL import Image  # noqa: E402
-        _quelle = Image.open(rahmen_pfad).convert("RGBA")
-        check("2 die linke obere Ecke ist pixelgleich mit der Datei",
-              list(teile["oben"].crop((0, 0, 14, 14)).getdata())
-              == list(_quelle.crop((0, 0, 14, 14)).getdata()), "")
+        _alpha = teile["oben"].convert("RGBA").split()[3]
+        _ecke = _alpha.crop((0, 0, 14, 14))
+        _band = _alpha.crop((14, 0, 28, 14))
+        _leer_ecke = sum(1 for a in _ecke.getdata() if a < 8)
+        _leer_band = sum(1 for a in _band.getdata() if a < 8)
+        check("2 die linke obere Ecke ist rechtwinklig (so deckend wie das Band, kein Bogen)",
+              _leer_ecke <= _leer_band + 4,
+              "Ecke %d, Band %d fast durchsichtige Pixel" % (_leer_ecke, _leer_band))
 check("2 zu kleine Masse liefern ein leeres dict (kein Absturz)",
       G.rahmen_kanten(RAHMEN, 20, 20, 14) == {}, "")
 

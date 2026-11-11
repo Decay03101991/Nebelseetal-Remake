@@ -40,7 +40,12 @@ except Exception:              # noqa: BLE001 - ohne Pillow gibt es keine Leiste
     Image = None
     _pil = False
 
-DATEN = dict(main.RESSOURCENLEISTE)
+# UMGESTELLT 11.11.2026 (T2): die Leiste wird seit Daniels Befund D3 GEZEICHNET (elf Zellen,
+# Name plus Zahl). Das gemalte Bild ist nicht mehr die Anzeige - seine Rechenwege
+# (`leisten_zusammensetzen`, `_leisten_stuecke`) stehen aber weiter im Code und in der
+# Datendatei unter `_altes_bild`. Diese Wache prueft genau diesen Rueckfall, damit die alten
+# Grenzen nicht unbemerkt verrotten; die Anzeige selbst prueft `test_ressourcenleiste`.
+DATEN = dict(main.RESSOURCENLEISTE.get("_altes_bild") or {})
 FELDER = [f for f in (DATEN.get("felder") or []) if f.get("x") is not None]
 
 

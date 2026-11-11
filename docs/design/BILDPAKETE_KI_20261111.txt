@@ -1,0 +1,119 @@
+﻿BILDPAKETE FUER NEBELSEETAL - TIPPS UND PROMPTS
+Stand 11.11.2026, fuer Daniel Koessl
+
+WARUM DIESES BLATT
+Du willst Burgen, Wappen, Banner und Gebaeudebilder neu - einheitlich, selbst gemacht, im Stil
+von Chris' bearbeiteten Panoramen. Dazu der Befund aus deinem Test: auf vielen Bildern wiederholt
+sich dasselbe rote Banner mit dem Werkzeug-Schild, weil es nur ein Symbolsystem gibt und jede
+Kachel es zeigt. Dieses Blatt sagt: welches Programm, welches Paket, welcher Prompt, woran du ein
+gutes Bild erkennst.
+
+1. WELCHES PROGRAMM
+   a) Erste Entwuerfe, kostenlos, ohne Schluessel: Pollinations (https://pollinations.ai).
+      Ein Bild kommt per Adresse, der Prompt steht in der URL. Gut zum Ausprobieren von Formulierungen.
+   b) Endfassungen, kostenlos und lokal: ComfyUI (laeuft auf deinem Rechner, keine Kosten, keine
+      Uebertragung). Fuer den Stil: das eigene Bild als Stilvorlage (IP-Adapter / img2img) nehmen -
+      dann uebernimmt das Modell Licht, Korn und Farbton, nicht die Motive.
+   c) Was NICHT geht: ein gekauftes Abo ohne API. Und: keine Bilder von Chris direkt weiterverwenden,
+      solange seine schriftliche Erlaubnis fehlt. Als STILVORLAGE zum Nacharbeiten ist es etwas
+      anderes als zum Ausliefern - im Zweifel kurz mit ihm sprechen.
+
+2. DIE FARBEN STEHEN SCHON FEST (gemessen, nicht erfunden)
+   Grund dunkles Braunrot  #1a0a09
+   Rahmengold (Chris)      #C68B42
+   Bannerrot (Chris)       #7E301E
+   Ghul-Leuchten (Chris)   #7AAC4D
+   Spiel-Gold              #FFCC33
+   Die Hausfarben stehen in data/haeuser.json und folgen den Wappen:
+   Menschlich  Weinrot und Gold    Zwerge  Nachtblau, Grau und Gold   Elfen  Dunkelgruen und Gold
+   Trolle      Violett, Schwarz und Gold   Ghule  Blau, Silber und Gold   Gnome  Karminrot, Silber und Gold
+   Regel: EIN Bild traegt hoechstens zwei Farben plus Gold. Wer drei mischt, bekommt Matsch.
+
+3. DIE PAKETE (so aufteilen, dass sich nichts wiederholt)
+   Je Fraktion ein Paket mit SECHS Bildern - das ist der Kern gegen die Wiederholung:
+     1 Burg (Weltkarte, 512x512, freigestellt)
+     2 Wappen (Dialoge, 256x256, freigestellt)
+     3 Banner (rot mit hellem Symbol, 96x160, freigestellt) - EINES je Fraktion, nicht je Gebaeude
+     4 Gebaeudekachel A: Wirtschaft (Muehle, Bauernhof, Lager)
+     5 Gebaeudekachel B: Handwerk (Schmiede, Werkstatt)
+     6 Gebaeudekachel C: Wehr (Mauer, Turm, Tor)
+   Dazu EIN gemeinsames Paket fuer alle: acht Gelaendekacheln, vier Wegstuecke, ein Tor.
+   Warum sechs und nicht dreissig: sechs Fraktionen mal sechs Bilder sind 36 Bilder - machbar an
+   zwei Abenden. Jedes weitere Motiv kostet Zeit und macht die Auswahl schwerer.
+
+4. DAS PROMPT-GERUEST (immer dieselbe Reihenfolge)
+   [Motiv] + [Ansicht] + [Licht und Nebel] + [Farben] + [Stil] + [Technik] + [Verbot]
+   Beispiel-Skelett (englisch, weil die Bildmodelle damit besser arbeiten):
+
+   "<MOtiv>, three-quarter front view from slightly above, warm amber light from the front,
+    cool blue fog behind, muted earthy palette dominated by <FARBE 1> and <FARBE 2> with aged
+    gold ornaments, hand-painted 2.5D strategy game asset in the style of a painted medieval
+    fantasy panorama, visible brush texture, soft edges, no background, centered, 512x512"
+
+   Verbot (immer anhängen):
+   "no text, no letters, no numbers, no watermark, no logo, no red tool icon on a shield,
+    no crowd of people, no modern objects, no photorealistic faces, no hard black outlines,
+    no lens flare, no border, no frame"
+
+5. DIE SECHS FRAKTIONEN - fertige Prompts zum Kopieren
+   MENSCHEN (Weinrot und Gold, Krone und Lilie)
+   "a sturdy stone keep with tall square towers, deep wine-red banners with a golden crown,
+    three-quarter front view from slightly above, warm amber light from the front, cool fog behind,
+    muted earthy palette of wine red and old gold, hand-painted 2.5D strategy game asset, soft
+    brush texture, no background, centered, 512x512"
+
+   ZWERGE (Nachtblau, Grau und Gold, Steinturm)
+   "a massive mountain fortress carved into a cliff, one square tower gate, midnight-blue and grey
+    stone with aged gold fittings, three-quarter front view, warm forge light from the gate, cold
+    fog behind, hand-painted 2.5D strategy game asset, soft brush texture, no background, centered"
+
+   ELFEN (Dunkelgruen und Gold, Hirschkopf)
+   "a slender white-and-gold elf citadel grown from living trees, dark green and gold, high arched
+    windows, three-quarter front view, soft dappled light, mist between the trunks, hand-painted
+    2.5D strategy game asset, soft brush texture, no background, centered"
+
+   TROLLE (Violett, Schwarz und Gold, Rabe)
+   "a jagged black fortress on a rock spire, violet torchlight in the windows, a single dark banner
+    with a raven, three-quarter front view, warm violet light from within, cold night fog, hand-
+    painted 2.5D strategy game asset, soft brush texture, no background, centered"
+
+   GHULE (Blau, Silber und Gold, Wolf)
+   "a grim fortress of pale blue stone with silver veining, wolf banners, green ghost lights in the
+    yard, three-quarter front view, cold moonlight, heavy fog, hand-painted 2.5D strategy game
+    asset, soft brush texture, no background, centered"
+
+   GNOME (Karminrot, Silber und Gold, gekreuzte Schwerter)
+   "a crooked but sturdy workshop-town with many small chimneys and red roofs, crimson banners with
+    crossed silver swords, three-quarter front view, warm afternoon light, light haze, hand-painted
+    2.5D strategy game asset, soft brush texture, no background, centered"
+
+6. DAS SYMBOLSYSTEM (gegen die Wiederholung)
+   Ein Symbol gehoert zu EINEM Bereich, nicht zu jedem Bild:
+     Burgturm = Burg und Verteidigung      gekreuzte Haemmer = Bergbau und Steinmetz
+     gekreuzte Aexte = Holzfaehler         AEhre = Farm
+     Schaf und Stierkopf = Tierzucht       Pfote = Jaeger
+     Kreuz = Tempel                        Geldsack = Handel
+     Auge = Magie und Weltensicht          Totenkopf = Ghule
+   Auf einem Bild steht HOECHSTENS EIN Symbol. Das Banner einer Fraktion traegt das Fraktionszeichen,
+   nicht das Bereichszeichen - sonst wiederholt sich alles wieder.
+
+7. WORAN DU EIN BILD ABNAHME-FERTIG ERKENNST (in einer Minute geprueft)
+   - Freigestellt? Der Rand muss durchsichtig sein, keine Kachelkante, kein Rahmen.
+   - Farbe? Der Farbton der groessten Flaeche muss zur Hausfarbe passen (grobes Auge genuegt).
+   - Lesbar in klein? Verkleinere das Bild auf 64 Pixel. Wenn man dann nur noch einen Fleck sieht,
+     ist es zu detailreich fuer die Karte.
+   - Kein Text, keine Werkzeuge auf dem Schild, keine Menschenmenge.
+   - Seitenverhaeltnis: Burg 1:1, Banner 3:5, Kachel 1:1. Verzerrt wird nie, nur beschnitten.
+
+8. REIHENFOLGE FUER DIE ARBEIT
+   1 Sechs Wappen (klein, schnell, und sie geben die Farben vor).
+   2 Sechs Burgen darauf abstimmen - Wappen und Burg muessen dieselbe Tinte tragen.
+   3 Sechs Banner (ein Symbol je Fraktion).
+   4 Achtzehn Gebaeudekacheln, in drei Durchgaengen je Fraktion.
+   5 Erst wenn alles da ist: Dateinamen nach dem Muster <fraktion>_<motiv>.png und ins Projekt.
+   Zwischenschritt: immer die Entwuerfe sammeln und EINEN Bogen daraus drucken, bevor etwas
+   eingebaut wird - sonst stehen sechs Stile nebeneinander.
+
+9. WAS DAS KOSTET
+   Pollinations: nichts. ComfyUI lokal: nichts ausser Rechenzeit (dein Rechner, ein Bild in
+   etwa 20 bis 60 Sekunden). Keine Abos noetig.

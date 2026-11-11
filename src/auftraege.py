@@ -481,6 +481,10 @@ def starten(liste: Optional[List[Dict[str, Any]]], art: str, einheiten: Any,
         "fremd": bool(ziel.get("fremd")),
         "entfernung": entf,
         "geschwindigkeit": gs,
+        # G8 (11.11.2026): die gewaehlte Drosselung steht im Auftrag. Sie steckt schon in Reisezeit
+        # und Kosten - ohne diesen Eintrag koennte die Anzeige aber nicht sagen, WARUM ein Marsch
+        # laenger dauert. 0 heisst ungedrosselt (Vorgabe).
+        "drosselung": min(90.0, max(0.0, _als_zahl(drosselung_prozent))),
         "reisezeit": reisezeit,
         "start": start,
         "ankunft": ankunft,

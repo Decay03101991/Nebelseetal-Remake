@@ -1,150 +1,188 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nebelseetal Remake — Pre-Release V_0.0.3</title>
-<meta name="description" content="Einzelspieler-Remake des historischen Browserspiels Nebelseetal. Windows-Testversion, lokal und offline.">
+<meta name="description" content="Einzelspieler-Remake des historischen Browserspiels Nebelseetal. Windows, offline, kostenlos. Vorabversion V_0.0.3 zum Ausprobieren.">
 <style>
   :root{
-    --papier:#12161c; --papier2:#0b0e12; --gold:#edce87; --kupfer:#945c2b;
-    --stahl:#2a4556; --text:#ece1cb; --leise:#9fb0ba;
+    --grund:#2a0605; --flaeche:#3e1c1a; --leiste:#1a0a09; --knopf:#3e2723; --knopf_hell:#5D4037;
+    --gold:#FFCC33; --zahl:#FFFF99; --text:#F2E3BF; --neben:#C0C0C0; --warn:#ef6b5b;
+    --rand:16px; --mass:8px;
   }
   *{box-sizing:border-box}
-  body{
-    margin:0; background:
-      radial-gradient(140% 60% at 50% -10%, rgba(58,92,112,.55) 0%, rgba(22,26,32,.95) 45%, var(--papier2) 100%);
-    color:var(--text); font-family:Georgia,"Palatino Linotype",serif; line-height:1.65;
+  html,body{margin:0;padding:0}
+  body{background:var(--grund);color:var(--text);font:16px/1.6 Georgia,"Palatino Linotype",serif}
+  .nebel{position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:radial-gradient(1200px 400px at 50% -10%,rgba(122,172,77,.10),transparent 70%),
+               radial-gradient(900px 500px at 10% 110%,rgba(198,139,66,.10),transparent 70%)}
+  .huelle{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 var(--rand)}
+  /* 1 Kopfleiste */
+  header.kopf{display:flex;justify-content:space-between;align-items:baseline;gap:var(--mass);
+    padding:10px 0 8px;border-bottom:3px solid var(--gold)}
+  header.kopf .name{font-size:22px;color:var(--gold);letter-spacing:.5px}
+  header.kopf .stand{font-size:14px;color:var(--neben)}
+  /* 2 Logo */
+  .logo{display:block;margin:14px 0 0;max-width:500px;max-height:140px;width:auto;height:auto}
+  .urheber{font-size:13px;color:var(--neben);margin:5px 0 0}
+  /* 3 der Satz */
+  .satz{font-size:19px;line-height:1.4;color:var(--zahl);margin:12px 0 0;max-width:46em}
+  /* 4 Eckdaten */
+  .eckdaten{display:flex;flex-wrap:wrap;gap:var(--mass);margin:12px 0 0;padding:0;list-style:none}
+  .eckdaten li{background:var(--flaeche);border:1px solid #5a2b26;border-radius:4px;
+    padding:6px 12px;font-size:15px;color:var(--text)}
+  /* 5 Knoepfe */
+  .knoepfe{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0 0}
+  .knopf{display:inline-block;padding:13px 22px;border-radius:4px;font-size:17px;font-weight:700;
+    text-decoration:none;border:2px solid var(--gold);font-family:Arial,Helvetica,sans-serif}
+  .knopf.haupt{background:var(--gold);color:var(--grund)}
+  .knopf.zweit{background:var(--knopf);color:var(--gold)}
+  .knopf:focus-visible{outline:3px solid #fff;outline-offset:2px}
+  /* 6 Haeuser */
+  h2{font-size:20px;color:var(--gold);margin:34px 0 6px;font-weight:700}
+  h2+ .leise{margin-top:0}
+  .leise{font-size:15px;color:var(--neben)}
+  .haeuser{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:14px 0 0;padding:0;list-style:none}
+  .haus{background:var(--flaeche);border:1px solid #5a2b26;border-radius:4px;padding:12px;display:flex;gap:12px}
+  .haus img{width:64px;height:auto;flex:0 0 64px;align-self:flex-start}
+  .haus h3{margin:0 0 2px;font-size:16px;color:var(--zahl);font-family:Arial,Helvetica,sans-serif}
+  .haus .welt{font-size:13px;color:var(--gold);margin:0 0 6px}
+  .haus p{margin:0;font-size:14px;color:var(--text)}
+  /* Kasten Was fehlt */
+  .kasten{background:var(--flaeche);border-left:4px solid var(--warn);border-radius:4px;
+    padding:14px 16px;margin:16px 0 0}
+  .kasten h2{margin:0 0 8px;font-size:18px;color:#ffd7ce}
+  .kasten ul{margin:0;padding-left:20px}
+  .kasten li{margin:4px 0;font-size:15px}
+  /* Zahlen */
+  .zahlen{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0 0;padding:0;list-style:none}
+  .zahlen li{background:var(--leiste);border:1px solid #4a2a1e;border-radius:4px;padding:12px;text-align:center}
+  .zahlen b{display:block;font-size:26px;color:var(--gold);font-family:Arial,Helvetica,sans-serif}
+  .zahlen span{font-size:14px;color:var(--neben)}
+  /* Schritte */
+  ol.schritte{margin:12px 0 0;padding-left:22px}
+  ol.schritte li{margin:6px 0}
+  code{background:var(--leiste);padding:1px 6px;border-radius:3px;font-size:14px;color:var(--zahl)}
+  /* Bildplatz */
+  .bildplatz{border:2px dashed #6b3a33;border-radius:4px;padding:18px;margin:14px 0 0;color:var(--neben);font-size:15px}
+  /* Fuss */
+  footer{margin:44px 0 0;padding:18px 0 40px;border-top:1px solid #5a2b26;font-size:14px;color:var(--neben)}
+  footer a{color:var(--gold)}
+  a{color:var(--gold)}
+  @media (max-width:820px){
+    .haeuser{grid-template-columns:repeat(2,1fr)}
+    .zahlen{grid-template-columns:repeat(2,1fr)}
   }
-  .leiste{height:64px;background:linear-gradient(90deg,#5a3a1c,#8a5a28 30%,#c9a227 50%,#8a5a28 70%,#5a3a1c);
-    border-bottom:2px solid var(--kupfer);box-shadow:0 6px 18px rgba(0,0,0,.6)}
-  main{max-width:900px;margin:0 auto;padding:56px 24px 80px}
-  h1{font-size:44px;font-weight:normal;margin:0 0 6px;letter-spacing:.5px;
-     background:linear-gradient(#f7e6ad,#edce87 45%,#b07f2e);-webkit-background-clip:text;background-clip:text;color:transparent}
-  .unter{color:var(--leise);margin:0 0 36px}
-  h2{font-size:22px;font-weight:normal;color:var(--gold);margin:44px 0 14px;padding-bottom:6px;border-bottom:1px solid rgba(148,92,43,.6)}
-  p{margin:0 0 14px}
-  a{color:var(--gold);text-decoration:none;border-bottom:1px solid rgba(237,206,135,.35)}
-  a:hover{border-bottom-color:var(--gold)}
-  .kasten{border:1px solid rgba(148,92,43,.65);background:rgba(9,13,18,.62);padding:22px 26px;margin:0 0 22px;
-    box-shadow:0 8px 24px rgba(0,0,0,.45)}
-  .knopf{display:inline-block;margin:6px 12px 6px 0;padding:13px 26px;border:1px solid var(--gold);
-    background:linear-gradient(#2a2118,#151a20);color:var(--gold);font-size:17px;border-radius:3px}
-  .knopf:hover{background:linear-gradient(#3a2c1e,#1c232b);border-bottom-color:var(--gold)}
-  ul{padding-left:22px} li{margin:6px 0}
-  .leise{color:var(--leise);font-size:15px}
-  table{width:100%;border-collapse:collapse;margin:0 0 20px}
-  td,th{text-align:left;padding:9px 12px;border-bottom:1px solid rgba(148,92,43,.3);vertical-align:top}
-  th{color:var(--gold);font-weight:normal}
-  footer{margin-top:56px;padding-top:18px;border-top:1px solid rgba(148,92,43,.4);color:#7b8b95;font-size:14px}
-  .logo{display:block;width:100%;height:auto;margin:0 0 10px;filter:drop-shadow(0 10px 28px rgba(0,0,0,.55))}
-  .logo-quelle{color:var(--leise);font-size:14px;margin:0 0 26px}
+  @media (max-width:520px){
+    .haeuser{grid-template-columns:1fr}
+    .satz{font-size:19px}
+    .knoepfe .knopf{width:100%;text-align:center}
+  }
 </style>
 </head>
 <body>
-<div class="leiste"></div>
-<main>
-  <picture>
-    <source srcset="assets/bilder/logo_nebelseetal_klein.webp" type="image/webp">
-    <img src="assets/bilder/logo_nebelseetal_klein.png" alt="Nebelseetal Remake &mdash; Logo" class="logo">
-  </picture>
-  <p class="logo-quelle">Logo: <strong>Chris Fred D&auml;ubner</strong> &middot; entworfen f&uuml;r Daniel K&ouml;ssl</p>
-  <h1>Nebelseetal Remake</h1>
-  <p class="unter">Einzelspieler-Remake des historischen Browserspiels Nebelseetal &middot;
-     Pre-Release <strong>V_0.0.3</strong> (06.11.2026) &middot; Windows, lokal, offline, kostenlos</p>
+<div class="nebel" aria-hidden="true"></div>
+<div class="huelle">
 
-  <div class="kasten">
-    <p><strong>Du bist ein Herrscher in einer zersprungenen Welt.</strong> Sechs Bruchst&uuml;cke treiben im
-    Limbus, verbunden nur durch Portale. Du gr&uuml;ndest Siedlungen, produzierst Rohstoffe, stellst Waren her,
-    forschst, r&uuml;stest aus, bildest Einheiten aus und k&auml;mpfst &mdash; gegen dich spielen f&uuml;nf
-    Nachbarn mit eigener Wirtschaft. Einen Sieg gibt es nicht, sondern Ruhm: vier Auszeichnungen f&uuml;r Krieg,
-    Wissen, Handel und alles zusammen.</p>
-    <p><a class="knopf" href="https://github.com/Decay03101991/Nebelseetal-Remake/releases/tag/v_0.0.3">Testversion herunterladen</a>
-       <a class="knopf" href="https://github.com/Decay03101991/Nebelseetal-Remake">Quellcode ansehen</a></p>
-    <p class="leise">Windows 11 getestet, 64 Bit. ZIP entpacken, <em>Nebelseetal_Remake.exe</em> starten,
-    eigenes Passwort festlegen. Kein Python n&ouml;tig, kein Internet. Eine macOS-Fassung gibt es nicht &mdash;
-    sie m&uuml;sste auf einem Mac gebaut und gepr&uuml;ft werden. Alle Testversionen stehen unter
-    <a href="https://github.com/Decay03101991/Nebelseetal-Remake/releases">Releases</a> (Vorabversionen
-    m&uuml;ssen dort eingeblendet werden).</p>
-  </div>
+<header class="kopf">
+  <span class="name">Nebelseetal</span>
+  <span class="stand">Pre-Release V_0.0.3</span>
+</header>
 
-  <h2>Was dieses Spiel will &mdash; die Vorstellung dahinter</h2>
-  <div class="kasten">
-    <p class="leise">Diese Absicht ist die Richtschnur f&uuml;r jede &Auml;nderung; sie steht ausf&uuml;hrlich in
-    <a href="https://github.com/Decay03101991/Nebelseetal-Remake/blob/main/SPIEL_ERKLAERUNG.md">dieser Erkl&auml;rung</a>.</p>
-    <ul>
-      <li><strong>Das Original bleibt die Wahrheit.</strong> Jede Regel, jede Zahl wird gegen das Handbuch
-      von 2009 und die Vorversion von 2006 gehalten. Was die Quelle nicht hergibt, wird nicht erfunden &mdash;
-      es wird als Vorschlag gekennzeichnet und entschieden.</li>
-      <li><strong>Aufbauen soll sich lohnen, nicht warten.</strong> Der Reiz liegt in Entscheidungen:
-      welches Feld, welche Forschung, welche Ware, welcher Nachbar. Leerlauf ist kein Spielinhalt.</li>
-      <li><strong>Die Nachbarn spielen mit.</strong> F&uuml;nf Herrscher mit eigener Wirtschaft, eigenen
-      D&ouml;rfern, Armeen und Wappen; sie forschen, bauen, rauben und &mdash; in Arbeit &mdash; verhandeln
-      sie: Gunst, Vertr&auml;ge und eine angesagte Rache.</li>
-      <li><strong>Ehrlichkeit vor Vollst&auml;ndigkeit.</strong> Diese Seite nennt, was fehlt. Ein Fehler,
-      der benannt ist, ist besser als eine Funktion, die nur so aussieht, als g&auml;be es sie.</li>
-      <li><strong>Kein Konto, kein Netz, kein Preis.</strong> Ein Ordner, ein Doppelklick, ein eigener
-      Spielstand auf dem eigenen Rechner.</li>
-    </ul>
-  </div>
+<img class="logo" src="assets/bilder/logo_nebelseetal_klein.webp" alt="Nebelseetal — Logo mit dem Schriftzug" width="720" height="339">
+<p class="urheber">Logo: Chris Fred Däubner, für Daniel Kössl entworfen.</p>
 
-  <h2>Was in dieser Vorabversion steckt</h2>
+<p class="satz">Du baust Siedlungen auf, erforschst Handwerk und Kampf, öffnest Portale in sechs Welten
+und handelst mit fünf Nachbarn — in einem Spiel, das auf deinem Rechner läuft, ohne Anmeldung und ohne Netz.</p>
+
+<ul class="eckdaten">
+  <li>Windows 11</li>
+  <li>offline</li>
+  <li>kostenlos</li>
+  <li>rund 102 MB</li>
+</ul>
+
+<div class="knoepfe">
+  <a class="knopf haupt" href="https://github.com/Decay03101991/Nebelseetal-Remake/releases/tag/v_0.0.3">Testversion laden</a>
+  <a class="knopf zweit" href="https://github.com/Decay03101991/Nebelseetal-Remake">Quellcode</a>
+</div>
+
+
+
+<h2>Sechs Häuser, sechs Welten</h2>
+<p class="leise">Jedes Haus hat ein Wappen und eine Heimat — deine Wahl bestimmt, wo du beginnst.</p>
+<ul class="haeuser">
+  <li class="haus"><img src="assets/icons/wappen/wappen_04.png" alt="Wappen Haus Silberbach" width="64" height="90">
+    <div><h3>Haus Silberbach</h3><p class="welt">Menschen · Midgard</p>
+    <p>In Weinrot eine goldene Krone mit roten Rautensteinen, oben eine goldene Lilie.</p></div></li>
+  <li class="haus"><img src="assets/icons/wappen/wappen_05.png" alt="Wappen Haus Hammerhall" width="64" height="99">
+    <div><h3>Haus Hammerhall</h3><p class="welt">Zwerge · Armageddon</p>
+    <p>In Nachtblau ein steinerner Rundturm mit leuchtendem Fenster, goldener Zinnenrahmen.</p></div></li>
+  <li class="haus"><img src="assets/icons/wappen/wappen_03.png" alt="Wappen Haus Sternenwacht" width="64" height="91">
+    <div><h3>Haus Sternenwacht</h3><p class="welt">Elfen · Valhalla</p>
+    <p>In Dunkelgrün ein goldener Hirschkopf, das Geweih über den Schildrand ragend.</p></div></li>
+  <li class="haus"><img src="assets/icons/wappen/wappen_02.png" alt="Wappen Haus Schattenfaust" width="64" height="103">
+    <div><h3>Haus Schattenfaust</h3><p class="welt">Trolle · Utgard</p>
+    <p>In Violett ein schwarzer Rabe auf kahlem Ast vor blassem Vollmond.</p></div></li>
+  <li class="haus"><img src="assets/icons/wappen/wappen_01.png" alt="Wappen Haus Knochenmoor" width="64" height="91">
+    <div><h3>Haus Knochenmoor</h3><p class="welt">Ghule · Ragnarök</p>
+    <p>In Blau ein silberner Wolfskopf mit goldenem Auge über drei Berggipfeln.</p></div></li>
+  <li class="haus"><img src="assets/icons/wappen/wappen_06.png" alt="Wappen Haus Flickwerk" width="64" height="96">
+    <div><h3>Haus Flickwerk</h3><p class="welt">Gnome · Limbus</p>
+    <p>In Karminrot zwei gekreuzte Schwerter, oben ein goldener vierzackiger Stern.</p></div></li>
+</ul>
+
+<div class="kasten">
+  <h2>Was diese Vorabversion nicht ist</h2>
   <ul>
-    <li>Siedlungen gr&uuml;nden und ausbauen, Rohstoffe, Waren, Werkst&auml;tten, Handel</li>
-    <li>21 Forschungen mit Voraussetzungen, Ausr&uuml;stung herstellen, 28 Einheiten ausbilden</li>
-    <li>K&auml;mpfe mit Wall, Schlachten in Sequenzen, Beute und Kriegspunkten</li>
-    <li>f&uuml;nf Nachbarn mit eigener Wirtschaft: sie forschen, bauen, gr&uuml;nden, rauben</li>
-    <li>Portale in andere Welten mit Mana-Kosten je Entfernung</li>
-    <li>die Geschichte der Welt: Intro, sieben Chronikkapitel, sprechende Nachbarn</li>
-    <li>Diplomatie, erste Stufe: jeder Nachbar hat eine Gunst und daraus einen Status
-        (feindselig, wachsam, freundlich) &mdash; Vertr&auml;ge und Rache folgen</li>
+    <li>Kein fertiges Spiel — eine Vorabversion, ohne Kompatibilitätszusage.</li>
+    <li>Kein Ton, keine Musik. Die Oberfläche ist eine Windows-Oberfläche mit Ingame-Fenstern.</li>
+    <li>Nur auf Windows getestet (Windows 11, 64 Bit). Windows 10, ARM und kleine Bildschirme sind ungeprüft.</li>
+    <li>Zwei Kampfregeln sind noch offen: die Fluchtformel und eine Mauerreparatur-Sonderregel aus dem Handbuch.</li>
+    <li>Die Admin-Werkzeuge sind in dieser Fassung gesperrt; sie gehören zur Entwicklerfassung.</li>
+    <li>SmartScreen kann bei unbekanntem Herausgeber warnen. Die Prüfsumme steht in <code>SHA256SUMS.txt</code> im ZIP.</li>
   </ul>
+</div>
 
-  <h2>Was noch fehlt &mdash; ehrlich</h2>
-  <ul>
-    <li>Diplomatie ist erst zur H&auml;lfte da: Nichtangriffspakt, Handelsabkommen, Rachetopf und die drei
-        Ereignisse (Haug, Grom, Silra) sind entworfen, aber noch nicht eingebaut.</li>
-    <li>Die Handelspunkte sind gebaut, werden aber noch nicht gebucht &mdash; sie stehen darum auf null.</li>
-    <li>Drei Kampfregeln fehlen: Fluchtformel, Beute-Reihenfolge, Mauerreparatur mit Bauzeit.</li>
-    <li>Kein Ton, keine Musik. Ansichten bauen sich beim Wechsel neu auf.</li>
-    <li>Nur Windows, nur 64 Bit, nur auf einem Rechner getestet.</li>
-  </ul>
+<div class="bildplatz">
+  <strong>Hier kommt ein Bildschirmfoto aus V_0.0.3 hin.</strong> Es wird aus dem laufenden Spiel
+  aufgenommen — Dorfzentrum mit Ressourcenleiste, in 1600 × 900, ohne Windows-Rahmen. Solange es
+  fehlt, steht hier ehrlich ein Platz und kein fremdes Bild.
+</div>
 
-  <h2>Weiterlesen</h2>
-  <table>
-    <tr><td><a href="https://github.com/Decay03101991/Nebelseetal-Remake/blob/main/SPIEL_ERKLAERUNG.md">Die offizielle Erkl&auml;rung</a></td>
-        <td class="leise">was das Spiel genau ist &mdash; und was es nicht ist</td></tr>
-    <tr><td><a href="https://github.com/Decay03101991/Nebelseetal-Remake/blob/main/BESUCHER.md">Wie dieses Spiel entstanden ist</a></td>
-        <td class="leise">f&uuml;r Besucher: Entwicklung, Arbeitsweise, Sicherheit</td></tr>
-    <tr><td><a href="https://github.com/Decay03101991/Nebelseetal-Remake/blob/main/FRAKTIONEN_WELTEN.md">Sechs H&auml;user, sechs Welten</a></td>
-        <td class="leise">Fraktionen mit Wappen, die Welten im Bild</td></tr>
-    <tr><td><a href="https://github.com/Decay03101991/Nebelseetal-Remake/blob/main/CHRONIK_DER_WELT.pdf">Die Chronik der Welt</a></td>
-        <td class="leise">die Geschichte als gestaltetes Buch (PDF)</td></tr>
-    <tr><td><a href="https://github.com/Decay03101991/Nebelseetal-Remake/blob/main/docs/INDEX.md">Wie das Projekt gebaut wird</a></td>
-        <td class="leise">der Wegweiser: Konzept, Ablauf, Messungen, Quellen, Pr&uuml;fregeln</td></tr>
-    <tr><td><a href="https://github.com/Decay03101991/Nebelseetal-Remake/blob/main/VORSCHAU.md">Erste Eindr&uuml;cke einer sp&auml;teren Version</a></td>
-        <td class="leise">Bilder von Fraktionen, Geb&auml;uden, Burgen und Panoramen</td></tr>
-  </table>
+<h2>Was drin ist</h2>
+<ul class="zahlen">
+  <li><b>6</b><span>Häuser und Welten</span></li>
+  <li><b>20</b><span>Gebäude</span></li>
+  <li><b>21</b><span>Forschungen</span></li>
+  <li><b>28</b><span>Einheiten</span></li>
+</ul>
+<p class="leise">Dazu neun Rohstoffe von Holz bis Wolle, siebzehn Waren aus den Werkstätten,
+eine Chronik der Welt und ein Handbuch, an dem sich das Remake prüfen lässt.</p>
 
-  <h2>Wer dahinter steht</h2>
-  <div class="kasten" style="display:flex;gap:26px;align-items:flex-start;flex-wrap:wrap">
-    <img src="assets/bilder/daniel_portrait_klein.png" alt="Daniel K&ouml;ssl"
-         style="width:190px;border:1px solid rgba(148,92,43,.7);box-shadow:0 6px 18px rgba(0,0,0,.55);flex:none">
-    <div style="flex:1;min-width:260px">
-      <p><strong>Daniel K&ouml;ssl</strong>, angehender Fachinformatiker f&uuml;r Systemintegration &mdash; und der
-      Hermes-Agent <strong>Weltenfresser</strong>, der Code, Pr&uuml;fungen und Dokumentation beisteuert.</p>
-      <p>Sicherheit und Kontrolle stehen im ganzen System an erster Stelle: hierarchische Regeln, getrennte Lese-
-      und Schreibrechte, protokollierte &Auml;nderungen. Mehr im
-      <a href="https://github.com/Decay03101991/Nebelseetal-Remake/blob/main/BESUCHER.md">Besucherdokument</a>.</p>
-    </div>
-  </div>
+<h2>In fünf Schritten im Spiel</h2>
+<ol class="schritte">
+  <li>Das ZIP aus dem Bereich <em>Releases</em> herunterladen (rund 102 MB).</li>
+  <li>Entpacken — der Ordner <code>Demo</code> entsteht dabei.</li>
+  <li><code>Nebelseetal_Pre_Release_V_0.0.3.exe</code> starten.</li>
+  <li>Ein Passwort setzen; der Spielstand bleibt auf deinem Rechner.</li>
+  <li>Das Dorfzentrum öffnet sich — dort steht der nächste Schritt.</li>
+</ol>
 
-  <footer>
-    Nebelseetal Remake &middot; Pre-Release V_0.0.3 &middot; 06.11.2026 &middot;
-    Logo: <strong>Chris Fred D&auml;ubner</strong> &middot;
-    <a href="https://github.com/Decay03101991/Nebelseetal-Remake">Repository</a> &middot;
-    <a href="https://github.com/Decay03101991/Nebelseetal-Remake/issues">Fehler melden</a>
-  </footer>
-</main>
+<footer>
+  <p><strong>Rechte:</strong> der Quelltext ist einsehbar; eine Nutzungslizenz für diese Vorabversion
+  ist noch nicht festgelegt — wer den Code verwenden will, fragt bitte vorher.
+  Die Quellen des historischen Originals liegen nicht in diesem Repository.</p>
+  <p><strong>Bildwelt:</strong> die gemalten Panoramen, Gebäudekacheln und Banner stammen von
+  Chris Fred Däubner und stehen unter seinem Urheberrecht. Die Geländekacheln des Spielfelds sind aus
+  historischen Kartenvorlagen abgeleitet; ob und in welchem Umfang das zulässig ist, ist nicht
+  abschließend geklärt.</p>
+  <p><a href="https://github.com/Decay03101991/Nebelseetal-Remake">Quellcode auf GitHub</a> ·
+  <a href="https://github.com/Decay03101991/Nebelseetal-Remake/releases">alle Fassungen</a> ·
+  <a href="CHRONIK_DER_WELT.md">Die Chronik der Welt</a></p>
+</footer>
+
+</div>
 </body>
 </html>

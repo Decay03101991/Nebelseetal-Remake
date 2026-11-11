@@ -1,4 +1,4 @@
-# STAND 11.11.2026, 21:05 - T1 bis T6 gebaut, Kernfehler K3/U7, G9 und Wall-Punkte (Register 437 bis 441)
+# STAND 11.11.2026, 21:25 - T1 bis T7 und G8 gebaut, Startseite Variante 1 liegt im Repo (Register 437 bis 446)
 
 > Neuester Block. Darunter 18:44 (Konzepte geprueft; 432/433), 15:21 (Originalquellen; 407 bis 411),
 > 14:37 (Claude-Lieferung; 404/405), 14:22 (Gesamtaudit; 398 bis 402).
@@ -7,6 +7,28 @@
 (gebaut von mir), **Burgen und Wappen werden NEU entworfen** (KI, Stilreferenz Chris, eigene Bilder -
 die heutige Zuordnung bleibt bis dahin unberuehrt), **Bau der Spiel-Oberflaeche: GO**, und die
 Startseite baue **ich**, nicht Claude.
+
+**Nachtrag 21:25 (Register 442 bis 446):**
+
+- **T7** - das Dorfzentrum hat ein **Lage-Band**: Forschung (Gebiet, Stufe, Restzeit), Goetterschutz
+  (Tage oder beendet), Wallbau (Stufe oder Weg). Neue Wache `test_lage_band` 12/0.
+- **G8** - die Drosselung steht als **Prozentwahl 0 bis 90** im Auftragsdialog; der Wert geht bis
+  `auftraege.starten` durch und steht jetzt auch im Auftrag. Neue Wache `test_drosselung_auftrag` 17/0
+  (schliesst Auditbefund D6).
+- **K1/U2/U3** - Beute im Bericht und in der Buchung sind jetzt dieselbe Zahl (vorher 40/40 gegen
+  10/10), die Forschung zaehlt nur die Bibliothek VOR ORT, der Wall-Knopf ist grau, solange
+  »Verteidigungsanlagen« fehlt.
+- **Acht rote Dateien des Sammellaufs** sind repariert: zwei echte Fehler von mir
+  (`self.alle_einheiten()` gehoert zum Spielstand, `test_leisten_luecken` las die alten Grenzen an der
+  falschen Stelle) und zwei Wachen, die die alte Rahmen-Ecke festnagelten.
+- **Startseite Variante 1 »Das Tor« liegt als `index.html` im Repo** (10.167 Zeichen): Spielpalette,
+  sechs Haeuser mit ihren WAPPEN, ehrlicher Kasten, Zahlen, fuenf Schritte. Im Browser geprueft:
+  alle sieben Bilder laden, Ladeknopf bei y=367 im 1280x900-Fenster, kein Ueberlauf. **Der Screenshot
+  fehlt noch** (Daniel nimmt ihn selbst auf, Register 409) - an seiner Stelle steht ein markierter Platz.
+
+**Noch offen:** U1 (heller Knopf mit Abbruch an der Bibliotheksgrenze), U4 (`beute_gutschreiben` hat
+keinen Aufrufer), die Stufen 2 bis 4 des Gesamtaudits, und die EXE samt Testbogen (kommt nach dem
+gruenen Sammellauf ueber diesen Stand).
 
 **Gebaut und geprueft:**
 
