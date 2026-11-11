@@ -393,7 +393,13 @@ try:
         check("7 das Kopfband nimmt die gemessene INHALTSbreite",
               abs(int(app.portal_kopfband_masse[0]) - int(app.content_canvas.winfo_width())) <= 1,
               "%s zu %s" % (str(app.portal_kopfband_masse), str(app.content_canvas.winfo_width())))
-        breiten = [(_breite(k), _text(k)[:28]) for k in _kinder(app.content)]
+        # ENTSCHEIDUNG GEAENDERT (12.11.2026, Daniels Befund B5): die Portalansicht ist seit heute
+        # ZWEISPALTIG - ein Traeger-Rahmen (`kopf`) haelt links die Weltkartenliste, rechts die
+        # Karte. Ein reiner Traeger hat keinen eigenen Text und darf breiter sein als die
+        # Textspalte; gemeint war immer "kein TEXT wird abgeschnitten". Darum werden nur Widgets
+        # mit eigenem Text oder Umbruchbreite gemessen, reine Rahmen nicht.
+        breiten = [(_breite(k), _text(k)[:28]) for k in _kinder(app.content)
+                   if _text(k) != "" or int(str(_wraplength(k)) or 0) > 0]
         zu_breit = [paar for paar in breiten if paar[0] > spalte]
         check("7 kein Inhalt ist breiter als die Spalte (kein Beschnitt)",
               not zu_breit, str(zu_breit[:3]))

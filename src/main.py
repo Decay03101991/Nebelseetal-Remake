@@ -12260,10 +12260,42 @@ class NebelseetalApp:
         return len(auftraege.laufende(self.state.auftraege, self.state.spielsekunden))
 
     # ------------------------------------------------------ Maersche auf der Weltkarte (M-1)
-    @staticmethod
-    def _portal_zelle(kante: int) -> int:
-        """Kantenlaenge eines Feldes im Gelaendekaestchen in px - EINE Stelle fuer Zeichnen und Klick."""
-        return max(4, 400 // max(1, int(kante or 20)))
+    def _portal_zelle(self, kante: int) -> int:
+        """Kantenlaenge eines Feldes im Gelaendekaestchen in px - EINE Stelle fuer Zeichnen und Klick.
+
+        B5 (Daniel 11.11.2026, Testbogen V_0.0.4: "ich erkenne kaum die doerfer oder bots"):
+        die Karte war auf 400 x 400 festgenagelt (`400 // 20`). Seit die Ansicht zweispaltig ist,
+        darf sie den Platz der rechten Spalte nutzen. Gedeckelt bei 46 px je Feld (920 px Karte),
+        damit sie in ein 900 px hohes Fenster passt; ohne gemessene Breite bleibt es beim alten
+        Mass, damit ein schmales Fenster nichts abschneidet.
+        """
+        grund = max(4, 400 // max(1, int(kante or 20)))                     # altes Mass (400 px Karte)
+        platz = int(getattr(self, "_portal_kartenbreite", 0) or 0)          # Breite der rechten Spalte
+        if platz <= 0:                                                      # nichts gemessen
+            return grund
+        return max(grund, min(46, platz // max(1, int(kante or 20))))         # groesser, aber gedeckelt
+
+    def _inhalt_breite(self) -> int:
+        """Die gemessene Breite des Inhaltsfensters - oder die zuletzt gemessene.
+
+        Beim Aufbau einer Ansicht ist `content_canvas` oft noch nicht vermessen (Breite 1). Dann
+        gilt die zuletzt gesehene Breite; ist auch die unbekannt, kommt 0 zurueck und der Aufrufer
+        nimmt seine Vorgabe. (Dieselbe Falle wie beim Portal-Kopfband, Register 453.)
+        """
+        try:
+            breite = int(self.content_canvas.winfo_width())                 # jetzt gemessen?
+        except Exception:                                                   # noqa: BLE001
+            breite = 0
+        if breite > 200:                                                    # brauchbarer Wert
+            self._inhalt_breite_zuletzt = breite                            # merken
+            return breite
+        gemerkt = int(getattr(self, "_inhalt_breite_zuletzt", 0) or 0)      # zuletzt gesehen
+        if gemerkt > 200:                                                   # brauchbar
+            return gemerkt
+        try:                                                                # Notweg: aus dem Fenster
+            return max(0, int(self.root.winfo_width()) - 320)               # Menueleiste und Raender
+        except Exception:                                                   # noqa: BLE001
+            return 0
 
     @staticmethod
     def _punkt_abstand(mx: float, my: float, x1: float, y1: float, x2: float, y2: float) -> float:
@@ -12948,6 +12980,19 @@ class NebelseetalApp:
         tk.Label(self.content, text=portalraum.beschreibung(), fg="#C0C0C0", bg=self.skin["bg"],
                  wraplength=breite, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 6))
 
+        # B5 (Daniel 11.11.2026, Testbogen V_0.0.4: "sehr sehr viel braune Hintergrundfarbe ...
+        # die karte sollte man dann schoen in die mitte des Spielfensters setzen und die angaben
+        # drumherum gestalten"): die Ansicht ist jetzt ZWEISPALTIG. Links stehen die sechs
+        # Weltkarten und "Ansehen", rechts die Karte mit ihrer Legende. Vorher stand alles
+        # untereinander: die Karte war auf 400 x 400 festgenagelt (`_portal_zelle`: 400 // 20) und
+        # rechts davon blieb in einem 1037 px breiten Fenster eine leere braune Flaeche von 600 px.
+        kopf = tk.Frame(self.content, bg=self.skin["bg"])              # Traeger der zwei Spalten
+        kopf.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 4))
+        spalte_liste = tk.Frame(kopf, bg=self.skin["bg"])              # links: Liste und Ansehen
+        spalte_liste.pack(side=tk.LEFT, fill=tk.Y, anchor=tk.N)
+        spalte_karte = tk.Frame(kopf, bg=self.skin["bg"])              # rechts: Karte und Legende
+        spalte_karte.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(14, 0), anchor=tk.N)
+
         nummer = int(self.state.eigene_dimension)
         eigene = list(self.state.eigene_dimensionen)
         # W-6 (Daniel 03.11.2026): "der spieler startet in der Hauptwelt und sieht bereits die bots
@@ -12968,11 +13013,11 @@ class NebelseetalApp:
         laufend = self._unterwegs_anzahl()
 
         # --- 1. OBEN: die sechs Weltkarten mit Namen und Kennzeichen ---
-        tk.Label(self.content, text="Weltkarten", fg=self.skin["gold"], bg=self.skin["bg"],
-                 font=("TkDefaultFont", 11, "bold")).pack(anchor=tk.W, padx=10)
+        tk.Label(spalte_liste, text="Weltkarten", fg=self.skin["gold"], bg=self.skin["bg"],
+                 font=("TkDefaultFont", 11, "bold")).pack(anchor=tk.W)
         for eintrag in portalraum.weltkarten(eigene, laufend):
-            zeile = tk.Frame(self.content, bg=self.skin["panel"])
-            zeile.pack(fill=tk.X, padx=10, pady=1)
+            zeile = tk.Frame(spalte_liste, bg=self.skin["panel"])
+            zeile.pack(fill=tk.X, pady=1)
             # D-5 (Daniel 09.11.2026, Register 347: "farbige Form mit Symbol wie heute"): die
             # Bannerfarbe steht zusaetzlich als schmaler Streifen links in der Zeile. Ein Ausschnitt
             # aus einer Kachel waere ein Notbehelf mit sichtbarem Rand - es gibt kein freistehendes
@@ -12995,8 +13040,8 @@ class NebelseetalApp:
                      font=("TkDefaultFont", 8)).pack(side=tk.RIGHT, padx=6)
 
         # --- 1b. ANSEHEN: in eine fremde Welt schauen, ohne zu springen (W-6) ---
-        blick = tk.Frame(self.content, bg=self.skin["bg"])
-        blick.pack(anchor=tk.W, padx=10, pady=(4, 0))
+        blick = tk.Frame(spalte_liste, bg=self.skin["bg"])
+        blick.pack(anchor=tk.W, pady=(4, 0))
         tk.Label(blick, text="Ansehen:", fg="#DAA520", bg=self.skin["bg"],
                  font=("TkDefaultFont", 9)).pack(side=tk.LEFT, padx=(0, 4))
         for eintrag in portalraum.weltkarten(eigene, laufend):
@@ -13009,13 +13054,25 @@ class NebelseetalApp:
 
         # --- 2. DARUNTER: das Gelaendekaestchen der ANGESEHENEN Welt, Felder anklickbar ---
         kante = portalraum._achsen()
-        tk.Label(self.content, text=(f"Geländekästchen der Weltkarte {angezeigt:02d} - "
+        tk.Label(spalte_karte, text=(f"Geländekästchen der Weltkarte {angezeigt:02d} - "
                                      f"{self._dimensionsname(angezeigt)} "
                                      f"({kante} x {kante} = {portalraum.feld_zahl()} Felder, "
                                      f"ein Klick wählt ein Feld)"
                                      + ("  -  NUR ANSICHT einer fremden Welt" if fremdblick else "")),
                  fg="#DAA520", bg=self.skin["bg"], wraplength=breite, justify=tk.LEFT).pack(
-                     anchor=tk.W, padx=10, pady=(8, 0))
+                     anchor=tk.W, pady=(0, 2))
+        # Breite der rechten Spalte: Inhaltsbreite minus Liste (~380 px) minus Abstand (14 px).
+        # Ohne Messung bleibt 0 stehen - dann gilt das alte Mass von 400 px (siehe `_portal_zelle`).
+        _ist = self._inhalt_breite()
+        try:
+            _hoch = int(self.content_canvas.winfo_height())                 # gemessene Hoehe
+        except Exception:                                                   # noqa: BLE001
+            _hoch = 0
+        if _hoch < 200:                                                     # unvermesssen
+            _hoch = 400                                                     # dann das alte Mass
+        # Die Karte darf so breit werden wie die rechte Spalte UND so hoch wie der Inhalt es
+        # zulaesst (Kopfzeile plus Legende brauchen rund 140 px). Was kleiner ist, gilt.
+        self._portal_kartenbreite = max(0, min(_ist - 400, _hoch - 140)) if _ist else 0
         zelle = self._portal_zelle(kante)
         # M-1 (Vorgabe Daniel 02.11.2026, Register 140): die GROBE Restzeit steht als Zeile UEBER dem
         # Kaestchen - unter der Karte waere sie in diesem Fenster nur nach dem Scrollen zu sehen
@@ -13027,21 +13084,21 @@ class NebelseetalApp:
                                           marsch_optik.restzeit_text(marsch["rest"],
                                                                      marsch["eigenes_ziel"]))
                       for marsch in laufende_maersche]                 # je Marsch eine kurze Zeile
-            tk.Label(self.content, text="Unterwegs: " + " | ".join(zeilen),
+            tk.Label(spalte_karte, text="Unterwegs: " + " | ".join(zeilen),
                      fg="#DAA520", bg=self.skin["bg"], wraplength=breite, justify=tk.LEFT,
-                     font=("TkDefaultFont", 9)).pack(anchor=tk.W, padx=10, pady=(2, 0))
+                     font=("TkDefaultFont", 9)).pack(anchor=tk.W, pady=(0, 2))
         # Bei einer fremden Ansicht bekommt das Raster KEINE eigene Welt - dann zeichnet es die
         # belegte fremde Bannerfarbe, und niemand haelt die fremde Karte fuer seine eigene.
         felder = portalraum.anzeige_raster(portalraum.index_von(angezeigt), 10,
                                            eigene_index if not fremdblick else [])
         # Daniel 03.11.2026 ("Rahmen als Bildleiste"): der gemalte Kachelrahmen der C2-Lieferung
         # wird als 9-Slice-Rahmen um das Kaestchen gelegt. Ohne Bild bleibt es beim nackten Kaestchen.
-        _rahmen_flaeche, _rahmen_mitte = self._kartenrahmen_bauen(self.content, kante * zelle,
+        _rahmen_flaeche, _rahmen_mitte = self._kartenrahmen_bauen(spalte_karte, kante * zelle,
                                                                  kante * zelle)
         zeichenflaeche = tk.Canvas(_rahmen_mitte, width=kante * zelle, height=kante * zelle,
                                    bg=self.skin["bg"], highlightthickness=0)
         if _rahmen_flaeche is None:                                    # kein Bildrahmen vorhanden
-            zeichenflaeche.pack(anchor=tk.W, padx=10, pady=4)          # dann wie bisher frei im Inhalt
+            zeichenflaeche.pack(anchor=tk.CENTER, pady=4)              # B5: mittig in der Spalte
         else:                                                          # mit Rahmen
             zeichenflaeche.pack()                                      # sitzt das Kaestchen in der Mitte
         self.portal_zeichenflaeche = zeichenflaeche                    # EINE Stelle fuer Anzeigen und Wachen
@@ -13090,8 +13147,8 @@ class NebelseetalApp:
         # 630-px-Spalte des Standardfensters - der letzte Eintrag wurde rechts angeschnitten.
         # Der Farbkasten traegt darum 4 statt 6 px Abstand (7 x 2 px = 14 px): 623 von 630.
         # Schmalere Fenster als 1024 px brauchen einen eigenen Schnitt (Legende umbrechen).
-        legende = tk.Frame(self.content, bg=self.skin["bg"])
-        legende.pack(anchor=tk.W, padx=10, pady=(2, 0))
+        legende = tk.Frame(spalte_karte, bg=self.skin["bg"])
+        legende.pack(anchor=tk.W, pady=(4, 0))
         tk.Label(legende, text="Gelände:", fg="#DAA520", bg=self.skin["bg"]).pack(side=tk.LEFT)
         for eintrag in portalraum.legende():
             tk.Label(legende, text="", bg=eintrag["farbe"], width=2).pack(side=tk.LEFT,
@@ -13109,13 +13166,13 @@ class NebelseetalApp:
         if _je_bot:
             _teile = ["%s (%s): %d Dörfer" % (name, wert[0], wert[1])
                       for name, wert in sorted(_je_bot.items())]
-            tk.Label(self.content, text="Fremde Dörfer auf dieser Welt - " + ", ".join(_teile),
+            tk.Label(spalte_karte, text="Fremde Dörfer auf dieser Welt - " + ", ".join(_teile),
                      fg="#FFE8C2", bg=self.skin["bg"], wraplength=breite, justify=tk.LEFT,
-                     font=("TkDefaultFont", 9)).pack(anchor=tk.W, padx=10, pady=(2, 0))
+                     font=("TkDefaultFont", 9)).pack(anchor=tk.W, pady=(2, 0))
         hinweis = next((f["gelaende_grund"] for f in felder if f.get("gelaende_grund")), "")
         if hinweis:
-            tk.Label(self.content, text=hinweis, fg="#e53935", bg=self.skin["bg"],
-                     wraplength=breite, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(2, 0))
+            tk.Label(spalte_karte, text=hinweis, fg="#e53935", bg=self.skin["bg"],
+                     wraplength=breite, justify=tk.LEFT).pack(anchor=tk.W, pady=(2, 0))
         auswahl = getattr(self, "portal_auswahl", None)
         if auswahl:
             ax, ay = int(auswahl[0]), int(auswahl[1])
@@ -13137,8 +13194,8 @@ class NebelseetalApp:
         gewaehlt = str(getattr(self, "portal_dorf", "") or "")
         if gewaehlt not in [str(o.name) for o in eigene_orte]:
             gewaehlt = str(eigene_orte[0].name) if eigene_orte else ""
-        wahl = tk.Frame(self.content, bg=self.skin["bg"])
-        wahl.pack(anchor=tk.W, padx=10, pady=(6, 0))
+        wahl = tk.Frame(spalte_karte, bg=self.skin["bg"])
+        wahl.pack(anchor=tk.W, pady=(6, 0))
         tk.Label(wahl, text="Dorf:", fg="#DAA520", bg=self.skin["bg"],
                  font=("TkDefaultFont", 9)).pack(side=tk.LEFT, padx=(0, 4))
         for ort in eigene_orte:
