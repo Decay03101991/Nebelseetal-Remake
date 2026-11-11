@@ -1,3 +1,29 @@
+# STAND 11.11.2026, 13:25 - Frischstart-Paket wartet unberuehrt auf dem Desktop, Daniels Ergebnisse kommen heute (Register 387)
+
+> Neuester Block. Darunter 10.11. 21:50 (G2/G3, Sammellauf, neue EXE; 381 bis 386), 17:05 (Desktop
+> geraumt, Guthaben; 379/380), 11:52 (Opus-Lauf; 372 bis 378), 11:02 (Repo-Weg; 369).
+
+**Daniels Wort (11.11.2026):** »die beiden bleiben unberuehrt am desktop meine ergebnisse liefere ich noch
+heute«. Also: **EXE und Anleitung NICHT anfassen, nicht aufraeumen, nichts umbenennen.** Erst wenn seine
+Antworten da sind, wird ausgewertet; **danach** geht die EXE vom Desktop (sein Wort vom 10.11.).
+
+**Nachgeprueft (11.11., 13:17):** die zwei Dateien auf dem Desktop sind hashgleich zu dem, was Daniel
+hochgeladen hat - EXE `4124b335065366fbcf8e1696edf3c3f1fa8045090b7a7791641b9e0214c67df8`
+(83.342.035 Byte), Anleitung `976b9aacb263f1f9323097bcc7300b1a4c6ad4df83afefa5507ea05d047239aa`
+(7.209 Byte, 60 Punktzeilen, noch **keine** Antworten). Im Schreibordner liegt weiterhin nur `tor.json` -
+es wurde also noch nicht gespielt.
+
+**Guthaben (Register 387, von Daniel abgelesen 13:17):** **11,90 USD** Guthaben, **68,09 USD**
+Gesamtverbrauch - **-0,14 / +0,14** seit 10.11., 17:0x. Opus-Lauf nicht enthalten (Abo).
+
+**Der naechste Schritt:** auf Daniels Bogen warten. Ist er gefuellt, **jeden Punkt als eigene
+Registerzeile** mit Fundstelle (»Bogen B05«), leere Punkte benennen - nichts ergaenzen. Danach die EXE vom
+Desktop nehmen und den Desktop ohne Nebelseetal-Rest belegen.
+
+**Zwei Dinge brauchen danach Daniel:** (1) wo der Regler fuer die Drosselung sitzt (Befund G8, Register
+383 - die Regel ist gebaut, aber im Spiel nicht bedienbar); (2) die Freigabe der aelteren
+Skill-Vormerkungen `0e5b3c84` und `9ce5a020`.
+
 # STAND 10.11.2026, 21:50 - G2 und G3 gebaut, 218/218 gruen, neue EXE liegt mit der Anleitung auf dem Desktop (Register 381 bis 386)
 
 > Neuester Block. Darunter 17:05 (Desktop geraumt, Guthaben; 379/380), 11:52 (Opus-Lauf und Abgleich;
