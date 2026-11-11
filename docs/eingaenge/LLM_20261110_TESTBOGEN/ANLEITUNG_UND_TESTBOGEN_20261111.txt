@@ -1,0 +1,330 @@
+﻿========================================================================
+ ANLEITUNG und TESTBOGEN - Frischstart
+ Nebelseetal Remake, Fassung V_0.0.3
+========================================================================
+
+Fuer dich, Daniel. Auf dem Desktop liegen ZWEI Dinge: diese Anleitung und die
+EXE. Sonst nichts.
+
+Diese Datei ist beides - die Anleitung UND der Bogen, den du beim Spielen
+ausfuellst. Du brauchst kein besonderes Programm: Doppelklick, sie geht im
+Editor auf, du tippst hinter "ANTWORT:" und speicherst am Ende.
+
+------------------------------------------------------------------------
+ WELCHE EXE DU PRUEFST
+------------------------------------------------------------------------
+
+Nebelseetal_Pre_Release_V_0.0.3.exe
+  83.342.035 Byte
+  SHA256 4124b335065366fbcf8e1696edf3c3f1fa8045090b7a7791641b9e0214c67df8
+  Stand 10.11.2026, 21:48 - gebaut nach G2 und G3, Sammellauf 218/218 gruen.
+
+Die alte Fassung von heute Nacht (SHA256 a7035101...) liegt unveraendert in
+D:\Arbeiten\Nebelseetal_Remake\archiv\builds\20261110_vor_g2_g3\ , falls du
+vergleichen willst.
+
+------------------------------------------------------------------------
+ WAS NEU IST GEGENUEBER DEINEM LETZTEN TEST
+------------------------------------------------------------------------
+
+1. DU FAENGST KOMPLETT BEI NULL AN. Deine drei alten Spielstaende sind
+   gesichert und weggeraumt:
+   C:\Users\saras\.nebelseetal\archiv\vor_frischstart_20261110_2117\
+   Das Spiel legt einen neuen an. Das Passworttor bleibt, dein Passwort gilt
+   weiter.
+
+2. GOETTERSCHUTZ: Anzeige und Mechanik rechnen jetzt dieselbe Regel
+   (7 Tage ODER erster Kriegspunkt).
+
+3. DROSSELUNG: eine gedrosselte Reise dauert jetzt laenger (nicht nur
+   billiger). ABER: es gibt noch KEIN Bedienelement dafuer. Bitte nicht als
+   Fehler notieren - das ist bekannt und wird gebaut, sobald du sagst, wo der
+   Regler sitzen soll.
+
+------------------------------------------------------------------------
+ SO FUELLST DU AUS
+------------------------------------------------------------------------
+
+Schreibe deine Antwort hinter die Zeile "ANTWORT:".
+
+  - Eine Zahl, ein ja/nein, oder ein kurzer Satz. Das genuegt.
+  - Kannst du etwas nicht beurteilen? Schreib "weiss nicht" - das ist ein
+    gueltiges Ergebnis, kein Fehler.
+  - Bei Fehlern bitte den Text WOERTLICH in Block F.
+  - Am Ende speichern (gleicher Ort). Das ist alles.
+
+BILDER (freiwillig): Windows-Taste + Shift + S, dann im Desktop-Ordner
+einfuegen und den Dateinamen mit der Punktnummer beginnen lassen, zum
+Beispiel: C01_goldrahmen.png . Kein Pflichtteil.
+
+
+========================================================================
+ BLOCK 0 - DEIN GERAET
+ (ohne das kann ich Layout-Befunde nicht deuten)
+========================================================================
+
+0.1  Bildschirmaufloesung (Windows: Einstellungen > System > Anzeige)
+     ANTWORT:
+
+0.2  Skalierung in Prozent (100 %, 125 %, 150 %)
+     ANTWORT:
+
+0.3  Fenstergroesse des Spiels beim Start, falls ablesbar (Breite x Hoehe in px)
+     ANTWORT:
+
+0.4  Uhrzeit Beginn und Ende des Tests
+     ANTWORT:
+
+
+========================================================================
+ BLOCK A - START UND TOR
+========================================================================
+
+A0   Hash der EXE geprueft? Eingabeaufforderung im Desktop-Ordner:
+     certutil -hashfile Nebelseetal_Pre_Release_V_0.0.3.exe SHA256
+     Stimmt er mit der Zeile oben ueberein? (ja / nein / nicht geprueft)
+     ANTWORT:
+
+A1   Erscheint das Passworttor?
+     ANTWORT:
+
+A2   Wie viele Sekunden von Doppelklick bis das Tor steht? (grob zaehlen)
+     ANTWORT:
+
+A3   Kommst du mit deinem Passwort hinein?
+     ANTWORT:
+
+A4   Was kommt nach dem Anmelden: Intro/Geschichte, eine Auswahl, direkt die
+     Karte? (beschreiben)
+     ANTWORT:
+
+A5   Musst du eine Startkarte oder ein Volk waehlen? Welche Auswahl steht da?
+     ANTWORT:
+
+A6   Steht danach ein LEERER Zustand da (kein alter Spielstand sichtbar)?
+     ANTWORT:
+
+
+========================================================================
+ BLOCK B - DIE ERSTEN SCHRITTE IM NEUEN SPIEL
+========================================================================
+
+B01  Ist eine Siedlung mit Karte da, oder musst du sie erst gruenden?
+     ANTWORT:
+
+B02  Welche Vorraete stehen am Anfang da?
+     (Zahlen aufschreiben: Holz / Stein / Nahrung / Gold)
+     ANTWORT:
+
+B03  Wie viele Siedler hast du am Anfang?
+     ANTWORT:
+
+B04  Baumenue: sind alle Gebaeude da, die du erwartest? Welches fehlt?
+     ANTWORT:
+
+B05  Bauen auf der Karte: klappt es, und wird der Preis GENAU EINMAL
+     abgebucht? (Vorher-Zahlen / Nachher-Zahlen)
+     ANTWORT:
+
+B06  Forschung: welche Dauer zeigt das Spiel fuer die naechste Stufe?
+     (Zahl UND Einheit)
+     ANTWORT:
+
+B07  Laesst sich die Forschung starten, und laeuft die Restzeit sichtbar
+     herunter?
+     ANTWORT:
+
+B08  Siedlerzuwachs: waechst die Zahl, und wie schnell? (grob)
+     ANTWORT:
+
+B09  Bewegung: schick eine Einheit auf ein Nachbarfeld - wird eine Dauer
+     angezeigt, und wirkt sie plausibel?
+     ANTWORT:
+
+B10  Speichern und wieder laden: klappt es, steht danach derselbe Stand da?
+     ANTWORT:
+
+B11  Steht der Goetterschutz irgendwo sichtbar, und passt die Zahl zu deinem
+     Spieltag?
+     ANTWORT:
+
+B12  Wird irgendwo eine Zahl ohne Einheit oder mit falscher Einheit angezeigt?
+     (wo)
+     ANTWORT:
+
+
+========================================================================
+ BLOCK C - WAS DIESE FASSUNG NEU TRAEGT (D-5, D-5a, D-5b)
+========================================================================
+
+C01  Goldrahmen am Gelaendekaestchen: SICHTBAR?
+     ANTWORT:
+
+C02  Goldrahmen: GERADE (nicht schief, nicht verrutscht)?
+     ANTWORT:
+
+C03  Goldrahmen: liegt er UEBER dem Gelaendebild, ohne es zu verdecken?
+     ANTWORT:
+
+C04  Goldrahmen: sieht er an ALLEN Kaestchen gleich aus?
+     (ja / nein + welches faellt aus)
+     ANTWORT:
+
+C05  Goldrahmen: ECKEN - stoert dich der Radius 14 px, oder faellt es dir
+     nicht auf?
+     ANTWORT:
+
+C06  Die neun Menue-Icons: erkennst du jedes Gebaeude OHNE Text darunter?
+     (Zahl von 0 bis 9)
+     ANTWORT:
+
+C07  Welches Icon ist NICHT eindeutig? (Name)
+     ANTWORT:
+
+C08  Marktplatz: steht das KENNZEICHEN links vom Titel?
+     ANTWORT:
+
+C09  Marktplatz: wirkt die Groesse des Kennzeichens stimmig?
+     (zu gross / passt / zu klein)
+     ANTWORT:
+
+C10  Weltkarte: welche Gelaendeart ist SCHWER von einer anderen zu
+     unterscheiden? (Namen)
+     ANTWORT:
+
+C11  Portal-Kopfband: ist das Bild oben SCHARF oder verpixelt?
+     ANTWORT:
+
+C12  Zwei Bildstile nebeneinander (elf Gebaeude noch im alten Stil): faellt es
+     dir STOEREND auf?
+     ANTWORT:
+
+
+========================================================================
+ BLOCK D - DIE BEKANNTEN GRENZEN, BITTE GEZIELT PRUEFEN
+========================================================================
+
+D1   Bei 1024 x 720: ist die LEGENDENZEILE unten ganz zu sehen?
+     ANTWORT:
+
+D2   Bei 1024 x 720: ist die KNOPFZEILE ganz zu sehen?
+     ANTWORT:
+
+D3   Stoesst die RESSOURCENLEISTE oben an den Rand, oder wird etwas
+     abgeschnitten?
+     ANTWORT:
+
+D4   Verkleinere das Fenster schmal (zum Beispiel 900 px breit):
+     WAS BRICHT ZUERST?
+     ANTWORT:
+
+D5   Ab welcher Breite ist das Spiel NICHT MEHR BEDIENBAR? (px, grob)
+     ANTWORT:
+
+D6   Gibt es eine Stelle, an der ein Text MITTEN IM WORT abgeschnitten wird?
+     (wo)
+     ANTWORT:
+
+
+========================================================================
+ BLOCK E - DEIN BLOCK, DEINE EIGENEN TESTS
+========================================================================
+
+Hier gehoert alles hin, was DU ausprobieren willst. Ich habe nichts
+vorgegeben: keine Fragen, keine Erwartungen. Schreib zu jedem Versuch, was du
+gemacht hast, was du erwartet haettest und was passiert ist. Genau das ist oft
+der wertvollste Teil.
+
+E1   Was ich ausprobiert habe:
+     Was ich erwartet haette:
+     Was passiert ist:
+
+E2   Was ich ausprobiert habe:
+     Was ich erwartet haette:
+     Was passiert ist:
+
+E3   Was ich ausprobiert habe:
+     Was ich erwartet haette:
+     Was passiert ist:
+
+E4   Was ich ausprobiert habe:
+     Was ich erwartet haette:
+     Was passiert ist:
+
+E5   Was ich ausprobiert habe:
+     Was ich erwartet haette:
+     Was passiert ist:
+
+E6   Was ich ausprobiert habe:
+     Was ich erwartet haette:
+     Was passiert ist:
+
+E7   Was ich ausprobiert habe:
+     Was ich erwartet haette:
+     Was passiert ist:
+
+E8   Was ich ausprobiert habe:
+     Was ich erwartet haette:
+     Was passiert ist:
+
+E9   Was ich ausprobiert habe:
+     Was ich erwartet haette:
+     Was passiert ist:
+
+E10  Was ich ausprobiert habe:
+     Was ich erwartet haette:
+     Was passiert ist:
+
+E11  Was ich ausprobiert habe:
+     Was ich erwartet haette:
+     Was passiert ist:
+
+E12  Was ich ausprobiert habe:
+     Was ich erwartet haette:
+     Was passiert ist:
+
+
+========================================================================
+ BLOCK F - FEHLER UND ABSTUERZE (WOERTLICH)
+========================================================================
+
+F1   Was ich gemacht habe:
+     Was passiert ist (Text woertlich):
+     Uhrzeit:
+
+F2   Was ich gemacht habe:
+     Was passiert ist (Text woertlich):
+     Uhrzeit:
+
+F3   Was ich gemacht habe:
+     Was passiert ist (Text woertlich):
+     Uhrzeit:
+
+
+========================================================================
+ BLOCK G - ABSCHLUSS
+========================================================================
+
+G1   Ist das Spiel fuer dich SO spielbar? (ja / nein / mit Einschraenkung)
+     ANTWORT:
+
+G2   Groesster Einzelpunkt, den ich zuerst angehen soll
+     ANTWORT:
+
+G3   Was hat dir am Frischstart am besten gefallen?
+     ANTWORT:
+
+G4   Fertig um (Uhrzeit)
+     ANTWORT:
+
+
+========================================================================
+ SPEICHERN
+========================================================================
+
+Diese Datei einfach speichern (gleicher Ort, gleicher Name). Ich lese sie
+danach aus und trage jeden Punkt als eigene Zeile ins Pruefregister ein, mit
+deiner Antwort als Beleg. Leere Punkte bleiben leer und werden als "nicht
+beantwortet" benannt - ich erfinde nichts dazu.
+
+Danke.
