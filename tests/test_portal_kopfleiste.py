@@ -311,7 +311,11 @@ check("6 die Ansicht zeigt nicht ins Archiv", "archiv" not in quelle.lower(), ""
 hilfe = _rumpf(M.NebelseetalApp._portal_kopfleiste)
 check("6 die Methode liest den Pfad aus der Konstante", "PORTAL_KOPFBAND" in hilfe, "")
 check("6 die Methode liest die Masse aus der Konstante", "PORTAL_KOPFBAND_MASSE" in hilfe, "")
-check("6 das Bild wird mit tk.PhotoImage geladen (kein Pillow noetig)", "PhotoImage" in hilfe, "")
+# ENTSCHEIDUNG GEAENDERT (11.11.2026, Daniels Befund B6): das Band wird jetzt ZWEIMAL gebaut -
+# beim Aufbau der Ansicht und kurz danach, wenn das Inhaltsfenster wirklich vermessen ist. Der
+# Bildbau liegt darum in `_kopfband_bild`; die Wachen auf das Bauen wandern mit (nicht geloescht).
+bild_code = _rumpf(M.NebelseetalApp._kopfband_bild)
+check("6 das Bild wird mit tk.PhotoImage geladen (kein Pillow noetig)", "PhotoImage" in bild_code, "")
 # Layout-Schnitt (09.11.2026): die Messung liegt jetzt in `_spaltenbreite` - EINE Quelle fuer
 # die acht Textzeilen UND das Kopfband. Die Kopfleiste misst nicht mehr selbst, sie liest die
 # Zahl; die Wache auf `winfo_width` wandert mit (Entscheidung, nicht Code zurueckgebogen).
@@ -321,9 +325,14 @@ check("6 die Spaltenbreite wird GEMESSEN, nicht geraten", "winfo_width" in spalt
 check("6 die Messung geht durch die eine Umrechnung", "_textbreite" in spalte_code, "")
 check("6 die Zielmasse kommt aus der einen Hilfsfunktion", "_kopfband_masse" in hilfe, "")
 check("6 verkleinert wird mit Pillow und LANCZOS (ohne Beschnitt)",
-      "LANCZOS" in hilfe and "resize" in hilfe, "")
+      "LANCZOS" in bild_code and "resize" in bild_code, "")
 check("6 ohne Pillow bleibt das Original als Rueckfall", "except Exception" in hilfe, "")
-check("6 fehlende Datei wird geprueft, statt zu raten", "os.path.exists" in hilfe, "")
+check("6 fehlende Datei wird geprueft, statt zu raten", "os.path.exists" in bild_code, "")
+# NEU (11.11.2026, B6): das Band muss der Fensterbreite folgen - nicht der gedeckelten Textspalte.
+check("6 das Band nimmt die GEMESSENE Inhaltsbreite als erste Quelle",
+      "content_canvas.winfo_width" in hilfe, "")
+check("6 es gibt einen Nachlauf fuer unvermessene Fenster",
+      "after" in hilfe and "nachziehen" in hilfe, "")
 check("6 ohne Bild entsteht ein Platz mit fester Groesse", "pack_propagate" in hilfe, "")
 check("6 der Bildverweis wird am Fenster gehalten", "self.portal_kopfband" in hilfe, "")
 check("6 die Methode zeigt nicht ins Archiv", "archiv" not in hilfe.lower(), "")
@@ -375,9 +384,15 @@ try:
         text = app._spaltenbreite()
         check("7 die gemessene Spalte ergibt die Textbreite (Spalte - 20, Deckel 780)",
               text == max(320, min(780, spalte - 20)), str((spalte, text)))
-        check("7 das Kopfband nimmt DIESELBE Zahl",
-              tuple(app.portal_kopfband_masse) == M.NebelseetalApp._kopfband_masse(text),
-              "%s zu %s" % (str(app.portal_kopfband_masse), str(text)))
+        # 11.11.2026 (B6): das Band nimmt NICHT mehr die Textspalte (Deckel 780), sondern die
+        # gemessene Inhaltsbreite. Gewartet wird auf den Nachlauf, damit das Fenster vermessen ist.
+        import time as _zeit
+        for _ in range(40):
+            root.update()
+            _zeit.sleep(0.01)
+        check("7 das Kopfband nimmt die gemessene INHALTSbreite",
+              abs(int(app.portal_kopfband_masse[0]) - int(app.content_canvas.winfo_width())) <= 1,
+              "%s zu %s" % (str(app.portal_kopfband_masse), str(app.content_canvas.winfo_width())))
         breiten = [(_breite(k), _text(k)[:28]) for k in _kinder(app.content)]
         zu_breit = [paar for paar in breiten if paar[0] > spalte]
         check("7 kein Inhalt ist breiter als die Spalte (kein Beschnitt)",
@@ -389,7 +404,8 @@ try:
         # Spalte (eigene Wachen oben). Die alte Wache nagelte die alte Entscheidung fest.
         _band = int(app.portal_kopfband_masse[0])
         check("7 das Kopfband reicht bis zum Rand (Breite = gemessene Inhaltsbreite)",
-              abs(_band - app._kopfband_ziele(text)[0]) <= 1, "%d zu %s" % (_band, app._kopfband_ziele(text)))
+              abs(_band - app._kopfband_ziele(int(app.content_canvas.winfo_width()))[0]) <= 1,
+              "%d zu %s" % (_band, app._kopfband_ziele(int(app.content_canvas.winfo_width()))))
         check("7 die Textzeilen bleiben weiter in der Spalte (nur das Band ist breiter)",
               all(int(str(_wraplength(k)) or 0) <= text for k in _kinder(app.content)
                   if int(str(_wraplength(k)) or 0) > 0),

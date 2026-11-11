@@ -49,8 +49,11 @@ try:
     abschnitt("1. Drei Felder, feste Reihenfolge")
     zeilen = app.lage_band_texte()
     check("1 es sind genau drei Felder", len(zeilen) == 3, str(len(zeilen)))
-    check("1 Reihenfolge: Forschung, Goetterschutz, Wallbau",
-          [z[0] for z in zeilen] == ["Forschung", "Goetterschutz", "Wallbau"], str([z[0] for z in zeilen]))
+    # 11.11.2026: Daniel hat in V_0.0.4 gesehen, dass die Ueberschrift "Goetterschutz" hiess.
+    # Das ist die Anzeige, nicht der Bezeichner - hier gilt seine Regel: ingame echte Umlaute.
+    # Die Wache haelt jetzt den Umlaut fest, damit die Ersatzschreibweise nicht zurueckkommt.
+    check("1 Reihenfolge: Forschung, G\u00f6tterschutz, Wallbau",
+          [z[0] for z in zeilen] == ["Forschung", "G\u00f6tterschutz", "Wallbau"], str([z[0] for z in zeilen]))
     check("1 jedes Feld hat einen Text", all(str(z[1] or "").strip() for z in zeilen), str(zeilen))
 
     abschnitt("2. Jeder Zustand hat seinen eigenen Text")
