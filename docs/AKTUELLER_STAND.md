@@ -1,3 +1,40 @@
+# STAND 11.11.2026, 14:22 - Gesamtaudit gefahren: 32 Befunde, 30 bestaetigt, Bauplan in vier Stufen (Register 398 bis 402)
+
+> Neuester Block. Darunter 13:38 (fuenf Entscheidungen; 392 bis 397), 13:25 (Frischstart-Paket wartet;
+> 387), 10.11. 21:50 (G2/G3, Sammellauf, neue EXE; 381 bis 386).
+
+**Der Gesamtaudit ist gefahren und nachgerechnet.** Vier Pruefgaenge parallel (deepseek-flash, read-only,
+992 s), **32 Befunde**; jeder einzelne von mir selbst nachgemessen: **30 bestaetigt**, einer in der
+behaupteten Form widerlegt (`K6` Sperrzeit - der Schluessel heisst `sperrzeit_stunden` und wird gelesen),
+einer teilweise (`K8`). Dokument: `docs/audits/GESAMTAUDIT_20261111.md`. Kein `src/`- und kein
+`data/`-Eingriff, kein Spielstart, die EXE `4124b335...` unberuehrt.
+
+**Die vier schwersten, gemessen:**
+
+- **Kampfbericht nennt die doppelte Beute** - `kampf._beute` 20/20 gegen gebucht 10/10 (`main.py:6243`).
+- **Wallpunkte zwei Summen** - zwei Doerfer Wallstufe 2: je Dorf 16, `spielschicht.punkte` 8; betrifft das
+  Messwerkzeug, aus dem die Registerzahl "3,5 Punkte je Spieltag" stammt.
+- **`run_tests.bat` ist dauerhaft rot** - `tests/test_weltkarte.py` bricht mit `AttributeError: ...
+  'welt_zelle'` ab, ohne ERGEBNIS-Zeile (selbst gelaufen 11.11.2026). Der Sammellauf ist nicht betroffen.
+- **Ein Siedler wird nur den Bots abgezogen** - `spielschicht._baukosten` liefert `siedler: 1`, obwohl
+  `siedler_bindung_aktiv()` False ist; `main.py:2982` nimmt den Posten beim Spieler heraus.
+
+**Sechs oeffentliche Texte sagen Unwahres** (Register 401): `index.html` nennt Pakt/Rache als "nicht
+eingebaut" (gebaut), sagt die Handelspunkte wuerden nicht gebucht (werden gebucht); `README.md` nennt ein
+ZIP und eine EXE, die es nicht gibt (Version aus `data/version.json` ist `V_0.0.3`), den Speicherordner
+eine Ebene zu hoch, und "20 Limbus-Dimensionen, 14 leer" (die Datei fuehrt **6**, keine leer);
+`release_vorlage/*.txt` tragen noch V_0.0.1 und "rund 82 MB". **Das ist derselbe Stoff, den der
+Claude-Auftrag zur Praesentation prueft** - hier die gemessene Grundlage.
+
+**Bauplan (nach Daniels Test, in EINEM Zug mit G8, G9 und der Wall-Entscheidung):**
+Stufe 1 die sieben Spieler-Fehler (K1, K3, U1, U2, U3, U4, U7) - Stufe 2 Pruefstand (K2, D8, D3/D4/D5,
+D6/D7) - Stufe 3 die sechs Texte (P1 bis P6) - Stufe 4 Aufraeumen ohne Spielwirkung (K5, K6-Rest, K7, K8,
+U5, U6, D1, D2, P7, P8).
+
+**Unveraendert offen:** Daniels Testbogen ist leer (Anleitung `976b9aac...`, Schreibordner nur `tor.json`);
+die Skill-Aenderungen `0e5b3c84`/`9ce5a020` sind gestellt (Kennung `e44401db`) und warten auf
+`/skills pending`.
+
 # STAND 11.11.2026, 13:38 - Testbogen noch leer; fuenf Entscheidungen gefallen, Gesamtaudit laeuft (Register 388 bis 396)
 
 > Neuester Block. Darunter 13:25 (Frischstart-Paket wartet; 387), 10.11. 21:50 (G2/G3, Sammellauf, neue
