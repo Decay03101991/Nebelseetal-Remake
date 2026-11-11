@@ -1,3 +1,32 @@
+# STAND 11.11.2026, 15:22 - Originalquellen draussen, Startseite wieder aktuell, 218/218 gruen (Register 407 bis 411)
+
+> Neuester Block. Darunter 14:37 (Claude-Lieferung, Originalquellen-Befund; 404/405), 14:22 (Gesamtaudit;
+> 398 bis 402), 14:28/14:37 (Guthaben; 403/406), 13:38 (fuenf Entscheidungen; 392 bis 397).
+
+**Was gebaut wurde - die Wachen halten jetzt die neue Entscheidung:** fuenf Pruefdateien prueften die
+Originale, die am selben Tag aus dem oeffentlichen Stand genommen wurden (`test_baseline`,
+`test_gpt_originalkarten_historische_info`, `test_gpt_originalkarten_katalog`,
+`test_gpt_projektordnung_20261028`, `test_originalkarten_only`). Neuer Helfer `tests/_originalpfade.py`
+sucht eine Originaldatei **erst im Repo, dann in `archiv/originalquellen_20261111/`** und meldet einen
+BEFUND, wenn beides fehlt. **Sammellauf danach: 218 von 218 gruen, 704 s, 9.449 Pruefungen, 0 Fehler,
+81 Befunde, 2 ausgesetzt** (`docs/audits/sammellauf_20261111_1508.log`). Protokoll-Nr: 410.
+
+**Die Startseite ist repariert.** Ursache: Pages stand auf `build_type: workflow`, es gab aber **keinen
+Pages-Workflow**; der letzte Build war der 04.11.2026 (Commit `a00e51a`). Auf Daniels Wort umgestellt auf
+`legacy` / Branch `main` / Ordner `/`, Build angestossen - **live belegt: 9.972 Byte, Titel »Pre-Release
+V_0.0.3«**. Beschreibung (vorher 0.5.0-pre.1) und zehn Topics gesetzt und zurueckgelesen. Register 411.
+
+**Was NICHT gemacht wurde, mit Grund:** die Entwuerfe von Claude sind **nicht** uebernommen (Daniel:
+»Nichts uebernehmen - erst eigenes Konzept«, Register 408); sie liegen vollstaendig als Vorschlag in
+`docs/eingaenge/LLM_20261111_PRAESENTATION/`. Der **Geschichts-Schnitt** (Force-Push) fuer die
+Originalquellen ist Daniels eigener Schritt - die Dateien bleiben in der Git-Historie abrufbar. Lizenz und
+Social Preview kann nur Daniel setzen. Der **Screenshot** aus V_0.0.3 kommt nach seinem Test (Register 409).
+
+**Was zuletzt noch offen war:** Daniels Testbogen (unveraendert `976b9aac...`, Schreibordner nur
+`tor.json`), die Skill-Vormerkungen `0e5b3c84`/`9ce5a020` (gestellt, Kennung `e44401db`, warten auf
+`/skills pending`), und der Bauplan aus dem Gesamtaudit (Stufe 1 bis 4, Register 398 bis 402) - der laeuft
+**nach** dem Test in einem Zug mit G8, G9 und der Wall-Entscheidung.
+
 # STAND 11.11.2026, 14:37 - Claude-Lieferung abgelegt und nachgemessen; Originalquellen im oeffentlichen Repo (Register 404/405)
 
 > Neuester Block. Darunter 14:22 (Gesamtaudit; 398 bis 402), 14:28 (Guthaben 11,56 / 68,43; 403),
