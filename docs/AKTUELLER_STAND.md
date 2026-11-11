@@ -1,4 +1,4 @@
-# STAND 11.11.2026, 14:40 - Claude-Lieferung abgelegt und nachgemessen; Originalquellen im oeffentlichen Repo (Register 404/405)
+# STAND 11.11.2026, 14:37 - Claude-Lieferung abgelegt und nachgemessen; Originalquellen im oeffentlichen Repo (Register 404/405)
 
 > Neuester Block. Darunter 14:22 (Gesamtaudit; 398 bis 402), 14:28 (Guthaben 11,56 / 68,43; 403),
 > 13:38 (fuenf Entscheidungen; 392 bis 397), 13:25 (Frischstart-Paket wartet; 387).
