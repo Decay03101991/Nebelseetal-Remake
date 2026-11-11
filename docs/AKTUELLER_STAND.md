@@ -1,3 +1,37 @@
+# STAND 11.11.2026, 21:05 - T1 bis T6 gebaut, Kernfehler K3/U7, G9 und Wall-Punkte (Register 437 bis 441)
+
+> Neuester Block. Darunter 18:44 (Konzepte geprueft; 432/433), 15:21 (Originalquellen; 407 bis 411),
+> 14:37 (Claude-Lieferung; 404/405), 14:22 (Gesamtaudit; 398 bis 402).
+
+**Daniel hat vier Entscheidungen getroffen (Register 434):** Startseite wird **Variante 1 »Das Tor«**
+(gebaut von mir), **Burgen und Wappen werden NEU entworfen** (KI, Stilreferenz Chris, eigene Bilder -
+die heutige Zuordnung bleibt bis dahin unberuehrt), **Bau der Spiel-Oberflaeche: GO**, und die
+Startseite baue **ich**, nicht Claude.
+
+**Gebaut und geprueft:**
+
+| Punkt | Was jetzt anders ist | Wache |
+|---|---|---|
+| T1 Gebaeudehintergruende | zwei Lagen aus demselben Bild (Szene oben scharf, Grund gespiegelt/weich); 86 auf 36 Prozent fast-schwarze Flaeche, Helligkeit 15,2 auf 42,4; Abdunkelung 38 auf 18 Prozent | `test_ansicht_hintergrund` 81/0 |
+| T2 Ressourcenleiste | gezeichneter Streifen mit **elf** Feldern (Wolle, Leder, Pferde dabei), Breite aus dem Inhalt, mittig | `test_ressourcenleiste` 42/0 |
+| T3 Menue-Icons | 20 auf **32 px**, Schrift 11 fett | - |
+| T4 Lagerkacheln | kein Spaltengewicht mehr, acht Spalten, kleinere Abstaende | - |
+| T5 Kartenrahmen | vier rechtwinklige Ecken aus dem geraden Band, Fenster ist ein Rechteck | `test_weltkarte_rahmen` 36/0 |
+| T6 Portal-Kopfband | Breite bis zum Rand, Hoehe bei 200 px gedeckelt und mittig beschnitten | `test_portal_kopfleiste` 73/0 |
+| K3 Siedler-Posten | der Kern zieht keinen Siedler mehr ab - Daniels Entscheidung vom 31.10. gilt fuer alle Wege | `test_spielschicht` 149/0 |
+| U7 Ruhmeshalle | Truppen aus `alle_einheiten()` (anwesend und unterwegs) | - |
+| G9 Forschung | die Zeile »schaltet frei« nennt jetzt auch die Gebaeude | `test_forschungspfad` 124/0 |
+| Wall-Punkte | Goetterschutz endet nur noch bei Truppen-Kriegspunkten | `test_punkte` 78/0 |
+
+**Noch NICHT gebaut (offen, in dieser Reihenfolge):** T7 (Forschung, Goetterschutz und Wallbau
+sichtbarer), G8 (Drosselungs-Regler im Auftragsdialog - der Kern kann es seit `auftraege`, die
+Oberflaeche reicht die Zahl noch nicht durch), K1 (Beute im Kampfbericht doppelt), U1/U2/U3 (heller
+Knopf mit Abbruch, Bibliothek ueber alle Doerfer, Wall-Knopf ohne Forschungspruefung), U4
+(`beute_gutschreiben`).
+
+**Deshalb noch KEINE neue EXE und KEIN neuer Testbogen** - beides kommt erst, wenn die Liste oben
+abgearbeitet ist und EIN Sammellauf ueber den Endstand gruen war.
+
 # STAND 11.11.2026, 18:44 - Desktop geraeumt, Claudes drei Konzepte geprueft, Burg-Frage gemessen (Register 432/433)
 
 > Neuester Block. Darunter 15:21 (Originalquellen, Startseite; 407 bis 411), 14:37 (Claude-Lieferung;

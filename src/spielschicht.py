@@ -106,8 +106,30 @@ def _baukosten(gebaeude: str, stufe: int = 1) -> Dict[str, int]:
     kennung = gelaende.finde_gebaeude(gebaeude) or gebaeude
     eintrag = _preise().get(kennung) or {}
     faktor = max(1, int(stufe))
-    return {r: int(v) * faktor for r, v in eintrag.items()
-            if (r in _rohstoff_ids() or r == "siedler") and isinstance(v, (int, float))}
+    kosten = {r: int(v) * faktor for r, v in eintrag.items()
+              if (r in _rohstoff_ids() or r == "siedler") and isinstance(v, (int, float))}
+    # K3 (Gesamtaudit 11.11.2026, Register 399): der Siedler-Posten wurde NUR beim Spieler
+    # abgezogen (`main.py` nahm ihn nach `wirtschaft.siedler_bindung_aktiv()` heraus), der
+    # Bot-Pfad zahlte weiter. Daniels Entscheidung vom 31.10.2026 (Frage 5 = B: Bauten binden
+    # keine Siedler) gilt fuer ALLE Wege - deshalb steht der Schalter hier, an der EINEN
+    # Kostenstelle des Kerns, und nicht mehr in der Anzeige.
+    if "siedler" in kosten and not _siedler_bindung_aktiv():
+        kosten.pop("siedler")
+    return kosten
+
+
+def _siedler_bindung_aktiv() -> bool:
+    """Bindet ein Bau Siedler? Dieselbe Datei wie `wirtschaft.siedler_bindung_aktiv()`.
+
+    Gelesen wird `data/bausiedler.json` (Schalter `aktiv`). Fehlt die Datei, gilt das Original
+    (True) - im Zweifel keine stille Abweichung, dieselbe Regel wie in `wirtschaft`.
+    """
+    try:
+        pfad = os.path.join(spieldaten.projektwurzel(), "data", "bausiedler.json")
+        with open(pfad, encoding="utf-8") as f:
+            return bool(json.load(f).get("aktiv", True))
+    except (OSError, ValueError):
+        return True
 
 
 def _kosten_text(kosten: Dict[str, int]) -> str:

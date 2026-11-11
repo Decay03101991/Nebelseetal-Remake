@@ -99,12 +99,31 @@ check("1 fehlende Datei liefert ein leeres dict (kein Absturz)",
       G.rahmen_kanten("assets/gibtsnicht.png", 400, 400) == {}, "")
 check("1 zu kleine Masse liefert ein leeres dict",
       G.rahmen_kanten(RAHMEN_PFAD, 20, 20) == {}, "")
-# Die Ecke muss aus dem ORIGINAL stammen - sonst waere der Rahmen gemalt statt geliefert.
+# ENTSCHEIDUNG GEAENDERT (11.11.2026, T5): die Ecke kommt NICHT mehr pixelgleich aus dem Original.
+# Daniels Befund C10 war: die abgerundete Innenseite des Rahmens deckt die Ecken der vier
+# Eckkacheln (am Screenshot nachgemessen: das Kartenraster laeuft unter dem Rahmen durch). Die
+# Originalecke traegt einen Bogen von rund 30 px, das Band ist 16 px breit - der Bogen muss also in
+# das Feld hineinlaufen. Neu sind die vier Ecken RECHTWINKLIG und aus den GERADEN Kantenstuecken
+# gebaut; damit ist das Fenster fuer das Raster ein sauberes Rechteck. Die Wache prueft jetzt das,
+# was Daniel verlangt hat, statt die Ursache festzunageln.
 from PIL import Image  # noqa: E402
 _quelle = Image.open(os.path.join(ROOT, RAHMEN_PFAD)).convert("RGBA")
-check("1 die linke obere Ecke ist pixelgleich mit dem Original",
-      list(teile["oben"].crop((0, 0, 16, 16)).getdata()) == list(_quelle.crop((0, 0, 16, 16)).getdata()),
-      "")
+_alpha_oben = teile["oben"].convert("RGBA").split()[3]
+# Die Ecke darf nicht mehr durchsichtiger sein als das gerade Band: genau das war der Bogen, der
+# in die Eckkacheln lief. Gemessen wird die Zahl der fast durchsichtigen Pixel in Ecke und Band.
+_ecke_alpha = _alpha_oben.crop((0, 0, teile["rand"], teile["rand"]))
+_band_alpha = _alpha_oben.crop((teile["rand"], 0, 2 * teile["rand"], teile["rand"]))
+_leer_ecke = sum(1 for a in _ecke_alpha.getdata() if a < 8)
+_leer_band = sum(1 for a in _band_alpha.getdata() if a < 8)
+check("1 die Ecke ist rechtwinklig: so deckend wie das gerade Band (kein Bogen)",
+      _leer_ecke <= _leer_band + 4, "Ecke %d, Band %d fast durchsichtige Pixel" % (_leer_ecke, _leer_band))
+check("1 der Rahmen deckt das Kartenfenster NICHT ab (Fenster ist ein Rechteck)",
+      len(teile) == 5 and teile["oben"].size[1] == teile["rand"]
+      and teile["links"].size[0] == teile["rand"],
+      str({n: getattr(v, "size", v) for n, v in teile.items()}))
+check("1 der Rahmen stammt aus dem gelieferten Bild (Farbe des Bandes, kein Vollton)",
+      len(set(_quelle.convert("RGB").getdata())) > 200,
+      "Farben im gelieferten Rahmen: %d" % len(set(_quelle.convert("RGB").getdata())))
 
 # ==========================================================================
 abschnitt("2. Das Kaestchen sitzt in einem Bildrahmen, die Masse bleiben")

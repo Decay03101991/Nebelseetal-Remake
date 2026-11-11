@@ -159,7 +159,15 @@ ok, meldung = S.bauen(zb, 0, "holzfaeller", _wald)
 check("Holzfaeller auf Wald wird gebaut", ok is True, meldung)
 check("der Bau bucht 10 Holz ab", zb["ressourcen"]["holz"] == 90, str(zb["ressourcen"]["holz"]))
 check("der Bau bucht 5 Stein ab", zb["ressourcen"]["stein"] == 95, str(zb["ressourcen"]["stein"]))
-check("der Bau verbraucht 1 Siedler", zb["bevoelkerung"] == 9, str(zb["bevoelkerung"]))
+# ENTSCHEIDUNG GEAENDERT (11.11.2026, K3 aus dem Gesamtaudit, Register 399): Daniel hat am
+# 31.10.2026 entschieden, dass Bauten KEINE Siedler binden (Frage 5 = B, `data/bausiedler.json`).
+# Bis heute galt das nur im Spielerpfad; der Kern (`spielschicht._baukosten`) zog den Siedler
+# weiter ab, der Bot-Pfad zahlte also doppelt. Jetzt liest auch der Kern denselben Schalter -
+# die alte Wache nagelte den Fehler fest und wird deshalb umgestellt, nicht der Code.
+check("der Bau verbraucht KEINEN Siedler (Schalter aus bausiedler.json gilt im Kern)",
+      zb["bevoelkerung"] == 10, str(zb["bevoelkerung"]))
+check("die Baukosten nennen den Siedler-Posten gar nicht mehr",
+      "siedler" not in S._baukosten("holzfaeller", 1), str(S._baukosten("holzfaeller", 1)))
 check("das Feld traegt das Gebaeude",
       zb["siedlungen"][0]["bauten"].get(str(_wald)) == "holzfaeller",
       str(zb["siedlungen"][0]["bauten"]))

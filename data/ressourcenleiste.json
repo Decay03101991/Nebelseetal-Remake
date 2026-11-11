@@ -1,71 +1,147 @@
 {
-  "_zweck": "Die Ressourcenleiste aus der C2-Lieferung. Das Bild bringt acht gezeichnete Symbole und acht freie Zahlenplaketten mit; die WERTE schreibt das Spiel als eigene Textebene darueber (helle Zahl, dunkle Kontur).",
-  "_quelle": "archiv/eingaben/20261102_c2_designs/ressourcenleiste/ressourcenleiste.png (1440x140 RGBA) und LIEFERUNG.md der C2-Lieferung: Reihenfolge Siedler, Nahrung, Holz, Stein, Erz, Gold, Mana, Kelch; Zahlenfeld-Mittelpunkte in Pixeln bei 1440x140. Register 119/121.",
-  "_abbildung": "Der Auftrag nennt die Felder 'Erz' und 'Kelch'. Im Spiel heissen sie 'Metall' und 'Punkte' (Gesamtpunkte aus punkte.py) - die Zuordnung steht in 'quelle', damit die Anzeige nicht neu erfunden wird.",
-  "_regel": "Alle Masse sind Pixel im Originalbild (1440x140). Bei anderer Breite rechnet das Spiel ALLES proportional um (Skala = Breite / 1440); kein Feld ist fest getippt.",
-  "datei": "assets/icons/leiste/ressourcenleiste.png",
-  "breite": 1440,
-  "hoehe": 140,
+  "_zweck": "Die Ressourcenleiste im Kopf: elf Felder als eigener Streifen, vom Inhalt bestimmt (nicht auf Fensterbreite gezogen). Jede Zelle traegt Name und Zahl, zwischen den Zellen steht eine feine Goldlinie; Zierrat gibt es nur an den beiden Enden.",
+  "_entscheidung": "T2 (Daniel 11.11.2026, Testbogen D3/B09: »ganz schrecklich, außerdem wird weder Wolle noch Leder als Ressource angezeigt, das muss komplett neu designed werden«). BEFUND vorher (am Bild gemessen): das gemalte Leistenbild ist 1440x140 und hat acht eingebaute Symbole mit acht Zahlenplaketten; es wurde auf die volle Fensterbreite gezogen, dazwischen sassen 28 leere goldene Kreisverzierungen als Fuellung, und Wolle, Leder und Pferde hatten gar kein Feld. NEU: ein Streifen aus elf Zellen (Siedler, die neun Rohstoffe, Punkte), Breite aus dem Inhalt, Name und Zahl je Zelle als Text.",
+  "_warum_keine_symbole": "Die frueheren Symbolbilder waren in Daniels Fenster (1920x1080 bei 125 Prozent) 0 von 9 erkennbar (Bogen C06/C07: »Leider zu klein und kaum zu erkennen«, auf die Frage welches unklar: »alle«). Ein gezeichnetes Zeichen braucht Groesse, eine Beschriftung nicht. Deshalb Name plus Zahl als Text und kein Emoji - Emoji haengen an der Schrift des Rechners und sehen je nach Windows-Fassung anders aus.",
+  "_regel": "Namen, Reihenfolge und Rechenquelle stehen NUR hier: `main.leiste_felder()` liest sie, `main.leistenwert()` rechnet den Wert, `main.leiste_layout()` rechnet die Zellen aus (ohne Tk, damit pruefbar).",
+  "hoehe": 34,
+  "farben": {
+    "_zweck": "Farben des Streifens. Die Zahl ist hell mit dunkler Kontur, damit sie auf jedem Untergrund lesbar bleibt.",
+    "grund": "#24100b",
+    "rand": "#8a6a2a",
+    "trenner": "#6d5223",
+    "zahl": "#F7E9C8",
+    "name": "#d9b25a",
+    "kontur": "#101418",
+    "marke": "#FFCC33"
+  },
+  "masse": {
+    "_zweck": "Alle Masse in Pixeln bei Schriftfaktor 1,0. Wird das Fenster schmaler, verkleinert das Spiel Schrift und Abstaende gleichmaessig bis 'schrift_min_faktor', statt Zellen abzuschneiden.",
+    "rand": 8,
+    "zelle_pad": 9,
+    "trenner": 1,
+    "trenner_hoehe": 14,
+    "endstueck": 14,
+    "schrift_name": 9,
+    "schrift_zahl": 11,
+    "schrift_min_faktor": 0.8
+  },
   "felder": [
     {
       "schluessel": "siedler",
-      "x": 184,
-      "y": 105,
+      "name": "Siedler",
       "quelle": "bevoelkerung"
     },
     {
       "schluessel": "nahrung",
-      "x": 342,
-      "y": 105,
+      "name": "Nahrung",
       "quelle": "nahrung"
     },
     {
       "schluessel": "holz",
-      "x": 494,
-      "y": 105,
+      "name": "Holz",
       "quelle": "holz"
     },
     {
       "schluessel": "stein",
-      "x": 646,
-      "y": 105,
+      "name": "Stein",
       "quelle": "stein"
     },
     {
-      "schluessel": "erz",
-      "x": 799,
-      "y": 105,
+      "schluessel": "metall",
+      "name": "Metall",
       "quelle": "metall"
     },
     {
       "schluessel": "gold",
-      "x": 957,
-      "y": 105,
+      "name": "Gold",
       "quelle": "gold"
     },
     {
       "schluessel": "mana",
-      "x": 1110,
-      "y": 105,
+      "name": "Mana",
       "quelle": "mana"
     },
     {
+      "schluessel": "wolle",
+      "name": "Wolle",
+      "quelle": "wolle"
+    },
+    {
+      "schluessel": "leder",
+      "name": "Leder",
+      "quelle": "leder"
+    },
+    {
+      "schluessel": "pferde",
+      "name": "Pferde",
+      "quelle": "pferde"
+    },
+    {
       "schluessel": "punkte",
-      "x": 1264,
-      "y": 105,
+      "name": "Punkte",
       "quelle": "punkte"
     }
   ],
-  "farben": {
-    "_zweck": "Zahl hell mit dunkler Kontur, damit sie auf der gemalten Kulisse lesbar bleibt (Vorgabe LIEFERUNG.md)",
-    "zahl": "#F7E9C8",
-    "kontur": "#101418"
-  },
-  "kachel_halbbreite": 55,
-  "skala_max": 1.5,
-  "luecke_max": 1.35,
-  "rest_auffuellen": "kacheln",
-  "skala_hart": 1.75,
-  "_lueckendehnung": "P-3 (02.11.2026): 'luecke_max' deckelt, wie weit eine Luecke hoechstens waagerecht gedehnt wird. Vorher nahmen die Luecken die gesamte Restbreite auf - bei 2560 px Fensterbreite war das Faktor 1,86, bei 3440 px 3,75; die gemalte Landschaft zwischen den Symbolen wurde zu langgezogenen Streifen mit harten Naehten (Daniels Befund). Reicht die gedeckelte Luecke nicht, skaliert das Band stattdessen GLEICHMAESSIG groesser (treue Vergroesserung ohne Naht), hoechstens bis 'skala_hart'. 'rest_auffuellen' schaltet das um: 'gleichmaessig' oder 'leer' (dann bleibt rechts die Kopfleistenfarbe stehen).",
-  "_bauweise": "Das Bild ist nicht mehr EIN Stueck, das auf Fensterbreite gezogen wird (das machte die Symbole unscharf und links-rechts gestreckt - Daniels Befund 02.11.2026). Es wird aus Stuecken zusammengesetzt: Ecken (Zierrahmen und Banner) und die acht Symbolfelder sind FEST und werden nur gleichmaessig mit 'skala' skaliert; nur die Luecken zwischen den Feldern werden waagerecht gedehnt. Damit wird der Balken laenger, ohne dass ein Symbol verzerrt. 'kachel_halbbreite' ist die halbe Breite eines Symbolfeldes in Pixeln (Symbol plus Zahlenplakette), 'skala_max' die Obergrenze des gleichmaessigen Wachstums: darueber hinaus waechst nur noch die Laenge (Symbole bleiben scharf)."
+  "_altes_bild": {
+    "_zweck": "Das gemalte Leistenbild der C2-Lieferung (Register 119/121). Es wird seit T2 NICHT mehr gezeichnet - es hat acht Felder, und Wolle und Leder fehlen darin. Die Datei bleibt im Projekt, damit die Lieferung nicht verloren geht; die alten Rechenwege (`leisten_zusammensetzen`, `_leisten_stuecke`) bleiben als Rueckfall im Code.",
+    "_quelle": "archiv/eingaben/20261102_c2_designs/ressourcenleiste/ressourcenleiste.png (1440x140 RGBA) und LIEFERUNG.md der C2-Lieferung: Reihenfolge Siedler, Nahrung, Holz, Stein, Erz, Gold, Mana, Kelch; Zahlenfeld-Mittelpunkte in Pixeln bei 1440x140.",
+    "datei": "assets/icons/leiste/ressourcenleiste.png",
+    "breite": 1440,
+    "hoehe": 140,
+    "kachel_halbbreite": 55,
+    "skala_max": 1.5,
+    "luecke_max": 1.35,
+    "rest_auffuellen": "kacheln",
+    "skala_hart": 1.75,
+    "felder": [
+      {
+        "schluessel": "siedler",
+        "x": 184,
+        "y": 105,
+        "quelle": "bevoelkerung"
+      },
+      {
+        "schluessel": "nahrung",
+        "x": 342,
+        "y": 105,
+        "quelle": "nahrung"
+      },
+      {
+        "schluessel": "holz",
+        "x": 494,
+        "y": 105,
+        "quelle": "holz"
+      },
+      {
+        "schluessel": "stein",
+        "x": 646,
+        "y": 105,
+        "quelle": "stein"
+      },
+      {
+        "schluessel": "erz",
+        "x": 799,
+        "y": 105,
+        "quelle": "metall"
+      },
+      {
+        "schluessel": "gold",
+        "x": 957,
+        "y": 105,
+        "quelle": "gold"
+      },
+      {
+        "schluessel": "mana",
+        "x": 1110,
+        "y": 105,
+        "quelle": "mana"
+      },
+      {
+        "schluessel": "punkte",
+        "x": 1264,
+        "y": 105,
+        "quelle": "punkte"
+      }
+    ]
+  }
 }

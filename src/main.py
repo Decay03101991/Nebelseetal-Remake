@@ -3164,28 +3164,90 @@ def kopf_rate_text(state, rohstoff: str, ertrag_jetzt: dict) -> Tuple[str, bool]
 
 
 def _lade_ressourcenleiste() -> Dict[str, Any]:
-    """Die Ressourcenleiste aus `data/ressourcenleiste.json` lesen (Bild, Masse, acht Felder).
+    """Die Ressourcenleiste aus `data/ressourcenleiste.json` lesen (Felder, Masse, Farben).
 
-    Die Datei ist die EINE Quelle fuer Bildpfad, Feldpositionen und Farben; ohne sie bleibt der
-    Kopf wie vorher (kein Absturz, keine erfundene Leiste).
+    Die Datei ist die EINE Quelle fuer Reihenfolge, Beschriftung, Rechenquelle, Masse und Farben.
+    T2 (11.11.2026): das frueher noetige Bild (`datei`) ist nicht mehr Bedingung - die Leiste wird
+    seit Daniels Befund D3 gezeichnet (elf Felder, Name plus Zahl). Ohne brauchbare Datei bleibt der
+    Kopf textbasiert; es wird nichts erfunden und nichts stuerzt ab.
     """
     pfad = os.path.join(ICON_WURZEL, "data", "ressourcenleiste.json")                      # Datendatei
     try:                                                                                  # Datei lesen
         with open(pfad, encoding="utf-8") as f:                                            # UTF-8 wie alle Spieldaten
             daten = json.load(f)                                                           # Inhalt als dict
     except (OSError, ValueError):                                                          # fehlt oder kaputt
-        return {}                                                                          # dann kein Leistenbild
-    if not daten.get("datei") or not daten.get("felder"):                                  # unvollstaendig
+        return {}                                                                          # dann keine Leiste
+    if not isinstance(daten, dict):                                                        # unbrauchbarer Inhalt
         return {}                                                                          # lieber ohne Leiste
+    felder = [f for f in (daten.get("felder") or [])                                       # jedes Feld braucht
+              if isinstance(f, dict) and f.get("schluessel") and f.get("quelle")]          # Kennung und Quelle
+    if not felder:                                                                         # ohne Felder
+        return {}                                                                          # lieber ohne Leiste
+    daten["felder"] = felder                                                               # nur brauchbare Felder
     return daten                                                                           # fertige Beschreibung
 
 
 RESSOURCENLEISTE: Dict[str, Any] = _lade_ressourcenleiste()                                # einmal beim Import
 
 # Rohstoffe, deren MENGE auf der Leiste steht - ihre Detailzeile zeigt nur die Rate (Register 121).
+# T2 (11.11.2026): seit die Leiste elf Felder hat, stehen ALLE neun Rohstoffe darauf - vorher fehlten
+# Wolle, Leder und Pferde, und ihre Zeile zeigte Menge und Rate doppelt (Daniels Befund D3: "weder
+# Wolle noch Leder als Ressource angezeigt"). Die Menge steht jetzt genau einmal im Kopf.
 LEISTEN_ROHSTOFFE = tuple(sorted({str(f.get("quelle")) for f in RESSOURCENLEISTE.get("felder") or []
-                                  if str(f.get("quelle")) in ("holz", "stein", "metall", "mana",
-                                                              "nahrung", "gold")}))
+                                  if str(f.get("quelle")) in RESOURCES}))
+
+
+def leiste_felder() -> list:
+    """Die elf Felder der Ressourcenleiste - die EINE Liste, aus `data/ressourcenleiste.json`.
+
+    Reihenfolge: Siedler, die neun Rohstoffe (Nahrung, Holz, Stein, Metall, Gold, Mana, Wolle,
+    Leder, Pferde), Punkte. Jedes Feld nennt `schluessel`, `name` (Beschriftung) und `quelle`
+    (Rechenquelle fuer `leistenwert`). Kein Name ist im Code getippt.
+    """
+    return [dict(f) for f in (RESSOURCENLEISTE.get("felder") or [])
+            if f.get("schluessel") and f.get("quelle")]
+
+
+def leiste_layout(texte, textbreiten, masse: dict = None, zielbreite: int = 0) -> dict:
+    """Die Zellen der Leiste ausrechnen - OHNE Tk, damit das Ergebnis pruefbar und vorhersagbar ist.
+
+    `texte` ist die Anzeigereihenfolge [(name, wert)], `textbreiten` die dazu gemessenen Breiten
+    [(breite_name, breite_wert)] in Pixeln bei Schriftfaktor 1,0. `masse` sind die Zahlen aus der
+    Datendatei. Wird das Fenster schmaler als der Inhalt, verkleinert sich alles gleichmaessig bis
+    `schrift_min_faktor` - keine Zelle wird abgeschnitten.
+
+    Rueckgabe: {"zellen": [{"x", "breite", "name_x", "wert_x", "name", "wert"}], "gesamt", "faktor",
+    "start", "hoehe"} - alles in Pixeln der Zielflaeche.
+    """
+    masse = masse or (RESSOURCENLEISTE.get("masse") or {})
+    rand = int(masse.get("rand") or 8)                              # Aussenrand links und rechts
+    pad = int(masse.get("zelle_pad") or 9)                          # Innenabstand einer Zelle
+    trenner = int(masse.get("trenner") or 1)                        # Breite der Goldlinie
+    endstueck = int(masse.get("endstueck") or 14)                   # Zierstueck an beiden Enden
+    minimum = float(masse.get("schrift_min_faktor") or 0.8)         # kleinster erlaubter Faktor
+    zellen = []                                                     # Ergebnisliste
+    roh = []                                                        # Breite je Zelle bei Faktor 1,0
+    for (name, wert), (bn, bw) in zip(texte, textbreiten):          # jedes Feld einzeln
+        roh.append(max(int(bn), int(bw)) + 2 * pad)                 # Zelle = breitester Text plus Rand
+    gesamt_1 = 2 * rand + 2 * endstueck + sum(roh) + trenner * max(0, len(roh) - 1)   # Gesamtbreite
+    faktor = 1.0                                                    # Vorgabe: Originalgroesse
+    if zielbreite and gesamt_1 > int(zielbreite):                   # Fenster ist schmaler als der Inhalt
+        faktor = max(minimum, int(zielbreite) / float(gesamt_1))    # gleichmaessig verkleinern
+    breiten = [max(1, int(round(b * faktor))) for b in roh]         # Zellbreiten nach dem Faktor
+    gesamt = int(round(2 * rand * faktor + 2 * endstueck * faktor
+                       + sum(breiten) + trenner * max(0, len(breiten) - 1)))   # neue Gesamtbreite
+    start = int(round(rand * faktor))                               # linker Anfang
+    if zielbreite and gesamt < int(zielbreite):                     # Restbreite: Inhalt mittig stellen
+        start = int((int(zielbreite) - gesamt) / 2)                 # nicht dehnen, nur zentrieren
+    x = start + int(round(endstueck * faktor))                      # erstes Zierstueck ueberspringen
+    for (name, wert), breite in zip(texte, breiten):                # Zellen von links nach rechts
+        zellen.append({"x": x, "breite": breite,
+                       "name_x": x + int(round(pad * faktor)),                    # Name linksbuendig
+                       "wert_x": x + breite - int(round(pad * faktor)),           # Zahl am rechten Zellrand
+                       "name": name, "wert": wert})                               # Inhalt
+        x += breite + trenner                                       # naechste Zelle hinter der Goldlinie
+    return {"zellen": zellen, "gesamt": gesamt, "faktor": faktor, "start": start,
+            "hoehe": int(RESSOURCENLEISTE.get("hoehe") or 34)}      # alles, was zum Zeichnen noetig ist
 
 
 def _leisten_stuecke(leiste: dict) -> list:
@@ -3463,7 +3525,11 @@ PORTAL_KOPFBAND = ("assets", "bilder", "portal_kopfband_schmiede_dorf_ghule_780x
 # D-5b (Daniel 09.11.2026): Chris' Marktstand als Kennzeichen der Marktplatz-Ansicht.
 # In ANZEIGEGROESSE geschnitten (96 x 96), damit Tk die Datei ohne Pillow laden kann.
 MARKTPLATZ_KENNZEICHEN = ("assets", "bilder", "marktplatz_kennzeichen_96.png")
-PORTAL_KOPFBAND_MASSE = (780, 150)                                       # Platz S1 im Bildplan
+PORTAL_KOPFBAND_MASSE = (780, 150)
+# T6 (Daniel 11.11.2026, Bogen C11): das Band geht bis zum rechten Rand. Damit es im
+# maximierten Fenster nicht die halbe Ansicht frisst, ist die HOEHE gedeckelt; wird sie
+# erreicht, schneidet das Spiel das Bild mittig zu (kein Verzerren).
+KOPFBAND_HOECHSTHOEHE = 200                                       # Platz S1 im Bildplan
 PORTAL_TRENNLINIE = "#C68B42"                                            # Median des Rahmengolds (D-5)
 # Layout-Schnitt (Daniel 09.11.2026, 18:4x): "kleiner halten und gut anpassen". Die Inhaltsspalte
 # des Standardfensters ist 630 px breit (gemessen), die Texte forderten 760 px - rechts wurde
@@ -7916,10 +7982,15 @@ class GameState:
             # Vorher stand hier ein fester Tag 3 — belegter Widerspruch gegen das Handbuch
             # (archiv/analysen/audits/handbuch_abgleich_2026-10-05.txt, Punkt 1). `self.day` startet bei 1,
             # also sind „die ersten sieben Tage“ day 1..7 und der Schutz endet ab day 8.
-            krieg = self.punktestand()["krieg"]
-            if self.day > punkte.goetterschutz_tage() or krieg > 0:
+            # Wall-Punkte loesen den Schutz NICHT mehr aus (Daniel 11.11.2026, Register 394).
+            # Vorher stand hier `punktestand()["krieg"]` - darin stecken die Verteidigungspunkte
+            # der Mauern (`wall_kriegspunkte`). Wer sich eine Mauer baute, verlor damit seinen
+            # Schutz, ohne einen Krieg angefangen zu haben. Gezaehlt werden jetzt NUR die
+            # Truppenpunkte (`punkte.kriegspunkte(einheiten, 0)`), also dieselbe Formel ohne Wall.
+            krieg_truppen = punkte.kriegspunkte(self.alle_einheiten(), 0)
+            if self.day > punkte.goetterschutz_tage() or krieg_truppen > 0:
                 self.noob_protection = False
-                grund = ("erster Kriegspunkt" if krieg > 0
+                grund = ("erster Kriegspunkt" if krieg_truppen > 0
                          else f"{punkte.goetterschutz_tage()} Tage vorbei")
                 self.messages.append({
                     "text": f"Götterschutz beendet ({grund}) - die Welt ist jetzt gefährlich!",
@@ -9136,13 +9207,21 @@ class NebelseetalApp:
         return tk_bild, mitten, skala                                          # Bild, Mittelpunkte, Skala
 
     def _leiste_bauen(self, eltern):
-        """Die Ressourcenleiste als Canvas in den Kopf haengen (Bild + acht Zahlenfelder)."""
-        if not RESSOURCENLEISTE:                                              # keine Leiste eingetragen
+        """Den Ressourcen-Streifen als Canvas in den Kopf haengen (T2, Daniel 11.11.2026).
+
+        Der Streifen ist INHALTSGETRIEBEN: seine Breite kommt aus elf Zellen (Name plus Zahl), nicht
+        aus dem Fenster. Ist das Fenster breiter, steht der Streifen mittig und rechts und links
+        bleibt die Kopfleistenfarbe; ist es schmaler, verkleinert sich alles gleichmaessig bis
+        `schrift_min_faktor` (`leiste_layout`). Das fruehere gemalte Bild wurde auf Fensterbreite
+        gezogen und hatte acht Felder - Wolle, Leder und Pferde fehlten (Daniels Befund D3).
+        """
+        if not leiste_felder():                                                # keine Felder eingetragen
             self._leisten_canvas = None                                        # dann nur die Textzeilen
             return None                                                        # nichts zu bauen
-        canvas = tk.Canvas(eltern, height=int(RESSOURCENLEISTE.get("hoehe") or 140),   # Hoehe wie im Original
-                           bg=self.skin["topbar"], highlightthickness=0, bd=0)          # ohne Rahmen
-        canvas.pack(fill=tk.X, pady=(0, 2))                                    # volle Breite, direkt unter dem Titel
+        hoehe = int(RESSOURCENLEISTE.get("hoehe") or 34)                       # Hoehe aus der Datendatei
+        canvas = tk.Canvas(eltern, height=hoehe, bg=self.skin["topbar"],       # eigene Flaeche im Kopf
+                           highlightthickness=0, bd=0)                          # ohne Rahmen
+        canvas.pack(fill=tk.X, pady=(2, 2))                                    # volle Kopfbreite, Inhalt mittig
         self._leisten_canvas = canvas                                          # Referenz fuer das Neuzeichnen
         self._leisten_texte = {}                                               # Feld -> Canvas-Kennungen
         canvas.bind("<Configure>", lambda _e: self._leiste_zeichnen())          # bei Breitenaenderung neu zeichnen
@@ -9150,59 +9229,97 @@ class NebelseetalApp:
         return canvas                                                          # fuer Pruefungen
 
     def _leiste_zeichnen(self):
-        """Die Leiste in der aktuellen Breite zeichnen: zusammengesetztes Bild plus acht Zahlen.
+        """Den Streifen in der aktuellen Breite zeichnen: elf Zellen mit Name und Zahl (T2).
 
-        Die Positionen der Zahlen kommen aus der Zusammensetzung (`leiste_zusammensetzen`), nicht
-        aus festen Pixeln - dadurch sitzt jede Zahl auch dann mittig in ihrer Plakette, wenn die
-        Luecken gedehnt wurden.
+        Gerechnet wird in `leiste_layout` (ohne Tk). Hier wird nur gezeichnet: Grundflaeche mit
+        Goldrand, zwei Zierstuecke an den Enden, eine feine Goldlinie zwischen den Zellen, darueber
+        Name (klein, gold) und Zahl (hell, dunkle Kontur). Kein Bild, keine leere Verzierung.
         """
         canvas = getattr(self, "_leisten_canvas", None)                        # Zeichenflaeche
-        if canvas is None or not RESSOURCENLEISTE:                             # nichts zu zeichnen
+        if canvas is None:                                                     # nichts zu zeichnen
             return                                                             # Abbruch
         try:                                                                   # Fenster kann schon weg sein
             if not canvas.winfo_exists():                                      # Flaeche zerstoert
                 return                                                         # dann nichts tun
         except tk.TclError:                                                    # Tk kennt sie nicht mehr
             return                                                             # Abbruch
+        felder = leiste_felder()                                               # elf Felder aus der Datendatei
+        if not felder:                                                         # keine Felder
+            return                                                             # Abbruch
         breite_ist = int(canvas.winfo_width())                                 # tatsaechliche Breite
         if breite_ist <= 1:                                                    # vor dem ersten Layout
-            breite_ist = int(RESSOURCENLEISTE.get("breite") or 1440)           # Originalbreite nehmen
+            breite_ist = 0                                                     # dann ohne Zielbreite rechnen
         if getattr(self, "_leisten_breite", None) == breite_ist:               # Breite unveraendert
             return                                                             # kein Neuzeichnen noetig
-        bild, mitten, skala = self._leisten_bild(breite_ist)                    # Stuecke zusammensetzen
-        if bild is None:                                                       # kein Bild verfuegbar
-            return                                                             # dann bleibt der Kopf textbasiert
-        canvas.delete("leiste")                                                # alte Zeichnung weg
-        canvas.configure(height=bild.height())                                  # Flaeche an das Bild anpassen
-        canvas.create_image(0, 0, anchor="nw", image=bild, tags=("leiste",))    # das Bild selbst
-        self._leisten_bild_ref = bild                                          # Referenz gegen Garbage Collection
         farben = RESSOURCENLEISTE.get("farben") or {}                           # Farben aus der Datendatei
-        zahl_farbe = str(farben.get("zahl") or "#F7E9C8")                      # helle Zahl
-        kontur = str(farben.get("kontur") or "#101418")                        # dunkle Kontur
-        schrift = ("Arial", max(8, int(round(11 * skala))), "bold")            # mit der Leiste skalieren
+        masse = RESSOURCENLEISTE.get("masse") or {}                             # Masse aus der Datendatei
+        grund = str(farben.get("grund") or "#24100b")                           # dunkler Grund
+        rand_farbe = str(farben.get("rand") or "#8a6a2a")                       # Goldrand
+        trenner_farbe = str(farben.get("trenner") or "#6d5223")                 # Goldlinie zwischen Zellen
+        zahl_farbe = str(farben.get("zahl") or "#F7E9C8")                       # helle Zahl
+        name_farbe = str(farben.get("name") or "#d9b25a")                       # goldener Name
+        kontur = str(farben.get("kontur") or "#101418")                         # dunkle Kontur der Zahl
+        marke = str(farben.get("marke") or "#FFCC33")                           # Zierstueck an den Enden
+        texte = []                                                             # (Name, Wert) je Feld
+        for feld in felder:                                                    # jedes Feld
+            texte.append((str(feld.get("name") or feld.get("schluessel")),     # Beschriftung
+                          leistenwert(self.state, feld)))                      # Wert aus EINER Rechenstelle
+        try:                                                                   # Schriften messen
+            import tkinter.font as tkfont                                      # Schriftenmodul
+            fm_name = tkfont.Font(family="Arial", size=int(masse.get("schrift_name") or 9))       # Name
+            fm_zahl = tkfont.Font(family="Arial", size=int(masse.get("schrift_zahl") or 11),
+                                  weight="bold")                                # Zahl
+            textbreiten = [(fm_name.measure(n), fm_zahl.measure(w)) for n, w in texte]            # je Zelle
+        except Exception:                                                      # noqa: BLE001
+            textbreiten = [(70, 50) for _ in texte]                            # grobe Vorgabe
+        layout = leiste_layout(texte, textbreiten, masse, breite_ist)           # Zellen ausrechnen
+        faktor = float(layout["faktor"])                                       # Schriftfaktor
+        hoehe = int(RESSOURCENLEISTE.get("hoehe") or 34)                        # Hoehe des Streifens
+        y_name = max(7, int(round(hoehe * 0.33)))                               # Zeile des Namens
+        y_wert = max(14, int(round(hoehe * 0.70)))                              # Zeile der Zahl
+        schrift_name = ("Arial", max(6, int(round(int(masse.get("schrift_name") or 9) * faktor))))
+        schrift_zahl = ("Arial", max(7, int(round(int(masse.get("schrift_zahl") or 11) * faktor))), "bold")
+        canvas.delete("leiste")                                                # alte Zeichnung weg
+        canvas.configure(height=hoehe)                                         # Hoehe aus der Datendatei
+        rand = int(round(int(masse.get("rand") or 8) * faktor))                # Aussenrand
+        if layout["gesamt"] > 0:                                                # Grundflaeche nur mit Inhalt
+            x0 = layout["start"] - rand                                        # linke Kante
+            x1 = layout["start"] + layout["gesamt"] + rand                     # rechte Kante
+            canvas.create_rectangle(x0, 1, x1, hoehe - 1, fill=grund,         # Grundflaeche
+                                    outline=rand_farbe, width=1, tags=("leiste",))
+            for sx in (x0 + int(round(int(masse.get("endstueck") or 14) * faktor)) // 2 + 1,
+                       x1 - int(round(int(masse.get("endstueck") or 14) * faktor)) // 2 - 1):
+                canvas.create_polygon(sx, hoehe / 2 - 4, sx + 4, hoehe / 2,    # Zierstueck: Raute
+                                      sx, hoehe / 2 + 4, sx - 4, hoehe / 2,     # vier Ecken
+                                      fill=marke, outline="", tags=("leiste",))
         self._leisten_texte = {}                                               # neu aufbauen
-        for feld in RESSOURCENLEISTE.get("felder") or []:                      # acht Felder
-            mitte = mitten.get(str(feld.get("schluessel")))                    # Mittelpunkt aus der Zusammensetzung
-            if not mitte:                                                      # Feld nicht gefunden
-                continue                                                       # ueberspringen
-            x, y = int(mitte[0]), int(mitte[1])                                # Zahlenmitte in Pixeln
-            kennungen = []                                                     # alle Texte dieses Feldes
+        loch = int(round(int(masse.get("trenner_hoehe") or 14) * faktor))       # Hoehe der Goldlinie
+        for index, zelle in enumerate(layout["zellen"]):                        # jede Zelle
+            if index:                                                          # zwischen zwei Zellen
+                canvas.create_line(zelle["x"] - 1, loch,                       # feine Goldlinie ueber die
+                                   zelle["x"] - 1, hoehe - loch,               # ganze Zellenhoehe
+                                   fill=trenner_farbe, tags=("leiste",))
+            canvas.create_text(zelle["name_x"], y_name, text=zelle["name"],    # Name linksbuendig
+                               anchor="w", fill=name_farbe, font=schrift_name, tags=("leiste",))
+            kennungen = []                                                     # alle Texte der Zahl
             for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):                  # Kontur vierfach versetzt
-                kennungen.append(canvas.create_text(x + dx, y + dy, text="0", fill=kontur,
-                                                    font=schrift, tags=("leiste",)))   # dunkle Kontur
-            kennungen.append(canvas.create_text(x, y, text="0", fill=zahl_farbe,
-                                                font=schrift, tags=("leiste",)))   # helle Zahl darueber
-            self._leisten_texte[str(feld.get("schluessel"))] = kennungen        # fuer das Aktualisieren merken
+                kennungen.append(canvas.create_text(zelle["wert_x"] + dx, y_wert + dy,
+                                                    text=zelle["wert"], anchor="e", fill=kontur,
+                                                    font=schrift_zahl, tags=("leiste",)))   # dunkle Kontur
+            kennungen.append(canvas.create_text(zelle["wert_x"], y_wert, text=zelle["wert"],
+                                                anchor="e", fill=zahl_farbe, font=schrift_zahl,
+                                                tags=("leiste",)))              # helle Zahl darueber
+            self._leisten_texte[str(felder[index].get("schluessel"))] = kennungen   # fuer das Aktualisieren
         self._leisten_breite = breite_ist                                      # gezeichnete Breite merken
         self._leiste_aktualisieren()                                           # Werte einsetzen
 
     def _leiste_aktualisieren(self):
-        """Die acht Zahlen der Leiste aus dem Spielstand setzen (Rechenstelle: `leistenwert`)."""
+        """Die elf Zahlen der Leiste aus dem Spielstand setzen (Rechenstelle: `leistenwert`)."""
         canvas = getattr(self, "_leisten_canvas", None)                        # Zeichenflaeche
         texte = getattr(self, "_leisten_texte", {}) or {}                      # Feld -> Kennungen
-        if canvas is None or not texte or not RESSOURCENLEISTE:                # nichts zu tun
+        if canvas is None or not texte:                                        # nichts zu tun
             return                                                             # Abbruch
-        for feld in RESSOURCENLEISTE.get("felder") or []:                      # acht Felder
+        for feld in leiste_felder():                                           # elf Felder
             wert = leistenwert(self.state, feld)                               # EINE Rechenstelle
             for kennung in texte.get(str(feld.get("schluessel"))) or []:       # fuenf Texte je Feld
                 try:                                                           # Flaeche kann weg sein
@@ -9461,11 +9578,16 @@ class NebelseetalApp:
             # C2-Gebaeude-Optik (02.11.2026): das gerahmte Icon links neben dem Text. Nur Punkte,
             # hinter denen ein Gebaeude steht (`MENU_GEBAEUDE`); Weltpunkte wie Portal oder Chat
             # bleiben ohne Bild - ein erfundenes Icon waere keine Quelle.
-            _icon = self._menue_icon(item, 20)
+            # T3 (Daniel 11.11.2026, Bogen C06/C07: "Leider zu klein und kaum zu erkennen", auf die
+            # Frage welches unklar: "alle" - 0 von 9 erkannt): Icon von 20 auf 32 px, Schrift von der
+            # Vorgabe auf 11 fett und mehr Innenhoehe. Der Name stand schon dabei; jetzt traegt auch
+            # das Bild. Der Beleg fuer die Groesse steht in Register 437.
+            _icon = self._menue_icon(item, 32)
             _zusatz = {"image": _icon, "compound": tk.LEFT} if _icon is not None else {}
             btn = tk.Button(self.menu_liste, text=MENU_ANZEIGE.get(item, item), fg=self.skin["red"], bg=self.skin["sidebar"], activebackground=self.skin["button_active"], activeforeground=self.skin["gold"],
-                            relief=tk.FLAT, anchor=tk.W, padx=12, command=lambda i=item: self._switch_view(i), **_zusatz)
-            btn.pack(fill=tk.X, pady=1, ipady=2)
+                            font=("Arial", 11, "bold"), relief=tk.FLAT, anchor=tk.W, padx=10,
+                            command=lambda i=item: self._switch_view(i), **_zusatz)
+            btn.pack(fill=tk.X, pady=2, ipady=4)
             self.menu_buttons[item] = btn
 
     def _punkte_leiste_aktualisieren(self):
@@ -12388,6 +12510,29 @@ class NebelseetalApp:
         return neu, max(1, int(round(int(hoehe) * neu / float(breite))))  # gleiches Verhaeltnis
 
     @staticmethod
+    def _kopfband_ziele(spalte: int) -> tuple:
+        """Die tatsaechliche Groesse des Kopfbands: bis zum RAND, nicht nur bis zur Spalte (T6).
+
+        Daniel 11.11.2026 (Bogen C11: "ist scharf, muss aber bei grossem Spielfenster auch bis zum
+        rechten Rand gehen"): das Band war auf die TEXTSPALTE begrenzt (Entwurf 780 px), im
+        maximierten Fenster blieb rechts eine grosse leere Flaeche. Neu gilt fuer die BREITE die
+        gemessene Inhaltsbreite - kleiner wie groesser -, die HOEHE waechst im Seitenverhaeltnis
+        mit und wird bei `KOPFBAND_HOECHSTHOEHE` gedeckelt. Wird sie gedeckelt, meldet die Funktion
+        `beschneiden=True`: dann schneidet der Aufrufer das Bild mittig zu, statt es zu verzerren.
+
+        Rueckgabe: (Breite, Hoehe, beschneiden). Ohne Messung (kleiner als 120 px) das Original.
+        """
+        breite, hoehe = PORTAL_KOPFBAND_MASSE                            # 780 x 150 (EINE Quelle)
+        if int(spalte) < 120:                                            # Spalte nicht gemessen
+            return int(breite), int(hoehe), False                        # dann das Original
+        ziel_b = max(120, int(spalte))                                   # bis zum Rand
+        natur_h = max(1, int(round(int(hoehe) * ziel_b / float(breite))))  # Seitenverhaeltnis
+        if natur_h <= KOPFBAND_HOECHSTHOEHE:                             # passt in die Hoehe
+            return ziel_b, natur_h, False                                # dann nur skalieren
+        # Zu hoch geworden: Breite behalten, Hoehe deckeln, Bild mittig beschneiden.
+        return ziel_b, int(KOPFBAND_HOECHSTHOEHE), True                  # mit Beschnitt
+
+    @staticmethod
     def _textbreite(spalte: int) -> int:
         """Die nutzbare TEXTBREITE fuer eine gemessene Spaltenbreite (Layout-Schnitt).
 
@@ -12435,15 +12580,23 @@ class NebelseetalApp:
         pfad = _bild_pfad(PORTAL_KOPFBAND)                               # Pfad ueber die Projektwurzel
         # Layout-Schnitt: die Spalte wird GEMESSEN, nicht geraten - und Band und Textzeilen lesen
         # DIESELBE Zahl (`_spaltenbreite`); ohne Messung gilt die Entwurfsbreite 780 = Original.
-        ziel = self._kopfband_masse(self._spaltenbreite())               # (Breite, Hoehe) des Bandes
+        # T6 (11.11.2026): Breite bis zum Rand (gemessene Inhaltsbreite), Hoehe gedeckelt und bei
+        # Bedarf mittig beschnitten - die frueher benutzte `_kopfband_masse` bleibt fuer schmale
+        # Fenster erhalten, entscheidet hier aber nicht mehr allein.
+        ziel_b, ziel_h, beschneiden = self._kopfband_ziele(self._spaltenbreite())
+        ziel = (int(ziel_b), int(ziel_h))                                # (Breite, Hoehe) des Bandes
         bild = None                                                      # Vorgabe: kein Bild
         if os.path.exists(pfad):                                         # Datei vorhanden?
             try:
-                if (int(ziel[0]), int(ziel[1])) != (int(breite), int(hoehe)):   # schmale Spalte
+                if (int(ziel[0]), int(ziel[1])) != (int(breite), int(hoehe)):   # andere Groesse
                     from PIL import Image, ImageTk                        # nur hier importieren
                     roh = Image.open(pfad).convert("RGB")                 # PNG oeffnen
-                    bild = ImageTk.PhotoImage(roh.resize((int(ziel[0]), int(ziel[1])),
-                                                         Image.LANCZOS))     # verkleinert
+                    natur_h = max(1, int(round(roh.height * ziel[0] / float(roh.width))))  # Verhaeltnis
+                    roh = roh.resize((int(ziel[0]), natur_h), Image.LANCZOS)   # auf die Zielbreite
+                    if beschneiden and natur_h > int(ziel[1]):            # Hoehe gedeckelt
+                        oben = (natur_h - int(ziel[1])) // 2              # mittig zuschneiden
+                        roh = roh.crop((0, oben, int(ziel[0]), oben + int(ziel[1])))
+                    bild = ImageTk.PhotoImage(roh)                        # Tk-Grafik daraus
                 else:                                                     # Spalte breit genug
                     bild = tk.PhotoImage(file=pfad)                       # Tk liest PNG direkt
             except Exception:                                            # kein Pillow / kaputte Datei
@@ -12960,16 +13113,19 @@ class NebelseetalApp:
                      fg="#8a8a8a", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
         tk.Label(self.content, text="Waren (Reich/Übergang — die 17 Originalwaren aus data/items.json):", fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 0))
         tk.Label(self.content, text=werkstatt.lager_text(self.state.waren), fg="#C0C0C0", bg=self.skin["bg"], wraplength=760, justify=tk.LEFT).pack(anchor=tk.W, padx=10)
+        # T4 (Daniel 11.11.2026, Bogen E2: "viel zu große Anzeigefelder für Einheiten und Items ...
+        # nur die Icons selbst sind gut und passen"): die Kacheln waren 80-90 Prozent leere Flaeche,
+        # weil JEDE Spalte und Zeile `weight=1` hatte - das Raster zog sich auf die volle Breite und
+        # verteilte den Ueberschuss als Polster. Neu: kein Gewicht, kleine Innenabstaende, acht
+        # Spalten. Die Kachel ist jetzt so gross wie ihr Inhalt; die Icons bleiben, wie sie sind.
         goods_frame = tk.Frame(self.content, bg=self.skin["panel"])
         goods_frame.pack(fill=tk.X, padx=10, pady=5)
-        cols = 6
+        cols = 8
         for idx, (key, menge) in enumerate(sorted(self.state.waren.items())):
             row = idx // cols
             col = idx % cols
-            cell = tk.Frame(goods_frame, bg=self.skin["panel"], padx=10, pady=10, relief=tk.RIDGE, borderwidth=1)
-            cell.grid(row=row, column=col, padx=4, pady=4, sticky="nsew")
-            goods_frame.grid_columnconfigure(col, weight=1)
-            goods_frame.grid_rowconfigure(row, weight=1)
+            cell = tk.Frame(goods_frame, bg=self.skin["panel"], padx=5, pady=4, relief=tk.RIDGE, borderwidth=1)
+            cell.grid(row=row, column=col, padx=3, pady=3, sticky="nw")
             _ware_bild = self._lade_icon(WARE_ICONS.get(key, ""))
             if _ware_bild is not None:
                 tk.Label(cell, image=_ware_bild, bg=self.skin["panel"]).pack(pady=(0, 4))
@@ -12980,15 +13136,13 @@ class NebelseetalApp:
         tk.Label(self.content, text="Einheiten (Reich/Übergang):", fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 0))
         units_frame = tk.Frame(self.content, bg=self.skin["panel"])
         units_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
-        ucols = 6
+        ucols = 8
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         for idx, (key, u) in enumerate(self.state.units.items()):
             row = idx // ucols
             col = idx % ucols
-            cell = tk.Frame(units_frame, bg=self.skin["panel"], padx=8, pady=8, relief=tk.RIDGE, borderwidth=1)
-            cell.grid(row=row, column=col, padx=4, pady=4, sticky="nsew")
-            units_frame.grid_columnconfigure(col, weight=1)
-            units_frame.grid_rowconfigure(row, weight=1)
+            cell = tk.Frame(units_frame, bg=self.skin["panel"], padx=5, pady=4, relief=tk.RIDGE, borderwidth=1)
+            cell.grid(row=row, column=col, padx=3, pady=3, sticky="nw")
             _bild = self._lade_icon(UNIT_ICONS.get(key, ""))
             if _bild is not None:
                 tk.Label(cell, image=_bild, bg=self.skin["panel"]).pack(pady=(0, 4))
@@ -14982,9 +15136,13 @@ class NebelseetalApp:
         # W6: dieselben Originalformeln wie in der Seitenleiste. Vorher stand hier die falsche
         # Gesamtsumme `score + ruf + Kampfkraft aller Einheiten`.
         staende = {k: v.level for k, v in self.state.research.items()}
-        einheiten = {k: v.count for k, v in self.state.units.items()}
+        # U7 (Gesamtaudit 11.11.2026, Register 399): hier wurde `einheiten` aus `state.units`
+        # gebaut und NIE benutzt, und "Truppen" zaehlte nur diesen Reichsbestand - Einheiten in
+        # den Siedlungen und unterwegs fehlten, die Ruhmeshalle zaehlte also zu wenig. Jetzt
+        # kommt die Zahl aus DERSELBEN Quelle wie der Punktestand: `alle_einheiten()`.
+        einheiten = self.alle_einheiten()
         wall_stufe = self.state.punktestand()["wall_stufe"]
-        total_units = sum(self.state.units[u].count for u in self.state.units)
+        total_units = sum(int(v) for v in einheiten.values())
         tk.Label(self.content, text="Ruhmeshalle", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
         tk.Label(self.content, text="Eure Punkte", fg="#C0C0C0", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
         tk.Label(self.content, text=f"Forschung: {punkte.forschungspunkte(staende)}", fg="#DAA520", bg=self.skin["bg"]).pack(anchor=tk.W, padx=20)
@@ -15679,6 +15837,12 @@ class NebelseetalApp:
                                      if str((e.get("voraussetzung") or {}).get("forschung") or "") == key)
                     if _direkt:
                         _teile.append("Einheiten: " + ", ".join(_direkt))
+                    # G9 (Daniel 11.11.2026, Register 390/393: "Nach deinem Test, zusammen mit
+                    # allem, was dein Bogen ergibt"): `forschungspfad.schaltet_frei` liefert die
+                    # Gebaeude laengst (Baukunst 14 Stueck, gemessen Register 390) - die Zeile
+                    # zeigte sie nur nicht. Jetzt steht auch dieser Teil da.
+                    if _was.get("gebaeude"):
+                        _teile.append("Gebäude: " + ", ".join(_was["gebaeude"]))
                     if _teile:
                         rechts.append(tk.Label(frame, text="schaltet frei — " + " · ".join(_teile),
                                                fg="#8FBF7F", bg=self.skin["panel"],

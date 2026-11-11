@@ -1,18 +1,31 @@
 # -*- coding: ascii -*-
-"""Ressourcenleiste im Kopf (C2-Lieferung, Register 121).
+"""Ressourcenleiste im Kopf - seit T2 GEZEICHNET statt gemalt (Daniel 11.11.2026).
 
-Die Lieferung bringt ein gemaltes Leistenbild (1440x140) mit acht Symbolen und acht FREIEN
-Zahlenplaketten. Das Spiel schreibt die Werte als eigene Textebene darueber - hell, mit dunkler
-Kontur (Vorgabe der LIEFERUNG.md). Diese Datei prueft drei Dinge:
+ENTSCHEIDUNG GEAENDERT (11.11.2026, T2): Daniel hat im Testbogen D3/B09 gesagt: "ganz schrecklich,
+ausserdem wird weder Wolle noch Leder als Ressource angezeigt, das muss komplett neu designed
+werden". Am Bild gemessen: das gemalte Leistenbild (1440x140, C2-Lieferung, Register 121) hatte ACHT
+Symbolfelder; es wurde auf die volle Fensterbreite gezogen, dazwischen sassen 28 leere goldene
+Kreisverzierungen als Fuellung, und Wolle, Leder und Pferde hatten ueberhaupt kein Feld. Der Kopf
+zeigte damit weniger, als das Modell hat (`main.RESOURCES` fuehrt neun Rohstoffe).
 
-1. **Die Datendatei ist die eine Quelle.** `data/ressourcenleiste.json` nennt Bild, Masse, die
-   acht Felder mit ihren Mittelpunkten in Pixeln bei 1440x140 und die Farben. Reihenfolge wie in
-   der Lieferung: Siedler, Nahrung, Holz, Stein, Erz, Gold, Mana, Kelch (im Spiel: Metall, Punkte).
-2. **Eine Rechenstelle je Feld** (`main.leistenwert`): Siedler aus `state.population`, Punkte aus
-   `state.punktestand()`, Rohstoffe aus `state.resources`. Kein Feld rechnet selbst.
-3. **Keine Zahl doppelt im Kopf.** Seit die Leiste die MENGEN zeigt, gibt `main.kopfzeile_fuer`
-   fuer die sechs Leisten-Rohstoffe nur noch die RATE aus; die drei Rohstoffe ohne Leistenfeld
-   (Wolle, Leder, Pferde) behalten Menge und Rate.
+Die alte Wache nagelte genau diese acht Felder und das Bild fest; sie wird deshalb UMGESTELLT - nicht
+der Code zurueckgebogen. Das Bild bleibt als Datei und als `_altes_bild` in der Datendatei erhalten
+(Register 119/121 geht nicht verloren), wird aber nicht mehr gezeichnet.
+
+Was diese Datei jetzt beweist
+-----------------------------
+1. Die Datendatei ist die eine Quelle und fuehrt ELF Felder: Siedler, die neun Rohstoffe (Nahrung,
+   Holz, Stein, Metall, Gold, Mana, Wolle, Leder, Pferde) und Punkte. Kein Rohstoff des Modells
+   fehlt - das ist die Wache gegen den alten Fehler.
+2. Eine Rechenstelle je Feld (`main.leistenwert`): Siedler aus `state.population`, Punkte aus
+   `state.punktestand()`, Rohstoffe aus `state.resources`.
+3. Keine Zahl doppelt im Kopf: seit alle neun Rohstoffe auf der Leiste stehen, gibt
+   `main.kopfzeile_fuer` fuer sie nur noch die RATE aus.
+4. Der Streifen ist inhaltsgetrieben (`main.leiste_layout`, ohne Tk): die Breite kommt aus elf
+   Zellen, das Fenster zentriert nur. Wird das Fenster schmaler als der Inhalt, verkleinert sich
+   alles gleichmaessig bis `schrift_min_faktor` - keine Zelle wird abgeschnitten.
+5. Die Leiste steht wirklich im Kopf (echte Tk-Flaeche): elf Felder, jede Zahl stimmt mit dem
+   Spielstand ueberein, eine Aenderung kommt an.
 
 Aufruf:  python -X utf8 tests/test_ressourcenleiste.py
 """
@@ -29,37 +42,44 @@ ROOT, SRC = import_src()
 import main  # noqa: E402
 
 daten = main.RESSOURCENLEISTE
-felder = daten.get("felder") or []
+felder = main.leiste_felder()
+
 
 # ==========================================================================
-abschnitt("1. Die Datendatei beschreibt die Leiste vollstaendig")
+abschnitt("1. Die Datendatei beschreibt elf Felder - keines des Modells fehlt")
 
 datei = os.path.join(ROOT, "data", "ressourcenleiste.json")
 check("1 die Datendatei liegt im Projekt", os.path.exists(datei), datei)
 check("1 main hat sie geladen", bool(daten), str(type(daten)))
-check("1 die Leiste hat genau acht Felder", len(felder) == 8, str(len(felder)))
-check("1 Reihenfolge wie in der Lieferung (Siedler, Nahrung, Holz, Stein, Erz, Gold, Mana, Kelch)",
+check("1 die Leiste hat elf Felder", len(felder) == 11, str(len(felder)))
+check("1 Reihenfolge: Siedler, neun Rohstoffe, Punkte",
       [f.get("schluessel") for f in felder] ==
-      ["siedler", "nahrung", "holz", "stein", "erz", "gold", "mana", "punkte"],
+      ["siedler", "nahrung", "holz", "stein", "metall", "gold", "mana", "wolle", "leder",
+       "pferde", "punkte"],
       str([f.get("schluessel") for f in felder]))
-check("1 jede Quelle ist ein bekannter Wert",
-      all(str(f.get("quelle")) in ("bevoelkerung", "punkte", "holz", "stein", "metall", "mana",
-                                   "nahrung", "gold") for f in felder),
+check("1 JEDER Rohstoff des Modells steht auf der Leiste",
+      set(main.RESOURCES) <= {str(f.get("quelle")) for f in felder},
+      str(sorted(set(main.RESOURCES) - {str(f.get("quelle")) for f in felder})))
+check("1 Wolle und Leder sind dabei (Daniels Befund D3)",
+      {"wolle", "leder"} <= {str(f.get("schluessel")) for f in felder},
+      str([f.get("schluessel") for f in felder]))
+check("1 jede Quelle ist bekannt",
+      all(str(f.get("quelle")) in (set(main.RESOURCES) | {"bevoelkerung", "punkte"}) for f in felder),
       str([f.get("quelle") for f in felder]))
-breite = int(daten.get("breite") or 0)
-hoehe = int(daten.get("hoehe") or 0)
-check("1 Originalmasse 1440x140 stehen in der Datei", (breite, hoehe) == (1440, 140), str((breite, hoehe)))
-check("1 alle Mittelpunkte liegen IN der Leiste",
-      all(0 < int(f.get("x") or 0) < breite and 0 < int(f.get("y") or 0) < hoehe for f in felder),
-      str([(f.get("x"), f.get("y")) for f in felder]))
-check("1 die Mittelpunkte sind aufsteigend (links nach rechts)",
-      [int(f.get("x") or 0) for f in felder] == sorted(int(f.get("x") or 0) for f in felder),
-      str([f.get("x") for f in felder]))
-bildpfad = os.path.join(ROOT, str(daten.get("datei") or "").replace("/", os.sep))
-check("1 das Leistenbild liegt im Projekt", os.path.exists(bildpfad), bildpfad)
-check("1 Zahl- und Konturfarbe sind eingetragen",
-      bool((daten.get("farben") or {}).get("zahl")) and bool((daten.get("farben") or {}).get("kontur")),
+check("1 jedes Feld traegt eine Beschriftung",
+      all(str(f.get("name") or "").strip() for f in felder), str([f.get("name") for f in felder]))
+check("1 die Hoehe ist ein Streifen, kein Bild (hoechstens 60 px)",
+      0 < int(daten.get("hoehe") or 0) <= 60, str(daten.get("hoehe")))
+check("1 Zahl-, Namen- und Konturfarbe sind eingetragen",
+      all((daten.get("farben") or {}).get(k) for k in ("zahl", "name", "kontur", "grund")),
       str(daten.get("farben")))
+check("1 die Masse stehen in der Datendatei",
+      all(k in (daten.get("masse") or {}) for k in ("rand", "zelle_pad", "trenner", "endstueck")),
+      str(sorted((daten.get("masse") or {}).keys())))
+check("1 das alte Bild ist dokumentiert, aber nicht mehr die Grundlage",
+      isinstance(daten.get("_altes_bild"), dict)
+      and len((daten.get("_altes_bild") or {}).get("felder") or []) == 8,
+      str(type(daten.get("_altes_bild"))))
 
 
 # ==========================================================================
@@ -67,12 +87,14 @@ abschnitt("2. Eine Rechenstelle je Feld (leistenwert)")
 
 class _Betrag:
     """Was `state.resources[...]` liefert: ein Objekt mit `amount`."""
+
     def __init__(self, menge):
         self.amount = menge
 
 
 class _Zustand:
     """Minimaler Spielstand fuer die Wertepruefung."""
+
     def __init__(self):
         self.population = 12.0
         self.resources = {"holz": _Betrag(1234), "stein": _Betrag(7.5), "nahrung": _Betrag(0)}
@@ -84,7 +106,7 @@ class _Zustand:
 _z = _Zustand()
 check("2 Siedler kommen aus state.population",
       main.leistenwert(_z, {"schluessel": "siedler", "quelle": "bevoelkerung"}) == "12", "")
-check("2 Punkte kommen aus punktestand()['gesamt'] mit Tausenderpunkt",
+check("2 Punkte kommen aus punktestand() mit Tausenderpunkt",
       main.leistenwert(_z, {"schluessel": "punkte", "quelle": "punkte"}) == "12.345",
       main.leistenwert(_z, {"schluessel": "punkte", "quelle": "punkte"}))
 check("2 ein Rohstoff kommt aus state.resources",
@@ -100,13 +122,13 @@ check("2 ein fehlender Rohstoff ergibt 0 statt eines Absturzes",
 # ==========================================================================
 abschnitt("3. Keine Zahl doppelt im Kopf (kopfzeile_fuer)")
 
-check("3 genau die sechs Leisten-Rohstoffe zeigen nur die Rate",
-      set(main.LEISTEN_ROHSTOFFE) == {"holz", "stein", "metall", "mana", "nahrung", "gold"},
-      str(main.LEISTEN_ROHSTOFFE))
+check("3 ALLE neun Rohstoffe zeigen in der Detailzeile nur die Rate",
+      set(main.LEISTEN_ROHSTOFFE) == set(main.RESOURCES), str(main.LEISTEN_ROHSTOFFE))
 
 
 class _Leer:
     """Spielstand ohne Siedlungen: keine Ernte, kein Verbrauch."""
+
     population = 0.0
     resources = {"holz": _Betrag(55), "wolle": _Betrag(40), "leder": _Betrag(3), "pferde": _Betrag(2)}
     settlements = []
@@ -121,8 +143,8 @@ text_holz, _w = main.kopfzeile_fuer(_leer, "holz", ertrag)
 text_wolle, _w2 = main.kopfzeile_fuer(_leer, "wolle", ertrag)
 check("3 Holz (auf der Leiste) zeigt die Rate ohne Betrag", "55" not in text_holz and "5/h" in text_holz,
       text_holz)
-check("3 Wolle (nicht auf der Leiste) zeigt Betrag UND Rate", "40" in text_wolle and "1/h" in text_wolle,
-      text_wolle)
+check("3 Wolle steht jetzt auch auf der Leiste und zeigt deshalb NUR die Rate",
+      "40" not in text_wolle and "1/h" in text_wolle, text_wolle)
 import inspect as _inspect  # noqa: E402
 _rate_code = _inspect.getsource(main.kopf_rate_text)
 _zeile_code = _inspect.getsource(main.kopf_zeilen_text)
@@ -134,7 +156,45 @@ check("3 keine der beiden Stellen baut eine eigene Verbrauchsformel",
 
 
 # ==========================================================================
-abschnitt("4. Die Leiste steht wirklich im Kopf (echte Tk-Flaeche)")
+abschnitt("4. Die Breite kommt aus dem Inhalt (leiste_layout, ohne Tk)")
+
+_texte = [(n, "1.234") for n in ("Siedler", "Nahrung", "Holz", "Stein", "Metall", "Gold", "Mana",
+                                 "Wolle", "Leder", "Pferde", "Punkte")]
+_breiten = [(60, 40)] * len(_texte)                       # gleiche Textbreiten: leicht nachzurechnen
+_masse = daten.get("masse") or {}
+_L = main.leiste_layout(_texte, _breiten, _masse, 1600)
+_rand, _pad = int(_masse.get("rand") or 8), int(_masse.get("zelle_pad") or 9)
+_es, _tr = int(_masse.get("endstueck") or 14), int(_masse.get("trenner") or 1)
+_soll = 2 * _rand + 2 * _es + len(_texte) * (60 + 2 * _pad) + _tr * (len(_texte) - 1)
+check("4 die Gesamtbreite ist die Summe der elf Zellen (nichts gedehnt)", _L["gesamt"] == _soll,
+      "%s gegen %s" % (_L["gesamt"], _soll))
+check("4 elf Zellen entstehen", len(_L["zellen"]) == 11, str(len(_L["zellen"])))
+check("4 die Zellen liegen in Anzeigereihenfolge von links nach rechts und ueberlappen nicht",
+      all(_L["zellen"][i]["x"] + _L["zellen"][i]["breite"] <= _L["zellen"][i + 1]["x"]
+          for i in range(len(_L["zellen"]) - 1)),
+      str([(z["x"], z["breite"]) for z in _L["zellen"]][:3]))
+check("4 jede Zelle traegt Name und Wert",
+      all(z["name"] and z["wert"] for z in _L["zellen"]), str(_L["zellen"][0]))
+check("4 in einem breiten Fenster bleibt der Faktor 1,0 (keine Vergroesserung)",
+      abs(_L["faktor"] - 1.0) < 1e-9, str(_L["faktor"]))
+check("4 der Streifen steht MITTIG, nicht links und nicht gedehnt",
+      abs(_L["start"] - (1600 - _L["gesamt"]) / 2.0) <= 1,
+      "%s bei Gesamtbreite %s" % (_L["start"], _L["gesamt"]))
+_schmal = main.leiste_layout(_texte, _breiten, _masse, 300)
+check("4 in einem schmalen Fenster wird gleichmaessig verkleinert",
+      _schmal["faktor"] < 1.0 and _schmal["faktor"] >= float(_masse.get("schrift_min_faktor") or 0.8),
+      str(_schmal["faktor"]))
+check("4 die Verkleinerung bleibt am Mindestfaktor stehen, statt Zellen abzuschneiden",
+      abs(_schmal["faktor"] - max(float(_masse.get("schrift_min_faktor") or 0.8),
+                                  300 / float(_soll))) < 1e-6, str(_schmal["faktor"]))
+_ohne = main.leiste_layout(_texte, _breiten, _masse, 0)
+check("4 ohne bekannte Fensterbreite gilt der Originalfaktor",
+      abs(_ohne["faktor"] - 1.0) < 1e-9 and _ohne["start"] == _rand,
+      str((_ohne["faktor"], _ohne["start"])))
+
+
+# ==========================================================================
+abschnitt("5. Die Leiste steht wirklich im Kopf (echte Tk-Flaeche)")
 
 import tkinter as tk  # noqa: E402
 
@@ -144,15 +204,13 @@ app = main.NebelseetalApp(root)
 app._build_main_ui()
 root.update()
 canvas = getattr(app, "_leisten_canvas", None)
-check("4 es gibt eine Leistenflaeche im Kopf", canvas is not None, str(canvas))
+check("5 es gibt eine Leistenflaeche im Kopf", canvas is not None, str(canvas))
 if canvas is not None:
     items = canvas.find_withtag("leiste")
-    check("4 Bild und 40 Texte liegen darauf (8 Felder x 5 Texte)", len(items) == 41, str(len(items)))
-    check("4 die Flaeche ist so hoch wie die Leiste (proportional)",
-          int(canvas.winfo_height()) <= int(daten.get("hoehe") or 140) + 2,
-          str(canvas.winfo_height()))
     texte = getattr(app, "_leisten_texte", {})
-    check("4 alle acht Felder haben Textkennungen", len(texte) == 8, str(sorted(texte)))
+    check("5 alle elf Felder haben Textkennungen", len(texte) == 11, str(sorted(texte)))
+    check("5 je Feld Name und fuenf Zahltexte, dazu Linien, Grundflaeche und zwei Zierstuecke",
+          len(items) == 11 * 6 + 10 + 1 + 2, str(len(items)))
     stimmt = True
     for feld in felder:
         kennungen = texte.get(str(feld.get("schluessel"))) or []
@@ -160,111 +218,36 @@ if canvas is not None:
         for kennung in kennungen:
             if canvas.itemcget(kennung, "text") != soll:
                 stimmt = False
-    check("4 jede Zahl auf der Leiste stimmt mit dem Spielstand ueberein", stimmt, "")
+    check("5 jede Zahl auf der Leiste stimmt mit dem Spielstand ueberein", stimmt, "")
+    check("5 kein Bild mehr auf der Flaeche (der Streifen wird gezeichnet)",
+          not any(canvas.type(i) == "image" for i in items), "")
     app.state.resources["holz"].amount = 4321
     app._leiste_aktualisieren()
     kennung = (texte.get("holz") or [None])[-1]
-    check("4 eine Aenderung des Bestands kommt auf der Leiste an",
+    check("5 eine Aenderung des Bestands kommt auf der Leiste an",
           kennung is not None and canvas.itemcget(kennung, "text") == "4.321",
           canvas.itemcget(kennung, "text") if kennung else "keine Kennung")
+    check("5 Wolle hat ein eigenes Feld auf der Flaeche", (texte.get("wolle") or None) is not None,
+          str(sorted(texte)))
 root.destroy()
 
+
 # ==========================================================================
-abschnitt("6. Der Balken wird laenger, die Symbole bleiben in Form (Befund Daniel 02.11.2026)")
+abschnitt("6. Quelltext-Wachen: eine Rechenstelle, keine zweite Leiste")
 
-try:
-    from PIL import Image as _Image
-    _pil = True
-except Exception:                                        # noqa: BLE001
-    _pil = False
-    befund("Pillow fehlt - die Zusammensetzung wird nicht gemessen", "")
-
-stuecke = main._leisten_stuecke(daten)
-check("6 die Schnittliste hat feste Kacheln und dehnbare Luecken",
-      any(s["art"] == "fest" for s in stuecke) and any(s["art"] == "dehnbar" for s in stuecke),
-      str([s["art"] for s in stuecke]))
-check("6 neun feste Teile (zwei Ecken und acht Felder)",
-      sum(1 for s in stuecke if s["art"] == "fest") == 10,
-      str(sum(1 for s in stuecke if s["art"] == "fest")))
-check("6 die Stuecke decken die ganze Breite lueckenlos ab",
-      stuecke[0]["von"] == 0 and stuecke[-1]["bis"] == breite
-      and all(stuecke[i]["bis"] == stuecke[i + 1]["von"] for i in range(len(stuecke) - 1)),
-      str([(s["von"], s["bis"]) for s in stuecke]))
-
-if _pil:
-    b1440, m1440, s1440 = main.leiste_zusammensetzen(daten, 1440)
-    b1920, m1920, s1920 = main.leiste_zusammensetzen(daten, 1920)
-    b2560, m2560, s2560 = main.leiste_zusammensetzen(daten, 2560)
-    b3440, m3440, s3440 = main.leiste_zusammensetzen(daten, 3440)
-    b1000, m1000, s1000 = main.leiste_zusammensetzen(daten, 1000)
-    check("6 bei 1440 px gilt Skala 1,0 und die Originalhoehe",
-          abs(s1440 - 1.0) < 1e-9 and b1440.height == 140, f"{s1440} / {b1440.height}")
-    check("6 die Zielbreite wird immer genau getroffen",
-          all(b.width == ziel for b, ziel in ((b1440, 1440), (b1920, 1920), (b2560, 2560), (b3440, 3440))),
-          str([b.width for b in (b1440, b1920, b2560, b3440)]))
-    # M-3 (Daniels Befund 02.11.2026: "die ressourcen bilder oben [sind] verzerrt"). ENTSCHEIDUNG
-    # GEAENDERT, mit Begruendung: seit P-3 wuchs das ganze Band gleichmaessig bis Faktor 1,75. Daniel
-    # hat die Symbole im maximierten Fenster trotzdem als verzerrt gesehen - die Symbolbilder sind
-    # klein und wirken vergroessert unscharf. Neu (Modus 'kacheln'): das Band skaliert NIE ueber 1,0,
-    # die zusaetzliche Breite entsteht durch WIEDERHOLUNG der gemalten Luecken. Die alte Wache nagelte
-    # das Wachstum fest und wird deshalb umgestellt - nicht der Code zurueckgebogen.
-    check("6 1920 px: die Symbole bleiben in Originalgroesse (Skala 1,0)",
-          abs(s1920 - 1.0) < 1e-9 and b1920.height == 140,
-          f"{s1920:.3f} / {b1920.height}")
-    # P-3 (02.11.2026) - ENTSCHEIDUNG GEAENDERT, mit Begruendung: bis heute galt "oberhalb von
-    # `skala_max` waechst NUR die Laenge" - die Luecken nahmen die ganze Restbreite auf und wurden
-    # dabei bei 2560 px um Faktor 1,86 und bei 3440 px um 3,75 gestreckt; die gemalte Landschaft
-    # zwischen den Symbolen wurde zu Streifen mit harten Naehten (Daniels Befund). Neu: das ganze Band
-    # skaliert GLEICHMAESSIG weiter (treue Vergroesserung ohne Naht) bis `skala_hart`, die Luecken
-    # bleiben auf `luecke_max` gedeckelt. Die alte Wache nagelte genau die Ursache fest und wird
-    # deshalb umgestellt - nicht der Code zurueckgebogen.
-    check("6 oberhalb der Originalbreite waechst NICHTS mehr (Skala bleibt 1,0)",
-          abs(s2560 - 1.0) < 1e-9 and abs(s3440 - 1.0) < 1e-9,
-          f"2560 {s2560:.3f} | 3440 {s3440:.3f}")
-    check("6 die Hoehe bleibt die Originalhoehe (140 px)",
-          b2560.height == 140 and b3440.height == 140, f"{b2560.height} / {b3440.height}")
-    check("6 der Modus ist 'kacheln' (Wiederholung statt Dehnung)",
-          str(daten.get("rest_auffuellen")) == "kacheln", str(daten.get("rest_auffuellen")))
-    check("6 schmalere Fenster schrumpfen gleichmaessig (keine Dehnung)",
-          abs(s1000 - 1000 / 1440) < 1e-6, f"{s1000:.3f}")
-
-    # Verzerrungsprobe: die Kachel um Symbol 1 muss bei 2560 und 3440 IDENTISCH sein
-    halb = int(daten["kachel_halbbreite"])
-    m1a, m1b = m2560["siedler"], m3440["siedler"]
-    ka = b2560.crop((m1a[0] - int(halb * s2560), 0, m1a[0] + int(halb * s2560), b2560.height))
-    kb = b3440.crop((m1b[0] - int(halb * s3440), 0, m1b[0] + int(halb * s3440), b3440.height))
-    # P-3 (02.11.2026): die alte Zusage "pixelgleich bei 2560 und 3440" gilt nicht mehr - das Band
-    # waechst jetzt gleichmaessig weiter (Skala 1,65 bzw. 1,75), damit die Luecken nicht gestreckt
-    # werden muessen. Die Zusage lautet jetzt: das Symbolfeld ist bei BEIDEN Breiten eine TREUE,
-    # gleichmaessige Vergroesserung der Originalkachel - Seitenverhaeltnis unveraendert, keine
-    # waagerechte Verzerrung. Beides wird gegen die Originalkachel gemessen, nicht behauptet.
-    orig = _Image.open(os.path.join(ROOT, str(daten["datei"]).replace("/", os.sep))).convert("RGBA")
-    x1 = int(daten["felder"][0]["x"])
-    soll_seite = (2 * halb) / float(orig.height)                       # Seitenverhaeltnis der Originalkachel
-    check("6 ein breites Band ist 140 px hoch und traegt die Kachel in Originalgroesse",
-          b3440.height == 140 and abs(s3440 - 1.0) < 1e-9,
-          f"{b3440.height} / {s3440:.3f}")
-    for name, kachel, hoehe in (("2560", ka, b2560.height), ("3440", kb, b3440.height)):
-        verhaeltnis = kachel.width / float(kachel.height)
-        check(f"6 das Symbolfeld bei {name} px ist unverzerrt (Seitenverhaeltnis wie im Original)",
-              abs(verhaeltnis - soll_seite) / soll_seite < 0.02,
-              f"{verhaeltnis:.3f} gegen {soll_seite:.3f}")
-        soll = orig.crop((x1 - halb, 0, x1 + halb, orig.height)).resize(kachel.size, _Image.LANCZOS)
-        abweichung = sum(abs(p[0] - q[0]) + abs(p[1] - q[1]) + abs(p[2] - q[2])
-                         for p, q in zip(soll.convert("RGBA").getdata(), kachel.convert("RGBA").getdata())
-                         ) / max(1, kachel.width * kachel.height * 3)
-        check(f"6 das Symbolfeld bei {name} px ist die gleichmaessig skalierte Originalkachel (Abweichung < 8)",
-              abweichung < 8, f"{abweichung:.2f}")
-
-# Quelltext-Wachen: eine Stelle fuer Aufbau und Neuzeichnen
-import inspect  # noqa: E402
-quelle = inspect.getsource(main)
-check("5 Aufbau und Neuzeichnen benutzen dieselbe Hilfsfunktion",
+quelle = _inspect.getsource(main)
+check("6 Aufbau und Neuzeichnen benutzen dieselbe Hilfsfunktion",
       quelle.count("kopfzeile_fuer(self.state, r, ertrag_jetzt)") == 2,
       "Treffer: %d" % quelle.count("kopfzeile_fuer(self.state, r, ertrag_jetzt)"))
-check("5 die Leiste wird im Kopf gebaut und im Takt aktualisiert",
+check("6 die Leiste wird im Kopf gebaut und im Takt aktualisiert",
       "_leiste_bauen(top)" in quelle and "self._leiste_aktualisieren()" in quelle, "")
-befund("Die Leiste selbst ist hier nicht gemalt - die Vorschau "
-       "docs/audits/ressourcenleiste_vorschau_20261102.png zeigt die Werte in den Plaketten", "")
+check("6 Bau und Zeichnen lesen die Felder aus `leiste_felder()`",
+      "leiste_felder()" in _inspect.getsource(main.NebelseetalApp._leiste_bauen)
+      and "leiste_felder()" in _inspect.getsource(main.NebelseetalApp._leiste_zeichnen), "")
+check("6 die Zahlen kommen aus `leistenwert` und nicht aus einer zweiten Rechnung",
+      "leistenwert(self.state, feld)" in _inspect.getsource(main.NebelseetalApp._leiste_aktualisieren),
+      "")
+befund("Die Vorschau des gezeichneten Streifens liegt unter "
+       "docs/audits/ressourcenleiste_vorschau_20261111.png", "")
 
 sys.exit(bericht())

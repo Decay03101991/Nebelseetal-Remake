@@ -382,9 +382,18 @@ try:
         zu_breit = [paar for paar in breiten if paar[0] > spalte]
         check("7 kein Inhalt ist breiter als die Spalte (kein Beschnitt)",
               not zu_breit, str(zu_breit[:3]))
-        check("7 der Inhalt fordert hoechstens die Spalte",
-              app.content.winfo_reqwidth() <= spalte,
-              "%d von %d" % (app.content.winfo_reqwidth(), spalte))
+        # ENTSCHEIDUNG GEAENDERT (11.11.2026, T6): Daniel hat in C11 verlangt, dass das Kopfband
+        # im grossen Fenster BIS ZUM RECHTSRAND geht ("ist scharf, muss aber bei grossem Spielfenster
+        # auch bis zum rechten Rand gehen"). Damit ist der Inhalt absichtlich breiter als die
+        # TEXTSPALTE - das Band nimmt die gemessene Inhaltsbreite, die Textzeilen bleiben in der
+        # Spalte (eigene Wachen oben). Die alte Wache nagelte die alte Entscheidung fest.
+        _band = int(app.portal_kopfband_masse[0])
+        check("7 das Kopfband reicht bis zum Rand (Breite = gemessene Inhaltsbreite)",
+              abs(_band - app._kopfband_ziele(text)[0]) <= 1, "%d zu %s" % (_band, app._kopfband_ziele(text)))
+        check("7 die Textzeilen bleiben weiter in der Spalte (nur das Band ist breiter)",
+              all(int(str(_wraplength(k)) or 0) <= text for k in _kinder(app.content)
+                  if int(str(_wraplength(k)) or 0) > 0),
+              str([int(str(_wraplength(k)) or 0) for k in _kinder(app.content)][:6]))
         zeilen = [k for k in _kinder(app.content)
                   if int(str(_wraplength(k)) or 0) > 0]
         check("7 alle Textzeilen tragen die gemessene Breite, nicht 760",
