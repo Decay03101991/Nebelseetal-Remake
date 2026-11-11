@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nebelseetal Remake – Pre-Release V_0.0.3</title>
+<meta name="description" content="Einzelspieler-Remake des historischen Browserspiels Nebelseetal. Windows-Testversion, lokal und offline, kostenlos, ohne Konto.">
+<meta name="theme-color" content="#2a0605">
+<!-- Vorschaukarte beim Teilen. og:image braucht eine ABSOLUTE Adresse. Bild: unveraenderte Logo-Datei.
+     [PRÜFEN: nach dem Veroeffentlichen mit einem Link-Vorschau-Werkzeug testen] -->
+<meta property="og:title" content="Nebelseetal Remake – Pre-Release V_0.0.3">
+<meta property="og:description" content="Einzelspieler-Remake des historischen Browserspiels Nebelseetal. Windows, offline, kostenlos.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://decay03101991.github.io/Nebelseetal-Remake/">
+<meta property="og:image" content="https://decay03101991.github.io/Nebelseetal-Remake/assets/bilder/logo_nebelseetal_klein.png">
+<meta property="og:image:width" content="1600">
+<meta property="og:image:height" content="754">
+<meta property="og:image:alt" content="Logo Nebelseetal von Chris Fred Däubner">
+<!--
+  Entwurf: Opus 5.5 (Thinking: Mittel), 11.11.2026, gegen Repo-Kopf 88efbaa.
+
+  PALETTE = Spielpalette aus src/main.py, Skin "standard" (Zeilen 3788-3800).
+  Zwei Abweichungen, beide begruendet:
+    --pergament #F2E3BF  Fliesstext. Das Spiel-Textgelb #FFFF99 (17,77:1) blendet bei langen Absaetzen;
+                         es bleibt fuer kurze Hervorhebungen (Zahlen).
+    --warnrot   #ef6b5b  Warnschrift. Das Spielrot #e53935 hat auf #2a0605 nur 4,41:1 (unter 4,5:1)
+                         und bleibt nur fuer Linien/Rahmen.
+
+  KONTRASTE (WCAG 2.x, relative Leuchtdichte, gerechnet):
+    #F2E3BF auf #2a0605  14,66:1   Fliesstext auf Grund
+    #F2E3BF auf #3e1c1a  11,92:1   Fliesstext in Kaesten
+    #FFCC33 auf #2a0605  12,37:1   Ueberschriften, Links
+    #FFCC33 auf #3e1c1a  10,06:1   Links in Kaesten
+    #FFCC33 auf #1a0a09  12,77:1   Kopf- und Fusszeile
+    #FFFF99 auf #3e1c1a  14,44:1   Zahlen
+    #C0C0C0 auf #2a0605  10,24:1   Nebentext
+    #C0C0C0 auf #1a0a09  10,58:1   Fusszeile
+    #2a0605 auf #FFCC33  12,37:1   Hauptknopf
+    #FFCC33 auf #3e2723   9,17:1   Zweitknopf
+    #FFCC33 auf #5D4037   6,18:1   Zweitknopf beim Darueberfahren
+    #FF6600 auf #2a0605   6,35:1   Akzent (nur Unterzeilen)
+    #ef6b5b auf #3e1c1a   5,00:1   Warnschrift in Kaesten
+  Kein Paar liegt unter 4,5:1.
+
+  KEINE externen Abhaengigkeiten: keine Webfont, kein CDN, kein Skript, kein Tracking.
+  Bildgewicht beim Laden: Logo-WebP 316.542 Byte (PNG-Ersatz 1.324.807 nur ohne WebP-Unterstuetzung),
+  Portrait 194.338 Byte (erst beim Scrollen). Das Logo wird unveraendert gezeigt.
+-->
+<style>
+  :root{
+    --grund:#2a0605; --flaeche:#3e1c1a; --tief:#1a0a09; --rahmen:#4a1512;
+    --gold:#FFCC33; --hell:#FFFF99; --pergament:#F2E3BF; --silber:#C0C0C0;
+    --knopf:#3e2723; --knopf-aktiv:#5D4037; --akzent:#FF6600; --rot:#e53935; --warnrot:#ef6b5b;
+    --titelschrift:"Blackletter","UnifrakturMaguntia","Old English Text MT","Goudy Text MT","Fraktur",Georgia,serif;
+    --textschrift:Georgia,"Palatino Linotype","Book Antiqua",serif;
+    --abstand:8px; --ecke:4px;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--grund);color:var(--pergament);font:17px/1.6 var(--textschrift)}
+  a{color:var(--gold);text-underline-offset:3px}
+  a:hover{color:var(--hell)}
+  a:focus-visible,.knopf:focus-visible{outline:2px solid var(--hell);outline-offset:3px}
+
+  /* Kopfleiste wie im Spiel: tiefes Braun, goldene Linie */
+  .kopf{background:var(--tief);border-bottom:2px solid var(--gold);padding:10px 16px;
+    display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:15px}
+  .kopf b{font-family:var(--titelschrift);color:var(--gold);font-size:20px;font-weight:normal;letter-spacing:.5px}
+  .kopf span{color:var(--silber)}
+
+  /* Buehne: Nebelbaender aus reinen CSS-Verlaeufen, kein Bild */
+  .buehne{position:relative;overflow:hidden;text-align:center;padding:24px 16px 40px;
+    background:
+      radial-gradient(60% 40% at 15% 70%, rgba(242,227,191,.10), transparent 70%),
+      radial-gradient(55% 35% at 85% 60%, rgba(242,227,191,.08), transparent 70%),
+      radial-gradient(90% 60% at 50% 0%, #3e1c1a 0%, var(--grund) 70%);
+    border-bottom:1px solid var(--rahmen)}
+  .logo{display:block;width:100%;max-width:880px;height:auto;margin:0 auto}
+  .urheber{margin:4px 0 18px;font-size:14px;color:var(--silber)}
+  h1{font-family:var(--titelschrift);font-weight:normal;color:var(--gold);
+    font-size:clamp(30px,8vw,52px);line-height:1.1;margin:0 0 6px;letter-spacing:.5px}
+  .unterzeile{color:var(--akzent);font-size:15px;letter-spacing:.06em;text-transform:uppercase;margin:0 0 16px}
+  .pitch{max-width:640px;margin:0 auto 22px;font-size:19px}
+  .knoepfe{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin:0 0 14px}
+  .knopf{display:inline-block;min-height:48px;padding:13px 22px;border-radius:var(--ecke);
+    font-size:17px;text-decoration:none;border:1px solid var(--gold)}
+  .knopf.haupt{background:var(--gold);color:var(--grund);font-weight:bold}
+  .knopf.haupt:hover{background:var(--hell);color:var(--grund)}
+  .knopf.zweit{background:var(--knopf);color:var(--gold)}
+  .knopf.zweit:hover{background:var(--knopf-aktiv);color:var(--gold)}
+  .eckdaten{font-size:15px;color:var(--silber);margin:0}
+
+  main{max-width:920px;margin:0 auto;padding:8px 16px 48px}
+  h2{font-family:var(--titelschrift);font-weight:normal;color:var(--gold);font-size:30px;line-height:1.2;
+    margin:44px 0 14px;padding-bottom:6px;border-bottom:1px solid var(--rahmen)}
+  p{margin:0 0 14px}
+  ul,ol{padding-left:22px;margin:0 0 14px} li{margin:6px 0}
+  .kasten{background:var(--flaeche);border:1px solid var(--rahmen);border-radius:var(--ecke);padding:16px 18px;margin:0 0 16px}
+
+  /* Zahlen: zwei Spalten am Telefon, fuenf am Bildschirm */
+  .zahlen{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:0;margin:0;list-style:none}
+  .zahlen li{margin:0;background:var(--flaeche);border:1px solid var(--rahmen);border-radius:var(--ecke);
+    padding:12px 10px;text-align:center}
+  .zahlen b{display:block;font-size:30px;line-height:1.1;color:var(--hell);font-weight:normal}
+  .zahlen span{font-size:15px}
+  @media (min-width:640px){.zahlen{grid-template-columns:repeat(5,1fr)}}
+
+  /* Bildplatz fuer den Screenshot */
+  .bildplatz{margin:0 0 16px}
+  .bildplatz .rahmen{aspect-ratio:16/9;border:2px dashed var(--gold);border-radius:var(--ecke);
+    background:var(--tief);display:flex;align-items:center;justify-content:center;padding:16px;text-align:center;
+    color:var(--silber);font-size:15px}
+  .bildplatz img{display:block;width:100%;height:auto;border:1px solid var(--gold);border-radius:var(--ecke)}
+  figcaption{font-size:14px;color:var(--silber);margin-top:6px}
+
+  .fehlt li::marker{color:var(--warnrot)}
+  .fehlt strong{color:var(--warnrot)}
+  .leise{color:var(--silber);font-size:15px}
+  code{font-family:Consolas,"Courier New",monospace;font-size:.9em;color:var(--hell);overflow-wrap:anywhere}
+
+  .wer{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+  .wer img{width:120px;height:auto;border:1px solid var(--gold);border-radius:var(--ecke);flex:none}
+  .wer div{flex:1;min-width:200px}
+
+  footer{background:var(--tief);border-top:2px solid var(--gold);padding:20px 16px 28px;color:var(--silber);font-size:14px}
+  footer .innen{max-width:920px;margin:0 auto}
+  footer p{margin:0 0 10px}
+  @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<div class="kopf"><b>Nebelseetal</b><span>Pre-Release V_0.0.3 · 06.11.2026</span></div>
+
+<header class="buehne">
+  <picture>
+    <source srcset="assets/bilder/logo_nebelseetal_klein.webp" type="image/webp">
+    <img class="logo" src="assets/bilder/logo_nebelseetal_klein.png" width="1600" height="754"
+         alt="Logo: das Banner mit dem Schriftzug NEBELSEETAL im Nebel">
+  </picture>
+  <p class="urheber">Logo: <strong>Chris Fred Däubner</strong> · entworfen für Daniel Kössl</p>
+
+  <h1>Nebelseetal Remake</h1>
+  <p class="unterzeile">Einzelspieler · Windows · offline · kostenlos</p>
+  <p class="pitch">Eine zersprungene Welt im Nebel: Du baust Siedlungen auf, forschst, rüstest aus und
+    ziehst durch Portale – neben fünf Nachbarn, die selbst wirtschaften, bauen und rauben.</p>
+
+  <div class="knoepfe">
+    <!-- [PRÜFEN: Tag v_0.0.3 erreichbar? Alternative: /releases/latest – zeigt aber KEINE Vorabversion] -->
+    <a class="knopf haupt" href="https://github.com/Decay03101991/Nebelseetal-Remake/releases/tag/v_0.0.3">Testversion herunterladen</a>
+    <a class="knopf zweit" href="https://github.com/Decay03101991/Nebelseetal-Remake">Quellcode ansehen</a>
+  </div>
+  <!-- [PRÜFEN: Downloadgroesse gegen das Release-Asset; laut Auftrag 102.098.672 Byte = rund 102 MB] -->
+  <p class="eckdaten">Windows 11, 64 Bit · Download rund 102 MB · kein Konto, kein Internet, kein Python</p>
+</header>
+
+<main>
+
+  <h2>Was steckt drin</h2>
+  <!-- Belegt in data/: units.json 28, items.json 17, buildings.json 20, research.json 21,
+       gelaende.json 7, resources.json 9 Rohstoffe / max_siedlungen 6, welten.json welten_belegt 6,
+       voelker.json 6 Fraktionen, ruhm.json 4 Stufen. 5 Nachbarn: README/SPIEL_ERKLAERUNG. -->
+  <ul class="zahlen">
+    <li><b>6</b><span>Welten im Limbus</span></li>
+    <li><b>6</b><span>Häuser mit Wappen</span></li>
+    <li><b>5</b><span>Nachbarn mit eigener Wirtschaft</span></li>
+    <li><b>6</b><span>Siedlungen je Reich</span></li>
+    <li><b>4</b><span>Auszeichnungen statt Sieg</span></li>
+    <li><b>28</b><span>Einheiten</span></li>
+    <li><b>20</b><span>Gebäude</span></li>
+    <li><b>21</b><span>Forschungen</span></li>
+    <li><b>17</b><span>Waren</span></li>
+    <li><b>9</b><span>Rohstoffe</span></li>
+  </ul>
+  <p class="leise" style="margin-top:12px">Der Kreislauf: gründen → produzieren → forschen → ausrüsten →
+    ausbilden → bewegen → kämpfen → punkten. Die vollständige Anleitung steht im Spiel beim Berater.</p>
+
+  <figure class="bildplatz">
+    <!-- BILDPLATZ – Anforderung an den Screenshot:
+         Groesse   1600 × 900 px (16:9), als WebP unter 250 KB plus PNG-Ersatz; Datei:
+                   assets/bilder/screenshot_v003.webp / .png
+         Ausschnitt das ganze Spielfenster ohne Windows-Rahmen und Taskleiste, Fenster maximiert
+         Inhalt    Dorfzentrum einer Siedlung mitten im Spiel (nicht frisch gegruendet): Ressourcenleiste
+                   oben mit Zahlen ungleich 0, ein gemaltes Gebaeude- oder Fraktionsbild sichtbar,
+                   Seitenleiste mit Punkten, KEINE Fehlermeldung, KEIN Admin-Menue, keine Passwortanzeige
+         Fassung   genau V_0.0.3 (Unterzeile im Fenster pruefen), Skin "standard"
+         Einbau    den Rahmen-DIV unten ersetzen durch:
+           <picture><source srcset="assets/bilder/screenshot_v003.webp" type="image/webp">
+           <img src="assets/bilder/screenshot_v003.png" width="1600" height="900" loading="lazy"
+                alt="Spielansicht: Dorfzentrum mit Ressourcenleiste"></picture>
+    -->
+    <div class="rahmen">Hier kommt ein Bild aus dem Spiel hin (Fassung V_0.0.3, 1600 × 900).</div>
+    <figcaption>Spielansicht, Pre-Release V_0.0.3.</figcaption>
+  </figure>
+
+  <h2>Was noch fehlt – ehrlich</h2>
+  <div class="kasten">
+    <ul class="fehlt">
+      <li><strong>Vorabversion.</strong> Kein fertiges Spiel, keine Kompatibilitätszusage.</li>
+      <li><strong>Drei Kampfregeln fehlen:</strong> Fluchtformel, Beute-Reihenfolge, Mauerreparatur mit Bauzeit.</li>
+      <li><strong>Sechs Welten sind noch nicht fertig umgestellt:</strong> im Code liegen 20 Limbus-Dimensionen,
+        sechs sind belegt, 14 leer.</li>
+      <li><strong>Diplomatie erst zur Hälfte:</strong> Gunst und Status sind da; Verträge, Rache und die drei
+        Ereignisse sind entworfen, aber nicht eingebaut.</li>
+      <li><strong>Handelspunkte</strong> werden noch nicht gebucht und stehen auf null.</li>
+      <li><strong>Kein Ton, keine Musik.</strong></li>
+      <li><strong>Nur Windows 11, 64 Bit, auf einem Rechner getestet.</strong> Windows 10, ARM und kleine
+        Displays sind ungeprüft. Eine macOS-Fassung gibt es nicht – sie müsste auf einem Mac gebaut und geprüft werden.</li>
+      <li><strong>SmartScreen kann warnen</strong>, weil die EXE nicht signiert ist. Die Prüfsumme steht in
+        <code>SHA256SUMS.txt</code> im ZIP.</li>
+    </ul>
+  </div>
+
+  <h2>So startest du</h2>
+  <ol>
+    <!-- [PRÜFEN: Dateinamen gegen die Assets des Releases v_0.0.3; laut data/version.json
+         heisst die EXE Nebelseetal_Pre_Release_V_0.0.3.exe] -->
+    <li>Unter <a href="https://github.com/Decay03101991/Nebelseetal-Remake/releases/tag/v_0.0.3">Releases</a>
+      das Paket <code>Nebelseetal_Pre_Release_V_0.0.3.zip</code> laden.</li>
+    <li>Den Inhalt in einen <strong>neuen, leeren Ordner</strong> entpacken (kein geschützter Windows-Ordner).</li>
+    <li><code>Nebelseetal_Pre_Release_V_0.0.3.exe</code> per Doppelklick starten.</li>
+    <li>Am Tor ein <strong>eigenes Passwort</strong> festlegen und notieren. Es bleibt auf deinem Rechner.</li>
+    <li>Spielen. Der Spielstand liegt unter <code>%LOCALAPPDATA%\Nebelseetal_Remake\Demo</code>.</li>
+  </ol>
+
+  <h2>Weiterlesen</h2>
+  <ul>
+    <li><a href="https://github.com/Decay03101991/Nebelseetal-Remake/blob/main/SPIEL_ERKLAERUNG.md">Die offizielle Erklärung</a>
+      <span class="leise">– was das Spiel ist und was es nicht ist</span></li>
+    <li><a href="https://github.com/Decay03101991/Nebelseetal-Remake/blob/main/FRAKTIONEN_WELTEN.md">Sechs Häuser, sechs Welten</a>
+      <span class="leise">– Fraktionen mit Wappen</span></li>
+    <li><a href="https://github.com/Decay03101991/Nebelseetal-Remake/blob/main/CHRONIK_DER_WELT.md">Die Chronik der Welt</a>
+      <span class="leise">– als Text, oder als
+      <a href="https://github.com/Decay03101991/Nebelseetal-Remake/blob/main/CHRONIK_DER_WELT.pdf">PDF (9,8 MB)</a></span></li>
+    <li><a href="https://github.com/Decay03101991/Nebelseetal-Remake/blob/main/BESUCHER.md">Wie dieses Spiel entstanden ist</a>
+      <span class="leise">– Arbeitsweise, KI-Einsatz, Sicherheit</span></li>
+  </ul>
+
+  <h2>Wer dahinter steht</h2>
+  <div class="kasten wer">
+    <img src="assets/bilder/daniel_portrait_klein.png" width="476" height="640" loading="lazy" alt="Daniel Kössl">
+    <div>
+      <p><strong>Daniel Kössl</strong>, angehender Fachinformatiker für Systemintegration – mit dem Hermes-Agent
+        <strong>Weltenfresser</strong>, der Code, Prüfungen und Dokumentation beisteuert. Die Entscheidungen über
+        Inhalt, Regeln und Gestaltung liegen bei Daniel.</p>
+      <p class="leise">Fehler gefunden? Bitte als <a href="https://github.com/Decay03101991/Nebelseetal-Remake/issues">Issue</a>
+        melden – was du getan hast, was du erwartet hast, was passiert ist. Ohne Passwörter, ohne private Spielstände.</p>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <div class="innen">
+    <p><strong>Logo und Bildwelt:</strong> Chris Fred Däubner. Unter seinem Urheberrecht; Weiterverwendung nur mit
+      seiner Erlaubnis.</p>
+    <p><strong>Quelltext:</strong> einsehbar; eine Nutzungslizenz ist für diese Vorabversion noch nicht festgelegt.
+      Wer den Code verwenden will, fragt bitte vorher.</p>
+    <p>Nebelseetal Remake · Pre-Release V_0.0.3 · 06.11.2026 ·
+      <a href="https://github.com/Decay03101991/Nebelseetal-Remake">Repository</a> ·
+      <a href="https://github.com/Decay03101991/Nebelseetal-Remake/issues">Fehler melden</a></p>
+  </div>
+</footer>
+
+</body>
+</html>
