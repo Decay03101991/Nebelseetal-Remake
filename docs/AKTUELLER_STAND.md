@@ -1,3 +1,35 @@
+# STAND 11.11.2026, 18:44 - Desktop geraeumt, Claudes drei Konzepte geprueft, Burg-Frage gemessen (Register 432/433)
+
+> Neuester Block. Darunter 15:21 (Originalquellen, Startseite; 407 bis 411), 14:37 (Claude-Lieferung;
+> 404/405), 14:22 (Gesamtaudit; 398 bis 402), 13:38 (fuenf Entscheidungen; 392 bis 397).
+
+**Der Desktop ist geraeumt.** Die zwei Dateien, die dort lagen, sind hashgleich abgelegt
+(`docs/eingaenge/LLM_20261111_KONZEPT/` und `D:\Arbeiten\Hermes\Desktop_Ablage\20261111_Claude_Konzept\`)
+und dann vom Desktop genommen: der Auftrag Nr. 2 (11.932 Byte, `af8069ab...`) und Claudes Antwort mit
+drei Praesentations-Konzepten (18.340 Byte, `4f7de45d...`).
+
+**Claudes Konzepte sind nachgerechnet, nicht uebernommen** - `docs/design/PRUEFUNG_CLAUDE_KONZEPT_20261111.md`.
+Alle **35 Kontrastwerte** stimmen (eigene WCAG-Rechnung), alle **drei Paletten** sind quellentreu
+(Skin `standard`, `index.html`, Chris-Mediane), alle **sechs Bildgewichte** und **sieben Dateizahlen**
+stimmen auf das Byte. **Drei Korrekturen:** die vorgeschlagene Burg-Zuordnung stammt aus einem
+archivierten Entwurfspaket und nicht von Daniel; der Verweis in `assets/bilder/README.md` auf
+`docs/BILDINVENTAR.md` ist tot (das Inventar kennt das Logo nicht, neuer Befund); Zeilennummern
+daneben. **Zwei UNBEKANNT-Punkte sind geschlossen:** Pages liefert live 9.972 Byte mit Titel
+»Pre-Release V_0.0.3«, die Release-Seite fuehrt `v_0.0.3` mit EXE und ZIP.
+
+**Die Burg-Frage ist gemessen:** Burg und Wappen passen bei **fuenf von sechs** Haeusern nicht
+zusammen (eigene Sichtpruefung der sechs Burgen und sechs Wappen). Nur die Trolle stimmen (violett zu
+violett). Register 187 belegt, dass Daniel am 04.11. **nur die Wappen** tauschen liess und die Burgen
+ausdruecklich stehen blieben - die Abweichung ist also gewollt entstanden, nicht versehentlich.
+
+**Was NICHT gemacht wurde, mit Grund:** kein Bau (T1 bis T7, G8, G9, Wall-Punkte, Stufe-1-Fehler an
+Daniels Test) - das Go kam nicht, und bei der ersten Lieferung galt »Nichts uebernehmen - erst eigenes
+Konzept«. **Kein neuer Sammellauf noetig:** `src/` und `data/` sind unberuehrt, 218/218 gilt weiter.
+
+**Drei Entscheidungen stehen bei Daniel:** (A) welche der drei Varianten gebaut wird, (B) wie die
+sechs Burgen zu den sechs Haeusern stehen sollen (drei Wege, Register 433), (C) das Go fuer den Bau
+der Spiel-Oberflaeche.
+
 # STAND 11.11.2026, 15:21 - Originalquellen draussen, Startseite wieder aktuell, 218/218 gruen (Register 407 bis 411)
 
 > Neuester Block. Darunter 14:37 (Claude-Lieferung, Originalquellen-Befund; 404/405), 14:22 (Gesamtaudit;
