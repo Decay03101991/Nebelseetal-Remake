@@ -31,6 +31,11 @@ Stufe 1 die sieben Spieler-Fehler (K1, K3, U1, U2, U3, U4, U7) - Stufe 2 Pruefst
 D6/D7) - Stufe 3 die sechs Texte (P1 bis P6) - Stufe 4 Aufraeumen ohne Spielwirkung (K5, K6-Rest, K7, K8,
 U5, U6, D1, D2, P7, P8).
 
+**Guthaben (Register 403, von Daniel abgelesen 14:28):** **11,56 USD** Guthaben, **68,43 USD**
+Gesamtverbrauch - **-0,34 / +0,34** seit 13:17. Darin: Register und Dokumente dieser Sitzung, der
+Gesamtaudit mit vier Pruefgaengen samt Nachrechnung, sechs Commits. Opus ist Abo (nicht enthalten),
+Sammellauf und EXE-Bau sind CPU-Zeit.
+
 **Unveraendert offen:** Daniels Testbogen ist leer (Anleitung `976b9aac...`, Schreibordner nur `tor.json`);
 die Skill-Aenderungen `0e5b3c84`/`9ce5a020` sind gestellt (Kennung `e44401db`) und warten auf
 `/skills pending`.
