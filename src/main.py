@@ -2799,6 +2799,14 @@ def bauanzeige_pruefung(state, siedlung, kennung: str, feld: int,
     # das ist der Ausweg, den Entscheidung 70 selbst nennt. Alles andere bleibt gesperrt.
     if sperre and not gelaende.erzeugt_nahrung(kennung):
         return False, sperre                                              # Grund erscheint im Menue
+    # U1 (Gesamtaudit 11.11.2026, Register 399): die Bibliotheksgrenze (hoechstens zwei je
+    # Spieler, Daniel 30.10.2026) stand NUR im Klick (`_karten_bauen`). Das Menue bot eine dritte
+    # Bibliothek weiter als baubar an - heller Knopf, Abbruch beim Klick. Jetzt fragt die Anzeige
+    # DIESELBEN zwei Stellen wie der Klick (`bibliotheken_im_spiel`, `BIBLIOTHEK_OBERGRENZE`).
+    if str(kennung).lower().startswith("bibliothek"):
+        if bibliotheken_im_spiel(state.settlements) >= BIBLIOTHEK_OBERGRENZE:
+            return False, ("Es sind höchstens %d Bibliotheken möglich — eine je Karte, eine "
+                           "dritte nicht. Reisse zuerst eine ab." % BIBLIOTHEK_OBERGRENZE)
     if staende is None:
         staende = state.forschungs_stufen()                               # EINE Lesestelle (Forschungsstand)
     return bauen_auf_karte(siedlung, kennung, feld,

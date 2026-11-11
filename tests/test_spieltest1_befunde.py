@@ -184,6 +184,35 @@ check("keine sichtbare Beschriftung 'Remake' mehr im Quelltext",
 check("das Logo bleibt (Rueckfall-Schriftzug Nebelseetal ist noch da)",
       'text="Nebelseetal"' in QUELLE)
 
+# ---------------------------------------------- 6. U1: die Bibliotheksgrenze steht auch in der Anzeige
+# (Gesamtaudit 11.11.2026, Register 399/450): Daniel erlaubt hoechstens ZWEI Bibliotheken je Spieler
+# (30.10.2026). Die Grenze stand nur im Klick - das Menue bot eine dritte weiter als baubar an.
+abschnitt("6. U1: die dritte Bibliothek ist im Menue gesperrt, nicht erst beim Klick")
+
+_bib1 = siedlung(5.0, {"Krieger": 1}, raster=["nebelsee"] * 20)
+_bib2 = siedlung(5.0, {"Krieger": 1}, raster=["nebelsee"] * 20)
+_bib1.bauten["0"] = "bibliothek"
+_bib1.stufen["0"] = 1
+_bib2.bauten["0"] = "bibliothek"
+_bib2.stufen["0"] = 1
+_state.settlements = [_bib1, _bib2]
+_frei_bib, _grund_bib = main.bauanzeige_pruefung(_state, _bib1, "bibliothek", 1)
+check("mit zwei Bibliotheken sagt die ANZEIGE nein", _frei_bib is False, str(_grund_bib))
+check("... und nennt die Grenze als Grund",
+      "Bibliotheken" in str(_grund_bib) and str(main.BIBLIOTHEK_OBERGRENZE) in str(_grund_bib),
+      str(_grund_bib))
+# Die Bibliothek steht in einer der vorhandenen Rubriken - gesucht wird ueber ALLE.
+_angebote_bib = [a for k in baumenue_info.KATEGORIEN
+                 for a in angebote(_state, _bib1, kategorie=k)
+                 if a["id"].lower().startswith("bibliothek")]
+check("das Menue bietet sie NICHT als baubar an",
+      bool(_angebote_bib) and not any(a["baubar"] for a in _angebote_bib),
+      str([(a["id"], a["baubar"]) for a in _angebote_bib]))
+_state.settlements = [_bib1]
+_frei_bib1, _grund_bib1 = main.bauanzeige_pruefung(_state, _bib1, "bibliothek", 1)
+check("Gegenprobe: mit EINER Bibliothek ist die zweite weiter erlaubt (kein Dauer-Sperre)",
+      "Bibliotheken" not in str(_grund_bib1), str(_grund_bib1))
+
 befund("Was NICHT geprueft ist: der GUI-Rundlauf (Knopf wirklich gedrueckt). Die Anzeige-Pruefung "
        "ist ohne Fenster belegt; die Ansichten deckt `test_gui_fehler` ab.", "")
 befund("V-3 ist gebaut (Daniel 08.11.2026): Karren/Belagerung essen nicht mit, Nahrungsgebaeude "
