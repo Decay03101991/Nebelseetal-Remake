@@ -1,4 +1,4 @@
-# STAND 11.11.2026, 21:25 - T1 bis T7 und G8 gebaut, Startseite Variante 1 liegt im Repo (Register 437 bis 446)
+# STAND 11.11.2026, 21:45 - T1 bis T7, G8, K1/U2/U3 gebaut; Sammellauf 220/220; EXE V_0.0.4 gebaut (Register 437 bis 448)
 
 > Neuester Block. Darunter 18:44 (Konzepte geprueft; 432/433), 15:21 (Originalquellen; 407 bis 411),
 > 14:37 (Claude-Lieferung; 404/405), 14:22 (Gesamtaudit; 398 bis 402).
@@ -7,6 +7,13 @@
 (gebaut von mir), **Burgen und Wappen werden NEU entworfen** (KI, Stilreferenz Chris, eigene Bilder -
 die heutige Zuordnung bleibt bis dahin unberuehrt), **Bau der Spiel-Oberflaeche: GO**, und die
 Startseite baue **ich**, nicht Claude.
+
+**Abgeschlossen 21:45:** Sammellauf **220 von 220 gruen** (9.487 Pruefungen, 718 s), **EXE
+`Nebelseetal_Pre_Release_V_0.0.4.exe`** gebaut (78.593.701 Byte, SHA256 `a73a7cf069fd94d0…`, genau
+eine EXE im Projektordner, Startpruefung bis zum Passworttor, kein `game.lock`) und der **Testbogen
+V_0.0.4** als .txt (5.332 Byte, hashgleich in `docs/audits/` und auf dem Desktop). **Nicht
+veroeffentlicht:** Tag und Release `v_0.0.4` setzt Daniel; die Startseite nennt weiter V_0.0.3, weil
+das die veroeffentlichte Fassung ist. Push: `b754b4b` = `refs/heads/main`.
 
 **Nachtrag 21:25 (Register 442 bis 446):**
 
