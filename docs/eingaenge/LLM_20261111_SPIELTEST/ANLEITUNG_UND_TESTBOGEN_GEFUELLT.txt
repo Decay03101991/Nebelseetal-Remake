@@ -1,0 +1,303 @@
+﻿========================================================================
+ ANLEITUNG und TESTBOGEN - Frischstart
+ Nebelseetal Remake, Fassung V_0.0.3
+========================================================================
+
+Fuer dich, Daniel. Auf dem Desktop liegen ZWEI Dinge: diese Anleitung und die
+EXE. Sonst nichts.
+
+Diese Datei ist beides - die Anleitung UND der Bogen, den du beim Spielen
+ausfuellst. Du brauchst kein besonderes Programm: Doppelklick, sie geht im
+Editor auf, du tippst hinter "ANTWORT:" und speicherst am Ende.
+
+------------------------------------------------------------------------
+ WELCHE EXE DU PRUEFST
+------------------------------------------------------------------------
+
+Nebelseetal_Pre_Release_V_0.0.3.exe
+  83.342.035 Byte
+  SHA256 4124b335065366fbcf8e1696edf3c3f1fa8045090b7a7791641b9e0214c67df8
+  Stand 10.11.2026, 21:48 - gebaut nach G2 und G3, Sammellauf 218/218 gruen.
+
+Die alte Fassung von heute Nacht (SHA256 a7035101...) liegt unveraendert in
+D:\Arbeiten\Nebelseetal_Remake\archiv\builds\20261110_vor_g2_g3\ , falls du
+vergleichen willst.
+
+------------------------------------------------------------------------
+ WAS NEU IST GEGENUEBER DEINEM LETZTEN TEST
+------------------------------------------------------------------------
+
+1. DU FAENGST KOMPLETT BEI NULL AN. Deine drei alten Spielstaende sind
+   gesichert und weggeraumt:
+   C:\Users\saras\.nebelseetal\archiv\vor_frischstart_20261110_2117\
+   Das Spiel legt einen neuen an. Das Passworttor bleibt, dein Passwort gilt
+   weiter.
+
+2. GOETTERSCHUTZ: Anzeige und Mechanik rechnen jetzt dieselbe Regel
+   (7 Tage ODER erster Kriegspunkt).
+
+3. DROSSELUNG: eine gedrosselte Reise dauert jetzt laenger (nicht nur
+   billiger). ABER: es gibt noch KEIN Bedienelement dafuer. Bitte nicht als
+   Fehler notieren - das ist bekannt und wird gebaut, sobald du sagst, wo der
+   Regler sitzen soll.
+
+------------------------------------------------------------------------
+ SO FUELLST DU AUS
+------------------------------------------------------------------------
+
+Schreibe deine Antwort hinter die Zeile "ANTWORT:".
+
+  - Eine Zahl, ein ja/nein, oder ein kurzer Satz. Das genuegt.
+  - Kannst du etwas nicht beurteilen? Schreib "weiss nicht" - das ist ein
+    gueltiges Ergebnis, kein Fehler.
+  - Bei Fehlern bitte den Text WOERTLICH in Block F.
+  - Am Ende speichern (gleicher Ort). Das ist alles.
+
+BILDER (freiwillig): Windows-Taste + Shift + S, dann im Desktop-Ordner
+einfuegen und den Dateinamen mit der Punktnummer beginnen lassen, zum
+Beispiel: C01_goldrahmen.png . Kein Pflichtteil.
+
+
+========================================================================
+ BLOCK 0 - DEIN GERAET
+ (ohne das kann ich Layout-Befunde nicht deuten)
+========================================================================
+
+0.1  Bildschirmaufloesung (Windows: Einstellungen > System > Anzeige)
+     ANTWORT: 1920 x 1080
+
+0.2  Skalierung in Prozent (100 %, 125 %, 150 %)
+     ANTWORT: 125 %
+
+0.3  Fenstergroesse des Spiels beim Start, falls ablesbar (Breite x Hoehe in px)
+     ANTWORT: kenne mich nicht aus mit solchen angaben srry
+
+0.4  Uhrzeit Beginn und Ende des Tests
+     ANTWORT: beginn 17.30 Uhr; ende: 18.11 Uhr
+
+
+========================================================================
+ BLOCK A - START UND TOR
+========================================================================
+
+A0   Hash der EXE geprueft? Eingabeaufforderung im Desktop-Ordner:
+     certutil -hashfile Nebelseetal_Pre_Release_V_0.0.3.exe SHA256
+     Stimmt er mit der Zeile oben ueberein? (ja / nein / nicht geprueft)
+     ANTWORT:
+
+A1   Erscheint das Passworttor?
+     ANTWORT: ja
+
+A2   Wie viele Sekunden von Doppelklick bis das Tor steht? (grob zaehlen)
+     ANTWORT: 1
+
+A3   Kommst du mit deinem Passwort hinein?
+     ANTWORT: ja
+
+A4   Was kommt nach dem Anmelden: Intro/Geschichte, eine Auswahl, direkt die
+     Karte? (beschreiben)
+     ANTWORT: Ja man wird schön durchgeleitet bis zum ersten bau. 
+
+A5   Musst du eine Startkarte oder ein Volk waehlen? Welche Auswahl steht da?
+     ANTWORT: ich habe nicht darauf geachtet genau aber elfisch gewählt und da waren auch zwerge und menschen usw aber genau weiß ichs nicht mehr
+
+A6   Steht danach ein LEERER Zustand da (kein alter Spielstand sichtbar)?
+     ANTWORT: Ja
+
+
+========================================================================
+ BLOCK B - DIE ERSTEN SCHRITTE IM NEUEN SPIEL
+========================================================================
+
+B01  Ist eine Siedlung mit Karte da, oder musst du sie erst gruenden?
+     ANTWORT: ich musste erst eine gründen, wobei das im ersten Dorf bei Spielbeginn noch nicht gebraucht wird, da man immer das gleiche startdorf hat.
+
+B02  Welche Vorraete stehen am Anfang da?
+     (Zahlen aufschreiben: Holz / Stein / Nahrung / Gold)
+     ANTWORT: srry ich habe direkt Ressourcen Gebäude gebaut und nicht darauf geachtet was die startwerte waren aber ich konnte normal anfangen zu bauen das war soweit ok
+
+B03  Wie viele Siedler hast du am Anfang?
+     ANTWORT: 10
+
+B04  Baumenue: sind alle Gebaeude da, die du erwartest? Welches fehlt?
+     ANTWORT: Erstmal ist mir nicht aufgefallen das ein Gebäude fehlen würde.
+
+B05  Bauen auf der Karte: klappt es, und wird der Preis GENAU EINMAL
+     abgebucht? (Vorher-Zahlen / Nachher-Zahlen)
+     ANTWORT: 1590 Holz (steigend) vor dem bau eines Holzfällers, 1582 Holz (steigend) nach dem bau.
+
+B06  Forschung: welche Dauer zeigt das Spiel fuer die naechste Stufe?
+     (Zahl UND Einheit)
+     ANTWORT: Wagenbau auf Stufe 1 gemacht lief ingame 1 h war gefühlt nach einer minute vorbei. war ok.
+
+B07  Laesst sich die Forschung starten, und laeuft die Restzeit sichtbar
+     herunter?
+     ANTWORT: Ja könnte aber besser visualisiert werden ist total unscheinbar und klein obwohl es ABSOLUT WICHTIG ist im spielablauf
+
+B08  Siedlerzuwachs: waechst die Zahl, und wie schnell? (grob)
+     ANTWORT: Anfangs gar nicht, dann hab ich 5 häuser am stück gebaut und relativ schnell 12 siedler gehabt.
+
+B09  Bewegung: schick eine Einheit auf ein Nachbarfeld - wird eine Dauer
+     angezeigt, und wirkt sie plausibel?
+     ANTWORT: ich schau mal ob ich bereits einheiten früh produzieren kann, und während des tests war das jetzt nicht möglich. Ich glaube es scheitere noch an wolle. Aber war mir jetzt auch nicht so wichtig im Test. Auffallend war, das egal ob Forschung, Stellmacher oder diebesgilde sobald sie gebaut waren zwar gut angezeigt wurden im menü aber deren hintergründe waren nicht zu sehen. Dies bestätigen dir auch meine gemachten screenshoots. Ganz schlimm war der Ressourcenbalken ingame
+
+B10  Speichern und wieder laden: klappt es, steht danach derselbe Stand da?
+     ANTWORT: ja klappt korrekt
+
+B11  Steht der Goetterschutz irgendwo sichtbar, und passt die Zahl zu deinem
+     Spieltag?
+     ANTWORT: Nein nicht auffällig genug falls es irgendwo sein sollte. Auch der wallbau ist noch viel zu unscheinbar designed
+
+B12  Wird irgendwo eine Zahl ohne Einheit oder mit falscher Einheit angezeigt?
+     (wo)
+     ANTWORT: Nein
+
+
+========================================================================
+ BLOCK C - WAS DIESE FASSUNG NEU TRAEGT (D-5, D-5a, D-5b)
+========================================================================
+
+C01  Goldrahmen am Gelaendekaestchen: SICHTBAR?
+     ANTWORT:
+
+C02  Goldrahmen: GERADE (nicht schief, nicht verrutscht)?
+     ANTWORT:
+
+C03  Goldrahmen: liegt er UEBER dem Gelaendebild, ohne es zu verdecken?
+     ANTWORT: ja und sehr gut gemacht
+
+C04  Goldrahmen: sieht er an ALLEN Kaestchen gleich aus?
+     (ja / nein + welches faellt aus)
+     ANTWORT: Ja sieht gleich aus und so gewollt
+
+C05  Goldrahmen: ECKEN - stoert dich der Radius 14 px, oder faellt es dir
+     nicht auf?
+     ANTWORT: Passt
+
+C06  Die neun Menue-Icons: erkennst du jedes Gebaeude OHNE Text darunter?
+     (Zahl von 0 bis 9)
+     ANTWORT: Leider zu klein und kaum zu erkennen
+
+C07  Welches Icon ist NICHT eindeutig? (Name)
+     ANTWORT: alle
+
+C08  Marktplatz: steht das KENNZEICHEN links vom Titel?
+     ANTWORT: ja und es sieht echt gut aus Screenshot ist gemacht Marktplatz_Screenshot.png, leider trotzdem Zuviel braune fläche da muss noch ein hintergrundbild rein
+
+C09  Marktplatz: wirkt die Groesse des Kennzeichens stimmig?
+     (zu gross / passt / zu klein)
+     ANTWORT: Ja passt
+
+C10  Weltkarte: welche Gelaendeart ist SCHWER von einer anderen zu
+     unterscheiden? (Namen)
+     ANTWORT: PASST Alles aber weltkartenproblem_Screenshot.png, dort siehst du, das die gelände ecken über den rahmen stehen das sieht wirklich schlecht aus
+
+C11  Portal-Kopfband: ist das Bild oben SCHARF oder verpixelt?
+     ANTWORT: ja ist scharf muss aber bei großem Spielfenster auch bis zum rechten rand gehen kannst du sehen am screenshot_portal.png
+
+C12  Zwei Bildstile nebeneinander (elf Gebaeude noch im alten Stil): faellt es
+     dir STOEREND auf?
+     ANTWORT: nein aber mir fällt auf das ich anfangs die Fraktion elfisch wähle und es später im spiel keinerleih bezug mehr dazu gibt. Vllt sollten dann auch meine Gebäudemenüs elfisch designed werden bzw bei anderer fraktionswahl anderes Design benutzen.
+
+
+========================================================================
+ BLOCK D - DIE BEKANNTEN GRENZEN, BITTE GEZIELT PRUEFEN
+========================================================================
+
+D1   Bei 1024 x 720: ist die LEGENDENZEILE unten ganz zu sehen?
+     ANTWORT: ja
+
+D2   Bei 1024 x 720: ist die KNOPFZEILE ganz zu sehen?
+     ANTWORT: ja
+
+D3   Stoesst die RESSOURCENLEISTE oben an den Rand, oder wird etwas
+     abgeschnitten?
+     ANTWORT: ja wie bereits geschrieben ganz schrecklich, außerdem wird weder wolle noch leder als ressource angezeigt das muss komplett neu designed werden
+
+D4   Verkleinere das Fenster schmal (zum Beispiel 900 px breit):
+     WAS BRICHT ZUERST?
+     ANTWORT: zuerst brechen die menüpunkte beenden, profilwechseln, skin usw also diese zeile schiebt sich zusammen und dort verschwindet zuerst ein punkt komplett wenn ich das fenster verkleinere aber das ist jetzt echt ein extrem test und bei der kleinen größe war das ok bin eigentlich ganz zufrieden wie sich aktuell alles verschiebt aber die hintergründe sind auch noch nicht wirklich zu sehen und haben noch null Wirkung.
+
+D5   Ab welcher Breite ist das Spiel NICHT MEHR BEDIENBAR? (px, grob)
+     ANTWORT: kann ich nicht sagen da ich mich mit px nicht auskenne aber es wirkt soweit gut so wie es gerade ist
+
+D6   Gibt es eine Stelle, an der ein Text MITTEN IM WORT abgeschnitten wird?
+     (wo)
+     ANTWORT: Nichts aufgefallen
+
+
+========================================================================
+ BLOCK E - DEIN BLOCK, DEINE EIGENEN TESTS
+========================================================================
+
+Hier gehoert alles hin, was DU ausprobieren willst. Ich habe nichts
+vorgegeben: keine Fragen, keine Erwartungen. Schreib zu jedem Versuch, was du
+gemacht hast, was du erwartet haettest und was passiert ist. Genau das ist oft
+der wertvollste Teil.
+
+E1   Was ich ausprobiert habe: Gebäudemenüs
+     Was ich erwartet haette: Hintergrundbilder leicht verschoben und noch nicht perfekt angepasst
+     Was passiert ist: hintergrundbilder ganz ganz schwer im Hintergrund kaum erkennbar
+
+E2   Was ich ausprobiert habe: Lager im Dorfzentrum betrachtet
+     Was ich erwartet haette: Lagerübersicht
+     Was passiert ist: Siedlungs_Lager_Felder_zu_groß.png; viel zu große anzeigefelder für einheiten und items alles unsortiert unübersichtlich nur die icons selbst sind gut und passen
+
+E3   Was ich ausprobiert habe:
+     Was ich erwartet haette:
+     Was passiert ist:
+
+E4   Was ich ausprobiert habe:
+     Was ich erwartet haette:
+     Was passiert ist:
+
+E5   Was ich ausprobiert habe:
+     Was ich erwartet haette:
+     Was passiert ist:
+
+
+
+========================================================================
+ BLOCK F - FEHLER UND ABSTUERZE (WOERTLICH)
+========================================================================
+
+F1   Was ich gemacht habe:
+     Was passiert ist (Text woertlich):
+     Uhrzeit:
+
+F2   Was ich gemacht habe:
+     Was passiert ist (Text woertlich):
+     Uhrzeit:
+
+F3   Was ich gemacht habe:
+     Was passiert ist (Text woertlich):
+     Uhrzeit:
+
+
+========================================================================
+ BLOCK G - ABSCHLUSS
+========================================================================
+
+G1   Ist das Spiel fuer dich SO spielbar? (ja / nein / mit Einschraenkung)
+     ANTWORT: ja mit Einschränkungen noch die wir noch nachbessern und klarer erkennbar machen
+
+G2   Groesster Einzelpunkt, den ich zuerst angehen soll
+     ANTWORT: Designumsetzung
+
+G3   Was hat dir am Frischstart am besten gefallen?
+     ANTWORT: zügige Bebauung der ersten karte
+
+G4   Fertig um (Uhrzeit)
+     ANTWORT: 18.11 Uhr
+
+
+========================================================================
+ SPEICHERN
+========================================================================
+
+Diese Datei einfach speichern (gleicher Ort, gleicher Name). Ich lese sie
+danach aus und trage jeden Punkt als eigene Zeile ins Pruefregister ein, mit
+deiner Antwort als Beleg. Leere Punkte bleiben leer und werden als "nicht
+beantwortet" benannt - ich erfinde nichts dazu.
+
+Danke.
