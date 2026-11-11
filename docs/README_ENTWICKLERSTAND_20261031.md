@@ -13,7 +13,7 @@
 > * **EXE:** `Nebelseetal_Remake.exe`, 43,8 MB, SHA256 `bb97d204…`, Rauchtest bestanden (Tor-Seite erscheint).
 > * Besucherstand mit Zahlen: [Spielstatus](BESUCHER_STATUS.md).
 
-![Historische Originaloberflaeche](nebelseetal_gamestar2.jpg)
+Historische Originaloberflaeche (`nebelseetal_gamestar2.jpg`) — am 11.11.2026 mit den uebrigen Originalquellen aus dem oeffentlichen Stand genommen, lokal unter `archiv/originalquellen_20261111/`.
 
 > Das Bild zeigt die **historische Vorlage** des Produktions-Baumenues, nicht den aktuellen Programmstand. Was an dieser Darstellung noch fehlt, steht unter [Baumenue-Abgleich](BAUMENUE_ABGLEICH.md).
 

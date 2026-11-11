@@ -32,14 +32,14 @@ Ausführlicher: [Die offizielle Erklärung](SPIEL_ERKLAERUNG.md) · [Die Chronik
 
 ## Diese Version herunterladen und starten
 
-1. Im Bereich **Releases** das Paket `Nebelseetal_Remake_0.5.0-pre.1.zip` herunterladen.
+1. Im Bereich **Releases** das Paket `Nebelseetal_Pre_Release_V_0.0.3.zip` herunterladen (rund 102 MB).
 2. ZIP-Inhalt in einen **neuen leeren Ordner** entpacken (nicht in einen Windows-geschützten Ordner).
-3. `Nebelseetal_Remake.exe` per Doppelklick starten.
+3. `Nebelseetal_Pre_Release_V_0.0.3.exe` per Doppelklick starten. Python ist nicht nötig.
 4. Beim ersten Start ein **eigenes Passwort** festlegen und notieren — es bleibt lokal auf dem Rechner.
 5. Spielen. Fehler bitte nach `FEHLER_MELDEN.txt` (liegt im ZIP) notieren.
 
 Die Testversion startet **leer**: keine mitgelieferten Spielstände, kein fremdes Passwort, ein eigener
-Speicherordner unter `%LOCALAPPDATA%\Nebelseetal_Remake\`. Voraussetzungen und Grenzen stehen in
+Speicherordner unter `%LOCALAPPDATA%\Nebelseetal_Remake\Demo\`. Voraussetzungen und Grenzen stehen in
 `SYSTEMANFORDERUNGEN.txt` und `BEKANNTE_GRENZEN.txt` im ZIP.
 
 **macOS:** es gibt **keine** `.app`. Eine echte Fassung müsste auf einem Mac gebaut *und geprüft*
@@ -61,8 +61,9 @@ getestet hat.
 | `CHRONIK_DER_WELT.md` / `.pdf` | die Geschichte der Welt, als Buch gestaltet |
 | `VORSCHAU.md` | erste Eindrücke einer späteren Version: Fraktionen, Gebäude, Burgen, Panoramen |
 
-Nicht im Repository: Prüfdateien, Werkzeuge und die Entwicklungsdokumentation. Sie bleiben im
-Arbeitsstand des Entwicklers — dieses Repository ist für Spieler gedacht, nicht als Werkstatt.
+Die Entwicklungsdokumentation, die Prüfdateien und die Werkzeuge liegen **ebenfalls** im Repository
+(`docs/`, `tests/`, `tools/`) — dieses Repository ist Werkstatt und Auslage zugleich. Die Quellen des
+Originals dagegen liegen **nicht** darin (siehe [Rechte](#rechte)).
 
 ## Herkunft und Transparenz
 
@@ -112,9 +113,13 @@ daraus hervorgegangene, offizielle Pre-Release-Stand.
 ## Bekannte Grenzen
 
 - **Vorabversion.** Kein fertiges Spiel, keine Kompatibilitätszusage.
-- **Sechs Welten sind noch nicht fertig umgestellt.** Im Spielcode liegen derzeit 20 Limbus-Dimensionen,
-  von denen sechs mit den belegten Welten belegt sind; 14 sind leer. Der Umbau auf sechs Welten läuft.
-- **Drei Kampfregeln fehlen:** Fluchtformel, Beute-Reihenfolge (Gold zuerst), Mauerreparatur mit Bauzeit.
+- **Die sechs Welten stehen.** `data/welten.json` führt sechs Dimensionen, alle mit einer belegten Welt
+  belegt; der Umbau von zwanzig Limbus-Plätzen auf diese sechs ist abgeschlossen.
+- **Zwei Kampfregeln sind noch offen:** die Fluchtformel und eine Mauerreparatur-Sonderregel aus dem
+  Handbuch. Beute-Reihenfolge (Gold zuerst) und die Mauerreparatur mit Bauzeit sind gebaut.
+- **Diplomatie ist gebaut:** Gunst, Status, Nichtangriffspakt, Verträge, Rachetopf und die drei Ereignisse.
+  Offen ist nur das Handelsabkommen als eigener Vertragstyp.
+- **Handelspunkte** werden je abgeschlossenem Handelsvertrag gebucht.
 - **Kein Ton, keine Musik.** Die Oberfläche ist eine Windows-Oberfläche mit Ingame-Fenstern.
 - **Nur auf Windows getestet** (Windows 11, 64 Bit). Windows 10, ARM und kleine Displays sind ungeprüft.
 - **Admin-Werkzeuge sind in dieser Fassung gesperrt.** Sie gehören zur Entwicklerfassung, nicht zur
@@ -124,9 +129,16 @@ daraus hervorgegangene, offizielle Pre-Release-Stand.
 ## Rechte
 
 Der Quelltext ist einsehbar. Eine Nutzungslizenz ist für diese Vorabversion **noch nicht festgelegt** —
-wer den Code verwenden will, fragt bitte vorher. Die Bilder des historischen Originalspiels sind nicht
-Teil dieses Projekts; die im Spiel verwendeten Bilder stammen aus eigenen Lieferungen und eigenen
-Generierungen.
+wer den Code verwenden will, fragt bitte vorher.
+
+**Die Quellen des Originals liegen nicht in diesem Repository.** Handbuch, Handbuchbilder,
+Website-Grafiken und Zeitschriftenmaterial des historischen Spiels werden nur lokal zum Nachprüfen
+aufbewahrt; sie sind am 11.11.2026 aus dem öffentlichen Stand genommen worden. Die im Spiel verwendeten
+Bilder stammen aus eigenen Lieferungen und eigenen Generierungen.
+
+**Offen und ehrlich gesagt:** die Geländekacheln des Spielfelds (`assets/karten/spielfeld/`, 127 Bilder)
+sind aus historischen Kartenvorlagen abgeleitet. Ob und in welchem Umfang das zulässig ist, ist **nicht
+abschließend geklärt**; die Vorlagen selbst liegen nicht mehr im Repository.
 
 **Logo:** das Banner mit dem Schriftzug NEBELSEETAL hat **Chris Fred Däubner** für Daniel Kössl
 entworfen. Es ist ein fertiges Werk und steht unter seinem Urheberrecht — es wird hier mit seiner

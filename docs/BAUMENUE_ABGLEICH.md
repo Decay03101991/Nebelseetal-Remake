@@ -1,6 +1,6 @@
 # Originalreferenz: Gebaeude-Baumenue (Gamestar2)
 
-**Bild:** [`docs/nebelseetal_gamestar2.jpg`](nebelseetal_gamestar2.jpg), bei Daniel im oeffentlichen GitHub dokumentiert. Historische Spielansicht, **keine** Aufnahme der heutigen Tkinter-Anwendung.
+**Bild:** `docs/nebelseetal_gamestar2.jpg` (historische Spielansicht, **keine** Aufnahme der heutigen Tkinter-Anwendung). Die Datei ist am 11.11.2026 mit den übrigen Originalquellen aus dem öffentlichen Stand genommen und liegt lokal unter `archiv/originalquellen_20261111/`.
 
 ## Konkreter Bildbefund
 

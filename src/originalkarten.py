@@ -31,7 +31,12 @@ def _index():
     return {e["id"]: e for e in _katalog()["karten"]}
 
 def alle(kategorie=None):
-    """Metadaten aller Karten; grafische Originalbilder liegen unter `assets/karten/original`."""
+    """Metadaten aller Karten; die grafischen Originalbilder liegen NICHT mehr im Repo.
+
+    Seit 11.11.2026 (Register 407) liegen die historischen Vorlagen nur noch lokal unter
+    `archiv/originalquellen_20261111/karten_original`; die aktiven Kacheln stehen in
+    `assets/karten/spielfeld`.
+    """
     return [e for e in _katalog()["karten"] if kategorie is None or e["kategorie"] == kategorie]
 
 def kennungen():

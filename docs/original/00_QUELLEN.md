@@ -1,5 +1,11 @@
 # Quellen der Originaldaten
 
+> **Hinweis 11.11.2026:** Die **Bilder und das PDF** dieser Sammlung (Handbuchbilder, Website-Grafiken,
+> Kartensammlungen, `Nebelseetal_Spielanleitung_2009.pdf`) sind aus dem öffentlichen Stand genommen und
+> liegen lokal unter `archiv/originalquellen_20261111/` (Daniels Entscheidung, Register 407). Die
+> **Textauszüge** in diesem Ordner bleiben: sie sind unsere eigenen Abschriften der Regeln und die Grundlage
+> der Zahlen im Remake.
+
 Alle hier liegenden Dateien stammen aus dem **Web-Archiv (Wayback Machine)**. Sie sind die
 Original-Belege des Spiels und die Grundlage für Einheiten-, Waren- und Forschungsnamen im Remake.
 
