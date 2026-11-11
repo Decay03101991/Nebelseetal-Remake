@@ -1,0 +1,100 @@
+﻿PROMPT-PAKET: NEBELSEETAL - EIN GNOM-KRIEGER IM STIL DEINER REFERENZ
+Referenz: ReferenzBild_Fraktionen_Gnome_Festung_mit_Gnomdorf_Panoramabild.jpg
+Haus: Flickwerk (Gnome, Welt Limbus) - Farben Karminrot, Silber, Gold
+Stand 12.11.2026 - von Hermes für Daniel Kössl
+
+WIE DAS PAKET BENUTZT WIRD
+1. "STIL-BLOCK" wörtlich vor jeden Prompt setzen - er hält alle Bilder in einem Stil.
+2. Dann einen der drei Motiv-Blöcke (A Ganzkörper, B Portrait, C Kampfreihe).
+3. Negativ-Block immer mitgeben.
+4. Seitenverhältnis: A 3:4, B 2:3, C 16:9.
+
+=====================================================================
+STIL-BLOCK (wörtlich, immer gleich)
+=====================================================================
+Digital painting, high-fantasy concept art, stylized realism, visible but clean brushwork,
+soft painterly edges, no black outlines, forms modeled by light and shadow. Warm golden-hour
+rim light from behind, cool blue-violet shadows, volumetric mist drifting through a valley,
+glowing amber light from forge windows and lanterns, floating dust motes. Deep depth of field,
+cinematic composition, highly detailed materials: rough unhewn timber, chiselled stone,
+forge-blackened iron, riveted steel, worn dyed leather, coarse wool. Colour palette of warm
+ochre and umber, slate grey, pine green, vivid carmine red, silver and antique gold. Epic but
+cozy, adventurous, magical. Not photorealistic, no 3D render, no comic outlines.
+
+=====================================================================
+A) DER HELD - GANZKÖRPER (Seitenverhältnis 3:4)
+=====================================================================
+[STIL-BLOCK] + 
+A gnome warrior of the Fog Lake, compact sturdy proportions with broad shoulders and short
+powerful legs, standing on a heavy timber bridge above a misty gorge, three-quarter view,
+full body, looking at the viewer with a confident crooked grin.
+
+Equipment: a riveted cuirass of polished silver-grey steel with a gold-engraved cogwheel
+emblem on the chest, a patchwork harness of carmine-red dyed leather held by silver buckles
+and brass rivets, oversized leather-and-steel gauntlets stained with soot, a thick belt hung
+with small tools, pliers and two glowing amber vials, a scorched carmine cape with silver
+trim and a torn hem. His weapon is a long-hafted war hammer whose head combines a blunt
+hammer face with a gear-toothed axe blade, resting head-down in his right hand.
+
+Head: soot-stained weathered face, short braided beard with two gold rings, dark leather
+hood pushed back, brass goggles with amber glass pushed up on his forehead, one ear nicked,
+a fresh cut above the eyebrow.
+
+Behind him: a waterfall pouring into fog, dense pine forest, snow-capped mountains under a
+soft golden-pink sky, warm light from a forge window, drifting mist, embers in the air.
+Character sharp and detailed, background painted slightly softer.
+
+ARBEITSBILD-NEGATIV:
+photorealistic, 3d render, unreal engine, octane render, comic outlines, anime, chibi,
+cartoon, oversized head, baby proportions, modern clothing, science fiction, neon, text,
+watermark, logo, signature, frame, border, blurry, low contrast, deformed hands, extra
+fingers, mutated fingers, duplicate weapon, cropped feet, flat lighting
+
+=====================================================================
+B) PORTRAIT / BÜSTE (Seitenverhältnis 2:3)
+=====================================================================
+[STIL-BLOCK] +
+Bust portrait of a gnome warrior of the Fog Lake, chest-up, three-quarter view, warm
+golden rim light on the left edge of his face, deep blue-violet shadow on the right.
+Soot-stained skin with fine wrinkles around the eyes, short braided beard with two gold
+rings, brass goggles with amber glass pushed up on the forehead, a leather strap across
+the cheek. He wears a silver-grey steel gorget and a carmine-red leather harness with silver
+buckles; a hammer haft rises behind his right shoulder. His expression is tired, watchful
+and quietly amused. Background: out-of-focus forge glow, drifting fog, dark timber.
+Sharply detailed face, painterly background.
+
+ARBEITSBILD-NEGATIV: wie oben, zusätzlich: smooth airbrushed skin, plastic look, doll face,
+glowing eyes, elf ears, long beard, horned helmet
+
+=====================================================================
+C) KAMPFREIHE IN DER KASERNE (Seitenverhältnis 16:9)
+=====================================================================
+[STIL-BLOCK] +
+Wide interior of a gnome barracks carved into a cliff, seen from a low angle: a row of
+gnome soldiers in carmine-red tabards over silver-grey mail, standing in loose formation
+along a stone wall, each holding a geared war hammer. Tall narrow windows cut into the rock
+let shafts of golden light fall across the floor, dust and smoke hang in the air, racks of
+tools and spare cogwheels line the wall, a forge glows at the far end. Foreground: a wooden
+table with a half-dismantled crossbow and a lantern. The soldiers are compact and sturdy,
+faces weathered, helmets with brass goggles. Warm red-and-gold colour scheme, cool shadows.
+Cinematic, epic, painterly, high detail on armour and stone.
+
+ARBEITSBILD-NEGATIV: wie oben, zusätzlich: modern soldiers, guns, tanks, sci-fi armour,
+crowd chaos, motion blur
+
+=====================================================================
+WAS ICH BEI DER FORMULIERUNG BEACHTET HABE (und warum)
+=====================================================================
+- Der Stil-Block wiederholt die Merkmale deiner Referenz: digitale Malerei, sichtbare
+  Pinsel, warmes Gegenlicht, kühle Schatten, Nebel im Tal, hoher Materialdetailgrad, keine
+  schwarzen Konturen, kein 3D-Render.
+- Farben nach data/haeuser.json: Haus Flickwerk führt Karminrot, Silber und Gold. Deshalb
+  karminroter Lederriemen und Umhang, silbergrauer Stahl, goldene Zahnrad-Gravur.
+- Zwerge und Gnome verwechseln Bildmodelle gern. Gegenmittel im Prompt: "compact sturdy
+  proportions", "broad shoulders", "short legs", "braided beard with gold rings" - und im
+  Negativ-Block "long beard" sowie "elf ears".
+- "Nebelseetal" kennt das Modell nicht. Es wird deshalb beschrieben, nicht benannt:
+  Wasserfall, Nebel im Tal, Kiefernwald, schneebedeckte Berge, warmes Licht.
+- Die Waffe (Hammer plus Zahnrad-Axt) ist absichtlich beschrieben, sonst liefert das Modell
+  eine gewöhnliche Streitaxt und die Eigenheit der Fraktion ist weg.
+- Keine Schrift im Bild: Text zeichnet später das Spiel, sonst wird er bei 125 % unscharf.

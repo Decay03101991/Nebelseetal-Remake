@@ -1,7 +1,28 @@
-# STAND 11.11.2026, 21:45 - T1 bis T7, G8, K1/U2/U3 gebaut; Sammellauf 220/220; EXE V_0.0.4 gebaut (Register 437 bis 448)
+# STAND 12.11.2026, 00:45 - Daniels Test ausgewertet; zwei eigene Fehler berichtigt; Startseite live (Register 437 bis 458)
 
-> Neuester Block. Darunter 18:44 (Konzepte geprueft; 432/433), 15:21 (Originalquellen; 407 bis 411),
-> 14:37 (Claude-Lieferung; 404/405), 14:22 (Gesamtaudit; 398 bis 402).
+> Neuester Block. Darunter 21:45 (T1 bis T7 gebaut, EXE V_0.0.4; 437 bis 448), 18:44 (Konzepte
+> geprueft; 432/433), 15:21 (Originalquellen; 407 bis 411), 14:37 (Claude-Lieferung; 404/405),
+> 14:22 (Gesamtaudit; 398 bis 402).
+
+**Daniels Testbogen V_0.0.4 (Register 454, Note 4, "ja mit einigen Einschraenkungen"):**
+bestaetigt sind T1 (Hintergrund sichtbar, aber unscharf), T2 (Wolle und Leder drin), T3 (Icons
+erkannt, aber verschoben), T4 (besser, nicht uebersichtlich), T7 (Angaben stimmen), keine
+Fehlermeldung. **Nicht bestanden:** die gezeichnete Ressourcenleiste ("total haesslich, der
+stil ist jetzt komplett weg" - sie kommt aus dem Designpaket), B5 Portal (Karte mittig, Angaben
+drumherum), C1 Angriffsflaeche (zu klein, alles braun). C2 und D1-D4 blieben leer, weil keine
+Einheiten da waren.
+
+**Zwei eigene Fehler berichtigt (Register 453):** das Kopfband hing an der auf 780 px
+gedeckelten Textspalte (jetzt gemessene Inhaltsbreite mit Nachlauf; 1037 x 199 gross, 691 x 133
+klein) und die Anzeige-Ueberschrift hiess "Goetterschutz" statt "Goetterschutz" mit echtem
+Umlaut. Vier Wachen nachgezogen, keine geloescht.
+
+**Startseite ist live (Register 452):** Pages stand auf `legacy`, der Build war zweimal
+gescheitert; jetzt Workflow `Besucherseite`, HTTP 200 / 10.226 Byte, sechs Wappen belegt.
+
+**Sammellauf ueber T6/T7/U1 laeuft noch** (00:07 gestartet, um 00:2x bei 34 von 222 Dateien,
+alle gruen) - ohne gruenen Lauf keine neue EXE.
+
 
 **Daniel hat vier Entscheidungen getroffen (Register 434):** Startseite wird **Variante 1 »Das Tor«**
 (gebaut von mir), **Burgen und Wappen werden NEU entworfen** (KI, Stilreferenz Chris, eigene Bilder -
