@@ -1,3 +1,43 @@
+# STAND 11.11.2026, 13:31 - Testbogen noch leer, zwei offene Abgleich-Fragen beantwortet, Befund G9 gefunden (Register 388 bis 391)
+
+> Neuester Block. Darunter 13:25 (Frischstart-Paket wartet; 387), 10.11. 21:50 (G2/G3, Sammellauf, neue
+> EXE; 381 bis 386), 17:05 (Desktop geraumt, Guthaben; 379/380), 11:52 (Opus-Lauf; 372 bis 378).
+
+**Sitzung 34 (13:25 bis 13:31):** Kopf geprueft - `46103e2` = `ls-remote origin main`, Arbeitsbaum nur
+`cache/`. Uebergabe hashgleich gelesen (`d2dce233…`), die Desktop-Kopie geloescht, die Archivfassung
+bleibt. Sitzung umbenannt in `11.11.26_V_0.0.3_Session_34` (Session_33 war die letzte belegte).
+
+**Erste Aufgabe - der Bogen ist LEER, nichts ausgewertet:** `ANLEITUNG_UND_TESTBOGEN_FRISCHSTART.md`
+auf dem Desktop hat weiterhin SHA256 `976b9aac…`, 7.209 Byte, mtime 10.11. 21:49; im Schreibordner
+`~/.nebelseetal` liegt nur `tor.json`, also **kein** `savegame_slot*.json` - es wurde noch nicht
+gespielt. **EXE und Anleitung bleiben unberuehrt** (Daniels Wort vom 11.11.).
+
+**Zwei offene Fragen aus dem Abgleich beantwortet (Register 388/389), ohne Codeaenderung:**
+
+- `punktestand()["krieg"]` **fuehrt** die Wallpunkte (Einheiten + `wall_kriegspunkte()`,
+  `main.py:4131`). Folge: die erste Palisade (Stufe 1 = 1 Kriegspunkt) **beendet den Goetterschutz**
+  im naechsten Takt - handbuchkonform (S. 6), aber eine Gestaltungsfrage an Daniel.
+- Die Ansicht »Voraussetzungen« ist **vollstaendig** (21 von 21 Forschungen mit Bedingung) und erfuellt
+  Handbuch S. 12.
+
+**Neuer Befund G9 (Register 390):** `forschungspfad.schaltet_frei()` liefert `waren` / `einheiten` /
+**`gebaeude`**, die Forschungs-Ansicht (`main.py:15671-15684`) verbaut nur `waren` und die unmittelbaren
+Einheiten. Gemessen: `schaltet_frei("Baukunst")` = 0 Waren, 0 Einheiten, **14 Gebaeude** - `_teile`
+bleibt leer, **die Zeile fehlt ganz**; auch `Verteidigungsanlagen` bleibt unsichtbar. **Nicht gebaut**,
+weil ein `src/`-Eingriff Sammellauf und neue EXE nach sich zieht; das gehoert hinter Daniels Test.
+
+**Registerluecke 336 (Register 391):** 384 Zeilen, hoechste Nummer 387, fehlend **272, 273 und 336**.
+336 war nirgends notiert; der Inhalt ist nicht belegt. **Nicht umnummeriert** - naechste freie Sachzeile
+ist **392**.
+
+**Pruefungen dieser Sitzung:** `test_textqualitaet` **465/0** (141 Dokumente), `test_protokoll` 28/0/1
+(bekannter Befund), `test_projektpfade` **131/0**. Kein `src/`- und kein `data/`-Eingriff - ein
+Sammellauf ist **nicht** faellig.
+
+**Offen fuer Daniel in EINER Runde:** G8 (wo sitzt der Drosselungs-Regler), G9 (jetzt bauen oder nach dem
+Test), Goetterschutz bei Palisade (gewollt?), Skill-Vormerkungen `0e5b3c84` / `9ce5a020`, naechste
+Guthaben-Ablesung.
+
 # STAND 11.11.2026, 13:25 - Frischstart-Paket wartet unberuehrt auf dem Desktop, Daniels Ergebnisse kommen heute (Register 387)
 
 > Neuester Block. Darunter 10.11. 21:50 (G2/G3, Sammellauf, neue EXE; 381 bis 386), 17:05 (Desktop
