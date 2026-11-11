@@ -1,3 +1,31 @@
+# STAND 11.11.2026, 14:40 - Claude-Lieferung abgelegt und nachgemessen; Originalquellen im oeffentlichen Repo (Register 404/405)
+
+> Neuester Block. Darunter 14:22 (Gesamtaudit; 398 bis 402), 14:28 (Guthaben 11,56 / 68,43; 403),
+> 13:38 (fuenf Entscheidungen; 392 bis 397), 13:25 (Frischstart-Paket wartet; 387).
+
+**Die Claude-Lieferung ist da, abgelegt und geprueft.** Drei Dateien hashgleich nach
+`docs/eingaenge/LLM_20261111_PRAESENTATION/` (Befunde 43.380 Byte, README-Entwurf 11.805,
+`index.html`-Entwurf 15.801); die Desktop-Kopie liegt identisch unter
+`D:\Arbeiten\Hermes\Desktop_Ablage\20261111_Claude_Praesentation\` und ist vom Desktop geraeumt.
+Pruefdokument: `docs/design/PRUEFUNG_CLAUDE_PRAESENTATION_20261111.md`. **Nichts uebernommen.**
+
+**Was haelt (selbst nachgemessen):** die Startseite ist veraltet, README und ZIP-Infotexte nennen falsche
+Dateinamen und Versionen, `VORSCHAU.md` zeigt 12 kaputte Bilder, acht `.gif` in `assets/original/` sind
+404-HTML-Seiten, **es liegt keine einzige Schriftdatei im Repo** (die Blackletter-Ueberschrift haengt an
+einer installierten Schrift), und der Windows-Workflow erwartet einen Dateinamen, den das Bauwerkzeug nie
+erzeugt. Zwei Verdachte hat Claude selbst widerlegt (Web-Logo-Gewicht, PDF unverlinkt).
+
+**Der schwerste Befund (Register 405):** im **oeffentlichen** Repo liegen **424 versionierte Dateien** unter
+`docs/original/` - darunter das **Original-Handbuch von 2009 als PDF** und **244 Handbuchbilder** -, dazu
+**33 GameStar-Dateien**, **127 historische Spielfeldbilder** und **127 daraus abgeleitete**. Das README sagt
+gleichzeitig, Bilder des Originalspiels seien nicht Teil des Projekts. Ein Entfernen aus dem Arbeitsbaum
+nimmt sie **nicht** aus der Git-Historie - dafuer braucht es einen Geschichts-Schnitt. **Entscheidung bei
+Daniel, nichts angefasst.**
+
+**Die beiden Entwuerfe tragen vier heute falsche Saetze weiter** (20 Dimensionen/14 leer, Handelspunkte
+nicht gebucht, Diplomatie-Vertraege nicht eingebaut, Beute-Reihenfolge und Mauerreparatur fehlten) - die
+messen wir vor jeder Uebernahme gegen `docs/audits/GESAMTAUDIT_20261111.md`.
+
 # STAND 11.11.2026, 14:22 - Gesamtaudit gefahren: 32 Befunde, 30 bestaetigt, Bauplan in vier Stufen (Register 398 bis 402)
 
 > Neuester Block. Darunter 13:38 (fuenf Entscheidungen; 392 bis 397), 13:25 (Frischstart-Paket wartet;
