@@ -9970,10 +9970,10 @@ class NebelseetalApp:
             rest = float(auftrag.get("startzeit", 0.0)) + float(auftrag.get("dauer_stunden", 0)) * 3600.0 \
                 - float(self.state.spielsekunden)
             stunden, minuten = divmod(max(0, int(rest // 60)), 60)
-            zeilen.append(("Forschung", "%s auf Stufe %s - noch %d:%02d h" % (
+            zeilen.append(("Forschung", "%s auf Stufe %s — noch %d:%02d h" % (
                 auftrag.get("gebiet") or "?", auftrag.get("zielstufe") or "?", stunden, minuten)))
         else:
-            zeilen.append(("Forschung", "keine laeuft - die Bibliothek wartet (Menue »Forschung«)"))
+            zeilen.append(("Forschung", "keine läuft — die Bibliothek wartet (Menü »Forschung«)"))
         # 2 Goetterschutz
         if bool(getattr(self.state, "noob_protection", False)):
             tage = int(getattr(self.state, "day", 1) or 1)
@@ -9981,13 +9981,13 @@ class NebelseetalApp:
             zeilen.append(("Goetterschutz", "noch %d Tag%s (endet beim ersten Kriegspunkt)" % (
                 uebrig, "" if uebrig == 1 else "e")))
         else:
-            zeilen.append(("Goetterschutz", "beendet - die Welt ist gefaehrlich"))
+            zeilen.append(("Goetterschutz", "beendet — die Welt ist gefährlich"))
         # 3 Wall
         stufe = int(self.state.wall_stufe_am_ort(ort)) if ort is not None else 0   # Spielstand rechnet
         if stufe > 0:
-            zeilen.append(("Wallbau", "Stufe %d steht - hoeher bauen: Siedlungskarte, Verteidigungswall" % stufe))
+            zeilen.append(("Wallbau", "Stufe %d steht — höher bauen: Siedlungskarte, Verteidigungswall" % stufe))
         else:
-            zeilen.append(("Wallbau", "noch keine Mauer - Siedlungskarte, Verteidigungswall"))
+            zeilen.append(("Wallbau", "noch keine Mauer — Siedlungskarte, Verteidigungswall"))
         return zeilen
 
     def _lage_band(self):
