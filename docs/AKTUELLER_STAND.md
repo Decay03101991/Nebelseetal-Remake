@@ -1,4 +1,4 @@
-# STAND 11.11.2026, 13:31 - Testbogen noch leer, zwei offene Abgleich-Fragen beantwortet, Befund G9 gefunden (Register 388 bis 391)
+# STAND 11.11.2026, 13:38 - Testbogen noch leer; fuenf Entscheidungen gefallen, Gesamtaudit laeuft (Register 388 bis 396)
 
 > Neuester Block. Darunter 13:25 (Frischstart-Paket wartet; 387), 10.11. 21:50 (G2/G3, Sammellauf, neue
 > EXE; 381 bis 386), 17:05 (Desktop geraumt, Guthaben; 379/380), 11:52 (Opus-Lauf; 372 bis 378).
@@ -34,9 +34,18 @@ ist **392**.
 (bekannter Befund), `test_projektpfade` **131/0**. Kein `src/`- und kein `data/`-Eingriff - ein
 Sammellauf ist **nicht** faellig.
 
-**Offen fuer Daniel in EINER Runde:** G8 (wo sitzt der Drosselungs-Regler), G9 (jetzt bauen oder nach dem
-Test), Goetterschutz bei Palisade (gewollt?), Skill-Vormerkungen `0e5b3c84` / `9ce5a020`, naechste
-Guthaben-Ablesung.
+**Daniels Antworten (13:38, EINE Runde, fuenf Fragen - Register 392 bis 396):**
+
+1. **G8:** der Drosselungs-Regler sitzt **im Dialog »Auftrag anlegen« als Prozentwahl neben dem Ziel**.
+2. **G9:** bauen **nach dem Test**, zusammen mit allem aus dem Bogen (ein Sammellauf, eine EXE).
+3. **Palisade:** **Wallpunkte loesen den Goetterschutz nicht aus** - der Schutz endet nur bei echtem Kampf;
+   die Anzeige fuehrt die Wallpunkte weiter.
+4. **Skill-Vormerkungen** `0e5b3c84` und `9ce5a020`: **beide freigegeben**.
+5. **Gesamtaudit:** **jetzt starten**, nur lesend, Repo bleibt unberuehrt.
+
+**Naechster Schritt:** Gesamtaudit fahren, Befunde nach eigener Nachrechnung eintragen
+(`docs/audits/GESAMTAUDIT_20261111.md`); sobald Daniels Bogen gefuellt ist, ihn auswerten - danach G8, G9
+und die Wall-Aenderung in EINEM Zug bauen (Sammellauf, neue EXE, Desktop-Paket raeumen).
 
 # STAND 11.11.2026, 13:25 - Frischstart-Paket wartet unberuehrt auf dem Desktop, Daniels Ergebnisse kommen heute (Register 387)
 
