@@ -1,4 +1,38 @@
-# STAND 12.11.2026, 23:0x — DPI-bewusst (1127 x 764), Auftrag Nr. 16 bei Claude, Nachtplan steht
+# STAND 13.11.2026, 01:1x — Antwort Nr. 16 verarbeitet, F-57/F-60/F-61 gebaut, Prüfstand-Kern M11/M12/M1/M2/F-63 steht
+
+> Sitzung 41, Nacht 12./13.11.2026. **Alles unten ist committet und gepusht; maßgeblich ist
+> `git log -1`.**
+>
+> **Claudes Antwort Nr. 16 ist abgelegt und nachgerechnet** (`docs/eingaenge/CLAUDE_20261112_
+> ENTSCHEIDUNGEN_NR16/`): Werteblock A4 in **allen 17 Zeilen und beiden Fällen bestätigt**
+> (S = 432/448, Kopf 59/74, Inhaltshöhe 539/702, Lager 472/548, Einheiten 388/478, Werkstätten
+> 466/574), seine Selbstkorrektur **Block 5 = 370** ist richtig (meine 380 war falsch gezählt).
+> Vier Befunde: `tkopf` 33 statt 30 (B1), `ware_grenzen(...) > 0` ist ein TypeError (B2),
+> „herstellbar“ verlangt die Werkstatt vor Ort (B3), die Werkstatt-Zuordnung stand schon in
+> `items.json` (B4).
+>
+> **Gebaut in dieser Nacht (je mit Wache und Gegenprobe):**
+> - **F-57** Abstand Spalte/Karte = gemessener Rollbalken; `SIEDLUNGS_ABSTAND`/`SIEDLUNGS_ROLLBALKEN`
+>   entfallen, **S = 448** (gemessen: 448 + 21 + 658 = 1127). `test_dpi_f51` 47/0/0, A-9 39/0/0.
+> - **F-60** `spieloekonomie.dorfzentrum_kennzahlen(ort, forschung)` — Ökonomie zählt, Ansicht
+>   formatiert. `test_dorfzentrum_kennzahlen` 23/0/0 ohne Tautologie.
+> - **F-61/F-64** Werkstatt als Feld je Rezept, **aus der Ableitung** (8 Schmiede / 5 Nähstube /
+>   4 Bogenbauer), beide Seiten durch Wache verbunden. `test_ware_werkstatt_feld` 17/0/0.
+> - **M12.0** Sammellauf schreibt `docs/audits/laeufe.jsonl` (eine Zeile je Datei und Lauf) — die
+>   46 blinden Flecken sind zu; **M12** `tools/rot_historie.py` mit vier Listen (28/0/0).
+> - **M11** `docs/FAKTENBLATT.md` + `.json` aus `data/` und `tools/auftrag_pruefen.py` (21/0/0).
+> - **M1** Kopfangaben in **allen 236 Prüfdateien** (12 Pakete, alle grün), `harness.kopf_lesen`,
+>   `tools/kopf_vorschlag.py`, Metawache 33/0/0. Startstufen: T1 113 / T2 202 / T3 229 / T4 237.
+> - **M2** `tools/auswahl.py` (Auswahl nach `git diff`, `main.py` nach Funktionen), Wache 33/0/0.
+> - **F-63** `sammellauf.py --stufe 1..4`, ohne Angabe T4; Wache 17/0/0.
+>
+> **Offen:** das **Dorfzentrum** nach Nr. 16 Teil A (F-56 Kleintext absolut 15 px, F-58 Werkstätten
+> zweigeteilt mit Zutat-Spalte, F-59 kein Ortsbestand) ist **nicht gebaut** — dafür fehlte die Zeit
+> nach dem Prüfstand-Kern. **Regel 2 voller Lauf** ist als T4 gelaufen; die Zahlen stehen im
+> Register. **Fragen an Daniel:** `docs/FRAGEN_AN_DANIEL_20261112.md` (sechs Fragen, eine Runde).
+>
+> **Nicht mehr gültig unten:** die Abschnitte zu 18:5x/23:0x beschreiben die Fenstergröße
+> 1037 × 589 und die Spalte 453/433. Heute gilt 1127 × 764, Feld 64, **Spalte 448**.
 
 > Sitzung 40 am 12.11.2026, Ende. **Der DPI-Umbau ist gebaut und gemessen** (Daniels F-51, Register
 > 545): `SetProcessDpiAwareness(2)` vor dem ersten `tk.Tk()`, `schrift()`/`schriftart()` als EINE
