@@ -1,5 +1,22 @@
 # STAND 12.11.2026, 09:40 - B4 gebaut: die Lagerkacheln sind gleich, ruhig und lesbar (Register 471/472)
 
+> Sitzung 36 ist abgeschlossen, die Uebergabe liegt in `D:\Arbeiten\Hermes\Uebergaben\20261112_1400\`
+> (hashgleich auf dem Desktop). Naechster Schritt: **T08 Ressourcenleiste bauen**.
+
+**Meshy hat geliefert (Register 484):** sechs Voelker-Panoramen und der komplette Elfen-Satz
+(Wappen und Banner, Bibliothek, Kriegerakademie, Stellmacher) liegen hashgleich in
+`docs/eingaenge/MESHY_20261112_BILDASSETS/` mit Manifest. **Gemessen:** die Bilder sind
+**1536 x 864 (16:9)**, die Spielflaeche ist **1142 x 1120 (1:1)** - als Stilvorgabe sofort brauchbar,
+als Hintergrund braucht es 1:1 oder Beschnitt (rund 45 Prozent der Breite). Das Elfen-Wappen ist ein
+Satz aus Schild und Banner auf grauem Grund, also **nicht freigestellt**.
+
+**Drei Hermes-Stoerungen aufgeklaert:** der Parallelbetrieb des Sammellaufs **deadlockt** (Register
+477, Laeufe ab jetzt seriell); ein **Absturz** mitten in den Pruefungen hat nichts beschaedigt
+(483); eine **Datei namens `nul`** im Hermes-Ordner brachte die Pfad-Vervollstaendigung zum Absturz
+und liegt jetzt in Quarantaene. Die Desktop-App stammt noch vom 11.11. - ein Neustart zeigt die
+frisch installierte Fassung (v0.23.1, local 3b421578).
+
+
 > Neuester Block. Darunter 00:45 (Daniels Test ausgewertet; 437 bis 458), 21:45 (T1 bis T7 gebaut),
 > 18:44 (Konzepte geprueft; 432/433), 15:21 (Originalquellen; 407 bis 411).
 
