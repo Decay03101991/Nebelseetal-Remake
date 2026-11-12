@@ -3874,6 +3874,56 @@ LAGER_SPALTEN_VORGABE = 8          # Spalten, wenn das Fenster noch nicht vermes
 LAGER_SPALTEN_HOECHSTENS = 9       # mehr als neun werden unruhig
 
 
+# ---------- A-9 (12.11.2026): die Masse der Siedlungsansicht an EINER Stelle ----------
+# Daniels Entscheidungen F-46, F-47 und F-49 (Register 507/511), Claudes Antwort auf Auftrag Nr. 9:
+#   f = min(64, (H - 18) // 10, (W - 350) // 10)   - Hoehe UND Breite begrenzen das Feld
+#   ab f < 50 stehen Karte und Spalte UEBEREINANDER (Karte oben rechtsbuendig, Spalte darunter)
+#   350 = 16 (Abstand) + 300 (Bauauswahl) + 2 x 8 (Schleierabstand) + 18 (Koordinatenleiste)
+# Die Zahlen sind gemessen, nicht geschaetzt: Bauauswahl 300 px Wunschbreite, Koordinatenleiste 18 px,
+# Tk-Rollbalken 17 px (Register 509).
+SIEDLUNGS_ABSTAND = 16            # Abstand zwischen Spalte und Karte
+SIEDLUNGS_SPALTE_MIN = 300        # Wunschbreite der Bauauswahl (gemessen)
+SIEDLUNGS_SCHLEIER_RAND = 8       # Innenabstand des Schleiers links und rechts
+SIEDLUNGS_SCHWELLE_UEBEREINANDER = 50   # darunter: uebereinander statt nebeneinander
+SIEDLUNGS_FELD_MAX = 64           # groesser wird das Feld nie (Originalmass)
+SIEDLUNGS_FELD_MIN = 20           # kleiner nie - darunter ist kein Feld mehr zu erkennen
+SIEDLUNGS_LEISTE = 18             # Koordinatenleiste der Karte
+SIEDLUNGS_ABZUG_HOEHE = 155       # Fenster -> sichtbare Flaeche (gemessen: 122 Kopf + 21 Status + Rahmen)
+SIEDLUNGS_SCHLEIER_FARBE = "#1a0a09"   # Schleierfarbe (F-48)
+SIEDLUNGS_SCHLEIER_DECKUNG = 80        # Prozent (F-48); 79 waere die Untergrenze fuer #ff8a70
+
+
+def siedlungs_masse(breite: int, hoehe: int) -> Dict[str, Any]:
+    """Feldgroesse, Kartenmass, Spaltenbreite und Anordnung der Siedlungsansicht.
+
+    Claudes Regel aus Auftrag Nr. 9, von Daniel am 12.11.2026 bestaetigt (Register 511):
+
+        f = min(64, (H - 18) // 10, (W - 350) // 10)
+
+    Ist f kleiner als 50, stehen Karte und Spalte UEBEREINANDER: dann darf die Karte die volle
+    Breite nutzen, das Feld wird nur noch von der Hoehe und der Breite begrenzt.
+
+    Rueckgabe: Woerterbuch mit `feld`, `karte`, `spalte`, `uebereinander` und `spalteninhalt`.
+    Reine Rechnung, kein Tk - die Pruefdatei rechnet dieselben Zahlen ohne Fenster nach.
+    """
+    breite, hoehe = max(1, int(breite)), max(1, int(hoehe))
+    rand = SIEDLUNGS_LEISTE
+    neben = min(SIEDLUNGS_FELD_MAX,
+                (hoehe - rand) // 10,
+                (breite - SIEDLUNGS_ABSTAND - rand
+                 - SIEDLUNGS_SPALTE_MIN - 2 * SIEDLUNGS_SCHLEIER_RAND) // 10)
+    if neben >= SIEDLUNGS_SCHWELLE_UEBEREINANDER:                    # nebeneinander
+        feld = max(SIEDLUNGS_FELD_MIN, neben)
+        karte = 10 * feld + rand
+        return {"feld": feld, "karte": karte,
+                "spalte": max(0, breite - SIEDLUNGS_ABSTAND - karte),
+                "uebereinander": False, "breite": breite, "hoehe": hoehe}
+    gestapelt = max(SIEDLUNGS_FELD_MIN,
+                    min(SIEDLUNGS_FELD_MAX, (hoehe - rand) // 10, (breite - rand) // 10))
+    return {"feld": gestapelt, "karte": 10 * gestapelt + rand, "spalte": breite,
+            "uebereinander": True, "breite": breite, "hoehe": hoehe}
+
+
 MAPS = [
     {"id": "kontinent", "name": "Der Kontinent", "size": 20, "difficulty": 1, "bonus": "nahrung", "npcs": ["dorf", "händler"], "quests": ["Erstes Zuhause", "Siedlerzug"], "sectors": True},
     {"id": "wald", "name": "Nebelwald", "size": 8, "difficulty": 2, "bonus": "holz", "npcs": ["jäger", "schamane"], "quests": ["Geister des Waldes", "Verlorenes Artefakt"]},
@@ -9330,6 +9380,56 @@ class NebelseetalApp:
         siedlung = getattr(self, "karten_siedlung", None)                   # offener Ort
         return str(getattr(siedlung, "volk", "") or "").strip()             # sein Volk (kann leer sein)
 
+    def _kartenbild_skaliert(self, pfad: str, kante: int):
+        """Die historische 10x10-Kartengrafik auf `kante` x `kante` verkleinern (einmal, gecacht).
+
+        A-9 (Register 507, F-46): bei 57 px je Feld ist die Karte 570 x 570 statt 640 x 640. Das
+        Originalbild wird EINMAL mit LANCZOS verkleinert und im Cache gehalten - bei 64 px wird gar
+        nichts angefasst (dann laedt der Aufrufer die Datei wie bisher). Kein Pillow oder ein
+        kaputtes Bild ergibt None: der Aufrufer faellt dann auf das Original zurueck.
+        """
+        kante = max(10, int(kante))
+        if not hasattr(self, "_kartenbild_cache"):
+            self._kartenbild_cache = {}
+        schluessel = (str(pfad), kante)
+        if schluessel in self._kartenbild_cache:                        # schon gebaut
+            return self._kartenbild_cache[schluessel]
+        bild = None
+        try:
+            from PIL import Image, ImageTk                              # nur hier importieren
+            with Image.open(pfad) as roh:
+                bild = ImageTk.PhotoImage(roh.convert("RGB").resize((kante, kante),
+                                                                    Image.LANCZOS))
+        except Exception:                                               # noqa: BLE001
+            bild = None
+        self._kartenbild_cache[schluessel] = bild                        # auch None cachen
+        return bild
+
+    def _siedlungs_flaeche(self) -> Tuple[int, int]:
+        """Die sichtbare Innenflaeche der Siedlungsansicht in Pixeln (gemessen, mit Rueckfall).
+
+        Vor dem ersten Layout liefert Tk 1 px - dann wird aus dem Fenster gerechnet (gemessener
+        Abzug: 409 px Breite, 155 px Hoehe, Register 506/509). Die Zahlen gehen in
+        `siedlungs_masse` und damit in die Feldgroesse.
+        """
+        breite = hoehe = 0
+        try:
+            breite = int(self.content_canvas.winfo_width() or 0)
+            hoehe = int(self.content_canvas.winfo_height() or 0)
+        except (AttributeError, tk.TclError):
+            breite = hoehe = 0
+        if breite < 300:                                                # noch nicht vermessen
+            try:
+                breite = int(self._inhalt_breite() or 0)
+            except Exception:                                           # noqa: BLE001
+                breite = 0
+        if hoehe < 300:
+            try:
+                hoehe = max(400, int(self.root.winfo_height()) - SIEDLUNGS_ABZUG_HOEHE)
+            except Exception:                                           # noqa: BLE001
+                hoehe = 589
+        return (breite or 1037), (hoehe or 589)
+
     def _siedlungs_hintergrund(self):
         """Das Panorama der Fraktion hinter die Siedlungsansicht legen (F-44/F-45, Register 502).
 
@@ -12081,7 +12181,7 @@ class NebelseetalApp:
             return f"+5 Wohnraum" if stoff == "" and "haus" in str(gebaeude_key).lower() else "kein Rohstoffertrag"
         return f"{ertrag:g} {stoff.capitalize()}/h" if stoff else f"{ertrag:g}/h"
 
-    def _zeichne_siedlungskarte(self, siedlung, karte, eltern=None) -> None:
+    def _zeichne_siedlungskarte(self, siedlung, karte, eltern=None, zelle=None) -> None:
         """Die Siedlungskarte als Zeichenfläche (64-px-Felder), feinere Fassung.
 
         Vorher war das ein Raster kleiner Knöpfe mit abgeschnittenen Gebäudenamen; laut
@@ -12104,7 +12204,9 @@ class NebelseetalApp:
         das Detailpanel und der Spielstand nennen (`_spaltenname`). Ohne sie zeigte die Leiste
         Ziffern und das Panel daneben „D3": zwei Wahrheiten für dieselbe Koordinate.
         """
-        zelle = 64
+        # A-9 (Register 507/511): die Feldgroesse kommt von aussen (`siedlungs_masse`), 64 nur als
+        # Rueckfall - so bleibt jeder alte Aufruf ohne Argument bei seinem bisherigen Bild.
+        zelle = int(zelle or 64)
         spalten = int(karte.get("spalten") or 0)
         zeilen = int(karte.get("zeilen") or 0)
         raster = karte["raster"]
@@ -12158,7 +12260,12 @@ class NebelseetalApp:
         # Die Positionen fuer Wege/Gebaeude stammen weiterhin aus dem Original-10x10-Raster.
         # Eine alte 8x7-Siedlung darf kein heimliches Ersatzbild bekommen.
         try:
-            originalbild = tk.PhotoImage(file=str(originalkarten_grafik.grafikpfad(karte)))
+            _pfad = str(originalkarten_grafik.grafikpfad(karte))       # die historische 10x10-Grafik
+            originalbild = None
+            if zelle != SIEDLUNGS_FELD_MAX:                            # A-9: kleineres Feld
+                originalbild = self._kartenbild_skaliert(_pfad, 10 * zelle)
+            if originalbild is None:                                   # Originalmass: unveraendert
+                originalbild = tk.PhotoImage(file=_pfad)
         except (ValueError, FileNotFoundError, tk.TclError) as fehler:
             canvas.create_text(rand + 12, rand + 22, anchor="nw", fill="#FFB7A5",
                                text="Originalkarte nicht darstellbar: " + str(fehler),
@@ -12313,6 +12420,9 @@ class NebelseetalApp:
         # A-7 (12.11.2026, Register 502 F-44/F-45): das Panorama der Fraktion liegt HINTER der
         # Ansicht - zuerst erzeugt, damit alle Textbloecke und die Karte darueber liegen.
         self._siedlungs_hintergrund()
+        # A-9 (Register 507/511): Feldgroesse und Spaltenbreite aus der GEMESSENEN Flaeche.
+        _masse = siedlungs_masse(*self._siedlungs_flaeche())
+        self._siedlungs_masse = _masse
         tk.Label(self.content, text="Siedlungskarte", font=("Blackletter", 20, "bold"),
                  fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 2))
         siedlung = getattr(self, "karten_siedlung", None)
@@ -12380,7 +12490,8 @@ class NebelseetalApp:
         # astra-Bildgutachten 05.10.2026: 64-px-Felder mit Gelände-EMBLEM (Farbe allein
         # reicht nicht), Koordinaten statt interner Feldnummern, kräftiger Auswahlrahmen.
         # Vorher: ein Raster kleiner Knöpfe mit abgeschnittenen Namen („Steinm", „Holzfä").
-        self._zeichne_siedlungskarte(siedlung, karte, eltern=kartenblock)
+        self._zeichne_siedlungskarte(siedlung, karte, eltern=kartenblock,
+                                     zelle=int(_masse.get("feld") or 64))   # A-9: 57 statt 64
 
         # Der Dorfwall steht NICHT mehr als eigene Zeile ueber der Karte: er hat seinen
         # Platz in der Rubrik Verteidigung (siehe `_wall_block`).
