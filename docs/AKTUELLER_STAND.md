@@ -17,8 +17,8 @@
 >
 > **Auftrag Nr. 16 liegt bei Claude** (Dorfzentrum-Masse, die vier Kernmassnahmen, hoechstens zehn
 > Verbesserungen am Entwicklungssystem). **Naechste Sitzung: nicht warten, sondern bauen** — Plan in
-> der Uebergabe, Abschnitt 3. **Kopf:** `3cd28ac` = Remote. **Register:** belegt bis 551, naechste
-> freie Zeile 552.
+> der Uebergabe, Abschnitt 3. **Kopf:** `6aa8fb8` = Remote (oder juenger — massgeblich ist
+> `git log -1`). **Register:** belegt bis 551, naechste freie Zeile 552.
 >
 > **Die Abschnitte weiter unten beschreiben den Stand von 18:5x (Sitzung 38)** und gelten fuer die
 > damalige, NICHT mehr gueltige Fenstergroesse: wo dort 1037 x 589, 57 px Feld oder 1446 x 744
