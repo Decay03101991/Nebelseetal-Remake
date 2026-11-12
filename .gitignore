@@ -66,3 +66,5 @@ NEBELSEETAL_FIX*_FORTSCHRITT_WINDOWS.txt
 # Messwerte je Pruefdatei (Daniel 08.11.2026, 00:25): lokale Messdaten mit Zeitstempel,
 # kein Quelltext - sie wuerden den Baum bei jedem Sammellauf mit 198 Dateien fuellen.
 docs/audits/messwerte/
+# Lokaler Scratch-Ordner des Spiels (gehoert nicht ins Repo)
+/cache/
