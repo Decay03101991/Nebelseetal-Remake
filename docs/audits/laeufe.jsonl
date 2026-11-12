@@ -1,0 +1,3 @@
+{"allein": "ja", "ausgesetzt": false, "befunde": 1, "bestanden": true, "commit": "8860d0f", "datei": "test_m12_laeufe.py", "dauer": 0.52, "fehler": 0, "lauf": "2026-11-12T23:35:24", "parallel": 1, "rc": 0, "stufe": 3, "zeit": "2026-11-12T23:35:24"}
+{"allein": "ja", "ausgesetzt": false, "befunde": 0, "bestanden": true, "commit": "8860d0f", "datei": "test_textqualitaet.py", "dauer": 0.62, "fehler": 0, "lauf": "2026-11-12T23:35:24", "parallel": 1, "rc": 0, "stufe": 3, "zeit": "2026-11-12T23:35:24"}
+{"allein": "ja", "ausgesetzt": false, "befunde": 0, "bestanden": true, "commit": "8860d0f", "datei": "test_warenrezepte.py", "dauer": 0.53, "fehler": 0, "lauf": "2026-11-12T23:35:24", "parallel": 1, "rc": 0, "stufe": 3, "zeit": "2026-11-12T23:35:24"}

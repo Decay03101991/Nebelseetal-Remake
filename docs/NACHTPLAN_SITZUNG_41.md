@@ -22,7 +22,7 @@ durchgearbeitet werden, da ich mich jetzt schlafen lege und erst morgen um 7.55 
 | **1** ✅ | **Antwort Nr. 16 ablegen und nachrechnen** (`ANTWORT_NR16_CLAUDE.md` im Übergabe-Ordner) | `docs/eingaenge/CLAUDE_20261112_ENTSCHEIDUNGEN_NR16/` mit Antwort + `NACHRECHNUNG_NR16.md`, zwei Registerzeilen, gepusht |
 | **2** ✅ | **F-57** Abstand = gemessener Rollbalken → **S = 448** | `siedlungs_masse` liefert 448 bei (1127, 764); `test_siedlungsansicht_a9` **und** `test_dpi_f51` nachgezogen und grün; Gegenprobe rot |
 | **3** ✅ | **F-60** `dorfzentrum_kennzahlen(ort, forschung)` (Rezept: Nr. 16, A3) | Funktion + `test_dorfzentrum_kennzahlen` grün, ohne Tautologie (erwartete Zahlen von Hand), Gegenprobe rot |
-| **4** | **M12.0** Sammellauf schreibt `docs/audits/laeufe.jsonl` (eine Zeile je Datei/Lauf) | nach einem kleinen Lauf hat **jede** gefundene Datei eine Zeile — die 46 blinden Flecken sind zu |
+| **4** ✅ | **M12.0** Sammellauf schreibt `docs/audits/laeufe.jsonl` (eine Zeile je Datei/Lauf) | nach einem kleinen Lauf hat **jede** gefundene Datei eine Zeile — die 46 blinden Flecken sind zu |
 | **5** | **M11** `tools/faktenblatt.py` → `docs/FAKTENBLATT.md` + `.json` | Wache `test_faktenblatt` grün; Gegenprobe (Ware dazu) meldet 18 |
 | **6** | **M1** Kopfangaben je Prüfdatei, **in Paketen von 20** | Metawache meldet anfangs nur einen **Befund**; nach jedem Paket die betroffenen Wachen grün |
 | **7** | **M2** Auswahl nach `git diff` (Regel 6: `main.py` nach **Funktionen**) → danach **F-63** Stufen T1–T4 | `test_auswahl_m2` grün mit den fünf Fällen aus Nr. 16; ein echter Lauf wählt sichtbar weniger als 230 |

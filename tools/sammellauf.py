@@ -63,6 +63,13 @@ JE_DATEI_SEKUNDEN = 420
 MARKER = "NICHT MEHR IM SAMMELLAUF"
 SPIELDATEN_VARIABLE = "NEBEL_SPIELDATEN_ORDNER"
 INDEX = os.path.join(HIER, "docs", "audits", "messwerte", "index.json")
+# M12.0 (Claude Nr. 16, Teil B): EINE Zeile je Datei und Lauf. Grund: `test_textqualitaet` hatte
+# 0 Laeufe in der Messwerte-Ablage und war trotzdem rot (Lauf 22:18) - "keine Historie" hiess also
+# nur "schreibt nichts in den Index". Die Zeile entsteht darum AUS DEM PROZESSERGEBNIS, nicht aus
+# dem harness, und schliesst die 46 blinden Flecken auf einen Schlag.
+LAEUFE = os.path.join(HIER, "docs", "audits", "laeufe.jsonl")
+KOPF_STUFE = re.compile(r"^\s*PRUEF_STUFE\s*=\s*(\d+)", re.M)
+STUFE_OHNE_KOPF = 3        # Ersatzwert nach M1: ohne Kopf gilt Stufe 3
 
 
 def dateien(auswahl):
@@ -129,7 +136,8 @@ def fahre(name, spielordner):
     """Fuehrt EINE Pruefdatei und liefert ihr Ergebnis als dict."""
     pfad = os.path.join(TESTS, name)
     ergebnis = {"name": name, "gruen": False, "ausgesetzt": False, "kurz": "",
-                "bestanden": 0, "fehler": 0, "befunde": 0, "ausgabe": "", "ordner": ""}
+                "bestanden": 0, "fehler": 0, "befunde": 0, "ausgabe": "", "ordner": "",
+                "rc": None}
     t0 = time.time()
     # Zurueckgezogene Pruefdatei: ihr Kopf sagt ausdruecklich, dass sie NICHT mehr im
     # Sammellauf laeuft (Zeitzeugnis, Nachfolger uebernimmt den Dienst). Sie wird nicht
@@ -153,14 +161,84 @@ def fahre(name, spielordner):
     except subprocess.TimeoutExpired:
         ausgabe, rc = "", 124
     if rc == 124:
-        ergebnis.update(kurz=f"ZEITLIMIT {JE_DATEI_SEKUNDEN} s", ausgabe=ausgabe)
+        ergebnis.update(kurz=f"ZEITLIMIT {JE_DATEI_SEKUNDEN} s", ausgabe=ausgabe, rc=rc)
     else:
         gruen, bestanden, fehler, befunde, kurz = deute(ausgabe, rc)
         ergebnis.update(gruen=gruen, bestanden=bestanden, fehler=fehler,
-                        befunde=befunde, kurz=kurz, ausgabe=ausgabe)
+                        befunde=befunde, kurz=kurz, ausgabe=ausgabe, rc=rc)
     ergebnis["dauer"] = time.time() - t0
     ergebnis["ordner"] = spielordner                 # nur fuer die Diagnose gemerkt
     return ergebnis
+
+
+def kopf_stufe(pfad: str) -> int:
+    """Die Pruefstufe aus dem Dateikopf (M1) - ohne die Datei zu importieren.
+
+    Fehlt der Kopf, gilt `STUFE_OHNE_KOPF` (3, Claudes Ersatzwert). Gelesen wird nur der Anfang
+    der Datei als Text; ein kaputter Kopf ist kein Fehler, sondern ergibt ebenfalls 3.
+    """
+    try:
+        with open(pfad, encoding="utf-8", errors="replace") as fh:
+            anfang = fh.read(4000)
+    except OSError:
+        return STUFE_OHNE_KOPF
+    treffer = KOPF_STUFE.search(anfang)
+    if treffer is None:
+        return STUFE_OHNE_KOPF
+    try:
+        stufe = int(treffer.group(1))
+    except ValueError:
+        return STUFE_OHNE_KOPF
+    return stufe if 1 <= stufe <= 4 else STUFE_OHNE_KOPF
+
+
+def commit_kurz() -> str:
+    """Der kurze Commit-Hash dieses Standes (fuer die Laufzeile); "" wenn git fehlt."""
+    try:
+        p = subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True,
+                           text=True, cwd=HIER, timeout=20)
+        return (p.stdout or "").strip() if p.returncode == 0 else ""
+    except (OSError, subprocess.SubprocessError):
+        return ""
+
+
+def zeilen_fuer_lauf(ergebnisse: dict, zeitpunkt: str, commit: str, parallel: int) -> list:
+    """Eine Zeile je Datei - reine Funktion, damit die Wache sie ohne Prozess pruefen kann.
+
+    Felder (Claude Nr. 16, M12.0): `datei`, `zeit`, `lauf`, `commit`, `stufe`, `rc`, `bestanden`,
+    `fehler`, `befunde`, `dauer`, `parallel`, `allein`, `ausgesetzt`.
+    `bestanden` ist None, wenn die Datei ausgesetzt (nicht gelaufen) ist - so ist "nie
+    aufgezeichnet" von "nie gelaufen" zu unterscheiden.
+    """
+    zeilen = []
+    for name in sorted(ergebnisse):
+        e = ergebnisse[name]
+        ausgesetzt = bool(e.get("ausgesetzt"))
+        zeilen.append({
+            "datei": name,
+            "zeit": zeitpunkt,
+            "lauf": zeitpunkt,
+            "commit": commit,
+            "stufe": kopf_stufe(os.path.join(TESTS, name)),
+            "rc": e.get("rc"),
+            "bestanden": None if ausgesetzt else bool(e.get("gruen")),
+            "fehler": int(e.get("fehler") or 0),
+            "befunde": int(e.get("befunde") or 0),
+            "dauer": round(float(e.get("dauer") or 0.0), 2),
+            "parallel": int(parallel),
+            "allein": "ja" if int(parallel) == 1 else "nein",
+            "ausgesetzt": ausgesetzt,
+        })
+    return zeilen
+
+
+def zeilen_schreiben(zeilen, pfad: str = LAEUFE) -> str:
+    """Die Laufzeilen anhaengen (JSON je Zeile) und den Pfad zurueckgeben."""
+    os.makedirs(os.path.dirname(pfad), exist_ok=True)
+    with open(pfad, "a", encoding="utf-8", newline="\n") as fh:
+        for zeile in zeilen:
+            fh.write(json.dumps(zeile, ensure_ascii=False, sort_keys=True) + "\n")
+    return pfad
 
 
 def main():
@@ -275,6 +353,15 @@ def main():
     print()
     print(fuss, end="")
     print("Protokoll: %s" % logpfad)
+    # M12.0: EINE Zeile je Datei und Lauf, aus dem Prozessergebnis - unabhaengig davon, ob die
+    # Pruefdatei den harness benutzt. Damit hat JEDE gefundene Datei eine Historie.
+    try:
+        _zeilen = zeilen_fuer_lauf(ergebnisse, beginn.strftime("%Y-%m-%dT%H:%M:%S"),
+                                   commit_kurz(), gleichzeitig)
+        _pfad = zeilen_schreiben(_zeilen)
+        print("Laufzeilen: %d Zeilen in %s" % (len(_zeilen), _pfad))
+    except OSError as fehler:                        # Schreibfehler darf den Lauf nicht kippen
+        print("Hinweis: Laufzeilen nicht geschrieben (%s)." % fehler)
 
     behalten = []
     for name in sorted(other) + sorted(n for n in ausgesetzt):
