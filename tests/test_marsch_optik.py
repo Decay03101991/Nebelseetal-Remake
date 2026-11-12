@@ -115,8 +115,20 @@ check("hinter dem Ende zaehlt der Endpunkt",
       abs(M.NebelseetalApp._punkt_abstand(110, 10, 0, 10, 100, 10) - 10.0) < 0.001)
 check("eine Strecke der Laenge 0 ist ein Punkt",
       abs(M.NebelseetalApp._punkt_abstand(3, 4, 0, 0, 0, 0) - 5.0) < 0.001)
-check("die Feldgroesse folgt der Rasterweite",
-      M.NebelseetalApp._portal_zelle(20) == 20 and M.NebelseetalApp._portal_zelle(10) == 40)
+# ENTSCHEIDUNG GEAENDERT (12.11.2026, Register 464): `_portal_zelle` ist keine @staticmethod mehr,
+# weil die Karte seit dem zweispaltigen Portal (Daniels B5) ihre Groesse aus der GEMESSENEN Flaeche
+# nimmt. Ohne gemessene Breite muss sie weiter die alte Rasterweite liefern - genau das prueft die
+# Wache jetzt an einem leichtgewichtigen Stellvertreter ohne `_portal_kartenbreite`.
+class _OhneMessung:                                          # nur die Methode, kein ganzes Fenster
+    _portal_zelle = M.NebelseetalApp._portal_zelle           # dieselbe Rechnung
+check("die Feldgroesse folgt der Rasterweite (ohne Messung: 400 px Karte)",
+      _OhneMessung()._portal_zelle(20) == 20 and _OhneMessung()._portal_zelle(10) == 40)
+class _MitMessung:                                           # gemessene Breite 600 -> 30 px je Feld
+    _portal_kartenbreite = 600
+    _portal_zelle = M.NebelseetalApp._portal_zelle
+_Gross = type("_Gross", (_MitMessung,), {"_portal_kartenbreite": 2000})   # sehr breites Fenster
+check("mit gemessener Flaeche waechst die Karte, aber gedeckelt",
+      _MitMessung()._portal_zelle(20) == 30 and _Gross()._portal_zelle(20) == 46)
 
 # ==========================================================================
 # 5. Die Anwendung: zeichnen, ankommen, zwei Maersche, Uhr rueckwaerts
@@ -273,10 +285,23 @@ def _linienkoordinaten(app):
             for objekt in leinwand.find_withtag("marsch") if leinwand.type(objekt) == "line"]
 
 
+def _alle_kinder(behaelter):
+    """Alle Widgets unter einem Behaelter, Tiefensuche in Einbaureihenfolge.
+
+    ENTSCHEIDUNG GEAENDERT (12.11.2026, Register 464): die Portalansicht ist zweispaltig, die
+    Restzeit-Zeile liegt nicht mehr direkt im Inhaltsbereich, sondern rechts in `spalte_karte`.
+    Die Wache sucht sie darum in der Tiefe - und vergleicht weiter ihre STELLUNG gegen die Karte.
+    """
+    for kind in behaelter.winfo_children():
+        yield kind
+        for tiefer in _alle_kinder(kind):
+            yield tiefer
+
+
 def _unterwegs_zeile(app):
     """Die Zeile mit der GROBEN Restzeit ueber der Karte (leer, wenn keine da ist)."""
     import tkinter as tk
-    for kind in app.content.winfo_children():
+    for kind in _alle_kinder(app.content):
         if isinstance(kind, tk.Label) and str(kind.cget("text")).startswith("Unterwegs:"):
             return str(kind.cget("text"))
     return ""
@@ -285,10 +310,13 @@ def _unterwegs_zeile(app):
 def _reihenfolge(app):
     """Wo steht die Restzeit-Zeile gegenueber der Karte? (Index im Inhaltsbereich, -1 = fehlt)."""
     import tkinter as tk
-    kinder = list(app.content.winfo_children())
+    kinder = list(_alle_kinder(app.content))                  # Tiefensuche, seit B5 zweispaltig
     zeile = next((i for i, k in enumerate(kinder)
                   if isinstance(k, tk.Label) and str(k.cget("text")).startswith("Unterwegs:")), -1)
-    karte = _kartenhalter(app)           # seit dem Bildrahmen ist der Traeger der Karte ein Rahmen
+    # Die Karte ist die Leinwand mit dem Zeichen-Tag; sie wird ueber `_leinwand` gefunden und in
+    # der Tiefensuche-Liste gesucht. Fehlt eine der beiden, bleibt der Vergleich -1.
+    leinwand = _leinwand(app)
+    karte = kinder.index(leinwand) if (leinwand is not None and leinwand in kinder) else -1
     return (zeile, karte)
 
 
