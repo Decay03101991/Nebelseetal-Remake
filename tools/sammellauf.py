@@ -192,6 +192,18 @@ def kopf_stufe(pfad: str) -> int:
     return stufe if 1 <= stufe <= 4 else STUFE_OHNE_KOPF
 
 
+def dateien_fuer_stufe(namen, stufe: int, tests_ordner: str = TESTS) -> list:
+    """F-63: die Pruefdateien bis zur Stufe N (1..4). Stufe 4 heisst ALLE.
+
+    Die Stufe steht im Kopf der Datei (M1, `PRUEF_STUFE`); ohne Kopf gilt 3. Damit ist der
+    haeufige Lauf klein (T1/T2) und der volle Lauf (T4) bleibt die Ausnahme vor jeder EXE.
+    """
+    stufe = max(1, min(4, int(stufe)))
+    if stufe >= 4:
+        return list(namen)
+    return [n for n in namen if kopf_stufe(os.path.join(tests_ordner, n)) <= stufe]
+
+
 def commit_kurz() -> str:
     """Der kurze Commit-Hash dieses Standes (fuer die Laufzeile); "" wenn git fehlt."""
     try:
@@ -244,6 +256,7 @@ def zeilen_schreiben(zeilen, pfad: str = LAEUFE) -> str:
 def main():
     roh = [a for a in sys.argv[1:]]
     gleichzeitig = 1
+    stufe = 4                       # F-63: ohne Angabe der volle Lauf (T4)
     auswahl = []
     i = 0
     while i < len(roh):
@@ -267,11 +280,35 @@ def main():
                 return 2
             i += 1
             continue
+        if a in ("-s", "--stufe"):
+            if i + 1 >= len(roh):
+                print("Fehler: %s braucht eine Zahl 1..4." % a)
+                return 2
+            try:
+                stufe = max(1, min(4, int(roh[i + 1])))
+            except ValueError:
+                print("Fehler: %s erwartet 1..4, nicht %r." % (a, roh[i + 1]))
+                return 2
+            i += 2
+            continue
+        if a.startswith("--stufe="):
+            try:
+                stufe = max(1, min(4, int(a.split("=", 1)[1])))
+            except ValueError:
+                print("Fehler: %s erwartet 1..4." % a)
+                return 2
+            i += 1
+            continue
         if not a.startswith("-"):
             auswahl.append(a)
         i += 1
 
     namen = dateien(auswahl)
+    if stufe < 4:
+        alle = len(namen)
+        namen = dateien_fuer_stufe(namen, stufe)
+        print("Stufe T%d: %d von %d Dateien (F-63; T4 laeuft vor jeder EXE)."
+              % (stufe, len(namen), alle))
     if not namen:
         print("Keine Pruefdatei gefunden.")
         return 2
