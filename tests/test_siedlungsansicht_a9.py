@@ -182,6 +182,29 @@ def aufbau():
             spalten.append(text)
         elif cx < main.SIEDLUNGS_LEISTE:
             zeilen.append(text)
+    # Die Dorfuebersicht will 428 px, die Spalte hat 432 minus Raender: die Tabelle muss sich
+    # anpassen, statt abgeschnitten zu werden (A-9, Register 514).
+    def _tabelle(w, tiefe=0):
+        if w.winfo_class() == "Frame" and len(w.grid_slaves()) >= 6:
+            return w
+        if tiefe < 5:
+            for kind in w.winfo_children():
+                treffer = _tabelle(kind, tiefe + 1)
+                if treffer is not None:
+                    return treffer
+        return None
+    tab = _tabelle(app.content)
+    check("die Tabelle der Dorfuebersicht steht in der Ansicht", tab is not None)
+    if tab is not None:
+        check("die Tabelle wird nicht abgeschnitten (gemessen >= Wunsch)",
+              tab.winfo_width() >= tab.winfo_reqwidth(),
+              "%d gegen %d" % (tab.winfo_width(), tab.winfo_reqwidth()))
+        check("die Tabelle ist nicht breiter als die Spalte",
+              tab.winfo_width() <= (getattr(app, "_spalte_leinwand", None).winfo_width()
+                                    if getattr(app, "_spalte_leinwand", None) else 999),
+              "%d px" % tab.winfo_width())
+        messwert("tabelle_breite", tab.winfo_width(), "px")
+        messwert("tabelle_wunsch", tab.winfo_reqwidth(), "px")
     check("alle zehn Spaltenbuchstaben sind gezeichnet", len(spalten) == 10, str(spalten))
     check("alle zehn Reihenzahlen sind gezeichnet", len(zeilen) == 10, str(zeilen))
     messwert("spaltenbuchstaben", len(spalten), "Stueck")

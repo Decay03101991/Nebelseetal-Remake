@@ -9381,6 +9381,19 @@ class NebelseetalApp:
         siedlung = getattr(self, "karten_siedlung", None)                   # offener Ort
         return str(getattr(siedlung, "volk", "") or "").strip()             # sein Volk (kann leer sein)
 
+    def _spalten_textbreite(self) -> int:
+        """Die nutzbare Textbreite in der linken Spalte (Spaltenbreite minus Innenabstaende).
+
+        A-9 (Register 514): die Spalte ist 432 px breit, die Dorfübersicht braucht 428 + 16
+        Rand. Damit nichts abgeschnitten wird, rechnen die Tabellen- und Umbruchbreiten mit
+        diesem Wert statt mit festen Zahlen.
+        """
+        masse = getattr(self, "_siedlungs_masse", None) or {}
+        spalte = int(masse.get("spalte") or 433)
+        if not masse.get("uebereinander"):                               # nebeneinander
+            spalte = spalte - SIEDLUNGS_ROLLBALKEN + SIEDLUNGS_ABSTAND    # wie im Geruest
+        return max(160, spalte - 26)
+
     def _kartenbild_skaliert(self, pfad: str, kante: int):
         """Die historische 10x10-Kartengrafik auf `kante` x `kante` verkleinern (einmal, gecacht).
 
@@ -11826,7 +11839,8 @@ class NebelseetalApp:
             return
         rahmen = tk.Frame(eltern, bg=self.skin["panel"], highlightbackground="#5D4037",
                           highlightthickness=1)
-        rahmen.pack(side=tk.LEFT, anchor=tk.N, fill=tk.Y, padx=(12, 0))
+        # A-9 (Register 514): die Uebersicht steht in der linken Spalte UNTER der Bauauswahl.
+        rahmen.pack(anchor=tk.W, fill=tk.X, padx=(10, 0), pady=(2, 4))
         tk.Label(rahmen, text="Dorfübersicht", fg=self.skin["gold"], bg=self.skin["panel"],
                  font=("TkDefaultFont", 11, "bold")).pack(anchor=tk.W, padx=8, pady=(6, 0))
         # A-6: die freie Siedlerreserve steht auch HIER - an der Stelle, an der gebaut wird.
@@ -11838,7 +11852,7 @@ class NebelseetalApp:
                            f"{_reserve['zuwachs_stunde']:.1f}/h"
                            + (" · ⚠ " + _reserve["text"] if _reserve["text"] else "")),
                      fg=("#FDBA74" if _reserve["warnung"] else "#C0C0C0"),
-                     bg=self.skin["panel"], font=("Arial", 8), wraplength=430,
+                     bg=self.skin["panel"], font=("Arial", 8), wraplength=self._spalten_textbreite(),
                      justify=tk.LEFT).pack(anchor=tk.W, padx=8, pady=(0, 2))
         except (AttributeError, KeyError, TypeError, ValueError):
             pass
@@ -11862,9 +11876,15 @@ class NebelseetalApp:
         tabelle.pack(anchor=tk.W, padx=6, pady=(4, 2))
         kopfzeile = [("Gebäude", 140, tk.W), ("Anz.", 34, tk.E), ("Stufe", 56, tk.W),
                      ("je Stunde", 128, tk.W), ("Anteil", 52, tk.E), ("Siedler", 48, tk.E)]
+        # A-9: die Tabelle will zusammen 410 px, die Spalte hat aber nur 432 - 26 = 406. Statt
+        # Spalten zu kuerzen (das haengt vom Inhalt ab) werden ALLE Spalten gleichmaessig
+        # verkleinert - dann bleibt das Verhaeltnis und keine Zelle wird abgeschnitten.
+        _summe = sum(b for _t, b, _a in kopfzeile) or 1
+        _verfuegbar = self._spalten_textbreite()
+        _faktor = min(1.0, float(_verfuegbar) / float(_summe))
         for spalte, (titel, breite, anker) in enumerate(kopfzeile):
             tk.Label(tabelle, text=titel, fg="#C0C0C0", bg=self.skin["panel"],
-                     width=(breite // 8), anchor=anker,
+                     width=max(4, int(breite * _faktor) // 8), anchor=anker,
                      font=("Arial", 8, "bold")).grid(row=0, column=spalte, sticky="w")
         for zeile, eintrag in enumerate(daten["gebaeude"][:26], start=1):
             werte = [(eintrag["name"], tk.W, self.skin["text"]),
@@ -11876,7 +11896,7 @@ class NebelseetalApp:
                      (str(eintrag["siedler"]) if eintrag["siedler"] else "—", tk.E, "#C0C0C0")]
             for spalte, (text, anker, farbe) in enumerate(werte):
                 tk.Label(tabelle, text=text, fg=farbe, bg=self.skin["panel"],
-                         width=(kopfzeile[spalte][1] // 8), anchor=anker,
+                         width=max(4, int(kopfzeile[spalte][1] * _faktor) // 8), anchor=anker,
                          font=("Arial", 8)).grid(row=zeile, column=spalte, sticky="w")
         summe = daten["summe"]
         tk.Frame(rahmen, bg="#5D4037", height=1).pack(fill=tk.X, padx=6, pady=(2, 2))
@@ -11885,21 +11905,21 @@ class NebelseetalApp:
                        f"{summe['ertrag_text'] or 'kein Ertrag'} · "
                        f"Siedler gebunden: {summe['siedler']}"),
                  fg=self.skin["gold"], bg=self.skin["panel"], font=("Arial", 9, "bold"),
-                 wraplength=430, justify=tk.LEFT).pack(anchor=tk.W, padx=8, pady=(0, 2))
+                 wraplength=self._spalten_textbreite(), justify=tk.LEFT).pack(anchor=tk.W, padx=8, pady=(0, 2))
         tk.Label(rahmen, text=daten["hinweis"], fg="#8a8a8a", bg=self.skin["panel"],
-                 font=("Arial", 8), wraplength=430, justify=tk.LEFT
+                 font=("Arial", 8), wraplength=self._spalten_textbreite(), justify=tk.LEFT
                  ).pack(anchor=tk.W, padx=8, pady=(0, 2))
         if daten["uebersprungen"]:
             tk.Label(rahmen,
                      text=("Nicht mitgerechnet: " + "; ".join(daten["uebersprungen"][:3])
                            + (" …" if len(daten["uebersprungen"]) > 3 else "")),
                      fg="#FDBA74", bg=self.skin["panel"], font=("Arial", 8),
-                     wraplength=430, justify=tk.LEFT).pack(anchor=tk.W, padx=8, pady=(0, 6))
+                     wraplength=self._spalten_textbreite(), justify=tk.LEFT).pack(anchor=tk.W, padx=8, pady=(0, 6))
         tk.Label(rahmen,
                  text=("Anteil = Summe aller Rohstoffe dieses Gebäudetyps geteilt durch den "
                        "Gesamtertrag des Ortes (je Stunde)."),
                  fg="#6b7280", bg=self.skin["panel"], font=("Arial", 7),
-                 wraplength=430, justify=tk.LEFT).pack(anchor=tk.W, padx=8, pady=(0, 6))
+                 wraplength=self._spalten_textbreite(), justify=tk.LEFT).pack(anchor=tk.W, padx=8, pady=(0, 6))
 
     def _karten_feld_waehlen(self, feld: int):
         self.karten_feld = feld
