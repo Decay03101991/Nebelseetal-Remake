@@ -1,7 +1,8 @@
-# STAND 12.11.2026, 09:40 - B4 gebaut: die Lagerkacheln sind gleich, ruhig und lesbar (Register 471/472)
+# STAND 12.11.2026, 14:55 - T08 gebaut: die Ressourcenleiste hat ein festes Raster (Register 488)
 
-> Sitzung 36 ist abgeschlossen, die Uebergabe liegt in `D:\Arbeiten\Hermes\Uebergaben\20261112_1400\`
-> (hashgleich auf dem Desktop). Naechster Schritt: **T08 Ressourcenleiste bauen**.
+> Sitzung 37 am 12.11.2026: **T08 Ressourcenleiste ist gebaut** (Block weiter unten, Register 488).
+> Naechster Schritt: **Meshy-Bilder auf 1:1 bringen** (Uebergabe Sitzung 36, Abschnitt 4b). Die
+> Uebergabe der Sitzung 36 liegt in `D:\Arbeiten\Hermes\Uebergaben\20261112_1400\`.
 
 **Meshy hat geliefert (Register 484):** sechs Voelker-Panoramen und der komplette Elfen-Satz
 (Wappen und Banner, Bibliothek, Kriegerakademie, Stellmacher) liegen hashgleich in
@@ -17,7 +18,44 @@ und liegt jetzt in Quarantaene. Die Desktop-App stammt noch vom 11.11. - ein Neu
 frisch installierte Fassung (v0.23.1, local 3b421578).
 
 
-> Neuester Block. Darunter 00:45 (Daniels Test ausgewertet; 437 bis 458), 21:45 (T1 bis T7 gebaut),
+**T08 ist gebaut (Register 488).** Daniels Befund war »ganz schrecklich« und »total haesslich, der
+stil ist jetzt komplett weg«. Gemessen war der Fehler aber der **UEBERLAUF**, nicht die Groesse: die
+Leiste war 1446 x 34 px und blieb es in jedem Fenster - in einem 1200-px-Fenster fehlten rechts zwei
+bis drei Felder von den elf.
+
+| Punkt | Neu | Zahl |
+|---|---|---|
+| Raster | Zellbreite folgt der Leistenbreite | 127 / 104 / 85 px bei 1446 / 1186 / 986 px |
+| Restpixel | links abgerundet, rechts aufgerundet | 3/4, 0/0, 4/5 |
+| Deckel | Zellen wachsen nur bis 132 px | ab 1494 px steht der Block mittig, das Band laeuft weiter |
+| Weich-Regel | unter 100 px faellt die RATE, unter 62 px weichen Punkte, Pferde, Siedler | Zelle »+n« (28 px) statt abgeschnittener Felder |
+| Zahlen | hoechstens sechs Zeichen, abgerundet | 99.999 / 100k / 1,23M / 10,0M / 100M |
+| Zustaende | kritisch (Bestand 0), Unterdeckung (Rate negativ) | eigene Flaeche plus Unterstrich, Pfeil vor der Zahl |
+| Band | 9-Slice: Endstuecke 16 px, Kachel 64 px nur wiederholt | ohne Bilddatei glatte Flaeche, Layout unveraendert |
+| Schrift | Pixelgroessen statt Punkte | Name 10 px fett, Zahl 15 px fett rechtsbuendig, Rate 10 px |
+
+**Gemessen im laufenden Fenster:** Leiste **34 px** hoch bei 1460 / 1200 / 1000 px Fenster, Zellbreite
+**127 / 104 / 85 px**, rechte Kante der letzten Zelle **immer vor B - 16**, kein Text ueber dem Rand.
+Beim Wechsel von 999 auf 1.000 bleibt die rechte Kante der Zahl gleich (376/402 gegen 364/402) - die
+Zahl springt nicht mehr.
+
+**Ehrlich offen:** der Zustand »steigt/faellt« ist **nicht gebaut** (ob das Spiel Aenderungen ausserhalb
+des Takts unterscheidet, ist offen), der Tooltip der Zelle »+n« fehlt, und die Namensfarbe **#b8862e**
+ist das Rahmengold des Handbuchs, nicht unser Skin-Gold **#FFCC33** - das ist eine Entscheidung fuer
+Daniel und steht als eine Zeile in `data/ressourcenleiste.json`. Beim Spielstart stehen sieben von elf
+Feldern auf »kritisch«, weil alle Rohstoffe 0 sind; ob das so gewollt ist, ist ebenfalls seine Sache.
+
+**Wachen:** `tests/test_ressourcenleiste_t08.py` **120/0/1** (neu), `tests/test_ressourcenleiste.py`
+**42/0/1** (umgestellt: Raster statt Inhalt, Abrunden statt kaufmaennischem Runden),
+`tests/test_leisten_luecken.py` **27/0/0** (unveraendert gruen). **Zwei Gegenproben, beide rot**
+(Zellbreite aus dem Inhalt: 2 Fehler; Weich-Regel aus: 6 Fehler), Datei danach hashgleich.
+**Sammellauf seriell: 224 von 224 gruen, 0 rot, 2 ausgesetzt, 9.746 Pruefungen, 95 Befunde, 1.329 s**
+(`docs/audits/sammellauf_20261112_1430.log`).
+
+**Vorschau:** `docs/audits/ressourcenleiste_t08_20261112.png` (1,25-fach, wie auf dem Schirm) und
+`docs/audits/ressourcenleiste_t08_20261112_2x.png`.
+
+> Darunter: 09:40 (B4 Lagerkacheln, 471/472), 00:45 (Daniels Test ausgewertet; 437 bis 458), 21:45 (T1 bis T7 gebaut),
 > 18:44 (Konzepte geprueft; 432/433), 15:21 (Originalquellen; 407 bis 411).
 
 **Daniels Reihenfolge aus der Uebergabe:** erst B4 Lagerkacheln, danach C1 Angriffsflaeche. **B4 ist

@@ -3283,46 +3283,117 @@ def leiste_felder() -> list:
             if f.get("schluessel") and f.get("quelle")]
 
 
-def leiste_layout(texte, textbreiten, masse: dict = None, zielbreite: int = 0) -> dict:
-    """Die Zellen der Leiste ausrechnen - OHNE Tk, damit das Ergebnis pruefbar und vorhersagbar ist.
+def leiste_raster(anzahl: int, masse: dict = None, zielbreite: int = 0, plus: int = 0) -> dict:
+    """Zellbreite und Restpixel der Leiste ausrechnen - OHNE Tk (T08, 12.11.2026).
 
-    `texte` ist die Anzeigereihenfolge [(name, wert)], `textbreiten` die dazu gemessenen Breiten
-    [(breite_name, breite_wert)] in Pixeln bei Schriftfaktor 1,0. `masse` sind die Zahlen aus der
-    Datendatei. Wird das Fenster schmaler als der Inhalt, verkleinert sich alles gleichmaessig bis
-    `schrift_min_faktor` - keine Zelle wird abgeschnitten.
+    Claudes Formel (Auftrag 5, Teil A): W = abgerundet aus (B - 2*endstueck - (n-1)*trenner - plus) / n,
+    hoechstens `zelle_max` (132 px). `plus` ist die Breite einer Zusatzzelle ("+2", 28 px). Die
+    Restpixel aus dem Abrunden stehen LINKS und RECHTS zwischen Endstueck und erster bzw. letzter
+    Zelle (links abgerundet, rechts aufgerundet) - der Block bleibt mittig, ohne dass eine Zelle
+    gedehnt wird.
 
-    Rueckgabe: {"zellen": [{"x", "breite", "name_x", "wert_x", "name", "wert"}], "gesamt", "faktor",
-    "start", "hoehe"} - alles in Pixeln der Zielflaeche.
+    Damit ist der gemessene Fehler geloest: die Leiste war 1446 px breit und schrumpfte nicht, in
+    einem 1200-px-Fenster fehlten rechts zwei bis drei Felder. Jetzt passt sich die ZELLE an.
+
+    `eng` heisst: die Rate passt nicht mehr (Zelle unter `rate_min` px), `zu_eng`: auch die Zahl
+    passt nicht mehr (unter `zelle_min` px) - dann muss ein Feld weichen (`leiste_auswahl`).
     """
     masse = masse or (RESSOURCENLEISTE.get("masse") or {})
-    rand = int(masse.get("rand") or 8)                              # Aussenrand links und rechts
-    pad = int(masse.get("zelle_pad") or 9)                          # Innenabstand einer Zelle
-    trenner = int(masse.get("trenner") or 1)                        # Breite der Goldlinie
-    endstueck = int(masse.get("endstueck") or 14)                   # Zierstueck an beiden Enden
-    minimum = float(masse.get("schrift_min_faktor") or 0.8)         # kleinster erlaubter Faktor
-    zellen = []                                                     # Ergebnisliste
-    roh = []                                                        # Breite je Zelle bei Faktor 1,0
-    for (name, wert), (bn, bw) in zip(texte, textbreiten):          # jedes Feld einzeln
-        roh.append(max(int(bn), int(bw)) + 2 * pad)                 # Zelle = breitester Text plus Rand
-    gesamt_1 = 2 * rand + 2 * endstueck + sum(roh) + trenner * max(0, len(roh) - 1)   # Gesamtbreite
-    faktor = 1.0                                                    # Vorgabe: Originalgroesse
-    if zielbreite and gesamt_1 > int(zielbreite):                   # Fenster ist schmaler als der Inhalt
-        faktor = max(minimum, int(zielbreite) / float(gesamt_1))    # gleichmaessig verkleinern
-    breiten = [max(1, int(round(b * faktor))) for b in roh]         # Zellbreiten nach dem Faktor
-    gesamt = int(round(2 * rand * faktor + 2 * endstueck * faktor
-                       + sum(breiten) + trenner * max(0, len(breiten) - 1)))   # neue Gesamtbreite
-    start = int(round(rand * faktor))                               # linker Anfang
-    if zielbreite and gesamt < int(zielbreite):                     # Restbreite: Inhalt mittig stellen
-        start = int((int(zielbreite) - gesamt) / 2)                 # nicht dehnen, nur zentrieren
-    x = start + int(round(endstueck * faktor))                      # erstes Zierstueck ueberspringen
-    for (name, wert), breite in zip(texte, breiten):                # Zellen von links nach rechts
+    es = int(masse.get("endstueck") or 16)                                  # Endstueck links und rechts
+    trenner = int(masse.get("trenner") or 1)                                # Goldlinie zwischen zwei Zellen
+    deckel = int(masse.get("zelle_max") or 132)                             # breiter werden die Zellen nie
+    boden = int(masse.get("zelle_min") or 62)                               # darunter passt die Zahl nicht
+    rate_min = int(masse.get("rate_min") or 100)                            # darunter weicht die Rate
+    breite = int(zielbreite or 0)                                           # gemessene Leistenbreite
+    if anzahl <= 0:                                                         # nichts anzuzeigen
+        return {"zellbreite": 0, "rest": 0, "links": 0, "rechts": 0, "start": es,
+                "eng": True, "zu_eng": True, "breite": breite, "anzahl": 0}
+    if breite <= 0:                                                         # Breite noch unbekannt
+        zellbreite = min(deckel, int(masse.get("zelle_soll") or 127))       # Wuenschgroesse
+        rest = 0                                                            # kein Rest zu verteilen
+    else:
+        frei = breite - 2 * es - trenner * max(0, anzahl - 1) - int(plus or 0)   # Platz fuer die Zellen
+        zellbreite = max(0, min(deckel, frei // anzahl))                    # nie ueber den Deckel
+        rest = max(0, frei - zellbreite * anzahl)                           # Restpixel aus dem Abrunden
+    links = rest // 2                                                       # links abgerundet
+    return {"zellbreite": zellbreite, "rest": rest, "links": links, "rechts": rest - links,
+            "start": es + links, "eng": zellbreite < rate_min, "zu_eng": zellbreite < boden,
+            "breite": breite, "anzahl": anzahl}
+
+
+def leiste_auswahl(felder=None, masse: dict = None, zielbreite: int = 0) -> dict:
+    """Welche Felder bei dieser Leistenbreite sichtbar sind - die Weich-Regel (T08, Teil A).
+
+    Unter 62 px Zellbreite weichen Felder, in dieser Reihenfolge: Punkte, Pferde, Siedler
+    (`masse.ausblenden` in der Datendatei). Statt ihrer erscheint EINE Zelle "+2" (28 px), die
+    beim Darueberfahren die ausgeblendeten nennt. Wolle und Leder weichen NIE - das war Daniels
+    erster Befund (T2, 11.11.2026).
+    """
+    alle = list(felder if felder is not None else leiste_felder())
+    masse = masse or (RESSOURCENLEISTE.get("masse") or {})
+    plus_breite = int(masse.get("plus_zelle") or 28)                        # Breite der Zelle "+2"
+    trenner = int(masse.get("trenner") or 1)                                # Goldlinie zwischen Zellen
+    reihenfolge = [str(k) for k in (masse.get("ausblenden") or ["punkte", "pferde", "siedler"])]
+    sichtbar = list(alle)                                                   # alles beginnt sichtbar
+    weg = []                                                                # was gewichen ist
+    raster = leiste_raster(len(sichtbar), masse, zielbreite)
+    while raster["zu_eng"] and len(sichtbar) > 1:                           # Platz reicht nicht
+        ziel = next((k for k in reihenfolge
+                     if any(str(f.get("schluessel")) == k for f in sichtbar)), None)
+        if ziel is None:                                                    # nichts mehr zum Ausblenden
+            break                                                           # dann bleibt der Rest stehen
+        weg.append(next(f for f in sichtbar if str(f.get("schluessel")) == ziel))
+        sichtbar = [f for f in sichtbar if str(f.get("schluessel")) != ziel]
+        raster = leiste_raster(len(sichtbar), masse, zielbreite,
+                               plus=(plus_breite + trenner) if weg else 0)  # Zusatzzelle einrechnen
+    return {"sichtbar": sichtbar, "ausgeblendet": weg, "raster": raster,
+            "rate": not raster["eng"], "plus_zelle": plus_breite if weg else 0,
+            "hinweis": ("+" + str(len(weg))) if weg else ""}
+
+
+def leiste_layout(texte, textbreiten=None, masse: dict = None, zielbreite: int = 0,
+                  zusatz=None) -> dict:
+    """Die Zellen der Leiste ausrechnen - OHNE Tk, damit das Ergebnis pruefbar ist (T08).
+
+    FESTES RASTER statt gleichmaessiger Verkleinerung (vorher, T2): jede Zelle ist gleich breit
+    (Formel in `leiste_raster`), Name und Zahl stehen untereinander, die Zahl steht RECHTSBUENDIG -
+    beim Wechsel von 999 auf 1.000 springt deshalb nichts. `textbreiten` wird nur noch als Befund
+    gelesen (passt der Name in die Zelle), die Zellbreite haengt NICHT mehr am Inhalt: vorher
+    machte ein langer Name seine Spalte breiter und die Leiste lief rechts aus dem Fenster.
+    `zusatz` ist eine Zelle fester Breite am rechten Rand, etwa ("+2", 28).
+    """
+    masse = masse or (RESSOURCENLEISTE.get("masse") or {})
+    trenner = int(masse.get("trenner") or 1)                                # Goldlinie zwischen Zellen
+    pad = int(masse.get("pad") or 6)                                        # Innenabstand einer Zelle
+    texte = list(texte or [])
+    zusatz = tuple(zusatz) if zusatz else None                              # Zelle "+2" (oder keine)
+    plus = int(zusatz[1]) + trenner if zusatz else 0                       # Breite PLUS ihr Trenner
+    raster = leiste_raster(len(texte), masse, zielbreite, plus=plus)        # Raster der echten Zellen
+    breiten = [(int(bn), int(bw)) for bn, bw in (textbreiten or [])][:len(texte)]   # nur als Befund
+    zellen = []                                                             # Ergebnisliste
+    x = raster["start"]                                                     # linker Anfang
+    for index, (name, wert) in enumerate(texte):                            # jedes Feld
+        breite = raster["zellbreite"]                                       # ALLE Zellen gleich breit
+        name_breite, wert_breite = breiten[index] if index < len(breiten) else (0, 0)
         zellen.append({"x": x, "breite": breite,
-                       "name_x": x + int(round(pad * faktor)),                    # Name linksbuendig
-                       "wert_x": x + breite - int(round(pad * faktor)),           # Zahl am rechten Zellrand
-                       "name": name, "wert": wert})                               # Inhalt
-        x += breite + trenner                                       # naechste Zelle hinter der Goldlinie
-    return {"zellen": zellen, "gesamt": gesamt, "faktor": faktor, "start": start,
-            "hoehe": int(RESSOURCENLEISTE.get("hoehe") or 34)}      # alles, was zum Zeichnen noetig ist
+                       "name_x": x + pad,                                   # Name linksbuendig
+                       "wert_x": x + breite - pad,                          # Zahl rechtsbuendig
+                       "name": name, "wert": wert,
+                       "eng": (breite - 2 * pad) < max(name_breite, wert_breite)})
+        x += breite + trenner                                               # naechste Zelle
+    if zusatz:                                                              # Zelle "+2" am Ende
+        breite = int(zusatz[1])                                             # feste Breite, kein Raster
+        zellen.append({"x": x, "breite": breite, "name_x": x + pad // 2,
+                       "wert_x": x + breite - pad // 2, "name": str(zusatz[0]), "wert": "",
+                       "eng": False, "zusatz": True})
+        x += breite
+    return {"zellen": zellen,
+            "gesamt": (raster["breite"] if raster["breite"] > 0
+                       else x + int(masse.get("endstueck") or 16)),
+            "start": raster["start"], "zellbreite": raster["zellbreite"],
+            "rate": not raster["eng"], "rest_links": raster["links"],
+            "rest_rechts": raster["rechts"],
+            "hoehe": int(RESSOURCENLEISTE.get("hoehe") or 34)}
 
 
 def _leisten_stuecke(leiste: dict) -> list:
@@ -3456,22 +3527,112 @@ def leiste_zusammensetzen(leiste: dict, zielbreite: int):
     return gesamt, mitten, skala                                                        # Bild, Mittelpunkte, Skala
 
 
-def leistenwert(state, feld: dict) -> str:
-    """Den Anzeigewert EINES Leistenfeldes rechnen - eine Stelle fuer Aufbau und Neuzeichnen.
+def leisten_kurz(wert) -> str:
+    """Eine Zahl auf hoechstens sechs Zeichen kuerzen - ABGERUNDET (T08, Claude Teil C2).
 
-    `quelle` nennt die Rechenquelle: `bevoelkerung` (Reichssiedler), `punkte` (Gesamtpunkte aus
-    `state.punktestand()`) oder einen Rohstoff aus `state.resources`. Tausenderpunkte machen die
-    Zahl lesbar; gerechnet wird nichts weiter.
+    Bis 99.999 ganz mit Tausenderpunkt ("99.999"), darueber in Stufen: "100k" bis "999k",
+    "1,00M" bis "9,99M", "10,0M" bis "99,9M", "100M" bis "999M" - und dieselbe Leiter weiter in G
+    und T. Abgerundet heisst: es wird nie mehr angezeigt als vorhanden (999.999 zeigt "999k",
+    nicht "1,00M"). Die Obergrenzen der Rohstoffe stehen nicht im Handbuch - die Stufen G und T
+    sind die Fortsetzung derselben Regel, keine belegte Zahl.
     """
+    zahl = int(max(0.0, float(wert or 0)))                                   # abrunden, nie aufrunden
+    if zahl < 100_000:                                                       # kleiner Betrag
+        return f"{zahl:,}".replace(",", ".")                                 # hoechstens "99.999"
+    for faktor, zeichen in ((1_000_000_000_000, "T"), (1_000_000_000, "G"),
+                            (1_000_000, "M"), (1000, "k")):                 # groesste passende Stufe
+        if zahl < faktor:                                                    # Stufe zu gross
+            continue                                                         # naechste kleinere
+        ganz = zahl // faktor                                                # ganze Anteile
+        if ganz >= 100:                                                      # "100M", "999k" ...
+            return f"{ganz}{zeichen}"                                        # ohne Stelle
+        if ganz >= 10:                                                       # "10,0M" bis "99,9M"
+            return f"{ganz},{(zahl // (faktor // 10)) % 10}{zeichen}"
+        return f"{ganz},{(zahl // (faktor // 100)) % 100:02d}{zeichen}"      # "1,00M" bis "9,99M"
+    return f"{zahl:,}".replace(",", ".")                                     # nicht erreichbar
+
+
+def leisten_zahl(state, feld: dict) -> float:
+    """Der Zahlenwert EINES Leistenfeldes - EINE Rechenstelle fuer Anzeige, Rate und Zustand."""
     quelle = str(feld.get("quelle") or feld.get("schluessel") or "")                       # Quelle des Wertes
     if quelle == "bevoelkerung":                                                           # Siedler des Reichs
-        wert = float(getattr(state, "population", 0.0) or 0.0)                              # Summe der Orte
-    elif quelle == "punkte":                                                               # Gesamtpunkte
-        wert = float((state.punktestand() or {}).get("gesamt", 0) or 0)                     # aus der Punkteformel
-    else:                                                                                  # ein Rohstoff
-        eintrag = (getattr(state, "resources", {}) or {}).get(quelle)                       # Reichsbestand
-        wert = float(getattr(eintrag, "amount", 0) or 0)                                   # Betrag als Zahl
-    return f"{wert:,.0f}".replace(",", ".")                                                # 1234 -> "1.234"
+        return float(getattr(state, "population", 0.0) or 0.0)                              # Summe der Orte
+    if quelle == "punkte":                                                                 # Gesamtpunkte
+        return float((state.punktestand() or {}).get("gesamt", 0) or 0)                     # aus der Punkteformel
+    eintrag = (getattr(state, "resources", {}) or {}).get(quelle)                           # Reichsbestand
+    return float(getattr(eintrag, "amount", 0) or 0)                                        # Betrag als Zahl
+
+
+def leistenwert(state, feld: dict) -> str:
+    """Der Anzeigewert EINES Leistenfeldes: gekuerzt, hoechstens sechs Zeichen (T08, Teil C2)."""
+    return leisten_kurz(leisten_zahl(state, feld))
+
+
+def leisten_rate(state, feld: dict, ertrag_jetzt: dict = None) -> Tuple[str, bool]:
+    """Die Rate EINES Leistenfeldes als Text und Warnflagge - EINE Stelle (T08, Teil C4).
+
+    Rohstoffe: Ertrag je Stunde aus `state.stundenertrag()`, bei Nahrung abzueglich Verbrauch -
+    dieselbe Quelle wie die Detailzeile (`spieloekonomie.verbrauch_pro_stunde`), keine zweite
+    Formel. Siedler und Punkte haben im Spiel keine Rate; dort bleibt der Platz LEER (kein
+    erfundenes "+0/h").
+    """
+    quelle = str(feld.get("quelle") or feld.get("schluessel") or "")                       # Quelle des Feldes
+    if quelle not in RESOURCES:                                                             # keine Vorratsrate
+        return "", False                                                                    # leer lassen
+    if ertrag_jetzt is None:                                                                # nicht mitgegeben
+        ertrag_jetzt = state.stundenertrag() or {}                                          # dann hier rechnen
+    rate = float(ertrag_jetzt.get(quelle, 0.0) or 0.0)                                      # Ernte je Stunde
+    if quelle == "nahrung":                                                                 # bei Nahrung netto
+        rate -= spieloekonomie.verbrauch_pro_stunde(getattr(state, "settlements", []) or [])   # Verbrauch abziehen
+    if abs(rate) < 0.005:                                                                   # praktisch null
+        return "0/h", False                                                                 # dann keine Warnung
+    vorzeichen = "+" if rate > 0 else "-"                                                   # Vorzeichen zeigen
+    betrag = (f"{abs(rate):.1f}".replace(".", ",") if abs(rate) < 10
+              else leisten_kurz(abs(rate)))                                                 # klein mit Stelle
+    return f"{vorzeichen}{betrag}/h", rate < 0                                              # Text, Warnung
+
+
+def leisten_zustand(state, feld: dict, ertrag_jetzt: dict = None) -> str:
+    """Zustand eines Feldes: "normal", "kritisch" oder "unterdeckung" (T08, Teil B3).
+
+    `kritisch` = Bestand 0, nur fuer VORRAETE (die neun Rohstoffe): Siedler und Punkte sind keine
+    Vorraete, ein Punktestand von 0 ist kein Mangel. `unterdeckung` = die Rate ist negativ
+    (Verbrauch groesser als Ertrag). Der von Claude vorgeschlagene dritte Zustand
+    "steigt/faellt" ist NICHT gebaut: ob das Spiel Aenderungen ausserhalb des Takts unterscheidet,
+    ist offen - das ist Daniels Entscheidung, nicht meine (Register 481).
+    """
+    zahl = leisten_zahl(state, feld)                                                        # Bestand
+    quelle = str(feld.get("quelle") or "")                                                  # Vorrat?
+    if quelle in RESOURCES and zahl <= 0:                                                   # Vorrat aufgebraucht
+        return "kritisch"                                                                   # Unterstrich zeigen
+    rate, _warnung = leisten_rate(state, feld, ertrag_jetzt)                                # Rate des Feldes
+    if rate and rate.startswith("-"):                                                       # Verbrauch groesser
+        return "unterdeckung"                                                               # Pfeil zeigen
+    return "normal"                                                                         # nichts zu melden
+
+
+def leiste_band_teile(breite: int, masse: dict = None, band: dict = None) -> dict:
+    """Das Band in seine Stuecke legen - Endstuecke fest, Mitte NUR wiederholt (T08, Teil B1).
+
+    Rueckgabe: {"links", "rechts", "mitte_von", "mitte_bis", "kacheln": [(x, breite), ...]}. Die
+    Kachel ist 64 px breit und wird NIE gedehnt; die letzte Kachel wird am Ende beschnitten - genau
+    das ist ein 9-Slice-Band. Ohne Bilddatei bleibt die Mitte eine glatte Flaeche, die Stuecke sind
+    aber dieselben: beim Nachliefern eines Bildes verschiebt sich kein Pixel.
+    """
+    masse = masse or (RESSOURCENLEISTE.get("masse") or {})
+    band = band or (RESSOURCENLEISTE.get("band") or {})
+    es = int(band.get("endstueck_breite") or masse.get("endstueck") or 16)   # Endstueck je Seite
+    kachel = max(1, int(band.get("kachel_breite") or 64))                    # Breite der Mittelkachel
+    breite = max(0, int(breite or 0))                                        # gemessene Leistenbreite
+    mitte_von = es                                                           # Mitte beginnt nach links
+    mitte_bis = max(mitte_von, breite - es)                                  # und endet vor rechts
+    kacheln = []                                                             # (x, breite) je Kachel
+    x = mitte_von
+    while x < mitte_bis:                                                     # nur wiederholen, nie dehnen
+        kacheln.append((x, min(kachel, mitte_bis - x)))                      # letzte Kachel beschnitten
+        x += kachel
+    return {"links": es, "rechts": es, "mitte_von": mitte_von, "mitte_bis": mitte_bis,
+            "kacheln": kacheln, "kachel_breite": kachel}
 
 
 def kopfzeile_fuer(state, rohstoff: str, ertrag_jetzt: dict) -> Tuple[str, bool]:
@@ -9343,22 +9504,57 @@ class NebelseetalApp:
                            highlightthickness=0, bd=0)                          # ohne Rahmen
         canvas.pack(fill=tk.X, pady=(2, 2))                                    # volle Kopfbreite, Inhalt mittig
         self._leisten_canvas = canvas                                          # Referenz fuer das Neuzeichnen
+        self._leisten_breite = None                                            # neue Flaeche: neu zeichnen
+        self._leisten_zellen = {}                                              # Kennungen der alten Flaeche
         self._leisten_texte = {}                                               # Feld -> Canvas-Kennungen
         canvas.bind("<Configure>", lambda _e: self._leiste_zeichnen())          # bei Breitenaenderung neu zeichnen
         self.root.after(30, self._leiste_zeichnen)                              # nach dem ersten Layout zeichnen
         return canvas                                                          # fuer Pruefungen
 
-    def _leiste_zeichnen(self):
-        """Den Streifen in der aktuellen Breite zeichnen: elf Zellen mit Name und Zahl (T2).
+    def _leiste_kachel_bild(self, breite: int):
+        """Die Mittelkachel des Bandes als Tk-Bild in der gewuenschten Breite (oder None).
 
-        Gerechnet wird in `leiste_layout` (ohne Tk). Hier wird nur gezeichnet: Grundflaeche mit
-        Goldrand, zwei Zierstuecke an den Enden, eine feine Goldlinie zwischen den Zellen, darueber
-        Name (klein, gold) und Zahl (hell, dunkle Kontur). Kein Bild, keine leere Verzierung.
+        Ohne Bilddatei (heute der Fall: `band.datei` ist leer) gibt es keine Kachel - dann ist die
+        Mitte des Bandes eine glatte Flaeche. Das Layout haengt nicht daran: `leiste_band_teile`
+        rechnet dieselben Stuecke, ob mit oder ohne Bild (Claude Teil B1/D3).
+        """
+        band = RESSOURCENLEISTE.get("band") or {}                              # Bandbeschreibung
+        datei = str(band.get("datei") or "")                                   # Bilddatei der Kachel
+        if not datei:                                                          # keine Kachel eingetragen
+            return None                                                        # dann glatte Flaeche
+        if not hasattr(self, "_leisten_kacheln"):                              # Zwischenspeicher
+            self._leisten_kacheln = {}                                         # Breite -> Tk-Bild
+        schluessel = max(1, int(breite))                                       # nur die Breite zaehlt
+        if schluessel in self._leisten_kacheln:                                # schon gebaut
+            return self._leisten_kacheln[schluessel]                           # wiederverwenden
+        pfad = icon_pfad(datei)                                                # Pfad im Projekt
+        if not pfad or not os.path.exists(pfad):                               # Datei fehlt
+            return None                                                        # dann ohne Bild
+        try:                                                                   # Pillow nur hier
+            from PIL import Image, ImageTk                                     # Bildverarbeitung
+            hoehe = int(band.get("kachel_hoehe") or 34)                        # Hoehe der Kachel
+            bild = Image.open(pfad).convert("RGBA")                            # Original mit Alpha
+            bild = bild.crop((0, 0, min(bild.width, schluessel), min(bild.height, hoehe)))
+            tk_bild = ImageTk.PhotoImage(bild)                                 # Tk-Grafik
+        except Exception:                                                      # noqa: BLE001
+            return None                                                        # ohne Bild weiter
+        self._leisten_kacheln[schluessel] = tk_bild                            # im Cache halten
+        return tk_bild                                                         # fertige Kachel
+
+    def _leiste_zeichnen(self):
+        """Den Streifen zeichnen: Band, elf Zellen mit Name, Zahl und Rate (T08, 12.11.2026).
+
+        Gerechnet wird in `leiste_auswahl` und `leiste_layout` (ohne Tk). Hier wird nur gezeichnet:
+        das Band (9-Slice; ohne Bilddatei eine glatte Flaeche mit Goldlinie unten), die Goldlinien
+        zwischen den Zellen, der Name klein in Zeile 1, die Rate rechts in Zeile 1 und die Zahl
+        gross RECHTSBUENDIG in Zeile 2. Die Zelle ist FEST breit - beim Wechsel von 999 auf 1.000
+        springt nichts, und die Leiste laeuft bei keinem Fenster mehr rechts hinaus (Daniels
+        Befund: in einem 1200-px-Fenster fehlten zwei bis drei Felder).
         """
         canvas = getattr(self, "_leisten_canvas", None)                        # Zeichenflaeche
         if canvas is None:                                                     # nichts zu zeichnen
             return                                                             # Abbruch
-        try:                                                                   # Fenster kann schon weg sein
+        try:                                                                   # Fenster kann weg sein
             if not canvas.winfo_exists():                                      # Flaeche zerstoert
                 return                                                         # dann nichts tun
         except tk.TclError:                                                    # Tk kennt sie nicht mehr
@@ -9371,81 +9567,173 @@ class NebelseetalApp:
             breite_ist = 0                                                     # dann ohne Zielbreite rechnen
         if getattr(self, "_leisten_breite", None) == breite_ist:               # Breite unveraendert
             return                                                             # kein Neuzeichnen noetig
+        farben = RESSOURCENLEISTE.get("farben") or {}                          # Farben aus der Datendatei
+        masse = RESSOURCENLEISTE.get("masse") or {}                            # Masse aus der Datendatei
+        grund = str(farben.get("grund") or "#1a0a09")                          # dunkler Grund
+        linie = str(farben.get("linie_unten") or "#b8862e")                    # Goldlinie unten
+        trenner_farbe = str(farben.get("trenner") or "#b8862e")                # Goldlinie zwischen Zellen
+        zahl_farbe = str(farben.get("zahl") or "#F2E3BF")                      # helle Zahl
+        name_farbe = str(farben.get("name") or "#b8862e")                      # goldener Name
+        gold = str(farben.get("gold") or "#FFCC33")                            # Zierrat in den Endstuecken
+        warnung = str(farben.get("warnung") or "#ff8a70")                      # Warnfarbe
+        flaeche = str(farben.get("flaeche_kritisch") or "#3e1c1a")             # Flaeche bei "kritisch"
+        hoehe = int(RESSOURCENLEISTE.get("hoehe") or 34)                       # Hoehe des Streifens
+        auswahl = leiste_auswahl(felder, masse, breite_ist)                    # was bei dieser Breite passt
+        sichtbar = auswahl["sichtbar"]                                         # sichtbare Felder
+        texte = [(str(f.get("name") or f.get("schluessel")),                  # Beschriftung
+                  leistenwert(self.state, f)) for f in sichtbar]               # Wert aus EINER Rechenstelle
+        zusatz = (auswahl["hinweis"], auswahl["plus_zelle"]) if auswahl["hinweis"] else None
+        layout = leiste_layout(texte, None, masse, breite_ist, zusatz=zusatz)  # Zellen ausrechnen
+        try:                                                                   # Schriften in PIXELN
+            import tkinter.font as tkfont                                      # Schriftenmodul
+            schrift_name = tkfont.Font(family="Arial", size=-int(masse.get("schrift_name") or 10),
+                                       weight="bold")                          # Name 10 px fett
+            schrift_zahl = tkfont.Font(family="Arial", size=-int(masse.get("schrift_zahl") or 15),
+                                       weight="bold")                          # Zahl 15 px fett
+            schrift_rate = tkfont.Font(family="Arial", size=-int(masse.get("schrift_rate") or 10))
+        except Exception:                                                      # noqa: BLE001
+            schrift_name = ("Arial", -10, "bold")                              # Rueckfall als Tupel
+            schrift_zahl = ("Arial", -15, "bold")                              # Rueckfall als Tupel
+            schrift_rate = ("Arial", -10)                                      # Rueckfall als Tupel
+        self._leisten_rate_schrift = schrift_rate                              # fuer die Messung im Takt
+        canvas.delete("leiste")                                                # alte Zeichnung weg
+        canvas.configure(height=hoehe, bg=grund)                               # Hoehe aus der Datendatei
+        breite_band = breite_ist or layout["gesamt"]                          # Breite des Bandes
+        band = leiste_band_teile(breite_band, masse)                           # Stuecke des 9-Slice-Bandes
+        canvas.create_rectangle(0, 0, max(1, breite_band), hoehe,             # Grundflaeche des Bandes
+                                fill=grund, outline="", tags=("leiste",))
+        for x, w in band["kacheln"]:                                          # Mitte NUR wiederholen
+            kachel = self._leiste_kachel_bild(w)                               # Kachel dieser Breite
+            if kachel is not None:                                             # ohne Bild bleibt die Flaeche
+                canvas.create_image(x, 0, anchor="nw", image=kachel, tags=("leiste",))
+        canvas.create_line(0, int(masse.get("linie_y") or hoehe - 1),         # Goldlinie ueber die
+                           max(1, breite_band), int(masse.get("linie_y") or hoehe - 1),
+                           fill=linie, tags=("leiste",))                       # ganze Unterkante
+        for x0 in (0, max(0, breite_band - int(band["rechts"]))):              # beide Endstuecke:
+            canvas.create_rectangle(x0, 0, x0 + int(band["links"]), hoehe - 1,  # eigene Flaeche mit
+                                    fill=grund, outline=linie, tags=("leiste",))  # Goldrand, nie Text
+            mitte_x = x0 + int(band["links"]) // 2                             # Mitte des Endstuecks
+            canvas.create_polygon(mitte_x, hoehe / 2 - 5, mitte_x + 3, hoehe / 2,
+                                  mitte_x, hoehe / 2 + 5, mitte_x - 3, hoehe / 2,
+                                  fill=gold, outline="", tags=("leiste",))     # Raute aus Gold
+        zeile_name = int(masse.get("zeile_name") or 9)                         # Zeile des Namens
+        zeile_zahl = int(masse.get("zeile_zahl") or 23)                        # Zeile der Zahl
+        oben = int(masse.get("trenner_oben") or 7)                             # Trenner von y
+        unten = int(masse.get("trenner_unten") or 27)                          # Trenner bis y
+        strich_y = zeile_zahl + 8                                              # Unterstrich bei 31/32
+        self._leisten_texte = {}                                               # neu aufbauen
+        self._leisten_zellen = {}                                              # Feld -> Kennungen
+        for index, zelle in enumerate(layout["zellen"]):                       # jede Zelle
+            if index:                                                          # zwischen zwei Zellen
+                canvas.create_line(zelle["x"] - 1, oben, zelle["x"] - 1, unten,
+                                   fill=trenner_farbe, tags=("leiste",))       # feine Goldlinie
+            if zelle.get("zusatz"):                                            # Zelle "+2"
+                canvas.create_text(zelle["x"] + zelle["breite"] // 2, hoehe // 2,
+                                   text=zelle["name"], anchor="center",
+                                   fill=name_farbe, font=schrift_name, tags=("leiste",))
+                continue                                                       # keine Zahl dazu
+            feld = sichtbar[index]                                             # zugehoeriges Feld
+            schluessel = str(feld.get("schluessel"))                           # Kennung
+            flaeche_id = canvas.create_rectangle(zelle["x"] + 1, 1,             # Flaeche fuer "kritisch"
+                                                 zelle["x"] + zelle["breite"] - 1, hoehe - 1,
+                                                 fill=flaeche, outline="", state="hidden",
+                                                 tags=("leiste", "kritisch"))
+            canvas.create_text(zelle["name_x"], zeile_name, text=zelle["name"],
+                               anchor="w", fill=name_farbe, font=schrift_name,
+                               tags=("leiste",))                                # Name linksbuendig
+            try:                                                               # Name in Pixeln messen
+                name_breite = schrift_name.measure(zelle["name"])               # Breite des Namens
+            except Exception:                                                   # noqa: BLE001
+                name_breite = 0                                                 # ohne Messung alles zeigen
+            rate_platz = zelle["breite"] - 2 * int(masse.get("pad") or 6) - name_breite - 6
+            wert_id = canvas.create_text(zelle["wert_x"], zeile_zahl, text=zelle["wert"],
+                                         anchor="e", fill=zahl_farbe, font=schrift_zahl,
+                                         tags=("leiste",))                      # Zahl rechtsbuendig
+            rate_id = canvas.create_text(zelle["wert_x"], zeile_name, text="",
+                                         anchor="e", fill=zahl_farbe, font=schrift_rate,
+                                         state="hidden", tags=("leiste",))      # Rate rechts oben
+            strich_id = canvas.create_line(zelle["name_x"], strich_y, zelle["wert_x"], strich_y,
+                                           fill=warnung, width=int(masse.get("unterstrich") or 2),
+                                           state="hidden", tags=("leiste",))    # Unterstrich
+            pfeil_id = canvas.create_text(zelle["wert_x"], zeile_zahl, text="\u25bc",
+                                          anchor="e", fill=warnung, font=schrift_zahl,
+                                          state="hidden", tags=("leiste",))     # Pfeil Unterdeckung
+            self._leisten_texte[schluessel] = [wert_id]                        # fuer das Aktualisieren
+            self._leisten_zellen[schluessel] = {"wert": wert_id, "rate": rate_id,
+                                                "grund": flaeche_id, "strich": strich_id,
+                                                "pfeil": pfeil_id, "x": zelle["wert_x"],
+                                                "rate_platz": rate_platz}      # Platz fuer die Rate
+        self._leisten_breite = breite_ist                                      # gezeichnete Breite merken
+        self._leiste_aktualisieren()                                           # Werte und Zustaende setzen
+
+    def _rate_passt(self, rate: str, platz: int) -> bool:
+        """Passt die Rate in den Platz zwischen Name und Zellrand? (gemessen, nicht geschaetzt)
+
+        Claudes Schwelle von 100 px Zellbreite beruht auf Textbreiten aus Liberation Sans; in
+        Tkinter ist "+1.234/h" 42 px breit statt 39,2. Darum wird die Rate zusaetzlich am ECHTEN
+        Platz gemessen und ausgeblendet, wenn sie den Namen beruehren wuerde - die Zahl hat immer
+        Vorrang (T08, Teil C4).
+        """
+        schrift = getattr(self, "_leisten_rate_schrift", None)                 # Schrift der Rate
+        try:                                                                   # messen
+            return schrift.measure(rate) <= int(platz)                         # passt in den Platz
+        except Exception:                                                      # noqa: BLE001
+            return True                                                        # ohne Messung zeigen
+
+    def _leiste_aktualisieren(self, ertrag_jetzt: dict = None):
+        """Zahlen, Raten und Zustaende der Leiste aus dem Spielstand setzen (T08).
+
+        Rechenstellen: `leistenwert` (Zahl, gekuerzt), `leisten_rate` (Rate) und `leisten_zustand`
+        (normal / kritisch / unterdeckung). Die Zelle bleibt FEST breit, die Zahl steht
+        rechtsbuendig - beim Stellenwechsel springt nichts. Bei Unterdeckung rueckt die Zahl 12 px
+        nach links, rechts davon steht der Pfeil; bei "kritisch" bekommt die Zelle eine eigene
+        Flaeche in der Warnfarbe und einen Unterstrich.
+        """
+        canvas = getattr(self, "_leisten_canvas", None)                        # Zeichenflaeche
+        zellen = getattr(self, "_leisten_zellen", {}) or {}                    # Feld -> Kennungen
+        if canvas is None or not zellen:                                       # nichts zu tun
+            return                                                             # Abbruch
+        if ertrag_jetzt is None:                                               # Rate nicht mitgegeben
+            try:                                                               # dann hier rechnen
+                ertrag_jetzt = self.state.stundenertrag() or {}                 # Ertrag je Stunde
+            except Exception:                                                   # noqa: BLE001
+                ertrag_jetzt = {}                                               # dann ohne Raten
         farben = RESSOURCENLEISTE.get("farben") or {}                           # Farben aus der Datendatei
         masse = RESSOURCENLEISTE.get("masse") or {}                             # Masse aus der Datendatei
-        grund = str(farben.get("grund") or "#24100b")                           # dunkler Grund
-        rand_farbe = str(farben.get("rand") or "#8a6a2a")                       # Goldrand
-        trenner_farbe = str(farben.get("trenner") or "#6d5223")                 # Goldlinie zwischen Zellen
-        zahl_farbe = str(farben.get("zahl") or "#F7E9C8")                       # helle Zahl
-        name_farbe = str(farben.get("name") or "#d9b25a")                       # goldener Name
-        kontur = str(farben.get("kontur") or "#101418")                         # dunkle Kontur der Zahl
-        marke = str(farben.get("marke") or "#FFCC33")                           # Zierstueck an den Enden
-        texte = []                                                             # (Name, Wert) je Feld
-        for feld in felder:                                                    # jedes Feld
-            texte.append((str(feld.get("name") or feld.get("schluessel")),     # Beschriftung
-                          leistenwert(self.state, feld)))                      # Wert aus EINER Rechenstelle
-        try:                                                                   # Schriften messen
-            import tkinter.font as tkfont                                      # Schriftenmodul
-            fm_name = tkfont.Font(family="Arial", size=int(masse.get("schrift_name") or 9))       # Name
-            fm_zahl = tkfont.Font(family="Arial", size=int(masse.get("schrift_zahl") or 11),
-                                  weight="bold")                                # Zahl
-            textbreiten = [(fm_name.measure(n), fm_zahl.measure(w)) for n, w in texte]            # je Zelle
-        except Exception:                                                      # noqa: BLE001
-            textbreiten = [(70, 50) for _ in texte]                            # grobe Vorgabe
-        layout = leiste_layout(texte, textbreiten, masse, breite_ist)           # Zellen ausrechnen
-        faktor = float(layout["faktor"])                                       # Schriftfaktor
-        hoehe = int(RESSOURCENLEISTE.get("hoehe") or 34)                        # Hoehe des Streifens
-        y_name = max(7, int(round(hoehe * 0.33)))                               # Zeile des Namens
-        y_wert = max(14, int(round(hoehe * 0.70)))                              # Zeile der Zahl
-        schrift_name = ("Arial", max(6, int(round(int(masse.get("schrift_name") or 9) * faktor))))
-        schrift_zahl = ("Arial", max(7, int(round(int(masse.get("schrift_zahl") or 11) * faktor))), "bold")
-        canvas.delete("leiste")                                                # alte Zeichnung weg
-        canvas.configure(height=hoehe)                                         # Hoehe aus der Datendatei
-        rand = int(round(int(masse.get("rand") or 8) * faktor))                # Aussenrand
-        if layout["gesamt"] > 0:                                                # Grundflaeche nur mit Inhalt
-            x0 = layout["start"] - rand                                        # linke Kante
-            x1 = layout["start"] + layout["gesamt"] + rand                     # rechte Kante
-            canvas.create_rectangle(x0, 1, x1, hoehe - 1, fill=grund,         # Grundflaeche
-                                    outline=rand_farbe, width=1, tags=("leiste",))
-            for sx in (x0 + int(round(int(masse.get("endstueck") or 14) * faktor)) // 2 + 1,
-                       x1 - int(round(int(masse.get("endstueck") or 14) * faktor)) // 2 - 1):
-                canvas.create_polygon(sx, hoehe / 2 - 4, sx + 4, hoehe / 2,    # Zierstueck: Raute
-                                      sx, hoehe / 2 + 4, sx - 4, hoehe / 2,     # vier Ecken
-                                      fill=marke, outline="", tags=("leiste",))
-        self._leisten_texte = {}                                               # neu aufbauen
-        loch = int(round(int(masse.get("trenner_hoehe") or 14) * faktor))       # Hoehe der Goldlinie
-        for index, zelle in enumerate(layout["zellen"]):                        # jede Zelle
-            if index:                                                          # zwischen zwei Zellen
-                canvas.create_line(zelle["x"] - 1, loch,                       # feine Goldlinie ueber die
-                                   zelle["x"] - 1, hoehe - loch,               # ganze Zellenhoehe
-                                   fill=trenner_farbe, tags=("leiste",))
-            canvas.create_text(zelle["name_x"], y_name, text=zelle["name"],    # Name linksbuendig
-                               anchor="w", fill=name_farbe, font=schrift_name, tags=("leiste",))
-            kennungen = []                                                     # alle Texte der Zahl
-            for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):                  # Kontur vierfach versetzt
-                kennungen.append(canvas.create_text(zelle["wert_x"] + dx, y_wert + dy,
-                                                    text=zelle["wert"], anchor="e", fill=kontur,
-                                                    font=schrift_zahl, tags=("leiste",)))   # dunkle Kontur
-            kennungen.append(canvas.create_text(zelle["wert_x"], y_wert, text=zelle["wert"],
-                                                anchor="e", fill=zahl_farbe, font=schrift_zahl,
-                                                tags=("leiste",)))              # helle Zahl darueber
-            self._leisten_texte[str(felder[index].get("schluessel"))] = kennungen   # fuer das Aktualisieren
-        self._leisten_breite = breite_ist                                      # gezeichnete Breite merken
-        self._leiste_aktualisieren()                                           # Werte einsetzen
-
-    def _leiste_aktualisieren(self):
-        """Die elf Zahlen der Leiste aus dem Spielstand setzen (Rechenstelle: `leistenwert`)."""
-        canvas = getattr(self, "_leisten_canvas", None)                        # Zeichenflaeche
-        texte = getattr(self, "_leisten_texte", {}) or {}                      # Feld -> Kennungen
-        if canvas is None or not texte:                                        # nichts zu tun
-            return                                                             # Abbruch
-        for feld in leiste_felder():                                           # elf Felder
-            wert = leistenwert(self.state, feld)                               # EINE Rechenstelle
-            for kennung in texte.get(str(feld.get("schluessel"))) or []:       # fuenf Texte je Feld
-                try:                                                           # Flaeche kann weg sein
-                    canvas.itemconfig(kennung, text=wert)                      # neuen Wert setzen
-                except tk.TclError:                                            # Flaeche zerstoert
-                    return                                                     # Abbruch
+        zahl_farbe = str(farben.get("zahl") or "#F2E3BF")                       # helle Zahl
+        warnung = str(farben.get("warnung") or "#ff8a70")                       # Warnfarbe
+        zeile_zahl = int(masse.get("zeile_zahl") or 23)                         # Zeile der Zahl
+        for feld in leiste_felder():                                            # elf Felder
+            kenn = zellen.get(str(feld.get("schluessel")))                       # Kennungen des Feldes
+            if not kenn:                                                        # nicht sichtbar
+                continue                                                        # naechstes Feld
+            wert = leistenwert(self.state, feld)                                # EINE Rechenstelle
+            rate, _rate_warnung = leisten_rate(self.state, feld, ertrag_jetzt)  # Rate des Feldes
+            zustand = leisten_zustand(self.state, feld, ertrag_jetzt)           # Zustand des Feldes
+            kritisch = zustand == "kritisch"                                    # Bestand 0
+            unterdeckung = zustand == "unterdeckung"                            # Rate negativ
+            try:                                                                # Flaeche kann weg sein
+                canvas.itemconfig(kenn["wert"], text=wert,                      # Zahl setzen
+                                  fill=(warnung if kritisch else zahl_farbe))   # Farbe je Zustand
+                canvas.coords(kenn["wert"], kenn["x"] - (12 if unterdeckung else 0),
+                              zeile_zahl)                                       # Platz fuer den Pfeil
+                if kenn.get("rate") is not None:                                # es gibt eine Rate
+                    platz = kenn.get("rate_platz")                              # Platz neben dem Namen
+                    passt = bool(rate) and (platz is None or self._rate_passt(rate, platz))
+                    canvas.itemconfig(kenn["rate"], text=rate,
+                                      fill=(warnung if _rate_warnung or unterdeckung else zahl_farbe),
+                                      state=("normal" if passt else "hidden"))  # sonst ausblenden
+                if kenn.get("grund") is not None:                               # Flaeche des Feldes
+                    canvas.itemconfig(kenn["grund"],
+                                      state=("normal" if kritisch else "hidden"))   # nur bei kritisch
+                if kenn.get("strich") is not None:                              # Unterstrich
+                    canvas.itemconfig(kenn["strich"],
+                                      state=("normal" if kritisch else "hidden"))   # nur bei kritisch
+                if kenn.get("pfeil") is not None:                               # Pfeil
+                    canvas.itemconfig(kenn["pfeil"],
+                                      state=("normal" if unterdeckung else "hidden"))   # nur bei Unterdeckung
+            except tk.TclError:                                                 # Flaeche zerstoert
+                return                                                          # Abbruch
 
     def _build_main_ui(self):
         for widget in self.root.winfo_children():

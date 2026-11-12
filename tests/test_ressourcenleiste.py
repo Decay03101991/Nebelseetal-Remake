@@ -21,9 +21,12 @@ Was diese Datei jetzt beweist
    `state.punktestand()`, Rohstoffe aus `state.resources`.
 3. Keine Zahl doppelt im Kopf: seit alle neun Rohstoffe auf der Leiste stehen, gibt
    `main.kopfzeile_fuer` fuer sie nur noch die RATE aus.
-4. Der Streifen ist inhaltsgetrieben (`main.leiste_layout`, ohne Tk): die Breite kommt aus elf
-   Zellen, das Fenster zentriert nur. Wird das Fenster schmaler als der Inhalt, verkleinert sich
-   alles gleichmaessig bis `schrift_min_faktor` - keine Zelle wird abgeschnitten.
+4. Der Streifen hat seit T08 (12.11.2026) ein FESTES RASTER (`main.leiste_layout`, ohne Tk): alle
+   Zellen sind gleich breit, die Breite folgt dem Fenster (Formel in `main.leiste_raster`), und
+   nichts wird gedehnt. Vorher war die Leiste inhaltsgetrieben und 1446 px breit, egal wie breit das
+   Fenster war - in einem 1200-px-Fenster fehlten rechts zwei bis drei Felder. Die Einzelheiten
+   (Zellbreiten 127/104/85, Weich-Regel, Zahlenkuerzung, Zustaende) prueft
+   `tests/test_ressourcenleiste_t08.py`; diese Datei haelt den Weg vom Spielstand zur Flaeche.
 5. Die Leiste steht wirklich im Kopf (echte Tk-Flaeche): elf Felder, jede Zahl stimmt mit dem
    Spielstand ueberein, eine Aenderung kommt an.
 
@@ -70,11 +73,16 @@ check("1 jedes Feld traegt eine Beschriftung",
       all(str(f.get("name") or "").strip() for f in felder), str([f.get("name") for f in felder]))
 check("1 die Hoehe ist ein Streifen, kein Bild (hoechstens 60 px)",
       0 < int(daten.get("hoehe") or 0) <= 60, str(daten.get("hoehe")))
-check("1 Zahl-, Namen- und Konturfarbe sind eingetragen",
-      all((daten.get("farben") or {}).get(k) for k in ("zahl", "name", "kontur", "grund")),
+# T08 (12.11.2026): die Kontur um die Zahl ist entfallen - die Zahl steht rechtsbuendig in einer
+# festen Zelle auf dunklem Grund (Kontrast 15,13). Dafuer sind die Farben der Zustaende dazugekommen.
+check("1 Zahl-, Namen-, Warn- und Grundfarbe sind eingetragen",
+      all((daten.get("farben") or {}).get(k)
+          for k in ("zahl", "name", "grund", "warnung", "flaeche_kritisch")),
       str(daten.get("farben")))
-check("1 die Masse stehen in der Datendatei",
-      all(k in (daten.get("masse") or {}) for k in ("rand", "zelle_pad", "trenner", "endstueck")),
+check("1 die Masse des Rasters stehen in der Datendatei",
+      all(k in (daten.get("masse") or {})
+          for k in ("endstueck", "trenner", "zelle_max", "zelle_min", "rate_min", "pad",
+                    "schrift_name", "schrift_zahl", "zeile_name", "zeile_zahl")),
       str(sorted((daten.get("masse") or {}).keys())))
 check("1 das alte Bild ist dokumentiert, aber nicht mehr die Grundlage",
       isinstance(daten.get("_altes_bild"), dict)
@@ -112,8 +120,10 @@ check("2 Punkte kommen aus punktestand() mit Tausenderpunkt",
 check("2 ein Rohstoff kommt aus state.resources",
       main.leistenwert(_z, {"schluessel": "holz", "quelle": "holz"}) == "1.234",
       main.leistenwert(_z, {"schluessel": "holz", "quelle": "holz"}))
-check("2 Kommawerte werden auf ganze Zahlen gerundet",
-      main.leistenwert(_z, {"schluessel": "stein", "quelle": "stein"}) == "8",
+# T08 (12.11.2026): die Zahl wird ABGERUNDET, nicht kaufmaennisch gerundet - es wird nie mehr
+# angezeigt als vorhanden ist (Claude Teil C2; vorher stand hier "8" fuer 7,6).
+check("2 Kommawerte werden abgerundet (nie mehr anzeigen als vorhanden)",
+      main.leistenwert(_z, {"schluessel": "stein", "quelle": "stein"}) == "7",
       main.leistenwert(_z, {"schluessel": "stein", "quelle": "stein"}))
 check("2 ein fehlender Rohstoff ergibt 0 statt eines Absturzes",
       main.leistenwert(_z, {"schluessel": "gold", "quelle": "gold"}) == "0", "")
@@ -156,41 +166,44 @@ check("3 keine der beiden Stellen baut eine eigene Verbrauchsformel",
 
 
 # ==========================================================================
-abschnitt("4. Die Breite kommt aus dem Inhalt (leiste_layout, ohne Tk)")
+abschnitt("4. Festes Raster: alle Zellen gleich breit, nichts gedehnt (T08)")
 
+
+# UMGESTELLT 12.11.2026 (T08): hier stand die inhaltsgetriebene Rechnung - Zellenbreite aus dem
+# laengsten Text, gleichmaessiges Verkleinern bis `schrift_min_faktor`. Daniel hat die Leiste
+# zweimal durchfallen lassen ("ganz schrecklich", "total haesslich, der stil ist jetzt komplett
+# weg"); der gemessene Fehler war aber der UEBERLAUF: die Leiste blieb 1446 px breit, in einem
+# 1200-px-Fenster fehlten rechts zwei bis drei Felder. Die alte Zusage (Zellenbreite folgt dem
+# Inhalt) ist damit abgeloest, nicht der Code zurueckgebogen. Die Zahlen des neuen Rasters prueft
+# `tests/test_ressourcenleiste_t08.py`; hier bleibt der Weg vom Spielstand zur Flaeche.
 _texte = [(n, "1.234") for n in ("Siedler", "Nahrung", "Holz", "Stein", "Metall", "Gold", "Mana",
                                  "Wolle", "Leder", "Pferde", "Punkte")]
-_breiten = [(60, 40)] * len(_texte)                       # gleiche Textbreiten: leicht nachzurechnen
 _masse = daten.get("masse") or {}
-_L = main.leiste_layout(_texte, _breiten, _masse, 1600)
-_rand, _pad = int(_masse.get("rand") or 8), int(_masse.get("zelle_pad") or 9)
-_es, _tr = int(_masse.get("endstueck") or 14), int(_masse.get("trenner") or 1)
-_soll = 2 * _rand + 2 * _es + len(_texte) * (60 + 2 * _pad) + _tr * (len(_texte) - 1)
-check("4 die Gesamtbreite ist die Summe der elf Zellen (nichts gedehnt)", _L["gesamt"] == _soll,
-      "%s gegen %s" % (_L["gesamt"], _soll))
+_L = main.leiste_layout(_texte, None, _masse, 1186)
 check("4 elf Zellen entstehen", len(_L["zellen"]) == 11, str(len(_L["zellen"])))
+check("4 alle Zellen sind gleich breit (nichts gedehnt)",
+      len({z["breite"] for z in _L["zellen"]}) == 1, str(sorted({z["breite"] for z in _L["zellen"]})))
 check("4 die Zellen liegen in Anzeigereihenfolge von links nach rechts und ueberlappen nicht",
       all(_L["zellen"][i]["x"] + _L["zellen"][i]["breite"] <= _L["zellen"][i + 1]["x"]
           for i in range(len(_L["zellen"]) - 1)),
       str([(z["x"], z["breite"]) for z in _L["zellen"]][:3]))
 check("4 jede Zelle traegt Name und Wert",
       all(z["name"] and z["wert"] for z in _L["zellen"]), str(_L["zellen"][0]))
-check("4 in einem breiten Fenster bleibt der Faktor 1,0 (keine Vergroesserung)",
-      abs(_L["faktor"] - 1.0) < 1e-9, str(_L["faktor"]))
-check("4 der Streifen steht MITTIG, nicht links und nicht gedehnt",
-      abs(_L["start"] - (1600 - _L["gesamt"]) / 2.0) <= 1,
-      "%s bei Gesamtbreite %s" % (_L["start"], _L["gesamt"]))
-_schmal = main.leiste_layout(_texte, _breiten, _masse, 300)
-check("4 in einem schmalen Fenster wird gleichmaessig verkleinert",
-      _schmal["faktor"] < 1.0 and _schmal["faktor"] >= float(_masse.get("schrift_min_faktor") or 0.8),
-      str(_schmal["faktor"]))
-check("4 die Verkleinerung bleibt am Mindestfaktor stehen, statt Zellen abzuschneiden",
-      abs(_schmal["faktor"] - max(float(_masse.get("schrift_min_faktor") or 0.8),
-                                  300 / float(_soll))) < 1e-6, str(_schmal["faktor"]))
-_ohne = main.leiste_layout(_texte, _breiten, _masse, 0)
-check("4 ohne bekannte Fensterbreite gilt der Originalfaktor",
-      abs(_ohne["faktor"] - 1.0) < 1e-9 and _ohne["start"] == _rand,
-      str((_ohne["faktor"], _ohne["start"])))
+check("4 die letzte Zelle endet vor dem rechten Endstueck (kein Ueberlauf)",
+      _L["zellen"][-1]["x"] + _L["zellen"][-1]["breite"] <= 1186 - 16,
+      str(_L["zellen"][-1]["x"] + _L["zellen"][-1]["breite"]))
+check("4 die Zahl steht rechtsbuendig, der Name linksbuendig",
+      all(z["wert_x"] > z["name_x"] for z in _L["zellen"]), str(_L["zellen"][0]))
+check("4 in einem sehr breiten Fenster waechst die Zelle nur bis zum Deckel",
+      main.leiste_layout(_texte, None, _masse, 2600)["zellbreite"] == 132,
+      str(main.leiste_layout(_texte, None, _masse, 2600)["zellbreite"]))
+check("4 in einem sehr schmalen Fenster weichen Felder, statt abgeschnitten zu werden",
+      len(main.leiste_auswahl(None, _masse, 620)["sichtbar"]) < 11
+      and main.leiste_auswahl(None, _masse, 620)["hinweis"].startswith("+"),
+      str(main.leiste_auswahl(None, _masse, 620)["hinweis"]))
+check("4 ohne bekannte Fensterbreite gilt die Wuenschgroesse der Zelle",
+      main.leiste_layout(_texte, None, _masse, 0)["zellbreite"] == int(_masse.get("zelle_soll") or 127),
+      str(main.leiste_layout(_texte, None, _masse, 0)["zellbreite"]))
 
 
 # ==========================================================================
@@ -209,8 +222,10 @@ if canvas is not None:
     items = canvas.find_withtag("leiste")
     texte = getattr(app, "_leisten_texte", {})
     check("5 alle elf Felder haben Textkennungen", len(texte) == 11, str(sorted(texte)))
-    check("5 je Feld Name und fuenf Zahltexte, dazu Linien, Grundflaeche und zwei Zierstuecke",
-          len(items) == 11 * 6 + 10 + 1 + 2, str(len(items)))
+    # T08: je Zelle sechs Teile (Flaeche fuer "kritisch", Name, Zahl, Rate, Unterstrich, Pfeil),
+    # dazu das Band, die Goldlinie unten, zwei Endstuecke mit Raute und zehn Trenner.
+    check("5 je Zelle sechs Teile, dazu Band, Goldlinie, zwei Endstuecke und zehn Trenner",
+          len(items) == 11 * 6 + 1 + 1 + 2 + 2 + 10, str(len(items)))
     stimmt = True
     for feld in felder:
         kennungen = texte.get(str(feld.get("schluessel"))) or []

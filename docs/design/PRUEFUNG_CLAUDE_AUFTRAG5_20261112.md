@@ -89,3 +89,34 @@ Bauen, aber in dieser Reihenfolge:
 5. »steigt/fällt« erst, wenn Daniel entscheidet, ob es Änderungen außerhalb des Takts gibt.
 
 Der Bildteil (D1) kann warten — die Leiste funktioniert ohne Bilddatei vollständig.
+
+## 8. Was gebaut wurde (T08, 12.11.2026)
+
+Gebaut nach der Reihenfolge aus Abschnitt 7. Alle Rechenwege liegen OHNE Tk in `src/main.py`,
+damit sie pruefbar sind; gezeichnet wird nur in `NebelseetalApp._leiste_zeichnen`.
+
+| Teil | Umsetzung | Rechenstelle |
+|---|---|---|
+| 1 Raster | Zellbreite W = abgerundet aus (B - 32 - (n-1)) / n, Deckel 132 px; Restpixel links/rechts | `leiste_raster` |
+| 2 Weich-Regel | unter 100 px faellt die Rate weg, unter 62 px weichen Punkte, Pferde, Siedler; Zelle „+n“ (28 px) | `leiste_auswahl` |
+| 3 Zahlen | hoechstens sechs Zeichen, abgerundet: 99.999 / 100k / 1,23M / 10,0M / 100M | `leisten_kurz`, `leisten_zahl`, `leistenwert` |
+| 4 Rate | Ertrag je Stunde, Nahrung netto (dieselbe Verbrauchsstelle wie die Detailzeile) | `leisten_rate` |
+| 5 Zustaende | `kritisch` (Bestand 0, nur Vorraete): Flaeche #3e1c1a, Unterstrich 2 px, Zahl in Warnung; `unterdeckung` (Rate negativ): Pfeil links vor der Zahl | `leisten_zustand` |
+| 6 Band | 9-Slice: Endstuecke 16 px, Mittelkachel 64 px nur wiederholt, nie gedehnt; ohne Bild glatte Flaeche | `leiste_band_teile` |
+| 7 Zeichnen | 34 px hoch, Name 10 px fett, Zahl 15 px fett rechtsbuendig, Rate 10 px | `_leiste_zeichnen`, `_leiste_aktualisieren` |
+
+**Gemessen im laufenden Fenster** (1460 / 1200 / 1000 px Fenster): Leiste **34 px** hoch, Zellbreite
+**127 / 104 / 85 px**, rechte Kante der letzten Zelle **immer vor B - 16**, kein Text ueber dem Rand,
+elf Felder sichtbar. Bei 700 px Fenster weicht **Punkte** und die Zelle „+1“ steht rechts.
+
+**Was NICHT gebaut wurde - und warum:**
+1. **Der Zustand „steigt/faellt“.** Ob das Spiel Aenderungen ausserhalb des Takts unterscheidet, ist
+   offen (Abschnitt 5). Ein Zustand ohne Grundlage waere geraten.
+2. **Der Tooltip der Zelle „+n“.** Sie nennt die Zahl der ausgeblendeten Felder, nicht ihre Namen -
+   das waere ein eigenes kleines Fenster. Unter 738 px Fensterbreite, also im Betrieb selten.
+3. **Die Namensfarbe ist offen.** Gebaut ist #b8862e aus dem Handbuch (Kontrast 5,94). Unser
+   Skin-Gold #FFCC33 haette 12,77 - die Wahl steht in `farben.name` der Datendatei, ohne Code.
+
+**Ehrlich dazu:** beim Spielstart stehen sieben von elf Feldern auf „kritisch“, weil alle Rohstoffe
+0 sind. Das ist die Regel „Bestand 0“ woertlich genommen und sieht nach Alarm aus; ob kritisch erst
+ab einer Schwelle gelten soll, ist eine Entscheidung fuer Daniel, keine Rechnung.
