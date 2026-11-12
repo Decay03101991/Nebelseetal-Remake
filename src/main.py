@@ -33,6 +33,7 @@ import spielerhilfe  # FIX04c: eingeblendete Einstiegshilfe und jederzeit erreic
 import originalkarten  # GPT-OK01: verifizierbarer Kartenkatalog
 import gebaeude_wirkung
 import gebaeude_optik  # C2-Gebaeude-Optik: Menue-Icons und Menue-Hintergruende (Register 123)
+import hintergrund_optik  # A-7/A-8 (12.11.2026): die neun Meshy-Bilder als Ansichts-Hintergrund, 1:1
 import berater
 import story  # Story 1 (04.11.2026): Intro, Chronik, Sieg- und Niederlagentext aus data/story.json
 import stimmen  # Story 2 (04.11.2026): die fuenf Bots sprechen - Texte aus data/bot_stimmen.json
@@ -609,6 +610,8 @@ HINTERGRUND_VORGABE: Dict[str, Any] = {          # Rueckfall ohne Datendatei
     "breite": 980,                                # Flaeche in Pixeln
     "hoehe": 760,                                 # Flaeche in Pixeln
     "abdunkeln_prozent": 25.0,                    # Schleier ueber dem Bild (Vergleichsfassung C)
+    "abdunkeln_prozent_1zu1": 0.0,                # A-8: Schleier fuer die 1:1 gelieferten Bilder
+    "weichzeichnen_px_1zu1": 0.0,                 # A-8: Weichzeichnen fuer die 1:1 gelieferten Bilder
 }
 
 # OVERLAY-BASIS (03.11.2026, Daniels Wunsch): Dialoge liegen INGAME ueber dem Inhaltsbereich, kein
@@ -9222,8 +9225,8 @@ class NebelseetalApp:
             return None                                                    # dann keine Ebene
         b = int(breite or e.get("breite") or 980)                          # Breite der Flaeche
         h = int(hoehe or e.get("hoehe") or 760)                            # Hoehe der Flaeche
-        bild = self._optik_flaeche(gebaeude_id, b, h, e.get("abdunkeln_prozent") or 0.0,
-                                   e.get("weichzeichnen_px") or 0.0)
+        _abdunkeln, _weich = self._hintergrund_werte(gebaeude_id, e)        # Zahlen je Weg (A-8)
+        bild = self._optik_flaeche(gebaeude_id, b, h, _abdunkeln, _weich)
         if bild is None:                                                   # kein Bild vorhanden
             return None                                                    # Ansicht unveraendert
         leinwand = tk.Canvas(self.content, width=b, height=h, bg=self.skin["bg"],
@@ -9302,9 +9305,9 @@ class NebelseetalApp:
                 return                                                     # Abbruch
         except tk.TclError:
             return
-        bild = self._optik_flaeche(kennung, int(breite), int(hoehe),       # cover, abgedunkelt
-                                   (e or {}).get("abdunkeln_prozent") or 0.0,
-                                   (e or {}).get("weichzeichnen_px") or 0.0)
+        _abdunkeln, _weich = self._hintergrund_werte(kennung, e or {})      # Zahlen je Weg (A-8)
+        bild = self._optik_flaeche(kennung, int(breite), int(hoehe),       # 1:1 oder cover
+                                   _abdunkeln, _weich)
         if bild is None:                                                   # kein Bild moeglich
             return                                                         # dann bleibt das alte
         try:
@@ -9313,6 +9316,113 @@ class NebelseetalApp:
             return
         leinwand.image = bild                                              # Referenz halten
         self._hintergrund_groesse = (int(breite), int(hoehe))              # neue Groesse merken
+
+    # ---------- A-7 (12.11.2026): das Voelker-Panorama hinter der Siedlungsansicht ----------
+    def _siedlungs_fraktion(self) -> str:
+        """Das Volk, dessen Panorama die Siedlungsansicht traegt.
+
+        Zuerst die Spielerfraktion; ist noch keine gewaehlt, das Volk des offenen Ortes. Ohne beides
+        bleibt es leer - dann wird KEIN fremdes Volk gezeigt, sondern gar kein Bild (keine Erfindung).
+        """
+        eigen = str(getattr(self, "spieler_fraktion", "") or "").strip()    # Spielerfraktion
+        if eigen:                                                           # gewaehlt
+            return eigen                                                    # die gilt
+        siedlung = getattr(self, "karten_siedlung", None)                   # offener Ort
+        return str(getattr(siedlung, "volk", "") or "").strip()             # sein Volk (kann leer sein)
+
+    def _siedlungs_hintergrund(self):
+        """Das Panorama der Fraktion hinter die Siedlungsansicht legen (F-44/F-45, Register 502).
+
+        Die Flaeche wird ZUERST in `self.content` erzeugt - alles, was die Ansicht danach packt,
+        liegt darueber (dasselbe Verfahren wie `_ansicht_hintergrund` seit dem 02.11.2026).
+        Ohne Bild (keine Fraktion, keine Datei, kein Pillow) kommt None zurueck und die Ansicht
+        sieht aus wie bisher.
+        """
+        pfad = hintergrund_optik.pfad_panorama(self._siedlungs_fraktion())  # Bild dieses Volkes
+        if not pfad:                                                        # keine Vorlage
+            return None                                                     # Ansicht unveraendert
+        leinwand = tk.Canvas(self.content, bg=hintergrund_optik.FUELLTON,   # Fuellton der Flaeche
+                             highlightthickness=0, bd=0)                    # ohne Rahmen
+        leinwand.place(x=0, y=0, relwidth=1.0, relheight=1.0)               # fuellt den Inhalt
+        leinwand.bind("<Configure>", lambda _e: self._siedlungs_hintergrund_anpassen())
+        self._siedlungs_leinwand = leinwand                                 # fuer das Nachziehen
+        self._siedlungs_pfad = pfad                                         # welches Bild
+        self._siedlungs_groesse = (0, 0)                                    # noch nichts gebaut
+        self._siedlungs_hintergrund_anpassen()                              # sofort einmal bauen
+        return leinwand                                                     # fuer Pruefungen
+
+    def _hintergrund_werte(self, kennung: str, e: dict) -> tuple:
+        """Abdunkeln und Weichzeichnen der Ansicht - je Weg verschiedene Zahlen.
+
+        A-8 (12.11.2026): die gelieferten 1142x1120-Bilder werden 1:1 GESCHNITTEN, nicht
+        hochskaliert. Die alten Zahlen (18 Prozent Schleier, 2 px Weichzeichnen) waren fuer den
+        gedeckten, hochskalierten Weg gedacht; auf einem scharfen 1:1-Bild machen sie es matschig.
+        Darum eigene Schluessel `abdunkeln_prozent_1zu1` und `weichzeichnen_px_1zu1` in derselben
+        Datendatei - Daniel stellt beide Wege ohne Codeaenderung.
+        """
+        werte = e or {}
+        if hintergrund_optik.pfad_gebaeude(str(kennung)):                  # 1:1-Bild vorhanden
+            return (float(werte.get("abdunkeln_prozent_1zu1") or 0.0),
+                    float(werte.get("weichzeichnen_px_1zu1") or 0.0))
+        return (float(werte.get("abdunkeln_prozent") or 0.0),
+                float(werte.get("weichzeichnen_px") or 0.0))
+
+    def _siedlungs_hintergrund_anpassen(self) -> None:
+        """Bei jeder Groessenaenderung neu zuschneiden - in 64-px-Schritten und nach kurzer Ruhe.
+
+        Geschnitten wird, nie skaliert (F-45). Die Schritte und die Ruhezeit sind dieselben wie in
+        `_hintergrund_anpassen`, damit ein Fensterziehen nicht bei jedem Pixel ein Bild kostet.
+        """
+        leinwand = getattr(self, "_siedlungs_leinwand", None)               # die Flaeche
+        if leinwand is None:                                                # keine Flaeche
+            return                                                          # nichts zu tun
+        try:                                                                # Fenster kann weg sein
+            if not leinwand.winfo_exists():                                 # Flaeche zerstoert
+                return                                                      # dann nichts tun
+            breite = int(leinwand.winfo_width())                            # gemessene Breite
+            hoehe = int(leinwand.winfo_height())                            # gemessene Hoehe
+        except tk.TclError:                                                 # Tk kennt sie nicht mehr
+            return                                                          # Abbruch
+        if breite < 120 or hoehe < 120:                                     # vor dem ersten Layout
+            return                                                          # spaeter noch einmal
+        schritt = 64                                                        # Groesse je Bauvorgang
+        ziel = (max(schritt, (breite // schritt) * schritt),
+                max(schritt, (hoehe // schritt) * schritt))                 # auf 64 px abgerundet
+        letzte = tuple(getattr(self, "_siedlungs_groesse", (0, 0)) or (0, 0))
+        if abs(int(letzte[0]) - ziel[0]) < schritt and abs(int(letzte[1]) - ziel[1]) < schritt:
+            return                                                          # praktisch unveraendert
+        alt = getattr(self, "_siedlungs_auftrag", None)                     # laufender Auftrag
+        if alt is not None:                                                 # verwerfen
+            try:
+                self.root.after_cancel(alt)                                 # nur der letzte zaehlt
+            except tk.TclError:
+                pass
+        self._siedlungs_auftrag = self.root.after(120, self._siedlungs_hintergrund_bauen)
+
+    def _siedlungs_hintergrund_bauen(self) -> None:
+        """Das Bild in der Zielgroesse zuschneiden und einsetzen (Teil von `_anpassen`)."""
+        self._siedlungs_auftrag = None                                      # Auftrag erledigt
+        leinwand = getattr(self, "_siedlungs_leinwand", None)               # die Flaeche
+        pfad = getattr(self, "_siedlungs_pfad", "")
+        if leinwand is None or not pfad:                                    # nichts zu bauen
+            return                                                          # Abbruch
+        try:                                                                # Fenster kann weg sein
+            if not leinwand.winfo_exists():                                 # zerstoert
+                return                                                      # Abbruch
+            breite = int(leinwand.winfo_width())                            # gemessene Breite
+            hoehe = int(leinwand.winfo_height())                            # gemessene Hoehe
+            ziel = (max(64, (breite // 64) * 64), max(64, (hoehe // 64) * 64))   # wie in `_anpassen`
+            roh = hintergrund_optik.ausschnitt(pfad, ziel[0], ziel[1])      # 1:1, mittig, nie skaliert
+            if roh is None:                                                 # kein Bild moeglich
+                return                                                      # dann bleibt der Fuellton
+            from PIL import ImageTk                                         # nur hier importieren
+            bild = ImageTk.PhotoImage(roh)                                  # Tk-Grafik daraus
+            leinwand.delete("panorama")                                     # altes Bild weg
+            leinwand.create_image(0, 0, anchor=tk.NW, image=bild, tags=("panorama",))
+            leinwand.image = bild                                           # Referenz gegen Freigabe
+            self._siedlungs_groesse = ziel                                  # neue Groesse merken
+        except (tk.TclError, OSError, ValueError):                           # Flaeche weg / Bild kaputt
+            return                                                          # Ansicht bleibt heil
 
     def _optik_flaeche(self, gebaeude_id, breite: int, hoehe: int, abdunkeln: float = 0.0,
                        weich: float = 0.0):
@@ -9325,12 +9435,27 @@ class NebelseetalApp:
         if schluessel in self._flaeche_cache:                              # schon gebaut
             return self._flaeche_cache[schluessel]                         # wiederverwenden
         bild = None                                                        # Vorgabe: kein Bild
+        # A-8 (Daniel 12.11.2026, Register 502 F-45): fuer die drei Elfen-Gebaeude gibt es ein
+        # geliefertes 1142x1120-Bild. Es wird MITTIG 1:1 ausgeschnitten und NIE skaliert - der
+        # alte Weg (gedeckt, hochskaliert) bleibt fuer die kleinen 538x222-Baender der uebrigen
+        # Gebaeude, weil deren Hochskalierung eine eigene, offene Entscheidung ist.
+        try:                                                               # 1:1-Weg zuerst
+            pfad = hintergrund_optik.pfad_gebaeude(str(gebaeude_id))
+            if pfad:                                                       # geliefertes Bild da
+                roh = hintergrund_optik.ausschnitt(pfad, int(breite), int(hoehe),
+                                                  float(abdunkeln), float(weich))
+                if roh is not None:                                        # Bild vorhanden
+                    from PIL import ImageTk                                 # nur hier importieren
+                    bild = ImageTk.PhotoImage(roh)                          # Tk-Grafik daraus
+        except Exception:                                                  # noqa: BLE001
+            bild = None                                                    # dann alter Weg
         try:                                                               # geglaetteter Weg
-            roh = gebaeude_optik.hintergrund_flaeche(str(gebaeude_id), int(breite), int(hoehe),
-                                                    float(abdunkeln), float(weich))
-            if roh is not None:                                            # Bild vorhanden
-                from PIL import ImageTk                                     # nur hier importieren
-                bild = ImageTk.PhotoImage(roh)                             # Tk-Grafik daraus
+            if bild is None:                                               # noch kein Bild
+                roh = gebaeude_optik.hintergrund_flaeche(str(gebaeude_id), int(breite), int(hoehe),
+                                                        float(abdunkeln), float(weich))
+                if roh is not None:                                        # Bild vorhanden
+                    from PIL import ImageTk                                 # nur hier importieren
+                    bild = ImageTk.PhotoImage(roh)                          # Tk-Grafik daraus
         except Exception:                                                  # noqa: BLE001
             bild = None                                                    # dann Rueckfall unten
         if bild is None:                                                   # ohne Pillow: Tk selbst
@@ -12185,6 +12310,9 @@ class NebelseetalApp:
                    (" Freie Felder anderer Art: " + wege + ".") if wege else ""))
 
     def _render_settlement_map(self):
+        # A-7 (12.11.2026, Register 502 F-44/F-45): das Panorama der Fraktion liegt HINTER der
+        # Ansicht - zuerst erzeugt, damit alle Textbloecke und die Karte darueber liegen.
+        self._siedlungs_hintergrund()
         tk.Label(self.content, text="Siedlungskarte", font=("Blackletter", 20, "bold"),
                  fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 2))
         siedlung = getattr(self, "karten_siedlung", None)
