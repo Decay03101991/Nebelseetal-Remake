@@ -6,8 +6,8 @@
 > (`[x]` + Register + Commit), damit ein Neustart nie mehr als einen Schritt verliert.
 
 **Auftrag Daniel (12.11.2026, 23:0x):** „die antwort von claude ist bereits da, einfach an die neue
-session übergeben das zu bearbeiten und abzulegen" und „In der kommenden Session muss möglichst viel
-durchgearbeitet werden, da ich mich jetzt schlafen lege und erst morgen um 7.55 Uhr zurück am pc bin."
+session übergeben das zu bearbeiten und abzulegen“ und „In der kommenden Session muss möglichst viel
+durchgearbeitet werden, da ich mich jetzt schlafen lege und erst morgen um 7.55 Uhr zurück am pc bin.“
 **Fragen an ihn werden gesammelt** (`docs/FRAGEN_AN_DANIEL_20261112.md`), nicht gestellt.
 
 **Skill-Freigabe:** Daniel hat sie der Sitzung 41 erteilt — **vorsichtig** anwenden (Abschnitt 5).
@@ -37,15 +37,15 @@ durchgearbeitet werden, da ich mich jetzt schlafen lege und erst morgen um 7.55 
 
 - **F-56** Kleintext = **15 px absolut** (nicht `schrift(15)`; das wären 19 px und zu breit).
 - **F-57** `SIEDLUNGS_ABSTAND` und `SIEDLUNGS_ROLLBALKEN` entfallen, `rb` wird gemessen: **S = 448** / 432.
-- **F-58** Werkstätten zweigeteilt, statt „Bestand" eine **Zutat-Spalte** (228 / 125 / 150 / 105).
+- **F-58** Werkstätten zweigeteilt, statt „Bestand“ eine **Zutat-Spalte** (228 / 125 / 150 / 105).
 - **F-59** Ortsbestand bleibt in der Siedlungskarte; das Dorfzentrum bekommt die sieben Blöcke.
 - **F-60** `dorfzentrum_kennzahlen` — Ökonomie zählt, Ansicht formatiert.
 - **F-61** Werkstatt = Schmiede, Bogenbauer, Nähstube; **Pferde, Wolle, Leder sind Rohstoffe**.
 - **F-62** Prüfstand-Kern M11, M1, M2, M12 zuerst.
 - **F-63** Stufen T1–T4 nach M1/M2; **T4 vor jeder EXE ist HART**.
 - **F-64** Werkstatt-Zuordnung als **Feld `werkstatt` je Rezept** in `warenrezepte.json` (Gebäude-ID).
-- **F-65** Einheitentabelle **ohne Spalte „Verwundete"** (Namensspalte 244, kein Kleintext nötig).
-- **F-66** Kopf-Kennzahl = **beide Warenzahlen** („x von 17 vorrätig · y von 17 herstellbar").
+- **F-65** Einheitentabelle **ohne Spalte „Verwundete“** (Namensspalte 244, kein Kleintext nötig).
+- **F-66** Kopf-Kennzahl = **beide Warenzahlen** („x von 17 vorrätig · y von 17 herstellbar“).
 - **F-67** Prüfstand entschlacken: 8 lange Dateien nach T4, `test_protokoll` nur bei Änderung, vier
   Startdateien zusammenlegen — **Löschen nur mit Daniels Wort**.
 - **F-68** Rollbalken **in den Skin-Ton** einfärben (nicht mehr `#f0f0f0`).
@@ -78,7 +78,7 @@ durchgearbeitet werden, da ich mich jetzt schlafen lege und erst morgen um 7.55 
 - **Keine** Fragen an Daniel in der Nacht — sammeln, eine Runde bei seiner Rückkehr.
 - **Kein** Umbau der Völkerfarben ohne Daniels Sichtprüfung (F-71 sagt: Burgbilder führen).
 - **Keine** Streichung von Prüfdateien ohne Daniels Wort (Regel 4).
-- **Kein** „alle 230 Köpfe auf einmal" — Pakete von 20, wie Claude es begründet.
+- **Kein** „alle 230 Köpfe auf einmal“ — Pakete von 20, wie Claude es begründet.
 - **Keine** Entscheidung mit Zeitablauf (Formular).
 
 ---
@@ -106,11 +106,11 @@ durchgearbeitet werden, da ich mich jetzt schlafen lege und erst morgen um 7.55 
 - eine bestehende **Handlungsregel abschwächen, ersetzen oder löschen**;
 - `SOUL.md`, die neun Arbeitsregeln, Kosten-/Sicherheits-/Datenschutzregeln anfassen;
 - `SKILL.md` umbauen oder teilen (Claudes **C3**) — das ist eine Regeländerung;
-- Regel 2 um „gekennzeichnete Startwerte" ergänzen (Claudes **C7**) — ebenfalls Regeländerung.
+- Regel 2 um „gekennzeichnete Startwerte“ ergänzen (Claudes **C7**) — ebenfalls Regeländerung.
 
 **Pflicht bei jeder Skill-Änderung (Regel 9):** eine Zeile in
 `C:\Users\saras\AppData\Local\hermes\SKILL_UND_REGEL_PROTOKOLL.md` mit Zeit, Datei und Abschnitt,
-**Hash vorher → nachher**, Grund, Freigabe („Daniel 12.11.2026, Skill-Freigabe für Sitzung 41") und
+**Hash vorher → nachher**, Grund, Freigabe („Daniel 12.11.2026, Skill-Freigabe für Sitzung 41“) und
 Rückrollweg samt Sicherung. Ohne Eintrag gilt die Änderung als nicht geschehen.
 
 **Technischer Hinweis:** `skills.write_approval` ist **an** — ein `skill_manage`-Schreiben landet als
