@@ -1,16 +1,24 @@
-# STAND 12.11.2026, 22:4x — DPI-bewusst: das Spiel ist scharf, die Flaeche ist 1127 x 764
+# STAND 12.11.2026, 23:0x — DPI-bewusst (1127 x 764), Auftrag Nr. 16 bei Claude, Nachtplan steht
 
-> Sitzung 40 am 12.11.2026. **Der DPI-Umbau ist gebaut und gemessen** (Daniels F-51, Register 545):
-> `SetProcessDpiAwareness(2)` vor dem ersten `tk.Tk()`, `schrift()`/`schriftart()` als EINE Stelle
-> fuer Schriftgroessen. Gemessen in zwei Prozessen: bewusst **1920 x 1080, k = 1,2512, Fenster
+> Sitzung 40 am 12.11.2026, Ende. **Der DPI-Umbau ist gebaut und gemessen** (Daniels F-51, Register
+> 545): `SetProcessDpiAwareness(2)` vor dem ersten `tk.Tk()`, `schrift()`/`schriftart()` als EINE
+> Stelle fuer Schriftgroessen. Gemessen in zwei Prozessen: bewusst **1920 x 1080, k = 1,2512, Fenster
 > 1560 x 940, sichtbare Flaeche 1127 x 764** (nicht 1151 x 785 — die Menuespalten und die obere
 > Leiste wachsen mit), Feld **64**, Karte **658**, Spalte **453**; ohne den Aufruf weiter
 > 1536 x 864 / 1037 x 589. Wache `tests/test_dpi_f51.py` **40/0/0** samt Gegenprobe im zweiten
-> Prozess. **Claudes Antwort Nr. 14** ist abgelegt und nachgerechnet (Register 544): alle Formeln
-> richtig, fuenf Zahlen falsch (u. a. 17 Waren statt 18, Rezepte mit EINER Zutat, Dorfzentrum
-> 2044 px statt 2148). **Auftrag Nr. 15** liegt bei Claude: Dorfzentrum nach dem Umbau **plus
-> Pruefstands-Audit** (Register 546). **Kopf:** `8b034d1` = Remote. **Register:** belegt bis 546,
-> naechste freie Zeile 547.
+> Prozess.
+>
+> **Acht Entscheidungen von Daniel (F-56 bis F-63)** stehen im Register 550 und im Volltext in der
+> Uebergabe `UEBERGABE_NEBELSEETAL_20261112_2302.md`, Abschnitt 5. Kurz: Kleintext **absolut 15 px**;
+> Abstand Spalte<->Karte = **gemessener Rollbalken** (21 px, S = **448**); Werkstaetten zweigeteilt mit
+> Zutat-Spalte; Ortsbestand bleibt in der Siedlungskarte; `dorfzentrum_kennzahlen` wird gebaut;
+> Werkstatt = nur Item-Gebaeude, Pferde/Wolle/Leder sind Rohstoffe (Ablageform offen); Pruefstand-Kern
+> **M11, M1, M2, M12 zuerst**; Stufen T1-T4 danach.
+>
+> **Auftrag Nr. 16 liegt bei Claude** (Dorfzentrum-Masse, die vier Kernmassnahmen, hoechstens zehn
+> Verbesserungen am Entwicklungssystem). **Naechste Sitzung: nicht warten, sondern bauen** — Plan in
+> der Uebergabe, Abschnitt 3. **Kopf:** `3cd28ac` = Remote. **Register:** belegt bis 551, naechste
+> freie Zeile 552.
 >
 > **Die Abschnitte weiter unten beschreiben den Stand von 18:5x (Sitzung 38)** und gelten fuer die
 > damalige, NICHT mehr gueltige Fenstergroesse: wo dort 1037 x 589, 57 px Feld oder 1446 x 744
