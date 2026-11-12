@@ -24,6 +24,7 @@ Aufruf:  python -X utf8 tests/test_ressourcenleiste_t08.py
 """
 from __future__ import annotations
 
+import inspect as _inspect
 import os
 import sys
 
@@ -77,9 +78,10 @@ check("1 Band: Kachel 64 x 34, Endstueck 16",
       and (DATEN.get("band") or {}).get("kachel_hoehe") == 34
       and (DATEN.get("band") or {}).get("endstueck_breite") == 16,
       str(DATEN.get("band")))
-check("1 Farben: Grund, Flaeche kritisch, Warnung, Name stehen in der Datei",
-      all(FARBEN.get(k) for k in ("grund", "flaeche_kritisch", "warnung", "name", "zahl")),
-      str(sorted(FARBEN)))
+check("1 Farben: Grund, Warnung, Name und Zahl stehen in der Datei",
+      all(FARBEN.get(k) for k in ("grund", "warnung", "name", "zahl")), str(sorted(FARBEN)))
+check("1 die Flaeche des frueheren Zustands kritisch ist entfallen (Daniel 12.11.2026)",
+      not FARBEN.get("flaeche_kritisch") and "unterstrich" not in MASSE, str(sorted(FARBEN)))
 
 
 # ==========================================================================
@@ -190,15 +192,22 @@ check("4 Siedler und Punkte rechnen aus denselben Quellen",
 
 
 # ==========================================================================
-abschnitt("5. Zustaende: kritisch, Unterdeckung - und was NICHT gebaut ist")
+abschnitt("5. Zustaende: nur Unterdeckung - kritisch und steigt/faellt sind entschieden weg")
 
 _leer = _Stand(resources={"holz": 0, "stein": 120, "nahrung": 50})
-check("5 ein Rohstoff mit 0 ist kritisch", main.leisten_zustand(_leer, {"quelle": "holz"}) == "kritisch", "")
+# ENTSCHEIDUNG Daniel 12.11.2026 (Register 490): den Zustand kritisch (Bestand 0) gibt es nicht
+# mehr - beim Spielstart leuchteten sieben von elf Feldern. Diese Datei haelt das fest.
+check("5 Bestand 0 ist KEIN Warnzustand mehr (kritisch entfallen)",
+      main.leisten_zustand(_leer, {"quelle": "holz"}) == "normal",
+      main.leisten_zustand(_leer, {"quelle": "holz"}))
 check("5 ein Rohstoff mit Bestand ist normal", main.leisten_zustand(_leer, {"quelle": "stein"}) == "normal", "")
-check("5 Punkte mit 0 sind NICHT kritisch (kein Vorrat)",
-      main.leisten_zustand(_Stand(punkte=0), {"quelle": "punkte"}) == "normal", "")
-check("5 Siedler mit 0 sind NICHT kritisch (kein Vorrat)",
-      main.leisten_zustand(_Stand(population=0.0), {"quelle": "bevoelkerung"}) == "normal", "")
+check("5 es gibt nur noch zwei Zustaende (normal und unterdeckung)",
+      {main.leisten_zustand(_leer, {"quelle": k}, e)
+       for k in ("holz", "stein", "nahrung", "gold")
+       for e in ({}, {"nahrung": -3.0})} <= {"normal", "unterdeckung"},
+      str({main.leisten_zustand(_leer, {"quelle": k}, e)
+           for k in ("holz", "stein", "nahrung", "gold")
+           for e in ({}, {"nahrung": -3.0})}))
 check("5 eine negative Rate ist Unterdeckung",
       main.leisten_zustand(_leer, {"quelle": "nahrung"}, {"nahrung": -4.0}) == "unterdeckung", "")
 _text, _warn = main.leisten_rate(_leer, {"quelle": "nahrung"}, {"nahrung": -4.0})
@@ -210,11 +219,11 @@ check("5 Siedler und Punkte haben keine Rate",
       and main.leisten_rate(_leer, {"quelle": "punkte"}) == ("", False), "")
 check("5 die Rate von Nahrung geht ueber die Verbrauchsstelle",
       "spieloekonomie.verbrauch_pro_stunde" in __import__("inspect").getsource(main.leisten_rate), "")
-_quelle = __import__("inspect").getsource(main.leisten_zustand)
-check("5 der Docstring nennt die offene Entscheidung 'steigt/faellt'",
-      "steigt/faellt" in _quelle and "NICHT gebaut" in _quelle, "")
-befund("Zustand 'steigt/faellt': offen (Claude Teil B3, Register 481) - erst wenn Daniel "
-       "entscheidet, ob das Spiel Aenderungen ausserhalb des Takts unterscheidet", "")
+_quelle = _inspect.getsource(main.leisten_zustand)
+check("5 der Docstring nennt beide Entscheidungen und ihre Nummer",
+      "steigt/faellt" in _quelle and "kritisch" in _quelle and "Register 490" in _quelle, "")
+check("5 der Zustand 'steigt/faellt' ist entschieden NICHT gebaut (Daniel 12.11.2026)",
+      "steigt" not in _inspect.getsource(main.leisten_zustand).split('"""')[2], "")
 
 
 # ==========================================================================
@@ -288,9 +297,8 @@ if canvas is not None:
     app._leiste_zeichnen()
     root.update()
     kenn = app._leisten_zellen.get("holz")
-    check("7 Holz hat Kennungen fuer Zahl, Rate, Flaeche, Strich und Pfeil",
-          kenn is not None and all(kenn.get(k) is not None
-                                   for k in ("wert", "rate", "grund", "strich", "pfeil")),
+    check("7 Holz hat Kennungen fuer Zahl, Rate und Pfeil",
+          kenn is not None and all(kenn.get(k) is not None for k in ("wert", "rate", "pfeil")),
           str(kenn))
     if kenn:
         app.state.resources["holz"].amount = 999
@@ -307,19 +315,14 @@ if canvas is not None:
               canvas.itemcget(kenn["wert"], "text"))
         app.state.resources["holz"].amount = 0
         app._leiste_aktualisieren()
-        check("7 Bestand 0 zeigt die Flaeche 'kritisch'",
-              canvas.itemcget(kenn["grund"], "state") == "normal",
-              canvas.itemcget(kenn["grund"], "state"))
-        check("7 Bestand 0 zeigt den Unterstrich",
-              canvas.itemcget(kenn["strich"], "state") == "normal", "")
-        check("7 Bestand 0 faerbt die Zahl in der Warnfarbe",
-              canvas.itemcget(kenn["wert"], "fill") == str(FARBEN.get("warnung")),
+        check("7 Bestand 0 bleibt ohne Warnung (kritisch entfallen)",
+              canvas.itemcget(kenn["wert"], "fill") == str(FARBEN.get("zahl")),
               canvas.itemcget(kenn["wert"], "fill"))
+        check("7 es gibt keine Flaechen- und Strichkennung mehr",
+              kenn.get("grund") is None and kenn.get("strich") is None, str(sorted(kenn)))
         app.state.resources["holz"].amount = 1234
         app._leiste_aktualisieren()
-        check("7 mit Bestand verschwindet die Flaeche wieder",
-              canvas.itemcget(kenn["grund"], "state") == "hidden", "")
-        check("7 mit Bestand ist die Zahl wieder hell",
+        check("7 mit Bestand ist die Zahl hell",
               canvas.itemcget(kenn["wert"], "fill") == str(FARBEN.get("zahl")), "")
     check("7 die Raten aller Felder stehen als eigene Texte auf der Flaeche",
           all((app._leisten_zellen.get(str(f.get("schluessel"))) or {}).get("rate") is not None

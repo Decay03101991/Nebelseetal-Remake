@@ -13,9 +13,8 @@
     "kachel_hoehe": 34
   },
   "farben": {
-    "_zweck": "Farben der Leiste aus Handbuch Teil 1.2. Alle Pflichtkontraste nachgerechnet (Pruefdokument Abschnitt 2): Zahl 15,13, Name 5,94, Warnung 8,36, Erfolg 11,45.",
+    "_zweck": "Farben der Leiste aus Handbuch Teil 1.2. Alle Pflichtkontraste nachgerechnet (Pruefdokument Abschnitt 2): Zahl 15,13, Name 5,94, Warnung 8,36, Erfolg 11,45. Die Flaeche fuer den frueheren Zustand kritisch ist am 12.11.2026 entfallen (Register 490).",
     "grund": "#1a0a09",
-    "flaeche_kritisch": "#3e1c1a",
     "name": "#b8862e",
     "zahl": "#F2E3BF",
     "warnung": "#ff8a70",
@@ -36,7 +35,6 @@
     "schrift_name": 10,
     "schrift_zahl": 15,
     "schrift_rate": 10,
-    "unterstrich": 2,
     "plus_zelle": 28,
     "zeile_name": 9,
     "zeile_zahl": 23,

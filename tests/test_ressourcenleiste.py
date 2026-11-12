@@ -76,8 +76,7 @@ check("1 die Hoehe ist ein Streifen, kein Bild (hoechstens 60 px)",
 # T08 (12.11.2026): die Kontur um die Zahl ist entfallen - die Zahl steht rechtsbuendig in einer
 # festen Zelle auf dunklem Grund (Kontrast 15,13). Dafuer sind die Farben der Zustaende dazugekommen.
 check("1 Zahl-, Namen-, Warn- und Grundfarbe sind eingetragen",
-      all((daten.get("farben") or {}).get(k)
-          for k in ("zahl", "name", "grund", "warnung", "flaeche_kritisch")),
+      all((daten.get("farben") or {}).get(k) for k in ("zahl", "name", "grund", "warnung")),
       str(daten.get("farben")))
 check("1 die Masse des Rasters stehen in der Datendatei",
       all(k in (daten.get("masse") or {})
@@ -222,10 +221,11 @@ if canvas is not None:
     items = canvas.find_withtag("leiste")
     texte = getattr(app, "_leisten_texte", {})
     check("5 alle elf Felder haben Textkennungen", len(texte) == 11, str(sorted(texte)))
-    # T08: je Zelle sechs Teile (Flaeche fuer "kritisch", Name, Zahl, Rate, Unterstrich, Pfeil),
-    # dazu das Band, die Goldlinie unten, zwei Endstuecke mit Raute und zehn Trenner.
-    check("5 je Zelle sechs Teile, dazu Band, Goldlinie, zwei Endstuecke und zehn Trenner",
-          len(items) == 11 * 6 + 1 + 1 + 2 + 2 + 10, str(len(items)))
+    # T08: je Zelle vier Teile (Name, Zahl, Rate, Pfeil), dazu das Band, die Goldlinie unten,
+    # zwei Endstuecke mit Raute und zehn Trenner. Flaeche und Unterstrich des frueheren Zustands
+    # "kritisch" sind am 12.11.2026 entfallen (Daniel, Register 490).
+    check("5 je Zelle vier Teile, dazu Band, Goldlinie, zwei Endstuecke und zehn Trenner",
+          len(items) == 11 * 4 + 1 + 1 + 2 + 2 + 10, str(len(items)))
     stimmt = True
     for feld in felder:
         kennungen = texte.get(str(feld.get("schluessel"))) or []

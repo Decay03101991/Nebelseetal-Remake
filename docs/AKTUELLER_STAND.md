@@ -1,7 +1,9 @@
-# STAND 12.11.2026, 14:55 - T08 gebaut: die Ressourcenleiste hat ein festes Raster (Register 488)
+# STAND 12.11.2026, 15:4x - T08 gebaut, „kritisch“ nach Daniels Entscheid entfernt (Register 488/491/492)
 
-> Sitzung 37 am 12.11.2026: **T08 Ressourcenleiste ist gebaut** (Block weiter unten, Register 488).
-> Naechster Schritt: **Meshy-Bilder auf 1:1 bringen** (Uebergabe Sitzung 36, Abschnitt 4b). Die
+> Sitzung 37 am 12.11.2026: **T08 Ressourcenleiste ist gebaut** (Block weiter unten, Register 488)
+> und der Zustand „kritisch“ auf Daniels Entscheid wieder **entfernt** (Register 492).
+> Naechster Schritt: **Meshy-Bilder auf 1:1 beschneiden und ergaenzen** (Register 491, kein neuer
+> Mal-Lauf), danach **C1 Teil 2 (Markersystem)** und die **Release-Vorbereitung v_0.0.4**. Die
 > Uebergabe der Sitzung 36 liegt in `D:\Arbeiten\Hermes\Uebergaben\20261112_1400\`.
 
 **Meshy hat geliefert (Register 484):** sechs Voelker-Panoramen und der komplette Elfen-Satz
@@ -17,6 +19,25 @@ Satz aus Schild und Banner auf grauem Grund, also **nicht freigestellt**.
 und liegt jetzt in Quarantaene. Die Desktop-App stammt noch vom 11.11. - ein Neustart zeigt die
 frisch installierte Fassung (v0.23.1, local 3b421578).
 
+
+**Acht Entscheidungen von Daniel, in EINER Fragerunde einzeln gestellt (Register 491):**
+
+| Nr | Frage | Antwort | Folge |
+|---|---|---|---|
+| F-36 | Namensfarbe der Leiste | Bildgenerierungs-KI soll das komplett designen, grob so hinterlegen | bleibt `#b8862e`, Platz fuer das Bild ist `band.datei` |
+| F-37 | Warnzustand bei Bestand 0 | kritisch ganz weglassen | Code und Datendatei bereinigt, Wache haelt es fest |
+| F-38 | Zustand steigt/faellt | weglassen | endgueltig nicht gebaut |
+| F-39 | Tooltip der Zelle +n | spaeter | offen, nicht blockierend |
+| F-40 | Meshy 1:1 | Mitte beschneiden, oben/unten ergaenzen | kein neuer Mal-Lauf, 45 Prozent Breite weg |
+| F-41 | Reihenfolge danach | C1 Teil 2 (Markersystem) | Bau nach den Bildern |
+| F-42 | Release v_0.0.4 | jetzt vorbereiten | Chris' Freigabe liegt vor |
+| F-43 | Skill-Nachtrag | freigeben | liegt unter `/skills pending` |
+
+**Fuer die Bild-KI liegt ein fertiges Paket auf dem Desktop:** `NEBELSEETAL_AUFTRAEGE_20261112\`
+mit `PROMPT_BILDKI_LEISTE.txt` (kurzer englischer Prompt), `ANFORDERUNGEN_LEISTE.txt` (64 x 34
+Mittelkachel, 16 x 34 Endstueck, Nahtgrenze, kein Pixel heller als `#3e1c1a`), `LIESMICH.txt` und
+vier Referenzbildern. **Auftrag Nr. 6 an Claude Opus 5.5** (Gebaeudehintergrund 1:1) liegt als
+`docs/auftraege/AUFTRAG_CLAUDE_MESHY_1ZU1_20261112.txt` und als Kopie im selben Ordner.
 
 **T08 ist gebaut (Register 488).** Daniels Befund war »ganz schrecklich« und »total haesslich, der
 stil ist jetzt komplett weg«. Gemessen war der Fehler aber der **UEBERLAUF**, nicht die Groesse: die

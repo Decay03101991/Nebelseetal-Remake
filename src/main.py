@@ -3593,18 +3593,14 @@ def leisten_rate(state, feld: dict, ertrag_jetzt: dict = None) -> Tuple[str, boo
 
 
 def leisten_zustand(state, feld: dict, ertrag_jetzt: dict = None) -> str:
-    """Zustand eines Feldes: "normal", "kritisch" oder "unterdeckung" (T08, Teil B3).
+    """Zustand eines Feldes: "normal" oder "unterdeckung" (T08, Daniel 12.11.2026).
 
-    `kritisch` = Bestand 0, nur fuer VORRAETE (die neun Rohstoffe): Siedler und Punkte sind keine
-    Vorraete, ein Punktestand von 0 ist kein Mangel. `unterdeckung` = die Rate ist negativ
-    (Verbrauch groesser als Ertrag). Der von Claude vorgeschlagene dritte Zustand
-    "steigt/faellt" ist NICHT gebaut: ob das Spiel Aenderungen ausserhalb des Takts unterscheidet,
-    ist offen - das ist Daniels Entscheidung, nicht meine (Register 481).
+    ENTSCHEIDUNG Daniel (12.11.2026, Register 490): den Zustand "kritisch" (Bestand 0) gibt es
+    NICHT mehr - beim Spielstart leuchteten damit sieben von elf Feldern, und ein Vorrat von 0 ist
+    am Anfang normal, kein Mangel. Geblieben ist "unterdeckung": die Rate ist negativ, es wird also
+    mehr verbraucht als erzeugt. Der von Claude vorgeschlagene Zustand "steigt/faellt" ist ebenfalls
+    weg (Daniel: das Spiel unterscheidet Aenderungen ausserhalb des Takts nicht).
     """
-    zahl = leisten_zahl(state, feld)                                                        # Bestand
-    quelle = str(feld.get("quelle") or "")                                                  # Vorrat?
-    if quelle in RESOURCES and zahl <= 0:                                                   # Vorrat aufgebraucht
-        return "kritisch"                                                                   # Unterstrich zeigen
     rate, _warnung = leisten_rate(state, feld, ertrag_jetzt)                                # Rate des Feldes
     if rate and rate.startswith("-"):                                                       # Verbrauch groesser
         return "unterdeckung"                                                               # Pfeil zeigen
@@ -9576,7 +9572,6 @@ class NebelseetalApp:
         name_farbe = str(farben.get("name") or "#b8862e")                      # goldener Name
         gold = str(farben.get("gold") or "#FFCC33")                            # Zierrat in den Endstuecken
         warnung = str(farben.get("warnung") or "#ff8a70")                      # Warnfarbe
-        flaeche = str(farben.get("flaeche_kritisch") or "#3e1c1a")             # Flaeche bei "kritisch"
         hoehe = int(RESSOURCENLEISTE.get("hoehe") or 34)                       # Hoehe des Streifens
         auswahl = leiste_auswahl(felder, masse, breite_ist)                    # was bei dieser Breite passt
         sichtbar = auswahl["sichtbar"]                                         # sichtbare Felder
@@ -9620,7 +9615,6 @@ class NebelseetalApp:
         zeile_zahl = int(masse.get("zeile_zahl") or 23)                        # Zeile der Zahl
         oben = int(masse.get("trenner_oben") or 7)                             # Trenner von y
         unten = int(masse.get("trenner_unten") or 27)                          # Trenner bis y
-        strich_y = zeile_zahl + 8                                              # Unterstrich bei 31/32
         self._leisten_texte = {}                                               # neu aufbauen
         self._leisten_zellen = {}                                              # Feld -> Kennungen
         for index, zelle in enumerate(layout["zellen"]):                       # jede Zelle
@@ -9634,10 +9628,6 @@ class NebelseetalApp:
                 continue                                                       # keine Zahl dazu
             feld = sichtbar[index]                                             # zugehoeriges Feld
             schluessel = str(feld.get("schluessel"))                           # Kennung
-            flaeche_id = canvas.create_rectangle(zelle["x"] + 1, 1,             # Flaeche fuer "kritisch"
-                                                 zelle["x"] + zelle["breite"] - 1, hoehe - 1,
-                                                 fill=flaeche, outline="", state="hidden",
-                                                 tags=("leiste", "kritisch"))
             canvas.create_text(zelle["name_x"], zeile_name, text=zelle["name"],
                                anchor="w", fill=name_farbe, font=schrift_name,
                                tags=("leiste",))                                # Name linksbuendig
@@ -9652,15 +9642,11 @@ class NebelseetalApp:
             rate_id = canvas.create_text(zelle["wert_x"], zeile_name, text="",
                                          anchor="e", fill=zahl_farbe, font=schrift_rate,
                                          state="hidden", tags=("leiste",))      # Rate rechts oben
-            strich_id = canvas.create_line(zelle["name_x"], strich_y, zelle["wert_x"], strich_y,
-                                           fill=warnung, width=int(masse.get("unterstrich") or 2),
-                                           state="hidden", tags=("leiste",))    # Unterstrich
             pfeil_id = canvas.create_text(zelle["wert_x"], zeile_zahl, text="\u25bc",
                                           anchor="e", fill=warnung, font=schrift_zahl,
                                           state="hidden", tags=("leiste",))     # Pfeil Unterdeckung
             self._leisten_texte[schluessel] = [wert_id]                        # fuer das Aktualisieren
             self._leisten_zellen[schluessel] = {"wert": wert_id, "rate": rate_id,
-                                                "grund": flaeche_id, "strich": strich_id,
                                                 "pfeil": pfeil_id, "x": zelle["wert_x"],
                                                 "rate_platz": rate_platz}      # Platz fuer die Rate
         self._leisten_breite = breite_ist                                      # gezeichnete Breite merken
@@ -9684,10 +9670,10 @@ class NebelseetalApp:
         """Zahlen, Raten und Zustaende der Leiste aus dem Spielstand setzen (T08).
 
         Rechenstellen: `leistenwert` (Zahl, gekuerzt), `leisten_rate` (Rate) und `leisten_zustand`
-        (normal / kritisch / unterdeckung). Die Zelle bleibt FEST breit, die Zahl steht
-        rechtsbuendig - beim Stellenwechsel springt nichts. Bei Unterdeckung rueckt die Zahl 12 px
-        nach links, rechts davon steht der Pfeil; bei "kritisch" bekommt die Zelle eine eigene
-        Flaeche in der Warnfarbe und einen Unterstrich.
+        (normal / unterdeckung). Die Zelle bleibt FEST breit, die Zahl steht rechtsbuendig - beim
+        Stellenwechsel springt nichts. Bei Unterdeckung rueckt die Zahl 12 px nach links, rechts
+        davon steht der Pfeil, und die Rate steht in der Warnfarbe. Den Zustand "kritisch" gibt es
+        seit Daniels Entscheidung vom 12.11.2026 nicht mehr (Register 490).
         """
         canvas = getattr(self, "_leisten_canvas", None)                        # Zeichenflaeche
         zellen = getattr(self, "_leisten_zellen", {}) or {}                    # Feld -> Kennungen
@@ -9710,11 +9696,9 @@ class NebelseetalApp:
             wert = leistenwert(self.state, feld)                                # EINE Rechenstelle
             rate, _rate_warnung = leisten_rate(self.state, feld, ertrag_jetzt)  # Rate des Feldes
             zustand = leisten_zustand(self.state, feld, ertrag_jetzt)           # Zustand des Feldes
-            kritisch = zustand == "kritisch"                                    # Bestand 0
             unterdeckung = zustand == "unterdeckung"                            # Rate negativ
             try:                                                                # Flaeche kann weg sein
-                canvas.itemconfig(kenn["wert"], text=wert,                      # Zahl setzen
-                                  fill=(warnung if kritisch else zahl_farbe))   # Farbe je Zustand
+                canvas.itemconfig(kenn["wert"], text=wert, fill=zahl_farbe)     # Zahl setzen
                 canvas.coords(kenn["wert"], kenn["x"] - (12 if unterdeckung else 0),
                               zeile_zahl)                                       # Platz fuer den Pfeil
                 if kenn.get("rate") is not None:                                # es gibt eine Rate
@@ -9723,12 +9707,6 @@ class NebelseetalApp:
                     canvas.itemconfig(kenn["rate"], text=rate,
                                       fill=(warnung if _rate_warnung or unterdeckung else zahl_farbe),
                                       state=("normal" if passt else "hidden"))  # sonst ausblenden
-                if kenn.get("grund") is not None:                               # Flaeche des Feldes
-                    canvas.itemconfig(kenn["grund"],
-                                      state=("normal" if kritisch else "hidden"))   # nur bei kritisch
-                if kenn.get("strich") is not None:                              # Unterstrich
-                    canvas.itemconfig(kenn["strich"],
-                                      state=("normal" if kritisch else "hidden"))   # nur bei kritisch
                 if kenn.get("pfeil") is not None:                               # Pfeil
                     canvas.itemconfig(kenn["pfeil"],
                                       state=("normal" if unterdeckung else "hidden"))   # nur bei Unterdeckung
