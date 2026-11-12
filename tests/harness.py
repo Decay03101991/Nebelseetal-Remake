@@ -242,6 +242,83 @@ def projektwurzel():
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
+# --------------------------------------------------------------------------
+# M1 (Claude Nr. 16, 12.11.2026): Kopfangaben je Pruefdatei
+# --------------------------------------------------------------------------
+# Vier Zuweisungen am Dateianfang, ASCII, mit ast.literal_eval gelesen - die Datei wird NICHT
+# importiert (ein Import wuerde den Prueflauf starten und Fenster oeffnen):
+#
+#   PRUEF_ART = "fenster"        # rechnen | fenster | quelltext, optional "+messen"
+#   PRUEF_STUFE = 2              # 1..4
+#   PRUEF_BETRIFFT = ["main:_render_settlement_map", "hintergrund_optik"]
+#   PRUEF_DATEN = ["gelaende.json"]
+#
+# Fehlt der Kopf, gelten Ersatzwerte (rueckwaertsvertraeglich): Art "fenster", wenn die Datei
+# `tkinter` importiert, sonst "rechnen"; Stufe 3; BETRIFFT = alle src-Modulnamen im Text;
+# DATEN = alle *.json-Namen im Text. `kopf_fehlt` sagt, ob der Kopf wirklich da war.
+_KOPF_FELDER = ("PRUEF_ART", "PRUEF_STUFE", "PRUEF_BETRIFFT", "PRUEF_DATEN")
+_SRC_MODULE = ("admin_teststand", "ansicht_geruest", "auftraege", "ausbildung", "ausruestung",
+               "botkern", "bottaktik", "diplomatie", "fehlbestand", "forschung",
+               "forschungspfad", "gebaeude_optik", "gebaeude_wirkung", "gelaende", "handel",
+               "hintergrund_optik", "kampf", "kampfbericht", "karren", "main", "originalkarten",
+               "portalraum", "punkte", "spionage", "spieldaten", "spieloekonomie", "spielschicht",
+               "verwundete", "voelker", "warenrezepte_ableiten", "werkstatt", "wirtschaft",
+               "zeitbasis")
+_STUFE_OHNE_KOPF = 3
+
+
+def kopf_lesen(pfad: str) -> dict:
+    """Die Kopfangaben einer Pruefdatei lesen (M1) - ohne sie zu importieren.
+
+    Rueckgabe::
+
+        {"art": str, "stufe": int, "betrifft": [str], "daten": [str], "kopf_fehlt": bool,
+         "quelle": "kopf" | "ersatz"}
+
+    Faellt eine einzelne Angabe kaputt aus, wird NUR sie ersetzt; eine Datei ohne Kopf laeuft
+    unveraendert weiter (Rueckwaertsvertraeglichkeit, Claudes Bedingung).
+    """
+    import ast
+    with open(pfad, encoding="utf-8", errors="replace") as fh:
+        quelle = fh.read()
+    gelesen = {}
+    try:
+        baum = ast.parse(quelle)
+        for knoten in baum.body:
+            if not isinstance(knoten, ast.Assign) or len(knoten.targets) != 1:
+                continue
+            ziel = knoten.targets[0]
+            if not isinstance(ziel, ast.Name) or ziel.id not in _KOPF_FELDER:
+                continue
+            try:
+                gelesen[ziel.id] = ast.literal_eval(knoten.value)
+            except (ValueError, SyntaxError):
+                continue
+    except SyntaxError:
+        return {"art": "quelltext", "stufe": _STUFE_OHNE_KOPF, "betrifft": [], "daten": [],
+                "kopf_fehlt": True, "quelle": "ersatz", "fehler": "SyntaxError"}
+    kopf_fehlt = not any(feld in gelesen for feld in _KOPF_FELDER)
+    art = gelesen.get("PRUEF_ART")
+    if not isinstance(art, str) or not art:
+        art = "fenster" if "tkinter" in quelle else "rechnen"
+    stufe = gelesen.get("PRUEF_STUFE")
+    try:
+        stufe = int(stufe)
+        if not 1 <= stufe <= 4:
+            stufe = _STUFE_OHNE_KOPF
+    except (TypeError, ValueError):
+        stufe = _STUFE_OHNE_KOPF
+    betrifft = gelesen.get("PRUEF_BETRIFFT")
+    if not isinstance(betrifft, list):
+        betrifft = [modul for modul in _SRC_MODULE if modul in quelle]
+    daten = gelesen.get("PRUEF_DATEN")
+    if not isinstance(daten, list):
+        daten = sorted(set(__import__("re").findall(r"([A-Za-z0-9_\-]+\.json)", quelle)))
+    return {"art": art, "stufe": stufe, "betrifft": [str(b) for b in betrifft],
+            "daten": [str(d) for d in daten], "kopf_fehlt": kopf_fehlt,
+            "quelle": "ersatz" if kopf_fehlt else "kopf"}
+
+
 def import_src():
     import os
     root = projektwurzel()

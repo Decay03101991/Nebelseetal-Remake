@@ -25,6 +25,15 @@ Aufruf:  python -X utf8 tests/test_auswahlrahmen_c2.py
 """
 from __future__ import annotations
 
+# --- Pruefstand-Kopf (M1, 12.11.2026): Art, Stufe, BETRIFFT, DATEN ----------------
+# Gelesen von harness.kopf_lesen und tools/auswahl.py. Vorschlag aus Paket 15b
+# (gemessene Art und Dauer des Sammellaufs). Beim Anfassen der Datei genauer machen.
+PRUEF_ART = "fenster"
+PRUEF_STUFE = 3
+PRUEF_BETRIFFT = ['dorfwall', 'karten_optik_fein', 'main:*']
+PRUEF_DATEN = ['gebaeude_motive.json']
+# --- Ende Pruefstand-Kopf -------------------------------------------------------
+
 import inspect
 import os
 import struct

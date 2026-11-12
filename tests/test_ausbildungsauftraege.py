@@ -29,6 +29,15 @@ Aufruf:  python -X utf8 tests/test_ausbildungsauftraege.py
 """
 from __future__ import annotations
 
+# --- Pruefstand-Kopf (M1, 12.11.2026): Art, Stufe, BETRIFFT, DATEN ----------------
+# Gelesen von harness.kopf_lesen und tools/auswahl.py. Vorschlag aus Paket 15b
+# (gemessene Art und Dauer des Sammellaufs). Beim Anfassen der Datei genauer machen.
+PRUEF_ART = "rechnen"
+PRUEF_STUFE = 1
+PRUEF_BETRIFFT = ['bonus_system', 'einheiten', 'forschung', 'spieloekonomie', 'werkstatt']
+PRUEF_DATEN = ['warenrezepte.json']
+# --- Ende Pruefstand-Kopf -------------------------------------------------------
+
 import os
 import sys
 
