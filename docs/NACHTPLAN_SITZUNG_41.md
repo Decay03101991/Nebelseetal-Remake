@@ -18,8 +18,8 @@ durchgearbeitet werden, da ich mich jetzt schlafen lege und erst morgen um 7.55 
 
 | | Schritt | Fertig, wenn |
 |---|---|---|
-| **0** | Übergabe + diese Datei lesen, Hash prüfen, Desktop-Kopie räumen, Sitzung umbenennen | ein Satz an Daniel, Registerzeile |
-| **1** | **Antwort Nr. 16 ablegen und nachrechnen** (`ANTWORT_NR16_CLAUDE.md` im Übergabe-Ordner) | `docs/eingaenge/CLAUDE_20261112_ENTSCHEIDUNGEN_NR16/` mit Antwort + `NACHRECHNUNG_NR16.md`, zwei Registerzeilen, gepusht |
+| **0** ✅ | Übergabe + diese Datei lesen, Hash prüfen, Desktop-Kopie räumen, Sitzung umbenennen | ein Satz an Daniel, Registerzeile |
+| **1** ✅ | **Antwort Nr. 16 ablegen und nachrechnen** (`ANTWORT_NR16_CLAUDE.md` im Übergabe-Ordner) | `docs/eingaenge/CLAUDE_20261112_ENTSCHEIDUNGEN_NR16/` mit Antwort + `NACHRECHNUNG_NR16.md`, zwei Registerzeilen, gepusht |
 | **2** | **F-57** Abstand = gemessener Rollbalken → **S = 448** | `siedlungs_masse` liefert 448 bei (1127, 764); `test_siedlungsansicht_a9` **und** `test_dpi_f51` nachgezogen und grün; Gegenprobe rot |
 | **3** | **F-60** `dorfzentrum_kennzahlen(ort, forschung)` (Rezept: Nr. 16, A3) | Funktion + `test_dorfzentrum_kennzahlen` grün, ohne Tautologie (erwartete Zahlen von Hand), Gegenprobe rot |
 | **4** | **M12.0** Sammellauf schreibt `docs/audits/laeufe.jsonl` (eine Zeile je Datei/Lauf) | nach einem kleinen Lauf hat **jede** gefundene Datei eine Zeile — die 46 blinden Flecken sind zu |
