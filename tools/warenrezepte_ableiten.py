@@ -89,8 +89,13 @@ def pilotrezept(name: str, waren: dict | None = None) -> dict:
                 else "leder" if ("Leder" in name or "Fell" in name)
                 else "wolle")
     menge = math.ceil(spieloekonomie.einzelmaximum()[material] * dauer / 3600)
+    # F-61/F-64 (Daniel 12.11.2026): die Werkstatt steht jetzt AM REZEPT - als Gebaeude-Kennung
+    # ("schmiede" / "bogenbauer" / "naehstube"), nicht als Anzeigename. Abgeleitet wird sie aus
+    # `werkstatt.werkstatt_fuer` (also aus data/items.json), damit es KEINE zweite Liste gibt:
+    # eine Quelle (items.json), zwei Ansichten (Ware und Rezept). Die Wache
+    # `test_ware_werkstatt_feld` haelt beide Seiten zusammen.
     return {"kosten": {material: menge}, "dauer": dauer, "voraussetzungen": forderungen,
-            "_herkunft": HERKUNFT}
+            "werkstatt": typ, "_herkunft": HERKUNFT}
 
 
 def rezepte_ableiten(waren: dict | None = None) -> dict:

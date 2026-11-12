@@ -1,6 +1,6 @@
 # FAKTENBLATT - automatisch gezaehlt aus `data/` (M11)
 
-**Erzeugt:** 12.11.2026 23:39 · **Stand von `data/`:** 12.11.2026 18:30 (`b1a6189`)
+**Erzeugt:** 13.11.2026 00:23 · **Stand von `data/`:** 12.11.2026 18:30 (`b1a6189`)
 
 > **Nicht von Hand aendern.** Diese Datei entsteht mit `python -X utf8 tools/faktenblatt.py`; die Wache `test_faktenblatt` meldet jede Abweichung zwischen Blatt und Daten. Wer eine Zahl im Auftrag nennt, nimmt sie von hier - dann wandern keine abgetippten Zahlen mehr in Rezepte.
 
@@ -20,7 +20,7 @@
 
 ## Werkstaetten
 
-Quelle: data/items.json, Feld werkstatt. **Die Rezepte tragen noch KEIN Feld `werkstatt`** (F-61/F-64 offen) - die Zuordnung steht heute nur an der Ware.
+Quelle: data/items.json, Feld werkstatt. Die Rezepte tragen das Feld bereits.
 
 | Werkstatt | Waren | Anzahl |
 |---|---|---|

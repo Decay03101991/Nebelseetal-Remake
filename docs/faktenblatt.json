@@ -3,7 +3,7 @@
     "datum": "12.11.2026 18:30",
     "hash": "b1a6189"
   },
-  "stand": "12.11.2026 23:39",
+  "stand": "13.11.2026 00:23",
   "textbreiten": {
     "laengste_einheit": [
       "Große Handelskarawane",
@@ -225,7 +225,7 @@
         "Schmiede": 8
       },
       "quelle": "data/items.json, Feld werkstatt",
-      "rezepte_mit_werkstattfeld": false
+      "rezepte_mit_werkstattfeld": true
     }
   }
 }

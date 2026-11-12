@@ -5,6 +5,7 @@
     },
     "dauer": 1200,
     "voraussetzungen": {},
+    "werkstatt": "schmiede",
     "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
   },
   "Dolch": {
@@ -15,6 +16,7 @@
     "voraussetzungen": {
       "Waffentechnik": 1
     },
+    "werkstatt": "schmiede",
     "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
   },
   "Kurzschwert": {
@@ -25,6 +27,7 @@
     "voraussetzungen": {
       "Waffentechnik": 3
     },
+    "werkstatt": "schmiede",
     "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
   },
   "Schwert": {
@@ -35,6 +38,7 @@
     "voraussetzungen": {
       "Waffentechnik": 5
     },
+    "werkstatt": "schmiede",
     "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
   },
   "Zweihänder": {
@@ -45,6 +49,7 @@
     "voraussetzungen": {
       "Waffentechnik": 8
     },
+    "werkstatt": "schmiede",
     "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
   },
   "Kettenhemd": {
@@ -55,6 +60,7 @@
     "voraussetzungen": {
       "Rüstungsbau": 3
     },
+    "werkstatt": "schmiede",
     "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
   },
   "Plattenrüstung": {
@@ -65,6 +71,7 @@
     "voraussetzungen": {
       "Rüstungsbau": 5
     },
+    "werkstatt": "schmiede",
     "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
   },
   "Magischer Paladinharnisch": {
@@ -76,6 +83,7 @@
       "Rüstungsbau": 7,
       "Magiekunde": 2
     },
+    "werkstatt": "schmiede",
     "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
   },
   "Kurzbogen": {
@@ -86,6 +94,7 @@
     "voraussetzungen": {
       "Waffentechnik": 2
     },
+    "werkstatt": "bogenbauer",
     "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
   },
   "Bogen": {
@@ -96,6 +105,7 @@
     "voraussetzungen": {
       "Waffentechnik": 4
     },
+    "werkstatt": "bogenbauer",
     "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
   },
   "Langbogen": {
@@ -106,6 +116,7 @@
     "voraussetzungen": {
       "Waffentechnik": 6
     },
+    "werkstatt": "bogenbauer",
     "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
   },
   "Armbrust": {
@@ -116,6 +127,7 @@
     "voraussetzungen": {
       "Waffentechnik": 8
     },
+    "werkstatt": "bogenbauer",
     "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
   },
   "Wollumhang": {
@@ -124,6 +136,7 @@
     },
     "dauer": 1200,
     "voraussetzungen": {},
+    "werkstatt": "naehstube",
     "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
   },
   "Lederrüstung": {
@@ -135,6 +148,7 @@
       "Nähkunst": 1,
       "Rüstungsbau": 2
     },
+    "werkstatt": "naehstube",
     "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
   },
   "Diebesumhang": {
@@ -145,6 +159,7 @@
     "voraussetzungen": {
       "Nähkunst": 2
     },
+    "werkstatt": "naehstube",
     "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
   },
   "Fellumhang": {
@@ -155,6 +170,7 @@
     "voraussetzungen": {
       "Nähkunst": 4
     },
+    "werkstatt": "naehstube",
     "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
   },
   "Fellrüstung": {
@@ -165,6 +181,7 @@
     "voraussetzungen": {
       "Nähkunst": 6
     },
+    "werkstatt": "naehstube",
     "_herkunft": "VORSCHLAG: Normertrag mal Pilotdauer; Schwertdauer separat belegt"
   }
 }

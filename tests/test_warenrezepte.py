@@ -67,12 +67,19 @@ check("data/items.json wurde nicht veraendert (17 Waren, bekannte Quelle)",
 # 2. Aufbau jedes Eintrags
 # ==========================================================================
 
-abschnitt("Jeder Eintrag — kosten, dauer, voraussetzungen, _herkunft")
+abschnitt("Jeder Eintrag — kosten, dauer, voraussetzungen, werkstatt, _herkunft")
 
-_felder = ("kosten", "dauer", "voraussetzungen", "_herkunft")
-check("jeder Eintrag hat genau die vier Schluessel kosten/dauer/voraussetzungen/_herkunft",
+# F-61/F-64 (Daniel 12.11.2026, Register 553): das Rezept traegt jetzt ZUSAETZLICH die Werkstatt
+# als Gebaeude-Kennung. Die Entscheidung hat sich geaendert, darum zieht die Wache nach - sie
+# prueft weiter, dass kein Feld dazukommt oder verschwindet (fuenf, nicht vier).
+_felder = ("kosten", "dauer", "voraussetzungen", "werkstatt", "_herkunft")
+check("jeder Eintrag hat genau die fuenf Schluessel kosten/dauer/voraussetzungen/werkstatt/_herkunft",
       all(set(r) == set(_felder) for r in _rezepte.values()),
       str({n: sorted(r) for n, r in _rezepte.items() if set(r) != set(_felder)}))
+check("die Werkstatt ist eine Gebaeude-Kennung (schmiede/bogenbauer/naehstube)",
+      all(r["werkstatt"] in ("schmiede", "bogenbauer", "naehstube") for r in _rezepte.values()),
+      str({n: r.get("werkstatt") for n, r in _rezepte.items()
+           if r.get("werkstatt") not in ("schmiede", "bogenbauer", "naehstube")}))
 check("_herkunft nennt ausdruecklich VORSCHLAG",
       all("VORSCHLAG" in r["_herkunft"] for r in _rezepte.values()),
       str({n: r["_herkunft"] for n, r in _rezepte.items() if "VORSCHLAG" not in r["_herkunft"]}))
