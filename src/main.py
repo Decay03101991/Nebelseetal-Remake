@@ -3622,6 +3622,19 @@ TROPHaeEN_EINTRAEGE: Dict[str, Dict[str, object]] = spieldaten.trophaeen()
 LAGER_WARE_EINTRAEGE: Dict[str, Dict[str, object]] = spieldaten.lager_waren()
 WARE_ICONS: Dict[str, str] = {name: str(eintrag.get("icon") or "")
                               for name, eintrag in LAGER_WARE_EINTRAEGE.items()}
+# B4 (Daniel 12.11.2026, Befund in V_0.0.4: "besser aber immer noch nicht uebersichtlich und schoen
+# genug gestaltet"): die Lagerkacheln hatten KEINE feste Groesse - jede Zelle war so breit wie ihr
+# Inhalt, gemessen 61 bis 168 px in einer Reihe, Hoehen 99 bis 106 px, Symbole 28 bis 49 px. Diese
+# vier Masse machen jede Kachel gleich; sie stehen hier, weil Kern-Anzeige und Pruefdatei dieselbe
+# Zahl lesen sollen (F-04: eine Quelle, keine zweite Handliste).
+LAGER_KACHEL_BREITE = 118          # px, feste Kachelbreite
+LAGER_KACHEL_HOEHE = 136           # px, feste Kachelhoehe
+LAGER_KACHEL_LUECKE = 6            # px Luft zwischen zwei Kacheln
+LAGER_SYMBOL_BREITE = 64           # px Symbolkasten (Seitenverhaeltnis bleibt)
+LAGER_SYMBOL_HOEHE = 56            # px Symbolkastenhoehe
+LAGER_SPALTEN_VORGABE = 8          # Spalten, wenn das Fenster noch nicht vermessen ist
+LAGER_SPALTEN_HOECHSTENS = 9       # mehr als neun werden unruhig
+
 
 MAPS = [
     {"id": "kontinent", "name": "Der Kontinent", "size": 20, "difficulty": 1, "bonus": "nahrung", "npcs": ["dorf", "händler"], "quests": ["Erstes Zuhause", "Siedlerzug"], "sectors": True},
@@ -13289,6 +13302,193 @@ class NebelseetalApp:
     def _visit_bot(self, bot: BotPlayer):
         self._log("Besuche andere Spielerwelten nicht im Singleplayer-Modus.")
 
+    # --------------------------------------------------------------------------------
+    # B4 Lagerkacheln (Daniel 12.11.2026): gleiche Masse, klare Trennung, grosses Symbol,
+    # Name und Zahl untereinander, nichts springt bei anderer Zahl.
+    # Befund davor (gemessen im Vorschaufenster): Kachelbreiten 61 bis 168 px, Hoehen 99 bis
+    # 106 px, Symbole 28 bis 49 px - weil jede Zelle nur so gross war wie ihr Inhalt.
+    # --------------------------------------------------------------------------------
+    def _lager_spalten(self) -> int:
+        """Spaltenzahl der Lagerkacheln aus der GEMESSENEN Inhaltsbreite.
+
+        Beim ersten Aufbau ist das Inhaltsfenster oft noch nicht vermessen (Breite 1) - dann gilt
+        die Vorgabe 8. Wird das Fenster deutlich schmaler, bricht der Nachlauf
+        (`_lager_nachziehen`) das Raster mit weniger Spalten neu; sonst liefen die Kacheln rechts
+        aus dem Fenster.
+        """
+        breite = int(self._inhalt_breite() or 0)                       # gemessene Inhaltsbreite
+        if breite < 240:                                               # noch nicht vermessen
+            return LAGER_SPALTEN_VORGABE
+        nutzbar = breite - 28                                          # Aussenrand links und rechts
+        schritt = LAGER_KACHEL_BREITE + LAGER_KACHEL_LUECKE            # Breite einer Kachel samt Luft
+        spalten = int((nutzbar + LAGER_KACHEL_LUECKE) // schritt)      # so viele passen nebeneinander
+        return max(3, min(LAGER_SPALTEN_HOECHSTENS, spalten))          # nie unter 3, nie ueber 9
+
+    def _lager_symbol(self, relativ: str, breite: int = LAGER_SYMBOL_BREITE,
+                      hoehe: int = LAGER_SYMBOL_HOEHE):
+        """Ein Symbol in einen FESTEN Kasten bringen, Seitenverhaeltnis bleibt erhalten.
+
+        Die Ware-Icons sind 47 bis 66 px breit und 67 bis 82 px hoch, die Einheiten-Icons 75 bis
+        90 px breit - `_lade_icon` halbiert nur ganzzahlig und liefert deshalb 28 bis 49 px in
+        verschiedenen Formen. Hier wird auf den Kasten eingepasst (Pillow, LANCZOS); ohne Pillow
+        bleibt der ganzzahlige Rueckfall. None heisst: kein Bild, der Aufrufer laesst den Kasten
+        leer stehen (die Kachel springt dadurch nicht).
+        """
+        pfad = icon_pfad(relativ) if relativ else None                 # Projektpfad ueber EINE Stelle
+        if not pfad or not os.path.exists(pfad):                       # Datei fehlt
+            return None
+        speicher = getattr(self, "_lager_symbol_cache", None)          # Cache je App
+        if speicher is None:                                           # beim ersten Bild anlegen
+            speicher = self._lager_symbol_cache = {}
+        schluessel = (pfad, int(breite), int(hoehe))                   # ein Bild je Groesse
+        if schluessel in speicher:                                     # schon geladen
+            return speicher[schluessel]
+        bild = None
+        try:                                                           # geglaetteter Weg
+            from PIL import Image, ImageTk                             # nur hier - laeuft auch ohne
+            roh = Image.open(pfad).convert("RGBA")                     # PNG mit Alphakanal
+            faktor = min(breite / float(roh.width), hoehe / float(roh.height))   # einpassen, nicht verzerren
+            ziel = (max(1, int(roh.width * faktor)), max(1, int(roh.height * faktor)))
+            roh = roh.resize(ziel, Image.LANCZOS)                      # verkleinern bzw. vergroessern
+            bild = ImageTk.PhotoImage(roh)                             # Tk-Grafik daraus
+        except Exception:                                              # noqa: BLE001 - kein Pillow
+            try:
+                bild = tk.PhotoImage(file=pfad)                        # Originalgroesse laden
+                faktor = max(1, int(round(max(bild.width() / float(breite),
+                                              bild.height() / float(hoehe)))))
+                if faktor > 1:                                         # nur ganzzahlig verkleinern
+                    bild = bild.subsample(faktor, faktor)
+            except Exception:                                          # noqa: BLE001 - Datei kaputt
+                return None
+        speicher[schluessel] = bild                                    # Tk gibt sonst frei
+        return bild
+
+    @staticmethod
+    def _lager_zahl(wert) -> str:
+        """Eine Bestandszahl anzeigen: ganzzahlig ohne Komma, grosse Zahlen mit Punkt.
+
+        Die Kachel zeigt die Zahl in einem festen Band - sie soll bei 0, 7 und 12.345 gleich
+        ruhig stehen. `%g` schneidet die sinnlose Nachkommastelle von 1334.0 ab.
+        """
+        try:
+            zahl = float(wert)
+        except (TypeError, ValueError):
+            return str(wert)
+        if abs(zahl - int(zahl)) < 1e-9:                               # ganze Zahl
+            ganz = int(zahl)
+            if abs(ganz) >= 10000:                                     # 12.345 statt 12345
+                return f"{ganz:,}".replace(",", ".")
+            return str(ganz)
+        return "%g" % zahl                                             # echte Nachkommastelle bleibt
+
+    def _lager_abschnitt(self, titel: str, zusatz: str) -> None:
+        """Die Ueberschrift eines Lagerabschnitts: Titel, Anzahl, feine Trennlinie.
+
+        Bis V_0.0.4 stand hier Entwicklertext ("die 17 Originalwaren aus data/items.json") - das
+        gehoert nicht auf den Schirm eines Spielers.
+        """
+        kopf = tk.Frame(self.content, bg=self.skin["bg"])              # Traeger der Ueberschrift
+        kopf.pack(fill=tk.X, padx=10, pady=(10, 2))
+        tk.Label(kopf, text=titel, fg=self.skin["gold"], bg=self.skin["bg"],
+                 font=("Arial", 11, "bold")).pack(side=tk.LEFT)
+        tk.Label(kopf, text=zusatz, fg=self.skin["text"], bg=self.skin["bg"],
+                 font=("Arial", 9)).pack(side=tk.LEFT, padx=8)         # Anzahl daneben, nicht darunter
+        tk.Frame(self.content, height=1, bg=self.skin["border"]).pack(fill=tk.X, padx=10, pady=(0, 4))
+
+    def _lager_kachel(self, eltern, name: str, menge, symbol: str, zeile: int, spalte: int) -> None:
+        """EINE Kachel: fester Kasten, Symbol oben, Name zweizeilig, Zahl im eigenen Band unten.
+
+        `grid_propagate(False)` haelt die Kachel auf ihren Massen - ohne das zieht sich die Zelle
+        wieder auf ihren Inhalt und die Reihe wird ungleich (der Befund aus V_0.0.4). Das Band
+        unten ist bei JEDER Kachel gleich hoch, damit die Zahl nicht springt.
+        """
+        zelle = tk.Frame(eltern, bg=self.skin["panel"], width=LAGER_KACHEL_BREITE,
+                         height=LAGER_KACHEL_HOEHE, highlightthickness=1,
+                         highlightbackground=self.skin["border"])
+        zelle.grid(row=zeile, column=spalte, padx=LAGER_KACHEL_LUECKE // 2,
+                   pady=LAGER_KACHEL_LUECKE // 2, sticky="nsew")
+        zelle.grid_propagate(False)                                    # feste Masse behalten
+        zahlband = tk.Frame(zelle, bg=self.skin["topbar"], height=24)   # das Band der Zahl
+        zahlband.pack(side=tk.BOTTOM, fill=tk.X)                       # zuerst unten packen
+        zahlband.pack_propagate(False)                                 # gleiche Hoehe bei jeder Zahl
+        tk.Label(zahlband, text=self._lager_zahl(menge), fg=self.skin["gold"],
+                 bg=self.skin["topbar"], font=("Arial", 12, "bold")).pack(expand=True)
+        kasten = tk.Frame(zelle, bg=self.skin["panel"], width=LAGER_SYMBOL_BREITE,
+                          height=LAGER_SYMBOL_HOEHE)
+        kasten.pack(pady=(8, 2))                                       # Symbol oben, mittig
+        kasten.pack_propagate(False)                                   # gleicher Kasten ohne Bild
+        bild = self._lager_symbol(symbol)                              # None heisst: kein Bild
+        if bild is not None:
+            tk.Label(kasten, image=bild, bg=self.skin["panel"]).pack(expand=True)
+            kasten.bild = bild                                         # Referenz halten
+        else:
+            tk.Label(kasten, text="-", fg="#8a8a8a", bg=self.skin["panel"],
+                     font=("Arial", 12)).pack(expand=True)              # leerer Platz, gleiche Hoehe
+        tk.Label(zelle, text=name, fg=self.skin["text"], bg=self.skin["panel"],
+                 font=("Arial", 9), wraplength=LAGER_KACHEL_BREITE - 16, justify=tk.CENTER,
+                 height=2).pack(fill=tk.X)                              # Name fest zweizeilig
+
+    def _lager_raster(self, eltern, posten) -> int:
+        """Das ganze Raster eines Abschnitts; gibt die benutzte Spaltenzahl zurueck.
+
+        `columnconfigure(..., uniform=...)` ist der Kern der Sache: dadurch sind ALLE Spalten
+        gleich breit, auch wenn ein Name lang ist ("Magischer Paladinharnisch", "Grosse
+        Handelskarawane") - vorher machte genau so ein Name seine Spalte breiter.
+        """
+        spalten = self._lager_spalten()                                 # Spalten aus der Messung
+        for i in range(spalten):                                        # gleiche Spaltenbreite
+            eltern.columnconfigure(i, uniform="lagerkachel", minsize=LAGER_KACHEL_BREITE)
+        zeilen = (len(posten) + spalten - 1) // spalten if posten else 0
+        for i in range(zeilen):                                         # gleiche Zeilenhoehe
+            eltern.rowconfigure(i, minsize=LAGER_KACHEL_HOEHE)
+        for i, (name, menge, symbol) in enumerate(posten):              # jede Kachel an ihren Platz
+            self._lager_kachel(eltern, name, menge, symbol, i // spalten, i % spalten)
+        self._lager_spalten_ist = spalten                               # fuer den Nachlauf merken
+        return spalten
+
+    def _lager_kacheln_zeichnen(self) -> None:
+        """Beide Raster (Waren, Einheiten) aus dem Spielstand neu zeichnen.
+
+        Liest den Bestand aus `GameState` - keine zweite Kasse, keine eigene Rechnung. Wird beim
+        Aufbau der Ansicht und beim Nachziehen (Fensterbreite) gerufen.
+        """
+        rahmen_waren = getattr(self, "lager_waren_rahmen", None)       # die zwei Traeger
+        rahmen_einheiten = getattr(self, "lager_einheiten_rahmen", None)
+        if rahmen_waren is None or rahmen_einheiten is None:           # Ansicht (noch) nicht da
+            return
+        waren = [(str(k), v, WARE_ICONS.get(k, "")) for k, v in sorted(self.state.waren.items())]
+        einheiten = [(getattr(u, "name", str(k)), getattr(u, "count", 0), UNIT_ICONS.get(k, ""))
+                     for k, u in self.state.units.items()]
+        for rahmen, posten in ((rahmen_waren, waren), (rahmen_einheiten, einheiten)):
+            for kind in rahmen.grid_slaves():                          # alten Stand wegnehmen
+                try:
+                    kind.destroy()
+                except Exception:                                      # noqa: BLE001
+                    pass
+            self._lager_raster(rahmen, posten)                         # neue Kacheln setzen
+
+    def _lager_nachziehen(self, _ereignis=None) -> None:
+        """Das Kachelraster bei deutlicher Breitenaenderung neu setzen (B4).
+
+        Die Kachelmasse sind fest; nur die Spaltenzahl haengt an der Fensterbreite. Der Nachlauf
+        greift deshalb nur, wenn sich die Spaltenzahl wirklich aendern wuerde - sonst kosten
+        Fensterziehen und Scrollen Bilder umsonst.
+        """
+        rahmen_waren = getattr(self, "lager_waren_rahmen", None)
+        if rahmen_waren is None:                                       # Ansicht gewechselt
+            return
+        try:
+            if not rahmen_waren.winfo_exists():                        # schon zerstoert
+                return
+            breite = int(self.content_canvas.winfo_width())            # gemessene Breite
+        except Exception:                                              # noqa: BLE001
+            return
+        if breite < 240:                                               # noch nicht vermessen
+            return
+        if self._lager_spalten() == int(getattr(self, "_lager_spalten_ist", 0) or 0):
+            return                                                     # Spaltenzahl unveraendert
+        self._lager_kacheln_zeichnen()                                 # sonst neu setzen
+
     def _render_storage(self, eigener_titel: bool = True):
         """Die LAGERVERWALTUNG des aktiven Ortes — seit S-2c steht sie IM DORFZENTRUM.
 
@@ -13328,45 +13528,31 @@ class NebelseetalApp:
         else:
             tk.Label(self.content, text="Noch keine Siedlung — es gibt (noch) kein Ortslager.",
                      fg="#8a8a8a", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
-        tk.Label(self.content, text="Waren (Reich/Übergang — die 17 Originalwaren aus data/items.json):", fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 0))
-        tk.Label(self.content, text=werkstatt.lager_text(self.state.waren), fg="#C0C0C0", bg=self.skin["bg"], wraplength=760, justify=tk.LEFT).pack(anchor=tk.W, padx=10)
-        # T4 (Daniel 11.11.2026, Bogen E2: "viel zu große Anzeigefelder für Einheiten und Items ...
-        # nur die Icons selbst sind gut und passen"): die Kacheln waren 80-90 Prozent leere Flaeche,
-        # weil JEDE Spalte und Zeile `weight=1` hatte - das Raster zog sich auf die volle Breite und
-        # verteilte den Ueberschuss als Polster. Neu: kein Gewicht, kleine Innenabstaende, acht
-        # Spalten. Die Kachel ist jetzt so gross wie ihr Inhalt; die Icons bleiben, wie sie sind.
-        goods_frame = tk.Frame(self.content, bg=self.skin["panel"])
-        goods_frame.pack(fill=tk.X, padx=10, pady=5)
-        cols = 8
-        for idx, (key, menge) in enumerate(sorted(self.state.waren.items())):
-            row = idx // cols
-            col = idx % cols
-            cell = tk.Frame(goods_frame, bg=self.skin["panel"], padx=5, pady=4, relief=tk.RIDGE, borderwidth=1)
-            cell.grid(row=row, column=col, padx=3, pady=3, sticky="nw")
-            _ware_bild = self._lade_icon(WARE_ICONS.get(key, ""))
-            if _ware_bild is not None:
-                tk.Label(cell, image=_ware_bild, bg=self.skin["panel"]).pack(pady=(0, 4))
-            else:
-                tk.Label(cell, text="?", fg=self.skin["text"], bg=self.skin["panel"], font=("Arial", 16)).pack(pady=(0, 4))
-            tk.Label(cell, text=key, fg=self.skin["text"], bg=self.skin["panel"], font=("Arial", 9)).pack()
-            tk.Label(cell, text=str(menge), fg=self.skin["gold"], bg=self.skin["panel"], font=("Arial", 11, "bold")).pack(pady=(2, 0))
-        tk.Label(self.content, text="Einheiten (Reich/Übergang):", fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 0))
-        units_frame = tk.Frame(self.content, bg=self.skin["panel"])
-        units_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
-        ucols = 8
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        for idx, (key, u) in enumerate(self.state.units.items()):
-            row = idx // ucols
-            col = idx % ucols
-            cell = tk.Frame(units_frame, bg=self.skin["panel"], padx=5, pady=4, relief=tk.RIDGE, borderwidth=1)
-            cell.grid(row=row, column=col, padx=3, pady=3, sticky="nw")
-            _bild = self._lade_icon(UNIT_ICONS.get(key, ""))
-            if _bild is not None:
-                tk.Label(cell, image=_bild, bg=self.skin["panel"]).pack(pady=(0, 4))
-            else:
-                tk.Label(cell, text="?", fg=self.skin["text"], bg=self.skin["panel"], font=("Arial", 16)).pack(pady=(0, 4))
-            tk.Label(cell, text=u.name, fg=self.skin["text"], bg=self.skin["panel"], font=("Arial", 9)).pack()
-            tk.Label(cell, text=str(u.count), fg=self.skin["gold"], bg=self.skin["panel"], font=("Arial", 11, "bold")).pack(pady=(2, 0))
+        # B4 (Daniel 12.11.2026: "besser aber immer noch nicht uebersichtlich und schoen genug
+        # gestaltet"): der Abschnitt heisst jetzt in Spielersprache, die Artenzahl steht daneben
+        # (statt des alten Entwicklertextes mit dem Dateinamen), und die Kacheln kommen aus
+        # `_lager_raster` - gleiche Masse, eigenes Zahlenband, grosses Symbol.
+        # Die alte Fliesstext-Zeile mit denselben Zahlen ist entfallen: sie zeigte den Bestand ein
+        # zweites Mal und war damit der Hauptgrund fuer den unruhigen Block.
+        _waren_summe = sum(v for v in self.state.waren.values() if isinstance(v, (int, float)))
+        self._lager_abschnitt("Waren im Lager",
+                              "%d Arten, %s Stück im Reichsbestand"
+                              % (len(self.state.waren), self._lager_zahl(_waren_summe)))
+        self.lager_waren_rahmen = tk.Frame(self.content, bg=self.skin["bg"])   # Traeger der Kacheln
+        self.lager_waren_rahmen.pack(fill=tk.X, padx=6, pady=(0, 6))
+        _einh_summe = sum(getattr(u, "count", 0) for u in self.state.units.values())
+        self._lager_abschnitt("Einheiten im Lager",
+                              "%d Arten, %s Stück im Reichsbestand"
+                              % (len(self.state.units), self._lager_zahl(_einh_summe)))
+        self.lager_einheiten_rahmen = tk.Frame(self.content, bg=self.skin["bg"])   # zweiter Traeger
+        self.lager_einheiten_rahmen.pack(fill=tk.X, padx=6, pady=(0, 6))
+        self._lager_kacheln_zeichnen()                                     # beide Raster aufbauen
+        if not getattr(self, "_lager_configure_gebunden", False):          # EINMAL binden, nicht je Aufbau
+            try:
+                self.content_canvas.bind("<Configure>", self._lager_nachziehen, add="+")
+                self._lager_configure_gebunden = True
+            except Exception:                                              # noqa: BLE001
+                pass
 
         # Teil 6c: die Werkstaetten und ihre Warteschlangen liegen IM ORT
         # (`Settlement.werkstaetten`), nicht mehr in einer reichsweiten Schlange. Gezeigt wird nur,

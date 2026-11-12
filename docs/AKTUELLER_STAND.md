@@ -1,3 +1,49 @@
+# STAND 12.11.2026, 09:40 - B4 gebaut: die Lagerkacheln sind gleich, ruhig und lesbar (Register 471/472)
+
+> Neuester Block. Darunter 00:45 (Daniels Test ausgewertet; 437 bis 458), 21:45 (T1 bis T7 gebaut),
+> 18:44 (Konzepte geprueft; 432/433), 15:21 (Originalquellen; 407 bis 411).
+
+**Daniels Reihenfolge aus der Uebergabe:** erst B4 Lagerkacheln, danach C1 Angriffsflaeche. **B4 ist
+gebaut und gemessen (Register 472).**
+
+**Der Befund war nicht die Groesse, sondern die Ordnung.** Erst im Vorschaufenster gemessen
+(1460 x 940, Inhaltsbreite 1037): Kachelbreiten **61 bis 168 px**, Hoehen **99 bis 106 px**, Symbole
+**28 bis 49 px** in verschiedenen Formen - jede Zelle war nur so gross wie ihr Inhalt, und ein langer
+Name machte seine Spalte breiter.
+
+**Was jetzt anders ist:**
+
+| Punkt | Neu | Zahl |
+|---|---|---|
+| Kachelmass | feste Groesse, `grid_propagate(False)` | 118 x 136 px (sichtbar 112 x 130) |
+| Spalten | `uniform=` - alle Spalten gleich breit | 8 aus 8 x 118 + 7 x 6 = 986 px bei 1017 px Platz |
+| Symbol | fester Kasten, Seitenverhaeltnis bleibt (Pillow/LANCZOS) | 64 x 56 px, Hoehe ueberall 56 |
+| Name | fest zweizeilig, Umbruch 102 px | `height=2`, kein Springen |
+| Zahl | eigenes dunkles Band am Kachelfuss | 24 px, in jeder Kachel auf y = 105 |
+| Ueberschrift | Spielersprache statt Entwicklertext | »Waren im Lager«, »Einheiten im Lager« + Artenzahl |
+| Doppelanzeige | die zweite Fliesstext-Zeile mit denselben Zahlen ist weg | - |
+
+**Spaltenzahl folgt der Fensterbreite** (`_lager_spalten`, gedeckelt 3 bis 9, Nachlauf nur bei
+geaenderter Spaltenzahl): 1037 -> 8, 691 -> 5, 2400 -> 9.
+
+**Wachen:** neue Datei `tests/test_lager_kacheln_b4.py` **62/0/1**; **Gegenprobe** gemacht (feste
+Breite und Hoehe entfernt -> 4 Fehler rot, Datei danach hashgleich `fa82660f73b860d7…`). Nachbarn
+alle gruen: Dorfzentrum 82/0, Doppelpuffer 15/0, Spieltest1 28/0/2, Textqualitaet 472/0, Protokoll
+28/0/1, Projektpfade 131/0, Zieluebergabe 26/0. **Der Sammellauf ueber den neuen Stand laeuft** -
+sein Ergebnis steht im Register, sobald er durch ist.
+
+**NICHT belegt:** Daniels eigene Sichtpruefung; die Skins »wald« und »feuer« sind ueber die
+Skin-Farben mitgezogen, aber nicht angesehen.
+
+**Naechster Schritt ist C1 (Angriffsflaeche):** Daniels Wort aus V_0.0.4 - »viel zu klein, ich
+erkenne kaum die doerfer«. Das ist zuerst Layout (groessere Marker, weniger Rahmen), die
+Fraktionsgestaltung kommt aus dem Designpaket.
+
+**Weiter offen:** B2 Ressourcenleiste aus dem Designpaket · B5 Karte groesser (Kopfzeile
+schrumpfen) · C2 und D1 bis D4 (brauchen Einheiten - Testspielstand als Knopf im Tor) · U4
+`beute_gutschreiben` bewusst offen · Stufe 2 bis 4 des Gesamtaudits · Release `v_0.0.4`,
+Screenshot, Chris' Freigabe und Lizenz bei Daniel.
+
 # STAND 12.11.2026, 00:45 - Daniels Test ausgewertet; zwei eigene Fehler berichtigt; Startseite live (Register 437 bis 458)
 
 > Neuester Block. Darunter 21:45 (T1 bis T7 gebaut, EXE V_0.0.4; 437 bis 448), 18:44 (Konzepte
