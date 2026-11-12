@@ -40,12 +40,18 @@ Paarungen mal sieben Paletten (Standard + sechs Haeuser) = **86 Werte**.
 | "ab 09.11.2026 sind Chris' Bilder der Massstab" | `DESIGN_ARBEITSWEISE` Z. **58-59**, F-39 |
 | Burgbilder und 125 Siedlungskarten bleiben | `DESIGN_ARBEITSWEISE` Z. **54-55** |
 
-## 4. EINE Abweichung, und sie ist ein echter Fehler
+## 4. KEINE Abweichung - und hier lag ICH falsch
 
-Claudes Hausblock Schattenfaust nennt den Sitz **"Felsenfeste Schattenfaust"**.
-`data/haeuser.json` sagt **"Felsfeste Schattenfaust"** (ohne "en"). Alle fuenf anderen Sitze
-stimmen woertlich. Folge, wenn es so in einen Prompt geht: das Modell malt eine Festung, die
-so heisst wie nichts im Spiel. **Zu berichtigen, bevor der Block benutzt wird.**
+**Berichtigung vom 12.11.2026, 03:0x, noch vor Daniels Entscheidung.**
+Ich hatte geschrieben, Claudes Hausblock Schattenfaust nenne den Sitz "Felsen**feste**
+Schattenfaust", waehrend `data/haeuser.json` "Fels**feste** Schattenfaust" sagt. **Das war falsch.**
+Die abgelegte Fassung des Handbuchs enthaelt "Felsen..." **null** mal und "Felsfeste" **einmal**
+(`grep -c` in `docs/eingaenge/CLAUDE_20261112_DESIGNPAKET/`, SHA256 `cf143076ed59625d…`).
+Ich hatte aus der Darstellung im Chat gelesen, statt die Datei zu pruefen - genau der Fehler, den
+diese Projektlinie anderen Modellen vorhaelt.
+
+**Folge:** alle sechs Sitze stimmen woertlich mit `data/haeuser.json` ueberein. Es gibt nichts zu
+berichtigen, und die von Daniel erteilte Korrektur entfaellt.
 
 ## 5. Was ich NICHT pruefen kann (und was er selbst offenlegt)
 
@@ -63,7 +69,8 @@ so heisst wie nichts im Spiel. **Zu berichtigen, bevor der Block benutzt wird.**
 ## 6. Urteil
 
 **Das Handbuch ist brauchbar und in den Zahlen sauber.** 86 von 86 Kontrastwerten, alle
-zwoelf nachpruefbaren Repo-Belege, alle drei Vorab-Befunde bestaetigt, ein Sitzname falsch.
+zwoelf nachpruefbaren Repo-Belege, alle drei Vorab-Befunde bestaetigt, **keine falsche Angabe
+gefunden** (der eine behauptete Fehler war meiner, siehe Abschnitt 4).
 Die drei Entscheidungen, die er selbst getroffen hat, sind begruendet und vertretbar:
 Rahmen immer als 9-Slice vom Spiel (R-4), KopfbAender der Hausansichten als Ausschnitt (1.4),
 Standardteile einmal statt je Skin (1.2).
