@@ -70,6 +70,32 @@ Gelaendekacheln statt eines Panoramas liefern, ein Markersystem fuer 20 bis 46 p
 bei 1037 und 691 px Breite, die Kontrastwerte und eine messbare Abnahme. Bis seine Antwort da
 ist, waere ein Umbau der Marker geraten, nicht gebaut.
 
+**Sprungregeln sind gebaut (Register 482), nach Daniels vier Entscheidungen:** die Sperre gilt
+nur fuer das **springende Dorf** (die alte globale Sperre vom 01.11. steht im Docstring), Drachen,
+Ruinen und unbebaubares Gelaende sperren auch den Spieler-Umzug, und bei **Regel 9 A** markiert
+der springende Ort seine anfliegenden Maersche (`ziel_gesprungen`) - `kampf_am_ziel` steigt vor
+der ersten Buchung aus, niemand faellt, die Truppen fliegen heim. Wache `test_sprungregeln`
+**25/0/3**, zwei Gegenproben rot.
+
+**Zwei Befunde, die wichtiger sind als der Bau:**
+
+1. **Claudes Regel 2 widerspricht dem Original.** Er sagt »Nebelsee ist nie besetzbar«. Unsere
+   Daten und das Handbuch sagen das Gegenteil: auf dem **Nebelsee steht der Tempel** (8 Mana/h),
+   und **unbebaubar ist der Sumpf** (Handbuch S. 11, BEWIESEN). Der Code folgt den Daten -
+   gesperrt wird der Sumpf, nicht der See. Wer den See sperren will, aendert `data/gelaende.json`.
+2. **Auf der Spielerwelt steht kein Drache** (die drei liegen auf den Welten 2, 3 und 5). Der
+   Umzug kann dort heute nicht an einem Drachen scheitern; der Pfad ist ueber die Quellwache belegt.
+
+**Sammellauf seriell: 221 von 222 gruen (Register 480).** Die eine rote Datei
+(`test_d5a_chris_farben`) war mein Fehler: Gelaende-Hexwerte als Beispiel in Kommentaren, und die
+Wache verbietet genau das. Berichtigt, danach 17/0/1. **Der Parallelbetrieb des Sammellaufs ist
+unbrauchbar** (Deadlock, Register 477) - Laeufe ab jetzt seriell.
+
+**Hermes ist am 12.11. gegen 12:4x mitten in den Pruefungen abgestuerzt (Register 483).** Geprueft:
+Arbeitsbaum vollstaendig, Kopf = Remote, kein `game.lock`, keine haengenden Prozesse, Import
+sauber; die zehn unterbrochenen Pruefungen liefen danach einzeln gruen. Keine Projektdatei
+beschaedigt.
+
 **Weiter offen:** B2 Ressourcenleiste aus dem Designpaket · B5 Karte groesser (Kopfzeile
 schrumpfen) · C2 und D1 bis D4 (brauchen Einheiten - Testspielstand als Knopf im Tor) · U4
 `beute_gutschreiben` bewusst offen · Stufe 2 bis 4 des Gesamtaudits · Release `v_0.0.4`,

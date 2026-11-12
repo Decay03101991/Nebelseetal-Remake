@@ -114,8 +114,11 @@ def _pruefungen_sperre():
     # S-4b (09.11.2026): die Sperre sitzt jetzt in `_dorf_versetzen` (der EINEN Buchstelle) -
     # `_portal_wechsel` ist entfernt. Die Zusage bleibt dieselbe: der Umzug fragt die Zahl der
     # laufenden Auftraege ab, bevor er etwas bucht.
-    check("_dorf_versetzen fragt die Zahl der laufenden Auftraege ab",
-          "_unterwegs_anzahl" in _code(main.NebelseetalApp._dorf_versetzen),
+    # ENTSCHEIDUNG GEAENDERT (Daniel 12.11.2026, auf Claudes Sprungregeln): die Sperre fragt
+    # nicht mehr den ganzen Spieler, sondern NUR das springende Dorf. Die Zusage bleibt dieselbe -
+    # der Umzug fragt vor dem Buchen die laufenden Auftraege ab -, nur die Stelle ist genauer.
+    check("_dorf_versetzen fragt die Zahl der laufenden Auftraege DIESES Dorfes ab",
+          "_dorf_unterwegs" in _code(main.NebelseetalApp._dorf_versetzen),
           "Aufruf fehlt")
     check("_unterwegs_anzahl liest auftraege.laufende mit der SPIELUHR",
           "auftraege.laufende" in _code(main.NebelseetalApp._unterwegs_anzahl)
@@ -232,7 +235,10 @@ def _pruefungen_fenster():
         check("die abgelehnte Anwahl laesst die alte stehen", app.portal_auswahl == (3, 7),
               str(app.portal_auswahl))
 
-        app.state.auftraege.append(_laufender_auftrag(start=0.0, reisezeit=10000.0))
+        # C2 (12.11.2026): der Auftrag muss zu DIESEM Dorf gehoeren, sonst sperrt er es nicht mehr.
+        _sperr_auftrag = _laufender_auftrag(start=0.0, reisezeit=10000.0)
+        _sperr_auftrag["von"] = "Eschenhain"
+        app.state.auftraege.append(_sperr_auftrag)
         app.state.spielsekunden = 0.0
         check("mit einem laufenden Auftrag meldet die Ansicht die Sperre",
               app._unterwegs_anzahl() == 1, str(app._unterwegs_anzahl()))

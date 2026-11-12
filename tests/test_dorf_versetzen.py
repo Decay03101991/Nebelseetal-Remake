@@ -33,6 +33,10 @@ class _App:
 
     _siedlung_nach_namen = M.NebelseetalApp._siedlung_nach_namen
     _unterwegs_anzahl = M.NebelseetalApp._unterwegs_anzahl
+    # C2 (12.11.2026): der Umzug fragt jetzt das EIGENE Dorf (Daniels Aenderung) und das
+    # Gelaende/die Drachen. Der Stellvertreter muss dieselben Methoden tragen.
+    _dorf_unterwegs = M.NebelseetalApp._dorf_unterwegs
+    _portal_feld_bebaubar = M.NebelseetalApp._portal_feld_bebaubar
     _bot_doerfer_im_raster = M.NebelseetalApp._bot_doerfer_im_raster
     _portal_belegte_felder = M.NebelseetalApp._portal_belegte_felder
     _dorf_versetzen = M.NebelseetalApp._dorf_versetzen
@@ -180,10 +184,13 @@ def main_() -> int:
     gs.resources["mana"].amount = 20000.0
     check("ein unbekannter Dorfname wird abgelehnt",
           app._dorf_versetzen("Gibt es nicht", 1, 1, START) is False, app.letzte_meldung())
-    echt = app._unterwegs_anzahl
-    app._unterwegs_anzahl = lambda: 1                            # ein Auftrag ist unterwegs
+    # ENTSCHEIDUNG GEAENDERT (Daniel 12.11.2026): die Sperre fragt nur noch die Auftraege DIESES
+    # Dorfes ab (`_dorf_unterwegs` statt `_unterwegs_anzahl`). Der Stellvertreter setzt die neue
+    # Stelle; die Zusage der Pruefung bleibt dieselbe.
+    echt = app._dorf_unterwegs
+    app._dorf_unterwegs = lambda _ort: 1                          # ein Auftrag DIESES Dorfes laeuft
     laufend = app._dorf_versetzen("Eschenhain", 1, 1, START)
-    app._unterwegs_anzahl = echt
+    app._dorf_unterwegs = echt
     check("solange etwas unterwegs ist, reist das Dorf nicht", laufend is False,
           app.letzte_meldung())
     check("die Meldung nennt den Grund (Anhang 2)", "unterwegs" in app.letzte_meldung(),

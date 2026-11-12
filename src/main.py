@@ -3644,11 +3644,13 @@ def _lade_wappen() -> tuple:
 WAPPEN, WAPPEN_GROESSE, WAPPEN_ANTEIL = _lade_wappen()
 # C1 (Daniel 11.11.2026, Testbogen V_0.0.4: "die angriffsflaeche ist viel zu klein, ich erkenne
 # kaum die doerfer" und "alles braun"): die Marker liegen als gemalte Burg auf gedaempftem Gelaende
-# in fast derselben Farbfamilie - auf Steppe (#A98A5C) bringt Gold nur 2,15 zu 1 Kontrast und
-# Weiss 3,24 zu 1, auf Wald ist es umgekehrt. EINE Farbe kann es darum nicht leisten. Der Rahmen
-# ist deshalb ZWEIFARBIG: aussen fast schwarz, innen hell bzw. Gold fuer eigene Doerfer. Gemessen
-# gegen alle sieben Gelaendefarben: mindestens eine der beiden Linien liegt ueberall ueber 3 zu 1
-# (Steppe dunkel 5,94 / Berg dunkel 6,30 / Wald hell 10,52 / Grasland hell 4,80).
+# in fast derselben Farbfamilie - auf Steppe bringt Gold nur 2,15 zu 1 Kontrast und Weiss 3,24 zu 1,
+# auf Wald ist es umgekehrt. EINE Farbe kann es darum nicht leisten. Der Rahmen ist deshalb
+# ZWEIFARBIG: aussen fast schwarz, innen hell bzw. Gold fuer eigene Doerfer. Gemessen gegen alle
+# sieben Gelaendefarben (Werte stehen in data/gelaende.json, hier absichtlich NICHT als Hex:
+# test_d5a_chris_farben verbietet eine zweite Farbtabelle in main.py) liegt mindestens eine der
+# beiden Linien ueberall ueber 3 zu 1 (Steppe dunkel 5,94 / Berg dunkel 6,49 / Wald hell 10,52 /
+# Grasland hell 4,80).
 DORF_RING_DUNKEL = "#120707"       # Aussenlinie, traegt den Kontrast auf hellem Gelaende
 DORF_RING_HELL = "#FFFFFF"         # Innenlinie fremder Doerfer, traegt ihn auf dunklem Gelaende
 UNITS: Dict[str, Unit] = {}
@@ -6275,6 +6277,13 @@ class GameState:
         gleich danach von `auftraege.spieldaten_anwenden` - also GENAU EINMAL.
         """
         ziel = eintrag.get("ziel") or {}
+        # C2 / Regel 9 Moeglichkeit A (Daniel 12.11.2026): das Ziel ist gesprungen, waehrend der
+        # Marsch unterwegs war. Dann faellt niemand und es wird nichts gebucht - die Truppen
+        # fliegen auf dem normalen Rueckweg heim. Der Merker wird in `_dorf_versetzen` gesetzt.
+        if eintrag.get("ziel_gesprungen"):
+            self._log("Ziel gesprungen: der Marsch kehrt ohne Kampf um.")
+            return {"ziel_gesprungen": True, "verluste_angreifer": {}, "verluste_verteidiger": {},
+                    "beute": {}, "geraete_verloren": []}
         # W-14 Teil 2 (05.11.2026): steht am Ziel ein DRACHE, entscheidet dieser Pfad - VOR
         # jeder Bot-Aufloesung. Ein Drache ist kein Bot-Dorf: keine Garnison, kein Wall.
         if ziel.get("drache_id"):
@@ -12250,6 +12259,45 @@ class NebelseetalApp:
                                                         index, int(dorf.x), int(dorf.y)))
         return eintraege
 
+    def _dorf_unterwegs(self, siedlung) -> int:
+        """Wie viele Auftraege DIESES Dorfes gerade unterwegs sind.
+
+        Daniel 12.11.2026, Aenderung einer frueheren Entscheidung: bis heute sperrte
+        `_unterwegs_anzahl()` den Umzug, sobald IRGENDETWAS des Spielers unterwegs war (seine
+        Entscheidung vom 01.11.2026, Anhang 2). Auf Claudes Sprungregeln hin hat er entschieden:
+        es zaehlen nur die Truppen des springenden Dorfes - ein Marsch eines ANDEREN Dorfes haelt
+        dieses Dorf nicht fest. Die alte Zusage steht darum hier weiter im Text und nicht im
+        Nichts; die Wache `test_sprungregeln` haelt die neue fest.
+        """
+        name = str(getattr(siedlung, "name", "") or "")                 # Name des Ortes
+        ident = str(getattr(siedlung, "id", "") or "")                  # seine Kennung
+        zahl = 0                                                        # Zaehler
+        for eintrag in auftraege.laufende(self.state.auftraege, self.state.spielsekunden):
+            if ident and str(eintrag.get("quelle_id") or "") == ident:  # Quelle ist dieser Ort
+                zahl += 1
+            elif name and str(eintrag.get("von") or "") == name:        # Altstand ohne quelle_id
+                zahl += 1
+        return zahl
+
+    def _portal_feld_bebaubar(self, index: int, x: int, y: int) -> bool:
+        """Darf auf diesem Weltkarten-Feld ueberhaupt ein Dorf stehen? (Gelaende, C2)
+
+        Quelle ist `portalraum.anzeige_raster` und damit am Ende `data/gelaende.json`
+        (`bebaubar` je Art) - KEINE zweite Handliste im Code. Nebelsee ist dort nicht bebaubar.
+
+        Unbekanntes Gelaende gibt **True** zurueck: eine fehlende Angabe darf einen alten
+        Spielstand nicht blockieren. Ein Feld ausserhalb des Rasters gibt False.
+        """
+        try:
+            felder = portalraum.anzeige_raster(int(index), int(portalraum._achsen()))
+        except Exception:                                                # noqa: BLE001
+            return True                                                 # ohne Karte nicht sperren
+        for feld in (felder or []):
+            if int(feld.get("x", -1)) == int(x) and int(feld.get("y", -1)) == int(y):
+                wert = feld.get("gelaende_bebaubar")
+                return True if wert is None else bool(wert)             # unbekannt = nicht sperren
+        return False                                                    # Feld gibt es nicht
+
     def _dorf_versetzen(self, name: str, x: int, y: int, welt_nummer: int = 0) -> bool:
         """Ein Dorf auf ein FREIES Feld des Portalraums setzen - die EINE Buchstelle (Schnitt S-3).
 
@@ -12275,9 +12323,10 @@ class NebelseetalApp:
             self._log(meldung)
             self.state.messages.append({"text": meldung, "type": "portal"})
             return False
-        if self._unterwegs_anzahl() > 0:                                  # (2) nichts unterwegs
-            meldung = ("Umzug gesperrt: solange Aufträge, Einheiten oder Handel unterwegs sind, "
-                       "reist das Dorf nicht (Daniel 01.11.2026, Anhang 2).")
+        if self._dorf_unterwegs(siedlung) > 0:                            # (2) DIESES Dorf ist unterwegs
+            meldung = ("Umzug gesperrt: solange Aufträge DIESES Dorfes unterwegs sind, reist es "
+                       "nicht (Daniel 12.11.2026; vorher galt die Sperre für alle Dörfer, "
+                       "Entscheidung vom 01.11.2026).")
             self._log(meldung)
             self.state.messages.append({"text": meldung, "type": "portal"})
             return False
@@ -12301,6 +12350,21 @@ class NebelseetalApp:
                                       ausschluss=str(getattr(siedlung, "name", "")))
         if not ziel.get("frei"):
             meldung = str(ziel.get("grund") or "Das Feld ist nicht frei.")
+            self._log(meldung)
+            self.state.messages.append({"text": meldung, "type": "portal"})
+            return False
+        # C2 (12.11.2026): Daniel 05.11.2026 sagt "eine Drachen- oder Ruinenkoordinate darf
+        # NIEMAND nutzen" - geprueft wurde das bisher nur beim Bot-Gruenden, nicht beim Umzug
+        # des Spielers. Und ein Nebelsee traegt kein Dorf: die Frage kommt aus `data/gelaende.json`.
+        if self.state.drachen_blockiert(nummer, int(x), int(y)):
+            meldung = (f"Auf Feld {int(x)}/{int(y)} steht ein Drache oder eine Ruine - dort kann "
+                       "kein Dorf stehen (Daniel 05.11.2026).")
+            self._log(meldung)
+            self.state.messages.append({"text": meldung, "type": "portal"})
+            return False
+        if not self._portal_feld_bebaubar(index, int(x), int(y)):
+            meldung = (f"Feld {int(x)}/{int(y)} ist {ziel.get('weltname') or 'Gelände'} ohne "
+                       "Bauland - dort kann kein Dorf stehen.")
             self._log(meldung)
             self.state.messages.append({"text": meldung, "type": "portal"})
             return False
@@ -12328,6 +12392,18 @@ class NebelseetalApp:
         siedlung.welt_x = int(x)                                          # die neue Portalposition
         siedlung.welt_y = int(y)
         siedlung.dimension = int(nummer)                                  # das Dorf steht jetzt dort
+        # C2 / Regel 9 Moeglichkeit A (Daniel 12.11.2026): das Dorf ist weg - anfliegende Maersche
+        # finden ihr Ziel nicht mehr und kehren ohne Kampf um. Der Merker wird HIER gesetzt, weil
+        # nur der springende Ort weiss, dass er gesprungen ist; `kampf_am_ziel` liest ihn und
+        # steigt VOR jeder Buchung aus.
+        for eintrag in auftraege.laufende(self.state.auftraege, self.state.spielsekunden):
+            ziel_daten = eintrag.get("ziel") or {}
+            trifft = (str(ziel_daten.get("id") or "") == str(getattr(siedlung, "id", "") or "")
+                      or str(ziel_daten.get("name") or "") == str(getattr(siedlung, "name", "")))
+            if trifft and not eintrag.get("ziel_gesprungen"):
+                eintrag["ziel_gesprungen"] = True                          # Ziel ist gesprungen
+                self._log("Ein Marsch auf %s findet das Dorf nicht mehr - er kehrt ohne Kampf um."
+                          % siedlung.name)
         self.state.eigene_dimension = int(nummer)                         # die Ansicht folgt dem Dorf
         if int(nummer) not in self.state.eigene_dimensionen:
             self.state.eigene_dimensionen.append(int(nummer))
@@ -14721,10 +14797,11 @@ class NebelseetalApp:
     def _dorf_ring(self, zeichenflaeche, cx: float, cy: float, zelle: int, eigen: bool) -> None:
         """Der ZWEIFARBIGE Kontrastrahmen um ein Dorf (C1, Daniel 12.11.2026).
 
-        Warum zwei Linien: die sieben Gelaendefarben reichen von Wald (#2E4527, dunkel) bis Berg
-        (#8E93A6, hell). Gegen Wald hilft nur eine helle Linie (10,52 zu 1), gegen Berg und Steppe
-        nur eine dunkle (6,30 und 5,94 zu 1) - Gold allein liegt auf Steppe bei 2,15 zu 1 und waere
-        dort unsichtbar. Darum aussen `DORF_RING_DUNKEL`, innen hell bzw. Skin-Gold.
+        Warum zwei Linien: die sieben Gelaendefarben (in `data/gelaende.json`, hier absichtlich
+        nicht als Hex - eine zweite Farbtabelle in dieser Datei ist verboten) reichen von Wald
+        (dunkel) bis Berg (hell). Gegen Wald hilft nur eine helle Linie (10,52 zu 1), gegen Berg
+        und Steppe nur eine dunkle (6,49 und 5,94 zu 1) - Gold allein liegt auf Steppe bei 2,15 zu 1
+        und waere dort unsichtbar. Darum aussen `DORF_RING_DUNKEL`, innen hell bzw. Skin-Gold.
 
         Der Ring traegt ein EIGENES Tag (`dorfplatte`): die Wachen zaehlen die Doerfer ueber
         `portalbote`/`portalspieler`, und ein drittes Objekt unter demselben Tag haette jede
