@@ -45,10 +45,23 @@ Dorf (aussen `#120707`, innen hell bzw. Skin-Gold fuer eigene) - Gold allein lag
 2,15 zu 1 und war dort unsichtbar, jetzt liegt mindestens eine Linie auf allen sieben
 Gelaendearten ueber 3 zu 1. Wache `test_angriff_marker_c1` **39/0/9**, zwei Gegenproben rot.
 
+**Daniels Regel nachgezogen (Register 478):** kein Feld traegt zwei Doerfer, und jede Fraktion
+hat ihre eigene Welt. `bot_doerfer_positionen_entzerren` garantiert das an EINER Stelle (beim
+Anlegen, beim Laden, nach der Voelkerwahl); gemessen: 0 Doppelbelegungen, und nach der Wahl ist
+die Welt des Spielers leer - die fuenf Bots liegen auf den Welten 1, 2, 3, 5 und 6. **Ehrlich:**
+der **Portalsprung der Bots ist nicht gebaut**, und ohne Voelkerwahl sitzt der Spieler mit den
+beiden menschlichen Bots auf Midgard (nur der unfertige Zustand vor der Wahl).
+
 **Noch offen an C1:** die Karte selbst ist in diesem Fenster **nicht groesser** geworden - die
 Kartenspalte ist mit 579 von 579 px voll belegt (gemessen). Ein groesserer Feldmassstab ginge
 nur mit Scrollen oder weniger Kopfzeile; das ist eine Gestaltungsentscheidung und steht in
 Claudes Auftrag. Die Fraktionsgestaltung kommt ebenfalls von dort.
+
+**Claudes Antwort auf Auftrag Nr. 4 ist nachgerechnet (Register 476):** **75 von 75
+Kontrastwerten stimmen**, Delta-E exakt, Layout exakt. Dokument:
+`docs/design/PRUEFUNG_CLAUDE_ANGRIFFSFLAECHE_20261112.md`. **Auftrag Nr. 5 liegt bereit
+(Register 479):** die Ressourcenleiste (T08) - gemessen 1446 x 34 px, elf Felder, kein
+Schrumpfen (bei 1200 px fehlen rechts zwei Felder).
 
 **Auftrag Nr. 4 an Claude liegt dafuer bereit (Register 473):** `AUFTRAG_CLAUDE_ANGRIFFSFLAECHE.txt`
 auf dem Desktop, 13.753 Byte, hashgleich in `docs/auftraege/`. Er bekommt die gemessenen Masse

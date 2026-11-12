@@ -1,0 +1,192 @@
+AUFTRAG NR. 5 AN CLAUDE (Klasse Opus 5.5): DIE RESSOURCENLEISTE (T08) - 34 PIXEL HOCH
+Stand: 12.11.2026, 11:2x. Von: Hermes Agent, Projekt Nebelseetal Remake. Fuer: Daniel Koessl.
+Diese Datei ist UTF-8 mit BOM; Umlaute stehen als echte Umlaute darin.
+
+=====================================================================================
+0. WARUM DIESER AUFTRAG - UND WAS SEIT DEM LETZTEN MAL ANDERS IST
+=====================================================================================
+
+Zuletzt hast du die Angriffsflaeche (T07) bearbeitet. Wir haben deine Antwort nachgerechnet:
+**75 von 75 Kontrastwerten stimmen** (Abweichung ueber 0,05: null), die Delta-E-Werte sind exakt,
+die Layout-Rechnungen auch. Dein Vorbehalt war berechtigt: du hattest das Handbuch nicht, und dein
+System traegt den Ersatz der Farben trotzdem, weil die Flaeche kein eigenes Zeichen ist.
+
+Deshalb liegt diesmal alles bei, was du damals nicht hattest:
+  - die Farben aus Teil 1.2 deines Handbuchs, woertlich (Abschnitt 2.4 hier),
+  - die echten Masse der Leiste (gemessen, Abschnitt 2),
+  - die Antworten auf die drei Punkte, die du als UNBEKANNT markiert hast.
+
+Gegenstand ist jetzt **T08 Ressourcenleiste**. Daniel hat sie zweimal durchfallen lassen, und sie
+ist der letzte grosse Punkt in seiner Liste, der noch im Code gezeichnet wird.
+
+=====================================================================================
+1. WAS DANIEL SAGT (woertlich)
+=====================================================================================
+
+Testbogen 11.11.2026 (D3/B09):
+  »ganz schrecklich, außerdem wird weder Wolle noch Leder als Ressource angezeigt,
+   das muss komplett neu designed werden«
+
+Testbogen V_0.0.4, 11.11.2026 (B2):
+  »total hässlich, der stil ist jetzt komplett weg«
+
+Damit ist klar, was er will: keine gezeichnete Notloesung mehr, sondern ein Stueck aus dem
+Designpaket. Deine Aufgabe ist der Entwurf; gebaut wird er von uns.
+
+=====================================================================================
+2. DIE GEMESSENEN ZAHLEN (12.11.2026, laufendes Programm)
+=====================================================================================
+
+2.1 Groesse der Leiste HEUTE
+    Die Leiste ist eine Zeichenflaeche von **1446 x 34 px** in einem Fenster von 1460 x 940.
+    Breite = Fensterbreite minus 14 px. **Hoehe: 34 px.**
+    Dein Handbuch setzt T08 mit **1440 x 140** an - das ist **viermal zu hoch**. Es gibt keine
+    140 px; der Streifen ist ein schmales Band, kein Kasten. (Deine Annahme war ausdruecklich als
+    ungepruefte Schaetzung markiert, hier ist die Messung.)
+
+2.2 Die elf Felder, in dieser Reihenfolge
+    Siedler · Nahrung · Holz · Stein · Metall · Gold · Mana · Wolle · Leder · Pferde · Punkte
+    Jede Zelle traegt heute **Name und Zahl als Text** (Arial 11 fett); zwischen den Zellen steht
+    eine feine goldene Trennlinie (10 Linien). **Es gibt KEINE Symbole mehr**: die frueheren acht
+    Symbolbilder waren in Daniels Fenster (1920 x 1080 bei 125 Prozent) **0 von 9 erkennbar**
+    (seine Antwort auf die Frage, welche unklar sind: »alle«).
+    Zahlen oben, Name darunter oder umgekehrt - das ist offen, es steht heute nebeneinander.
+
+2.3 Der Ueberlauf ist ein gemessener Fehler
+    In einem Fenster von **1200 px** Breite bleibt die Leiste **1446 px** breit - sie schrumpft
+    nicht, sie wird rechts **abgeschnitten**. Bei 1200 px fehlen damit 246 px, also die letzten
+    zwei bis drei Felder (Pferde, Punkte). Daniels Fenster ist oft schmaler als 1460 px.
+    **Das muss dein Layout loesen.**
+
+2.4 Die Farben aus deinem Handbuch, Teil 1.2 (Standard, woertlich)
+    Grund #2a0605 · Flaeche #3e1c1a · Leiste #1a0a09 · Gold/Akzent #FFCC33
+    Rahmen #b8862e (dein Vorschlag) · Text #F2E3BF · Warnung #ff8a70 · Erfolg #a5d67a
+    Von dir gerechnete Kontraste: Text/Grund 14,66 · Text/Flaeche 11,92 · Akzent/Grund 12,37 ·
+    Warnung/Grund 8,10 · Erfolg/Grund 11,09 · Rahmen/Grund 5,76.
+    Die sechs Haus-Paletten (Akzentfarben): Silberbach #e8667a · Hammerhall #9fb3c8 ·
+    Sternenwacht #7fcf8f · Schattenfaust #c39bea · Knochenmoor #7fb2ea · Flickwerk #ff6b6b.
+    **Diese Werte gelten. Keine neuen Farben ohne Begruendung und Kontrastwert.**
+
+2.5 Was in der Leiste NICHT stehen darf
+    - keine Symbole unter 24 px (0 von 9 waren erkennbar - die Groesse war der Grund)
+    - keine Emoji
+    - keine Zierrate, die bei schmalem Fenster den Platz der Zahlen frisst
+
+=====================================================================================
+3. DEINE ANTWORTEN AUF DEINE EIGENEN OFFENEN PUNKTE (aus deiner T07-Antwort)
+=====================================================================================
+
+3.1 »Können zwei Dörfer auf benachbarten Feldern stehen?« - **Benachbart ja, auf demselben
+    Feld nein.** Daniel hat das am 12.11.2026 klargestellt: kein Feld traegt zwei Doerfer. Ein
+    Mindestabstand ueber ein Feld hinaus ist NICHT festgelegt - zwei Doerfer duerfen direkt
+    nebeneinander liegen. Dann beruehren sich die Marker (Feld + 4 px) oder ueberlappen um 4 px;
+    deine Regel B6 (wer die Anzeige gewinnt) wird damit wirklich gebraucht.
+    Wir haben das im Spiel erzwungen: eine Stelle setzt jedes Dorf auf sein eigenes Feld
+    (gemessen: 0 Doppelbelegungen auf allen Welten).
+
+3.2 **Jede Fraktion hat ihre eigene Weltkarte und startet auf dieser.** Der Spieler startet in
+    der Welt seines Volkes. Nach der Voelkerwahl steht in SEINER Welt **kein Bot** - gemessen:
+    Welt 4 ist leer, die fuenf Bots liegen auf den Welten 1, 2, 3, 5 und 6 (je einer).
+    Feinde hat der Spieler dort erst spaeter: wenn er selbst erkundet oder wenn Bots stark genug
+    sind, mit ihren Nebendoerfern einen **Portalsprung** zu machen.
+    **Ehrlich dazu:** der Portalsprung der Bots ist **noch nicht gebaut**. Fuer die Karte heisst
+    das: ein fremdes Dorf erscheint erst, wenn es die Welt wirklich betritt - die Karte darf keine
+    Doerfer zeigen, die nur "irgendwo" liegen. Deine Anzeige-Regeln (B1 bis B6) sollten diesen
+    Fall nennen: ein Dorf, das die Welt betritt, und eines, das sie verlaesst.
+
+3.3 »Die Inhaltshoehe bei 940 px Fensterhoehe« - **589 px** (gemessen). Dein 29-px-Feld ist richtig.
+
+3.4 »Häufigkeit der Geländearten« - gemessen aus den Spieldaten (Anteil der 400 Felder):
+    **Grasland 20 · Steppe 20 · Wald 18 · Huegel 13 · Berg 12 · Sumpf 10 · Nebelsee 7 Prozent.**
+    Der Nebelsee ist der **seltenste**, nicht der dritte - deine Reihenfolge war anders.
+
+3.5 Fuer diesen Auftrag wichtig: die Ressourcen entstehen aus **Gebaeuden auf Gelaende**
+    (Holzfaeller auf Wald, Steinmetz auf Huegel/Berg, Farm auf Grasland und Steppe), Gold aus
+    Goldminen. Die Leiste zeigt also Werte, die im Minutentakt steigen.
+
+=====================================================================================
+4. DEIN AUFTRAG - FUENF TEILE
+=====================================================================================
+
+TEIL A - DAS RASTER BEI 34 PIXEL HOEHE
+    Liefere ein Spaltenraster fuer die elf Felder, das bei drei Breiten funktioniert:
+      A1  bei **1446 px** (Fenster 1460) - der Normalfall,
+      A2  bei **1186 px** (Fenster 1200) - heute brechen hier zwei bis drei Felder weg,
+      A3  bei **986 px** (Fenster 1000) - der schmale Fall.
+    Sag fuer jede Breite: Zellenbreite, Schriftgroesse, Abstaende, Trenner - und **welche Felder
+    zuerst weichen** (Prioritaet). Beispiele fuer Weichen: Zahl kuerzen (12.345 -> 12,3 k),
+    Name weg und nur die Zahl, Feld ganz ausblenden. Nenne die Regel, nicht nur das Ergebnis.
+    **Pflicht:** bei keiner der drei Breiten ist eine Zelle abgeschnitten.
+
+TEIL B - DIE GESTALTUNG DES BANDES
+      B1  Aufbau in drei Stuecken (9-Slice): linkes Endstueck, wiederholbare Mitte, rechtes
+          Endstueck - mit Pixelmassen, damit wir es kacheln und nicht dehnen (unsere harte
+          Regel: ein gemaltes Band wird NIE skaliert, es wird wiederholt).
+      B2  Die elf Zellen: Trenner (Linie? Ornament?), Innenabstand, Grundfarbe je Zelle
+          (alle gleich oder abwechselnd?), Endstuecke mit Zierrat.
+      B3  Zustaende: normal, kritisch (Bestand 0), Unterdeckung (Verbrauch groesser als Ertrag),
+          und ein Feld, das gerade steigt oder faellt - je mit einem Merkmal, das NICHT nur
+          Farbe ist.
+      B4  Was mit dem Platz zwischen den Zellen passiert, wenn das Fenster breiter wird als
+          die Zellen brauchen (heute wird die Leiste einfach breiter).
+
+TEIL C - ZAHLEN, DIE MAN LESEN KANN
+      C1  Schriftgroesse und Ziffernform (tabellarische Ziffern?), damit die Zahl bei jedem
+          Wechsel nicht springt - heute steht Arial 11 fett.
+      C2  Grosse Zahlen: ab wann wird gekuerzt, und wie (12.345 / 12,3k / 12k)?
+      C3  Name und Zahl: nebeneinander, untereinander oder Name nur als Kuerzel? Mit Massen.
+      C4  Kommt eine Rate dazu (+/- je Stunde)? Wenn ja: wo, in welcher Groesse, und wie bleibt
+          sie lesbar, ohne die Zahl zu verdraengen? Wenn nein: sag warum.
+
+TEIL D - DIE BILDER
+      D1  Fuer das Band (B1) einen englischen Prompt: Stil-Block, Motiv, Negativ-Block.
+          Wichtig: **es wird gekachelt, nicht gedehnt** - die Mitte muss an beiden Enden
+          exakt anschliessen. Sag, wie man das prueft.
+      D2  Falls du Symbole fuer die elf Felder fuer richtig haeltst, obwohl 0 von 9 erkennbar
+          waren: nenne die Mindestgroesse in Pixel und die Folge fuer die Leistenhoehe von 34 px.
+          Wenn nicht: sag ausdruecklich, dass Text allein gilt.
+      D3  Der Rueckfall ohne Bild: wie sieht die Leiste aus, wenn die Bilddatei fehlt?
+          (Bei uns laeuft das Spiel dann weiter - es darf nie leer oder kaputt aussehen.)
+
+TEIL E - ABNAHME
+      E1  Fuenf bis zehn messbare Kriterien, je mit Pruefweg (Auge / Rechnung / Messung).
+          Beispiele: »bei 1186 px ist keine Zelle abgeschnitten«, »jede Zahl liegt ueber
+          4,5 zu 1 gegen ihren Zellgrund«, »die Leiste ist bei jeder Fensterbreite 34 px hoch«,
+          »die Zahl springt beim Wechsel von 999 auf 1000 nicht«.
+      E2  Sag, was du NICHT pruefen konntest.
+
+=====================================================================================
+5. REGELN
+=====================================================================================
+
+  5.1 KEIN Code, keine Tkinter-Anweisungen. Wir bauen.
+  5.2 KEINE neuen Zahlen fuer Spielmechanik (Ertraege, Kosten, Zeiten, Deckel). Die stehen im
+      Originalhandbuch.
+  5.3 KEINE erfundenen Masse. Was du nicht weisst, schreib UNBEKANNT und sag, welche Zahl wir
+      messen sollen.
+  5.4 KEINE fremden Bilder, keine Marken, keine echten Personen, keine Gesichter, kein Blut.
+  5.5 KEINE Dateien. Antworte im Chat.
+  5.6 Kein Umbau der Spielmechanik: die Leiste ZEIGT, sie rechnet nicht.
+
+=====================================================================================
+6. WAS WIR MIT DEINER ANTWORT TUN
+=====================================================================================
+
+  - Wir rechnen jeden Kontrastwert nach (bei T07: 75 von 75 richtig).
+  - Wir messen jedes Mass im laufenden Fenster nach.
+  - Was gebaut wird, entscheidet Daniel.
+
+=====================================================================================
+7. ANHANG
+=====================================================================================
+
+  Dein Handbuch:        docs/eingaenge/CLAUDE_20261112_DESIGNPAKET/
+                        claude_designpaket_handbuch_20261112.md (Abschnitt T08 ab Zeile 478)
+  Deine T07-Antwort:    docs/eingaenge/CLAUDE_20261112_ANGRIFFSFLAECHE/
+                        CLAUDE_ANTWORT_AUFTRAG4_ANGRIFFSFLAECHE.md
+  Unsere Nachrechnung:  docs/design/PRUEFUNG_CLAUDE_ANGRIFFSFLAECHE_20261112.md
+  Die Leiste im Code:   src/main.py, `_leisten_zeichnen` und `data/ressourcenleiste.json`
+  Zahlen der Leiste:    elf Felder, Arial 11 fett, Trennlinien in Gold
+  Daniels Befunde:      docs/audits/TESTBOGEN_V_0.0.4_20261111.txt
+
+Ende des Auftrags.

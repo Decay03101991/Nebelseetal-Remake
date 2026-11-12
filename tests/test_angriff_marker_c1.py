@@ -12,6 +12,11 @@ hatte:
   ein Haufen Burgen in der linken oberen Ecke. Nur der Weg "Bot gruendet ein neues Dorf" setzte je
   eine Position, die Startdoerfer nie.
 
+  DANIELS REGEL (12.11.2026): "Doerfer duerfen auf der Weltkarte nicht auf dem selben Feld
+  landen." Deshalb gibt es `bot_doerfer_positionen_entzerren`: EINE Stelle, die auf jeder Welt
+  garantiert, dass jedes Dorf sein eigenes Feld hat. Sie setzt fehlende Lagen UND loest
+  Doppelbelegungen auf (das spaetere Dorf rueckt deterministisch weiter).
+
   BEFUND 2 (Lesbarkeit): Burg und Wappen sind gemalt und liegen in derselben Farbfamilie wie das
   Gelaende. Gold auf Steppe ergibt 2,15 zu 1 Kontrast, Weiss auf Berg 3,05 - eine EINZELNE Farbe
   kann es auf sieben Gelaendearten nicht leisten. Darum ein ZWEIFARBIGER Rahmen.
@@ -131,7 +136,7 @@ def _setzen():
 
 
 def _sicherstellen():
-    abschnitt("3. Kein Haufen auf (0,0): jeder Bot bekommt verteilte Startdoerfer")
+    abschnitt("3. Kein Haufen auf (0,0) und keine zwei Doerfer auf einem Feld")
     bot = _Bot("Haufentest")
     bot.settlements = ["Haufentest Siedlung 1", "Haufentest Siedlung 2", "Haufentest Siedlung 3"]
     doerfer = main.bot_doerfer_sicherstellen(bot)
@@ -139,10 +144,37 @@ def _sicherstellen():
     lagen = [(d.x, d.y) for d in doerfer]
     check("keines steht mehr auf (0,0)", all(l != (0, 0) for l in lagen), str(lagen))
     check("die drei liegen auf drei verschiedenen Feldern", len(set(lagen)) == 3, str(lagen))
+    # Daniel 12.11.2026: zwei Doerfer duerfen NIE auf demselben Feld stehen - auch nicht
+    # verschiedene Doerfer, die auf dieselbe Lage zeigen. `bot_doerfer_positionen_entzerren`
+    # ist die eine Stelle, die das auf JEDER Welt garantiert.
+    a = _Bot("Kollision A")
+    a.settlements = ["Kollision A Siedlung 1", "Kollision A Siedlung 2"]
+    b = _Bot("Kollision B")
+    b.settlements = ["Kollision B Siedlung 1"]
+    for _b in (a, b):
+        for d in main.bot_doerfer_sicherstellen(_b):
+            d.x, d.y = 4, 4                                    # absichtlich ALLE auf ein Feld
+    bewegt = main.bot_doerfer_positionen_entzerren([a, b])
+    felder = [(d.x, d.y) for _b in (a, b) for d in main.bot_doerfer_sicherstellen(_b)]
+    check("die Entzerrung hat Doerfer bewegt", bewegt >= 2, str(bewegt))
+    check("keine zwei Doerfer stehen auf demselben Feld", len(set(felder)) == len(felder), str(felder))
+    check("eine zweite Entzerrung aendert nichts mehr",
+          main.bot_doerfer_positionen_entzerren([a, b]) == 0,
+          str(main.bot_doerfer_positionen_entzerren([a, b])))
     quelle = inspect.getsource(main.bot_doerfer_sicherstellen)
     check("der Anlege-Weg ruft die Positionshilfe", "bot_dorf_position_setzen" in quelle)
     check("der Reparatur-Weg ruft die Positionshilfe ebenfalls",
           quelle.count("bot_dorf_position_setzen") >= 2, str(quelle.count("bot_dorf_position_setzen")))
+    # Die Entzerrung muss dort gerufen werden, wo die Bots entstehen und wo sie umziehen -
+    # sonst gilt Daniels Regel nur in der Pruefung, nicht im Spiel.
+    gesamt = inspect.getsource(main)
+    check("die Entzerrung laeuft beim Anlegen der Bots",
+          "bot_doerfer_positionen_entzerren(self.bots)" in gesamt)
+    check("sie laeuft beim Laden eines Spielstands",
+          gesamt.count("bot_doerfer_positionen_entzerren(self.bots)") >= 2,
+          str(gesamt.count("bot_doerfer_positionen_entzerren(self.bots)")))
+    check("sie laeuft nach der Voelkerwahl (Welten wechseln dort)",
+          "bot_doerfer_positionen_entzerren(self.state.bots)" in gesamt)
 
 
 def _kontraste():

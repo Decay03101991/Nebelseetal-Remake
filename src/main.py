@@ -390,7 +390,8 @@ class BotPlayer:
         bot_armee_setzen(self, werte)                                     # verteilt, keine zweite Armee
 
 
-def bot_dorf_position_setzen(dorf: "BotDorf", bot: "BotPlayer", index: int) -> None:
+def bot_dorf_position_setzen(dorf: "BotDorf", bot: "BotPlayer", index: int,
+                             belegt=None) -> None:
     """Ein Bot-Dorf auf sein FESTES Feld setzen - nur wenn dort noch die Vorgabe (0,0) steht.
 
     C1-BEFUND (12.11.2026, beim Bau der Angriffsflaeche gemessen): `bot_doerfer_sicherstellen`
@@ -400,18 +401,57 @@ def bot_dorf_position_setzen(dorf: "BotDorf", bot: "BotPlayer", index: int) -> N
     hat hier seine handfeste Ursache. Nur der Weg »Bot gruendet ein NEUES Dorf« (S-6) setzte
     je eine Position - die Startdoerfer nie.
 
+    Daniel 12.11.2026: **zwei Doerfer duerfen NICHT auf demselben Feld stehen.** `belegt` ist
+    darum die Menge der Felder, die auf DIESER Welt schon vergeben sind; ist das eigene Feld
+    darin, rueckt das Dorf deterministisch auf das naechste freie (Nummer + 1, + 2, ...).
+    Verschiedene Welten haben getrennte Karten - dort darf dieselbe Zahl stehen.
+
     Warum die Vorgabe (0,0) der Schalter ist: sie ist der einzige Wert, den niemand bewusst
     vergeben hat. `bottaktik.dorf_position` liefert aus Name und Nummer IMMER dieselbe Lage
     (kein Zufall aus der Uhr), darum ist die Reparatur wiederholbar und aendert sich nicht
-    zwischen zwei Starts. Steht ein Dorf schon richtig, wird nichts angefasst.
+    zwischen zwei Starts. Steht ein Dorf schon richtig und frei, wird nichts angefasst.
     """
     try:
-        if int(getattr(dorf, "x", 0) or 0) != 0 or int(getattr(dorf, "y", 0) or 0) != 0:
+        schon = (int(getattr(dorf, "x", 0) or 0), int(getattr(dorf, "y", 0) or 0))
+        frei = schon != (0, 0) and (belegt is None or schon not in belegt)
+        if frei:
             return                                                        # Position ist gesetzt
-        x, y = bottaktik.dorf_position(getattr(bot, "name", "Bot"), int(index))   # fest und stabil
-        dorf.x, dorf.y = int(x), int(y)                                   # eintragen
+        for schritt in range(0, 401):                                     # hoechstens alle Felder
+            x, y = bottaktik.dorf_position(getattr(bot, "name", "Bot"), int(index) + schritt)
+            if belegt is None or (int(x), int(y)) not in belegt:          # freies Feld gefunden
+                dorf.x, dorf.y = int(x), int(y)                           # eintragen
+                return
     except (KeyError, TypeError, ValueError):                             # Kern ohne Antwort
         return                                                            # dann bleibt (0,0)
+
+
+def bot_doerfer_positionen_entzerren(bots) -> int:
+    """Auf JEDER Weltkarte steht hoechstens ein Dorf je Feld - Daniel 12.11.2026.
+
+    Zwei Aufgaben in einem Durchgang, damit es nur EINE Stelle gibt:
+      1. fehlende Lagen setzen (Vorgabe (0,0)),
+      2. Doppelbelegungen aufloesen (das spaetere Dorf rueckt auf ein freies Feld).
+
+    Reihenfolge ist stabil (Bot-Liste, Dorf-Liste, beides in Spielstand-Reihenfolge) und die
+    Lage kommt aus `bottaktik.dorf_position` - derselbe Spielstand ergibt also bei jedem Start
+    dieselben Felder. Rueckgabe: Anzahl der Doerfer, die bewegt wurden (0 = nichts zu tun).
+
+    Warum nicht in `bot_doerfer_sicherstellen`: die Funktion sieht immer nur EINEN Bot und kann
+    darum eine Kollision mit einem anderen Bot derselben Welt nicht erkennen.
+    """
+    belegt = {}                                                           # Welt -> vergebene Felder
+    bewegt = 0                                                            # Zaehler fuer die Meldung
+    for bot in (bots or []):                                              # jeder Bot
+        for index, dorf in enumerate(bot_doerfer_sicherstellen(bot)):      # je Dorf seine Lage
+            welt = int(getattr(dorf, "herkunftswelt", 0) or 0) or int(getattr(dorf, "dimension", 1) or 1)
+            felder = belegt.setdefault(welt, set())                        # Felder DIESER Welt
+            vorher = (int(getattr(dorf, "x", 0) or 0), int(getattr(dorf, "y", 0) or 0))
+            bot_dorf_position_setzen(dorf, bot, index, belegt=felder)      # setzen oder umsetzen
+            nachher = (int(dorf.x), int(dorf.y))
+            felder.add(nachher)                                            # Feld ist jetzt vergeben
+            if nachher != vorher:
+                bewegt += 1
+    return bewegt
 
 
 def bot_doerfer_sicherstellen(bot: "BotPlayer") -> List["BotDorf"]:
@@ -4420,6 +4460,7 @@ class GameState:
         for b in self.bots:
             self.bot_vorrat_anlegen(b)
             bot_doerfer_sicherstellen(b)          # B-1: je Bot ein Dorf-Datensatz (Hauptdorf aus den Namen)
+        bot_doerfer_positionen_entzerren(self.bots)   # C1: jedes Dorf auf sein eigenes Feld (Daniel 12.11.2026)
 
     def bot_doerfer_auffrischen(self, bot: BotPlayer, jetzt: float, spieler_ort=None) -> int:
         """Positionen einmalig setzen und je Dorf die Taktik aus der Lage waehlen (B-2, 02.11.2026).
@@ -8399,6 +8440,7 @@ class GameState:
             self.bots = [bot_aus_stand(b) for b in saved_bots]
             for _b in self.bots:
                 bot_doerfer_sicherstellen(_b)
+            bot_doerfer_positionen_entzerren(self.bots)   # C1: Doppelbelegung aufloesen (Daniel 12.11.2026)
         # Teil 8b (Entwurf Z. 789: "_day_accum zusaetzlich sichern statt beim Laden auf 0 setzen"):
         # der Tagesrest kommt jetzt aus dem Spielstand. Ein Stand, der das Feld nicht kennt (alles
         # vor Teil 8b), beginnt unveraendert bei 0 — kein Absturz, keine erfundene Zahl.
@@ -10586,6 +10628,7 @@ class NebelseetalApp:
                 if int(dorf.dimension) == _herkunft:                    # noch NICHT umgezogen
                     dorf.dimension = _w                                 # dann in die Heimatwelt
                 dorf.herkunftswelt = _w                                 # Herkunft = Heimatwelt
+        bot_doerfer_positionen_entzerren(self.state.bots)                # C1: nach dem Wechsel neu entzerren
         werte = bottaktik.volksattribute({"fraktion": fraktion})
         self._log("Volk der Spieler: %s - %s / %s. Die fünf Gegenspieler tragen die übrigen Völker."
                   % (fraktion, werte.get("plus"), werte.get("minus")))
