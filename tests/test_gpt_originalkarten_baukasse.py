@@ -4,6 +4,15 @@
 Kein historisches 8x7-Raster, keine Reichsanzeige als Buchungskonto, kein
 Admin-Modus; der GUI-Weg zur Bauaktion wird wirklich ausgefuehrt.
 """
+
+# --- Pruefstand-Kopf (M1, 12.11.2026): Art, Stufe, BETRIFFT, DATEN ----------------
+# Gelesen von harness.kopf_lesen und tools/auswahl.py. Vorschlag aus Paket 15b
+# (gemessene Art und Dauer des Sammellaufs). Beim Anfassen der Datei genauer machen.
+PRUEF_ART = "fenster"
+PRUEF_STUFE = 2
+PRUEF_BETRIFFT = ['main:*']
+PRUEF_DATEN = ['baupreise.json', 'bausiedler.json']
+# --- Ende Pruefstand-Kopf -------------------------------------------------------
 import sys
 import tkinter as tk
 import unittest

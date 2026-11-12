@@ -1,4 +1,13 @@
 """GPT W-04: Sichtbarer Kartenrahmen ohne Feldverlust, realer Tk-Canvas (Xvfb/Windows)."""
+
+# --- Pruefstand-Kopf (M1, 12.11.2026): Art, Stufe, BETRIFFT, DATEN ----------------
+# Gelesen von harness.kopf_lesen und tools/auswahl.py. Vorschlag aus Paket 15b
+# (gemessene Art und Dauer des Sammellaufs). Beim Anfassen der Datei genauer machen.
+PRUEF_ART = "fenster"
+PRUEF_STUFE = 2
+PRUEF_BETRIFFT = ['dorfwall', 'main:*', 'originalkarten']
+PRUEF_DATEN = []
+# --- Ende Pruefstand-Kopf -------------------------------------------------------
 import sys, unittest, tkinter as tk
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'src'))

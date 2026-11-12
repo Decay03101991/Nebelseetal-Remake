@@ -6,6 +6,15 @@ Der Test aendert weder Bilddateien noch Spielstaende oder Passwortkonfiguration.
 """
 from __future__ import annotations
 
+# --- Pruefstand-Kopf (M1, 12.11.2026): Art, Stufe, BETRIFFT, DATEN ----------------
+# Gelesen von harness.kopf_lesen und tools/auswahl.py. Vorschlag aus Paket 15b
+# (gemessene Art und Dauer des Sammellaufs). Beim Anfassen der Datei genauer machen.
+PRUEF_ART = "fenster"
+PRUEF_STUFE = 2
+PRUEF_BETRIFFT = ['karten_optik_fein', 'main:*']
+PRUEF_DATEN = []
+# --- Ende Pruefstand-Kopf -------------------------------------------------------
+
 import sys
 import tkinter as tk
 import unittest

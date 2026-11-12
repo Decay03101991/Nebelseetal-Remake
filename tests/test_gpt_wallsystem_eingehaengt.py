@@ -1,6 +1,15 @@
 """GPT W-02: echte Integration Ortswall in GameState, Karte, Buchung, Punkte, Save/Load.
 Autor: ChatGPT externer Entwicklungsagent, 28.10.2026. Keine Originalwerte verändert.
 """
+
+# --- Pruefstand-Kopf (M1, 12.11.2026): Art, Stufe, BETRIFFT, DATEN ----------------
+# Gelesen von harness.kopf_lesen und tools/auswahl.py. Vorschlag aus Paket 15b
+# (gemessene Art und Dauer des Sammellaufs). Beim Anfassen der Datei genauer machen.
+PRUEF_ART = "rechnen"
+PRUEF_STUFE = 1
+PRUEF_BETRIFFT = ['dorfwall', 'main:*', 'originalkarten']
+PRUEF_DATEN = []
+# --- Ende Pruefstand-Kopf -------------------------------------------------------
 import json
 import os
 import sys

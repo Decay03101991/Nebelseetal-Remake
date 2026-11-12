@@ -21,6 +21,15 @@ Geprueft wird:
 """
 from __future__ import annotations
 
+# --- Pruefstand-Kopf (M1, 12.11.2026): Art, Stufe, BETRIFFT, DATEN ----------------
+# Gelesen von harness.kopf_lesen und tools/auswahl.py. Vorschlag aus Paket 15b
+# (gemessene Art und Dauer des Sammellaufs). Beim Anfassen der Datei genauer machen.
+PRUEF_ART = "rechnen+messen"
+PRUEF_STUFE = 2
+PRUEF_BETRIFFT = ['stimmen']
+PRUEF_DATEN = []
+# --- Ende Pruefstand-Kopf -------------------------------------------------------
+
 import glob
 import json
 import os
@@ -188,13 +197,29 @@ abschnitt("F. Jede Pruefdatei des Hauses ruft `bericht()`")
 # ---------------------------------------------------------------------------
 dateien = sorted(glob.glob(os.path.join(HIER, "test_*.py")))
 mit_bericht, ohne_bericht, halbe = [], [], []
+
+
+def _nutzt_rahmen(text: str) -> bool:
+    """Importiert die Datei `harness`? Ueber die IMPORTZEILEN, nicht ueber das Wort im Text.
+
+    Grund (13.11.2026): seit dem Pruefstand-Kopf (M1) steht in jeder Datei der Kommentar
+    "Gelesen von harness.kopf_lesen ..." - ein Textsuchlauf nach "harness" haette danach jede
+    Datei als "nutzt den Rahmen" gezaehlt. Die Frage ist der IMPORT, nicht das Wort.
+    """
+    for zeile in (text or "").splitlines():
+        zeile = zeile.strip()
+        if zeile.startswith(("import harness", "from harness import")):
+            return True
+    return False
+
+
 for pfad in dateien:
     with open(pfad, "r", encoding="utf-8", errors="replace") as datei:
         text = datei.read()
     name = os.path.basename(pfad)
     if "bericht()" in text:
         mit_bericht.append(name)                                  # schreibt Messwerte
-    elif "harness" in text:
+    elif _nutzt_rahmen(text):
         halbe.append(name)                                        # nutzt den Rahmen, meldet aber nicht
     else:
         ohne_bericht.append(name)                                 # eigener Bericht, kein Rahmen

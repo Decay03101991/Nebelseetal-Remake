@@ -1,4 +1,13 @@
 """Originalkarten: echte GameState-Persistenz und bewusst abgewiesene alte Siedlungen."""
+
+# --- Pruefstand-Kopf (M1, 12.11.2026): Art, Stufe, BETRIFFT, DATEN ----------------
+# Gelesen von harness.kopf_lesen und tools/auswahl.py. Vorschlag aus Paket 15b
+# (gemessene Art und Dauer des Sammellaufs). Beim Anfassen der Datei genauer machen.
+PRUEF_ART = "rechnen"
+PRUEF_STUFE = 1
+PRUEF_BETRIFFT = ['main:*', 'originalkarten']
+PRUEF_DATEN = []
+# --- Ende Pruefstand-Kopf -------------------------------------------------------
 import tempfile, sys, json
 from pathlib import Path
 import unittest

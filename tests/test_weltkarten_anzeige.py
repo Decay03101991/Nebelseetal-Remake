@@ -12,6 +12,15 @@ Frage 19/25/35):
 
 Diese Pruefdatei wacht ueber beides. Aufruf: python -X utf8 tests/test_weltkarten_anzeige.py
 """
+
+# --- Pruefstand-Kopf (M1, 12.11.2026): Art, Stufe, BETRIFFT, DATEN ----------------
+# Gelesen von harness.kopf_lesen und tools/auswahl.py. Vorschlag aus Paket 15b
+# (gemessene Art und Dauer des Sammellaufs). Beim Anfassen der Datei genauer machen.
+PRUEF_ART = "rechnen"
+PRUEF_STUFE = 1
+PRUEF_BETRIFFT = ['berater', 'main:*', 'portalraum', 'welt']
+PRUEF_DATEN = []
+# --- Ende Pruefstand-Kopf -------------------------------------------------------
 import ast
 import inspect
 import os

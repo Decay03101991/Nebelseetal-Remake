@@ -23,6 +23,15 @@ Aufruf:  python -X utf8 tests/test_stimmen.py
 """
 from __future__ import annotations
 
+# --- Pruefstand-Kopf (M1, 12.11.2026): Art, Stufe, BETRIFFT, DATEN ----------------
+# Gelesen von harness.kopf_lesen und tools/auswahl.py. Vorschlag aus Paket 15b
+# (gemessene Art und Dauer des Sammellaufs). Beim Anfassen der Datei genauer machen.
+PRUEF_ART = "fenster"
+PRUEF_STUFE = 3
+PRUEF_BETRIFFT = ['botkern', 'einheiten', 'kampf', 'main:*', 'stimmen', 'welt']
+PRUEF_DATEN = ['bot_stimmen.json']
+# --- Ende Pruefstand-Kopf -------------------------------------------------------
+
 import json
 import os
 import random

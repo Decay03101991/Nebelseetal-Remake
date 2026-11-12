@@ -1,3 +1,11 @@
+# --- Pruefstand-Kopf (M1, 12.11.2026): Art, Stufe, BETRIFFT, DATEN ----------------
+# Gelesen von harness.kopf_lesen und tools/auswahl.py. Vorschlag aus Paket 15b
+# (gemessene Art und Dauer des Sammellaufs). Beim Anfassen der Datei genauer machen.
+PRUEF_ART = "rechnen"
+PRUEF_STUFE = 1
+PRUEF_BETRIFFT = ['drachen', 'einheiten', 'kampf', 'welt']
+PRUEF_DATEN = []
+# --- Ende Pruefstand-Kopf -------------------------------------------------------
 import os  # importiert os fuer Pfadoperationen
 import sys  # importiert sys fuer den Modulpfad
 import json  # importiert json zum Schreiben temporaerer Dateien

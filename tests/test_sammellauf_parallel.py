@@ -12,6 +12,15 @@ Was hier zugesichert wird:
      Eintraege der anderen - gemessen beim Bau dieser Wache.
   5. Die Auswertung einer Zeile (`deute`) bleibt unveraendert: gruen nur bei RC 0 UND 0 Fehlern.
 """
+
+# --- Pruefstand-Kopf (M1, 12.11.2026): Art, Stufe, BETRIFFT, DATEN ----------------
+# Gelesen von harness.kopf_lesen und tools/auswahl.py. Vorschlag aus Paket 15b
+# (gemessene Art und Dauer des Sammellaufs). Beim Anfassen der Datei genauer machen.
+PRUEF_ART = "rechnen"
+PRUEF_STUFE = 1
+PRUEF_BETRIFFT = []
+PRUEF_DATEN = []
+# --- Ende Pruefstand-Kopf -------------------------------------------------------
 import json
 import os
 import shutil

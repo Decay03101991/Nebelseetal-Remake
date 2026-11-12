@@ -46,6 +46,15 @@ Rueckgabe: 0 = alle Ketten vollstaendig, 1 = mindestens eine Kette bricht.
 """
 from __future__ import annotations
 
+# --- Pruefstand-Kopf (M1, 12.11.2026): Art, Stufe, BETRIFFT, DATEN ----------------
+# Gelesen von harness.kopf_lesen und tools/auswahl.py. Vorschlag aus Paket 15b
+# (gemessene Art und Dauer des Sammellaufs). Beim Anfassen der Datei genauer machen.
+PRUEF_ART = "fenster"
+PRUEF_STUFE = 3
+PRUEF_BETRIFFT = ['auftraege', 'diplomatie', 'dorfwall', 'einheiten', 'forschung', 'forschungspfad', 'gebaeude_wirkung', 'gelaende', 'kampf', 'main:*', 'portalraum', 'punkte']
+PRUEF_DATEN = ['buildings.json', 'resources.json', 'verwundete.json', 'welten.json']
+# --- Ende Pruefstand-Kopf -------------------------------------------------------
+
 import ast
 import inspect as _inspect
 import json

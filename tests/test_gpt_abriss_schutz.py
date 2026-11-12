@@ -1,4 +1,13 @@
 """Externer GPT-Koordinator 28.10.: keine Abriss-Softlocks; Originalbauwerte unveraendert."""
+
+# --- Pruefstand-Kopf (M1, 12.11.2026): Art, Stufe, BETRIFFT, DATEN ----------------
+# Gelesen von harness.kopf_lesen und tools/auswahl.py. Vorschlag aus Paket 15b
+# (gemessene Art und Dauer des Sammellaufs). Beim Anfassen der Datei genauer machen.
+PRUEF_ART = "rechnen"
+PRUEF_STUFE = 1
+PRUEF_BETRIFFT = ['admin_teststand', 'main:*', 'spieloekonomie', 'versorgungsschutz']
+PRUEF_DATEN = []
+# --- Ende Pruefstand-Kopf -------------------------------------------------------
 import os,sys,copy,unittest
 sys.path.insert(0,os.path.join(os.path.dirname(__file__),'..','src'))
 import main, spieloekonomie, versorgungsschutz

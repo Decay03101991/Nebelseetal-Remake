@@ -5,6 +5,15 @@ Windows-GUI-Probe hier mit xvfb-run auf Linux. GUI-Funktionalitaet im Windows-Bu
 ist gesondert zu verifizieren.
 """
 from __future__ import annotations
+
+# --- Pruefstand-Kopf (M1, 12.11.2026): Art, Stufe, BETRIFFT, DATEN ----------------
+# Gelesen von harness.kopf_lesen und tools/auswahl.py. Vorschlag aus Paket 15b
+# (gemessene Art und Dauer des Sammellaufs). Beim Anfassen der Datei genauer machen.
+PRUEF_ART = "fenster"
+PRUEF_STUFE = 2
+PRUEF_BETRIFFT = ['admin_teststand', 'main:*', 'speichern', 'spielstaende', 'tor']
+PRUEF_DATEN = []
+# --- Ende Pruefstand-Kopf -------------------------------------------------------
 import os
 import sys
 import tempfile

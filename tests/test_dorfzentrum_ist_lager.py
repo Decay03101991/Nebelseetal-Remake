@@ -24,6 +24,15 @@ und steht gesammelt in der Uebergabe - dieser Schnitt funktioniert in beiden Fae
 
 Aufruf: python -X utf8 tests/test_dorfzentrum_ist_lager.py
 """
+
+# --- Pruefstand-Kopf (M1, 12.11.2026): Art, Stufe, BETRIFFT, DATEN ----------------
+# Gelesen von harness.kopf_lesen und tools/auswahl.py. Vorschlag aus Paket 15b
+# (gemessene Art und Dauer des Sammellaufs). Beim Anfassen der Datei genauer machen.
+PRUEF_ART = "fenster"
+PRUEF_STUFE = 2
+PRUEF_BETRIFFT = ['admin_teststand', 'gebaeude_wirkung', 'gelaende', 'main:*']
+PRUEF_DATEN = ['buildings.json']
+# --- Ende Pruefstand-Kopf -------------------------------------------------------
 import ast
 import inspect
 import os

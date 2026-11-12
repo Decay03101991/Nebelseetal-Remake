@@ -4,6 +4,15 @@ Eindeutige Originaldaten statt alter LE/AT/PA-Tests. Keine Uhr-/GUI-Abhaengigkei
 Aufruf: python -X utf8 tests/test_gpt_kampf_forum_neu.py
 """
 from __future__ import annotations
+
+# --- Pruefstand-Kopf (M1, 12.11.2026): Art, Stufe, BETRIFFT, DATEN ----------------
+# Gelesen von harness.kopf_lesen und tools/auswahl.py. Vorschlag aus Paket 15b
+# (gemessene Art und Dauer des Sammellaufs). Beim Anfassen der Datei genauer machen.
+PRUEF_ART = "rechnen"
+PRUEF_STUFE = 1
+PRUEF_BETRIFFT = ['einheiten', 'kampf', 'spieldaten']
+PRUEF_DATEN = ['units.json']
+# --- Ende Pruefstand-Kopf -------------------------------------------------------
 import copy, random, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from harness import abschnitt, bericht, check, import_src

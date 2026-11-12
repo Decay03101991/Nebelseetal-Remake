@@ -1,6 +1,15 @@
 """GPT W-03: Bot-Überfälle rechnen gegen echte Ortswälle statt Gratisbeute.
 Autor: ChatGPT, externer temporärer Koordinator. Testet bewusst MAIN-Anbindung.
 """
+
+# --- Pruefstand-Kopf (M1, 12.11.2026): Art, Stufe, BETRIFFT, DATEN ----------------
+# Gelesen von harness.kopf_lesen und tools/auswahl.py. Vorschlag aus Paket 15b
+# (gemessene Art und Dauer des Sammellaufs). Beim Anfassen der Datei genauer machen.
+PRUEF_ART = "rechnen"
+PRUEF_STUFE = 1
+PRUEF_BETRIFFT = ['botkern', 'einheiten', 'main:*']
+PRUEF_DATEN = []
+# --- Ende Pruefstand-Kopf -------------------------------------------------------
 import sys
 import unittest
 from pathlib import Path

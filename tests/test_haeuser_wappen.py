@@ -25,6 +25,15 @@ ASCII-only (Pruefdatei-Konvention): Umlaute nur als Escape.
 """
 from __future__ import annotations
 
+# --- Pruefstand-Kopf (M1, 12.11.2026): Art, Stufe, BETRIFFT, DATEN ----------------
+# Gelesen von harness.kopf_lesen und tools/auswahl.py. Vorschlag aus Paket 15b
+# (gemessene Art und Dauer des Sammellaufs). Beim Anfassen der Datei genauer machen.
+PRUEF_ART = "quelltext"
+PRUEF_STUFE = 1
+PRUEF_BETRIFFT = ['haeuser', 'main:*', 'voelker', 'welt']
+PRUEF_DATEN = ['bot_wappen.json', 'haeuser.json', 'voelker.json', 'welt_fraktionen.json', 'welten.json']
+# --- Ende Pruefstand-Kopf -------------------------------------------------------
+
 import hashlib
 import json
 import os
