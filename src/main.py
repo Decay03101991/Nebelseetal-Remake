@@ -8735,6 +8735,10 @@ class NebelseetalApp:
         self.root = root
         self.root.title("Nebelseetal Remake")
         self.root.geometry("1024x720")
+        # F-51 (Register 538): k = Bildpunkte je Tk-Pixel, GEMESSEN am Fenster. Im DPI-bewussten
+        # Prozess ist k = 1,251 (Register 537), im nicht-bewussten 1,0 - dieselbe Zahl, die
+        # `dpi_faktor` liefert. Jede neue Ansicht rechnet ihre Schriften ueber `self.schrift()`.
+        self.dpi_k = dpi_faktor(self.root)
         # Daniels Layoutwunsch 05.10.2026 (die Bauauswahl steht RECHTS neben der Karte) braucht
         # Breite: die Karte allein ist 8 x 64 + 18 = 530 px breit, die Auswahlspalte rund 330 px.
         # Darum wächst das Fenster mit dem Bildschirm — bleibt aber IMMER innerhalb von ihm.
@@ -8778,6 +8782,21 @@ class NebelseetalApp:
         else:
             self.tor_pfad = tor_pfad or tor.STANDARD_PFAD
         self._tor_screen()
+
+    # ---------- DPI (F-51, Register 538) ----------
+
+    def schrift(self, pixel: int) -> int:
+        """Eine Schriftgroesse in Pixeln auf den gemessenen DPI-Faktor umrechnen.
+
+        `schrift(13)` ist bei k = 1,251 **16 px**, bei k = 1,0 **13 px**. Das ist die EINE Stelle,
+        an der die Schriftgroessen je Ansicht wachsen - nie eine Zahl je Ansicht fest eintragen.
+        """
+        return max(1, int(round(float(pixel) * float(getattr(self, "dpi_k", 1.0)))))
+
+    def schriftart(self, pixel: int, fett: bool = False, familie: str = "Arial") -> Tuple:
+        """Fertige Tk-Schriftangabe in Pixeln: `("Arial", -16)` bzw. `("Arial", -16, "bold")`."""
+        groesse = -self.schrift(pixel)                                  # negativ = Pixel
+        return (familie, groesse, "bold") if fett else (familie, groesse)
 
     # ---------- Passworttor (Schritt 8) ----------
 
@@ -18578,6 +18597,58 @@ def logo_photo(breite: int = 460):
         return None                                                     # dann Text zeigen
 
 
+# ---------- DPI (F-51, Register 538) ----------
+# Daniel hat am 12.11.2026 entschieden: das Spiel laeuft DPI-BEWUSST. Damit ist 1 Tk-Pixel = 1
+# Bildpunkt, alles ist scharf, und das Fenster ist physisch kleiner als vorher. Gemessen (Register
+# 537): im nicht-bewussten Prozess waren 100 Tk-px 122-123 Bildpunkte breit, der Schirm 1920 x 1080
+# meldete sich als 1536 x 864. Im bewussten Prozess ist k = winfo_fpixels('1i') / 96 = 1,251.
+#
+# REIHENFOLGE IST PFLICHT: `SetProcessDpiAwareness` wirkt nur VOR dem ersten Tk-Fenster. Wird sie
+# spaeter gerufen, bleibt das Fenster weich und alle Masse sind falsch - ohne Fehlermeldung.
+
+def dpi_bewusst_machen() -> bool:
+    """Den Prozess DPI-bewusst schalten (Windows). Vor dem ersten `tk.Tk()` aufrufen.
+
+    Rueckgabe: True, wenn der Prozess bewusst ist (auch wenn er es schon war), sonst False.
+    Auf Systemen ohne die Funktion (altes Windows, Linux) bleibt es beim bisherigen Verhalten -
+    nie ein Absturz, nur die weiche Darstellung.
+    """
+    if globals().get("_DPI_BEWUSST"):                                   # schon erledigt
+        return True
+    try:
+        import ctypes                                                   # nur hier: nicht ueberall
+    except Exception:                                                   # noqa: BLE001
+        return False
+    try:
+        # 2 = PROCESS_PER_MONITOR_DPI_AWARE. Der HRESULT wird geprueft, weil die Funktion auch
+        # dann 0 zurueckgeben kann, wenn sie nichts getan hat (Windows 8.1+).
+        if ctypes.windll.shcore.SetProcessDpiAwareness(2) == 0:
+            globals()["_DPI_BEWUSST"] = True
+            return True
+    except Exception:                                                   # noqa: BLE001
+        pass
+    try:                                                                # Windows 7 / aelter
+        if ctypes.windll.user32.SetProcessDPIAware():
+            globals()["_DPI_BEWUSST"] = True
+            return True
+    except Exception:                                                   # noqa: BLE001
+        pass
+    return False
+
+
+def dpi_faktor(widget) -> float:
+    """k = Bildpunkte je Tk-Pixel, gemessen am Fenster (1,0 ohne DPI-Bewusstsein).
+
+    Nur messen, nie raten: `winfo_fpixels('1i')` liefert die von Tk angenommene Aufloesung. Im
+    nicht-bewussten Prozess ist das 96 (k = 1,0), im bewilligten 120 (k = 1,25). Der Faktor gehoert
+    zu JEDER Schriftgroesse ab jetzt: `("Arial", -app.schrift(13))`.
+    """
+    try:
+        return max(1.0, float(widget.winfo_fpixels("1i")) / 96.0)
+    except Exception:                                                   # noqa: BLE001
+        return 1.0
+
+
 def zeige_loadingpage(root):
     """Die Ladeansicht zeigen: Titelbild + Hinweis, waehrend der Start rechnet.
 
@@ -18651,6 +18722,9 @@ def main():
     except OSError:
         pass
     try:
+        # F-51 (Register 538): DPI-Bewusstsein MUSS vor dem ersten Fenster stehen - sonst skaliert
+        # Windows das ganze Fenster um 1,25 und glaettet es (gemessen Register 537).
+        dpi_bewusst_machen()
         root = tk.Tk()
         # Die Ladeansicht steht, waehrend der Start rechnet (Karte legen, Spielstand pruefen,
         # Passworttor). Sie verschwindet von selbst: das Tor raeumt alle Fensterinhalte weg.

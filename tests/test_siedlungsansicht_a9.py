@@ -110,10 +110,17 @@ def fenster():
               (bild.width(), bild.height()) == (soll, soll),
               "%dx%d" % (bild.width(), bild.height()))
         check("bei 57 px Feld ist das Bild NICHT das Originalmass 640",
-              (masse["feld"] == 64) or (bild.width() == 570),
+              (masse["feld"] == main.SIEDLUNGS_FELD_MAX) or (bild.width() == 10 * masse["feld"]),
               "%dx%d" % (bild.width(), bild.height()))
         messwert("kartenbild_kante", bild.width(), "px")
-    check("die Feldgroesse im Fenster ist 57", masse["feld"] == 57, str(masse["feld"]))
+    # ENTSCHEIDUNG GEAENDERT (F-51, Register 538, 12.11.2026): das Spiel laeuft DPI-bewusst, damit
+    # ist die sichtbare Flaeche im Betrieb 1127 x 764 statt 1037 x 589 und das Feld 64 statt 57.
+    # Diese Wache prueft darum die FORMEL, nicht die Zahl 57: im Fenster muss genau das herauskommen,
+    # was `siedlungs_masse` fuer die gemessene Flaeche ausrechnet (57 ist nur der Fall 1037 x 589).
+    check("die Feldgroesse im Fenster ist die der Formel fuer %d x %d" % (breite, hoehe),
+          masse["feld"] == main.siedlungs_masse(breite, hoehe)["feld"],
+          "%d (Formel: %d)" % (masse["feld"], main.siedlungs_masse(breite, hoehe)["feld"]))
+    messwert("feld_im_fenster", masse["feld"], "px")
     # Gegenprobe der Rechnung: das Originalmass bleibt unangetastet
     check("bei f = 64 schneidet der Code nichts zu (Bedingung steht auf SIEDLUNGS_FELD_MAX)",
           main.SIEDLUNGS_FELD_MAX == 64)
