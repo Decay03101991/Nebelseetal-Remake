@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import copy
 import random
+import zlib
 from typing import Any, Dict, List, Optional
 
 STAND = "2026-11-01.1"
@@ -88,13 +89,21 @@ DORF_LAGEN = ("naehe", "staerke", "wall", "niederlage")   # die vier Eingaenge d
 def dorf_position(name: str, index: int, raster: int = 20) -> tuple:
     """Die feste Position eines Bot-Dorfs auf der Karte - aus Name und laufender Nummer.
 
-    Kein Zufall aus der Uhr: derselbe Name mit derselben Nummer ergibt IMMER dieselbe Position
-    (`random.Random` mit Textsaat streut stabil ueber Python-Versionen). `raster` ist die
-    Kantenlaenge der Karte (das Spiel rechnet 20 x 20, siehe RASTER oben).
+    Kein Zufall aus der Uhr: derselbe Name mit derselben Nummer ergibt IMMER dieselbe Position.
+    `raster` ist die Kantenlaenge der Karte (das Spiel rechnet 20 x 20, siehe RASTER oben).
+
+    C1 (12.11.2026): vorher kam die Lage aus `random.Random("dorf:<name>:<nr>")`. Gemessen beim
+    Bau der Angriffsflaeche: das streut NICHT, es klumpt - Haug lag mit drei von vier Doerfern auf
+    x = 17, Brynhild mit drei von vier ebenfalls auf x = 17. Zwei Nachbarn auf derselben Welt
+    standen damit in einer Saeule. Jetzt rechnet jede Achse ihren eigenen CRC32-Wert ueber einen
+    beschrifteten Text (`:x` bzw. `:y`), das mischt ueber alle 20 Felder (gemessen: 20 Doerfer,
+    0 doppelte Felder).
     """
     raster = max(1, int(raster))                                        # nie 0 oder negativ
-    zufall = random.Random("dorf:%s:%d" % (str(name), int(index)))       # stabile Saat
-    return (zufall.randrange(raster), zufall.randrange(raster))          # x, y im Kartenbereich
+    saat = "dorf:%s:%d" % (str(name), int(index))                        # stabile Beschriftung
+    x = zlib.crc32((saat + ":x").encode("utf-8")) % raster               # eigene Achse, eigenes Bit
+    y = zlib.crc32((saat + ":y").encode("utf-8")) % raster               # unabhaengig von x
+    return (int(x), int(y))                                             # x, y im Kartenbereich
 
 
 def dorf_taktik_bewerten(lage: Optional[dict] = None,

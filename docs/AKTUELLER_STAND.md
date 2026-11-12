@@ -35,9 +35,20 @@ sein Ergebnis steht im Register, sobald er durch ist.
 **NICHT belegt:** Daniels eigene Sichtpruefung; die Skins »wald« und »feuer« sind ueber die
 Skin-Farben mitgezogen, aber nicht angesehen.
 
-**Naechster Schritt ist C1 (Angriffsflaeche):** Daniels Wort aus V_0.0.4 - »viel zu klein, ich
-erkenne kaum die doerfer«. Das ist zuerst Layout (groessere Marker, weniger Rahmen), die
-Fraktionsgestaltung kommt aus dem Designpaket.
+**C1 Teil 1 ist gebaut (Register 475) - und der eigentliche Grund war ein Fehler, nicht die
+Groesse:** `bot_doerfer_sicherstellen` legte jedes Bot-Dorf OHNE Position an, alle zehn
+Startdoerfer eines frischen Spiels standen auf **Feld (0,0)** - auf der Karte ein Haufen Burgen
+in der linken oberen Ecke. Jetzt setzt `bot_dorf_position_setzen` feste Lagen (auch fuer alte
+Spielstaende, beim naechsten Zug), und `bottaktik.dorf_position` streut ueber CRC32 statt in
+einer Saeule (gemessen: 20 Doerfer auf 20 Feldern). Dazu ein **zweifarbiger Kontrastrahmen** je
+Dorf (aussen `#120707`, innen hell bzw. Skin-Gold fuer eigene) - Gold allein lag auf Steppe bei
+2,15 zu 1 und war dort unsichtbar, jetzt liegt mindestens eine Linie auf allen sieben
+Gelaendearten ueber 3 zu 1. Wache `test_angriff_marker_c1` **39/0/9**, zwei Gegenproben rot.
+
+**Noch offen an C1:** die Karte selbst ist in diesem Fenster **nicht groesser** geworden - die
+Kartenspalte ist mit 579 von 579 px voll belegt (gemessen). Ein groesserer Feldmassstab ginge
+nur mit Scrollen oder weniger Kopfzeile; das ist eine Gestaltungsentscheidung und steht in
+Claudes Auftrag. Die Fraktionsgestaltung kommt ebenfalls von dort.
 
 **Auftrag Nr. 4 an Claude liegt dafuer bereit (Register 473):** `AUFTRAG_CLAUDE_ANGRIFFSFLAECHE.txt`
 auf dem Desktop, 13.753 Byte, hashgleich in `docs/auftraege/`. Er bekommt die gemessenen Masse

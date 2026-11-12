@@ -390,6 +390,30 @@ class BotPlayer:
         bot_armee_setzen(self, werte)                                     # verteilt, keine zweite Armee
 
 
+def bot_dorf_position_setzen(dorf: "BotDorf", bot: "BotPlayer", index: int) -> None:
+    """Ein Bot-Dorf auf sein FESTES Feld setzen - nur wenn dort noch die Vorgabe (0,0) steht.
+
+    C1-BEFUND (12.11.2026, beim Bau der Angriffsflaeche gemessen): `bot_doerfer_sicherstellen`
+    legte jedes Dorf ohne Position an, und niemand trug eine ein - alle zehn Bot-Doerfer des
+    frischen Spiels standen damit auf Feld (0,0). Auf der Karte war das EIN Haufen Burgen in der
+    linken oberen Ecke statt Doerfer ueber der Welt; Daniels Wort »ich erkenne kaum die doerfer«
+    hat hier seine handfeste Ursache. Nur der Weg »Bot gruendet ein NEUES Dorf« (S-6) setzte
+    je eine Position - die Startdoerfer nie.
+
+    Warum die Vorgabe (0,0) der Schalter ist: sie ist der einzige Wert, den niemand bewusst
+    vergeben hat. `bottaktik.dorf_position` liefert aus Name und Nummer IMMER dieselbe Lage
+    (kein Zufall aus der Uhr), darum ist die Reparatur wiederholbar und aendert sich nicht
+    zwischen zwei Starts. Steht ein Dorf schon richtig, wird nichts angefasst.
+    """
+    try:
+        if int(getattr(dorf, "x", 0) or 0) != 0 or int(getattr(dorf, "y", 0) or 0) != 0:
+            return                                                        # Position ist gesetzt
+        x, y = bottaktik.dorf_position(getattr(bot, "name", "Bot"), int(index))   # fest und stabil
+        dorf.x, dorf.y = int(x), int(y)                                   # eintragen
+    except (KeyError, TypeError, ValueError):                             # Kern ohne Antwort
+        return                                                            # dann bleibt (0,0)
+
+
 def bot_doerfer_sicherstellen(bot: "BotPlayer") -> List["BotDorf"]:
     """Legt fuer einen Bot fehlende Dorf-Datensaetze an - einmalig, verlustfrei, idempotent.
 
@@ -402,6 +426,8 @@ def bot_doerfer_sicherstellen(bot: "BotPlayer") -> List["BotDorf"]:
     if vorhanden:                                                         # nichts doppelt anlegen
         sauber = [d if isinstance(d, BotDorf) else BotDorf(**d) for d in vorhanden]   # dict -> Objekt
         bot.doerfer = sauber                                              # eine Form im Speicher
+        for i, dorf in enumerate(sauber):                                 # C1-Fix 12.11.2026
+            bot_dorf_position_setzen(dorf, bot, i)                         # nur wenn (0,0) steht
         for dorf in sauber:                                               # S-3: Siedler an EINEM Ort
             bot_siedler_uebernehmen(dorf)                                 # Lagerposten -> Bevoelkerung
         return sauber
@@ -425,6 +451,7 @@ def bot_doerfer_sicherstellen(bot: "BotPlayer") -> List["BotDorf"]:
                                wall_zustand=float(getattr(bot, "wall_zustand", 100.0) or 100.0),
                                gebaut=int(getattr(bot, "gebaut", 0) or 0),               # Zaehler uebernehmen
                                geforscht=int(getattr(bot, "geforscht", 0) or 0)))
+        bot_dorf_position_setzen(doerfer[-1], bot, i)                     # C1: festes Feld statt (0,0)
     bot.doerfer = doerfer                                                 # am Bot festhalten
     return doerfer
 
@@ -3575,6 +3602,15 @@ def _lade_wappen() -> tuple:
 
 
 WAPPEN, WAPPEN_GROESSE, WAPPEN_ANTEIL = _lade_wappen()
+# C1 (Daniel 11.11.2026, Testbogen V_0.0.4: "die angriffsflaeche ist viel zu klein, ich erkenne
+# kaum die doerfer" und "alles braun"): die Marker liegen als gemalte Burg auf gedaempftem Gelaende
+# in fast derselben Farbfamilie - auf Steppe (#A98A5C) bringt Gold nur 2,15 zu 1 Kontrast und
+# Weiss 3,24 zu 1, auf Wald ist es umgekehrt. EINE Farbe kann es darum nicht leisten. Der Rahmen
+# ist deshalb ZWEIFARBIG: aussen fast schwarz, innen hell bzw. Gold fuer eigene Doerfer. Gemessen
+# gegen alle sieben Gelaendefarben: mindestens eine der beiden Linien liegt ueberall ueber 3 zu 1
+# (Steppe dunkel 5,94 / Berg dunkel 6,30 / Wald hell 10,52 / Grasland hell 4,80).
+DORF_RING_DUNKEL = "#120707"       # Aussenlinie, traegt den Kontrast auf hellem Gelaende
+DORF_RING_HELL = "#FFFFFF"         # Innenlinie fremder Doerfer, traegt ihn auf dunklem Gelaende
 UNITS: Dict[str, Unit] = {}
 for _name, _e in einheiten.alle().items():
     if _e["icon"]:
@@ -14639,6 +14675,28 @@ class NebelseetalApp:
                 treffer.append((bot, dorf))                            # sonst: dieses Dorf zeigen
         return treffer
 
+    def _dorf_ring(self, zeichenflaeche, cx: float, cy: float, zelle: int, eigen: bool) -> None:
+        """Der ZWEIFARBIGE Kontrastrahmen um ein Dorf (C1, Daniel 12.11.2026).
+
+        Warum zwei Linien: die sieben Gelaendefarben reichen von Wald (#2E4527, dunkel) bis Berg
+        (#8E93A6, hell). Gegen Wald hilft nur eine helle Linie (10,52 zu 1), gegen Berg und Steppe
+        nur eine dunkle (6,30 und 5,94 zu 1) - Gold allein liegt auf Steppe bei 2,15 zu 1 und waere
+        dort unsichtbar. Darum aussen `DORF_RING_DUNKEL`, innen hell bzw. Skin-Gold.
+
+        Der Ring traegt ein EIGENES Tag (`dorfplatte`): die Wachen zaehlen die Doerfer ueber
+        `portalbote`/`portalspieler`, und ein drittes Objekt unter demselben Tag haette jede
+        Zaehlung verschoben (test_portal_fremdblick erwartet Burg + Wappen = 2 je Dorf).
+        """
+        halb = max(4.0, float(zelle) * 0.46)                           # halbe Kantenlaenge aussen
+        zeichenflaeche.create_rectangle(cx - halb, cy - halb, cx + halb, cy + halb,
+                                        fill="", outline=DORF_RING_DUNKEL, width=1,
+                                        tags=("dorfplatte",))           # die dunkle Aussenlinie
+        halb = max(3.0, halb - 1.0)                                    # eine Pixelstufe nach innen
+        innen = self.skin["gold"] if eigen else DORF_RING_HELL         # eigenes Dorf: Gold
+        zeichenflaeche.create_rectangle(cx - halb, cy - halb, cx + halb, cy + halb,
+                                        fill="", outline=innen, width=1,
+                                        tags=("dorfplatte",))           # die helle Innenlinie
+
     def _dorf_marke(self, zeichenflaeche, cx: float, cy: float, zelle: int,
                     fraktion: str, tags: tuple) -> bool:
         """Burg + Wappen einer Fraktion in eine Feldmitte zeichnen (W-8, Daniel 03.11.2026).
@@ -14659,6 +14717,7 @@ class NebelseetalApp:
         bild = self._motivbild_skaliert(burg, px, "_wappen_cache")     # gleicher Weg wie die Motive
         if bild is None:                                               # Datei fehlt / kein Pillow
             return False                                               # Aufrufer zeichnet den Kasten
+        self._dorf_ring(zeichenflaeche, cx, cy, zelle, "portalspieler" in tuple(tags))  # C1: Rahmen
         zeichenflaeche.create_image(cx, cy, image=bild, tags=tags)     # die Burg auf dem Feld
         wp = max(6, int(round(float(zelle) * float(WAPPEN_ANTEIL) / 100.0)))        # Wappengroesse
         klein = self._motivbild_skaliert(wappen, wp, "_wappen_cache") if wappen else None   # Abzeichen
@@ -14675,6 +14734,8 @@ class NebelseetalApp:
         zeigen, WO ein Dorf steht, statt leer zu bleiben.
         """
         halb = max(3.0, zelle * 0.24)                                  # halbe Kantenlaenge
+        self._dorf_ring(zeichenflaeche, cx, cy, zelle,
+                        str(farbe).upper() == "#27AE60")                # C1: derselbe Rahmen
         zeichenflaeche.create_rectangle(cx - halb, cy - halb, cx + halb, cy + halb,
                                         fill=farbe, outline="#FFE8C2", width=2, tags=tags)
         zeichenflaeche.create_line(cx - halb, cy - halb, cx + halb, cy + halb,
