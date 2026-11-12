@@ -9,6 +9,12 @@
 | **Umsetzendes Modell** | `deepseek-v4-flash` (schnelles, kleines Modell) — der Auftrag muss dafuer umsetzbar sein |
 | **Sprache der Antwort** | Deutsch, knapp, mit Zahlen |
 
+> **BERICHTIGUNG 12.11.2026, 17:1x (nach Claudes Antwort):** der Satz „Es fehlen 239 px Hoehe
+> (1120 - 881)“ in Abschnitt 1 ist **falsch** - er zieht eine Breite von einer Hoehe ab. Richtig ist
+> **Weg 2**: auf **1142 px Breite** beschneiden (Verlust **25,65 Prozent**) und **256 px Hoehe**
+> ergaenzen (128 oben, 128 unten), ohne Vergroesserung. Weg 1 (881 px breit, dann Faktor 1,296) war
+> die schlechtere der beiden Varianten. Nachgerechnet in `docs/design/PRUEFUNG_CLAUDE_AUFTRAG6_20261112.md`.
+
 ## 1. Die Lage (alles gemessen, nicht geschaetzt)
 
 Das Spiel zeigt die Gebaeude auf einer **gezeichneten Flaeche von 1142 x 1120 px (1:1)** — im
