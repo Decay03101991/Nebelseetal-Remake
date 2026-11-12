@@ -120,8 +120,77 @@ def fenster():
     root.destroy()
 
 
+def aufbau():
+    abschnitt("4. Aufbau: Spalte links (rollend), Karte rechts und GANZ sichtbar")
+    import tkinter as tk
+    root = tk.Tk()
+    root.geometry("1400x900+30+30")
+    try:
+        root.attributes("-alpha", 0.01)
+    except Exception:  # noqa: BLE001
+        pass
+    root.update()
+    app = main.NebelseetalApp(root)
+    app._build_main_ui()
+    app._erste_siedlung_gruenden()
+    for _ in range(3):
+        root.update()
+        root.update_idletasks()
+    siedlung = next((s for s in app.state.settlements if getattr(s, "karte", None)), None)
+    if siedlung is None:
+        befund("keine Siedlung mit Karte im Testaufbau")
+        root.destroy()
+        return
+    app._oeffne_siedlungskarte(siedlung)
+    for _ in range(4):
+        root.update()
+        root.update_idletasks()
+    inhalt = app.content_canvas
+    leinwand = app.karten_canvas
+    breite, hoehe = inhalt.winfo_width(), inhalt.winfo_height()
+    x = leinwand.winfo_rootx() - inhalt.winfo_rootx()
+    y = leinwand.winfo_rooty() - inhalt.winfo_rooty()
+    check("die Karte beginnt ganz oben (y = 0) - ueber ihr steht nichts",
+          y == 0, "y = %d" % y)
+    check("die Karte steht rechts von der Spalte (x > Spaltenbreite)",
+          x > 300, "x = %d" % x)
+    check("die Karte ist ganz sichtbar (rechte Kante und Unterkante in der Flaeche)",
+          x + leinwand.winfo_width() <= breite and y + leinwand.winfo_height() <= hoehe,
+          "%d+%d <= %d, %d+%d <= %d" % (x, leinwand.winfo_width(), breite,
+                                        y, leinwand.winfo_height(), hoehe))
+    spalte = getattr(app, "_spalte_leinwand", None)
+    check("die Spalte hat einen eigenen Rollbereich", spalte is not None)
+    if spalte is not None:
+        bbox = spalte.bbox("all") or (0, 0, 0, 0)
+        check("die Spalte rollt (Inhalt hoeher als die Flaeche)",
+              (bbox[3] - bbox[1]) > spalte.winfo_height(),
+              "%d px Inhalt gegen %d px Flaeche" % (bbox[3] - bbox[1], spalte.winfo_height()))
+        messwert("spalte_inhalt", bbox[3] - bbox[1], "px")
+        rollbalken = getattr(app, "_spalte_rollbalken", None)
+        check("der Rollbalken steht im Zwischenraum und ist so breit wie gemessen",
+              rollbalken is not None and rollbalken.winfo_width() == main.SIEDLUNGS_ROLLBALKEN,
+              "0" if rollbalken is None else str(rollbalken.winfo_width()))
+    # Die Koordinaten sind der BELEG, dass alle 100 Felder gezeichnet sind: zehn Buchstaben,
+    # zehn Zahlen. (Ein Bildurteil ueber den Abzug ist dafuer zu grob - gemessen 12.11.2026.)
+    spalten, zeilen = [], []
+    for item in leinwand.find_all():
+        if leinwand.type(item) != "text":
+            continue
+        text = leinwand.itemcget(item, "text")
+        cx, cy = leinwand.coords(item)[:2]
+        if cy < main.SIEDLUNGS_LEISTE:
+            spalten.append(text)
+        elif cx < main.SIEDLUNGS_LEISTE:
+            zeilen.append(text)
+    check("alle zehn Spaltenbuchstaben sind gezeichnet", len(spalten) == 10, str(spalten))
+    check("alle zehn Reihenzahlen sind gezeichnet", len(zeilen) == 10, str(zeilen))
+    messwert("spaltenbuchstaben", len(spalten), "Stueck")
+    root.destroy()
+
+
 if __name__ == "__main__":
     rechnung()
     grenzen()
     fenster()
+    aufbau()
     raise SystemExit(bericht())

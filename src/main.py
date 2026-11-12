@@ -3882,6 +3882,7 @@ LAGER_SPALTEN_HOECHSTENS = 9       # mehr als neun werden unruhig
 # Die Zahlen sind gemessen, nicht geschaetzt: Bauauswahl 300 px Wunschbreite, Koordinatenleiste 18 px,
 # Tk-Rollbalken 17 px (Register 509).
 SIEDLUNGS_ABSTAND = 16            # Abstand zwischen Spalte und Karte
+SIEDLUNGS_ROLLBALKEN = 17         # Breite des Tk-Rollbalkens (gemessen, Register 509)
 SIEDLUNGS_SPALTE_MIN = 300        # Wunschbreite der Bauauswahl (gemessen)
 SIEDLUNGS_SCHLEIER_RAND = 8       # Innenabstand des Schleiers links und rechts
 SIEDLUNGS_SCHWELLE_UEBEREINANDER = 50   # darunter: uebereinander statt nebeneinander
@@ -12423,8 +12424,6 @@ class NebelseetalApp:
         # A-9 (Register 507/511): Feldgroesse und Spaltenbreite aus der GEMESSENEN Flaeche.
         _masse = siedlungs_masse(*self._siedlungs_flaeche())
         self._siedlungs_masse = _masse
-        tk.Label(self.content, text="Siedlungskarte", font=("Blackletter", 20, "bold"),
-                 fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 2))
         siedlung = getattr(self, "karten_siedlung", None)
 
         if siedlung is None or not getattr(siedlung, "karte", None):
@@ -12449,43 +12448,86 @@ class NebelseetalApp:
             return
 
         karte = siedlung.karte
-        tk.Label(self.content, text=f"{siedlung.name} — {karte['typ_name']}",
+        # ---------- A-9 (Register 507/511): Spalte LINKS (rollend), Karte RECHTS ----------
+        # Die Karte ist 588 px hoch und damit genau so hoch wie die sichtbare Flaeche - ueber ihr
+        # darf NICHTS stehen, sonst ist die unterste Feldreihe abgeschnitten. Darum liegen Titel,
+        # Ortsbestand, Bauauswahl, Dorfuebersicht und Legende in einer eigenen, rollenden Spalte
+        # links daneben. Der Rollbalken sitzt im Zwischenraum (17 px gemessen, Register 509).
+        _karte_px = int(_masse.get("karte") or 588)
+        # Der Rollbalken sitzt im Zwischenraum und ist 17 px breit (gemessen, Register 509) - die
+        # Spalte gibt diese Breite ab, damit die Karte ihre 588 px voll behaelt.
+        _spalte_breite = max(200, int(_masse.get("spalte") or 433) - SIEDLUNGS_ROLLBALKEN
+                             + SIEDLUNGS_ABSTAND)
+        _hoehe = max(200, int(_masse.get("hoehe") or 589))
+        _reihe = tk.Frame(self.content, bg=self.skin["bg"])
+        _reihe.pack(anchor=tk.W)
+        if _masse.get("uebereinander"):                                     # schmales Fenster
+            _oben = tk.Frame(_reihe, bg=self.skin["bg"])
+            _oben.pack(anchor=tk.E)                                         # Karte oben, rechtsbuendig
+            _unten = tk.Frame(_reihe, bg=self.skin["bg"])
+            _unten.pack(anchor=tk.W, pady=(SIEDLUNGS_ABSTAND, 0))
+            spalte = _unten
+            kartenblock = _oben
+        else:                                                               # nebeneinander
+            _spalte_leinwand = tk.Canvas(_reihe, width=_spalte_breite, height=_hoehe,
+                                         bg=self.skin["bg"], highlightthickness=0, bd=0)
+            _spalte_leinwand.pack(side=tk.LEFT, anchor=tk.N)
+            _rollbalken = tk.Scrollbar(_reihe, orient=tk.VERTICAL,
+                                       command=_spalte_leinwand.yview)
+            _spalte_leinwand.configure(yscrollcommand=_rollbalken.set)
+            _rollbalken.pack(side=tk.LEFT, anchor=tk.N, fill=tk.Y)
+            spalte = tk.Frame(_spalte_leinwand, bg=self.skin["bg"])
+            _spalte_leinwand.create_window((0, 0), window=spalte, anchor=tk.NW,
+                                           width=_spalte_breite)
+            spalte.bind("<Configure>", lambda _e: _spalte_leinwand.configure(
+                scrollregion=_spalte_leinwand.bbox("all")))
+            self._spalte_leinwand = _spalte_leinwand
+            self._spalte_rollbalken = _rollbalken
+            kartenblock = tk.Frame(_reihe, bg=self.skin["bg"])
+            kartenblock.pack(side=tk.LEFT, anchor=tk.N)
+        _text_breite = _spalte_breite - 24                                   # Umbruchbreite der Texte
+        # A-9: der Titel steht jetzt IN der Spalte - ueber der Karte darf nichts liegen, sonst ist
+        # die unterste Feldreihe abgeschnitten (gemessen: der alte Titel kostete 50 px).
+        tk.Label(spalte, text="Siedlungskarte", font=("Blackletter", 20, "bold"),
+                 fg=self.skin["gold"], bg=self.skin["bg"], wraplength=_text_breite,
+                 justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(4, 2))
+        tk.Label(spalte, text=f"{siedlung.name} — {karte['typ_name']}",
                  fg=self.skin["gold"], bg=self.skin["bg"],
                  font=("TkDefaultFont", 13, "bold")).pack(anchor=tk.W, padx=10)
-        tk.Label(self.content, text="Wähle ein Feld auf der Karte. Rechts daneben steht, was dort "
+        tk.Label(spalte, text="Wähle ein Feld auf der Karte. Rechts daneben steht, was dort "
                                     "gebaut werden kann und was es einbringt.",
-                 fg="#F3F4F6", bg=self.skin["bg"], wraplength=800,
+                 fg="#F3F4F6", bg=self.skin["bg"], wraplength=_text_breite,
                  justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 2))
         # Schritt 9, Teil 3b: der Ortsbestand DIESER Siedlung steht hervorgehoben ueber der Karte.
         # Die Leiste ganz oben zeigt dagegen das ganze Reich — zwei Ansichten, zwei Zahlen
         # (KONTEXT_PAKET, Abschnitt 2, Teil 3b).
-        _bestand = tk.Frame(self.content, bg="#1B2A2F", highlightbackground="#7FD1FF",
+        _bestand = tk.Frame(spalte, bg="#1B2A2F", highlightbackground="#7FD1FF",
                             highlightthickness=1)
         _bestand.pack(fill=tk.X, padx=10, pady=(2, 4))
         tk.Label(_bestand, text="Ortsbestand dieser Siedlung (lokal — führend seit Teil 3a)",
                  fg="#7FD1FF", bg="#1B2A2F", font=("TkDefaultFont", 10, "bold")
                  ).pack(anchor=tk.W, padx=8, pady=(6, 0))
         tk.Label(_bestand, text=ortsbestand_text(siedlung), fg="#F3F4F6", bg="#1B2A2F",
-                 wraplength=820, justify=tk.LEFT).pack(anchor=tk.W, padx=8, pady=(0, 6))
+                 wraplength=_text_breite - 20, justify=tk.LEFT).pack(anchor=tk.W, padx=8, pady=(0, 6))
         # Register 70/74: steht der Ort in Nahrungsnot, steht der Grund SICHTBAR ueber dem Lager -
         # sonst sucht der Spieler, warum nichts mehr gebaut, hergestellt oder ausgebildet wird.
         _not = self._nahrungssperre(siedlung)
         if _not:
             tk.Label(_bestand, text="⚠ " + _not, fg="#FDBA74", bg="#1B2A2F",
-                     wraplength=820, justify=tk.LEFT,
+                     wraplength=_text_breite - 20, justify=tk.LEFT,
                      font=("Arial", 9, "bold")).pack(anchor=tk.W, padx=8, pady=(0, 6))
-        tk.Label(self.content, text="Zum Vergleich das ganze Reich: " + reichsbestand_text(self.state),
-                 fg="#DAA520", bg=self.skin["bg"], wraplength=820, justify=tk.LEFT,
+        tk.Label(spalte, text="Zum Vergleich das ganze Reich: " + reichsbestand_text(self.state),
+                 fg="#DAA520", bg=self.skin["bg"], wraplength=_text_breite, justify=tk.LEFT,
                  font=("Arial", 9)).pack(anchor=tk.W, padx=10, pady=(0, 4))
         zaehlung = ", ".join(f"{gelaende.name(a)} {n}" for a, n in karte["zaehlung"].items() if n)
-        tk.Label(self.content, text=f"Vorteil: {karte['vorteil']} · {zaehlung}",
-                 fg=self.skin["text"], bg=self.skin["bg"], wraplength=800,
+        tk.Label(spalte, text=f"Vorteil: {karte['vorteil']} · {zaehlung}",
+                 fg=self.skin["text"], bg=self.skin["bg"], wraplength=_text_breite,
                  justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 4))
 
-        # Daniels Wunsch 05.10.2026 (rote Stiftskizze): Karte LINKS, die Bauauswahl RECHTS
-        # daneben — vorher stand die Auswahl unter der Karte und der Platz daneben blieb leer.
-        kartenblock = tk.Frame(self.content, bg=self.skin["bg"])
-        kartenblock.pack(anchor=tk.W, padx=10)
+        # A-9 (Register 507, F-47): der Kartenblock steht seit dem 12.11.2026 RECHTS neben der
+        # Spalte und wird oben im Geruest erzeugt. Daniels alter Wunsch (05.10.2026: "Karte links,
+        # Auswahl rechts") ist damit ueberholt - die Karte braucht die volle Hoehe, damit alle
+        # 100 Felder ohne Rollen sichtbar sind.
 
         # astra-Bildgutachten 05.10.2026: 64-px-Felder mit Gelände-EMBLEM (Farbe allein
         # reicht nicht), Koordinaten statt interner Feldnummern, kräftiger Auswahlrahmen.
@@ -12496,27 +12538,28 @@ class NebelseetalApp:
         # Der Dorfwall steht NICHT mehr als eigene Zeile ueber der Karte: er hat seinen
         # Platz in der Rubrik Verteidigung (siehe `_wall_block`).
 
-        legende = tk.Frame(self.content, bg=self.skin["bg"])
+        legende = tk.Frame(spalte, bg=self.skin["bg"])
         legende.pack(anchor=tk.W, padx=10, pady=(4, 2))
         for art in gelaende.GELAENDEARTEN:
             tk.Label(legende, text="   ", bg=gelaende.farbe(art)).pack(side=tk.LEFT, padx=(5, 1))
             tk.Label(legende, text=gelaende.name(art), fg=self.skin["text"],
                      bg=self.skin["bg"]).pack(side=tk.LEFT)
-        tk.Label(self.content, text="Sumpf ist nicht bebaubar (Handbuch S. 11). "
+        tk.Label(spalte, text="Sumpf ist nicht bebaubar (Handbuch S. 11). "
                                    "Gold umrandet = gewähltes Feld; die Punkte unter einem "
                                    "Gebäude zeigen seine Ausbaustufe.",
-                 fg=self.skin["text"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(2, 4))
+                 fg=self.skin["text"], bg=self.skin["bg"],
+                 wraplength=_text_breite, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(2, 4))
 
         # Daniels Wunsch 05.10.2026 (Stiftskizze): die Auswahl steht RECHTS neben der Karte —
         # als eigene Spalte im Kartenblock, nicht als Streifen unter der Karte.
-        info = tk.Frame(kartenblock, bg=self.skin["panel"], highlightbackground="#5D4037",
+        info = tk.Frame(spalte, bg=self.skin["panel"], highlightbackground="#5D4037",
                         highlightthickness=1)
-        info.pack(side=tk.LEFT, anchor=tk.N, fill=tk.Y, padx=(12, 0))
+        info.pack(anchor=tk.W, fill=tk.X, padx=10, pady=(2, 4))
         # A-3 (Daniels Spielbericht 31.10.2026): die Dorfuebersicht steht als dritte Spalte
         # rechts neben der Karte - welche Gebaeude, wie viele, welche Stufe, welcher Ertrag je
         # Stunde, welchen Anteil sie am Ortsertrag haben, und die Summenzeile. Sie steht VOR der
         # Feldauswahl, damit sie auch ohne gewaehltes Feld sichtbar ist.
-        self._dorf_uebersicht_zeichnen(kartenblock, siedlung)
+        self._dorf_uebersicht_zeichnen(spalte, siedlung)
         # FIX04: Der historische Screenshot nennt eigene Bereiche fuer Produktion und
         # Verteidigung; buildings.json hat fuenf Originalrubriken. Statt 20 gleichartigen
         # Knopfzeilen wird jeweils nur eine Rubrik angezeigt. Status, Forschung, Kosten
@@ -12527,7 +12570,7 @@ class NebelseetalApp:
             kategorie = "Produktion"
         self._karten_baukategorie = kategorie
         tk.Label(info, text=baumenue_info.SPIELERHILFE,
-                 fg="#F5D18B", bg=self.skin["panel"], wraplength=310,
+                 fg="#F5D18B", bg=self.skin["panel"], wraplength=_text_breite - 12,
                  justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(4, 2))
         zeile = tk.Frame(info, bg=self.skin["panel"])
         zeile.pack(anchor=tk.W, fill=tk.X, padx=6, pady=(5, 3))
@@ -12554,7 +12597,7 @@ class NebelseetalApp:
                     gebaeude_wirkung.gebaeude_stufe(siedlung, "lager"):
                 tk.Label(info, text="Dorfzentrum: das Feld ist noch offen. Ein freies Feld "
                                     "anklicken, dann erscheint dort der Knopf zum Setzen.",
-                         fg="#7FD1FF", bg=self.skin["panel"], wraplength=280,
+                         fg="#7FD1FF", bg=self.skin["panel"], wraplength=_text_breite - 40,
                          justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(0, 6))
             return
 
@@ -12613,7 +12656,7 @@ class NebelseetalApp:
                          font=("TkDefaultFont", 10, "bold")).pack(anchor=tk.W, padx=6, pady=(4, 0))
                 tk.Label(_dz_rahmen, text="Es kommt kostenlos mit dem Gründungspaket - du "
                                           "bestimmst das Feld.", fg="#C0C0C0", bg="#1B2A2F",
-                         wraplength=280, justify=tk.LEFT).pack(anchor=tk.W, padx=6)
+                         wraplength=_text_breite - 40, justify=tk.LEFT).pack(anchor=tk.W, padx=6)
                 tk.Button(_dz_rahmen, text="Dorfzentrum hier setzen (kostenlos)",
                           command=lambda f=feld: self._dorfzentrum_setzen(f),
                           bg="#2563EB", fg="white", activebackground="#1D4ED8",
@@ -12636,11 +12679,11 @@ class NebelseetalApp:
         verfuegbar = sum(angebot["baubar"] for angebot in angebote)
         tk.Label(info, text=(f"{kategorie}: {verfuegbar} sofort baubar, "
                              f"{len(angebote) - verfuegbar} gesperrt / nicht finanzierbar."),
-                 fg=self.skin["text"], bg=self.skin["panel"], wraplength=310,
+                 fg=self.skin["text"], bg=self.skin["panel"], wraplength=_text_breite - 12,
                  justify=tk.LEFT).pack(anchor=tk.W, padx=6)
         if not angebote:
             tk.Label(info, text="Keine passenden Gebäude in dieser Rubrik auf diesem Feld.",
-                     fg=self.skin["text"], bg=self.skin["panel"], wraplength=310,
+                     fg=self.skin["text"], bg=self.skin["panel"], wraplength=_text_breite - 12,
                      justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(6, 0))
             # Spieltest 2 (Daniel 08.11.2026): "Ich konnte nicht ein einziges Gebaeude bauen
             # obwohl die Rohstoffe da waren" - auf einem Nebelsee gibt es in der Rubrik
@@ -12648,7 +12691,7 @@ class NebelseetalApp:
             # nicht, dass es am GELAENDE liegt. Derselbe Hinweis wie unten, eine Stelle.
             _hinweis = self._gelaende_hinweis(siedlung, art)
             if _hinweis:
-                tk.Label(info, text=_hinweis, fg="#FDBA74", bg=self.skin["panel"], wraplength=310,
+                tk.Label(info, text=_hinweis, fg="#FDBA74", bg=self.skin["panel"], wraplength=_text_breite - 12,
                          justify=tk.LEFT, font=("Arial", 9, "bold")).pack(anchor=tk.W, padx=6,
                                                                          pady=(2, 6))
             return
@@ -12658,7 +12701,7 @@ class NebelseetalApp:
         if not verfuegbar:
             _hinweis = self._gelaende_hinweis(siedlung, art)
             if _hinweis:
-                tk.Label(info, text=_hinweis, fg="#FDBA74", bg=self.skin["panel"], wraplength=310,
+                tk.Label(info, text=_hinweis, fg="#FDBA74", bg=self.skin["panel"], wraplength=_text_breite - 12,
                          justify=tk.LEFT, font=("Arial", 9, "bold")).pack(anchor=tk.W, padx=6,
                                                                          pady=(2, 4))
             # ... und wenn ANDERE Rubriken auf genau diesem Feld etwas anbieten, steht das dabei:
@@ -12680,7 +12723,7 @@ class NebelseetalApp:
             if _andere_rubriken:
                 tk.Label(info, text="In anderen Rubriken auf diesem Feld baubar — "
                                     + "; ".join(_andere_rubriken) + ".",
-                         fg="#8FE388", bg=self.skin["panel"], wraplength=310,
+                         fg="#8FE388", bg=self.skin["panel"], wraplength=_text_breite - 12,
                          justify=tk.LEFT, font=("Arial", 9, "bold")).pack(anchor=tk.W, padx=6,
                                                                          pady=(0, 4))
 
@@ -16418,7 +16461,7 @@ class NebelseetalApp:
                                "weitere Stufe hebt den Wall. Wer angreift, muss ihn zuerst "
                                "überwinden. Der Dorfwall belegt kein Kartenfeld: deshalb steht "
                                "er hier in der Rubrik Verteidigung."),
-                 fg=self.skin["text"], bg=self.skin["panel"], wraplength=310,
+                 fg=self.skin["text"], bg=self.skin["panel"], wraplength=_text_breite - 12,
                  justify=tk.LEFT).pack(anchor=tk.W, padx=6)
         if not siedlung.mauer_besetzt:
             preis = kosten_text(baukosten("verteidigungswall"))        # Preis aus der Baukasse
@@ -16436,7 +16479,7 @@ class NebelseetalApp:
             if _forschungsstand < 1:                                # Grund daneben nennen
                 tk.Label(eltern, text="Gesperrt: zuerst »Verteidigungsanlagen« erforschen.",
                          fg="#FDBA74", bg=self.skin["panel"], justify=tk.LEFT,
-                         wraplength=310).pack(anchor=tk.W, padx=6, pady=(0, 4))
+                         wraplength=_text_breite - 12).pack(anchor=tk.W, padx=6, pady=(0, 4))
         if dorfwall.kennwerte(siedlung, self.state.research)["stufe"]:
             self._mauer_reparatur_block(eltern, siedlung)              # S2: Reparatur anzeigen
 
@@ -16455,11 +16498,11 @@ class NebelseetalApp:
                        - float(self.state.spielsekunden))
             tk.Label(eltern, text=("Mauer: Stufe %d, Zustand %d Prozent. Reparatur läuft auf 100 Prozent, "
                                    "noch %d Spielsekunden." % (stufe, int(zustand), int(rest))),
-                     fg=self.skin["text"], bg=self.skin["panel"], wraplength=310,
+                     fg=self.skin["text"], bg=self.skin["panel"], wraplength=_text_breite - 12,
                      justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(2, 2))
             return
         tk.Label(eltern, text=("Mauer: Stufe %d, Zustand %d Prozent." % (stufe, int(zustand))),
-                 fg=self.skin["text"], bg=self.skin["panel"], wraplength=310,
+                 fg=self.skin["text"], bg=self.skin["panel"], wraplength=_text_breite - 12,
                  justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(2, 2))
         if pruefung["moeglich"]:                                        # Reparatur ist bezahlbar
             preis = pruefung["preis"]
@@ -16467,7 +16510,7 @@ class NebelseetalApp:
                                    "(%d Spielsekunden)." % (dorfwall._zahl(preis["holz"]),
                                                              dorfwall._zahl(preis["stein"]),
                                                              int(pruefung["sekunden"]))),
-                     fg=self.skin["text"], bg=self.skin["panel"], wraplength=310,
+                     fg=self.skin["text"], bg=self.skin["panel"], wraplength=_text_breite - 12,
                      justify=tk.LEFT).pack(anchor=tk.W, padx=6)
             tk.Button(eltern, text="Mauer reparieren",
                       command=lambda o=siedlung: self._mauer_reparatur_anklicken(o),
@@ -16476,10 +16519,10 @@ class NebelseetalApp:
             return
         for grund in pruefung["gruende"]:                               # jede Bedingung EINZELN
             tk.Label(eltern, text="- " + grund, fg="#C0C0C0", bg=self.skin["panel"],
-                     wraplength=310, justify=tk.LEFT).pack(anchor=tk.W, padx=6)
+                     wraplength=_text_breite - 12, justify=tk.LEFT).pack(anchor=tk.W, padx=6)
         if pruefung.get("naechster_schritt"):                           # und der naechste Schritt
             tk.Label(eltern, text="Nächster Schritt: " + str(pruefung["naechster_schritt"]),
-                     fg=self.skin["text"], bg=self.skin["panel"], wraplength=310,
+                     fg=self.skin["text"], bg=self.skin["panel"], wraplength=_text_breite - 12,
                      justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(2, 6))
 
     def _mauer_reparatur_anklicken(self, siedlung):
