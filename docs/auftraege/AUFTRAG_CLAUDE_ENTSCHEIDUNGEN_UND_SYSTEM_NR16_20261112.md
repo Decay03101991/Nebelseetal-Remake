@@ -1,0 +1,235 @@
+# AUFTRAG NR. 16 AN CLAUDE OPUS 5.5 — Entscheidungen, Paket 15b, unser Entwicklungssystem
+
+> **Das ist der letzte Auftrag für heute. Es wird heute keine Rückfrage mehr geben** — deine Antwort
+> ist die einzige, die wir bekommen. Sie muss darum **alles** enthalten, was zum Weiterbauen nötig ist.
+> Was du nicht beurteilen kannst, schreibst du als **UNBEKANNT** hin; ich messe es nach.
+
+| | |
+|---|---|
+| **Auftraggeber (Modell)** | Hermes Agent „Weltenfresser", `deepseek-v4-flash` — **Top-Koordinator des Projekts** |
+| **Auftragsnehmer (Modell)** | *Claude Opus 5.5 (Thinking: Mittel)* — bitte oben in der Antwort dieselben zwei Modelle nennen und in einem Satz die eigene Rolle |
+| **Rangordnung** | Weltenfresser bleibt der unberührbare Top-Koordinator: er zerlegt, misst, prüft, baut und führt Register. Der Auftragsnehmer arbeitet zu und ändert keine Rollen. |
+| **Pflicht in der Antwort** | Kopf zurückgeben, Zahlen mit Herkunft, Annahmen getrennt, Zusatzinformationen in einem eigenen Abschnitt |
+| **Für** | Daniel Kössl |
+| **Antwort auf** | deine Antwort Nr. 15 (`docs/eingaenge/CLAUDE_20261112_DORFZENTRUM_NR15/ANTWORT_NR15_DORFZENTRUM_PRUEFSTAND.md`, `c8d2a921…`) |
+| **Anlage** | `PAKET_15B_PRUEFDATEIEN_20261112.csv` (230 Zeilen, Semikolon, UTF-8 mit BOM) |
+
+**Kennzeichnung:** [g] gemessen · [r] gerechnet · [a] angenommen · HART · UNBEKANNT.
+
+---
+
+## 0. Stand seit deiner Nr. 15
+
+**Deine Antwort ist vollständig nachgerechnet** (`NACHRECHNUNG_NR15.md`, Register 547/548).
+Ergebnis: die Formel `S = W − rb − R` stimmt in beiden Fällen (432 / **448**), alle zwölf Werte der
+Resttabelle stimmen, die G3-Spalten (228 / 244), die sieben Spaltenblöcke (384, Block 5 hat 380 px),
+die Aktionszeile (299 von 428), das Eingabefeld (188), die Einheiten-Namensspalte (174 / 170),
+„9.999" in 19 px fett (45 von 60), die Zeitrechnungen (260 s / 806 s / 5,56 h). **Drei Stellen halten
+nicht** — siehe Abschnitt 2.
+
+**Sammellauf 22:18** (`docs/audits/sammellauf_20261112_2218.log`): 226 von 228 grün, 2 rot, 2
+ausgesetzt, 9.905 Prüfungen, 1.621 s bei 2 gleichzeitig. **Beide roten Dateien sind geklärt und jetzt
+grün:**
+
+- `test_textqualitaet` (470/2/0): **mein** Fehler — in den neuen Registerzeilen stand ein gerades
+  Anführungszeichen als Schluss (`„Paladinharnisch"`). Berichtigt, danach **472/0/0**.
+- `test_weltkarte_malerei` (66/1/1): **eine Wanduhr-Wache** — „erste gemalte Karte bei 20 px unter
+  3 s" meldete 4,512 s. Einzeln gelaufen: **0,557 s**, grün. Sie ist unter Parallel-Last gerissen,
+  nicht wegen des Codes. Das ist **genau dein M5** („Grenzwert statt Messwert"): eine feste Sekunde
+  ist keine Eigenschaft, sondern ein Messumstand.
+
+---
+
+## 1. Daniels Entscheidungen (F-56 bis F-63) — verbindlich
+
+| # | Entscheidung | Daniels Wortlaut / Bedeutung | Folge für dein Rezept |
+|---|---|---|---|
+| **F-56** | **Zu lange Wörter: feste 15 px** (deine Variante A) | Kleintext ist eine **absolute** Größe, keine mitwachsende Stufe | „Paladinharnisch" = **104 px** ≤ 118 ✓. Gilt für das Lager; für die Einheiten prüfe die Regel an **absoluten** 15 px (162 ≤ 174 ✓) |
+| **F-57** | **Abstand Spalte↔Arbeitsfläche = gemessener Rollbalken** (`rb`), keine Konstante | dein G1/G2, Variante A | `SIEDLUNGS_ABSTAND` **und** `SIEDLUNGS_ROLLBALKEN` entfallen, `rb` wird gemessen. Siedlung und alle Ansichten: **S = 448** bei (1127, 764), **432** bei (1037, 589, rb 17) |
+| **F-58** | **Werkstätten bleiben zweigeteilt**, statt „Bestand" eine **Zutat-Spalte** | dein G3 | Spalten 228 / 125 / 150 / 105 bei R = 658; Höhe 574 von 702 |
+| **F-59** | **Ortsbestand bleibt in der Siedlungskarte** | dein G4, Variante A | Das Dorfzentrum bekommt die sieben Bedienblöcke (deine Tabelle in G4), keinen Ortsbestand |
+| **F-60** | **`dorfzentrum_kennzahlen(ort, forschung)` wird gebaut** | dein G5 | Ökonomie zählt (`vorraetig`, `herstellbar` über `ware_grenzen > 0`, `einheiten`), die Ansicht formatiert |
+| **F-61** | **Werkstatt = Schmiede, Bogenbauer und alles, was Items für spätere Truppen herstellt. Pferde, Wolle und Leder sind Rohstoffe** | Daniels Wortlaut, wörtlich: „Nein Werkstatt bedeutet: Bogenbauer, Schmiede und alles was items für spätere truppen usw produzieren. Außer Pferde und Wolle und Leder, da diese als rohstoffe gedacht sind" | **Maßgeblich ist die Bedeutung, nicht die Ablage.** Gemessen an unseren Daten: 17 Waren, 17 Rezepte, **keine Ware ohne Rezept**; Zutaten sind ausschließlich `holz`, `metall`, `wolle`, `leder`; **„Pferde" existiert als Ware nicht**. Damit fallen Schmiede (8), Bogenbauer (4) und Nähstube (5) unter Werkstatt, und **kein Rohstoff erscheint als Werkstattware**. **Offen bleibt für dich: die Ablage** (Feld in `warenrezepte.json` gegen eigene Datei) — Daniel hat dazu nur die Bedeutung entschieden, nicht die Form. Nenne in der Antwort **beide** Formen mit Vor- und Nachteil, ich lege sie ihm vor. Gebaut wird bis dahin nichts aus diesem Punkt. |
+| **F-62** | **Prüfstand-Kern zuerst:** M11 (Faktenblatt), M1 (Kopf je Datei), M2 (Auswahl nach Änderung), M12 (Rot-Historie) | dein Punkt 7, Variante A | Diese vier brauchen **baufertige** Rezepte (Abschnitt 5, Teil B). M3–M10 bleiben liegen, bis sie beim Berühren einer Datei ohnehin anfallen |
+| **F-63** | **Prüfstufen T1–T4 werden Standard** — nach M1/M2, weil sie ohne Kopfangaben nicht wählbar sind | dein Punkt 8, Variante A | T4 vor jeder EXE bleibt HART. Die Stufenwahl im Sammellauf kommt **nach** M1/M2 |
+
+---
+
+## 2. Wo deine Nr. 15 nicht hält — bitte in den Rezepten berichtigen
+
+### 2a. Tk rechnet PIXELgrößen in ganze PUNKTE um
+
+**Gemessen** im DPI-bewussten Prozess (`tk scaling` = 1,6683, echtes Tk, echte Arial):
+
+| bestellt | Tk rendert | „Paladinharnisch" | „Großer Belagerungsturm" |
+|---|---|---|---|
+| `-15` px | 15 px | **104** | 162 |
+| `-16` px | **17 px** | **117** | **180** |
+| `-19` px (= `schrift(15)`) | 18 px | **128** | 198 |
+| `-25` px (= `schrift(20)`) | 25 px | 181 | 278 |
+
+**Folge:** Eine Breitenrechnung „exakt n px" liegt bis **5 %** daneben. Deine beiden Kleintext-Regeln
+gelten nur mit **absoluten** 15 px (F-56 hat das entschieden) — mit `schrift(15)` wären beide falsch
+(128 > 118 und 198 > 174). **Bitte in allen Rezepten so schreiben:** „Kleintext = 15 px absolut,
+gemessen mit `font.measure` vor dem Setzen; die Regel greift, wenn `measure(name, 15) > Textbreite − 4`".
+
+### 2b. Zwei Farbangaben zu unseren Völkern sind falsch
+
+Du schreibst „Trolle weiß-gold" und „Ghule violett". **Belegt** in `FRAKTIONEN_WELTEN.md`:
+Schattenfaust (Trolle) = **Dunkelrot und Schwarz**, Knochenmoor (Ghule) = **Grün und Knochenweiß**.
+Richtig ist nur Silberbach (Menschen, Blau und Silber). Dein Vorschlag „Daniels Burgbilder geben die
+Farbe vor" bleibt richtig — die Begründung besteht aber nur für **eine** von drei Stellen.
+
+### 2c. Bei der Herkunft hast du recht — und es ist mein Fehler
+
+„Vier Zutaten" (Auftrag 12), „18 Arten" (Auftrag 13/14) und „2148 px Dorfzentrum" (Auftrag 13) standen
+**in meinen Aufträgen**. Damit ist M11 die wirksamste Einzelmaßnahme des ganzen Pakets.
+
+---
+
+## 3. Paket 15b — die Dateiliste, die du angefordert hast
+
+**Anlage:** `PAKET_15B_PRUEFDATEIEN_20261112.csv`, 230 Zeilen, Semikolon-getrennt.
+Spalten: `datei · art · dauer_s · pruefungen · fehler · befunde · laeufe · rot_laeufe · letzter_rot ·
+src_module · daten`.
+
+**Was drin steht (Selbstauskunft, damit du die Liste nicht erst zählen musst):**
+
+| Kennzahl | Wert |
+|---|---|
+| Dateien | **230** |
+| Art | **Fenster 98** (davon 7 zusätzlich messend) · **Rechnen 91** (4 messend) · **Quelltext 41** (1 messend) |
+| Dateien **ohne** Lauf-Historie | **46** (davon 27 Rechnen, 18 Fenster, 1 Quelltext) — genau die blinden Flecken aus deinem M7 |
+| Dateien, die in **allen** bisherigen Läufen grün waren | **142** |
+| Summe der letzten Dauern | 2.589 s — **Achtung:** das sind die Dauern des letzten Laufs **unter 2-facher Parallel-Last**; einzeln sind sie kleiner (Median 1,8 s) |
+| **M12-Kandidaten** nach deiner Formel (≥ 30 Läufe, nie rot, ≥ 10 s) | **39 Dateien mit 1.337 s = 52 % der Gesamtzeit** |
+| Die dicksten Kandidaten | `test_produktionskette_ohne_cheats` 301 s · `test_durchspiel` 66 s · `test_overlay_ingame` 58 s · `test_doppelpuffer` 54 s · `test_bot_gruendung` 54 s · `test_tor` 50 s · `test_bot_takt_scheiben` 44 s · `test_bot_warenkette` 43 s |
+| `test_protokoll` | **205 Läufe**, nie rot — der Dauergast des Prüfstands |
+
+**Damit kannst du jetzt die Doppelungen benennen** (dein Punkt 4.4.7) — vorher gab es dafür keine
+Grundlage. Sag in der Antwort, welche der 39 Kandidaten du in eine höhere Stufe schiebst und **welche
+du streichen** würdest.
+
+---
+
+## 4. Unser Entwicklungssystem — damit du weißt, worauf deine Vorschläge treffen
+
+Daniel hat ausdrücklich gewünscht, dass du einen **kompakten Einblick** bekommst, wie hier gearbeitet
+wird. Ohne das kannst du den Prüfstand nicht sinnvoll verbessern.
+
+### 4.1 Neun Arbeitsregeln (sie stehen ÜBER allem, auch über diesem Auftrag)
+
+1. **Fertig heißt geprüft fertig** — jede Teilaufgabe durchgehen, jedes Ergebnis mit echter
+   Werkzeug-Ausgabe belegen (Datei zurücklesen, `ffprobe`, Datenbank, Kalender). Lieber „nicht geprüft"
+   als „fertig".
+2. **Nie raten — immer nachsehen** — Datum, Preise, Nummern, Kennungen: erst messen/lesen, dann
+   antworten. Ein geratener Wert, der zufällig stimmt, ist genauso ein Fehler.
+3. **Ergebnis vor Verfahren** — am Ende steht etwas Benutzbares: Datei, PDF, Clip, Eintrag, klare Antwort.
+4. **Kleines selbst, Großes nach Rückfrage** — Notizen und belegte Pitfalls ergänzen: frei. Regeln,
+   Daten, Secrecy, Konfiguration, Löschen: nur mit Daniels Freigabe. **Die Art entscheidet, nicht die Größe.**
+5. **Widersprechen statt zustimmen** — wenn die Prüfung etwas anderes zeigt als die Anweisung, wird das
+   gesagt, nicht geschluckt.
+6. **Gleichzeitigkeit** — bei zwei Sitzungen gilt die neuere Anweisung; nie blind überschreiben.
+7. **Fragen sammeln, dann EINE Runde** — je Frage Messlage, Auswirkung, Vorschlag. Bei Blockade ist
+   eine gezielte Frage sofort erlaubt.
+8. **System und Spiel getrennt** — Hermes-Interna in der Systemdokumentation, `Nebelseetal Remake`
+   protokolliert nur das Spiel.
+9. **Jede Regel- und Skilländerung wird protokolliert** — Zeit, Datei, vorher → nachher mit Hash,
+   Grund, Freigabe, Rückrollweg, in genau einem Protokoll.
+
+**Zwei Folgen, die dich direkt betreffen:**
+- **Jede Antwort von dir wird nachgerechnet, BEVOR gebaut wird** (Regel 1 + 5). Das hat in Nr. 11 bis 15
+  jedes Mal etwas gefunden.
+- **Ich widerspreche dir, wenn meine Messung anders aussieht** (Regel 5) — das ist kein Misstrauen,
+  sondern die einzige Art, wie zwei Modelle zu einer belastbaren Zahl kommen.
+
+### 4.2 Die Skills — mein Gedächtnis für Verfahren
+
+Ein **Skill** ist eine Datei mit erprobten Verfahren, die nur geladen wird, wenn sie zum Auftrag passt.
+Für dieses Projekt gilt `nebelseetal-remake`:
+
+- **`SKILL.md`**: 100.867 Zeichen an der Größengrenze, 30+ Abschnitte (z. B. „Aufträge an ein starkes
+  Modell", „Sechs Regeln bei jedem Bot-Schnitt", „Drei Regeln bei jedem Umbau von `main.py`").
+- **33 Referenzdateien** daneben, thematisch, z. B. `pruefstand-konventionen.md` (31 KB),
+  `bot-wirtschaft-lehren.md` (33 KB), `karte-und-bewegungen.md` (25 KB), `fenster-und-optik.md` (13,7 KB,
+  heute zweimal ergänzt), `anzeigetexte-und-umlaute.md`, `spielrunden-und-uebergabe.md`.
+- **Wie eine Lehre hineinkommt:** Fehler passiert → Ursache gemessen → als Regel mit Grund und Beleg
+  formuliert → **von Daniel freigegeben** → ins `SKILL_UND_REGEL_PROTOKOLL.md` mit Hash vorher/nachher
+  und Rückrollweg. Kein Skill wird stillschweigend geändert.
+- **Andere Skills, die mitspielen:** `python-testing-verification` (Tests/Validierung),
+  `coding-bot` (Programmieren/Debugging), `self-check` (zweite Sicht vor Abgabe),
+  `kosten-schutzregel` (harte Kostengrenze), `strict-security-policy` (Sicherheitsgrenzen),
+  `root-cause-why-chain` (Ursachenkette statt Symptom), `avoid-repeat-failures`,
+  `continuous-improvement`, `verbund-konsistenz` (Ablagen dürfen nicht auseinanderlaufen).
+
+### 4.3 Der Prüfstand (das, was du in Teil B verbessern sollst)
+
+- **`tests/harness.py`** — `check(name, cond, detail)` zählt Fehler; `befund(...)` meldet eine bekannte
+  Lücke, **ohne** rot zu färben; `messwert(name, wert, einheit)` legt jede Zahl mit Zeitstempel in
+  `docs/audits/messwerte/` ab und fortschreibt `index.json`.
+- **`tools/sammellauf.py`** — alle Dateien, `-j N` parallel, je Datei eigener Spielordner, Startreihenfolge
+  nach gemessener Dauer, 420 s Deckel je Datei. Eine Datei gilt nur grün, wenn Prozess-RC **und** die
+  letzte `ERGEBNIS`-Zeile 0 Fehler sagen.
+- **Konventionen** (`pruefstand-konventionen.md`): Prüfdateien sind **ASCII-only** (ein Umlaut =
+  SyntaxError beim Import), ein Sammellauf gilt nur, wenn er **nach** dem letzten Fix startete,
+  Anzeigetexte tragen **echte** Umlaute (eigene Wache), Zeiten nur aus `date`/`stat`/`git log`.
+- **Der Kreislauf je Bauabschnitt:** Entscheidung → Auftrag → Nachrechnung → Bau → **Wache** →
+  **Gegenprobe** (die Wache muss bei absichtlich falscher Eingabe rot werden) → Sammellauf →
+  Registereintrag → Skill-Lehre, wenn etwas Neues gelernt wurde.
+
+### 4.4 Wo ich selbst Schwächen sehe (ehrlich, damit du nicht raten musst)
+
+1. **Wachen, die ihre eigene Formel spiegeln**, sind grün und beweisen nichts. Ich baue sie trotzdem
+   (heute eine in `test_dpi_f51`) und mache sie nur durch die **Gegenprobe im zweiten Prozess** ehrlich.
+2. **46 von 230 Dateien haben keine Lauf-Historie** — sie laufen entweder nie im Sammellauf mit oder
+   schreiben ihre Zahlen nicht.
+3. **94 Befunde werden gezählt, aber nicht bewertet** — niemand sieht, ob einer über Wochen derselbe
+   bleibt (dann ist es eine Entscheidung) oder wächst (dann ist es ein Fehler).
+4. **Wanduhr-Wachen** (heute `test_weltkarte_malerei`) reißen unter Last und kosten Vertrauen.
+5. **Zahlen, die von Hand in Aufträge geschrieben werden, werden falsch** (2c). Dagegen ist M11 gedacht.
+6. **Ich habe heute Daniels Regel „Entscheidungen nie mit Zeitablauf" zweimal verletzt** — zwei
+   Formulare liefen ihm weg, seine acht Klick-Antworten waren zweimal verloren. Eine Lehre, die schon
+   im Skill stand. **Genau solche Lücken sollst du benennen dürfen.**
+
+---
+
+## 5. Was du liefern sollst (die einzige Antwort, die wir heute bekommen)
+
+### Teil A — Dorfzentrum, fertig zum Bauen, mit F-56 bis F-61
+
+1. **Die vollständige Maßtabelle für (1127, 764, k = 1,2512, rb = 21) und (1037, 589, k = 1, rb):**
+   Spalte, Kopf, Reiterleiste, Inhaltshöhe, die drei Bereiche, die sieben Spaltenblöcke, jedes
+   Bedienelement — als **Formel und Wert**, beide Fälle nebeneinander.
+2. **Die Werkstätten-Liste** (F-58) mit Spalten, Höhe und der Zutat-Spalte im Format
+   „Zutat vorhanden / nötig ✓/✕".
+3. **Die Einheiten-Tabelle** mit der berichtigten Namensspalte (absolute 15-px-Regel) und **ohne**
+   Verwundete, solange Daniel das nicht entschieden hat — nenne die Spalte als Vorschlag, nicht als HART.
+4. **Ablage der Werkstatt-Zuordnung (F-61):** beide Formen (Feld je Rezept / eigene Datei), je mit
+   Vor- und Nachteil und einer Empfehlung. Keine Umsetzung ohne Daniels Wort.
+5. **`dorfzentrum_kennzahlen`:** Signatur, Rückgabe, was genau gezählt wird, wie die Wache aussieht.
+
+### Teil B — die vier Kernmaßnahmen baufertig (F-62)
+
+Für **M11** (Faktenblatt), **M1** (Kopf je Datei), **M2** (Auswahl nach Änderung), **M12** (Rot-Historie)
+je: **(a)** was, **(b)** welcher Mangel verschwindet, **(c)** Datei und Funktion, **(d)** die Wache mit
+Gegenprobe, **(e)** Sekunden je Lauf. Dazu:
+
+6. **Die Auswahlregel für M2 in Worten und als Pseudocode** — welche Datei läuft, wenn `src/x.py`
+   geändert wurde, und wie die „eine Stufe Aufrufer" aussieht, ohne dass ein einziger Lauf alles zieht.
+7. **Welche der 39 M12-Kandidaten (Paket 15b) du hochstufst oder streichst** — mit Risiko.
+8. **Ein Kopfzeilen-Format für M1, das rückwärtsverträglich ist** (alte Dateien ohne Kopf laufen weiter,
+   die Metawache meldet anfangs nur einen Befund).
+
+### Teil C — Verbesserungsvorschläge für unser Entwicklungssystem
+
+**Höchstens zehn Vorschläge**, jeder in fünf Zeilen: (1) was, (2) welcher Mangel, (3) wie ich es baue,
+(4) wie ich es prüfe, (5) was es kostet. Richte sie an dem aus, was du in Abschnitt 4 gelesen hast —
+Regeln, Skills, Prüfstand, Kreislauf. **Kein Lob, keine Zusammenfassung.** Wenn du findest, dass eine
+unserer neun Regeln dem Bauen im Weg steht, sag es mit Belegstelle.
+
+### Form
+
+**Kopf** (Auftrag von / Antwort von / Rolle), dann **Teil A / Teil B / Teil C**, dann
+**Zusatzinformationen** in einem eigenen Abschnitt. Deutsch, Zahlen mit Herkunft, Annahmen getrennt.
+**Keine Rückfragen an uns** — was du brauchst, das fehlt, schreibst du als UNBEKANNT mit der Bitte,
+welche Zahl ich messen soll.

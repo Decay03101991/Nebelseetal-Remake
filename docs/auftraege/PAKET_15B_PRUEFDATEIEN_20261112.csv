@@ -1,0 +1,231 @@
+﻿datei;art;dauer_s;pruefungen;fehler;befunde;laeufe;rot_laeufe;letzter_rot;src_module;daten
+test_angriff_marker_c1;fenster+messen;15.7;45;0;9;16;3;20261112_1041;bottaktik main portalraum;
+test_ansicht_hintergrund;fenster;36.0;81;0;0;59;0;;auftraege gebaeude_optik gelaende main;gebaeude_motive.json
+test_anzeigetexte_umlaute;rechnen;36.1;49;0;0;113;7;20261112_2119;einheiten gelaende main spieloekonomie;bot_gruendung.json
+test_auftraege;rechnen;0.2;143;0;1;60;1;20261110_2124;auftraege einheiten kampf kampfbericht;
+test_ausbildung_uebersicht;rechnen;0.2;22;0;1;53;0;;auftraege spieloekonomie;
+test_ausbildung_vorschau;fenster;1.8;9;0;0;46;1;20261108_1821;main spieloekonomie;
+test_ausbildungsauftraege;rechnen;0.3;59;0;0;53;0;;bonus_system einheiten forschung spieloekonomie werkstatt;warenrezepte.json
+test_ausruestung;fenster;0.0;68;0;1;53;0;;ausruestung einheiten spieldaten werkstatt;items.json units.json
+test_auswahlrahmen_c2;fenster;24.9;17;0;0;57;2;20261112_2013;dorfwall karten_optik_fein main;gebaeude_motive.json
+test_auszeichnungen;rechnen;0.1;21;0;1;53;0;;einheiten forschung punkte;
+test_balance_kreis;quelltext;1.6;30;0;0;53;0;;spielzeit stimmen;resources.json sollkurve.json
+test_balance_urteil;rechnen;13.2;44;0;0;53;0;;punkte;baupreise.json regelkreis.json
+test_baseline;fenster;33.4;40;0;0;69;4;20261111_2046;bonus_system einheiten gebaeude_wirkung gelaende main speichern;buildings.json icon_map.json icons_index.json items.json research.json resources.json unit_stats.json
+test_beute_am_ziel;rechnen;0.1;24;0;0;55;0;;kampf kampfbericht;
+test_beute_staffel;rechnen;0.1;18;0;1;55;0;;einheiten kampfbericht;beute_vorrang.json
+test_beute_vorrang;quelltext;0.1;29;0;1;54;0;;kampfbericht;beute_vorrang.json
+test_boni;rechnen;0.6;82;0;0;55;0;;auftraege boni bottaktik einheiten kampf main spieloekonomie stimmen voelker wirtschaft;boni.json voelker.json
+test_bot_armee_je_dorf;quelltext;0.6;22;0;1;53;0;;botkern einheiten main;
+test_bot_aufgeben;quelltext;2.3;45;0;1;53;0;;einheiten forschung main originalkarten punkte spieloekonomie welt;bot_gruendung.json
+test_bot_ausbildung_je_ort;quelltext;0.6;20;0;1;53;0;;ausruestung einheiten main spieloekonomie;
+test_bot_bauen;quelltext;1.0;35;0;2;53;0;;botkern bottaktik gelaende main spielschicht;baupreise.json bot_bauplan.json buildings.json
+test_bot_bedarf;quelltext;1.0;26;0;1;53;0;;auftraege botkern einheiten forschung main spieloekonomie;bot_bedarf.json bot_wirtschaft.json warenrezepte.json
+test_bot_diebstahl;quelltext;1.0;46;0;1;53;0;;botkern einheiten main;bot_diebstahl.json
+test_bot_diplomatie;fenster;7.0;67;0;0;53;0;;bottaktik diplomatie drachen einheiten kampf main spionage welt zeitbasis;bot_diplomatie.json diplomatie.json drachen.json
+test_bot_doerfer;rechnen;0.6;29;0;0;53;0;;main;
+test_bot_dorf_als_ort;rechnen;0.7;42;0;0;53;0;;einheiten gelaende main originalkarten spieloekonomie wirtschaft;bot_bauplan.json
+test_bot_dorf_wirtschaft;quelltext;6.0;56;0;0;53;0;;ausruestung botkern einheiten gelaende main stimmen;buildings.json units.json
+test_bot_forschung;quelltext;1.1;57;0;1;53;0;;botkern einheiten forschung forschungspfad gebaeude_wirkung gelaende main spieloekonomie spielschicht;bot_bauplan.json bot_forschung.json research.json
+test_bot_gruendung;quelltext;53.5;36;0;1;55;0;;einheiten forschung main spieloekonomie welt;bot_gruendung.json
+test_bot_karrenbau;fenster;30.7;23;0;0;56;0;;einheiten forschung main spieloekonomie stimmen;
+test_bot_kartenprofil;quelltext;4.7;40;0;0;53;0;;botkern gelaende main;
+test_bot_nahrung;quelltext;0.7;48;0;0;53;0;;ausruestung botkern einheiten gelaende main spieloekonomie;bot_wirtschaft.json
+test_bot_raubzug_bot;fenster;12.4;39;0;0;54;0;;bot_angriffsplanung einheiten kampf kampfbericht main welt;bot_raubzug.json
+test_bot_ruinenzug;quelltext;0.6;25;0;1;53;0;;drachen einheiten forschung kampf main welt;units.json
+test_bot_takt_kern;quelltext;0.9;27;0;1;53;0;;botkern forschung main spieloekonomie wirtschaft;buildings.json
+test_bot_takt_scheiben;quelltext;44.1;34;0;1;55;0;;main spieloekonomie;
+test_bot_wappen;fenster;10.6;26;0;1;54;0;;main voelker;bot_wappen.json voelker.json
+test_bot_warenkette;fenster;42.5;37;0;0;56;0;;gelaende main originalkarten;bot_bauplan.json
+test_bot_welten;quelltext;24.3;44;0;1;54;0;;main voelker welt;
+test_botkern;fenster;0.5;101;0;0;54;0;;botkern einheiten main punkte stimmen welt;units.json
+test_bottaktik;fenster;0.3;48;0;0;53;0;;auftraege bottaktik main;
+test_d5a_chris_farben;quelltext;0.1;17;0;1;25;1;20261112_1104;gelaende main weltkarte_malerei;gelaende.json
+test_d5b_icons_und_rahmen;fenster;16.1;33;0;1;25;2;20261111_2046;gebaeude_optik main;gebaeude_motive.json
+test_daten_und_quellen;rechnen+messen;0.3;10;0;4;49;0;;marsch_optik spionage;
+test_demo_leer;rechnen;1.0;28;0;0;53;0;;admin_teststand gelaende main public_start spielstaende tor;gelaende.json
+test_diplomatie;fenster;0.7;33;0;0;53;0;;diplomatie main punkte;diplomatie.json
+test_diplomatie_ereignisse;fenster;8.0;74;0;0;53;0;;diplomatie main story wirtschaft zeitbasis;diplomatie.json story.json
+test_diplomatie_rache;fenster;8.9;53;0;0;53;0;;auftraege diplomatie einheiten main zeitbasis;diplomatie.json
+test_diplomatie_vertraege;fenster;8.4;68;0;0;55;0;;diplomatie einheiten main punkte zeitbasis;diplomatie.json
+test_doppelpuffer;fenster;54.3;15;0;0;59;0;;main;
+test_dorf_taktiken;rechnen;1.2;33;0;0;54;0;;bottaktik main welt;
+test_dorf_versetzen;rechnen;0.6;38;0;0;47;2;20261112_1128;main portalraum;
+test_dorfuebersicht;rechnen;0.6;24;0;1;53;0;;einheiten main wirtschaft;baupreise.json bausiedler.json
+test_dorfzentrum_ist_lager;fenster;17.5;82;0;0;57;0;;admin_teststand gebaeude_wirkung gelaende main;buildings.json
+test_dpi_f51;fenster+messen;21.3;40;0;0;2;0;;main;
+test_drachen;rechnen;0.1;88;0;0;53;0;;drachen einheiten kampf welt;
+test_drachen_einhaengung;fenster;24.5;96;0;0;55;0;;auftraege drachen einheiten kampf kampfbericht main portalraum welt;
+test_drachen_zweite_phase;quelltext;19.1;22;0;1;53;0;;drachen einheiten kampf main;drachen.json
+test_drachenschuppe;fenster;8.8;32;0;0;53;0;;auftraege drachen einheiten kampf main spieldaten spieloekonomie werkstatt;items.json trophaeen.json
+test_drosselung_auftrag;rechnen;0.7;17;0;0;16;0;;auftraege main;
+test_durchspiel;fenster;65.7;64;0;2;62;0;;auftraege botkern einheiten gelaende kampf main spieloekonomie werkstatt;
+test_e2e_wege;fenster;361.7;132;0;1;63;3;20261109_0310;auftraege diplomatie dorfwall einheiten forschung forschungspfad gebaeude_wirkung gelaende kampf main portalraum punkte;buildings.json resources.json verwundete.json welten.json
+test_ereignis_zuordnung;fenster;10.2;36;0;0;54;0;;diplomatie main story zeitbasis;story.json
+test_exe_symbol;rechnen;2.2;19;0;2;53;0;;;
+test_fehlbestand;quelltext;0.0;28;0;0;53;0;;fehlbestand main spieloekonomie wirtschaft;
+test_forschung;rechnen;0.0;70;0;0;55;0;;forschung punkte spieldaten stimmen;
+test_forschung_wirkung;rechnen;0.1;94;0;0;53;0;;forschung forschung_wirkung spieldaten;research.json
+test_forschungspfad;rechnen;0.1;124;0;0;57;0;;einheiten forschung forschungspfad;research.json
+test_gebaeude_icons;fenster;14.7;56;0;0;56;0;;gebaeude_optik gelaende main;buildings.json gebaeude_motive.json
+test_gebaeude_menue_und_meldungen;rechnen;0.0;;;;0;0;;einheiten fehlbestand main spieloekonomie;
+test_gebaeude_motive;quelltext;0.6;104;0;1;54;0;;main;buildings.json gebaeude_motive.json
+test_gebaeude_optik;rechnen;1.1;179;0;0;54;0;;auftraege gebaeude_optik main spieldaten;buildings.json
+test_gebaeudeansicht_a7;fenster+messen;22.7;35;0;0;12;2;20261112_1821;hintergrund_optik main stimmen voelker;gebaeude_motive.json voelker.json
+test_gesamtsieg;fenster;21.7;47;0;0;54;0;;auftraege einheiten kampf kampfbericht main punkte story;story.json
+test_geschenk_nachricht;rechnen;0.6;6;0;1;55;2;20261108_1421;forschung kampf main;
+test_goetterschutz_band;rechnen;0.1;23;0;1;55;0;;main punkte;
+test_gpt_abriss_schutz;rechnen;0.0;;;;0;0;;admin_teststand main spieloekonomie versorgungsschutz;
+test_gpt_admin_hilfe_navigation_fix04e;fenster;0.0;;;;0;0;;admin_teststand admin_werkzeuge main spieloekonomie;
+test_gpt_admin_spielerhilfe_fix04d;fenster;0.0;;;;0;0;;admin_oberflaeche admin_teststand admin_werkzeuge main speichern spielerhilfe;
+test_gpt_adminwerkzeuge;rechnen;0.8;44;0;0;53;0;;admin_teststand admin_werkzeuge einheiten main spielstaende;
+test_gpt_baumenue_kategorien_fix04;fenster;0.0;;;;0;0;;baumenue_info gelaende main;
+test_gpt_baumenue_standorttipps_fix04b;rechnen;0.0;;;;0;0;;baumenue_info gelaende main;
+test_gpt_bot_angriffsplanung;rechnen;0.0;;;;0;0;;bot_angriffsplanung botkern einheiten main;
+test_gpt_botkarten_nullbedarf;rechnen;0.0;;;;0;0;;botkern main spieloekonomie;
+test_gpt_doppelkasse;rechnen;0.6;9;0;0;53;0;;main spieloekonomie;
+test_gpt_dorfwall;rechnen;0.0;;;;0;0;;dorfwall main;
+test_gpt_fixrunde_ortslager_zeit_20261028;rechnen;0.0;;;;0;0;;main;bot_diebstahl.json buildings.json
+test_gpt_frischstart;rechnen;0.0;;;;0;0;;admin_teststand main spielstaende wirtschaft;bot_diebstahl.json
+test_gpt_integrationsrisiken;rechnen;0.6;7;0;0;53;0;;gelaende main spieloekonomie;
+test_gpt_kampf_botbeute_echte_kasse;fenster;15.4;7;0;0;53;0;;kampf main;
+test_gpt_kampf_forum_neu;rechnen;0.1;43;0;0;53;0;;einheiten kampf spieldaten;units.json
+test_gpt_koordinator_regression;rechnen;0.0;;;;0;0;;auftraege einheiten main spieloekonomie;
+test_gpt_ne01_origwerte;rechnen;0.1;63;0;0;53;0;;einheiten gelaende gildenrangliste_original kampf wirtschaft;
+test_gpt_originalkarten_baukasse;fenster;0.0;;;;0;0;;main;baupreise.json bausiedler.json
+test_gpt_originalkarten_feldklick;fenster;0.0;;;;0;0;;karten_optik_fein main;
+test_gpt_originalkarten_historische_info;rechnen;0.0;;;;0;0;;originalkarten spieldaten;
+test_gpt_originalkarten_katalog;rechnen;0.0;;;;0;0;;originalkarten spieloekonomie;
+test_gpt_pflicht_starthilfe_fix04f;fenster;0.0;;;;0;0;;admin_teststand admin_werkzeuge main spielerhilfe spieloekonomie;
+test_gpt_portable_uebergabe;rechnen;0.0;;;;0;0;;gelaende main spieldaten tor;gelaende.json version.json
+test_gpt_produktion_truppen_kette;rechnen;0.3;171;0;0;53;0;;ausruestung einheiten forschung spieldaten spieloekonomie werkstatt;
+test_gpt_profile_login;fenster;0.0;;;;0;0;;admin_teststand main speichern spielstaende tor;
+test_gpt_projektordnung_20261028;rechnen;0.0;;;;0;0;;einheiten gelaende main;gelaende.json
+test_gpt_prueflauf_ehrlich;rechnen;0.0;;;;0;0;;main;
+test_gpt_rechnerzeit_einheitlich;rechnen;0.0;;;;0;0;;main speichern zeitbasis;
+test_gpt_schild_nebenfenster_fix04i;fenster;0.0;;;;0;0;;admin_teststand main spielstaende tor;
+test_gpt_speicherslots_admin;rechnen;2.2;71;0;0;53;0;;admin_teststand einheiten gelaende main speichern spielstaende tor;
+test_gpt_spielerhilfe_goetterschutz_fix04c;fenster;0.0;;;;0;0;;main spielerhilfe;
+test_gpt_spielstand_gui_fix04h;fenster;0.0;;;;0;0;;admin_teststand main spielstaende spielstand_archiv;
+test_gpt_spielstandarchiv_fix04g;fenster;0.0;;;;0;0;;admin_teststand main speichern spielstaende spielstand_archiv;
+test_gpt_spielzeit_einstellungen_fix05;fenster;0.0;;;;0;0;;main spielzeit;
+test_gpt_tageswechsel;rechnen;0.5;21;0;0;53;0;;main;
+test_gpt_versorgungsdiagnose;fenster;0.3;15;0;0;53;0;;gpt_versorgungsdiagnose spieloekonomie;
+test_gpt_wall_bot_kampf;rechnen;0.0;;;;0;0;;botkern einheiten main;
+test_gpt_wall_gui;fenster;0.0;;;;0;0;;dorfwall main originalkarten;
+test_gpt_wallsystem_eingehaengt;rechnen;0.0;;;;0;0;;dorfwall main originalkarten;
+test_gpt_waren_icons;rechnen;0.0;;;;0;0;;main;icons_index.json items.json
+test_gpt_windows_portabilitaet;rechnen;0.0;;;;0;0;;main spieldaten tor;
+test_gpt_wirtschaft_kette_e2e;rechnen;0.0;;;;0;0;;einheiten gelaende main spieloekonomie;
+test_gpt_zeit_auftragsketten;rechnen;0.0;;;;0;0;;auftraege einheiten main;
+test_gpt_zeitstempel_und_schutz;rechnen;0.0;;;;0;0;;main spielzeit zeitbasis;
+test_gruendung_startgebaeude;fenster;2.9;35;0;0;53;0;;einheiten gelaende main originalkarten;
+test_gui_fehler;fenster;38.8;23;0;1;67;3;20261111_2046;einheiten forschung gelaende main;units.json
+test_haeuser_wappen;quelltext;0.0;61;0;0;54;0;;haeuser main voelker welt;bot_wappen.json haeuser.json voelker.json welt_fraktionen.json welten.json
+test_handel_spielschicht;rechnen;2.3;34;0;0;55;0;;botkern einheiten main punkte spielschicht;
+test_handel_transaktion;rechnen;0.2;101;0;0;54;0;;auftraege einheiten spieloekonomie welt;units.json
+test_handelspreis_je_rohstoff;rechnen;7.7;22;0;0;41;1;20261108_2132;botkern main originalkarten spieloekonomie;
+test_handelspunkte;fenster;109.7;38;0;0;59;2;20261108_2135;auftraege einheiten main punkte;
+test_hausfarben;rechnen;0.0;33;0;1;53;0;;haeuser stimmen;haeuser.json
+test_heilkunde_rinderfarm;quelltext;0.2;23;0;0;53;0;;forschung_wirkung gebaeude_wirkung gelaende main spieloekonomie wirtschaft;buildings.json gebaeude_wirkung.json research.json
+test_intro_einmalig;rechnen;0.5;11;0;1;47;0;;main spieldaten story;
+test_journal_deckel;quelltext;9.2;23;0;1;53;0;;botkern main spieloekonomie;spieloekonomie.json
+test_kampf;rechnen;0.1;15;0;0;55;0;;einheiten kampf spieldaten;
+test_kampf_einhaengung;fenster;25.5;58;0;0;56;1;20261111_2054;auftraege botkern einheiten kampf kampfbericht main;
+test_kampfbericht;rechnen;0.1;108;0;0;55;1;20261111_2054;einheiten gebaeude_wirkung kampf kampfbericht spieldaten;
+test_karten_optik;fenster;0.5;54;0;0;53;0;;gelaende karten_optik punkte;buildings.json
+test_karten_optik_fein;fenster;0.2;84;0;0;53;0;;gelaende karten_optik_fein main punkte;
+test_kartenwahl_bot;quelltext;4.1;25;0;0;53;0;;botkern main originalkarten punkte spieloekonomie;bot_wirtschaft.json
+test_kaserne_ohne_gebaeude;fenster;41.4;11;0;0;53;0;;main spieloekonomie;
+test_kennzahlenblatt;quelltext;3.8;21;0;0;53;0;;diplomatie;resources.json
+test_lage_band;fenster;16.5;12;0;0;20;2;20261112_0006;main;
+test_lager_kacheln_b4;fenster+messen;18.7;62;0;1;17;2;20261112_0923;einheiten main werkstatt;items.json
+test_leisten_luecken;rechnen;1.0;27;0;0;55;0;;main;
+test_loadingpage;fenster;1.6;19;0;1;53;0;;main;
+test_lokale_forschung;rechnen;0.2;47;0;0;56;0;;einheiten forschung forschungspfad spieloekonomie;
+test_lokale_lager;rechnen;0.2;70;0;0;53;0;;einheiten spieloekonomie stimmen;
+test_marktplatz_ansicht;fenster;3.3;19;0;0;43;1;20261108_2037;einheiten main;
+test_marsch_optik;fenster;21.7;64;0;0;59;2;20261112_0107;auftraege einheiten main marsch_optik stimmen;
+test_mauerreparatur;fenster;2.5;46;0;0;54;0;;dorfwall main;
+test_mengeneingabe;rechnen;0.7;69;0;0;53;0;;auftraege ausruestung einheiten main spieloekonomie werkstatt;units.json
+test_messwerte_schreiben;rechnen+messen;3.0;22;0;1;58;3;20261108_1524;stimmen;
+test_nachrichten_archiv;fenster;11.6;60;0;0;55;1;20261108_1820;kampf main postfach punkte spielzeit spionage;nachrichten.json ruhm.json
+test_nahrungsnot_sperre;quelltext;15.6;26;0;1;56;0;;einheiten main spieloekonomie;nahrungsverbrauch.json
+test_nahrungsverbrauch;quelltext;0.5;55;0;0;56;1;20261108_1405;einheiten main spieloekonomie zeitbasis;nahrungsverbrauch.json
+test_navigation_ebenen;fenster;0.0;;;;0;0;;main punkte spieloekonomie tor;
+test_oberflaeche_original;fenster;0.2;65;0;0;53;0;;main oberflaeche_original;
+test_oekonomie_kern_10x10_nachfolger;quelltext;0.4;98;0;4;53;0;;einheiten forschung_wirkung gebaeude_wirkung gelaende originalkarten spieloekonomie wirtschaft;buildings.json gelaende.json research.json spieloekonomie.json
+test_oekonomie_kern_unabhaengig;rechnen;0.0;;;;0;0;;gelaende spieloekonomie;buildings.json gelaende.json spieloekonomie.json
+test_oekonomie_uhr;rechnen;0.3;65;0;0;53;0;;einheiten forschung gebaeude_wirkung spieloekonomie;spieloekonomie.json
+test_opus_lauf_arbeitsordner;quelltext;0.0;;;;0;0;;main;
+test_originalkarten_only;fenster;0.0;;;;0;0;;gelaende main originalkarten originalkarten_grafik spieloekonomie;
+test_originalkarten_savegames;rechnen;0.0;;;;0;0;;main originalkarten;
+test_overlay_ingame;fenster;57.9;42;0;1;56;0;;auftraege main;overlay.json
+test_pakt_knopf;fenster;24.5;43;0;0;53;0;;diplomatie main;diplomatie.json
+test_portal_ansicht_umzug;fenster;38.7;27;0;0;51;2;20261109_0317;main portalraum;
+test_portal_feld_belegung;rechnen;0.5;40;0;0;45;0;;bottaktik main portalraum welt;
+test_portal_fremdblick;fenster;29.6;18;0;1;63;0;;auftraege main welt;
+test_portal_gemalte_karte;fenster;39.8;38;0;1;29;0;;gelaende main portalraum stimmen weltkarte_malerei;
+test_portal_kopfleiste;fenster;33.9;75;0;1;46;13;20261112_0053;main;
+test_portal_s5_keine_wartezeit;fenster;11.2;27;0;0;33;2;20261109_0835;main portalraum;
+test_portal_uebersicht;fenster;12.9;62;0;0;65;2;20261112_1127;auftraege einheiten main portalraum welt;welten.json
+test_portalraum;rechnen;0.2;72;0;0;58;0;;portalraum welt;welten.json
+test_produktionskette_ohne_cheats;fenster;301.2;48;0;0;57;0;;auftraege einheiten forschung forschungspfad gebaeude_wirkung gelaende kampf main spieloekonomie;
+test_projektpfade;rechnen;0.0;;;;0;0;;admin_teststand main stimmen tor;units.json
+test_protokoll;rechnen;22.4;28;0;1;205;0;;;
+test_public_edition_fix04j;fenster;0.0;;;;0;0;;admin_oberflaeche admin_teststand admin_werkzeuge ausgabemodus main public_start spielstaende tor;
+test_punkte;rechnen;0.1;78;0;0;58;1;20261108_1811;einheiten punkte;
+test_punkte_einhaengung;fenster;0.0;;;;0;0;;forschung main punkte;
+test_quelle_ast;quelltext+messen;1.6;15;0;3;54;2;20261112_2015;forschung_wirkung gebaeude_wirkung main spielschicht;
+test_ressourcenleiste;fenster;10.0;42;0;1;58;0;;forschung main punkte spieloekonomie;ressourcenleiste.json
+test_ressourcenleiste_t08;fenster;26.1;119;0;0;16;5;20261112_1512;main punkte spieloekonomie;
+test_rueckmarsch;rechnen;0.0;;;;0;0;;main;
+test_ruinendeckung;fenster;8.9;45;0;1;53;0;;drachen kampf main ruinendeckung welt;
+test_s11_kartenwahl_engpass;quelltext;1.0;102;0;0;53;0;;botkern main punkte spieloekonomie;buildings.json
+test_s7_botverhalten;quelltext;26.5;46;0;0;54;0;;auftraege botkern bottaktik main punkte voelker welt;voelker.json
+test_s8_ertrag_aus_anlagen;quelltext;0.9;21;0;0;53;0;;einheiten gelaende main wirtschaft;
+test_s8_stufe3_bauplaene;quelltext;10.5;185;0;0;54;0;;bottaktik gelaende main;baupreise.json bot_bauplan.json bot_wirtschaft.json buildings.json
+test_sammellauf_parallel;rechnen;1.7;28;0;1;54;0;;;
+test_siedler_warnung;rechnen;0.5;29;0;1;53;0;;einheiten main spieloekonomie;units.json
+test_siedlungsansicht_a10;fenster+messen;16.6;48;0;0;10;4;20261112_2120;hintergrund_optik main;
+test_siedlungsansicht_a9;fenster+messen;14.8;38;0;0;12;1;20261112_1906;main;
+test_speichern_robust;fenster;0.3;95;0;5;55;0;;einheiten main speichern spielstand_archiv;
+test_spieldaten;rechnen;0.6;92;0;0;53;0;;einheiten main spieldaten stimmen;baupreise.json research.json
+test_spielertexte;rechnen;0.1;6;0;1;48;1;20261108_1611;berater einheiten punkte;
+test_spielschicht;fenster;0.3;149;0;1;60;2;20261111_2029;auftraege einheiten forschung gebaeude_wirkung gelaende kampf kampfbericht main punkte spielschicht stimmen werkstatt;bausiedler.json buildings.json warenrezepte.json
+test_spieltag_eine_quelle;quelltext;10.1;31;0;0;54;0;;botkern diplomatie main punkte spieloekonomie zeitbasis;diplomatie.json
+test_spieltest1_befunde;rechnen+messen;6.8;28;0;2;62;4;20261112_2119;baumenue_info einheiten gelaende main spieloekonomie story;buildings.json nahrungsverbrauch.json
+test_spieltest2_befunde;rechnen+messen;7.8;19;0;2;52;1;20261108_1950;dorfwall einheiten main punkte wirtschaft;
+test_spieltest_erreicht_kampf;rechnen;1.1;19;0;0;54;0;;einheiten forschung gelaende kampfbericht spielschicht werkstatt;
+test_spieltest_skip;rechnen;0.6;17;0;0;53;0;;spielschicht;
+test_spionage;fenster;26.2;146;0;0;57;0;;auftraege botkern einheiten forschung kampf main spionage zeitbasis;units.json
+test_sprungregeln;fenster+messen;18.8;25;0;3;11;2;20261112_1120;auftraege drachen einheiten gelaende kampf main portalraum welt;gelaende.json
+test_start_mit_pillow;fenster;0.7;10;0;0;53;0;;;
+test_startbilder;fenster;2.1;24;0;0;53;0;;main tor;
+test_startkartenwahl;fenster;11.8;28;0;0;53;0;;main originalkarten spieloekonomie;startkarte.json
+test_startseite;fenster;11.1;68;0;0;55;0;;einheiten main originalkarten spieloekonomie voelker;bot_gruendung.json bot_wirtschaft.json voelker.json
+test_startspiel;fenster;34.9;62;0;1;62;0;;botkern einheiten gelaende karten_optik_fein main punkte;
+test_stimmen;fenster;37.0;115;0;0;54;0;;botkern einheiten kampf main stimmen welt;bot_stimmen.json
+test_story;quelltext;0.2;38;0;0;53;0;;berater main story;story.json
+test_story_menue;fenster;40.0;42;0;0;57;0;;forschung main story;story.json
+test_textqualitaet;rechnen;0.0;;;;0;0;;main;
+test_tor;fenster;49.8;61;0;0;56;0;;main tor;
+test_verwundete;quelltext;0.5;52;0;0;53;0;;einheiten hilfen main spieloekonomie verwundete;units.json verwundete.json
+test_voelkerwahl;fenster;15.6;37;0;0;53;0;;botkern bottaktik main stimmen voelker;voelker.json
+test_voraussetzungsanzeige;fenster;33.8;24;0;0;54;0;;ausruestung einheiten forschung gelaende main spieloekonomie werkstatt;units.json
+test_w8_einhaengung;quelltext;0.9;39;0;5;53;0;;main speichern;
+test_wagenbau_kapazitaet;quelltext;16.7;44;0;1;54;0;;auftraege einheiten forschung kampfbericht main;karrenkapazitaet.json units.json
+test_wall_verteidigung;fenster;12.4;13;0;0;48;5;20261112_2000;baumenue_info dorfwall main originalkarten;
+test_ware_voraussetzung_eine_quelle;quelltext;1.3;30;0;1;53;0;;main spieloekonomie stimmen;items.json research.json warenrezepte.json
+test_warenrezepte;rechnen;0.4;26;0;0;53;0;;spieldaten spieloekonomie werkstatt;items.json research.json warenrezepte.json
+test_warentransport;rechnen;0.3;46;0;0;53;0;;einheiten spieloekonomie welt;warenrezepte.json
+test_welt;rechnen;0.1;43;0;0;53;0;;welt;welten.json
+test_welt_optik;fenster;0.9;70;0;0;55;0;;main punkte stimmen welt welt_optik;
+test_welt_optik_fein;fenster;0.7;132;0;0;53;0;;main punkte stimmen welt_optik_fein;
+test_weltbild_gelaende;fenster;33.2;95;0;0;60;3;20261109_1057;auftraege gelaende main portalraum welt;gelaende.json welten.json
+test_weltkarte;fenster;0.0;;;;0;0;;main welt_optik_fein;
+test_weltkarte_malerei;fenster;3.3;67;0;1;43;3;20261112_2239;gelaende main portalraum weltkarte_malerei;gelaende.json
+test_weltkarte_rahmen;fenster;43.2;36;0;1;64;6;20261111_2026;gebaeude_optik main;
+test_weltkarten_anzeige;rechnen;0.8;27;0;0;58;0;;berater main portalraum welt;
+test_werkstatt;rechnen;0.2;118;0;1;53;0;;einheiten gebaeude_wirkung gelaende spieldaten stimmen werkstatt;buildings.json items.json
+test_zieluebergabe;rechnen;0.2;26;0;0;126;0;;main stimmen;
