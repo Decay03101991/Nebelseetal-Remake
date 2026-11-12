@@ -1,3 +1,41 @@
+# STAND 12.11.2026, 22:4x — DPI-bewusst: das Spiel ist scharf, die Flaeche ist 1127 x 764
+
+> Sitzung 40 am 12.11.2026. **Der DPI-Umbau ist gebaut und gemessen** (Daniels F-51, Register 545):
+> `SetProcessDpiAwareness(2)` vor dem ersten `tk.Tk()`, `schrift()`/`schriftart()` als EINE Stelle
+> fuer Schriftgroessen. Gemessen in zwei Prozessen: bewusst **1920 x 1080, k = 1,2512, Fenster
+> 1560 x 940, sichtbare Flaeche 1127 x 764** (nicht 1151 x 785 — die Menuespalten und die obere
+> Leiste wachsen mit), Feld **64**, Karte **658**, Spalte **453**; ohne den Aufruf weiter
+> 1536 x 864 / 1037 x 589. Wache `tests/test_dpi_f51.py` **40/0/0** samt Gegenprobe im zweiten
+> Prozess. **Claudes Antwort Nr. 14** ist abgelegt und nachgerechnet (Register 544): alle Formeln
+> richtig, fuenf Zahlen falsch (u. a. 17 Waren statt 18, Rezepte mit EINER Zutat, Dorfzentrum
+> 2044 px statt 2148). **Auftrag Nr. 15** liegt bei Claude: Dorfzentrum nach dem Umbau **plus
+> Pruefstands-Audit** (Register 546). **Kopf:** `8b034d1` = Remote. **Register:** belegt bis 546,
+> naechste freie Zeile 547.
+>
+> **Die Abschnitte weiter unten beschreiben den Stand von 18:5x (Sitzung 38)** und gelten fuer die
+> damalige, NICHT mehr gueltige Fenstergroesse: wo dort 1037 x 589, 57 px Feld oder 1446 x 744
+> steht, ist heute 1127 x 764, 64 px und 1560 x 940 richtig. Das Verhalten selbst (Panorama
+> geschnitten statt skaliert, drei Elfen-Gebaeude 1:1, Schleier im Bild) ist unveraendert.
+
+## Was der DPI-Umbau verschiebt (gemessen, nicht gerechnet)
+
+| Groesse | vorher (nicht bewusst) | jetzt (bewusst) |
+|---|---|---|
+| Schirm laut Tk | 1536 x 864 | 1920 x 1080 |
+| k = winfo_fpixels('1i')/96 | 1,0 | **1,2512** |
+| Fenster | 1446 x 744 | **1560 x 940** |
+| sichtbare Flaeche | 1037 x 589 | **1127 x 764** |
+| Verlust waagerecht / senkrecht | 409 / 155 | **433 / 176** |
+| Siedlungsfeld / Karte / Spalte | 57 / 588 / 433 | **64 / 658 / 453** |
+| Rollbalken `reqwidth` | 17 | **21** |
+| `schrift(13)` | 13 px | **16 px** |
+
+**Zwei offene Folgen:** der Rollbalken ist mit 21 px breiter als der Zwischenraum von 16 px
+(`SIEDLUNGS_ABSTAND`), und die Konstante `SIEDLUNGS_ROLLBALKEN` steht noch auf 17. Beides steht als
+Frage G1/G2 in Auftrag Nr. 15, Daniel entscheidet.
+
+---
+
 # STAND 12.11.2026, 18:5x — Gebaeudeansicht: Panorama hinter der Siedlungsansicht, Elfen-Gebaeude 1:1
 
 > Sitzung 38 am 12.11.2026. **Claudes Antwort auf Auftrag Nr. 7 ist eingearbeitet** (abgelegt,
@@ -5,8 +43,7 @@
 > die sechs Voelker-Panoramen sind der Hintergrund der **Siedlungsansicht**, die drei Elfen-Gebaeude
 > gehoeren in die **Einzelansicht**; die Bilder bleiben **1142 x 1120**, gezeigt wird der **mittige
 > 1:1-Ausschnitt, nie skaliert**. **Gebaut und geprueft:** Register 503, Wache
-> `tests/test_gebaeudeansicht_a7.py` **35/0/0**, zwei Gegenproben rot. **Kopf:** `b1a6189` = Remote.
-> **Register:** belegt bis 504, naechste freie Zeile 505.
+> `tests/test_gebaeudeansicht_a7.py` **35/0/0**, zwei Gegenproben rot. **Register:** belegt bis 504.
 
 **Was die Siedlungsansicht jetzt zeigt.** Hinter der Ansicht liegt das Panorama des eigenen Volkes
 (`src/hintergrund_optik.py`, `_siedlungs_hintergrund`). Es wird **geschnitten, nie skaliert**: bei
