@@ -53,3 +53,34 @@ Stand-Block stehen und - bei sichtbarer Aenderung - eine Version angekuendigt is
 
 **Was NICHT mehr passiert:** Einzelwuensche ohne Gesamtbezug; Zahlen aendern ohne Messung; Bots
 „verbessern“, ohne dass ein Lauf den Unterschied zeigt; Versionen ohne Ankuendigung.
+
+## Version **V_0.0.5 — das 1. Designupdate** (Daniel, 12.11.2026)
+
+Daniel, woertlich: „übrigens der nächste upload xx_V_0.0.5 exe kannst du als das 1. Designupdate fürs
+spiel ankündigen und so im projekt in den ablauf integrieren. Aber erst sobald die aktuellen abläufe alle
+fertig integriert sind“.
+
+**Also:** `V_0.0.4` bleibt die laufende Version (Fehlerbehebung und laufende Abläufe). Die **nächste**
+EXE nach Abschluss dieser Abläufe heißt **`V_0.0.5`** und wird als **1. Designupdate** angekündigt, nicht als
+Fehlerbehebung.
+
+**Was drin ist (Vorlage aus Claudes Antwort Nr. 12, Register 531/534):**
+
+| Baustein | Stand |
+|---|---|
+| Schleier im Bild, Texte als Canvas-Elemente | **gebaut** in der Siedlungsansicht (A-10, Register 532) |
+| Gerüst A: Spalte links, Arbeitsfläche rechts, 17 px Rollbalken im Zwischenraum | Siedlung gebaut; für die übrigen Ansichten offen |
+| Kopf 60 px, klebend (A4) | offen — **Entscheidung Daniel** (er entscheidet, ob die Siedlungskarte ihn bekommt) |
+| Panels auf der Ersatzfarbe E, Knöpfe mit Rahmen-Frame | Siedlung gebaut; übrige Ansichten offen |
+| Forschung als erste neue Ansicht (Auftrag Nr. 13) | Rezept liegt vor, nachgerechnet (Register 534) — Bau offen |
+
+**Reihenfolge bis zur Ankündigung (nichts davon wird vorgezogen):**
+1. A-10 abschließen: Sammellauf ohne rote Datei, Register, ein Commit mit Push.
+2. C1 Teil 2 (Markersystem) nach Claudes Antwort Nr. 10.
+3. Release `V_0.0.4` wie geplant.
+4. **Dann** Ankündigung und Release-Text für `V_0.0.5` „1. Designupdate“ — erst nach Daniels Wort zur
+   DPI-Frage (Claudes Frage A), weil sie alle Pixelmaße betrifft.
+
+**Regel, die damit gilt:** eine Ankündigung erfindet keine Inhalte. Was in `V_0.0.5` steht, muss vorher
+gebaut und mit Wache belegt sein; das Designupdate ist die Zusammenfassung, nicht die Ankündigung eines
+Vorhabens.

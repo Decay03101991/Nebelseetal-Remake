@@ -3893,6 +3893,18 @@ SIEDLUNGS_ABZUG_HOEHE = 155       # Fenster -> sichtbare Flaeche (gemessen: 122 
 SIEDLUNGS_SCHLEIER_FARBE = "#1a0a09"   # Schleierfarbe (F-48)
 SIEDLUNGS_SCHLEIER_DECKUNG = 80        # Prozent (F-48); 79 waere die Untergrenze fuer #ff8a70
 
+# ---------- A-10 (12.11.2026, Register 518): Farben und Masse der Spalte ----------
+# Claudes Antwort Nr. 12, Abschnitt B2: Schriftgroessen in PIXELN (negative Tk-Groesse), kein Text
+# unter 12 px. Die Kontraste sind gegen den Schleier-Ton #483b3a gerechnet (schlimmster Fall: weiss
+# darunter) - Creme 8,42 - Gold 7,10 - Erfolg 6,37 - Warnung 4,65.
+SPALTE_CREME = "#F2E3BF"          # Fliessetext (8,42 : 1 auf dem Schleier)
+SPALTE_GOLD = "#FFCC33"           # Titel und Zwischentitel (7,10 : 1)
+SPALTE_ERFOLG = "#a5d67a"         # Erfolgszeile (6,37 : 1)
+SPALTE_WARNUNG = "#ff8a70"        # Warnung (4,65 : 1)
+SPALTE_INFO = "#7FD1FF"           # Kopfzeile des Ortsbestands (6,35 : 1 auf dem Schleier)
+SPALTE_ORTSBESTAND = "#1B2A2F"    # eigene deckende Flaeche des Ortsbestands (B5: KEIN Schleier)
+SPALTE_TEXT_MIN = 12              # px - kleiner wird kein Text (B2, HART)
+
 
 def siedlungs_masse(breite: int, hoehe: int) -> Dict[str, Any]:
     """Feldgroesse, Kartenmass, Spaltenbreite und Anordnung der Siedlungsansicht.
@@ -11837,11 +11849,11 @@ class NebelseetalApp:
         """
         if not hasattr(self, "skin"):
             return
-        rahmen = tk.Frame(eltern, bg=self.skin["panel"], highlightbackground="#5D4037",
+        rahmen = tk.Frame(eltern, bg=self._panel_ton(), highlightbackground="#5D4037",
                           highlightthickness=1)
         # A-9 (Register 514): die Uebersicht steht in der linken Spalte UNTER der Bauauswahl.
         rahmen.pack(anchor=tk.W, fill=tk.X, padx=(10, 0), pady=(2, 4))
-        tk.Label(rahmen, text="Dorfübersicht", fg=self.skin["gold"], bg=self.skin["panel"],
+        tk.Label(rahmen, text="Dorfübersicht", fg=self.skin["gold"], bg=self._panel_ton(),
                  font=("TkDefaultFont", 11, "bold")).pack(anchor=tk.W, padx=8, pady=(6, 0))
         # A-6: die freie Siedlerreserve steht auch HIER - an der Stelle, an der gebaut wird.
         try:
@@ -11852,7 +11864,7 @@ class NebelseetalApp:
                            f"{_reserve['zuwachs_stunde']:.1f}/h"
                            + (" · ⚠ " + _reserve["text"] if _reserve["text"] else "")),
                      fg=("#FDBA74" if _reserve["warnung"] else "#C0C0C0"),
-                     bg=self.skin["panel"], font=("Arial", 8), wraplength=self._spalten_textbreite(),
+                     bg=self._panel_ton(), font=("Arial", 8), wraplength=self._spalten_textbreite(),
                      justify=tk.LEFT).pack(anchor=tk.W, padx=8, pady=(0, 2))
         except (AttributeError, KeyError, TypeError, ValueError):
             pass
@@ -11866,13 +11878,13 @@ class NebelseetalApp:
             daten = None
         if daten is None:
             tk.Label(rahmen, text="Übersicht nicht berechenbar.", fg="#FDBA74",
-                     bg=self.skin["panel"]).pack(anchor=tk.W, padx=8, pady=4)
+                     bg=self._panel_ton()).pack(anchor=tk.W, padx=8, pady=4)
             return
         if not daten["gebaeude"]:
             tk.Label(rahmen, text="Noch kein Gebäude gebaut.", fg="#8a8a8a",
-                     bg=self.skin["panel"]).pack(anchor=tk.W, padx=8, pady=6)
+                     bg=self._panel_ton()).pack(anchor=tk.W, padx=8, pady=6)
             return
-        tabelle = tk.Frame(rahmen, bg=self.skin["panel"])
+        tabelle = tk.Frame(rahmen, bg=self._panel_ton())
         tabelle.pack(anchor=tk.W, padx=6, pady=(4, 2))
         kopfzeile = [("Gebäude", 140, tk.W), ("Anz.", 34, tk.E), ("Stufe", 56, tk.W),
                      ("je Stunde", 128, tk.W), ("Anteil", 52, tk.E), ("Siedler", 48, tk.E)]
@@ -11883,7 +11895,7 @@ class NebelseetalApp:
         _verfuegbar = self._spalten_textbreite()
         _faktor = min(1.0, float(_verfuegbar) / float(_summe))
         for spalte, (titel, breite, anker) in enumerate(kopfzeile):
-            tk.Label(tabelle, text=titel, fg="#C0C0C0", bg=self.skin["panel"],
+            tk.Label(tabelle, text=titel, fg="#C0C0C0", bg=self._panel_ton(),
                      width=max(4, int(breite * _faktor) // 8), anchor=anker,
                      font=("Arial", 8, "bold")).grid(row=0, column=spalte, sticky="w")
         for zeile, eintrag in enumerate(daten["gebaeude"][:26], start=1):
@@ -11895,7 +11907,7 @@ class NebelseetalApp:
                      (f"{eintrag['anteil'] * 100:.0f} %", tk.E, "#C0C0C0"),
                      (str(eintrag["siedler"]) if eintrag["siedler"] else "—", tk.E, "#C0C0C0")]
             for spalte, (text, anker, farbe) in enumerate(werte):
-                tk.Label(tabelle, text=text, fg=farbe, bg=self.skin["panel"],
+                tk.Label(tabelle, text=text, fg=farbe, bg=self._panel_ton(),
                          width=max(4, int(kopfzeile[spalte][1] * _faktor) // 8), anchor=anker,
                          font=("Arial", 8)).grid(row=zeile, column=spalte, sticky="w")
         summe = daten["summe"]
@@ -11904,21 +11916,21 @@ class NebelseetalApp:
                  text=(f"Summe: {summe['anzahl']} Gebäude · "
                        f"{summe['ertrag_text'] or 'kein Ertrag'} · "
                        f"Siedler gebunden: {summe['siedler']}"),
-                 fg=self.skin["gold"], bg=self.skin["panel"], font=("Arial", 9, "bold"),
+                 fg=self.skin["gold"], bg=self._panel_ton(), font=("Arial", 9, "bold"),
                  wraplength=self._spalten_textbreite(), justify=tk.LEFT).pack(anchor=tk.W, padx=8, pady=(0, 2))
-        tk.Label(rahmen, text=daten["hinweis"], fg="#8a8a8a", bg=self.skin["panel"],
+        tk.Label(rahmen, text=daten["hinweis"], fg="#8a8a8a", bg=self._panel_ton(),
                  font=("Arial", 8), wraplength=self._spalten_textbreite(), justify=tk.LEFT
                  ).pack(anchor=tk.W, padx=8, pady=(0, 2))
         if daten["uebersprungen"]:
             tk.Label(rahmen,
                      text=("Nicht mitgerechnet: " + "; ".join(daten["uebersprungen"][:3])
                            + (" …" if len(daten["uebersprungen"]) > 3 else "")),
-                     fg="#FDBA74", bg=self.skin["panel"], font=("Arial", 8),
+                     fg="#FDBA74", bg=self._panel_ton(), font=("Arial", 8),
                      wraplength=self._spalten_textbreite(), justify=tk.LEFT).pack(anchor=tk.W, padx=8, pady=(0, 6))
         tk.Label(rahmen,
                  text=("Anteil = Summe aller Rohstoffe dieses Gebäudetyps geteilt durch den "
                        "Gesamtertrag des Ortes (je Stunde)."),
-                 fg="#6b7280", bg=self.skin["panel"], font=("Arial", 7),
+                 fg="#6b7280", bg=self._panel_ton(), font=("Arial", 7),
                  wraplength=self._spalten_textbreite(), justify=tk.LEFT).pack(anchor=tk.W, padx=8, pady=(0, 6))
 
     def _karten_feld_waehlen(self, feld: int):
@@ -12437,6 +12449,246 @@ class NebelseetalApp:
                 % (gelaende.name(art),
                    (" Freie Felder anderer Art: " + wege + ".") if wege else ""))
 
+    # ---------- A-10 (12.11.2026, Register 518): die Spalte mit eingerechneten Schleiern ----------
+    def _spalte_versatz(self) -> tuple:
+        """Wo im Panorama die linke Spalte anfaengt (links, oben) - dieselbe Stelle wie das Bild.
+
+        Der Hintergrund der ganzen Ansicht wird auf 64-px-Schritte abgerundet gebaut
+        (`_siedlungs_groesse`) und `versatz` rechnet aus GENAU dieser Groesse. Die Spalte muss
+        dieselbe nehmen, sonst sitzt ihr Ausschnitt sieben Pixel neben dem Bild dahinter - gemessen
+        am 12.11.2026: 1037 x 589 ergibt 52 / 265, die gebaute Flaeche 1024 x 576 dagegen 59 / 272.
+        Darum wird hier genauso abgerundet, und zwar unabhaengig davon, ob das grosse Bild schon
+        gebaut ist (sonst haengt das Ergebnis von der Reihenfolge ab).
+        """
+        ziel = tuple(getattr(self, "_siedlungs_groesse", (0, 0)) or (0, 0))
+        breite, hoehe = int(ziel[0] or 0), int(ziel[1] or 0)
+        if breite < 64 or hoehe < 64:                                       # noch nicht gebaut
+            breite, hoehe = self._siedlungs_flaeche()
+            breite = max(64, (int(breite) // 64) * 64)                      # wie `_bauen`
+            hoehe = max(64, (int(hoehe) // 64) * 64)
+        return hintergrund_optik.versatz(breite, hoehe)
+
+    def _spalte_ton_ermitteln(self, breite: int, hoehe: int) -> None:
+        """Die Ersatzfarbe E der bedienbaren Bloecke messen (Antwort Nr. 12, Abschnitt D).
+
+        E = 0,8 x `#1a0a09` + 0,2 x mittlere Bildfarbe der Spalte (`ImageStat.mean`, also ueber alle
+        Pixel). Ohne Bild oder ohne Pillow bleibt es beim Skin-Panel - dann sieht die Ansicht aus
+        wie vor dem 12.11.2026 (Rueckfall C der Antwort).
+        """
+        self._spalte_schleier_ton = ""
+        pfad = str(getattr(self, "_siedlungs_pfad", "") or "")
+        if not pfad:
+            return
+        links, oben = self._spalte_versatz()
+        schluessel = (pfad, links, oben, int(breite), int(hoehe))
+        if not isinstance(getattr(self, "_spalte_ton_cache", None), dict):
+            self._spalte_ton_cache = {}
+        if schluessel in self._spalte_ton_cache:                            # schon gemessen
+            self._spalte_schleier_ton = self._spalte_ton_cache[schluessel]
+            return
+        roh = hintergrund_optik.bereich(pfad, links, oben, int(breite), int(hoehe))
+        if roh is None:                                                     # kein Bild moeglich
+            return
+        ton = hintergrund_optik.schleier_ton(roh, None, SIEDLUNGS_SCHLEIER_FARBE,
+                                             SIEDLUNGS_SCHLEIER_DECKUNG)
+        self._spalte_ton_cache[schluessel] = ton
+        self._spalte_schleier_ton = ton
+
+    def _panel_ton(self) -> str:
+        """Die Panel-Farbe der bedienbaren Bloecke: Schleier-Ton E, sonst die Skin-Farbe."""
+        return str(getattr(self, "_spalte_schleier_ton", "") or self.skin["panel"])
+
+    def _spalte_bloecke(self, leinwand, siedlung, karte, breite: int, nahrungssperre: str = ""):
+        """A-10: die FUENF Textbloecke der Spalte als Canvas-Elemente (`create_text`).
+
+        Claudes Antwort Nr. 12, Abschnitt B1: Text, Zahl und Erklaerung kommen auf die Leinwand,
+        alles mit Tastatur oder Sperrzustand bleibt Widget. Die Hoehe eines Blocks wird NICHT
+        geschaetzt: erst anlegen, dann `bbox` messen (B3), daraus das Schleierfeld bbox +/- 8 px.
+        Der Ortsbestand ist der eine Block MIT eigener deckender Flaeche (`#1B2A2F`) und bekommt
+        darum keinen Schleier (B5, schon Antwort Nr. 9).
+
+        Rueckgabe: (bloecke, y) - `bloecke` traegt je Block `name`, `feld` (x, y, Breite, Hoehe),
+        `items` und `deckend`; `y` ist die Oberkante der bedienbaren Bloecke. `nahrungssperre` kommt
+        von `_render_settlement_map` (die Wache `test_spieltest1_befunde` verlangt die Frage DORT).
+        """
+        rand = SIEDLUNGS_SCHLEIER_RAND
+        textbreite = breite - 2 * rand
+        bloecke = []
+        zustand = {"y": rand}
+
+        def _text(y, inhalt, farbe, font, luft: int = 0):
+            """Einen Canvas-Text setzen und die gemessene Unterkante zurueckgeben."""
+            item = leinwand.create_text(rand, y, text=inhalt, anchor=tk.NW, fill=farbe,
+                                        font=font, width=textbreite, justify=tk.LEFT)
+            try:
+                leinwand.update_idletasks()                                 # bbox braucht die Schrift
+            except tk.TclError:
+                pass
+            kasten = leinwand.bbox(item) or (rand, y, rand + textbreite, y + 18)
+            return item, int(kasten[3]) + int(luft)
+
+        def _feld(start, ende):
+            """Das Schleierfeld eines Blocks: gemessene bbox, um den Innenabstand erweitert."""
+            oben = max(0, int(start) - rand)
+            return (0, oben, int(breite), max(18, int(ende) + rand - oben))
+
+        def _merken(name, start, items, ende, deckend: bool = False):
+            bloecke.append({"name": name, "feld": _feld(start, ende), "items": items,
+                            "deckend": bool(deckend)})
+
+        # ---- Block 1: Kopf (Titel und Name) ----
+        start = zustand["y"]
+        items = []
+        item, y = _text(start, "Siedlungskarte", SPALTE_GOLD, ("Blackletter", -20, "bold"))
+        items.append(item)
+        item, y = _text(y + 4, "%s - %s" % (str(getattr(siedlung, "name", "")),
+                                            str(karte.get("typ_name") or "")),
+                        SPALTE_CREME, ("Arial", -13))
+        items.append(item)
+        _merken("kopf", start, items, y)
+        zustand["y"] = y + 3 * rand
+
+        # ---- Block 2: Hinweis, was die Karte erwartet ----
+        start = zustand["y"]
+        items = []
+        item, y = _text(start, "Wähle ein Feld auf der Karte. Rechts daneben steht, was dort "
+                               "gebaut werden kann und was es einbringt.", SPALTE_CREME,
+                        ("Arial", -13))
+        items.append(item)
+        _merken("hinweis", start, items, y)
+        zustand["y"] = y + 3 * rand
+
+        # ---- Block 3: Ortsbestand - EIGENE deckende Flaeche, kein Schleier ----
+        start = zustand["y"]
+        items = []
+        item, y = _text(start + 6, "Ortsbestand dieser Siedlung (lokal — führend seit Teil 3a)",
+                        SPALTE_INFO, ("Arial", -12, "bold"))
+        items.append(item)
+        item, y = _text(y + 2, ortsbestand_text(siedlung), SPALTE_CREME, ("Arial", -13))
+        items.append(item)
+        _not = str(nahrungssperre or "")                                   # von _render_settlement_map
+        if _not:                                                            # Grund der Sperre
+            item, y = _text(y + 2, "\u26a0 " + _not, SPALTE_WARNUNG, ("Arial", -12, "bold"))
+            items.append(item)
+        _flaeche = leinwand.create_rectangle(0, start, breite - 1, y + 6,
+                                            fill=SPALTE_ORTSBESTAND,
+                                            outline=SPALTE_ORTSBESTAND)
+        leinwand.tag_lower(_flaeche)                                        # hinter die Texte
+        _merken("ortsbestand", start, items, y + 6, deckend=True)
+        zustand["y"] = y + 6 + 3 * rand
+
+        # ---- Block 4: Reichsvergleich und Vorteil ----
+        start = zustand["y"]
+        items = []
+        item, y = _text(start, "Zum Vergleich das ganze Reich: " + reichsbestand_text(self.state),
+                        SPALTE_GOLD, ("Arial", -13))
+        items.append(item)
+        zaehlung = ", ".join("%s %d" % (gelaende.name(a), n)
+                             for a, n in (karte.get("zaehlung") or {}).items() if n)
+        item, y = _text(y + 2, "Vorteil: %s - %s" % (str(karte.get("vorteil") or ""), zaehlung),
+                        SPALTE_CREME, ("Arial", -13))
+        items.append(item)
+        _merken("vergleich", start, items, y)
+        zustand["y"] = y + 3 * rand
+
+        # ---- Block 5: Legende (Farbfelder und Erklaerung in EINEM Block, Antwort Nr. 9) ----
+        start = zustand["y"]
+        items = []
+        x = rand
+        zeile = start
+        zeilenhoehe = 18
+        for art in gelaende.GELAENDEARTEN:
+            item = leinwand.create_text(x + 18, zeile + 1, text=gelaende.name(art), anchor=tk.NW,
+                                        fill=SPALTE_CREME, font=("Arial", -12))
+            try:
+                leinwand.update_idletasks()
+            except tk.TclError:
+                pass
+            kasten = leinwand.bbox(item) or (x + 18, zeile, x + 100, zeile + zeilenhoehe)
+            if int(kasten[2]) > breite - rand:                              # kein Platz mehr
+                x = rand                                                    # neue Zeile
+                zeile = zeile + zeilenhoehe
+                leinwand.coords(item, x + 18, zeile + 1)
+                kasten = leinwand.bbox(item) or (x + 18, zeile, x + 100, zeile + zeilenhoehe)
+            items.append(item)
+            items.append(leinwand.create_rectangle(x, zeile + 4, x + 12, zeile + 16,
+                                                   fill=gelaende.farbe(art), outline=SPALTE_CREME))
+            x = int(kasten[2]) + 10
+        y = zeile + zeilenhoehe
+        item, y = _text(y + 2, "Sumpf ist nicht bebaubar (Handbuch S. 11). Gold umrandet = gewähltes "
+                               "Feld; die Punkte unter einem Gebäude zeigen seine Ausbaustufe.",
+                        SPALTE_CREME, ("Arial", -12))
+        items.append(item)
+        _merken("legende", start, items, y)
+        zustand["y"] = y + 3 * rand
+        return bloecke, zustand["y"]
+
+    def _spalte_schleier_bauen(self, leinwand, bloecke, rahmen, y_widget: int, hoehe_fenster: int,
+                              gespalten: bool) -> None:
+        """A-10: das Panorama mit eingerechneten Schleiern hinter die Spalte legen.
+
+        Zwei Durchgaenge wie in Claudes Antwort Nr. 12 (B3): die Texte stehen schon, ihre `bbox` ist
+        gemessen, daraus entstehen die Schleierrechtecke. Das Bild wird EINMAL je Groesse und
+        Blocklage gebaut (Z4: nicht beim Rollen, nicht im Takt) und ganz nach hinten gelegt
+        (`tag_lower`) - das Bild rollt darum mit der Spalte, die Karte nie.
+        """
+        if getattr(leinwand, "_schleier_fertig", False):                    # schon gebaut
+            return
+        try:
+            if not leinwand.winfo_exists():                                 # Flaeche ist weg
+                return
+            rahmen.update_idletasks()                                       # Rahmenhoehe messen
+        except tk.TclError:
+            return
+        breite = int(getattr(self, "_spalte_breite", 0) or 0)
+        if breite < 50:                                                     # unbrauchbare Breite
+            return
+        felder = [(int(b["feld"][0]), int(b["feld"][1]), int(b["feld"][2]), int(b["feld"][3]))
+                  for b in bloecke if not b.get("deckend")]
+        try:
+            unten_rahmen = int(y_widget) + int(rahmen.winfo_reqheight() or 0) + SIEDLUNGS_SCHLEIER_RAND
+        except tk.TclError:
+            unten_rahmen = int(y_widget) + 200
+        unten = max([unten_rahmen] + [f[1] + f[3] for f in felder])
+        hoehe = max(int(hoehe_fenster), unten)
+        # Die bedienbaren Bloecke bekommen BEIDES (Antwort Nr. 12, D): einen Schleier im Bild und
+        # die Ersatzfarbe E auf den Widgets - so entsteht an ihren Raendern kein harter Bruch.
+        felder.append((0, max(0, int(y_widget) - SIEDLUNGS_SCHLEIER_RAND), breite,
+                       max(18, hoehe - max(0, int(y_widget) - SIEDLUNGS_SCHLEIER_RAND))))
+        self._spalte_felder = list(felder)                                  # fuer die Pruefdatei
+        pfad = str(getattr(self, "_siedlungs_pfad", "") or "")
+        if not pfad:                                                        # kein Panorama
+            return                                                          # Rueckfall C
+        links, oben = self._spalte_versatz()
+        schluessel = (pfad, links, oben, breite, hoehe, tuple(felder))
+        if not isinstance(getattr(self, "_spalte_bild_cache", None), dict):
+            self._spalte_bild_cache = {}
+        roh = self._spalte_bild_cache.get(schluessel)
+        if roh is None:                                                     # noch nicht gebaut
+            roh = hintergrund_optik.bereich(pfad, links, oben, breite, hoehe, schleier=felder,
+                                            schleier_farbe=SIEDLUNGS_SCHLEIER_FARBE,
+                                            schleier_deckung=SIEDLUNGS_SCHLEIER_DECKUNG)
+            if roh is None:                                                 # kein Bild moeglich
+                return
+            self._spalte_bild_cache[schluessel] = roh
+        try:
+            from PIL import ImageTk                                          # nur hier importieren
+            bild = ImageTk.PhotoImage(roh)                                   # Tk-Grafik daraus
+            leinwand.delete("schleier")                                      # altes Bild weg
+            leinwand.create_image(0, 0, anchor=tk.NW, image=bild, tags=("schleier",))
+            leinwand.tag_lower("schleier")                                   # ganz nach hinten
+            leinwand.image = bild                                            # Referenz halten
+            if gespalten:                                                    # nebeneinander: Spalte rollt
+                leinwand.configure(scrollregion=leinwand.bbox("all"))
+            else:                                                            # gestapelt: waechst mit
+                leinwand.configure(height=max(200, unten),
+                                   scrollregion=leinwand.bbox("all"))
+            leinwand._schleier_fertig = True
+        except tk.TclError:                                                  # Flaeche weg
+            return
+        self._spalte_bild = roh
+        self._spalte_hoehe = hoehe
+
     def _render_settlement_map(self):
         # A-7 (12.11.2026, Register 502 F-44/F-45): das Panorama der Fraktion liegt HINTER der
         # Ansicht - zuerst erzeugt, damit alle Textbloecke und die Karte darueber liegen.
@@ -12468,111 +12720,70 @@ class NebelseetalApp:
             return
 
         karte = siedlung.karte
-        # ---------- A-9 (Register 507/511): Spalte LINKS (rollend), Karte RECHTS ----------
-        # Die Karte ist 588 px hoch und damit genau so hoch wie die sichtbare Flaeche - ueber ihr
-        # darf NICHTS stehen, sonst ist die unterste Feldreihe abgeschnitten. Darum liegen Titel,
-        # Ortsbestand, Bauauswahl, Dorfuebersicht und Legende in einer eigenen, rollenden Spalte
-        # links daneben. Der Rollbalken sitzt im Zwischenraum (17 px gemessen, Register 509).
+        # ---------- A-10 (12.11.2026, Register 518): der Schleier liegt im BILD ----------
+        # Daniels Wort: "mit 80% Schleiher umbauen und den braunen hintergrund der textbloecke leicht
+        # transparent machen, sodass man mehr vom hintergrund erkennt. Dementsprechend aber auch
+        # texte deutlicher schreiben." Ein tk.Label ist IMMER deckend (Befund Register 515) - darum
+        # stehen die Textbloecke jetzt als Canvas-Elemente ueber einem Bild, in das die
+        # 80-Prozent-Schleier EINGERECHNET sind (Claudes Antwort Nr. 12, Abschnitte A und B).
+        # Der Ortsbestand behaelt seine eigene deckende Flaeche (#1B2A2F, B5), die bedienbaren
+        # Bloecke (Bauauswahl, Dorfuebersicht) bleiben Widgets auf der Ersatzfarbe E (Abschnitt D).
         _karte_px = int(_masse.get("karte") or 588)
-        # Der Rollbalken sitzt im Zwischenraum und ist 17 px breit (gemessen, Register 509) - die
-        # Spalte gibt diese Breite ab, damit die Karte ihre 588 px voll behaelt.
-        _spalte_breite = max(200, int(_masse.get("spalte") or 433) - SIEDLUNGS_ROLLBALKEN
-                             + SIEDLUNGS_ABSTAND)
+        _gespalten = not _masse.get("uebereinander")
         _hoehe = max(200, int(_masse.get("hoehe") or 589))
+        if _gespalten:                                                      # Spalte links
+            # Der Rollbalken (17 px, gemessen Register 509) sitzt im Zwischenraum; die Spalte gibt
+            # diese Breite ab, damit die Karte ihre volle Breite behaelt.
+            _spalte_breite = max(200, int(_masse.get("spalte") or 433) - SIEDLUNGS_ROLLBALKEN
+                                 + SIEDLUNGS_ABSTAND)
+        else:                                                               # schmales Fenster
+            _spalte_breite = max(200, int(_masse.get("spalte") or 615) - SIEDLUNGS_ROLLBALKEN)
+        self._spalte_breite = _spalte_breite                                # fuer Pruefdatei/Masse
+        _text_breite = _spalte_breite - 24                                  # Umbruch der Widgets
         _reihe = tk.Frame(self.content, bg=self.skin["bg"])
         _reihe.pack(anchor=tk.W)
-        if _masse.get("uebereinander"):                                     # schmales Fenster
+        if _gespalten:                                                      # Spalte links
+            _spalte_halter = _reihe
+        else:                                                               # Karte oben, Spalte unten
             _oben = tk.Frame(_reihe, bg=self.skin["bg"])
-            _oben.pack(anchor=tk.E)                                         # Karte oben, rechtsbuendig
-            _unten = tk.Frame(_reihe, bg=self.skin["bg"])
-            _unten.pack(anchor=tk.W, pady=(SIEDLUNGS_ABSTAND, 0))
-            spalte = _unten
-            kartenblock = _oben
-        else:                                                               # nebeneinander
-            _spalte_leinwand = tk.Canvas(_reihe, width=_spalte_breite, height=_hoehe,
-                                         bg=self.skin["bg"], highlightthickness=0, bd=0)
-            _spalte_leinwand.pack(side=tk.LEFT, anchor=tk.N)
-            _rollbalken = tk.Scrollbar(_reihe, orient=tk.VERTICAL,
-                                       command=_spalte_leinwand.yview)
-            _spalte_leinwand.configure(yscrollcommand=_rollbalken.set)
+            _oben.pack(anchor=tk.E)                                         # Karte rechtsbuendig
+            _spalte_halter = tk.Frame(_reihe, bg=self.skin["bg"])
+            _spalte_halter.pack(anchor=tk.W, pady=(SIEDLUNGS_ABSTAND, 0))
+        _leinwand = tk.Canvas(_spalte_halter, width=_spalte_breite, height=_hoehe,
+                              bg=self.skin["bg"], highlightthickness=0, bd=0)
+        _leinwand.pack(side=tk.LEFT, anchor=tk.N)
+        if _gespalten:                                                      # eigener Rollbalken
+            _rollbalken = tk.Scrollbar(_spalte_halter, orient=tk.VERTICAL, command=_leinwand.yview)
+            _leinwand.configure(yscrollcommand=_rollbalken.set)
             _rollbalken.pack(side=tk.LEFT, anchor=tk.N, fill=tk.Y)
-            spalte = tk.Frame(_spalte_leinwand, bg=self.skin["bg"])
-            _spalte_leinwand.create_window((0, 0), window=spalte, anchor=tk.NW,
-                                           width=_spalte_breite)
-            spalte.bind("<Configure>", lambda _e: _spalte_leinwand.configure(
-                scrollregion=_spalte_leinwand.bbox("all")))
-            self._spalte_leinwand = _spalte_leinwand
             self._spalte_rollbalken = _rollbalken
-            kartenblock = tk.Frame(_reihe, bg=self.skin["bg"])
+        self._spalte_leinwand = _leinwand
+        # Die Ersatzfarbe E der bedienbaren Bloecke MUSS vor ihnen feststehen (Antwort Nr. 12, D).
+        self._spalte_ton_ermitteln(_spalte_breite, min(_hoehe, 640))
+        _panel = self._panel_ton()
+        # Die Wache `test_spieltest1_befunde` verlangt, dass die Sperre HIER gefragt wird
+        # (eine Rechenstelle, nicht vier) - darum wird der Text an die Bloecke uebergeben.
+        _nahrungssperre_text = self._nahrungssperre(siedlung)
+        _bloecke, _y_widget = self._spalte_bloecke(_leinwand, siedlung, karte, _spalte_breite,
+                                                  _nahrungssperre_text)
+        # Die bedienbaren Bloecke: EIN Rahmen im Ton E, darin Bauauswahl und Dorfuebersicht.
+        spalte = tk.Frame(_leinwand, bg=_panel)
+        _leinwand.create_window((0, _y_widget), window=spalte, anchor=tk.NW, width=_spalte_breite)
+        spalte.bind("<Configure>", lambda _e: _leinwand.configure(
+            scrollregion=_leinwand.bbox("all")))
+        self._spalte_frame = spalte
+        self._spalte_bloecke_merken = (_bloecke, spalte)                    # fuer Pruefdatei
+        _leinwand.after_idle(lambda: self._spalte_schleier_bauen(_leinwand, _bloecke, spalte,
+                                                                 _y_widget, _hoehe, _gespalten))
+        # Die Karte steht rechts neben der Spalte (F-47) und wird HIER gezeichnet: sie braucht die
+        # volle Hoehe, damit alle 100 Felder ohne Rollen sichtbar sind. Bei "uebereinander" liegt
+        # sie oben im Geruest, die Spalte darunter.
+        kartenblock = _oben if not _gespalten else tk.Frame(_reihe, bg=self.skin["bg"])
+        if _gespalten:
             kartenblock.pack(side=tk.LEFT, anchor=tk.N)
-        _text_breite = _spalte_breite - 24                                   # Umbruchbreite der Texte
-        # A-9: der Titel steht jetzt IN der Spalte - ueber der Karte darf nichts liegen, sonst ist
-        # die unterste Feldreihe abgeschnitten (gemessen: der alte Titel kostete 50 px).
-        tk.Label(spalte, text="Siedlungskarte", font=("Blackletter", 20, "bold"),
-                 fg=self.skin["gold"], bg=self.skin["bg"], wraplength=_text_breite,
-                 justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(4, 2))
-        tk.Label(spalte, text=f"{siedlung.name} — {karte['typ_name']}",
-                 fg=self.skin["gold"], bg=self.skin["bg"],
-                 font=("TkDefaultFont", 13, "bold")).pack(anchor=tk.W, padx=10)
-        tk.Label(spalte, text="Wähle ein Feld auf der Karte. Rechts daneben steht, was dort "
-                                    "gebaut werden kann und was es einbringt.",
-                 fg="#F3F4F6", bg=self.skin["bg"], wraplength=_text_breite,
-                 justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 2))
-        # Schritt 9, Teil 3b: der Ortsbestand DIESER Siedlung steht hervorgehoben ueber der Karte.
-        # Die Leiste ganz oben zeigt dagegen das ganze Reich — zwei Ansichten, zwei Zahlen
-        # (KONTEXT_PAKET, Abschnitt 2, Teil 3b).
-        _bestand = tk.Frame(spalte, bg="#1B2A2F", highlightbackground="#7FD1FF",
-                            highlightthickness=1)
-        _bestand.pack(fill=tk.X, padx=10, pady=(2, 4))
-        tk.Label(_bestand, text="Ortsbestand dieser Siedlung (lokal — führend seit Teil 3a)",
-                 fg="#7FD1FF", bg="#1B2A2F", font=("TkDefaultFont", 10, "bold")
-                 ).pack(anchor=tk.W, padx=8, pady=(6, 0))
-        tk.Label(_bestand, text=ortsbestand_text(siedlung), fg="#F3F4F6", bg="#1B2A2F",
-                 wraplength=_text_breite - 20, justify=tk.LEFT).pack(anchor=tk.W, padx=8, pady=(0, 6))
-        # Register 70/74: steht der Ort in Nahrungsnot, steht der Grund SICHTBAR ueber dem Lager -
-        # sonst sucht der Spieler, warum nichts mehr gebaut, hergestellt oder ausgebildet wird.
-        _not = self._nahrungssperre(siedlung)
-        if _not:
-            tk.Label(_bestand, text="⚠ " + _not, fg="#FDBA74", bg="#1B2A2F",
-                     wraplength=_text_breite - 20, justify=tk.LEFT,
-                     font=("Arial", 9, "bold")).pack(anchor=tk.W, padx=8, pady=(0, 6))
-        tk.Label(spalte, text="Zum Vergleich das ganze Reich: " + reichsbestand_text(self.state),
-                 fg="#DAA520", bg=self.skin["bg"], wraplength=_text_breite, justify=tk.LEFT,
-                 font=("Arial", 9)).pack(anchor=tk.W, padx=10, pady=(0, 4))
-        zaehlung = ", ".join(f"{gelaende.name(a)} {n}" for a, n in karte["zaehlung"].items() if n)
-        tk.Label(spalte, text=f"Vorteil: {karte['vorteil']} · {zaehlung}",
-                 fg=self.skin["text"], bg=self.skin["bg"], wraplength=_text_breite,
-                 justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 4))
-
-        # A-9 (Register 507, F-47): der Kartenblock steht seit dem 12.11.2026 RECHTS neben der
-        # Spalte und wird oben im Geruest erzeugt. Daniels alter Wunsch (05.10.2026: "Karte links,
-        # Auswahl rechts") ist damit ueberholt - die Karte braucht die volle Hoehe, damit alle
-        # 100 Felder ohne Rollen sichtbar sind.
-
-        # astra-Bildgutachten 05.10.2026: 64-px-Felder mit Gelände-EMBLEM (Farbe allein
-        # reicht nicht), Koordinaten statt interner Feldnummern, kräftiger Auswahlrahmen.
-        # Vorher: ein Raster kleiner Knöpfe mit abgeschnittenen Namen („Steinm", „Holzfä").
         self._zeichne_siedlungskarte(siedlung, karte, eltern=kartenblock,
-                                     zelle=int(_masse.get("feld") or 64))   # A-9: 57 statt 64
-
-        # Der Dorfwall steht NICHT mehr als eigene Zeile ueber der Karte: er hat seinen
-        # Platz in der Rubrik Verteidigung (siehe `_wall_block`).
-
-        legende = tk.Frame(spalte, bg=self.skin["bg"])
-        legende.pack(anchor=tk.W, padx=10, pady=(4, 2))
-        for art in gelaende.GELAENDEARTEN:
-            tk.Label(legende, text="   ", bg=gelaende.farbe(art)).pack(side=tk.LEFT, padx=(5, 1))
-            tk.Label(legende, text=gelaende.name(art), fg=self.skin["text"],
-                     bg=self.skin["bg"]).pack(side=tk.LEFT)
-        tk.Label(spalte, text="Sumpf ist nicht bebaubar (Handbuch S. 11). "
-                                   "Gold umrandet = gewähltes Feld; die Punkte unter einem "
-                                   "Gebäude zeigen seine Ausbaustufe.",
-                 fg=self.skin["text"], bg=self.skin["bg"],
-                 wraplength=_text_breite, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(2, 4))
-
-        # Daniels Wunsch 05.10.2026 (Stiftskizze): die Auswahl steht RECHTS neben der Karte —
-        # als eigene Spalte im Kartenblock, nicht als Streifen unter der Karte.
-        info = tk.Frame(spalte, bg=self.skin["panel"], highlightbackground="#5D4037",
+                                     zelle=int(_masse.get("feld") or 64))
+        info = tk.Frame(spalte, bg=_panel, highlightbackground="#5D4037",
                         highlightthickness=1)
         info.pack(anchor=tk.W, fill=tk.X, padx=10, pady=(2, 4))
         # A-3 (Daniels Spielbericht 31.10.2026): die Dorfuebersicht steht als dritte Spalte
@@ -12590,12 +12801,12 @@ class NebelseetalApp:
             kategorie = "Produktion"
         self._karten_baukategorie = kategorie
         tk.Label(info, text=baumenue_info.SPIELERHILFE,
-                 fg="#F5D18B", bg=self.skin["panel"], wraplength=_text_breite - 12,
+                 fg="#F5D18B", bg=_panel, wraplength=_text_breite - 12,
                  justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(4, 2))
-        zeile = tk.Frame(info, bg=self.skin["panel"])
+        zeile = tk.Frame(info, bg=_panel)
         zeile.pack(anchor=tk.W, fill=tk.X, padx=6, pady=(5, 3))
         tk.Label(zeile, text="Baubereich:", fg=self.skin["text"],
-                 bg=self.skin["panel"]).pack(side=tk.LEFT)
+                 bg=_panel).pack(side=tk.LEFT)
         auswahl = tk.StringVar(value=kategorie)
         tk.OptionMenu(zeile, auswahl, *kategorien,
                       command=lambda wert: (setattr(self, "_karten_baukategorie", wert),
@@ -12610,14 +12821,14 @@ class NebelseetalApp:
         feld = getattr(self, "karten_feld", None)
         if feld is None:
             tk.Label(info, text="Ein Feld auf der Karte anklicken, um dort zu bauen.",
-                     fg=self.skin["text"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=6, pady=6)
+                     fg=self.skin["text"], bg=_panel).pack(anchor=tk.W, padx=6, pady=6)
             # S-2c-D: solange der Platz des Dorfzentrums offen ist, sagt die Ansicht das auch
             # ohne gewaehltes Feld - sonst sucht der Spieler einen Knopf, den er nicht sieht.
             if getattr(siedlung, "dorfzentrum_offen", False) and not \
                     gebaeude_wirkung.gebaeude_stufe(siedlung, "lager"):
                 tk.Label(info, text="Dorfzentrum: das Feld ist noch offen. Ein freies Feld "
                                     "anklicken, dann erscheint dort der Knopf zum Setzen.",
-                         fg="#7FD1FF", bg=self.skin["panel"], wraplength=_text_breite - 40,
+                         fg="#7FD1FF", bg=_panel, wraplength=_text_breite - 40,
                          justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(0, 6))
             return
 
@@ -12628,11 +12839,11 @@ class NebelseetalApp:
         _bebaubar = gelaende.ist_bebaubar(art)
         _lage = "belegt" if gebaut else ("frei · bebaubar" if _bebaubar else "nicht bebaubar")
         tk.Label(info, text=f"{_koord} · {gelaende.name(art)} — {_lage}", fg=self.skin["gold"],
-                 bg=self.skin["panel"], font=("TkDefaultFont", 11, "bold")).pack(anchor=tk.W, padx=6, pady=(6, 2))
+                 bg=_panel, font=("TkDefaultFont", 11, "bold")).pack(anchor=tk.W, padx=6, pady=(6, 2))
         if not _bebaubar and not gebaut:
             tk.Label(info, text="Hier kannst du nicht bauen: Sumpf ist unbebaubar und damit "
                                 "wertlos (Handbuch S. 11).",
-                     fg="#FDBA74", bg=self.skin["panel"]).pack(anchor=tk.W, padx=6, pady=(0, 6))
+                     fg="#FDBA74", bg=_panel).pack(anchor=tk.W, padx=6, pady=(0, 6))
             return
 
         if gebaut:
@@ -12641,18 +12852,18 @@ class NebelseetalApp:
             erlaubt, warum = gelaende.bau_moeglich(gebaut, art)
             tk.Label(info, text=f"Hier steht: {gelaende.gebaeude_name(gebaut)} — "
                                 f"{gebaeude_wirkung.stufen_name(gebaut, stufe)} ({warum})",
-                     fg=self.skin["text"], bg=self.skin["panel"], wraplength=300,
+                     fg=self.skin["text"], bg=_panel, wraplength=300,
                      justify=tk.LEFT).pack(anchor=tk.W, padx=6)
-            knopfreihe = tk.Frame(info, bg=self.skin["panel"])
+            knopfreihe = tk.Frame(info, bg=_panel)
             knopfreihe.pack(anchor=tk.W, padx=6, pady=6)
             if grenze is None:
                 tk.Label(knopfreihe, text="Kein Ausbau vorgesehen — das Handbuch nennt für "
                                           "dieses Gebäude keine Stufen.",
-                         fg=self.skin["text"], bg=self.skin["panel"]).pack(side=tk.LEFT)
+                         fg=self.skin["text"], bg=_panel).pack(side=tk.LEFT)
             elif stufe >= grenze:
                 tk.Label(knopfreihe, text=f"Höchste Stufe erreicht ({grenze}) — "
                                           f"{gebaeude_wirkung.stufen_name(gebaut, grenze)}.",
-                         fg=self.skin["text"], bg=self.skin["panel"]).pack(side=tk.LEFT)
+                         fg=self.skin["text"], bg=_panel).pack(side=tk.LEFT)
             else:
                 kosten = _ausbau_kosten(gebaut, stufe + 1, siedlung)
                 tk.Button(knopfreihe, text=f"Ausbauen auf Stufe {stufe + 1} ({kosten_text(kosten)})",
@@ -12699,11 +12910,11 @@ class NebelseetalApp:
         verfuegbar = sum(angebot["baubar"] for angebot in angebote)
         tk.Label(info, text=(f"{kategorie}: {verfuegbar} sofort baubar, "
                              f"{len(angebote) - verfuegbar} gesperrt / nicht finanzierbar."),
-                 fg=self.skin["text"], bg=self.skin["panel"], wraplength=_text_breite - 12,
+                 fg=self.skin["text"], bg=_panel, wraplength=_text_breite - 12,
                  justify=tk.LEFT).pack(anchor=tk.W, padx=6)
         if not angebote:
             tk.Label(info, text="Keine passenden Gebäude in dieser Rubrik auf diesem Feld.",
-                     fg=self.skin["text"], bg=self.skin["panel"], wraplength=_text_breite - 12,
+                     fg=self.skin["text"], bg=_panel, wraplength=_text_breite - 12,
                      justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(6, 0))
             # Spieltest 2 (Daniel 08.11.2026): "Ich konnte nicht ein einziges Gebaeude bauen
             # obwohl die Rohstoffe da waren" - auf einem Nebelsee gibt es in der Rubrik
@@ -12711,7 +12922,7 @@ class NebelseetalApp:
             # nicht, dass es am GELAENDE liegt. Derselbe Hinweis wie unten, eine Stelle.
             _hinweis = self._gelaende_hinweis(siedlung, art)
             if _hinweis:
-                tk.Label(info, text=_hinweis, fg="#FDBA74", bg=self.skin["panel"], wraplength=_text_breite - 12,
+                tk.Label(info, text=_hinweis, fg="#FDBA74", bg=_panel, wraplength=_text_breite - 12,
                          justify=tk.LEFT, font=("Arial", 9, "bold")).pack(anchor=tk.W, padx=6,
                                                                          pady=(2, 6))
             return
@@ -12721,7 +12932,7 @@ class NebelseetalApp:
         if not verfuegbar:
             _hinweis = self._gelaende_hinweis(siedlung, art)
             if _hinweis:
-                tk.Label(info, text=_hinweis, fg="#FDBA74", bg=self.skin["panel"], wraplength=_text_breite - 12,
+                tk.Label(info, text=_hinweis, fg="#FDBA74", bg=_panel, wraplength=_text_breite - 12,
                          justify=tk.LEFT, font=("Arial", 9, "bold")).pack(anchor=tk.W, padx=6,
                                                                          pady=(2, 4))
             # ... und wenn ANDERE Rubriken auf genau diesem Feld etwas anbieten, steht das dabei:
@@ -12743,11 +12954,11 @@ class NebelseetalApp:
             if _andere_rubriken:
                 tk.Label(info, text="In anderen Rubriken auf diesem Feld baubar — "
                                     + "; ".join(_andere_rubriken) + ".",
-                         fg="#8FE388", bg=self.skin["panel"], wraplength=_text_breite - 12,
+                         fg="#8FE388", bg=_panel, wraplength=_text_breite - 12,
                          justify=tk.LEFT, font=("Arial", 9, "bold")).pack(anchor=tk.W, padx=6,
                                                                          pady=(0, 4))
 
-        knopfreihe = tk.Frame(info, bg=self.skin["panel"])
+        knopfreihe = tk.Frame(info, bg=_panel)
         knopfreihe.pack(anchor=tk.W, fill=tk.X, padx=6, pady=6)
         for i, angebot in enumerate(angebote):
             text = (f"{angebot['name']} — {angebot['wirkung']}\n"
@@ -16472,7 +16683,7 @@ class NebelseetalApp:
         `_mauer_reparatur_block` - keine zweite Rechnung, kein zweiter Buchungsweg.
         """
         tk.Label(eltern, text=self._wall_kurztext(siedlung), fg=self.skin["gold"],
-                 bg=self.skin["panel"], font=("TkDefaultFont", 11, "bold")).pack(
+                 bg=self._panel_ton(), font=("TkDefaultFont", 11, "bold")).pack(
                      anchor=tk.W, padx=6, pady=(4, 0))
         # Der Satz "belegt kein Kartenfeld" gehoert zum Ort: er erklaert, warum der Wall hier
         # steht und nicht auf einem Feld (Daniels Spieltest 3, Note 3). Er stand bis Register 321
@@ -16481,7 +16692,7 @@ class NebelseetalApp:
                                "weitere Stufe hebt den Wall. Wer angreift, muss ihn zuerst "
                                "überwinden. Der Dorfwall belegt kein Kartenfeld: deshalb steht "
                                "er hier in der Rubrik Verteidigung."),
-                 fg=self.skin["text"], bg=self.skin["panel"], wraplength=310,
+                 fg=self.skin["text"], bg=self._panel_ton(), wraplength=310,
                  justify=tk.LEFT).pack(anchor=tk.W, padx=6)
         if not siedlung.mauer_besetzt:
             preis = kosten_text(baukosten("verteidigungswall"))        # Preis aus der Baukasse
@@ -16498,7 +16709,7 @@ class NebelseetalApp:
             _wall_knopf.pack(anchor=tk.W, padx=6, pady=(2, 4))
             if _forschungsstand < 1:                                # Grund daneben nennen
                 tk.Label(eltern, text="Gesperrt: zuerst »Verteidigungsanlagen« erforschen.",
-                         fg="#FDBA74", bg=self.skin["panel"], justify=tk.LEFT,
+                         fg="#FDBA74", bg=self._panel_ton(), justify=tk.LEFT,
                          wraplength=310).pack(anchor=tk.W, padx=6, pady=(0, 4))
         if dorfwall.kennwerte(siedlung, self.state.research)["stufe"]:
             self._mauer_reparatur_block(eltern, siedlung)              # S2: Reparatur anzeigen

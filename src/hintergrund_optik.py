@@ -23,6 +23,11 @@ BILD_HOEHE = 1120
 # Der Fuellton, wenn die Flaeche groesser ist als das Bild (Fensterfarbe des Spiels).
 FUELLTON = "#17212B"
 
+# Der Schleier (F-48, Register 507): 80 Prozent `#1a0a09` ueber dem Bild. A-10 rechnet ihn in das
+# Bild der linken Spalte ein (Register 518).
+SCHLEIER_FARBE = "#1a0a09"
+SCHLEIER_DECKUNG = 80.0
+
 ORDNER = os.path.join("assets", "hintergruende", "meshy_1zu1")
 
 # Fraktionskennung -> Bilddatei der Siedlungsansicht. Die Kennungen sind die aus `data/voelker.json`
@@ -96,15 +101,67 @@ def versatz(breite: int, hoehe: int) -> Tuple[int, int]:
     return links, oben
 
 
-def ausschnitt(dateipfad: str, breite: int, hoehe: int, abdunkeln_prozent: float = 0.0,
-               weichzeichnen_px: float = 0.0):
-    """Das Bild als Flaeche in Zielgroesse: mittig beschnitten, NIE skaliert (Pillow-Bild).
+def rgb(farbe: str) -> Tuple[int, int, int]:
+    """'#1a0a09' -> (26, 10, 9). Eine unbekannte Angabe ergibt Schwarz (kein Absturz)."""
+    text = str(farbe or "").strip().lstrip("#")
+    if len(text) == 3:                                                    # Kurzform #abc
+        text = "".join(zeichen * 2 for zeichen in text)
+    if len(text) != 6:
+        return (0, 0, 0)
+    try:
+        return (int(text[0:2], 16), int(text[2:4], 16), int(text[4:6], 16))
+    except ValueError:
+        return (0, 0, 0)
 
-    Rueckgabe ist ein RGBA-Bild von genau `breite` x `hoehe`. Ohne Pillow, ohne Datei oder bei
-    unsinnigen Massen kommt None zurueck - der Aufrufer laesst die Ansicht dann unveraendert.
+
+def _hex(dreier) -> str:
+    """(26, 10, 9) -> '#1a0a09' (immer klein geschrieben, wie die Skin-Farben)."""
+    r, g, b = (max(0, min(255, int(round(w)))) for w in dreier)
+    return "#%02x%02x%02x" % (r, g, b)
+
+
+def mittel_farbe(bild, rechteck=None) -> Tuple[int, int, int]:
+    """Die mittlere Farbe eines Bildes oder eines Rechtecks darin (RGB, gerundet).
+
+    Gemessen wird mit `ImageStat`, also ueber ALLE Pixel - kein Stichprobenverfahren. Ein fehlendes
+    Bild ergibt Schwarz; ein Rechteck ausserhalb wird auf das Bild beschnitten.
     """
-    breite, hoehe = int(breite), int(hoehe)
-    if breite < 1 or hoehe < 1 or not dateipfad:
+    if bild is None:
+        return (0, 0, 0)
+    teil = bild
+    if rechteck is not None:
+        x, y, breite, hoehe = (int(w) for w in list(rechteck)[:4])
+        x0, y0 = max(0, x), max(0, y)
+        x1, y1 = min(bild.width, x + breite), min(bild.height, y + hoehe)
+        if x1 <= x0 or y1 <= y0:                                          # leerer Ausschnitt
+            return (0, 0, 0)
+        teil = bild.crop((x0, y0, x1, y1))
+    try:
+        from PIL import ImageStat
+        werte = ImageStat.Stat(teil.convert("RGB")).mean
+    except Exception:                                                     # noqa: BLE001
+        return (0, 0, 0)
+    return (int(round(werte[0])), int(round(werte[1])), int(round(werte[2])))
+
+
+def schleier_ton(bild, rechteck=None, farbe: str = SCHLEIER_FARBE,
+                 deckung: float = SCHLEIER_DECKUNG) -> str:
+    """Der Schleier-Ton als EINZELFARBE: `deckung` x `farbe` + Rest x Bildfarbe.
+
+    Genau die Rechnung, die auch im Bild passiert (Claudes `0,8 x #1a0a09 + 0,2 x Bildfarbe`,
+    Register 518) - damit koennen bedienbare Widgets (Knoepfe, Tabellen) denselben Ton tragen,
+    obwohl Tk-Widgets keine Transparenz koennen. Bei 80 Prozent ueber einem weissen Bild ergibt
+    das `#483b3a`, den Ton aus Register 507/518.
+    """
+    k = max(0.0, min(1.0, float(deckung) / 100.0))
+    fr, fg, fb = rgb(farbe)
+    br, bg, bb = mittel_farbe(bild, rechteck)
+    return _hex((k * fr + (1.0 - k) * br, k * fg + (1.0 - k) * bg, k * fb + (1.0 - k) * bb))
+
+
+def _bild_oeffnen(dateipfad: str):
+    """Die Datei als RGBA-Bild - None ohne Pillow, ohne Datei oder bei kaputtem Bild."""
+    if not dateipfad:
         return None
     try:
         from PIL import Image
@@ -114,25 +171,102 @@ def ausschnitt(dateipfad: str, breite: int, hoehe: int, abdunkeln_prozent: float
         return None
     try:
         with Image.open(dateipfad) as roh:
-            bild = roh.convert("RGBA")
+            return roh.convert("RGBA")
     except (OSError, ValueError):
         return None
-    links, oben = versatz(breite, hoehe)
-    if breite <= bild.width and hoehe <= bild.height:            # Flaeche passt ins Bild: schneiden
-        flaeche = bild.crop((links, oben, links + breite, oben + hoehe))
-    else:                                                         # Flaeche groesser: 1:1 in die Mitte
-        flaeche = Image.new("RGBA", (breite, hoehe), FUELLTON)
-        teil = bild.crop((0, 0, min(breite, bild.width), min(hoehe, bild.height)))
-        flaeche.paste(teil, (max(0, (breite - bild.width) // 2),
-                             max(0, (hoehe - bild.height) // 2)))
-    if float(weichzeichnen_px or 0) > 0:                          # Weichzeichnen nur auf Wunsch
+
+
+def _schneiden(bild, links: int, oben: int, breite: int, hoehe: int):
+    """1:1 ausschneiden; passt die Flaeche nicht ins Bild, wird sie mittig eingesetzt und gefuellt."""
+    from PIL import Image
+    if breite <= bild.width and hoehe <= bild.height:                     # Flaeche passt: schneiden
+        return bild.crop((links, oben, links + breite, oben + hoehe))
+    flaeche = Image.new("RGBA", (breite, hoehe), FUELLTON)                 # Fuellton als Rest
+    teil = bild.crop((0, 0, min(breite, bild.width), min(hoehe, bild.height)))
+    flaeche.paste(teil, (max(0, (breite - bild.width) // 2),
+                         max(0, (hoehe - bild.height) // 2)))
+    return flaeche
+
+
+def _schleier_auf(flaeche, rechtecke, farbe: str = SCHLEIER_FARBE,
+                  deckung: float = SCHLEIER_DECKUNG):
+    """Je Rechteck `deckung` Prozent `farbe` ueber das Bild legen (0,8 x Farbe + 0,2 x Bild).
+
+    Die Rechtecke sind (x, y, Breite, Hoehe) in Zielkoordinaten; was ueber den Rand ragt, wird
+    beschnitten statt zu werfen. Ohne Rechtecke kommt das Bild UNVERAENDERT zurueck.
+    """
+    from PIL import Image
+    if not rechtecke:
+        return flaeche
+    k = max(0.0, min(1.0, float(deckung) / 100.0))
+    voll_farbe = rgb(farbe) + (255,)
+    for eintrag in rechtecke:
+        try:
+            x, y, breite, hoehe = (int(w) for w in list(eintrag)[:4])
+        except (TypeError, ValueError):                                   # unbrauchbarer Eintrag
+            continue
+        x0, y0 = max(0, x), max(0, y)
+        x1, y1 = min(flaeche.width, x + breite), min(flaeche.height, y + hoehe)
+        if x1 <= x0 or y1 <= y0:                                          # leerer Ausschnitt
+            continue
+        teil = flaeche.crop((x0, y0, x1, y1))
+        voll = Image.new("RGBA", teil.size, voll_farbe)
+        flaeche.paste(Image.blend(teil, voll, k), (x0, y0))
+    return flaeche
+
+
+def bereich(dateipfad: str, links: int, oben: int, breite: int, hoehe: int,
+            weichzeichnen_px: float = 0.0, schleier=None,
+            schleier_farbe: str = SCHLEIER_FARBE,
+            schleier_deckung: float = SCHLEIER_DECKUNG,
+            abdunkeln_prozent: float = 0.0):
+    """Ein Ausschnitt an FREIER Stelle (links, oben) als RGBA-Bild von `breite` x `hoehe`.
+
+    A-10 (Register 518): die linke Spalte beginnt am linken Rand des Inhalts, nicht in der Mitte
+    des Panoramas - darum wird hier NICHT `versatz` benutzt, sondern der Aufrufer nennt die Stelle.
+    Reihenfolge wie in `ausschnitt`: schneiden (nie skalieren), dann weichzeichnen, dann die
+    Schleierfelder, zuletzt ein gleichmaessiges Abdunkeln. Ohne Pillow, ohne Datei oder bei
+    unsinnigen Massen kommt None zurueck.
+    """
+    breite, hoehe = int(breite), int(hoehe)
+    links, oben = max(0, int(links)), max(0, int(oben))
+    if breite < 1 or hoehe < 1:
+        return None
+    bild = _bild_oeffnen(dateipfad)
+    if bild is None:
+        return None
+    flaeche = _schneiden(bild, links, oben, breite, hoehe)
+    if float(weichzeichnen_px or 0) > 0:                                  # Weichzeichnen auf Wunsch
         try:
             from PIL import ImageFilter
             flaeche = flaeche.filter(ImageFilter.GaussianBlur(float(weichzeichnen_px)))
-        except Exception:                                         # noqa: BLE001 - Filter fehlt
+        except Exception:                                                 # noqa: BLE001
             pass
-    if float(abdunkeln_prozent or 0) > 0:                          # Schleier nur auf Wunsch
+    flaeche = _schleier_auf(flaeche, schleier, schleier_farbe, schleier_deckung)
+    if float(abdunkeln_prozent or 0) > 0:                                 # Abdunkeln auf Wunsch
+        from PIL import Image
         deckkraft = int(round(255 * min(100.0, float(abdunkeln_prozent)) / 100.0))
-        schleier = Image.new("RGBA", flaeche.size, (0, 0, 0, deckkraft))
-        flaeche = Image.alpha_composite(flaeche, schleier)
+        dunkel = Image.new("RGBA", flaeche.size, (0, 0, 0, deckkraft))
+        flaeche = Image.alpha_composite(flaeche, dunkel)
     return flaeche
+
+
+def ausschnitt(dateipfad: str, breite: int, hoehe: int, abdunkeln_prozent: float = 0.0,
+               weichzeichnen_px: float = 0.0, schleier=None,
+               schleier_farbe: str = SCHLEIER_FARBE,
+               schleier_deckung: float = SCHLEIER_DECKUNG):
+    """Das Bild als Flaeche in Zielgroesse: mittig beschnitten, NIE skaliert (Pillow-Bild).
+
+    Rueckgabe ist ein RGBA-Bild von genau `breite` x `hoehe`. Ohne Pillow, ohne Datei oder bei
+    unsinnigen Massen kommt None zurueck - der Aufrufer laesst die Ansicht dann unveraendert.
+    Die optionalen Schleierfelder (A-10) werden an `bereich` durchgereicht; ohne sie ist das
+    Ergebnis dasselbe wie vor dem 12.11.2026.
+    """
+    breite, hoehe = int(breite), int(hoehe)
+    if breite < 1 or hoehe < 1 or not dateipfad:
+        return None
+    links, oben = versatz(breite, hoehe)
+    return bereich(dateipfad, links, oben, breite, hoehe,
+                   weichzeichnen_px=weichzeichnen_px, schleier=schleier,
+                   schleier_farbe=schleier_farbe, schleier_deckung=schleier_deckung,
+                   abdunkeln_prozent=abdunkeln_prozent)
