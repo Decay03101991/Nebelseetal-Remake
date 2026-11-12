@@ -31,12 +31,13 @@ frisch installierte Fassung (v0.23.1, local 3b421578).
 | F-40 | Meshy 1:1 | Mitte beschneiden, oben/unten ergaenzen | kein neuer Mal-Lauf, 45 Prozent Breite weg |
 | F-41 | Reihenfolge danach | C1 Teil 2 (Markersystem) | Bau nach den Bildern |
 | F-42 | Release v_0.0.4 | jetzt vorbereiten | Chris' Freigabe liegt vor |
-| F-43 | Skill-Nachtrag | freigeben | liegt unter `/skills pending` |
+| F-43 | Skill-Nachtrag | freigeben | **eingetragen** (Abschnitt 3d der Pruefstand-Konventionen, 16:5x) |
 
 **Fuer die Bild-KI liegt ein fertiges Paket auf dem Desktop:** `NEBELSEETAL_AUFTRAEGE_20261112\`
 mit `PROMPT_BILDKI_LEISTE.txt` (kurzer englischer Prompt), `ANFORDERUNGEN_LEISTE.txt` (64 x 34
 Mittelkachel, 16 x 34 Endstueck, Nahtgrenze, kein Pixel heller als `#3e1c1a`), `LIESMICH.txt` und
-vier Referenzbildern. **Auftrag Nr. 6 an Claude Opus 5.5** (Gebaeudehintergrund 1:1) liegt als
+vier Referenzbildern. **Auftrag Nr. 6 an Claude Opus 5.5** (Gebaeudehintergrund 1:1) ist **an Claude weitergeleitet**
+(er arbeitet daran) und liegt als
 `docs/auftraege/AUFTRAG_CLAUDE_MESHY_1ZU1_20261112.txt` und als Kopie im selben Ordner.
 
 **T08 ist gebaut (Register 488).** Daniels Befund war »ganz schrecklich« und »total haesslich, der
