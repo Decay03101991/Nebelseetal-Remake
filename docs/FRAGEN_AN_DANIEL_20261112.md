@@ -93,3 +93,11 @@ stammen nach seiner Auskunft aus **deiner** Beschreibung der Burgbilder.
 - **M12.0 gebaut:** der Sammellauf schreibt eine Zeile je Datei — die 46 blinden Flecken sind zu.
 - **M11 gebaut:** `docs/FAKTENBLATT.md` aus `data/` (17 Waren, 17 Rezepte mit je 1 Zutat,
   28 Einheiten, 21 Forschungen, 20 Gebäude, Werkstätten 8/5/4) plus Auftragsprüfung.
+
+## 7. Soll `test_e2e_wege` als neunte Datei in die Stufe T4? (neu aus dem vollen Lauf)
+
+**Messlage:** Der volle Lauf 13.11.2026 (seriell, jede Datei allein) zeigt: `test_e2e_wege` braucht **186,2 s** und ist damit die teuerste Prüfdatei überhaupt — teurer als jede der acht T4-Dateien. In Paket 15b stand sie mit 361,7 s unter Last, wurde dort aber nicht zu den T4-Kandidaten gezählt. Die übrigen acht sind allein deutlich schneller als gedacht: `test_produktionskette_ohne_cheats` 81,8 s statt 301,2 s, `test_handelspunkte` 25,7 s statt 109,7 s.
+
+**Auswirkung:** T4 dauert heute rund 20 Minuten (1.216 s für alle 238 Dateien). Mit `test_e2e_wege` als neunter Datei wird der Lauf vor einer EXE kaum länger (die Datei läuft dort ohnehin mit), aber sie wird **bewusst** Teil der verbindlichen Stufe statt „irgendwo in T3“.
+
+**Vorschlag:** `test_e2e_wege` als **neunte** Datei nach T4 (F-67 nennt acht — deshalb frage ich). Die Stufe selbst bleibt HART vor jeder EXE.
