@@ -48,3 +48,18 @@ und Antworten, die niemanden binden.
 
 Ablage: `docs/auftraege/`, Dateiname `AUFTRAG_CLAUDE_<THEMA>_NR<n>_<JJJJMMTT>.md`; die Fassung fuer
 Daniel liegt als `.txt` (UTF-8 mit BOM, CRLF), die Fassung fuer ein Modell als `.md`.
+
+## Faktenblatt (automatisch, nicht von Hand aendern)
+
+Jede Zahl im Auftrag, die aus `data/` kommt, wird aus **`docs/FAKTENBLATT.md`** abgeschrieben — nicht
+aus dem Gedaechtnis. Erzeugt mit `python -X utf8 tools/faktenblatt.py`, geprueft von
+`tests/test_faktenblatt.py`. Vor dem Absenden:
+
+```
+python -X utf8 tools/auftrag_pruefen.py docs/auftraege/AUFTRAG_....md
+```
+
+Das Werkzeug warnt bei jeder Abweichung ("18 Waren genannt, richtig ist 17"). Grund: die drei
+falschen Zahlen in Nr. 12 bis 15 ("vier Zutaten", "18 Waren", "2148 px") standen in MEINEN Auftraegen
+und sind in die Rezepte gewandert. Stand 12.11.2026: **17 Waren, 17 Rezepte (je 1 Zutat), 28 Einheiten,
+21 Forschungen, 20 Gebaeude, 6 Voelker, 6 Welten, 7 Gelaendearten, Werkstaetten 8 / 5 / 4.**

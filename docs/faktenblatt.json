@@ -1,0 +1,231 @@
+{
+  "data_stand": {
+    "datum": "12.11.2026 18:30",
+    "hash": "b1a6189"
+  },
+  "stand": "12.11.2026 23:39",
+  "textbreiten": {
+    "laengste_einheit": [
+      "Große Handelskarawane",
+      173
+    ],
+    "laengste_ware": [
+      "Magischer Paladinharnisch",
+      188
+    ],
+    "schrift_px": 16,
+    "verfuegbar": true
+  },
+  "zaehlung": {
+    "einheiten": {
+      "anzahl": 28,
+      "namen": [
+        "Armbrustschütze",
+        "Balliste",
+        "Belagerungsturm",
+        "Bogenschütze",
+        "Bürgerwehr",
+        "Dieb",
+        "Einspänner",
+        "Gauner",
+        "Große Handelskarawane",
+        "Große Ramme",
+        "Großer Belagerungsturm",
+        "Großes Katapult",
+        "Handelskarawane",
+        "Handkarren",
+        "Katapult",
+        "Krieger",
+        "Kundschafter",
+        "Kurzbogenschütze",
+        "Kämpfer",
+        "Langbogenschütze",
+        "Meisterdieb",
+        "Paladin",
+        "Ramme",
+        "Ritter",
+        "Siedlerkarren",
+        "Streuner",
+        "Waldläufer",
+        "Zweispänner"
+      ]
+    },
+    "forschungen": {
+      "anzahl": 21,
+      "namen": [
+        "Baukunst",
+        "Bogenbau",
+        "Felderwirtschaft",
+        "Forstwirtschaft",
+        "Götterkunde",
+        "Heilkunde",
+        "Heimlichkeit",
+        "Kampfmagie",
+        "Kriegskunst",
+        "Magiekunde",
+        "Mauerbau",
+        "Minenarbeit",
+        "Nähen",
+        "Nähkunst",
+        "Rüstungsbau",
+        "Schmiedekunst",
+        "Steinbruch",
+        "Tierhaltung",
+        "Verteidigungsanlagen",
+        "Waffentechnik",
+        "Wagenbau"
+      ]
+    },
+    "gebaeude": {
+      "anzahl": 20,
+      "je_kategorie": {
+        "Ausbildung": 3,
+        "Produktion": 10,
+        "Sonstiges": 3,
+        "Verteidigung": 1,
+        "Werkstatt": 3
+      }
+    },
+    "gelaendearten": {
+      "anzahl": 7,
+      "namen": []
+    },
+    "quellen": {
+      "dateien": [
+        "items.json",
+        "warenrezepte.json",
+        "units.json",
+        "research.json",
+        "buildings.json",
+        "voelker.json",
+        "welten.json",
+        "gelaende.json"
+      ],
+      "daten_ordner": "data"
+    },
+    "rezepte": {
+      "anzahl": 17,
+      "hoechste_zutaten_je_rezept": 1,
+      "je_rezept": {
+        "Armbrust": 1,
+        "Bogen": 1,
+        "Diebesumhang": 1,
+        "Dolch": 1,
+        "Fellrüstung": 1,
+        "Fellumhang": 1,
+        "Kettenhemd": 1,
+        "Kurzbogen": 1,
+        "Kurzschwert": 1,
+        "Langbogen": 1,
+        "Lederrüstung": 1,
+        "Magischer Paladinharnisch": 1,
+        "Messer": 1,
+        "Plattenrüstung": 1,
+        "Schwert": 1,
+        "Wollumhang": 1,
+        "Zweihänder": 1
+      },
+      "ohne_kosten": [],
+      "ohne_ware": [],
+      "unbekannte_rohstoffe": {},
+      "waren_ohne_rezept": [],
+      "zutaten_rohstoffe": {
+        "holz": {
+          "rezepte": 4,
+          "summe": 33
+        },
+        "leder": {
+          "rezepte": 3,
+          "summe": 16
+        },
+        "metall": {
+          "rezepte": 8,
+          "summe": 37
+        },
+        "wolle": {
+          "rezepte": 2,
+          "summe": 4
+        }
+      }
+    },
+    "voelker": {
+      "anzahl": 6,
+      "namen": [
+        "Ghule",
+        "Gnome",
+        "Trolle",
+        "elfisch",
+        "menschlich",
+        "zwergisch"
+      ]
+    },
+    "waren": {
+      "anzahl": 17,
+      "namen": [
+        "Armbrust",
+        "Bogen",
+        "Diebesumhang",
+        "Dolch",
+        "Fellrüstung",
+        "Fellumhang",
+        "Kettenhemd",
+        "Kurzbogen",
+        "Kurzschwert",
+        "Langbogen",
+        "Lederrüstung",
+        "Magischer Paladinharnisch",
+        "Messer",
+        "Plattenrüstung",
+        "Schwert",
+        "Wollumhang",
+        "Zweihänder"
+      ]
+    },
+    "welten": {
+      "anzahl": 6,
+      "mit_heimatwelt": null,
+      "namen": [
+        "Armageddon",
+        "Limbus",
+        "Midgard",
+        "Ragnaroek",
+        "Utgard",
+        "Valhalla"
+      ]
+    },
+    "werkstaetten": {
+      "je_werkstatt": {
+        "Bogner": [
+          "Armbrust",
+          "Bogen",
+          "Kurzbogen",
+          "Langbogen"
+        ],
+        "Nähstube": [
+          "Diebesumhang",
+          "Fellrüstung",
+          "Fellumhang",
+          "Lederrüstung",
+          "Wollumhang"
+        ],
+        "Schmiede": [
+          "Dolch",
+          "Kettenhemd",
+          "Kurzschwert",
+          "Magischer Paladinharnisch",
+          "Messer",
+          "Plattenrüstung",
+          "Schwert",
+          "Zweihänder"
+        ]
+      },
+      "je_werkstatt_anzahl": {
+        "Bogner": 4,
+        "Nähstube": 5,
+        "Schmiede": 8
+      },
+      "quelle": "data/items.json, Feld werkstatt",
+      "rezepte_mit_werkstattfeld": false
+    }
+  }
+}
