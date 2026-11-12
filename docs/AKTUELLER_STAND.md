@@ -1,3 +1,45 @@
+# STAND 12.11.2026, 18:5x — Gebaeudeansicht: Panorama hinter der Siedlungsansicht, Elfen-Gebaeude 1:1
+
+> Sitzung 38 am 12.11.2026. **Claudes Antwort auf Auftrag Nr. 7 ist eingearbeitet** (abgelegt,
+> nachgerechnet, im Fenster nachgemessen — Register 500). **Zwei Entscheidungen von Daniel** (502):
+> die sechs Voelker-Panoramen sind der Hintergrund der **Siedlungsansicht**, die drei Elfen-Gebaeude
+> gehoeren in die **Einzelansicht**; die Bilder bleiben **1142 x 1120**, gezeigt wird der **mittige
+> 1:1-Ausschnitt, nie skaliert**. **Gebaut und geprueft:** Register 503, Wache
+> `tests/test_gebaeudeansicht_a7.py` **35/0/0**, zwei Gegenproben rot. **Kopf:** `b1a6189` = Remote.
+> **Register:** belegt bis 504, naechste freie Zeile 505.
+
+**Was die Siedlungsansicht jetzt zeigt.** Hinter der Ansicht liegt das Panorama des eigenen Volkes
+(`src/hintergrund_optik.py`, `_siedlungs_hintergrund`). Es wird **geschnitten, nie skaliert**: bei
+1037 x 589 Inhalt sind das die Bildpixel x 52..1089 und y 265..854 (Claudes Teil A, nachgerechnet).
+Bei jeder Fenstergroesse wird nach 120 ms Ruhe neu geschnitten, in 64-px-Schritten. Die Flaeche ist
+das **erste Kind** des Inhalts, liegt also hinter allen Texten; die Kartenfelder sind deckend, das
+Bild wirkt an den Raendern und hinter den Textbloecken (so ist es gewollt, weil jedes Feld eine
+Gelaendeart traegt).
+
+**Die drei Elfen-Gebaeude** (Bibliothek, Kriegerakademie, Stellmacher) laufen ueber denselben
+1:1-Ausschnitt in der Einzelansicht. Fuer sie gelten **eigene Zahlen** in
+`data/gebaeude_motive.json`: `abdunkeln_prozent_1zu1` und `weichzeichnen_px_1zu1`, beide **0** — die
+alten 18 Prozent / 2 px haetten ein scharfes 1:1-Bild matschig gemacht (gemessen: Laplace-Varianz
+1.609 im Abzug gegen 1.344 im Quellbild-Ausschnitt). Die uebrigen Gebaeude behalten den alten
+gedeckten Weg mit ihren Zahlen.
+
+**Was im Fenster gemessen ist** (`tools/messe_gebaeudeansicht.py`): sichtbare Inhaltsflaeche
+**1037 x 589**, Inhalt **938 px** hoch, Siedlungskarte **658 x 658** = 18 px Leiste + **10 x 10
+Felder zu 64 px**, Kartenoberkante **y = 226**, darunter **46 px** Legende, darueber **216 px**
+Texte, Kopf **122**, Spalte **157**, Statuszeile **21**, Fenster fest **1446 x 744**, Bildschirm
+**1536 x 864** logisch. **Jedes Feld traegt eine Gelaendeart** (100 von 100), **je Bauwerk 1 Feld**.
+
+**Eigener Fehler, offen:** der Auftrag Nr. 7 nennt „20 x 20 Felder, 22 px, 440 px Karte“ und
+„Inhalt 1881 px“ — das gehoert zur **Weltkarte im Portal**, nicht zur Siedlungskarte; die
+1142 x 1120 aus Register 469 war der Inhaltsbereich eines maximierten Fensters auf einem anderen
+Bildschirm. Teil B von Claudes Antwort ist damit nicht umsetzbar, Teil A, C und D gelten.
+
+**Naechster Schritt:** C1 Teil 2 (Markersystem nach Claudes B1 bis B6 — die Portal-Weltkarte hat
+20 bis 46 px je Feld, genau seine drei Stufen), danach Release `v_0.0.4`. **Offen und klein:** die
+cx-Liste fuer die neun Bilder, zwei Wappengroessen, der Blick auf einen Schlagschatten.
+
+> Darunter: der Stand von 15:4x (T08 Ressourcenleiste, Sitzung 37) — Geschichte.
+
 # STAND 12.11.2026, 15:4x - T08 gebaut, „kritisch“ nach Daniels Entscheid entfernt (Register 488/491/492)
 
 > Sitzung 37 am 12.11.2026: **T08 Ressourcenleiste ist gebaut** (Block weiter unten, Register 488)
