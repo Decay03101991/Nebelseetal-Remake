@@ -615,6 +615,60 @@ def ware_grenzen(ort: dict, ware: str, forschung: dict, rezepte: dict = None) ->
             "hindernis": "", "dauer_je": werkstatt.dauer_sekunden(ware, 1, rezepte)}
 
 
+def dorfzentrum_kennzahlen(ort: dict, forschung: dict, rezepte: dict = None) -> dict:
+    """Die Zahlen im Kopf des Dorfzentrums - hier GEZAEHLT, in der Ansicht nur formatiert (F-60).
+
+    Daniel hat am 12.11.2026 entschieden (F-60, Register 550): die Oekonomie zaehlt, die Ansicht
+    formatiert. Damit bleibt die Anzeige frei von eigener Rechnerei (`test_quelle_ast`), und es
+    gibt keine zweite Wahrheit neben `ware_grenzen`.
+
+    Rueckgabe::
+
+        {"vorraetig", "waren_gesamt", "herstellbar", "rezepte_gesamt", "einheiten",
+         "einheiten_arten"}
+
+    * `vorraetig`     - Waren aus `data/items.json` mit Bestand > 0 im Ort
+    * `waren_gesamt`  - Anzahl der Waren (aus der Datei, KEINE 17 im Code)
+    * `herstellbar`   - Waren, die der Ort JETZT herstellen kann: `ware_grenzen(...)["moeglich"] > 0`.
+                        Das verlangt (a) die Werkstatt VOR ORT, (b) die Forschungsvoraussetzung,
+                        (c) Rohstoff im Lager und (d) bleibt unter dem Mengendeckel. Darum steht
+                        in der Anzeige "herstellbar", nicht "bezahlbar".
+    * `rezepte_gesamt`- Anzahl der Rezepte aus `data/warenrezepte.json`
+    * `einheiten`     - Summe aller Einheiten im Ort; `einheiten_arten` - Arten mit Bestand > 0
+    """
+    ort = ort or {}
+    rezepte = WARENREZEPTE if rezepte is None else rezepte
+    waren_bestand = ort.get("waren") or {}
+    einheiten_bestand = ort.get("einheiten") or {}
+    alle_waren = list(spieldaten.waren())          # 17 - aber die Zahl kommt aus der Datei
+    vorraetig = 0
+    for ware in alle_waren:
+        try:
+            if int(waren_bestand.get(ware, 0) or 0) > 0:
+                vorraetig += 1
+        except (TypeError, ValueError):            # kaputter Eintrag zaehlt nicht
+            continue
+    herstellbar = 0
+    for ware in rezepte:
+        try:
+            if int(ware_grenzen(ort, ware, forschung, rezepte).get("moeglich") or 0) > 0:
+                herstellbar += 1
+        except (TypeError, ValueError, KeyError):
+            continue
+    einheiten, arten = 0, 0
+    for anzahl in einheiten_bestand.values():
+        try:
+            zahl = int(anzahl or 0)
+        except (TypeError, ValueError):
+            zahl = 0
+        if zahl > 0:
+            arten += 1
+            einheiten += zahl
+    return {"vorraetig": vorraetig, "waren_gesamt": len(alle_waren),
+            "herstellbar": herstellbar, "rezepte_gesamt": len(rezepte),
+            "einheiten": einheiten, "einheiten_arten": arten}
+
+
 def ware_start_menge(ort: dict, ware: str, forschung: dict, jetzt: float,
                      menge: int = 1, rezepte: dict = None) -> dict:
     """Reiht `menge` Stueck EINER Ware in die Werkstatt ein - alles oder nichts.
