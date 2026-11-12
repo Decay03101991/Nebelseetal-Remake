@@ -39,6 +39,13 @@ Skin-Farben mitgezogen, aber nicht angesehen.
 erkenne kaum die doerfer«. Das ist zuerst Layout (groessere Marker, weniger Rahmen), die
 Fraktionsgestaltung kommt aus dem Designpaket.
 
+**Auftrag Nr. 4 an Claude liegt dafuer bereit (Register 473):** `AUFTRAG_CLAUDE_ANGRIFFSFLAECHE.txt`
+auf dem Desktop, 13.753 Byte, hashgleich in `docs/auftraege/`. Er bekommt die gemessenen Masse
+(Feld 22 px, Burg 20 px, Wappen 9 px, Karte 440 x 440 aus 20 x 20 Feldern), soll sieben
+Gelaendekacheln statt eines Panoramas liefern, ein Markersystem fuer 20 bis 46 px, das Layout
+bei 1037 und 691 px Breite, die Kontrastwerte und eine messbare Abnahme. Bis seine Antwort da
+ist, waere ein Umbau der Marker geraten, nicht gebaut.
+
 **Weiter offen:** B2 Ressourcenleiste aus dem Designpaket · B5 Karte groesser (Kopfzeile
 schrumpfen) · C2 und D1 bis D4 (brauchen Einheiten - Testspielstand als Knopf im Tor) · U4
 `beute_gutschreiben` bewusst offen · Stufe 2 bis 4 des Gesamtaudits · Release `v_0.0.4`,
