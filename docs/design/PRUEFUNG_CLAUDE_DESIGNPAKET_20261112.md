@@ -60,9 +60,10 @@ berichtigen, und die von Daniel erteilte Korrektur entfaellt.
 - **Die echten Flaechenmasse von Portal, Angriffsflaeche, Marktplatz, Ruhmeshalle und Forschung
   im laufenden Fenster.** Er setzt 1280 x 720 bzw. 1600 x 900 an und schreibt dazu "vor der
   Erzeugung einmal im Spiel messen". Das ist ehrlich - und es ist unsere Arbeit, nicht seine.
-- **T04 mit 1152 x 1120** ist 10 px breiter als die Flaeche im Code (1142). Er rundet auf ein
-  Vielfaches von 8 auf. Folge: entweder 10 px beschneiden oder die Flaeche auf 1152 ziehen.
-  **Vor dem ersten Bild entscheiden**, sonst wird jedes Gebaeudebild beschnitten.
+- **T04 mit 1152 x 1120** ist 10 px breiter als die Flaeche im Code (1142). **ENTSCHIEDEN am
+  12.11.2026 (Register 469): 1142 x 1120, 1:1.** Der Vergleich (Register 468) zeigt, dass die
+  10 px nichts entscheiden (Schaerfe 5,4 bis 5,6 in allen drei Wegen); das Vielfache von 8 wirkt
+  in Tkinter nicht. Wer ein Gebaeudebild baut, nimmt **1142 x 1120**.
 - Seine vier nicht belegten Punkte (Skins "wald"/"feuer" Nutzung, Einheiten je Haus anders,
   Chat/"Spieler werben" offline, 17 Waren) sind als "weiss ich nicht" markiert. Richtig so.
 
