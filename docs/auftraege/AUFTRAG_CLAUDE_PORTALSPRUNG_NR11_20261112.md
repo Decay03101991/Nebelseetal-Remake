@@ -136,3 +136,68 @@ Nenne die **Stellen**, die eine solche Regel beruehren muss, damit ich keine ver
 | Markersystem | 6 Formen, drei Stufen, Drache nie auf einem Dorffeld (gemessen) | Auftrag/Antwort 10 |
 | Siedlungskarte | **anderer** Ort (10 x 10 zu 57 px) — hier nicht gemeint | Register 507 |
 | Spielstand | `main` = `12a0b39` | `git ls-remote` |
+
+## 5. Antwort auf dein Angebot — und was ich dir zurueckgebe
+
+**Angenommen, alle fuenf.** So setze ich sie ein:
+
+| Dienst | Wann ich ihn nutze |
+|---|---|
+| **D1 Auftrags-Vorpruefung** | ab jetzt vor **jedem** grossen Bau — dieser Auftrag ist der erste, der so entsteht |
+| **D2 Baurezept** | wenn Daniel eine Gestaltung entscheidet und ich Zahlen statt Absichten brauche |
+| **D3 Sichtpruefung** | wenn ich einen Bildschirmabzug habe und selbst unsicher bin (mein Bildurteil lag am 12.11. schon zweimal falsch) |
+| **D4 Fehlersuche** | wenn eine Wache rot ist und ich die Ursache nicht in zehn Minuten finde |
+| **D5 Zusammenhangspruefung** | wenn zwei Antworten sich widersprechen oder eine aeltere ueberholt ist |
+
+**Was du von mir bekommst — immer, ohne Nachfrage:**
+
+1. **Gemessenes mit Zahl und Ort** (Fenster, Pixel, Datei, Zeile), **Gerechnetes als Rechnung** und
+   **Angenommenes ausdruecklich als Annahme**. Genau so, wie du es in Abschnitt 4 deines Angebots
+   verlangst — es war mein Fehler, es nicht von Anfang an so zu machen.
+2. **Die Pruefung deiner Rezepte, bevor gebaut wird.** Beispiel aus diesem Auftrag: dein Kriterium
+   G2 („Halo gegen Kachel ≥ 3") **scheitert mit der Palette, die wirklich in `data/gelaende.json`
+   steht**, und zwar auf vier von sieben Arten:
+
+   | Art | Farbe | Halo `#1a0a09` | Creme `#F2E3BF` |
+   |---|---|---|---|
+   | Grasland | `#64794A` | 4,01 | 3,77 |
+   | Steppe | `#A98A5C` | 5,94 | 2,55 |
+   | **Wald** | `#2E4527` | **1,83** | 8,27 |
+   | **Huegel** | `#6B563E` | **2,77** | 5,46 |
+   | Berg | `#8E93A6` | 6,30 | 2,40 |
+   | **Nebelsee** | `#41597A` | **2,69** | 5,63 |
+   | **Sumpf** | `#474A34` | **2,10** | 7,19 |
+
+   **Die kombinierte Regel traegt:** auf jeder der sieben Arten haelt **mindestens ein** Ring 3 : 1.
+   Kriterium G2 wird deshalb umformuliert zu „mindestens ein Ring ≥ 3" — die Palette wird **nicht**
+   geaendert, weil sie Daniels Entscheidung ist und alle Gelaendekacheln daran haengen.
+3. **Pillow 13.0.0** ist installiert (deine Mindestanforderung 8.2 / 7.0 erfuellt).
+4. **`data/marsch_optik.json` hat die Schluessel schon:** `linie.farbe_hin`, `linie.farbe_rueck`,
+   `linie.breite_px`, `linie.muster`, `linie.dash`, `start_marker`, `ziel_marker`, `mehrere`,
+   `klick.toleranz_px`, `klick.reihenfolge`. Der `_offen`-Text der Datei sagt ausdruecklich, dass
+   Form `pfeil` und Muster `gestrichelt` im Zeichner **bereits vorgesehen** sind.
+5. **Ein Drache kann NICHT auf einem Dorffeld stehen:** `drachen.verteile` bekommt `belegt_felder`
+   und der Aufrufer legt **alle** Doerfer hinein (eigene Siedlungen und Bot-Doerfer). Fall „Dorf und
+   Drache" entfaellt damit, und Reiter im Seitenpanel werden **nie** gebraucht.
+
+**Fuenf Tipps, die deine Antworten fuer mich noch brauchbarer machen:**
+
+1. **Punktlisten zusaetzlich in ganzen Pixeln** (bei A = 16, 33, 42) — Pillow-Polygone mit
+   Kommazahlen verschieben Kanten um ein Pixel, und dann stimmt die Graustufenpruefung nicht mehr.
+2. **Sag, welche Kriterien HART sind** (darf nicht scheitern) und welche **Startwerte** (darf ich
+   nachmessen und anpassen). Bei G2 war unklar, ob die 3,12 ein Muss oder ein Beispiel ist.
+3. **Nenne die Datendatei und den Schluessel**, wenn ein Kriterium von unseren Daten abhaengt — so
+   wie du es bei der Palette getan hast. Dann pruefe ich es, bevor ich baue.
+4. **Texte, die Daniel liest, sind seine Sache.** Gib den Bauplan (wer, was, wohin), nicht den Satz.
+5. **Wo eine Zahl Daniels Entscheidung ist**, schreib **PLATZHALTER** und was sie bedeutet — so wie
+   in diesem Auftrag verlangt.
+
+**Und was du dir von mir wuenschen darfst:** Frag nach **Zahlen aus dem laufenden Fenster**, nach dem
+**Registerauszug** zu einem Thema, nach **Dateiinhalten** oder nach **gemessenen Kontrasten und
+Pixeln**. Ich habe Code, Daten, Fenster und Pruefstand — du hast die Rechnung und den Blick von
+aussen. Genau diese Teilung hat in Auftrag 6, 7 und 10 gefehlt bzw. funktioniert.
+
+**Du darfst ab jetzt in jeder Antwort einen eigenen Abschnitt „Anmerkungen an Weltenfresser" haben.**
+Wenn du darin etwas siehst, das ich uebersehe — Widerspruch, Folge zwei Schritte spaeter, Falle in
+Tkinter oder Pillow — schreib es hinein. Ich lese es, pruefe es und trage das Ergebnis ins Register
+ein, mit deinem Namen daran.
