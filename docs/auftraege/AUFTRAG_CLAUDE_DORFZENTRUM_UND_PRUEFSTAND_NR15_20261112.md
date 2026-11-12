@@ -322,14 +322,116 @@ als UNBEKANNT hin — dann messe ich nach.
 
 ---
 
-## 5. Abgabeformat der Antwort
+## 5. TEIL C — Was wir eigentlich bauen (Daniels Bitte: das Spiel als Ganzes)
+
+**Damit du nicht nur Zahlen prüfst, sondern weißt, wofür.** Daniel, 12.11.2026: „erkläre claude bitte
+auch als zusätzliche allgemein infos unser Spielgesamtkonzept damit er versteht, was wir genau
+entwickeln, spielmechaniken, geschichte passend zum spiel und alles als ein konzept das spieler
+anspricht und die mechaniken nutzt um spielerlebnis zu bieten."
+
+Quellen: `docs/SPIELKONZEPT.md` (führend für Ziel und Mechaniken), `SPIEL_ERKLAERUNG.md`,
+`docs/GESAMTBILD_SPIEL_20261105.md`, `CHRONIK_DER_WELT.md`, `FRAKTIONEN_WELTEN.md`. Urteile wie dort:
+BELEGT / VORSCHLAG / OFFEN.
+
+### 5.1 Das Spiel in drei Sätzen
+
+**Nebelseetal Remake** ist ein portables, kostenloses Einzelspieler-Aufbaustrategiespiel für Windows
+(Python + tkinter, Spielstand als JSON auf der Platte, kein Konto, kein Server, kein Internet). Es ist
+Daniels eigenes Remake des historischen Browserspiels *Nebelseetal* — **eine Hommage**, die dessen
+Welt, Regeln und Zahlen übernimmt und sie allein auf einen Rechner bringt. Man ist ein Herrscher, kommt
+mit zehn Siedlern, zwei Werkzeugkisten und einem Feld an und baut daraus ein Reich — während fünf
+Nachbarn dasselbe tun, nur gegen dich.
+
+### 5.2 Die Geschichte (die Schicht, die alles zusammenhält)
+
+- **Der Bruch.** Das Jahr null ist der letzte Tag, an dem Nebelseetal ein zusammenhängendes Land war.
+  Seither treiben sechs Bruchstücke im **Limbus**; die Gegenwart ist **Jahr 1200 n. B.**
+  (BELEGT, `CHRONIK_DER_WELT.md`).
+- **Sechs Häuser, sechs Welten.** Jedes Haus hat seine Heimat auf einem Bruchstück: Midgard,
+  Armageddon, Valhalla, Utgard, Ragnarök und die festen Inseln im Limbus. Jedes Haus trägt Wappen,
+  Burg, Farben, einen Gründungsmythos und **einen Fehler** (die Menschen vertrauen zu schnell, die
+  Zwerge sind starr, …) — die Fehler sind erzählerisch und im Spiel als Nachteil spürbar.
+- **Drei Drachen** (Epheus der Weiße, Tardas der Grüne, Salmur der Rot) sind die Gefahr am Rand der
+  Welt; **Ruinen** decken Himmelsrichtungen und geben Trophäen.
+- **Der Nebelsee** ist der Namensträger: Ort der Tempel, der Magie und des Manas — und das Gefühl, das
+  die ganze Optik tragen soll (Panoramen, Nebel, warmes Dunkel).
+
+### 5.3 Die sechs Häuser und ihre Wirkung im Spiel (BELEGT, `FRAKTIONEN_WELTEN.md`)
+
+| Haus | Volk | Heimat | Wirkung |
+|---|---|---|---|
+| Silberbach | Menschen | Midgard | Holz +5 %, Stein −5 % |
+| Hammerhall | Zwerge | Armageddon | Stein +5 %, Holz −5 % |
+| Sternenwacht | Elfen | Valhalla | Reisegeschwindigkeit +5 %, PA −5 % |
+| Schattenfaust | Trolle | Utgard | Angriff +5 %, Handelserlös −5 % |
+| Knochenmoor | Ghule | Ragnarök | Nahrungsertrag +5 %, PA −5 % |
+| Flickwerk | Gnome | feste Inseln im Limbus | Ausbau +5 %, Angriff −5 % |
+
+**Das ist die Asymmetrie des Spiels:** kein Volk ist stärker, jedes ist anders schief. Wer das eine
+repariert, verliert das andere. Für den Prüfstand heißt das: eine Änderung an einer Zahl ist immer
+auch eine Aussage über sechs Völker.
+
+### 5.4 Der Kernkreis — acht Schritte, die das Spielgefühl tragen (BELEGT, Handbuch 2009)
+
+| # | Schritt | Mechanik heute | Gefühl, das er tragen soll (VORSCHLAG) |
+|---|---|---|---|
+| 1 | **Gründen** | Karte wählen, Fraktion, Startkarte, bis zu 6 Siedlungen | „Hier fange ich an" — der erste eigene Fleck |
+| 2 | **Produzieren** | Gebäude auf passendem Gelände (Holzfäller in den Wald, Mine in die Berge) | Klugheit: der Ort entscheidet, nicht die Menge |
+| 3 | **Verarbeiten** | 3 Werkstätten, 17 Waren aus Rohstoffen | Veredelung: aus wenig viel machen |
+| 4 | **Forschen** | Bibliothek, 21 Gebiete, Pfade schalten Gebäude/Waren/Einheiten frei | Aussicht: was als Nächstes möglich wird |
+| 5 | **Ausbilden** | 28 Einheiten, Ausrüstung aus Waren, Kaserne/Akademie | Aufbau, der sich bewaffnet |
+| 6 | **Bewegen** | Märsche, Transporte, Handelsfahrten — jede Bewegung kostet Zeit, der Rückweg doppelt | Gewicht der Entscheidung: Zeit ist die knappste Ware |
+| 7 | **Kämpfen** | Vorrunde, Wallstufen, Verluste, Beute nur über Karrenladung | Risiko mit Rechnung, nicht mit Glück |
+| 8 | **Reisen** | Portale in andere Welten, Mana je Entfernung | Neugier und Preis (die Kette ist heute faktisch zu: ~41,7 Spieltage je Wechsel) |
+
+### 5.5 Die drei Spannungsbögen (BELEGT, `GESAMTBILD_SPIEL_20261105.md`)
+
+1. **Wachstum gegen Grenzen:** Siedler, Nahrung, Gold und Siedlungsdeckel begrenzen die Armee. Wer nur
+   baut, hat keine Armee; wer nur kämpft, hat keine Wirtschaft.
+2. **Zeit gegen Nutzen:** jede Bewegung, jede Forschung, jeder Weltwechsel kostet Zeit — das Spiel ist
+   eine Entscheidung darüber, **wofür** die Zeit ausgegeben wird.
+3. **Gegner gegen Aufbau:** die fünf Bots müssen den Aufbau bedrohen, sonst ist es eine Sandkiste.
+   **Hier ist die größte Lücke** — die Bots sind teilweise gebaut.
+
+### 5.6 Der Takt und die Regeln, die alles prägen
+
+- **Spieluhr ×180:** 1 Spielstunde = **20 echte Sekunden**, 1 Spieltag = **8 echte Minuten**.
+- **127 Originalkarten** als Grundlage; kein Kapazitätslager, sondern **Ortslager** je Siedlung.
+- **Kein Sieg** (BELEGT, Original nennt keine Siegbedingung): Punkte in vier Arten (Krieg, Forschung,
+  Handel, Gesamt) und Ruhm ersetzen ihn; **Niederlage** nur ohne Siedlung und ohne Einheit.
+- **Götterschutz** schützt vor Rückstand (die erste Palisade beendet ihn).
+- **Nahrung ist der zweite Engpass** (8 je Einheit und Spieltag), **Siedler die harte Grenze**
+  (10 + 5 je Haus, Deckel 360).
+
+### 5.7 Was das für Design und Prüfstand bedeutet
+
+- **Spielerlebnis entsteht aus Entscheidungen, nicht aus Wartezeit.** Gemessener Maßstab
+  (VORSCHLAG): Leerlaufanteil unter 50 %, keine Strecke über 1,5 Spieltage ohne neuen Meilenstein,
+  Bots reagieren sichtbar **mit Vorwarnung**. Heute gemessen: **Leerlauf 92 %** in einem
+  Automatenlauf über 12 Spieltage — der größte inhaltliche Befund des Projekts.
+- **Eine Mechanik ist erst fertig, wenn sie im Spielerlebnis ankommt:** deshalb Fensterwachen und
+  Belegbilder neben den Rechenwachen, und deshalb Teil B dieses Auftrags.
+- **Was es bewusst NICHT gibt:** kein Mehrspieler, kein Konto, keine Serverpflicht, keine
+  Kapazitätslager, keinen Siegbildschirm, keine bezahlten Inhalte.
+- **Der ehrliche Stand:** Kernkreis 1–12 und 14–15 gebaut, 13 (Bots) teilweise; offen sind
+  Kampf-Messlücke, Portal-Kette, Handelspunkte (in jedem Lauf 0) und der hohe Leerlauf.
+
+---
+
+## 6. Abgabeformat der Antwort
 
 1. **Kopf** (Auftrag von / Antwort von / Rolle) wie in `docs/auftraege/AUFTRAGS_VORLAGE.md`.
 2. **Teil A** (Dorfzentrum): Antworten auf **G1–G6** und, wo meine Nachrechnung dich korrigiert hat,
    die berichtigten Formeln **für 1127 × 764 und für 1037 × 589** (beide Fälle, wie in Nr. 14).
 3. **Teil B** (Prüfstand): die sieben Punkte aus 4.4, als Liste mit den fünf Feldern.
-4. **Zusatzinformationen** in einem eigenen, gekennzeichneten Abschnitt.
-5. Deutsch, Zahlen mit Herkunft, Annahmen getrennt.
+4. **Teil C** (Konzept): **kein Gutachten und kein Lob** — zwei Dinge, knapp:
+   (a) **Widersprüche**: wo widerspricht dein bisheriges Design (Nr. 12 bis 15) dem Konzept aus
+   Abschnitt 5 — Stelle, Widerspruch, Vorschlag;
+   (b) **tote Mechaniken**: welche der acht Schritte tragen heute **kein** Spielerlebnis (Leerlauf,
+   wirkungslose Kette, Zahlen ohne Entscheidung), und welche **eine** Änderung würde am meisten
+   spürbaren Unterschied machen. Höchstens fünf Sätze je Punkt.
+5. **Zusatzinformationen** in einem eigenen, gekennzeichneten Abschnitt.
+6. Deutsch, Zahlen mit Herkunft, Annahmen getrennt.
 
 **Was ich mit der Antwort mache (damit du weißt, wie sie weiterläuft):** ich rechne jede Zahl nach,
 trage sie ins Register, baue Teil A mit Wache und Gegenprobe, und lege Teil B Daniel als
