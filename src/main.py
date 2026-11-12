@@ -16481,7 +16481,7 @@ class NebelseetalApp:
                                "weitere Stufe hebt den Wall. Wer angreift, muss ihn zuerst "
                                "überwinden. Der Dorfwall belegt kein Kartenfeld: deshalb steht "
                                "er hier in der Rubrik Verteidigung."),
-                 fg=self.skin["text"], bg=self.skin["panel"], wraplength=_text_breite - 12,
+                 fg=self.skin["text"], bg=self.skin["panel"], wraplength=310,
                  justify=tk.LEFT).pack(anchor=tk.W, padx=6)
         if not siedlung.mauer_besetzt:
             preis = kosten_text(baukosten("verteidigungswall"))        # Preis aus der Baukasse
@@ -16499,7 +16499,7 @@ class NebelseetalApp:
             if _forschungsstand < 1:                                # Grund daneben nennen
                 tk.Label(eltern, text="Gesperrt: zuerst »Verteidigungsanlagen« erforschen.",
                          fg="#FDBA74", bg=self.skin["panel"], justify=tk.LEFT,
-                         wraplength=_text_breite - 12).pack(anchor=tk.W, padx=6, pady=(0, 4))
+                         wraplength=310).pack(anchor=tk.W, padx=6, pady=(0, 4))
         if dorfwall.kennwerte(siedlung, self.state.research)["stufe"]:
             self._mauer_reparatur_block(eltern, siedlung)              # S2: Reparatur anzeigen
 
@@ -16518,11 +16518,11 @@ class NebelseetalApp:
                        - float(self.state.spielsekunden))
             tk.Label(eltern, text=("Mauer: Stufe %d, Zustand %d Prozent. Reparatur läuft auf 100 Prozent, "
                                    "noch %d Spielsekunden." % (stufe, int(zustand), int(rest))),
-                     fg=self.skin["text"], bg=self.skin["panel"], wraplength=_text_breite - 12,
+                     fg=self.skin["text"], bg=self.skin["panel"], wraplength=310,
                      justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(2, 2))
             return
         tk.Label(eltern, text=("Mauer: Stufe %d, Zustand %d Prozent." % (stufe, int(zustand))),
-                 fg=self.skin["text"], bg=self.skin["panel"], wraplength=_text_breite - 12,
+                 fg=self.skin["text"], bg=self.skin["panel"], wraplength=310,
                  justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(2, 2))
         if pruefung["moeglich"]:                                        # Reparatur ist bezahlbar
             preis = pruefung["preis"]
@@ -16530,7 +16530,7 @@ class NebelseetalApp:
                                    "(%d Spielsekunden)." % (dorfwall._zahl(preis["holz"]),
                                                              dorfwall._zahl(preis["stein"]),
                                                              int(pruefung["sekunden"]))),
-                     fg=self.skin["text"], bg=self.skin["panel"], wraplength=_text_breite - 12,
+                     fg=self.skin["text"], bg=self.skin["panel"], wraplength=310,
                      justify=tk.LEFT).pack(anchor=tk.W, padx=6)
             tk.Button(eltern, text="Mauer reparieren",
                       command=lambda o=siedlung: self._mauer_reparatur_anklicken(o),
@@ -16539,10 +16539,10 @@ class NebelseetalApp:
             return
         for grund in pruefung["gruende"]:                               # jede Bedingung EINZELN
             tk.Label(eltern, text="- " + grund, fg="#C0C0C0", bg=self.skin["panel"],
-                     wraplength=_text_breite - 12, justify=tk.LEFT).pack(anchor=tk.W, padx=6)
+                     wraplength=310, justify=tk.LEFT).pack(anchor=tk.W, padx=6)
         if pruefung.get("naechster_schritt"):                           # und der naechste Schritt
             tk.Label(eltern, text="Nächster Schritt: " + str(pruefung["naechster_schritt"]),
-                     fg=self.skin["text"], bg=self.skin["panel"], wraplength=_text_breite - 12,
+                     fg=self.skin["text"], bg=self.skin["panel"], wraplength=310,
                      justify=tk.LEFT).pack(anchor=tk.W, padx=6, pady=(2, 6))
 
     def _mauer_reparatur_anklicken(self, siedlung):

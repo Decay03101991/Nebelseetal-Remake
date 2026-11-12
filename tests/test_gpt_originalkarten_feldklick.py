@@ -45,10 +45,16 @@ class TestOriginalkartenFeldklick(unittest.TestCase):
 
     def test_echte_mausklicks_waehlen_rand_und_innenfelder(self):
         rand = int(karten_optik_fein.KOORDINATEN_BREITE)
+        # A-9 (Register 507/514): die Feldgroesse ist seit dem 12.11.2026 nicht mehr fest 64,
+        # sondern folgt Fenster und Breite (`siedlungs_masse`). Die Klickmitte wird deshalb aus
+        # dem Wert gerechnet, den die Ansicht wirklich benutzt.
         for feld in (0, 9, 50, 55, 90, 99):
             canvas = self.app.karten_canvas  # nach jedem Klick neu gerendert
-            x = rand + (feld % 10) * 64 + 32
-            y = rand + (feld // 10) * 64 + 32
+            # Die Feldgroesse wird JEDEN Durchgang neu gelesen: beim ersten Rendern ist das
+            # Fenster noch nicht fertig vermessen (kleiner), danach ist die Flaeche groesser.
+            _zelle = int((getattr(self.app, "_siedlungs_masse", None) or {}).get("feld") or 64)
+            x = rand + (feld % 10) * _zelle + _zelle // 2
+            y = rand + (feld // 10) * _zelle + _zelle // 2
             canvas.event_generate("<Button-1>", x=x, y=y)
             self.root.update()
             self.assertEqual(self.app.karten_feld, feld)

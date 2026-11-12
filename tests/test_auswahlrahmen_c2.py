@@ -132,7 +132,10 @@ if _siedlung is not None and getattr(_siedlung, "karte", None):
 
     if len(_auswahl) == 1:
         _rand = int(karten_optik_fein.KOORDINATEN_BREITE)
-        _zelle = 64
+        # A-9 (Daniel 12.11.2026, Register 507/514): die Feldgroesse kommt seit dem 12.11.2026 aus
+        # `siedlungs_masse` (57 px bei 1037 x 589, im kleinen Testfenster weniger) - die Wache
+        # rechnet deshalb mit dem Wert, den die Ansicht wirklich benutzt, nicht mehr mit 64.
+        _zelle = int((getattr(_app, "_siedlungs_masse", None) or {}).get("feld") or 64)
         _spalten = int(_siedlung.karte["spalten"])
         _x0 = _rand + (_feld % _spalten) * _zelle
         _y0 = _rand + (_feld // _spalten) * _zelle

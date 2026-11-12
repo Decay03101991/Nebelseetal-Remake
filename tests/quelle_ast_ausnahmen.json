@@ -8,8 +8,8 @@
     },
     {
       "methode": "_zeichne_siedlungskarte",
-      "erlaubt": 9,
-      "grund": "Dieselbe Pixelrechnung fuer das Kartenraster (spalten * zelle, Feldkante, Rand). Reine Zeichengeometrie, kein Spielwert."
+      "erlaubt": 10,
+      "grund": "Dieselbe Pixelrechnung fuer das Kartenraster (spalten * zelle, Feldkante, Rand). Reine Zeichengeometrie, kein Spielwert. Die zehnte Stelle kam am 12.11.2026 dazu (A-9, Register 514): das historische Kartenbild wird bei kleinerem Feld einmal auf 10 * zelle verkleinert - auch das ist nur die Kante des Bildes."
     }
   ]
 }
