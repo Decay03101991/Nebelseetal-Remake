@@ -3881,8 +3881,15 @@ LAGER_SPALTEN_HOECHSTENS = 9       # mehr als neun werden unruhig
 #   350 = 16 (Abstand) + 300 (Bauauswahl) + 2 x 8 (Schleierabstand) + 18 (Koordinatenleiste)
 # Die Zahlen sind gemessen, nicht geschaetzt: Bauauswahl 300 px Wunschbreite, Koordinatenleiste 18 px,
 # Tk-Rollbalken 17 px (Register 509).
-SIEDLUNGS_ABSTAND = 16            # Abstand zwischen Spalte und Karte
-SIEDLUNGS_ROLLBALKEN = 17         # Breite des Tk-Rollbalkens (gemessen, Register 509)
+#
+# F-57 (Daniel 12.11.2026): der Abstand zwischen Spalte und Karte IST der Rollbalken. Beide
+# Konstanten von Hand (16 / 17) entfallen; die Breite wird im Prozess an einem echten Tk-Rollbalken
+# gemessen (bewusst 21 px, unbewusst 17 px). SIEDLUNGS_ROLLBALKEN_ERWARTET ist nur der Startwert,
+# wenn keine Messung moeglich ist - er ist als Startwert gekennzeichnet und wird von der Messung
+# ersetzt.
+SIEDLUNGS_ROLLBALKEN_ERWARTET = 17  # Startwert (F-57): die Messung ersetzt ihn im Prozess
+_ROLLBALKEN_GEMESSEN = None         # im Prozess gemessene Breite (None = noch nicht gemessen)
+SIEDLUNGS_LUFT = 16               # senkrechter Abstand Karte/Spalte, nur im gestapelten Fall
 SIEDLUNGS_SPALTE_MIN = 300        # Wunschbreite der Bauauswahl (gemessen)
 SIEDLUNGS_SCHLEIER_RAND = 8       # Innenabstand des Schleiers links und rechts
 SIEDLUNGS_SCHWELLE_UEBEREINANDER = 50   # darunter: uebereinander statt nebeneinander
@@ -3906,35 +3913,56 @@ SPALTE_ORTSBESTAND = "#1B2A2F"    # eigene deckende Flaeche des Ortsbestands (B5
 SPALTE_TEXT_MIN = 12              # px - kleiner wird kein Text (B2, HART)
 
 
-def siedlungs_masse(breite: int, hoehe: int) -> Dict[str, Any]:
+def rollbalken_breite(messwert: int = None) -> int:
+    """Die Breite des Tk-Rollbalkens in diesem Prozess (F-57).
+
+    Mit `messwert` wird die Messung gespeichert (die App misst sie an einem echten Rollbalken,
+    siehe `NebelseetalApp._rollbalken_messen`); ohne Angabe kommt der gespeicherte Wert zurueck.
+    Ist noch nichts gemessen (reine Rechenpruefung ohne Fenster), gilt der gekennzeichnete
+    Startwert `SIEDLUNGS_ROLLBALKEN_ERWARTET`.
+    """
+    global _ROLLBALKEN_GEMESSEN
+    if messwert is not None:
+        _ROLLBALKEN_GEMESSEN = max(0, int(messwert))
+    if _ROLLBALKEN_GEMESSEN is None:
+        return SIEDLUNGS_ROLLBALKEN_ERWARTET
+    return int(_ROLLBALKEN_GEMESSEN)
+
+
+def siedlungs_masse(breite: int, hoehe: int, rollbalken: int = None) -> Dict[str, Any]:
     """Feldgroesse, Kartenmass, Spaltenbreite und Anordnung der Siedlungsansicht.
 
     Claudes Regel aus Auftrag Nr. 9, von Daniel am 12.11.2026 bestaetigt (Register 511):
 
-        f = min(64, (H - 18) // 10, (W - 350) // 10)
+        f = min(64, (H - 18) // 10, (W - rb - 300 - 18) // 10)
+
+    `rb` ist der Rollbalken (F-57): der Abstand zwischen Spalte und Karte IST der Rollbalken,
+    gemessen im Prozess. Damit gilt S = W - rb - R und die Spalte passt samt Rollbalken genau
+    neben die Karte. Bei (1127, 764, rb 21) ergibt das S = 448, bei (1037, 589, rb 17) S = 432.
 
     Ist f kleiner als 50, stehen Karte und Spalte UEBEREINANDER: dann darf die Karte die volle
     Breite nutzen, das Feld wird nur noch von der Hoehe und der Breite begrenzt.
 
-    Rueckgabe: Woerterbuch mit `feld`, `karte`, `spalte`, `uebereinander` und `spalteninhalt`.
+    Rueckgabe: Woerterbuch mit `feld`, `karte`, `spalte`, `rollbalken`, `uebereinander`.
     Reine Rechnung, kein Tk - die Pruefdatei rechnet dieselben Zahlen ohne Fenster nach.
     """
+    rb = rollbalken_breite() if rollbalken is None else max(0, int(rollbalken))
     breite, hoehe = max(1, int(breite)), max(1, int(hoehe))
     rand = SIEDLUNGS_LEISTE
     neben = min(SIEDLUNGS_FELD_MAX,
                 (hoehe - rand) // 10,
-                (breite - SIEDLUNGS_ABSTAND - rand
+                (breite - rb - rand
                  - SIEDLUNGS_SPALTE_MIN - 2 * SIEDLUNGS_SCHLEIER_RAND) // 10)
     if neben >= SIEDLUNGS_SCHWELLE_UEBEREINANDER:                    # nebeneinander
         feld = max(SIEDLUNGS_FELD_MIN, neben)
         karte = 10 * feld + rand
         return {"feld": feld, "karte": karte,
-                "spalte": max(0, breite - SIEDLUNGS_ABSTAND - karte),
+                "spalte": max(0, breite - rb - karte), "rollbalken": rb,
                 "uebereinander": False, "breite": breite, "hoehe": hoehe}
     gestapelt = max(SIEDLUNGS_FELD_MIN,
-                    min(SIEDLUNGS_FELD_MAX, (hoehe - rand) // 10, (breite - rand) // 10))
+                    min(SIEDLUNGS_FELD_MAX, (hoehe - rand) // 10, (breite - rb - rand) // 10))
     return {"feld": gestapelt, "karte": 10 * gestapelt + rand, "spalte": breite,
-            "uebereinander": True, "breite": breite, "hoehe": hoehe}
+            "rollbalken": rb, "uebereinander": True, "breite": breite, "hoehe": hoehe}
 
 
 MAPS = [
@@ -9421,8 +9449,7 @@ class NebelseetalApp:
         """
         masse = getattr(self, "_siedlungs_masse", None) or {}
         spalte = int(masse.get("spalte") or 433)
-        if not masse.get("uebereinander"):                               # nebeneinander
-            spalte = spalte - SIEDLUNGS_ROLLBALKEN + SIEDLUNGS_ABSTAND    # wie im Geruest
+        # F-57: `spalte` IST die Breite der Leinwand; der Rollbalken steht daneben, nicht darin.
         return max(160, spalte - 26)
 
     def _kartenbild_skaliert(self, pfad: str, kante: int):
@@ -9449,6 +9476,35 @@ class NebelseetalApp:
             bild = None
         self._kartenbild_cache[schluessel] = bild                        # auch None cachen
         return bild
+
+    def _rollbalken_messen(self) -> int:
+        """Die Breite des Tk-Rollbalkens in DIESEM Prozess messen (F-57, Daniel 12.11.2026).
+
+        Der Abstand zwischen Spalte und Karte IST der Rollbalken. Er ist im DPI-bewussten Prozess
+        21 px breit, im unbewussten 17 - eine Konstante waere an einer der beiden Stellen falsch
+        (Register 545). Gemessen wird an einem wegwerfbaren Rollbalken im eigenen Fenster; danach
+        gilt der Wert fuer alle weiteren Aufrufe von `siedlungs_masse`. Laesst Tk die Messung nicht
+        zu, bleibt der gekennzeichnete Startwert `SIEDLUNGS_ROLLBALKEN_ERWARTET`.
+        """
+        if _ROLLBALKEN_GEMESSEN is not None:                             # schon gemessen
+            return rollbalken_breite()
+        probe = None
+        try:
+            probe = tk.Scrollbar(self.content, orient=tk.VERTICAL)
+            probe.pack()
+            self.content.update_idletasks()
+            breite = int(probe.winfo_reqwidth()) or int(probe.winfo_width())
+            if breite > 0:
+                rollbalken_breite(breite)
+        except tk.TclError:                                              # kein Fenster: Startwert
+            pass
+        finally:
+            if probe is not None:
+                try:
+                    probe.destroy()
+                except tk.TclError:
+                    pass
+        return rollbalken_breite()
 
     def _siedlungs_flaeche(self) -> Tuple[int, int]:
         """Die sichtbare Innenflaeche der Siedlungsansicht in Pixeln (gemessen, mit Rueckfall).
@@ -12713,6 +12769,8 @@ class NebelseetalApp:
         # Ansicht - zuerst erzeugt, damit alle Textbloecke und die Karte darueber liegen.
         self._siedlungs_hintergrund()
         # A-9 (Register 507/511): Feldgroesse und Spaltenbreite aus der GEMESSENEN Flaeche.
+        # F-57: vorher wird der Rollbalken DIESES Prozesses gemessen - er ist der Abstand.
+        self._rollbalken_messen()
         _masse = siedlungs_masse(*self._siedlungs_flaeche())
         self._siedlungs_masse = _masse
         siedlung = getattr(self, "karten_siedlung", None)
@@ -12751,12 +12809,12 @@ class NebelseetalApp:
         _gespalten = not _masse.get("uebereinander")
         _hoehe = max(200, int(_masse.get("hoehe") or 589))
         if _gespalten:                                                      # Spalte links
-            # Der Rollbalken (17 px, gemessen Register 509) sitzt im Zwischenraum; die Spalte gibt
-            # diese Breite ab, damit die Karte ihre volle Breite behaelt.
-            _spalte_breite = max(200, int(_masse.get("spalte") or 433) - SIEDLUNGS_ROLLBALKEN
-                                 + SIEDLUNGS_ABSTAND)
+            # F-57: `spalte` = W - rb - Karte. Der Rollbalken steht NEBEN der Leinwand und fuellt
+            # den Rest bis zur Karte - darum keine zweite Abzugsrechnung mehr.
+            _spalte_breite = max(200, int(_masse.get("spalte") or 433))
         else:                                                               # schmales Fenster
-            _spalte_breite = max(200, int(_masse.get("spalte") or 615) - SIEDLUNGS_ROLLBALKEN)
+            _spalte_breite = max(200, int(_masse.get("spalte") or 615)
+                                 - int(_masse.get("rollbalken") or SIEDLUNGS_ROLLBALKEN_ERWARTET))
         self._spalte_breite = _spalte_breite                                # fuer Pruefdatei/Masse
         _text_breite = _spalte_breite - 24                                  # Umbruch der Widgets
         _reihe = tk.Frame(self.content, bg=self.skin["bg"])
@@ -12767,7 +12825,7 @@ class NebelseetalApp:
             _oben = tk.Frame(_reihe, bg=self.skin["bg"])
             _oben.pack(anchor=tk.E)                                         # Karte rechtsbuendig
             _spalte_halter = tk.Frame(_reihe, bg=self.skin["bg"])
-            _spalte_halter.pack(anchor=tk.W, pady=(SIEDLUNGS_ABSTAND, 0))
+            _spalte_halter.pack(anchor=tk.W, pady=(SIEDLUNGS_LUFT, 0))
         _leinwand = tk.Canvas(_spalte_halter, width=_spalte_breite, height=_hoehe,
                               bg=self.skin["bg"], highlightthickness=0, bd=0)
         _leinwand.pack(side=tk.LEFT, anchor=tk.N)

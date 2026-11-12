@@ -16,9 +16,11 @@ Was diese Datei beweist
    DPI-Zeile kommen und nicht von der Fensterformel.
 4. SCHRIFTEN: `schrift(13)` ist bei k = 1,251 **16** px und bei k = 1,0 **13** px; `schriftart`
    liefert die negative Tk-Pixelgroesse.
-5. FOLGEN: `siedlungs_masse(1127, 764)` ergibt Feld 64, Karte 658, Spalte 453 - und fuer die alte
-   Flaeche weiter 57 / 588 / 433. Die Spalte ist 1 px breiter als in Claudes R2, weil der
-   Siedlungsabstand 16 px ist und R2 mit 17 px rechnet (im Auftrag Nr. 15 gefragt).
+5. FOLGEN: nach F-57 ist der Abstand Spalte/Karte der GEMESSENE Rollbalken. `siedlungs_masse`
+   ergibt mit rb 21 bei (1127, 764) Feld 64, Karte 658, Spalte **448**; mit rb 17 bei
+   (1037, 589) 57 / 588 / **432**. Damit gilt S = W - rb - R und Spalte + Rollbalken fuellen den
+   Platz bis zur Karte genau. Die alten Konstanten `SIEDLUNGS_ABSTAND` und
+   `SIEDLUNGS_ROLLBALKEN` gibt es nicht mehr; ohne Messung gilt der gekennzeichnete Startwert.
 
 Aufruf:  python -X utf8 tests/test_dpi_f51.py
 """
@@ -72,6 +74,12 @@ d["flaeche"] = [app.content_canvas.winfo_width(), app.content_canvas.winfo_heigh
 d["schrift13"] = app.schrift(13)
 d["schriftart13"] = list(app.schriftart(13))
 d["schrift20fett"] = list(app.schriftart(20, fett=True))
+# F-57: die Breite des Tk-Rollbalkens in DIESEM Prozess (er ist der Abstand Spalte/Karte).
+_probe_rb = tk.Scrollbar(root, orient=tk.VERTICAL)
+_probe_rb.pack()
+root.update_idletasks()
+d["rollbalken"] = int(_probe_rb.winfo_reqwidth())
+_probe_rb.destroy()
 print("PROBE" + json.dumps(d))
 root.destroy()
 '''
@@ -144,6 +152,10 @@ else:
           940 - bewusst["flaeche"][1] == 176, str(940 - bewusst["flaeche"][1]))
     check("waagerecht: 1560 - 433 = 1127 (linke Spalte mit DPI-Schriften)",
           1560 - bewusst["flaeche"][0] == 433, str(1560 - bewusst["flaeche"][0]))
+    # F-57: der Abstand Spalte/Karte IST der Rollbalken - darum wird er hier gemessen.
+    messwert("rollbalken_bewusst", bewusst.get("rollbalken"), "px")
+    check("im bewussten Prozess ist der Tk-Rollbalken 21 px breit (F-57)",
+          bewusst.get("rollbalken") == 21, str(bewusst.get("rollbalken")))
 
 # ==========================================================================
 abschnitt("3. Gegenprobe: OHNE den Aufruf bleibt es weich (1536 x 864, k = 1,0, 1037 x 589)")
@@ -160,6 +172,8 @@ else:
           weich["schirm"] == [1536, 864], str(weich["schirm"]))
     check("ohne den Aufruf ist die Flaeche 1037 x 589 (der alte Zustand)",
           weich["flaeche"] == [1037, 589], str(weich["flaeche"]))
+    check("im unbewussten Prozess ist der Rollbalken 17 px breit (F-57)",
+          weich.get("rollbalken") == 17, str(weich.get("rollbalken")))
     check("die DPI-Zeile ist die Ursache: Flaeche bewusst != Flaeche weich",
           bewusst is None or bewusst["flaeche"] != weich["flaeche"],
           "%s gegen %s" % (bewusst["flaeche"] if bewusst else "?", weich["flaeche"]))
@@ -198,25 +212,38 @@ if bewusst is not None:
     messwert("schriftart_20_fett_bewusst", bewusst["schrift20fett"], "-")
 
 # ==========================================================================
-abschnitt("5. Folgen fuer die Siedlung: Feld 64, Karte 658, Spalte 453 bei 1127 x 764")
+abschnitt("5. Folgen fuer die Siedlung: S = W - rb - R (F-57)")
 # ==========================================================================
-for (breite, hoehe), soll in (((1127, 764), {"feld": 64, "karte": 658, "spalte": 453}),
-                              ((1037, 589), {"feld": 57, "karte": 588, "spalte": 433})):
-    masse = main.siedlungs_masse(breite, hoehe)
+# F-57 (Daniel 12.11.2026): der Abstand Spalte/Karte ist der GEMESSENE Rollbalken. Mit rb 21 ist
+# die Spalte bei (1127, 764) 448 breit, mit rb 17 bei (1037, 589) 432 - nicht mehr 453 / 433.
+for (breite, hoehe, rb), soll in (((1127, 764, 21), {"feld": 64, "karte": 658, "spalte": 448}),
+                                  ((1037, 589, 17), {"feld": 57, "karte": 588, "spalte": 432})):
+    masse = main.siedlungs_masse(breite, hoehe, rollbalken=rb)
     for schluessel, wert in soll.items():
-        check("%d x %d: %s = %d" % (breite, hoehe, schluessel, wert),
+        check("%d x %d (rb %d): %s = %d" % (breite, hoehe, rb, schluessel, wert),
               masse[schluessel] == wert, str(masse[schluessel]))
+    check("%d x %d: Spalte + Rollbalken + Karte fuellen die Breite genau" % (breite, hoehe),
+          masse["spalte"] + rb + masse["karte"] == breite,
+          "%d + %d + %d" % (masse["spalte"], rb, masse["karte"]))
     messwert("siedlung_%dx%d" % (breite, hoehe), masse["feld"], "px Feld")
-_neu = main.siedlungs_masse(1127, 764)
+_neu = main.siedlungs_masse(1127, 764, rollbalken=21)
 check("bei der neuen Flaeche ist das Feld auf dem Originalmass 64 gedeckelt",
       _neu["feld"] == main.SIEDLUNGS_FELD_MAX, str(_neu["feld"]))
 check("das historische Kartenbild wird dann NICHT mehr verkleinert (10 x 64 = 640)",
       10 * _neu["feld"] == 640, str(10 * _neu["feld"]))
-# Claudes R2 (Nr. 14) rechnet S = W - 17 - R; die Siedlung nimmt SIEDLUNGS_ABSTAND = 16.
-check("die Siedlungsspalte ist 1 px breiter als Claudes R2 (16 gegen 17 px Abstand)",
-      _neu["spalte"] == 1127 - main.SIEDLUNGS_ABSTAND - _neu["karte"],
-      "%d gegen %d" % (_neu["spalte"], 1127 - main.SIEDLUNGS_ROLLBALKEN - _neu["karte"]))
-check("im Abstand steht der gemessene Rollbalken von 17 px",
-      main.SIEDLUNGS_ROLLBALKEN == 17, str(main.SIEDLUNGS_ROLLBALKEN))
+# Quelltext-Wache: die beiden von Hand gesetzten Konstanten sind weg (F-57).
+check("SIEDLUNGS_ABSTAND gibt es nicht mehr",
+      not hasattr(main, "SIEDLUNGS_ABSTAND"), str(getattr(main, "SIEDLUNGS_ABSTAND", "-")))
+check("SIEDLUNGS_ROLLBALKEN gibt es nicht mehr",
+      not hasattr(main, "SIEDLUNGS_ROLLBALKEN"), str(getattr(main, "SIEDLUNGS_ROLLBALKEN", "-")))
+check("der Startwert ist als solcher gekennzeichnet und 17",
+      main.SIEDLUNGS_ROLLBALKEN_ERWARTET == 17, str(main.SIEDLUNGS_ROLLBALKEN_ERWARTET))
+check("rollbalken_breite() liefert ohne Messung den Startwert",
+      main.rollbalken_breite() in (17, getattr(main, "_ROLLBALKEN_GEMESSEN", None)),
+      str(main.rollbalken_breite()))
+# GEGENPROBE: ohne Rollbalken waere die Spalte um genau rb breiter - die Zahl kommt also aus rb.
+_ohne = main.siedlungs_masse(1127, 764, rollbalken=0)
+check("Gegenprobe: mit rb 0 ist die Spalte 21 px breiter (469 statt 448)",
+      _ohne["spalte"] == 469, str(_ohne["spalte"]))
 
 bericht()

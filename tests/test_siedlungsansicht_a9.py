@@ -29,11 +29,13 @@ from harness import abschnitt, befund, bericht, check, import_src, messwert
 ROOT, SRC = import_src()
 import main  # noqa: E402
 
-# Claudes Tabelle aus der Antwort auf Auftrag Nr. 9, Abschnitt "Die vier Flaechen auf einen Blick"
+# Claudes Tabelle aus der Antwort auf Auftrag Nr. 9, Abschnitt "Die vier Flaechen auf einen Blick".
+# F-57 (12.11.2026): die Spaltenbreite ist W - rb - Karte. Hier wird ohne Fenster gerechnet, also
+# gilt der gekennzeichnete Startwert rb = 17 - im laufenden Spiel misst die App ihn selbst.
 TABELLE = [
-    ((1151, 785), {"feld": 64, "karte": 658, "spalte": 477, "uebereinander": False}),
-    ((1037, 589), {"feld": 57, "karte": 588, "spalte": 433, "uebereinander": False}),
-    ((867, 565), {"feld": 51, "karte": 528, "spalte": 323, "uebereinander": False}),
+    ((1151, 785), {"feld": 64, "karte": 658, "spalte": 476, "uebereinander": False}),
+    ((1037, 589), {"feld": 57, "karte": 588, "spalte": 432, "uebereinander": False}),
+    ((867, 565), {"feld": 51, "karte": 528, "spalte": 322, "uebereinander": False}),
     ((615, 565), {"feld": 54, "karte": 558, "spalte": 615, "uebereinander": True}),
 ]
 
@@ -174,9 +176,19 @@ def aufbau():
               "%d px Inhalt gegen %d px Flaeche" % (bbox[3] - bbox[1], spalte.winfo_height()))
         messwert("spalte_inhalt", bbox[3] - bbox[1], "px")
         rollbalken = getattr(app, "_spalte_rollbalken", None)
+        # F-57: die Breite wird gemessen, nicht gesetzt. Hier steht der GEBAUTE Rollbalken gegen
+        # den Wert, den `rollbalken_breite()` fuehrt - und beide muessen die Messung sein.
         check("der Rollbalken steht im Zwischenraum und ist so breit wie gemessen",
-              rollbalken is not None and rollbalken.winfo_width() == main.SIEDLUNGS_ROLLBALKEN,
-              "0" if rollbalken is None else str(rollbalken.winfo_width()))
+              rollbalken is not None
+              and rollbalken.winfo_width() == main.rollbalken_breite(),
+              "0" if rollbalken is None else "%d gegen %d" % (rollbalken.winfo_width(),
+                                                              main.rollbalken_breite()))
+        if rollbalken is not None:
+            messwert("rollbalken_spalte", rollbalken.winfo_width(), "px")
+            # F-57: der Rollbalken liegt NICHT auf der Karte - Spalte + Rollbalken enden vor ihr.
+            check("Spalte + Rollbalken enden vor der Karte",
+                  spalte.winfo_width() + rollbalken.winfo_width() <= x,
+                  "%d + %d <= x %d" % (spalte.winfo_width(), rollbalken.winfo_width(), x))
     # Die Koordinaten sind der BELEG, dass alle 100 Felder gezeichnet sind: zehn Buchstaben,
     # zehn Zahlen. (Ein Bildurteil ueber den Abzug ist dafuer zu grob - gemessen 12.11.2026.)
     spalten, zeilen = [], []
