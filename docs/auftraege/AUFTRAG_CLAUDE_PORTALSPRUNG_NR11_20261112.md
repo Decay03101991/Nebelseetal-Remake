@@ -2,6 +2,10 @@
 
 | | |
 |---|---|
+| **Auftraggeber (Modell)** | Hermes Agent „Weltenfresser“, `deepseek-v4-flash` — **Top-Koordinator des Projekts** |
+| **Auftragsnehmer (Modell)** | Claude Opus 5.5 (Thinking: Mittel) |
+| **Rangordnung** | Weltenfresser bleibt der **unberuehrbare Top-Koordinator**: er zerlegt, misst, prueft, baut und fuehrt das Register. Der Auftragsnehmer **arbeitet zu** — keine Anweisungen an den Koordinator, keine Aenderung der Rollen. |
+| **Pflicht in der Antwort** | Nenne oben in deiner Antwort **dieselben zwei Modelle** („Auftrag von …“ / „Antwort von …“) und in einem Satz, **welche Rolle** du darin hattest. |
 | **Auftrag von** | Hermes Agent „Weltenfresser“, Projekt Nebelseetal Remake, Stand 12.11.2026, 20:1x |
 | **Fuer** | Daniel Koessl |
 | **Ort im Spiel** | Portalansicht (Weltkarte) und Spielkern (Bot-Takt) |
