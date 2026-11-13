@@ -302,3 +302,43 @@ kleineren Schritt, wenn du das Raster nicht anfassen willst.
   genauso, also kein neuer Fehler, aber sichtbar.
 
 **Vorschlag:** mit der Spaltenreparatur zusammen entscheiden, nicht einzeln.
+
+### F-90 Wappen neu zuordnen — vier von sechs Paaren widersprechen sich
+
+**Messlage:** Farbfamilien je Bild gezählt und jedes Motiv einzeln angesehen
+(`docs/BILDPAKET_WAPPEN_20261113.md`, Kontaktbogen
+`docs/audits/wappen_burgen_kontaktbogen_20261113.png`). In `data/bot_wappen.json` trägt
+
+- **Trolle** (Hausfarbe weiß-gold) die **violette** `burg_04` und ein **violettes** Wappen,
+- **Ghule** (violett) die **grüne** `burg_05`,
+- **Zwerge** (schwarz-gold) die **rote** `burg_02`,
+- **Gnome** (Messing/Rauch) das **eisblaue** `burg_06`,
+- **Menschen** (blau) das **rote** Wappen `w04`.
+
+**Auswirkung:** Auf der Weltkarte ist ein Dorf an Burg und Wappen zu erkennen — heute zeigt das Paar
+zwei verschiedene Farbwelten. Der Ringtausch vom 04.11. hat die Wappen untereinander bewegt, aber nie
+gegen die Burgen geprüft.
+
+**Vorschlag:** sechs Paare, die in Farbe **und** Motiv stimmen — Menschen `burg_02`+`w04`,
+Zwerge `burg_01`+`w10` (Schmiedehammer), Elfen `burg_03`+`w09` (Mondsichel/Sterne = „Sternenwacht“),
+Trolle `burg_05`+`w01` (Wolf), Ghule `burg_04`+`w02` (Rabe), Gnome `burg_06`+`w05` (schwebende
+Felseninsel = Limbus). Ändern würde sich nur `data/bot_wappen.json` und je eine Farbzeile in
+`FRAKTIONEN_WELTEN.md` — kein Code. **Ehrlich:** damit bekämen die Trolle grün-schwarz-gold statt
+weiß-gold (F-78); die Alternative, die weiß-gold erhält, steht im Dokument.
+
+**Deine Frage dazu:** neue Zuordnung (a) wie vorgeschlagen, (b) mit weiß-goldenen Trollen, (c) anders
+— oder erst nach dem Spaltenfehler?
+
+### F-91 Das Meshy-Elfenwappen liegt ungenutzt
+
+**Messlage:** `assets/wappen/elfen_wappen.png` (1.520.769 Byte, Lieferung 12.11., dazu `_128` und
+`_64`) — **kein Treffer in `src/` oder `data/`**. Es zeigt Stern, silbernes Blatt, Goldranken, blaue
+Edelsteine.
+
+**Auswirkung:** Ein geliefertes Bild, für das es noch keinen Platz gibt; die Elfen tragen heute
+`wappen_03` (goldener Hirsch).
+
+**Vorschlag:** als Elfenwappen in `data/bot_wappen.json` eintragen (dann ist `wappen_09` frei) —
+oder ausdrücklich als „noch nicht verwendet“ führen.
+
+**Deine Frage dazu:** eintragen oder liegen lassen?

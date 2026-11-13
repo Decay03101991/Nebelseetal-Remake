@@ -1,3 +1,56 @@
+# STAND 13.11.2026, 08:5x — Belegbilder geprüft, ein gemessener Spaltenfehler gefunden (Sitzung 43)
+
+> Sitzung 43, Morgen 13.11.2026. **Neu committet und gepusht; maßgeblich ist `git log -1`.** Kein
+> `src/`-Eingriff in dieser Sitzung — nur gemessen, dokumentiert, Bilder gemacht.
+>
+> **1. Die drei Belegbilder der Sitzung 42 sind veraltet.** `dorfzentrum_20261113_01xx.png` (01:41) und
+> die zwei Bilder von 01:46 sind **älter als der Code, den sie zeigen sollen** (Ansicht committet
+> 01:47, Regressionen 02:41). Belegt am Bild: im alten Einheiten-Bild fehlt die rechte Bestandsspalte —
+> genau der Fehler, den `5e40828` behoben hat. Ersatz: **neun Bilder** aus dem echten Fenster
+> (`dorfzentrum_<reiter>_{fenster,spalte_sicht,arbeitsflaeche}_0815.png`), 1560 × 940, DPI-bewusst.
+> **Der Bildausschnitt braucht in einem DPI-BEWUSSTEN Prozeß Faktor 1,0** — `winfo_fpixels("1i")/96`
+> liefert 1,251 und verschiebt das Bild auf fremden Fensterinhalt (eigener Fehler, im Skill ergänzt).
+>
+> **2. Befund: die linke Spalte rollt.** `_dz_leinwand.yview()` = **(0.0, 0.665)**; Spalte 448 × 1149
+> bei 764 px Sichtfenster; Block `hinweis` auf **y = 1061**, ohne Rollen unsichtbar; Block `auswahl`
+> **699 px** hoch. **Gegenprobe im Worktree auf `9a8fbc2`:** yview (0.0, 1.0), Blöcke 64/62/72/64/364/78,
+> `hinweis` auf y = 676 — alles sichtbar. **Ursache ist `5e40828` (02:41):** das dort entfernte
+> `update_idletasks` war richtig, aber `winfo_reqheight()` eines **Frames** mit gepackten Kindern
+> liefert **1**, solange die Geometrie nicht gerechnet ist (bei Labels steht sie sofort). `_dz_block_hoehen`
+> notiert deshalb 1/1/1/1/699/1, und Block 5 bekommt den Rest von fast der ganzen Spalte. Die Doktrin
+> im Code gilt für Labels, nicht für Frames. **Die Behauptung der Sitzung 42 („589 = Fensterhöhe genau,
+> die Spalte rollt nicht“) war schon beim Schreiben unzutreffend** — beide Wachen vergleichen Zahlen im
+> Quelltext und sehen keine Geometrie (Fallstrick 1, ein zweites Mal).
+> **Nebenbefunde:** Kachelhöhe 82 statt 83; Arbeitsfläche 638 statt 658 breit; Block `aktionen`
+> verlangt 1229 px und wird beschnitten (in `9a8fbc2` genauso, kein neuer Fehler).
+> Beleg: `docs/BEFUND_DORFZENTRUM_20261113_0820.md` (Register 583).
+>
+> **3. F-78 Bildpaket Wappen steht** (`docs/BILDPAKET_WAPPEN_20261113.md`, Register 585): Farbfamilien
+> je Bild gezählt (deckende Pixel, neun Familien) und jedes Motiv einzeln angesehen. Ergebnis: **vier
+> von sechs Paaren in `data/bot_wappen.json` widersprechen sich** — die Trolle haben eine **violette**
+> Burg (`burg_04`) bei Hausfarbe weiß-gold, die Ghule eine **grüne** (`burg_05`) bei Hausfarbe violett,
+> die Zwerge eine **rote** (`burg_02`) bei schwarz-gold, die Gnome ein **eisblaues schwebendes**
+> Schloss (`burg_06`) bei „Messing und Rauch“. Vorschlag: sechs Paare, die in Farbe **und** Motiv
+> stimmen (`wappen_10` Schmiedehammer → Zwerge, `wappen_09` Mondsichel/Sterne → Sternenwacht,
+> `wappen_02` Rabe → Ghule, `wappen_04` Krone → Menschen, `wappen_01` Wolf → Trolle, `wappen_05`
+> Steinturm → Gnome); Kontaktbogen `docs/audits/wappen_burgen_kontaktbogen_20261113.png`. **Ehrlich:**
+> der Vorschlag ändert F-78s Trollfarbe (weiß-gold → grün-schwarz-gold); die Alternative steht im
+> Dokument. **Nebenbefund:** `assets/wappen/elfen_wappen.png` aus der Meshy-Lieferung vom 12.11. wird
+> von `src/` und `data/` **nirgends** benutzt.
+>
+> **4. Fragen an Daniel:** `docs/FRAGEN_AN_DANIEL_20261112.md`, **SITZUNG 43** — **F-86a** (die neuen
+> Bilder als Grundlage nehmen?), **F-89** (Spaltenfehler reparieren: grid mit `weight` auf Zeile 5 oder
+> `<Configure>`-Nachlauf?), dazu die drei kleineren Maße. Offen bleiben F-86, F-87, F-88, F-80 bis F-85,
+> F-78-Entscheidung, F-72/C3/C7 und M3 bis M10.
+>
+> **5. T4 dieser Sitzung:** `docs/audits/sammellauf_20261113_0822.log` — **238 von 238 grün, 0 rot**,
+> 2 ausgesetzt, 10.294 Prüfungen, 0 Fehler, 96 Befunde, **1331 s** (Register 584). Gestartet nach dem
+> letzten Commit, allein gelaufen, keine zweite Runde parallel.
+>
+> **Der Kopf ab hier ist der Stand von Sitzung 42** und bleibt als Chronik stehen.
+
+---
+
 # STAND 13.11.2026, 02:1x — Dorfzentrum nach Nr. 16 Teil A gebaut (Sitzung 42)
 
 > Sitzung 42, Nacht 13.11.2026. **Alles unten ist committet und gepusht; maßgeblich ist `git log -1`.**
@@ -14,7 +67,9 @@
 > - **Die Ansicht** ist links die Spalte S (432/448) mit sechs Blöcken — Kopf mit Kennzahlen (F-66),
 >   nächster Schritt, Ort, Aktionen, Auswahl je Reiter, Hinweis (Technik nur im Entwicklerbetrieb) —
 >   und rechts die Arbeitsfläche R (588/658) mit den Reitern **Lager / Werkstätten / Einheiten**.
->   **Block 5 nimmt den REST**: gemessen 56+57+72+62+216+78 + 6 Lücken à 8 = **589 = Fensterhöhe
+>   **Block 5 nimmt den REST** *(KORREKTUR Sitzung 43: diese Zeile ist falsch — gemessen rollt die
+>   Spalte, 448 × 1149 bei 764 px Sichtfenster, `hinweis` auf y = 1061. Siehe
+>   `docs/BEFUND_DORFZENTRUM_20261113_0820.md`, Register 583)*: gemessen 56+57+72+62+216+78 + 6 Lücken à 8 = **589 = Fensterhöhe
 >   genau**, die Spalte rollt nicht. F-59: kein Ortsbestand-Block. F-58: Werkstätten mit
 >   Zutat-Spalte (228/125/150/105). F-65: Einheitentabelle ohne Spalte Verwundete (Namensspalte
 >   226/244). F-56: Kleintext absolut 15 px.
