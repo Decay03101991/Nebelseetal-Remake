@@ -247,7 +247,7 @@ Der Fehler des Hauses Sternenwacht ist die Arroganz. Elfen halten andere Völker
 
 Das Haus Schattenfaust wurde gegründet, als die Trolle nach dem Bruch aus den Schatten der Berge von Utgard traten. Der erste Troll, Gorm, ballte seine Faust und schwor, nie wieder zermalmt zu werden. Er schlug seine Faust so fest auf einen Felsen, dass der Abdruck heute noch zu sehen ist. Um diesen Felsen bauten die Trolle ihre Feste. Das Haus Schattenfaust trägt den Namen dieses Schwurs.
 
-Der Herrschaftssitz ist die Felsfeste Schattenfaust, eine klobige Burg aus Basalt und Geröll. Die Mauern sind dick, die Fenster schmal, die Tore schwer. Die Farben des Hauses sind Grün, Schwarz und Gold. Das Wappen führt Schwarz, Weiß und Gold: ein heulender Wolfskopf über schneebedeckten Bergen, auf nachtblauem Grund. Einen Helm und eine Helmzier führt das Wappen nicht.
+Der Herrschaftssitz ist die Felsfeste Schattenfaust, eine klobige Burg aus Basalt und Geröll. Die Mauern sind dick, die Fenster schmal, die Tore schwer. Die Farben des Hauses sind Grün, Schwarz und Gold. Das Wappen führt Rot, Schwarz und Gold: ein aufgerichteter roter Drache mit goldenen Krallen, Flügelspitzen und Augen, auf schwarzem Grund. Einen Helm und eine Helmzier führt das Wappen nicht.
 
 Die Trolle essen am liebsten Braten am Spieß, dicke Eintöpfe und geräuchertes Fleisch. Sie trinken Met und Starkbier. Ihre Mahlzeiten sind laut, mit Kampfgesängen und dem Werfen von Knochen. Ihre Handwerkskunst ist grob, aber haltbar: schwere Schmiedearbeiten, Steinmetzen und Leder. Ihre bevorzugte Waffe ist die Keule, dazu ein wuchtiger Hammer. Trolle kämpfen mit gewaltigem Angriff, aber ihre Tische sind für Händler oft zu rau.
 

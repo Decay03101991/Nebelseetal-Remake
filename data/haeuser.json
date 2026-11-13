@@ -46,9 +46,9 @@
       "farben": "Grün, Schwarz und Gold",
       "sitz": "Felsfeste Schattenfaust",
       "burg": "assets/icons/burgen/burg_05.png",
-      "wappen": "assets/icons/wappen/wappen_01.png",
-      "wappen_beschreibung": "Das Wappen führt Schwarz, Weiß und Gold: ein heulender Wolfskopf über schneebedeckten Bergen, auf nachtblauem Grund. Einen Helm und eine Helmzier führt das Wappen nicht.",
-      "wappen_kurz": "In Nachtblau ein heulender Wolfskopf über Schneebergen."
+      "wappen": "assets/icons/wappen/wappen_08.png",
+      "wappen_beschreibung": "Das Wappen führt Rot, Schwarz und Gold: ein aufgerichteter roter Drache mit goldenen Krallen, Flügelspitzen und Augen, auf schwarzem Grund. Einen Helm und eine Helmzier führt das Wappen nicht.",
+      "wappen_kurz": "In Schwarz ein aufgerichteter roter Drache mit goldenen Krallen und Flügeln."
     },
     "Ghule": {
       "haus": "Haus Knochenmoor",
