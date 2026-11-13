@@ -396,3 +396,18 @@ abgeschnitten. Der Auswahlblock ist dadurch 662 px `reqwidth` bei 432 px verfüg
 
 **Vorschlag:** den Umbruch auf die GEMESSENE Feldbreite setzen (`<Configure>` je Feld) — das Design
 bleibt, nur der Umbruchpunkt wird ehrlich.
+
+
+---
+
+## H. Nachtrag Sitzung 44 (13.11.2026) — die Antworten und eine neue Frage
+
+| Frage | Antwort (Wortlaut) | was daraus wurde |
+|---|---|---|
+| **F-96** Aufgeben-Grund | „(a) Knopf heißt ‚Aufgeben (gesperrt)‘, darunter eine kurze Zeile: ‚nur eine Siedlung‘ bzw. ‚erst ab sechs Siedlungen‘ — Höhenbudget und Wachen bleiben, wie sie sind“ | **gebaut** (Register 606): `GameState.aufgeben_grund_kurz`, Knopf 1018 → 151 px, Aktionenblock 112, Auswahl 141; Ansicht 47/0/1 |
+| **F-97** Lage-Band-Umbruch | keine Karte nötig — als Messfehler gebaut | **gebaut** (Register 600): Umbruch folgt der gemessenen Feldbreite, Auswahlblock 662 → 399 px |
+| **F-98** Rest von F-81 | „Trennen lassen — die vier Dateien bleiben, ihre Prüfart im Kopf bleibt ehrlich“ | **nichts zusammengelegt, nichts gelöscht**; die vier Paare (`baukasse`/`waren_icons` → `ortslager`, `wall_gui` → `wallsystem`, `standorttipps_fix04b` → `kategorien_fix04`) bleiben getrennt |
+
+**Lehre aus F-81/F-98, für künftige Zusammenlegungen:** Prüfart (`PRUEF_ART`) und Stufe sind Teil des
+Prüfvertrags — sie steuern `tools/auswahl.py`. Zwei Dateien mit verschiedener Prüfart gehören nicht in
+eine Datei, auch wenn ihre Modulmengen zu 80 Prozent gleich sind.
