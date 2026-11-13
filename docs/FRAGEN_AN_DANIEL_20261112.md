@@ -244,3 +244,61 @@ decken Gegenstände ab, die keine andere Datei prüft — Deckung 0 %.
 - **M3 bis M10:** bewusst nach F-62 zurückgestellt. `T2` ist mit 202 Dateien zu groß für den
   häufigen Lauf; bis die Dauern aus `laeufe.jsonl` belastbar sind, gilt T1 plus die Auswahl aus M2.
 - **Der Portalsprung (F-70)** und die **Dorfzentrum-Sichtprüfung** stehen weiter offen (F-86 oben).
+
+---
+
+# SITZUNG 43 (13.11.2026, morgens) — der Befund vor der Sichtprüfung
+
+**Regel unverändert:** gesammelt, in EINER Runde, je Frage Messlage · Auswirkung · Vorschlag zuerst.
+Alles hier ist gemessen, nicht umgebaut (`docs/BEFUND_DORFZENTRUM_20261113_0820.md`).
+
+## D. Das Dorfzentrum
+
+### F-86a Die drei Belegbilder, die du beurteilen solltest, sind veraltet
+
+**Messlage:** `dorfzentrum_20261113_01xx.png` (01:41) und die zwei Bilder von 01:46 sind **älter als
+der Code, den sie zeigen sollen**: die Ansicht wurde 01:47 committet (`1d11e51`), die
+Regressionen-Runde lief 02:41 (`5e40828`). Im alten Einheiten-Bild ist die rechte Bestandsspalte am
+Fensterrand abgeschnitten — der Fehler, den `5e40828` behoben hat. Neu liegen neun Bilder aus dem
+echten Fenster (1560 × 940, DPI-bewusst): `<reiter>_fenster_0815.png`, `<reiter>_spalte_sicht_0815.png`,
+`<reiter>_arbeitsflaeche_0815.png` für Lager / Werkstätten / Einheiten.
+
+**Auswirkung:** Ein Urteil über die alten Bilder wäre ein Urteil über einen Stand von vor 01:47.
+
+**Vorschlag:** die neuen Bilder ansehen — und dabei F-89 im Blick halten, denn dort steht ein
+gemessener Fehler, der das Aussehen stärker bestimmt als jede Kachelgröße.
+
+**Deine Frage dazu:** die neuen Bilder als Grundlage nehmen? (ja / nein)
+
+### F-89 Die linke Spalte rollt — der Block „Hinweis“ liegt außerhalb des Fensters
+
+**Messlage:** `_dz_leinwand.yview()` = **(0.0, 0.665)**. Die Spalte ist **448 × 1149** hoch, das
+Sichtfenster **448 × 764** — also 385 px unsichtbar. Der Block **`hinweis` steht auf y = 1061** und ist
+ohne Rollen überhaupt nicht zu sehen; der Block **`auswahl` ist 699 px hoch**, obwohl nur das Lage-Band
+darin steht. Gegenprobe im Worktree auf `9a8fbc2` (01:59): yview (0.0, 1.0), Blöcke 64/62/72/64/364/78,
+`hinweis` auf y = 676 — **alles sichtbar.** Ursache: `5e40828` hat in `_dz_rest_verteilen` das
+`update_idletasks` entfernt (richtig); `winfo_reqheight()` eines **Frames** mit gepackten Kindern liefert
+aber 1, solange die Geometrie nicht gerechnet ist (bei **Labels** steht sie sofort). `_dz_block_hoehen`
+notiert deshalb 1/1/1/1/699/1, und Block 5 bekommt den Rest von fast der ganzen Spalte.
+
+**Auswirkung:** Die Ansicht sieht voller aus, als sie ist: unten ein großer leerer Kasten (Block
+Auswahl), und der erklärende Hinweis fehlt. Das ist unabhängig vom Geschmack Nacharbeit — und es ist
+genau die Art Fehler, die dein V_0.0.4-Urteil („nicht übersichtlich und schön genug“) beschreibt.
+
+**Vorschlag:** reparieren, und zwar so, dass die Fehlerklasse verschwindet:
+**(a)** die sechs Blöcke in ein `grid` legen und Zeile 5 `weight=1` geben — dann rechnet Tk den Rest
+selbst, ohne Handmessung. *(b)* als kleiner Eingriff: `_dz_rest_verteilen` an ein `<Configure>` der
+Spalte hängen und beim zweiten Durchlauf rechnen. Ich empfehle **(a)**, halte aber (b) für den
+kleineren Schritt, wenn du das Raster nicht anfassen willst.
+
+**Deine Frage dazu:** (a) grid, (b) Nachlauf — oder erst nach deinem Blick auf die Bilder?
+
+## E. Kleinere Maße, die von der Übergabe abweichen (nur zur Kenntnis, nichts geändert)
+
+- **Kachelhöhe 82 statt 83 px** (`dorfzentrum.masse` liefert 82, die Übergabe nennt 83).
+- **Arbeitsfläche 638 px breit, verlangt 658** — 20 px fehlen; die dritte Kachelspalte passt gerade
+  noch (3 × 206 + 2 × 10 = 638), ihr Text liegt am Rand.
+- **Block „Aktionen“ verlangt 1229 px** bei 448 verfügbar — der Text wird beschnitten. In `9a8fbc2`
+  genauso, also kein neuer Fehler, aber sichtbar.
+
+**Vorschlag:** mit der Spaltenreparatur zusammen entscheiden, nicht einzeln.
