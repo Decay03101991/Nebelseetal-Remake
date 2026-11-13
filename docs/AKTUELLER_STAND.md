@@ -43,9 +43,14 @@
 > F-88 (Lage-Band steht im Block Auswahl), F-80 bis F-85 (Prüfstand), dazu die offenen F-78 (Wappen),
 > F-72 (C3/C7) und M3 bis M10.
 >
-> **Offen:** voller Sammellauf T4 läuft (`docs/audits/sammellauf_20261113_0215.log`), Ergebnis im
-> Register nachgetragen. **Der frühere Kopf ab hier ist der Stand von Sitzung 41** und bleibt als
-> Chronik stehen.
+> **T4 am Ende der Sitzung:** `docs/audits/sammellauf_20261113_0302.log` — **238 von 238 grün, 0 rot**,
+> 2 ausgesetzt, 10.294 Prüfungen, 0 Fehler, 1.087 s (Register 578). Davor 02:00 mit **14 roten**
+> (sieben Ursachen, Register 576): ein `update_idletasks()` zuviel in `_rollbalken_messen` machte
+> fünf Portal-Dateien rot, dazu zwei Umlaute im Spielertext, fehlende Ruinendeckung, fehlender
+> Werkstattgrund, fehlende Siedlerzeile, fehlende Einzelbedingungen, drei Balance-Konstanten ohne
+> Quellenwort.
+>
+> **Der frühere Kopf ab hier ist der Stand von Sitzung 41** und bleibt als Chronik stehen.
 
 ---
 
