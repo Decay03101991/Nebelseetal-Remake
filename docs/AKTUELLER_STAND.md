@@ -60,6 +60,22 @@
 > war derselbe grüne Stand vor dem Rückbau; der Lauf mit dem Wappenstand wurde angehalten, nicht
 > als Beleg verwendet.)
 >
+> **6. Neuer, gemessener Befund (13.11., aus Claudes Antwort Nr. 18 nachgerechnet): die Bilder werden
+> beim Laden quadratisch GEZERRT.** `_motivbild_skaliert` (`src/main.py:9150`) macht `roh.resize((px, px))`
+> — jedes Bild wird auf ein Quadrat gezogen. Die sechs Wappen sind aber 0,62 bis 0,74 so breit wie hoch
+> (gemessen an den Dateien: 313×424, 301×420, 274×443, 315×428, 269×432, 271×420), also werden sie
+> **1,35- bis 1,62-fach in die Breite gestreckt**; richtig wären bei 8 px Höhe 5–6 px Breite, gezeichnet
+> werden 8. Das trifft auch die Drachen (0,67–0,80) und leicht die Burgen (0,84–0,98).
+> **Vorbild im eigenen Haus:** `_lager_symbol` (`main.py:14957`) passt ein, statt zu zerren.
+> **Entscheidung offen** (Karte an Daniel lief in die Zeitüberschreitung, gilt als offen): Code reparieren,
+> oder alle künftigen Kartenbilder quadratisch anlegen, oder beides. **Nichts geändert.**
+>
+> **7. Auftrag Nr. 18 und die Antwort dazu:** die Bildbedarfsliste liegt als
+> `docs/eingaenge/CLAUDE_20261113_ANTWORT_AUFTRAG18_BILDBEDARF.md` (Claude Opus 5.5, nachgerechnet: Feld
+> 20–46 px **bestätigt**, mein Auftrag nannte fälschlich 8 px als feste Größe; die „fast leere“
+> `Drachenschuppe.png` ist **widerlegt**, 52 % deckende Pixel). Der Desktop ist geräumt; die Messgrundlage
+> liegt als `docs/BILDBESTAND_MESSUNG_20261113.md` (370 Bilddateien) im Repo.
+>
 > **Der Kopf ab hier ist der Stand von Sitzung 43** und bleibt als Chronik stehen.
 
 ---
