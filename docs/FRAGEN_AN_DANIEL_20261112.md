@@ -365,3 +365,34 @@ Je Frage eine Karte, Antwort wörtlich festgehalten. Was daraus zu bauen ist, st
 | **F-85** Drei Kandidaten | „Ja, alle drei von der Liste nehmen — die Dateien bleiben“ | Streichliste auf den Stand bringen, Dateien unangetastet |
 | **F-72 / C3 und C7** | „In einer eigenen Sitzung — nicht zwischen zwei Bauaufträgen“ | bleibt offen, eigener Termin |
 | **F-95** Zurückgestelltes | „Alle bleiben zurückgestellt“ | M3–M10, T2-Größe, F-70 bleiben liegen |
+
+
+---
+
+## G. Neu aus Sitzung 44 (13.11.2026) — zwei Gestaltungsfragen, gemessen
+
+### F-96 Der „Aufgeben“-Grund sprengt den Aktionenblock
+
+**Messlage:** Der Knopf trägt im gesperrten Fall den ganzen Grund (`main.aufgeben_grund`, ~140 Zeichen)
+im Text: `reqwidth` **1018 px** bei 416 px verfügbar, gezeichnet 235 px — der Text läuft unsichtbar aus
+der Spalte. Ein `tk.Button` kann nicht umbrechen. Als Label mit `wraplength` darunter wird der
+Aktionenblock **146** statt 87 px hoch, die Auswahl fällt auf **107** px (unter das Maß 120 aus
+`dorfzentrum.bloecke`) und ist nicht mehr der größte Block — `test_dorfzentrum_ansicht` und
+`test_dorfzentrum_geometrie` werden rot. Der Umbau wurde deshalb **zurückgenommen** (Register 592).
+
+**Was zur Wahl steht:** (a) Knopf „Aufgeben (gesperrt)“, Grund einzeilig gekürzt — Wortlaut müsste von
+Daniel kommen; (b) der Aktionenblock darf wachsen, dann müssen die Wachen „Auswahl = größter Block“
+und „Auswahl ≥ 120 px“ mitgeändert werden; (c) der Grund verschwindet aus dem Dorfzentrum und steht
+nur in der Siedlungsliste.
+
+**Vorschlag:** (a) — die Erklärung bleibt sichtbar, das Höhenbudget aus Nr. 16 bleibt unangetastet.
+
+### F-97 Das Lage-Band bricht bei festen 230 px um
+
+**Messlage:** Die drei Felder im Lage-Band (T7) sind 127 / 112 / 143 px breit, ihre Texte brauchen
+203 / 189 / 220 px. Der Umbruch steht fest auf `wraplength=230` (NACHBESSERUNG 11.11.2026, B7) und
+greift in den Feldern nicht — „keine läuft — die Bibliothek wartet (Menü »Forschung«)“ ist
+abgeschnitten. Der Auswahlblock ist dadurch 662 px `reqwidth` bei 432 px verfügbar (Register 592).
+
+**Vorschlag:** den Umbruch auf die GEMESSENE Feldbreite setzen (`<Configure>` je Feld) — das Design
+bleibt, nur der Umbruchpunkt wird ehrlich.
