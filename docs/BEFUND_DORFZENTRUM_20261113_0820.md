@@ -132,9 +132,15 @@ python -X utf8 belegbilder_dorfzentrum2.py 0815
 ```
 
 Die beiden Werkzeuge liegen im Scratch-Ordner der Sitzung
-(`C:\Users\saras\AppData\Local\hermes\cache\scratch\`); sie ändern nichts am Spiel. Der Worktree
-`wt_9a8fbc2` ist eine **temporäre** Gegenprobe (`git worktree add … 9a8fbc2`) und wird nach dem Urteil
-wieder entfernt.
+(`C:\Users\saras\AppData\Local\hermes\cache\scratch\`); sie ändern nichts am Spiel. Die Gegenprobe auf
+`9a8fbc2` lief in einem **temporären** Worktree und ist mit einer Zeile wiederholbar:
+
+```bash
+git worktree add <beliebiger Ordner> 9a8fbc2     # danach: git worktree remove <Ordner>
+```
+
+Der Worktree wurde nach der Messung wieder entfernt (der Scratch-Ordner räumt sich, ein dort
+liegender Worktree würde als toter Eintrag zurückbleiben).
 
 **Fallstrick beim Fotografieren (neu, teuer):** `winfo_fpixels("1i") / 96` ergibt im
 DPI-bewussten Prozeß **1,251** — dort sind Tk-Koordinaten aber schon physisch, das Bild wird also um
