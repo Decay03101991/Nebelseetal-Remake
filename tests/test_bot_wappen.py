@@ -141,6 +141,14 @@ if _root is not None:
         check("4 die Marke setzt Bildobjekte auf die Flaeche",
               (not _ok) or len(_leinwand.find_withtag("marke")) >= 1,
               str(len(_leinwand.find_withtag("marke"))))
+        # F-100 (Daniel 13.11.2026): NUR die Burg - kein Wappen-Abzeichen mehr auf der Karte.
+        check("4 die Marke zeichnet GENAU EIN Bild je Dorf (kein Wappen-Abzeichen)",
+              (not _ok) or len(_leinwand.find_withtag("marke")) == 1,
+              "%d Bildobjekte" % len(_leinwand.find_withtag("marke")))
+        check("4 das Wappen der Fraktion wird auf der Karte NICHT geladen",
+              not any(str(_k).endswith((".png",)) and "wappen_" in str(_k)
+                      for _k in getattr(_app, "_wappen_cache", {})),
+              str([str(_k).split("\\")[-1] for _k in getattr(_app, "_wappen_cache", {})][:4]))
         # Rueckfall: ohne Paar zeichnet der Kasten (Rechteck + zwei Linien).
         _leer = tk.Canvas(_root, width=400, height=400)
         _alt = dict(M.WAPPEN)

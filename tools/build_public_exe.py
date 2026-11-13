@@ -131,8 +131,14 @@ def main() -> int:
            "--name",NAME,"--icon",str(ICON),"--distpath",str(dist),
            "--workpath",str(work),"--specpath",str(ROOT),
            "--paths",str(ROOT/"src")]
-    for f in ("data", "assets"):
-        cmd += ["--add-data",str(ROOT/f)+os.pathsep+f]
+    # F-102 (Daniel 13.11.2026): private Dateien NIE mitliefern. PyInstaller kann bei `--add-data`
+    # nicht ausschliessen, deshalb wird `assets` vorher gefiltert in den Bauordner kopiert.
+    sys.path.insert(0, str(ROOT / "tools"))
+    from paket_ausschluss import kopiere_assets
+    _weg = kopiere_assets(ROOT / "assets", work / "_paket_assets")
+    print("Private Dateien bleiben zurueck:", ", ".join(_weg) if _weg else "keine", flush=True)
+    cmd += ["--add-data",str(ROOT/"data")+os.pathsep+"data"]
+    cmd += ["--add-data",str(work / "_paket_assets")+os.pathsep+"assets"]
     cmd.append(str(ENTRY))
     print("Erstelle separate oeffentliche Windows-EXE ...",flush=True)
     result = subprocess.run(cmd,cwd=ROOT)

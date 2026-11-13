@@ -124,8 +124,16 @@ def baue(python: str) -> int:
         "--specpath", str(WURZEL),
         "--paths", str(WURZEL / "src"),
     ]
+    # F-102 (Daniel 13.11.2026): private Dateien NIE mitliefern - `assets` wird gefiltert kopiert.
+    import sys as _sys
+    _sys.path.insert(0, str(WURZEL / "tools"))
+    from paket_ausschluss import kopiere_assets
+    _zwischen = BAUORDNER / "_paket_assets"
+    _weg = kopiere_assets(WURZEL / "assets", _zwischen)
+    melde("Private Dateien bleiben zurueck: " + (", ".join(_weg) if _weg else "keine"))
     for quelle, ziel in MITGEBEN:
-        befehl += ["--add-data", f"{WURZEL / quelle}{os.pathsep}{ziel}"]
+        _pfad = _zwischen if quelle == "assets" else (WURZEL / quelle)
+        befehl += ["--add-data", f"{_pfad}{os.pathsep}{ziel}"]
     befehl.append(str(WURZEL / "src" / "main.py"))
     melde("Aufruf: " + " ".join(befehl[:8]) + " …")
     ergebnis = subprocess.run(befehl, cwd=str(WURZEL))

@@ -422,11 +422,11 @@ Sie werden **einzeln** gestellt (Arbeitsregel 7); diese Sammlung ist der Vorrat 
 | Nr. | Frage | Messlage | Stand |
 |---|---|---|---|
 | **F-99** | Bilder beim Laden einpassen statt zerren? | Wappen 0,62–0,74 breit je hoch → **1,35- bis 1,62-fach gestreckt**; Code `resize((px, px))` | **beantwortet und gebaut** (Register 624): 18×18 → 11×18, Wache in `test_bot_wappen`, T4 235/235 |
-| **F-100** | Abzeichen auf der Weltkarte: flach, gar nicht, oder so lassen? | bei 8 px nur ein Farbfleck; Silberbach/Schattenfaust (beide rot) und Sternenwacht/Flickwerk (beide hell) verwechselbar | **offen** (Karte lief in die Zeitüberschreitung) — gilt als offen, nicht als „nein“ |
-| **F-101** | Dateigrößen: 4× Anzeige überall, oder bei großen Flächen 2×? | 4× bei 1127 px Breite ergäbe Kopfbänder über 4500 px und Startbilder 4096 × 2880 | offen |
-| **F-102** | Portraitfoto `assets/bilder/daniel_portrait.png` aus dem Spielordner nehmen? | unbenutzt, wandert aber vermutlich in jede EXE und die Public Edition | offen (sein Bild, seine Entscheidung) |
-| **F-103** | Die drei Meshy-Wappen: `elfen_wappen.png` als Stilvorlage behalten, `_128`/`_64` löschen? | `_128`/`_64` werden nirgends genannt; die 1024er Datei ist freigestellt im Meshy-Stil | offen (Löschen braucht sein Wort) |
-| **F-104** | 45 alte Rückfall-Icons hinter `clean/` im Dezember entrümpeln? | nur **eine** Datei braucht heute den Rückfall (`Drachenschuppe.png`) | offen |
+| **F-100** | Abzeichen auf der Weltkarte: flach, gar nicht, oder so lassen? | bei 8 px nur ein Farbfleck; Silberbach/Schattenfaust (beide rot) und Sternenwacht/Flickwerk (beide hell) verwechselbar | **beantwortet und gebaut** (Register 627): „Abzeichen ganz weg von der Weltkarte — die Fraktion erkennt man an der Burg“; Wache „genau ein Bild je Dorf“ |
+| **F-101** | Dateigrößen: 4× Anzeige überall, oder bei großen Flächen 2×? | 4× bei 1127 px Breite ergäbe Kopfbänder über 4500 px und Startbilder 4096 × 2880 | **beantwortet**: „4× überall — scharf auch auf 200-%-Schirmen“ |
+| **F-102** | Portraitfoto `assets/bilder/daniel_portrait.png` aus dem Spielordner nehmen? | unbenutzt, wandert aber vermutlich in jede EXE und die Public Edition | **beantwortet und gebaut** (Register 627): „aus dem Paketbau ausschließen, die Datei aber im Projekt lassen“ — Filter misst 380 statt 382 Dateien |
+| **F-103** | Die drei Meshy-Wappen: `elfen_wappen.png` als Stilvorlage behalten, `_128`/`_64` löschen? | `_128`/`_64` werden nirgends genannt; die 1024er Datei ist freigestellt im Meshy-Stil | **beantwortet**: „quasi die Referenz zum Spiel … benutz sie vor allem auch als Referenz dafür, was wir für Designs brauchen“ — **nichts gelöscht** |
+| **F-104** | 45 alte Rückfall-Icons hinter `clean/` im Dezember entrümpeln? | nur **eine** Datei braucht heute den Rückfall (`Drachenschuppe.png`) | **beantwortet**: „Waren und Einheiten behalten ihre Icons, das bleibt fix, genau wie die Gebäude, die auf der Siedlungskarte erscheinen und produzieren“ — **B6, B7, B11 fallen weg**, nichts wird entrümpelt |
 
 **Was ich davon schon gemessen habe:** die `Drachenschuppe.png` ist **nicht** fast leer — 64 × 82, 903 Byte,
 aber **52 % der Pixel sind deckend** (Claudes Verdacht war falsch, Register 622).

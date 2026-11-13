@@ -16051,18 +16051,21 @@ class NebelseetalApp:
 
     def _dorf_marke(self, zeichenflaeche, cx: float, cy: float, zelle: int,
                     fraktion: str, tags: tuple) -> bool:
-        """Burg + Wappen einer Fraktion in eine Feldmitte zeichnen (W-8, Daniel 03.11.2026).
+        """Die BURG einer Fraktion in eine Feldmitte zeichnen (W-8, Daniel 03.11.2026).
 
         Was hinein geht: Zeichenflaeche, Feldmitte, Feldgroesse, die FRAKTION und die Canvas-Tags.
         Was heraus kommt: True, wenn das Bild wirklich gezeichnet wurde - False heisst "kein Bild",
         und der Aufrufer zeichnet dann den alten Kasten mit X (kein Pillow, Datei fehlt).
 
-        Das Wappen sitzt als kleines Abzeichen unten rechts; beide Groessen sind Regler in
-        `data/bot_wappen.json`. Ein Bot traegt ueberall dasselbe Paar - daran ist sein Dorf zu erkennen.
+        **Kein Wappen-Abzeichen mehr** (Daniel 13.11.2026, F-100, Register 627): "Abzeichen ganz weg
+        von der Weltkarte - die Fraktion erkennt man an der Burg". Gemessen war, dass bei 8 px von
+        einem gemalten Wappen nur ein Farbfleck bleibt und zwei Paare (Silberbach/Schattenfaust,
+        Sternenwacht/Flickwerk) dann verwechselbar sind. Die Burg steht weiterhin fuer die Fraktion,
+        das grosse Wappen bleibt in den Ansichten, wo Platz ist. Der Regler
+        `wappen_groesse_prozent_der_zelle` in `data/bot_wappen.json` wird dadurch nicht mehr benutzt.
         """
         paar = WAPPEN.get(str(fraktion or "")) or {}                   # Bildpaar dieser Fraktion
         burg = str(paar.get("burg") or "")                             # Pfad der Burg
-        wappen = str(paar.get("wappen") or "")                         # Pfad des Wappens
         if not burg:                                                   # keine Fraktion/kein Paar
             return False                                               # dann bleibt es beim Kasten
         px = max(8, int(round(float(zelle) * float(WAPPEN_GROESSE) / 100.0)))       # Burggroesse
@@ -16071,11 +16074,6 @@ class NebelseetalApp:
             return False                                               # Aufrufer zeichnet den Kasten
         self._dorf_ring(zeichenflaeche, cx, cy, zelle, "portalspieler" in tuple(tags))  # C1: Rahmen
         zeichenflaeche.create_image(cx, cy, image=bild, tags=tags)     # die Burg auf dem Feld
-        wp = max(6, int(round(float(zelle) * float(WAPPEN_ANTEIL) / 100.0)))        # Wappengroesse
-        klein = self._motivbild_skaliert(wappen, wp, "_wappen_cache") if wappen else None   # Abzeichen
-        if klein is not None:                                          # Wappen vorhanden
-            off = float(zelle) * 0.28                                  # Versatz nach unten rechts
-            zeichenflaeche.create_image(cx + off, cy + off, image=klein, tags=tags)  # Abzeichen
         return True                                                    # Bild gezeichnet
 
     def _dorf_kasten(self, zeichenflaeche, cx: float, cy: float, zelle: int,
