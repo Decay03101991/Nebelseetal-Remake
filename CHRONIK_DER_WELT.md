@@ -205,7 +205,7 @@ Deshalb ist die Magie bis heute eine offene Tür, durch die man treten kann, abe
 
 Das Haus Silberbach wurde gegründet, als der Fischer Karl nach dem Bruch durch den Nebel von Midgard watete. Er folgte dem Klang eines Baches, der hell wie eine Glocke läutete. An einer Biegung fand er eine Lichtung, auf der der Boden fest blieb. Dort schlug er den ersten Pfahl ein. Um ihn sammelten sich andere Überlebende. Der Bach wurde Silberbach genannt, weil er im Mondlicht schimmerte. Das Haus Silberbach ist seither das Haus der Menschen in Midgard.
 
-Der Herrschaftssitz ist die Burg Silberbach, erbaut aus Holz, Lehm und dem wenigen Stein, den die Menschen aus dem Flussbett holen. Sie liegt an einer Furt, über die der Weg zu den Portalen führt. Die Farben des Hauses sind Rot, Grau und Gold. Das Wappen führt Rot und Gold: eine goldene Krone, die über einem roten Banner steht, von goldenem Lorbeer umschlossen, auf rotem Grund. Einen Helm und eine Helmzier führt das Wappen nicht.
+Der Herrschaftssitz ist die Burg Silberbach, erbaut aus Holz, Lehm und dem wenigen Stein, den die Menschen aus dem Flussbett holen. Sie liegt an einer Furt, über die der Weg zu den Portalen führt. Die Farben des Hauses sind Rot und Gold. Das Wappen führt Rot und Gold: eine goldene Krone, die über einem roten Banner steht, von goldenem Lorbeer umschlossen, auf rotem Grund. Einen Helm und eine Helmzier führt das Wappen nicht.
 
 Die Menschen von Silberbach halten Gemeinschaft hoch. Sie essen Brot, Flussfisch, geräuchertes Fleisch und trinken Apfelmost. Ihre Sitten sind einfach: Ein Fremder wird zuerst gefragt, woher er kommt, dann bekommt er einen Becher. Ihre Handwerkskunst liegt im Holzbau, im Bootsbau und in der Bogenmacherei. Ihre bevorzugte Waffe ist der Langbogen, dazu der Speer.
 
@@ -247,7 +247,7 @@ Der Fehler des Hauses Sternenwacht ist die Arroganz. Elfen halten andere Völker
 
 Das Haus Schattenfaust wurde gegründet, als die Trolle nach dem Bruch aus den Schatten der Berge von Utgard traten. Der erste Troll, Gorm, ballte seine Faust und schwor, nie wieder zermalmt zu werden. Er schlug seine Faust so fest auf einen Felsen, dass der Abdruck heute noch zu sehen ist. Um diesen Felsen bauten die Trolle ihre Feste. Das Haus Schattenfaust trägt den Namen dieses Schwurs.
 
-Der Herrschaftssitz ist die Felsfeste Schattenfaust, eine klobige Burg aus Basalt und Geröll. Die Mauern sind dick, die Fenster schmal, die Tore schwer. Die Farben des Hauses sind Grün, Schwarz und Gold. Das Wappen führt Rot, Schwarz und Gold: ein aufgerichteter roter Drache mit goldenen Krallen, Flügelspitzen und Augen, auf schwarzem Grund. Einen Helm und eine Helmzier führt das Wappen nicht.
+Der Herrschaftssitz ist die Felsfeste Schattenfaust, eine klobige Burg aus Basalt und Geröll. Die Mauern sind dick, die Fenster schmal, die Tore schwer. Die Farben des Hauses sind Rot, Schwarz und Gold. Das Wappen führt Rot, Schwarz und Gold: ein aufgerichteter roter Drache mit goldenen Krallen, Flügelspitzen und Augen, auf schwarzem Grund. Einen Helm und eine Helmzier führt das Wappen nicht.
 
 Die Trolle essen am liebsten Braten am Spieß, dicke Eintöpfe und geräuchertes Fleisch. Sie trinken Met und Starkbier. Ihre Mahlzeiten sind laut, mit Kampfgesängen und dem Werfen von Knochen. Ihre Handwerkskunst ist grob, aber haltbar: schwere Schmiedearbeiten, Steinmetzen und Leder. Ihre bevorzugte Waffe ist die Keule, dazu ein wuchtiger Hammer. Trolle kämpfen mit gewaltigem Angriff, aber ihre Tische sind für Händler oft zu rau.
 
@@ -275,7 +275,7 @@ Der Fehler des Hauses Knochenmoor ist das Misstrauen. Ghule trauen keinem Lebend
 
 Das Haus Flickwerk wurde gegründet, als die Gnome im Limbus geboren wurden. Wo die magischen Ströme sich kreuzten, bildeten sich feste Inseln aus den Resten zerbrochener Welten. Auf einer dieser Inseln erwachte Wim, der erste Gnom. Er fand Stoffreste, alte Räder und verbogene Nägel. Er nähte aus den Fetzen ein Zelt und nannte es Flickwerk. Um dieses Zelt wuchsen die Werkstätten der Gnome.
 
-Der Herrschaftssitz ist die schwimmende Insel Flickwerk im Limbus, eine Ansammlung aus Werkstätten, Winden, Seilbrücken und kleinen Gärten. Die Farben des Hauses sind Eisblau, Weiß und Messing. Das Wappen führt Grau und Schwarz: eine steinerne Zinnenburg vor Bergen, mit goldenen Akzenten. Einen Helm und eine Helmzier führt das Wappen nicht.
+Der Herrschaftssitz ist die schwimmende Insel Flickwerk im Limbus, eine Ansammlung aus Werkstätten, Winden, Seilbrücken und kleinen Gärten. Die Farben des Hauses sind Grau, Schwarz und Gold. Das Wappen führt Grau, Schwarz und Gold: eine steinerne Zinnenburg vor Bergen, der Rahmen und die Akzente in Gold, auf dunklem Grund. Einen Helm und eine Helmzier führt das Wappen nicht.
 
 Die Gnome lieben Basare, Erfinderfeste und lange Debatten. Sie essen kleine Pasteten, süße Säfte, Obst und allerlei Gebäck. Ihre Handwerkskunst liegt in der Mechanik, im Uhrenbau, im Seilern und in der Konstruktion von Flaschenzügen. Ihre bevorzugte Waffe ist die kleine Armbrust, dazu ein Katapult. Gnome sind begnadete Ausbauer, aber keine Kämpfer. Ihre Neugier ist legendär.
 

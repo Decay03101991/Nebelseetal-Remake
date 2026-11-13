@@ -10,7 +10,7 @@
       "haus": "Haus Silberbach",
       "volk": "Menschen",
       "welt": "Midgard",
-      "farben": "Rot, Grau und Gold",
+      "farben": "Rot und Gold",
       "sitz": "Burg Silberbach",
       "burg": "assets/icons/burgen/burg_02.png",
       "wappen": "assets/icons/wappen/wappen_04.png",
@@ -43,7 +43,7 @@
       "haus": "Haus Schattenfaust",
       "volk": "Trolle",
       "welt": "Utgard",
-      "farben": "Grün, Schwarz und Gold",
+      "farben": "Rot, Schwarz und Gold",
       "sitz": "Felsfeste Schattenfaust",
       "burg": "assets/icons/burgen/burg_05.png",
       "wappen": "assets/icons/wappen/wappen_08.png",
@@ -65,11 +65,11 @@
       "haus": "Haus Flickwerk",
       "volk": "Gnome",
       "welt": "Limbus",
-      "farben": "Eisblau, Weiß und Messing",
+      "farben": "Grau, Schwarz und Gold",
       "sitz": "schwimmende Insel Flickwerk",
       "burg": "assets/icons/burgen/burg_06.png",
       "wappen": "assets/icons/wappen/wappen_05.png",
-      "wappen_beschreibung": "Das Wappen führt Grau und Schwarz: eine steinerne Zinnenburg vor Bergen, mit goldenen Akzenten. Einen Helm und eine Helmzier führt das Wappen nicht.",
+      "wappen_beschreibung": "Das Wappen führt Grau, Schwarz und Gold: eine steinerne Zinnenburg vor Bergen, der Rahmen und die Akzente in Gold, auf dunklem Grund. Einen Helm und eine Helmzier führt das Wappen nicht.",
       "wappen_kurz": "In Grau eine steinerne Zinnenburg vor Bergen, goldene Akzente."
     }
   }
