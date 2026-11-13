@@ -303,6 +303,11 @@ check("das Modul enthaelt keinen Zeichenaufruf (create_, pack, grid)",
 messwert("Kopf Fall 2", F2["kopf"], "px", "gerechnet nach Nr. 16 A1")
 messwert("Inhaltshoehe Fall 2", F2["innenhoehe"], "px", "gerechnet nach Nr. 16 A1")
 messwert("Block 5 Fall 2", F2["bloecke"]["auswahl"], "px", "Rest der Spalte")
-befund("Die Knopfhoehen h_b 35 / h_b1 37 sind im Fall 2 gemessen, im Fall 1 UNBEKANNT - "
-       "die Ansicht misst sie mit `winfo_reqheight` und gibt sie `bloecke()` mit")
+befund("Die Knopfhoehen h_b 35 / h_b1 37 sind im Fall 2 gemessen, im Fall 1 UNBEKANNT",
+       "Sie sind STARTWERTE: die Ansicht setzt den Knopf und nimmt seine echte Hoehe in Kauf "
+       "(Block 2 bis 4 wachsen dann mit), Block 5 bekommt ohnehin den gemessenen REST "
+       "(`_dz_rest_verteilen`). Die Sollzahlen 57 / 55 / 100 gelten also nur bei den "
+       "gemessenen Fall-2-Hoehen - im Fall 1 weicht der eine oder andere Block ein paar px ab, "
+       "ohne dass die Spalte rollt. Wer die Sollzahlen fuer Fall 1 braucht, misst die Knoepfe "
+       "im unbewussten Prozess und traegt sie als Startwerte ein.")
 raise SystemExit(bericht())

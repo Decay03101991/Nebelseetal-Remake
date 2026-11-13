@@ -1,3 +1,54 @@
+# STAND 13.11.2026, 02:1x — Dorfzentrum nach Nr. 16 Teil A gebaut (Sitzung 42)
+
+> Sitzung 42, Nacht 13.11.2026. **Alles unten ist committet und gepusht; maßgeblich ist `git log -1`.**
+> Kopf beim Schreiben: `ca6110f`.
+>
+> **Gebaut: das Dorfzentrum nach Claudes Nr. 16 Teil A** — Daniels Entscheidungen F-56, F-58, F-59,
+> F-65, F-66 sind umgesetzt.
+> - **`src/dorfzentrum.py`** rechnet ALLE Masse an einer Stelle (vorher in `main.py` verstreut):
+>   p, g, f, R = 10f + 18, **S = W − rb − R**, Kopf, Reiterleiste, Inhaltshöhe, Reiterbreite, dazu
+>   `lager_masse`, `einheiten_masse`, `werkstaetten_masse`, `bloecke`. Zwei Werte sind PARAMETER,
+>   weil gerechnet falsch: **`tkopf`** (Befund B1: Formel 33 statt 30, wird gemessen) und **`ls`**
+>   (Zeilenhöhen 19/22/30 sind keine gerade Funktion von k; `round(18 × 1,2512) = 23` machte die
+>   Werkstattliste 17 px zu hoch).
+> - **Die Ansicht** ist links die Spalte S (432/448) mit sechs Blöcken — Kopf mit Kennzahlen (F-66),
+>   nächster Schritt, Ort, Aktionen, Auswahl je Reiter, Hinweis (Technik nur im Entwicklerbetrieb) —
+>   und rechts die Arbeitsfläche R (588/658) mit den Reitern **Lager / Werkstätten / Einheiten**.
+>   **Block 5 nimmt den REST**: gemessen 56+57+72+62+216+78 + 6 Lücken à 8 = **589 = Fensterhöhe
+>   genau**, die Spalte rollt nicht. F-59: kein Ortsbestand-Block. F-58: Werkstätten mit
+>   Zutat-Spalte (228/125/150/105). F-65: Einheitentabelle ohne Spalte Verwundete (Namensspalte
+>   226/244). F-56: Kleintext absolut 15 px.
+> - **Wachen:** `test_dorfzentrum_masse` **119/0/1** (beide Fenstergrößen, 21 + 26 Sollwerte von
+>   Hand, sieben Gegenproben), `test_dorfzentrum_ansicht` **44/0/1** (Blöcke, Block 5 = Rest, Reiter
+>   ohne Leck, F-58/F-65/F-66 im Fenster), `test_lager_kacheln_b4` neu gefasst **57/0/1**.
+>   Angepasst: `test_lage_band` 12/0/0, `test_ansicht_hintergrund` 81/0/0,
+>   `test_dorfzentrum_ist_lager` 82/0/0, `test_gpt_admin_hilfe_navigation_fix04e` OK.
+> - **Zwei eigene Fehler, im Fenster gefunden:** `grid_propagate(False)` statt
+>   `pack_propagate(False)` ließ die Kacheln auf **146 px** schrumpfen (genau Daniels V_0.0.4-Befund),
+>   und eine Tabellenhälfte ohne feste Höhe fiel auf **1 px** zusammen (Einheitentabelle unsichtbar).
+>   Beide Wachen prüften vorher nur Quelltext — jetzt prüfen sie die gemessene Größe.
+> - **Belegbilder:** `docs/audits/dorfzentrum_20261113_01xx.png` (Lager),
+>   `dorfzentrum_werkstaetten_20261113.png`, `dorfzentrum_einheiten_20261113.png`.
+>
+> **F-75 und F-74 sind gemessen (Register 573/574):**
+> - `docs/SICHTUNG_ALTER_PRUEFDATEIEN_20261113.md` — die **46 Dateien ohne Lauf**: **30 brauchbar,
+>   8 sinnvoll integrierbar, 8 muss geändert werden** (die acht arbeiten mit eigener Prüfzählung
+>   statt `harness`; `test_gpt_originalkarten_historische_info` hat **0 Prüfungen**).
+> - `docs/PRUEFNAMEN_ABGLEICH_20261113.md` — **keine der vier Streichkandidaten erreicht die
+>   90-Prozent-Regel** (9,5 % / 0 % / 0 % / 0 %). Es wurde **nichts gelöscht**. Befund: die Regel
+>   misst Formulierung, nicht Doppelung — Vorschlag F-83: auf den geprüften Gegenstand umstellen.
+>
+> **Fragen an Daniel:** `docs/FRAGEN_AN_DANIEL_20261112.md`, Abschnitt SITZUNG 42 — F-86
+> (Sichtprüfung der drei Belegbilder, die wichtigste), F-87 (kein Nachziehen bei Fenstergröße),
+> F-88 (Lage-Band steht im Block Auswahl), F-80 bis F-85 (Prüfstand), dazu die offenen F-78 (Wappen),
+> F-72 (C3/C7) und M3 bis M10.
+>
+> **Offen:** voller Sammellauf T4 läuft (`docs/audits/sammellauf_20261113_0215.log`), Ergebnis im
+> Register nachgetragen. **Der frühere Kopf ab hier ist der Stand von Sitzung 41** und bleibt als
+> Chronik stehen.
+
+---
+
 # STAND 13.11.2026, 02:0x — Antwort Nr. 16 verarbeitet, Prüfstand-Kern steht, sieben Entscheidungen (F-73 bis F-79)
 
 > Sitzung 41, Nacht 12./13.11.2026. **Alles unten ist committet und gepusht; maßgeblich ist

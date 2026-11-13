@@ -115,3 +115,132 @@ stammen nach seiner Auskunft aus **deiner** Beschreibung der Burgbilder.
 | 5 | Werkstatt je Rezept | **„Es gibt ja keine werkstatt an sich … Ingame gibt es Menüpunkte für diese Werkstätten als Bogenmacher oder Schmiede … kein menüpunkt werkstatt oder werkstätten nötig“** | F-77: **kein Menüpunkt „Werkstätten“**; nur die Gebäude (Schmiede, Bogenbauer, Nähstube). Das Rezeptfeld bleibt auf die Gebäude-Kennung bezogen. |
 | 6 | Völkerfarben | **„Die burgbilder kann ich vorerst nicht ersetzen aber das ist der einzige grund warum ich sie festlege. Heißt es muss geschichte und stil den burgen angepasst werden. Auch Wappen usw“** | F-78: **Burgbilder sind fest**; Geschichte, Stil **und Wappen** werden ihnen angepasst. `FRAKTIONEN_WELTEN.md` in dieser Sitzung angepasst (Trolle weiß-gold, Ghule violett). |
 | 7 | `test_e2e_wege` nach T4 | **„Ja — als neunte Datei nach T4“** | F-79: gebaut — T4 hat jetzt neun Dateien, `PRUEF_STUFE = 4`. |
+
+---
+
+# SITZUNG 42 (13.11.2026, nachts) — Fragen aus dem Dorfzentrum-Umbau und der Prüfstands-Sichtung
+
+**Regel unverändert:** gesammelt, in EINER Runde, je Frage Messlage · Auswirkung · Vorschlag zuerst.
+
+## A. Das Dorfzentrum — Sichtprüfung (die wichtigste)
+
+### F-86 Sichtprüfung des neuen Dorfzentrums
+
+**Messlage:** drei Belegbilder, alle am 13.11.2026 aus dem laufenden Fenster aufgenommen:
+`docs/audits/dorfzentrum_20261113_01xx.png` (Reiter Lager), `dorfzentrum_werkstaetten_20261113.png`,
+`dorfzentrum_einheiten_20261113.png`. Gebaut ist Nr. 16 Teil A: links die Spalte (Kopf mit
+Kennzahlen, nächster Schritt, Ort, Aktionen, Auswahl, Hinweis), rechts die Arbeitsfläche mit den
+drei Reitern Lager / Werkstätten / Einheiten, 18 Kacheln zu 185 × 72 px (DPI-bewusst 206 × 83).
+
+**Auswirkung:** Bis zu deinem Urteil bleibt es so. Dein Befund entscheidet, ob die Größen
+(Kacheln, Schriften, Blockhöhen) stimmen oder nachgezogen werden.
+
+**Vorschlag:** so lassen — aber sich die drei Bilder ansehen, vor allem die Kacheln (V_0.0.4 war
+„besser, aber immer noch nicht übersichtlich und schön genug“).
+
+**Deine Frage dazu:** gut · zu klein · zu eng · anders?
+
+### F-87 Zieht die Ansicht bei Fenstergröße nicht nach — reicht das?
+
+**Messlage:** Die Arbeitsfläche R hängt an der Fensterbreite; die Kacheln werden beim Neuaufbau
+gesetzt, nicht bei jedem Fensterzug (der frühere Nachlauf `_lager_nachziehen` ist mit der alten
+Kachelform entfallen). Im Spiel ist das Fenster fest (1560 × 940 bewusst / 1446 × 744 unbewusst),
+darum fällt es dort nicht auf. Belegt als Befund in `tests/test_lager_kacheln_b4.py`.
+
+**Auswirkung:** Wer das Fenster zieht, sieht die Kacheln in der alten Größe, bis die Ansicht neu
+gebaut wird. Kein Datenfehler, nur Darstellung.
+
+**Vorschlag:** so lassen (das Fenster ist fest) — oder einen Nachlauf wie in der Siedlungsansicht
+nachrüsten, wenn du das Fensterziehen im Betrieb nutzt.
+
+### F-88 Das Lage-Band steht jetzt IM Block Auswahl
+
+**Messlage:** Deine Entscheidung T7 (11.11.2026: Forschung, Götterschutz, Wallbau als eigene Zeile)
+ist unverändert gültig; Nr. 16 Teil A kennt diese Zeile nicht. Ich habe sie oben in den Block
+„Auswahl je Reiter“ gelegt, damit die sieben Blöcke und Block 5 als Rest erhalten bleiben. Wache
+`test_lage_band` 12/0/0.
+
+**Auswirkung:** Kein Block kommt hinzu, keine Zahl aus Teil A verschiebt sich. Optisch sitzt das
+Band jetzt über den Angaben zur gewählten Ware.
+
+**Vorschlag:** so lassen, bis du es siehst — sagst du „eigener Block“, bekommt es Block 8 und
+Block 5 wird um 60 px kleiner.
+
+## B. Prüfstand: Sichtung und Streichkandidaten (F-75 / F-74 sind gemessen)
+
+### F-80 Acht Dateien mit eigener Prüfzählung auf `harness` umstellen?
+
+**Messlage:** `test_gebaeude_menue_und_meldungen`, `test_gpt_originalkarten_historische_info`
+(**0 Prüfungen**), `..._katalog`, `test_navigation_ebenen`, `test_opus_lauf_arbeitsordner`,
+`test_projektpfade`, `test_rueckmarsch`, `test_textqualitaet` zählen selbst und schreiben keine
+Messwerte. Beleg: `docs/SICHTUNG_ALTER_PRUEFDATEIEN_20261113.md`, Abschnitt 1.
+
+**Auswirkung:** Umstellen kostet einmalig Arbeit, bringt Messwerte und den Befundkanal. Keine
+Prüfung wird dabei entfernt.
+
+**Vorschlag:** ja, in einem Paket, jede Datei einzeln grün gefahren.
+
+### F-81 Acht Paare zusammenlegen (Name für Name übernehmen, dann streichen)?
+
+**Messlage:** fix04e → fix04f, fix04b → fix04, baukasse / prueflauf_ehrlich / waren_icons →
+fixrunde_ortslager, schild_fix04i → profile_login, spielstand_gui_fix04h → spielstandarchiv_fix04g,
+wall_gui → wallsystem. Beleg: Sichtung, Abschnitt 2.
+
+**Auswirkung:** 8 Dateien weniger, rund 100 s weniger Laufzeit je voller Runde (Schätzung aus
+Paket 15b). Risiko: eine Prüfung geht verloren, wenn beim Übertragen geschludert wird.
+
+**Vorschlag:** ja — aber erst nach F-74 und erst nach der nächsten vollen Runde mit Laufzeilen.
+
+### F-82 `test_gpt_originalkarten_historische_info` hat 0 Prüfungen
+
+**Messlage:** 76 Zeilen, läuft ohne eine einzige Zusicherung durch — ein grüner Lauf, der nichts
+behauptet. Gegenstand laut Kopf: historische Karteninfos werden nie als Gratisrohstoffe genutzt.
+
+**Auswirkung:** Die Datei täuscht Sicherheit vor. Füllen kostet eine Stunde, Aussetzen kostet
+nichts, lässt die Lücke aber offen.
+
+**Vorschlag:** füllen (der Gegenstand ist wertvoll) — oder ausdrücklich als ausgesetzt kennzeichnen.
+
+### F-83 Prüfnamen-Abgleich auf den geprüften Gegenstand umstellen?
+
+**Messlage:** Alle vier Streichkandidaten erreichen die 90-Prozent-Regel nicht: `test_ressourcenleiste`
+9,5 % (4 von 42), die anderen drei **0 %**. Grund: Prüfnamen sind freie deutsche Sätze, zwei Dateien
+formulieren denselben Gegenstand fast immer anders. Beleg: `docs/PRUEFNAMEN_ABGLEICH_20261113.md`.
+
+**Auswirkung:** In der jetzigen Form erlaubt die Regel nie eine Löschung — auch dann nicht, wenn
+inhaltlich alles doppelt wäre. Sie misst Formulierung statt Doppelung.
+
+**Vorschlag:** ja, zusätzlich auf den Gegenstand stützen (Funktion oder Datenfeld je Prüfname) und
+die 90 Prozent darauf rechnen.
+
+### F-84 Die 42 Prüfnamen von `test_ressourcenleiste` einzeln sichten?
+
+**Messlage:** Einziger Fall mit echter Nähe: `test_ressourcenleiste_t08` (70 Prüfungen) deckt
+inhaltlich 4 von 42 Namen. Die alte Datei prüft also Dinge, die T08 nicht prüft.
+
+**Auswirkung:** Sichten kostet eine halbe Stunde; danach weiß man, ob die vier bis zehn fehlenden
+Namen in T08 gehören.
+
+**Vorschlag:** ja, ohne die alte Datei zu löschen.
+
+### F-85 Drei Kandidaten endgültig von der Streichliste nehmen?
+
+**Messlage:** `test_ansicht_hintergrund` (71 Prüfnamen, Panorama/Schleier/Kastenoptik),
+`test_bot_wappen` (22, Wappen der fünf Bots) und `test_dorfzentrum_ist_lager` (79, Entscheidung S-2c)
+decken Gegenstände ab, die keine andere Datei prüft — Deckung 0 %.
+
+**Auswirkung:** Von der Liste nehmen beendet die Diskussion; drauf lassen kostet nur ein Wort.
+
+**Vorschlag:** ja, alle drei streichen von der Liste (die Dateien bleiben!).
+
+## C. Offen aus Sitzung 41 (unverändert)
+
+- **F-78 Wappen:** Die Burgbilder sind fest, Geschichte und Stil folgen ihnen — `FRAKTIONEN_WELTEN.md`
+  steht (Trolle weiß-gold, Ghule violett), die **Wappen unter `assets/icons/wappen/` sind noch nicht
+  geprüft**. Vorschlag: als nächstes Bildpaket, sobald du die Burgbilder bestätigst.
+- **F-72 / C3 und C7:** freigegeben, **nicht gebaut** (`SKILL.md` teilen; Regel 2 um gekennzeichnete
+  Startwerte ergänzen). Beides sind Regeländerungen — Protokoll, Hash, Rückrollweg nach Arbeitsregel 9.
+  Vorschlag: in einer eigenen Sitzung, nicht zwischen zwei Bauaufträgen.
+- **M3 bis M10:** bewusst nach F-62 zurückgestellt. `T2` ist mit 202 Dateien zu groß für den
+  häufigen Lauf; bis die Dauern aus `laeufe.jsonl` belastbar sind, gilt T1 plus die Auswahl aus M2.
+- **Der Portalsprung (F-70)** und die **Dorfzentrum-Sichtprüfung** stehen weiter offen (F-86 oben).
