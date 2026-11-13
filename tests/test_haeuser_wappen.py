@@ -186,8 +186,8 @@ def main() -> int:
     check("Hausname der Menschen", haus_modul.hausname("menschlich") == "Haus Silberbach",
           haus_modul.hausname("menschlich"))
     check("unbekannte Fraktion gibt leeren Namen", haus_modul.hausname("gibt-es-nicht") == "")
-    check("Wappenpfad der Trolle endet auf wappen_02.png",
-          haus_modul.wappen("Trolle").endswith("wappen_02.png"), haus_modul.wappen("Trolle"))
+    check("Wappenpfad der Trolle endet auf haus_schattenfaust.png",
+          haus_modul.wappen("Trolle").endswith("haus_schattenfaust.png"), haus_modul.wappen("Trolle"))
     check("Kurzbeschreibung vorhanden", bool(haus_modul.wappen_kurz("elfisch")))
     check("kaputte Datei gibt ein leeres Dict statt eines Absturzes",
           haus_modul.alle(os.path.join(ROOT, "data", "gibt-es-nicht.json")) == {})
