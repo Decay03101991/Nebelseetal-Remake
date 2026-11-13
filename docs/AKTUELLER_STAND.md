@@ -42,7 +42,14 @@
 > Bildmodell (Daniels Wort), und der Auftrag dafuer kommt von ihm. Die Chronik-Beschreibungen in
 > `data/haeuser.json` bleiben die Vorgabe. **Wachen nach dem Rueckbau:** `test_haeuser_wappen` 61/0/0,
 > `test_bot_wappen` 26/0/1, `test_textqualitaet` 496/0/0, `test_projektpfade` 135/0/0.
-> **Burgen unveraendert; F-78 (welche Burg zu welchem Haus, ob die Hausfarben folgen) bleibt offen.**
+> **F-78 ist entschieden und umgesetzt (Daniel 13.11.2026):** die Zuordnung Haus -> Burg/Wappen ist nach dem
+> gemessenen Bildpaket umgehaengt -- sechs Paare, die in **Farbe und Motiv** stimmen (Silberbach
+> burg_02+wappen_04, Hammerhall burg_01+wappen_10, Sternenwacht burg_03+wappen_09, Schattenfaust
+> burg_05+wappen_01, Knochenmoor burg_04+wappen_02, Flickwerk burg_06+wappen_05). Die Trolle bekommen
+> **gruen-schwarz-gold** statt weiss-gold. Die Farbzeilen in `haeuser.json` sind mitgezogen, die
+> Wappenbeschreibungen folgen jetzt den BILDERN (F-78: Geschichte und Stil folgen den Burgbildern).
+> **Offen:** die sechs Wappenbeschreibungen im Text der Chronik (`docs/CHRONIK_DER_WELT_20261104.md`,
+> Teil 5) nennen noch die alten Motive -- ob sie nachgezogen werden, ist Daniels Wort.
 >
 > **4. Offen und ehrlich benannt:** (a) die Wappen warten auf ein echtes Bildmodell (Daniels Wort),
 > die sechs Versuche sind nur Beleg; (b) F-78, F-87/F-88, M3–M10, F-70, F-72/C3/C7 unverändert.

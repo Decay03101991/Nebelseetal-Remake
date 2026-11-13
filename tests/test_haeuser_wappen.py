@@ -186,8 +186,10 @@ def main() -> int:
     check("Hausname der Menschen", haus_modul.hausname("menschlich") == "Haus Silberbach",
           haus_modul.hausname("menschlich"))
     check("unbekannte Fraktion gibt leeren Namen", haus_modul.hausname("gibt-es-nicht") == "")
-    check("Wappenpfad der Trolle endet auf wappen_02.png",
-          haus_modul.wappen("Trolle").endswith("wappen_02.png"), haus_modul.wappen("Trolle"))
+    # F-78 (Daniel 13.11.2026): die Zuordnung ist neu geordnet - die Schattenfaust traegt den Wolf
+    # (wappen_01), nicht mehr den Raben. Die Wache haelt die ENTSCHEIDUNG fest, nicht ein Bild.
+    check("Wappenpfad der Trolle endet auf wappen_01.png",
+          haus_modul.wappen("Trolle").endswith("wappen_01.png"), haus_modul.wappen("Trolle"))
     check("Kurzbeschreibung vorhanden", bool(haus_modul.wappen_kurz("elfisch")))
     check("kaputte Datei gibt ein leeres Dict statt eines Absturzes",
           haus_modul.alle(os.path.join(ROOT, "data", "gibt-es-nicht.json")) == {})
