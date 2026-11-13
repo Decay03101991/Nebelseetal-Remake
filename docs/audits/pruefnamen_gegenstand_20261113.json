@@ -1,0 +1,2423 @@
+[
+ {
+  "kandidat": "tests/test_ressourcenleiste.py",
+  "partner": "tests/test_ressourcenleiste_t08.py",
+  "pruefungen_kandidat": 42,
+  "pruefungen_partner": 70,
+  "woertlich": 0,
+  "gedeckt": 9,
+  "prozent_woertlich": 0.0,
+  "prozent_gegenstand": 21.4,
+  "schwelle_jaccard": 0.6,
+  "zeilen": [
+   {
+    "name": "1 die Datendatei liegt im Projekt",
+    "zeile": 64,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "1 main hat sie geladen",
+    "zeile": 65,
+    "gegenstand": [
+     "daten"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "1 die Leiste hat elf Felder",
+    "zeile": 66,
+    "gegenstand": [
+     "felder"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "1 Reihenfolge: Siedler, neun Rohstoffe, Punkte",
+    "zeile": 67,
+    "gegenstand": [
+     "felder"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "1 JEDER Rohstoff des Modells steht auf der Leiste",
+    "zeile": 72,
+    "gegenstand": [
+     "felder",
+     "main"
+    ],
+    "woertlich": false,
+    "bester_partner": "1 elf Felder",
+    "jaccard": 0.5,
+    "gedeckt": false
+   },
+   {
+    "name": "1 Wolle und Leder sind dabei (Daniels Befund D3)",
+    "zeile": 75,
+    "gegenstand": [
+     "felder"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "1 jede Quelle ist bekannt",
+    "zeile": 78,
+    "gegenstand": [
+     "felder",
+     "main"
+    ],
+    "woertlich": false,
+    "bester_partner": "1 elf Felder",
+    "jaccard": 0.5,
+    "gedeckt": false
+   },
+   {
+    "name": "1 jedes Feld traegt eine Beschriftung",
+    "zeile": 81,
+    "gegenstand": [
+     "felder"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "1 die Hoehe ist ein Streifen, kein Bild (hoechstens 60 px)",
+    "zeile": 83,
+    "gegenstand": [
+     "daten"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "1 Zahl-, Namen-, Warn- und Grundfarbe sind eingetragen",
+    "zeile": 87,
+    "gegenstand": [
+     "daten",
+     "get"
+    ],
+    "woertlich": false,
+    "bester_partner": "1 Band: Kachel 64 x 34, Endstueck 16",
+    "jaccard": 0.333,
+    "gedeckt": false
+   },
+   {
+    "name": "1 die Masse des Rasters stehen in der Datendatei",
+    "zeile": 90,
+    "gegenstand": [
+     "daten"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "1 das alte Bild ist dokumentiert, aber nicht mehr die Grundlage",
+    "zeile": 95,
+    "gegenstand": [
+     "daten",
+     "get"
+    ],
+    "woertlich": false,
+    "bester_partner": "1 Band: Kachel 64 x 34, Endstueck 16",
+    "jaccard": 0.333,
+    "gedeckt": false
+   },
+   {
+    "name": "2 Siedler kommen aus state.population",
+    "zeile": 123,
+    "gegenstand": [
+     "main"
+    ],
+    "woertlich": false,
+    "bester_partner": "1 elf Felder",
+    "jaccard": 1.0,
+    "gedeckt": true
+   },
+   {
+    "name": "2 Punkte kommen aus punktestand() mit Tausenderpunkt",
+    "zeile": 125,
+    "gegenstand": [
+     "main"
+    ],
+    "woertlich": false,
+    "bester_partner": "1 elf Felder",
+    "jaccard": 1.0,
+    "gedeckt": true
+   },
+   {
+    "name": "2 ein Rohstoff kommt aus state.resources",
+    "zeile": 128,
+    "gegenstand": [
+     "main"
+    ],
+    "woertlich": false,
+    "bester_partner": "1 elf Felder",
+    "jaccard": 1.0,
+    "gedeckt": true
+   },
+   {
+    "name": "2 Kommawerte werden abgerundet (nie mehr anzeigen als vorhanden)",
+    "zeile": 133,
+    "gegenstand": [
+     "main"
+    ],
+    "woertlich": false,
+    "bester_partner": "1 elf Felder",
+    "jaccard": 1.0,
+    "gedeckt": true
+   },
+   {
+    "name": "2 ein fehlender Rohstoff ergibt 0 statt eines Absturzes",
+    "zeile": 136,
+    "gegenstand": [
+     "main"
+    ],
+    "woertlich": false,
+    "bester_partner": "1 elf Felder",
+    "jaccard": 1.0,
+    "gedeckt": true
+   },
+   {
+    "name": "3 ALLE neun Rohstoffe zeigen in der Detailzeile nur die Rate",
+    "zeile": 143,
+    "gegenstand": [
+     "main"
+    ],
+    "woertlich": false,
+    "bester_partner": "1 elf Felder",
+    "jaccard": 1.0,
+    "gedeckt": true
+   },
+   {
+    "name": "3 Holz (auf der Leiste) zeigt die Rate ohne Betrag",
+    "zeile": 162,
+    "gegenstand": [
+     "text_holz"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "3 Wolle steht jetzt auch auf der Leiste und zeigt deshalb NUR die Rate",
+    "zeile": 164,
+    "gegenstand": [
+     "text_wolle"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "3 Rate und Zeile lesen dieselbe Verbrauchsquelle (spieloekonomie.verbrauch_pro_stunde)",
+    "zeile": 169,
+    "gegenstand": [
+     "_rate_code",
+     "_zeile_code"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "3 keine der beiden Stellen baut eine eigene Verbrauchsformel",
+    "zeile": 172,
+    "gegenstand": [
+     "_rate_code",
+     "_zeile_code"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "4 elf Zellen entstehen",
+    "zeile": 191,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "4 alle Zellen sind gleich breit (nichts gedehnt)",
+    "zeile": 192,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "4 die Zellen liegen in Anzeigereihenfolge von links nach rechts und ueberlappen nicht",
+    "zeile": 194,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "4 jede Zelle traegt Name und Wert",
+    "zeile": 198,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "4 die letzte Zelle endet vor dem rechten Endstueck (kein Ueberlauf)",
+    "zeile": 200,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "4 die Zahl steht rechtsbuendig, der Name linksbuendig",
+    "zeile": 203,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "4 in einem sehr breiten Fenster waechst die Zelle nur bis zum Deckel",
+    "zeile": 205,
+    "gegenstand": [
+     "_masse",
+     "_texte",
+     "main"
+    ],
+    "woertlich": false,
+    "bester_partner": "1 elf Felder",
+    "jaccard": 0.333,
+    "gedeckt": false
+   },
+   {
+    "name": "4 in einem sehr schmalen Fenster weichen Felder, statt abgeschnitten zu werden",
+    "zeile": 208,
+    "gegenstand": [
+     "_masse",
+     "main"
+    ],
+    "woertlich": false,
+    "bester_partner": "1 elf Felder",
+    "jaccard": 0.5,
+    "gedeckt": false
+   },
+   {
+    "name": "4 ohne bekannte Fensterbreite gilt die Wuenschgroesse der Zelle",
+    "zeile": 212,
+    "gegenstand": [
+     "_masse",
+     "_texte",
+     "main"
+    ],
+    "woertlich": false,
+    "bester_partner": "1 elf Felder",
+    "jaccard": 0.333,
+    "gedeckt": false
+   },
+   {
+    "name": "5 es gibt eine Leistenflaeche im Kopf",
+    "zeile": 228,
+    "gegenstand": [
+     "canvas"
+    ],
+    "woertlich": false,
+    "bester_partner": "7 es gibt eine Leistenflaeche im Kopf",
+    "jaccard": 1.0,
+    "gedeckt": true
+   },
+   {
+    "name": "6 Aufbau und Neuzeichnen benutzen dieselbe Hilfsfunktion",
+    "zeile": 263,
+    "gegenstand": [
+     "quelle"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "6 die Leiste wird im Kopf gebaut und im Takt aktualisiert",
+    "zeile": 266,
+    "gegenstand": [
+     "quelle"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "6 Bau und Zeichnen lesen die Felder aus `leiste_felder()`",
+    "zeile": 268,
+    "gegenstand": [
+     "_inspect",
+     "main"
+    ],
+    "woertlich": false,
+    "bester_partner": "5 der Zustand 'steigt/faellt' ist entschieden NICHT gebaut (Daniel 12.11.2026)",
+    "jaccard": 1.0,
+    "gedeckt": true
+   },
+   {
+    "name": "6 die Zahlen kommen aus `leistenwert` und nicht aus einer zweiten Rechnung",
+    "zeile": 271,
+    "gegenstand": [
+     "_inspect",
+     "main"
+    ],
+    "woertlich": false,
+    "bester_partner": "5 der Zustand 'steigt/faellt' ist entschieden NICHT gebaut (Daniel 12.11.2026)",
+    "jaccard": 1.0,
+    "gedeckt": true
+   },
+   {
+    "name": "5 alle elf Felder haben Textkennungen",
+    "zeile": 232,
+    "gegenstand": [
+     "texte"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "5 je Zelle vier Teile, dazu Band, Goldlinie, zwei Endstuecke und zehn Trenner",
+    "zeile": 236,
+    "gegenstand": [
+     "items"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "5 jede Zahl auf der Leiste stimmt mit dem Spielstand ueberein",
+    "zeile": 245,
+    "gegenstand": [
+     "stimmt"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "5 kein Bild mehr auf der Flaeche (der Streifen wird gezeichnet)",
+    "zeile": 246,
+    "gegenstand": [
+     "canvas",
+     "items"
+    ],
+    "woertlich": false,
+    "bester_partner": "7 es gibt eine Leistenflaeche im Kopf",
+    "jaccard": 0.5,
+    "gedeckt": false
+   },
+   {
+    "name": "5 eine Aenderung des Bestands kommt auf der Leiste an",
+    "zeile": 251,
+    "gegenstand": [
+     "canvas",
+     "kennung"
+    ],
+    "woertlich": false,
+    "bester_partner": "7 es gibt eine Leistenflaeche im Kopf",
+    "jaccard": 0.5,
+    "gedeckt": false
+   },
+   {
+    "name": "5 Wolle hat ein eigenes Feld auf der Flaeche",
+    "zeile": 254,
+    "gegenstand": [
+     "texte"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   }
+  ]
+ },
+ {
+  "kandidat": "tests/test_ansicht_hintergrund.py",
+  "partner": "tests/test_gebaeude_icons.py",
+  "pruefungen_kandidat": 71,
+  "pruefungen_partner": 32,
+  "woertlich": 0,
+  "gedeckt": 0,
+  "prozent_woertlich": 0.0,
+  "prozent_gegenstand": 0.0,
+  "schwelle_jaccard": 0.6,
+  "zeilen": [
+   {
+    "name": "der Schalter ist an",
+    "zeile": 54,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "das Bild ist zurueckgenommen (Abdunkelung groesser 0)",
+    "zeile": 58,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "das Bild ist weichgezeichnet (nimmt harte Kontraste weg)",
+    "zeile": 60,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Textfelder sind nahezu deckend (oben mindestens 220 von 255)",
+    "zeile": 63,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Textfelder haben eine warme eigene Farbe",
+    "zeile": 65,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Textfelder haben abgerundete Ecken (Radius mindestens 8)",
+    "zeile": 67,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Flaeche hat eine Breite",
+    "zeile": 69,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Flaeche hat eine Hoehe",
+    "zeile": 70,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Datendatei nennt den Grund (Daniels Vorgabe)",
+    "zeile": 71,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "eine Flaeche entsteht",
+    "zeile": 81,
+    "gegenstand": [
+     "_flaeche"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "ohne Abdunkelung bleibt das Bild hell",
+    "zeile": 100,
+    "gegenstand": [
+     "_helligkeit",
+     "_offen"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "60 % Abdunkelung macht die Flaeche deutlich dunkler",
+    "zeile": 101,
+    "gegenstand": [
+     "_dunkel",
+     "_helligkeit",
+     "_offen"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "100 % Abdunkelung ist fast schwarz",
+    "zeile": 104,
+    "gegenstand": [
+     "_helligkeit"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "eine unbekannte Kennung liefert keine Flaeche",
+    "zeile": 112,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "ein fehlendes Bild stuerzt nicht ab",
+    "zeile": 114,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "eine unsinnige Groesse liefert trotzdem ein Bild oder None",
+    "zeile": 116,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "der alte Kopf ist nur noch Rueckfall",
+    "zeile": 135,
+    "gegenstand": [
+     "TEXT_MAIN"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "das Dorfzentrum nimmt das Motiv 'lager'",
+    "zeile": 137,
+    "gegenstand": [
+     "TEXT_MAIN"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Forschung nimmt das Motiv 'bibliothek'",
+    "zeile": 138,
+    "gegenstand": [
+     "TEXT_MAIN"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Ausbildungsstaetten nehmen ihr Gebaeude",
+    "zeile": 139,
+    "gegenstand": [
+     "TEXT_MAIN"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "im Dorfzentrum ist die erste Flaeche die Hintergrund-Leinwand",
+    "zeile": 166,
+    "gegenstand": [
+     "_probe"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "in der Forschung ebenso",
+    "zeile": 168,
+    "gegenstand": [
+     "_probe"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "der Inhalt baut weiterhin seine Felder auf (Widgets im Dorfzentrum)",
+    "zeile": 194,
+    "gegenstand": [
+     "_dz_zahl"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "der Titel der Ansicht steht im Kasten",
+    "zeile": 206,
+    "gegenstand": [
+     "TEXT_MAIN"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Spionage-Ueberschrift steht im Kasten",
+    "zeile": 207,
+    "gegenstand": [
+     "TEXT_MAIN"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Siedlerwarnung steht im Kasten",
+    "zeile": 208,
+    "gegenstand": [
+     "TEXT_MAIN"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Flaeche liegt mit relativer Groesse im Inhalt",
+    "zeile": 254,
+    "gegenstand": [
+     "TEXT_MAIN"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "es gibt ein Nachziehen bei Groessenaenderung",
+    "zeile": 256,
+    "gegenstand": [
+     "TEXT_MAIN"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "das Bild wird in der Zielgroesse neu gebaut",
+    "zeile": 257,
+    "gegenstand": [
+     "TEXT_MAIN"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Flaeche haengt am Configure-Ereignis",
+    "zeile": 258,
+    "gegenstand": [
+     "TEXT_MAIN"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Ansicht hat eine Hintergrundflaeche",
+    "zeile": 291,
+    "gegenstand": [
+     "_hg"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Flaeche ist relativ gebunden (fuellt den Inhalt)",
+    "zeile": 292,
+    "gegenstand": [
+     "_hg"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Flaeche kennt ihr Motiv",
+    "zeile": 295,
+    "gegenstand": [
+     "_hg"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "ein neues Mass baut ein neues Bild in Zielgroesse",
+    "zeile": 296,
+    "gegenstand": [
+     "_hg"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die gebaute Groesse wird gemerkt",
+    "zeile": 298,
+    "gegenstand": [
+     "_hg"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Warteschlange baut weiche Textfelder",
+    "zeile": 309,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "es sind GENAU die drei Textzeilen (Kopf, Leerfall, Reihenfolge)",
+    "zeile": 312,
+    "gegenstand": [
+     "_QUEUE"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Kopfzeile steht im Kasten",
+    "zeile": 314,
+    "gegenstand": [
+     "_QUEUE"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "der Leerfall steht im Kasten",
+    "zeile": 315,
+    "gegenstand": [
+     "_QUEUE"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Reihenfolge-Erklaerung steht im Kasten",
+    "zeile": 316,
+    "gegenstand": [
+     "_QUEUE"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "der fruehere harte Balken im Rahmen ist weg",
+    "zeile": 317,
+    "gegenstand": [
+     "_QUEUE"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "der Rahmen fuer die Zeilen entsteht nur, wenn Zeilen da sind",
+    "zeile": 319,
+    "gegenstand": [
+     "_QUEUE"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "der Rahmen bleibt deckend (Panel-Farbe, nicht der Inhalt)",
+    "zeile": 320,
+    "gegenstand": [
+     "_QUEUE"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "der Kopf der Warteschlange liegt als Kasten mit Bild",
+    "zeile": 368,
+    "gegenstand": [
+     "_voll"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Reihenfolge-Erklaerung liegt als Kasten mit Bild",
+    "zeile": 370,
+    "gegenstand": [
+     "_voll"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die drei Auftraege stehen in EINEM deckenden Rahmen (ein Zeilenrahmen je Auftrag)",
+    "zeile": 372,
+    "gegenstand": [
+     "_voll"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Auftragszeilen liegen NICHT in einem Kasten",
+    "zeile": 374,
+    "gegenstand": [
+     "_voll"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "der Leerfall liegt als Kasten mit Bild",
+    "zeile": 378,
+    "gegenstand": [
+     "_leer"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "ohne Auftraege entsteht kein leerer Zeilenrahmen",
+    "zeile": 380,
+    "gegenstand": [
+     "_leer"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Forschungsansicht baut weiche Textfelder",
+    "zeile": 392,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "der Titel steht im Kasten",
+    "zeile": 394,
+    "gegenstand": [
+     "_FORSCHUNG"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Einleitung steht im Kasten",
+    "zeile": 395,
+    "gegenstand": [
+     "_FORSCHUNG"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Einleitung ist kein harter Balken mehr",
+    "zeile": 396,
+    "gegenstand": [
+     "_FORSCHUNG"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "der Hintergrund ist die erste Flaeche",
+    "zeile": 427,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "Titel und Einleitung liegen als Kasten mit Bild",
+    "zeile": 428,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Forschungszeilen bleiben deckend (hoechstens zwei Kasten mehr)",
+    "zeile": 431,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die rechte Seite wird vor den linken Texten gepackt",
+    "zeile": 443,
+    "gegenstand": [
+     "_FORSCHUNG"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Beschreibung bekommt eine Umbruchbreite",
+    "zeile": 445,
+    "gegenstand": [
+     "_FORSCHUNG"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "der Sperrgrund bekommt ebenfalls eine Umbruchbreite",
+    "zeile": 447,
+    "gegenstand": [
+     "_FORSCHUNG"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Forschungszeilen werden gefunden",
+    "zeile": 513,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "in JEDER Zeile steht das erste gepackte Kind rechts",
+    "zeile": 514,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "in JEDER Zeile bricht mindestens ein Text um",
+    "zeile": 516,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Forschen-Knoepfe sind weiter da",
+    "zeile": 518,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Flaeche hat genau die geforderte Groesse",
+    "zeile": 83,
+    "gegenstand": [
+     "_flaeche"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Flaeche ist RGB (deckend, kein Alpha)",
+    "zeile": 85,
+    "gegenstand": [
+     "_flaeche"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "auch ein hochkantiges Mass wird gedeckt, nicht verzerrt",
+    "zeile": 87,
+    "gegenstand": [
+     "_klein"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "(ohne Namen, Zeile 129)",
+    "zeile": 129,
+    "gegenstand": [
+     "_name"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "(ohne Namen, Zeile 205)",
+    "zeile": 205,
+    "gegenstand": [
+     "_name"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "(ohne Namen, Zeile 243)",
+    "zeile": 243,
+    "gegenstand": [
+     "_name"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "(ohne Namen, Zeile 244)",
+    "zeile": 244,
+    "gegenstand": [
+     "_name"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "(ohne Namen, Zeile 245)",
+    "zeile": 245,
+    "gegenstand": [
+     "_name"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   }
+  ]
+ },
+ {
+  "kandidat": "tests/test_bot_wappen.py",
+  "partner": "tests/test_bot_welten.py",
+  "pruefungen_kandidat": 22,
+  "pruefungen_partner": 24,
+  "woertlich": 0,
+  "gedeckt": 5,
+  "prozent_woertlich": 0.0,
+  "prozent_gegenstand": 22.7,
+  "schwelle_jaccard": 0.6,
+  "zeilen": [
+   {
+    "name": "1 es gibt sechs Fraktionen in den Daten",
+    "zeile": 59,
+    "gegenstand": [
+     "_fraktionen"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "1 jede Fraktion hat ein Bildpaar",
+    "zeile": 60,
+    "gegenstand": [
+     "PAARE",
+     "_fraktionen"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "1 jede Burg-Datei existiert",
+    "zeile": 62,
+    "gegenstand": [
+     "PAARE",
+     "_existiert",
+     "_fraktionen",
+     "get"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "1 jedes Wappen existiert",
+    "zeile": 65,
+    "gegenstand": [
+     "PAARE",
+     "_existiert",
+     "_fraktionen",
+     "get"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "1 die Zuordnung ist als VORSCHLAG gekennzeichnet (kein Original nennt Wappen)",
+    "zeile": 68,
+    "gegenstand": [
+     "DATEI"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "1 die Groessen sind Regler in der Datei",
+    "zeile": 70,
+    "gegenstand": [
+     "DATEI"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "1 main liest die Datei wirklich ein",
+    "zeile": 74,
+    "gegenstand": [
+     "_fraktionen"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "2 nach der Voelkerwahl traegt jeder Bot ein anderes Wappen",
+    "zeile": 92,
+    "gegenstand": [
+     "PAARE",
+     "_verteilt"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "3 das Paar des Spielers ist das seiner Fraktion",
+    "zeile": 100,
+    "gegenstand": [
+     "_paar_spieler"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "3 kein Bot traegt dieses Paar (nach der Voelkerwahl bleibt es eindeutig)",
+    "zeile": 103,
+    "gegenstand": [
+     "_bot_paare",
+     "_paar_spieler"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "3 nach der Wahl traegt kein Bot mehr das Volk des Spielers",
+    "zeile": 106,
+    "gegenstand": [
+     "_verteilung"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "5 der Zeichenweg fragt die Datendatei",
+    "zeile": 161,
+    "gegenstand": [
+     "TEXT_MAIN"
+    ],
+    "woertlich": false,
+    "bester_partner": "5 es gibt KEINEN Midgard-Zwang im Startweg",
+    "jaccard": 1.0,
+    "gedeckt": true
+   },
+   {
+    "name": "5 die Burg kommt NICHT aus einem Pfad-Literal im Zeichenweg",
+    "zeile": 163,
+    "gegenstand": [
+     "TEXT_MAIN"
+    ],
+    "woertlich": false,
+    "bester_partner": "5 es gibt KEINEN Midgard-Zwang im Startweg",
+    "jaccard": 1.0,
+    "gedeckt": true
+   },
+   {
+    "name": "5 die Groessen sind Regler",
+    "zeile": 165,
+    "gegenstand": [
+     "TEXT_MAIN"
+    ],
+    "woertlich": false,
+    "bester_partner": "5 es gibt KEINEN Midgard-Zwang im Startweg",
+    "jaccard": 1.0,
+    "gedeckt": true
+   },
+   {
+    "name": "5 der Kartenrand zeichnet je Dorf eine Marke",
+    "zeile": 166,
+    "gegenstand": [
+     "TEXT_MAIN"
+    ],
+    "woertlich": false,
+    "bester_partner": "5 es gibt KEINEN Midgard-Zwang im Startweg",
+    "jaccard": 1.0,
+    "gedeckt": true
+   },
+   {
+    "name": "5 auch die eigenen Doerfer stehen auf der Karte",
+    "zeile": 169,
+    "gegenstand": [
+     "TEXT_MAIN"
+    ],
+    "woertlich": false,
+    "bester_partner": "5 es gibt KEINEN Midgard-Zwang im Startweg",
+    "jaccard": 1.0,
+    "gedeckt": true
+   },
+   {
+    "name": "(ohne Namen, Zeile 86)",
+    "zeile": 86,
+    "gegenstand": [
+     "_bot"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "4 jedes Dorf mit Fraktion bekommt ein Bild (oder der Kasten greift)",
+    "zeile": 135,
+    "gegenstand": [
+     "_bilder"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "4 mit gelieferten Bildern zeichnet die Marke ein Bild",
+    "zeile": 137,
+    "gegenstand": [
+     "_bilder"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "4 die Marke setzt Bildobjekte auf die Flaeche",
+    "zeile": 141,
+    "gegenstand": [
+     "_leinwand",
+     "_ok"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "4 ohne Bildpaar liefert die Marke False (der Kasten greift)",
+    "zeile": 151,
+    "gegenstand": [
+     "_gemalt"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "4 der Kasten zeichnet Rechteck und X",
+    "zeile": 152,
+    "gegenstand": [
+     "_leer"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   }
+  ]
+ },
+ {
+  "kandidat": "tests/test_dorfzentrum_ist_lager.py",
+  "partner": "tests/test_dorfzentrum_ansicht.py",
+  "pruefungen_kandidat": 82,
+  "pruefungen_partner": 37,
+  "woertlich": 0,
+  "gedeckt": 0,
+  "prozent_woertlich": 0.0,
+  "prozent_gegenstand": 0.0,
+  "schwelle_jaccard": 0.6,
+  "zeilen": [
+   {
+    "name": "der Datensatz 'lager' existiert genau einmal",
+    "zeile": 79,
+    "gegenstand": [
+     "alle"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "es gibt KEINEN zweiten Datensatz 'dorfzentrum'",
+    "zeile": 81,
+    "gegenstand": [
+     "alle"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "der Anzeigename ist Dorfzentrum",
+    "zeile": 83,
+    "gegenstand": [
+     "eintrag"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Kennung bleibt lager",
+    "zeile": 85,
+    "gegenstand": [
+     "eintrag"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "der alte Name steht als Alias",
+    "zeile": 86,
+    "gegenstand": [
+     "eintrag"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Kategorie bleibt Sonstiges (der Baubereich ist erreichbar)",
+    "zeile": 88,
+    "gegenstand": [
+     "eintrag"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Standortregel bleibt erhalten (kein Bau im Sumpf oder auf Berg)",
+    "zeile": 90,
+    "gegenstand": [
+     "eintrag"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "max_je_siedlung steht auf 1",
+    "zeile": 95,
+    "gegenstand": [
+     "eintrag"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Grenze wird NICHT im Code nachgezogen, sondern aus den Daten gelesen",
+    "zeile": 97,
+    "gegenstand": [
+     "inspect",
+     "main"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "finde_gebaeude(\"lager\") ist lager",
+    "zeile": 101,
+    "gegenstand": [
+     "gelaende"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "finde_gebaeude(\"Dorfzentrum\") ist lager",
+    "zeile": 103,
+    "gegenstand": [
+     "gelaende"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "finde_gebaeude(\"Lager\") ist lager (alter Anzeigename)",
+    "zeile": 106,
+    "gegenstand": [
+     "gelaende"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "gebaeude_name nennt das Dorfzentrum",
+    "zeile": 108,
+    "gegenstand": [
+     "gelaende"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "eine unbekannte Kennung wird nicht zum Dorfzentrum",
+    "zeile": 110,
+    "gegenstand": [
+     "gelaende"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "ein Altstand mit 'Lager' in bauten zaehlt als Dorfzentrum",
+    "zeile": 117,
+    "gegenstand": [
+     "alt",
+     "gebaeude_wirkung"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "ein Neustand mit 'Dorfzentrum' zaehlt ebenfalls",
+    "zeile": 123,
+    "gegenstand": [
+     "gebaeude_wirkung",
+     "neu"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "MENU_ITEMS ist die belegte Original-Liste mit 16 Eintraegen",
+    "zeile": 131,
+    "gegenstand": [
+     "main"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "in MENU_ITEMS steht 'Lager' weiterhin (nichts geloescht)",
+    "zeile": 133,
+    "gegenstand": [
+     "main"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "MENUE_ENTFALLEN nennt Lager",
+    "zeile": 135,
+    "gegenstand": [
+     "main"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "ohne Siedlung steht Dorfzentrum in der Leiste",
+    "zeile": 138,
+    "gegenstand": [
+     "leer"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "ohne Siedlung steht Lager NICHT in der Leiste",
+    "zeile": 139,
+    "gegenstand": [
+     "leer"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "kein ausgeblendeter Punkt taucht je wieder auf",
+    "zeile": 140,
+    "gegenstand": [
+     "leer",
+     "main"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "Stellmacher ohne Kaserne bleibt sichtbar",
+    "zeile": 148,
+    "gegenstand": [
+     "ohne_kaserne"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "Stellmacher steht direkt hinter dem Dorfzentrum",
+    "zeile": 150,
+    "gegenstand": [
+     "ohne_kaserne"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "Diebesgilde steht direkt hinter dem Dorfzentrum",
+    "zeile": 154,
+    "gegenstand": [
+     "mit_gilde"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "der Anker MENUE_ANKER zeigt auf Dorfzentrum",
+    "zeile": 156,
+    "gegenstand": [
+     "main"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "jeder sichtbare Punkt hat weiterhin eine Ebene",
+    "zeile": 158,
+    "gegenstand": [
+     "Ort",
+     "main"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "das erste Dorfzentrum laesst sich bauen",
+    "zeile": 171,
+    "gegenstand": [
+     "ok1",
+     "text1"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "es steht auf Feld 10 mit Stufe 1",
+    "zeile": 172,
+    "gegenstand": [
+     "siedlung"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "das zweite wird abgelehnt",
+    "zeile": 176,
+    "gegenstand": [
+     "ok2"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Ablehnung nennt das Dorfzentrum",
+    "zeile": 177,
+    "gegenstand": [
+     "text2"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Ablehnung nennt die Grenze 1",
+    "zeile": 178,
+    "gegenstand": [
+     "text2"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Ablehnung aendert nichts am Bestand (Snapshot vorher = nachher)",
+    "zeile": 179,
+    "gegenstand": [
+     "siedlung",
+     "vorher"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "Feld 11 bleibt frei",
+    "zeile": 182,
+    "gegenstand": [
+     "siedlung"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "Gegenprobe: zwei Haeuser sind erlaubt (die Wache prueft die Grenze, nicht das Bauen)",
+    "zeile": 188,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "auf Berg wird das Dorfzentrum abgelehnt",
+    "zeile": 194,
+    "gegenstand": [
+     "ok3"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Ablehnung nennt die erlaubten Gelaendearten",
+    "zeile": 195,
+    "gegenstand": [
+     "text3"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "ohne Baukunst Stufe 1 wird es abgelehnt (kein Freipass)",
+    "zeile": 198,
+    "gegenstand": [
+     "ok4"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Ablehnung nennt Baukunst",
+    "zeile": 199,
+    "gegenstand": [
+     "text4"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "das Dorfzentrum steht nach dem Abrissversuch noch",
+    "zeile": 226,
+    "gegenstand": [
+     "siedlung"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Meldung nennt das Dorfzentrum",
+    "zeile": 228,
+    "gegenstand": [
+     "attrappe"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Meldung nennt den Grund (Lager des Dorfes)",
+    "zeile": 230,
+    "gegenstand": [
+     "attrappe"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "Gegenprobe: ein Haus wird abgerissen (die Wache sperrt nur das Dorfzentrum)",
+    "zeile": 242,
+    "gegenstand": [
+     "zweite"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "auch ein Altstand mit dem Namen 'Lager' ist geschuetzt",
+    "zeile": 251,
+    "gegenstand": [
+     "dritte"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "_render_storage hat den Schalter eigener_titel",
+    "zeile": 259,
+    "gegenstand": [
+     "signatur"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "der Vorgabewert ist True (direkter Aufruf zeigt den Vermerk)",
+    "zeile": 261,
+    "gegenstand": [
+     "signatur"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "das Dorfzentrum zeigt die Lagerverwaltung ueber `_dz_lager`",
+    "zeile": 271,
+    "gegenstand": [
+     "_bau"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die stillgelegte Route benutzt DIESELBE Rasterfunktion (eine Anzeige, zwei Wege)",
+    "zeile": 274,
+    "gegenstand": [
+     "_lager_rumpf"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Dorfzentrum-Ansicht liest den Gebaeudestand ueber gebaeude_stufe",
+    "zeile": 278,
+    "gegenstand": [
+     "_ort_rumpf"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "kein zweiter Lagerbestand: die Ansicht rechnet keine Vorraete selbst",
+    "zeile": 280,
+    "gegenstand": [
+     "rumpf"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "der alte Debug-Ausdruck ist entfernt",
+    "zeile": 283,
+    "gegenstand": [
+     "inspect",
+     "main"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die stillgelegte Route sagt es offen",
+    "zeile": 285,
+    "gegenstand": [
+     "quelle"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "ein Ort traegt das Kennzeichen dorfzentrum_offen",
+    "zeile": 348,
+    "gegenstand": [
+     "leer"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "der Vorgabewert ist False",
+    "zeile": 350,
+    "gegenstand": [
+     "leer"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "ein Altstand OHNE das Feld laedt mit False (keine Migration)",
+    "zeile": 354,
+    "gegenstand": [
+     "wieder"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Siedlungskarte bietet das Setzen an",
+    "zeile": 358,
+    "gegenstand": [
+     "rumpf"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "der kostenlose Weg verlangt keine Baukunst (kein bauen_auf_karte)",
+    "zeile": 360,
+    "gegenstand": [
+     "_code",
+     "main"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Gruendung hat eine Siedlung erzeugt",
+    "zeile": 298,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Dorfzentrum-Ansicht zeichnet",
+    "zeile": 319,
+    "gegenstand": [
+     "gesamt"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Lagerverwaltung steht im Dorfzentrum",
+    "zeile": 320,
+    "gegenstand": [
+     "gesamt"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Waren des Ortes stehen dort",
+    "zeile": 322,
+    "gegenstand": [
+     "gesamt"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Werkstaetten stehen dort",
+    "zeile": 323,
+    "gegenstand": [
+     "gesamt"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "der Gebaeudestand des Dorfzentrums wird genannt",
+    "zeile": 324,
+    "gegenstand": [
+     "gesamt"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Ansicht behauptet NICHT, Lager sei noch ein Menuepunkt",
+    "zeile": 326,
+    "gegenstand": [
+     "gesamt"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die alte Route bleibt erreichbar und nennt sich stillgelegt",
+    "zeile": 331,
+    "gegenstand": [
+     "alt"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die alte Route zeigt weiterhin Bestaende (kein Absturz)",
+    "zeile": 333,
+    "gegenstand": [
+     "alt"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Gruendung liefert das Dorfzentrum als offenen Platz",
+    "zeile": 372,
+    "gegenstand": [
+     "ort"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Gruendung setzt es NICHT selbst auf ein Feld",
+    "zeile": 374,
+    "gegenstand": [
+     "gebaeude_wirkung",
+     "ort"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die drei Startgebaeude aus S-1 stehen unveraendert",
+    "zeile": 377,
+    "gegenstand": [
+     "ort"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Testkarte hat ein freies, erlaubtes Feld",
+    "zeile": 388,
+    "gegenstand": [
+     "frei"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "auf dem gewaehlten freien Feld wird es gesetzt",
+    "zeile": 409,
+    "gegenstand": [],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "es steht Stufe 1 auf genau diesem Feld",
+    "zeile": 410,
+    "gegenstand": [
+     "frei",
+     "ort"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "das Kennzeichen ist danach geloescht",
+    "zeile": 413,
+    "gegenstand": [
+     "ort"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "das Setzen kostet NICHTS (Startvorraete unveraendert)",
+    "zeile": 415,
+    "gegenstand": [
+     "ort",
+     "vorher_vorr"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "es bindet keine Siedler",
+    "zeile": 417,
+    "gegenstand": [
+     "ort",
+     "vorher_bev"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "genau ein Dorfzentrum im Dorf",
+    "zeile": 419,
+    "gegenstand": [
+     "gelaende",
+     "ort"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "ein zweiter Aufruf wird abgelehnt",
+    "zeile": 423,
+    "gegenstand": [
+     "ok2"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "es bleibt bei genau einem Dorfzentrum",
+    "zeile": 424,
+    "gegenstand": [
+     "gelaende",
+     "ort"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "auf einem belegten Feld wird es abgelehnt",
+    "zeile": 396,
+    "gegenstand": [
+     "ok_belegt"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "die Ablehnung aendert nichts",
+    "zeile": 397,
+    "gegenstand": [
+     "gebaeude_wirkung",
+     "ort"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "auf unzulaessigem Gelaende wird es abgelehnt (Standortregel)",
+    "zeile": 403,
+    "gegenstand": [
+     "ok_sperr"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   },
+   {
+    "name": "auch dort bleibt alles offen",
+    "zeile": 405,
+    "gegenstand": [
+     "ort"
+    ],
+    "woertlich": false,
+    "bester_partner": "",
+    "jaccard": 0.0,
+    "gedeckt": false
+   }
+  ]
+ }
+]

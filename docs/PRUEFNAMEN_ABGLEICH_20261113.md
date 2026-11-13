@@ -120,3 +120,35 @@ gestrichen.
 **Was ausdruecklich NICHT geaendert wurde:** `docs/auftraege/PAKET_15B_PRUEFDATEIEN_20261112.csv` ist
 eine Messung vom 12.11.2026 (39 Streichkandidaten nach Laufzeit) und bleibt als Beleg stehen — die
 Liste, die hier fortgeschrieben wird, ist die inhaltliche aus diesem Dokument, nicht die nach Dauer.
+
+
+---
+
+## 7. Der Abgleich auf den GEGENSTAND ist gebaut (F-83, Register 595)
+
+**Werkzeug:** `tools/pruefnamen_abgleich.py` (neu, 13.11.2026). Es liest je Pruefdatei jede
+Zusicherung (`check`, `ok`, `ck`, `hcheck`, `assert`) und sammelt **die Bezeichner, die in der
+Bedingung wirklich gelesen werden** — Funktionen und Datenfelder wie `spieloekonomie.WARENREZEPTE`
+oder `main.rueckmarsch_eintrag`. Zwei Pruefungen gelten als deckungsgleich, wenn sich diese Mengen
+mit **Jaccard ab 0,6** ueberschneiden. Ausgegeben werden beide Masse: Wortlaut und Gegenstand.
+
+```
+python -X utf8 tools/pruefnamen_abgleich.py <kandidat> <partner> [--jaccard 0.6] [--schwelle 90] [--json]
+```
+Rueckgabe 0 = Schwelle auf den Gegenstand erreicht, 1 = nicht erreicht (so kann die Regel maschinell
+geprueft werden statt von Hand).
+
+**Neue Zahlen (gemessen, `docs/audits/pruefnamen_gegenstand_20261113.json`):**
+
+| Kandidat | Pruefungen | Wortlaut | **Gegenstand** | Partner | 90 % |
+|---|---|---|---|---|---|
+| `test_ressourcenleiste` | 42 | 0,0 % | **21,4 % (9)** | `test_ressourcenleiste_t08` | nicht erreicht |
+| `test_ansicht_hintergrund` | 71 | 0,0 % | **0,0 %** | `test_gebaeude_icons` | nicht erreicht |
+| `test_bot_wappen` | 22 | 0,0 % | **22,7 % (5)** | `test_bot_welten` | nicht erreicht |
+| `test_dorfzentrum_ist_lager` | 82 | 0,0 % | **0,0 %** | `test_dorfzentrum_ansicht` | nicht erreicht |
+
+**Was das aendert:** die inhaltliche Messung (Wortueberschneidung) hatte `test_ressourcenleiste` bei
+9,5 % und die drei anderen bei 0 % gesehen. Auf den Gegenstand gerechnet steigen zwei Kandidaten
+(21,4 % und 22,7 %) — die Schwelle von 90 % erreicht aber **keiner**. Damit ist die Streichung
+weiterhin nicht belegt; die drei eigenstaendigen Dateien sind von der Liste genommen (Abschnitt 6.1),
+`test_ressourcenleiste` ist gesichtet (F-84, `docs/SICHTUNG_PRUEFNAMEN_RESSOURCENLEISTE_20261113.md`).
