@@ -2,14 +2,14 @@
 
 **Erzeugt von `tools/modulkarte_bauen.py` — nicht von Hand ändern.** Stand: siehe Git-Historie.
 
-65 Dateien in `src/`, 40537 Zeilen, 1165 Funktionen und Klassen auf oberster Ebene.
+66 Dateien in `src/`, 41928 Zeilen, 1195 Funktionen und Klassen auf oberster Ebene.
 
 ## Die Karte
 
 | Datei | Zeilen | Zweck (erste Zeile des Docstrings) | wird gebraucht von |
 |---|---:|---|---|
-| `main.py` | 18284 | Nebelseetal Remake — Core Game Engine | public_start.py |
-| `spieloekonomie.py` | 1888 | Nebelseetal Remake — deterministischer Kern der Spielökonomie (Ökonomie-Paket, Schritt 2). | admin_teststand.py, admin_werkzeuge.py, botkern.py, main.py, spielschicht.py, verwundete.py |
+| `main.py` | 19108 | Nebelseetal Remake — Core Game Engine | public_start.py |
+| `spieloekonomie.py` | 1942 | Nebelseetal Remake — deterministischer Kern der Spielökonomie (Ökonomie-Paket, Schritt 2). | admin_teststand.py, admin_werkzeuge.py, botkern.py, main.py, spielschicht.py, verwundete.py |
 | `diplomatie.py` | 994 | Diplomatie der Bots - Gunst, Status (S4 Teil 1, 06.11.2026). | main.py |
 | `spielschicht.py` | 965 | Nebelseetal Remake - FACH-SCHICHT (Spielebene) fuer die Oberflaeche. | main.py |
 | `welt_optik_fein.py` | 898 | FEINERE Zeichenplaene fuer die WELTkarte des Nebelseetal-Remakes (naechste Ausbaustufe). | main.py |
@@ -29,6 +29,7 @@
 | `werkstatt.py` | 422 | Nebelseetal Remake - Waren und Werkstaetten (Paket W3, 04.10.2026). | main.py, spieloekonomie.py, spielschicht.py |
 | `spionage.py` | 410 | Spionage: Schalter, Aufklaerungswert, Bericht und Nachricht (Stufe B-5, 02.11.2026). | auftraege.py, main.py |
 | `berater.py` | 399 | Berater — die Auskunft im Spiel (Reiter "Chat"). | main.py, spielerhilfe.py |
+| `dorfzentrum.py` | 379 | Die Masse und die Texte des Dorfzentrums - an EINER Stelle (Nr. 16, Teil A). | main.py |
 | `forschungspfad.py` | 354 | Forschungspfad -- die fachliche Frageschicht rund um die 21 Originalforschungen. | main.py, spieloekonomie.py |
 | `gebaeude_wirkung.py` | 353 | Nebelseetal Remake — Wirkungen der 20 Originalgebaeude (Paket W4b-5, 04.10.2026). | bot_angriffsplanung.py, dorfwall.py, kampfbericht.py, main.py, spieloekonomie.py, spielschicht.py |
 | `speichern.py` | 338 | Robustes Speichern (Paket W8) - atomar, geprueft, mit Sicherung und Wiederherstellung. | main.py, spielstaende.py |
@@ -38,6 +39,7 @@
 | `spieldaten.py` | 276 | Nebelseetal Remake — Datenschicht. | admin_werkzeuge.py, ausruestung.py, berater.py, bot_angriffsplanung.py, diplomatie.py, drachen.py, einheiten.py, forschung.py, forschung_wirkung.py, gebaeude_optik.py, gebaeude_wirkung.py, gelaende.py, gpt_versorgungsdiagnose.py, kampf.py, main.py, marsch_optik.py, originalkarten.py, originalkarten_grafik.py, spieloekonomie.py, spielschicht.py, spielzeit.py, spionage.py, stimmen.py, story.py, welt.py, werkstatt.py, wirtschaft.py |
 | `gelaende.py` | 275 | Gelaende und Siedlungskarte fuer das Nebelseetal-Remake. | admin_teststand.py, admin_werkzeuge.py, baumenue_info.py, berater.py, gebaeude_wirkung.py, gpt_versorgungsdiagnose.py, karten_optik_fein.py, main.py, originalkarten.py, portalraum.py, spieloekonomie.py, spielschicht.py, versorgungsschutz.py, weltkarte_malerei.py, werkstatt.py, wirtschaft.py |
 | `ausruestung.py` | 273 | Nebelseetal Remake — Ausruestung: welche Waren eine Einheit zur Ausbildung braucht. | main.py, spieloekonomie.py |
+| `hintergrund_optik.py` | 273 | Die neun Meshy-Bilder als Ansichts-Hintergrund - EINE Stelle fuer Pfad, Ausschnitt und Groesse. | main.py |
 | `postfach.py` | 261 | Postfach: Fristen, Archiv, Blaettern und Ruhm-Rang - die EINE Rechenstelle (S1, 06.11.2026). | main.py |
 | `bot_angriffsplanung.py` | 254 | GPT-B01: konservative Bot-Zielwahl nach den Wallregeln der Originalanleitung. | main.py |
 | `admin_werkzeuge.py` | 246 | Isolierte Admin-Testwerkzeuge (keine Aenderung der normalen Spielregeln). | admin_oberflaeche.py |
@@ -59,7 +61,6 @@
 | `versorgungsschutz.py` | 160 | Reine Vorabpruefung auf selbst verschuldete Rohstoff-Sackgassen. | main.py |
 | `marsch_optik.py` | 150 | Nebelseetal Remake - Optik der Truppenbewegungen auf der Weltkarte (Stufe M-1, 02.11.2026). | main.py |
 | `fehlbestand.py` | 140 | Fehlbestand: welche Rohstoffe fehlen und um wieviel. | spieloekonomie.py |
-| `hintergrund_optik.py` | 139 | Die neun Meshy-Bilder als Ansichts-Hintergrund - EINE Stelle fuer Pfad, Ausschnitt und Groesse. | main.py |
 | `baumenue_info.py` | 133 | FIX04 – Datenmodell fuer das historische Baumenue der Siedlungskarte. | main.py |
 | `gpt_versorgungsdiagnose.py` | 126 | Nur-lesende Versorgungsdiagnose fuer Nebelseetal. | — (Einstieg oder ungenutzt) |
 | `admin_teststand.py` | 125 | Reproduzierbarer Admin-Teststand: keine Aenderung von Originalertraegen. | main.py |
