@@ -10819,14 +10819,46 @@ class NebelseetalApp:
             pass
 
     def _dz_block(self, eltern, name: str, m: Dict[str, Any], farbe: str = None):
-        """Einen Block der Spalte anlegen: fester Rahmen im Panel-Ton, Luecke p nach unten."""
+        """Einen Block der Spalte anlegen: fester Rahmen im Panel-Ton, Luecke p nach unten.
+
+        F-89a (Entscheidung Daniel 13.11.2026): die Bloecke werden mit **`grid`** gelegt, nicht
+        mit `pack`. Die Zeile der Auswahl bekommt `weight=1` und nimmt damit den REST der Spalte;
+        das rechnet Tk selbst. Grund: `_dz_rest_verteilen` rechnete mit `winfo_reqheight()`, und
+        das ist bei einem Frame mit gepackten Kindern **1**, solange die Geometrie nicht
+        gerechnet ist (seit `5e40828` fehlte dort das `update_idletasks`) - Block 5 bekam den
+        ganzen "Rest", die Spalte wurde 1149 px hoch und rollte.
+        """
         rahmen = tk.Frame(eltern, bg=farbe or self.skin["panel"])
-        rahmen.pack(fill=tk.X, pady=(0, int(m.get("p") or 8)))
-        rahmen.blockname = name
         if not isinstance(getattr(self, "_dz_block_rahmen", None), dict):
             self._dz_block_rahmen = {}
+        if not isinstance(getattr(self, "_dz_block_hoehen", None), dict):
+            self._dz_block_hoehen = {}
+        _zeile = len(self._dz_block_rahmen)          # 0 bis 6, in der Reihenfolge des Baus
+        # Nur die Auswahl dehnt sich senkrecht (`NSEW`), alle anderen bleiben bei ihrer
+        # natuerlichen Hoehe und fuellen nur die Breite (`EW`).
+        rahmen.grid(row=_zeile, column=0,
+                    sticky=(tk.NSEW if name == "auswahl" else tk.EW),
+                    pady=(0, int(m.get("p") or 8)))
+        rahmen.blockname = name
         self._dz_block_rahmen[name] = rahmen
+        # Die Hoehe wird GEMESSEN, sobald Tk gerechnet hat: `winfo_reqheight()` liefert im Aufbau
+        # bei Frames 1, die gebaute Hoehe steht erst nach der Geometrie (Uebergabe 0900, 2d).
+        self._dz_block_hoehen[name] = 0
+        rahmen.bind("<Configure>", lambda _e, _n=name, _r=rahmen: self._dz_hoehe_notieren(_n, _r))
         return rahmen
+
+    def _dz_hoehe_notieren(self, name: str, rahmen) -> None:
+        """Die GEBAUTE Hoehe eines Blocks merken - Grundlage der Geometrie-Wache.
+
+        Kein `update_idletasks()` hier: das vermisst das ganze Fenster und legt die Breite aller
+        folgenden Ansichten fest (Fehler vom 13.11.2026). `<Configure>` kommt von Tk selbst.
+        """
+        try:
+            _h = int(rahmen.winfo_height())
+        except Exception:                                          # noqa: BLE001
+            return
+        if _h > 1 and isinstance(getattr(self, "_dz_block_hoehen", None), dict):
+            self._dz_block_hoehen[name] = _h
 
     def _dz_titel(self, eltern, text: str, farbe: str = None, klein: bool = False):
         """Eine Zeile Text im Block - Kleintext absolut 15 px (F-56), sonst 16 px (13 x k)."""
@@ -10870,7 +10902,13 @@ class NebelseetalApp:
         _leinwand.configure(yscrollcommand=_balken.set)
         _balken.pack(side=tk.LEFT, fill=tk.Y)
         self._dz_leinwand = _leinwand
-        _spalte = tk.Frame(_leinwand, bg=self.skin["bg"], width=int(_m["spalte"]))
+        # F-89a: die Spalte hat eine FESTE Hoehe und `grid_propagate(False)` - nur so hat Tk
+        # ueberhaupt einen Rest, den sie an die Auswahl-Zeile verteilen kann. Die Breite setzt
+        # das Fensterelement der Leinwand, die Hoehe kommt aus der festen Rahmenhoehe.
+        _spalte = tk.Frame(_leinwand, bg=self.skin["bg"], width=int(_m["spalte"]),
+                           height=int(_m["hoehe"]))
+        _spalte.grid_propagate(False)
+        _spalte.grid_columnconfigure(0, weight=1)
         _leinwand.create_window((0, 0), window=_spalte, anchor=tk.NW, width=int(_m["spalte"]))
         _spalte.bind("<Configure>", lambda _e: _leinwand.configure(scrollregion=_leinwand.bbox("all")))
         self._dz_spalte = _spalte
@@ -10887,50 +10925,38 @@ class NebelseetalApp:
         self._dz_block_hinweis(_spalte, _m)
         if bool(getattr(self, "_zeige_technik", False)):
             self._dz_block_technik(_spalte, _m)
-        # F-59/Nr. 16 A1: Block 5 (Auswahl) nimmt den REST der Spalte. Er wird NACH den anderen
-        # Bloecken auf die Resthoehe gesetzt - so fuellt die Spalte das Fenster genau, und kein
-        # anderer Block muss dafuer schrumpfen.
-        self._dz_rest_verteilen(_m)
+        # F-89a (Daniel 13.11.2026): Block 5 (Auswahl) nimmt den REST der Spalte. Die Zeile der
+        # Auswahl bekommt `weight=1` - die Verteilung rechnet Tk, nicht mehr `_dz_rest_verteilen`.
+        self._dz_spalte_verteilen(_m)
         # FIX04e: die Pflichtkarte hat eine EIGENE Bedingung (Onboarding) - der Wert wird gemerkt,
         # damit `_spielerhilfe_anzeige_aktualisieren` nur bei echter Aenderung neu zeichnet.
         self._aufgaben_sichtbar_zuletzt = self._spielerhilfe_aufgabenkarte_sichtbar()
 
-    def _dz_rest_verteilen(self, m: Dict[str, Any]) -> None:
-        """Block 5 (Auswahl) auf die RESTHOEHE der Spalte setzen - Nr. 16, A1.
+    def _dz_spalte_verteilen(self, m: Dict[str, Any]) -> None:
+        """Die Zeile der Auswahl bekommt `weight=1` und nimmt damit den REST der Spalte (F-89a).
 
-        Die anderen sechs Bloecke behalten ihre natuerliche Hoehe (gemessen, nicht geschaetzt);
-        Block 5 bekommt, was uebrig bleibt, und wird auf diese Hoehe festgenagelt
-        (`pack_propagate(False)`). Damit ist die Summe der Spalte genau die Fensterhoehe, und die
-        frueheren 370 px sind ein SOLLWERT, kein Zwang: ein laengerer Hinweistext verkleinert
-        Block 5, statt die Spalte zum Rollen zu bringen.
+        Das ersetzt `_dz_rest_verteilen`. Dort wurde der Rest aus `winfo_reqheight()` der Bloecke
+        gerechnet - und der ist bei einem Frame mit gepackten Kindern **1**, solange die
+        Geometrie nicht gerechnet ist (seit `5e40828` ohne `update_idletasks`). Ergebnis: Block 5
+        bekam 699 px, die Spalte wurde 1149 px hoch bei 764 px Sichtfenster, `yview` (0.0, 0.665),
+        der Hinweisblock lag auf y = 1061 und war ohne Rollen unsichtbar.
+
+        Jetzt rechnet Tk: die Spalte hat eine feste Hoehe (`grid_propagate(False)`), die uebrigen
+        Zeilen behalten ihre natuerliche Hoehe, die Auswahlzeile bekommt den Rest. Damit ist die
+        Summe der Bloecke samt Luecken genau die Fensterhoehe, ohne dass eine Zahl geschaetzt wird.
+
+        `_dz_block_hoehen` traegt die GEMESSENEN Hoehen; `_dz_hoehe_notieren` fuellt sie ueber
+        `<Configure>`, sobald Tk gerechnet hat. Startwert 0 heisst: noch nicht gemessen.
         """
-        rahmen = (getattr(self, "_dz_block_rahmen", {}) or {}).get("auswahl")
-        if rahmen is None:
+        _spalte = getattr(self, "_dz_spalte", None)
+        if _spalte is None:
             return
-        # KEIN `self.content.update_idletasks()` hier - siehe `_dz_kopfzeile`: es vermisst das
-        # ganze Fenster und legt die Breite fuer alle folgenden Ansichten fest.
-        _luecken = len(self._dz_block_rahmen) * int(m.get("p") or 8)
-        _verbraucht = 0
-        for _name, _block in self._dz_block_rahmen.items():
-            if _name == "auswahl":
-                continue
-            try:
-                _verbraucht += int(_block.winfo_reqheight())
-            except Exception:                                      # noqa: BLE001
-                pass
-        _rest = max(120, int(m.get("hoehe") or 0) - _verbraucht - _luecken)
-        try:
-            rahmen.config(height=_rest)
-            rahmen.pack_propagate(False)
-        except Exception:                                          # noqa: BLE001
-            pass
-        self._dz_block_hoehen = {}
-        for _name, _block in self._dz_block_rahmen.items():
-            try:
-                self._dz_block_hoehen[_name] = int(_block.winfo_reqheight())
-            except Exception:                                      # noqa: BLE001
-                pass
-        self._dz_block_hoehen["auswahl"] = _rest
+        _spalte.grid_columnconfigure(0, weight=1)
+        _namen = list(getattr(self, "_dz_block_rahmen", {}) or {})
+        if "auswahl" in _namen:
+            _spalte.grid_rowconfigure(_namen.index("auswahl"), weight=1)
+        # Die Messwerte des VORIGEN Aufbaus gelten nicht mehr - jeder Block meldet sich neu.
+        self._dz_block_hoehen = {_name: 0 for _name in _namen}
 
     # ---------- Block 1: Kopf mit den Kennzahlen (F-66) ----------
 
