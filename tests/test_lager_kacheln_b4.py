@@ -1,5 +1,5 @@
 # -*- coding: ascii -*-
-"""Wache: B4 Lagerkacheln - gleiche Masse, klares Band, grosses Symbol (12.11.2026).
+"""Wache: die Lagerkacheln im Dorfzentrum - gleiche Masse, klares Band, grosses Symbol.
 
 DANIELS BEFUND (Testbogen V_0.0.4, Register 454)
 ------------------------------------------------
@@ -8,30 +8,35 @@ uebersichtlich und schoen genug gestaltet". Gemessen im Vorschaufenster war der 
 Groesse, sondern die fehlende Ordnung: jede Zelle war nur so breit wie ihr Inhalt - Kachelbreiten
 61 bis 168 px, Hoehen 99 bis 106 px, Symbole 28 bis 49 px in verschiedenen Formen.
 
+WAS SICH AM 13.11.2026 GEAENDERT HAT
+------------------------------------
+Die erste Fassung dieser Wache pruefte die damaligen Masse (118 x 136 px, 8 Spalten, Handliste in
+`main.py`). Mit Claudes Antwort Nr. 16 (Teil A, Abschnitt C1) hat Daniel die Form geaendert:
+**3 Spalten, 206 x 83 px je Kachel, 6 Reihen** - alle Gueter ohne Rollen sichtbar -, und die Masse
+stehen seither an EINER Stelle (`src/dorfzentrum.py`). Diese Wache prueft die SUBSTANZ unveraendert
+weiter (gleiche Kacheln, eigenes Zahlenband, Symbol im festen Kasten, Name zweizeilig), aber
+gegen die neue Quelle.
+
 WAS DIESE DATEI PRUEFT
 ----------------------
-1. Die vier Kachelmasse stehen als EINE Quelle im Code und acht Kacheln passen in die gemessene
-   Inhaltsbreite von 1037 px.
-2. Die Spaltenzahl folgt der gemessenen Breite und ist gedeckelt (nie unter 3, nie ueber 9);
-   ohne Messung gilt die Vorgabe 8.
-3. Im echten Aufbau hat JEDE Kachel dieselbe Anforderungsgroesse, jedes Symbol sitzt in einem
-   Kasten gleicher Hoehe, der Name ist fest zweizeilig und die Zahl steht in einem eigenen Band
-   mit fester Hoehe - nichts springt bei anderer Zahl.
-4. Zahlen werden ohne sinnlose Nachkommastelle gezeigt, grosse Zahlen mit Punkt.
-5. Quellwachen: der Entwicklertext aus data/items.json ist weg, die doppelte Textzeile
-   (`werkstatt.lager_text` als Fliesstext) ist weg, und die drei Mittel stehen im Code:
-   `grid_propagate(False)` (feste Kachel), `uniform=` (gleiche Spalten), eigenes Zahlenband.
+1. Kachelmasse in BEIDEN Fenstergroessen aus `dorfzentrum.lager_masse`: 206 x 83 / 185 x 72,
+   Symbol 64 x 56, Textbreite 118 / 99, 6 Reihen 548 / 472 - jeweils unter der Inhaltshoehe.
+2. Die alte Handliste (LAGER_KACHEL_BREITE/HOEHE, 8 Spalten) steht NICHT mehr im Code.
+3. Die Kachel haelt ihre Masse: `grid_propagate(False)`, fester Symbolkasten, zweizeiliger Name,
+   Zahl im eigenen Label, Klick waehlt die Ware.
+4. Zahlen ohne sinnlose Nachkommastelle, grosse Zahlen mit Punkt - EINE Funktion.
+5. Im echten Aufbau: 18 Kacheln, ALLE gleich gross, jede mit ihrer Zahl, drei passen in die
+   Arbeitsflaeche. Genau das war vorher NICHT so - das war Daniels Befund.
 
 Aufruf:  python -X utf8 tests/test_lager_kacheln_b4.py
 """
 from __future__ import annotations
 
 # --- Pruefstand-Kopf (M1, 12.11.2026): Art, Stufe, BETRIFFT, DATEN ----------------
-# Gelesen von harness.kopf_lesen und tools/auswahl.py. Vorschlag aus Paket 15b
-# (gemessene Art und Dauer des Sammellaufs). Beim Anfassen der Datei genauer machen.
+# Gelesen von harness.kopf_lesen und tools/auswahl.py.
 PRUEF_ART = "fenster+messen"
 PRUEF_STUFE = 2
-PRUEF_BETRIFFT = ['einheiten', 'main:*', 'werkstatt']
+PRUEF_BETRIFFT = ['dorfzentrum', 'main:*']
 PRUEF_DATEN = ['items.json']
 # --- Ende Pruefstand-Kopf -------------------------------------------------------
 
@@ -43,116 +48,126 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from harness import abschnitt, befund, bericht, check, import_src, messwert  # noqa: E402
 
-import_src()
+ROOT, SRC = import_src()
+os.chdir(SRC)
+
+import dorfzentrum  # noqa: E402
 import main  # noqa: E402
 
+# Die gemessenen Zeilenhoehen (Nr. 16, A1): Fall 1 bei k = 1, Fall 2 bei k = 1,2512.
+LS1 = {"text": 15, "zw": 18, "zahl": 18, "titel": 24}
+LS2 = {"text": 19, "zw": 22, "zahl": 22, "titel": 30}
 
-# --------------------------------------------------------------------------------------
+
 def _code(fn) -> str:
     """Den Rumpf einer Funktion als Code - Docstrings zaehlen NICHT als Code."""
-    text = ast.unparse(ast.parse(inspect.getsource(fn).lstrip()).body[0])
-    return text
-
-
-class _Stellvertreter:
-    """Leichtgewichtiger Stellvertreter fuer `_lager_spalten`: nur die gemessene Breite zaehlt."""
-
-    def __init__(self, breite: int):
-        self._breite = breite
-
-    def _inhalt_breite(self) -> int:
-        return self._breite
+    return ast.unparse(ast.parse(inspect.getsource(fn).lstrip()).body[0])
 
 
 # --------------------------------------------------------------------------------------
-def _masse():
-    abschnitt("1. Die Kachelmasse sind EINE Quelle und passen achtmal in 1037 px")
-    breite = int(main.LAGER_KACHEL_BREITE)
-    hoehe = int(main.LAGER_KACHEL_HOEHE)
-    luecke = int(main.LAGER_KACHEL_LUECKE)
-    check("die Kachel ist 118 px breit", breite == 118, str(breite))
-    check("die Kachel ist 136 px hoch", hoehe == 136, str(hoehe))
-    check("zwischen zwei Kacheln liegen 6 px", luecke == 6, str(luecke))
-    check("der Symbolkasten ist 64 x 56 px",
-          (int(main.LAGER_SYMBOL_BREITE), int(main.LAGER_SYMBOL_HOEHE)) == (64, 56),
-          str((main.LAGER_SYMBOL_BREITE, main.LAGER_SYMBOL_HOEHE)))
-    gesamt = 8 * breite + 7 * luecke                     # acht Kacheln samt Luft
-    check("acht Kacheln passen in die gemessene Inhaltsbreite 1037",
-          gesamt <= 1037, "%d px gebraucht" % gesamt)
-    check("der Name hat innen Platz (wraplength = Breite - 16)",
-          breite - 16 >= 100, str(breite - 16))
-    messwert("kachel_breite", breite, "px")
-    messwert("kachel_hoehe", hoehe, "px")
-    messwert("acht_kacheln_gesamt", gesamt, "px")
-
-
-# --------------------------------------------------------------------------------------
-def _spalten():
-    abschnitt("2. Die Spaltenzahl folgt der gemessenen Breite")
-    gross = main.NebelseetalApp._lager_spalten(_Stellvertreter(1037))
-    klein = main.NebelseetalApp._lager_spalten(_Stellvertreter(691))
-    sehr_klein = main.NebelseetalApp._lager_spalten(_Stellvertreter(300))
-    ohne = main.NebelseetalApp._lager_spalten(_Stellvertreter(0))
-    breit = main.NebelseetalApp._lager_spalten(_Stellvertreter(2400))
-    check("bei 1037 px Inhaltsbreite stehen 8 Spalten", gross == 8, str(gross))
-    check("bei 691 px (kleines Fenster) stehen 5 Spalten", klein == 5, str(klein))
-    check("bei 300 px bleiben mindestens 3 Spalten", sehr_klein == 3, str(sehr_klein))
-    check("ohne Messung gilt die Vorgabe 8", ohne == int(main.LAGER_SPALTEN_VORGABE), str(ohne))
-    check("die Spalten sind bei 2400 px auf 9 gedeckelt", breit == 9, str(breit))
-    check("acht Spalten brauchen nicht mehr als die Inhaltsbreite",
-          8 * 118 + 7 * 6 <= 1037, "rechnerisch")
-    messwert("spalten_bei_1037", gross, "Spalten")
-    messwert("spalten_bei_691", klein, "Spalten")
-
+abschnitt("1. Die Kachelmasse kommen aus EINER Quelle (dorfzentrum.lager_masse)")
+_klein = dorfzentrum.lager_masse(588, 1.0, LS1)
+_gross = dorfzentrum.lager_masse(658, 1.2512, LS2)
+check("Fall 1: 3 Spalten", _klein["spalten"] == 3, str(_klein["spalten"]))
+check("Fall 1: die Kachel ist 185 px breit", _klein["kachel_breite"] == 185,
+      str(_klein["kachel_breite"]))
+check("Fall 1: die Kachel ist 72 px hoch", _klein["kachel_hoehe"] == 72, str(_klein["kachel_hoehe"]))
+check("Fall 1: die Textbreite in der Kachel ist 99 px", _klein["textbreite"] == 99,
+      str(_klein["textbreite"]))
+check("Fall 2: die Kachel ist 206 px breit", _gross["kachel_breite"] == 206,
+      str(_gross["kachel_breite"]))
+check("Fall 2: die Kachel ist 83 px hoch", _gross["kachel_hoehe"] == 83, str(_gross["kachel_hoehe"]))
+check("Fall 2: die Textbreite in der Kachel ist 118 px", _gross["textbreite"] == 118,
+      str(_gross["textbreite"]))
+check("der Symbolkasten ist in beiden Faellen 64 x 56 px (Bildmass, waechst nicht)",
+      (_klein["symbol_breite"], _klein["symbol_hoehe"]) == (64, 56)
+      and (_gross["symbol_breite"], _gross["symbol_hoehe"]) == (64, 56), "")
+check("Fall 1: 6 Reihen brauchen 472 px (<= 539 Inhaltshoehe)", _klein["hoehe"] == 472,
+      str(_klein["hoehe"]))
+check("Fall 2: 6 Reihen brauchen 548 px (<= 702 Inhaltshoehe)", _gross["hoehe"] == 548,
+      str(_gross["hoehe"]))
+check("17 Waren ergeben 6 Reihen (letzte Reihe mit 2 Kacheln)",
+      dorfzentrum.lager_masse(658, 1.2512, LS2, waren=17)["reihen"] == 6, "")
+check("18 Gueter ergeben ebenfalls 6 Reihen (die letzte ist voll)",
+      dorfzentrum.lager_masse(658, 1.2512, LS2, waren=18)["reihen"] == 6, "")
+check("GEGENPROBE: 19 Waren ergeben 7 Reihen - keine Ware faellt still heraus",
+      dorfzentrum.lager_masse(658, 1.2512, LS2, waren=19)["reihen"] == 7, "")
+messwert("kachel_breite_fall2", _gross["kachel_breite"], "px", "dorfzentrum.lager_masse")
+messwert("kachel_hoehe_fall2", _gross["kachel_hoehe"], "px", "dorfzentrum.lager_masse")
+messwert("lager_hoehe_fall2", _gross["hoehe"], "px", "dorfzentrum.lager_masse")
 
 # --------------------------------------------------------------------------------------
-def _zahlen():
-    abschnitt("3. Zahlen ruhig und ohne sinnlose Nachkommastelle")
-    zahl = main.NebelseetalApp._lager_zahl
-    check("0 bleibt 0", zahl(0) == "0", zahl(0))
-    check("7 bleibt 7", zahl(7) == "7", zahl(7))
-    check("1334.0 wird 1334", zahl(1334.0) == "1334", zahl(1334.0))
-    check("12345 bekommt einen Punkt", zahl(12345) == "12.345", zahl(12345))
-    check("2.5 bleibt 2.5", zahl(2.5) == "2.5", zahl(2.5))
-    check("Text faellt nicht um", zahl("k.A.") == "k.A.", zahl("k.A."))
-
+abschnitt("2. Die alte Handliste ist entfallen (kein zweites Kachelmass)")
+for _name in ("LAGER_KACHEL_BREITE", "LAGER_KACHEL_HOEHE", "LAGER_KACHEL_LUECKE",
+              "LAGER_SPALTEN_VORGABE", "LAGER_SPALTEN_HOECHSTENS"):
+    check("%s steht nicht mehr in main.py" % _name, not hasattr(main, _name), "")
+for _name in ("_lager_spalten", "_lager_raster", "_lager_kachel", "_lager_nachziehen",
+              "_lager_kacheln_zeichnen", "_lager_zahl"):
+    check("%s ist mit der alten Kachelform entfallen" % _name,
+          not hasattr(main.NebelseetalApp, _name), "")
+check("der Symbolkasten steht weiter als Bildmass (64 x 56) in main.py",
+      (int(main.LAGER_SYMBOL_BREITE), int(main.LAGER_SYMBOL_HOEHE)) == (64, 56),
+      str((main.LAGER_SYMBOL_BREITE, main.LAGER_SYMBOL_HOEHE)))
 
 # --------------------------------------------------------------------------------------
-def _quellwachen():
-    abschnitt("4. Quellwachen: Entwicklertext und Doppelanzeige sind weg, die drei Mittel sind da")
-    quelle = inspect.getsource(main.NebelseetalApp._render_storage)
-    check("der Entwicklertext aus data/items.json steht nicht mehr in der Ansicht",
-          "data/items.json" not in quelle, "steht noch drin")
-    check("die doppelte Fliesstext-Zeile (werkstatt.lager_text) ist entfallen",
-          "lager_text" not in quelle, "steht noch drin")
-    check("der alte Rahmenstil relief=tk.RIDGE ist entfallen",
-          "relief=tk.RIDGE" not in quelle, "steht noch drin")
-    check("die Ansicht baut die Abschnitte ueber _lager_abschnitt",
-          "_lager_abschnitt(" in quelle)
-    check("die Ansicht ruft _lager_kacheln_zeichnen",
-          "_lager_kacheln_zeichnen(" in quelle)
-    check("beide Raster liegen als Attribut fuer die Wache",
-          "lager_waren_rahmen" in quelle and "lager_einheiten_rahmen" in quelle)
-    kachel = _code(main.NebelseetalApp._lager_kachel)
-    check("die Kachel haelt ihre Masse (grid_propagate(False))",
-          "grid_propagate(False)" in kachel)
-    check("die Kachel hat ein eigenes Zahlenband mit fester Hoehe",
-          "pack_propagate(False)" in kachel and "zahlband" in kachel)
-    check("der Name ist fest zweizeilig (height=2)",
-          "height=2" in kachel)
-    raster = _code(main.NebelseetalApp._lager_raster)
-    check("alle Spalten sind gleich breit (uniform=)",
-          "uniform=" in raster)
-    symbol = _code(main.NebelseetalApp._lager_symbol)
-    check("das Symbol behaelt sein Seitenverhaeltnis (min von Breite und Hoehe)",
-          "min(" in symbol and "LANCZOS" in symbol)
-    check("ohne Pillow faellt das Symbol auf tk.PhotoImage zurueck",
-          "PhotoImage" in symbol)
+abschnitt("3. Die Kachel haelt ihre Masse (Quellwachen)")
+_kachel = _code(main.NebelseetalApp._dz_kachel)
+# KORRIGIERT 13.11.2026: Die Kinder der Kachel werden GEPACKT - gegen sie wirkt nur
+# `pack_propagate(False)`. Die erste Fassung pruefte `grid_propagate`; die Kachel schrumpfte
+# damit auf 146 px statt 185 (im Fenster gemessen), ohne dass eine Wache rot wurde.
+check("die Kachel haelt ihre Masse (pack_propagate(False))",
+      "pack_propagate(False)" in _kachel and "grid_propagate(False)" not in _kachel, "")
+check("die Kachelbreite kommt aus der Rechnung, nicht aus einer Zahl",
+      "kachel_breite" in _kachel and "width=206" not in _kachel
+      and "width=185" not in _kachel, "")
+check("der Symbolkasten ist fest (pack_propagate(False))",
+      "pack_propagate(False)" in _kachel, "")
+check("der Name bricht in der Textbreite der Kachel um (wraplength)",
+      "wraplength=int(_k['textbreite'])" in _kachel, _kachel[:200])
+check("der Name ist fest zweizeilig (height=2)", "height=2" in _kachel, "")
+check("die Zahl steht in einem eigenen Label (eigenes Band, nichts springt)",
+      "dorfzentrum.zahl_text(menge)" in _kachel, "")
+check("ein Klick auf die Kachel waehlt die Ware", "_dz_auswahl_setzen" in _kachel, "")
+check("die gewaehlte Kachel ist gezeichnet (2 px Creme innen)",
+      "SPALTE_CREME if gewaehlt" in _kachel, "")
+_symbol = _code(main.NebelseetalApp._lager_symbol)
+check("das Symbol behaelt sein Seitenverhaeltnis (min von Breite und Hoehe)",
+      "min(" in _symbol and "LANCZOS" in _symbol, "")
+check("ohne Pillow faellt das Symbol auf tk.PhotoImage zurueck",
+      "PhotoImage" in _symbol, "")
+_lager = _code(main.NebelseetalApp._dz_lager)
+check("das Raster nimmt die Spaltenzahl aus der Rechnung", "'spalten'" in _lager, "")
+check("die Kacheln kommen aus der Warenliste der DATEN, nicht aus einer Handliste",
+      "WARE_ICONS" in _lager, "")
+_storage = _code(main.NebelseetalApp._render_storage)
+check("der Entwicklertext aus data/items.json steht nicht in der Ansicht",
+      "data/items.json" not in _storage, "")
+check("die doppelte Fliesstext-Zeile (werkstatt.lager_text) ist entfallen",
+      "lager_text" not in _storage and "lager_text" not in _lager, "")
+check("der alte Rahmenstil relief=tk.RIDGE ist entfallen",
+      "relief=tk.RIDGE" not in _storage and "relief=tk.RIDGE" not in _lager, "")
+check("die stillgelegte Route benutzt dasselbe Raster (eine Anzeige, zwei Wege)",
+      "_dz_lager" in _storage, "")
+check("kein Pfad und keine JSON-Datei im Spielertext",
+      "json" not in _lager and "data/" not in _lager, "")
+
+# --------------------------------------------------------------------------------------
+abschnitt("4. Zahlen ruhig und ohne sinnlose Nachkommastelle")
+check("0 bleibt 0", dorfzentrum.zahl_text(0) == "0", dorfzentrum.zahl_text(0))
+check("7 bleibt 7", dorfzentrum.zahl_text(7) == "7", dorfzentrum.zahl_text(7))
+check("1334.0 wird 1334", dorfzentrum.zahl_text(1334.0) == "1334", dorfzentrum.zahl_text(1334.0))
+check("12345 bekommt einen Punkt", dorfzentrum.zahl_text(12345) == "12.345",
+      dorfzentrum.zahl_text(12345))
+check("2.5 bleibt 2.5", dorfzentrum.zahl_text(2.5) == "2.5", dorfzentrum.zahl_text(2.5))
+check("Text faellt nicht um", dorfzentrum.zahl_text("k.A.") == "k.A.",
+      dorfzentrum.zahl_text("k.A."))
+check("die Ansicht benutzt DIESE Zahlenfunktion (keine zweite)",
+      "dorfzentrum.zahl_text" in _kachel, "")
 
 
 # --------------------------------------------------------------------------------------
 def _aufbau():
-    abschnitt("5. Echter Aufbau im Fenster: gleiche Kacheln, gleiches Band, gleiche Symbolhoehe")
+    abschnitt("5. Echter Aufbau im Fenster: 18 Kacheln, alle gleich gross")
     import tkinter as tk
     root = tk.Tk()
     root.geometry("1400x900+40+40")
@@ -168,89 +183,65 @@ def _aufbau():
         for _ in range(3):
             root.update()
             root.update_idletasks()
+        app._dz_reiter = 0                                                 # Reiter Lager
         app._switch_view("Dorfzentrum")
         for _ in range(3):
             root.update()
             root.update_idletasks()
-        waren = getattr(app, "lager_waren_rahmen", None)
-        einheiten = getattr(app, "lager_einheiten_rahmen", None)
-        check("die Warenkacheln stehen in der Ansicht", waren is not None)
-        check("die Einheitenkacheln stehen in der Ansicht", einheiten is not None)
-        if waren is None or einheiten is None:
+        masze = getattr(app, "_dz_masse", None) or {}
+        kachel_masse = masze.get("lager") or {}
+        inhalt = getattr(app, "_dz_reiter_inhalt", None)
+        check("die Arbeitsflaeche des Dorfzentrums steht", inhalt is not None, "")
+        if inhalt is None:
             return
-        messwert("inhalt_breite_im_aufbau", int(app._inhalt_breite()), "px")
-        messwert("spalten_im_aufbau", int(app._lager_spalten()), "Spalten")
-        check("es sind so viele Warenkacheln wie Lagerfaecher im Spielstand",
-              len(waren.grid_slaves()) == len(app.state.waren),
-              "%d Kacheln zu %d Waren" % (len(waren.grid_slaves()), len(app.state.waren)))
-        check("es sind so viele Einheitenkacheln wie Einheiten im Spielstand",
-              len(einheiten.grid_slaves()) == len(app.state.units),
-              "%d Kacheln zu %d Einheiten" % (len(einheiten.grid_slaves()), len(app.state.units)))
-        messwert("kacheln_waren", len(waren.grid_slaves()), "Kacheln")
-        messwert("kacheln_einheiten", len(einheiten.grid_slaves()), "Kacheln")
-        for name, rahmen in (("Waren", waren), ("Einheiten", einheiten)):
-            kacheln = rahmen.grid_slaves()
-            breiten = sorted({int(k.winfo_width()) for k in kacheln})
-            hoehen = sorted({int(k.winfo_height()) for k in kacheln})
-            check("%s: alle Kacheln sind GEMESSEN gleich breit (%d px)" % (name, breiten[0]),
-                  len(breiten) == 1, str(breiten))
-            check("%s: alle Kacheln sind GEMESSEN gleich hoch (%d px)" % (name, hoehen[0]),
-                  len(hoehen) == 1, str(hoehen))
-            check("%s: jede Kachel traegt die feste Breite in ihren Optionen" % name,
-                  {int(k.cget("width")) for k in kacheln} == {int(main.LAGER_KACHEL_BREITE)},
-                  str(sorted({int(k.cget("width")) for k in kacheln})))
-            check("%s: jede Kachel traegt die feste Hoehe in ihren Optionen" % name,
-                  {int(k.cget("height")) for k in kacheln} == {int(main.LAGER_KACHEL_HOEHE)},
-                  str(sorted({int(k.cget("height")) for k in kacheln})))
-            spalten = {int(k.grid_info()["column"]) for k in kacheln}
-            check("%s: die Kacheln stehen in hoechstens neun Spalten" % name,
-                  max(spalten) <= 8, str(sorted(spalten)))
-            band_y, band_h, symhoehen, namen, baender = set(), set(), set(), 0, 0
-            for kachel in kacheln:
-                for innen in kachel.winfo_children():
-                    if innen.winfo_class() == "Frame":
-                        if int(innen.cget("height")) == 24:            # das Zahlenband
-                            baender += 1
-                            band_y.add(int(innen.winfo_y()))           # gleiche Hoehe in JEDER Kachel
-                            band_h.add(int(innen.winfo_height()))
-                        else:                                          # der Symbolkasten
-                            symhoehen.add(int(innen.winfo_height()))
-                    elif innen.winfo_class() == "Label":
-                        namen += 1
-                        if int(str(innen.cget("height"))) != 2:
-                            namen -= 100                               # unmoeglich -> faellt unten auf
-            check("%s: jedes Symbol ist GEMESSEN gleich hoch (%d px)" % (name, 56),
-                  symhoehen == {int(main.LAGER_SYMBOL_HOEHE)}, str(symhoehen))
-            check("%s: das Zahlenband sitzt in jeder Kachel auf derselben Hoehe" % name,
-                  len(band_y) == 1, str(sorted(band_y)))
-            check("%s: das Band ist ueberall gleich hoch (%d px)" % (name, 24),
-                  band_h == {24}, str(band_h))
-            check("%s: jede Kachel hat genau einen zweizeiligen Namen" % name,
-                  namen == len(kacheln), str(namen))
-            check("%s: jede Kachel hat genau ein Zahlenband" % name,
-                  baender == len(kacheln), str(baender))
-        # Ueberschriften in Spielersprache
-        texte = []
-
-        def _sammle(widget):
-            try:
-                t = widget.cget("text")
-            except Exception:                                              # noqa: BLE001
-                t = ""
-            if t:
-                texte.append(str(t))
-            for kind in widget.winfo_children():
-                _sammle(kind)
-
-        _sammle(app.content)
-        gesamt = " | ".join(texte)
-        check("der Abschnitt heisst 'Waren im Lager'", "Waren im Lager" in gesamt, gesamt[:120])
-        check("der Abschnitt heisst 'Einheiten im Lager'", "Einheiten im Lager" in gesamt)
-        check("die Artenzahl steht dabei", "Arten" in gesamt)
-        check("kein Pfad und keine JSON-Datei im Text",
-              "json" not in gesamt and "data/" not in gesamt)
-        befund("Sichtpruefung durch Daniel steht aus",
-               "die Kacheln sind hier gemessen; das Bild liegt als b4_waren.png im Scratch")
+        kacheln = []
+        for rahmen in [k for k in inhalt.winfo_children() if type(k).__name__ == "Frame"]:
+            kacheln += [k for k in rahmen.winfo_children() if type(k).__name__ == "Frame"]
+        check("im Reiter Lager stehen 18 Kacheln (17 Waren + Drachenschuppe)",
+              len(kacheln) == 18, str(len(kacheln)))
+        if not kacheln:
+            return
+        breiten = {int(k.cget("width")) for k in kacheln}
+        hoehen = {int(k.cget("height")) for k in kacheln}
+        check("ALLE Kacheln sind gleich breit (Daniels Befund war 61 bis 168 px)",
+              len(breiten) == 1, str(sorted(breiten)))
+        check("ALLE Kacheln sind gleich hoch", len(hoehen) <= 1, str(sorted(hoehen)))
+        check("die Breite ist die gerechnete Kachelbreite",
+              breiten == {int(kachel_masse.get("kachel_breite") or -1)},
+              "%s gegen %s" % (sorted(breiten), kachel_masse.get("kachel_breite")))
+        check("die Hoehe ist die gerechnete Kachelhoehe",
+              hoehen <= {int(kachel_masse.get("kachel_hoehe") or -1)},
+              "%s gegen %s" % (sorted(hoehen), kachel_masse.get("kachel_hoehe")))
+        check("drei Kacheln passen in die Arbeitsflaeche R",
+              len(kacheln) >= 3
+              and 3 * int(kachel_masse.get("kachel_breite") or 0) <= int(masze.get("karte") or 0),
+              str(3 * int(kachel_masse.get("kachel_breite") or 0)))
+        mit_zahl = 0
+        for kachel in kacheln:
+            gefunden = False
+            for kind in kachel.winfo_children():
+                for enkel in kind.winfo_children():
+                    try:
+                        if str(enkel.cget("text")).replace(".", "").isdigit():
+                            gefunden = True
+                            break
+                    except Exception:                                  # noqa: BLE001
+                        continue
+                if gefunden:
+                    break
+            if gefunden:
+                mit_zahl += 1
+        check("JEDE Kachel zeigt ihre Zahl", mit_zahl == len(kacheln),
+              "%d von %d" % (mit_zahl, len(kacheln)))
+        messwert("kacheln_im_aufbau", len(kacheln), "Stueck")
+        messwert("kachel_breite_aufbau", sorted(breiten)[0], "px")
+        messwert("kachel_hoehe_aufbau", sorted(hoehen)[0], "px")
+        befund("Kein Nachziehen der Kacheln bei Groessenaenderung",
+               "Die Arbeitsflaeche R haengt an der Fensterbreite; die Kacheln werden beim "
+               "Neuaufbau gesetzt, nicht bei jedem Fensterzug (der fruehere Nachlauf "
+               "`_lager_nachziehen` ist mit der alten Kachelform entfallen). Im Spiel ist das "
+               "Fenster fest (1560 x 940 DPI-bewusst / 1446 x 744 unbewusst), darum faellt es "
+               "dort nicht auf - offen bleibt es trotzdem.")
     finally:
         try:
             root.destroy()
@@ -258,23 +249,9 @@ def _aufbau():
             pass
 
 
-# --------------------------------------------------------------------------------------
-def _nachziehen():
-    abschnitt("6. Der Nachlauf greift nur bei geaenderter Spaltenzahl")
-    quelle = inspect.getsource(main.NebelseetalApp._lager_nachziehen)
-    check("der Nachlauf vergleicht die Spaltenzahl", "_lager_spalten()" in quelle)
-    check("der Nachlauf merkt sich den Stand", "_lager_spalten_ist" in quelle)
-    check("der Nachlauf prueft, ob die Ansicht noch existiert", "winfo_exists" in quelle)
-    render = inspect.getsource(main.NebelseetalApp._render_storage)
-    check("die Configure-Bindung wird nur EINMAL gesetzt", "_lager_configure_gebunden" in render)
-
-
-# --------------------------------------------------------------------------------------
-if __name__ == "__main__":
-    _masse()
-    _spalten()
-    _zahlen()
-    _quellwachen()
+try:
     _aufbau()
-    _nachziehen()
-    sys.exit(bericht())
+except Exception as _fehler:                                               # noqa: BLE001
+    check("der Aufbau im Fenster laeuft ohne Ausnahme", False, repr(_fehler))
+
+sys.exit(bericht())

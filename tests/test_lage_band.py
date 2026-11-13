@@ -90,8 +90,14 @@ try:
           _wall0)
 
     abschnitt("3. Das Dorfzentrum baut das Band ein")
+    # ANGEPASST 13.11.2026 (Nr. 16, Teil A): Das Band steht nicht mehr direkt in
+    # `_render_overview`, sondern oben im Block 5 der Spalte (`_dz_block_auswahl`). Die
+    # ENTSCHEIDUNG ist dieselbe - das Dorfzentrum baut das Band ein -, nur der Aufrufort ist
+    # umgezogen. Darum wird jetzt der ganze Dorfzentrum-Aufbau geprueft, nicht eine Methode.
     _ov = inspect.getsource(main.NebelseetalApp._render_overview)
-    check("3 der Aufbau des Bandes steht im Dorfzentrum", "self._lage_band()" in _ov, "")
+    _bau = " ".join(inspect.getsource(getattr(main.NebelseetalApp, _n))
+                    for _n in ("_render_overview", "_dz_block_auswahl", "_lage_band"))
+    check("3 der Aufbau des Bandes steht im Dorfzentrum", "self._lage_band(" in _bau, "")
     check("3 das Band rechnet nicht selbst, es liest `lage_band_texte`",
           "lage_band_texte" in inspect.getsource(main.NebelseetalApp._lage_band), "")
 
@@ -99,10 +105,18 @@ try:
     app._switch_view("Dorfzentrum")
     app.content.update_idletasks()
     kinder = list(app.content.winfo_children())
-    rahmen = [k for k in kinder if type(k).__name__ == "Frame"
+    # ANGEPASST 13.11.2026: Die Spalte des Dorfzentrums liegt jetzt in einer Leinwand (mit
+    # eigenem Rollbalken) - darum wird rekursiv gesucht, nicht nur eine Ebene tief.
+    def _alle(widget):
+        out = [widget]
+        for kind in widget.winfo_children():
+            out += _alle(kind)
+        return out
+
+    _alle_kinder = [k for k in _alle(app.content)]
+    rahmen = [k for k in _alle_kinder if type(k).__name__ == "Frame"
               and any("FORSCHUNG" == str(t.cget("text")) for t in k.winfo_children()
-                      if type(t).__name__ == "Frame"
-                      for t in t.winfo_children() if type(t).__name__ == "Label")]
+                      if type(t).__name__ == "Label")]
     check("4 im Dorfzentrum steht ein Rahmen mit dem Feld FORSCHUNG", bool(rahmen), str(len(kinder)))
 finally:
     root.destroy()

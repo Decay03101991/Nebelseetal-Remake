@@ -39,6 +39,7 @@ import story  # Story 1 (04.11.2026): Intro, Chronik, Sieg- und Niederlagentext 
 import stimmen  # Story 2 (04.11.2026): die fuenf Bots sprechen - Texte aus data/bot_stimmen.json
 import tor
 import wirtschaft
+import dorfzentrum  # Nr. 16 Teil A: die Masse des Dorfzentrums an EINER Stelle
 import boni  # V-5: Volks- und Taktikboni als Zahlen (Datenschicht src/boni.py)
 import spielstaende
 import spielstand_archiv  # GPT: drei explizite Spielstands-Slots; Altdaten unveraendert
@@ -3865,13 +3866,11 @@ WARE_ICONS: Dict[str, str] = {name: str(eintrag.get("icon") or "")
 # Inhalt, gemessen 61 bis 168 px in einer Reihe, Hoehen 99 bis 106 px, Symbole 28 bis 49 px. Diese
 # vier Masse machen jede Kachel gleich; sie stehen hier, weil Kern-Anzeige und Pruefdatei dieselbe
 # Zahl lesen sollen (F-04: eine Quelle, keine zweite Handliste).
-LAGER_KACHEL_BREITE = 118          # px, feste Kachelbreite
-LAGER_KACHEL_HOEHE = 136           # px, feste Kachelhoehe
-LAGER_KACHEL_LUECKE = 6            # px Luft zwischen zwei Kacheln
+# Die Kachelmasse selbst stehen seit dem Dorfzentrum-Umbau in `src/dorfzentrum.py`
+# (`lager_masse`: 3 Spalten, 206 x 83 px). Hier bleibt nur der SYMBOLKASTEN, weil
+# `_lager_symbol` ihn als Vorgabe braucht - beide Zahlen sind Bildmasse und wachsen nicht mit k.
 LAGER_SYMBOL_BREITE = 64           # px Symbolkasten (Seitenverhaeltnis bleibt)
 LAGER_SYMBOL_HOEHE = 56            # px Symbolkastenhoehe
-LAGER_SPALTEN_VORGABE = 8          # Spalten, wenn das Fenster noch nicht vermessen ist
-LAGER_SPALTEN_HOECHSTENS = 9       # mehr als neun werden unruhig
 
 
 # ---------- A-9 (12.11.2026): die Masse der Siedlungsansicht an EINER Stelle ----------
@@ -10695,11 +10694,17 @@ class NebelseetalApp:
             zeilen.append(("Wallbau", "noch keine Mauer — Siedlungskarte, Verteidigungswall"))
         return zeilen
 
-    def _lage_band(self):
-        """Das Lage-Band im Dorfzentrum: drei grosse Felder fuer Forschung, Schutz und Wall (T7)."""
-        rahmen = tk.Frame(self.content, bg=self.skin["panel"],
+    def _lage_band(self, eltern=None):
+        """Das Lage-Band im Dorfzentrum: drei grosse Felder fuer Forschung, Schutz und Wall (T7).
+
+        Seit dem Umbau auf Claudes Nr. 16 (Teil A) steht das Band oben im Block 5 der Spalte -
+        `eltern` ist dieser Block. Ohne Angabe haengt es wie bisher im Inhalt (das ist der Weg
+        der Pruefdateien, die nur `self._lage_band()` kennen).
+        """
+        _ziel = eltern if eltern is not None else self.content
+        rahmen = tk.Frame(_ziel, bg=self.skin["panel"],
                           highlightbackground=self.skin["gold"], highlightthickness=1)
-        rahmen.pack(fill=tk.X, padx=10, pady=(2, 4))
+        rahmen.pack(fill=tk.X, padx=6 if eltern is not None else 10, pady=(2, 4))
         for spalte, (kopf, text) in enumerate(self.lage_band_texte()):
             feld = tk.Frame(rahmen, bg=self.skin["panel"])
             feld.grid(row=0, column=spalte, sticky="nsew", padx=6, pady=4)
@@ -10715,259 +10720,740 @@ class NebelseetalApp:
                      wraplength=230).pack(fill=tk.X)
         return rahmen
 
+    # ---------------------------------------------------------------------------------------
+    # DORFZENTRUM (Nr. 16, Teil A) - Daniels Entscheidungen F-56, F-58, F-59, F-65, F-66
+    # ---------------------------------------------------------------------------------------
+    # Aufbau: LINKS die Spalte S mit sieben Bloecken (Kopf mit den Kennzahlen, naechster Schritt,
+    # Ort, Aktionen, Auswahl je Reiter, Hinweis, Technik), RECHTS die Arbeitsflaeche R mit drei
+    # Reitern (Lager / Werkstaetten / Einheiten). Alle Zahlen kommen aus `dorfzentrum.masse(...)`;
+    # diese Ansicht SETZT sie und rechnet NICHTS nach (F-04: eine Rechenstelle).
+    #
+    # Drei Abweichungen von der reinen Lehre, offen benannt:
+    #   1. Das LAGE-BAND (T7, Daniels Vorgabe vom 11.11.2026) steht oben im Block 5. Es ist eine
+    #      aeltere Entscheidung mit eigener Wache (`test_lage_band`); ohne Daniels Wort wird sie
+    #      nicht stillschweigend entfernt.
+    #   2. Der Block 6 HINWEIS traegt den ausfuehrlichen Text des naechsten Schritts. Damit steht
+    #      die Pflichtkarte (FIX04f) weiter als Label im Inhalt - sie ist die Begruendung des
+    #      Knopfes in Block 2.
+    #   3. Block 5 nimmt den REST der Spalte (Nr. 16, A1). Waechst ein anderer Block durch
+    #      laengeren Text, schrumpft Block 5 - die Summe bleibt die Fensterhoehe.
+
+    def _dz_klein(self) -> Tuple:
+        """Kleintext mit ABSOLUTEN 15 px (F-56) - nicht `schrift(15)`, das waeren hier 19 px."""
+        return ("Arial", -int(dorfzentrum.KLEINTEXT_PX))
+
+    def _dz_zeilenhoehen(self) -> Dict[str, int]:
+        """Die drei Zeilenhoehen GEMESSEN an der Schrift, die Tk wirklich benutzt.
+
+        Nr. 16 nennt 19 / 22 / 30 px im Fall 2. Sie sind KEINE gerade Funktion von k: der
+        Startwert `round(18 x 1,2512) = 23` machte die Werkstattliste 591 px hoch statt 574.
+        Darum wird gemessen, nicht gerechnet (Befund aus der Nachrechnung zu Nr. 16).
+        """
+        try:
+            import tkinter.font as tkfont
+            roh = {}
+            for rolle, art in (("text", self.schriftart(13)),
+                               ("zw", self.schriftart(15, fett=True)),
+                               ("zahl", self.schriftart(15, fett=True)),
+                               ("titel", self.schriftart(20, fett=True))):
+                roh[rolle] = int(tkfont.Font(root=self.root, font=art).metrics("linespace"))
+            return roh
+        except Exception:                                          # noqa: BLE001 - kein Tk
+            return {}
+
+    def _dz_kopfzeile(self):
+        """Die Hoehe der Tabellenkopfzeile MESSEN (Befund B1) - None heisst: nicht messbar.
+
+        Claudes Formel `ls(13k fett) + round(9k)` ergibt im Fall 2 **33** statt der angenommenen
+        30 (Tk rundet Pixel auf ganze Punkte). Gemessen wird an einem wegwerfbaren Label.
+        """
+        probe = None
+        try:
+            probe = tk.Label(self.content, text="Ware  Werkstatt  Zutat  Zustand",
+                             font=self.schriftart(13, fett=True))
+            self.content.update_idletasks()
+            hoehe = int(probe.winfo_reqheight())
+            return hoehe or None
+        except Exception:                                          # noqa: BLE001
+            return None
+        finally:
+            if probe is not None:
+                try:
+                    probe.destroy()
+                except Exception:                                  # noqa: BLE001
+                    pass
+
+    def _dz_reiter_wechseln(self, index: int) -> None:
+        """Reiter waehlen. Der Zustand lebt NUR im laufenden Programm (Nr. 14, Abschnitt B)."""
+        try:
+            index = int(index)
+        except (TypeError, ValueError):
+            return
+        if 0 <= index < len(dorfzentrum.REITER) and index != getattr(self, "_dz_reiter", 0):
+            self._dz_reiter = index
+            self._dz_auswahl = None                                # Auswahl gehoert zum Reiter
+            self._render_view()
+
+    def _dz_auswahl_setzen(self, schluessel) -> None:
+        """Eine Ware, ein Rezept oder eine Einheit waehlen - die Auswahl steht dann LINKS."""
+        if schluessel == getattr(self, "_dz_auswahl", None):
+            return
+        self._dz_auswahl = schluessel
+        self._render_view()
+
+    def _dz_binde_klick(self, widget, aktion) -> None:
+        """Klickbindung auf ein Widget UND seine Kinder - ein Klick soll ueberall treffen."""
+        try:
+            widget.bind("<Button-1>", lambda _e: aktion())
+            for kind in widget.winfo_children():
+                kind.bind("<Button-1>", lambda _e: aktion())
+        except Exception:                                          # noqa: BLE001
+            pass
+
+    def _dz_block(self, eltern, name: str, m: Dict[str, Any], farbe: str = None):
+        """Einen Block der Spalte anlegen: fester Rahmen im Panel-Ton, Luecke p nach unten."""
+        rahmen = tk.Frame(eltern, bg=farbe or self.skin["panel"])
+        rahmen.pack(fill=tk.X, pady=(0, int(m.get("p") or 8)))
+        rahmen.blockname = name
+        if not isinstance(getattr(self, "_dz_block_rahmen", None), dict):
+            self._dz_block_rahmen = {}
+        self._dz_block_rahmen[name] = rahmen
+        return rahmen
+
+    def _dz_titel(self, eltern, text: str, farbe: str = None, klein: bool = False):
+        """Eine Zeile Text im Block - Kleintext absolut 15 px (F-56), sonst 16 px (13 x k)."""
+        return tk.Label(eltern, text=text, fg=farbe or SPALTE_CREME, bg=eltern.cget("bg"),
+                        font=self._dz_klein() if klein else self.schriftart(13),
+                        anchor=tk.W, justify=tk.LEFT)
+
     def _render_overview(self):
+        """Die Dorfzentrum-Ansicht: Spalte S mit sieben Bloecken, Arbeitsflaeche R mit drei Reitern."""
         # B-6 (02.11.2026, Vorgabe Daniel): das gemalte Dorfzentrum ist der HINTERGRUND der ganzen
-        # Ansicht - die Texte liegen als deckende Felder darueber, dazwischen bleibt das Bild sichtbar.
-        # Die Flaeche MUSS zuerst entstehen: in Tk liegt, was frueher erzeugt wurde, weiter hinten.
+        # Ansicht - die Texte liegen als deckende Felder darueber, dazwischen bleibt das Bild
+        # sichtbar. Die Flaeche MUSS zuerst entstehen: in Tk liegt, was frueher erzeugt wurde, weiter
+        # hinten. Ohne Bild (Datei/Pillow fehlt) tritt der alte Kopf an ihre Stelle.
         if self._ansicht_hintergrund("lager") is None:          # kein Bild (Datei/Pillow fehlt)
             self._gebaeude_kopf("lager")                        # dann der alte Kopf ueber dem Inhalt
-        # B-6: der Titel steht in einem weichen Kasten (abgerundet, Verlauf) statt in einem harten
-        # dunklen Balken - Daniel: "die texte und ihre textfelder ... noch keine schoenen uebergaenge".
-        self._kasten_label("Dorfzentrum", ("Blackletter", 20, "bold"), self.skin["gold"],
-                           innen=14, pady=6)
-        # T7 (Daniel 11.11.2026, Bogen B07/B11): Forschung, Goetterschutz und Wallbau stehen ab
-        # jetzt als eigene, grosse Zeile unter dem Titel - vorher waren sie in Fliesstext versteckt.
-        self._lage_band()
-        # Register 222 (05.11.2026): Volk und Karte werden NICHT mehr im Dorfzentrum
-        # gewaehlt - dafuer gibt es die Kartengruendungsseite (Startfenster). Die
-        # Darstellung ist mit dem Schnitt umgezogen (`_volk_wahl_zeilen`,
-        # `_startkarte_zeigen`); die Pruefdateien wurden umgehaengt, nicht geloescht.
-        # A2: das gewaehlte Volk bleibt sichtbar (der Spieler soll wissen, wer er ist) - eine Zeile,
-        # die Werte kommen aus `data/voelker.json`, nicht aus dem Code.
+        # F-57: der Rollbalken DIESES Prozesses ist der Abstand zwischen Spalte und Arbeitsflaeche.
+        self._rollbalken_messen()
+        _breite, _hoehe = self._siedlungs_flaeche()
+        _ls = self._dz_zeilenhoehen()
+        _m = dorfzentrum.masse(_breite, _hoehe, float(getattr(self, "dpi_k", 1.0) or 1.0),
+                               rollbalken_breite(), tkopf=self._dz_kopfzeile(), ls=_ls or None)
+        self._dz_masse = _m
+        self._dz_block_rahmen = {}
+        _ort = self.state.aktive_siedlung()
+        if not isinstance(getattr(self, "_dz_reiter", None), int):
+            self._dz_reiter = 0                                     # beim Oeffnen: Lager (Nr. 14, B)
+
+        # ---- Arbeitsflaeche links bauen: Leinwand (rollbar) + eigener Rollbalken im Skin-Ton ----
+        _reihe = tk.Frame(self.content, bg=self.skin["bg"])
+        _reihe.pack(anchor=tk.W)
+        _halter = tk.Frame(_reihe, bg=self.skin["bg"])
+        _halter.pack(side=tk.LEFT, anchor=tk.N)
+        _leinwand = tk.Canvas(_halter, width=int(_m["spalte"]), height=int(_m["hoehe"]),
+                              bg=self.skin["bg"], highlightthickness=0, bd=0)
+        _leinwand.pack(side=tk.LEFT, anchor=tk.N)
+        # F-68: der Rollbalken im Skin-Ton statt im Systemgrau.
+        _balken = tk.Scrollbar(_halter, orient=tk.VERTICAL, command=_leinwand.yview,
+                               bg=self.skin["panel"], troughcolor=self.skin["bg"],
+                               activebackground=self.skin["button"],
+                               highlightthickness=0, bd=0, width=rollbalken_breite())
+        _leinwand.configure(yscrollcommand=_balken.set)
+        _balken.pack(side=tk.LEFT, fill=tk.Y)
+        self._dz_leinwand = _leinwand
+        _spalte = tk.Frame(_leinwand, bg=self.skin["bg"], width=int(_m["spalte"]))
+        _leinwand.create_window((0, 0), window=_spalte, anchor=tk.NW, width=int(_m["spalte"]))
+        _spalte.bind("<Configure>", lambda _e: _leinwand.configure(scrollregion=_leinwand.bbox("all")))
+        self._dz_spalte = _spalte
+
+        # ---- Arbeitsflaeche rechts: Reiterleiste und der Inhalt des gewaehlten Reiters ----
+        self._dz_arbeitsflaeche(_reihe, _m, _ort)
+
+        # ---- die sieben Bloecke der Spalte ----
+        self._dz_block_kopf(_spalte, _m, _ort)
+        self._dz_block_schritt(_spalte, _m)
+        self._dz_block_ort(_spalte, _m, _ort)
+        self._dz_block_aktionen(_spalte, _m, _ort)
+        self._dz_block_auswahl(_spalte, _m, _ort)
+        self._dz_block_hinweis(_spalte, _m)
+        if bool(getattr(self, "_zeige_technik", False)):
+            self._dz_block_technik(_spalte, _m)
+        # F-59/Nr. 16 A1: Block 5 (Auswahl) nimmt den REST der Spalte. Er wird NACH den anderen
+        # Bloecken auf die Resthoehe gesetzt - so fuellt die Spalte das Fenster genau, und kein
+        # anderer Block muss dafuer schrumpfen.
+        self._dz_rest_verteilen(_m)
+        # FIX04e: die Pflichtkarte hat eine EIGENE Bedingung (Onboarding) - der Wert wird gemerkt,
+        # damit `_spielerhilfe_anzeige_aktualisieren` nur bei echter Aenderung neu zeichnet.
+        self._aufgaben_sichtbar_zuletzt = self._spielerhilfe_aufgabenkarte_sichtbar()
+
+    def _dz_rest_verteilen(self, m: Dict[str, Any]) -> None:
+        """Block 5 (Auswahl) auf die RESTHOEHE der Spalte setzen - Nr. 16, A1.
+
+        Die anderen sechs Bloecke behalten ihre natuerliche Hoehe (gemessen, nicht geschaetzt);
+        Block 5 bekommt, was uebrig bleibt, und wird auf diese Hoehe festgenagelt
+        (`pack_propagate(False)`). Damit ist die Summe der Spalte genau die Fensterhoehe, und die
+        frueheren 370 px sind ein SOLLWERT, kein Zwang: ein laengerer Hinweistext verkleinert
+        Block 5, statt die Spalte zum Rollen zu bringen.
+        """
+        rahmen = (getattr(self, "_dz_block_rahmen", {}) or {}).get("auswahl")
+        if rahmen is None:
+            return
+        try:
+            self.content.update_idletasks()
+        except Exception:                                          # noqa: BLE001
+            pass
+        _luecken = len(self._dz_block_rahmen) * int(m.get("p") or 8)
+        _verbraucht = 0
+        for _name, _block in self._dz_block_rahmen.items():
+            if _name == "auswahl":
+                continue
+            try:
+                _verbraucht += int(_block.winfo_reqheight())
+            except Exception:                                      # noqa: BLE001
+                pass
+        _rest = max(120, int(m.get("hoehe") or 0) - _verbraucht - _luecken)
+        try:
+            rahmen.config(height=_rest)
+            rahmen.pack_propagate(False)
+        except Exception:                                          # noqa: BLE001
+            pass
+        self._dz_block_hoehen = {}
+        for _name, _block in self._dz_block_rahmen.items():
+            try:
+                self._dz_block_hoehen[_name] = int(_block.winfo_reqheight())
+            except Exception:                                      # noqa: BLE001
+                pass
+        self._dz_block_hoehen["auswahl"] = _rest
+
+    # ---------- Block 1: Kopf mit den Kennzahlen (F-66) ----------
+
+    def _dz_block_kopf(self, eltern, m: Dict[str, Any], ort) -> None:
+        """Kopf: Titel, Ort, und die Kennzahlen AUS DER OEKONOMIE (F-60/F-66).
+
+        Die Ansicht zaehlt NICHT selbst: `spieloekonomie.dorfzentrum_kennzahlen` rechnet,
+        `dorfzentrum.kennzahlen_text` formatiert (`test_quelle_ast`).
+        """
+        block = self._dz_block(eltern, "kopf", m)
+        _farbe = SPALTE_GOLD
+        tk.Label(block, text="Dorfzentrum", fg=_farbe, bg=block.cget("bg"),
+                 font=self.schriftart(20, fett=True), anchor=tk.W,
+                 padx=int(m["p"])).pack(fill=tk.X, pady=(2, 0))
+        _name = str(getattr(ort, "name", "") or "Keine Siedlung")
+        _kennzahlen = {}
+        if ort is not None:
+            try:
+                _kennzahlen = spieloekonomie.dorfzentrum_kennzahlen(
+                    asdict(ort), self.state.forschungs_stufen())
+            except (TypeError, KeyError, ValueError):           # kaputter Ort zaehlt nicht
+                _kennzahlen = {}
+        _zeile = _name + (" " + dorfzentrum.TRENNER + dorfzentrum.kennzahlen_text(_kennzahlen)
+                          if dorfzentrum.kennzahlen_text(_kennzahlen) else "")
+        tk.Label(block, text=_zeile, fg=SPALTE_CREME, bg=block.cget("bg"),
+                 font=self.schriftart(13), anchor=tk.W, justify=tk.LEFT,
+                 wraplength=int(m["textbreite"]), padx=int(m["p"])).pack(fill=tk.X, pady=(0, 2))
+        # A2 (05.11.2026): das gewaehlte Volk bleibt sichtbar (der Spieler soll wissen, wer er
+        # ist) - eine Zeile, die Werte kommen aus `bottaktik.volksattribute`, nicht aus dem Code.
         _volk = str(getattr(self.state, "spieler_fraktion", "") or "")
         if _volk:
             _werte = bottaktik.volksattribute({"fraktion": _volk})
-            self._kasten_label(
-                "Dein Volk: %s - %s / %s" % (_volk, _werte.get("plus") or "-",
-                                             _werte.get("minus") or "-"),
-                ("TkDefaultFont", 9, "bold"), self.skin["gold"], innen=12, pady=4)
+            tk.Label(block, text="Dein Volk: %s — %s / %s"
+                     % (_volk, _werte.get("plus") or "-", _werte.get("minus") or "-"),
+                     fg=SPALTE_GOLD, bg=block.cget("bg"), font=self._dz_klein(), anchor=tk.W,
+                     justify=tk.LEFT, wraplength=int(m["textbreite"])).pack(
+                         fill=tk.X, padx=int(m["p"]), pady=(0, 2))
 
-        # Frage 9 (Daniel 05.11.2026): welche Seiten decken die Ruinen dieser Siedlung? Die Zeile
-        # erscheint NUR, wenn es eine Deckung gibt - die Rechnung liefert `ruinendeckung`, dieselbe
-        # Stelle, die auch der Kampfweg fragt (keine zweite Wahrheit).
-        _deckungen = self.state.ruinendeckungen()                        # Deckungen dieses Ortes
-        _deckung_text = ruinendeckung.deckung_text(
-            str(getattr(self.state.aktive_siedlung(), "name", "") or "Der Ort"), _deckungen)
-        if _deckung_text:                                                # nur bei echter Deckung
-            self._kasten_label(_deckung_text, ("TkDefaultFont", 9), "#8FE388", innen=12, pady=4)
+    # ---------- Block 2: der naechste Schritt ----------
 
-        _grenze = gebaeude_wirkung.bevoelkerungsgrenze(self.state.settlements)
+    def _dz_block_schritt(self, eltern, m: Dict[str, Any]) -> None:
+        """Naechster Schritt: Ueberschrift und EIN Knopf ueber die ganze Spaltenbreite.
 
-        # FIX04f: "Dein naechster Schritt" ist zwingend, bis die erste
-        # Siedlung Holz, Stein und Nahrung durch echte Gebaeude erwirtschaftet.
-        # Danach folgen die gewohnten Schutz-/Admin-Anzeigeregeln.
-        self._aufgaben_sichtbar_zuletzt = self._spielerhilfe_aufgabenkarte_sichtbar()
-        if self._aufgaben_sichtbar_zuletzt:
-            _schritt = self.naechster_schritt()
-            # B-6: die Aufgabenkarte ist kein harter blauer Balken mehr, sondern zwei weiche
-            # Textfelder auf dem Bild - der Knopf bleibt ein Knopf (der ist immer deckend).
-            self._kasten_label("Dein nächster Schritt", ("TkDefaultFont", 12, "bold"), "#7FD1FF",
-                               innen=14, pady=2)
-            self._kasten_label(_schritt["text"], ("TkDefaultFont", 10), "#F3F4F6",
-                               breite=790, innen=14, pady=4, umbruch=760)
-            tk.Button(self.content, text=_schritt["knopf"], command=_schritt["aktion"], bg="#2563EB",
-                      fg="white", activebackground="#1D4ED8", activeforeground="white",
-                      font=("TkDefaultFont", 11, "bold")).pack(anchor=tk.W, padx=10, pady=(0, 10))
+        Der Block erscheint NUR, solange die Starthilfe Pflicht ist (FIX04f: bis Gruendung und
+        drei echte Grundproduktionen). Danach faellt er weg, und Block 5 nimmt seinen Platz -
+        sonst bliebe die Pflichtkarte fuer immer stehen, und die Ausblendregeln des Admins
+        (`_spielerhilfe_aufgabenkarte_sichtbar`) waeren wirkungslos.
+        """
+        self._dz_schritt_text = ""
+        if not self._spielerhilfe_aufgabenkarte_sichtbar():
+            return
+        block = self._dz_block(eltern, "naechster", m)
+        tk.Label(block, text="Dein nächster Schritt", fg="#7FD1FF", bg=block.cget("bg"),
+                 font=self._dz_klein(), anchor=tk.W,
+                 padx=int(m["p"])).pack(fill=tk.X, pady=(2, 2))
+        _schritt = self.naechster_schritt()
+        knopf = tk.Button(block, text=_schritt["knopf"], command=_schritt["aktion"],
+                          bg="#2563EB", fg="white", activebackground="#1D4ED8",
+                          activeforeground="white", font=self.schriftart(13, fett=True),
+                          anchor=tk.W, justify=tk.LEFT,
+                          wraplength=int(m["textbreite"]) - int(m["p"]))
+        knopf.pack(fill=tk.X, padx=int(m["p"]), pady=(0, 2))
+        self._dz_schritt_knopf = knopf
+        # Die ausfuehrliche Begruendung gehoert in den Hinweis-Block (Block 6) - EINE Quelle.
+        self._dz_schritt_text = str(_schritt.get("text") or "")
 
-        # ---- Kennzahlen in Klartext (vorher "Bevölkerung: 60 / 15" ohne Erklärung) ----
-        _bewohnt = int(self.state.population)
-        _ueber = _bewohnt > _grenze
-        self._kasten_label(
-            f"Siedler (Reich): {_bewohnt} · Wohnraum: {_grenze}"
-            + ("  Überbelegt – es wächst kein Siedler nach, bis ein Haus steht." if _ueber else ""),
-            ("TkDefaultFont", 10), ("#FDBA74" if _ueber else "#DAA520"),
-            breite=790, innen=14, pady=4, umbruch=760)
-        # ---- Dorfwall: Verweis in die Siedlungskarte (Daniels Spieltest 3, 08.11.2026, Note 3) ----
-        # Wortlaut: der Wall gehoert "in die geoeffnete karte in das dortige menue, wo man auch
-        # Gebaeude baut, bei Verteidigung". Bis Register 307 stand hier der GANZE Kasten (Stufe,
-        # Zustand, Preis, Reparatur). Jetzt steht der Wall an EINER Stelle - auf der Karte in der
-        # Rubrik Verteidigung. Hier bleibt eine Zeile mit Zustand und dem Weg dorthin.
-        _wall_ort = self.state.aktive_siedlung()
-        if _wall_ort is not None and self.state._lokale_kasse_aktiv():
-            _wall_zeile = tk.Frame(self.content, bg=self.skin["panel"])
-            _wall_zeile.pack(fill=tk.X, padx=10, pady=(4, 6))
-            tk.Label(_wall_zeile, text=self._wall_kurztext(_wall_ort),
-                     fg=self.skin["gold"], bg=self.skin["panel"],
-                     font=("Arial", 9)).pack(side=tk.LEFT, padx=8)
-            tk.Button(_wall_zeile, text="Wall verwalten",
-                      command=lambda o=_wall_ort: self._oeffne_verteidigung(o),
-                      bg=self.skin["button"], fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=8, pady=3)
+    # ---------- Block 3: Ort und Name ----------
 
-        frame = tk.Frame(self.content, bg=self.skin["panel"])
-        frame.pack(fill=tk.X, padx=10, pady=10)
-        tk.Label(frame, text="Siedlungen:", fg=self.skin["gold"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=5)
-        # Schritt 9, Teil 3b: die Gesamtsicht (Reich) steht VOR der Liste, je Ort darunter sein
-        # Lokalbestand. Seit Teil 3a fuehren die Ortslager — vorher las der Spieler hier eine
-        # Zahl, die nicht mehr "Lager dieser Siedlung" bedeutet (KONTEXT_PAKET, Abschnitt 2).
-        tk.Label(frame, text="Reich: " + reichsbestand_text(self.state),
-                 fg="#DAA520", bg=self.skin["panel"], wraplength=780, justify=tk.LEFT,
-                 font=("Arial", 9)).pack(anchor=tk.W, padx=5)
-        # Teil 6: WELCHER Ort gemeint ist, muss sichtbar sein. Die Hilfe berichtigt einen leeren
-        # oder veralteten Zeiger — hier einmal gelesen, damit die Liste und die Buchungen dieselbe
-        # Siedlung meinen (eine Quelle, keine zweite Wahrheit in der Anzeige).
-        _aktiv = self.state.aktive_siedlung()
-        _aktiv_id = _aktiv.id if _aktiv is not None else ""
-        for i, s in enumerate(self.state.settlements):
-            row = tk.Frame(self.content, bg=self.skin["panel"])
-            row.pack(fill=tk.X, padx=10, pady=2)
-            tk.Label(row, text=f"{s.name} ({s.map_id})", fg=self.skin["text"], bg=self.skin["panel"], width=20, anchor=tk.W).pack(side=tk.LEFT, padx=5)
-            if s.id == _aktiv_id:
-                tk.Label(row, text="aktiv", fg="#7FD1FF", bg=self.skin["panel"],
-                         font=("Arial", 9, "bold")).pack(side=tk.LEFT, padx=4)
-            else:
-                tk.Button(row, text="Als aktiv setzen",
-                          command=lambda ss=s: self._siedlung_aktiv_setzen(ss),
-                          bg=self.skin["button"], fg=self.skin["gold"],
-                          activebackground="#5D4037").pack(side=tk.LEFT, padx=4)
-            tk.Label(row, text=f"Gebäude auf der Karte: {len(getattr(s, 'bauten', {}) or {})}",
-                     fg="#DAA520", bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
-            if getattr(s, "karte", None):
-                tk.Label(row, text=f"{s.karte['typ_name']} · Felder belegt: {len(s.bauten)}",
-                         fg=self.skin["text"], bg=self.skin["panel"]).pack(side=tk.LEFT, padx=5)
-                tk.Button(row, text="Karte öffnen", command=lambda ss=s: self._oeffne_siedlungskarte(ss),
-                          bg=self.skin["button"], fg=self.skin["gold"],
-                          activebackground="#5D4037").pack(side=tk.LEFT, padx=5)
-            entry = tk.Entry(row, bg=self.skin["panel"], fg=self.skin["text"], width=18)
-            entry.insert(0, s.name)
-            entry.pack(side=tk.LEFT, padx=5)
-            tk.Button(row, text="Umbenennen", command=lambda ss=s, e=entry: self._rename_settlement(ss, e.get()), bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
-            tk.Button(row, text="Transport", command=lambda ss=s: self._transport_to_settlement(ss), bg="#3e2723", fg=self.skin["gold"]).pack(side=tk.RIGHT, padx=5)
-            # Register 225 (05.11.2026): eine unpassende Karte laesst sich loeschen -
-            # NUR wenn mehr als eine Siedlung steht (Original). Der Knopf steht deshalb
-            # nur dann da; die Folgen nennt die Sicherheitsabfrage.
-            _grund = self.state.aufgeben_grund(str(getattr(s, "id", "") or ""))    # EINE Quelle (Register 228)
-            if not _grund:                                                   # aufgebenbar
-                tk.Button(row, text="Aufgeben",
-                          command=lambda ss=s: self._siedlung_aufgeben(ss),   # mit Rueckfrage
-                          bg="#5b1a1a", fg="#FDBA74",
-                          activebackground="#7f2b2b").pack(side=tk.RIGHT, padx=5)
-            else:                                                            # gesperrt: Grund nennen
-                tk.Label(row, text="Aufgeben gesperrt", fg="#8a8a8a", bg=self.skin["panel"],
-                         font=("Arial", 9)).pack(side=tk.RIGHT, padx=5)
-            # Schritt 9, Teil 3b: "lokal: …" neben "Reich: …" — das Lager DIESES Ortes, das seit
-            # Teil 3a fuehrt (Settlement.vorraete/bevoelkerung), nicht die Gesamtsicht.
-            tk.Label(self.content, text="lokal: " + ortsbestand_text(s),
-                     fg="#7FD1FF", bg=self.skin["bg"], wraplength=780, justify=tk.LEFT,
-                     font=("Arial", 9)).pack(anchor=tk.W, padx=30)
-        tk.Button(self.content, text="Neue Siedlung gründen", command=self._found_settlement, bg="#3e2723", fg=self.skin["gold"]).pack(anchor=tk.W, padx=10, pady=10)
+    def _dz_block_ort(self, eltern, m: Dict[str, Any], ort) -> None:
+        """Ort: Umbenennen, Karte oeffnen - und ob das Dorfzentrum als Gebaeude steht (S-2c)."""
+        block = self._dz_block(eltern, "ort", m)
+        _zeile = tk.Frame(block, bg=block.cget("bg"))
+        _zeile.pack(fill=tk.X, padx=int(m["p"]), pady=(2, 2))
+        tk.Label(_zeile, text="Ort:", fg=SPALTE_CREME, bg=block.cget("bg"),
+                 font=self._dz_klein()).pack(side=tk.LEFT)
+        _feld = tk.Entry(_zeile, bg=self.skin["bg"], fg=SPALTE_CREME, insertbackground=SPALTE_CREME,
+                         selectbackground="#b8862e", selectforeground="#1a0a09",
+                         font=self._dz_klein(), width=16, relief=tk.FLAT)
+        if ort is not None:
+            _feld.insert(0, str(getattr(ort, "name", "") or ""))
+        _feld.pack(side=tk.LEFT, padx=(int(m["p"]), int(m["p"])))
+        tk.Button(_zeile, text="Umbenennen", bg=self.skin["panel"], fg=SPALTE_GOLD,
+                  activeforeground=SPALTE_GOLD, disabledforeground=SPALTE_CREME,
+                  highlightbackground="#b8862e", bd=0, font=self._dz_klein(),
+                  command=(lambda e=_feld, o=ort: self._rename_settlement(o, e.get()))
+                  if ort is not None else lambda: None,
+                  state=(tk.NORMAL if ort is not None else tk.DISABLED)).pack(side=tk.LEFT)
+        # S-2c: das Dorfzentrum ist Menuepunkt UND Gebaeude. Die Kennung bleibt `lager`.
+        _text = "Dorfzentrum als Gebäude: keine Siedlung"
+        _steht = False
+        if ort is not None and self.state.settlements:
+            _mit = len([s for s in self.state.settlements
+                        if gebaeude_wirkung.gebaeude_stufe(s, "lager") > 0])
+            _steht = gebaeude_wirkung.gebaeude_stufe(ort, "lager") > 0
+            _text = ("Dorfzentrum als Gebäude: steht in %d von %d Dörfern"
+                     % (_mit, len(self.state.settlements)))
+            if gebaeude_wirkung.gebaeude_stufe(ort, "lager") <= 0:
+                _text += (" — Platz offen, auf der Siedlungskarte ein freies Feld anklicken"
+                          if getattr(ort, "dorfzentrum_offen", False)
+                          else " — hier fehlt es, auf der Karte im Baubereich Sonstiges bauen")
+        tk.Label(block, text=_text, fg=SPALTE_INFO if _steht else SPALTE_WARNUNG,
+                 bg=block.cget("bg"), font=self._dz_klein(), anchor=tk.W, justify=tk.LEFT,
+                 wraplength=int(m["textbreite"])).pack(fill=tk.X, padx=int(m["p"]),
+                                                       pady=(0, 2))
 
-        # W7: die laufenden Auftraege (im Original steht unten "Laufende Auftraege"). Die Einheiten
-        # sind waehrend der Reise aus dem Bestand genommen; angekommen liefert den Bericht in die
-        # Nachrichten. Gezeigt wird nur, was `auftraege.fortschritt` wirklich hergibt.
-        tk.Label(self.content, text="Laufende Aufträge:", fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(6, 0))
-        if not self.state.auftraege:
-            tk.Label(self.content, text="keine — Aufträge startet man in der Diplomatie.",
-                     fg="#8a8a8a", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
+    # ---------- Block 4: Aktionen ----------
+
+    def _dz_block_aktionen(self, eltern, m: Dict[str, Any], ort) -> None:
+        """Aktionen in zwei Zeilen (Nr. 16, A1): Karte, Transport, Wall / Gruenden, Wechseln, Aufgeben."""
+        block = self._dz_block(eltern, "aktionen", m)
+        _farbe = block.cget("bg")
+
+        def _knopf(zeile, text, aktion, gesperrt: bool = False):
+            knopf = tk.Button(zeile, text=text, command=aktion, font=self._dz_klein(),
+                              bg=self.skin["panel"], fg=SPALTE_GOLD, activeforeground=SPALTE_GOLD,
+                              disabledforeground=SPALTE_CREME, highlightbackground="#b8862e",
+                              bd=0, padx=int(m["p"]), pady=1)
+            if gesperrt:
+                knopf.config(state=tk.DISABLED)                    # gesperrt: Text bleibt lesbar
+            knopf.pack(side=tk.LEFT, padx=(0, int(m["g"])))
+            return knopf
+
+        _z1 = tk.Frame(block, bg=_farbe)
+        _z1.pack(fill=tk.X, padx=int(m["p"]), pady=(2, int(m["g"])))
+        _knopf(_z1, "Karte öffnen",
+               (lambda o=ort: self._oeffne_siedlungskarte(o)) if ort is not None else (lambda: None),
+               gesperrt=ort is None)
+        _knopf(_z1, "Transport",
+               (lambda o=ort: self._transport_to_settlement(o)) if ort is not None else (lambda: None),
+               gesperrt=ort is None)
+        _knopf(_z1, "Wall verwalten",
+               (lambda o=ort: self._oeffne_verteidigung(o)) if ort is not None else (lambda: None),
+               gesperrt=ort is None or not self.state._lokale_kasse_aktiv())
+        _z2 = tk.Frame(block, bg=_farbe)
+        _z2.pack(fill=tk.X, padx=int(m["p"]), pady=(0, 2))
+        # Neue Siedlung gruenden: der Knopf der Startseite (test_startspiel drueckt ihn HIER).
+        _gruenden = tk.Button(_z2, text="Neue Siedlung gründen", command=self._found_settlement,
+                              font=self._dz_klein(), bg=self.skin["panel"], fg=SPALTE_GOLD,
+                              activeforeground=SPALTE_GOLD, highlightbackground="#b8862e", bd=0,
+                              padx=int(m["p"]), pady=1)
+        if len(self.state.settlements) >= SIEDLUNGEN_MAXIMUM:
+            _gruenden.config(state=tk.DISABLED, text="✕ Neue Siedlung gründen")
+        _gruenden.pack(side=tk.LEFT, padx=(0, int(m["g"])))
+        if len(self.state.settlements) > 1 and ort is not None:
+            # Ortswechsel: EIN Menue statt einer Knopfreihe je Dorf (bis zu sechs Doerfer).
+            _wahl = tk.StringVar(value=str(getattr(ort, "name", "")))
+            _menue = tk.OptionMenu(_z2, _wahl, *[str(s.name) for s in self.state.settlements],
+                                   command=lambda wert: self._dz_ort_wechseln(wert))
+            _menue.config(font=self._dz_klein(), bg=self.skin["panel"], fg=SPALTE_GOLD,
+                          activebackground=self.skin["button"], highlightthickness=0, bd=0)
+            _menue.pack(side=tk.LEFT, padx=(0, int(m["g"])))
+        if ort is not None:
+            _grund = self.state.aufgeben_grund(str(getattr(ort, "id", "") or ""))
+            _auf = tk.Button(_z2, text="Aufgeben", command=lambda: self._siedlung_aufgeben(ort),
+                             font=self._dz_klein(), bg="#5b1a1a", fg="#FDBA74", bd=0,
+                             highlightthickness=0, padx=int(m["p"]), pady=1)
+            if _grund:
+                _auf.config(state=tk.DISABLED, text="aufgeben gesperrt: " + str(_grund))
+            _auf.pack(side=tk.LEFT)
+
+    def _dz_ort_wechseln(self, name: str) -> None:
+        """Die aktive Siedlung ueber den Namen waehlen (dieselbe Stelle wie `Als aktiv setzen`)."""
+        for siedlung in self.state.settlements:
+            if str(getattr(siedlung, "name", "")) == str(name):
+                self._siedlung_aktiv_setzen(siedlung)
+                return
+
+    # ---------- Block 5: Auswahl je Reiter (mit dem Lage-Band, T7) ----------
+
+    def _dz_block_auswahl(self, eltern, m: Dict[str, Any], ort) -> None:
+        """Auswahl: oben das Lage-Band (T7), darunter die Angaben zum gewaehlten Reiter."""
+        block = self._dz_block(eltern, "auswahl", m)
+        _farbe = block.cget("bg")
+        # T7 (Daniel 11.11.2026): Forschung, Goetterschutz und Wallbau als eigene Zeile.
+        try:
+            self._lage_band(block)
+        except Exception:                                          # noqa: BLE001 - nie die Ansicht kosten
+            pass
+        _reiter = int(getattr(self, "_dz_reiter", 0) or 0)
+        _auswahl = getattr(self, "_dz_auswahl", None)
+        if _reiter == 0:
+            self._dz_auswahl_lager(block, m, ort, _auswahl)
+        elif _reiter == 1:
+            self._dz_auswahl_werkstatt(block, m, ort, _auswahl)
         else:
-            # Schritt 10 Teil 3: die Restzeiten der Auftraege stehen auf der SPIELUHR — mit
-            # `time.time()` haette die Liste hier eine unsinnige Zahl gezeigt.
-            stand = auftraege.fortschritt(self.state.auftraege, float(self.state.spielsekunden))
-            for eintrag in stand.get("je", []):
-                rest = float(eintrag.get("rest_sekunden") or 0.0)
-                tk.Label(self.content,
-                         text=f"{str(eintrag.get('art')).capitalize()}: {eintrag.get('von')} → "
-                              f"{eintrag.get('nach')} · {eintrag.get('status')} · "
-                              f"noch {minuten_text(rest)}",
-                         fg=self.skin["text"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=20)
+            self._dz_auswahl_einheit(block, m, ort, _auswahl)
 
-        # Wirkungen der 20 Originalgebaeude (W4b-5). Sie kommen AUSSCHLIESSLICH aus den bebauten
-        # Feldern der Siedlungskarten — die frueheren globalen Gebaeude (main.BUILDINGS) sind
-        # entfallen, sonst haette jede Wirkung zweimal existiert.
-        wirk = tk.Frame(self.content, bg=self.skin["panel"], relief=tk.FLAT, borderwidth=1)
-        wirk.pack(fill=tk.X, padx=10, pady=(2, 8))
-        tk.Label(wirk, text="Gebäudewirkungen (aus den Siedlungskarten)",
-                 fg=self.skin["gold"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=5, pady=(3, 0))
-        _haeuser = max(0, (_grenze - 10) // 5)
-        # Heilkunde wirkt auf den Zuwachs (Handbuch 2009 Abschnitt 5, +10 % je Stufe). Die Anzeige
-        # liest DIESELBE Forschungsstufen-Karte wie der Kern (F-04-Muster: eine Rechenstelle fuer
-        # Anzeige und Kern), sonst zeigt sie 1 Siedler/Stunde, waehrend der Takt 1,5 bucht.
-        _stufen = self.state.forschungs_stufen()                                                # flache Stufenkarte
-        _zuwachs = gebaeude_wirkung.siedler_zuwachs_pro_stunde(self.state.settlements, _stufen)  # inkl. Heilkunde
-        _heilkunde = int(_stufen.get("Heilkunde", 0) or 0)                                       # Heilkunde-Stufe
-        # Schritt 11 (Register 309): die Prozentzahl kommt aus `forschung_wirkung` - vorher rechnete
-        # die Ansicht `_heilkunde * 10` selbst und trug die Handbuchzahl damit ein zweites Mal.
-        _bonus_prozent = forschung_wirkung.siedler_bonus_prozent(_stufen)
-        _bonus_text = (f", inkl. Heilkunde +{_bonus_prozent:g} %" if _heilkunde else "")
-        tk.Label(wirk, text=f"Siedlergrenze {_grenze} (Grundwert 10 + {_haeuser} Haus/Häuser × 5) · "
-                            f"Zuwachs {_zuwachs:g} Siedler/Stunde "
-                            f"(1 je Siedlung, Handbuch S. 11{_bonus_text})",
-                 fg=self.skin["text"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=5)
-        # astra-Nachprüfung: „Zuwachs 1 Siedler/Stunde" widersprach der Überbelegungs-Warnung.
-        # Angezeigt wird jetzt, was WIRKLICH passiert, und was möglich wäre.
-        _moeglich = _zuwachs
-        if _bewohnt >= _grenze and _moeglich > 0:
-            tk.Label(wirk, text=f"Aktuelles Wachstum: 0 Siedler/Stunde — der Wohnraum ist voll. "
-                                f"Möglich wären +{_moeglich:g}/Stunde, sobald ein Haus steht.",
-                     fg="#FDBA74", bg=self.skin["panel"]).pack(anchor=tk.W, padx=5)
-        _erlaubt, _meldung = gebaeude_wirkung.forschung_erlaubt(self.state.settlements)
-        tk.Label(wirk, text=f"Forschung: {_meldung}", fg=self.skin["text"],
-                 bg=self.skin["panel"]).pack(anchor=tk.W, padx=5)
-        tk.Label(wirk, text=f"Verteidigung: {gebaeude_wirkung.wall_beschreibung(self.state.settlements)}",
-                 fg=self.skin["text"], bg=self.skin["panel"]).pack(anchor=tk.W, padx=5)
-        _zaehlung = gebaeude_wirkung.bestand(self.state.settlements)
-        if _zaehlung:
-            _text = ", ".join(f"{gelaende.gebaeude_name(k)} ×{n}" for k, n in sorted(
-                _zaehlung.items(), key=lambda x: gelaende.gebaeude_name(x[0])))
-            tk.Label(wirk, text=f"Gebäude auf den Karten: {_text}", fg=self.skin["text"],
-                     bg=self.skin["panel"], wraplength=780, justify=tk.LEFT).pack(anchor=tk.W, padx=5, pady=(0, 3))
-        # Entwicklerhinweise gehoeren NICHT auf die Spielansicht (astra-Gutachten: „Die
-        # Startseite sieht wie eine interne Projektstatusseite aus"). Sie bleiben erreichbar,
-        # sind aber standardmaessig zu.
+    def _dz_auswahl_lager(self, block, m, ort, auswahl) -> None:
+        """Auswahl im Reiter Lager: Bestand, Werkstatt, gebraucht fuer, Zutaten."""
+        _farbe = block.cget("bg")
+        tk.Label(block, text="Lagerverwaltung dieses Dorfes", fg=SPALTE_GOLD, bg=_farbe,
+                 font=self._dz_klein(), anchor=tk.W).pack(fill=tk.X, padx=int(m["p"]),
+                                                          pady=(2, 0))
+        _waren = dict(getattr(ort, "waren", {}) or {}) if ort is not None else {}
+        if auswahl is None:
+            tk.Label(block, text="Eine Ware rechts anklicken — hier stehen dann Bestand, Werkstatt "
+                                 "und wofür sie gebraucht wird.",
+                     fg=SPALTE_CREME, bg=_farbe, font=self._dz_klein(), anchor=tk.W,
+                     justify=tk.LEFT, wraplength=int(m["textbreite"])).pack(fill=tk.X,
+                                                                          padx=int(m["p"]),
+                                                                          pady=(2, int(m["p"])))
+            return
+        _ware = str(auswahl)
+        _bestand = dorfzentrum.zahl_text(_waren.get(_ware, 0))
+        _werkstatt = werkstatt.werkstatt_fuer(_ware)
+        _name = (werkstatt.werkstaetten() or {}).get(_werkstatt) or "— (Beute, kein Rezept)"
+        _zeilen = ["Bestand vor Ort: " + _bestand, "entsteht in: " + str(_name)]
+        _rezept = (spieloekonomie.WARENREZEPTE or {}).get(_ware) or {}
+        _kosten = _rezept.get("kosten") or {}
+        if _kosten:
+            _zeilen.append("Zutaten je Stück: " + ", ".join(
+                dorfzentrum.zutat_text(str(roh).capitalize(), (ort.vorraete or {}).get(roh, 0), menge)
+                for roh, menge in sorted(_kosten.items())))
+        _gebraucht = [w for w, r in (spieloekonomie.WARENREZEPTE or {}).items()
+                      if _ware in ((r or {}).get("kosten") or {})]
+        _zeilen.append("gebraucht für: " + (", ".join(_gebraucht) if _gebraucht else "— (Beute)"))
+        for _zeile in _zeilen:
+            tk.Label(block, text=_zeile, fg=SPALTE_CREME, bg=_farbe, font=self._dz_klein(),
+                     anchor=tk.W, justify=tk.LEFT, wraplength=int(m["textbreite"])).pack(
+                         fill=tk.X, padx=int(m["p"]))
+
+    def _dz_auswahl_werkstatt(self, block, m, ort, auswahl) -> None:
+        """Auswahl im Reiter Werkstaetten: Zutaten mit vorhanden / noetig, Menge, Herstellen."""
+        _farbe = block.cget("bg")
+        _waren = sorted((spieloekonomie.WARENREZEPTE or {}).keys())
+        _ware = str(auswahl) if auswahl in _waren else (_waren[0] if _waren else "")
+        if not _ware:
+            return
+        _rezept = spieloekonomie.WARENREZEPTE[_ware]
+        _kennung = werkstatt.werkstatt_fuer(_ware)
+        _name = (werkstatt.werkstaetten() or {}).get(_kennung) or str(_kennung)
+        tk.Label(block, text="%s — %s" % (_ware, _name), fg=SPALTE_GOLD, bg=_farbe,
+                 font=self._dz_klein(), anchor=tk.W, justify=tk.LEFT,
+                 wraplength=int(m["textbreite"])).pack(fill=tk.X, padx=int(m["p"]),
+                                                       pady=(int(m["p"]), 2))
+        _grenzen = {}
+        if ort is not None:
+            try:
+                _grenzen = spieloekonomie.ware_grenzen(asdict(ort), _ware,
+                                                       self.state.forschungs_stufen())
+            except (TypeError, KeyError, ValueError):
+                _grenzen = {}
+        for _roh, _menge in sorted((_rezept.get("kosten") or {}).items()):
+            _vorrat = (getattr(ort, "vorraete", {}) or {}).get(_roh, 0) if ort is not None else 0
+            tk.Label(block, text="Zutat " + dorfzentrum.zutat_text(str(_roh).capitalize(),
+                                                                   _vorrat, _menge),
+                     fg=SPALTE_CREME, bg=_farbe, font=self._dz_klein(), anchor=tk.W).pack(
+                         fill=tk.X, padx=int(m["p"]))
+        if not (_rezept.get("kosten") or {}):
+            tk.Label(block, text="kein Rezept — dieses Gut kommt als Beute",
+                     fg=SPALTE_CREME, bg=_farbe, font=self._dz_klein(), anchor=tk.W).pack(
+                         fill=tk.X, padx=int(m["p"]))
+        _moeglich = int((_grenzen or {}).get("moeglich") or 0)
+        _hindernis = str((_grenzen or {}).get("hindernis") or "")
+        tk.Label(block, text=("möglich jetzt: " + dorfzentrum.zahl_text(_moeglich))
+                 if not _hindernis else ("gesperrt: " + _hindernis),
+                 fg=SPALTE_ERFOLG if not _hindernis and _moeglich else SPALTE_WARNUNG, bg=_farbe,
+                 font=self._dz_klein(), anchor=tk.W, justify=tk.LEFT,
+                 wraplength=int(m["textbreite"])).pack(fill=tk.X, padx=int(m["p"]))
+        _leiste = tk.Frame(block, bg=_farbe)
+        _leiste.pack(fill=tk.X, padx=int(m["p"]), pady=(int(m["g"]), int(m["p"])))
+        _var = self._ware_menge_var(_kennung or _ware)
+        tk.Label(_leiste, text="Stück:", fg=SPALTE_CREME, bg=_farbe,
+                 font=self._dz_klein()).pack(side=tk.LEFT)
+        _feld = tk.Entry(_leiste, textvariable=_var, width=6, bg=self.skin["bg"], fg=SPALTE_CREME,
+                         insertbackground=SPALTE_CREME, selectbackground="#b8862e",
+                         selectforeground="#1a0a09", font=self._dz_klein(), relief=tk.FLAT)
+        _feld.pack(side=tk.LEFT, padx=(2, int(m["g"])))
+        _herstellen = tk.Button(
+            _leiste, text="Herstellen", font=self._dz_klein(), bg=self.skin["panel"],
+            fg=SPALTE_GOLD, activeforeground=SPALTE_GOLD, disabledforeground=SPALTE_CREME,
+            highlightbackground="#b8862e", bd=0, padx=int(m["p"]), pady=1,
+            command=lambda w=_ware: self._ware_herstellen_menge(
+                w, self._menge_lesen(_var, spieloekonomie.MENGEN_HOECHSTMENGE)))
+        if _hindernis or ort is None:
+            _herstellen.config(state=tk.DISABLED)
+        _herstellen.pack(side=tk.LEFT)
+
+    def _dz_auswahl_einheit(self, block, m, ort, auswahl) -> None:
+        """Auswahl im Reiter Einheiten: Bestand und Verwundete - OHNE Heilpreis (F-65)."""
+        _farbe = block.cget("bg")
+        if auswahl is None:
+            tk.Label(block, text="Eine Einheit rechts anklicken — hier steht ihr Bestand.",
+                     fg=SPALTE_CREME, bg=_farbe, font=self._dz_klein(), anchor=tk.W,
+                     justify=tk.LEFT, wraplength=int(m["textbreite"])).pack(
+                         fill=tk.X, padx=int(m["p"]), pady=(int(m["p"]), 0))
+            return
+        _kennung = str(auswahl)
+        _zahl = int((getattr(ort, "einheiten", {}) or {}).get(_kennung, 0) or 0) if ort else 0
+        for _zeile in ("Einheit: " + self._dz_einheit_name(_kennung),
+                       "Bestand vor Ort: " + dorfzentrum.zahl_text(_zahl),
+                       "Verwundete: " + dorfzentrum.zahl_text(self._dz_verwundete(_kennung))):
+            tk.Label(block, text=_zeile, fg=SPALTE_CREME, bg=_farbe, font=self._dz_klein(),
+                     anchor=tk.W).pack(fill=tk.X, padx=int(m["p"]), pady=(int(m["p"]), 0))
+
+    def _dz_einheit_name(self, kennung: str) -> str:
+        """Der Anzeigename einer Einheit - aus dem Spielstand, sonst die Kennung."""
+        _einheit = (getattr(self.state, "units", {}) or {}).get(kennung)
+        return str(getattr(_einheit, "name", "") or kennung)
+
+    def _dz_verwundete(self, kennung: str) -> int:
+        """Die Zahl der Verwundeten dieser Einheit - EINE Lesestelle (`verwundete`)."""
+        try:
+            _ort = self.state.aktive_siedlung()
+            _stand = getattr(_ort, "verwundete", {}) or {}
+            return int(_stand.get(kennung, 0) or 0)
+        except (AttributeError, TypeError, ValueError):
+            return 0
+
+    # ---------- Block 6: Hinweis ----------
+
+    def _dz_block_hinweis(self, eltern, m: Dict[str, Any]) -> None:
+        """Hinweis: der ausfuehrliche Text des naechsten Schritts (FIX04f-Pflichtkarte)."""
+        block = self._dz_block(eltern, "hinweis", m)
+        _text = getattr(self, "_dz_schritt_text", "") or "Wähle rechts einen Reiter."
+        tk.Label(block, text=_text, fg=SPALTE_CREME, bg=block.cget("bg"), font=self._dz_klein(),
+                 anchor=tk.W, justify=tk.LEFT, wraplength=int(m["textbreite"])).pack(
+                     fill=tk.X, padx=int(m["p"]), pady=(2, 2))
+
+    # ---------- Block 7: Technik (nur Entwicklerbetrieb) ----------
+
+    def _dz_block_technik(self, eltern, m: Dict[str, Any]) -> None:
+        """Technische Hinweise - nur im Entwicklerbetrieb, nie ungefragt im Spielerbild."""
+        block = self._dz_block(eltern, "technik", m)
         _luecken = [x for x in (gebaeude_wirkung.luecken().get(k)
                                 for k in ("werkstaetten", "baukunst", "lager")) if x]
-        if _luecken:
-            _offen = bool(getattr(self, "_zeige_technik", False))
-            tk.Button(wirk, text=("Technische Hinweise ausblenden" if _offen
-                                  else f"Technische Hinweise einblenden ({len(_luecken)})"),
-                      command=self._toggle_technik, bg=self.skin["button"],
-                      fg="#C0C0C0").pack(anchor=tk.W, padx=5, pady=(3, 3))
-            if _offen:
-                for _luecke in _luecken:
-                    tk.Label(wirk, text=f"Noch offen: {_luecke}", fg="#C0C0C0", bg=self.skin["panel"],
-                             wraplength=780, justify=tk.LEFT).pack(anchor=tk.W, padx=5)
+        tk.Button(block, text="Technische Hinweise ausblenden", command=self._toggle_technik,
+                  bg=self.skin["panel"], fg=SPALTE_CREME, font=self._dz_klein(),
+                  highlightbackground="#b8862e", bd=0).pack(fill=tk.X, padx=int(m["p"]),
+                                                            pady=(int(m["p"]), 2))
+        for _luecke in _luecken:
+            tk.Label(block, text="Noch offen: " + str(_luecke), fg=SPALTE_CREME,
+                     bg=block.cget("bg"), font=self._dz_klein(), anchor=tk.W).pack(
+                         fill=tk.X, padx=int(m["p"]), pady=(0, int(m["p"])))
 
-        # ---- S-2c: das Dorfzentrum ist Menuepunkt UND Gebaeude -------------------------------
-        # Der Menuepunkt "Lager" ist in dieser Ansicht aufgegangen (siehe `MENUE_ENTFALLEN`).
-        # Gezeigt wird zuerst, ob das GEBAEUDE Dorfzentrum steht - die Kennung bleibt `lager`
-        # (eine Lesestelle: `gebaeude_stufe`), hoechstens eines je Dorf, nicht abreissbar.
-        _dz = tk.Frame(self.content, bg=self.skin["panel"], relief=tk.FLAT, borderwidth=1)
-        _dz.pack(fill=tk.X, padx=10, pady=(2, 8))
-        tk.Label(_dz, text="Dorfzentrum als Gebäude", fg=self.skin["gold"],
-                 bg=self.skin["panel"]).pack(anchor=tk.W, padx=5, pady=(3, 0))
-        if not self.state.settlements:
-            tk.Label(_dz, text="Noch keine Siedlung — ein Dorfzentrum entsteht mit dem Dorf.",
-                     fg="#8a8a8a", bg=self.skin["panel"]).pack(anchor=tk.W, padx=5)
+    # ---------- Die Arbeitsflaeche rechts: drei Reiter ----------
+
+    def _dz_arbeitsflaeche(self, eltern, m: Dict[str, Any], ort) -> None:
+        """Reiterleiste (42 px) und der Inhalt des gewaehlten Reiters (702 px)."""
+        _farbe = self.skin["bg"]
+        rahmen = tk.Frame(eltern, bg=_farbe, width=int(m["karte"]), height=int(m["hoehe"]),
+                          highlightthickness=0, bd=0)
+        rahmen.pack(side=tk.LEFT, anchor=tk.N)
+        rahmen.pack_propagate(False)                               # feste Arbeitsflaeche R
+        leiste = tk.Frame(rahmen, bg=_farbe, height=int(m["reiterleiste"]))
+        leiste.pack(fill=tk.X)
+        leiste.pack_propagate(False)
+        _gewaehlt = int(getattr(self, "_dz_reiter", 0) or 0)
+        for _i, _name in enumerate(dorfzentrum.REITER):
+            _an = (_i == _gewaehlt)
+            _reiter = tk.Frame(leiste, bg=_farbe)
+            _reiter.place(x=int(m["p"]) + _i * int(m["reiterbreite"]), y=0,
+                          width=int(m["reiterbreite"]), height=int(m["reiterleiste"]) - 2)
+            _text = tk.Label(_reiter, text=_name, bg=_farbe,
+                             fg=SPALTE_GOLD if _an else SPALTE_CREME,
+                             font=self.schriftart(15, fett=True))
+            _text.pack(expand=True)
+            if _an:                                                 # gewaehlt: Unterstrich 2 px
+                tk.Frame(_reiter, height=2, bg=SPALTE_CREME).pack(fill=tk.X, side=tk.BOTTOM)
+            self._dz_binde_klick(_reiter, lambda i=_i: self._dz_reiter_wechseln(i))
+        inhalt = tk.Frame(rahmen, bg=_farbe, width=int(m["karte"]), height=int(m["innenhoehe"]))
+        inhalt.pack(fill=tk.BOTH, expand=True, padx=int(m["p"]))
+        inhalt.pack_propagate(False)
+        self._dz_reiter_inhalt = inhalt
+        if _gewaehlt == 0:
+            self._dz_lager(inhalt, m, ort)
+        elif _gewaehlt == 1:
+            self._dz_werkstaetten(inhalt, m, ort)
         else:
-            _mit_dz = [s for s in self.state.settlements
-                       if gebaeude_wirkung.gebaeude_stufe(s, "lager") > 0]
-            _ohne_dz = [s for s in self.state.settlements
-                        if gebaeude_wirkung.gebaeude_stufe(s, "lager") <= 0]
-            tk.Label(_dz, text=(f"steht in {len(_mit_dz)} von {len(self.state.settlements)} "
-                                f"Dörfern (höchstens eines je Dorf, das einzige ist nicht abreißbar)"),
-                     fg=self.skin["text"], bg=self.skin["panel"], wraplength=780,
-                     justify=tk.LEFT).pack(anchor=tk.W, padx=5)
-            if _ohne_dz:
-                # S-2c-D: zwei verschiedene Lagen, zwei verschiedene Wege. Ein Dorf mit offenem
-                # Kennzeichen HAT das Dorfzentrum schon (aus dem Gruendungspaket), es fehlt nur
-                # der Platz; ein Dorf ohne Kennzeichen muss es kaufen.
-                _offen = [s.name for s in _ohne_dz if getattr(s, "dorfzentrum_offen", False)]
-                _kaufen = [s.name for s in _ohne_dz
-                           if not getattr(s, "dorfzentrum_offen", False)]
-                if _offen:
-                    tk.Label(_dz, text=("Platz noch offen in: " + ", ".join(_offen)
-                                        + " — auf der Siedlungskarte ein freies Feld anklicken "
-                                          "und „Dorfzentrum hier setzen“ wählen (kostenlos, "
-                                          "kommt aus dem Gründungspaket)."),
-                             fg="#7FD1FF", bg=self.skin["panel"], wraplength=780,
-                             justify=tk.LEFT).pack(anchor=tk.W, padx=5, pady=(0, 3))
-                if _kaufen:
-                    tk.Label(_dz, text=("fehlt noch in: " + ", ".join(_kaufen)
-                                        + " — auf der Siedlungskarte im Baubereich „Sonstiges“ "
-                                          "bauen (Baukunst Stufe 1 nötig)."),
-                             fg="#FDBA74", bg=self.skin["panel"], wraplength=780,
-                             justify=tk.LEFT).pack(anchor=tk.W, padx=5, pady=(0, 3))
-        # Die Verwaltung selbst: EINE Lageransicht (`_render_storage`), kein zweiter Lagerbegriff.
-        self._render_storage(eigener_titel=False)
+            self._dz_einheiten(inhalt, m, ort)
+
+    def _dz_lager(self, eltern, m: Dict[str, Any], ort) -> None:
+        """Reiter Lager: 17 Waren als Kacheln, 3 Spalten, Zeilen aus der Warenzahl (C1)."""
+        _k = m["lager"]
+        _waren = dict(getattr(ort, "waren", {}) or {}) if ort is not None else {}
+        # Die Warenliste kommt aus `data/items.json` (ueber `main.WARE_ICONS`), NICHT aus dem Code.
+        _namen = sorted(WARE_ICONS.keys()) or sorted(_waren.keys())
+        tk.Label(eltern, text="Waren vor Ort: %d von %d · %d mit Rezept · Reich: %s"
+                 % (len([w for w in _namen if int(_waren.get(w, 0) or 0) > 0]), len(_namen),
+                    len(spieloekonomie.WARENREZEPTE or {}),
+                    dorfzentrum.zahl_text(sum(float(v or 0) for v in self.state.waren.values()))),
+                 fg=SPALTE_INFO, bg=self.skin["bg"], font=self._dz_klein(), anchor=tk.W).pack(
+                     fill=tk.X, pady=(0, int(m["p"])))
+        _raster = tk.Frame(eltern, bg=self.skin["bg"])
+        _raster.pack(anchor=tk.NW)
+        _spalten = int(_k["spalten"])
+        for _i in range(_spalten):
+            _raster.columnconfigure(_i, minsize=int(_k["kachel_breite"]))
+        _gewaehlt = getattr(self, "_dz_auswahl", None)
+        for _i, _ware in enumerate(_namen):
+            self._dz_kachel(_raster, m, _ware, _waren.get(_ware, 0), WARE_ICONS.get(_ware, ""),
+                            _i // _spalten, _i % _spalten, _gewaehlt == _ware)
+
+    def _dz_kachel(self, eltern, m: Dict[str, Any], name: str, menge, symbol: str,
+                   zeile: int, spalte: int, gewaehlt: bool) -> None:
+        """EINE Lagerkachel: 206 x 83, Symbol 64 x 56 links, Name und Zahl rechts (C1)."""
+        _k = m["lager"]
+        zelle = tk.Frame(eltern, bg=self.skin["panel"], width=int(_k["kachel_breite"]),
+                         height=int(_k["kachel_hoehe"]), highlightthickness=2 if gewaehlt else 1,
+                         highlightbackground=SPALTE_CREME if gewaehlt else "#b8862e")
+        zelle.grid(row=zeile, column=spalte, pady=(0, int(_k["luecke"])), sticky="nw")
+        # FALLE, teuer gelernt (13.11.2026): die Kinder dieser Kachel werden GEPACKT. Gegen sie
+        # hilft nur `pack_propagate(False)`; `grid_propagate(False)` ist wirkungslos und die
+        # Kachel schrumpfte auf 146 px statt 185 - genau der Fehler, den Daniel in V_0.0.4
+        # gemeldet hatte (ungleiche, zu schmale Kacheln).
+        zelle.pack_propagate(False)
+        kasten = tk.Frame(zelle, bg=self.skin["panel"], width=int(_k["symbol_breite"]),
+                          height=int(_k["symbol_hoehe"]))
+        kasten.pack(side=tk.LEFT, padx=(8, int(m["g"])), pady=8)
+        kasten.pack_propagate(False)
+        _bild = self._lager_symbol(symbol, int(_k["symbol_breite"]), int(_k["symbol_hoehe"]))
+        if _bild is not None:
+            tk.Label(kasten, image=_bild, bg=self.skin["panel"]).pack(expand=True)
+            kasten.bild = _bild                                  # Referenz halten (Tk gibt sonst frei)
+        else:
+            tk.Label(kasten, text="-", fg="#8a8a8a", bg=self.skin["panel"],
+                     font=self._dz_klein()).pack(expand=True)
+        rechts = tk.Frame(zelle, bg=self.skin["panel"])
+        rechts.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, pady=6)
+        tk.Label(rechts, text=name, fg=SPALTE_CREME, bg=self.skin["panel"], font=self._dz_klein(),
+                 anchor=tk.W, justify=tk.LEFT, wraplength=int(_k["textbreite"]),
+                 height=2).pack(fill=tk.X)
+        tk.Label(rechts, text=dorfzentrum.zahl_text(menge), fg=SPALTE_GOLD, bg=self.skin["panel"],
+                 font=self.schriftart(15, fett=True), anchor=tk.E).pack(fill=tk.X, side=tk.BOTTOM)
+        self._dz_binde_klick(zelle, lambda: self._dz_auswahl_setzen(name))
+
+    def _dz_werkstaetten(self, eltern, m: Dict[str, Any], ort) -> None:
+        """Reiter Werkstaetten: 17 Rezepte, Spalten Name / Werkstatt / Zutat / Zustand (F-58)."""
+        _k = m["werkstaetten"]
+        _rezepte = spieloekonomie.WARENREZEPTE or {}
+        _waren = sorted(_rezepte.keys())
+        tk.Label(eltern, text="Werkstätten: %d Rezepte · Werkstatt vor Ort nötig" % len(_waren),
+                 fg=SPALTE_INFO, bg=self.skin["bg"], font=self._dz_klein(), anchor=tk.W).pack(
+                     fill=tk.X, pady=(0, 2))
+        _kopf = tk.Frame(eltern, bg=self.skin["bg"], height=int(_k["kopfzeile"]))
+        _kopf.pack(fill=tk.X)
+        _kopf.pack_propagate(False)
+        _gewaehlt = str(getattr(self, "_dz_auswahl", "") or "")
+        for _text, _breite, _rechts in (("Ware", _k["name"], False), ("Werkstatt", _k["werkstatt"], False),
+                                        ("Zutat", _k["zutat"], False), ("Zustand", _k["zustand"], False)):
+            self._dz_zelle(_kopf, m, int(_breite), _text, SPALTE_GOLD, fett=True)
+        for _i, _ware in enumerate(_waren):
+            _rezept = _rezepte.get(_ware) or {}
+            _kennung = str(_rezept.get("werkstatt") or werkstatt.werkstatt_fuer(_ware) or "")
+            _name = (werkstatt.werkstaetten() or {}).get(_kennung) or _kennung or "—"
+            _kosten = _rezept.get("kosten") or {}
+            _grenzen = {}
+            if ort is not None:
+                try:
+                    _grenzen = spieloekonomie.ware_grenzen(asdict(ort), _ware,
+                                                           self.state.forschungs_stufen())
+                except (TypeError, KeyError, ValueError):
+                    _grenzen = {}
+            _moeglich = int((_grenzen or {}).get("moeglich") or 0)
+            _herstellbar = _moeglich > 0 and not (_grenzen or {}).get("hindernis")
+            _zutat = "—"
+            if _kosten:
+                _roh, _menge = sorted(_kosten.items())[0]
+                _vorrat = (getattr(ort, "vorraete", {}) or {}).get(_roh, 0) if ort is not None else 0
+                _zutat = dorfzentrum.zutat_text(str(_roh).capitalize(), _vorrat, _menge)
+            _zeile = tk.Frame(eltern, bg=self.skin["panel"] if _i % 2 == 0 else self.skin["bg"],
+                              height=int(_k["zeile"]))
+            _zeile.pack(fill=tk.X)
+            _zeile.pack_propagate(False)
+            self._dz_zelle(_zeile, m, int(_k["name"]), _ware, SPALTE_CREME)
+            self._dz_zelle(_zeile, m, int(_k["werkstatt"]), str(_name), SPALTE_CREME)
+            self._dz_zelle(_zeile, m, int(_k["zutat"]), _zutat, SPALTE_CREME)
+            self._dz_zelle(_zeile, m, int(_k["zustand"]), dorfzentrum.zustand_text(_herstellbar),
+                           SPALTE_ERFOLG if _herstellbar else SPALTE_WARNUNG)
+            if _ware == _gewaehlt:
+                _zeile.config(highlightbackground=SPALTE_CREME, highlightthickness=1)
+            self._dz_binde_klick(_zeile, lambda w=_ware: self._dz_auswahl_setzen(w))
+
+    def _dz_einheiten(self, eltern, m: Dict[str, Any], ort) -> None:
+        """Reiter Einheiten: 28 Arten in 2 x 14, Spalten Name und Bestand - OHNE Verwundete (F-65)."""
+        _k = m["einheiten"]
+        _bestand = dict(getattr(ort, "einheiten", {}) or {}) if ort is not None else {}
+        _arten = list((getattr(self.state, "units", {}) or {}).keys()) or list(_bestand.keys())
+        _arten = sorted(_arten, key=lambda k: self._dz_einheit_name(k))
+        tk.Label(eltern, text="Einheiten: %d Arten · Bestand vor Ort" % len(_arten),
+                 fg=SPALTE_INFO, bg=self.skin["bg"], font=self._dz_klein(), anchor=tk.W).pack(
+                     fill=tk.X, pady=(0, 2))
+        _haelften = tk.Frame(eltern, bg=self.skin["bg"])
+        _haelften.pack(anchor=tk.NW)
+        _je = int(_k["je_haelfte"])
+        _gewaehlt = getattr(self, "_dz_auswahl", None)
+        for _h in range(2):
+            _teil = _arten[_h * _je:(_h + 1) * _je]
+            # Die Haelfte bekommt ihre Breite aus ihren Zellen (Namensspalte + Zahlspalte); eine
+            # feste Breite mit `pack_propagate(False)` liess sie auf 1 px zusammenfallen - im
+            # Fenster gemessen am 13.11.2026 (die Tabelle war unsichtbar, keine Wache war rot).
+            # Breite UND Hoehe werden gesetzt, dann erst `pack_propagate(False)`: nur mit einer
+            # festen Hoehe haelt die Haelfte ihre Breite - ohne sie fiel sie am 13.11.2026 im
+            # Fenster auf 1 px zusammen (die Tabelle war unsichtbar).
+            _rahmen = tk.Frame(_haelften, bg=self.skin["bg"], width=int(_k["haelfte"]),
+                               height=int(_k["kopfzeile"]) + _je * int(_k["zeile"]))
+            _rahmen.grid(row=0, column=_h, padx=(0, int(m["p"])))
+            _rahmen.pack_propagate(False)
+            _kopf = tk.Frame(_rahmen, bg=self.skin["bg"], height=int(_k["kopfzeile"]))
+            _kopf.pack(fill=tk.X)
+            _kopf.pack_propagate(False)
+            self._dz_zelle(_kopf, m, int(_k["namensspalte"]), "Einheit", SPALTE_GOLD, fett=True)
+            self._dz_zelle(_kopf, m, int(_k["zahlspalte"]), "Bestand", SPALTE_GOLD, fett=True,
+                           rechts=True)
+            for _i, _kennung in enumerate(_teil):
+                _zeile = tk.Frame(_rahmen, bg=self.skin["panel"] if _i % 2 == 0 else self.skin["bg"],
+                                  width=int(_k["namensspalte"]) + int(_k["zahlspalte"]),
+                                  height=int(_k["zeile"]))
+                _zeile.pack(fill=tk.X)
+                _zeile.pack_propagate(False)
+                self._dz_zelle(_zeile, m, int(_k["namensspalte"]), self._dz_einheit_name(_kennung),
+                               SPALTE_CREME)
+                self._dz_zelle(_zeile, m, int(_k["zahlspalte"]),
+                               dorfzentrum.zahl_text(_bestand.get(_kennung, 0)), SPALTE_CREME,
+                               rechts=True)
+                if _kennung == _gewaehlt:
+                    _zeile.config(highlightbackground=SPALTE_CREME, highlightthickness=1)
+                self._dz_binde_klick(_zeile,
+                                     lambda ken=_kennung: self._dz_auswahl_setzen(ken))
+
+    def _dz_zelle(self, eltern, m: Dict[str, Any], breite: int, text: str, farbe: str,
+                  fett: bool = False, rechts: bool = False) -> None:
+        """EINE Tabellenzelle fester Breite - der Kern der beiden Tabellen (C2 und C3)."""
+        halter = tk.Frame(eltern, bg=eltern.cget("bg"), width=int(breite))
+        halter.pack(side=tk.LEFT, fill=tk.Y)
+        halter.pack_propagate(False)
+        tk.Label(halter, text=text, fg=farbe, bg=eltern.cget("bg"),
+                 font=self.schriftart(13, fett=fett), anchor=tk.E if rechts else tk.W,
+                 justify=tk.LEFT).pack(fill=tk.BOTH, expand=True)
 
     def _toggle_technik(self):
         """Entwicklerhinweise ein-/ausblenden (stehen nicht ungefragt in der Spielansicht)."""
@@ -14319,22 +14805,11 @@ class NebelseetalApp:
     # Befund davor (gemessen im Vorschaufenster): Kachelbreiten 61 bis 168 px, Hoehen 99 bis
     # 106 px, Symbole 28 bis 49 px - weil jede Zelle nur so gross war wie ihr Inhalt.
     # --------------------------------------------------------------------------------
-    def _lager_spalten(self) -> int:
-        """Spaltenzahl der Lagerkacheln aus der GEMESSENEN Inhaltsbreite.
-
-        Beim ersten Aufbau ist das Inhaltsfenster oft noch nicht vermessen (Breite 1) - dann gilt
-        die Vorgabe 8. Wird das Fenster deutlich schmaler, bricht der Nachlauf
-        (`_lager_nachziehen`) das Raster mit weniger Spalten neu; sonst liefen die Kacheln rechts
-        aus dem Fenster.
-        """
-        breite = int(self._inhalt_breite() or 0)                       # gemessene Inhaltsbreite
-        if breite < 240:                                               # noch nicht vermessen
-            return LAGER_SPALTEN_VORGABE
-        nutzbar = breite - 28                                          # Aussenrand links und rechts
-        schritt = LAGER_KACHEL_BREITE + LAGER_KACHEL_LUECKE            # Breite einer Kachel samt Luft
-        spalten = int((nutzbar + LAGER_KACHEL_LUECKE) // schritt)      # so viele passen nebeneinander
-        return max(3, min(LAGER_SPALTEN_HOECHSTENS, spalten))          # nie unter 3, nie ueber 9
-
+    # B4 (Daniel 12.11.2026) hat die Kacheln in Form gebracht; mit Claudes Nr. 16 (Teil A, C1)
+    # sind Masse und Spaltenzahl an EINE Stelle gewandert (`dorfzentrum.lager_masse`): 3 Spalten,
+    # 206 x 83 px, Symbol 64 x 56 im festen Kasten, Name zweizeilig, Zahl im eigenen Band.
+    # Die alten Kachelmasse (118 x 136, 8 Spalten) sind damit entfallen - sie stehen nicht mehr
+    # im Code, sondern nur noch in `docs/ENTWICKLUNGSPROTOKOLL.md` (Register 571).
     def _lager_symbol(self, relativ: str, breite: int = LAGER_SYMBOL_BREITE,
                       hoehe: int = LAGER_SYMBOL_HOEHE):
         """Ein Symbol in einen FESTEN Kasten bringen, Seitenverhaeltnis bleibt erhalten.
@@ -14374,286 +14849,50 @@ class NebelseetalApp:
         speicher[schluessel] = bild                                    # Tk gibt sonst frei
         return bild
 
-    @staticmethod
-    def _lager_zahl(wert) -> str:
-        """Eine Bestandszahl anzeigen: ganzzahlig ohne Komma, grosse Zahlen mit Punkt.
-
-        Die Kachel zeigt die Zahl in einem festen Band - sie soll bei 0, 7 und 12.345 gleich
-        ruhig stehen. `%g` schneidet die sinnlose Nachkommastelle von 1334.0 ab.
-        """
-        try:
-            zahl = float(wert)
-        except (TypeError, ValueError):
-            return str(wert)
-        if abs(zahl - int(zahl)) < 1e-9:                               # ganze Zahl
-            ganz = int(zahl)
-            if abs(ganz) >= 10000:                                     # 12.345 statt 12345
-                return f"{ganz:,}".replace(",", ".")
-            return str(ganz)
-        return "%g" % zahl                                             # echte Nachkommastelle bleibt
-
-    def _lager_abschnitt(self, titel: str, zusatz: str) -> None:
-        """Die Ueberschrift eines Lagerabschnitts: Titel, Anzahl, feine Trennlinie.
-
-        Bis V_0.0.4 stand hier Entwicklertext ("die 17 Originalwaren aus data/items.json") - das
-        gehoert nicht auf den Schirm eines Spielers.
-        """
-        kopf = tk.Frame(self.content, bg=self.skin["bg"])              # Traeger der Ueberschrift
-        kopf.pack(fill=tk.X, padx=10, pady=(10, 2))
-        tk.Label(kopf, text=titel, fg=self.skin["gold"], bg=self.skin["bg"],
-                 font=("Arial", 11, "bold")).pack(side=tk.LEFT)
-        tk.Label(kopf, text=zusatz, fg=self.skin["text"], bg=self.skin["bg"],
-                 font=("Arial", 9)).pack(side=tk.LEFT, padx=8)         # Anzahl daneben, nicht darunter
-        tk.Frame(self.content, height=1, bg=self.skin["border"]).pack(fill=tk.X, padx=10, pady=(0, 4))
-
-    def _lager_kachel(self, eltern, name: str, menge, symbol: str, zeile: int, spalte: int) -> None:
-        """EINE Kachel: fester Kasten, Symbol oben, Name zweizeilig, Zahl im eigenen Band unten.
-
-        `grid_propagate(False)` haelt die Kachel auf ihren Massen - ohne das zieht sich die Zelle
-        wieder auf ihren Inhalt und die Reihe wird ungleich (der Befund aus V_0.0.4). Das Band
-        unten ist bei JEDER Kachel gleich hoch, damit die Zahl nicht springt.
-        """
-        zelle = tk.Frame(eltern, bg=self.skin["panel"], width=LAGER_KACHEL_BREITE,
-                         height=LAGER_KACHEL_HOEHE, highlightthickness=1,
-                         highlightbackground=self.skin["border"])
-        zelle.grid(row=zeile, column=spalte, padx=LAGER_KACHEL_LUECKE // 2,
-                   pady=LAGER_KACHEL_LUECKE // 2, sticky="nsew")
-        zelle.grid_propagate(False)                                    # feste Masse behalten
-        zahlband = tk.Frame(zelle, bg=self.skin["topbar"], height=24)   # das Band der Zahl
-        zahlband.pack(side=tk.BOTTOM, fill=tk.X)                       # zuerst unten packen
-        zahlband.pack_propagate(False)                                 # gleiche Hoehe bei jeder Zahl
-        tk.Label(zahlband, text=self._lager_zahl(menge), fg=self.skin["gold"],
-                 bg=self.skin["topbar"], font=("Arial", 12, "bold")).pack(expand=True)
-        kasten = tk.Frame(zelle, bg=self.skin["panel"], width=LAGER_SYMBOL_BREITE,
-                          height=LAGER_SYMBOL_HOEHE)
-        kasten.pack(pady=(8, 2))                                       # Symbol oben, mittig
-        kasten.pack_propagate(False)                                   # gleicher Kasten ohne Bild
-        bild = self._lager_symbol(symbol)                              # None heisst: kein Bild
-        if bild is not None:
-            tk.Label(kasten, image=bild, bg=self.skin["panel"]).pack(expand=True)
-            kasten.bild = bild                                         # Referenz halten
-        else:
-            tk.Label(kasten, text="-", fg="#8a8a8a", bg=self.skin["panel"],
-                     font=("Arial", 12)).pack(expand=True)              # leerer Platz, gleiche Hoehe
-        tk.Label(zelle, text=name, fg=self.skin["text"], bg=self.skin["panel"],
-                 font=("Arial", 9), wraplength=LAGER_KACHEL_BREITE - 16, justify=tk.CENTER,
-                 height=2).pack(fill=tk.X)                              # Name fest zweizeilig
-
-    def _lager_raster(self, eltern, posten) -> int:
-        """Das ganze Raster eines Abschnitts; gibt die benutzte Spaltenzahl zurueck.
-
-        `columnconfigure(..., uniform=...)` ist der Kern der Sache: dadurch sind ALLE Spalten
-        gleich breit, auch wenn ein Name lang ist ("Magischer Paladinharnisch", "Grosse
-        Handelskarawane") - vorher machte genau so ein Name seine Spalte breiter.
-        """
-        spalten = self._lager_spalten()                                 # Spalten aus der Messung
-        for i in range(spalten):                                        # gleiche Spaltenbreite
-            eltern.columnconfigure(i, uniform="lagerkachel", minsize=LAGER_KACHEL_BREITE)
-        zeilen = (len(posten) + spalten - 1) // spalten if posten else 0
-        for i in range(zeilen):                                         # gleiche Zeilenhoehe
-            eltern.rowconfigure(i, minsize=LAGER_KACHEL_HOEHE)
-        for i, (name, menge, symbol) in enumerate(posten):              # jede Kachel an ihren Platz
-            self._lager_kachel(eltern, name, menge, symbol, i // spalten, i % spalten)
-        self._lager_spalten_ist = spalten                               # fuer den Nachlauf merken
-        return spalten
-
-    def _lager_kacheln_zeichnen(self) -> None:
-        """Beide Raster (Waren, Einheiten) aus dem Spielstand neu zeichnen.
-
-        Liest den Bestand aus `GameState` - keine zweite Kasse, keine eigene Rechnung. Wird beim
-        Aufbau der Ansicht und beim Nachziehen (Fensterbreite) gerufen.
-        """
-        rahmen_waren = getattr(self, "lager_waren_rahmen", None)       # die zwei Traeger
-        rahmen_einheiten = getattr(self, "lager_einheiten_rahmen", None)
-        if rahmen_waren is None or rahmen_einheiten is None:           # Ansicht (noch) nicht da
-            return
-        waren = [(str(k), v, WARE_ICONS.get(k, "")) for k, v in sorted(self.state.waren.items())]
-        einheiten = [(getattr(u, "name", str(k)), getattr(u, "count", 0), UNIT_ICONS.get(k, ""))
-                     for k, u in self.state.units.items()]
-        for rahmen, posten in ((rahmen_waren, waren), (rahmen_einheiten, einheiten)):
-            for kind in rahmen.grid_slaves():                          # alten Stand wegnehmen
-                try:
-                    kind.destroy()
-                except Exception:                                      # noqa: BLE001
-                    pass
-            self._lager_raster(rahmen, posten)                         # neue Kacheln setzen
-
-    def _lager_nachziehen(self, _ereignis=None) -> None:
-        """Das Kachelraster bei deutlicher Breitenaenderung neu setzen (B4).
-
-        Die Kachelmasse sind fest; nur die Spaltenzahl haengt an der Fensterbreite. Der Nachlauf
-        greift deshalb nur, wenn sich die Spaltenzahl wirklich aendern wuerde - sonst kosten
-        Fensterziehen und Scrollen Bilder umsonst.
-        """
-        rahmen_waren = getattr(self, "lager_waren_rahmen", None)
-        if rahmen_waren is None:                                       # Ansicht gewechselt
-            return
-        try:
-            if not rahmen_waren.winfo_exists():                        # schon zerstoert
-                return
-            breite = int(self.content_canvas.winfo_width())            # gemessene Breite
-        except Exception:                                              # noqa: BLE001
-            return
-        if breite < 240:                                               # noch nicht vermessen
-            return
-        if self._lager_spalten() == int(getattr(self, "_lager_spalten_ist", 0) or 0):
-            return                                                     # Spaltenzahl unveraendert
-        self._lager_kacheln_zeichnen()                                 # sonst neu setzen
-
     def _render_storage(self, eigener_titel: bool = True):
-        """Die LAGERVERWALTUNG des aktiven Ortes — seit S-2c steht sie IM DORFZENTRUM.
+        """Die Lagerverwaltung des aktiven Ortes - EINE Anzeige, zwei Wege (F-04).
 
-        Zwei Aufrufer, EINE Anzeige (F-04-Muster, keine zweite Rechen- oder Lesestelle):
-        `_render_overview` (Menuepunkt "Dorfzentrum") ruft sie mit `eigener_titel=False` auf -
-        dann kommt nur der Inhalt, die Seitenueberschrift setzt das Dorfzentrum. Die alte Route
-        "Lager" gibt es seit S-2c nicht mehr im Menue; sie bleibt technisch erreichbar
-        (tests/test_baseline.py besucht JEDE Route) und sagt hier offen, dass sie stillgelegt ist.
+        Seit dem Dorfzentrum-Umbau nach Nr. 16 (13.11.2026) zeigt diese Stelle DIESELBEN Raster
+        wie die Reiter im Dorfzentrum (`_dz_lager`, `_dz_werkstaetten`, `_dz_einheiten`): die
+        Kachelmasse und Spalten kommen aus `dorfzentrum.lager_masse`, nicht aus zwei Handlisten.
+        Aufrufer:
+          * der Menuepunkt "Dorfzentrum" - ueber `_render_overview` (dort als Reiter),
+          * die stillgelegte Route "Lager" (S-2c): sie sagt offen, dass sie aufgegangen ist, und
+            zeigt hier alle drei Bereiche untereinander (tests/test_baseline.py besucht JEDE Route).
         """
         if eigener_titel:
-            tk.Label(self.content, text="Lager — stillgelegt", font=("Blackletter", 20, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 5))
-            tk.Label(self.content, text="Dieser Menüpunkt ist am 01.11.2026 im Dorfzentrum aufgegangen (Schnitt S-2c: Das Dorfzentrum IST das Lager). Die Verwaltung steht unter „Dorfzentrum“ im Menü; hier bleiben nur die Bestände sichtbar.", fg="#FDBA74", bg=self.skin["bg"], wraplength=780, justify=tk.LEFT).pack(anchor=tk.W, padx=10)
-        else:
-            tk.Label(self.content, text="Lagerverwaltung dieses Dorfes:", font=("TkDefaultFont", 12, "bold"), fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(12, 0))
-            tk.Label(self.content, text="Bestand, Waren, Einheiten und Werkstätten des aktiven Ortes — eine Ansicht, keine zweite Kasse.", fg=self.skin["text"], bg=self.skin["bg"], wraplength=780, justify=tk.LEFT).pack(anchor=tk.W, padx=10)
-        # Teil 6: das LOKALE Lager des AKTIVEN Ortes — die Felder, die seit Teil 3a führen
-        # (`Settlement.vorraete/waren/einheiten/bevoelkerung`). Darunter steht weiter die
-        # Gesamtsicht (Reich) aus dem Übergangsbestand. Bis Teil 6 füllen sich diese lokalen
-        # Felder nur über Transport und Gründung — das steht hier ehrlich dabei, statt eine
-        # leere Liste als Spielinhalt auszugeben.
+            tk.Label(self.content, text="Lager — stillgelegt", font=("Blackletter", 20, "bold"),
+                     fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10,
+                                                                   pady=(10, 5))
+            tk.Label(self.content,
+                     text=("Dieser Menüpunkt ist am 01.11.2026 im Dorfzentrum aufgegangen (Schnitt "
+                           "S-2c: Das Dorfzentrum IST das Lager). Die Verwaltung steht unter "
+                           "„Dorfzentrum“ im Menü; hier bleiben die Bestände sichtbar."),
+                     fg="#FDBA74", bg=self.skin["bg"], wraplength=780,
+                     justify=tk.LEFT).pack(anchor=tk.W, padx=10)
+        # Dieselben Masse wie im Dorfzentrum - eine Rechnung, zwei Ansichten.
+        self._rollbalken_messen()
+        _breite, _hoehe = self._siedlungs_flaeche()
+        _ls = self._dz_zeilenhoehen()
+        _m = dorfzentrum.masse(_breite, _hoehe, float(getattr(self, "dpi_k", 1.0) or 1.0),
+                               rollbalken_breite(), tkopf=self._dz_kopfzeile(), ls=_ls or None)
+        self._dz_masse = _m
         _ort = self.state.aktive_siedlung()
-        if _ort is not None:
-            _bestand = tk.Frame(self.content, bg="#1B2A2F", highlightbackground="#7FD1FF",
-                                highlightthickness=1)
-            _bestand.pack(fill=tk.X, padx=10, pady=(8, 4))
-            tk.Label(_bestand, text=f"Ortslager der aktiven Siedlung: {_ort.name}",
-                     fg="#7FD1FF", bg="#1B2A2F", font=("Arial", 10, "bold"),
-                     anchor=tk.W).pack(anchor=tk.W, padx=8, pady=(6, 0))
-            tk.Label(_bestand, text=ortsbestand_text(_ort), fg="#C0C0C0", bg="#1B2A2F",
-                     wraplength=760, justify=tk.LEFT, font=("Arial", 9)).pack(anchor=tk.W, padx=8)
-            _waren_lokal = ", ".join(f"{k} {v}" for k, v in sorted((_ort.waren or {}).items())) or "keine"
-            _einh_lokal = ", ".join(f"{k} {v}" for k, v in sorted((_ort.einheiten or {}).items())) or "keine"
-            tk.Label(_bestand, text=f"Waren vor Ort: {_waren_lokal}", fg="#C0C0C0", bg="#1B2A2F",
-                     wraplength=760, justify=tk.LEFT, font=("Arial", 9)).pack(anchor=tk.W, padx=8)
-            tk.Label(_bestand, text=f"Einheiten vor Ort: {_einh_lokal}", fg="#C0C0C0", bg="#1B2A2F",
-                     wraplength=760, justify=tk.LEFT, font=("Arial", 9)).pack(anchor=tk.W, padx=8, pady=(0, 6))
-        else:
+        if _ort is None:
+            # Ohne Siedlung gibt es kein Ortslager - aber einen Weg dorthin (test_baseline
+            # besucht JEDE Route, auch diese, und erwartet eine benutzbare Ansicht).
             tk.Label(self.content, text="Noch keine Siedlung — es gibt (noch) kein Ortslager.",
-                     fg="#8a8a8a", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
-        # B4 (Daniel 12.11.2026: "besser aber immer noch nicht uebersichtlich und schoen genug
-        # gestaltet"): der Abschnitt heisst jetzt in Spielersprache, die Artenzahl steht daneben
-        # (statt des alten Entwicklertextes mit dem Dateinamen), und die Kacheln kommen aus
-        # `_lager_raster` - gleiche Masse, eigenes Zahlenband, grosses Symbol.
-        # Die alte Fliesstext-Zeile mit denselben Zahlen ist entfallen: sie zeigte den Bestand ein
-        # zweites Mal und war damit der Hauptgrund fuer den unruhigen Block.
-        _waren_summe = sum(v for v in self.state.waren.values() if isinstance(v, (int, float)))
-        self._lager_abschnitt("Waren im Lager",
-                              "%d Arten, %s Stück im Reichsbestand"
-                              % (len(self.state.waren), self._lager_zahl(_waren_summe)))
-        self.lager_waren_rahmen = tk.Frame(self.content, bg=self.skin["bg"])   # Traeger der Kacheln
-        self.lager_waren_rahmen.pack(fill=tk.X, padx=6, pady=(0, 6))
-        _einh_summe = sum(getattr(u, "count", 0) for u in self.state.units.values())
-        self._lager_abschnitt("Einheiten im Lager",
-                              "%d Arten, %s Stück im Reichsbestand"
-                              % (len(self.state.units), self._lager_zahl(_einh_summe)))
-        self.lager_einheiten_rahmen = tk.Frame(self.content, bg=self.skin["bg"])   # zweiter Traeger
-        self.lager_einheiten_rahmen.pack(fill=tk.X, padx=6, pady=(0, 6))
-        self._lager_kacheln_zeichnen()                                     # beide Raster aufbauen
-        if not getattr(self, "_lager_configure_gebunden", False):          # EINMAL binden, nicht je Aufbau
-            try:
-                self.content_canvas.bind("<Configure>", self._lager_nachziehen, add="+")
-                self._lager_configure_gebunden = True
-            except Exception:                                              # noqa: BLE001
-                pass
-
-        # Teil 6c: die Werkstaetten und ihre Warteschlangen liegen IM ORT
-        # (`Settlement.werkstaetten`), nicht mehr in einer reichsweiten Schlange. Gezeigt wird nur,
-        # was WIRKLICH auf der Karte DIESER Siedlung steht (`werkstatt.werkstaetten_bestand`), und
-        # die Uhr ist die Spieluhr (`state.spielsekunden`), nicht die Rechnerzeit — die Ware kommt
-        # in `ort_tick` an.
-        tk.Label(self.content, text="Werkstätten vor Ort:", fg=self.skin["gold"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(10, 0))
-        _bestand_ort = {k: v for k, v in (werkstatt.werkstaetten_bestand([_ort]) if _ort is not None
-                                         else {}).items() if v > 0}
-        if not _bestand_ort:
-            tk.Label(self.content, text="Noch keine Werkstatt gebaut — auf der Siedlungskarte bauen.",
-                     fg="#8a8a8a", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10)
-        levels = self.state.forschungs_stufen()          # A1: Stufen fuer die Knopf-Begruendung
-        for kennung in sorted(_bestand_ort):
-            schlange = ((_ort.werkstaetten or {}) if _ort is not None else {}).get(kennung)
-            _name = (schlange or werkstatt.neue_warteschlange(kennung, _bestand_ort[kennung])
-                     ).get("werkstatt")
-            rahmen = tk.Frame(self.content, bg=self.skin["panel"])
-            rahmen.pack(fill=tk.X, padx=10, pady=3)
-            tk.Label(rahmen, text=f"{_name} ({_bestand_ort[kennung]} Stück vor Ort)",
-                     fg=self.skin["text"], bg=self.skin["panel"], width=28, anchor=tk.W).pack(side=tk.LEFT, padx=5)
-            # A-1 (Daniels Spielbericht): EINE Stueckzahl je Werkstatt statt N Einzelklicks.
-            # Zahlfeld, -/+, Schieberegler und eine Vorschau, die je Ware dieselbe Zahl nennt,
-            # die der Kern annimmt.
-            _var = self._ware_menge_var(kennung)
-            _leiste = tk.Frame(self.content, bg=self.skin["bg"])
-            _leiste.pack(fill=tk.X, padx=18, pady=(0, 2))
-            _vorschau = tk.Label(_leiste, text="", fg="#C8A165", bg=self.skin["bg"],
-                                 font=("Arial", 9), anchor=tk.W, justify=tk.LEFT, wraplength=900)
-
-            def _neu(k=kennung, v=_var, lab=_vorschau):
-                _text, _warn = self._werkstatt_vorschau(
-                    k, self._menge_lesen(v, spieloekonomie.MENGEN_HOECHSTMENGE))
-                lab.config(text=_text, fg="#FDBA74" if _warn else "#C8A165")
-
-            tk.Label(_leiste, text="Stück:", fg="#C0C0C0", bg=self.skin["bg"],
-                     font=("Arial", 9)).pack(side=tk.LEFT)
-            self._mengen_feld(_leiste, _var, spieloekonomie.MENGEN_HOECHSTMENGE, _neu)
-            _vorschau.pack(side=tk.LEFT, padx=6)
-            for ware in werkstatt.waren_der_werkstatt(kennung):
-                erfuellt, grund = self.state.ware_voraussetzung(ware)
-                # A1 (05.11.2026): der gesperrte Knopf traegt seinen Grund IM TEXT - bisher war er
-                # nur grau, und die Begruendung stand erst im Sammelblock unter der Werkstatt.
-                # A1 (05.11.2026): der Bestand ist hier schon gezaehlt (`_bestand_ort`) - er wird
-                # mitgegeben, statt je Ware neu ueber die Siedlungskarte zu laufen.
-                _offen_w = [b for b in spieloekonomie.ware_bedingungen(
-                    _ort, ware, levels, _bestand_ort) if not b["erfuellt"]]
-                # Nahrungsnot sperrt auch die ANZEIGE (Spieltest 1, Register 305): dieselbe Stelle
-                # wie `_ware_herstellen_menge` - vorher blieb der Knopf hell und der Klick brach
-                # mit der Sperre ab. Der Grund steht dann IM Knopftext.
-                _sperre_w = self._nahrungssperre(_ort)
-                if _sperre_w:
-                    erfuellt = False
-                    _offen_w = [{"text": _sperre_w}]
-                _text_w = ware if not _offen_w else f"{ware}: {_offen_w[0]['text']}"
-                knopf = tk.Button(rahmen, text=_text_w,
-                                  command=lambda w=ware, k=kennung: self._ware_herstellen_menge(
-                                      w, self._menge_lesen(self._ware_menge_var(k),
-                                                           spieloekonomie.MENGEN_HOECHSTMENGE)),
-                                  bg="#3e2723" if erfuellt else "#4a4a4a",
-                                  fg=self.skin["gold"] if erfuellt else "#9e9e9e")
-                if not erfuellt:
-                    knopf.config(state=tk.DISABLED)
-                knopf.pack(side=tk.LEFT, padx=2)
-            _neu()
-            # F-04: JEDE Forschungsbedingung einzeln anzeigen (Register 68). Gezeigt werden nur
-            # Waren, denen wirklich etwas fehlt — sonst waere die Ansicht eine Litanei.
-            for ware in werkstatt.waren_der_werkstatt(kennung):
-                bedingungen = self.state.ware_voraussetzungen(ware)
-                if not bedingungen or all(b["erfuellt"] for b in bedingungen):
-                    continue
-                # A1 (05.11.2026): hinter die Bedingungen tritt der NAECHSTE SCHRITT der ersten
-                # offenen - Forschung mit Kosten und Dauer, aus derselben Rechnung wie der Kern.
-                _offen = [b for b in bedingungen if not b["erfuellt"]]
-                _zeile = ("    " + ware + ": "
-                          + " · ".join(self._ware_bedingung_text(b) for b in bedingungen))
-                if _offen:
-                    try:
-                        _zeile += " - dann: " + spieloekonomie.forschung_schritt(
-                            _offen[0]["gebiet"], int(_offen[0]["noetig"]), _ort)
-                    except (KeyError, TypeError, ValueError):
-                        pass
-                tk.Label(self.content, text=_zeile,
-                         fg="#C8A165", bg=self.skin["bg"], font=("Arial", 9),
-                         anchor=tk.W, justify=tk.LEFT, wraplength=900
-                         ).pack(anchor=tk.W, padx=24)
-            if schlange:
-                tk.Label(self.content,
-                         text="   " + werkstatt.fortschritt(schlange, self.state.spielsekunden)["text"],
-                         fg="#C0C0C0", bg=self.skin["bg"]).pack(anchor=tk.W, padx=12)
+                     fg="#8a8a8a", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(0, 4))
+            tk.Label(self.content, text="Eine Siedlung gruenden, dann stehen hier Waren, "
+                                        "Werkstaetten und Einheiten dieses Ortes.",
+                     fg=self.skin["text"], bg=self.skin["bg"], wraplength=780,
+                     justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 4))
+            tk.Button(self.content, text="Neue Siedlung gründen", command=self._found_settlement,
+                      bg="#3e2723", fg=self.skin["gold"]).pack(anchor=tk.W, padx=10)
+            return
+        self._dz_lager(self.content, _m, _ort)
+        self._dz_werkstaetten(self.content, _m, _ort)
+        self._dz_einheiten(self.content, _m, _ort)
 
     def _ware_menge_var(self, kennung: str):
         """Die Stueckzahl-Variable EINER Werkstatt (A-1) - einmal angelegt, dann wiederverwendet."""

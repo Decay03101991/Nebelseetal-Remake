@@ -260,15 +260,25 @@ def _ansicht():
           "eigener_titel" in signatur.parameters, str(signatur))
     check("der Vorgabewert ist True (direkter Aufruf zeigt den Vermerk)",
           signatur.parameters["eigener_titel"].default is True, str(signatur))
+    # ANGEPASST 13.11.2026 (Nr. 16, Teil A): Die Dorfzentrum-Ansicht ist jetzt eine Spalte mit
+    # sieben Bloecken und einer Arbeitsflaeche mit drei Reitern; der Reiter "Lager" zeigt die
+    # Lagerverwaltung ueber `_dz_lager`. Die ENTSCHEIDUNG D-07 (EINE Lageransicht) gilt
+    # unveraendert - darum wird geprueft, dass BEIDE Wege dieselbe Rasterfunktion benutzen,
+    # statt dass eine Methode die andere aufruft.
     rumpf = _code(main.NebelseetalApp._render_overview)
-    check("das Dorfzentrum ruft die Lagerverwaltung auf",
-          "_render_storage" in rumpf, rumpf[-400:])
-    check("der Aufruf traegt eigener_titel=False (keine zweite Seitenueberschrift)",
-          "eigener_titel=False" in rumpf, rumpf[-400:])
+    _bau = " ".join(_code(getattr(main.NebelseetalApp, _n))
+                    for _n in ("_render_overview", "_dz_arbeitsflaeche", "_dz_lager"))
+    check("das Dorfzentrum zeigt die Lagerverwaltung ueber `_dz_lager`",
+          "_dz_lager" in _bau, rumpf[-400:])
+    _lager_rumpf = _code(main.NebelseetalApp._render_storage)
+    check("die stillgelegte Route benutzt DIESELBE Rasterfunktion (eine Anzeige, zwei Wege)",
+          "_dz_lager" in _lager_rumpf and "_dz_werkstaetten" in _lager_rumpf, _lager_rumpf[-400:])
+    _ort_rumpf = " ".join(_code(getattr(main.NebelseetalApp, _n))
+                          for _n in ("_dz_block_ort", "_dz_block_aktionen"))
     check("die Dorfzentrum-Ansicht liest den Gebaeudestand ueber gebaeude_stufe",
-          'gebaeude_stufe' in rumpf, rumpf[-600:])
+          'gebaeude_stufe' in _ort_rumpf, _ort_rumpf[-600:])
     check("kein zweiter Lagerbestand: die Ansicht rechnet keine Vorraete selbst",
-          "vorraete" not in rumpf or "_render_storage" in rumpf, rumpf[-400:])
+          "vorraete" not in rumpf, rumpf[-400:])
     quelle = inspect.getsource(main.NebelseetalApp._render_storage)
     check("der alte Debug-Ausdruck ist entfernt",
           "[DEBUG] _render_storage" not in inspect.getsource(main), "der Ausdruck steht noch in main.py")

@@ -167,8 +167,32 @@ check("im Dorfzentrum ist die erste Flaeche die Hintergrund-Leinwand",
       _probe.get("Dorfzentrum", (False,))[0] is True, str(_probe.get("Dorfzentrum")))
 check("in der Forschung ebenso",
       _probe.get("Forschung", (False,))[0] is True, str(_probe.get("Forschung")))
-check("der Inhalt baut weiterhin seine Felder auf",
-      _probe.get("Dorfzentrum", (0, 0, 0))[2] > 5, str(_probe.get("Dorfzentrum")))
+# ANGEPASST 13.11.2026 (Nr. 16, Teil A): Das Dorfzentrum baut seine Felder jetzt IN einer
+# Leinwand (Spalte mit eigenem Rollbalken) und einer Arbeitsflaeche daneben - direkt unter
+# `content` liegen darum nur zwei Flaechen. Gezaehlt wird deshalb rekursiv; die Aussage bleibt
+# dieselbe: der Inhalt ist nicht leer, sondern baut seine Felder auf.
+def _zahl_widgets(widget) -> int:
+    return 1 + sum(_zahl_widgets(k) for k in widget.winfo_children())
+
+
+def _dz_probe_zahl():
+    import tkinter as tk
+    root = tk.Tk()
+    root.withdraw()
+    try:
+        app = M.NebelseetalApp(root)
+        app._build_main_ui()
+        app._erste_siedlung_gruenden()
+        app._switch_view("Dorfzentrum")
+        app.content.update_idletasks()
+        return _zahl_widgets(app.content)
+    finally:
+        root.destroy()
+
+
+_dz_zahl = _dz_probe_zahl()
+check("der Inhalt baut weiterhin seine Felder auf (Widgets im Dorfzentrum)",
+      _dz_zahl > 5, str(_dz_zahl))
 
 
 # ==========================================================================

@@ -78,7 +78,12 @@ class BegleitendeHilfeBleibtAus(unittest.TestCase):
         self.assertFalse(self.app.hilfe_rahmen.winfo_manager())
         self.assertEqual(self.app.state.admin_hilfe_modus, 'ausblenden')
         self.assertTrue(self.app.state.noob_protection)
-        self.assertIn('Siedlungen:', _beschriftungen(self.app.content))
+        # ANGEPASST 13.11.2026 (Nr. 16, Teil A): Die Siedlungsliste des alten Dorfzentrums ist
+        # durch den Block ORT ersetzt (Name, Umbenennen, Karte) - die Aussage bleibt dieselbe:
+        # die Ansicht zeichnet ihre Felder und nennt die Siedlung.
+        _texte = _beschriftungen(self.app.content)
+        self.assertIn('Ort:', _texte)
+        self.assertTrue(any('Siedlung 1' in str(t) for t in _texte), str(_texte)[:200])
 
     def test_admin_anzeigen_gilt_auch_nach_schutzende_und_navigation(self):
         self.app.state.noob_protection = False
