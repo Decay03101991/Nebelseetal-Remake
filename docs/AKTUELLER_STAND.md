@@ -1,3 +1,61 @@
+# STAND 13.11.2026, 12:2x — Spalte repariert, Prüfstand geschlossen, sechs Wappen im Spiel (Sitzung 44)
+
+> Sitzung 44, 13.11.2026. **Maßgeblich ist `git log -1`.** Arbeitsbaum leer, alles gepusht.
+>
+> **1. Das Dorfzentrum ist repariert — gemessen, nicht gezählt.** **F-89a** (Daniels Entscheidung
+> „grid mit weight auf Zeile 5“): `_dz_block` legt per `grid`, die Auswahlzeile hat `weight=1`,
+> `_dz_rest_verteilen` ist **entfallen** (es rechnete mit `winfo_reqheight()` eines Frames = 1).
+> **Vorher** in dieser Sitzung gemessen: `yview` (0.0, **0.614**), Blöcke 81/57/72/87/**536**/78 =
+> 959 px bei 589 Sichtfenster, Hinweis auf y = 873. **Nachher:** 81/57/72/87/**166**/78 = **589**,
+> `yview` (**0.0, 1.0**), Hinweis auf y = 503. **Neue Wache** `tests/test_dorfzentrum_geometrie.py`
+> (39/0/1) misst `winfo_height`, `yview` und die y-Lage jedes Blocks im GEBAUTEN Fenster — die alte
+> Wache war 44/44 grün, während die Spalte 370 px überlief.
+> **F-89c** („83 meint den INHALT“): Textblock-Untergrenze `max(50·k, …)`; Fall 1 bleibt 72, der
+> gemessene Fall 2 geht von 82 auf **83**.
+> **F-97**: das Lage-Band bricht jetzt an der GEMESSENEN Feldbreite um (132/105/133 zu 136/109/137)
+> — vorher feste 230 px, „keine läuft — die Bibliothek wartet“ war abgeschnitten; Auswahlblock
+> 662 → **399 px** `reqwidth`.
+> **F-96** (Daniel: „(a)“): der Aufgeben-Knopf trug den ganzen Grund im Text (**1018 px** bei 416
+> verfügbar). Jetzt „Aufgeben (gesperrt)“ + kurze Zeile (`GameState.aufgeben_grund_kurz`): Knopf
+> **151 px**, Aktionenblock 112, Auswahl **141** — Höhenbudget und Wachen unverändert.
+>
+> **2. Prüfstand geschlossen.** **F-80** acht Dateien auf `harness` (16 / **1286** / **650** / 31 / 44 /
+> 13 / **135** / **493** Prüfungen, jede einzeln grün, Gegenprobe gegen `HEAD` gleich). **F-82 ist
+> WIDERLEGT**: `test_gpt_originalkarten_historische_info` hat nicht 0 Prüfungen — sie heißt ihre
+> Zusicherung `ck(` statt `check(`, das Zählwerkzeug kannte das nicht; gemessen **650 Prüfungen, 0
+> Fehler**. **F-83**: neues Werkzeug `tools/pruefnamen_abgleich.py` rechnet die 90-Prozent-Regel auf
+> den GEPRÜFTEN GEGENSTAND (Bezeichner in der Bedingung, Jaccard ab 0,6): `test_ressourcenleiste`
+> **21,4 %** (vorher inhaltlich 9,5 %), die drei anderen 0 % / 22,7 % / 0 % — keiner erreicht 90 %.
+> **F-84**: 42 Namen gesichtet, 9 gedeckt, **33 offen**, nichts übertragen. **F-85**: drei Kandidaten
+> von der Streichliste. **F-81**: vier Paare zusammengelegt (5+7=12, 9+5=14, 13+6=19, 9+6=15, jede
+> Zieldatei vorher und nachher gefahren); **F-98** (Daniel): die vier Paare mit **gemischter Prüfart**
+> bleiben getrennt.
+>
+> **3. Sechs Hauswappen sind im Spiel** (F-90/F-92/F-93/F-94, Daniel: „auf gehts“). Motive aus
+> `docs/CHRONIK_DER_WELT_20261104.md` Teil 5, kostenlos über Pollinations erzeugt (402-Fehler mit
+> Wiederholung überwunden), je Bild mit `vision_analyze` geprüft. Aufbereitet: Wasserzeichen gemessen
+> und abgeschnitten, 5:7-Fenster, **300 × 420 RGBA** mit 6-px-Goldrand und abgerundeter Außenkante.
+> Dateien `assets/icons/wappen/haus_<haus>.png`. **Zuordnung erst jetzt geändert**, und zwar in
+> **BEIDEN** Datendateien (`bot_wappen.json` und `haeuser.json`) — die Wappen stehen zweimal, und
+> `test_haeuser_wappen` prüft sie gegeneinander (war zu Recht 6 × rot; eine Wache war zusätzlich auf
+> den alten Dateinamen festgenagelt und ist entnagelt). Wachen: `test_haeuser_wappen` **61/0/0**,
+> `test_bot_wappen` **26/0/1**. **Die Burgen sind unverändert — F-78 (welche Burg zu welchem Haus,
+> ob die Hausfarben folgen) bleibt offen.**
+>
+> **4. Offen und ehrlich benannt:** (a) Schattenfaust zeigt **keinen** blassen Vollmond, obwohl die
+> Chronik ihn nennt — Bild neu oder Chronik-Satz nachziehen, Daniels Wort; (b) ein Bildschirmfoto der
+> Karte mit **allen sechs** Paaren steht aus (der Portal-Dialog überdeckt sie, und ein Spielstand mit
+> Bot-Dörfern auf der Karte fehlt noch); (c) F-78, F-87/F-88, M3–M10, F-70, F-72/C3/C7 unverändert.
+>
+> **5. Sammellauf dieser Sitzung:** `docs/audits/sammellauf_20261113_1057.log` — **235 von 235 grün,
+> 0 rot**, 2 ausgesetzt, **237 Dateien, 12.278 Prüfungen, 0 Fehler, 97 Befunde, 1163 s**. Nach dem
+> Wappen-Eingriff lief die M2-Auswahl (8 Dateien, 12 s) vollständig grün; ein voller Lauf über die
+> Wappendaten steht noch aus.
+>
+> **Der Kopf ab hier ist der Stand von Sitzung 43** und bleibt als Chronik stehen.
+
+---
+
 # STAND 13.11.2026, 08:5x — Belegbilder geprüft, ein gemessener Spaltenfehler gefunden (Sitzung 43)
 
 > Sitzung 43, Morgen 13.11.2026. **Neu committet und gepusht; maßgeblich ist `git log -1`.** Kein
