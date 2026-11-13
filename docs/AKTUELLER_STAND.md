@@ -47,10 +47,11 @@
 > **4. Offen und ehrlich benannt:** (a) die Wappen warten auf ein echtes Bildmodell (Daniels Wort),
 > die sechs Versuche sind nur Beleg; (b) F-78, F-87/F-88, M3–M10, F-70, F-72/C3/C7 unverändert.
 >
-> **5. Sammellauf dieser Sitzung:** `docs/audits/sammellauf_20261113_1057.log` — **235 von 235 grün,
-> 0 rot**, 2 ausgesetzt, **237 Dateien, 12.278 Prüfungen, 0 Fehler, 97 Befunde, 1163 s**. Nach dem
-> Wappen-Eingriff lief die M2-Auswahl (8 Dateien, 12 s) vollständig grün; ein voller Lauf über die
-> Wappendaten steht noch aus.
+> **5. Sammellauf am Sitzungsende:** `docs/audits/sammellauf_20261113_1140.log` — **235 von 235 grün,
+> 0 rot**, 2 ausgesetzt, **237 Dateien, 12.278 Prüfungen, 0 Fehler, 97 Befunde, 1105 s** — gestartet
+> NACH dem Rückbau der Wappen, also der Stand, der jetzt im Spiel gilt. (Der Lauf um 10:57 mit 1163 s
+> war derselbe grüne Stand vor dem Rückbau; der Lauf mit dem Wappenstand wurde angehalten, nicht
+> als Beleg verwendet.)
 >
 > **Der Kopf ab hier ist der Stand von Sitzung 43** und bleibt als Chronik stehen.
 
