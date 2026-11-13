@@ -1,0 +1,161 @@
+﻿AUFTRAG: SECHS HAUSWAPPEN FUER NEBELSEETAL
+Stand 13.11.2026, Sitzung 44 — erstellt fuer Daniel Koessl
+
+=====================================================================
+1. WOFUER
+=====================================================================
+Das Spiel zeigt auf der Weltkarte an jedem Bot-Dorf das Wappen seiner
+Fraktion (klein, als Abzeichen unten rechts am Feld). Die sechs Wappen
+muessen deshalb bei kleinster Groesse (etwa 8 Pixel) noch unterscheidbar
+sein: klare Silhouette, zwei bis drei Farben, wenig Details.
+
+Die Motive sind FESTGELEGT durch die Chronik der Welt, Teil 5
+(docs/CHRONIK_DER_WELT_20261104.md). Sie sind nicht frei erfunden,
+sondern dort beschrieben. Nichts davon darf ohne Rueckfrage geaendert
+werden.
+
+=====================================================================
+2. TECHNISCHES FORMAT (genau)
+=====================================================================
+- Hochkant im Verhaeltnis 5:7, mindestens 750 x 1050 Pixel
+- Ein Wappen je Bild, mittig, das Motiv nimmt 80-90 % der Flaeche ein
+- Goldrand darf im Bild schon angelegt sein; ich lege ihn sonst exakt an
+- Hintergrund: dunkel (nicht weiss), damit das Abzeichen auf der Karte
+  sitzt und nicht als heller Kasten wirkt
+- KEIN Text, KEINE Buchstaben, KEINE Zahlen, KEIN Wasserzeichen
+- KEIN Helm und KEINE Helmzier (die Chronik sagt das ausdruecklich:
+  "Einen Helm und eine Helmzier fuehrt das Wappen nicht.")
+- Keine Menschen, keine Haende, keine modernen Gegenstaende
+- Dateiformat PNG oder JPG, volle Qualitaet
+
+Was ich danach mache (nicht Teil dieses Auftrags):
+  Freistellen (Alpha aussen), skalieren auf 300 x 420, 6-px-Goldrand,
+  Ablage als assets/icons/wappen/haus_<name>.png, Einbau in
+  data/bot_wappen.json UND data/haeuser.json, Wachen laufen lassen.
+
+=====================================================================
+3. GEMEINSAMER STILBAUSTEIN (in jeden Prompt)
+=====================================================================
+"medieval heraldic badge, painted, epic, dark background, ornate gold
+border, vertical portrait format, no text, no helmet"
+
+Der Stil soll ueber alle sechs gleich sein: gemalt, nicht fotografisch,
+mittelalterliche Heraldik, gedeckte Farben, Gold als Rahmen.
+
+=====================================================================
+4. DIE SECHS AUFTRAEGE
+=====================================================================
+
+--- 4.1 HAUS SILBERBACH (Menschen) — haus_silberbach.png
+Motiv:    eine goldene Krone, die ueber einem roten Banner steht,
+          von goldenem Lorbeer umschlossen
+Farben:   Rot und Gold (Hausfarben: Rot, Grau und Gold)
+Prompt:
+  medieval heraldic badge, a golden crown with three red gemstones above
+  a wine red banner, golden laurel wreath around it, wine red and gold,
+  deep dark background, ornate gold border, vertical portrait format,
+  painted, epic, no text, no helmet
+Muss zeigen: Krone, rotes Banner, Lorbeer
+Darf nicht:  Text, Helm, Menschen
+
+--- 4.2 HAUS HAMMERHALL (Zwerge) — haus_hammerhall.png
+Motiv:    ein Schmiedehammer ueber schneebedeckten Bergen,
+          darunter ein Knotenmuster
+Farben:   Grau, Schwarz und Gold (Hausfarben ebenso)
+Prompt:
+  medieval heraldic badge, a heavy smith's hammer above snow covered
+  mountain peaks, a woven knot pattern beneath, dark grey, black and gold,
+  deep dark background, ornate gold border, vertical portrait format,
+  painted, epic, no text, no helmet
+Muss zeigen: Hammer, Berggipfel, Knotenmuster
+Darf nicht:  Text, Helm, Amboss mit Schrift
+
+--- 4.3 HAUS STERNENWACHT (Elfen) — haus_sternenwacht.png
+Motiv:    eine silberne Mondsichel mit einem achtzackigen goldenen Stern,
+          umgeben von kleineren Sternen und Wolken
+Farben:   Weiss, Silber und Nachtblau (Hausfarben ebenso)
+Prompt:
+  medieval heraldic badge, a silver crescent moon with an eight pointed
+  golden star, smaller stars and thin clouds around it, white, silver and
+  night blue, deep dark background, ornate gold border, vertical portrait
+  format, painted, epic, no text, no helmet
+Muss zeigen: Mondsichel, achtzackiger Stern, kleinere Sterne
+Darf nicht:  Text, Helm, Gesichter
+
+--- 4.4 HAUS SCHATTENFAUST (Trolle) — haus_schattenfaust.png
+Motiv:    ein heulender Wolfskopf ueber schneebedeckten Bergen
+Farben:   Wappen: Nachtblau, Schwarz, Weiss, Gold
+          Hausfarben laut Chronik: Gruen, Schwarz und Gold
+          (hier ist eine Entscheidung noetig, siehe Punkt 8)
+Prompt:
+  medieval heraldic badge, a howling wolf head in profile above snow
+  covered mountain peaks, black, white and gold on night blue, deep dark
+  background, ornate gold border, vertical portrait format, painted, epic,
+  no text, no helmet
+Muss zeigen: Wolfskopf im Profil, offenes Maul, Berggipfel
+Darf nicht:  Text, Helm, Blut, Menschen
+
+--- 4.5 HAUS KNOCHENMOOR (Ghule) — haus_knochenmoor.png
+Motiv:    ein Rabe auf einem Ast vor einer Mondsichel, gotisch gerahmt
+Farben:   Violett und Schwarz, mit goldenen Akzenten
+          (Hausfarben ebenso)
+Prompt:
+  medieval heraldic badge, a black raven perched on a bare branch in front
+  of a crescent moon, gothic frame, violet and black with fine gold
+  accents, deep dark background, ornate gold border, vertical portrait
+  format, painted, epic, no text, no helmet
+Muss zeigen: Rabe, Ast, Mondsichel
+Darf nicht:  Text, Helm, Totenkopf, Knochen mit Schrift
+
+--- 4.6 HAUS FLICKWERK (Gnome) — haus_flickwerk.png
+Motiv:    eine steinerne Zinnenburg vor Bergen, goldene Akzente
+Farben:   Wappen: Grau und Schwarz mit Gold
+          Hausfarben laut Chronik: Eisblau, Weiss und Messing
+          (hier ist eine Entscheidung noetig, siehe Punkt 8)
+Prompt:
+  medieval heraldic badge, a stone castle with crenellated towers in front
+  of mountains, grey and black stone with fine gold accents, deep dark
+  background, ornate gold border, vertical portrait format, painted, epic,
+  no text, no helmet
+Muss zeigen: Burg mit Zinnen, Berge
+Darf nicht:  Text, Helm, Fahnen mit Zeichen
+
+=====================================================================
+5. LIEFERUNG
+=====================================================================
+- Je Haus 2 bis 3 Varianten, damit ich auswaehlen kann
+- Dateinamen: haus_silberbach_1.png, haus_silberbach_2.png, ... usw.
+- Ablage: D:\Arbeiten\Nebelseetal_Remake\docs\eingaenge\WAPPEN_20261113\
+- Insgesamt 12 bis 18 Bilder; nach der Auswahl brauche ich je Haus EINES
+
+=====================================================================
+6. ABNAHME (was ich pruefe, bevor ein Bild ins Spiel kommt)
+=====================================================================
+1. Motiv stimmt mit Punkt 4 ueberein (ich sehe mir jedes Bild an)
+2. Kein Text, kein Helm, kein Wasserzeichen
+3. Hochkant 5:7, mindestens 750 x 1050
+4. Bei 300 x 420 und bei 8 Pixeln noch erkennbar: Krone bleibt Krone etc.
+5. Die zwei bis drei Hauptfarben sind auf einen Blick unterscheidbar
+6. Das Bild ist nicht aelter als der Auftrag (Zeitstempel)
+
+=====================================================================
+7. KOSTEN
+=====================================================================
+FLUX 2 bei fal.ai: 0,012 USD je Megapixel, also rund 1,2 Cent je Bild.
+18 Bilder (3 Varianten je Haus) kosten rund 0,22 USD.
+Deckel: 0,50 USD. Vor dem ersten Aufruf hole ich deine Freigabe.
+
+=====================================================================
+8. OFFEN — HIER BRAUCHE ICH DEINE ENTSCHEIDUNG
+=====================================================================
+Bei zwei Haeusern passen Wappenfarbe und Hausfarbe nicht zusammen:
+- Schattenfaust (Trolle): Wappen nachtblau, Hausfarbe gruen-schwarz-gold
+- Flickwerk (Gnome):       Wappen grau,      Hausfarbe eisblau/weiss/messing
+
+Drei Wege:
+ (a) Das Wappen traegt die HAUSFARBEN (dann gruener Wolf / eisblaues
+     Schloss) und die Wappenbeschreibung in der Chronik wird angepasst.
+ (b) Die Hausfarben werden auf das Wappen gezogen (Nachtblau / Grau).
+ (c) So lassen: Wappen und Hausfarbe duerfen sich unterscheiden.
+
+Bis das entschieden ist, erzeuge ich diese zwei Haeuser NICHT.
