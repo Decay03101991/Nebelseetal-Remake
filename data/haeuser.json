@@ -1,5 +1,5 @@
 {
-  "stand": "2026-11-13",
+  "stand": "2026-11-05",
   "zweck": "EINE Quelle fuer die sechs Haeuser der Welt: Name, Volk, Heimatwelt, Hausfarben, Burg, Wappen und die Wappenbeschreibung. Die Chronik und dieses Spiel lesen dieselben Angaben; die Bilder sind Daniels Lieferung.",
   "quelle": "Hausnamen, Hausfarben und die Chronik-Texte stammen aus der Chronik der Welt (CHRONIK_DER_WELT.md); Burg und Wappen sind Daniels Bildpaket vom 01.11.2026 (archiv/eingaben/20261101_burgen_wappen), geschnitten nach assets/icons/. Die Bindung Volk -> Bild ist die Setzung aus data/bot_wappen.json (dort Aenderung vom 04.11.2026, Ringtausch der Wappen).",
   "urteil": "Die WAPPENBESCHREIBUNGEN sind am 05.11.2026 (W-15) auf die gelieferten Bilder umgeschrieben worden: die alten Saetze beschrieben Motive, die auf keinem der zehn Bilder stehen (Wellenbalken, Hechtkamm, Widderhoerner, Schwanenfluegel, Stierhoerner, Geierfaecher, Flickenmuster) und nannten einen Helm, den es nicht gibt. Jeder Satz ist jetzt aus dem Bild gelesen (vision_analyze, 05.11.2026) und nennt ausdruecklich, dass kein Helm gefuehrt wird.",
@@ -13,7 +13,7 @@
       "farben": "Weinrot und Gold",
       "sitz": "Burg Silberbach",
       "burg": "assets/icons/burgen/burg_01.png",
-      "wappen": "assets/icons/wappen/haus_silberbach.png",
+      "wappen": "assets/icons/wappen/wappen_04.png",
       "wappen_beschreibung": "Das Wappen führt Weinrot und Gold: eine goldene Krone, in deren Reif drei rote Rautensteine sitzen, auf weinrotem Grund; aus der Krone fällt ein rotes, goldgerändertes Tuch bis zur Schildspitze. Auf dem Rahmen steht oben eine goldene Lilie, links und rechts ranken goldene Lorbeerkränze. Einen Helm und eine Helmzier führt das Wappen nicht.",
       "wappen_kurz": "In Weinrot eine goldene Krone mit roten Rautensteinen, oben eine goldene Lilie, seitlich goldene Lorbeerkränze."
     },
@@ -24,7 +24,7 @@
       "farben": "Nachtblau, Grau und Gold",
       "sitz": "Tiefenfeste Hammerhall",
       "burg": "assets/icons/burgen/burg_02.png",
-      "wappen": "assets/icons/wappen/haus_hammerhall.png",
+      "wappen": "assets/icons/wappen/wappen_05.png",
       "wappen_beschreibung": "Das Wappen führt Nachtblau, Grau und Gold: ein steinerner Rundturm mit Zinnen, sein Fenster leuchtet warm, am Fuß öffnet sich ein dunkler Torbogen; hinter dem Turmfuß stehen zwei schneebedeckte Bergspitzen. Der goldene Rahmen schließt oben mit einem Zinnenmuster ab. Einen Helm und eine Helmzier führt das Wappen nicht.",
       "wappen_kurz": "In Nachtblau ein steinerner Rundturm mit leuchtendem Fenster, dahinter zwei schneebedeckte Gipfel, goldener Zinnenrahmen."
     },
@@ -35,7 +35,7 @@
       "farben": "Dunkelgrün und Gold",
       "sitz": "Turmstadt Silberlaub",
       "burg": "assets/icons/burgen/burg_03.png",
-      "wappen": "assets/icons/wappen/haus_sternenwacht.png",
+      "wappen": "assets/icons/wappen/wappen_03.png",
       "wappen_beschreibung": "Das Wappen führt Grün und Gold: ein goldener Hirschkopf im Profil, dessen vielzackiges Geweih über den oberen Schildrand hinauswächst, auf dunkelgrünem Grund; unten umschließt ein grüner Blattkranz mit goldenen Adern den Schild. Einen Helm und eine Helmzier führt das Wappen nicht.",
       "wappen_kurz": "In Dunkelgrün ein goldener Hirschkopf, das Geweih über den Schildrand ragend, unten ein grüner Blattkranz."
     },
@@ -46,7 +46,7 @@
       "farben": "Violett, Schwarz und Gold",
       "sitz": "Felsfeste Schattenfaust",
       "burg": "assets/icons/burgen/burg_04.png",
-      "wappen": "assets/icons/wappen/haus_schattenfaust.png",
+      "wappen": "assets/icons/wappen/wappen_02.png",
       "wappen_beschreibung": "Das Wappen führt Violett, Schwarz und Gold: ein schwarzer Rabe mit gelbem Auge auf einem kahlen Ast, hinter ihm ein blasser Vollmond; der Rahmen ist goldbronzen und zackig, unten hängen zerrissene violette Stoffbahnen herab. Einen Helm und eine Helmzier führt das Wappen nicht.",
       "wappen_kurz": "In Violett ein schwarzer Rabe auf kahlem Ast vor blassem Vollmond, zackiger Goldrahmen, unten violette Stoffbahnen."
     },
@@ -57,7 +57,7 @@
       "farben": "Blau, Silber und Gold",
       "sitz": "Sumpfzitadelle Knochenmoor",
       "burg": "assets/icons/burgen/burg_05.png",
-      "wappen": "assets/icons/wappen/haus_knochenmoor.png",
+      "wappen": "assets/icons/wappen/wappen_01.png",
       "wappen_beschreibung": "Das Wappen führt Blau, Silber und Gold: ein silberner Wolfskopf im Profil mit offenem Maul und goldenem Auge, darunter drei silberne Berggipfel; die goldene Einfassung trägt oben und unten je einen blauen Rautenstein, unten ranken goldene Lorbeerzweige. Einen Helm und eine Helmzier führt das Wappen nicht.",
       "wappen_kurz": "In Blau ein silberner Wolfskopf mit goldenem Auge über drei silbernen Berggipfeln, goldene Einfassung mit blauen Rautensteinen."
     },
@@ -68,7 +68,7 @@
       "farben": "Karminrot, Silber und Gold",
       "sitz": "schwimmende Insel Flickwerk",
       "burg": "assets/icons/burgen/burg_06.png",
-      "wappen": "assets/icons/wappen/haus_flickwerk.png",
+      "wappen": "assets/icons/wappen/wappen_06.png",
       "wappen_beschreibung": "Das Wappen führt Karminrot, Silber und Gold: zwei gekreuzte Schwerter mit silbernen Klingen, goldenen Parierstangen und roten, rautenförmig umwickelten Griffen; oben sitzt ein goldener vierzackiger Stern, seitlich ranken goldene Lorbeerzweige, unten fällt ein roter Behang mit Goldrand in eine Spitze. Einen Helm und eine Helmzier führt das Wappen nicht.",
       "wappen_kurz": "In Karminrot zwei gekreuzte Schwerter, oben ein goldener vierzackiger Stern, seitlich Lorbeerzweige."
     }

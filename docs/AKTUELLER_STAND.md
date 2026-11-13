@@ -31,21 +31,21 @@
 > Zieldatei vorher und nachher gefahren); **F-98** (Daniel): die vier Paare mit **gemischter Prüfart**
 > bleiben getrennt.
 >
-> **3. Sechs Hauswappen sind im Spiel** (F-90/F-92/F-93/F-94, Daniel: „auf gehts“). Motive aus
-> `docs/CHRONIK_DER_WELT_20261104.md` Teil 5, kostenlos über Pollinations erzeugt (402-Fehler mit
-> Wiederholung überwunden), je Bild mit `vision_analyze` geprüft. Aufbereitet: Wasserzeichen gemessen
-> und abgeschnitten, 5:7-Fenster, **300 × 420 RGBA** mit 6-px-Goldrand und abgerundeter Außenkante.
-> Dateien `assets/icons/wappen/haus_<haus>.png`. **Zuordnung erst jetzt geändert**, und zwar in
-> **BEIDEN** Datendateien (`bot_wappen.json` und `haeuser.json`) — die Wappen stehen zweimal, und
-> `test_haeuser_wappen` prüft sie gegeneinander (war zu Recht 6 × rot; eine Wache war zusätzlich auf
-> den alten Dateinamen festgenagelt und ist entnagelt). Wachen: `test_haeuser_wappen` **61/0/0**,
-> `test_bot_wappen` **26/0/1**. **Die Burgen sind unverändert — F-78 (welche Burg zu welchem Haus,
-> ob die Hausfarben folgen) bleibt offen.**
+> **3. Wappen: sechs Versuche gebaut, vom Daniel ABGELEHNT, Spielstand zurueckgesetzt.** Auf sein "auf gehts" hin
+> wurden sechs Wappen nach der Chronik erzeugt (Pollinations, kostenlos) und — ueber BEIDE Datendateien
+> (`bot_wappen.json` und `haeuser.json`, die der Test gegeneinander prueft) — zugeordnet. **Daniel danach:
+> "nein bitte hoer auf sowas zu designen dafuer brauchen wir die richtige KI".** Also: `bot_wappen.json`,
+> `haeuser.json` und die Wache `test_haeuser_wappen` sind auf den Stand `0f7f91f` **zurueckgesetzt** (die
+> alten Paare `wappen_01..10` gelten wieder, es gibt keine Luecke), und die sechs Bilder liegen **nicht mehr
+> in `assets/`**, sondern als Beleg in `docs/audits/wappen_proben_20261113/versuche_20261113/`.
+> **Lehre:** ein kostenloser Bilddienst liefert keine Spielgrafik — die Wappen brauchen ein richtiges
+> Bildmodell (Daniels Wort), und der Auftrag dafuer kommt von ihm. Die Chronik-Beschreibungen in
+> `data/haeuser.json` bleiben die Vorgabe. **Wachen nach dem Rueckbau:** `test_haeuser_wappen` 61/0/0,
+> `test_bot_wappen` 26/0/1, `test_textqualitaet` 496/0/0, `test_projektpfade` 135/0/0.
+> **Burgen unveraendert; F-78 (welche Burg zu welchem Haus, ob die Hausfarben folgen) bleibt offen.**
 >
-> **4. Offen und ehrlich benannt:** (a) Schattenfaust zeigt **keinen** blassen Vollmond, obwohl die
-> Chronik ihn nennt — Bild neu oder Chronik-Satz nachziehen, Daniels Wort; (b) ein Bildschirmfoto der
-> Karte mit **allen sechs** Paaren steht aus (der Portal-Dialog überdeckt sie, und ein Spielstand mit
-> Bot-Dörfern auf der Karte fehlt noch); (c) F-78, F-87/F-88, M3–M10, F-70, F-72/C3/C7 unverändert.
+> **4. Offen und ehrlich benannt:** (a) die Wappen warten auf ein echtes Bildmodell (Daniels Wort),
+> die sechs Versuche sind nur Beleg; (b) F-78, F-87/F-88, M3–M10, F-70, F-72/C3/C7 unverändert.
 >
 > **5. Sammellauf dieser Sitzung:** `docs/audits/sammellauf_20261113_1057.log` — **235 von 235 grün,
 > 0 rot**, 2 ausgesetzt, **237 Dateien, 12.278 Prüfungen, 0 Fehler, 97 Befunde, 1163 s**. Nach dem
