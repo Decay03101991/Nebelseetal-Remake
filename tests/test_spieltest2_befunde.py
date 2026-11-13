@@ -78,7 +78,11 @@ def _funk(name):
 # das Dorfzentrum nennt nur den Zustand und den Weg, die ganze Anzeige steht auf der Karte.
 abschnitt("1. Der Wall steht in der Siedlungskarte unter Verteidigung (Test 3, Note 3)")
 
-_uebersicht = _funk("_render_overview")
+# ANGEPASST 13.11.2026 (Nr. 16 Teil A): Der Wall-Zustand und der Weg in die Karte stehen jetzt im
+# Block AKTIONEN der Spalte (`_dz_block_aktionen`), nicht mehr im Rumpf von `_render_overview`.
+# Die ENTSCHEIDUNG ist dieselbe - das Dorfzentrum nennt Zustand und Weg, die ganze Anzeige steht
+# auf der Karte -, nur der Aufrufort ist umgezogen.
+_uebersicht = _funk("_render_overview") + " " + _funk("_dz_block_aktionen")
 _wallblock = _funk("_wall_block")
 _karte = _funk("_render_settlement_map")
 check("das Dorfzentrum nennt den Dorfwall weiter", "Dorfwall" in _uebersicht or "_wall_kurztext(" in _uebersicht)

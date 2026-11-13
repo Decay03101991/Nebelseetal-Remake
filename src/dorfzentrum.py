@@ -33,9 +33,11 @@ from typing import Any, Dict, List, Optional
 # Die Grundwerte (F-56 und Nr. 16, Abschnitt 0)
 # ---------------------------------------------------------------------------------------------
 KLEINTEXT_PX = 15           # F-56: Kleintext ist ABSOLUT 15 px - nicht `schrift(15)` (das waeren 19)
-P_FAKTOR = 8                # p = round(8k): Innenabstand und Luecke zwischen zwei Bloecken
-G_FAKTOR = 6                # g = round(6k): Abstand Symbol - Text
-S_MIN_FAKTOR = 316          # S_min = round(316k): Wunschbreite der Spalte
+# Quelle der drei Faktoren: Antwort Nr. 16, Teil A1 (Register 555 nachgerechnet) - belegt, keine
+# ANNAHME. Sie sind der Anteil, der mit k waechst (Nr. 14, R1).
+P_FAKTOR = 8                # p = round(8k): Innenabstand und Luecke; belegt (Nr. 16, A1)
+G_FAKTOR = 6                # g = round(6k): Abstand Symbol - Text; belegt (Nr. 14, R1)
+S_MIN_FAKTOR = 316          # S_min = round(316k): Wunschbreite; belegt (Nr. 14, R2)
 FELD_MAX = 64               # groesser wird ein Kartenfeld nie (Originalmass)
 LEISTE = 18                 # Koordinatenleiste der Karte
 LS_KLEIN, LS_ZW, LS_TITEL = 15, 18, 24   # Grundzeilenhoehen (mal k) aus Nr. 14, Abschnitt 0

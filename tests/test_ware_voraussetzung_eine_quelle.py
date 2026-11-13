@@ -250,7 +250,11 @@ def main_lauf():
           "ware_voraussetzungen_liste(" in _code(spieloekonomie.ware_voraussetzung),
           einheit_code[:120])
 
-    ansicht = [n for n in dir(main.NebelseetalApp) if n.startswith("_render_")]
+    # ANGEPASST 13.11.2026 (Nr. 16 Teil A): Die Bedingungen einer Ware stehen seit dem Umbau im
+    # Auswahl-Block des Dorfzentrums (`_dz_auswahl_werkstatt`) - die Dorfzentrum-Methoden heissen
+    # jetzt `_dz_*`. Die Aussage bleibt: EINE Ansicht zeigt sie einzeln.
+    ansicht = [n for n in dir(main.NebelseetalApp)
+               if n.startswith("_render_") or n.startswith("_dz_")]
     treffer = []
     for name in ansicht:
         try:

@@ -9489,9 +9489,13 @@ class NebelseetalApp:
             return rollbalken_breite()
         probe = None
         try:
+            # KEIN `self.content.update_idletasks()` (Fehler vom 13.11.2026): das vermisst das
+            # GANZE Fenster. Seit das Dorfzentrum diese Messung beim Aufbau ausloest, war danach
+            # jede spaetere Ansicht "vermisssen" - Portal-Kopfband und Weltkarte rechneten mit
+            # 1037 statt 1 px und wurden zu gross (780 -> 1037, 400 -> 440). Die Anforderungs-
+            # breite eines Scrollbalkens kennt Tk auch ohne Update.
             probe = tk.Scrollbar(self.content, orient=tk.VERTICAL)
             probe.pack()
-            self.content.update_idletasks()
             breite = int(probe.winfo_reqwidth()) or int(probe.winfo_width())
             if breite > 0:
                 rollbalken_breite(breite)
@@ -10769,9 +10773,13 @@ class NebelseetalApp:
         """
         probe = None
         try:
+            # KEIN `update_idletasks()` auf `self.content` (Fehler vom 13.11.2026): das vermisst
+            # auch das ganze Fenster und aendert damit die Messlage JEDER spaeteren Ansicht - bei
+            # `withdraw()`-Fenstern (Pruefdateien) sprang die Inhaltsbreite von 1 auf 1037, und
+            # Portal-Kopfband und Weltkarte rechneten danach mit der falschen Breite. Die
+            # Anforderungshoehe eines Labels steht ohne Update.
             probe = tk.Label(self.content, text="Ware  Werkstatt  Zutat  Zustand",
                              font=self.schriftart(13, fett=True))
-            self.content.update_idletasks()
             hoehe = int(probe.winfo_reqheight())
             return hoehe or None
         except Exception:                                          # noqa: BLE001
@@ -10899,10 +10907,8 @@ class NebelseetalApp:
         rahmen = (getattr(self, "_dz_block_rahmen", {}) or {}).get("auswahl")
         if rahmen is None:
             return
-        try:
-            self.content.update_idletasks()
-        except Exception:                                          # noqa: BLE001
-            pass
+        # KEIN `self.content.update_idletasks()` hier - siehe `_dz_kopfzeile`: es vermisst das
+        # ganze Fenster und legt die Breite fuer alle folgenden Ansichten fest.
         _luecken = len(self._dz_block_rahmen) * int(m.get("p") or 8)
         _verbraucht = 0
         for _name, _block in self._dz_block_rahmen.items():
@@ -10952,6 +10958,20 @@ class NebelseetalApp:
         tk.Label(block, text=_zeile, fg=SPALTE_CREME, bg=block.cget("bg"),
                  font=self.schriftart(13), anchor=tk.W, justify=tk.LEFT,
                  wraplength=int(m["textbreite"]), padx=int(m["p"])).pack(fill=tk.X, pady=(0, 2))
+        # Siedlergrenze und Zuwachs - DIESELBE Stufenkarte wie der Kern (`_stufen`), damit die
+        # Anzeige nicht 1 Siedler/Stunde sagt, waehrend der Takt 1,5 bucht (F-04-Muster).
+        _grenze = gebaeude_wirkung.bevoelkerungsgrenze(self.state.settlements)
+        _stufen = self.state.forschungs_stufen()
+        _zuwachs = gebaeude_wirkung.siedler_zuwachs_pro_stunde(self.state.settlements, _stufen)
+        _bewohnt = int(self.state.population)
+        _ueber = _bewohnt > _grenze
+        _heim = forschung_wirkung.siedler_bonus_prozent(_stufen)   # EINE Rechenstelle
+        tk.Label(block, text="Siedler %d von %d · Zuwachs %g/Stunde%s"
+                 % (_bewohnt, _grenze, _zuwachs,
+                    (", inkl. Heilkunde +%g %%" % _heim) if int(_stufen.get("Heilkunde", 0) or 0) else ""),
+                 fg=SPALTE_WARNUNG if _ueber else SPALTE_CREME, bg=block.cget("bg"),
+                 font=self._dz_klein(), anchor=tk.W, justify=tk.LEFT,
+                 wraplength=int(m["textbreite"])).pack(fill=tk.X, padx=int(m["p"]), pady=(0, 2))
         # A2 (05.11.2026): das gewaehlte Volk bleibt sichtbar (der Spieler soll wissen, wer er
         # ist) - eine Zeile, die Werte kommen aus `bottaktik.volksattribute`, nicht aus dem Code.
         _volk = str(getattr(self.state, "spieler_fraktion", "") or "")
@@ -11029,6 +11049,16 @@ class NebelseetalApp:
                  bg=block.cget("bg"), font=self._dz_klein(), anchor=tk.W, justify=tk.LEFT,
                  wraplength=int(m["textbreite"])).pack(fill=tk.X, padx=int(m["p"]),
                                                        pady=(0, 2))
+        # Frage 9 (Daniel 05.11.2026): welche Seiten decken die Ruinen DIESER Siedlung? Die Zeile
+        # erscheint nur bei echter Deckung - gerechnet von `ruinendeckung`, nicht in der Ansicht.
+        _deckung = ruinendeckung.deckung_text(
+            str(getattr(self.state.aktive_siedlung(), "name", "") or "Der Ort"),
+            self.state.ruinendeckungen())
+        if _deckung:
+            tk.Label(block, text=_deckung, fg="#8FE388", bg=block.cget("bg"),
+                     font=self._dz_klein(), anchor=tk.W, justify=tk.LEFT,
+                     wraplength=int(m["textbreite"])).pack(fill=tk.X, padx=int(m["p"]),
+                                                           pady=(0, 2))
 
     # ---------- Block 4: Aktionen ----------
 
@@ -11058,6 +11088,12 @@ class NebelseetalApp:
         _knopf(_z1, "Wall verwalten",
                (lambda o=ort: self._oeffne_verteidigung(o)) if ort is not None else (lambda: None),
                gesperrt=ort is None or not self.state._lokale_kasse_aktiv())
+        # Daniels Spieltest 3 (Note 3): die GANZE Wallpflege steht auf der Siedlungskarte, hier
+        # nennt das Dorfzentrum nur den Zustand und den Weg (`_wall_kurztext`).
+        if ort is not None and self.state._lokale_kasse_aktiv():
+            tk.Label(block, text=self._wall_kurztext(ort), fg=SPALTE_GOLD, bg=_farbe,
+                     font=self._dz_klein(), anchor=tk.W, justify=tk.LEFT,
+                     wraplength=int(m["textbreite"])).pack(fill=tk.X, padx=int(m["p"]), pady=(0, 2))
         _z2 = tk.Frame(block, bg=_farbe)
         _z2.pack(fill=tk.X, padx=int(m["p"]), pady=(0, 2))
         # Neue Siedlung gruenden: der Knopf der Startseite (test_startspiel drueckt ihn HIER).
@@ -11177,6 +11213,27 @@ class NebelseetalApp:
             tk.Label(block, text="kein Rezept — dieses Gut kommt als Beute",
                      fg=SPALTE_CREME, bg=_farbe, font=self._dz_klein(), anchor=tk.W).pack(
                          fill=tk.X, padx=int(m["p"]))
+        # F-04: JEDE Forschungsbedingung einzeln anzeigen (Register 68) - der Text kommt aus
+        # `_ware_bedingung_text`, die offene Bedingung nennt dazu den naechsten Forschungsschritt.
+        for _b in self.state.ware_voraussetzungen(_ware):
+            if _b.get("erfuellt"):
+                continue
+            _zeile = self._ware_bedingung_text(_b)
+            try:
+                _zeile += " - dann: " + spieloekonomie.forschung_schritt(
+                    _b["gebiet"], int(_b["noetig"]), ort)
+            except (KeyError, TypeError, ValueError):
+                pass
+            tk.Label(block, text=_zeile, fg=SPALTE_CREME, bg=_farbe, font=self._dz_klein(),
+                     anchor=tk.W, justify=tk.LEFT, wraplength=int(m["textbreite"])).pack(
+                         fill=tk.X, padx=int(m["p"]))
+        # Nahrungsnot sperrt auch das Herstellen (Spieltest 1, Register 305) - dieselbe Stelle
+        # wie `_ware_herstellen_menge`, der Grund steht im Text.
+        _sperre = self._nahrungssperre(ort)
+        if _sperre:
+            tk.Label(block, text="gesperrt: " + _sperre, fg=SPALTE_WARNUNG, bg=_farbe,
+                     font=self._dz_klein(), anchor=tk.W, justify=tk.LEFT,
+                     wraplength=int(m["textbreite"])).pack(fill=tk.X, padx=int(m["p"]))
         _moeglich = int((_grenzen or {}).get("moeglich") or 0)
         _hindernis = str((_grenzen or {}).get("hindernis") or "")
         tk.Label(block, text=("möglich jetzt: " + dorfzentrum.zahl_text(_moeglich))
@@ -11199,7 +11256,7 @@ class NebelseetalApp:
             highlightbackground="#b8862e", bd=0, padx=int(m["p"]), pady=1,
             command=lambda w=_ware: self._ware_herstellen_menge(
                 w, self._menge_lesen(_var, spieloekonomie.MENGEN_HOECHSTMENGE)))
-        if _hindernis or ort is None:
+        if _hindernis or ort is None or _sperre:
             _herstellen.config(state=tk.DISABLED)
         _herstellen.pack(side=tk.LEFT)
 
@@ -11379,7 +11436,12 @@ class NebelseetalApp:
                 except (TypeError, KeyError, ValueError):
                     _grenzen = {}
             _moeglich = int((_grenzen or {}).get("moeglich") or 0)
-            _herstellbar = _moeglich > 0 and not (_grenzen or {}).get("hindernis")
+            _hindernis = str((_grenzen or {}).get("hindernis") or "")
+            _herstellbar = _moeglich > 0 and not _hindernis
+            # Nr. 13/F-04: eine gesperrte Zeile traegt ihren Grund IM TEXT - vorher war sie nur
+            # grau, und der Grund stand erst im Sammelblock. Der ausfuehrliche Grund steht links
+            # im Auswahl-Block, hier steht das Wort, damit die Zeile sich selbst erklaert.
+            _ware_text = _ware if not _hindernis else "%s: gesperrt" % _ware
             _zutat = "—"
             if _kosten:
                 _roh, _menge = sorted(_kosten.items())[0]
@@ -11389,7 +11451,7 @@ class NebelseetalApp:
                               height=int(_k["zeile"]))
             _zeile.pack(fill=tk.X)
             _zeile.pack_propagate(False)
-            self._dz_zelle(_zeile, m, int(_k["name"]), _ware, SPALTE_CREME)
+            self._dz_zelle(_zeile, m, int(_k["name"]), _ware_text, SPALTE_CREME)
             self._dz_zelle(_zeile, m, int(_k["werkstatt"]), str(_name), SPALTE_CREME)
             self._dz_zelle(_zeile, m, int(_k["zutat"]), _zutat, SPALTE_CREME)
             self._dz_zelle(_zeile, m, int(_k["zustand"]), dorfzentrum.zustand_text(_herstellbar),
@@ -14883,13 +14945,19 @@ class NebelseetalApp:
             # besucht JEDE Route, auch diese, und erwartet eine benutzbare Ansicht).
             tk.Label(self.content, text="Noch keine Siedlung — es gibt (noch) kein Ortslager.",
                      fg="#8a8a8a", bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(0, 4))
-            tk.Label(self.content, text="Eine Siedlung gruenden, dann stehen hier Waren, "
-                                        "Werkstaetten und Einheiten dieses Ortes.",
+            tk.Label(self.content, text="Eine Siedlung gründen, dann stehen hier Waren, "
+                                        "Werkstätten und Einheiten dieses Ortes.",
                      fg=self.skin["text"], bg=self.skin["bg"], wraplength=780,
                      justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 4))
             tk.Button(self.content, text="Neue Siedlung gründen", command=self._found_settlement,
                       bg="#3e2723", fg=self.skin["gold"]).pack(anchor=tk.W, padx=10)
             return
+        # Nahrungsnot sperrt die Herstellung (Spieltest 1, Register 305): EINE Pruefstelle fuer
+        # die ganze Lagerverwaltung, nicht je Knopf eine eigene Frage.
+        _sperre = self._nahrungssperre(_ort)
+        if _sperre:
+            tk.Label(self.content, text="gesperrt: " + _sperre, fg="#FDBA74", bg=self.skin["bg"],
+                     wraplength=780, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(0, 2))
         self._dz_lager(self.content, _m, _ort)
         self._dz_werkstaetten(self.content, _m, _ort)
         self._dz_einheiten(self.content, _m, _ort)
