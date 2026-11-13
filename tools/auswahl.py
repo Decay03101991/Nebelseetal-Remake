@@ -47,7 +47,7 @@ META = ("test_pruefstand_kopf.py", "test_textqualitaet.py", "test_projektpfade.p
         "test_m12_laeufe.py", "test_rot_historie.py", "test_faktenblatt.py")
 T4 = ("test_produktionskette_ohne_cheats.py", "test_durchspiel.py", "test_overlay_ingame.py",
       "test_doppelpuffer.py", "test_bot_gruendung.py", "test_bot_takt_scheiben.py",
-      "test_bot_warenkette.py", "test_kaserne_ohne_gebaeude.py")
+      "test_bot_warenkette.py", "test_kaserne_ohne_gebaeude.py", "test_e2e_wege.py")
 HUB_GRENZE = 25
 DECKEL_SEKUNDEN = 120.0
 STUFE_META = 1

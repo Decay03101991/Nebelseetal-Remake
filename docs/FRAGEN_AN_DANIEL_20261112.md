@@ -101,3 +101,17 @@ stammen nach seiner Auskunft aus **deiner** Beschreibung der Burgbilder.
 **Auswirkung:** T4 dauert heute rund 20 Minuten (1.216 s für alle 238 Dateien). Mit `test_e2e_wege` als neunter Datei wird der Lauf vor einer EXE kaum länger (die Datei läuft dort ohnehin mit), aber sie wird **bewusst** Teil der verbindlichen Stufe statt „irgendwo in T3“.
 
 **Vorschlag:** `test_e2e_wege` als **neunte** Datei nach T4 (F-67 nennt acht — deshalb frage ich). Die Stufe selbst bleibt HART vor jeder EXE.
+
+---
+
+## ANTWORTEN (Daniel, 13.11.2026, einzeln gestellt und angeklickt)
+
+| # | Frage | Antwort | Folge |
+|---|---|---|---|
+| 1 | DPI-Umbau | **„Scharf und gut — so lassen“** | F-73: F-51 bleibt endgültig. Bilder im Chat gezeigt, danach entschieden. |
+| 2 | Prüfdateien löschen | **„Nichts löschen — erst Prüfnamen-Abgleich je Datei“** | F-74: F-67 bleibt; Streichen nur mit Antrag und ≥ 90 % Abdeckung. |
+| 3 | 46 alte Dateien sichten | **„ja und prüfe dabei ob sie so wie sie prüfen noch brauchbar sind oder geändert werden müssen oder irgendwo sinnvoll integriert werden können“** | F-75: Sichtung mit DREI Urteilen je Datei (brauchbar / ändern / integrieren), Tabelle vorlegen. |
+| 4 | `main:*` in den Köpfen | **„So lassen — beim Anfassen verengen“** | F-76: Übergangsform bleibt. |
+| 5 | Werkstatt je Rezept | **„Es gibt ja keine werkstatt an sich … Ingame gibt es Menüpunkte für diese Werkstätten als Bogenmacher oder Schmiede … kein menüpunkt werkstatt oder werkstätten nötig“** | F-77: **kein Menüpunkt „Werkstätten“**; nur die Gebäude (Schmiede, Bogenbauer, Nähstube). Das Rezeptfeld bleibt auf die Gebäude-Kennung bezogen. |
+| 6 | Völkerfarben | **„Die burgbilder kann ich vorerst nicht ersetzen aber das ist der einzige grund warum ich sie festlege. Heißt es muss geschichte und stil den burgen angepasst werden. Auch Wappen usw“** | F-78: **Burgbilder sind fest**; Geschichte, Stil **und Wappen** werden ihnen angepasst. `FRAKTIONEN_WELTEN.md` in dieser Sitzung angepasst (Trolle weiß-gold, Ghule violett). |
+| 7 | `test_e2e_wege` nach T4 | **„Ja — als neunte Datei nach T4“** | F-79: gebaut — T4 hat jetzt neun Dateien, `PRUEF_STUFE = 4`. |

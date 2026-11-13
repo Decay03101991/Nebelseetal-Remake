@@ -50,7 +50,7 @@ from __future__ import annotations
 # Gelesen von harness.kopf_lesen und tools/auswahl.py. Vorschlag aus Paket 15b
 # (gemessene Art und Dauer des Sammellaufs). Beim Anfassen der Datei genauer machen.
 PRUEF_ART = "fenster"
-PRUEF_STUFE = 3
+PRUEF_STUFE = 4
 PRUEF_BETRIFFT = ['auftraege', 'diplomatie', 'dorfwall', 'einheiten', 'forschung', 'forschungspfad', 'gebaeude_wirkung', 'gelaende', 'kampf', 'main:*', 'portalraum', 'punkte']
 PRUEF_DATEN = ['buildings.json', 'resources.json', 'verwundete.json', 'welten.json']
 # --- Ende Pruefstand-Kopf -------------------------------------------------------

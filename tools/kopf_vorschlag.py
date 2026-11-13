@@ -18,7 +18,7 @@ Stufe (Startregel aus Nr. 16, M1 Punkt c):
   1 = rechnen/quelltext unter 2 s
   2 = fenster bis 20 s oder rechnen ab 2 s
   3 = alles Uebrige
-  4 = die acht T4-Dateien (vor jeder EXE und woechentlich)
+  4 = die neun T4-Dateien (vor jeder EXE und woechentlich)
 
 Aufruf:
   python -X utf8 tools/kopf_vorschlag.py --pruefen            # nur zeigen, nichts schreiben
@@ -42,7 +42,7 @@ FELDER = ("PRUEF_ART", "PRUEF_STUFE", "PRUEF_BETRIFFT", "PRUEF_DATEN")
 # Die acht langen Dateien (Claude, Nr. 16, Punkt 7) - sie laufen nur vor einer EXE und woechentlich.
 T4 = ("test_produktionskette_ohne_cheats.py", "test_durchspiel.py", "test_overlay_ingame.py",
       "test_doppelpuffer.py", "test_bot_gruendung.py", "test_bot_takt_scheiben.py",
-      "test_bot_warenkette.py", "test_kaserne_ohne_gebaeude.py")
+      "test_bot_warenkette.py", "test_kaserne_ohne_gebaeude.py", "test_e2e_wege.py")
 
 
 def paket_lesen(pfad: str = PAKET) -> list:

@@ -183,7 +183,8 @@ for zeile in _paket:
 print("  ... Startstufen ueber 230 Dateien: %s" % _stufen)
 check("es gibt Dateien in jeder Stufe 1 bis 4",
       all(_stufen.get(s, 0) > 0 for s in (1, 2, 3, 4)), str(_stufen))
-check("Stufe 4 hat genau die acht T4-Dateien", _stufen.get(4) == 8, str(_stufen.get(4)))
+check("Stufe 4 hat genau die neun T4-Dateien (F-79: e2e_wege dazu)", _stufen.get(4) == 9,
+      str(_stufen.get(4)))
 messwert("stufe_1", _stufen.get(1, 0), "Dateien")
 messwert("stufe_2", _stufen.get(2, 0), "Dateien")
 messwert("stufe_3", _stufen.get(3, 0), "Dateien")

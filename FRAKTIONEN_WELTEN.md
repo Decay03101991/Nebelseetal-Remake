@@ -36,10 +36,16 @@ und errichteten dort ihre ersten Türme. Sie beobachten die Sterne, um den Weg d
 Sie lieben Gesang, Mondfeste, Honigwein und den Bogen; sie reisen schneller als alle anderen. Ihr
 Fehler ist die Arroganz — sie halten andere Völker für träge.
 
+> **Farben folgen den Burgbildern** (F-71/F-78, Daniel 13.11.2026: „Die burgbilder kann ich vorerst
+> nicht ersetzen aber das ist der einzige grund warum ich sie festlege. Heißt es muss geschichte und
+> stil den burgen angepasst werden. Auch Wappen usw“). Trolle **weiß-gold** (weiß-goldene Sternburg),
+> Ghule **violett** mit grünen Feuern. Wo Geschichte, Stil oder Wappen widersprechen, werden SIE
+> angepasst, nicht die Bilder.
+
 ### Haus Schattenfaust — die Trolle
 <img src="assets/icons/wappen/wappen_02.png" width="80" align="right">
 
-**Heimat:** Utgard · **Farben:** Dunkelrot und Schwarz · **Wirkung:** Angriff +5 %, Handelserloes −5 %
+**Heimat:** Utgard · **Farben:** Weiß und Gold · **Wirkung:** Angriff +5 %, Handelserloes −5 %
 
 Der erste Troll Gorm ballte nach dem Bruch die Faust und schwor, nie wieder zermalmt zu werden. Der
 Abdruck seiner Faust ist heute noch im Fels zu sehen, und um diesen Felsen stehen die Feste. Trolle
@@ -48,7 +54,7 @@ essen Braten am Spieß, trinken Met und schlagen zuerst zu. Ihr Fehler ist der J
 ### Haus Knochenmoor — die Ghule
 <img src="assets/icons/wappen/wappen_01.png" width="80" align="right">
 
-**Heimat:** Ragnarök · **Farben:** Grün und Knochenweiß · **Wirkung:** Nahrungsertrag +5 %, PA −5 %
+**Heimat:** Ragnarök · **Farben:** Violett und Grün · **Wirkung:** Nahrungsertrag +5 %, PA −5 %
 
 In den Sümpfen von Ragnarök erwachten Wesen, die nicht mehr lebten und doch nicht tot waren. Die erste
 Ghulmutter Mara schichtete die Knochen der Gefallenen zu einer Herdstelle und schwor, das Gedächtnis der
