@@ -11144,6 +11144,11 @@ class NebelseetalApp:
                              font=self._dz_klein(), bg="#5b1a1a", fg="#FDBA74", bd=0,
                              highlightthickness=0, padx=int(m["p"]), pady=1)
             if _grund:
+                # Offen (Frage an Daniel, Sitzung 44): der Grund ist ein ganzer Satz. Im Knopftext
+                # lief er aus der Spalte (gemessen 1018 px bei 416 verfuegbar), als eigener Text
+                # mit `wraplength` belegt er drei Zeilen und macht den Aktionenblock 146 px hoch
+                # statt 87 - dann schrumpft die Auswahl auf 107 px und ist nicht mehr der groesste
+                # Block. Ohne Daniels Entscheidung bleibt es hier beim alten Verhalten.
                 _auf.config(state=tk.DISABLED, text="aufgeben gesperrt: " + str(_grund))
             _auf.pack(side=tk.LEFT)
 
