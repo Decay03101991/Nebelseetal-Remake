@@ -10718,10 +10718,19 @@ class NebelseetalApp:
             # NACHBESSERUNG 11.11.2026 (Daniels Befund B7: "der balken geht rechts ueber den
             # Hintergrund"): die Umbruchbreite war mit 300 px je Feld fest und breiter als die
             # Spalte, die das Raster vergibt - der Inhalt drueckte den Rahmen nach rechts hinaus.
-            # Jetzt bricht der Text in seiner Spalte um, und das Feld darf mitschrumpfen.
-            tk.Label(feld, text=text, fg=self.skin["text"], bg=self.skin["panel"],
-                     font=("Arial", 10), anchor=tk.W, justify=tk.LEFT,
-                     wraplength=230).pack(fill=tk.X)
+            # F-97 (13.11.2026, gemessen): auch die 230 px sind noch fest und zu breit - die drei
+            # Felder sind nur 127 / 112 / 143 px breit, ihre Texte brauchen 203 / 189 / 220 px, also
+            # war "keine laeuft - die Bibliothek wartet (Menue Forschung)" abgeschnitten. Der Umbruch
+            # folgt jetzt der GEMESSENEN Feldbreite: das `<Configure>` des Feldes setzt sie neu, sobald
+            # Tk die Spalte gerechnet hat. Die Zuweisung ist idempotent, das Ereignis kann also nicht
+            # in eine Schleife laufen (gleiche Breite -> gleicher Umbruch -> keine Aenderung).
+            _wert = tk.Label(feld, text=text, fg=self.skin["text"], bg=self.skin["panel"],
+                             font=("Arial", 10), anchor=tk.W, justify=tk.LEFT,
+                             wraplength=230)
+            _wert.pack(fill=tk.X)
+            feld.bind("<Configure>",
+                      lambda _e, _l=_wert, _f=feld: _l.configure(
+                          wraplength=max(60, int(_f.winfo_width()) - 4)))
         return rahmen
 
     # ---------------------------------------------------------------------------------------
