@@ -1,7 +1,16 @@
-# STAND 13.11.2026, 01:1x — Antwort Nr. 16 verarbeitet, F-57/F-60/F-61 gebaut, Prüfstand-Kern M11/M12/M1/M2/F-63 steht
+# STAND 13.11.2026, 02:0x — Antwort Nr. 16 verarbeitet, Prüfstand-Kern steht, sieben Entscheidungen (F-73 bis F-79)
 
 > Sitzung 41, Nacht 12./13.11.2026. **Alles unten ist committet und gepusht; maßgeblich ist
-> `git log -1`.**
+> `git log -1`.** Kopf beim Abschluss: `408e884`.
+>
+> **Sieben Entscheidungen von Daniel (F-73 bis F-79, Register 568), einzeln gestellt und angeklickt:**
+> **F-73** DPI-Umbau **bleibt** („Scharf und gut — so lassen“). **F-74** Prüfdateien werden **nicht**
+> gelöscht, erst Prüfnamen-Abgleich. **F-75** die 46 alten Dateien sichten — mit drei Urteilen:
+> brauchbar / ändern / sinnvoll integrieren. **F-76** `main:*` bleibt und wird beim Anfassen
+> verengt. **F-77** es gibt **keinen Menüpunkt „Werkstätten“** — nur die Gebäude (Schmiede,
+> Bogenbauer, Nähstube). **F-78** die **Burgbilder sind fest**; Geschichte, Stil **und Wappen**
+> werden ihnen angepasst (FRAKTIONEN_WELTEN.md: Trolle weiß-gold, Ghule violett). **F-79**
+> `test_e2e_wege` ist **neunte T4-Datei** (186,2 s allein).
 >
 > **Claudes Antwort Nr. 16 ist abgelegt und nachgerechnet** (`docs/eingaenge/CLAUDE_20261112_
 > ENTSCHEIDUNGEN_NR16/`): Werteblock A4 in **allen 17 Zeilen und beiden Fällen bestätigt**
