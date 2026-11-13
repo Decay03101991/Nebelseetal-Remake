@@ -342,3 +342,26 @@ Edelsteine.
 oder ausdrücklich als „noch nicht verwendet“ führen.
 
 **Deine Frage dazu:** eintragen oder liegen lassen?
+
+## F. Antworten von Daniel, einzeln gestellt am 13.11.2026 (Sitzung 43)
+
+Je Frage eine Karte, Antwort wörtlich festgehalten. Was daraus zu bauen ist, steht in der letzten Spalte.
+
+| Frage | Antwort | Was daraus folgt |
+|---|---|---|
+| **F-89** Spaltenfehler reparieren | „(a) grid mit weight auf Zeile 5 — Tk rechnet den Rest selbst“ | `_dz_block` von `pack` auf `grid` umstellen, `_spalte` mit fester Höhe + `grid_propagate(False)`, `rowconfigure(weight=1)` auf der Auswahl-Zeile; `_dz_rest_verteilen` entfällt |
+| **F-86** Bilder nach dem Fix | „Keine Bilder nötig, ich sehe es im Spiel selbst“ | keine Belegbilder mehr als Pflichtschritt; sie bleiben trotzdem im Ablauf, weil sie Fehler finden, die Wachen nicht sehen |
+| **F-87/F-88 + kleine Maße** | „Mitnehmen beim Spaltenfix (Kacheln 83, Arbeitsfläche 658, Aktionen-Text kürzen), F-87/F-88 lassen“ | Kachelhöhe auf 83 (Untergrenze Textblock 50 × k, damit die gemessene Zeilenhöhe 21 statt 22 die Kachel nicht schrumpft); Aktionen-Text bekommt `wraplength`; **Messbefund: Arbeitsfläche 638 ist KEIN Fehler** — 658 ist die Fläche, 638 der Inhalt nach dem 10-px-Rand, und die drei Kacheln (3 × 206 + 2 × 10 = 638) füllen ihn genau |
+| **F-90** Wappen-Neubeauftragung | „Alle sechs neu, Motivliste auf Basis der Fraktionen und im Zusammenhang mit der Geschichte und dem Nebelseetal neu gestalten lassen, episch und im Nebelseetal-Stil“ | sechs neue Wappen; Motive aus Haus + Geschichte + Welt (nicht nur Farbe); Stil „episch, Nebelseetal“; Motivliste aus `BILDPAKET_WAPPEN_20261113.md` ist die Grundlage, nicht die Vorschrift |
+| **F-92** Womit erzeugen | „Kostenlose Proben zuerst (Pollinations, 0 EUR) — du siehst drei Stück, dann der Rest“ | drei Proben erzeugen, zeigen, dann die übrigen drei nach Freigabe; kein Guthaben verbraucht |
+| **F-93** Format | „Gleiches Format wie die alten Wappen: RGBA freigestellt, ~300 × 420, Goldrand, Abzeichen auf dunklem Grund“ | Zielformat je Bild: RGBA, freigestellt, 300 × 420, Goldrand |
+| **F-94** Karte bis dahin | „Alte Paare bleiben sichtbar, bis die neuen da sind — keine Lücke“ | `data/bot_wappen.json` wird erst geändert, wenn die neuen Bilder liegen |
+| **F-91** Meshy-Elfenwappen | „Als Stilvorlage für die Neubeauftragung nehmen, nicht einbauen“ | `assets/wappen/elfen_wappen.png` bleibt ungenutzt im Spiel, wird aber als Stilreferenz an die Bildaufträge gehängt |
+| **F-80** Acht Dateien auf harness | „Ja, in einem Paket — jede Datei einzeln grün gefahren“ | Paket bauen, jede Datei einzeln belegen |
+| **F-81** Acht Paare zusammenlegen | „Ja — aber erst nach F-74 und nach einer vollen Runde mit Laufzeilen“ | zurückgestellt bis nach F-74 + eine volle Runde |
+| **F-82** Datei mit 0 Prüfungen | „Aussetzen: ausdrücklich als „prüft nichts“ kennzeichnen — Lücke bleibt, ist aber sichtbar“ | Kennzeichnung im Kopf der Datei + im Prüfstand-Kopf (Stufe/Aussage), kein stilles Grün mehr |
+| **F-83** Prüfnamen-Abgleich | „Ja — zusätzlich auf den geprüften Gegenstand stützen (Funktion oder Datenfeld je Prüfname), 90 % darauf rechnen“ | Werkzeug `tools/…pruefnamen` erweitern: Gegenstand je Prüfname, 90 % darauf |
+| **F-84** 42 Namen sichten | „Ja, sichten — alte Datei bleibt“ | Sichtungsdokument, keine Löschung |
+| **F-85** Drei Kandidaten | „Ja, alle drei von der Liste nehmen — die Dateien bleiben“ | Streichliste auf den Stand bringen, Dateien unangetastet |
+| **F-72 / C3 und C7** | „In einer eigenen Sitzung — nicht zwischen zwei Bauaufträgen“ | bleibt offen, eigener Termin |
+| **F-95** Zurückgestelltes | „Alle bleiben zurückgestellt“ | M3–M10, T2-Größe, F-70 bleiben liegen |
