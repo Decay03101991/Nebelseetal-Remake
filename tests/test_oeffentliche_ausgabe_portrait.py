@@ -16,6 +16,14 @@ Der Test kopiert rund 64 MB - das dauert wenige Sekunden und raeumt hinterher au
 
 from __future__ import annotations
 
+# --- Pruefstand-Kopf (M1, 12.11.2026): Art, Stufe, BETRIFFT, DATEN ----------------
+# Gelesen von harness.kopf_lesen und tools/auswahl.py.
+PRUEF_ART = "rechnen"
+PRUEF_STUFE = 1
+PRUEF_BETRIFFT = ['build_exe', 'build_public_exe', 'paket_ausschluss']
+PRUEF_DATEN = []
+# --- Ende Pruefstand-Kopf -------------------------------------------------------
+
 import os
 import shutil
 import sys

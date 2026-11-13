@@ -117,7 +117,9 @@ root.update()
 _leinwand = _karte()
 check("1 die Karte ist gezeichnet", _leinwand is not None, "")
 _erwartet = len(_bot_welten.get(_fremd, []))
-_je_marke = 2 if M.WAPPEN else 3            # Burg + Wappen, sonst Kasten + zwei Linien
+# F-100 (13.11.2026): kein Wappen-Abzeichen mehr auf der Karte - je Dorf EIN Bild (die Burg).
+# Ohne Bild faellt der Kasten ein, und der besteht aus Rechteck + zwei Linien (3 Objekte).
+_je_marke = 1 if M.WAPPEN else 3
 check("1 auf der fremden Welt steht JEDES Dorf dieser Welt",
       _leinwand is not None and len(_leinwand.find_withtag("portalbote")) == _erwartet * _je_marke,
       f"{len(_leinwand.find_withtag('portalbote')) if _leinwand else '?'} gegen {_erwartet * _je_marke}")

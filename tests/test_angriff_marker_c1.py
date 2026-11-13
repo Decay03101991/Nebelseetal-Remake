@@ -269,11 +269,17 @@ def _aufbau():
         fremde = len(karte.find_withtag("portalbote"))
         eigene = len(karte.find_withtag("portalspieler"))
         ringe = karte.find_withtag("dorfplatte")
-        check("der Ring verschiebt die Dorf-Zaehlung nicht (2 Objekte je fremdem Dorf)",
-              fremde % 2 == 0, str(fremde))
-        check("jedes gezeichnete Dorf hat genau einen Ring (2 Linien)",
-              len(ringe) == 2 * (fremde // 2 + (1 if eigene else 0)),
-              "%d Ringlinien zu %d fremden + %d eigenen Objekten" % (len(ringe), fremde, eigene))
+        # F-100 (Daniel 13.11.2026): kein Wappen-Abzeichen mehr auf der Karte. Damit traegt jedes
+        # gezeichnete Dorf GENAU EIN Bildobjekt (die Burg) und ein Ringpaar; der alte Rechentrick
+        # "fremde % 2 == 0" (Burg + Abzeichen) gilt nicht mehr.
+        check("F-100: auf der Karte wird KEIN Wappen geladen (nur Burgen)",
+              not any("wappen_" in str(k) for k in getattr(app, "_wappen_cache", {})),
+              str([str(k).split("\\")[-1] for k in getattr(app, "_wappen_cache", {})][:3]))
+        check("die Ringe kommen paarweise (Aussen- und Innenlinie)",
+              len(ringe) % 2 == 0, str(len(ringe)))
+        check("F-100: hoechstens ein Bildobjekt je gezeichnetem Dorf (Ringpaar)",
+              fremde <= len(ringe),
+              "%d Bildobjekte zu %d Ringlinien (%d eigene)" % (fremde, len(ringe), eigene))
         aussen = {karte.itemcget(i, "outline") for i in ringe}
         check("die dunkle Aussenlinie ist gesetzt", main.DORF_RING_DUNKEL in aussen, str(aussen))
         check("die helle Innenlinie ist gesetzt", main.DORF_RING_HELL in aussen, str(aussen))
