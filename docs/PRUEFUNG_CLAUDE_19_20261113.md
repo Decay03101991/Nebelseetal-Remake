@@ -56,6 +56,9 @@ danach springen.
 
 - **F3 Punkt 1 stimmt:** `PORTAL_KOPFBAND` ist **eine** Datei (Ghule), `PORTAL_KOPFBAND_MASSE = (780, 150)`
   — sechs Bänder je Volk brauchen eine Auswahl nach Volk.
+  *(Stand 13.11.2026, 22:4x — inzwischen überholt: F3 ist gebaut, Register 639/640. `PORTAL_KOPFBAND`
+  ist gelöscht, die Auswahl steht in `data/portal_kopfbaender.json`; die Masse `(780, 150)` gelten
+  weiter. Der Befund oben beschreibt den Stand VOR dem Umbau und bleibt als Beleg stehen.)*
 - **F3 Punkt 2 stimmt:** `MARKTPLATZ_KENNZEICHEN` ist ausdrücklich „in ANZEIGEGROESSE geschnitten
   (96 × 96), damit Tk die Datei ohne Pillow laden kann“ (`main.py:3762`) — eine 384er-Datei würde
   tatsächlich 4× zu groß erscheinen.
