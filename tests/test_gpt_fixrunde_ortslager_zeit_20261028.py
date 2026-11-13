@@ -126,5 +126,32 @@ class OrtskasseUndSpieluhr(unittest.TestCase):
             self.gegenprobe(neu)
 
 
+
+
+# F-81 (Daniel 13.11.2026: "Name fuer Name uebernehmen, dann streichen"): die sieben Parser-
+# Pruefungen aus `tests/test_gpt_prueflauf_ehrlich.py`. Sie pruefen `tools/gpt_prueflauf_ehrlich.py`
+# (erkennt ein falsches Gruen) - dieselbe Fehlerklasse wie die Wirtschafts-Regressionen dieser Datei.
+# Die Quelldatei ist nach dieser Zusammenlegung entfernt; die Pruefungen sind hier unveraendert.
+import gpt_prueflauf_ehrlich as P  # noqa: E402  (liegt in tools/, steht oben im Pfad)
+
+
+class ParserTests(unittest.TestCase):
+ def test_erkennt_false_green(self):
+  t='ERGEBNIS: 19 bestanden, 5 Fehler, 0 Befunde'
+  self.assertFalse(P.prueftext(t,0)[0])
+ def test_gruen_wirklich_gruen(self):
+  self.assertTrue(P.prueftext('ERGEBNIS: 42 bestanden, 0 Fehler, 2 Befunde',0)[0])
+ def test_befunde_sind_keine_fehler(self):
+  self.assertEqual(P.prueftext('ERGEBNIS: 1 bestanden, 0 Fehler, 22 Befunde',0)[2],0)
+ def test_unittest_ok(self):
+  self.assertTrue(P.prueftext('Ran 5 tests in 0.004s\n\nOK\n',0)[0])
+ def test_unittest_fehler(self):
+  self.assertFalse(P.prueftext('Ran 5 tests in 0.004s\n\nFAILED (failures=1)\n',0)[0])
+ def test_nur_rc_0_nicht_genug(self):
+  self.assertFalse(P.prueftext('Tests laufen fertig',0)[0])
+ def test_rc_1_bei_text_gruen_rot(self):
+  self.assertFalse(P.prueftext('ERGEBNIS: 42 bestanden, 0 Fehler, 0 Befunde',1)[0])
+
+
 if __name__ == '__main__':
     unittest.main()

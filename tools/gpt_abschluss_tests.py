@@ -13,7 +13,7 @@ NAMES=[
  'test_gpt_zeit_auftragsketten.py','test_gpt_wallsystem_eingehaengt.py',
  'test_gpt_bot_angriffsplanung.py','test_gpt_kampf_botbeute_echte_kasse.py',
  'test_gpt_waren_icons.py','test_gpt_versorgungsdiagnose.py',
- 'test_gpt_prueflauf_ehrlich.py'
+ 'test_gpt_fixrunde_ortslager_zeit_20261028.py'  # F-81: die 7 Parser-Pruefungen sind dort eingezogen
 ]
 
 def main():
