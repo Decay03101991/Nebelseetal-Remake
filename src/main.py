@@ -3757,10 +3757,15 @@ PORTAL_BANNER_FARBEN = {"gruen": "#2ecc40", "rot": "#e53935"}
 # Ein Panorama haette 33 bis 45 % seiner Hoehe verloren (Bildplan Abschnitt 3) - deshalb das Band.
 # Die Masse stehen hier EINMAL, damit Anzeige und Wache dieselbe Zahl lesen; die Trennlinie traegt
 # das GEMESSENE Rahmengold #C68B42 (Median, nicht der Richtwert des Nachtrags).
-PORTAL_KOPFBAND = ("assets", "bilder", "portal_kopfband_schmiede_dorf_ghule_780x150.png")
+# F3 (13.11.2026, Sitzung 45; Bildbedarf B8 aus Claudes Antwort Nr. 19): das Band gibt es JE VOLK.
+# Die Zuordnung steht in `data/portal_kopfbaender.json` - der Quelltext kennt keinen einzelnen
+# Bandpfad mehr (zwei Wahrheiten sind schlimmer als eine). Fehlt ein Eintrag oder seine Datei,
+# liefert `portal_kopfband_pfad` das Standardband (Ghule) - die Ansicht wird nie leer.
+PORTAL_KOPFBAENDER_DATEI = os.path.join(ICON_WURZEL, "data", "portal_kopfbaender.json")
 # D-5b (Daniel 09.11.2026): Chris' Marktstand als Kennzeichen der Marktplatz-Ansicht.
 # In ANZEIGEGROESSE geschnitten (96 x 96), damit Tk die Datei ohne Pillow laden kann.
 MARKTPLATZ_KENNZEICHEN = ("assets", "bilder", "marktplatz_kennzeichen_96.png")
+MARKTPLATZ_KENNZEICHEN_PX = 96                   # Anzeigegroesse, FEST (D-5b) - nicht ableiten
 PORTAL_KOPFBAND_MASSE = (780, 150)
 # T6 (Daniel 11.11.2026, Bogen C11): das Band geht bis zum rechten Rand. Damit es im
 # maximierten Fenster nicht die halbe Ansicht frisst, ist die HOEHE gedeckelt; wird sie
@@ -3774,6 +3779,47 @@ PORTAL_TRENNLINIE = "#C68B42"                                            # Media
 PORTAL_TEXT_BREITE = 780                                              # Entwurfsbreite (Bildplan D-5)
 PORTAL_TEXT_MINIMUM = 320                                            # Untergrenze im schmalen Fenster
 PORTAL_SPALTEN_RAND = 20                                             # padx=10 links und rechts
+
+
+def _lade_portal_kopfbaender(datei: str = "") -> tuple:
+    """(Standardpfad, {Volk: Pfad}) aus `data/portal_kopfbaender.json`.
+
+    F3 (13.11.2026): die Zuordnung Volk -> Band steht in der Datendatei, nicht im Quelltext. Fehlt
+    die Datei oder ist sie kaputt, kommt `("", {})` zurueck - dann bleibt der leere Platz in
+    Bandgroesse stehen, statt dass ein Pfad geraten wird. Die Pfade sind relativ zur Projektwurzel
+    und werden erst in `portal_kopfband_pfad` zu vollen Pfaden.
+    """
+    pfad_datei = datei or PORTAL_KOPFBAENDER_DATEI                        # Datendatei im Projekt
+    try:                                                                  # Datei lesen
+        with open(pfad_datei, encoding="utf-8") as f:                      # UTF-8 wie alle Spieldaten
+            daten = json.load(f)                                           # Inhalt als dict
+    except (OSError, ValueError):                                         # fehlt oder kaputt
+        return "", {}                                                     # dann keine Zuordnung
+    standard = str((daten or {}).get("standard") or "").strip()            # Rueckfallband
+    roh = (daten or {}).get("voelker") or {}                              # Volk -> Banddatei
+    zuordnung = {}
+    for volk, band in roh.items():                                        # nur vollstaendige Eintraege
+        if str(volk).strip() and str(band or "").strip():
+            zuordnung[str(volk)] = str(band).strip()
+    return standard, zuordnung
+
+
+def portal_kopfband_pfad(volk: str = "", datei: str = "") -> str:
+    """Der volle Pfad des Kopfbands fuer dieses Volk - oder das Standardband (F3).
+
+    Reihenfolge: (1) der Eintrag des Volkes, wenn die Datei WIRKLICH da ist; (2) das Standardband,
+    wenn es da ist; (3) "" - dann zeichnet die Ansicht den leeren Platz in Bandgroesse. So spielt
+    heute (13.11.2026, die sechs Dezember-Baender fehlen noch) ueberall das Ghule-Band, und ab der
+    Lieferung greift jede Datei fuer sich, ohne Codeaenderung.
+    """
+    standard, zuordnung = _lade_portal_kopfbaender(datei)                 # EINE Datendatei
+    for kandidat in (zuordnung.get(str(volk or "")), standard):           # Volk zuerst, dann Rueckfall
+        if not kandidat:                                                  # kein Eintrag
+            continue                                                      # naechster Kandidat
+        pfad = os.path.join(ICON_WURZEL, kandidat.replace("/", os.sep))    # relativ -> absolut
+        if os.path.exists(pfad):                                          # Datei vorhanden?
+            return pfad                                                   # dann diese
+    return ""                                                             # sonst gar kein Bild
 
 
 def _lade_wappen() -> tuple:
@@ -9199,19 +9245,23 @@ class NebelseetalApp:
     def _kennzeichen_bild(self):
         """Chris' Marktstand als Kennzeichen der Marktplatz-Ansicht (D-5b) - oder None.
 
-        Geladen mit `tk.PhotoImage` (kein Pillow noetig, wie beim Kopfband); die Datei liegt in
-        ANZEIGEGROESSE unter `assets/bilder/`, damit Tk nichts skalieren muss. Fehlt sie, bleibt
-        die Ansicht wie vorher - es wird kein Bild erfunden und nichts stuerzt ab.
+        F3 (13.11.2026, Sitzung 45): das Kennzeichen wird auf `MARKTPLATZ_KENNZEICHEN_PX` (96 px)
+        EINGEPASST, nicht mehr in Anzeigegroesse geladen. Grund: die Dezember-Datei ist 384 x 384,
+        und `tk.PhotoImage` skaliert von sich aus nicht - sie erschiene vierfach zu gross.
+
+        Zwei Wege, beide auf dieselbe Zielgroesse:
+        1. Pillow ueber `_motivbild_skaliert` (geglaettet, LANCZOS) - der uebliche Weg, weil das
+           Spiel mit Pillow startet (`START_SPIEL_WINDOWS.bat`).
+        2. OHNE Pillow: `tk.PhotoImage` laden und `subsample` - Tk kann das selbst. Der Startpfad
+           ohne Pillow bleibt damit sichtbar (Lehre 02.11.2026), nur groeber.
+
+        Fehlt die Datei, bleibt `None` - die Ansicht bleibt wie vorher, nichts stuerzt ab.
         """
         if hasattr(self, "_kennzeichen_cache"):                         # schon geladen
             return self._kennzeichen_cache                              # dasselbe Bild wiederverwenden
-        pfad = _bild_pfad(MARKTPLATZ_KENNZEICHEN)                       # Pfad ueber die Projektwurzel
-        bild = None                                                     # Vorgabe: kein Bild
-        if os.path.exists(pfad):                                        # Datei vorhanden?
-            try:
-                bild = tk.PhotoImage(file=pfad)                         # Tk liest PNG direkt
-            except Exception:                                            # Datei unlesbar
-                bild = None                                             # dann bleibt es beim Text
+        relativ = "/".join(str(t) for t in MARKTPLATZ_KENNZEICHEN)      # Tupel -> relativer Pfad
+        px = int(MARKTPLATZ_KENNZEICHEN_PX)                             # 96 px, fest (D-5b)
+        bild = self._motivbild_skaliert(relativ, px, "_kennzeichen_cache2")   # einpassen, cachen
         self._kennzeichen_cache = bild                                  # auch None merken
         return bild
 
@@ -14316,6 +14366,19 @@ class NebelseetalApp:
             spalte = 0                                                   # dann der Entwurf
         return self._textbreite(spalte)
 
+    def _kopfband_volk(self) -> str:
+        """Das Volk des Spielers - die Quelle, die auch `data/voelker.json` fuehrt (F3).
+
+        `GameState.spieler_fraktion` ist die Kennung aus `data/voelker.json` ("menschlich",
+        "zwergisch", "elfisch", "Trolle", "Ghule", "Gnome"); an ihr haengen schon der Volksbonus
+        (`boni.py`), das Haus (`data/haeuser.json`) und das Wappen. Kein zweiter Volksbegriff.
+        Vor der Voelkerwahl ist sie leer - dann gilt das Standardband.
+        """
+        try:                                                              # Zustand kann fehlen (Pruef-App)
+            return str(getattr(self.state, "spieler_fraktion", "") or "")  # das gespielte Volk
+        except Exception:                                                 # noqa: BLE001
+            return ""                                                     # dann das Standardband
+
     def _portal_kopfleiste(self, eltern):
         """Das Kopfband ueber dem Portal-Titel (D-5, Platz S1 im Bildplan).
 
@@ -14331,7 +14394,7 @@ class NebelseetalApp:
         gibt Tk die Grafik frei (Lehre 02.11.2026).
         """
         breite, hoehe = PORTAL_KOPFBAND_MASSE                            # 780 x 150 aus EINER Quelle
-        pfad = _bild_pfad(PORTAL_KOPFBAND)                               # Pfad ueber die Projektwurzel
+        pfad = portal_kopfband_pfad(self._kopfband_volk())               # je Volk (F3), sonst Ghule
         # Layout-Schnitt: die Spalte wird GEMESSEN, nicht geraten - und Band und Textzeilen lesen
         # DIESELBE Zahl (`_spaltenbreite`); ohne Messung gilt die Entwurfsbreite 780 = Original.
         # T6 (11.11.2026): Breite bis zum Rand (gemessene Inhaltsbreite), Hoehe gedeckelt und bei
@@ -14386,14 +14449,20 @@ class NebelseetalApp:
         Ohne Pillow oder ohne Datei kommt None zurueck - dann bleibt der leere Platz.
         """
         breite, hoehe = PORTAL_KOPFBAND_MASSE                            # 780 x 150 (EINE Quelle)
-        pfad = _bild_pfad(PORTAL_KOPFBAND)                               # Pfad ueber die Projektwurzel
-        if not os.path.exists(pfad):                                     # Datei fehlt
+        pfad = portal_kopfband_pfad(self._kopfband_volk())               # je Volk (F3), sonst Ghule
+        if not pfad or not os.path.exists(pfad):                         # Datei fehlt
             return None
-        if (int(ziel_b), int(ziel_h)) == (int(breite), int(hoehe)):      # Originalgroesse
+        if (int(ziel_b), int(ziel_h)) == (int(breite), int(hoehe)):      # Ziel = Entwurfsmasse
+            # Tk-Laden ohne Pillow ist nur dann richtig, wenn die DATEI auch so gross ist. F3
+            # (13.11.2026): die Dezember-Baender sind 4508 x 868 - `tk.PhotoImage` skaliert nicht,
+            # sie kaemen rund sechsfach zu gross auf den Schirm. Darum wird die geladene Groesse
+            # GEPRUEFT, nicht angenommen.
             try:
-                return tk.PhotoImage(file=pfad)                          # Tk liest PNG direkt
-            except Exception:                                            # noqa: BLE001
-                return None
+                bild = tk.PhotoImage(file=pfad)                          # Tk liest PNG direkt
+                if (int(bild.width()), int(bild.height())) == (int(breite), int(hoehe)):
+                    return bild                                          # Datei hat genau die Zielmasse
+            except Exception:                                            # noqa: BLE001 - unlesbar
+                pass                                                     # dann der geglaettete Weg
         try:
             from PIL import Image, ImageTk                                # nur hier importieren
             roh = Image.open(pfad).convert("RGB")                         # PNG oeffnen
@@ -14405,7 +14474,14 @@ class NebelseetalApp:
             return ImageTk.PhotoImage(roh)                                # Tk-Grafik daraus
         except Exception:                                                 # noqa: BLE001
             try:
-                return tk.PhotoImage(file=pfad)                           # Rueckfall Originalgroesse
+                bild = tk.PhotoImage(file=pfad)                           # Rueckfall ohne Pillow
+                # F3: auch dieser Weg muss auf die Zielgroesse kommen - Tk kann das selbst
+                # (`subsample`, ganzzahlig, Seitenverhaeltnis bleibt). Ohne diese Zeile laege ein
+                # 4508-px-Band sechsfach zu gross im Fenster.
+                faktor = max(1, int(round(bild.width() / float(max(1, int(ziel_b))))))
+                if faktor > 1:                                            # nur verkleinern, nie vergroessern
+                    bild = bild.subsample(faktor)                         # 4508 px / 6 = 751 px
+                return bild                                               # groeber, aber sichtbar
             except Exception:                                             # noqa: BLE001
                 return None
 

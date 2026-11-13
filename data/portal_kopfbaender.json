@@ -1,0 +1,16 @@
+{
+  "_zweck": "Zuordnung Volk -> Kopfband der Portal-Uebersicht (Platz S1). EINE Quelle fuer die Auswahl; der Quelltext kennt nur noch diese Datei und den Standard, keinen einzelnen Pfad.",
+  "_quelle": "F3 (13.11.2026, Sitzung 45): Bildbedarf B8 aus Claudes Antwort Nr. 19 - heute liegt EIN Band mit Ghule-Motiv vor, gebraucht werden sechs, je 4508 x 868 (Verhaeltnis 5,2 : 1). Die Masse 780 x 150 bleiben im Code (PORTAL_KOPFBAND_MASSE) und werden auf die gelieferten Dateien heruntergerechnet; hier stehen NUR Pfade.",
+  "_regel": "Auswahl: erst der Eintrag des Spieler-Volkes unter 'voelker', wenn die Datei vorhanden ist; sonst 'standard'. Fehlt beides, bleibt der leere Platz in Bandgroesse stehen (kein Absturz, kein erfundenes Bild).",
+  "_pflege": "Wer die Dezember-Dateien ablegt, traegt hier den ECHTEN Dateinamen ein. Die Namen unten sind die erwartete Ablage, nicht die Lieferung: fehlt eine Datei, spielt das Ghule-Band (heute der einzige vorhandene Schnitt).",
+  "_stand": "Die sechs Dezember-Dateien sind am 13.11.2026 noch NICHT geliefert; vorhanden ist nur der Standard (780 x 150).",
+  "standard": "assets/bilder/portal_kopfband_schmiede_dorf_ghule_780x150.png",
+  "voelker": {
+    "menschlich": "assets/bilder/portal_kopfband_menschlich_4508x868.png",
+    "zwergisch": "assets/bilder/portal_kopfband_zwergisch_4508x868.png",
+    "elfisch": "assets/bilder/portal_kopfband_elfisch_4508x868.png",
+    "Trolle": "assets/bilder/portal_kopfband_trolle_4508x868.png",
+    "Ghule": "assets/bilder/portal_kopfband_schmiede_dorf_ghule_4508x868.png",
+    "Gnome": "assets/bilder/portal_kopfband_gnome_4508x868.png"
+  }
+}

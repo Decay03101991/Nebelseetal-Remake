@@ -39,9 +39,11 @@ PRUEF_DATEN = []
 
 import ast
 import inspect
+import json
 import os
 import random
 import sys
+import tempfile
 import textwrap
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -142,11 +144,17 @@ def _breite(widget) -> int:
 abschnitt("1. Die Bilddatei: geschnittene Kopie in assets, 780 x 150 px")
 # ==========================================================================
 pfad = os.path.join(ROOT, *BAND)
+# F3 (13.11.2026, Sitzung 45): es gibt keine Konstante `PORTAL_KOPFBAND` mehr. Die Zuordnung
+# Volk -> Band steht in `data/portal_kopfbaender.json`; das Ghule-Band ist dort der Standard.
+_standard, _zuordnung = M._lade_portal_kopfbaender()
 check("1 die Datei liegt unter assets/bilder", os.path.exists(pfad), pfad)
 check("1 der Pfad zeigt NICHT ins Archiv (nur die geschnittene Kopie gehoert ins Spiel)",
       "archiv" not in pfad.lower(), pfad)
-check("1 die Konstanten im Code nennen genau diese Datei", tuple(M.PORTAL_KOPFBAND) == BAND,
-      str(M.PORTAL_KOPFBAND))
+check("1 das Standardband der Zuordnung nennt genau diese Datei",
+      _standard == "/".join(BAND), _standard)
+check("1 der Code loest das Ghule-Band auf genau diese Datei auf (keine zweite Wahrheit)",
+      os.path.normcase(M.portal_kopfband_pfad("Ghule")) == os.path.normcase(pfad),
+      M.portal_kopfband_pfad("Ghule"))
 check("1 die Masse im Code sind 780 x 150", tuple(M.PORTAL_KOPFBAND_MASSE) == MASSE,
       str(M.PORTAL_KOPFBAND_MASSE))
 if os.path.exists(pfad):
@@ -225,10 +233,15 @@ check("2b verkleinert wird nie groesser als die Spalte", all(_masse(n)[0] <= n
 # ==========================================================================
 abschnitt("3. Ohne Bild: leerer Platz in derselben Groesse, kein Absturz")
 # ==========================================================================
-merke = M.PORTAL_KOPFBAND
+merke = M.PORTAL_KOPFBAENDER_DATEI
+# F3: statt einer Konstanten zu verbiegen, wird eine EIGENE Zuordnungsdatei vorgelegt, deren
+# Standard es nicht gibt - so wird derselbe Weg geprueft, den das Spiel geht.
+_fehlt_datei = os.path.join(tempfile.gettempdir(), "kopfband_fehlt_%d.json" % os.getpid())
+with open(_fehlt_datei, "w", encoding="utf-8") as f:
+    json.dump({"standard": "assets/bilder/gibt_es_nicht_D5.png", "voelker": {}}, f)
 root, app = _app()
 try:
-    M.PORTAL_KOPFBAND = ("assets", "bilder", "gibt_es_nicht_D5.png")
+    M.PORTAL_KOPFBAENDER_DATEI = _fehlt_datei
     abgestuerzt = ""
     try:
         app._switch_view("Portal")
@@ -247,7 +260,11 @@ try:
     check("3 der Titel steht auch ohne Bild da",
           any(_text(k) == "Portal" for k in _kinder(app.content)), "")
 finally:
-    M.PORTAL_KOPFBAND = merke
+    M.PORTAL_KOPFBAENDER_DATEI = merke
+    try:                                                              # Testdatei wieder wegraeumen
+        os.remove(_fehlt_datei)
+    except OSError:
+        pass
     root.destroy()
 
 # ==========================================================================
@@ -318,7 +335,9 @@ check("6 das Band steht VOR dem Titel (Blackletter-Schriftzug)",
 check("6 die Trennlinie kommt aus der einen Konstante", "PORTAL_TRENNLINIE" in quelle, "")
 check("6 die Ansicht zeigt nicht ins Archiv", "archiv" not in quelle.lower(), "")
 hilfe = _rumpf(M.NebelseetalApp._portal_kopfleiste)
-check("6 die Methode liest den Pfad aus der Konstante", "PORTAL_KOPFBAND" in hilfe, "")
+check("6 die Methode holt den Pfad aus der EINEN Zuordnung (F3)", "portal_kopfband_pfad" in hilfe, "")
+check("6 die alte Einzelkonstante PORTAL_KOPFBAND ist weg (zwei Wahrheiten waeren schlimmer)",
+      "PORTAL_KOPFBAND " not in hilfe and "PORTAL_KOPFBAND)" not in hilfe, hilfe[:200])
 check("6 die Methode liest die Masse aus der Konstante", "PORTAL_KOPFBAND_MASSE" in hilfe, "")
 # ENTSCHEIDUNG GEAENDERT (11.11.2026, Daniels Befund B6): das Band wird jetzt ZWEIMAL gebaut -
 # beim Aufbau der Ansicht und kurz danach, wenn das Inhaltsfenster wirklich vermessen ist. Der
