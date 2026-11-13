@@ -18,20 +18,13 @@ PRUEF_DATEN = []
 import os
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))       # harness liegt hier
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src"))
 
 import main  # noqa: E402
-
-FEHLER = []
-PRUEFUNGEN = 0
-
-
-def check(name, bedingung, wert=""):
-    global PRUEFUNGEN
-    PRUEFUNGEN += 1
-    if not bedingung:
-        FEHLER.append(f"{name} {wert}".strip())
+# F-80 (Daniel 13.11.2026): eigene Zaehlung durch `harness` ersetzt - dieselben Pruefungen,
+# aber mit Messwerten, Befundkanal und einheitlicher ERGEBNIS-Zeile.
+from harness import bericht, check  # noqa: E402
 
 
 # ---------------------------------------------------------------- 1. Hinweg 3600 s
@@ -73,7 +66,4 @@ r2 = main.rueckmarsch_eintrag(weit, 79200.0)
 check("15 22 Spielstunden Rueckweg", r2 and abs((r2["arrival"] - r2["start"]) - 79200.0) < 0.01, r2)
 check("16 Rueckweg beginnt bei Ankunft", r2 and r2["start"] == 79200.0, r2)
 
-print(f"ERGEBNIS: {PRUEFUNGEN - len(FEHLER)} bestanden, {len(FEHLER)} Fehler")
-for f in FEHLER:
-    print("  -", f)
-sys.exit(1 if FEHLER else 0)
+sys.exit(bericht())

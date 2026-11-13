@@ -28,6 +28,7 @@ import re
 import sys
 
 WURZEL = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(WURZEL, "tests"))            # harness liegt hier
 OEFFNEN, SCHLIESSEN = "\u201e", "\u201c"
 # Technische Schreibweisen sind kein Textfehler: "Datei:Zeile" in Tabellen,
 # "tk.PhotoImage" in einem Satz. Diese Woerter sind erlaubt.
@@ -35,15 +36,10 @@ ERLAUBT = {"Zeile", "Spalte", "Datei", "Pfad", "Kapitel", "Seite"}
 KLEBEND = re.compile(r"(?<![0-9])[.:,]([A-ZÄÖÜ][a-zäöüß]{3,})")
 GERADE_NACH_AUF = re.compile(OEFFNEN + '([^' + SCHLIESSEN + OEFFNEN + '"]{1,200})"')
 
-FEHLER = []
-PRUEFUNGEN = 0
-
-
-def check(name, bedingung, meldung=""):
-    global PRUEFUNGEN
-    PRUEFUNGEN += 1
-    if not bedingung:
-        FEHLER.append(f"{name}: {meldung}")
+# F-80 (Daniel 13.11.2026): eigene Zaehlung durch `harness` ersetzt - dieselben Pruefungen,
+# jetzt mit Messwerten, Befundkanal und einer ERGEBNIS-Zeile. `check(name, bedingung, meldung)`
+# hat dieselbe Signatur wie `harness.check`.
+from harness import bericht, check  # noqa: E402
 
 
 def dateien():
@@ -101,11 +97,9 @@ def main() -> int:
             voll = os.path.normpath(os.path.join(os.path.dirname(pfad), ziel))
             check(f"5 {name} Linkziel vorhanden", os.path.exists(voll), ziel)
 
-    print(f"ERGEBNIS: {PRUEFUNGEN - len(FEHLER)} bestanden, {len(FEHLER)} Fehler "
-          f"({len(alle)} Dokumente)")
-    for f in FEHLER[:20]:
-        print("  -", f)
-    return 1 if FEHLER else 0
+    from harness import messwert
+    messwert("dokumente", len(alle), "Stueck")
+    return bericht()
 
 
 if __name__ == "__main__":

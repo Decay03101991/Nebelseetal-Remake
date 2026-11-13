@@ -91,3 +91,32 @@ statt Wortlaut.
 - **F-85:** Sollen `test_ansicht_hintergrund`, `test_bot_wappen` und `test_dorfzentrum_ist_lager`
   endgueltig von der Streichliste genommen werden? Nach dieser Messung pruefen sie eigenstaendige
   Gegenstaende, die keine andere Datei abdeckt.
+
+
+---
+
+## 6. Die Antworten von Daniel (13.11.2026) und was daraus folgt
+
+| Frage | Antwort (Wortlaut) | Stand |
+|---|---|---|
+| **F-83** | „Ja — zusätzlich auf den geprüften Gegenstand stützen (Funktion oder Datenfeld je Prüfname), 90 % darauf rechnen“ | Werkzeug wird gebaut (Sitzung 44) |
+| **F-84** | „Ja, sichten — alte Datei bleibt“ | Sichtungsdokument folgt, Datei bleibt |
+| **F-85** | „Ja, alle drei von der Liste nehmen — die Dateien bleiben“ | **erledigt, siehe 6.1** |
+
+### 6.1 Drei Kandidaten sind von der Streichliste genommen (F-85, Register 594)
+
+**Gestrichen von der Liste, Dateien unangetastet:**
+
+| Datei | Pruefungen | Warum sie bleibt |
+|---|---|---|
+| `test_ansicht_hintergrund` | 71 | Panorama, Schleier und Kastenoptik — Deckung 0 %, keine andere Datei prueft das |
+| `test_bot_wappen` | 22 | Wappen der fuenf Bots — Deckung 0 %, eigener Gegenstand |
+| `test_dorfzentrum_ist_lager` | 79 | Entscheidung S-2c — Deckung 0 %, eigener Gegenstand |
+
+**Auf der Liste bleibt allein `test_ressourcenleiste`** (42 Pruefnamen, Nachfolger
+`test_ressourcenleiste_t08`, inhaltlich 4 von 42 = 9,5 %). Sie wird mit F-84 gesichtet, nicht
+gestrichen.
+
+**Was ausdruecklich NICHT geaendert wurde:** `docs/auftraege/PAKET_15B_PRUEFDATEIEN_20261112.csv` ist
+eine Messung vom 12.11.2026 (39 Streichkandidaten nach Laufzeit) und bleibt als Beleg stehen — die
+Liste, die hier fortgeschrieben wird, ist die inhaltliche aus diesem Dokument, nicht die nach Dauer.

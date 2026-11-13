@@ -21,17 +21,19 @@ import json
 import sys
 
 R=Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(R/'tests'))            # harness liegt in tests/
 sys.path.insert(0,str(R/'src'))
 import _originalpfade as OP          # Register 407: Originale liegen ausserhalb des Repos
 import originalkarten
 import spieldaten
+# F-80 (Daniel 13.11.2026): eigene Zaehlung durch `harness` ersetzt. Die F-74-Messung hatte diese
+# Datei mit "0 Pruefungen" gefuehrt - das war ein Zaehlfehler des Messwerkzeugs: es sucht `check(`,
+# `self.assert...` und `ok(`, hier heisst die Zusicherung aber `ck(`. Der Lauf zeigt 650 Pruefungen.
+from harness import befund, bericht, check as _hcheck  # noqa: E402
 
-n=0
 
 def ck(a, label):
- global n
- n+=1
- if not a: raise AssertionError(label)
+    return _hcheck(str(label), bool(a))
 
 j=json.loads((R/'data/originalkarten/katalog.json').read_text('utf8'))
 h=j['historischer_quellkontext']
@@ -71,6 +73,8 @@ for e in j['karten']:
  ck(k['originalkarte_quelle']==j['website'],'Website attribution stays attached')
  ck('gold' not in k.get('vorraete',{}) and 'leder' not in k.get('vorraete',{}),'Keine Gratisrohstoffe')
 ck(Counter(x['original_nummer'] for x in j['karten'] if x['variante'])=={38:2,118:2},'Dublette bleiben zwei verschiedene Karten')
-if ohne_odt: print('BEFUND: '+OP.fehlt_hinweis(ohne_odt)+' (ODT)')
-if ohne_bild: print('BEFUND: '+OP.fehlt_hinweis(ohne_bild)+' (Bilder)')
-print(f'GPT-OK04: {n} Pruefungen bestanden; 0 Fehler')
+if ohne_odt: befund("Original-ODT fehlt (Register 407), gezaehlt: %d" % ohne_odt,
+                    OP.fehlt_hinweis(ohne_odt))
+if ohne_bild: befund("Originalbilder fehlen (Register 407), gezaehlt: %d" % ohne_bild,
+                     OP.fehlt_hinweis(ohne_bild))
+sys.exit(bericht())

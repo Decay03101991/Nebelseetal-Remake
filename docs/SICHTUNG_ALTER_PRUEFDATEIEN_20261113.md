@@ -47,6 +47,11 @@ Pruefstand-Kopf nicht und kennen keinen Befundkanal. Genau darum standen sie in 
 | `test_rueckmarsch` | 17 | main | kein `bericht()` — meldet nur eine eigene Zeile | auf `harness` umstellen (Kopf bleibt, `check`/`bericht`/`messwert` uebernehmen) |
 | `test_textqualitaet` | 6 | main | kein `bericht()` — meldet nur eine eigene Zeile | auf `harness` umstellen (Kopf bleibt, `check`/`bericht`/`messwert` uebernehmen) |
 
+**KORREKTUR 13.11.2026 (Sitzung 44, Register 594):** Die Spalte *Pruefungen* dieser Tabelle ist ein
+**Quelltext-Zaehlung** und lag bei dieser Datei falsch: gezaehlt wurden `check(`, `self.assert...` und
+`ok(` — die Zusicherung heisst hier aber **`ck(`**. Der Lauf zeigt **650 Pruefungen, 0 Fehler** (vor und
+nach der Umstellung auf `harness` gleich). Die Datei ist also **kein** gruener Lauf ohne Aussage.
+
 **Besonderheit `test_gpt_originalkarten_historische_info`:** gezaehlt **0 Pruefungen** — die Datei ist
 76 Zeilen lang, laeuft aber ohne eine einzige Zusicherung durch. Das ist der schlimmste Fall der Liste:
 ein gruener Lauf, der nichts behauptet. Sie braucht Pruefungen, nicht nur eine neue Form.

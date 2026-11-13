@@ -22,18 +22,13 @@ import tkinter as tk
 
 WURZEL = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(WURZEL, "src"))
+sys.path.insert(0, os.path.join(WURZEL, "tests"))          # harness liegt hier
 
 import main  # noqa: E402
-
-bestanden = []
-fehler = []
-
-
-def check(name, bedingung, detail=""):
-    if bedingung:
-        bestanden.append(name)
-    else:
-        fehler.append(f"{name} — {detail}")
+# F-80 (Daniel 13.11.2026): eigene Zaehlung durch `harness` ersetzt - dieselben Pruefungen,
+# jetzt mit Messwerten, Befundkanal und einer ERGEBNIS-Zeile. `check(name, bedingung, detail)`
+# hat dieselbe Signatur wie `harness.check`.
+from harness import bericht, check  # noqa: E402
 
 
 def siedlung_mit(gebaeude=()):
@@ -120,9 +115,4 @@ finally:
         os.remove(tor)
 
 print()
-print("=" * 70)
-print(f"ERGEBNIS: {len(bestanden)} bestanden, {len(fehler)} Fehler, 0 Befunde")
-print("=" * 70)
-for f in fehler:
-    print("  FEHLER:", f)
-sys.exit(0 if not fehler else 1)
+sys.exit(bericht())

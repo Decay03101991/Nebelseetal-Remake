@@ -23,25 +23,16 @@ import sys
 
 WURZEL = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(WURZEL, "src"))
+sys.path.insert(0, os.path.join(WURZEL, "tests"))          # harness liegt hier
 
 import main          # noqa: E402
 import spieloekonomie  # noqa: E402
 import fehlbestand   # noqa: E402
 
-bestanden = []
-fehler = []
-befunde = []
-
-
-def check(name, bedingung, detail=""):
-    if bedingung:
-        bestanden.append(name)
-    else:
-        fehler.append(f"{name} — {detail}")
-
-
-def befund(name, detail):
-    befunde.append(f"{name} — {detail}")
+# F-80 (Daniel 13.11.2026): eigene Zaehlung durch `harness` ersetzt - dieselben Pruefungen,
+# jetzt mit Messwerten und Befundkanal. `check(name, bedingung, detail)` und `befund(name, detail)`
+# haben dieselbe Signatur wie im Pruefrahmen.
+from harness import befund, bericht, check  # noqa: E402
 
 
 class Ort:
@@ -240,11 +231,4 @@ check("jeder Menuepunkt hat eine Ebene", all(p in main.EBENE_JE_PUNKT for p in m
       str([p for p in main.MENU_ITEMS if p not in main.EBENE_JE_PUNKT]))
 
 print()
-print("=" * 70)
-print(f"ERGEBNIS: {len(bestanden)} bestanden, {len(fehler)} Fehler, {len(befunde)} Befunde")
-print("=" * 70)
-for f in fehler:
-    print("  FEHLER:", f)
-for b in befunde:
-    print("  BEFUND:", b)
-sys.exit(0 if not fehler else 1)
+sys.exit(bericht())

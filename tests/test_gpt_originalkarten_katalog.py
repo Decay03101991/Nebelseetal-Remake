@@ -19,17 +19,19 @@ from pathlib import Path
 from collections import Counter
 
 P=Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(P/'tests'))            # harness liegt in tests/
 sys.path.insert(0,str(P/'src'))
 import _originalpfade as OP          # Register 407: Originale liegen ausserhalb des Repos
 import originalkarten as O
 import spieloekonomie as E
+# F-80 (Daniel 13.11.2026): eigene Zaehlung durch `harness` ersetzt. `ok(bedingung, label)` bleibt
+# als Name stehen, damit keine der 27 Pruefungen angefasst werden muss - gezaehlt wird jetzt von
+# `harness` (Messwerte, Befundkanal, eine ERGEBNIS-Zeile).
+from harness import befund, bericht, check as _hcheck  # noqa: E402
 
-checks=0
 
-def ok(condition,label):
- global checks
- checks+=1
- if not condition: raise AssertionError(label)
+def ok(condition, label):
+    return _hcheck(str(label), bool(condition))
 
 quelle=O.alle()
 ok(len(quelle)==127,'127 Originalgrafiken')
@@ -72,5 +74,5 @@ ok(start['zaehlung']['grasland']>=2,'Startkarte mit Agrargrundlage')
 ok(E.relativ(start)==(1.0,1.0,1.0),'Vergleichsbasis verwendet Original statt Altkarte')
 ok(E.startkarte('a','spieler')['raster']==E.startkarte('b','spieler')['raster'],'Originalbildpositionen bleiben fest')
 if ohne_original:
- print('BEFUND: '+OP.fehlt_hinweis(ohne_original))
-print(f'GPT-OK: {checks} Pruefungen bestanden; 0 Fehler')
+    befund("Originale fehlen (Register 407)", OP.fehlt_hinweis(ohne_original))
+sys.exit(bericht())

@@ -30,18 +30,14 @@ import tempfile
 
 WURZEL = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(WURZEL, "tools"))
+sys.path.insert(0, os.path.join(WURZEL, "tests"))           # harness liegt hier
 
 import opus_lauf  # noqa: E402  (Pfad steht erst jetzt)
 
-FEHLER = []
-PRUEFUNGEN = 0
-
-
-def check(name, bedingung, meldung=""):
-    global PRUEFUNGEN
-    PRUEFUNGEN += 1
-    if not bedingung:
-        FEHLER.append(f"{name}: {meldung}")
+# F-80 (Daniel 13.11.2026): eigene Zaehlung durch `harness` ersetzt - dieselben Pruefungen,
+# jetzt mit Messwerten, Befundkanal und einer ERGEBNIS-Zeile. `check(name, bedingung, meldung)`
+# hat dieselbe Signatur wie `harness.check`.
+from harness import bericht, check  # noqa: E402
 
 
 def main() -> int:
@@ -93,10 +89,7 @@ def main() -> int:
     check("5 kein commonpath-Aufruf mehr im Werkzeug", "commonpath([" not in quelle)
     check("6 Sperre benutzt _im_projekt", "_im_projekt(arbeitsordner)" in quelle)
 
-    print(f"ERGEBNIS: {PRUEFUNGEN - len(FEHLER)} bestanden, {len(FEHLER)} Fehler")
-    for f in FEHLER[:20]:
-        print("  -", f)
-    return 1 if FEHLER else 0
+    return bericht()
 
 
 if __name__ == "__main__":

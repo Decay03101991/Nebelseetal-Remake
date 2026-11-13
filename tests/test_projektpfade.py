@@ -31,16 +31,12 @@ import tempfile
 WURZEL = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(WURZEL, "src")
 sys.path.insert(0, os.path.join(WURZEL, "tools"))
+sys.path.insert(0, os.path.join(WURZEL, "tests"))           # harness liegt hier
 
-FEHLER = []
-PRUEFUNGEN = 0
-
-
-def check(name, bedingung, meldung=""):
-    global PRUEFUNGEN
-    PRUEFUNGEN += 1
-    if not bedingung:
-        FEHLER.append(f"{name}: {meldung}")
+# F-80 (Daniel 13.11.2026): eigene Zaehlung durch `harness` ersetzt - dieselben Pruefungen,
+# jetzt mit Messwerten, Befundkanal und einer ERGEBNIS-Zeile. `check(name, bedingung, meldung)`
+# hat dieselbe Signatur wie `harness.check`.
+from harness import bericht, check  # noqa: E402
 
 
 # Nur echte Pfadzeichen: sonst zieht der Ausdruck den halben Satz mit, wenn hinter dem
@@ -99,11 +95,9 @@ def main() -> int:
               sum(1 for n in dateien if f"`{n}`" in vorhanden) == len(dateien),
               f"{sum(1 for n in dateien if chr(96) + n + chr(96) in vorhanden)} von {len(dateien)}")
 
-    print(f"ERGEBNIS: {PRUEFUNGEN - len(FEHLER)} bestanden, {len(FEHLER)} Fehler "
-          f"({len(dateien)} Quelldateien)")
-    for f in FEHLER[:20]:
-        print("  -", f)
-    return 1 if FEHLER else 0
+    from harness import messwert
+    messwert("quelldateien", len(dateien), "Stueck")
+    return bericht()
 
 
 if __name__ == "__main__":
