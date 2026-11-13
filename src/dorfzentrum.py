@@ -202,7 +202,7 @@ def lager_masse(karte: int, k: float = 1.0, ls: Optional[Dict[str, Any]] = None,
 
         T_w = (R - 4p) // 3                 Kachelbreite          206
         Text = T_w - 16 - 64 - g            Textbreite in der K.  118
-        Block = 2 ls_text + round(2k) + ls_zahl                   63
+        Block = max(50 k, 2 ls_text + round(2k) + ls_zahl)        63  (Untergrenze, F-89c)
         T_h = 2p + max(56, Block)           Kachelhoehe            83
         6 Reihen = 6 T_h + 5 p                                    548 <= 702
 
@@ -218,6 +218,13 @@ def lager_masse(karte: int, k: float = 1.0, ls: Optional[Dict[str, Any]] = None,
     ls_zahl = hoehen["zahl"]
     breite = max(1, (int(karte) - 4 * p) // LAGER_SPALTEN)
     textblock = 2 * ls_text + _rund(2 * k) + ls_zahl
+    # F-89c (Entscheidung Daniel 13.11.2026, Register 589/596): die Untergrenze **50 x k** haelt die
+    # Kachel auf ihren 83 px. Grund: die Formel rechnete mit den ANGENOMMENEN Zeilenhoehen (19 / 22,
+    # Fall 2 = 63 px). Auf dem wirklichen Schirm sind die GEMESSENEN Werte kleiner (20 / 19 -> 62),
+    # und die Kachel wurde 82 statt 83 px hoch. Die 83 meint den INHALT (Daniel): gezeichnet ist sie
+    # 208 x 85, weil `_dz_kachel` einen 2-px-Rahmen zieht. Fall 1 bleibt unveraendert
+    # (max(56, 50) = 56 -> Kachel 72).
+    textblock = max(_rund(50 * k), textblock)
     hoehe = 2 * p + max(KACHEL_SYMBOL[1], textblock)
     return {"spalten": LAGER_SPALTEN, "kachel_breite": breite, "kachel_hoehe": hoehe,
             "textbreite": max(1, breite - KACHEL_INNEN - KACHEL_SYMBOL[0] - g),
