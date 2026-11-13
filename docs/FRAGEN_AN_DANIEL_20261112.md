@@ -411,3 +411,22 @@ bleibt, nur der Umbruchpunkt wird ehrlich.
 **Lehre aus F-81/F-98, für künftige Zusammenlegungen:** Prüfart (`PRUEF_ART`) und Stufe sind Teil des
 Prüfvertrags — sie steuern `tools/auswahl.py`. Zwei Dateien mit verschiedener Prüfart gehören nicht in
 eine Datei, auch wenn ihre Modulmengen zu 80 Prozent gleich sind.
+
+
+---
+
+## I. Die sechs offenen Fragen aus Claudes Antwort Nr. 18 (Sitzung 44, 13.11.2026)
+
+Sie werden **einzeln** gestellt (Arbeitsregel 7); diese Sammlung ist der Vorrat und der Beweis.
+
+| Nr. | Frage | Messlage | Stand |
+|---|---|---|---|
+| **F-99** | Bilder beim Laden einpassen statt zerren? | Wappen 0,62–0,74 breit je hoch → **1,35- bis 1,62-fach gestreckt**; Code `resize((px, px))` | **beantwortet und gebaut** (Register 624): 18×18 → 11×18, Wache in `test_bot_wappen`, T4 235/235 |
+| **F-100** | Abzeichen auf der Weltkarte: flach, gar nicht, oder so lassen? | bei 8 px nur ein Farbfleck; Silberbach/Schattenfaust (beide rot) und Sternenwacht/Flickwerk (beide hell) verwechselbar | **offen** (Karte lief in die Zeitüberschreitung) — gilt als offen, nicht als „nein“ |
+| **F-101** | Dateigrößen: 4× Anzeige überall, oder bei großen Flächen 2×? | 4× bei 1127 px Breite ergäbe Kopfbänder über 4500 px und Startbilder 4096 × 2880 | offen |
+| **F-102** | Portraitfoto `assets/bilder/daniel_portrait.png` aus dem Spielordner nehmen? | unbenutzt, wandert aber vermutlich in jede EXE und die Public Edition | offen (sein Bild, seine Entscheidung) |
+| **F-103** | Die drei Meshy-Wappen: `elfen_wappen.png` als Stilvorlage behalten, `_128`/`_64` löschen? | `_128`/`_64` werden nirgends genannt; die 1024er Datei ist freigestellt im Meshy-Stil | offen (Löschen braucht sein Wort) |
+| **F-104** | 45 alte Rückfall-Icons hinter `clean/` im Dezember entrümpeln? | nur **eine** Datei braucht heute den Rückfall (`Drachenschuppe.png`) | offen |
+
+**Was ich davon schon gemessen habe:** die `Drachenschuppe.png` ist **nicht** fast leer — 64 × 82, 903 Byte,
+aber **52 % der Pixel sind deckend** (Claudes Verdacht war falsch, Register 622).
