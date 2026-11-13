@@ -61,3 +61,21 @@ B12 ×3, B13 = 16; B4 ungezählt, weil ungeklärt).
 3. **Stilvorlage ist die Meshy-Lieferung** (`assets/wappen/elfen_wappen.png`, Waldelfen) — sie zeigt,
    was gebraucht wird, und ist kein Spielinhalt (F-103).
 4. **Waren, Einheiten und Karten-Gebäude behalten ihre Icons** (F-104) — dafür wird nichts neu gezeichnet.
+
+
+---
+
+## 5. Nachträglich entschieden (nach Claudes Antwort Nr. 19, 13.11.2026)
+
+| Frage | Daniels Antwort (wörtlich) | Folge |
+|---|---|---|
+| **F-105 = F1** Farbe Haus Flickwerk | „F-78 behalten (Eisblau / Weiß / Messing) — die gemessene Datei ist dunkelblau-grau mit Messing-Akzent, das passt am ehesten“ | Das sechste Kopfband entsteht in **Eisblau/Weiß/Messing**; die Chronik-Fassung (Grau/Schwarz/Gold) ist damit überstimmt, weil sie Hammerhall farbgleich machen würde |
+| **F-106 = F2** hochgerechnet = 4×? | „Ja: in der größten Ausgabe erzeugen, danach mit gutem Verfahren hochrechnen — die 4×-Datei zählt, Qualität wird dokumentiert“ | F-101 bleibt in Kraft; **jede** hochgerechnete Datei bekommt einen Vermerk (Ausgangsgröße, Verfahren, Datum) in `docs/BILDPAKET_202612*.md` |
+
+**Damit sind Schattenfaust (Rot/Schwarz/Gold, Wappen `wappen_08` gemessen schwarz-rot) und Sternenwacht
+(Weiß/Silber/Nachtblau, `wappen_09` gemessen nachtblau-weiß) durch die Dateien gedeckt** — Messung in
+`docs/PRUEFUNG_CLAUDE_19_20261113.md`, Abschnitt 5.
+
+**Offen bleibt nur noch F4** (B4, Einzelansichten der Gebäude, 1142 × 1120): Claude hält sie für den
+Dezember nicht für nötig, weil jede Ansicht ohne Motivbild auf das Volkspanorama zurückfällt und alle
+sechs Panoramen existieren.

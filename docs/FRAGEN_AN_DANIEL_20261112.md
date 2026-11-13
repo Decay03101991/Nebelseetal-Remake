@@ -430,3 +430,10 @@ Sie werden **einzeln** gestellt (Arbeitsregel 7); diese Sammlung ist der Vorrat 
 
 **Was ich davon schon gemessen habe:** die `Drachenschuppe.png` ist **nicht** fast leer — 64 × 82, 903 Byte,
 aber **52 % der Pixel sind deckend** (Claudes Verdacht war falsch, Register 622).
+
+### Nachtrag 13.11.2026, Sitzung 44 (nach Auftrag Nr. 19)
+
+| Nr. | Frage | Antwort |
+|---|---|---|
+| **F-105** | Farbe Haus Flickwerk (Chronik Grau/Schwarz/Gold gegen F-78 Eisblau/Weiß/Messing) | „F-78 behalten (Eisblau / Weiß / Messing) …“ |
+| **F-106** | Gilt eine hochgerechnete Datei als 4×? | „Ja: in der größten Ausgabe erzeugen, danach mit gutem Verfahren hochrechnen — die 4×-Datei zählt, Qualität wird dokumentiert“ |
