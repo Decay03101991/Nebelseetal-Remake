@@ -9127,12 +9127,19 @@ class NebelseetalApp:
         return bild
 
     def _motivbild_skaliert(self, relativ: str, px: int, cache: str, deckkraft: int = 100):
-        """Ein Bild aus dem Projekt auf `px` Pixel bringen und im Cache halten (Tk-Bild oder None).
+        """Ein Bild in ein `px` x `px` FELD einpassen und im Cache halten (Tk-Bild oder None).
+
+        **EINPASSEN, nicht zerren** (13.11.2026, Register 624): bis hierher stand hier
+        `roh.resize((px, px))` — jedes Bild wurde auf ein Quadrat gezogen. Die Wappen sind aber
+        0,62 bis 0,74 so breit wie hoch und wurden damit 1,35- bis 1,62-fach in die Breite gestreckt
+        (gemessen an den sechs Dateien), die Drachen 1,25- bis 1,5-fach. Quadratische Bilder (die
+        20 C2-Motive, 256 x 256) bleiben unveraendert, weil `min(px/w, px/h)` fuer sie genau `px/w`
+        ergibt. Dasselbe Verfahren benutzt `_lager_symbol` seit jeher.
 
         Mit Pillow wird geglaettet skaliert (LANCZOS); fehlt Pillow, wird ganzzahlig per
-        `subsample` verkleinert - das Spiel laeuft dann weiter, nur groeber und ohne
-        Deckkraft-Absenkung. Der Cache ist Pflicht: Tk gibt Bilder frei, die niemand mehr
-        referenziert (dann waeren sie unsichtbar).
+        `subsample` verkleinert (das erhaelt das Seitenverhaeltnis von sich aus) - das Spiel laeuft
+        dann weiter, nur groeber und ohne Deckkraft-Absenkung. Der Cache ist Pflicht: Tk gibt Bilder
+        frei, die niemand mehr referenziert (dann waeren sie unsichtbar).
         """
         pfad = icon_pfad(relativ)                                    # Projektpfad ueber EINE Stelle
         if not pfad or not os.path.exists(pfad):                     # Datei fehlt
@@ -9147,7 +9154,10 @@ class NebelseetalApp:
         try:                                                         # geglaetteter Weg mit Pillow
             from PIL import Image, ImageTk                            # nur hier - das Spiel laeuft auch ohne
             roh = Image.open(pfad).convert("RGBA")                    # PNG mit Alphakanal
-            roh = roh.resize((px, px), Image.LANCZOS)                 # auf Zielgroesse verkleinern
+            # Einpassen: der groessere der beiden Masse stossen an `px`, das andere bleibt kleiner.
+            _faktor = min(float(px) / float(max(1, roh.width)), float(px) / float(max(1, roh.height)))
+            _ziel = (max(1, int(round(roh.width * _faktor))), max(1, int(round(roh.height * _faktor))))
+            roh = roh.resize(_ziel, Image.LANCZOS)                    # einpassen statt zerren
             if 0 < deckkraft < 100:                                   # Deckkraft absenken (Rahmen)
                 roh.putalpha(roh.getchannel("A").point(lambda a: int(a * deckkraft / 100.0)))   # Alpha skalieren
             bild = ImageTk.PhotoImage(roh)                            # Tk-Grafik daraus

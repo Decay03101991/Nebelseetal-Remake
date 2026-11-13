@@ -34,7 +34,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from harness import abschnitt, befund, bericht, check, import_src
+from harness import abschnitt, befund, bericht, check, import_src, messwert
 
 ROOT, SRC = import_src()
 sys.path[:0] = [SRC, os.path.join(ROOT, "tools")]
@@ -172,5 +172,42 @@ check("5 auch die eigenen Doerfer stehen auf der Karte",
 befund("5 ehrliche Grenze: die Zuordnung Fraktion -> Burg und Wappen ist eine Setzung dieser Sitzung "
        "(das Original nennt keine Wappen). Sie steht in `data/bot_wappen.json` und ist ohne Code "
        "aenderbar; die Bilder selbst sind Daniels Lieferung.", "")
+
+# ==========================================================================
+abschnitt("6. Die Bilder werden EINGEPASST, nicht gezerrt (13.11.2026, Register 624)")
+# ==========================================================================
+# Bis hierher machte `_motivbild_skaliert` aus jedem Bild ein Quadrat (`roh.resize((px, px))`).
+# Die Wappen sind 0,62 bis 0,74 so breit wie hoch und wurden damit 1,35- bis 1,62-fach gestreckt.
+import os as _os                                                       # noqa: E402
+
+try:                                                                   # eigenes, unsichtbares Fenster
+    _root6 = tk.Tk()
+    _root6.withdraw()
+except tk.TclError:                                                    # kein Bildschirm (CI)
+    _root6 = None
+
+if _root6 is not None:                                                 # nur mit Fenster messbar
+    from PIL import Image as _Image                                    # noqa: E402
+    _app = M.NebelseetalApp(_root6)
+    for _px in (8, 18, 42):
+        _bild = _app._motivbild_skaliert("assets/icons/wappen/wappen_09.png", _px, "_pruef_cache")
+        if _bild is None:
+            check("6 Wappen laesst sich laden (%d px)" % _px, False, "None")
+            continue
+        _roh = _Image.open(_os.path.join(ROOT, "assets/icons/wappen/wappen_09.png"))
+        _soll = _roh.width / float(_roh.height)
+        _ist = _bild.width() / float(_bild.height())
+        check("6 das Wappen behaelt sein Seitenverhaeltnis bei %d px" % _px,
+              abs(_soll - _ist) < 0.08,
+              "Datei %.2f, geladen %.2f (%dx%d)" % (_soll, _ist, _bild.width(), _bild.height()))
+        check("6 das Wappen stossen mit der HOEHE an %d px" % _px,
+              max(_bild.width(), _bild.height()) == _px,
+              "%dx%d" % (_bild.width(), _bild.height()))
+        check("6 das Wappen ist NICHT quadratisch bei %d px (kein Zerren)" % _px,
+              _bild.width() != _bild.height(), "%dx%d" % (_bild.width(), _bild.height()))
+        messwert("wappen_09_geladen_%dpx" % _px, "%dx%d" % (_bild.width(), _bild.height()), "px")
+    _root6.destroy()
+else:
+    befund("6 die Einpass-Pruefung faellt aus", "kein Fenster moeglich")
 
 sys.exit(bericht())
