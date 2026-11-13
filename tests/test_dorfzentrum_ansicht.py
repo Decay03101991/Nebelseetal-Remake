@@ -137,6 +137,21 @@ def _lauf():
         check("der Text ist der formatierte Wert der Oekonomie", _erwartet in _alle,
               "%s in %s" % (_erwartet, _alle[:120]))
 
+        # ---------------------------------------------------------------- 3b. F-96: Aufgeben-Grund
+        abschnitt("3b. Der Aufgeben-Knopf traegt den Grund NICHT mehr im Text (F-96)")
+        _knopftexte = []
+        for _kind in (getattr(app, "_dz_block_rahmen", {}) or {}).get("aktionen").winfo_children():
+            _knopftexte += _texte(_kind)
+        check("der Knopf heisst kurz 'Aufgeben (gesperrt)'",
+              "Aufgeben (gesperrt)" in _knopftexte, str(_knopftexte)[:160])
+        check("der lange Grund steht nicht mehr im Knopf",
+              not any(str(t).startswith("aufgeben gesperrt:") for t in _knopftexte),
+              str([t for t in _knopftexte if "gesperrt" in str(t)])[:160])
+        _kurz = app.state.aufgeben_grund_kurz(str(getattr(_ort, "id", "") or ""))
+        check("die kurze Begruendung steht darunter", _kurz in _knopftexte or _kurz in _alle,
+              "%s / %s" % (_kurz, str(_knopftexte)[:120]))
+        messwert("aufgeben_grund_kurz_len", len(_kurz), "Zeichen")
+
         # ---------------------------------------------------------------- 4. die Reiter
         abschnitt("4. Drei Reiter, Umschalten leckt nicht (Z3)")
         check("die Reihenfolge der Reiter ist Lager, Werkstaetten, Einheiten",

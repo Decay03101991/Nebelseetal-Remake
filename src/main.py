@@ -6044,6 +6044,20 @@ class GameState:
                     % (SIEDLUNGEN_MAXIMUM, len(self.settlements)))
         return ""                                                       # erlaubt
 
+    def aufgeben_grund_kurz(self, siedlung_id: str) -> str:
+        """Derselbe Grund in KURZ - fuer Stellen mit wenig Platz (F-96, Daniel 13.11.2026).
+
+        Daniels Entscheidung: der Knopf im Dorfzentrum heisst "Aufgeben (gesperrt)", darunter steht
+        eine kurze Zeile ("nur eine Siedlung" bzw. "erst ab sechs Siedlungen"). Die Bedingungen
+        werden NICHT neu formuliert, sondern aus `aufgeben_grund` abgeleitet (F-04-Muster: eine
+        Quelle fuer Kern und Anzeige) - der lange Satz bleibt dort, wo Platz ist.
+        """
+        if not self.aufgeben_grund(siedlung_id):                        # leer heisst: erlaubt
+            return ""
+        if len(self.settlements) <= 1:
+            return "nur eine Siedlung"
+        return "erst ab %d Siedlungen" % SIEDLUNGEN_MAXIMUM
+
     def siedlung_aufgeben(self, siedlung_id: str) -> Tuple[bool, str]:
         """Eine Siedlung aufgeben - Originalregel, Register 225 (Daniel 05.11.2026).
 
@@ -11153,13 +11167,18 @@ class NebelseetalApp:
                              font=self._dz_klein(), bg="#5b1a1a", fg="#FDBA74", bd=0,
                              highlightthickness=0, padx=int(m["p"]), pady=1)
             if _grund:
-                # Offen (Frage an Daniel, Sitzung 44): der Grund ist ein ganzer Satz. Im Knopftext
-                # lief er aus der Spalte (gemessen 1018 px bei 416 verfuegbar), als eigener Text
-                # mit `wraplength` belegt er drei Zeilen und macht den Aktionenblock 146 px hoch
-                # statt 87 - dann schrumpft die Auswahl auf 107 px und ist nicht mehr der groesste
-                # Block. Ohne Daniels Entscheidung bleibt es hier beim alten Verhalten.
-                _auf.config(state=tk.DISABLED, text="aufgeben gesperrt: " + str(_grund))
+                # F-96 (Daniel 13.11.2026, Antwort a): der Grund stand BISHER im Knopftext - gemessen
+                # war der Knopf damit 1018 px breit bei 416 verfuegbar, der Text lief unsichtbar aus
+                # der Spalte. Jetzt: kurzer Knopftext und eine KURZE Zeile darunter (eine Zeile
+                # Hoehe, damit das Hoehenbudget aus Nr. 16 haelt und die Auswahl der groesste Block
+                # bleibt). Der lange Satz steht weiter in `aufgeben_grund` (Siedlungsliste).
+                _auf.config(state=tk.DISABLED, text="Aufgeben (gesperrt)")
             _auf.pack(side=tk.LEFT)
+            if _grund:
+                tk.Label(block, text=self.state.aufgeben_grund_kurz(str(getattr(ort, "id", "") or "")),
+                         fg=SPALTE_CREME, bg=_farbe, font=self._dz_klein(), anchor=tk.W,
+                         justify=tk.LEFT, wraplength=int(m["textbreite"])).pack(
+                             fill=tk.X, padx=int(m["p"]), pady=(0, 2))
 
     def _dz_ort_wechseln(self, name: str) -> None:
         """Die aktive Siedlung ueber den Namen waehlen (dieselbe Stelle wie `Als aktiv setzen`)."""
