@@ -25,8 +25,8 @@ Arbeitsregel 7. **Diese Datei ersetzt die Vorschlagsliste B1–B13, soweit Danie
 |---|---|---|---|---|
 | B1 | Ruine auf der Weltkarte (Feld eines besiegten Drachen) | 19–44 px | 176 × 176 | **offen** |
 | B2 | Drache in Grün und in Rot (heute zeigen Tardas/Salmur blau und lila) | 19–44 px | 176 × 176 | **offen** |
-| B5 | Startbilder Anmelden/Laden | 1024 × 720 | **4096 × 2880** | offen |
-| B8 | Kopfband je Volk (heute nur eines, Motiv Ghule) | bis 1127 px breit | 4508 × 868 | offen |
+| B5 | Startbilder Anmelden/Laden | 1024 × 720 | **4096 × 2880** | **Code vorbereitet** (Register 644): das Schild (`LADEBILD_PNG`) wird an beiden Stellen – Ladeansicht und Speicher-Nebenfenster – in ein am Fenster gemessenes Feld eingepasst (höchstens halbe Breite, 90 % der Höhe), nie vergrößert. Die Datei selbst fehlt noch |
+| B8 | Kopfband je Volk (heute nur eines, Motiv Ghule) | bis 1127 px breit | 4508 × 868 | **Code vorbereitet** (Register 640): Zuordnung in `data/portal_kopfbaender.json` |
 | B9 | Goldrahmen der Weltkarte | 400–920 px | 3680 × 3680 | offen |
 | B10 | Kachelrahmen Ruhe/Auswahl der Siedlungskarte | 57–64 px | 256 × 256 | offen |
 | B12 | Ressourcenleiste (drei Stücke) | 64 × 34 / 16 × 34 | 256 × 136 / 64 × 136 | offen |

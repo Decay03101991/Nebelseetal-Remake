@@ -437,3 +437,28 @@ aber **52 % der Pixel sind deckend** (Claudes Verdacht war falsch, Register 622)
 |---|---|---|
 | **F-105** | Farbe Haus Flickwerk (Chronik Grau/Schwarz/Gold gegen F-78 Eisblau/Weiß/Messing) | „F-78 behalten (Eisblau / Weiß / Messing) …“ |
 | **F-106** | Gilt eine hochgerechnete Datei als 4×? | „Ja: in der größten Ausgabe erzeugen, danach mit gutem Verfahren hochrechnen — die 4×-Datei zählt, Qualität wird dokumentiert“ |
+
+### F6 Zwei DPI-Wachen nageln deinen Bildschirm fest (16.11.2026)
+
+**Messlage:** Der volle Sammellauf `sammellauf_20261115_2350.log` war 236 von 238 grün. Die zwei roten
+sind **nicht** die Arbeit dieser Sitzung: `test_dpi_f51` (38/9) und `test_siedlungsansicht_a9` (38/1)
+liefern auf dem VOR-Stand (`git stash` der geänderten Dateien) **genau dieselben Zahlen**. Ursache: die
+Wachen erwarten die Werte von damals — Schirm 1920 × 1080, `k = 1,251`. Gemessen wird jetzt
+**3840 × 2160** bei **k = 1,5007** (150 % Skalierung). Der letzte grüne Lauf war am 13.11.2026.
+
+**Was das heißt:** Beide Wachen prüfen nicht die Rechnung, sondern **eine Bildschirmkonfiguration**.
+Solange nur ein Schirm mit 125 % dranhängt, sind sie grün; jetzt sind sie rot, obwohl am Spiel nichts
+kaputt ist. `test_siedlungsansicht_a9` meldet „die Spalte rollt nicht“ — bei 785 px Inhalt auf 785 px
+Fläche gibt es auch nichts zu rollen.
+
+**Wirkung, wenn nichts geschieht:** Jeder Sammellauf meldet zwei rote Dateien; nach der Prüfstand-Regel
+ist ein Lauf mit roten Dateien kein gültiger Beleg — ich muss dann jedes Mal einzeln nachweisen, dass die
+beiden vorbestehen.
+
+**Vorschlag (empfohlen):** Die beiden Wachen auf die **gemessene** Konfiguration umstellen (k und
+Schirmgröße zur Laufzeit messen, die Rechnung selbst bleibt die Zusage: `schrift()`-Werte,
+Rollbalkenbreite, Spaltenbreite folgen aus k). Keine Zusage wird abgeschwächt, nur die festgenagelte
+Zahl. Alternativ: die zwei Dateien als „nur auf 125 %/1920 × 1080 gültig“ kennzeichnen und aussetzen —
+das wäre die schlechtere Wahl, weil die Wache dann aufhörte zu wachen.
+
+**Offen, bis du es sagst.** Nichts geändert.

@@ -29,6 +29,25 @@ import tor
 import tkinter as tk
 
 
+def ist_tkbild(obj) -> bool:
+    """Ist `obj` ein Tk-Bildobjekt? tk.PhotoImage ODER Pillow-ImageTk.PhotoImage.
+
+    F5 (15.11.2026, Register 644): das Schild wird seit dieser Aenderung ueber
+    `ladebild_photo` EINGEPASST; mit Pillow kommt dabei ein `ImageTk.PhotoImage` zurueck, das
+    KEINE Unterklasse von `tk.PhotoImage` ist (gemessen: die drei Wachen fielen mit
+    "is not an instance of <class 'tkinter.PhotoImage'>" um). Die Zusage bleibt dieselbe - am
+    Fenster haengt ein ECHTES Bildobjekt -, darum prueft die Wache jetzt beide Arten statt den
+    Code zurueckzubiegen.
+    """
+    arten = [tk.PhotoImage]
+    try:
+        from PIL import ImageTk
+        arten.append(ImageTk.PhotoImage)
+    except Exception:                                                 # noqa: BLE001 - kein Pillow
+        pass
+    return isinstance(obj, tuple(arten))
+
+
 class ProfileTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -184,7 +203,8 @@ def _desc(w):
         out.extend(_desc(ch))
     return out
 
-
+
+
 
 # F-81 (Daniel 13.11.2026: "Name fuer Name uebernehmen, dann streichen"): die sechs Pruefungen
 # aus `tests/test_gpt_schild_nebenfenster_fix04i.py` - gleiche Pruefart (Fenster), gleicher Gegenstand
@@ -218,7 +238,7 @@ class SchildLayout(unittest.TestCase):
         pfad.write_text('{"day": 5}', encoding='utf-8')
         self.assertTrue(self.app._spielstand_verwaltung('spieler'))
         fenster = self.erstes_fenster()
-        self.assertIsInstance(getattr(fenster, '_nebelseetal_schild_bild'), tk.PhotoImage)
+        self.assertTrue(ist_tkbild(getattr(fenster, '_nebelseetal_schild_bild')))
         self.assertEqual(len([b for b in alle(fenster) if isinstance(b, tk.Button)
                               and b.cget('text') == 'L\u00f6schen (archivieren)']), 3)
         self.assertTrue(pfad.exists())
@@ -239,14 +259,14 @@ class SchildLayout(unittest.TestCase):
         self.app._admin_sitzung_freigegeben = True
         self.assertTrue(self.app._archiv_wiederherstellung_dialog('spieler',self.tmp.name,self.root))
         fenster=self.erstes_fenster()
-        self.assertIsInstance(getattr(fenster, '_nebelseetal_schild_bild'), tk.PhotoImage)
+        self.assertTrue(ist_tkbild(getattr(fenster, '_nebelseetal_schild_bild')))
         self.assertEqual(len([x for x in alle(fenster) if isinstance(x, tk.Listbox)]),1)
         fenster.destroy()
 
     def test_laden_speichern_fenster_mit_schild(self):
         self.app._slot_auswahl('load')
         fenster=self.erstes_fenster()
-        self.assertIsInstance(getattr(fenster, '_nebelseetal_schild_bild'),tk.PhotoImage)
+        self.assertTrue(ist_tkbild(getattr(fenster, '_nebelseetal_schild_bild')))
         self.assertEqual(len([b for b in alle(fenster) if isinstance(b,tk.Button)
                               and b.cget('text').startswith('Laden #')]), 3)
         fenster.destroy()

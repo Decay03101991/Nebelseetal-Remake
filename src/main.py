@@ -18444,15 +18444,18 @@ class NebelseetalApp:
         verzerrt oder als neues Artwork dupliziert. Links liegt eine deckende,
         kontrastreiche Bedienflaeche, rechts bleibt das Schild erkennbar.
         Fehlende Grafiken sind kein Grund, das Speichern/Laden zu blockieren.
+
+        F5 (15.11.2026, Sitzung 46): das Bild wird in das AM DIALOG GEMESSENE Feld eingepasst
+        (`ladebild_feld` -> halbe Breite, 90 % der Hoehe), nicht mehr in Dateigroesse geladen.
+        Grund: B5 liefert das Motiv im Dezember als 4096 x 2880, und `tk.PhotoImage` skaliert
+        nicht - das Schild kaeme sonst rund neunfach zu gross hinter das Fenster.
         """
         fenster.configure(bg="#190a08")
         bild = None
         try:
-            pfad = ladebild_pfad()
-            if os.path.isfile(pfad):
-                bild = tk.PhotoImage(file=pfad, master=fenster)
+            bild = ladebild_photo(ladebild_feld(fenster), master=fenster)   # einpassen statt roh
         except (OSError, tk.TclError):
-            pass
+            bild = None
         if bild is not None:
             hintergrund = tk.Label(fenster, image=bild, borderwidth=0,
                                   highlightthickness=0, bg="#190a08")
@@ -19023,6 +19026,90 @@ def ladebild_pfad() -> str:
     return os.path.join(spieldaten.projektwurzel(), *LADEBILD_PNG)
 
 
+# --- Groesse des Schilds (F5, 15.11.2026, Sitzung 46) ---------------------------------------
+# Der Bildbedarf B5 liefert dasselbe Schildmotiv im Dezember in 4x: 4096 x 2880 statt heute
+# 455 x 320 (gemessen). `tk.PhotoImage` skaliert NICHT - in Dateigroesse kaeme das Bild an ZWEI
+# Stellen zu gross ins Fenster: in der Ladeansicht (gemessen: Fenster 1024 x 720, Schildflaeche
+# 459 x 324) und hinter den Speicher-Nebenfenstern (`_schild_dialog_inhalt`, Fenster 980 x 475
+# bzw. 980 x 430). Darum wird die GELADENE Groesse gemessen und in ein Feld EINGEPASST - nie
+# vergroessert, Seitenverhaeltnis bleibt.
+#
+# Das Feld ist eine Layout-ENTSCHEIDUNG, kein Dateimass: halbe Fensterbreite, 90 % der
+# Fensterhoehe. Damit erscheint die heutige Datei pixelgleich wie vorher (455 x 320 passt in
+# 512 x 648 bzw. 490 x 427), und ein 4096er-Bild bleibt im Fenster (512 x 360 bzw. 490 x 345).
+LADEBILD_FELD_BREITE = 0.5
+LADEBILD_FELD_HOEHE = 0.9
+
+
+def ladebild_feld(fenster, breite=None, hoehe=None) -> tuple:
+    """Das Feld in Tk-Pixeln, in das das Schild hoechstens passt - gemessen, nicht geraten.
+
+    Gemessen wird `winfo_width()`/`winfo_height()`. Die echte Groesse steht dort erst NACH
+    einem IDLE-Lauf (gemessen 15.11.2026: ein Toplevel mit `geometry("980x475")` meldet vor dem
+    Lauf 1 x 1, danach 980 x 475). Kenn der Aufrufer die Fenstergroesse selbst (die Ladeansicht
+    setzt sie zwanzig Zeilen vorher), gibt er sie mit - dann entfaellt die Messung.
+    Bleibt die Messung unbrauchbar (1 x 1), ist der Bildschirm die Obergrenze.
+    Rueckgabe: (breite, hoehe) in Tk-Pixeln, beide mindestens 1.
+    """
+    if breite is None or hoehe is None:                                # Groesse nicht uebergeben
+        try:
+            fenster.update_idletasks()                                 # Geometrie anwenden
+        except Exception:                                              # noqa: BLE001 - kein Tk
+            pass
+        try:
+            breite, hoehe = int(fenster.winfo_width()), int(fenster.winfo_height())
+        except Exception:                                              # noqa: BLE001
+            breite, hoehe = 0, 0
+    if not breite or not hoehe or int(breite) <= 1 or int(hoehe) <= 1:  # (noch) nicht vermessen
+        try:
+            breite = int(fenster.winfo_screenwidth())                  # Bildschirm als Obergrenze
+            hoehe = int(fenster.winfo_screenheight())
+        except Exception:                                              # noqa: BLE001
+            breite, hoehe = 1024, 720                                  # Vorgabe wie die Ladeansicht
+    return (max(1, int(int(breite) * LADEBILD_FELD_BREITE)),
+            max(1, int(int(hoehe) * LADEBILD_FELD_HOEHE)))
+
+
+def ladebild_photo(feld, master=None):
+    """Das Schild als Tk-Bild, in das Feld EINGEPASST - oder None, wenn es nicht geht.
+
+    F5 (15.11.2026): beide Wege liefern dieselbe Zielgroesse.
+    1. Pillow (LANCZOS) - der uebliche Weg, das Spiel startet damit (`START_SPIEL_WINDOWS.bat`).
+    2. OHNE Pillow: `tk.PhotoImage` laden und ganzzahlig `subsample` - Tk kann das selbst, das
+       Seitenverhaeltnis bleibt.
+    **Nie vergroessert** (`faktor <= 1.0`): die heutige Datei (455 x 320) erscheint darum
+    pixelgleich wie vorher. Fehlt die Datei oder ist sie unlesbar, kommt None zurueck - der
+    Aufrufer zeigt dann seinen Text (kein Bild wird erfunden, nichts blockiert den Start).
+    """
+    pfad = ladebild_pfad()                                             # EINE Stelle fuer den Pfad
+    if not pfad or not os.path.isfile(pfad):                            # Datei fehlt
+        return None
+    feld_b, feld_h = max(1, int(feld[0])), max(1, int(feld[1]))        # Zielfeld in Tk-Pixeln
+    try:                                                               # geglaetteter Weg
+        from PIL import Image, ImageTk
+        roh = Image.open(pfad)                                         # PNG oeffnen
+        if roh.mode not in ("RGB", "RGBA", "L", "LA"):                  # seltene Modi umformen
+            roh = roh.convert("RGBA")
+        faktor = min(feld_b / float(max(1, roh.width)),                # einpassen
+                     feld_h / float(max(1, roh.height)), 1.0)          # nie vergroessern
+        if faktor < 1.0:
+            ziel = (max(1, int(round(roh.width * faktor))),
+                    max(1, int(round(roh.height * faktor))))
+            roh = roh.resize(ziel, Image.LANCZOS)                      # 4096 px / 8 = 512 px
+        return ImageTk.PhotoImage(roh, master=master)                   # Tk-Grafik daraus
+    except Exception:                                                  # noqa: BLE001 - kein Pillow
+        pass
+    try:                                                               # Rueckfall ohne Pillow
+        bild = tk.PhotoImage(file=pfad, master=master)                  # Originalgroesse laden
+        faktor = max(1, int(math.ceil(bild.width() / float(feld_b))),   # ganzzahlig verkleinern
+                     int(math.ceil(bild.height() / float(feld_h))))     # beide Achsen passen
+        if faktor > 1:                                                  # nur verkleinern
+            bild = bild.subsample(faktor)                               # 4096 px / 8 = 512 px
+        return bild                                                    # groeber, aber im Feld
+    except Exception:                                                  # noqa: BLE001 - unlesbar
+        return None
+
+
 # --- Startbilder (06.11.2026, Daniels Wunsch): Panorama hinter Anmeldung und Ladebild ---------
 # Daniels Wortlaut: ein "schoenes panorama bild" in jede der ersten Benutzeroberflaechen, das
 # "Nebelseetal"-Wort im Bild durch UNSER Logo ersetzt, und im Ladebild bleibt das Schild sichtbar.
@@ -19191,13 +19278,17 @@ def zeige_loadingpage(root):
             root._startbild = hintergrund                               # Referenz halten
         rahmen = tk.Frame(root, bg="#1b1109", bd=2, relief=tk.GROOVE, padx=18, pady=12)
         rahmen.place(relx=0.5, rely=0.45, anchor=tk.CENTER)
-        bild = None
-        pfad = ladebild_pfad()
-        if os.path.exists(pfad):
-            try:
-                bild = tk.PhotoImage(file=pfad)
-            except Exception:
-                bild = None
+        # F5 (15.11.2026, Sitzung 46): Feld AM FENSTER messen (1024 x 720 -> hoechstens
+        # 512 x 648) und das Schild einpassen. In Dateigroesse geladen kaeme die 4096 x 2880
+        # grosse Dezember-Datei (B5) sonst achtfach zu gross in die Ladeansicht.
+        bild = None                                                       # Ergebnis
+        try:
+            # Die Fenstergroesse steht 20 Zeilen weiter oben fest (`_breit`, `_hoch`) - sie wird
+            # uebergeben, weil `winfo_width()` vor dem ersten Kartenaufbau nicht verlaesslich ist.
+            feld = ladebild_feld(root, _breit, _hoch)                      # hoechstens 512 x 648
+            bild = ladebild_photo(feld, master=root)                       # einpassen statt roh
+        except Exception:                                                  # noqa: BLE001
+            bild = None                                                    # dann der Text
         if bild is not None:
             # Das Schild muss AM FENSTER haengen: Tk raeumt ein Bild weg, sobald die einzige
             # Python-Referenz verschwindet - dann bliebe der Kasten leer (belegt 06.11.2026).
