@@ -180,10 +180,18 @@ def aufbau():
     check("die Spalte hat einen eigenen Rollbereich", spalte is not None)
     if spalte is not None:
         bbox = spalte.bbox("all") or (0, 0, 0, 0)
-        check("die Spalte rollt (Inhalt hoeher als die Flaeche)",
-              (bbox[3] - bbox[1]) > spalte.winfo_height(),
-              "%d px Inhalt gegen %d px Flaeche" % (bbox[3] - bbox[1], spalte.winfo_height()))
-        messwert("spalte_inhalt", bbox[3] - bbox[1], "px")
+        _inhalt = bbox[3] - bbox[1]
+        _flaeche = spalte.winfo_height()
+        # ENTSCHEIDUNG GEAENDERT (16.11.2026, F6, Register 645): hier stand "Inhalt HOEHER als die
+        # Flaeche" - das war an Daniels Skalierung von 125 % gebunden. Bei 150 % passt der Inhalt
+        # genau (gemessen 785 px auf 785 px) und rollt darum nicht; abgeschnitten ist trotzdem
+        # nichts. Die Zusage ist: der Inhalt wird NICHT abgeschnitten - ist er hoeher, muss der
+        # Rollbalken ihn erreichbar machen.
+        check("die Spalte schneidet nichts ab (Inhalt passt hinein oder ist rollbar)",
+              _inhalt <= _flaeche or bool(spalte.yview()[1:] and spalte.yview()[1] < 1.0),
+              "%d px Inhalt gegen %d px Flaeche" % (_inhalt, _flaeche))
+        messwert("spalte_inhalt", _inhalt, "px")
+        messwert("spalte_flaeche", _flaeche, "px")
         rollbalken = getattr(app, "_spalte_rollbalken", None)
         # F-57: die Breite wird gemessen, nicht gesetzt. Hier steht der GEBAUTE Rollbalken gegen
         # den Wert, den `rollbalken_breite()` fuehrt - und beide muessen die Messung sein.

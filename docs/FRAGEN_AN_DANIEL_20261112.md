@@ -501,3 +501,22 @@ wappen_03 (goldener Hirsch)“ war der Stand **vor** F-78 (Register 614) und ist
 bleibt ungenutzt liegen (nichts gelöscht). Eigener Schritt mit Registerzeile, `test_bot_wappen` und
 `test_haeuser_wappen` müssen danach beide grün sein (sie vergleichen die zwei Datendateien
 gegeneinander).
+
+### F8 Vier Wachen brauchen ein grosses Fenster - was gilt bei kleinem Schirm? (16.11.2026)
+
+**Messlage:** Der Sammellauf 02:21 meldete 5 rote Dateien bei **800 x 600** Schirm (k = 1,0000,
+Fenster 1024 x 720, Flaeche 615 x 565) und 2697 s statt 1074 s. Um 23:50 waren dieselben Dateien auf
+3840 x 2160 gruen. Die zwei DPI-Wachen sind erledigt (F6, Register 645, jetzt 45/0/4 bzw. 39/0/0).
+Rot bleiben: `test_siedlungsansicht_a9` (Karte steht nicht rechts), `test_siedlungsansicht_a10`
+(Stichpixel), `test_dorfzentrum_ansicht` (Block 5 soll der groesste sein), `test_dorfzentrum_geometrie`
+(Auswahl soll der groesste Block sein, mindestens 120 px). Alle vier pruefen Zusagen fuer ein GROSSES
+Fenster; bei 615 x 565 steht die Karte gestapelt und die Bloecke schrumpfen - das ist die Entscheidung
+F-46, kein Defekt.
+
+**Was das heisst:** Bei ausgeschaltetem oder kleinem Bildschirm ist der Sammellauf nicht
+aussagekraeftig - er meldet dann Rot ohne Defekt.
+
+**Vorschlag (empfohlen, Karte gestellt und ohne Antwort geblieben = offen):** die vier Dateien messen
+die Flaeche und melden bei zu kleinem Fenster „nicht pruefbar“ (Befund) statt rot; am grossen Fenster
+pruefen sie unveraendert scharf. Alternativen: Bildschirm wieder gross machen und neu laufen, oder
+nichts aendern und die Roten jedes Mal einzeln nachweisen.
