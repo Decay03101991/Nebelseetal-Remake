@@ -520,3 +520,29 @@ aussagekraeftig - er meldet dann Rot ohne Defekt.
 die Flaeche und melden bei zu kleinem Fenster „nicht pruefbar“ (Befund) statt rot; am grossen Fenster
 pruefen sie unveraendert scharf. Alternativen: Bildschirm wieder gross machen und neu laufen, oder
 nichts aendern und die Roten jedes Mal einzeln nachweisen.
+
+### F-91 gebaut (16.11.2026, Register 647)
+
+Beide Datendateien tragen jetzt `assets/wappen/elfen_wappen.png` (Elfen), `wappen_09` bleibt als Datei
+liegen (225.591 Byte) und ist ungenutzt. Die Wappenbeschreibung und `wappen_kurz` sind am Bild neu
+formuliert (silbrig-weißer Schildgrund, silbernes Blatt, vierzackiger Stern, goldene Ranken und
+Rahmen, türkisfarbene Rauten, tiefgrüne Standarte); beide Chronik-Fassungen tragen denselben Satz und
+sind weiter hashgleich. Drei neue Wachen in `tests/test_haeuser_wappen.py` halten die Entscheidung fest.
+
+### F9 Die Hausfarben der Sternenwacht passen nicht mehr zum neuen Wappen (16.11.2026)
+
+**Messlage:** `data/haeuser.json`, Haus `elfisch`, sagt weiter „Die Farben des Hauses sind Weiß, Silber
+und Nachtblau“, und die Chronik schreibt diesen Satz unmittelbar vor den neuen Wappensatz. Das neue
+Bild ist gemessen (deckende Pixel, Median-Cut auf 10 Farben, 25.389 Stichproben): **Gold/Braungold rund
+33 %**, **Silber/Weiß rund 31 %**, **dunkles Tannengrün/Türkis rund 36 %**, **Nachtblau 0,0 %**. Damit
+stehen in einem Absatz zwei verschiedene Farbaussagen — die Zeile des Hauses nennt eine Farbe, die auf
+dem Bild nicht vorkommt, und verschweigt zwei, die es tragen.
+
+**Auswirkung:** Nur Anzeigetext (Chronik, Hauskopf); kein Bild, kein Code, keine Prüfung hängt daran.
+F-78 sagt „Geschichte und Stil folgen den Bildern“ — die Zeile ist der letzte Rest, der es nicht tut.
+Zur Burg `burg_03` (weiß-gold, gemessen) passt Gold besser als Nachtblau.
+
+**Vorschlag (empfohlen):** die Farbzeile folgt dem Bild — „Weiß, Silber, Gold und Tannengrün“ in
+`data/haeuser.json` und in beiden Chronik-Fassungen, hashgleich, mit Registerzeile und Nachweis, dass
+`test_haeuser_wappen` danach grün bleibt. **Alternativen:** (a) die Zeile bleibt stehen und der
+Widerspruch bleibt sichtbar dokumentiert; (b) ein neues Wappenbild wird bestellt, das Nachtblau trägt.

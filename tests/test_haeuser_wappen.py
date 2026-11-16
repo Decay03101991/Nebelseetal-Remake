@@ -192,6 +192,17 @@ def main() -> int:
     check("Wappenpfad der Trolle endet auf wappen_08.png",
           haus_modul.wappen("Trolle").endswith("wappen_08.png"), haus_modul.wappen("Trolle"))
     check("Kurzbeschreibung vorhanden", bool(haus_modul.wappen_kurz("elfisch")))
+    # F-91 (Daniel 16.11.2026): die Elfen tragen das gelieferte Meshy-Wappen; `wappen_09` wird frei.
+    # Die Wache haelt die ENTSCHEIDUNG fest (wie bei den Trollen oben) und belegt, dass nichts
+    # geloescht wurde: die freigewordene Datei liegt weiter im Projekt.
+    check("Wappenpfad der Elfen endet auf elfen_wappen.png",
+          haus_modul.wappen("elfisch").endswith("assets/wappen/elfen_wappen.png"),
+          haus_modul.wappen("elfisch"))
+    check("das freigewordene wappen_09 liegt weiter im Projekt (nichts geloescht)",
+          os.path.isfile(os.path.join(ROOT, "assets", "icons", "wappen", "wappen_09.png")), "")
+    check("die Wappenbeschreibung nennt kein Nachtblau mehr (das Bild hat keines)",
+          "Nachtblau" not in haus_modul.haus_von_fraktion("elfisch")["wappen_beschreibung"],
+          haus_modul.haus_von_fraktion("elfisch")["wappen_beschreibung"][:60])
     check("kaputte Datei gibt ein leeres Dict statt eines Absturzes",
           haus_modul.alle(os.path.join(ROOT, "data", "gibt-es-nicht.json")) == {})
     with open(os.path.join(ROOT, "src", "main.py"), encoding="utf-8") as f:
