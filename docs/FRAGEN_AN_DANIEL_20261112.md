@@ -546,3 +546,21 @@ Zur Burg `burg_03` (weiß-gold, gemessen) passt Gold besser als Nachtblau.
 `data/haeuser.json` und in beiden Chronik-Fassungen, hashgleich, mit Registerzeile und Nachweis, dass
 `test_haeuser_wappen` danach grün bleibt. **Alternativen:** (a) die Zeile bleibt stehen und der
 Widerspruch bleibt sichtbar dokumentiert; (b) ein neues Wappenbild wird bestellt, das Nachtblau trägt.
+
+### F9 geloest: die Farbzeile folgt dem Bild (16.11.2026, Register 648)
+
+**Wie es entschieden wurde:** Die Frage wurde als Karte gestellt (16.11.2026, 09:1x) und lief ohne
+Antwort ab - sie gilt damit als **offen gestellt, nicht als "nein"**. Entschieden hat stattdessen eine
+**bestehende Entscheidung von Daniel**: Frage 6 vom 05.11.2026 ("Ja, angleichen - die sechs Hausfarben
+folgen den Tinkturen der gelieferten Wappenbilder"). `tests/test_hausfarben.py` setzt genau das durch
+und war nach F-91 die einzige rote Datei im vollen T4 (237 von 238 gruen, `sammellauf_20261116_0858.log`).
+
+**Was jetzt im Text steht:** `data/haeuser.json` und beide Chronik-Fassungen fuehren "Die Farben des
+Hauses sind Weiss, Silber, Gold und Tannengruen" (vorher "Weiss, Silber und Nachtblau"), der
+Wappensatz beginnt mit derselben Tinkturliste. Das gemessene Bild traegt Gold rund 33 %, Silber/Weiss
+rund 31 %, dunkles Tannengruen/Tuerkis rund 36 % und **0,0 % Nachtblau**.
+
+**Ruecknahme mit einem Wort:** Daniels Farbzeile laesst sich jederzeit wieder auf "Weiss, Silber und
+Nachtblau" setzen - dann muss aber auch der Wappensatz die Mondsichel aus `wappen_09` beschreiben oder
+`wappen_09` zurueckkommen, sonst wird `test_hausfarben` wieder rot (die Wache vergleicht beide
+Richtungen).
