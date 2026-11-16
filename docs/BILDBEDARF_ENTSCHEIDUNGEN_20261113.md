@@ -31,7 +31,7 @@ Arbeitsregel 7. **Diese Datei ersetzt die Vorschlagsliste B1–B13, soweit Danie
 | B10 | Kachelrahmen Ruhe/Auswahl der Siedlungskarte | 57–64 px | 256 × 256 | offen |
 | B12 | Ressourcenleiste (drei Stücke) | 64 × 34 / 16 × 34 | 256 × 136 / 64 × 136 | offen |
 | B13 | Marktplatz-Kennzeichen | 96 px | 384 × 384 | offen |
-| B4 | Einzelansicht der Gebäude (Motiv vor Panorama) | 1:1, 1142 × 1120 | 1:1 bleibt | **Zuordnung ungeklärt**: das sind keine Karten-Icons; F-104 nennt nur die Gebäude, die auf der Karte erscheinen und produzieren. Bleibt bis zur Klärung auf der Liste |
+| B4 | Einzelansicht der Gebäude (Motiv vor Panorama) | 1:1, 1142 × 1120 | 1:1 bleibt | **im Dezember nicht** (F4, Daniels Antwort 16.11.2026: „Nein — B4 im Dezember weglassen“). Ohne Motivbild zeigt jede Ansicht das jeweilige Volkspanorama, alle sechs existieren. Bleibt für später auf der Liste, ist aber nicht Teil der 16 |
 | ~~B3~~ | ~~Kartenabzeichen~~ | — | — | **entfällt** (F-100) |
 | ~~B6~~ | ~~18 Warensymbole~~ | — | — | **entfällt** (F-104) |
 | ~~B7~~ | ~~28 Einheitensymbole~~ | — | — | **entfällt** (F-104) |

@@ -461,4 +461,43 @@ Rollbalkenbreite, Spaltenbreite folgen aus k). Keine Zusage wird abgeschwächt, 
 Zahl. Alternativ: die zwei Dateien als „nur auf 125 %/1920 × 1080 gültig“ kennzeichnen und aussetzen —
 das wäre die schlechtere Wahl, weil die Wache dann aufhörte zu wachen.
 
-**Offen, bis du es sagst.** Nichts geändert.
+**Antwort (Daniel, 16.11.2026 00:1x, einzeln gefragt):** „Die zwei Wachen umstellen: k und Schirmgröße
+zur Laufzeit MESSEN, die Rechnung bleibt die Zusage (schrift-Werte, Rollbalken 21 px, Spaltenbreite
+folgen aus k).“ **Gebaut wird das als eigener Schritt (F6, nächste freie Registerzeile 645)** — nichts
+abgeschwächt: die Rechnung bleibt die Zusage, nur die festgenagelte Zahl fällt weg.
+
+### F4 beantwortet: die 15 Gebäude-Einzelansichten kommen nicht in den Dezember (16.11.2026)
+
+**Antwort (Daniel, einzeln gefragt):** „Nein — B4 im Dezember weglassen.“ Damit bleiben die 16 Bilder
+des Pakets (B1, B2 ×2, B5 ×2, B8 ×6, B9, B10 ×2, B12 ×3, B13) unverändert; B4 bleibt für später auf der
+Liste, ist aber nicht Teil der Lieferung. Eingetragen in `docs/BILDBEDARF_ENTSCHEIDUNGEN_20261113.md`,
+Abschnitt 2.
+
+### F7 beantwortet: `SKILL.md` wird ausgelagert, nicht gekürzt (16.11.2026)
+
+**Messlage:** `skills/project-management/nebelseetal-remake/SKILL.md` 100.867 Zeichen — über dem
+100.000-Limit; Ergänzungen sind dort nicht mehr möglich (Stand: Übergabe 2334, Abschnitt 11).
+
+**Antwort (Daniel, einzeln gefragt):** „Auslagern: SKILL.md in Themen-Referenzen aufteilen, bis der Kern
+wieder deutlich unter 100.000 Zeichen liegt — die Regeln bleiben wortgleich, nur verteilt (eigener
+Schritt, Register 645 ff.).“
+
+**Daraus folgt:** eigener Schritt, KEIN Kürzen und kein Abschwächen; beim Auslagern wird jede
+verschobene Regel im `SKILL_UND_REGEL_PROTOKOLL.md` mit Hash vorher/nachher, Grund, Freigabe und
+Rückrollweg eingetragen. Zusammen mit F6 (DPI-Wachen) sind das die zwei nächsten Bau-Schritte.
+
+### F-91 beantwortet: das Meshy-Elfenwappen wird eingetragen (16.11.2026)
+
+**Antwort (Daniel, einzeln gefragt):** „Als Elfenwappen eintragen: `elfen_wappen.png` in
+`data/bot_wappen.json` und `data/haeuser.json` einsetzen, `wappen_09` wird frei (mit Wache und
+Registerzeile).“
+
+**Nachgemessen (16.11.2026, damit die Zeile stimmt):** die Elfen tragen heute in **beiden** Datendateien
+`assets/icons/wappen/wappen_09.png` — `data/bot_wappen.json` Zeile `elfisch`, `data/haeuser.json` Block
+`elfisch` (Haus Sternenwacht, Farben Weiß, Silber und Nachtblau). Der alte Satz „die Elfen tragen
+wappen_03 (goldener Hirsch)“ war der Stand **vor** F-78 (Register 614) und ist überholt.
+
+**Auswirkung:** das Wappen der Elfen zeigt künftig das gelieferte Meshy-Bild; `wappen_09` wird frei und
+bleibt ungenutzt liegen (nichts gelöscht). Eigener Schritt mit Registerzeile, `test_bot_wappen` und
+`test_haeuser_wappen` müssen danach beide grün sein (sie vergleichen die zwei Datendateien
+gegeneinander).
