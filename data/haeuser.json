@@ -32,11 +32,11 @@
       "haus": "Haus Sternenwacht",
       "volk": "Elfen",
       "welt": "Valhalla",
-      "farben": "Weiß, Silber und Nachtblau",
+      "farben": "Weiß, Silber, Gold und Tannengrün",
       "sitz": "Turmstadt Silberlaub",
       "burg": "assets/icons/burgen/burg_03.png",
       "wappen": "assets/wappen/elfen_wappen.png",
-      "wappen_beschreibung": "Das Wappen führt Weiß und Silber mit Gold und Tannengrün: auf perlmuttenem, silbernem Schildgrund ein aufrechtes silbernes Blatt, überragt von einem vierzackigen Stern, umschlossen von goldenen Ranken; der goldene Schildrand trägt türkisfarbene Rauten, und daneben steht eine tiefgrüne Standarte mit silbernen Streifen und goldenen Sternen. Einen Helm und eine Helmzier führt das Wappen nicht.",
+      "wappen_beschreibung": "Das Wappen führt Weiß, Silber, Gold und Tannengrün: auf perlmuttenem, silbernem Schildgrund ein aufrechtes silbernes Blatt, überragt von einem vierzackigen Stern, umschlossen von goldenen Ranken; der goldene Schildrand trägt türkisfarbene Rauten, und daneben steht eine tiefgrüne Standarte mit silbernen Streifen und goldenen Sternen. Einen Helm und eine Helmzier führt das Wappen nicht.",
       "wappen_kurz": "In Silber und Weiß ein silbernes Blatt unter einem vierzackigen Stern, goldene Ranken und türkisfarbene Rauten."
     },
     "Trolle": {

@@ -16,9 +16,9 @@ Diese Datei belegt vier Dinge und eine Gegenprobe:
   (e) GEGENPROBE: eine absichtlich falsche Farbe MUSS als Fehler erkannt werden - sonst ist die
       Pruefung blind und ihr Gruen bedeutet nichts.
 
-Eine ehrliche Grenze bleibt und ist erlaubt: die Elfen fuehren im Wappensatz das blosse "Gruen",
-ihre Hausfarbe heisst "Dunkelgruen" wie der Schildgrund - dieselbe Farbe, genauere Benennung.
-Deshalb vergleicht (b) Farbstaemme, nicht Zeichen fuer Zeichen.
+Eine ehrliche Grenze bleibt und ist erlaubt: der Vergleich in (b) prueft Farbstaemme, nicht Zeichen
+fuer Zeichen ('Dunkelgruen' deckt 'Gruen' ab). Seit F-91 (16.11.2026, Register 648) fuehren die Elfen
+in Farbzeile und Wappensatz dieselben vier Woerter - die Toleranz bleibt, wird aber nicht gebraucht.
 
 ASCII-only (Pruefdatei-Konvention): Umlaute nur als Escape.
 """
@@ -192,8 +192,10 @@ def haupt() -> int:
     check("Gegenprobe: eine erfundene Farbe faellt auf", bool(fehler_erfunden),
           "; ".join(fehler_erfunden)[:120])
 
-    befund("Die Elfen fuehren im Wappensatz 'Gruen', ihre Hausfarbe heisst 'Dunkelgruen' "
-           "(Schildgrund) - dieselbe Farbe, genauere Benennung, deshalb Stammvergleich in (b).")
+    befund("Die Stammpruefung in (b) bleibt als Toleranz stehen: 'Dunkelgruen' deckt 'Gruen' ab. "
+           "Seit F-91 (16.11.2026, Register 648) fuehren die Elfen in Farbzeile und Wappensatz "
+           "dieselben Woerter (Weiss, Silber, Gold, Tannengruen) - der alte Unterschied besteht nicht "
+           "mehr, die Toleranz wird nur noch nicht gebraucht.")
 
     return bericht()
 
