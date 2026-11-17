@@ -65,9 +65,6 @@ def _anzahl(widget) -> int:
     return 1 + sum(_anzahl(k) for k in widget.winfo_children())
 
 
-NICHT_PRUEFBAR = []        # F8: zu kleines Fenster - Messlage statt Fehler
-
-
 def _probe():
     import tkinter as tk
     root = tk.Tk()
@@ -77,9 +74,6 @@ def _probe():
     except Exception:                                                      # noqa: BLE001
         pass
     root.update()
-    if not flaeche_gross_genug(root, 1560, 940):   # F8: kleines Fenster ist kein Defekt
-        NICHT_PRUEFBAR.append(1)
-        return None, root
     try:
         app = main.NebelseetalApp(root)
         app._build_main_ui()
@@ -92,6 +86,8 @@ def _probe():
         for _ in range(3):
             root.update()
             root.update_idletasks()
+        if not flaeche_gross_genug(root, 1560, 940):   # F8: kleines Fenster ist kein Defekt
+            return None, root
         return app, root
     except Exception:
         root.destroy()
@@ -100,7 +96,7 @@ def _probe():
 
 def _lauf():
     app, root = _probe()
-    if NICHT_PRUEFBAR:
+    if app is None:                                    # F8: Fenster zu klein, Befund steht
         try:
             root.destroy()
         except Exception:                                          # noqa: BLE001

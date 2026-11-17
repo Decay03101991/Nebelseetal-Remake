@@ -139,15 +139,15 @@ def _fenster(ohne_bild: bool = False):
     except Exception:  # noqa: BLE001
         pass
     root.update()
-    if not flaeche_gross_genug(root, 1400, 900):   # F8: kleines Fenster ist kein Defekt
-        NICHT_PRUEFBAR.append(1)
-        return root, None
     app = main.NebelseetalApp(root)
     app._build_main_ui()
     app._erste_siedlung_gruenden()
     for _ in range(3):
         root.update()
         root.update_idletasks()
+    if not flaeche_gross_genug(root, 1400, 900):   # F8: kleines Fenster ist kein Defekt
+        NICHT_PRUEFBAR.append(1)
+        return root, None
     # Die Fraktion bestimmt das Panorama: ohne sie bleibt die Ansicht ohne Bild (A-7). Die
     # erfundene Siedlung des Testaufbaus hat kein Volk, darum wird die Fraktion gesetzt.
     app.spieler_fraktion = "" if ohne_bild else "elfisch"

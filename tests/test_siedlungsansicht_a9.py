@@ -86,15 +86,15 @@ def fenster():
     except Exception:  # noqa: BLE001
         pass
     root.update()
-    if not flaeche_gross_genug(root, 1400, 900):   # F8: kleines Fenster ist kein Defekt
-        root.destroy()
-        return
     app = main.NebelseetalApp(root)
     app._build_main_ui()
     app._erste_siedlung_gruenden()
     for _ in range(3):
         root.update()
         root.update_idletasks()
+    if not flaeche_gross_genug(root, 1400, 900):   # F8: kleines Fenster ist kein Defekt
+        root.destroy()
+        return
     siedlung = next((s for s in app.state.settlements if getattr(s, "karte", None)), None)
     if siedlung is None:
         befund("keine Siedlung mit Karte im Testaufbau")
@@ -151,15 +151,15 @@ def aufbau():
     except Exception:  # noqa: BLE001
         pass
     root.update()
-    if not flaeche_gross_genug(root, 1400, 900):   # F8: kleines Fenster ist kein Defekt
-        root.destroy()
-        return
     app = main.NebelseetalApp(root)
     app._build_main_ui()
     app._erste_siedlung_gruenden()
     for _ in range(3):
         root.update()
         root.update_idletasks()
+    if not flaeche_gross_genug(root, 1400, 900):   # F8: kleines Fenster ist kein Defekt
+        root.destroy()
+        return
     siedlung = next((s for s in app.state.settlements if getattr(s, "karte", None)), None)
     if siedlung is None:
         befund("keine Siedlung mit Karte im Testaufbau")

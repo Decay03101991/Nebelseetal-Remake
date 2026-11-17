@@ -46,9 +46,6 @@ import main  # noqa: E402
 REIHENFOLGE = ("kopf", "naechster", "ort", "aktionen", "auswahl", "hinweis")
 
 
-NICHT_PRUEFBAR = []        # F8: zu kleines Fenster - Messlage statt Fehler
-
-
 def _probe():
     """Fenster wirklich aufbauen und der Geometrie mehrere Zyklen geben."""
     import tkinter as tk
@@ -59,9 +56,6 @@ def _probe():
     except Exception:                                                      # noqa: BLE001
         pass
     root.update()
-    if not flaeche_gross_genug(root, 1560, 940):   # F8: kleines Fenster ist kein Defekt
-        NICHT_PRUEFBAR.append(1)
-        return None, root
     try:
         app = main.NebelseetalApp(root)
         app._build_main_ui()
@@ -74,6 +68,8 @@ def _probe():
         for _ in range(5):                     # Tk braucht mehrere Zyklen fuer grid + weight
             root.update()
             root.update_idletasks()
+        if not flaeche_gross_genug(root, 1560, 940):   # F8: kleines Fenster ist kein Defekt
+            return None, root
         return app, root
     except Exception:
         root.destroy()
@@ -88,7 +84,7 @@ def _namen_und_rahmen(app):
 
 def _lauf():
     app, root = _probe()
-    if NICHT_PRUEFBAR:
+    if app is None:                                    # F8: Fenster zu klein, Befund steht
         try:
             root.destroy()
         except Exception:                                          # noqa: BLE001
