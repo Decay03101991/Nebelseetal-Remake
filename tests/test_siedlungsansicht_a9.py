@@ -33,7 +33,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from harness import abschnitt, befund, bericht, check, import_src, messwert
+from harness import abschnitt, befund, bericht, check, flaeche_gross_genug, import_src, messwert
 
 ROOT, SRC = import_src()
 import main  # noqa: E402
@@ -86,6 +86,9 @@ def fenster():
     except Exception:  # noqa: BLE001
         pass
     root.update()
+    if not flaeche_gross_genug(root, 1400, 900):   # F8: kleines Fenster ist kein Defekt
+        root.destroy()
+        return
     app = main.NebelseetalApp(root)
     app._build_main_ui()
     app._erste_siedlung_gruenden()
@@ -148,6 +151,9 @@ def aufbau():
     except Exception:  # noqa: BLE001
         pass
     root.update()
+    if not flaeche_gross_genug(root, 1400, 900):   # F8: kleines Fenster ist kein Defekt
+        root.destroy()
+        return
     app = main.NebelseetalApp(root)
     app._build_main_ui()
     app._erste_siedlung_gruenden()

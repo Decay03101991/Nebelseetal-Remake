@@ -34,7 +34,8 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from harness import abschnitt, befund, bericht, check, import_src, messwert  # noqa: E402
+from harness import (abschnitt, befund, bericht, check, flaeche_gross_genug,  # noqa: E402
+                   import_src, messwert)
 
 ROOT, SRC = import_src()
 os.chdir(SRC)
@@ -43,6 +44,9 @@ import dorfzentrum  # noqa: E402
 import main  # noqa: E402
 
 REIHENFOLGE = ("kopf", "naechster", "ort", "aktionen", "auswahl", "hinweis")
+
+
+NICHT_PRUEFBAR = []        # F8: zu kleines Fenster - Messlage statt Fehler
 
 
 def _probe():
@@ -55,6 +59,9 @@ def _probe():
     except Exception:                                                      # noqa: BLE001
         pass
     root.update()
+    if not flaeche_gross_genug(root, 1560, 940):   # F8: kleines Fenster ist kein Defekt
+        NICHT_PRUEFBAR.append(1)
+        return None, root
     try:
         app = main.NebelseetalApp(root)
         app._build_main_ui()
@@ -81,6 +88,12 @@ def _namen_und_rahmen(app):
 
 def _lauf():
     app, root = _probe()
+    if NICHT_PRUEFBAR:
+        try:
+            root.destroy()
+        except Exception:                                          # noqa: BLE001
+            pass
+        return
     try:
         m = getattr(app, "_dz_masse", None) or {}
         leinwand = getattr(app, "_dz_leinwand", None)

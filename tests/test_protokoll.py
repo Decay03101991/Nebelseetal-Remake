@@ -51,8 +51,14 @@ VORFASSUNG = os.path.join(ROOT, "archiv", "dokumentation", "protokoll_alte_fassu
 # ENTSCHEIDUNG Daniel 06.11.2026: HEFTWECHSEL statt Verdichtung. Das abgeschlossene Heft liegt
 # vollstaendig im Archiv und zaehlt zur Gesamtsumme; geprueft wird zusaetzlich die Naht (der
 # erste Eintrag des neuen Hefts ist der letzte Eintrag des Archivhefts).
-ARCHIV = os.path.join(ROOT, "archiv", "dokumentation", "protokoll_alte_fassungen",
-                      "ENTWICKLUNGSPROTOKOLL_BIS_20261106.md")
+# ENTSCHEIDUNG Daniel 17.11.2026 (zweiter Heftwechsel, Protokoll auslagern): die Archivhefte
+# werden GEZAEHLT statt festgenagelt. Die Naht gilt gegen das JUENGSTE Heft, Inhalt und
+# Belegbarkeit gegen ALLE zusammen - sonst meldet der naechste Wechsel Zeilen als verloren,
+# die nur ein Heft weitergewandert sind.
+ARCHIVEN = sorted(glob.glob(os.path.join(ROOT, "archiv", "dokumentation",
+                                    "protokoll_alte_fassungen",
+                                    "ENTWICKLUNGSPROTOKOLL_BIS_*.md")))
+ARCHIV = ARCHIVEN[-1] if ARCHIVEN else ""
 
 abschnitt("1. Das Protokoll haelt seine Zielgroesse")
 
@@ -64,8 +70,10 @@ check("das geschlossene Geschichtsheft liegt daneben", os.path.exists(HISTORIE),
 historie = open(HISTORIE, encoding="utf-8").read() if os.path.exists(HISTORIE) else ""
 # ALLE Historienhefte zusammen (das geschlossene von vor dem 02.11. und die ausgelagerten Sektionen).
 historie_alle = "\n".join(open(p, encoding="utf-8").read() for p in HISTORIEN)
-archiv_text = open(ARCHIV, encoding="utf-8").read() if os.path.exists(ARCHIV) else ""
-gesamt = roh + "\n" + historie_alle + "\n" + archiv_text
+archiv_texte = [open(p, encoding="utf-8").read() for p in ARCHIVEN]
+archiv_text = archiv_texte[-1] if archiv_texte else ""
+archiv_alle = "\n".join(archiv_texte)
+gesamt = roh + "\n" + historie_alle + "\n" + archiv_alle
 check("die Vor-Fassung der Verdichtung ist aufbewahrt", os.path.exists(VORFASSUNG),
       os.path.basename(VORFASSUNG))
 if len(zeilen) > pz.ZIELZEILEN:
@@ -92,12 +100,13 @@ check("jedes Historienheft nennt sich selbst HISTORIE",
 check("der Schnitt ist sauber: die Sektion HERMES-BOTDORF-06 steht NUR im Historienheft",
       "## HERMES-BOTDORF-06" not in roh and "## HERMES-BOTDORF-06" in historie_alle, "")
 check("der Schnitt ist sauber: die Sektion HERMES-BOTNAHRUNG-01 steht NUR im Archivheft",
-      "## HERMES-BOTNAHRUNG-01" not in roh and "## HERMES-BOTNAHRUNG-01" in archiv_text, "")
+      "## HERMES-BOTNAHRUNG-01" not in roh and "## HERMES-BOTNAHRUNG-01" in archiv_alle, "")
 check("das abgeschlossene Heft liegt im Archiv", os.path.exists(ARCHIV),
       os.path.basename(ARCHIV))
 _zeit = re.compile(r"^\|\s*\d{1,2}[:.]\d{2}")
 _archiv_zeilen = [z for z in archiv_text.splitlines() if _zeit.match(z)]
 _neue_zeilen = [z for z in zeilen if _zeit.match(z)]
+# Die Naht gilt gegen das JUENGSTE Archivheft (17.11.2026).
 check("die Naht stimmt: erster Eintrag des neuen Hefts = letzter Eintrag des Archivhefts",
       bool(_archiv_zeilen) and bool(_neue_zeilen)
       and _neue_zeilen[0].strip() == _archiv_zeilen[-1].strip(),

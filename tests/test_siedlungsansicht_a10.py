@@ -41,7 +41,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from harness import abschnitt, befund, bericht, check, import_src, messwert
+from harness import abschnitt, befund, bericht, check, flaeche_gross_genug, import_src, messwert
 
 ROOT, SRC = import_src()
 import main          # noqa: E402
@@ -126,6 +126,9 @@ def kontraste():
     check("kein Text unter 12 px (B2, HART)", int(main.SPALTE_TEXT_MIN) >= 12)
 
 
+NICHT_PRUEFBAR = []        # F8: zu kleines Fenster - Messlage statt Fehler
+
+
 def _fenster(ohne_bild: bool = False):
     """Siedlung oeffnen und die Spalte bauen lassen; gibt (root, app) zurueck."""
     import tkinter as tk
@@ -136,6 +139,9 @@ def _fenster(ohne_bild: bool = False):
     except Exception:  # noqa: BLE001
         pass
     root.update()
+    if not flaeche_gross_genug(root, 1400, 900):   # F8: kleines Fenster ist kein Defekt
+        NICHT_PRUEFBAR.append(1)
+        return root, None
     app = main.NebelseetalApp(root)
     app._build_main_ui()
     app._erste_siedlung_gruenden()
@@ -161,6 +167,9 @@ def _fenster(ohne_bild: bool = False):
 def fenster():
     abschnitt("3. Im Fenster: Bild hinter der Spalte, fuenf Textbloecke auf der Leinwand")
     root, app = _fenster()
+    if NICHT_PRUEFBAR:
+        root.destroy()
+        return
     if app is None:
         befund("keine Siedlung mit Karte im Testaufbau")
         root.destroy()
@@ -287,6 +296,9 @@ def fenster():
 def rueckfall():
     abschnitt("5. Rueckfall ohne Bild (Antwort Nr. 12, Abschnitt C)")
     root, app = _fenster(ohne_bild=True)
+    if NICHT_PRUEFBAR:
+        root.destroy()
+        return
     if app is None:
         befund("keine Siedlung mit Karte im Testaufbau")
         root.destroy()

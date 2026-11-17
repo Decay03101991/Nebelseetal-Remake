@@ -36,7 +36,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from harness import abschnitt, befund, bericht, check, import_src, messwert  # noqa: E402
+from harness import abschnitt, befund, bericht, check, flaeche_gross_genug, import_src, messwert  # noqa: E402
 
 ROOT, SRC = import_src()
 os.chdir(SRC)
@@ -65,6 +65,9 @@ def _anzahl(widget) -> int:
     return 1 + sum(_anzahl(k) for k in widget.winfo_children())
 
 
+NICHT_PRUEFBAR = []        # F8: zu kleines Fenster - Messlage statt Fehler
+
+
 def _probe():
     import tkinter as tk
     root = tk.Tk()
@@ -74,6 +77,9 @@ def _probe():
     except Exception:                                                      # noqa: BLE001
         pass
     root.update()
+    if not flaeche_gross_genug(root, 1560, 940):   # F8: kleines Fenster ist kein Defekt
+        NICHT_PRUEFBAR.append(1)
+        return None, root
     try:
         app = main.NebelseetalApp(root)
         app._build_main_ui()
@@ -94,6 +100,12 @@ def _probe():
 
 def _lauf():
     app, root = _probe()
+    if NICHT_PRUEFBAR:
+        try:
+            root.destroy()
+        except Exception:                                          # noqa: BLE001
+            pass
+        return
     try:
         m = getattr(app, "_dz_masse", None) or {}
         hoehen = dict(getattr(app, "_dz_block_hoehen", {}) or {})

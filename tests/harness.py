@@ -327,3 +327,29 @@ def import_src():
         if p not in sys.path:
             sys.path.insert(0, p)
     return root, src
+
+
+def flaeche_gross_genug(root, breite, hoehe):
+    """Prueft, ob das ECHTE Fenster die verlangte Groesse bekommen hat (F8).
+
+    ENTSCHEIDUNG Daniel, 17.11.2026 (einzeln gestellt): bei ausgeschaltetem oder kleinem
+    Bildschirm bekommt Tk nicht die verlangte Groesse, sondern die des Schirms; die Ansicht
+    stapelt dann (Entscheidung F-46) und jede Wache auf die Nebeneinander-Flaeche wird rot,
+    ohne dass etwas defekt ist. Darum wird die Flaeche GEMESSEN und bei zu kleinem Fenster
+    "nicht pruefbar" als Befund gemeldet - die Zusage gilt fuer ein Fenster, das die
+    Groesse auch hat. Rueckgabe: True, wenn das Fenster gross genug ist; sonst False.
+    """
+    try:
+        root.update()
+        root.update_idletasks()
+    except Exception:                                                      # noqa: BLE001
+        pass
+    ist_b, ist_h = int(root.winfo_width()), int(root.winfo_height())
+    schirm_b, schirm_h = int(root.winfo_screenwidth()), int(root.winfo_screenheight())
+    meldung = ("verlangt %d x %d, Fenster %d x %d, Schirm %d x %d"
+               % (breite, hoehe, ist_b, ist_h, schirm_b, schirm_h))
+    if ist_b < breite - 1 or ist_h < hoehe - 1:
+        befund("nicht pruefbar: Fenster kleiner als %d x %d (F8)" % (breite, hoehe), meldung)
+        return False
+    messwert("fenster_gemessen", "%d x %d" % (ist_b, ist_h), "px", "gemessen")
+    return True
