@@ -1,3 +1,37 @@
+# STAND 18.11.2026, 22:05 - F-52 grün (241/241) und die Wappen der Besucherseite berichtigt (Register 670/671)
+
+**Kopf:** maßgeblich ist `git log -1`. **Sammellauf:** **241 von 241 grün, 0 rot, 2 ausgesetzt**, 243 Dateien,
+12.524 Prüfungen, 0 Fehler, 1184 s (`sammellauf_20261118_2133.log`).
+
+## Zwei Dinge, die diese Stunde gebracht hat
+
+1. **F-52 ist fertig und geprüft:** der Kopf der Siedlungskarte bleibt beim Rollen stehen (60 px, gemessen),
+   Wache `test_klebekopf_f52` 16/0/0, im vollen Lauf grün (Register 669/670).
+2. **Eine live falsche Anzeige ist berichtigt:** `index.html` (die Besucherseite auf GitHub) zeigte **fünf
+   von sechs Haus-Wappen falsch** — Bild **und** Text; `FRAKTIONEN_WELTEN.md` trug dieselbe alte Zuordnung
+   samt falscher Farbzeilen. Beide folgen jetzt `data/haeuser.json` (Stand 13.11.2026), die
+   `CHRONIK_DER_WELT.md` war bereits richtig. Aufgefallen ist es durch Claudes Antwort Nr. 21 — der Fund ist
+   **mein** Fehler, nicht seiner.
+
+## Claudes Antwort Nr. 21 (abgelegt, nachgerechnet)
+
+`docs/eingaenge/CLAUDE_20261118_BILDBRIEFING_NR21/` — Antwort 26.239 Byte (`b247ff78…`), Nachrechnung
+5.963 Byte (`1ec0632f…`). **Bestätigt:** Zuordnung nach `data/haeuser.json`, die Farbwerte (seine liegen je
+Kanal 16 höher, weil er die Stufenmitte misst), **D-a** (Leisten-Endstücke sind 8 : 17, meine Zeile „64:34“
+war falsch), **Toleranz** 0 px klein / ±1 px hochgerechnet, **Eckenradius** 7,5 % als Datenwert
+(`weltkarte_ecke: 30`). **Widerlegt:** Sternenwacht = `wappen_09` (richtig ist `elfen_wappen.png`).
+**Offen, mit Empfehlung:** D8 (Goldrahmen bleibt), D11 (Marineblau), D-c (das Wappen gilt bei Trollen und
+Gnomen).
+
+## Was als Nächstes ansteht
+
+1. **D8/D11/D-c** sind Daniels Wort — je eine Zeile, dann ist die Zeichner-Fassung frei.
+2. **Werkzeuglücken vor der Bilder-Abnahme:** PNG-Farbtyp (6 gegen 2) und Seitenverhältnis prüfen.
+3. **Abweichungsregister** pflegen (Daniels Antwort 2), Registerzeilen 594/595 nachtragen.
+4. **Bilder** 0 von 18, **sechs Wappen** blockiert bis zum Aufladen, **Bildschirmfoto** braucht Daniel.
+
+---
+
 # STAND 18.11.2026, 21:35 - nach dem Release: der klebende Kopf 60 px ist gebaut (F-52, Register 669)
 
 **Kopf:** maßgeblich ist `git log -1`. **V_0.0.4 ist veröffentlicht** (Tag `v_0.0.4`, Release mit EXE und

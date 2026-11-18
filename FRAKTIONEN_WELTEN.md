@@ -9,7 +9,7 @@ Geschichte dahinter steht in der [Chronik der Welt](CHRONIK_DER_WELT.md).
 ### Haus Silberbach — die Menschen
 <img src="assets/icons/wappen/wappen_04.png" width="80" align="right">
 
-**Heimat:** Midgard · **Farben:** Blau und Silber · **Wirkung:** Holz +5 %, Stein −5 %
+**Heimat:** Midgard · **Farben:** Rot und Gold**Wirkung:** Holz +5 %, Stein −5 %
 
 Gegründet vom Fischer Karl, der nach dem Bruch dem Klang eines hellen Baches folgte und an einer
 Lichtung den ersten Pfahl einschlug. Der Bach heißt seither Silberbach. Die Menschen hier halten
@@ -17,9 +17,9 @@ Gemeinschaft hoch, essen Brot, Flussfisch und Apfelmost, bauen in Holz und schie
 Ihr Fehler ist das schnelle Vertrauen — sie öffnen dem fremden Herrscher gern das Tor.
 
 ### Haus Hammerhall — die Zwerge
-<img src="assets/icons/wappen/wappen_05.png" width="80" align="right">
+<img src="assets/icons/wappen/wappen_10.png" width="80" align="right">
 
-**Heimat:** Armageddon · **Farben:** Schwarz und Gold · **Wirkung:** Stein +5 %, Holz −5 %
+**Heimat:** Armageddon · **Farben:** Grau, Schwarz und Gold**Wirkung:** Stein +5 %, Holz −5 %
 
 Die Zwergenfürstin Brunnhild hörte in den Tiefen von Armageddon ein gleichmäßiges Hämmern und fand eine
 Halle, die den Untergang überstanden hatte — in der Mitte ein noch warmer Amboss. „Wo ein Amboss steht,
@@ -27,9 +27,9 @@ ist Heimat." Ihre Tore tragen Runen, die an die Verträge der Vorzeit erinnern. 
 Sturheit: Zwerge halten an Entscheidungen fest, auch wenn die Welt sich ändert.
 
 ### Haus Sternenwacht — die Elfen
-<img src="assets/icons/wappen/wappen_03.png" width="80" align="right">
+<img src="assets/wappen/elfen_wappen_128.png" width="80" align="right">
 
-**Heimat:** Valhalla · **Farben:** Silber und Grün · **Wirkung:** Reisegeschwindigkeit +5 %, PA −5 %
+**Heimat:** Valhalla · **Farben:** Weiß, Silber, Gold und Tannengrün**Wirkung:** Reisegeschwindigkeit +5 %, PA −5 %
 
 Als nach dem Bruch Sternenlicht durch den Nebel von Valhalla brach, deuteten die Elfen es als Zeichen
 und errichteten dort ihre ersten Türme. Sie beobachten die Sterne, um den Weg der Welten zu verstehen.
@@ -43,18 +43,18 @@ Fehler ist die Arroganz — sie halten andere Völker für träge.
 > angepasst, nicht die Bilder.
 
 ### Haus Schattenfaust — die Trolle
-<img src="assets/icons/wappen/wappen_02.png" width="80" align="right">
+<img src="assets/icons/wappen/wappen_08.png" width="80" align="right">
 
-**Heimat:** Utgard · **Farben:** Weiß und Gold · **Wirkung:** Angriff +5 %, Handelserloes −5 %
+**Heimat:** Utgard · **Farben:** Rot, Schwarz und Gold**Wirkung:** Angriff +5 %, Handelserlös −5 %
 
 Der erste Troll Gorm ballte nach dem Bruch die Faust und schwor, nie wieder zermalmt zu werden. Der
 Abdruck seiner Faust ist heute noch im Fels zu sehen, und um diesen Felsen stehen die Feste. Trolle
 essen Braten am Spieß, trinken Met und schlagen zuerst zu. Ihr Fehler ist der Jähzorn.
 
 ### Haus Knochenmoor — die Ghule
-<img src="assets/icons/wappen/wappen_01.png" width="80" align="right">
+<img src="assets/icons/wappen/wappen_02.png" width="80" align="right">
 
-**Heimat:** Ragnarök · **Farben:** Violett und Grün · **Wirkung:** Nahrungsertrag +5 %, PA −5 %
+**Heimat:** Ragnarök · **Farben:** Violett und Schwarz**Wirkung:** Nahrungsertrag +5 %, PA −5 %
 
 In den Sümpfen von Ragnarök erwachten Wesen, die nicht mehr lebten und doch nicht tot waren. Die erste
 Ghulmutter Mara schichtete die Knochen der Gefallenen zu einer Herdstelle und schwor, das Gedächtnis der
@@ -62,9 +62,9 @@ Toten zu bewahren. Ghule finden überall Nahrung, werfen nichts weg, schnitzen K
 trauen keinem Fremden, der zu freundlich lächelt.
 
 ### Haus Flickwerk — die Gnome
-<img src="assets/icons/wappen/wappen_06.png" width="80" align="right">
+<img src="assets/icons/wappen/wappen_05.png" width="80" align="right">
 
-**Heimat:** feste Inseln im Limbus · **Farben:** Messing und Rauch · **Wirkung:** Ausbau +5 %, Angriff −5 %
+**Heimat:** Limbus · **Farben:** Grau, Schwarz und Gold**Wirkung:** Ausbau +5 %, Angriff −5 %
 
 Als die Welt zerbrach, wirbelte der Limbus Splitter, Fetzen und verlorene Geräte zusammen und formte
 daraus Inseln. Aus diesen Inseln erwachten die Gnome — aus der Erinnerung an Werkzeuge, Räder und
