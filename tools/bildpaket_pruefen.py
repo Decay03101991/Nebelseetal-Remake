@@ -18,6 +18,16 @@ GROESSEN OHNE PILLOW
 PNG und JPEG werden am Dateikopf gelesen (PNG: IHDR, JPEG: SOF-Marker). Damit laeuft die Pruefung
 auch ohne Pillow, und ein abgeschnittenes Bild faellt auf (PNG ohne IEND, JPEG ohne FFD9).
 
+FARBTYP UND MASSGENAUIGKEIT (18.11.2026, Sitzung 50)
+----------------------------------------------------
+Farbtyp: `alpha: true` verlangt bei PNG Farbtyp 6 (RGBA), `alpha: false` Farbtyp 2 (RGB). Ein PNG
+mit Farbtyp 6, das deckend bestellt ist, faellt damit auf - vorher galt es stillschweigend als
+"mit Alpha". NICHT geprueft wird, ob die Bildpunkte eines RGBA-Bildes wirklich Transparenz tragen:
+dafuer muesste das Bild entpackt werden (bekannte Luecke, im Register vermerkt).
+Masse: `toleranz_px` je Eintrag; 0 = jedes Mass muss exakt stimmen (sonst wird das Seitenverhaeltnis
+schief), 1 = eine Seite darf um einen Bildpunkt abweichen. Geprueft werden BEIDE Seiten - zu klein
+und zu gross fallen getrennt auf.
+
 AUFRUF
 ------
     python -X utf8 tools/bildpaket_pruefen.py            # Bericht, Rueckgabe 0
@@ -38,9 +48,11 @@ _PNG_SIGNATUR = b"\x89PNG\r\n\x1a\n"                                        # PN
 
 
 def _png_lesen(daten: bytes):
-    """(Breite, Hoehe, Alpha) einer PNG-Datei oder None, wenn der Kopf nicht passt.
+    """(Breite, Hoehe, Farbtyp) einer PNG-Datei oder None, wenn der Kopf nicht passt.
 
-    Alpha heisst: Farbtyp 4 (Grau + Alpha) oder 6 (RGBA) - nur dann gibt es echte Transparenz.
+    Der Farbtyp wird als ZAHL zurueckgegeben (0 Grau, 2 RGB, 3 Palette, 4 Grau+Alpha, 6 RGBA), damit
+    der Aufrufer pruefen kann, ob `alpha: true` die 6 und `alpha: false` die 2 geliefert hat. Ein
+    Boolean reichte nicht: Farbtyp 6 sah dann aus wie "mit Alpha", auch wenn alle Punkte deckend sind.
     """
     if not daten.startswith(_PNG_SIGNATUR) or len(daten) < 33:              # Kennung und IHDR pruefen
         return None                                                        # kein PNG
@@ -49,7 +61,7 @@ def _png_lesen(daten: bytes):
     breite = int.from_bytes(daten[16:20], "big")                            # Breite in Bildpunkten
     hoehe = int.from_bytes(daten[20:24], "big")                             # Hoehe in Bildpunkten
     farbtyp = daten[25]                                                     # 0 Grau, 2 RGB, 3 Palette, 4 GA, 6 RGBA
-    return breite, hoehe, farbtyp in (4, 6)                                 # Alpha nur bei 4 oder 6
+    return breite, hoehe, farbtyp                                           # Masse und Farbtyp getrennt
 
 
 def _jpeg_lesen(daten: bytes):
@@ -77,7 +89,11 @@ def _jpeg_lesen(daten: bytes):
 
 
 def bild_messen(pfad: str):
-    """(Breite, Hoehe, Alpha, Format) einer Bilddatei - oder None, wenn sie nicht lesbar ist."""
+    """(Breite, Hoehe, Alpha, Format, Farbtyp) einer Bilddatei - oder None, wenn sie nicht lesbar ist.
+
+    Farbtyp ist die PNG-Nummer (2 RGB, 6 RGBA ...) und bei JPEG None, weil JPEG keinen PNG-Farbtyp
+    kennt. Alpha bleibt der alte Boolean (Farbtyp 4 oder 6), damit vorhandene Aufrufer weiter stimmen.
+    """
     try:                                                                   # Datei kann fehlen
         with open(pfad, "rb") as fh:                                        # nur den Anfang lesen
             daten = fh.read()                                              # ganze Datei (Bilder sind klein genug)
@@ -86,12 +102,22 @@ def bild_messen(pfad: str):
     png = _png_lesen(daten)                                                 # erst als PNG versuchen
     if png is not None:                                                     # passt der PNG-Kopf
         vollstaendig = b"IEND" in daten[-12:]                               # PNG endet mit IEND-Block
-        return (png[0], png[1], png[2], "PNG") if vollstaendig else None     # abgeschnitten = nicht lesbar
+        if not vollstaendig:                                                # abgeschnitten
+            return None                                                     # dann nicht lesbar
+        return (png[0], png[1], png[2] in (4, 6), "PNG", png[2])            # Masse, Alpha, Format, Farbtyp
     jpeg = _jpeg_lesen(daten)                                               # dann als JPEG versuchen
     if jpeg is not None:                                                    # passt der JPEG-Kopf
         vollstaendig = daten.rstrip(b"\x00").endswith(b"\xff\xd9")          # JPEG endet mit EOI
-        return (jpeg[0], jpeg[1], False, "JPEG") if vollstaendig else None   # abgeschnitten = nicht lesbar
+        return (jpeg[0], jpeg[1], False, "JPEG", None) if vollstaendig else None  # bei JPEG kein Farbtyp
     return None                                                             # unbekanntes Format
+
+
+def _toleranz(eintrag: dict) -> int:
+    """Erlaubte Abweichung je Seite in Bildpunkten (fehlt das Feld, gilt 0 = exakt)."""
+    wert = eintrag.get("toleranz_px")                                       # Wert aus der Liste
+    if wert is None:                                                        # Feld nicht gesetzt
+        return 0                                                            # dann gilt die strenge Regel
+    return max(0, int(wert))                                                # nie negativ
 
 
 def eintrag_pruefen(eintrag: dict, wurzel: str = "") -> dict:
@@ -108,24 +134,37 @@ def eintrag_pruefen(eintrag: dict, wurzel: str = "") -> dict:
     if gemessen is None:                                                    # unlesbar oder abgeschnitten
         ergebnis.update(urteil="kaputt", text="Datei ist kein vollstaendiges PNG/JPEG")
         return ergebnis                                                     # fertig
-    breite, hoehe, hat_alpha, format_gemessen = gemessen                     # Messwerte
+    breite, hoehe, hat_alpha, format_gemessen, farbtyp = gemessen             # Messwerte (Farbtyp nur bei PNG)
     ergebnis["ist"] = [breite, hoehe]                                       # Istmasse
     ergebnis["ist_alpha"] = hat_alpha                                       # Transparenz gemessen
     ergebnis["ist_format"] = format_gemessen                                # Format gemessen
-    if breite < soll[0] or hoehe < soll[1]:                                 # kleiner als die Liste verlangt
+    ergebnis["ist_farbtyp"] = farbtyp                                       # PNG-Farbtyp, bei JPEG None
+    toleranz = _toleranz(eintrag)                                           # erlaubte Abweichung je Seite
+    if breite < soll[0] - toleranz or hoehe < soll[1] - toleranz:           # kleiner als die Liste erlaubt
         ergebnis.update(urteil="zu klein", text="%d x %d, verlangt %d x %d"
                         % (breite, hoehe, soll[0], soll[1]))                 # Urteil mit beiden Zahlen
+        return ergebnis                                                     # fertig
+    if breite > soll[0] + toleranz or hoehe > soll[1] + toleranz:           # groesser als die Liste erlaubt
+        ergebnis.update(urteil="zu gross", text="%d x %d, verlangt %d x %d (+/- %d px)"
+                        % (breite, hoehe, soll[0], soll[1], toleranz))       # beide Zahlen nennen
         return ergebnis                                                     # fertig
     if bool(eintrag.get("alpha")) and not hat_alpha:                        # Transparenz fehlt
         ergebnis.update(urteil="kein Alpha", text="%s ohne Transparenz" % format_gemessen)
         return ergebnis                                                     # fertig
-    format_soll = str(eintrag.get("format") or "").upper()                   # Sollformat, darf "JPG oder PNG" sein
-    erlaubt = ["JPEG" if t.strip() == "JPG" else t.strip()                   # JPG und JPEG sind dasselbe Format
-               for t in format_soll.replace("/", " oder ").split("oder") if t.strip()]
+    format_soll = str(eintrag.get("format") or "")                           # Sollformat, darf "JPG oder PNG" sein
+    woerter = format_soll.replace("/", " ").split()                          # Woerter des Formats, "oder" ist Fuellwort
+    erlaubt = ["JPEG" if w.upper() == "JPG" else w.upper()                    # JPG und JPEG sind dasselbe Format
+               for w in woerter if w.upper() != "ODER"]                       # das Wort "oder" zaehlt nicht als Format
     if erlaubt and format_gemessen not in erlaubt:                           # falsches Format
         ergebnis.update(urteil="Format", text="%s geliefert, %s verlangt"
                         % (format_gemessen, " oder ".join(erlaubt)))          # Urteil mit beiden
         return ergebnis                                                     # fertig
+    if format_gemessen == "PNG":                                             # Farbtyp gilt nur bei PNG
+        farbtyp_soll = 6 if bool(eintrag.get("alpha")) else 2                # 6 = RGBA (Transparenz), 2 = RGB (deckend)
+        if farbtyp is not None and farbtyp != farbtyp_soll:                  # falscher Farbtyp
+            ergebnis.update(urteil="Farbtyp", text="Farbtyp %d geliefert, %d verlangt (alpha %s)"
+                            % (farbtyp, farbtyp_soll, str(bool(eintrag.get("alpha"))).lower()))
+            return ergebnis                                                 # fertig
     ergebnis.update(urteil="ok", text="vorhanden")                          # alles passt
     return ergebnis                                                         # fertig
 
@@ -154,12 +193,14 @@ def main(argv=None) -> int:
     streng = "--streng" in argv                                             # strenger Modus?
     ergebnisse, zusammenfassung = pruefung()                                 # alles pruefen
     print("Dezember-Bildpaket - Pruefung gegen data/bildpaket_dezember.json")
-    print("%-4s %-26s %-11s %-11s %-6s %s" % ("Nr", "Kennung", "Soll", "Ist", "Format", "Urteil"))
+    print("%-4s %-26s %-11s %-11s %-8s %s" % ("Nr", "Kennung", "Soll", "Ist", "Format", "Urteil"))
     for e in ergebnisse:                                                    # eine Zeile je Datei
         soll = "%d x %d" % (e["soll"][0], e["soll"][1])                      # Sollmasse als Text
         ist = "%d x %d" % (e["ist"][0], e["ist"][1]) if e.get("ist") else "-"  # Istmasse oder Strich
-        print("%-4s %-26s %-11s %-11s %-6s %s" % (e["nr"], e["kennung"], soll, ist,
-                                                  e.get("ist_format") or "-",
+        typ = e.get("ist_format") or "-"                                     # Format oder Strich
+        if e.get("ist_farbtyp") is not None:                                 # PNG-Farbtyp gehoert dazu
+            typ = "%s/%d" % (typ, e["ist_farbtyp"])                          # z.B. "PNG/6" gegen "PNG/2"
+        print("%-4s %-26s %-11s %-11s %-8s %s" % (e["nr"], e["kennung"], soll, ist, typ,
                                                   e["urteil"] + ((" (" + e["text"] + ")") if e["text"] else "")))
     z = zusammenfassung["urteile"]                                           # Zaehlung
     print("")

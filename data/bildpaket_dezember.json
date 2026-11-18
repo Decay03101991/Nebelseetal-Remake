@@ -5,6 +5,7 @@
   "_regel": "4x der groessten Anzeige (F-101). Grosse Flaechen duerfen 4x sein, auch wenn die Datei dann mehrere MB gross wird. Hochgerechnete Dateien bekommen einen Vermerk mit Ausgangsgroesse, Verfahren und Datum (F-106).",
   "_alpha_regel": "alpha true heisst: die Datei MUSS Transparenz haben (PNG RGBA oder LA). alpha false heisst: deckendes Bild, JPG oder PNG ohne Transparenz.",
   "_stand": "18.11.2026: keine der 18 Dateien liegt vor. Alle 18 haben jetzt eine Andockstelle im Code oder in einer Datendatei - die zwei Endstuecke der Ressourcenleiste sind am 18.11.2026 nachgezogen (band.ende_links / band.ende_rechts, Register 658).",
+  "_toleranz_regel": "toleranz_px heisst: erlaubte Abweichung je Seite in Bildpunkten. 0 = jedes Mass muss exakt stimmen (sonst wird das Seitenverhaeltnis schief); 1 = eine Seite darf um einen Bildpunkt abweichen (grosse Flaechen, 0,02 Prozent). Beschlossen am 18.11.2026: 0 px bei B1, B2, B10, B12, B13; 1 px bei B5, B8, B9.",
   "bilder": [
     {
       "nr": "B1",
@@ -16,6 +17,7 @@
         176,
         176
       ],
+      "toleranz_px": 0,
       "format": "PNG",
       "alpha": true,
       "ziel": "assets/bilder/ruine_weltkarte_176.png",
@@ -33,6 +35,7 @@
         176,
         176
       ],
+      "toleranz_px": 0,
       "format": "PNG",
       "alpha": true,
       "ziel": "assets/bilder/drache_gruen_176.png",
@@ -50,6 +53,7 @@
         176,
         176
       ],
+      "toleranz_px": 0,
       "format": "PNG",
       "alpha": true,
       "ziel": "assets/bilder/drache_rot_176.png",
@@ -67,6 +71,7 @@
         4096,
         2880
       ],
+      "toleranz_px": 1,
       "format": "JPG",
       "alpha": false,
       "ziel": "assets/referenzbilder/startbild_anmelden_4096x2880.jpg",
@@ -84,6 +89,7 @@
         4096,
         2880
       ],
+      "toleranz_px": 1,
       "format": "JPG",
       "alpha": false,
       "ziel": "assets/referenzbilder/startbild_laden_4096x2880.jpg",
@@ -101,6 +107,7 @@
         4508,
         868
       ],
+      "toleranz_px": 1,
       "format": "JPG oder PNG",
       "alpha": false,
       "ziel": "assets/bilder/portal_kopfband_menschlich_4508x868.png",
@@ -118,6 +125,7 @@
         4508,
         868
       ],
+      "toleranz_px": 1,
       "format": "JPG oder PNG",
       "alpha": false,
       "ziel": "assets/bilder/portal_kopfband_zwergisch_4508x868.png",
@@ -135,6 +143,7 @@
         4508,
         868
       ],
+      "toleranz_px": 1,
       "format": "JPG oder PNG",
       "alpha": false,
       "ziel": "assets/bilder/portal_kopfband_elfisch_4508x868.png",
@@ -152,6 +161,7 @@
         4508,
         868
       ],
+      "toleranz_px": 1,
       "format": "JPG oder PNG",
       "alpha": false,
       "ziel": "assets/bilder/portal_kopfband_trolle_4508x868.png",
@@ -169,6 +179,7 @@
         4508,
         868
       ],
+      "toleranz_px": 1,
       "format": "JPG oder PNG",
       "alpha": false,
       "ziel": "assets/bilder/portal_kopfband_schmiede_dorf_ghule_4508x868.png",
@@ -186,6 +197,7 @@
         4508,
         868
       ],
+      "toleranz_px": 1,
       "format": "JPG oder PNG",
       "alpha": false,
       "ziel": "assets/bilder/portal_kopfband_gnome_4508x868.png",
@@ -203,6 +215,7 @@
         3680,
         3680
       ],
+      "toleranz_px": 1,
       "format": "PNG",
       "alpha": true,
       "ziel": "assets/icons/gebaeude/rahmen/weltkarte_goldrahmen_3680.png",
@@ -220,6 +233,7 @@
         256,
         256
       ],
+      "toleranz_px": 0,
       "format": "PNG",
       "alpha": true,
       "ziel": "assets/icons/gebaeude/rahmen/kachelrahmen_ruhe_256.png",
@@ -237,6 +251,7 @@
         256,
         256
       ],
+      "toleranz_px": 0,
       "format": "PNG",
       "alpha": true,
       "ziel": "assets/icons/gebaeude/rahmen/kachelrahmen_auswahl_256.png",
@@ -254,6 +269,7 @@
         256,
         136
       ],
+      "toleranz_px": 0,
       "format": "PNG",
       "alpha": true,
       "ziel": "assets/bilder/leiste_mitte_256x136.png",
@@ -271,6 +287,7 @@
         64,
         136
       ],
+      "toleranz_px": 0,
       "format": "PNG",
       "alpha": true,
       "ziel": "assets/bilder/leiste_ende_links_64x136.png",
@@ -288,6 +305,7 @@
         64,
         136
       ],
+      "toleranz_px": 0,
       "format": "PNG",
       "alpha": true,
       "ziel": "assets/bilder/leiste_ende_rechts_64x136.png",
@@ -305,6 +323,7 @@
         384,
         384
       ],
+      "toleranz_px": 0,
       "format": "PNG",
       "alpha": false,
       "ziel": "assets/bilder/marktplatz_kennzeichen_384.png",

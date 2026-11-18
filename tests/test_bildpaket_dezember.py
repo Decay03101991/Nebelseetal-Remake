@@ -18,6 +18,10 @@ WAS DIESE DATEI PRUEFT
    Datendatei bzw. Konstante - die Liste erfindet keinen zweiten Ort.
 5. Das Werkzeug MISST: mit erfundenen Bilddateien im Scratch meldet es "ok", "zu klein",
    "kein Alpha", "Format" und "kaputt" richtig; ohne Dateien meldet es fuer alle 18 "fehlt".
+6. Farbtyp (18.11.2026): alpha true verlangt bei PNG Farbtyp 6, alpha false Farbtyp 2 - ein
+   deckendes RGBA-Bild faellt damit auf. JPEG hat keinen PNG-Farbtyp.
+7. Seitenverhaeltnis (18.11.2026): `toleranz_px` je Eintrag (0 bei B1/B2/B10/B12/B13, 1 bei
+   B5/B8/B9), BEIDE Seiten geprueft; die Leisten-Endstuecke sind 8 : 17, die Mittelkachel 32 : 17.
 
 Aufruf:  .venv/Scripts/python.exe -X utf8 tests/test_bildpaket_dezember.py
 """
@@ -69,11 +73,19 @@ ERWARTET = [
 ]
 
 
-def png_schreiben(pfad: str, breite: int, hoehe: int, alpha: bool = True, kaputt: bool = False) -> None:
-    """Ein echtes, kleines PNG schreiben - damit gemessen und nicht ueber die Liste geraten wird."""
-    farbtyp = 6 if alpha else 2                                              # 6 = RGBA, 2 = RGB
-    kanaele = 4 if alpha else 3                                              # Bytes je Bildpunkt
-    zeile = b"\x00" + bytes([90, 70, 40] + ([255] if alpha else [])) * breite  # Filterbyte + Punkte
+def png_schreiben(pfad: str, breite: int, hoehe: int, alpha: bool = True, kaputt: bool = False,
+                  farbtyp: int = None) -> None:
+    """Ein echtes, kleines PNG schreiben - damit gemessen und nicht ueber die Liste geraten wird.
+
+    `farbtyp` ueberschreibt die Vorgabe aus `alpha`: 6 = RGBA, 2 = RGB, 4 = Grau+Alpha, 0 = Grau.
+    Ohne Vorgabe gilt alpha true = 6, alpha false = 2. Die Bildpunkte werden deckend geschrieben
+    (Alphakanal 255) - genau der Fall, den das Werkzeug frueher stillschweigend als "mit Alpha" las.
+    """
+    if farbtyp is None:                                                      # keine ausdrueckliche Vorgabe
+        farbtyp = 6 if alpha else 2                                          # dann aus alpha ableiten
+    kanaele = {0: 1, 2: 3, 4: 2, 6: 4}[farbtyp]                              # Bytes je Bildpunkt je Farbtyp
+    punkt = bytes([90, 70, 40, 255][:kanaele])                               # ein Bildpunkt mit dieser Kanalzahl
+    zeile = b"\x00" + punkt * breite                                         # Filterbyte + Punkte
     roh = zeile * hoehe                                                      # alle Zeilen untereinander
     komp = zlib.compress(roh, 1)                                             # schnell verdichten reicht
 
@@ -244,6 +256,110 @@ def main() -> int:
     if zusammenfassung2["urteile"] != {"fehlt": 18}:                         # nur dann benennen
         befund("Bestand weicht von 'alles fehlt' ab",
                str([(e["kennung"], e["urteil"]) for e in ergebnisse2 if e["urteil"] != "fehlt"]))
+
+    abschnitt("7. Farbtyp: alpha true verlangt 6, alpha false verlangt 2 (nur PNG)")
+    typ_scratch = tempfile.mkdtemp(prefix="bildpaket_farbtyp_")              # eigener Scratch-Ordner
+    typ_liste = {"bilder": [                                                 # fuenf kleine Faelle
+        {"nr": "F1", "kennung": "rgba_richtig", "datei": [8, 6], "format": "PNG",
+         "alpha": True, "ziel": "a/rgba.png"},
+        {"nr": "F2", "kennung": "rgba_statt_rgb", "datei": [8, 6], "format": "PNG",
+         "alpha": False, "ziel": "a/rgb_soll.png"},
+        {"nr": "F3", "kennung": "grau_alpha", "datei": [8, 6], "format": "PNG",
+         "alpha": True, "ziel": "a/grau.png"},
+        {"nr": "F4", "kennung": "rgb_richtig", "datei": [8, 6], "format": "PNG",
+         "alpha": False, "ziel": "a/rgb.png"},
+        {"nr": "F5", "kennung": "jpeg_ohne_farbtyp", "datei": [8, 6], "format": "JPG oder PNG",
+         "alpha": False, "ziel": "a/deckend.jpg"},
+    ]}
+    typ_pfad = os.path.join(typ_scratch, "liste.json")                       # eigene kleine Liste
+    with open(typ_pfad, "w", encoding="utf-8") as fh:
+        json.dump(typ_liste, fh)                                             # schreiben
+    os.makedirs(os.path.join(typ_scratch, "a"), exist_ok=True)               # Zielordner
+    rgba = os.path.join(typ_scratch, "a", "rgba.png")                        # RGBA, Punkte deckend
+    png_schreiben(rgba, 8, 6, farbtyp=6)                                     # Farbtyp 6
+    png_schreiben(os.path.join(typ_scratch, "a", "rgb_soll.png"), 8, 6, farbtyp=6)   # RGBA, obwohl deckend bestellt
+    png_schreiben(os.path.join(typ_scratch, "a", "grau.png"), 8, 6, farbtyp=4)       # Grau + Alpha
+    png_schreiben(os.path.join(typ_scratch, "a", "rgb.png"), 8, 6, farbtyp=2)        # RGB
+    jpeg_schreiben(os.path.join(typ_scratch, "a", "deckend.jpg"), 8, 6)      # JPEG, kein Farbtyp
+    typ_ergebnisse, _ = BP.pruefung(wurzel=typ_scratch, pfad=typ_pfad)        # Werkzeug laufen lassen
+    typ_urteil = {e["kennung"]: e["urteil"] for e in typ_ergebnisse}          # Kennung -> Urteil
+    check("PNG mit Farbtyp 6 gegen alpha true ist ok", typ_urteil.get("rgba_richtig") == "ok",
+          str(typ_urteil))
+    check("PNG mit Farbtyp 6 gegen alpha false (deckend bestellt) wird 'Farbtyp'",
+          typ_urteil.get("rgba_statt_rgb") == "Farbtyp", str(typ_urteil))
+    check("PNG mit Farbtyp 4 gegen alpha true wird 'Farbtyp' (6 verlangt)",
+          typ_urteil.get("grau_alpha") == "Farbtyp", str(typ_urteil))
+    check("PNG mit Farbtyp 2 gegen alpha false ist ok", typ_urteil.get("rgb_richtig") == "ok",
+          str(typ_urteil))
+    check("JPEG kennt keinen PNG-Farbtyp und bleibt ok", typ_urteil.get("jpeg_ohne_farbtyp") == "ok",
+          str(typ_urteil))
+    gemessen_rgba = BP.bild_messen(rgba)                                     # echte Messung des Farbtyps
+    gemessen_jpg = BP.bild_messen(os.path.join(typ_scratch, "a", "deckend.jpg"))
+    check("bild_messen nennt den Farbtyp als Zahl (6 bei RGBA, None bei JPEG)",
+          gemessen_rgba is not None and gemessen_rgba[4] == 6
+          and gemessen_jpg is not None and gemessen_jpg[4] is None,
+          "%s / %s" % (gemessen_rgba, gemessen_jpg))
+
+    abschnitt("8. Seitenverhaeltnis: 0 px bei B1/B2/B10/B12/B13, 1 px bei B5/B8/B9")
+    beschluss_toleranz = {"B1": 0, "B2": 0, "B5": 1, "B8": 1, "B9": 1, "B10": 0, "B12": 0, "B13": 0}
+    check("toleranz_px steht bei allen 18 Eintraegen und lautet wie beschlossen",
+          all(e.get("toleranz_px") == beschluss_toleranz[e["nr"]] for e in bilder),
+          str([(e["kennung"], e.get("toleranz_px")) for e in bilder
+               if e.get("toleranz_px") != beschluss_toleranz[e["nr"]]]))
+    check("die Toleranz-Regel steht auch im Kopf der Liste (keine stille Annahme)",
+          "toleranz_px" in str(daten.get("_toleranz_regel") or ""),
+          str(daten.get("_toleranz_regel"))[:80])
+    check("ohne Feld gilt 0 und ein negativer Wert wird auf 0 gezogen",
+          BP._toleranz({}) == 0 and BP._toleranz({"toleranz_px": -3}) == 0,
+          "%d / %d" % (BP._toleranz({}), BP._toleranz({"toleranz_px": -3})))
+    check("B12: das Endstueck 64 x 136 ist 8 : 17", 64 * 17 == 136 * 8,
+          "%d gegen %d" % (64 * 17, 136 * 8))
+    check("B12: die Mittelkachel 256 x 136 ist 32 : 17", 256 * 17 == 136 * 32,
+          "%d gegen %d" % (256 * 17, 136 * 32))
+
+    mass_scratch = tempfile.mkdtemp(prefix="bildpaket_masse_")               # Scratch fuer echte Sollmasse
+
+    def _ziel(relativ: str) -> str:                                          # Pfad im Scratch anlegen
+        pfad = os.path.join(mass_scratch, relativ)                            # Zielpfad laut Liste
+        os.makedirs(os.path.dirname(pfad), exist_ok=True)                    # Ordner sicherstellen
+        return pfad                                                          # Pfad zurueck
+
+    def _urteil(kennung: str) -> str:                                        # Urteil EINER Kennung
+        ergebnisse, _ = BP.pruefung(wurzel=mass_scratch)                     # gegen die ECHTE Liste
+        return {e["kennung"]: e["urteil"] for e in ergebnisse}.get(kennung, "?")  # Kennung -> Urteil
+
+    b1 = _ziel("assets/bilder/ruine_weltkarte_176.png")                      # B1, 176 x 176, 0 px
+    png_schreiben(b1, 176, 176)                                             # exakt
+    check("B1 mit genau 176 x 176 ist ok", _urteil("ruine_weltkarte") == "ok",
+          _urteil("ruine_weltkarte"))
+    png_schreiben(b1, 177, 176)                                             # ein Punkt zu breit
+    check("B1 mit 177 x 176 wird 'zu gross' (0 px Toleranz)",
+          _urteil("ruine_weltkarte") == "zu gross", _urteil("ruine_weltkarte"))
+    png_schreiben(b1, 176, 175)                                             # ein Punkt zu flach
+    check("B1 mit 176 x 175 wird 'zu klein'", _urteil("ruine_weltkarte") == "zu klein",
+          _urteil("ruine_weltkarte"))
+    b13 = _ziel("assets/bilder/marktplatz_kennzeichen_384.png")              # B13, 384 x 384, deckend
+    png_schreiben(b13, 384, 384, farbtyp=2)                                  # RGB, deckend
+    check("B13 mit 384 x 384 in RGB (Farbtyp 2) ist ok",
+          _urteil("marktplatz_kennzeichen") == "ok", _urteil("marktplatz_kennzeichen"))
+    b12 = _ziel("assets/bilder/leiste_ende_links_64x136.png")                # B12, Endstueck 8 : 17
+    png_schreiben(b12, 64, 136)                                             # exakt
+    check("B12: das Endstueck mit 64 x 136 ist ok", _urteil("leiste_ende_links") == "ok",
+          _urteil("leiste_ende_links"))
+    png_schreiben(b12, 65, 136)                                             # ein Punkt zu breit
+    check("B12: 65 x 136 wird 'zu gross' (0 px Toleranz, sonst kippt 8 : 17)",
+          _urteil("leiste_ende_links") == "zu gross", _urteil("leiste_ende_links"))
+    b8 = _ziel("assets/bilder/portal_kopfband_menschlich_4508x868.png")      # B8, 4508 x 868, 1 px
+    png_schreiben(b8, 4508, 869, farbtyp=2)                                 # deckend, ein Punkt mehr
+    check("B8 mit 4508 x 869 ist ok (1 px Toleranz)", _urteil("kopfband_menschlich") == "ok",
+          _urteil("kopfband_menschlich"))
+    png_schreiben(b8, 4508, 870, farbtyp=2)                                 # deckend, zwei Punkte mehr
+    check("B8 mit 4508 x 870 wird 'zu gross'", _urteil("kopfband_menschlich") == "zu gross",
+          _urteil("kopfband_menschlich"))
+    b5 = _ziel("assets/referenzbilder/startbild_anmelden_4096x2880.jpg")     # B5, 4096 x 2880, 1 px
+    jpeg_schreiben(b5, 4096, 2881)                                          # ein Punkt mehr, JPEG
+    check("B5 als JPEG mit 4096 x 2881 ist ok (1 px Toleranz, kein Farbtyp)",
+          _urteil("startbild_anmelden") == "ok", _urteil("startbild_anmelden"))
 
     return bericht()                                                         # Zusammenfassung
 

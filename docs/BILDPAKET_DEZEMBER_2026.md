@@ -74,7 +74,8 @@ zwei Dateien groesser als notiert.
 4. **Kartenbilder quadratisch anlegen**, auch wenn das Motiv hochkant ist (Motiv mittig, Rest
    durchsichtig).
 5. **Transparenz nur, wo sie verlangt ist:** Spalte Alpha in der Tabelle. Die Fuellbilder (B5, B8)
-   sind deckend, die Zeichen (B1, B2, B9, B10, B12) brauchen Alpha.
+   sind deckend, die Zeichen (B1, B2, B9, B10, B12) brauchen Alpha. Bei PNG heisst deckend Farbtyp 2
+   (RGB) und mit Alpha Farbtyp 6 (RGBA) - das prueft das Werkzeug seit 18.11.2026 (Abschnitt 5).
 6. **Waren, Einheiten und Karten-Gebaeude behalten ihre Icons** (F-104) - dafuer wird nichts
    gezeichnet.
 
@@ -85,9 +86,22 @@ python -X utf8 tools/bildpaket_pruefen.py
 ```
 
 Das Werkzeug misst jede Datei am Dateikopf (PNG und JPEG, ohne Pillow) und urteilt je Datei:
-`fehlt` / `zu klein` / `kein Alpha` / `Format` / `kaputt` / `ok`. Ein abgeschnittenes Bild faellt auf
-(PNG ohne IEND, JPEG ohne EOI), damit keine halbe Datei als Lieferung durchgeht. Mit `--streng`
-liefert der Aufruf den Code 1, solange etwas fehlt - so kann ein spaeterer Lauf ihn als Wache nutzen.
+`fehlt` / `zu klein` / `zu gross` / `kein Alpha` / `Farbtyp` / `Format` / `kaputt` / `ok`. Ein
+abgeschnittenes Bild faellt auf (PNG ohne IEND, JPEG ohne EOI), damit keine halbe Datei als Lieferung
+durchgeht. Mit `--streng` liefert der Aufruf den Code 1, solange etwas fehlt - so kann ein spaeterer
+Lauf ihn als Wache nutzen.
+
+**Farbtyp (seit 18.11.2026, Register 676):** `alpha: true` verlangt bei PNG Farbtyp 6 (RGBA),
+`alpha: false` Farbtyp 2 (RGB). Ein RGBA-Bild, das deckend bestellt ist, faellt damit auf; vorher
+galt es ohne Pruefung als Bild mit Transparenz. Nicht geprueft wird, ob die Bildpunkte eines
+RGBA-Bildes wirklich Transparenz tragen - dafuer muesste das Bild entpackt werden (offene Luecke).
+
+**Massgenauigkeit (seit 18.11.2026, Register 676):** `toleranz_px` je Eintrag in
+`data/bildpaket_dezember.json`. 0 px (B1, B2, B10, B12, B13) heisst: jedes Mass muss exakt stimmen,
+sonst kippt das Seitenverhaeltnis; 1 px (B5, B8, B9) heisst: eine Seite darf um einen Bildpunkt
+abweichen (bei 4508 px Breite sind das 0,02 Prozent). Geprueft werden BEIDE Seiten. Die
+Leisten-Endstuecke sind 8 : 17 (64 x 136), die Mittelkachel 32 : 17 (256 x 136) - die Wache rechnet
+beides nach.
 
 **Stand 18.11.2026:** 0 von 18 Dateien vorhanden (das ist der ehrliche Ist-Stand, nicht der Wunsch).
 
