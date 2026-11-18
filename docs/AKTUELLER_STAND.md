@@ -1,3 +1,35 @@
+# STAND 18.11.2026, 23:55 - Bilder-Abnahme misst Farbtyp und Seitenverhältnis (Register 676)
+
+**Kopf:** maßgeblich ist `git log -1`. Sitzung `18.11.26_V_0.0.5_Session_02` (online ist V_0.0.4,
+gearbeitet wird an V_0.0.5; 0.0.6 hat damit nichts zu tun — Daniels Klarstellung 18.11.2026, 23:59). **Sammellauf:**
+**241 von 241 grün, 0 rot, 2 ausgesetzt**, 243 Dateien, 12.550 Prüfungen, 0 Fehler, 1499 s
+(`docs/audits/sammellauf_20261118_2319.log`, 1 gleichzeitig).
+
+## Was diese Stunde gebracht hat
+
+1. **PNG-Farbtyp wird gemessen:** `alpha: true` verlangt Farbtyp 6 (RGBA), `alpha: false` Farbtyp 2
+   (RGB); ein deckend bestelltes RGBA-Bild fällt auf (neues Urteil `Farbtyp`). `bild_messen` liefert
+   dafür fünf Werte statt vier.
+2. **Seitenverhältnis wird gemessen:** neues Feld `toleranz_px` je Eintrag in
+   `data/bildpaket_dezember.json` (0 px bei B1, B2, B10, B12, B13; 1 px bei B5, B8, B9), beide Seiten
+   geprüft, neues Urteil `zu gross`. Endstück 8 : 17 und Mittelkachel 32 : 17 als Rechnung belegt.
+3. **Ein eigener Fehler im Werkzeug gefunden und behoben:** der Format-Parser zerlegte `JPG oder PNG`
+   falsch (`.upper()` vor dem Split) — jede korrekt gelieferte PNG-Datei der sechs Kopfbänder wäre im
+   Dezember als Formatfehler gemeldet worden. Mit Wache belegt.
+4. **Wache:** `tests/test_bildpaket_dezember.py` 48/0/0 (vorher 28/0/0). Dokument:
+   `docs/BILDPAKET_DEZEMBER_2026.md` Abschnitt 5.
+
+## Was als Nächstes ansteht
+
+1. **Auftrag Nr. 22 absenden** (Daniel), danach Fassung 3 nachrechnen.
+2. **Bilder 0 von 18**; sechs Wappen blockiert bis zum Aufladen, Bildschirmfoto der Startseite braucht
+   Daniel.
+3. **Verbliebene Lücke im Abnahmewerkzeug:** ob die Bildpunkte eines RGBA-Bildes wirklich Transparenz
+   tragen, wird nicht geprüft (bräuchte Entpacken der IDAT-Daten) — offen benannt, eigener Schnitt.
+4. **Abweichungsregister** pflegen, Registerzeilen 594/595 nachtragen.
+
+---
+
 # STAND 18.11.2026, 22:45 - Auftrag Nr. 22 fertig, Hausfarben-Regel entschieden (Register 673/674)
 
 **Kopf:** maßgeblich ist `git log -1`. Sitzung `18.11.26_V_0.0.5_Session_01`.
