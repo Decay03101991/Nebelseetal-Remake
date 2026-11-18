@@ -1,3 +1,43 @@
+# STAND 18.11.2026, 14:45 - Fensterwachen scharf belegt, voller T4 gruen (Sitzung 49, Register 654/655)
+
+**Kopf:** `8543b17` = Remote, Arbeitsbaum leer. **Sitzung:** `18.11.26_V_0.0.4_Session_49`.
+
+## Umgebung nach Daniels `hermes update` (geprueft, nicht angenommen)
+
+- Hermes v0.23.2, Python **3.14.9**. `PIL` 13.0.0 war vorhanden; `python-docx`, `pymupdf` und
+  `fpdf2` fehlten (das Update tauscht die Runtime) und sind mit `uv pip install` nachgezogen:
+  jetzt **1.2.0 / 2.1 / 2.9.0**. Projekt-venv 3.11.16 mit Pillow 13.0.0 unveraendert.
+- Gateway laeuft (PID 7136), Cron-Auftraege unveraendert.
+
+## Der Schirm war diesmal gross - damit ist der ausstehende Nachweis gefallen
+
+Tk meldet **2560 x 1440**, k = **1,0005** (am 17.11. abends noch 800 x 600; der Zustand flattert).
+Die vier Fensterwachen einzeln gefahren - jede Zahl wie in der Vorgaengeruebergabe erwartet:
+`test_siedlungsansicht_a9` **39/0/0**, `_a10` **48/0/0**, `test_dorfzentrum_ansicht` **47/0/1**,
+`test_dorfzentrum_geometrie` **39/0/1**. Die beiden Befunde sind die alten (Sichtpruefung Daniel
+offen, Technikblock nicht gemessen). **F8 ist damit von beiden Seiten belegt:** scharf auf normalem
+Schirm, „nicht pruefbar“ statt rot auf 800 x 600.
+
+## Voller Regellauf auf normalem Schirm (der erste seit 16.11. 09:22)
+
+`docs/audits/sammellauf_20261118_1418.log` auf `59d8a91`: **238 von 238 gruen, 0 rot, 2 ausgesetzt**,
+240 Dateien, **12.393 bestandene Pruefungen, 0 Fehler, 100 Befunde, 1367 s**. Die vier Fensterwachen
+pruefen im Volllauf scharf (39 / 48 / 47 / 39; im Vorlauf 20 / 17 / 0 / 0). **Delta je Datei
+nachgerechnet:** a9 +19, a10 +31, dorfzentrum_ansicht +47, -geometrie +39, `test_dpi_f51` +2 bei
+-4 Befunden - zusammen **+138 Pruefungen und -8 Befunde**, also genau die Differenz der Summen.
+
+## Was als naechstes dran ist (jedes braucht Daniels Wort)
+
+* **Dezember-Bildpaket (B5, 4096 x 2880)** vorbereiten - bildschirmunabhaengig, kann sofort laufen.
+* **Pruefstand-Rest** (F-84 Sichtung, F-85 Streichliste) - 2 bis 3 Arbeitstakte.
+* **Lieferungen** Kopfaender, 384er-Kennzeichen, B5 - offen bei Daniel.
+* **Oeffentliche Demo / Release V_0.0.5** (das 1. Designupdate) - eigener Termin, Reihenfolge in
+  `docs/ARBEITSPLAN_AB_20261105.md`.
+
+**Kein voller Regellauf und kein EXE-Bau, solange Daniel selbst spielt** - fragen, ob jetzt oder danach.
+
+---
+
 # STAND 13.11.2026, 12:2x — Spalte repariert, Prüfstand geschlossen, sechs Wappen im Spiel (Sitzung 44)
 
 > Sitzung 44, 13.11.2026. **Maßgeblich ist `git log -1`.** Arbeitsbaum leer, alles gepusht.
