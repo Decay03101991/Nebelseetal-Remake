@@ -1,3 +1,68 @@
+# STAND 18.11.2026, 18:40 - C1 gebaut: der Weltensprung kostet 500 Mana plus 100 Gold (Sitzung 01, Register 664)
+
+**Kopf:** maßgeblich ist `git log -1`. **Sitzung:** `18.11.26_V_0.0.5_Session_01` (neue Zählung seit
+Daniels Wort vom 18.11.2026: Sitzungen werden vom alten zum neuen Release gezählt, Beginn bei 01).
+**Voller Sammellauf zu diesem Block:** **240 von 240 grün, 0 rot, 2 ausgesetzt** (dieselben zwei), 242 Dateien, 12.505 Prüfungen, 0 Fehler, 956 s (`sammellauf_20261118_1901.log`, Register 665).
+
+## Was C1 ist und warum es 17 Tage lag
+
+Daniel hat am 01.11.2026, 18:24 entschieden (Register 93, Antworten F-02/F-03): der Weltensprung
+kostet im **Spiel 500 Mana plus 100 Gold**, damit ein Sprung in einer Partie erlebbar ist. Die
+**belegten 5.000 Mana** aus `portal.php` 2005 bepreisen den *Koordinatenwechsel* und bleiben als
+Originalwert stehen. Der Code buchte bis heute unverändert 5.000 und **gar kein Gold**
+(`grep -c gold src/portalraum.py` war 0).
+
+## Was jetzt im Code steht
+
+- **`data/welten.json`** → `belegte_regeln.koordinatenwechsel.spielwert` = `kosten_mana` 500,
+  `kosten_gold` 100, mit `_entscheidung` auf Register 93. `kosten_mana` = 5000 und `_belegt` sind
+  **unverändert** daneben stehen geblieben — der Beleg ist nicht gelöscht.
+- **`portalraum`**: `wechselkosten()` = Spielwert Mana (500), `wechselkosten_gold()` = 100,
+  `wechselkosten_belegt()` = 5000. `wechsel_erlaubt(von_z, nach_z, mana, gold)` verlangt Gold als
+  **Pflichtwert**; `nach_wechsel(mana, gold, jetzt)` bucht **Mana und Gold je genau einmal**.
+- **Buchstelle** (`main._dorf_versetzen`): eigene Gold-Sperre mit Meldung „Zu wenig Gold in der
+  Reichskasse: 100 benötigt …“; Erfolgsmeldung nennt beide Beträge.
+- **Anzeige** (`main._render_portal`): Zeile „Mana … · Gold … · ein Umzug kostet 500 Mana und 100
+  Gold“, Knopf „(500 Mana + 100 Gold)“, Sperrgrund „100 Gold nötig“.
+- **Zweiter Weg** (`spielschicht.portalwechsel`) bucht dieselben zwei Werte.
+- **`drachen.belohnung_mana`** zieht automatisch mit: **34.000 → 7.000 Mana** (4000 + 6 × 500).
+
+## Wachen
+
+- **Neu:** `tests/test_wechselpreis_spielwert.py` **41/0/0** — (a) Spielwert 500/100, (b) 5000 steht
+  weiter in der Datendatei und ist als belegt gekennzeichnet, (c) Mana und Gold je genau einmal
+  gebucht, (d) ohne Gold kein Wechsel samt fehlendem Betrag, dazu Quellwachen auf EINE Buchstelle.
+- **Umgedreht statt gelöscht:** `test_portalraum` 83/0/0, `test_dorf_versetzen` 41/0/0,
+  `test_portal_ansicht_umzug` 28/0/0, `test_portal_s5_keine_wartezeit` 27/0/0,
+  `test_spielschicht` 154/0/1 (Befund = der bekannte fehlende `auftraege.py`),
+  `test_portal_uebersicht` 62/0/0, `test_weltkarten_anzeige` 27/0/0, `test_e2e_wege` **137/0/1**.
+  Die E2E-Kette 12 holt das Gold über den **echten Weg** (Forschung Baukunst → Goldmine auf Berg,
+  3 Gold je Stunde) und bucht danach „520 → 20 Mana“ und „120 → 20 Gold“.
+
+## Zwei Folgen, gemessen (nicht geschätzt)
+
+- Register 236 rechnete **41,7 Spieltage** je Wechsel mit 5.000 Mana — mit 500 sind es **4,2**.
+- Die Drachenbelohnung sinkt von 34.000 auf **7.000 Mana**. Das ist eine Folge des entschiedenen
+  Preises, keine eigene Entscheidung; sie steht hier, damit sie nicht später als Fehler gesucht wird.
+
+## Ein Widerspruch, offen benannt
+
+**F-25 = A** (Fragenrunde 07.11.2026) sagt „nur die 5.000 Mana, kein Gold, keine Waren“ — das ist
+das Gegenteil von Register 93, und F-25 ist *jünger*. Die Frage ging allerdings noch von 5.000 Mana
+aus. Geltend ist Daniels **neueres** Wort vom 18.11.2026 („C1 zuerst — 500 Mana + 100 Gold
+einbauen“). Der Teil „keine zweite Preistafel“ bleibt eingehalten: beide Preise kommen aus derselben
+Datendatei. Der Grund steht im Docstring von `wechsel_erlaubt` und in
+`docs/FRAGEN_AN_DANIEL_20261118.md`.
+
+## Was als Nächstes ansteht (Daniels Antworten vom 18.11.2026)
+
+1. **Klebender Kopf 60 px** in der Siedlungskarte (Antwort 3, „jetzt“) — 2 Arbeitstakte.
+2. **Abweichungsregister** pflegen (Antwort 2: Bibliothek bleibt bei zwei, Abweichung nach D2).
+3. **Release** V_0.0.4/V_0.0.5 — Termin ist Daniels Sache (Frage 13 der offenen Liste).
+4. Dezember-Bilder (0 von 18) und die sechs Wappen (blockiert bis zum Aufladen) brauchen **Daniel**.
+
+---
+
 # STAND 18.11.2026, 15:35 - Dezember-Bildpaket bestellfertig, Zahl 16 auf 18 korrigiert (Sitzung 49, Register 656)
 
 **Kopf:** maßgeblich ist `git log -1` (die Projektregel: keine Zahl aus einer Datei, die der nächste Commit
@@ -7148,6 +7213,13 @@ Truppen sind während des Marsches nicht doppelt verfügbar, kein Pfad ohne Mars
 - Keine reale Windows-EXE, keine vollständige Windows- oder Gesamtspielabnahme. Release-Status: **NEIN**.
 
 ## Next actions für den temporären Coding-Agenten
+
+> **GELTENDER STAND 18.11.2026, 18:40 (Hermes, Sitzung 01).** C1 ist **gebaut**: der Weltensprung kostet
+> 500 Mana plus 100 Gold (Register 664), der belegte Originalwert 5.000 steht weiter daneben in
+> `data/welten.json`. Nächster Schritt ist **kein Code**: der klebende Kopf 60 px in der Siedlungskarte
+> (Daniels Antwort 3 vom 18.11.2026), danach das Abweichungsregister (Antwort 2). Jede Code-Änderung
+> braucht danach einen **Sammellauf**, der NACH dem letzten Fix startet, plus Registerzeile und
+> Protokollzeile. Der Stand dieses Blocks steht ganz oben in dieser Datei.
 
 > **GELTENDER STAND 18.11.2026, 14:55 (Hermes, Sitzung 49).** Der aktuelle Stand steht im obersten
 > Block dieser Datei („STAND 18.11.2026, 14:45“) und im Register unter 654/655. Kurz: scharfer

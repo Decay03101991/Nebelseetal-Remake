@@ -264,10 +264,14 @@ try:
           and _b["summe"] == _b["grundbetrag"] + _b["sprunge"] * _b["kosten_je_sprung"], str(_b))
     check("(h) der Aufwand nutzt den ECHTEN Preis eines Weltensprungs",
           _b["kosten_je_sprung"] == portalraum.wechselkosten(), str(_b["kosten_je_sprung"]))
-    _alt_preis = portalraum._MANA_WECHSEL              # Preis merken
-    portalraum._MANA_WECHSEL = _alt_preis + 1000       # Preis testweise erhoehen
+    # ENTSCHEIDUNG GEAENDERT (C1, 18.11.2026, Register 664): der Spielpreis steht nicht mehr in
+    # `_MANA_WECHSEL` (das ist der BELEGTE Originalwert 5.000), sondern in `_MANA_SPIEL` aus dem
+    # Block `koordinatenwechsel.spielwert`. Die Wache haengt deshalb am Spielwert - sonst haengt
+    # sie an einer Zahl, die den Preis nicht mehr bestimmt.
+    _alt_preis = portalraum._MANA_SPIEL                # Spielpreis merken
+    portalraum._MANA_SPIEL = _alt_preis + 1000         # Preis testweise erhoehen
     _b2 = drachen.belohnung_mana()                     # neu rechnen
-    portalraum._MANA_WECHSEL = _alt_preis               # Preis zuruecksetzen
+    portalraum._MANA_SPIEL = _alt_preis                # Preis zuruecksetzen
     check("(h) aendert sich der Spruengpreis, zieht die Belohnung mit",
           _b2["summe"] == _b["summe"] + 6 * 1000, "%d gegen %d" % (_b["summe"], _b2["summe"]))
     check("(h) der epische Text setzt Mana und Aufwand ein",

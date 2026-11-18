@@ -109,7 +109,7 @@ def _pruefungen_anzeige():
     check("der Berater nennt die Weltkarten", any("Weltkarten" in z for z in zeilen),
           str(zeilen[:2]))
 
-    erlaubt, meldung = portalraum.wechsel_erlaubt(99, 1, 100000.0)
+    erlaubt, meldung = portalraum.wechsel_erlaubt(99, 1, 100000.0, 100000.0)  # C1: Gold ist Pflicht
     check("die Ablehnung nennt eine unbekannte Ausgangswelt, keine Dimension",
           erlaubt is False and "Dimension" not in meldung and "welt" in meldung.lower(), meldung)
 

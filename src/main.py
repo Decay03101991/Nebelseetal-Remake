@@ -13867,13 +13867,21 @@ class NebelseetalApp:
         Reihenfolge: erst prüfen, dann GENAU EINMAL abbuchen. Geprüft wird in dieser Ordnung:
         (1) die Siedlung gibt es, (2) nichts ist unterwegs (Daniel 01.11.2026, Anhang 2),
         (3) die Weltkarte ist bekannt, (4) das Feld ist frei - auch ein Bot-Dorf blockiert
-        (F-26 = A), (5) die Reichskasse trägt die 5.000 Mana (F-25 = A: keine zweite Preistafel,
-        kein Gold, keine Waren). Eine Wartezeit gibt es seit S-5 NICHT mehr (F-28 = C,
-        Register 332): `letzter_wechsel` wird fortgeschrieben, sperrt aber nichts.
+        (F-26 = A), (5) die Reichskasse traegt den Mana- UND den Goldpreis (C1, 18.11.2026,
+        Register 664: 500 Mana plus 100 Gold aus `data/welten.json`, Block `spielwert`). Eine
+        Wartezeit gibt es seit S-5 NICHT mehr (F-28 = C, Register 332): `letzter_wechsel` wird
+        fortgeschrieben, sperrt aber nichts.
 
-        Gebucht wird: Mana minus Festpreis, `welt_x`/`welt_y`, die Welt des Dorfes und die
-        gezeigte Welt. Bauten, Stufen, Garnison, Waren und Karawanen reisen mit, weil sie AM ORT
-        hängen und niemand sie anfasst (F-27 = A).
+        ENTSCHEIDUNG GEAENDERT (C1): bis zum 18.11.2026 stand hier "F-25 = A: keine zweite
+        Preistafel, kein Gold, keine Waren" und der Code buchte 5.000 Mana. Daniels Entscheidung
+        Register 93 (01.11.2026) und sein Wort vom 18.11.2026 ("C1 zuerst - 500 Mana + 100 Gold
+        einbauen") heben das auf; die 5.000 bleiben als BELEGTER Originalwert in `data/welten.json`
+        (`portalraum.wechselkosten_belegt()`), die Anzeige nennt weiter eine einzige Zahl, weil
+        beide Preise aus derselben Datendatei kommen - keine zweite Preistafel.
+
+        Gebucht wird: Mana minus Manapreis, Gold minus Goldpreis, `welt_x`/`welt_y`, die Welt des
+        Dorfes und die gezeigte Welt. Bauten, Stufen, Garnison, Waren und Karawanen reisen mit,
+        weil sie AM ORT haengen und niemand sie anfasst (F-27 = A).
 
         Die Kennung `Settlement.id` bleibt UNVERÄNDERT und muss nicht neu gebildet werden: sie
         hängt an Besitzer, Karte und `x`/`y`, und `x`/`y` ist die SIEDLUNGSKARTE, die der Umzug
@@ -13931,8 +13939,13 @@ class NebelseetalApp:
             self._log(meldung)
             self.state.messages.append({"text": meldung, "type": "portal"})
             return False
-        kosten = portalraum.wechselkosten()                               # (5) Mana
-        mana = float(self.state.resources["mana"].amount)
+        kosten = portalraum.wechselkosten()                               # (5) Manapreis (Spielwert 500)
+        kosten_gold = portalraum.wechselkosten_gold()                     # (5) Goldpreis (Spielwert 100)
+        mana = float(self.state.resources["mana"].amount)                 # Mana der Reichskasse
+        # C1 (18.11.2026, Register 664): ohne Gold kein Wechsel. Fehlt der Rohstoff ganz (alter
+        # Spielstand ohne Gold), gilt 0 Gold - dann verweigert die Pruefung unten den Wechsel und
+        # nennt den fehlenden Betrag, statt still durchzurutschen.
+        gold = float(self.state.resources["gold"].amount) if "gold" in self.state.resources else 0.0
         _von_index = portalraum.index_von(getattr(siedlung, "dimension", 0))
         if mana < kosten:
             meldung = (f"Zu wenig Mana in der Reichskasse: {kosten} benötigt, "
@@ -13940,17 +13953,26 @@ class NebelseetalApp:
             self._log(meldung)
             self.state.messages.append({"text": meldung, "type": "portal"})
             return False
+        if gold < kosten_gold:                                            # C1: Goldanteil fehlt
+            meldung = (f"Zu wenig Gold in der Reichskasse: {kosten_gold} benötigt, "
+                       f"{gold} vorhanden - der Weltensprung kostet {kosten} Mana und "
+                       f"{kosten_gold} Gold (Register 93).")
+            self._log(meldung)
+            self.state.messages.append({"text": meldung, "type": "portal"})
+            return False
         # S-5 (09.11.2026, Register 332): keine Wartezeit mehr (F-28 = C). Die letzte gemeinsame
-        # Pruefung fragt nur noch nach bekannter Welt und Mana - die Sperre, die hier bis Register
-        # 331 stand, ist auf Daniels Entscheid entfallen.
+        # Pruefung fragt nur noch nach bekannter Welt, Mana und Gold - die Sperre, die hier bis
+        # Register 331 stand, ist auf Daniels Entscheid entfallen.
         erlaubt, meldung = portalraum.wechsel_erlaubt(
-            _von_index if _von_index >= 0 else index, index, mana)
+            _von_index if _von_index >= 0 else index, index, mana, gold)
         if not erlaubt:
             self._log(meldung)
             self.state.messages.append({"text": meldung, "type": "portal"})
             return False
-        gebucht = portalraum.nach_wechsel(mana, time.time())              # GENAU EINMAL abbuchen
-        self.state.resources["mana"].amount = float(gebucht["mana"])
+        gebucht = portalraum.nach_wechsel(mana, gold, time.time())         # Mana UND Gold, je GENAU EINMAL
+        self.state.resources["mana"].amount = float(gebucht["mana"])       # Mana abgebucht
+        if "gold" in self.state.resources:                                # Gold nur, wenn es den Rohstoff gibt
+            self.state.resources["gold"].amount = float(gebucht["gold"])   # Gold abgebucht (C1)
         self.state.letzter_wechsel = gebucht["letzter_wechsel"]
         siedlung.welt_x = int(x)                                          # die neue Portalposition
         siedlung.welt_y = int(y)
@@ -13971,8 +13993,9 @@ class NebelseetalApp:
         if int(nummer) not in self.state.eigene_dimensionen:
             self.state.eigene_dimensionen.append(int(nummer))
         meldung = (f"{siedlung.name} steht jetzt auf Feld {int(x)}/{int(y)} der Weltkarte "
-                   f"{nummer:02d} ({portalraum.feld_name(index)}): {gebucht['kosten']} Mana aus "
-                   f"der Reichskasse abgebucht, alles andere reist mit.")
+                   f"{nummer:02d} ({portalraum.feld_name(index)}): {gebucht['kosten']} Mana und "
+                   f"{gebucht['kosten_gold']} Gold aus der Reichskasse abgebucht, alles andere "
+                   f"reist mit.")
         self._log(meldung)
         self.state.messages.append({"text": meldung, "type": "portal"})
         self._render_view()
@@ -14947,6 +14970,9 @@ class NebelseetalApp:
         # in der Liste ist weg. Geprüft und gebucht wird ausschließlich in `_dorf_versetzen`
         # (Schnitt S-3); hier steht nur, was er TUN WÜRDE - damit niemand auf gut Glück klickt.
         mana = float(self.state.resources["mana"].amount)
+        # C1 (18.11.2026, Register 664): der Goldanteil gehoert in dieselbe Zeile - fehlt der
+        # Rohstoff in einem alten Spielstand, gilt 0 Gold und der Knopf bleibt mit Grund gesperrt.
+        gold = float(self.state.resources["gold"].amount) if "gold" in self.state.resources else 0.0
         eigene_orte = list(getattr(self.state, "settlements", None) or [])
         gewaehlt = str(getattr(self, "portal_dorf", "") or "")
         if gewaehlt not in [str(o.name) for o in eigene_orte]:
@@ -14985,7 +15011,8 @@ class NebelseetalApp:
             ziel_farbe = "#8a8a8a"
         tk.Label(self.content, text=ziel_text, fg=ziel_farbe, bg=self.skin["bg"],
                  wraplength=breite, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=(4, 0))
-        kosten = portalraum.wechselkosten()
+        kosten = portalraum.wechselkosten()                            # Manapreis (Spielwert 500)
+        kosten_gold = portalraum.wechselkosten_gold()                   # Goldpreis (Spielwert 100, C1)
         gruende = []
         if not eigene_orte:                                            # ohne Dorf kein Umzug
             gruende.append("keine eigene Siedlung")
@@ -14993,13 +15020,16 @@ class NebelseetalApp:
             gruende.append("kein Feld gewählt")
         elif not (ziel_status or {}).get("frei"):                      # F-26 = A
             gruende.append("Feld nicht frei")
-        if mana < kosten:                                              # F-25 = A
+        if mana < kosten:                                              # Mana fehlt
             gruende.append(f"{int(kosten)} Mana nötig")
+        if gold < kosten_gold:                                         # C1: Gold fehlt
+            gruende.append(f"{int(kosten_gold)} Gold nötig")
         if laufend:                                                    # Daniel 01.11.2026, Anhang 2
             gruende.append(f"{laufend} Aufträge unterwegs")
         knopf_zeile = tk.Frame(self.content, bg=self.skin["bg"])
         knopf_zeile.pack(anchor=tk.W, padx=10, pady=(2, 0))
-        tk.Button(knopf_zeile, text=f"{gewaehlt or 'Dorf'} hierher versetzen ({int(kosten)} Mana)",
+        tk.Button(knopf_zeile, text=f"{gewaehlt or 'Dorf'} hierher versetzen "
+                                    f"({int(kosten)} Mana + {int(kosten_gold)} Gold)",
                   bg="#3e2723", fg=self.skin["gold"],
                   state=(tk.NORMAL if not gruende else tk.DISABLED),
                   command=lambda: self._portal_dorf_springen(angezeigt)).pack(side=tk.LEFT)
@@ -15014,21 +15044,24 @@ class NebelseetalApp:
 
         # --- 3. Kosten und Mannavorrat (W5-2, auf den Umzug umgestellt in S-4) ---
         # S-5 (09.11.2026, Register 332): die 24-Stunden-Sperre ist auf Daniels Entscheid F-28 = C
-        # entfallen. `wechsel_erlaubt` prueft nur noch Weltkarte und Mana; der Zeitstempel des
-        # letzten Wechsels steht als Auskunft daneben.
+        # entfallen. `wechsel_erlaubt` prueft nur noch Weltkarte, Mana und Gold (C1, Register 664);
+        # der Zeitstempel des letzten Wechsels steht als Auskunft daneben.
         index = portalraum.index_von(nummer)
-        erlaubt, meldung = portalraum.wechsel_erlaubt(index, index, float(mana))
-        tk.Label(self.content, text=(f"Mana: {int(mana)} · ein Umzug kostet "
-                                     f"{portalraum.wechselkosten()} · zuletzt gewechselt: "
+        erlaubt, meldung = portalraum.wechsel_erlaubt(index, index, float(mana), float(gold))
+        tk.Label(self.content, text=(f"Mana: {int(mana)} · Gold: {int(gold)} · ein Umzug kostet "
+                                     f"{portalraum.wechselkosten()} Mana und "
+                                     f"{portalraum.wechselkosten_gold()} Gold · zuletzt gewechselt: "
                                      f"{self._letzter_wechsel_text()}"),
                  fg=self.skin["text"], bg=self.skin["bg"]).pack(anchor=tk.W, padx=10, pady=(4, 2))
         tk.Label(self.content,
                  text=("Umzug möglich." if erlaubt else f"Zurzeit nicht möglich: {meldung}"),
                  fg="#DAA520" if erlaubt else self.skin["red"], bg=self.skin["bg"]).pack(
                      anchor=tk.W, padx=10)
-        tk.Label(self.content, text=("(Unser Mana liegt in EINEM gemeinsamen Vorrat - das Handbuch "
-                                     "verlangt die 5.000 Mana aus einer Siedlung. Vermerkt, noch "
-                                     "nicht je Siedlung.)"),
+        tk.Label(self.content, text=("(Unsere Vorräte liegen in EINEM gemeinsamen Vorrat - das "
+                                     "Handbuch verlangt die 5.000 Mana aus einer Siedlung "
+                                     "(Originalwert). Unser Spielpreis steht daneben: 500 Mana "
+                                     "plus 100 Gold, data/welten.json Block spielwert, "
+                                     "Register 93. Vermerkt, noch nicht je Siedlung.)"),
                  fg="#8a8a8a", bg=self.skin["bg"], wraplength=breite, justify=tk.LEFT).pack(
                      anchor=tk.W, padx=10, pady=(0, 6))
 

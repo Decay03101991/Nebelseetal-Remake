@@ -30,7 +30,14 @@
     "koordinatenwechsel": {
       "kosten_mana": 5000,
       "hoechstens_je_stunden": 24,
-      "_belegt": "Woertlich (portal.php 2005, Z. 25): 'Welt an ihren neuen Platz verschiebt. Sie benoetigen hierfuer 5.000 Mana.' sowie 'Ihr habt die Moeglichkeit, einmal binnen 24 Stunden, eure Koordinaten zu wechseln.'"
+      "_belegt": "Woertlich (portal.php 2005, Z. 25): 'Welt an ihren neuen Platz verschiebt. Sie benoetigen hierfuer 5.000 Mana.' sowie 'Ihr habt die Moeglichkeit, einmal binnen 24 Stunden, eure Koordinaten zu wechseln.'",
+      "spielwert": {
+        "kosten_mana": 500,
+        "kosten_gold": 100,
+        "_entscheidung": "Daniel 01.11.2026, 18:24 (Register 93, Antwort F-02 und F-03): der Weltensprung kostet im SPIEL 500 Mana plus 100 Gold, damit ein Sprung in einer Partie erlebbar ist. Die 5.000 oben bleiben als BELEGTER Originalwert stehen - portal.php 2005 bepreist den KOORDINATENWECHSEL, nicht den Weltensprung. Keine Loeschung des Belegs.",
+        "_gelesen_von": "src/portalraum.py: wechselkosten() liefert kosten_mana (Mana), wechselkosten_gold() liefert kosten_gold, wechselkosten_belegt() liefert weiter die 5.000. Kein zweiter Leser, keine zweite Preistafel.",
+        "_einbau": "C1, 18.11.2026 (Register 664); Daniels Wort in der Uebergaberunde: 'C1 zuerst - 500 Mana + 100 Gold einbauen'."
+      }
     },
     "bannerfarben": {
       "eigene_welt": "gruen",

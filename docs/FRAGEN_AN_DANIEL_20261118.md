@@ -127,3 +127,13 @@ zwischen zwei Bauauftraegen“. F-70 ist mit F-95 zurueckgestellt, der Bauauftra
 - `docs/quellen/ABWEICHUNGEN_2006_zu_2009.md` pflegen (seit 05.11. unveraendert) - gehoert zu D2.
 - Demo aus dem heutigen Stand bauen und `--pruefen` fahren; CI-Workflow auf den erzeugten Dateinamen ziehen.
 - Bildschirmfoto der Startseite: **das brauchst du** (Platzhalter in `index.html:149`).
+
+---
+
+## Nachtrag 18.11.2026, 18:40: ein Widerspruch, den C1 sichtbar gemacht hat
+
+**Wortlaut der beiden Aussagen:** Register 93 (01.11.2026, 18:24) sagt „500 Mana plus Gold, 100 Gold“. F-25 = A (Fragenrunde 07.11.2026) sagt „nur die 5.000 Mana, kein Gold, keine Waren“ - F-25 ist also juenger, ging aber in der Frage noch von 5.000 Mana aus.
+
+**Wie C1 es behandelt:** Daniels neuestes Wort vom 18.11.2026 (Antwort 1, „C1 zuerst - 500 Mana + 100 Gold einbauen“) gilt; der Goldanteil ist gebaut, der Docstring von `wechsel_erlaubt` nennt den Grund. Der Teil von F-25, der weiter eingehalten ist: es gibt **keine zweite Preistafel** - beide Preise kommen aus `data/welten.json`, Block `koordinatenwechsel.spielwert`.
+
+**Was du pruefen muesstest, falls du es anders meinst:** sag ein Wort, dann wird der Goldanteil auf 0 gesetzt (eine Zeile in der Datendatei, der Manapreis bleibt 500) - die Wachen pruefen den Spielwert aus der Datendatei, nicht eine Zahl im Code. Beleg: Register 664.

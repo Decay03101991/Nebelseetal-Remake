@@ -850,7 +850,11 @@ def _kette_12_portal():
             check("Startsiedlung fuer den Portalweg", False)
             return
         kosten = float(portalraum.wechselkosten())
-        check("der Festpreis steht in den Daten (data/welten.json)", kosten > 0.0, str(kosten))
+        kosten_gold = float(portalraum.wechselkosten_gold())
+        # C1 (18.11.2026, Register 664): 500 Mana PLUS 100 Gold aus data/welten.json.
+        check("der Manapreis steht in den Daten (data/welten.json)", kosten > 0.0, str(kosten))
+        check("der Goldpreis steht in den Daten (data/welten.json)", kosten_gold > 0.0,
+              str(kosten_gold))
         # Der Tempel traegt auf Nebelsee 5 Mana je Stunde, auf allem anderen 1 (data/resources.json).
         # Der Reihenfolge wegen: erst die Bibliothek (Baukunst) auf Grasland, damit kein
         # Nebelsee-Feld dafuer draufgeht; dann JEDES freie Nebelsee-Feld mit einem Tempel belegen.
@@ -858,6 +862,17 @@ def _kette_12_portal():
         check("die Bibliothek steht auf Grasland (kein Nebelsee-Feld verschwendet)",
               _bauen(app, gs, ort, "bibliothek", nur_terrain="grasland") is not None,
               str(ort.bauten))
+        # C1 (18.11.2026, Register 664): Gold entsteht im Spiel NUR ueber die Goldmine, ihre
+        # Voraussetzung ist die Forschung Baukunst (data/buildings.json). Die Kette geht diesen
+        # echten Weg - Abschnitt 13 dieser Datei erlaubt keine andere Zustandsschreibung.
+        # Den Bauholz-Bedarf der Forschung tragen die Holzfaelter, die die Kette ohnehin baut.
+        check("Baukunst wird erforscht (Voraussetzung der Goldmine)",
+              _erforschen(app, gs, ort, "Baukunst", 1), str(gs.research["Baukunst"].level))
+        mine = _bauen(app, gs, ort, "goldmine", nur_terrain="berg")
+        check("eine Goldmine steht auf einem Bergfeld", mine is not None, str(ort.bauten))
+        gold_ok = _warte_auf(gs, lambda: float(gs.resources["gold"].amount) >= kosten_gold)
+        check("das Gold kommt aus eigener Produktion (Goldmine, Berg 3 je Stunde)", gold_ok,
+              "%g von %g" % (gs.resources["gold"].amount, kosten_gold))
         for feld, terrain in enumerate(ort.karte["raster"]):
             if str(terrain) == "nebelsee" and str(feld) not in ort.bauten:
                 _bauen(app, gs, ort, "tempel", nur_terrain="nebelsee")
@@ -874,9 +889,12 @@ def _kette_12_portal():
         # muessen in sechs Stunden also mindestens 30 Mana ergeben.
         check("die Tempel tragen Mana ein (Zuwachs in sechs Spielstunden)",
               zuwachs >= 5.0 * 6.0, "%g Mana je 6 h" % zuwachs)
-        check("unter dem Festpreis ist KEIN Weltensprung moeglich (die Kernpruefung)",
-              portalraum.wechsel_erlaubt(0, 1, kosten - 1.0)[0] is False,
-              portalraum.wechsel_erlaubt(0, 1, kosten - 1.0)[1])
+        check("unter dem Manapreis ist KEIN Weltensprung moeglich (die Kernpruefung)",
+              portalraum.wechsel_erlaubt(0, 1, kosten - 1.0, kosten_gold)[0] is False,
+              portalraum.wechsel_erlaubt(0, 1, kosten - 1.0, kosten_gold)[1])
+        check("ohne Gold ist ebenfalls KEIN Weltensprung moeglich (C1)",
+              portalraum.wechsel_erlaubt(0, 1, kosten, kosten_gold - 1.0)[0] is False,
+              portalraum.wechsel_erlaubt(0, 1, kosten, kosten_gold - 1.0)[1])
         # STARTWERT: das ueber viele Spieltage ersparte Mana (Begruendung in der Funktion).
         gespart = _startwert_mana(gs, ort, kosten - 100.0)
         check("das Ersparte liegt knapp unter dem Preis", gespart < kosten, str(gespart))
@@ -953,7 +971,7 @@ def _kette_12_portal():
         zweiter = app._dorf_versetzen(ort_name, anderer[0], anderer[1], ziel)
         check("ein ZWEITER Umzug sofort scheitert am Mana, nicht an einer Wartezeit",
               zweiter is False, _log_ende(gs))
-        check("der Grund ist das Mana (20 von 5.000 nach dem Umzug)",
+        check("der Grund ist das Mana (nach dem Umzug reicht es nicht mehr)",
               "Mana" in str((gs.messages[-1] or {}).get("text", "")),
               str((gs.messages[-1] or {}).get("text")))
         # Diese Kette darf den Spielstand nicht von Hand setzen (Quellwache Abschnitt 13) -
@@ -963,12 +981,12 @@ def _kette_12_portal():
         # ERLAUBT - die alte Wache ist umgedreht, nicht geloescht.
         _erlaubt5, _grund5 = portalraum.wechsel_erlaubt(
             portalraum.index_von(int(gs.eigene_dimension)), portalraum.index_von(von),
-            kosten * 2.0)
+            kosten * 2.0, kosten_gold * 2.0)
         check("kein Warten mehr: mit genug Mana ist ein Wechsel von gerade eben erlaubt (F-28 = C)",
               _erlaubt5 is True, str(_grund5))
         _werte5 = list(_inspect.signature(portalraum.wechsel_erlaubt).parameters)
-        check("die Kernfunktion nimmt keinen Zeitstempel mehr (genau drei Werte)",
-              _werte5 == ["von_z", "nach_z", "mana"], str(_werte5))
+        check("die Kernfunktion nimmt keinen Zeitstempel (vier Werte: Mana und Gold, C1)",
+              _werte5 == ["von_z", "nach_z", "mana", "gold"], str(_werte5))
         check("und es wurde dabei nichts zweites abgebucht",
               abs(float(gs.resources["mana"].amount) - mana_nach_sprung) < 1e-6,
               str(gs.resources["mana"].amount))

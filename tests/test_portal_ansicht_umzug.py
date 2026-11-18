@@ -115,6 +115,8 @@ class Fenster(unittest.TestCase):
         self.state = M.GameState()
         self.start = int(self.state.eigene_dimension)
         self.state.resources["mana"].amount = 20000.0
+        # C1 (18.11.2026, Register 664): der Weltensprung kostet 500 Mana plus 100 Gold.
+        self.state.resources["gold"].amount = 1000.0
         self.state.letzter_wechsel = None
         self.dorf = M.Settlement(name="Eschenhain", map_id="kontinent", x=0, y=0,
                                  id=M.siedlung_kennung("spieler", "kontinent", 0, 0),
@@ -169,8 +171,8 @@ class Fenster(unittest.TestCase):
               and str(umzug[0].cget("state")) != str(tk.DISABLED), str(umzug))
         if umzug:
             text = str(umzug[0].cget("text"))
-            check("der Knopf nennt das Dorf und den Preis",
-                  "Eschenhain" in text and "5000" in text, text)
+            check("der Knopf nennt das Dorf und BEIDE Preise (C1)",
+                  "Eschenhain" in text and "500" in text and "100 Gold" in text, text)
         texte = " | ".join(_texte(self.app.content))
         check("die Zeile nennt Feld und Weltkarte", "x=7" in texte and "y=12" in texte, texte)
         check("das Feld gilt als frei", "ist frei" in texte, texte)
@@ -189,14 +191,19 @@ class Fenster(unittest.TestCase):
         self.app.portal_auswahl = (7, 12)
         self.app.portal_dorf = "Eschenhain"
         vorher = float(self.state.resources["mana"].amount)
+        gold_vorher = float(self.state.resources["gold"].amount)
         ok = self.app._portal_dorf_springen(self.start)
         check("der Umzug wird gebucht", ok is True, str(ok))
         check("das Dorf sitzt auf dem Feld", (self.dorf.welt_x, self.dorf.welt_y) == (7, 12),
               str((self.dorf.welt_x, self.dorf.welt_y)))
-        check("GENAU der Festpreis ist weg",
+        check("GENAU der Manapreis ist weg",
               abs(float(self.state.resources["mana"].amount)
                   - (vorher - float(P.wechselkosten()))) < 1e-6,
               str(self.state.resources["mana"].amount))
+        check("GENAU der Goldpreis ist weg (C1)",
+              abs(float(self.state.resources["gold"].amount)
+                  - (gold_vorher - float(P.wechselkosten_gold()))) < 1e-6,
+              str(self.state.resources["gold"].amount))
         check("die Auswahl ist danach leer (der Goldrand haengt nicht am alten Feld)",
               self.app.portal_auswahl is None, str(self.app.portal_auswahl))
 

@@ -4,7 +4,8 @@
 WARUM ES DIESE WACHE GIBT (Schnitt S-6 aus docs/design/PORTAL_MODELL_20261108.md)
 --------------------------------------------------------------------------------
 S-5 (09.11.2026, 08:07) hat die belegte 24-Stunden-Sperre auf Daniels Entscheid F-28 = C
-entfernt: `portalraum.wechsel_erlaubt` fragt nur noch Weltkarte und Mana, der Zeitstempel
+entfernt: `portalraum.wechsel_erlaubt` fragt nur noch Weltkarte, Mana und Gold (C1, Register 664),
+der Zeitstempel
 `letzter_wechsel` wird weiter geschrieben, sperrt aber nichts. Die vorhandenen Wachen
 (`test_portalraum`, `test_dorf_versetzen`, `test_e2e_wege`, `test_spielschicht`) pruefen das
 am KERN. Was fehlte, ist die Wache am FENSTER: dass die Portalansicht wirklich "zuletzt
@@ -14,10 +15,10 @@ hintereinander springen kann.
 Geprueft wird:
   a1  `main.py` enthaelt `_sperre_text` nicht mehr (die Restzeit-Methode ist umbenannt)
   a2  `_render_portal` nennt `_letzter_wechsel_text` und die Beschriftung "zuletzt gewechselt"
-  a3  `_dorf_versetzen` ruft `wechsel_erlaubt` mit genau DREI Werten (AST, kein Textfund)
-  b1  die Kernfunktion nimmt drei Werte; `_STUNDEN_SPERRE` existiert nicht mehr
-  b2  ein Wechsel von gerade eben ist mit genug Mana erlaubt (der Kern sagt nicht mehr Nein)
-  b3  ein Altaufruf mit Zeitstempel wirft TypeError (kein stilles Ignorieren)
+  a3  `_dorf_versetzen` ruft `wechsel_erlaubt` mit genau VIER Werten (AST, kein Textfund)
+  b1  die Kernfunktion nimmt vier Werte; `_STUNDEN_SPERRE` existiert nicht mehr
+  b2  ein Wechsel von gerade eben ist mit genug Mana und Gold erlaubt (der Kern sagt nicht mehr Nein)
+  b3  ein Altaufruf ohne Gold wirft TypeError (kein stilles Ignorieren)
   c1  im echten Fenster steht "zuletzt gewechselt:" und NICHT mehr "Sperre:"
   c2  ohne Wechsel steht "noch nie gewechselt", nach einem Wechsel "vor wenigen Minuten"
   c3  ein alter Zeitstempel wird als "vor 3.0 h" angezeigt, ein Zukunftsstempel benannt
@@ -114,8 +115,8 @@ class Quelle(unittest.TestCase):
         leib = _methode("_dorf_versetzen")
         zahlen = _aufrufe_mit_argumenten(leib, "wechsel_erlaubt")
         check("die Buchstelle ruft wechsel_erlaubt genau einmal", len(zahlen) == 1, str(zahlen))
-        check("und zwar mit genau DREI Werten (kein Zeitstempel, keine Uhr)",
-              zahlen == [3], str(zahlen))
+        check("und zwar mit genau VIER Werten (Mana und Gold, kein Zeitstempel)",
+              zahlen == [4], str(zahlen))
 
     def test_a4_kernmodul_liest_keine_stundensperre(self):
         quelle = (WURZEL / "src" / "portalraum.py").read_text(encoding="utf-8")
@@ -123,7 +124,7 @@ class Quelle(unittest.TestCase):
               "_STUNDEN_SPERRE" not in quelle.replace("`_STUNDEN_SPERRE`", ""),
               "nur der Kommentar darf sie nennen")
         zahlen = _aufrufe_mit_argumenten(quelle, "wechsel_erlaubt")
-        check("portalraum ruft sich selbst nicht mit Zeitstempel", all(z == 3 for z in zahlen),
+        check("portalraum ruft sich selbst nicht mit Zeitstempel", all(z == 4 for z in zahlen),
               str(zahlen))
 
 
@@ -132,31 +133,32 @@ class Kern(unittest.TestCase):
 
     def test_b1_signatur(self):
         werte = list(inspect.signature(P.wechsel_erlaubt).parameters)
-        check("wechsel_erlaubt nimmt genau drei Werte", werte == ["von_z", "nach_z", "mana"],
-              str(werte))
+        check("wechsel_erlaubt nimmt genau vier Werte (Gold ist Pflicht, C1)",
+              werte == ["von_z", "nach_z", "mana", "gold"], str(werte))
         check("die alte Sperrkonstante gibt es nicht mehr",
               not hasattr(P, "_STUNDEN_SPERRE"), "STUNDEN_SPERRE existiert wieder")
 
     def test_b2_wechsel_von_gerade_eben_ist_erlaubt(self):
         # Bis Register 331 war derselbe Aufruf mit einem Stempel von vor einer Sekunde verboten.
-        erlaubt, meldung = P.wechsel_erlaubt(0, 1, 100000.0)
-        check("mit genug Mana ist der Wechsel ERLAUBT (keine Wartezeit)", erlaubt is True, meldung)
-        gebucht = P.nach_wechsel(10000.0, 1000.0)
+        erlaubt, meldung = P.wechsel_erlaubt(0, 1, 100000.0, 100000.0)
+        check("mit genug Mana und Gold ist der Wechsel ERLAUBT (keine Wartezeit)",
+              erlaubt is True, meldung)
+        gebucht = P.nach_wechsel(10000.0, 10000.0, 1000.0)
         check("nach_wechsel schreibt den Zeitstempel weiter", gebucht["letzter_wechsel"] == 1000.0,
               str(gebucht))
-        erlaubt2, meldung2 = P.wechsel_erlaubt(1, 0, 100000.0)      # eine Sekunde spaeter, egal
+        erlaubt2, meldung2 = P.wechsel_erlaubt(1, 0, 100000.0, 100000.0)  # eine Sekunde spaeter
         check("und ein zweiter Wechsel bleibt erlaubt", erlaubt2 is True, meldung2)
 
     def test_b3_altaufruf_bricht(self):
         try:
-            P.wechsel_erlaubt(0, 1, 5000, None, 0.0)
+            P.wechsel_erlaubt(0, 1, 5000)                  # C1: der Goldwert fehlt
         except TypeError:
-            check("ein Altaufruf mit Zeitstempel ist ein Fehler", True)
+            check("ein Altaufruf ohne Gold ist ein Fehler", True)
         except Exception as fehler:                                  # noqa: BLE001
-            check("ein Altaufruf mit Zeitstempel ist ein Fehler", False, repr(fehler))
+            check("ein Altaufruf ohne Gold ist ein Fehler", False, repr(fehler))
         else:
-            check("ein Altaufruf mit Zeitstempel ist ein Fehler", False,
-                  "der vierte Wert wurde angenommen")
+            check("ein Altaufruf ohne Gold ist ein Fehler", False,
+                  "der Aufruf ohne Gold wurde angenommen")
 
 
 class Fenster(unittest.TestCase):
@@ -170,6 +172,7 @@ class Fenster(unittest.TestCase):
         self.state = M.GameState()
         self.start = int(self.state.eigene_dimension)
         self.state.resources["mana"].amount = 30000.0
+        self.state.resources["gold"].amount = 3000.0     # C1: Goldanteil des Preises
         self.state.letzter_wechsel = None
         self.dorf = M.Settlement(name="Eschenhain", map_id="kontinent", x=0, y=0,
                                  id=M.siedlung_kennung("spieler", "kontinent", 0, 0),

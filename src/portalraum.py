@@ -11,20 +11,24 @@ Belegt (Portal-Anleitung 2005, portal.php; Handbuch 2009, S. 80-83):
     leeren Platzhalter-Dimensionen sind aus data/welten.json entfernt. Die
     Kennungen d01..d06 und die 400 Felder je Weltkarte bleiben unveraendert.
   * Einen Koordinatenwechsel (Verschiebungsritual) fuehrt EINE einzelne
-    Siedlung durch; er kostet 5.000 Mana und ist hoechstens einmal je
-    24 Stunden erlaubt.
+    Siedlung durch; er kostet BELEGT 5.000 Mana und ist hoechstens einmal je
+    24 Stunden erlaubt. Im SPIEL kostet er 500 Mana plus 100 Gold
+    (Register 93, Daniel 01.11.2026) und hat keine Wartezeit mehr (F-28 = C).
   * In der Portalanzeige ist die eigene Welt gruen, fremde Welten sind rot.
 
 Verhaeltnis zu src/welt.py (WICHTIG, die beiden Kosten NICHT vermischen):
-  * wechselkosten() liefert den BELEGTEN Festpreis von 5.000 Mana fuer einen
-    Koordinatenwechsel. Der Wert steht in data/welten.json unter
-    belegte_regeln.koordinatenwechsel.kosten_mana und wird hier nur gelesen.
+  * wechselkosten() liefert den SPIELWERT eines Weltensprungs: 500 Mana
+    (Register 93, C1 am 18.11.2026), wechselkosten_gold() den Goldanteil 100.
+    Beide Werte stehen in data/welten.json unter
+    belegte_regeln.koordinatenwechsel.spielwert und werden hier nur gelesen.
+  * wechselkosten_belegt() liefert weiter den BELEGTEN Originalwert 5.000 Mana
+    aus `belegte_regeln.koordinatenwechsel.kosten_mana` (portal.php 2005,
+    Z. 25). Der Beleg bleibt stehen - er wird nicht geloescht (Register 93).
   * welt.portalkosten(von, nach) ist dagegen ein VORSCHLAG: eine
     entfernungsabhaengige Formel fuer Reisen bzw. das Aktivieren des Portals
     (Grundbetrag + Kosten je Schritt). Diese Formel ist NICHT belegt.
-  * Der dokumentierte Koordinatenwechsel kostet deshalb immer genau 5.000
-    Mana aus einer Siedlung und benutzt NICHT die Vorschlagsformel aus
-    welt.portalkosten().
+  * Der Weltensprung benutzt deshalb NUR die zwei Spielwerte oben und NICHT
+    die Vorschlagsformel aus welt.portalkosten().
 
 Nicht belegt und hier bewusst NICHT erfunden:
   * Welches Feld eine konkrete Spielerwelt belegt — es gibt in diesem Projekt
@@ -56,7 +60,13 @@ _FELDER_GESAMT = int(_BELEGT["felder_je_dimension_gesamt"])  # 400
 # (09.11.2026, Register 332) KEINE Regel mehr: Daniel hat F-28 = C entschieden ("keine Sperre
 # mehr"). Der Wert bleibt in data/welten.json stehen - er ist Quelle und Zeitzeugnis, aber das
 # Modul liest ihn nicht mehr, damit es keine zweite Wahrheit gibt.
-_MANA_WECHSEL = int(_KOORD["kosten_mana"])                   # 5000
+_MANA_WECHSEL = int(_KOORD["kosten_mana"])                   # 5000 - BELEGTER Originalwert, bleibt stehen
+# C1 (18.11.2026, Register 664; Entscheidung Register 93 vom 01.11.2026): der SPIELWERT steht als
+# eigener Block NEBEN dem Beleg. Fehlt der Block (aeltere Datendatei), gilt der belegte Manawert und
+# es wird KEIN Gold erfunden - dann kostet der Sprung 5.000 Mana und 0 Gold, wie vor C1.
+_SPIELWERT = _KOORD.get("spielwert") if isinstance(_KOORD.get("spielwert"), dict) else {}  # Block
+_MANA_SPIEL = int(_SPIELWERT.get("kosten_mana", _MANA_WECHSEL))  # Spielpreis Mana (Register 93: 500)
+_GOLD_SPIEL = int(_SPIELWERT.get("kosten_gold", 0))              # Spielpreis Gold (Register 93: 100)
 _BANNER = _BELEGT["bannerfarben"]                            # gruen / rot
 
 
@@ -264,15 +274,44 @@ def feld_name(welt) -> str:
 
 
 def wechselkosten() -> int:
-    """Belegter Festpreis eines Koordinatenwechsels (data/welten.json: 5000 Mana)."""
+    """Der SPIELWERT eines Weltensprungs in Mana (Register 93: 500).
+
+    ENTSCHEIDUNG GEAENDERT (C1, 18.11.2026, Register 664): bis hierher lieferte diese Funktion den
+    BELEGTEN Originalwert 5.000 aus `portal.php` 2005. Daniel hat am 01.11.2026, 18:24 (Register 93,
+    Antworten F-02 und F-03) entschieden, dass der Sprung im SPIEL 500 Mana plus 100 Gold kostet,
+    damit ein Sprung in einer Partie erlebbar ist; am 18.11.2026 hat er den Einbau als erste Arbeit
+    der Sitzung gewaehlt. Der Beleg verschwindet NICHT: er steht weiter in `data/welten.json`
+    (`koordinatenwechsel.kosten_mana` = 5000) und ist ueber `wechselkosten_belegt()` lesbar. Die
+    Quelle bepreist den KOORDINATENWECHSEL, nicht den Weltensprung - kein Widerspruch zum Handbuch.
+    """
+    return _MANA_SPIEL
+
+
+def wechselkosten_gold() -> int:
+    """Der SPIELWERT eines Weltensprungs in Gold (Register 93: 100).
+
+    Der Goldanteil ist mit C1 NEU: vorher buchte der Wechsel ueberhaupt kein Gold
+    (`grep -c gold src/portalraum.py` war 0). Gebucht wird es in `nach_wechsel` GENAU EINMAL;
+    ohne genug Gold verweigert `wechsel_erlaubt` den Wechsel und nennt den fehlenden Betrag.
+    """
+    return _GOLD_SPIEL
+
+
+def wechselkosten_belegt() -> int:
+    """Der BELEGTE Originalwert des Koordinatenwechsels in Mana (5000).
+
+    Woertlich (portal.php 2005, Z. 25): "Sie benoetigen hierfuer 5.000 Mana." Dieser Wert steht
+    absichtlich NEBEN dem Spielwert, weil Register 93 verlangt, dass der Beleg erhalten bleibt.
+    Wer den ORIGINALWERT zeigen oder pruefen will, nimmt diese Funktion - nicht `wechselkosten`.
+    """
     return _MANA_WECHSEL
 
 
-def wechsel_erlaubt(von_z: int, nach_z: int, mana: float):
+def wechsel_erlaubt(von_z: int, nach_z: int, mana: float, gold: float):
     """
     Prueft ein Verschiebungsritual. Rueckgabe: (erlaubt: bool, meldung: str).
 
-    Verlangt: beide Dimensionen bekannt und genug Mana in EINER Siedlung.
+    Verlangt: beide Dimensionen bekannt, genug MANA und genug GOLD in EINER Siedlung.
 
     **KEINE WARTEZEIT MEHR (S-5, 09.11.2026, Register 332):** Die belegte 24-Stunden-
     Sperre aus `welten.json` (`hoechstens_je_stunden`) faellt auf Daniels Entscheidung
@@ -281,37 +320,53 @@ def wechsel_erlaubt(von_z: int, nach_z: int, mana: float):
     `letzter_wechsel` bleibt im Spielstand, weil `nach_wechsel` ihn fortschreibt und
     die Ansicht ihn zeigt - er sperrt aber nichts. Wer die Sperre wieder einfuehren
     will, braucht eine neue Entscheidung, keine zweite Wahrheit.
+
+    **GOLD SEIT C1 (18.11.2026, Register 664):** der vierte Wert `gold` ist Pflicht, damit kein
+    Aufrufer den Goldanteil stillschweigend weglassen kann. Fehlt Gold, wird der Wechsel
+    ABGELEHNT und die Meldung nennt den fehlenden Betrag (Wache (d) in
+    `tests/test_wechselpreis_spielwert.py`). Der frueher hier notierte Grund "F-25 = A: kein Gold"
+    stammt aus der Fragenrunde vom 07.11.2026, die noch von 5.000 Mana ausging; Daniels neuestes
+    Wort (18.11.2026: "C1 zuerst - 500 Mana + 100 Gold einbauen") und Register 93 gehen vor.
     """
     if not _ist_dimension(von_z):
         return (False, f"Unbekannte Ausgangswelt: {von_z}")
     if not _ist_dimension(nach_z):
         return (False, f"Unbekannte Zielwelt: {nach_z}")
     kosten = wechselkosten()
+    kosten_gold = wechselkosten_gold()
     if mana < kosten:
         return (False, f"Zu wenig Mana in einer Siedlung: {kosten} benötigt, "
                        f"{mana} vorhanden.")
-    return (True, f"Koordinatenwechsel möglich: {kosten} Mana aus einer Siedlung.")
+    if gold < kosten_gold:
+        return (False, f"Zu wenig Gold in einer Siedlung: {kosten_gold} benötigt, "
+                       f"{gold} vorhanden.")
+    return (True, f"Koordinatenwechsel möglich: {kosten} Mana und {kosten_gold} Gold "
+                  f"aus einer Siedlung.")
 
 
-def nach_wechsel(mana: float, jetzt: float) -> dict:
+def nach_wechsel(mana: float, gold: float, jetzt: float) -> dict:
     """
-    Bucht den Wechsel ab: neues Mana und der Zeitstempel des Wechsels.
+    Bucht den Wechsel ab: neues Mana, neues Gold und der Zeitstempel des Wechsels.
 
-    Der Festpreis wird GENAU EINMAL abgezogen. Rueckgabe:
-    {'mana': alter Wert minus Festpreis, 'letzter_wechsel': jetzt,
-     'kosten': der abgezogene Festpreis}.
-    Wirft ValueError, wenn in der Siedlung zu wenig Mana liegt — dann wurde
-    nichts abgebucht.
+    Manapreis UND Goldpreis werden GENAU EINMAL abgezogen (C1, 18.11.2026, Register 664).
+    Rueckgabe: {'mana': alter Wert minus Manapreis, 'gold': alter Wert minus Goldpreis,
+    'letzter_wechsel': jetzt, 'kosten': Manapreis, 'kosten_gold': Goldpreis}.
+    Wirft ValueError, wenn Mana ODER Gold nicht reicht - dann wurde nichts abgebucht.
 
     **Der Stempel sperrt seit S-5 nichts mehr** (F-28 = C, Register 332): er wird
     weiter geschrieben, damit der Spielstand und die Anzeige sagen koennen, wann
     zuletzt gewechselt wurde.
     """
     kosten = wechselkosten()
+    kosten_gold = wechselkosten_gold()
     if mana < kosten:
         raise ValueError(f"Zu wenig Mana in einer Siedlung: {kosten} benötigt, "
                          f"{mana} vorhanden.")
-    return {"mana": mana - kosten, "letzter_wechsel": jetzt, "kosten": kosten}
+    if gold < kosten_gold:
+        raise ValueError(f"Zu wenig Gold in einer Siedlung: {kosten_gold} benötigt, "
+                         f"{gold} vorhanden.")
+    return {"mana": mana - kosten, "gold": gold - kosten_gold,
+            "letzter_wechsel": jetzt, "kosten": kosten, "kosten_gold": kosten_gold}
 
 
 def portalfarbe(z, eigene_dimensionen=()) -> str:
@@ -602,10 +657,12 @@ def anzeige_raster(z: int, radius: int = 10, eigene_dimensionen=()) -> list:
 
 
 def beschreibung() -> str:
-    """Eine lesbare Zeile ueber Limbus, Dimensionen, Raster und Kosten."""
-    kosten = wechselkosten()
-    kosten_txt = f"{kosten:,}".replace(",", ".")
+    """Eine lesbare Zeile ueber Limbus, Weltkarten, Raster und die zwei Spielpreise (C1)."""
+    kosten = wechselkosten()                                          # Manapreis (Spielwert)
+    kosten_txt = f"{kosten:,}".replace(",", ".")                      # Tausenderpunkt
+    gold = wechselkosten_gold()                                       # Goldpreis (Spielwert)
+    gold_txt = f"{gold:,}".replace(",", ".")                          # Tausenderpunkt
     return (f"Der Limbus umfasst {dim_zahl()} Weltkarten mit je "
             f"{_FELDER_AXIS} x {_FELDER_AXIS} = {feld_zahl()} Feldern; "
-            f"ein Weltensprung kostet {kosten_txt} Mana aus einer Siedlung "
+            f"ein Weltensprung kostet {kosten_txt} Mana plus {gold_txt} Gold aus einer Siedlung "
             f"und hat keine Wartezeit (Entscheidung F-28 = C).")

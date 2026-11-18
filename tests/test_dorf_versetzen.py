@@ -1,10 +1,14 @@
 # -*- coding: ascii -*-
 """Wache fuer den Dorfumzug im Portalraum (Schnitt S-3, 08.11.2026).
 
-Daniels Entscheidungen: F-25 = A (nur die 5.000 Mana, kein Gold, keine Waren), F-26 = A (ein
-belegtes Feld wird abgelehnt, auch ein Bot-Dorf), F-27 = A (alles reist mit - Bauten, Stufen,
-Garnison, Waren, Karawanen), F-28 = C (keine Sperre mehr - S-5 hat die belegte
-24-Stunden-Regel ersetzt). Belege: docs/design/PORTAL_MODELL_20261108.md Abschnitte 6 und 9.
+Daniels Entscheidungen: F-26 = A (ein belegtes Feld wird abgelehnt, auch ein Bot-Dorf),
+F-27 = A (alles reist mit - Bauten, Stufen, Garnison, Waren, Karawanen), F-28 = C (keine Sperre
+mehr - S-5 hat die belegte 24-Stunden-Regel ersetzt). Belege: docs/design/PORTAL_MODELL_20261108.md
+Abschnitte 6 und 9.
+
+ENTSCHEIDUNG GEAENDERT (C1, 18.11.2026, Register 664): der Preis ist NICHT mehr "nur 5.000 Mana"
+(F-25 = A stammt aus einer Runde, die noch von 5.000 ausging), sondern 500 Mana plus 100 Gold nach
+Register 93. Diese Wache prueft seither beide Abbuchungen.
 
 Geprueft wird die EINE Buchstelle `NebelseetalApp._dorf_versetzen` samt der Uebersetzung
 Spielstand -> Felder (`_portal_belegte_felder`): erst pruefen, dann genau einmal abbuchen.
@@ -74,6 +78,7 @@ def _aufbau():
     gs = M.GameState()
     start = int(gs.eigene_dimension)
     gs.resources["mana"].amount = 20000.0
+    gs.resources["gold"].amount = 2000.0          # C1: der Goldanteil des Preises
     gs.letzter_wechsel = None
     dorf = M.Settlement(name="Eschenhain", map_id="kontinent", x=3, y=3,
                         id=M.siedlung_kennung("spieler", "kontinent", 3, 3),
@@ -113,7 +118,9 @@ def main_() -> int:
     # -----------------------------------------------------------------------
     abschnitt("Ein freies Feld: GENAU EINE Buchung")
     vorher = float(gs.resources["mana"].amount)
+    gold_vorher = float(gs.resources["gold"].amount)
     kosten = float(P.wechselkosten())
+    kosten_gold = float(P.wechselkosten_gold())
     ok = app._dorf_versetzen("Eschenhain", 7, 12, START)
     check("der Umzug wird ausgefuehrt", ok is True, app.letzte_meldung())
     check("welt_x/welt_y stehen auf dem Zielfeld",
@@ -122,9 +129,12 @@ def main_() -> int:
           str(dorf.dimension))
     check("die gezeigte Welt folgt dem Dorf", int(gs.eigene_dimension) == START,
           str(gs.eigene_dimension))
-    check("GENAU der Festpreis ist abgebucht",
+    check("GENAU der Manapreis ist abgebucht",
           abs(float(gs.resources["mana"].amount) - (vorher - kosten)) < 1e-6,
           "%g -> %g" % (vorher, gs.resources["mana"].amount))
+    check("GENAU der Goldpreis ist abgebucht (C1)",
+          abs(float(gs.resources["gold"].amount) - (gold_vorher - kosten_gold)) < 1e-6,
+          "%g -> %g" % (gold_vorher, gs.resources["gold"].amount))
     check("der Zeitstempel des Wechsels ist geschrieben (Aufzeichnung, keine Sperre)",
           gs.letzter_wechsel is not None, str(gs.letzter_wechsel))
     check("die Kennung bleibt unveraendert (W-1 entschaerft durch S-2)",
@@ -188,8 +198,19 @@ def main_() -> int:
     gs.resources["mana"].amount = 100.0
     knapp = app._dorf_versetzen("Eschenhain", 1, 1, START)
     check("zu wenig Mana wird abgelehnt", knapp is False, app.letzte_meldung())
-    check("die Meldung nennt Soll und Ist", "5000" in app.letzte_meldung(),
+    check("die Meldung nennt Soll und Ist",
+          "500" in app.letzte_meldung() and "vorhanden" in app.letzte_meldung(),
           app.letzte_meldung())
+    # C1 (18.11.2026, Register 664): ohne Gold kein Wechsel - die Meldung nennt den Goldbetrag.
+    gs.resources["mana"].amount = 20000.0
+    gs.resources["gold"].amount = 50.0
+    ohne_gold = app._dorf_versetzen("Eschenhain", 1, 1, START)
+    check("ohne genug Gold wird der Wechsel abgelehnt (C1)", ohne_gold is False,
+          app.letzte_meldung())
+    check("die Meldung nennt Gold und den fehlenden Betrag",
+          "Gold" in app.letzte_meldung() and "100" in app.letzte_meldung(),
+          app.letzte_meldung())
+    gs.resources["gold"].amount = 2000.0          # Vorrat fuer die folgenden Umzuege zuruecksetzen
     gs.resources["mana"].amount = 20000.0
     check("ein unbekannter Dorfname wird abgelehnt",
           app._dorf_versetzen("Gibt es nicht", 1, 1, START) is False, app.letzte_meldung())

@@ -612,20 +612,37 @@ check("Koordinatenwechsel ohne Mana wird abgelehnt",
       ok is False and "Mana" in meldung, meldung)
 check("abgelehnter Wechsel aendert nichts", eingefroren(zpo) == _vor)
 
-zpo["ressourcen"]["mana"] = 6000
+# C1 (18.11.2026, Register 664): der Weltensprung kostet 500 Mana PLUS 100 Gold. Die Wachen
+# rechnen deshalb mit 1000 Mana und 500 Gold und pruefen beide Abbuchungen einzeln.
+zpo["ressourcen"]["mana"] = 1000
+zpo["ressourcen"]["gold"] = 500
 ok, meldung = S.portalwechsel(zpo, 3, 0.0)
-check("mit Mana gelingt der Wechsel", ok is True, meldung)
-check("der Wechsel kostet 5000 Mana", zpo["ressourcen"]["mana"] == 1000,
+check("mit Mana und Gold gelingt der Wechsel", ok is True, meldung)
+check("der Wechsel kostet 500 Mana", zpo["ressourcen"]["mana"] == 500,
       str(zpo["ressourcen"]["mana"]))
+check("der Wechsel kostet 100 Gold", zpo["ressourcen"]["gold"] == 400,
+      str(zpo["ressourcen"]["gold"]))
 check("die eigene Dimension ist jetzt 3", zpo["eigene_dimension"] == 3)
-zpo["ressourcen"]["mana"] = 6000
+
+zpo["ressourcen"]["gold"] = 0                                            # kein Gold im Vorrat
+_ohne_gold = eingefroren(zpo)
+ok, meldung = S.portalwechsel(zpo, 4, 500.0)
+check("ohne Gold wird der Wechsel abgelehnt (C1)",
+      ok is False and "Gold" in meldung, meldung)
+check("die Ablehnung nennt den fehlenden Goldbetrag", "100" in meldung, meldung)
+check("ein abgelehnter Wechsel bucht kein Mana ab", eingefroren(zpo) == _ohne_gold)
+
+zpo["ressourcen"]["mana"] = 1000
+zpo["ressourcen"]["gold"] = 500
 ok, meldung = S.portalwechsel(zpo, 4, 1000.0)
 # S-5 (09.11.2026, Register 332): Daniel hat F-28 = C entschieden - KEINE Wartezeit mehr.
 # Die frueher hier geforderte 24-Stunden-Sperre ist UMGEDREHT, nicht geloescht: derselbe
 # Aufruf mit demselben Zeitunterschied gelingt jetzt sofort.
-check("ein zweiter Wechsel ohne Wartezeit gelingt (F-28 = C, S-5)", ok is True, meldung)
-check("und der zweite Wechsel kostet wieder genau 5000 Mana",
-      zpo["ressourcen"]["mana"] == 1000, str(zpo["ressourcen"]["mana"]))
+check("ein zweiter Wechsel ohne Wartezeit gelingt (F-28 = C)", ok is True, meldung)
+check("und der zweite Wechsel kostet wieder genau 500 Mana",
+      zpo["ressourcen"]["mana"] == 500, str(zpo["ressourcen"]["mana"]))
+check("und wieder genau 100 Gold",
+      zpo["ressourcen"]["gold"] == 400, str(zpo["ressourcen"]["gold"]))
 check("die eigene Dimension ist jetzt 4", zpo["eigene_dimension"] == 4)
 check("der Zeitstempel wird geschrieben, sperrt aber nicht",
       float(zpo.get("letzter_wechsel") or 0.0) == 1000.0, str(zpo.get("letzter_wechsel")))

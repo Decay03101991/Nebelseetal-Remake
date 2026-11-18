@@ -1,7 +1,8 @@
 """Pruefung des Portal-/Limbus-Raums (src/portalraum.py, Paket W5-2).
 
 Deckt ab: 20 Dimensionen mit je 20x20 = 400 Feldern, Koordinaten (X, Y, Z)
-samt Randwerten, den belegten Festpreis von 5.000 Mana aus einer Siedlung,
+samt Randwerten, den SPIELWERT des Weltensprungs 500 Mana plus 100 Gold (C1, Register 664)
+NEBEN dem belegten Originalwert 5.000 Mana aus einer Siedlung,
 das Ende der 24-Stunden-Sperre (F-28 = C, S-5), die Portalanzeige mit 400 Feldern
 und Bannerfarben
 sowie die sechs belegten Weltnamen als Dimensionen.
@@ -101,16 +102,35 @@ check("Index 6 ist keine Weltkarte mehr (W-6)", P.koordinate(0, 0, 6) is None,
 check("unbekannte Dimension hat kein Feld", P.koordinate(0, 0, 99) is None)
 
 # ---------------------------------------------------------------------------
-abschnitt("Koordinatenwechsel: 5.000 Mana aus EINER Siedlung (ohne Wartezeit, S-5)")
+# ENTSCHEIDUNG GEAENDERT (C1, 18.11.2026, Register 664): der Weltensprung kostet im SPIEL
+# 500 Mana plus 100 Gold (Register 93, Daniel 01.11.2026). Bis hierher prueften diese Wachen
+# 5.000 Mana. Die 5.000 bleiben als BELEGTER Originalwert stehen und werden weiter geprueft -
+# aber in `data/welten.json` und ueber `wechselkosten_belegt()`, nicht als Spielpreis.
+abschnitt("Koordinatenwechsel: Spielwert 500 Mana + 100 Gold (C1), Beleg 5.000 bleibt")
 
-check("ein Wechsel kostet genau 5000 Mana", P.wechselkosten() == 5000,
+check("ein Wechsel kostet im Spiel genau 500 Mana", P.wechselkosten() == 500,
       str(P.wechselkosten()))
-check("genau 5000 Mana reichen", P.wechsel_erlaubt(0, 1, 5000)[0] is True)
-check("mehr als der Festpreis ist erlaubt", P.wechsel_erlaubt(0, 1, 9999)[0] is True)
-_ab, _grund = P.wechsel_erlaubt(0, 1, 4999)
+check("ein Wechsel kostet im Spiel genau 100 Gold", P.wechselkosten_gold() == 100,
+      str(P.wechselkosten_gold()))
+check("der BELEGTE Originalwert 5000 bleibt lesbar", P.wechselkosten_belegt() == 5000,
+      str(P.wechselkosten_belegt()))
+check("der belegte Wert steht weiter in data/welten.json (keine Loeschung)",
+      int(W._DATEI["belegte_regeln"]["koordinatenwechsel"]["kosten_mana"]) == 5000,
+      str(W._DATEI["belegte_regeln"]["koordinatenwechsel"].get("kosten_mana")))
+check("der Spielwert steht als eigener Block daneben",
+      int(W._DATEI["belegte_regeln"]["koordinatenwechsel"]["spielwert"]["kosten_mana"]) == 500
+      and int(W._DATEI["belegte_regeln"]["koordinatenwechsel"]["spielwert"]["kosten_gold"]) == 100,
+      str(W._DATEI["belegte_regeln"]["koordinatenwechsel"].get("spielwert")))
+check("genau 500 Mana und 100 Gold reichen", P.wechsel_erlaubt(0, 1, 500, 100)[0] is True)
+check("mehr als der Spielpreis ist erlaubt", P.wechsel_erlaubt(0, 1, 9999, 9999)[0] is True)
+_ab, _grund = P.wechsel_erlaubt(0, 1, 499, 1000)
 check("zu wenig Mana wird abgelehnt", _ab is False)
 check("die Ablehnung nennt Mana als Grund", "Mana" in _grund, _grund)
-check("die Ablehnung nennt den fehlenden Betrag", "5000" in _grund, _grund)
+check("die Ablehnung nennt den fehlenden Betrag", "500" in _grund, _grund)
+_ab_gold, _grund_gold = P.wechsel_erlaubt(0, 1, 1000, 99)
+check("ohne genug Gold wird abgelehnt (C1)", _ab_gold is False)
+check("die Gold-Ablehnung nennt Gold und den Betrag",
+      "Gold" in _grund_gold and "100" in _grund_gold, _grund_gold)
 
 # ---------------------------------------------------------------------------
 # S-5 (09.11.2026, Register 332): Daniel hat F-28 = C entschieden - KEINE Wartezeit mehr.
@@ -120,18 +140,20 @@ abschnitt("Koordinatenwechsel: KEINE Wartezeit mehr (F-28 = C, S-5)")
 
 LETZT = 100000.0
 _werte = list(inspect.signature(P.wechsel_erlaubt).parameters)
-check("der Aufruf nimmt nur noch drei Werte (kein Zeitstempel mehr)",
-      _werte == ["von_z", "nach_z", "mana"], str(_werte))
-try:                                                  # ein Altaufruf mit Zeitstempel MUSS brechen
-    P.wechsel_erlaubt(0, 1, 5000, None, 0.0)
+# C1 (18.11.2026, Register 664): der Goldanteil ist ein PFLICHTWERT, damit ihn kein Aufrufer
+# stillschweigend weglassen kann. Aus drei Werten wurden vier.
+check("der Aufruf nimmt vier Werte (kein Zeitstempel, aber Gold ist Pflicht)",
+      _werte == ["von_z", "nach_z", "mana", "gold"], str(_werte))
+try:                                                  # ein Altaufruf OHNE Gold MUSS brechen
+    P.wechsel_erlaubt(0, 1, 500.0)
 except TypeError:
-    check("ein Altaufruf mit Zeitstempel ist ein Fehler, kein stilles Ignorieren", True)
+    check("ein Altaufruf ohne Gold ist ein Fehler, kein stilles Ignorieren", True)
 except Exception as _f:
-    check("ein Altaufruf mit Zeitstempel ist ein Fehler, kein stilles Ignorieren", False, repr(_f))
+    check("ein Altaufruf ohne Gold ist ein Fehler, kein stilles Ignorieren", False, repr(_f))
 else:
-    check("ein Altaufruf mit Zeitstempel ist ein Fehler, kein stilles Ignorieren", False,
-          "der vierte Wert wurde angenommen")
-check("ein Wechsel kurz nach dem letzten ist erlaubt", P.wechsel_erlaubt(0, 1, 5000)[0] is True)
+    check("ein Altaufruf ohne Gold ist ein Fehler, kein stilles Ignorieren", False,
+          "der Aufruf ohne Gold wurde angenommen")
+check("ein Wechsel kurz nach dem letzten ist erlaubt", P.wechsel_erlaubt(0, 1, 500, 1000)[0] is True)
 check("die Entscheidung steht im Docstring (F-28 = C)",
       "F-28 = C" in (P.wechsel_erlaubt.__doc__ or ""), (P.wechsel_erlaubt.__doc__ or "")[:80])
 check("die alte Sperrkonstante liest das Modul nicht mehr",
@@ -140,32 +162,46 @@ check("die Beschreibung nennt keine Wartezeit mehr",
       "keine Wartezeit" in P.beschreibung() and "24 Stunden" not in P.beschreibung(),
       P.beschreibung())
 check("unbekannte Ausgangs-Dimension wird abgelehnt",
-      P.wechsel_erlaubt(-1, 1, 5000)[0] is False)
+      P.wechsel_erlaubt(-1, 1, 500, 1000)[0] is False)
 # W-6: 6 ist jetzt die erste unbekannte Zielwelt (vorher war 20 die erste hinter 0..19).
 check("unbekannte Ziel-Dimension wird abgelehnt",
-      P.wechsel_erlaubt(0, 6, 5000)[0] is False)
+      P.wechsel_erlaubt(0, 6, 500, 1000)[0] is False)
 check("Wechsel in dieselbe Dimension ist nicht verboten (Quelle schweigt)",
-      P.wechsel_erlaubt(0, 0, 5000)[0] is True)
+      P.wechsel_erlaubt(0, 0, 500, 1000)[0] is True)
 
 # ---------------------------------------------------------------------------
-abschnitt("Abbuchung: das Mana wird genau einmal abgezogen")
+abschnitt("Abbuchung: Mana UND Gold werden genau einmal abgezogen (C1)")
 
-_d = P.nach_wechsel(10000.0, LETZT)
-check("nach_wechsel zieht genau 5000 ab", _d["mana"] == 5000.0, str(_d["mana"]))
-check("die Differenz betraegt genau einen Festpreis",
+_d = P.nach_wechsel(10000.0, 1000.0, LETZT)
+check("nach_wechsel zieht genau 500 Mana ab", _d["mana"] == 9500.0, str(_d["mana"]))
+check("nach_wechsel zieht genau 100 Gold ab", _d["gold"] == 900.0, str(_d["gold"]))
+check("die Mana-Differenz betraegt genau einen Manapreis",
       10000.0 - _d["mana"] == P.wechselkosten())
+check("die Gold-Differenz betraegt genau einen Goldpreis",
+      1000.0 - _d["gold"] == P.wechselkosten_gold())
 check("nach_wechsel schreibt den Zeitstempel des Wechsels (Aufzeichnung, sperrt nicht)",
       _d["letzter_wechsel"] == LETZT)
-check("nach_wechsel meldet die abgezogenen Kosten",
-      _d["kosten"] == P.wechselkosten())
+check("nach_wechsel meldet die abgezogenen Kosten (Mana und Gold)",
+      _d["kosten"] == P.wechselkosten() and _d["kosten_gold"] == P.wechselkosten_gold())
 check("eine zweite Abbuchung zieht erneut genau einmal ab",
-      P.nach_wechsel(_d["mana"], LETZT)["mana"] == 0.0)
+      P.nach_wechsel(_d["mana"], _d["gold"], LETZT)["mana"] == 9000.0)
 
 
 def _zu_wenig():
     """True, wenn nach_wechsel bei zu wenig Mana ValueError wirft (ohne Abbuchung)."""
     try:
-        P.nach_wechsel(4000.0, LETZT)
+        P.nach_wechsel(499.0, 1000.0, LETZT)
+    except ValueError:
+        return True
+    except Exception:
+        return False
+    return False
+
+
+def _zu_wenig_gold():
+    """True, wenn nach_wechsel bei zu wenig GOLD ValueError wirft (C1, ohne Abbuchung)."""
+    try:
+        P.nach_wechsel(10000.0, 99.0, LETZT)
     except ValueError:
         return True
     except Exception:
@@ -174,6 +210,7 @@ def _zu_wenig():
 
 
 check("nach_wechsel verweigert bei zu wenig Mana (ValueError)", _zu_wenig() is True)
+check("nach_wechsel verweigert bei zu wenig Gold (ValueError)", _zu_wenig_gold() is True)
 
 # ---------------------------------------------------------------------------
 abschnitt("Portalanzeige: 400 Felder, gruen fuer eigen, rot fuer fremd")
@@ -213,7 +250,10 @@ check("die Beschreibung nennt 6 Weltkarten", "6 Weltkarten" in _b, _b)
 # "Dimension" im Satz waere ein Rueckfall - deshalb zusaetzlich die Gegenprobe.
 check("die Beschreibung nennt keine Dimension mehr", "Dimension" not in _b, _b)
 check("die Beschreibung nennt 400 Felder", "400" in _b, _b)
-check("die Beschreibung nennt 5.000 Mana", "5.000 Mana" in _b, _b)
+# C1 (18.11.2026, Register 664): die Beschreibung nennt die SPIELPREISE, nicht mehr den Belegwert.
+check("die Beschreibung nennt 500 Mana", "500 Mana" in _b, _b)
+check("die Beschreibung nennt 100 Gold", "100 Gold" in _b, _b)
+check("die Beschreibung nennt NICHT mehr die 5.000 als Spielpreis", "5.000 Mana" not in _b, _b)
 # S-5 (09.11.2026, Register 332): die 24 Stunden sind auf Daniels Entscheid F-28 = C entfallen.
 check("die Beschreibung nennt KEINE 24 Stunden mehr", "24 Stunden" not in _b, _b)
 check("die Beschreibung nennt die Entscheidung", "keine Wartezeit" in _b, _b)

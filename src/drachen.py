@@ -283,7 +283,8 @@ def belohnung_mana(pfad=None) -> dict:
     Daniels Vorgabe, woertlich-nah: ein fester Betrag von 4000 Mana PLUS das, was ein ausgewogenes
     Aufwands-Szenario an Mana kostet (mehrere Angriffe, Rueckzug, neuer Versuch, Weltspruenge).
     Damit sich das mitentwickelt, wird der Aufwand aus dem ECHTEN Preis eines Weltensprungs
-    gerechnet (`portalraum.wechselkosten`) und nicht im Code festgeschrieben: aendert sich dort ein
+    gerechnet (`portalraum.wechselkosten`, seit C1 am 18.11.2026 500 Mana statt des belegten
+    Originalwerts 5.000 - Register 664) und nicht im Code festgeschrieben: aendert sich dort ein
     Wert oder die Zahl der Versuche in der Datendatei, zieht die Belohnung mit.
     Eingabe: optionaler Pfad zur Datendatei.
     Ausgabe: dict mit grundbetrag, versuche, sprunge, kosten_je_sprung, aufwand, summe.
@@ -306,7 +307,7 @@ def belohnung_mana(pfad=None) -> dict:
     except (TypeError, ValueError):  # unbrauchbare Angabe
         je_versuch = 2  # Vorgabe
     try:  # den ECHTEN Preis des Sprungs holen
-        je_sprung = int(portalraum.wechselkosten())  # harte Kostenzahl des Spiels
+        je_sprung = int(portalraum.wechselkosten())  # Spielpreis des Sprungs (C1: 500 statt 5000)
     except (AttributeError, TypeError, ValueError):  # Preis nicht lesbar
         je_sprung = 0  # dann zaehlt nur der feste Betrag, nichts erfunden
     sprunge = int(versuche) * int(je_versuch)  # alle Weltspruenge des Szenarios

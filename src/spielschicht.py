@@ -900,10 +900,13 @@ def portalwechsel(zustand: dict, nach_dimension, jetzt: float) -> Tuple[bool, st
     ``portalraum`` rechnet ebenfalls mit dem Index, deshalb bleibt es hier beim Index -
     nicht "vereinheitlichen", ohne den Aufrufer mitzuziehen.
 
-    Belegt: 5.000 Mana aus EINER Siedlung; eine Wartezeit gibt es seit S-5 NICHT mehr
-    (Daniel 08.11.2026, F-28 = C - der Zeitstempel `letzter_wechsel` wird fortgeschrieben,
-    sperrt aber nichts, Register 332). Das Mana wird hier aus dem gemeinsamen Rohstoffvorrat
-    genommen (der Stand fuehrt kein Mana je Siedlung). Bei einer Ablehnung aendert sich nichts.
+    Belegt: 5.000 Mana aus EINER Siedlung; im SPIEL kostet der Sprung 500 Mana plus 100 Gold
+    (Register 93, eingebaut mit C1 am 18.11.2026, Register 664). Der Goldanteil kommt aus
+    `portalraum.wechselkosten_gold()` - hier steht keine zweite Zahl. Eine Wartezeit gibt es seit
+    S-5 NICHT mehr (Daniel 08.11.2026, F-28 = C - der Zeitstempel `letzter_wechsel` wird
+    fortgeschrieben, sperrt aber nichts, Register 332). Mana und Gold werden hier aus dem
+    gemeinsamen Rohstoffvorrat genommen (der Stand fuehrt keinen Vorrat je Siedlung). Bei einer
+    Ablehnung aendert sich nichts.
 
     F-32 (Daniel 09.11.2026: "Behalten und ausdruecklich als Spielschicht-Funktion
     dokumentieren"): diese Funktion gehoert zur SPIELSCHICHT und hat in `src/` keinen Aufrufer -
@@ -912,16 +915,18 @@ def portalwechsel(zustand: dict, nach_dimension, jetzt: float) -> Tuple[bool, st
     """
     von = int(zustand.get("eigene_dimension", 0) or 0)
     mana = (zustand.get("ressourcen") or {}).get("mana", 0) or 0
+    gold = (zustand.get("ressourcen") or {}).get("gold", 0) or 0        # C1: Goldanteil des Preises
     # S-5 (09.11.2026, Register 332): keine Wartezeit mehr - F-28 = C. Der Zeitstempel wird
     # weiter geschrieben (Aufzeichnung), aber nicht mehr abgefragt.
-    erlaubt, meldung = portalraum.wechsel_erlaubt(von, nach_dimension, mana)
+    erlaubt, meldung = portalraum.wechsel_erlaubt(von, nach_dimension, mana, gold)
     if not erlaubt:
         return False, meldung
     try:
-        gebucht = portalraum.nach_wechsel(mana, float(jetzt))
+        gebucht = portalraum.nach_wechsel(mana, gold, float(jetzt))
     except ValueError as e:
         return False, str(e)
     zustand["ressourcen"]["mana"] = gebucht["mana"]
+    zustand["ressourcen"]["gold"] = gebucht["gold"]                     # C1: Gold genau einmal
     zustand["letzter_wechsel"] = gebucht["letzter_wechsel"]
     zustand["eigene_dimension"] = int(nach_dimension)
     _melde(zustand, meldung, "portal", jetzt)
