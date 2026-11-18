@@ -25,7 +25,8 @@ Gnomen).
 
 ## Was als Nächstes ansteht
 
-1. **D8/D11/D-c** sind Daniels Wort — je eine Zeile, dann ist die Zeichner-Fassung frei.
+1. **Erledigt:** D8, D11 und D-c sind am 18.11.2026 entschieden (Register 672); die Zeichner-Fassung liegt
+   als `docs/BILDBRIEFING_ENTSCHEIDUNGEN_20261118.md` vor Claudes Antwort und ist frei.
 2. **Werkzeuglücken vor der Bilder-Abnahme:** PNG-Farbtyp (6 gegen 2) und Seitenverhältnis prüfen.
 3. **Abweichungsregister** pflegen (Daniels Antwort 2), Registerzeilen 594/595 nachtragen.
 4. **Bilder** 0 von 18, **sechs Wappen** blockiert bis zum Aufladen, **Bildschirmfoto** braucht Daniel.

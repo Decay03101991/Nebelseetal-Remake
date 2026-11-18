@@ -155,3 +155,22 @@ Karte war unbeantwortet abgelaufen). Vier Entscheidungen, einzeln gestellt, alle
 **Damit sind alle vier offenen Fragen dieser Sitzung beantwortet.** Die frueheren sieben Antworten
 (Abschnitte 1 bis 7 oben) bleiben unveraendert gueltig; der klebende Kopf 60 px (Antwort 3 der ersten
 Runde) ist weiterhin NICHT gebaut und bleibt der naechste Code-Schritt nach dem Release.
+
+---
+
+## Runde 3 - 18.11.2026, 21:55 (Bildbriefing, nach Claudes Antwort Nr. 21)
+
+| # | Frage | Antwort (Daniel) | Folge |
+|---|---|---|---|
+| D8 | Goldrahmen im Marktplatz-Kennzeichen (B13) | **Der Rahmen bleibt** | Prompt behaelt `thin rounded gold border`, Negativ ohne "frame" |
+| D11 | Farbe des Gnomen-Kopfbands | **Marineblau #103050** (Wappen `wappen_05`) | Gnomen-Prompt `navy blue` |
+| D-c | Burg oder Wappen bestimmt die Farbe | **Die Burg gilt** (Trolle gruen/oliv, Gnome eisblau) | Farbangaben der neuen Bilder folgen der Burg; Chronik und `data/haeuser.json` bleiben unveraendert |
+| Klärung | Widerspruch D11 gegen D-c bei den Gnomen | **Beide gelten, fuer verschiedene Bilder:** Kopfband Marineblau, uebrige Farben nach der Burg | im Briefing je Datei die Quelle nennen |
+
+**Damit ist die Zeichner-Fassung frei:** `docs/BILDBRIEFING_ENTSCHEIDUNGEN_20261118.md` gehoert vor Claudes
+Dokument und traegt die vier Entscheidungen plus die eine Berichtigung (Sternenwacht =
+`elfen_wappen.png`, nicht `wappen_09`).
+
+**Neu gesammelt, nicht entschieden:** soll die **Hausfarbe im Spiel** (Anzeige) kuenftig auch der Burg
+folgen statt dem Wappen? `data/haeuser.json` fuehrt heute die Wappenfarben - das ist eine eigene Frage fuer
+die naechste Runde, keine Folge aus D-c.
