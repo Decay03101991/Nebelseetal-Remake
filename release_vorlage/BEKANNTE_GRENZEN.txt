@@ -1,20 +1,25 @@
 NEBELSEETAL REMAKE - TESTGRENZEN UND DATENSCHUTZ
-Stand: 04.11.2026 | Version V_0.0.1 | ERSTE VORABVERSION
+Stand: 18.11.2026 | Version V_0.0.4 | vierte veroeffentlichte Vorabversion
 
 WAS SCHON GEHT
 - Siedlungen gruenden und ausbauen, Rohstoffe, Waren, Werkstaetten, Handel
 - 21 Forschungen mit Voraussetzungen, Ausruestung, 28 Einheiten ausbilden
-- Kaempfe mit Wall, Sequenzen, Beute und Kriegspunkten
+- Kaempfe mit Wall, Sequenzen, Beute und Kriegspunkten, Verwundetenheilung
 - Fuenf Nachbarn mit eigener Wirtschaft: sie forschen, bauen, gruenden, rauben
-- Portale in andere Welten mit Mana-Kosten je Entfernung
+- Sechs Welten im Limbus; ein Weltensprung kostet 500 Mana plus 100 Gold
 - Vier Auszeichnungen (Feldherr, Forscher, Haendler, Gesamtherrscher)
 
 WAS NOCH FEHLT ODER UNFERTIG IST
-- Die Welt steht noch auf 20 Limbus-Dimensionen; der Umbau auf sechs Welten
-  laeuft. 14 Dimensionen sind leer und werden nicht als Startwelt vergeben.
-- Drei Kampfregeln fehlen: Fluchtformel, Beute-Reihenfolge (Gold zuerst),
-  Mauerreparatur mit Bauzeit.
+- Die GESTALTUNG ist unvollstaendig. Im Dezember werden 18 Bilddateien
+  (Kopfaender, Kennzeichen, Rahmen, Hintergruende, Ladebilder, Portraits,
+  Leisten-Endstuecke) und sechs neue Haus-Wappen nachgeliefert. Bis dahin
+  zeichnet das Spiel an diesen Stellen eine gezeichnete Ersatzflaeche:
+  es fehlt Aussehen, keine Funktion.
+- Zwei Kampfregeln sind noch offen: die Fluchtformel und eine
+  Mauerreparatur-Sonderregel aus dem Handbuch.
 - Kein Ton, keine Musik.
+- Einzelspieler gegen den Rechner: kein Mehrspieler, kein Server, keine Konten.
+- Kein Siegbildschirm. Ruhm ueber vier Auszeichnungen, nicht "gewonnen".
 - Die Ansichten bauen sich beim Wechsel neu auf; das kann kurz stocken.
 - Nicht alle Windows-Versionen, Skalierungen und Grafikkonfigurationen getestet.
 

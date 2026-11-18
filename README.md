@@ -7,8 +7,11 @@
 **Ein Einzelspieler-Remake des historischen Browserspiels Nebelseetal.** Läuft lokal, offline,
 kostenlos. Windows-Testversion als `.exe`, kein Python nötig.
 
-> **Dies ist eine Vorabversion** (`V_0.0.3`). Sie ist zum Ausprobieren und Fehlersammeln
+> **Dies ist eine Vorabversion** (`V_0.0.4`, 18.11.2026). Sie ist zum Ausprobieren und Fehlersammeln
 > gedacht, nicht als fertiges Spiel. Was fehlt, steht ehrlich unter [Bekannte Grenzen](#bekannte-grenzen).
+> **Die Gestaltung ist noch nicht fertig:** im Dezember werden 18 Bilddateien und sechs neue
+> Haus-Wappen nachgeliefert — bis dahin zeichnet das Spiel an diesen Stellen gezeichnete
+> Ersatzflächen. Es fehlt Aussehen, keine Funktion.
 
 ---
 
@@ -32,9 +35,10 @@ Ausführlicher: [Die offizielle Erklärung](SPIEL_ERKLAERUNG.md) · [Die Chronik
 
 ## Diese Version herunterladen und starten
 
-1. Im Bereich **Releases** das Paket `Nebelseetal_Pre_Release_V_0.0.3.zip` herunterladen (rund 102 MB).
+1. Im Bereich **Releases** das Paket `Nebelseetal_Pre_Release_V_0.0.4.zip` herunterladen (rund 84 MB,
+   direkt: [V_0.0.4](https://github.com/Decay03101991/Nebelseetal-Remake/releases/tag/v_0.0.4)).
 2. ZIP-Inhalt in einen **neuen leeren Ordner** entpacken (nicht in einen Windows-geschützten Ordner).
-3. `Nebelseetal_Pre_Release_V_0.0.3.exe` per Doppelklick starten. Python ist nicht nötig.
+3. `Nebelseetal_Pre_Release_V_0.0.4.exe` per Doppelklick starten. Python ist nicht nötig.
 4. Beim ersten Start ein **eigenes Passwort** festlegen und notieren — es bleibt lokal auf dem Rechner.
 5. Spielen. Fehler bitte nach `FEHLER_MELDEN.txt` (liegt im ZIP) notieren.
 
@@ -113,6 +117,12 @@ daraus hervorgegangene, offizielle Pre-Release-Stand.
 ## Bekannte Grenzen
 
 - **Vorabversion.** Kein fertiges Spiel, keine Kompatibilitätszusage.
+- **Stand dieser Fassung:** 18.11.2026, Prüfstand **240 von 240 grün** (12.505 Prüfungen, 0 Fehler).
+- **Die Gestaltung folgt im Dezember:** 18 Bilddateien (Kopfbänder, Kennzeichen, Rahmen,
+  Hintergründe, zwei Ladebilder, drei Portraits, drei Wappen, zwei Leisten-Endstücke) und sechs neue
+  Haus-Wappen. Sollwerte: `data/bildpaket_dezember.json`, Bestellliste `docs/BILDPAKET_DEZEMBER_2026.md`.
+- **Weltensprung:** kostet seit dieser Fassung **500 Mana plus 100 Gold** (der belegte Originalwert
+  5.000 bleibt in `data/welten.json` stehen) — Register 664.
 - **Die sechs Welten stehen.** `data/welten.json` führt sechs Dimensionen, alle mit einer belegten Welt
   belegt; der Umbau von zwanzig Limbus-Plätzen auf diese sechs ist abgeschlossen.
 - **Zwei Kampfregeln sind noch offen:** die Fluchtformel und eine Mauerreparatur-Sonderregel aus dem

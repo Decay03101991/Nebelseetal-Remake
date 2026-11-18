@@ -1,5 +1,5 @@
 NEBELSEETAL REMAKE - SYSTEMANFORDERUNGEN (vorlaeufig)
-Stand: 04.11.2026 | Version V_0.0.1 | Oeffentliche Windows-Testversion
+Stand: 18.11.2026 | Version V_0.0.4 | Oeffentliche Windows-Testversion
 
 NACHGEWIESENE TESTUMGEBUNG
 - Windows 11 Home, 64 Bit (Build 26300)
@@ -8,8 +8,9 @@ NACHGEWIESENE TESTUMGEBUNG
 - Auf dieser Umgebung startet die Testversion (Passworttor geprueft)
 
 GROESSEN
-- ZIP-Paket: rund 82 MB
-- EXE im ZIP: rund 82 MB, keine Installation, kein Python noetig
+- EXE: 84.126.514 Byte (80,2 MB), keine Installation, kein Python noetig
+- SHA256 der EXE: 4fd298d00a37bc41cc7e56910127a77814fdf12a92e8035614bc27689c37707a
+- ZIP-Paket: siehe Dateigroesse im Release (EXE plus vier Textdateien)
 - Spielstand: wenige hundert KB im Benutzerprofil
 
 VORLAEUFIGE ORIENTIERUNG (KEIN VALIDIERTER MINDESTWERT)

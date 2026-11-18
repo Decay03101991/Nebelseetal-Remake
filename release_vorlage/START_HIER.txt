@@ -1,8 +1,9 @@
-NEBELSEETAL REMAKE - OEFFENTLICHE WINDOWS-TESTVERSION V_0.0.1
-(erste Vorabversion, kein fertiges Spiel)
+NEBELSEETAL REMAKE - OEFFENTLICHE WINDOWS-TESTVERSION V_0.0.4
+(kein fertiges Spiel - eine Vorabversion zum Ausprobieren und Fehlersammeln)
+Stand: 18.11.2026
 
 1. Den gesamten ZIP-Inhalt in einen NEUEN, leeren Ordner entpacken.
-2. Nebelseetal_Remake.exe per Doppelklick starten. Python ist nicht noetig.
+2. Nebelseetal_Pre_Release_V_0.0.4.exe per Doppelklick starten. Python ist nicht noetig.
 3. Beim ersten Start ein EIGENES Passwort festlegen und gut notieren.
    Gespeichert wird nur ein Pruefwert davon, nie das Passwort selbst.
 4. Danach eine neue Partie beginnen: Siedlung gruenden, Berater oeffnen.
@@ -13,6 +14,12 @@ WICHTIG
 - Eigener Speicherordner: %LOCALAPPDATA%\Nebelseetal_Remake\Demo
   (Passwort vergessen? Datei tor.json dort loeschen, Spielstand bleibt.)
 - KEINE ADMIN-FUNKTIONEN in dieser Fassung.
+- NEU in dieser Fassung: ein Weltensprung kostet 500 Mana plus 100 Gold
+  (vorher 5.000 Mana) - im Portal steht der Preis am Knopf.
+- Die GESTALTUNG ist noch nicht fertig: im Dezember werden 18 Bilddateien
+  und sechs neue Haus-Wappen nachgeliefert. Bis dahin zeichnet das Spiel an
+  diesen Stellen eine gezeichnete Ersatzflaeche - es fehlt Aussehen, keine
+  Funktion.
 - Bitte vorab SYSTEMANFORDERUNGEN.txt und BEKANNTE_GRENZEN.txt lesen.
 - Pruefsumme der EXE: SHA256SUMS.txt im ZIP. SmartScreen kann warnen,
   weil die EXE nicht signiert ist - Herkunft und Pruefsumme pruefen.

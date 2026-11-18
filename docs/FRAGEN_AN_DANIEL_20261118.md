@@ -137,3 +137,21 @@ zwischen zwei Bauauftraegen“. F-70 ist mit F-95 zurueckgestellt, der Bauauftra
 **Wie C1 es behandelt:** Daniels neuestes Wort vom 18.11.2026 (Antwort 1, „C1 zuerst - 500 Mana + 100 Gold einbauen“) gilt; der Goldanteil ist gebaut, der Docstring von `wechsel_erlaubt` nennt den Grund. Der Teil von F-25, der weiter eingehalten ist: es gibt **keine zweite Preistafel** - beide Preise kommen aus `data/welten.json`, Block `koordinatenwechsel.spielwert`.
 
 **Was du pruefen muesstest, falls du es anders meinst:** sag ein Wort, dann wird der Goldanteil auf 0 gesetzt (eine Zeile in der Datendatei, der Manapreis bleibt 500) - die Wachen pruefen den Spielwert aus der Datendatei, nicht eine Zahl im Code. Beleg: Register 664.
+
+---
+
+## Runde 2 - 18.11.2026, 20:35 (Sitzung 01, nach C1)
+
+**Anlass:** Daniel, woertlich: „gibt es neue fragen an mich?“, danach „nochmal fragen“ (die erste
+Karte war unbeantwortet abgelaufen). Vier Entscheidungen, einzeln gestellt, alle vier beantwortet.
+
+| # | Frage | Antwort (Daniel, 18.11.2026) | Folge |
+|---|---|---|---|
+| 1 | Welche Versionsnummer bekommt das naechste Release? | **0.0.4** - „so steht es in data/version.json, C1 ist der naechste Schnitt darauf“ | `data/version.json` bleibt bei `zaehler: 4`; Tag `v_0.0.4`. Die Sitzungszaehlung („V_0.0.5_Session_01“) ist damit nur ein Sitzungsname, keine Versionsnummer. |
+| 2 | Release jetzt bauen und auf GitHub stellen? | **Ja - jetzt bauen und veroeffentlichen** (EXE, Tag, Release, Startseite) | Build, Startpruefung, Tag `v_0.0.4`, GitHub-Release mit EXE als Asset, `index.html` auf 0.0.4. |
+| 3 | Bleibt der Goldanteil 100 Gold je Weltensprung (F-25 = A sagte „kein Gold“)? | **Bleibt so - das Wort vom 18.11. gilt (500 Mana + 100 Gold)** | Der Widerspruch zu F-25 ist damit ENTSCHIEDEN, nicht nur dokumentiert: F-25 ist fuer den Preis ueberholt, der Punkt „keine zweite Preistafel“ bleibt eingehalten. |
+| 4 | Drachenbelohnung faellt von 34.000 auf 7.000 Mana - so lassen? | **Bleibt bei 7.000** - die Spruenge sind billiger, der Aufwand ist wirklich kleiner | Keine Aenderung an `drachen.belohnung_mana`; die Zahl steht als Folge im Register 664. |
+
+**Damit sind alle vier offenen Fragen dieser Sitzung beantwortet.** Die frueheren sieben Antworten
+(Abschnitte 1 bis 7 oben) bleiben unveraendert gueltig; der klebende Kopf 60 px (Antwort 3 der ersten
+Runde) ist weiterhin NICHT gebaut und bleibt der naechste Code-Schritt nach dem Release.
