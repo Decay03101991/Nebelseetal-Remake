@@ -169,9 +169,15 @@ def main() -> int:
           "datei" in leiste and not str(leiste.get("datei") or "").strip(),
           "band.datei = %r" % (leiste.get("datei"),))
     enden = [e for e in bilder if e["kennung"].startswith("leiste_ende")]
-    check("B12: die zwei Endstuecke sind als 'FEHLT' gekennzeichnet (der Code liest eine Banddatei)",
-          len(enden) == 2 and all(e["slot"].startswith("FEHLT") for e in enden),
+    check("B12: die zwei Endstuecke nennen die Andockstelle band.ende_links / band.ende_rechts",
+          len(enden) == 2 and all(e["slot"].startswith("vorhanden") for e in enden)
+          and {"ende_links", "ende_rechts"} == set(k for e in enden for k in ("ende_links", "ende_rechts")
+                                                   if k in e["aktivierung"]),
           str([e["slot"][:40] for e in enden]))
+    check("B12: die Datendatei traegt die zwei Felder (heute leer, bis die Bilder kommen)",
+          "ende_links" in leiste and "ende_rechts" in leiste
+          and not str(leiste.get("ende_links") or "").strip(),
+          str({k: leiste.get(k) for k in ("ende_links", "ende_rechts")}))
 
     import main as spiel                                                   # das Spiel selbst lesen
     check("B13: die Konstante MARKTPLATZ_KENNZEICHEN existiert und zeigt heute auf die 96er-Datei",

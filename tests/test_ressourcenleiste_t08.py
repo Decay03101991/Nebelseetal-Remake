@@ -345,6 +345,98 @@ if canvas is not None:
 root.destroy()
 
 
+
+# ==========================================================================
+abschnitt("9. Endstuecke: Bild aus der Datendatei, sonst die gezeichnete Flaeche (B12, 18.11.2026)")
+
+# Die zwei Endstuecke des 9-Slice-Bandes waren bis zum 18.11.2026 gezeichnet (Flaeche, Goldrand,
+# Goldraute). Jetzt duerfen Bilder aus `band.ende_links` und `band.ende_rechts` an ihre Stelle treten.
+# Diese Pruefung sichert beides: die Felder sind da, ohne Datei bleibt die Zeichnung, mit Datei wird
+# das Bild auf GENAU 16 x 34 eingepasst (nicht verzerrt) - und die Leiste faellt nie um.
+
+_band = (DATEN.get("band") or {})
+check("9 die Datendatei kennt beide Endstueck-Felder (ende_links, ende_rechts)",
+      "ende_links" in _band and "ende_rechts" in _band, str(sorted(_band)))
+check("9 beide Felder sind heute leer (die Bilder sind nicht geliefert)",
+      not str(_band.get("ende_links") or "").strip() and not str(_band.get("ende_rechts") or "").strip(),
+      "%r / %r" % (_band.get("ende_links"), _band.get("ende_rechts")))
+check("9 die Methode fuer ein Endstueck-Bild existiert",
+      hasattr(main.NebelseetalApp, "_leiste_ende_bild"), "")
+
+# --- ein echtes kleines PNG schreiben (ohne Pillow, damit das Schreiben nicht am Bildpaket haengt)
+import struct as _struct                                                  # noqa: E402
+import tempfile as _tempfile                                              # noqa: E402
+import zlib as _zlib                                                      # noqa: E402
+
+
+def _png(pfad: str, breite: int, hoehe: int) -> None:
+    """Ein vollstaendiges RGBA-PNG schreiben (Kennung, IHDR, IDAT, IEND)."""
+    zeile = b"\x00" + bytes([80, 60, 30, 255]) * breite                    # Filterbyte und Punkte
+    roh = zeile * hoehe                                                    # alle Zeilen
+    def block(typ, daten):                                                 # PNG-Block mit Pruefsumme
+        return (_struct.pack(">I", len(daten)) + typ + daten
+                + _struct.pack(">I", _zlib.crc32(typ + daten) & 0xFFFFFFFF))
+    ihdr = _struct.pack(">IIBBBBB", breite, hoehe, 8, 6, 0, 0, 0)           # 6 = RGBA
+    with open(pfad, "wb") as fh:                                           # Datei schreiben
+        fh.write(b"\x89PNG\r\n\x1a\n" + block(b"IHDR", ihdr)                # Kennung und Kopf
+                 + block(b"IDAT", _zlib.compress(roh, 1)) + block(b"IEND", b""))
+
+
+_lager = _tempfile.mkdtemp(prefix="leiste_enden_")                         # Scratch-Ordner
+_png(os.path.join(_lager, "ende_64x136.png"), 64, 136)                     # richtige Groesse (4x)
+_png(os.path.join(_lager, "ende_quer_80x40.png"), 80, 40)                  # falsches Verhaeltnis
+
+try:                                                                       # PIL nur fuer den Bildweg
+    import PIL  # noqa: F401
+    _hat_pil = True
+except Exception:                                                          # noqa: BLE001
+    _hat_pil = False
+if not _hat_pil:                                                           # ohne Pillow kein Bildweg
+    befund("9 ohne Pillow ist der Bildweg nicht messbar", "die Pruefung 9b/c entfaellt")
+
+_alt_leiste = main.RESSOURCENLEISTE
+root2 = tk.Tk()                                                            # eigenes Fenster fuer 9
+root2.withdraw()                                                           # unsichtbar reicht
+try:
+    app2 = main.NebelseetalApp(root2)                                      # App nur fuer die Methode
+    check("9 ohne eingetragene Datei gibt es kein Bild (Rueckfall auf die Zeichnung)",
+          app2._leiste_ende_bild("ende_links", 16, 34) is None, "")
+
+    _mit = dict(_alt_leiste)                                               # Datendatei mit Bildpfad
+    _mit["band"] = dict(_band)
+    _mit["band"]["ende_links"] = os.path.join(_lager, "ende_64x136.png").replace(os.sep, "/")
+    _mit["band"]["ende_rechts"] = os.path.join(_lager, "ende_quer_80x40.png").replace(os.sep, "/")
+    main.RESSOURCENLEISTE = _mit                                           # umschalten
+    try:
+        _links = app2._leiste_ende_bild("ende_links", 16, 34)               # richtige Datei
+        _rechts = app2._leiste_ende_bild("ende_rechts", 16, 34)             # quer geliefert
+        if _hat_pil:                                                       # nur mit Pillow messbar
+            check("9 mit Datei entsteht ein Tk-Bild", _links is not None and _rechts is not None,
+                  "%s / %s" % (_links, _rechts))
+            check("9 das Bild ist GENAU 16 x 34 px (4x-Datei wird eingepasst)",
+                  _links is not None and (_links.width(), _links.height()) == (16, 34),
+                  "%s" % ((_links.width(), _links.height()) if _links else None,))
+            check("9 auch ein quer geliefertes Bild wird nicht verzerrt, sondern 16 x 34",
+                  _rechts is not None and (_rechts.width(), _rechts.height()) == (16, 34),
+                  "%s" % ((_rechts.width(), _rechts.height()) if _rechts else None,))
+            check("9 dasselbe Bild kommt aus dem Zwischenspeicher (kein Neuladen)",
+                  app2._leiste_ende_bild("ende_links", 16, 34) is _links, "")
+        _ohne = dict(_alt_leiste)                                          # Datendatei ohne Bild
+        _ohne["band"] = {k: v for k, v in _band.items() if k not in ("ende_links", "ende_rechts")}
+        main.RESSOURCENLEISTE = _ohne
+        check("9 fehlt das Feld ganz, gibt es wieder kein Bild (kein Absturz)",
+              app2._leiste_ende_bild("ende_links", 16, 34) is None, "")
+    finally:
+        main.RESSOURCENLEISTE = _alt_leiste                                # zurueckstellen
+finally:
+    root2.destroy()                                                        # Fenster zu
+
+_quelle_leiste = _inspect.getsource(main.NebelseetalApp._leiste_zeichnen)
+check("9 das Zeichnen fragt BEIDE Seiten ueber die Methode ab",
+      '_leiste_ende_bild(seite' in _quelle_leiste
+      and '"ende_links", 0' in _quelle_leiste and '"ende_rechts"' in _quelle_leiste, "")
+check("9 ohne Bild zeichnet es weiter Flaeche und Goldraute (Rueckfall bleibt im Code)",
+      "create_rectangle(x0, 0" in _quelle_leiste and "Raute aus Gold" in _quelle_leiste, "")
 # ==========================================================================
 abschnitt("8. Quelltext-Wachen: eine Zahlenstelle, kein zweiter Weg")
 

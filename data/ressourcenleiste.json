@@ -10,7 +10,10 @@
     "datei": "",
     "endstueck_breite": 16,
     "kachel_breite": 64,
-    "kachel_hoehe": 34
+    "kachel_hoehe": 34,
+    "_zweck_enden": "Die zwei Endstuecke (B12, 18.11.2026): Pfade unter ende_links und ende_rechts. Ist eine Datei eingetragen und vorhanden, zeichnet sie das Endstueck (auf 16 x 34 eingepasst, nie verzerrt); ist das Feld leer oder die Datei weg, bleibt die gezeichnete Flaeche mit Goldrand und Goldraute stehen. Kein Pixel verschiebt sich, die Ansicht stirbt nicht an einem fehlenden Bild.",
+    "ende_links": "",
+    "ende_rechts": ""
   },
   "farben": {
     "_zweck": "Farben der Leiste aus Handbuch Teil 1.2. Alle Pflichtkontraste nachgerechnet (Pruefdokument Abschnitt 2): Zahl 15,13, Name 5,94, Warnung 8,36, Erfolg 11,45. Die Flaeche fuer den frueheren Zustand kritisch ist am 12.11.2026 entfallen (Register 490).",

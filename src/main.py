@@ -9940,6 +9940,40 @@ class NebelseetalApp:
         self._leisten_kacheln[schluessel] = tk_bild                            # im Cache halten
         return tk_bild                                                         # fertige Kachel
 
+    def _leiste_ende_bild(self, seite: str, breite: int, hoehe: int):
+        """Ein Endstueck der Ressourcenleiste als Tk-Bild (oder None).
+
+        WOZU (B12, 18.11.2026): die zwei Endstuecke des 9-Slice-Bandes sind bisher gezeichnet
+        (Flaeche mit Goldrand und Goldraute). Liefert Daniel die Bilder, stehen ihre Pfade in
+        `data/ressourcenleiste.json` unter `band.ende_links` und `band.ende_rechts`; dann tritt das
+        Bild an die Stelle der Zeichnung. OHNE Datei bleibt alles wie vorher - es verschiebt sich
+        kein Pixel, und die Ansicht stirbt nie an einem fehlenden Bild.
+
+        Eingabe: `seite` (ende_links / ende_rechts), Zielbreite und -hoehe des Endstuecks.
+        Ausgabe: Tk-Bild in genau dieser Groesse oder None. Das Bild wird per `_cover` EINGEPASST
+        (mittig beschnitten statt verzerrt), damit auch ein anders proportioniertes Bild nicht zerrt.
+        """
+        band = RESSOURCENLEISTE.get("band") or {}                              # Bandbeschreibung
+        datei = str(band.get(seite) or "").strip()                             # Pfad aus der Datendatei
+        if not datei:                                                          # kein Bild eingetragen
+            return None                                                        # dann bleibt die Zeichnung
+        if not hasattr(self, "_leisten_enden"):                                # Zwischenspeicher
+            self._leisten_enden = {}                                           # Seite -> Tk-Bild
+        schluessel = (str(seite), max(1, int(breite)), max(1, int(hoehe)))      # Groesse gehoert dazu
+        if schluessel in self._leisten_enden:                                  # schon gebaut
+            return self._leisten_enden[schluessel]                             # wiederverwenden
+        pfad = icon_pfad(datei)                                                # Pfad im Projekt
+        if not pfad or not os.path.exists(pfad):                               # Datei fehlt
+            return None                                                        # dann ohne Bild
+        try:                                                                   # Pillow nur hier
+            from PIL import Image, ImageTk                                     # Bildverarbeitung
+            bild = Image.open(pfad).convert("RGBA")                            # Original mit Alpha
+            tk_bild = ImageTk.PhotoImage(_cover(bild, breite, hoehe))          # einpassen, nie zerren
+        except Exception:                                                      # noqa: BLE001
+            return None                                                        # ohne Bild weiter
+        self._leisten_enden[schluessel] = tk_bild                              # im Cache halten
+        return tk_bild                                                         # fertiges Endstueck
+
     def _leiste_zeichnen(self):
         """Den Streifen zeichnen: Band, elf Zellen mit Name, Zahl und Rate (T08, 12.11.2026).
 
@@ -10007,8 +10041,14 @@ class NebelseetalApp:
         canvas.create_line(0, int(masse.get("linie_y") or hoehe - 1),         # Goldlinie ueber die
                            max(1, breite_band), int(masse.get("linie_y") or hoehe - 1),
                            fill=linie, tags=("leiste",))                       # ganze Unterkante
-        for x0 in (0, max(0, breite_band - int(band["rechts"]))):              # beide Endstuecke:
-            canvas.create_rectangle(x0, 0, x0 + int(band["links"]), hoehe - 1,  # eigene Flaeche mit
+        for seite, x0 in (("ende_links", 0),                                # linkes Endstueck (B12, 18.11.2026)
+                          ("ende_rechts", max(0, breite_band - int(band["rechts"])))):  # rechtes Endstueck
+            ende = self._leiste_ende_bild(seite, int(band["links"]), hoehe)  # Bild, WENN eine Datei eingetragen ist
+            if ende is not None:                                            # Datei vorhanden: sie zeichnet
+                canvas.create_image(x0, 0, anchor="nw", image=ende,          # Bild genau in das Endstueck
+                                    tags=("leiste",))                        # zur Leiste gehoerend
+                continue                                                    # keine zweite Zeichnung darunter
+            canvas.create_rectangle(x0, 0, x0 + int(band["links"]), hoehe - 1,  # ohne Datei: eigene Flaeche mit
                                     fill=grund, outline=linie, tags=("leiste",))  # Goldrand, nie Text
             mitte_x = x0 + int(band["links"]) // 2                             # Mitte des Endstuecks
             canvas.create_polygon(mitte_x, hoehe / 2 - 5, mitte_x + 3, hoehe / 2,

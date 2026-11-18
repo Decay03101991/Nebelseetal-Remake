@@ -44,22 +44,23 @@ zwei Dateien groesser als notiert.
 | B10 | `kachelrahmen_ruhe` | Feldrahmen der Siedlungskarte, liegt auf jedem Feld (Deckkraft 35 Prozent) | 57-64 px | **256 x 256** | PNG, Alpha | `assets/icons/gebaeude/rahmen/kachelrahmen_ruhe_256.png` | data/gebaeude_motive.json: kachelrahmen.ruhe auf den Dateinamen setzen |
 | B10 | `kachelrahmen_auswahl` | Hervorgehobener Feldrahmen der Siedlungskarte (Deckkraft 100 Prozent) | 57-64 px | **256 x 256** | PNG, Alpha | `assets/icons/gebaeude/rahmen/kachelrahmen_auswahl_256.png` | data/gebaeude_motive.json: kachelrahmen.auswahl auf den Dateinamen setzen |
 | B12 | `leiste_mitte` | Mittelkachel des 9-Slice-Bandes der Ressourcenleiste (wird wiederholt, nie gedehnt) | 64 x 34 | **256 x 136** | PNG, Alpha | `assets/bilder/leiste_mitte_256x136.png` | data/ressourcenleiste.json: band.datei auf den Dateinamen setzen |
-| B12 | `leiste_ende_links` | Linkes Endstueck des Bandes | 16 x 34 | **64 x 136** | PNG, Alpha | `assets/bilder/leiste_ende_links_64x136.png` | eigener Schnitt: band.ende_links im Code lesen (kleine Ergaenzung in _leiste_zeichnen) |
-| B12 | `leiste_ende_rechts` | Rechtes Endstueck des Bandes | 16 x 34 | **64 x 136** | PNG, Alpha | `assets/bilder/leiste_ende_rechts_64x136.png` | eigener Schnitt: band.ende_rechts im Code lesen |
+| B12 | `leiste_ende_links` | Linkes Endstueck des Bandes | 16 x 34 | **64 x 136** | PNG, Alpha | `assets/bilder/leiste_ende_links_64x136.png` | data/ressourcenleiste.json: band.ende_links auf den Dateinamen setzen - kein Code noetig |
+| B12 | `leiste_ende_rechts` | Rechtes Endstueck des Bandes | 16 x 34 | **64 x 136** | PNG, Alpha | `assets/bilder/leiste_ende_rechts_64x136.png` | data/ressourcenleiste.json: band.ende_rechts auf den Dateinamen setzen - kein Code noetig |
 | B13 | `marktplatz_kennzeichen` | Kennzeichen der Marktplatz-Ansicht (F3a, Register 639: auf 96 px eingepasst) | 96 x 96 | **384 x 384** | PNG, deckend | `assets/bilder/marktplatz_kennzeichen_384.png` | src/main.py: MARKTPLATZ_KENNZEICHEN auf den Dateinamen setzen (MARKTPLATZ_KENNZEICHEN_PX bleibt 96) |
 
-## 3. Was im Code noch fehlt (gemessen, nicht vermutet)
+## 3. Wo die Bilder andocken (alle 18 haben eine Stelle, gemessen 18.11.2026)
 
-- **B12 Endstuecke links und rechts:** der Code liest heute **eine** Banddatei
-  (`main._leiste_kachel_bild` liest `band.datei`); die Endstuecke zeichnet er als Flaeche. Die zwei
-  Dateien haben damit noch **keine** Andockstelle - das ist ein eigener kleiner Schnitt, sobald die
-  Bilder da sind.
-- **Alle anderen 16 Dateien haben eine Andockstelle:** `data/drachen.json` (B1, B2),
-  `src/main.py` -> `STARTBILD_MOTIVE` (B5) und `MARKTPLATZ_KENNZEICHEN` (B13),
-  `data/portal_kopfbaender.json` (B8), `data/gebaeude_motive.json` -> `kachelrahmen` (B9, B10),
-  `data/ressourcenleiste.json` -> `band.datei` (B12 Mitte).
-- **B8 ist der bequemste Teil:** die sechs Zielpfade stehen schon in der Datendatei - Datei ablegen
-  genuegt, nichts umstellen.
+- **B12 Endstuecke links und rechts:** die Felder `band.ende_links` und `band.ende_rechts` sind am
+  18.11.2026 gebaut worden (`main._leiste_ende_bild`, Register 658). Ist ein Pfad eingetragen und die
+  Datei da, zeichnet sie das Endstueck - **auf genau 16 x 34 eingepasst, nie verzerrt**; fehlt die
+  Datei, bleibt die gezeichnete Flaeche mit Goldrand und Goldraute stehen, kein Pixel verschiebt sich.
+  Geprueft: `tests/test_ressourcenleiste_t08.py` Abschnitt 9 (mit 4x-Datei und mit quer geliefertem
+  Bild, beides 16 x 34), im Lauf 130/0/0.
+- **B8 ist der bequemste Teil:** die sechs Zielpfade stehen schon in `data/portal_kopfbaender.json` -
+  Datei ablegen genuegt, nichts umstellen.
+- **Die uebrigen 16 Dateien** haengen an `data/drachen.json` (B1, B2), an `src/main.py` ->
+  `STARTBILD_MOTIVE` (B5) und `MARKTPLATZ_KENNZEICHEN` (B13), an `data/gebaeude_motive.json` ->
+  `kachelrahmen` (B9, B10) und an `data/ressourcenleiste.json` -> `band.datei` (B12 Mitte).
 
 ## 4. Regeln fuer die Lieferung (Daniels Entscheidungen)
 

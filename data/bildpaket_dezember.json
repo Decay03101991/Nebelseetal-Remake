@@ -4,7 +4,7 @@
   "_zaehlung": "18 Dateien: B1 1 + B2 2 + B5 2 + B8 6 + B9 1 + B10 2 + B12 3 + B13 1 = 18. Die in den Dokumenten genannte Zahl 16 ist ein Zaehlfehler (18.11.2026 nachgerechnet); die Gruppen bleiben acht.",
   "_regel": "4x der groessten Anzeige (F-101). Grosse Flaechen duerfen 4x sein, auch wenn die Datei dann mehrere MB gross wird. Hochgerechnete Dateien bekommen einen Vermerk mit Ausgangsgroesse, Verfahren und Datum (F-106).",
   "_alpha_regel": "alpha true heisst: die Datei MUSS Transparenz haben (PNG RGBA oder LA). alpha false heisst: deckendes Bild, JPG oder PNG ohne Transparenz.",
-  "_stand": "18.11.2026: keine der 18 Dateien liegt vor. 16 haben eine Andockstelle im Code oder in einer Datendatei; fuer die zwei Endstuecke der Ressourcenleiste fehlt der Code noch.",
+  "_stand": "18.11.2026: keine der 18 Dateien liegt vor. Alle 18 haben jetzt eine Andockstelle im Code oder in einer Datendatei - die zwei Endstuecke der Ressourcenleiste sind am 18.11.2026 nachgezogen (band.ende_links / band.ende_rechts, Register 658).",
   "bilder": [
     {
       "nr": "B1",
@@ -12,7 +12,10 @@
       "gruppe": "B1 Ruine auf der Weltkarte",
       "zweck": "Feld eines besiegten Drachen (Portal, Weltkarte)",
       "anzeige_px": "19-44 px, quadratisch",
-      "datei": [176, 176],
+      "datei": [
+        176,
+        176
+      ],
       "format": "PNG",
       "alpha": true,
       "ziel": "assets/bilder/ruine_weltkarte_176.png",
@@ -26,7 +29,10 @@
       "gruppe": "B2 Drache in Gruen",
       "zweck": "Tardas der Gruene (Portal, Weltkarte) - heute zeigt er drache_blau.png",
       "anzeige_px": "19-44 px",
-      "datei": [176, 176],
+      "datei": [
+        176,
+        176
+      ],
       "format": "PNG",
       "alpha": true,
       "ziel": "assets/bilder/drache_gruen_176.png",
@@ -40,7 +46,10 @@
       "gruppe": "B2 Drache in Rot",
       "zweck": "Salmur der Rote (Portal, Weltkarte) - heute zeigt er drache_lila.png",
       "anzeige_px": "19-44 px",
-      "datei": [176, 176],
+      "datei": [
+        176,
+        176
+      ],
       "format": "PNG",
       "alpha": true,
       "ziel": "assets/bilder/drache_rot_176.png",
@@ -54,7 +63,10 @@
       "gruppe": "B5 Startbild Anmelden",
       "zweck": "Tor (Passwortschutz) - das Panorama liegt hinter dem Formular",
       "anzeige_px": "1024 x 720",
-      "datei": [4096, 2880],
+      "datei": [
+        4096,
+        2880
+      ],
       "format": "JPG",
       "alpha": false,
       "ziel": "assets/referenzbilder/startbild_anmelden_4096x2880.jpg",
@@ -68,7 +80,10 @@
       "gruppe": "B5 Startbild Laden",
       "zweck": "Ladeansicht und Speicher-Nebenfenster (F5, Register 644: eingepasst, nie vergroessert)",
       "anzeige_px": "1024 x 720",
-      "datei": [4096, 2880],
+      "datei": [
+        4096,
+        2880
+      ],
       "format": "JPG",
       "alpha": false,
       "ziel": "assets/referenzbilder/startbild_laden_4096x2880.jpg",
@@ -82,7 +97,10 @@
       "gruppe": "B8 Kopfband Menschlich",
       "zweck": "Kopfband der Portal-Uebersicht (Volk der Spielersiedlung)",
       "anzeige_px": "bis 1127 px breit, Hoehe bis 200 px",
-      "datei": [4508, 868],
+      "datei": [
+        4508,
+        868
+      ],
       "format": "JPG oder PNG",
       "alpha": false,
       "ziel": "assets/bilder/portal_kopfband_menschlich_4508x868.png",
@@ -96,7 +114,10 @@
       "gruppe": "B8 Kopfband Zwergisch",
       "zweck": "Kopfband der Portal-Uebersicht",
       "anzeige_px": "bis 1127 px breit, Hoehe bis 200 px",
-      "datei": [4508, 868],
+      "datei": [
+        4508,
+        868
+      ],
       "format": "JPG oder PNG",
       "alpha": false,
       "ziel": "assets/bilder/portal_kopfband_zwergisch_4508x868.png",
@@ -110,7 +131,10 @@
       "gruppe": "B8 Kopfband Elfisch",
       "zweck": "Kopfband der Portal-Uebersicht (Stilvorlage: Meshy-Waldelfen, F-103)",
       "anzeige_px": "bis 1127 px breit, Hoehe bis 200 px",
-      "datei": [4508, 868],
+      "datei": [
+        4508,
+        868
+      ],
       "format": "JPG oder PNG",
       "alpha": false,
       "ziel": "assets/bilder/portal_kopfband_elfisch_4508x868.png",
@@ -124,7 +148,10 @@
       "gruppe": "B8 Kopfband Trolle",
       "zweck": "Kopfband der Portal-Uebersicht",
       "anzeige_px": "bis 1127 px breit, Hoehe bis 200 px",
-      "datei": [4508, 868],
+      "datei": [
+        4508,
+        868
+      ],
       "format": "JPG oder PNG",
       "alpha": false,
       "ziel": "assets/bilder/portal_kopfband_trolle_4508x868.png",
@@ -138,7 +165,10 @@
       "gruppe": "B8 Kopfband Ghule",
       "zweck": "Kopfband der Portal-Uebersicht (heute das einzige vorhandene Band, 780 x 150)",
       "anzeige_px": "bis 1127 px breit, Hoehe bis 200 px",
-      "datei": [4508, 868],
+      "datei": [
+        4508,
+        868
+      ],
       "format": "JPG oder PNG",
       "alpha": false,
       "ziel": "assets/bilder/portal_kopfband_schmiede_dorf_ghule_4508x868.png",
@@ -152,7 +182,10 @@
       "gruppe": "B8 Kopfband Gnome",
       "zweck": "Kopfband der Portal-Uebersicht",
       "anzeige_px": "bis 1127 px breit, Hoehe bis 200 px",
-      "datei": [4508, 868],
+      "datei": [
+        4508,
+        868
+      ],
       "format": "JPG oder PNG",
       "alpha": false,
       "ziel": "assets/bilder/portal_kopfband_gnome_4508x868.png",
@@ -166,7 +199,10 @@
       "gruppe": "B9 Goldrahmen der Weltkarte",
       "zweck": "Rahmen um das Gelaendekaestchen der Weltkarte (D-5b)",
       "anzeige_px": "400-920 px",
-      "datei": [3680, 3680],
+      "datei": [
+        3680,
+        3680
+      ],
       "format": "PNG",
       "alpha": true,
       "ziel": "assets/icons/gebaeude/rahmen/weltkarte_goldrahmen_3680.png",
@@ -180,7 +216,10 @@
       "gruppe": "B10 Kachelrahmen Ruhe",
       "zweck": "Feldrahmen der Siedlungskarte, liegt auf jedem Feld (Deckkraft 35 Prozent)",
       "anzeige_px": "57-64 px",
-      "datei": [256, 256],
+      "datei": [
+        256,
+        256
+      ],
       "format": "PNG",
       "alpha": true,
       "ziel": "assets/icons/gebaeude/rahmen/kachelrahmen_ruhe_256.png",
@@ -194,7 +233,10 @@
       "gruppe": "B10 Kachelrahmen Auswahl",
       "zweck": "Hervorgehobener Feldrahmen der Siedlungskarte (Deckkraft 100 Prozent)",
       "anzeige_px": "57-64 px",
-      "datei": [256, 256],
+      "datei": [
+        256,
+        256
+      ],
       "format": "PNG",
       "alpha": true,
       "ziel": "assets/icons/gebaeude/rahmen/kachelrahmen_auswahl_256.png",
@@ -208,7 +250,10 @@
       "gruppe": "B12 Ressourcenleiste Mitte",
       "zweck": "Mittelkachel des 9-Slice-Bandes der Ressourcenleiste (wird wiederholt, nie gedehnt)",
       "anzeige_px": "64 x 34",
-      "datei": [256, 136],
+      "datei": [
+        256,
+        136
+      ],
       "format": "PNG",
       "alpha": true,
       "ziel": "assets/bilder/leiste_mitte_256x136.png",
@@ -222,12 +267,15 @@
       "gruppe": "B12 Ressourcenleiste Endstueck links",
       "zweck": "Linkes Endstueck des Bandes",
       "anzeige_px": "16 x 34",
-      "datei": [64, 136],
+      "datei": [
+        64,
+        136
+      ],
       "format": "PNG",
       "alpha": true,
       "ziel": "assets/bilder/leiste_ende_links_64x136.png",
-      "slot": "FEHLT: der Code liest heute nur EINE Banddatei (main._leiste_kachel_bild, band.datei); die Endstuecke zeichnet er als Flaeche",
-      "aktivierung": "eigener Schnitt: band.ende_links im Code lesen (kleine Ergaenzung in _leiste_zeichnen)",
+      "slot": "vorhanden: data/ressourcenleiste.json -> band.ende_links (Feld am 18.11.2026 gebaut)",
+      "aktivierung": "data/ressourcenleiste.json: band.ende_links auf den Dateinamen setzen - kein Code noetig",
       "motiv": "Endstueck mit goldener Kappe"
     },
     {
@@ -236,12 +284,15 @@
       "gruppe": "B12 Ressourcenleiste Endstueck rechts",
       "zweck": "Rechtes Endstueck des Bandes",
       "anzeige_px": "16 x 34",
-      "datei": [64, 136],
+      "datei": [
+        64,
+        136
+      ],
       "format": "PNG",
       "alpha": true,
       "ziel": "assets/bilder/leiste_ende_rechts_64x136.png",
-      "slot": "FEHLT: derselbe Grund wie links (nur eine Banddatei im Code)",
-      "aktivierung": "eigener Schnitt: band.ende_rechts im Code lesen",
+      "slot": "vorhanden: data/ressourcenleiste.json -> band.ende_rechts (Feld am 18.11.2026 gebaut)",
+      "aktivierung": "data/ressourcenleiste.json: band.ende_rechts auf den Dateinamen setzen - kein Code noetig",
       "motiv": "Endstueck mit goldener Kappe"
     },
     {
@@ -250,7 +301,10 @@
       "gruppe": "B13 Marktplatz-Kennzeichen",
       "zweck": "Kennzeichen der Marktplatz-Ansicht (F3a, Register 639: auf 96 px eingepasst)",
       "anzeige_px": "96 x 96",
-      "datei": [384, 384],
+      "datei": [
+        384,
+        384
+      ],
       "format": "PNG",
       "alpha": false,
       "ziel": "assets/bilder/marktplatz_kennzeichen_384.png",

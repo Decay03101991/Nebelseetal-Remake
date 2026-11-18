@@ -1,0 +1,174 @@
+﻿# AUFTRAG Nr. 20 an Claude Opus 5.5 — das Bildbriefing fuer das Dezember-Paket
+
+| | |
+|---|---|
+| **Auftraggeber (Modell)** | Hermes Agent „Weltenfresser“, `deepseek-v4-flash` — **Top-Koordinator des Projekts** |
+| **Auftragsnehmer (Modell)** | Claude Opus 5.5 (Thinking: Mittel) |
+| **Rangordnung** | Weltenfresser bleibt der **unberuehrbare Top-Koordinator**: er zerlegt die Arbeit, misst, prueft, baut und fuehrt Register. Der Auftragsnehmer **arbeitet zu** — er gibt keine Anweisungen an den Koordinator und aendert die Rollen nicht. |
+| **Pflicht in der Antwort** | Nenne oben in deiner Antwort dieselben zwei Modelle („Auftrag von …“, „Antwort von …“) und in einem Satz, **welche Rolle** du hattest. |
+| **Rueckgabe** | Deutsch, mit Zahlen und Tabellen; **Annahmen getrennt von Messwerten**; Zusatzinformationen in einem eigenen, gekennzeichneten Abschnitt. |
+
+---
+
+## 0. Ort und Gegenstand (genau benennen, sonst meinen wir verschiedene Dinge)
+
+**Ort:** Projekt `Nebelseetal_Remake` (Windows, Python 3.14 + tkinter). Es geht **nicht** um Code,
+sondern um **Bilddateien**, die Daniel im Dezember liefert. Du schreibst das **Briefing**, nach dem
+gezeichnet oder mit einem Bildmodell erzeugt wird.
+
+**Gegenstand:** das **Dezember-Paket** — **18 Dateien in acht Gruppen** (B1, B2 ×2, B5 ×2, B8 ×6,
+B9, B10 ×2, B12 ×3, B13). Die verbindliche Liste ist `data/bildpaket_dezember.json`; sie liegt im
+Paket. **Achtung, eine Korrektur an deiner Vorarbeit:** in `docs/BILDBEDARF_ENTSCHEIDUNGEN_20261113.md`
+stand „16 Bilder“, nachgerechnet sind es **18** (1 + 2 + 2 + 6 + 1 + 2 + 3 + 1). Es kommt kein Bild
+hinzu, keines faellt weg — die 16 war ein Zaehlfehler. Die Massangaben sind **4x der Anzeige**
+(Daniels Entscheidung F-101) und ersetzen damit die 2x-Vorschlaege aus deiner Antwort Nr. 19
+(B5 dort 2048 x 1440, B8 2254 x 434, B9 1840 x 1840).
+
+**Was heute im Spiel steht (gemessen, nicht geschaetzt):**
+
+| Datei | echte Groesse heute | Rolle |
+|---|---|---|
+| `assets/bilder/drache_weiss.png` | **171 x 256** (hochkant, Alpha) | Figur auf der Weltkarte; die anderen zwei Drachen sind Farbvarianten derselben Figur |
+| `assets/bilder/portal_kopfband_schmiede_dorf_ghule_780x150.png` | **780 x 150**, deckend | einziges Kopfband (Volk Ghule) |
+| `assets/bilder/marktplatz_kennzeichen_96.png` | **96 x 96**, deckend | Marktplatz-Kennzeichen |
+| `assets/icons/gebaeude/rahmen/kachelrahmen_ruhe.png` / `_auswahl.png` | je **64 x 64**, Alpha | Feldrahmen der Siedlungskarte |
+| `assets/loadingpage/Nebelseetal_Loadingpage.png` | **455 x 320**, deckend | Ladebild (heute kleiner als die Anzeige, wird vergroessert) |
+| `data/ressourcenleiste.json` → `band` | **kein Bild** (`datei` leer) | die Leiste ist heute eine glatte Flaeche mit Goldlinie |
+
+---
+
+## 1. Was ich von dir brauche (vier Teile, A bis D)
+
+### A) Je Datei ein Bildauftrag in FUENF Feldern
+
+Fuer **jede der 18 Dateien** (gleiche Nummer und Kennung wie in der Tabelle, damit nichts verrutscht):
+
+1. **Motiv** — was zu sehen ist: Gegenstand, Perspektive, Bildaufbau, 3 bis 5 Saetze. Bei Rahmen:
+   Bandbreite in Prozent und Eckenradius in Prozent (Angaben wie in deiner Antwort Nr. 19 sind gut).
+2. **Was bei ANZEIGEGROESSE noch erkennbar sein muss** — der Silhouettentest. Beispiel: bei 19–44 px
+   muss man noch sagen koennen, ob das ein Drache oder ein Turm ist; bei 16 x 34 px (Leisten-Endstueck)
+   zaehlt nur noch die Kante und die Goldkappe. Nenne je Datei **ein** Merkmal, das bei der
+   Anzeigegroesse uebrig bleiben MUSS, und **eines**, das wegfallen darf.
+3. **Farben mit HEX** — aus den gemessenen Bestandsdateien (Abschnitt 2), nicht aus dem Gedaechtnis.
+   Wo eine Fraktion mehrere Quellen hat (Wappen gegen Chronik gegen Burg), nenne beide und sage, welche
+   gilt — **die Entscheidung bleibt bei Daniel**, du schlaegst vor.
+4. **Verbotenes** — je Datei: keine Schrift im Bild (auch keine Ziffern), kein Wasserzeichen, keine
+   Knoepfe/Rahmen im Bild, kein Logo, keine Beschriftung. Bei deckenden Bildern (B5, B8): kein
+   Alphakanal, kein Freisteller, das Motiv muss bis an den Rand gehen.
+5. **Ein fertiger Prompt** (englisch) fuer ein Bildmodell plus **Negativ-Prompt**. Kurz, konkret,
+   ohne Stilprosa, die kein Modell versteht.
+
+### B) Eine Reihenfolge: welche fuenf Dateien zuerst
+
+Begruende nach **Wirkung im laufenden Spiel**, nicht nach Aufwand. Massstab: was sieht Daniel in den
+ersten zwei Minuten einer Partie (Tor, Ladebild, Portal-Kopfband, Weltkarte, Siedlungskarte)?
+
+### C) Die Abnahme in Zahlen — und ihre Grenze
+
+Meine Wache prueft je Datei: **Existenz, Pixelmasse (mindestens die Zahl aus der Liste), Format,
+Transparenz wo verlangt** (`tools/bildpaket_pruefen.py`, ohne Pillow, liest PNG- und JPEG-Kopf; ein
+abgeschnittenes Bild faellt auf). Sie kann **nicht** pruefen: ob das Motiv stimmt, ob es bei
+Anzeigegroesse lesbar ist, ob der Stil passt. Sage mir je Datei, **wie Daniel das in zehn Sekunden
+pruefen kann** (ein Satz, keine Anleitung).
+
+### D) Widerspruchspruefung (deine Aufgabe als Zweitpruefer)
+
+Pruefe die 18 Zeilen gegen die Dokumente im Paket (`data/bildpaket_dezember.json`,
+`docs/BILDBEDARF_ENTSCHEIDUNGEN_20261113.md`, deine eigene Antwort Nr. 19 im Auszug) und gegen die
+Bestandsmasse aus Abschnitt 0. **Melde jeden Widerspruch** mit Datei und Zeile. Zwei Punkte, die ich
+schon sehe und zu denen ich deine Einschaetzung will:
+
+1. **Drache B1/B2:** Bestand ist **171 x 256 hochkant**, die Liste verlangt **176 x 176 quadratisch**
+   (Regel: Kartenbilder quadratisch anlegen). Was ist richtig — quadratisch mit durchsichtigem Rand,
+   oder die Hochkantfigur in 4x, also 684 x 1024?
+2. **B5 Ladebild:** Bestand **455 x 320**, die Anzeige ist 1024 x 720, die Liste verlangt
+   **4096 x 2880**. Ist das 4x der Anzeige oder 9x des Bestands — und was heisst das fuer die
+   Hochrechnung (F-106: in der groessten Ausgabe erzeugen, dann hochrechnen)?
+
+---
+
+## 2. Messlage (gemessen / gerechnet / angenommen — nicht mischen)
+
+**Gemessen (Dateikopf gelesen, `tools/bildpaket_pruefen.py`):** die sechs Zeilen in Abschnitt 0.
+Zusaetzlich, fuer die Farben (Alpha >= 55 Prozent, aus `docs/PRUEFUNG_CLAUDE_19_20261113.md`
+Abschnitt 5, dort mit Prozentanteilen):
+
+| Datei | Masse | haeufigste Farben |
+|---|---|---|
+| `assets/icons/wappen/wappen_08.png` (Schattenfaust) | 315 x 428 | `#101010` 19,0 % · `#301010` 11,7 % · `#501010` 7,4 % · `#701010` 6,8 % · `#903030` 4,8 % · `#b03030` 4,6 % |
+| `assets/icons/wappen/wappen_09.png` (Sternenwacht) | 274 x 443 | `#101030` 16,3 % · `#103050` 15,7 % · `#303050` 6,1 % · `#f0f0f0` 3,2 % |
+| `assets/icons/wappen/wappen_05.png` (Flickwerk) | 271 x 420 | `#103050` 7,8 % · `#101010` 6,6 % · `#101030` 6,4 % · `#505050` 6,0 % |
+| `assets/icons/burgen/burg_05.png` | 479 x 550 | `#303010` 7,1 % · `#305010` 5,5 % · `#505030` 5,0 % · `#503010` 4,6 % |
+
+**Gerechnet:** die Sollgroessen der 18 Dateien = 4 x groesste Anzeige (F-101). Beispiele:
+19–44 px -> 176 x 176; 64 x 34 -> 256 x 136; 16 x 34 -> 64 x 136; 96 x 96 -> 384 x 384;
+400–920 px -> 3680 x 3680; 1024 x 720 -> 4096 x 2880; bis 1127 x 217 -> 4508 x 868.
+
+**Angenommen (ausdruecklich):** dass eine 4x-Datei mit Lanczos und ohne Nachschaerfen gut aussieht —
+das ist **nicht gemessen**; Daniel hat es so entschieden (F-106).
+
+---
+
+## 3. Grenzen dieses Auftrags
+
+- **Nur lesen.** Kein Code, keine Datei im Projekt aendern, kein Loeschen, kein `git`-Schreibbefehl.
+- **Keine Mechanik-Zahlen** erfinden (Balancing, Preise, Dauern) — die gehoeren Daniel.
+- **Nichts behaupten, was du nicht siehst:** wo eine Angabe fehlt, schreib **UNBEKANNT** und was du
+  braeuchtest.
+- **Keine Bilddateien erzeugen.** Du lieferst Text (Briefing), keine PNGs.
+
+---
+
+## 4. Rueckgabeformat
+
+Eine Markdown-Datei mit:
+
+1. dem Kopf (siehe oben),
+2. **Abschnitt A** als Tabelle ueber alle 18 Dateien (Nr | Kennung | Motiv | Silhouettentest |
+   Farben | Verbotenes | Prompt | Negativ-Prompt),
+3. **Abschnitt B** (fuenf Dateien, je ein Satz Begruendung),
+4. **Abschnitt C** (je Datei ein Satz zur Daniel-Pruefung),
+5. **Abschnitt D** (Widersprueche mit Datei und Zeile, plus deine zwei Einschaetzungen),
+6. einem Abschnitt **„Annahmen“** (was du angenommen hast) und einem Abschnitt
+   **„Anmerkungen an Weltenfresser“** (was ich nachmessen soll).
+
+---
+
+## 5. Die 18 Dateien (aus `data/bildpaket_dezember.json`, woertlich uebernommen)
+
+| Nr | Kennung | Was zu sehen sein muss | Anzeige | Datei (4x) | Format | Zielpfad |
+|---|---|---|---|---|---|---|
+| B1 | `ruine_weltkarte` | Eingestuerzter Steinturm mit leerem Hort, von oben-schraeg, ohne Drachen | 19-44 px, quadratisch | **176 x 176** | PNG, Alpha | `assets/bilder/ruine_weltkarte_176.png` |
+| B2 | `drache_gruen` | Ruhender Drache in Gruen, gleiche Haltung wie drache_weiss.png | 19-44 px | **176 x 176** | PNG, Alpha | `assets/bilder/drache_gruen_176.png` |
+| B2 | `drache_rot` | Ruhender Drache in Rot, gleiche Haltung wie drache_weiss.png | 19-44 px | **176 x 176** | PNG, Alpha | `assets/bilder/drache_rot_176.png` |
+| B5 | `startbild_anmelden` | Panorama des Nebelsees mit Platz fuer das Logo in der Mitte, OHNE Schrift im Bild | 1024 x 720 | **4096 x 2880** | JPG, deckend | `assets/referenzbilder/startbild_anmelden_4096x2880.jpg` |
+| B5 | `startbild_laden` | Zweites Panorama des Nebelsees, ruhiger Hintergrund, OHNE Schrift im Bild | 1024 x 720 | **4096 x 2880** | JPG, deckend | `assets/referenzbilder/startbild_laden_4096x2880.jpg` |
+| B8 | `kopfband_menschlich` | Dorfstreifen des Volkes als ruhiges Breitband, ohne Schrift | bis 1127 px breit, Hoehe bis 200 px | **4508 x 868** | JPG oder PNG, deckend | `assets/bilder/portal_kopfband_menschlich_4508x868.png` |
+| B8 | `kopfband_zwergisch` | Dorfstreifen des Volkes als ruhiges Breitband, ohne Schrift | bis 1127 px breit, Hoehe bis 200 px | **4508 x 868** | JPG oder PNG, deckend | `assets/bilder/portal_kopfband_zwergisch_4508x868.png` |
+| B8 | `kopfband_elfisch` | Dorfstreifen des Volkes als ruhiges Breitband, ohne Schrift | bis 1127 px breit, Hoehe bis 200 px | **4508 x 868** | JPG oder PNG, deckend | `assets/bilder/portal_kopfband_elfisch_4508x868.png` |
+| B8 | `kopfband_trolle` | Dorfstreifen des Volkes als ruhiges Breitband, ohne Schrift | bis 1127 px breit, Hoehe bis 200 px | **4508 x 868** | JPG oder PNG, deckend | `assets/bilder/portal_kopfband_trolle_4508x868.png` |
+| B8 | `kopfband_ghule` | Dorfstreifen des Volkes als ruhiges Breitband, ohne Schrift | bis 1127 px breit, Hoehe bis 200 px | **4508 x 868** | JPG oder PNG, deckend | `assets/bilder/portal_kopfband_schmiede_dorf_ghule_4508x868.png` |
+| B8 | `kopfband_gnome` | Dorfstreifen des Volkes als ruhiges Breitband, ohne Schrift | bis 1127 px breit, Hoehe bis 200 px | **4508 x 868** | JPG oder PNG, deckend | `assets/bilder/portal_kopfband_gnome_4508x868.png` |
+| B9 | `weltkarte_goldrahmen` | Schmaler goldener Rahmen, Band 3,35 Prozent, Eckenradius 7,5 Prozent, innen durchsichtig | 400-920 px | **3680 x 3680** | PNG, Alpha | `assets/icons/gebaeude/rahmen/weltkarte_goldrahmen_3680.png` |
+| B10 | `kachelrahmen_ruhe` | Duenner Rahmen ohne Inhalt | 57-64 px | **256 x 256** | PNG, Alpha | `assets/icons/gebaeude/rahmen/kachelrahmen_ruhe_256.png` |
+| B10 | `kachelrahmen_auswahl` | Deutlich kraeftiger als der Ruherahmen | 57-64 px | **256 x 256** | PNG, Alpha | `assets/icons/gebaeude/rahmen/kachelrahmen_auswahl_256.png` |
+| B12 | `leiste_mitte` | Dunkles Lederband, waagerecht nahtlos kachelbar | 64 x 34 | **256 x 136** | PNG, Alpha | `assets/bilder/leiste_mitte_256x136.png` |
+| B12 | `leiste_ende_links` | Endstueck mit goldener Kappe | 16 x 34 | **64 x 136** | PNG, Alpha | `assets/bilder/leiste_ende_links_64x136.png` |
+| B12 | `leiste_ende_rechts` | Endstueck mit goldener Kappe | 16 x 34 | **64 x 136** | PNG, Alpha | `assets/bilder/leiste_ende_rechts_64x136.png` |
+| B13 | `marktplatz_kennzeichen` | Chris' Marktstand als einzelnes Zeichen | 96 x 96 | **384 x 384** | PNG, deckend | `assets/bilder/marktplatz_kennzeichen_384.png` |
+
+---
+
+## 6. Was im Paket liegt
+
+| Datei | Wozu |
+|---|---|
+| `AUFTRAG_CLAUDE_BILDBRIEFING_NR20_20261118.md` | dieser Auftrag |
+| `data_bildpaket_dezember.json` | die verbindliche Liste der 18 Dateien (Sollmasse, Format, Alpha, Zielpfad, Andockstelle) |
+| `docs_BILDBEDARF_ENTSCHEIDUNGEN_20261113.md` | Daniels Entscheidungen F-101, F-104, F-106, F4 |
+| `docs_FAKTENBLATT.md` | die Zahlen aus `data/`, automatisch erzeugt |
+| `docs_PRUEFUNG_CLAUDE_19_20261113.md` | die Farbmessung zu F1 (Abschnitt 5) |
+| `bilder/` | sieben Bestandsbilder als Stil- und Farbbeleg (siehe Abschnitt 2) |
+
+Viel Erfolg. Ich rechne jede Zahl nach, bevor gebaut wird — Irrtuemer in deiner Antwort sind kein
+Beinbruch, ein stiller Fehler waere einer.
