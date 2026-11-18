@@ -2,23 +2,23 @@
 
 **Erzeugt von `tools/modulkarte_bauen.py` — nicht von Hand ändern.** Stand: siehe Git-Historie.
 
-66 Dateien in `src/`, 41928 Zeilen, 1195 Funktionen und Klassen auf oberster Ebene.
+66 Dateien in `src/`, 42369 Zeilen, 1201 Funktionen und Klassen auf oberster Ebene.
 
 ## Die Karte
 
 | Datei | Zeilen | Zweck (erste Zeile des Docstrings) | wird gebraucht von |
 |---|---:|---|---|
-| `main.py` | 19108 | Nebelseetal Remake — Core Game Engine | public_start.py |
+| `main.py` | 19479 | Nebelseetal Remake — Core Game Engine | public_start.py |
 | `spieloekonomie.py` | 1942 | Nebelseetal Remake — deterministischer Kern der Spielökonomie (Ökonomie-Paket, Schritt 2). | admin_teststand.py, admin_werkzeuge.py, botkern.py, main.py, spielschicht.py, verwundete.py |
 | `diplomatie.py` | 994 | Diplomatie der Bots - Gunst, Status (S4 Teil 1, 06.11.2026). | main.py |
-| `spielschicht.py` | 965 | Nebelseetal Remake - FACH-SCHICHT (Spielebene) fuer die Oberflaeche. | main.py |
+| `spielschicht.py` | 970 | Nebelseetal Remake - FACH-SCHICHT (Spielebene) fuer die Oberflaeche. | main.py |
 | `welt_optik_fein.py` | 898 | FEINERE Zeichenplaene fuer die WELTkarte des Nebelseetal-Remakes (naechste Ausbaustufe). | main.py |
 | `karten_optik_fein.py` | 863 | Feinere Zeichenplaene fuer die Siedlungskarte des Nebelseetal-Remakes | main.py |
 | `bottaktik.py` | 824 | Nebelseetal Remake - Bot-Taktik (Paket BT, 01.11.2026). | main.py |
 | `auftraege.py` | 774 | Nebelseetal Remake - Auftraege und Missionen (Paket WA, 04.10.2026). | bottaktik.py, main.py, spieloekonomie.py, spielschicht.py |
-| `drachen.py` | 710 | Drachen des Spiels - Daten lesen, Figur oder Ruine bestimmen, Siege merken (W-14 Teil 1). | main.py |
+| `drachen.py` | 711 | Drachen des Spiels - Daten lesen, Figur oder Ruine bestimmen, Siege merken (W-14 Teil 1). | main.py |
+| `portalraum.py` | 669 | Portal- und Limbus-Raum fuer das Nebelseetal-Remake (Paket W5-2). | drachen.py, main.py, spielschicht.py |
 | `botkern.py` | 668 | Nebelseetal Remake - Bot-Kern (Paket W5, 05.10.2026). | main.py, spielschicht.py |
-| `portalraum.py` | 612 | Portal- und Limbus-Raum fuer das Nebelseetal-Remake (Paket W5-2). | drachen.py, main.py, spielschicht.py |
 | `welt_optik.py` | 600 | Zeichenplaene fuer die WELTkarte des Nebelseetal-Remakes (Paket: feinere Weltkartenoptik). | main.py |
 | `karten_optik.py` | 599 | Zeichenplaene fuer die Siedlungskarte des Nebelseetal-Remakes (Paket: feinere Kartenoptik). | main.py |
 | `kampfbericht.py` | 575 | Nebelseetal Remake - Kampfbericht (Paket W2b, 04.10.2026). | auftraege.py, kampf.py, main.py, spielschicht.py |
@@ -29,7 +29,7 @@
 | `werkstatt.py` | 422 | Nebelseetal Remake - Waren und Werkstaetten (Paket W3, 04.10.2026). | main.py, spieloekonomie.py, spielschicht.py |
 | `spionage.py` | 410 | Spionage: Schalter, Aufklaerungswert, Bericht und Nachricht (Stufe B-5, 02.11.2026). | auftraege.py, main.py |
 | `berater.py` | 399 | Berater — die Auskunft im Spiel (Reiter "Chat"). | main.py, spielerhilfe.py |
-| `dorfzentrum.py` | 379 | Die Masse und die Texte des Dorfzentrums - an EINER Stelle (Nr. 16, Teil A). | main.py |
+| `dorfzentrum.py` | 386 | Die Masse und die Texte des Dorfzentrums - an EINER Stelle (Nr. 16, Teil A). | main.py |
 | `forschungspfad.py` | 354 | Forschungspfad -- die fachliche Frageschicht rund um die 21 Originalforschungen. | main.py, spieloekonomie.py |
 | `gebaeude_wirkung.py` | 353 | Nebelseetal Remake — Wirkungen der 20 Originalgebaeude (Paket W4b-5, 04.10.2026). | bot_angriffsplanung.py, dorfwall.py, kampfbericht.py, main.py, spieloekonomie.py, spielschicht.py |
 | `speichern.py` | 338 | Robustes Speichern (Paket W8) - atomar, geprueft, mit Sicherung und Wiederherstellung. | main.py, spielstaende.py |

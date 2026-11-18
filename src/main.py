@@ -3944,6 +3944,10 @@ SIEDLUNGS_LEISTE = 18             # Koordinatenleiste der Karte
 SIEDLUNGS_ABZUG_HOEHE = 155       # Fenster -> sichtbare Flaeche (gemessen: 122 Kopf + 21 Status + Rahmen)
 SIEDLUNGS_SCHLEIER_FARBE = "#1a0a09"   # Schleierfarbe (F-48)
 SIEDLUNGS_SCHLEIER_DECKUNG = 80        # Prozent (F-48); 79 waere die Untergrenze fuer #ff8a70
+# F-52 (Daniel 12.11.2026, Register 538): der Kopf der Siedlungskarte - Titel und Name - bleibt
+# beim Rollen stehen, der Rest rollt darunter (Vorlage A4 aus Claudes Antwort Nr. 13). Die 60 px
+# sind die entschiedene Mindesthoehe; ist der gemessene Kopf hoeher, gilt die Messung.
+SIEDLUNGS_KOPF_HOEHE = 60         # Mindesthoehe des klebenden Kopfes in Pixeln (F-52)
 
 # ---------- A-10 (12.11.2026, Register 518): Farben und Masse der Spalte ----------
 # Claudes Antwort Nr. 12, Abschnitt B2: Schriftgroessen in PIXELN (negative Tk-Groesse), kein Text
@@ -13280,6 +13284,61 @@ class NebelseetalApp:
         """Die Panel-Farbe der bedienbaren Bloecke: Schleier-Ton E, sonst die Skin-Farbe."""
         return str(getattr(self, "_spalte_schleier_ton", "") or self.skin["panel"])
 
+    def _spalte_kopf_kleben(self, leinwand, kopf: dict, breite: int, ton: str,
+                            rollbalken=None) -> int:
+        """F-52: Titel und Name der Siedlungskarte bleiben beim Rollen oben stehen.
+
+        Daniels Entscheidung vom 12.11.2026 (Register 538, woertlich: "Klebender Kopf: JA - der Kopf
+        der Siedlungskarte (Titel + Name, 60 px) bleibt beim Rollen stehen, der Rest rollt darunter",
+        Vorlage A4 aus Claudes Antwort Nr. 13). Am 18.11.2026 hat er den Einbau als naechsten
+        Code-Schritt gewaehlt.
+
+        Umgesetzt OHNE zweite Flaeche: der Kopf besteht schon aus Canvas-Elementen (`_spalte_bloecke`,
+        Block 1). Er bekommt eine DECKENDE Unterlage im Ton E (derselbe Ton wie die bedienbaren
+        Bloecke, damit beim Rollen nichts durch den Text scheint) und wird bei jeder Bewegung des
+        Rollbalkens auf die Oberkante des SICHTBAREN Bereichs gesetzt (`canvasy(0)`). Die Unterlage
+        und die Texte werden danach nach vorn gestellt, sonst schoebe der rollende Inhalt darueber.
+
+        Eingabe: `leinwand` (die Spalten-Leinwand), `kopf` (Block 1 aus `_spalte_bloecke`, mit `feld`
+        und `items`), `breite` (Spaltenbreite), `ton` (Ersatzfarbe E), `rollbalken` (oder None).
+        Rueckgabe: die gemessene Kopfhoehe in Pixeln - sie steht fuer die Pruefdatei in
+        `self._klebekopf_hoehe` und wird ins Register eingetragen.
+        """
+        feld = kopf.get("feld") or (0, 0, int(breite), SIEDLUNGS_KOPF_HOEHE)   # Block 1
+        # F-52 nennt 60 px; ist der gemessene Block hoeher, gilt die MESSUNG (kein Abschneiden).
+        hoehe = max(SIEDLUNGS_KOPF_HOEHE, int(feld[3]))
+        unterlage = leinwand.create_rectangle(0, 0, int(breite), hoehe, fill=ton,
+                                             outline="", tags=("klebekopf_unterlage",))
+        texte = list(kopf.get("items") or [])                                # die Kopf-Texte
+        teile = [unterlage] + texte                                          # Unterlage zuerst
+        zustand = {"versatz": 0}                                            # bisherige Verschiebung
+
+        def _nachziehen(_ereignis=None):
+            """Setzt Kopf und Unterlage auf die Oberkante des sichtbaren Bereichs."""
+            ziel = int(round(float(leinwand.canvasy(0))))                     # Oberkante in Leinwand-y
+            delta = ziel - zustand["versatz"]                                # noetige Verschiebung
+            if delta:                                                        # nur bei Aenderung
+                for teil in teile:                                           # Unterlage und Texte
+                    leinwand.move(teil, 0, delta)                            # gemeinsam verschieben
+                zustand["versatz"] = ziel                                    # Versatz merken
+            for teil in teile:                                               # Reihenfolge halten
+                try:
+                    leinwand.tag_raise(teil)                                 # ueber den rollenden Inhalt
+                except tk.TclError:                                          # Flaeche schon weg
+                    return                                                   # nichts mehr zu tun
+
+        if rollbalken is not None:                                           # Rollen ueber den Balken
+            def _bei_rollen(erste, letzte):
+                """Rollbalken weiterstellen UND den Kopf nachziehen (ein Weg, kein zweiter)."""
+                rollbalken.set(erste, letzte)                                # Balken wie bisher
+                _nachziehen()                                                # Kopf mitnehmen
+
+            leinwand.configure(yscrollcommand=_bei_rollen)                   # EINE Rollstelle
+        leinwand.bind("<Configure>", lambda _e: _nachziehen(), add="+")      # bei Groessenaenderung
+        _nachziehen()                                                        # Startzustand setzen
+        self._klebekopf_items = teile                                        # fuer die Pruefdatei
+        return hoehe
+
     def _spalte_bloecke(self, leinwand, siedlung, karte, breite: int, nahrungssperre: str = ""):
         """A-10: die FUENF Textbloecke der Spalte als Canvas-Elemente (`create_text`).
 
@@ -13550,6 +13609,11 @@ class NebelseetalApp:
         _nahrungssperre_text = self._nahrungssperre(siedlung)
         _bloecke, _y_widget = self._spalte_bloecke(_leinwand, siedlung, karte, _spalte_breite,
                                                   _nahrungssperre_text)
+        # F-52 (Daniel 12.11.2026, Register 538): Titel und Name bleiben beim Rollen oben stehen.
+        # Die Hoehe wird GEMESSEN (block 1 der Bloecke), nicht geschaetzt; 60 px ist die Untergrenze.
+        self._klebekopf_hoehe = self._spalte_kopf_kleben(
+            _leinwand, _bloecke[0], _spalte_breite, _panel,
+            _rollbalken if _gespalten else None)
         # Die bedienbaren Bloecke: EIN Rahmen im Ton E, darin Bauauswahl und Dorfuebersicht.
         spalte = tk.Frame(_leinwand, bg=_panel)
         _leinwand.create_window((0, _y_widget), window=spalte, anchor=tk.NW, width=_spalte_breite)

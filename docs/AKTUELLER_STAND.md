@@ -1,3 +1,30 @@
+# STAND 18.11.2026, 21:35 - nach dem Release: der klebende Kopf 60 px ist gebaut (F-52, Register 669)
+
+**Kopf:** maßgeblich ist `git log -1`. **V_0.0.4 ist veröffentlicht** (Tag `v_0.0.4`, Release mit EXE und
+ZIP) — der Block darunter beschreibt es. **Daniel hat die Projektpause aufgehoben** („ok machen wir
+weiter“), arbeitet wird aber **lokal**: Guthaben **1,47 USD**.
+
+## Was gebaut ist
+
+- **F-52** (Daniel 12.11.2026, Register 538): Titel und Name der Siedlungskarte **bleiben beim Rollen oben
+  stehen**, der Rest rollt darunter. Umgesetzt über eine deckende Unterlage im Ton E und die EINE
+  Rollstelle der Spalte; gemessen im echten Fenster: Kopf **60 px**, nach dem Rollen Kopf bei y = 407 bei
+  Oberkante 399 (+8 px Innenrand), der nächste Block auf 76 — der Kopf ist der einzige, der klebt.
+- **Neue Wache** `tests/test_klebekopf_f52.py` **16/0/0**; Nachbarwachen unverändert grün: a9 39/0/0,
+  a10 48/0/0, `test_spieltest1_befunde` 28/0/2.
+- Der Baustein stand seit dem 12.11. als „offen, Entscheidung Daniel“ im Arbeitsplan und war Daniels
+  Antwort 3 der Runde vom 18.11.2026.
+
+## Was als Nächstes ansteht
+
+1. **Voller Sammellauf** nach diesem Fix (läuft, Ergebnis in Register 670).
+2. **Abweichungsregister** `docs/quellen/ABWEICHUNGEN_2006_zu_2009.md` pflegen (Daniels Antwort 2, D2).
+3. **Bilder** (0 von 18) und die vorher zu schließenden Werkzeuglücken (Farbtyp, Seitenverhältnis).
+4. **Auftrag Nr. 21** ist bei Claude — Antwort nachrechnen, sobald sie kommt.
+5. **Sechs Wappen** blockiert bis zum Aufladen; **Bildschirmfoto der Startseite** braucht Daniel.
+
+---
+
 # STAND 18.11.2026, 20:54 - V_0.0.4 ist VEROEFFENTLICHT; Projektpause bis Dezember (Register 667/668)
 
 **Kopf:** maßgeblich ist `git log -1`; der Release läuft über den Tag `v_0.0.4`. **Sitzung:**
