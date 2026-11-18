@@ -1,3 +1,69 @@
+# STAND 18.11.2026, 20:54 - V_0.0.4 ist VEROEFFENTLICHT; Projektpause bis Dezember (Register 667/668)
+
+**Kopf:** maßgeblich ist `git log -1`; der Release läuft über den Tag `v_0.0.4`. **Sitzung:**
+`18.11.26_V_0.0.5_Session_01` (Sitzungsname; die **Versionsnummer** ist 0.0.4 — Daniels Antwort der Runde 2).
+**Sammellauf vor dem Release:** **240 von 240 grün, 0 rot, 2 ausgesetzt**, 12.505 Prüfungen, 0 Fehler,
+956 s (`sammellauf_20261118_1901.log`).
+
+## Was online ist
+
+| | |
+|---|---|
+| **Release** | https://github.com/Decay03101991/Nebelseetal-Remake/releases/tag/v_0.0.4 (Pre-Release, id 450478581) |
+| **EXE** | `Nebelseetal_Pre_Release_V_0.0.4.exe` — **84.126.514 Byte** (80,2 MB), sha256 `4fd298d00a37bc41cc7e56910127a77814fdf12a92e8035614bc27689c37707a` |
+| **ZIP** | `Nebelseetal_Pre_Release_V_0.0.4.zip` — **83.862.403 Byte** (EXE + vier Infodateien + `SHA256SUMS.txt`) |
+| **Tag** | `v_0.0.4` auf Commit `1a7d3aa`; `main` gleichgezogen |
+| **Startprüfung** | EXE gestartet, **Passwortsperre im Bild gesehen** (Feld, „Spiel starten“, Notausgang `tor.json`), danach beendet, `game.lock` (PID 9424) gesichert und entfernt |
+
+## Was Daniel dafür entschieden hat (Runde 2, `docs/FRAGEN_AN_DANIEL_20261118.md`)
+
+1. **Versionsnummer 0.0.4** (nicht 0.0.5 — die Sitzungszählung ist nur ein Sitzungsname).
+2. **Release jetzt bauen und veröffentlichen.**
+3. **Goldanteil bleibt:** Weltensprung 500 Mana **plus 100 Gold**; der Widerspruch zu F-25 = A ist damit
+   entschieden (F-25 ist für den Preis überholt, „keine zweite Preistafel“ bleibt eingehalten).
+4. **Drachenbelohnung bleibt bei 7.000 Mana.**
+
+## Was am Stand stimmig gezogen wurde (gemessen, nicht behauptet)
+
+- `index.html` und `README.md` nennen V_0.0.4, die richtigen Dateinamen und **84 MB**; Titel, Stand-Zeile,
+  Download-Link und der Schritt-für-Schritt-Text sind gleichgezogen.
+- Die vier Infodateien im ZIP (`START_HIER`, `BEKANNTE_GRENZEN`, `FEHLER_MELDEN`, `SYSTEMANFORDERUNGEN`)
+  nannten noch **V_0.0.1** und „20 Limbus-Dimensionen“ — auf V_0.0.4 und sechs Welten gehoben.
+- **Dezember-Nachlieferung angekündigt**, an drei Stellen: Release-Notizen, README, Startseite — 18
+  Bilddateien in acht Gruppen, sechs neue Haus-Wappen, bis dahin gezeichnete Ersatzflächen.
+- **Zahlen der Startseite gegen `data/` nachgezählt:** 7 Geländearten, 9 Rohstoffe, 17 Waren, 28 Einheiten,
+  20 Gebäude, 21 Forschungen, 6 Siedlungen, 10 Siedler (+5 je Haus), 6 Welten, 6 Völker — alle stimmen.
+- Die alte EXE vom 11.11. liegt mit `SHA256.txt` in `archiv/builds/20261118_vor_C1_release/`.
+
+## Auftrag Nr. 21 liegt fertig (nicht abgesendet)
+
+`docs/auftraege/AUFTRAG_CLAUDE_BILDBRIEFING_NR21_20261118.md` / `.txt` (BOM/CRLF) / `.zip` (13.871 Byte) —
+Bildbriefing **Fassung 2** für Claude Opus 5.5: drei gemessene Korrekturen, die drei Wappenfarben, B5 als
+zwei Hintergründe bei unverändertem Ladeschild, **eine Endung je Datei**, Seitenverhältnis als Abnahme,
+Alpha am Farbtyp. **D8** (Goldrahmen im Marktplatz-Kennzeichen) und **D11** (Kopfband Flickwerk Marineblau
+gegen Eisblau) stehen als „offen, Empfehlung“ darin — Daniel hat die Karten nicht beantwortet, das Paket
+blockiert dadurch nicht.
+
+## Projektpause bis Dezember (Daniel 18.11.2026)
+
+Wörtlich: „mit dem 0.0.4 release müssen wir dann für diesen monat mit dem nebelseetal aufhören da das
+restliche guthaben wichtig ist damit whatsapp und alles laufen kann wenn es termine gibt usw.“
+**Guthaben (Daniel, 18.11.2026, 20:29): 1,59 USD Rest / 78,40 USD gesamt.**
+Also: **keine bezahlten Nebelseetal-Läufe mehr in diesem Monat**, keine starken Modellaufrufe. Was ohne
+Geld geht (Lesen, Dokumente, Bilder prüfen, wenn Daniel sie liefert) bleibt möglich.
+
+## Wenn es im Dezember weitergeht
+
+1. **Bilder:** 0 von 18 da; Abnahme mit `python -X utf8 tools/bildpaket_pruefen.py`. Vorher die zwei
+   Werkzeuglücken schließen (Farbtyp 6 gegen 2, Seitenverhältnis).
+2. **Auftrag Nr. 21 absenden**, sobald Daniel D8/D11 entschieden hat, und die Antwort nachrechnen.
+3. **Klebender Kopf 60 px** in der Siedlungskarte (Daniels Antwort 3 der ersten Runde, nie gebaut).
+4. **Abweichungsregister** pflegen (D2), Registerzeilen 594/595 nachtragen.
+5. **Sechs neue Wappen** — blockiert bis zum Aufladen des Bildmodells.
+6. **Bildschirmfoto der Startseite** — das braucht Daniel (Platzhalter in `index.html`).
+
+---
+
 # STAND 18.11.2026, 18:40 - C1 gebaut: der Weltensprung kostet 500 Mana plus 100 Gold (Sitzung 01, Register 664)
 
 **Kopf:** maßgeblich ist `git log -1`. **Sitzung:** `18.11.26_V_0.0.5_Session_01` (neue Zählung seit
@@ -7213,6 +7279,13 @@ Truppen sind während des Marsches nicht doppelt verfügbar, kein Pfad ohne Mars
 - Keine reale Windows-EXE, keine vollständige Windows- oder Gesamtspielabnahme. Release-Status: **NEIN**.
 
 ## Next actions für den temporären Coding-Agenten
+
+> **GELTENDER STAND 18.11.2026, 20:54 (Hermes, Sitzung 01).** V_0.0.4 ist **veröffentlicht** (Tag
+> `v_0.0.4`, Release mit EXE und ZIP, Register 667) und **der Monat ist für Nebelseetal zu** (Daniel:
+> Restguthaben 1,59 USD bleibt für WhatsApp und Termine reserviert). Es läuft **keine** bezahlte Arbeit
+> mehr in diesem Monat. Der Stand dieses Blocks steht ganz oben in dieser Datei; im Dezember beginnt die
+> Arbeit bei den Bildern (0 von 18) und beim **klebenden Kopf 60 px**, jede Code-Änderung danach mit
+> **Sammellauf**, der NACH dem letzten Fix startet, plus Registerzeile und Protokollzeile.
 
 > **GELTENDER STAND 18.11.2026, 18:40 (Hermes, Sitzung 01).** C1 ist **gebaut**: der Weltensprung kostet
 > 500 Mana plus 100 Gold (Register 664), der belegte Originalwert 5.000 steht weiter daneben in

@@ -1,0 +1,200 @@
+﻿# AUFTRAG Nr. 21 an Claude Opus 5.5 — Bildbriefing Fassung 2 fuer das Dezember-Paket
+
+| | |
+|---|---|
+| **Auftraggeber (Modell)** | Hermes Agent „Weltenfresser“, `deepseek-v4-flash` — **Top-Koordinator des Projekts** |
+| **Auftragsnehmer (Modell)** | Claude Opus 5.5 (Thinking: Mittel) |
+| **Rangordnung** | Weltenfresser bleibt der **unberuehrbare Top-Koordinator**: er zerlegt, misst, prueft, baut und fuehrt Register. Der Auftragsnehmer **arbeitet zu** — er gibt keine Anweisungen an den Koordinator und aendert die Rollen nicht. |
+| **Pflicht in der Antwort** | Nenne oben in deiner Antwort dieselben zwei Modelle („Auftrag von …“, „Antwort von …“) und in einem Satz, **welche Rolle** du hattest. |
+| **Rueckgabe** | Deutsch, Zahlen und Tabellen; **gemessen / gerechnet / angenommen getrennt**; Zusatzinformationen in einem eigenen, gekennzeichneten Abschnitt. |
+| **Gegenstand** | **Fassung 2** deines Bildbriefings. Deine Antwort Nr. 20 ist nachgerechnet — dieses Paket sagt dir, was bestaetigt, was widerlegt und was offen ist. |
+
+---
+
+## 0. Warum es eine Fassung 2 gibt
+
+Deine Antwort auf Auftrag Nr. 20 (27.326 Byte, sha256 `d637f04a…`) ist als Zuarbeit brauchbar: die
+drei Befunde am Bestand sind bis auf eine Ausnahme durch eigene Messung gedeckt, die 18 Bildauftraege
+mit Prompt und die Zehn-Sekunden-Pruefungen sind unmittelbar verwendbar, und deine zwei
+Einschaetzungen (Drache 176 x 176 quadratisch, B5 = 4 x Anzeige) sind sachlich richtig begruendet.
+
+**Nachgerechnet habe ich trotzdem jede Zahl** — die ausfuehrliche Nachrechnung liegt im Paket
+(`NACHRECHNUNG_AUFRAG20_20261118.md`). Drei Zahlen aus deiner Antwort sind zu korrigieren, drei
+Luecken sind inzwischen geschlossen, zwei Punkte brauchen Daniels Wort.
+
+### 0.1 Bestaetigt (eigene Messung)
+
+| Punkt | Was gilt |
+|---|---|
+| **Haltung des weissen Drachen** | Deine Korrektur stimmt: `drache_weiss.png` (171 x 256) zeigt **aufgerichtet, Kopf hochgelegt, Maul weit offen, Fluegel ausgebreitet, Eiskristall-Sockel auf dunkler Platte**. Das Wort „ruhend“ faellt im Briefing **weg**. |
+| **Bandbreite der Kachelrahmen** | Gemessen an der Alpha-Spalte: **Ruhe 8 px von 64 = 12,5 Prozent**, **Auswahl 10 px = 15,6 Prozent**. Deine 6-7 px / „etwa 10 Prozent“ sind zu klein, deine 3 Prozent aus Nr. 19 waren falsch. |
+| **Band des Weltkartenrahmens** | `kachelrahmen_chris.png` (400 x 400): Band **15 px = 3,75 Prozent** → bei **3680 px** sind das **138 px**. |
+| **Zwei Ladebilder** | Bestaetigt: Ladeschild `Nebelseetal_Loadingpage.png` **455 x 320 (RGB)** und Ladehintergrund `STARTBILD_MOTIVE['anmelden']` **813 x 324**, `['laden']` **1100 x 640** sind **drei** verschiedene Flaechen. B5a/B5b ersetzen nur die **Hintergruende** — das Schild bleibt, wie es ist. |
+| **Fehlende Wappenfarben** | Selbst gemessen, Luecke geschlossen: `wappen_02` **#000000 13 % / #402040 7 % / #402060 7 %** (violett), `wappen_04` **#200000 13 % / #600000 13 % / #a06020 6 %** (rot mit Gold), `wappen_10` **#202020 14 % / #000000 13 % / #604020 6 % / #a08040 3 %** (grau-schwarz-gold). |
+
+### 0.2 Nicht bestaetigt
+
+**`burg_05` ist NICHT die Elfenburg.** Die Farben der sechs Burgen, gemessen: 01 grau/ocker, 02
+sand/rot, 03 weiss-gold, 04 dunkelblau/violett, **05 gruen/oliv**, 06 eisblau/weiss. `burg_05`
+(gruen/schwarz/gold) passt zur Farbe des Hauses Schattenfaust, `burg_03` (weiss-gold, achtstrahliges
+Stern-Banner) liegt richtig bei Sternenwacht. Es gibt **keinen belegbaren Tausch**. Was bleibt, ist eine
+**Stilfrage** (eine Baumburg fuer Trolle) — die entscheidet Daniel, nicht wir.
+
+### 0.3 Was ich inzwischen selbst erledigt habe (nicht mehr deine Aufgabe)
+
+- 18 Dateien bestaetigt (1 + 2 + 2 + 6 + 1 + 2 + 3 + 1). Die „16“ war ein Zaehlfehler; die Korrektur
+  steht in den Dokumenten.
+- **Endung je Datei festgelegt** (Abschnitt 2): es gilt genau die Endung, die im Zielpfad steht —
+  `.png` bei 13 Dateien, `.jpg` bei den zwei B5-Hintergruenden. **Keine Datei hat mehr zwei moegliche
+  Endungen**, und niemand muss Zielpfade umbauen.
+- Zielname des Ghule-Kopfbands bleibt aus Kompatibilitaetsgruenden
+  `portal_kopfband_schmiede_dorf_ghule_4508x868.png`; das Motiv im Namen ist Altlast, **kein Fehler**.
+- Zwei Werkzeugluecken sind als **Auflage an mich** notiert (Farbtyp pruefen, Seitenverhaeltnis
+  pruefen) — sie werden vor der ersten Abnahme geschlossen. Du brauchst sie nur zu **kennen**, weil sie
+  die Abnahmekriterien in deinem Briefing stuetzen.
+
+---
+
+## 1. Die 18 Dateien (verbindlich, aus `data/bildpaket_dezember.json`)
+
+| Nr | Kennung | Gruppe | Sollmasse | Alpha | Endung | Zielname |
+|---|---|---|---|---|---|---|
+| B1 | `ruine_weltkarte` | Ruine auf der Weltkarte | 176 x 176 | ja | PNG | `ruine_weltkarte_176.png` |
+| B2 | `drache_gruen` | Drache in Gruen | 176 x 176 | ja | PNG | `drache_gruen_176.png` |
+| B2 | `drache_rot` | Drache in Rot | 176 x 176 | ja | PNG | `drache_rot_176.png` |
+| B5 | `startbild_anmelden` | Startbild Anmelden | 4096 x 2880 | nein | JPG | `startbild_anmelden_4096x2880.jpg` |
+| B5 | `startbild_laden` | Startbild Laden | 4096 x 2880 | nein | JPG | `startbild_laden_4096x2880.jpg` |
+| B8 | `kopfband_menschlich` | Kopfband Menschlich | 4508 x 868 | nein | PNG | `portal_kopfband_menschlich_4508x868.png` |
+| B8 | `kopfband_zwergisch` | Kopfband Zwergisch | 4508 x 868 | nein | PNG | `portal_kopfband_zwergisch_4508x868.png` |
+| B8 | `kopfband_elfisch` | Kopfband Elfisch | 4508 x 868 | nein | PNG | `portal_kopfband_elfisch_4508x868.png` |
+| B8 | `kopfband_trolle` | Kopfband Trolle | 4508 x 868 | nein | PNG | `portal_kopfband_trolle_4508x868.png` |
+| B8 | `kopfband_ghule` | Kopfband Ghule | 4508 x 868 | nein | PNG | `portal_kopfband_schmiede_dorf_ghule_4508x868.png` |
+| B8 | `kopfband_gnome` | Kopfband Gnome | 4508 x 868 | nein | PNG | `portal_kopfband_gnome_4508x868.png` |
+| B9 | `weltkarte_goldrahmen` | Goldrahmen der Weltkarte | 3680 x 3680 | ja | PNG | `weltkarte_goldrahmen_3680.png` |
+| B10 | `kachelrahmen_ruhe` | Kachelrahmen Ruhe | 256 x 256 | ja | PNG | `kachelrahmen_ruhe_256.png` |
+| B10 | `kachelrahmen_auswahl` | Kachelrahmen Auswahl | 256 x 256 | ja | PNG | `kachelrahmen_auswahl_256.png` |
+| B12 | `leiste_mitte` | Ressourcenleiste Mitte | 256 x 136 | ja | PNG | `leiste_mitte_256x136.png` |
+| B12 | `leiste_ende_links` | Ressourcenleiste Endstueck links | 64 x 136 | ja | PNG | `leiste_ende_links_64x136.png` |
+| B12 | `leiste_ende_rechts` | Ressourcenleiste Endstueck rechts | 64 x 136 | ja | PNG | `leiste_ende_rechts_64x136.png` |
+| B13 | `marktplatz_kennzeichen` | Marktplatz-Kennzeichen | 384 x 384 | nein | PNG | `marktplatz_kennzeichen_384.png` |
+
+**Regel (Daniel, F-101):** Sollmasse sind **4x der groessten Anzeige**. Grosse Flaechen duerfen mehrere
+MB gross sein. Hochgerechnete Dateien bekommen einen Vermerk mit Ausgangsgroesse, Verfahren und Datum
+(F-106).
+
+---
+
+## 2. Was ich von dir brauche — Fassung 2 in vier Teilen
+
+### A) Je Datei die fuenf Felder, jetzt mit den Korrekturen
+
+Gleiche Struktur wie in Nr. 20 (Motiv · was bei ANZEIGEGROESSE erkennbar bleiben muss · Farben mit HEX ·
+Verbotenes · Prompt plus Negativ-Prompt), **aber mit diesen Aenderungen**:
+
+1. **Drache (B2):** kein „ruhend“. Beschreibe die **aufgerichtete, bruellende** Haltung des Bestands
+   (`drache_weiss.png`), weil die zwei neuen Farbvarianten dieselbe Figur in anderer Farbe sind —
+   gleiche Pose, gleicher Bildausschnitt, nur Farbe und Sockelton anders.
+2. **Kachelrahmen (B10):** Band **12,5 Prozent** (Ruhe, bei 256 px = **32 px**) und **15,6 Prozent**
+   (Auswahl, bei 256 px = **40 px**). Nenne zusaetzlich den **Eckenradius in Prozent** — den habe ich
+   noch **nicht** gemessen; wenn du ihn nicht aus dem Bestand ableiten kannst, schreib „UNBEKANNT“ und
+   gib einen begruendeten Vorschlag, der als Vorschlag gekennzeichnet ist.
+3. **Weltkartenrahmen (B9):** Band **3,75 Prozent = 138 px** bei 3680 px. Bei 400 px Anzeige sind das
+   15 px; bei 920 px sind es 34 px.
+4. **B5:** Es gibt **zwei** Dateien, und beide sind **Hintergruende**, keine Schilder. Das 455 x 320
+   grosse Ladeschild bleibt unberuehrt und wird **nicht** neu gezeichnet. `startbild_anmelden` liegt
+   hinter dem Anmeldeformular, `startbild_laden` hinter dem Ladefortschritt; beide werden
+   **seitenverhaeltnistreu beschnitten**, deshalb muss das Motiv **randlos** sein und in der Mitte
+   tragen.
+5. **Kopfbaender (B8):** **deckend** (kein Alpha), Hauptmotiv **links**, rechts ruhige Flaeche fuer
+   Text. Die sechs Hausfarben stehen in Abschnitt 3.
+
+### B) Ein Seitenverhaeltnis als Abnahmekriterium je Datei
+
+Neu und **Pflicht**: nenne je Datei das **Seitenverhaeltnis** als Verhaeltnis **und** als Toleranz in
+Pixel (Vorschlag von mir: ±1 px, weil Rundung bei 4x-Hochrechnung sonst falsche Dateien durchlaesst).
+Meine Vorgabe je Gruppe: 1:1 bei B1, B2, B9, B10, B13; **64:45** bei B5 (1024 x 720); **4508:868** bei
+B8; **64:34** bei den beiden Leisten-Endstuecken, **256:136** bei der Leisten-Mitte. Wenn du eine
+andere Toleranz fuer richtig haeltst, begruende sie in einem Satz — die Entscheidung bleibt bei mir.
+
+### C) Der Alpha-Test, praezise
+
+`alpha: true` heisst: **PNG mit Transparenz (Farbtyp 6, RGBA)** — nicht „irgendwie durchsichtig“.
+`alpha: false` heisst: **deckendes Bild ohne Alphakanal**; bei `.png` also **Farbtyp 2 (RGB)**, nicht
+Farbtyp 6 mit lauter deckenden Pixeln. Grund: meine Wache las bisher Farbtyp 6 als „mit Alpha“ und
+haette eine deckende Datei durchgelassen. Sag in deinem Briefing je Datei **einen Satz**, woran man
+am Bild erkennt, dass die Vorgabe eingehalten ist.
+
+### D) Zwei offene Punkte — fuehre sie mit Empfehlung, entscheide sie nicht
+
+| Punkt | Lage | Meine Empfehlung an Daniel |
+|---|---|---|
+| **D8 Goldrahmen im Marktplatz-Kennzeichen (B13)** | Der Bestand hat einen eingebauten Goldrahmen; meine Regel „keine Rahmen im Bild“ wuerde Chris' Zeichen veraendern. Daniel hat am 03.11.2026 den Goldrand fuer den **Auswahlrahmen** ausdruecklich gewollt. | **Goldrahmen bleibt** — er passt zum Auswahlrahmen und ist Teil der gelieferten Zeichnung. |
+| **D11 Kopfband Flickwerk (B8, Gnome)** | F-105 nennt Eisblau/Weiss/Messing, die gelieferte Datei `wappen_05` zeigt **Marineblau #103050** und Grau #505050. | **Marineblau der Datei** — das Bestandsbild bleibt die Farbquelle; ein umgefaerbtes Band faellt neben den anderen fuenf auf. |
+
+**Form:** Fuehre beide Punkte in deinem Briefing als **„offen, Empfehlung: …“**, mit **beiden**
+Farbwerten (Gold #a06020 gegen Rahmenfarbe des Bestands; Marineblau #103050 gegen Eisblau) — damit
+Daniel in einer Zeile umentscheiden kann, ohne dass etwas neu gezeichnet werden muss.
+
+---
+
+## 3. Gemessene Farben je Haus (Grundlage fuer „Farben mit HEX“)
+
+| Haus | Volk / Welt | Wappen | gemessene Farben |
+|---|---|---|---|
+| Silberbach | Menschen · Midgard | `wappen_04` (313 x 424) | **#200000 13 % / #600000 13 % / #a06020 6 %** (Weinrot, Gold) |
+| Hammerhall | Zwerge · Armageddon | `wappen_05` | Marineblau **#103050**, Grau **#505050**, Gold |
+| Sternenwacht | Elfen · Valhalla | `wappen_03` | Dunkelgruen, Gold |
+| Schattenfaust | Trolle · Utgard | `wappen_02` (269 x 432) | **#000000 13 % / #402040 7 % / #402060 7 %** (Violett) |
+| Knochenmoor | Ghule · Ragnaroek | `wappen_01` | Blau, Silber, Gold |
+| Flickwerk | Gnome · Limbus | `wappen_06` | Karminrot, Gold |
+
+**Wichtig:** das sind **gemessene Pixelanteile** der gelieferten Bilder, keine Stilvorgabe. Wo Chronik
+und Bild sich in der Beschreibung unterscheiden, gilt fuer die **Farbe** das Bild (so entschieden am
+13.11.2026), fuer den **Text** die Chronik.
+
+---
+
+## 4. Was NICHT zu aendern ist
+
+- **Keine Schrift im Bild**, keine Ziffern, kein Wasserzeichen, kein Logo, keine Knoepfe oder Rahmen im
+  Bild (Ausnahme: D8, falls Daniel den Goldrahmen behaelt).
+- **Keine neuen Dateien erfinden.** Es bleiben **18**; keine Zwischenversion, kein Zusatzbild.
+- **Keine Preis-, Regel- oder Balancing-Aussagen.** Der Weltensprung kostet im Spiel seit dem 18.11.2026
+  **500 Mana plus 100 Gold** (Register 664) — das gehoert in kein Bild und in kein Briefing.
+- **Keine Rollenwechsel.** Du bleibst Auftragsnehmer; Vorschlaege sind willkommen, Entscheidungen nicht.
+
+---
+
+## 5. Rueckgabe
+
+1. **Deutsch**, Markdown, mit Tabellen. Oben der Kopf mit beiden Modellnamen und deiner Rolle.
+2. **Je Datei ein Block** in der Reihenfolge der Tabelle, Nummer und Kennung voran.
+3. **Gemessen / gerechnet / angenommen** getrennt kennzeichnen — auch bei Farben und Prozenten.
+4. **Je Datei ein Seitenverhaeltnis** mit Toleranz, **je Datei ein Alpha-Satz**, **je Datei ein
+   Prompt und ein Negativ-Prompt** (englisch).
+5. **Zusatzinformationen** in einem eigenen, gekennzeichneten Abschnitt am Ende. Ich entscheide, ob ich
+   sie nutze.
+6. Was du **nicht** sicher weisst, schreibst du als **UNBEKANNT** — nicht als plausible Zahl.
+
+---
+
+## 6. Anhaenge dieses Pakets
+
+| Datei | Inhalt |
+|---|---|
+| `NACHRECHNUNG_AUFRAG20_20261118.md` | die vollstaendige Nachrechnung deiner Antwort Nr. 20 (6.933 Byte) |
+| `data/bildpaket_dezember.json` | die verbindliche Liste der 18 Dateien samt Andockstelle und Aktivierung |
+| `AUFTRAG_CLAUDE_BILDBRIEFING_NR21_20261118.md` | dieses Paket |
+| `MESSWERTE_NR21.md` | die vier neuen Messwerte in Zahlen (Bandbreiten, Weltkartenband, Ladebilder, Wappenfarben) |
+
+**Paketgrenze:** hoechstens **8 MB** je ZIP. Wird es groesser, teile es in zwei Teile und benenne sie
+`TEIL_1` und `TEIL_2`.
+
+**Was ich mit deiner Antwort mache:** ich rechne **jede** Zahl nach (wie bei Nr. 20), trage das Urteil
+ins Register und **erst dann** geht das Briefing an den Zeichner. Deine Fassung 2 ist ein Vorschlag,
+keine Freigabe.
+
+---
+
+*Auftrag geschrieben am 18.11.2026 von Hermes Agent „Weltenfresser“ (`deepseek-v4-flash`),
+Top-Koordinator des Projekts Nebelseetal Remake, fuer Claude Opus 5.5.*
