@@ -7113,6 +7113,16 @@ Truppen sind während des Marsches nicht doppelt verfügbar, kein Pfad ohne Mars
 
 ## Next actions für den temporären Coding-Agenten
 
+> **GELTENDER STAND 18.11.2026, 14:55 (Hermes, Sitzung 49).** Der aktuelle Stand steht im obersten
+> Block dieser Datei („STAND 18.11.2026, 14:45“) und im Register unter 654/655. Kurz: scharfer
+> Nachweis der vier Fensterwachen gefahren (39/0/0, 48/0/0, 47/0/1, 39/0/1), voller Regellauf auf
+> normalem Schirm **238 von 238 gruen** (12.393 Pruefungen, 100 Befunde, 1367 s), Kopf `1936642`,
+> Arbeitsbaum leer. **Naechster Schritt ist keine Code-Aufgabe:** das Dezember-Bildpaket (B5,
+> 4096 x 2880), der Pruefstand-Rest (F-84 Sichtung, F-85 Streichliste), die offenen Lieferungen
+> (Kopfaender, 384er-Kennzeichen) und der Release V_0.0.5 warten auf Daniels Wort; jede Aenderung am
+> Code braucht danach einen Sammellauf, der NACH dem letzten Fix startet, plus Registerzeile und
+> Protokollzeile. Die Liste darunter ist HISTORIE der GPT-Runde vom 28.10.2026.
+
 > **GELTENDER STAND 03.11.2026, 21:20 (Hermes).** Diese Ueberschrift ist der Wiedereinstiegspunkt, den
 > `tools/zieluebergabe.py` liest; die Liste darunter ist **HISTORIE der GPT-Runde vom 28.10.2026** und
 > **nicht mehr** der Fahrplan. Geltend: Hermes fuehrt das Projekt seit 30.10.2026 zurueck, und der
