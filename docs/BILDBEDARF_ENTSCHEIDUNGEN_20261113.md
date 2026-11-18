@@ -40,6 +40,15 @@ Arbeitsregel 7. **Diese Datei ersetzt die Vorschlagsliste B1–B13, soweit Danie
 **Damit schrumpft der Dezember-Bedarf von 105 Bildern auf 16** (B1, B2 ×2, B5 ×2, B8 ×6, B9, B10 ×2,
 B12 ×3, B13 = 16; B4 ungezählt, weil ungeklärt).
 
+> **Nachtrag 18.11.2026 (nachgerechnet, Sitzung 49): die Aufzaehlung ergibt 18 Dateien, nicht 16.**
+> 1 + 2 + 2 + 6 + 1 + 2 + 3 + 1 = **18**. Es kommt kein Bild hinzu und keines faellt weg - die Zahl
+> 16 war ein Zaehlfehler an dieser Stelle, die acht Gruppen bleiben. Verbindlich ist jetzt
+> `data/bildpaket_dezember.json` (Sollwerte je Datei), die Bestellliste steht in
+> `docs/BILDPAKET_DEZEMBER_2026.md`, geprueft wird mit `python -X utf8 tools/bildpaket_pruefen.py`
+> (Wache `tests/test_bildpaket_dezember.py`). Die Massangaben in Abschnitt 2 bleiben unveraendert
+> richtig - sie sind 4x der Anzeige nach F-101 und ersetzen Claudes 2x-Vorschlaege aus Antwort Nr. 19
+> (B5 dort 2048 x 1440, B8 2254 x 434, B9 1840 x 1840).
+
 ---
 
 ## 3. Was das Portraitfoto betrifft (F-102, gebaut)

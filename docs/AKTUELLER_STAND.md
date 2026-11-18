@@ -1,3 +1,35 @@
+# STAND 18.11.2026, 15:35 - Dezember-Bildpaket bestellfertig, Zahl 16 auf 18 korrigiert (Sitzung 49, Register 656)
+
+**Kopf:** maßgeblich ist `git log -1` (die Projektregel: keine Zahl aus einer Datei, die der nächste Commit
+schon überholt). **Voller Sammellauf zu diesem Block:** 239 von 239 grün, 0 rot, 12.424 Prüfungen,
+100 Befunde, 1442 s (`sammellauf_20261118_1529.log`, Register 657). **Sitzung:** `18.11.26_V_0.0.4_Session_49`.
+
+## Was jetzt fuer den Dezember vorliegt
+
+- **`data/bildpaket_dezember.json`** - die EINE Quelle der Sollwerte: **18 Dateien** in acht Gruppen, je
+  mit Anzeigegroesse, Sollgroesse (4x, F-101), Format, Alpha, Zielpfad, Andockstelle und Aktivierung.
+- **`tools/bildpaket_pruefen.py`** - misst jede gelieferte Datei am Dateikopf (PNG IHDR, JPEG SOF) und
+  urteilt `fehlt` / `zu klein` / `kein Alpha` / `Format` / `kaputt` / `ok`. Ohne Pillow, damit es
+  ueberall laeuft; abgeschnittene Dateien fallen auf. `--streng` gibt Code 1, solange etwas fehlt.
+- **`tests/test_bildpaket_dezember.py`** - **27/0/0**: prueft die Liste, die Pfade, die drei fest
+  eingetragenen Andockstellen, das Messen an sechs erfundenen Dateien und die Gegenprobe (leer = 18 x fehlt).
+- **`docs/BILDPAKET_DEZEMBER_2026.md`** - Bestellliste, erzeugt aus der Datendatei, mit den Regeln und der
+  F-106-Vorlage fuer hochgerechnete Dateien.
+
+## Die Zahl korrigiert: 18, nicht 16
+
+Die Aufzaehlung in `docs/BILDBEDARF_ENTSCHEIDUNGEN_20261113.md` ergibt 1 + 2 + 2 + 6 + 1 + 2 + 3 + 1 =
+**18** Dateien. Die dort genannte 16 war ein Zaehlfehler; kein Bild kommt hinzu, keines faellt weg.
+
+## Was noch fehlt
+
+- **0 von 18 Dateien** liegen vor (ehrlicher Ist-Stand). 16 haben eine Andockstelle im Code oder in einer
+  Datendatei; die **zwei Endstuecke der Ressourcenleiste** (B12 links/rechts) brauchen noch einen kleinen
+  Code-Schnitt, weil `main._leiste_kachel_bild` heute genau eine Banddatei liest.
+- **Guthaben (Daniel, 18.11.2026): 2,21 USD** Restguthaben, Gesamtkosten **77,78 USD**.
+
+---
+
 # STAND 18.11.2026, 14:45 - Fensterwachen scharf belegt, voller T4 gruen (Sitzung 49, Register 654/655)
 
 **Kopf:** `8543b17` = Remote, Arbeitsbaum leer. **Sitzung:** `18.11.26_V_0.0.4_Session_49`.
