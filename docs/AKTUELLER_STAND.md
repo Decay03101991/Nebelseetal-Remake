@@ -1,3 +1,30 @@
+# STAND 18.11.2026, 22:45 - Auftrag Nr. 22 fertig, Hausfarben-Regel entschieden (Register 673/674)
+
+**Kopf:** maßgeblich ist `git log -1`. Sitzung `18.11.26_V_0.0.5_Session_01`.
+
+## Was in dieser Stunde dazugekommen ist
+
+1. **Hausfarben-Regel** (Daniel: „die farben dürfen sich an den burgen orientieren aber … mit der
+   geschichte stimmig“): **Heraldik** (Wappen, Banner) trägt die Farben der **Chronik**; **Szene** (Burg,
+   Landschaft) die Farben der **gelieferten Burg**; im Bild gibt die Szene den Grundton, die Heraldik den
+   Akzent. Gemessen: vier von sechs Häusern stimmen mit der Chronik, Widerspruch nur bei **Trollen**
+   (Burg grün/oliv gegen „Rot, Schwarz und Gold“) und **Gnomen** (Burg eisblau gegen „Grau, Schwarz und
+   Gold“). Chronik und `data/haeuser.json` bleiben unverändert. Blatt:
+   `docs/HAUSFARBEN_REGEL_20261118.md`.
+2. **Auftrag Nr. 22** für Claude Opus 5.5: die abgabefähige **Zeichner-Fassung (Fassung 3)** — vier
+   Entscheidungen verbindlich, Elfenwappen berichtigt, je Datei sieben Felder, Anhang mit allen Prompts,
+   Abnahme in Zahlen, 10-Sekunden-Checks, **Pflichtabschnitt 2.6 „Heraldik und Szene“**. Paket: .md 12.054
+   Byte, .txt 12.236, ZIP 27.107 Byte (sieben Dateien); `.txt` und ZIP hashgleich auf dem Desktop.
+
+## Was als Nächstes ansteht
+
+1. **Auftrag Nr. 22 absenden** (Daniel), danach Fassung 3 nachrechnen.
+2. **Werkzeuglücken vor der Bilder-Abnahme:** PNG-Farbtyp (6 gegen 2) und Seitenverhältnis prüfen.
+3. **Abweichungsregister** pflegen, Registerzeilen 594/595 nachtragen.
+4. **Bilder** 0 von 18, **sechs Wappen** blockiert bis zum Aufladen, **Bildschirmfoto** braucht Daniel.
+
+---
+
 # STAND 18.11.2026, 22:05 - F-52 grün (241/241) und die Wappen der Besucherseite berichtigt (Register 670/671)
 
 **Kopf:** maßgeblich ist `git log -1`. **Sammellauf:** **241 von 241 grün, 0 rot, 2 ausgesetzt**, 243 Dateien,
