@@ -61,7 +61,11 @@ nachgerechnet:** a9 +19, a10 +31, dorfzentrum_ansicht +47, -geometrie +39, `test
 ## Was als naechstes dran ist (jedes braucht Daniels Wort)
 
 * **Dezember-Bildpaket (B5, 4096 x 2880)** vorbereiten - bildschirmunabhaengig, kann sofort laufen.
-* **Pruefstand-Rest** (F-84 Sichtung, F-85 Streichliste) - 2 bis 3 Arbeitstakte.
+* **Pruefstand-Rest: ERLEDIGT, nicht offen (berichtigt 18.11.2026, 17:2x).** F-84 (Sichtung der 42
+  Pruefnamen: 9 von 42 gedeckt, 33 offen, nichts uebertragen - `docs/SICHTUNG_PRUEFNAMEN_RESSOURCENLEISTE_20261113.md`)
+  und F-85 (drei Kandidaten von der Streichliste, Dateien unangetastet) sind am 13.11.2026 gebaut
+  (Commits `2a4916f`, `cb4727f`). Diese Zeile hatte sie faelschlich als offene Arbeit gefuehrt. Offen
+  bleibt nur die fehlende Registerzeile 594/595 aus der bekannten Kette-Luecke 543-649.
 * **Lieferungen** Kopfaender, 384er-Kennzeichen, B5 - offen bei Daniel.
 * **Oeffentliche Demo / Release V_0.0.5** (das 1. Designupdate) - eigener Termin, Reihenfolge in
   `docs/ARBEITSPLAN_AB_20261105.md`.
